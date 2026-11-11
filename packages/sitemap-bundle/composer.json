@@ -21,7 +21,7 @@
     "require": {
         "php": ">=8.5",
         "ext-zlib": "*",
-        "phil/sitemap": "^0.1.1@alpha",
+        "phil/sitemap": "^0.1.1@dev",
         "psr/clock": "^1.0",
         "psr/event-dispatcher": "^1.0",
         "symfony/clock": "^8.2",
