@@ -1,0 +1,10 @@
+{
+    "type": "component",
+    "name": "Image",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    },
+    "dependencies": {
+        "composer": ["symfony/ux-twig-component:^3.7", "twig/extra-bundle:^3.24", "twig/html-extra:^3.24"]
+    }
+}

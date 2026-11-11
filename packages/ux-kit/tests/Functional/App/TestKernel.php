@@ -13,6 +13,7 @@ use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\UX\TwigComponent\TwigComponentBundle;
+use Twig\Extra\TwigExtraBundle\TwigExtraBundle;
 
 /**
  * An application where every recipe of the kit is installed as ux:install would: each recipe's `templates/` is a
@@ -30,6 +31,8 @@ final class TestKernel extends Kernel
         yield new FrameworkBundle();
         yield new TwigBundle();
         yield new TwigComponentBundle();
+        // html_attr(), which the Image recipe writes its attributes with, as an application installing it registers it.
+        yield new TwigExtraBundle();
         // @phpstan-ignore generator.valueType (a bundle of the dependency injection component, which the kernel registers too)
         yield new PhilQrCodeBundle();
     }

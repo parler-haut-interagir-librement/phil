@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4beb803821ae68ca027b4c13f5abddf71912cc93e98a2466fb450d243e00ce98 -->
+<!-- phil-dev source-sha256=263dd113405838754eb8a38b7f5dcc7c7acbf12a5b6684b955370a33abb24f32 -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -81,6 +81,45 @@ sinon.
 | `sizes` | `null` | Le `sizes` d'une source adaptative |
 
 Aucune candidate ne produit rien.
+
+## Image
+
+La recette `image` contient deux composants, sous les noms de props de Symfony UX Image ; aucun service, aucun
+JavaScript, aucun style en ligne.
+
+`<twig:Image>` : une `img` de classe `isImage`.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `src` | requis | L'URL de l'image |
+| `alt` | requis | Ce que l'image montre ; vide pour une image décorative |
+| `width`, `height` | requis | La taille de l'image : sa place est réservée à son rapport avant qu'elle se charge |
+| `srcset` | `null` | Les candidates telles que HTML les écrit, ou un tableau de densités (`2x`), ou de largeurs avec `sizes` (`480w`), vers des URL |
+| `sizes` | `null` | Écrit avec un `srcset`, après `auto,` tant que l'image se charge en différé |
+| `priority` | `false` | L'image principale au-dessus de la ligne de flottaison : `loading="eager"`, `fetchpriority="high"`, aucun `decoding` |
+| `loading` | `null` | `lazy` ou `eager`, qui l'emporte sur `priority` ; `lazy` quand il est nul sans `priority` |
+| `decoding` | `null` | `async`, `sync` ou `auto`, qui l'emporte sur `priority` ; `async` quand il est nul sans `priority` |
+
+`<twig:Picture>` : une `picture` dont les éléments `source`, dans l'ordre donné, précèdent une `Image` qui porte le
+repli ; l'`Image` seule quand il ne reste aucune source.
+
+| Prop | Par défaut | |
+|---|---|---|
+| Les props d'`Image` | | Portées par l'`img` de repli ; `sizes` sert aussi les sources qui n'en ont pas |
+| `sources` | `[]` | Chacune `{type, srcset, sizes, media}`, l'AVIF d'abord : `type` un type `image/*` ou absent, `srcset` comme pour `Image`, `media` pour la direction artistique |
+
+Les autres attributs vont à l'`img`, pas à une racine, et seulement `id`, `class` (ajoutée à `isImage`), `title`,
+`crossorigin`, `referrerpolicy`, `itemprop`, `draggable`, `data-*` et `aria-*`, écrits avec `html_attr()` de
+`twig/html-extra` ; une image décorative laisse aussi de côté `title` et `aria-*`, qui la nommeraient. Une valeur de
+`loading` ou de `decoding` hors de celles listées revient à la valeur par défaut. Une URL `javascript:`, `vbscript:`
+ou `data:` autre que `data:image/` est refusée, quelle que soit sa casse, après des espaces ou des caractères de
+contrôle, ou coupée par des tabulations et des sauts de ligne : un `src` refusé ne produit rien, un `srcset` refusé
+est laissé de côté en entier, comme une source qui contient une URL refusée, n'a aucune candidate ou a un autre type
+qu'`image/*`.
+
+Les props gardent les noms et le sens de celles de Symfony UX Image, le chargement différé par défaut compris, pour
+qu'une page passe de l'un à l'autre en changeant la balise ; la recette ne construit aucune URL et ne transforme aucune
+image.
 
 ## ReactionButton
 

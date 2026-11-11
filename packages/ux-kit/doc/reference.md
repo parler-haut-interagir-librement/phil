@@ -14,6 +14,8 @@
 | `animated-headline/assets/controllers/animated_headline_controller.js` | The Stimulus controller `animated-headline`, `next()`, `timing()` and `BUDGET` |
 | `illustration/manifest.json`, `illustration/README.md` | The `Illustration` recipe |
 | `illustration/templates/components/Illustration.html.twig` | The `Illustration` component |
+| `image/manifest.json`, `image/README.md` | The `Image` recipe |
+| `image/templates/components/` | The `Image` and `Picture` components |
 | `autosave-status/manifest.json`, `autosave-status/README.md` | The `AutosaveStatus` recipe |
 | `autosave-status/templates/components/AutosaveStatus.html.twig` | The `AutosaveStatus` component |
 | `reaction-button/manifest.json`, `reaction-button/README.md` | The `ReactionButton` recipe |

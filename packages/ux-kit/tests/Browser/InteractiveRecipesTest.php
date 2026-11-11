@@ -495,6 +495,23 @@ final class InteractiveRecipesTest extends BrowserTestCase
         $this->browser()->manage()->window()->setSize(new WebDriverDimension(1280, 800));
     }
 
+    /**
+     * A picture wider than a phone shrinks to its container and keeps the ratio of its width and height.
+     */
+    #[DataProvider('modes')]
+    public function testAnImageFitsAPhoneAtItsRatio(string $page): void
+    {
+        $this->browser()->manage()->window()->setSize(new WebDriverDimension(375, 800));
+        $this->open($page);
+
+        self::assertSame(
+            ['block', true, true],
+            $this->read('(() => { const image = document.querySelector("#photo"), box = image.getBoundingClientRect(), parent = image.closest("section").getBoundingClientRect(); return [getComputedStyle(image).display, box.width <= parent.width + 0.5, Math.abs(box.width / box.height - 2) < 0.02]; })()'),
+        );
+
+        $this->browser()->manage()->window()->setSize(new WebDriverDimension(1280, 800));
+    }
+
     public function testTheDarkThemeRepaintsThePanels(): void
     {
         $this->open('index.html');

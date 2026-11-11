@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=56658f596c983f97ca18744873a6ec7dd89633a80c54bedcc02cff4707195c8e -->
+<!-- phil-dev source-sha256=944a7734160a47c2171c607ea612c23623c02d126dfe7560538dceba497e2b90 -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -15,6 +15,8 @@
 | `animated-headline/assets/controllers/animated_headline_controller.js` | Le contrôleur Stimulus `animated-headline`, `next()`, `timing()` et `BUDGET` |
 | `illustration/manifest.json`, `illustration/README.md` | La recette `Illustration` |
 | `illustration/templates/components/Illustration.html.twig` | Le composant `Illustration` |
+| `image/manifest.json`, `image/README.md` | La recette `Image` |
+| `image/templates/components/` | Les composants `Image` et `Picture` |
 | `autosave-status/manifest.json`, `autosave-status/README.md` | La recette `AutosaveStatus` |
 | `autosave-status/templates/components/AutosaveStatus.html.twig` | Le composant `AutosaveStatus` |
 | `reaction-button/manifest.json`, `reaction-button/README.md` | La recette `ReactionButton` |

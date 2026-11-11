@@ -20,6 +20,7 @@ either kit, and adds recipes of its own. Their Tailwind versions, under the same
 | [Logo](logo/README.md) | component | A picture with an optional WebP source, swapped by theme or locale, linked home; `alt` required | Implemented and tested |
 | [AnimatedHeadline](animated-headline/README.md) | component | A headline whose words are revealed through a clip, played through once, or cycled with a pause button; still under reduced motion; read whole by screen readers | Implemented and tested |
 | [Illustration](illustration/README.md) | component | A figure showing one picture chosen among candidates on the server, by a seedable random | Implemented and tested |
+| [Image](image/README.md) | component | An image of the content, `Image` or `Picture` with its AVIF and WebP sources, by density or by width, under the prop names of Symfony UX Image; no service, no JavaScript, refused `javascript:` and `data:` URLs | Implemented and tested |
 | [AutosaveStatus](autosave-status/README.md) | component | The live region and the notice of a form's draft, for the autosave controller of `phil/forms-autosave` | Implemented and tested |
 | [ReactionButton](reaction-button/README.md) | component | One reaction of `phil/reactions-bundle`: a button that says it is pressed, or plain text; a target wide and tall enough for a finger | Implemented and tested |
 | [ReactionPicker](reaction-picker/README.md) | component | The other reactions of `phil/reactions-bundle`: a disclosure of plain buttons, for the picker controller of the bundle | Implemented and tested |
@@ -115,9 +116,9 @@ php bin/console ux:install coming-soon --kit=github.com/parler-haut-interagir-li
 
 ## Requirements
 
-Symfony UX Twig Component 3.7 or later; Symfony UX Toolkit 3.7 or later to install the recipes; the StimulusBundle
-for the recipes that move; `phil/qr-code-bundle` for `QrCode`; Symfony UX Chart.js for `ChartJs`; the phil-ux
-stylesheet of `phil/ux-css`.
+Symfony UX Twig Component 3.7 or later; Symfony UX Toolkit 3.7 or later to install the recipes; the StimulusBundle for
+the recipes that move; `twig/extra-bundle` and `twig/html-extra` for `Image`; `phil/qr-code-bundle` for `QrCode`;
+Symfony UX Chart.js for `ChartJs`; the phil-ux stylesheet of `phil/ux-css`.
 
 ## Contributing
 

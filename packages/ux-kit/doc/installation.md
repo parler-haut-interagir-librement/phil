@@ -34,6 +34,7 @@ Copy the files of the recipes the page needs, from this directory, keeping their
 | AnimatedHeadline | `animated-headline/templates/components/AnimatedHeadline.html.twig` | `templates/components/AnimatedHeadline.html.twig` |
 | AnimatedHeadline | `animated-headline/assets/controllers/animated_headline_controller.js` | `assets/controllers/animated_headline_controller.js` |
 | Illustration | `illustration/templates/components/Illustration.html.twig` | `templates/components/Illustration.html.twig` |
+| Image | `image/templates/components/` | `templates/components/` |
 | AutosaveStatus | `autosave-status/templates/components/AutosaveStatus.html.twig` | `templates/components/AutosaveStatus.html.twig` |
 | ReactionButton | `reaction-button/templates/components/ReactionButton.html.twig` | `templates/components/ReactionButton.html.twig` |
 | ReactionPicker | `reaction-picker/templates/components/ReactionPicker.html.twig` | `templates/components/ReactionPicker.html.twig` |

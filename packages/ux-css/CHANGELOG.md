@@ -4,6 +4,13 @@ All notable changes to `phil/ux-css` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.1.1-alpha - 2026-11-11
+
+### Added
+
+- `css/layers/components.css`: `isImage`, an image of the content as a block, never wider than its container, its
+  height following its width, for the `Image` and `Picture` components of the PHIL UX kit.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

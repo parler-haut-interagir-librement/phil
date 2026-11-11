@@ -1,0 +1,48 @@
+{#-
+ # An image: one img, under the prop names of Symfony UX Image, without a service, a script or an inline style. A
+ # javascript:, vbscript: or data: URL other than data:image/ is refused: a refused src renders nothing, a refused
+ # srcset is left out whole.
+ #}
+{%- props
+    ## string The URL of the image.
+    src,
+    ## string The text alternative; an empty string for a decorative image, which screen readers then skip.
+    alt,
+    ## int The width of the image, so that its space is reserved at its ratio before it loads.
+    width,
+    ## int The height of the image, so that its space is reserved at its ratio before it loads.
+    height,
+    ## string|array<int|string,string>|null The candidates as HTML writes them, or a map of densities, or of widths with sizes, to URLs.
+    srcset = null,
+    ## string|null The sizes of a srcset of widths, preceded by "auto, " while the image loads lazily.
+    sizes = null,
+    ## bool Whether it is the main image above the fold: loaded eagerly and fetched first, its decoding left to the browser.
+    priority = false,
+    ## string|null How it loads, "lazy" or "eager": "lazy" by default, "eager" with priority.
+    loading = null,
+    ## string|null How it is decoded, "async", "sync" or "auto": "async" by default, none written with priority.
+    decoding = null
+-%}
+{%- set _refused = '#(^|,)[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i' -%}
+{%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
+{%- if src is not empty and not (src|replace(_controls) matches _refused) -%}
+    {%- set _loading = loading in ['lazy', 'eager'] ? loading : (priority ? 'eager' : 'lazy') -%}
+    {%- set _srcset = srcset is iterable ? srcset|map((url, key) => url ~ ' ' ~ key ~ (sizes is empty ? 'x' : 'w'))|join(', ') : srcset -%}
+    {%- set _srcset = _srcset is empty or _srcset|replace(_controls) matches _refused ? null : _srcset -%}
+    {%- set _sizes = _srcset is null or sizes is empty ? null : (_loading is same as('lazy') and not (sizes|lower starts with 'auto') ? 'auto, ' ~ sizes : sizes) -%}
+    {%- set _allowed = alt is same as('')
+        ? '#^(id|crossorigin|referrerpolicy|itemprop|draggable|data-[a-z0-9-]+)$#'
+        : '#^(id|title|crossorigin|referrerpolicy|itemprop|draggable|(data|aria)-[a-z0-9-]+)$#' -%}
+    <img {{ html_attr({
+        class: ('isImage ' ~ (attributes.all.class ?? ''))|trim,
+        src: src,
+        srcset: _srcset,
+        sizes: _sizes,
+        alt: alt,
+        width: width,
+        height: height,
+        loading: _loading,
+        decoding: decoding in ['async', 'sync', 'auto'] ? decoding : (priority ? null : 'async'),
+        fetchpriority: priority ? 'high' : null,
+    }, attributes.all|filter((value, name) => name matches _allowed)) }}>
+{%- endif -%}

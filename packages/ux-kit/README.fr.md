@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=58a5ac0ae17563449e06d1d5d590942502da5f2e6907f6a6af1b022deb4c9f7b -->
+<!-- phil-dev source-sha256=2073484c0451fed747f26d568dfc002ceee463f20e8141d538ccffacde1d5173 -->
 # phil/ux-kit
 
 **Le kit PHIL UX pour le Symfony UX Toolkit : les mêmes recettes que le kit Shadcn, habillées par phil-ux, installées
@@ -21,6 +21,7 @@ noms et props, sont le kit [`phil/ux-kit-shadcn`](https://github.com/parler-haut
 | [Logo](logo/README.md) | composant | Une image avec une source WebP facultative, changée selon le thème ou la locale, avec un lien vers l'accueil ; `alt` requis | Implémenté et testé |
 | [AnimatedHeadline](animated-headline/README.md) | composant | Un titre dont les mots se révèlent par un découpage, joué une fois ou en boucle avec un bouton de pause ; immobile sous le mouvement réduit ; lu en entier par les lecteurs d'écran | Implémenté et testé |
 | [Illustration](illustration/README.md) | composant | Une figure qui montre une image choisie parmi des candidates sur le serveur, par un tirage aléatoire à germe | Implémenté et testé |
+| [Image](image/README.md) | composant | Une image du contenu, `Image` ou `Picture` avec ses sources AVIF et WebP, par densité ou par largeur, sous les noms de props de Symfony UX Image ; aucun service, aucun JavaScript, les URL `javascript:` et `data:` refusées | Implémenté et testé |
 | [AutosaveStatus](autosave-status/README.md) | composant | La région active et l'avis du brouillon d'un formulaire, pour le contrôleur d'enregistrement automatique de `phil/forms-autosave` | Implémenté et testé |
 | [ReactionButton](reaction-button/README.md) | composant | Une réaction de `phil/reactions-bundle` : un bouton qui dit s'il est enfoncé, ou du texte simple ; une cible assez large et haute pour un doigt | Implémenté et testé |
 | [ReactionPicker](reaction-picker/README.md) | composant | Les autres réactions de `phil/reactions-bundle` : un dévoilement de simples boutons, pour le contrôleur de sélection du bundle | Implémenté et testé |
@@ -117,8 +118,8 @@ php bin/console ux:install coming-soon --kit=github.com/parler-haut-interagir-li
 ## Prérequis
 
 Symfony UX Twig Component 3.7 ou plus récent ; Symfony UX Toolkit 3.7 ou plus récent pour installer les recettes ; le
-StimulusBundle pour les recettes qui bougent ; `phil/qr-code-bundle` pour `QrCode` ; Symfony UX Chart.js pour
-`ChartJs` ; la feuille de style phil-ux de `phil/ux-css`.
+StimulusBundle pour les recettes qui bougent ; `twig/extra-bundle` et `twig/html-extra` pour `Image` ;
+`phil/qr-code-bundle` pour `QrCode` ; Symfony UX Chart.js pour `ChartJs` ; la feuille de style phil-ux de `phil/ux-css`.
 
 ## Contribuer
 

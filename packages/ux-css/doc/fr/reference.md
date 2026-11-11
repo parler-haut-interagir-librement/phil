@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a2d87a919320fc05daa3eb9afad2d2b31c87f4a8d45e637116eed7ab194605e3 -->
+<!-- phil-dev source-sha256=f6577f7d6f244914ebf7bb6c513497710cf770f810f8f80e1125da11f97b9659 -->
 # Référence
 
 ## Fichiers
@@ -33,7 +33,7 @@
 | Formulaires | `isField` `isHorizontal` `isResponsive` `isFieldSet` `isToggle` `isToggleInput` `isToggleGroup` `isRadioGroup` `isLoginForm` `isSignupForm` |
 | Listes et boîtes | `isItem` `isItemGroup` `isScrollArea` `isAspectRatio` `isCollapsible` `isKbdGroup` |
 | Graphiques | `isChart` `isChartImage` `isChartSeries` `isChartBar` `isChartLine` `isChartLegend` `isChartTable` `hasChartJs` `isChartCanvas` |
-| Affichage | `isEyebrow` `isHeadline` `isReveal` `isRevealToggle` `isLogo` `isProse` `isReaction` `isReactionPicker` `isReactionPickerPanel` |
+| Affichage | `isEyebrow` `isHeadline` `isReveal` `isRevealToggle` `isLogo` `isImage` `isProse` `isReaction` `isReactionPicker` `isReactionPickerPanel` |
 | Mise en page | `isStack` `isCluster` `isGrid` `isCenter` `isNarrow` `isSplit` `isFullHeight` `isCover` `isCoverBody` `isBleed` `hasEntrance` |
 | Utilitaires | `isVisuallyHidden` `isSkipLink` `isMuted` `isGrow` |
 

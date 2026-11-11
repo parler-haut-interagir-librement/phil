@@ -72,6 +72,7 @@ final class KitTest extends TestCase
         'field' => ['component', 'Field'],
         'file-input' => ['component', 'FileInput'],
         'illustration' => ['component', 'Illustration'],
+        'image' => ['component', 'Image'],
         'input' => ['component', 'Input'],
         'item' => ['component', 'Item'],
         'kbd' => ['component', 'Kbd'],

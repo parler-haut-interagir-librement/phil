@@ -4,6 +4,20 @@ All notable changes to `phil/ux-kit` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.1.1-alpha - 2026-11-11
+
+### Added
+
+- The recipe `image`, under the prop names of Symfony UX Image, without a service, JavaScript or inline style: `Image`,
+  one `img` of class `isImage`, and `Picture`, its `sources` (`{type, srcset, sizes, media}`, AVIF first) before that
+  `img`; `src`, `alt`, `width` and `height` required, an empty `alt` making the image decorative, its `title` and
+  `aria-*` attributes then left out; `srcset` as HTML writes it or a map of densities, or of widths with `sizes`;
+  `sizes` after `auto,` while the image loads lazily; `loading="lazy"` and `decoding="async"` by default, `priority`
+  giving `loading="eager"` and `fetchpriority="high"`; of the other attributes, only `id`, `class`, `title`,
+  `crossorigin`, `referrerpolicy`, `itemprop`, `draggable`, `data-*` and `aria-*`, written with `html_attr()` of
+  `twig/html-extra`, which the recipe requires with `twig/extra-bundle`; a `javascript:`, `vbscript:` or `data:` URL
+  other than `data:image/` refused, a refused `src` rendering nothing, a refused `srcset` or source left out whole.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

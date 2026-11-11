@@ -206,6 +206,12 @@ animated words are meant to be `aria-hidden`, with the whole headline in an `isV
 
 `isLogo`: an inline block whose image is `--phil-logo-size` high (3rem), its width from its ratio.
 
+## The image
+
+`isImage`: an image of the content as a block, never wider than its container, its height following its width, so
+that the `width` and `height` written on it reserve its space at its ratio before it loads without stretching it
+once the container is narrower.
+
 ## Reactions
 
 `isReaction`: one reaction, a target 2.75rem wide and tall whatever it holds, marked when its `aria-pressed` is true;

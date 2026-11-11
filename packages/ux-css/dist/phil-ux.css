@@ -1344,6 +1344,14 @@
         block-size: var(--phil-logo-size, 3rem);
     }
 
+    /* An image of the content: a block as wide as its own width allows, never wider than its container, its height from
+       its ratio once width and height are given. */
+    .isImage {
+        display: block;
+        max-inline-size: 100%;
+        block-size: auto;
+    }
+
     /* Long text written by people: a readable measure, a steady rhythm between blocks, headings that breathe. */
     .isProse {
         max-inline-size: var(--phil-measure);

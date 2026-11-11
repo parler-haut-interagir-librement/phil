@@ -1,0 +1,51 @@
+{#-
+ # A picture: its sources in the order given, AVIF first, before the Image that holds the fallback, under the prop names
+ # of Symfony UX Image. The other attributes go to the img. A source of another type than image/*, without candidates or
+ # holding a refused URL is left out; a refused src renders nothing.
+ #}
+{%- props
+    ## string The URL of the fallback image, for the browsers that read none of the sources.
+    src,
+    ## string The text alternative; an empty string for a decorative image, which screen readers then skip.
+    alt,
+    ## int The width of the image, so that its space is reserved at its ratio before it loads.
+    width,
+    ## int The height of the image, so that its space is reserved at its ratio before it loads.
+    height,
+    ## list<array{type?:string,srcset:string|array<int|string,string>,sizes?:string,media?:string}> The sources, each a type, its candidates as for srcset, its sizes and its media.
+    sources = [],
+    ## string|array<int|string,string>|null The candidates of the fallback as HTML writes them, or a map of densities, or of widths with sizes, to URLs.
+    srcset = null,
+    ## string|null The sizes of the fallback and of the sources that have none, preceded by "auto, " while the image loads lazily.
+    sizes = null,
+    ## bool Whether it is the main image above the fold: loaded eagerly and fetched first, its decoding left to the browser.
+    priority = false,
+    ## string|null How it loads, "lazy" or "eager": "lazy" by default, "eager" with priority.
+    loading = null,
+    ## string|null How it is decoded, "async", "sync" or "auto": "async" by default, none written with priority.
+    decoding = null
+-%}
+{%- set _refused = '#(^|,)[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i' -%}
+{%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
+{%- if src is not empty and not (src|replace(_controls) matches _refused) -%}
+    {%- set _lazy = (loading in ['lazy', 'eager'] ? loading : (priority ? 'eager' : 'lazy')) is same as('lazy') -%}
+    {%- set _sources = [] -%}
+    {%- for source in sources -%}
+        {%- set _type = source.type ?? null -%}
+        {%- set _sizes = source.sizes ?? sizes -%}
+        {%- set _set = source.srcset ?? null -%}
+        {%- set _set = _set is iterable ? _set|map((url, key) => url ~ ' ' ~ key ~ (_sizes is empty ? 'x' : 'w'))|join(', ') : _set -%}
+        {%- if _set is not empty and not (_set|replace(_controls) matches _refused) and (_type is null or _type matches '#^image/[a-z0-9.+-]+$#') -%}
+            {%- set _sources = _sources|merge([{
+                type: _type,
+                srcset: _set,
+                sizes: _sizes is empty ? null : (_lazy and not (_sizes|lower starts with 'auto') ? 'auto, ' ~ _sizes : _sizes),
+                media: source.media ?? null,
+            }]) -%}
+        {%- endif -%}
+    {%- endfor -%}
+    {%- if _sources is not empty -%}<picture>{%- endif -%}
+    {%- for source in _sources -%}<source {{ html_attr(source) }}>{%- endfor -%}
+    <twig:Image :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :priority="priority" :loading="loading" :decoding="decoding" {{ ...attributes.all }} />
+    {%- if _sources is not empty -%}</picture>{%- endif -%}
+{%- endif -%}

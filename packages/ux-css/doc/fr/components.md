@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=57210fdd62d41fe57374ef7b38542a1ad5cc9082a2aed90c6724f3f5a8a5bd2a -->
+<!-- phil-dev source-sha256=94cf63edc27790f7f87de271c0aae802fe589c7da3c825c954919fe6c100b14d -->
 # Composants
 
 Ce que la base sans classe ne peut pas deviner, dans la couche `phil.components`, et les utilitaires, en tout dernier.
@@ -215,6 +215,12 @@ transition. Les mots animés sont faits pour être `aria-hidden`, le titre entie
 ## Le logo
 
 `isLogo` : un bloc en ligne dont l'image fait `--phil-logo-size` de haut (3rem), sa largeur d'après son rapport.
+
+## L'image
+
+`isImage` : une image du contenu en bloc, jamais plus large que son conteneur, sa hauteur suivant sa largeur, pour que
+les `width` et `height` écrits sur elle réservent sa place à son rapport avant qu'elle se charge, sans l'étirer quand
+le conteneur est plus étroit.
 
 ## Réactions
 

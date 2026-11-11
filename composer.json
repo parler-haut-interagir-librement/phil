@@ -103,6 +103,8 @@
         "symfony/validator": "^8.2",
         "symfony/workflow": "^8.2",
         "symfony/yaml": "^8.2",
+        "twig/extra-bundle": "^3.24",
+        "twig/html-extra": "^3.24",
         "twig/twig": "^3.21",
         "zircote/swagger-php": "^7.1"
     },

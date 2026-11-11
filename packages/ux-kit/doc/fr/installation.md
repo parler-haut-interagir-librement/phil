@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3d97f2135f12f6ef9c87901ee06dea467e174fb8bea3ce44c23883966669a2b8 -->
+<!-- phil-dev source-sha256=0046c7593abeda2385330e12d40a35135a561086bc2a87f0bda8b0b4b730702c -->
 # Installation
 
 ## La feuille de style
@@ -35,6 +35,7 @@ Copiez les fichiers des recettes dont la page a besoin, depuis ce dossier, en ga
 | AnimatedHeadline | `animated-headline/templates/components/AnimatedHeadline.html.twig` | `templates/components/AnimatedHeadline.html.twig` |
 | AnimatedHeadline | `animated-headline/assets/controllers/animated_headline_controller.js` | `assets/controllers/animated_headline_controller.js` |
 | Illustration | `illustration/templates/components/Illustration.html.twig` | `templates/components/Illustration.html.twig` |
+| Image | `image/templates/components/` | `templates/components/` |
 | AutosaveStatus | `autosave-status/templates/components/AutosaveStatus.html.twig` | `templates/components/AutosaveStatus.html.twig` |
 | ReactionButton | `reaction-button/templates/components/ReactionButton.html.twig` | `templates/components/ReactionButton.html.twig` |
 | ReactionPicker | `reaction-picker/templates/components/ReactionPicker.html.twig` | `templates/components/ReactionPicker.html.twig` |

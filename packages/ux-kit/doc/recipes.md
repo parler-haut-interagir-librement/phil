@@ -79,6 +79,43 @@ word again on resize, and removes its listeners and its timer on disconnect.
 
 No candidate renders nothing.
 
+## Image
+
+The `image` recipe holds two components, under the prop names of Symfony UX Image; no service, no JavaScript, no
+inline style.
+
+`<twig:Image>`: an `img` of class `isImage`.
+
+| Prop | Default | |
+|---|---|---|
+| `src` | required | The URL of the image |
+| `alt` | required | What the image shows; empty for a decorative image |
+| `width`, `height` | required | The image's size: its space is reserved at its ratio before it loads |
+| `srcset` | `null` | The candidates as HTML writes them, or a map of densities (`2x`), or of widths with `sizes` (`480w`), to URLs |
+| `sizes` | `null` | Written with a `srcset`, after `auto,` while the image loads lazily |
+| `priority` | `false` | The main image above the fold: `loading="eager"`, `fetchpriority="high"`, no `decoding` |
+| `loading` | `null` | `lazy` or `eager`, overriding `priority`; `lazy` when null without `priority` |
+| `decoding` | `null` | `async`, `sync` or `auto`, overriding `priority`; `async` when null without `priority` |
+
+`<twig:Picture>`: a `picture` whose `source` elements, in the order given, precede an `Image` holding the fallback;
+the `Image` alone when no source is left.
+
+| Prop | Default | |
+|---|---|---|
+| The props of `Image` | | Carried by the fallback `img`; `sizes` also serves the sources that have none |
+| `sources` | `[]` | Each `{type, srcset, sizes, media}`, AVIF first: `type` an `image/*` type or left out, `srcset` as for `Image`, `media` for art direction |
+
+The other attributes go to the `img`, not to a root, and only `id`, `class` (added to `isImage`), `title`,
+`crossorigin`, `referrerpolicy`, `itemprop`, `draggable`, `data-*` and `aria-*`, written with `html_attr()` of
+`twig/html-extra`; a decorative image also leaves out `title` and `aria-*`, which would name it. A value of `loading`
+or `decoding` outside the listed ones falls back to the default. A `javascript:`, `vbscript:` or `data:` URL other
+than `data:image/` is refused, in whatever case, after spaces or control characters, or cut by tabs and line breaks:
+a refused `src` renders nothing, a refused `srcset` is left out whole, as is a source holding a refused URL, without
+candidates, or of a type other than `image/*`.
+
+The props keep the names and the meaning of Symfony UX Image, lazy loading by default included, so that a page can
+move from one to the other by changing the tag; the recipe builds no URL and transforms no image.
+
 ## ReactionButton
 
 `<twig:ReactionButton>`: a `<button type="submit">` of class `isReaction`, with `aria-pressed`; or a `<span>` of the

@@ -32,7 +32,7 @@
 | Forms | `isField` `isHorizontal` `isResponsive` `isFieldSet` `isToggle` `isToggleInput` `isToggleGroup` `isRadioGroup` `isLoginForm` `isSignupForm` |
 | Lists and boxes | `isItem` `isItemGroup` `isScrollArea` `isAspectRatio` `isCollapsible` `isKbdGroup` |
 | Charts | `isChart` `isChartImage` `isChartSeries` `isChartBar` `isChartLine` `isChartLegend` `isChartTable` `hasChartJs` `isChartCanvas` |
-| Display | `isEyebrow` `isHeadline` `isReveal` `isRevealToggle` `isLogo` `isProse` `isReaction` `isReactionPicker` `isReactionPickerPanel` |
+| Display | `isEyebrow` `isHeadline` `isReveal` `isRevealToggle` `isLogo` `isImage` `isProse` `isReaction` `isReactionPicker` `isReactionPickerPanel` |
 | Layout | `isStack` `isCluster` `isGrid` `isCenter` `isNarrow` `isSplit` `isFullHeight` `isCover` `isCoverBody` `isBleed` `hasEntrance` |
 | Utilities | `isVisuallyHidden` `isSkipLink` `isMuted` `isGrow` |
 
