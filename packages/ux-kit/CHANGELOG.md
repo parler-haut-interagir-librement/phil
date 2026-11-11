@@ -4,7 +4,7 @@ All notable changes to `phil/ux-kit` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## 0.1.1-alpha - 2026-11-11
+## 0.1.2-alpha - 2026-11-11
 
 ### Added
 
@@ -18,6 +18,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   `itemprop`, `draggable`, `data-*` and `aria-*`, written with `html_attr()` of `twig/html-extra`, which the recipe
   requires with `twig/extra-bundle`; a `javascript:`, `vbscript:` or `data:` URL other than `data:image/` refused, a
   refused `src` rendering nothing, a refused `srcset` or source left out whole.
+
+## 0.1.1-alpha - 2026-11-11
+
+Published by mistake with the content of 0.1.0-alpha; use 0.1.2-alpha.
 
 ## 0.1.0-alpha - 2026-11-11
 
