@@ -8,6 +8,8 @@ declare(strict_types=1);
 return [
     'paths' => ['src', 'tests'],
     'docs' => [
+        // The package is released from its own repository: its CHANGELOG uses every section.
+        'public' => true,
         // The terms of the Verifiable Credentials and Data Integrity specifications.
         'words' => ['libsodium', 'Multikey', 'Multikeys', 'cryptosuite', 'cryptosuites', 'RDFC', 'Bitstring', 'multibase'],
     ],

@@ -8,6 +8,8 @@ declare(strict_types=1);
 return [
     'paths' => ['src', 'tests'],
     'docs' => [
+        // The package is released from its own repository: its CHANGELOG uses every section.
+        'public' => true,
         // The Web Content Accessibility Guidelines, by the name the W3C gives them.
         'words' => ['WCAG'],
     ],

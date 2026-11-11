@@ -105,4 +105,6 @@ return [
             'PhilMigration' => ['DefaultAllowed', 'Forbidden'],
         ],
     ],
+    // The package is released from its own repository: its CHANGELOG uses every section.
+    'docs' => ['public' => true],
 ];

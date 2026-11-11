@@ -32,6 +32,8 @@ return [
         ],
     ],
     'docs' => [
+        // The package is released from its own repository: its CHANGELOG uses every section.
+        'public' => true,
         'words' => ['GCPM', 'sidenotes', 'WeasyPrint'],
     ],
     'fuzz' => [

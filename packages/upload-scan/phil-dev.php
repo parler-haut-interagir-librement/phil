@@ -41,6 +41,8 @@ return [
         ],
     ],
     'docs' => [
+        // The package is released from its own repository: its CHANGELOG uses every section.
+        'public' => true,
         // The daemon of ClamAV and the test file every antivirus reports, as their documentation spells them.
         'words' => ['clamd', 'EICAR'],
     ],

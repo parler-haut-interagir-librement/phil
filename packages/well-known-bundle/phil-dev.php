@@ -27,6 +27,8 @@ return [
         ],
     ],
     'docs' => [
+        // The package is released from its own repository: its CHANGELOG uses every section.
+        'public' => true,
         // The protocols and formats the documents speak.
         'words' => ['WebFinger', 'NodeInfo', 'atproto', 'assetlinks', 'openpgp4fpr', 'Halfyear'],
     ],

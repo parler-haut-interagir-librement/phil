@@ -24,6 +24,8 @@ return [
         ],
     ],
     'docs' => [
+        // The package is released from its own repository: its CHANGELOG uses every section.
+        'public' => true,
         // The vocabulary and the formats the library speaks.
         'words' => ['JSON-LD', 'schema.org', 'BCP', 'IRI', 'ISBN', 'GTIN'],
     ],

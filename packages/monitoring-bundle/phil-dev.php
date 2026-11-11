@@ -23,6 +23,8 @@ return [
         ],
     ],
     'docs' => [
+        // The package is released from its own repository: its CHANGELOG uses every section.
+        'public' => true,
         // The key-value server and the storage library the checks reach.
         'words' => ['Valkey', 'Flysystem'],
     ],

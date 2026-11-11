@@ -22,4 +22,6 @@ return [
     'bench' => [
         'worker' => ['script' => 'tests/Worker/worker.php', 'requests' => 1000, 'warmup' => 50],
     ],
+    // The package is released from its own repository: its CHANGELOG uses every section.
+    'docs' => ['public' => true],
 ];
