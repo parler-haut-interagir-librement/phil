@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=dd284efee2b714411826204b5d78f5c8b8125dea7debccf1d27d67b01cc502a2 -->
+<!-- phil-dev source-sha256=949e72b1bafd19f8844c3531001006dad5917a670b5d65661e5afa94b19518bc -->
 # phil/sitemap
 
 **Le plan de site XML des moteurs de recherche, construit à partir de pages vérifiées et coupé aux limites du
@@ -12,13 +12,14 @@ le `urlset` de chaque fichier, avec les variantes `xhtml:link` et l'extension de
 qui liste les fichiers. Il ne sert ni ne stocke les fichiers.
 
 Il s'adresse à tout site PHP qui veut que les moteurs de recherche trouvent ses pages, dans une langue ou plusieurs.
-Chaque valeur vérifie ce qu'exige le protocole : des adresses HTTP ou HTTPS absolues d'au plus 2 048 caractères, une
-priorité par pas de 0,1, une fréquence de changement connue, un `hreflang` valide. Une erreur échoue là où la page est
-construite, avant qu'aucun XML invalide ne soit écrit. Dans une application Symfony, phil/sitemap-bundle lit les
+Chaque valeur vérifie ce qu'exige le protocole : des adresses HTTP ou HTTPS absolues d'au plus 2 048 caractères, lues
+par phil/url comme un navigateur les lit et gardées sous leur forme canonique, une priorité par pas de 0,1, une
+fréquence de changement connue, un `hreflang` valide. Une erreur échoue là où la page est construite, avant qu'aucun
+XML invalide ne soit écrit. Dans une application Symfony, phil/sitemap-bundle lit les
 pages dans les routes et les fournisseurs, sert `/sitemap.xml` et écrit les fichiers ; phil/content-bundle et
 phil/directory-bundle lui donnent leurs pages publiées.
 
-C'est une bibliothèque PHP simple, sans dépendance au-delà de `ext-filter`. `UrlProvider` est le point d'extension :
+C'est une bibliothèque PHP simple, sans dépendance au-delà de `phil/url`, qui lit les adresses. `UrlProvider` est le point d'extension :
 chaque fournisseur connaît une partie d'un site et, quand on lui demande une section, il peut éviter de charger les
 autres.
 
@@ -61,7 +62,7 @@ rassemble les fournisseurs, sert le plan de site et l'écrit dans des fichiers.
 
 ## Prérequis
 
-PHP 8.5 ou plus récent, avec l'extension filter.
+PHP 8.5 ou plus récent ; `phil/url` 0.1.2, qui requiert les extensions intl, mbstring et URI.
 
 ## Contribuer
 

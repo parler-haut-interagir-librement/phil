@@ -9,12 +9,12 @@ Providers add pages to a `Sitemap` by section, and the sitemap cuts each section
 `sitemapindex` that lists the files. It neither serves nor stores the files.
 
 It is for any PHP site that wants search engines to find its pages, in one language or several. Each value checks
-what the protocol requires: absolute HTTP or HTTPS addresses of 2,048 characters at most, a priority in steps of
-0.1, a known change frequency, a valid `hreflang`. A mistake fails where the page is built, before any invalid XML
-is written. In a Symfony application, phil/sitemap-bundle reads pages from routes and providers, serves
+what the protocol requires: absolute HTTP or HTTPS addresses of 2,048 characters at most, read by phil/url as a
+browser reads them and kept in their canonical form, a priority in steps of 0.1, a known change frequency, a valid
+`hreflang`. A mistake fails where the page is built, before any invalid XML is written. In a Symfony application, phil/sitemap-bundle reads pages from routes and providers, serves
 `/sitemap.xml` and dumps the files; phil/content-bundle and phil/directory-bundle give it their published pages.
 
-It is a plain PHP library with no dependency beyond `ext-filter`. `UrlProvider` is the extension point: each provider
+It is a plain PHP library with no dependency beyond `phil/url`, which reads the addresses. `UrlProvider` is the extension point: each provider
 knows one part of a site and, asked for one section, may skip loading the others.
 
 ## Status
@@ -56,7 +56,7 @@ providers, serves the sitemap and writes it as files.
 
 ## Requirements
 
-PHP 8.5 or later, with the filter extension.
+PHP 8.5 or later; `phil/url` 0.1.2, which requires the intl, mbstring and URI extensions.
 
 ## Contributing
 

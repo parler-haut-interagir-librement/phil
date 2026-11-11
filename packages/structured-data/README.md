@@ -63,7 +63,8 @@ echo JsonLd::script($graph);
 
 ## Requirements
 
-PHP 8.5 or later, with the DOM, JSON and libxml extensions.
+PHP 8.5 or later, with the DOM, JSON and libxml extensions; `phil/url` 0.1.2, which requires the intl, mbstring and URI
+extensions.
 
 ## Contributing
 

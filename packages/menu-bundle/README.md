@@ -70,8 +70,9 @@ final class MainMenu implements MenuBuilder
 
 ## Requirements
 
-PHP 8.5 or later with `ext-mbstring`; `symfony/dependency-injection` and `symfony/http-foundation` 8.2 or later.
-Twig is optional; the templates use the router's `path()`.
+PHP 8.5 or later with `ext-mbstring`; `phil/url` 0.1.2, which requires the intl, mbstring and URI extensions;
+`symfony/dependency-injection` and `symfony/http-foundation` 8.2 or later. Twig is optional; the templates use the
+router's `path()`.
 
 ## Contributing
 

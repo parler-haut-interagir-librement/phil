@@ -4,6 +4,20 @@ All notable changes to `phil/structured-data` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.1.1-alpha - 2026-11-11
+
+### Security
+
+- The `Validator` reads an address property (`url`, `sameAs`, `image`…) by `phil/url`, as a browser reads it, no
+  longer by `parse_url()`, which took a user name for a host: `https://example.com@evil.example/`, which leads to
+  evil.example, passed as valid. An address with a user name or a password, or whose host is an IP address
+  (`https://127.0.0.1/`, `https://2130706433/`), a single name, an empty label (`https://example..com/`) or an
+  escape (`https://%zz.example/`), or with port 0, is now an `invalid-url` error.
+
+### Changed
+
+- The package requires `phil/url` 0.1.2.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

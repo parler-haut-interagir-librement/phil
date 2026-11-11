@@ -162,7 +162,7 @@ final class MenuItemTest extends TestCase
 
     public function testAnAddressIsOnTheSiteOrOfASafeScheme(): void
     {
-        foreach (['/games', '//cdn.example.com/a', '#top', '?page=2', 'games/chess', 'https://example.com/', 'HTTP://example.com/', 'mailto:ada@example.com', 'tel:+15145550100', '/go?to=javascript:alert(1)', 'games/data:1'] as $url) {
+        foreach (['/games', '//cdn.example.com/a', '#top', '?page=2', 'games/chess', 'https://example.com/', 'HTTP://example.com/', 'https://bücher.example/', '//cdn.example.com:8443/a?b#c', 'mailto:ada@example.com', 'tel:+15145550100', '/go?to=javascript:alert(1)', '/go?to=https://user@evil.example/', 'games/data:1'] as $url) {
             self::assertSame($url, MenuItem::of('a', 'A')->withUrl($url)->url);
         }
     }
@@ -180,6 +180,17 @@ final class MenuItemTest extends TestCase
         yield 'a scheme cut by a tab' => ["java\tscript:alert(1)", 'holds a space or a control character'];
         yield 'a leading space' => [' javascript:alert(1)', 'holds a space or a control character'];
         yield 'empty' => ['', 'is empty'];
+        // A browser reads a backslash as a slash: on the site by its look, these addresses lead to evil.example.
+        yield 'a backslash after the slash' => ['/\\evil.example/games', 'The address of the menu item "a" is not an address of the web or of the site: "/\\evil.example/games".'];
+        yield 'two backslashes' => ['\\\\evil.example', 'is not an address of the web or of the site'];
+        yield 'a backslash in a path' => ['games\\chess', 'is not an address of the web or of the site'];
+        // A user name before the host: the label says example.com, the browser goes to evil.example.
+        yield 'credentials before the host' => ['https://example.com@evil.example/', 'is not an address of the web or of the site'];
+        yield 'credentials after a scheme in capitals' => ['HTTPS://example.com@evil.example/', 'is not an address of the web or of the site'];
+        yield 'a long address, cut' => [str_repeat('é', 300).'\\', 'of the web or of the site: "'.str_repeat('é', 200).'".'];
+        yield 'credentials without a scheme' => ['//example.com@evil.example/', 'is not an address of the web or of the site'];
+        yield 'an IP address' => ['http://192.168.0.1/admin', 'is not an address of the web or of the site'];
+        yield 'no host' => ['https:///games', 'is not an address of the web or of the site'];
     }
 
     #[DataProvider('badUrls')]

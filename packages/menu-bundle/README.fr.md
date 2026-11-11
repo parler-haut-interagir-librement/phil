@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e6df3fbf213fedf7eef54cbd85efd5f386cc60da5a86012240f4f320bc0b884b -->
+<!-- phil-dev source-sha256=16e866b7741b80ef687589a7aa9f023c887b42fbd662ca1bdcb4279299e922da -->
 # phil/menu-bundle
 
 **Des menus de navigation et des fils d'Ariane pour Symfony, avec la page courante du visiteur marquée.**
@@ -72,8 +72,9 @@ final class MainMenu implements MenuBuilder
 
 ## Prérequis
 
-PHP 8.5 ou plus récent avec `ext-mbstring` ; `symfony/dependency-injection` et `symfony/http-foundation` 8.2 ou plus
-récent. Twig est facultatif ; les gabarits utilisent le `path()` du routeur.
+PHP 8.5 ou plus récent avec `ext-mbstring` ; `phil/url` 0.1.2, qui requiert les extensions intl, mbstring et URI ;
+`symfony/dependency-injection` et `symfony/http-foundation` 8.2 ou plus récent. Twig est facultatif ; les gabarits
+utilisent le `path()` du routeur.
 
 ## Contribuer
 

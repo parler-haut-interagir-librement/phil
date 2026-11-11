@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=34e056c75f6577f050d6379ea884eb449c4cf33fda147ec3500a17b67eeb2dcc -->
+<!-- phil-dev source-sha256=c1745a827f0d6d97f1621991e264fe9eb973d0ffa23ad2fe2e26aa523f6f4dec -->
 # Référence
 
 ## Pages
@@ -13,13 +13,20 @@
 
 | Règle | |
 |---|---|
-| Une adresse — page, variante, image, fichier | absolue, HTTP ou HTTPS, au plus 2048 caractères |
+| Une adresse — page, variante, image, fichier | absolue, HTTP ou HTTPS, au plus 2048 caractères, lue par phil/url comme un navigateur la lit ; sans nom d'utilisateur ni mot de passe, sans adresse IP, sans hôte d'un seul nom comme `localhost` ; gardée sous sa forme canonique |
 | Une priorité | de 0,0 à 1,0, par pas de 0,1, écrite avec une décimale |
 | Les images d'une page | au plus 1000 |
 | Un `hreflang` | une langue, peut-être suivie d'une écriture ou d'une région — `fr`, `fr-CA`, `zh-Hant-TW` — ou `x-default` ; `fr_CA` s'écrit `fr-CA` |
 
 Les moteurs de recherche s'attendent à ce que les variantes d'une page listent toutes les langues de la page, la
 sienne comprise.
+
+`Url::$loc`, `Alternate::$href` et `Image::$loc` contiennent l'adresse telle que phil/url l'écrit :
+`HTTPS://Example.COM/a/../b` donne `https://example.com/b`, `https://bücher.example/` donne
+`https://xn--bcher-kva.example/`. Une adresse avec un nom d'utilisateur est refusée, puisque
+`https://example.com@evil.example/` mène à evil.example ; tout comme une adresse dont l'hôte est une adresse IP ou un
+seul nom, qu'aucun moteur de recherche n'atteint. Sur un poste de développement, nommez le site sous `.localhost`,
+`http://app.localhost:8000`, plutôt que `http://localhost:8000`.
 
 ## Sections et fichiers
 

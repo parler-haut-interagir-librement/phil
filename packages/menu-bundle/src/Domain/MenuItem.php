@@ -6,6 +6,8 @@ namespace Phil\MenuBundle\Domain;
 
 use Closure;
 use DateTimeImmutable;
+use Phil\Url\Exception\InvalidUrl;
+use Phil\Url\Url;
 
 /**
  * An entry of a menu: its label and where it leads — a route or an address —, what a card shows of it — an icon, a
@@ -70,6 +72,10 @@ final readonly class MenuItem
      * An address on the site — a path, `/games`, or a reference relative to the page, `#top`, `?page=2` — or on the
      * web, `https:` or `http:`, or one of `mailto:` and `tel:`. Any other scheme, `javascript:` or `data:` among them,
      * is refused, and so are spaces and control characters, which browsers drop from a scheme before reading it.
+     *
+     * An address of the web, `https://…` or `//…`, is read by phil/url as a browser reads it: one with a user name or
+     * a password, `https://example.com@evil.example/`, which leads to evil.example, or whose host is an IP address, is
+     * refused. So is a backslash anywhere: a browser reads it as a slash, and `/\evil.example` leads off the site.
      */
     public function withUrl(string $url): self
     {
@@ -81,7 +87,36 @@ final readonly class MenuItem
             throw InvalidMenu::because(\sprintf('The address of the menu item "%s" is on the site, or its scheme is one of %s: "%s" is not.', $this->key, implode(', ', self::SCHEMES), substr($scheme[1], 0, 20)));
         }
 
+        if (str_contains($url, '\\') || !$this->isReadable($url)) {
+            throw InvalidMenu::because(\sprintf('The address of the menu item "%s" is not an address of the web or of the site: "%s".', $this->key, mb_substr($url, 0, 200)));
+        }
+
         return clone ($this, ['url' => $url, 'route' => null, 'routeParameters' => []]);
+    }
+
+    /**
+     * Whether an address of the web — `http:`, `https:`, or `//` and a host — is one phil/url reads; any other is a
+     * path of the site, a reference relative to the page, or a `mailto:` or `tel:` address.
+     */
+    private function isReadable(string $url): bool
+    {
+        $web = match (true) {
+            str_starts_with($url, '//') => 'https:'.$url,
+            1 === preg_match('/^https?:/i', $url) => $url,
+            default => null,
+        };
+
+        if (null === $web) {
+            return true;
+        }
+
+        try {
+            Url::fromString($web);
+        } catch (InvalidUrl) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

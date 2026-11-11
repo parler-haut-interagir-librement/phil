@@ -4,6 +4,22 @@ All notable changes to `phil/menu-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.1.1-alpha - 2026-11-11
+
+### Security
+
+- `MenuItem::withUrl()` refuses an address with a backslash, which a browser reads as a slash: `/\evil.example` and
+  `\\evil.example`, taken for paths of the site, led to evil.example. An address of the web, `http:`, `https:` or
+  `//`, is read by `phil/url`: one with a user name or a password, `https://example.com@evil.example/`, whose label
+  says example.com, or whose host is an IP address, is refused.
+
+### Changed
+
+- `Menus` reads the path of an address of the site and the visitor's path by `phil/url`, no longer by `parse_url()`:
+  `/games/rules/../about`, `/games/%2e%2e/about` and `/jeux/thé` are current at `/games/about`, `/about` and
+  `/jeux/th%C3%A9`, the pages a browser asks for.
+- The package requires `phil/url` 0.1.2.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

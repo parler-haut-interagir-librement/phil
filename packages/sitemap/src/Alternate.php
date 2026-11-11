@@ -11,9 +11,12 @@ final readonly class Alternate
 {
     public string $hreflang;
 
+    /** The address of the page in that language, in its canonical form. */
+    public string $href;
+
     public function __construct(
         string $hreflang,
-        public string $href,
+        string $href,
     ) {
         $this->hreflang = str_replace('_', '-', $hreflang);
 
@@ -21,6 +24,6 @@ final readonly class Alternate
             throw InvalidSitemap::because(\sprintf('A hreflang is a language, maybe followed by a script or a region — "fr", "fr-CA" —, or "x-default"; "%s" is not.', $hreflang));
         }
 
-        Location::check($href, 'An alternate');
+        $this->href = Location::check($href, 'An alternate');
     }
 }

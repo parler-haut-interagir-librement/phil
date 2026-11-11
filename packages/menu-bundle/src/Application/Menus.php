@@ -7,6 +7,8 @@ namespace Phil\MenuBundle\Application;
 use Phil\MenuBundle\Domain\InvalidMenu;
 use Phil\MenuBundle\Domain\Menu;
 use Phil\MenuBundle\Domain\MenuItem;
+use Phil\Url\Exception\InvalidUrl;
+use Phil\Url\Url;
 
 /**
  * The menus of the application: built, decorated, then their current item and its ancestors marked.
@@ -16,6 +18,9 @@ use Phil\MenuBundle\Domain\MenuItem;
  */
 final readonly class Menus
 {
+    /** A host no address has, for phil/url to read a path of the site as a browser does. */
+    private const string SITE = 'https://site.invalid';
+
     /** @var array<string, MenuBuilder> */
     private array $builders;
 
@@ -82,8 +87,26 @@ final readonly class Menus
             return false;
         }
 
-        $parts = parse_url($item->url);
+        $path = self::pathOf($item->url);
 
-        return \is_array($parts) && !isset($parts['host']) && ($parts['path'] ?? null) === $context->path;
+        return null !== $path && $path === self::pathOf($context->path);
+    }
+
+    /**
+     * The path a browser asks for, read by phil/url: the segments `.` and `..` resolved, escaped or not, a letter outside
+     * ASCII percent-encoded, the query and the fragment left out; `null` for what is no path of the site — a reference
+     * relative to the page, an address with a host.
+     */
+    private static function pathOf(string $path): ?string
+    {
+        if (!str_starts_with($path, '/') || str_starts_with($path, '//')) {
+            return null;
+        }
+
+        try {
+            return Url::fromString(self::SITE.$path)->path;
+        } catch (InvalidUrl) {
+            return null;
+        }
     }
 }

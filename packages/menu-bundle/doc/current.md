@@ -7,7 +7,9 @@ An item is current when:
 
 - it has a route, the visitor's route is the same, and each of its parameters is among the visitor's with the same
   value as a text — the visitor may have more parameters; or
-- it has an address on the site, without a host, whose path is the visitor's path — the query is not compared.
+- it has an address on the site, starting with a single `/`, whose path is the visitor's path as a browser asks for it
+  — the segments `.` and `..` resolved, escaped or not, a letter outside ASCII percent-encoded, as phil/url reads
+  both —; the query is not compared.
 
 An address on another site is never current. Twig reads the route, its parameters, the path and the language from
 the request being handled.

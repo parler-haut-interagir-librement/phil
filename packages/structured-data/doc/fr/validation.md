@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=acd991dc568a32a3ddd8568af7d91d6a9e8eaf99d7d0276e45723cd0eaac7c4c -->
+<!-- phil-dev source-sha256=65c4a4391236b06cdb53487f0570db9a2289860cd4d515a039648641b02f7d68 -->
 # Validation
 
 `Validator::validate(Graph $graph)` vérifie chaque nœud — ceux du premier niveau du graphe et ceux qui sont imbriqués —
@@ -55,7 +55,7 @@ Les sortes que construisent les fabriques ont besoin de ce dont leur parent a be
 | Propriété | Vérification | Code |
 |---|---|---|
 | `startDate`, `endDate`, `datePublished`, `dateModified`, `dateCreated`, `uploadDate`, `priceValidUntil`, `validFrom`, `validThrough`, `birthDate`, `foundingDate` | Une date ISO 8601, ou une date et une heure avec, au besoin, les secondes, des fractions et un décalage ; un jour qui existe | `invalid-date` |
-| `url`, `logo`, `image`, `sameAs`, `codeRepository`, `contentUrl`, `thumbnailUrl`, `downloadUrl`, `installUrl`, `item` | Une adresse HTTP ou HTTPS absolue, avec un hôte et sans espace | `invalid-url` |
+| `url`, `logo`, `image`, `sameAs`, `codeRepository`, `contentUrl`, `thumbnailUrl`, `downloadUrl`, `installUrl`, `item` | Une adresse HTTP ou HTTPS absolue, lue par phil/url comme un navigateur la lit : un nom d'hôte (ni adresse IP, ni nom seul), sans nom d'utilisateur ni mot de passe, sans espace | `invalid-url` |
 | `priceCurrency` | Trois majuscules, comme ISO 4217 écrit une devise | `invalid-currency` |
 | `inLanguage` | Une étiquette BCP 47 | `invalid-language` |
 

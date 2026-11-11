@@ -14,19 +14,22 @@ final readonly class Url
 {
     public const int MAX_IMAGES = 1000;
 
+    /** The address of the page, in its canonical form. */
+    public string $loc;
+
     /**
      * @param list<Alternate> $alternates
      * @param list<Image>     $images
      */
     public function __construct(
-        public string $loc,
+        string $loc,
         public ?DateTimeImmutable $lastmod = null,
         public ?ChangeFrequency $changefreq = null,
         public ?float $priority = null,
         public array $alternates = [],
         public array $images = [],
     ) {
-        Location::check($loc, 'A page');
+        $this->loc = Location::check($loc, 'A page');
 
         if (null !== $priority && ($priority < 0.0 || $priority > 1.0 || round($priority, 1) !== $priority)) {
             throw InvalidSitemap::because(\sprintf('A priority is 0.0 to 1.0, in steps of 0.1; %s is not.', $priority));

@@ -115,6 +115,53 @@ final class MenusTest extends TestCase
         self::assertSame($ancestors, $flagged($menu, static fn (MenuItem $item): bool => $item->currentAncestor));
     }
 
+    /**
+     * @return iterable<string, array{string, string, bool}>
+     */
+    public static function paths(): iterable
+    {
+        yield 'the same path' => ['/games/about', '/games/about', true];
+        yield 'a query and a fragment' => ['/games/about?tab=1#top', '/games/about', true];
+        // The browser resolves the segments `.` and `..`, escaped or not, before it asks for the page.
+        yield 'dot segments' => ['/games/rules/../about', '/games/about', true];
+        yield 'escaped dot segments' => ['/games/rules/%2e%2E/./about', '/games/about', true];
+        yield 'a letter written as it is' => ['/jeux/thé', '/jeux/th%C3%A9', true];
+        yield 'an escape of the visitor' => ['/games/about', '/games/./about', true];
+        yield 'another path' => ['/games/about', '/games/rules', false];
+        yield 'a path relative to the page' => ['games/about', '/games/about', false];
+        yield 'another host' => ['//example.com/games/about', '/games/about', false];
+        yield 'an address of the web' => ['https://example.com/games/about', '/games/about', false];
+        yield 'a query alone' => ['?tab=1', '/games/about', false];
+        yield 'not a path' => ['/games/about', 'games about', false];
+        yield 'a visitor without a slash' => ['/', 'games', false];
+        yield 'a visitor on another host' => ['/', '//example.com/', false];
+    }
+
+    #[DataProvider('paths')]
+    public function testAnAddressIsCurrentWhenTheBrowserReadsTheVisitorsPath(string $url, string $path, bool $current): void
+    {
+        $builder = new readonly class($url) implements MenuBuilder {
+            public function __construct(
+                private string $url,
+            ) {
+            }
+
+            #[Override]
+            public function name(): string
+            {
+                return 'main';
+            }
+
+            #[Override]
+            public function build(MenuContext $context): Menu
+            {
+                return Menu::of('main', [MenuItem::of('page', 'Page')->withUrl($this->url)]);
+            }
+        };
+
+        self::assertSame($current, new Menus([$builder])->get('main', new MenuContext(path: $path))->find('page')?->current);
+    }
+
     public function testDecoratorsOfTheMenuRunInOrder(): void
     {
         $menus = new Menus([$this->builder(), $this->builder('footer')], [$this->decorator('main', 'first'), $this->decorator('footer', 'other'), $this->decorator('main', 'second')]);

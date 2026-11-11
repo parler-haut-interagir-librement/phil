@@ -4,6 +4,24 @@ All notable changes to `phil/sitemap` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.1.1-alpha - 2026-11-11
+
+### Security
+
+- An address — of a page, an alternate, an image, a sitemap file — is read by `phil/url` as a browser reads it, no
+  longer by `filter_var(FILTER_VALIDATE_URL)`, which took a user name for a host: `https://example.com@evil.example/`,
+  a page on evil.example, passed as a page of example.com. An address with a user name or a password, or whose host
+  is an IP address (`https://127.0.0.1/`, `https://2130706433/`) or a single name (`http://intranet/`), or with
+  port 0, is now an `InvalidSitemap`.
+
+### Changed
+
+- `Url::$loc`, `Alternate::$href` and `Image::$loc` hold the address in its canonical form, which the XML writes:
+  scheme and host in lower case, an international host in its ASCII form (accepted, where it was refused), the
+  default port dropped, the root path written `/`, the segments `.` and `..` resolved, escaped or not, and the
+  characters a part cannot hold percent-encoded, `"` among them. The constructors take the same arguments.
+- The package requires `phil/url` 0.1.2 instead of `ext-filter`.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2bb4a013637e6a0d80daf9468682809272d4b5cea6118a8fb425d498a10e193f -->
+<!-- phil-dev source-sha256=6a67d71b3eab7adab94ff112d3d030d8709b17e0c77e0d802760826297e24693 -->
 # Éléments et menus
 
 ## `MenuItem`
@@ -25,7 +25,11 @@ Les gabarits affichent une adresse dans `href` et un attribut sur l'élément HT
 deux sont vérifiés quand ils sont définis, peu importe d'où le constructeur les a lus. Une adresse est sur le site (un
 chemin, `/games`, ou une référence relative à la page, `#top`, `?page=2`) ou a l'un des schémas `http`, `https`,
 `mailto` et `tel`. `javascript:`, `data:` et tout autre schéma sont refusés, tout comme une adresse qui contient une
-espace ou un caractère de contrôle, que les navigateurs retirent d'un schéma avant de le lire. Le nom d'un attribut est
+espace ou un caractère de contrôle, que les navigateurs retirent d'un schéma avant de le lire. Une adresse du web,
+`https://…` ou `//…`, est lue par phil/url comme un navigateur la lit : une adresse avec un nom d'utilisateur ou un mot
+de passe, `https://example.com@evil.example/`, qui mène à evil.example, ou dont l'hôte est une adresse IP, est refusée.
+Tout comme une barre oblique inverse, où qu'elle soit, qu'un navigateur lit comme une barre oblique :
+`/\evil.example` mène hors du site. Le nom d'un attribut est
 une lettre, puis jusqu'à 99 lettres, chiffres, `_`, `-`, `.` et `:`, et ne commence pas par `on`, comme le font tous les
 gestionnaires d'événements.
 

@@ -24,7 +24,10 @@ The templates print an address in `href` and an attribute on the item's element,
 set, whatever the builder read them from. An address is on the site — a path, `/games`, or a reference relative to the
 page, `#top`, `?page=2` — or has one of the schemes `http`, `https`, `mailto` and `tel`; `javascript:`, `data:` and
 any other scheme are refused, and so is an address with a space or a control character, which browsers drop from a
-scheme before they read it. An attribute's name is a letter, then up to 99 letters, digits, `_`, `-`, `.` and `:`, and
+scheme before they read it. An address of the web, `https://…` or `//…`, is read by phil/url as a browser reads it:
+one with a user name or a password, `https://example.com@evil.example/`, which leads to evil.example, or whose host is
+an IP address, is refused. So is a backslash anywhere, which a browser reads as a slash: `/\evil.example` leads off
+the site. An attribute's name is a letter, then up to 99 letters, digits, `_`, `-`, `.` and `:`, and
 does not start with `on`, as every event handler does.
 
 `current` and `currentAncestor` are set by `Menus` — see [the current item](current.md) —; `isActive()` is either.

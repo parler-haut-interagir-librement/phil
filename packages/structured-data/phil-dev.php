@@ -14,7 +14,7 @@ return [
     'deptrac' => [
         // The reader of pages parses HTML through the DOM extension of PHP, which is outside the default.
         'ruleset' => [
-            'PhilStructuredData' => ['DefaultAllowed', 'Forbidden'],
+            'PhilStructuredData' => ['DefaultAllowed', 'Forbidden', 'PhilUrl'],
         ],
     ],
     'fuzz' => [

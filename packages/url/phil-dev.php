@@ -7,6 +7,12 @@ declare(strict_types=1);
  */
 return [
     'paths' => ['src', 'tests'],
+    'deptrac' => [
+        'ruleset' => [
+            // Uri\WhatWg\Url, of PHP's URI extension, reads the address; Deptrac counts it among the foreign classes.
+            'PhilUrl' => ['DefaultAllowed', 'Forbidden', 'PhilEnums', 'PhilEnumsPhpstan'],
+        ],
+    ],
     'infection' => [
         'mutators' => [
             // A Url refuses every whitespace in its text, so the path of a Vimeo address never ends with a new line: the

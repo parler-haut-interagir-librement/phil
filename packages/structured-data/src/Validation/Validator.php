@@ -8,6 +8,8 @@ use Phil\StructuredData\Graph;
 use Phil\StructuredData\LanguageTag;
 use Phil\StructuredData\Node;
 use Phil\StructuredData\Reference;
+use Phil\Url\Exception\InvalidUrl;
+use Phil\Url\Url;
 
 /**
  * Checks a graph against the rules of its types: an error for each property a node needs and lacks, or holds in a form
@@ -181,10 +183,23 @@ final readonly class Validator
         return 1 === preg_match(self::DATE, $value, $parts) && checkdate((int) $parts['month'], (int) $parts['day'], (int) $parts['year']);
     }
 
+    /**
+     * An absolute `http` or `https` address as a browser reads it, by phil/url: no user name or password, which would
+     * make `https://example.com@evil.example/` lead to evil.example, and a host that is a name, not an IP address. A
+     * space or a control character, even at an end, makes it no address: the value is published as written.
+     */
     private function isUrl(string $value): bool
     {
-        $parts = parse_url($value);
+        if (1 === preg_match('/[\x00-\x20]/', $value)) {
+            return false;
+        }
 
-        return \is_array($parts) && \in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true) && '' !== ($parts['host'] ?? '') && 1 !== preg_match('/[\x00-\x20]/', $value);
+        try {
+            Url::fromString($value);
+        } catch (InvalidUrl) {
+            return false;
+        }
+
+        return true;
     }
 }

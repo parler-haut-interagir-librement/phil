@@ -145,6 +145,18 @@ final class ValidatorTest extends TestCase
         yield 'no host' => ['image', 'https:///a.png', 'invalid-url'];
         yield 'a space' => ['codeRepository', 'https://example.com/a b', 'invalid-url'];
         yield 'not an address at all' => ['contentUrl', 'http://:80', 'invalid-url'];
+        // parse_url() took a user name for a host: this address leads to evil.example, not to example.com.
+        yield 'credentials before the host' => ['sameAs', 'https://example.com@evil.example/', 'invalid-url'];
+        yield 'a user and a password' => ['url', 'https://user:secret@example.com/a', 'invalid-url'];
+        yield 'an IP address' => ['url', 'https://127.0.0.1/a', 'invalid-url'];
+        yield 'an IP address in decimal' => ['image', 'https://2130706433/a.png', 'invalid-url'];
+        yield 'an empty label' => ['url', 'https://example..com/a', 'invalid-url'];
+        yield 'an escape in the host' => ['url', 'https://%zz.example/a', 'invalid-url'];
+        yield 'a host of one name' => ['url', 'https://intranet/a', 'invalid-url'];
+        yield 'port 0' => ['url', 'https://example.com:0/a', 'invalid-url'];
+        yield 'a line at the end' => ['url', "https://example.com/a\n", 'invalid-url'];
+        yield 'an international host' => ['url', 'https://bücher.example/a', null];
+        yield 'dot segments' => ['url', 'https://example.com/a/%2e%2e/b', null];
         yield 'a node for an image' => ['image', Node::of('ImageObject', ['contentUrl' => 'https://example.com/a.png']), null];
         yield 'a language text' => ['url', new LanguageString('nope', 'fr'), null];
         yield 'a currency' => ['priceCurrency', 'CAD', null];

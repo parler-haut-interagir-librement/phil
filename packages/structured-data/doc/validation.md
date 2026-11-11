@@ -54,7 +54,7 @@ articles; `AboutPage`, `CollectionPage`, `ContactPage`, `ItemPage` and `ProfileP
 | Property | Checked | Code |
 |---|---|---|
 | `startDate`, `endDate`, `datePublished`, `dateModified`, `dateCreated`, `uploadDate`, `priceValidUntil`, `validFrom`, `validThrough`, `birthDate`, `foundingDate` | An ISO 8601 date, or date and time with maybe seconds, fractions and an offset; a day that exists | `invalid-date` |
-| `url`, `logo`, `image`, `sameAs`, `codeRepository`, `contentUrl`, `thumbnailUrl`, `downloadUrl`, `installUrl`, `item` | An absolute HTTP or HTTPS address with a host and no spaces | `invalid-url` |
+| `url`, `logo`, `image`, `sameAs`, `codeRepository`, `contentUrl`, `thumbnailUrl`, `downloadUrl`, `installUrl`, `item` | An absolute HTTP or HTTPS address, read by phil/url as a browser reads it: a host name — no IP address, no single name —, no user name or password, no spaces | `invalid-url` |
 | `priceCurrency` | Three capitals, as ISO 4217 writes a currency | `invalid-currency` |
 | `inLanguage` | A BCP 47 tag | `invalid-language` |
 

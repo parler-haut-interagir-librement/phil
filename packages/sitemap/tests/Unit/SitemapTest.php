@@ -135,7 +135,7 @@ final class SitemapTest extends TestCase
                 <changefreq>weekly</changefreq>
                 <priority>1.0</priority>
                 <xhtml:link rel="alternate" hreflang="fr" href="https://example.com/fr/a"/>
-                <xhtml:link rel="alternate" hreflang="en-CA" href="https://example.com/en/a?&quot;"/>
+                <xhtml:link rel="alternate" hreflang="en-CA" href="https://example.com/en/a?%22"/>
                 <image:image><image:loc>https://example.com/a.png</image:loc></image:image>
               </url>
               <url>

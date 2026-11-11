@@ -9,9 +9,11 @@ namespace Phil\Sitemap;
  */
 final readonly class Image
 {
-    public function __construct(
-        public string $loc,
-    ) {
-        Location::check($loc, 'An image');
+    /** The address of the image, in its canonical form. */
+    public string $loc;
+
+    public function __construct(string $loc)
+    {
+        $this->loc = Location::check($loc, 'An image');
     }
 }
