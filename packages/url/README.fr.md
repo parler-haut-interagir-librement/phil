@@ -1,10 +1,11 @@
-<!-- phil-dev source-sha256=b1c5c01ddff1905f452ff596af2a0925d72b34dd849b32c9003a32f0304966e2 -->
+<!-- phil-dev source-sha256=d4753444c9bf9201b45cac49b9aec5e778164e3c5b4069e21f66fe8264aea86d -->
 # phil/url
 
 **Des adresses Web comme des valeurs normalisées, avec leur genre détecté : Facebook, YouTube, Mastodon, un site Web.**
 
-`phil/url` lit une adresse absolue `http` ou `https` en un `Url` normalisé : hôte en minuscules, port par défaut
-retiré, noms d'hôte internationaux en punycode, et une forme `display()` telle que les gens la lisent. Les genres
+`phil/url` lit une adresse absolue `http` ou `https` en un `Url` comme un navigateur la lit, par l'analyseur d'URL du
+WHATWG de PHP, normalisé : hôte en minuscules, port par défaut retiré, noms d'hôte internationaux en punycode, les
+segments `.` et `..` résolus, et une forme `display()` telle que les gens la lisent. Les genres
 d'adresse sont des cas d'enum qui implémentent `UrlType`, chacun avec sa propre règle : une page Facebook est une
 adresse sur `facebook.com`. `KnownUrlType` contient 26 genres internationaux, de Facebook et YouTube jusqu'à Mastodon
 sur n'importe quel serveur et à un simple site Web. `UrlTypes` détecte le genre d'une adresse parmi les ensembles

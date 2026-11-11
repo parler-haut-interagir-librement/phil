@@ -40,6 +40,29 @@ final class UrlTest extends TestCase
         yield 'an empty query' => ['https://example.com/?', 'https://example.com/'];
         yield 'an empty fragment' => ['https://example.com/a#', 'https://example.com/a'];
         yield 'a label of digits inside the host' => ['https://www.1.example/', 'https://www.1.example/'];
+        yield 'a dot segment' => ['https://example.com/a/./b', 'https://example.com/a/b'];
+        yield 'a dot segment last' => ['https://example.com/a/.', 'https://example.com/a/'];
+        yield 'a double dot segment' => ['https://example.com/a/../b', 'https://example.com/b'];
+        yield 'a double dot segment last' => ['https://example.com/a/b/..', 'https://example.com/a/'];
+        yield 'double dots above the root' => ['https://example.com/../../b', 'https://example.com/b'];
+        yield 'an encoded dot segment' => ['https://example.com/a/%2e/b', 'https://example.com/a/b'];
+        yield 'a double dot encoded in lowercase' => ['https://example.com/a/%2e%2e/b', 'https://example.com/b'];
+        yield 'a double dot encoded in uppercase' => ['https://example.com/a/%2E%2E/b', 'https://example.com/b'];
+        yield 'a double dot, its second dot encoded' => ['https://example.com/a/.%2e/b', 'https://example.com/b'];
+        yield 'a double dot, its first dot encoded' => ['https://example.com/a/%2e./b', 'https://example.com/b'];
+        yield 'backslashes' => ['https://example.com\\a\\b', 'https://example.com/a/b'];
+        yield 'backslashes around double dots' => ['https://example.com/a\\..\\b', 'https://example.com/b'];
+        yield 'a backslash, then double dots' => ['https://example.com/a/\\../b', 'https://example.com/a/b'];
+        yield 'an encoded slash' => ['https://example.com/a%2Fb', 'https://example.com/a%2Fb'];
+        yield 'an encoded slash after double dots' => ['https://example.com/docs/..%2Fadmin', 'https://example.com/docs/..%2Fadmin'];
+        yield 'a tag in the path' => ['https://example.com/<script>', 'https://example.com/%3Cscript%3E'];
+        yield 'quotes in the path' => ['https://example.com/"a"\'b\'', "https://example.com/%22a%22'b'"];
+        yield 'braces and backticks in the path' => ['https://example.com/{a}`b`', 'https://example.com/%7Ba%7D%60b%60'];
+        yield 'a tag and quotes in the query' => ['https://example.com/?q=<b>"\'', 'https://example.com/?q=%3Cb%3E%22%27'];
+        yield 'a tag and quotes in the fragment' => ['https://example.com/#<b>"\'`', "https://example.com/#%3Cb%3E%22'%60"];
+        yield 'letters in the path, query and fragment' => ['https://example.com/thé?thé=vert#thé', 'https://example.com/th%C3%A9?th%C3%A9=vert#th%C3%A9'];
+        yield 'an escape kept as written' => ['https://example.com/%7e%41', 'https://example.com/%7e%41'];
+        yield 'a dot segment in the query kept' => ['https://example.com/a?next=/b/../c', 'https://example.com/a?next=/b/../c'];
     }
 
     #[DataProvider('normalised')]
@@ -65,9 +88,9 @@ final class UrlTest extends TestCase
         yield 'a bare name' => ['https://localhost/', '"localhost" is not a host name.'];
         yield 'an IPv4 address' => ['http://192.168.0.1/', '"192.168.0.1" is not a host name.'];
         yield 'the loopback address' => ['http://127.0.0.1:8000/', '"127.0.0.1" is not a host name.'];
-        yield 'a short IPv4 address' => ['http://127.1/', '"127.1" is not a host name.'];
+        yield 'a short IPv4 address' => ['http://127.1/', '"127.0.0.1" is not a host name.'];
         yield 'an IPv6 address' => ['http://[::1]/', '"[::1]" is not a host name.'];
-        yield 'a top-level domain of digits' => ['https://shop.123/', '"shop.123" is not a host name.'];
+        yield 'a top-level domain of digits' => ['https://shop.123/', '"https://shop.123/" is not an http or https address.'];
         yield 'port 0' => ['https://example.com:0/', '0 is not a port a web address can name.'];
         yield 'a port too high' => ['https://example.com:65536/', '"https://example.com:65536/" is not an http or https address.'];
         yield 'an underscore' => ['https://my_shop.example/', '"my_shop.example" is not a host name.'];
@@ -84,6 +107,13 @@ final class UrlTest extends TestCase
         yield 'an empty label inside' => ['https://shop..example/', '"shop..example" is not a host name.'];
         yield 'an empty label first' => ['https://.example.com/', '".example.com" is not a host name.'];
         yield 'two trailing dots' => ['https://example.com../', '"example.com.." is not a host name.'];
+        yield 'a user, the scheme in capitals' => ['HTTPS://ada@example.com/', 'A web address carries no user name nor password.'];
+        yield 'an empty user' => ['https://@example.com/', 'A web address carries no user name nor password.'];
+        yield 'a user before a backslash' => ['https://ada@example.com\\a', 'A web address carries no user name nor password.'];
+        yield 'a backslash for host' => ['https://\\example.com/', '"https://\\example.com/" is not an http or https address.'];
+        yield 'a short IPv4 address in hexadecimal' => ['http://0x7f.1/', '"127.0.0.1" is not a host name.'];
+        yield 'an encoded slash in the host' => ['https://ex%2Fample.com/', '"https://ex%2Fample.com/" is not an http or https address.'];
+        yield 'a null byte in the host' => ["https://ex\0ample.com/", 'is not an http or https address.'];
     }
 
     #[DataProvider('refused')]
@@ -110,6 +140,56 @@ final class UrlTest extends TestCase
         self::assertSame(\sprintf('"%s" is not an http or https address.', str_repeat('é', 100)), InvalidUrl::notAUrl(str_repeat('é', 150))->getMessage());
         self::assertSame(\sprintf('"%s" is not a host name.', str_repeat('é', 100)), InvalidUrl::host(str_repeat('é', 150))->getMessage());
         self::assertInstanceOf(UrlException::class, InvalidUrl::credentials());
+    }
+
+    public function testATextLongerThanTheLimitIsRefusedEvenWhenItsNormalisedFormIsShort(): void
+    {
+        $text = 'https://example.com/'.str_repeat('./', 1100);
+
+        $this->expectException(InvalidUrl::class);
+        $this->expectExceptionMessageIsOrContains(\sprintf('A web address is 2048 characters at most; this one is %d.', \strlen($text)));
+
+        Url::fromString($text);
+    }
+
+    public function testAnAddressLongerOnceEncodedIsRefused(): void
+    {
+        $prefix = 'https://example.com/';
+        $text = $prefix.str_repeat('<', 1000);
+        self::assertLessThanOrEqual(2048, \strlen($text));
+
+        try {
+            Url::fromString($text);
+            self::fail('An address longer once encoded was accepted.');
+        } catch (InvalidUrl $invalidUrl) {
+            self::assertSame(\sprintf('A web address is 2048 characters at most; this one is %d.', \strlen($prefix) + 3000), $invalidUrl->getMessage());
+        }
+
+        self::assertSame(2048, \strlen(Url::fromString($prefix.str_repeat('a', 2025).'<')->toString()));
+    }
+
+    public function testAPathAllowedByPrefixCannotClimbOutOfIt(): void
+    {
+        foreach (['https://example.com/docs/../admin', 'https://example.com/docs/%2e%2e/admin', 'https://example.com/docs\\..\\admin', 'https://example.com/docs/.%2E/admin'] as $text) {
+            $url = Url::fromString($text);
+
+            self::assertSame('/admin', $url->path, $text);
+            self::assertSame(['admin'], $url->segments(), $text);
+            self::assertFalse(str_starts_with($url->path, '/docs/'), $text);
+            self::assertTrue($url->equals(Url::fromString('https://example.com/admin')), $text);
+        }
+
+        self::assertSame(['docs', '..%2Fadmin'], Url::fromString('https://example.com/docs/..%2Fadmin')->segments());
+    }
+
+    public function testAnInternationalHostComesBackTheSame(): void
+    {
+        $url = Url::fromString('https://Bücher.Example/thé');
+
+        self::assertSame('xn--bcher-kva.example', $url->host);
+        self::assertSame('https://xn--bcher-kva.example/th%C3%A9', $url->toString());
+        self::assertTrue($url->equals(Url::fromString($url->toString())));
+        self::assertSame('bücher.example/thé', $url->display());
     }
 
     public function testALongHostIsRefused(): void
@@ -163,6 +243,12 @@ final class UrlTest extends TestCase
         yield 'digits in a label' => ['https://1password.com/', '1password.com'];
         yield 'a host passing for another' => ['https://xn--pple-43d.com/', 'xn--pple-43d.com'];
         yield 'a host in one script' => ['https://xn--80adxhks.xn--p1ai/', 'москва.рф'];
+        yield 'letters in the path and query' => ['https://example.com/thé?q=café', 'example.com/thé?q=café'];
+        yield 'letters whose bytes pass for controls' => ['https://example.com/voilà/5€', 'example.com/voilà/5€'];
+        yield 'escapes of ASCII kept' => ['https://example.com/a%20b%3C?q=%2F', 'example.com/a%20b%3C?q=%2F'];
+        yield 'an escape that is no UTF-8 kept' => ['https://example.com/%C3', 'example.com/%C3'];
+        yield 'an invisible letter kept encoded' => ['https://example.com/a%E2%80%AEb', 'example.com/a%E2%80%AEb'];
+        yield 'a non-breaking space kept encoded' => ['https://example.com/a%C2%A0b', 'example.com/a%C2%A0b'];
     }
 
     #[DataProvider('displays')]

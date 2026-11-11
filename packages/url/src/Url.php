@@ -8,10 +8,17 @@ use Override;
 use Phil\Url\Exception\InvalidUrl;
 use Spoofchecker;
 use Stringable;
+use Uri\WhatWg\Url as WhatWgUrl;
 
 /**
- * An absolute web address, `http` or `https`, normalised: scheme and host in lowercase, an international host in its
- * ASCII form, the default port dropped, the root path written `/`, an empty query or fragment dropped. Two addresses that differ only so are equal.
+ * An absolute web address, `http` or `https`, read as a browser reads it, by PHP's URI extension and the WHATWG URL
+ * Standard, then normalised: scheme and host in lowercase, an international host in its ASCII form, the default port
+ * dropped, the root path written `/`, an empty query or fragment dropped. In the path, a backslash is a slash, the
+ * segments `.` and `..` are resolved, written plainly or escaped (`%2e`, `.%2E`), and the characters a path cannot hold
+ * — a space, `"`, `<`, `>`, a backtick, braces, a letter outside ASCII — are percent-encoded; so are those the query and
+ * the fragment cannot hold, each by its own set of the standard. An escape already written stays as written: `%2F` is
+ * a character of its segment, never a separator, and `%7e` stays `%7e`. Two addresses that differ only so are equal.
+ * The canonical form, escapes included, is 2048 characters at most.
  *
  * An address with a user name or a password is refused: it is a phishing device more often than a need. So is an
  * address whose host is an IP address, or port 0: a link on a public page names a host.
@@ -38,35 +45,45 @@ final readonly class Url implements Stringable
             throw InvalidUrl::tooLong(\strlen($text));
         }
 
-        if (1 !== preg_match('#^https?://#i', $text) || 1 === preg_match('/\s/', $text)) {
+        // The host follows the two slashes at once: `https:///path` and `https://\host`, which a browser would still open,
+        // are refused.
+        if (1 !== preg_match('#^https?://[^/\\\\]#i', $text) || 1 === preg_match('/\s/', $text)) {
             throw InvalidUrl::notAUrl($text);
         }
 
-        $parts = parse_url($text);
-
-        if (!\is_array($parts)) {
-            throw InvalidUrl::notAUrl($text);
-        }
-
-        if (isset($parts['user']) || isset($parts['pass'])) {
+        // An `@` before the end of the authority — `/`, `\`, `?` or `#` — separates credentials, empty ones included.
+        if (1 === preg_match('#^https?://[^/\\\\?\#]*@#i', $text)) {
             throw InvalidUrl::credentials();
         }
 
-        $scheme = strtolower($parts['scheme'] ?? '');
-        $port = $parts['port'] ?? null;
+        $parsed = WhatWgUrl::parse($text);
+
+        if (!$parsed instanceof WhatWgUrl) {
+            throw InvalidUrl::notAUrl($text);
+        }
+
+        $port = $parsed->getPort();
 
         if (0 === $port) {
             throw InvalidUrl::port($port);
         }
 
-        return new self(
-            $scheme,
-            self::checkedHost($parts['host'] ?? ''),
-            ['http' => 80, 'https' => 443][$scheme] === $port ? null : $port,
-            '' === ($parts['path'] ?? '') ? '/' : $parts['path'],
-            '' === ($parts['query'] ?? '') ? null : $parts['query'],
-            '' === ($parts['fragment'] ?? '') ? null : $parts['fragment'],
+        $url = new self(
+            $parsed->getScheme(),
+            self::checkedHost((string) $parsed->getAsciiHost()),
+            $port,
+            $parsed->getPath(),
+            self::nonEmpty($parsed->getQuery()),
+            self::nonEmpty($parsed->getFragment()),
         );
+
+        $length = \strlen($url->toString());
+
+        if ($length > self::MAX_LENGTH) {
+            throw InvalidUrl::tooLong($length);
+        }
+
+        return $url;
     }
 
     public function toString(): string
@@ -119,7 +136,21 @@ final readonly class Url implements Stringable
 
         $path = '/' === $this->path ? '' : rtrim($this->path, '/');
 
-        return $host.(null === $this->port ? '' : ':'.$this->port).$path.(null === $this->query ? '' : '?'.$this->query);
+        return $host.(null === $this->port ? '' : ':'.$this->port).$this->readable($path.(null === $this->query ? '' : '?'.$this->query));
+    }
+
+    /**
+     * The escapes of letters written in their own letters, as a browser's address bar shows them: `th%C3%A9` reads
+     * `thé`. An escape of ASCII, `%20` or `%2F`, stays; so does one that is no UTF-8, or that decodes to an invisible
+     * character, a space or a control, which could hide what the address is.
+     */
+    private function readable(string $text): string
+    {
+        return (string) preg_replace_callback('/(?:%[89A-F][0-9A-F])+/i', static function (array $match): string {
+            $decoded = rawurldecode($match[0]);
+
+            return mb_check_encoding($decoded, 'UTF-8') && 1 !== preg_match('/[\p{C}\p{Z}]/u', $decoded) ? $decoded : $match[0];
+        }, $text);
     }
 
     /**
@@ -144,6 +175,11 @@ final readonly class Url implements Stringable
     public function segments(): array
     {
         return array_values(array_filter(explode('/', $this->path), static fn (string $segment): bool => '' !== $segment));
+    }
+
+    private static function nonEmpty(?string $part): ?string
+    {
+        return '' === $part ? null : $part;
     }
 
     /**

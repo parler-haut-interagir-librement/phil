@@ -4,6 +4,29 @@ All notable changes to `phil/url` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.1.2-alpha - 2026-11-11
+
+### Changed
+
+- `Url::fromString()` reads an address as a browser does, on PHP 8.5's URI extension, `Uri\WhatWg\Url`, by the
+  WHATWG URL Standard: in the path, a backslash is a slash and the segments `.` and `..` are resolved, written plainly
+  or escaped (`%2e`, `%2E`, `.%2e`, `%2e.`); the characters the path, the query or the fragment cannot hold, `<`, `>`,
+  `"` and the letters outside ASCII among them, are percent-encoded, each part by its own set of the standard. An
+  escape already written stays as written, `%2F` a character of its segment and never a separator. Its own rules
+  stay: `http` and `https` only, no user name nor password, an empty one included (`https://@example.com/`), no port
+  0, no IP address, the host rules of 0.1.1-alpha. The 2048 characters at most hold for the normalised address too.
+  An IPv4 address written short, `http://127.1/`, is named `127.0.0.1` in the message of `InvalidUrl`; a top-level
+  domain of digits, `https://shop.123/`, is refused as no web address, not as no host name.
+- `Url::display()` shows the escaped letters of the path and the query as letters, `example.com/thé`; an escape of
+  ASCII, an invisible character, a space or a control stays escaped.
+- `phil/url` requires `ext-uri`, bundled with PHP 8.5.
+
+### Security
+
+- `path`, `segments()` and `equals()` now give the path a browser opens: `https://example.com/docs/../admin`,
+  `/docs/%2e%2e/admin` and `/docs\..\admin` have the path `/admin`, so an application that allows paths by their
+  prefix, `/docs/`, can no longer be bypassed. `<`, `>` and `"` are percent-encoded in `toString()`.
+
 ## 0.1.1-alpha - 2026-11-11
 
 ### Fixed

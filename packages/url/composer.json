@@ -23,6 +23,7 @@
         "php": ">=8.5",
         "ext-intl": "*",
         "ext-mbstring": "*",
+        "ext-uri": "*",
         "phil/enums": "^0.3@dev"
     },
     "require-dev": {

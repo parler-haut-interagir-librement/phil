@@ -2,8 +2,9 @@
 
 **Web addresses as normalised values, with their kind detected: Facebook, YouTube, Mastodon, a website.**
 
-`phil/url` reads an absolute `http` or `https` address into a `Url`, normalised: lowercase host, default port
-dropped, international host names in punycode, and a `display()` form as people read it. Kinds of address are enum
+`phil/url` reads an absolute `http` or `https` address into a `Url` as a browser reads it, on PHP's WHATWG URL parser,
+normalised: lowercase host, default port dropped, international host names in punycode, the segments `.` and `..`
+resolved, and a `display()` form as people read it. Kinds of address are enum
 cases implementing `UrlType`, each carrying its own rule: a Facebook page is an address on `facebook.com`.
 `KnownUrlType` holds 26 international kinds, from Facebook and YouTube to Mastodon on any server and a plain website.
 `UrlTypes` detects which kind an address is among the enum sets a field accepts, and `CookielessVideo` turns a
