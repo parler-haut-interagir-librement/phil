@@ -1,0 +1,20 @@
+# The shared PHPStan configuration of phil/dev-tools. The paths and exceptions come from phil-dev.php; what only this
+# project needs (a Symfony container, a Doctrine object manager) goes below.
+includes:
+    - vendor/phil/dev-tools/config/phpstan.neon
+
+parameters:
+    tmpDir: var/phpstan
+
+    # The functions of the service configurators, `service()` among them, live in the file of ContainerConfigurator,
+    # which no autoloader names: PHPStan finds them only in a worker that loaded the class first, so whether a file that
+    # calls them passes depends on how the files are shared among the workers. Scanning the file settles it.
+    scanFiles:
+        - vendor/symfony/dependency-injection/Loader/Configurator/ContainerConfigurator.php
+
+    # The monorepo has no application, so no Symfony container for PHPStan to read. Without one, the inline exception of
+    # this test for a service the container would not know matches nothing, and an unmatched inline exception cannot be
+    # ignored: the file is left out here.
+    excludePaths:
+        analyse:
+            - packages/enums-bundle/tests/Functional/OpenApiTest.php

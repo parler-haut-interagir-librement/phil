@@ -1,0 +1,2 @@
+F@impr@t@font-face { font-family:  c;sXr: url(x.woff1) }
+.c::before { confore { cobase { d {

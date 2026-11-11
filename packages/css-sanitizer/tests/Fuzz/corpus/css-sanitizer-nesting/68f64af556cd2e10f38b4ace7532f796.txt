@@ -1,0 +1,2 @@
+a { :n)to(& { clorblue } b:hover { x: 1 } Z { d { e { f { g { color: red } } } } } }
+@supports (display: grid) {(a { @sulports (display: flex) { { display: flex } } }

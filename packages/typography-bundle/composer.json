@@ -1,0 +1,67 @@
+{
+    "name": "phil/typography-bundle",
+    "description": "phil/typography in Symfony: one typographer per locale from configuration, the typography and typography_text Twig filters, and typographic fixes on the HTML that phil/ujo renders",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "typography",
+        "hyphenation",
+        "twig",
+        "ujo",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/typography": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/translation-contracts": "^3.6"
+    },
+    "require-dev": {
+        "phil/ujo": "^0.1@dev",
+        "phil/ujo-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/validator": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "phil/ujo-bundle": "For typographic fixes on the HTML of UJO documents",
+        "symfony/translation": "For the filters in the locale of the request, through its LocaleSwitcher",
+        "twig/twig": "For the typography and typography_text filters"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\TypographyBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\TypographyBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

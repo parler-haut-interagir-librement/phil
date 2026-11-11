@@ -1,0 +1,40 @@
+{% extends '@WebProfiler/Profiler/layout.html.twig' %}
+
+{% block toolbar %}
+    {% set icon %}
+        <span class="sf-toolbar-value">{{ collector.trippedCount }}/{{ collector.circuits|length }}</span>
+        <span class="sf-toolbar-label">circuits</span>
+    {% endset %}
+    {% set text %}
+        {% for key, state in collector.circuits %}
+            <div class="sf-toolbar-info-piece">
+                <b>{{ key }}</b>
+                <span class="sf-toolbar-status sf-toolbar-status-{{ state == 'closed' ? 'green' : 'red' }}">{{ state }}</span>
+            </div>
+        {% endfor %}
+    {% endset %}
+    {{ include('@WebProfiler/Profiler/toolbar_item.html.twig', {link: true, status: collector.trippedCount > 0 ? 'red' : ''}) }}
+{% endblock %}
+
+{% block menu %}
+    <span class="label{{ collector.trippedCount > 0 ? ' label-status-error' : '' }}">
+        <strong>Circuit breakers</strong>
+        <span class="count"><span>{{ collector.circuits|length }}</span></span>
+    </span>
+{% endblock %}
+
+{% block panel %}
+    <h2>Circuits</h2>
+    {% if collector.circuits is empty %}
+        <div class="empty"><p>No circuit is declared.</p></div>
+    {% else %}
+        <table>
+            <thead><tr><th>Circuit</th><th>State</th></tr></thead>
+            <tbody>
+            {% for key, state in collector.circuits %}
+                <tr><td>{{ key }}</td><td>{{ state }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

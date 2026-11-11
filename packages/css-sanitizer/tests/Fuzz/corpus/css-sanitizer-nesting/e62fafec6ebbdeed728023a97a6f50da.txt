@@ -1,0 +1,2 @@
+@import "s.css"(print?
+a x color: re,; & тттттттттттng"), url(a.png) 2x) }

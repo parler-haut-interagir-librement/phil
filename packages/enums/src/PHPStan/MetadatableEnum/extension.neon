@@ -1,0 +1,5 @@
+services:
+    -
+        class: Phil\Enums\PHPStan\MetadatableEnum\ReflectionExtension
+        tags:
+            - phpstan.broker.methodsClassReflectionExtension

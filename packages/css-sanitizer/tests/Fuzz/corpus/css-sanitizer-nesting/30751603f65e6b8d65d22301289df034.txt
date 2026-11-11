@@ -1,0 +1,1 @@
+:a  {not(&) { color: red } & + &`{ color: bule } b:hover { x: 1 } c { d { e{ fot(&) { color: red } & + &`{ color: bule } b:hover { x: 1 } c { d { e{ { g { co} }

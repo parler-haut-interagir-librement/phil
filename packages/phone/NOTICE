@@ -1,0 +1,10 @@
+phil/phone
+Copyright (c) Philippe Gamache, doing business as Le Gnome Archiviste.
+The code of this library is under the MIT License (LICENSE).
+
+The numbering plans in data/ are generated from the metadata of libphonenumber,
+https://github.com/google/libphonenumber, resources/PhoneNumberMetadata.xml,
+Copyright (C) The Libphonenumber Authors, under the Apache License 2.0
+(data/LICENSE). The release imported is in data/VERSION. The data were
+changed from XML to PHP arrays: patterns lose their layout whitespace, formats
+carry their national prefix rule resolved, and possible lengths are expanded.

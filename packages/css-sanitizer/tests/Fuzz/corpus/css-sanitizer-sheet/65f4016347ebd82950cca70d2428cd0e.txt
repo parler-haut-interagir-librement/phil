@@ -1,0 +1,2 @@
+@font-face { `ont-fa~r: url(x.woff1) }
+.c::befobe { content:WWWWWWWWWWer base { d<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< { e: (f }}  }

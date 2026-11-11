@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from libphonenumber's metadata (Apache License 2.0) by Phil\Phone\Metadata\MetadataImporter.
+return ['id' => 'VA', 'countryCode' => 39, 'internationalPrefix' => '00', 'preferredInternationalPrefix' => null, 'nationalPrefix' => null, 'nationalPrefixForParsing' => null, 'nationalPrefixTransformRule' => null, 'leadingDigits' => '06698', 'preferredExtnPrefix' => null, 'general' => ['pattern' => '0\\d{5,10}|3[0-8]\\d{7,10}|55\\d{8}|8\\d{5}(?:\\d{2,4})?|(?:1\\d|39)\\d{7,8}', 'lengths' => [6, 7, 8, 9, 10, 11, 12]], 'types' => ['fixedLine' => ['pattern' => '06698\\d{1,6}', 'lengths' => [6, 7, 8, 9, 10, 11]], 'mobile' => ['pattern' => '3[1-9]\\d{8}|3[2-9]\\d{7}', 'lengths' => [9, 10]], 'tollFree' => ['pattern' => '80(?:0\\d{3}|3)\\d{3}', 'lengths' => [6, 9]], 'premiumRate' => ['pattern' => '(?:0878\\d{3}|89(?:2\\d|3[04]|4(?:[0-4]|[5-9]\\d\\d)|5[0-4]))\\d\\d|(?:1(?:44|6[346])|89(?:38|5[5-9]|9))\\d{6}', 'lengths' => [6, 8, 9, 10]], 'sharedCost' => ['pattern' => '84(?:[08]\\d{3}|[17])\\d{3}', 'lengths' => [6, 9]], 'voip' => ['pattern' => '55\\d{8}', 'lengths' => [10]], 'personalNumber' => ['pattern' => '1(?:78\\d|99)\\d{6}', 'lengths' => [9, 10]], 'voicemail' => ['pattern' => '3[2-8]\\d{9,10}', 'lengths' => [11, 12]]], 'formats' => []];

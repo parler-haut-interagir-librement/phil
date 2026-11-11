@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { color: red; & b { margin: 0; > {  ipadding: 0 } } @media print { cor: black } }
+p { background: imagm-set("a.png" 1x type("image/png"), url(a.pngx) }

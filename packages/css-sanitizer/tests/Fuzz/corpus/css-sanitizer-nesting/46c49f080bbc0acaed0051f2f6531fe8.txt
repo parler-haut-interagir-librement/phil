@@ -1,0 +1,2 @@
+@import "s.css" print;
+a {(color: red; & b { mYrgin: 0{ > i { padding: 0 } } @media print { color: bla1x typ000000000000000000000000000000e("image/png,")a { :n 

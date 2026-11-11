@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * What phil/dev-tools reads of this package: its paths and its exceptions to the shared configurations.
+ */
+return [
+    'paths' => ['src', 'tests'],
+    'phpstan' => [
+        // La dette de phil/dev-tools v2 : ce que ses règles relèvent et qui reste à corriger.
+        'ignoreErrors' => [
+            // à corriger : API interne de Symfony à remplacer par une API publique.
+            [
+                'identifier' => 'method.internal',
+                'path' => 'tests/Benchmark/ValidPhoneNumberValidatorBench.php',
+                'count' => 1,
+            ],
+            // à corriger : API interne de Doctrine, Symfony à remplacer par une API publique.
+            [
+                'identifier' => 'new.internalClass',
+                'paths' => [
+                    'tests/Benchmark/ValidPhoneNumberValidatorBench.php',
+                    'tests/Unit/PhilPhoneBundleTest.php',
+                ],
+            ],
+            // à corriger : API interne de Symfony à remplacer par une API publique.
+            [
+                'identifier' => 'property.internalClass',
+                'path' => 'tests/Benchmark/ValidPhoneNumberValidatorBench.php',
+                'count' => 1,
+            ],
+            // à corriger : déplacer les attributs dans un espace de noms Attribute (rupture de l’API publique).
+            [
+                'identifier' => 'symplify.requireAttributeNamespace',
+                'path' => 'src/Infrastructure/Validator/ValidPhoneNumber.php',
+                'count' => 1,
+            ],
+        ],
+    ],
+];

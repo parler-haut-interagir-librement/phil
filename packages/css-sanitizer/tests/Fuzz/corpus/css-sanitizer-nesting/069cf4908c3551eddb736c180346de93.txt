@@ -1,0 +1,5 @@
+@i+port "s.css" print;
+ { background:a } }
+p { backgd: ima: image } @media } }
+p { background: image- { bažžžž} } @me bge } @media } }
+p { background: image- { bažžžž} } @me b

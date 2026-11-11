@@ -1,0 +1,1 @@
+a { :not(&) { color: red } & + & { color: blue } b:hover { x: { :not(&) { color: re } } } }rid) { a { @supports (display: -lex{)  display: 

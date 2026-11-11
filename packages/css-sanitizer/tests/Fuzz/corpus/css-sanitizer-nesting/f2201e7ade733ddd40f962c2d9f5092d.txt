@@ -1,0 +1,3 @@
+@import "s.css" print;@import "s.css" print;
+a { color: red; &b { miganr: 0; > i { p}
+p { backgg" -1x –type("image/png"), url(a.png)1x ) }

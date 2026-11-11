@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from libphonenumber's metadata (Apache License 2.0) by Phil\Phone\Metadata\MetadataImporter.
+return ['id' => 'OM', 'countryCode' => 968, 'internationalPrefix' => '00', 'preferredInternationalPrefix' => null, 'nationalPrefix' => null, 'nationalPrefixForParsing' => null, 'nationalPrefixTransformRule' => null, 'leadingDigits' => null, 'preferredExtnPrefix' => null, 'general' => ['pattern' => '(?:1505|[279]\\d{3}|500)\\d{4}|800\\d{5,6}', 'lengths' => [7, 8, 9]], 'types' => ['fixedLine' => ['pattern' => '2[1-6]\\d{6}', 'lengths' => [8]], 'mobile' => ['pattern' => '(?:1505|90[1-9]\\d)\\d{4}|(?:7[124-9]|9[1-9])\\d{6}', 'lengths' => [8]], 'tollFree' => ['pattern' => '8007\\d{4,5}|(?:500|800[05])\\d{4}', 'lengths' => [7, 8, 9]], 'premiumRate' => ['pattern' => '900\\d{5}', 'lengths' => [8]]], 'formats' => [['pattern' => '(\\d{3})(\\d{4,6})', 'leadingDigits' => '[58]', 'format' => '$1 $2', 'nationalRule' => null, 'intlFormat' => '$1 $2'], ['pattern' => '(\\d{2})(\\d{6})', 'leadingDigits' => '2', 'format' => '$1 $2', 'nationalRule' => null, 'intlFormat' => '$1 $2'], ['pattern' => '(\\d{4})(\\d{4})', 'leadingDigits' => '[179]', 'format' => '$1 $2', 'nationalRule' => null, 'intlFormat' => '$1 $2']]];

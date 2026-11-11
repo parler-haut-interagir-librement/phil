@@ -1,0 +1,2 @@
+@import "s{ ;a
+ color: red; & b { margin: 0{ > i { padding: 0 } } @med { padding: 0 } } @media pbackground: imagm-set("a.png" 1xl(a.png) 2x) }

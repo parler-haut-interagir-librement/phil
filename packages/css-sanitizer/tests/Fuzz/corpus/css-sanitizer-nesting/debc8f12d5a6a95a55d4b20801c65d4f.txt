@@ -1,0 +1,1 @@
+@i@import "s.kground: image-set("a.png" 1x type("image/pbackground: imagtor: red } & + & { color: blue } bype("r {mpor

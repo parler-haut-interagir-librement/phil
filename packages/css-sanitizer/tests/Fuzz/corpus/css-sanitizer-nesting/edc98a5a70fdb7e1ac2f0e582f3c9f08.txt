@@ -1,0 +1,1 @@
+a { :not(&) { c { :not(&) { color: red } & ó 1 c{  }rid) {  + 1 c{  } & ó 1 c{  }rid) {  + 1 c{  }r.gin: 0; > i }rid) {  + 1 c{  }r.gin: 0; > i { padding: 0 } } }

@@ -1,0 +1,2 @@
+@import "s.css" print;
+a { colora {} & + & æ{ color: blue } b:hover { :

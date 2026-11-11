@@ -1,0 +1,4 @@
+@import "x.css"a;
+{ color: red; back!ground: urlu(https://example.com/a@png) }
+@media (min-width: 39em) { .b {: utl(httple.com/a.png) }
+@medi positioo: fixed } }

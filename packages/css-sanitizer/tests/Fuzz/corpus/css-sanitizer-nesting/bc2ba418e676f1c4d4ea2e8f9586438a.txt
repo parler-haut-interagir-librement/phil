@@ -1,0 +1,2 @@
+@ir: 1; > i { p}
+p { background: image-set("a.png" -1x type("amige/png"), url(a.png) 0x) }

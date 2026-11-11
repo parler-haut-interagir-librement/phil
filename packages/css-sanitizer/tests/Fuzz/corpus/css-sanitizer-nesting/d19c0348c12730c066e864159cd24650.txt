@@ -1,0 +1,5 @@
+@import "s.css" print;
+a { color: rnt { color: black } }
+p { background: image-set("a.png" 1x tyr: black } }
+p { background:rint;
+a { : red; & b { margin: 0{ > i { paddipng) 2x) }

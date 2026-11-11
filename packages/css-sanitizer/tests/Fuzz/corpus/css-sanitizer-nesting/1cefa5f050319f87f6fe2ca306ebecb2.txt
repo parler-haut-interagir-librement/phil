@@ -1,0 +1,2 @@
+@i@import "s.css" pdding: 0 } } @i@import "s.css" pdding: 0 } } @media print { color: bmedia print { color: black } }
+mp { background: iiagmpor

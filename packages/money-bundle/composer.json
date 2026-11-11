@@ -1,0 +1,72 @@
+{
+    "name": "phil/money-bundle",
+    "description": "Symfony integration of phil/money: the accepted currencies by configuration, a MoneyType form type read in the request's locale without floats, AcceptedCurrency and MoneyRange constraints, a format_money Twig filter, a phil_currency Doctrine column type and Money as an ORM embeddable",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "money",
+        "currency",
+        "symfony",
+        "form",
+        "validator",
+        "twig",
+        "doctrine"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-intl": "*",
+        "phil/money": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/intl": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/validator": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "doctrine/persistence": "^4.1",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/dbal": "For the phil_currency column type",
+        "doctrine/orm": "To embed a Money in an entity",
+        "twig/twig": "For the format_money filter"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\MoneyBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\MoneyBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

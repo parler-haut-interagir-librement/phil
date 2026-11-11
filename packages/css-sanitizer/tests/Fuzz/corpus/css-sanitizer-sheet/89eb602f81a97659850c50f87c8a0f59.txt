@@ -1,0 +1,3 @@
+@font-face { font-far: url(x.woff1) }
+.c::before { content: "\\41"; width: calc(100% - var(--gap, 1rem)) }
+@supportsr base { d { e: f } } }

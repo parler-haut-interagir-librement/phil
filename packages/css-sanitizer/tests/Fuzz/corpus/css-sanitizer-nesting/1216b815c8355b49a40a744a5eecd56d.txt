@@ -1,0 +1,2 @@
+@import "s.css" priot;
+a { color:  { paddinmp} @(md: imagm-.png) 2x) }

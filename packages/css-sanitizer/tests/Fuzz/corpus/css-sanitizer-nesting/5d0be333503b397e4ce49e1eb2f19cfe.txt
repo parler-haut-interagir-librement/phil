@@ -1,0 +1,5 @@
+@i@imlor: black } }
+p { background: i color: black } }
+p { background: image-set("a.png" 1x tyr: black } }
+p { ba }
+mее & b { еееp { ba*kground: iprmgamo

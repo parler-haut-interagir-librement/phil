@@ -1,0 +1,5 @@
+includes:
+    - ./src/PHPStan/InvocableEnum/extension.neon
+    - ./src/PHPStan/MetadatableEnum/extension.neon
+    - ./src/PHPStan/RequiredMeta/extension.neon
+    - ./src/PHPStan/Declaration/extension.neon

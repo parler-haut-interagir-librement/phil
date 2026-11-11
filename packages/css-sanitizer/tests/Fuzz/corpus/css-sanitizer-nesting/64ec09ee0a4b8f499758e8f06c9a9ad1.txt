@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { colound: dm-set("a.png" 6x type("image/png"), url(a.pddd 2x) }
+imadm-set("a.png" 6x type("image/png"), url(a.pddd 2x) }

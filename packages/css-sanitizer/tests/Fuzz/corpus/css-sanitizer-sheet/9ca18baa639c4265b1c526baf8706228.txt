@@ -1,0 +1,3 @@
+@import "x.css"a;
+ { color: red; background: url(https://example.com/a.png) 
+@media (min-width: 40em) WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW{ .b { position: fixed } }

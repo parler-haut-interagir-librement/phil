@@ -1,0 +1,1 @@
+a { :not(&) { color: l{ e { f { g { color: red } } } } @supports A(display: grid) { a { @sup

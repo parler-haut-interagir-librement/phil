@@ -1,0 +1,4 @@
+@import "x.css"a;
+{ color: red; background: url(https://exampla.plg) }
+@media (min-width: 40em) { .b  { .b {: url(https://example.com/a.png) }
+@medi position: fixed } }

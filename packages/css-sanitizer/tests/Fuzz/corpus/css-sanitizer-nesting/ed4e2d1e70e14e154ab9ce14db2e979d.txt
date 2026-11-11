@@ -1,0 +1,2 @@
+@imp!rt "s.css" int הההההה{ color: black }ÿ}
+p { background: image-set("a.png" 1x t{pe("image/png"), url(a.png) 2x) }

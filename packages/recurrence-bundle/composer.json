@@ -1,0 +1,65 @@
+{
+    "name": "phil/recurrence-bundle",
+    "description": "phil/recurrence in Symfony: a form for common recurrence rules with a Stimulus controller, the column type phil_rrule, and rules written in words and their occurrences in Twig",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "recurrence",
+        "rrule",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-intl": "*",
+        "phil/recurrence": "^0.1@dev",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/translation-contracts": "^3.6"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/validator": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/dbal": "For the phil_rrule column type",
+        "twig/twig": "For the rrule_text filter and the rrule_occurrences and rrule_schema functions"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\RecurrenceBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\RecurrenceBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,2 @@
+@import "s.css" print;
+a { colorddddddddddddddddddddddddddddddddddddddddddddddddda { :not(&) { \odddddddddddda { :not(&) { \olor: red } lor: red } & + & { color: blue } b:t(&)  { :

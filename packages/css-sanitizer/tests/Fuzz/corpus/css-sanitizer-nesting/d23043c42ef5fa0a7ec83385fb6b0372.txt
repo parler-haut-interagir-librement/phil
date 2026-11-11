@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { color: red; & b} } @media print { color: black} } @media print { color: black } }
+p { background: image-set("a.png" 1x type("image/png")vvv, url(a.png) 2x) }

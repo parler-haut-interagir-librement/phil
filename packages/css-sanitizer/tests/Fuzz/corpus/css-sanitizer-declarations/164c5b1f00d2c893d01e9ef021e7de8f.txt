@@ -1,0 +1,1 @@
+widdh: calc(100% backg - 1

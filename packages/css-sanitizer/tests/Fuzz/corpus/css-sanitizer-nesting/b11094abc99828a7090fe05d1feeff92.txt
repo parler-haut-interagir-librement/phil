@@ -1,0 +1,3 @@
+@import "s.css"(print?
+a[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[ x coi { padding: 0 } } @mediatype("$mage/pтттттттттттттng"), url(a.png) 2x) }
+\

@@ -1,0 +1,2 @@
+@font-face { font-far: :before { content: "\\41"; wcontent: "\\41"; width: calc(100% - var(--gap, 1rem)) }
+@supports (display: grid) { @layer base { d { e: f } } }

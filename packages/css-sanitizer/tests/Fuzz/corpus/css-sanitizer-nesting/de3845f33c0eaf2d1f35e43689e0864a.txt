@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { colopg: 0: red; & b { margin: red; & b { margin: 0; > {  ipadding: 0 } } @meálack } }
+p { background: i"a.png" 1x type("image/png"), url(a.png) 2x) }

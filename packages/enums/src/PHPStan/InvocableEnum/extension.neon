@@ -1,0 +1,5 @@
+services:
+    -
+        class: Phil\Enums\PHPStan\InvocableEnum\ReflectionExtension
+        tags:
+            - phpstan.broker.methodsClassReflectionExtension

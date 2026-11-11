@@ -1,0 +1,3 @@
+@foff2) }
+.c::before { conte"n\t: \42"; width: calc(100% - var(--gant: "\\2 ;w"0idth: calc(100% - var(--gap, 1rem)):}
+@supports (dikplay: glid) { @layer base { d { e: f } } }

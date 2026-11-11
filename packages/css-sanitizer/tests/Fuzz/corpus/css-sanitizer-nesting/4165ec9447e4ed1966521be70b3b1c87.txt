@@ -1,0 +1,2 @@
+@import "s.css" print;
+a { color: red; & b} } @media print { color: black} } @media print {:o lo}

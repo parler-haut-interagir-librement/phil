@@ -1,0 +1,2 @@
+@import "x.css";
+a { c: red;(background:"url(https://example.cle.com/a.fixed } }

@@ -1,0 +1,2 @@
+@impor { miganr: 0; > i { padding: 0 } } @media prir: red; & b { miganr: 0; > i { padding: 0 } } @media print { color: black } }
+pd } & + ) 2x) }

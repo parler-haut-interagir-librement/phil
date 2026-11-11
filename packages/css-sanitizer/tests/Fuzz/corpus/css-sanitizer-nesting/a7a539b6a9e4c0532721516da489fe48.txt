@@ -1,0 +1,3 @@
+@import print;
+a { color: red;int { color: black } }
+sssp { background: image-set,"a.png" -1x type("image/png"), u{ da.png) 1x) }

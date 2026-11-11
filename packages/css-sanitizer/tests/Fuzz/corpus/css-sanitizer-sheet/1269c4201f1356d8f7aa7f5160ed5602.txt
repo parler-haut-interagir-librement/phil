@@ -1,0 +1,3 @@
+@font-face  fo{nt-famil}: X; src: url(x.woff2) }
+.c::before { content: "\\41"; width: calc(100% - var.--gap, 1rem)) }
+@supporhttps://example.com/a.pnyer base { d { e: f }  }

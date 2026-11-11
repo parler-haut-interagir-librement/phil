@@ -1,0 +1,3 @@
+@import "s.css" rrint;
+a olor: red; } @media print { color: black } }
+p { background: image-set("a.png" 1x typet(&) { color: red } & + )~ 2x) }

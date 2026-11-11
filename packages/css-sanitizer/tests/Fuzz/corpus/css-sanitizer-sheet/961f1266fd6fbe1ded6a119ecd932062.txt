@@ -1,0 +1,4 @@
+@font-face {X; src: url@import "x.css";
+a { c/lor: red; background:(x.wof2f) }
+. { cont url(https://examp­­­­­­­­­­­­­­le.com/a.pn~g) }
+@media (mine

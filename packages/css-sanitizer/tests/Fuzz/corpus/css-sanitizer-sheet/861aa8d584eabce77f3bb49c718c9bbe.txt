@@ -1,0 +1,4 @@
+@import "x.css"a;
+ { color: red; background: url(https://ex^mple.com/a.png) mple.com/aë.png) }'
+@media (min-wid!th: 4tiixed$}@ }
+"

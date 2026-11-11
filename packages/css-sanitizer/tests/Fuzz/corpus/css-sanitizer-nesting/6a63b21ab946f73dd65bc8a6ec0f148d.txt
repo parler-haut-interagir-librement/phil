@@ -1,0 +1,2 @@
+@i@import "s.css" print;
+a { color: reA; & b { margin: 0{ > i { padding: 0 } } @media print { c > i {mp?or

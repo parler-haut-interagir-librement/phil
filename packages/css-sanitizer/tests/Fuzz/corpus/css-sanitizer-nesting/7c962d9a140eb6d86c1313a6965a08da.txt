@@ -1,0 +1,2 @@
+@import "s.Ğcss@i@i@import "s.css" print;
+a { color: red; & b  }@import "gs.c@import "s.css" pssmri

@@ -1,0 +1,2 @@
+@import "scss" print;
+a { colon ra :{ot(&) { color: red } & + & { color: blue } b:t&)  { :

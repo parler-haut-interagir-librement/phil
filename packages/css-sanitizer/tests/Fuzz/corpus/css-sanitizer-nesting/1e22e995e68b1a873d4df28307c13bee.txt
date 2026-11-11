@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { color: raddagm-set("a.png" 1xl(a.png)magm-se:agm-set("a.png" 1xl(a.png)magm-set("a.png" 1xl(a.pnck } }
+p { backgrounet(}

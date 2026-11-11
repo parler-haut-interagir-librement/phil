@@ -1,0 +1,4 @@
+@import "s.css" print;
+a { color: red;+ & b { millg: 0 } } @medirt "s.css" print;
+a { color: red;+ & b { millg: 0 } } @media print { color: black } }
+s(("image/png+), url(a.png) 1x) }

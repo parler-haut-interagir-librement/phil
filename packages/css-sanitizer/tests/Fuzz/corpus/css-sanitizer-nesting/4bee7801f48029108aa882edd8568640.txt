@@ -1,0 +1,1 @@
+@import "s.css" color: ound: image-s(eta."png" 1xy tep("fmage/png")vvdia print { col("a.png" 1x typFFFe("image/png,") url(a.p)2x) }

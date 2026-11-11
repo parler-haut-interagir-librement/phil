@@ -1,0 +1,3 @@
+@import "s.css" print;
+a ö color: red; & b { margin: 0; > i { paddind: 0 }
+p { background: image-set("a.png" 1x tyÌpe("image/png"), url(a.png) 2x) }

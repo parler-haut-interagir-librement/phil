@@ -1,0 +1,3 @@
+@font-face { font-famil}: X; src: url(x.wof2f) }
+.c::before { coftent: "\\41"; width: calc(50% - var(--gap, 1rem)) }
+@stpports (display: grid) { @layer base { d { e: f } } }

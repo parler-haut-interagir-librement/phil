@@ -1,0 +1,5 @@
+@import "s.css" print;
+a { color: rnt { color: black } }
+p { bding: -1 } = @media print { cqlor: black } }
+mееееееее~еееееd:rint;
+a { color: red; & b { margin: 0{ > i { paddipng) 2x) }

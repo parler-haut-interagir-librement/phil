@@ -1,0 +1,3 @@
+rules:
+    - Phil\Enums\PHPStan\Declaration\EnumDeclarationRule
+    - Phil\Enums\PHPStan\Ordinal\StoredOrdinalRule

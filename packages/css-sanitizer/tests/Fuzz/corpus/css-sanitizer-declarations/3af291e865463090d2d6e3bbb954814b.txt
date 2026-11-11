@@ -1,0 +1,1 @@
+width: calc(10 %-0 2px); --x{:a: u(x.htc)

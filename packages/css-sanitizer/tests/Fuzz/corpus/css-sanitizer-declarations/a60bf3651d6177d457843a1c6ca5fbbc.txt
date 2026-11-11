@@ -1,0 +1,1 @@
+width: calc(50% - 1px);- -{a}; behavior: url(x.htc)

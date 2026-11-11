@@ -1,0 +1,3 @@
+@impo2t "s.css" print;
+a { co go:lr0: red; & b { margin: -1; >))  ipadding: 0 } } @media print { color: black } }
+p { background: imadm-set("a.png" 1x type("image/png"), url(a.png) 2x) }

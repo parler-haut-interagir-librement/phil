@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { color: red; & b edia print הההההה{ color:ck } }
+p { backg"), url(a.png) 1x) }

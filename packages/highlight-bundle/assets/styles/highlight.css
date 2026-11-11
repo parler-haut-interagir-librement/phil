@@ -1,0 +1,311 @@
+/*
+ * phil/highlight-bundle — the theme.
+ *
+ * Colours the hl- spans of phil/highlight and lays out the blocks that hold them: a pre holding a code with a
+ * language-… class, the code blocks of UJO documents (pre.ujo-code), and any element with the class hl. Light or dark
+ * as the system prefers, unless an ancestor carries data-theme="light" or data-theme="dark"; light on paper. Every
+ * colour is a custom property under --hl-*, which a page may redefine on :root or on one block; each meets the WCAG AA
+ * contrast for normal text against the backgrounds it is shown on, the tints of marked lines included.
+ */
+:root,
+[data-theme="light"] {
+    --hl-background: #f5f6f8;
+    --hl-text: #1d2433;
+    --hl-border: #d8dce3;
+    --hl-keyword: #8a2b8f;
+    --hl-type: #8c4a00;
+    --hl-function: #1f5aa6;
+    --hl-number: #9c3d00;
+    --hl-string: #2c6e2f;
+    --hl-comment: #5f6673;
+    --hl-punctuation: #4a5263;
+    --hl-variable: #a8301f;
+    --hl-meta: #5b3fa8;
+    --hl-tag: #9b2335;
+    --hl-property: #0d6470;
+    --hl-inserted: #1c5a24;
+    --hl-inserted-background: #e3f2e5;
+    --hl-deleted: #8f1d1d;
+    --hl-deleted-background: #fbe7e7;
+    --hl-line-highlighted-background: #f6edd3;
+    --hl-line-inserted-background: #dff1e4;
+    --hl-line-deleted-background: #fae8e9;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --hl-background: #1a1d24;
+        --hl-text: #dfe3ea;
+        --hl-border: #2f3542;
+        --hl-keyword: #e39ff0;
+        --hl-type: #f0bd73;
+        --hl-function: #8ab8f5;
+        --hl-number: #f5a97a;
+        --hl-string: #9ad48a;
+        --hl-comment: #9aa3b2;
+        --hl-punctuation: #b5bccb;
+        --hl-variable: #f59a8c;
+        --hl-meta: #c3b0f5;
+        --hl-tag: #f39aa8;
+        --hl-property: #78d0d9;
+        --hl-inserted: #a6e3a1;
+        --hl-inserted-background: #1f3524;
+        --hl-deleted: #f5a3a3;
+        --hl-deleted-background: #3d2224;
+        --hl-line-highlighted-background: #302d25;
+        --hl-line-inserted-background: #1d3229;
+        --hl-line-deleted-background: #3b1f26;
+    }
+}
+
+[data-theme="dark"] {
+    --hl-background: #1a1d24;
+    --hl-text: #dfe3ea;
+    --hl-border: #2f3542;
+    --hl-keyword: #e39ff0;
+    --hl-type: #f0bd73;
+    --hl-function: #8ab8f5;
+    --hl-number: #f5a97a;
+    --hl-string: #9ad48a;
+    --hl-comment: #9aa3b2;
+    --hl-punctuation: #b5bccb;
+    --hl-variable: #f59a8c;
+    --hl-meta: #c3b0f5;
+    --hl-tag: #f39aa8;
+    --hl-property: #78d0d9;
+    --hl-inserted: #a6e3a1;
+    --hl-inserted-background: #1f3524;
+    --hl-deleted: #f5a3a3;
+    --hl-deleted-background: #3d2224;
+    --hl-line-highlighted-background: #302d25;
+    --hl-line-inserted-background: #1d3229;
+    --hl-line-deleted-background: #3b1f26;
+}
+
+pre:has(> code[class*="language-"]),
+pre.ujo-code,
+.hl {
+    overflow-x: auto;
+    margin-block: 0 1rem;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--hl-border);
+    border-radius: 0.375rem;
+    background: var(--hl-background);
+    color: var(--hl-text);
+    font-family: ui-monospace, "SFMono-Regular", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+    font-size: 0.875em;
+    line-height: 1.6;
+    tab-size: 4;
+    white-space: pre;
+    overflow-wrap: normal;
+}
+
+pre:has(> code[class*="language-"]) > code,
+pre.ujo-code > code {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+}
+
+pre:has(> code[class*="language-"]):focus-visible,
+pre.ujo-code:focus-visible,
+.hl:focus-visible {
+    outline: 2px solid var(--hl-function);
+    outline-offset: 2px;
+}
+
+.hl-keyword,
+.hl-selector,
+.hl-section {
+    color: var(--hl-keyword);
+}
+
+.hl-heading {
+    color: var(--hl-keyword);
+    font-weight: 700;
+}
+
+.hl-type,
+.hl-builtin {
+    color: var(--hl-type);
+}
+
+.hl-function,
+.hl-link {
+    color: var(--hl-function);
+}
+
+.hl-link {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+}
+
+.hl-number,
+.hl-constant,
+.hl-entity {
+    color: var(--hl-number);
+}
+
+.hl-string,
+.hl-regex,
+.hl-code {
+    color: var(--hl-string);
+}
+
+.hl-comment {
+    color: var(--hl-comment);
+    font-style: italic;
+}
+
+.hl-operator,
+.hl-punctuation {
+    color: var(--hl-punctuation);
+}
+
+.hl-variable {
+    color: var(--hl-variable);
+}
+
+.hl-meta {
+    color: var(--hl-meta);
+}
+
+.hl-tag {
+    color: var(--hl-tag);
+}
+
+.hl-attr-name,
+.hl-property {
+    color: var(--hl-property);
+}
+
+.hl-emphasis {
+    font-style: italic;
+}
+
+.hl-strong {
+    font-weight: 700;
+}
+
+.hl-inserted {
+    background: var(--hl-inserted-background);
+    color: var(--hl-inserted);
+}
+
+.hl-deleted {
+    background: var(--hl-deleted-background);
+    color: var(--hl-deleted);
+}
+
+/* Lines, when the block is written line by line: a mark is a bar, a sign and a tint, never a colour alone. */
+.hl-line {
+    display: inline-block;
+    position: relative;
+    box-sizing: border-box;
+    min-width: 100%;
+    padding-inline-start: 1.5ch;
+    border-inline-start: 0.1875rem solid transparent;
+}
+
+.hl-line-number {
+    display: inline-block;
+    min-width: 3ch;
+    margin-inline-end: 2ch;
+    color: var(--hl-comment);
+    text-align: end;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.hl-line-highlighted {
+    border-inline-start-color: var(--hl-function);
+    background: var(--hl-line-highlighted-background);
+}
+
+.hl-line-inserted {
+    border-inline-start-color: var(--hl-inserted);
+    background: var(--hl-line-inserted-background);
+}
+
+.hl-line-deleted {
+    border-inline-start-color: var(--hl-deleted);
+    background: var(--hl-line-deleted-background);
+}
+
+.hl-line-inserted::before,
+.hl-line-deleted::before {
+    position: absolute;
+    inset-inline-start: 0.25ch;
+}
+
+.hl-line-inserted::before {
+    content: "+" / "";
+    color: var(--hl-inserted);
+}
+
+.hl-line-deleted::before {
+    content: "-" / "";
+    color: var(--hl-deleted);
+}
+
+@media print {
+    :root,
+    [data-theme] {
+        --hl-background: #ffffff;
+        --hl-text: #1d2433;
+        --hl-border: #bfc5cf;
+        --hl-keyword: #8a2b8f;
+        --hl-type: #8c4a00;
+        --hl-function: #1f5aa6;
+        --hl-number: #9c3d00;
+        --hl-string: #2c6e2f;
+        --hl-comment: #5f6673;
+        --hl-punctuation: #4a5263;
+        --hl-variable: #a8301f;
+        --hl-meta: #5b3fa8;
+        --hl-tag: #9b2335;
+        --hl-property: #0d6470;
+        --hl-inserted: #1c5a24;
+        --hl-inserted-background: #e3f2e5;
+        --hl-deleted: #8f1d1d;
+        --hl-deleted-background: #fbe7e7;
+        --hl-line-highlighted-background: #f6edd3;
+        --hl-line-inserted-background: #dff1e4;
+        --hl-line-deleted-background: #fae8e9;
+    }
+
+    pre:has(> code[class*="language-"]),
+    pre.ujo-code,
+    .hl {
+        overflow-x: visible;
+        white-space: pre-wrap;
+        break-inside: avoid;
+    }
+}
+
+@media (forced-colors: active) {
+    pre:has(> code[class*="language-"]),
+    pre.ujo-code,
+    .hl {
+        border-color: CanvasText;
+    }
+
+    .hl-inserted,
+    .hl-deleted {
+        background: none;
+        text-decoration: underline;
+    }
+
+    .hl-deleted {
+        text-decoration: line-through;
+    }
+
+    .hl-line-highlighted,
+    .hl-line-inserted,
+    .hl-line-deleted {
+        border-inline-start-color: Highlight;
+        background: none;
+    }
+}

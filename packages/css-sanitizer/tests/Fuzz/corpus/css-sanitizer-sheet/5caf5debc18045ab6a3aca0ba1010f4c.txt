@@ -1,0 +1,3 @@
+@font-fac, { font-far: url(x.wofg1) }
+.c::before { content: "\\41"; wid%0- var(--gap, 1rem)0 }
+@supports (display: grid) { @layer base { Ñd{ e:- f } }{ e:- f } } }

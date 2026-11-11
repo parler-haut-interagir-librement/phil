@@ -1,0 +1,3 @@
+p@imort "x.csc";
+a { color:  "x.csc";
+a { color: red; backgcolor: red; backgred; backgro//exampltps:/@/e.imfpix

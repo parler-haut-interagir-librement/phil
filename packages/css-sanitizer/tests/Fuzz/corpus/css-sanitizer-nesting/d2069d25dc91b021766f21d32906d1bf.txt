@@ -1,0 +1,2 @@
+@import "s.css" { color: bmack } }
+p { background: image-set("a.png0"x{ m argin: 0rt]i "sm.

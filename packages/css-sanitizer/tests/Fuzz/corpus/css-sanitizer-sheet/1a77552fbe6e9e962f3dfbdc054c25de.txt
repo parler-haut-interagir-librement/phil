@@ -1,0 +1,2 @@
+p@imort "x.csc";
+a { color: BBBBBBBB url(hvfixed//e.fixed } }

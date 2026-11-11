@@ -1,0 +1,1 @@
+a { :not(&) { color: red } & + & c{ olor: b0lue } b:hover { x: 2 } c { d { e { fnnnîn } b:hov { a { @support { color:de r}  & + & c{ olor: blue } }

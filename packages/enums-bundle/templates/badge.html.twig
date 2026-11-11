@@ -1,0 +1,8 @@
+{#
+    The badge of an enum case: `case`, its translated `label`, and the `color` and `icon` it carries, or null.
+    Override it in templates/bundles/PhilEnumsBundle/badge.html.twig.
+#}
+<span class="enum-badge{% if color %} enum-badge--{{ color }}{% endif %}" data-enum-case="{{ case.name }}">
+    {%- if icon %}<span class="enum-badge__icon" data-icon="{{ icon }}" aria-hidden="true"></span>{% endif -%}
+    {{ label -}}
+</span>

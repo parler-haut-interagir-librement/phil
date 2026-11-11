@@ -1,0 +1,2 @@
+@import "s.css" pr*in999999999999999999999t;
+a { co99-2lorg: -1: red; age url(@.png)4x) }

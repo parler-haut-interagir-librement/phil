@@ -1,0 +1,2 @@
+a ]e { f { g { color: red } } } } @supports (display: grid) { a { @supports (display: flex) LLLLL{ dispex }:{fle { @supports (display: flex) LLLLL{ dispex }:{flex }: f}
+display: flex } } }

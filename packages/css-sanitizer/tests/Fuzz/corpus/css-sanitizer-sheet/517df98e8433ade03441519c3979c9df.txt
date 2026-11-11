@@ -1,0 +1,3 @@
+@import "x.css"a;
+ { color: red; b@import "x.css"a;
+ { color: red; bakcgroudth: 40ea) { .b { position: fixed } }akcgroudth: 40ea) { .b { position: fixed } }

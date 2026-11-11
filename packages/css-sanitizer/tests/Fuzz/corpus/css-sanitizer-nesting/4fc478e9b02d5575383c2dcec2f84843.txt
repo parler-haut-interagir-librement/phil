@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { co+ora { :"s.css" print;
+a { co+or+ & { color: blue } b:hover { :

@@ -1,0 +1,1 @@
+color: red; ,ackground: url(st(0)) ma;r!important

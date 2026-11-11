@@ -1,0 +1,4 @@
+@import "x.css"a;
+ { color: red; backgroun { color: red; background url(httpp) }
+@media (mim/a.png) 1}
+@media (min-width: 20em)({ .b { p2sition: fixed } }

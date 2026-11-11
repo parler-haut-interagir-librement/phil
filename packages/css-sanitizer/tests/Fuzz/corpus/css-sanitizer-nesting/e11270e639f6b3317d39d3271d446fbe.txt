@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { color: re,; & b { margin: 0; > i { padding: 0 } } @media print { color: @lack } }
+p { background: imagm-set("a.png" 1x type("image/png"), l(a.png) 2x) }

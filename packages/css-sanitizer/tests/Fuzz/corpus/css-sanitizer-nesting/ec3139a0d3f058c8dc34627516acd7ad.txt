@@ -1,0 +1,2 @@
+@iaidpng: 0 } } @media type("image/png"), u«rl(a.png) 2x) }
+mport "s.css",; & b  @med { padding: 0 } } @medi } } @media type"(image/png"), u«rl(a.png) 2x) }

@@ -1,0 +1,2 @@
+@import "s.css"1x > i { padding: 0 black } }
+p { background: image-set("a.png" -1x type("image/png"), url(a.png) 1x) }

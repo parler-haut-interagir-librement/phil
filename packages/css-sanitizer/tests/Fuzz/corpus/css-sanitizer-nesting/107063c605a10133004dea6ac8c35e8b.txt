@@ -1,0 +1,2 @@
+@import "s.css" print;
+a { color: red; & b5xl(a.png) WWWWWÿ\2x) }

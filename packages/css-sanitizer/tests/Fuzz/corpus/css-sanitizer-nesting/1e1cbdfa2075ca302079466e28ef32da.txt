@@ -1,0 +1,2 @@
+a { :not(&) { color: red } & + & { color: blue } b:hov }
+@supports (disp { display: flex } } }

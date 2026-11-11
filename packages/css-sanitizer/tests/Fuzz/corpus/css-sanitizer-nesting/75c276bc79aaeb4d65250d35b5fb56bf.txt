@@ -1,0 +1,2 @@
+@import "s.cs{" print;
+a > {  ipadding: 0 } } @media print { color:?b("a.png" 1x type("image/png"), url(a.png) 2x) }

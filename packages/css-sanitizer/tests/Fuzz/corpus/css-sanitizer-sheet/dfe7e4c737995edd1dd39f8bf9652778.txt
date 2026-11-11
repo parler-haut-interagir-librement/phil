@@ -1,0 +1,4 @@
+@import "x.css"a;
+{ @import "x.css";
+a { co url(https://example.com/m/a.png) }
+@moa { color: red;(backgr@media 

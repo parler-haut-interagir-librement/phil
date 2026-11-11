@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from libphonenumber's metadata (Apache License 2.0) by Phil\Phone\Metadata\MetadataImporter.
+return ['id' => 'KH', 'countryCode' => 855, 'internationalPrefix' => '00[14-9]', 'preferredInternationalPrefix' => null, 'nationalPrefix' => '0', 'nationalPrefixForParsing' => '0', 'nationalPrefixTransformRule' => null, 'leadingDigits' => null, 'preferredExtnPrefix' => null, 'general' => ['pattern' => '1\\d{9}|[1-9]\\d{7,8}', 'lengths' => [8, 9, 10]], 'types' => ['fixedLine' => ['pattern' => '23(?:4(?:[2-4]|[56]\\d)|[568]\\d\\d)\\d{4}|23[236-9]\\d{5}|(?:2[4-6]|3[2-6]|4[2-4]|[5-7][2-5])(?:(?:[237-9]|4[56]|5\\d)\\d{5}|6\\d{5,6})', 'lengths' => [8, 9]], 'mobile' => ['pattern' => '(?:(?:1[28]|3[18]|9[67])\\d|6[016-9]|7(?:[07-9]|[16]\\d)|8(?:[013-79]|8\\d))\\d{6}|(?:1\\d|9[0-57-9])\\d{6}|(?:2[3-6]|3[2-6]|4[2-4]|[5-7][2-5])48\\d{5}', 'lengths' => [8, 9]], 'tollFree' => ['pattern' => '1800(?:1\\d|2[019])\\d{4}', 'lengths' => [10]], 'premiumRate' => ['pattern' => '1900(?:1\\d|2[09])\\d{4}', 'lengths' => [10]]], 'formats' => [['pattern' => '(\\d{2})(\\d{3})(\\d{3,4})', 'leadingDigits' => '[1-9]', 'format' => '$1 $2 $3', 'nationalRule' => '0$1', 'intlFormat' => '$1 $2 $3'], ['pattern' => '(\\d{4})(\\d{3})(\\d{3})', 'leadingDigits' => '1', 'format' => '$1 $2 $3', 'nationalRule' => null, 'intlFormat' => '$1 $2 $3']]];

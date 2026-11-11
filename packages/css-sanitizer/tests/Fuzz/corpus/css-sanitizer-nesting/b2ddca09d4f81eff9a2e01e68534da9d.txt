@@ -1,0 +1,1 @@
+@import "s.css" margin: 0; > i { padding: 1 } } @media print הההההה{ c@ir: black olo@ir: black mp

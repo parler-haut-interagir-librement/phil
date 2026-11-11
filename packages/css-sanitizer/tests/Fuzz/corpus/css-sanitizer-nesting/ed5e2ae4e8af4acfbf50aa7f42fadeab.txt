@@ -1,0 +1,3 @@
+@import "s.css" print;
+a c ool{ra @import "s.css" print;
+a c ool{ra { r: red } & + & æ{ color: bdqe } b:he o {:vr{ r: red } & + & æ{ color: bdqe } b:he o {:vr

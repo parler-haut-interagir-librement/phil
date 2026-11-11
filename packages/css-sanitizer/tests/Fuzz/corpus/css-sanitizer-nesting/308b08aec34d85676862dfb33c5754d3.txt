@@ -1,0 +1,3 @@
+@import s" pris.c print;
+a { ed; &rint;
+h { color

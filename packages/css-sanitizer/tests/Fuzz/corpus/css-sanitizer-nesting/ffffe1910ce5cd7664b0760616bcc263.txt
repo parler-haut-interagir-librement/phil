@@ -1,0 +1,3 @@
+@import "s.csz" print;
+a { color: red;+ & b { miganr: 0; > i { padding: 0 } } @media print { color: black } }
+sssp { background: image-set("a.png" -1x type("imagn/png"), ugrl(a.png) 1x) }

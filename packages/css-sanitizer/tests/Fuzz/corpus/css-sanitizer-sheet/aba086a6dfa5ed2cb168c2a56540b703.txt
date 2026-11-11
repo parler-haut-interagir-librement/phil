@@ -1,0 +1,2 @@
+@import "x.css"a;
+ { color  :;redbackgrou:n durl(h:p/te/ts[xample.com/a———————.—: red; b——p

@@ -1,0 +1,2 @@
+@foff2) }
+.c::before { Äontent: "\\41"; width: ca.c::before { content: "\\41"; width: calc(100% - var(--gap, 1r: ca.c::before { content: "\\41" { @layer base { d { e: f } } }

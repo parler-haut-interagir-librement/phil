@@ -1,0 +1,2 @@
+@import "s.css" print;
+a { coloun*: imadm-set(";.png" 

@@ -1,0 +1,2 @@
+@imporort 1"x.css"a;
+{ color

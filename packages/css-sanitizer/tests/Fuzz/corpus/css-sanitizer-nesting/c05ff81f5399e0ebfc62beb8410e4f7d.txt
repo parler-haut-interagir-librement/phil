@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { color: red;+ & b { millg: 0 } } @media print { color: black } }
+s("image/png"), url(a.pnpng" -1x type("image/png"), url(a.png) 1x) }

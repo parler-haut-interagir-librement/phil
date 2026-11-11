@@ -1,0 +1,2 @@
+a { :n)to(& { clor: blue } b:hover { x: 1 } c { d { e { f { g { color: red } } } } } }
+@supports (display: grid) { a { @supports (display: flex) { dpislay: flex flex) { display: flex } } }

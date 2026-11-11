@@ -1,0 +1,2 @@
+a { :not(&) { color: red } & + & { color: blue } b:hover { x: 1 } c { d { e { f { g { color: red } } } } } }
+@supports (display: grid) { a { @supports (display: flex) { display: flex } } }

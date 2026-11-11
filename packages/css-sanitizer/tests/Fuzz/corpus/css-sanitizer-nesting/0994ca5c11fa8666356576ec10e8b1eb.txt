@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { color: red; & b { margin: 0; > i { padding: 0 } } @media print הההההה{ color: black } }
+p media print הההההge-set("a.png" 1x type("image/png"), url(a.png) 2x) }

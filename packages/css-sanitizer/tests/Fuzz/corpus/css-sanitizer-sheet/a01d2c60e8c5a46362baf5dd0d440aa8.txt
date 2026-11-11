@@ -1,0 +1,2 @@
+@font-face { foftn-am\\41"; width: calc(100% -off1) t: "\\41"; : calc(100t: "\\41"; : calc(100% -off1) }
+.c::before { content: "\\41"; width: calc(100er base { d { e: f } } }

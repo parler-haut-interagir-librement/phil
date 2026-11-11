@@ -1,0 +1,2 @@
+@irt "s.css" print;
+a { colorg: 0 }] } @media pri("a.png" 1x type("image/png"), url(a.png* 2x) }

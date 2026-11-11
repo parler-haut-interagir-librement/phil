@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from libphonenumber's metadata (Apache License 2.0) by Phil\Phone\Metadata\MetadataImporter.
+return ['id' => 'RE', 'countryCode' => 262, 'internationalPrefix' => '00', 'preferredInternationalPrefix' => null, 'nationalPrefix' => '0', 'nationalPrefixForParsing' => '0', 'nationalPrefixTransformRule' => null, 'leadingDigits' => null, 'preferredExtnPrefix' => null, 'general' => ['pattern' => '709\\d{6}|(?:26|[689]\\d)\\d{7}', 'lengths' => [9]], 'types' => ['fixedLine' => ['pattern' => '2631[0-6]\\d{4}|26(?:2\\d|30|88)\\d{5}', 'lengths' => [9]], 'mobile' => ['pattern' => '(?:69(?:2\\d\\d|3(?:[06][0-6]|1[0-3]|2[0-2]|3[0-39]|4\\d|5[0-5]|7[0-37]|8[0-8]|9[0-479]))|7092[0-3])\\d{4}', 'lengths' => [9]], 'tollFree' => ['pattern' => '80\\d{7}', 'lengths' => [9]], 'premiumRate' => ['pattern' => '89[1-37-9]\\d{6}', 'lengths' => [9]], 'sharedCost' => ['pattern' => '8(?:1[019]|2[0156]|84|90)\\d{6}', 'lengths' => [9]], 'voip' => ['pattern' => '9(?:399[0-3]|479[0-6]|76(?:2[278]|3[0-37]))\\d{4}', 'lengths' => [9]]], 'formats' => [['pattern' => '(\\d{3})(\\d{2})(\\d{2})(\\d{2})', 'leadingDigits' => '[26-9]', 'format' => '$1 $2 $3 $4', 'nationalRule' => '0$1', 'intlFormat' => '$1 $2 $3 $4']]];

@@ -1,0 +1,4 @@
+@import "x.css"a;
+{wi@mdth: 40em) { .b  { .b {: url(https://example.com/a.png) }
+: 39em) { .b {: utl(httple.com/a.png) }
+@medi positioo: fixed } }

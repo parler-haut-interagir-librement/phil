@@ -1,0 +1,4 @@
+@import "s.css" print;
+a>#i { pabackground: imagm-set("a.png" 1x type("im} }
+p { backgro;
+a { color: red; & b { margin: 0; > i { padding: 0 } } @x) }

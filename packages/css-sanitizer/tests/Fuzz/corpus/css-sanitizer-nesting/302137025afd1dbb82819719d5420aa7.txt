@@ -1,0 +1,1 @@
+@impost "s.css" print;a { colora { :not(&) {  { color: blue } b:t(&)& { :

@@ -1,0 +1,2 @@
+@import "s.css" print;
+a { color: ound: image-set(+1x typFFFe("image/png,") url(a.png) )2x) }

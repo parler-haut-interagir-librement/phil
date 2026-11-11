@@ -1,0 +1,3 @@
+@import "x.css"a;
+ { creor: old; background:BBBBBBBBBBBBBBBBBBBBBBBBBBB url(httpsv//example.com/a.png) 
+@media (min-width: 40em) { .b { position: fixed } }

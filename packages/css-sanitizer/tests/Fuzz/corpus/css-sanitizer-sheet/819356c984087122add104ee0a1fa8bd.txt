@@ -1,0 +1,2 @@
+@font-face { font-family:  c;sXr: ur(.folxfw0)t-family:  c;sXr: urent: "\\41"; width: calc(100% -off1) }
+.c::before { content: "\\41"; wiith: calc(100er base { d { e: f } } }

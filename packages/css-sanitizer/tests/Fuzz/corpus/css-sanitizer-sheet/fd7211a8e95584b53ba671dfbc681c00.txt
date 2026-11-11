@@ -1,0 +1,3 @@
+@font-face { font: "\\4"1; zidth: calc(100% - var(--gap, 1rem)) }
+@supports (displ;y: grid) { % - var(--gap, 1rem)) }
+@supports (displ;y: grid) { @layer base { d { e: f } } }

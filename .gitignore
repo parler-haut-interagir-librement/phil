@@ -1,0 +1,13 @@
+/vendor/
+/vendor-bin/*/vendor/
+/var/
+.phpunit.cache/
+.php-cs-fixer.cache
+/infection*.log
+.claude/
+.DS_Store
+
+# Written at cache warm-up by the test kernel of each bundle.
+/packages/*/tests/Functional/App/config/reference.php
+/packages/*/tests/Functional/App/config/schema.json
+/packages/*/tests/Functional/App/var/

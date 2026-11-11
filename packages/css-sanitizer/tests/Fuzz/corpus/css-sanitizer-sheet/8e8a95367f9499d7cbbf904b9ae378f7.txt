@@ -1,0 +1,2 @@
+@import "x.css"a;
+ { creor: old; background:BBBBBBBBBia (min-width: 40em) { .b { position: fixed } }

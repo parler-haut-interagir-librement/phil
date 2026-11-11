@@ -1,0 +1,70 @@
+{
+    "config": {
+        "ansi-colors": true,
+        "fail-on-first-error": false,
+        "run": {
+            "mode": "shell",
+            "path": "vendor-bin/captainhook/vendor/bin/captainhook"
+        }
+    },
+    "pre-commit": {
+        "enabled": true,
+        "actions": [
+            {
+                "action": "vendor-bin/php-cs-fixer/vendor/bin/php-cs-fixer check --config=.php-cs-fixer.dist.php --diff --path-mode=intersection -- {$STAGED_FILES|of-type:php}",
+                "conditions": [
+                    {
+                        "exec": "\\CaptainHook\\App\\Hook\\Condition\\FileStaged\\OfType",
+                        "args": [
+                            "php"
+                        ]
+                    }
+                ]
+            },
+            {
+                "action": "vendor-bin/phpstan/vendor/bin/phpstan analyse --no-progress -- {$STAGED_FILES|of-type:php|in-dir:packages/}",
+                "conditions": [
+                    {
+                        "exec": "\\CaptainHook\\App\\Hook\\Condition\\FileStaged\\OfType",
+                        "args": [
+                            "php"
+                        ]
+                    }
+                ]
+            },
+            {
+                "action": "php vendor/bin/phil-dev twig",
+                "conditions": [
+                    {
+                        "exec": "\\CaptainHook\\App\\Hook\\Condition\\FileStaged\\OfType",
+                        "args": [
+                            "twig"
+                        ]
+                    }
+                ]
+            },
+            {
+                "action": "php vendor/bin/phil-dev normalize",
+                "conditions": [
+                    {
+                        "exec": "\\CaptainHook\\App\\Hook\\Condition\\FileStaged\\OfType",
+                        "args": [
+                            "json"
+                        ]
+                    }
+                ]
+            },
+            {
+                "action": "php vendor/bin/phil-dev check-docs",
+                "conditions": [
+                    {
+                        "exec": "\\CaptainHook\\App\\Hook\\Condition\\FileStaged\\OfType",
+                        "args": [
+                            "md"
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

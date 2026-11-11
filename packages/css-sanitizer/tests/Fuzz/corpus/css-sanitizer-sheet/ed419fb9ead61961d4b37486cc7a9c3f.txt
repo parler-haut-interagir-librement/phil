@@ -1,0 +1,2 @@
+@import "xvvvvvvvv.css"; { color: red; background: url(https://exam41"; width: calc(100% - var(--gap, 1rem)) }
+@supports (display: grid) 

@@ -1,0 +1,24 @@
+{
+    "name": "@phil/recurrence-bundle",
+    "description": "The Stimulus controller of phil/recurrence-bundle, which shows the fields of a recurrence form that its frequency and its end use",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/recurrence_controller.js",
+    "symfony": {
+        "controllers": {
+            "recurrence": {
+                "main": "src/recurrence_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

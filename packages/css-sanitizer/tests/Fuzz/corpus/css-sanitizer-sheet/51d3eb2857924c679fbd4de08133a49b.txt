@@ -1,0 +1,2 @@
+@import "x.css"a;
+{ @import "x.css{ co ur€€€€€€€€€€€€€€€€€€€€€€€€€€: url(https://example.com/m/ar@media 

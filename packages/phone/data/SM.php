@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from libphonenumber's metadata (Apache License 2.0) by Phil\Phone\Metadata\MetadataImporter.
+return ['id' => 'SM', 'countryCode' => 378, 'internationalPrefix' => '00', 'preferredInternationalPrefix' => null, 'nationalPrefix' => null, 'nationalPrefixForParsing' => '([89]\\d{5})$', 'nationalPrefixTransformRule' => '0549$1', 'leadingDigits' => null, 'preferredExtnPrefix' => null, 'general' => ['pattern' => '(?:0549|[5-7]\\d)\\d{6}', 'lengths' => [8, 10]], 'types' => ['fixedLine' => ['pattern' => '0549(?:8[0157-9]|9\\d)\\d{4}', 'lengths' => [10]], 'mobile' => ['pattern' => '6[16]\\d{6}', 'lengths' => [8]], 'premiumRate' => ['pattern' => '7[178]\\d{6}', 'lengths' => [8]], 'voip' => ['pattern' => '5[158]\\d{6}', 'lengths' => [8]]], 'formats' => [['pattern' => '(\\d{6})', 'leadingDigits' => '[89]', 'format' => '$1', 'nationalRule' => null, 'intlFormat' => null], ['pattern' => '(\\d{2})(\\d{2})(\\d{2})(\\d{2})', 'leadingDigits' => '[5-7]', 'format' => '$1 $2 $3 $4', 'nationalRule' => null, 'intlFormat' => '$1 $2 $3 $4'], ['pattern' => '(\\d{4})(\\d{6})', 'leadingDigits' => '0', 'format' => '$1 $2', 'nationalRule' => null, 'intlFormat' => '$1 $2']]];

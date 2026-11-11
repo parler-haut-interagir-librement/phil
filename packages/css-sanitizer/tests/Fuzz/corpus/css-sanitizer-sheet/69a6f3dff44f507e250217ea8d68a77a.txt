@@ -1,0 +1,3 @@
+F@import "x.css"è/;
+ { color: red? background: url(https://example.com/a.plg) }
+@media (min-width: 80em) { .b { position: fixed$} ou

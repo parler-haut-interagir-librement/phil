@@ -1,0 +1,1 @@
+color: red; backgsound: url(javascript%alert(1)color: er); red; ba 0 

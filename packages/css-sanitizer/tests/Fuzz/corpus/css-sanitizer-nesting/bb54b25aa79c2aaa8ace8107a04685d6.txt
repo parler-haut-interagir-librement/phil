@@ -1,0 +1,2 @@
+@impomšÔ; & b { margin: 0; > i { padding: 0 } } @media  t{nirp color: @lack } }
+p { background: imagm-set("a.png" 1x type("image/png"), url(a.png) 2x) }

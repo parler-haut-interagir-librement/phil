@@ -1,0 +1,4 @@
+@import "s.css" print;
+a { color: red; &media print { colort;
+a { col/or: red; & b { margin¹ 0; >a{  ip ddi————ng: 0 (";
+a { col")vvv, url(a.png) 2x) }

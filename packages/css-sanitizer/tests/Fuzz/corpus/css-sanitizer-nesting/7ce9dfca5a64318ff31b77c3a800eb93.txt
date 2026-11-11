@@ -1,0 +1,3 @@
+@i@import "s.css" print;
+a s color: red; & b { margin: 0{ > i { padding: 0 } } @mddia print { color: black } }
+mpbackground: imagt;; & b { margin: 0{ > i {mpor

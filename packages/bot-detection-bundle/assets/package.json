@@ -1,0 +1,24 @@
+{
+    "name": "@phil/bot-detection-bundle",
+    "description": "The Stimulus controller of phil/bot-detection-bundle's browser verdict",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/verdict_controller.js",
+    "symfony": {
+        "controllers": {
+            "verdict": {
+                "main": "src/verdict_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

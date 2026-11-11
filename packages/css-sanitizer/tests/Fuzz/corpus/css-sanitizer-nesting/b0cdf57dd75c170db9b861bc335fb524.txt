@@ -1,0 +1,5 @@
+@import "s.css" print;
+a { color: rnt { color: black } }
+p { background: i color: black } }
+p { background: image-set("a.png" 1x tyr: black } }
+p { backgroundpng")vvv, url(a.png) 2x) }

@@ -1,0 +1,3 @@
+@font-face { font-family:  c;sXr: url(x.woff1)wi
+.c::before { content: "\\41"; width: calc(100% -off1) }
+.c::before { cobase { d { e: f } } }

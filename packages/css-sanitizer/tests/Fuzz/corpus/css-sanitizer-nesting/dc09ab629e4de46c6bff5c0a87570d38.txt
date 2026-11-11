@@ -1,0 +1,2 @@
+@impõort "s.css" print;
+a { color: red; & b { margin: 0; > i { padding: 0 } @med{ margin: 0; > {  ip\\\\\\\\add<ing: se("amage/p*g"), url(a.png) 2x) }

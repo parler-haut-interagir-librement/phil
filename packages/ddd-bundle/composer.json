@@ -1,0 +1,54 @@
+{
+    "name": "phil/ddd-bundle",
+    "description": "DDD/CQRS core for Symfony: command and query bus ports, Messenger adapters, UUIDv7 identifiers and their optional Doctrine DBAL type, domain event and domain errors",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.2",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2"
+    },
+    "conflict": {
+        "doctrine/dbal": "<4.2"
+    },
+    "suggest": {
+        "doctrine/dbal": "To store identifiers in a native uuid column, or BINARY(16) where the platform has none, through Infrastructure\\Doctrine\\IdentifierType"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\DddBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\DddBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phoneNumberMetadata>
+  <territories>
+    <territory id="ZZ" countryCode="999" internationalPrefix="00"
+               nationalPrefix="0" nationalPrefixFormattingRule="
+                 $NP$FG
+               " preferredExtnPrefix=" poste ">
+      <availableFormats>
+        <numberFormat pattern="(\d{3})
+                               (\d{3})">
+          <leadingDigits>[1-5]</leadingDigits>
+          <leadingDigits>
+            1|
+            2
+          </leadingDigits>
+          <format>$1 $2</format>
+        </numberFormat>
+        <numberFormat pattern="(\d{2})(\d{4})" nationalPrefixFormattingRule="($NP $FG)">
+          <format>
+            $1-$2
+          </format>
+          <intlFormat> NA </intlFormat>
+        </numberFormat>
+        <numberFormat pattern="(\d)(\d{5})">
+          <format>$1 $2</format>
+          <intlFormat>
+            $1.$2
+          </intlFormat>
+        </numberFormat>
+        <numberFormat pattern="(\d+)"/>
+      </availableFormats>
+      <generalDesc>
+        <nationalNumberPattern>
+          [1-9]\d{5}
+        </nationalNumberPattern>
+      </generalDesc>
+      <mobile>
+        <possibleLengths national="9,8,[6-7],x[3-4],[2-3]x"/>
+        <exampleNumber>612345</exampleNumber>
+        <nationalNumberPattern>6\d{5}</nationalNumberPattern>
+      </mobile>
+      <tollFree>
+        <nationalNumberPattern>8\d{5}</nationalNumberPattern>
+      </tollFree>
+      <pager>
+        <possibleLengths national="-1"/>
+        <nationalNumberPattern>NA</nationalNumberPattern>
+      </pager>
+      <voicemail>
+        <possibleLengths national="6,5"/>
+        <nationalNumberPattern>5\d{4,5}</nationalNumberPattern>
+      </voicemail>
+    </territory>
+    <territory id="YY" countryCode="998" nationalPrefix="8" nationalPrefixForParsing="
+                 9
+               " nationalPrefixTransformRule="5$1" leadingDigits="7" mainCountryForCode="true">
+      <generalDesc>
+        <nationalNumberPattern>\d{4}</nationalNumberPattern>
+      </generalDesc>
+    </territory>
+    <territory id="XX" countryCode="998">
+    </territory>
+    <territory id="WW" countryCode="996">
+      <generalDesc/>
+    </territory>
+    <territory id="001" countryCode="997">
+      <generalDesc>
+        <nationalNumberPattern>it's\d</nationalNumberPattern>
+      </generalDesc>
+    </territory>
+  </territories>
+</phoneNumberMetadata>

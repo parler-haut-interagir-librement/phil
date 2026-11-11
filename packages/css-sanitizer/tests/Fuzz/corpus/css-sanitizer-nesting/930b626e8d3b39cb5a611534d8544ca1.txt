@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { color: red; & b { margin¹ 0; > i { padding: 0 } } @media print { colort;
+a { color: red; & b { margin¹ 0; > i { padding: 0 ("image/png")vvv, url(a.png) 2x) }

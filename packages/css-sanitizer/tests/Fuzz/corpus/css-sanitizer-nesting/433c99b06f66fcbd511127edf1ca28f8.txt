@@ -1,0 +1,2 @@
+@import "s.css" print;
+a { co urL(a.pn

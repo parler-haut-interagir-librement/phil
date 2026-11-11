@@ -1,0 +1,8 @@
+<?php
+
+namespace Phil\EnumsBundle\Tests\Unit\Finder;
+
+// Not a PHP file by its name: the finder does not read it, although it declares an enum that exists.
+enum Ghost
+{
+}

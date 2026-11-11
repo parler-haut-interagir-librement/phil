@@ -1,0 +1,3 @@
+@import "s.cs}"nt;
+a { color: wred;+ &  }
+p { a backg¢), url( {ma.p :not(&) { 

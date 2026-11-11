@@ -1,0 +1,2 @@
+@import "x.css";
+a { color: red; background: url(https:/lor: red; background: url(https://eec.omx&a/dei. } }

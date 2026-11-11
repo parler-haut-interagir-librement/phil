@@ -1,0 +1,4 @@
+@import "s.css" print;
+a { colt;
+a { color: red; & b { margin: 0{ > i { padding: 0 } } @ming: 0 } } @media pri: black } }
+p { background:) }

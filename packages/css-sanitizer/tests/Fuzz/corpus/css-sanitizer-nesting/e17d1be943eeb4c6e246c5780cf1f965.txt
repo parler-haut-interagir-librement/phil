@@ -1,0 +1,5 @@
+@import "s.css" print;
+a { color: oed; & b { margin: 1; > i { padbing: }
+p { back image } @media } }
+p { background: image- { backgromedia } }
+p { b

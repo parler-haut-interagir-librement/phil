@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from libphonenumber's metadata (Apache License 2.0) by Phil\Phone\Metadata\MetadataImporter.
+return ['id' => 'GG', 'countryCode' => 44, 'internationalPrefix' => '00', 'preferredInternationalPrefix' => null, 'nationalPrefix' => '0', 'nationalPrefixForParsing' => '([25-9]\\d{5})$|0|180020', 'nationalPrefixTransformRule' => '1481$1', 'leadingDigits' => null, 'preferredExtnPrefix' => null, 'general' => ['pattern' => '(?:1481|[357-9]\\d{3})\\d{6}|8\\d{6}(?:\\d{2})?', 'lengths' => [7, 9, 10]], 'types' => ['fixedLine' => ['pattern' => '1481[25-9]\\d{5}', 'lengths' => [10]], 'mobile' => ['pattern' => '7(?:(?:781|839)\\d|911[17])\\d{5}', 'lengths' => [10]], 'tollFree' => ['pattern' => '80[08]\\d{7}|800\\d{6}|8001111', 'lengths' => [7, 9, 10]], 'premiumRate' => ['pattern' => '(?:8(?:4[2-5]|7[0-3])|9(?:[01]\\d|8[0-3]))\\d{7}|845464\\d', 'lengths' => [7, 10]], 'voip' => ['pattern' => '56\\d{8}', 'lengths' => [10]], 'personalNumber' => ['pattern' => '70\\d{8}', 'lengths' => [10]], 'pager' => ['pattern' => '76(?:464|652)\\d{5}|76(?:0[0-28]|2[356]|34|4[01347]|5[49]|6[0-369]|77|8[14]|9[139])\\d{6}', 'lengths' => [10]], 'uan' => ['pattern' => '(?:3[0347]|55)\\d{8}', 'lengths' => [10]]], 'formats' => []];

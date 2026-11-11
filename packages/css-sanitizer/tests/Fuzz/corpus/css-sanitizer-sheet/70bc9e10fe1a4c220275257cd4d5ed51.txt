@@ -1,0 +1,2 @@
+@import ŽŽŽŽŽŽŽŽŽŽ"x.css"a;
+ { color: red; background: url(https://example.com/a.png)sition: fixed$} }

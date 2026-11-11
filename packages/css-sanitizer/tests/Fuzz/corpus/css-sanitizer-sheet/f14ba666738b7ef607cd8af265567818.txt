@@ -1,0 +1,2 @@
+@fond-face { font-famil}: X; src: url00% - (x.woff2) }
+.c::before \41"; width: calc(100% - var(--ga;, 1rem)) base { d { e: f } } }

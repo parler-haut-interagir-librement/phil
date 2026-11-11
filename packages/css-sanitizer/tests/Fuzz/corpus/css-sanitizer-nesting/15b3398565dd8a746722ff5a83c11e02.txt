@@ -1,0 +1,2 @@
+@import "s.css" print;
+a { colo+a { :notnd: imagmpo: re+  { color: b { cïlor: red;  :

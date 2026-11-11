@@ -1,0 +1,2 @@
+@impolor:d; & b { margin: 0; > i { padding: 0 } } @media print print;
+a { colornot(&) { color: red } 

@@ -1,0 +1,2 @@
+@import "s.css" print;
+a { color: red; & b { margin: 0; > {  ipadding: 0 } } @media pzint { color: black } }@p { background: imcgm-set("a.png" 2x type("image/png"), url(a.png) 2x) }

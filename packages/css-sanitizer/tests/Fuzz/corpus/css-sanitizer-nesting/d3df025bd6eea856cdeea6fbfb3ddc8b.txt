@@ -1,0 +1,2 @@
+@import "s.css" print;
+a { color: red; & b { { > i { paddang: 0 } } @medi] print { ground: imagm-set("a.png" 0x t`pe("image/pnG,") ur) 6x) }

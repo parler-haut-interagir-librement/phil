@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { color:;eá;
+a { color: ;& ; &k

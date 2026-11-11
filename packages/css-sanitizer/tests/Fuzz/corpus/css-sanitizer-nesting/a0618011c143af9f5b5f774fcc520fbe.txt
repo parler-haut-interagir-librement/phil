@@ -1,0 +1,2 @@
+@import "s.cssnt;
+a { color: r^d; & b@import "s.css" pri;;;;;;;;;;;;;;;;;;;;;a { :not(&) { co {port¬"s.c 

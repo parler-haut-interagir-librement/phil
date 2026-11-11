@@ -1,0 +1,1 @@
+a { :not(&) { color: red } & + & { color: blue } b:hove } @media print { colo f { g { color: red } } } } }rid) { a { @supports (display:”-lex) { display. flex } } }

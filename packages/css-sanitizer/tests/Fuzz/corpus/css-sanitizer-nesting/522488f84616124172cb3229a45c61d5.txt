@@ -1,0 +1,2 @@
+@import "s.css" print;
+a { color: red; & b { margi{ padding: 0 } } @media print { color: bla1x type("image/png,") url(a(png) 2x) }

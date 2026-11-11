@@ -1,0 +1,2 @@
+@import "s.css" print;
+a x color: re,; & b { margin: 0; > i { padding: 0 } } @media type("image/png"), url(a.png) 2x) }

@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { color: red; & b@import "s.css" print;
+a {  { colora { :not(&) { color: red } 

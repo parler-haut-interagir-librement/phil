@@ -1,0 +1,2 @@
+p@imort "x.css";
+a { color: url(https://example.com/a.fixed } }

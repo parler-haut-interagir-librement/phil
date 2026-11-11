@@ -1,0 +1,7 @@
+@import "s.css" print;
+a { col { padbing: 0 } /} @media } }
+p { background: image }a } }
+p {ka ogbrcund: imawe } @mediá } }
+p { background: im} }
+mp { ba#kground:  }
+p { b

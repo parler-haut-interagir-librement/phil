@@ -1,0 +1,4 @@
+@import "s.css" print;
+` { co.lor* 
+a { c¡lor: red; .css"1prrnt;
+a { color: redA+ & ; &$b { mao{ k

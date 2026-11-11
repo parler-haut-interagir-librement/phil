@@ -1,0 +1,1 @@
+@import et("a.png" 1x typevdding: 0) }

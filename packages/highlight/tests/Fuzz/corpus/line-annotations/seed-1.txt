@@ -1,0 +1,4 @@
+a(); // [!code ++]
+b(); /* [!code highlight:2] */
+c();
+# [!code --]

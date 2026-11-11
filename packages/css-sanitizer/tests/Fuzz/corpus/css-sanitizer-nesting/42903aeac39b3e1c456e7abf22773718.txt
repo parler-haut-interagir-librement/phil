@@ -1,0 +1,2 @@
+round: imagm-set("a.png" 1x { margin: 0; > {  ip\\\\\f\\adding: pe("image/png"), url(a.png) > {  ip\\\\\f\\addi}
+\adding: pe("image/png"), url(a.png) 2x

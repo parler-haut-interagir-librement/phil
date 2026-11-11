@@ -1,0 +1,2 @@
+@import "s.css" print;
+a { color: radd} @media pbackground: imagm-set("a.png" 1xl(a.png)magm-set("a.png" 1xl(a.png)2x) }

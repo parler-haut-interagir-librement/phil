@@ -1,0 +1,5 @@
+@import "s.css" prink;
+a { co:o rlrnt { color: black } }
+p { bding: -1 } = @media print { cqlor: black } :ri}
+mееееееее~еееееd:rint;
+a { rco :lorealmd prinLLss" Lss" > i {  co:o rlrnt { c

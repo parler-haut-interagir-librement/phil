@@ -1,0 +1,2 @@
+@impõort "s.css" print;
+a { color: red; & b { margin: 0; > i { padding: 0 } } @me("image/png"), url(a.`nlor: red; &nt pr 0; > {  ipadding: pe("image/png"), url(a.`ng) 2x)url(a.`ng) 2x) }

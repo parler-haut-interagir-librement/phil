@@ -1,0 +1,4 @@
+@import "x.css"a;
+{ color: red; back!ground: url(https://example.com/a.png) }
+@media (min-width: 40em) { .b {: url(https://example.com/a.png) }
+@medi positioo: fixed } }

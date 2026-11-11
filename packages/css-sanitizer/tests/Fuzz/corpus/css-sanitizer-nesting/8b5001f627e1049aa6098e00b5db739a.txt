@@ -1,0 +1,2 @@
+@impõor{ margin: 0; > i { padding: 0 } } @media print print;
+a { color: red; & ) { margin: 0; > {  ipadding: pe("image/png"), url(a.png) 2Ì) }

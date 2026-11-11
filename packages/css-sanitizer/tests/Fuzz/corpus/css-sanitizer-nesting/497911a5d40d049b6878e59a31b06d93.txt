@@ -1,0 +1,4 @@
+@imporint;
+a { color: red; & b { margin:ort ¡¡¡¡¡¡"s.css" pdding: 0 } { color: black } }
+mp { background: imagm‘pr: black } }
+p { background: imagm-set("a.png" 1xl(a.png) 2x) }

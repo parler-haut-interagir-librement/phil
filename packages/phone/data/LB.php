@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from libphonenumber's metadata (Apache License 2.0) by Phil\Phone\Metadata\MetadataImporter.
+return ['id' => 'LB', 'countryCode' => 961, 'internationalPrefix' => '00', 'preferredInternationalPrefix' => null, 'nationalPrefix' => '0', 'nationalPrefixForParsing' => '0', 'nationalPrefixTransformRule' => null, 'leadingDigits' => null, 'preferredExtnPrefix' => null, 'general' => ['pattern' => '[27-9]\\d{7}|[13-9]\\d{6}', 'lengths' => [7, 8]], 'types' => ['fixedLine' => ['pattern' => '7(?:62|8[0-6]|9[04-9])\\d{4}|(?:[14-69]\\d|2(?:[14-69]\\d|[78][1-9])|7[2-57]|8[02-9])\\d{5}', 'lengths' => [7, 8]], 'mobile' => ['pattern' => '(?:(?:3|81)\\d|7(?:[01]\\d|6[013-9]|8[7-9]|9[0-4]))\\d{5}', 'lengths' => [7, 8]], 'premiumRate' => ['pattern' => '9[01]\\d{6}', 'lengths' => [8]], 'sharedCost' => ['pattern' => '80\\d{6}', 'lengths' => [8]]], 'formats' => [['pattern' => '(\\d)(\\d{3})(\\d{3})', 'leadingDigits' => '[13-69]|7(?:[2-57]|62|8[0-6]|9[04-9])|8[02-9]', 'format' => '$1 $2 $3', 'nationalRule' => '0$1', 'intlFormat' => '$1 $2 $3'], ['pattern' => '(\\d{2})(\\d{3})(\\d{3})', 'leadingDigits' => '[27-9]', 'format' => '$1 $2 $3', 'nationalRule' => null, 'intlFormat' => '$1 $2 $3']]];

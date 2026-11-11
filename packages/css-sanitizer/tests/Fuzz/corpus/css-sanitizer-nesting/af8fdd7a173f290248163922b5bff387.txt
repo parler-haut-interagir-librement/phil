@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { colora { :not(&) { color: red } & + &@imp { color: bluerint;
+a { colora { :not(&) { color: red } & + & { ort color: blue } bype("]"s. 

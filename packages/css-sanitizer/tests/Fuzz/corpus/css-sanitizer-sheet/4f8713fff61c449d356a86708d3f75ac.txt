@@ -1,0 +1,2 @@
+@font-face { font-famil}: X; src: url(x.wof3f) }
+.c::befor@impe { content: "V\41"; widt:h calc(1 red; bakcgr0o

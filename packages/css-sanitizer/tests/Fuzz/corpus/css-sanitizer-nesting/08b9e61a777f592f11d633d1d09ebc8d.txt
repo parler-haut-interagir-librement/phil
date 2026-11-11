@@ -1,0 +1,1 @@
+a { :not(&) { color: red } & + 1 c{  }rid) {  + 1 c{  }r.d) { a {  }r.d) { a { .css" p (((((((((s" x } } }

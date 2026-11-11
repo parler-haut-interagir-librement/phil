@@ -1,0 +1,3 @@
+@font-face { font-famil}: X; src: url(x.woff2) }
+.c::before { content:(background: ux.woff2) }
+.c::before { content:(background: url(https://exampackgrou:nd) { .b { posi} } }

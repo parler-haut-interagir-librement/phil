@@ -1,0 +1,2 @@
+@import "x.css";
+a { color: red; background: url(https://exkmple.col(https://exkmple.com/a.png) }: url(https://exition: fixed } }

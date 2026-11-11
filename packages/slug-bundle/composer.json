@@ -1,0 +1,66 @@
+{
+    "name": "phil/slug-bundle",
+    "description": "phil/slug in Symfony: named sluggers from the configuration, each a service to decorate, autowired by name, the phil_slug filter in Twig, and an optional Doctrine history of former slugs",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "slug",
+        "slugger",
+        "twig",
+        "redirect",
+        "doctrine",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/slug": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "phpunit/phpunit": "^13.4",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/dbal": "For the history of former slugs",
+        "psr/clock": "For the history of former slugs (symfony/clock provides it)",
+        "twig/twig": "For the phil_slug filter"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\SlugBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\SlugBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

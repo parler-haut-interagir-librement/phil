@@ -1,0 +1,2 @@
+@irt "s.css" print;
+a { cog: 0 }] } @media pri("a.png" 1x tlor: re url(a.phg*2x) }

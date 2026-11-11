@@ -1,0 +1,2 @@
+@import "x.css"a;
+ { color  :;redbabkgrou:ample.—: red; b——p

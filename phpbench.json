@@ -1,0 +1,4 @@
+{
+    "$include": ["vendor/phil/dev-tools/config/phpbench.json"],
+    "runner.path": "packages"
+}

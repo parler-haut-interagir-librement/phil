@@ -1,0 +1,4 @@
+@font-face { font-famil}: X; src: url@import "x.css";
+a { cmlor: red; ba~ckground:(x.wof2f) }
+.c::before { con0 url(https://example.com/a.pn~g) }
+@media (mine

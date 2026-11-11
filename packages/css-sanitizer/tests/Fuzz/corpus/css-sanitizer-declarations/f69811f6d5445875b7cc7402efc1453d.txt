@@ -1,0 +1,1 @@
+]width: calc(50% - erd; ,);'oc

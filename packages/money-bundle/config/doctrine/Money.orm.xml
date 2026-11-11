@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    `Phil\Money\Money` as an embeddable: two columns, the amount in minor units and the currency code, so that a
+    query can sum, sort and filter amounts of one currency. An embedded `price` maps to `price_amount` and
+    `price_currency`.
+-->
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <embeddable name="Phil\Money\Money">
+        <field name="minorUnits" type="bigint" column="amount"/>
+        <field name="currency" type="phil_currency" column="currency"/>
+    </embeddable>
+</doctrine-mapping>

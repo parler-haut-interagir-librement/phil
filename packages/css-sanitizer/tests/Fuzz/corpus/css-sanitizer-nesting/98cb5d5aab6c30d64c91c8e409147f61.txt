@@ -1,0 +1,2 @@
+@import "s.css" print;
+a { cro ola{ :not(&) { color: red } &; de :

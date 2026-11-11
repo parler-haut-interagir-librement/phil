@@ -1,0 +1,61 @@
+/*
+ * phil/highlight — the light theme.
+ *
+ * Colours for the hl-* classes on a light background. Every colour is a custom property under --hl-*, which a page
+ * may redefine; each meets the WCAG AA contrast for normal text against its background.
+ */
+:root {
+    --hl-background: #fafafa;
+    --hl-text: #24292e;
+    --hl-keyword: #a626a4;
+    --hl-type: #b25d00;
+    --hl-function: #2f5fb3;
+    --hl-number: #9a5b00;
+    --hl-string: #3a7d22;
+    --hl-comment: #6a737d;
+    --hl-punctuation: #4b5563;
+    --hl-variable: #b3261e;
+    --hl-meta: #6f42c1;
+    --hl-tag: #b3261e;
+    --hl-property: #0b6e75;
+    --hl-inserted: #1a5e20;
+    --hl-inserted-background: #e6f4e7;
+    --hl-deleted: #8e1a14;
+    --hl-deleted-background: #fbe9e7;
+    --hl-line-highlighted-background: #fefdfa;
+    --hl-line-inserted-background: #fbfdfb;
+    --hl-line-deleted-background: #fefcfc;
+}
+
+pre:has(> code[class*='language-']), .hl {
+    background: var(--hl-background);
+    color: var(--hl-text);
+}
+
+.hl-keyword, .hl-selector, .hl-section { color: var(--hl-keyword); }
+.hl-type, .hl-builtin { color: var(--hl-type); }
+.hl-function { color: var(--hl-function); }
+.hl-constant, .hl-number, .hl-entity { color: var(--hl-number); }
+.hl-string, .hl-regex, .hl-code { color: var(--hl-string); }
+.hl-comment { color: var(--hl-comment); font-style: italic; }
+.hl-operator, .hl-punctuation { color: var(--hl-punctuation); }
+.hl-variable { color: var(--hl-variable); }
+.hl-meta { color: var(--hl-meta); }
+.hl-tag { color: var(--hl-tag); }
+.hl-attr-name, .hl-property { color: var(--hl-property); }
+.hl-heading { color: var(--hl-keyword); font-weight: bold; }
+.hl-strong { font-weight: bold; }
+.hl-emphasis { font-style: italic; }
+.hl-link { color: var(--hl-function); text-decoration: underline; }
+.hl-inserted { color: var(--hl-inserted); background: var(--hl-inserted-background); }
+.hl-deleted { color: var(--hl-deleted); background: var(--hl-deleted-background); }
+
+/* Lines, when the block is written line by line: a mark is a bar, a sign and a tint, never a colour alone. */
+.hl-line { display: inline-block; position: relative; box-sizing: border-box; min-width: 100%; padding-inline-start: 1.5ch; border-inline-start: 0.1875rem solid transparent; }
+.hl-line-number { display: inline-block; min-width: 3ch; margin-inline-end: 2ch; color: var(--hl-comment); text-align: end; -webkit-user-select: none; user-select: none; }
+.hl-line-highlighted { background: var(--hl-line-highlighted-background); border-inline-start-color: var(--hl-function); }
+.hl-line-inserted { background: var(--hl-line-inserted-background); border-inline-start-color: var(--hl-inserted); }
+.hl-line-deleted { background: var(--hl-line-deleted-background); border-inline-start-color: var(--hl-deleted); }
+.hl-line-inserted::before, .hl-line-deleted::before { position: absolute; inset-inline-start: 0.25ch; }
+.hl-line-inserted::before { content: "+" / ""; color: var(--hl-inserted); }
+.hl-line-deleted::before { content: "-" / ""; color: var(--hl-deleted); }

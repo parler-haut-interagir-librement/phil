@@ -1,0 +1,2 @@
+@font-face { @font-face { font-famil}: X; src: url@import "x.css";
+a { cmlor: red; ba~ckground:(x.woffont2f)-

@@ -1,0 +1,2 @@
+@@font-face { font-far: url(x.woimpofgrt 1) }
+.c::befo"xr

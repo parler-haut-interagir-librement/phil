@@ -1,0 +1,2 @@
+@import "s.css" printװששששששש;
+a { @import "scol

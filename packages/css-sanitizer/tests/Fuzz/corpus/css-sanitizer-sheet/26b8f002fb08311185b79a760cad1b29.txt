@@ -1,0 +1,2 @@
+@font-face { font-famil}: X; src: url(x.woff2) }
+.c::before { content:(background: url(https://exampackgrou:nd) { .b { position: fixelay: (background: url(https://examp } } }

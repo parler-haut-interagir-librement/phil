@@ -1,0 +1,53 @@
+{
+    "name": "phil/css-sanitizer",
+    "description": "CSS written by people made safe to serve, written from scratch: a tokenizer and parser that follow CSS Syntax Level 3, allow lists of properties, functions, selectors and at-rules (@media, @supports, @page and its margin boxes, @font-face), url() rewritten to allowed files, @import, expression(), javascript: and bindings refused, a serializer back to CSS, and a Symfony validator constraint",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "css",
+        "sanitizer",
+        "css-syntax",
+        "parser",
+        "tokenizer",
+        "security",
+        "paged-media",
+        "validator"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "symfony/validator": "^8.2"
+    },
+    "suggest": {
+        "symfony/validator": "For the SafeCss constraint"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\CssSanitizer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\CssSanitizer\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

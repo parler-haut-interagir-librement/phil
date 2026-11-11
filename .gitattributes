@@ -1,0 +1,11 @@
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+
+# The fuzzing seeds keep their bytes, carriage returns included.
+packages/*/tests/Fuzz/corpus/** -text

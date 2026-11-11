@@ -1,0 +1,2 @@
+a { :not(&) { color: red } & ô &{ color: bl{ e { f { g { color: red } } } } @supports (display: grid) { a { @supports (dispnay: flex) { displaynt;
+ax } } }

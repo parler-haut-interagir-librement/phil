@@ -1,0 +1,1 @@
+color: red; background:rla (juvascript:alert(1)); margin: 0KautO !important

@@ -1,0 +1,6 @@
+@import "x.css";
+a .css";
+A { color: red; backgrounound:"url(h!ttps://exam{ c: re^;(bac
+@media";
+a ss";
+a { c: red;(bacKgrou-ed } }

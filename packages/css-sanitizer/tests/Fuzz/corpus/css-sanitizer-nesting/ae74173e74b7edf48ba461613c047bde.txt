@@ -1,0 +1,2 @@
+@import "s.css" print;
+a c ool{ra { r: red } & + & æ{ color: bdqe } b:hover { :

@@ -1,0 +1,7 @@
+@import "s.css"nt;
+a { color: red;+ &  }
+p { backg"), url( ma.p prin;
+a { ss" prt;
+a { ss" print;
+a { color: red;+ &  }
+p { backg"), url( ma.png) 2x) }

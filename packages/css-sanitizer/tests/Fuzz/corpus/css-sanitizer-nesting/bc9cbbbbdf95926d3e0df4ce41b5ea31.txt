@@ -1,0 +1,3 @@
+@import "s.css "printששששששש;
+a { lolor: red;שששש;
+atype? { mar/png"), url(a.png) 2x) }

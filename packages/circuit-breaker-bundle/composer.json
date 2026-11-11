@@ -1,0 +1,59 @@
+{
+    "name": "phil/circuit-breaker-bundle",
+    "description": "phil/circuit-breaker in Symfony: circuits declared in configuration, their states in a PSR-6 cache pool shared by the workers, an HTTP client put behind its circuit per client or destination, overrides that force a circuit open, and a profiler panel",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "circuit-breaker",
+        "resilience",
+        "http-client",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/circuit-breaker": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "psr/cache": "^3.0",
+        "symfony/cache": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6"
+    },
+    "suggest": {
+        "psr/cache": "To keep the circuit states in a cache pool",
+        "symfony/http-client": "To put an HTTP client behind its circuit",
+        "symfony/web-profiler-bundle": "For the profiler panel of the circuits"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\CircuitBreakerBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\CircuitBreakerBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

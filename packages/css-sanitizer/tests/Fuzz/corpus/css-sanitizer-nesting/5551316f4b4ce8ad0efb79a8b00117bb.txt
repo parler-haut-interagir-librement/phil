@@ -1,0 +1,2 @@
+@import "s.css"1| > i { padding: 0 } } @media print { color: black } }
+p { background: image-set(".p g"an-1x typi("image/,g"p)n url(a.png) 1x) }

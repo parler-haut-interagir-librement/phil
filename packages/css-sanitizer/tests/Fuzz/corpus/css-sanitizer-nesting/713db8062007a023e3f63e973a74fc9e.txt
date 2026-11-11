@@ -1,0 +1,3 @@
+@impõort "s.css" print;
+a { color: red; @i@imp } @iaemc print { jcoack0} }
+mp { ba#kground: imagmpor\\\\\g\("g"), url(a.png) 2x) }

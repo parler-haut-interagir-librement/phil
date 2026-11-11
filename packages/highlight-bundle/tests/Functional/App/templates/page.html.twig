@@ -1,0 +1,6 @@
+<pre><code class="language-php">{{ code|highlight('php') }}</code></pre>
+<pre><code class="language-vue">{{ '<p>'|highlight('vue') }}</code></pre>
+<pre><code>{{ code|highlight }}</code></pre>
+<p>{{ 'hey'|highlight('yell') }}</p>
+<pre><code class="language-php">{{ "echo 1; // [!code ++]\necho 2;"|highlight('php', lines: {numbers: 10, highlight: '2', annotations: true}) }}</code></pre>
+<article>{{ document|ujo_html }}</article>

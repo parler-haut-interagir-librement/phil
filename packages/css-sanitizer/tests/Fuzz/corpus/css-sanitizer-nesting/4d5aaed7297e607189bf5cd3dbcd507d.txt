@@ -1,0 +1,2 @@
+@import "s.css" print;
+a { coal{ ro :not(&) { color:  { coloud: i{ color: blue } b:hover { :

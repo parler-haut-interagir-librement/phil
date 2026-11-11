@@ -1,0 +1,6 @@
+-: black } }
+mp { back } }
+mp { ba#kground: i: black } }
+mp { ba#kground@i@import "s.css" #kground: i: black } }
+mp { t "s.css" print;
+a { : imagmpo

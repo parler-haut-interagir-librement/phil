@@ -1,0 +1,3 @@
+@import "x.css"a;
+ { cor :loerd; b src: urdth: calc(100% - var(--gom/a.png) mple.com/aë.png) }
+@mOdia(50% - var(- 4tion: fixed$}@ }

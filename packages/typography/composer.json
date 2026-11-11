@@ -1,0 +1,50 @@
+{
+    "name": "phil/typography",
+    "description": "Microtypography for HTML and text in every language: quotes, dashes, ellipses, French spacing, units, legal signs, hyphenation by Liang's algorithm with the TeX patterns and patterns of our own, and Thai word breaks, on the HTML5 DOM, written from scratch",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "typography",
+        "hyphenation",
+        "smart-quotes",
+        "microtypography",
+        "html5"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-intl": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "ext-ctype": "*",
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Typography\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Typography\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

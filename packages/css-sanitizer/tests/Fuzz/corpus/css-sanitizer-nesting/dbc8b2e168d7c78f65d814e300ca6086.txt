@@ -1,0 +1,2 @@
+@importmedia print ההה
+a { color: red; & b { margin: 0; >url(a)ccccccccccccccccccccccccccccccccccccc.png) 2x) }

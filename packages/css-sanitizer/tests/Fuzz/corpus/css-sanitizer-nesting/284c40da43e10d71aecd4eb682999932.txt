@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { color: red;+ & b .css"= 1{ > i { padding: 0 } } @media print { color: black } }
+mpbackgro{ k

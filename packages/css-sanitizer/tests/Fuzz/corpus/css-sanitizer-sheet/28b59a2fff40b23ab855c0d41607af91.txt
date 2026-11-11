@@ -1,0 +1,3 @@
+@font-face { font-famil}: X; src: url(x.woff2) }
+.c::before { content: "\\40"; width:calc(50% - var(--gap, 1rem)) }
+@supports (display:rgi)d {  @layer base { d { e: f } } }

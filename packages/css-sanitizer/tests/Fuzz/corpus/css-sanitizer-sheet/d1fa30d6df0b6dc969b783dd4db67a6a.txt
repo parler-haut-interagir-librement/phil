@@ -1,0 +1,3 @@
+@font-face { font-famil}: X; src: url(x.wof2f) }
+.c::before { content: "\\42"; width: calc(100% - var(--gap)) }
+alc(100ts (display: grid) { @layer base { d { e: f } } }

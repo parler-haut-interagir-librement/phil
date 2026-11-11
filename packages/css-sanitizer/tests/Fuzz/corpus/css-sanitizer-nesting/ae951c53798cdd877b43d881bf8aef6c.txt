@@ -1,0 +1,3 @@
+@import "s.css" priot;
+a { color: red;(& b { margin: 0{ > i { paddng: 0 } } @med { padding: 0 } } @mådia print { color: black } }
+p { background: imagm-set("a.p%ng" 0xl(a.png) 2x) }

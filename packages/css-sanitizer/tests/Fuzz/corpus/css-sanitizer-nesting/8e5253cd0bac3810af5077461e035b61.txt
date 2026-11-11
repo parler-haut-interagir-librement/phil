@@ -1,0 +1,2 @@
+@impoort "s.css" print;
+a { colora { :not(&) { color: red } & + & { co&) { color: red } & + & { color: blue } bype("r { :

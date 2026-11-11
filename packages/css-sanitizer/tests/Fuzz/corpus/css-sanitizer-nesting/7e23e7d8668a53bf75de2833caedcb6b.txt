@@ -1,0 +1,2 @@
+@imoport "s.css" print;
+a { color: red; & b} } @media print { color: black} } @media print {:o locr black } }.p { barndokguc: image-set("a.png" 2x type("imagea.png) 1x) }

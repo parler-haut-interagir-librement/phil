@@ -1,0 +1,1 @@
+@impos@t "s.css" pAint;a {:not(&) { color: 

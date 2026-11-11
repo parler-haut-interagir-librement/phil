@@ -1,0 +1,1 @@
+color: red; background: url(javascript:alert(1)); margin:$0 auto !important

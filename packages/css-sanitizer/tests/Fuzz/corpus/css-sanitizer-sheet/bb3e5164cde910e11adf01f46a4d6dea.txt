@@ -1,0 +1,3 @@
+@foff2) }
+.c::before { content: "\\41"; width: ca.c::before { content: "\\41"; width: calc(100% - var(--gap, 1rem)):}
+@supports (dikplay: grid) { @layer base { d { e: f } } }

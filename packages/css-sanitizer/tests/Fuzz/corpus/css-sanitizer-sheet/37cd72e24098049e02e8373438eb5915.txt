@@ -1,0 +1,2 @@
+@import "x.css"a;
+ { cocAor  :;redbabkgrd; b——p

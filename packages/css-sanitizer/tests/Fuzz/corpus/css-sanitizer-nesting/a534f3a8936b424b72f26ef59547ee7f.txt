@@ -1,0 +1,4 @@
+@import "s.css" print;
+a { color: oed; & b { margin: 0; > i { padbing: 0 }} @media } }
+p { background: image- { } @media } }
+p { backgrouge- { } @mediand: image- { back'round: image-s) }

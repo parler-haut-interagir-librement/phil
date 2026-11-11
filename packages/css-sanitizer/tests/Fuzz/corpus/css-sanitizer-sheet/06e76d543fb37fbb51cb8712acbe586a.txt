@@ -1,0 +1,2 @@
+@font-face { font-far: url(x.wofg1) }
+.c::before { content: "\\41"; width: calc(100% - var(--gap, 1reme:- f } } }

@@ -1,0 +1,1 @@
+a { :not(&) { color: red } & + & { color: blue } b:hover { x: 0 } c {t(&) { color: red } & + & { color: blue } b:hover { x: 0 } c { d { e {.f { g { coççççlor: red } } } } @slay: flex } } }

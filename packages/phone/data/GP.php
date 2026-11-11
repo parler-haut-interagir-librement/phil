@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from libphonenumber's metadata (Apache License 2.0) by Phil\Phone\Metadata\MetadataImporter.
+return ['id' => 'GP', 'countryCode' => 590, 'internationalPrefix' => '00', 'preferredInternationalPrefix' => null, 'nationalPrefix' => '0', 'nationalPrefixForParsing' => '0', 'nationalPrefixTransformRule' => null, 'leadingDigits' => null, 'preferredExtnPrefix' => null, 'general' => ['pattern' => '7090\\d{5}|(?:[56]9|[89]\\d)\\d{7}', 'lengths' => [9]], 'types' => ['fixedLine' => ['pattern' => '(?:59(?:0(?:0[1-68]|[14][0-24-9]|2[0-68]|3[1-9]|5[3-579]|[68][0-689]|7[08]|9\\d)|87\\d)|80[6-9]\\d\\d)\\d{4}', 'lengths' => [9]], 'mobile' => ['pattern' => '(?:69(?:0\\d\\d|1(?:2[2-9]|3[0-5]))|7090[0-4])\\d{4}', 'lengths' => [9]], 'tollFree' => ['pattern' => '80[0-5]\\d{6}', 'lengths' => [9]], 'premiumRate' => ['pattern' => '8[129]\\d{7}', 'lengths' => [9]], 'voip' => ['pattern' => '9(?:(?:39[5-7]|76[018])\\d|475[0-6])\\d{4}', 'lengths' => [9]]], 'formats' => [['pattern' => '(\\d{3})(\\d{2})(\\d{2})(\\d{2})', 'leadingDigits' => '[5-79]|80[6-9]', 'format' => '$1 $2 $3 $4', 'nationalRule' => '0$1', 'intlFormat' => '$1 $2 $3 $4'], ['pattern' => '(\\d{3})(\\d{2})(\\d{2})(\\d{2})', 'leadingDigits' => '8', 'format' => '$1 $2 $3 $4', 'nationalRule' => '0$1', 'intlFormat' => '$1 $2 $3 $4']]];

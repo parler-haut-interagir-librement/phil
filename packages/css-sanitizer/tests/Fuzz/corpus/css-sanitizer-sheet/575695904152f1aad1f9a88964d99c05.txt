@@ -1,0 +1,4 @@
+@import "x].cs@import "x.css"a;
+ { color: red; background: url(https://example.com/a.png) }
+@media (min-ws";
+a { coidthlor: :

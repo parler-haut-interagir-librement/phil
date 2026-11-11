@@ -1,0 +1,3 @@
+@import "x.css"a;
+ { color: re; background: url(https://ex^mple.com/a.peg) mple.com/a.png) }
+@media (min-width: 8tion: fixed$} }

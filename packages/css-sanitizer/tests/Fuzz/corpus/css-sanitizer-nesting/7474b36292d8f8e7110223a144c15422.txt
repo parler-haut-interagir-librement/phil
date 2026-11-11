@@ -1,0 +1,3 @@
+@import "s.css" print;
+a { color: port "s.css" print;
+a { color: port "s.c} } @media p‚‚‚‚rint { color: black } }a.png" 2x typ}

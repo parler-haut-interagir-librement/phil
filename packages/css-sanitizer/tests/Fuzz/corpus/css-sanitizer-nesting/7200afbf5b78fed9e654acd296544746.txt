@@ -1,0 +1,2 @@
+@import "s.css" print;
+a { color: red b&;  { miganra print { color: black } -‹‹‹‹1x type("image/png"), ]url(a.png) rx) }

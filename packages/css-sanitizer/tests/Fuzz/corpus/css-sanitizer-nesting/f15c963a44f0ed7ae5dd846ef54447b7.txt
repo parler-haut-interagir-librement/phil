@@ -1,0 +1,1 @@
+a { :not(&) { colr: blue } b:hover { x: 1 } c { d {{ a { @supports (display: flex) { display: flgz } }U}

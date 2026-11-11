@@ -1,0 +1,1 @@
+A { :not(&) { color:`r+ed } & ; &: red } & + & { { color: blue } { @supports (iplsday: la} } }

@@ -1,0 +1,2 @@
+rules:
+    - Phil\Enums\PHPStan\RequiredMeta\RequiredMetaRule

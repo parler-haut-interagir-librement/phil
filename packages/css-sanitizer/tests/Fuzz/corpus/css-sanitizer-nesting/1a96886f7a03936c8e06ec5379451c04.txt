@@ -1,0 +1,3 @@
+ }d,ia print { color: black } }
+p { backgrot {ooc:l r black } }
+p { background: image-set("a.png" 1x type("image0{ > i {mpor

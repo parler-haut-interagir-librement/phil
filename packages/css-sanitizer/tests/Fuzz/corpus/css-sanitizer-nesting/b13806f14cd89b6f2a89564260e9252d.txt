@@ -1,0 +1,2 @@
+@import "s.cssnt;
+a { color: ³ed; & b@import ri;;;;;;;;;;;;;;;;;;;;;;;;;;;;;5;;;;;;;;;;;;;;;;;;;;;;@impoorot(&) {;; co;;;;l;;1o
