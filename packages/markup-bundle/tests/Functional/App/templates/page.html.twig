@@ -1,0 +1,5 @@
+<article>{{ source|markup_html('bbcode') }}</article>
+<aside>{{ source|markup_html('bbcode', 'basic') }}</aside>
+<section>{{ text|markup_purify }}</section>
+<footer>{{ none|markup_html }}{{ none|markup_purify }}{{ '<h2>t</h2>'|markup_purify('all') }}</footer>
+<pre>{{ '**a**'|markup_ujo }}</pre>

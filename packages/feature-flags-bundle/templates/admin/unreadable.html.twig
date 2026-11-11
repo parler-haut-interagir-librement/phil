@@ -1,0 +1,20 @@
+{% extends layout %}
+
+{% block title %}{{ entry.name }} — Feature flags{% endblock %}
+
+{% block content %}
+    <p><a href="{{ path('phil_feature_flags_admin_list') }}">All flags</a></p>
+
+    <h1>{{ entry.name }}</h1>
+
+    <p role="alert">The definition {{ entry.source }} holds for this flag cannot be read, so the flag is off for every context (reason <code>ERROR</code>, code <code>PARSE_ERROR</code>).</p>
+
+    <dl>
+        <dt>Reason</dt>
+        <dd>{{ entry.reason }}</dd>
+        <dt>Source</dt>
+        <dd>{{ entry.source }}</dd>
+    </dl>
+
+    <p>Repair or delete the stored definition with the application's own tools; until then the flag can be neither toggled nor edited here.</p>
+{% endblock %}

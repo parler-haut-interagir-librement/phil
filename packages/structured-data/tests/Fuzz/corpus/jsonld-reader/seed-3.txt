@@ -1,0 +1,1 @@
+<script type="application/ld+json">[{"@type":["Book","Product"],"author":[{"@type":"Person","name":"Ada"}],"offers":{"@type":"Offer","price":"10","priceCurrency":"CAD"}}]</script><script type="application/ld+json">{bad</script>

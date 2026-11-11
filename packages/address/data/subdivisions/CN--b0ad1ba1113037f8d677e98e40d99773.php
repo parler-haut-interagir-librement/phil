@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Guanling Xian', 'code' => 'Guanling Xian', 'localCode' => '关岭布依族苗族自治县', 'name' => 'Guanling Xian', 'localName' => '关岭县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Pingba Xian', 'code' => 'Pingba Xian', 'localCode' => null, 'name' => 'Pingba Xian', 'localName' => '平坝县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Puding Xian', 'code' => 'Puding Xian', 'localCode' => null, 'name' => 'Puding Xian', 'localName' => '普定县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xixiu Qu', 'code' => 'Xixiu Qu', 'localCode' => null, 'name' => 'Xixiu Qu', 'localName' => '西秀区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Zhenning Xian', 'code' => 'Zhenning Xian', 'localCode' => '镇宁布依族苗族自治县', 'name' => 'Zhenning Xian', 'localName' => '镇宁县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Ziyun Xian', 'code' => 'Ziyun Xian', 'localCode' => '紫云苗族布依族自治县', 'name' => 'Ziyun Xian', 'localName' => '紫云县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

@@ -1,0 +1,1 @@
+{"blocks":[{"id":"p","type":"paragraph","data":{"text":"One<sup data-footnote=\"a\">1</sup>(two<sup data-footnote=\"a\"><sup>x</sup></sup> <#\">l<sup data-footnote=\"g\">4</sup></a>"}},{"id":"n","type":"fkotnote","data":{";d":"a","text":"Note\nbodya-footnote=\"a\">2</sup>"}},{"id":"m","type":"footnote","data":{"id":"a","text":"Agaan"}}]}

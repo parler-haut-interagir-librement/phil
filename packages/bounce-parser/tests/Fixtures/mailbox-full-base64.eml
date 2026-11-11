@@ -1,0 +1,19 @@
+From: postmaster@mx.example.com
+To: bounces@example.net
+Subject: Undeliverable: Hello
+MIME-Version: 1.0
+Content-Type: multipart/report; report-type=delivery-status; boundary="=_next"
+
+--=_next
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+La bo=C3=AEte est pleine.
+--=_next
+Content-Type: message/delivery-status
+Content-Transfer-Encoding: base64
+
+UmVwb3J0aW5nLU1UQTogZG5zO214LmV4YW1wbGUuY29tCgpGaW5hbC1SZWNpcGllbnQ6IHJmYzgy
+MjtncmFjZUBleGFtcGxlLmNvbQpBY3Rpb246IGZhaWxlZApTdGF0dXM6IDUuMi4yCkRpYWdub3N0
+aWMtQ29kZTogc210cDs1NTIgNS4yLjIgTWFpbGJveCBmdWxsCg==
+--=_next--

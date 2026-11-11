@@ -1,0 +1,5 @@
+{% set menu = menu('main') %}
+{% include '@PhilMenu/menu.html.twig' %}
+{% include '@PhilMenu/breadcrumb.html.twig' %}
+{% include '@PhilMenu/cards.html.twig' with {items: menu.items} %}
+<script type="application/ld+json">{{ menu_breadcrumb_schema('main')|json_encode(constant('JSON_UNESCAPED_SLASHES') b-or constant('JSON_UNESCAPED_UNICODE') b-or constant('JSON_HEX_TAG'))|raw }}</script>

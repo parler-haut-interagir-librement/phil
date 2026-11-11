@@ -1,0 +1,37 @@
+{# A dashboard: its title, the choice of its periods, and its widgets over the period chosen. #}
+{% set dashboard = computed.dashboard %}
+{% set preset = computed.preset %}
+{% set range = computed.range %}
+{% set id = 'phil-reporting-' ~ dashboard.name %}
+<section{{ attributes.defaults({class: 'phil-reporting-dashboard', 'aria-labelledby': id ~ '-title'}) }}>
+    <header class="phil-reporting-dashboard__header">
+        <hgroup>
+            <h2 id="{{ id }}-title">{{ dashboard.title }}</h2>
+            <p class="phil-reporting-dashboard__range">
+                {{ 'dashboard.range'|trans({'%start%': range.start|date('Y-m-d', false), '%end%': range.end|date_modify('-1 second')|date('Y-m-d', false)}, 'phil_reporting') }}
+            </p>
+        </hgroup>
+        {% if dashboard.periods|length > 1 %}
+            <form method="get" class="phil-reporting-dashboard__periods">
+                <label for="{{ id }}-period">{{ 'dashboard.period'|trans({}, 'phil_reporting') }}</label>
+                <select id="{{ id }}-period" name="period"{% if this.live %} data-model="period"{% endif %}>
+                    {% for option in dashboard.periods %}
+                        <option value="{{ option.value }}"{% if option == preset %} selected{% endif %}>{{ ('period.' ~ option.value)|trans({}, 'phil_reporting') }}</option>
+                    {% endfor %}
+                </select>
+                {% if not this.live %}
+                    <button type="submit">{{ 'dashboard.show'|trans({}, 'phil_reporting') }}</button>
+                {% endif %}
+            </form>
+        {% endif %}
+    </header>
+    <div class="phil-reporting-dashboard__widgets">
+        {% for widget in dashboard.widgets %}
+            {% if widget.kind.value == 'metric' %}
+                {{ component('PhilReporting:Metric', {source: widget.source, period: preset.value, title: widget.title, compare: widget.compare}) }}
+            {% else %}
+                {{ component('PhilReporting:Chart', {source: widget.source, period: preset.value, title: widget.title, chart: widget.chart.value, render: widget.rendering.value}) }}
+            {% endif %}
+        {% endfor %}
+    </div>
+</section>

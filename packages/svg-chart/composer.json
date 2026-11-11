@@ -1,0 +1,47 @@
+{
+    "name": "phil/svg-chart",
+    "description": "Charts written from scratch in PHP and drawn as SVG: bars, lines, pies and doughnuts from the shape of a Chart.js configuration, round ticks, a legend, colours told apart by every colour vision, and a description that reads every value",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "chart",
+        "svg",
+        "bar-chart",
+        "pie-chart",
+        "accessibility"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "roave/security-advisories": "dev-latest"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\SvgChart\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\SvgChart\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

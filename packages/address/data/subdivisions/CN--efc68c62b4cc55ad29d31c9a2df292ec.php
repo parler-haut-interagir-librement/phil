@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Weidu Qu', 'code' => 'Weidu Qu', 'localCode' => null, 'name' => 'Weidu Qu', 'localName' => '魏都区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xiangcheng Xian', 'code' => 'Xiangcheng Xian', 'localCode' => null, 'name' => 'Xiangcheng Xian', 'localName' => '襄城县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xuchang Xian', 'code' => 'Xuchang Xian', 'localCode' => null, 'name' => 'Xuchang Xian', 'localName' => '许昌县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Yanling Xian', 'code' => 'Yanling Xian', 'localCode' => null, 'name' => 'Yanling Xian', 'localName' => '鄢陵县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Yuzhou Shi', 'code' => 'Yuzhou Shi', 'localCode' => null, 'name' => 'Yuzhou Shi', 'localName' => '禹州市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Changge Shi', 'code' => 'Changge Shi', 'localCode' => null, 'name' => 'Changge Shi', 'localName' => '长葛市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

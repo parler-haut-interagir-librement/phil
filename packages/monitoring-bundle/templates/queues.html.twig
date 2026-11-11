@@ -1,0 +1,71 @@
+{#
+    The Messenger queues: every transport with the messages it holds, then the failed messages of each failure
+    transport with the forms that retry or remove one. An application gives its own layout through
+    phil_monitoring.queues.layout; the layout defines the "title" and "content" blocks.
+#}
+{% extends layout %}
+
+{% block title %}Messenger queues{% endblock %}
+
+{% block content %}
+    <h1>Messenger queues</h1>
+
+    <table>
+        <thead>
+            <tr><th scope="col">Transport</th><th scope="col">Messages</th></tr>
+        </thead>
+        <tbody>
+            {% for queue in queues %}
+                <tr>
+                    <td>{{ queue.transport }}{% if queue.failure %} (failure){% endif %}</td>
+                    <td>{{ queue.messages ?? 'not counted' }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="2">No transport.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% for transport, messages in failed %}
+        <h2>Failed messages in {{ transport }}</h2>
+        {% if messages is empty %}
+            <p>None.</p>
+        {% else %}
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Id</th>
+                        <th scope="col">Message</th>
+                        <th scope="col">Error</th>
+                        <th scope="col">Failed on</th>
+                        <th scope="col">Retries</th>
+                        <th scope="col">Failed at</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for message in messages %}
+                        <tr>
+                            <td>{{ message.id }}</td>
+                            <td>{{ message.messageClass }}</td>
+                            <td>{{ message.errorClass ?? '' }}</td>
+                            <td>{{ message.originalTransport ?? '' }}</td>
+                            <td>{{ message.retries }}</td>
+                            <td>{{ message.failedAt ? message.failedAt|date('c') : '' }}</td>
+                            <td>
+                                <form method="post" action="{{ path('phil_monitoring_queues_retry', {transport: transport, id: message.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token }}">
+                                    <button type="submit">Retry</button>
+                                </form>
+                                <form method="post" action="{{ path('phil_monitoring_queues_remove', {transport: transport, id: message.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token }}">
+                                    <button type="submit">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    {% endfor %}
+{% endblock %}

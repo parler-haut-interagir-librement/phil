@@ -1,0 +1,48 @@
+{
+    "name": "phil/checkin",
+    "description": "The check-in core of events and venues: a code read at a checkpoint resolved to its credential, decided by an admission policy (opening, closing, entries, anti-passback, re-entry) on its attendance, recorded once per scan identifier in a ledger shared by the devices, and offline manifests of keyed fingerprints with the synchronisation of the journals devices kept offline",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "check-in",
+        "attendance",
+        "admission",
+        "ticketing",
+        "offline",
+        "events"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-sodium": "*",
+        "psr/clock": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Checkin\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Checkin\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

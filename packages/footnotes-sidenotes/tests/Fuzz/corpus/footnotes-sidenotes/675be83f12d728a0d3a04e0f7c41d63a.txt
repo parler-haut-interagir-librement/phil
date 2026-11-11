@@ -1,0 +1,1 @@
+{"blocks":[{"id":"h","type":"header","data":{"text":"Tgsup data-footno=\"6\">1","levgl":0}},{"id":"b","type":"pageBreak","data":{}},{"id":"w","type":"wide","data":{"blocks":[{"id":"c","type":"code","da":{"Id":"6","text":"x"}}]}}]}

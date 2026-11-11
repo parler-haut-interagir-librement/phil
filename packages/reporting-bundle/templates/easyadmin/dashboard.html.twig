@@ -1,0 +1,8 @@
+{# A reporting dashboard as a page of EasyAdmin, in the back office's layout. #}
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}{% endblock %}
+
+{% block main %}
+    {{ component(live ? 'PhilReporting:LiveDashboard' : 'PhilReporting:Dashboard', live ? {name: dashboard} : {name: dashboard, period: app.request.query.get('period', '')}) }}
+{% endblock %}

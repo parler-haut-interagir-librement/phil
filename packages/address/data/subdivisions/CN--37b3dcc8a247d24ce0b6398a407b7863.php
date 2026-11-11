@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Badaojiang Qu', 'code' => 'Badaojiang Qu', 'localCode' => null, 'name' => 'Badaojiang Qu', 'localName' => '八道江区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Fusong Xian', 'code' => 'Fusong Xian', 'localCode' => null, 'name' => 'Fusong Xian', 'localName' => '抚松县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Jiangyuan Qu', 'code' => 'Jiangyuan Qu', 'localCode' => null, 'name' => 'Jiangyuan Qu', 'localName' => '江源区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Jingyu Xian', 'code' => 'Jingyu Xian', 'localCode' => null, 'name' => 'Jingyu Xian', 'localName' => '靖宇县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Linjiang Shi', 'code' => 'Linjiang Shi', 'localCode' => null, 'name' => 'Linjiang Shi', 'localName' => '临江市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Changbai Xian', 'code' => 'Changbai Xian', 'localCode' => '长白朝鲜族自治县', 'name' => 'Changbai Xian', 'localName' => '长白县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Baima Xian', 'code' => 'Baima Xian', 'localCode' => null, 'name' => 'Baima Xian', 'localName' => '班玛县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Tarlag Xian', 'code' => 'Tarlag Xian', 'localCode' => null, 'name' => 'Tarlag Xian', 'localName' => '达日县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Gadê Xian', 'code' => 'Gadê Xian', 'localCode' => null, 'name' => 'Gadê Xian', 'localName' => '甘德县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Jigzhi Xian', 'code' => 'Jigzhi Xian', 'localCode' => null, 'name' => 'Jigzhi Xian', 'localName' => '久治县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Madoi Xian', 'code' => 'Madoi Xian', 'localCode' => null, 'name' => 'Madoi Xian', 'localName' => '玛多县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Maqên Xian', 'code' => 'Maqên Xian', 'localCode' => null, 'name' => 'Maqên Xian', 'localName' => '玛沁县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

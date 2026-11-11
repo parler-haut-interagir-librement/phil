@@ -1,0 +1,21 @@
+{#
+    The field of phil/content-warnings-bundle that picks warnings: as checkboxes, each category in a fieldset with its
+    label as legend; as a select, the categories as option groups, as Symfony renders them.
+#}
+{% block phil_content_warnings_widget -%}
+    {%- if expanded -%}
+        <div {{ block('widget_container_attributes') }}>
+            {%- for label, choice in choices -%}
+                {%- if choice.choices is defined -%}
+                    <fieldset class="phil-content-warnings__category"><legend>{{ label }}</legend>
+                        {%- for name, theme in choice.choices %}{{ form_widget(form[name]) }}{{ form_label(form[name]) }}{% endfor -%}
+                    </fieldset>
+                {%- else -%}
+                    {{- form_widget(form[label]) }}{{ form_label(form[label]) -}}
+                {%- endif -%}
+            {%- endfor -%}
+        </div>
+    {%- else -%}
+        {{- block('choice_widget') -}}
+    {%- endif -%}
+{%- endblock %}

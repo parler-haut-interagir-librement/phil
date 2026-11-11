@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => "Da'an Qu", 'code' => "Da'an Qu", 'localCode' => null, 'name' => "Da'an Qu", 'localName' => '大安区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Fushun Xian', 'code' => 'Fushun Xian', 'localCode' => null, 'name' => 'Fushun Xian', 'localName' => '富顺县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Gongjing Qu', 'code' => 'Gongjing Qu', 'localCode' => null, 'name' => 'Gongjing Qu', 'localName' => '贡井区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Rong Xian', 'code' => 'Rong Xian', 'localCode' => null, 'name' => 'Rong Xian', 'localName' => '荣县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Yantan Qu', 'code' => 'Yantan Qu', 'localCode' => null, 'name' => 'Yantan Qu', 'localName' => '沿滩区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Ziliujing Qu', 'code' => 'Ziliujing Qu', 'localCode' => null, 'name' => 'Ziliujing Qu', 'localName' => '自流井区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

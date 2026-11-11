@@ -1,0 +1,48 @@
+{
+    "name": "phil/structured-data",
+    "description": "The schema.org graph of a page as values, written from scratch: immutable nodes with factories for the common types, stable @id, a @graph that merges the nodes of one @id and lifts nested ones, languages, validation of required and recommended properties, JSON-LD safe inside a script element, and a reader of the JSON-LD of a page",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "schema.org",
+        "json-ld",
+        "structured-data",
+        "seo",
+        "rich-results"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-json": "*",
+        "ext-libxml": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\StructuredData\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\StructuredData\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

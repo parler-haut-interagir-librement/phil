@@ -1,0 +1,47 @@
+{
+    "name": "phil/print-preflight",
+    "description": "A preflight report before printing: image resolution at placed size, font embedding permissions, bleed and safety margin, page size and count rules of a printer, colour spaces, as blocking errors, warnings and notices",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "print",
+        "preflight",
+        "pdf",
+        "bleed",
+        "resolution",
+        "cmyk"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/fonts": "^0.1@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\PrintPreflight\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\PrintPreflight\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

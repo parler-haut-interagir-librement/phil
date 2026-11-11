@@ -1,0 +1,49 @@
+{
+    "name": "phil/print-compositor",
+    "description": "Product mockups and print files drawn with GD: artworks placed on a product photo with the fabric's shading kept, in WebP, and transparent PNG print files at a zone's real size and resolution, with images, texts fitted to their box in a font read by phil/fonts, and one file per ink",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "print",
+        "mockup",
+        "print-on-demand",
+        "gd",
+        "png",
+        "webp"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-gd": "*",
+        "ext-mbstring": "*",
+        "phil/fonts": "^0.1@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\PrintCompositor\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\PrintCompositor\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

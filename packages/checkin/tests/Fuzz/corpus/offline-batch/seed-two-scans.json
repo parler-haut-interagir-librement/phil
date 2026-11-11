@@ -1,0 +1,1 @@
+[{"id":"a1","credential":"T-1","direction":"out","outcome":"checked_out","scannedAt":1},{"id":"a2","credential":"T-2","direction":"in","outcome":"already_admitted","scannedAt":2}]

@@ -1,0 +1,10 @@
+From: MAILER-DAEMON@mx.example.com
+To: bounces@example.net
+Subject: failure notice
+
+Hi. This is the qmail-send program at mx.example.com.
+I'm afraid I wasn't able to deliver your message to the following addresses.
+This is a permanent error; I've given up. Sorry it didn't work out.
+
+<hedy@example.com>:
+Sorry, no mailbox here by that name. (#5.1.1)

@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Arxan Shi', 'code' => 'Arxan Shi', 'localCode' => null, 'name' => 'Arxan Shi', 'localName' => '阿尔山市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Horqin Youyi Qianqi', 'code' => 'Horqin Youyi Qianqi', 'localCode' => null, 'name' => 'Horqin Youyi Qianqi', 'localName' => '科尔沁右翼前旗', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Horqin Youyi Zhongqi', 'code' => 'Horqin Youyi Zhongqi', 'localCode' => null, 'name' => 'Horqin Youyi Zhongqi', 'localName' => '科尔沁右翼中旗', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Tuquan Xian', 'code' => 'Tuquan Xian', 'localCode' => null, 'name' => 'Tuquan Xian', 'localName' => '突泉县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Ulan Hot Shi', 'code' => 'Ulan Hot Shi', 'localCode' => null, 'name' => 'Ulan Hot Shi', 'localName' => '乌兰浩特市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Jalaid Qi', 'code' => 'Jalaid Qi', 'localCode' => null, 'name' => 'Jalaid Qi', 'localName' => '扎赉特旗', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

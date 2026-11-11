@@ -1,0 +1,16 @@
+phil/open-badges
+Copyright (c) Philippe Gamache, doing business as Le Gnome Archiviste.
+The code of this library is under the MIT License (LICENSE).
+
+The JSON-LD context documents in data/contexts/ are bundled unchanged, so that
+credentials are verified without fetching them:
+
+- credentials-v2.jsonld: https://www.w3.org/ns/credentials/v2, the context of
+  Verifiable Credentials Data Model 2.0, Copyright (c) World Wide Web
+  Consortium, under the W3C Software and Document License.
+- ob-v3p0-context-3.0.3.json:
+  https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json, the context of
+  Open Badges 3.0, Copyright (c) 1EdTech Consortium, Inc.
+- clr-v2p0-context-2.0.1.json:
+  https://purl.imsglobal.org/spec/clr/v2p0/context-2.0.1.json, the context of
+  Comprehensive Learner Record 2.0, Copyright (c) 1EdTech Consortium, Inc.

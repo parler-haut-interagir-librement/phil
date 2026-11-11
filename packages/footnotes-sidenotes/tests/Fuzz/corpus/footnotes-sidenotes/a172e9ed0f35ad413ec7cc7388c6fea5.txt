@@ -1,0 +1,1 @@
+{"blocks":[{"id":"w","type":"wide","data":{"blocks":[{"id":"c","type":"code","data":{"code":"<sup d\">"}},{"id":"n","type":"footnote","data":{"id":"6","text":"x"}}]}}]}

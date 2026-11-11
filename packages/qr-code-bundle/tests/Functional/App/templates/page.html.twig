@@ -1,0 +1,11 @@
+<main>
+    <div id="function">{{ qr_code('HELLO', {title: 'Hello'}) }}</div>
+    <div id="filter">{{ {type: 'wifi', ssid: 'Gnome Café', password: 'tea-and-dice'}|qr_code({logo: 'brand'}) }}</div>
+    <img id="svg-uri" src="{{ qr_code('HELLO', {output: 'data_uri'}) }}" alt="{{ qr_code_label('HELLO') }}">
+    <img id="png-uri" src="{{ qr_code('HELLO', {output: 'png_data_uri', scale: 2}) }}" alt="">
+    <img id="route" src="{{ qr_code_url('https://example.com/t/42') }}" alt="">
+    <img id="route-png" src="{{ qr_code_url({type: 'phone', number: '+15551234567'}, 'png', 'photo', true) }}" alt="">
+    <div id="component"><twig:PhilQrCode:QrCode content="https://example.com/t/42" /></div>
+    <div id="component-alt"><twig:PhilQrCode:QrCode :content="{type: 'wifi', ssid: 'Gnome Café', password: 'tea-and-dice'}" alt="Join the network" size="{{ 160 }}" class="ticket" /></div>
+    <div id="component-bare"><twig:PhilQrCode:QrCode content="HELLO" :caption="false" level="H" /></div>
+</main>

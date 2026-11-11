@@ -1,0 +1,47 @@
+{
+    "name": "phil/commerce-product-template",
+    "description": "Product templates for PHP: axes with ordered values, swatches and supplier names, prices per value with supplements, faces and print zones in millimetres, combinations excluded, a SKU pattern checked for collisions, and designs planned on templates as one product per language and combination",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "commerce",
+        "product-template",
+        "print-on-demand",
+        "sku",
+        "variants"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "phil/money": "^0.1@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\CommerceProductTemplate\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\CommerceProductTemplate\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Donggang Shi', 'code' => 'Donggang Shi', 'localCode' => null, 'name' => 'Donggang Shi', 'localName' => '东港市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Fengcheng Shi', 'code' => 'Fengcheng Shi', 'localCode' => null, 'name' => 'Fengcheng Shi', 'localName' => '凤城市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Kuandian Xian', 'code' => 'Kuandian Xian', 'localCode' => '宽甸满族自治县', 'name' => 'Kuandian Xian', 'localName' => '宽甸县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Yuanbao Qu', 'code' => 'Yuanbao Qu', 'localCode' => null, 'name' => 'Yuanbao Qu', 'localName' => '元宝区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => "Zhen'an Qu", 'code' => "Zhen'an Qu", 'localCode' => null, 'name' => "Zhen'an Qu", 'localName' => '振安区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Zhenxing Qu', 'code' => 'Zhenxing Qu', 'localCode' => null, 'name' => 'Zhenxing Qu', 'localName' => '振兴区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

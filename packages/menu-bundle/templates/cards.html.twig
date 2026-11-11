@@ -1,0 +1,28 @@
+{#
+    The items of a menu, or of one item, as cards: icon, label, description, counts and last change.
+
+        {% include '@PhilMenu/cards.html.twig' with {menu: menu('sections')} %}
+        {% include '@PhilMenu/cards.html.twig' with {menu: menu, items: menu.find('games').children} %}
+
+    The icon is the name of a class, given to an <i> element; an application overrides the template for other icons.
+#}
+{%- set items = items ?? menu.items %}
+<div class="menu-cards menu-cards--{{ menu.name }}">
+    {%- for item in items %}
+        {%- set label = menu.translationDomain is null ? item.label : item.label|trans({}, menu.translationDomain) %}
+        {%- set href = item.route is not null ? path(item.route, item.routeParameters) : item.url %}
+        <article{% for name, value in item.attributes|filter((value, name) => name != 'class') %} {{ name }}="{{ value }}"{% endfor %} class="menu-card{% if item.attributes.class is defined %} {{ item.attributes.class }}{% endif %}">
+            <a href="{{ href ?? '#' }}"{% if item.current %} aria-current="page"{% endif %}>
+                <header>{% if item.icon %}<i class="{{ item.icon }}" aria-hidden="true"></i> {% endif %}<h3>{{ label }}</h3></header>
+                {%- if item.description %}<p>{{ item.description }}</p>{% endif %}
+                {%- if item.count is not null or item.newCount is not null %}
+                    <footer>
+                        {%- if item.count is not null %}<span class="menu-card__count">{{ 'menu.count'|trans({'%count%': item.count}, 'phil_menu') }}</span>{% endif %}
+                        {%- if item.newCount %}<span class="menu-card__new">{{ 'menu.new'|trans({'%count%': item.newCount}, 'phil_menu') }}</span>{% endif %}
+                        {%- if item.updatedAt %}<time datetime="{{ item.updatedAt|date('c') }}">{{ item.updatedAt|date('Y-m-d') }}</time>{% endif %}
+                    </footer>
+                {%- endif %}
+            </a>
+        </article>
+    {%- endfor %}
+</div>

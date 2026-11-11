@@ -1,0 +1,20 @@
+Return-path: <>
+Envelope-to: bounces+t9@example.net
+From: Mail Delivery System <Mailer-Daemon@mx.example.org>
+To: bounces+t9@example.net
+Subject: Mail delivery failed: returning message to sender
+Auto-Submitted: auto-replied
+
+This message was created automatically by mail delivery software.
+
+A message that you sent could not be delivered to one or more of its
+recipients. This is a permanent error. The following address(es) failed:
+
+  linus@example.org
+    host mx.example.org [198.51.100.9]
+    SMTP error from remote mail server after RCPT TO:<linus@example.org>:
+    550 No such user here
+
+------ This is a copy of the message, including all the headers. ------
+
+Message-ID: <m-44@example.net>

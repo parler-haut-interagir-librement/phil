@@ -1,0 +1,1 @@
+<html><head><script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://example.com/#org","name":"A","address":{"@type":"PostalAddress","addressCountry":"CA"}}</script></head></html>

@@ -1,0 +1,24 @@
+{
+    "name": "@phil/geo-bundle",
+    "description": "The Stimulus controller of phil/geo-bundle, which sorts places by their distance to the visitor in the browser",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/distance_sort_controller.js",
+    "symfony": {
+        "controllers": {
+            "distance-sort": {
+                "main": "src/distance_sort_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

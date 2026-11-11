@@ -1,0 +1,63 @@
+{
+    "name": "phil/feature-flags-bundle",
+    "description": "Feature flags and A/B tests for Symfony: flags evaluated once per request from ordered providers (configuration, database), targeting by tenant, project or subject, stable percentage rollouts and experiments, metadata and expiry dates, audited toggles and edits with a mandatory reason, admin screens, a controller attribute, a route condition and Twig functions, and a flag per circuit of phil/circuit-breaker-bundle that forces it open",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/circuit-breaker": "^0.1@dev",
+        "phil/circuit-breaker-bundle": "^0.1@dev",
+        "phil/ddd-bundle": "^0.1@dev",
+        "phil/enums": "^0.3@dev",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "phpunit/phpunit": "^13.4",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/expression-language": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/twig-bundle": "^8.2"
+    },
+    "suggest": {
+        "symfony/web-profiler-bundle": "For the profiler panel of the flags"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\FeatureFlagsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\FeatureFlagsBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

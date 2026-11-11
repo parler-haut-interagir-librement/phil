@@ -1,0 +1,25 @@
+{#
+    A menu as a navigation list, nested:
+
+        {% include '@PhilMenu/menu.html.twig' with {menu: menu('main')} %}
+
+    The current item has aria-current="page", its ancestors the attribute data-active-trail; an item's attributes are
+    its element's.
+#}
+{%- macro items(items, menu) -%}
+    <ul>
+        {%- for item in items %}
+            {%- set label = menu.translationDomain is null ? item.label : item.label|trans({}, menu.translationDomain) %}
+            {%- set href = item.route is not null ? path(item.route, item.routeParameters) : item.url %}
+            <li{% for name, value in item.attributes %} {{ name }}="{{ value }}"{% endfor %}{% if item.currentAncestor %} data-active-trail{% endif %}>
+                {%- if href is not null -%}
+                    <a href="{{ href }}"{% if item.current %} aria-current="page"{% endif %}>{{ label }}</a>
+                {%- else -%}
+                    <span>{{ label }}</span>
+                {%- endif -%}
+                {%- if item.children is not empty %}{{ _self.items(item.children, menu) }}{% endif -%}
+            </li>
+        {%- endfor %}
+    </ul>
+{%- endmacro -%}
+<nav class="menu menu--{{ menu.name }}">{{ _self.items(menu.items, menu) }}</nav>

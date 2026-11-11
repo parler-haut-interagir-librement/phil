@@ -1,0 +1,51 @@
+{
+    "name": "phil/backup-bundle",
+    "description": "phil/backup in Symfony: database and media backups from configuration, encrypted with a key from the environment, rotated, restored behind a guard that asks for confirmation, the database name typed again and an automatic backup first, and tested by restoring into a copy",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "backup",
+        "restore",
+        "doctrine",
+        "console",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "doctrine/dbal": "^4.5",
+        "phil/backup": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/process": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\BackupBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\BackupBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

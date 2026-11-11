@@ -1,0 +1,640 @@
+/*
+ * The block editor's stylesheet. Every value is a custom property under --pbe-*, which takes PHIL UX's token of the
+ * same role when that stylesheet is loaded, and otherwise a value drawn from the page's own colours (Canvas and
+ * CanvasText), so that it follows the page's light or dark scheme. An application redefines them on
+ * .phil-block-editor, or on :root. The text keeps the page's colour.
+ */
+.phil-block-editor {
+    --pbe-text: var(--phil-color-text, CanvasText);
+    --pbe-muted: var(--phil-color-text-muted, color-mix(in srgb, CanvasText 60%, Canvas));
+    --pbe-surface: var(--phil-color-surface, Canvas);
+    --pbe-sunken: var(--phil-color-surface-sunken, color-mix(in srgb, CanvasText 7%, Canvas));
+    --pbe-border: var(--phil-color-border, color-mix(in srgb, CanvasText 18%, Canvas));
+    --pbe-accent: var(--phil-color-accent, #1f6f78);
+    --pbe-accent-soft: var(--phil-color-accent-soft, color-mix(in srgb, #1f6f78 14%, Canvas));
+    --pbe-focus: var(--phil-color-focus, #3b82c4);
+    --pbe-danger: var(--phil-color-danger, #b42318);
+    --pbe-info: var(--phil-color-info, #2563a8);
+    --pbe-success: var(--phil-color-success, #2f7a3b);
+    --pbe-warning: var(--phil-color-warning, #9a6200);
+    --pbe-mark: color-mix(in srgb, #ffd400 45%, Canvas);
+    --pbe-radius: var(--phil-radius-md, 6px);
+    --pbe-mono: var(--phil-font-mono, ui-monospace, "SF Mono", Menlo, Consolas, monospace);
+    --pbe-gutter: 3rem;
+    --pbe-shadow: 0 6px 24px rgb(0 0 0 / 0.14);
+
+    position: relative;
+    line-height: 1.6;
+}
+
+.phil-block-editor__canvas {
+    padding-inline-start: var(--pbe-gutter);
+    min-height: 3rem;
+}
+
+.phil-block-editor--read-only .phil-block-editor__canvas {
+    padding-inline-start: 0;
+}
+
+.phil-block-editor__status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* Blocks */
+
+.pbe-block {
+    position: relative;
+    margin: 0.15rem 0;
+    border-radius: var(--pbe-radius);
+    outline: none;
+}
+
+.pbe-block.pbe-selected {
+    background: var(--pbe-accent-soft);
+    box-shadow: 0 0 0 2px var(--pbe-focus);
+}
+
+.pbe-block.pbe-dragging {
+    opacity: 0.4;
+}
+
+.pbe-block.pbe-drop-before {
+    box-shadow: 0 -3px 0 var(--pbe-focus);
+}
+
+.pbe-block.pbe-drop-after {
+    box-shadow: 0 3px 0 var(--pbe-focus);
+}
+
+.pbe-gutter {
+    position: absolute;
+    inset-inline-start: calc(-1 * var(--pbe-gutter));
+    top: 0.1rem;
+    display: flex;
+    gap: 0.1rem;
+    opacity: 0;
+    transition: opacity 0.12s;
+}
+
+.pbe-block:hover > .pbe-gutter,
+.pbe-block.pbe-focused > .pbe-gutter,
+.pbe-block.pbe-selected > .pbe-gutter,
+.pbe-gutter:focus-within {
+    opacity: 1;
+}
+
+/* A block another writer holds: outlined, their name above it, closed to editing. */
+.pbe-block.pbe-locked {
+    outline: 2px dashed var(--pbe-info);
+    outline-offset: 2px;
+}
+
+.pbe-block.pbe-locked::before {
+    content: attr(data-locked-by);
+    position: absolute;
+    inset-inline-end: 0;
+    top: -1.1rem;
+    padding: 0 0.35rem;
+    border-radius: var(--pbe-radius);
+    background: var(--pbe-info);
+    color: var(--pbe-surface);
+    font-size: 0.72rem;
+    line-height: 1.1rem;
+}
+
+.pbe-gutter button {
+    width: 1.4rem;
+    height: 1.6rem;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--pbe-muted);
+    font: inherit;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.pbe-gutter button:hover,
+.pbe-gutter button:focus-visible {
+    background: var(--pbe-sunken);
+    color: var(--pbe-text);
+}
+
+.pbe-handle {
+    cursor: grab;
+    letter-spacing: -0.2em;
+}
+
+.pbe-rich {
+    min-height: 1.6em;
+    outline: none;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.pbe-rich:empty::before {
+    content: attr(data-placeholder);
+    color: var(--pbe-muted);
+    pointer-events: none;
+}
+
+.pbe-paragraph:empty:not(:focus)::before {
+    content: none;
+}
+
+.pbe-sole .pbe-paragraph:empty::before {
+    content: attr(data-placeholder);
+}
+
+.pbe-header {
+    margin: 0.6em 0 0.2em;
+    line-height: 1.25;
+}
+
+.pbe-quote {
+    margin: 0.4rem 0;
+    padding-inline-start: 1rem;
+    border-inline-start: 3px solid var(--pbe-border);
+}
+
+.pbe-quote.pbe-align-center {
+    text-align: center;
+}
+
+.pbe-quote__caption {
+    color: var(--pbe-muted);
+    font-size: 0.9em;
+}
+
+.pbe-alert {
+    padding: 0.7rem 1rem;
+    border-radius: var(--pbe-radius);
+    border-inline-start: 4px solid var(--pbe-info);
+    background: color-mix(in srgb, var(--pbe-info) 10%, var(--pbe-surface));
+}
+
+.pbe-alert--success {
+    border-color: var(--pbe-success);
+    background: color-mix(in srgb, var(--pbe-success) 10%, var(--pbe-surface));
+}
+.pbe-alert--warning {
+    border-color: var(--pbe-warning);
+    background: color-mix(in srgb, var(--pbe-warning) 10%, var(--pbe-surface));
+}
+.pbe-alert--danger {
+    border-color: var(--pbe-danger);
+    background: color-mix(in srgb, var(--pbe-danger) 10%, var(--pbe-surface));
+}
+
+.pbe-code {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    border-radius: var(--pbe-radius);
+    background: var(--pbe-sunken);
+}
+
+.pbe-code__language {
+    justify-self: end;
+    width: 9rem;
+    border: 0;
+    background: transparent;
+    color: var(--pbe-muted);
+    font: 0.8rem var(--pbe-mono);
+    text-align: end;
+}
+
+.pbe-code__source {
+    width: 100%;
+    box-sizing: border-box;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: 0.9rem / 1.5 var(--pbe-mono);
+    resize: vertical;
+    tab-size: 4;
+}
+
+.pbe-delimiter {
+    margin: 1rem auto;
+    width: 30%;
+    border: 0;
+    border-top: 2px solid var(--pbe-border);
+}
+
+.pbe-items {
+    margin: 0.2rem 0;
+    padding-inline-start: 1.5rem;
+}
+
+.pbe-items--checklist {
+    list-style: none;
+    padding-inline-start: 0.2rem;
+}
+
+.pbe-items--checklist .pbe-items--checklist {
+    padding-inline-start: 1.5rem;
+}
+
+.pbe-item__check {
+    float: inline-start;
+    margin: 0.35em 0.5em 0 0;
+}
+
+.pbe-items--checklist .pbe-item:has(> .pbe-item__check:checked) > .pbe-item__content {
+    color: var(--pbe-muted);
+    text-decoration: line-through;
+}
+
+.pbe-table {
+    width: auto;
+    border-collapse: collapse;
+}
+
+.pbe-table--stretched {
+    width: 100%;
+}
+
+.pbe-table td,
+.pbe-table th {
+    min-width: 6rem;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--pbe-border);
+    vertical-align: top;
+    text-align: start;
+}
+
+.pbe-table th {
+    background: var(--pbe-sunken);
+}
+
+.pbe-image {
+    margin: 0.5rem 0;
+}
+
+.pbe-image img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--pbe-radius);
+}
+
+.pbe-image--border img {
+    border: 1px solid var(--pbe-border);
+}
+.pbe-image--background {
+    padding: 1rem;
+    background: var(--pbe-sunken);
+    border-radius: var(--pbe-radius);
+}
+.pbe-image--background img {
+    margin: 0 auto;
+    max-width: 60%;
+}
+.pbe-image--stretched img {
+    width: 100%;
+}
+
+.pbe-image__caption {
+    color: var(--pbe-muted);
+    font-size: 0.9em;
+}
+
+.pbe-picker {
+    display: grid;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 2px dashed var(--pbe-border);
+    border-radius: var(--pbe-radius);
+    color: var(--pbe-muted);
+}
+
+.pbe-picker__upload {
+    cursor: pointer;
+}
+
+.pbe-picker__upload > span:first-child {
+    color: var(--pbe-accent);
+    font-weight: 600;
+}
+
+.pbe-picker__file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.pbe-picker__upload:focus-within {
+    outline: 2px solid var(--pbe-focus);
+}
+
+.pbe-picker__url {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.pbe-picker__address {
+    flex: 1;
+}
+
+.pbe-picker__address[aria-invalid="true"] {
+    outline: 2px solid var(--pbe-danger);
+}
+
+.pbe-toggle__head {
+    display: flex;
+    gap: 0.25rem;
+    align-items: flex-start;
+}
+
+.pbe-toggle__arrow {
+    flex: none;
+    width: 1.5rem;
+    height: 1.6rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--pbe-muted);
+    cursor: pointer;
+    transition: transform 0.12s;
+}
+
+.pbe-toggle--open > .pbe-toggle__head > .pbe-toggle__arrow {
+    transform: rotate(90deg);
+}
+
+.pbe-toggle__text {
+    flex: 1;
+}
+
+.pbe-toggle__body {
+    padding-inline-start: 1.75rem;
+}
+
+.pbe-columns {
+    display: grid;
+    grid-template-columns: repeat(var(--pbe-columns, 2), minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+@media (max-width: 40rem) {
+    .pbe-columns {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.pbe-empty {
+    width: 100%;
+    padding: 0.4rem;
+    border: 1px dashed var(--pbe-border);
+    border-radius: var(--pbe-radius);
+    background: transparent;
+    color: var(--pbe-muted);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.pbe-empty.pbe-drop-into,
+.pbe-empty:hover {
+    border-color: var(--pbe-focus);
+}
+
+.pbe-foreign {
+    padding: 0.5rem 0.75rem;
+    border: 1px dashed var(--pbe-border);
+    border-radius: var(--pbe-radius);
+    color: var(--pbe-muted);
+    font-size: 0.9em;
+}
+
+.pbe-nothing {
+    color: var(--pbe-muted);
+}
+
+/* Inline marks, as phil/ujo writes them */
+
+.phil-block-editor .cdx-marker {
+    background: var(--pbe-mark);
+    color: inherit;
+}
+.phil-block-editor .inline-code {
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    background: var(--pbe-sunken);
+    font: 0.9em var(--pbe-mono);
+}
+.phil-block-editor a {
+    color: var(--pbe-accent);
+}
+.phil-block-editor a[data-mention],
+.phil-block-editor a[data-ref] {
+    padding: 0 0.15em;
+    border-radius: 3px;
+    background: var(--pbe-accent-soft);
+    text-decoration: none;
+}
+.phil-block-editor .text-color[data-color="accent"] {
+    color: var(--pbe-accent);
+}
+.phil-block-editor .text-color[data-color="muted"] {
+    color: var(--pbe-muted);
+}
+.phil-block-editor .text-color[data-color="success"] {
+    color: var(--pbe-success);
+}
+.phil-block-editor .text-color[data-color="warning"] {
+    color: var(--pbe-warning);
+}
+.phil-block-editor .text-color[data-color="danger"] {
+    color: var(--pbe-danger);
+}
+
+/* Popups: menus and the toolbar */
+
+.pbe-menu,
+.pbe-toolbar {
+    position: absolute;
+    z-index: 20;
+    border: 1px solid var(--pbe-border);
+    border-radius: var(--pbe-radius);
+    background: var(--pbe-surface);
+    box-shadow: var(--pbe-shadow);
+}
+
+.pbe-menu {
+    display: grid;
+    min-width: 14rem;
+    max-height: 20rem;
+    overflow-y: auto;
+    padding: 0.25rem;
+}
+
+.pbe-menu__heading {
+    padding: 0.3rem 0.5rem 0.1rem;
+    color: var(--pbe-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+.pbe-menu__separator {
+    margin: 0.25rem 0;
+    border-top: 1px solid var(--pbe-border);
+}
+
+.pbe-menu__item {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.35rem 0.5rem;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.pbe-menu__item--active,
+.pbe-menu__item:hover,
+.pbe-menu__item:focus-visible {
+    background: var(--pbe-sunken);
+    outline: none;
+}
+
+.pbe-menu__item[aria-checked="true"] .pbe-menu__label::before {
+    content: "✓ ";
+}
+
+.pbe-menu__item--danger {
+    color: var(--pbe-danger);
+}
+
+.pbe-menu__hint,
+.pbe-menu__empty {
+    color: var(--pbe-muted);
+    font-size: 0.85em;
+}
+
+.pbe-menu__empty {
+    padding: 0.35rem 0.5rem;
+}
+
+.pbe-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.1rem;
+    padding: 0.2rem;
+}
+
+.pbe-toolbar__button {
+    min-width: 1.9rem;
+    height: 1.9rem;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.pbe-toolbar__button:hover,
+.pbe-toolbar__button[aria-pressed="true"] {
+    background: var(--pbe-sunken);
+}
+
+.pbe-toolbar__button--bold::before {
+    content: "B";
+    font-weight: 700;
+}
+.pbe-toolbar__button--italic::before {
+    content: "I";
+    font-style: italic;
+}
+.pbe-toolbar__button--underline::before {
+    content: "U";
+    text-decoration: underline;
+}
+.pbe-toolbar__button--strikethrough::before {
+    content: "S";
+    text-decoration: line-through;
+}
+.pbe-toolbar__button--inlineCode::before {
+    content: "</>";
+    font: 0.8em var(--pbe-mono);
+}
+.pbe-toolbar__button--link::before {
+    content: "🔗";
+}
+.pbe-toolbar__button--marker::before {
+    content: "H";
+    background: var(--pbe-mark);
+    padding: 0 0.2em;
+}
+.pbe-toolbar__button--textColor::before {
+    content: "A";
+    color: var(--pbe-accent);
+    text-decoration: underline;
+}
+.pbe-toolbar__button--superscript::before {
+    content: "x²";
+}
+.pbe-toolbar__button--subscript::before {
+    content: "x₂";
+}
+
+.pbe-toolbar__link {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    width: 100%;
+    padding: 0.2rem;
+}
+
+.pbe-toolbar__url {
+    flex: 1;
+    min-width: 12rem;
+}
+
+.pbe-toolbar__message {
+    width: 100%;
+    color: var(--pbe-danger);
+    font-size: 0.85em;
+}
+
+.pbe-toolbar__message:empty {
+    display: none;
+}
+
+.pbe-palette {
+    display: flex;
+    gap: 0.2rem;
+    width: 100%;
+    padding: 0.2rem;
+}
+
+.pbe-palette__swatch {
+    width: 1.8rem;
+    height: 1.8rem;
+    border: 1px solid var(--pbe-border);
+    border-radius: 4px;
+    background: transparent;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pbe-gutter,
+    .pbe-toggle__arrow {
+        transition: none;
+    }
+}

@@ -1,0 +1,50 @@
+{
+    "name": "phil/backup",
+    "description": "Database and media backups in plain PHP: SQLite, MySQL, MariaDB and PostgreSQL through their own client tools with credentials kept off the command line, media directories in a tar archive, libsodium encryption by chunks, grandfather-father-son rotation, a restore guard and restore tests",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "backup",
+        "restore",
+        "mysqldump",
+        "pg_dump",
+        "sqlite",
+        "encryption",
+        "rotation"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-sodium": "*"
+    },
+    "require-dev": {
+        "ext-posix": "*",
+        "phpunit/phpunit": "^13.4",
+        "symfony/process": "^8.2"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Backup\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Backup\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

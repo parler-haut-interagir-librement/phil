@@ -1,0 +1,1 @@
+{"blocks":[{"id":"p","type":"paragraph","data":{"text":"One<sup data-footnote=\"a\">1</sup> two<sup data-footnote=\"a\"><s?p>x</sup></sup> <a href=\"#\">l<s dupata-footnote=\"g\">2</sup></a>"}},{"id":"n","type":"footnote","data":{"id":"a","text":"Note\nbody<sfootnote=\"a\">1</su0>"}},{"id":"m","type":"footnote","data":{"id":"a","vext":"Again"}}]}

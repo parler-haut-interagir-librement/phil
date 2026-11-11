@@ -1,0 +1,24 @@
+{
+    "name": "@phil/text-diff-bundle",
+    "description": "The comparison controller: the inline, old and new views of a difference, and a step from change to change",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/comparison_controller.js",
+    "symfony": {
+        "controllers": {
+            "comparison": {
+                "main": "src/comparison_controller.js",
+                "webpackMode": "eager",
+                "fetch": "lazy",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Haicang Qu', 'code' => 'Haicang Qu', 'localCode' => null, 'name' => 'Haicang Qu', 'localName' => '海沧区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Huli Qu', 'code' => 'Huli Qu', 'localCode' => null, 'name' => 'Huli Qu', 'localName' => '湖里区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Jimei Qu', 'code' => 'Jimei Qu', 'localCode' => null, 'name' => 'Jimei Qu', 'localName' => '集美区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Siming Qu', 'code' => 'Siming Qu', 'localCode' => null, 'name' => 'Siming Qu', 'localName' => '思明区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => "Tong'an Qu", 'code' => "Tong'an Qu", 'localCode' => null, 'name' => "Tong'an Qu", 'localName' => '同安区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => "Xiang'an Qu", 'code' => "Xiang'an Qu", 'localCode' => null, 'name' => "Xiang'an Qu", 'localName' => '翔安区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

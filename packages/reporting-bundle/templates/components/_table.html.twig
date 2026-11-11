@@ -1,0 +1,23 @@
+{# Every value of a set of series: a row per label, a column per series. #}
+<table class="phil-reporting-table">
+    <caption>{{ caption }}</caption>
+    <thead>
+        <tr>
+            <td></td>
+            {% for series in set.series %}
+                <th scope="col">{{ series.label }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for label in set.labels %}
+            {% set row = loop.index0 %}
+            <tr>
+                <th scope="row">{{ label }}</th>
+                {% for series in set.series %}
+                    <td>{{ this.number(series.values[row]) }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

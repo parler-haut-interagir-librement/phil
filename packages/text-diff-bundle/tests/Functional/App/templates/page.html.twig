@@ -1,0 +1,6 @@
+{% set captured %}<p>Hello <b>big</b> world</p>{% endset %}
+<pre class="text-diff">{{ old|text_diff(new) }}</pre>
+<p>{{ old|text_diff(new, 'words') }}</p>
+<div>{{ captured|text_diff(changed, 'html') }}</div>
+<div>{{ html|text_diff(changed ~ '<script>alert(1)</script>', 'html') }}</div>
+<article>{{ document|text_diff_document(revised) }}</article>

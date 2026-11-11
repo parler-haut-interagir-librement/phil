@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Huairen Xian', 'code' => 'Huairen Xian', 'localCode' => null, 'name' => 'Huairen Xian', 'localName' => '怀仁县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Pinglu Qu', 'code' => 'Pinglu Qu', 'localCode' => null, 'name' => 'Pinglu Qu', 'localName' => '平鲁区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Shanyin Xian', 'code' => 'Shanyin Xian', 'localCode' => null, 'name' => 'Shanyin Xian', 'localName' => '山阴县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Shuocheng Qu', 'code' => 'Shuocheng Qu', 'localCode' => null, 'name' => 'Shuocheng Qu', 'localName' => '朔城区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Ying Xian', 'code' => 'Ying Xian', 'localCode' => null, 'name' => 'Ying Xian', 'localName' => '应县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Youyu Xian', 'code' => 'Youyu Xian', 'localCode' => null, 'name' => 'Youyu Xian', 'localName' => '右玉县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

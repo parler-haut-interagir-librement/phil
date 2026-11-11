@@ -1,0 +1,558 @@
+/*
+ * The dashboards, metrics and charts, on the tokens of PHIL UX — `--phil-*` — with a value of their own when PHIL UX
+ * is not loaded. In the `phil.components` layer, so that an application's styles win without a fight over specificity.
+ *
+ * The bars of `render="html"` read their length from `data-share`, in hundredths of the largest value: no inline style,
+ * so a Content Security Policy without 'unsafe-inline' shows them. Their colours follow the Okabe and Ito palette of
+ * the SVG images, by `data-series`.
+ */
+@layer phil.components {
+    .phil-reporting-dashboard {
+        display: flex;
+        flex-direction: column;
+        gap: var(--phil-space-l, 1.5rem);
+    }
+
+    .phil-reporting-dashboard__header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: end;
+        justify-content: space-between;
+        gap: var(--phil-space-m, 1rem);
+    }
+
+    .phil-reporting-dashboard__range {
+        color: var(--phil-color-text-muted, #5b656d);
+    }
+
+    .phil-reporting-dashboard__periods {
+        display: flex;
+        align-items: center;
+        gap: var(--phil-space-s, 0.5rem);
+    }
+
+    .phil-reporting-dashboard__widgets {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+        gap: var(--phil-space-m, 1rem);
+    }
+
+    .phil-reporting-chart {
+        grid-column: 1 / -1;
+        margin: 0;
+    }
+
+    .phil-reporting-metric,
+    .phil-reporting-chart {
+        padding: var(--phil-space-m, 1rem);
+        border: 1px solid var(--phil-color-border, #dde1e4);
+        border-radius: var(--phil-radius-m, 0.5rem);
+        background: var(--phil-color-surface-raised, #fff);
+    }
+
+    .phil-reporting-metric__title,
+    .phil-reporting-chart__title {
+        margin: 0 0 var(--phil-space-s, 0.5rem);
+        font-size: var(--phil-text-s, 0.875rem);
+        font-weight: 600;
+        color: var(--phil-color-text-muted, #5b656d);
+    }
+
+    .phil-reporting-metric__value {
+        margin: 0;
+        font-size: var(--phil-text-2xl, 2rem);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .phil-reporting-metric__change {
+        margin: var(--phil-space-xs, 0.25rem) 0 0;
+        font-size: var(--phil-text-s, 0.875rem);
+    }
+
+    .phil-reporting-metric__change[data-direction="up"] {
+        color: var(--phil-color-success-on-quiet, #1e6b3a);
+    }
+
+    .phil-reporting-metric__change[data-direction="down"] {
+        color: var(--phil-color-danger-on-quiet, #9b1c1c);
+    }
+
+    .phil-reporting-chart__image svg {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
+    .phil-reporting-table,
+    .phil-reporting-bars {
+        width: 100%;
+        border-collapse: collapse;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .phil-reporting-table th,
+    .phil-reporting-table td,
+    .phil-reporting-bars th,
+    .phil-reporting-bars td {
+        padding: var(--phil-space-xs, 0.25rem) var(--phil-space-s, 0.5rem);
+        border-bottom: 1px solid var(--phil-color-border, #dde1e4);
+        text-align: start;
+    }
+
+    .phil-reporting-table td {
+        text-align: end;
+    }
+
+    .phil-reporting-bars td {
+        display: flex;
+        align-items: center;
+        gap: var(--phil-space-s, 0.5rem);
+    }
+
+    .phil-reporting-bars__bar {
+        --phil-reporting-share: 0%;
+        --phil-reporting-colour: #0072b2;
+        display: block;
+        inline-size: calc(var(--phil-reporting-share) * 0.8);
+        block-size: 1em;
+        background: var(--phil-reporting-colour);
+    }
+
+    .phil-reporting-bars__bar[data-negative] {
+        background: repeating-linear-gradient(45deg, var(--phil-reporting-colour) 0 4px, transparent 4px 6px);
+        outline: 1px solid var(--phil-reporting-colour);
+    }
+
+    [data-series="0"] > .phil-reporting-bars__bar {
+        --phil-reporting-colour: #0072b2;
+    }
+
+    [data-series="1"] > .phil-reporting-bars__bar {
+        --phil-reporting-colour: #e69f00;
+    }
+
+    [data-series="2"] > .phil-reporting-bars__bar {
+        --phil-reporting-colour: #009e73;
+    }
+
+    [data-series="3"] > .phil-reporting-bars__bar {
+        --phil-reporting-colour: #cc79a7;
+    }
+
+    [data-series="4"] > .phil-reporting-bars__bar {
+        --phil-reporting-colour: #56b4e9;
+    }
+
+    [data-series="5"] > .phil-reporting-bars__bar {
+        --phil-reporting-colour: #d55e00;
+    }
+
+    [data-series="6"] > .phil-reporting-bars__bar {
+        --phil-reporting-colour: #f0e442;
+    }
+
+    [data-series="7"] > .phil-reporting-bars__bar {
+        --phil-reporting-colour: #000000;
+    }
+
+    .phil-reporting-bars__bar[data-share="1"] {
+        --phil-reporting-share: 1%;
+    }
+
+    .phil-reporting-bars__bar[data-share="2"] {
+        --phil-reporting-share: 2%;
+    }
+
+    .phil-reporting-bars__bar[data-share="3"] {
+        --phil-reporting-share: 3%;
+    }
+
+    .phil-reporting-bars__bar[data-share="4"] {
+        --phil-reporting-share: 4%;
+    }
+
+    .phil-reporting-bars__bar[data-share="5"] {
+        --phil-reporting-share: 5%;
+    }
+
+    .phil-reporting-bars__bar[data-share="6"] {
+        --phil-reporting-share: 6%;
+    }
+
+    .phil-reporting-bars__bar[data-share="7"] {
+        --phil-reporting-share: 7%;
+    }
+
+    .phil-reporting-bars__bar[data-share="8"] {
+        --phil-reporting-share: 8%;
+    }
+
+    .phil-reporting-bars__bar[data-share="9"] {
+        --phil-reporting-share: 9%;
+    }
+
+    .phil-reporting-bars__bar[data-share="10"] {
+        --phil-reporting-share: 10%;
+    }
+
+    .phil-reporting-bars__bar[data-share="11"] {
+        --phil-reporting-share: 11%;
+    }
+
+    .phil-reporting-bars__bar[data-share="12"] {
+        --phil-reporting-share: 12%;
+    }
+
+    .phil-reporting-bars__bar[data-share="13"] {
+        --phil-reporting-share: 13%;
+    }
+
+    .phil-reporting-bars__bar[data-share="14"] {
+        --phil-reporting-share: 14%;
+    }
+
+    .phil-reporting-bars__bar[data-share="15"] {
+        --phil-reporting-share: 15%;
+    }
+
+    .phil-reporting-bars__bar[data-share="16"] {
+        --phil-reporting-share: 16%;
+    }
+
+    .phil-reporting-bars__bar[data-share="17"] {
+        --phil-reporting-share: 17%;
+    }
+
+    .phil-reporting-bars__bar[data-share="18"] {
+        --phil-reporting-share: 18%;
+    }
+
+    .phil-reporting-bars__bar[data-share="19"] {
+        --phil-reporting-share: 19%;
+    }
+
+    .phil-reporting-bars__bar[data-share="20"] {
+        --phil-reporting-share: 20%;
+    }
+
+    .phil-reporting-bars__bar[data-share="21"] {
+        --phil-reporting-share: 21%;
+    }
+
+    .phil-reporting-bars__bar[data-share="22"] {
+        --phil-reporting-share: 22%;
+    }
+
+    .phil-reporting-bars__bar[data-share="23"] {
+        --phil-reporting-share: 23%;
+    }
+
+    .phil-reporting-bars__bar[data-share="24"] {
+        --phil-reporting-share: 24%;
+    }
+
+    .phil-reporting-bars__bar[data-share="25"] {
+        --phil-reporting-share: 25%;
+    }
+
+    .phil-reporting-bars__bar[data-share="26"] {
+        --phil-reporting-share: 26%;
+    }
+
+    .phil-reporting-bars__bar[data-share="27"] {
+        --phil-reporting-share: 27%;
+    }
+
+    .phil-reporting-bars__bar[data-share="28"] {
+        --phil-reporting-share: 28%;
+    }
+
+    .phil-reporting-bars__bar[data-share="29"] {
+        --phil-reporting-share: 29%;
+    }
+
+    .phil-reporting-bars__bar[data-share="30"] {
+        --phil-reporting-share: 30%;
+    }
+
+    .phil-reporting-bars__bar[data-share="31"] {
+        --phil-reporting-share: 31%;
+    }
+
+    .phil-reporting-bars__bar[data-share="32"] {
+        --phil-reporting-share: 32%;
+    }
+
+    .phil-reporting-bars__bar[data-share="33"] {
+        --phil-reporting-share: 33%;
+    }
+
+    .phil-reporting-bars__bar[data-share="34"] {
+        --phil-reporting-share: 34%;
+    }
+
+    .phil-reporting-bars__bar[data-share="35"] {
+        --phil-reporting-share: 35%;
+    }
+
+    .phil-reporting-bars__bar[data-share="36"] {
+        --phil-reporting-share: 36%;
+    }
+
+    .phil-reporting-bars__bar[data-share="37"] {
+        --phil-reporting-share: 37%;
+    }
+
+    .phil-reporting-bars__bar[data-share="38"] {
+        --phil-reporting-share: 38%;
+    }
+
+    .phil-reporting-bars__bar[data-share="39"] {
+        --phil-reporting-share: 39%;
+    }
+
+    .phil-reporting-bars__bar[data-share="40"] {
+        --phil-reporting-share: 40%;
+    }
+
+    .phil-reporting-bars__bar[data-share="41"] {
+        --phil-reporting-share: 41%;
+    }
+
+    .phil-reporting-bars__bar[data-share="42"] {
+        --phil-reporting-share: 42%;
+    }
+
+    .phil-reporting-bars__bar[data-share="43"] {
+        --phil-reporting-share: 43%;
+    }
+
+    .phil-reporting-bars__bar[data-share="44"] {
+        --phil-reporting-share: 44%;
+    }
+
+    .phil-reporting-bars__bar[data-share="45"] {
+        --phil-reporting-share: 45%;
+    }
+
+    .phil-reporting-bars__bar[data-share="46"] {
+        --phil-reporting-share: 46%;
+    }
+
+    .phil-reporting-bars__bar[data-share="47"] {
+        --phil-reporting-share: 47%;
+    }
+
+    .phil-reporting-bars__bar[data-share="48"] {
+        --phil-reporting-share: 48%;
+    }
+
+    .phil-reporting-bars__bar[data-share="49"] {
+        --phil-reporting-share: 49%;
+    }
+
+    .phil-reporting-bars__bar[data-share="50"] {
+        --phil-reporting-share: 50%;
+    }
+
+    .phil-reporting-bars__bar[data-share="51"] {
+        --phil-reporting-share: 51%;
+    }
+
+    .phil-reporting-bars__bar[data-share="52"] {
+        --phil-reporting-share: 52%;
+    }
+
+    .phil-reporting-bars__bar[data-share="53"] {
+        --phil-reporting-share: 53%;
+    }
+
+    .phil-reporting-bars__bar[data-share="54"] {
+        --phil-reporting-share: 54%;
+    }
+
+    .phil-reporting-bars__bar[data-share="55"] {
+        --phil-reporting-share: 55%;
+    }
+
+    .phil-reporting-bars__bar[data-share="56"] {
+        --phil-reporting-share: 56%;
+    }
+
+    .phil-reporting-bars__bar[data-share="57"] {
+        --phil-reporting-share: 57%;
+    }
+
+    .phil-reporting-bars__bar[data-share="58"] {
+        --phil-reporting-share: 58%;
+    }
+
+    .phil-reporting-bars__bar[data-share="59"] {
+        --phil-reporting-share: 59%;
+    }
+
+    .phil-reporting-bars__bar[data-share="60"] {
+        --phil-reporting-share: 60%;
+    }
+
+    .phil-reporting-bars__bar[data-share="61"] {
+        --phil-reporting-share: 61%;
+    }
+
+    .phil-reporting-bars__bar[data-share="62"] {
+        --phil-reporting-share: 62%;
+    }
+
+    .phil-reporting-bars__bar[data-share="63"] {
+        --phil-reporting-share: 63%;
+    }
+
+    .phil-reporting-bars__bar[data-share="64"] {
+        --phil-reporting-share: 64%;
+    }
+
+    .phil-reporting-bars__bar[data-share="65"] {
+        --phil-reporting-share: 65%;
+    }
+
+    .phil-reporting-bars__bar[data-share="66"] {
+        --phil-reporting-share: 66%;
+    }
+
+    .phil-reporting-bars__bar[data-share="67"] {
+        --phil-reporting-share: 67%;
+    }
+
+    .phil-reporting-bars__bar[data-share="68"] {
+        --phil-reporting-share: 68%;
+    }
+
+    .phil-reporting-bars__bar[data-share="69"] {
+        --phil-reporting-share: 69%;
+    }
+
+    .phil-reporting-bars__bar[data-share="70"] {
+        --phil-reporting-share: 70%;
+    }
+
+    .phil-reporting-bars__bar[data-share="71"] {
+        --phil-reporting-share: 71%;
+    }
+
+    .phil-reporting-bars__bar[data-share="72"] {
+        --phil-reporting-share: 72%;
+    }
+
+    .phil-reporting-bars__bar[data-share="73"] {
+        --phil-reporting-share: 73%;
+    }
+
+    .phil-reporting-bars__bar[data-share="74"] {
+        --phil-reporting-share: 74%;
+    }
+
+    .phil-reporting-bars__bar[data-share="75"] {
+        --phil-reporting-share: 75%;
+    }
+
+    .phil-reporting-bars__bar[data-share="76"] {
+        --phil-reporting-share: 76%;
+    }
+
+    .phil-reporting-bars__bar[data-share="77"] {
+        --phil-reporting-share: 77%;
+    }
+
+    .phil-reporting-bars__bar[data-share="78"] {
+        --phil-reporting-share: 78%;
+    }
+
+    .phil-reporting-bars__bar[data-share="79"] {
+        --phil-reporting-share: 79%;
+    }
+
+    .phil-reporting-bars__bar[data-share="80"] {
+        --phil-reporting-share: 80%;
+    }
+
+    .phil-reporting-bars__bar[data-share="81"] {
+        --phil-reporting-share: 81%;
+    }
+
+    .phil-reporting-bars__bar[data-share="82"] {
+        --phil-reporting-share: 82%;
+    }
+
+    .phil-reporting-bars__bar[data-share="83"] {
+        --phil-reporting-share: 83%;
+    }
+
+    .phil-reporting-bars__bar[data-share="84"] {
+        --phil-reporting-share: 84%;
+    }
+
+    .phil-reporting-bars__bar[data-share="85"] {
+        --phil-reporting-share: 85%;
+    }
+
+    .phil-reporting-bars__bar[data-share="86"] {
+        --phil-reporting-share: 86%;
+    }
+
+    .phil-reporting-bars__bar[data-share="87"] {
+        --phil-reporting-share: 87%;
+    }
+
+    .phil-reporting-bars__bar[data-share="88"] {
+        --phil-reporting-share: 88%;
+    }
+
+    .phil-reporting-bars__bar[data-share="89"] {
+        --phil-reporting-share: 89%;
+    }
+
+    .phil-reporting-bars__bar[data-share="90"] {
+        --phil-reporting-share: 90%;
+    }
+
+    .phil-reporting-bars__bar[data-share="91"] {
+        --phil-reporting-share: 91%;
+    }
+
+    .phil-reporting-bars__bar[data-share="92"] {
+        --phil-reporting-share: 92%;
+    }
+
+    .phil-reporting-bars__bar[data-share="93"] {
+        --phil-reporting-share: 93%;
+    }
+
+    .phil-reporting-bars__bar[data-share="94"] {
+        --phil-reporting-share: 94%;
+    }
+
+    .phil-reporting-bars__bar[data-share="95"] {
+        --phil-reporting-share: 95%;
+    }
+
+    .phil-reporting-bars__bar[data-share="96"] {
+        --phil-reporting-share: 96%;
+    }
+
+    .phil-reporting-bars__bar[data-share="97"] {
+        --phil-reporting-share: 97%;
+    }
+
+    .phil-reporting-bars__bar[data-share="98"] {
+        --phil-reporting-share: 98%;
+    }
+
+    .phil-reporting-bars__bar[data-share="99"] {
+        --phil-reporting-share: 99%;
+    }
+
+    .phil-reporting-bars__bar[data-share="100"] {
+        --phil-reporting-share: 100%;
+    }
+}

@@ -1,0 +1,77 @@
+{
+    "name": "phil/block-editor-bundle",
+    "description": "A block editor for Symfony forms, written in Stimulus controllers without a build step: slash menu, drag handles, inline toolbar, clean paste, nested blocks and columns, mentions and page links, image uploads, a reduced mode, reading and writing UJO (Universal JSON Output) documents checked by phil/ujo",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "editorjs",
+        "block-editor",
+        "ujo",
+        "stimulus",
+        "form",
+        "symfony-ux",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "phil/ujo": "^0.1@dev",
+        "phil/ujo-bundle": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/browser-kit": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/stimulus-bundle": "^3.7",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/validator": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "symfony/asset-mapper": "To serve the controller and its stylesheet without a build step",
+        "symfony/routing": "For the image upload and reference search endpoints, and their URLs given to the editor",
+        "symfony/stimulus-bundle": "For the editor controller",
+        "symfony/twig-bundle": "For the form theme"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\BlockEditorBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\BlockEditorBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

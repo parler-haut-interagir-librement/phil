@@ -1,0 +1,52 @@
+{
+    "name": "phil/bounce-parser",
+    "description": "Messages received on a bounce mailbox read and classified, written from scratch: delivery status notifications (RFC 3464, RFC 6533), abuse feedback reports (RFC 5965) behind an authenticator, bounces written as text, automatic replies (RFC 3834), enhanced status codes (RFC 3463), VERP return paths, and ordered rules of the application leading to actions",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "email",
+        "bounce",
+        "dsn",
+        "arf",
+        "feedback-loop",
+        "auto-reply",
+        "verp",
+        "mime"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-ctype": "*",
+        "ext-iconv": "*",
+        "ext-mbstring": "*",
+        "ext-sodium": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\BounceParser\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\BounceParser\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

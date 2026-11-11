@@ -1,0 +1,46 @@
+{
+    "name": "phil/tax",
+    "description": "Multi-rate taxation on a shared base: rates in parts per million, each tax rounded half away from zero on its own line in integer arithmetic, itemised breakdowns that a credit note reverses exactly",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "tax",
+        "vat",
+        "sales-tax",
+        "money",
+        "ddd"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/money": "^0.1@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Tax\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Tax\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

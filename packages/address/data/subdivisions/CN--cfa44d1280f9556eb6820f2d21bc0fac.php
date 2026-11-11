@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Shanting Qu', 'code' => 'Shanting Qu', 'localCode' => null, 'name' => 'Shanting Qu', 'localName' => '山亭区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Shizhong Qu', 'code' => 'Shizhong Qu', 'localCode' => null, 'name' => 'Shizhong Qu', 'localName' => '市中区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => "Tai'erzhuang Qu", 'code' => "Tai'erzhuang Qu", 'localCode' => null, 'name' => "Tai'erzhuang Qu", 'localName' => '台儿庄区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Tengzhou Shi', 'code' => 'Tengzhou Shi', 'localCode' => null, 'name' => 'Tengzhou Shi', 'localName' => '滕州市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xuecheng Qu', 'code' => 'Xuecheng Qu', 'localCode' => null, 'name' => 'Xuecheng Qu', 'localName' => '薛城区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Yicheng Qu', 'code' => 'Yicheng Qu', 'localCode' => null, 'name' => 'Yicheng Qu', 'localName' => '峄城区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

@@ -1,0 +1,68 @@
+{
+    "name": "phil/url-bundle",
+    "description": "phil/url in Symfony: a form field that detects the kind of a web address among accepted enum sets, the constraint UrlOfType, the column type phil_url, and addresses in Twig",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "url",
+        "social-networks",
+        "validation",
+        "enum",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/enums": "^0.3@dev",
+        "phil/url": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/validator": "^8.2"
+    },
+    "require-dev": {
+        "ext-intl": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/dbal": "For the phil_url column type",
+        "twig/twig": "For url_display, url_type and url_type_label"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\UrlBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\UrlBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

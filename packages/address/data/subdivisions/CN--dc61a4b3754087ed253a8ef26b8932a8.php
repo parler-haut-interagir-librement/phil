@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Aihui Qu', 'code' => 'Aihui Qu', 'localCode' => null, 'name' => 'Aihui Qu', 'localName' => '爱辉区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => "Bei'an Shi", 'code' => "Bei'an Shi", 'localCode' => null, 'name' => "Bei'an Shi", 'localName' => '北安市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Nenjiang Xian', 'code' => 'Nenjiang Xian', 'localCode' => null, 'name' => 'Nenjiang Xian', 'localName' => '嫩江县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Sunwu Xian', 'code' => 'Sunwu Xian', 'localCode' => null, 'name' => 'Sunwu Xian', 'localName' => '孙吴县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Wudalianchi Shi', 'code' => 'Wudalianchi Shi', 'localCode' => null, 'name' => 'Wudalianchi Shi', 'localName' => '五大连池市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xunke Xian', 'code' => 'Xunke Xian', 'localCode' => null, 'name' => 'Xunke Xian', 'localName' => '逊克县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

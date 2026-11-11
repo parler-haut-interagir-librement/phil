@@ -1,0 +1,68 @@
+{
+    "name": "phil/markup-bundle",
+    "description": "phil/markup in Symfony: the enabled formats and their levels, Markup with its compiler and purifier to replace by alias, the converter of every format into UJO, smart punctuation through phil/typography, a form field to pick a format, and the markup_html, markup_purify and markup_ujo filters in Twig",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "markup",
+        "markdown",
+        "bbcode",
+        "wiki",
+        "ujo",
+        "twig",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/markup": "^0.1@dev",
+        "phil/ujo": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/translation-contracts": "^3.6"
+    },
+    "require-dev": {
+        "phil/typography": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "phil/typography": "For smart punctuation in every format",
+        "symfony/form": "For the MarkupFormatType form field",
+        "twig/twig": "For the markup_html, markup_purify and markup_ujo filters"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\MarkupBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\MarkupBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

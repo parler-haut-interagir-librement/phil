@@ -1,0 +1,24 @@
+{
+    "name": "@phil/block-editor-bundle",
+    "description": "The block editor's Stimulus controller: UJO blocks edited in place, with a slash menu, drag handles, an inline toolbar, clean paste, nested blocks and columns, mentions, page links and image uploads",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/editor_controller.js",
+    "symfony": {
+        "controllers": {
+            "editor": {
+                "main": "src/editor_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

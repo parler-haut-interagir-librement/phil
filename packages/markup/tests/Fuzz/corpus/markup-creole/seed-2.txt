@@ -1,0 +1,4 @@
+|= a |= b |
+| 1 | 2 |
+----
+line\\break ~escape <<note>>x<</note>>

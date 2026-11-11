@@ -1,0 +1,27 @@
+{
+    "name": "@phil/content-warnings-bundle",
+    "description": "The Stimulus controller and the stylesheet of phil/content-warnings-bundle, which reveal content folded behind its warnings",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/reveal_controller.js",
+    "symfony": {
+        "controllers": {
+            "reveal": {
+                "main": "src/reveal_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true,
+                "autoimport": {
+                    "@phil/content-warnings-bundle/styles/content-warnings.css": true
+                }
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

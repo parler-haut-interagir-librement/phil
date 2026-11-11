@@ -1,0 +1,48 @@
+{#
+    A piece of content behind its warnings, as the current member's preferences decide:
+
+        {% embed '@PhilContentWarnings/fold.html.twig' with {warnings: book.warnings} %}
+            {% block content %}…{% endblock %}
+        {% endembed %}
+
+    Shown, the content follows its warnings; folded, it waits in a details element the reader opens, driven by the
+    Stimulus controller phil--content-warnings-bundle--reveal; hidden, it is not rendered, and a short notice names
+    the themes that hid it unless `hidden_notice` is false. `id` names the element of the content; `notice` false
+    leaves out the warnings of content shown.
+#}
+{%- set decision = content_warnings_decision(warnings ?? null) -%}
+{%- set domain = 'phil_content_warnings' -%}
+{%- set labels = decision.warnings|map(warning => content_warning_label(warning.theme) ~ (warning.severity ? ' (' ~ ('severity.' ~ warning.severity.value)|trans({}, domain) ~ ')' : '')) -%}
+{%- set notes = decision.warnings|filter(warning => warning.note) -%}
+{%- if decision.hidden -%}
+    {%- if hidden_notice ?? true -%}
+        <p class="phil-content-warning phil-content-warning--hidden" role="note">
+            {{- 'notice.hidden'|trans({'%themes%': decision.because|map(warning => content_warning_label(warning.theme))|join(', ')}, domain) -}}
+        </p>
+    {%- endif -%}
+{%- elseif decision.folded or (decision.hasWarnings and (notice ?? true)) -%}
+    <div class="phil-content-warning phil-content-warning--{{ decision.folded ? 'folded' : 'shown' }}"{% if decision.folded %} data-controller="phil--content-warnings-bundle--reveal"{% endif %}>
+        <p class="phil-content-warning__notice" role="note"><strong>{{ 'notice.title'|trans({}, domain) }}</strong> {{ labels|join(', ') }}</p>
+        {%- if notes is not empty %}
+            <ul class="phil-content-warning__notes">
+                {%- for warning in notes %}
+                    <li>{{ content_warning_label(warning.theme) }}{{ 'notice.separator'|trans({}, domain) }}{{ warning.note }}</li>
+                {%- endfor %}
+            </ul>
+        {%- endif %}
+        {%- if decision.folded %}
+            <details data-phil--content-warnings-bundle--reveal-target="details" data-action="toggle->phil--content-warnings-bundle--reveal#toggle">
+                <summary><span class="phil-content-warning__reveal">{{ 'notice.reveal'|trans({}, domain) }}</span><span class="phil-content-warning__conceal">{{ 'notice.conceal'|trans({}, domain) }}</span></summary>
+                <div class="phil-content-warning__content"{% if id ?? null %} id="{{ id }}"{% endif %} tabindex="-1" data-phil--content-warnings-bundle--reveal-target="content">
+                    {%- block content %}{% endblock -%}
+                </div>
+            </details>
+        {%- else %}
+            <div class="phil-content-warning__content"{% if id ?? null %} id="{{ id }}"{% endif %}>
+                {{- block('content') -}}
+            </div>
+        {%- endif %}
+    </div>
+{%- else -%}
+    {{- block('content') -}}
+{%- endif -%}

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{% block title %}{% endblock %}</title>
+    <style>
+        .phil-monitoring { font-family: system-ui, sans-serif; max-width: 64rem; margin: 0 auto; padding: 1rem; }
+        .phil-monitoring table { border-collapse: collapse; width: 100%; }
+        .phil-monitoring th, .phil-monitoring td { text-align: left; padding: .25rem .5rem; border-bottom: 1px solid #ccc; }
+        .phil-monitoring form { display: inline; }
+    </style>
+</head>
+<body>
+    <main class="phil-monitoring">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

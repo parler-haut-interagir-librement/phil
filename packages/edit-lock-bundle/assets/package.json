@@ -1,0 +1,24 @@
+{
+    "name": "@phil/edit-lock-bundle",
+    "description": "The collaboration controller: leases on the blocks of a block editor, presence of the other writers, and their block saves applied as they arrive through Mercure",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/collaboration_controller.js",
+    "symfony": {
+        "controllers": {
+            "collaboration": {
+                "main": "src/collaboration_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

@@ -1,0 +1,64 @@
+{
+    "name": "phil/instant-messenger-bundle",
+    "description": "phil/instant-messenger in Symfony: a form field that takes a messaging handle with its service among accepted enum sets, the constraint HandleOfType, and handles in Twig",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "instant-messaging",
+        "whatsapp",
+        "telegram",
+        "signal",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/enums": "^0.3@dev",
+        "phil/instant-messenger": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/validator": "^8.2"
+    },
+    "require-dev": {
+        "ext-intl": "*",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "twig/twig": "For messenger_display, messenger_link and messenger_label"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\InstantMessengerBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\InstantMessengerBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

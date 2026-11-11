@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Dantu Qu', 'code' => 'Dantu Qu', 'localCode' => null, 'name' => 'Dantu Qu', 'localName' => '丹徒区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Danyang Shi', 'code' => 'Danyang Shi', 'localCode' => null, 'name' => 'Danyang Shi', 'localName' => '丹阳市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Jingkou Qu', 'code' => 'Jingkou Qu', 'localCode' => null, 'name' => 'Jingkou Qu', 'localName' => '京口区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Jurong Shi', 'code' => 'Jurong Shi', 'localCode' => null, 'name' => 'Jurong Shi', 'localName' => '句容市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Runzhou Qu', 'code' => 'Runzhou Qu', 'localCode' => null, 'name' => 'Runzhou Qu', 'localName' => '润州区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Yangzhong Shi', 'code' => 'Yangzhong Shi', 'localCode' => null, 'name' => 'Yangzhong Shi', 'localName' => '扬中市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

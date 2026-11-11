@@ -1,0 +1,23 @@
+{#
+    The page visitors get while the site is in maintenance, with the 503 status and Retry-After. It stands alone: it
+    extends no layout of the application, which may need what the maintenance took away. Variables: maintenance, the
+    MaintenanceState.
+#}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>Under maintenance</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 4rem auto; padding: 0 1rem; text-align: center; }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Under maintenance</h1>
+        <p>The site is being improved. Please come back in {{ (maintenance.retryAfterSeconds / 60)|round(0, 'ceil') }} minutes.</p>
+    </main>
+</body>
+</html>

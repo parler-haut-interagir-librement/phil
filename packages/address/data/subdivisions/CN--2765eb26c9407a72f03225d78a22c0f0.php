@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Cheng Qu', 'code' => 'Cheng Qu', 'localCode' => null, 'name' => 'Cheng Qu', 'localName' => '城区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Gaoping Shi', 'code' => 'Gaoping Shi', 'localCode' => null, 'name' => 'Gaoping Shi', 'localName' => '高平市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Lingchuan Xian', 'code' => 'Lingchuan Xian', 'localCode' => null, 'name' => 'Lingchuan Xian', 'localName' => '陵川县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Qinshui Xian', 'code' => 'Qinshui Xian', 'localCode' => null, 'name' => 'Qinshui Xian', 'localName' => '沁水县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Yangcheng Xian', 'code' => 'Yangcheng Xian', 'localCode' => null, 'name' => 'Yangcheng Xian', 'localName' => '阳城县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Zezhou Xian', 'code' => 'Zezhou Xian', 'localCode' => null, 'name' => 'Zezhou Xian', 'localName' => '泽州县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

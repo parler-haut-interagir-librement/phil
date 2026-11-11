@@ -1,0 +1,1 @@
+{"@context":["https://schema.org",{"@language":"fr"}],"@graph":[{"@type":"Event","name":{"@value":"Tournoi","@language":"fr"},"startDate":"2027-04-10","location":{"@id":"urn:place"}},{"@type":"Place","@id":"urn:place","name":"Salle"}]}

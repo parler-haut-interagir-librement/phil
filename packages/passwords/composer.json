@@ -1,0 +1,57 @@
+{
+    "name": "phil/passwords",
+    "description": "Passwords written from scratch in PHP: a strength estimator that finds the patterns people use — common passwords, words, names, keyboard patterns, sequences, repeats, dates and substitutions — and scores the guesses they cost from 0 to 4 with feedback in English and French, breach checks by k-anonymity against the Pwned Passwords range API behind a port, password and passphrase generation, and Symfony validator constraints",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "password",
+        "password-strength",
+        "zxcvbn",
+        "pwned-passwords",
+        "k-anonymity",
+        "passphrase",
+        "password-generator",
+        "validator"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-ctype": "*",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/validator": "^8.2"
+    },
+    "suggest": {
+        "symfony/http-client": "For PwnedPasswordsSource, the breach source of the Pwned Passwords range API",
+        "symfony/validator": "For the MinimumStrength and NotCompromised constraints"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Passwords\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Passwords\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

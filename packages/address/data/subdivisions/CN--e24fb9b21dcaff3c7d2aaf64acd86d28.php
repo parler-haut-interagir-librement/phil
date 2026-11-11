@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Gongzhuling Shi', 'code' => 'Gongzhuling Shi', 'localCode' => null, 'name' => 'Gongzhuling Shi', 'localName' => '公主岭市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Lishu Xian', 'code' => 'Lishu Xian', 'localCode' => null, 'name' => 'Lishu Xian', 'localName' => '梨树县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Shuangliao Shi', 'code' => 'Shuangliao Shi', 'localCode' => null, 'name' => 'Shuangliao Shi', 'localName' => '双辽市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Tiedong Qu', 'code' => 'Tiedong Qu', 'localCode' => null, 'name' => 'Tiedong Qu', 'localName' => '铁东区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Tiexi Qu', 'code' => 'Tiexi Qu', 'localCode' => null, 'name' => 'Tiexi Qu', 'localName' => '铁西区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Yitong Xian', 'code' => 'Yitong Xian', 'localCode' => '伊通满族自治县', 'name' => 'Yitong Xian', 'localName' => '伊通县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

@@ -1,0 +1,15 @@
+{#
+    The form and what happened to the last message, for a page of the application:
+
+        {% include '@PhilContactForm/_form.html.twig' %}
+#}
+{%- if sent %}
+    <p class="contact-form__sent" role="status">{{ 'contact_form.sent'|trans({}, 'phil_contact_form') }}</p>
+{%- endif %}
+{%- if failed %}
+    <p class="contact-form__failed" role="alert">{{ 'contact_form.failed'|trans({}, 'phil_contact_form') }}</p>
+{%- endif %}
+{{ form_start(form, {attr: {class: 'contact-form', novalidate: 'novalidate'}}) }}
+    {{ form_widget(form) }}
+    <button type="submit">{{ 'contact_form.send'|trans({}, 'phil_contact_form') }}</button>
+{{ form_end(form) }}

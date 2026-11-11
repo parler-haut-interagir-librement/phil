@@ -1,0 +1,45 @@
+{
+    "name": "phil/opening-hours",
+    "description": "Opening hours for PHP: weekly hours with ranges past midnight, special days and periods, whether a place is open and when it next opens in its time zone, a text form people type, and schema.org OpeningHoursSpecification",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "opening-hours",
+        "business-hours",
+        "schema.org",
+        "value-object"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\OpeningHours\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\OpeningHours\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

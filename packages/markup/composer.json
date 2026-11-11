@@ -1,0 +1,67 @@
+{
+    "name": "phil/markup",
+    "description": "Texts in Markdown, BBCode, MediaWiki, DokuWiki, Creole, UJO, HTML or plain text, read by its own analyser into UJO documents, compiled to HTML and purified at a level: basic, forum or all, with the list of what each reading did not keep; add-ons bring dialects and formats",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "markup",
+        "markdown",
+        "ujo",
+        "bbcode",
+        "mediawiki",
+        "dokuwiki",
+        "creole",
+        "html",
+        "sanitizer"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-ctype": "*",
+        "ext-dom": "*",
+        "ext-filter": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "phil/svg-sanitizer": "^0.1@dev",
+        "phil/ujo": "^0.1@dev",
+        "symfony/html-sanitizer": "^8.2",
+        "symfony/yaml": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phpunit/phpunit": "^13.4"
+    },
+    "conflict": {
+        "doctrine/dbal": "<4.5",
+        "doctrine/orm": "<3.7"
+    },
+    "suggest": {
+        "doctrine/orm": "To store a MarkedUpText as an embeddable of an entity: body_source, body_format and body_html"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Markup\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Markup\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

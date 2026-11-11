@@ -1,0 +1,24 @@
+{
+    "name": "@phil/address-bundle",
+    "description": "The Stimulus controller of phil/address-bundle, which makes an address form follow the country chosen",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/address_controller.js",
+    "symfony": {
+        "controllers": {
+            "address": {
+                "main": "src/address_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

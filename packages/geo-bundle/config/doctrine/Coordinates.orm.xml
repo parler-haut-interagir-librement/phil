@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    `Phil\Geo\Coordinates` as an embeddable: two columns of decimal degrees, so that a query can narrow places to a
+    bounding box on an index. An embedded `position` maps to `position_latitude` and `position_longitude`.
+-->
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <embeddable name="Phil\Geo\Coordinates">
+        <field name="latitude" type="float" column="latitude"/>
+        <field name="longitude" type="float" column="longitude"/>
+    </embeddable>
+</doctrine-mapping>

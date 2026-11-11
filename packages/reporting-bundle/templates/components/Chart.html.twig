@@ -1,0 +1,40 @@
+{# The series as an SVG image with its table, as bars of HTML and CSS, or as a table: no script draws anything. #}
+{% set rendering = computed.rendering.value %}
+<figure{{ attributes.defaults({class: 'phil-reporting-chart phil-reporting-chart--' ~ rendering}) }}>
+    <figcaption class="phil-reporting-chart__title">{{ computed.heading }}</figcaption>
+    {% if rendering == 'svg' %}
+        <div class="phil-reporting-chart__image">{{ computed.svg|raw }}</div>
+        <details class="phil-reporting-chart__values">
+            <summary>{{ 'chart.values'|trans({}, 'phil_reporting') }}</summary>
+            {{ include('@PhilReporting/components/_table.html.twig', {set: computed.set, caption: computed.heading}) }}
+        </details>
+    {% elseif rendering == 'html' %}
+        {% set set = computed.set %}
+        <table class="phil-reporting-bars">
+            <caption class="isVisuallyHidden">{{ computed.heading }}</caption>
+            <thead>
+                <tr>
+                    <td></td>
+                    {% for series in set.series %}
+                        <th scope="col">{{ series.label }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in computed.bars %}
+                    <tr>
+                        <th scope="row">{{ row.label }}</th>
+                        {% for bar in row.bars %}
+                            <td data-series="{{ loop.index0 % 8 }}">
+                                <span class="phil-reporting-bars__bar" data-share="{{ bar.share }}"{% if bar.negative %} data-negative{% endif %}></span>
+                                <span class="phil-reporting-bars__value">{{ this.number(bar.value) }}</span>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        {{ include('@PhilReporting/components/_table.html.twig', {set: computed.set, caption: computed.heading}) }}
+    {% endif %}
+</figure>

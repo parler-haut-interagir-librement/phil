@@ -1609,7 +1609,7 @@
                         "$ref": "#/$defs/nodes/web_link"
                     },
                     "lock": {
-                        "$ref": "#/$defs/types/variable"
+                        "$ref": "#/$defs/nodes/lock"
                     },
                     "semaphore": {
                         "$ref": "#/$defs/types/variable"
@@ -1618,16 +1618,16 @@
                         "$ref": "#/$defs/nodes/messenger"
                     },
                     "scheduler": {
-                        "$ref": "#/$defs/types/variable"
+                        "$ref": "#/$defs/nodes/scheduler"
                     },
                     "http_client": {
                         "$ref": "#/$defs/nodes/http_client"
                     },
                     "mailer": {
-                        "$ref": "#/$defs/types/variable"
+                        "$ref": "#/$defs/nodes/mailer"
                     },
                     "notifier": {
-                        "$ref": "#/$defs/types/variable"
+                        "$ref": "#/$defs/nodes/notifier"
                     },
                     "rate_limiter": {
                         "$ref": "#/$defs/nodes/rate_limiter"
@@ -1636,7 +1636,7 @@
                         "$ref": "#/$defs/nodes/uid"
                     },
                     "html_sanitizer": {
-                        "$ref": "#/$defs/types/variable"
+                        "$ref": "#/$defs/nodes/html_sanitizer"
                     },
                     "webhook": {
                         "$ref": "#/$defs/types/variable"
@@ -1963,6 +1963,458 @@
                     }
                 },
                 "additionalProperties": false
+            },
+            "html_sanitizer": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "sanitizers": {
+                                "$ref": "#/$defs/types/object_null",
+                                "additionalProperties": {
+                                    "$ref": "#/$defs/types/object_null",
+                                    "properties": {
+                                        "default_action": {
+                                            "anyOf": [
+                                                {
+                                                    "enum": [
+                                                        "drop",
+                                                        "block",
+                                                        "allow"
+                                                    ]
+                                                },
+                                                {
+                                                    "$ref": "#/$defs/types/param"
+                                                }
+                                            ],
+                                            "description": "Defines how the sanitizer must behave by default."
+                                        },
+                                        "allow_safe_elements": {
+                                            "$ref": "#/$defs/types/boolean",
+                                            "default": false,
+                                            "description": "Allows \"safe\" elements and attributes."
+                                        },
+                                        "allow_static_elements": {
+                                            "$ref": "#/$defs/types/boolean",
+                                            "default": false,
+                                            "description": "Allows all static elements and attributes from the W3C Sanitizer API standard."
+                                        },
+                                        "allow_elements": {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "additionalProperties": {
+                                                "$ref": "#/$defs/types/variable"
+                                            },
+                                            "description": "Configures the elements that the sanitizer should retain from the input. The element name is the key, the value is either a list of allowed attributes for this element or \"*\" to allow the default set of attributes (https://wicg.github.io/sanitizer-api/#default-configuration).",
+                                            "examples": [
+                                                {
+                                                    "i": "*",
+                                                    "a": [
+                                                        "title"
+                                                    ],
+                                                    "span": "class"
+                                                }
+                                            ]
+                                        },
+                                        "block_elements": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/array_null",
+                                                    "items": {
+                                                        "$ref": "#/$defs/types/string_null"
+                                                    }
+                                                },
+                                                {
+                                                    "type": [
+                                                        "string"
+                                                    ]
+                                                }
+                                            ],
+                                            "description": "Configures elements as blocked. Blocked elements are elements the sanitizer should remove from the input, but retain their children."
+                                        },
+                                        "drop_elements": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/array_null",
+                                                    "items": {
+                                                        "$ref": "#/$defs/types/string_null"
+                                                    }
+                                                },
+                                                {
+                                                    "type": [
+                                                        "string"
+                                                    ]
+                                                }
+                                            ],
+                                            "description": "Configures elements as dropped. Dropped elements are elements the sanitizer should remove from the input, including their children."
+                                        },
+                                        "allow_attributes": {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "additionalProperties": {
+                                                "$ref": "#/$defs/types/variable"
+                                            },
+                                            "description": "Configures attributes as allowed. Allowed attributes are attributes the sanitizer should retain from the input."
+                                        },
+                                        "drop_attributes": {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "additionalProperties": {
+                                                "$ref": "#/$defs/types/variable"
+                                            },
+                                            "description": "Configures attributes as dropped. Dropped attributes are attributes the sanitizer should remove from the input."
+                                        },
+                                        "force_attributes": {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "additionalProperties": {
+                                                "$ref": "#/$defs/types/object_null",
+                                                "additionalProperties": {
+                                                    "$ref": "#/$defs/types/string_null"
+                                                }
+                                            },
+                                            "description": "Forcefully set the values of certain attributes on certain elements."
+                                        },
+                                        "force_https_urls": {
+                                            "$ref": "#/$defs/types/boolean",
+                                            "default": false,
+                                            "description": "Transforms URLs using the HTTP scheme to use the HTTPS scheme instead."
+                                        },
+                                        "allowed_link_schemes": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/array_null",
+                                                    "items": {
+                                                        "$ref": "#/$defs/types/string_null"
+                                                    }
+                                                },
+                                                {
+                                                    "type": [
+                                                        "string"
+                                                    ]
+                                                }
+                                            ],
+                                            "description": "Allows only a given list of schemes to be used in links href attributes."
+                                        },
+                                        "allowed_link_hosts": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/array_null",
+                                                    "items": {
+                                                        "$ref": "#/$defs/types/string_null"
+                                                    }
+                                                },
+                                                {
+                                                    "type": [
+                                                        "string"
+                                                    ]
+                                                }
+                                            ],
+                                            "default": null,
+                                            "description": "Allows only a given list of hosts to be used in links href attributes."
+                                        },
+                                        "allow_relative_links": {
+                                            "$ref": "#/$defs/types/boolean",
+                                            "default": false,
+                                            "description": "Allows relative URLs to be used in links href attributes."
+                                        },
+                                        "allowed_media_schemes": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/array_null",
+                                                    "items": {
+                                                        "$ref": "#/$defs/types/string_null"
+                                                    }
+                                                },
+                                                {
+                                                    "type": [
+                                                        "string"
+                                                    ]
+                                                }
+                                            ],
+                                            "description": "Allows only a given list of schemes to be used in media source attributes (img, audio, video, ...)."
+                                        },
+                                        "allowed_media_hosts": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/array_null",
+                                                    "items": {
+                                                        "$ref": "#/$defs/types/string_null"
+                                                    }
+                                                },
+                                                {
+                                                    "type": [
+                                                        "string"
+                                                    ]
+                                                }
+                                            ],
+                                            "default": null,
+                                            "description": "Allows only a given list of hosts to be used in media source attributes (img, audio, video, ...)."
+                                        },
+                                        "allow_relative_medias": {
+                                            "$ref": "#/$defs/types/boolean",
+                                            "default": false,
+                                            "description": "Allows relative URLs to be used in media source attributes (img, audio, video, ...)."
+                                        },
+                                        "with_attribute_sanitizers": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/array_null",
+                                                    "items": {
+                                                        "$ref": "#/$defs/types/string_null"
+                                                    }
+                                                },
+                                                {
+                                                    "type": [
+                                                        "string"
+                                                    ]
+                                                }
+                                            ],
+                                            "description": "Registers custom attribute sanitizers."
+                                        },
+                                        "without_attribute_sanitizers": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/array_null",
+                                                    "items": {
+                                                        "$ref": "#/$defs/types/string_null"
+                                                    }
+                                                },
+                                                {
+                                                    "type": [
+                                                        "string"
+                                                    ]
+                                                }
+                                            ],
+                                            "description": "Unregisters custom attribute sanitizers."
+                                        },
+                                        "max_input_length": {
+                                            "$ref": "#/$defs/types/integer",
+                                            "default": 0,
+                                            "description": "The maximum length allowed for the sanitized input."
+                                        }
+                                    },
+                                    "patternProperties": {
+                                        "^allow_element$": {
+                                            "$ref": "#/$defs/types/variable"
+                                        },
+                                        "^block_element$": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/string_null"
+                                                },
+                                                {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/$defs/types/array_null",
+                                                            "items": {
+                                                                "$ref": "#/$defs/types/string_null"
+                                                            }
+                                                        },
+                                                        {
+                                                            "type": [
+                                                                "string"
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "description": "Configures elements as blocked. Blocked elements are elements the sanitizer should remove from the input, but retain their children."
+                                                }
+                                            ]
+                                        },
+                                        "^drop_element$": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/string_null"
+                                                },
+                                                {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/$defs/types/array_null",
+                                                            "items": {
+                                                                "$ref": "#/$defs/types/string_null"
+                                                            }
+                                                        },
+                                                        {
+                                                            "type": [
+                                                                "string"
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "description": "Configures elements as dropped. Dropped elements are elements the sanitizer should remove from the input, including their children."
+                                                }
+                                            ]
+                                        },
+                                        "^allow_attribute$": {
+                                            "$ref": "#/$defs/types/variable"
+                                        },
+                                        "^drop_attribute$": {
+                                            "$ref": "#/$defs/types/variable"
+                                        },
+                                        "^force_attribute$": {
+                                            "$ref": "#/$defs/types/variable"
+                                        },
+                                        "^allowed_link_scheme$": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/string_null"
+                                                },
+                                                {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/$defs/types/array_null",
+                                                            "items": {
+                                                                "$ref": "#/$defs/types/string_null"
+                                                            }
+                                                        },
+                                                        {
+                                                            "type": [
+                                                                "string"
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "description": "Allows only a given list of schemes to be used in links href attributes."
+                                                }
+                                            ]
+                                        },
+                                        "^allowed_link_host$": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/string_null"
+                                                },
+                                                {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/$defs/types/array_null",
+                                                            "items": {
+                                                                "$ref": "#/$defs/types/string_null"
+                                                            }
+                                                        },
+                                                        {
+                                                            "type": [
+                                                                "string"
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "default": null,
+                                                    "description": "Allows only a given list of hosts to be used in links href attributes."
+                                                }
+                                            ]
+                                        },
+                                        "^allowed_media_scheme$": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/string_null"
+                                                },
+                                                {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/$defs/types/array_null",
+                                                            "items": {
+                                                                "$ref": "#/$defs/types/string_null"
+                                                            }
+                                                        },
+                                                        {
+                                                            "type": [
+                                                                "string"
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "description": "Allows only a given list of schemes to be used in media source attributes (img, audio, video, ...)."
+                                                }
+                                            ]
+                                        },
+                                        "^allowed_media_host$": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/string_null"
+                                                },
+                                                {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/$defs/types/array_null",
+                                                            "items": {
+                                                                "$ref": "#/$defs/types/string_null"
+                                                            }
+                                                        },
+                                                        {
+                                                            "type": [
+                                                                "string"
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "default": null,
+                                                    "description": "Allows only a given list of hosts to be used in media source attributes (img, audio, video, ...)."
+                                                }
+                                            ]
+                                        },
+                                        "^with_attribute_sanitizer$": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/string_null"
+                                                },
+                                                {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/$defs/types/array_null",
+                                                            "items": {
+                                                                "$ref": "#/$defs/types/string_null"
+                                                            }
+                                                        },
+                                                        {
+                                                            "type": [
+                                                                "string"
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "description": "Registers custom attribute sanitizers."
+                                                }
+                                            ]
+                                        },
+                                        "^without_attribute_sanitizer$": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/string_null"
+                                                },
+                                                {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/$defs/types/array_null",
+                                                            "items": {
+                                                                "$ref": "#/$defs/types/string_null"
+                                                            }
+                                                        },
+                                                        {
+                                                            "type": [
+                                                                "string"
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "description": "Unregisters custom attribute sanitizers."
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            }
+                        },
+                        "patternProperties": {
+                            "^sanitizer$": {
+                                "$ref": "#/$defs/types/variable"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": [
+                            "boolean"
+                        ]
+                    }
+                ],
+                "default": {
+                    "enabled": true,
+                    "sanitizers": []
+                }
             },
             "http_client": {
                 "anyOf": [
@@ -2761,6 +3213,688 @@
                     "scoped_clients": []
                 }
             },
+            "lock": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "resources": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "additionalProperties": {
+                                            "$ref": "#/$defs/types/variable",
+                                            "description": "Each store is a DSN, a store keyword, the id of a service holding a connection, or an array with a \"service_id\" key and an \"advisory\" key."
+                                        }
+                                    },
+                                    {
+                                        "type": [
+                                            "string"
+                                        ]
+                                    }
+                                ],
+                                "description": "Defaults to a \"default\" resource using the semaphore store when it is supported, the flock store otherwise."
+                            }
+                        },
+                        "patternProperties": {
+                            "^resource$": {
+                                "$ref": "#/$defs/types/variable"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "additionalProperties": {
+                            "$ref": "#/$defs/types/variable",
+                            "description": "Each store is a DSN, a store keyword, the id of a service holding a connection, or an array with a \"service_id\" key and an \"advisory\" key."
+                        },
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            }
+                        },
+                        "propertyNames": {
+                            "not": {
+                                "enum": [
+                                    "resources",
+                                    "resource"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "type": [
+                            "string",
+                            "boolean"
+                        ]
+                    }
+                ],
+                "default": {
+                    "enabled": true,
+                    "resources": []
+                }
+            },
+            "mailer": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "message_bus": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": null,
+                                "description": "The message bus to use. Defaults to the default bus if the Messenger component is installed."
+                            },
+                            "dsn": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": null
+                            },
+                            "transports": {
+                                "$ref": "#/$defs/types/object_null",
+                                "additionalProperties": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "properties": {
+                                                "dsn": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "rate_limiter": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": null,
+                                                    "description": "Rate limiter name used to limit the number of messages sent through this transport; when the limit is exceeded, sending fails with a RateLimitExceededException."
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        {
+                                            "type": [
+                                                "string"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            },
+                            "envelope": {
+                                "$ref": "#/$defs/types/object_null",
+                                "properties": {
+                                    "sender": {
+                                        "$ref": "#/$defs/types/scalar"
+                                    },
+                                    "recipients": {
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/$defs/types/array_null",
+                                                "items": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                }
+                                            },
+                                            {
+                                                "type": [
+                                                    "string"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "allowed_recipients": {
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/$defs/types/array_null",
+                                                "items": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                }
+                                            },
+                                            {
+                                                "type": [
+                                                    "string"
+                                                ]
+                                            }
+                                        ],
+                                        "description": "A list of regular expressions that allow recipients when \"recipients\" option is defined.",
+                                        "examples": [
+                                            [
+                                                ".*@example\\.com"
+                                            ]
+                                        ]
+                                    }
+                                },
+                                "patternProperties": {
+                                    "^recipient$": {
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/$defs/types/scalar"
+                                            },
+                                            {
+                                                "anyOf": [
+                                                    {
+                                                        "$ref": "#/$defs/types/array_null",
+                                                        "items": {
+                                                            "$ref": "#/$defs/types/scalar"
+                                                        }
+                                                    },
+                                                    {
+                                                        "type": [
+                                                            "string"
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "^allowed_recipient$": {
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/$defs/types/scalar"
+                                            },
+                                            {
+                                                "anyOf": [
+                                                    {
+                                                        "$ref": "#/$defs/types/array_null",
+                                                        "items": {
+                                                            "$ref": "#/$defs/types/scalar"
+                                                        }
+                                                    },
+                                                    {
+                                                        "type": [
+                                                            "string"
+                                                        ]
+                                                    }
+                                                ],
+                                                "description": "A list of regular expressions that allow recipients when \"recipients\" option is defined.",
+                                                "examples": [
+                                                    [
+                                                        ".*@example\\.com"
+                                                    ]
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "description": "Mailer Envelope configuration"
+                            },
+                            "headers": {
+                                "$ref": "#/$defs/types/object_null",
+                                "additionalProperties": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "properties": {
+                                                "value": {
+                                                    "$ref": "#/$defs/types/variable"
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        {
+                                            "type": [
+                                                "string"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            },
+                            "tracking": {
+                                "$ref": "#/$defs/types/object_null",
+                                "properties": {
+                                    "opens": {
+                                        "anyOf": [
+                                            {
+                                                "enum": [
+                                                    true,
+                                                    false,
+                                                    null
+                                                ]
+                                            },
+                                            {
+                                                "$ref": "#/$defs/types/param"
+                                            }
+                                        ],
+                                        "default": null
+                                    },
+                                    "clicks": {
+                                        "anyOf": [
+                                            {
+                                                "enum": [
+                                                    true,
+                                                    false,
+                                                    null
+                                                ]
+                                            },
+                                            {
+                                                "$ref": "#/$defs/types/param"
+                                            }
+                                        ],
+                                        "default": null
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "default": {
+                                    "opens": null,
+                                    "clicks": null
+                                },
+                                "description": "Default open/click tracking for every message that does not carry an explicit \"X-Track\" header; null keeps each provider's default. An \"X-Track\" entry in the \"headers\" option wins over this one."
+                            },
+                            "dkim_signer": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "properties": {
+                                            "enabled": {
+                                                "$ref": "#/$defs/types/boolean",
+                                                "default": false
+                                            },
+                                            "key": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": "",
+                                                "description": "Key content, or path to key (in PEM format with the `file://` prefix)"
+                                            },
+                                            "domain": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": ""
+                                            },
+                                            "select": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": ""
+                                            },
+                                            "passphrase": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": "",
+                                                "description": "The private key passphrase"
+                                            },
+                                            "options": {
+                                                "$ref": "#/$defs/types/object_null",
+                                                "additionalProperties": {
+                                                    "$ref": "#/$defs/types/variable"
+                                                }
+                                            }
+                                        },
+                                        "patternProperties": {
+                                            "^option$": {
+                                                "$ref": "#/$defs/types/variable"
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    {
+                                        "type": [
+                                            "boolean"
+                                        ]
+                                    }
+                                ],
+                                "default": {
+                                    "enabled": false,
+                                    "key": "",
+                                    "domain": "",
+                                    "select": "",
+                                    "passphrase": "",
+                                    "options": []
+                                },
+                                "description": "DKIM signer configuration"
+                            },
+                            "smime_signer": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "properties": {
+                                            "enabled": {
+                                                "$ref": "#/$defs/types/boolean",
+                                                "default": false
+                                            },
+                                            "key": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": "",
+                                                "description": "Path to key (in PEM format)"
+                                            },
+                                            "certificate": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": "",
+                                                "description": "Path to certificate (in PEM format without the `file://` prefix)"
+                                            },
+                                            "passphrase": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": null,
+                                                "description": "The private key passphrase"
+                                            },
+                                            "extra_certificates": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": null
+                                            },
+                                            "sign_options": {
+                                                "$ref": "#/$defs/types/integer_null",
+                                                "default": null
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    {
+                                        "type": [
+                                            "boolean"
+                                        ]
+                                    }
+                                ],
+                                "default": {
+                                    "enabled": false,
+                                    "key": "",
+                                    "certificate": "",
+                                    "passphrase": null,
+                                    "extra_certificates": null,
+                                    "sign_options": null
+                                },
+                                "description": "S/MIME signer configuration"
+                            },
+                            "smime_encrypter": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "properties": {
+                                            "enabled": {
+                                                "$ref": "#/$defs/types/boolean",
+                                                "default": false
+                                            },
+                                            "repository": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": "",
+                                                "description": "S/MIME certificate repository service. This service shall implement the `Symfony\\Component\\Mailer\\EventListener\\SmimeCertificateRepositoryInterface`."
+                                            },
+                                            "certificates": {
+                                                "$ref": "#/$defs/types/object_null",
+                                                "additionalProperties": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "description": "Recipient S/MIME certificates, as a map of email address to certificate file path. Cannot be used together with \"repository\"."
+                                            },
+                                            "on_missing_certificate": {
+                                                "anyOf": [
+                                                    {
+                                                        "enum": [
+                                                            "send_unencrypted",
+                                                            "fail",
+                                                            "encrypt",
+                                                            "skip"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "$ref": "#/$defs/types/param"
+                                                    }
+                                                ],
+                                                "default": "send_unencrypted",
+                                                "description": "Default behavior when a recipient has no S/MIME certificate: \"send_unencrypted\" (send the message unencrypted, deprecated since 8.2), \"fail\" (throw an exception), \"encrypt\" (encrypt for the recipients that have a certificate, the others receive an unreadable message), \"skip\" (encrypt for the recipients that have a certificate and drop the others from the envelope; note that \"mailer.envelope.recipients\" is applied afterwards and overrides that list). Can be overridden per message by setting the \"X-SMime-Encrypt\" header to one of these values."
+                                            },
+                                            "encrypt_for_sender": {
+                                                "$ref": "#/$defs/types/boolean",
+                                                "default": false,
+                                                "description": "Also encrypt for the sender, when a certificate is available for its address, so that the sender can read the messages it sent."
+                                            },
+                                            "cipher": {
+                                                "$ref": "#/$defs/types/integer_null",
+                                                "default": null,
+                                                "description": "A set of algorithms used to encrypt the message"
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    {
+                                        "type": [
+                                            "boolean"
+                                        ]
+                                    }
+                                ],
+                                "default": {
+                                    "enabled": false,
+                                    "repository": "",
+                                    "certificates": [],
+                                    "on_missing_certificate": "send_unencrypted",
+                                    "encrypt_for_sender": false,
+                                    "cipher": null
+                                },
+                                "description": "S/MIME encrypter configuration"
+                            },
+                            "pgp_signer": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "properties": {
+                                            "enabled": {
+                                                "$ref": "#/$defs/types/boolean",
+                                                "default": false
+                                            },
+                                            "secret_key": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": "",
+                                                "description": "Path to the secret key (ASCII armored format without the `file://` prefix)"
+                                            },
+                                            "public_key": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": null,
+                                                "description": "Path to the public key (ASCII armored format without the `file://` prefix)"
+                                            },
+                                            "passphrase": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": null,
+                                                "description": "The secret key passphrase"
+                                            },
+                                            "binary": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": "gpg",
+                                                "description": "Path to the GnuPG binary"
+                                            },
+                                            "digest_algorithm": {
+                                                "anyOf": [
+                                                    {
+                                                        "enum": [
+                                                            "SHA224",
+                                                            "SHA256",
+                                                            "SHA384",
+                                                            "SHA512"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "$ref": "#/$defs/types/param"
+                                                    }
+                                                ],
+                                                "default": "SHA512",
+                                                "description": "The digest algorithm used to sign the message"
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    {
+                                        "type": [
+                                            "boolean"
+                                        ]
+                                    }
+                                ],
+                                "default": {
+                                    "enabled": false,
+                                    "secret_key": "",
+                                    "public_key": null,
+                                    "passphrase": null,
+                                    "binary": "gpg",
+                                    "digest_algorithm": "SHA512"
+                                },
+                                "description": "PGP/MIME signer configuration"
+                            },
+                            "pgp_encrypter": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "properties": {
+                                            "enabled": {
+                                                "$ref": "#/$defs/types/boolean",
+                                                "default": false
+                                            },
+                                            "repository": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": "",
+                                                "description": "Service or class implementing `Symfony\\Component\\Mailer\\EventListener\\PgpPublicKeyRepositoryInterface` to provide recipient PGP public keys."
+                                            },
+                                            "keys": {
+                                                "$ref": "#/$defs/types/object_null",
+                                                "additionalProperties": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "description": "Recipient PGP public keys, as a map of email address to public key file path. Cannot be used together with \"repository\"."
+                                            },
+                                            "binary": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": "gpg",
+                                                "description": "Path to the GnuPG binary"
+                                            },
+                                            "cipher_algorithm": {
+                                                "anyOf": [
+                                                    {
+                                                        "enum": [
+                                                            "AES",
+                                                            "AES192",
+                                                            "AES256",
+                                                            "TWOFISH",
+                                                            "CAMELLIA128",
+                                                            "CAMELLIA192",
+                                                            "CAMELLIA256"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "$ref": "#/$defs/types/param"
+                                                    }
+                                                ],
+                                                "default": "AES256",
+                                                "description": "The cipher algorithm used to encrypt the message"
+                                            },
+                                            "timeout": {
+                                                "$ref": "#/$defs/types/number",
+                                                "default": 60,
+                                                "description": "Timeout in seconds for the GPG process (null for no timeout)"
+                                            },
+                                            "hide_recipients": {
+                                                "$ref": "#/$defs/types/boolean",
+                                                "default": false,
+                                                "description": "Hide every recipient's key ID in the encrypted message (gpg --hidden-recipient). Recipients listed in the Bcc header are always hidden regardless of this option; set it to true to also hide To and Cc recipients."
+                                            },
+                                            "on_missing_key": {
+                                                "anyOf": [
+                                                    {
+                                                        "enum": [
+                                                            "fail",
+                                                            "encrypt",
+                                                            "skip"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "$ref": "#/$defs/types/param"
+                                                    }
+                                                ],
+                                                "default": "fail",
+                                                "description": "Default behavior when a recipient has no PGP public key: \"fail\" (throw an exception), \"encrypt\" (encrypt for the recipients that have a key, the others receive an unreadable message), \"skip\" (encrypt for the recipients that have a key and drop the others from the envelope; note that \"mailer.envelope.recipients\" is applied afterwards and overrides that list). The message is never sent unencrypted. Can be overridden per message by setting the \"X-Pgp-Encrypt\" header to one of these values."
+                                            },
+                                            "encrypt_for_sender": {
+                                                "$ref": "#/$defs/types/boolean",
+                                                "default": false,
+                                                "description": "Also encrypt for the sender, when a public key is available for its address, so that the sender can read the messages it sent."
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    {
+                                        "type": [
+                                            "boolean"
+                                        ]
+                                    }
+                                ],
+                                "default": {
+                                    "enabled": false,
+                                    "repository": "",
+                                    "keys": [],
+                                    "binary": "gpg",
+                                    "cipher_algorithm": "AES256",
+                                    "timeout": 60,
+                                    "hide_recipients": false,
+                                    "on_missing_key": "fail",
+                                    "encrypt_for_sender": false
+                                },
+                                "description": "PGP/MIME encrypter configuration"
+                            }
+                        },
+                        "patternProperties": {
+                            "^transport$": {
+                                "$ref": "#/$defs/types/variable"
+                            },
+                            "^header$": {
+                                "$ref": "#/$defs/types/variable"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": [
+                            "boolean"
+                        ]
+                    }
+                ],
+                "default": {
+                    "enabled": true,
+                    "message_bus": null,
+                    "dsn": null,
+                    "transports": [],
+                    "headers": [],
+                    "tracking": {
+                        "opens": null,
+                        "clicks": null
+                    },
+                    "dkim_signer": {
+                        "enabled": false,
+                        "key": "",
+                        "domain": "",
+                        "select": "",
+                        "passphrase": "",
+                        "options": []
+                    },
+                    "smime_signer": {
+                        "enabled": false,
+                        "key": "",
+                        "certificate": "",
+                        "passphrase": null,
+                        "extra_certificates": null,
+                        "sign_options": null
+                    },
+                    "smime_encrypter": {
+                        "enabled": false,
+                        "repository": "",
+                        "certificates": [],
+                        "on_missing_certificate": "send_unencrypted",
+                        "encrypt_for_sender": false,
+                        "cipher": null
+                    },
+                    "pgp_signer": {
+                        "enabled": false,
+                        "secret_key": "",
+                        "public_key": null,
+                        "passphrase": null,
+                        "binary": "gpg",
+                        "digest_algorithm": "SHA512"
+                    },
+                    "pgp_encrypter": {
+                        "enabled": false,
+                        "repository": "",
+                        "keys": [],
+                        "binary": "gpg",
+                        "cipher_algorithm": "AES256",
+                        "timeout": 60,
+                        "hide_recipients": false,
+                        "on_missing_key": "fail",
+                        "encrypt_for_sender": false
+                    }
+                }
+            },
             "messenger": {
                 "anyOf": [
                     {
@@ -3385,6 +4519,130 @@
                     }
                 }
             },
+            "notifier": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "message_bus": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": null,
+                                "description": "The message bus to use. Defaults to the default bus if the Messenger component is installed."
+                            },
+                            "chatter_transports": {
+                                "$ref": "#/$defs/types/object_null",
+                                "additionalProperties": {
+                                    "$ref": "#/$defs/types/scalar"
+                                }
+                            },
+                            "texter_transports": {
+                                "$ref": "#/$defs/types/object_null",
+                                "additionalProperties": {
+                                    "$ref": "#/$defs/types/scalar"
+                                }
+                            },
+                            "notification_on_failed_messages": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": false
+                            },
+                            "channel_policy": {
+                                "$ref": "#/$defs/types/object_null",
+                                "additionalProperties": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/types/array_null",
+                                            "items": {
+                                                "$ref": "#/$defs/types/scalar"
+                                            }
+                                        },
+                                        {
+                                            "type": [
+                                                "string"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            },
+                            "admin_recipients": {
+                                "$ref": "#/$defs/types/array_null",
+                                "items": {
+                                    "$ref": "#/$defs/types/object_null",
+                                    "properties": {
+                                        "email": {
+                                            "$ref": "#/$defs/types/scalar"
+                                        },
+                                        "phone": {
+                                            "$ref": "#/$defs/types/scalar",
+                                            "default": ""
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            }
+                        },
+                        "patternProperties": {
+                            "^chatter_transport$": {
+                                "$ref": "#/$defs/types/variable"
+                            },
+                            "^texter_transport$": {
+                                "$ref": "#/$defs/types/variable"
+                            },
+                            "^admin_recipient$": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "properties": {
+                                            "email": {
+                                                "$ref": "#/$defs/types/scalar"
+                                            },
+                                            "phone": {
+                                                "$ref": "#/$defs/types/scalar",
+                                                "default": ""
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    {
+                                        "$ref": "#/$defs/types/array_null",
+                                        "items": {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "properties": {
+                                                "email": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                },
+                                                "phone": {
+                                                    "$ref": "#/$defs/types/scalar",
+                                                    "default": ""
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": [
+                            "boolean"
+                        ]
+                    }
+                ],
+                "default": {
+                    "enabled": true,
+                    "message_bus": null,
+                    "chatter_transports": [],
+                    "texter_transports": [],
+                    "notification_on_failed_messages": false,
+                    "channel_policy": [],
+                    "admin_recipients": []
+                }
+            },
             "phil_slug": {
                 "$ref": "#/$defs/types/object_null",
                 "properties": {
@@ -3895,6 +5153,65 @@
                     "http_port": 80,
                     "https_port": 443,
                     "utf8": true
+                }
+            },
+            "scheduler": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "use_messenger_routing": {
+                                "$ref": "#/$defs/types/boolean_null",
+                                "default": null,
+                                "description": "Whether scheduled messages are routed to the Messenger senders configured for their class, as any other dispatched message is. A class with no sender configured still runs in the scheduler worker, and a \"transports\" option set on a task still wins."
+                            },
+                            "schedules": {
+                                "$ref": "#/$defs/types/object_null",
+                                "additionalProperties": {
+                                    "$ref": "#/$defs/types/object_null",
+                                    "properties": {
+                                        "stateful": {
+                                            "$ref": "#/$defs/types/boolean",
+                                            "default": false,
+                                            "description": "Whether the schedule keeps its state in the \"cache.scheduler\" pool and, when locks are enabled, runs in only one worker at a time."
+                                        },
+                                        "cache_pool": {
+                                            "$ref": "#/$defs/types/scalar",
+                                            "default": null,
+                                            "description": "The cache pool that stores the state of the schedule, so that a restarted worker resumes where the previous one stopped."
+                                        },
+                                        "lock_factory": {
+                                            "$ref": "#/$defs/types/scalar",
+                                            "default": null,
+                                            "description": "The service ID of the lock factory used to run the schedule in only one worker at a time."
+                                        },
+                                        "process_only_last_missed_run": {
+                                            "$ref": "#/$defs/types/boolean",
+                                            "default": false,
+                                            "description": "Whether a task that missed several runs runs only once instead of once per missed run."
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                },
+                                "description": "Options of the schedules, keyed by schedule name, whether their tasks are declared with attributes or returned by a schedule provider."
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": [
+                            "boolean"
+                        ]
+                    }
+                ],
+                "default": {
+                    "enabled": true,
+                    "use_messenger_routing": null,
+                    "schedules": []
                 }
             },
             "serializer": {
@@ -6613,11 +7930,23 @@
         "framework": {
             "$ref": "#/$defs/nodes/framework"
         },
+        "html_sanitizer": {
+            "$ref": "#/$defs/nodes/html_sanitizer"
+        },
         "http_client": {
             "$ref": "#/$defs/nodes/http_client"
         },
+        "lock": {
+            "$ref": "#/$defs/nodes/lock"
+        },
+        "mailer": {
+            "$ref": "#/$defs/nodes/mailer"
+        },
         "messenger": {
             "$ref": "#/$defs/nodes/messenger"
+        },
+        "notifier": {
+            "$ref": "#/$defs/nodes/notifier"
         },
         "phil_slug": {
             "$ref": "#/$defs/nodes/phil_slug"
@@ -6633,6 +7962,9 @@
         },
         "router": {
             "$ref": "#/$defs/nodes/router"
+        },
+        "scheduler": {
+            "$ref": "#/$defs/nodes/scheduler"
         },
         "serializer": {
             "$ref": "#/$defs/nodes/serializer"
@@ -6675,11 +8007,23 @@
                 "framework": {
                     "$ref": "#/$defs/nodes/framework"
                 },
+                "html_sanitizer": {
+                    "$ref": "#/$defs/nodes/html_sanitizer"
+                },
                 "http_client": {
                     "$ref": "#/$defs/nodes/http_client"
                 },
+                "lock": {
+                    "$ref": "#/$defs/nodes/lock"
+                },
+                "mailer": {
+                    "$ref": "#/$defs/nodes/mailer"
+                },
                 "messenger": {
                     "$ref": "#/$defs/nodes/messenger"
+                },
+                "notifier": {
+                    "$ref": "#/$defs/nodes/notifier"
                 },
                 "phil_slug": {
                     "$ref": "#/$defs/nodes/phil_slug"
@@ -6695,6 +8039,9 @@
                 },
                 "router": {
                     "$ref": "#/$defs/nodes/router"
+                },
+                "scheduler": {
+                    "$ref": "#/$defs/nodes/scheduler"
                 },
                 "serializer": {
                     "$ref": "#/$defs/nodes/serializer"

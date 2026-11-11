@@ -1,0 +1,11 @@
+phil/address
+Copyright (c) Philippe Gamache, doing business as Le Gnome Archiviste.
+The code of this library is under the MIT License (LICENSE).
+
+The address formats and subdivisions in data/ are generated from the data of
+commerceguys/addressing, https://github.com/commerceguys/addressing,
+Copyright (c) 2014-2023 Bojan Zivanovic and contributors, under the MIT License
+(data/LICENSE). That library's formats and subdivisions were first generated
+from Google's Address Data Service, and are maintained by it. The release
+imported is in data/VERSION. The data were changed from PHP and JSON to PHP
+arrays. Country names come from symfony/intl, at run time.

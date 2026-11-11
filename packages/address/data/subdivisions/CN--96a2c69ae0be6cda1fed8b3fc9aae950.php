@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Danling Xian', 'code' => 'Danling Xian', 'localCode' => null, 'name' => 'Danling Xian', 'localName' => '丹棱县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Dongpo Qu', 'code' => 'Dongpo Qu', 'localCode' => null, 'name' => 'Dongpo Qu', 'localName' => '东坡区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Hongya Xian', 'code' => 'Hongya Xian', 'localCode' => null, 'name' => 'Hongya Xian', 'localName' => '洪雅县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Pengshan Xian', 'code' => 'Pengshan Xian', 'localCode' => null, 'name' => 'Pengshan Xian', 'localName' => '彭山县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Qingshen Xian', 'code' => 'Qingshen Xian', 'localCode' => null, 'name' => 'Qingshen Xian', 'localName' => '青神县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Renshou Xian', 'code' => 'Renshou Xian', 'localCode' => null, 'name' => 'Renshou Xian', 'localName' => '仁寿县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

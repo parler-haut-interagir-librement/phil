@@ -1,0 +1,7 @@
+{#- The message as plain text. `contact` is the ContactMessage. -#}
+{{ 'contact_form.email_from'|trans({'%name%': contact.name, '%email%': contact.email}, 'phil_contact_form') }}
+{% if contact.subject %}
+{{ 'contact_form.subject_line'|trans({'%subject%': contact.subject}, 'phil_contact_form') }}
+{% endif %}
+
+{{ contact.message }}

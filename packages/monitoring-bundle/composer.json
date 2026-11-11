@@ -1,0 +1,82 @@
+{
+    "name": "phil/monitoring-bundle",
+    "description": "The surveillance of a Symfony site: health checks for the database, cache pools, Messenger transports and storage, endpoints for uptime monitors, a maintenance mode, heartbeats and a dead-man switch for scheduled tasks, and a page of the Messenger queues",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "health-check",
+        "maintenance",
+        "monitoring",
+        "symfony-bundle",
+        "uptime"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "psr/cache": "^3.0",
+        "psr/clock": "^1.0",
+        "psr/container": "^2.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/filesystem": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/lock": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/notifier": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "league/flysystem": "^3.30",
+        "league/flysystem-memory": "^3.29",
+        "phpunit/phpunit": "^13.4",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/scheduler": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/dbal": "To check DBAL connections",
+        "league/flysystem": "To check Flysystem storages",
+        "symfony/routing": "For the health endpoints and the page of the queues",
+        "symfony/scheduler": "To beat a task each time its scheduled message runs",
+        "symfony/security-core": "For the roles of the maintenance mode and of the page of the queues",
+        "symfony/security-csrf": "For the actions of the page of the queues",
+        "twig/twig": "For the maintenance page and the page of the queues"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\MonitoringBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\MonitoringBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

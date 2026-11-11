@@ -1,0 +1,92 @@
+{
+    "name": "phil/reporting-bundle",
+    "description": "Dashboards and reports for Symfony: metrics and series contributed by any bundle through a data-source port, dashboards as Twig components with accessible charts in HTML, CSS and SVG and a table of every value, an optional EasyAdmin page, and reports exported to CSV, TSV or JSON, scheduled with Symfony Scheduler and delivered by Mailer or Notifier through a Messenger claim check",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "dashboard",
+        "reporting",
+        "chart",
+        "csv",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-intl": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "phil/svg-chart": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/service-contracts": "^3.6"
+    },
+    "require-dev": {
+        "easycorp/easyadmin-bundle": "^5.8",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/filesystem": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/mailer": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/mime": "^8.2",
+        "symfony/notifier": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/scheduler": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/stimulus-bundle": "^3.7",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-live-component": "^3.7",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "easycorp/easyadmin-bundle": "To show a dashboard as a page of an EasyAdmin back office",
+        "phil/ux-css": "For the look of the dashboards, on the tokens of PHIL UX",
+        "symfony/console": "For phil:reporting:export",
+        "symfony/http-foundation": "To stream a report as a download from a controller",
+        "symfony/mailer": "To send the reports by e-mail, the file attached",
+        "symfony/messenger": "To export and deliver the reports in a worker",
+        "symfony/notifier": "To announce the reports on the channels of Notifier",
+        "symfony/scheduler": "To export and deliver the reports on a schedule",
+        "symfony/security-core": "To restrict a dashboard to a role",
+        "symfony/ux-live-component": "To change a dashboard's period without reloading the page",
+        "symfony/ux-twig-component": "For the dashboards, metrics and charts on a page"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ReportingBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ReportingBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

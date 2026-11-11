@@ -1,0 +1,18 @@
+From: MAILER-DAEMON@mx.example.com
+To: bounces@example.net
+Subject: Delivery failure
+Content-Type: multipart/report; report-type=global-delivery-status; boundary=g
+
+--g
+Content-Type: message/global-delivery-status
+
+Reporting-MTA: dns; mx.example.com
+
+Original-Recipient: utf-8; élise@example.com
+Action: failed
+Diagnostic-Code: smtp; 553 mailbox name not allowed
+--g
+Content-Type: message/global-headers
+
+Message-ID: <m-46@example.net>
+--g--

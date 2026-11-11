@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://cdn.example.com/sitemap.default.xml.gz</loc>
+    <lastmod>2026-11-01T08:00:00+00:00</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://cdn.example.com/sitemap.pages.xml.gz</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://cdn.example.com/sitemap.articles_0.xml.gz</loc>
+    <lastmod>2026-11-04T12:00:00+00:00</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://cdn.example.com/sitemap.articles_1.xml.gz</loc>
+    <lastmod>2026-11-04T12:00:00+00:00</lastmod>
+  </sitemap>
+</sitemapindex>

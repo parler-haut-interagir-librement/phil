@@ -1,0 +1,72 @@
+{
+    "name": "phil/geo-bundle",
+    "description": "phil/geo in Symfony: coordinates as a Doctrine embeddable, a form type, distances in Twig, and a Stimulus controller that sorts places by distance in the browser, the visitor's position never sent",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "geo",
+        "coordinates",
+        "distance",
+        "stimulus",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-intl": "*",
+        "ext-zlib": "*",
+        "phil/geo": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/options-resolver": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "doctrine/persistence": "^4.1",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-kernel": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/orm": "To embed Coordinates in an entity",
+        "symfony/console": "For phil:geo:maxmind:update",
+        "symfony/http-client": "For the geocoders, the IP locator and phil:geo:maxmind:update",
+        "twig/twig": "For geo_distance, format_distance and geo_attributes"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\GeoBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\GeoBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

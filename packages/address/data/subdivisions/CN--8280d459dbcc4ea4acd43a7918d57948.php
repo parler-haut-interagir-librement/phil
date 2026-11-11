@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Bagongshan Qu', 'code' => 'Bagongshan Qu', 'localCode' => null, 'name' => 'Bagongshan Qu', 'localName' => '八公山区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Datong Qu', 'code' => 'Datong Qu', 'localCode' => null, 'name' => 'Datong Qu', 'localName' => '大通区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Fengtai Xian', 'code' => 'Fengtai Xian', 'localCode' => null, 'name' => 'Fengtai Xian', 'localName' => '凤台县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Panji Qu', 'code' => 'Panji Qu', 'localCode' => null, 'name' => 'Panji Qu', 'localName' => '潘集区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => "Tianjia'an Qu", 'code' => "Tianjia'an Qu", 'localCode' => null, 'name' => "Tianjia'an Qu", 'localName' => '田家庵区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xiejiaji Qu', 'code' => 'Xiejiaji Qu', 'localCode' => null, 'name' => 'Xiejiaji Qu', 'localName' => '谢家集区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

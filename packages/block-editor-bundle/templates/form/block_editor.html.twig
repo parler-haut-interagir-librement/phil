@@ -1,0 +1,23 @@
+{#
+ # The block editor's field: the hidden input the form submits, holding the UJO JSON, and the element the Stimulus
+ # controller turns into blocks. Without JavaScript, the input keeps the document as it was received.
+ #}
+{% block phil_block_editor_widget %}
+    {%- set controller = 'phil--block-editor-bundle--editor' -%}
+    <div class="phil-block-editor{{ editor.readOnly ? ' phil-block-editor--read-only' }}"
+         data-controller="{{ controller }}"
+         data-{{ controller }}-config-value="{{ editor|json_encode }}">
+        <input type="hidden" {{ block('widget_attributes') }} value="{{ value }}" data-{{ controller }}-target="input">
+        <div class="phil-block-editor__canvas" data-{{ controller }}-target="canvas"
+             {%- if label is not same as(false) %} aria-labelledby="{{ label_attr.id|default(id ~ '_label') }}"{% endif %}></div>
+        <div class="phil-block-editor__status" data-{{ controller }}-target="status" role="status" aria-live="polite"></div>
+    </div>
+{% endblock %}
+
+{#
+ # The label names the editor: it gets an identifier the canvas refers to, its own when it has one.
+ #}
+{% block phil_block_editor_label %}
+    {%- set label_attr = label_attr|merge({id: label_attr.id|default(id ~ '_label')}) -%}
+    {{- block('form_label') -}}
+{% endblock %}

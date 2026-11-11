@@ -1,0 +1,61 @@
+{
+    "name": "phil/route-access-check-bundle",
+    "description": "phil/route-access-check in Symfony: the console command phil:route-access:check over the router and the firewalls and access_control entries SecurityBundle builds, registered in the dev and test environments only, with detectors and formats of the application's own autoconfigured",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "security",
+        "routing",
+        "access-control",
+        "continuous-integration",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/route-access-check": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/filesystem": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/routing": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/expression-language": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/security-http": "^8.2"
+    },
+    "suggest": {
+        "symfony/security-bundle": "For the firewalls and access_control entries the check reads"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\RouteAccessCheckBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\RouteAccessCheckBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

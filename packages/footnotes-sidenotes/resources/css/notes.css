@@ -1,0 +1,156 @@
+/*!
+ * phil/footnotes-sidenotes — notes on screen. MIT License.
+ *
+ * Classes on semantic HTML, in the cascade layer of phil-ux components: a site's own styles, written outside any
+ * layer, win without !important. Every value reads a --phil-* token and falls back to a plain one, so the sheet also
+ * works alone. Margin notes need no script: a checkbox and its label open them on narrow viewports.
+ */
+@layer phil.components {
+    .isNoteReference {
+        font-size: 0.75em;
+        line-height: 0;
+    }
+
+    .isNotes {
+        margin-block-start: var(--phil-space-xl, 2rem);
+        padding-block-start: var(--phil-space-sm, 0.75rem);
+        border-block-start: 1px solid var(--phil-color-border, currentColor);
+        font-size: var(--phil-text-sm, 0.875em);
+    }
+
+    .isNotesTitle {
+        margin-block: 0 var(--phil-space-sm, 0.75rem);
+        font-size: var(--phil-text-md, 1em);
+    }
+
+    .isNotesList {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .isNote {
+        margin-block-end: var(--phil-space-xs, 0.5rem);
+    }
+
+    .isNote:target {
+        outline: 2px solid var(--phil-color-focus, currentColor);
+        outline-offset: 2px;
+    }
+
+    .isNoteMarker {
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .isNoteBacklink {
+        text-decoration: none;
+    }
+
+    .isSidenote {
+        color: var(--phil-color-text-muted, inherit);
+        font-size: var(--phil-text-sm, 0.875em);
+        line-height: var(--phil-leading-md, 1.5);
+    }
+
+    .isSidenoteToggle {
+        display: inline-block;
+        min-inline-size: 1.5rem;
+        min-block-size: 1.5rem;
+        line-height: 1.5rem;
+        text-align: center;
+    }
+
+    /* Wide viewports: the wrapper keeps a column free and each note floats into it, the toggle at rest. */
+    @media (min-width: 72rem) {
+        .hasSidenotes {
+            --sidenote-column: var(--phil-measure-narrow, 16rem);
+            --sidenote-gap: var(--phil-space-lg, 1.5rem);
+
+            box-sizing: border-box;
+            padding-inline-end: calc(var(--sidenote-column) + var(--sidenote-gap));
+        }
+
+        .isSidenote {
+            float: inline-end;
+            clear: inline-end;
+            box-sizing: border-box;
+            inline-size: var(--sidenote-column);
+            margin-inline-end: calc(-1 * (var(--sidenote-column) + var(--sidenote-gap)));
+        }
+
+        .isSidenote:target {
+            outline: 2px solid var(--phil-color-focus, currentColor);
+            outline-offset: 2px;
+        }
+
+        .isSidenoteSwitch {
+            display: none;
+        }
+    }
+
+    /* Narrow viewports: each note folded under its toggle, opened by the keyboard or by a link to it. */
+    @media (max-width: 71.99rem) {
+        .isSidenoteSwitch {
+            position: absolute;
+            inline-size: 1px;
+            block-size: 1px;
+            opacity: 0;
+        }
+
+        .isSidenoteToggle {
+            cursor: pointer;
+            text-decoration: underline dotted;
+            border-radius: var(--phil-radius-sm, 0.25rem);
+            background: var(--phil-color-surface-raised, transparent);
+        }
+
+        .isSidenoteSwitch:focus-visible + .isSidenoteToggle {
+            outline: 2px solid var(--phil-color-focus, currentColor);
+            outline-offset: 2px;
+        }
+
+        .isSidenote {
+            display: none;
+        }
+
+        .isSidenoteSwitch:checked ~ .isSidenote,
+        .isSidenote:target {
+            display: block;
+            margin-block: var(--phil-space-xs, 0.5rem);
+            padding-inline-start: var(--phil-space-sm, 0.75rem);
+            border-inline-start: 2px solid var(--phil-color-border, currentColor);
+        }
+    }
+
+    /* The only movement of the sheet: a note that opens, for readers who have not asked for less. */
+    @media (max-width: 71.99rem) and (prefers-reduced-motion: no-preference) {
+        .isSidenoteSwitch:checked ~ .isSidenote {
+            animation: phil-sidenote-open 120ms ease-out;
+        }
+
+        @keyframes phil-sidenote-open {
+            from {
+                opacity: 0;
+            }
+        }
+    }
+
+    @media print {
+        .hasSidenotes {
+            padding-inline-end: 0;
+        }
+
+        .isSidenoteSwitch,
+        .isNoteBacklink {
+            display: none;
+        }
+
+        .isSidenote {
+            display: block;
+            float: none;
+            inline-size: auto;
+            margin: 0;
+        }
+    }
+}

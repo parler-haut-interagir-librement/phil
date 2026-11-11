@@ -1,0 +1,6 @@
+{#- The message as its recipients read it. `contact` is the ContactMessage. -#}
+<p><strong>{{ 'contact_form.email_from'|trans({'%name%': contact.name, '%email%': contact.email}, 'phil_contact_form') }}</strong></p>
+{%- if contact.subject %}
+<p>{{ 'contact_form.subject_line'|trans({'%subject%': contact.subject}, 'phil_contact_form') }}</p>
+{%- endif %}
+<p>{{ contact.message|nl2br }}</p>

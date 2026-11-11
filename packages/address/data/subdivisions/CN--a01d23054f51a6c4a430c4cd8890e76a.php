@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Ganzhou Qu', 'code' => 'Ganzhou Qu', 'localCode' => null, 'name' => 'Ganzhou Qu', 'localName' => '甘州区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Gaotai Xian', 'code' => 'Gaotai Xian', 'localCode' => null, 'name' => 'Gaotai Xian', 'localName' => '高台县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Linze Xian', 'code' => 'Linze Xian', 'localCode' => null, 'name' => 'Linze Xian', 'localName' => '临泽县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Minle Xian', 'code' => 'Minle Xian', 'localCode' => null, 'name' => 'Minle Xian', 'localName' => '民乐县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Shandan Xian', 'code' => 'Shandan Xian', 'localCode' => null, 'name' => 'Shandan Xian', 'localName' => '山丹县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Sunan Xian', 'code' => 'Sunan Xian', 'localCode' => '肃南裕固族自治县', 'name' => 'Sunan Xian', 'localName' => '肃南县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

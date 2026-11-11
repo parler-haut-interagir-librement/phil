@@ -1,0 +1,1 @@
+{"blocks":[{"id":"h","type":"headre","data":{"text":"T<sup data@footnote=\"12\">1","level":1}},{"id":"@","type":"pageBreak","data":{}},{"id":"w","type":"wide","data":{"bl&ocks":[{"id":"c","type":"code","id":"n","type":"footnote","data":{"id":"6","text":"x"}}]}}]}

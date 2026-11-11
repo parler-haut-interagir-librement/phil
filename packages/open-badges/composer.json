@@ -1,0 +1,53 @@
+{
+    "name": "phil/open-badges",
+    "description": "Open Badges 3.0 and CLR 2.0 credentials: issued as Verifiable Credentials 2.0, signed as JSON Web Tokens (EdDSA, RS256) or with an eddsa-rdfc-2022 Data Integrity proof, verified offline, baked into PNG and SVG images, revoked through a Bitstring Status List, endorsed by third parties and gathered in learner records",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "open-badges",
+        "verifiable-credentials",
+        "clr",
+        "data-integrity",
+        "jwt",
+        "badges"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-json": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "ext-sodium": "*",
+        "ext-zlib": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\OpenBadges\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\OpenBadges\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

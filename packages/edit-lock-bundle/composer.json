@@ -1,0 +1,82 @@
+{
+    "name": "phil/edit-lock-bundle",
+    "description": "Edit leases for Symfony applications: one writer per resource or per block of a UJO (Universal JSON Output) document, with heartbeats, expiry, takeover and release, kept by Doctrine, and presence and block saves pushed to the other writers through Mercure as Turbo Streams, applied in the browser by a Stimulus controller",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "lock",
+        "lease",
+        "presence",
+        "collaboration",
+        "mercure",
+        "turbo-stream",
+        "ujo",
+        "stimulus",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-filter": "*",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/ujo": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/security-csrf": "^8.2"
+    },
+    "require-dev": {
+        "ext-pdo": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/persistence": "^4.1",
+        "phil/ujo-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/mercure": "^0.10",
+        "symfony/mercure-bundle": "^0.7",
+        "symfony/routing": "^8.2"
+    },
+    "suggest": {
+        "phil/block-editor-bundle": "For the block editor the controller works with",
+        "phil/ujo-bundle": "To check saved blocks with the application's block types",
+        "symfony/asset-mapper": "To serve the controller and its stylesheet without a build step",
+        "symfony/mercure-bundle": "To push presence and block saves to the other writers",
+        "symfony/routing": "For the lease and block endpoints, and their URLs given to the controller",
+        "symfony/stimulus-bundle": "For the collaboration controller"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\EditLockBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\EditLockBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

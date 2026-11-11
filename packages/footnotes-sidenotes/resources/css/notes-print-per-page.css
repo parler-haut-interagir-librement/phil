@@ -1,0 +1,17 @@
+/*!
+ * phil/footnotes-sidenotes — notes numbered on each printed page, by the engine. MIT License.
+ *
+ * Only the print engine knows where a page ends: after notes-print.css, this hands the calls and the markers to its
+ * footnote counter, which starts again on each page.
+ */
+@page {
+    counter-reset: footnote;
+}
+
+.isPageNote::footnote-call {
+    content: counter(footnote);
+}
+
+.isPageNote::footnote-marker {
+    content: counter(footnote) ". ";
+}

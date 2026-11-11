@@ -1,0 +1,68 @@
+{
+    "name": "phil/qr-code-bundle",
+    "description": "phil/qr-code in Symfony: configured defaults, qr_code() in Twig as inline SVG or a data URI, an accessible Twig component, a signed route that serves SVG or PNG with an HTTP cache, the qrCode block of UJO documents and QR codes drawn in PDF documents",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "qr-code",
+        "qrcode",
+        "twig",
+        "ujo",
+        "pdf",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-sodium": "*",
+        "phil/qr-code": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "ext-gd": "*",
+        "ext-zlib": "*",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "roave/security-advisories": "dev-latest",
+        "symfony/browser-kit": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7"
+    },
+    "suggest": {
+        "phil/paged-media": "For PdfQrCodes, the QR codes drawn in a PDF document",
+        "phil/svg-blocks": "For QrCodeBlockRenderer, the renderer of the qrCode blocks of UJO documents",
+        "phil/svg-blocks-bundle": "For the qrCode blocks of UJO documents drawn with the defaults of this bundle",
+        "symfony/ux-twig-component": "For the accessible component, <twig:PhilQrCode:QrCode>"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\QrCodeBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\QrCodeBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

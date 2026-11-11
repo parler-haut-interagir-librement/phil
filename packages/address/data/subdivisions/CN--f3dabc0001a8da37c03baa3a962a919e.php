@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Helan Xian', 'code' => 'Helan Xian', 'localCode' => null, 'name' => 'Helan Xian', 'localName' => '贺兰县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Jinfeng Qu', 'code' => 'Jinfeng Qu', 'localCode' => null, 'name' => 'Jinfeng Qu', 'localName' => '金凤区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Lingwu Shi', 'code' => 'Lingwu Shi', 'localCode' => null, 'name' => 'Lingwu Shi', 'localName' => '灵武市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xixia Qu', 'code' => 'Xixia Qu', 'localCode' => null, 'name' => 'Xixia Qu', 'localName' => '西夏区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xingqing Qu', 'code' => 'Xingqing Qu', 'localCode' => null, 'name' => 'Xingqing Qu', 'localName' => '兴庆区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Yongning Xian', 'code' => 'Yongning Xian', 'localCode' => null, 'name' => 'Yongning Xian', 'localName' => '永宁县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

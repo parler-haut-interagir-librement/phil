@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Huzhu Xian', 'code' => 'Huzhu Xian', 'localCode' => '互助土族自治县', 'name' => 'Huzhu Xian', 'localName' => '互助县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Hualong Xian', 'code' => 'Hualong Xian', 'localCode' => '化隆回族自治县', 'name' => 'Hualong Xian', 'localName' => '化隆县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Ledu Qu', 'code' => 'Ledu Qu', 'localCode' => null, 'name' => 'Ledu Qu', 'localName' => '乐都区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Minhe Xian', 'code' => 'Minhe Xian', 'localCode' => '民和回族土族自治县', 'name' => 'Minhe Xian', 'localName' => '民和县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => "Ping'an Xian", 'code' => "Ping'an Xian", 'localCode' => null, 'name' => "Ping'an Xian", 'localName' => '平安县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xunhua Xian', 'code' => 'Xunhua Xian', 'localCode' => '循化撒拉族自治县', 'name' => 'Xunhua Xian', 'localName' => '循化县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

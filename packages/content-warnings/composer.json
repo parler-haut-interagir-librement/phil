@@ -1,0 +1,47 @@
+{
+    "name": "phil/content-warnings",
+    "description": "Content warnings for PHP: a translated catalogue of warning themes each application completes or replaces, the warnings of a game, a book, an article or an event, and the themes a member folds or hides",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "content-warnings",
+        "trigger-warnings",
+        "accessibility",
+        "safety",
+        "value-object"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-json": "*",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ContentWarnings\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ContentWarnings\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

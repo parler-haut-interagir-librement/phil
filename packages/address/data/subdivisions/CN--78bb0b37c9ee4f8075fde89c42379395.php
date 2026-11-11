@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Hubin Qu', 'code' => 'Hubin Qu', 'localCode' => null, 'name' => 'Hubin Qu', 'localName' => '湖滨区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Lingbao Shi', 'code' => 'Lingbao Shi', 'localCode' => null, 'name' => 'Lingbao Shi', 'localName' => '灵宝市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Lushi Xian', 'code' => 'Lushi Xian', 'localCode' => null, 'name' => 'Lushi Xian', 'localName' => '卢氏县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Mianchi Xian', 'code' => 'Mianchi Xian', 'localCode' => null, 'name' => 'Mianchi Xian', 'localName' => '渑池县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Shan Xian', 'code' => 'Shan Xian', 'localCode' => null, 'name' => 'Shan Xian', 'localName' => '陕县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Yima Shi', 'code' => 'Yima Shi', 'localCode' => null, 'name' => 'Yima Shi', 'localName' => '义马市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

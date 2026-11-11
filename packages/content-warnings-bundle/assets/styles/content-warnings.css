@@ -1,0 +1,43 @@
+/*
+ * The folded display of phil/content-warnings-bundle: the warnings in a bordered note, the button that reveals the
+ * content saying "show" or "hide" as the details element is closed or open, and a fade-in only for readers who did
+ * not ask for reduced motion.
+ */
+.phil-content-warning {
+    border-inline-start: 0.25rem solid currentcolor;
+    padding-inline-start: 0.75rem;
+}
+
+.phil-content-warning summary {
+    cursor: pointer;
+}
+
+.phil-content-warning details[open] .phil-content-warning__reveal,
+.phil-content-warning details:not([open]) .phil-content-warning__conceal {
+    display: none;
+}
+
+.phil-content-warning__content:focus {
+    outline: none;
+}
+
+.phil-content-warning__content:focus-visible {
+    outline: 0.125rem solid currentcolor;
+    outline-offset: 0.25rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .phil-content-warning details[open] > .phil-content-warning__content {
+        animation: phil-content-warning-reveal 160ms ease-out;
+    }
+}
+
+@keyframes phil-content-warning-reveal {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

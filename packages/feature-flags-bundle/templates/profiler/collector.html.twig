@@ -1,0 +1,46 @@
+{% extends '@WebProfiler/Profiler/layout.html.twig' %}
+
+{% block toolbar %}
+    {% set icon %}
+        <span class="sf-toolbar-value">{{ collector.enabledCount }}/{{ collector.flags|length }}</span>
+        <span class="sf-toolbar-label">flags</span>
+    {% endset %}
+    {% set text %}
+        {% for name, flag in collector.flags %}
+            <div class="sf-toolbar-info-piece">
+                <b>{{ name }}</b>
+                <span class="sf-toolbar-status sf-toolbar-status-{{ flag.enabled ? 'green' : 'grey' }}">{{ flag.enabled ? 'on' : 'off' }}</span>
+            </div>
+        {% endfor %}
+    {% endset %}
+    {{ include('@WebProfiler/Profiler/toolbar_item.html.twig', {link: true}) }}
+{% endblock %}
+
+{% block menu %}
+    <span class="label">
+        <strong>Feature flags</strong>
+        <span class="count"><span>{{ collector.flags|length }}</span></span>
+    </span>
+{% endblock %}
+
+{% block panel %}
+    <h2>Flags evaluated</h2>
+    {% if collector.flags is empty %}
+        <div class="empty"><p>No flag was evaluated during this request.</p></div>
+    {% else %}
+        <table>
+            <thead><tr><th>Flag</th><th>Enabled</th><th>Reason</th><th>Variant</th><th>Error</th></tr></thead>
+            <tbody>
+            {% for name, flag in collector.flags %}
+                <tr>
+                    <td>{{ name }}</td>
+                    <td>{{ flag.enabled ? 'yes' : 'no' }}</td>
+                    <td>{{ flag.reason }}</td>
+                    <td>{{ flag.variant ?? '—' }}</td>
+                    <td>{{ flag.error ?? '—' }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

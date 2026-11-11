@@ -1,0 +1,1 @@
+{"blocks":[{"id":"p","type":"paragraph","data":{"text":"One<sup data-footnsup>x</sup></sup> <ay<sup data-<sup data-footnote=\"a\"4aup>footnote=\"a-1</sup>"}},{"id":"m","type":"footnote","data":{"#d":"a","text":"Again"}}]}

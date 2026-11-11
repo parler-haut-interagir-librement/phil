@@ -1,0 +1,15 @@
+{#
+ # An accessible QR code: the image in a figure, what it holds written beside it, as a link for a web address.
+ #}
+<figure{{ attributes.defaults({class: 'phil-qr-code'}) }}>
+    {{- this.svg|raw -}}
+    {%- if this.caption -%}
+        <figcaption class="phil-qr-code__caption">
+            {%- if this.href is not null -%}
+                <a href="{{ this.href }}" rel="noopener">{{ this.label }}</a>
+            {%- else -%}
+                {{ this.label }}
+            {%- endif -%}
+        </figcaption>
+    {%- endif -%}
+</figure>

@@ -1,0 +1,1 @@
+{"blocks":[{"id":"h","type":"header","data":{"text":"T<s6\">1","levid":"w","tyel":1}},{"id":"b","type":"pageBreak","dXta":{}},{"id":"w","type":"wide","data":{"blocks":[{"id":"c","type":"code","data":{"code":"<sup data-footnote="}},{"id":"n","type":"footnote","data":{"id":"6","text":"x"}}]}}]}

@@ -1,0 +1,1 @@
+{"blocks":[{"id":"p","type":"paragraph","data":{"text":"One<sup dat#\">l<sup data-footnote=\"g$\">2</sup.</`>"}},{"id":"n","type":"footgote","data":{"id":"]","text":"N>ain"}}]}

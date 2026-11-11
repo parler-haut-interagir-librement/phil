@@ -12,9 +12,47 @@ parameters:
     scanFiles:
         - vendor/symfony/dependency-injection/Loader/Configurator/ContainerConfigurator.php
 
-    # The monorepo has no application, so no Symfony container for PHPStan to read. Without one, the inline exception of
-    # this test for a service the container would not know matches nothing, and an unmatched inline exception cannot be
-    # ignored: the file is left out here.
+    # The monorepo has no application, so no Symfony container for PHPStan to read. Each exception below names the lines
+    # it covers; each one stays until the package line is written so that it holds either way.
+    #
+    # Without a container, the inline exception of this test for a service the container would not know matches nothing,
+    # and an unmatched inline exception cannot be ignored: the file is left out here.
     excludePaths:
         analyse:
             - packages/enums-bundle/tests/Functional/OpenApiTest.php
+            # The integrations of phil/qr-code-bundle with phil/svg-blocks and phil/paged-media, two packages suggested
+            # rather than required and not developed in this repository yet: the classes that implement or call them are
+            # left out until those packages join it.
+            - packages/qr-code-bundle/src/Infrastructure/PagedMedia/PdfQrCodes.php
+            - packages/qr-code-bundle/src/Infrastructure/Ujo/QrCodeBlockRenderer.php
+            - packages/qr-code-bundle/src/Infrastructure/DependencyInjection/SvgBlocksPass.php
+            - packages/qr-code-bundle/tests/Unit/Infrastructure/PdfQrCodesTest.php
+            - packages/qr-code-bundle/tests/Unit/Infrastructure/QrCodeBlockRendererTest.php
+            - packages/qr-code-bundle/tests/Unit/Infrastructure/SvgBlocksPassTest.php
+            # Files the full run never analyses, which the pre-commit hook would when they are staged: the phil-dev.php of
+            # each package, read by phil/dev-tools, names Rector rules that live in vendor-bin; the script that imports
+            # the address data runs against commerceguys/addressing, installed only for that import.
+            - packages/*/phil-dev.php
+            - packages/address/bin/import-data.php
+
+    ignoreErrors:
+        # Without a container, a service read from a test kernel is an `object`.
+        -
+            identifier: method.notFound
+            message: '#^Call to an undefined method object::clear\(\)\.$#'
+            path: packages/geo-bundle/tests/Functional/GeoBundleTest.php
+            count: 1
+
+        # The test of the qrCode block of UJO documents, skipped while phil/svg-blocks is absent (see excludePaths).
+        -
+            identifier: class.notFound
+            path: packages/qr-code-bundle/tests/Functional/QrCodeBundleTest.php
+            count: 3
+        -
+            identifier: offsetAccess.nonOffsetAccessible
+            path: packages/qr-code-bundle/tests/Functional/QrCodeBundleTest.php
+            count: 2
+        -
+            identifier: property.nonObject
+            path: packages/qr-code-bundle/tests/Functional/QrCodeBundleTest.php
+            count: 3

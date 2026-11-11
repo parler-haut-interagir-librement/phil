@@ -1,0 +1,6 @@
+{| class="wikitable"
+! a !! b
+|-
+| 1 || 2
+|}
+<ref>note</ref><references/>

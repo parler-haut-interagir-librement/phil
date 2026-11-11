@@ -1,0 +1,12 @@
+{# One figure: its title, its value, and its change from the period before. #}
+<article{{ attributes.defaults({class: 'phil-reporting-metric'}) }}>
+    <h3 class="phil-reporting-metric__title">{{ computed.heading }}</h3>
+    <p class="phil-reporting-metric__value"><data value="{{ computed.metric.value }}">{{ computed.text }}</data></p>
+    {% set change = computed.change %}
+    {% if change is not null %}
+        <p class="phil-reporting-metric__change" data-direction="{{ change.direction }}">
+            <span aria-hidden="true">{{ {up: '▲', down: '▼', flat: '■'}[change.direction] }}</span>
+            {{ ('metric.' ~ change.direction ~ (change.percent is null ? '_from_zero' : ''))|trans({'%percent%': change.percent ?? ''}, 'phil_reporting') }}
+        </p>
+    {% endif %}
+</article>

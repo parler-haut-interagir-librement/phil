@@ -1,0 +1,58 @@
+/*
+ * The roster of the collaboration controller: who else is on the page, what they edit, and a button to take a block
+ * over. Its custom properties take PHIL UX's tokens when that stylesheet is loaded, the page's own colours otherwise.
+ */
+.phil-edit-lock-roster {
+    --pel-text: var(--phil-color-text, CanvasText);
+    --pel-muted: var(--phil-color-text-muted, color-mix(in srgb, CanvasText 60%, Canvas));
+    --pel-border: var(--phil-color-border, color-mix(in srgb, CanvasText 18%, Canvas));
+    --pel-accent: var(--phil-color-accent, #1f6f78);
+    --pel-focus: var(--phil-color-focus, #3b82c4);
+    --pel-radius: var(--phil-radius-md, 6px);
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    color: var(--pel-text);
+    font-size: 0.85rem;
+    list-style: none;
+}
+
+.phil-edit-lock-roster__writer {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--pel-border);
+    border-radius: 999px;
+}
+
+.phil-edit-lock-roster__writer--mine {
+    border-style: dashed;
+}
+
+.phil-edit-lock-roster__name {
+    font-weight: 600;
+}
+
+.phil-edit-lock-roster__what {
+    color: var(--pel-muted);
+}
+
+.phil-edit-lock-roster__take-over {
+    padding: 0 0.4rem;
+    border: 1px solid var(--pel-accent);
+    border-radius: var(--pel-radius);
+    background: transparent;
+    color: var(--pel-accent);
+    font: inherit;
+    cursor: pointer;
+}
+
+.phil-edit-lock-roster__take-over:focus-visible {
+    outline: 2px solid var(--pel-focus);
+    outline-offset: 2px;
+}

@@ -1,0 +1,64 @@
+{% extends layout %}
+
+{% block title %}Feature flags{% endblock %}
+
+{% block content %}
+    <h1>Feature flags</h1>
+
+    {% if can_create %}
+        <p><a href="{{ path('phil_feature_flags_admin_create') }}">New flag</a></p>
+    {% endif %}
+
+    <table>
+        <thead>
+        <tr>
+            <th scope="col">Flag</th>
+            <th scope="col">State</th>
+            <th scope="col">Kind</th>
+            <th scope="col">Targeting</th>
+            <th scope="col">Owner</th>
+            <th scope="col">Expires on</th>
+            <th scope="col">Source</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for entry in entries %}
+            {% set flag = entry.effective %}
+            <tr>
+                <th scope="row">
+                    <a href="{{ path('phil_feature_flags_admin_show', {name: flag.name.value}) }}">{{ flag.name.value }}</a>
+                    {% if flag.metadata.description %}<br><small>{{ flag.metadata.description }}</small>{% endif %}
+                </th>
+                <td>{{ flag.active ? 'active' : 'inactive' }}{% if entry.stored is not null %} (stored){% endif %}</td>
+                <td>{{ flag.metadata.kind.value ?? '' }}</td>
+                <td>
+                    {% if flag.experiment %}
+                        A/B by {{ flag.experiment.attribute.value }}: {% for variant in flag.experiment.variants %}{{ variant.name.value }} {{ variant.weight }} %{% if not loop.last %}, {% endif %}{% endfor %}
+                    {% elseif flag.rules is empty %}
+                        everyone
+                    {% else %}
+                        {{ flag.rules|length }} rule{{ flag.rules|length > 1 ? 's' : '' }}
+                    {% endif %}
+                </td>
+                <td>{{ flag.metadata.owner ?? '' }}</td>
+                <td>
+                    {% if flag.metadata.expiresOn %}
+                        {{ flag.metadata.expiresOn|date('Y-m-d', 'UTC') }}{% if flag.metadata.isExpiredAt(now) %} <strong>expired</strong>{% endif %}
+                    {% endif %}
+                </td>
+                <td>{{ entry.source }}</td>
+            </tr>
+        {% else %}
+            {% if unreadable is empty %}<tr><td colspan="7">No flag is declared.</td></tr>{% endif %}
+        {% endfor %}
+        {% for entry in unreadable %}
+            <tr>
+                <th scope="row"><a href="{{ path('phil_feature_flags_admin_show', {name: entry.name}) }}">{{ entry.name }}</a></th>
+                <td><strong>unreadable</strong></td>
+                <td colspan="4">{{ entry.reason }}</td>
+                <td>{{ entry.source }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

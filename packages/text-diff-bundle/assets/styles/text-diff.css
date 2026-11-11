@@ -1,0 +1,117 @@
+/*
+ * phil/text-diff-bundle — the stylesheet of a difference.
+ *
+ * Styles the ins and del of a difference, the blocks of a document difference and the views and current change of the
+ * comparison controller, inside an element with the class text-diff or under the controller (data-text-diff-mode).
+ * Insertions are underlined and deletions struck through as well as coloured, so that no change is told by colour
+ * alone. Light or dark as the system prefers, unless an ancestor carries data-theme="light" or data-theme="dark";
+ * light on paper. Every colour is a custom property under --text-diff-*, each meeting the WCAG AA contrast for normal
+ * text against the background it is shown on.
+ */
+:root,
+[data-theme="light"] {
+    --text-diff-inserted: #1c5a24;
+    --text-diff-inserted-background: #e3f2e5;
+    --text-diff-deleted: #8f1d1d;
+    --text-diff-deleted-background: #fbe7e7;
+    --text-diff-moved: #6a4a00;
+    --text-diff-moved-background: #fbf1d9;
+    --text-diff-changed: #1f5aa6;
+    --text-diff-focus: #1f5aa6;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --text-diff-inserted: #a6e3a1;
+        --text-diff-inserted-background: #1f3524;
+        --text-diff-deleted: #f5a3a3;
+        --text-diff-deleted-background: #3d2224;
+        --text-diff-moved: #f0d58a;
+        --text-diff-moved-background: #3a3120;
+        --text-diff-changed: #8ab8f5;
+        --text-diff-focus: #8ab8f5;
+    }
+}
+
+[data-theme="dark"] {
+    --text-diff-inserted: #a6e3a1;
+    --text-diff-inserted-background: #1f3524;
+    --text-diff-deleted: #f5a3a3;
+    --text-diff-deleted-background: #3d2224;
+    --text-diff-moved: #f0d58a;
+    --text-diff-moved-background: #3a3120;
+    --text-diff-changed: #8ab8f5;
+    --text-diff-focus: #8ab8f5;
+}
+
+:where(.text-diff, [data-text-diff-mode]) ins {
+    background: var(--text-diff-inserted-background);
+    color: var(--text-diff-inserted);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+}
+
+:where(.text-diff, [data-text-diff-mode]) del {
+    background: var(--text-diff-deleted-background);
+    color: var(--text-diff-deleted);
+    text-decoration: line-through;
+}
+
+:where(.text-diff, [data-text-diff-mode]) .text-diff-block {
+    margin-block: 0 0.75rem;
+    padding-inline-start: 0.75rem;
+    border-inline-start: 3px solid transparent;
+}
+
+:where(.text-diff, [data-text-diff-mode]) .text-diff-added {
+    border-inline-start-color: var(--text-diff-inserted);
+}
+
+:where(.text-diff, [data-text-diff-mode]) .text-diff-removed {
+    border-inline-start-color: var(--text-diff-deleted);
+}
+
+:where(.text-diff, [data-text-diff-mode]) .text-diff-changed {
+    border-inline-start-color: var(--text-diff-changed);
+}
+
+:where(.text-diff, [data-text-diff-mode]) .text-diff-moved {
+    border-inline-start-color: var(--text-diff-moved);
+    background: var(--text-diff-moved-background);
+}
+
+/* The old text alone hides what was inserted; the new text alone hides what was deleted. */
+[data-text-diff-mode="old"] ins,
+[data-text-diff-mode="old"] .text-diff-added,
+[data-text-diff-mode="new"] del,
+[data-text-diff-mode="new"] .text-diff-removed {
+    display: none;
+}
+
+[data-text-diff-mode] .text-diff-current {
+    outline: 2px solid var(--text-diff-focus);
+    outline-offset: 1px;
+}
+
+[data-text-diff-mode] [aria-pressed="true"] {
+    font-weight: 700;
+}
+
+@media print {
+    :root,
+    [data-theme] {
+        --text-diff-inserted: #1c5a24;
+        --text-diff-inserted-background: #e3f2e5;
+        --text-diff-deleted: #8f1d1d;
+        --text-diff-deleted-background: #fbe7e7;
+        --text-diff-moved: #6a4a00;
+        --text-diff-moved-background: #fbf1d9;
+        --text-diff-changed: #1f5aa6;
+        --text-diff-focus: #1f5aa6;
+    }
+
+    [data-text-diff-mode] .text-diff-current {
+        outline: 0;
+    }
+}

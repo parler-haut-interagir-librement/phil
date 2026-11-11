@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Heshan Shi', 'code' => 'Heshan Shi', 'localCode' => null, 'name' => 'Heshan Shi', 'localName' => '合山市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Jinxiu Xian', 'code' => 'Jinxiu Xian', 'localCode' => '金秀瑶族自治县', 'name' => 'Jinxiu Xian', 'localName' => '金秀县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Wuxuan Xian', 'code' => 'Wuxuan Xian', 'localCode' => null, 'name' => 'Wuxuan Xian', 'localName' => '武宣县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xiangzhou Xian', 'code' => 'Xiangzhou Xian', 'localCode' => null, 'name' => 'Xiangzhou Xian', 'localName' => '象州县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xincheng Xian', 'code' => 'Xincheng Xian', 'localCode' => null, 'name' => 'Xincheng Xian', 'localName' => '忻城县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xingbin Qu', 'code' => 'Xingbin Qu', 'localCode' => null, 'name' => 'Xingbin Qu', 'localName' => '兴宾区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

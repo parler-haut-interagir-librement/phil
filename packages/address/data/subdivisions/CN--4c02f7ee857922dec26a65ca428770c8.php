@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Keqiao Qu', 'code' => 'Keqiao Qu', 'localCode' => null, 'name' => 'Keqiao Qu', 'localName' => '柯桥区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Shangyu Shi', 'code' => 'Shangyu Shi', 'localCode' => null, 'name' => 'Shangyu Shi', 'localName' => '上虞市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Shengzhou Shi', 'code' => 'Shengzhou Shi', 'localCode' => null, 'name' => 'Shengzhou Shi', 'localName' => '嵊州市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xinchang Xian', 'code' => 'Xinchang Xian', 'localCode' => null, 'name' => 'Xinchang Xian', 'localName' => '新昌县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Yuecheng Qu', 'code' => 'Yuecheng Qu', 'localCode' => null, 'name' => 'Yuecheng Qu', 'localName' => '越城区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Zhuji Shi', 'code' => 'Zhuji Shi', 'localCode' => null, 'name' => 'Zhuji Shi', 'localName' => '诸暨市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

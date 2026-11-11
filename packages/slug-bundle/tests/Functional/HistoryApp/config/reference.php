@@ -256,6 +256,10 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  * @psalm-type WebLinkConfig = bool|array{ // Web links configuration
  *     enabled?: bool|Param, // Default: true
  * }
+ * @psalm-type LockConfig = Param|bool|string|array{
+ *     enabled?: bool|Param, // Default: true
+ *     resources?: Param|string|array<string, Param|string|list<mixed>>,
+ * }
  * @psalm-type MessengerConfig = bool|array{
  *     enabled?: bool|Param, // Default: true
  *     routing?: array<string, Param|string|list<scalar|Param|null>>,
@@ -365,6 +369,30 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         metadata?: array<string, mixed>,
  *     }>,
  * }
+ * @psalm-type HtmlSanitizerConfig = bool|array{
+ *     enabled?: bool|Param, // Default: true
+ *     sanitizers?: array<string, array{ // Default: []
+ *         default_action?: "drop"|"block"|"allow"|Param, // Defines how the sanitizer must behave by default.
+ *         allow_safe_elements?: bool|Param, // Allows "safe" elements and attributes. // Default: false
+ *         allow_static_elements?: bool|Param, // Allows all static elements and attributes from the W3C Sanitizer API standard. // Default: false
+ *         allow_elements?: array<string, mixed>,
+ *         block_elements?: Param|string|list<string|Param>,
+ *         drop_elements?: Param|string|list<string|Param>,
+ *         allow_attributes?: array<string, mixed>,
+ *         drop_attributes?: array<string, mixed>,
+ *         force_attributes?: array<string, array<string, string|Param>>,
+ *         force_https_urls?: bool|Param, // Transforms URLs using the HTTP scheme to use the HTTPS scheme instead. // Default: false
+ *         allowed_link_schemes?: Param|string|list<string|Param>,
+ *         allowed_link_hosts?: Param|null|string|list<string|Param>,
+ *         allow_relative_links?: bool|Param, // Allows relative URLs to be used in links href attributes. // Default: false
+ *         allowed_media_schemes?: Param|string|list<string|Param>,
+ *         allowed_media_hosts?: Param|null|string|list<string|Param>,
+ *         allow_relative_medias?: bool|Param, // Allows relative URLs to be used in media source attributes (img, audio, video, ...). // Default: false
+ *         with_attribute_sanitizers?: Param|string|list<string|Param>,
+ *         without_attribute_sanitizers?: Param|string|list<string|Param>,
+ *         max_input_length?: int|Param, // The maximum length allowed for the sanitized input. // Default: 0
+ *     }>,
+ * }
  * @psalm-type TypeInfoConfig = bool|array{
  *     enabled?: bool|Param, // Default: true
  *     aliases?: array<string, scalar|Param|null>,
@@ -390,6 +418,16 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     time_based_uuid_version?: 7|6|1|Param, // Default: 7
  *     time_based_uuid_node?: scalar|Param|null,
  *     uuid47_secret?: scalar|Param|null, // A high-entropy secret used by the "uuid47_transformer" service. Defaults to the "kernel.secret" parameter; the service is not registered when neither is defined. // Default: null
+ * }
+ * @psalm-type SchedulerConfig = bool|array{
+ *     enabled?: bool|Param, // Default: true
+ *     use_messenger_routing?: bool|Param|null, // Whether scheduled messages are routed to the Messenger senders configured for their class, as any other dispatched message is. A class with no sender configured still runs in the scheduler worker, and a "transports" option set on a task still wins. // Default: null
+ *     schedules?: array<string, array{ // Default: []
+ *         stateful?: bool|Param, // Whether the schedule keeps its state in the "cache.scheduler" pool and, when locks are enabled, runs in only one worker at a time. // Default: false
+ *         cache_pool?: scalar|Param|null, // The cache pool that stores the state of the schedule, so that a restarted worker resumes where the previous one stopped. // Default: null
+ *         lock_factory?: scalar|Param|null, // The service ID of the lock factory used to run the schedule in only one worker at a time. // Default: null
+ *         process_only_last_missed_run?: bool|Param, // Whether a task that missed several runs runs only once instead of once per missed run. // Default: false
+ *     }>,
  * }
  * @psalm-type AssetMapperConfig = bool|array{
  *     enabled?: bool|Param, // Default: true
@@ -553,6 +591,82 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         },
  *     }>,
  * }
+ * @psalm-type MailerConfig = bool|array{
+ *     enabled?: bool|Param, // Default: true
+ *     message_bus?: scalar|Param|null, // The message bus to use. Defaults to the default bus if the Messenger component is installed. // Default: null
+ *     dsn?: scalar|Param|null, // Default: null
+ *     transports?: array<string, Param|string|array{ // Default: []
+ *         dsn?: scalar|Param|null,
+ *         rate_limiter?: scalar|Param|null, // Rate limiter name used to limit the number of messages sent through this transport; when the limit is exceeded, sending fails with a RateLimitExceededException. // Default: null
+ *     }>,
+ *     envelope?: array{ // Mailer Envelope configuration
+ *         sender?: scalar|Param|null,
+ *         recipients?: Param|string|list<scalar|Param|null>,
+ *         allowed_recipients?: Param|string|list<scalar|Param|null>,
+ *     },
+ *     headers?: array<string, Param|string|array{ // Default: []
+ *         value?: mixed,
+ *     }>,
+ *     tracking?: array{ // Default open/click tracking for every message that does not carry an explicit "X-Track" header; null keeps each provider's default. An "X-Track" entry in the "headers" option wins over this one.
+ *         opens?: true|false|Param|null, // Default: null
+ *         clicks?: true|false|Param|null, // Default: null
+ *     },
+ *     dkim_signer?: bool|array{ // DKIM signer configuration
+ *         enabled?: bool|Param, // Default: false
+ *         key?: scalar|Param|null, // Key content, or path to key (in PEM format with the `file://` prefix) // Default: ""
+ *         domain?: scalar|Param|null, // Default: ""
+ *         select?: scalar|Param|null, // Default: ""
+ *         passphrase?: scalar|Param|null, // The private key passphrase // Default: ""
+ *         options?: array<string, mixed>,
+ *     },
+ *     smime_signer?: bool|array{ // S/MIME signer configuration
+ *         enabled?: bool|Param, // Default: false
+ *         key?: scalar|Param|null, // Path to key (in PEM format) // Default: ""
+ *         certificate?: scalar|Param|null, // Path to certificate (in PEM format without the `file://` prefix) // Default: ""
+ *         passphrase?: scalar|Param|null, // The private key passphrase // Default: null
+ *         extra_certificates?: scalar|Param|null, // Default: null
+ *         sign_options?: int|Param, // Default: null
+ *     },
+ *     smime_encrypter?: bool|array{ // S/MIME encrypter configuration
+ *         enabled?: bool|Param, // Default: false
+ *         repository?: scalar|Param|null, // S/MIME certificate repository service. This service shall implement the `Symfony\Component\Mailer\EventListener\SmimeCertificateRepositoryInterface`. // Default: ""
+ *         certificates?: array<string, scalar|Param|null>,
+ *         on_missing_certificate?: "send_unencrypted"|"fail"|"encrypt"|"skip"|Param, // Default behavior when a recipient has no S/MIME certificate: "send_unencrypted" (send the message unencrypted, deprecated since 8.2), "fail" (throw an exception), "encrypt" (encrypt for the recipients that have a certificate, the others receive an unreadable message), "skip" (encrypt for the recipients that have a certificate and drop the others from the envelope; note that "mailer.envelope.recipients" is applied afterwards and overrides that list). Can be overridden per message by setting the "X-SMime-Encrypt" header to one of these values. // Default: "send_unencrypted"
+ *         encrypt_for_sender?: bool|Param, // Also encrypt for the sender, when a certificate is available for its address, so that the sender can read the messages it sent. // Default: false
+ *         cipher?: int|Param, // A set of algorithms used to encrypt the message // Default: null
+ *     },
+ *     pgp_signer?: bool|array{ // PGP/MIME signer configuration
+ *         enabled?: bool|Param, // Default: false
+ *         secret_key?: scalar|Param|null, // Path to the secret key (ASCII armored format without the `file://` prefix) // Default: ""
+ *         public_key?: scalar|Param|null, // Path to the public key (ASCII armored format without the `file://` prefix) // Default: null
+ *         passphrase?: scalar|Param|null, // The secret key passphrase // Default: null
+ *         binary?: scalar|Param|null, // Path to the GnuPG binary // Default: "gpg"
+ *         digest_algorithm?: "SHA224"|"SHA256"|"SHA384"|"SHA512"|Param, // The digest algorithm used to sign the message // Default: "SHA512"
+ *     },
+ *     pgp_encrypter?: bool|array{ // PGP/MIME encrypter configuration
+ *         enabled?: bool|Param, // Default: false
+ *         repository?: scalar|Param|null, // Service or class implementing `Symfony\Component\Mailer\EventListener\PgpPublicKeyRepositoryInterface` to provide recipient PGP public keys. // Default: ""
+ *         keys?: array<string, scalar|Param|null>,
+ *         binary?: scalar|Param|null, // Path to the GnuPG binary // Default: "gpg"
+ *         cipher_algorithm?: "AES"|"AES192"|"AES256"|"TWOFISH"|"CAMELLIA128"|"CAMELLIA192"|"CAMELLIA256"|Param, // The cipher algorithm used to encrypt the message // Default: "AES256"
+ *         timeout?: float|Param, // Timeout in seconds for the GPG process (null for no timeout) // Default: 60.0
+ *         hide_recipients?: bool|Param, // Hide every recipient's key ID in the encrypted message (gpg --hidden-recipient). Recipients listed in the Bcc header are always hidden regardless of this option; set it to true to also hide To and Cc recipients. // Default: false
+ *         on_missing_key?: "fail"|"encrypt"|"skip"|Param, // Default behavior when a recipient has no PGP public key: "fail" (throw an exception), "encrypt" (encrypt for the recipients that have a key, the others receive an unreadable message), "skip" (encrypt for the recipients that have a key and drop the others from the envelope; note that "mailer.envelope.recipients" is applied afterwards and overrides that list). The message is never sent unencrypted. Can be overridden per message by setting the "X-Pgp-Encrypt" header to one of these values. // Default: "fail"
+ *         encrypt_for_sender?: bool|Param, // Also encrypt for the sender, when a public key is available for its address, so that the sender can read the messages it sent. // Default: false
+ *     },
+ * }
+ * @psalm-type NotifierConfig = bool|array{
+ *     enabled?: bool|Param, // Default: true
+ *     message_bus?: scalar|Param|null, // The message bus to use. Defaults to the default bus if the Messenger component is installed. // Default: null
+ *     chatter_transports?: array<string, scalar|Param|null>,
+ *     texter_transports?: array<string, scalar|Param|null>,
+ *     notification_on_failed_messages?: bool|Param, // Default: false
+ *     channel_policy?: array<string, Param|string|list<scalar|Param|null>>,
+ *     admin_recipients?: list<array{ // Default: []
+ *         email?: scalar|Param|null,
+ *         phone?: scalar|Param|null, // Default: ""
+ *     }>,
+ * }
  * @psalm-type FrameworkConfig = array{
  *     secret?: scalar|Param|null, // A secret that must not change. The options that sign data default to it and take a list of secrets to rotate theirs.
  *     http_method_override?: bool|Param, // Set true to enable support for the '_method' request parameter to determine the intended HTTP method on POST requests. // Default: false
@@ -637,16 +751,16 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     property_info?: PropertyInfoConfig,
  *     cache?: CacheConfig,
  *     web_link?: WebLinkConfig,
- *     lock?: mixed,
+ *     lock?: LockConfig,
  *     semaphore?: mixed,
  *     messenger?: MessengerConfig,
- *     scheduler?: mixed,
+ *     scheduler?: SchedulerConfig,
  *     http_client?: HttpClientConfig,
- *     mailer?: mixed,
- *     notifier?: mixed,
+ *     mailer?: MailerConfig,
+ *     notifier?: NotifierConfig,
  *     rate_limiter?: RateLimiterConfig,
  *     uid?: UidConfig,
- *     html_sanitizer?: mixed,
+ *     html_sanitizer?: HtmlSanitizerConfig,
  *     webhook?: mixed,
  *     remote_event?: mixed,
  *     json_streamer?: mixed,
@@ -908,15 +1022,20 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     validation?: ValidationConfig,
  *     translation?: TranslationConfig,
  *     web_link?: WebLinkConfig,
+ *     lock?: LockConfig,
  *     messenger?: MessengerConfig,
  *     workflow?: WorkflowConfig,
+ *     html_sanitizer?: HtmlSanitizerConfig,
  *     type_info?: TypeInfoConfig,
  *     property_access?: PropertyAccessConfig,
  *     property_info?: PropertyInfoConfig,
  *     uid?: UidConfig,
+ *     scheduler?: SchedulerConfig,
  *     asset_mapper?: AssetMapperConfig,
  *     rate_limiter?: RateLimiterConfig,
  *     http_client?: HttpClientConfig,
+ *     mailer?: MailerConfig,
+ *     notifier?: NotifierConfig,
  *     framework?: FrameworkConfig,
  *     doctrine?: DoctrineConfig,
  *     phil_slug?: PhilSlugConfig,
@@ -931,15 +1050,20 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         validation?: ValidationConfig,
  *         translation?: TranslationConfig,
  *         web_link?: WebLinkConfig,
+ *         lock?: LockConfig,
  *         messenger?: MessengerConfig,
  *         workflow?: WorkflowConfig,
+ *         html_sanitizer?: HtmlSanitizerConfig,
  *         type_info?: TypeInfoConfig,
  *         property_access?: PropertyAccessConfig,
  *         property_info?: PropertyInfoConfig,
  *         uid?: UidConfig,
+ *         scheduler?: SchedulerConfig,
  *         asset_mapper?: AssetMapperConfig,
  *         rate_limiter?: RateLimiterConfig,
  *         http_client?: HttpClientConfig,
+ *         mailer?: MailerConfig,
+ *         notifier?: NotifierConfig,
  *         framework?: FrameworkConfig,
  *         doctrine?: DoctrineConfig,
  *         phil_slug?: PhilSlugConfig,

@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Daye Shi', 'code' => 'Daye Shi', 'localCode' => null, 'name' => 'Daye Shi', 'localName' => '大冶市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Huangshigang Qu', 'code' => 'Huangshigang Qu', 'localCode' => null, 'name' => 'Huangshigang Qu', 'localName' => '黄石港区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Tieshan Qu', 'code' => 'Tieshan Qu', 'localCode' => null, 'name' => 'Tieshan Qu', 'localName' => '铁山区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xisaishan Qu', 'code' => 'Xisaishan Qu', 'localCode' => null, 'name' => 'Xisaishan Qu', 'localName' => '西塞山区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xialu Qu', 'code' => 'Xialu Qu', 'localCode' => null, 'name' => 'Xialu Qu', 'localName' => '下陆区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Yangxin Xian', 'code' => 'Yangxin Xian', 'localCode' => null, 'name' => 'Yangxin Xian', 'localName' => '阳新县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

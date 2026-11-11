@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Chindu Xian', 'code' => 'Chindu Xian', 'localCode' => null, 'name' => 'Chindu Xian', 'localName' => '称多县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Nangqên Xian', 'code' => 'Nangqên Xian', 'localCode' => null, 'name' => 'Nangqên Xian', 'localName' => '囊谦县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Qumarlêb Xian', 'code' => 'Qumarlêb Xian', 'localCode' => null, 'name' => 'Qumarlêb Xian', 'localName' => '曲麻莱县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Yushu Xian', 'code' => 'Yushu Xian', 'localCode' => null, 'name' => 'Yushu Xian', 'localName' => '玉树县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Zadoi Xian', 'code' => 'Zadoi Xian', 'localCode' => null, 'name' => 'Zadoi Xian', 'localName' => '杂多县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Zhidoi Xian', 'code' => 'Zhidoi Xian', 'localCode' => null, 'name' => 'Zhidoi Xian', 'localName' => '治多县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

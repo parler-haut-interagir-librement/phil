@@ -1,0 +1,17 @@
+{#
+    The trail to the current item:
+
+        {% include '@PhilMenu/breadcrumb.html.twig' with {menu: menu('main')} %}
+#}
+{%- set trail = menu.breadcrumb %}
+{%- if trail is not empty %}
+<nav aria-label="{{ 'menu.breadcrumb'|trans({}, 'phil_menu') }}" class="breadcrumb">
+    <ol>
+        {%- for item in trail %}
+            {%- set label = menu.translationDomain is null ? item.label : item.label|trans({}, menu.translationDomain) %}
+            {%- set href = item.route is not null ? path(item.route, item.routeParameters) : item.url %}
+            <li>{% if loop.last or href is null %}<span{% if loop.last %} aria-current="page"{% endif %}>{{ label }}</span>{% else %}<a href="{{ href }}">{{ label }}</a>{% endif %}</li>
+        {%- endfor %}
+    </ol>
+</nav>
+{%- endif %}

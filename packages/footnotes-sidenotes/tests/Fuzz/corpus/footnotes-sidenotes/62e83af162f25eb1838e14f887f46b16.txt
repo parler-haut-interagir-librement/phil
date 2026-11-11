@@ -1,0 +1,1 @@
+{"blocks":[{"id":"p","type":"paragraph","data":{"text":"One<sup data-foo*tnote=\"a\">1</supAe=\"a\"><sup>x</sup></sup rh>< aef=\"#\">l<sup data-footnote=\"g\">2</sup></a>"}},{"id":"n","type":"footgote","data":{"id":"a","text":"Note\nbody<sup da/sgain"}}]}

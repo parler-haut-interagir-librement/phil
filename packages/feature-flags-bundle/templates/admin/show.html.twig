@@ -1,0 +1,63 @@
+{% extends layout %}
+
+{% set flag = effective %}
+
+{% block title %}{{ flag.name.value }} — Feature flags{% endblock %}
+
+{% block content %}
+    <p><a href="{{ path('phil_feature_flags_admin_list') }}">All flags</a></p>
+
+    <h1>{{ flag.name.value }}</h1>
+
+    {% if done %}<p role="status">The flag was {{ done }}.</p>{% endif %}
+    {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+
+    {% if flag.metadata.description %}<p>{{ flag.metadata.description }}</p>{% endif %}
+
+    <dl>
+        <dt>State</dt>
+        <dd>
+            {{ flag.active ? 'active' : 'inactive' }}
+            {% if entry.stored is null %}(as declared by {{ entry.source }}){% else %}(stored; declared {{ entry.declared.active ? 'active' : 'inactive' }} by {{ entry.source }}){% endif %}
+        </dd>
+        <dt>Kind</dt>
+        <dd>{{ flag.metadata.kind.value ?? '—' }}</dd>
+        <dt>Owner</dt>
+        <dd>{{ flag.metadata.owner ?? '—' }}</dd>
+        <dt>Expires on</dt>
+        <dd>
+            {% if flag.metadata.expiresOn %}{{ flag.metadata.expiresOn|date('Y-m-d', 'UTC') }}{% if expired %} <strong>expired</strong>{% endif %}{% else %}—{% endif %}
+        </dd>
+        <dt>Rules</dt>
+        <dd>
+            {% for rule in flag.rules %}
+                {% if rule.members is defined %}
+                    <div>{{ rule.attribute.value }} in {{ rule.members|join(', ') }}</div>
+                {% else %}
+                    <div>{{ rule.percentage.value }} % of each {{ rule.attribute.value }}</div>
+                {% endif %}
+            {% else %}
+                On for every context while active.
+            {% endfor %}
+        </dd>
+        {% if flag.experiment %}
+            <dt>Experiment</dt>
+            <dd>
+                By {{ flag.experiment.attribute.value }}:
+                {% for variant in flag.experiment.variants %}{{ variant.name.value }} {{ variant.weight }} %{% if not loop.last %}, {% endif %}{% endfor %}
+            </dd>
+        {% endif %}
+    </dl>
+
+    {% if editable %}
+        <p><a href="{{ path('phil_feature_flags_admin_edit', {name: flag.name.value}) }}">Edit the rules and metadata</a></p>
+    {% endif %}
+
+    <h2>{{ flag.active ? 'Deactivate' : 'Activate' }}</h2>
+    <form method="post" action="{{ path('phil_feature_flags_admin_toggle', {name: flag.name.value}) }}">
+        <input type="hidden" name="active" value="{{ flag.active ? '0' : '1' }}">
+        <label for="reason">Reason</label>
+        <textarea id="reason" name="reason" required maxlength="1000"></textarea>
+        <button type="submit">{{ flag.active ? 'Deactivate' : 'Activate' }}</button>
+    </form>
+{% endblock %}

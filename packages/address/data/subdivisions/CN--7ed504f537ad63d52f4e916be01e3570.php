@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Bayuquan Qu', 'code' => 'Bayuquan Qu', 'localCode' => null, 'name' => 'Bayuquan Qu', 'localName' => '鲅鱼圈区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Dashiqiao Shi', 'code' => 'Dashiqiao Shi', 'localCode' => null, 'name' => 'Dashiqiao Shi', 'localName' => '大石桥市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Gaizhou Shi', 'code' => 'Gaizhou Shi', 'localCode' => null, 'name' => 'Gaizhou Shi', 'localName' => '盖州市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Laobian Qu', 'code' => 'Laobian Qu', 'localCode' => null, 'name' => 'Laobian Qu', 'localName' => '老边区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xishi Qu', 'code' => 'Xishi Qu', 'localCode' => null, 'name' => 'Xishi Qu', 'localName' => '西市区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Zhanqian Qu', 'code' => 'Zhanqian Qu', 'localCode' => null, 'name' => 'Zhanqian Qu', 'localName' => '站前区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

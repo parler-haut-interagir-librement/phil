@@ -1,0 +1,1 @@
+<table><tr><th>a</th></tr><tr><td>1</td></tr></table><figure><img src="a.png" alt="x"><figcaption>c</figcaption></figure><script>x</script>

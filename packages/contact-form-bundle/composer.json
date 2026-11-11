@@ -1,0 +1,66 @@
+{
+    "name": "phil/contact-form-bundle",
+    "description": "A \"write to us\" form for Symfony: name, email, subject and message, protected by phil/spam-protection-bundle without a captcha, sent by Symfony Mailer from the site's own address with the visitor in Reply-To",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "contact-form",
+        "mailer",
+        "spam-protection",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-filter": "*",
+        "phil/spam-protection-bundle": "^0.1@dev",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/mailer": "^8.2",
+        "symfony/mime": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/validator": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "phil/spam-protection": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bundle": "^8.2"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ContactFormBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ContactFormBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

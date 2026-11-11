@@ -1,0 +1,16 @@
+{#
+    The contact page as the bundle renders it; an application gives its own, extending its layout and including
+    '@PhilContactForm/_form.html.twig', with the key template.
+#}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ 'contact_form.title'|trans({}, 'phil_contact_form') }}</title>
+</head>
+<body>
+    <h1>{{ 'contact_form.title'|trans({}, 'phil_contact_form') }}</h1>
+    {{ include('@PhilContactForm/_form.html.twig') }}
+</body>
+</html>

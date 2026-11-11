@@ -1,0 +1,46 @@
+{
+    "name": "phil/reservation",
+    "description": "The core of bookings for PHP: a resource with its capacity, buffers, opening hours and rules; requests checked against the bookings made, with the reasons they are refused; the free slots of a period; and the reminders of a booking",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "reservation",
+        "booking",
+        "availability",
+        "scheduling",
+        "slots"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Reservation\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Reservation\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

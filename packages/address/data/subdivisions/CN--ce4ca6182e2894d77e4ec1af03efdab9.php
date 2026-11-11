@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Daiyue Qu', 'code' => 'Daiyue Qu', 'localCode' => null, 'name' => 'Daiyue Qu', 'localName' => '岱岳区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Dongping Xian', 'code' => 'Dongping Xian', 'localCode' => null, 'name' => 'Dongping Xian', 'localName' => '东平县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Feicheng Shi', 'code' => 'Feicheng Shi', 'localCode' => null, 'name' => 'Feicheng Shi', 'localName' => '肥城市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Ningyang Xian', 'code' => 'Ningyang Xian', 'localCode' => null, 'name' => 'Ningyang Xian', 'localName' => '宁阳县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Taishan Qu', 'code' => 'Taishan Qu', 'localCode' => null, 'name' => 'Taishan Qu', 'localName' => '泰山区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xintai Shi', 'code' => 'Xintai Shi', 'localCode' => null, 'name' => 'Xintai Shi', 'localName' => '新泰市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

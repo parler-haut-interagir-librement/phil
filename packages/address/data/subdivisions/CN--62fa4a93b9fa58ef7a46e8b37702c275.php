@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Baisha Township', 'code' => 'Baisha Township', 'localCode' => null, 'name' => 'Baisha Township', 'localName' => '白沙鄉', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Huxi Township', 'code' => 'Huxi Township', 'localCode' => null, 'name' => 'Huxi Township', 'localName' => '湖西鄉', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Magong City', 'code' => 'Magong City', 'localCode' => null, 'name' => 'Magong City', 'localName' => '馬公市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Qimei Township', 'code' => 'Qimei Township', 'localCode' => null, 'name' => 'Qimei Township', 'localName' => '七美鄉', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => "Wang'an Township", 'code' => "Wang'an Township", 'localCode' => null, 'name' => "Wang'an Township", 'localName' => '望安鄉', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xiyu Township', 'code' => 'Xiyu Township', 'localCode' => null, 'name' => 'Xiyu Township', 'localName' => '西嶼鄉', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

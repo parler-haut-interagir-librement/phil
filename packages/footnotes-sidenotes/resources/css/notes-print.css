@@ -1,0 +1,39 @@
+/*!
+ * phil/footnotes-sidenotes — notes at the foot of the printed page, in CSS GCPM. MIT License.
+ *
+ * For an engine that floats footnotes ((WeasyPrint)). The calls and the markers show the
+ * labels the resolver gave, so that roman numerals, symbols and restarts hold in print.
+ */
+.isPageNote {
+    float: footnote;
+    font-size: 0.8em;
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1.25;
+    text-align: start;
+    text-indent: 0;
+}
+
+.isPageNote::footnote-call {
+    content: attr(data-note-label);
+    font-size: 0.7em;
+    line-height: 0;
+    vertical-align: super;
+}
+
+.isPageNote::footnote-marker {
+    content: attr(data-note-label) ". ";
+}
+
+@page {
+    @footnote {
+        margin-top: 3mm;
+        padding-top: 1.5mm;
+        border-top: 0.4pt solid currentColor;
+    }
+}
+
+.isNoteBacklink,
+.isSidenoteSwitch {
+    display: none;
+}

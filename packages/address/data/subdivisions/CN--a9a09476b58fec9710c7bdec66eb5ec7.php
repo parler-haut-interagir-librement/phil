@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Anhua Xian', 'code' => 'Anhua Xian', 'localCode' => null, 'name' => 'Anhua Xian', 'localName' => '安化县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Heshan Qu', 'code' => 'Heshan Qu', 'localCode' => null, 'name' => 'Heshan Qu', 'localName' => '赫山区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Nan Xian', 'code' => 'Nan Xian', 'localCode' => null, 'name' => 'Nan Xian', 'localName' => '南县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Taojiang Xian', 'code' => 'Taojiang Xian', 'localCode' => null, 'name' => 'Taojiang Xian', 'localName' => '桃江县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Yuanjiang Shi', 'code' => 'Yuanjiang Shi', 'localCode' => null, 'name' => 'Yuanjiang Shi', 'localName' => '沅江市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Ziyang Qu', 'code' => 'Ziyang Qu', 'localCode' => null, 'name' => 'Ziyang Qu', 'localName' => '资阳区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

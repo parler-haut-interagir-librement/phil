@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Chibi Shi', 'code' => 'Chibi Shi', 'localCode' => null, 'name' => 'Chibi Shi', 'localName' => '赤壁市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Chongyang Xian', 'code' => 'Chongyang Xian', 'localCode' => null, 'name' => 'Chongyang Xian', 'localName' => '崇阳县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Jiayu Xian', 'code' => 'Jiayu Xian', 'localCode' => null, 'name' => 'Jiayu Xian', 'localName' => '嘉鱼县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Tongcheng Xian', 'code' => 'Tongcheng Xian', 'localCode' => null, 'name' => 'Tongcheng Xian', 'localName' => '通城县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Tongshan Xian', 'code' => 'Tongshan Xian', 'localCode' => null, 'name' => 'Tongshan Xian', 'localName' => '通山县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => "Xian'an Qu", 'code' => "Xian'an Qu", 'localCode' => null, 'name' => "Xian'an Qu", 'localName' => '咸安区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

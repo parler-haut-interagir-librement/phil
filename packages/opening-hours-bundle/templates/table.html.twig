@@ -1,0 +1,24 @@
+{#
+    The hours of a place, in the request's language:
+
+        {% include '@PhilOpeningHours/table.html.twig' with {hours: shop.hours} %}
+#}
+<table class="opening-hours">
+    {%- for row in opening_hours_week(hours) %}
+        <tr>
+            <th scope="row">{{ row.heading }}</th>
+            <td>{{ row.hours ?? 'opening_hours.closed'|trans({}, 'phil_opening_hours') }}</td>
+        </tr>
+    {%- endfor %}
+</table>
+{%- set specials = opening_hours_specials(hours) %}
+{%- if specials is not empty %}
+    <table class="opening-hours opening-hours--special">
+        {%- for special in specials %}
+            <tr>
+                <th scope="row">{{ special.period }}{% if special.label %} <span>{{ special.label }}</span>{% endif %}</th>
+                <td>{{ special.hours ?? 'opening_hours.closed'|trans({}, 'phil_opening_hours') }}</td>
+            </tr>
+        {%- endfor %}
+    </table>
+{%- endif %}

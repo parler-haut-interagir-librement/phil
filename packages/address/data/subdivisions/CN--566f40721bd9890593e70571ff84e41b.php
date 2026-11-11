@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Gaogang Qu', 'code' => 'Gaogang Qu', 'localCode' => null, 'name' => 'Gaogang Qu', 'localName' => '高港区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Hailing Qu', 'code' => 'Hailing Qu', 'localCode' => null, 'name' => 'Hailing Qu', 'localName' => '海陵区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Jiangyan Shi', 'code' => 'Jiangyan Shi', 'localCode' => null, 'name' => 'Jiangyan Shi', 'localName' => '姜堰市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Jingjiang Shi', 'code' => 'Jingjiang Shi', 'localCode' => null, 'name' => 'Jingjiang Shi', 'localName' => '靖江市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Taixing Shi', 'code' => 'Taixing Shi', 'localCode' => null, 'name' => 'Taixing Shi', 'localName' => '泰兴市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xinghua Shi', 'code' => 'Xinghua Shi', 'localCode' => null, 'name' => 'Xinghua Shi', 'localName' => '兴化市', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];

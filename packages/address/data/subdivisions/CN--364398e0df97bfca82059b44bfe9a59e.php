@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+
+// Generated from commerceguys/addressing's data (MIT License) by Phil\Address\Data\DataImporter.
+return ['locale' => 'zh-Hans', 'subdivisions' => [['id' => 'Benxi Xian', 'code' => 'Benxi Xian', 'localCode' => '本溪满族自治县', 'name' => 'Benxi Xian', 'localName' => '本溪县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Huanren Xian', 'code' => 'Huanren Xian', 'localCode' => '桓仁满族自治县', 'name' => 'Huanren Xian', 'localName' => '桓仁县', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Mingshan Qu', 'code' => 'Mingshan Qu', 'localCode' => null, 'name' => 'Mingshan Qu', 'localName' => '明山区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Nanfen Qu', 'code' => 'Nanfen Qu', 'localCode' => null, 'name' => 'Nanfen Qu', 'localName' => '南芬区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Pingshan Qu', 'code' => 'Pingshan Qu', 'localCode' => null, 'name' => 'Pingshan Qu', 'localName' => '平山区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false], ['id' => 'Xihu Qu', 'code' => 'Xihu Qu', 'localCode' => null, 'name' => 'Xihu Qu', 'localName' => '溪湖区', 'isoCode' => null, 'postalCodePattern' => null, 'hasChildren' => false]]];
