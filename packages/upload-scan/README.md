@@ -14,7 +14,7 @@ disk. The scanner bounds what it sends with a size limit and every read and writ
 error result instead of throwing when clamd is down. `NullScanner` and `FakeScanner`, which finds the EICAR test
 string, stand in for clamd in tests.
 
-It is a plain PHP library, written from scratch, with no dependency: no third-party ClamAV client, no extension
+It is a plain PHP library with no dependency: no third-party ClamAV client, no extension
 beyond those PHP builds by default. A scanner keeps nothing between two files, so one instance serves every request of
 a long-running worker.
 

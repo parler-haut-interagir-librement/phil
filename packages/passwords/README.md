@@ -14,7 +14,7 @@ two constraints refuse weak and leaked passwords in a form.
 It is for any PHP application that lets people choose a password: a sign-up form and its strength meter, a change of
 password, an identity provider, an administration that creates accounts.
 
-It is a plain PHP library, written from scratch, with its own dictionaries, keyboard layouts and wordlists. The
+It is a plain PHP library with its own dictionaries, keyboard layouts and wordlists. The
 estimator takes zxcvbn's published approach as its model — patterns, guesses and the search for the cheapest cover —,
 and none of its code nor its data. The HTTP source uses `symfony/http-client-contracts`, the constraints
 `symfony/validator`; the rest needs neither.

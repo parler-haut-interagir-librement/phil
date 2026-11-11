@@ -6,7 +6,7 @@ font participer et protègent leurs visiteurs.**
 
 PHIL est un ensemble de petits paquets `phil/*` qui font chacun une seule chose : une bibliothèque en PHP pur, le plus
 souvent accompagnée d'un bundle Symfony qui la branche aux formulaires, à la validation, à Twig, à Doctrine et à la
-configuration. Ils sont écrits de zéro, typés pour PHPStan à son niveau maximal et testés jusqu'à la mutation de chaque
+configuration. Ils sont typés pour PHPStan à son niveau maximal et testés jusqu'à la mutation de chaque
 ligne de leur domaine.
 
 Ce dépôt est le **monodépôt** où tous les paquets sont développés, testés et documentés ensemble. Chaque paquet est

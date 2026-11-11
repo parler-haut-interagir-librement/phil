@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=82e6b4a434b215451e22530a58dfef1eb2adb07a2f096e7b58b1f6ea535b8ec7 -->
+<!-- phil-dev source-sha256=9eb052638b088dfc0db647b3c40cafa0c9a88c04c8d95c8ada2e2ee6d70ace24 -->
 # phil/open-badges
 
 **Des Open Badges 3.0 que tout le monde peut vérifier : émis, signés, intégrés à l'image, révoqués, appuyés et
@@ -15,7 +15,7 @@ certificats, une communauté qui remercie ses bénévoles, un événement qui re
 ne lit aucun compte et ne stocke rien : l'application dit qui est le destinataire, tel qu'il se présente, et garde ce
 qu'elle a émis.
 
-C'est une simple bibliothèque PHP, écrite de zéro, qui n'exige que PHP et ses extensions. Un titre est sécurisé de
+C'est une simple bibliothèque PHP qui n'exige que PHP et ses extensions. Un titre est sécurisé de
 l'une des deux façons que reconnaît Open Badges 3.0 : comme un JSON Web Token (`EdDSA` ou `RS256`), ou avec une preuve
 Data Integrity intégrée de la suite cryptographique `eddsa-rdfc-2022`. Pour celle-ci, la bibliothèque a son propre
 processeur JSON-LD et sa propre canonicalisation RDF. La vérification ne télécharge jamais rien : les contextes

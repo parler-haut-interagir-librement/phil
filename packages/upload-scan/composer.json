@@ -1,6 +1,6 @@
 {
     "name": "phil/upload-scan",
-    "description": "Antivirus scanning of uploaded files behind a port: clean, infected with a signature, or not scanned with a reason; a clamd adapter that speaks the protocol itself over a Unix or TCP socket, in chunks, with a size limit and timeouts; a null and an EICAR-detecting fake scanner for tests; and a policy that rejects, or accepts and flags, what could not be scanned",
+    "description": "Antivirus scanning of uploaded files behind a port: clean, infected with a signature, or not scanned with a reason; a clamd adapter that speaks the protocol itself over a Unix or TCP socket, in chunks, with a size limit and timeouts; null and EICAR fake scanners for tests; and a policy that rejects, or accepts and flags, what was not scanned",
     "license": "MIT",
     "type": "library",
     "keywords": [

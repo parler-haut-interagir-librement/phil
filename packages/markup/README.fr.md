@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f1117915a53f8548e2f9aeff48ef1423d31fcd54d04ca08225946635a7300b7e -->
+<!-- phil-dev source-sha256=d9be2582a8379202d88044447703ecd2ce79ada5a3a59edd4c0c26239c8bfdcb -->
 # phil/markup
 
 **Du Markdown, du BBCode, du MediaWiki, du DokuWiki, du Creole, de l'UJO, du HTML ou du texte brut, changés en HTML
@@ -32,7 +32,7 @@ assainissement, et le HTML stocké peut être assaini de nouveau à l'affichage 
 aussi les textes plus anciens. Dans une application Symfony, phil/markup-bundle enregistre les services et ajoute les
 filtres Twig `markup_html` et `markup_purify`. phil/content-bundle compile et assainit son corps de texte avec lui.
 
-C'est une simple bibliothèque PHP, écrite de zéro, avec des attributs Doctrine sur `MarkedUpText`, lus seulement quand
+C'est une simple bibliothèque PHP avec des attributs Doctrine sur `MarkedUpText`, lus seulement quand
 Doctrine le mappe. Son espace de noms racine contient ce qu'un modèle de domaine peut nommer : les enums `MarkupFormat`
 et `Level`, les ports `MarkupCompiler`, `LevelAwareCompiler` et `HtmlPurifier`, et les exceptions. `Lexer` contient
 l'analyseur que partagent tous les lecteurs, un curseur qui fait l'analyse lexicale sans expressions régulières ;

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=053284fda9b8fcb1442b41522ac63974d1777d7dd93635dc079a1f37d86c8922 -->
+<!-- phil-dev source-sha256=1581e7fcc3418366252d41d467097345d58dac80f878afabe5b583d00d09f458 -->
 # phil/route-access-check-bundle
 
 **`bin/console phil:route-access:check` : chaque route de l'application a une règle d'accès, sinon l'étape
@@ -17,7 +17,7 @@ fichiers de configuration fusionnés. La vérification voit donc exactement ce q
 `when@`, la configuration en PHP, les paramètres, les entrées `route:`. Il enregistre ses services dans les
 environnements `dev` et `test` seulement : aucun écouteur, rien en production.
 
-Il est écrit de zéro, sur les composants que Symfony fournit déjà : Config et DependencyInjection pour la
+Il repose sur les composants que Symfony fournit déjà : Config et DependencyInjection pour la
 configuration et la passe de compilation, Console pour la commande, Filesystem pour le fichier de ligne de base.
 
 ## État

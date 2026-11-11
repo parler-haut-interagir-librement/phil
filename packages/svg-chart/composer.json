@@ -1,6 +1,6 @@
 {
     "name": "phil/svg-chart",
-    "description": "Charts written from scratch in PHP and drawn as SVG: bars, lines, pies and doughnuts from the shape of a Chart.js configuration, round ticks, a legend, colours told apart by every colour vision, and a description that reads every value",
+    "description": "Charts in PHP, drawn as SVG: bars, lines, pies and doughnuts from the shape of a Chart.js configuration, round ticks, a legend, colours told apart by every colour vision, and a description that reads every value",
     "license": "MIT",
     "type": "library",
     "keywords": [

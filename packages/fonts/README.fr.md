@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=02ad5ba6c8a1edc38a96875585a1ce3149cfca8d9dc6f03738541be40dc2ffc2 -->
+<!-- phil-dev source-sha256=507d6c0c0f6ec93d19315552fbee683fe017d0613dc52694eeccec43dfb7223b -->
 # phil/fonts
 
 **Ce qu'un fichier de police dit de lui-même (ses noms, sa graisse, sa licence d'incorporation) et la règle `@font-face`
@@ -20,7 +20,7 @@ licence, une étape de construction qui refuse une police dont elle ne connaît 
 incorpore des polices TrueType dans des documents PDF ; cette bibliothèque permet à une application de les vérifier
 d'abord.
 
-C'est une simple bibliothèque PHP, écrite de zéro à partir des spécifications OpenType 1.9.1, WOFF 1.0 et WOFF 2.0, dont
+C'est une simple bibliothèque PHP qui suit les spécifications OpenType 1.9.1, WOFF 1.0 et WOFF 2.0 et dont
 les seuls prérequis sont `ext-mbstring` et `ext-zlib`. WOFF2 compresse ses tables avec Brotli, que PHP ne décode pas
 seul. Un fichier WOFF2 est donc lu au moyen d'un décompresseur que l'application fournit, `Brotli::decompressor()`, qui
 vaut `brotli_uncompress()` lorsque `ext-brotli` est chargée. Sans cette extension, les fichiers WOFF, TrueType et

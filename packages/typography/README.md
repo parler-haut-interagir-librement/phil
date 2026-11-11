@@ -15,10 +15,10 @@ or on plain text. A preset gives each locale the fixers it needs, in the right o
 is all most applications write. In Symfony, `phil/typography-bundle` adds the Twig filters and fixes the HTML of UJO
 documents.
 
-It is a plain PHP library, written from scratch on the model of JoliTypo, with no dependency beyond the `dom`, `intl`,
-`libxml` and `mbstring` extensions. Hyphenation is Liang's algorithm, the one TeX uses, implemented anew; the patterns are
-imported from hyph-utf8, for the 69 languages whose licence permits them in an MIT package, each recorded in
-`data/LICENSES`, and written from scratch for Czech, Hungarian, Armenian, Indonesian, Latvian, Macedonian and Romanian,
+It is a plain PHP library modelled on JoliTypo, with no dependency beyond the `dom`, `intl`, `libxml` and `mbstring`
+extensions. Hyphenation is Liang's algorithm, the one TeX uses, implemented in PHP; the patterns are imported from
+hyph-utf8, for the 69 languages whose licence permits them in an MIT package, each recorded in `data/LICENSES`, and
+generated for Czech, Hungarian, Armenian, Indonesian, Latvian, Macedonian and Romanian
 from the orthographic rules of each language; the Armenian and Macedonian ones are experimental and served only when
 asked for. Thai, which breaks lines without a hyphen, gets zero-width spaces
 between its words from the ICU dictionary of `ext-intl`.

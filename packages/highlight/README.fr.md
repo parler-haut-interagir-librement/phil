@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0e36c0484765d9a0384205687da4013d7000b2abc1d5df467ba5dc39450f1709 -->
+<!-- phil-dev source-sha256=1b32e844df2124131833567bba51c2212f2c359d1730a7c8bd8df6e7c0312a4d -->
 # phil/highlight
 
 **Du code en 24 langages coloré sur le serveur, en simples balises span HTML que n'importe quelle feuille de style peut
@@ -17,7 +17,7 @@ brut, et fonctionne dans un lecteur de fils, un courriel ou un PDF. Les mêmes c
 navigateur par le contrôleur de coloration de `phil/ux-bundle` : un même thème sert donc aux deux. Le moteur de rendu
 de `phil/ujo` prend le colorateur pour les blocs de code d'un document.
 
-C'est une simple bibliothèque PHP, écrite de zéro, sans dépendance. Chaque analyseur lexical lit la source une seule
+C'est une simple bibliothèque PHP sans dépendance. Chaque analyseur lexical lit la source une seule
 fois, de gauche à droite, octet par octet avec `strspn` et `strcspn`, et ne garde aucune expression régulière sur son
 chemin critique ; les sources hostiles (cent mille guillemets ou crochets ouverts) sont lues en temps linéaire. Il
 colore ce dont un lecteur a besoin et rien de plus : ce n'est pas un analyseur syntaxique, il ne vérifie pas la

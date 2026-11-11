@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=26c379a326cbd43b7620fa73467189e57f0e46f425ff42120480311f3bdbdd7f -->
+<!-- phil-dev source-sha256=48b15261595270f977fe3706a6e2a79ba7442ea25f832fa5d11795634bffc895 -->
 # phil/svg-chart
 
 **Des graphiques dessinés en SVG sur le serveur, à partir de la configuration qu'écrit déjà un éditeur de graphiques.**
@@ -13,7 +13,7 @@ Il s'adresse à tout code PHP qui doit afficher un graphique sans script : un bl
 son enregistrement, un PDF, un courriel, une page lue sans JavaScript. La configuration est vérifiée par rapport à des
 limites : celle qu'envoie un client ne coûte donc pas plus qu'une grande configuration honnête.
 
-C'est une simple bibliothèque PHP, écrite de zéro, au-dessus de `ext-mbstring`. Sa sortie est déterministe.
+C'est une simple bibliothèque PHP au-dessus de `ext-mbstring`. Sa sortie est déterministe.
 
 ## État
 

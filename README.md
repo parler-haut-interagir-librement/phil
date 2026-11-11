@@ -4,8 +4,8 @@
 and protect their visitors.**
 
 PHIL is a set of small `phil/*` packages, each doing one thing: a library in plain PHP, usually paired with a Symfony
-bundle that wires it into forms, validation, Twig, Doctrine and configuration. They are written from scratch, typed for
-PHPStan at its maximum level, and tested down to the mutation of every line of their domain.
+bundle that wires it into forms, validation, Twig, Doctrine and configuration. They are typed for PHPStan at its maximum
+level and tested down to the mutation of every line of their domain.
 
 This repository is the **monorepo** where every package is developed, tested and documented together. Each package is
 then split into its own **read-only** repository, from which Composer installs it through Packagist.

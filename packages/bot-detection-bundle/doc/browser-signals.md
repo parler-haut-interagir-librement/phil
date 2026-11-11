@@ -1,7 +1,7 @@
 # Browser signals
 
 The browser code is a Stimulus controller, `verdict` (`assets/src/verdict_controller.js`), and its detectors
-(`assets/src/detectors.js`), written from scratch. It lets one word out of the browser: `human` or `robot`.
+(`assets/src/detectors.js`). It lets one word out of the browser: `human` or `robot`.
 
 | Piece | State |
 |---|---|
@@ -85,10 +85,9 @@ policy: by the time a verdict reaches the server, it is already robot or human.
 
 ## Design references
 
-The detectors are **written from scratch**. The projects below are read detector by detector to understand what a
-signal measures, and only what serves a robot-or-human verdict inspires a detector. **No line of their code is
-copied.** A source that is not open source is not read at all: rewriting code under a licence that forbids
-redistribution would make a derivative work. Licences are those of the files read on 2026-10-30.
+The projects below are read detector by detector to understand what a signal measures, and only what serves a
+robot-or-human verdict inspires a detector. A source that is not open source is not read at all: rewriting code under a
+licence that forbids redistribution would make a derivative work. Licences are those of the files read on 2026-10-30.
 
 | Reference | Licence read | Version read | What inspires a detector | Left out |
 |---|---|---|---|---|

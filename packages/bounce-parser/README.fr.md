@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=de5e1c673de4797b8467f243701dcdf90939e587d158f27b27483648f2790d6c -->
+<!-- phil-dev source-sha256=4572ff1e39b32a7f2b2d55732722e68e28be32dc131a90f7d7cad5181c45ad74 -->
 # phil/bounce-parser
 
 **Sachez ce que dit chaque message de votre boîte de rebonds, et quoi faire de l'adresse qu'il nomme.**
@@ -16,7 +16,7 @@ boîte de courriel : une infolettre, les notifications d'un site, une liste de d
 rebonds en compteurs de rebonds durs et temporaires, en désabonnements sur plainte, et en une courte file de messages à
 faire lire par une personne.
 
-C'est une bibliothèque PHP simple, écrite de zéro, dont les prérequis sont `ext-ctype`, `ext-iconv`, `ext-mbstring` et
+C'est une bibliothèque PHP simple dont les prérequis sont `ext-ctype`, `ext-iconv`, `ext-mbstring` et
 `ext-sodium`. Son lecteur MIME ne lève jamais d'exception, quoi que contienne le message, et borne son travail : octets
 lus, profondeur, parties, champs d'en-tête et texte. Un rapport de plainte ne désabonne que lorsqu'un authentificateur
 s'en porte garant.

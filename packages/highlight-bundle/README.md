@@ -12,7 +12,7 @@ block editor or in Markdown comes out coloured with nothing to write, and a temp
 `{{ snippet|highlight('php') }}`. The page needs no script; the highlight controller of `phil/ux-bundle` still
 colours, in the browser, the blocks whose language the server does not know.
 
-It is a thin bundle, written from scratch, over `symfony/config` and `symfony/dependency-injection`. Twig,
+It is a thin bundle built on `symfony/config` and `symfony/dependency-injection`. Twig,
 `phil/ujo-bundle` and AssetMapper are optional: the filter is registered only when Twig is installed, the code blocks
 are coloured only when that bundle's renderer is in the container, and the stylesheet is mapped only when AssetMapper
 is installed.

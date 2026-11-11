@@ -10,7 +10,7 @@ their lines. It can also describe a recurrence as a schema.org `Schedule`. It do
 frequencies, week numbers or year days, nor periods of `RDATE`.
 
 It is for any PHP application whose events repeat: a weekly meeting, a monthly club night, a yearly festival. Rules
-follow the RFC so that they travel to and from other calendars unchanged. The library is written from scratch from
+follow the RFC so that they travel to and from other calendars unchanged. The library follows
 RFC 5545 and depends on nothing but PHP and `ext-mbstring`. It is not a calendar: `phil/calendar-bundle` is one,
 built on it. In a Symfony application, `phil/recurrence-bundle` adds a form, a Doctrine column type and Twig
 functions around it.

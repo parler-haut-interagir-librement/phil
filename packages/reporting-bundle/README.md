@@ -19,7 +19,7 @@ written from the command line, or scheduled with Symfony Scheduler and delivered
 Messenger worker. A message carries an identifier only: the job, with its recipients and parameters, and the
 exported file wait in stores readable by their owner — the claim check.
 
-It is written from scratch. The library `phil/svg-chart` draws the images; Symfony UX, Messenger, Scheduler, Mailer,
+It relies on the library `phil/svg-chart` to draw the images; Symfony UX, Messenger, Scheduler, Mailer,
 Notifier, Console and EasyAdmin are each used when they are installed.
 
 ## Status

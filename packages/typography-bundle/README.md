@@ -12,7 +12,7 @@ It is for any Symfony application that shows text written by people: a CMS, a bl
 writes `{{ article.body|typography }}`; the UJO documents rendered by `ujo_html` or `Ujo::toHtml()` come out with
 their typography fixed and nothing to write.
 
-It is a thin bundle, written from scratch, over `symfony/config` and `symfony/dependency-injection`. Twig and
+It is a thin bundle built on `symfony/config` and `symfony/dependency-injection`. Twig and
 `phil/ujo-bundle` are optional: the filters are registered only when Twig is installed, and the UJO integration only
 when that bundle's renderer is in the container.
 

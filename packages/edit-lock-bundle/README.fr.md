@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0cad8ef920438613235df889670f459b5a0f44d52eb1c92fba71e6d88f4e669e -->
+<!-- phil-dev source-sha256=a5f5496f8239005a8fe691ea3d5119fc3768fc9ea5b61365292deef833e658e5 -->
 # phil/edit-lock-bundle
 
 **Un rédacteur par bloc : des baux d'édition, la présence et les enregistrements de blocs poussés par Mercure, pour les
@@ -25,9 +25,9 @@ par des requêtes de comparaison et échange dans une transaction qui verrouille
 requêtes en concurrence pour un bloc, ou pour la ressource entière et l'un de ses blocs, ne gagnent jamais toutes les
 deux ; ou en mémoire pour les tests. Chaque point de terminaison vérifie l'en-tête du contrôleur et le jeton CSRF sans
 état de Symfony. Sans Mercure, le contrôleur demande la présence à chaque pulsation, et les enregistrements ne sont pas
-poussés. Le contrôleur est servi par AssetMapper, sans étape de construction. Tout est écrit de zéro : Mercure, Turbo
-Streams et UJO (Universal JSON Output) sont les formats parlés, et aucune ligne d'une autre bibliothèque de verrouillage
-ou de collaboration n'est copiée.
+poussés. Le contrôleur est servi par AssetMapper, sans étape de construction. Mercure, Turbo Streams et UJO (Universal
+JSON Output) sont les formats qu'il parle ; il ne dépend d'aucune autre bibliothèque de verrouillage ou de
+collaboration.
 
 ## État
 

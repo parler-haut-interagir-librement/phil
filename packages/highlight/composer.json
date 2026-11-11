@@ -1,6 +1,6 @@
 {
     "name": "phil/highlight",
-    "description": "Syntax highlighting on the server for 24 languages, by small tokenizers written from scratch, as HTML spans with hl- classes and CSS themes",
+    "description": "Syntax highlighting on the server for 24 languages, by small tokenizers with no dependency, as HTML spans with hl- classes and CSS themes",
     "license": "MIT",
     "type": "library",
     "keywords": [

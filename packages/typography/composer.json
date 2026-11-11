@@ -1,6 +1,6 @@
 {
     "name": "phil/typography",
-    "description": "Microtypography for HTML and text in every language: quotes, dashes, ellipses, French spacing, units, legal signs, hyphenation by Liang's algorithm with the TeX patterns and patterns of our own, and Thai word breaks, on the HTML5 DOM, written from scratch",
+    "description": "Microtypography for HTML and text in every language: quotes, dashes, ellipses, French spacing, units, legal signs, hyphenation by Liang's algorithm with the TeX patterns and patterns of our own, and Thai word breaks, on the HTML5 DOM",
     "license": "MIT",
     "type": "library",
     "keywords": [

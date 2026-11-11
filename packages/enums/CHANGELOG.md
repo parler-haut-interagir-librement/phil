@@ -54,7 +54,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   `Internal\Cases`.
 - The meta property base, the invocable, fromamble, comparable and metadatable traits, the string options, the
   `#[Meta]` attribute, `UndefinedCaseError`, the reading of enabled meta properties and the two PHPStan extensions are
-  written from scratch, with the same public API; the extensions share `PHPStan\VirtualMethod`.
+  rewritten with the same public API; the extensions share `PHPStan\VirtualMethod`.
 - `AbstractMetaProperty::make()` is static, so `Label::make('Draft')` builds the value `fromMeta()` looks for; a call
   on an instance still works.
 - An accessor no meta property of the enum names throws `BadMethodCallException` instead of returning `null`.

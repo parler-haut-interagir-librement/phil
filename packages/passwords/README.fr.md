@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ca1638c90eebfc5135c99a3940bab4ccde4e749d80a7de30c39d127a2682d755 -->
+<!-- phil-dev source-sha256=0c830c22ecf86eebac101419f4ff0c75ca0d86075665096c32893484422af30a -->
 # phil/passwords
 
 **Dites aux gens à quel point leur mot de passe se devine, refusez ceux qui ont déjà fui et donnez-leur-en de bons.**
@@ -18,7 +18,7 @@ Elle s'adresse à toute application PHP qui laisse les gens choisir un mot de pa
 son indicateur de robustesse, un changement de mot de passe, un fournisseur d'identité, une administration qui crée des
 comptes.
 
-C'est une simple bibliothèque PHP, écrite de zéro, avec ses propres dictionnaires, dispositions de clavier et listes
+C'est une simple bibliothèque PHP avec ses propres dictionnaires, dispositions de clavier et listes
 de mots. L'estimateur prend pour modèle l'approche publiée de zxcvbn — motifs, essais et recherche de la couverture la
 moins coûteuse —, sans rien de son code ni de ses données. La source HTTP utilise `symfony/http-client-contracts`, les
 contraintes `symfony/validator` ; le reste n'a besoin ni de l'un ni de l'autre.

@@ -13,7 +13,7 @@ It is for any PHP application that sends mail through its own SMTP server and re
 newsletter, the notifications of a site, a mailing list. It turns the bounce mailbox into counters of hard and soft
 bounces, unsubscriptions on complaints, and a short queue of messages for a person to read.
 
-It is a plain PHP library, written from scratch, whose requirements are `ext-ctype`, `ext-iconv`, `ext-mbstring` and
+It is a plain PHP library whose requirements are `ext-ctype`, `ext-iconv`, `ext-mbstring` and
 `ext-sodium`. Its MIME reader never throws, whatever the message holds, and bounds its work: octets read, depth,
 parts, header fields and text. An abuse report unsubscribes only when an authenticator vouches for it.
 

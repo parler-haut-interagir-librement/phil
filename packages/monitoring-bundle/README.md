@@ -17,7 +17,7 @@ page, a dashboard — reads it through `MonitoringStatus`, a stable read model o
 maintenance. Nothing the bundle shows carries more than names, statuses, counts and moments: no secret, no host, no
 personal data.
 
-It is written from scratch, on the components Symfony already ships: HttpKernel and HttpFoundation for the endpoints and
+It is built on the components Symfony already ships: HttpKernel and HttpFoundation for the endpoints and
 the maintenance mode, Messenger, Scheduler and Notifier for the queues and the tasks, Cache and Filesystem for the
 stores, Console for the commands; DBAL, Flysystem, Twig and Security when the application has them.
 

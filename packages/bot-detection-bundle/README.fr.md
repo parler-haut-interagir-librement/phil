@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=406873bb9f0b9fdb763d648dc6861380c152481c1099d1bf9c06c91adcd7b7f8 -->
+<!-- phil-dev source-sha256=2dfb873dda6487ec4b0950fe9019427031d8bc49d902c1f61843dcc8d8448352 -->
 # phil/bot-detection-bundle
 
 **Distinguez un robot d'un humain dans le navigateur, et ne laissez sortir que ce seul mot.**
@@ -47,7 +47,7 @@ service et aucune configuration.
   compteur compte les verdicts robot plutôt que les étapes de friction.
 - [Signaux du navigateur](doc/fr/browser-signals.md) — les détecteurs du contrôleur Stimulus `verdict` dans le
   navigateur, les signaux qui restent à écrire, ce qui n'est jamais collecté ni envoyé, et les projets libres lus comme
-  références de conception (motifs seulement, aucun code copié).
+  références de conception (motifs seulement).
 - [Points d'extension](doc/fr/extension-points.md) — le port `RobotVerdictCounter`, ses invariants et des exemples
   d'adaptateurs.
 - [Tests](doc/fr/testing.md) — exécuter les tests depuis le monodépôt ou avec le bundle installé seul, et tester votre

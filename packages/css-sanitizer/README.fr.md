@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=96a88c3c2f1ee1508f09c90ee6f662716f41317be69fcf8341700d719cc3bf9e -->
+<!-- phil-dev source-sha256=ed25d53177bfbe534fa9de296ca2ba8c0c28598f3eb7ab4e34003fb05133e7c4 -->
 # phil/css-sanitizer
 
 **Laissez les gens styliser leurs pages sans que leur CSS exécute du code, charge ce qu'il ne doit pas ou sorte de son
@@ -18,7 +18,7 @@ page publiés, styles personnalisés d'un profil, styles d'impression d'un docum
 styles dans un système de contenu. Le résultat peut être écrit sans danger dans un élément `<style>` ou un attribut
 `style` d'une page que d'autres personnes lisent.
 
-C'est une simple bibliothèque PHP, écrite de zéro, dont le seul prérequis est `ext-mbstring`. Si `symfony/validator`
+C'est une simple bibliothèque PHP dont le seul prérequis est `ext-mbstring`. Si `symfony/validator`
 est installé, il donne la contrainte `SafeCss`. L'analyseur lexical et l'analyseur suivent CSS Syntax Level 3 section
 par section. Ainsi, l'assainisseur voit les mêmes jetons qu'un navigateur — échappements résolus, commentaires
 écartés, blocs appariés — et un nom caché derrière un échappement (`e\78 pression`) est bien le nom qu'il est. Rien

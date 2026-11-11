@@ -12,7 +12,7 @@ It is for any PHP application that recognizes what people do: a training platfor
 community that thanks its volunteers, an event that credits its speakers. The library reads no account and stores
 nothing: the application says who the recipient is, as they give it, and keeps what it issued.
 
-It is a plain PHP library, written from scratch, that requires only PHP and its extensions. A credential is secured in
+It is a plain PHP library that requires only PHP and its extensions. A credential is secured in
 one of the two ways Open Badges 3.0 recognizes: as a JSON Web Token (`EdDSA` or `RS256`), or with an embedded Data
 Integrity proof of the `eddsa-rdfc-2022` cryptosuite, for which the library carries its own JSON-LD processor and RDF
 canonicalization. Verifying never fetches anything: the JSON-LD contexts are bundled, and the keys are the ones the

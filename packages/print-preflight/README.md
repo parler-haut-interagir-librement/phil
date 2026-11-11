@@ -16,7 +16,7 @@ designer, a print-on-demand storefront, a pipeline that renders HTML and CSS to 
 written or sent, on a description of what the document places where, so an editor can show the problems page by page
 while the document is still open.
 
-It is a plain PHP library, written from scratch, that needs `phil/fonts` to read embedding permissions and nothing
+It is a plain PHP library that needs `phil/fonts` to read embedding permissions and nothing
 else. It does not open PDF files: the application describes its document with a small model — pages with their trim
 size and bleed, placed images with their pixel and placed sizes, other boxes, fonts — which it fills from what it
 placed with `phil/paged-media`, or from what a browser measured in an HTML render; what it does not know — the ink

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9216b2d36ca3fb6884d7eb4bec32ad672678248cff7ff1d6cca59fea0c756d2f -->
+<!-- phil-dev source-sha256=85f2718a2e70ae9aaa064f5755d1c2e4d50cb405a6673d8d92a1f0678e8d9109 -->
 # phil/typography-bundle
 
 **Des guillemets typographiques, des tirets, des espaces françaises et des césures conditionnelles partout où une
@@ -14,7 +14,7 @@ Il s'adresse à toute application Symfony qui affiche du texte écrit par des pe
 une boutique. Un gabarit écrit `{{ article.body|typography }}` ; les documents UJO rendus par `ujo_html` ou
 `Ujo::toHtml()` sortent avec leur typographie corrigée, sans rien à écrire.
 
-C'est un bundle mince, écrit de zéro, par-dessus `symfony/config` et `symfony/dependency-injection`. Twig et
+C'est un bundle mince par-dessus `symfony/config` et `symfony/dependency-injection`. Twig et
 `phil/ujo-bundle` sont facultatifs : les filtres ne sont enregistrés que si Twig est installé, et l'intégration UJO
 que si le moteur de rendu de ce bundle est dans le conteneur.
 

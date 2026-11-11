@@ -27,7 +27,7 @@ shown, so a tightened policy reaches older texts too. In a Symfony application, 
 services and adds the `markup_html` and `markup_purify` Twig filters. phil/content-bundle compiles and purifies its body
 of text with it.
 
-It is a plain PHP library, written from scratch, with Doctrine attributes on `MarkedUpText`, read only when Doctrine
+It is a plain PHP library with Doctrine attributes on `MarkedUpText`, read only when Doctrine
 maps it. Its root namespace holds what a domain model may name: the `MarkupFormat` and `Level` enums, the
 `MarkupCompiler`, `LevelAwareCompiler` and `HtmlPurifier` ports and the exceptions. `Lexer` holds the analyser every
 reader shares, a cursor that lexes without regular expressions; `Reader` the readers into UJO; `Adapter` the

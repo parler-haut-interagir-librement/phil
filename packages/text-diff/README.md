@@ -14,7 +14,7 @@ the revision history of an article, a page or a wiki, the review of a proposed e
 whose source changed, the audit of a document before it is published again. `phil/content-bundle` keeps the versions
 of its contents; this library is how an application shows their differences.
 
-It is a plain PHP library, written from scratch, whose only requirements are `ext-mbstring` and `phil/ujo`. The
+It is a plain PHP library whose only requirements are `ext-mbstring` and `phil/ujo`. The
 comparison is Eugene W. Myers' O(ND) difference algorithm, run after the common start and end of both texts are set
 aside, and bounded: past a number of edits — a thousand by default — the rest is shown as replaced whole, which keeps
 time and memory in check on texts rewritten from end to end. The output is deterministic.

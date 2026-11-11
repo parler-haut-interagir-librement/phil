@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fba0aa321796218b7455b69c6cb9eb0298900f1e6f0c4b2dd7e4c94dfac71462 -->
+<!-- phil-dev source-sha256=f9128daf210d31225eb149b073c1f0a6625792c955d73f5e311fc2060afc4014 -->
 # phil/typography
 
 **De vrais guillemets, des tirets, les espaces du français et des traits d'union conditionnels dans votre HTML, dans
@@ -19,13 +19,13 @@ gabarit ou un convertisseur Markdown, ou sur du texte brut. Un préréglage donn
 elle a besoin, dans le bon ordre : `Typographer::for('fr_CA')` est donc tout ce qu'écrivent la plupart des
 applications. Dans Symfony, `phil/typography-bundle` ajoute les filtres Twig et corrige le HTML des documents UJO.
 
-C'est une bibliothèque PHP simple, écrite de zéro sur le modèle de JoliTypo, sans autre dépendance que les extensions
-`dom`, `intl`, `libxml` et `mbstring`. La césure suit l'algorithme de Liang, celui qu'utilise TeX, implémenté de
-nouveau. Les motifs sont importés de hyph-utf8 pour les 69 langues dont la licence les permet dans un paquet MIT,
-chacune consignée dans `data/LICENSES`. Ils sont écrits de zéro pour le tchèque, le hongrois, l'arménien,
-l'indonésien, le letton, le macédonien et le roumain, à partir des règles orthographiques de chaque langue ; ceux de
-l'arménien et du macédonien sont expérimentaux et servis seulement sur demande. Le thaï, qui coupe les lignes sans
-trait d'union, reçoit des espaces de largeur nulle entre ses mots, tirées du dictionnaire ICU de `ext-intl`.
+C'est une bibliothèque PHP simple, sur le modèle de JoliTypo, sans autre dépendance que les extensions `dom`, `intl`,
+`libxml` et `mbstring`. La césure suit l'algorithme de Liang, celui qu'utilise TeX, implémenté en PHP. Les motifs sont
+importés de hyph-utf8 pour les 69 langues dont la licence les permet dans un paquet MIT, chacune consignée dans
+`data/LICENSES`. Ils sont générés pour le tchèque, le hongrois, l'arménien, l'indonésien, le letton, le macédonien et le
+roumain, à partir des règles orthographiques de chaque langue ; ceux de l'arménien et du macédonien sont expérimentaux
+et servis seulement sur demande. Le thaï, qui coupe les lignes sans trait d'union, reçoit des espaces de largeur nulle
+entre ses mots, tirées du dictionnaire ICU de `ext-intl`.
 
 La conception est petite : un `Fixer` réécrit le texte d'un `Run`, les nœuds texte d'un bloc ; `Typographer` parcourt
 le DOM et exécute ses correcteurs dans l'ordre ; `Preset` les choisit pour une `Locale` ; `Hyphenator` coupe les mots

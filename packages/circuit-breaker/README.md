@@ -13,7 +13,7 @@ It is for any PHP application that depends on services it does not control: a sh
 payment provider, a site that sends webhooks to partners, a tool that geocodes addresses. An operator can force a
 circuit open, whatever its counters say, through an override of the application's — a feature flag, for instance.
 
-It is a plain PHP library, written from scratch, whose only requirement is `psr/clock`. The state machine is pure:
+It is a plain PHP library whose only requirement is `psr/clock`. The state machine is pure:
 each transition takes a policy and an instant and returns a new snapshot, so it is tested to the second and stored as
 plain values. Where the states live between requests and between processes is a port, `CircuitStateStore`, and so is
 the operator's override, `CircuitOverride`.

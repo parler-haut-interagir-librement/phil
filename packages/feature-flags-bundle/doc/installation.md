@@ -1,6 +1,6 @@
 # Installation
 
-This page takes an application from nothing to a working bundle: requirements, Composer, the bundle class, the
+This page takes a bare application to a working bundle: requirements, Composer, the bundle class, the
 database tables, the admin routes and the firewall in front of them. The full list of options is in
 [configuration.md](configuration.md).
 

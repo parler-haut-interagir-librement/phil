@@ -14,7 +14,7 @@ members, the job offers of a community, people looking for partners for an activ
 and sellers. Each of those is a kind of listing with its own `KindPolicy` — lifetime, reminder, extensions,
 moderation, reports, minimum age, open responses — and its own fields and screens, built on this core.
 
-It is a plain PHP library, written from scratch, whose requirements are `ext-mbstring` and `psr/clock`. Listings and
+It is a plain PHP library whose requirements are `ext-mbstring` and `psr/clock`. Listings and
 responses are immutable: each transition takes the policy of the listing's kind and an instant, and returns a new
 value, so the whole life of a listing is tested to the second and stored as plain values. What the library cannot
 know is a port: who blocked whom (`BlockList`), how old a member is (`MemberAges`) and where the responses live

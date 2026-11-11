@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2bdacbc63cfc7686b56cfe62929aea69bfeaf87fdd213bc8a477b60e28d7c20a -->
+<!-- phil-dev source-sha256=a1aa22f0cbadbb8ce118c7ac04dc2ef0172c41935da6b885b4bacbc088229dd4 -->
 # phil/backup
 
 **Sauvegardez une base de données et ses fichiers médias, chiffrés et en rotation, restaurez-les derrière une garde, et
@@ -26,7 +26,7 @@ sauvegarde contient en clair les données de chaque personne : elle est réserv�
 est conservée et remplacée selon un calendrier. Elle s'adresse à toute application PHP qui conserve ses données dans
 SQLite, MySQL, MariaDB ou PostgreSQL. `phil/backup-bundle` l'intègre à Symfony, avec sa configuration et ses commandes.
 
-C'est une simple bibliothèque PHP, écrite de zéro, dont le seul prérequis est `ext-sodium`. Elle ne lance pas elle-même
+C'est une simple bibliothèque PHP dont le seul prérequis est `ext-sodium`. Elle ne lance pas elle-même
 de processus : un `CommandRunner` fourni par l'application trouve et exécute les outils. Elle ne planifie pas les
 sauvegardes, ne les copie pas hors de la machine et ne décide pas du moment où une restauration est sage : le
 planificateur, le stockage et les personnes de l'application s'en chargent.

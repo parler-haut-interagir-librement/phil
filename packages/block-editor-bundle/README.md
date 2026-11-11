@@ -18,9 +18,8 @@ uploaded images, are the application's own: the bundle defines the ports and the
 class for each.
 
 It is a Symfony bundle on `phil/ujo` and `phil/ujo-bundle`. The editor is a Stimulus controller served by AssetMapper,
-with no build step, no npm package to install and no framework beyond Stimulus. It is written from scratch:
-Notion is the model of the interaction, and no line of it, nor of any other editor, is copied. Its
-inline sanitizer in the browser mirrors the one of `phil/ujo`, so what is pasted is cleaned by the same rules the
+with no build step, no npm package to install and no framework beyond Stimulus. Notion is the model of the interaction.
+Its inline sanitizer in the browser mirrors the one of `phil/ujo`, so what is pasted is cleaned by the same rules the
 server applies.
 
 ## Status

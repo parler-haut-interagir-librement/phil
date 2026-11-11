@@ -1,6 +1,6 @@
 {
     "name": "phil/reporting-bundle",
-    "description": "Dashboards and reports for Symfony: metrics and series contributed by any bundle through a data-source port, dashboards as Twig components with accessible charts in HTML, CSS and SVG and a table of every value, an optional EasyAdmin page, and reports exported to CSV, TSV or JSON, scheduled with Symfony Scheduler and delivered by Mailer or Notifier through a Messenger claim check",
+    "description": "Dashboards and reports for Symfony: metrics and series from any bundle through a data-source port, dashboards as Twig components with accessible HTML, CSS and SVG charts and a table of every value, an optional EasyAdmin page, and CSV, TSV or JSON reports scheduled with Scheduler and delivered by Mailer or Notifier through a Messenger claim check",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

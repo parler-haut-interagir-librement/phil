@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9fd78ab8f860e4c15722951d920ece62b10c8e9622dcf2946b8572198ffe0b20 -->
+<!-- phil-dev source-sha256=c70abd867b3301b806312a16cef6f2a249acb9977857a29a3e8638779473fc5f -->
 # phil/ujo
 
 **Des documents UJO (Universal JSON Output) comme des valeurs fiables : lus strictement, vérifiés bloc par bloc, rendus
@@ -20,10 +20,9 @@ réception, et stocké sous sa forme canonique ; le rendre de nouveau le vérifi
 atteigne les documents plus anciens. Dans une application Symfony, `phil/ujo-bundle` ajoute les filtres Twig
 `ujo_html` et `ujo_text`, un champ de formulaire qui contient du JSON UJO et une contrainte de validation.
 
-C'est une bibliothèque PHP simple, écrite de zéro, sans dépendance. Les données écrites par les outils des éditeurs
-Editor.js sont lues selon leur forme ; aucune ligne de ces outils n'est copiée. Son assainisseur HTML lui est propre :
-il garde, champ par champ, les éléments en ligne qu'un profil permet, réécrits sous une seule forme canonique, et rien
-d'autre.
+C'est une bibliothèque PHP simple sans dépendance. Les données écrites par les outils des éditeurs Editor.js sont lues
+selon leur forme. Son assainisseur HTML lui est propre : il garde, champ par champ, les éléments en ligne qu'un profil
+permet, réécrits sous une seule forme canonique, et rien d'autre.
 
 La conception est réduite : `Document` et `Block` sont les valeurs ; `BlockTypeRegistry` contient un `BlockType` par
 type, dont la `Shape` de champs vérifie les données ; `Normalizer` les applique ; `HtmlRenderer` produit le rendu avec

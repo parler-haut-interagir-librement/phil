@@ -1,6 +1,6 @@
 {
     "name": "phil/fonts",
-    "description": "Font metadata from TrueType, OpenType, collections, WOFF and WOFF2: names, weight, style, OS/2 embedding permissions, licence, variation axes; @font-face rules and a licence register per file, written from scratch",
+    "description": "Font metadata from TrueType, OpenType, collections, WOFF and WOFF2: names, weight, style, OS/2 embedding permissions, licence, variation axes; @font-face rules and a licence register per file",
     "license": "MIT",
     "type": "library",
     "keywords": [

@@ -21,8 +21,8 @@ compare-and-set queries in a transaction that locks the resource's row, so that 
 for the whole resource and one of its blocks, never both win; or in memory for tests. Every endpoint checks the
 controller's header and Symfony's stateless CSRF token. Without
 Mercure the controller asks for presence at each heartbeat and saves are not pushed. The controller is served by
-AssetMapper, with no build step. Everything is written from scratch: Mercure, Turbo Streams and UJO (Universal JSON
-Output) are the formats spoken, and no line of another lock or collaboration library is copied.
+AssetMapper, with no build step. Mercure, Turbo Streams and UJO (Universal JSON Output) are the formats it speaks; it
+depends on no other lock or collaboration library.
 
 ## Status
 

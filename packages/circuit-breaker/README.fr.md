@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1642bdec566b754a4be2c0979bbfd707bfc186870caa72a6da2735c2779bd42b -->
+<!-- phil-dev source-sha256=ca41a13c640d18bb2f239261b7933a949a2f970c7e50ce7744dbfd2eb3f04ef5 -->
 # phil/circuit-breaker
 
 **Un disjoncteur par tiers : les appels cessent aussitôt quand il échoue sans arrêt, et reprennent quand il se
@@ -17,7 +17,7 @@ par un fournisseur de paiement, un site qui envoie des webhooks à des partenair
 opérateur peut forcer l'ouverture d'un circuit, quoi que disent ses compteurs, par un forçage propre à l'application —
 un indicateur de fonctionnalité, par exemple.
 
-C'est une bibliothèque PHP simple, écrite de zéro, dont le seul prérequis est `psr/clock`. La machine à états est pure :
+C'est une bibliothèque PHP simple dont le seul prérequis est `psr/clock`. La machine à états est pure :
 chaque transition prend une politique et un instant et retourne un nouvel instantané ; elle est donc testée à la seconde
 et stockée sous forme de valeurs simples. L'endroit où vivent les états entre les requêtes et entre les processus est un
 port, `CircuitStateStore`, tout comme le forçage de l'opérateur, `CircuitOverride`.

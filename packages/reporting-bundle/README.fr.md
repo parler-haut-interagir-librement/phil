@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=24a447685a69d3f414bd0545e1a5a77b8b2640cbe45b342cff6c5ab406aea9ca -->
+<!-- phil-dev source-sha256=ba19e60ed7686afa7fa0fe69460f91f465c4c4e31447e183587c91d0c0d71542 -->
 # phil/reporting-bundle
 
 **Des tableaux de bord et des rapports pour les applications Symfony : des chiffres fournis par n'importe quel bundle,
@@ -22,7 +22,7 @@ Mailer ou Notifier depuis un *worker* de Messenger. Un message ne porte qu'un id
 destinataires et ses paramètres, et le fichier exporté attendent dans des magasins que seul leur propriétaire peut
 lire. C'est le *claim check*.
 
-Il est écrit de zéro. La bibliothèque `phil/svg-chart` dessine les images ; Symfony UX, Messenger, Scheduler, Mailer,
+Il s'appuie sur la bibliothèque `phil/svg-chart` pour dessiner les images ; Symfony UX, Messenger, Scheduler, Mailer,
 Notifier, Console et EasyAdmin sont chacun utilisés quand ils sont installés.
 
 ## État

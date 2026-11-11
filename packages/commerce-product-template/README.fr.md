@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ebaf23e817bfd1f0055ee8a504df5ee7bc829c0e921e425612f6d6532a148ea7 -->
+<!-- phil-dev source-sha256=203437196af985ff76053023041dfd39f009414d12a6aa9f6c5b59421ac4bad1 -->
 # phil/commerce-product-template
 
 **Un gabarit et un visuel donnent chaque produit d'un catalogue : chaque UGS, son prix, ses canaux et ses
@@ -20,7 +20,7 @@ Il s'adresse à une boutique qui vend des articles imprimés en de nombreuses ta
 d'articles vierges : chandails, kangourous, tasses, affiches. Un chandail est l'exemple que suit la documentation ; rien
 dans la bibliothèque ne sait ce qu'est un chandail.
 
-C'est une bibliothèque PHP simple, écrite de zéro, avec `phil/money` pour ses prix et rien d'autre. Le bundle Symfony
+C'est une bibliothèque PHP simple avec `phil/money` pour ses prix et rien d'autre. Le bundle Symfony
 `phil/commerce-product-template-bundle` stocke les gabarits et les visuels, génère les produits d'un catalogue à partir
 du plan, compose leurs maquettes et déclare leurs options.
 

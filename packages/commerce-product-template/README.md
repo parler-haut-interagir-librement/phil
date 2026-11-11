@@ -16,7 +16,7 @@ input, so a catalogue regenerated from it is updated rather than duplicated.
 It is for a shop that sells printed goods in many sizes and colours from a handful of blanks: shirts, hoodies, mugs,
 posters. A shirt is the example the documentation follows; nothing in the library knows what a shirt is.
 
-It is a plain PHP library, written from scratch, with `phil/money` for its prices and nothing else. The Symfony
+It is a plain PHP library with `phil/money` for its prices and nothing else. The Symfony
 bundle `phil/commerce-product-template-bundle` stores templates and designs, generates the products of a catalogue
 from the plan, composes their mockups and declares their options.
 

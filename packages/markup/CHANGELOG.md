@@ -4,7 +4,7 @@ All notable changes to `phil/markup` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## NEXT - YYYY-MM-DD
+## 0.1.0-alpha - 2026-11-11
 
 ### Added
 
@@ -23,7 +23,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   metadata and its losses, `Reader\Loss` and `Reader\LossReason` — the element not kept, its path and why —; the
   readers given no normalizer share one, built once, that accepts `raw` blocks.
 - `Contract\ExtractedElementStore`, the port where a reader stores, as files, the elements it extracts: an inline SVG drawing.
-- `Reader\Markdown\MarkdownReader`, written from scratch in two passes, blocks then inline content by one rule per
+- `Reader\Markdown\MarkdownReader`, reading in two passes, blocks then inline content by one rule per
   token: CommonMark — headings, paragraphs, quotes, lists, code, rules, links and images, references, emphasis,
   escapes, entities, HTML —, the text of an image its alternative text and its title, written after its address or
   in its reference, its caption; the GitHub extensions — tables, strikethrough, autolinks, task lists —; footnotes;
@@ -37,7 +37,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   block rules (`Contract\BlockRule`) after the built-in ones, turns off a built-in syntax (`MarkdownSyntax`), and reads
   its own metadata, `[label]: value` lines, definition marks and paragraph marks; what it keeps during one reading
   goes into `Context::$extra`.
-- `Reader\BBCode\BBCodeReader`, written from scratch on the same analyser, in linear time however the tags are nested,
+- `Reader\BBCode\BBCodeReader`, on the same analyser, in linear time however the tags are nested,
   left open or closed without being opened: the tags of forums — bold, italic, underline, strikethrough, exponents,
   highlight, inline code, links, emails, images with their alternative text and their layout, quotes with their
   author, code with its language, lists ordered, counted or checked, tables with `colspan`, `rowspan` and `align`,
@@ -47,8 +47,8 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   `[block]`, `[columns]` and `[column]`, `[pagebreak]`, `[columnbreak]`, `[statblock]`, `[credit]`, `[classtable]`,
   `[spacer]`, `[pagenumber]`, `[footer]`, `[watermark]`, `[banner]`, `[decoration]`, `[nbsp]`, `[icon]`, `[hspace]`,
   `[var]`, `[metadata]`, `[style]` —; raw HTML in `[html]` kept for `all` or escaped below.
-- `Reader\MediaWiki\MediaWikiReader`, `Reader\DokuWiki\DokuWikiReader` and `Reader\Creole\CreoleReader`, written from
-  scratch on one reader the three wikis share, `Reader\Wiki`, in linear time however marks, links, templates and
+- `Reader\MediaWiki\MediaWikiReader`, `Reader\DokuWiki\DokuWikiReader` and `Reader\Creole\CreoleReader`, built on one
+  reader the three wikis share, `Reader\Wiki`, in linear time however marks, links, templates and
   containers are left open, crossed or nested: the native syntax of each wiki — headings, emphasis, links to pages and
   to other sites, images and files placed and sized, with their caption — and MediaWiki's `alt=` apart from it,
   Creole's text as the alternative text —, lists, task lists, definitions, indents, tables — MediaWiki's caption,

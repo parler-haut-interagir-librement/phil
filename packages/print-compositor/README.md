@@ -15,7 +15,7 @@ colour of a shirt from one artwork, a product a customer personalises with a sho
 a pack whose pieces are drawn at random and placed at fixed positions, a production step that sends one file per ink
 to a local printer.
 
-It is a plain PHP library, written from scratch on PHP's GD extension, which it needs with FreeType, PNG and WebP
+It is a plain PHP library built on PHP's GD extension, which it needs with FreeType, PNG and WebP
 support, and on `phil/fonts`, which reads the fonts its texts are drawn in. Nothing is installed with it, and nothing
 is downloaded. [Installation](doc/installation.md) explains why GD rather than Imagick.
 

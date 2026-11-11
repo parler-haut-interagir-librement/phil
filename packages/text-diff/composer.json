@@ -1,6 +1,6 @@
 {
     "name": "phil/text-diff",
-    "description": "Differences between two texts, written from scratch: Myers' algorithm over words, lines, paragraphs or HTML that keeps its tags whole, and block by block over UJO documents, as HTML with ins and del or as a list of changes",
+    "description": "Differences between two texts: Myers' algorithm over words, lines, paragraphs or HTML that keeps its tags whole, and block by block over UJO documents, as HTML with ins and del or as a list of changes",
     "license": "MIT",
     "type": "library",
     "keywords": [

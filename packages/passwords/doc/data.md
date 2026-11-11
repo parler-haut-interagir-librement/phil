@@ -1,6 +1,6 @@
 # Data
 
-Every list the library ships was written for it and is under its MIT licence; none is copied from another project.
+Every list the library ships was written for it and is under its MIT licence.
 
 | File | What it holds |
 |---|---|

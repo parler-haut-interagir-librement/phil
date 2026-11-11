@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e6d88a9e9d350ab5a28d6256b8d5bfa08f67058bf3bb8f89fc83e4284391bd43 -->
+<!-- phil-dev source-sha256=02b80023ebca706109a2cd34a79275df1a11386f9718f408a6c0a939f79a5422 -->
 # phil/poll
 
 **Un moteur de vote : des bulletins vérifiés selon les règles de leur scrutin, puis dépouillés en classement.**
@@ -16,7 +16,7 @@ communauté qui classe les idées de ses membres, une association qui élit son 
 une question à ses lecteurs. Qui peut voter, si les bulletins sont anonymes et où ils sont gardés relèvent de
 l'application, ou de `phil/poll-bundle` dans Symfony.
 
-C'est une simple bibliothèque PHP, écrite de zéro, qui n'exige que PHP. Un dépouillement lit les bulletins une seule
+C'est une simple bibliothèque PHP qui n'exige que PHP. Un dépouillement lit les bulletins une seule
 fois, à partir de n'importe quel itérable : un stockage peut donc les lire en flux depuis sa table. Les méthodes à
 bulletins classés regroupent les classements identiques : leur mémoire croît avec les classements distincts plutôt
 qu'avec les bulletins. Les méthodes ne gardent aucun état entre deux dépouillements et peuvent être partagées entre les

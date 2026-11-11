@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0e4f95aad7a1ff6f37553c961f8072b3c3a40f33ed0009727cc4aceac227d142 -->
+<!-- phil-dev source-sha256=7263adc8ef2d8d544adecd5560e92de686fa5b5abe9eecc9b8ebe2eef262814e -->
 # phil/listings
 
 **Le noyau des annonces : une petite annonce, une offre d'emploi, une recherche de partenaires, rédigées, modérées,
@@ -17,7 +17,7 @@ une activité, une place de marché entre membres et vendeurs. Chacun d'eux est 
 `KindPolicy` (durée de vie, rappel, prolongations, modération, signalements, âge minimal, réponses ouvertes) et ses
 propres champs et écrans, construits sur ce noyau.
 
-C'est une simple bibliothèque PHP, écrite de zéro, dont les prérequis sont `ext-mbstring` et `psr/clock`. Les annonces
+C'est une simple bibliothèque PHP dont les prérequis sont `ext-mbstring` et `psr/clock`. Les annonces
 et les réponses sont immuables : chaque transition prend la politique du genre de l'annonce et un instant, et retourne
 une nouvelle valeur. Toute la vie d'une annonce se teste donc à la seconde près et se stocke sous forme de valeurs
 simples. Ce que la bibliothèque ne peut pas savoir est un port : qui a bloqué qui (`BlockList`), quel âge a un membre

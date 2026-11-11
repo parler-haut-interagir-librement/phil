@@ -18,7 +18,7 @@ checkpoint under keyed fingerprints of their codes, never the codes themselves; 
 policy, keeps a journal, and sends it back once online, where each scan is decided again, recorded with the decision
 the holder met at the door, and flagged as a conflict when the ledger decides otherwise.
 
-It is a plain PHP library, written from scratch, whose only requirements are `psr/clock` and the sodium extension.
+It is a plain PHP library whose only requirements are `psr/clock` and the sodium extension.
 
 ## Status
 

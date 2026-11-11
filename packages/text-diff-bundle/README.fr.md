@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2d5bb58487e885b589d875f2f75c5a07999617eb45df4605b564838ebe3ec8c2 -->
+<!-- phil-dev source-sha256=a9e607ca93bbbbd8d7f4f0e5c60de7a6d0ea461813e5a0d32498cd5f536f67ac -->
 # phil/text-diff-bundle
 
 **Ce qui a changé entre deux versions, affiché dans un gabarit et parcouru changement par changement.**
@@ -16,7 +16,7 @@ Il s'adresse à toute application Symfony qui conserve des versions de ce que le
 révisions d'une page ou d'un article, la relecture d'une modification proposée, la vérification d'un document avant sa
 nouvelle publication.
 
-Il est écrit de zéro, sur les composants que Symfony fournit déjà : Config et DependencyInjection pour la
+Il repose sur les composants que Symfony fournit déjà : Config et DependencyInjection pour la
 configuration, les extensions par attributs de Twig pour les filtres, AssetMapper et StimulusBundle pour le
 contrôleur, et HtmlSanitizer, quand il est configuré, pour le HTML qu'un gabarit ne marque pas comme sûr.
 

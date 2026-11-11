@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c9ab7c98422796c332d93033ad304b93976ebaa7c56e42f719ef0205ea625a51 -->
+<!-- phil-dev source-sha256=48e15b0a2149d6ffd2037d240edf993382e1c071ad894be7505e2e91136e5d57 -->
 # phil/print-preflight
 
 **Ce qu'un imprimeur refuserait, avant que le fichier lui parvienne.**
@@ -19,7 +19,7 @@ du CSS en PDF. La vérification se fait avant que le fichier soit écrit ou envo
 document place et où. Un éditeur peut ainsi montrer les problèmes page par page pendant que le document est encore
 ouvert.
 
-C'est une simple bibliothèque PHP, écrite de zéro, qui a besoin de `phil/fonts` pour lire les permissions
+C'est une simple bibliothèque PHP qui a besoin de `phil/fonts` pour lire les permissions
 d'intégration, et de rien d'autre. Elle n'ouvre pas de fichiers PDF : l'application décrit son document avec un petit
 modèle — des pages avec leur format rogné et leur fond perdu, des images placées avec leur taille en pixels et leur
 taille placée, d'autres boîtes, des polices. Elle le remplit à partir de ce qu'elle a placé avec `phil/paged-media`, ou

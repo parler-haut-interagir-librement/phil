@@ -1,7 +1,7 @@
-<!-- phil-dev source-sha256=844b7cdd30093e3f625ee87d04cdb4a2f9f3fda2090da825059b6fc4f1e77fa1 -->
+<!-- phil-dev source-sha256=296f0597fb6c264e9eed9201a3dae23d457af6f4487f5851abcfc3752c687b4c -->
 # Installation
 
-Cette page mène une application de zéro à un bundle fonctionnel : les prérequis, Composer, la classe du bundle, les
+Cette page mène une application nue jusqu'à un bundle fonctionnel : les prérequis, Composer, la classe du bundle, les
 tables de la base de données, les routes d'administration et le pare-feu devant elles. La liste complète des options se
 trouve dans [configuration.md](configuration.md).
 

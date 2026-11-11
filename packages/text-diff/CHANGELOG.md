@@ -4,7 +4,7 @@ All notable changes to `phil/text-diff` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## NEXT - YYYY-MM-DD
+## 0.1.0-alpha - 2026-11-11
 
 ### Added
 
@@ -16,7 +16,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   the text back byte for byte; in words and HTML, each character of the Han, Hiragana, Katakana, Thai, Lao, Khmer
   and Myanmar scripts a token alone, with its marks, so that texts written without spaces are compared character by
   character.
-- Myers' O(ND) difference algorithm over tokens, written from scratch: the common start and end set aside, the search
+- Myers' O(ND) difference algorithm over tokens: the common start and end set aside, the search
   bounded by a number of edits past which the middle is replaced whole, white space between two changes joined to
   them, deletions before insertions in each change.
 - `TextDiff`, the library in one object: `compare()`, `words()`, `lines()`, `paragraphs()`, `html()`, `documents()`,

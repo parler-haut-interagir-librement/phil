@@ -13,7 +13,7 @@ colours the marks, underlines insertions and strikes deletions so that colour is
 It is for any Symfony application that keeps versions of what people write: the revision history of a page or an
 article, the review of a proposed edit, the check of a document before it is published again.
 
-It is written from scratch, on the components Symfony already ships: Config and DependencyInjection for the
+It is built on the components Symfony already ships: Config and DependencyInjection for the
 configuration, Twig's attribute extensions for the filters, AssetMapper and StimulusBundle for the controller, and
 HtmlSanitizer, when configured, for the HTML a template does not mark safe.
 

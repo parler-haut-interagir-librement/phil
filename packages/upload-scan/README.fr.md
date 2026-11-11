@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=50c379ac9a691ab774f325f21185385dd47391bc717df0c1f8157ca9f622e637 -->
+<!-- phil-dev source-sha256=ec71a26b3b85283ff0ec00a97761e540d9ce6a8042952f04bed9a0ff02824367 -->
 # phil/upload-scan
 
 **Chaque fichier téléversé passe par un antivirus avant que quiconque puisse l'ouvrir.**
@@ -16,7 +16,7 @@ chaque lecture et chaque écriture par un délai d'attente. Quand clamd est arr�
 lieu de lancer une exception. `NullScanner` et `FakeScanner`, qui trouve la chaîne de test EICAR, remplacent clamd dans
 les tests.
 
-C'est une bibliothèque PHP simple, écrite de zéro, sans dépendance : aucun client ClamAV tiers, aucune extension
+C'est une bibliothèque PHP simple sans dépendance : aucun client ClamAV tiers, aucune extension
 au-delà de celles que PHP construit par défaut. Un analyseur ne garde rien entre deux fichiers : une seule instance sert
 donc chaque requête d'un *worker* de longue durée.
 

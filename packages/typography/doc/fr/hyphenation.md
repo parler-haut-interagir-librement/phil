@@ -1,9 +1,9 @@
-<!-- phil-dev source-sha256=4f6466f453af267a0671b5c2366d91ce426d8e01ad92fee0a298e7637da23b6a -->
+<!-- phil-dev source-sha256=74cebbff4ee8b325df43e2ae102be349dfb2e3cdb50126397824209541ea47e3 -->
 # Césure
 
 ## L'algorithme de Liang
 
-`Hyphenator` implémente l'algorithme que Frank Liang a conçu pour TeX, écrit de zéro. Un motif est une chaîne de
+`Hyphenator` implémente l'algorithme que Frank Liang a conçu pour TeX. Un motif est une chaîne de
 lettres avec des chiffres entre elles (`.ach4`, `a1b`, `hy3ph`), le point marquant le début ou la fin d'un mot. Chaque
 motif trouvé dans le mot, encadré de points, élève les chiffres entre ses lettres. Une coupure est permise là où le
 chiffre le plus élevé est impair, jamais plus près de l'une ou l'autre extrémité que les longueurs minimales de la
@@ -121,7 +121,7 @@ en cyrillique pour `sr` et en écriture latine pour `sr_Latn`.
 Les motifs TeX du tchèque (GPL 2 ou ultérieure seulement), du hongrois (MPL 1.1, GPL 2 ou LGPL 2.1 seulement), de
 l'arménien (LGPL seulement), de l'indonésien (GPL seulement), du letton (LGPL 2.1 ou GPL 2 seulement), du macédonien
 (GPL seulement) et du roumain (aucune licence déclarée) ne peuvent pas être fournis dans un paquet MIT. Ces sept
-langues ont plutôt des motifs écrits de zéro, à partir des règles orthographiques publiées de chaque langue : aucun
+langues ont plutôt leurs propres motifs, écrits à partir des règles orthographiques publiées de chaque langue : aucun
 motif, aucune liste d'exceptions ni aucune liste de mots sous une autre licence n'a été lu pour les écrire. Les règles
 sont écrites sous forme de données dans `tests/Generator/SyllableRules.php`, `tests/Generator/PatternGenerator.php` les
 transforme en motifs de Liang, `php bin/generate-patterns.php` écrit les fichiers `<tag>.pat.txt`, et les tests

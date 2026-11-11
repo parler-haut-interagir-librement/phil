@@ -10,7 +10,7 @@ with the bookings it meets. The same resource lists the free slots of a period, 
 reminder of a booking is due.
 
 It is for any PHP application that books something: rooms and tables directly, appointments, equipment rental,
-lodging, a game library's loans or escape-room sessions as thin uses on top. The library is written from scratch and
+lodging, a game library's loans or escape-room sessions as thin uses on top. The library
 depends on nothing but PHP and `ext-mbstring`; it keeps no state and stores nothing. In a Symfony application,
 `phil/reservation-bundle` keeps resources and reservations in Doctrine, holds and confirms them one request at a time
 per resource, sends the reminders and shows the bookings in the calendar.

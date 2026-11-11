@@ -1,6 +1,6 @@
 {
     "name": "phil/console-bundle",
-    "description": "Safer Symfony console commands: #[ForbidEnvironment] refusing a command in the listed kernel environments, #[ConfirmEnvironment] asking for the environment's name before it runs, a --timestamps option prefixing each output line with the time, a --debug-phil option printing the debug logs of selected channels, a duration and memory summary, and a lint command listing the guarded commands",
+    "description": "Safer Symfony console commands: #[ForbidEnvironment] refusing a command in the listed kernel environments, #[ConfirmEnvironment] asking for the environment's name before it runs, --timestamps prefixing each output line with the time, --debug-phil printing the debug logs of chosen channels, a time and memory summary, and a lint of guarded commands",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

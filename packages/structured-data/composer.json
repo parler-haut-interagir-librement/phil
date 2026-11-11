@@ -1,6 +1,6 @@
 {
     "name": "phil/structured-data",
-    "description": "The schema.org graph of a page as values, written from scratch: immutable nodes with factories for the common types, stable @id, a @graph that merges the nodes of one @id and lifts nested ones, languages, validation of required and recommended properties, JSON-LD safe inside a script element, and a reader of the JSON-LD of a page",
+    "description": "The schema.org graph of a page as values: immutable nodes with factories for the common types, stable @id, a @graph that merges the nodes of one @id and lifts nested ones, languages, validation of required and recommended properties, JSON-LD safe inside a script element, and a reader of the JSON-LD of a page",
     "license": "MIT",
     "type": "library",
     "keywords": [

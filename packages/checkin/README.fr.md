@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7ff1847b7c56ac996b38bba592a0228f127b8fdecffd80703bdbd8e28e0fb179 -->
+<!-- phil-dev source-sha256=adc23e79a390869d24033064e24e116e00e302b699decea9bca446f2b66b3761 -->
 # phil/checkin
 
 **L'enregistrement à l'entrée d'un événement ou d'un lieu : un code lu à une porte, décidé aussitôt, enregistré une
@@ -22,7 +22,7 @@ L'appareil décide avec la même politique, tient un journal et le renvoie une f
 décidée de nouveau, inscrite avec la décision que le détenteur a reçue à la porte, et signalée comme conflit quand le
 registre décide autrement.
 
-C'est une bibliothèque PHP simple, écrite de zéro, dont les seuls prérequis sont `psr/clock` et l'extension sodium.
+C'est une bibliothèque PHP simple dont les seuls prérequis sont `psr/clock` et l'extension sodium.
 
 ## État
 

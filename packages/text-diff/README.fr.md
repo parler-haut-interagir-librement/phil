@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3788ca87ee6a898c85e1decad53c640a231266b61f42d622756ba6467abe2364 -->
+<!-- phil-dev source-sha256=1805092f9231ddb7c0aa30d33d27e942f10522b33f6b53cace3b5210cfcf9464 -->
 # phil/text-diff
 
 **Ce qui a changé entre deux textes, mot par mot, paragraphe par paragraphe ou bloc par bloc — affiché en HTML ou
@@ -17,7 +17,7 @@ modification proposée, les segments d'une traduction dont la source a changé, 
 nouvelle publication. `phil/content-bundle` conserve les versions de ses contenus ; cette bibliothèque permet à une
 application d'en montrer les différences.
 
-C'est une simple bibliothèque PHP, écrite de zéro, dont les seuls prérequis sont `ext-mbstring` et `phil/ujo`. La
+C'est une simple bibliothèque PHP dont les seuls prérequis sont `ext-mbstring` et `phil/ujo`. La
 comparaison suit l'algorithme de différence en O(ND) d'Eugene W. Myers, exécuté après avoir mis de côté le début et la
 fin communs des deux textes. Elle est bornée : au-delà d'un certain nombre de modifications — mille par défaut — le
 reste est affiché comme remplacé en entier, ce qui limite le temps et la mémoire sur des textes réécrits d'un bout à

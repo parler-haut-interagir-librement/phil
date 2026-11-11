@@ -14,7 +14,7 @@ feed reader, an e-mail or a PDF. The same `hl-` classes are written in the brows
 `phil/ux-bundle`, so one theme serves both. The `phil/ujo` renderer takes the highlighter for the code blocks of a
 document.
 
-It is a plain PHP library, written from scratch, without dependency. Each tokenizer reads the source once, from left to
+It is a plain PHP library with no dependency. Each tokenizer reads the source once, from left to
 right, byte by byte with `strspn` and `strcspn`, and keeps no regular expression on its hot path; hostile sources —
 a hundred thousand open quotes or brackets — are read in linear time. It colours what a reader needs and no more: it
 is not a parser, does not check syntax and does not know every corner of every grammar.

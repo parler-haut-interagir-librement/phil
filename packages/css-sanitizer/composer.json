@@ -1,6 +1,6 @@
 {
     "name": "phil/css-sanitizer",
-    "description": "CSS written by people made safe to serve, written from scratch: a tokenizer and parser that follow CSS Syntax Level 3, allow lists of properties, functions, selectors and at-rules (@media, @supports, @page and its margin boxes, @font-face), url() rewritten to allowed files, @import, expression(), javascript: and bindings refused, a serializer back to CSS, and a Symfony validator constraint",
+    "description": "CSS written by people made safe to serve: a tokenizer and parser that follow CSS Syntax Level 3, allow lists of properties, functions, selectors and at-rules (@media, @supports, @page and margin boxes, @font-face), url() limited to allowed files, @import, expression(), javascript: and bindings refused, a serializer, and a validator constraint",
     "license": "MIT",
     "type": "library",
     "keywords": [

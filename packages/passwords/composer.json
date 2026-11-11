@@ -1,6 +1,6 @@
 {
     "name": "phil/passwords",
-    "description": "Passwords written from scratch in PHP: a strength estimator that finds the patterns people use — common passwords, words, names, keyboard patterns, sequences, repeats, dates and substitutions — and scores the guesses they cost from 0 to 4 with feedback in English and French, breach checks by k-anonymity against the Pwned Passwords range API behind a port, password and passphrase generation, and Symfony validator constraints",
+    "description": "Passwords in PHP: a strength estimator that finds the patterns people use — common passwords, words, names, keyboard patterns, sequences, repeats, dates, substitutions — and scores them from 0 to 4 with feedback in English and French, k-anonymity checks against Pwned Passwords, password and passphrase generation, and validator constraints",
     "license": "MIT",
     "type": "library",
     "keywords": [

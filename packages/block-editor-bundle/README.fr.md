@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=07e66be1f6f97cbf2f9e0cc78521fedd3f42bd4ac20c8653683c7a60c068b442 -->
+<!-- phil-dev source-sha256=93fa8f928e95c75baca59addca7d53d01a8d904fec2ab03d09d2b69e81a246ff -->
 # phil/block-editor-bundle
 
 **Un éditeur par blocs pour les formulaires Symfony, en contrôleurs Stimulus, qui écrit des documents UJO (Universal
@@ -22,10 +22,9 @@ rendu avec `ujo_html`. Les recherches derrière `@` et `[[`, ainsi que le stocka
 à l'application : le bundle définit les ports et les routes, et l'application écrit une classe pour chacun.
 
 C'est un bundle Symfony construit sur `phil/ujo` et `phil/ujo-bundle`. L'éditeur est un contrôleur Stimulus servi par
-AssetMapper, sans étape de construction, sans paquet npm à installer et sans autre cadriciel que Stimulus. Il est écrit
-de zéro : Notion sert de modèle pour l'interaction, et aucune ligne n'en est copiée, ni d'aucun autre éditeur. Son
-assainisseur de texte en ligne, dans le navigateur, reproduit celui de `phil/ujo` : ce qui est collé est donc nettoyé
-selon les règles mêmes du serveur.
+AssetMapper, sans étape de construction, sans paquet npm à installer et sans autre cadriciel que Stimulus. Notion sert
+de modèle pour l'interaction. Son assainisseur de texte en ligne, dans le navigateur, reproduit celui de `phil/ujo` : ce
+qui est collé est donc nettoyé selon les règles mêmes du serveur.
 
 ## État
 

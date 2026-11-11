@@ -1,6 +1,6 @@
 {
     "name": "phil/bounce-parser",
-    "description": "Messages received on a bounce mailbox read and classified, written from scratch: delivery status notifications (RFC 3464, RFC 6533), abuse feedback reports (RFC 5965) behind an authenticator, bounces written as text, automatic replies (RFC 3834), enhanced status codes (RFC 3463), VERP return paths, and ordered rules of the application leading to actions",
+    "description": "Messages received on a bounce mailbox read and classified: delivery status notifications (RFC 3464, RFC 6533), abuse feedback reports (RFC 5965) behind an authenticator, bounces written as text, automatic replies (RFC 3834), enhanced status codes (RFC 3463), VERP return paths, and ordered rules of the application leading to actions",
     "license": "MIT",
     "type": "library",
     "keywords": [

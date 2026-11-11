@@ -11,7 +11,7 @@ It is for any PHP code that must show a chart without a script: a document block
 PDF, an e-mail, a page read without JavaScript. The configuration is checked against limits, so one sent by a client
 costs no more than a large honest one.
 
-It is a plain PHP library, written from scratch, over `ext-mbstring`. Its output is deterministic.
+It is a plain PHP library built on `ext-mbstring`. Its output is deterministic.
 
 ## Status
 

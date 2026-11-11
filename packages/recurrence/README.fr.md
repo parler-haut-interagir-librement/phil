@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b0e7a17f6313c28712c8e125c8a4f93687ba059174210822341e6cb8bb23e962 -->
+<!-- phil-dev source-sha256=c4bcdff1c22be1bfb6520a5784fca4dc35069bbce6caa2ea63c14edcdca267ba -->
 # phil/recurrence
 
 **Des dates qui se répètent selon une règle RFC 5545 : lisez-la, vérifiez-la, écrivez-la, listez ses occurrences.**
@@ -13,7 +13,7 @@ jours de l'année, ni les périodes de `RDATE`.
 
 Elle s'adresse à toute application PHP dont les événements se répètent : une réunion hebdomadaire, une soirée de club
 mensuelle, un festival annuel. Les règles suivent la RFC pour circuler telles quelles vers d'autres calendriers et en
-revenir. La bibliothèque est écrite de zéro à partir de la RFC 5545 et ne dépend que de PHP et de `ext-mbstring`. Ce
+revenir. La bibliothèque suit la RFC 5545 et ne dépend que de PHP et de `ext-mbstring`. Ce
 n'est pas un calendrier : `phil/calendar-bundle` en est un, construit sur elle. Dans une application Symfony,
 `phil/recurrence-bundle` y ajoute un formulaire, un type de colonne Doctrine et des fonctions Twig.
 

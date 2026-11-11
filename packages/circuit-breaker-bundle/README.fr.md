@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1fd7e8a7297e41c0903cdb6a92fabdcc28fbd12b2b3f5d5b7815075b1e3190b9 -->
+<!-- phil-dev source-sha256=0d3d669dec9b98a8c8126da2059c758a346870c78f5a0b990f49747c991216cd -->
 # phil/circuit-breaker-bundle
 
 **Des circuits déclarés en configuration, leurs états partagés par les workers, et des clients HTTP derrière leurs
@@ -17,7 +17,7 @@ partenaires qu'atteignent ses webhooks, une API de géocodage. Un opérateur for
 quel service qui implémente `CircuitOverride`, étiqueté par l'autoconfiguration ; `phil/feature-flags-bundle` en fournit
 un qui lit un indicateur par circuit. Le profileur montre l'état de chaque circuit à la fin de la requête.
 
-Il est écrit de zéro, sur les composants que Symfony fournit déjà : Config et DependencyInjection pour la configuration,
+Il repose sur les composants que Symfony fournit déjà : Config et DependencyInjection pour la configuration,
 Cache pour le stockage, HttpClient pour les clients décorés, HttpKernel pour le profileur.
 
 ## État

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f2523cc8905d5f6537f28eedd7089af1430686bce9d7ed2f2bb57f2aa496a13c -->
+<!-- phil-dev source-sha256=62ad3f617ef5150c19af72b5860bbe867595d229cfbbcc77f29dcd6fd21fac99 -->
 # phil/monitoring-bundle
 
 **La surveillance d'un site Symfony : sa santé, un mode maintenance, les battements de cœur de ses tâches planifiées et
@@ -19,7 +19,7 @@ page d'état publique, un tableau de bord — le lit par `MonitoringStatus`, un 
 vérifications, des tâches et de la maintenance. Rien de ce que le bundle montre ne porte plus que des noms, des états,
 des nombres et des moments : aucun secret, aucun hôte, aucun renseignement personnel.
 
-Il est écrit de zéro, sur les composants que Symfony fournit déjà : HttpKernel et HttpFoundation pour les points de
+Il repose sur les composants que Symfony fournit déjà : HttpKernel et HttpFoundation pour les points de
 terminaison et le mode maintenance, Messenger, Scheduler et Notifier pour les files d'attente et les tâches, Cache et
 Filesystem pour les stockages, Console pour les commandes ; DBAL, Flysystem, Twig et Security lorsque l'application
 les a.

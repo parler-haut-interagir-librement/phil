@@ -22,7 +22,7 @@ in clear: it is kept to its owner, encrypted where it is stored, and replaced on
 application that keeps its data in SQLite, MySQL, MariaDB or PostgreSQL; `phil/backup-bundle` puts it in Symfony, with
 its configuration and its commands.
 
-It is a plain PHP library, written from scratch, whose only requirement is `ext-sodium`. It does not run processes
+It is a plain PHP library whose only requirement is `ext-sodium`. It does not run processes
 itself: a `CommandRunner` given by the application finds and runs the tools. It does not schedule backups, copy them
 off the machine, or decide when a restore is wise: the application's scheduler, storage and people do.
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=15ba7bb556ea713928f00cd4b68cb450429587fae418e33e9e1e06d66d32e1a4 -->
+<!-- phil-dev source-sha256=2bf6ae8ff1f907f34f757a7acc0b71cd59695d8fe07f2169a11c892bc06a34f1 -->
 # phil/highlight-bundle
 
 **Du code coloré sur le serveur dans une application Symfony : dans les documents UJO, dans les gabarits, avec un thème
@@ -14,7 +14,7 @@ de code écrit dans un éditeur par blocs ou en Markdown ressort coloré sans ri
 avec `{{ snippet|highlight('php') }}`. La page n'a besoin d'aucun script ; le contrôleur de coloration de
 `phil/ux-bundle` colore quand même, dans le navigateur, les blocs dont le serveur ne connaît pas le langage.
 
-C'est un bundle mince, écrit de zéro, sur `symfony/config` et `symfony/dependency-injection`. Twig, `phil/ujo-bundle` et
+C'est un bundle mince sur `symfony/config` et `symfony/dependency-injection`. Twig, `phil/ujo-bundle` et
 AssetMapper sont facultatifs : le filtre n'est enregistré que si Twig est installé, les blocs de code ne sont colorés
 que si le moteur de rendu de ce bundle se trouve dans le conteneur, et la feuille de style n'est déclarée que si
 AssetMapper est installé.

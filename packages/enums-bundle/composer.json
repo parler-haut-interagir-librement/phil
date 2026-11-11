@@ -1,6 +1,6 @@
 {
     "name": "phil/enums-bundle",
-    "description": "Symfony integration of phil/enums: enum cases translated by their Label and Description metadata, form choices narrowed to a group, a list or a meta value, an EnumSet form type, a validator constraint, Twig functions, filters and badges, a translation extractor, debug and TypeScript commands, JSON Schema, a serializer normalizer and Doctrine column types for enum sets",
+    "description": "Symfony integration of phil/enums: cases translated by their Label and Description, form choices narrowed to a group, a list or a meta value, an EnumSet form type, a validator constraint, Twig functions and filters, a translation extractor, debug and TypeScript commands, JSON Schema, a serializer normalizer and Doctrine types for enum sets",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

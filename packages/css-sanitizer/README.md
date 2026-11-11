@@ -14,7 +14,7 @@ It is for any PHP application that lets its users write CSS: themes and looks of
 styles of a profile, print styles of a document sent to a PDF engine, a style editor in a content system. The output
 is safe to write in a `<style>` element or a `style` attribute of a page that other people read.
 
-It is a plain PHP library, written from scratch, whose only requirement is `ext-mbstring`; `symfony/validator`, if
+It is a plain PHP library whose only requirement is `ext-mbstring`; `symfony/validator`, if
 installed, gives the `SafeCss` constraint. The tokenizer and parser follow CSS Syntax Level 3 section by section, so
 that the sanitizer sees the same tokens a browser sees — escapes resolved, comments dropped, blocks matched — and a
 name hidden behind an escape (`e\78 pression`) is the name it is. Nothing is filtered by regular expression on text.

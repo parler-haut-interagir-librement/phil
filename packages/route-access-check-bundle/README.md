@@ -13,7 +13,7 @@ security configuration is read from the services SecurityBundle builds, after ev
 the check sees exactly what the application runs: `when@` blocks, PHP configuration, parameters, `route:` entries.
 It registers its services in the `dev` and `test` environments only: no listener, nothing in production.
 
-It is written from scratch, on the components Symfony already ships: Config and DependencyInjection for the
+It is built on the components Symfony already ships: Config and DependencyInjection for the
 configuration and the compiler pass, Console for the command, Filesystem for the baseline file.
 
 ## Status

@@ -4,7 +4,7 @@ All notable changes to `phil/backup` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## NEXT - YYYY-MM-DD
+## 0.1.0-alpha - 2026-11-11
 
 ### Added
 
@@ -21,8 +21,8 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - `BackupKey` and `BackupCipher`: 32-byte keys in base64, files encrypted by libsodium's secret stream in chunks of
   64 KiB under a versioned header, every chunk authenticated and the last one marked final, so that another key, an
   altered, reordered, cut or extended file is refused.
-- `TarWriter`, `TarReader` and `TarEntry`: POSIX ustar archives of directories and regular files written from
-  scratch, long paths split into prefix and name, checksums verified, links and other entries refused.
+- `TarWriter`, `TarReader` and `TarEntry`: POSIX ustar archives of directories and regular files, long paths split into
+  prefix and name, checksums verified, links and other entries refused.
 - `MediaArchive`: named media directories archived sorted, links and special files left out, a missing directory
   archived empty; an archive verified whole before anything is written, written back over files of the same path,
   never through a link and never out of its directory; `prune()` removing what the directories hold and the archive

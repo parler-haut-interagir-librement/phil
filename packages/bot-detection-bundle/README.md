@@ -45,7 +45,7 @@ no configuration.
   counts robot verdicts rather than friction steps.
 - [Browser signals](doc/browser-signals.md) — the in-browser detectors of the `verdict` Stimulus controller, the
   signals still to write, what is never collected or sent,
-  and the open-source projects read as design references (motifs only, no code copied).
+  and the open-source projects read as design references (motifs only).
 - [Extension points](doc/extension-points.md) — the `RobotVerdictCounter` port, its invariants and example
   adapters.
 - [Testing](doc/testing.md) — running the tests from the monorepo or with the bundle installed alone, and testing

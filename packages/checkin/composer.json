@@ -1,6 +1,6 @@
 {
     "name": "phil/checkin",
-    "description": "The check-in core of events and venues: a code read at a checkpoint resolved to its credential, decided by an admission policy (opening, closing, entries, anti-passback, re-entry) on its attendance, recorded once per scan identifier in a ledger shared by the devices, and offline manifests of keyed fingerprints with the synchronisation of the journals devices kept offline",
+    "description": "The check-in core of events and venues: a code read at a checkpoint resolved to its credential, decided by an admission policy (opening, closing, entries, anti-passback, re-entry), recorded once per scan in a ledger shared by the devices, and offline manifests of keyed fingerprints with the synchronisation of the journals kept offline",
     "license": "MIT",
     "type": "library",
     "keywords": [

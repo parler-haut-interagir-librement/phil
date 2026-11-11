@@ -15,7 +15,7 @@ and must write their CSS, a PDF or EPUB pipeline that must know whether a font m
 screen that lists each font with its licence, a build step that refuses a font whose licence it does not know.
 `phil/paged-media` embeds TrueType fonts in PDF documents; this library is how an application checks them first.
 
-It is a plain PHP library, written from scratch from the OpenType 1.9.1, WOFF 1.0 and WOFF 2.0 specifications, whose
+It is a plain PHP library that follows the OpenType 1.9.1, WOFF 1.0 and WOFF 2.0 specifications and whose
 only requirements are `ext-mbstring` and `ext-zlib`. WOFF2 compresses its tables with Brotli, which PHP does not
 decode on its own: a WOFF2 file is read through a decompressor the application passes, `Brotli::decompressor()`, which
 is `brotli_uncompress()` when `ext-brotli` is loaded; without it, WOFF, TrueType and OpenType files are read and a WOFF2

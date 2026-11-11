@@ -1,6 +1,6 @@
 {
     "name": "phil/feature-flags-bundle",
-    "description": "Feature flags and A/B tests for Symfony: flags evaluated once per request from ordered providers (configuration, database), targeting by tenant, project or subject, stable percentage rollouts and experiments, metadata and expiry dates, audited toggles and edits with a mandatory reason, admin screens, a controller attribute, a route condition and Twig functions, and a flag per circuit of phil/circuit-breaker-bundle that forces it open",
+    "description": "Feature flags and A/B tests for Symfony: flags evaluated once per request from ordered providers (configuration, database), targeting by tenant, project or subject, stable rollouts and experiments, expiry dates, audited changes with a reason, admin screens, a controller attribute, a route condition, Twig functions, and circuit-breaker flags",
     "license": "MIT",
     "type": "symfony-bundle",
     "authors": [

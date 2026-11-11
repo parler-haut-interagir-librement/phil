@@ -2,7 +2,7 @@
 
 ## Liang's algorithm
 
-`Hyphenator` implements the algorithm Frank Liang designed for TeX, written from scratch. A pattern is a string of
+`Hyphenator` implements the algorithm Frank Liang designed for TeX. A pattern is a string of
 letters with digits between them — `.ach4`, `a1b`, `hy3ph` —, the dot marking the start or the end of a word. Every
 pattern found in the word, framed by dots, raises the digits between its letters; a break is allowed where the highest
 digit is odd, never closer to either end than the language's minimum lengths, and never before a combining mark. A word
@@ -116,7 +116,7 @@ and in Latin script for `sr_Latn`.
 
 The TeX patterns of Czech (GPL 2 or later only), Hungarian (MPL 1.1, GPL 2 or LGPL 2.1 only), Armenian (LGPL only),
 Indonesian (GPL only), Latvian (LGPL 2.1 or GPL 2 only), Macedonian (GPL only) and Romanian (no licence stated) cannot
-be shipped in an MIT package. These seven languages have patterns written from scratch instead, from the published
+be shipped in an MIT package. These seven languages have patterns of their own instead, written from the published
 orthographic rules of each language — no pattern, exception list or word list under another licence was read to write
 them. The rules are written as data in `tests/Generator/SyllableRules.php`, `tests/Generator/PatternGenerator.php`
 turns them into Liang patterns, `php bin/generate-patterns.php` writes the `<tag>.pat.txt` files, and the tests check

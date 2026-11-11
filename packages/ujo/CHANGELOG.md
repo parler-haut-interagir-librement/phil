@@ -4,7 +4,7 @@ All notable changes to `phil/ujo` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## NEXT - YYYY-MM-DD
+## 0.1.0-alpha - 2026-11-11
 
 ### Added
 
@@ -52,7 +52,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   the bounds they set; the standard types require a heading, a quote, code and a person's name filled in, a list's
   items and a table's rows.
 - `InlineSanitizer`, `InlineProfile`, `InlineTool`, `AttributeValue`, `LanguageTag` and `SafeUrl`: inline HTML
-  sanitized from scratch in time linear in its length, however deep its elements are nested, with the `rich`,
+  sanitized in time linear in its length, however deep its elements are nested, with the `rich`,
   `plain`, `mathml` and `raw` profiles and every inline tool of Editor.js and of the community, abbreviations,
   passages in another language (`<span lang dir>`, `<bdi>` and `<bdo>` read as one), ruby and formulas in MathML Core
   included; a tool reads its patterns once and names its tags, `InlineTool::tags()`, by which a profile finds the

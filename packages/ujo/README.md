@@ -17,9 +17,9 @@ canonical form; rendering it again checks it again, so a tightened rule reaches 
 application, `phil/ujo-bundle` adds the `ujo_html` and `ujo_text` Twig filters, a form field holding UJO JSON and a
 validation constraint.
 
-It is a plain PHP library, written from scratch, without dependency. The data written by the tools of Editor.js editors
-is read as it is shaped; no line of those tools is copied. Its HTML sanitizer is its own: it keeps, field by field, the
-inline elements a profile allows, written back in one canonical form, and nothing else.
+It is a plain PHP library with no dependency. The data written by the tools of Editor.js editors is read as it is
+shaped. Its HTML sanitizer is its own: it keeps, field by field, the inline elements a profile allows, written back in
+one canonical form, and nothing else.
 
 The design is small: `Document` and `Block` are the values; `BlockTypeRegistry` holds a `BlockType` per type, whose
 `Shape` of fields checks the data; `Normalizer` applies them; `HtmlRenderer` renders with one `BlockRenderer` per type;

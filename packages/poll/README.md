@@ -13,7 +13,7 @@ It is for any PHP application where people vote: a club choosing the date of its
 the ideas of its members, an association electing its board, a site asking its readers a question. Who may vote,
 whether ballots are anonymous and where they are kept belong to the application, or to `phil/poll-bundle` in Symfony.
 
-It is a plain PHP library, written from scratch, with no requirement but PHP. A count reads the ballots once, from
+It is a plain PHP library with no requirement but PHP. A count reads the ballots once, from
 any iterable, so a store streams them from its table; the ranked methods group identical rankings, so their memory
 grows with the distinct rankings rather than with the ballots. The methods keep no state between two counts and are
 safe to share across the requests of a long-running worker.

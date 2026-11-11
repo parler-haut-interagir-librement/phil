@@ -1,8 +1,7 @@
-<!-- phil-dev source-sha256=839e837703220172c9d3b356b72596474ebbec5fcf5a7f21a0b922a05311ae4f -->
+<!-- phil-dev source-sha256=cd4eb1145ffc1c16951ebab85eda8d5f1ae168e325aac36c5453318f937bc2d0 -->
 # Données
 
-Chaque liste fournie avec la bibliothèque a été écrite pour elle et se trouve sous sa licence MIT ; aucune n'est
-copiée d'un autre projet.
+Chaque liste fournie avec la bibliothèque a été écrite pour elle et se trouve sous sa licence MIT.
 
 | Fichier | Ce qu'il contient |
 |---|---|

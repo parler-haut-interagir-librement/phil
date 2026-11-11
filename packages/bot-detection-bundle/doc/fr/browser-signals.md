@@ -1,8 +1,8 @@
-<!-- phil-dev source-sha256=85a2969ba7f4dffafd72cde33dbc433793e2a6d45d7d90e5a88450be5c096e96 -->
+<!-- phil-dev source-sha256=74f4fb618bbb15ff05bebb61b79edf6940c60950a125f0f33f53707cb6565eb4 -->
 # Signaux du navigateur
 
 Le code du navigateur est un contrôleur Stimulus, `verdict` (`assets/src/verdict_controller.js`), et ses détecteurs
-(`assets/src/detectors.js`), écrits de zéro. Il ne laisse sortir du navigateur qu'un mot : `human` ou `robot`.
+(`assets/src/detectors.js`). Il ne laisse sortir du navigateur qu'un mot : `human` ou `robot`.
 
 | Pièce | État |
 |---|---|
@@ -87,10 +87,10 @@ chaque détecteur, pas à la politique du serveur : quand un verdict atteint le 
 
 ## Références de conception
 
-Les détecteurs sont **écrits de zéro**. Les projets ci-dessous sont lus détecteur par détecteur pour comprendre ce que
-mesure un signal, et seul ce qui sert un verdict robot ou humain inspire un détecteur. **Aucune ligne de leur code n'est
-copiée.** Une source qui n'est pas libre n'est pas lue du tout : réécrire du code sous une licence qui interdit la
-redistribution produirait une œuvre dérivée. Les licences sont celles des fichiers lus le 2026-10-30.
+Les projets ci-dessous sont lus détecteur par détecteur pour comprendre ce que mesure un signal, et seul ce qui sert un
+verdict robot ou humain inspire un détecteur. Une source qui n'est pas libre n'est pas lue du tout : réécrire du code
+sous une licence qui interdit la redistribution produirait une œuvre dérivée. Les licences sont celles des fichiers lus
+le 2026-10-30.
 
 | Référence | Licence lue | Version lue | Ce qui inspire un détecteur | Laissé de côté |
 |---|---|---|---|---|

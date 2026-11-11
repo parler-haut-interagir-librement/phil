@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a0b4182123503b9525cc3d425b746a1a8c5b37b9de56534e06cf446215c6a6af -->
+<!-- phil-dev source-sha256=49a74949e3da776f1ce5bffb701955a3aafc4277f9ad302d06fa61e51ff46ad0 -->
 # phil/print-compositor
 
 **Les maquettes que montre une boutique et les fichiers d'impression que reçoit un imprimeur, dessinés à partir des
@@ -18,7 +18,7 @@ de chaque couleur d'un t-shirt à partir d'un seul visuel, un produit qu'un clie
 une police et une zone imposées, un lot dont les pièces sont tirées au hasard et placées à des positions fixes, une
 étape de production qui envoie un fichier par encre à un imprimeur local.
 
-C'est une simple bibliothèque PHP, écrite de zéro sur l'extension GD de PHP, dont elle a besoin avec la prise en charge
+C'est une simple bibliothèque PHP, bâtie sur l'extension GD de PHP, dont elle a besoin avec la prise en charge
 de FreeType, de PNG et de WebP, et sur `phil/fonts`, qui lit les polices dans lesquelles ses textes sont dessinés. Rien
 n'est installé avec elle, et rien n'est téléchargé. L'[Installation](doc/fr/installation.md) explique pourquoi GD
 plutôt qu'Imagick.

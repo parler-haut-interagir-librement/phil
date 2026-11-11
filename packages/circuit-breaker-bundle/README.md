@@ -14,7 +14,7 @@ webhooks reach, a geocoding API. An operator forces a circuit open through any s
 `CircuitOverride`, tagged by autoconfiguration; `phil/feature-flags-bundle` provides one that reads a flag per
 circuit. The profiler shows the state of each circuit at the end of the request.
 
-It is written from scratch, on the components Symfony already ships: Config and DependencyInjection for the
+It is built on the components Symfony already ships: Config and DependencyInjection for the
 configuration, Cache for the store, HttpClient for the decorated clients, HttpKernel for the profiler.
 
 ## Status

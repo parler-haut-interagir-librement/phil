@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=be476f78fc0b28cacf65bd48543ef1b67870bc36bb5979998ef9e37b5c0b8a55 -->
+<!-- phil-dev source-sha256=83299dd85fcc9662bc07a468a0d9b47290c4429028030f754180bec912a7b79b -->
 # phil/reservation
 
 **Le cœur des réservations : une ressource, ses créneaux, ses règles, ses conflits et ses rappels.**
@@ -13,7 +13,7 @@ réservation est dû.
 
 Elle s'adresse à toute application PHP qui réserve quelque chose : des salles et des tables directement, et, par-dessus
 en couches minces, des rendez-vous, la location d'équipement, l'hébergement, les prêts d'une ludothèque ou les sessions
-d'un jeu d'évasion. La bibliothèque est écrite de zéro et ne dépend que de PHP et de `ext-mbstring` ; elle ne garde
+d'un jeu d'évasion. La bibliothèque ne dépend que de PHP et de `ext-mbstring` ; elle ne garde
 aucun état et n'enregistre rien. Dans une application Symfony, `phil/reservation-bundle` garde les ressources et les
 réservations dans Doctrine, les retient et les confirme une requête à la fois par ressource, envoie les rappels et
 montre les réservations dans le calendrier.
