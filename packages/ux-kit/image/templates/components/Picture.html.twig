@@ -1,6 +1,6 @@
 {#-
  # A picture: its sources in the order given, AVIF first, before the Image that holds the fallback, under the prop names
- # of Symfony UX Image. The other attributes go to the img. A source of another type than image/*, without candidates or
+ # of Symfony UX Image, in a figure when it has a caption. The other attributes go to the img. A source of another type than image/*, without candidates or
  # holding a refused URL is left out; a refused src renders nothing.
  #}
 {%- props
@@ -23,7 +23,9 @@
     ## string|null How it loads, "lazy" or "eager": "lazy" by default, "eager" with priority.
     loading = null,
     ## string|null How it is decoded, "async", "sync" or "auto": "async" by default, none written with priority.
-    decoding = null
+    decoding = null,
+    ## string|null A caption under the image, which a figure then holds with it; shown even when the image is decorative.
+    caption = null
 -%}
 {%- set _refused = '#(^|,)[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i' -%}
 {%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
@@ -44,8 +46,10 @@
             }]) -%}
         {%- endif -%}
     {%- endfor -%}
+    {%- if caption is not empty -%}<figure>{%- endif -%}
     {%- if _sources is not empty -%}<picture>{%- endif -%}
     {%- for source in _sources -%}<source {{ html_attr(source) }}>{%- endfor -%}
     <twig:Image :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :priority="priority" :loading="loading" :decoding="decoding" {{ ...attributes.all }} />
     {%- if _sources is not empty -%}</picture>{%- endif -%}
+    {%- if caption is not empty -%}<figcaption>{{ caption }}</figcaption></figure>{%- endif -%}
 {%- endif -%}

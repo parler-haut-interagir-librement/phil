@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=263dd113405838754eb8a38b7f5dcc7c7acbf12a5b6684b955370a33abb24f32 -->
+<!-- phil-dev source-sha256=77a157eea2e62f8d3d290ef172999fcff55e36493a76dae18ebb1cb914ccc4aa -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -87,7 +87,7 @@ Aucune candidate ne produit rien.
 La recette `image` contient deux composants, sous les noms de props de Symfony UX Image ; aucun service, aucun
 JavaScript, aucun style en ligne.
 
-`<twig:Image>` : une `img` de classe `isImage`.
+`<twig:Image>` : une `img` de classe `isImage`, dans une `figure` avec sa `caption`.
 
 | Prop | Par défaut | |
 |---|---|---|
@@ -99,9 +99,10 @@ JavaScript, aucun style en ligne.
 | `priority` | `false` | L'image principale au-dessus de la ligne de flottaison : `loading="eager"`, `fetchpriority="high"`, aucun `decoding` |
 | `loading` | `null` | `lazy` ou `eager`, qui l'emporte sur `priority` ; `lazy` quand il est nul sans `priority` |
 | `decoding` | `null` | `async`, `sync` ou `auto`, qui l'emporte sur `priority` ; `async` quand il est nul sans `priority` |
+| `caption` | `null` | Une `figcaption`, échappée : l'image est alors dans une `figure`, décorative ou non |
 
 `<twig:Picture>` : une `picture` dont les éléments `source`, dans l'ordre donné, précèdent une `Image` qui porte le
-repli ; l'`Image` seule quand il ne reste aucune source.
+repli ; l'`Image` seule quand il ne reste aucune source ; dans une `figure` avec sa `caption`.
 
 | Prop | Par défaut | |
 |---|---|---|

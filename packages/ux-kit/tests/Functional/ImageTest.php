@@ -95,6 +95,39 @@ final class ImageTest extends KitTestCase
         );
     }
 
+    public function testACaptionPutsTheImageInAFigure(): void
+    {
+        self::assertSame(
+            '<figure><img class="isImage" src="/map.png" alt="The map" width="10" height="10" loading="lazy" decoding="async"><figcaption>Where we meet</figcaption></figure>',
+            $this->render('<twig:Image src="/map.png" alt="The map" :width="10" :height="10" caption="Where we meet" />'),
+        );
+        self::assertSame(
+            '<img class="isImage" src="/map.png" alt="The map" width="10" height="10" loading="lazy" decoding="async">',
+            $this->render('<twig:Image src="/map.png" alt="The map" :width="10" :height="10" caption="" />'),
+            'an empty caption writes no figure',
+        );
+    }
+
+    public function testADecorativeImageKeepsItsCaption(): void
+    {
+        self::assertSame(
+            '<figure><img class="isImage" src="/swirl.svg" alt="" width="10" height="10" loading="lazy" decoding="async"><figcaption>Drawn by Ana</figcaption></figure>',
+            $this->render('<twig:Image src="/swirl.svg" alt="" :width="10" :height="10" caption="Drawn by Ana" aria-label="Swirl" />'),
+        );
+    }
+
+    public function testTheCaptionIsEscaped(): void
+    {
+        self::assertSame(
+            '<figure><img class="isImage" src="/a.png" alt="A" width="1" height="1" loading="lazy" decoding="async"><figcaption>&lt;em&gt;A&lt;/em&gt; &amp; B</figcaption></figure>',
+            $this->render('<twig:Image src="/a.png" alt="A" :width="1" :height="1" :caption="caption" />', ['caption' => '<em>A</em> & B']),
+        );
+        self::assertSame(
+            '<figure><picture><source type="image/webp" srcset="/a.webp"><img class="isImage" src="/a.png" alt="A" width="1" height="1" loading="lazy" decoding="async"></picture><figcaption>&lt;script&gt;</figcaption></figure>',
+            $this->render('<twig:Picture src="/a.png" :sources="[{type: \'image/webp\', srcset: \'/a.webp\'}]" alt="A" :width="1" :height="1" :caption="caption" />', ['caption' => '<script>']),
+        );
+    }
+
     public function testEverythingIsEscaped(): void
     {
         self::assertSame(
@@ -235,6 +268,20 @@ final class ImageTest extends KitTestCase
             $this->render('<twig:Picture src="/a.png" alt="" :width="1" :height="1" />'),
             'without sources, the image alone',
         );
+    }
+
+    public function testACaptionPutsThePictureInAFigure(): void
+    {
+        self::assertSame(
+            '<figure><picture><source type="image/avif" srcset="/a.avif"><img class="isImage" src="/a.jpg" alt="" width="8" height="6" loading="lazy" decoding="async"></picture><figcaption>The bridge at dusk</figcaption></figure>',
+            $this->render('<twig:Picture src="/a.jpg" :sources="[{type: \'image/avif\', srcset: \'/a.avif\'}]" alt="" :width="8" :height="6" caption="The bridge at dusk" />'),
+        );
+        self::assertSame(
+            '<figure><img class="isImage" src="/a.jpg" alt="A" width="8" height="6" loading="lazy" decoding="async"><figcaption>Alone</figcaption></figure>',
+            $this->render('<twig:Picture src="/a.jpg" alt="A" :width="8" :height="6" caption="Alone" />'),
+            'without sources, the image alone in its figure',
+        );
+        self::assertSame('', $this->render('<twig:Picture src="javascript:x" alt="A" :width="8" :height="6" caption="C" />'), 'a refused src writes no figure');
     }
 
     public function testAPictureEscapesItsSources(): void

@@ -106,6 +106,15 @@ the same name of Symfony UX Image. `loading` and `decoding` still override it.
 <twig:Image src="/images/cover.jpg" alt="The stage" :width="1600" :height="900" :priority="true" />
 ```
 
+### A caption
+
+`caption` puts the image, or the picture, in a `figure` with its `figcaption`, the text escaped. A decorative image,
+with an empty `alt`, stays decorative: its caption still shows.
+
+```twig
+<twig:Image src="/images/map.png" alt="The map of the city" :width="800" :height="600" caption="Where we meet" />
+```
+
 ### Other attributes
 
 Of the other attributes, only `id`, `class`, `title`, `crossorigin`, `referrerpolicy`, `itemprop`, `draggable`,

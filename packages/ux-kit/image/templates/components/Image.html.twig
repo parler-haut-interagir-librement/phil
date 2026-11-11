@@ -1,5 +1,5 @@
 {#-
- # An image: one img, under the prop names of Symfony UX Image, without a service, a script or an inline style. A
+ # An image: one img, in a figure when it has a caption, under the prop names of Symfony UX Image, without a service, a script or an inline style. A
  # javascript:, vbscript: or data: URL other than data:image/ is refused: a refused src renders nothing, a refused
  # srcset is left out whole.
  #}
@@ -21,7 +21,9 @@
     ## string|null How it loads, "lazy" or "eager": "lazy" by default, "eager" with priority.
     loading = null,
     ## string|null How it is decoded, "async", "sync" or "auto": "async" by default, none written with priority.
-    decoding = null
+    decoding = null,
+    ## string|null A caption under the image, which a figure then holds with it; shown even when the image is decorative.
+    caption = null
 -%}
 {%- set _refused = '#(^|,)[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i' -%}
 {%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
@@ -33,6 +35,7 @@
     {%- set _allowed = alt is same as('')
         ? '#^(id|crossorigin|referrerpolicy|itemprop|draggable|data-[a-z0-9-]+)$#'
         : '#^(id|title|crossorigin|referrerpolicy|itemprop|draggable|(data|aria)-[a-z0-9-]+)$#' -%}
+    {%- if caption is not empty -%}<figure>{%- endif -%}
     <img {{ html_attr({
         class: ('isImage ' ~ (attributes.all.class ?? ''))|trim,
         src: src,
@@ -45,4 +48,5 @@
         decoding: decoding in ['async', 'sync', 'auto'] ? decoding : (priority ? null : 'async'),
         fetchpriority: priority ? 'high' : null,
     }, attributes.all|filter((value, name) => name matches _allowed)) }}>
+    {%- if caption is not empty -%}<figcaption>{{ caption }}</figcaption></figure>{%- endif -%}
 {%- endif -%}

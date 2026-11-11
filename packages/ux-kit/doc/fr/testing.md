@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9f8ef7ceb52fb0667a41cd8e1b96528ea71b53c7ead1587170561a749bf3d477 -->
+<!-- phil-dev source-sha256=571f100ab063a278e8f0d2a4d20a6cced0734b3ae03ca98831a8933373f7079e -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -7,7 +7,7 @@
 | `Logo` | Une image seule, une source WebP avec son repli et un lien vers l'accueil, la taille et le chargement, le thème et la locale remplacés, l'échappement, `alt` requis |
 | `AnimatedHeadline` | Un mot, un mot avec `loop` et sans bouton, plusieurs avec du texte autour, le bouton de pause et ses libellés, le libellé et le séparateur, le niveau gardé un titre, l'échappement |
 | `Illustration` | Le germe qui choisit, les germes négatifs, chaque candidate tirée sans germe, une URL, les tailles, une légende, aucune candidate |
-| `Image` et `Picture` | En différé et en asynchrone par défaut, `priority` et les choix qui l'emportent sur elle, les valeurs inconnues ramenées au défaut, les tableaux de densités et de largeurs, `sizes` après `auto,` en différé, une image décorative qui laisse de côté `title` et `aria-*`, les attributs permis seuls, l'échappement, les URL `javascript:`, `vbscript:` et `data:` autres qu'images refusées sous tous leurs déguisements, `data:image/` permise, `src`, `alt`, `width` et `height` requis ; les sources dans leur ordre, par densité, par largeur avec direction artistique, dimensionnées automatiquement en différé, une source d'un type inconnu ou sans candidate laissée de côté, l'`Image` seule sans source |
+| `Image` et `Picture` | En différé et en asynchrone par défaut, `priority` et les choix qui l'emportent sur elle, les valeurs inconnues ramenées au défaut, les tableaux de densités et de largeurs, `sizes` après `auto,` en différé, une image décorative qui laisse de côté `title` et `aria-*`, la légende et sa `figure`, aucune pour une légende vide, gardée sous une image décorative, les attributs permis seuls, l'échappement, les URL `javascript:`, `vbscript:` et `data:` autres qu'images refusées sous tous leurs déguisements, `data:image/` permise, `src`, `alt`, `width` et `height` requis ; les sources dans leur ordre, par densité, par largeur avec direction artistique, dimensionnées automatiquement en différé, une source d'un type inconnu ou sans candidate laissée de côté, l'`Image` seule sans source |
 | `AutosaveStatus` | La région active, l'avis caché, ses boutons avec leurs cibles, leurs actions et leurs libellés par défaut ; les libellés en props, échappés ; une `class` ajoutée |
 | `ReactionButton` | Enfoncé ou non, avec un émoji ou une image et son texte de remplacement, le compteur et son libellé, aucun à zéro, du texte simple quand il ne peut pas être enfoncé, d'autres attributs sur la racine |
 | `ReactionPicker` | Le dévoilement, la recherche cachée, les groupes, chaque bouton avec ses attributs et le texte cherché, les attributs hors de ceux permis laissés de côté, l'échappement, les libellés en props |

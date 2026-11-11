@@ -84,7 +84,7 @@ No candidate renders nothing.
 The `image` recipe holds two components, under the prop names of Symfony UX Image; no service, no JavaScript, no
 inline style.
 
-`<twig:Image>`: an `img` of class `isImage`.
+`<twig:Image>`: an `img` of class `isImage`, in a `figure` with its `caption`.
 
 | Prop | Default | |
 |---|---|---|
@@ -96,9 +96,10 @@ inline style.
 | `priority` | `false` | The main image above the fold: `loading="eager"`, `fetchpriority="high"`, no `decoding` |
 | `loading` | `null` | `lazy` or `eager`, overriding `priority`; `lazy` when null without `priority` |
 | `decoding` | `null` | `async`, `sync` or `auto`, overriding `priority`; `async` when null without `priority` |
+| `caption` | `null` | A `figcaption`, escaped: the image is then in a `figure`, decorative or not |
 
 `<twig:Picture>`: a `picture` whose `source` elements, in the order given, precede an `Image` holding the fallback;
-the `Image` alone when no source is left.
+the `Image` alone when no source is left; in a `figure` with its `caption`.
 
 | Prop | Default | |
 |---|---|---|
