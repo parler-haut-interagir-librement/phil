@@ -1,0 +1,10 @@
+{%- props
+    ## 'default'|'sm' The trigger size.
+    size = 'default'
+-%}
+{%- set _select_open = inject('select.open', false) -%}
+<button type="button" role="combobox" id="{{ inject('select.triggerId') }}" popovertarget="{{ inject('select.contentId') }}" data-slot="select-trigger" data-select-target="trigger" data-size="{{ size }}" data-state="{{ _select_open ? 'open' : 'closed' }}" data-has-value="{{ inject('select.value', '') is empty ? 'false' : 'true' }}" aria-haspopup="listbox" aria-controls="{{ inject('select.contentId') }}" aria-expanded="{{ _select_open ? 'true' : 'false' }}"{% if inject('select.disabled', false) %} disabled{% endif %}{{ attributes.defaults({class: 'isSelectTrigger', 'data-action': 'click->select#toggle keydown->select#onTriggerKeydown'}) }}>
+{##- The trigger content, typically a `Select:Value`. -#}
+{%- block content %}{% endblock -%}
+<span class="isSelectIcon" aria-hidden="true" data-slot="select-trigger-icon">&#9662;</span>
+</button>

@@ -1,0 +1,8 @@
+{%- props
+    ## string What the slide is announced as.
+    roleDescription = 'slide'
+-%}
+<div role="group" aria-roledescription="{{ roleDescription }}" data-slot="carousel-item"{{ attributes.defaults({class: 'isCarouselSlide'}) }}>
+{##- The slide content. -#}
+{%- block content %}{% endblock -%}
+</div>

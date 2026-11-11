@@ -1,0 +1,12 @@
+{%- props
+    ## string Define the open Tabs at initial rendering; the first one when empty.
+    defaultValue = '',
+    ## 'horizontal'|'vertical' Define the visual orientation.
+    orientation = 'horizontal'
+-%}
+{%- do provide('tabs.defaultValue', defaultValue) -%}
+{%- do provide('tabs.orientation', orientation) -%}
+<div data-slot="tabs" data-tabs-active-tab-value="{{ defaultValue }}" data-orientation="{{ orientation }}"{{ attributes.defaults({class: 'isTabs' ~ (orientation is same as('vertical') ? ' isVertical' : ''), 'data-controller': 'tabs'}) }}>
+{##- The default block. -#}
+{%- block content %}{% endblock -%}
+</div>

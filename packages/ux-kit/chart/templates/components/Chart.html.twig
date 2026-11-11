@@ -1,0 +1,129 @@
+{#-
+ # A chart drawn by the server, in SVG: bars or lines, one or several series, with a scale rounded to plain steps. The
+ # drawing is hidden from screen readers, which read the same values from a table; the legend writes each series'
+ # name beside its swatch, and the lines differ by their dashes too, so the colour never stands alone. The scale has
+ # four to six steps whatever the values, so the drawing stays small. The last 366 labels and the first six series
+ # are kept; a missing value is left out, the line broken there.
+ #}
+{%- props
+    ## string What the chart shows, written as its caption.
+    label,
+    ## array The labels of the values, along the horizontal axis, oldest first.
+    labels,
+    ## array The series, each a mapping of its `label` and its `values`, one per label.
+    series,
+    ## 'bar'|'line' How the values are drawn.
+    type = 'bar',
+    ## int The width of the drawing.
+    width = 640,
+    ## int The height of the drawing.
+    height = 320,
+    ## string|null The summary of a disclosure showing the table of the values; without it, the table is read by screen readers alone.
+    tableLabel = null
+-%}
+{%- set _type = type is same as('line') ? 'line' : 'bar' -%}
+{%- set _labels = labels|slice(-366) -%}
+{%- set _count = _labels|length -%}
+{%- set _series = [] -%}
+{%- for _one in series|slice(0, 6) -%}
+    {%- set _values = (_one.values ?? [])|slice(-366)|slice(0, _count) -%}
+    {%- set _series = _series|merge([{label: _one.label ?? '', values: _values}]) -%}
+{%- endfor -%}
+{%- set _numbers = [0] -%}
+{%- for _one in _series -%}
+    {%- set _numbers = _numbers|merge(_one.values|filter(_v => _v is not null)) -%}
+{%- endfor -%}
+{%- set _high = max(_numbers) -%}
+{%- set _low = min(_numbers) -%}
+{%- set _step = _high > _low ? null : 1 -%}
+{%- for _exponent in -3..12 -%}
+    {%- for _mantissa in [1, 2, 5] -%}
+        {%- if _step is null and _mantissa * 10 ** _exponent * 4 >= _high - _low -%}
+            {%- set _step = _mantissa * 10 ** _exponent -%}
+        {%- endif -%}
+    {%- endfor -%}
+{%- endfor -%}
+{%- set _step = _step ?? ((_high - _low) / 4) -%}
+{%- set _top = (_high / _step)|round(0, 'ceil') * _step -%}
+{%- set _bottom = (_low / _step)|round(0, 'floor') * _step -%}
+{%- set _top = _top > _bottom ? _top : _bottom + _step -%}
+{%- set _decimals = _step >= 1 ? 0 : (_step >= 0.1 ? 1 : (_step >= 0.01 ? 2 : 3)) -%}
+{%- set _left = 48 -%}
+{%- set _right = width - 8 -%}
+{%- set _upper = 8 -%}
+{%- set _lower = height - 28 -%}
+{%- set _scale = (_lower - _upper) / (_top - _bottom) -%}
+{%- set _zero = (_lower - (0 - _bottom) * _scale)|round(2) -%}
+{%- set _band = _count > 0 ? (_right - _left) / _count : 0 -%}
+{%- set _every = _count > 12 ? (_count / 12)|round(0, 'ceil') : 1 -%}
+{#- The tones of the series, in order; phil-ux gives the line of each tone but the first a dash of its own. -#}
+{%- set _tones = ['isPrimary', 'isInfo', 'isSuccess', 'isWarning', 'isDanger', 'isNeutral'] -%}
+<figure data-slot="chart" data-type="{{ _type }}"{{ attributes.defaults({class: 'isChart'}) }}>
+    <figcaption class="isChartCaption">{{ label }}</figcaption>
+    <svg class="isChartImage" viewBox="0 0 {{ width }} {{ height }}" width="{{ width }}" height="{{ height }}" aria-hidden="true" focusable="false">
+        {%- for _index in 0..(((_top - _bottom) / _step)|round) -%}
+            {%- set _value = _bottom + _index * _step -%}
+            {%- set _y = (_lower - _index * _step * _scale)|round(2) -%}
+            <line class="isChartGrid" x1="{{ _left }}" x2="{{ _right }}" y1="{{ _y }}" y2="{{ _y }}"></line>
+            <text class="isChartTick" x="{{ _left - 6 }}" y="{{ _y }}" text-anchor="end" dominant-baseline="middle">{{ _value|number_format(_decimals) }}</text>
+        {%- endfor -%}
+        {%- for _name in _labels -%}
+            {%- if loop.index0 is divisible by(_every) -%}
+                <text class="isChartTick" x="{{ (_left + (loop.index0 + 0.5) * _band)|round(2) }}" y="{{ height - 8 }}" text-anchor="middle">{{ _name }}</text>
+            {%- endif -%}
+        {%- endfor -%}
+        {%- for _one in _series -%}
+            {%- set _number = loop.index -%}
+            {%- if _type is same as('bar') -%}
+                {%- set _width = _band * 0.8 / _series|length -%}
+                {%- set _index = loop.index0 -%}
+                <g class="isChartSeries {{ _tones[_number - 1] }}" data-series="{{ _number }}">
+                    {%- for _value in _one.values -%}
+                        {%- if _value is not null -%}
+                            {%- set _y = (_lower - (_value - _bottom) * _scale)|round(2) -%}
+                            <rect class="isChartBar" x="{{ (_left + loop.index0 * _band + _band * 0.1 + _index * _width)|round(2) }}" y="{{ min(_y, _zero) }}" width="{{ _width|round(2) }}" height="{{ (_y - _zero)|abs }}"></rect>
+                        {%- endif -%}
+                    {%- endfor -%}
+                </g>
+            {%- else -%}
+                {%- set _path = [] -%}
+                {%- set _move = true -%}
+                {%- for _value in _one.values -%}
+                    {%- if _value is null -%}
+                        {%- set _move = true -%}
+                    {%- else -%}
+                        {%- set _point = (_left + (loop.index0 + 0.5) * _band)|round(2) ~ ' ' ~ (_lower - (_value - _bottom) * _scale)|round(2) -%}
+                        {#- A point alone, between two missing values, is drawn as a dot by a segment of no length. -#}
+                        {%- set _path = _path|merge([_move ? 'M' ~ _point ~ ' l0 0' : 'L' ~ _point]) -%}
+                        {%- set _move = false -%}
+                    {%- endif -%}
+                {%- endfor -%}
+                <path class="isChartLine {{ _tones[_number - 1] }}" data-series="{{ _number }}" d="{{ _path|join(' ') }}"></path>
+            {%- endif -%}
+        {%- endfor -%}
+        <line class="isChartAxis" x1="{{ _left }}" x2="{{ _right }}" y1="{{ _zero }}" y2="{{ _zero }}"></line>
+    </svg>
+    {%- if _series|length > 1 -%}
+        <ul class="isChartLegend" aria-hidden="true">
+            {%- for _one in _series -%}
+                <li class="{{ _tones[loop.index0] }}" data-series="{{ loop.index }}"><span class="isChartSwatch"></span>{{ _one.label }}</li>
+            {%- endfor -%}
+        </ul>
+    {%- endif -%}
+    {%- set _table -%}
+        <table class="isChartTable">
+            <thead><tr><td></td>{%- for _one in _series -%}<th scope="col">{{ _one.label }}</th>{%- endfor -%}</tr></thead>
+            <tbody>
+                {%- for _name in _labels -%}
+                    {%- set _row = loop.index0 -%}
+                    <tr><th scope="row">{{ _name }}</th>{%- for _one in _series -%}<td>{{ _one.values[_row] ?? '' }}</td>{%- endfor -%}</tr>
+                {%- endfor -%}
+            </tbody>
+        </table>
+    {%- endset -%}
+    {%- if tableLabel is not null -%}
+        <details class="isChartData"><summary>{{ tableLabel }}</summary>{{ _table }}</details>
+    {%- else -%}
+        <div class="isVisuallyHidden">{{ _table }}</div>
+    {%- endif -%}
+</figure>

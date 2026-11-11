@@ -1,0 +1,16 @@
+/*!
+ * phil-ux — the CSS framework of PHIL. MIT License.
+ *
+ * Real CSS, mostly classless, in cascade layers: a site's own styles, written outside any layer, win over all of them
+ * without !important. The tokens come first, each family in its own layer, so a site can replace the colours, the
+ * dimensions or both.
+ */
+@layer phil.palette, phil.colors, phil.dimensions, phil.base, phil.layout, phil.components, phil.utilities;
+
+@import url("./tokens/palette.css") layer(phil.palette);
+@import url("./tokens/colors.css") layer(phil.colors);
+@import url("./tokens/dimensions.css") layer(phil.dimensions);
+@import url("./layers/base.css") layer(phil.base);
+@import url("./layers/layout.css") layer(phil.layout);
+@import url("./layers/components.css") layer(phil.components);
+@import url("./layers/utilities.css") layer(phil.utilities);

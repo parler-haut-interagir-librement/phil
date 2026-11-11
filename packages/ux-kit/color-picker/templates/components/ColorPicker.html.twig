@@ -1,0 +1,35 @@
+{#-
+ # The colour well of the browser, the hexadecimal value beside it and swatches to choose from. The well is the field:
+ # it works alone without a script, which only adds the rest.
+ #}
+{%- props
+    ## string The name the colour well is read by.
+    label,
+    ## string|null The identifier of the field.
+    id = null,
+    ## string|null The name of the field.
+    name = null,
+    ## string The colour, as `#rrggbb`; anything else is black.
+    value = '#000000',
+    ## array The colours to choose from: `#rrggbb`, or maps of `value` and `label`.
+    swatches = [],
+    ## string The name of the text field.
+    valueLabel = 'Hexadecimal value',
+    ## string The name of the group of swatches.
+    swatchesLabel = 'Suggested colours',
+    ## bool Whether the field cannot be changed for now.
+    disabled = false
+-%}
+{%- set _value = value matches '/^#[0-9a-fA-F]{6}$/' ? value|lower : '#000000' -%}
+<div{{ attributes.defaults({class: 'isColorPicker', 'data-controller': 'color-picker'}) }}>
+    <input class="isColorPickerWell" type="color" value="{{ _value }}" aria-label="{{ label }}"{% if id is not null %} id="{{ id }}"{% endif %}{% if name is not null %} name="{{ name }}"{% endif %}{% if disabled %} disabled{% endif %} data-color-picker-target="well" data-action="input->color-picker#pick">
+    <input class="isColorPickerValue" type="text" hidden value="{{ _value }}" aria-label="{{ valueLabel }}" maxlength="7" spellcheck="false" autocomplete="off"{% if disabled %} disabled{% endif %} data-color-picker-target="text" data-action="change->color-picker#type">
+    {%- if swatches is not empty -%}
+        <div class="isColorPickerSwatches" role="group" aria-label="{{ swatchesLabel }}">
+            {%- for swatch in swatches -%}
+                {%- set _swatch = swatch is iterable ? swatch : {value: swatch, label: swatch} -%}
+                <button type="button" class="isColorPickerSwatch" hidden aria-label="{{ _swatch.label }}" title="{{ _swatch.label }}" aria-pressed="false"{% if disabled %} disabled{% endif %} data-color-picker-target="swatch" data-color-picker-color-param="{{ _swatch.value }}" data-action="color-picker#choose"></button>
+            {%- endfor -%}
+        </div>
+    {%- endif -%}
+</div>

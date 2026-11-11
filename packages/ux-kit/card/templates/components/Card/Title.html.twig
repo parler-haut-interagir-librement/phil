@@ -1,0 +1,9 @@
+{%- props
+    ## int The level of the heading, kept between 1 and 6.
+    level = 3
+-%}
+{%- set _level = max(1, min(6, level)) -%}
+<h{{ _level }} data-slot="card-title"{{ attributes.defaults({class: 'isCardTitle'}) }}>
+{##- The title text of the card. -#}
+{%- block content %}{% endblock -%}
+</h{{ _level }}>

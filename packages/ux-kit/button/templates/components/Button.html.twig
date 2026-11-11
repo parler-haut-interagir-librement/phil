@@ -1,0 +1,17 @@
+{%- props
+    ## 'default'|'secondary'|'destructive'|'outline'|'ghost'|'link' The visual style variant.
+    variant = 'default',
+    ## 'default'|'xs'|'sm'|'lg'|'icon'|'icon-xs'|'icon-sm'|'icon-lg' The button size.
+    size = 'default',
+    ## 'button'|'a' The HTML tag to render; use `a` when the button navigates.
+    as = 'button',
+    ## bool Whether an action is running: the button is marked busy.
+    loading = false
+-%}
+{%- set _tag = as is same as('a') ? 'a' : 'button' -%}
+{%- set _variant = {default: 'isPrimary', secondary: 'isSecondary', destructive: 'isDanger', outline: 'isOutline', ghost: 'isGhost', link: 'isLink'}[variant] ?? 'isPrimary' -%}
+{%- set _size = {xs: 'isSmall', sm: 'isSmall', lg: 'isLarge', icon: 'hasIcon isIconOnly', 'icon-xs': 'hasIcon isIconOnly isSmall', 'icon-sm': 'hasIcon isIconOnly isSmall', 'icon-lg': 'hasIcon isIconOnly isLarge'}[size] ?? '' -%}
+<{{ _tag }} data-slot="{{ attributes.render('data-slot')|default('button') }}" data-variant="{{ variant }}" data-size="{{ size }}"{% if loading %} aria-busy="true"{% endif %}{{ attributes.defaults({class: ((_tag is same as('a') ? 'isButton ' : '') ~ _variant ~ ' ' ~ _size ~ (loading ? ' isLoading' : ''))|trim|replace({'  ': ' '}), type: _tag is same as('button') ? 'button' : false}) }}>
+{##- The button label and/or icon. -#}
+{%- block content %}{% endblock -%}
+</{{ _tag }}>

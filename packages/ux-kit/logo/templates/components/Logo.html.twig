@@ -1,0 +1,32 @@
+{#-
+ # A logo: an image with an optional WebP source, swapped by theme or locale, linked when it has an href.
+ #}
+{%- props
+    ## string The image shown where WebP is not supported, PNG or SVG; "{theme}" and "{locale}" in it are replaced.
+    src,
+    ## string The text alternative, the name the logo writes; an empty string only when that name is written next to it.
+    alt,
+    ## string|null A WebP source, offered first; "{theme}" and "{locale}" in it are replaced.
+    webp = null,
+    ## string|null The theme written in place of "{theme}", such as "default" or "dark".
+    theme = null,
+    ## string|null The locale written in place of "{locale}", such as "fr".
+    locale = null,
+    ## string|null A link around the logo, usually to the home page.
+    href = null,
+    ## int|null The width of the image, to reserve its space before it loads.
+    width = null,
+    ## int|null The height of the image, to reserve its space before it loads.
+    height = null,
+    ## string How the image loads: "eager" above the fold, "lazy" below it.
+    loading = 'eager'
+-%}
+{%- set _swap = {} -%}
+{%- if theme is not null %}{% set _swap = _swap|merge({'{theme}': theme}) %}{% endif -%}
+{%- if locale is not null %}{% set _swap = _swap|merge({'{locale}': locale}) %}{% endif -%}
+{%- set _tag = href is null ? 'span' : 'a' -%}
+<{{ _tag }}{% if href is not null %} href="{{ href }}"{% endif %}{{ attributes.defaults({class: 'isLogo'}) }}>
+    {%- if webp is not null -%}<picture><source type="image/webp" srcset="{{ webp|replace(_swap) }}">{%- endif -%}
+    <img src="{{ src|replace(_swap) }}" alt="{{ alt }}"{% if width is not null %} width="{{ width }}"{% endif %}{% if height is not null %} height="{{ height }}"{% endif %} loading="{{ loading }}" decoding="async">
+    {%- if webp is not null -%}</picture>{%- endif -%}
+</{{ _tag }}>

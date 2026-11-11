@@ -125,6 +125,13 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/print-compositor`](https://github.com/parler-haut-interagir-librement/print-compositor) | The mockups a shop shows and the print files a printer receives, drawn from the same layers. |
 | [`phil/commerce-product-template`](https://github.com/parler-haut-interagir-librement/commerce-product-template) | One template and one design give every product of a catalogue: each SKU, its price, its channels and its artworks. |
 
+### PHIL UX
+
+| Package | Description |
+|---|---|
+| [`phil/ux-css`](https://github.com/parler-haut-interagir-librement/ux-css) | phil-ux, a mostly classless CSS framework on `--phil-*` tokens, light and dark, whose themes are checked for contrast. |
+| [`phil/ux-kit`](https://github.com/parler-haut-interagir-librement/ux-kit) | The PHIL UX kit for the Symfony UX Toolkit: the recipes of the Shadcn kit, styled with phil-ux, copied by `ux:install`. |
+
 ### Integrations
 
 | Package | Description |

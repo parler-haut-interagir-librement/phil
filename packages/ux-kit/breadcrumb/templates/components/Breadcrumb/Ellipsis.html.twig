@@ -1,0 +1,5 @@
+{%- props
+    ## string What screen readers read instead of the ellipsis.
+    text = 'More'
+-%}
+<span data-slot="breadcrumb-ellipsis"{{ attributes.defaults({class: 'isBreadcrumbEllipsis'}) }}><span aria-hidden="true">&hellip;</span><span class="isVisuallyHidden">{{ text }}</span></span>

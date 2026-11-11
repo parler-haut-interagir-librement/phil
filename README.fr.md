@@ -127,6 +127,13 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/print-compositor`](https://github.com/parler-haut-interagir-librement/print-compositor) | Les maquettes que montre une boutique et les fichiers d'impression que reçoit un imprimeur, dessinés à partir des mêmes calques. |
 | [`phil/commerce-product-template`](https://github.com/parler-haut-interagir-librement/commerce-product-template) | Un gabarit et un visuel donnent chaque produit d'un catalogue : chaque UGS, son prix, ses canaux et ses illustrations. |
 
+### PHIL UX
+
+| Paquet | Description |
+|---|---|
+| [`phil/ux-css`](https://github.com/parler-haut-interagir-librement/ux-css) | phil-ux, un cadre CSS presque sans classes sur des jetons `--phil-*`, clair et sombre, aux thèmes vérifiés pour le contraste. |
+| [`phil/ux-kit`](https://github.com/parler-haut-interagir-librement/ux-kit) | Le kit PHIL UX du Symfony UX Toolkit : les recettes du kit Shadcn, habillées par phil-ux, copiées par `ux:install`. |
+
 ### Intégrations
 
 | Paquet | Description |

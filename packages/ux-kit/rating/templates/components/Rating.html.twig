@@ -1,0 +1,36 @@
+{#-
+ # A note out of a number of stars. With a name, a group of radio buttons: the browser gives the keyboard and the
+ # form. Without one, the note as a single image, in half stars.
+ #}
+{%- props
+    ## string What is being rated.
+    label,
+    ## string|null The name of the field; read-only when null.
+    name = null,
+    ## float The value.
+    value = 0,
+    ## int How many stars, up to ten.
+    max = 5,
+    ## string What screen readers read for a note, `{value}` and `{max}` replaced.
+    starLabel = '{value} of {max}',
+    ## string|null The choice of no star, which makes the note optional; none when null.
+    clearLabel = null,
+    ## bool Whether a note has to be given.
+    required = false,
+    ## bool Whether the note cannot be changed for now.
+    disabled = false
+-%}
+{%- set _max = max(1, min(max, 10)) -%}
+{%- if name is null -%}
+    <span role="img" aria-label="{{ label }} {{ starLabel|replace({'{value}': value, '{max}': _max}) }}"{{ attributes.defaults({class: 'isRating isReadonly'}) }}>
+        {%- for star in 1.._max -%}<span class="isRatingStar{{ value >= star ? ' isFilled' : (value >= star - 0.5 ? ' isHalf' : '') }}" aria-hidden="true">&#9733;</span>{%- endfor -%}
+    </span>
+{%- else -%}
+    <fieldset{{ attributes.defaults({class: 'isRating'}|merge(disabled ? {disabled: true} : {})) }}>
+        <legend class="isRatingLegend">{{ label }}</legend>
+        <div class="isRatingStars">
+            {%- if clearLabel is not null -%}<label class="isRatingClear"><input class="isVisuallyHidden" type="radio" name="{{ name }}" value="0"{% if value <= 0 %} checked{% endif %}><span>{{ clearLabel }}</span></label>{%- endif -%}
+            {%- for star in 1.._max -%}<label class="isRatingStar"><input class="isVisuallyHidden" type="radio" name="{{ name }}" value="{{ star }}"{% if value == star %} checked{% endif %}{% if required %} required{% endif %}><span class="isRatingIcon" aria-hidden="true">&#9733;</span><span class="isVisuallyHidden">{{ starLabel|replace({'{value}': star, '{max}': _max}) }}</span></label>{%- endfor -%}
+        </div>
+    </fieldset>
+{%- endif -%}

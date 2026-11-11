@@ -1,0 +1,22 @@
+{#-
+ # The status of a form's draft, for the autosave controller of phil/forms-autosave on the form's tag: a polite live
+ # region the controller writes what it did in, and the notice of a restored draft or of a newer one, hidden until
+ # then, with its buttons. Written inside the form.
+ #}
+{%- props
+    ## string The button that puts the shown values back and forgets the draft.
+    discardLabel = 'Discard the draft',
+    ## string The button that hides the notice and keeps the values in the form.
+    dismissLabel = 'Keep it',
+    ## string The button that puts the newer draft of another device or tab in the form.
+    useServerLabel = 'Use the newer draft'
+-%}
+<div{{ attributes.defaults({class: 'isStack'}) }}>
+    <p class="isMuted" role="status" aria-live="polite" data-phil--forms-autosave--autosave-target="status"></p>
+    <div class="isCluster" role="group" hidden data-phil--forms-autosave--autosave-target="notice">
+        <p class="isGrow" data-phil--forms-autosave--autosave-target="message"></p>
+        <button type="button" hidden data-phil--forms-autosave--autosave-target="useServer" data-action="phil--forms-autosave--autosave#useServer">{{ useServerLabel }}</button>
+        <button type="button" data-phil--forms-autosave--autosave-target="discard" data-action="phil--forms-autosave--autosave#discard">{{ discardLabel }}</button>
+        <button type="button" data-phil--forms-autosave--autosave-target="dismiss" data-action="phil--forms-autosave--autosave#dismiss">{{ dismissLabel }}</button>
+    </div>
+</div>

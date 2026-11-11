@@ -1,0 +1,22 @@
+{#-
+ # Progress as a ring: a `progressbar` with its numbers, the ring and the text hidden from screen readers. Without a
+ # value, the ring turns; it stands still under reduced motion.
+ #}
+{%- props
+    ## string What is progressing.
+    label,
+    ## int|float|null How far it is; not known when null.
+    value = null,
+    ## int|float The value at the end.
+    max = 100,
+    ## string|null What the centre says instead of the percentage.
+    text = null
+-%}
+{%- set _percent = value is null or max <= 0 ? null : max(0, min(100, value * 100 / max))|round -%}
+<div role="progressbar" aria-label="{{ label }}" aria-valuemin="0" aria-valuemax="{{ max }}"{% if value is not null %} aria-valuenow="{{ max(0, min(max, value)) }}"{% endif %}{{ attributes.defaults({class: 'isProgressRing' ~ (_percent is null ? ' isIndeterminate' : '')}) }}>
+    <svg class="isProgressRingImage" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+        <circle class="isProgressRingTrack" cx="18" cy="18" r="16" pathLength="100"></circle>
+        <circle class="isProgressRingValue" cx="18" cy="18" r="16" pathLength="100" stroke-dasharray="{{ _percent ?? 25 }} 100"></circle>
+    </svg>
+    {%- if text is not null or _percent is not null -%}<span class="isProgressRingText" aria-hidden="true">{{ text ?? (_percent ~ '%') }}</span>{%- endif -%}
+</div>

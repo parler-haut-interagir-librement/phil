@@ -1,0 +1,10 @@
+{
+    "type": "component",
+    "name": "Pagination",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    },
+    "dependencies": {
+        "recipe": ["button"]
+    }
+}

@@ -1,0 +1,72 @@
+{#-
+ # A sign-in form in a card, for the form login of Symfony Security: the user name and the password under the field
+ # names the firewall reads, the last user name written back, the error of the last attempt announced, the CSRF token
+ # when one is given, and the links to a forgotten password and to a sign-up. Plain form elements, dressed by phil-ux;
+ # every word comes from a prop.
+ #}
+{%- props
+    ## string The address the form posts to, the `check_path` of the firewall.
+    action,
+    ## string The title of the card.
+    title,
+    ## string The label of the user name field.
+    usernameLabel,
+    ## string The label of the password field.
+    passwordLabel,
+    ## string The label of the button that signs in.
+    submitLabel,
+    ## string|null A sentence under the title.
+    description = null,
+    ## string The identifier of the form, from which the identifiers of its fields are made.
+    id = 'login',
+    ## string The name of the user name field.
+    usernameField = '_username',
+    ## string The name of the password field.
+    passwordField = '_password',
+    ## string The value of the user name field, the last one tried.
+    lastUsername = '',
+    ## 'username'|'email' The kind of user name, which sets the field type and its autocompletion.
+    usernameType = 'username',
+    ## string|null The message of the last failed attempt, already translated; an empty one is none.
+    error = null,
+    ## string|null The CSRF token, written in a hidden field when given.
+    csrfToken = null,
+    ## string The name of the CSRF field.
+    csrfField = '_csrf_token',
+    ## string|null The label of a "remember me" checkbox, left out when null.
+    rememberLabel = null,
+    ## string The name of the "remember me" checkbox.
+    rememberField = '_remember_me',
+    ## string|null The address of the page for a forgotten password.
+    forgotHref = null,
+    ## string|null The text of the link to a forgotten password.
+    forgotLabel = null,
+    ## string|null The address of the sign-up page.
+    signupHref = null,
+    ## string|null The text of the link to the sign-up page.
+    signupLabel = null
+-%}
+{%- set _email = usernameType is same as('email') -%}
+{%- set _error = error is same as('') ? null : error -%}
+<section data-slot="login-form" aria-labelledby="{{ id }}-title"{{ attributes.defaults({class: 'isCard isLoginForm'}) }}>
+    <header class="isCardHeader">
+        <h2 id="{{ id }}-title" class="isCardTitle">{{ title }}</h2>
+        {%- if description is not null %}<p class="isCardDescription">{{ description }}</p>{% endif %}
+    </header>
+    <form method="post" action="{{ action }}" class="isCardBody isStack">
+        {%- if _error is not null %}<p id="{{ id }}-error" role="alert" class="isAlert isDanger">{{ _error }}</p>{% endif %}
+        <label for="{{ id }}-username">{{ usernameLabel }}</label>
+        <input id="{{ id }}-username" type="{{ _email ? 'email' : 'text' }}" name="{{ usernameField }}" value="{{ lastUsername }}" autocomplete="{{ _email ? 'email' : 'username' }}" required{% if lastUsername is same as('') %} autofocus{% endif %}{% if _error is not null %} aria-invalid="true" aria-describedby="{{ id }}-error"{% endif %}>
+        <label for="{{ id }}-password">{{ passwordLabel }}</label>
+        <input id="{{ id }}-password" type="password" name="{{ passwordField }}" autocomplete="current-password" required{% if lastUsername is not same as('') %} autofocus{% endif %}{% if _error is not null %} aria-invalid="true" aria-describedby="{{ id }}-error"{% endif %}>
+        {%- if forgotHref is not null and forgotLabel is not null %}<a class="isLoginFormForgot" href="{{ forgotHref }}">{{ forgotLabel }}</a>{% endif %}
+        {%- if rememberLabel is not null %}<label><input type="checkbox" name="{{ rememberField }}"> {{ rememberLabel }}</label>{% endif %}
+        {%- if csrfToken is not null %}<input type="hidden" name="{{ csrfField }}" value="{{ csrfToken }}">{% endif %}
+        {##- More fields before the button: a captcha, a hidden target path. -#}
+        {%- block content %}{% endblock -%}
+        <button type="submit" class="isPrimary">{{ submitLabel }}</button>
+    </form>
+    {%- if signupHref is not null and signupLabel is not null %}
+    <footer class="isCardFooter"><a href="{{ signupHref }}">{{ signupLabel }}</a></footer>
+    {%- endif %}
+</section>

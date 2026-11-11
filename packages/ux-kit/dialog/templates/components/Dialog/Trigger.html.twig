@@ -1,0 +1,10 @@
+{%- set dialog_trigger_attrs = {
+    'data-slot': 'dialog-trigger',
+    'data-action': 'click->dialog#open',
+    'data-dialog-target': 'trigger',
+    'aria-haspopup': 'dialog',
+    command: 'show-modal',
+    commandfor: inject('dialog.id'),
+} -%}
+{##- The trigger element (e.g., a `Button`) that opens the dialog when clicked. -#}
+{%- block content %}{% endblock -%}

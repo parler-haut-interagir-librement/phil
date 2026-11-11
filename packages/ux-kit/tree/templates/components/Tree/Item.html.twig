@@ -1,0 +1,26 @@
+{%- props
+    ## string The name of the item.
+    label,
+    ## string|null What the event `tree:select` carries; the name when null.
+    value = null,
+    ## bool Whether the item holds others, written as its content.
+    branch = false,
+    ## bool Whether the branch shows what it holds at first.
+    expanded = false,
+    ## bool Whether the item is the chosen one.
+    selected = false,
+    ## string|null Where the item leads.
+    href = null
+-%}
+<li role="treeitem" tabindex="-1" aria-selected="{{ selected ? 'true' : 'false' }}"{% if branch %} aria-expanded="{{ expanded ? 'true' : 'false' }}"{% endif %} data-value="{{ value ?? label }}" data-tree-target="item"{{ attributes.defaults({class: 'isTreeItem'}) }}>
+    <span class="isTreeRow">
+        {%- if branch -%}<span class="isTreeToggle" aria-hidden="true" data-tree-target="toggle"></span>{%- endif -%}
+        {%- if href is not null -%}<a class="isTreeLabel" href="{{ href }}" tabindex="-1" data-tree-target="link">{{ label }}</a>{%- else -%}<span class="isTreeLabel">{{ label }}</span>{%- endif -%}
+    </span>
+    {%- if branch -%}
+        <ul class="isTreeGroup" role="group">
+        {##- The items this branch holds, each a `Tree:Item`. -#}
+        {%- block content %}{% endblock -%}
+        </ul>
+    {%- endif -%}
+</li>

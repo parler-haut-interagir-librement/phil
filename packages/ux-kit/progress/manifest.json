@@ -1,0 +1,7 @@
+{
+    "type": "component",
+    "name": "Progress",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    }
+}

@@ -1,0 +1,8 @@
+{%- props
+    ## string The name of the group, read before its options.
+    label
+-%}
+<optgroup label="{{ label }}" data-slot="native-select-optgroup"{{ attributes }}>
+{##- The options of the group, each a `NativeSelect:Option`. -#}
+{%- block content %}{% endblock -%}
+</optgroup>

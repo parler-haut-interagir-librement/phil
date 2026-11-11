@@ -1,0 +1,47 @@
+{
+    "name": "phil/ux-css",
+    "description": "phil-ux, the CSS framework of PHIL: real, mostly classless CSS with --phil-* tokens, light and dark, and isX/hasX state classes; with the OKLCH contrast rule its themes are checked against",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "css",
+        "design-system",
+        "design-tokens",
+        "oklch",
+        "dark-mode",
+        "accessibility",
+        "asset-mapper"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\UxCss\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\UxCss\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

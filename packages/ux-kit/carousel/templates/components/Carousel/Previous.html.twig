@@ -1,0 +1,11 @@
+{%- props
+    ## 'default'|'secondary'|'destructive'|'outline'|'ghost'|'link' The button style variant.
+    variant = 'outline',
+    ## 'default'|'xs'|'sm'|'lg'|'icon'|'icon-xs'|'icon-sm'|'icon-lg' The button size.
+    size = 'icon-sm',
+    ## string The accessible label of the button.
+    text = 'Previous slide'
+-%}
+<twig:Button variant="{{ variant }}" size="{{ size }}" hidden data-slot="carousel-previous" data-carousel-target="previous" {{ ...attributes.defaults({class: 'isCarouselPrevious', 'data-action': 'click->carousel#scrollPrev'}) }}>
+    <span aria-hidden="true">&lsaquo;</span><span class="isVisuallyHidden">{{ text }}</span>
+</twig:Button>

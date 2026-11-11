@@ -1,0 +1,7 @@
+{
+    "type": "component",
+    "name": "Checkbox",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    }
+}

@@ -1,0 +1,37 @@
+{#-
+ # One reaction: a button saying whether it is pressed, or the same as plain text for a viewer who cannot press it. The
+ # emoji is hidden from screen readers, which read the label; the counter is read through its own label.
+ #}
+{%- props
+    ## string The name of the reaction.
+    label,
+    ## string|null The Unicode emoji; hidden from screen readers, which read the label.
+    emoji = null,
+    ## string|null The address of the image, when the reaction has no emoji.
+    image = null,
+    ## string|null The replacement text of the image; the label when null.
+    imageAlt = null,
+    ## int|null The counter; none is shown when null.
+    count = null,
+    ## string|null What screen readers read instead of the counter.
+    countLabel = null,
+    ## bool Whether this reaction is the viewer's.
+    pressed = false,
+    ## bool A button, or plain text for a viewer who cannot press it.
+    interactive = true
+-%}
+{%- set _face -%}
+    {%- if image is not null -%}
+        <img src="{{ image }}" alt="{{ imageAlt ?? label }}" width="20" height="20" loading="lazy">
+    {%- else -%}
+        <span aria-hidden="true">{{ emoji }}</span><span class="isVisuallyHidden">{{ label }}</span>
+    {%- endif -%}
+    {%- if count is not null and count > 0 -%}
+        <span aria-hidden="true">{{ count }}</span><span class="isVisuallyHidden">{{ countLabel ?? count }}</span>
+    {%- endif -%}
+{%- endset -%}
+{%- if interactive -%}
+    <button type="submit" aria-pressed="{{ pressed ? 'true' : 'false' }}"{{ attributes.defaults({class: 'isReaction'}) }}>{{ _face }}</button>
+{%- else -%}
+    <span{{ attributes.defaults({class: 'isReaction'}) }}>{{ _face }}</span>
+{%- endif -%}

@@ -1,0 +1,9 @@
+{%- props
+    ## 'div'|'span' The HTML tag to render.
+    as = 'div'
+-%}
+{%- set _tag = as is same as('span') ? 'span' : 'div' -%}
+<{{ _tag }} data-slot="button-group-text"{{ attributes.defaults({class: 'isButtonGroupText'}) }}>
+{##- The text content displayed in the button group. -#}
+{%- block content %}{% endblock -%}
+</{{ _tag }}>

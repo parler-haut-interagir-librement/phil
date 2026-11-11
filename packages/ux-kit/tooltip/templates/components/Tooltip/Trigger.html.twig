@@ -1,0 +1,9 @@
+{%- set tooltip_trigger_attrs = {
+    id: inject('tooltip.triggerId'),
+    'aria-describedby': inject('tooltip.contentId'),
+    'data-slot': 'tooltip-trigger',
+    'data-tooltip-target': 'trigger',
+    'data-action': 'mouseenter->tooltip#show mouseleave->tooltip#hide focus->tooltip#show blur->tooltip#hide',
+} -%}
+{##- The element that triggers the tooltip on hover/focus. -#}
+{%- block content %}{% endblock -%}

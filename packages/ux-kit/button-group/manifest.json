@@ -1,0 +1,10 @@
+{
+    "type": "component",
+    "name": "ButtonGroup",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    },
+    "dependencies": {
+        "recipe": ["separator"]
+    }
+}

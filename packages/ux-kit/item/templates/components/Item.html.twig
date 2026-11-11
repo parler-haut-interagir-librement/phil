@@ -1,0 +1,14 @@
+{%- props
+    ## 'default'|'outline'|'muted' The visual style variant.
+    variant = 'default',
+    ## 'default'|'sm' The item size.
+    size = 'default',
+    ## 'div'|'a'|'li' The HTML tag to render; use `a` when the whole item navigates and `li` in an `Item:Group`.
+    as = 'div'
+-%}
+{%- set _tag = as in ['div', 'a', 'li'] ? as : 'div' -%}
+{%- set _variant = {outline: ' isOutline', muted: ' isMuted'}[variant] ?? '' -%}
+<{{ _tag }} data-slot="item" data-variant="{{ variant }}" data-size="{{ size }}"{{ attributes.defaults({class: 'isItem' ~ _variant ~ (size is same as('sm') ? ' isSmall' : '')}) }}>
+{##- The item, typically an `Item:Media`, an `Item:Content` and `Item:Actions`. -#}
+{%- block content %}{% endblock -%}
+</{{ _tag }}>

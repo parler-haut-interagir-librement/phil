@@ -1,0 +1,751 @@
+/*
+ * phil-ux — the classless base.
+ *
+ * The HTML elements dressed without a class: the page, its typography, links, media, code, quotes, the focus ring,
+ * forms, buttons, tables, dialogs, disclosures, navigation, gauges and popovers. Every value is a token, so a theme or
+ * a scale changes them all, and every direction is logical, so a right-to-left page needs nothing more.
+ */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    font-family: var(--phil-font-sans);
+    font-size: 100%;
+    line-height: var(--phil-leading-md);
+    color: var(--phil-color-text);
+    background-color: var(--phil-color-surface);
+    accent-color: var(--phil-color-brand-fill-loud);
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+    font-size: var(--phil-text-md);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-block: 0 var(--phil-space-sm);
+    font-weight: var(--phil-weight-bold);
+    line-height: var(--phil-leading-tight);
+    text-wrap: balance;
+}
+
+h1 { font-size: var(--phil-text-3xl); }
+h2 { font-size: var(--phil-text-2xl); }
+h3 { font-size: var(--phil-text-xl); }
+h4 { font-size: var(--phil-text-lg); }
+h5 { font-size: var(--phil-text-md); }
+h6 { font-size: var(--phil-text-sm); }
+
+p,
+ul,
+ol,
+dl,
+blockquote,
+pre,
+figure,
+table {
+    margin-block: 0 var(--phil-space-md);
+}
+
+p {
+    text-wrap: pretty;
+}
+
+ul,
+ol {
+    padding-inline-start: var(--phil-space-lg);
+}
+
+hgroup {
+    margin-block-end: var(--phil-space-md);
+}
+
+hgroup > * {
+    margin-block: 0;
+}
+
+a {
+    color: var(--phil-color-link);
+    text-decoration-thickness: from-font;
+    text-underline-offset: 0.15em;
+}
+
+a:hover {
+    text-decoration-thickness: 0.125em;
+}
+
+:focus-visible {
+    outline: var(--phil-focus-width) solid var(--phil-color-focus);
+    outline-offset: var(--phil-focus-offset);
+}
+
+img,
+svg,
+video,
+canvas {
+    display: block;
+    max-inline-size: 100%;
+    block-size: auto;
+}
+
+picture {
+    display: block;
+}
+
+figure {
+    margin-inline: 0;
+}
+
+figcaption {
+    margin-block-start: var(--phil-space-xs);
+    font-size: var(--phil-text-sm);
+    color: var(--phil-color-text-muted);
+}
+
+small {
+    font-size: var(--phil-text-sm);
+}
+
+hr {
+    margin-block: var(--phil-space-lg);
+    border: 0;
+    border-block-start: var(--phil-border-sm) solid var(--phil-color-border);
+}
+
+code,
+kbd,
+samp,
+pre {
+    font-family: var(--phil-font-mono);
+    font-size: 0.9em;
+}
+
+pre {
+    overflow-x: auto;
+    padding: var(--phil-space-sm) var(--phil-space-md);
+    background-color: var(--phil-color-surface-raised);
+    border-radius: var(--phil-radius-md);
+}
+
+blockquote {
+    margin-inline: 0;
+    padding-inline-start: var(--phil-space-md);
+    border-inline-start: var(--phil-border-lg) solid var(--phil-color-brand-border-loud);
+}
+
+mark {
+    color: var(--phil-color-warning-on-quiet);
+    background-color: var(--phil-color-warning-fill-quiet);
+}
+
+dt {
+    font-weight: var(--phil-weight-medium);
+}
+
+dd {
+    margin-inline-start: 0;
+    margin-block-end: var(--phil-space-xs);
+}
+
+kbd {
+    padding-block: var(--phil-space-3xs);
+    padding-inline: var(--phil-space-2xs);
+    color: var(--phil-color-text);
+    background-color: var(--phil-color-surface-raised);
+    border: var(--phil-border-sm) solid var(--phil-color-border);
+    border-block-end-width: var(--phil-border-md);
+    border-radius: var(--phil-radius-sm);
+}
+
+abbr[title] {
+    text-decoration: underline dotted;
+    text-underline-offset: 0.15em;
+    cursor: help;
+}
+
+/* An important declaration of this first layer wins over every later one: `hidden` hides, whatever the display a
+   class sets. `until-found` is left to the browser, which needs the box. */
+[hidden]:not([hidden="until-found"]) {
+    display: none !important;
+}
+
+/*
+ * Forms. A label over its control, a control the height of a touch target, the border of the loud neutral (3:1 on the
+ * surface) and the validity read from the browser or from aria-invalid. The native check boxes, radios, sliders and
+ * pickers are kept and take the brand through `accent-color` and the scheme through `color-scheme`.
+ */
+fieldset {
+    min-inline-size: 0;
+    margin-inline: 0;
+    margin-block: 0 var(--phil-space-md);
+    padding: var(--phil-space-md);
+    border: var(--phil-border-sm) solid var(--phil-color-border);
+    border-radius: var(--phil-radius-md);
+}
+
+legend {
+    padding-inline: var(--phil-space-2xs);
+    font-weight: var(--phil-weight-medium);
+}
+
+label {
+    display: block;
+    margin-block-end: var(--phil-space-2xs);
+    font-weight: var(--phil-weight-medium);
+}
+
+/* A control inside its label: the box first, the text beside it, the whole line a touch target. */
+label:has(> input:is([type="checkbox"], [type="radio"])) {
+    display: flex;
+    align-items: center;
+    gap: var(--phil-space-xs);
+    min-block-size: var(--phil-control-md);
+    margin-block-end: 0;
+    font-weight: var(--phil-weight-regular);
+}
+
+label:has(> :disabled) {
+    cursor: not-allowed;
+}
+
+input,
+select,
+textarea,
+button {
+    font: inherit;
+}
+
+input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="submit"], [type="button"], [type="reset"], [type="image"], [type="hidden"]),
+select,
+textarea {
+    --phil-control-border: var(--phil-color-neutral-border-loud);
+
+    display: block;
+    inline-size: 100%;
+    min-block-size: var(--phil-control-size, var(--phil-control-md));
+    padding-block: var(--phil-space-2xs);
+    padding-inline: var(--phil-control-padding, var(--phil-space-sm));
+    color: var(--phil-color-text);
+    background-color: var(--phil-color-surface);
+    border: var(--phil-border-sm) solid var(--phil-control-border);
+    border-radius: var(--phil-radius-md);
+    transition: border-color var(--phil-duration-sm) var(--phil-ease-out);
+}
+
+textarea {
+    min-block-size: calc(var(--phil-control-md) * 2);
+    resize: block;
+}
+
+select[multiple] {
+    padding-block: var(--phil-space-2xs);
+}
+
+::placeholder {
+    color: var(--phil-color-text-muted);
+    opacity: 1;
+}
+
+input:is([type="checkbox"], [type="radio"]) {
+    flex: none;
+    inline-size: var(--phil-check-size);
+    block-size: var(--phil-check-size);
+    margin: 0;
+    cursor: pointer;
+}
+
+input[type="range"] {
+    display: block;
+    inline-size: 100%;
+    min-block-size: var(--phil-control-md);
+    margin: 0;
+    cursor: pointer;
+}
+
+input[type="color"] {
+    display: block;
+    inline-size: calc(var(--phil-control-md) * 1.5);
+    block-size: var(--phil-control-md);
+    padding: var(--phil-space-2xs);
+    background-color: var(--phil-color-surface);
+    border: var(--phil-border-sm) solid var(--phil-color-neutral-border-loud);
+    border-radius: var(--phil-radius-md);
+    cursor: pointer;
+}
+
+input[type="file"] {
+    display: block;
+    inline-size: 100%;
+    min-block-size: var(--phil-control-md);
+}
+
+::file-selector-button {
+    min-block-size: var(--phil-control-md);
+    margin-inline-end: var(--phil-space-sm);
+    padding-inline: var(--phil-space-md);
+    font: inherit;
+    font-weight: var(--phil-weight-medium);
+    color: var(--phil-color-neutral-on-quiet);
+    background-color: var(--phil-color-neutral-fill-quiet);
+    border: var(--phil-border-sm) solid var(--phil-color-neutral-border-quiet);
+    border-radius: var(--phil-radius-md);
+    cursor: pointer;
+}
+
+:is(input, select, textarea):user-valid {
+    --phil-control-border: var(--phil-color-success-border-loud);
+}
+
+/* The wider ring says it without the colour; the message goes beside the control. */
+:is(input, select, textarea):user-invalid,
+:is(input, select, textarea)[aria-invalid="true"] {
+    --phil-control-border: var(--phil-color-danger-border-loud);
+
+    box-shadow: inset 0 0 0 var(--phil-border-sm) var(--phil-control-border);
+}
+
+:is(input, select, textarea):disabled {
+    opacity: var(--phil-opacity-disabled);
+    cursor: not-allowed;
+}
+
+/*
+ * The markup of Symfony's form_row: a div holding the label, the errors as a plain list, the widget and the
+ * `help-text` paragraph; `label.required` for a required field. Rows are spaced, a single check box comes before its
+ * label, and expanded choices, siblings in a div, line up as box and text.
+ */
+form div:has(> label, > button, > input[type="submit"]) {
+    margin-block-end: var(--phil-space-md);
+}
+
+form div:has(> input:is([type="checkbox"], [type="radio"])) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-auto-flow: dense;
+    align-items: center;
+    gap: var(--phil-space-2xs) var(--phil-space-xs);
+}
+
+form div:has(> input:is([type="checkbox"], [type="radio"])) > input {
+    grid-column: 1;
+}
+
+form div:has(> input:is([type="checkbox"], [type="radio"])) > label {
+    grid-column: 2;
+    margin-block-end: 0;
+    font-weight: var(--phil-weight-regular);
+}
+
+form div:has(> input:is([type="checkbox"], [type="radio"])) > :not(input, label) {
+    grid-column: 1 / -1;
+}
+
+label.required::after {
+    content: " *" / "";
+    color: var(--phil-color-danger-on-quiet);
+}
+
+form div > label + ul:not([class], [role]),
+form div > ul:first-child:not([class], [role]) {
+    margin-block: 0 var(--phil-space-2xs);
+    padding-inline-start: 0;
+    list-style: none;
+    font-size: var(--phil-text-sm);
+    color: var(--phil-color-danger-on-quiet);
+}
+
+.help-text {
+    margin-block: var(--phil-space-2xs) 0;
+    font-size: var(--phil-text-sm);
+    color: var(--phil-color-text-muted);
+}
+
+/*
+ * Buttons. A button is solid and in the brand until a class says otherwise. It reads the six colours of its tone and
+ * sets them on itself, so one inside a coloured notice keeps its own; `isDanger` and the other tones replace them.
+ */
+button,
+input:is([type="submit"], [type="button"], [type="reset"]),
+[role="button"],
+.isButton {
+    --phil-tone-fill-quiet: var(--phil-color-brand-fill-quiet);
+    --phil-tone-fill-loud: var(--phil-color-brand-fill-loud);
+    --phil-tone-border-quiet: var(--phil-color-brand-border-quiet);
+    --phil-tone-border-loud: var(--phil-color-brand-border-loud);
+    --phil-tone-on-quiet: var(--phil-color-brand-on-quiet);
+    --phil-tone-on-loud: var(--phil-color-brand-on-loud);
+    --phil-button-fill: var(--phil-tone-fill-loud);
+    --phil-button-fill-hover: color-mix(in oklch, var(--phil-button-fill), var(--phil-color-text) var(--phil-mix-hover));
+    --phil-button-fill-active: color-mix(in oklch, var(--phil-button-fill), var(--phil-color-text) var(--phil-mix-active));
+    --phil-button-on: var(--phil-tone-on-loud);
+    --phil-button-border: transparent;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--phil-space-xs);
+    min-block-size: var(--phil-control-size, var(--phil-control-md));
+    padding-block: var(--phil-space-2xs);
+    padding-inline: var(--phil-control-padding, var(--phil-space-md));
+    font: inherit;
+    font-weight: var(--phil-weight-medium);
+    line-height: var(--phil-leading-tight);
+    color: var(--phil-button-on);
+    text-align: center;
+    text-decoration: none;
+    background-color: var(--phil-button-fill);
+    border: var(--phil-border-sm) solid var(--phil-button-border);
+    border-radius: var(--phil-radius-md);
+    cursor: pointer;
+    touch-action: manipulation;
+    transition:
+        background-color var(--phil-duration-sm) var(--phil-ease-out),
+        border-color var(--phil-duration-sm) var(--phil-ease-out);
+}
+
+:is(button, input:is([type="submit"], [type="button"], [type="reset"]), [role="button"], .isButton):hover:not(:disabled, [aria-disabled="true"]) {
+    background-color: var(--phil-button-fill-hover);
+}
+
+:is(button, input:is([type="submit"], [type="button"], [type="reset"]), [role="button"], .isButton):active:not(:disabled, [aria-disabled="true"]) {
+    background-color: var(--phil-button-fill-active);
+}
+
+:is(button, input:is([type="submit"], [type="button"], [type="reset"]), [role="button"], .isButton):is(:disabled, [aria-disabled="true"]) {
+    opacity: var(--phil-opacity-disabled);
+    cursor: not-allowed;
+}
+
+/* Tables: a line under each row, start-aligned cells, tabular figures. A table wider than its box scrolls inside a
+   figure. */
+table {
+    inline-size: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+}
+
+caption {
+    margin-block-end: var(--phil-space-xs);
+    font-size: var(--phil-text-sm);
+    color: var(--phil-color-text-muted);
+    text-align: start;
+}
+
+th,
+td {
+    padding-block: var(--phil-space-xs);
+    padding-inline: var(--phil-space-sm);
+    text-align: start;
+    vertical-align: top;
+    border-block-end: var(--phil-border-sm) solid var(--phil-color-border);
+}
+
+th {
+    font-weight: var(--phil-weight-medium);
+}
+
+thead th {
+    border-block-end: var(--phil-border-md) solid var(--phil-color-neutral-border-loud);
+}
+
+tfoot :is(th, td) {
+    font-weight: var(--phil-weight-medium);
+    border-block-start: var(--phil-border-md) solid var(--phil-color-neutral-border-loud);
+    border-block-end: 0;
+}
+
+figure:has(> table) {
+    overflow-x: auto;
+}
+
+/*
+ * Dialogs. Modal or not, centred by the browser, at most the height of the screen and scrolling inside. They and the
+ * backdrop fade in and out where the browser can animate the top layer; elsewhere they simply appear. A modal dialog
+ * holds the page still behind it.
+ */
+dialog {
+    max-inline-size: min(var(--phil-dialog-size, var(--phil-panel-md)), calc(100vw - var(--phil-space-xl)));
+    max-block-size: calc(100dvh - var(--phil-space-xl));
+    padding: var(--phil-space-lg);
+    overflow: auto;
+    overscroll-behavior: contain;
+    color: var(--phil-color-text);
+    background-color: var(--phil-color-surface);
+    border: var(--phil-border-sm) solid var(--phil-color-border);
+    border-radius: var(--phil-radius-lg);
+    box-shadow: var(--phil-shadow-lg);
+    opacity: 0;
+    transition:
+        opacity var(--phil-duration-sm) var(--phil-ease-out),
+        translate var(--phil-duration-sm) var(--phil-ease-out),
+        overlay var(--phil-duration-sm) allow-discrete,
+        display var(--phil-duration-sm) allow-discrete;
+}
+
+dialog[open] {
+    opacity: 1;
+}
+
+@starting-style {
+    dialog[open] {
+        opacity: 0;
+    }
+}
+
+dialog:not(:modal) {
+    z-index: var(--phil-z-overlay);
+}
+
+dialog > :last-child {
+    margin-block-end: 0;
+}
+
+dialog > footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--phil-space-xs);
+    margin-block-start: var(--phil-space-lg);
+}
+
+dialog::backdrop {
+    background-color: var(--phil-color-backdrop);
+    opacity: 0;
+    transition:
+        opacity var(--phil-duration-sm) var(--phil-ease-out),
+        overlay var(--phil-duration-sm) allow-discrete,
+        display var(--phil-duration-sm) allow-discrete;
+}
+
+dialog[open]::backdrop {
+    opacity: 1;
+}
+
+@starting-style {
+    dialog[open]::backdrop {
+        opacity: 0;
+    }
+}
+
+html:has(dialog:modal) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+}
+
+/* Popovers: a panel over the page, centred by the browser until a controller places it and sets data-placed. */
+[popover] {
+    max-inline-size: min(var(--phil-panel-md), calc(100vw - var(--phil-space-xl)));
+    padding: var(--phil-space-md);
+    color: var(--phil-color-text);
+    background-color: var(--phil-color-surface);
+    border: var(--phil-border-sm) solid var(--phil-color-border);
+    border-radius: var(--phil-radius-lg);
+    box-shadow: var(--phil-shadow-lg);
+}
+
+[popover][data-placed] {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+}
+
+/* Disclosures. A summary is a touch target; where the browser can animate to height: auto, the content opens. */
+details {
+    margin-block-end: var(--phil-space-md);
+}
+
+summary {
+    padding-block: var(--phil-space-xs);
+    font-weight: var(--phil-weight-medium);
+    cursor: pointer;
+}
+
+@supports selector(::details-content) {
+    @media (prefers-reduced-motion: no-preference) {
+        details {
+            interpolate-size: allow-keywords;
+        }
+
+        details::details-content {
+            block-size: 0;
+            overflow: clip;
+            transition:
+                block-size var(--phil-duration-md) var(--phil-ease-out),
+                content-visibility var(--phil-duration-md) allow-discrete;
+        }
+
+        details[open]::details-content {
+            block-size: auto;
+        }
+    }
+
+    [data-motion="reduce"] details::details-content {
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Navigation: the lists of a nav lose their bullets and lie in a row, its links are touch targets, and the current
+   page is said in weight as well as in colour. */
+nav :is(ul, ol) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--phil-space-2xs) var(--phil-space-md);
+    margin-block: 0;
+    padding-inline-start: 0;
+    list-style: none;
+}
+
+nav a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--phil-control-md);
+}
+
+nav a[aria-current]:not([aria-current="false"]) {
+    font-weight: var(--phil-weight-bold);
+    color: var(--phil-color-text);
+}
+
+/* Gauges: the vendor pseudo-elements each in a rule of their own, since a browser drops a whole list for one it does
+   not know. */
+progress,
+meter {
+    display: block;
+    inline-size: 100%;
+    block-size: var(--phil-space-xs);
+    overflow: hidden;
+    background: var(--phil-color-surface-raised);
+    border: 0;
+    border-radius: var(--phil-radius-full);
+    appearance: none;
+}
+
+progress {
+    color: var(--phil-color-brand-fill-loud);
+}
+
+::-webkit-progress-bar,
+::-webkit-meter-bar {
+    background: var(--phil-color-surface-raised);
+    border: 0;
+    border-radius: var(--phil-radius-full);
+}
+
+::-webkit-progress-value {
+    background: var(--phil-color-brand-fill-loud);
+    border-radius: var(--phil-radius-full);
+}
+
+::-moz-progress-bar {
+    background: var(--phil-color-brand-fill-loud);
+    border-radius: var(--phil-radius-full);
+}
+
+::-webkit-meter-optimum-value {
+    background: var(--phil-color-success-fill-loud);
+}
+
+::-webkit-meter-suboptimum-value {
+    background: var(--phil-color-warning-fill-loud);
+}
+
+::-webkit-meter-even-less-good-value {
+    background: var(--phil-color-danger-fill-loud);
+}
+
+:-moz-meter-optimum::-moz-meter-bar {
+    background: var(--phil-color-success-fill-loud);
+}
+
+:-moz-meter-sub-optimum::-moz-meter-bar {
+    background: var(--phil-color-warning-fill-loud);
+}
+
+:-moz-meter-sub-sub-optimum::-moz-meter-bar {
+    background: var(--phil-color-danger-fill-loud);
+}
+
+/* An unknown progress is a bar that travels, and a still bar under reduced motion. */
+progress:indeterminate {
+    background-image: linear-gradient(to right, var(--phil-color-surface-raised) 30%, var(--phil-color-brand-fill-loud) 50%, var(--phil-color-surface-raised) 70%);
+    background-size: 200% 100%;
+    animation: phil-progress calc(var(--phil-duration-loop) * 2) linear infinite;
+}
+
+progress:indeterminate::-webkit-progress-bar {
+    background: transparent;
+}
+
+progress:indeterminate::-moz-progress-bar {
+    background: transparent;
+}
+
+@keyframes phil-progress {
+    from {
+        background-position: 200% 0;
+    }
+
+    to {
+        background-position: -200% 0;
+    }
+}
+
+/* Motion is a choice of the reader: under prefers-reduced-motion, or when the root carries data-motion="reduce",
+   animations end at once. Important declarations of an earlier layer win over every later layer and over unlayered
+   styles, so a site cannot bring motion back by accident. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after,
+    ::backdrop {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+[data-motion="reduce"],
+[data-motion="reduce"] *,
+[data-motion="reduce"] *::before,
+[data-motion="reduce"] *::after,
+[data-motion="reduce"] ::backdrop {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+}
+
+/* Contrast is a choice of the reader too: under prefers-contrast: more, or when the root carries
+   data-contrast="more", muted text takes the text colour and borders the loud neutral one. */
+@media (prefers-contrast: more) {
+    :root {
+        --phil-color-text-muted: var(--phil-color-text);
+        --phil-color-border: var(--phil-color-neutral-border-loud);
+    }
+}
+
+[data-contrast="more"] {
+    --phil-color-text-muted: var(--phil-color-text);
+    --phil-color-border: var(--phil-color-neutral-border-loud);
+}
+
+/* The text size the reader chose, on the root: every size of the scale is in rem, so the whole page follows. */
+html[data-text-size="large"] {
+    font-size: 112.5%;
+}
+
+html[data-text-size="larger"] {
+    font-size: 125%;
+}

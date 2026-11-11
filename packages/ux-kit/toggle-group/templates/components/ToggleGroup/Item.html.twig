@@ -1,0 +1,11 @@
+{%- props
+    ## string The value submitted while this toggle is pressed.
+    value,
+    ## bool Whether this toggle is disabled.
+    disabled = false
+-%}
+<label data-slot="toggle-group-item"{{ attributes.defaults({class: inject('toggleGroup.class')}) }}>
+<input type="{{ inject('toggleGroup.type') }}" class="isToggleInput" name="{{ inject('toggleGroup.name') }}" value="{{ value }}"{% if value in inject('toggleGroup.value') %} checked{% endif %}{% if disabled or inject('toggleGroup.disabled') %} disabled{% endif %}>
+{##- The label or the icon of the toggle; an icon alone needs a visually hidden text. -#}
+{%- block content %}{% endblock -%}
+</label>

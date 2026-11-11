@@ -1,0 +1,1 @@
+:root { --phil-n-10: oklch(0.1 0 0); --phil-color-x: light-dark(var(--phil-n-10), oklch(0.9 0.01 20 / 50%)); --phil-space-unit: calc(1rem * 1); --phil-space-sm: calc(var(--phil-space-unit) * 0.75); }

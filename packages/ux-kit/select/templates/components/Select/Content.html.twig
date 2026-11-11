@@ -1,0 +1,16 @@
+{%- props
+    ## 'item-aligned'|'popper' How the content is placed: over the trigger on the selected item, or anchored to the trigger edge.
+    position = 'item-aligned',
+    ## 'top'|'bottom' Which side of the trigger the content appears on.
+    side = 'bottom',
+    ## 'start'|'center'|'end' Alignment of the content along the cross axis.
+    align = 'start'
+-%}
+<div id="{{ inject('select.contentId') }}" popover role="listbox" tabindex="-1" aria-labelledby="{{ inject('select.triggerId') }}" data-slot="select-content" data-select-target="content" data-position="{{ position }}" data-side="{{ side }}" data-align="{{ align }}" data-state="{{ inject('select.open', false) ? 'open' : 'closed' }}"{{ attributes.defaults({class: 'isDropdownMenu isSelectContent', 'data-action': 'keydown->select#onContentKeydown toggle->select#sync'}) }}>
+<div class="isSelectScroll" hidden aria-hidden="true" data-slot="select-scroll-up-button" data-select-target="scrollUpButton" data-action="click->select#scrollUp">&#9652;</div>
+<div class="isSelectViewport" data-slot="select-viewport" data-select-target="viewport" data-action="scroll->select#onViewportScroll:passive">
+{##- The options, typically `Select:Group`, `Select:Label`, `Select:Item` and `Select:Separator` components. -#}
+{%- block content %}{% endblock -%}
+</div>
+<div class="isSelectScroll" hidden aria-hidden="true" data-slot="select-scroll-down-button" data-select-target="scrollDownButton" data-action="click->select#scrollDown">&#9662;</div>
+</div>

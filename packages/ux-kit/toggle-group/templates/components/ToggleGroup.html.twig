@@ -1,0 +1,30 @@
+{#-
+ # Toggles that belong together, on radio buttons for one choice or checkboxes for several: the browser keeps one
+ # pressed at a time, moves between them with the arrows and submits them, without JavaScript.
+ #}
+{%- props
+    ## string The name of the form field the toggles share.
+    name,
+    ## string What the group is about, read by screen readers.
+    label,
+    ## 'single'|'multiple' Whether one toggle or several can be pressed.
+    type = 'single',
+    ## string|list<string>|null The value or the values pressed on initial render.
+    value = null,
+    ## 'default'|'outline' The visual style variant of the toggles.
+    variant = 'default',
+    ## 'default'|'sm'|'lg' The size of the toggles.
+    size = 'default',
+    ## bool Whether every toggle is disabled.
+    disabled = false
+-%}
+{%- set _multiple = type is same as('multiple') -%}
+{%- do provide('toggleGroup.name', _multiple and not (name ends with '[]') ? name ~ '[]' : name) -%}
+{%- do provide('toggleGroup.type', _multiple ? 'checkbox' : 'radio') -%}
+{%- do provide('toggleGroup.value', value is null ? [] : (value is iterable ? value : [value])) -%}
+{%- do provide('toggleGroup.disabled', disabled) -%}
+{%- do provide('toggleGroup.class', 'isToggle' ~ (variant is same as('outline') ? ' isOutline' : '') ~ ({sm: ' isSmall', lg: ' isLarge'}[size] ?? '')) -%}
+<div role="group" aria-label="{{ label }}" data-slot="toggle-group" data-type="{{ _multiple ? 'multiple' : 'single' }}"{{ attributes.defaults({class: 'isToggleGroup'}) }}>
+{##- The toggles, each a `ToggleGroup:Item`. -#}
+{%- block content %}{% endblock -%}
+</div>

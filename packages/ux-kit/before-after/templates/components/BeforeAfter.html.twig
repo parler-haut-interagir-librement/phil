@@ -1,0 +1,21 @@
+{#-
+ # Two pictures one above the other, the first cut where a slider says. The slider is a native range: the arrows,
+ # Home and End are the browser's. Without a script, the two stand one under the other.
+ #}
+{%- props
+    ## string What the slider moves, read by screen readers.
+    label,
+    ## int Where the cut starts, as a percentage.
+    position = 50
+-%}
+<div{{ attributes.defaults({class: 'isBeforeAfter', 'data-controller': 'before-after'}) }}>
+    <div class="isBeforeAfterAfter">
+    {##- What shows past the cut. -#}
+    {%- block after %}{% endblock -%}
+    </div>
+    <div class="isBeforeAfterBefore" data-before-after-target="before">
+    {##- What shows before the cut, cut by the slider. -#}
+    {%- block before %}{% endblock -%}
+    </div>
+    <input class="isBeforeAfterRange" type="range" min="0" max="100" step="1" value="{{ max(0, min(100, position)) }}" aria-label="{{ label }}" data-before-after-target="range" data-action="input->before-after#move">
+</div>

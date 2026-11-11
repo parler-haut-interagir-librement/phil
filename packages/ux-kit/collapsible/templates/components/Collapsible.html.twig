@@ -1,0 +1,10 @@
+{%- props
+    ## bool Whether the collapsible is open on initial render.
+    open = false,
+    ## bool Whether the collapsible is disabled.
+    disabled = false
+-%}
+<details data-slot="collapsible"{% if open %} open{% endif %}{% if disabled %} inert{% endif %}{{ attributes.defaults({class: 'isCollapsible'}) }}>
+{##- A `Collapsible:Trigger` followed by a `Collapsible:Content`. -#}
+{%- block content %}{% endblock -%}
+</details>

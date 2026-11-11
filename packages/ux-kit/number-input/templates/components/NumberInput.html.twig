@@ -1,0 +1,33 @@
+{#-
+ # A number field, with a button on each side once a script can drive them. The keyboard stays the field's own: the
+ # buttons are for the pointer and are left out of the Tab order, as in the spin button of WAI-ARIA.
+ #}
+{%- props
+    ## string|null The identifier of the field, for a `label` beside it.
+    id = null,
+    ## string|null The name of the field.
+    name = null,
+    ## int|float|null The value.
+    value = null,
+    ## int|float|null The lowest value.
+    min = null,
+    ## int|float|null The highest value.
+    max = null,
+    ## int|float|string The step, or `any`.
+    step = 1,
+    ## string|null What screen readers call the field, without a `label` beside it.
+    label = null,
+    ## string The name of the button that lowers the value.
+    decrementLabel = 'Decrease',
+    ## string The name of the button that raises the value.
+    incrementLabel = 'Increase',
+    ## bool Whether a value has to be given.
+    required = false,
+    ## bool Whether the field cannot be changed for now.
+    disabled = false
+-%}
+<div{{ attributes.defaults({class: 'isNumberInput', 'data-controller': 'number-input'}) }}>
+    <button type="button" class="isNumberInputStep" hidden tabindex="-1" aria-label="{{ decrementLabel }}" data-number-input-target="decrement" data-action="number-input#decrement"><span aria-hidden="true">&minus;</span></button>
+    <input class="isNumberInputField" type="number" inputmode="decimal" step="{{ step }}"{% if id is not null %} id="{{ id }}"{% endif %}{% if name is not null %} name="{{ name }}"{% endif %}{% if value is not null %} value="{{ value }}"{% endif %}{% if min is not null %} min="{{ min }}"{% endif %}{% if max is not null %} max="{{ max }}"{% endif %}{% if label is not null %} aria-label="{{ label }}"{% endif %}{% if required %} required{% endif %}{% if disabled %} disabled{% endif %} data-number-input-target="input" data-action="input->number-input#refresh change->number-input#refresh">
+    <button type="button" class="isNumberInputStep" hidden tabindex="-1" aria-label="{{ incrementLabel }}" data-number-input-target="increment" data-action="number-input#increment"><span aria-hidden="true">&plus;</span></button>
+</div>

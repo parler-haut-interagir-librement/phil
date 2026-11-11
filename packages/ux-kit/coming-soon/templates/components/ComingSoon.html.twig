@@ -1,0 +1,59 @@
+{#-
+ # A "coming soon" page: the logo at the top of one column, the eyebrow, the animated headline and the paragraphs
+ # centred below it, and an illustration filling the other column; stacked on small screens.
+ #}
+{%- props
+    ## string The logo image, PNG or SVG; "{theme}" and "{locale}" in it are replaced.
+    logoSrc,
+    ## string The text alternative of the logo, the name it writes.
+    logoAlt,
+    ## string The label above the headline, such as "Coming soon".
+    eyebrow,
+    ## list<string>|string The word, or the words to cycle through, of the headline.
+    words,
+    ## string|null The WebP source of the logo.
+    logoWebp = null,
+    ## string|null A link around the logo.
+    logoHref = null,
+    ## string|null The theme written in place of "{theme}" in the logo's sources.
+    theme = null,
+    ## string|null The locale written in place of "{locale}" in the logo's sources.
+    locale = null,
+    ## string|null Static text before the words of the headline.
+    headlineText = null,
+    ## list<string> Paragraphs under the headline, each escaped.
+    paragraphs = [],
+    ## list<string|array<string,mixed>>|string The illustrations to choose from; none leaves the column out.
+    illustrations = [],
+    ## string The text alternative of an illustration that has none; an empty string for a decorative one.
+    illustrationAlt = '',
+    ## int|null The seed of the illustration's choice; null draws one at random.
+    seed = null,
+    ## bool Whether the column is written as header and main landmarks; false when the page's layout has them.
+    landmarks = true
+-%}
+{%- set _top = landmarks ? 'header' : 'div' -%}
+{%- set _body = landmarks ? 'main' : 'div' -%}
+<div{{ attributes.defaults({class: 'isSplit isFullHeight'}) }}>
+    <div class="isCover">
+        <{{ _top }}>
+            <twig:Logo :src="logoSrc" :alt="logoAlt" :webp="logoWebp" :href="logoHref" :theme="theme" :locale="locale" />
+        </{{ _top }}>
+        <{{ _body }} class="isCoverBody">
+            <div class="isNarrow">
+                <hgroup>
+                    <p class="isEyebrow">{{ eyebrow }}</p>
+                    <twig:AnimatedHeadline :words="words" :text="headlineText" />
+                </hgroup>
+                {%- for paragraph in paragraphs %}
+                <p>{{ paragraph }}</p>
+                {%- endfor %}
+                {##- More content under the paragraphs: a translated text with markup, a form, links. -#}
+                {%- block content %}{% endblock -%}
+            </div>
+        </{{ _body }}>
+    </div>
+    {%- if illustrations is not empty %}
+    <twig:Illustration class="isBleed hasEntrance" :candidates="illustrations" :alt="illustrationAlt" :seed="seed" />
+    {%- endif %}
+</div>

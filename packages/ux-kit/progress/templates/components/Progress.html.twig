@@ -1,0 +1,12 @@
+{#-
+ # The native progress bar: a value kept between zero and the maximum, or none for a task whose end is unknown, which
+ # the browser announces as busy.
+ #}
+{%- props
+    ## int|float|null The progress, between 0 and the maximum; null while it is unknown.
+    value = null,
+    ## int|float The value of a finished task.
+    max = 100
+-%}
+{%- set _max = max > 0 ? max : 100 -%}
+<progress data-slot="progress" max="{{ _max }}"{% if value is not null %} value="{{ max(0, min(_max, value)) }}"{% endif %}{{ attributes }}></progress>

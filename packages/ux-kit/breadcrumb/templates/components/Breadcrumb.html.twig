@@ -1,0 +1,8 @@
+{%- props
+    ## string The name of the navigation for screen readers.
+    label = 'Breadcrumb'
+-%}
+<nav data-slot="breadcrumb"{{ attributes.defaults({class: 'isBreadcrumb', 'aria-label': label}) }}>
+{##- The breadcrumb structure, typically a `Breadcrumb:List`. -#}
+{%- block content %}{% endblock -%}
+</nav>

@@ -1,0 +1,7 @@
+{%- props
+    ## 'horizontal'|'vertical' The separator orientation.
+    orientation = 'horizontal',
+    ## bool Whether the separator is purely decorative (not semantic).
+    decorative = true
+-%}
+<hr data-slot="{{ attributes.render('data-slot')|default('separator') }}" data-orientation="{{ orientation }}"{% if decorative %} role="none"{% else %} aria-orientation="{{ orientation }}"{% endif %}{{ attributes.defaults({class: 'isSeparator' ~ (orientation is same as('vertical') ? ' isVertical' : '')}) }}>

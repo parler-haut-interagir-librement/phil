@@ -1,0 +1,7 @@
+{
+    "type": "component",
+    "name": "Avatar",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    }
+}

@@ -1,0 +1,10 @@
+{%- props
+    ## string The label text.
+    text = 'Next',
+    ## string What screen readers read for the link.
+    label = 'Go to next page'
+-%}
+<twig:Pagination:Link size="default" aria-label="{{ label }}" {{ ...attributes }}>
+    <span>{{ text }}</span>
+    <span aria-hidden="true">&rsaquo;</span>
+</twig:Pagination:Link>

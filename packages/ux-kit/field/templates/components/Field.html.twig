@@ -1,0 +1,11 @@
+{%- props
+    ## 'vertical'|'horizontal'|'responsive' How the label and the control are laid out; responsive goes horizontal on a wide container.
+    orientation = 'vertical',
+    ## bool Whether the field holds an invalid value: its error shows and its colours say so.
+    invalid = false
+-%}
+{%- set _orientation = orientation in ['vertical', 'horizontal', 'responsive'] ? orientation : 'vertical' -%}
+<div role="group" data-slot="field" data-orientation="{{ _orientation }}"{% if invalid %} data-invalid="true"{% endif %}{{ attributes.defaults({class: 'isField' ~ ({horizontal: ' isHorizontal', responsive: ' isResponsive'}[_orientation] ?? '') ~ (invalid ? ' isDanger' : '')}) }}>
+{##- A `Field:Label`, the control, and optionally a `Field:Description` and a `Field:Error`. -#}
+{%- block content %}{% endblock -%}
+</div>

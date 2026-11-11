@@ -1,0 +1,8 @@
+{%- props
+    ## 'default'|'sm' The select size.
+    size = 'default'
+-%}
+<select data-slot="native-select" data-size="{{ size }}"{{ attributes.defaults(size is same as('sm') ? {class: 'isSmall'} : {}) }}>
+{##- The options, each a `NativeSelect:Option`, grouped or not by `NativeSelect:OptGroup`. -#}
+{%- block content %}{% endblock -%}
+</select>

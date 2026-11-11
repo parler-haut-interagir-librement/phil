@@ -1,0 +1,17 @@
+{%- props
+    ## 'button'|'a'|'div' The HTML tag to render.
+    as = 'button',
+    ## bool Whether the item is disabled.
+    disabled = false,
+    ## bool Whether the item is inset with extra start padding.
+    inset = false,
+    ## 'default'|'destructive' The visual style variant.
+    variant = 'default',
+    ## bool Whether selecting the item closes the menu.
+    closeOnSelect = true
+-%}
+{%- set _tag = as in ['button', 'a', 'div'] ? as : 'button' -%}
+<{{ _tag }} role="menuitem" data-slot="dropdown-menu-item" data-variant="{{ variant }}" data-inset="{{ inset ? 'true' : 'false' }}" data-dropdown-menu-target="item" data-close-on-select="{{ closeOnSelect ? 'true' : 'false' }}" data-disabled="{{ disabled ? 'true' : 'false' }}" aria-disabled="{{ disabled ? 'true' : 'false' }}"{% if _tag is same as('button') %} type="button"{% if disabled %} disabled{% endif %}{% endif %}{{ attributes.defaults({class: 'isDropdownItem' ~ (variant is same as('destructive') ? ' isDanger' : '') ~ (inset ? ' isInset' : ''), 'data-action': 'click->dropdown-menu#closeFromItem'}) }}>
+{##- The item label. -#}
+{%- block content %}{% endblock -%}
+</{{ _tag }}>

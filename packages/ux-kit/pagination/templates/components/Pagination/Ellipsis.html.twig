@@ -1,0 +1,5 @@
+{%- props
+    ## string What screen readers read instead of the ellipsis.
+    text = 'More pages'
+-%}
+<span data-slot="pagination-ellipsis"{{ attributes.defaults({class: 'isPaginationEllipsis'}) }}><span aria-hidden="true">&hellip;</span><span class="isVisuallyHidden">{{ text }}</span></span>

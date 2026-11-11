@@ -1,0 +1,15 @@
+{%- props
+    ## string|null Group name shared by mutually exclusive popovers, so only one is open at a time.
+    name = null,
+    ## bool Whether the popover is open on initial render.
+    open = false,
+    ## string|null The identifier of the panel, generated when left out.
+    id = null
+-%}
+{%- set _popover_id = id ?? ('popover-' ~ random()) -%}
+{%- do provide('popover.id', _popover_id) -%}
+{%- do provide('popover.open', open) -%}
+<div data-slot="popover" data-state="{{ open ? 'open' : 'closed' }}" data-popover-open-value="{{ open ? 'true' : 'false' }}" data-popover-name-value="{{ name }}"{{ attributes.defaults({class: 'hasPopover', 'data-controller': 'popover', 'data-action': 'popover:open@window->popover#handleGroupOpen click@window->popover#handleOutsideClick keydown.esc@window->popover#handleEscape'}) }}>
+{##- A `Popover:Trigger` and a `Popover:Content`. -#}
+{%- block content %}{% endblock -%}
+</div>

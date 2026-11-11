@@ -1,0 +1,21 @@
+{#-
+ # A short label, which a button can take away once a script runs. The event `tag:remove` can be cancelled; the focus
+ # goes to the tag beside it.
+ #}
+{%- props
+    ## string What the tag says.
+    label,
+    ## bool Whether it can be taken away.
+    removable = false,
+    ## string|null The name of a hidden field carrying the tag in a form.
+    name = null,
+    ## string|null What the field and the event carry; the label when null.
+    value = null,
+    ## string The name of the button, `{label}` replaced.
+    removeLabel = 'Remove {label}'
+-%}
+<span{{ attributes.defaults({class: 'isTag'}|merge(removable ? {'data-controller': 'tag', 'data-tag-name-value': value ?? label} : {})) }}>
+    <span class="isTagLabel">{{ label }}</span>
+    {%- if name is not null -%}<input type="hidden" name="{{ name }}" value="{{ value ?? label }}">{%- endif -%}
+    {%- if removable -%}<button type="button" class="isTagRemove" hidden aria-label="{{ removeLabel|replace({'{label}': label}) }}" data-tag-target="remove" data-action="tag#remove"><span aria-hidden="true">&times;</span></button>{%- endif -%}
+</span>

@@ -1,0 +1,8 @@
+{%- props
+    ## 'horizontal'|'vertical' The layout direction of the button group.
+    orientation = 'horizontal'
+-%}
+<div data-slot="button-group" role="group" data-orientation="{{ orientation }}"{{ attributes.defaults({class: 'isButtonGroup' ~ (orientation is same as('vertical') ? ' isVertical' : '')}) }}>
+{##- The grouped buttons and/or separators. -#}
+{%- block content %}{% endblock -%}
+</div>

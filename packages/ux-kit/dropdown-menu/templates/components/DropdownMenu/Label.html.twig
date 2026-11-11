@@ -1,0 +1,8 @@
+{%- props
+    ## bool Whether the label is inset with extra start padding.
+    inset = false
+-%}
+<div data-slot="dropdown-menu-label" data-inset="{{ inset ? 'true' : 'false' }}"{{ attributes.defaults({class: 'isDropdownLabel' ~ (inset ? ' isInset' : '')}) }}>
+{##- The label text. -#}
+{%- block content %}{% endblock -%}
+</div>

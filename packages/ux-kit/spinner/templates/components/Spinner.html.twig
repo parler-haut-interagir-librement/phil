@@ -1,0 +1,5 @@
+{%- props
+    ## string The accessible label announced to assistive technologies.
+    label = 'Loading'
+-%}
+<span role="status" data-slot="spinner"{{ attributes.defaults({class: 'isSpinner'}) }}><span class="isVisuallyHidden">{{ label }}</span></span>

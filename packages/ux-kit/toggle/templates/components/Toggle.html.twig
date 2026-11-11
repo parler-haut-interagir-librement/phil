@@ -1,0 +1,24 @@
+{#-
+ # A button that stays pressed, on a checkbox: the browser presses it, says so and submits it with the form, without
+ # JavaScript. The label wraps the box, so a click anywhere on the toggle presses it.
+ #}
+{%- props
+    ## 'default'|'outline' The visual style variant.
+    variant = 'default',
+    ## 'default'|'sm'|'lg' The toggle size.
+    size = 'default',
+    ## bool Whether the toggle is pressed on initial render.
+    pressed = false,
+    ## bool Whether the toggle is disabled.
+    disabled = false,
+    ## string|null The name of the form field, submitted while the toggle is pressed.
+    name = null,
+    ## string The value submitted while the toggle is pressed.
+    value = 'on'
+-%}
+{%- set _size = {sm: ' isSmall', lg: ' isLarge'}[size] ?? '' -%}
+<label data-slot="toggle" data-variant="{{ variant }}" data-size="{{ size }}"{{ attributes.defaults({class: 'isToggle' ~ (variant is same as('outline') ? ' isOutline' : '') ~ _size}) }}>
+<input type="checkbox" class="isToggleInput" value="{{ value }}"{% if name is not null %} name="{{ name }}"{% endif %}{% if pressed %} checked{% endif %}{% if disabled %} disabled{% endif %}>
+{##- The label or the icon of the toggle; an icon alone needs a visually hidden text. -#}
+{%- block content %}{% endblock -%}
+</label>

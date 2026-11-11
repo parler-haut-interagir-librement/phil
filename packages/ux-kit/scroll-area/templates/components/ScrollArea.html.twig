@@ -1,0 +1,15 @@
+{#-
+ # A box whose content scrolls inside it, with thin scroll bars. Named by `label`, it becomes a region the keyboard
+ # reaches to scroll it; without a name, the browser makes the scroller focusable itself.
+ #}
+{%- props
+    ## 'vertical'|'horizontal'|'both' The direction in which the content scrolls.
+    orientation = 'vertical',
+    ## string|null The name of the region, read by screen readers; it makes the box reachable at the keyboard.
+    label = null
+-%}
+{%- set _orientation = orientation in ['vertical', 'horizontal', 'both'] ? orientation : 'vertical' -%}
+<div data-slot="scroll-area" data-orientation="{{ _orientation }}"{% if label is not null %} role="region" aria-label="{{ label }}" tabindex="0"{% endif %}{{ attributes.defaults({class: 'isScrollArea' ~ ({vertical: ' isVertical', horizontal: ' isHorizontal'}[_orientation] ?? '')}) }}>
+{##- The content that scrolls. -#}
+{%- block content %}{% endblock -%}
+</div>

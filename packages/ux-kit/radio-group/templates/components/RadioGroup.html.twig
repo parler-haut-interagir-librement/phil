@@ -1,0 +1,25 @@
+{#-
+ # Radio buttons that share a name: the browser checks one at a time, moves between them with the arrows and submits
+ # the one checked, without JavaScript.
+ #}
+{%- props
+    ## string The name of the form field the radio buttons share.
+    name,
+    ## string|null The value checked on initial render.
+    value = null,
+    ## 'vertical'|'horizontal' The direction in which the radio buttons are laid out.
+    orientation = 'vertical',
+    ## bool Whether every radio button is disabled.
+    disabled = false,
+    ## bool Whether a value must be checked before the form can be submitted.
+    required = false
+-%}
+{%- set _horizontal = orientation is same as('horizontal') -%}
+{%- do provide('radioGroup.name', name) -%}
+{%- do provide('radioGroup.value', value) -%}
+{%- do provide('radioGroup.disabled', disabled) -%}
+{%- do provide('radioGroup.required', required) -%}
+<div role="radiogroup" data-slot="radio-group" data-orientation="{{ _horizontal ? 'horizontal' : 'vertical' }}"{{ attributes.defaults({class: 'isRadioGroup' ~ (_horizontal ? ' isHorizontal' : '')}) }}>
+{##- The radio buttons, each a `RadioGroup:Item` named by a `Label`. -#}
+{%- block content %}{% endblock -%}
+</div>

@@ -1,0 +1,14 @@
+{%- props
+    ## string The value submitted when this item is selected.
+    value,
+    ## bool Whether the item is disabled.
+    disabled = false
+-%}
+{%- set _selected = value is same as(inject('select.value', '')) -%}
+<div role="option" tabindex="-1" data-slot="select-item" data-select-target="item" data-value="{{ value }}" data-disabled="{{ disabled ? 'true' : 'false' }}" aria-selected="{{ _selected ? 'true' : 'false' }}" aria-disabled="{{ disabled ? 'true' : 'false' }}"{{ attributes.defaults({class: 'isSelectItem', 'data-action': 'click->select#selectItem pointermove->select#highlightItem pointerleave->select#unhighlightItem'}) }}>
+<span class="isSelectItemText" data-slot="select-item-text">
+{##- The item label. -#}
+{%- block content %}{% endblock -%}
+</span>
+<span class="isSelectIndicator" aria-hidden="true" data-slot="select-item-indicator"{% if not _selected %} hidden{% endif %}>&#10003;</span>
+</div>

@@ -1,0 +1,9 @@
+{%- props
+    ## bool Whether the trigger is inset with extra start padding.
+    inset = false
+-%}
+<button type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" data-slot="dropdown-menu-sub-trigger" data-inset="{{ inset ? 'true' : 'false' }}" data-dropdown-menu-target="item" data-dropdown-menu-sub-target="trigger" data-state="closed"{{ attributes.defaults({class: 'isDropdownItem' ~ (inset ? ' isInset' : ''), 'data-action': 'mouseenter->dropdown-menu-sub#show click->dropdown-menu-sub#show'}) }}>
+{##- The sub-menu trigger label. -#}
+{%- block content %}{% endblock -%}
+<span class="isDropdownSubIcon" aria-hidden="true">&rsaquo;</span>
+</button>

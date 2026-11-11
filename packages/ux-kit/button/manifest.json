@@ -1,0 +1,7 @@
+{
+    "type": "component",
+    "name": "Button",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    }
+}

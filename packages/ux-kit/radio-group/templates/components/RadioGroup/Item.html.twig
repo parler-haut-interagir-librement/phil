@@ -1,0 +1,7 @@
+{%- props
+    ## string The value submitted when this radio button is checked.
+    value,
+    ## bool Whether this radio button is disabled.
+    disabled = false
+-%}
+<input type="radio" data-slot="radio-group-item" name="{{ inject('radioGroup.name') }}" value="{{ value }}"{% if value is same as(inject('radioGroup.value')) %} checked{% endif %}{% if disabled or inject('radioGroup.disabled') %} disabled{% endif %}{% if inject('radioGroup.required') %} required{% endif %}{{ attributes }}>

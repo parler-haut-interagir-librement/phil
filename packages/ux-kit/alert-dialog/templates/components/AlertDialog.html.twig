@@ -1,0 +1,14 @@
+{%- props
+    ## string Unique identifier used to generate internal AlertDialog IDs.
+    id,
+    ## bool Whether the alert dialog is open on initial render.
+    open = false
+-%}
+{%- set _dialog_id = 'alert-dialog-' ~ id -%}
+{%- do provide('alertDialog.id', _dialog_id) -%}
+{%- do provide('alertDialog.titleId', _dialog_id ~ '-title') -%}
+{%- do provide('alertDialog.descriptionId', _dialog_id ~ '-description') -%}
+<div data-slot="alert-dialog" data-dialog-open-value="{{ open ? 'true' : 'false' }}"{{ attributes.defaults({class: 'hasDialog', 'data-controller': 'dialog'}) }}>
+{##- The alert dialog structure, typically includes `AlertDialog:Trigger` and `AlertDialog:Content`. -#}
+{%- block content %}{% endblock -%}
+</div>

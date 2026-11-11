@@ -1,0 +1,91 @@
+/*
+ * phil-ux — the colour roles.
+ *
+ * One theme, light and dark in the same declarations: each role is `light-dark(<light tone>, <dark tone>)`, so the
+ * tone follows the `color-scheme` of the element that uses it. The page follows the system unless `data-theme`
+ * chooses: `light` (or `default`, the same) and `dark`, on the root or on any element, which then flips its subtree.
+ *
+ * The grid: for each role, a fill, a border and the colour "on" that fill, each quiet (a tint) or loud (solid).
+ * `on-quiet` is the text on `fill-quiet`, `on-loud` the text on `fill-loud`; both pairs reach 4.5:1 in both schemes,
+ * and `border-loud` reaches 3:1 on the surface. The tests check every pair named in the package's contrast rule.
+ *
+ * This layer holds colour only; sizes live in dimensions.css, so a site can override one without the other.
+ */
+:root {
+    color-scheme: light dark;
+
+    /* The page */
+    --phil-color-surface: light-dark(var(--phil-neutral-99), var(--phil-neutral-10));
+    --phil-color-surface-raised: light-dark(var(--phil-neutral-95), var(--phil-neutral-20));
+    --phil-color-text: light-dark(var(--phil-neutral-10), var(--phil-neutral-95));
+    --phil-color-text-muted: light-dark(var(--phil-neutral-40), var(--phil-neutral-70));
+    --phil-color-link: light-dark(var(--phil-brand-40), var(--phil-brand-70));
+    --phil-color-focus: light-dark(var(--phil-blue-50), var(--phil-blue-70));
+    --phil-color-border: light-dark(var(--phil-neutral-80), var(--phil-neutral-30));
+    --phil-color-shadow: light-dark(oklch(0 0 0 / 0.12), oklch(0 0 0 / 0.5));
+    --phil-color-backdrop: light-dark(oklch(0 0 0 / 0.4), oklch(0 0 0 / 0.6));
+
+    /* The levels of an activity calendar, from nothing to the most */
+    --phil-color-activity-0: light-dark(var(--phil-neutral-95), var(--phil-neutral-20));
+    --phil-color-activity-1: light-dark(var(--phil-brand-90), var(--phil-brand-30));
+    --phil-color-activity-2: light-dark(var(--phil-brand-70), var(--phil-brand-50));
+    --phil-color-activity-3: light-dark(var(--phil-brand-50), var(--phil-brand-70));
+    --phil-color-activity-4: light-dark(var(--phil-brand-30), var(--phil-brand-90));
+
+    /* brand */
+    --phil-color-brand-fill-quiet: light-dark(var(--phil-brand-95), var(--phil-brand-20));
+    --phil-color-brand-fill-loud: light-dark(var(--phil-brand-40), var(--phil-brand-70));
+    --phil-color-brand-border-quiet: light-dark(var(--phil-brand-80), var(--phil-brand-30));
+    --phil-color-brand-border-loud: light-dark(var(--phil-brand-50), var(--phil-brand-60));
+    --phil-color-brand-on-quiet: light-dark(var(--phil-brand-30), var(--phil-brand-90));
+    --phil-color-brand-on-loud: light-dark(var(--phil-brand-95), var(--phil-brand-10));
+
+    /* neutral */
+    --phil-color-neutral-fill-quiet: light-dark(var(--phil-neutral-95), var(--phil-neutral-20));
+    --phil-color-neutral-fill-loud: light-dark(var(--phil-neutral-40), var(--phil-neutral-70));
+    --phil-color-neutral-border-quiet: light-dark(var(--phil-neutral-80), var(--phil-neutral-30));
+    --phil-color-neutral-border-loud: light-dark(var(--phil-neutral-50), var(--phil-neutral-60));
+    --phil-color-neutral-on-quiet: light-dark(var(--phil-neutral-30), var(--phil-neutral-90));
+    --phil-color-neutral-on-loud: light-dark(var(--phil-neutral-95), var(--phil-neutral-10));
+
+    /* danger */
+    --phil-color-danger-fill-quiet: light-dark(var(--phil-red-95), var(--phil-red-20));
+    --phil-color-danger-fill-loud: light-dark(var(--phil-red-40), var(--phil-red-70));
+    --phil-color-danger-border-quiet: light-dark(var(--phil-red-80), var(--phil-red-30));
+    --phil-color-danger-border-loud: light-dark(var(--phil-red-50), var(--phil-red-60));
+    --phil-color-danger-on-quiet: light-dark(var(--phil-red-30), var(--phil-red-90));
+    --phil-color-danger-on-loud: light-dark(var(--phil-red-95), var(--phil-red-10));
+
+    /* success */
+    --phil-color-success-fill-quiet: light-dark(var(--phil-green-95), var(--phil-green-20));
+    --phil-color-success-fill-loud: light-dark(var(--phil-green-40), var(--phil-green-70));
+    --phil-color-success-border-quiet: light-dark(var(--phil-green-80), var(--phil-green-30));
+    --phil-color-success-border-loud: light-dark(var(--phil-green-50), var(--phil-green-60));
+    --phil-color-success-on-quiet: light-dark(var(--phil-green-30), var(--phil-green-90));
+    --phil-color-success-on-loud: light-dark(var(--phil-green-95), var(--phil-green-10));
+
+    /* warning */
+    --phil-color-warning-fill-quiet: light-dark(var(--phil-amber-95), var(--phil-amber-20));
+    --phil-color-warning-fill-loud: light-dark(var(--phil-amber-40), var(--phil-amber-70));
+    --phil-color-warning-border-quiet: light-dark(var(--phil-amber-80), var(--phil-amber-30));
+    --phil-color-warning-border-loud: light-dark(var(--phil-amber-50), var(--phil-amber-60));
+    --phil-color-warning-on-quiet: light-dark(var(--phil-amber-30), var(--phil-amber-90));
+    --phil-color-warning-on-loud: light-dark(var(--phil-amber-95), var(--phil-amber-10));
+
+    /* info */
+    --phil-color-info-fill-quiet: light-dark(var(--phil-blue-95), var(--phil-blue-20));
+    --phil-color-info-fill-loud: light-dark(var(--phil-blue-40), var(--phil-blue-70));
+    --phil-color-info-border-quiet: light-dark(var(--phil-blue-80), var(--phil-blue-30));
+    --phil-color-info-border-loud: light-dark(var(--phil-blue-50), var(--phil-blue-60));
+    --phil-color-info-on-quiet: light-dark(var(--phil-blue-30), var(--phil-blue-90));
+    --phil-color-info-on-loud: light-dark(var(--phil-blue-95), var(--phil-blue-10));
+}
+
+[data-theme="light"],
+[data-theme="default"] {
+    color-scheme: light;
+}
+
+[data-theme="dark"] {
+    color-scheme: dark;
+}

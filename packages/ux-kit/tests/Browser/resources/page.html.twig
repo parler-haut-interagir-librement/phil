@@ -1,0 +1,149 @@
+{#- Every recipe of the kit on one page, for the browser tests: the interactive ones first, and the others beside them. -#}
+<!doctype html>
+<html lang="en" dir="{{ dir }}" data-theme="{{ theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>The recipes of the kit</title>
+    <link rel="stylesheet" href="phil-ux.css">
+    <script type="importmap">{"imports": {"@hotwired/stimulus": "./stimulus.js"}}</script>
+    <script type="module" src="app.js"></script>
+</head>
+<body>
+<main class="isStack" style="padding: 2rem; min-block-size: 200vh">
+    <section id="accordion">
+        <twig:Accordion id="faq" defaultValue="one">
+            <twig:Accordion:Item value="one"><twig:Accordion:Trigger>One</twig:Accordion:Trigger><twig:Accordion:Content>First answer</twig:Accordion:Content></twig:Accordion:Item>
+            <twig:Accordion:Item value="two"><twig:Accordion:Trigger>Two</twig:Accordion:Trigger><twig:Accordion:Content>Second answer</twig:Accordion:Content></twig:Accordion:Item>
+            <twig:Accordion:Item value="three"><twig:Accordion:Trigger>Three</twig:Accordion:Trigger><twig:Accordion:Content>Third answer</twig:Accordion:Content></twig:Accordion:Item>
+        </twig:Accordion>
+    </section>
+    <section id="headline"><twig:AnimatedHeadline text="We make" :words="['sites', 'apps', 'games']" :loop="true" :pause="100" :duration="50" /></section>
+    <section id="carousel">
+        <twig:Carousel label="Photos" align="start">
+            <twig:Carousel:Content>
+                <twig:Carousel:Item>Slide 1</twig:Carousel:Item>
+                <twig:Carousel:Item>Slide 2</twig:Carousel:Item>
+                <twig:Carousel:Item>Slide 3</twig:Carousel:Item>
+            </twig:Carousel:Content>
+            <twig:Carousel:Previous /><twig:Carousel:Next />
+        </twig:Carousel>
+    </section>
+    <section id="overlays" class="isCluster">
+        <twig:Dialog id="modal">
+            <twig:Dialog:Trigger><twig:Button id="open-dialog" {{ ...dialog_trigger_attrs }}>Open dialog</twig:Button></twig:Dialog:Trigger>
+            <twig:Dialog:Content>
+                <twig:Dialog:Header><twig:Dialog:Title>Title</twig:Dialog:Title><twig:Dialog:Description>Description</twig:Dialog:Description></twig:Dialog:Header>
+                <p><input id="in-dialog" aria-label="Field"></p>
+                <twig:Dialog:Footer><twig:Dialog:Close><twig:Button id="cancel-dialog" {{ ...dialog_close_attrs }}>Cancel</twig:Button></twig:Dialog:Close></twig:Dialog:Footer>
+            </twig:Dialog:Content>
+        </twig:Dialog>
+        <twig:Sheet id="panel" side="right">
+            <twig:Sheet:Trigger><twig:Button id="open-sheet" {{ ...sheet_trigger_attrs }}>Open sheet</twig:Button></twig:Sheet:Trigger>
+            <twig:Sheet:Content><twig:Sheet:Header><twig:Sheet:Title>Panel</twig:Sheet:Title><twig:Sheet:Description>Against the end</twig:Sheet:Description></twig:Sheet:Header></twig:Sheet:Content>
+        </twig:Sheet>
+        <twig:Popover id="filters">
+            <twig:Popover:Trigger><twig:Button id="open-popover" {{ ...popover_trigger_attrs }}>Filters</twig:Button></twig:Popover:Trigger>
+            <twig:Popover:Content side="bottom" align="start" aria-label="Filters"><input id="in-popover" aria-label="Term"></twig:Popover:Content>
+        </twig:Popover>
+        <twig:DropdownMenu id="actions">
+            <twig:DropdownMenu:Trigger><twig:Button id="open-menu" {{ ...dropdown_menu_trigger_attrs }}>Actions</twig:Button></twig:DropdownMenu:Trigger>
+            <twig:DropdownMenu:Content>
+                <twig:DropdownMenu:Label>Item</twig:DropdownMenu:Label>
+                <twig:DropdownMenu:Item>Edit<twig:DropdownMenu:Shortcut>E</twig:DropdownMenu:Shortcut></twig:DropdownMenu:Item>
+                <twig:DropdownMenu:Sub>
+                    <twig:DropdownMenu:SubTrigger id="more">More</twig:DropdownMenu:SubTrigger>
+                    <twig:DropdownMenu:SubContent><twig:DropdownMenu:Item id="archive">Archive</twig:DropdownMenu:Item></twig:DropdownMenu:SubContent>
+                </twig:DropdownMenu:Sub>
+                <twig:DropdownMenu:Separator />
+                <twig:DropdownMenu:Item variant="destructive">Delete</twig:DropdownMenu:Item>
+            </twig:DropdownMenu:Content>
+        </twig:DropdownMenu>
+        <twig:Tooltip id="hint">
+            <twig:Tooltip:Trigger><twig:Button id="tip" {{ ...tooltip_trigger_attrs }}>Hover</twig:Button></twig:Tooltip:Trigger>
+            <twig:Tooltip:Content>Explained</twig:Tooltip:Content>
+        </twig:Tooltip>
+        <label><twig:Switch id="switch" /> Notify</label>
+    </section>
+    <section id="select">
+        <twig:Select id="fruit" name="fruit" value="b">
+            <twig:Select:Trigger><twig:Select:Value placeholder="Pick" /></twig:Select:Trigger>
+            <twig:Select:Content position="popper">
+                <twig:Select:Group id="g"><twig:Select:Label>Fruit</twig:Select:Label><twig:Select:Item value="a">Apple</twig:Select:Item><twig:Select:Item value="b">Banana</twig:Select:Item><twig:Select:Item value="c">Cherry</twig:Select:Item></twig:Select:Group>
+            </twig:Select:Content>
+        </twig:Select>
+    </section>
+    <section id="tabs">
+        <twig:Tabs defaultValue="first">
+            <twig:Tabs:List><twig:Tabs:Trigger value="first">First</twig:Tabs:Trigger><twig:Tabs:Trigger value="second">Second</twig:Tabs:Trigger><twig:Tabs:Trigger value="third">Third</twig:Tabs:Trigger></twig:Tabs:List>
+            <twig:Tabs:Content value="first">Panel 1</twig:Tabs:Content><twig:Tabs:Content value="second">Panel 2</twig:Tabs:Content><twig:Tabs:Content value="third">Panel 3</twig:Tabs:Content>
+        </twig:Tabs>
+    </section>
+    <section id="own" class="isStack">
+        <twig:ColorPicker id="accent" label="Accent" name="accent" value="#336699" :swatches="[{value: '#993366', label: 'Plum'}, {value: '#336699', label: 'Blue'}]" />
+        <twig:DatePicker id="start" name="start" label="Start" value="2026-03-15" locale="en" :firstDay="1" min="2026-03-02" />
+        <twig:CopyButton text="copied text" />
+        <div class="isCluster"><twig:AnimatedButton>Shine</twig:AnimatedButton><twig:AnimatedButton effect="lift">Lift</twig:AnimatedButton><twig:AnimatedButton effect="arrow" href="#own">Arrow</twig:AnimatedButton><twig:AnimatedButton :loading="true">Busy</twig:AnimatedButton></div>
+        <twig:Stepper label="Checkout"><twig:Stepper:Item state="done" href="#own" doneLabel="Finished:">Cart</twig:Stepper:Item><twig:Stepper:Item state="current">Address</twig:Stepper:Item><twig:Stepper:Item>Payment</twig:Stepper:Item></twig:Stepper>
+        <twig:ActivityCalendar label="Activity" :offset="2" lessLabel="Less" moreLabel="More" :days="[{level: 0, label: 'None'}, {level: 1, label: 'One'}, {level: 2, label: 'Two'}, {level: 3, label: 'Three'}, {level: 4, label: 'Four'}]" />
+        <twig:Tree label="Files" id="tree">
+            <twig:Tree:Item id="docs" label="Documents" :branch="true" :expanded="true"><twig:Tree:Item id="report" label="Report" /><twig:Tree:Item id="notes" label="Notes" :branch="true"><twig:Tree:Item id="deep" label="Deep" /></twig:Tree:Item></twig:Tree:Item>
+            <twig:Tree:Item id="photos" label="Photos" />
+        </twig:Tree>
+        <twig:Rating label="Your note" name="note" :value="3" clearLabel="No note" />
+        <twig:Rating label="Average" :value="3.5" id="note-average" />
+        <twig:NumberInput id="guests" label="Guests" name="guests" :value="2" :min="1" :max="3" />
+        <twig:FileInput id="photos-field" name="photos" label="Add photos" hint="PNG" accept=".png" :multiple="true" />
+        <div class="isCluster" id="tags"><twig:Tag id="tag-one" label="One" :removable="true" /><twig:Tag id="tag-two" label="Two" :removable="true" /><twig:Tag label="Fixed" class="isDanger" /></div>
+        <twig:RelativeTime id="moment" datetime="2020-01-01T00:00:00+00:00" locale="en" />
+        <div class="isCluster"><twig:ProgressRing label="Upload" :value="40" /><twig:ProgressRing label="Waiting" /><twig:Sparkline label="Rising" :values="[2, 4, 3, 9]" :area="true" /></div>
+        <twig:BeforeAfter id="compare" label="Cut" :position="30"><twig:block name="after"><div style="block-size: 6rem; background: teal"></div></twig:block><twig:block name="before"><div style="block-size: 6rem; background: orange"></div></twig:block></twig:BeforeAfter>
+    </section>
+    <section id="native" class="isStack">
+        <twig:AlertDialog id="erase">
+            <twig:AlertDialog:Trigger><twig:Button id="open-alert" variant="destructive" {{ ...alert_dialog_trigger_attrs }}>Erase</twig:Button></twig:AlertDialog:Trigger>
+            <twig:AlertDialog:Content>
+                <twig:AlertDialog:Header><twig:AlertDialog:Title>Erase?</twig:AlertDialog:Title><twig:AlertDialog:Description>It cannot be undone.</twig:AlertDialog:Description></twig:AlertDialog:Header>
+                <twig:AlertDialog:Footer><twig:AlertDialog:Cancel id="alert-cancel">Keep</twig:AlertDialog:Cancel><twig:AlertDialog:Action id="alert-action" variant="destructive">Erase</twig:AlertDialog:Action></twig:AlertDialog:Footer>
+            </twig:AlertDialog:Content>
+        </twig:AlertDialog>
+        <twig:ToggleGroup id="align" name="align" label="Alignment" value="left" variant="outline">
+            <twig:ToggleGroup:Item value="left">Left</twig:ToggleGroup:Item>
+            <twig:ToggleGroup:Item value="center">Centre</twig:ToggleGroup:Item>
+            <twig:ToggleGroup:Item value="right">Right</twig:ToggleGroup:Item>
+        </twig:ToggleGroup>
+        <twig:Toggle id="bold" name="bold"><b aria-hidden="true">B</b><span class="isVisuallyHidden">Bold</span></twig:Toggle>
+        <twig:Field :invalid="true"><twig:Field:Label for="field-email">Email</twig:Field:Label><twig:Input id="field-email" type="email" /><twig:Field:Description>Help</twig:Field:Description><twig:Field:Error :errors="['Taken']" /></twig:Field>
+        <twig:Field:Set><twig:Field:Legend>Set</twig:Field:Legend><twig:Field:Group><twig:Field orientation="horizontal"><twig:Field:Content><twig:Field:Title>Title</twig:Field:Title></twig:Field:Content><twig:Switch aria-label="On" /></twig:Field></twig:Field:Group><twig:Field:Separator>or</twig:Field:Separator></twig:Field:Set>
+        <twig:Item:Group><twig:Item as="li" variant="outline"><twig:Item:Media variant="icon">*</twig:Item:Media><twig:Item:Content><twig:Item:Title>Item</twig:Item:Title><twig:Item:Description>Described</twig:Item:Description></twig:Item:Content><twig:Item:Actions><twig:Button size="sm">Act</twig:Button></twig:Item:Actions></twig:Item><twig:Item:Separator /><twig:Item as="li" variant="muted"><twig:Item:Header>Head</twig:Item:Header><twig:Item:Footer>Foot</twig:Item:Footer></twig:Item></twig:Item:Group>
+        <twig:Kbd:Group><twig:Kbd>Ctrl</twig:Kbd> + <twig:Kbd>K</twig:Kbd></twig:Kbd:Group>
+        <twig:NativeSelect aria-label="Country"><twig:NativeSelect:OptGroup label="Group"><twig:NativeSelect:Option value="ca">Canada</twig:NativeSelect:Option></twig:NativeSelect:OptGroup></twig:NativeSelect>
+        <twig:Progress :value="40" aria-label="Progress" />
+        <twig:RadioGroup id="plan" name="plan" value="free" aria-label="Plan"><twig:RadioGroup:Item value="free" id="plan-free" /><twig:Label for="plan-free">Free</twig:Label><twig:RadioGroup:Item value="pro" id="plan-pro" /><twig:Label for="plan-pro">Pro</twig:Label></twig:RadioGroup>
+        <twig:ScrollArea id="scroller" label="Notes" style="block-size: 4rem"><p>One</p><p>Two</p><p>Three</p><p>Four</p></twig:ScrollArea>
+        <twig:AspectRatio ratio="16 / 9" style="inline-size: 160px"><div style="background: teal"></div></twig:AspectRatio>
+        <twig:Collapsible><twig:Collapsible:Trigger>More</twig:Collapsible:Trigger><twig:Collapsible:Content>Hidden</twig:Collapsible:Content></twig:Collapsible>
+    </section>
+    <section id="blocks" class="isStack">
+        <twig:Chart id="bars" label="Visits" :labels="['Jan', 'Feb', 'Mar']" :series="[{label: 'Visits', values: [12, 30, 21]}, {label: 'Sign-ups', values: [2, 5, 4]}]" tableLabel="Values" />
+        <twig:Chart id="lines" type="line" label="Trend" :labels="['Jan', 'Feb', 'Mar']" :series="[{label: 'A', values: [1, 3, 2]}, {label: 'B', values: [2, null, 1]}]" />
+        <twig:LoginForm action="#" title="Sign in" usernameLabel="Email" usernameType="email" passwordLabel="Password" submitLabel="Sign in" lastUsername="a@example.com" error="Invalid credentials." forgotHref="#" forgotLabel="Forgot?" />
+        <twig:SignupForm action="#" title="Join" nameLabel="Name" emailLabel="Email" passwordLabel="Password" passwordHint="Twelve characters or more" submitLabel="Join" :errors="{email: ['Taken']}" />
+    </section>
+    <section id="rest" class="isStack">
+        <twig:Card size="sm"><twig:Card:Header><twig:Card:Title>Card</twig:Card:Title><twig:Card:Description>Described</twig:Card:Description><twig:Card:Action><twig:Button size="sm" variant="link">Act</twig:Button></twig:Card:Action></twig:Card:Header><twig:Card:Content>Body</twig:Card:Content><twig:Card:Footer>Foot</twig:Card:Footer></twig:Card>
+        <twig:Alert variant="destructive"><twig:Alert:Title>Alert</twig:Alert:Title><twig:Alert:Description>Said</twig:Alert:Description><twig:Alert:Action><twig:Button variant="outline" size="sm">Undo</twig:Button></twig:Alert:Action></twig:Alert>
+        <twig:Avatar:Group><twig:Avatar><twig:Avatar:Fallback>AB</twig:Avatar:Fallback><twig:Avatar:Badge>1</twig:Avatar:Badge></twig:Avatar><twig:Avatar><twig:Avatar:Fallback>CD</twig:Avatar:Fallback></twig:Avatar><twig:Avatar:GroupCount>+3</twig:Avatar:GroupCount></twig:Avatar:Group>
+        <div class="isCluster"><twig:Badge>Badge</twig:Badge><twig:Badge variant="secondary">Two</twig:Badge><twig:Badge variant="outline">Three</twig:Badge><twig:Badge variant="link" as="a" href="#">Four</twig:Badge><twig:Badge color="#663399">Five</twig:Badge></div>
+        <twig:ButtonGroup orientation="vertical"><twig:Button>A</twig:Button><twig:Button>B</twig:Button><twig:Button>C</twig:Button></twig:ButtonGroup>
+        <twig:ButtonGroup><twig:Button>A</twig:Button><twig:ButtonGroup:Text>B</twig:ButtonGroup:Text><twig:Button>C</twig:Button></twig:ButtonGroup>
+        <twig:Breadcrumb><twig:Breadcrumb:List><twig:Breadcrumb:Item><twig:Breadcrumb:Link href="#">Home</twig:Breadcrumb:Link></twig:Breadcrumb:Item><twig:Breadcrumb:Separator /><twig:Breadcrumb:Item><twig:Breadcrumb:Page>Here</twig:Breadcrumb:Page></twig:Breadcrumb:Item></twig:Breadcrumb:List></twig:Breadcrumb>
+        <twig:Pagination><twig:Pagination:Content><twig:Pagination:Item><twig:Pagination:Previous href="#" /></twig:Pagination:Item><twig:Pagination:Item><twig:Pagination:Link href="#" :active="true">1</twig:Pagination:Link></twig:Pagination:Item><twig:Pagination:Item><twig:Pagination:Link href="#">2</twig:Pagination:Link></twig:Pagination:Item><twig:Pagination:Item><twig:Pagination:Ellipsis /></twig:Pagination:Item><twig:Pagination:Item><twig:Pagination:Next href="#" /></twig:Pagination:Item></twig:Pagination:Content></twig:Pagination>
+        <twig:Table><twig:Table:Caption>Caption</twig:Table:Caption><twig:Table:Header><twig:Table:Row><twig:Table:Head>A</twig:Table:Head><twig:Table:Head>B</twig:Table:Head></twig:Table:Row></twig:Table:Header><twig:Table:Body><twig:Table:Row><twig:Table:Cell>1</twig:Table:Cell><twig:Table:Cell>2</twig:Table:Cell></twig:Table:Row></twig:Table:Body><twig:Table:Footer><twig:Table:Row><twig:Table:Cell>3</twig:Table:Cell><twig:Table:Cell>4</twig:Table:Cell></twig:Table:Row></twig:Table:Footer></twig:Table>
+        <twig:Empty><twig:Empty:Media>?</twig:Empty:Media><twig:Empty:Header><twig:Empty:Title>Nothing</twig:Empty:Title><twig:Empty:Description>Yet</twig:Empty:Description></twig:Empty:Header><twig:Empty:Content><twig:Button>Add</twig:Button></twig:Empty:Content></twig:Empty>
+        <twig:Separator /><twig:Spinner /><twig:Skeleton />
+        <twig:Label for="i">Label</twig:Label><twig:Input id="i" /><twig:Textarea>Text</twig:Textarea><label><twig:Checkbox /> Check</label>
+    </section>
+</main>
+</body>
+</html>

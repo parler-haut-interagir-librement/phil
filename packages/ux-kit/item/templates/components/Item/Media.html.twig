@@ -1,0 +1,8 @@
+{%- props
+    ## 'default'|'icon'|'image' What the media holds, which sets its box.
+    variant = 'default'
+-%}
+<div data-slot="item-media" data-variant="{{ variant }}" aria-hidden="true"{{ attributes.defaults({class: 'isItemMedia' ~ ({icon: ' hasIcon', image: ' hasImage'}[variant] ?? '')}) }}>
+{##- A decorative icon, an image or an avatar. -#}
+{%- block content %}{% endblock -%}
+</div>

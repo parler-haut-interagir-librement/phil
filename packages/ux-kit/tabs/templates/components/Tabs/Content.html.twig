@@ -1,0 +1,9 @@
+{%- props
+    ## string Unique suffix identifier for generating Tabs internal IDs.
+    value
+-%}
+{%- set _open = inject('tabs.defaultValue', '') is same as(value) -%}
+<div id="tab-{{ value }}-description" data-slot="tabs-content" data-tabs-target="tab" data-tab-id="{{ value }}" role="tabpanel" aria-labelledby="tab-{{ value }}" tabindex="0" data-active="{{ _open ? 'true' : 'false' }}" data-state="{{ _open ? 'active' : 'inactive' }}"{{ attributes.defaults({class: 'isTabPanel' ~ (_open ? ' isCurrent' : '')}) }}>
+{##- The default block. -#}
+{%- block content %}{% endblock -%}
+</div>

@@ -1,0 +1,11 @@
+{
+    "type": "component",
+    "name": "Sheet",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    },
+    "dependencies": {
+        "composer": ["symfony/ux-twig-component:^3.7"],
+        "recipe": ["dialog", "button"]
+    }
+}

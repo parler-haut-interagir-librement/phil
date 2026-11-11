@@ -1,0 +1,12 @@
+{#-
+ # The button that answers no: it has the focus when the alert dialog opens, the least harmful answer being the one a
+ # stray Enter gives.
+ #}
+{%- props
+    ## 'default'|'secondary'|'destructive'|'outline'|'ghost'|'link' The visual style variant of the button.
+    variant = 'outline'
+-%}
+<twig:Button :variant="variant" autofocus data-slot="alert-dialog-cancel" data-action="click->dialog#close" command="close" commandfor="{{ inject('alertDialog.id') }}" {{ ...attributes }}>
+    {##- The label of the button that dismisses the alert dialog. -#}
+    {{- block(outerBlocks.content) -}}
+</twig:Button>

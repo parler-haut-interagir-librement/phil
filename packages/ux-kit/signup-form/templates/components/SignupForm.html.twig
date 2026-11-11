@@ -1,0 +1,82 @@
+{#-
+ # A sign-up form in a card: an optional name, the email address, the new password with its rule written under it and
+ # its repetition, each field naming its errors, and the link to sign in. The fields carry the names a Symfony form
+ # reads when they are given its own; every word comes from a prop.
+ #}
+{%- props
+    ## string The address the form posts to.
+    action,
+    ## string The title of the card.
+    title,
+    ## string The label of the email field.
+    emailLabel,
+    ## string The label of the password field.
+    passwordLabel,
+    ## string The label of the button that signs up.
+    submitLabel,
+    ## string|null A sentence under the title.
+    description = null,
+    ## string The identifier of the form, from which the identifiers of its fields are made.
+    id = 'signup',
+    ## string|null The label of a name field, left out when null.
+    nameLabel = null,
+    ## string|null The label of the repeated password, left out when null.
+    confirmLabel = null,
+    ## string|null The rule of the password, written under its field.
+    passwordHint = null,
+    ## int The shortest password the field accepts.
+    passwordMinLength = 12,
+    ## string The name of the name field.
+    nameField = 'name',
+    ## string The name of the email field.
+    emailField = 'email',
+    ## string The name of the password field.
+    passwordField = 'password',
+    ## string The name of the repeated password field.
+    confirmField = 'password_confirmation',
+    ## array<string,mixed> The values written back after a refused submission, by field name; passwords are never written back.
+    values = {},
+    ## array<string,list<string>> The error messages by field name, already translated.
+    errors = {},
+    ## string|null The CSRF token, written in a hidden field when given.
+    csrfToken = null,
+    ## string The name of the CSRF field.
+    csrfField = '_token',
+    ## string|null The address of the sign-in page.
+    loginHref = null,
+    ## string|null The text of the link to the sign-in page.
+    loginLabel = null
+-%}
+{%- set _fields = [] -%}
+{%- if nameLabel is not null -%}{%- set _fields = _fields|merge([{key: 'name', name: nameField, label: nameLabel, type: 'text', autocomplete: 'name'}]) -%}{%- endif -%}
+{%- set _fields = _fields|merge([{key: 'email', name: emailField, label: emailLabel, type: 'email', autocomplete: 'email'}]) -%}
+{%- set _fields = _fields|merge([{key: 'password', name: passwordField, label: passwordLabel, type: 'password', autocomplete: 'new-password'}]) -%}
+{%- if confirmLabel is not null -%}{%- set _fields = _fields|merge([{key: 'confirm', name: confirmField, label: confirmLabel, type: 'password', autocomplete: 'new-password'}]) -%}{%- endif -%}
+<section data-slot="signup-form" aria-labelledby="{{ id }}-title"{{ attributes.defaults({class: 'isCard isSignupForm'}) }}>
+    <header class="isCardHeader">
+        <h2 id="{{ id }}-title" class="isCardTitle">{{ title }}</h2>
+        {%- if description is not null %}<p class="isCardDescription">{{ description }}</p>{% endif %}
+    </header>
+    <form method="post" action="{{ action }}" class="isCardBody isStack">
+        {%- for _field in _fields -%}
+        {%- set _id = id ~ '-' ~ _field.key -%}
+        {%- set _errors = errors[_field.name] ?? [] -%}
+        {%- set _password = _field.type is same as('password') -%}
+        {%- set _hint = _field.key is same as('password') and passwordHint is not null -%}
+        {%- set _described = (_hint ? [_id ~ '-hint'] : [])|merge(_errors is empty ? [] : [_id ~ '-error']) -%}
+        <div class="isField{{ _errors is empty ? '' : ' isDanger' }}">
+            <label for="{{ _id }}">{{ _field.label }}</label>
+            <input id="{{ _id }}" type="{{ _field.type }}" name="{{ _field.name }}" autocomplete="{{ _field.autocomplete }}" required{% if _password %} minlength="{{ passwordMinLength }}"{% else %} value="{{ values[_field.name] ?? '' }}"{% endif %}{% if _described is not empty %} aria-describedby="{{ _described|join(' ') }}"{% endif %}{% if _errors is not empty %} aria-invalid="true"{% endif %}>
+            {%- if _hint %}<p id="{{ _id }}-hint" class="isFieldDescription">{{ passwordHint }}</p>{% endif %}
+            {%- if _errors is not empty %}<ul id="{{ _id }}-error" class="isFieldError">{% for _error in _errors %}<li>{{ _error }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        {%- endfor -%}
+        {%- if csrfToken is not null %}<input type="hidden" name="{{ csrfField }}" value="{{ csrfToken }}">{% endif %}
+        {##- More fields before the button: the acceptance of the terms, a consent. -#}
+        {%- block content %}{% endblock -%}
+        <button type="submit" class="isPrimary">{{ submitLabel }}</button>
+    </form>
+    {%- if loginHref is not null and loginLabel is not null %}
+    <footer class="isCardFooter"><a href="{{ loginHref }}">{{ loginLabel }}</a></footer>
+    {%- endif %}
+</section>

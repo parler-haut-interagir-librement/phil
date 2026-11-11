@@ -1,0 +1,10 @@
+# The archive ux:install downloads holds the kit, and src/, the browser test classes other kits reuse, which Composer
+# installs from the same archive; ux:install copies recipes only. The Toolkit's linter refuses a directory of the
+# kit's root without a manifest.json, so it runs on a copy of the recipes alone.
+/doc export-ignore
+/tests export-ignore
+/composer.json export-ignore
+/composer-dependency-analyser.php export-ignore
+/phil-dev.php export-ignore
+/phpunit.dist.xml export-ignore
+/.gitattributes export-ignore

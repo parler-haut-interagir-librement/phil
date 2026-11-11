@@ -1,0 +1,7 @@
+{
+    "type": "component",
+    "name": "Collapsible",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    }
+}

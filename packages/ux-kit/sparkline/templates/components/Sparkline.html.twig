@@ -1,0 +1,35 @@
+{#-
+ # A small line of values, drawn by the server: one image, whose label says what it shows. The last 365 values are
+ # kept, and nothing is written for none.
+ #}
+{%- props
+    ## array The values, oldest first.
+    values,
+    ## string What the line says, read by screen readers.
+    label,
+    ## int The width of the drawing.
+    width = 96,
+    ## int The height of the drawing.
+    height = 24,
+    ## bool Whether the area under the line is filled.
+    area = false
+-%}
+{%- set _values = values|slice(-365) -%}
+{%- if _values is not empty -%}
+    {%- set _count = _values|length -%}
+    {%- set _low = min(_values) -%}
+    {%- set _span = max(_values) - _low -%}
+    {%- set _pad = 3 -%}
+    {%- set _points = [] -%}
+    {%- for _value in _values -%}
+        {%- set _x = _count > 1 ? (_pad + loop.index0 * (width - 2 * _pad) / (_count - 1))|round(2) : width / 2 -%}
+        {%- set _y = _span > 0 ? (height - _pad - (_value - _low) * (height - 2 * _pad) / _span)|round(2) : height / 2 -%}
+        {%- set _points = _points|merge([_x ~ ',' ~ _y]) -%}
+    {%- endfor -%}
+    <svg role="img" aria-label="{{ label }}" viewBox="0 0 {{ width }} {{ height }}" width="{{ width }}" height="{{ height }}"{{ attributes.defaults({class: 'isSparkline'}) }}>
+        {%- if area and _count > 1 -%}<polygon class="isSparklineArea" points="{{ _pad }},{{ height }} {{ _points|join(' ') }} {{ width - _pad }},{{ height }}"></polygon>{%- endif -%}
+        <polyline class="isSparklineLine" points="{{ _points|join(' ') }}"></polyline>
+        {%- set _last = _points|last|split(',') -%}
+        <circle class="isSparklineDot" cx="{{ _last[0] }}" cy="{{ _last[1] }}" r="2"></circle>
+    </svg>
+{%- endif -%}

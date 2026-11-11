@@ -1,0 +1,7 @@
+{
+    "type": "component",
+    "name": "ScrollArea",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    }
+}

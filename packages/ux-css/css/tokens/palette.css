@@ -1,0 +1,97 @@
+/*
+ * phil-ux — the palette.
+ *
+ * Seven hues in OKLCH, each tone numbered by its lightness: `--phil-brand-40` is `oklch(0.40 …)`. Because the number
+ * is the lightness, it also gives the contrast: two tones whose numbers differ by 50 or more reach 4.5:1 (text), and
+ * by 40 or more reach 3:1 (large text, borders, icons), whatever their hues. The tests of the package check that rule
+ * on every pair, and that every tone fits in sRGB.
+ *
+ * Components never read the palette: they read the colour roles of colors.css. A site changes a hue here, or a role
+ * there, in its own stylesheet.
+ */
+:root {
+    --phil-neutral-05: oklch(0.05 0.012 265);
+    --phil-neutral-10: oklch(0.10 0.012 265);
+    --phil-neutral-20: oklch(0.20 0.012 265);
+    --phil-neutral-30: oklch(0.30 0.012 265);
+    --phil-neutral-40: oklch(0.40 0.012 265);
+    --phil-neutral-50: oklch(0.50 0.012 265);
+    --phil-neutral-60: oklch(0.60 0.012 265);
+    --phil-neutral-70: oklch(0.70 0.012 265);
+    --phil-neutral-80: oklch(0.80 0.012 265);
+    --phil-neutral-90: oklch(0.90 0.012 265);
+    --phil-neutral-95: oklch(0.95 0.012 265);
+    --phil-neutral-99: oklch(0.99 0.004 265);
+
+    --phil-brand-05: oklch(0.05 0.014 195);
+    --phil-brand-10: oklch(0.10 0.016 195);
+    --phil-brand-20: oklch(0.20 0.029 195);
+    --phil-brand-30: oklch(0.30 0.044 195);
+    --phil-brand-40: oklch(0.40 0.058 195);
+    --phil-brand-50: oklch(0.50 0.073 195);
+    --phil-brand-60: oklch(0.60 0.087 195);
+    --phil-brand-70: oklch(0.70 0.102 195);
+    --phil-brand-80: oklch(0.80 0.116 195);
+    --phil-brand-90: oklch(0.90 0.120 195);
+    --phil-brand-95: oklch(0.95 0.064 195);
+
+    --phil-red-05: oklch(0.05 0.028 25);
+    --phil-red-10: oklch(0.10 0.037 25);
+    --phil-red-20: oklch(0.20 0.070 25);
+    --phil-red-30: oklch(0.30 0.104 25);
+    --phil-red-40: oklch(0.40 0.138 25);
+    --phil-red-50: oklch(0.50 0.172 25);
+    --phil-red-60: oklch(0.60 0.180 25);
+    --phil-red-70: oklch(0.70 0.162 25);
+    --phil-red-80: oklch(0.80 0.097 25);
+    --phil-red-90: oklch(0.90 0.044 25);
+    --phil-red-95: oklch(0.95 0.021 25);
+
+    --phil-green-05: oklch(0.05 0.022 150);
+    --phil-green-10: oklch(0.10 0.026 150);
+    --phil-green-20: oklch(0.20 0.047 150);
+    --phil-green-30: oklch(0.30 0.071 150);
+    --phil-green-40: oklch(0.40 0.094 150);
+    --phil-green-50: oklch(0.50 0.117 150);
+    --phil-green-60: oklch(0.60 0.141 150);
+    --phil-green-70: oklch(0.70 0.150 150);
+    --phil-green-80: oklch(0.80 0.150 150);
+    --phil-green-90: oklch(0.90 0.150 150);
+    --phil-green-95: oklch(0.95 0.071 150);
+
+    --phil-amber-05: oklch(0.05 0.038 70);
+    --phil-amber-10: oklch(0.10 0.021 70);
+    --phil-amber-20: oklch(0.20 0.037 70);
+    --phil-amber-30: oklch(0.30 0.056 70);
+    --phil-amber-40: oklch(0.40 0.074 70);
+    --phil-amber-50: oklch(0.50 0.092 70);
+    --phil-amber-60: oklch(0.60 0.111 70);
+    --phil-amber-70: oklch(0.70 0.129 70);
+    --phil-amber-80: oklch(0.80 0.138 70);
+    --phil-amber-90: oklch(0.90 0.064 70);
+    --phil-amber-95: oklch(0.95 0.031 70);
+
+    --phil-blue-05: oklch(0.05 0.041 255);
+    --phil-blue-10: oklch(0.10 0.032 255);
+    --phil-blue-20: oklch(0.20 0.057 255);
+    --phil-blue-30: oklch(0.30 0.084 255);
+    --phil-blue-40: oklch(0.40 0.112 255);
+    --phil-blue-50: oklch(0.50 0.140 255);
+    --phil-blue-60: oklch(0.60 0.168 255);
+    --phil-blue-70: oklch(0.70 0.136 255);
+    --phil-blue-80: oklch(0.80 0.087 255);
+    --phil-blue-90: oklch(0.90 0.042 255);
+    --phil-blue-95: oklch(0.95 0.021 255);
+
+    --phil-violet-05: oklch(0.05 0.033 300);
+    --phil-violet-10: oklch(0.10 0.048 300);
+    --phil-violet-20: oklch(0.20 0.092 300);
+    --phil-violet-30: oklch(0.30 0.136 300);
+    --phil-violet-40: oklch(0.40 0.180 300);
+    --phil-violet-50: oklch(0.50 0.180 300);
+    --phil-violet-60: oklch(0.60 0.180 300);
+    --phil-violet-70: oklch(0.70 0.158 300);
+    --phil-violet-80: oklch(0.80 0.101 300);
+    --phil-violet-90: oklch(0.90 0.048 300);
+    --phil-violet-95: oklch(0.95 0.024 300);
+}

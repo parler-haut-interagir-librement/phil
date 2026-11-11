@@ -1,0 +1,15 @@
+{%- props
+    ## mixed A text, or the array of a typed content of the bundle.
+    content,
+    ## string The name of the image for screen readers.
+    alt = '',
+    ## bool Whether what the code holds is written beside it.
+    caption = true,
+    ## int|null The width and height of the image in pixels; the size of the bundle when null.
+    size = null,
+    ## string|null The error correction level, L, M, Q or H; the level of the bundle when null.
+    level = null,
+    ## string The name of a logo of the configuration of the bundle.
+    logo = ''
+-%}
+{{ component('PhilQrCode:QrCode', {content: content, alt: alt, caption: caption, size: size, level: level, logo: logo}|merge(attributes.defaults({class: 'isQrCode'}).all)) }}

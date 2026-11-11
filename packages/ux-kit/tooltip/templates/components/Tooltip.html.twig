@@ -1,0 +1,14 @@
+{%- props
+    ## string Unique identifier for the tooltip.
+    id,
+    ## number Delay in milliseconds before showing the tooltip.
+    delayDuration = 0
+-%}
+{%- do provide('tooltip.triggerId', id ~ '_trigger') -%}
+{%- do provide('tooltip.wrapperId', id ~ '_wrapper') -%}
+{%- do provide('tooltip.contentId', id ~ '_content') -%}
+{%- do provide('tooltip.arrowId', id ~ '_arrow') -%}
+<div id="{{ id }}" data-slot="tooltip" data-tooltip-delay-duration-value="{{ delayDuration }}" data-tooltip-wrapper-selector-value="#{{ id }}_wrapper" data-tooltip-content-selector-value="#{{ id }}_content" data-tooltip-arrow-selector-value="#{{ id }}_arrow"{{ attributes.defaults({class: 'hasTooltip', 'data-controller': 'tooltip'}) }}>
+{##- The tooltip structure, typically includes `Tooltip:Trigger` and `Tooltip:Content`. -#}
+{%- block content %}{% endblock -%}
+</div>

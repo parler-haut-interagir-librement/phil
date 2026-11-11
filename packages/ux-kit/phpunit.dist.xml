@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- The package on its own, without the browser suite, which needs a driver and runs apart. -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         colors="true"
+         bootstrap="vendor/autoload.php"
+         cacheDirectory="var/phpunit"
+>
+    <testsuites>
+        <testsuite name="Kit">
+            <directory>tests/Unit</directory>
+            <directory>tests/Functional</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

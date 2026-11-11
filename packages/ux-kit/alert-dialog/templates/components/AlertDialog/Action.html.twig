@@ -1,0 +1,8 @@
+{%- props
+    ## 'default'|'secondary'|'destructive'|'outline'|'ghost'|'link' The visual style variant of the button.
+    variant = 'default'
+-%}
+<twig:Button :variant="variant" data-slot="alert-dialog-action" data-action="click->dialog#close" command="close" commandfor="{{ inject('alertDialog.id') }}" {{ ...attributes }}>
+    {##- The label of the action the alert dialog asks to confirm. -#}
+    {{- block(outerBlocks.content) -}}
+</twig:Button>

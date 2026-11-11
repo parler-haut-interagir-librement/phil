@@ -1,0 +1,4 @@
+<div id="{{ inject('dropdownMenu.contentId', null) }}" popover role="menu" tabindex="-1" aria-labelledby="{{ inject('dropdownMenu.triggerId', null) }}" data-slot="dropdown-menu-content" data-dropdown-menu-target="content" data-state="{{ inject('dropdownMenu.open', false) ? 'open' : 'closed' }}" data-side="{{ inject('dropdownMenu.side', 'bottom') }}" data-align="{{ inject('dropdownMenu.align', 'start') }}" data-action="keydown->dropdown-menu#onContentKeydown toggle->dropdown-menu#sync"{{ attributes.defaults({class: 'isDropdownMenu'}) }}>
+{##- The menu items, e.g. `DropdownMenu:Item`, `DropdownMenu:Separator`. -#}
+{%- block content %}{% endblock -%}
+</div>

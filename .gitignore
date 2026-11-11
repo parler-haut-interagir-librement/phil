@@ -1,6 +1,7 @@
 /vendor/
 /vendor-bin/*/vendor/
 /var/
+/packages/*/tests/Browser/node_modules/
 .phpunit.cache/
 .php-cs-fixer.cache
 /infection*.log

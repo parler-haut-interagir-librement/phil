@@ -1,0 +1,64 @@
+{
+    "name": "phil/ux-kit",
+    "description": "PHIL UX kit for the Symfony UX Toolkit: the same recipes as the Shadcn kit, styled with phil-ux, installed with ux:install --kit; required in development by the bundles whose tests render its recipes",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "symfony-ux",
+        "ux-toolkit",
+        "twig-component",
+        "stimulus",
+        "design-system",
+        "accessibility"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5"
+    },
+    "require-dev": {
+        "phil/qr-code-bundle": "^0.1@dev",
+        "php-webdriver/webdriver": "^1.16",
+        "phpunit/phpunit": "^13.4",
+        "psr/container": "^2.0",
+        "psr/log": "^3.0",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/panther": "^2.4",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "php-webdriver/webdriver": "To extend the browser test case of src/Test/",
+        "phpunit/phpunit": "To extend the browser test case of src/Test/",
+        "symfony/http-kernel": "To write the page of recipes of src/Test/",
+        "symfony/panther": "To extend the browser test case of src/Test/",
+        "twig/twig": "To write the page of recipes of src/Test/"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\UxKit\\Test\\": "src/Test/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\UxKit\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

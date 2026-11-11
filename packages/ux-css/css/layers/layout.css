@@ -1,0 +1,118 @@
+/*
+ * phil-ux — the layout utilities.
+ *
+ * Each class says what the element is: `isStack`, `isCluster`, `isCenter`, `isSplit`, `isCover`. They hold no
+ * colour and read their gaps from tokens, each with a custom property of its own to change one element.
+ */
+
+/* A column of children with the same gap between them. */
+.isStack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--phil-stack-gap, var(--phil-space-md));
+}
+
+.isStack > * {
+    margin-block: 0;
+}
+
+/* A row of children that wraps, with the same gap both ways. */
+.isCluster {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--phil-cluster-gap, var(--phil-space-sm));
+}
+
+/* As many columns as fit, each at least `--phil-grid-min` wide. */
+.isGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--phil-grid-min, var(--phil-panel-sm)), 100%), 1fr));
+    gap: var(--phil-grid-gap, var(--phil-space-md));
+}
+
+/* A block centred in its container, no wider than a readable line. */
+.isCenter {
+    box-sizing: content-box;
+    max-inline-size: var(--phil-center-measure, var(--phil-measure));
+    margin-inline: auto;
+    padding-inline: var(--phil-center-gutter, 0);
+}
+
+.isCenter.isNarrow,
+.isNarrow {
+    max-inline-size: var(--phil-center-measure, var(--phil-measure-narrow));
+}
+
+/* Two columns side by side from 48rem, stacked below; the first child comes first in both. */
+.isSplit {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--phil-split-gap, 0);
+}
+
+@media (min-width: 48rem) {
+    .isSplit {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* At least the height of the screen; dvh follows the browser bars on phones. */
+.isFullHeight {
+    min-block-size: 100vh;
+    min-block-size: 100dvh;
+}
+
+/* A column whose first and last children sit at its edges and whose `isCoverBody` takes the space left, its content
+   centred both ways. */
+.isCover {
+    display: flex;
+    flex-direction: column;
+    gap: var(--phil-cover-gap, var(--phil-space-md));
+    padding: var(--phil-cover-padding, var(--phil-space-lg));
+}
+
+.isCover > .isCoverBody {
+    display: grid;
+    flex: 1 1 auto;
+    place-items: center;
+}
+
+/* Media that fills its cell: an image, or a picture's image, covers the box and keeps its ratio. Below 48rem, the box
+   takes 40 % of the screen's height. */
+.isBleed {
+    position: relative;
+    min-block-size: var(--phil-bleed-min-size, 40vh);
+    margin: 0;
+    overflow: hidden;
+}
+
+.isBleed img,
+.isBleed video {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    max-inline-size: none;
+    object-fit: cover;
+}
+
+@media (min-width: 48rem) {
+    .isSplit > .isBleed {
+        min-block-size: auto;
+    }
+}
+
+/* The media enters with a slanted clip, once, beside the other column; never under prefers-reduced-motion. */
+@media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
+    .isBleed.hasEntrance {
+        clip-path: polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%);
+        animation: phil-entrance var(--phil-duration-lg) var(--phil-ease-out) forwards;
+    }
+}
+
+@keyframes phil-entrance {
+    to {
+        clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 10% 100%);
+    }
+}

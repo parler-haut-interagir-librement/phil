@@ -1,0 +1,4 @@
+<summary id="{{ inject('accordionItem.triggerId') }}" data-slot="accordion-trigger" data-accordion-target="trigger" data-orientation="{{ inject('accordion.orientation', 'vertical') }}"{{ attributes.defaults({class: 'isAccordionTrigger', 'data-action': 'click->accordion#toggle keydown->accordion#handleKeydown'}) }}>
+{##- The clickable trigger label that toggles the accordion item. -#}
+{%- block content %}{% endblock -%}
+</summary>

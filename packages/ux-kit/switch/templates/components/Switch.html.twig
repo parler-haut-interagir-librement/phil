@@ -1,0 +1,7 @@
+{%- props
+    ## 'default'|'sm' The switch size.
+    size = 'default',
+    ## bool Whether the switch is initially checked.
+    checked = false
+-%}
+<input type="checkbox" role="switch" data-slot="switch" data-size="{{ size }}"{% if checked %} checked{% endif %}{{ attributes.defaults({class: 'isSwitch' ~ (size is same as('sm') ? ' isSmall' : '')}) }}>

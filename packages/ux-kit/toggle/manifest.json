@@ -1,0 +1,7 @@
+{
+    "type": "component",
+    "name": "Toggle",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    }
+}

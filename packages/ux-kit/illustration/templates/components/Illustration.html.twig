@@ -1,0 +1,31 @@
+{#-
+ # A figure showing one picture chosen among candidates, on the server: random by default, the same for the same seed.
+ #}
+{%- props
+    ## list<string|array<string,mixed>>|string The images to choose from: each a URL, or {src, webp, alt, width, height}.
+    candidates,
+    ## string The text alternative of a candidate that has none; an empty string for a decorative image.
+    alt,
+    ## int|null The seed of the choice: the same seed shows the same candidate; null draws one at random.
+    seed = null,
+    ## string|null A caption under the image.
+    caption = null,
+    ## string How the image loads: "lazy" below the fold, "eager" above it.
+    loading = 'lazy',
+    ## string|null The sizes of the image, when its sources list several widths.
+    sizes = null
+-%}
+{%- set _candidates = candidates is iterable ? candidates : [candidates] -%}
+{%- set _count = _candidates|length -%}
+{%- if _count > 0 -%}
+    {%- set _index = seed is null ? random(0, _count - 1) : (seed|abs) % _count -%}
+    {%- set _pick = _candidates|slice(_index, 1)|first -%}
+    {%- set _image = _pick is iterable ? _pick : {src: _pick} -%}
+    {%- set _webp = _image.webp ?? null -%}
+<figure{{ attributes }}>
+    {%- if _webp is not null -%}<picture><source type="image/webp" srcset="{{ _webp }}"{% if sizes is not null %} sizes="{{ sizes }}"{% endif %}>{%- endif -%}
+    <img src="{{ _image.src }}" alt="{{ _image.alt ?? alt }}"{% if _image.width ?? null %} width="{{ _image.width }}"{% endif %}{% if _image.height ?? null %} height="{{ _image.height }}"{% endif %}{% if sizes is not null %} sizes="{{ sizes }}"{% endif %} loading="{{ loading }}" decoding="async">
+    {%- if _webp is not null -%}</picture>{%- endif -%}
+    {%- if caption is not null -%}<figcaption>{{ caption }}</figcaption>{%- endif -%}
+</figure>
+{%- endif -%}

@@ -1,0 +1,4 @@
+<div id="{{ inject('accordionItem.contentId') }}" data-slot="accordion-content" data-accordion-target="content" role="region" aria-labelledby="{{ inject('accordionItem.triggerId') }}"{{ attributes.defaults({class: 'isAccordionContent'}) }}>
+{##- The collapsible content of the accordion item. -#}
+{%- block content %}{% endblock -%}
+</div>

@@ -1,0 +1,8 @@
+{%- props
+    ## string The name of the navigation for screen readers.
+    label = 'Pagination'
+-%}
+<nav data-slot="pagination"{{ attributes.defaults({class: 'isPagination', 'aria-label': label}) }}>
+{##- The pagination structure, typically a `Pagination:Content`. -#}
+{%- block content %}{% endblock -%}
+</nav>

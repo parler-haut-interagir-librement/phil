@@ -1,0 +1,105 @@
+/*
+ * phil-ux — the dimensions.
+ *
+ * Every scale is named in t-shirt sizes, from `3xs` to `4xl`, and computed from one unit and a global multiplier:
+ * `--phil-scale-space`, `--phil-scale-text` and `--phil-scale-radius` change a whole scale at once, and
+ * `--phil-scale` changes the spaces and the radii together. A site sets them in its own `:root`.
+ *
+ * This layer holds sizes, durations and fonts only; colours live in colors.css. The shadows take their geometry from
+ * here and their colour from `--phil-color-shadow`.
+ */
+:root {
+    /* Global multipliers */
+    --phil-scale: 1;
+    --phil-scale-space: var(--phil-scale);
+    --phil-scale-text: 1;
+    --phil-scale-radius: var(--phil-scale);
+
+    /* Space */
+    --phil-space-unit: calc(1rem * var(--phil-scale-space));
+    --phil-space-3xs: calc(var(--phil-space-unit) * 0.125);
+    --phil-space-2xs: calc(var(--phil-space-unit) * 0.25);
+    --phil-space-xs: calc(var(--phil-space-unit) * 0.5);
+    --phil-space-sm: calc(var(--phil-space-unit) * 0.75);
+    --phil-space-md: var(--phil-space-unit);
+    --phil-space-lg: calc(var(--phil-space-unit) * 1.5);
+    --phil-space-xl: calc(var(--phil-space-unit) * 2);
+    --phil-space-2xl: calc(var(--phil-space-unit) * 3);
+    --phil-space-3xl: calc(var(--phil-space-unit) * 4);
+    --phil-space-4xl: calc(var(--phil-space-unit) * 6);
+
+    /* Text: a modular scale around the body size */
+    --phil-text-ratio: 1.25;
+    --phil-text-md: calc(1rem * var(--phil-scale-text));
+    --phil-text-sm: calc(var(--phil-text-md) / var(--phil-text-ratio));
+    --phil-text-xs: calc(var(--phil-text-sm) / var(--phil-text-ratio));
+    --phil-text-lg: calc(var(--phil-text-md) * var(--phil-text-ratio));
+    --phil-text-xl: calc(var(--phil-text-lg) * var(--phil-text-ratio));
+    --phil-text-2xl: calc(var(--phil-text-xl) * var(--phil-text-ratio));
+    --phil-text-3xl: calc(var(--phil-text-2xl) * var(--phil-text-ratio));
+    --phil-text-4xl: calc(var(--phil-text-3xl) * var(--phil-text-ratio));
+    --phil-leading-tight: 1.15;
+    --phil-leading-md: 1.6;
+    --phil-measure: 65ch;
+    --phil-measure-narrow: 36ch;
+
+    --phil-weight-regular: 400;
+    --phil-weight-medium: 500;
+    --phil-weight-bold: 700;
+
+    /* Fonts: the system's own, nothing downloaded */
+    --phil-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    --phil-font-serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+    --phil-font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+
+    /* Radius */
+    --phil-radius-unit: calc(0.25rem * var(--phil-scale-radius));
+    --phil-radius-none: 0;
+    --phil-radius-sm: var(--phil-radius-unit);
+    --phil-radius-md: calc(var(--phil-radius-unit) * 2);
+    --phil-radius-lg: calc(var(--phil-radius-unit) * 4);
+    --phil-radius-xl: calc(var(--phil-radius-unit) * 6);
+    --phil-radius-full: 9999px;
+
+    /* Shadow */
+    --phil-shadow-sm: 0 1px 2px var(--phil-color-shadow);
+    --phil-shadow-md: 0 2px 4px var(--phil-color-shadow), 0 4px 12px var(--phil-color-shadow);
+    --phil-shadow-lg: 0 4px 8px var(--phil-color-shadow), 0 12px 32px var(--phil-color-shadow);
+
+    /* Focus */
+    --phil-focus-width: 2px;
+    --phil-focus-offset: 2px;
+
+    /* Lines */
+    --phil-border-sm: 1px;
+    --phil-border-md: 2px;
+    --phil-border-lg: 0.25rem;
+
+    /* Controls: the medium height is a touch target of 44 CSS pixels; a check box or a radio is 24 */
+    --phil-control-sm: 2rem;
+    --phil-control-md: 2.75rem;
+    --phil-control-lg: 3.25rem;
+    --phil-check-size: 1.5rem;
+
+    /* Panels: the width of a dialog, a sheet or a menu */
+    --phil-panel-sm: 20rem;
+    --phil-panel-md: 32rem;
+    --phil-panel-lg: 48rem;
+
+    /* Stacking, inside the page; dialogs and popovers live in the browser's top layer */
+    --phil-z-raised: 1;
+    --phil-z-overlay: 10;
+
+    /* States: how far a hover or a press mixes a fill towards the text colour, which only raises its contrast */
+    --phil-opacity-disabled: 0.55;
+    --phil-mix-hover: 12%;
+    --phil-mix-active: 24%;
+
+    /* Motion: every animation of phil-ux stops under prefers-reduced-motion */
+    --phil-duration-sm: 150ms;
+    --phil-duration-md: 300ms;
+    --phil-duration-lg: 600ms;
+    --phil-duration-loop: 1s;
+    --phil-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --phil-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}

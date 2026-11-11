@@ -1,0 +1,11 @@
+{%- props
+    ## 'default'|'secondary'|'destructive'|'outline'|'ghost'|'link' The button style variant.
+    variant = 'outline',
+    ## 'default'|'xs'|'sm'|'lg'|'icon'|'icon-xs'|'icon-sm'|'icon-lg' The button size.
+    size = 'icon-sm',
+    ## string The accessible label of the button.
+    text = 'Next slide'
+-%}
+<twig:Button variant="{{ variant }}" size="{{ size }}" hidden data-slot="carousel-next" data-carousel-target="next" {{ ...attributes.defaults({class: 'isCarouselNext', 'data-action': 'click->carousel#scrollNext'}) }}>
+    <span aria-hidden="true">&rsaquo;</span><span class="isVisuallyHidden">{{ text }}</span>
+</twig:Button>

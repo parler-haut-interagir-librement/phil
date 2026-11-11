@@ -1,0 +1,10 @@
+{%- props
+    ## 'top'|'right'|'bottom'|'left' The preferred side to display the tooltip.
+    side = 'top',
+    ## number The distance in pixels from the trigger.
+    sideOffset = 0
+-%}
+<div id="{{ inject('tooltip.wrapperId') }}" class="isTooltipWrapper" popover="manual" role="presentation" data-slot="tooltip-wrapper" data-side="{{ side }}" data-side-offset="{{ sideOffset }}" data-tooltip-target="wrapper" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide"><div id="{{ inject('tooltip.contentId') }}" role="tooltip" data-slot="tooltip-content" data-side="{{ side }}" data-tooltip-target="content"{{ attributes.defaults({class: 'isTooltip'}) }}>
+{##- The tooltip text or content. -#}
+{%- block content %}{% endblock -%}
+<span id="{{ inject('tooltip.arrowId') }}" class="isTooltipArrow" data-side="{{ side }}" data-tooltip-target="arrow" aria-hidden="true"></span></div></div>

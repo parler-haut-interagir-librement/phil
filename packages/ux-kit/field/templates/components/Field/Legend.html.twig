@@ -1,0 +1,8 @@
+{%- props
+    ## 'legend'|'label' Whether the legend reads as a title or as the size of a label.
+    variant = 'legend'
+-%}
+<legend data-slot="field-legend" data-variant="{{ variant }}"{{ attributes.defaults({class: 'isFieldLegend' ~ (variant is same as('label') ? ' isSmall' : '')}) }}>
+{##- The name of the set of fields. -#}
+{%- block content %}{% endblock -%}
+</legend>

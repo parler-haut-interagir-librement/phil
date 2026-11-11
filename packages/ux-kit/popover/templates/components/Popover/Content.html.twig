@@ -1,0 +1,10 @@
+{%- props
+    ## 'top'|'right'|'bottom'|'left' Which side of the trigger the content appears on.
+    side = 'bottom',
+    ## 'start'|'center'|'end' Alignment of the content along the cross axis.
+    align = 'center'
+-%}
+<div id="{{ inject('popover.id') }}" popover role="dialog" data-slot="popover-content" data-popover-target="content" data-side="{{ side }}" data-align="{{ align }}" data-state="{{ inject('popover.open', false) ? 'open' : 'closed' }}"{{ attributes.defaults({class: 'isPopover', 'data-action': 'toggle->popover#sync'}) }}>
+{##- The content revealed when the popover is open. -#}
+{%- block content %}{% endblock -%}
+</div>

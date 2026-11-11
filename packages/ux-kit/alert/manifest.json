@@ -1,0 +1,7 @@
+{
+    "type": "component",
+    "name": "Alert",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    }
+}

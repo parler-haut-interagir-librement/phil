@@ -1,0 +1,8 @@
+{%- props
+    ## string|null What screen readers call the list of steps.
+    label = null
+-%}
+<ol{{ attributes.defaults({class: 'isStepper'}|merge(label is null ? {} : {'aria-label': label})) }}>
+{##- The steps, each a `Stepper:Item`. -#}
+{%- block content %}{% endblock -%}
+</ol>

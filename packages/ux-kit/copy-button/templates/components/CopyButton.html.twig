@@ -1,0 +1,19 @@
+{#-
+ # A button that copies a text: given here, or read from another element. It stays hidden while no script can copy, and
+ # says what happened in a live region of its own.
+ #}
+{%- props
+    ## string|null The text to copy.
+    text = null,
+    ## string|null The CSS selector of the element whose value or text is copied, when `text` is null.
+    source = null,
+    ## string The name of the button.
+    label = 'Copy',
+    ## string What the button says once the text is copied.
+    copiedLabel = 'Copied',
+    ## string What the button says when the browser refuses.
+    failedLabel = 'Copy failed',
+    ## int How long the outcome shows, in milliseconds.
+    duration = 2000
+-%}
+<span data-copy-button-text-value="{{ text ?? '' }}" data-copy-button-source-value="{{ source ?? '' }}" data-copy-button-label-value="{{ label }}" data-copy-button-copied-label-value="{{ copiedLabel }}" data-copy-button-failed-label-value="{{ failedLabel }}" data-copy-button-duration-value="{{ duration }}"{{ attributes.defaults({class: 'isCopyButton', 'data-controller': 'copy-button'}) }}><button type="button" class="isCopyButtonTrigger" hidden data-copy-button-target="trigger" data-action="copy-button#copy">{{ label }}</button><span class="isVisuallyHidden" role="status" aria-live="polite" data-copy-button-target="status"></span></span>

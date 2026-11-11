@@ -1,0 +1,4 @@
+<p id="{{ inject('alertDialog.descriptionId') }}" data-slot="alert-dialog-description"{{ attributes.without('id').defaults({class: 'isDialogDescription'}) }}>
+{##- What follows from the answer. -#}
+{%- block content %}{% endblock -%}
+</p>

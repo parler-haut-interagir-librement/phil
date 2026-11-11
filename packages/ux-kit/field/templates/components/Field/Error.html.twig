@@ -1,0 +1,23 @@
+{#-
+ # The errors of a field: a list when there are several, a paragraph for one, nothing for none. With content in its
+ # block, the block is written instead.
+ #}
+{%- props
+    ## list<string> The error messages, each escaped.
+    errors = []
+-%}
+{%- set _content -%}
+{##- An error written by hand, in place of `errors`. -#}
+{%- block content %}{% endblock -%}
+{%- endset -%}
+{%- if _content|trim is not empty or errors is not empty -%}
+<div role="alert" data-slot="field-error"{{ attributes.defaults({class: 'isFieldError'}) }}>
+{%- if _content|trim is not empty -%}
+{{ _content }}
+{%- elseif errors|length == 1 -%}
+<p>{{ errors|first }}</p>
+{%- else -%}
+<ul>{% for _error in errors %}<li>{{ _error }}</li>{% endfor %}</ul>
+{%- endif -%}
+</div>
+{%- endif -%}

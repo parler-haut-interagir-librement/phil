@@ -1,0 +1,7 @@
+{
+    "type": "component",
+    "name": "Item",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    }
+}

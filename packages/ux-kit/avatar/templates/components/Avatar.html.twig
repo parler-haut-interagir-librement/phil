@@ -1,0 +1,9 @@
+{%- props
+    ## 'default'|'sm'|'lg' The avatar size.
+    size = 'default'
+-%}
+{%- set _size = {sm: ' isSmall', lg: ' isLarge'}[size] ?? '' -%}
+<span data-slot="avatar" data-size="{{ size }}"{{ attributes.defaults({class: 'isAvatar' ~ _size}) }}>
+{##- The avatar content, typically an image or `Avatar:Fallback`. -#}
+{%- block content %}{% endblock -%}
+</span>

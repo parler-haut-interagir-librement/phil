@@ -1,0 +1,10 @@
+{%- props
+    ## bool Whether this is the current page.
+    active = false,
+    ## 'default'|'xs'|'sm'|'lg'|'icon'|'icon-xs'|'icon-sm'|'icon-lg' The button size.
+    size = 'icon'
+-%}
+<twig:Button class="isPaginationLink" as="a" variant="{{ active ? 'outline' : 'ghost' }}" size="{{ size }}" :aria-current="active ? 'page' : false" data-slot="pagination-link" data-active="{{ active ? 'true' : 'false' }}" {{ ...attributes }}>
+    {##- The page number or navigation icon. -#}
+    {{- block(outerBlocks.content) -}}
+</twig:Button>

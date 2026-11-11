@@ -1,0 +1,21 @@
+{#-
+ # A button, or a link when it has an address, that moves under the pointer and the focus, and stands still under
+ # reduced motion. While `loading`, it says so and waits under a spinner.
+ #}
+{%- props
+    ## 'shine'|'lift'|'arrow' How it moves.
+    effect = 'shine',
+    ## string|null Where the link leads; a button when null.
+    href = null,
+    ## 'button'|'submit'|'reset' The type of the button.
+    type = 'button',
+    ## bool Whether what it started is still running.
+    loading = false
+-%}
+{%- set _effect = {shine: 'hasShine', lift: 'hasLift', arrow: 'hasArrow'}[effect] ?? 'hasShine' -%}
+{%- set _class = 'isAnimatedButton ' ~ _effect ~ (loading ? ' isLoading' : '') -%}
+{%- set _tag = href is null ? 'button' : 'a' -%}
+<{{ _tag }}{% if href is null %} type="{{ type in ['submit', 'reset'] ? type : 'button' }}"{% else %} href="{{ href }}"{% endif %}{{ attributes.defaults({class: _class ~ (href is null ? '' : ' isButton')}|merge(loading ? {'aria-busy': 'true'} : {})) }}><span class="isAnimatedButtonLabel">
+{##- What the button says. -#}
+{%- block content %}{% endblock -%}
+</span>{% if effect is same as('arrow') %}<span class="isAnimatedButtonArrow" aria-hidden="true">&rarr;</span>{% endif %}</{{ _tag }}>

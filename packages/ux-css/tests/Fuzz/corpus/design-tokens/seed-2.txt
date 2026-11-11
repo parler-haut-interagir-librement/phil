@@ -1,0 +1,1 @@
+:root { --phil-font-sans: system-ui, "Segoe UI", serif; --phil-shadow-md: 0 2px 4px var(--phil-color-x), inset 0 4px 12px oklch(0 0 0 / 0.5); --phil-ease-out: cubic-bezier(0.22, 1, 0.36, 1); --phil-radius-none: 0; --phil-radius-sm: 4px; }

@@ -1,0 +1,4311 @@
+/*!
+ * phil-ux — the CSS framework of PHIL. MIT License.
+ *
+ * Real CSS, mostly classless, in cascade layers: a site's own styles, written outside any layer, win over all of them
+ * without !important. The tokens come first, each family in its own layer, so a site can replace the colours, the
+ * dimensions or both.
+ */
+@layer phil.palette, phil.colors, phil.dimensions, phil.base, phil.layout, phil.components, phil.utilities;
+
+@layer phil.palette {
+    /*
+     * phil-ux — the palette.
+     *
+     * Seven hues in OKLCH, each tone numbered by its lightness: `--phil-brand-40` is `oklch(0.40 …)`. Because the number
+     * is the lightness, it also gives the contrast: two tones whose numbers differ by 50 or more reach 4.5:1 (text), and
+     * by 40 or more reach 3:1 (large text, borders, icons), whatever their hues. The tests of the package check that rule
+     * on every pair, and that every tone fits in sRGB.
+     *
+     * Components never read the palette: they read the colour roles of colors.css. A site changes a hue here, or a role
+     * there, in its own stylesheet.
+     */
+    :root {
+        --phil-neutral-05: oklch(0.05 0.012 265);
+        --phil-neutral-10: oklch(0.10 0.012 265);
+        --phil-neutral-20: oklch(0.20 0.012 265);
+        --phil-neutral-30: oklch(0.30 0.012 265);
+        --phil-neutral-40: oklch(0.40 0.012 265);
+        --phil-neutral-50: oklch(0.50 0.012 265);
+        --phil-neutral-60: oklch(0.60 0.012 265);
+        --phil-neutral-70: oklch(0.70 0.012 265);
+        --phil-neutral-80: oklch(0.80 0.012 265);
+        --phil-neutral-90: oklch(0.90 0.012 265);
+        --phil-neutral-95: oklch(0.95 0.012 265);
+        --phil-neutral-99: oklch(0.99 0.004 265);
+
+        --phil-brand-05: oklch(0.05 0.014 195);
+        --phil-brand-10: oklch(0.10 0.016 195);
+        --phil-brand-20: oklch(0.20 0.029 195);
+        --phil-brand-30: oklch(0.30 0.044 195);
+        --phil-brand-40: oklch(0.40 0.058 195);
+        --phil-brand-50: oklch(0.50 0.073 195);
+        --phil-brand-60: oklch(0.60 0.087 195);
+        --phil-brand-70: oklch(0.70 0.102 195);
+        --phil-brand-80: oklch(0.80 0.116 195);
+        --phil-brand-90: oklch(0.90 0.120 195);
+        --phil-brand-95: oklch(0.95 0.064 195);
+
+        --phil-red-05: oklch(0.05 0.028 25);
+        --phil-red-10: oklch(0.10 0.037 25);
+        --phil-red-20: oklch(0.20 0.070 25);
+        --phil-red-30: oklch(0.30 0.104 25);
+        --phil-red-40: oklch(0.40 0.138 25);
+        --phil-red-50: oklch(0.50 0.172 25);
+        --phil-red-60: oklch(0.60 0.180 25);
+        --phil-red-70: oklch(0.70 0.162 25);
+        --phil-red-80: oklch(0.80 0.097 25);
+        --phil-red-90: oklch(0.90 0.044 25);
+        --phil-red-95: oklch(0.95 0.021 25);
+
+        --phil-green-05: oklch(0.05 0.022 150);
+        --phil-green-10: oklch(0.10 0.026 150);
+        --phil-green-20: oklch(0.20 0.047 150);
+        --phil-green-30: oklch(0.30 0.071 150);
+        --phil-green-40: oklch(0.40 0.094 150);
+        --phil-green-50: oklch(0.50 0.117 150);
+        --phil-green-60: oklch(0.60 0.141 150);
+        --phil-green-70: oklch(0.70 0.150 150);
+        --phil-green-80: oklch(0.80 0.150 150);
+        --phil-green-90: oklch(0.90 0.150 150);
+        --phil-green-95: oklch(0.95 0.071 150);
+
+        --phil-amber-05: oklch(0.05 0.038 70);
+        --phil-amber-10: oklch(0.10 0.021 70);
+        --phil-amber-20: oklch(0.20 0.037 70);
+        --phil-amber-30: oklch(0.30 0.056 70);
+        --phil-amber-40: oklch(0.40 0.074 70);
+        --phil-amber-50: oklch(0.50 0.092 70);
+        --phil-amber-60: oklch(0.60 0.111 70);
+        --phil-amber-70: oklch(0.70 0.129 70);
+        --phil-amber-80: oklch(0.80 0.138 70);
+        --phil-amber-90: oklch(0.90 0.064 70);
+        --phil-amber-95: oklch(0.95 0.031 70);
+
+        --phil-blue-05: oklch(0.05 0.041 255);
+        --phil-blue-10: oklch(0.10 0.032 255);
+        --phil-blue-20: oklch(0.20 0.057 255);
+        --phil-blue-30: oklch(0.30 0.084 255);
+        --phil-blue-40: oklch(0.40 0.112 255);
+        --phil-blue-50: oklch(0.50 0.140 255);
+        --phil-blue-60: oklch(0.60 0.168 255);
+        --phil-blue-70: oklch(0.70 0.136 255);
+        --phil-blue-80: oklch(0.80 0.087 255);
+        --phil-blue-90: oklch(0.90 0.042 255);
+        --phil-blue-95: oklch(0.95 0.021 255);
+
+        --phil-violet-05: oklch(0.05 0.033 300);
+        --phil-violet-10: oklch(0.10 0.048 300);
+        --phil-violet-20: oklch(0.20 0.092 300);
+        --phil-violet-30: oklch(0.30 0.136 300);
+        --phil-violet-40: oklch(0.40 0.180 300);
+        --phil-violet-50: oklch(0.50 0.180 300);
+        --phil-violet-60: oklch(0.60 0.180 300);
+        --phil-violet-70: oklch(0.70 0.158 300);
+        --phil-violet-80: oklch(0.80 0.101 300);
+        --phil-violet-90: oklch(0.90 0.048 300);
+        --phil-violet-95: oklch(0.95 0.024 300);
+    }
+}
+@layer phil.colors {
+    /*
+     * phil-ux — the colour roles.
+     *
+     * One theme, light and dark in the same declarations: each role is `light-dark(<light tone>, <dark tone>)`, so the
+     * tone follows the `color-scheme` of the element that uses it. The page follows the system unless `data-theme`
+     * chooses: `light` (or `default`, the same) and `dark`, on the root or on any element, which then flips its subtree.
+     *
+     * The grid: for each role, a fill, a border and the colour "on" that fill, each quiet (a tint) or loud (solid).
+     * `on-quiet` is the text on `fill-quiet`, `on-loud` the text on `fill-loud`; both pairs reach 4.5:1 in both schemes,
+     * and `border-loud` reaches 3:1 on the surface. The tests check every pair named in the package's contrast rule.
+     *
+     * This layer holds colour only; sizes live in dimensions.css, so a site can override one without the other.
+     */
+    :root {
+        color-scheme: light dark;
+
+        /* The page */
+        --phil-color-surface: light-dark(var(--phil-neutral-99), var(--phil-neutral-10));
+        --phil-color-surface-raised: light-dark(var(--phil-neutral-95), var(--phil-neutral-20));
+        --phil-color-text: light-dark(var(--phil-neutral-10), var(--phil-neutral-95));
+        --phil-color-text-muted: light-dark(var(--phil-neutral-40), var(--phil-neutral-70));
+        --phil-color-link: light-dark(var(--phil-brand-40), var(--phil-brand-70));
+        --phil-color-focus: light-dark(var(--phil-blue-50), var(--phil-blue-70));
+        --phil-color-border: light-dark(var(--phil-neutral-80), var(--phil-neutral-30));
+        --phil-color-shadow: light-dark(oklch(0 0 0 / 0.12), oklch(0 0 0 / 0.5));
+        --phil-color-backdrop: light-dark(oklch(0 0 0 / 0.4), oklch(0 0 0 / 0.6));
+
+        /* The levels of an activity calendar, from nothing to the most */
+        --phil-color-activity-0: light-dark(var(--phil-neutral-95), var(--phil-neutral-20));
+        --phil-color-activity-1: light-dark(var(--phil-brand-90), var(--phil-brand-30));
+        --phil-color-activity-2: light-dark(var(--phil-brand-70), var(--phil-brand-50));
+        --phil-color-activity-3: light-dark(var(--phil-brand-50), var(--phil-brand-70));
+        --phil-color-activity-4: light-dark(var(--phil-brand-30), var(--phil-brand-90));
+
+        /* brand */
+        --phil-color-brand-fill-quiet: light-dark(var(--phil-brand-95), var(--phil-brand-20));
+        --phil-color-brand-fill-loud: light-dark(var(--phil-brand-40), var(--phil-brand-70));
+        --phil-color-brand-border-quiet: light-dark(var(--phil-brand-80), var(--phil-brand-30));
+        --phil-color-brand-border-loud: light-dark(var(--phil-brand-50), var(--phil-brand-60));
+        --phil-color-brand-on-quiet: light-dark(var(--phil-brand-30), var(--phil-brand-90));
+        --phil-color-brand-on-loud: light-dark(var(--phil-brand-95), var(--phil-brand-10));
+
+        /* neutral */
+        --phil-color-neutral-fill-quiet: light-dark(var(--phil-neutral-95), var(--phil-neutral-20));
+        --phil-color-neutral-fill-loud: light-dark(var(--phil-neutral-40), var(--phil-neutral-70));
+        --phil-color-neutral-border-quiet: light-dark(var(--phil-neutral-80), var(--phil-neutral-30));
+        --phil-color-neutral-border-loud: light-dark(var(--phil-neutral-50), var(--phil-neutral-60));
+        --phil-color-neutral-on-quiet: light-dark(var(--phil-neutral-30), var(--phil-neutral-90));
+        --phil-color-neutral-on-loud: light-dark(var(--phil-neutral-95), var(--phil-neutral-10));
+
+        /* danger */
+        --phil-color-danger-fill-quiet: light-dark(var(--phil-red-95), var(--phil-red-20));
+        --phil-color-danger-fill-loud: light-dark(var(--phil-red-40), var(--phil-red-70));
+        --phil-color-danger-border-quiet: light-dark(var(--phil-red-80), var(--phil-red-30));
+        --phil-color-danger-border-loud: light-dark(var(--phil-red-50), var(--phil-red-60));
+        --phil-color-danger-on-quiet: light-dark(var(--phil-red-30), var(--phil-red-90));
+        --phil-color-danger-on-loud: light-dark(var(--phil-red-95), var(--phil-red-10));
+
+        /* success */
+        --phil-color-success-fill-quiet: light-dark(var(--phil-green-95), var(--phil-green-20));
+        --phil-color-success-fill-loud: light-dark(var(--phil-green-40), var(--phil-green-70));
+        --phil-color-success-border-quiet: light-dark(var(--phil-green-80), var(--phil-green-30));
+        --phil-color-success-border-loud: light-dark(var(--phil-green-50), var(--phil-green-60));
+        --phil-color-success-on-quiet: light-dark(var(--phil-green-30), var(--phil-green-90));
+        --phil-color-success-on-loud: light-dark(var(--phil-green-95), var(--phil-green-10));
+
+        /* warning */
+        --phil-color-warning-fill-quiet: light-dark(var(--phil-amber-95), var(--phil-amber-20));
+        --phil-color-warning-fill-loud: light-dark(var(--phil-amber-40), var(--phil-amber-70));
+        --phil-color-warning-border-quiet: light-dark(var(--phil-amber-80), var(--phil-amber-30));
+        --phil-color-warning-border-loud: light-dark(var(--phil-amber-50), var(--phil-amber-60));
+        --phil-color-warning-on-quiet: light-dark(var(--phil-amber-30), var(--phil-amber-90));
+        --phil-color-warning-on-loud: light-dark(var(--phil-amber-95), var(--phil-amber-10));
+
+        /* info */
+        --phil-color-info-fill-quiet: light-dark(var(--phil-blue-95), var(--phil-blue-20));
+        --phil-color-info-fill-loud: light-dark(var(--phil-blue-40), var(--phil-blue-70));
+        --phil-color-info-border-quiet: light-dark(var(--phil-blue-80), var(--phil-blue-30));
+        --phil-color-info-border-loud: light-dark(var(--phil-blue-50), var(--phil-blue-60));
+        --phil-color-info-on-quiet: light-dark(var(--phil-blue-30), var(--phil-blue-90));
+        --phil-color-info-on-loud: light-dark(var(--phil-blue-95), var(--phil-blue-10));
+    }
+
+    [data-theme="light"],
+    [data-theme="default"] {
+        color-scheme: light;
+    }
+
+    [data-theme="dark"] {
+        color-scheme: dark;
+    }
+}
+@layer phil.dimensions {
+    /*
+     * phil-ux — the dimensions.
+     *
+     * Every scale is named in t-shirt sizes, from `3xs` to `4xl`, and computed from one unit and a global multiplier:
+     * `--phil-scale-space`, `--phil-scale-text` and `--phil-scale-radius` change a whole scale at once, and
+     * `--phil-scale` changes the spaces and the radii together. A site sets them in its own `:root`.
+     *
+     * This layer holds sizes, durations and fonts only; colours live in colors.css. The shadows take their geometry from
+     * here and their colour from `--phil-color-shadow`.
+     */
+    :root {
+        /* Global multipliers */
+        --phil-scale: 1;
+        --phil-scale-space: var(--phil-scale);
+        --phil-scale-text: 1;
+        --phil-scale-radius: var(--phil-scale);
+
+        /* Space */
+        --phil-space-unit: calc(1rem * var(--phil-scale-space));
+        --phil-space-3xs: calc(var(--phil-space-unit) * 0.125);
+        --phil-space-2xs: calc(var(--phil-space-unit) * 0.25);
+        --phil-space-xs: calc(var(--phil-space-unit) * 0.5);
+        --phil-space-sm: calc(var(--phil-space-unit) * 0.75);
+        --phil-space-md: var(--phil-space-unit);
+        --phil-space-lg: calc(var(--phil-space-unit) * 1.5);
+        --phil-space-xl: calc(var(--phil-space-unit) * 2);
+        --phil-space-2xl: calc(var(--phil-space-unit) * 3);
+        --phil-space-3xl: calc(var(--phil-space-unit) * 4);
+        --phil-space-4xl: calc(var(--phil-space-unit) * 6);
+
+        /* Text: a modular scale around the body size */
+        --phil-text-ratio: 1.25;
+        --phil-text-md: calc(1rem * var(--phil-scale-text));
+        --phil-text-sm: calc(var(--phil-text-md) / var(--phil-text-ratio));
+        --phil-text-xs: calc(var(--phil-text-sm) / var(--phil-text-ratio));
+        --phil-text-lg: calc(var(--phil-text-md) * var(--phil-text-ratio));
+        --phil-text-xl: calc(var(--phil-text-lg) * var(--phil-text-ratio));
+        --phil-text-2xl: calc(var(--phil-text-xl) * var(--phil-text-ratio));
+        --phil-text-3xl: calc(var(--phil-text-2xl) * var(--phil-text-ratio));
+        --phil-text-4xl: calc(var(--phil-text-3xl) * var(--phil-text-ratio));
+        --phil-leading-tight: 1.15;
+        --phil-leading-md: 1.6;
+        --phil-measure: 65ch;
+        --phil-measure-narrow: 36ch;
+
+        --phil-weight-regular: 400;
+        --phil-weight-medium: 500;
+        --phil-weight-bold: 700;
+
+        /* Fonts: the system's own, nothing downloaded */
+        --phil-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+        --phil-font-serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+        --phil-font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+
+        /* Radius */
+        --phil-radius-unit: calc(0.25rem * var(--phil-scale-radius));
+        --phil-radius-none: 0;
+        --phil-radius-sm: var(--phil-radius-unit);
+        --phil-radius-md: calc(var(--phil-radius-unit) * 2);
+        --phil-radius-lg: calc(var(--phil-radius-unit) * 4);
+        --phil-radius-xl: calc(var(--phil-radius-unit) * 6);
+        --phil-radius-full: 9999px;
+
+        /* Shadow */
+        --phil-shadow-sm: 0 1px 2px var(--phil-color-shadow);
+        --phil-shadow-md: 0 2px 4px var(--phil-color-shadow), 0 4px 12px var(--phil-color-shadow);
+        --phil-shadow-lg: 0 4px 8px var(--phil-color-shadow), 0 12px 32px var(--phil-color-shadow);
+
+        /* Focus */
+        --phil-focus-width: 2px;
+        --phil-focus-offset: 2px;
+
+        /* Lines */
+        --phil-border-sm: 1px;
+        --phil-border-md: 2px;
+        --phil-border-lg: 0.25rem;
+
+        /* Controls: the medium height is a touch target of 44 CSS pixels; a check box or a radio is 24 */
+        --phil-control-sm: 2rem;
+        --phil-control-md: 2.75rem;
+        --phil-control-lg: 3.25rem;
+        --phil-check-size: 1.5rem;
+
+        /* Panels: the width of a dialog, a sheet or a menu */
+        --phil-panel-sm: 20rem;
+        --phil-panel-md: 32rem;
+        --phil-panel-lg: 48rem;
+
+        /* Stacking, inside the page; dialogs and popovers live in the browser's top layer */
+        --phil-z-raised: 1;
+        --phil-z-overlay: 10;
+
+        /* States: how far a hover or a press mixes a fill towards the text colour, which only raises its contrast */
+        --phil-opacity-disabled: 0.55;
+        --phil-mix-hover: 12%;
+        --phil-mix-active: 24%;
+
+        /* Motion: every animation of phil-ux stops under prefers-reduced-motion */
+        --phil-duration-sm: 150ms;
+        --phil-duration-md: 300ms;
+        --phil-duration-lg: 600ms;
+        --phil-duration-loop: 1s;
+        --phil-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+        --phil-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    }
+}
+@layer phil.base {
+    /*
+     * phil-ux — the classless base.
+     *
+     * The HTML elements dressed without a class: the page, its typography, links, media, code, quotes, the focus ring,
+     * forms, buttons, tables, dialogs, disclosures, navigation, gauges and popovers. Every value is a token, so a theme or
+     * a scale changes them all, and every direction is logical, so a right-to-left page needs nothing more.
+     */
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    html {
+        font-family: var(--phil-font-sans);
+        font-size: 100%;
+        line-height: var(--phil-leading-md);
+        color: var(--phil-color-text);
+        background-color: var(--phil-color-surface);
+        accent-color: var(--phil-color-brand-fill-loud);
+        text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        margin: 0;
+        font-size: var(--phil-text-md);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        margin-block: 0 var(--phil-space-sm);
+        font-weight: var(--phil-weight-bold);
+        line-height: var(--phil-leading-tight);
+        text-wrap: balance;
+    }
+
+    h1 { font-size: var(--phil-text-3xl); }
+    h2 { font-size: var(--phil-text-2xl); }
+    h3 { font-size: var(--phil-text-xl); }
+    h4 { font-size: var(--phil-text-lg); }
+    h5 { font-size: var(--phil-text-md); }
+    h6 { font-size: var(--phil-text-sm); }
+
+    p,
+    ul,
+    ol,
+    dl,
+    blockquote,
+    pre,
+    figure,
+    table {
+        margin-block: 0 var(--phil-space-md);
+    }
+
+    p {
+        text-wrap: pretty;
+    }
+
+    ul,
+    ol {
+        padding-inline-start: var(--phil-space-lg);
+    }
+
+    hgroup {
+        margin-block-end: var(--phil-space-md);
+    }
+
+    hgroup > * {
+        margin-block: 0;
+    }
+
+    a {
+        color: var(--phil-color-link);
+        text-decoration-thickness: from-font;
+        text-underline-offset: 0.15em;
+    }
+
+    a:hover {
+        text-decoration-thickness: 0.125em;
+    }
+
+    :focus-visible {
+        outline: var(--phil-focus-width) solid var(--phil-color-focus);
+        outline-offset: var(--phil-focus-offset);
+    }
+
+    img,
+    svg,
+    video,
+    canvas {
+        display: block;
+        max-inline-size: 100%;
+        block-size: auto;
+    }
+
+    picture {
+        display: block;
+    }
+
+    figure {
+        margin-inline: 0;
+    }
+
+    figcaption {
+        margin-block-start: var(--phil-space-xs);
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-text-muted);
+    }
+
+    small {
+        font-size: var(--phil-text-sm);
+    }
+
+    hr {
+        margin-block: var(--phil-space-lg);
+        border: 0;
+        border-block-start: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    code,
+    kbd,
+    samp,
+    pre {
+        font-family: var(--phil-font-mono);
+        font-size: 0.9em;
+    }
+
+    pre {
+        overflow-x: auto;
+        padding: var(--phil-space-sm) var(--phil-space-md);
+        background-color: var(--phil-color-surface-raised);
+        border-radius: var(--phil-radius-md);
+    }
+
+    blockquote {
+        margin-inline: 0;
+        padding-inline-start: var(--phil-space-md);
+        border-inline-start: var(--phil-border-lg) solid var(--phil-color-brand-border-loud);
+    }
+
+    mark {
+        color: var(--phil-color-warning-on-quiet);
+        background-color: var(--phil-color-warning-fill-quiet);
+    }
+
+    dt {
+        font-weight: var(--phil-weight-medium);
+    }
+
+    dd {
+        margin-inline-start: 0;
+        margin-block-end: var(--phil-space-xs);
+    }
+
+    kbd {
+        padding-block: var(--phil-space-3xs);
+        padding-inline: var(--phil-space-2xs);
+        color: var(--phil-color-text);
+        background-color: var(--phil-color-surface-raised);
+        border: var(--phil-border-sm) solid var(--phil-color-border);
+        border-block-end-width: var(--phil-border-md);
+        border-radius: var(--phil-radius-sm);
+    }
+
+    abbr[title] {
+        text-decoration: underline dotted;
+        text-underline-offset: 0.15em;
+        cursor: help;
+    }
+
+    /* An important declaration of this first layer wins over every later one: `hidden` hides, whatever the display a
+       class sets. `until-found` is left to the browser, which needs the box. */
+    [hidden]:not([hidden="until-found"]) {
+        display: none !important;
+    }
+
+    /*
+     * Forms. A label over its control, a control the height of a touch target, the border of the loud neutral (3:1 on the
+     * surface) and the validity read from the browser or from aria-invalid. The native check boxes, radios, sliders and
+     * pickers are kept and take the brand through `accent-color` and the scheme through `color-scheme`.
+     */
+    fieldset {
+        min-inline-size: 0;
+        margin-inline: 0;
+        margin-block: 0 var(--phil-space-md);
+        padding: var(--phil-space-md);
+        border: var(--phil-border-sm) solid var(--phil-color-border);
+        border-radius: var(--phil-radius-md);
+    }
+
+    legend {
+        padding-inline: var(--phil-space-2xs);
+        font-weight: var(--phil-weight-medium);
+    }
+
+    label {
+        display: block;
+        margin-block-end: var(--phil-space-2xs);
+        font-weight: var(--phil-weight-medium);
+    }
+
+    /* A control inside its label: the box first, the text beside it, the whole line a touch target. */
+    label:has(> input:is([type="checkbox"], [type="radio"])) {
+        display: flex;
+        align-items: center;
+        gap: var(--phil-space-xs);
+        min-block-size: var(--phil-control-md);
+        margin-block-end: 0;
+        font-weight: var(--phil-weight-regular);
+    }
+
+    label:has(> :disabled) {
+        cursor: not-allowed;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+        font: inherit;
+    }
+
+    input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="submit"], [type="button"], [type="reset"], [type="image"], [type="hidden"]),
+    select,
+    textarea {
+        --phil-control-border: var(--phil-color-neutral-border-loud);
+
+        display: block;
+        inline-size: 100%;
+        min-block-size: var(--phil-control-size, var(--phil-control-md));
+        padding-block: var(--phil-space-2xs);
+        padding-inline: var(--phil-control-padding, var(--phil-space-sm));
+        color: var(--phil-color-text);
+        background-color: var(--phil-color-surface);
+        border: var(--phil-border-sm) solid var(--phil-control-border);
+        border-radius: var(--phil-radius-md);
+        transition: border-color var(--phil-duration-sm) var(--phil-ease-out);
+    }
+
+    textarea {
+        min-block-size: calc(var(--phil-control-md) * 2);
+        resize: block;
+    }
+
+    select[multiple] {
+        padding-block: var(--phil-space-2xs);
+    }
+
+    ::placeholder {
+        color: var(--phil-color-text-muted);
+        opacity: 1;
+    }
+
+    input:is([type="checkbox"], [type="radio"]) {
+        flex: none;
+        inline-size: var(--phil-check-size);
+        block-size: var(--phil-check-size);
+        margin: 0;
+        cursor: pointer;
+    }
+
+    input[type="range"] {
+        display: block;
+        inline-size: 100%;
+        min-block-size: var(--phil-control-md);
+        margin: 0;
+        cursor: pointer;
+    }
+
+    input[type="color"] {
+        display: block;
+        inline-size: calc(var(--phil-control-md) * 1.5);
+        block-size: var(--phil-control-md);
+        padding: var(--phil-space-2xs);
+        background-color: var(--phil-color-surface);
+        border: var(--phil-border-sm) solid var(--phil-color-neutral-border-loud);
+        border-radius: var(--phil-radius-md);
+        cursor: pointer;
+    }
+
+    input[type="file"] {
+        display: block;
+        inline-size: 100%;
+        min-block-size: var(--phil-control-md);
+    }
+
+    ::file-selector-button {
+        min-block-size: var(--phil-control-md);
+        margin-inline-end: var(--phil-space-sm);
+        padding-inline: var(--phil-space-md);
+        font: inherit;
+        font-weight: var(--phil-weight-medium);
+        color: var(--phil-color-neutral-on-quiet);
+        background-color: var(--phil-color-neutral-fill-quiet);
+        border: var(--phil-border-sm) solid var(--phil-color-neutral-border-quiet);
+        border-radius: var(--phil-radius-md);
+        cursor: pointer;
+    }
+
+    :is(input, select, textarea):user-valid {
+        --phil-control-border: var(--phil-color-success-border-loud);
+    }
+
+    /* The wider ring says it without the colour; the message goes beside the control. */
+    :is(input, select, textarea):user-invalid,
+    :is(input, select, textarea)[aria-invalid="true"] {
+        --phil-control-border: var(--phil-color-danger-border-loud);
+
+        box-shadow: inset 0 0 0 var(--phil-border-sm) var(--phil-control-border);
+    }
+
+    :is(input, select, textarea):disabled {
+        opacity: var(--phil-opacity-disabled);
+        cursor: not-allowed;
+    }
+
+    /*
+     * The markup of Symfony's form_row: a div holding the label, the errors as a plain list, the widget and the
+     * `help-text` paragraph; `label.required` for a required field. Rows are spaced, a single check box comes before its
+     * label, and expanded choices, siblings in a div, line up as box and text.
+     */
+    form div:has(> label, > button, > input[type="submit"]) {
+        margin-block-end: var(--phil-space-md);
+    }
+
+    form div:has(> input:is([type="checkbox"], [type="radio"])) {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-auto-flow: dense;
+        align-items: center;
+        gap: var(--phil-space-2xs) var(--phil-space-xs);
+    }
+
+    form div:has(> input:is([type="checkbox"], [type="radio"])) > input {
+        grid-column: 1;
+    }
+
+    form div:has(> input:is([type="checkbox"], [type="radio"])) > label {
+        grid-column: 2;
+        margin-block-end: 0;
+        font-weight: var(--phil-weight-regular);
+    }
+
+    form div:has(> input:is([type="checkbox"], [type="radio"])) > :not(input, label) {
+        grid-column: 1 / -1;
+    }
+
+    label.required::after {
+        content: " *" / "";
+        color: var(--phil-color-danger-on-quiet);
+    }
+
+    form div > label + ul:not([class], [role]),
+    form div > ul:first-child:not([class], [role]) {
+        margin-block: 0 var(--phil-space-2xs);
+        padding-inline-start: 0;
+        list-style: none;
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-danger-on-quiet);
+    }
+
+    .help-text {
+        margin-block: var(--phil-space-2xs) 0;
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-text-muted);
+    }
+
+    /*
+     * Buttons. A button is solid and in the brand until a class says otherwise. It reads the six colours of its tone and
+     * sets them on itself, so one inside a coloured notice keeps its own; `isDanger` and the other tones replace them.
+     */
+    button,
+    input:is([type="submit"], [type="button"], [type="reset"]),
+    [role="button"],
+    .isButton {
+        --phil-tone-fill-quiet: var(--phil-color-brand-fill-quiet);
+        --phil-tone-fill-loud: var(--phil-color-brand-fill-loud);
+        --phil-tone-border-quiet: var(--phil-color-brand-border-quiet);
+        --phil-tone-border-loud: var(--phil-color-brand-border-loud);
+        --phil-tone-on-quiet: var(--phil-color-brand-on-quiet);
+        --phil-tone-on-loud: var(--phil-color-brand-on-loud);
+        --phil-button-fill: var(--phil-tone-fill-loud);
+        --phil-button-fill-hover: color-mix(in oklch, var(--phil-button-fill), var(--phil-color-text) var(--phil-mix-hover));
+        --phil-button-fill-active: color-mix(in oklch, var(--phil-button-fill), var(--phil-color-text) var(--phil-mix-active));
+        --phil-button-on: var(--phil-tone-on-loud);
+        --phil-button-border: transparent;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--phil-space-xs);
+        min-block-size: var(--phil-control-size, var(--phil-control-md));
+        padding-block: var(--phil-space-2xs);
+        padding-inline: var(--phil-control-padding, var(--phil-space-md));
+        font: inherit;
+        font-weight: var(--phil-weight-medium);
+        line-height: var(--phil-leading-tight);
+        color: var(--phil-button-on);
+        text-align: center;
+        text-decoration: none;
+        background-color: var(--phil-button-fill);
+        border: var(--phil-border-sm) solid var(--phil-button-border);
+        border-radius: var(--phil-radius-md);
+        cursor: pointer;
+        touch-action: manipulation;
+        transition:
+            background-color var(--phil-duration-sm) var(--phil-ease-out),
+            border-color var(--phil-duration-sm) var(--phil-ease-out);
+    }
+
+    :is(button, input:is([type="submit"], [type="button"], [type="reset"]), [role="button"], .isButton):hover:not(:disabled, [aria-disabled="true"]) {
+        background-color: var(--phil-button-fill-hover);
+    }
+
+    :is(button, input:is([type="submit"], [type="button"], [type="reset"]), [role="button"], .isButton):active:not(:disabled, [aria-disabled="true"]) {
+        background-color: var(--phil-button-fill-active);
+    }
+
+    :is(button, input:is([type="submit"], [type="button"], [type="reset"]), [role="button"], .isButton):is(:disabled, [aria-disabled="true"]) {
+        opacity: var(--phil-opacity-disabled);
+        cursor: not-allowed;
+    }
+
+    /* Tables: a line under each row, start-aligned cells, tabular figures. A table wider than its box scrolls inside a
+       figure. */
+    table {
+        inline-size: 100%;
+        border-collapse: collapse;
+        font-variant-numeric: tabular-nums;
+    }
+
+    caption {
+        margin-block-end: var(--phil-space-xs);
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-text-muted);
+        text-align: start;
+    }
+
+    th,
+    td {
+        padding-block: var(--phil-space-xs);
+        padding-inline: var(--phil-space-sm);
+        text-align: start;
+        vertical-align: top;
+        border-block-end: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    th {
+        font-weight: var(--phil-weight-medium);
+    }
+
+    thead th {
+        border-block-end: var(--phil-border-md) solid var(--phil-color-neutral-border-loud);
+    }
+
+    tfoot :is(th, td) {
+        font-weight: var(--phil-weight-medium);
+        border-block-start: var(--phil-border-md) solid var(--phil-color-neutral-border-loud);
+        border-block-end: 0;
+    }
+
+    figure:has(> table) {
+        overflow-x: auto;
+    }
+
+    /*
+     * Dialogs. Modal or not, centred by the browser, at most the height of the screen and scrolling inside. They and the
+     * backdrop fade in and out where the browser can animate the top layer; elsewhere they simply appear. A modal dialog
+     * holds the page still behind it.
+     */
+    dialog {
+        max-inline-size: min(var(--phil-dialog-size, var(--phil-panel-md)), calc(100vw - var(--phil-space-xl)));
+        max-block-size: calc(100dvh - var(--phil-space-xl));
+        padding: var(--phil-space-lg);
+        overflow: auto;
+        overscroll-behavior: contain;
+        color: var(--phil-color-text);
+        background-color: var(--phil-color-surface);
+        border: var(--phil-border-sm) solid var(--phil-color-border);
+        border-radius: var(--phil-radius-lg);
+        box-shadow: var(--phil-shadow-lg);
+        opacity: 0;
+        transition:
+            opacity var(--phil-duration-sm) var(--phil-ease-out),
+            translate var(--phil-duration-sm) var(--phil-ease-out),
+            overlay var(--phil-duration-sm) allow-discrete,
+            display var(--phil-duration-sm) allow-discrete;
+    }
+
+    dialog[open] {
+        opacity: 1;
+    }
+
+    @starting-style {
+        dialog[open] {
+            opacity: 0;
+        }
+    }
+
+    dialog:not(:modal) {
+        z-index: var(--phil-z-overlay);
+    }
+
+    dialog > :last-child {
+        margin-block-end: 0;
+    }
+
+    dialog > footer {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: var(--phil-space-xs);
+        margin-block-start: var(--phil-space-lg);
+    }
+
+    dialog::backdrop {
+        background-color: var(--phil-color-backdrop);
+        opacity: 0;
+        transition:
+            opacity var(--phil-duration-sm) var(--phil-ease-out),
+            overlay var(--phil-duration-sm) allow-discrete,
+            display var(--phil-duration-sm) allow-discrete;
+    }
+
+    dialog[open]::backdrop {
+        opacity: 1;
+    }
+
+    @starting-style {
+        dialog[open]::backdrop {
+            opacity: 0;
+        }
+    }
+
+    html:has(dialog:modal) {
+        overflow: hidden;
+        scrollbar-gutter: stable;
+    }
+
+    /* Popovers: a panel over the page, centred by the browser until a controller places it and sets data-placed. */
+    [popover] {
+        max-inline-size: min(var(--phil-panel-md), calc(100vw - var(--phil-space-xl)));
+        padding: var(--phil-space-md);
+        color: var(--phil-color-text);
+        background-color: var(--phil-color-surface);
+        border: var(--phil-border-sm) solid var(--phil-color-border);
+        border-radius: var(--phil-radius-lg);
+        box-shadow: var(--phil-shadow-lg);
+    }
+
+    [popover][data-placed] {
+        position: fixed;
+        inset: auto;
+        margin: 0;
+    }
+
+    /* Disclosures. A summary is a touch target; where the browser can animate to height: auto, the content opens. */
+    details {
+        margin-block-end: var(--phil-space-md);
+    }
+
+    summary {
+        padding-block: var(--phil-space-xs);
+        font-weight: var(--phil-weight-medium);
+        cursor: pointer;
+    }
+
+    @supports selector(::details-content) {
+        @media (prefers-reduced-motion: no-preference) {
+            details {
+                interpolate-size: allow-keywords;
+            }
+
+            details::details-content {
+                block-size: 0;
+                overflow: clip;
+                transition:
+                    block-size var(--phil-duration-md) var(--phil-ease-out),
+                    content-visibility var(--phil-duration-md) allow-discrete;
+            }
+
+            details[open]::details-content {
+                block-size: auto;
+            }
+        }
+
+        [data-motion="reduce"] details::details-content {
+            transition-duration: 0.01ms !important;
+        }
+    }
+
+    /* Navigation: the lists of a nav lose their bullets and lie in a row, its links are touch targets, and the current
+       page is said in weight as well as in colour. */
+    nav :is(ul, ol) {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--phil-space-2xs) var(--phil-space-md);
+        margin-block: 0;
+        padding-inline-start: 0;
+        list-style: none;
+    }
+
+    nav a {
+        display: inline-flex;
+        align-items: center;
+        min-block-size: var(--phil-control-md);
+    }
+
+    nav a[aria-current]:not([aria-current="false"]) {
+        font-weight: var(--phil-weight-bold);
+        color: var(--phil-color-text);
+    }
+
+    /* Gauges: the vendor pseudo-elements each in a rule of their own, since a browser drops a whole list for one it does
+       not know. */
+    progress,
+    meter {
+        display: block;
+        inline-size: 100%;
+        block-size: var(--phil-space-xs);
+        overflow: hidden;
+        background: var(--phil-color-surface-raised);
+        border: 0;
+        border-radius: var(--phil-radius-full);
+        appearance: none;
+    }
+
+    progress {
+        color: var(--phil-color-brand-fill-loud);
+    }
+
+    ::-webkit-progress-bar,
+    ::-webkit-meter-bar {
+        background: var(--phil-color-surface-raised);
+        border: 0;
+        border-radius: var(--phil-radius-full);
+    }
+
+    ::-webkit-progress-value {
+        background: var(--phil-color-brand-fill-loud);
+        border-radius: var(--phil-radius-full);
+    }
+
+    ::-moz-progress-bar {
+        background: var(--phil-color-brand-fill-loud);
+        border-radius: var(--phil-radius-full);
+    }
+
+    ::-webkit-meter-optimum-value {
+        background: var(--phil-color-success-fill-loud);
+    }
+
+    ::-webkit-meter-suboptimum-value {
+        background: var(--phil-color-warning-fill-loud);
+    }
+
+    ::-webkit-meter-even-less-good-value {
+        background: var(--phil-color-danger-fill-loud);
+    }
+
+    :-moz-meter-optimum::-moz-meter-bar {
+        background: var(--phil-color-success-fill-loud);
+    }
+
+    :-moz-meter-sub-optimum::-moz-meter-bar {
+        background: var(--phil-color-warning-fill-loud);
+    }
+
+    :-moz-meter-sub-sub-optimum::-moz-meter-bar {
+        background: var(--phil-color-danger-fill-loud);
+    }
+
+    /* An unknown progress is a bar that travels, and a still bar under reduced motion. */
+    progress:indeterminate {
+        background-image: linear-gradient(to right, var(--phil-color-surface-raised) 30%, var(--phil-color-brand-fill-loud) 50%, var(--phil-color-surface-raised) 70%);
+        background-size: 200% 100%;
+        animation: phil-progress calc(var(--phil-duration-loop) * 2) linear infinite;
+    }
+
+    progress:indeterminate::-webkit-progress-bar {
+        background: transparent;
+    }
+
+    progress:indeterminate::-moz-progress-bar {
+        background: transparent;
+    }
+
+    @keyframes phil-progress {
+        from {
+            background-position: 200% 0;
+        }
+
+        to {
+            background-position: -200% 0;
+        }
+    }
+
+    /* Motion is a choice of the reader: under prefers-reduced-motion, or when the root carries data-motion="reduce",
+       animations end at once. Important declarations of an earlier layer win over every later layer and over unlayered
+       styles, so a site cannot bring motion back by accident. */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after,
+        ::backdrop {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+
+    [data-motion="reduce"],
+    [data-motion="reduce"] *,
+    [data-motion="reduce"] *::before,
+    [data-motion="reduce"] *::after,
+    [data-motion="reduce"] ::backdrop {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    /* Contrast is a choice of the reader too: under prefers-contrast: more, or when the root carries
+       data-contrast="more", muted text takes the text colour and borders the loud neutral one. */
+    @media (prefers-contrast: more) {
+        :root {
+            --phil-color-text-muted: var(--phil-color-text);
+            --phil-color-border: var(--phil-color-neutral-border-loud);
+        }
+    }
+
+    [data-contrast="more"] {
+        --phil-color-text-muted: var(--phil-color-text);
+        --phil-color-border: var(--phil-color-neutral-border-loud);
+    }
+
+    /* The text size the reader chose, on the root: every size of the scale is in rem, so the whole page follows. */
+    html[data-text-size="large"] {
+        font-size: 112.5%;
+    }
+
+    html[data-text-size="larger"] {
+        font-size: 125%;
+    }
+}
+@layer phil.layout {
+    /*
+     * phil-ux — the layout utilities.
+     *
+     * Each class says what the element is: `isStack`, `isCluster`, `isCenter`, `isSplit`, `isCover`. They hold no
+     * colour and read their gaps from tokens, each with a custom property of its own to change one element.
+     */
+
+    /* A column of children with the same gap between them. */
+    .isStack {
+        display: flex;
+        flex-direction: column;
+        gap: var(--phil-stack-gap, var(--phil-space-md));
+    }
+
+    .isStack > * {
+        margin-block: 0;
+    }
+
+    /* A row of children that wraps, with the same gap both ways. */
+    .isCluster {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--phil-cluster-gap, var(--phil-space-sm));
+    }
+
+    /* As many columns as fit, each at least `--phil-grid-min` wide. */
+    .isGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(var(--phil-grid-min, var(--phil-panel-sm)), 100%), 1fr));
+        gap: var(--phil-grid-gap, var(--phil-space-md));
+    }
+
+    /* A block centred in its container, no wider than a readable line. */
+    .isCenter {
+        box-sizing: content-box;
+        max-inline-size: var(--phil-center-measure, var(--phil-measure));
+        margin-inline: auto;
+        padding-inline: var(--phil-center-gutter, 0);
+    }
+
+    .isCenter.isNarrow,
+    .isNarrow {
+        max-inline-size: var(--phil-center-measure, var(--phil-measure-narrow));
+    }
+
+    /* Two columns side by side from 48rem, stacked below; the first child comes first in both. */
+    .isSplit {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--phil-split-gap, 0);
+    }
+
+    @media (min-width: 48rem) {
+        .isSplit {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    /* At least the height of the screen; dvh follows the browser bars on phones. */
+    .isFullHeight {
+        min-block-size: 100vh;
+        min-block-size: 100dvh;
+    }
+
+    /* A column whose first and last children sit at its edges and whose `isCoverBody` takes the space left, its content
+       centred both ways. */
+    .isCover {
+        display: flex;
+        flex-direction: column;
+        gap: var(--phil-cover-gap, var(--phil-space-md));
+        padding: var(--phil-cover-padding, var(--phil-space-lg));
+    }
+
+    .isCover > .isCoverBody {
+        display: grid;
+        flex: 1 1 auto;
+        place-items: center;
+    }
+
+    /* Media that fills its cell: an image, or a picture's image, covers the box and keeps its ratio. Below 48rem, the box
+       takes 40 % of the screen's height. */
+    .isBleed {
+        position: relative;
+        min-block-size: var(--phil-bleed-min-size, 40vh);
+        margin: 0;
+        overflow: hidden;
+    }
+
+    .isBleed img,
+    .isBleed video {
+        position: absolute;
+        inset: 0;
+        inline-size: 100%;
+        block-size: 100%;
+        max-inline-size: none;
+        object-fit: cover;
+    }
+
+    @media (min-width: 48rem) {
+        .isSplit > .isBleed {
+            min-block-size: auto;
+        }
+    }
+
+    /* The media enters with a slanted clip, once, beside the other column; never under prefers-reduced-motion. */
+    @media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
+        .isBleed.hasEntrance {
+            clip-path: polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%);
+            animation: phil-entrance var(--phil-duration-lg) var(--phil-ease-out) forwards;
+        }
+    }
+
+    @keyframes phil-entrance {
+        to {
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 10% 100%);
+        }
+    }
+}
+@layer phil.components {
+    /*
+     * phil-ux — the components the classless base cannot guess. Each class says what the element is or has. The tones and
+     * the sizes come last, so `isDanger` or `isSmall` apply to any component that reads them.
+     */
+
+    /* A short label above a heading: "Coming soon", a category, a date. Muted and small, never the heading itself. */
+    .isEyebrow {
+        margin-block: 0 var(--phil-space-xs);
+        font-size: var(--phil-text-sm);
+        font-weight: var(--phil-weight-medium);
+        letter-spacing: 0.02em;
+        color: var(--phil-color-text-muted);
+    }
+
+    /* A display headline, larger than h1 and fluid between the 2xl and 4xl text sizes. */
+    .isHeadline {
+        font-size: clamp(var(--phil-text-2xl), 1rem + 4vw, var(--phil-text-4xl));
+        line-height: var(--phil-leading-tight);
+    }
+
+    /*
+     * The clip reveal: the words of the headline stacked in one box, the current one shown. Without JavaScript, the
+     * current word stands still. The animated-headline controller adds `isRevealing`, then sets `--phil-reveal-size`
+     * to close the box to its caret and open it on the next word; `isPulsing` blinks the caret between two words. Once
+     * the words have played through, the controller removes both and the box is back to its natural width.
+     */
+    .isReveal {
+        --phil-reveal-caret: 0.06em;
+
+        display: inline-grid;
+        vertical-align: bottom;
+        inline-size: var(--phil-reveal-size, auto);
+        overflow: hidden;
+        border-inline-end: var(--phil-reveal-caret) solid transparent;
+        transition: inline-size var(--phil-reveal-duration, var(--phil-duration-lg)) var(--phil-ease-in-out);
+    }
+
+    .isReveal > * {
+        grid-area: 1 / 1;
+        justify-self: start;
+        white-space: nowrap;
+        visibility: hidden;
+    }
+
+    .isReveal > .isCurrent {
+        visibility: visible;
+    }
+
+    .isReveal.isRevealing {
+        border-inline-end-color: currentcolor;
+    }
+
+    .isReveal.isPulsing {
+        animation: phil-caret 1s steps(1, end) infinite;
+    }
+
+    @keyframes phil-caret {
+        50% {
+            border-inline-end-color: transparent;
+        }
+    }
+
+    /*
+     * The pause/play button of a cycling headline, rendered `hidden` and shown by the controller: small text in the
+     * heading's line, its name the visible label.
+     */
+    .isRevealToggle {
+        margin-inline-start: var(--phil-space-sm);
+        min-block-size: 0;
+        padding: var(--phil-space-2xs) var(--phil-space-xs);
+        vertical-align: middle;
+        font: inherit;
+        font-size: var(--phil-text-sm);
+        font-weight: var(--phil-weight-medium);
+        letter-spacing: normal;
+        line-height: var(--phil-leading-tight);
+        color: var(--phil-color-text);
+        background: var(--phil-color-surface-raised);
+        border: var(--phil-border-sm) solid var(--phil-color-border);
+        border-radius: var(--phil-radius-md);
+        cursor: pointer;
+    }
+
+    .isRevealToggle[hidden] {
+        display: none;
+    }
+
+    /*
+     * A reaction: a target wide and tall enough for a finger, whatever it holds, and what it says when it is the viewer's.
+     */
+    .isReaction {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--phil-space-2xs);
+        min-block-size: var(--phil-control-md);
+        min-inline-size: var(--phil-control-md);
+        padding-block: 0;
+        padding-inline: var(--phil-space-xs);
+        font: inherit;
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-text);
+        background: var(--phil-color-surface-raised);
+        border: var(--phil-border-sm) solid var(--phil-color-border);
+        border-radius: var(--phil-radius-md);
+    }
+
+    button.isReaction,
+    summary.isReaction {
+        cursor: pointer;
+    }
+
+    .isReaction[aria-pressed="true"] {
+        color: var(--phil-color-brand-on-quiet);
+        background: var(--phil-color-brand-fill-quiet);
+        border-color: var(--phil-color-brand-border-loud);
+    }
+
+    .isReaction[hidden] {
+        display: none;
+    }
+
+    .isReaction img {
+        inline-size: 1.25em;
+        block-size: 1.25em;
+    }
+
+    /* The other reactions, laid over what follows. */
+    .isReactionPicker {
+        position: relative;
+        margin-block-end: 0;
+    }
+
+    .isReactionPickerPanel {
+        position: absolute;
+        z-index: var(--phil-z-overlay);
+        inline-size: min(var(--phil-panel-sm), calc(100vw - var(--phil-space-xl)));
+        padding: var(--phil-space-xs);
+        background: var(--phil-color-surface-raised);
+        border: var(--phil-border-sm) solid var(--phil-color-border);
+        border-radius: var(--phil-radius-md);
+        box-shadow: var(--phil-shadow-md);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .isReveal,
+        .isReveal.isRevealing {
+            inline-size: auto;
+            border-inline-end-color: transparent;
+            transition: none;
+            animation: none;
+        }
+    }
+
+    /* A logo: an image at the logo's height, its width from its ratio. */
+    .isLogo {
+        display: inline-block;
+    }
+
+    .isLogo img {
+        inline-size: auto;
+        block-size: var(--phil-logo-size, 3rem);
+    }
+
+    /* Long text written by people: a readable measure, a steady rhythm between blocks, headings that breathe. */
+    .isProse {
+        max-inline-size: var(--phil-measure);
+    }
+
+    .isProse > * {
+        margin-block: 0;
+    }
+
+    .isProse > * + * {
+        margin-block-start: var(--phil-prose-gap, var(--phil-space-md));
+    }
+
+    .isProse > :is(h2, h3, h4) {
+        margin-block-start: var(--phil-space-xl);
+    }
+
+    .isProse > :is(h2, h3, h4) + * {
+        margin-block-start: var(--phil-space-xs);
+    }
+
+    .isProse li + li {
+        margin-block-start: var(--phil-space-2xs);
+    }
+
+    .isProse img,
+    .isProse video {
+        border-radius: var(--phil-radius-md);
+    }
+
+    /*
+     * The neutral tone, the default of the components that are not calls to action; a tone class further down replaces it.
+     * Buttons take theirs from the base layer.
+     */
+    .isBadge,
+    .isAlert,
+    .isTag,
+    .isSecondary,
+    .isGhost,
+    .isNumberInputStep,
+    .isFileInputClear,
+    .isDatePickerTrigger,
+    .isDatePickerMonth {
+        --phil-tone-fill-quiet: var(--phil-color-neutral-fill-quiet);
+        --phil-tone-fill-loud: var(--phil-color-neutral-fill-loud);
+        --phil-tone-border-quiet: var(--phil-color-neutral-border-quiet);
+        --phil-tone-border-loud: var(--phil-color-neutral-border-loud);
+        --phil-tone-on-quiet: var(--phil-color-neutral-on-quiet);
+        --phil-tone-on-loud: var(--phil-color-neutral-on-loud);
+    }
+
+    /* The looks of a button: the solid brand is the default, `isPrimary` says so aloud. */
+    .isSecondary {
+        --phil-button-fill: var(--phil-tone-fill-quiet);
+        --phil-button-on: var(--phil-tone-on-quiet);
+        --phil-button-border: var(--phil-tone-border-quiet);
+    }
+
+    .isGhost {
+        --phil-button-fill: transparent;
+        --phil-button-fill-hover: var(--phil-tone-fill-quiet);
+        --phil-button-fill-active: var(--phil-tone-fill-quiet);
+        --phil-button-on: var(--phil-tone-on-quiet);
+    }
+
+    /* A button that reads as a link: no fill, no border, underlined, in the colour of links. */
+    .isLink {
+        --phil-button-fill: transparent;
+        --phil-button-fill-hover: transparent;
+        --phil-button-fill-active: transparent;
+        --phil-button-on: var(--phil-color-link);
+
+        text-decoration: underline;
+    }
+
+    .isOutline {
+        --phil-button-fill: transparent;
+        --phil-button-fill-hover: var(--phil-tone-fill-quiet);
+        --phil-button-fill-active: var(--phil-tone-fill-quiet);
+        --phil-button-on: var(--phil-tone-on-quiet);
+        --phil-button-border: var(--phil-tone-border-loud);
+    }
+
+    /* A button that is on, or that names the current page: after the looks, so it holds for all of them. */
+    :is(button, [role="button"], .isButton):is([aria-pressed="true"], [aria-current]:not([aria-current="false"])) {
+        --phil-button-fill: var(--phil-tone-fill-quiet);
+        --phil-button-on: var(--phil-tone-on-quiet);
+        --phil-button-border: var(--phil-tone-border-loud);
+    }
+
+    /* An icon beside a label; alone, with `isIconOnly`, a square target whose name is an aria-label. */
+    .hasIcon > :is(svg, img) {
+        flex: none;
+        inline-size: 1.25em;
+        block-size: 1.25em;
+    }
+
+    .isIconOnly {
+        min-inline-size: var(--phil-control-size, var(--phil-control-md));
+        padding-inline: 0;
+    }
+
+    /* Waiting: the content stays in place, so nothing jumps, under a spinner of the colour it would have had. */
+    .isLoading {
+        position: relative;
+        cursor: progress;
+        pointer-events: none;
+    }
+
+    .isLoading::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        inline-size: 1.25em;
+        block-size: 1.25em;
+        margin: auto;
+        border: var(--phil-border-md) solid var(--phil-spinner-color, currentcolor);
+        border-inline-end-color: transparent;
+        border-radius: var(--phil-radius-full);
+        animation: phil-spin var(--phil-duration-loop) linear infinite;
+    }
+
+    :is(button, [role="button"], .isButton).isLoading {
+        --phil-spinner-color: var(--phil-button-on);
+
+        color: transparent;
+    }
+
+    :is(button, [role="button"], .isButton).isLoading > * {
+        visibility: hidden;
+    }
+
+    @keyframes phil-spin {
+        to {
+            rotate: 1turn;
+        }
+    }
+
+    .isSpinner {
+        display: inline-block;
+        inline-size: 1.5em;
+        block-size: 1.5em;
+        vertical-align: middle;
+        border: var(--phil-border-md) solid currentcolor;
+        border-inline-end-color: transparent;
+        border-radius: var(--phil-radius-full);
+        animation: phil-spin var(--phil-duration-loop) linear infinite;
+    }
+
+    /* Buttons side by side, sharing their borders; the focused or pressed one is drawn above its neighbours. */
+    .isButtonGroup {
+        display: inline-flex;
+        flex-wrap: wrap;
+    }
+
+    .isButtonGroup > * {
+        position: relative;
+    }
+
+    .isButtonGroup > :not(:first-child) {
+        margin-inline-start: calc(var(--phil-border-sm) * -1);
+        border-start-start-radius: 0;
+        border-end-start-radius: 0;
+    }
+
+    .isButtonGroup > :not(:last-child) {
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+    }
+
+    .isButtonGroup.isVertical {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .isButtonGroup.isVertical > * {
+        border-radius: var(--phil-radius-md);
+    }
+
+    .isButtonGroup.isVertical > :not(:first-child) {
+        margin-inline-start: 0;
+        margin-block-start: calc(var(--phil-border-sm) * -1);
+        border-start-start-radius: 0;
+        border-start-end-radius: 0;
+    }
+
+    .isButtonGroup.isVertical > :not(:last-child) {
+        border-end-start-radius: 0;
+        border-end-end-radius: 0;
+    }
+
+    /* Plain text among the buttons of a group: their height, their border, the quiet surface. */
+    .isButtonGroupText {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--phil-space-2xs);
+        min-block-size: var(--phil-control-size, var(--phil-control-md));
+        padding-inline: var(--phil-control-padding, var(--phil-space-sm));
+        font-size: var(--phil-text-sm);
+        background-color: var(--phil-color-surface-raised);
+        border: var(--phil-border-sm) solid var(--phil-color-border);
+        border-radius: var(--phil-radius-md);
+    }
+
+    .isButtonGroup > :is(:focus-visible, [aria-pressed="true"], [aria-current]:not([aria-current="false"])) {
+        z-index: var(--phil-z-raised);
+    }
+
+    /* A short status: quiet by default, solid with `isLoud`, a border only with `isOutline`. */
+    .isBadge {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--phil-space-2xs);
+        padding-block: var(--phil-space-3xs);
+        padding-inline: var(--phil-space-xs);
+        font-size: var(--phil-text-xs);
+        font-weight: var(--phil-weight-medium);
+        line-height: var(--phil-leading-tight);
+        white-space: nowrap;
+        color: var(--phil-badge-color, var(--phil-tone-on-quiet));
+        background-color: var(--phil-tone-fill-quiet);
+        border: var(--phil-border-sm) solid var(--phil-badge-color, var(--phil-tone-border-quiet));
+        border-radius: var(--phil-radius-full);
+    }
+
+    .isBadge.isLoud {
+        color: var(--phil-tone-on-loud);
+        background-color: var(--phil-tone-fill-loud);
+        border-color: transparent;
+    }
+
+    .isBadge.isOutline {
+        background-color: transparent;
+        border-color: var(--phil-tone-border-loud);
+    }
+
+    .isBadge:is(.isGhost, .isLink) {
+        background-color: transparent;
+        border-color: transparent;
+    }
+
+    .isBadge.isLink {
+        color: var(--phil-color-link);
+        text-decoration: underline;
+    }
+
+    /* A notice in the page: quiet, a loud rule on its start side. The `role` is the template's: `status` or `alert`. */
+    .isAlert {
+        margin-block-end: var(--phil-space-md);
+        padding: var(--phil-space-md);
+        color: var(--phil-tone-on-quiet);
+        background-color: var(--phil-tone-fill-quiet);
+        border: var(--phil-border-sm) solid var(--phil-tone-border-quiet);
+        border-inline-start: var(--phil-border-lg) solid var(--phil-tone-border-loud);
+        border-radius: var(--phil-radius-md);
+    }
+
+    .isAlert.isLoud {
+        color: var(--phil-tone-on-loud);
+        background-color: var(--phil-tone-fill-loud);
+        border-color: transparent;
+    }
+
+    .isAlert > :last-child {
+        margin-block-end: 0;
+    }
+
+    .isAlert a {
+        color: inherit;
+    }
+
+    .isAlertTitle {
+        margin-block: 0 var(--phil-space-2xs);
+    }
+
+    .isAlertDescription > :last-child {
+        margin-block-end: 0;
+    }
+
+    .isAlertAction {
+        margin-block-start: var(--phil-space-sm);
+    }
+
+    .isAlert.hasIcon {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: var(--phil-space-2xs) var(--phil-space-sm);
+    }
+
+    .isAlert.hasIcon > :is(svg, img) {
+        grid-row: span 2;
+    }
+
+    .isAlert.hasIcon > :not(svg, img) {
+        grid-column: 2;
+    }
+
+    /* A surface of its own: media first, a body, a header and a footer. An `isCardLink` covers the whole card. */
+    .isCard {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        margin-block-end: var(--phil-space-md);
+        background-color: var(--phil-color-surface);
+        border: var(--phil-border-sm) solid var(--phil-color-border);
+        border-radius: var(--phil-radius-lg);
+        box-shadow: var(--phil-shadow-sm);
+        transition: box-shadow var(--phil-duration-sm) var(--phil-ease-out);
+    }
+
+    .isCardMedia {
+        inline-size: 100%;
+        aspect-ratio: var(--phil-card-media-ratio, 4 / 3);
+        object-fit: cover;
+        background-color: var(--phil-color-surface-raised);
+    }
+
+    .isCardBody {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: var(--phil-space-xs);
+        padding: var(--phil-space-md);
+    }
+
+    .isCardBody > * {
+        margin-block: 0;
+    }
+
+    .isCardTitle {
+        margin-block: 0;
+        font-size: var(--phil-text-lg);
+        line-height: var(--phil-leading-tight);
+    }
+
+    .isCard > header,
+    .isCardHeader {
+        padding: var(--phil-space-md);
+        border-block-end: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    .isCardHeader:has(> .isCardAction) {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0 var(--phil-space-sm);
+    }
+
+    .isCardAction {
+        grid-row: 1 / span 2;
+        grid-column: 2;
+    }
+
+    .isCardDescription {
+        margin-block: var(--phil-space-2xs) 0;
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-text-muted);
+    }
+
+    .isCard > footer,
+    .isCardFooter {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--phil-space-xs);
+        padding-block: var(--phil-space-sm);
+        padding-inline: var(--phil-space-md);
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-text-muted);
+        border-block-start: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    .isCard.isSmall > :is(header, footer, .isCardHeader, .isCardBody, .isCardFooter) {
+        padding: var(--phil-space-sm);
+    }
+
+    .isCardLink {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .isCardLink::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+    }
+
+    .isCardLink:focus-visible {
+        outline: none;
+    }
+
+    .isCard:has(.isCardLink:hover) {
+        box-shadow: var(--phil-shadow-md);
+    }
+
+    .isCard:has(.isCardLink:focus-visible) {
+        outline: var(--phil-focus-width) solid var(--phil-color-focus);
+        outline-offset: var(--phil-focus-offset);
+    }
+
+    /* Nothing to show yet: a dashed frame, a title and what to do about it. */
+    .isEmptyState {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--phil-space-xs);
+        padding-block: var(--phil-space-2xl);
+        padding-inline: var(--phil-space-md);
+        color: var(--phil-color-text-muted);
+        text-align: center;
+        border: var(--phil-border-sm) dashed var(--phil-color-neutral-border-loud);
+        border-radius: var(--phil-radius-lg);
+    }
+
+    .isEmptyState > * {
+        margin-block: 0;
+        max-inline-size: var(--phil-measure-narrow);
+    }
+
+    .isEmptyState > :is(h2, h3, h4, h5, h6),
+    .isEmptyTitle {
+        margin-block: 0;
+        font-size: var(--phil-text-lg);
+        color: var(--phil-color-text);
+    }
+
+    .isEmptyHeader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--phil-space-2xs);
+    }
+
+    .isEmptyMedia {
+        font-size: var(--phil-text-2xl);
+    }
+
+    .isEmptyDescription {
+        margin-block: 0;
+    }
+
+    .isEmptyContent {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--phil-space-xs);
+    }
+
+    /* Tabs: the ARIA roles carry the structure, the tab bar scrolls when it does not fit. */
+    .isTabs > [role="tablist"],
+    .isTabList {
+        display: flex;
+        gap: var(--phil-space-2xs);
+        overflow-x: auto;
+        border-block-end: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    .isTabs [role="tab"],
+    .isTab {
+        --phil-button-fill: transparent;
+        --phil-button-fill-hover: var(--phil-color-neutral-fill-quiet);
+        --phil-button-fill-active: var(--phil-color-neutral-fill-quiet);
+        --phil-button-on: var(--phil-color-text-muted);
+
+        border: 0;
+        border-block-end: var(--phil-border-md) solid transparent;
+        border-radius: 0;
+        white-space: nowrap;
+    }
+
+    .isTabs [role="tab"][aria-selected="true"],
+    .isTab[aria-selected="true"] {
+        --phil-button-on: var(--phil-color-text);
+
+        border-block-end-color: var(--phil-color-brand-border-loud);
+    }
+
+    .isTabs [role="tabpanel"],
+    .isTabPanel {
+        padding-block: var(--phil-space-md);
+    }
+
+    /* The panels a script will hide stay out of sight until it runs; without one, every panel shows. */
+    @media (scripting: enabled) {
+        .isTabs:has(> .isTabPanel.isCurrent) > .isTabPanel:not(.isCurrent) {
+            display: none;
+        }
+    }
+
+    .isTabs.isVertical {
+        display: flex;
+        gap: var(--phil-space-md);
+    }
+
+    .isTabs.isVertical > :is([role="tablist"], .isTabList) {
+        flex-direction: column;
+        overflow-x: visible;
+        border-block-end: 0;
+        border-inline-end: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    .isTabs.isVertical :is([role="tab"], .isTab) {
+        justify-content: flex-start;
+        border-block-end: 0;
+        border-inline-end: var(--phil-border-md) solid transparent;
+    }
+
+    .isTabs.isVertical :is([role="tab"], .isTab)[aria-selected="true"] {
+        border-inline-end-color: var(--phil-color-brand-border-loud);
+    }
+
+    .isTabs.isVertical > :is([role="tabpanel"], .isTabPanel) {
+        flex: 1;
+        padding-block: 0;
+    }
+
+    /* What opens a dialog or a popover sits in the line; the panel itself is in the top layer. */
+    .hasDialog,
+    .hasPopover {
+        display: inline-block;
+    }
+
+    /* A modal as wide as its panel size allows, its close button in the corner, its parts spaced. */
+    .isDialog {
+        inline-size: 100%;
+    }
+
+    :is(.isDialogHeader, .isSheetHeader) {
+        display: flex;
+        flex-direction: column;
+        gap: var(--phil-space-2xs);
+        padding-inline-end: var(--phil-control-lg);
+    }
+
+    :is(.isDialogTitle, .isSheetTitle) {
+        margin-block: 0;
+        font-size: var(--phil-text-lg);
+        line-height: var(--phil-leading-tight);
+    }
+
+    :is(.isDialogDescription, .isSheetDescription) {
+        margin-block: 0;
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-text-muted);
+    }
+
+    :is(.isDialogFooter, .isSheetFooter) {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: var(--phil-space-xs);
+        margin-block-start: var(--phil-space-lg);
+    }
+
+    :is(.isDialogClose, .isSheetClose) {
+        position: absolute;
+        inset-block-start: var(--phil-space-xs);
+        inset-inline-end: var(--phil-space-xs);
+    }
+
+    /* A popover a controller places against what opens it. */
+    .isPopover {
+        min-inline-size: min(var(--phil-panel-sm), calc(100vw - var(--phil-space-xl)));
+    }
+
+    /* A dialog as a panel against an edge: the end side by default, `isStart`, `isTop` or `isBottom` otherwise. */
+    dialog.isSheet {
+        inline-size: 100%;
+        max-inline-size: min(var(--phil-dialog-size, var(--phil-panel-md)), 100vw);
+        block-size: 100dvh;
+        max-block-size: 100dvh;
+        margin-block: 0;
+        margin-inline: auto 0;
+        border-block: 0;
+        border-inline-end: 0;
+        border-radius: 0;
+        translate: 0 0;
+    }
+
+    @starting-style {
+        dialog.isSheet[open] {
+            translate: var(--phil-sheet-offset, 100% 0);
+        }
+    }
+
+    dialog.isSheet:not([open]) {
+        translate: var(--phil-sheet-offset, 100% 0);
+    }
+
+    dialog.isSheet:dir(rtl) {
+        --phil-sheet-offset: -100% 0;
+    }
+
+    dialog.isSheet.isStart {
+        --phil-sheet-offset: -100% 0;
+
+        margin-inline: 0 auto;
+        border-inline-start: 0;
+        border-inline-end: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    dialog.isSheet.isStart:dir(rtl) {
+        --phil-sheet-offset: 100% 0;
+    }
+
+    dialog.isSheet:is(.isTop, .isBottom) {
+        inline-size: 100%;
+        max-inline-size: 100vw;
+        block-size: auto;
+        max-block-size: 100dvh;
+        margin-inline: 0;
+        border-inline: 0;
+    }
+
+    dialog.isSheet.isTop {
+        --phil-sheet-offset: 0 -100%;
+
+        margin-block: 0 auto;
+        border-block-end: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    dialog.isSheet.isBottom {
+        --phil-sheet-offset: 0 100%;
+
+        margin-block: auto 0;
+        border-block-start: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    /* A check box that reads as a switch: `role="switch"` on the input, with or without the class. */
+    input:is(.isSwitch, [role="switch"]) {
+        --phil-switch-inset: var(--phil-space-3xs);
+        --phil-switch-track: var(--phil-color-neutral-fill-loud);
+        --phil-switch-thumb: var(--phil-color-neutral-on-loud);
+
+        display: inline-block;
+        inline-size: calc(var(--phil-check-size) * 2);
+        block-size: var(--phil-check-size);
+        padding: var(--phil-switch-inset);
+        vertical-align: middle;
+        background-color: var(--phil-switch-track);
+        border: 0;
+        border-radius: var(--phil-radius-full);
+        transition: background-color var(--phil-duration-sm) var(--phil-ease-out);
+        appearance: none;
+    }
+
+    input:is(.isSwitch, [role="switch"])::before {
+        content: "";
+        display: block;
+        inline-size: calc(var(--phil-check-size) - var(--phil-switch-inset) * 2);
+        block-size: 100%;
+        background-color: var(--phil-switch-thumb);
+        border-radius: var(--phil-radius-full);
+        transition: margin-inline-start var(--phil-duration-sm) var(--phil-ease-out);
+    }
+
+    .isSwitch.isSmall {
+        --phil-check-size: var(--phil-space-md);
+    }
+
+    input:is(.isSwitch, [role="switch"]):checked {
+        --phil-switch-track: var(--phil-color-brand-fill-loud);
+        --phil-switch-thumb: var(--phil-color-brand-on-loud);
+    }
+
+    input:is(.isSwitch, [role="switch"]):checked::before {
+        margin-inline-start: var(--phil-check-size);
+    }
+
+    /* A tooltip: a popover its controller places, or, in a `hasTooltip` box, shown on hover and on focus without one. */
+    .isTooltip {
+        max-inline-size: var(--phil-panel-sm);
+        padding-block: var(--phil-space-2xs);
+        padding-inline: var(--phil-space-xs);
+        font-size: var(--phil-text-sm);
+        font-weight: var(--phil-weight-regular);
+        line-height: var(--phil-leading-tight);
+        color: var(--phil-color-surface);
+        background-color: var(--phil-color-text);
+        border: 0;
+        border-radius: var(--phil-radius-sm);
+        box-shadow: var(--phil-shadow-sm);
+    }
+
+    .hasTooltip {
+        position: relative;
+        display: inline-block;
+    }
+
+    /* The popover a controller places holds the tooltip and is not a panel of its own. */
+    .isTooltipWrapper {
+        overflow: visible;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+    }
+
+    /*
+     * The arrow shows once the controller has written the side the bubble went to, on the edge that faces the trigger:
+     * `isStart` and `isEnd` being logical, the edges are too, and right to left needs nothing more.
+     */
+    .isTooltip:is(.isTop, .isBottom, .isStart, .isEnd) {
+        position: relative;
+    }
+
+    .isTooltipArrow {
+        --phil-tooltip-arrow: var(--phil-space-xs);
+
+        position: absolute;
+        display: none;
+        inline-size: var(--phil-tooltip-arrow);
+        block-size: var(--phil-tooltip-arrow);
+        background-color: inherit;
+        translate: var(--phil-tooltip-arrow-x, 0) var(--phil-tooltip-arrow-y, 0);
+        rotate: 45deg;
+    }
+
+    .isTooltip:is(.isTop, .isBottom, .isStart, .isEnd) > .isTooltipArrow {
+        display: block;
+    }
+
+    .isTooltip:is(.isTop, .isBottom) > .isTooltipArrow {
+        inset-inline-start: calc(50% - var(--phil-tooltip-arrow) / 2);
+    }
+
+    .isTooltip.isTop > .isTooltipArrow {
+        inset-block-end: calc(var(--phil-tooltip-arrow) / -2);
+    }
+
+    .isTooltip.isBottom > .isTooltipArrow {
+        inset-block-start: calc(var(--phil-tooltip-arrow) / -2);
+    }
+
+    .isTooltip:is(.isStart, .isEnd) > .isTooltipArrow {
+        inset-block-start: calc(50% - var(--phil-tooltip-arrow) / 2);
+    }
+
+    .isTooltip.isStart > .isTooltipArrow {
+        inset-inline-end: calc(var(--phil-tooltip-arrow) / -2);
+    }
+
+    .isTooltip.isEnd > .isTooltipArrow {
+        inset-inline-start: calc(var(--phil-tooltip-arrow) / -2);
+    }
+
+    .hasTooltip > .isTooltip:not([popover]) {
+        position: absolute;
+        inset-block-end: 100%;
+        inset-inline-start: 50%;
+        z-index: var(--phil-z-overlay);
+        inline-size: max-content;
+        margin-block-end: var(--phil-space-2xs);
+        visibility: hidden;
+        translate: -50% 0;
+    }
+
+    .hasTooltip > .isTooltip:not([popover]):dir(rtl) {
+        translate: 50% 0;
+    }
+
+    .hasTooltip:is(:hover, :focus-within) > .isTooltip:not([popover]) {
+        visibility: visible;
+    }
+
+    /* A menu that opens under its button: on a `details`, or a wrapper with an `isDropdownMenu`, popover or not. */
+    .isDropdown {
+        position: relative;
+        display: inline-block;
+        margin-block-end: 0;
+    }
+
+    .isDropdown > summary {
+        list-style: none;
+    }
+
+    .isDropdown > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .isDropdownMenu {
+        min-inline-size: var(--phil-panel-sm);
+        margin: 0;
+        padding: var(--phil-space-2xs);
+        list-style: none;
+        background-color: var(--phil-color-surface);
+        border: var(--phil-border-sm) solid var(--phil-color-border);
+        border-radius: var(--phil-radius-md);
+        box-shadow: var(--phil-shadow-md);
+    }
+
+    .isDropdownMenu:not([popover]) {
+        position: absolute;
+        inset-block-start: 100%;
+        inset-inline-start: 0;
+        z-index: var(--phil-z-overlay);
+        margin-block-start: var(--phil-space-2xs);
+    }
+
+    .isDropdownMenu :is(a, button, [role="menuitem"]),
+    .isDropdownItem {
+        --phil-button-fill: transparent;
+        --phil-button-fill-hover: var(--phil-color-neutral-fill-quiet);
+        --phil-button-fill-active: var(--phil-color-neutral-fill-quiet);
+        --phil-button-on: var(--phil-color-text);
+
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: var(--phil-space-xs);
+        inline-size: 100%;
+        min-block-size: var(--phil-control-md);
+        padding-inline: var(--phil-space-sm);
+        font-weight: var(--phil-weight-regular);
+        color: var(--phil-color-text);
+        text-align: start;
+        text-decoration: none;
+        border: 0;
+        border-radius: var(--phil-radius-sm);
+    }
+
+    .isDropdownMenu a:hover {
+        background-color: var(--phil-color-neutral-fill-quiet);
+    }
+
+    .isDropdownMenu hr {
+        margin-block: var(--phil-space-2xs);
+    }
+
+    .isDropdownItem.isDanger {
+        --phil-button-on: var(--phil-tone-on-quiet);
+        --phil-button-fill-hover: var(--phil-tone-fill-quiet);
+        --phil-button-fill-active: var(--phil-tone-fill-quiet);
+
+        color: var(--phil-tone-on-quiet);
+    }
+
+    .isDropdownItem.isInset,
+    .isDropdownLabel.isInset {
+        padding-inline-start: var(--phil-space-xl);
+    }
+
+    .isDropdownItem[aria-disabled="true"] {
+        opacity: var(--phil-opacity-disabled);
+        pointer-events: none;
+    }
+
+    .isDropdownIndicator,
+    .isSelectIndicator {
+        flex: none;
+        color: var(--phil-color-brand-on-quiet);
+    }
+
+    /* What names a group of items: small and muted, never an item itself. */
+    .isDropdownLabel,
+    .isSelectLabel {
+        padding-block: var(--phil-space-2xs);
+        padding-inline: var(--phil-space-sm);
+        font-size: var(--phil-text-sm);
+        font-weight: var(--phil-weight-medium);
+        color: var(--phil-color-text-muted);
+    }
+
+    .isDropdownSeparator,
+    .isSelectSeparator {
+        margin-block: var(--phil-space-2xs);
+        border-block-start: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    .isDropdownGroup + .isDropdownGroup,
+    .isSelectGroup + .isSelectGroup {
+        margin-block-start: var(--phil-space-2xs);
+        padding-block-start: var(--phil-space-2xs);
+        border-block-start: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    .isDropdownShortcut {
+        margin-inline-start: auto;
+        font-size: var(--phil-text-xs);
+        color: var(--phil-color-text-muted);
+    }
+
+    .isDropdownSub {
+        position: relative;
+    }
+
+    /* The arrow of a submenu, at the end of its item; the browser mirrors the character right to left. */
+    .isDropdownSubIcon {
+        margin-inline-start: auto;
+    }
+
+    /* A select made of a popover: the trigger reads as a field, the items as a list. */
+    .isSelectTrigger {
+        --phil-button-fill: var(--phil-color-surface);
+        --phil-button-fill-hover: var(--phil-color-surface-raised);
+        --phil-button-fill-active: var(--phil-color-surface-raised);
+        --phil-button-on: var(--phil-color-text);
+        --phil-button-border: var(--phil-color-neutral-border-loud);
+
+        justify-content: space-between;
+        min-inline-size: min(var(--phil-panel-sm), calc(100vw - var(--phil-space-4xl)));
+        font-weight: var(--phil-weight-regular);
+    }
+
+    .isSelectValue {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .isSelectIcon {
+        flex: none;
+        color: var(--phil-color-text-muted);
+    }
+
+    /* The panel scrolls in its viewport alone, so the buttons at its ends stay put. */
+    .isSelectContent {
+        overflow: hidden;
+    }
+
+    .isSelectViewport {
+        max-block-size: min(20rem, calc(100dvh - var(--phil-space-4xl)));
+        overflow-y: auto;
+    }
+
+    .isSelectScroll {
+        display: flex;
+        justify-content: center;
+        color: var(--phil-color-text-muted);
+    }
+
+    .isSelectItem {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--phil-space-xs);
+        min-block-size: var(--phil-control-md);
+        padding-inline: var(--phil-space-sm);
+        border-radius: var(--phil-radius-sm);
+        cursor: pointer;
+    }
+
+    .isSelectItem:is(:hover, :focus) {
+        background-color: var(--phil-color-neutral-fill-quiet);
+    }
+
+    .isSelectItem[aria-selected="true"] {
+        font-weight: var(--phil-weight-medium);
+    }
+
+    .isSelectItem[aria-disabled="true"] {
+        opacity: var(--phil-opacity-disabled);
+        pointer-events: none;
+    }
+
+    .isSelectItemText {
+        flex: 1;
+    }
+
+    /* A menu is laid over what follows, so its disclosure must not clip it. */
+    @supports selector(::details-content) {
+        :is(.isDropdown, .isReactionPicker)::details-content {
+            block-size: auto;
+            overflow: visible;
+            transition: none;
+        }
+    }
+
+    /* A set of disclosures that read as one; a shared `name` on the `details` keeps one open at a time. */
+    .isAccordion {
+        margin-block-end: var(--phil-space-md);
+        border-block: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    .isAccordion > details,
+    .isAccordionItem {
+        margin-block-end: 0;
+    }
+
+    .isAccordion > details + details,
+    .isAccordionItem + .isAccordionItem {
+        border-block-start: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    .isAccordion > details > summary,
+    .isAccordionTrigger {
+        padding-block: var(--phil-space-sm);
+    }
+
+    .isAccordion > details > :not(summary),
+    .isAccordionContent {
+        margin-block: 0 var(--phil-space-sm);
+    }
+
+    /* The way down: a `nav` holding an ordered list, a separator drawn between the items. */
+    .isBreadcrumb :is(ol, ul),
+    .isBreadcrumbList {
+        gap: var(--phil-space-2xs);
+        font-size: var(--phil-text-sm);
+    }
+
+    .isBreadcrumbItem {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--phil-space-2xs);
+    }
+
+    .isBreadcrumbLink {
+        color: var(--phil-color-text-muted);
+    }
+
+    .isBreadcrumbPage {
+        font-weight: var(--phil-weight-medium);
+    }
+
+    .isBreadcrumbEllipsis {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* A separator written as an item takes the place of the drawn one. */
+    .isBreadcrumbSeparator {
+        color: var(--phil-color-text-muted);
+    }
+
+    .isBreadcrumb li + li:not(.isBreadcrumbSeparator, .isBreadcrumbSeparator + li)::before {
+        content: "/" / "";
+        margin-inline-end: var(--phil-space-2xs);
+        color: var(--phil-color-text-muted);
+    }
+
+    /* Pages: a `nav` holding a list of links, the current one with `aria-current`, each a touch target. */
+    .isPagination :is(ol, ul),
+    .isPaginationList {
+        gap: var(--phil-space-2xs);
+    }
+
+    .isPaginationItem {
+        display: inline-flex;
+    }
+
+    .isPagination :is(a, button, li > span),
+    .isPaginationLink {
+        --phil-button-fill: transparent;
+        --phil-button-fill-hover: var(--phil-color-neutral-fill-quiet);
+        --phil-button-fill-active: var(--phil-color-neutral-fill-quiet);
+        --phil-button-on: var(--phil-color-text);
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-block-size: var(--phil-control-md);
+        min-inline-size: var(--phil-control-md);
+        padding-inline: var(--phil-space-xs);
+        color: var(--phil-color-text);
+        text-decoration: none;
+        border: 0;
+        border-radius: var(--phil-radius-md);
+    }
+
+    .isPagination a:hover {
+        background-color: var(--phil-color-neutral-fill-quiet);
+    }
+
+    .isPagination :is(a, button)[aria-current]:not([aria-current="false"]) {
+        font-weight: var(--phil-weight-bold);
+        color: var(--phil-color-brand-on-loud);
+        background-color: var(--phil-color-brand-fill-loud);
+    }
+
+    .isPaginationEllipsis {
+        --phil-button-on: var(--phil-color-text-muted);
+    }
+
+    .isPagination [aria-disabled="true"] {
+        color: var(--phil-color-text-muted);
+        pointer-events: none;
+    }
+
+    /* Slides in a row, snapped; `--phil-carousel-item` is the width of one. The template makes it focusable. */
+    .isCarousel {
+        display: flex;
+        gap: var(--phil-carousel-gap, var(--phil-space-md));
+        margin-block: 0 var(--phil-space-md);
+        padding-inline-start: 0;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        list-style: none;
+        scroll-behavior: smooth;
+        scroll-snap-type: inline mandatory;
+    }
+
+    .isCarousel > * {
+        flex: 0 0 var(--phil-carousel-item, 100%);
+        scroll-snap-align: start;
+    }
+
+    /* A carousel with its buttons: the frame holds the viewport that scrolls, and in it the track of slides. */
+    .isCarouselFrame {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: var(--phil-space-xs);
+        margin-block-end: var(--phil-space-md);
+    }
+
+    .isCarouselViewport {
+        grid-row: 1;
+        grid-column: 2;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scrollbar-width: thin;
+        scroll-snap-type: inline mandatory;
+    }
+
+    .isCarouselTrack {
+        display: flex;
+        gap: var(--phil-carousel-gap, var(--phil-space-md));
+    }
+
+    .isCarouselSlide {
+        flex: 0 0 var(--phil-carousel-item, 100%);
+        scroll-snap-align: start;
+    }
+
+    .hasCenteredSlides .isCarouselSlide {
+        scroll-snap-align: center;
+    }
+
+    .hasEndSlides .isCarouselSlide {
+        scroll-snap-align: end;
+    }
+
+    .isCarouselPrevious {
+        grid-row: 1;
+        grid-column: 1;
+    }
+
+    .isCarouselNext {
+        grid-row: 1;
+        grid-column: 3;
+    }
+
+    .isCarouselToggle {
+        grid-column: 1 / -1;
+        justify-self: center;
+    }
+
+    .isCarouselFrame.isVertical .isCarouselViewport {
+        max-block-size: var(--phil-carousel-size, var(--phil-panel-sm));
+        overflow: hidden auto;
+        scroll-snap-type: block mandatory;
+    }
+
+    .isCarouselFrame.isVertical .isCarouselTrack {
+        flex-direction: column;
+    }
+
+    /* The place of something still loading. */
+    .isSkeleton {
+        display: block;
+        min-block-size: 1em;
+        color: transparent;
+        background-color: var(--phil-color-surface-raised);
+        border-radius: var(--phil-radius-sm);
+        animation: phil-pulse calc(var(--phil-duration-loop) * 2) var(--phil-ease-in-out) infinite;
+    }
+
+    @keyframes phil-pulse {
+        50% {
+            opacity: var(--phil-opacity-disabled);
+        }
+    }
+
+    /* Someone's picture, or their initials on the quiet neutral. */
+    .isAvatar {
+        display: inline-grid;
+        place-items: center;
+        flex: none;
+        inline-size: var(--phil-control-size, var(--phil-control-md));
+        block-size: var(--phil-control-size, var(--phil-control-md));
+        overflow: hidden;
+        font-weight: var(--phil-weight-medium);
+        color: var(--phil-color-neutral-on-quiet);
+        background-color: var(--phil-color-neutral-fill-quiet);
+        border-radius: var(--phil-radius-full);
+    }
+
+    .isAvatar > img,
+    .isAvatarImage {
+        inline-size: 100%;
+        block-size: 100%;
+        object-fit: cover;
+        border-radius: inherit;
+    }
+
+    .isAvatarFallback {
+        display: grid;
+        place-items: center;
+        inline-size: 100%;
+        block-size: 100%;
+    }
+
+    /* The badge sits on the edge of the picture, so the frame stops clipping. */
+    .isAvatar:has(> .isAvatarBadge) {
+        position: relative;
+        overflow: visible;
+    }
+
+    .isAvatarBadge {
+        position: absolute;
+        inset-block-end: 0;
+        inset-inline-end: 0;
+        display: grid;
+        place-items: center;
+        min-inline-size: 1em;
+        block-size: 1em;
+        font-size: var(--phil-text-xs);
+        color: var(--phil-color-brand-on-loud);
+        background-color: var(--phil-color-brand-fill-loud);
+        border-radius: var(--phil-radius-full);
+        box-shadow: 0 0 0 var(--phil-border-md) var(--phil-color-surface);
+    }
+
+    /* Avatars overlapping, each ringed with the surface; the count of those left out is one more. */
+    .isAvatarGroup {
+        display: inline-flex;
+    }
+
+    .isAvatarGroup > * {
+        box-shadow: 0 0 0 var(--phil-border-md) var(--phil-color-surface);
+    }
+
+    .isAvatarGroup > * + * {
+        margin-inline-start: calc(var(--phil-space-xs) * -1);
+    }
+
+    .isAvatarGroupCount {
+        display: inline-grid;
+        place-items: center;
+        inline-size: var(--phil-control-size, var(--phil-control-md));
+        block-size: var(--phil-control-size, var(--phil-control-md));
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-neutral-on-quiet);
+        background-color: var(--phil-color-neutral-fill-quiet);
+        border-radius: var(--phil-radius-full);
+    }
+
+    /* A rule: on an `hr`, or around a short label on a `div`; `isVertical` stands up inside a row. */
+    .isSeparator:not(hr) {
+        display: flex;
+        align-items: center;
+        gap: var(--phil-space-sm);
+        margin-block: var(--phil-space-md);
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-text-muted);
+    }
+
+    .isSeparator:not(hr)::before,
+    .isSeparator:not(hr)::after {
+        content: "";
+        flex: 1;
+        border-block-start: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    .isSeparator:not(hr):empty::after {
+        display: none;
+    }
+
+    hr.isSeparator {
+        margin-block: var(--phil-space-md);
+        margin-inline: 0;
+    }
+
+    .isSeparator.isVertical {
+        align-self: stretch;
+        margin-block: 0;
+        margin-inline: var(--phil-space-xs);
+        border-block-start: 0;
+        border-inline-start: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    .isSeparator.isVertical::before,
+    .isSeparator.isVertical::after {
+        display: none;
+    }
+
+    /* The steps of a process: an ordered list, the current one with `aria-current="step"`, the finished ones `isDone`. */
+    .isStepper {
+        --phil-step-size: var(--phil-control-sm);
+
+        display: flex;
+        margin-block: 0 var(--phil-space-md);
+        padding-inline-start: 0;
+        list-style: none;
+        counter-reset: phil-step;
+    }
+
+    .isStepper > li {
+        position: relative;
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--phil-space-2xs);
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-text-muted);
+        text-align: center;
+        counter-increment: phil-step;
+    }
+
+    .isStepper > li::before {
+        content: counter(phil-step);
+        display: grid;
+        place-items: center;
+        inline-size: var(--phil-step-size);
+        block-size: var(--phil-step-size);
+        font-weight: var(--phil-weight-medium);
+        color: var(--phil-color-neutral-on-quiet);
+        background-color: var(--phil-color-neutral-fill-quiet);
+        border: var(--phil-border-sm) solid var(--phil-color-neutral-border-loud);
+        border-radius: var(--phil-radius-full);
+    }
+
+    .isStepper > li + li::after {
+        content: "";
+        position: absolute;
+        inset-block-start: calc(var(--phil-step-size) / 2);
+        inset-inline: calc(-50% + var(--phil-step-size) / 2) calc(50% + var(--phil-step-size) / 2);
+        border-block-start: var(--phil-border-sm) solid var(--phil-color-neutral-border-loud);
+    }
+
+    .isStepper > li[aria-current="step"] {
+        font-weight: var(--phil-weight-medium);
+        color: var(--phil-color-text);
+    }
+
+    .isStepper > li[aria-current="step"]::before {
+        color: var(--phil-color-brand-on-loud);
+        background-color: var(--phil-color-brand-fill-loud);
+        border-color: transparent;
+    }
+
+    .isStepper > li.isDone {
+        color: var(--phil-color-text);
+    }
+
+    .isStepper > li.isDone::before {
+        color: var(--phil-color-brand-on-quiet);
+        background-color: var(--phil-color-brand-fill-quiet);
+        border-color: var(--phil-color-brand-border-loud);
+    }
+
+    .isStepperItem,
+    .isStepperLabel {
+        min-inline-size: 0;
+        overflow-wrap: anywhere;
+    }
+
+    /* On a phone the steps read downwards, each counter beside its label. */
+    @media (max-width: 30rem) {
+        .isStepper {
+            flex-direction: column;
+            gap: var(--phil-space-xs);
+        }
+
+        .isStepper > li {
+            flex-direction: row;
+            text-align: start;
+        }
+
+        .isStepper > li + li::after {
+            display: none;
+        }
+    }
+
+    /* Activity over time: a cell per day, seven rows, as many columns as there are weeks. Each cell says its level with
+       `data-level` (0 to 4) and its meaning with a title or a label: two levels apart reach 3:1, the colour does not
+       stand alone. */
+    .isActivityCalendar {
+        --phil-activity-cell: var(--phil-space-sm);
+
+        display: grid;
+        grid-auto-columns: var(--phil-activity-cell);
+        grid-auto-flow: column;
+        grid-template-rows: repeat(7, var(--phil-activity-cell));
+        gap: var(--phil-space-3xs);
+        margin-block: 0 var(--phil-space-md);
+        padding-inline-start: 0;
+        overflow-x: auto;
+        list-style: none;
+    }
+
+    .isActivityCalendar > * {
+        background-color: var(--phil-color-activity-0);
+        border-radius: var(--phil-radius-sm);
+    }
+
+    .isActivityCalendar > [data-level="1"],
+    .isActivityLegend > [data-level="1"] { background-color: var(--phil-color-activity-1); }
+    .isActivityCalendar > [data-level="2"],
+    .isActivityLegend > [data-level="2"] { background-color: var(--phil-color-activity-2); }
+    .isActivityCalendar > [data-level="3"],
+    .isActivityLegend > [data-level="3"] { background-color: var(--phil-color-activity-3); }
+    .isActivityCalendar > [data-level="4"],
+    .isActivityLegend > [data-level="4"] { background-color: var(--phil-color-activity-4); }
+
+    .isActivityCalendar > .isActivityCalendarBlank {
+        background-color: transparent;
+    }
+
+    .isActivityCalendar > .isActivityCalendarDay {
+        min-inline-size: 0;
+    }
+
+    .hasActivityCalendar {
+        max-inline-size: 100%;
+    }
+
+    .isActivityLegend {
+        display: flex;
+        align-items: center;
+        gap: var(--phil-space-3xs);
+        margin: 0;
+        font-size: var(--phil-text-xs);
+        color: var(--phil-color-text-muted);
+    }
+
+    .isActivityLegend > .isActivityCalendarDay {
+        inline-size: var(--phil-space-sm);
+        block-size: var(--phil-space-sm);
+        border-radius: var(--phil-radius-sm);
+    }
+
+    .isActivityLegend > [data-level="0"] { background-color: var(--phil-color-activity-0); }
+
+    /* A table that scrolls in a box of its own, its rows striped or lit under the pointer. */
+    .isScrollable {
+        overflow-x: auto;
+    }
+
+    .isStriped tbody tr:nth-child(even) {
+        background-color: var(--phil-color-surface-raised);
+    }
+
+    .hasHover tbody tr:hover {
+        background-color: var(--phil-color-brand-fill-quiet);
+    }
+
+    .hasHover tbody tr:hover :is(td, th) {
+        color: var(--phil-color-brand-on-quiet);
+    }
+
+    /* A table in the kit's markup: its box scrolls, the caption reads under it, the last row closes without a rule. */
+    .isTable {
+        margin-block: 0;
+    }
+
+    .isTableCaption {
+        margin-block: var(--phil-space-xs) 0;
+        caption-side: bottom;
+    }
+
+    .isTableHeader {
+        white-space: nowrap;
+    }
+
+    .isTableBody > :last-child > * {
+        border-block-end: 0;
+    }
+
+    .isTableFooter {
+        background-color: var(--phil-color-surface-raised);
+    }
+
+    .isTableRow[aria-selected="true"] {
+        color: var(--phil-color-brand-on-quiet);
+        background-color: var(--phil-color-brand-fill-quiet);
+    }
+
+    .isTableHead {
+        vertical-align: bottom;
+    }
+
+    .isTableCell {
+        vertical-align: middle;
+    }
+
+    /* A button that copies a text: it keeps its place while its words change. */
+    .isCopyButton {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .isCopyButtonTrigger {
+        min-inline-size: 7ch;
+    }
+
+    /*
+     * A button that moves under the pointer and the focus, and stands still under reduced motion: `hasShine` sweeps a
+     * light across it, `hasLift` raises it, `hasArrow` pushes its arrow forward.
+     */
+    .isAnimatedButton {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .isAnimatedButtonLabel {
+        position: relative;
+    }
+
+    .isAnimatedButton.hasShine::before {
+        content: "";
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: -60%;
+        inline-size: 50%;
+        background: linear-gradient(90deg, transparent, color-mix(in oklch, var(--phil-button-on) 35%, transparent), transparent);
+        transition: inset-inline-start var(--phil-duration-lg) var(--phil-ease-out);
+        pointer-events: none;
+    }
+
+    .isAnimatedButton.hasShine:is(:hover, :focus-visible)::before {
+        inset-inline-start: 110%;
+    }
+
+    .isAnimatedButton.hasLift {
+        transition:
+            translate var(--phil-duration-sm) var(--phil-ease-out),
+            box-shadow var(--phil-duration-sm) var(--phil-ease-out);
+    }
+
+    .isAnimatedButton.hasLift:is(:hover, :focus-visible) {
+        translate: 0 calc(var(--phil-space-3xs) * -1);
+        box-shadow: var(--phil-shadow-md);
+    }
+
+    .isAnimatedButtonArrow {
+        display: inline-block;
+        transition: translate var(--phil-duration-sm) var(--phil-ease-out);
+    }
+
+    .isAnimatedButtonArrow:dir(rtl) {
+        scale: -1 1;
+    }
+
+    .isAnimatedButton.hasArrow:is(:hover, :focus-visible) > .isAnimatedButtonArrow {
+        translate: var(--phil-space-2xs) 0;
+    }
+
+    .isAnimatedButton.hasArrow:is(:hover, :focus-visible):dir(rtl) > .isAnimatedButtonArrow {
+        translate: calc(var(--phil-space-2xs) * -1) 0;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .isAnimatedButton,
+        .isAnimatedButton::before,
+        .isAnimatedButtonArrow {
+            transition: none;
+        }
+
+        .isAnimatedButton.hasLift:is(:hover, :focus-visible) {
+            translate: none;
+        }
+
+        .isAnimatedButton.hasShine::before {
+            display: none;
+        }
+
+        .isAnimatedButton.hasArrow:is(:hover, :focus-visible) > .isAnimatedButtonArrow,
+        .isAnimatedButton.hasArrow:is(:hover, :focus-visible):dir(rtl) > .isAnimatedButtonArrow {
+            translate: none;
+        }
+    }
+
+    /* A tree: nested lists, each level set in, the row of an item the only part that lights up. */
+    .isTree,
+    .isTreeGroup {
+        margin: 0;
+        padding-inline-start: 0;
+        list-style: none;
+    }
+
+    .isTreeGroup {
+        padding-inline-start: var(--phil-space-md);
+    }
+
+    .isTreeItem {
+        outline: none;
+    }
+
+    .isTreeRow {
+        display: flex;
+        align-items: center;
+        gap: var(--phil-space-2xs);
+        min-block-size: var(--phil-control-sm);
+        padding-inline: var(--phil-space-2xs);
+        border-radius: var(--phil-radius-sm);
+        cursor: pointer;
+    }
+
+    .isTreeRow:hover {
+        background-color: var(--phil-color-neutral-fill-quiet);
+    }
+
+    .isTreeItem:focus-visible > .isTreeRow {
+        outline: var(--phil-focus-width) solid var(--phil-color-focus);
+        outline-offset: calc(var(--phil-focus-width) * -1);
+    }
+
+    .isTreeItem[aria-selected="true"] > .isTreeRow {
+        color: var(--phil-color-brand-on-quiet);
+        background-color: var(--phil-color-brand-fill-quiet);
+    }
+
+    .isTreeToggle {
+        flex: none;
+        inline-size: 1em;
+        text-align: center;
+        transition: rotate var(--phil-duration-sm) var(--phil-ease-out);
+    }
+
+    .isTreeToggle::before {
+        content: "\25B8";
+    }
+
+    .isTreeToggle:dir(rtl)::before {
+        content: "\25C2";
+    }
+
+    .isTreeItem[aria-expanded="true"] > .isTreeRow > .isTreeToggle {
+        rotate: 90deg;
+    }
+
+    .isTreeItem[aria-expanded="true"] > .isTreeRow > .isTreeToggle:dir(rtl) {
+        rotate: -90deg;
+    }
+
+    .isTreeLabel {
+        color: inherit;
+        overflow-wrap: anywhere;
+    }
+
+    .isTreeRow > .isTreeLabel:first-child {
+        margin-inline-start: calc(1em + var(--phil-space-2xs));
+    }
+
+    /* Before its script runs a tree shows everything, so that nothing is out of reach. */
+    @media (scripting: enabled) {
+        .isTreeItem[aria-expanded="false"] > .isTreeGroup {
+            display: none;
+        }
+    }
+
+    @media (pointer: coarse) {
+        .isTreeRow {
+            min-block-size: var(--phil-control-md);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .isTreeToggle {
+            transition: none;
+        }
+    }
+
+    /*
+     * Stars. In a field, each is the label of a radio button: what comes before the one checked is lit by `:has()`, so the
+     * order of the markup is the order read, in both directions.
+     */
+    .isRating {
+        --phil-rating-on: var(--phil-color-brand-fill-loud);
+        --phil-rating-off: var(--phil-color-neutral-border-loud);
+
+        min-inline-size: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    .isRating.isReadonly {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .isRatingLegend {
+        padding: 0;
+        font-weight: var(--phil-weight-medium);
+    }
+
+    .isRatingStars {
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .isRatingStar {
+        display: inline-grid;
+        place-items: center;
+        min-inline-size: var(--phil-control-md);
+        min-block-size: var(--phil-control-md);
+        margin: 0;
+        font-size: var(--phil-text-xl);
+        line-height: 1;
+        color: var(--phil-rating-off);
+        cursor: pointer;
+    }
+
+    .isRating.isReadonly > .isRatingStar {
+        min-inline-size: 0;
+        min-block-size: 0;
+        font-size: inherit;
+        cursor: default;
+    }
+
+    .isRatingIcon {
+        display: block;
+    }
+
+    .isRatingStar.isFilled,
+    .isRatingStar:has(input:checked),
+    .isRatingStar:has(~ .isRatingStar input:checked) {
+        color: var(--phil-rating-on);
+    }
+
+    .isRatingStar.isHalf {
+        color: transparent;
+        background: linear-gradient(90deg, var(--phil-rating-on) 50%, var(--phil-rating-off) 50%);
+        background-clip: text;
+    }
+
+    .isRatingStar.isHalf:dir(rtl) {
+        background: linear-gradient(270deg, var(--phil-rating-on) 50%, var(--phil-rating-off) 50%);
+        background-clip: text;
+    }
+
+    .isRatingStar:has(input:focus-visible),
+    .isRatingClear:has(input:focus-visible) {
+        outline: var(--phil-focus-width) solid var(--phil-color-focus);
+        outline-offset: calc(var(--phil-focus-width) * -1);
+        border-radius: var(--phil-radius-sm);
+    }
+
+    @media (hover: hover) {
+        .isRating:not(:disabled) .isRatingStar:hover,
+        .isRating:not(:disabled) .isRatingStar:has(~ .isRatingStar:hover) {
+            color: var(--phil-rating-on);
+        }
+
+        .isRating:not(:disabled) .isRatingStar:hover ~ .isRatingStar {
+            color: var(--phil-rating-off);
+        }
+    }
+
+    .isRating:disabled .isRatingStar {
+        cursor: not-allowed;
+        opacity: var(--phil-opacity-disabled);
+    }
+
+    .isRatingClear {
+        display: inline-flex;
+        align-items: center;
+        min-block-size: var(--phil-control-md);
+        margin: 0;
+        padding-inline: var(--phil-space-xs);
+        font-size: var(--phil-text-sm);
+        cursor: pointer;
+    }
+
+    /* A number field between its two buttons, which share its borders once they show. */
+    .isNumberInput {
+        display: inline-flex;
+        align-items: stretch;
+        max-inline-size: 100%;
+    }
+
+    .isNumberInputField {
+        inline-size: 6rem;
+        text-align: center;
+        appearance: textfield;
+    }
+
+    .isNumberInputField::-webkit-inner-spin-button,
+    .isNumberInputField::-webkit-outer-spin-button {
+        margin: 0;
+        appearance: none;
+    }
+
+    .isNumberInput:has(.isNumberInputStep:not([hidden])) .isNumberInputField {
+        border-radius: 0;
+    }
+
+    .isNumberInputStep {
+        --phil-button-fill: var(--phil-tone-fill-quiet);
+        --phil-button-on: var(--phil-tone-on-quiet);
+        --phil-button-border: var(--phil-tone-border-loud);
+
+        flex: none;
+        inline-size: var(--phil-control-md);
+        padding-inline: 0;
+    }
+
+    .isNumberInputStep:first-child {
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+    }
+
+    .isNumberInputStep:last-child {
+        border-start-start-radius: 0;
+        border-end-start-radius: 0;
+    }
+
+    /* A file field whose label is a zone to drop on; the script takes the bare input out of sight. */
+    .isFileInput {
+        display: grid;
+        gap: var(--phil-space-xs);
+        max-inline-size: 100%;
+    }
+
+    .isFileInputZone {
+        position: relative;
+        display: grid;
+        gap: var(--phil-space-2xs);
+        justify-items: center;
+        margin: 0;
+        padding: var(--phil-space-lg);
+        text-align: center;
+        border: var(--phil-border-md) dashed var(--phil-color-neutral-border-loud);
+        border-radius: var(--phil-radius-md);
+        cursor: pointer;
+    }
+
+    .isFileInputZone.isDragging {
+        background-color: var(--phil-color-brand-fill-quiet);
+        border-color: var(--phil-color-brand-border-loud);
+    }
+
+    .isFileInputZone:has(input:focus-visible) {
+        outline: var(--phil-focus-width) solid var(--phil-color-focus);
+        outline-offset: var(--phil-focus-offset);
+    }
+
+    @media (scripting: enabled) {
+        .isFileInputField {
+            position: absolute;
+            inline-size: 1px;
+            block-size: 1px;
+            overflow: hidden;
+            opacity: 0;
+        }
+    }
+
+    .isFileInputLabel {
+        font-weight: var(--phil-weight-medium);
+    }
+
+    .isFileInputHint {
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-text-muted);
+    }
+
+    .isFileInputList {
+        margin: 0;
+        padding-inline-start: 0;
+        font-size: var(--phil-text-sm);
+        list-style: none;
+    }
+
+    .isFileInputList:empty,
+    .isFileInputError:empty {
+        display: none;
+    }
+
+    .isFileInputItem {
+        overflow-wrap: anywhere;
+    }
+
+    .isFileInputError {
+        margin: 0;
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-danger-on-quiet);
+    }
+
+    .isFileInputClear {
+        --phil-button-fill: var(--phil-tone-fill-quiet);
+        --phil-button-on: var(--phil-tone-on-quiet);
+        --phil-button-border: var(--phil-tone-border-quiet);
+
+        justify-self: start;
+    }
+
+    /* A short label that can be taken away; a tone on it colours it. */
+    .isTag {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--phil-space-2xs);
+        max-inline-size: 100%;
+        padding-block: var(--phil-space-3xs);
+        padding-inline: var(--phil-space-xs);
+        font-size: var(--phil-text-sm);
+        line-height: var(--phil-leading-tight);
+        color: var(--phil-tone-on-quiet);
+        background-color: var(--phil-tone-fill-quiet);
+        border: var(--phil-border-sm) solid var(--phil-tone-border-quiet);
+        border-radius: var(--phil-radius-full);
+    }
+
+    .isTagLabel {
+        overflow-wrap: anywhere;
+    }
+
+    .isTagRemove {
+        flex: none;
+        inline-size: var(--phil-space-lg);
+        min-block-size: var(--phil-space-lg);
+        padding: 0;
+        color: inherit;
+        background-color: transparent;
+        border: 0;
+        border-radius: var(--phil-radius-full);
+    }
+
+    .isTagRemove:hover {
+        background-color: color-mix(in oklch, currentcolor 15%, transparent);
+    }
+
+    /* A moment from now: its digits keep their width, so the line does not shake as they change. */
+    .isRelativeTime {
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    /* Progress as a ring, its text in the centre; `isSmall` and `isLarge` size it through the height of a control. */
+    .isProgressRing {
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        inline-size: calc(var(--phil-control-size, var(--phil-control-md)) * 1.5);
+        block-size: calc(var(--phil-control-size, var(--phil-control-md)) * 1.5);
+        font-size: var(--phil-text-sm);
+    }
+
+    .isProgressRingImage {
+        position: absolute;
+        inset: 0;
+        inline-size: 100%;
+        block-size: 100%;
+        rotate: -90deg;
+    }
+
+    .isProgressRingImage:dir(rtl) {
+        scale: 1 -1;
+    }
+
+    .isProgressRingTrack,
+    .isProgressRingValue {
+        fill: none;
+        stroke-width: 4;
+    }
+
+    .isProgressRingTrack {
+        stroke: var(--phil-color-neutral-fill-quiet);
+    }
+
+    .isProgressRingValue {
+        stroke: var(--phil-color-brand-fill-loud);
+        stroke-linecap: round;
+        transition: stroke-dasharray var(--phil-duration-md) var(--phil-ease-out);
+    }
+
+    .isProgressRingText {
+        position: relative;
+        font-weight: var(--phil-weight-medium);
+    }
+
+    .isProgressRing.isIndeterminate > .isProgressRingImage {
+        animation: phil-spin var(--phil-duration-loop) linear infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .isProgressRingValue {
+            transition: none;
+        }
+
+        .isProgressRing.isIndeterminate > .isProgressRingImage {
+            animation: none;
+        }
+    }
+
+    /* A small line of values, in the line of the text. */
+    .isSparkline {
+        display: inline-block;
+        max-inline-size: 100%;
+        vertical-align: middle;
+    }
+
+    .isSparklineLine {
+        fill: none;
+        stroke: var(--phil-color-brand-fill-loud);
+        stroke-width: 1.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .isSparklineArea {
+        fill: var(--phil-color-brand-fill-quiet);
+    }
+
+    .isSparklineDot {
+        fill: var(--phil-color-brand-fill-loud);
+    }
+
+    /*
+     * Two pictures, one above the other, the first cut where the slider stands. The slider is a transparent range over
+     * the whole picture: it takes the pointer and the keyboard, and the handle follows its position.
+     */
+    .isBeforeAfter {
+        --phil-before-after-position: 50%;
+        --phil-before-after-handle: var(--phil-control-sm);
+
+        position: relative;
+        display: block;
+        max-inline-size: 100%;
+        overflow: hidden;
+        border-radius: var(--phil-radius-md);
+    }
+
+    .isBeforeAfterAfter img,
+    .isBeforeAfterBefore img {
+        display: block;
+        inline-size: 100%;
+        block-size: 100%;
+        object-fit: cover;
+    }
+
+    .isBeforeAfterBefore {
+        position: absolute;
+        inset: 0;
+        clip-path: inset(0 calc(100% - var(--phil-before-after-position)) 0 0);
+    }
+
+    .isBeforeAfterBefore:dir(rtl) {
+        clip-path: inset(0 0 0 calc(100% - var(--phil-before-after-position)));
+    }
+
+    .isBeforeAfter::after {
+        content: "";
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: var(--phil-before-after-position);
+        margin-inline-start: calc(var(--phil-border-md) / -2);
+        border-inline-start: var(--phil-border-md) solid var(--phil-color-surface);
+        pointer-events: none;
+    }
+
+    .isBeforeAfter::before {
+        content: "";
+        position: absolute;
+        inset-block-start: 50%;
+        inset-inline-start: var(--phil-before-after-position);
+        z-index: var(--phil-z-raised);
+        inline-size: var(--phil-before-after-handle);
+        block-size: var(--phil-before-after-handle);
+        margin-block-start: calc(var(--phil-before-after-handle) / -2);
+        margin-inline-start: calc(var(--phil-before-after-handle) / -2);
+        background-color: var(--phil-color-surface);
+        border: var(--phil-border-md) solid var(--phil-color-neutral-border-loud);
+        border-radius: var(--phil-radius-full);
+        pointer-events: none;
+    }
+
+    .isBeforeAfter:has(.isBeforeAfterRange:focus-visible)::before {
+        outline: var(--phil-focus-width) solid var(--phil-color-focus);
+        outline-offset: var(--phil-focus-offset);
+    }
+
+    .isBeforeAfterRange {
+        position: absolute;
+        inset: 0;
+        z-index: var(--phil-z-raised);
+        inline-size: 100%;
+        block-size: 100%;
+        margin: 0;
+        cursor: ew-resize;
+        opacity: 0;
+    }
+
+    @media (scripting: none) {
+        .isBeforeAfterBefore {
+            position: static;
+            clip-path: none;
+        }
+
+        .isBeforeAfter::before,
+        .isBeforeAfter::after,
+        .isBeforeAfterRange {
+            display: none;
+        }
+    }
+
+    /* A colour well, its value and the swatches to choose from, wrapping on a narrow screen. */
+    .isColorPicker {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: var(--phil-space-xs);
+        align-items: center;
+        max-inline-size: 100%;
+    }
+
+    .isColorPickerWell {
+        flex: none;
+        inline-size: var(--phil-control-md);
+        block-size: var(--phil-control-md);
+        padding: 0;
+        cursor: pointer;
+    }
+
+    .isColorPickerValue {
+        inline-size: 12ch;
+        font-family: var(--phil-font-mono);
+    }
+
+    .isColorPickerSwatches {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--phil-space-2xs);
+    }
+
+    .isColorPickerSwatch {
+        inline-size: var(--phil-control-sm);
+        min-block-size: var(--phil-control-sm);
+        padding: 0;
+        border: var(--phil-border-sm) solid var(--phil-color-neutral-border-loud);
+        border-radius: var(--phil-radius-full);
+    }
+
+    .isColorPickerSwatch[aria-pressed="true"] {
+        outline: var(--phil-border-md) solid var(--phil-color-text);
+        outline-offset: var(--phil-border-sm);
+    }
+
+    /* A date field and its button; the month opens in a popover the controller places. */
+    .isDatePicker {
+        display: inline-flex;
+        gap: var(--phil-space-2xs);
+        align-items: center;
+        max-inline-size: 100%;
+    }
+
+    .isDatePickerField {
+        flex: 1;
+        inline-size: auto;
+        min-inline-size: 0;
+    }
+
+    .isDatePicker:has(.isDatePickerTrigger:not([hidden])) .isDatePickerField::-webkit-calendar-picker-indicator {
+        display: none;
+    }
+
+    .isDatePickerTrigger,
+    .isDatePickerMonth {
+        --phil-button-fill: var(--phil-tone-fill-quiet);
+        --phil-button-on: var(--phil-tone-on-quiet);
+        --phil-button-border: var(--phil-tone-border-quiet);
+
+        flex: none;
+        inline-size: var(--phil-control-md);
+        padding-inline: 0;
+    }
+
+    .isDatePickerPanel {
+        position: fixed;
+        inline-size: min(var(--phil-panel-sm), calc(100vw - var(--phil-space-xl)));
+        margin: 0;
+        padding: var(--phil-space-xs);
+        background-color: var(--phil-color-surface-raised);
+        border: var(--phil-border-sm) solid var(--phil-color-border);
+        border-radius: var(--phil-radius-md);
+        box-shadow: var(--phil-shadow-md);
+    }
+
+    .isDatePickerHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--phil-space-2xs);
+        margin-block-end: var(--phil-space-2xs);
+    }
+
+    .isDatePickerHeading {
+        font-weight: var(--phil-weight-medium);
+        text-align: center;
+    }
+
+    .isDatePickerGrid {
+        inline-size: 100%;
+        margin: 0;
+        table-layout: fixed;
+        border-collapse: collapse;
+    }
+
+    .isDatePickerGrid :is(th, td) {
+        padding: 0;
+        text-align: center;
+        border: 0;
+    }
+
+    .isDatePickerWeekday {
+        font-size: var(--phil-text-xs);
+        font-weight: var(--phil-weight-regular);
+        color: var(--phil-color-text-muted);
+    }
+
+    .isDatePickerDay {
+        --phil-button-fill: transparent;
+        --phil-button-on: var(--phil-color-text);
+
+        inline-size: 100%;
+        min-block-size: var(--phil-control-md);
+        padding: 0;
+        font-size: var(--phil-text-sm);
+    }
+
+    .isDatePickerDay[aria-current="date"] {
+        --phil-button-border: var(--phil-color-brand-border-loud);
+    }
+
+    .isDatePickerDay[aria-pressed="true"] {
+        --phil-button-fill: var(--phil-color-brand-fill-loud);
+        --phil-button-on: var(--phil-color-brand-on-loud);
+    }
+
+    .isDatePickerDay[data-outside]:not([aria-pressed="true"]) {
+        --phil-button-on: var(--phil-color-text-muted);
+    }
+
+    @media (forced-colors: active) {
+        .isRatingStar {
+            color: GrayText;
+            forced-color-adjust: none;
+        }
+
+        .isRatingStar.isFilled,
+        .isRatingStar:has(input:checked),
+        .isRatingStar:has(~ .isRatingStar input:checked) {
+            color: CanvasText;
+        }
+
+        .isRatingStar.isHalf {
+            background: linear-gradient(90deg, CanvasText 50%, GrayText 50%);
+            background-clip: text;
+        }
+
+        .isDatePickerDay[aria-pressed="true"] {
+            forced-color-adjust: none;
+            color: HighlightText;
+            background-color: Highlight;
+        }
+    }
+
+    /* A QR code and its caption. */
+    .isQrCode {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--phil-space-xs);
+        max-inline-size: 100%;
+        margin: 0;
+    }
+
+    .isQrCode > figcaption,
+    .isQrCodeCaption {
+        max-inline-size: 100%;
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-text-muted);
+        text-align: center;
+        overflow-wrap: anywhere;
+    }
+
+    /*
+     * Highlighted code: the hl-* classes that a highlighter writes, in the browser or on the server. Each kind of token
+     * takes the colour role meant to be read on a surface, so the code follows light and dark with the rest.
+     */
+    pre,
+    code {
+        --phil-hl-keyword: var(--phil-color-brand-on-quiet);
+        --phil-hl-string: var(--phil-color-success-on-quiet);
+        --phil-hl-number: var(--phil-color-warning-on-quiet);
+        --phil-hl-comment: var(--phil-color-text-muted);
+        --phil-hl-name: var(--phil-color-info-on-quiet);
+        --phil-hl-markup: var(--phil-color-danger-on-quiet);
+    }
+
+    .hl-keyword,
+    .hl-selector,
+    .hl-heading,
+    .hl-section {
+        color: var(--phil-hl-keyword);
+    }
+
+    .hl-string,
+    .hl-regex,
+    .hl-inserted,
+    .hl-link,
+    .hl-code {
+        color: var(--phil-hl-string);
+    }
+
+    .hl-number,
+    .hl-constant,
+    .hl-entity,
+    .hl-variable {
+        color: var(--phil-hl-number);
+    }
+
+    .hl-comment,
+    .hl-punctuation,
+    .hl-meta {
+        color: var(--phil-hl-comment);
+    }
+
+    .hl-comment,
+    .hl-emphasis {
+        font-style: italic;
+    }
+
+    .hl-function,
+    .hl-type,
+    .hl-builtin,
+    .hl-property,
+    .hl-attr-name {
+        color: var(--phil-hl-name);
+    }
+
+    .hl-tag,
+    .hl-deleted {
+        color: var(--phil-hl-markup);
+    }
+
+    .hl-strong,
+    .hl-heading {
+        font-weight: var(--phil-weight-bold);
+    }
+
+    /*
+     * The fallback of UJO (Universal JSON Output) media on paper: a frame, a video and a sound cannot play there, so the
+     * link, the poster and the QR code that follow each one show in its place, and only on paper.
+     */
+    @media not print {
+        .ujo-print-fallback {
+            display: none;
+        }
+    }
+
+    @media print {
+        :is(iframe, video, audio):has(+ .ujo-print-fallback) {
+            display: none;
+        }
+
+        a.ujo-print-fallback {
+            display: flex;
+            flex-direction: column;
+            gap: var(--phil-space-2xs);
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .ujo-print-fallback__title {
+            font-weight: var(--phil-weight-bold);
+        }
+
+        .ujo-print-fallback__url {
+            font-size: var(--phil-text-sm);
+            overflow-wrap: anywhere;
+        }
+    }
+
+    /* Under forced colours the browser repaints the backgrounds: what a background alone draws takes a system colour. */
+    @media (forced-colors: active) {
+        input:is(.isSwitch, [role="switch"]) {
+            border: var(--phil-border-sm) solid ButtonText;
+        }
+
+        input:is(.isSwitch, [role="switch"])::before {
+            background-color: ButtonText;
+            forced-color-adjust: none;
+        }
+
+        input:is(.isSwitch, [role="switch"]):checked {
+            background-color: Highlight;
+            forced-color-adjust: none;
+        }
+
+        .isActivityCalendar > * {
+            border: var(--phil-border-sm) solid CanvasText;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .isCarousel {
+            scroll-behavior: auto;
+        }
+    }
+
+    /*
+     * A chart drawn in SVG, its caption above it and its legend below. Each series takes a tone — `isPrimary`, `isInfo`,
+     * `isSuccess`, `isWarning`, `isDanger`, `isNeutral` — and the line of each tone but the first a dash of its own, so
+     * that the colour never stands alone.
+     */
+    .isChart {
+        display: grid;
+        gap: var(--phil-space-sm);
+        max-inline-size: 100%;
+        margin: 0;
+    }
+
+    .isChartLine.isInfo {
+        stroke-dasharray: 8 4;
+    }
+
+    .isChartLine.isSuccess {
+        stroke-dasharray: 2 4;
+    }
+
+    .isChartLine.isWarning {
+        stroke-dasharray: 12 4 2 4;
+    }
+
+    .isChartLine.isDanger {
+        stroke-dasharray: 4 4;
+    }
+
+    .isChartLine.isNeutral {
+        stroke-dasharray: 16 4;
+    }
+
+    .isChartCaption {
+        font-weight: var(--phil-weight-medium);
+    }
+
+    .isChartImage,
+    .isChartCanvas {
+        inline-size: 100%;
+        max-inline-size: 100%;
+        block-size: auto;
+    }
+
+    .isChartGrid {
+        stroke: var(--phil-color-neutral-border-quiet);
+        stroke-width: 1;
+    }
+
+    .isChartAxis {
+        stroke: var(--phil-color-neutral-border-loud);
+        stroke-width: 1;
+    }
+
+    .isChartTick {
+        font-size: var(--phil-text-xs);
+        font-variant-numeric: tabular-nums;
+        fill: var(--phil-color-text-muted);
+    }
+
+    .isChartSeries,
+    .isChartBar {
+        fill: var(--phil-tone-fill-loud);
+    }
+
+    .isChartLine {
+        fill: none;
+        stroke: var(--phil-tone-fill-loud);
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .isChartLegend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--phil-space-xs) var(--phil-space-md);
+        padding: 0;
+        margin: 0;
+        font-size: var(--phil-text-sm);
+        list-style: none;
+    }
+
+    .isChartLegend > li {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--phil-space-2xs);
+    }
+
+    .isChartSwatch {
+        inline-size: var(--phil-space-md);
+        block-size: var(--phil-space-2xs);
+        background: var(--phil-tone-fill-loud);
+        border-radius: var(--phil-radius-full);
+    }
+
+    .isChartLegend > li:not(.isPrimary) .isChartSwatch {
+        background: repeating-linear-gradient(to right, var(--phil-tone-fill-loud) 0 60%, transparent 60% 100%);
+    }
+
+    .isChartTable {
+        font-variant-numeric: tabular-nums;
+    }
+
+    .isChartData {
+        font-size: var(--phil-text-sm);
+    }
+
+    .hasChartJs .isChartCanvas {
+        position: relative;
+    }
+
+    /* A box kept to a ratio, its picture or video covering it. */
+    .isAspectRatio {
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: var(--phil-aspect-ratio, 1);
+    }
+
+    .isAspectRatio > :is(img, video, iframe, picture, svg) {
+        display: block;
+        inline-size: 100%;
+        block-size: 100%;
+        object-fit: cover;
+    }
+
+    /* A disclosure without the frame of an accordion: its summary and its content alone. */
+    .isCollapsible {
+        padding: 0;
+        border: 0;
+    }
+
+    .isCollapsibleTrigger {
+        inline-size: fit-content;
+        cursor: pointer;
+    }
+
+    .isCollapsibleContent {
+        padding-block-start: var(--phil-space-xs);
+    }
+
+    /* The keys of one shortcut, side by side. */
+    .isKbdGroup {
+        display: inline-flex;
+        gap: var(--phil-space-3xs);
+        align-items: center;
+        padding: 0;
+        font-size: inherit;
+        background: none;
+        border: 0;
+        box-shadow: none;
+    }
+
+    /* A form field: its label, its control, its help and its error, stacked or side by side. */
+    .isField {
+        display: grid;
+        gap: var(--phil-space-2xs);
+        align-content: start;
+    }
+
+    .isField.isHorizontal {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+    }
+
+    @container (min-width: 40rem) {
+        .isField.isResponsive {
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+        }
+    }
+
+    .isFieldLabel,
+    .isFieldTitle {
+        font-weight: var(--phil-weight-medium);
+    }
+
+    .isFieldDescription {
+        margin: 0;
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-text-muted);
+    }
+
+    .isFieldError {
+        padding: 0;
+        margin: 0;
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-danger-on-quiet);
+        list-style: none;
+    }
+
+    .isFieldError > p {
+        margin: 0;
+    }
+
+    .isField.isDanger :is(input, select, textarea) {
+        border-color: var(--phil-color-danger-border-loud);
+    }
+
+    .isFieldSet {
+        display: grid;
+        gap: var(--phil-space-md);
+        container-type: inline-size;
+    }
+
+    .isFieldLegend {
+        font-weight: var(--phil-weight-medium);
+    }
+
+    .isFieldGroup {
+        display: grid;
+        gap: var(--phil-space-lg);
+        container-type: inline-size;
+    }
+
+    .isFieldContent {
+        display: grid;
+        gap: var(--phil-space-3xs);
+    }
+
+    .isFieldSeparator {
+        display: flex;
+        gap: var(--phil-space-sm);
+        align-items: center;
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-text-muted);
+    }
+
+    .isFieldSeparator::before,
+    .isFieldSeparator::after {
+        flex: 1;
+        content: "";
+        border-block-start: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    /* One entry of a list: its media, its title and description, its actions. */
+    .isItem {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--phil-space-md);
+        align-items: center;
+        padding: var(--phil-space-md);
+        color: inherit;
+        text-decoration: none;
+        border: var(--phil-border-sm) solid transparent;
+        border-radius: var(--phil-radius-md);
+    }
+
+    .isItem.isOutline {
+        border-color: var(--phil-color-border);
+    }
+
+    .isItem.isMuted {
+        color: inherit;
+        background-color: var(--phil-color-surface-raised);
+    }
+
+    .isItem.isSmall {
+        gap: var(--phil-space-sm);
+        padding: var(--phil-space-sm);
+    }
+
+    a.isItem:hover {
+        background-color: var(--phil-color-neutral-fill-quiet);
+    }
+
+    .isItemMedia {
+        display: flex;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .isItemMedia.hasIcon {
+        inline-size: var(--phil-control-sm);
+        block-size: var(--phil-control-sm);
+        background-color: var(--phil-color-neutral-fill-quiet);
+        border-radius: var(--phil-radius-sm);
+    }
+
+    .isItemMedia.hasImage {
+        inline-size: var(--phil-control-lg);
+        block-size: var(--phil-control-lg);
+        overflow: hidden;
+        border-radius: var(--phil-radius-sm);
+    }
+
+    .isItemMedia.hasImage > img {
+        inline-size: 100%;
+        block-size: 100%;
+        object-fit: cover;
+    }
+
+    .isItemContent {
+        display: grid;
+        flex: 1;
+        gap: var(--phil-space-3xs);
+        min-inline-size: 0;
+    }
+
+    .isItemTitle {
+        font-weight: var(--phil-weight-medium);
+    }
+
+    .isItemDescription {
+        margin: 0;
+        font-size: var(--phil-text-sm);
+        color: var(--phil-color-text-muted);
+    }
+
+    .isItemActions {
+        display: flex;
+        gap: var(--phil-space-xs);
+        align-items: center;
+    }
+
+    .isItemHeader,
+    .isItemFooter {
+        display: flex;
+        flex-basis: 100%;
+        gap: var(--phil-space-xs);
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .isItemGroup {
+        display: grid;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+
+    .isItemSeparator {
+        border-block-start: var(--phil-border-sm) solid var(--phil-color-border);
+    }
+
+    /* A box whose content scrolls inside it, with thin scroll bars; it shows its focus when the keyboard scrolls it. */
+    .isScrollArea {
+        overflow: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: var(--phil-color-neutral-border-loud) transparent;
+    }
+
+    .isScrollArea.isVertical {
+        overflow-x: hidden;
+    }
+
+    .isScrollArea.isHorizontal {
+        overflow-y: hidden;
+    }
+
+    .isScrollArea:focus-visible {
+        outline: var(--phil-focus-width) solid var(--phil-color-focus);
+        outline-offset: var(--phil-focus-width);
+    }
+
+    /*
+     * A toggle: a label wrapping its checkbox or radio button, which is hidden but keeps the focus, the keyboard and the
+     * form. Pressed, it takes the quiet fill of its tone; the focus ring goes around the whole label.
+     */
+    .isToggle {
+        position: relative;
+        display: inline-flex;
+        gap: var(--phil-space-2xs);
+        align-items: center;
+        justify-content: center;
+        min-inline-size: var(--phil-control-size, var(--phil-control-md));
+        min-block-size: var(--phil-control-size, var(--phil-control-md));
+        padding-inline: var(--phil-control-padding, var(--phil-space-sm));
+        font-weight: var(--phil-weight-medium);
+        color: var(--phil-color-text);
+        cursor: pointer;
+        user-select: none;
+        background-color: transparent;
+        border: var(--phil-border-sm) solid transparent;
+        border-radius: var(--phil-radius-md);
+        transition: background-color var(--phil-duration-sm) var(--phil-ease-out);
+    }
+
+    .isToggle.isOutline {
+        border-color: var(--phil-color-border);
+    }
+
+    .isToggle:hover {
+        background-color: var(--phil-color-neutral-fill-quiet);
+    }
+
+    .isToggle:has(> .isToggleInput:checked) {
+        color: var(--phil-color-brand-on-quiet);
+        background-color: var(--phil-color-brand-fill-quiet);
+    }
+
+    .isToggle:has(> .isToggleInput:focus-visible) {
+        outline: var(--phil-focus-width) solid var(--phil-color-focus);
+        outline-offset: var(--phil-focus-width);
+    }
+
+    .isToggle:has(> .isToggleInput:disabled) {
+        cursor: not-allowed;
+        opacity: var(--phil-opacity-disabled);
+    }
+
+    .isToggleInput {
+        position: absolute;
+        inset: 0;
+        margin: 0;
+        pointer-events: none;
+        appearance: none;
+        opacity: 0;
+    }
+
+    .isToggleGroup {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: var(--phil-space-3xs);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .isToggle {
+            transition: none;
+        }
+    }
+
+    /* Radio buttons laid out in a column, or in a row that wraps. */
+    .isRadioGroup {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: var(--phil-space-xs) var(--phil-space-sm);
+        align-items: center;
+    }
+
+    .isRadioGroup.isHorizontal {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    /* The blocks of sign-in and sign-up: a card of a reading width, its form stacked. */
+    .isLoginForm,
+    .isSignupForm {
+        inline-size: 100%;
+        max-inline-size: 26rem;
+        margin-inline: auto;
+    }
+
+    :is(.isLoginForm, .isSignupForm) form > button[type="submit"] {
+        inline-size: 100%;
+    }
+
+    .isLoginFormForgot {
+        justify-self: end;
+        font-size: var(--phil-text-sm);
+    }
+
+    /*
+     * The tones, on any component that reads them; last, so they win over a component's own default.
+     */
+    .isPrimary {
+        --phil-tone-fill-quiet: var(--phil-color-brand-fill-quiet);
+        --phil-tone-fill-loud: var(--phil-color-brand-fill-loud);
+        --phil-tone-border-quiet: var(--phil-color-brand-border-quiet);
+        --phil-tone-border-loud: var(--phil-color-brand-border-loud);
+        --phil-tone-on-quiet: var(--phil-color-brand-on-quiet);
+        --phil-tone-on-loud: var(--phil-color-brand-on-loud);
+    }
+
+    .isNeutral {
+        --phil-tone-fill-quiet: var(--phil-color-neutral-fill-quiet);
+        --phil-tone-fill-loud: var(--phil-color-neutral-fill-loud);
+        --phil-tone-border-quiet: var(--phil-color-neutral-border-quiet);
+        --phil-tone-border-loud: var(--phil-color-neutral-border-loud);
+        --phil-tone-on-quiet: var(--phil-color-neutral-on-quiet);
+        --phil-tone-on-loud: var(--phil-color-neutral-on-loud);
+    }
+
+    .isDanger {
+        --phil-tone-fill-quiet: var(--phil-color-danger-fill-quiet);
+        --phil-tone-fill-loud: var(--phil-color-danger-fill-loud);
+        --phil-tone-border-quiet: var(--phil-color-danger-border-quiet);
+        --phil-tone-border-loud: var(--phil-color-danger-border-loud);
+        --phil-tone-on-quiet: var(--phil-color-danger-on-quiet);
+        --phil-tone-on-loud: var(--phil-color-danger-on-loud);
+    }
+
+    .isSuccess {
+        --phil-tone-fill-quiet: var(--phil-color-success-fill-quiet);
+        --phil-tone-fill-loud: var(--phil-color-success-fill-loud);
+        --phil-tone-border-quiet: var(--phil-color-success-border-quiet);
+        --phil-tone-border-loud: var(--phil-color-success-border-loud);
+        --phil-tone-on-quiet: var(--phil-color-success-on-quiet);
+        --phil-tone-on-loud: var(--phil-color-success-on-loud);
+    }
+
+    .isWarning {
+        --phil-tone-fill-quiet: var(--phil-color-warning-fill-quiet);
+        --phil-tone-fill-loud: var(--phil-color-warning-fill-loud);
+        --phil-tone-border-quiet: var(--phil-color-warning-border-quiet);
+        --phil-tone-border-loud: var(--phil-color-warning-border-loud);
+        --phil-tone-on-quiet: var(--phil-color-warning-on-quiet);
+        --phil-tone-on-loud: var(--phil-color-warning-on-loud);
+    }
+
+    .isInfo {
+        --phil-tone-fill-quiet: var(--phil-color-info-fill-quiet);
+        --phil-tone-fill-loud: var(--phil-color-info-fill-loud);
+        --phil-tone-border-quiet: var(--phil-color-info-border-quiet);
+        --phil-tone-border-loud: var(--phil-color-info-border-loud);
+        --phil-tone-on-quiet: var(--phil-color-info-on-quiet);
+        --phil-tone-on-loud: var(--phil-color-info-on-loud);
+    }
+
+    /* The sizes, on a control or on a group of them, since they are inherited. */
+    .isSmall {
+        --phil-control-size: var(--phil-control-sm);
+        --phil-control-padding: var(--phil-space-sm);
+
+        font-size: var(--phil-text-sm);
+    }
+
+    .isLarge {
+        --phil-control-size: var(--phil-control-lg);
+        --phil-control-padding: var(--phil-space-lg);
+
+        font-size: var(--phil-text-lg);
+    }
+}
+@layer phil.utilities {
+    /*
+     * phil-ux — the utilities, last of the layers so they win over the components.
+     */
+
+    /* Read by screen readers, not shown. */
+    .isVisuallyHidden {
+        position: absolute !important;
+        inline-size: 1px !important;
+        block-size: 1px !important;
+        margin: -1px !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        clip-path: inset(50%) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+    }
+
+    /* A link that jumps past the navigation, shown when it has the focus. */
+    .isSkipLink:not(:focus-visible) {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    .isMuted {
+        color: var(--phil-color-text-muted);
+    }
+
+    .isGrow {
+        flex-grow: 1;
+    }
+}

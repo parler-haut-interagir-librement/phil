@@ -1,0 +1,44 @@
+{#-
+ # The date field of the browser, which works alone, and a button opening a month on a grid, in a popover, with the
+ # keyboard of the date picker of WAI-ARIA. The script writes the days, in the language of the page.
+ #}
+{%- props
+    ## string The identifier of the field, from which those of the panel are made.
+    id,
+    ## string|null The name of the field.
+    name = null,
+    ## string|null The date, as `YYYY-MM-DD`.
+    value = null,
+    ## string|null The first date that can be chosen.
+    min = null,
+    ## string|null The last date that can be chosen.
+    max = null,
+    ## string|null What screen readers call the field, without a `label` beside it.
+    label = null,
+    ## string|null The language of the month; that of the page when null.
+    locale = null,
+    ## int|null The first day of the week, 0 for Sunday; that of the language when null.
+    firstDay = null,
+    ## string The name of the button that opens the month.
+    openLabel = 'Choose a date',
+    ## string The name of the button that goes back a month.
+    previousLabel = 'Previous month',
+    ## string The name of the button that goes forward a month.
+    nextLabel = 'Next month',
+    ## bool Whether a date has to be given.
+    required = false,
+    ## bool Whether the field cannot be changed for now.
+    disabled = false
+-%}
+<div data-date-picker-locale-value="{{ locale ?? '' }}" data-date-picker-first-day-value="{{ firstDay ?? -1 }}" data-date-picker-day-class="isDatePickerDay" data-date-picker-weekday-class="isDatePickerWeekday"{{ attributes.defaults({class: 'isDatePicker', 'data-controller': 'date-picker'}) }}>
+    <input class="isDatePickerField" type="date" id="{{ id }}"{% if name is not null %} name="{{ name }}"{% endif %}{% if value is not null %} value="{{ value }}"{% endif %}{% if min is not null %} min="{{ min }}"{% endif %}{% if max is not null %} max="{{ max }}"{% endif %}{% if label is not null %} aria-label="{{ label }}"{% endif %}{% if required %} required{% endif %}{% if disabled %} disabled{% endif %} data-date-picker-target="input">
+    <button type="button" class="isDatePickerTrigger" hidden popovertarget="{{ id }}-panel" aria-label="{{ openLabel }}" aria-haspopup="dialog" aria-expanded="false"{% if disabled %} disabled{% endif %} data-date-picker-target="trigger"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><rect x="2" y="3" width="12" height="11" rx="1"></rect><path d="M2 7h12M5 1.5v3M11 1.5v3"></path></svg></button>
+    <div class="isDatePickerPanel" id="{{ id }}-panel" popover role="dialog" aria-labelledby="{{ id }}-heading" data-date-picker-target="panel" data-action="toggle->date-picker#toggled keydown->date-picker#navigate click->date-picker#choose">
+        <div class="isDatePickerHeader">
+            <button type="button" class="isDatePickerMonth" aria-label="{{ previousLabel }}" data-action="date-picker#previous"><span aria-hidden="true">&lsaquo;</span></button>
+            <span class="isDatePickerHeading" id="{{ id }}-heading" aria-live="polite" data-date-picker-target="heading"></span>
+            <button type="button" class="isDatePickerMonth" aria-label="{{ nextLabel }}" data-action="date-picker#next"><span aria-hidden="true">&rsaquo;</span></button>
+        </div>
+        <table class="isDatePickerGrid" role="grid" aria-labelledby="{{ id }}-heading"><thead><tr data-date-picker-target="weekdays"></tr></thead><tbody data-date-picker-target="weeks"></tbody></table>
+    </div>
+</div>

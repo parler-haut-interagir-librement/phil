@@ -1,0 +1,11 @@
+{%- props
+    ## 'default'|'sm' Size variant of the card.
+    size = 'default',
+    ## 'article'|'section'|'aside'|'div'|'li' The HTML tag to render.
+    as = 'article'
+-%}
+{%- set _tag = as in ['article', 'section', 'aside', 'div', 'li'] ? as : 'article' -%}
+<{{ _tag }} data-slot="card" data-size="{{ size }}"{{ attributes.defaults({class: 'isCard' ~ (size is same as('sm') ? ' isSmall' : '')}) }}>
+{##- The card content, typically includes `Card:Header`, `Card:Content`, and/or `Card:Footer`. -#}
+{%- block content %}{% endblock -%}
+</{{ _tag }}>

@@ -1,0 +1,18 @@
+{%- props
+    ## string Unique value for this accordion item.
+    value,
+    ## bool Whether the item is open by default.
+    open = false,
+    ## bool Whether the item is disabled.
+    disabled = false
+-%}
+{%- set _accordion_id = inject('accordion.id') -%}
+{%- set _accordion_default = inject('accordion.defaultValue') -%}
+{%- set _accordion_open = open or _accordion_default is same as(value) or (_accordion_default is iterable and value in _accordion_default) -%}
+{%- set _accordion_item_id = _accordion_id ~ '-' ~ value -%}
+{%- do provide('accordionItem.triggerId', _accordion_item_id ~ '-trigger') -%}
+{%- do provide('accordionItem.contentId', _accordion_item_id ~ '-content') -%}
+<details data-slot="accordion-item" data-accordion-target="item" data-value="{{ value }}" data-disabled="{{ disabled ? 'true' : 'false' }}"{% if not inject('accordion.multiple', false) %} name="{{ _accordion_id }}"{% endif %}{% if _accordion_open %} open{% endif %}{% if disabled %} inert{% endif %}{{ attributes.defaults({class: 'isAccordionItem'}) }}>
+{##- The item content, typically an `Accordion:Trigger` and `Accordion:Content`. -#}
+{%- block content %}{% endblock -%}
+</details>

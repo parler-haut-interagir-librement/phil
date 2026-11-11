@@ -1,0 +1,10 @@
+{%- set popover_trigger_attrs = {
+    'data-slot': 'popover-trigger',
+    'data-popover-target': 'trigger',
+    'data-action': 'click->popover#toggle',
+    'aria-haspopup': 'dialog',
+    'data-state': inject('popover.open', false) ? 'open' : 'closed',
+    popovertarget: inject('popover.id'),
+} -%}
+{##- The clickable trigger (e.g., a `Button`) that opens the popover. -#}
+{%- block content %}{% endblock -%}

@@ -1,0 +1,13 @@
+{
+    "name": "PHIL UX",
+    "description": "PHIL UX kit for the Symfony UX Toolkit: the same recipes as the Shadcn kit, styled with phil-ux, installed with ux:install --kit.",
+    "license": "MIT",
+    "homepage": "https://github.com/parler-haut-interagir-librement/ux-kit",
+    "color": "oklch(0.40 0.058 195)",
+    "icon": "icon.svg",
+    "dependencies": {
+        "composer": ["phil/ux-css:^0.1@dev", "symfony/ux-twig-component:^3.7"],
+        "npm": ["@phil/ux-css"],
+        "importmap": ["@phil/ux-css/dist/phil-ux.css"]
+    }
+}

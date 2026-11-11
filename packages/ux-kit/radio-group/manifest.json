@@ -1,0 +1,7 @@
+{
+    "type": "component",
+    "name": "RadioGroup",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    }
+}

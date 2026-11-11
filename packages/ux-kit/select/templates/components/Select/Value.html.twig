@@ -1,0 +1,5 @@
+{%- props
+    ## string Text shown while no option is selected.
+    placeholder = ''
+-%}
+<span data-slot="select-value" data-select-target="value" data-placeholder="{{ placeholder }}"{{ attributes.defaults({class: 'isSelectValue'}) }}>{{ placeholder }}</span>

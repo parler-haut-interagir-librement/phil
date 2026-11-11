@@ -1,0 +1,17 @@
+{#-
+ # A moment, written as a date by the server and then as the time from now by the controller, which keeps it right.
+ # The date stays in the title.
+ #}
+{%- props
+    ## \DateTimeInterface|string The moment.
+    datetime,
+    ## string The date written by the server, in the format of the filter `date`.
+    format = 'Y-m-d H:i',
+    ## string|null The language of the text; that of the page when null.
+    locale = null,
+    ## 'long'|'short'|'narrow' The length of the words.
+    length = 'long',
+    ## int How old a moment stays relative, in seconds; 0 for always.
+    limit = 0
+-%}
+<time datetime="{{ datetime|date('c') }}" title="{{ datetime|date(format) }}" data-relative-time-locale-value="{{ locale ?? '' }}" data-relative-time-length-value="{{ length }}" data-relative-time-limit-value="{{ limit }}"{{ attributes.defaults({class: 'isRelativeTime', 'data-controller': 'relative-time'}) }}>{{ datetime|date(format) }}</time>

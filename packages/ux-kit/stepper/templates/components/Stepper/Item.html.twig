@@ -1,0 +1,15 @@
+{%- props
+    ## 'done'|'current'|'upcoming' Where the process stands at this step.
+    state = 'upcoming',
+    ## string|null Where the step leads, when it can be gone back to.
+    href = null,
+    ## string|null What screen readers read before the name of a finished step.
+    doneLabel = null
+-%}
+<li{{ attributes.defaults({class: 'isStepperItem' ~ (state is same as('done') ? ' isDone' : '')}|merge(state is same as('current') ? {'aria-current': 'step'} : {})) }}>
+    {%- if state is same as('done') and doneLabel is not null -%}<span class="isVisuallyHidden">{{ doneLabel }}</span>{%- endif -%}
+    {%- if href is not null -%}<a class="isStepperLabel" href="{{ href }}">{%- else -%}<span class="isStepperLabel">{%- endif -%}
+    {##- The name of the step. -#}
+    {%- block content %}{% endblock -%}
+    {%- if href is not null -%}</a>{%- else -%}</span>{%- endif -%}
+</li>

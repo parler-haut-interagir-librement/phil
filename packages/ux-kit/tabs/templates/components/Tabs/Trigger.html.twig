@@ -1,0 +1,9 @@
+{%- props
+    ## string Unique suffix identifier for generating Tabs internal IDs.
+    value
+-%}
+{%- set _open = inject('tabs.defaultValue', '') is same as(value) -%}
+<button type="button" id="tab-{{ value }}" data-slot="tabs-trigger" data-tabs-target="trigger" data-tab-id="{{ value }}" role="tab" aria-controls="tab-{{ value }}-description" aria-selected="{{ _open ? 'true' : 'false' }}" tabindex="{{ _open ? '0' : '-1' }}" data-active="{{ _open ? 'true' : 'false' }}"{{ attributes.defaults({class: 'isTab', 'data-action': 'click->tabs#open keydown->tabs#move'}) }}>
+{##- The default block. -#}
+{%- block content %}{% endblock -%}
+</button>

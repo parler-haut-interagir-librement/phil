@@ -1,0 +1,4 @@
+<p id="{{ inject('sheet.descriptionId') }}" data-slot="sheet-description"{{ attributes.without('id').defaults({class: 'isSheetDescription'}) }}>
+{##- The descriptive text explaining the sheet purpose. -#}
+{%- block content %}{% endblock -%}
+</p>

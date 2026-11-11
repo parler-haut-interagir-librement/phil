@@ -1,0 +1,8 @@
+{#-
+ # The window of an alert dialog: Escape closes it, as a request to close, but a click on the backdrop does not, so
+ # that the question is answered by one of its buttons.
+ #}
+<dialog id="{{ inject('alertDialog.id') }}" role="alertdialog" closedby="closerequest" aria-labelledby="{{ inject('alertDialog.titleId') }}" aria-describedby="{{ inject('alertDialog.descriptionId') }}" data-slot="alert-dialog-content" data-dialog-target="dialog"{{ attributes.defaults({class: 'isDialog', 'data-action': 'close->dialog#closed'}) }}>
+{##- The alert dialog content, typically an `AlertDialog:Header` and an `AlertDialog:Footer`. -#}
+{%- block content %}{% endblock -%}
+</dialog>

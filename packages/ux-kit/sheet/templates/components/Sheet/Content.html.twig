@@ -1,0 +1,17 @@
+{%- props
+    ## bool Whether to display the close button.
+    showCloseButton = true,
+    ## string What screen readers read for the close button.
+    closeLabel = 'Close'
+-%}
+{%- set _id = inject('sheet.id') -%}
+{%- set _edge = {left: ' isStart', top: ' isTop', bottom: ' isBottom'}[inject('sheet.side', 'right')] ?? '' -%}
+<dialog id="{{ _id }}" closedby="any" aria-labelledby="{{ inject('sheet.titleId') }}" aria-describedby="{{ inject('sheet.descriptionId') }}" data-slot="sheet-content" data-dialog-target="dialog" data-side="{{ inject('sheet.side', 'right') }}"{{ attributes.defaults({class: 'isSheet' ~ _edge, 'data-action': 'click->dialog#closeOnClickOutside close->dialog#closed'}) }}>
+{##- The sheet content, typically includes `Sheet:Header` and optionally `Sheet:Footer`. -#}
+{%- block content %}{% endblock -%}
+{%- if showCloseButton %}
+<twig:Button class="isSheetClose" type="button" variant="ghost" size="icon-sm" data-slot="sheet-close" data-action="click->dialog#close" command="close" commandfor="{{ _id }}">
+    <span aria-hidden="true">&times;</span><span class="isVisuallyHidden">{{ closeLabel }}</span>
+</twig:Button>
+{%- endif %}
+</dialog>

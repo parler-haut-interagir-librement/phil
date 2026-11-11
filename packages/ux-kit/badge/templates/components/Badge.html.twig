@@ -1,0 +1,15 @@
+{%- props
+    ## 'default'|'secondary'|'destructive'|'outline'|'ghost'|'link' The visual style variant.
+    variant = 'default',
+    ## 'span'|'a' The HTML tag to render; use `a` when the badge navigates.
+    as = 'span',
+    ## string|null A CSS colour replacing the colour of the variant; anything else than a colour is left out.
+    color = null
+-%}
+{%- set _tag = as is same as('a') ? 'a' : 'span' -%}
+{%- set _variant = {secondary: 'isSecondary', destructive: 'isDanger', outline: 'isOutline', ghost: 'isGhost', link: 'isLink'}[variant] ?? '' -%}
+{%- set _color = color is not null and color matches '/^[#%(),.\\w\\s-]+$/' ? color : null -%}
+<{{ _tag }} data-slot="badge" data-variant="{{ variant }}"{{ attributes.defaults({class: ('isBadge ' ~ _variant)|trim}|merge(_color is null ? {} : {style: '--phil-badge-color: ' ~ _color})) }}>
+{##- The badge label or content. -#}
+{%- block content %}{% endblock -%}
+</{{ _tag }}>

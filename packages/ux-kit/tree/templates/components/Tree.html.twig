@@ -1,0 +1,12 @@
+{#-
+ # A tree on the WAI-ARIA pattern: a single stop of the Tab key, then the arrows, Home, End, a first letter, Enter and
+ # the Space bar. Before the script runs, everything it would fold shows.
+ #}
+{%- props
+    ## string What screen readers call the tree.
+    label
+-%}
+<ul role="tree" aria-label="{{ label }}" data-action="keydown->tree#navigate click->tree#activate"{{ attributes.defaults({class: 'isTree', 'data-controller': 'tree'}) }}>
+{##- The items, each a `Tree:Item`. -#}
+{%- block content %}{% endblock -%}
+</ul>

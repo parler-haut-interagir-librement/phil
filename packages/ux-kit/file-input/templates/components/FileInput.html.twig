@@ -1,0 +1,38 @@
+{#-
+ # A file field that also takes a drop: the input stays the field, its label the zone. What the browser picked is
+ # listed with its size; what the props refuse is left out and said aloud. The server decides in the end.
+ #}
+{%- props
+    ## string The name of the field.
+    name,
+    ## string What the zone says.
+    label,
+    ## string|null A second line in the zone: the types and the size expected.
+    hint = null,
+    ## string|null The identifier of the field.
+    id = null,
+    ## string|null The types taken, as the attribute `accept` writes them.
+    accept = null,
+    ## bool Whether several files can be given.
+    multiple = false,
+    ## int The largest file taken, in bytes; 0 for no limit.
+    maxSize = 0,
+    ## string What is said of the files left out, `{count}` replaced.
+    rejectedLabel = 'Files left out: {count}',
+    ## string The button that empties the field.
+    clearLabel = 'Remove',
+    ## bool Whether a file has to be given.
+    required = false,
+    ## bool Whether the field cannot be changed for now.
+    disabled = false
+-%}
+<div data-file-input-max-size-value="{{ maxSize }}" data-file-input-rejected-label-value="{{ rejectedLabel }}" data-file-input-item-class="isFileInputItem" data-file-input-dragging-class="isDragging" data-action="dragover->file-input#over dragleave->file-input#leave drop->file-input#drop"{{ attributes.defaults({class: 'isFileInput', 'data-controller': 'file-input'}) }}>
+    <label class="isFileInputZone" data-file-input-target="zone">
+        <input class="isFileInputField" type="file" name="{{ name }}"{% if id is not null %} id="{{ id }}"{% endif %}{% if accept is not null %} accept="{{ accept }}"{% endif %}{% if multiple %} multiple{% endif %}{% if required %} required{% endif %}{% if disabled %} disabled{% endif %} data-file-input-target="input" data-action="change->file-input#list">
+        <span class="isFileInputLabel">{{ label }}</span>
+        {%- if hint is not null -%}<span class="isFileInputHint">{{ hint }}</span>{%- endif -%}
+    </label>
+    <ul class="isFileInputList" data-file-input-target="list"></ul>
+    <p class="isFileInputError" role="status" aria-live="polite" data-file-input-target="error"></p>
+    <button type="button" class="isFileInputClear" hidden data-file-input-target="clear" data-action="file-input#clear">{{ clearLabel }}</button>
+</div>

@@ -1,0 +1,13 @@
+{%- props
+    ## bool Whether the checkbox is initially checked.
+    checked = false,
+    ## bool Whether the item is disabled.
+    disabled = false,
+    ## bool Whether selecting the item closes the menu.
+    closeOnSelect = false
+-%}
+<button type="button" role="menuitemcheckbox" data-slot="dropdown-menu-checkbox-item" data-dropdown-menu-target="item" data-close-on-select="{{ closeOnSelect ? 'true' : 'false' }}" data-disabled="{{ disabled ? 'true' : 'false' }}" aria-checked="{{ checked ? 'true' : 'false' }}" aria-disabled="{{ disabled ? 'true' : 'false' }}"{% if disabled %} disabled{% endif %}{{ attributes.defaults({class: 'isDropdownItem', 'data-action': 'click->dropdown-menu#toggleCheckbox'}) }}>
+<span class="isDropdownIndicator" aria-hidden="true" data-checkbox-indicator{% if not checked %} hidden{% endif %}>&#10003;</span>
+{##- The label text. -#}
+{%- block content %}{% endblock -%}
+</button>

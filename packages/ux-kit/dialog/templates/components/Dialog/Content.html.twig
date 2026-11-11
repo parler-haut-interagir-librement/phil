@@ -1,0 +1,16 @@
+{%- props
+    ## bool Whether to display the close button.
+    showCloseButton = true,
+    ## string What screen readers read for the close button.
+    closeLabel = 'Close'
+-%}
+{%- set _id = inject('dialog.id') -%}
+<dialog id="{{ _id }}" closedby="any" aria-labelledby="{{ inject('dialog.titleId') }}" aria-describedby="{{ inject('dialog.descriptionId') }}" data-slot="dialog-content" data-dialog-target="dialog"{{ attributes.defaults({class: 'isDialog', 'data-action': 'click->dialog#closeOnClickOutside close->dialog#closed'}) }}>
+{##- The dialog content, typically includes `Dialog:Header` and optionally `Dialog:Footer`. -#}
+{%- block content %}{% endblock -%}
+{%- if showCloseButton %}
+<twig:Button class="isDialogClose" type="button" variant="ghost" size="icon-sm" data-slot="dialog-close" data-action="click->dialog#close" command="close" commandfor="{{ _id }}">
+    <span aria-hidden="true">&times;</span><span class="isVisuallyHidden">{{ closeLabel }}</span>
+</twig:Button>
+{%- endif %}
+</dialog>

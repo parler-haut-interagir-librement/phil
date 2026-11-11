@@ -1,0 +1,13 @@
+{#-
+ # A box kept to a ratio, its picture or video filling it. The ratio is a number or a quotient such as "16 / 9";
+ # anything else is left out for a square.
+ #}
+{%- props
+    ## float|int|string The ratio of the width to the height, a number or a quotient such as "16 / 9".
+    ratio = 1
+-%}
+{%- set _ratio = ratio is not iterable and (ratio ~ '') matches '/^\\d+(\\.\\d+)?(\\s*\\/\\s*\\d+(\\.\\d+)?)?$/' ? ratio : 1 -%}
+<div data-slot="aspect-ratio"{{ attributes.defaults({class: 'isAspectRatio', style: '--phil-aspect-ratio: ' ~ _ratio}) }}>
+{##- What fills the box, typically an image or a video. -#}
+{%- block content %}{% endblock -%}
+</div>

@@ -1,0 +1,31 @@
+{%- props
+    ## 'horizontal'|'vertical' The axis the slides scroll along.
+    orientation = 'horizontal',
+    ## 'start'|'center'|'end' The alignment of the selected slide inside the viewport.
+    align = 'center',
+    ## bool Whether the carousel wraps around after the last slide.
+    loop = false,
+    ## array Extra options read by the controller, merged over `align` and `loop`.
+    options = {},
+    ## int The delay in milliseconds between two automatic slide changes. Zero disables autoplay.
+    autoplay = 0,
+    ## string The accessible name of the carousel region.
+    label = 'Carousel',
+    ## string What the carousel is announced as.
+    roleDescription = 'carousel',
+    ## string The text of the button while the slides play.
+    pauseLabel = 'Pause',
+    ## string The text of the button once paused.
+    playLabel = 'Play'
+-%}
+{%- set _carousel_options = {align: align, loop: loop}|merge(options) -%}
+{%- set _carousel_class = 'isCarouselFrame' ~ (orientation is same as('vertical') ? ' isVertical' : '') ~ ({center: ' hasCenteredSlides', end: ' hasEndSlides'}[align] ?? '') -%}
+{%- do provide('carousel.orientation', orientation) -%}
+{%- do provide('carousel.loop', _carousel_options.loop) -%}
+<div role="region" aria-roledescription="{{ roleDescription }}" tabindex="0" data-slot="carousel" data-orientation="{{ orientation }}" data-align="{{ align }}" data-carousel-orientation-value="{{ orientation }}" data-carousel-options-value="{{ _carousel_options|json_encode }}" data-carousel-autoplay-value="{{ autoplay }}" data-carousel-pause-label-value="{{ pauseLabel }}" data-carousel-play-label-value="{{ playLabel }}"{{ attributes.defaults({class: _carousel_class, 'aria-label': label, 'data-controller': 'carousel', 'data-action': 'keydown->carousel#handleKeydown mouseenter->carousel#hold mouseleave->carousel#release focusin->carousel#hold focusout->carousel#release'}) }}>
+{##- The carousel structure, typically includes `Carousel:Content`, `Carousel:Previous` and `Carousel:Next`. -#}
+{%- block content %}{% endblock -%}
+{%- if autoplay > 0 %}
+<twig:Button class="isCarouselToggle" variant="ghost" size="sm" hidden data-slot="carousel-toggle" data-carousel-target="toggle" data-action="click->carousel#toggleAutoplay">{{ pauseLabel }}</twig:Button>
+{%- endif %}
+</div>

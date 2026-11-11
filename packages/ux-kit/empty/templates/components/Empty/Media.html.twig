@@ -1,0 +1,8 @@
+{%- props
+    ## 'default'|'icon' The media display style.
+    variant = 'default'
+-%}
+<div data-slot="empty-icon" data-variant="{{ variant }}"{{ attributes.defaults({class: 'isEmptyMedia'}) }}>
+{##- The visual element, typically an icon or illustration. -#}
+{%- block content %}{% endblock -%}
+</div>
