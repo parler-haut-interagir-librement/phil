@@ -33,9 +33,11 @@ final readonly class Validator
     private array $rules;
 
     /**
-     * @param iterable<TypeRules>|null $rules the rules of each type; `null` for those of `Rules::schemaOrg()`
+     * @param iterable<TypeRules>|null $rules          the rules of each type; `null` for those of `Rules::schemaOrg()`
+     * @param bool                     $allowLocalhost whether an address on `localhost` or under `.localhost` is valid,
+     *                                                 for development and tests
      */
-    public function __construct(?iterable $rules = null)
+    public function __construct(?iterable $rules = null, private bool $allowLocalhost = false)
     {
         $byType = [];
 
@@ -51,7 +53,7 @@ final readonly class Validator
      */
     public function withRules(TypeRules ...$rules): self
     {
-        return new self([...$this->rules, ...$rules]);
+        return new self([...$this->rules, ...$rules], $this->allowLocalhost);
     }
 
     public function validate(Graph $graph): Report
@@ -195,7 +197,7 @@ final readonly class Validator
         }
 
         try {
-            Url::fromString($value);
+            Url::fromString($value, allowLocalhost: $this->allowLocalhost);
         } catch (InvalidUrl) {
             return false;
         }

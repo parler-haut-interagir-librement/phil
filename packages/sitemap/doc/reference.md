@@ -12,7 +12,7 @@
 
 | Rule | |
 |---|---|
-| An address — page, alternate, image, file | absolute, HTTP or HTTPS, 2048 characters at most, read by phil/url as a browser reads it; no user name or password, no IP address, no host of a single name such as `localhost`; kept in its canonical form |
+| An address — page, alternate, image, file | absolute, HTTP or HTTPS, 2048 characters at most, read by phil/url as a browser reads it; no user name or password, no IP address, no host of a single name; `localhost` and `.localhost` only with `allowLocalhost: true`; kept in its canonical form |
 | A priority | 0.0 to 1.0, in steps of 0.1, written with one decimal |
 | A page's images | 1000 at most |
 | A `hreflang` | a language, maybe followed by a script or a region — `fr`, `fr-CA`, `zh-Hant-TW` — or `x-default`; `fr_CA` is written `fr-CA` |
@@ -22,8 +22,9 @@ Search engines expect a page's alternates to list every language of the page, it
 `Url::$loc`, `Alternate::$href` and `Image::$loc` hold the address as phil/url writes it: `HTTPS://Example.COM/a/../b`
 is `https://example.com/b`, `https://bücher.example/` is `https://xn--bcher-kva.example/`. An address with a user name
 is refused, since `https://example.com@evil.example/` leads to evil.example; so is one whose host is an IP address or
-a single name, which no search engine reaches. On a development machine, name the site under `.localhost`,
-`http://app.localhost:8000`, rather than `http://localhost:8000`.
+a single name, which no search engine reaches, `localhost` and the names under `.localhost` included. On a development
+machine and in tests, pass `allowLocalhost: true` to `Url`, `Alternate`, `Image` and `XmlWriter::index()`: they then
+take `http://localhost:8000/` and `http://app.localhost/`, never `http://127.0.0.1/`.
 
 ## Sections and files
 

@@ -31,15 +31,16 @@ final class PhilSitemapBundleTest extends TestCase
 
         self::assertSame('phil_sitemap', $this->extension()->getAlias());
         self::assertSame(['service_container', RouteUrlProvider::class, Sitemaps::class, SitemapController::class, DumpSitemapsCommand::class], array_keys($container->getDefinitions()));
-        self::assertEquals([new Reference('router'), new Reference('clock'), 'default', ['priority' => null, 'changefreq' => null, 'lastmod' => null]], $container->getDefinition(RouteUrlProvider::class)->getArguments());
+        self::assertEquals([new Reference('router'), new Reference('clock'), 'default', ['priority' => null, 'changefreq' => null, 'lastmod' => null], false], $container->getDefinition(RouteUrlProvider::class)->getArguments());
         self::assertSame([[]], $container->getDefinition(RouteUrlProvider::class)->getTag(SitemapServices::PROVIDER_TAG));
         self::assertEquals([new TaggedIteratorArgument(SitemapServices::PROVIDER_TAG), new Reference('event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(Sitemaps::class)->getArguments());
         self::assertTrue($container->getDefinition(Sitemaps::class)->isPublic());
-        self::assertEquals([new Reference(Sitemaps::class), new Reference('router'), 50000, 3600], $container->getDefinition(SitemapController::class)->getArguments());
+        self::assertEquals([new Reference(Sitemaps::class), new Reference('router'), 50000, 3600, false], $container->getDefinition(SitemapController::class)->getArguments());
         self::assertTrue($container->getDefinition(SitemapController::class)->isPublic());
         self::assertTrue($container->getDefinition(SitemapController::class)->hasTag('controller.service_arguments'));
-        self::assertEquals([new Reference(Sitemaps::class), new Reference('router.request_context'), '%kernel.project_dir%/public', 50000], $container->getDefinition(DumpSitemapsCommand::class)->getArguments());
+        self::assertEquals([new Reference(Sitemaps::class), new Reference('router.request_context'), '%kernel.project_dir%/public', 50000, false], $container->getDefinition(DumpSitemapsCommand::class)->getArguments());
         self::assertTrue($container->getDefinition(DumpSitemapsCommand::class)->hasTag('console.command'));
+        self::assertFalse($container->getParameter('phil_sitemap.allow_localhost'));
         self::assertSame([['after' => RouteUrlProvider::class]], $container->getAutoconfiguredInstanceof()[UrlProvider::class]->getTag(SitemapServices::PROVIDER_TAG));
         self::assertSame(['phil_sitemap.url_provider', 50000, ['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never']], [SitemapServices::PROVIDER_TAG, SitemapServices::MAX_PER_FILE, SitemapServices::CHANGE_FREQUENCIES]);
     }
@@ -52,11 +53,13 @@ final class PhilSitemapBundleTest extends TestCase
             'dump_directory' => '/var/www/public',
             'cache_max_age' => 0,
             'defaults' => ['priority' => 1.0, 'changefreq' => 'daily', 'lastmod' => 'now'],
+            'allow_localhost' => true,
         ]);
+        self::assertSame([true, true, true], [$container->getParameter('phil_sitemap.allow_localhost'), $container->getDefinition(SitemapController::class)->getArgument(4), $container->getDefinition(DumpSitemapsCommand::class)->getArgument(4)]);
         self::assertSame(0, $container->getDefinition(SitemapController::class)->getArgument(3));
         self::assertSame(['priority' => 0.7, 'lastmod' => '2026-11-01', 'changefreq' => null], $this->load(['defaults' => ['priority' => 0.7, 'lastmod' => '2026-11-01']])->getDefinition(RouteUrlProvider::class)->getArgument(3));
 
-        self::assertEquals([new Reference('router'), new Reference('clock'), 'main', ['priority' => 1.0, 'changefreq' => 'daily', 'lastmod' => 'now']], $container->getDefinition(RouteUrlProvider::class)->getArguments());
+        self::assertEquals([new Reference('router'), new Reference('clock'), 'main', ['priority' => 1.0, 'changefreq' => 'daily', 'lastmod' => 'now'], true], $container->getDefinition(RouteUrlProvider::class)->getArguments());
         self::assertSame([1, '/var/www/public'], [$container->getDefinition(SitemapController::class)->getArgument(2), $container->getDefinition(DumpSitemapsCommand::class)->getArgument(2)]);
         self::assertSame(1, $container->getDefinition(DumpSitemapsCommand::class)->getArgument(3));
         $defaults = $this->load(['defaults' => ['priority' => 0.0]])->getDefinition(RouteUrlProvider::class)->getArgument(3);

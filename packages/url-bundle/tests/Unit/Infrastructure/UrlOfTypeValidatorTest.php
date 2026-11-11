@@ -55,6 +55,38 @@ final class UrlOfTypeValidatorTest extends ConstraintValidatorTestCase
         $this->assertNoViolation();
     }
 
+    public function testLocalhostIsValidOnlyWhenAllowed(): void
+    {
+        $this->validate('http://localhost:8000/', new UrlOfType());
+
+        $this->buildViolation('This value is not a valid web address.')
+            ->setParameter('{{ value }}', '"http://localhost:8000/"')
+            ->setCode(UrlOfType::INVALID_ERROR)
+            ->assertRaised();
+    }
+
+    public function testLocalhostIsValidWhenAllowed(): void
+    {
+        $this->validator = new UrlOfTypeValidator(allowLocalhost: true);
+
+        $this->validate('http://localhost:8000/', new UrlOfType());
+        $this->validate('https://app.localhost/', new UrlOfType());
+
+        $this->assertNoViolation();
+    }
+
+    public function testAllowingLocalhostKeepsTheLoopbackAddressInvalid(): void
+    {
+        $this->validator = new UrlOfTypeValidator(allowLocalhost: true);
+
+        $this->validate('http://127.0.0.1/', new UrlOfType());
+
+        $this->buildViolation('This value is not a valid web address.')
+            ->setParameter('{{ value }}', '"http://127.0.0.1/"')
+            ->setCode(UrlOfType::INVALID_ERROR)
+            ->assertRaised();
+    }
+
     public function testAnAddressOfAnotherKindIsNot(): void
     {
         $this->validate('https://example.com/', new UrlOfType([KnownUrlType::Facebook, RegistryUrlType::Registry]));

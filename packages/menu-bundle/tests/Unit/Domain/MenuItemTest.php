@@ -202,6 +202,27 @@ final class MenuItemTest extends TestCase
         MenuItem::of('a', 'A')->withUrl($url);
     }
 
+    public function testLocalhostIsAnAddressOnlyWhenAllowed(): void
+    {
+        foreach (['http://localhost:8000/games', '//app.localhost/games'] as $url) {
+            try {
+                MenuItem::of('a', 'A')->withUrl($url);
+                self::fail($url.' was taken.');
+            } catch (InvalidMenu) {
+            }
+
+            self::assertSame($url, MenuItem::of('a', 'A')->withUrl($url, allowLocalhost: true)->url);
+        }
+
+        foreach (['http://127.0.0.1/', 'http://localhostx/', 'http://intranet/'] as $url) {
+            try {
+                MenuItem::of('a', 'A')->withUrl($url, allowLocalhost: true);
+                self::fail($url.' was taken.');
+            } catch (InvalidMenu) {
+            }
+        }
+    }
+
     public function testAttributeNamesAreChecked(): void
     {
         self::assertSame(['data-sort' => 'a', 'aria-label' => 'b', 'xml:lang' => 'c', 'x.y_z' => 'd', 'don' => 'e'], MenuItem::of('a', 'A')->withAttribute('data-sort', 'a')->withAttribute('aria-label', 'b')->withAttribute('xml:lang', 'c')->withAttribute('x.y_z', 'd')->withAttribute('don', 'e')->attributes);

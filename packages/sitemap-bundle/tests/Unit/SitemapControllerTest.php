@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\SitemapBundle\Tests\Unit;
 
 use DateTimeImmutable;
+use Phil\Sitemap\InvalidSitemap;
 use Phil\Sitemap\Url;
 use Phil\Sitemap\UrlContainer;
 use Phil\Sitemap\UrlProvider;
@@ -58,6 +59,26 @@ final class SitemapControllerTest extends TestCase
 
         self::assertSame(Response::HTTP_NOT_MODIFIED, $response->getStatusCode());
         self::assertSame('', $response->getContent());
+    }
+
+    public function testAnIndexOnLocalhostIsServedOnlyWhenAllowed(): void
+    {
+        $pages = new class implements UrlProvider {
+            public function provide(UrlContainer $urls, ?string $section): void
+            {
+                $urls->add(new Url('https://example.com/a'), 'news');
+            }
+        };
+        $router = self::createStub(UrlGeneratorInterface::class);
+        $router->method('generate')->willReturnCallback(static fn (string $route, array $parameters): string => \sprintf('http://localhost/sitemap.%s.xml', \is_string($parameters['name'] ?? null) ? $parameters['name'] : ''));
+
+        try {
+            new SitemapController(new Sitemaps([$pages]), $router, 50000, 0)->index(Request::create('/sitemap.xml'));
+            self::fail('An index on localhost was served.');
+        } catch (InvalidSitemap) {
+        }
+
+        self::assertStringContainsString('<loc>http://localhost/sitemap.news.xml</loc>', (string) new SitemapController(new Sitemaps([$pages]), $router, 50000, 0, true)->index(Request::create('/sitemap.xml'))->getContent());
     }
 
     public function testAPartTheSectionDoesNotHaveIsNotFound(): void

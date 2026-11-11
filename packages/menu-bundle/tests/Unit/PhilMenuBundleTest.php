@@ -40,5 +40,16 @@ final class PhilMenuBundleTest extends TestCase
         self::assertSame(['phil_menu.builder' => [[]]], $autoconfigured[MenuBuilder::class]->getTags());
         self::assertSame(['phil_menu.decorator' => [[]]], $autoconfigured[MenuDecorator::class]->getTags());
         self::assertSame(['phil_menu.builder', 'phil_menu.decorator'], [PhilMenuBundle::BUILDER_TAG, PhilMenuBundle::DECORATOR_TAG]);
+        self::assertFalse($container->getParameter('phil_menu.allow_localhost'));
+    }
+
+    public function testLocalhostIsAllowedByTheConfiguration(): void
+    {
+        $extension = new PhilMenuBundle()->getContainerExtension();
+        self::assertNotNull($extension);
+        $container = new ContainerBuilder();
+        $extension->load([['allow_localhost' => true]], $container);
+
+        self::assertTrue($container->getParameter('phil_menu.allow_localhost'));
     }
 }

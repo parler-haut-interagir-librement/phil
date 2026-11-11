@@ -22,5 +22,25 @@ return [
 ];
 ```
 
-The bundle has no configuration key. With DoctrineBundle, it registers the column type `phil_url`; with Twig, its
-extension; the messages come in English and French.
+With DoctrineBundle, the bundle registers the column type `phil_url`; with Twig, its extension; the messages come in
+English and French.
+
+## Configuration
+
+One key: `allow_localhost`, `false` by default. `localhost` and the names under `.localhost` name the loopback
+address, so the form type, the constraint `UrlOfType`, the column type and the Twig extension refuse them, as
+`phil/url` does. An application allows them in development and in its tests only:
+
+```yaml
+# config/packages/phil_url.yaml
+when@dev:
+    phil_url:
+        allow_localhost: true
+
+when@test:
+    phil_url:
+        allow_localhost: true
+```
+
+Allowed, `http://localhost:8000/` and `https://app.localhost/` are addresses; `http://127.0.0.1/`, any other single
+name and a user name stay refused. The value is also the container parameter `phil_url.allow_localhost`.

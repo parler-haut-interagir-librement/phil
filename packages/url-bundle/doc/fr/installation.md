@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b9f8192fe3eab869e540d8142febd5f14b06cc2bf36ef7e4121d0e2042e9068c -->
+<!-- phil-dev source-sha256=adc179c487edbfb03d96f831e827d9930d5f24cf823ce73c6d06bfce1c0a5d82 -->
 # Installation
 
 | Prérequis | Version | Pourquoi |
@@ -23,5 +23,26 @@ return [
 ];
 ```
 
-Le bundle n'a aucune clé de configuration. Avec DoctrineBundle, il enregistre le type de colonne `phil_url` ; avec
-Twig, son extension ; les messages sont fournis en anglais et en français.
+Avec DoctrineBundle, le bundle enregistre le type de colonne `phil_url` ; avec Twig, son extension ; les messages sont
+fournis en anglais et en français.
+
+## Configuration
+
+Une seule clé : `allow_localhost`, `false` par défaut. `localhost` et les noms sous `.localhost` nomment l'adresse de
+bouclage, de sorte que le type de formulaire, la contrainte `UrlOfType`, le type de colonne et l'extension Twig les
+refusent, comme le fait `phil/url`. Une application les permet en développement et dans ses tests seulement :
+
+```yaml
+# config/packages/phil_url.yaml
+when@dev:
+    phil_url:
+        allow_localhost: true
+
+when@test:
+    phil_url:
+        allow_localhost: true
+```
+
+Une fois permis, `http://localhost:8000/` et `https://app.localhost/` sont des adresses ; `http://127.0.0.1/`, tout
+autre nom seul et un nom d'utilisateur restent refusés. La valeur est aussi le paramètre de conteneur
+`phil_url.allow_localhost`.

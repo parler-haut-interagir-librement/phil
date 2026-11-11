@@ -140,10 +140,9 @@ final class SitemapBundleTest extends WebTestCase
         self::assertSame(1, $code, $written);
         self::assertStringContainsString('framework.router.default_uri', $written);
         self::assertDirectoryDoesNotExist($directory);
-        // A base URL does not move the pages: still on the router's http://localhost, they are refused, and nothing is written.
-        self::assertSame(1, $application->run(new ArrayInput(['command' => 'phil:sitemap:dump', 'directory' => $directory, '--base-url' => 'http://app.localhost:8000']), $output = new BufferedOutput()));
-        self::assertStringContainsString('isanabsoluteHTTPorHTTPSURL', $this->withoutSpaces($output));
-        self::assertDirectoryDoesNotExist($directory);
+        // A development machine allows localhost: a base URL there makes the dump.
+        self::assertSame(0, $application->run(new ArrayInput(['command' => 'phil:sitemap:dump', 'directory' => $directory, '--base-url' => 'http://localhost:8000']), new BufferedOutput()));
+        self::assertStringContainsString('<loc>http://localhost:8000/sitemap.default.xml</loc>', (string) file_get_contents($directory.'/sitemap.xml'));
 
         new Filesystem()->remove($directory);
     }

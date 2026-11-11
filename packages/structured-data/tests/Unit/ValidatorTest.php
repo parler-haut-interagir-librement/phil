@@ -168,6 +168,21 @@ final class ValidatorTest extends TestCase
         yield 'an unchecked property' => ['name', 'next Tuesday', null];
     }
 
+    public function testLocalhostIsAnAddressOnlyWhenAllowed(): void
+    {
+        $codes = static fn (Validator $validator, string $url): array => array_map(static fn (Issue $issue): string => $issue->code, $validator->validate(Graph::of(Node::of('Thing', ['url' => $url])))->issues);
+
+        foreach (['http://localhost:8000/a', 'https://app.localhost/a'] as $url) {
+            self::assertSame(['invalid-url'], $codes(new Validator([]), $url), $url);
+            self::assertSame([], $codes(new Validator([], allowLocalhost: true), $url), $url);
+            self::assertSame([], $codes(new Validator([], allowLocalhost: true)->withRules(), $url), $url);
+        }
+
+        foreach (['http://127.0.0.1/a', 'http://localhostx/a', 'http://intranet/a'] as $url) {
+            self::assertSame(['invalid-url'], $codes(new Validator([], allowLocalhost: true), $url), $url);
+        }
+    }
+
     #[DataProvider('values')]
     public function testValuesAreReadInTheirFormat(string $property, mixed $value, ?string $code): void
     {

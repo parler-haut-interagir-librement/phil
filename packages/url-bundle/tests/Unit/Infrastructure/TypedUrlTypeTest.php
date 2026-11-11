@@ -56,6 +56,30 @@ final class TypedUrlTypeTest extends TestCase
         self::assertNull($form->getData());
     }
 
+    public function testLocalhostIsTakenOnlyWhenAllowed(): void
+    {
+        $refused = $this->forms()->create(TypedUrlType::class);
+        $refused->submit('http://localhost:8000/shop');
+        self::assertFalse($refused->isValid());
+
+        $allowed = Forms::createFormFactoryBuilder()->addType(new TypedUrlType(allowLocalhost: true))->getFormFactory();
+        $form = $allowed->create(TypedUrlType::class);
+        $form->submit('http://localhost:8000/shop');
+        self::assertSame([KnownUrlType::Website, 'http://localhost:8000/shop'], [$form->getData()?->type, $form->getData()?->url->toString()]);
+
+        $loopback = $allowed->create(TypedUrlType::class);
+        $loopback->submit('http://127.0.0.1/');
+        self::assertFalse($loopback->isValid());
+
+        self::assertSame('https://app.localhost/', new TypedUrlTransformer([EnumSet::all(KnownUrlType::class)], allowLocalhost: true)->reverseTransform('https://app.localhost/')?->url->toString());
+
+        try {
+            new TypedUrlTransformer([EnumSet::all(KnownUrlType::class)])->reverseTransform('https://app.localhost/');
+            self::fail('A localhost address was taken by default.');
+        } catch (TransformationFailedException) {
+        }
+    }
+
     public function testTheTransformer(): void
     {
         $transformer = new TypedUrlTransformer([EnumSet::of(KnownUrlType::class, KnownUrlType::X)]);

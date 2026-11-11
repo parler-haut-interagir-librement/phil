@@ -27,6 +27,15 @@ final class UrlExtensionTest extends TestCase
         self::assertSame('', $extension->display(''));
     }
 
+    public function testLocalhostIsReadOnlyWhenAllowed(): void
+    {
+        self::assertSame('http://localhost:8000/', new UrlExtension()->display('http://localhost:8000/'));
+        self::assertNull(new UrlExtension()->type('http://localhost:8000/'));
+        self::assertSame('localhost:8000', new UrlExtension(allowLocalhost: true)->display('http://localhost:8000/'));
+        self::assertSame(KnownUrlType::Website, new UrlExtension(allowLocalhost: true)->type('https://app.localhost/'));
+        self::assertNull(new UrlExtension(allowLocalhost: true)->type('http://127.0.0.1/'));
+    }
+
     public function testTheKindOfAnAddressIsFound(): void
     {
         $extension = new UrlExtension();

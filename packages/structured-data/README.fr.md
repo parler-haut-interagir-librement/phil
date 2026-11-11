@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=978be7ba328bbcff53d48497cb02c6bca81d13fd144782074f245d3eb92d8a2b -->
+<!-- phil-dev source-sha256=fcbe44baefbfa942d8a51007a1aaf8f33bd5e14fdacd956376ebca2da577b02e -->
 # phil/structured-data
 
 **Le graphe schema.org d'une page sous forme de valeurs : des nœuds venus de toutes les parties d'un site, fusionnés
@@ -66,7 +66,7 @@ echo JsonLd::script($graph);
 
 ## Prérequis
 
-PHP 8.5 ou plus récent, avec les extensions DOM, JSON et libxml ; `phil/url` 0.1.2, qui requiert les extensions intl,
+PHP 8.5 ou plus récent, avec les extensions DOM, JSON et libxml ; `phil/url` 0.1.3, qui requiert les extensions intl,
 mbstring et URI.
 
 ## Contribuer

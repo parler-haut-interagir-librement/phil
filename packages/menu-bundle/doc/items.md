@@ -26,7 +26,8 @@ page, `#top`, `?page=2` — or has one of the schemes `http`, `https`, `mailto` 
 any other scheme are refused, and so is an address with a space or a control character, which browsers drop from a
 scheme before they read it. An address of the web, `https://…` or `//…`, is read by phil/url as a browser reads it:
 one with a user name or a password, `https://example.com@evil.example/`, which leads to evil.example, or whose host is
-an IP address, is refused. So is a backslash anywhere, which a browser reads as a slash: `/\evil.example` leads off
+an IP address, is refused, and so is one on `localhost` or under `.localhost` unless `allowLocalhost` is `true`, in
+development and tests ([configuration](installation.md#configuration)). So is a backslash anywhere, which a browser reads as a slash: `/\evil.example` leads off
 the site. An attribute's name is a letter, then up to 99 letters, digits, `_`, `-`, `.` and `:`, and
 does not start with `on`, as every event handler does.
 

@@ -19,7 +19,7 @@ use Symfony\Component\DependencyInjection\Reference;
  * The services of the sitemap: the providers, tagged — the routes' own first —, the builder, the controller and the
  * dump command.
  *
- * @phpstan-type SitemapConfig array{default_section: string, items_by_set: int, dump_directory: string, cache_max_age: int, route_options: bool, defaults: array{priority: ?float, changefreq: ?string, lastmod: ?string}}
+ * @phpstan-type SitemapConfig array{default_section: string, items_by_set: int, dump_directory: string, cache_max_age: int, route_options: bool, defaults: array{priority: ?float, changefreq: ?string, lastmod: ?string}, allow_localhost: bool}
  */
 final class SitemapServices
 {
@@ -35,13 +35,16 @@ final class SitemapServices
      */
     public static function register(ContainerBuilder $container, array $config): void
     {
+        // The providers of the application read it too, to make their pages on localhost in development.
+        $container->setParameter('phil_sitemap.allow_localhost', $config['allow_localhost']);
+
         // The pages of the routes come first: every provider of the application runs after them. The constraint is
         // ignored when `route_options` is off and no route provider is registered.
         $container->registerForAutoconfiguration(UrlProvider::class)->addTag(self::PROVIDER_TAG, ['after' => RouteUrlProvider::class]);
 
         if ($config['route_options']) {
             $container->register(RouteUrlProvider::class, RouteUrlProvider::class)
-                ->setArguments([new Reference('router'), new Reference('clock'), $config['default_section'], $config['defaults']])
+                ->setArguments([new Reference('router'), new Reference('clock'), $config['default_section'], $config['defaults'], $config['allow_localhost']])
                 ->addTag(self::PROVIDER_TAG);
         }
 
@@ -50,12 +53,12 @@ final class SitemapServices
             ->setPublic(true);
 
         $container->register(SitemapController::class, SitemapController::class)
-            ->setArguments([new Reference(Sitemaps::class), new Reference('router'), $config['items_by_set'], $config['cache_max_age']])
+            ->setArguments([new Reference(Sitemaps::class), new Reference('router'), $config['items_by_set'], $config['cache_max_age'], $config['allow_localhost']])
             ->setPublic(true)
             ->addTag('controller.service_arguments');
 
         $container->register(DumpSitemapsCommand::class, DumpSitemapsCommand::class)
-            ->setArguments([new Reference(Sitemaps::class), new Reference('router.request_context'), $config['dump_directory'], $config['items_by_set']])
+            ->setArguments([new Reference(Sitemaps::class), new Reference('router.request_context'), $config['dump_directory'], $config['items_by_set'], $config['allow_localhost']])
             ->addTag('console.command');
     }
 }

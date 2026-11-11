@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=949e72b1bafd19f8844c3531001006dad5917a670b5d65661e5afa94b19518bc -->
+<!-- phil-dev source-sha256=b7a19e522bff640b12a438ea1871354976700b47be5953c9563bddbecb2f598d -->
 # phil/sitemap
 
 **Le plan de site XML des moteurs de recherche, construit à partir de pages vérifiées et coupé aux limites du
@@ -62,7 +62,7 @@ rassemble les fournisseurs, sert le plan de site et l'écrit dans des fichiers.
 
 ## Prérequis
 
-PHP 8.5 ou plus récent ; `phil/url` 0.1.2, qui requiert les extensions intl, mbstring et URI.
+PHP 8.5 ou plus récent ; `phil/url` 0.1.3, qui requiert les extensions intl, mbstring et URI.
 
 ## Contribuer
 

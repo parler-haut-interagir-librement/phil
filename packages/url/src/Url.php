@@ -21,7 +21,10 @@ use Uri\WhatWg\Url as WhatWgUrl;
  * The canonical form, escapes included, is 2048 characters at most.
  *
  * An address with a user name or a password is refused: it is a phishing device more often than a need. So is an
- * address whose host is an IP address, or port 0: a link on a public page names a host.
+ * address whose host is an IP address, or port 0: a link on a public page names a host. So is `localhost`, and any
+ * name under `.localhost`, which RFC 6761 keeps for the loopback address — unless the caller allows them, as an
+ * application does in development and in its tests: `Url::fromString($text, allowLocalhost: true)`. Even then, an IP
+ * address and any other single name stay refused.
  */
 final readonly class Url implements Stringable
 {
@@ -37,7 +40,11 @@ final readonly class Url implements Stringable
     ) {
     }
 
-    public static function fromString(string $text): self
+    /**
+     * @param bool $allowLocalhost whether `localhost` and the names under `.localhost` are hosts, for development and
+     *                             tests; refused by default
+     */
+    public static function fromString(string $text, bool $allowLocalhost = false): self
     {
         $text = trim($text);
 
@@ -70,7 +77,7 @@ final readonly class Url implements Stringable
 
         $url = new self(
             $parsed->getScheme(),
-            self::checkedHost((string) $parsed->getAsciiHost()),
+            self::checkedHost((string) $parsed->getAsciiHost(), $allowLocalhost),
             $port,
             $parsed->getPath(),
             self::nonEmpty($parsed->getQuery()),
@@ -185,15 +192,20 @@ final readonly class Url implements Stringable
     /**
      * A host name: labels joined by dots, two at least, the last — the top-level domain — not all digits, which
      * leaves out IPv4 addresses (`192.168.0.1`) and their short forms (`127.1`); an IPv6 address has no such labels.
-     * One trailing dot, the root of a fully qualified name, is dropped; a second one is an empty label.
+     * One trailing dot, the root of a fully qualified name, is dropped; a second one is an empty label. `localhost`
+     * and the names under `.localhost` are hosts only when allowed; `localhost` is then the one single name accepted.
      */
-    private static function checkedHost(string $host): string
+    private static function checkedHost(string $host, bool $allowLocalhost): string
     {
         $name = str_ends_with($host, '.') ? substr($host, 0, -1) : $host;
         // ICU refuses an empty name with a ValueError, not with false: `https://.` must end in InvalidUrl too.
         $ascii = '' === $name ? false : idn_to_ascii($name, \IDNA_NONTRANSITIONAL_TO_ASCII, \INTL_IDNA_VARIANT_UTS46);
 
-        if (false === $ascii || 1 !== preg_match('/^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/', $ascii) || 1 === preg_match('/\.[0-9]+$/', $ascii)) {
+        if ($allowLocalhost && 'localhost' === $ascii) {
+            return $ascii;
+        }
+
+        if (false === $ascii || (!$allowLocalhost && str_ends_with($ascii, '.localhost')) || 1 !== preg_match('/^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/', $ascii) || 1 === preg_match('/\.[0-9]+$/', $ascii)) {
             throw InvalidUrl::host($host);
         }
 

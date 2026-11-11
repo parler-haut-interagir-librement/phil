@@ -61,6 +61,10 @@ articles; `AboutPage`, `CollectionPage`, `ContactPage`, `ItemPage` and `ProfileP
 Only texts are checked: a node in `image` or `logo`, a number, a `LanguageString` are left alone. Each wrong value is
 an error.
 
+An address on `localhost` or under `.localhost` is an `invalid-url` too, since no search engine reaches it. A page
+validated in development or in tests allows them: `new Validator(allowLocalhost: true)`, kept by `withRules()`. An IP
+address, `http://127.0.0.1/`, stays invalid.
+
 ## References and types
 
 A reference to a node the graph lacks is a warning, `unresolved-reference`: it may name a thing described elsewhere,

@@ -4,6 +4,19 @@ All notable changes to `phil/url-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.1.1-alpha - 2026-11-11
+
+### Added
+
+- The configuration key `phil_url.allow_localhost`, `false` by default, also a container parameter: `true`, in
+  development and tests, lets `TypedUrlType`, `UrlOfTypeValidator`, `UrlColumnType` and `UrlExtension` read
+  `localhost` and the names under `.localhost`; an IP address and any other single name stay refused. Each takes it as
+  `allowLocalhost`, `TypedUrlTransformer` too; `UrlColumnType::allowLocalhost()` is set when the bundle boots.
+
+### Changed
+
+- The package requires `phil/url` 0.1.3, which refuses the names under `.localhost` unless allowed.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

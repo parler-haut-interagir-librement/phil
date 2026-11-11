@@ -21,10 +21,19 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 final class TypedUrlType extends AbstractType
 {
+    /**
+     * @param bool $allowLocalhost whether `localhost` and the names under `.localhost` are read as addresses, in
+     *                             development and tests: `phil_url.allow_localhost`
+     */
+    public function __construct(
+        private readonly bool $allowLocalhost = false,
+    ) {
+    }
+
     #[Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder->addModelTransformer(new TypedUrlTransformer(AcceptedUrlTypes::sets($options['types'])));
+        $builder->addModelTransformer(new TypedUrlTransformer(AcceptedUrlTypes::sets($options['types']), $this->allowLocalhost));
     }
 
     #[Override]

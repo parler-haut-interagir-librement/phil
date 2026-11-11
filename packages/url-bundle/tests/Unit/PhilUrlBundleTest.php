@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phil\UrlBundle\Tests\Unit;
 
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\DoctrineExtension;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Types\Exception\ValueNotConvertible;
 use Phil\UrlBundle\Infrastructure\Doctrine\UrlColumnType;
 use Phil\UrlBundle\Infrastructure\Form\TypedUrlType;
 use Phil\UrlBundle\Infrastructure\Twig\UrlExtension;
@@ -33,6 +35,67 @@ final class PhilUrlBundleTest extends TestCase
         self::assertTrue($container->getDefinition(UrlOfTypeValidator::class)->hasTag('validator.constraint_validator'));
         self::assertTrue($container->getDefinition(UrlExtension::class)->hasTag('twig.attribute_extension'));
         self::assertTrue($container->getDefinition(UrlExtension::class)->hasTag('twig.runtime'));
+    }
+
+    public function testLocalhostIsRefusedUnlessTheConfigurationAllowsIt(): void
+    {
+        $default = $this->load([]);
+        $allowed = $this->load([['allow_localhost' => true]]);
+
+        self::assertFalse($default->getParameter('phil_url.allow_localhost'));
+        self::assertTrue($allowed->getParameter('phil_url.allow_localhost'));
+
+        foreach ([TypedUrlType::class, UrlOfTypeValidator::class, UrlExtension::class] as $service) {
+            self::assertSame(['$allowLocalhost' => '%phil_url.allow_localhost%'], $allowed->getDefinition($service)->getArguments(), $service);
+        }
+    }
+
+    public function testTheColumnTypeReadsLocalhostAsTheConfigurationSays(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('phil_url.allow_localhost', true);
+
+        $bundle = new PhilUrlBundle();
+        $bundle->setContainer($container);
+
+        try {
+            $bundle->boot();
+            self::assertSame('http://localhost/', new UrlColumnType()->convertToPHPValue('http://localhost/', new PostgreSQLPlatform())?->toString());
+        } finally {
+            UrlColumnType::allowLocalhost(false);
+        }
+    }
+
+    public function testWithoutTheParameterTheColumnTypeRefusesLocalhost(): void
+    {
+        $type = new UrlColumnType();
+        $refused = 0;
+
+        foreach ([new ContainerBuilder(), $this->containerAllowing(false)] as $container) {
+            UrlColumnType::allowLocalhost(true);
+            $bundle = new PhilUrlBundle();
+            $bundle->setContainer($container);
+            $bundle->boot();
+
+            try {
+                $type->convertToPHPValue('http://localhost/', new PostgreSQLPlatform());
+                self::fail('A localhost address was read.');
+            } catch (ValueNotConvertible) {
+                ++$refused;
+            } finally {
+                UrlColumnType::allowLocalhost(false);
+            }
+        }
+
+        self::assertSame(2, $refused);
+    }
+
+    private function containerAllowing(bool $value): ContainerBuilder
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('phil_url.allow_localhost', $value);
+
+        return $container;
     }
 
     public function testTheColumnTypeIsPrependedToDoctrine(): void

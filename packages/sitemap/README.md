@@ -56,7 +56,7 @@ providers, serves the sitemap and writes it as files.
 
 ## Requirements
 
-PHP 8.5 or later; `phil/url` 0.1.2, which requires the intl, mbstring and URI extensions.
+PHP 8.5 or later; `phil/url` 0.1.3, which requires the intl, mbstring and URI extensions.
 
 ## Contributing
 

@@ -146,7 +146,9 @@ A price is best given as text with a dot, `'19.99'`: no rounding of a float chan
 checks the node at once with the [validator](validation.md): a node that lacks a required property, or holds a date,
 an address, a currency or a language in a form nobody reads — in itself or in a node it holds —, throws
 `InvalidStructuredData` with the errors, instead of reaching the page. The warnings, such as a recommended property
-missing or a reference to a node of another part of the page, are left to the validator of the whole graph.
+missing or a reference to a node of another part of the page, are left to the validator of the whole graph. An
+address on `localhost` or under `.localhost` is refused too; an application calls `Schema::allowLocalhost(true)` once
+in development and in its tests, and the factories then take it for every node built after.
 
 ```php
 use Phil\StructuredData\{Graph, JsonLd, Schema};

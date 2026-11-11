@@ -56,7 +56,7 @@ public ?string $social = null;
 
 ## Requirements
 
-PHP 8.5 or later; `phil/url` 0.1 and `phil/enums` 0.3; `symfony/config`, `symfony/dependency-injection`,
+PHP 8.5 or later; `phil/url` 0.1.3 and `phil/enums` 0.3; `symfony/config`, `symfony/dependency-injection`,
 `symfony/form`, `symfony/options-resolver` and `symfony/validator` 8.2 or later. Doctrine DBAL and Twig are optional.
 
 ## Contributing

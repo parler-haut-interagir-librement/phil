@@ -86,6 +86,8 @@ final class UrlTest extends TestCase
         yield 'a user' => ['https://ada@example.com/', 'A web address carries no user name nor password.'];
         yield 'a password' => ['https://:secret@example.com/', 'A web address carries no user name nor password.'];
         yield 'a bare name' => ['https://localhost/', '"localhost" is not a host name.'];
+        yield 'a name under localhost' => ['http://app.localhost:8000/', '"app.localhost" is not a host name.'];
+        yield 'localhost with a trailing dot' => ['http://localhost./', '"localhost." is not a host name.'];
         yield 'an IPv4 address' => ['http://192.168.0.1/', '"192.168.0.1" is not a host name.'];
         yield 'the loopback address' => ['http://127.0.0.1:8000/', '"127.0.0.1" is not a host name.'];
         yield 'a short IPv4 address' => ['http://127.1/', '"127.0.0.1" is not a host name.'];
@@ -123,6 +125,47 @@ final class UrlTest extends TestCase
         $this->expectExceptionMessageIsOrContains($message);
 
         Url::fromString($text);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function localhosts(): iterable
+    {
+        yield 'localhost' => ['http://localhost:8000/a', 'http://localhost:8000/a'];
+        yield 'localhost in capitals, a trailing dot' => ['HTTP://LocalHost./', 'http://localhost/'];
+        yield 'a name under localhost' => ['https://app.localhost/', 'https://app.localhost/'];
+        yield 'names under localhost' => ['https://shop.app.Localhost:8443/', 'https://shop.app.localhost:8443/'];
+    }
+
+    #[DataProvider('localhosts')]
+    public function testLocalhostIsAcceptedWhenAllowed(string $text, string $written): void
+    {
+        self::assertSame($written, Url::fromString($text, allowLocalhost: true)->toString());
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function notLocalhost(): iterable
+    {
+        yield 'the loopback address' => ['http://127.0.0.1/', '"127.0.0.1" is not a host name.'];
+        yield 'the IPv6 loopback address' => ['http://[::1]/', '"[::1]" is not a host name.'];
+        yield 'a name that starts like localhost' => ['http://localhostx/', '"localhostx" is not a host name.'];
+        yield 'a name that ends like localhost' => ['http://mylocalhost/', '"mylocalhost" is not a host name.'];
+        yield 'another bare name' => ['http://intranet/', '"intranet" is not a host name.'];
+        yield 'an empty label under localhost' => ['http://.localhost/', '".localhost" is not a host name.'];
+        yield 'an underscore under localhost' => ['http://my_app.localhost/', '"my_app.localhost" is not a host name.'];
+        yield 'a user' => ['http://ada@localhost/', 'A web address carries no user name nor password.'];
+    }
+
+    #[DataProvider('notLocalhost')]
+    public function testAllowingLocalhostAllowsNothingElse(string $text, string $message): void
+    {
+        $this->expectException(InvalidUrl::class);
+        $this->expectExceptionMessageIsOrContains($message);
+
+        Url::fromString($text, allowLocalhost: true);
     }
 
     public function testAnAddressHas2048CharactersAtMost(): void

@@ -50,14 +50,16 @@ final class XmlWriter
     }
 
     /**
-     * @param array<string, list<Url>> $files the pages of each file, by the address the file is served at
+     * @param array<string, list<Url>> $files          the pages of each file, by the address the file is served at
+     * @param bool                     $allowLocalhost whether those addresses may be on `localhost` or under
+     *                                                 `.localhost`, in development and tests
      */
-    public static function index(array $files): string
+    public static function index(array $files, bool $allowLocalhost = false): string
     {
         $xml = self::HEADER.'<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
 
         foreach ($files as $loc => $urls) {
-            $xml .= '  <sitemap>'."\n".'    <loc>'.self::text(Location::check($loc, 'A sitemap file')).'</loc>'."\n";
+            $xml .= '  <sitemap>'."\n".'    <loc>'.self::text(Location::check($loc, 'A sitemap file', $allowLocalhost)).'</loc>'."\n";
             $lastmod = self::lastModified($urls);
 
             if ($lastmod instanceof DateTimeImmutable) {

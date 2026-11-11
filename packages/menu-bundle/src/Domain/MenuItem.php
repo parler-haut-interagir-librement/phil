@@ -76,8 +76,10 @@ final readonly class MenuItem
      * An address of the web, `https://…` or `//…`, is read by phil/url as a browser reads it: one with a user name or
      * a password, `https://example.com@evil.example/`, which leads to evil.example, or whose host is an IP address, is
      * refused. So is a backslash anywhere: a browser reads it as a slash, and `/\evil.example` leads off the site.
+     * `localhost` and the names under `.localhost` are refused too, unless `$allowLocalhost`, in development and tests:
+     * the bundle's `phil_menu.allow_localhost` parameter.
      */
-    public function withUrl(string $url): self
+    public function withUrl(string $url, bool $allowLocalhost = false): self
     {
         if ('' === $url || 1 === preg_match('/[\x00-\x20\x7F]/', $url)) {
             throw InvalidMenu::because(\sprintf('The address of the menu item "%s" is empty or holds a space or a control character.', $this->key));
@@ -87,7 +89,7 @@ final readonly class MenuItem
             throw InvalidMenu::because(\sprintf('The address of the menu item "%s" is on the site, or its scheme is one of %s: "%s" is not.', $this->key, implode(', ', self::SCHEMES), substr($scheme[1], 0, 20)));
         }
 
-        if (str_contains($url, '\\') || !$this->isReadable($url)) {
+        if (str_contains($url, '\\') || !$this->isReadable($url, $allowLocalhost)) {
             throw InvalidMenu::because(\sprintf('The address of the menu item "%s" is not an address of the web or of the site: "%s".', $this->key, mb_substr($url, 0, 200)));
         }
 
@@ -98,7 +100,7 @@ final readonly class MenuItem
      * Whether an address of the web — `http:`, `https:`, or `//` and a host — is one phil/url reads; any other is a
      * path of the site, a reference relative to the page, or a `mailto:` or `tel:` address.
      */
-    private function isReadable(string $url): bool
+    private function isReadable(string $url, bool $allowLocalhost): bool
     {
         $web = match (true) {
             str_starts_with($url, '//') => 'https:'.$url,
@@ -111,7 +113,7 @@ final readonly class MenuItem
         }
 
         try {
-            Url::fromString($web);
+            Url::fromString($web, allowLocalhost: $allowLocalhost);
         } catch (InvalidUrl) {
             return false;
         }

@@ -101,6 +101,25 @@ final class SchemaTest extends TestCase
         self::assertEquals($factory(), $schema());
     }
 
+    public function testAnAddressOnLocalhostIsRefusedUnlessAllowed(): void
+    {
+        try {
+            Schema::webSite('Example', 'http://localhost:8000/');
+            self::fail('A site on localhost was built.');
+        } catch (InvalidStructuredData) {
+        }
+
+        Schema::allowLocalhost(true);
+
+        try {
+            self::assertSame('https://app.localhost/', Schema::webSite('Example', 'https://app.localhost/')->get('url'));
+            $this->expectException(InvalidStructuredData::class);
+            Schema::webSite('Example', 'http://127.0.0.1/');
+        } finally {
+            Schema::allowLocalhost(false);
+        }
+    }
+
     public function testTheWarningsAreLeftToTheValidator(): void
     {
         $article = Schema::article('Only a headline', author: new Reference(self::BASE.'#nobody'));

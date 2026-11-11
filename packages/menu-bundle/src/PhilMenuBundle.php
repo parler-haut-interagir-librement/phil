@@ -9,6 +9,7 @@ use Phil\MenuBundle\Application\MenuBuilder;
 use Phil\MenuBundle\Application\MenuDecorator;
 use Phil\MenuBundle\Application\Menus;
 use Phil\MenuBundle\Infrastructure\Twig\MenuExtension;
+use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -30,12 +31,26 @@ final class PhilMenuBundle extends AbstractBundle
     #[Override]
     protected string $extensionAlias = 'phil_menu';
 
+    #[Override]
+    public function configure(DefinitionConfigurator $definition): void
+    {
+        $definition->rootNode()
+            ->children()
+                ->booleanNode('allow_localhost')
+                    ->info('Whether menu addresses may be on localhost or under .localhost: true in development and tests only.')
+                    ->defaultFalse()
+                ->end()
+            ->end();
+    }
+
     /**
      * @param array<array-key, mixed> $config
      */
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
+        // The builders of the application pass it to MenuItem::withUrl(), so that a menu links to localhost in development.
+        $container->parameters()->set('phil_menu.allow_localhost', true === $config['allow_localhost']);
         $builder->registerForAutoconfiguration(MenuBuilder::class)->addTag(self::BUILDER_TAG);
         $builder->registerForAutoconfiguration(MenuDecorator::class)->addTag(self::DECORATOR_TAG);
 

@@ -14,9 +14,16 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   (`https://127.0.0.1/`, `https://2130706433/`), a single name, an empty label (`https://example..com/`) or an
   escape (`https://%zz.example/`), or with port 0, is now an `invalid-url` error.
 
+### Added
+
+- `Validator`'s `allowLocalhost`, `false` by default, kept by `withRules()`: `true`, in development and tests, makes
+  an address on `localhost` or under `.localhost` valid; an IP address stays an `invalid-url`.
+- `Schema::allowLocalhost()`, for the factories: `true`, once in development and tests, lets the nodes built after
+  hold an address on `localhost` or under `.localhost`.
+
 ### Changed
 
-- The package requires `phil/url` 0.1.2.
+- The package requires `phil/url` 0.1.3.
 
 ## 0.1.0-alpha - 2026-11-11
 

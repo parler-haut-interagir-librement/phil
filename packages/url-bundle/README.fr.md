@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4cdb0562e2092756a397e6ca197f6775e5a8f4d83976bcdbb085bf4ab36d4dbc -->
+<!-- phil-dev source-sha256=f35bdec1e203cf496587262727a132767ef9220df566ae53cde5ec572739fa54 -->
 # phil/url-bundle
 
 **Des champs de lien qui détectent leur genre, une contrainte de validation, un type de colonne et des filtres Twig.**
@@ -58,7 +58,7 @@ public ?string $social = null;
 
 ## Prérequis
 
-PHP 8.5 ou plus récent ; `phil/url` 0.1 et `phil/enums` 0.3 ; `symfony/config`, `symfony/dependency-injection`,
+PHP 8.5 ou plus récent ; `phil/url` 0.1.3 et `phil/enums` 0.3 ; `symfony/config`, `symfony/dependency-injection`,
 `symfony/form`, `symfony/options-resolver` et `symfony/validator` 8.2 ou plus récent. Doctrine DBAL et Twig sont
 facultatifs.
 

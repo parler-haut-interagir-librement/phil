@@ -6,11 +6,25 @@ URL Standard, `Uri\WhatWg\Url`, then `Url` applies its own rules below.
 | Accepted | Refused |
 |---|---|
 | `http` and `https`, in any case | Any other scheme, an address without one, text around it |
-| A host name of labels joined by dots, international ones included | A bare name (`localhost`), an IP address (`http://192.168.0.1/`, `http://[::1]/`), a top-level domain of digits, an underscore, an empty label (`https://.`, `https://shop..example/`, `https://example.com../`), a label over 63 characters, a host over 253 |
+| A host name of labels joined by dots, international ones included | A bare name (`localhost`), a name under `.localhost` (`app.localhost`), an IP address (`http://192.168.0.1/`, `http://[::1]/`), a top-level domain of digits, an underscore, an empty label (`https://.`, `https://shop..example/`, `https://example.com../`), a label over 63 characters, a host over 253 |
 | A port from 1 to 65535, a path, a query, a fragment | Port 0, spaces, a user name or a password (`https://ada@…`, `https://@…`), a third slash or a backslash before the host (`https:///path`, `https://\example.com/`) |
 | 2048 characters at most, as written and once normalised | Longer: `<` written 1000 times becomes `%3C` 1000 times |
 
 Every refusal throws `InvalidUrl`, an `UrlException`.
+
+## Localhost in development and tests
+
+RFC 6761 keeps `localhost` and every name under `.localhost` for the loopback address, which no public page links
+to: they are refused by default. An application in development, or its tests, allows them by a named argument:
+
+```php
+Url::fromString('http://localhost:8000/', allowLocalhost: true);      // http://localhost:8000/
+Url::fromString('https://shop.app.localhost/', allowLocalhost: true); // https://shop.app.localhost/
+```
+
+Allowed, `localhost` is the only single name accepted: `http://127.0.0.1/`, `http://[::1]/`, `http://localhostx/` and
+`http://intranet/` stay refused. The other rules — no user name, no port 0 — hold as well. Leave the argument out in
+production: an address a visitor gives must not name the server itself.
 
 ## Normalisation
 

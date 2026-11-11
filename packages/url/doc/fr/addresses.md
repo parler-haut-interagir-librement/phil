@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b8e994b72575afa35ef871646bc328b2f5f6f2eb9f50898e717886ea41acb062 -->
+<!-- phil-dev source-sha256=af211fda85ff0a945020408a819e181a27b6f00bd440d7b936a98567d3278d9f -->
 # Adresses
 
 `Url::fromString()` lit une adresse Web absolue comme un navigateur la lit : l'extension URI de PHP l'analyse selon le
@@ -7,11 +7,26 @@ WHATWG URL Standard, `Uri\WhatWg\Url`, puis `Url` applique ses propres règles c
 | Accepté | Refusé |
 |---|---|
 | `http` et `https`, dans n'importe quelle casse | Tout autre schéma, une adresse sans schéma, du texte autour |
-| Un nom d'hôte fait d'étiquettes jointes par des points, internationales comprises | Un nom seul (`localhost`), une adresse IP (`http://192.168.0.1/`, `http://[::1]/`), un domaine de premier niveau fait de chiffres, un trait de soulignement, une étiquette vide (`https://.`, `https://shop..example/`, `https://example.com../`), une étiquette de plus de 63 caractères, un hôte de plus de 253 |
+| Un nom d'hôte fait d'étiquettes jointes par des points, internationales comprises | Un nom seul (`localhost`), un nom sous `.localhost` (`app.localhost`), une adresse IP (`http://192.168.0.1/`, `http://[::1]/`), un domaine de premier niveau fait de chiffres, un trait de soulignement, une étiquette vide (`https://.`, `https://shop..example/`, `https://example.com../`), une étiquette de plus de 63 caractères, un hôte de plus de 253 |
 | Un port de 1 à 65535, un chemin, une chaîne de requête, un fragment | Le port 0, des espaces, un nom d'utilisateur ou un mot de passe (`https://ada@…`, `https://@…`), une troisième barre oblique ou une barre oblique inverse avant l'hôte (`https:///path`, `https://\example.com/`) |
 | 2048 caractères au plus, tel qu'écrit et une fois normalisé | Plus long : `<` écrit 1000 fois devient `%3C` 1000 fois |
 
 Chaque refus lance `InvalidUrl`, une `UrlException`.
+
+## Localhost en développement et en test
+
+Le RFC 6761 réserve `localhost` et tout nom sous `.localhost` à l'adresse de bouclage, vers laquelle aucune page
+publique ne mène : ils sont refusés par défaut. Une application en développement, ou ses tests, les permet par un
+argument nommé :
+
+```php
+Url::fromString('http://localhost:8000/', allowLocalhost: true);      // http://localhost:8000/
+Url::fromString('https://shop.app.localhost/', allowLocalhost: true); // https://shop.app.localhost/
+```
+
+Une fois permis, `localhost` est le seul nom seul accepté : `http://127.0.0.1/`, `http://[::1]/`, `http://localhostx/`
+et `http://intranet/` restent refusés. Les autres règles (aucun nom d'utilisateur, pas de port 0) tiennent aussi.
+Laissez l'argument de côté en production : une adresse qu'un visiteur donne ne doit pas nommer le serveur lui-même.
 
 ## Normalisation
 

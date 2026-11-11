@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8fd0574d83acfada45973629067e3f8e663b1743ae4c55ebb423826a72c734ff -->
+<!-- phil-dev source-sha256=bf4f695ef802d88ac2f326f04e3686496bd9dc3e252cd484fcbc0fdde78cb0c5 -->
 # Référence
 
 ## `Node`
@@ -153,7 +153,9 @@ ci-dessus, et vérifie aussitôt le nœud avec le [validateur](validation.md). U
 ou qui contient une date, une adresse, une devise ou une langue sous une forme que personne ne lit — en lui-même ou
 dans un nœud qu'il contient —, lance `InvalidStructuredData` avec les erreurs au lieu d'atteindre la page. Les
 avertissements, comme une propriété recommandée absente ou une référence à un nœud d'une autre partie de la page,
-restent l'affaire du validateur du graphe entier.
+restent l'affaire du validateur du graphe entier. Une adresse sur `localhost` ou sous `.localhost` est aussi refusée ;
+une application appelle `Schema::allowLocalhost(true)` une fois en développement et dans ses tests, et les fabriques
+la prennent alors pour chaque nœud construit ensuite.
 
 ```php
 use Phil\StructuredData\{Graph, JsonLd, Schema};

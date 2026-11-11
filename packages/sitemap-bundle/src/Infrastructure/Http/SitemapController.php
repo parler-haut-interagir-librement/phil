@@ -35,6 +35,7 @@ final readonly class SitemapController
         private UrlGeneratorInterface $urls,
         private int $perFile,
         private int $maxAge,
+        private bool $allowLocalhost = false,
     ) {
     }
 
@@ -46,7 +47,7 @@ final readonly class SitemapController
             $files[$this->urls->generate(self::FILE_ROUTE, ['name' => $name], UrlGeneratorInterface::ABSOLUTE_URL)] = $urls;
         }
 
-        return $this->xml($request, XmlWriter::index($files), array_merge(...array_values($files)));
+        return $this->xml($request, XmlWriter::index($files, $this->allowLocalhost), array_merge(...array_values($files)));
     }
 
     public function file(Request $request, string $name): Response

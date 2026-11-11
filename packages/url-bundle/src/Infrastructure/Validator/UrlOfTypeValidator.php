@@ -19,6 +19,15 @@ use Symfony\Component\Validator\Exception\UnexpectedValueException;
 
 final class UrlOfTypeValidator extends ConstraintValidator
 {
+    /**
+     * @param bool $allowLocalhost whether `localhost` and the names under `.localhost` are read as addresses, in
+     *                             development and tests: `phil_url.allow_localhost`
+     */
+    public function __construct(
+        private readonly bool $allowLocalhost = false,
+    ) {
+    }
+
     #[Override]
     public function validate(mixed $value, Constraint $constraint): void
     {
@@ -43,7 +52,7 @@ final class UrlOfTypeValidator extends ConstraintValidator
         try {
             $url = match (true) {
                 $value instanceof Url => $value,
-                \is_string($value) => Url::fromString($value),
+                \is_string($value) => Url::fromString($value, allowLocalhost: $this->allowLocalhost),
                 default => throw new UnexpectedValueException($value, 'string|Phil\\Url\\Url|Phil\\Url\\TypedUrl'),
             };
         } catch (UrlException) {

@@ -4,6 +4,19 @@ All notable changes to `phil/url` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.1.3-alpha - 2026-11-11
+
+### Added
+
+- `Url::fromString($text, allowLocalhost: true)` accepts `localhost` and the names under `.localhost` (RFC 6761), for
+  development and tests; an IP address and any other single name stay refused, `http://127.0.0.1/`,
+  `http://localhostx/` and `http://intranet/` among them.
+
+### Changed
+
+- By default, a name under `.localhost`, `http://app.localhost/`, is refused like `localhost`: both name the loopback
+  address.
+
 ## 0.1.2-alpha - 2026-11-11
 
 ### Changed

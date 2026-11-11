@@ -6,6 +6,7 @@ namespace Phil\SitemapBundle\Tests\Unit;
 
 use DirectoryIterator;
 use Override;
+use Phil\Sitemap\InvalidSitemap;
 use Phil\Sitemap\Url;
 use Phil\Sitemap\UrlContainer;
 use Phil\Sitemap\UrlProvider;
@@ -88,6 +89,21 @@ final class DumpSitemapsCommandTest extends TestCase
         self::assertSame(["sitemap.kept.xml\n", 'sitemap.news.xml', 'sitemap.xml'], array_keys($files));
         self::assertStringContainsString('<loc>https://example.com/sitemap.news.xml</loc>', $files['sitemap.xml']);
         self::assertStringContainsString('<loc>https://example.com/a</loc>', $files['sitemap.news.xml']);
+    }
+
+    public function testABaseUrlOnLocalhostIsRefusedUnlessAllowed(): void
+    {
+        $refused = new DumpSitemapsCommand(new Sitemaps([$this->pages()]), new RequestContext(), $this->directory, 50000);
+
+        try {
+            $refused(new SymfonyStyle(new ArrayInput([]), $this->output), baseUrl: 'http://localhost:8000');
+            self::fail('An index on localhost was written.');
+        } catch (InvalidSitemap) {
+        }
+
+        $allowed = new DumpSitemapsCommand(new Sitemaps([$this->pages()]), new RequestContext(), $this->directory, 50000, allowLocalhost: true);
+        self::assertSame(Command::SUCCESS, $allowed(new SymfonyStyle(new ArrayInput([]), $this->output), baseUrl: 'http://localhost:8000'));
+        self::assertStringContainsString('<loc>http://localhost:8000/sitemap.news.xml</loc>', $this->files()['sitemap.xml']);
     }
 
     public function testTheRoutersLocalhostIsRefusedWithoutABaseUrl(): void
@@ -195,6 +211,13 @@ final class DumpSitemapsCommandTest extends TestCase
         yield 'http on its port' => [new RequestContext(host: 'example.com', scheme: 'http', httpPort: 80), 'http://example.com/sitemap.news.xml'];
         yield 'http on another port, under a path' => [new RequestContext(baseUrl: '/shop', host: 'example.com', scheme: 'http', httpPort: 8080), 'http://example.com:8080/shop/sitemap.news.xml'];
         yield 'https on another port' => [new RequestContext(host: 'example.com', scheme: 'https', httpPort: 8080, httpsPort: 8443), 'https://example.com:8443/sitemap.news.xml'];
+        // The ports next to the defaults, and each default for the other scheme, are written.
+        yield 'https on 442' => [new RequestContext(host: 'example.com', scheme: 'https', httpsPort: 442), 'https://example.com:442/sitemap.news.xml'];
+        yield 'https on 444' => [new RequestContext(host: 'example.com', scheme: 'https', httpsPort: 444), 'https://example.com:444/sitemap.news.xml'];
+        yield 'http on 79' => [new RequestContext(host: 'example.com', scheme: 'http', httpPort: 79), 'http://example.com:79/sitemap.news.xml'];
+        yield 'http on 81' => [new RequestContext(host: 'example.com', scheme: 'http', httpPort: 81), 'http://example.com:81/sitemap.news.xml'];
+        yield 'http on 443' => [new RequestContext(host: 'example.com', scheme: 'http', httpPort: 443), 'http://example.com:443/sitemap.news.xml'];
+        yield 'https on 80' => [new RequestContext(host: 'example.com', scheme: 'https', httpsPort: 80), 'https://example.com:80/sitemap.news.xml'];
     }
 
     #[DataProvider('routers')]

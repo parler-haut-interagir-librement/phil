@@ -20,6 +20,8 @@ final readonly class Url
     /**
      * @param list<Alternate> $alternates
      * @param list<Image>     $images
+     * @param bool            $allowLocalhost whether `localhost` and the names under `.localhost` are addresses, in
+     *                                        development and tests
      */
     public function __construct(
         string $loc,
@@ -28,8 +30,9 @@ final readonly class Url
         public ?float $priority = null,
         public array $alternates = [],
         public array $images = [],
+        bool $allowLocalhost = false,
     ) {
-        $this->loc = Location::check($loc, 'A page');
+        $this->loc = Location::check($loc, 'A page', $allowLocalhost);
 
         if (null !== $priority && ($priority < 0.0 || $priority > 1.0 || round($priority, 1) !== $priority)) {
             throw InvalidSitemap::because(\sprintf('A priority is 0.0 to 1.0, in steps of 0.1; %s is not.', $priority));

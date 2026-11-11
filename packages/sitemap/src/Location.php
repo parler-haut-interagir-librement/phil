@@ -12,7 +12,8 @@ use Phil\Url\Url as WebAddress;
  * by phil/url and written in their canonical form — scheme and host in lower case, an international host in ASCII,
  * the default port dropped, the segments `.` and `..` resolved. An address with a user name or a password is refused,
  * since `https://example.com@evil.example/` leads to evil.example; so is one whose host is an IP address or a single
- * name, which no search engine reaches.
+ * name, which no search engine reaches — `localhost` and the names under `.localhost` included, unless the caller
+ * allows them, in development and tests.
  *
  * @internal
  */
@@ -20,10 +21,10 @@ final class Location
 {
     public const int MAX_LENGTH = WebAddress::MAX_LENGTH;
 
-    public static function check(string $location, string $what): string
+    public static function check(string $location, string $what, bool $allowLocalhost = false): string
     {
         try {
-            return WebAddress::fromString($location)->toString();
+            return WebAddress::fromString($location, allowLocalhost: $allowLocalhost)->toString();
         } catch (InvalidUrl) {
             throw InvalidSitemap::because(\sprintf('%s is an absolute HTTP or HTTPS URL of %d characters at most; "%s" is not.', $what, self::MAX_LENGTH, $location));
         }

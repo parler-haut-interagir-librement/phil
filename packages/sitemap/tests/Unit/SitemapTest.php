@@ -119,6 +119,15 @@ final class SitemapTest extends TestCase
         }
     }
 
+    public function testAQuoteThatStaysInAPathIsEscaped(): void
+    {
+        // The path keeps an apostrophe; the XML writes it as an entity, in an element as in an attribute.
+        $xml = XmlWriter::urlset([new Url("https://example.com/l'a", alternates: [new Alternate('fr', "https://example.com/l'a")])]);
+
+        self::assertStringContainsString('<loc>https://example.com/l&apos;a</loc>', $xml);
+        self::assertStringContainsString('href="https://example.com/l&apos;a"', $xml);
+    }
+
     public function testTheXmlOfTheProtocol(): void
     {
         $urls = [

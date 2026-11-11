@@ -14,9 +14,14 @@ final readonly class Alternate
     /** The address of the page in that language, in its canonical form. */
     public string $href;
 
+    /**
+     * @param bool $allowLocalhost whether `localhost` and the names under `.localhost` are addresses, in development
+     *                             and tests
+     */
     public function __construct(
         string $hreflang,
         string $href,
+        bool $allowLocalhost = false,
     ) {
         $this->hreflang = str_replace('_', '-', $hreflang);
 
@@ -24,6 +29,6 @@ final readonly class Alternate
             throw InvalidSitemap::because(\sprintf('A hreflang is a language, maybe followed by a script or a region — "fr", "fr-CA" —, or "x-default"; "%s" is not.', $hreflang));
         }
 
-        $this->href = Location::check($href, 'An alternate');
+        $this->href = Location::check($href, 'An alternate', $allowLocalhost);
     }
 }

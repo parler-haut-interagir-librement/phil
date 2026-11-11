@@ -31,11 +31,22 @@ use Phil\StructuredData\Validation\Validator;
  * later. The warnings of the validator — a recommended property missing, a reference to a node elsewhere — are left
  * to it. Any other type is built with `Node::of()` or `Type\Thing::of()`.
  *
- * The validator holds no state of a request: it is built once and shared.
+ * The validator holds no state of a request: it is built once and shared. An address on `localhost` or under
+ * `.localhost` is refused, as the validator refuses it, unless `allowLocalhost(true)` was called, as an application
+ * does once in development and in its tests.
  */
 final class Schema
 {
     private static ?Validator $validator = null;
+
+    /**
+     * Whether the factories take an address on `localhost` or under `.localhost`, for every node built after: `true` in
+     * development and tests only. An IP address stays refused.
+     */
+    public static function allowLocalhost(bool $allow): void
+    {
+        self::$validator = new Validator(allowLocalhost: $allow);
+    }
 
     /**
      * An `Article`, or one of its kinds — `NewsArticle`, `BlogPosting`, `TechArticle` —, with its headline.

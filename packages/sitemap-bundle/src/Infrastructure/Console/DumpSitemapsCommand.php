@@ -34,6 +34,7 @@ final readonly class DumpSitemapsCommand
         private RequestContext $context,
         private string $directory,
         private int $perFile,
+        private bool $allowLocalhost = false,
     ) {
     }
 
@@ -80,7 +81,7 @@ final readonly class DumpSitemapsCommand
             $io->writeln(\sprintf('%s: %d pages', $file, \count($urls)));
         }
 
-        $temporary = $this->write($directory, XmlWriter::index($index));
+        $temporary = $this->write($directory, XmlWriter::index($index, $this->allowLocalhost));
 
         if (null === $temporary) {
             return $this->fail($io, $directory, 'sitemap.xml', $written);

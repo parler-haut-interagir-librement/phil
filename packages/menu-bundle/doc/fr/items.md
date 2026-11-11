@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6a67d71b3eab7adab94ff112d3d030d8709b17e0c77e0d802760826297e24693 -->
+<!-- phil-dev source-sha256=03a710f96fbdbbd74ac3f87a8cc0321025fca45a59451098b74cd5ca64851b8d -->
 # Éléments et menus
 
 ## `MenuItem`
@@ -27,7 +27,9 @@ chemin, `/games`, ou une référence relative à la page, `#top`, `?page=2`) ou 
 `mailto` et `tel`. `javascript:`, `data:` et tout autre schéma sont refusés, tout comme une adresse qui contient une
 espace ou un caractère de contrôle, que les navigateurs retirent d'un schéma avant de le lire. Une adresse du web,
 `https://…` ou `//…`, est lue par phil/url comme un navigateur la lit : une adresse avec un nom d'utilisateur ou un mot
-de passe, `https://example.com@evil.example/`, qui mène à evil.example, ou dont l'hôte est une adresse IP, est refusée.
+de passe, `https://example.com@evil.example/`, qui mène à evil.example, ou dont l'hôte est une adresse IP, est refusée,
+tout comme une adresse sur `localhost` ou sous `.localhost` à moins qu'`allowLocalhost` vaille `true`, en
+développement et en test ([configuration](installation.md#configuration)).
 Tout comme une barre oblique inverse, où qu'elle soit, qu'un navigateur lit comme une barre oblique :
 `/\evil.example` mène hors du site. Le nom d'un attribut est
 une lettre, puis jusqu'à 99 lettres, chiffres, `_`, `-`, `.` et `:`, et ne commence pas par `on`, comme le font tous les

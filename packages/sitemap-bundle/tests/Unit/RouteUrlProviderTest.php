@@ -59,6 +59,22 @@ final class RouteUrlProviderTest extends TestCase
         self::assertSame(['default', 'pages'], array_keys($sitemap->sections()));
     }
 
+    public function testARouterOnLocalhostMakesPagesOnlyWhenAllowed(): void
+    {
+        $routes = ['home' => new Route('/', options: ['sitemap' => true]), 'about.fr' => new Route('/a-propos', ['_locale' => 'fr', '_canonical_route' => 'about'], options: ['sitemap' => true]), 'about.en' => new Route('/about', ['_locale' => 'en', '_canonical_route' => 'about'], options: ['sitemap' => true])];
+
+        try {
+            $this->sitemap($routes, host: 'localhost');
+            self::fail('A page on localhost was made.');
+        } catch (InvalidRouteOption $invalidRouteOption) {
+            self::assertStringContainsString('"http://localhost/" is not.', $invalidRouteOption->getMessage());
+        }
+
+        $pages = $this->sitemap($routes, host: 'localhost', allowLocalhost: true)->sections()['default'];
+        self::assertSame(['http://localhost/', 'http://localhost/a-propos', 'http://localhost/about'], array_map(static fn (Url $url): string => $url->loc, $pages));
+        self::assertSame('http://localhost/about', $pages[1]->alternates[1]->href);
+    }
+
     public function testOneSectionLeavesTheOthersAndTheEventIsDispatched(): void
     {
         $dispatcher = new EventDispatcher();
@@ -117,7 +133,7 @@ final class RouteUrlProviderTest extends TestCase
      * @param array<string, Route>                                           $routes
      * @param array{priority: ?float, changefreq: ?string, lastmod: ?string} $defaults
      */
-    private function sitemap(array $routes, ?string $section = null, ?EventDispatcher $dispatcher = null, string $defaultSection = 'default', array $defaults = ['priority' => null, 'changefreq' => null, 'lastmod' => null]): Sitemap
+    private function sitemap(array $routes, ?string $section = null, ?EventDispatcher $dispatcher = null, string $defaultSection = 'default', array $defaults = ['priority' => null, 'changefreq' => null, 'lastmod' => null], string $host = 'example.com', bool $allowLocalhost = false): Sitemap
     {
         $collection = new RouteCollection();
 
@@ -125,8 +141,9 @@ final class RouteUrlProviderTest extends TestCase
             $collection->add($name, $route);
         }
 
-        $router = new Router(new ClosureLoader(), static fn (): RouteCollection => $collection, [], new RequestContext(host: 'example.com', scheme: 'https'));
-        $provider = new RouteUrlProvider($router, new MockClock(new DateTimeImmutable('2026-11-04 08:00', new DateTimeZone('America/Toronto'))), $defaultSection, $defaults);
+        $router = new Router(new ClosureLoader(), static fn (): RouteCollection => $collection, [], new RequestContext(host: $host, scheme: 'example.com' === $host ? 'https' : 'http'));
+        $clock = new MockClock(new DateTimeImmutable('2026-11-04 08:00', new DateTimeZone('America/Toronto')));
+        $provider = $allowLocalhost ? new RouteUrlProvider($router, $clock, $defaultSection, $defaults, true) : new RouteUrlProvider($router, $clock, $defaultSection, $defaults);
 
         return new Sitemaps([$provider], $dispatcher)->build($section);
     }

@@ -12,6 +12,7 @@ use Phil\Sitemap\Image;
 use Phil\Sitemap\InvalidSitemap;
 use Phil\Sitemap\Location;
 use Phil\Sitemap\Url;
+use Phil\Sitemap\XmlWriter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -22,6 +23,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Location::class)]
 #[CoversClass(InvalidSitemap::class)]
 #[CoversClass(ChangeFrequency::class)]
+#[CoversClass(XmlWriter::class)]
 final class UrlTest extends TestCase
 {
     public function testAPageSaysWhatTheProtocolLetsIt(): void
@@ -71,6 +73,50 @@ final class UrlTest extends TestCase
         yield 'port 0' => [static fn (): Url => new Url('https://example.com:0/a'), '"https://example.com:0/a" is not.'];
         yield 'a host of one name' => [static fn (): Url => new Url('http://intranet/a'), '"http://intranet/a" is not.'];
         yield 'a sitemap file with credentials' => [static fn (): string => Location::check('https://example.com@evil.example/sitemap.xml', 'A sitemap file'), 'A sitemap file is an absolute HTTP or HTTPS URL'];
+    }
+
+    public function testLocalhostIsRefusedUnlessAllowed(): void
+    {
+        foreach (['http://localhost:8000/a', 'http://app.localhost/a'] as $address) {
+            foreach ([static fn (): Url => new Url($address), static fn (): Image => new Image($address), static fn (): Alternate => new Alternate('fr', $address), static fn (): string => XmlWriter::index([$address => []])] as $make) {
+                try {
+                    $make();
+                    self::fail($address.' was taken.');
+                } catch (InvalidSitemap) {
+                }
+            }
+
+            self::assertSame($address, new Url($address, allowLocalhost: true)->loc);
+            self::assertSame($address, new Image($address, allowLocalhost: true)->loc);
+            self::assertSame($address, new Alternate('fr', $address, allowLocalhost: true)->href);
+            self::assertSame($address, Location::check($address, 'A page', allowLocalhost: true));
+
+            try {
+                Location::check($address, 'A page');
+                self::fail($address.' was checked.');
+            } catch (InvalidSitemap) {
+            }
+
+            self::assertStringContainsString('<loc>'.$address.'</loc>', XmlWriter::index([$address => []], allowLocalhost: true));
+        }
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function notLocalhost(): iterable
+    {
+        yield 'the loopback address' => ['http://127.0.0.1/a'];
+        yield 'a name that starts like localhost' => ['http://localhostx/a'];
+        yield 'another single name' => ['http://intranet/a'];
+    }
+
+    #[DataProvider('notLocalhost')]
+    public function testAllowingLocalhostAllowsNothingElse(string $address): void
+    {
+        $this->expectException(InvalidSitemap::class);
+
+        new Url($address, allowLocalhost: true);
     }
 
     /**

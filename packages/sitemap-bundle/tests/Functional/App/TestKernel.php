@@ -52,6 +52,8 @@ final class TestKernel extends Kernel
         $container->extension('phil_sitemap', [
             'items_by_set' => 2,
             'defaults' => ['priority' => 0.5, 'changefreq' => 'yearly'],
+            // The environment "localhost" is a development machine: its pages are on http://localhost.
+            'allow_localhost' => 'localhost' === $this->environment,
         ]);
 
         $services = $container->services()->defaults()->autowire()->autoconfigure();

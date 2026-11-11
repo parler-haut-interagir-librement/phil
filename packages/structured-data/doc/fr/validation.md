@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=65c4a4391236b06cdb53487f0570db9a2289860cd4d515a039648641b02f7d68 -->
+<!-- phil-dev source-sha256=7b7f8c0c22450cce7021ddc0a8598882d24e0b674422fe1ec3b3cd0664eafee1 -->
 # Validation
 
 `Validator::validate(Graph $graph)` vérifie chaque nœud — ceux du premier niveau du graphe et ceux qui sont imbriqués —
@@ -61,6 +61,10 @@ Les sortes que construisent les fabriques ont besoin de ce dont leur parent a be
 
 Seuls les textes sont vérifiés : un nœud dans `image` ou `logo`, un nombre, une `LanguageString` sont laissés tels
 quels. Chaque valeur erronée est une erreur.
+
+Une adresse sur `localhost` ou sous `.localhost` est aussi une `invalid-url`, puisqu'aucun moteur de recherche ne
+l'atteint. Une page validée en développement ou en test les permet : `new Validator(allowLocalhost: true)`, que
+`withRules()` conserve. Une adresse IP, `http://127.0.0.1/`, reste invalide.
 
 ## Références et types
 

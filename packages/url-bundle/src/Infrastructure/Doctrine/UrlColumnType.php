@@ -19,6 +19,18 @@ final class UrlColumnType extends Type
 {
     public const string NAME = 'phil_url';
 
+    /** Whether `localhost` and the names under `.localhost` are read back, as `phil_url.allow_localhost` says. */
+    private static bool $allowLocalhost = false;
+
+    /**
+     * Doctrine builds a column type by its class and keeps one: the bundle sets this switch when it boots, from
+     * `phil_url.allow_localhost`.
+     */
+    public static function allowLocalhost(bool $allow): void
+    {
+        self::$allowLocalhost = $allow;
+    }
+
     #[Override]
     public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
@@ -47,7 +59,7 @@ final class UrlColumnType extends Type
         }
 
         try {
-            return Url::fromString($value);
+            return Url::fromString($value, allowLocalhost: self::$allowLocalhost);
         } catch (UrlException $urlException) {
             throw ValueNotConvertible::new($value, self::NAME, $urlException->getMessage(), $urlException);
         }

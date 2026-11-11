@@ -35,6 +35,7 @@ final readonly class RouteUrlProvider implements UrlProvider
         private ClockInterface $clock,
         private string $defaultSection,
         private array $defaults,
+        private bool $allowLocalhost = false,
     ) {
     }
 
@@ -60,7 +61,7 @@ final readonly class RouteUrlProvider implements UrlProvider
 
             foreach ($locales as $locale => [$loc]) {
                 if (\count($locales) > 1) {
-                    $alternates[] = new Alternate($locale, $loc);
+                    $alternates[] = new Alternate($locale, $loc, $this->allowLocalhost);
                 }
             }
 
@@ -127,7 +128,7 @@ final readonly class RouteUrlProvider implements UrlProvider
         }
 
         try {
-            return new Url($loc, $this->lastModified($name, $options['lastmod']), $changefreq, $options['priority'], $alternates);
+            return new Url($loc, $this->lastModified($name, $options['lastmod']), $changefreq, $options['priority'], $alternates, allowLocalhost: $this->allowLocalhost);
         } catch (InvalidSitemap $invalidSitemap) {
             throw InvalidRouteOption::of($name, 'makes no page: '.$invalidSitemap->getMessage());
         }

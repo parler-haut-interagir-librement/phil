@@ -31,6 +31,29 @@ final class UrlColumnTypeTest extends TestCase
         self::assertStringContainsString('2048', $type->getSQLDeclaration(['notnull' => false], new SQLitePlatform()));
     }
 
+    public function testLocalhostIsReadOnlyWhenAllowed(): void
+    {
+        $type = new UrlColumnType();
+        $platform = new PostgreSQLPlatform();
+
+        try {
+            $type->convertToPHPValue('http://app.localhost/', $platform);
+            self::fail('A localhost address was read.');
+        } catch (ValueNotConvertible) {
+        }
+
+        UrlColumnType::allowLocalhost(true);
+
+        try {
+            self::assertSame('http://app.localhost/', $type->convertToPHPValue('http://app.localhost/', $platform)?->toString());
+            self::assertSame('http://localhost:8000/', $type->convertToPHPValue('http://localhost:8000/', $platform)?->toString());
+            $this->expectException(ValueNotConvertible::class);
+            $type->convertToPHPValue('http://127.0.0.1/', $platform);
+        } finally {
+            UrlColumnType::allowLocalhost(false);
+        }
+    }
+
     public function testOtherValuesAreRefused(): void
     {
         $type = new UrlColumnType();

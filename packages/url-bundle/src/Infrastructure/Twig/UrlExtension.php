@@ -20,6 +20,15 @@ use Twig\Attribute\AsTwigFunction;
 final readonly class UrlExtension
 {
     /**
+     * @param bool $allowLocalhost whether `localhost` and the names under `.localhost` are read as addresses, in
+     *                             development and tests: `phil_url.allow_localhost`
+     */
+    public function __construct(
+        private bool $allowLocalhost = false,
+    ) {
+    }
+
+    /**
      * `example.com/shop` for `https://www.example.com/shop/`; an unreadable text as it is.
      */
     #[AsTwigFilter(name: 'url_display')]
@@ -65,7 +74,7 @@ final readonly class UrlExtension
                 $value instanceof TypedUrl => $value->url,
                 $value instanceof Url => $value,
                 null === $value => null,
-                default => Url::fromString($value),
+                default => Url::fromString($value, allowLocalhost: $this->allowLocalhost),
             };
         } catch (UrlException) {
             return null;

@@ -13,12 +13,18 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   `//`, is read by `phil/url`: one with a user name or a password, `https://example.com@evil.example/`, whose label
   says example.com, or whose host is an IP address, is refused.
 
+### Added
+
+- The configuration key `allow_localhost`, `false` by default, also the container parameter
+  `phil_menu.allow_localhost`, and `MenuItem::withUrl($url, allowLocalhost: true)`: in development and tests, an
+  address on `localhost` or under `.localhost` is taken; an IP address stays refused.
+
 ### Changed
 
 - `Menus` reads the path of an address of the site and the visitor's path by `phil/url`, no longer by `parse_url()`:
   `/games/rules/../about`, `/games/%2e%2e/about` and `/jeux/thé` are current at `/games/about`, `/about` and
   `/jeux/th%C3%A9`, the pages a browser asks for.
-- The package requires `phil/url` 0.1.2.
+- The package requires `phil/url` 0.1.3 and `symfony/config` 8.2, for its configuration key.
 
 ## 0.1.0-alpha - 2026-11-11
 
