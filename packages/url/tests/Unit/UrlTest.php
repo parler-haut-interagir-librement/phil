@@ -73,6 +73,17 @@ final class UrlTest extends TestCase
         yield 'an underscore' => ['https://my_shop.example/', '"my_shop.example" is not a host name.'];
         yield 'a dash first' => ['https://-shop.example/', '"-shop.example" is not a host name.'];
         yield 'a long label' => ['https://'.str_repeat('a', 64).'.example/', \sprintf('"%s.example" is not a host name.', str_repeat('a', 64))];
+        yield 'a long label in the middle' => ['https://www.'.str_repeat('b', 64).'.example/', \sprintf('"www.%s.example" is not a host name.', str_repeat('b', 64))];
+        yield 'a dot for host' => ['https://.', '"." is not a host name.'];
+        yield 'two dots for host' => ['https://..', '".." is not a host name.'];
+        yield 'three dots for host' => ['https://...', '"..." is not a host name.'];
+        yield 'a dot for host, then a path' => ['https://./path', '"." is not a host name.'];
+        yield 'a dot for host, then a port' => ['https://.:8080/', '"." is not a host name.'];
+        yield 'dots for host, then a query' => ['http://...?q=1', '"..." is not a host name.'];
+        yield 'a dot for host, then a fragment' => ['https://.#top', '"." is not a host name.'];
+        yield 'an empty label inside' => ['https://shop..example/', '"shop..example" is not a host name.'];
+        yield 'an empty label first' => ['https://.example.com/', '".example.com" is not a host name.'];
+        yield 'two trailing dots' => ['https://example.com../', '"example.com.." is not a host name.'];
     }
 
     #[DataProvider('refused')]

@@ -149,10 +149,13 @@ final readonly class Url implements Stringable
     /**
      * A host name: labels joined by dots, two at least, the last — the top-level domain — not all digits, which
      * leaves out IPv4 addresses (`192.168.0.1`) and their short forms (`127.1`); an IPv6 address has no such labels.
+     * One trailing dot, the root of a fully qualified name, is dropped; a second one is an empty label.
      */
     private static function checkedHost(string $host): string
     {
-        $ascii = idn_to_ascii(rtrim($host, '.'), \IDNA_NONTRANSITIONAL_TO_ASCII, \INTL_IDNA_VARIANT_UTS46);
+        $name = str_ends_with($host, '.') ? substr($host, 0, -1) : $host;
+        // ICU refuses an empty name with a ValueError, not with false: `https://.` must end in InvalidUrl too.
+        $ascii = '' === $name ? false : idn_to_ascii($name, \IDNA_NONTRANSITIONAL_TO_ASCII, \INTL_IDNA_VARIANT_UTS46);
 
         if (false === $ascii || 1 !== preg_match('/^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/', $ascii) || 1 === preg_match('/\.[0-9]+$/', $ascii)) {
             throw InvalidUrl::host($host);

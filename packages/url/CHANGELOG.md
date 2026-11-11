@@ -4,6 +4,14 @@ All notable changes to `phil/url` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.1.1-alpha - 2026-11-11
+
+### Fixed
+
+- `Url::fromString()` throws `InvalidUrl`, not ICU's `ValueError`, for a host made only of dots — `https://.`,
+  `https://...`, `https://./path` — and refuses a host ending with two dots, `https://example.com../`, whose last
+  label is empty; a single trailing dot is still dropped.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=04f35a276adb1eb51d167740ff874cf9d94da172b5d117353407d823203c0b74 -->
+<!-- phil-dev source-sha256=e65674a80492547c004529c9647d60c40bed7c72a2c28ecd59cb8a7123a6c2ce -->
 # Adresses
 
 `Url::fromString()` lit une adresse Web absolue.
@@ -6,7 +6,7 @@
 | Accepté | Refusé |
 |---|---|
 | `http` et `https`, dans n'importe quelle casse | Tout autre schéma, une adresse sans schéma, du texte autour |
-| Un nom d'hôte fait d'étiquettes jointes par des points, internationales comprises | Un nom seul (`localhost`), une adresse IP (`http://192.168.0.1/`, `http://[::1]/`), un domaine de premier niveau fait de chiffres, un trait de soulignement, une étiquette de plus de 63 caractères, un hôte de plus de 253 |
+| Un nom d'hôte fait d'étiquettes jointes par des points, internationales comprises | Un nom seul (`localhost`), une adresse IP (`http://192.168.0.1/`, `http://[::1]/`), un domaine de premier niveau fait de chiffres, un trait de soulignement, une étiquette vide (`https://.`, `https://shop..example/`, `https://example.com../`), une étiquette de plus de 63 caractères, un hôte de plus de 253 |
 | Un port de 1 à 65535, un chemin, une chaîne de requête, un fragment | Le port 0, des espaces, un nom d'utilisateur ou un mot de passe (`https://ada@…`) |
 | 2048 caractères au plus | Plus long |
 
@@ -20,7 +20,7 @@ Chaque refus lance `InvalidUrl`, une `UrlException`.
 | `https://example.com` | `https://example.com/` |
 | `https://example.com:443/` | `https://example.com/` : le port par défaut retiré |
 | `https://bücher.example/` | `https://xn--bcher-kva.example/` |
-| `https://example.com./?#` | `https://example.com/` : point final, chaîne de requête et fragment vides retirés |
+| `https://example.com./?#` | `https://example.com/` : un seul point final, chaîne de requête et fragment vides retirés |
 
 `equals()` compare des adresses normalisées.
 
