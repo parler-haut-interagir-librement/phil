@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0f51e4bd57b05f436f644e2f21a5a37c3dca3bbb720bba05415f63d3b6e10ac5 -->
+<!-- phil-dev source-sha256=02f9e1b22141e4c967449dae393f9a68b1430b8013cfd2308184787928e96c59 -->
 # Assainir
 
 ## Feuilles de style et attributs `style`
@@ -25,7 +25,8 @@ pas est retiré et listé.
 | Membre | Ce qu'il contient |
 |---|---|
 | `css` | Le CSS à écrire dans la page : deux espaces d'indentation par niveau pour une feuille de style, `name: value; …` pour des déclarations |
-| `removals` | Les `Removal`, dans l'ordre de la source |
+| `removals` | Les `Removal`, dans l'ordre de la source, jusqu'à `Sanitized::MAX_REMOVALS` (100) |
+| `omittedRemovals` | Les retraits au-delà des 100 premiers, comptés mais non listés |
 | `isClean()` | Indique si rien n'a été retiré |
 | `sheet` | Les règles gardées d'une feuille de style : `Sheet\StyleSheet` de `Sheet\ImportRule`, de `Sheet\StyleRule` et de `Sheet\GroupRule` |
 | `declarations` | Les `Syntax\Declaration` gardées d'un attribut `style` |
@@ -34,6 +35,10 @@ Une règle restée sans déclarations est écartée sans retrait propre : ses d�
 de même d'une règle de groupe restée vide.
 
 ## Les retraits
+
+Une source d'un mégaoctet peut contenir des centaines de milliers de règles refusées : les 100 premiers retraits sont
+listés, et `omittedRemovals` compte les autres, pour que ni le résultat ni un formulaire qui l'affiche ne grossissent
+avec eux.
 
 Chaque `Removal` a une `reason`, un `subject` et une `line`. Le sujet est le nom de la propriété, le sélecteur,
 `@import`, le nom de la fonction avec `()` ou l'URL, coupé à 80 points de code. La ligne est celle de la source où il

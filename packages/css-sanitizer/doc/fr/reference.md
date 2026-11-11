@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0fb665c9016fbecc08870ddfcba296c9d28395b18d488da7dad9f1385409dfe2 -->
+<!-- phil-dev source-sha256=2e5814ab726a5f690283723e1a8ea3aa5e8a7425b4bcf6460bf89aa1f4f16fae -->
 # Référence
 
 | Type | Genre | Rôle |
@@ -7,7 +7,7 @@
 | `Phil\CssSanitizer\Policy` | `final readonly class` | Ce qu'une feuille de style peut contenir, son réécrivain, sa portée et ses limites |
 | `Phil\CssSanitizer\AtRuleKind` | enum | Les règles @ qu'une politique peut permettre : media, supports, page, font-face, import |
 | `Phil\CssSanitizer\Sanitized` | `final readonly class` | Ce qui a été gardé, en CSS et en valeurs, et ce qui a été retiré |
-| `Phil\CssSanitizer\Removal` | `final readonly class` | Un retrait : sa raison, son sujet et sa ligne |
+| `Phil\CssSanitizer\Removal` | `final readonly class` | Un retrait : sa raison, son sujet et sa ligne ; `Sanitized` liste les `MAX_REMOVALS` premiers et compte les autres |
 | `Phil\CssSanitizer\RemovalReason` | enum | Pourquoi quelque chose a été retiré, et sa description |
 | `Phil\CssSanitizer\UrlRewriter` | interface | Ce que devient chaque URL, ou `null` pour la refuser |
 | `Phil\CssSanitizer\UrlKind` | enum | Ce que charge une URL : une image, une police ou une feuille de style |
