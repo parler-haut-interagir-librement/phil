@@ -22,7 +22,7 @@
                 ]
             },
             {
-                "action": "vendor-bin/phpstan/vendor/bin/phpstan analyse --no-progress -- {$STAGED_FILES|of-type:php|in-dir:packages/}",
+                "action": "bin/phpstan-staged {$STAGED_FILES|of-type:php|in-dir:packages/}",
                 "conditions": [
                     {
                         "exec": "\\CaptainHook\\App\\Hook\\Condition\\FileStaged\\OfType",

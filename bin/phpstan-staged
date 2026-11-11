@@ -1,0 +1,14 @@
+#!/bin/sh
+# Lance PHPStan sur les fichiers PHP indexés que sa configuration analyse : les manifestes phil-dev.php et les
+# scripts bin/ des paquets sont exclus de l'analyse, et PHPStan refuse une liste de fichiers vide.
+set -eu
+files=""
+for f in "$@"; do
+  case "$f" in
+    */phil-dev.php|*/bin/*) ;;
+    *) files="$files $f" ;;
+  esac
+done
+[ -n "$files" ] || exit 0
+# shellcheck disable=SC2086
+exec vendor-bin/phpstan/vendor/bin/phpstan analyse --no-progress -- $files
