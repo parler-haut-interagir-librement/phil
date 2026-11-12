@@ -1,0 +1,88 @@
+{
+    "name": "phil/content-bundle",
+    "description": "Dimensioned content for Symfony and Doctrine: a root and its rows by locale, stage and version, a data mapper pipeline, draft-to-live publication on symfony/workflow with frozen versions and page events, bodies published as UJO, routes with redirects of old slugs, an administration with autosaved drafts, a search feed and scheduled publication",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.2",
+        "doctrine/orm": "^3.7",
+        "phil/ddd-bundle": "^0.1@dev",
+        "phil/locale-dimensions": "^0.1@dev",
+        "phil/markup": "^0.1@dev",
+        "phil/publishing": "^0.1@dev",
+        "phil/sitemap": "^0.1@dev",
+        "phil/slug": "^0.1@dev",
+        "phil/ujo": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/string": "^8.2",
+        "symfony/workflow": "^8.2",
+        "symfony/yaml": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "ext-intl": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "easycorp/easyadmin-bundle": "^5.8",
+        "phil/resource": "^0.1@dev",
+        "phil/scheduled-transitions-bundle": "^0.1@dev",
+        "phil/search-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/uid": "^8.2"
+    },
+    "suggest": {
+        "easycorp/easyadmin-bundle": "For the link of the administration in an EasyAdmin back office (ContentAdmin)",
+        "phil/scheduled-transitions-bundle": "To publish and take offline at a set moment (PublicationSchedule)",
+        "phil/search-bundle": "To feed the published contents to a search index (ContentDocumentProvider)",
+        "symfony/security-core": "To let a trusted role publish raw HTML (raw_html_role), and for the administration (admin.enabled)",
+        "symfony/security-csrf": "For the administration (admin.enabled), with symfony/security-core",
+        "symfony/translation": "For the administration in English and French"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ContentBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ContentBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,64 @@
+{
+    "name": "phil/accessibility-check",
+    "description": "Accessibility of content checked before it is published: HTML and UJO documents, rules registered by class with their WCAG 2.2 success criterion, severity and translated message — text alternatives, headings, link names, contrast, table headers, languages and more —, a JSON report, a validator constraint, a workflow guard and a console command",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "accessibility",
+        "a11y",
+        "wcag",
+        "html",
+        "ujo",
+        "contrast",
+        "validator"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-uri": "*",
+        "symfony/translation": "^8.2",
+        "symfony/translation-contracts": "^3.6"
+    },
+    "require-dev": {
+        "phil/ujo": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/validator": "^8.2",
+        "symfony/workflow": "^8.2"
+    },
+    "suggest": {
+        "phil/ujo": "For checking UJO (Universal JSON Output) documents block by block",
+        "symfony/console": "For the phil:accessibility:check command",
+        "symfony/validator": "For the AccessibleContent constraint",
+        "symfony/workflow": "For the PublicationGuard that blocks a publication"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\AccessibilityCheck\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\AccessibilityCheck\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

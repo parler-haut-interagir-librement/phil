@@ -1,0 +1,1 @@
+<!doctype html><html lang="fr"><h1>Titre</h1><h3>Saut</h3><img src="IMG_1.jpg"><a href="/x">ici</a><p style="color: rgb(0 0 0 / 30%); background: hsl(200 50% 50%)">Texte</p>

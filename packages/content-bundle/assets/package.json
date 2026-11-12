@@ -1,0 +1,24 @@
+{
+    "name": "@phil/content-bundle",
+    "description": "The Stimulus controller of phil/content-bundle's administration: the author's autosave",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/autosave_controller.js",
+    "symfony": {
+        "controllers": {
+            "autosave": {
+                "main": "src/autosave_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

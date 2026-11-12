@@ -1,0 +1,24 @@
+{
+    "name": "@phil/analytics-bundle",
+    "description": "The Stimulus controller of phil/analytics-bundle's cookie-less collection",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/collect_controller.js",
+    "symfony": {
+        "controllers": {
+            "collect": {
+                "main": "src/collect_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

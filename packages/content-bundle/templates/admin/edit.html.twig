@@ -1,0 +1,117 @@
+{% extends layout %}
+
+{% block title %}{{ reference.toString }} — {{ locale }}{% endblock %}
+
+{% block content %}
+    <h1>{{ reference.toString }} <small>({{ locale }})</small></h1>
+    <p><a href="{{ path('phil_content_admin_list') }}">{{ 'admin.back'|trans({}, 'phil_content') }}</a></p>
+
+    {% if done %}<p role="status">{{ ('done.' ~ done)|trans({}, 'phil_content') }}</p>{% endif %}
+    {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+
+    <ul>
+        {% for status in statuses %}
+            <li>{{ status.locale }} : {{ ('place.' ~ (status.place ?? 'none'))|trans({}, 'phil_content') }} · {{ 'admin.version_of'|trans({'%draft%': status.draftVersion, '%live%': status.liveVersion ?? '–'}, 'phil_content') }}</li>
+        {% endfor %}
+    </ul>
+
+    {% if autosaved %}
+        <form method="post" aria-labelledby="phil-content-autosave">
+            <h2 id="phil-content-autosave">{{ 'admin.autosave'|trans({}, 'phil_content') }}</h2>
+            <p>{{ 'admin.autosaved_at'|trans({'%at%': autosaved.savedAt|date('Y-m-d H:i', timezone)}, 'phil_content') }}</p>
+            <input type="hidden" name="_token" value="{{ csrf_token }}">
+            <button type="submit" name="action" value="apply_autosave">{{ 'action.apply_autosave'|trans({}, 'phil_content') }}</button>
+            <button type="submit" name="action" value="discard_autosave">{{ 'action.discard_autosave'|trans({}, 'phil_content') }}</button>
+        </form>
+    {% endif %}
+
+    <form method="post"
+          data-controller="phil--content-bundle--autosave"
+          data-phil--content-bundle--autosave-url-value="{{ path('phil_content_admin_autosave', {reference: reference.toString, locale: locale}) }}"
+          data-action="input->phil--content-bundle--autosave#schedule">
+        <input type="hidden" name="_token" value="{{ csrf_token }}">
+
+        {% for field in text_fields %}
+            <p>
+                <label for="phil-content-{{ field }}">{{ ('field.' ~ field)|trans({}, 'phil_content') }}</label>
+                {% if field == 'bodySource' or field == 'excerptDescription' or field == 'seoDescription' %}
+                    <textarea id="phil-content-{{ field }}" name="content[{{ field }}]" rows="{{ field == 'bodySource' ? 20 : 3 }}">{{ values[field] ?? '' }}</textarea>
+                {% else %}
+                    <input id="phil-content-{{ field }}" name="content[{{ field }}]" value="{{ values[field] ?? '' }}">
+                {% endif %}
+            </p>
+        {% endfor %}
+
+        {% for field in flag_fields %}
+            <p>
+                <input type="hidden" name="content[{{ field }}]" value="0">
+                <input type="checkbox" id="phil-content-{{ field }}" name="content[{{ field }}]" value="1"{% if values[field] ?? false %} checked{% endif %}>
+                <label for="phil-content-{{ field }}">{{ ('field.' ~ field)|trans({}, 'phil_content') }}</label>
+            </p>
+        {% endfor %}
+
+        {% if losses is not empty %}
+            <section aria-labelledby="phil-content-losses">
+                <h2 id="phil-content-losses">{{ 'admin.losses'|trans({}, 'phil_content') }}</h2>
+                <ul>
+                    {% for loss in losses %}<li><code>{{ loss.element }}</code> — {{ loss.path }} ({{ loss.reason }})</li>{% endfor %}
+                </ul>
+                <p>
+                    <input type="checkbox" id="phil-content-accept-losses" name="accept_losses" value="1">
+                    <label for="phil-content-accept-losses">{{ 'admin.accept_losses'|trans({}, 'phil_content') }}</label>
+                </p>
+            </section>
+        {% endif %}
+
+        <p>
+            <button type="submit" name="action" value="save">{{ 'action.save'|trans({}, 'phil_content') }}</button>
+            <button type="submit" name="action" value="publish">{{ 'action.publish'|trans({}, 'phil_content') }}</button>
+            <button type="submit" name="action" value="unpublish">{{ 'action.unpublish'|trans({}, 'phil_content') }}</button>
+            <button type="submit" name="action" value="remove_draft">{{ 'action.remove_draft'|trans({}, 'phil_content') }}</button>
+        </p>
+
+        <fieldset>
+            <legend>{{ 'admin.named'|trans({}, 'phil_content') }}</legend>
+            <label for="phil-content-name">{{ 'admin.name'|trans({}, 'phil_content') }}</label>
+            <input id="phil-content-name" name="name" maxlength="100">
+            <button type="submit" name="action" value="save_named">{{ 'action.save_named'|trans({}, 'phil_content') }}</button>
+        </fieldset>
+    </form>
+
+    {% if named is not empty %}
+        <ul aria-label="{{ 'admin.named'|trans({}, 'phil_content') }}">
+            {% for copy in named %}
+                <li>
+                    <form method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="name" value="{{ copy.name }}">
+                        {{ copy.name }} — {{ copy.author }}, {{ copy.savedAt|date('Y-m-d H:i', timezone) }}
+                        <button type="submit" name="action" value="apply_named">{{ 'action.apply_named'|trans({}, 'phil_content') }}</button>
+                        <button type="submit" name="action" value="delete_named">{{ 'action.delete_named'|trans({}, 'phil_content') }}</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if scheduling %}
+        <form method="post" aria-labelledby="phil-content-schedule">
+            <h2 id="phil-content-schedule">{{ 'admin.schedule'|trans({}, 'phil_content') }}</h2>
+            <input type="hidden" name="_token" value="{{ csrf_token }}">
+            {% if pending is not empty %}
+                <ul>{% for planned in pending %}<li>{{ ('action.' ~ planned.transition)|trans({}, 'phil_content') }} — {{ planned.dueAt|date('Y-m-d H:i', timezone) }}</li>{% endfor %}</ul>
+                <button type="submit" name="action" value="cancel_schedule">{{ 'action.cancel_schedule'|trans({}, 'phil_content') }}</button>
+            {% endif %}
+            <p>
+                <label for="phil-content-transition">{{ 'admin.transition'|trans({}, 'phil_content') }}</label>
+                <select id="phil-content-transition" name="transition">
+                    <option value="publish">{{ 'action.publish'|trans({}, 'phil_content') }}</option>
+                    <option value="unpublish">{{ 'action.unpublish'|trans({}, 'phil_content') }}</option>
+                </select>
+                <label for="phil-content-at">{{ 'admin.at'|trans({'%timezone%': timezone}, 'phil_content') }}</label>
+                <input type="datetime-local" id="phil-content-at" name="at" required>
+                <button type="submit" name="action" value="schedule">{{ 'action.schedule'|trans({}, 'phil_content') }}</button>
+            </p>
+        </form>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,10 @@
+The list of disposable domains in this directory is generated from
+https://github.com/disposable-email-domains/disposable-email-domains, whose
+contributors dedicated it to the public domain under the Creative Commons CC0
+1.0 Universal Public Domain Dedication:
+https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+The list of top-level domains in this directory is generated from
+https://data.iana.org/TLD/tlds-alpha-by-domain.txt, published by the Internet
+Assigned Numbers Authority (IANA), which operates the DNS root zone. It is a
+list of facts, the names delegated in the root zone, given here with its source.

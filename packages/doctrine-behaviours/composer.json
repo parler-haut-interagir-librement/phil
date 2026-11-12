@@ -1,0 +1,65 @@
+{
+    "name": "phil/doctrine-behaviours",
+    "description": "Doctrine ORM behaviours written as interfaces, traits and listeners: timestamps, blame, soft delete, trees kept as materialized paths, deactivation, owner, publication by workflow, positions within groups, scoped slugs, translations along fallback chains, versions and dated identifiers",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "doctrine",
+        "timestampable",
+        "blameable",
+        "soft-delete",
+        "tree",
+        "sluggable",
+        "sortable",
+        "workflow",
+        "versioning"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "doctrine/collections": "^3.0",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/locale-dimensions": "^0.1@dev",
+        "psr/clock": "^1.0"
+    },
+    "require-dev": {
+        "ext-pdo": "*",
+        "phil/slug": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/uid": "^8.2",
+        "symfony/workflow": "^8.2"
+    },
+    "suggest": {
+        "phil/slug": "For the slug carried by an entity",
+        "symfony/uid": "For the dated identifier, a UUID v7",
+        "symfony/workflow": "For the publication state and its dates"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\DoctrineBehaviours\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\DoctrineBehaviours\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,67 @@
+{#-
+ # The PHIL UX form theme: Symfony's div layout, its rows written as the fields of the PHIL UX kit, which phil/ux-css
+ # dresses. A row is an `isField`; a compound row, such as expanded choices or a sub-form, is an `isFieldSet` named by
+ # its legend; the help is an `isFieldDescription` and the errors an `isFieldError`, both tied to the control by
+ # `aria-describedby`, the control marked `aria-invalid`, as Symfony writes them.
+ #}
+{% use 'form_div_layout.html.twig' %}
+
+{%- block form_row_render -%}
+    {%- set _invalid = errors|length > 0 -%}
+    {%- set _class = (compound ? 'isFieldSet' : 'isField') ~ (_invalid ? ' isDanger' : '') -%}
+    {%- set _row_attr = row_attr|merge({
+        class: (_class ~ ' ' ~ row_attr.class|default(''))|trim,
+        'data-slot': compound ? 'field-set' : 'field',
+    }) -%}
+    {%- if _invalid -%}
+        {%- set _row_attr = _row_attr|merge({'data-invalid': 'true'}) -%}
+    {%- endif -%}
+    {%- if compound -%}
+        <fieldset{% with {attr: _row_attr} %}{{ block('attributes') }}{% endwith %}>
+            {{- form_label(form, null, {element: 'legend', label_attr: label_attr|merge({class: ('isFieldLegend ' ~ label_attr.class|default(''))|trim})}) -}}
+            {{- form_errors(form) -}}
+            {{- form_widget(form, widget_attr) -}}
+            {{- form_help(form) -}}
+        </fieldset>
+    {%- else -%}
+        <div{% with {attr: _row_attr} %}{{ block('attributes') }}{% endwith %}>
+            {{- form_label(form, null, {label_attr: label_attr|merge({class: ('isFieldLabel ' ~ label_attr.class|default(''))|trim})}) -}}
+            {{- form_errors(form) -}}
+            {{- form_widget(form, widget_attr) -}}
+            {{- form_help(form) -}}
+        </div>
+    {%- endif -%}
+{%- endblock form_row_render -%}
+
+{%- block form_help -%}
+    {%- if help -%}
+        {%- set help_attr = help_attr|merge({class: ('isFieldDescription ' ~ help_attr.class|default(''))|trim, 'data-slot': 'field-description'}) -%}
+        <div id="{{ id }}_help"{% with {attr: help_attr} %}{{ block('attributes') }}{% endwith %}>
+            {{- block('form_help_content') -}}
+        </div>
+    {%- endif -%}
+{%- endblock form_help -%}
+
+{#- The errors arrive with the page: no live region, which would read every field's error at once on load. -#}
+{%- block form_errors -%}
+    {%- if errors|length > 0 -%}
+        <div class="isFieldError" data-slot="field-error">
+        {%- if errors|length == 1 -%}
+            <p id="{{ id ~ '_error1' }}">{{ (errors|first).message }}</p>
+        {%- else -%}
+            <ul>
+            {%- for error in errors -%}
+                <li id="{{ id ~ '_error' ~ loop.index }}">{{ error.message }}</li>
+            {%- endfor -%}
+            </ul>
+        {%- endif -%}
+        </div>
+    {%- endif -%}
+{%- endblock form_errors -%}
+
+{%- block choice_widget_expanded -%}
+    {%- if not multiple -%}
+        {%- set attr = attr|merge({class: ('isRadioGroup ' ~ attr.class|default(''))|trim}) -%}
+    {%- endif -%}
+    {{- parent() -}}
+{%- endblock choice_widget_expanded -%}

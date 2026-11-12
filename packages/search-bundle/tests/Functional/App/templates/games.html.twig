@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Jeux ({{ result.total }})</title>
+    {#- The script of the browser test, served beside the page by its server; nothing in the kernel's own tests. #}
+    <script type="importmap">{"imports": {"@hotwired/stimulus": "/stimulus.js"}}</script>
+    <script type="module" src="/app.js"></script>
+</head>
+<body>
+    <form role="search" method="get">
+        <label for="q">Chercher</label>
+        <input id="q" type="search" name="q" value="{{ request.text }}">
+    </form>
+    <twig:PhilSearchFilters :request="request" :result="result" :labels="{genre: 'Genre', year: 'Année'}" :valueLabels="{genre: {jdr: 'Jeu de rôle'}}" results="results" />
+    <ul id="results">
+        {%- for title in titles %}
+        <li>{{ title }}</li>
+        {%- endfor %}
+    </ul>
+</body>
+</html>

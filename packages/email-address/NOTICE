@@ -1,0 +1,16 @@
+phil/email-address
+Copyright (c) Philippe Gamache, doing business as Le Gnome Archiviste.
+The code of this library is under the MIT License (LICENSE).
+
+The list of disposable domains in data/disposable-domains.php is generated from
+disposable_email_blocklist.conf of
+https://github.com/disposable-email-domains/disposable-email-domains, dedicated
+to the public domain under CC0 1.0 Universal (data/LICENSE). The release
+imported is in data/VERSION. The domains were checked, written in their ASCII
+form, without duplicates and sorted.
+
+The list of top-level domains in data/top-level-domains.php is generated from
+https://data.iana.org/TLD/tlds-alpha-by-domain.txt, the list of the domains of
+the DNS root zone published by the Internet Assigned Numbers Authority (IANA).
+The release imported, the "# Version" of the list, is in data/VERSION. The
+domains were checked, written in lowercase, without duplicates and sorted.

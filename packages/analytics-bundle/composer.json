@@ -1,0 +1,77 @@
+{
+    "name": "phil/analytics-bundle",
+    "description": "Privacy-first analytics for Symfony: aggregate counters per UTC day and declared dimension, no visitor identifier, small-number suppression, Do Not Track and Global Privacy Control respected, goals, events, outbound links, shared views, reports and alerts; a collection endpoint, counters in Doctrine DBAL, a daily salt, a rate limit and retention",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "ext-uri": "*",
+        "phil/bot-detection-bundle": "^0.1@dev",
+        "phil/ddd-bundle": "^0.1@dev",
+        "phil/ip-anonymizer": "^0.1@dev",
+        "phil/rate-limit": "^0.1@dev",
+        "psr/cache": "^3.0",
+        "psr/clock": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/rate-limiter": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "phil/broken-flow-alerts": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/lock": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/notifier": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/scheduler": "^8.2"
+    },
+    "suggest": {
+        "doctrine/dbal": "To keep the counters in two tables of a Doctrine connection, the default store",
+        "doctrine/orm": "To add the counter tables to the schema the ORM generates",
+        "phil/broken-flow-alerts": "To be told when a goal stops being reached, under phil_analytics.broken_flows",
+        "symfony/lock": "To make the first claim of the daily salt atomic between servers",
+        "symfony/messenger": "To run the retention, the reports and the flow check as messages",
+        "symfony/notifier": "To send the broken-flow alerts as notifications",
+        "symfony/routing": "To import the collection endpoint's route",
+        "symfony/scheduler": "To run the daily jobs on the schedule phil_analytics"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\AnalyticsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\AnalyticsBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

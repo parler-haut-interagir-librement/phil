@@ -1,0 +1,50 @@
+{
+    "name": "phil/ip-anonymizer",
+    "description": "IP addresses anonymized before they are kept: IPv4 and IPv6 parsed strictly with IPv4-mapped addresses unmapped, truncation to a prefix of each family, keyed BLAKE2b digests with a random salt forgotten each day, and generalisation to a network, a special-purpose scope or a label from a table of networks, as strategies that compose",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "ip",
+        "ip-address",
+        "anonymization",
+        "privacy",
+        "gdpr",
+        "pseudonymization",
+        "ipv6",
+        "truncation"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-sodium": "*",
+        "psr/clock": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\IpAnonymizer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\IpAnonymizer\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

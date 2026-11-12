@@ -1,0 +1,10 @@
+<title>{{ content.seoTitle ?? content.excerptTitle }}</title>
+{{ content_seo(content) }}
+<script type="application/ld+json">{{ content_schema(content, 'NewsArticle')|json_encode(constant('JSON_UNESCAPED_SLASHES') b-or constant('JSON_UNESCAPED_UNICODE') b-or constant('JSON_HEX_TAG'))|raw }}</script>
+<h1>{{ content.excerptTitle }}</h1>
+<div class="body">{{ content.bodyHtml|raw }}</div>
+<p class="locale">{{ locale }}|{{ resolved_locale }}|{{ left_language ? 'left' : 'stayed' }}</p>
+<a class="self" href="{{ content_url(reference) }}">self</a>
+<a class="link" href="{{ content_link_url(content.link) }}">link</a>
+{% if archive is defined %}<ol class="archive">{% for published in archive %}<li>{{ published.version }}@{{ published.publishedAt|date('Y-m-d H:i', 'UTC') }}</li>{% endfor %}</ol><p class="archived">{{ archived.version }}</p>{% endif %}
+<ol class="history">{% for published in content_archive(reference) %}<li>{{ published.version }}</li>{% endfor %}</ol>

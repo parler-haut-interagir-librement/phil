@@ -80,6 +80,8 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/tax`](https://github.com/parler-haut-interagir-librement/tax) | Several taxes on one sale, each computed on the same base and itemised to the cent. |
 | [`phil/opening-hours`](https://github.com/parler-haut-interagir-librement/opening-hours) | A place's opening hours, and whether it is open right now. |
 | [`phil/opening-hours-bundle`](https://github.com/parler-haut-interagir-librement/opening-hours-bundle) | An opening hours form, a JSON column and localised hours in Twig, for Symfony. |
+| [`phil/almanac`](https://github.com/parler-haut-interagir-librement/almanac) | Dates that are computed: Easter, equinoxes, phases of the Moon, eclipses, sunrise and sunset, and the rules of holidays. |
+| [`phil/almanac-bundle`](https://github.com/parler-haut-interagir-librement/almanac-bundle) | Computed dates in Doctrine, forms and Twig, with the places whose sun and sky they follow. |
 
 ### Links, addresses and places
 
@@ -125,12 +127,45 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/print-compositor`](https://github.com/parler-haut-interagir-librement/print-compositor) | The mockups a shop shows and the print files a printer receives, drawn from the same layers. |
 | [`phil/commerce-product-template`](https://github.com/parler-haut-interagir-librement/commerce-product-template) | One template and one design give every product of a catalogue: each SKU, its price, its channels and its artworks. |
 
+### Content and search
+
+| Package | Description |
+|---|---|
+| [`phil/content-bundle`](https://github.com/parler-haut-interagir-librement/content-bundle) | Content by language, stage and version: drafts published through a workflow, bodies published as UJO, routes that keep old slugs, and an administration. |
+| [`phil/locale-dimensions`](https://github.com/parler-haut-interagir-librement/locale-dimensions) | Languages, versions and the fallback chains between languages, as plain value objects. |
+| [`phil/publishing`](https://github.com/parler-haut-interagir-librement/publishing) | The events a page sends when it goes online or offline, for the listeners that follow it. |
+| [`phil/scheduled-transitions-bundle`](https://github.com/parler-haut-interagir-librement/scheduled-transitions-bundle) | Publish or unpublish at a date: workflow transitions planned and run by the Symfony Scheduler. |
+| [`phil/doctrine-behaviours`](https://github.com/parler-haut-interagir-librement/doctrine-behaviours) | Doctrine behaviours: timestamps, authors, soft delete, trees, slugs, positions and translations. |
+| [`phil/search-bundle`](https://github.com/parler-haut-interagir-librement/search-bundle) | Search with facets on the database, Meilisearch or Loupe, synonyms per language, and filters that work without JavaScript. |
+| [`phil/search-loupe`](https://github.com/parler-haut-interagir-librement/search-loupe) | The Loupe adapter of `phil/search-bundle`: search indexes in SQLite files, with no server to run. |
+| [`phil/search-synonyms`](https://github.com/parler-haut-interagir-librement/search-synonyms) | Synonym rules per language, checked for overlaps, read and written in the Solr and JSON formats. |
+| [`phil/translation-memory`](https://github.com/parler-haut-interagir-librement/translation-memory) | Translation by segments: a translation memory, a glossary, quality checks, and XLIFF, TMX and TBX exchange. |
+
+### Privacy, security and accessibility
+
+| Package | Description |
+|---|---|
+| [`phil/accessibility-check`](https://github.com/parler-haut-interagir-librement/accessibility-check) | Check HTML or a UJO document for accessibility before it is published: contrast, headings, languages, images. |
+| [`phil/accessibility-statement`](https://github.com/parler-haut-interagir-librement/accessibility-statement) | An accessibility statement written from the report of a check, in English and in French. |
+| [`phil/creation-disclosure`](https://github.com/parler-haut-interagir-librement/creation-disclosure) | Say how a work was made, generative AI included, in the Digital Source Type vocabulary of the IPTC. |
+| [`phil/indexing-consent`](https://github.com/parler-haut-interagir-librement/indexing-consent) | Whether a member's page may be indexed: listed, unlisted or private, read by the sitemap and the structured data. |
+| [`phil/ip-anonymizer`](https://github.com/parler-haut-interagir-librement/ip-anonymizer) | IP addresses truncated, hashed under a key, or forgotten with their salt, before anything keeps them. |
+| [`phil/analytics-bundle`](https://github.com/parler-haut-interagir-librement/analytics-bundle) | Analytics without a visitor identifier: counters per day, small numbers suppressed, reports and alerts. |
+| [`phil/broken-flow-alerts`](https://github.com/parler-haut-interagir-librement/broken-flow-alerts) | An alert when a sign-up or a purchase stops completing, measured against the usual rhythm of the week. |
+| [`phil/identity-client-bundle`](https://github.com/parler-haut-interagir-librement/identity-client-bundle) | A Symfony client of an OpenID Connect provider: back-channel logout, step-up authentication and serialized refreshes. |
+| [`phil/email-address`](https://github.com/parler-haut-interagir-librement/email-address) | Email addresses a mail server can deliver to, with suggestions for slips such as gmial.com. |
+| [`phil/rate-limit`](https://github.com/parler-haut-interagir-librement/rate-limit) | A build-time guard that refuses, in production, a rate limit counted separately on each server. |
+| [`phil/rate-limit-bundle`](https://github.com/parler-haut-interagir-librement/rate-limit-bundle) | Rate limits declared on controllers, routes and forms, answered with 429 and the RateLimit headers. |
+| [`phil/safe-http`](https://github.com/parler-haut-interagir-librement/safe-http) | Read addresses given by members or other sites without reaching your own network: redirects checked one by one. |
+| [`phil/idempotency`](https://github.com/parler-haut-interagir-librement/idempotency) | Run an operation once per idempotency key, replay its answer, and handle each Messenger message once. |
+
 ### PHIL UX
 
 | Package | Description |
 |---|---|
 | [`phil/ux-css`](https://github.com/parler-haut-interagir-librement/ux-css) | phil-ux, a mostly classless CSS framework on `--phil-*` tokens, light and dark, whose themes are checked for contrast. |
 | [`phil/ux-kit`](https://github.com/parler-haut-interagir-librement/ux-kit) | The PHIL UX kit for the Symfony UX Toolkit: the recipes of the Shadcn kit, styled with phil-ux, copied by `ux:install`. |
+| [`phil/ux-bundle`](https://github.com/parler-haut-interagir-librement/ux-bundle) | The PHIL UX form theme on every form of a Symfony application, and the stylesheet of `phil/ux-css` in AssetMapper. |
 
 ### Integrations
 
@@ -156,6 +191,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/reporting-bundle`](https://github.com/parler-haut-interagir-librement/reporting-bundle) | Dashboards and reports for Symfony applications: figures contributed by any bundle, charts drawn without a script, reports exported, scheduled and delivered. |
 | [`phil/route-access-check`](https://github.com/parler-haut-interagir-librement/route-access-check) | Every route has an access rule, or says why it is public: checked in continuous integration, before it ships. |
 | [`phil/route-access-check-bundle`](https://github.com/parler-haut-interagir-librement/route-access-check-bundle) | `bin/console phil:route-access:check`: every route of the application has an access rule, or the CI step fails. |
+| [`phil/data-table-export`](https://github.com/parler-haut-interagir-librement/data-table-export) | Tables exported as CSV guarded against formula injection, or as XLSX written in blocks, the same bytes for the same sheet. |
 
 Every package is at `0.x`: its API may still change between minor versions, as its CHANGELOG records. More packages
 join the showcase by small daily groups.

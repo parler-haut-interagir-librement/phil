@@ -1,0 +1,51 @@
+{
+    "name": "phil/broken-flow-alerts",
+    "description": "An alert when a path visitors finish (a purchase, a registration, a form) stops completing: daily completions compared with the rhythm of the weeks before as a Poisson count, weekday by weekday, read from counters the application already keeps, without a synthetic request, and sent through Symfony Notifier",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "monitoring",
+        "alerting",
+        "conversion",
+        "funnel",
+        "anomaly-detection"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "psr/clock": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2",
+        "symfony/notifier": "^8.2"
+    },
+    "suggest": {
+        "symfony/notifier": "To send the alerts as notifications, with NotifierAlertSender"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\BrokenFlowAlerts\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\BrokenFlowAlerts\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

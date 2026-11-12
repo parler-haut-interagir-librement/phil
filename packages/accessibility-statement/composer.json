@@ -1,0 +1,50 @@
+{
+    "name": "phil/accessibility-statement",
+    "description": "Versioned accessibility statements: the conformance target and status claimed against WCAG 2.0, 2.1 or 2.2, unmet criteria with their reason, alternative and fix date, the alternatives offered, the feedback contact, the enforcement procedure and the last evaluation, as plain data, and the next version generated from phil/accessibility-check reports",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "accessibility",
+        "a11y",
+        "accessibility-statement",
+        "wcag",
+        "en-301-549",
+        "conformance"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-filter": "*",
+        "ext-mbstring": "*",
+        "phil/accessibility-check": "^0.1@dev",
+        "phil/url": "^0.1@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\AccessibilityStatement\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\AccessibilityStatement\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,46 @@
+{
+    "name": "phil/search-loupe",
+    "description": "The Loupe adapter of phil/search-bundle: indexes in SQLite files, with typo tolerance and relevance, and no server to run. Loupe requires joomla/string, under GPL-2.0-or-later",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "search",
+        "loupe",
+        "sqlite",
+        "full-text"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "loupe/loupe": "^1.1",
+        "phil/search-bundle": "^0.1@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\SearchLoupe\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\SearchLoupe\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

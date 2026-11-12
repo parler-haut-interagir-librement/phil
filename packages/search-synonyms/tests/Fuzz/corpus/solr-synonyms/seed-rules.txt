@@ -1,0 +1,3 @@
+# Jeux
+jdr, jeu de rôle
+donjon => donjon, dungeon

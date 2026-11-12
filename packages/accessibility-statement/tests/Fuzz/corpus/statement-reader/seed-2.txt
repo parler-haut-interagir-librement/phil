@@ -1,0 +1,1 @@
+{"version":1,"published_at":"2026-11-08","feedback":{"email":"a@example.com"}}

@@ -1,0 +1,62 @@
+{
+    "name": "phil/idempotency",
+    "description": "Each operation run once per idempotency key: keys scoped to their caller, request fingerprints, the response kept and replayed, three states with an expiring in-progress one, and stores on a port, with adapters for Doctrine DBAL and the Symfony cache under a Symfony lock, for HTTP APIs, Messenger handlers, payment webhooks and forms sent twice",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "idempotency",
+        "idempotency-key",
+        "deduplication",
+        "retry",
+        "messenger",
+        "webhooks"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "psr/clock": "^1.0",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "phpunit/phpunit": "^13.4",
+        "psr/cache": "^3.0",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/filesystem": "^8.2",
+        "symfony/lock": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/process": "^8.2"
+    },
+    "suggest": {
+        "doctrine/dbal": "To keep the keys in a table",
+        "psr/cache": "To keep the keys in a cache pool",
+        "symfony/lock": "To keep the keys in a cache pool, with an atomic reservation",
+        "symfony/messenger": "To handle a received message once per key"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Idempotency\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Idempotency\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

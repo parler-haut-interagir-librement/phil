@@ -1,0 +1,81 @@
+{
+    "name": "phil/rate-limit-bundle",
+    "description": "Rate limits declared on Symfony controllers, routes and forms: an attribute, a route default and a form option naming limiters over symfony/rate-limiter, keys hashed from the client's address or the user, 429 answers with Retry-After and the IETF RateLimit headers, JSON problems for APIs, a Twig page for the others, and an event on each refusal",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "rate-limit",
+        "rate-limiter",
+        "throttling",
+        "429",
+        "ratelimit-headers",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/rate-limit": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/container": "^2.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/rate-limiter": "^8.2",
+        "symfony/routing": "^8.2"
+    },
+    "require-dev": {
+        "phil/ip-anonymizer": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/cache": "^3.0",
+        "psr/log": "^3.0",
+        "roave/security-advisories": "dev-latest",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "phil/ip-anonymizer": "To count the ip keys by network, so that an IPv6 subscriber's /64 shares one key",
+        "psr/log": "For the warning logged when a limiter in observation would have refused a request",
+        "symfony/form": "To limit the submissions of forms by their name",
+        "symfony/lock": "For exact counts when requests of one key run at once",
+        "symfony/security-core": "For the user and user_or_ip keys of the signed-in user",
+        "symfony/translation": "For the refusal page and the form error in the request's language",
+        "twig/twig": "For the HTML page of a refusal"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\RateLimitBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\RateLimitBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

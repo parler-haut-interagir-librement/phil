@@ -1,0 +1,43 @@
+{% extends layout %}
+
+{% block title %}{{ 'admin.title'|trans({}, 'phil_content') }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'admin.title'|trans({}, 'phil_content') }}</h1>
+
+    {% for kind, contents in kinds %}
+        <section aria-labelledby="phil-content-admin-{{ kind }}">
+            <h2 id="phil-content-admin-{{ kind }}">{{ ('kind.' ~ kind)|trans({}, 'phil_content') }} <small>({{ kind }})</small></h2>
+            <p><a href="{{ path('phil_content_admin_create', {resourceKey: kind}) }}">{{ 'admin.create'|trans({}, 'phil_content') }}</a></p>
+
+            {% if contents is empty %}
+                <p>{{ 'admin.none'|trans({}, 'phil_content') }}</p>
+            {% else %}
+                <table>
+                    <thead>
+                    <tr>
+                        <th scope="col">{{ 'admin.content'|trans({}, 'phil_content') }}</th>
+                        <th scope="col">{{ 'admin.locale'|trans({}, 'phil_content') }}</th>
+                        <th scope="col">{{ 'admin.slug'|trans({}, 'phil_content') }}</th>
+                        <th scope="col">{{ 'admin.place'|trans({}, 'phil_content') }}</th>
+                        <th scope="col">{{ 'admin.versions'|trans({}, 'phil_content') }}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in contents %}
+                        {% for status in item.statuses %}
+                            <tr>
+                                <td>{{ item.reference.resourceId }}</td>
+                                <td><a href="{{ path('phil_content_admin_edit', {reference: item.reference.toString, locale: status.locale}) }}">{{ status.locale }}</a></td>
+                                <td>{{ status.slug }}</td>
+                                <td>{{ ('place.' ~ (status.place ?? 'none'))|trans({}, 'phil_content') }}</td>
+                                <td>{{ 'admin.version_of'|trans({'%draft%': status.draftVersion, '%live%': status.liveVersion ?? '–'}, 'phil_content') }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </section>
+    {% endfor %}
+{% endblock %}

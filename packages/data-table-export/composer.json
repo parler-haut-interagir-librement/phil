@@ -1,0 +1,49 @@
+{
+    "name": "phil/data-table-export",
+    "description": "Writes rows to CSV and XLSX files as they are read, in bounded memory: CSV after RFC 4180 with its cells kept from running as formulas, XLSX written with ext-zip and XML, without knowing where the rows come from",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "csv",
+        "xlsx",
+        "export",
+        "spreadsheet",
+        "streaming"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-zip": "*"
+    },
+    "require-dev": {
+        "ext-dom": "*",
+        "phpunit/phpunit": "^13.4",
+        "roave/security-advisories": "dev-latest"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\DataTableExport\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\DataTableExport\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

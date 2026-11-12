@@ -1,0 +1,1 @@
+{n, plural, offset:1 =0 {aucun} one {# '{'point'}'} few {#} many {#} other {{g, select, a {x} other {y}}}}

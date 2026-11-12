@@ -82,6 +82,8 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/tax`](https://github.com/parler-haut-interagir-librement/tax) | Plusieurs taxes sur une même vente, chacune calculée sur la même base et détaillée au cent près. |
 | [`phil/opening-hours`](https://github.com/parler-haut-interagir-librement/opening-hours) | Les heures d'ouverture d'un lieu, et s'il est ouvert en ce moment. |
 | [`phil/opening-hours-bundle`](https://github.com/parler-haut-interagir-librement/opening-hours-bundle) | Un formulaire d'heures d'ouverture, une colonne JSON et des heures localisées dans Twig, pour Symfony. |
+| [`phil/almanac`](https://github.com/parler-haut-interagir-librement/almanac) | Les dates qui se calculent : Pâques, équinoxes, phases de la Lune, éclipses, lever et coucher du soleil, et les règles des fêtes. |
+| [`phil/almanac-bundle`](https://github.com/parler-haut-interagir-librement/almanac-bundle) | Les dates calculées dans Doctrine, les formulaires et Twig, avec les lieux dont elles suivent le soleil et le ciel. |
 
 ### Liens, adresses et lieux
 
@@ -127,12 +129,45 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/print-compositor`](https://github.com/parler-haut-interagir-librement/print-compositor) | Les maquettes que montre une boutique et les fichiers d'impression que reçoit un imprimeur, dessinés à partir des mêmes calques. |
 | [`phil/commerce-product-template`](https://github.com/parler-haut-interagir-librement/commerce-product-template) | Un gabarit et un visuel donnent chaque produit d'un catalogue : chaque UGS, son prix, ses canaux et ses illustrations. |
 
+### Contenu et recherche
+
+| Paquet | Description |
+|---|---|
+| [`phil/content-bundle`](https://github.com/parler-haut-interagir-librement/content-bundle) | Du contenu par langue, étape et version : brouillons publiés par un workflow, corps publiés en UJO, routes qui gardent les anciens slugs, et une administration. |
+| [`phil/locale-dimensions`](https://github.com/parler-haut-interagir-librement/locale-dimensions) | Les langues, les versions et les chaînes de repli entre langues, en objets-valeurs. |
+| [`phil/publishing`](https://github.com/parler-haut-interagir-librement/publishing) | Les événements qu'envoie une page quand elle est mise en ligne ou retirée, pour ceux qui la suivent. |
+| [`phil/scheduled-transitions-bundle`](https://github.com/parler-haut-interagir-librement/scheduled-transitions-bundle) | Publier ou dépublier à une date : des transitions de workflow planifiées et lancées par le Scheduler de Symfony. |
+| [`phil/doctrine-behaviours`](https://github.com/parler-haut-interagir-librement/doctrine-behaviours) | Des comportements Doctrine : horodatage, auteurs, corbeille, arbres, slugs, positions et traductions. |
+| [`phil/search-bundle`](https://github.com/parler-haut-interagir-librement/search-bundle) | La recherche avec facettes sur la base de données, Meilisearch ou Loupe, des synonymes par langue, et des filtres qui marchent sans JavaScript. |
+| [`phil/search-loupe`](https://github.com/parler-haut-interagir-librement/search-loupe) | L'adaptateur Loupe de `phil/search-bundle` : des index de recherche dans des fichiers SQLite, sans serveur à faire tourner. |
+| [`phil/search-synonyms`](https://github.com/parler-haut-interagir-librement/search-synonyms) | Des règles de synonymes par langue, vérifiées pour leurs chevauchements, lues et écrites aux formats Solr et JSON. |
+| [`phil/translation-memory`](https://github.com/parler-haut-interagir-librement/translation-memory) | La traduction par segments : une mémoire de traduction, un glossaire, des contrôles de qualité, et les échanges XLIFF, TMX et TBX. |
+
+### Vie privée, sécurité et accessibilité
+
+| Paquet | Description |
+|---|---|
+| [`phil/accessibility-check`](https://github.com/parler-haut-interagir-librement/accessibility-check) | Vérifier l'accessibilité d'un HTML ou d'un document UJO avant sa publication : contrastes, titres, langues, images. |
+| [`phil/accessibility-statement`](https://github.com/parler-haut-interagir-librement/accessibility-statement) | Une déclaration d'accessibilité écrite à partir du rapport d'une vérification, en anglais et en français. |
+| [`phil/creation-disclosure`](https://github.com/parler-haut-interagir-librement/creation-disclosure) | Dire comment une œuvre a été faite, IA générative comprise, dans le vocabulaire Digital Source Type de l'IPTC. |
+| [`phil/indexing-consent`](https://github.com/parler-haut-interagir-librement/indexing-consent) | Si la page d'un membre peut être indexée : listée, non listée ou privée, lu par le plan du site et les données structurées. |
+| [`phil/ip-anonymizer`](https://github.com/parler-haut-interagir-librement/ip-anonymizer) | Des adresses IP tronquées, hachées sous une clé ou oubliées avec leur sel, avant que rien ne les garde. |
+| [`phil/analytics-bundle`](https://github.com/parler-haut-interagir-librement/analytics-bundle) | Une analytique sans identifiant de visiteur : des compteurs par jour, les petits nombres masqués, des rapports et des alertes. |
+| [`phil/broken-flow-alerts`](https://github.com/parler-haut-interagir-librement/broken-flow-alerts) | Une alerte quand une inscription ou un achat cesse de se compléter, selon le rythme habituel de la semaine. |
+| [`phil/identity-client-bundle`](https://github.com/parler-haut-interagir-librement/identity-client-bundle) | Un client Symfony d'un fournisseur OpenID Connect : déconnexion par canal arrière, authentification renforcée et rafraîchissements sérialisés. |
+| [`phil/email-address`](https://github.com/parler-haut-interagir-librement/email-address) | Des adresses de courriel qu'un serveur peut livrer, avec des suggestions pour les fautes comme gmial.com. |
+| [`phil/rate-limit`](https://github.com/parler-haut-interagir-librement/rate-limit) | Une garde de construction qui refuse, en production, une limite de débit comptée à part sur chaque serveur. |
+| [`phil/rate-limit-bundle`](https://github.com/parler-haut-interagir-librement/rate-limit-bundle) | Des limites de débit déclarées sur les contrôleurs, les routes et les formulaires, avec des réponses 429 et les en-têtes RateLimit. |
+| [`phil/safe-http`](https://github.com/parler-haut-interagir-librement/safe-http) | Lire les adresses que donnent les membres ou d'autres sites sans atteindre votre propre réseau : redirections vérifiées une à une. |
+| [`phil/idempotency`](https://github.com/parler-haut-interagir-librement/idempotency) | Exécuter une opération une fois par clé d'idempotence, rejouer sa réponse, et traiter une fois chaque message de Messenger. |
+
 ### PHIL UX
 
 | Paquet | Description |
 |---|---|
 | [`phil/ux-css`](https://github.com/parler-haut-interagir-librement/ux-css) | phil-ux, un cadre CSS presque sans classes sur des jetons `--phil-*`, clair et sombre, aux thèmes vérifiés pour le contraste. |
 | [`phil/ux-kit`](https://github.com/parler-haut-interagir-librement/ux-kit) | Le kit PHIL UX du Symfony UX Toolkit : les recettes du kit Shadcn, habillées par phil-ux, copiées par `ux:install`. |
+| [`phil/ux-bundle`](https://github.com/parler-haut-interagir-librement/ux-bundle) | Le thème de formulaire PHIL UX sur chaque formulaire d'une application Symfony, et la feuille de `phil/ux-css` dans AssetMapper. |
 
 ### Intégrations
 
@@ -158,6 +193,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/reporting-bundle`](https://github.com/parler-haut-interagir-librement/reporting-bundle) | Des tableaux de bord et des rapports pour les applications Symfony : des chiffres fournis par n'importe quel bundle, des graphiques dessinés sans script, des rapports exportés, planifiés et livrés. |
 | [`phil/route-access-check`](https://github.com/parler-haut-interagir-librement/route-access-check) | Chaque route a une règle d'accès, ou dit pourquoi elle est publique : c'est vérifié en intégration continue, avant la mise en production. |
 | [`phil/route-access-check-bundle`](https://github.com/parler-haut-interagir-librement/route-access-check-bundle) | `bin/console phil:route-access:check` : chaque route de l'application a une règle d'accès, sinon l'étape d'intégration continue échoue. |
+| [`phil/data-table-export`](https://github.com/parler-haut-interagir-librement/data-table-export) | Des tableaux exportés en CSV gardé contre l'injection de formules, ou en XLSX écrit par blocs, les mêmes octets pour la même feuille. |
 
 Tous les paquets sont en `0.x` : leur API peut encore changer d'une version mineure à l'autre, comme le consigne leur
 CHANGELOG. D'autres paquets rejoignent la vitrine par petits groupes quotidiens.

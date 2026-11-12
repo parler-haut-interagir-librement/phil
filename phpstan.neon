@@ -56,3 +56,27 @@ parameters:
             identifier: property.nonObject
             path: packages/qr-code-bundle/tests/Functional/QrCodeBundleTest.php
             count: 3
+
+        # Without an object manager, the Doctrine extension reads the mapping attributes alone: it does not see the field
+        # a subclass maps, the type a custom DBAL type converts to, or the lifecycle callback that fills a column before
+        # it is written.
+        -
+            identifier: doctrine.finalConstructor
+            path: packages/content-bundle/src/Domain/Content/AbstractDimensionContent.php
+            count: 1
+        -
+            identifier: doctrine.findOneByArgument
+            path: packages/content-bundle/src/Infrastructure/Doctrine/DoctrineDimensionContentRepository.php
+            count: 3
+        -
+            identifier: doctrine.findByArgument
+            path: packages/content-bundle/src/Infrastructure/Doctrine/DoctrineDimensionContentRepository.php
+            count: 2
+        -
+            identifier: doctrine.columnType
+            path: packages/content-bundle/tests/Unit/Infrastructure/Doctrine/Fixture/Label.php
+            count: 2
+        -
+            identifier: doctrine.columnType
+            path: packages/doctrine-behaviours/src/TimestampableEntity.php
+            count: 2

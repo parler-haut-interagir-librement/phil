@@ -1,0 +1,54 @@
+{
+    "name": "phil/email-address",
+    "description": "Email addresses a mail server can deliver to: RFC 5321 mailbox syntax with international domains and the RFC 6531 forms an application allows, MX, null MX and A records through a port, disposable domains and IANA top-level domains imported as data, denied and allowed domains, and suggestions for slips such as gmial.com, with a Symfony constraint",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "email",
+        "email-address",
+        "validation",
+        "mx",
+        "disposable-email",
+        "typo",
+        "idn",
+        "rfc5321",
+        "symfony-validator"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-ctype": "*",
+        "ext-filter": "*",
+        "ext-intl": "*",
+        "symfony/filesystem": "^8.2",
+        "symfony/validator": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\EmailAddress\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\EmailAddress\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

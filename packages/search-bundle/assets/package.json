@@ -1,0 +1,24 @@
+{
+    "name": "@phil/search-bundle",
+    "description": "The Stimulus controller of phil/search-bundle: the filters of a results page applied as they are ticked, the page drawn again in place, and the count of results said in a live region",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/filters_controller.js",
+    "symfony": {
+        "controllers": {
+            "filters": {
+                "main": "src/filters_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

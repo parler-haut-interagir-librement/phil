@@ -1,0 +1,52 @@
+{
+    "name": "phil/almanac",
+    "description": "Computed dates for PHP: Easter, the phases of the Moon, the equinoxes and solstices, eclipses, sunrise, sunset and twilights by Meeus's algorithms, the Chinese New Year, and rules written in words — 2nd monday of october, easter - 47 days — for an almanac of a period",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "calendar",
+        "easter",
+        "moon-phases",
+        "equinox",
+        "solstice",
+        "eclipse",
+        "sunrise",
+        "twilight",
+        "chinese-new-year",
+        "holidays"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "phil/recurrence": "^0.1@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Almanac\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Almanac\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

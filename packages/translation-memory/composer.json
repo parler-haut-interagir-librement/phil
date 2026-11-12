@@ -1,0 +1,55 @@
+{
+    "name": "phil/translation-memory",
+    "description": "Translation by segments: UJO documents cut by block or sentence, segments with source fingerprints and states, regional variants that inherit from their parent language, a memory with exact and fuzzy matches, a glossary with inflected forms, quality checks of punctuation, tags, plurals and rendered size, and XLIFF, TMX and TBX exchange",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "translation",
+        "translation-memory",
+        "xliff",
+        "tmx",
+        "tbx",
+        "glossary",
+        "localization",
+        "ujo"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-ctype": "*",
+        "ext-dom": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "phil/fonts": "^0.1@dev",
+        "phil/text-diff": "^0.1@dev",
+        "phil/ujo": "^0.1@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\TranslationMemory\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\TranslationMemory\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

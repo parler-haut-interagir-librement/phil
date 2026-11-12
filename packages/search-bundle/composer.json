@@ -1,0 +1,85 @@
+{
+    "name": "phil/search-bundle",
+    "description": "Search for a Symfony application: resources turned into documents, indexed in a table of the database, in Meilisearch or in Loupe through phil/search-loupe, up to date at each Doctrine flush, searched with facet counts and synonyms per language, rebuilt, and filtered on a results page that works without JavaScript",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "facets",
+        "full-text",
+        "meilisearch",
+        "search",
+        "stimulus",
+        "symfony-bundle",
+        "synonyms"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "phil/search-synonyms": "^0.1@dev",
+        "phil/ux-kit": "^0.4@dev || ^0.5@dev",
+        "php-webdriver/webdriver": "^1.15",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/browser-kit": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.1",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/filesystem": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/panther": "^2.4",
+        "symfony/routing": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "phil/search-loupe": "To index in SQLite files with Loupe, without a server",
+        "phil/search-synonyms": "For synonyms kept in files or in the administration",
+        "phil/ux-kit": "For the recipes the filters component draws with, through the Symfony UX Toolkit",
+        "symfony/asset-mapper": "For the Stimulus controller without a build step",
+        "symfony/console": "For phil:search:reindex",
+        "symfony/http-client": "To index in Meilisearch",
+        "symfony/stimulus-bundle": "For the Stimulus controller of the filters",
+        "symfony/ux-twig-component": "For the filters component of a results page"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\SearchBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\SearchBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

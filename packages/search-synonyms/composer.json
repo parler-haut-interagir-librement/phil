@@ -1,0 +1,48 @@
+{
+    "name": "phil/search-synonyms",
+    "description": "Search synonyms per language: equivalent and one-way rules, validated, read and written in the Solr synonyms format or JSON, kept in files or the application's own store",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "search",
+        "solr",
+        "synonyms"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "roave/security-advisories": "dev-latest"
+    },
+    "suggest": {
+        "phil/search-bundle": "To search with these synonyms: its synonyms port reads a store of this package"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\SearchSynonyms\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\SearchSynonyms\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

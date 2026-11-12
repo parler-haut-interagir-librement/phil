@@ -1,0 +1,77 @@
+{#
+ # The filters of a results page: a plain GET form whose boxes the controller submits as they are ticked, the values
+ # chosen as links that remove them, one at a time or all together, and the count of results in a live region. Every
+ # part works without JavaScript. The controls are recipes of the kit, installed in the application, under the names
+ # `this.kit` gives, read once before any recipe since `this` names the recipe inside its block; a recipe is called by
+ # `component` with its name in parentheses, that name being only known once the application's subdirectory is read.
+ #}
+{%- set c = 'phil--search-bundle--filters' -%}
+{%- set domain = 'phil_search' -%}
+{%- set chosen = this.chosen -%}
+{%- set text = this.text -%}
+{%- set clearHref = this.clearHref -%}
+{%- set facets = this.facets -%}
+{%- set kit = {
+    badge: this.kit('Badge'),
+    button: this.kit('Button'),
+    checkbox: this.kit('Checkbox'),
+    field: this.kit('Field'),
+    label: this.kit('Field:Label'),
+    legend: this.kit('Field:Legend'),
+    set: this.kit('Field:Set'),
+} -%}
+<div{{ attributes.defaults({
+    id: this.id,
+    class: 'phil-search-filters',
+    tabindex: '-1',
+    'data-controller': c,
+    'data-action': 'popstate@window->' ~ c ~ '#restore',
+    ('data-' ~ c ~ '-results-value'): this.results ?? '',
+}) }}>
+    <p class="phil-search-filters__status" role="status" aria-live="polite" aria-atomic="true" data-{{ c }}-target="status">
+        {{- 'search.results'|trans({'%count%': this.total}, domain) -}}
+    </p>
+    {%- if chosen is not empty %}
+    <div class="phil-search-filters__chosen">
+        <ul class="phil-search-filters__chips" aria-label="{{ 'search.chosen'|trans({}, domain) }}">
+            {%- for item in chosen %}
+            <li>
+                {%- component (kit.button) with {as: 'a', variant: 'outline', size: 'sm', href: item.href, 'data-action': c ~ '#follow'} %}
+                    {%- block content -%}
+                    <span class="isVisuallyHidden">{{ 'search.remove'|trans({}, domain) }} </span>{{ item.facet }}{{ 'search.separator'|trans({}, domain) }}{{ item.label }}<span aria-hidden="true"> ×</span>
+                    {%- endblock -%}
+                {%- endcomponent %}
+            </li>
+            {%- endfor %}
+        </ul>
+        {%- component (kit.button) with {as: 'a', variant: 'link', size: 'sm', href: clearHref, 'data-action': c ~ '#follow'} %}
+            {%- block content %}{{ 'search.clear'|trans({}, domain) }}{% endblock -%}
+        {%- endcomponent %}
+    </div>
+    {%- endif %}
+    <form class="phil-search-filters__form" method="get" action="{{ this.action }}" data-{{ c }}-target="form" data-action="change->{{ c }}#change submit->{{ c }}#submit">
+        {%- if text is not same as('') %}
+        <input type="hidden" name="q" value="{{ text }}">
+        {%- endif %}
+        {%- for facet in facets %}
+        {%- component (kit.set) %}
+            {%- block content %}
+            {%- component (kit.legend) with {variant: 'label'} %}{% block content %}{{ facet.label }}{% endblock %}{% endcomponent %}
+            {%- for value in facet.values %}
+            {%- component (kit.field) with {orientation: 'horizontal'} %}
+                {%- block content %}
+                {{- component(kit.checkbox, {id: value.id, name: 'filter[' ~ facet.field ~ '][]', value: value.value, checked: value.checked}) }}
+                {%- component (kit.label) with {for: value.id} %}
+                    {%- block content %}{{ value.label }} {% component (kit.badge) with {variant: 'secondary'} %}{% block content %}<span class="isVisuallyHidden">{{ 'search.count'|trans({'%count%': value.count}, domain) }}</span><span aria-hidden="true">{{ value.count }}</span>{% endblock %}{% endcomponent %}{% endblock -%}
+                {%- endcomponent %}
+                {%- endblock %}
+            {%- endcomponent %}
+            {%- endfor %}
+            {%- endblock %}
+        {%- endcomponent %}
+        {%- endfor %}
+        {%- component (kit.button) with {type: 'submit', variant: 'secondary', 'data-phil--search-bundle--filters-target': 'submit'} %}
+            {%- block content %}{{ 'search.apply'|trans({}, domain) }}{% endblock -%}
+        {%- endcomponent %}
+    </form>
+</div>
