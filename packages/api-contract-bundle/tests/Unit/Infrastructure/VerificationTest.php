@@ -8,9 +8,6 @@ use Phil\ApiContract\Exception\InvalidContractValue;
 use Phil\ApiContract\Exception\UnreadableDocument;
 use Phil\ApiContract\OpenApi\ContractVerifier;
 use Phil\ApiContract\OpenApi\OpenApiDocument;
-use Phil\ApiContract\OpenApi\RuleLevel;
-use Phil\ApiContract\OpenApi\Severity;
-use Phil\ApiContract\Tests\Unit\OpenApi\FixedRule;
 use Phil\ApiContractBundle\Infrastructure\Console\VerifyCommand;
 use Phil\ApiContractBundle\Infrastructure\OpenApi\ContractVerifierFactory;
 use Phil\ApiContractBundle\Infrastructure\OpenApi\DocumentReader;
@@ -108,7 +105,7 @@ final class VerificationTest extends TestCase
 
     public function testTheFactoryTakesRulesUnderMixedKeys(): void
     {
-        $verifier = ContractVerifierFactory::create(['service' => new HouseRule(), 0 => new FixedRule('other', RuleLevel::Minimal, Severity::Error, 0)], []);
+        $verifier = ContractVerifierFactory::create(['service' => new HouseRule(), 0 => new HouseRule('other')], []);
 
         self::assertCount(\count(ContractVerifier::builtInRules()) + 2, $verifier->rules);
     }

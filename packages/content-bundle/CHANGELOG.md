@@ -78,7 +78,8 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   dashboard; the Stimulus controller `phil--content-bundle--autosave`.
 - The search feed of `phil/search-bundle`: `ContentDocumentProvider`, one document per live localized row — title, the
   UJO passage of the row's language as `body` and the others as `body_<language>`, the filters `kind`, `locale` and
-  `reference` —, `noindex` left out; the key `phil_content.search_index`.
+  `reference` —, `noindex` left out; the key `phil_content.search_index`, `content` by default
+  (`PhilContentBundle::SEARCH_INDEX`), read without loading the provider when the search bundle is not installed.
 - `ContentManager::servedLocale()` and `exists()`.
 - `PublishedContents` and `PublishedContent`: what a locale publishes, the latest first, read a page at a time in a
   few queries whatever their number (`find(PublishedRowQuery)`, `chunks()`, `latest(..., $withSlug)`), and the draft

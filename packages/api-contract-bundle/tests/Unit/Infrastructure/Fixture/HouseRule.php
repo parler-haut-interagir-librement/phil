@@ -16,10 +16,15 @@ use Phil\ApiContract\OpenApi\Severity;
  */
 final readonly class HouseRule implements OpenApiRule
 {
+    public function __construct(
+        private string $id = 'house-rule',
+    ) {
+    }
+
     #[Override]
     public function id(): string
     {
-        return 'house-rule';
+        return $this->id;
     }
 
     #[Override]

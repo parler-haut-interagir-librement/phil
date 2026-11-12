@@ -614,6 +614,17 @@ final class PhilContentBundleTest extends TestCase
         self::assertFalse($this->loadWithDoctrine()->hasDefinition(ContentDocumentProvider::class), 'Without the bundle, nothing is fed.');
     }
 
+    public function testTheDefaultIndexIsNamedByTheBundleItselfAndIsTheProvidersOwn(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('kernel.bundles', ['DoctrineBundle' => 'DoctrineBundle', 'PhilSearchBundle' => 'PhilSearchBundle']);
+        $this->load([], $container);
+
+        self::assertSame('content', PhilContentBundle::SEARCH_INDEX);
+        self::assertSame(PhilContentBundle::SEARCH_INDEX, ContentDocumentProvider::DEFAULT_INDEX);
+        self::assertSame(PhilContentBundle::SEARCH_INDEX, $container->getDefinition(ContentDocumentProvider::class)->getArgument('$index'));
+    }
+
     /**
      * @return iterable<string, array{string}>
      */

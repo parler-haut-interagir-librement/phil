@@ -145,6 +145,12 @@ final class PhilContentBundle extends AbstractBundle
 
     public const string ADMIN_LAYOUT = '@PhilContent/admin/layout.html.twig';
 
+    /**
+     * The index of phil/search-bundle fed by default, named here so that the configuration never loads
+     * ContentDocumentProvider, whose interface only exists when the search bundle is installed.
+     */
+    public const string SEARCH_INDEX = 'content';
+
     #[Override]
     protected string $extensionAlias = 'phil_content';
 
@@ -267,7 +273,7 @@ final class PhilContentBundle extends AbstractBundle
                 ->end()
                 ->scalarNode('search_index')
                     ->info('The index of phil/search-bundle the published contents are fed to.')
-                    ->defaultValue(ContentDocumentProvider::DEFAULT_INDEX)
+                    ->defaultValue(self::SEARCH_INDEX)
                     ->validate()
                         ->ifTrue(static fn (mixed $index): bool => !\is_string($index) || 1 !== preg_match('/^[a-z][a-z0-9_]{0,63}$/D', $index))
                         ->thenInvalid('An index is 1 to 64 lower-case letters, digits or "_", starting with a letter; %s is not.')
@@ -451,7 +457,7 @@ final class PhilContentBundle extends AbstractBundle
             // The search bundle's tag is named by its string, without depending on the bundle.
             $services->set(ContentDocumentProvider::class)
                 ->autowire()
-                ->arg('$index', $config['search_index'] ?? ContentDocumentProvider::DEFAULT_INDEX)
+                ->arg('$index', $config['search_index'] ?? self::SEARCH_INDEX)
                 ->tag('phil_search.provider');
         }
 
