@@ -23,7 +23,7 @@
     "require": {
         "php": ">=8.5",
         "composer-runtime-api": "^2.2",
-        "phil/ux-css": "^0.2@dev",
+        "phil/ux-css": "^0.5@dev",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",
         "symfony/form": "^8.2",
