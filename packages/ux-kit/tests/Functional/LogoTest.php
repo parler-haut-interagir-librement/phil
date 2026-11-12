@@ -76,4 +76,24 @@ final class LogoTest extends KitTestCase
 
         $this->render('<twig:Logo src="/logo.svg" />');
     }
+
+    public function testADarkVariantForADarkSystemItsPlaceholdersReplaced(): void
+    {
+        self::assertSame(
+            '<span class="isLogo"><picture><source srcset="/logo-dark-fr.svg" media="(prefers-color-scheme: dark)"><source type="image/webp" srcset="/logo-fr.webp"><img class="isImage" src="/logo-fr.png" alt="Studio" width="160" height="40" loading="eager" decoding="async"></picture></span>',
+            $this->render('<twig:Logo src="/logo-{locale}.png" webp="/logo-{locale}.webp" dark="/logo-dark-{locale}.svg" alt="Studio" locale="fr" :width="160" :height="40" />'),
+        );
+        self::assertSame(
+            '<span class="isLogo"><picture><source srcset="/logo-dark.png 1x, /logo-dark@2x.png 2x" media="(prefers-color-scheme: dark)"><img class="isImage" src="/logo.png" alt="Studio" loading="eager" decoding="async"></picture></span>',
+            $this->render('<twig:Logo src="/logo.png" :dark="{1: \'/logo-dark.png\', 2: \'/logo-dark@2x.png\'}" alt="Studio" />'),
+        );
+    }
+
+    public function testAStillLogoWhereMotionIsReduced(): void
+    {
+        self::assertSame(
+            '<a href="/" class="isLogo"><picture><source srcset="/logo.png" media="(prefers-reduced-motion: reduce)"><img class="isImage" src="/logo.gif" alt="Studio" loading="eager" decoding="async"></picture></a>',
+            $this->render('<twig:Logo src="/logo.gif" still="/logo.png" alt="Studio" href="/" />'),
+        );
+    }
 }

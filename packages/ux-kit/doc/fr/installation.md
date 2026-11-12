@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0046c7593abeda2385330e12d40a35135a561086bc2a87f0bda8b0b4b730702c -->
+<!-- phil-dev source-sha256=f18f2863e32ca32fe41fb1d7b35190cd609c09fca6037c0ad8c3c619cae6564a -->
 # Installation
 
 ## La feuille de style
@@ -25,6 +25,28 @@ paquets dont les recettes ont besoin ; elle n'en installe aucun.
 `ux:install` lit un kit sur GitHub ou parmi les kits du Toolkit, jamais depuis un chemin local : `--kit=../ux-kit` est
 refusé comme nom de kit invalide.
 
+## Le PHP des recettes d'images
+
+`Image`, `Picture`, `Logo`, `Gallery` et `Lightbox` appellent deux fonctions Twig de `phil/ux-kit`, qui est aussi un
+bundle Symfony, et `preload()` de Symfony WebLink :
+
+```sh
+composer require phil/ux-kit symfony/web-link
+```
+
+Symfony Flex enregistre `Phil\UxKit\PhilUxKitBundle` ; sans Flex, ajoutez-le à `config/bundles.php`. Sa configuration
+liste les hôtes dont une page peut montrer les images, ceux qui sont sous chacun compris ; tout autre hôte est refusé :
+
+```yaml
+# config/packages/phil_ux_kit.yaml
+phil_ux_kit:
+    image:
+        hosts: ['images.example.com']
+        allow_localhost: false   # true in development only
+```
+
+`image_sources()` lit les ressources d'AssetMapper, `symfony/asset-mapper`, quand il est installé.
+
 ## Tant que le dépôt n'est pas publié
 
 Copiez les fichiers des recettes dont la page a besoin, depuis ce dossier, en gardant leurs noms :
@@ -36,6 +58,9 @@ Copiez les fichiers des recettes dont la page a besoin, depuis ce dossier, en ga
 | AnimatedHeadline | `animated-headline/assets/controllers/animated_headline_controller.js` | `assets/controllers/animated_headline_controller.js` |
 | Illustration | `illustration/templates/components/Illustration.html.twig` | `templates/components/Illustration.html.twig` |
 | Image | `image/templates/components/` | `templates/components/` |
+| Gallery | `gallery/templates/components/` | `templates/components/` |
+| Lightbox | `lightbox/templates/components/` | `templates/components/` |
+| Lightbox | `lightbox/assets/controllers/` | `assets/controllers/` |
 | AutosaveStatus | `autosave-status/templates/components/AutosaveStatus.html.twig` | `templates/components/AutosaveStatus.html.twig` |
 | ReactionButton | `reaction-button/templates/components/ReactionButton.html.twig` | `templates/components/ReactionButton.html.twig` |
 | ReactionPicker | `reaction-picker/templates/components/ReactionPicker.html.twig` | `templates/components/ReactionPicker.html.twig` |

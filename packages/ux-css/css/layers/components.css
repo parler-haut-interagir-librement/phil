@@ -246,6 +246,94 @@ summary.isReaction {
     object-position: right;
 }
 
+/* Under the caption of an image, each on its own line: who made it, its license and how it was made. */
+.isCredit,
+.isLicense,
+.isCreation {
+    display: block;
+}
+
+/* A gallery: its figures in a grid of columns as wide as its container allows, --phil-gallery-column at least, the
+   gap growing with the container; each image fills its cell. */
+.isGallery {
+    container-type: inline-size;
+}
+
+.isGallery > ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--phil-gallery-column, 12rem)), 1fr));
+    gap: var(--phil-gallery-gap, var(--phil-space-sm));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.isGallery > ul > li {
+    min-inline-size: 0;
+    margin: 0;
+}
+
+.isGallery figure {
+    margin: 0;
+}
+
+.isGallery .isImage {
+    inline-size: 100%;
+}
+
+@container (min-width: 48rem) {
+    .isGallery > ul {
+        gap: var(--phil-gallery-gap, var(--phil-space-md));
+    }
+}
+
+/* A lightbox: its thumbnail, a button without a fill that keeps the focus ring, and its image shown whole in a dialog as
+   wide as the screen allows, the close button in its corner. */
+.isLightbox {
+    display: block;
+}
+
+.isLightboxTrigger {
+    --phil-button-fill: transparent;
+    --phil-button-fill-hover: transparent;
+    --phil-button-fill-active: transparent;
+
+    display: block;
+    min-block-size: 0;
+    padding: 0;
+    color: inherit;
+    border: 0;
+    border-radius: var(--phil-radius-md);
+    cursor: zoom-in;
+}
+
+.isLightboxDialog {
+    --phil-dialog-size: 100vw;
+
+    padding: var(--phil-space-md);
+}
+
+.isLightboxDialog .isImage {
+    inline-size: auto;
+    max-block-size: calc(100dvh - var(--phil-space-4xl));
+    margin-inline: auto;
+}
+
+.isLightboxClose {
+    --phil-tone-fill-quiet: var(--phil-color-neutral-fill-quiet);
+    --phil-tone-on-quiet: var(--phil-color-neutral-on-quiet);
+    --phil-button-fill: var(--phil-color-surface);
+    --phil-button-fill-hover: var(--phil-tone-fill-quiet);
+    --phil-button-fill-active: var(--phil-tone-fill-quiet);
+    --phil-button-on: var(--phil-tone-on-quiet);
+
+    position: absolute;
+    inset-block-start: var(--phil-space-xs);
+    inset-inline-end: var(--phil-space-xs);
+    min-inline-size: var(--phil-control-md);
+    padding-inline: 0;
+}
+
 /* Long text written by people: a readable measure, a steady rhythm between blocks, headings that breathe. */
 .isProse {
     max-inline-size: var(--phil-measure);

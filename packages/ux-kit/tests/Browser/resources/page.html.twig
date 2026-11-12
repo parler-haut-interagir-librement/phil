@@ -102,6 +102,16 @@
         <div class="isCluster"><twig:ProgressRing label="Upload" :value="40" /><twig:ProgressRing label="Waiting" /><twig:Sparkline label="Rising" :values="[2, 4, 3, 9]" :area="true" /></div>
         <twig:BeforeAfter id="compare" label="Cut" :position="30"><twig:block name="after"><div style="block-size: 6rem; background: teal"></div></twig:block><twig:block name="before"><div style="block-size: 6rem; background: orange"></div></twig:block></twig:BeforeAfter>
     </section>
+    {%- set square = 'data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27400%27%20height=%27400%27%3E%3Crect%20width=%27400%27%20height=%27400%27%20fill=%27COLOUR%27/%3E%3C/svg%3E' -%}
+    <section id="images" class="isStack">
+        <twig:Gallery id="festival" label="The festival" :lightbox="true" openLabel="Enlarge" aspect="1/1" sizes="(min-width: 48rem) 33vw, 100vw" :images="[
+            {src: square|replace({COLOUR: 'teal'}), alt: 'A teal square', width: 400, height: 400, caption: 'Opening', credit: 'Photo: Ana Lima', license: 'CC BY 4.0', licenseHref: 'https://creativecommons.org/licenses/by/4.0/', creation: 'digitalCapture'},
+            {src: square|replace({COLOUR: 'navy'}), alt: 'A navy square', width: 400, height: 400, creation: 'trainedAlgorithmicMedia'},
+            {src: square|replace({COLOUR: 'olive'}), alt: 'An olive square', width: 400, height: 400},
+        ]" />
+        <twig:Picture id="themed" :src="square|replace({COLOUR: 'teal'})" :dark="square|replace({COLOUR: 'navy'})" :still="square|replace({COLOUR: 'olive'})" alt="A square of the theme" :width="200" :height="200" caption="Navy where the system is dark, olive where motion is reduced" />
+        <twig:Logo :src="square|replace({COLOUR: 'teal'})" :dark="square|replace({COLOUR: 'navy'})" alt="Studio" href="#images" :width="48" :height="48" />
+    </section>
     <section id="native" class="isStack">
         <twig:AlertDialog id="erase">
             <twig:AlertDialog:Trigger><twig:Button id="open-alert" variant="destructive" {{ ...alert_dialog_trigger_attrs }}>Erase</twig:Button></twig:AlertDialog:Trigger>

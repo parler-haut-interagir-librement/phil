@@ -1,9 +1,11 @@
 {#-
  # A picture: its sources before the Image that holds the fallback, under the prop names of Symfony UX Image, in a figure
- # when it has a caption. The sources with a media query come first, in the order of their first media query, each
+ # when it has a caption, a credit, a license or a creation. The still image for a reader who reduces motion comes
+ # first, then the dark variant, then the sources with a media query, in the order of their first media query, each
  # group AVIF, then WebP, then the other types; a source of another type than image/*, without candidates, holding a
- # refused URL or a media query of the wrong shape is left out; a refused src renders nothing. The other attributes go
- # to the img.
+ # refused URL, an address of a host image_origin() refuses or a media query of the wrong shape is left out; a refused
+ # src renders nothing. Without a media query, the main picture preloads its first source. The other attributes go to
+ # the img.
  #}
 {%- props
     ## string The URL of the fallback image, for the browsers that read none of the sources.
@@ -16,6 +18,10 @@
     height,
     ## list<array{type?:string,srcset:string|array<int|string,string>,sizes?:string,media?:string,width?:int,height?:int}> The sources: a type, candidates as for srcset, sizes, a media query and the size of its crop.
     sources = [],
+    ## string|array<int|string,string>|list<array{type?:string,srcset:string|array<int|string,string>}>|null The variant drawn for a dark system, offered where prefers-color-scheme is dark: candidates as for srcset, or sources of their own types.
+    dark = null,
+    ## string|array<int|string,string>|list<array{type?:string,srcset:string|array<int|string,string>}>|null The still image of an animated one, offered where prefers-reduced-motion is reduce: candidates as for srcset, or sources of their own types.
+    still = null,
     ## string|array<int|string,string>|null The candidates as HTML writes them, or a map of densities, or of widths with sizes or a fluid layout, to URLs.
     srcset = null,
     ## string|null The sizes of a srcset of widths, preceded by "auto, " while the image loads lazily; computed from the layout when null.
@@ -28,40 +34,64 @@
     fit = null,
     ## string|null Where the image is cropped in its box: "center", "top", "bottom", "left" or "right".
     position = null,
-    ## bool Whether it is the main image above the fold: loaded eagerly and fetched first, its decoding left to the browser.
+    ## bool Whether it is the main image above the fold: loaded eagerly, fetched first and preloaded, its decoding left to the browser.
     priority = false,
+    ## bool|null Whether the first source, or the image without sources, is preloaded through Symfony WebLink: with priority when null; never with a media query.
+    preload = null,
     ## string|null How it loads, "lazy" or "eager": "lazy" by default, "eager" with priority.
     loading = null,
     ## string|null How it is decoded, "async", "sync" or "auto": "async" by default, none written with priority.
     decoding = null,
     ## string|null A caption under the image, which a figure then holds with it; shown even when the image is decorative.
-    caption = null
+    caption = null,
+    ## string|null Who made the image, as the site writes it, "Photo: Ana Lima", under the caption.
+    credit = null,
+    ## string|null The name of the license of the image, "CC BY 4.0", under the caption.
+    license = null,
+    ## string|null The address of the license, which its name then links to with rel="license".
+    licenseHref = null,
+    ## string|BackedEnum|null How the image was made, a code of the IPTC Digital Source Type vocabulary such as "digitalCapture" or "trainedAlgorithmicMedia", or an enum whose value is one.
+    creation = null,
+    ## string|null The words that say how the image was made, in the language of the page; the name the vocabulary gives the code when null.
+    creationLabel = null
 -%}
 {%- set _refused = '#(^|,)[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i' -%}
 {%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
-{%- if src is not empty and not (src|replace(_controls) matches _refused) -%}
+{%- if src is not empty and not (src|replace(_controls) matches _refused) and image_origin(src) is not same as('refused') -%}
     {%- set _lazy = (loading in ['lazy', 'eager'] ? loading : (priority ? 'eager' : 'lazy')) is same as('lazy') -%}
     {%- set _default = sizes is not empty ? sizes : {
         constrained: width is empty ? null : '(min-width: ' ~ width ~ 'px) ' ~ width ~ 'px, 100vw',
         'full-width': '100vw',
     }[layout] ?? null -%}
+    {%- set _all = [] -%}
+    {%- for _variant in [{value: still, media: '(prefers-reduced-motion: reduce)'}, {value: dark, media: '(prefers-color-scheme: dark)'}] -%}
+        {%- if _variant.value is not empty -%}
+            {%- set _list = _variant.value is iterable and (_variant.value|first).srcset is defined ? _variant.value : [{srcset: _variant.value}] -%}
+            {%- set _all = _all|merge(_list|map(source => source|merge({media: _variant.media}))) -%}
+        {%- endif -%}
+    {%- endfor -%}
+    {%- set _all = _all|merge(sources) -%}
     {%- set _medias = [] -%}
-    {%- for source in sources -%}
+    {%- for source in _all -%}
         {%- set _media = (source.media ?? '')|trim -%}
         {%- if _media is not empty and _media not in _medias -%}{%- set _medias = _medias|merge([_media]) -%}{%- endif -%}
     {%- endfor -%}
     {%- set _sources = [] -%}
-    {%- for source in sources -%}
+    {%- set _external = false -%}
+    {%- for source in _all -%}
         {%- set _type = source.type ?? null -%}
         {%- set _media = (source.media ?? '')|trim -%}
         {%- set _sizes = source.sizes ?? _default -%}
         {%- set _set = source.srcset ?? null -%}
         {%- set _set = _set is iterable ? _set|map((url, key) => url ~ ' ' ~ key ~ (_sizes is empty ? 'x' : 'w'))|join(', ') : _set -%}
-        {%- if _set is not empty and not (_set|replace(_controls) matches _refused)
+        {%- set _origin = _set is empty or _set|replace(_controls) matches _refused ? 'refused' : image_origin(_set, true) -%}
+        {%- if _origin is not same as('refused')
             and (_type is null or _type matches '#^image/[a-z0-9.+-]+$#')
             and (_media is empty or _media matches '#^[^<>{};]+$#') -%}
+            {%- set _external = _external or _origin is same as('external') -%}
             {%- set _sources = _sources|merge([{
                 order: (_media is empty ? 999 : _medias|keys|filter(index => _medias[index] is same as(_media))|first) * 10 + ({'image/avif': 0, 'image/webp': 1}[_type] ?? (_type is null ? 3 : 2)),
+                preload_sizes: _sizes is empty ? null : _sizes,
                 attributes: {
                     type: _type,
                     srcset: _set,
@@ -74,10 +104,23 @@
         {%- endif -%}
     {%- endfor -%}
     {%- set _sources = _sources|sort((a, b) => a.order - b.order) -%}
-    {%- if caption is not empty -%}<figure>{%- endif -%}
-    {%- if _sources is not empty -%}<picture>{%- endif -%}
-    {%- for source in _sources -%}<source {{ html_attr(source.attributes) }}>{%- endfor -%}
-    <twig:Image :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :layout="layout" :aspect="aspect" :fit="fit" :position="position" :priority="priority" :loading="loading" :decoding="decoding" {{ ...attributes.all }} />
-    {%- if _sources is not empty -%}</picture>{%- endif -%}
-    {%- if caption is not empty -%}<figcaption>{{ caption }}</figcaption></figure>{%- endif -%}
+    {%- set _attributes = _external and attributes.all.referrerpolicy is not defined ? attributes.all|merge({referrerpolicy: 'no-referrer'}) : attributes.all -%}
+    {%- if _sources is not empty and (preload ?? priority) and _sources|filter(source => source.attributes.media is not null) is empty -%}
+        {%- set _first = _sources|first -%}
+        {%- do preload(src, {
+            as: 'image',
+            imagesrcset: _first.attributes.srcset,
+            imagesizes: _first.preload_sizes,
+            type: _first.attributes.type,
+            fetchpriority: priority ? 'high' : null,
+            crossorigin: _attributes.crossorigin ?? null,
+            referrerpolicy: _attributes.referrerpolicy ?? null,
+        }|filter(value => value is not null)) -%}
+    {%- endif -%}
+    <twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel">
+        {%- if _sources is not empty -%}<picture>{%- endif -%}
+        {%- for source in _sources -%}<source {{ html_attr(source.attributes) }}>{%- endfor -%}
+        <twig:Image :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :layout="layout" :aspect="aspect" :fit="fit" :position="position" :priority="priority" :preload="_sources is empty ? preload : false" :loading="loading" :decoding="decoding" {{ ..._attributes }} />
+        {%- if _sources is not empty -%}</picture>{%- endif -%}
+    </twig:Image:Figure>
 {%- endif -%}

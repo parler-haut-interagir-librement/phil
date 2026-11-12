@@ -4,6 +4,44 @@ All notable changes to `phil/ux-kit` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.3.0-alpha - 2026-11-13
+
+### Added
+
+- `PhilUxKitBundle`, the package being a Symfony bundle: the Twig functions the image recipes call, configured under
+  `phil_ux_kit.image` (`hosts`, `allow_localhost`). `image_origin()` says where the image at an address, or every
+  candidate of a `srcset`, comes from: `local` for a relative path, a `data:image/` one or the page's own origin,
+  `external` for a host of the list or under one, read by `phil/url`, `refused` for any other host, credentials, an IP
+  address, `localhost` unless allowed, or any other scheme. `image_sources()` gives the `src`, `srcset`, `sources`,
+  `width` and `height` of a `Picture` from the files of one image among the assets of AssetMapper (`logo.avif`,
+  `logo@2x.avif`, `logo.webp`, `logo.png`…), with the options `densities`, `widths`, `formats` and `fallbacks`.
+- On `Image` and `Picture`: `preload`, the main image preloaded through `preload()` of Symfony WebLink with its
+  `imagesrcset`, `imagesizes`, `fetchpriority`, `crossorigin` and `referrerpolicy`, by default with `priority`; a
+  `Picture` preloads its first source with its `type`, and nothing with a media query. `credit`, `license` with
+  `licenseHref` (`rel="license"`), `creation`, a code of the IPTC Digital Source Type vocabulary or an enum whose value
+  is one, and `creationLabel`, written under the caption in `small` elements of classes `isCredit`, `isLicense` and
+  `isCreation`, through the new `Image:Figure` component.
+- On `Picture` and `Logo`: `dark`, offered where `prefers-color-scheme` is dark, and `still`, the still image of an
+  animated one, offered where `prefers-reduced-motion` is reduce, each a URL, a map of densities, or sources of their
+  own types on `Picture`, written before the other sources.
+- The recipe `Gallery`: a list named by `label` in a `div` of class `isGallery`, its figures in a grid that follows its
+  container, `aspect`, `fit` and `sizes` for every image, each opened in a `Lightbox` with `lightbox`.
+- The recipe `Lightbox`: a thumbnail in a button that opens a native modal `dialog` by `command="show-modal"` and
+  `commandfor`, closed by Escape, its button and `closedby="any"`, its Stimulus controller `lightbox` standing in
+  where the browser runs neither; the full image shown whole, the caption under both, the labels as props.
+- The browser suite audits the images with axe-core 4.14.0, against the rules of WCAG 2.2 A and AA, in clear, in dark
+  and right to left; it opens a lightbox, lays out a gallery and follows the colour scheme and the motion of the
+  system.
+
+### Changed
+
+- The image recipe refuses an image of another host unless `phil_ux_kit.image.hosts` lists it, and fetches one of a
+  listed host with `referrerpolicy="no-referrer"`; it requires `phil/ux-kit` and `symfony/web-link`. `priority` now
+  also preloads the image.
+- `manifest.json` requires `phil/ux-css:^0.3@dev`; `composer.json` declares the package a `symfony-bundle`, requires
+  `phil/url` and the Symfony components of the bundle, and autoloads `Phil\UxKit\` from `src/`; the branch alias of
+  `dev-main` is `0.3.x-dev`.
+
 ## 0.2.0-alpha - 2026-11-11
 
 ### Added

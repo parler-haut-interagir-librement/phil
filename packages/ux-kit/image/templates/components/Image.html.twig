@@ -1,7 +1,9 @@
 {#-
- # An image: one img, in a figure when it has a caption, under the prop names of Symfony UX Image, without a service, a
- # script or an inline style; its layout, ratio, fit and crop written as classes. A javascript:, vbscript: or data: URL
- # other than data:image/ is refused: a refused src renders nothing, a refused srcset is left out whole.
+ # An image: one img, in a figure when it has a caption, a credit, a license or a creation, under the prop names of
+ # Symfony UX Image, without a service, a script or an inline style; its layout, ratio, fit and crop written as classes.
+ # A javascript:, vbscript: or data: URL other than data:image/ is refused, and so is an address of another host than
+ # those image_origin() allows; a refused src renders nothing, a refused srcset is left out whole. The image of a listed
+ # host is fetched without a referrer; the main image is preloaded through Symfony WebLink.
  #}
 {%- props
     ## string The URL of the image.
@@ -24,26 +26,52 @@
     fit = null,
     ## string|null Where the image is cropped in its box: "center", "top", "bottom", "left" or "right".
     position = null,
-    ## bool Whether it is the main image above the fold: loaded eagerly and fetched first, its decoding left to the browser.
+    ## bool Whether it is the main image above the fold: loaded eagerly, fetched first and preloaded, its decoding left to the browser.
     priority = false,
+    ## bool|null Whether the image is preloaded through Symfony WebLink, in a Link header the server may send as an early hint: with priority when null.
+    preload = null,
     ## string|null How it loads, "lazy" or "eager": "lazy" by default, "eager" with priority.
     loading = null,
     ## string|null How it is decoded, "async", "sync" or "auto": "async" by default, none written with priority.
     decoding = null,
     ## string|null A caption under the image, which a figure then holds with it; shown even when the image is decorative.
-    caption = null
+    caption = null,
+    ## string|null Who made the image, as the site writes it, "Photo: Ana Lima", under the caption.
+    credit = null,
+    ## string|null The name of the license of the image, "CC BY 4.0", under the caption.
+    license = null,
+    ## string|null The address of the license, which its name then links to with rel="license".
+    licenseHref = null,
+    ## string|BackedEnum|null How the image was made, a code of the IPTC Digital Source Type vocabulary such as "digitalCapture" or "trainedAlgorithmicMedia", or an enum whose value is one.
+    creation = null,
+    ## string|null The words that say how the image was made, in the language of the page; the name the vocabulary gives the code when null.
+    creationLabel = null
 -%}
 {%- set _refused = '#(^|,)[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i' -%}
 {%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
-{%- if src is not empty and not (src|replace(_controls) matches _refused) -%}
+{%- set _origin = src is empty or src|replace(_controls) matches _refused ? 'refused' : image_origin(src) -%}
+{%- if _origin is not same as('refused') -%}
     {%- set _loading = loading in ['lazy', 'eager'] ? loading : (priority ? 'eager' : 'lazy') -%}
     {%- set _sizes = sizes is not empty ? sizes : {
         constrained: width is empty ? null : '(min-width: ' ~ width ~ 'px) ' ~ width ~ 'px, 100vw',
         'full-width': '100vw',
     }[layout] ?? null -%}
     {%- set _srcset = srcset is iterable ? srcset|map((url, key) => url ~ ' ' ~ key ~ (_sizes is empty ? 'x' : 'w'))|join(', ') : srcset -%}
-    {%- set _srcset = _srcset is empty or _srcset|replace(_controls) matches _refused ? null : _srcset -%}
-    {%- set _sizes = _srcset is null or _sizes is empty ? null : (_loading is same as('lazy') and not (_sizes|lower starts with 'auto') ? 'auto, ' ~ _sizes : _sizes) -%}
+    {%- set _set_origin = _srcset is empty ? null : (_srcset|replace(_controls) matches _refused ? 'refused' : image_origin(_srcset, true)) -%}
+    {%- set _srcset = _set_origin in [null, 'refused'] ? null : _srcset -%}
+    {%- set _preload_sizes = _srcset is null or _sizes is empty ? null : _sizes -%}
+    {%- set _sizes = _preload_sizes is null ? null : (_loading is same as('lazy') and not (_sizes|lower starts with 'auto') ? 'auto, ' ~ _sizes : _sizes) -%}
+    {%- set _referrer = attributes.all.referrerpolicy ?? (_origin is same as('external') or _set_origin is same as('external') ? 'no-referrer' : null) -%}
+    {%- if preload ?? priority -%}
+        {%- do preload(src, {
+            as: 'image',
+            imagesrcset: _srcset,
+            imagesizes: _preload_sizes,
+            fetchpriority: priority ? 'high' : null,
+            crossorigin: attributes.all.crossorigin ?? null,
+            referrerpolicy: _referrer,
+        }|filter(value => value is not null)) -%}
+    {%- endif -%}
     {%- set _ratio = {'16/9': 'hasRatio16x9', '4/3': 'hasRatio4x3', '3/2': 'hasRatio3x2', '1/1': 'hasRatio1x1', '21/9': 'hasRatio21x9', '3/4': 'hasRatio3x4', '2/3': 'hasRatio2x3', '9/16': 'hasRatio9x16', custom: 'hasRatio'}[aspect|default('')|replace({' ': ''})] ?? null -%}
     {%- set _class = [
         'isImage',
@@ -56,18 +84,19 @@
     {%- set _allowed = alt is same as('')
         ? '#^(id|crossorigin|referrerpolicy|itemprop|draggable|data-[a-z0-9-]+)$#'
         : '#^(id|title|crossorigin|referrerpolicy|itemprop|draggable|(data|aria)-[a-z0-9-]+)$#' -%}
-    {%- if caption is not empty -%}<figure>{%- endif -%}
-    <img {{ html_attr({
-        class: _class,
-        src: src,
-        srcset: _srcset,
-        sizes: _sizes,
-        alt: alt,
-        width: width,
-        height: height,
-        loading: _loading,
-        decoding: decoding in ['async', 'sync', 'auto'] ? decoding : (priority ? null : 'async'),
-        fetchpriority: priority ? 'high' : null,
-    }, attributes.all|filter((value, name) => name matches _allowed)) }}>
-    {%- if caption is not empty -%}<figcaption>{{ caption }}</figcaption></figure>{%- endif -%}
+    {%- set _attributes = attributes.all|filter((value, name) => name matches _allowed)|merge(_referrer is null ? {} : {referrerpolicy: _referrer}) -%}
+    <twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel">
+        <img {{ html_attr({
+            class: _class,
+            src: src,
+            srcset: _srcset,
+            sizes: _sizes,
+            alt: alt,
+            width: width,
+            height: height,
+            loading: _loading,
+            decoding: decoding in ['async', 'sync', 'auto'] ? decoding : (priority ? null : 'async'),
+            fetchpriority: priority ? 'high' : null,
+        }, _attributes) }}>
+    </twig:Image:Figure>
 {%- endif -%}

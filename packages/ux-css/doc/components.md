@@ -236,6 +236,36 @@ where an inline `style` would be dropped:
 <img class="isImage hasRatio hasFitCover isHeroPhoto" src="/hall.jpg" alt="The hall" width="1500" height="1000">
 ```
 
+Under a caption, `isCredit`, `isLicense` and `isCreation` each take a line of their own: who made the image, its
+license, and how it was made.
+
+```html
+<figure>
+    <img class="isImage" src="/bridge.jpg" alt="A bridge" width="800" height="600">
+    <figcaption>The bridge at dusk<small class="isCredit">Photo: Ana Lima</small><small class="isLicense"><a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a></small></figcaption>
+</figure>
+```
+
+## The gallery
+
+`isGallery`: a container whose list lays its figures in a grid of columns `--phil-gallery-column` wide at least (12rem),
+as many as its own width holds, read by a container query rather than the width of the screen; the gap,
+`--phil-gallery-gap`, grows once the gallery is 48rem wide. Each image fills its cell.
+
+```html
+<div class="isGallery">
+    <ul role="list" aria-label="The festival">
+        <li><img class="isImage hasRatio1x1 hasFitCover" src="/stage.jpg" alt="The stage" width="800" height="600"></li>
+    </ul>
+</div>
+```
+
+## The lightbox
+
+`isLightbox` holds `isLightboxTrigger`, the thumbnail's button, without a fill, with the focus ring and a zoom cursor,
+and `isLightboxDialog`, a dialog as wide as the screen allows whose image is shown whole within its height; its close
+button, `isLightboxClose`, sits in its end corner.
+
 ## Reactions
 
 `isReaction`: one reaction, a target 2.75rem wide and tall whatever it holds, marked when its `aria-pressed` is true;

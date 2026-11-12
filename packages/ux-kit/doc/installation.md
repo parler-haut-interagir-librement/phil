@@ -24,6 +24,28 @@ packages the recipes need; it installs none.
 `ux:install` reads a kit from GitHub or among the Toolkit's own kits, never from a local path: `--kit=../ux-kit` is
 refused as an invalid kit name.
 
+## The PHP of the image recipes
+
+`Image`, `Picture`, `Logo`, `Gallery` and `Lightbox` call two Twig functions of `phil/ux-kit`, which is also a Symfony
+bundle, and `preload()` of Symfony WebLink:
+
+```sh
+composer require phil/ux-kit symfony/web-link
+```
+
+Symfony Flex registers `Phil\UxKit\PhilUxKitBundle`; without Flex, add it to `config/bundles.php`. Its configuration
+lists the hosts whose images a page may show, those under each included; every other host is refused:
+
+```yaml
+# config/packages/phil_ux_kit.yaml
+phil_ux_kit:
+    image:
+        hosts: ['images.example.com']
+        allow_localhost: false   # true in development only
+```
+
+`image_sources()` reads the assets of AssetMapper, `symfony/asset-mapper`, when it is installed.
+
 ## Until the repository is published
 
 Copy the files of the recipes the page needs, from this directory, keeping their names:
@@ -35,6 +57,9 @@ Copy the files of the recipes the page needs, from this directory, keeping their
 | AnimatedHeadline | `animated-headline/assets/controllers/animated_headline_controller.js` | `assets/controllers/animated_headline_controller.js` |
 | Illustration | `illustration/templates/components/Illustration.html.twig` | `templates/components/Illustration.html.twig` |
 | Image | `image/templates/components/` | `templates/components/` |
+| Gallery | `gallery/templates/components/` | `templates/components/` |
+| Lightbox | `lightbox/templates/components/` | `templates/components/` |
+| Lightbox | `lightbox/assets/controllers/` | `assets/controllers/` |
 | AutosaveStatus | `autosave-status/templates/components/AutosaveStatus.html.twig` | `templates/components/AutosaveStatus.html.twig` |
 | ReactionButton | `reaction-button/templates/components/ReactionButton.html.twig` | `templates/components/ReactionButton.html.twig` |
 | ReactionPicker | `reaction-picker/templates/components/ReactionPicker.html.twig` | `templates/components/ReactionPicker.html.twig` |

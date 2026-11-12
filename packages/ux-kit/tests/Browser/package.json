@@ -1,9 +1,10 @@
 {
     "name": "@phil/ux-kit-browser-tests",
     "private": true,
-    "description": "The Stimulus of the page the browser tests of the kit open: for these tests alone, outside what the kit publishes.",
+    "description": "The Stimulus of the page the browser tests of the kit open, and axe-core, which audits its images: for these tests alone, outside what the kit publishes.",
     "license": "MIT",
     "devDependencies": {
-        "@hotwired/stimulus": "3.2.2"
+        "@hotwired/stimulus": "3.2.2",
+        "axe-core": "4.14.0"
     }
 }

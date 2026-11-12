@@ -4,6 +4,20 @@ All notable changes to `phil/ux-css` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.3.0-alpha - 2026-11-13
+
+### Added
+
+- `css/layers/components.css`: `isCredit`, `isLicense` and `isCreation`, a line each under the caption of an image;
+  `isGallery`, a container whose list lays its figures in a grid of columns `--phil-gallery-column` wide at least,
+  read by a container query, its gap `--phil-gallery-gap` growing from 48rem; `isLightbox`, `isLightboxTrigger`, a
+  button without a fill that keeps the focus ring, `isLightboxDialog`, a dialog as wide as the screen whose image is
+  shown whole, and `isLightboxClose`, in its end corner.
+
+### Changed
+
+- The branch alias of `dev-main` is `0.3.x-dev`; `package.json` is at `0.3.0`.
+
 ## 0.2.0-alpha - 2026-11-11
 
 ### Added

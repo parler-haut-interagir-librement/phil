@@ -1,0 +1,65 @@
+{#-
+ # An image enlarged in a modal dialog: its thumbnail in a button that opens the native dialog by the invokers of HTML,
+ # command="show-modal" and commandfor, the dialog closed by Escape, by its close button or by a click on its backdrop
+ # with closedby="any"; the lightbox controller stands in only where the browser runs neither. Both pictures go through
+ # the Picture of the image recipe, the full one shown whole; the caption, the credit, the license and the creation
+ # show under both. A refused image draws nothing.
+ #}
+{%- props
+    ## string The identifier of the lightbox, unique in the page, from which that of its dialog is made.
+    id,
+    ## string The URL of the thumbnail.
+    src,
+    ## string The text alternative, which also names the dialog; an empty string names it by the caption.
+    alt,
+    ## int The width of the thumbnail, so that its space is reserved at its ratio before it loads.
+    width,
+    ## int The height of the thumbnail, so that its space is reserved at its ratio before it loads.
+    height,
+    ## string|array<int|string,string>|null The candidates of the thumbnail as HTML writes them, or a map of densities, or of widths with sizes, to URLs.
+    srcset = null,
+    ## string|null The sizes of the thumbnail's candidates of widths.
+    sizes = null,
+    ## list<array{type?:string,srcset:string|array<int|string,string>,sizes?:string,media?:string,width?:int,height?:int}> The sources of the thumbnail, as for Picture.
+    sources = [],
+    ## string|null The ratio of the thumbnail's box, as for Image.
+    aspect = null,
+    ## string|null How the thumbnail fills its box, "cover" or "contain".
+    fit = null,
+    ## string|null Where the thumbnail is cropped in its box.
+    position = null,
+    ## array{src:string,width:int,height:int,srcset?:string|array<int|string,string>,sizes?:string,sources?:list<array<string,mixed>>}|null The full image shown in the dialog: the thumbnail itself when null; its candidates sized to the width of the screen unless it has sizes.
+    full = null,
+    ## string|null A caption under the thumbnail and under the full image.
+    caption = null,
+    ## string|null Who made the image, as the site writes it, under the caption.
+    credit = null,
+    ## string|null The name of the license of the image, under the caption.
+    license = null,
+    ## string|null The address of the license, which its name then links to with rel="license".
+    licenseHref = null,
+    ## string|BackedEnum|null How the image was made, a code of the IPTC Digital Source Type vocabulary, or an enum whose value is one.
+    creation = null,
+    ## string|null The words that say how the image was made; the name the vocabulary gives the code when null.
+    creationLabel = null,
+    ## string|null Words screen readers read after the text alternative in the button, such as "Enlarge".
+    openLabel = null,
+    ## string What screen readers read for the close button.
+    closeLabel = 'Close'
+-%}
+{%- if image_origin(src) is not same as('refused') and not (src|replace({"\t": '', "\n": '', "\r": ''}) matches '#^[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i') -%}
+    {%- set _dialog = 'lightbox-' ~ id -%}
+    {%- set _full = full ?? {src: src, srcset: srcset, sources: sources, width: width, height: height} -%}
+    <div {{ html_attr({class: ['isLightbox', attributes.all.class ?? null]|filter(name => name is not empty)|join(' ')}) }} data-controller="lightbox">
+        <twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel">
+            <button type="button" class="isLightboxTrigger" command="show-modal" commandfor="{{ _dialog }}" aria-haspopup="dialog" data-action="click->lightbox#open">
+                <twig:Picture :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :sources="sources" :aspect="aspect" :fit="fit" :position="position" />
+                {%- if openLabel is not empty %}<span class="isVisuallyHidden">{{ openLabel }}</span>{% endif -%}
+            </button>
+        </twig:Image:Figure>
+        <dialog id="{{ _dialog }}" class="isLightboxDialog" closedby="any" aria-label="{{ alt is not empty ? alt : caption }}" data-lightbox-target="dialog" data-action="click->lightbox#closeOnClickOutside">
+            <twig:Picture :src="_full.src ?? src" :alt="alt" :width="_full.width ?? width" :height="_full.height ?? height" :srcset="_full.srcset ?? null" :sizes="_full.sizes ?? '100vw'" :sources="_full.sources ?? []" fit="contain" :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel" />
+            <button type="button" class="isLightboxClose" command="close" commandfor="{{ _dialog }}" data-action="click->lightbox#close"><span aria-hidden="true">&times;</span><span class="isVisuallyHidden">{{ closeLabel }}</span></button>
+        </dialog>
+    </div>
+{%- endif -%}

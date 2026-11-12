@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\UxKit\Tests\Browser;
 
+use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\WebDriverDimension;
 use Facebook\WebDriver\WebDriverKeys;
 use Override;
@@ -543,6 +544,94 @@ final class InteractiveRecipesTest extends BrowserTestCase
         self::assertSame([200, 200, 'cover', '0% 50%'], $this->read('(() => { const image = document.querySelector("#square"), box = image.getBoundingClientRect(), style = getComputedStyle(image); return [Math.round(box.width), Math.round(box.height), style.objectFit, style.objectPosition]; })()'));
     }
 
+    /**
+     * axe-core on the images: the gallery, its lightboxes closed and open, the picture with its variants and the logo,
+     * against the rules of WCAG 2.2 A and AA, in clear, in dark and right to left.
+     */
+    #[DataProvider('modes')]
+    public function testTheImagesPassAxe(string $page): void
+    {
+        $this->open($page);
+        $this->perform((string) file_get_contents(__DIR__.'/node_modules/axe-core/axe.min.js'));
+
+        self::assertSame([], $this->axe('#images'));
+
+        $this->focus('[commandfor="lightbox-festival-1"]');
+        $this->press(WebDriverKeys::ENTER);
+        // Measured once the dialog has faded in: its contrast is that of the page only at full opacity.
+        $this->waitUntil('document.querySelector("#lightbox-festival-1").open && getComputedStyle(document.querySelector("#lightbox-festival-1")).opacity === "1"');
+
+        self::assertSame([], $this->axe('#lightbox-festival-1'));
+    }
+
+    /**
+     * The thumbnail opens its image in a modal dialog, the browser or the dialog controller running its invokers;
+     * Escape closes it and gives the focus back to the thumbnail, a click on the backdrop closes it too.
+     */
+    #[DataProvider('modes')]
+    public function testALightboxOpensAtItsThumbnailAndClosesAtEscapeOrOnItsBackdrop(string $page): void
+    {
+        $this->open($page);
+        $this->focus('[commandfor="lightbox-festival-2"]');
+        $this->press(WebDriverKeys::ENTER);
+        $this->waitUntil('document.querySelector("#lightbox-festival-2").matches(":modal")');
+        $this->waitUntil('document.querySelector("#lightbox-festival-2 img").complete');
+
+        self::assertTrue($this->read('(() => { const image = document.querySelector("#lightbox-festival-2 img").getBoundingClientRect(); return image.bottom <= innerHeight && image.right <= innerWidth && image.width > 0; })()'));
+
+        $this->press(WebDriverKeys::ESCAPE);
+        $this->waitForFocus('[commandfor="lightbox-festival-2"]');
+
+        $this->click('[commandfor="lightbox-festival-2"]');
+        $this->waitUntil('document.querySelector("#lightbox-festival-2").open');
+        $this->click('#lightbox-festival-2 .isLightboxClose');
+        $this->waitUntil('!document.querySelector("#lightbox-festival-2").open');
+    }
+
+    /**
+     * A gallery lays its images in columns as wide as its container allows: fewer on a phone, without overflowing it,
+     * three at least on a wide screen.
+     */
+    public function testAGalleryFitsItsColumnsToItsContainer(): void
+    {
+        $columns = 'getComputedStyle(document.querySelector("#festival > ul")).gridTemplateColumns.split(" ").length';
+
+        $this->browser()->manage()->window()->setSize(new WebDriverDimension(375, 800));
+        $this->open('index.html');
+        $phone = $this->read($columns);
+        self::assertIsInt($phone);
+        self::assertLessThanOrEqual(2, $phone);
+        self::assertSame([], $this->read('[...document.querySelectorAll("#images > *")].filter((part) => part.getBoundingClientRect().right > document.documentElement.clientWidth + 1).map((part) => part.className)'));
+
+        $this->browser()->manage()->window()->setSize(new WebDriverDimension(1280, 800));
+        $this->open('index.html');
+        self::assertGreaterThan(max(2, $phone), $this->read($columns));
+    }
+
+    /**
+     * The variants of a picture follow the reader's system: the dark one where it is dark, the still one where motion
+     * is reduced, the fallback otherwise.
+     */
+    public function testAPictureFollowsTheColourSchemeAndTheMotionOfTheSystem(): void
+    {
+        $source = 'document.querySelector("#themed").currentSrc';
+
+        $light = [['name' => 'prefers-color-scheme', 'value' => 'light'], ['name' => 'prefers-reduced-motion', 'value' => 'no-preference']];
+
+        foreach ([[$light, 'teal'], [[['name' => 'prefers-color-scheme', 'value' => 'dark']], 'navy'], [[['name' => 'prefers-reduced-motion', 'value' => 'reduce'], ['name' => 'prefers-color-scheme', 'value' => 'dark']], 'olive']] as [$features, $colour]) {
+            $this->emulate($features);
+            $this->open('index.html');
+            $this->perform('document.querySelector("#themed").scrollIntoView()');
+            $this->waitUntil('document.querySelector("#themed").complete && '.$source);
+
+            $current = $this->read($source);
+            self::assertIsString($current);
+            self::assertStringContainsString($colour, $current);
+        }
+
+        $this->emulate([]);
+    }
+
     public function testTheDarkThemeRepaintsThePanels(): void
     {
         $this->open('index.html');
@@ -560,5 +649,34 @@ final class InteractiveRecipesTest extends BrowserTestCase
         $this->open('index.html');
 
         self::assertSame([], $this->read('[...document.querySelectorAll("[data-slot]")].map((part) => part.dataset.slot).filter((slot, index, slots) => slots.indexOf(slot) === index).filter((slot) => !["checkbox", "input", "label", "textarea", "dialog-trigger", "sheet-trigger", "popover-trigger", "dropdown-menu-trigger", "tooltip-trigger", "select", "alert-dialog-trigger", "kbd", "native-select", "native-select-option", "native-select-optgroup", "progress", "radio-group-item"].includes(slot) && !document.querySelector(`[data-slot="${slot}"]`).matches("[class*=is], [class*=has]"))'));
+    }
+
+    /**
+     * The violations axe-core finds in a part of the page, each rule with the parts it found it in.
+     *
+     * @return list<string>
+     */
+    private function axe(string $selector): array
+    {
+        $this->browser()->manage()->timeouts()->setScriptTimeout(30);
+        $violations = $this->browser()->executeAsyncScript(\sprintf(
+            'const done = arguments[arguments.length - 1]; axe.run(document.querySelector(%s), {runOnly: {type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]}}).then((result) => done(result.violations.map((violation) => violation.id + ": " + violation.nodes.map((node) => node.target.join(" ")).join(", "))), (error) => done(["axe: " + error]));',
+            json_encode($selector, \JSON_THROW_ON_ERROR),
+        ));
+        self::assertIsArray($violations);
+
+        return array_values(array_filter($violations, is_string(...)));
+    }
+
+    /**
+     * The media features Chrome emulates, through its DevTools protocol; none restores those of the system.
+     *
+     * @param list<array{name: string, value: string}> $features
+     */
+    private function emulate(array $features): void
+    {
+        $driver = $this->browser()->getWebDriver();
+        self::assertInstanceOf(RemoteWebDriver::class, $driver);
+        $driver->executeCustomCommand('/session/:sessionId/goog/cdp/execute', 'POST', ['cmd' => 'Emulation.setEmulatedMedia', 'params' => ['features' => $features]]);
     }
 }

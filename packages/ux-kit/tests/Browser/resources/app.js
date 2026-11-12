@@ -10,6 +10,7 @@ import dialog from './controllers/dialog_controller.js';
 import dropdownMenu from './controllers/dropdown_menu_controller.js';
 import dropdownMenuSub from './controllers/dropdown_menu_sub_controller.js';
 import fileInput from './controllers/file_input_controller.js';
+import lightbox from './controllers/lightbox_controller.js';
 import numberInput from './controllers/number_input_controller.js';
 import popover from './controllers/popover_controller.js';
 import relativeTime from './controllers/relative_time_controller.js';
@@ -35,6 +36,7 @@ for (const [identifier, controller] of Object.entries({
     'dropdown-menu': dropdownMenu,
     'dropdown-menu-sub': dropdownMenuSub,
     'file-input': fileInput,
+    lightbox,
     'number-input': numberInput,
     popover,
     'relative-time': relativeTime,

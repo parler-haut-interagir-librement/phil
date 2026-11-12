@@ -1,0 +1,58 @@
+{#-
+ # The figure of an image or a picture: its content alone, or held in a figure with a figcaption when it has a caption,
+ # a credit, a license or a creation of the IPTC Digital Source Type vocabulary, every text escaped. A license links to
+ # its address with rel="license" unless that address is refused; a code outside the vocabulary says nothing.
+ #}
+{%- props
+    ## string|null A caption under the image.
+    caption = null,
+    ## string|null Who made the image, as the site writes it, "Photo: Ana Lima".
+    credit = null,
+    ## string|null The name of the license of the image, "CC BY 4.0".
+    license = null,
+    ## string|null The address of the license, which its name then links to with rel="license".
+    licenseHref = null,
+    ## string|BackedEnum|null How the image was made, a code of the IPTC Digital Source Type vocabulary, or an enum whose value is one.
+    creation = null,
+    ## string|null The words that say how the image was made; the name the vocabulary gives the code when null.
+    creationLabel = null
+-%}
+{%- set _vocabulary = {
+    digitalCapture: 'Digital capture sampled from real life',
+    computationalCapture: 'Multi-frame computational capture sampled from real life',
+    negativeFilm: 'Digitised from a transparent negative',
+    positiveFilm: 'Digitised from a transparent positive',
+    print: 'Digitised from a non-transparent medium',
+    humanEdits: 'Human-edited media',
+    compositeWithTrainedAlgorithmicMedia: 'Edited using Generative AI',
+    algorithmicallyEnhanced: 'Algorithmically-altered media',
+    digitalCreation: 'Digital creation',
+    dataDrivenMedia: 'Data-driven media',
+    trainedAlgorithmicMedia: 'Created using Generative AI',
+    algorithmicMedia: 'Pure algorithmic media',
+    screenCapture: 'Screen capture',
+    virtualRecording: 'Virtual event recording',
+    composite: 'Composite of elements',
+    compositeCapture: 'Composite of captured elements',
+    compositeSynthetic: 'Composite including generative AI elements',
+    minorHumanEdits: 'Original media with minor human edits',
+    softwareImage: 'Created by software',
+    digitalArt: 'Digital art',
+} -%}
+{%- set _code = creation is null ? null : (creation.value is defined ? creation.value : creation) -%}
+{%- set _creation = _code is not null and _code in _vocabulary|keys ? (creationLabel is not empty ? creationLabel : _vocabulary[_code]) : null -%}
+{%- set _href = licenseHref is empty or licenseHref|replace({"\t": '', "\n": '', "\r": ''}) matches '#^[[:cntrl:] ]*(javascript:|vbscript:|data:)#i' ? null : licenseHref -%}
+{%- if caption is not empty or credit is not empty or license is not empty or _creation is not null -%}
+    <figure>
+        {##- The image or the picture the figure holds. -#}
+        {%- block content %}{% endblock -%}
+        <figcaption>
+            {{- caption -}}
+            {%- if credit is not empty %}<small class="isCredit">{{ credit }}</small>{% endif -%}
+            {%- if license is not empty %}<small class="isLicense">{% if _href is not null %}<a href="{{ _href }}" rel="license">{{ license }}</a>{% else %}{{ license }}{% endif %}</small>{% endif -%}
+            {%- if _creation is not null %}<small {{ html_attr({class: 'isCreation', 'data-digital-source-type': _code}) }}>{{ _creation }}</small>{% endif -%}
+        </figcaption>
+    </figure>
+{%- else -%}
+    {{- block('content') -}}
+{%- endif -%}

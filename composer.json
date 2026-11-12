@@ -101,6 +101,7 @@
         "symfony/ux-live-component": "^3.7",
         "symfony/ux-twig-component": "^3.7",
         "symfony/validator": "^8.2",
+        "symfony/web-link": "^8.2",
         "symfony/workflow": "^8.2",
         "symfony/yaml": "^8.2",
         "twig/extra-bundle": "^3.24",

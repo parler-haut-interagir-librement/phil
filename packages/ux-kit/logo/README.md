@@ -1,7 +1,8 @@
 # Logo
 
 A logo: a `Picture` of the `image` recipe, with an AVIF source then a WebP one when it has them, each a URL or a map
-of densities, linked to the home page when it has an `href`.
+of densities, its variant for a dark system and its still image where motion is reduced, linked to the home page when
+it has an `href`.
 `{theme}` and `{locale}` in its sources are replaced, so one line serves the logo of every theme and language.
 
 ```twig {"preview":true}
@@ -40,6 +41,16 @@ The theme the page was given picks the logo drawn for its background.
 
 ```twig
 <twig:Logo src="/images/logo-{theme}.svg" alt="Studio" :theme="theme" />
+```
+
+### For a dark system
+
+`dark` is offered where the system is dark, `still` where the reader reduces motion, before the other sources; each a
+URL or a map of densities, its placeholders replaced.
+
+```twig
+<twig:Logo src="/images/logo.png" :dark="{1: '/images/logo-dark.png', 2: '/images/logo-dark@2x.png'}" alt="Studio" />
+<twig:Logo src="/images/logo.gif" still="/images/logo.png" alt="Studio" />
 ```
 
 ### By language

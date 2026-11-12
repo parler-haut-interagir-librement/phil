@@ -15,6 +15,8 @@ it depends.
 | `webp` | `null` | A WebP source, a URL or a map of densities, offered after the AVIF one |
 | `avif` | `null` | An AVIF source, a URL or a map of densities, offered first |
 | `srcset` | `null` | The densities of the fallback, as HTML writes them or a map |
+| `dark` | `null` | The logo of a dark system, a URL or a map of densities, offered where `prefers-color-scheme` is dark |
+| `still` | `null` | The still logo of an animated one, a URL or a map of densities, offered where motion is reduced |
 | `theme` | `null` | Replaces `{theme}` in every URL |
 | `locale` | `null` | Replaces `{locale}` in every URL |
 | `href` | `null` | A link around the logo |
@@ -86,10 +88,11 @@ No candidate renders nothing.
 
 ## Image
 
-The `image` recipe holds two components, under the prop names of Symfony UX Image; no service, no JavaScript, no
-inline style.
+The `image` recipe holds two components, under the prop names of Symfony UX Image; no JavaScript, no inline style. It
+calls `image_origin()` of the bundle of `phil/ux-kit` and `preload()` of Symfony WebLink, and needs both packages.
 
-`<twig:Image>`: an `img` of class `isImage`, in a `figure` with its `caption`.
+`<twig:Image>`: an `img` of class `isImage`, in a `figure` with its `caption`, its credit, its license and its
+creation.
 
 | Prop | Default | |
 |---|---|---|
@@ -102,10 +105,15 @@ inline style.
 | `aspect` | `null` | The ratio of its box: `16/9`, `4/3`, `3/2`, `1/1`, `21/9`, `3/4`, `2/3`, `9/16`, or `custom`, read from `--phil-image-ratio`, which a class of the site sets |
 | `fit` | `null` | `cover`, the default with a ratio, or `contain` |
 | `position` | `null` | Where it is cropped: `center`, `top`, `bottom`, `left` or `right` |
-| `priority` | `false` | The main image above the fold: `loading="eager"`, `fetchpriority="high"`, no `decoding` |
+| `priority` | `false` | The main image above the fold: `loading="eager"`, `fetchpriority="high"`, no `decoding`, preloaded |
+| `preload` | `null` | Whether the image is preloaded through Symfony WebLink, in a `Link` header; with `priority` when null |
 | `loading` | `null` | `lazy` or `eager`, overriding `priority`; `lazy` when null without `priority` |
 | `decoding` | `null` | `async`, `sync` or `auto`, overriding `priority`; `async` when null without `priority` |
 | `caption` | `null` | A `figcaption`, escaped: the image is then in a `figure`, decorative or not |
+| `credit` | `null` | Who made the image, as the site writes it, in a `small` of class `isCredit` under the caption |
+| `license`, `licenseHref` | `null` | The name of the license, in a `small` of class `isLicense`, linked to its address with `rel="license"` |
+| `creation` | `null` | A code of the IPTC Digital Source Type vocabulary, or an enum whose value is one, said in a `small` of class `isCreation` |
+| `creationLabel` | `null` | The words that say the creation; the vocabulary's name of the code when null |
 
 `<twig:Picture>`: a `picture` whose `source` elements, in the order given, precede an `Image` holding the fallback;
 the `Image` alone when no source is left; in a `figure` with its `caption`.
@@ -114,12 +122,14 @@ the `Image` alone when no source is left; in a `figure` with its `caption`.
 |---|---|---|
 | The props of `Image` | | Carried by the fallback `img`; `sizes` also serves the sources that have none |
 | `sources` | `[]` | Each `{type, srcset, sizes, media, width, height}`: `type` an `image/*` type or left out, `srcset` as for `Image`, `media` and the size of its crop for art direction |
+| `dark` | `null` | Offered where `prefers-color-scheme` is dark: candidates as for `srcset`, or sources `{type, srcset}` |
+| `still` | `null` | Offered where `prefers-reduced-motion` is reduce, first: candidates as for `srcset`, or sources `{type, srcset}` |
 
-The sources are written in this order: those with a `media` query first, in the order of their first query, then those
-without; within each group, AVIF, then WebP, then the other types, then the sources without a type. A `media` holding
-`<`, `>`, `{`, `}` or `;` leaves its source out; a `width` or `height` that is not a positive integer is left out. The
-layout, the ratio, the fit and the crop are classes of phil-ux on the `img` (`hasLayoutFixed`, `hasLayoutFullWidth`,
-`hasRatio16x9`…, `hasFitCover`, `hasPositionTop`…), never an inline style.
+The sources are written in this order: the still image, the dark variant, then those with a `media` query, in the order
+of their first query, then those without; within each group, AVIF, then WebP, then the other types, then the sources
+without a type. A `media` holding `<`, `>`, `{`, `}` or `;` leaves its source out; a `width` or `height` that is not a
+positive integer is left out. The layout, the ratio, the fit and the crop are classes of phil-ux on the `img`
+(`hasLayoutFixed`, `hasLayoutFullWidth`, `hasRatio16x9`…, `hasFitCover`, `hasPositionTop`…), never an inline style.
 
 The other attributes go to the `img`, not to a root, and only `id`, `class` (added to `isImage`), `title`,
 `crossorigin`, `referrerpolicy`, `itemprop`, `draggable`, `data-*` and `aria-*`, written with `html_attr()` of
@@ -129,8 +139,49 @@ than `data:image/` is refused, in whatever case, after spaces or control charact
 a refused `src` renders nothing, a refused `srcset` is left out whole, as is a source holding a refused URL, without
 candidates, or of a type other than `image/*`.
 
+An address of another host is refused unless `phil_ux_kit.image.hosts` lists its host, read by `phil/url`: a relative
+path, a `data:image/` one and the page's own origin are the page's. An image of a listed host is fetched with
+`referrerpolicy="no-referrer"` unless the page gives another policy. With `priority`, `Image` preloads its `src` with its
+`srcset` and `sizes`; `Picture` preloads its first source with its `type`, and nothing when a source has a `media`
+query, the dark and still variants included.
+
+`image_sources('images/logo')` reads the files of an image among the assets of AssetMapper, `logo.avif`,
+`logo@2x.avif`, `logo.webp`, `logo.png`…, and gives the `src`, `srcset`, `sources`, `width` and `height` of a
+`Picture`; its options are `densities`, `widths`, `formats` and `fallbacks`.
+
 The props keep the names and the meaning of Symfony UX Image, lazy loading by default included, so that a page can
-move from one to the other by changing the tag; the recipe builds no URL and transforms no image.
+move from one to the other by changing the tag; the recipe transforms no image.
+
+## Gallery
+
+`<twig:Gallery>`: a `div` of class `isGallery` holding a `ul` named by `label`, each image a `Picture` in its `li`, or
+a `Lightbox`; nothing without an image.
+
+| Prop | Default | |
+|---|---|---|
+| `label` | required | The name of the list for screen readers |
+| `images` | `[]` | Each with the props of a `Picture`, `src`, `alt`, `width`, `height` required, and `full` for its lightbox |
+| `aspect`, `fit` | `null` | The ratio and the fit of every image |
+| `sizes` | `null` | The width of a column, for the candidates of widths |
+| `lightbox` | `false` | Whether each image opens in a `Lightbox` |
+| `id` | `null` | The identifier of the gallery, from which those of its lightboxes are made; `gallery` when null |
+| `openLabel`, `closeLabel` | `null`, `'Close'` | The words of each lightbox's buttons |
+
+## Lightbox
+
+`<twig:Lightbox>`: a `div` of class `isLightbox`, controller `lightbox`, holding the thumbnail in a button of class
+`isLightboxTrigger` that opens, by `command="show-modal"` and `commandfor`, a `dialog` of class `isLightboxDialog` with
+`closedby="any"`, its full image and its close button `isLightboxClose`.
+
+| Prop | Default | |
+|---|---|---|
+| `id` | required | Unique in the page; the dialog's is `lightbox-<id>` |
+| `src`, `alt`, `width`, `height` | required | The thumbnail; `alt` also names the dialog, the caption when it is empty |
+| `srcset`, `sizes`, `sources`, `aspect`, `fit`, `position` | | The thumbnail's, as for `Picture` |
+| `full` | `null` | The image of the dialog, `{src, width, height, srcset, sizes, sources}`, shown whole, sized `100vw` unless it has `sizes`; the thumbnail when null |
+| `caption`, `credit`, `license`, `licenseHref`, `creation`, `creationLabel` | `null` | Under the thumbnail and under the full image |
+| `openLabel` | `null` | Words read after the text alternative in the button |
+| `closeLabel` | `'Close'` | What screen readers read for the close button |
 
 ## ReactionButton
 
@@ -1089,9 +1140,9 @@ Components: `<twig:ToggleGroup>`, `<twig:ToggleGroup:Item>`.
 
 ## Recipes of this kit alone
 
-`Logo`, `AnimatedHeadline`, `Illustration`, `AutosaveStatus`, `ReactionButton`, `ReactionPicker`, `QrCode`, the
-blocks `ComingSoon`, `LoginForm` and `SignupForm`, the two charts and the recipes below have no equivalent in the
-Shadcn kit. On Tailwind, the kit `phil/ux-kit-shadcn` holds each of them under the same names, props, blocks and
+`Logo`, `AnimatedHeadline`, `Illustration`, `Gallery`, `Lightbox`, `AutosaveStatus`, `ReactionButton`, `ReactionPicker`,
+`QrCode`, the blocks `ComingSoon`, `LoginForm` and `SignupForm`, the two charts and the recipes below have no equivalent
+in the Shadcn kit. On Tailwind, the kit `phil/ux-kit-shadcn` holds each of them under the same names, props, blocks and
 controllers.
 
 ## With the Common kit

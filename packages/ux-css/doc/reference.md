@@ -32,7 +32,7 @@
 | Forms | `isField` `isHorizontal` `isResponsive` `isFieldSet` `isToggle` `isToggleInput` `isToggleGroup` `isRadioGroup` `isLoginForm` `isSignupForm` |
 | Lists and boxes | `isItem` `isItemGroup` `isScrollArea` `isAspectRatio` `isCollapsible` `isKbdGroup` |
 | Charts | `isChart` `isChartImage` `isChartSeries` `isChartBar` `isChartLine` `isChartLegend` `isChartTable` `hasChartJs` `isChartCanvas` |
-| Display | `isEyebrow` `isHeadline` `isReveal` `isRevealToggle` `isLogo` `isImage` `hasLayoutFixed` `hasLayoutFullWidth` `hasRatio` `hasRatio16x9` `hasRatio4x3` `hasRatio3x2` `hasRatio1x1` `hasRatio21x9` `hasRatio3x4` `hasRatio2x3` `hasRatio9x16` `hasFitCover` `hasFitContain` `hasPositionCenter` `hasPositionTop` `hasPositionBottom` `hasPositionLeft` `hasPositionRight` `isProse` `isReaction` `isReactionPicker` `isReactionPickerPanel` |
+| Display | `isEyebrow` `isHeadline` `isReveal` `isRevealToggle` `isLogo` `isImage` `hasLayoutFixed` `hasLayoutFullWidth` `hasRatio` `hasRatio16x9` `hasRatio4x3` `hasRatio3x2` `hasRatio1x1` `hasRatio21x9` `hasRatio3x4` `hasRatio2x3` `hasRatio9x16` `hasFitCover` `hasFitContain` `hasPositionCenter` `hasPositionTop` `hasPositionBottom` `hasPositionLeft` `hasPositionRight` `isCredit` `isLicense` `isCreation` `isGallery` `isLightbox` `isLightboxTrigger` `isLightboxDialog` `isLightboxClose` `isProse` `isReaction` `isReactionPicker` `isReactionPickerPanel` |
 | Layout | `isStack` `isCluster` `isGrid` `isCenter` `isNarrow` `isSplit` `isFullHeight` `isCover` `isCoverBody` `isBleed` `hasEntrance` |
 | Utilities | `isVisuallyHidden` `isSkipLink` `isMuted` `isGrow` |
 

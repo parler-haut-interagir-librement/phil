@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=73813f28f9e58e8511d2199b6945eb62c7eb4cf15941666e34ec98325dd52325 -->
+<!-- phil-dev source-sha256=6e8dc06e2b0b2c7af76f5c8f4b4b41d14a14e9f53f4ef5ac04e2086a802f408c -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -16,6 +16,8 @@ composant prend aussi d'autres attributs, écrits sur son élément racine, une 
 | `webp` | `null` | Une source WebP, une URL ou un tableau de densités, offerte après l'AVIF |
 | `avif` | `null` | Une source AVIF, une URL ou un tableau de densités, offerte d'abord |
 | `srcset` | `null` | Les densités du repli, telles que HTML les écrit ou en tableau |
+| `dark` | `null` | Le logo d'un système sombre, une URL ou un tableau de densités, offert là où `prefers-color-scheme` est sombre |
+| `still` | `null` | Le logo fixe d'un logo animé, une URL ou un tableau de densités, offert là où le mouvement est réduit |
 | `theme` | `null` | Remplace `{theme}` dans chaque URL |
 | `locale` | `null` | Remplace `{locale}` dans chaque URL |
 | `href` | `null` | Un lien autour du logo |
@@ -89,10 +91,12 @@ Aucune candidate ne produit rien.
 
 ## Image
 
-La recette `image` contient deux composants, sous les noms de props de Symfony UX Image ; aucun service, aucun
-JavaScript, aucun style en ligne.
+La recette `image` contient deux composants, sous les noms de props de Symfony UX Image ; aucun JavaScript, aucun style
+en ligne. Elle appelle `image_origin()` du bundle de `phil/ux-kit` et `preload()` de Symfony WebLink, et demande les deux
+paquets.
 
-`<twig:Image>` : une `img` de classe `isImage`, dans une `figure` avec sa `caption`.
+`<twig:Image>` : une `img` de classe `isImage`, dans une `figure` avec sa `caption`, son crédit, sa licence et sa
+création.
 
 | Prop | Par défaut | |
 |---|---|---|
@@ -105,10 +109,15 @@ JavaScript, aucun style en ligne.
 | `aspect` | `null` | Le rapport de sa boîte : `16/9`, `4/3`, `3/2`, `1/1`, `21/9`, `3/4`, `2/3`, `9/16`, ou `custom`, lu dans `--phil-image-ratio`, qu'une classe du site pose |
 | `fit` | `null` | `cover`, par défaut avec un rapport, ou `contain` |
 | `position` | `null` | Où elle est rognée : `center`, `top`, `bottom`, `left` ou `right` |
-| `priority` | `false` | L'image principale au-dessus de la ligne de flottaison : `loading="eager"`, `fetchpriority="high"`, aucun `decoding` |
+| `priority` | `false` | L'image principale au-dessus de la ligne de flottaison : `loading="eager"`, `fetchpriority="high"`, aucun `decoding`, préchargée |
+| `preload` | `null` | Si l'image est préchargée par Symfony WebLink, dans un en-tête `Link` ; avec `priority` quand il est nul |
 | `loading` | `null` | `lazy` ou `eager`, qui l'emporte sur `priority` ; `lazy` quand il est nul sans `priority` |
 | `decoding` | `null` | `async`, `sync` ou `auto`, qui l'emporte sur `priority` ; `async` quand il est nul sans `priority` |
 | `caption` | `null` | Une `figcaption`, échappée : l'image est alors dans une `figure`, décorative ou non |
+| `credit` | `null` | Qui a fait l'image, tel que le site l'écrit, dans un `small` de classe `isCredit` sous la légende |
+| `license`, `licenseHref` | `null` | Le nom de la licence, dans un `small` de classe `isLicense`, lié à son adresse avec `rel="license"` |
+| `creation` | `null` | Un code du vocabulaire IPTC Digital Source Type, ou une énumération dont la valeur en est un, dit dans un `small` de classe `isCreation` |
+| `creationLabel` | `null` | Les mots qui disent la création ; le nom que le vocabulaire donne au code quand il est nul |
 
 `<twig:Picture>` : une `picture` dont les éléments `source`, dans l'ordre donné, précèdent une `Image` qui porte le
 repli ; l'`Image` seule quand il ne reste aucune source ; dans une `figure` avec sa `caption`.
@@ -117,13 +126,15 @@ repli ; l'`Image` seule quand il ne reste aucune source ; dans une `figure` avec
 |---|---|---|
 | Les props d'`Image` | | Portées par l'`img` de repli ; `sizes` sert aussi les sources qui n'en ont pas |
 | `sources` | `[]` | Chacune `{type, srcset, sizes, media, width, height}` : `type` un type `image/*` ou absent, `srcset` comme pour `Image`, `media` et la taille de son recadrage pour la direction artistique |
+| `dark` | `null` | Offerte là où `prefers-color-scheme` est sombre : des candidates comme pour `srcset`, ou des sources `{type, srcset}` |
+| `still` | `null` | Offerte là où `prefers-reduced-motion` vaut reduce, en premier : des candidates comme pour `srcset`, ou des sources `{type, srcset}` |
 
-Les sources sont écrites dans cet ordre : celles qui ont une requête `media` d'abord, dans l'ordre de leur première
-requête, puis les autres ; dans chaque groupe, l'AVIF, puis le WebP, puis les autres types, puis les sources sans type.
-Un `media` qui contient `<`, `>`, `{`, `}` ou `;` laisse sa source de côté ; un `width` ou un `height` qui n'est pas un
-entier positif est laissé de côté. La disposition, le rapport, l'ajustement et le recadrage sont des classes de phil-ux
-sur l'`img` (`hasLayoutFixed`, `hasLayoutFullWidth`, `hasRatio16x9`…, `hasFitCover`, `hasPositionTop`…), jamais un style
-en ligne.
+Les sources sont écrites dans cet ordre : l'image fixe, la variante sombre, puis celles qui ont une requête `media`,
+dans l'ordre de leur première requête, puis les autres ; dans chaque groupe, l'AVIF, puis le WebP, puis les autres
+types, puis les sources sans type. Un `media` qui contient `<`, `>`, `{`, `}` ou `;` laisse sa source de côté ; un
+`width` ou un `height` qui n'est pas un entier positif est laissé de côté. La disposition, le rapport, l'ajustement et
+le recadrage sont des classes de phil-ux sur l'`img` (`hasLayoutFixed`, `hasLayoutFullWidth`, `hasRatio16x9`…,
+`hasFitCover`, `hasPositionTop`…), jamais un style en ligne.
 
 Les autres attributs vont à l'`img`, pas à une racine, et seulement `id`, `class` (ajoutée à `isImage`), `title`,
 `crossorigin`, `referrerpolicy`, `itemprop`, `draggable`, `data-*` et `aria-*`, écrits avec `html_attr()` de
@@ -134,9 +145,49 @@ contrôle, ou coupée par des tabulations et des sauts de ligne : un `src` refus
 est laissé de côté en entier, comme une source qui contient une URL refusée, n'a aucune candidate ou a un autre type
 qu'`image/*`.
 
+Une adresse d'un autre hôte est refusée à moins que `phil_ux_kit.image.hosts` liste son hôte, lu par `phil/url` : un
+chemin relatif, un chemin `data:image/` et l'origine même de la page sont à la page. Une image d'un hôte listé est
+demandée avec `referrerpolicy="no-referrer"`, à moins que la page donne une autre politique. Avec `priority`, `Image`
+précharge son `src` avec son `srcset` et ses `sizes` ; `Picture` précharge sa première source avec son `type`, et rien
+quand une source a une requête `media`, les variantes sombre et fixe comprises.
+
+`image_sources('images/logo')` lit les fichiers d'une image parmi les ressources d'AssetMapper, `logo.avif`,
+`logo@2x.avif`, `logo.webp`, `logo.png`…, et donne le `src`, le `srcset`, les `sources`, le `width` et le `height`
+d'une `Picture` ; ses options sont `densities`, `widths`, `formats` et `fallbacks`.
+
 Les props gardent les noms et le sens de celles de Symfony UX Image, le chargement différé par défaut compris, pour
-qu'une page passe de l'un à l'autre en changeant la balise ; la recette ne construit aucune URL et ne transforme aucune
-image.
+qu'une page passe de l'un à l'autre en changeant la balise ; la recette ne transforme aucune image.
+
+## Gallery
+
+`<twig:Gallery>` : un `div` de classe `isGallery` qui contient un `ul` nommé par `label`, chaque image une `Picture`
+dans son `li`, ou une `Lightbox` ; rien sans image.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `label` | requis | Le nom de la liste pour les lecteurs d'écran |
+| `images` | `[]` | Chacune avec les props d'une `Picture`, `src`, `alt`, `width`, `height` requis, et `full` pour sa visionneuse |
+| `aspect`, `fit` | `null` | Le rapport et l'ajustement de chaque image |
+| `sizes` | `null` | La largeur d'une colonne, pour les candidates de largeurs |
+| `lightbox` | `false` | Si chaque image s'ouvre dans une `Lightbox` |
+| `id` | `null` | L'identifiant de la galerie, dont on tire ceux de ses visionneuses ; `gallery` quand il est nul |
+| `openLabel`, `closeLabel` | `null`, `'Close'` | Les mots des boutons de chaque visionneuse |
+
+## Lightbox
+
+`<twig:Lightbox>` : un `div` de classe `isLightbox`, contrôleur `lightbox`, qui contient la vignette dans un bouton de
+classe `isLightboxTrigger` qui ouvre, par `command="show-modal"` et `commandfor`, un `dialog` de classe
+`isLightboxDialog` avec `closedby="any"`, son image entière et son bouton de fermeture `isLightboxClose`.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `id` | requis | Unique dans la page ; celui du dialogue est `lightbox-<id>` |
+| `src`, `alt`, `width`, `height` | requis | La vignette ; `alt` nomme aussi le dialogue, la légende quand il est vide |
+| `srcset`, `sizes`, `sources`, `aspect`, `fit`, `position` | | Ceux de la vignette, comme pour `Picture` |
+| `full` | `null` | L'image du dialogue, `{src, width, height, srcset, sizes, sources}`, montrée entière, de `sizes` `100vw` à moins d'en avoir ; la vignette quand il est nul |
+| `caption`, `credit`, `license`, `licenseHref`, `creation`, `creationLabel` | `null` | Sous la vignette et sous l'image entière |
+| `openLabel` | `null` | Des mots lus après le texte de remplacement dans le bouton |
+| `closeLabel` | `'Close'` | Ce que les lecteurs d'écran lisent pour le bouton de fermeture |
 
 ## ReactionButton
 
@@ -1102,10 +1153,10 @@ Composants : `<twig:ToggleGroup>`, `<twig:ToggleGroup:Item>`.
 
 ## Les recettes de ce kit seulement
 
-`Logo`, `AnimatedHeadline`, `Illustration`, `AutosaveStatus`, `ReactionButton`, `ReactionPicker`, `QrCode`, les blocs
-`ComingSoon`, `LoginForm` et `SignupForm`, les deux graphiques et les recettes ci-dessous n'ont pas d'équivalent dans le
-kit Shadcn. Sur Tailwind, le kit `phil/ux-kit-shadcn` contient chacun d'eux sous les mêmes noms, props, blocs et
-contrôleurs.
+`Logo`, `AnimatedHeadline`, `Illustration`, `Gallery`, `Lightbox`, `AutosaveStatus`, `ReactionButton`, `ReactionPicker`,
+`QrCode`, les blocs `ComingSoon`, `LoginForm` et `SignupForm`, les deux graphiques et les recettes ci-dessous n'ont pas
+d'équivalent dans le kit Shadcn. Sur Tailwind, le kit `phil/ux-kit-shadcn` contient chacun d'eux sous les mêmes noms,
+props, blocs et contrôleurs.
 
 ## Avec le kit Common
 

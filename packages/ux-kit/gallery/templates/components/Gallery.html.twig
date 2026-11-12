@@ -1,0 +1,41 @@
+{#-
+ # A gallery: a list of figures in a grid that fills its container, named by its label, each image through the Picture
+ # of the image recipe, under its caption, credit, license and creation; with lightbox, each opens in a Lightbox. An
+ # image the image recipe refuses takes no place; without an image, nothing is drawn.
+ #}
+{%- props
+    ## string The name of the list, which screen readers read, such as "Photos of the festival".
+    label,
+    ## list<array{src:string,alt:string,width:int,height:int,srcset?:string|array<int|string,string>,sources?:list<array<string,mixed>>,position?:string,full?:array<string,mixed>,caption?:string,credit?:string,license?:string,licenseHref?:string,creation?:string,creationLabel?:string}> The images, each with the props of a Picture, and the full image of its lightbox.
+    images = [],
+    ## string|null The ratio every image is cropped to, as for Image, so that the rows line up.
+    aspect = null,
+    ## string|null How every image fills its box, "cover" or "contain".
+    fit = null,
+    ## string|null The sizes of the candidates of widths, as wide as a column of the grid, "(min-width: 48rem) 33vw, 100vw".
+    sizes = null,
+    ## bool Whether each image opens in a Lightbox, which the lightbox recipe draws.
+    lightbox = false,
+    ## string|null The identifier of the gallery, from which those of its lightboxes are made: "gallery" when null.
+    id = null,
+    ## string|null Words screen readers read after the text alternative of each lightbox's button, such as "Enlarge".
+    openLabel = null,
+    ## string What screen readers read for the close button of each lightbox.
+    closeLabel = 'Close'
+-%}
+{%- set _images = images|filter(image => (image.src ?? '') is not empty and image_origin(image.src) is not same as('refused')) -%}
+{%- if _images is not empty -%}
+    <div {{ html_attr({id: id, class: ['isGallery', attributes.all.class ?? null]|filter(name => name is not empty)|join(' ')}) }}>
+        <ul role="list" aria-label="{{ label }}">
+            {%- for image in _images -%}
+                <li>
+                    {%- if lightbox -%}
+                        <twig:Lightbox :id="(id ?? 'gallery') ~ '-' ~ loop.index" :src="image.src" :alt="image.alt" :width="image.width" :height="image.height" :srcset="image.srcset ?? null" :sizes="sizes" :sources="image.sources ?? []" :aspect="aspect" :fit="fit" :position="image.position ?? null" :full="image.full ?? null" :caption="image.caption ?? null" :credit="image.credit ?? null" :license="image.license ?? null" :licenseHref="image.licenseHref ?? null" :creation="image.creation ?? null" :creationLabel="image.creationLabel ?? null" :openLabel="openLabel" :closeLabel="closeLabel" />
+                    {%- else -%}
+                        <twig:Picture :src="image.src" :alt="image.alt" :width="image.width" :height="image.height" :srcset="image.srcset ?? null" :sizes="sizes" :sources="image.sources ?? []" :aspect="aspect" :fit="fit" :position="image.position ?? null" :caption="image.caption ?? null" :credit="image.credit ?? null" :license="image.license ?? null" :licenseHref="image.licenseHref ?? null" :creation="image.creation ?? null" :creationLabel="image.creationLabel ?? null" />
+                    {%- endif -%}
+                </li>
+            {%- endfor -%}
+        </ul>
+    </div>
+{%- endif -%}

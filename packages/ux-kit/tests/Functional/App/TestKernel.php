@@ -6,6 +6,7 @@ namespace Phil\UxKit\Tests\Functional\App;
 
 use Override;
 use Phil\QrCodeBundle\PhilQrCodeBundle;
+use Phil\UxKit\PhilUxKitBundle;
 use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
@@ -33,6 +34,9 @@ final class TestKernel extends Kernel
         yield new TwigComponentBundle();
         // html_attr(), which the Image recipe writes its attributes with, as an application installing it registers it.
         yield new TwigExtraBundle();
+        // image_origin() and image_sources(), which the image recipe calls.
+        // @phpstan-ignore generator.valueType (a bundle of the dependency injection component, which the kernel registers too)
+        yield new PhilUxKitBundle();
         // @phpstan-ignore generator.valueType (a bundle of the dependency injection component, which the kernel registers too)
         yield new PhilQrCodeBundle();
     }
@@ -75,7 +79,12 @@ final class TestKernel extends Kernel
             'http_method_override' => false,
             'handle_all_throwables' => true,
             'php_errors' => ['log' => true],
+            // preload(), which the image recipe calls for its main image.
+            'web_link' => ['enabled' => true],
+            // The assets image_sources() reads: the images of the unit tests, under images/.
+            'asset_mapper' => ['paths' => [__DIR__.'/../../Unit/Fixtures/images' => 'images']],
         ]);
+        $container->extension('phil_ux_kit', ['image' => ['hosts' => ['images.example.com']]]);
         $container->extension('twig', ['strict_variables' => true, 'paths' => array_fill_keys(self::recipeTemplates(), null)]);
         $container->extension('twig_component', ['anonymous_template_directory' => 'components/', 'defaults' => []]);
         $container->services()->set('logger', NullLogger::class);

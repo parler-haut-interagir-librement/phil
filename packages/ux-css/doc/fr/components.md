@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=138c640a3138f1ed221d694386f570a73b30c3e1a01f8717b7932ac78cc930ca -->
+<!-- phil-dev source-sha256=8168b776650df2d58bc0e12855d353ff0019bcd479c53261662e547a891a3451 -->
 # Composants
 
 Ce que la base sans classe ne peut pas deviner, dans la couche `phil.components`, et les utilitaires, en tout dernier.
@@ -245,6 +245,37 @@ un `style` en ligne serait retiré :
 ```html
 <img class="isImage hasRatio hasFitCover isHeroPhoto" src="/hall.jpg" alt="The hall" width="1500" height="1000">
 ```
+
+Sous une légende, `isCredit`, `isLicense` et `isCreation` prennent chacun leur ligne : qui a fait l'image, sa licence et
+comment elle a été faite.
+
+```html
+<figure>
+    <img class="isImage" src="/bridge.jpg" alt="A bridge" width="800" height="600">
+    <figcaption>The bridge at dusk<small class="isCredit">Photo: Ana Lima</small><small class="isLicense"><a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a></small></figcaption>
+</figure>
+```
+
+## La galerie
+
+`isGallery` : un conteneur dont la liste range ses figures en une grille de colonnes larges d'au moins
+`--phil-gallery-column` (12rem), autant que sa propre largeur en contient, lue par une requête de conteneur plutôt que par
+la largeur de l'écran ; l'espacement, `--phil-gallery-gap`, grandit quand la galerie atteint 48rem. Chaque image remplit
+sa case.
+
+```html
+<div class="isGallery">
+    <ul role="list" aria-label="The festival">
+        <li><img class="isImage hasRatio1x1 hasFitCover" src="/stage.jpg" alt="The stage" width="800" height="600"></li>
+    </ul>
+</div>
+```
+
+## La visionneuse
+
+`isLightbox` tient `isLightboxTrigger`, le bouton de la vignette, sans fond, avec l'anneau de focus et un curseur de
+loupe, et `isLightboxDialog`, un dialogue aussi large que l'écran le permet, dont l'image s'affiche entière dans sa
+hauteur ; son bouton de fermeture, `isLightboxClose`, se tient dans son coin de fin.
 
 ## Réactions
 

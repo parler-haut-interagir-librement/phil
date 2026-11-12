@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=944a7734160a47c2171c607ea612c23623c02d126dfe7560538dceba497e2b90 -->
+<!-- phil-dev source-sha256=32cb1f4847916cbecf9ad6f95f0a3d01313ac105ae44674fba262243fc0a0b81 -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -6,6 +6,10 @@
 | `manifest.json` | Le kit : nom, description, licence, page d'accueil, couleur, icône, dépendances |
 | `icon.svg` | L'icône du kit |
 | `.gitattributes` | Laisse les fichiers propres au paquet hors de l'archive que télécharge `ux:install`, sauf `src/` |
+| `src/PhilUxKitBundle.php` | `Phil\UxKit\PhilUxKitBundle` : le bundle, `phil_ux_kit.image.hosts` et `allow_localhost`, et les fonctions Twig des recettes d'images |
+| `src/Application/ImageOrigin.php` | `Phil\UxKit\Application\ImageOrigin` : d'où vient l'image d'une adresse, ou chaque candidate d'un `srcset`, lue par `phil/url` : `local`, `external` ou `refused` |
+| `src/Application/ImageSources.php` | `Phil\UxKit\Application\ImageSources` : les props d'une `Picture` d'après les fichiers d'une image parmi les ressources d'AssetMapper |
+| `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()` et `image_sources()` |
 | `src/Test/BrowserTestCase.php` | `Phil\UxKit\Test\BrowserTestCase` : un Chrome sans interface sur la page des recettes d'un kit, et les aides d'un test en navigateur |
 | `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage` : la racine web de chaque recette d'un kit, avec sa feuille de style, ses contrôleurs et Stimulus |
 | `logo/manifest.json`, `logo/README.md` | La recette `Logo` |
@@ -16,7 +20,12 @@
 | `illustration/manifest.json`, `illustration/README.md` | La recette `Illustration` |
 | `illustration/templates/components/Illustration.html.twig` | Le composant `Illustration` |
 | `image/manifest.json`, `image/README.md` | La recette `Image` |
-| `image/templates/components/` | Les composants `Image` et `Picture` |
+| `image/templates/components/` | Les composants `Image` et `Picture`, et `Image:Figure`, la figure de leur légende, de leur crédit, de leur licence et de leur création |
+| `gallery/manifest.json`, `gallery/README.md` | La recette `Gallery` |
+| `gallery/templates/components/Gallery.html.twig` | Le composant `Gallery` |
+| `lightbox/manifest.json`, `lightbox/README.md` | La recette `Lightbox` |
+| `lightbox/templates/components/Lightbox.html.twig` | Le composant `Lightbox` |
+| `lightbox/assets/controllers/lightbox_controller.js` | Le contrôleur Stimulus `lightbox`, qui ouvre et ferme le dialogue là où le navigateur n'exécute ni les invocateurs ni `closedby` |
 | `autosave-status/manifest.json`, `autosave-status/README.md` | La recette `AutosaveStatus` |
 | `autosave-status/templates/components/AutosaveStatus.html.twig` | Le composant `AutosaveStatus` |
 | `reaction-button/manifest.json`, `reaction-button/README.md` | La recette `ReactionButton` |

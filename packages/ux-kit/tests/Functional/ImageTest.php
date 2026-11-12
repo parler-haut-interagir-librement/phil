@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\UxKit\Tests\Functional;
 
+use Phil\UxKit\Tests\Functional\App\SourceType;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Twig\Error\RuntimeError;
@@ -411,6 +412,194 @@ final class ImageTest extends KitTestCase
         self::assertSame(
             '<picture><source type="image/webp" srcset="/a.webp?&quot;&gt;" media="(min-width: 1px) and &quot;x&quot; &amp; y"><img class="isImage" src="/a.png" alt="A" width="1" height="1" loading="lazy" decoding="async"></picture>',
             $this->render('<twig:Picture src="/a.png" :sources="[{type: \'image/webp\', srcset: srcset, media: media}]" alt="A" :width="1" :height="1" />', ['srcset' => '/a.webp?">', 'media' => '(min-width: 1px) and "x" & y']),
+        );
+    }
+
+    public function testThePriorityPreloadsTheImageThroughWebLink(): void
+    {
+        self::assertSame(
+            [
+                '<img class="isImage" src="/cover.jpg" srcset="/cover-960.jpg 960w, /cover-1600.jpg 1600w" sizes="100vw" alt="The stage" width="1600" height="900" loading="eager" fetchpriority="high">',
+                [[['preload'], '/cover.jpg', ['as' => 'image', 'imagesrcset' => '/cover-960.jpg 960w, /cover-1600.jpg 1600w', 'imagesizes' => '100vw', 'fetchpriority' => 'high']]],
+            ],
+            $this->renderInRequest('<twig:Image src="/cover.jpg" :srcset="{960: \'/cover-960.jpg\', 1600: \'/cover-1600.jpg\'}" sizes="100vw" alt="The stage" :width="1600" :height="900" :priority="true" />'),
+        );
+        self::assertSame(
+            [[['preload'], '/cover.jpg', ['as' => 'image', 'fetchpriority' => 'high', 'crossorigin' => 'anonymous', 'referrerpolicy' => 'no-referrer']]],
+            $this->renderInRequest('<twig:Image src="/cover.jpg" alt="The stage" :width="16" :height="9" :priority="true" crossorigin="anonymous" referrerpolicy="no-referrer" />')[1],
+            'the preload asks as the image does',
+        );
+    }
+
+    public function testOnlyThePriorityPreloadsAndItCanBeLeftOut(): void
+    {
+        self::assertSame([], $this->renderInRequest('<twig:Image src="/a.jpg" alt="A" :width="1" :height="1" />')[1]);
+        self::assertSame(
+            ['<img class="isImage" src="/a.jpg" alt="A" width="1" height="1" loading="eager" fetchpriority="high">', []],
+            $this->renderInRequest('<twig:Image src="/a.jpg" alt="A" :width="1" :height="1" :priority="true" :preload="false" />'),
+        );
+        self::assertSame(
+            [[['preload'], '/a.jpg', ['as' => 'image']]],
+            $this->renderInRequest('<twig:Image src="/a.jpg" alt="A" :width="1" :height="1" :preload="true" />')[1],
+            'a preload without priority',
+        );
+    }
+
+    public function testAPicturePreloadsItsFirstSourceWithItsType(): void
+    {
+        self::assertSame(
+            [
+                '<picture><source type="image/avif" srcset="/a.avif 1x, /a@2x.avif 2x"><source type="image/webp" srcset="/a.webp"><img class="isImage" src="/a.jpg" alt="A" width="8" height="6" loading="eager" fetchpriority="high"></picture>',
+                [[['preload'], '/a.jpg', ['as' => 'image', 'imagesrcset' => '/a.avif 1x, /a@2x.avif 2x', 'type' => 'image/avif', 'fetchpriority' => 'high']]],
+            ],
+            $this->renderInRequest('<twig:Picture src="/a.jpg" :sources="[{type: \'image/webp\', srcset: \'/a.webp\'}, {type: \'image/avif\', srcset: {1: \'/a.avif\', 2: \'/a@2x.avif\'}}]" alt="A" :width="8" :height="6" :priority="true" />'),
+        );
+        self::assertSame(
+            [[['preload'], '/a.jpg', ['as' => 'image', 'fetchpriority' => 'high']]],
+            $this->renderInRequest('<twig:Picture src="/a.jpg" alt="A" :width="8" :height="6" :priority="true" />')[1],
+            'without sources, the image preloads itself',
+        );
+    }
+
+    public function testArtDirectionWritesNoPreload(): void
+    {
+        self::assertSame([], $this->renderInRequest('<twig:Picture src="/a.jpg" :sources="[{type: \'image/avif\', srcset: \'/narrow.avif\', media: \'(max-width: 40rem)\'}]" alt="A" :width="8" :height="6" :priority="true" />')[1]);
+        self::assertSame([], $this->renderInRequest('<twig:Picture src="/a.jpg" dark="/a-dark.jpg" alt="A" :width="8" :height="6" :priority="true" />')[1], 'nor does a dark variant');
+    }
+
+    public function testADarkVariantIsOfferedFirstWhereTheSystemIsDark(): void
+    {
+        self::assertSame(
+            '<picture><source srcset="/logo-dark.png 1x, /logo-dark@2x.png 2x" media="(prefers-color-scheme: dark)"><source type="image/webp" srcset="/logo.webp"><img class="isImage" src="/logo.png" alt="Studio" width="160" height="40" loading="lazy" decoding="async"></picture>',
+            $this->render('<twig:Picture src="/logo.png" :sources="[{type: \'image/webp\', srcset: \'/logo.webp\'}]" :dark="{1: \'/logo-dark.png\', 2: \'/logo-dark@2x.png\'}" alt="Studio" :width="160" :height="40" />'),
+        );
+        self::assertSame(
+            '<picture><source type="image/avif" srcset="/d.avif" media="(prefers-color-scheme: dark)"><source type="image/webp" srcset="/d.webp" media="(prefers-color-scheme: dark)"><img class="isImage" src="/a.png" alt="A" width="1" height="1" loading="lazy" decoding="async"></picture>',
+            $this->render('<twig:Picture src="/a.png" :dark="[{type: \'image/webp\', srcset: \'/d.webp\'}, {type: \'image/avif\', srcset: \'/d.avif\', media: \'print\'}]" alt="A" :width="1" :height="1" />'),
+            'dark sources of their own types, their media replaced',
+        );
+    }
+
+    public function testAStillImageIsOfferedFirstWhereMotionIsReduced(): void
+    {
+        self::assertSame(
+            '<picture><source srcset="/spin-still.png" media="(prefers-reduced-motion: reduce)"><source srcset="/spin-dark.gif" media="(prefers-color-scheme: dark)"><source type="image/avif" srcset="/spin.avif"><img class="isImage" src="/spin.gif" alt="A spinning top" width="4" height="4" loading="lazy" decoding="async"></picture>',
+            $this->render('<twig:Picture src="/spin.gif" :sources="[{type: \'image/avif\', srcset: \'/spin.avif\'}]" dark="/spin-dark.gif" still="/spin-still.png" alt="A spinning top" :width="4" :height="4" />'),
+        );
+        self::assertSame(
+            '<picture><source type="image/webp" srcset="/still.webp" media="(prefers-reduced-motion: reduce)"><img class="isImage" src="/spin.gif" alt="A" width="4" height="4" loading="lazy" decoding="async"></picture>',
+            $this->render('<twig:Picture src="/spin.gif" :still="[{type: \'image/webp\', srcset: \'/still.webp\'}, {type: \'text/plain\', srcset: \'/x\'}]" alt="A" :width="4" :height="4" />'),
+        );
+    }
+
+    public function testARefusedDarkOrStillVariantIsLeftOut(): void
+    {
+        self::assertSame(
+            '<img class="isImage" src="/a.png" alt="A" width="1" height="1" loading="lazy" decoding="async">',
+            $this->render('<twig:Picture src="/a.png" dark="javascript:x" still="https://tracker.example.com/s.png" alt="A" :width="1" :height="1" />'),
+        );
+    }
+
+    public function testACreditAndALicenseFollowTheCaption(): void
+    {
+        self::assertSame(
+            '<figure><img class="isImage" src="/bridge.jpg" alt="A bridge" width="8" height="6" loading="lazy" decoding="async"><figcaption>The bridge at dusk<small class="isCredit">Photo: Ana Lima</small><small class="isLicense"><a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a></small></figcaption></figure>',
+            $this->render('<twig:Image src="/bridge.jpg" alt="A bridge" :width="8" :height="6" caption="The bridge at dusk" credit="Photo: Ana Lima" license="CC BY 4.0" licenseHref="https://creativecommons.org/licenses/by/4.0/" />'),
+        );
+    }
+
+    public function testACreditAloneMakesAFigureAndALicenseWithoutLinkIsText(): void
+    {
+        self::assertSame(
+            '<figure><img class="isImage" src="/a.jpg" alt="" width="1" height="1" loading="lazy" decoding="async"><figcaption><small class="isCredit">Ana Lima</small><small class="isLicense">All rights reserved</small></figcaption></figure>',
+            $this->render('<twig:Image src="/a.jpg" alt="" :width="1" :height="1" credit="Ana Lima" license="All rights reserved" licenseHref="javascript:alert(1)" />'),
+        );
+        self::assertSame(
+            '<figure><picture><source type="image/webp" srcset="/a.webp"><img class="isImage" src="/a.jpg" alt="A" width="1" height="1" loading="lazy" decoding="async"></picture><figcaption><small class="isLicense"><a href="/licence" rel="license">&lt;CC0&gt;</a></small></figcaption></figure>',
+            $this->render('<twig:Picture src="/a.jpg" :sources="[{type: \'image/webp\', srcset: \'/a.webp\'}]" alt="A" :width="1" :height="1" license="<CC0>" licenseHref="/licence" />'),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function creations(): iterable
+    {
+        yield 'a photograph' => ['digitalCapture', 'Digital capture sampled from real life'];
+        yield 'edited by people' => ['humanEdits', 'Human-edited media'];
+        yield 'edited with generative AI' => ['compositeWithTrainedAlgorithmicMedia', 'Edited using Generative AI'];
+        yield 'created with generative AI' => ['trainedAlgorithmicMedia', 'Created using Generative AI'];
+        yield 'a retired code' => ['digitalArt', 'Digital art'];
+    }
+
+    #[DataProvider('creations')]
+    public function testTheCreationIsSaidInTheCaptionInTheWordsOfTheVocabulary(string $code, string $label): void
+    {
+        self::assertSame(
+            '<figure><img class="isImage" src="/a.jpg" alt="A" width="1" height="1" loading="lazy" decoding="async"><figcaption><small class="isCreation" data-digital-source-type="'.$code.'">'.$label.'</small></figcaption></figure>',
+            $this->render('<twig:Image src="/a.jpg" alt="A" :width="1" :height="1" :creation="creation" />', ['creation' => $code]),
+        );
+    }
+
+    public function testTheCreationTakesAnEnumAndALabelOfTheSite(): void
+    {
+        self::assertSame(
+            '<figure><img class="isImage" src="/a.jpg" alt="A" width="1" height="1" loading="lazy" decoding="async"><figcaption>Dusk<small class="isCreation" data-digital-source-type="trainedAlgorithmicMedia">Image générée par IA</small></figcaption></figure>',
+            $this->render('<twig:Image src="/a.jpg" alt="A" :width="1" :height="1" caption="Dusk" :creation="creation" creationLabel="Image générée par IA" />', ['creation' => SourceType::Generated]),
+        );
+        self::assertSame(
+            '<img class="isImage" src="/a.jpg" alt="A" width="1" height="1" loading="lazy" decoding="async">',
+            $this->render('<twig:Image src="/a.jpg" alt="A" :width="1" :height="1" creation="madeUp" />'),
+            'a code outside the vocabulary says nothing',
+        );
+    }
+
+    public function testAnImageOfAListedHostKeepsTheReferrerToItself(): void
+    {
+        self::assertSame(
+            '<img class="isImage" src="https://images.example.com/a.jpg" srcset="https://images.example.com/a@2x.jpg 2x" alt="A" width="1" height="1" loading="lazy" decoding="async" referrerpolicy="no-referrer">',
+            $this->render('<twig:Image src="https://images.example.com/a.jpg" srcset="https://images.example.com/a@2x.jpg 2x" alt="A" :width="1" :height="1" />'),
+        );
+        self::assertSame(
+            '<img class="isImage" src="https://eu.images.example.com/a.jpg" alt="A" width="1" height="1" loading="lazy" decoding="async" referrerpolicy="origin">',
+            $this->render('<twig:Image src="https://eu.images.example.com/a.jpg" alt="A" :width="1" :height="1" referrerpolicy="origin" />'),
+            'a policy given wins',
+        );
+    }
+
+    public function testAnImageOfAnotherHostIsRefused(): void
+    {
+        self::assertSame('', $this->render('<twig:Image src="https://tracker.example.com/p.gif" alt="" :width="1" :height="1" />'));
+        self::assertSame('', $this->render('<twig:Image src="//tracker.example.com/p.gif" alt="" :width="1" :height="1" />'));
+        self::assertSame('', $this->render('<twig:Picture src="https://tracker.example.com/p.gif" alt="" :width="1" :height="1" caption="C" />'));
+        self::assertSame(
+            '<img class="isImage" src="/a.jpg" alt="A" width="1" height="1" loading="lazy" decoding="async">',
+            $this->render('<twig:Image src="/a.jpg" srcset="/a.jpg 1x, https://tracker.example.com/a.jpg 2x" alt="A" :width="1" :height="1" />'),
+            'a set holding another host is left out',
+        );
+    }
+
+    public function testTheOwnOriginOfThePageIsLocal(): void
+    {
+        self::assertSame(
+            '<img class="isImage" src="https://www.example.org/a.jpg" alt="A" width="1" height="1" loading="lazy" decoding="async">',
+            $this->renderInRequest('<twig:Image src="https://www.example.org/a.jpg" alt="A" :width="1" :height="1" />')[0],
+        );
+    }
+
+    public function testAPictureLeavesOutTheSourcesOfAnotherHostAndKeepsTheReferrerFromListedOnes(): void
+    {
+        self::assertSame(
+            '<picture><source type="image/webp" srcset="https://images.example.com/a.webp"><img class="isImage" src="/a.jpg" alt="A" width="1" height="1" loading="lazy" decoding="async" referrerpolicy="no-referrer"></picture>',
+            $this->render('<twig:Picture src="/a.jpg" :sources="[{type: \'image/avif\', srcset: \'https://tracker.example.com/a.avif\'}, {type: \'image/webp\', srcset: \'https://images.example.com/a.webp\'}]" alt="A" :width="1" :height="1" />'),
+        );
+    }
+
+    public function testImageSourcesReadsTheAssetsOfAssetMapper(): void
+    {
+        self::assertMatchesRegularExpression(
+            '#^<picture><source type="image/webp" srcset="/assets/images/logo-[\w-]+\.webp 1x, /assets/images/logo@2x-[\w-]+\.webp 2x"><img class="isImage" src="/assets/images/logo-[\w-]+\.png" srcset="/assets/images/logo-[\w-]+\.png 1x, /assets/images/logo@2x-[\w-]+\.png 2x" alt="Studio" width="160" height="40" loading="lazy" decoding="async"></picture>$#',
+            $this->render('<twig:Picture {{ ...image_sources(\'images/logo\') }} alt="Studio" />'),
         );
     }
 }
