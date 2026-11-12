@@ -38,6 +38,7 @@
         "ergebnis/phpunit-slow-test-detector": "^2.27",
         "league/flysystem": "^3.30",
         "league/flysystem-memory": "^3.29",
+        "liip/imagine-bundle": "^2.18",
         "monolog/monolog": "^3.0",
         "nelmio/api-doc-bundle": "^5.13",
         "phil/dev-tools": "^0.1@dev",

@@ -14,4 +14,6 @@
 | The texts of a recipe | Its props and blocks: `closeLabel`, `label`, `text`, `pauseLabel`, `placeholder`… |
 | A recipe of the Common kit | Installed from the Common kit, with `--kit=common` |
 | What the browser does natively | `dialog` and `sheet` carry `closedby="any"`, `AlertDialog` `closedby="closerequest"`, all three `command` and `commandfor`; the controller `dialog` runs only what the browser does not, as `hasInvokers()` and `hasLightDismiss()` detect |
+| The props of a picture for an object of the application | A service implementing `Phil\UxKit\Application\Contract\PicturePropsProvider`, tagged `phil_ux_kit.picture_props` by autoconfiguration, which `picture_props()` asks |
+| The graph of the page | A `NodeCollector` of `phil/structured-data`, which the `ImageObject` of a structured image joins instead of a script of its own |
 | The browser suite of another kit | Extend `Phil\UxKit\Test\BrowserTestCase` and give it a `RecipesPage`: see [Testing](testing.md#for-another-kit) |

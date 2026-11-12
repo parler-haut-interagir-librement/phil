@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3dd8436c4271a960b429d8ab3422e07a9456cbd4f08b7d43c3796ef79822f814 -->
+<!-- phil-dev source-sha256=6a52c0c7a6d56521409aa90991d28d10bc00d41bddbc84b09e73f572c04e768e -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -6,11 +6,16 @@
 | `manifest.json` | Le kit : nom, description, licence, page d'accueil, couleur, icône, dépendances |
 | `icon.svg` | L'icône du kit |
 | `.gitattributes` | Laisse les fichiers propres au paquet hors de l'archive que télécharge `ux:install`, sauf `src/` |
-| `src/PhilUxKitBundle.php` | `Phil\UxKit\PhilUxKitBundle` : le bundle, `phil_ux_kit.image.hosts`, `allow_localhost` et `check`, et les fonctions Twig des recettes d'images |
+| `src/PhilUxKitBundle.php` | `Phil\UxKit\PhilUxKitBundle` : le bundle, `phil_ux_kit.image.hosts`, `allow_localhost` et `check`, la balise `phil_ux_kit.picture_props`, et les fonctions Twig des recettes d'images |
 | `src/Application/ImageOrigin.php` | `Phil\UxKit\Application\ImageOrigin` : d'où vient l'image d'une adresse, ou chaque candidate d'un `srcset`, lue par `phil/url` : `local`, `external` ou `refused` |
 | `src/Application/ImageSources.php` | `Phil\UxKit\Application\ImageSources` : les props d'une `Picture` d'après les fichiers d'une image parmi les ressources d'AssetMapper |
 | `src/Application/ImageTextCheck.php` | `Phil\UxKit\Application\ImageTextCheck` : ce qu'un développeur a pu laisser de travers dans une image, un texte de remplacement qui est le nom de son fichier, un mot générique ou qui commence par dire que c'est une image, une largeur ou une hauteur absente |
-| `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()`, `image_sources()` et `image_check()`, qui journalise les problèmes d'`ImageTextCheck` en avertissements quand `phil_ux_kit.image.check` est actif |
+| `src/Application/PictureProps.php` | `Phil\UxKit\Application\PictureProps` : les props d'une `Picture` pour un objet, du premier fournisseur qui le prend en charge, réduites à celles qui décrivent l'image |
+| `src/Application/Contract/PicturePropsProvider.php` | `Phil\UxKit\Application\Contract\PicturePropsProvider` : ce qu'implémente un service, balisé `phil_ux_kit.picture_props` par l'autoconfiguration, pour donner les props d'une image pour les objets qu'il prend en charge |
+| `src/Infrastructure/LiipImagine/ImageFilters.php` | `Phil\UxKit\Infrastructure\LiipImagine\ImageFilters` : les props d'une `Picture` à partir des jeux de filtres de LiipImagine appliqués à une image |
+| `src/Infrastructure/DependencyInjection/ImageFiltersPass.php` | Écarte `ImageFilters` quand les services de LiipImagine ne sont pas enregistrés |
+| `src/Infrastructure/StructuredData/ImageJsonLd.php` | `Phil\UxKit\Infrastructure\StructuredData\ImageJsonLd` : l'`ImageObject` d'une image, ajouté au graphe de la page ou écrit dans son propre script JSON-LD |
+| `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()`, `image_sources()`, `image_filters()`, `picture_props()`, `image_json_ld()` et `image_check()`, qui journalise les problèmes d'`ImageTextCheck` en avertissements quand `phil_ux_kit.image.check` est actif |
 | `src/Test/BrowserTestCase.php` | `Phil\UxKit\Test\BrowserTestCase` : un Chrome sans interface sur la page des recettes d'un kit, et les aides d'un test en navigateur |
 | `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage` : la racine web de chaque recette d'un kit, avec sa feuille de style, ses contrôleurs, Stimulus et les fichiers de son dossier `media` |
 | `logo/manifest.json`, `logo/README.md` | La recette `Logo` |

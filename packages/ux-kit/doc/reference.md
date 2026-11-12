@@ -5,11 +5,16 @@
 | `manifest.json` | The kit: name, description, licence, homepage, colour, icon, dependencies |
 | `icon.svg` | The kit's icon |
 | `.gitattributes` | Leaves the package's own files out of the archive `ux:install` downloads, but `src/` |
-| `src/PhilUxKitBundle.php` | `Phil\UxKit\PhilUxKitBundle`: the bundle, `phil_ux_kit.image.hosts`, `allow_localhost` and `check`, and the Twig functions of the image recipes |
+| `src/PhilUxKitBundle.php` | `Phil\UxKit\PhilUxKitBundle`: the bundle, `phil_ux_kit.image.hosts`, `allow_localhost` and `check`, the tag `phil_ux_kit.picture_props`, and the Twig functions of the image recipes |
 | `src/Application/ImageOrigin.php` | `Phil\UxKit\Application\ImageOrigin`: where the image at an address, or every candidate of a `srcset`, comes from, read by `phil/url`: `local`, `external` or `refused` |
 | `src/Application/ImageSources.php` | `Phil\UxKit\Application\ImageSources`: the props of a `Picture` from the files of one image among the assets of AssetMapper |
 | `src/Application/ImageTextCheck.php` | `Phil\UxKit\Application\ImageTextCheck`: what a developer may have left wrong in an image, a text alternative that is the name of its file, a generic word or one that starts by saying it is an image, a missing width or height |
-| `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()`, `image_sources()` and `image_check()`, which logs the problems of `ImageTextCheck` as warnings when `phil_ux_kit.image.check` is on |
+| `src/Application/PictureProps.php` | `Phil\UxKit\Application\PictureProps`: the props of a `Picture` for an object, from the first provider that supports it, kept to those that describe the image |
+| `src/Application/Contract/PicturePropsProvider.php` | `Phil\UxKit\Application\Contract\PicturePropsProvider`: what a service implements, tagged `phil_ux_kit.picture_props` by autoconfiguration, to give the props of a picture for the objects it supports |
+| `src/Infrastructure/LiipImagine/ImageFilters.php` | `Phil\UxKit\Infrastructure\LiipImagine\ImageFilters`: the props of a `Picture` from the filter sets of LiipImagine applied to one image |
+| `src/Infrastructure/DependencyInjection/ImageFiltersPass.php` | Leaves `ImageFilters` out when the services of LiipImagine are not registered |
+| `src/Infrastructure/StructuredData/ImageJsonLd.php` | `Phil\UxKit\Infrastructure\StructuredData\ImageJsonLd`: the `ImageObject` of an image, added to the graph of the page or written in its own JSON-LD script |
+| `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()`, `image_sources()`, `image_filters()`, `picture_props()`, `image_json_ld()` and `image_check()`, which logs the problems of `ImageTextCheck` as warnings when `phil_ux_kit.image.check` is on |
 | `src/Test/BrowserTestCase.php` | `Phil\UxKit\Test\BrowserTestCase`: one headless Chrome on the page of the recipes of a kit, and the helpers of a browser test |
 | `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage`: the web root of every recipe of a kit, with its stylesheet, its controllers, Stimulus and the files of its `media` directory |
 | `logo/manifest.json`, `logo/README.md` | The `Logo` recipe |

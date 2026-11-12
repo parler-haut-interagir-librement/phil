@@ -2,10 +2,12 @@
 
 An image of the content, in two components under the prop names of Symfony UX Image: `Image`, one `img`, and
 `Picture`, its sources in the order given, AVIF first, before that `img`. No inline style, and no JavaScript but the
-small `image-preview` controller of an optional blurred preview: the sources are given whole, already produced. Three
+small `image-preview` controller of an optional blurred preview: the sources are given whole, already produced. The
 Twig functions of the bundle of `phil/ux-kit` serve them: `image_origin()`, which keeps the images of other hosts off
 the page unless their host is listed, `image_sources()`, which reads the files of an image among the assets of
-AssetMapper, and `image_check()`, which warns in development of a text alternative or a size left wrong.
+AssetMapper, `image_filters()`, which reads the filter sets of LiipImagine, `picture_props()`, which asks a provider of
+the application, `image_json_ld()`, which describes an image to search engines, and `image_check()`, which warns in
+development of a text alternative or a size left wrong.
 
 ```twig {"preview":true}
 <twig:Picture
@@ -296,6 +298,101 @@ The options are `densities`, beyond `1x`, `[2, 3]` by default; `widths`, which r
 instead; `formats`, the types of the sources in order, `['avif', 'webp']`; and `fallbacks`, the formats of the `img`
 tried in order, `['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp']`. The width and height are those of the fallback's file
 without suffix, read by PHP, never for SVG. An image without fallback is an error.
+
+### The filter sets of LiipImagine
+
+`image_filters()` gives the `src`, `srcset`, `sources`, `width` and `height` of a `Picture` from the filter sets of
+LiipImagine applied to one image: each set is a candidate of its width, at the address LiipImagine gives it, resized
+the first time it is asked for. The sets whose `format` is `avif` or `webp` make the sources, AVIF first; the others,
+or WebP when every set writes a modern format, the fallback, whose widest set gives `src`.
+
+```yaml
+# config/packages/liip_imagine.yaml
+liip_imagine:
+    filter_sets:
+        hall_480: { filters: { thumbnail: { size: [480, 320], mode: outbound } } }
+        hall_960: { filters: { thumbnail: { size: [960, 640], mode: outbound } } }
+        hall_960_avif: { format: avif, filters: { thumbnail: { size: [960, 640], mode: outbound } } }
+```
+
+```twig
+<twig:Picture {{ ...image_filters('uploads/hall.jpg', ['hall_480', 'hall_960', 'hall_960_avif']) }} sizes="100vw" alt="The main hall" />
+```
+
+The width of a set is the one its last resizing filter gives, `thumbnail`, `fixed`, `resize`, `scale`, `downscale` or
+`relative_resize` with `widen`; a set whose width none of its filters says takes it from the template,
+`{hall_wide: 1600}`. The `width` and `height` of the image are given only when the widest set of the fallback crops to
+an exact size, a `thumbnail` in `outbound` mode or `fixed`: give them otherwise. An unknown set, or one whose width is
+read nowhere, is an error, and so is the function without LiipImagine, which stays optional:
+
+```sh
+composer require liip/imagine-bundle
+```
+
+The addresses are those of LiipImagine's resolver: those of another host than the page's, a bucket or a CDN, are
+refused unless `phil_ux_kit.image.hosts` lists it.
+
+### From an object of the application
+
+`picture_props()` gives the props of a `Picture` for an object the application knows the image of, a medium of a
+library or an image of a catalogue, from the first service implementing `Phil\UxKit\Application\Contract\PicturePropsProvider`
+that supports it. Autoconfiguration tags such a service `phil_ux_kit.picture_props`.
+
+```php
+final readonly class PosterPictures implements PicturePropsProvider
+{
+    public function supports(object $subject): bool
+    {
+        return $subject instanceof Poster;
+    }
+
+    public function props(object $subject, array $options = []): array
+    {
+        return ['src' => $subject->url, 'alt' => $subject->title, 'width' => 600, 'height' => 900];
+    }
+}
+```
+
+```twig
+<twig:Picture {{ ...picture_props(event.poster) }} :priority="true" />
+```
+
+Only the props that describe the image are kept: its files, `src`, `srcset`, `sizes`, `sources`, `dark`, `still` and
+`forced`; its size; its text, `alt`, `caption`, `description`, `credit`, `license`, `licenseHref`, `creation` and
+`creationLabel`; its box, `aspect`, `fit` and `position`; `placeholder` and `preview`. How it loads and where it stands,
+`priority`, `loading`, `layout` and the others, stay the page's choice. The second argument, a map, is handed to the
+provider. An object no provider supports is an error.
+
+### Described to search engines
+
+`structured` describes the image as a schema.org `ImageObject`, through `phil/structured-data`: the absolute address of
+its file, its `width` and `height`, its `caption`, its `credit` as `creditText`, the address of its license, and its
+`creation` as `digitalSourceType`, a member of the schema.org enumeration of the IPTC codes.
+
+```twig
+<twig:Image
+    src="/images/bridge.jpg"
+    alt="A bridge at dusk"
+    :width="800"
+    :height="600"
+    caption="The bridge at dusk"
+    credit="Photo: Ana Lima"
+    licenseHref="https://creativecommons.org/licenses/by/4.0/"
+    creation="digitalCapture"
+    :structured="true"
+/>
+```
+
+When the application gathers the graph of its page through the `NodeCollector` of `phil/structured-data`, the image
+joins it and nothing is written here; otherwise a `<script type="application/ld+json">` of its own comes before the
+image, a data block that a Content Security Policy does not govern, so it carries no nonce, and whose text cannot close
+it. An address is made absolute against the request by Symfony's `UrlHelper`, then read by `phil/url`: an inline
+image, or an address it refuses, is described by nothing. A license is described by its address alone; `humanEdits` and
+the retired codes, which the enumeration has no member for, say nothing. A `Picture` describes its fallback once.
+
+```sh
+composer require phil/structured-data
+```
 
 ### A caption
 

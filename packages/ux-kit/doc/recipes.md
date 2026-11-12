@@ -162,7 +162,14 @@ so, and for a missing width or height.
 
 `image_sources('images/logo')` reads the files of an image among the assets of AssetMapper, `logo.avif`,
 `logo@2x.avif`, `logo.webp`, `logo.png`…, and gives the `src`, `srcset`, `sources`, `width` and `height` of a
-`Picture`; its options are `densities`, `widths`, `formats` and `fallbacks`.
+`Picture`; its options are `densities`, `widths`, `formats` and `fallbacks`. `image_filters('uploads/hall.jpg',
+['hall_480', 'hall_960'])` gives the same props from the filter sets of LiipImagine, when it is installed, each set a
+candidate of its width, those of AVIF and WebP the sources. `picture_props(object)` asks them of the first service
+implementing `PicturePropsProvider` that supports the object, keeping only those that describe the image.
+
+`structured` describes the image as a schema.org `ImageObject` through `phil/structured-data`, when it is installed:
+its absolute address, size, caption, credit, license address and creation, in the graph of the page that a
+`NodeCollector` gathers, or in a JSON-LD script of its own before it, without a nonce.
 
 The props keep the names and the meaning of Symfony UX Image, lazy loading by default included, so that a page can
 move from one to the other by changing the tag; the recipe transforms no image.

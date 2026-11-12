@@ -101,5 +101,7 @@ final class TestKernel extends Kernel
         $container->extension('twig_component', ['anonymous_template_directory' => 'components/', 'defaults' => []]);
         $container->services()->set('logger', RecordingLogger::class)->public();
         $container->services()->set(ChartjsStubExtension::class)->tag('twig.extension');
+        // The provider picture_props() asks for the picture of a poster, tagged by autoconfiguration.
+        $container->services()->set(PosterPictures::class)->autoconfigure();
     }
 }

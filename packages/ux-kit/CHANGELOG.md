@@ -21,6 +21,19 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - The browser suite checks the message said, the canvas shown then removed, nothing drawn under reduced motion, the event
   `celebrate` and the button of the demonstration, and audits the celebration with axe-core in clear, in dark and right
   to left.
+- `image_filters()`, when LiipImagine is installed: the `src`, `srcset`, `sources`, `width` and `height` of a `Picture`
+  from the filter sets applied to one image, each set a candidate of the width its last resizing filter gives, or of
+  the one the template gives; the sets of AVIF and WebP make the sources, the others the fallback, whose widest set
+  gives `src`, and the size of the image when it crops exactly. `liip/imagine-bundle` is suggested; `ImageFiltersPass`
+  leaves the bridge out when the bundle is not registered.
+- `picture_props()` and the interface `Phil\UxKit\Application\Contract\PicturePropsProvider`, which autoconfiguration
+  tags `phil_ux_kit.picture_props`: the props of a `Picture` for an object of the application, from the first provider
+  that supports it, kept to those that describe the image, a map of options handed to it.
+- On `Image` and `Picture`: `structured`, which describes the image as a schema.org `ImageObject` through
+  `image_json_ld()` and `phil/structured-data`, suggested: its absolute address, made by Symfony's `UrlHelper` and read
+  by `phil/url`, its width and height, caption, credit as `creditText`, license address and creation as
+  `digitalSourceType`; added to the graph of the page when a `NodeCollector` gathers one, written otherwise in a JSON-LD
+  script of its own before the image, without a nonce.
 
 ### Changed
 

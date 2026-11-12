@@ -9,6 +9,9 @@ use LogicException;
 use Phil\UxKit\Application\ImageOrigin;
 use Phil\UxKit\Application\ImageSources;
 use Phil\UxKit\Application\ImageTextCheck;
+use Phil\UxKit\Application\PictureProps;
+use Phil\UxKit\Infrastructure\LiipImagine\ImageFilters;
+use Phil\UxKit\Infrastructure\StructuredData\ImageJsonLd;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\AssetMapper\AssetMapperInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -16,7 +19,8 @@ use Twig\Attribute\AsTwigFunction;
 
 /**
  * What the `image` recipe asks of PHP: where an image comes from, read by `phil/url`, the props of a picture from the
- * assets of AssetMapper, and, while the site is developed, a warning for a text alternative or a size left wrong.
+ * assets of AssetMapper, from the filter sets of LiipImagine or from an object a provider knows, the `ImageObject` of an
+ * image in JSON-LD, and, while the site is developed, a warning for a text alternative or a size left wrong.
  */
 final readonly class ImageExtension
 {
@@ -26,6 +30,9 @@ final readonly class ImageExtension
         private ?AssetMapperInterface $assets = null,
         private ?ImageTextCheck $check = null,
         private ?LoggerInterface $logger = null,
+        private ?ImageFilters $filters = null,
+        private PictureProps $pictures = new PictureProps(),
+        private ?ImageJsonLd $jsonLd = null,
     ) {
     }
 
@@ -80,5 +87,61 @@ final readonly class ImageExtension
         foreach ($this->check->problems($src ?? '', $alt ?? '', $width, $height) as $problem => $message) {
             $this->logger->warning($message, ['src' => $src, 'alt' => $alt, 'problem' => $problem]);
         }
+    }
+
+    /**
+     * The `src`, `srcset`, `sources`, `width` and `height` of a `Picture` from the filter sets of LiipImagine applied to
+     * one image, each set a candidate of its width: `<twig:Picture {{ ...image_filters('uploads/hall.jpg', ['hall_480', 'hall_960']) }} sizes="100vw" alt="…" />`.
+     *
+     * @param list<string>|array<string, int> $filters the names of the filter sets, or each name with its width
+     *
+     * @return array{src: string, srcset?: string, sources: list<array{type: string, srcset: string}>, width?: int, height?: int}
+     *
+     * @throws LogicException           when LiipImagine is not installed
+     * @throws InvalidArgumentException when a filter set is unknown or its width can be read nowhere
+     */
+    #[AsTwigFunction(name: 'image_filters')]
+    public function filters(string $path, array $filters): array
+    {
+        if (!$this->filters instanceof ImageFilters) {
+            throw new LogicException('image_filters() reads the filter sets of LiipImagine: run "composer require liip/imagine-bundle".');
+        }
+
+        return $this->filters->of($path, $filters);
+    }
+
+    /**
+     * The props of a `Picture` for an object of the application, a medium of a library or an image of a catalogue, from
+     * the first `PicturePropsProvider` that supports it: `<twig:Picture {{ ...picture_props(medium) }} />`.
+     *
+     * @param array<string, mixed> $options what the template asks of the provider
+     *
+     * @return array<string, mixed>
+     *
+     * @throws InvalidArgumentException when no provider supports the object
+     */
+    #[AsTwigFunction(name: 'picture_props')]
+    public function pictureProps(object $subject, array $options = []): array
+    {
+        return $this->pictures->of($subject, $options);
+    }
+
+    /**
+     * The `ImageObject` of an image, from the props `src`, `width`, `height`, `caption`, `credit`, `licenseHref` and
+     * `creation`: added to the graph of the page when an application gathers one, and nothing written; its own
+     * `<script type="application/ld+json">` otherwise. Nothing for an inline image or an address `phil/url` refuses.
+     *
+     * @param array<array-key, mixed> $image
+     *
+     * @throws LogicException when phil/structured-data is not installed
+     */
+    #[AsTwigFunction(name: 'image_json_ld', isSafe: ['html'])]
+    public function jsonLd(array $image): string
+    {
+        if (!$this->jsonLd instanceof ImageJsonLd) {
+            throw new LogicException('image_json_ld() writes through phil/structured-data: run "composer require phil/structured-data".');
+        }
+
+        return $this->jsonLd->script($image);
     }
 }

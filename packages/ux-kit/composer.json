@@ -1,6 +1,6 @@
 {
     "name": "phil/ux-kit",
-    "description": "PHIL UX kit for the Symfony UX Toolkit: the same recipes as the Shadcn kit, styled with phil-ux, installed with ux:install --kit; with the Twig functions its image recipes call, image_origin() and image_sources()",
+    "description": "PHIL UX kit for the Symfony UX Toolkit: the same recipes as the Shadcn kit, styled with phil-ux, installed with ux:install --kit; with the Twig functions its image recipes call, image_origin(), image_sources(), image_filters(), picture_props() and image_json_ld()",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [
@@ -32,7 +32,9 @@
         "twig/twig": "^3.21"
     },
     "require-dev": {
+        "liip/imagine-bundle": "^2.18",
         "phil/qr-code-bundle": "^0.1@dev",
+        "phil/structured-data": "^0.1@dev",
         "php-webdriver/webdriver": "^1.16",
         "phpunit/phpunit": "^13.4",
         "psr/container": "^2.0",
@@ -41,6 +43,7 @@
         "symfony/asset-mapper": "^8.2",
         "symfony/framework-bundle": "^8.2",
         "symfony/panther": "^2.4",
+        "symfony/routing": "^8.2",
         "symfony/twig-bundle": "^8.2",
         "symfony/ux-twig-component": "^3.7",
         "symfony/web-link": "^8.2",
@@ -48,6 +51,8 @@
         "twig/html-extra": "^3.24"
     },
     "suggest": {
+        "liip/imagine-bundle": "For image_filters(), the props of a picture from the filter sets of LiipImagine",
+        "phil/structured-data": "For image_json_ld(), the ImageObject of an image in JSON-LD, which the structured prop of the image recipes writes",
         "php-webdriver/webdriver": "To extend the browser test case of src/Test/",
         "phpunit/phpunit": "To extend the browser test case of src/Test/",
         "symfony/asset-mapper": "For image_sources(), the props of a picture from the files of an image among the assets",

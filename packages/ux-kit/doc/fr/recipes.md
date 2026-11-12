@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=84e0baf20327e6cea1718a9a4a9c481301cbebdab945db579badffab2f770751 -->
+<!-- phil-dev source-sha256=8f138dd90b79a6f8a8b810085d2b611145740d037cebeff74653e4441319b312 -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -168,7 +168,14 @@ absente.
 
 `image_sources('images/logo')` lit les fichiers d'une image parmi les ressources d'AssetMapper, `logo.avif`,
 `logo@2x.avif`, `logo.webp`, `logo.png`…, et donne le `src`, le `srcset`, les `sources`, le `width` et le `height`
-d'une `Picture` ; ses options sont `densities`, `widths`, `formats` et `fallbacks`.
+d'une `Picture` ; ses options sont `densities`, `widths`, `formats` et `fallbacks`. `image_filters('uploads/hall.jpg',
+['hall_480', 'hall_960'])` donne les mêmes props à partir des jeux de filtres de LiipImagine, quand il est installé,
+chaque jeu un candidat de sa largeur, ceux d'AVIF et de WebP les sources. `picture_props(objet)` les demande au premier
+service qui implémente `PicturePropsProvider` et prend l'objet en charge, et ne garde que celles qui décrivent l'image.
+
+`structured` décrit l'image comme un `ImageObject` de schema.org par `phil/structured-data`, quand il est installé :
+son adresse absolue, sa taille, sa légende, son crédit, l'adresse de sa licence et sa création, dans le graphe de la
+page que rassemble un `NodeCollector`, ou dans un script JSON-LD à elle avant elle, sans nonce.
 
 Les props gardent les noms et le sens de celles de Symfony UX Image, le chargement différé par défaut compris, pour
 qu'une page passe de l'un à l'autre en changeant la balise ; la recette ne transforme aucune image.

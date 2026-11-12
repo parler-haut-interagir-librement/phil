@@ -48,7 +48,10 @@ phil_ux_kit:
 
 `check` logs a warning, on the `phil_ux_kit` channel, for an image whose text alternative is the name of its file or
 only says it is an image, and for one without a width or a height; it follows the debug of the kernel unless set.
-`image_sources()` reads the assets of AssetMapper, `symfony/asset-mapper`, when it is installed.
+`image_sources()` reads the assets of AssetMapper, `symfony/asset-mapper`, when it is installed;
+`image_filters()` the filter sets of LiipImagine, `liip/imagine-bundle`; `image_json_ld()`, which the `structured` prop
+of the image recipes calls, writes through `phil/structured-data`. Each stays optional, and the function says so when
+its package is missing.
 
 ## Until the repository is published
 

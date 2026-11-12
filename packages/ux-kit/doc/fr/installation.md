@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=20d3e01c9ccfe9e002c551d8921114677439e7e26bf4ed0b1b55f549d6359236 -->
+<!-- phil-dev source-sha256=46059d696f126ffa672dd4a184ba4eb48dce412a778740e3773c6276f3795a2c -->
 # Installation
 
 ## La feuille de style
@@ -50,7 +50,10 @@ phil_ux_kit:
 `check` journalise un avertissement, sur le canal `phil_ux_kit`, pour une image dont le texte de remplacement est le nom
 de son fichier ou dit seulement que c'est une image, et pour une image sans largeur ou sans hauteur ; il suit le
 débogage du noyau à moins d'être posé.
-`image_sources()` lit les ressources d'AssetMapper, `symfony/asset-mapper`, quand il est installé.
+`image_sources()` lit les ressources d'AssetMapper, `symfony/asset-mapper`, quand il est installé ;
+`image_filters()` les jeux de filtres de LiipImagine, `liip/imagine-bundle` ; `image_json_ld()`, qu'appelle la prop
+`structured` des recettes d'images, écrit par `phil/structured-data`. Chacun reste facultatif, et la fonction le dit
+quand son paquet manque.
 
 ## Tant que le dépôt n'est pas publié
 

@@ -5,7 +5,8 @@
  # A javascript:, vbscript: or data: URL other than data:image/ is refused, and so is an address of another host than
  # those image_origin() allows; a refused src renders nothing, a refused srcset is left out whole. The image of a listed
  # host is fetched without a referrer; the main image is preloaded through Symfony WebLink. In development,
- # image_check() logs a text alternative or a size left wrong.
+ # image_check() logs a text alternative or a size left wrong. With structured, image_json_ld() describes the image as a
+ # schema.org ImageObject, in the graph of the page or in a JSON-LD script of its own before it.
  #}
 {%- props
     ## string The URL of the image.
@@ -59,7 +60,9 @@
     ## string|null A long description, for a chart or a diagram, in a disclosure after the image, which it is described by.
     description = null,
     ## string The words of the summary of the description's disclosure.
-    descriptionLabel = 'Description'
+    descriptionLabel = 'Description',
+    ## bool Whether the image is described to search engines as a schema.org ImageObject in JSON-LD, from its address, size, caption, credit, license address and creation, through phil/structured-data.
+    structured = false
 -%}
 {%- set _refused = '#(^|,)[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i' -%}
 {%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
@@ -110,6 +113,9 @@
         |merge(_preview_attributes)
         |merge(_controllers is empty ? {} : {'data-controller': _controllers})
         |merge(_described is null or alt is same as('') ? {} : {'aria-describedby': [attributes.all['aria-describedby'] ?? null, _described]|filter(name => name is not empty)|join(' ')}) -%}
+    {%- if structured -%}
+        {{- image_json_ld({src: src, width: width, height: height, caption: caption, credit: credit, licenseHref: licenseHref, creation: creation}) -}}
+    {%- endif -%}
     <twig:Image:Figure :caption="caption" :captionPosition="captionPosition" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel" :description="description" :descriptionId="_described" :descriptionLabel="descriptionLabel">
         <img {{ html_attr({
             class: _class,
