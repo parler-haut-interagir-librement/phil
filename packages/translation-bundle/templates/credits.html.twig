@@ -1,0 +1,8 @@
+{#
+ # The public credit of the translators of a document: include it where the translated document is published,
+ #     {{ include('@PhilTranslation/credits.html.twig', {document: 'article:42', language: 'fr-CA'}) }}
+ #}
+{% set credits = phil_translation_credits(document, language) %}
+{% if credits is not empty %}
+    <p class="phil-translation-credits">Translated by {% for credit in credits %}{{ credit.name }}{% if not loop.last %}{{ loop.revindex0 == 1 ? ' and ' : ', ' }}{% endif %}{% endfor %}. Thank you!</p>
+{% endif %}

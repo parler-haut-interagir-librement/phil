@@ -1,0 +1,7 @@
+{# A medium on EasyAdmin's index and detail pages: its thumbnail, or its extension, and its name. #}
+{%- set medium = field.formattedValue -%}
+{%- if medium is null -%}
+    <span class="badge badge-secondary">None</span>
+{%- else -%}
+    <span class="phil-media-field">{{ include('@PhilMedia/admin/_item.html.twig', {medium: medium}) }}</span>
+{%- endif -%}

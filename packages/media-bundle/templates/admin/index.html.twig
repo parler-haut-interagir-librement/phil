@@ -1,0 +1,82 @@
+{% extends layout %}
+
+{% block title %}Media{% if collection is not null %} · {{ collection.name }}{% endif %}{% endblock %}
+
+{% block content %}
+<main class="phil-media-explorer" data-controller="phil--media-bundle--explorer" data-phil--media-bundle--explorer-view-value="{{ view }}">
+    <h1>Media{% if collection is not null %} · {{ collection.name }}{% endif %}</h1>
+
+    {%- if done is not null %}
+    <p class="phil-media-done" role="status">{{ {uploaded: 'The files were uploaded.', renamed: 'The file was renamed.', moved: 'The file was moved.', deleted: 'The file was deleted.', created: 'The collection was created.'}[done] }}</p>
+    {%- endif %}
+    {%- if error != '' %}
+    <p class="phil-media-error" role="alert">{{ error }}</p>
+    {%- endif %}
+
+    {{ include('@PhilMedia/admin/_collections.html.twig') }}
+
+    <form class="phil-media-collection-form" method="post" action="{{ path('phil_media_admin_collection') }}">
+        <label>Key <input name="key" required pattern="[a-z][a-z0-9_\-]{0,63}" maxlength="64"></label>
+        <label>Name <input name="name" required maxlength="150"></label>
+        <input type="hidden" name="view" value="{{ view }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_cookie }}">
+        <button type="submit">Create the collection</button>
+    </form>
+
+    <form class="phil-media-upload" method="post" action="{{ path('phil_media_admin_upload') }}" enctype="multipart/form-data"
+          data-controller="phil--media-bundle--upload"
+          data-phil--media-bundle--upload-max-bytes-value="{{ max_upload_bytes }}"
+          data-action="submit->phil--media-bundle--upload#send dragover->phil--media-bundle--upload#over drop->phil--media-bundle--upload#drop">
+        <label>Files <input type="file" name="files[]" multiple required data-phil--media-bundle--upload-target="input"></label>
+        <input type="hidden" name="collection" value="{{ collection.key ?? '' }}">
+        <input type="hidden" name="view" value="{{ view }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_cookie }}">
+        <button type="submit">Upload</button>
+        <ul class="phil-media-progress" data-phil--media-bundle--upload-target="list" aria-live="polite"></ul>
+    </form>
+
+    <p class="phil-media-views">
+        View:
+        <a href="{{ path('phil_media_admin', {collection: collection.key ?? null, view: 'grid'}) }}"{% if view == 'grid' %} aria-current="true"{% endif %} data-action="phil--media-bundle--explorer#show" data-view="grid">Grid</a>
+        <a href="{{ path('phil_media_admin', {collection: collection.key ?? null, view: 'list'}) }}"{% if view == 'list' %} aria-current="true"{% endif %} data-action="phil--media-bundle--explorer#show" data-view="list">List</a>
+    </p>
+
+    {%- if media is empty %}
+    <p>This collection holds no file.</p>
+    {%- else %}
+    <ul class="phil-media-items phil-media-{{ view }}" data-phil--media-bundle--explorer-target="items">
+        {%- for medium in media %}
+        <li class="phil-media-item" id="media-{{ medium.id }}">
+            {{ include('@PhilMedia/admin/_item.html.twig') }}
+            <form method="post" action="{{ path('phil_media_admin_rename', {id: medium.id}) }}">
+                <label>Name <input name="filename" value="{{ medium.file.filename }}" required maxlength="255"></label>
+                <input type="hidden" name="view" value="{{ view }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_cookie }}">
+                <button type="submit">Rename</button>
+            </form>
+            <form method="post" action="{{ path('phil_media_admin_move', {id: medium.id}) }}">
+                <label>Collection
+                    <select name="collection">
+                        <option value=""{% if medium.collection is null %} selected{% endif %}>None</option>
+                        {%- for item in collections %}
+                        <option value="{{ item.key }}"{% if medium.collection is not null and medium.collection.key == item.key %} selected{% endif %}>{{ item.name }}</option>
+                        {%- endfor %}
+                    </select>
+                </label>
+                <input type="hidden" name="view" value="{{ view }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_cookie }}">
+                <button type="submit">Move</button>
+            </form>
+            <form method="post" action="{{ path('phil_media_admin_delete', {id: medium.id}) }}" data-action="submit->phil--media-bundle--explorer#confirm" data-confirm="Delete {{ medium.file.filename }}? This cannot be undone.">
+                <input type="hidden" name="view" value="{{ view }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_cookie }}">
+                <button type="submit">Delete</button>
+            </form>
+        </li>
+        {%- endfor %}
+    </ul>
+    {%- endif %}
+
+    {{ include('@PhilMedia/admin/_pages.html.twig') }}
+</main>
+{% endblock %}

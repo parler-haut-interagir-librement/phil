@@ -1,0 +1,7 @@
+{%- if page > 1 or more -%}
+<nav class="phil-media-pages" aria-label="Pages">
+    {%- if page > 1 %}<a href="{{ path('phil_media_admin', {collection: collection.key ?? null, view: view, page: page - 1, picker: picker ?? null}) }}" rel="prev">Previous</a>{% endif -%}
+    <span>Page {{ page }}</span>
+    {%- if more %}<a href="{{ path('phil_media_admin', {collection: collection.key ?? null, view: view, page: page + 1, picker: picker ?? null}) }}" rel="next">Next</a>{% endif -%}
+</nav>
+{%- endif -%}

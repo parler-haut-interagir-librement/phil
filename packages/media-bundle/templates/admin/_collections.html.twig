@@ -1,0 +1,8 @@
+<nav class="phil-media-collections" aria-label="Collections">
+    <ul>
+        <li><a href="{{ path('phil_media_admin', {view: view, picker: picker ?? null}) }}"{% if collection is null %} aria-current="page"{% endif %}>Outside every collection</a></li>
+        {%- for item in collections %}
+        <li><a href="{{ path('phil_media_admin', {collection: item.key, view: view, picker: picker ?? null}) }}"{% if collection is not null and collection.key == item.key %} aria-current="page"{% endif %}>{{ item.name }}</a></li>
+        {%- endfor %}
+    </ul>
+</nav>

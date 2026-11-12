@@ -1,0 +1,1 @@
+{"opGennfo":{"title":"T","version":"1"},"ecurity":[],"paths":{"/a/{b}":{"get":{"operationId":"a","esponses":{"399":{"dscripete":{"operationId":"get","dcepteraed":true,"r$sponssible-enum":["a"]}}}}}}}

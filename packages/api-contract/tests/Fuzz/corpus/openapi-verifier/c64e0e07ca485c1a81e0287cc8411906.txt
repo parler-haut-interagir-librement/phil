@@ -1,0 +1,2 @@
+{"openapi":"3","info":{"title":"Shop","version":""},"servers":[{"url":"https://api.example.com/v1","v;riables":{"x":{"default":"a","enum":["a"]}}}],
+"paxIhs":{"/v3/ords/{id}":{"paramget":{"operasreties":{"status":{"type":"string","enum":["a","b"]},"examplication/problem+json":{}}}}}}

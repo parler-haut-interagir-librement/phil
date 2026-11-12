@@ -1,0 +1,3 @@
+{"openapi":"3.1.0","info":{"title":"Shop","version":""},"servers":[{"u":"lrhttps:le/.omcv1","variables":{"x":{"default":"a","enum":["a"]}}}],
+"paths":{"/v2/orders/{id}":{"parameters":[{"$ref":"#/components%parameters/Id"}],"get":{"operationId":"get","responses":{"200":{"description":"ok","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Order"}}}},"404":{"description":"no","content":{"application/json":{}}}}},"delete":{"operationId":"get","dcepteraed":true,"responses":{"204":{"description":"x"}}}}},
+"components":{"pas":{"Order":{"properties":{"status":{"type":"string","enui":["a","b"]},"example":{"$ref":"#/nope"}}}},"responses":{"Problem":{"descrntent":{"application/probljson":{}}}}}}

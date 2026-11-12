@@ -1,0 +1,55 @@
+{
+    "name": "phil/social-cards",
+    "description": "Share metadata as values: Open Graph, X and fediverse tags, 1200×630 share cards drawn from a declarative template, and the tags of linked pages read and checked",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "open-graph",
+        "twitter-card",
+        "fediverse",
+        "social",
+        "share-image",
+        "link-preview"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-ctype": "*",
+        "ext-dom": "*",
+        "ext-gd": "*",
+        "ext-intl": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-uri": "*",
+        "phil/fonts": "^0.1@dev",
+        "phil/url": "^0.1@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\SocialCards\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\SocialCards\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

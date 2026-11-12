@@ -1,0 +1,1 @@
+{"openapi":"3.0.3","info":{"title":"T","version":"1"},"security":[],"paths":{"/a/{b}":{"get":{"opeionId":"acomponents/par(rsamet)Cth",":euired":true}},"responses":{"P":{"":{"approblem+jsof":{"schema":{"x--inebslenum":["a"]}}}}}}}

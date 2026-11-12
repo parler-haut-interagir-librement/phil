@@ -1,0 +1,79 @@
+{
+    "name": "phil/social-cards-bundle",
+    "description": "phil/social-cards in Symfony: social_meta() for each page, its share card drawn by a worker and served with a long cache, safe previews of linked and pasted links and a tag check command",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "open-graph",
+        "twitter-card",
+        "fediverse",
+        "share-image",
+        "link-preview",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/safe-http": "^0.1@dev",
+        "phil/social-cards": "^0.1@dev",
+        "symfony/cache-contracts": "^3.6",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/service-contracts": "^3.6",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "phil/http-cache-tags-bundle": "^0.1@dev",
+        "phil/media-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/cache": "^3.0",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/messenger": "^8.2",
+        "symfony/rate-limiter": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7"
+    },
+    "suggest": {
+        "phil/http-cache-tags-bundle": "To tag the served cards, for a purge of every card or of one",
+        "phil/media-bundle": "To give a page a medium of the library as its image",
+        "symfony/console": "For phil:social-cards:check",
+        "symfony/messenger": "To draw the cards in a worker",
+        "symfony/rate-limiter": "To bound the pasted links one visitor has previewed",
+        "symfony/ux-twig-component": "For the card of a link to another site, <twig:PhilSocialCards:LinkPreview>"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\SocialCardsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\SocialCardsBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

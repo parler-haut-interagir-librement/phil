@@ -1,0 +1,41 @@
+{
+    "name": "@phil/media-bundle",
+    "description": "The media library's Stimulus controllers: the explorer's grid and list views, uploads of several files with their progress, a picker in a dialog for a form field, and the tiny preview behind an image while it loads",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "symfony": {
+        "controllers": {
+            "explorer": {
+                "main": "src/explorer_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            },
+            "upload": {
+                "main": "src/upload_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            },
+            "picker": {
+                "main": "src/picker_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            },
+            "placeholder": {
+                "main": "src/placeholder_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

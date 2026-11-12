@@ -1,0 +1,1 @@
+[{"type":"csp-violation","body":{"documentURL":"s","effectiveDirective":"s","lineNumber":0,"columnNumber":0}}]

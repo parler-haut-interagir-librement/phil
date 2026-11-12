@@ -1,0 +1,18 @@
+{
+    "openapi": "3.1.0",
+    "info": {"title": "Shop", "version": "2026-11-01"},
+    "security": [],
+    "paths": {
+        "/orders/{id}": {
+            "get": {
+                "operationId": "getOrder",
+                "summary": "One order",
+                "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+                "responses": {
+                    "200": {"description": "The order", "content": {"application/json": {"schema": {"type": "object"}}}},
+                    "404": {"description": "No such order", "content": {"application/problem+json": {}}}
+                }
+            }
+        }
+    }
+}

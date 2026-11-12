@@ -1,0 +1,24 @@
+{
+    "name": "@phil/translation-bundle",
+    "description": "The translation screen's Stimulus controller: a new CSRF token in each form as it is sent",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/csrf_controller.js",
+    "symfony": {
+        "controllers": {
+            "csrf": {
+                "main": "src/csrf_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

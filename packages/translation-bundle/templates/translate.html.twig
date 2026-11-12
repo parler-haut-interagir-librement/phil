@@ -1,0 +1,147 @@
+{% extends layout %}
+
+{% block title %}Translate {{ title }} into {{ target_language }}{% endblock %}
+
+{% block content %}
+<main class="phil-translation" data-controller="phil--translation-bundle--csrf" data-action="submit->phil--translation-bundle--csrf#fill">
+    <h1>Translate {{ title }} <small>{{ source_language }} → {{ target_language }}</small></h1>
+    {% if parent_language %}<p class="variant">{{ target_language }} inherits from {{ parent_language }}: a segment without a target of its own is published as in {{ parent_language }}.</p>{% endif %}
+
+    <p class="progress">
+        {{ progress.percent }} % usable — {{ progress.usable }} of {{ progress.total }} segments:
+        {% for state, count in progress.counts %}{{ state }} {{ count }}{% if not loop.last %}, {% endif %}{% endfor %}
+    </p>
+
+    {% if done == 'machine-translated' %}<p class="done" role="status">{{ count }} segment{{ count == 1 ? '' : 's' }} proposed by machine translation.</p>{% elseif done == 'commented' %}<p class="done" role="status">Comment added.</p>{% elseif done == 'uncommented' %}<p class="done" role="status">Comment removed.</p>{% elseif done %}<p class="done" role="status">Segment {{ done }}.</p>{% endif %}
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+
+    {% if report %}
+        <section class="report" role="status">
+            <h2>Import</h2>
+            <p>{{ report.applied|length }} segment{{ report.applied|length == 1 ? '' : 's' }} updated, {{ report.skipped|length }} unit{{ report.skipped|length == 1 ? '' : 's' }} skipped.</p>
+            {% if report.skipped is not empty %}
+                <ul>
+                    {% for skipped in report.skipped %}<li><code>{{ skipped.key }}</code>: {{ skipped.reason.value }}</li>{% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+    {% endif %}
+
+    <section class="exchange">
+        {% if can_machine_translate %}
+            <form method="post" action="{{ urls.machine }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_cookie }}">
+                <button type="submit">Propose machine translations for untranslated segments</button>
+            </form>
+        {% endif %}
+        <p><a href="{{ urls.export }}" download>Export XLIFF 2.1</a></p>
+        <form method="post" action="{{ urls.import }}" enctype="multipart/form-data">
+            <label>Import XLIFF 2.x or 1.2 <input type="file" name="xliff" accept=".xlf,.xliff,.xml" required></label>
+            <input type="hidden" name="_csrf_token" value="{{ csrf_cookie }}">
+            <button type="submit">Import</button>
+        </form>
+    </section>
+
+    <table>
+        <thead>
+        <tr><th scope="col">Source</th><th scope="col">Target</th></tr>
+        </thead>
+        <tbody>
+        {% for row in rows %}
+            {% set segment = row.segment %}
+            <tr id="{{ row.anchor }}">
+                <td>
+                    <span class="state state-{{ segment.state.value }}">{{ segment.state.value }}</span>
+                    {% if row.machine %}<span class="machine">machine translation</span>{% endif %}
+                    <code class="key">{{ segment.key }}</code>
+                    <p><code>{{ segment.source }}</code></p>
+                    {% if row.change %}<p class="change">Source changed: {{ row.change|raw }}</p>{% endif %}
+                    {% if row.terms is not empty %}
+                        <ul class="terms">
+                            {% for hit in row.terms %}
+                                <li><b>{{ hit.text }}</b>: {{ hit.term.kept ? hit.term.source ~ ' (kept)' : hit.term.translations|join(', ') }}{% if hit.term.forbidden is not empty %}; not {{ hit.term.forbidden|join(', ') }}{% endif %}{% if hit.term.note %} — {{ hit.term.note }}{% endif %}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if row.inherited is not null %}<p class="inherited">From {{ parent_language }}: <code>{{ row.inherited }}</code></p>{% endif %}
+                    <form method="post" action="{{ urls.save }}">
+                        <input type="hidden" name="key" value="{{ segment.key }}">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_cookie }}">
+                        <label>Target <textarea name="target" lang="{{ target_language }}">{{ segment.target }}</textarea></label>
+                        <button type="submit" name="action" value="save">Save</button>
+                        <button type="submit" name="action" value="suggest">Propose</button>
+                        {% if can_review and segment.target is not null and segment.state.value != 'stale' %}<button type="submit" name="action" value="review">Review</button>{% endif %}
+                        {% if segment.state.value == 'stale' %}<button type="submit" name="action" value="confirm">Still right</button>{% endif %}
+                        {% if segment.target is not null %}<button type="submit" name="action" value="clear">Clear</button>{% endif %}
+                    </form>
+                    {% if row.issues is not empty %}
+                        <ul class="issues">
+                            {% for issue in row.issues %}
+                                <li class="issue">{% if issue.kind.value == 'missing' %}“{{ issue.term.source }}”: {{ issue.term.expected|join(' or ') }} expected {{ issue.expected }} time{{ issue.expected == 1 ? '' : 's' }}, found {{ issue.found }}{% else %}“{{ issue.forbidden }}” is not a translation of “{{ issue.term.source }}”{% endif %}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    {% if row.checks is not empty %}
+                        <ul class="checks">
+                            {% for issue in row.checks %}
+                                <li class="issue">
+                                    <form method="post" action="{{ urls.save }}">
+                                        <input type="hidden" name="key" value="{{ segment.key }}">
+                                        <input type="hidden" name="check" value="{{ issue.check }}">
+                                        <input type="hidden" name="_csrf_token" value="{{ csrf_cookie }}">
+                                        {{ issue.message }}
+                                        <button type="submit" name="action" value="dismiss">Dismiss “{{ issue.check }}”</button>
+                                    </form>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    {% if row.flags is not empty %}<p class="flags">Flags: {% for flag in row.flags %}<code>{{ flag }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+                    {% if row.suggestions is not empty %}
+                        <ul class="suggestions">
+                            {% for match in row.suggestions %}
+                                <li>
+                                    <form method="post" action="{{ urls.save }}">
+                                        <input type="hidden" name="key" value="{{ segment.key }}">
+                                        <input type="hidden" name="_csrf_token" value="{{ csrf_cookie }}">
+                                        <input type="hidden" name="target" value="{{ match.unit.target }}">
+                                        {{ match.percent }} % <code>{{ match.unit.target }}</code>
+                                        <button type="submit" name="action" value="suggest">Use</button>
+                                    </form>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    <section class="comments">
+                        {% for comment in row.comments %}
+                            <article class="comment">
+                                <p>{{ comment.body|nl2br }}</p>
+                                <small>{{ comment.author ?? 'Someone' }}, {{ comment.createdAt|date('Y-m-d H:i') }}</small>
+                                {% if can_review %}
+                                    <form method="post" action="{{ urls.comment }}">
+                                        <input type="hidden" name="key" value="{{ segment.key }}">
+                                        <input type="hidden" name="comment" value="{{ comment.id }}">
+                                        <input type="hidden" name="_csrf_token" value="{{ csrf_cookie }}">
+                                        <button type="submit" name="action" value="remove">Remove</button>
+                                    </form>
+                                {% endif %}
+                            </article>
+                        {% endfor %}
+                        <form method="post" action="{{ urls.comment }}">
+                            <input type="hidden" name="key" value="{{ segment.key }}">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_cookie }}">
+                            <label>Comment <textarea name="body" maxlength="4000"></textarea></label>
+                            <button type="submit" name="action" value="add">Comment</button>
+                        </form>
+                    </section>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="2">This document has nothing to translate.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</main>
+{% endblock %}

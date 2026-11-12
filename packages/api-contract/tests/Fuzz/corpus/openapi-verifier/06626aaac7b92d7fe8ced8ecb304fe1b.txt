@@ -1,0 +1,1 @@
+{"o":[],"paths":{"/a/{b}":{"get":{"operationIdameters":[{"$ref":"#/compoNents/parameters/B"}],"responses":{"200":{"description":"ok","headers":{"Sun":{}},"cow":{"applicationxtlnsenum":["a"]}}}}}}}

@@ -1,0 +1,2 @@
+{"openapi":"3.1.0","info":{"title":"Shop"},"servers":[{"url":"https://api.example.om/cv2","variables":{"x":{"defaul~":"a","enum":["a"]}}}],
+"paths":{"nses":{"Prob,em":{"description":"p","content":{"application/problem+json":{}}}}}}

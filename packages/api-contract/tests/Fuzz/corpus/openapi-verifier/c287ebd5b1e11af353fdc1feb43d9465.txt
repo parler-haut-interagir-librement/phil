@@ -1,0 +1,1 @@
+{"openapi":{"parameters":{"B":{"$ref":""},"C":{"name":"b","ired":true}},"responses":{"P":{"scription":"p","content":{"application/problem+json":{"schema":{"x-extensible-eNnum":["a"]}}}}}}}

@@ -1,0 +1,2 @@
+{"openapi":"3.1.0","paths":{"/v2/orders/{id}":{"parameters":[{"$ref":"#/components/parapeters/Id"}],"get":{"operationId":"get","responses":{"99":{"description":"ok","content":{"apers":{},"/files/{name}":{"post":{"sumpreca":{"204":{"description":"x"}}}},
+"orders":{},"lication/json":{}}}}},"delete":{"opry":"s","secent":{"tion/probjson":{}}}}}}

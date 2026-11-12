@@ -1,0 +1,12 @@
+{% extends '@PhilDirectory/layout.html.twig' %}
+{% trans_default_domain 'phil_directory' %}
+
+{% block body %}
+    <h1>{{ 'phil_directory.editors'|trans }}</h1>
+    <p>{{ 'phil_directory.author'|trans }} : {{ listing.author }}</p>
+    {{ form_start(form) }}
+        {{ form_errors(form) }}
+        {{ form_widget(form) }}
+        <button type="submit">{{ 'phil_directory.save'|trans }}</button>
+    {{ form_end(form) }}
+{% endblock %}

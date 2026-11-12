@@ -1,0 +1,19 @@
+{% extends '@PhilDirectory/layout.html.twig' %}
+{% trans_default_domain 'phil_directory' %}
+
+{% block body %}
+    <h1>{{ listing is null ? 'phil_directory.add'|trans : 'phil_directory.edit'|trans }}</h1>
+    {% if listing is not null %}
+        <nav>
+            <a href="{{ path('phil_directory_' ~ genre.key ~ '_history', {id: id}) }}">{{ 'phil_directory.history'|trans }}</a>
+            {% if is_granted('phil_directory.editors', listing) %}<a href="{{ path('phil_directory_' ~ genre.key ~ '_editors', {id: id}) }}">{{ 'phil_directory.editors'|trans }}</a>{% endif %}
+        </nav>
+    {% endif %}
+    {{ form_start(form) }}
+        {{ form_errors(form) }}
+        <fieldset><legend>{{ 'phil_directory.contact'|trans }}</legend>{{ form_widget(form.contact) }}</fieldset>
+        <fieldset><legend>{{ 'phil_directory.address'|trans }}</legend>{{ form_widget(form.address) }}</fieldset>
+        {{ form_rest(form) }}
+        <button type="submit">{{ 'phil_directory.save'|trans }}</button>
+    {{ form_end(form) }}
+{% endblock %}

@@ -1,0 +1,1 @@
+{"openapi":"3.1.0","info":{"t+tle":"Shop","vers{id}":{"paameters":[{"$ref":"#/components/parameters/Id"}],"get":{"3ooalication/json":{"schema":{"$ref":"#/componenrameter"}}}}}}

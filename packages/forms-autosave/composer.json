@@ -1,0 +1,92 @@
+{
+    "name": "phil/forms-autosave",
+    "description": "A form's input kept while it is filled, for Symfony: a form option and a Stimulus controller that keep the draft in the browser, restore it with a notice and forget it once the form is sent, and an optional store of drafts on the server, per user, encrypted, with conflicts between devices told",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "autosave",
+        "draft",
+        "forms",
+        "local-storage",
+        "stimulus",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "psr/clock": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/service-contracts": "^3.6",
+        "symfony/translation-contracts": "^3.6"
+    },
+    "require-dev": {
+        "ext-pdo": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "doctrine/persistence": "^4.1",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/key-management": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/dbal": "For the server store of drafts, with doctrine/orm for its table",
+        "phil/block-editor-bundle": "For UJO (Universal JSON Output) fields kept in drafts, their editor mounted again on restore",
+        "phil/ux-kit": "For the AutosaveStatus recipe styled with phil-ux",
+        "phil/ux-kit-shadcn": "For the AutosaveStatus recipe styled with Tailwind",
+        "symfony/asset-mapper": "To serve the controller and its stylesheet without a build step",
+        "symfony/console": "For phil:forms-autosave:purge",
+        "symfony/key-management": "To seal the drafts kept on the server under a master key of a KMS",
+        "symfony/routing": "For the endpoints of the server store, and their URLs given to the controller",
+        "symfony/security-core": "To name the signed-in user of drafts",
+        "symfony/security-csrf": "To check the requests of the controller to the server store",
+        "symfony/stimulus-bundle": "For the autosave controller",
+        "symfony/twig-bundle": "For the status template"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\FormsAutosave\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\FormsAutosave\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

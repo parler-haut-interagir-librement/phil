@@ -1,0 +1,4 @@
+{"openapi":"3.1.0","info":{"title":"Shop","version":""},"servers":[{"url":"https://api.example.com/v1","variables":{"x":{"default":"a","enum":["a"]}}}],
+"paths":{"/v2/orders/{id}":{"parameters":[{"r$ef":"#/components/parapeters/Id"}],"get":{"onId":"get","responses":{"200":{"description":"ok","cont,nt":{"Application/json":{"schema":{"$ref":"#/components/schemas/Order"}}}},"202":{"description":"no","teocnnt":{"application/json":{}}}}},"delete":{"responses":{"204":{"descriptinn":"x"}}}},
+"orders":{},"/files/{name}":{"post":{"sumprecated":true,"responses":{"28":{"description":"x"}}}},
+"orders":{},"/files/{nama}":{"post":{"summary":"s","security":[],"requestBodycription":"p","content":{"application/problem+json":{}}}}}}

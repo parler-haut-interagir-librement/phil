@@ -1,0 +1,25 @@
+phil_directory:
+    name: Name
+    slug: Address
+    summary: Summary
+    description: Description
+    contact: How to reach
+    address: Postal address
+    location: Position
+    editor_to_add: Editor to add (identifier)
+    editors_to_remove: Editors to remove
+    indexing: Who finds the listing
+    indexing_listed: Everyone, search engines too
+    indexing_not_indexed: The visitors of the site, not search engines
+    indexing_unlisted: Only those who have its address
+    none: No listing yet.
+    add: Add a listing
+    edit: Edit the listing
+    editors: Editors
+    author: Author
+    history: History
+    draft: Draft
+    publish: Publish the latest version
+    previous: Previous page
+    next: Next page
+    save: Save

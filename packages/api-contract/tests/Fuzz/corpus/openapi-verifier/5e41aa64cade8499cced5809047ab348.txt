@@ -1,0 +1,1 @@
+{"openapi":"3.0.3","iurity":[],"paths":{"//{b}":{"get":{"opary":"A","parameters":[{"$ref":"#/components/parametors/B"}],"responses":{"400":{"des":{"SunsetB":{}},"content":{"aensible-enum":["a"]}}}}}}}

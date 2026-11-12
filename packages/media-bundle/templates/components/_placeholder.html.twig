@@ -1,0 +1,5 @@
+{#- The tiny preview handed to the placeholder controller, merged with the controllers the image already names. -#}
+{%- set controllers = [attributes.all['data-controller'] ?? null, preview is null ? null : 'phil--media-bundle--placeholder']|filter(name => name is not empty)|join(' ') -%}
+{%- if controllers is not empty %} data-controller="{{ controllers }}"{% endif -%}
+{%- if preview is not null %} data-phil--media-bundle--placeholder-src-value="{{ preview.src }}" data-phil--media-bundle--placeholder-position-value="{{ preview.position }}"{% endif -%}
+{{ attributes.without('data-controller') -}}

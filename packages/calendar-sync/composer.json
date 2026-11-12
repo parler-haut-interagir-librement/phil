@@ -1,0 +1,60 @@
+{
+    "name": "phil/calendar-sync",
+    "description": "External calendar synchronization: busy times read from iCalendar feeds, CalDAV, Google Calendar and Microsoft Graph, and the site's events written to them, each service an adapter behind a port.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "calendar",
+        "caldav",
+        "icalendar",
+        "free-busy",
+        "synchronization"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-intl": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "phil/recurrence": "^0.1@dev",
+        "phil/safe-http": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "symfony/clock": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-foundation": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "roave/security-advisories": "dev-latest"
+    },
+    "suggest": {
+        "symfony/messenger": "For RefreshBusyTimes and SyncEvent handled by a worker"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\CalendarSync\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\CalendarSync\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

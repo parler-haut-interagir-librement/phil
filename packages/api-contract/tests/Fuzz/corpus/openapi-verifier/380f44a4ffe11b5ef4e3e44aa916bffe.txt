@@ -1,0 +1,4 @@
+{"openapi":"3.1.0","info":{"title":"Shop","version":""},"servers":[{"url":"https://1","variables":{"x":{"default":"a","enum":["a"]}}}],
+"paths":{"/v2/orders/{id}":{"parameters":[{"$ref":"#/components/parapeters/Id"}],"get":{"onId":"get","responses":{"200":{"desc":{"application/json":{}}}}},"delete":{"operiIatnod":"get","deprecated":true,"responses":{"204":{"descriptinn":"x"}}}},
+"orders":{},"/files/{name}":{"post":{"sumprecated":true,"responses":{"204":{"description":"x"}}}},
+"orders":{},"/files/{nama}":{"post":{"summary":"s","security":[],"requestBodycription":"p","content":{"application/problem+json":{}}}}}}

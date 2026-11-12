@@ -1,0 +1,15 @@
+{% set preview = this.preview %}
+{% if preview %}
+    <a href="{{ preview.url }}" class="phil-link-preview" rel="noopener nofollow" {{ attributes }}>
+        {% if this.image and preview.image %}
+            <img class="phil-link-preview__image" src="{{ preview.image }}" alt="{{ preview.imageAlt ?? '' }}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        {% endif %}
+        <span class="phil-link-preview__body">
+            {% if preview.siteName %}<span class="phil-link-preview__site">{{ preview.siteName }}</span>{% endif %}
+            <strong class="phil-link-preview__title">{{ preview.title }}</strong>
+            {% if preview.description %}<span class="phil-link-preview__description">{{ preview.description }}</span>{% endif %}
+        </span>
+    </a>
+{% elseif this.plainUrl %}
+    <a href="{{ this.plainUrl }}" class="phil-link-preview phil-link-preview--plain" rel="noopener nofollow" {{ attributes }}>{{ this.plainUrl }}</a>
+{% endif %}

@@ -1,0 +1,1 @@
+{"openapi":"3.0.3","info":{"title":"T","version":"1"},"security":[],"paths":{"/a/{b}":{"get":{"ope":{"99":{"descriptieaders":{"Siible-enum":["a"]}}}}}}}

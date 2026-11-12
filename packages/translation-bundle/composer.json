@@ -1,0 +1,75 @@
+{
+    "name": "phil/translation-bundle",
+    "description": "Translation by segments for Symfony: UJO documents cut into segments kept in Doctrine with their states, regional variants read through their parent, a translation memory and glossaries, quality checks, comments, machine translation behind a port, public credits, XLIFF and TBX exchange, and translation and glossary pages in Twig",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "translation",
+        "translation-memory",
+        "xliff",
+        "glossary",
+        "localization",
+        "ujo",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/orm": "^3.7",
+        "phil/translation-memory": "^0.1@dev",
+        "phil/ujo": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/doctrine-bundle": "^3.3",
+        "easycorp/easyadmin-bundle": "^5.8",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/twig-bundle": "^8.2"
+    },
+    "suggest": {
+        "easycorp/easyadmin-bundle": "For the menu links to the glossary pages in an EasyAdmin back office",
+        "symfony/asset-mapper": "To serve the screen's Stimulus controller without a build step",
+        "symfony/stimulus-bundle": "For the screen's Stimulus controller, which adds the double-submitted CSRF token"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\TranslationBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\TranslationBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

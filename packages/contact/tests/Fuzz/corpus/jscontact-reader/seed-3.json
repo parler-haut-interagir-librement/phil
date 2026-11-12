@@ -1,0 +1,1 @@
+{"@type":"Card","version":"1.0","uid":"u","emails":{"e1":{"address":"ada@example.com","contexts":{"work":true}}},"phones":{"p1":{"number":"tel:+1-514-555-0123","features":{"mobile":true,"video":true}},"p2":{"number":"(514) 555-0124","features":{"fax":true}}}}

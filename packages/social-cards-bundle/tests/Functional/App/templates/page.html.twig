@@ -1,0 +1,16 @@
+{% do social_page({title: title, description: description, type: 'article'}) %}
+<!doctype html>
+<html lang="fr">
+<head>
+    <title>{{ title }}</title>
+    {{ social_meta() }}
+</head>
+<body>
+    <twig:PhilSocialCards:LinkPreview url="https://example.org/post" />
+    <twig:PhilSocialCards:LinkPreview url="https://example.org/dead" />
+    <twig:PhilSocialCards:LinkPreview url="javascript:alert(1)" />
+    <twig:PhilSocialCards:LinkPreview url="data:text/html,x" />
+    <twig:PhilSocialCards:LinkPreview url="https://example.org/post" :image="false" class="compact" />
+    <twig:PhilSocialCards:LinkPreview url="https://example.org/dead" :snapshot="{url: 'https://example.net/kept', title: 'Kept title', site_name: 'Kept'}" :image="false" />
+</body>
+</html>

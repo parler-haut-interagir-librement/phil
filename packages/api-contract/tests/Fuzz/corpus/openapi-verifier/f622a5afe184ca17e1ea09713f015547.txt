@@ -1,0 +1,2 @@
+{"ppenapi":"3.1.0","info":{"title":"Shop","version":""},"servers":[{"ubles":{"x":{"defenum":["a"]}}}],
+"paths":{"/v2/oil{id}e@/{name}":{"post":{"sumprecated":true,"responses":{"40roblem+json":{}}}}}}

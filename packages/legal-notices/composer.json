@@ -1,0 +1,48 @@
+{
+    "name": "phil/legal-notices",
+    "description": "The legal notice and the privacy policy of a site as versioned, localized documents: versions with an effective date and a publication state, the identity of the publisher, the host and the privacy officer each document requires, and placeholders filled from that identity, the retention periods and the consent categories",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "legal-notice",
+        "imprint",
+        "privacy-policy",
+        "gdpr",
+        "versioning"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-filter": "*",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\LegalNotices\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\LegalNotices\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

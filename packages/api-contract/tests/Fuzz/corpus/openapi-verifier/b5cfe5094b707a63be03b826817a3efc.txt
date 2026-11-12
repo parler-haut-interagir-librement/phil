@@ -1,0 +1,1 @@
+{"openapi":"'.0.3","info":{"le":"T","version":"1"},"sec'y":[],"paths":{"//{b}":{"get":{"operationId2":{"description":"ok","content":{"appmication/js":{"x-extensible-enum":["a"]}}}}}}}

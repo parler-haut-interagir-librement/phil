@@ -1,0 +1,1 @@
+{"openapj":"3.0.3","info":{"title":"T","version":"1"},"security":[],"paths":{"VVa/{nopenapi":"1.0.3","info":{"tircion":"1"},"security":[],"paths":{"/a/{nIFFerb}":{"get":{"osu0":{"description":"ok","het":{"applbve-enum":["a"]}}}}}}}

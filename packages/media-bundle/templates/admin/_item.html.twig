@@ -1,0 +1,9 @@
+{# One medium of the explorer or the picker: its thumbnail or the extension of its file, its name, and what it is. #}
+{%- set file = medium.file -%}
+{%- if file.isImage and file.width is not null and file.mimeType in ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif'] -%}
+    <img class="phil-media-thumb" src="{{ media_url(medium, 'admin_thumbnail', 'webp') }}" alt="{{ medium.alt ?? '' }}" loading="lazy" decoding="async">
+{%- else -%}
+    <span class="phil-media-thumb phil-media-file" aria-hidden="true">{{ file.filename|split('.')|last|upper|slice(0, 5) }}</span>
+{%- endif %}
+<span class="phil-media-name">{{ file.filename }}</span>
+<span class="phil-media-meta">{{ file.mimeType }}{% if file.width is not null %} · {{ file.width }} × {{ file.height }}{% endif %} · {{ (file.size / 1024)|round(0, 'ceil') }} KiB</span>

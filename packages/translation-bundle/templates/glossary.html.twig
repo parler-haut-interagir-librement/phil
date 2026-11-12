@@ -1,0 +1,59 @@
+{% extends layout %}
+
+{% block title %}Glossary {{ source_language }} → {{ target_language }}{% endblock %}
+
+{% block content %}
+<main class="phil-translation" data-controller="phil--translation-bundle--csrf" data-action="submit->phil--translation-bundle--csrf#fill">
+    <h1>Glossary <small>{{ source_language }} → {{ target_language }}</small></h1>
+
+    {% if done == 'imported' %}<p class="done" role="status">{{ count }} term{{ count == 1 ? '' : 's' }} imported.</p>{% elseif done %}<p class="done" role="status">Term {{ done }}.</p>{% endif %}
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+
+    <section class="exchange">
+        <p><a href="{{ urls.export }}" download>Export TBX</a></p>
+        <form method="post" action="{{ urls.import }}" enctype="multipart/form-data">
+            <label>Import TBX <input type="file" name="tbx" accept=".tbx,.xml" required></label>
+            <input type="hidden" name="_csrf_token" value="{{ csrf_cookie }}">
+            <button type="submit">Import</button>
+        </form>
+    </section>
+
+    <table>
+        <thead>
+        <tr><th scope="col">Term</th><th scope="col">Translations</th><th scope="col">Refused</th><th scope="col">Note</th><th scope="col"></th></tr>
+        </thead>
+        <tbody>
+        {% for term in terms %}
+            <tr>
+                <td><b>{{ term.source }}</b>{% if term.forms is not empty %} <small>({{ term.forms|join(', ') }})</small>{% endif %}{% if term.caseSensitive %} <small>case-sensitive</small>{% endif %}</td>
+                <td>{{ term.kept ? 'kept as it is' : term.translations|join(', ') }}{% if term.translationForms is not empty %} <small>({{ term.translationForms|join(', ') }})</small>{% endif %}</td>
+                <td>{{ term.forbidden|join(', ') }}</td>
+                <td>{{ term.note }}</td>
+                <td>
+                    <form method="post" action="{{ urls.save }}">
+                        <input type="hidden" name="term" value="{{ term.source }}">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_cookie }}">
+                        <button type="submit" name="action" value="remove">Remove</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5">This glossary has no terms yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <form method="post" action="{{ urls.save }}" class="term">
+        <h2>Add or change a term</h2>
+        <input type="hidden" name="_csrf_token" value="{{ csrf_cookie }}">
+        <label>Term <input name="term" lang="{{ source_language }}" maxlength="255" required></label>
+        <label>Forms of the term, one per line <textarea name="forms" lang="{{ source_language }}"></textarea></label>
+        <label>Translations, one per line; none to keep the term as it is <textarea name="translations" lang="{{ target_language }}"></textarea></label>
+        <label>Forms of the translations, one per line <textarea name="translation_forms" lang="{{ target_language }}"></textarea></label>
+        <label>Refused translations, one per line <textarea name="forbidden" lang="{{ target_language }}"></textarea></label>
+        <label><input type="checkbox" name="case_sensitive" value="1"> Case matters</label>
+        <label>Note for translators <textarea name="note"></textarea></label>
+        <button type="submit" name="action" value="save">Save the term</button>
+    </form>
+</main>
+{% endblock %}

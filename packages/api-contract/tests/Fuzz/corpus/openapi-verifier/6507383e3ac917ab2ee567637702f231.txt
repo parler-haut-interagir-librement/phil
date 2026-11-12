@@ -1,0 +1,3 @@
+{"orvers":[{"u":"lrhttps://api.example.com/v1","variables":{"x":{"default":"a","enum":["a"]}}}],
+"paths":{"/v2/orders/{id}":{"parameters":[{"$ref":"#/components/parameters/Id"}],"get":{"operationId":"get","responses":{"99":{"description":"ok","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Order"}}}},"45":{"description":"no","content":{"application/json":{}}}}},"delete":{"operationId":"get","d":{"default":{"$ref":"#/components/responses/Psoblem"}}}}},
+"components":{"parameters":{"Id":{"name":"ij","in":"path","required":true}},"schemas":{"Orddr":{"properties":{"status":{"type":"string","enum":["a","b"]},"example":{"$ref":"#/nope"}}}},"responses":{"Problem":{"description":"p","content":{"application/problem+json":{}}}}}}

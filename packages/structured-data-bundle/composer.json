@@ -1,0 +1,77 @@
+{
+    "name": "phil/structured-data-bundle",
+    "description": "phil/structured-data in Symfony: the schema.org graph of each request, fed by configuration, providers, an event, templates and other packages, the breadcrumb of a phil/menu-bundle menu, printed as one JSON-LD script element, never for a record withdrawn from search engines, and a command that checks the structured data of a page",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "schema.org",
+        "json-ld",
+        "structured-data",
+        "seo",
+        "symfony-bundle",
+        "noindex"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/indexing-consent": "^0.1@dev",
+        "phil/structured-data": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/service-contracts": "^3.6"
+    },
+    "require-dev": {
+        "ext-intl": "*",
+        "phil/browser-security-bundle": "^0.1@dev",
+        "phil/menu-bundle": "^0.1@dev",
+        "phil/social-cards": "^0.1@dev",
+        "phil/social-cards-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "phil/browser-security-bundle": "For the script nonce of its content security policy, when the site wants one on the script element",
+        "phil/menu-bundle": "For the breadcrumb of a menu as the BreadcrumbList of each page",
+        "phil/social-cards-bundle": "For the title, description and image of a shared page read from its graph",
+        "symfony/http-client": "For phil:structured-data:check on an address rather than a saved page",
+        "twig/twig": "For structured_data() and structured_data_add()"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\StructuredDataBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\StructuredDataBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

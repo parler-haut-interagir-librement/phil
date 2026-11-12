@@ -1,0 +1,16 @@
+{%- set medium = this.medium -%}
+{%- if medium is not null -%}
+{%- set image = this.fallback(medium) -%}
+{%- do this.preload(medium) -%}
+<picture>
+    {%- for source in this.sources(medium) %}
+    <source type="{{ source.mimeType }}" srcset="{{ source.srcset ?? source.src }}"{% if source.srcset is not null and this.sizes is not null %} sizes="{{ this.sizes }}"{% endif %}>
+    {%- endfor %}
+    <img src="{{ image.src }}"
+        {%- if image.srcset is not null %} srcset="{{ image.srcset }}"{% if this.sizes is not null %} sizes="{{ this.sizes }}"{% endif %}{% endif -%}
+        {%- if image.width is not null %} width="{{ image.width }}" height="{{ image.height }}"{% endif %} alt="{{ this.altText(medium) }}" loading="{{ this.loadingMode }}"
+        {%- if this.decodingMode is not null %} decoding="{{ this.decodingMode }}"{% endif %}
+        {%- if this.priority %} fetchpriority="high"{% endif %}
+        {{- include('@PhilMedia/components/_placeholder.html.twig', {preview: this.preview(medium)}) }}>
+</picture>
+{%- endif -%}

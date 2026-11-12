@@ -1,0 +1,20 @@
+{# The listing a picker shows in its dialog: no layout, and each medium a button that chooses it. #}
+{%- set picker = 1 -%}
+<div class="phil-media-picker" data-phil--media-bundle--picker-target="listing">
+    {{ include('@PhilMedia/admin/_collections.html.twig') }}
+    {%- if media is empty %}
+    <p>This collection holds no file.</p>
+    {%- else %}
+    <ul class="phil-media-items phil-media-grid">
+        {%- for medium in media %}
+        <li class="phil-media-item">
+            <button type="button" data-action="phil--media-bundle--picker#choose" data-media-id="{{ medium.id }}" data-media-label="{{ medium.file.filename }}"
+                {%- if medium.file.width is not null and medium.file.mimeType in ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif'] %} data-media-preview="{{ media_url(medium, 'admin_thumbnail', 'webp') }}"{% endif %}>
+                {{ include('@PhilMedia/admin/_item.html.twig') }}
+            </button>
+        </li>
+        {%- endfor %}
+    </ul>
+    {%- endif %}
+    {{ include('@PhilMedia/admin/_pages.html.twig') }}
+</div>

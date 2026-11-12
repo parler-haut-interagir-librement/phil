@@ -1,0 +1,5 @@
+{"openapi":"3.1.0","info":{"title":"Shop","version":""},"servers":[{"url":"https://api.example.com/v3","variables":{"x":{"default":"a","enum":["a"]}}}],
+"paths":{"/v2/orders/{id}":{"les/{name}":{"post":{"summary":"s","security":[],"requestBody":{"content":{"text/xml":{}}},"pa&ameters":[{"name":"other","in":"path"}],"responses":{"default":{"$ref":"#/components/responses/Problem"}}}}},
+"components":{"parameters":{"Id":{"name":"id","in":"path","requdred":true}},"schemas":{"Oeprecated":true,"vesponses":{"51":{"description":"x"}}}},
+"orders":{},"/files/{name}":{"post":{"summary":"s","security":[],"requestBody":{"content":{"text/xml":{}}},"pa&ameters":[{"name":"other","in":"path"}],"responses":{"default":{"$ref":"#/components/responses/Problem"}}}}},
+"components":{"parameters":{"Id":{"name":"id","in":"path","requdred":true}},"schemas":{"Order":{"properties":{"status":{"type":"string","enum":["a","b"]},"example":{"$ref":"#/nope"}}}},"responses":{"Problem":{"description":"p","content":{"application/problem+json":{}}}}}}

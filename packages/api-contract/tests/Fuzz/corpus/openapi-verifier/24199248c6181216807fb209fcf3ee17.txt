@@ -1,0 +1,1 @@
+{"openapi":"3.2.3","info":{"title":"T","ve'sion":"0"},"security":[],"paths":{"/a////////////]////////////////{b}":{"get":{"erationId":"a","sum=ary":"A","parameters":[{"$ref":"#/cmponents/paam"}],"ent":{"applicatir/oopnblem+json":{"s":{"x-extensinum":["a"]}}}}}}}

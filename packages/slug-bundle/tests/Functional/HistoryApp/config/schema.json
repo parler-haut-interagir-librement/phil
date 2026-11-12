@@ -3213,6 +3213,185 @@
                     "scoped_clients": []
                 }
             },
+            "key_management": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "default_client": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": null,
+                                "description": "Name of the default client (must match an entry of \"clients\"); inferred when only one client is registered."
+                            },
+                            "clients": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "additionalProperties": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/$defs/types/object_null",
+                                                    "properties": {
+                                                        "dsn": {
+                                                            "$ref": "#/$defs/types/string_null"
+                                                        },
+                                                        "members": {
+                                                            "$ref": "#/$defs/types/object_null",
+                                                            "additionalProperties": {
+                                                                "$ref": "#/$defs/types/scalar",
+                                                                "default": null
+                                                            },
+                                                            "description": "Map of member name to the master key it wraps under, null for the key id given to each call. Everything the composite client encrypts is wrapped by each member and read back through the first one that answers, the first member minting the data keys, so that losing one provider loses nothing. Each member is a full path to the data."
+                                                        },
+                                                        "retired": {
+                                                            "$ref": "#/$defs/types/array_null",
+                                                            "items": {
+                                                                "$ref": "#/$defs/types/scalar"
+                                                            },
+                                                            "description": "Former member names accepted for reads but never used for writes. Each remains a full path to the plaintext."
+                                                        }
+                                                    },
+                                                    "patternProperties": {
+                                                        "^member$": {
+                                                            "$ref": "#/$defs/types/variable"
+                                                        }
+                                                    },
+                                                    "additionalProperties": false
+                                                },
+                                                {
+                                                    "type": [
+                                                        "string"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "type": [
+                                            "string"
+                                        ]
+                                    }
+                                ],
+                                "description": "Map of client name to DSN, or to the members of a composite client; \"service://<id>\" takes the client the application registered under that service id instead of building one from a DSN."
+                            },
+                            "store": {
+                                "$ref": "#/$defs/types/object_null",
+                                "properties": {
+                                    "connection": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "default": "doctrine.dbal.default_connection",
+                                        "description": "Service id of the DBAL connection holding the table."
+                                    },
+                                    "client": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "default": null,
+                                        "description": "Name of the client wrapping the data keys this store creates (must match an entry of \"clients\"); defaults to the default client."
+                                    },
+                                    "allowed_clients": {
+                                        "$ref": "#/$defs/types/array_null",
+                                        "items": {
+                                            "$ref": "#/$defs/types/scalar"
+                                        },
+                                        "description": "Additional clients trusted to wrap and unwrap stored data keys. The store client is always trusted."
+                                    },
+                                    "key_id": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "description": "Master key wrapping the data keys this store creates (backend-specific: alias, ARN, key URL, ...)."
+                                    },
+                                    "secret": {
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/$defs/types/array_null",
+                                                "items": {
+                                                    "$ref": "#/$defs/types/scalar"
+                                                }
+                                            },
+                                            {
+                                                "type": [
+                                                    "string"
+                                                ]
+                                            }
+                                        ],
+                                        "description": "Secret used to authenticate the stored data keys, defaults to the \"kernel.secret\" parameter. List several to rotate it: the first one signs, all of them verify."
+                                    },
+                                    "table": {
+                                        "$ref": "#/$defs/types/scalar",
+                                        "default": "key_management_data_keys",
+                                        "description": "Name of the table holding the wrapped data keys."
+                                    },
+                                    "read_self_contained": {
+                                        "$ref": "#/$defs/types/boolean",
+                                        "default": false,
+                                        "description": "Whether a payload carrying its own wrapped data key is still read, through the default client. On while migrating to the stored format, off afterwards: such a payload resolves no row, so nothing the store checks applies to it."
+                                    },
+                                    "bind_wrapping_context": {
+                                        "$ref": "#/$defs/types/boolean",
+                                        "default": false,
+                                        "description": "Whether the backend authenticates the reference and the scope of each data key as it wraps it. Off by default: not every backend accepts authenticated data, and turning it on needs the stored keys rewrapped."
+                                    },
+                                    "max_age": {
+                                        "$ref": "#/$defs/types/variable",
+                                        "default": 2592000,
+                                        "description": "Seconds after which the current root key of a scope is retired. The default is 30 days; 0 forces rotation on every call and null disables retirement."
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "description": "Data key store: payloads then refer to a stored data key instead of carrying it, so the KMS is reached once per key and per process, and that key can be rewrapped under another provider without rewriting a payload."
+                            },
+                            "doctrine_dbal": {
+                                "$ref": "#/$defs/types/object_null",
+                                "properties": {
+                                    "types": {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "additionalProperties": {
+                                            "$ref": "#/$defs/types/object_null",
+                                            "properties": {
+                                                "type": {
+                                                    "$ref": "#/$defs/types/string_null",
+                                                    "description": "Doctrine type converting the value before it is encrypted."
+                                                },
+                                                "key": {
+                                                    "$ref": "#/$defs/types/string_null",
+                                                    "description": "Master key encrypting the values, or the scope of their data key when \"store\" is configured."
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        "description": "Encrypted Doctrine DBAL types by name."
+                                    }
+                                },
+                                "patternProperties": {
+                                    "^type$": {
+                                        "$ref": "#/$defs/types/variable"
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        },
+                        "patternProperties": {
+                            "^client$": {
+                                "$ref": "#/$defs/types/variable"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": [
+                            "string",
+                            "boolean"
+                        ]
+                    }
+                ],
+                "default": {
+                    "enabled": true,
+                    "default_client": null,
+                    "clients": []
+                }
+            },
             "lock": {
                 "anyOf": [
                     {
@@ -7936,6 +8115,9 @@
         "http_client": {
             "$ref": "#/$defs/nodes/http_client"
         },
+        "key_management": {
+            "$ref": "#/$defs/nodes/key_management"
+        },
         "lock": {
             "$ref": "#/$defs/nodes/lock"
         },
@@ -8012,6 +8194,9 @@
                 },
                 "http_client": {
                     "$ref": "#/$defs/nodes/http_client"
+                },
+                "key_management": {
+                    "$ref": "#/$defs/nodes/key_management"
                 },
                 "lock": {
                     "$ref": "#/$defs/nodes/lock"

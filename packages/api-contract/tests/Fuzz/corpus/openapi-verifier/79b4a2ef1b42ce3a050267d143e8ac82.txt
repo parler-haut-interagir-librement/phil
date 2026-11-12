@@ -1,0 +1,1 @@
+{"openapi":"'.0.3","ingo":[],"patNhs":{"/a/{b}":{"get":{"operationId2":{"description":"ok","":{"applin":{"scmeble-enum":["a"]}}}}}}}

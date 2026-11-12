@@ -1,0 +1,24 @@
+{
+    "name": "@phil/social-cards-bundle",
+    "description": "The Stimulus controller of phil/social-cards-bundle, which shows the preview of the first link pasted in a form and lets its author remove it",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/link_preview_controller.js",
+    "symfony": {
+        "controllers": {
+            "link-preview": {
+                "main": "src/link_preview_controller.js",
+                "webpackMode": "lazy",
+                "fetch": "lazy",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

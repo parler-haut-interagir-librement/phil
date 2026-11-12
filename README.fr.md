@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=99a92f2433bff9f7e926be979cafc097b2388177f03fe2abd948a8796a4adb34 -->
+<!-- phil-dev source-sha256=093448b9e0aa77a4be11f3f0f9fa64cba1fed9f6b76bfb6339de6d30bea12b21 -->
 # PHIL
 
 **Parler Haut, Interagir Librement : des bibliothèques PHP et des bundles Symfony ouverts pour les sites qui publient,
@@ -68,6 +68,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/contact-form-bundle`](https://github.com/parler-haut-interagir-librement/contact-form-bundle) | Une page « écrivez-nous » pour Symfony, protégée du pourriel sans captcha. |
 | [`phil/passwords`](https://github.com/parler-haut-interagir-librement/passwords) | Dites aux gens à quel point leur mot de passe se devine, refusez ceux qui ont déjà fui et donnez-leur-en de bons. |
 | [`phil/upload-scan`](https://github.com/parler-haut-interagir-librement/upload-scan) | Chaque fichier téléversé passe par un antivirus avant que quiconque puisse l'ouvrir. |
+| [`phil/forms-autosave`](https://github.com/parler-haut-interagir-librement/forms-autosave) | La saisie d'un formulaire gardée pendant qu'on le remplit, rendue après un rechargement, oubliée une fois envoyée. |
 
 ### Argent, téléphones et dates
 
@@ -84,6 +85,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/opening-hours-bundle`](https://github.com/parler-haut-interagir-librement/opening-hours-bundle) | Un formulaire d'heures d'ouverture, une colonne JSON et des heures localisées dans Twig, pour Symfony. |
 | [`phil/almanac`](https://github.com/parler-haut-interagir-librement/almanac) | Les dates qui se calculent : Pâques, équinoxes, phases de la Lune, éclipses, lever et coucher du soleil, et les règles des fêtes. |
 | [`phil/almanac-bundle`](https://github.com/parler-haut-interagir-librement/almanac-bundle) | Les dates calculées dans Doctrine, les formulaires et Twig, avec les lieux dont elles suivent le soleil et le ciel. |
+| [`phil/calendar-sync`](https://github.com/parler-haut-interagir-librement/calendar-sync) | Les plages occupées lues dans les flux iCalendar, CalDAV, Google Agenda et Microsoft Graph, et les événements d'un site écrits chez eux. |
 
 ### Liens, adresses et lieux
 
@@ -97,6 +99,8 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/address-bundle`](https://github.com/parler-haut-interagir-librement/address-bundle) | Un formulaire d'adresse pour Symfony dont les champs suivent le pays choisi. |
 | [`phil/geo`](https://github.com/parler-haut-interagir-librement/geo) | Des coordonnées, des distances et des zones englobantes sous forme de valeurs PHP, et le géocodage par le fournisseur de votre choix. |
 | [`phil/geo-bundle`](https://github.com/parler-haut-interagir-librement/geo-bundle) | Des coordonnées stockées, des distances dans Twig, des géocodeurs configurés et des listes triées du plus proche au plus loin pour les applications Symfony. |
+| [`phil/contact`](https://github.com/parler-haut-interagir-librement/contact) | Des fiches de contact : noms ordonnés selon leur culture, courriels, lignes téléphoniques et identifiants, écrits en vCard, JSContact et JSON-LD. |
+| [`phil/contact-bundle`](https://github.com/parler-haut-interagir-librement/contact-bundle) | Un formulaire de fiche de contact, une colonne JSON, des téléchargements vCard et JSContact, et les noms de personnes dans Twig, pour Symfony. |
 
 ### Site et navigation
 
@@ -109,6 +113,9 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/structured-data`](https://github.com/parler-haut-interagir-librement/structured-data) | Le graphe schema.org d'une page sous forme de valeurs : des nœuds venus de toutes les parties d'un site, fusionnés par `@id`, vérifiés, puis imprimés dans un seul élément de script JSON-LD. |
 | [`phil/well-known-bundle`](https://github.com/parler-haut-interagir-librement/well-known-bundle) | Les adresses `/.well-known/` d'un site Symfony, chacune activée dans sa configuration. |
 | [`phil/http-cache-tags-bundle`](https://github.com/parler-haut-interagir-librement/http-cache-tags-bundle) | Mettez des pages entières en cache dans Varnish ou un CDN, et purgez exactement celles qu'une modification change. |
+| [`phil/structured-data-bundle`](https://github.com/parler-haut-interagir-librement/structured-data-bundle) | Le graphe schema.org de chaque page dans Symfony, écrit dans un seul élément script JSON-LD, jamais pour une page tenue à l'écart des moteurs de recherche. |
+| [`phil/social-cards`](https://github.com/parler-haut-interagir-librement/social-cards) | Les balises Open Graph, X et du fédivers, des cartes de partage dessinées d'après un gabarit, et les balises des pages liées lues et vérifiées. |
+| [`phil/social-cards-bundle`](https://github.com/parler-haut-interagir-librement/social-cards-bundle) | Les balises de partage de chaque page, des cartes de partage dessinées par un worker, et des aperçus sûrs des liens que collent les membres. |
 
 ### Communauté et événements
 
@@ -119,6 +126,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/checkin`](https://github.com/parler-haut-interagir-librement/checkin) | L'enregistrement à l'entrée d'un événement ou d'un lieu : un code lu à une porte, décidé aussitôt, enregistré une fois, en ligne ou hors ligne. |
 | [`phil/listings`](https://github.com/parler-haut-interagir-librement/listings) | Le noyau des annonces : une petite annonce, une offre d'emploi, une recherche de partenaires, rédigées, modérées, reçoivent des réponses et expirent selon les mêmes règles. |
 | [`phil/open-badges`](https://github.com/parler-haut-interagir-librement/open-badges) | Des Open Badges 3.0 que tout le monde peut vérifier : émis, signés, intégrés à l'image, révoqués, appuyés et réunis dans un relevé d'apprentissage. |
+| [`phil/directory-bundle`](https://github.com/parler-haut-interagir-librement/directory-bundle) | Un répertoire de fiches avec leur historique, leurs éditeurs et leurs liens, chacune trouvée comme son auteur le décide. |
 
 ### Impression et produits
 
@@ -142,6 +150,8 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/search-loupe`](https://github.com/parler-haut-interagir-librement/search-loupe) | L'adaptateur Loupe de `phil/search-bundle` : des index de recherche dans des fichiers SQLite, sans serveur à faire tourner. |
 | [`phil/search-synonyms`](https://github.com/parler-haut-interagir-librement/search-synonyms) | Des règles de synonymes par langue, vérifiées pour leurs chevauchements, lues et écrites aux formats Solr et JSON. |
 | [`phil/translation-memory`](https://github.com/parler-haut-interagir-librement/translation-memory) | La traduction par segments : une mémoire de traduction, un glossaire, des contrôles de qualité, et les échanges XLIFF, TMX et TBX. |
+| [`phil/translation-bundle`](https://github.com/parler-haut-interagir-librement/translation-bundle) | La traduction par segments dans Symfony : un écran de traduction, une mémoire et des glossaires dans Doctrine, des révisions et les échanges XLIFF. |
+| [`phil/media-bundle`](https://github.com/parler-haut-interagir-librement/media-bundle) | Une médiathèque pour Symfony : des images autour de leur point focal en WebP ou AVIF, des SVG purifiés, des composants adaptatifs et un explorateur de fichiers. |
 
 ### Vie privée, sécurité et accessibilité
 
@@ -160,6 +170,8 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/rate-limit-bundle`](https://github.com/parler-haut-interagir-librement/rate-limit-bundle) | Des limites de débit déclarées sur les contrôleurs, les routes et les formulaires, avec des réponses 429 et les en-têtes RateLimit. |
 | [`phil/safe-http`](https://github.com/parler-haut-interagir-librement/safe-http) | Lire les adresses que donnent les membres ou d'autres sites sans atteindre votre propre réseau : redirections vérifiées une à une. |
 | [`phil/idempotency`](https://github.com/parler-haut-interagir-librement/idempotency) | Exécuter une opération une fois par clé d'idempotence, rejouer sa réponse, et traiter une fois chaque message de Messenger. |
+| [`phil/browser-security-bundle`](https://github.com/parler-haut-interagir-librement/browser-security-bundle) | La Content Security Policy avec ses nonces, HSTS, des cookies signés et les autres protections qu'impose un navigateur, page par page. |
+| [`phil/legal-notices`](https://github.com/parler-haut-interagir-librement/legal-notices) | Les mentions légales et la politique de confidentialité en documents versionnés, remplis à partir de l'identité de l'éditeur. |
 
 ### PHIL UX
 
@@ -178,6 +190,8 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/circuit-breaker`](https://github.com/parler-haut-interagir-librement/circuit-breaker) | Un disjoncteur par tiers : les appels cessent aussitôt quand il échoue sans arrêt, et reprennent quand il se rétablit. |
 | [`phil/circuit-breaker-bundle`](https://github.com/parler-haut-interagir-librement/circuit-breaker-bundle) | Des circuits déclarés en configuration, leurs états partagés par les workers, et des clients HTTP derrière leurs circuits. |
 | [`phil/bounce-parser`](https://github.com/parler-haut-interagir-librement/bounce-parser) | Sachez ce que dit chaque message de votre boîte de rebonds, et quoi faire de l'adresse qu'il nomme. |
+| [`phil/api-contract`](https://github.com/parler-haut-interagir-librement/api-contract) | Les deux côtés du contrat d'une API HTTP : détails de problème, signaux de dépréciation, et un document OpenAPI vérifié selon des niveaux de règles. |
+| [`phil/api-contract-bundle`](https://github.com/parler-haut-interagir-librement/api-contract-bundle) | Détails de problème, contrôleurs idempotents et dépréciés, et le document OpenAPI vérifié en intégration continue, pour Symfony. |
 
 ### Exploitation
 

@@ -1,0 +1,1 @@
+{"openapi":"3.0.3","infty":[],"paths":{"/a/{b}":{"get":{"operatiometers":[{"$ref":"#/$omponents/parmeters/B"}],"responses":{"400":{"descrs":{"Sunset":{}},"content":{"application/vnd.x+json; charset=utf-8":{}}},"4ication/problem+json":{"schema":{"x-extensium":["a"]}}}}}}}

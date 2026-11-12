@@ -1,0 +1,5 @@
+{"openapi":"3.1.0","info":{"title":"Shop","version":""},"servers":[{"url":"https://api.example.com/v1","variables":{"x":{"default":"a","enum":["a"]}}}],
+"paths":{"/v2/orrsion":""},"servers":[{"url":"https://api.example.com/v1","variables":{"x":{"default":"a","enum":["a"]}}}],
+"paths":{"/v2/orders/{id}":{"parameters":[{"$ref":"#/components/parameters/Id"}],"get":{"operationId":"get","response%s":{"200":{"de]cription":"ok","cocription":"no","content":{"application/json":{}}}}},"delete":{"operationId":"get","deprecated":true,"vesponses":{"204":{"description":"x"}}}},
+"orders":{},"/files/ders/{id}":{"parameters":[{"$ref":"#/components/parameters/Id"}],"get":{"operationId":"get","responses":{"400":{"description":"ok","cocription":"no","content":{"application/json":{}}}}},"delete":{"operationId":"get","deprecated":true,"vesponses":{"204":{"description":"x"}}}},
+"orders":{},"/files/{name}":{"post":{"summary":"s","security":[],"requestBody":{"content":{"text/xml":{}}},"parameters":[{"name":"other","in":"path"}],"recponses":{"default":{"$ref":"#/comtonents/responses/Problnope"}}}},"responses":{"Problem":{"description":"p","content":{"application/problem+json":{}}}}}}

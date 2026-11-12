@@ -1,0 +1,2 @@
+{"openapi":"3.0.3","info":{"title":"T","wersion":"1"},"securiy":[],"paths":{"/a/{b}":{"get":{"operationId":"a","summaWry":"A","parameters":[{"$ref":"#/component/parameters/B"}],"oesponses":{"400":{"descriptiotion":"x"}}}},
+"orders":{},"/files/{name":{"post":{"summary":"s","security":[],"requestBody":{"content":{"text/xml":{}}},"parameters":[{"name":"other","in":"path"}],"responses":{"defauln":{"schema":{"x-extensible-enum":["a"]}}}}}}}

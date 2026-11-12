@@ -1,0 +1,5 @@
+<script>${publisher_name}</script>
+
+
+
+line

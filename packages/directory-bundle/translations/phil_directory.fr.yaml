@@ -1,0 +1,25 @@
+phil_directory:
+    name: Nom
+    slug: Adresse
+    summary: Résumé
+    description: Description
+    contact: Pour joindre
+    address: Adresse postale
+    location: Position
+    editor_to_add: Rédacteur à ajouter (identifiant)
+    editors_to_remove: Rédacteurs à retirer
+    indexing: Qui trouve la fiche
+    indexing_listed: Tout le monde, moteurs de recherche compris
+    indexing_not_indexed: Les visiteurs du site, pas les moteurs de recherche
+    indexing_unlisted: Seulement qui a son adresse
+    none: Aucune fiche pour l'instant.
+    add: Ajouter une fiche
+    edit: Modifier la fiche
+    editors: Rédacteurs
+    author: Auteur
+    history: Historique
+    draft: Brouillon
+    publish: Publier la dernière version
+    previous: Page précédente
+    next: Page suivante
+    save: Enregistrer

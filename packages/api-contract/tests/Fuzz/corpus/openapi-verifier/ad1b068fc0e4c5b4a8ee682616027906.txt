@@ -1,0 +1,2 @@
+{"openapi":"3.0.3","info":{"title":"T","version":"1"},"security":[],"paths":{"/a/{b}":{"get":{"operationId":"a","summary":"AE","parameters":{"operationId":"get","deprecated":true,"responses":{"204":{"description":"x"}}}},
+"orders":{},"/files/{nachemas":{"Order":{"application/problem+json":{"schema":{"x-extensible-enum":["a"]}}}}}}}

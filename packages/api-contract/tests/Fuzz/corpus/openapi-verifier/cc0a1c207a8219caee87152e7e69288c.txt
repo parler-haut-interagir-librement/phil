@@ -1,0 +1,1 @@
+{"openapiatNhs":{"/a/{b}":{"get":{"operationId2":{"escription":"ok","":{"applin":{"scmebe-enum":["a"]}}}}}}}

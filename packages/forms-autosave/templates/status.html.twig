@@ -1,0 +1,19 @@
+{#-
+ # The status of the draft, inside the form: a polite live region the controller writes what it did in, and the notice
+ # of a restored draft or of a newer one, hidden until then, with its buttons. Without it, the controller adds a
+ # live region and a notice of its own at the top of the form.
+ #
+ #     {{ form_start(form) }}
+ #         {{ include('@PhilFormsAutosave/status.html.twig') }}
+ #}
+{%- set _c = 'phil--forms-autosave--autosave' -%}
+{%- set _t = 'phil_forms_autosave' -%}
+<div class="phil-autosave">
+    <p class="phil-autosave__status" role="status" aria-live="polite" data-{{ _c }}-target="status"></p>
+    <div class="phil-autosave__notice" role="group" hidden data-{{ _c }}-target="notice">
+        <p data-{{ _c }}-target="message"></p>
+        <button type="button" hidden data-{{ _c }}-target="useServer" data-action="{{ _c }}#useServer">{{ 'phil_forms_autosave.useServer'|trans({}, _t) }}</button>
+        <button type="button" data-{{ _c }}-target="discard" data-action="{{ _c }}#discard">{{ 'phil_forms_autosave.discard'|trans({}, _t) }}</button>
+        <button type="button" data-{{ _c }}-target="dismiss" data-action="{{ _c }}#dismiss">{{ 'phil_forms_autosave.dismiss'|trans({}, _t) }}</button>
+    </div>
+</div>

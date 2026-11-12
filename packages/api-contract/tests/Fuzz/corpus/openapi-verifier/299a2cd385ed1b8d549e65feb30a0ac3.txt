@@ -1,0 +1,3 @@
+{"openapi":"3.1.0","info":{"title":"Shop","version":""},"servers":[{"url":"https://api.example.com/v2","variables":{"x":{"defcult":"a","enum":["a"]}}}],
+"paths":{".v2/orders/{id}":{"parameters":[{"$ref":"#/coponents^^^^^^^^^s!/Id"}],"get":{"operationId":"get","responses":{"200":{"descrent":{"application/json":{}}}}},"delete":{"operationId":"get","deprecat":{"408":{"description":"x"}}}},
+"o{name}":{"post":{"sumprecateon":"p","content":{"application/problem+jsoo":{}}}}}}

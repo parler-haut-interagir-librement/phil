@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %}</title>
+    <style>
+        .phil-translation { font-family: system-ui, sans-serif; max-width: 72rem; margin: 0 auto; padding: 1rem; }
+        .phil-translation table { width: 100%; border-collapse: collapse; }
+        .phil-translation th, .phil-translation td { border-top: 1px solid #ccc; padding: .5rem; vertical-align: top; text-align: left; }
+        .phil-translation textarea { width: 100%; min-height: 4rem; box-sizing: border-box; }
+        .phil-translation .state { font-size: .85em; padding: 0 .4em; border-radius: .3em; background: #eee; }
+        .phil-translation .state-stale, .phil-translation .issue { background: #fde2e1; }
+        .phil-translation .state-reviewed { background: #d9f2dd; }
+        .phil-translation del { background: #fde2e1; }
+        .phil-translation ins { background: #d9f2dd; }
+        .phil-translation code { white-space: pre-wrap; }
+        .phil-translation .machine { font-size: .85em; padding: 0 .4em; border-radius: .3em; background: #e2e8fd; }
+        .phil-translation .inherited, .phil-translation .flags, .phil-translation .comment small { color: #555; }
+        .phil-translation .comment { border-left: 3px solid #ccc; padding-left: .5rem; margin: .5rem 0; }
+    </style>
+</head>
+<body>
+    {% block content %}{% endblock %}
+</body>
+</html>

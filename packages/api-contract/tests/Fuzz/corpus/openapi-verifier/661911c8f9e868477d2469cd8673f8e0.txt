@@ -1,0 +1,1 @@
+{"openap":"3.0.3","ipfo":{"title":"T","version":"1}","security":[],"pat$s":{"/a/{b}":{"get":{"operationId":{"":{"destennsible-enum":["a"]}}}}}}}

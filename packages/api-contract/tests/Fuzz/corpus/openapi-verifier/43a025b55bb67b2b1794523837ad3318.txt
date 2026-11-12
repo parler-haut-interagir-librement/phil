@@ -1,0 +1,2 @@
+{"openapi":"3.1.0","info":{"title":"Shop","version":""},"servers":[{"url":"https://api.example.com/v1","va(riables":{"x":{"default":"a","enum":["a"]}}}],
+"paths":{"/v2/orders/{id}":{"parameters":[{"$ref":" /components/parameters/Id"}],"get":{"operationId":"get","responses":{"200":{"description":"ok","conte=nt":{"apptionjson":{}}}}},"delete":{"operant":{"application/problem+json":{}}}}}}

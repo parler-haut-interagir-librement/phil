@@ -1,0 +1,1 @@
+{"pi":"3.0.3","info":{"tiersion":"1"},"securatHs":{"/a":{"99":{"description":"ok","heade;rs":{"Sunset":{}},"content":{"application/vnd.x+json; charset=utf-7":{}}},"m4XX":{"$ref":"#+cnb","in":"path","required":true}},"responses":{"P":{"descriptiont":{"a[pplication/problem+json":{"schema":{"x-ex4ensib.e-enum":["e"]}}}}}}}

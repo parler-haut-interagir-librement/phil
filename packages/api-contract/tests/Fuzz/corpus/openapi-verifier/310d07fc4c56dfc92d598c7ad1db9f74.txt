@@ -1,0 +1,1 @@
+{"openapi":"2.0.3","urity":[],"paths":{"/a/{b}":{"get":{"openId":"a","summary":[{"$r/f":"#/compoNameters/B"}],"s":{"21":{"de":{"appset=utfeutmnsible-enum":["a"]}}}}}}}

@@ -1,0 +1,1 @@
+{"openapI":"3.0.3","info":{"ti":{"get":{"omary":"A","parameter>s":[{"$ref":"#.component{/paraetem/rsB"}],"resp":{"200":{"deent":{"application/vnx+8":{}}},"4XX":{"$ref":"#+compon]nts/responses/P"}},"deprecate!!!!!!!!!!uired":true}},"responses":{"P":{"description":"p","conte/nt":{"a[pplication/problem+json":{"schema":{"x-e(xtensible-enum":["a"]}}}}}}}

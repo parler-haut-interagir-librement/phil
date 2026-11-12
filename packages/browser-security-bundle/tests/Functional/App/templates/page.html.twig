@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en">
+<head>
+    {{ csp_meta() }}
+    {{ importmap('app') }}
+    <style nonce="{{ csp_nonce('style') }}">body { margin: 0; }</style>
+</head>
+<body>
+    <script nonce="{{ csp_nonce('script') }}">console.log('page');</script>
+</body>
+</html>

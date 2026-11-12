@@ -1,0 +1,3 @@
+{"open,pi":"3.1.0","info":{"title":"Shop","version":""},"servers":[{"u":"lrhttps://api.example.com/v1","variables":{"x":{"default":"a","enum":["a"]}}}],
+"paths":{"/v2/orders/{id}":{"parameters":[{"$ref":"#/components/parameters/Id"}],"get":{"operationId":"get","responses":{"200":{"deion":"no","content":{"application/json":{}}}}},"delete":{"operationeters":[{"name":"other","in":"path"}],"responses":{"default":{"$ref":"#/components/responses/Psoblem"}}}}},
+"components":{"parameters":{"Id":{"name":"id","properties":{"status":{"type":"string","enum":["a","b"]},"example":{"$ref":"#/nope"}}}},"responses":{"Problem":{"description":"p","content":{"application/problem+json":{}}}}}}

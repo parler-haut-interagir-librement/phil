@@ -1,0 +1,24 @@
+{
+    "name": "@phil/contact-bundle",
+    "description": "The Stimulus controller of phil/contact-bundle, which adds entries to and removes them from the collections of a contact card form",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/collection_controller.js",
+    "symfony": {
+        "controllers": {
+            "collection": {
+                "main": "src/collection_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

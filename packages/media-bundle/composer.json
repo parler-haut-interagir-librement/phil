@@ -1,0 +1,105 @@
+{
+    "name": "phil/media-bundle",
+    "description": "A media library for Symfony: files and versions on any Flysystem storage, collections, images transformed around their focal point to WebP, AVIF, JPEG or PNG with GD or libvips, tiny previews, purified SVG, responsive Img and Picture components, a file explorer with a picker, a Doctrine column type, and signed URLs served as user content",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "avif",
+        "easyadmin",
+        "flysystem",
+        "images",
+        "media",
+        "media-library",
+        "responsive-images",
+        "symfony-bundle",
+        "webp"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-fileinfo": "*",
+        "ext-gd": "*",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "league/flysystem": "^3.30",
+        "psr/clock": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/process": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/service-contracts": "^3.6",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/persistence": "^4.1",
+        "easycorp/easyadmin-bundle": "^5.8",
+        "league/flysystem-local": "^3.30",
+        "league/flysystem-memory": "^3.29",
+        "phil/browser-security-bundle": "^0.1@dev",
+        "phil/creation-disclosure": "^0.1@dev",
+        "phil/svg-sanitizer": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/link": "^2.0",
+        "psr/log": "^3.0",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/property-access": "^8.2",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "symfony/validator": "^8.2",
+        "symfony/web-link": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "easycorp/easyadmin-bundle": "For MediaField, the field of a medium in EasyAdmin",
+        "league/flysystem-aws-s3-v3": "To keep files in an S3 bucket",
+        "phil/browser-security-bundle": "To serve every file under its policy of user content",
+        "phil/creation-disclosure": "To declare how a medium was made as an IPTC digital source type",
+        "phil/svg-sanitizer": "To purify and minify SVG images before they are kept",
+        "symfony/asset-mapper": "To serve the explorer's Stimulus controllers without a build step",
+        "symfony/form": "For MediaPickerType, the field that opens the picker",
+        "symfony/ux-twig-component": "For the Img and Picture components",
+        "symfony/validator": "For the MediaFile constraint",
+        "symfony/web-link": "To preload the main image of a page, with priority",
+        "twig/twig": "For media_url(), media_schema(), the explorer and the components"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\MediaBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\MediaBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

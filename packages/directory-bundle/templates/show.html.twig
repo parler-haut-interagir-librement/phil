@@ -1,0 +1,28 @@
+{% extends '@PhilDirectory/layout.html.twig' %}
+{% trans_default_domain 'phil_directory' %}
+
+{% block title %}{{ data.excerptTitle }}{% endblock %}
+
+{% block meta %}{% if robots %}<meta name="robots" content="{{ robots }}">{% endif %}{% endblock %}
+
+{% block body %}
+    <article class="phil-directory-listing">
+        <h1>{{ data.excerptTitle }}</h1>
+        {% if data.excerptDescription %}<p>{{ data.excerptDescription }}</p>{% endif %}
+        {% if data.bodyHtml %}{{ data.bodyHtml|raw }}{% endif %}
+        {% if data.location %}<p data-location="{{ data.location }}">{{ data.location }}</p>{% endif %}
+        {% for group in related %}
+            <section class="phil-directory-related" data-relation="{{ group.relation.key }}">
+                <h2>{{ group.title }}</h2>
+                <ul>
+                    {% for content in group.listings %}
+                        <li><a href="{{ path('phil_directory_' ~ group.genre.key ~ '_show', {slug: content.content.slug.value}) }}">{{ content.title }}</a></li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endfor %}
+        {% if is_granted('phil_directory.edit', listing) %}
+            <a href="{{ path('phil_directory_' ~ genre.key ~ '_edit', {id: page.reference.resourceId}) }}">{{ 'phil_directory.edit'|trans }}</a>
+        {% endif %}
+    </article>
+{% endblock %}

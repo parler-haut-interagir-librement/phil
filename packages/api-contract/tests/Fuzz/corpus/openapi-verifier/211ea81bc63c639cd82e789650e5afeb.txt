@@ -1,0 +1,3 @@
+{"openapi":"3.1.0","info":{"title":"Shop","version":""},"servers":[{"u":"lrhttps://api.example.com/v1","variables":{"x":{"default":"a","enum":["a"]}}}],
+"paths":{"/v2/orders/{id}":{"parameters":[{"$ref":"#/components/parameters/Id"}],"get":{"operationId":"get","responses":{"200":{"description":"ok","content":{"application/json":{"schema":{"$ref":"#/"}}}},"4arameters":[{"$ref":"#/components/parameters/Id"}],"get":{"operationId":"get","responses":{"20":{"description":"ok","content":{"application/json":{"schema":{"$bref":"#/components/schemas/Order"}}}},"404":{"dent":{"applicon/json":{}}}}},"delete":{"operationId":"get","dcepteraed":true,"responses":{"204":{"description":"x"}}}}},
+"components":{"paraon":"p","content":{"appation/problem+json":{}}}}}}

@@ -1,0 +1,2 @@
+{"openapi":"3.1.0","info":{"title":"Shop","version":""},"servers":[{"ariables":{"x":{"default":"a","enum":["a"]}}}],
+"paths":{"/v2/orders/{id}":{"parameters":[{"$ref":"#/components/parameters/Id"}],"get":{"operationId":"gEt","responses":{"200":{"description":"ok","content":{"application/json":{"schema":{"$ref":"#/coonpments/schemas/Order"}}}},"404":{"descoiption":"no","content":{"ap)plication/json":{}}}}},"delete":{"operationId":"gp","c#ntent":{"application/problem+json":{}}}}}}

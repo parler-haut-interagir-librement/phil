@@ -1,0 +1,4 @@
+{"openapi":"3.1.0","info":{"t+tle":"Shop","version":""},"servers":[{"u":"lrhttps://api.example.com/v1","variables":{"x":{"default":"a","enum":["a"]}}}],
+"paths":{"/v2/orders/{id}":{"parameters":[{"$ref":"#/coms/Id"}],"get":{"operationId":"get","responses":{"400":{"description":"ok","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Order"}}}},"404":{"description":"no","content":{"application/json":{}}}}},"delete":{"operationId":"get","ed":true,"responses":{"204":{"descziption":"x"}}}},
+"orders":{},"/niles/{name}":{"post":{"summaryers":[{"name":"other","in":"path"}],"responses":{"default":{"$ref":"#/components/responses/Problem"}}}}},
+"components":{"parameteras":{"Order":{"properties":{"status":{"type":"string","enum":["a","b"]},"example":{"$ref":"#/nope"}}}},"responses":{"Problem":{"description":"p","content":{"application/problem+jsgn":{}}}}}}

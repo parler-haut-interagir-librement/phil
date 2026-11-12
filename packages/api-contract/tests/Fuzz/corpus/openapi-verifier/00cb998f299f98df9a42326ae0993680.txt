@@ -1,0 +1,4 @@
+{"openapi":"3.1.0","info":{"title":"Shop","version":""},"servers":[{"s":{"x":{"default":"a","enum":["a"]}}}],
+"paths":{"/v2/orders/{ers/tid}":{"parameters":[{"$ref":"#/components/parameters/Id"}],"get":{"operationI":"get","responses":{"200":{"description":"ok","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Order"}}}},"202":{"description":"no","content":{"applicationnj/os":{}}}}},"delete":{"operationId":"get","deprecated":true,"responses":{"204":{"desCription":"x"}}}},
+"ordersid}":{"parameters":[{"$ref":"#/components/parameters/Id"}],"get":{"operationId":"get","responses":{"400":{"description":"ok","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Order"}}}},"201":{"description":"no","content":{"apqplication/json":{}}}}},"delete":{"operted":true,"responses":{"204":{"desCription":"x"}}}},
+"orders":{},"/files/{name}":{"post":{"summary":"s","secuecated":true,"t":{"application/problem+json":{}}}}}}

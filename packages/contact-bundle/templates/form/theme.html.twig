@@ -1,0 +1,26 @@
+{#
+    The collections of phil/contact-bundle's card form: each entry with a button that removes it, and a button that
+    adds one from the prototype, driven by the Stimulus controller phil--contact-bundle--collection. The controller is
+    given the index after the highest key: after a submission that failed, the entries kept may skip numbers.
+#}
+{% block phil_contact_collection_widget -%}
+    {%- set next_index = form.children|keys|reduce((next, key) => max(next, key + 1), 0) -%}
+    {%- set attr = attr|merge({
+        'data-controller': ((attr['data-controller'] ?? '') ~ ' phil--contact-bundle--collection')|trim,
+        'data-phil--contact-bundle--collection-index-value': next_index,
+    }) -%}
+    <div {{ block('widget_container_attributes') }}>
+        <div data-phil--contact-bundle--collection-target="entries"{% if prototype is defined %} data-prototype="{{ form_row(prototype)|e('html_attr') }}"{% endif %}>
+            {%- for child in form %}{{ form_row(child) }}{% endfor -%}
+        </div>
+        <button type="button" data-action="phil--contact-bundle--collection#add">{{ 'contact.add'|trans({}, 'phil_contact') }}</button>
+    </div>
+{%- endblock %}
+
+{% block phil_contact_entry_row -%}
+    <div data-phil--contact-bundle--collection-target="entry">
+        {{- form_widget(form) -}}
+        {{- form_errors(form) -}}
+        <button type="button" data-action="phil--contact-bundle--collection#remove">{{ 'contact.remove'|trans({}, 'phil_contact') }}</button>
+    </div>
+{%- endblock %}

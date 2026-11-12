@@ -1,0 +1,20 @@
+{% extends '@PhilDirectory/layout.html.twig' %}
+{% trans_default_domain 'phil_directory' %}
+
+{% block body %}
+    <h1>{{ genre.title }}</h1>
+    <ul class="phil-directory">
+        {% for listing in listings %}
+            <li><a href="{{ path('phil_directory_' ~ genre.key ~ '_show', {slug: listing.content.slug.value}) }}">{{ listing.title }}</a>{% if listing.summary %} — {{ listing.summary }}{% endif %}</li>
+        {% else %}
+            <li>{{ 'phil_directory.none'|trans }}</li>
+        {% endfor %}
+    </ul>
+    {% if page > 1 or next %}
+        <nav class="phil-directory-pages">
+            {% if page > 1 %}<a rel="prev" href="{{ path('phil_directory_' ~ genre.key ~ '_index', page > 2 ? {page: page - 1} : {}) }}">{{ 'phil_directory.previous'|trans }}</a>{% endif %}
+            {% if next %}<a rel="next" href="{{ path('phil_directory_' ~ genre.key ~ '_index', {page: page + 1}) }}">{{ 'phil_directory.next'|trans }}</a>{% endif %}
+        </nav>
+    {% endif %}
+    {% if app.user %}<a href="{{ path('phil_directory_' ~ genre.key ~ '_new') }}">{{ 'phil_directory.add'|trans }}</a>{% endif %}
+{% endblock %}

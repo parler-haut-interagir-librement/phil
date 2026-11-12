@@ -1,0 +1,23 @@
+{% extends '@PhilDirectory/layout.html.twig' %}
+{% trans_default_domain 'phil_directory' %}
+
+{% block body %}
+    <h1>{{ 'phil_directory.history'|trans }}</h1>
+    <table class="phil-directory-history">
+        <tbody>
+        {% for version in versions %}
+            <tr>
+                <td>{{ version.number }}</td>
+                <td>{{ version.title }}</td>
+                <td>{{ version.editedBy }}</td>
+                <td>{{ version.publishedAt ? version.publishedAt|date('Y-m-d H:i') : 'phil_directory.draft'|trans }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if is_granted('phil_directory.publish', listing) and versions is not empty and versions|first.publishedAt is null %}
+        {{ form_start(publish, {action: path('phil_directory_' ~ genre.key ~ '_publish', {id: id})}) }}
+            <button type="submit">{{ 'phil_directory.publish'|trans }}</button>
+        {{ form_end(publish) }}
+    {% endif %}
+{% endblock %}

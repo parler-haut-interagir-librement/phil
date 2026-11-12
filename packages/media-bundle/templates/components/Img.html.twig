@@ -1,0 +1,11 @@
+{%- set medium = this.medium -%}
+{%- if medium is not null -%}
+{%- set image = this.image(medium) -%}
+{%- do this.preload(image) -%}
+<img src="{{ image.src }}"
+    {%- if image.srcset is not null %} srcset="{{ image.srcset }}"{% if this.sizes is not null %} sizes="{{ this.sizes }}"{% endif %}{% endif -%}
+    {%- if image.width is not null %} width="{{ image.width }}" height="{{ image.height }}"{% endif %} alt="{{ this.altText(medium) }}" loading="{{ this.loadingMode }}"
+    {%- if this.decodingMode is not null %} decoding="{{ this.decodingMode }}"{% endif %}
+    {%- if this.priority %} fetchpriority="high"{% endif %}
+    {{- include('@PhilMedia/components/_placeholder.html.twig', {preview: this.preview(medium)}) }}>
+{%- endif -%}

@@ -1,0 +1,4 @@
+Published by ${publisher_name}.
+
+Kept for ${retention.R-1} and ${unknown}.
+50% off

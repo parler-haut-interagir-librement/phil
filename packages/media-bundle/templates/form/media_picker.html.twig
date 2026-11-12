@@ -1,0 +1,18 @@
+{% block phil_media_picker_widget %}
+<div class="phil-media-picker-field" data-controller="phil--media-bundle--picker" data-phil--media-bundle--picker-url-value="{{ picker_url }}">
+    <input type="hidden" {{ block('widget_attributes') }} value="{{ value }}" data-phil--media-bundle--picker-target="input">
+    <span class="phil-media-picker-choice" data-phil--media-bundle--picker-target="choice">
+        {%- if media is not null -%}
+            {{ include('@PhilMedia/admin/_item.html.twig', {medium: media}) }}
+        {%- else -%}
+            No file chosen
+        {%- endif -%}
+    </span>
+    <button type="button" data-action="phil--media-bundle--picker#open"{% if disabled %} disabled{% endif %}>Choose a file</button>
+    <button type="button" data-action="phil--media-bundle--picker#clear"{% if disabled %} disabled{% endif %}>Remove</button>
+    <dialog data-phil--media-bundle--picker-target="dialog" aria-label="Choose a file">
+        <div data-phil--media-bundle--picker-target="body" data-action="click->phil--media-bundle--picker#follow"></div>
+        <form method="dialog"><button type="submit">Close</button></form>
+    </dialog>
+</div>
+{% endblock %}

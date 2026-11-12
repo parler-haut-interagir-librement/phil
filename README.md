@@ -66,6 +66,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/contact-form-bundle`](https://github.com/parler-haut-interagir-librement/contact-form-bundle) | A "write to us" page for Symfony, protected from spam without a captcha. |
 | [`phil/passwords`](https://github.com/parler-haut-interagir-librement/passwords) | Tell people how guessable their password is, refuse the ones already leaked, and give them good ones. |
 | [`phil/upload-scan`](https://github.com/parler-haut-interagir-librement/upload-scan) | Every uploaded file through an antivirus before anyone else can open it. |
+| [`phil/forms-autosave`](https://github.com/parler-haut-interagir-librement/forms-autosave) | A form's input kept while it is filled, restored after a reload, and forgotten once it is sent. |
 
 ### Money, phone numbers and dates
 
@@ -82,6 +83,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/opening-hours-bundle`](https://github.com/parler-haut-interagir-librement/opening-hours-bundle) | An opening hours form, a JSON column and localised hours in Twig, for Symfony. |
 | [`phil/almanac`](https://github.com/parler-haut-interagir-librement/almanac) | Dates that are computed: Easter, equinoxes, phases of the Moon, eclipses, sunrise and sunset, and the rules of holidays. |
 | [`phil/almanac-bundle`](https://github.com/parler-haut-interagir-librement/almanac-bundle) | Computed dates in Doctrine, forms and Twig, with the places whose sun and sky they follow. |
+| [`phil/calendar-sync`](https://github.com/parler-haut-interagir-librement/calendar-sync) | Busy times read from iCalendar feeds, CalDAV, Google Calendar and Microsoft Graph, and a site's events written to them. |
 
 ### Links, addresses and places
 
@@ -95,6 +97,8 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/address-bundle`](https://github.com/parler-haut-interagir-librement/address-bundle) | An address form for Symfony whose fields follow the country the person picks. |
 | [`phil/geo`](https://github.com/parler-haut-interagir-librement/geo) | Coordinates, distances and bounding boxes as PHP values, and geocoding through the provider you pick. |
 | [`phil/geo-bundle`](https://github.com/parler-haut-interagir-librement/geo-bundle) | Stored coordinates, distances in Twig, configured geocoders and nearest-first lists for Symfony applications. |
+| [`phil/contact`](https://github.com/parler-haut-interagir-librement/contact) | Contact cards: names ordered by their culture, emails, phone lines and handles, written as vCard, JSContact and JSON-LD. |
+| [`phil/contact-bundle`](https://github.com/parler-haut-interagir-librement/contact-bundle) | A contact card form, a JSON column, vCard and JSContact downloads, and person names in Twig, for Symfony. |
 
 ### Site and navigation
 
@@ -107,6 +111,9 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/structured-data`](https://github.com/parler-haut-interagir-librement/structured-data) | The schema.org graph of a page as values: nodes from every part of a site, merged by `@id`, checked, and printed as one JSON-LD script element. |
 | [`phil/well-known-bundle`](https://github.com/parler-haut-interagir-librement/well-known-bundle) | The `/.well-known/` addresses of a Symfony site, each turned on in its configuration. |
 | [`phil/http-cache-tags-bundle`](https://github.com/parler-haut-interagir-librement/http-cache-tags-bundle) | Cache whole pages in Varnish or a CDN, and purge exactly the ones an edit changes. |
+| [`phil/structured-data-bundle`](https://github.com/parler-haut-interagir-librement/structured-data-bundle) | The schema.org graph of each page in Symfony, printed as one JSON-LD script element, never for a page kept out of search engines. |
+| [`phil/social-cards`](https://github.com/parler-haut-interagir-librement/social-cards) | Open Graph, X and fediverse tags, share cards drawn from a template, and the tags of linked pages read and checked. |
+| [`phil/social-cards-bundle`](https://github.com/parler-haut-interagir-librement/social-cards-bundle) | Share tags on each page, share cards drawn by a worker, and safe previews of the links members paste. |
 
 ### Community and events
 
@@ -117,6 +124,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/checkin`](https://github.com/parler-haut-interagir-librement/checkin) | The check-in of an event or a venue: a code read at a door, decided at once, recorded once, online or offline. |
 | [`phil/listings`](https://github.com/parler-haut-interagir-librement/listings) | The core of listings: a classified ad, a job offer, a search for partners — written, moderated, answered and expired by the same rules. |
 | [`phil/open-badges`](https://github.com/parler-haut-interagir-librement/open-badges) | Open Badges 3.0 that anyone can verify: issued, signed, baked into the image, revoked, endorsed and gathered in a learner record. |
+| [`phil/directory-bundle`](https://github.com/parler-haut-interagir-librement/directory-bundle) | A directory of listings with their history, editors and relations, each found as its author decides. |
 
 ### Print and products
 
@@ -140,6 +148,8 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/search-loupe`](https://github.com/parler-haut-interagir-librement/search-loupe) | The Loupe adapter of `phil/search-bundle`: search indexes in SQLite files, with no server to run. |
 | [`phil/search-synonyms`](https://github.com/parler-haut-interagir-librement/search-synonyms) | Synonym rules per language, checked for overlaps, read and written in the Solr and JSON formats. |
 | [`phil/translation-memory`](https://github.com/parler-haut-interagir-librement/translation-memory) | Translation by segments: a translation memory, a glossary, quality checks, and XLIFF, TMX and TBX exchange. |
+| [`phil/translation-bundle`](https://github.com/parler-haut-interagir-librement/translation-bundle) | Translation by segments in Symfony: a translation screen, a memory and glossaries in Doctrine, reviews and XLIFF exchange. |
+| [`phil/media-bundle`](https://github.com/parler-haut-interagir-librement/media-bundle) | A media library for Symfony: images around their focal point in WebP or AVIF, purified SVG, responsive components and a file explorer. |
 
 ### Privacy, security and accessibility
 
@@ -158,6 +168,8 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/rate-limit-bundle`](https://github.com/parler-haut-interagir-librement/rate-limit-bundle) | Rate limits declared on controllers, routes and forms, answered with 429 and the RateLimit headers. |
 | [`phil/safe-http`](https://github.com/parler-haut-interagir-librement/safe-http) | Read addresses given by members or other sites without reaching your own network: redirects checked one by one. |
 | [`phil/idempotency`](https://github.com/parler-haut-interagir-librement/idempotency) | Run an operation once per idempotency key, replay its answer, and handle each Messenger message once. |
+| [`phil/browser-security-bundle`](https://github.com/parler-haut-interagir-librement/browser-security-bundle) | Content Security Policy with nonces, HSTS, signed cookies and the other protections a browser enforces, page by page. |
+| [`phil/legal-notices`](https://github.com/parler-haut-interagir-librement/legal-notices) | The legal notice and the privacy policy as versioned documents, filled from the identity of the publisher. |
 
 ### PHIL UX
 
@@ -176,6 +188,8 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/circuit-breaker`](https://github.com/parler-haut-interagir-librement/circuit-breaker) | One circuit breaker per third party: calls stop at once when it keeps failing, and resume when it recovers. |
 | [`phil/circuit-breaker-bundle`](https://github.com/parler-haut-interagir-librement/circuit-breaker-bundle) | Circuits declared in configuration, their states shared by the workers, and HTTP clients behind their circuits. |
 | [`phil/bounce-parser`](https://github.com/parler-haut-interagir-librement/bounce-parser) | Know what every message on your bounce mailbox says, and what to do about the address it names. |
+| [`phil/api-contract`](https://github.com/parler-haut-interagir-librement/api-contract) | Both sides of an HTTP API contract: problem details, deprecation signals, and an OpenAPI document checked against levels of rules. |
+| [`phil/api-contract-bundle`](https://github.com/parler-haut-interagir-librement/api-contract-bundle) | Problem details, idempotent and deprecated controllers, and the OpenAPI document checked in CI, for Symfony. |
 
 ### Operations
 

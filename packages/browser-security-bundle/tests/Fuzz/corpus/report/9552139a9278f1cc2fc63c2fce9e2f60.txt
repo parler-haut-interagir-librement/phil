@@ -1,0 +1,1 @@
+[{"type":"csp-violation","body":{"documentURL":".s","effectiveDirective":"te","lineNumber":2,"columnNumber":2,"statusCode":9}},{}]

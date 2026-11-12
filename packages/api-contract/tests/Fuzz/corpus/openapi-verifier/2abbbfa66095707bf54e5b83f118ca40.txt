@@ -1,0 +1,4 @@
+{"openapiservers":[{"url":"https://api.example.com/v1","variables":{"x":{"default":"a","enum":["a"]}}}],
+"paths":{"rs/{id}":{"parameters":[{"$ref":"#/componepeters/Id"}],"get":{"operationIdeprecated":true,"responses":{"204":{"description":"x"}}}},
+"ordeps":{},"/files/{name}":{"post":{"sumprecated":true,"responses":{"204":{"description":"x"}}}},
+"orders":{},"/files/{nama}":{"post":{"summary":"s","security":[],"requestBodycription":"p","content":{"application/problem+json":{}}}}}}

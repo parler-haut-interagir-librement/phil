@@ -1,0 +1,1 @@
+[{"type":"csp-violation","body":{"documentURL":"hm","blockedURL":"","effectiveDirective":"b"}}]

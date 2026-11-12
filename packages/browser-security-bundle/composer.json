@@ -1,0 +1,97 @@
+{
+    "name": "phil/browser-security-bundle",
+    "description": "The protections a Symfony application asks of the browser, adjustable page by page: Content Security Policy with nonces, report-only and a bounded report endpoint, the neighbouring headers, HSTS and an HTTPS redirect, X-Frame-Options by path, signed cookies, external redirects refused, and Clear-Site-Data at logout",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "content-security-policy",
+        "csp",
+        "hsts",
+        "nonce",
+        "security",
+        "security-headers",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-ctype": "*",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "ext-uri": "*",
+        "phil/rate-limit": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "phil/ip-anonymizer": "^0.1@dev",
+        "phil/rate-limit-bundle": "^0.1@dev",
+        "phil/structured-data-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/cache": "^3.0",
+        "psr/log": "^3.0",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/rate-limiter": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/security-http": "^8.2",
+        "symfony/service-contracts": "^3.6",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/dbal": "For the violations kept in the table phil_csp_report",
+        "doctrine/orm": "For the table added to the schema the ORM generates",
+        "phil/ip-anonymizer": "For the client's address kept truncated with each violation",
+        "phil/rate-limit-bundle": "To count the report bodies with a named limiter, beside the others of the application",
+        "psr/cache": "For the deduplication of the events in a pool shared by the workers",
+        "psr/log": "For the warning of an external redirect",
+        "symfony/asset-mapper": "For the nonce on the tags of importmap()",
+        "symfony/clock": "For the clock service the reports are dated with",
+        "symfony/console": "For phil:csp:purge-reports",
+        "symfony/rate-limiter": "For the throttle of the report endpoint, which the bundle refuses to build without unless it is disabled",
+        "symfony/security-http": "For Clear-Site-Data at logout",
+        "symfony/twig-bridge": "For the nonce on the tags of importmap()",
+        "symfony/web-profiler-bundle": "For the profiler panel of the policy",
+        "twig/twig": "For csp_nonce() and csp_meta()"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\BrowserSecurityBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\BrowserSecurityBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

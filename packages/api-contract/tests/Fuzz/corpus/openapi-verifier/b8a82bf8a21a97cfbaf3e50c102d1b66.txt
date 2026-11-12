@@ -1,0 +1,1 @@
+{"openae2urity":[],"paths":{"A{b}":{"get":{"operationId":"a","summary":"A","parameters":[{"$ref":"c/comets/parameters/B"}],"responses":{"200":{"de":{"x-eum":["a"]}}}}}}}

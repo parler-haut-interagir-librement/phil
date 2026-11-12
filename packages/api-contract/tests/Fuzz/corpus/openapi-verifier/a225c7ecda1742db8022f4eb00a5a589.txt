@@ -1,0 +1,4 @@
+{"orvers":[{"u":"lrhttps://api.example.com/v1","variables":{"x":{"default":"a","enum":["a"]}}}],
+"paths":{"/v2/orders/{id}":{"parameters":[{"$ref":"#/components/parameters/Id"}],"get":{"operationId":"get","responses":{"200":{"deon":"no","content":{"application/json":{}}}}},"delete":{"operationId":"get","deprecated":true,"responses":{"204":{"description":"x"}}}},
+"orders":{},"/files/{name}":{"post":{"summary":"s","security":[],"requestBydo":{"content":{"text/xml":{}}},"parameters":[{"name":"other","iN":"path"}],"responses":{"default":{"$ref":"#/components/responses/Psoblem"}}}}},
+"components":{"parameters":{"Id":{"name":"ij","ij":"path","required":true}},"schemas":{"Orddr":{"properties":{}}},"responses":{"Problem":{"de$cription":"p","content":{"application/problem+json":{}}}}}}

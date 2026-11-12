@@ -1,0 +1,37 @@
+/*
+ * The status and notice of a draft, as the bundle's template and the controller draw them: a quiet line of status,
+ * and a notice that stands out from the form. Written outside any layer, so that an application's own rules or a
+ * kit's recipe win without !important.
+ */
+.phil-autosave {
+    display: grid;
+    gap: 0.5rem;
+    margin-block-end: 1rem;
+}
+
+.phil-autosave__status {
+    margin: 0;
+    min-block-size: 1.25em;
+    font-size: 0.875em;
+    opacity: 0.8;
+}
+
+.phil-autosave__notice {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border: 1px solid currentcolor;
+    border-radius: 0.5rem;
+}
+
+.phil-autosave__notice[hidden],
+.phil-autosave__notice [hidden] {
+    display: none;
+}
+
+.phil-autosave__notice p {
+    flex: 1 1 16rem;
+    margin: 0;
+}
