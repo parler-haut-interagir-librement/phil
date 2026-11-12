@@ -5,18 +5,23 @@ other attributes too, written on its root element, a `class` added to its own.
 
 ## Logo
 
-`<twig:Logo>`: a `span`, or an `a` with `href`, of class `isLogo`, holding the image.
+`<twig:Logo>`: a `span`, or an `a` with `href`, of class `isLogo`, holding a `Picture` of the `image` recipe, on which
+it depends.
 
 | Prop | Default | |
 |---|---|---|
-| `src` | required | The image where WebP is not supported, PNG or SVG |
+| `src` | required | The image where neither AVIF nor WebP is read, PNG or SVG |
 | `alt` | required | The name the logo writes; empty only when the name is written next to it |
-| `webp` | `null` | A WebP source, offered first |
-| `theme` | `null` | Replaces `{theme}` in `src` and `webp` |
-| `locale` | `null` | Replaces `{locale}` in `src` and `webp` |
+| `webp` | `null` | A WebP source, a URL or a map of densities, offered after the AVIF one |
+| `avif` | `null` | An AVIF source, a URL or a map of densities, offered first |
+| `srcset` | `null` | The densities of the fallback, as HTML writes them or a map |
+| `theme` | `null` | Replaces `{theme}` in every URL |
+| `locale` | `null` | Replaces `{locale}` in every URL |
 | `href` | `null` | A link around the logo |
 | `width`, `height` | `null` | The image's size, to reserve its space |
 | `loading` | `eager` | `eager` above the fold, `lazy` below |
+
+The `img` carries `isImage`, under the height of `isLogo`; a refused URL is left out as in `Picture`.
 
 ## AnimatedHeadline
 
@@ -92,7 +97,11 @@ inline style.
 | `alt` | required | What the image shows; empty for a decorative image |
 | `width`, `height` | required | The image's size: its space is reserved at its ratio before it loads |
 | `srcset` | `null` | The candidates as HTML writes them, or a map of densities (`2x`), or of widths with `sizes` (`480w`), to URLs |
-| `sizes` | `null` | Written with a `srcset`, after `auto,` while the image loads lazily |
+| `sizes` | `null` | Written with a `srcset`, after `auto,` while the image loads lazily; computed from the layout when null |
+| `layout` | `null` | `fixed`, at its width (maps read as densities); `constrained`, never wider than its width, `sizes` `(min-width: <width>px) <width>px, 100vw`; `full-width`, across its container, `sizes` `100vw`; none: the image shrinks with its container, `sizes` as given |
+| `aspect` | `null` | The ratio of its box: `16/9`, `4/3`, `3/2`, `1/1`, `21/9`, `3/4`, `2/3`, `9/16`, or `custom`, read from `--phil-image-ratio`, which a class of the site sets |
+| `fit` | `null` | `cover`, the default with a ratio, or `contain` |
+| `position` | `null` | Where it is cropped: `center`, `top`, `bottom`, `left` or `right` |
 | `priority` | `false` | The main image above the fold: `loading="eager"`, `fetchpriority="high"`, no `decoding` |
 | `loading` | `null` | `lazy` or `eager`, overriding `priority`; `lazy` when null without `priority` |
 | `decoding` | `null` | `async`, `sync` or `auto`, overriding `priority`; `async` when null without `priority` |
@@ -104,7 +113,13 @@ the `Image` alone when no source is left; in a `figure` with its `caption`.
 | Prop | Default | |
 |---|---|---|
 | The props of `Image` | | Carried by the fallback `img`; `sizes` also serves the sources that have none |
-| `sources` | `[]` | Each `{type, srcset, sizes, media}`, AVIF first: `type` an `image/*` type or left out, `srcset` as for `Image`, `media` for art direction |
+| `sources` | `[]` | Each `{type, srcset, sizes, media, width, height}`: `type` an `image/*` type or left out, `srcset` as for `Image`, `media` and the size of its crop for art direction |
+
+The sources are written in this order: those with a `media` query first, in the order of their first query, then those
+without; within each group, AVIF, then WebP, then the other types, then the sources without a type. A `media` holding
+`<`, `>`, `{`, `}` or `;` leaves its source out; a `width` or `height` that is not a positive integer is left out. The
+layout, the ratio, the fit and the crop are classes of phil-ux on the `img` (`hasLayoutFixed`, `hasLayoutFullWidth`,
+`hasRatio16x9`…, `hasFitCover`, `hasPositionTop`…), never an inline style.
 
 The other attributes go to the `img`, not to a root, and only `id`, `class` (added to `isImage`), `title`,
 `crossorigin`, `referrerpolicy`, `itemprop`, `draggable`, `data-*` and `aria-*`, written with `html_attr()` of

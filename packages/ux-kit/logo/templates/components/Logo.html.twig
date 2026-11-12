@@ -1,13 +1,18 @@
 {#-
- # A logo: an image with an optional WebP source, swapped by theme or locale, linked when it has an href.
+ # A logo: drawn through the Picture of the image recipe, with its AVIF and WebP sources and its densities, swapped by
+ # theme or locale, linked when it has an href.
  #}
 {%- props
-    ## string The image shown where WebP is not supported, PNG or SVG; "{theme}" and "{locale}" in it are replaced.
+    ## string The image shown where neither AVIF nor WebP is read, PNG or SVG; "{theme}" and "{locale}" in it are replaced.
     src,
     ## string The text alternative, the name the logo writes; an empty string only when that name is written next to it.
     alt,
-    ## string|null A WebP source, offered first; "{theme}" and "{locale}" in it are replaced.
+    ## string|array<int|string,string>|null A WebP source, offered after the AVIF one: a URL or a map of densities to URLs; "{theme}" and "{locale}" in it are replaced.
     webp = null,
+    ## string|array<int|string,string>|null An AVIF source, offered first: a URL or a map of densities to URLs; "{theme}" and "{locale}" in it are replaced.
+    avif = null,
+    ## string|array<int|string,string>|null The densities of the fallback image, as HTML writes them or a map of densities to URLs; "{theme}" and "{locale}" in them are replaced.
+    srcset = null,
     ## string|null The theme written in place of "{theme}", such as "default" or "dark".
     theme = null,
     ## string|null The locale written in place of "{locale}", such as "fr".
@@ -24,9 +29,11 @@
 {%- set _swap = {} -%}
 {%- if theme is not null %}{% set _swap = _swap|merge({'{theme}': theme}) %}{% endif -%}
 {%- if locale is not null %}{% set _swap = _swap|merge({'{locale}': locale}) %}{% endif -%}
+{%- set _urls = {avif: avif, webp: webp, srcset: srcset}|map(value => value is iterable ? value|map(url => url|replace(_swap)) : (value is null ? null : value|replace(_swap))) -%}
+{%- set _sources = [] -%}
+{%- if _urls.avif is not null %}{% set _sources = _sources|merge([{type: 'image/avif', srcset: _urls.avif}]) %}{% endif -%}
+{%- if _urls.webp is not null %}{% set _sources = _sources|merge([{type: 'image/webp', srcset: _urls.webp}]) %}{% endif -%}
 {%- set _tag = href is null ? 'span' : 'a' -%}
 <{{ _tag }}{% if href is not null %} href="{{ href }}"{% endif %}{{ attributes.defaults({class: 'isLogo'}) }}>
-    {%- if webp is not null -%}<picture><source type="image/webp" srcset="{{ webp|replace(_swap) }}">{%- endif -%}
-    <img src="{{ src|replace(_swap) }}" alt="{{ alt }}"{% if width is not null %} width="{{ width }}"{% endif %}{% if height is not null %} height="{{ height }}"{% endif %} loading="{{ loading }}" decoding="async">
-    {%- if webp is not null -%}</picture>{%- endif -%}
+    {{- component('Picture', {src: src|replace(_swap), alt: alt, width: width, height: height, srcset: _urls.srcset, sources: _sources, loading: loading}) -}}
 </{{ _tag }}>

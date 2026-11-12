@@ -212,6 +212,30 @@ animated words are meant to be `aria-hidden`, with the whole headline in an `isV
 that the `width` and `height` written on it reserve its space at its ratio before it loads without stretching it
 once the container is narrower.
 
+With it, on the same element, never in a `style` attribute:
+
+| Class | What it does |
+|---|---|
+| `hasLayoutFixed` | At its width whatever the container, `max-inline-size: none` |
+| `hasLayoutFullWidth` | Across the whole container, `inline-size: 100%` |
+| `hasRatio16x9`, `hasRatio4x3`, `hasRatio3x2`, `hasRatio1x1`, `hasRatio21x9`, `hasRatio3x4`, `hasRatio2x3`, `hasRatio9x16` | The ratio of its box |
+| `hasRatio` | The ratio of `--phil-image-ratio`, which a class of the site sets |
+| `hasFitCover`, `hasFitContain` | How the picture fills its box: cropped to cover it, or whole inside it |
+| `hasPositionCenter`, `hasPositionTop`, `hasPositionBottom`, `hasPositionLeft`, `hasPositionRight` | Where the picture is cropped |
+
+A ratio of its own comes from a class of the site's stylesheet, which a nonce-based Content Security Policy keeps,
+where an inline `style` would be dropped:
+
+```css
+.isHeroPhoto {
+    --phil-image-ratio: 5 / 2;
+}
+```
+
+```html
+<img class="isImage hasRatio hasFitCover isHeroPhoto" src="/hall.jpg" alt="The hall" width="1500" height="1000">
+```
+
 ## Reactions
 
 `isReaction`: one reaction, a target 2.75rem wide and tall whatever it holds, marked when its `aria-pressed` is true;

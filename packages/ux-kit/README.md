@@ -17,7 +17,7 @@ either kit, and adds recipes of its own. Their Tailwind versions, under the same
 
 | Recipe | Type | What it is | Status |
 |---|---|---|---|
-| [Logo](logo/README.md) | component | A picture with an optional WebP source, swapped by theme or locale, linked home; `alt` required | Implemented and tested |
+| [Logo](logo/README.md) | component | A `Picture` with its AVIF and WebP sources and its densities, swapped by theme or locale, linked home; `alt` required | Implemented and tested |
 | [AnimatedHeadline](animated-headline/README.md) | component | A headline whose words are revealed through a clip, played through once, or cycled with a pause button; still under reduced motion; read whole by screen readers | Implemented and tested |
 | [Illustration](illustration/README.md) | component | A figure showing one picture chosen among candidates on the server, by a seedable random | Implemented and tested |
 | [Image](image/README.md) | component | An image of the content, `Image` or `Picture` with its AVIF and WebP sources, by density or by width, under the prop names of Symfony UX Image; no service, no JavaScript, refused `javascript:` and `data:` URLs | Implemented and tested |

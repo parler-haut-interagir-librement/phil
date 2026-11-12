@@ -83,19 +83,59 @@ the laid-out width, and the others read the rest of the list.
 
 A source takes its own `sizes`, or that of the picture.
 
+### A layout
+
+`layout` says how the image fills its container, and computes `sizes` from `width` when none is given:
+`constrained` never grows wider than its width (`(min-width: 960px) 960px, 100vw`), `full-width` spans its container
+(`100vw`), `fixed` keeps its width and reads its maps as densities. Without a layout, the image shrinks with its
+container and `sizes` is as given.
+
+```twig
+<twig:Image
+    src="/images/hall.jpg"
+    :srcset="{480: '/images/hall-480.jpg', 960: '/images/hall-960.jpg'}"
+    layout="constrained"
+    alt="The main hall"
+    :width="960"
+    :height="640"
+/>
+```
+
+### A ratio, a fit and a crop
+
+`aspect` keeps the image's box to a ratio, `16/9`, `4/3`, `3/2`, `1/1`, `21/9`, `3/4`, `2/3` or `9/16`, the picture
+covering it by default; `fit="contain"` shows it whole, and `position` says where it is cropped. All are classes, never
+an inline style, so a strict Content Security Policy keeps them.
+
+```twig
+<twig:Image src="/images/team.jpg" aspect="1/1" position="top" alt="The team" :width="1200" :height="800" />
+```
+
+`aspect="custom"` reads `--phil-image-ratio`, set by a class of the site's stylesheet passed in `class`.
+
 ### Art direction
 
-A source with `media` is chosen only where its media query holds; its `type` may be left out.
+A source with `media` is chosen only where its media query holds: a tight crop on phones, a wide one elsewhere. The
+sources with a query come first, in the order of their first query, each group AVIF, then WebP, then the others; then
+the sources without a query. Each source takes the `width` and `height` of its crop, so that its space is reserved
+too.
 
 ```twig
 <twig:Picture
-    src="/images/crowd-narrow.jpg"
-    :sources="[{srcset: '/images/crowd-wide.jpg', media: '(min-width: 60rem)'}]"
+    src="/images/crowd-wide.jpg"
+    :sources="[
+        {type: 'image/avif', srcset: '/images/crowd-wide.avif'},
+        {type: 'image/avif', srcset: '/images/crowd-square.avif', media: '(max-width: 40rem)', width: 600, height: 600},
+        {type: 'image/webp', srcset: '/images/crowd-square.webp', media: '(max-width: 40rem)', width: 600, height: 600},
+    ]"
     alt="The crowd"
-    :width="600"
-    :height="800"
+    :width="1600"
+    :height="900"
 />
 ```
+
+A `media` holding `<`, `>`, `{`, `}` or `;` leaves its source out. A URL in a `srcset` holds no space, which would end
+it: write `%20`.
 
 ### The main image of the page
 

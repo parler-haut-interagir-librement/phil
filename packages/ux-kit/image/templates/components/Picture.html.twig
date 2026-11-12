@@ -1,7 +1,9 @@
 {#-
- # A picture: its sources in the order given, AVIF first, before the Image that holds the fallback, under the prop names
- # of Symfony UX Image, in a figure when it has a caption. The other attributes go to the img. A source of another type than image/*, without candidates or
- # holding a refused URL is left out; a refused src renders nothing.
+ # A picture: its sources before the Image that holds the fallback, under the prop names of Symfony UX Image, in a figure
+ # when it has a caption. The sources with a media query come first, in the order of their first media query, each
+ # group AVIF, then WebP, then the other types; a source of another type than image/*, without candidates, holding a
+ # refused URL or a media query of the wrong shape is left out; a refused src renders nothing. The other attributes go
+ # to the img.
  #}
 {%- props
     ## string The URL of the fallback image, for the browsers that read none of the sources.
@@ -12,12 +14,20 @@
     width,
     ## int The height of the image, so that its space is reserved at its ratio before it loads.
     height,
-    ## list<array{type?:string,srcset:string|array<int|string,string>,sizes?:string,media?:string}> The sources, each a type, its candidates as for srcset, its sizes and its media.
+    ## list<array{type?:string,srcset:string|array<int|string,string>,sizes?:string,media?:string,width?:int,height?:int}> The sources: a type, candidates as for srcset, sizes, a media query and the size of its crop.
     sources = [],
-    ## string|array<int|string,string>|null The candidates of the fallback as HTML writes them, or a map of densities, or of widths with sizes, to URLs.
+    ## string|array<int|string,string>|null The candidates as HTML writes them, or a map of densities, or of widths with sizes or a fluid layout, to URLs.
     srcset = null,
-    ## string|null The sizes of the fallback and of the sources that have none, preceded by "auto, " while the image loads lazily.
+    ## string|null The sizes of a srcset of widths, preceded by "auto, " while the image loads lazily; computed from the layout when null.
     sizes = null,
+    ## string|null How the image fills its container: "fixed", at its width; "constrained", never wider than its width; "full-width"; none by default.
+    layout = null,
+    ## string|null The ratio of its box, "16/9", "4/3", "3/2", "1/1", "21/9", "3/4", "2/3", "9/16", or "custom", read from a custom property a class sets.
+    aspect = null,
+    ## string|null How the image fills its box, "cover" or "contain": "cover" by default when it has a ratio.
+    fit = null,
+    ## string|null Where the image is cropped in its box: "center", "top", "bottom", "left" or "right".
+    position = null,
     ## bool Whether it is the main image above the fold: loaded eagerly and fetched first, its decoding left to the browser.
     priority = false,
     ## string|null How it loads, "lazy" or "eager": "lazy" by default, "eager" with priority.
@@ -31,25 +41,43 @@
 {%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
 {%- if src is not empty and not (src|replace(_controls) matches _refused) -%}
     {%- set _lazy = (loading in ['lazy', 'eager'] ? loading : (priority ? 'eager' : 'lazy')) is same as('lazy') -%}
+    {%- set _default = sizes is not empty ? sizes : {
+        constrained: width is empty ? null : '(min-width: ' ~ width ~ 'px) ' ~ width ~ 'px, 100vw',
+        'full-width': '100vw',
+    }[layout] ?? null -%}
+    {%- set _medias = [] -%}
+    {%- for source in sources -%}
+        {%- set _media = (source.media ?? '')|trim -%}
+        {%- if _media is not empty and _media not in _medias -%}{%- set _medias = _medias|merge([_media]) -%}{%- endif -%}
+    {%- endfor -%}
     {%- set _sources = [] -%}
     {%- for source in sources -%}
         {%- set _type = source.type ?? null -%}
-        {%- set _sizes = source.sizes ?? sizes -%}
+        {%- set _media = (source.media ?? '')|trim -%}
+        {%- set _sizes = source.sizes ?? _default -%}
         {%- set _set = source.srcset ?? null -%}
         {%- set _set = _set is iterable ? _set|map((url, key) => url ~ ' ' ~ key ~ (_sizes is empty ? 'x' : 'w'))|join(', ') : _set -%}
-        {%- if _set is not empty and not (_set|replace(_controls) matches _refused) and (_type is null or _type matches '#^image/[a-z0-9.+-]+$#') -%}
+        {%- if _set is not empty and not (_set|replace(_controls) matches _refused)
+            and (_type is null or _type matches '#^image/[a-z0-9.+-]+$#')
+            and (_media is empty or _media matches '#^[^<>{};]+$#') -%}
             {%- set _sources = _sources|merge([{
-                type: _type,
-                srcset: _set,
-                sizes: _sizes is empty ? null : (_lazy and not (_sizes|lower starts with 'auto') ? 'auto, ' ~ _sizes : _sizes),
-                media: source.media ?? null,
+                order: (_media is empty ? 999 : _medias|keys|filter(index => _medias[index] is same as(_media))|first) * 10 + ({'image/avif': 0, 'image/webp': 1}[_type] ?? (_type is null ? 3 : 2)),
+                attributes: {
+                    type: _type,
+                    srcset: _set,
+                    sizes: _sizes is empty ? null : (_lazy and not (_sizes|lower starts with 'auto') ? 'auto, ' ~ _sizes : _sizes),
+                    media: _media is empty ? null : _media,
+                    width: (source.width ?? null) matches '#^[1-9][0-9]*$#' ? source.width : null,
+                    height: (source.height ?? null) matches '#^[1-9][0-9]*$#' ? source.height : null,
+                },
             }]) -%}
         {%- endif -%}
     {%- endfor -%}
+    {%- set _sources = _sources|sort((a, b) => a.order - b.order) -%}
     {%- if caption is not empty -%}<figure>{%- endif -%}
     {%- if _sources is not empty -%}<picture>{%- endif -%}
-    {%- for source in _sources -%}<source {{ html_attr(source) }}>{%- endfor -%}
-    <twig:Image :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :priority="priority" :loading="loading" :decoding="decoding" {{ ...attributes.all }} />
+    {%- for source in _sources -%}<source {{ html_attr(source.attributes) }}>{%- endfor -%}
+    <twig:Image :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :layout="layout" :aspect="aspect" :fit="fit" :position="position" :priority="priority" :loading="loading" :decoding="decoding" {{ ...attributes.all }} />
     {%- if _sources is not empty -%}</picture>{%- endif -%}
     {%- if caption is not empty -%}<figcaption>{{ caption }}</figcaption></figure>{%- endif -%}
 {%- endif -%}

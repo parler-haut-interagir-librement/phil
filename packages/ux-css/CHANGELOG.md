@@ -4,16 +4,25 @@ All notable changes to `phil/ux-css` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## 0.1.2-alpha - 2026-11-11
+## 0.2.0-alpha - 2026-11-11
 
 ### Added
 
 - `css/layers/components.css`: `isImage`, an image of the content as a block, never wider than its container, its
   height following its width, for the `Image` and `Picture` components of the PHIL UX kit.
+- With `isImage`: the layouts `hasLayoutFixed` and `hasLayoutFullWidth`; the ratios `hasRatio16x9`, `hasRatio4x3`,
+  `hasRatio3x2`, `hasRatio1x1`, `hasRatio21x9`, `hasRatio3x4`, `hasRatio2x3`, `hasRatio9x16`, and `hasRatio`, which
+  reads `--phil-image-ratio` set by a class of the site, never by an inline style; the fits `hasFitCover` and
+  `hasFitContain`; the crops `hasPositionCenter`, `hasPositionTop`, `hasPositionBottom`, `hasPositionLeft` and
+  `hasPositionRight`.
+
+### Changed
+
+- The branch alias of `dev-main` is `0.2.x-dev`; `package.json` is at `0.2.0`.
 
 ## 0.1.1-alpha - 2026-11-11
 
-Published by mistake with the content of 0.1.0-alpha; use 0.1.2-alpha.
+Published by mistake with the content of 0.1.0-alpha; use 0.2.0-alpha.
 
 ## 0.1.0-alpha - 2026-11-11
 

@@ -4,7 +4,7 @@ All notable changes to `phil/ux-kit` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## 0.1.2-alpha - 2026-11-11
+## 0.2.0-alpha - 2026-11-11
 
 ### Added
 
@@ -18,10 +18,27 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   `itemprop`, `draggable`, `data-*` and `aria-*`, written with `html_attr()` of `twig/html-extra`, which the recipe
   requires with `twig/extra-bundle`; a `javascript:`, `vbscript:` or `data:` URL other than `data:image/` refused, a
   refused `src` rendering nothing, a refused `srcset` or source left out whole.
+- On `Image` and `Picture`: `layout`, `fixed`, `constrained` or `full-width`, which computes `sizes` from `width` when
+  none is given (`(min-width: <width>px) <width>px, 100vw` constrained, `100vw` full width; a fixed layout reads its
+  maps as densities) and writes `hasLayoutFixed` or `hasLayoutFullWidth`; `aspect` (`16/9`, `4/3`, `3/2`, `1/1`, `21/9`,
+  `3/4`, `2/3`, `9/16`, or `custom`, read from `--phil-image-ratio`), `fit` (`cover` by default with a ratio, or
+  `contain`) and `position` (`center`, `top`, `bottom`, `left`, `right`), written as classes of phil-ux, never as an
+  inline style.
+- Art direction on `Picture`: the sources with a `media` query come first, in the order of their first query, each group
+  AVIF, then WebP, then the other types, then the sources without a query; each source takes the `width` and `height` of
+  its crop; a query holding `<`, `>`, `{`, `}` or `;` leaves its source out, a size that is not a positive integer is
+  left out.
+
+### Changed
+
+- `Logo` renders through the `Picture` of the `image` recipe, on which it now depends: its `img` carries `isImage`, a
+  refused URL is left out as in `Picture`; `webp` also takes a map of densities, and the new `avif` and `srcset` props
+  add an AVIF source offered first and the densities of the fallback, `{theme}` and `{locale}` replaced in each.
+- `manifest.json` requires `phil/ux-css:^0.2@dev`; the branch alias of `dev-main` is `0.2.x-dev`.
 
 ## 0.1.1-alpha - 2026-11-11
 
-Published by mistake with the content of 0.1.0-alpha; use 0.1.2-alpha.
+Published by mistake with the content of 0.1.0-alpha; use 0.2.0-alpha.
 
 ## 0.1.0-alpha - 2026-11-11
 

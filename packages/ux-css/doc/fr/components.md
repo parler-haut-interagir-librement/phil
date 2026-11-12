@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=94cf63edc27790f7f87de271c0aae802fe589c7da3c825c954919fe6c100b14d -->
+<!-- phil-dev source-sha256=138c640a3138f1ed221d694386f570a73b30c3e1a01f8717b7932ac78cc930ca -->
 # Composants
 
 Ce que la base sans classe ne peut pas deviner, dans la couche `phil.components`, et les utilitaires, en tout dernier.
@@ -221,6 +221,30 @@ transition. Les mots animés sont faits pour être `aria-hidden`, le titre entie
 `isImage` : une image du contenu en bloc, jamais plus large que son conteneur, sa hauteur suivant sa largeur, pour que
 les `width` et `height` écrits sur elle réservent sa place à son rapport avant qu'elle se charge, sans l'étirer quand
 le conteneur est plus étroit.
+
+Avec elle, sur le même élément, jamais dans un attribut `style` :
+
+| Classe | Ce qu'elle fait |
+|---|---|
+| `hasLayoutFixed` | À sa largeur quel que soit le conteneur, `max-inline-size: none` |
+| `hasLayoutFullWidth` | Sur toute la largeur du conteneur, `inline-size: 100%` |
+| `hasRatio16x9`, `hasRatio4x3`, `hasRatio3x2`, `hasRatio1x1`, `hasRatio21x9`, `hasRatio3x4`, `hasRatio2x3`, `hasRatio9x16` | Le rapport de sa boîte |
+| `hasRatio` | Le rapport de `--phil-image-ratio`, qu'une classe du site pose |
+| `hasFitCover`, `hasFitContain` | Comment l'image remplit sa boîte : rognée pour la couvrir, ou entière dedans |
+| `hasPositionCenter`, `hasPositionTop`, `hasPositionBottom`, `hasPositionLeft`, `hasPositionRight` | Où l'image est rognée |
+
+Un rapport propre vient d'une classe de la feuille du site, qu'une politique de sécurité du contenu à nonce garde, là où
+un `style` en ligne serait retiré :
+
+```css
+.isHeroPhoto {
+    --phil-image-ratio: 5 / 2;
+}
+```
+
+```html
+<img class="isImage hasRatio hasFitCover isHeroPhoto" src="/hall.jpg" alt="The hall" width="1500" height="1000">
+```
 
 ## Réactions
 

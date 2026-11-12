@@ -14,7 +14,7 @@ final class ComingSoonTest extends KitTestCase
         self::assertSame(
             '<div class="isSplit isFullHeight">'
             .'<div class="isCover">'
-            .'<header><a href="/" class="isLogo"><picture><source type="image/webp" srcset="/logo-fr.webp"><img src="/logo-fr.png" alt="Studio" loading="eager" decoding="async"></picture></a></header>'
+            .'<header><a href="/" class="isLogo"><picture><source type="image/webp" srcset="/logo-fr.webp"><img class="isImage" src="/logo-fr.png" alt="Studio" loading="eager" decoding="async"></picture></a></header>'
             .'<main class="isCoverBody"><div class="isNarrow">'
             .'<hgroup><p class="isEyebrow">Bientôt</p>'
             .'<h1 data-animated-headline-pause-value="2500" data-animated-headline-duration-value="600" data-animated-headline-loop-value="false" class="isHeadline" data-controller="animated-headline">'

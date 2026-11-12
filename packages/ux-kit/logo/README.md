@@ -1,6 +1,7 @@
 # Logo
 
-A logo: an image, with a WebP source offered first when there is one, linked to the home page when it has an `href`.
+A logo: a `Picture` of the `image` recipe, with an AVIF source then a WebP one when it has them, each a URL or a map
+of densities, linked to the home page when it has an `href`.
 `{theme}` and `{locale}` in its sources are replaced, so one line serves the logo of every theme and language.
 
 ```twig {"preview":true}
@@ -18,6 +19,20 @@ A logo: an image, with a WebP source offered first when there is one, linked to 
 ```
 
 ## Examples
+
+### By density
+
+```twig
+<twig:Logo
+    src="/images/1x/logo.png"
+    :srcset="{1: '/images/1x/logo.png', 2: '/images/2x/logo.png'}"
+    :avif="{1: '/images/1x/logo.avif', 2: '/images/2x/logo.avif'}"
+    :webp="{1: '/images/1x/logo.webp', 2: '/images/2x/logo.webp'}"
+    alt="Studio"
+    :width="160"
+    :height="40"
+/>
+```
 
 ### By theme
 

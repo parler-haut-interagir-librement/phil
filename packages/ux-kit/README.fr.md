@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2073484c0451fed747f26d568dfc002ceee463f20e8141d538ccffacde1d5173 -->
+<!-- phil-dev source-sha256=f40aa77afe415e5c6228a6767278411504794ff3a779e49beab08d3aa238154f -->
 # phil/ux-kit
 
 **Le kit PHIL UX pour le Symfony UX Toolkit : les mêmes recettes que le kit Shadcn, habillées par phil-ux, installées
@@ -18,7 +18,7 @@ noms et props, sont le kit [`phil/ux-kit-shadcn`](https://github.com/parler-haut
 
 | Recette | Type | Ce que c'est | État |
 |---|---|---|---|
-| [Logo](logo/README.md) | composant | Une image avec une source WebP facultative, changée selon le thème ou la locale, avec un lien vers l'accueil ; `alt` requis | Implémenté et testé |
+| [Logo](logo/README.md) | composant | Une `Picture` avec ses sources AVIF et WebP et ses densités, changée selon le thème ou la locale, avec un lien vers l'accueil ; `alt` requis | Implémenté et testé |
 | [AnimatedHeadline](animated-headline/README.md) | composant | Un titre dont les mots se révèlent par un découpage, joué une fois ou en boucle avec un bouton de pause ; immobile sous le mouvement réduit ; lu en entier par les lecteurs d'écran | Implémenté et testé |
 | [Illustration](illustration/README.md) | composant | Une figure qui montre une image choisie parmi des candidates sur le serveur, par un tirage aléatoire à germe | Implémenté et testé |
 | [Image](image/README.md) | composant | Une image du contenu, `Image` ou `Picture` avec ses sources AVIF et WebP, par densité ou par largeur, sous les noms de props de Symfony UX Image ; aucun service, aucun JavaScript, les URL `javascript:` et `data:` refusées | Implémenté et testé |

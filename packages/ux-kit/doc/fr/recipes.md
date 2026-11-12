@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=77a157eea2e62f8d3d290ef172999fcff55e36493a76dae18ebb1cb914ccc4aa -->
+<!-- phil-dev source-sha256=73813f28f9e58e8511d2199b6945eb62c7eb4cf15941666e34ec98325dd52325 -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -6,18 +6,23 @@ composant prend aussi d'autres attributs, écrits sur son élément racine, une 
 
 ## Logo
 
-`<twig:Logo>` : un `span`, ou un `a` avec `href`, de classe `isLogo`, qui contient l'image.
+`<twig:Logo>` : un `span`, ou un `a` avec `href`, de classe `isLogo`, qui contient une `Picture` de la recette
+`image`, dont il dépend.
 
 | Prop | Par défaut | |
 |---|---|---|
-| `src` | requis | L'image là où WebP n'est pas pris en charge, PNG ou SVG |
+| `src` | requis | L'image là où ni l'AVIF ni le WebP n'est lu, PNG ou SVG |
 | `alt` | requis | Le nom qu'écrit le logo ; vide seulement quand le nom est écrit à côté |
-| `webp` | `null` | Une source WebP, offerte d'abord |
-| `theme` | `null` | Remplace `{theme}` dans `src` et `webp` |
-| `locale` | `null` | Remplace `{locale}` dans `src` et `webp` |
+| `webp` | `null` | Une source WebP, une URL ou un tableau de densités, offerte après l'AVIF |
+| `avif` | `null` | Une source AVIF, une URL ou un tableau de densités, offerte d'abord |
+| `srcset` | `null` | Les densités du repli, telles que HTML les écrit ou en tableau |
+| `theme` | `null` | Remplace `{theme}` dans chaque URL |
+| `locale` | `null` | Remplace `{locale}` dans chaque URL |
 | `href` | `null` | Un lien autour du logo |
 | `width`, `height` | `null` | La taille de l'image, pour réserver sa place |
 | `loading` | `eager` | `eager` au-dessus de la ligne de flottaison, `lazy` en dessous |
+
+L'`img` porte `isImage`, sous la hauteur d'`isLogo` ; une URL refusée est laissée de côté comme dans `Picture`.
 
 ## AnimatedHeadline
 
@@ -95,7 +100,11 @@ JavaScript, aucun style en ligne.
 | `alt` | requis | Ce que l'image montre ; vide pour une image décorative |
 | `width`, `height` | requis | La taille de l'image : sa place est réservée à son rapport avant qu'elle se charge |
 | `srcset` | `null` | Les candidates telles que HTML les écrit, ou un tableau de densités (`2x`), ou de largeurs avec `sizes` (`480w`), vers des URL |
-| `sizes` | `null` | Écrit avec un `srcset`, après `auto,` tant que l'image se charge en différé |
+| `sizes` | `null` | Écrit avec un `srcset`, après `auto,` tant que l'image se charge en différé ; calculé d'après la disposition quand il est nul |
+| `layout` | `null` | `fixed`, à sa largeur (tableaux lus comme densités) ; `constrained`, jamais plus large que sa largeur, `sizes` `(min-width: <width>px) <width>px, 100vw` ; `full-width`, sur toute la largeur de son conteneur, `sizes` `100vw` ; aucune : l'image rétrécit avec son conteneur, `sizes` tel que donné |
+| `aspect` | `null` | Le rapport de sa boîte : `16/9`, `4/3`, `3/2`, `1/1`, `21/9`, `3/4`, `2/3`, `9/16`, ou `custom`, lu dans `--phil-image-ratio`, qu'une classe du site pose |
+| `fit` | `null` | `cover`, par défaut avec un rapport, ou `contain` |
+| `position` | `null` | Où elle est rognée : `center`, `top`, `bottom`, `left` ou `right` |
 | `priority` | `false` | L'image principale au-dessus de la ligne de flottaison : `loading="eager"`, `fetchpriority="high"`, aucun `decoding` |
 | `loading` | `null` | `lazy` ou `eager`, qui l'emporte sur `priority` ; `lazy` quand il est nul sans `priority` |
 | `decoding` | `null` | `async`, `sync` ou `auto`, qui l'emporte sur `priority` ; `async` quand il est nul sans `priority` |
@@ -107,7 +116,14 @@ repli ; l'`Image` seule quand il ne reste aucune source ; dans une `figure` avec
 | Prop | Par défaut | |
 |---|---|---|
 | Les props d'`Image` | | Portées par l'`img` de repli ; `sizes` sert aussi les sources qui n'en ont pas |
-| `sources` | `[]` | Chacune `{type, srcset, sizes, media}`, l'AVIF d'abord : `type` un type `image/*` ou absent, `srcset` comme pour `Image`, `media` pour la direction artistique |
+| `sources` | `[]` | Chacune `{type, srcset, sizes, media, width, height}` : `type` un type `image/*` ou absent, `srcset` comme pour `Image`, `media` et la taille de son recadrage pour la direction artistique |
+
+Les sources sont écrites dans cet ordre : celles qui ont une requête `media` d'abord, dans l'ordre de leur première
+requête, puis les autres ; dans chaque groupe, l'AVIF, puis le WebP, puis les autres types, puis les sources sans type.
+Un `media` qui contient `<`, `>`, `{`, `}` ou `;` laisse sa source de côté ; un `width` ou un `height` qui n'est pas un
+entier positif est laissé de côté. La disposition, le rapport, l'ajustement et le recadrage sont des classes de phil-ux
+sur l'`img` (`hasLayoutFixed`, `hasLayoutFullWidth`, `hasRatio16x9`…, `hasFitCover`, `hasPositionTop`…), jamais un style
+en ligne.
 
 Les autres attributs vont à l'`img`, pas à une racine, et seulement `id`, `class` (ajoutée à `isImage`), `title`,
 `crossorigin`, `referrerpolicy`, `itemprop`, `draggable`, `data-*` et `aria-*`, écrits avec `html_attr()` de

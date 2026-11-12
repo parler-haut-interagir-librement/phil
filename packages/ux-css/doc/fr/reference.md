@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f6577f7d6f244914ebf7bb6c513497710cf770f810f8f80e1125da11f97b9659 -->
+<!-- phil-dev source-sha256=8f92a183c5ad4b897a31b6192606dc1193c8a8b34dd395cd052ca0a9806b04a2 -->
 # Référence
 
 ## Fichiers
@@ -33,7 +33,7 @@
 | Formulaires | `isField` `isHorizontal` `isResponsive` `isFieldSet` `isToggle` `isToggleInput` `isToggleGroup` `isRadioGroup` `isLoginForm` `isSignupForm` |
 | Listes et boîtes | `isItem` `isItemGroup` `isScrollArea` `isAspectRatio` `isCollapsible` `isKbdGroup` |
 | Graphiques | `isChart` `isChartImage` `isChartSeries` `isChartBar` `isChartLine` `isChartLegend` `isChartTable` `hasChartJs` `isChartCanvas` |
-| Affichage | `isEyebrow` `isHeadline` `isReveal` `isRevealToggle` `isLogo` `isImage` `isProse` `isReaction` `isReactionPicker` `isReactionPickerPanel` |
+| Affichage | `isEyebrow` `isHeadline` `isReveal` `isRevealToggle` `isLogo` `isImage` `hasLayoutFixed` `hasLayoutFullWidth` `hasRatio` `hasRatio16x9` `hasRatio4x3` `hasRatio3x2` `hasRatio1x1` `hasRatio21x9` `hasRatio3x4` `hasRatio2x3` `hasRatio9x16` `hasFitCover` `hasFitContain` `hasPositionCenter` `hasPositionTop` `hasPositionBottom` `hasPositionLeft` `hasPositionRight` `isProse` `isReaction` `isReactionPicker` `isReactionPickerPanel` |
 | Mise en page | `isStack` `isCluster` `isGrid` `isCenter` `isNarrow` `isSplit` `isFullHeight` `isCover` `isCoverBody` `isBleed` `hasEntrance` |
 | Utilitaires | `isVisuallyHidden` `isSkipLink` `isMuted` `isGrow` |
 

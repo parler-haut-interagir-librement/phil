@@ -284,11 +284,133 @@ final class ImageTest extends KitTestCase
         self::assertSame('', $this->render('<twig:Picture src="javascript:x" alt="A" :width="8" :height="6" caption="C" />'), 'a refused src writes no figure');
     }
 
+    public function testAConstrainedLayoutSizesItsWidthMap(): void
+    {
+        self::assertSame(
+            '<img class="isImage" src="/a.jpg" srcset="/a-480.jpg 480w, /a-960.jpg 960w" sizes="auto, (min-width: 960px) 960px, 100vw" alt="A" width="960" height="640" loading="lazy" decoding="async">',
+            $this->render('<twig:Image src="/a.jpg" :srcset="{480: \'/a-480.jpg\', 960: \'/a-960.jpg\'}" layout="constrained" alt="A" :width="960" :height="640" />'),
+        );
+        self::assertSame(
+            '<img class="isImage" src="/a.jpg" srcset="/a-480.jpg 480w" sizes="50vw" alt="A" width="960" height="640" loading="eager" fetchpriority="high">',
+            $this->render('<twig:Image src="/a.jpg" srcset="/a-480.jpg 480w" sizes="50vw" layout="constrained" alt="A" :width="960" :height="640" :priority="true" />'),
+            'a sizes given wins over the layout',
+        );
+    }
+
+    public function testAFullWidthLayoutFillsItsContainer(): void
+    {
+        self::assertSame(
+            '<img class="isImage hasLayoutFullWidth" src="/a.jpg" srcset="/a-960.jpg 960w, /a-1920.jpg 1920w" sizes="auto, 100vw" alt="A" width="1920" height="1080" loading="lazy" decoding="async">',
+            $this->render('<twig:Image src="/a.jpg" :srcset="{960: \'/a-960.jpg\', 1920: \'/a-1920.jpg\'}" layout="full-width" alt="A" :width="1920" :height="1080" />'),
+        );
+    }
+
+    public function testAFixedLayoutKeepsItsSizeAndReadsDensities(): void
+    {
+        self::assertSame(
+            '<img class="isImage hasLayoutFixed" src="/a.png" srcset="/a.png 1x, /a@2x.png 2x" alt="A" width="96" height="96" loading="lazy" decoding="async">',
+            $this->render('<twig:Image src="/a.png" :srcset="{1: \'/a.png\', 2: \'/a@2x.png\'}" layout="fixed" alt="A" :width="96" :height="96" />'),
+        );
+        self::assertSame(
+            '<img class="isImage" src="/a.png" alt="A" width="96" height="96" loading="lazy" decoding="async">',
+            $this->render('<twig:Image src="/a.png" layout="stretched" alt="A" :width="96" :height="96" />'),
+            'an unknown layout is left out',
+        );
+    }
+
+    public function testAnAspectRatioCoversByDefault(): void
+    {
+        self::assertSame(
+            '<img class="isImage hasRatio16x9 hasFitCover" src="/a.jpg" alt="A" width="800" height="600" loading="lazy" decoding="async">',
+            $this->render('<twig:Image src="/a.jpg" aspect="16/9" alt="A" :width="800" :height="600" />'),
+        );
+        self::assertSame(
+            '<img class="isImage hasRatio1x1 hasFitContain hasPositionTop rounded" src="/a.jpg" alt="A" width="800" height="600" loading="lazy" decoding="async">',
+            $this->render('<twig:Image src="/a.jpg" aspect="1 / 1" fit="contain" position="top" class="rounded" alt="A" :width="800" :height="600" />'),
+        );
+        self::assertSame(
+            '<img class="isImage hasRatio hasFitCover hero" src="/a.jpg" alt="A" width="800" height="600" loading="lazy" decoding="async">',
+            $this->render('<twig:Image src="/a.jpg" aspect="custom" class="hero" alt="A" :width="800" :height="600" />'),
+            'a custom ratio read from --phil-image-ratio, set by a class of the site',
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function ratios(): iterable
+    {
+        yield '16/9' => ['16/9', 'hasRatio16x9'];
+        yield '4/3' => ['4/3', 'hasRatio4x3'];
+        yield '3/2' => ['3/2', 'hasRatio3x2'];
+        yield '1/1' => ['1/1', 'hasRatio1x1'];
+        yield '21/9' => ['21/9', 'hasRatio21x9'];
+        yield '3/4' => ['3/4', 'hasRatio3x4'];
+        yield '2/3' => ['2/3', 'hasRatio2x3'];
+        yield '9/16' => ['9/16', 'hasRatio9x16'];
+    }
+
+    #[DataProvider('ratios')]
+    public function testEachRatioHasItsClass(string $aspect, string $class): void
+    {
+        self::assertStringStartsWith('<img class="isImage '.$class.' hasFitCover"', $this->render('<twig:Image src="/a.jpg" :aspect="aspect" alt="A" :width="1" :height="1" />', ['aspect' => $aspect]));
+    }
+
+    public function testFitAndPositionWithoutRatioAndUnknownValues(): void
+    {
+        self::assertSame(
+            '<img class="isImage hasFitCover hasPositionBottom" src="/a.jpg" alt="A" width="1" height="1" loading="lazy" decoding="async">',
+            $this->render('<twig:Image src="/a.jpg" fit="cover" position="bottom" alt="A" :width="1" :height="1" />'),
+        );
+        self::assertSame(
+            '<img class="isImage" src="/a.jpg" alt="A" width="1" height="1" loading="lazy" decoding="async">',
+            $this->render('<twig:Image src="/a.jpg" aspect="5/4" fit="fill" position="middle" alt="A" :width="1" :height="1" />'),
+        );
+    }
+
+    public function testAPictureCarriesTheLayoutAndTheRatioToItsImageAndSources(): void
+    {
+        self::assertSame(
+            '<picture><source type="image/avif" srcset="/a-480.avif 480w, /a-960.avif 960w" sizes="auto, (min-width: 960px) 960px, 100vw"><img class="isImage hasRatio4x3 hasFitCover hasPositionLeft" src="/a.jpg" alt="A" width="960" height="720" loading="lazy" decoding="async"></picture>',
+            $this->render('<twig:Picture src="/a.jpg" :sources="[{type: \'image/avif\', srcset: {480: \'/a-480.avif\', 960: \'/a-960.avif\'}}]" layout="constrained" aspect="4/3" position="left" alt="A" :width="960" :height="720" />'),
+        );
+    }
+
+    public function testArtDirectionPutsTheMediaSourcesFirstEachInItsTypeOrder(): void
+    {
+        self::assertSame(
+            '<picture>'
+            .'<source type="image/avif" srcset="/narrow.avif" media="(max-width: 40rem)" width="400" height="400">'
+            .'<source type="image/webp" srcset="/narrow.webp" media="(max-width: 40rem)" width="400" height="400">'
+            .'<source type="image/avif" srcset="/medium.avif" media="(max-width: 64rem)">'
+            .'<source type="image/avif" srcset="/wide.avif">'
+            .'<source type="image/webp" srcset="/wide.webp">'
+            .'<source srcset="/wide.jxl">'
+            .'<img class="isImage" src="/wide.jpg" alt="A" width="1600" height="900" loading="lazy" decoding="async"></picture>',
+            $this->render('<twig:Picture src="/wide.jpg" :sources="[
+                {srcset: \'/wide.jxl\'},
+                {type: \'image/webp\', srcset: \'/wide.webp\'},
+                {type: \'image/webp\', srcset: \'/narrow.webp\', media: \'(max-width: 40rem)\', width: 400, height: 400},
+                {type: \'image/avif\', srcset: \'/wide.avif\'},
+                {type: \'image/avif\', srcset: \'/narrow.avif\', media: \'(max-width: 40rem)\', width: 400, height: 400},
+                {type: \'image/avif\', srcset: \'/medium.avif\', media: \'(max-width: 64rem)\'},
+            ]" alt="A" :width="1600" :height="900" />'),
+        );
+    }
+
+    public function testAMediaOfTheWrongShapeLeavesItsSourceOutAndASizeOfTheWrongShapeIsDropped(): void
+    {
+        self::assertSame(
+            '<picture><source type="image/webp" srcset="/b.webp" media="(min-width: 40rem)"><source type="image/webp" srcset="/c.webp"><img class="isImage" src="/a.png" alt="A" width="1" height="1" loading="lazy" decoding="async"></picture>',
+            $this->render('<twig:Picture src="/a.png" :sources="[{type: \'image/webp\', srcset: \'/a.webp\', media: \'screen{}<x>\'}, {type: \'image/webp\', srcset: \'/b.webp\', media: \'(min-width: 40rem)\', width: \'wide\', height: -3}, {type: \'image/webp\', srcset: \'/c.webp\', media: \'\'}]" alt="A" :width="1" :height="1" />'),
+        );
+    }
+
     public function testAPictureEscapesItsSources(): void
     {
         self::assertSame(
-            '<picture><source type="image/webp" srcset="/a.webp?&quot;&gt;" media="&quot;&gt;&lt;x&gt;"><img class="isImage" src="/a.png" alt="A" width="1" height="1" loading="lazy" decoding="async"></picture>',
-            $this->render('<twig:Picture src="/a.png" :sources="[{type: \'image/webp\', srcset: srcset, media: media}]" alt="A" :width="1" :height="1" />', ['srcset' => '/a.webp?">', 'media' => '"><x>']),
+            '<picture><source type="image/webp" srcset="/a.webp?&quot;&gt;" media="(min-width: 1px) and &quot;x&quot; &amp; y"><img class="isImage" src="/a.png" alt="A" width="1" height="1" loading="lazy" decoding="async"></picture>',
+            $this->render('<twig:Picture src="/a.png" :sources="[{type: \'image/webp\', srcset: srcset, media: media}]" alt="A" :width="1" :height="1" />', ['srcset' => '/a.webp?">', 'media' => '(min-width: 1px) and "x" & y']),
         );
     }
 }

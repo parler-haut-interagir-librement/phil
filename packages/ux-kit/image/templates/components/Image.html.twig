@@ -1,7 +1,7 @@
 {#-
- # An image: one img, in a figure when it has a caption, under the prop names of Symfony UX Image, without a service, a script or an inline style. A
- # javascript:, vbscript: or data: URL other than data:image/ is refused: a refused src renders nothing, a refused
- # srcset is left out whole.
+ # An image: one img, in a figure when it has a caption, under the prop names of Symfony UX Image, without a service, a
+ # script or an inline style; its layout, ratio, fit and crop written as classes. A javascript:, vbscript: or data: URL
+ # other than data:image/ is refused: a refused src renders nothing, a refused srcset is left out whole.
  #}
 {%- props
     ## string The URL of the image.
@@ -12,10 +12,18 @@
     width,
     ## int The height of the image, so that its space is reserved at its ratio before it loads.
     height,
-    ## string|array<int|string,string>|null The candidates as HTML writes them, or a map of densities, or of widths with sizes, to URLs.
+    ## string|array<int|string,string>|null The candidates as HTML writes them, or a map of densities, or of widths with sizes or a fluid layout, to URLs.
     srcset = null,
-    ## string|null The sizes of a srcset of widths, preceded by "auto, " while the image loads lazily.
+    ## string|null The sizes of a srcset of widths, preceded by "auto, " while the image loads lazily; computed from the layout when null.
     sizes = null,
+    ## string|null How the image fills its container: "fixed", at its width; "constrained", never wider than its width; "full-width"; none by default.
+    layout = null,
+    ## string|null The ratio of its box, "16/9", "4/3", "3/2", "1/1", "21/9", "3/4", "2/3", "9/16", or "custom", read from a custom property a class sets.
+    aspect = null,
+    ## string|null How the image fills its box, "cover" or "contain": "cover" by default when it has a ratio.
+    fit = null,
+    ## string|null Where the image is cropped in its box: "center", "top", "bottom", "left" or "right".
+    position = null,
     ## bool Whether it is the main image above the fold: loaded eagerly and fetched first, its decoding left to the browser.
     priority = false,
     ## string|null How it loads, "lazy" or "eager": "lazy" by default, "eager" with priority.
@@ -29,15 +37,28 @@
 {%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
 {%- if src is not empty and not (src|replace(_controls) matches _refused) -%}
     {%- set _loading = loading in ['lazy', 'eager'] ? loading : (priority ? 'eager' : 'lazy') -%}
-    {%- set _srcset = srcset is iterable ? srcset|map((url, key) => url ~ ' ' ~ key ~ (sizes is empty ? 'x' : 'w'))|join(', ') : srcset -%}
+    {%- set _sizes = sizes is not empty ? sizes : {
+        constrained: width is empty ? null : '(min-width: ' ~ width ~ 'px) ' ~ width ~ 'px, 100vw',
+        'full-width': '100vw',
+    }[layout] ?? null -%}
+    {%- set _srcset = srcset is iterable ? srcset|map((url, key) => url ~ ' ' ~ key ~ (_sizes is empty ? 'x' : 'w'))|join(', ') : srcset -%}
     {%- set _srcset = _srcset is empty or _srcset|replace(_controls) matches _refused ? null : _srcset -%}
-    {%- set _sizes = _srcset is null or sizes is empty ? null : (_loading is same as('lazy') and not (sizes|lower starts with 'auto') ? 'auto, ' ~ sizes : sizes) -%}
+    {%- set _sizes = _srcset is null or _sizes is empty ? null : (_loading is same as('lazy') and not (_sizes|lower starts with 'auto') ? 'auto, ' ~ _sizes : _sizes) -%}
+    {%- set _ratio = {'16/9': 'hasRatio16x9', '4/3': 'hasRatio4x3', '3/2': 'hasRatio3x2', '1/1': 'hasRatio1x1', '21/9': 'hasRatio21x9', '3/4': 'hasRatio3x4', '2/3': 'hasRatio2x3', '9/16': 'hasRatio9x16', custom: 'hasRatio'}[aspect|default('')|replace({' ': ''})] ?? null -%}
+    {%- set _class = [
+        'isImage',
+        {fixed: 'hasLayoutFixed', 'full-width': 'hasLayoutFullWidth'}[layout] ?? null,
+        _ratio,
+        {cover: 'hasFitCover', contain: 'hasFitContain'}[fit ?? (_ratio is null ? '' : 'cover')] ?? null,
+        {center: 'hasPositionCenter', top: 'hasPositionTop', bottom: 'hasPositionBottom', left: 'hasPositionLeft', right: 'hasPositionRight'}[position] ?? null,
+        attributes.all.class ?? null,
+    ]|filter(name => name is not empty)|join(' ') -%}
     {%- set _allowed = alt is same as('')
         ? '#^(id|crossorigin|referrerpolicy|itemprop|draggable|data-[a-z0-9-]+)$#'
         : '#^(id|title|crossorigin|referrerpolicy|itemprop|draggable|(data|aria)-[a-z0-9-]+)$#' -%}
     {%- if caption is not empty -%}<figure>{%- endif -%}
     <img {{ html_attr({
-        class: ('isImage ' ~ (attributes.all.class ?? ''))|trim,
+        class: _class,
         src: src,
         srcset: _srcset,
         sizes: _sizes,

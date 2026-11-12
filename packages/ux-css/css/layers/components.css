@@ -170,6 +170,82 @@ summary.isReaction {
     block-size: auto;
 }
 
+/* Its layout: at its width whatever the container, or across the whole container; constrained by default, never wider
+   than its width. */
+.isImage.hasLayoutFixed {
+    max-inline-size: none;
+}
+
+.isImage.hasLayoutFullWidth {
+    inline-size: 100%;
+}
+
+/* The ratio of its box, the picture fitted into it; hasRatio reads --phil-image-ratio, which a class of the site sets. */
+.isImage.hasRatio16x9 {
+    aspect-ratio: 16 / 9;
+}
+
+.isImage.hasRatio4x3 {
+    aspect-ratio: 4 / 3;
+}
+
+.isImage.hasRatio3x2 {
+    aspect-ratio: 3 / 2;
+}
+
+.isImage.hasRatio1x1 {
+    aspect-ratio: 1;
+}
+
+.isImage.hasRatio21x9 {
+    aspect-ratio: 21 / 9;
+}
+
+.isImage.hasRatio3x4 {
+    aspect-ratio: 3 / 4;
+}
+
+.isImage.hasRatio2x3 {
+    aspect-ratio: 2 / 3;
+}
+
+.isImage.hasRatio9x16 {
+    aspect-ratio: 9 / 16;
+}
+
+.isImage.hasRatio {
+    aspect-ratio: var(--phil-image-ratio, auto);
+}
+
+/* How the picture fills its box, and where it is cropped. */
+.isImage.hasFitCover {
+    object-fit: cover;
+}
+
+.isImage.hasFitContain {
+    object-fit: contain;
+}
+
+.isImage.hasPositionCenter {
+    object-position: center;
+}
+
+.isImage.hasPositionTop {
+    object-position: top;
+}
+
+.isImage.hasPositionBottom {
+    object-position: bottom;
+}
+
+.isImage.hasPositionLeft {
+    object-position: left;
+}
+
+.isImage.hasPositionRight {
+    object-position: right;
+}
+
 /* Long text written by people: a readable measure, a steady rhythm between blocks, headings that breathe. */
 .isProse {
     max-inline-size: var(--phil-measure);

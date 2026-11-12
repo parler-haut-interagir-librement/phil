@@ -3,10 +3,10 @@
 | Area | What is covered |
 |---|---|
 | The kit | The kit's manifest and icon, every directory a recipe or left out of the archive, each recipe's manifest, type, name, README and copied files, the recipes it depends on, the controllers its templates name, every prop documented as the Toolkit asks |
-| `Logo` | An image alone, a WebP source with its fallback linked home, size and loading, the theme and the locale replaced, escaping, `alt` required |
+| `Logo` | Through `Picture`: an image alone, a WebP source with its fallback linked home, AVIF then WebP by density, size and loading, the theme and the locale replaced in every URL, escaping, a refused URL left out, `alt` required |
 | `AnimatedHeadline` | One word, one word with `loop` and no button, several with text around them, the pause button and its labels, the label and the separator, the level kept a heading, escaping |
 | `Illustration` | The seed choosing, negative seeds, every candidate drawn without a seed, one URL, sizes, a caption, no candidate |
-| `Image` and `Picture` | Lazy and asynchronous by default, `priority` and the choices that override it, unknown values falling back, the density and width maps, `sizes` after `auto,` while lazy, a decorative image leaving out `title` and `aria-*`, the caption and its `figure`, none for an empty caption, kept under a decorative image, the allowed attributes alone, escaping, `javascript:`, `vbscript:` and non-image `data:` URLs refused in every disguise, `data:image/` allowed, `src`, `alt`, `width` and `height` required; the sources in their order, by density, by width with art direction, sized automatically while lazy, a source of an unknown type or without candidates left out, the `Image` alone without sources |
+| `Image` and `Picture` | Lazy and asynchronous by default, `priority` and the choices that override it, unknown values falling back, the density and width maps, `sizes` after `auto,` while lazy, a decorative image leaving out `title` and `aria-*`, the caption and its `figure`, none for an empty caption, kept under a decorative image, the allowed attributes alone, escaping, `javascript:`, `vbscript:` and non-image `data:` URLs refused in every disguise, `data:image/` allowed, `src`, `alt`, `width` and `height` required; the sources in their order, by density, by width with art direction, sized automatically while lazy, a source of an unknown type or without candidates left out, the `Image` alone without sources; the layouts and the `sizes` they compute, each ratio, the fit and the crop, unknown values left out; art direction, the sources with a query first in their type order, a query or a size of the wrong shape |
 | `AutosaveStatus` | The live region, the hidden notice, its buttons with their targets, actions and default labels; the labels as props, escaped; a `class` added |
 | `ReactionButton` | Pressed or not, with an emoji or an image and its replacement text, the counter and its label, none at zero, plain text when it cannot be pressed, other attributes on the root |
 | `ReactionPicker` | The disclosure, the hidden search, the groups, each button with its attributes and the text searched, the attributes outside the allowed ones left out, escaping, the labels as props |
@@ -27,17 +27,15 @@ functional suite is skipped.
 
 ## In a browser
 
-`tests/Browser` drives every interactive recipe in a real Chrome with `symfony/panther`, against the stylesheet, in clear,
-in dark and right to left: `Accordion`, `AnimatedHeadline`, `Carousel`, `Dialog`, `Sheet`, `DropdownMenu` and its
-submenu, `Popover`, `Select`, `Tabs`, `Tooltip` and its arrow, `Switch`, `Tree`, `DatePicker`, `ColorPicker`, `NumberInput`,
-`FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `CopyButton`, `AlertDialog`, `Toggle`, `ToggleGroup`,
+`tests/Browser` drives every interactive recipe in a real Chrome with `symfony/panther`, against the stylesheet, in
+clear, in dark and right to left: `Accordion`, `AnimatedHeadline`, `Carousel`, `Dialog`, `Sheet`, `DropdownMenu` and its
+submenu, `Popover`, `Select`, `Tabs`, `Tooltip` and its arrow, `Switch`, `Tree`, `DatePicker`, `ColorPicker`,
+`NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `CopyButton`, `AlertDialog`, `Toggle`, `ToggleGroup`,
 `RadioGroup`, `ScrollArea`, the colours and dashes of the series of a `Chart`, a `Picture` shrunk to a phone at its
-ratio, and the recipes and blocks of the kit at
-the width of a phone. It
-checks what only a browser does: the top layer of the
-popover API and of `dialog`, the place on screen, the focus, Escape and the arrows, a click on the backdrop of a dialog
-and of an alert dialog.
-A last test checks that every part of a page holding all the recipes carries a class of the sheet.
+ratio and another choosing its crop by the width of the screen, an `Image` kept square, covered and cropped, and the
+recipes and blocks of the kit at the width of a phone. It checks what only a browser does: the top layer of the popover
+API and of `dialog`, the place on screen, the focus, Escape and the arrows, a click on the backdrop of a dialog and of
+an alert dialog. A last test checks that every part of a page holding all the recipes carries a class of the sheet.
 
 The suite is apart from `composer test`, in `phpunit.browser.dist.xml`, and runs at the end of a batch:
 

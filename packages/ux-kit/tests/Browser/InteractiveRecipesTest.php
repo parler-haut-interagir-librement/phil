@@ -512,6 +512,37 @@ final class InteractiveRecipesTest extends BrowserTestCase
         $this->browser()->manage()->window()->setSize(new WebDriverDimension(1280, 800));
     }
 
+    /**
+     * Art direction: the source of a phone's media query on a phone, the fallback on a wide screen, each at its own ratio.
+     */
+    public function testAPictureChoosesItsCropByTheWidthOfTheScreen(): void
+    {
+        $this->browser()->manage()->window()->setSize(new WebDriverDimension(375, 800));
+        $this->open('index.html');
+        $this->perform('document.querySelector("#directed").scrollIntoView()');
+        $this->waitUntil('document.querySelector("#directed").complete && document.querySelector("#directed").currentSrc');
+
+        self::assertSame([true, 1], $this->read('(() => { const image = document.querySelector("#directed"), box = image.getBoundingClientRect(); return [image.currentSrc.includes("navy"), Math.round(box.width / box.height)]; })()'));
+
+        $this->browser()->manage()->window()->setSize(new WebDriverDimension(1280, 800));
+        $this->open('index.html');
+        $this->perform('document.querySelector("#directed").scrollIntoView()');
+        $this->waitUntil('document.querySelector("#directed").complete && document.querySelector("#directed").currentSrc');
+
+        self::assertSame([true, 2], $this->read('(() => { const image = document.querySelector("#directed"), box = image.getBoundingClientRect(); return [image.currentSrc.includes("teal"), Math.round(box.width / box.height)]; })()'));
+    }
+
+    /**
+     * A ratio of its own: the box kept square whatever the picture, the picture covering it, cropped on its left.
+     */
+    #[DataProvider('modes')]
+    public function testAnImageKeepsItsRatioCoveredAndCropped(string $page): void
+    {
+        $this->open($page);
+
+        self::assertSame([200, 200, 'cover', '0% 50%'], $this->read('(() => { const image = document.querySelector("#square"), box = image.getBoundingClientRect(), style = getComputedStyle(image); return [Math.round(box.width), Math.round(box.height), style.objectFit, style.objectPosition]; })()'));
+    }
+
     public function testTheDarkThemeRepaintsThePanels(): void
     {
         $this->open('index.html');

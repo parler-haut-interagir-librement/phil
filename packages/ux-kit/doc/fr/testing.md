@@ -1,13 +1,13 @@
-<!-- phil-dev source-sha256=571f100ab063a278e8f0d2a4d20a6cced0734b3ae03ca98831a8933373f7079e -->
+<!-- phil-dev source-sha256=20c7adf8f814437a1c9f290defd7beae05b1cafd6f4dc9a17ca347de5012aa57 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
 |---|---|
 | Le kit | Le manifeste et l'icône du kit, chaque dossier une recette ou laissé hors de l'archive, le manifeste, le type, le nom, le README et les fichiers copiés de chaque recette, les recettes dont elle dépend, les contrôleurs que ses gabarits nomment, chaque prop documentée comme le demande le Toolkit |
-| `Logo` | Une image seule, une source WebP avec son repli et un lien vers l'accueil, la taille et le chargement, le thème et la locale remplacés, l'échappement, `alt` requis |
+| `Logo` | Par `Picture` : une image seule, une source WebP avec son repli et un lien vers l'accueil, l'AVIF puis le WebP par densité, la taille et le chargement, le thème et la locale remplacés dans chaque URL, l'échappement, une URL refusée laissée de côté, `alt` requis |
 | `AnimatedHeadline` | Un mot, un mot avec `loop` et sans bouton, plusieurs avec du texte autour, le bouton de pause et ses libellés, le libellé et le séparateur, le niveau gardé un titre, l'échappement |
 | `Illustration` | Le germe qui choisit, les germes négatifs, chaque candidate tirée sans germe, une URL, les tailles, une légende, aucune candidate |
-| `Image` et `Picture` | En différé et en asynchrone par défaut, `priority` et les choix qui l'emportent sur elle, les valeurs inconnues ramenées au défaut, les tableaux de densités et de largeurs, `sizes` après `auto,` en différé, une image décorative qui laisse de côté `title` et `aria-*`, la légende et sa `figure`, aucune pour une légende vide, gardée sous une image décorative, les attributs permis seuls, l'échappement, les URL `javascript:`, `vbscript:` et `data:` autres qu'images refusées sous tous leurs déguisements, `data:image/` permise, `src`, `alt`, `width` et `height` requis ; les sources dans leur ordre, par densité, par largeur avec direction artistique, dimensionnées automatiquement en différé, une source d'un type inconnu ou sans candidate laissée de côté, l'`Image` seule sans source |
+| `Image` et `Picture` | En différé et en asynchrone par défaut, `priority` et les choix qui l'emportent sur elle, les valeurs inconnues ramenées au défaut, les tableaux de densités et de largeurs, `sizes` après `auto,` en différé, une image décorative qui laisse de côté `title` et `aria-*`, la légende et sa `figure`, aucune pour une légende vide, gardée sous une image décorative, les attributs permis seuls, l'échappement, les URL `javascript:`, `vbscript:` et `data:` autres qu'images refusées sous tous leurs déguisements, `data:image/` permise, `src`, `alt`, `width` et `height` requis ; les sources dans leur ordre, par densité, par largeur avec direction artistique, dimensionnées automatiquement en différé, une source d'un type inconnu ou sans candidate laissée de côté, l'`Image` seule sans source ; les dispositions et le `sizes` qu'elles calculent, chaque rapport, l'ajustement et le recadrage, les valeurs inconnues laissées de côté ; la direction artistique, les sources à requête d'abord dans l'ordre de leurs types, une requête ou une taille de mauvaise forme |
 | `AutosaveStatus` | La région active, l'avis caché, ses boutons avec leurs cibles, leurs actions et leurs libellés par défaut ; les libellés en props, échappés ; une `class` ajoutée |
 | `ReactionButton` | Enfoncé ou non, avec un émoji ou une image et son texte de remplacement, le compteur et son libellé, aucun à zéro, du texte simple quand il ne peut pas être enfoncé, d'autres attributs sur la racine |
 | `ReactionPicker` | Le dévoilement, la recherche cachée, les groupes, chaque bouton avec ses attributs et le texte cherché, les attributs hors de ceux permis laissés de côté, l'échappement, les libellés en props |
@@ -33,11 +33,11 @@ style, en clair, en sombre et de droite à gauche : `Accordion`, `AnimatedHeadli
 `DropdownMenu` et son sous-menu, `Popover`, `Select`, `Tabs`, `Tooltip` et sa flèche, `Switch`, `Tree`, `DatePicker`,
 `ColorPicker`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `CopyButton`, `AlertDialog`, `Toggle`,
 `ToggleGroup`, `RadioGroup`, `ScrollArea`, les couleurs et les tirets des séries d'un `Chart`, une `Picture` réduite à
-un téléphone à son rapport, et les recettes et les
-blocs du kit à la largeur d'un téléphone. Elle vérifie ce que seul un navigateur fait : la couche supérieure de l'API
-popover et de `dialog`, la place à l'écran, le focus, Échap et les flèches, un clic sur l'arrière-plan d'un dialogue et
-d'un dialogue d'alerte. Un dernier test vérifie que chaque partie d'une page qui contient toutes les recettes porte une
-classe de la feuille.
+un téléphone à son rapport et une autre qui choisit son recadrage selon la largeur de l'écran, une `Image` gardée
+carrée, couverte et rognée, et les recettes et les blocs du kit à la largeur d'un téléphone. Elle vérifie ce que seul un
+navigateur fait : la couche supérieure de l'API popover et de `dialog`, la place à l'écran, le focus, Échap et les
+flèches, un clic sur l'arrière-plan d'un dialogue et d'un dialogue d'alerte. Un dernier test vérifie que chaque partie
+d'une page qui contient toutes les recettes porte une classe de la feuille.
 
 La suite est à part de `composer test`, dans `phpunit.browser.dist.xml`, et tourne à la fin d'un lot :
 
