@@ -59,9 +59,9 @@ final class RawHtmlAuthorshipTest extends WebTestCase
         $this->client->submit($crawler->selectButton('Publish')->form());
 
         $live = $this->contents()->live($news, 'fr');
-        self::assertStringNotContainsString('"type":"raw"', self::text($live['bodySource']));
-        self::assertStringNotContainsString('<img', self::text($live['bodyHtml']));
-        self::assertStringContainsString('&lt;div&gt;', self::text($live['bodyHtml']));
+        self::assertStringNotContainsString('"type":"raw"', $this->text($live['bodySource']));
+        self::assertStringNotContainsString('<img', $this->text($live['bodyHtml']));
+        self::assertStringContainsString('&lt;div&gt;', $this->text($live['bodyHtml']));
     }
 
     public function testTheRawHtmlOfAnAuthorWhoHoldsTheRightIsPublishedByAnyEditor(): void
@@ -77,8 +77,8 @@ final class RawHtmlAuthorshipTest extends WebTestCase
         $this->client->submit($crawler->selectButton('Publish')->form());
 
         $live = $this->contents()->live($news, 'fr');
-        self::assertStringContainsString('"type":"raw"', self::text($live['bodySource']));
-        self::assertStringContainsString('<img', self::text($live['bodyHtml']));
+        self::assertStringContainsString('"type":"raw"', $this->text($live['bodySource']));
+        self::assertStringContainsString('<img', $this->text($live['bodyHtml']));
     }
 
     /**
@@ -127,7 +127,7 @@ final class RawHtmlAuthorshipTest extends WebTestCase
         return $entityManager;
     }
 
-    private static function text(mixed $value): string
+    private function text(mixed $value): string
     {
         self::assertIsString($value);
 

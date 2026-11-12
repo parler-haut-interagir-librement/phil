@@ -66,7 +66,7 @@ final class RawHtmlAuthorshipTest extends TestCase
         self::assertIsString($live['bodySource']);
         self::assertStringNotContainsString(self::RAW_BLOCK, $live['bodySource']);
         self::assertStringContainsString(self::AS_TEXT, $live['bodySource']);
-        self::assertStringNotContainsString('<img', self::text($live['bodyHtml']));
+        self::assertStringNotContainsString('<img', $this->text($live['bodyHtml']));
         self::assertFalse($live['bodyRawHtml']);
     }
 
@@ -80,7 +80,7 @@ final class RawHtmlAuthorshipTest extends TestCase
         $this->contents->manager->publish($reference, 'fr');
 
         $live = $this->contents->manager->live($reference, 'fr');
-        self::assertStringContainsString(self::RAW_BLOCK, self::text($live['bodySource']));
+        self::assertStringContainsString(self::RAW_BLOCK, $this->text($live['bodySource']));
         self::assertTrue($live['bodyRawHtml']);
     }
 
@@ -96,12 +96,12 @@ final class RawHtmlAuthorshipTest extends TestCase
         $this->user->granted = false;
         $this->contents->manager->edit($reference, 'fr', ['excerptTitle' => 'Ouverture', 'bodySource' => self::RAW]);
         $this->contents->manager->publish($reference, 'fr');
-        self::assertStringContainsString(self::RAW_BLOCK, self::text($this->contents->manager->live($reference, 'fr')['bodySource']));
+        self::assertStringContainsString(self::RAW_BLOCK, $this->text($this->contents->manager->live($reference, 'fr')['bodySource']));
 
         $this->contents->manager->edit($reference, 'fr', ['bodySource' => self::RAW."\n\nFin."]);
         $this->user->granted = true;
         $this->contents->manager->publish($reference, 'fr');
-        self::assertStringContainsString(self::AS_TEXT, self::text($this->contents->manager->live($reference, 'fr')['bodySource']));
+        self::assertStringContainsString(self::AS_TEXT, $this->text($this->contents->manager->live($reference, 'fr')['bodySource']));
     }
 
     /**
@@ -243,7 +243,7 @@ final class RawHtmlAuthorshipTest extends TestCase
         return new WorkingCopies($this->copies, $this->contents->manager, $this->contents->transaction, $this->contents->clock, $this->contents->rawHtml);
     }
 
-    private static function text(mixed $value): string
+    private function text(mixed $value): string
     {
         self::assertIsString($value);
 
