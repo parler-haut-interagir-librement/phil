@@ -13,6 +13,11 @@ return [
     'paths' => ['src', 'tests'],
     'infection' => [
         'mutators' => [
+            // The answer is cancelled to free its connection before the refusal: MockHttpClient, which the tests use,
+            // answers the same with or without it, and the exception thrown next ends the read alike.
+            'MethodCallRemoval' => [
+                'ignoreSourceCodeByRegex' => ['.*\\$response->cancel\\(\\);.*'],
+            ],
             // A saved page is read one byte past the bound of the reader, which then refuses it: reading two bytes past
             // it is refused alike.
             'IncrementInteger' => [

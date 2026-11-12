@@ -130,7 +130,7 @@ final readonly class CalDav implements BusySource, CalendarDestination
         $document = new DOMDocument();
 
         // A document type is refused before the text is parsed, so that no entity it declares is ever expanded.
-        if ('' === trim($body) || false !== stripos($body, '<!DOCTYPE') || !$document->loadXML($body, \LIBXML_NONET | \LIBXML_NOERROR | \LIBXML_NOWARNING)) {
+        if ('' === $body || false !== stripos($body, '<!DOCTYPE') || !$document->loadXML($body, \LIBXML_NONET | \LIBXML_NOERROR | \LIBXML_NOWARNING)) {
             throw InvalidCalendarData::because('A CalDAV answer is an XML multistatus without a document type.');
         }
 

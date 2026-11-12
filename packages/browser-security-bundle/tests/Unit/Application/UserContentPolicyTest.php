@@ -83,6 +83,17 @@ final class UserContentPolicyTest extends TestCase
         self::assertSame('attachment;filename="cat.png"', $attachment->headers->get('Content-Disposition'));
     }
 
+    public function testTheTypeAndTheDispositionAreReadAroundTheirSpaces(): void
+    {
+        $response = new Response('', Response::HTTP_OK, ['Content-Type' => ' image/png ; charset=binary', 'Content-Disposition' => ' inline; filename="cat.png" ']);
+
+        new UserContentPolicy()->apply($response);
+
+        self::assertSame('inline; filename="cat.png"', $response->headers->get('Content-Disposition'));
+        self::assertTrue(new UserContentPolicy(inlineTypes: ['image/png'])->isInline('IMAGE/PNG'));
+        self::assertFalse(new UserContentPolicy(inlineTypes: ['image/png'])->isInline('image/gif'));
+    }
+
     public function testAGivenNameIsMadeSafe(): void
     {
         $policy = new UserContentPolicy();

@@ -34,10 +34,20 @@ return [
             // The depth of a request's JSON is a bound against a hostile file: a file one level deeper or shallower than
             // the bound is refused alike, for its shape.
             'IncrementInteger' => [
-                'ignoreSourceCodeByRegex' => ['\$values = json_decode\(\$json, true, 4, .*'],
+                'ignoreSourceCodeByRegex' => [
+                    '\$values = json_decode\(\$json, true, 4, .*',
+                    // The bounds of the random part of a temporary name: any other number names another file, renamed
+                    // over the request all the same.
+                    '.*\\$temporary = \\\\sprintf\\(\'%s\\.%08x\\.tmp\', \\$path, random_int\\(0, 0xFFFFFFFF\\)\\);.*',
+                ],
             ],
             'DecrementInteger' => [
-                'ignoreSourceCodeByRegex' => ['\$values = json_decode\(\$json, true, 4, .*'],
+                'ignoreSourceCodeByRegex' => [
+                    '\$values = json_decode\(\$json, true, 4, .*',
+                    // The bounds of the random part of a temporary name: any other number names another file, renamed
+                    // over the request all the same.
+                    '.*\\$temporary = \\\\sprintf\\(\'%s\\.%08x\\.tmp\', \\$path, random_int\\(0, 0xFFFFFFFF\\)\\);.*',
+                ],
             ],
         ],
     ],

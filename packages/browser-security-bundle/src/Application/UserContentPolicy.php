@@ -80,7 +80,7 @@ final readonly class UserContentPolicy
 
     private Policy $policy;
 
-    /** @var array<string, true> */
+    /** @var list<string> */
     private array $inline;
 
     /**
@@ -116,7 +116,7 @@ final readonly class UserContentPolicy
                 throw new InvalidPolicy(\sprintf('"%s" can run as a page or a script: it is always served as an attachment.', $type));
             }
 
-            $inline[$type] = true;
+            $inline[] = $type;
         }
 
         $this->inline = $inline;
@@ -155,7 +155,7 @@ final readonly class UserContentPolicy
      */
     public function isInline(string $mediaType): bool
     {
-        return isset($this->inline[strtolower($mediaType)]);
+        return \in_array(strtolower($mediaType), $this->inline, true);
     }
 
     /**
@@ -168,7 +168,8 @@ final readonly class UserContentPolicy
 
     private function mediaType(?string $contentType): ?string
     {
-        $type = strtolower(trim(explode(';', $contentType ?? '', 2)[0]));
+        // Lowercased where it is compared, by isInline().
+        $type = trim(explode(';', $contentType ?? '')[0]);
 
         return '' === $type ? null : $type;
     }
@@ -176,7 +177,7 @@ final readonly class UserContentPolicy
     private function disposition(string $type, ?string $filename, ?string $current): string
     {
         $current = trim($current ?? '');
-        $asked = strtolower(trim(explode(';', $current, 2)[0]));
+        $asked = strtolower(trim(explode(';', $current)[0]));
         $kind = 'attachment' !== $asked && $this->isInline($type) ? HeaderUtils::DISPOSITION_INLINE : HeaderUtils::DISPOSITION_ATTACHMENT;
 
         if (null !== $filename) {

@@ -15,6 +15,11 @@ return [
     ],
     'infection' => [
         'mutators' => [
+            // The answer is cancelled to free its connection before the refusal: MockHttpClient, which the tests use,
+            // answers the same with or without it, and the exception thrown next ends the read alike.
+            'MethodCallRemoval' => [
+                'ignoreSourceCodeByRegex' => ['.*\\$response->cancel\\(\\);.*'],
+            ],
             // Margins and bounds that only change how much is read, never what is returned: the days kept before the
             // window for an occurrence that changes time are a margin, any from an hour to years gives the same periods;
             // one start more or two more than the limit throw alike at the first period over; a duration always has its

@@ -62,5 +62,14 @@ return [
             ],
         ],
     ],
+    'infection' => [
+        'mutators' => [
+            // A file checked to exist and measured just before: `file_get_contents()` gives `false` only if it vanished
+            // in between, and the empty document the cast makes of it is refused as unreadable all the same.
+            'CastString' => [
+                'ignoreSourceCodeByRegex' => ['.*\\$text = \\(string\\) file_get_contents\\(\\$file\\);.*'],
+            ],
+        ],
+    ],
     'docs' => ['public' => true],
 ];

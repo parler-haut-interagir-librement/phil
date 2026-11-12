@@ -32,6 +32,11 @@ return [
                     '.*\\$paths\\[\\(string\\) \\$path\\] = .*',
                 ],
             ],
+            // The sources of a directive of user content go to Policy, which reads them as values into a list of its own:
+            // the keys a configuration gives never reach a header.
+            'UnwrapArrayValues' => [
+                'ignoreSourceCodeByRegex' => ['.*\\\\is_array\\(\\$values\\) => array_values\\(\\$values\\),.*'],
+            ],
             // In a value of a protection, a key is a string exactly when its item is a list: either test alone picks the
             // groups of a map, and `||` changes nothing that can be observed.
             'LogicalAnd' => [

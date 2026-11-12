@@ -23,6 +23,9 @@ return [
             // The flood fill of a card that is black all over paints the same card from any of its pixels.
             'IncrementInteger' => [
                 'ignoreSourceCodeByRegex' => [
+                    // The bounds of the random part of a temporary name: any other number names another file, renamed
+                    // over the card all the same.
+                    '.*\\$temporary = \\\\sprintf\\(\'%s\\.%08x\\.tmp\', \\$path, random_int\\(0, 0xFFFFFFFF\\)\\);.*',
                     'imagefill\\(\\$image, 0, 0, .*',
                     // The fixture font, the only one the tests ship, starts every line at x 0 on the baseline: its
                     // box reads the same at the index of a y as at that of the x.
@@ -33,7 +36,11 @@ return [
             ],
             // GD clips what it draws to the card: a band from x -1 is the band from x 0.
             'DecrementInteger' => [
-                'ignoreSourceCodeByRegex' => ['imagefilledrectangle\\(\\$image, 0, CardTemplate::HEIGHT - self::ACCENT_HEIGHT, .*'],
+                'ignoreSourceCodeByRegex' => [
+                    'imagefilledrectangle\\(\\$image, 0, CardTemplate::HEIGHT - self::ACCENT_HEIGHT, .*',
+                    // The random part of a temporary name, as for IncrementInteger.
+                    '.*\\$temporary = \\\\sprintf\\(\'%s\\.%08x\\.tmp\', \\$path, random_int\\(0, 0xFFFFFFFF\\)\\);.*',
+                ],
             ],
             // The fixture font starts every line at x 0: the left edge it adds or takes away is nothing.
             'Minus' => [

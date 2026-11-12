@@ -90,6 +90,9 @@ return [
             // digits; the casts only give `run()` its list of strings.
             'CastString' => [
                 'ignoreSourceCodeByRegex' => [
+                    // A file the library has just checked and measured: `file_get_contents()` gives `false` only if it
+                    // vanished in between, and the empty string the cast makes of it is refused like a missing file.
+                    '.*\\$contents = \\(string\\) file_get_contents\\(\\$path\\);.*',
                     '\\$file = \\$this->run\\(\\$directory, \'(extract_area|embed)\', .*',
                 ],
             ],
