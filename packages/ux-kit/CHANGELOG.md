@@ -4,45 +4,13 @@ All notable changes to `phil/ux-kit` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## 0.8.0-alpha - 2026-11-19
+## 0.5.0-alpha - 2026-11-12
 
 ### Added
 
-- Visual tests: each layout of the images, an image `fixed`, `constrained`, `full-width` and cropped to a ratio, a
-  gallery in a grid and a figure of three columns, compared in the browser suite with a reference screenshot kept in
-  `tests/Browser/screenshots/`, a few hundred bytes each. `Phil\UxKit\Test\Screenshots` compares, on GD, a screenshot
-  shrunk to a scale of its CSS width with its reference, pixel by pixel within a threshold, the share of changed pixels
-  within a tolerance; `BrowserTestCase::assertLooksLike()` and `screenshots()`, the directory of a suite's references, a
-  missing one written and the test marked incomplete, all of them written again with `PHIL_UX_UPDATE_SCREENSHOTS=1`.
-- `doc/images.md`: choosing `layout` and `sizes`, case by case, and the checklist of the largest contentful paint; in
-  French in `doc/fr/images.md`.
-- `phil:ux-kit:migrate-images`, with the Console component: the `Image` and `Picture` recipes proposed in place of the
-  `img` and `picture` elements of the Twig templates of a project, or what stands in the way of each; `--write`
-  rewrites the proposals only. `Phil\UxKit\Application\ImageMigration` and `ImageMigrationFinding`.
-- `tests/Benchmark/GalleryBench.php`: the rendering of a gallery of 100 images with PHPBench, in a grid, with lightboxes,
-  deferred and with the sources of `Picture`.
-- `ext-gd`, for the screenshots, and `symfony/console`, for the command, as development requirements, and suggested.
-
-### Changed
-
-- `AspectRatio` writes no `style` attribute: a common ratio is a class, `hasRatio16x9` and the others, any other its
-  width and height in `data-ratio-width` and `data-ratio-height`, which phil-ux reads through a typed `attr()`.
-- `Badge` writes its `color` in `data-color`, never in a `style` attribute.
-- Both hold under a strict Content Security Policy, and are back on the strict pages of the browser suite, which
-  measures the ratio and reads the colour.
-- The image recipe requires `phil/ux-kit:^0.8@dev`; `manifest.json` requires `phil/ux-css:^0.8@dev`; the branch alias of
-  `dev-main` is `0.8.x-dev`.
-
-### Fixed
-
-- `symfony/yaml` is a development requirement: the functional tests of LiipImagine load routes in YAML, and failed when
-  the package was installed on its own.
-- The dates of 0.3.0-alpha and 0.4.0-alpha, both released on 2026-11-11.
-
-## 0.7.0-alpha - 2026-11-17
-
-### Added
-
+- On `Image` and `Picture`: `captionPosition`, `below` by default, or `overlay`, which lays the caption, its credit, its
+  license and its creation over the foot of the image on a veil dark enough for light text whatever the picture, the
+  figure of class `hasOverlayCaption`, as wide as its image, a description staying under both; `Image:Figure` takes it.
 - On `Image` and `Picture`: `frame`, a frame drawn from the tokens of phil-ux, words separated by spaces, `rounded`
   (`hasRounded`), `framed` (`hasFramed`) and `raised` (`hasRaised`), or `token` (`hasToken`), the picture covering a
   square box cropped to a disc inside a ring, for a pawn or an avatar; an unknown word is left out.
@@ -52,80 +20,19 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   `style` attribute; a name that is no CSS identifier, or a keyword of `view-transition-name`, is left out. The image
   README shows its use with Turbo 8 and with cross-document view transitions, and its limit: a name stands once in a
   page.
-- `Gallery` carries `frame` and `pixelated` to every image, and each image its own `transition`; `Lightbox` carries
-  `frame` and `transition` to its thumbnail and `pixelated` to both its images; `Hotspots` carries `frame`, never a
-  token, and `pixelated`.
-- `RecipesPage` writes each mode under a strict Content Security Policy too, `strict.html`, `strict-dark.html` and
-  `strict-rtl.html`: `default-src 'self'`, no `'unsafe-inline'` for scripts or styles, the inline scripts the page
-  runs allowed by a nonce of its own, `img-src 'self' data:`, in a `meta` element first in the head, with a watcher,
-  `strict.js`, that lists in `window.violations` what the browser refuses; the template reads `strict`; the `page.css`
-  of the resources, when there is one, is copied beside the page. `RecipesPage::POLICY` is the policy.
-- `BrowserTestCase::strictModes()`, the modes under the strict policy, on which `open()` and the end of a test fail on
-  anything the browser refused; `isStrict()`; `isRightToLeft()` knows `strict-rtl.html`.
-- The browser suite runs every test of the images and of the celebration under the strict policy too, finds nothing
-  refused on any strict page and sees a `style` attribute written afterwards refused; it checks the frames, the token,
-  the pixel art and a view transition moving an image under its name, the images on paper, the medium emulated, and the
-  images right to left: a caption, a gallery and a carousel starting on the right, the button at the start of a
-  carousel pointing to the right, the close button of a lightbox in the top left corner; axe-core audits the frames.
-- The image README says how the image behaves under a strict policy and on paper; the celebration README, under a
-  strict policy.
-
-### Changed
-
-- The page of the browser suite has no `style` attribute left, its own rules in `tests/Browser/resources/page.css`; a
-  badge of a colour of its own and an aspect ratio, which write a custom property in a `style` attribute, are left out
-  of the strict pages.
-- The image recipe requires `phil/ux-kit:^0.7@dev`; `manifest.json` requires `phil/ux-css:^0.7@dev`; the branch alias of
-  `dev-main` is `0.7.x-dev`.
-
-## 0.6.0-alpha - 2026-11-15
-
-### Added
-
-- The recipe `Celebration`: a message said in a polite live region, and confetti or fireworks (`effect`) drawn over the
-  page on a canvas by its new Stimulus controller `celebration`, without a library, in the colours of the tokens of
-  phil-ux resolved through the CSSOM, so those of the theme; it plays as soon as the page shows it with `autoplay`, on
-  the DOM event `celebrate` dispatched anywhere on the page, its `detail` giving the `message` and the `effect` of this
-  time, and by the action `celebration#play`, whose params do the same; a block `content` holds what plays it. Where
-  motion is reduced, by the system or by `data-motion="reduce"`, only the message shows. No sound; the canvas, cloned
-  from a `template`, hidden from screen readers and set over the page through the CSSOM without taking a click, safe
-  under a strict Content Security Policy; `duration` kept between 600 and 4000 milliseconds, held while the tab is
-  hidden; one animation at a time; fireworks burst twice a second at most; the canvas and its bitmap removed at the end
-  or when the element leaves the page; the events `celebration:start` and `celebration:end`.
-- The browser suite checks the message said, the canvas shown then removed, nothing drawn under reduced motion, the event
-  `celebrate` and the button of the demonstration, and audits the celebration with axe-core in clear, in dark and right
-  to left.
-- `image_filters()`, when LiipImagine is installed: the `src`, `srcset`, `sources`, `width` and `height` of a `Picture`
-  from the filter sets applied to one image, each set a candidate of the width its last resizing filter gives, or of
-  the one the template gives; the sets of AVIF and WebP make the sources, the others the fallback, whose widest set
-  gives `src`, and the size of the image when it crops exactly. `liip/imagine-bundle` is suggested; `ImageFiltersPass`
-  leaves the bridge out when the bundle is not registered.
-- `picture_props()` and the interface `Phil\UxKit\Application\Contract\PicturePropsProvider`, which autoconfiguration
-  tags `phil_ux_kit.picture_props`: the props of a `Picture` for an object of the application, from the first provider
-  that supports it, kept to those that describe the image, a map of options handed to it.
 - On `Image` and `Picture`: `structured`, which describes the image as a schema.org `ImageObject` through
   `image_json_ld()` and `phil/structured-data`, suggested: its absolute address, made by Symfony's `UrlHelper` and read
   by `phil/url`, its width and height, caption, credit as `creditText`, license address and creation as
   `digitalSourceType`; added to the graph of the page when a `NodeCollector` gathers one, written otherwise in a JSON-LD
   script of its own before the image, without a nonce.
-
-### Changed
-
-- The image recipe requires `phil/ux-kit:^0.6@dev`; `manifest.json` requires `phil/ux-css:^0.6@dev`; the branch alias of
-  `dev-main` is `0.6.x-dev`.
-
-## 0.5.0-alpha - 2026-11-13
-
-### Added
-
-- On `Image` and `Picture`: `captionPosition`, `below` by default, or `overlay`, which lays the caption, its credit, its
-  license and its creation over the foot of the image on a veil dark enough for light text whatever the picture, the
-  figure of class `hasOverlayCaption`, as wide as its image, a description staying under both; `Image:Figure` takes it.
 - On `Gallery`: `layout="carousel"`, its figures in one row that scrolls and snaps without a script, the list of class
   `hasLayoutCarousel` reached by the keyboard through `tabindex="0"`; where the browser draws them, a marker per figure
   by `::scroll-marker`, named by the `data-marker` of its `li`, the text alternative of its image or its rank, and a
   button on each side by `::scroll-button()`, named by `previousLabel` and `nextLabel` through the `data-previous` and
   `data-next` of the list; `captionPosition`, carried to each `Picture`.
+- `Gallery` carries `frame` and `pixelated` to every image, and each image its own `transition`; `Lightbox` carries
+  `frame` and `transition` to its thumbnail and `pixelated` to both its images; `Hotspots` carries `frame`, never a
+  token, and `pixelated`.
 - The recipe `Hotspots`: an image of the `image` recipe with points of interest, a list of links named by `label` over
   it, each point placed by the classes `hasHotspotX0` to `hasHotspotX100` and `hasHotspotY0` to `hasHotspotY100`, to
   the nearest five per cent, and by its `data-x` and `data-y`, read exactly by a typed `attr()` where the browser does,
@@ -141,18 +48,76 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   caption, credit, license and creation in a figure.
 - The recipe `Figure`: several images in a grid of class `isFigureGroup`, as many columns as the container allows or
   `columns` (`2`, `3`, `4`), under one caption, credit, license and creation.
+- `image_filters()`, when LiipImagine is installed: the `src`, `srcset`, `sources`, `width` and `height` of a `Picture`
+  from the filter sets applied to one image, each set a candidate of the width its last resizing filter gives, or of
+  the one the template gives; the sets of AVIF and WebP make the sources, the others the fallback, whose widest set
+  gives `src`, and the size of the image when it crops exactly. `liip/imagine-bundle` is suggested; `ImageFiltersPass`
+  leaves the bridge out when the bundle is not registered.
+- `picture_props()` and the interface `Phil\UxKit\Application\Contract\PicturePropsProvider`, which autoconfiguration
+  tags `phil_ux_kit.picture_props`: the props of a `Picture` for an object of the application, from the first provider
+  that supports it, kept to those that describe the image, a map of options handed to it.
+- The recipe `Celebration`: a message said in a polite live region, and confetti or fireworks (`effect`) drawn over the
+  page on a canvas by its new Stimulus controller `celebration`, without a library, in the colours of the tokens of
+  phil-ux resolved through the CSSOM, so those of the theme; it plays as soon as the page shows it with `autoplay`, on
+  the DOM event `celebrate` dispatched anywhere on the page, its `detail` giving the `message` and the `effect` of this
+  time, and by the action `celebration#play`, whose params do the same; a block `content` holds what plays it. Where
+  motion is reduced, by the system or by `data-motion="reduce"`, only the message shows. No sound; the canvas, cloned
+  from a `template`, hidden from screen readers and set over the page through the CSSOM without taking a click, safe
+  under a strict Content Security Policy; `duration` kept between 600 and 4000 milliseconds, held while the tab is
+  hidden; one animation at a time; fireworks burst twice a second at most; the canvas and its bitmap removed at the end
+  or when the element leaves the page; the events `celebration:start` and `celebration:end`.
+- `phil:ux-kit:migrate-images`, with the Console component: the `Image` and `Picture` recipes proposed in place of the
+  `img` and `picture` elements of the Twig templates of a project, or what stands in the way of each; `--write`
+  rewrites the proposals only. `Phil\UxKit\Application\ImageMigration` and `ImageMigrationFinding`.
+- `doc/images.md`: choosing `layout` and `sizes`, case by case, and the checklist of the largest contentful paint; in
+  French in `doc/fr/images.md`. The image README says how the image behaves under a strict policy and on paper; the
+  celebration README, under a strict policy.
 - `RecipesPage` copies the files of the `media` directory of the resources under `media/` of the web root: the browser
   suite plays a two-second WebM clip with its WebVTT captions.
+- `RecipesPage` writes each mode under a strict Content Security Policy too, `strict.html`, `strict-dark.html` and
+  `strict-rtl.html`: `default-src 'self'`, no `'unsafe-inline'` for scripts or styles, the inline scripts the page
+  runs allowed by a nonce of its own, `img-src 'self' data:`, in a `meta` element first in the head, with a watcher,
+  `strict.js`, that lists in `window.violations` what the browser refuses; the template reads `strict`; the `page.css`
+  of the resources, when there is one, is copied beside the page. `RecipesPage::POLICY` is the policy.
+- `BrowserTestCase::strictModes()`, the modes under the strict policy, on which `open()` and the end of a test fail on
+  anything the browser refused; `isStrict()`; `isRightToLeft()` knows `strict-rtl.html`.
 - The browser suite audits with axe-core, in clear, in dark and right to left, the caption over its image, the gallery
-  laid out as a carousel, the image with its points, the hero, the video and the figure of several images; it checks the
-  caption on the foot of its image, the row of the carousel scrolled at the arrows, each point at its place and under
-  the image on a phone, the hero covered by its image, the video fetching nothing before it is played and playing its
-  file, and the figure in its columns.
+  laid out as a carousel, the image with its points, the hero, the video, the figure of several images, the frames and
+  the celebration; it checks the caption on the foot of its image, the row of the carousel scrolled at the arrows, each
+  point at its place and under the image on a phone, the hero covered by its image, the video fetching nothing before it
+  is played and playing its file, the figure in its columns, the frames, the token, the pixel art and a view transition
+  moving an image under its name, the images on paper, the medium emulated, and the images right to left: a caption, a
+  gallery and a carousel starting on the right, the button at the start of a carousel pointing to the right, the close
+  button of a lightbox in the top left corner; and the celebration: the message said, the canvas shown then removed,
+  nothing drawn under reduced motion, the event `celebrate` and the button of the demonstration.
+- The browser suite runs every test of the images and of the celebration under the strict policy too, finds nothing
+  refused on any strict page and sees a `style` attribute written afterwards refused.
+- Visual tests: each layout of the images, an image `fixed`, `constrained`, `full-width` and cropped to a ratio, a
+  gallery in a grid and a figure of three columns, compared in the browser suite with a reference screenshot kept in
+  `tests/Browser/screenshots/`, a few hundred bytes each. `Phil\UxKit\Test\Screenshots` compares, on GD, a screenshot
+  shrunk to a scale of its CSS width with its reference, pixel by pixel within a threshold, the share of changed pixels
+  within a tolerance; `BrowserTestCase::assertLooksLike()` and `screenshots()`, the directory of a suite's references, a
+  missing one written and the test marked incomplete, all of them written again with `PHIL_UX_UPDATE_SCREENSHOTS=1`.
+- `tests/Benchmark/GalleryBench.php`: the rendering of a gallery of 100 images with PHPBench, in a grid, with lightboxes,
+  deferred and with the sources of `Picture`.
+- `ext-gd`, for the screenshots, and `symfony/console`, for the command, as development requirements, and suggested;
+  `symfony/yaml` as a development requirement, for the routes the functional tests of LiipImagine load when the package
+  is installed on its own.
 
 ### Changed
 
+- `AspectRatio` writes no `style` attribute: a common ratio is a class, `hasRatio16x9` and the others, any other its
+  width and height in `data-ratio-width` and `data-ratio-height`, which phil-ux reads through a typed `attr()`.
+- `Badge` writes its `color` in `data-color`, never in a `style` attribute.
+- Both hold under a strict Content Security Policy, and stand on the strict pages of the browser suite, which measures
+  the ratio and reads the colour.
+- The page of the browser suite has no `style` attribute left, its own rules in `tests/Browser/resources/page.css`.
 - The image recipe requires `phil/ux-kit:^0.5@dev`; `manifest.json` requires `phil/ux-css:^0.5@dev`; the branch alias of
   `dev-main` is `0.5.x-dev`.
+
+### Fixed
+
+- The dates of 0.3.0-alpha and 0.4.0-alpha, both released on 2026-11-11.
 
 ## 0.4.0-alpha - 2026-11-11
 

@@ -4,10 +4,35 @@ All notable changes to `phil/ux-css` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## 0.8.0-alpha - 2026-11-19
+## 0.5.0-alpha - 2026-11-12
 
 ### Added
 
+- `css/tokens/colors.css`: `--phil-color-veil`, black at 72 % in both schemes, and `--phil-color-on-veil`, the light
+  text on it, which reaches 9:1 over a white picture.
+- `css/layers/components.css`: `hasOverlayCaption`, a figure whose caption lies over the foot of its image on the veil;
+  `isGallery.hasLayoutCarousel`, its figures in one row that scrolls and snaps, a marker per figure by `::scroll-marker`
+  named by `attr(data-marker)`, and a button on each side by `::scroll-button()`, named by `attr(data-previous)` and
+  `attr(data-next)`, where the browser draws them, right to left the button at the start standing on the right and
+  pointing to it, that at its end to the left; `isHotspots`, `isHotspotsList` and `isHotspot`, the points over an
+  image, placed by `hasHotspotX0` to `hasHotspotX100` and `hasHotspotY0` to `hasHotspotY100` in steps of five, or by a
+  typed `attr()` of their `data-x` and `data-y`, a list under the image below 36rem; `isHero`, `hasHeroScreen`,
+  `hasHeroLarge`, `hasHeroStart`, `hasHeroCenter`, `isHeroMedia` and `isHeroContent`; `isVideo`, kept at the ratio of its
+  `width` and `height`; `isFigureGroup` with `hasTwoColumns`, `hasThreeColumns` and `hasFourColumns`.
+- `css/layers/components.css`: the frames of an image drawn from the tokens, `hasRounded` (`--phil-image-radius`),
+  `hasFramed` (`--phil-image-frame-width`, `--phil-image-frame-color`) and `hasRaised` (`--phil-image-shadow`); `hasToken`,
+  a square box the picture covers, cropped to a disc inside a ring (`--phil-image-token-width`,
+  `--phil-image-token-color`); `hasPixelated`, `image-rendering: pixelated`.
+- `hasTransition`, the name of an image in a view transition: `--phil-image-transition`, set by a class of the site, or
+  the `data-transition` of the image through a typed `attr()` where the browser reads one, Chromium 133 and later.
+- The images on paper: a figure, an item of a gallery, a lightbox, an image with points and a hero never cut between two
+  pages, a caption kept with its image, an image never taller than `--phil-image-print-height` (85% of the page) and
+  shown whole unless it covers its box, a caption, the content of a hero or a point laid over an image printed with its
+  veil, a carousel printed as the grid of a gallery without markers or buttons, a deferred gallery rendered whole, the
+  close button and backdrop of a lightbox and the canvas of a celebration left out.
+- `css/layers/components.css`: `isCelebration`, `isCelebrationMessage` and `isCelebrationCanvas`, the canvas of a
+  celebration fixed over the whole page above its content, letting every click through, and never shown under reduced
+  motion, whether the system asks for it or an ancestor carries `data-motion="reduce"`.
 - `isAspectRatio` reads the ratio of its class, `hasRatio16x9`, `hasRatio4x3`, `hasRatio3x2`, `hasRatio1x1`,
   `hasRatio21x9`, `hasRatio3x4`, `hasRatio2x3` and `hasRatio9x16`, as an image does, or of its `data-ratio-width` and
   `data-ratio-height` through a typed `attr()` where the browser reads one, Chromium 133 and later; else
@@ -20,67 +45,11 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - An aspect ratio and the colour of a badge no longer need a `style` attribute, and hold under a strict Content
   Security Policy. `--phil-aspect-ratio` and `--phil-badge-color`, set by a class, still work everywhere; a ratio or a
   colour given only in a data attribute applies where the browser types `attr()`.
-- The branch alias of `dev-main` is `0.8.x-dev`; `package.json` is at `0.8.0`.
+- The branch alias of `dev-main` is `0.5.x-dev`; `package.json` is at `0.5.0`.
 
 ### Fixed
 
 - The dates of 0.3.0-alpha and 0.4.0-alpha, both released on 2026-11-11.
-
-## 0.7.0-alpha - 2026-11-17
-
-### Added
-
-- `css/layers/components.css`: the frames of an image drawn from the tokens, `hasRounded` (`--phil-image-radius`),
-  `hasFramed` (`--phil-image-frame-width`, `--phil-image-frame-color`) and `hasRaised` (`--phil-image-shadow`); `hasToken`,
-  a square box the picture covers, cropped to a disc inside a ring (`--phil-image-token-width`,
-  `--phil-image-token-color`); `hasPixelated`, `image-rendering: pixelated`.
-- `hasTransition`, the name of an image in a view transition: `--phil-image-transition`, set by a class of the site, or
-  the `data-transition` of the image through a typed `attr()` where the browser reads one, Chromium 133 and later.
-- The images on paper: a figure, an item of a gallery, a lightbox, an image with points and a hero never cut between two
-  pages, a caption kept with its image, an image never taller than `--phil-image-print-height` (85% of the page) and
-  shown whole unless it covers its box, a caption, the content of a hero or a point laid over an image printed with its
-  veil, a carousel printed as the grid of a gallery without markers or buttons, a deferred gallery rendered whole, the
-  close button and backdrop of a lightbox and the canvas of a celebration left out.
-
-### Fixed
-
-- Right to left, the button at the start of a carousel gallery stands on the right and now points to it, that at its end
-  to the left.
-
-### Changed
-
-- The branch alias of `dev-main` is `0.7.x-dev`; `package.json` is at `0.7.0`.
-
-## 0.6.0-alpha - 2026-11-15
-
-### Added
-
-- `css/layers/components.css`: `isCelebration`, `isCelebrationMessage` and `isCelebrationCanvas`, the canvas of a
-  celebration fixed over the whole page above its content, letting every click through, and never shown under reduced
-  motion, whether the system asks for it or an ancestor carries `data-motion="reduce"`.
-
-### Changed
-
-- The branch alias of `dev-main` is `0.6.x-dev`; `package.json` is at `0.6.0`.
-
-## 0.5.0-alpha - 2026-11-13
-
-### Added
-
-- `css/tokens/colors.css`: `--phil-color-veil`, black at 72 % in both schemes, and `--phil-color-on-veil`, the light
-  text on it, which reaches 9:1 over a white picture.
-- `css/layers/components.css`: `hasOverlayCaption`, a figure whose caption lies over the foot of its image on the veil;
-  `isGallery.hasLayoutCarousel`, its figures in one row that scrolls and snaps, a marker per figure by `::scroll-marker`
-  named by `attr(data-marker)`, and a button on each side by `::scroll-button()`, named by `attr(data-previous)` and
-  `attr(data-next)`, where the browser draws them; `isHotspots`, `isHotspotsList` and `isHotspot`, the points over an
-  image, placed by `hasHotspotX0` to `hasHotspotX100` and `hasHotspotY0` to `hasHotspotY100` in steps of five, or by a
-  typed `attr()` of their `data-x` and `data-y`, a list under the image below 36rem; `isHero`, `hasHeroScreen`,
-  `hasHeroLarge`, `hasHeroStart`, `hasHeroCenter`, `isHeroMedia` and `isHeroContent`; `isVideo`, kept at the ratio of its
-  `width` and `height`; `isFigureGroup` with `hasTwoColumns`, `hasThreeColumns` and `hasFourColumns`.
-
-### Changed
-
-- The branch alias of `dev-main` is `0.5.x-dev`; `package.json` is at `0.5.0`.
 
 ## 0.4.0-alpha - 2026-11-11
 

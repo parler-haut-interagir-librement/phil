@@ -8,7 +8,7 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
- * What 0.7 adds to the images: the frame drawn from the tokens, the token of a game, pixel art and the name of a view
+ * What the frames add to the images: the frame drawn from the tokens, the token of a game, pixel art and the name of a view
  * transition, as classes and a data attribute, never a style; carried by `Picture`, `Gallery`, `Lightbox` and `Hotspots`.
  */
 #[CoversNothing]

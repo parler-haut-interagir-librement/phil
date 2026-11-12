@@ -802,7 +802,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
     /**
      * axe-core on what 0.5 adds: the caption over its image, the gallery laid out as a carousel, the image with its points,
      * the hero, the video with its captions and transcript, and the figure of several images; then on the frames, the
-     * token and the pixel art of 0.7; in clear, in dark and right to left, and under the strict policy.
+     * token and the pixel art; in clear, in dark and right to left, and under the strict policy.
      */
     #[DataProvider('modes')]
     #[DataProvider('strictModes')]
