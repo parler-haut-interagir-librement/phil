@@ -300,6 +300,50 @@ summary.isReaction {
     background-size: contain;
 }
 
+/* A frame drawn from the tokens, on the image itself, never on its caption: hasRounded rounds its corners by
+   --phil-image-radius, the medium radius by default; hasFramed draws a line --phil-image-frame-width wide around it, of
+   --phil-image-frame-color, the colour of the borders by default; hasRaised lifts it from the page by
+   --phil-image-shadow, the medium shadow by default. They go together. */
+.isImage.hasRounded {
+    border-radius: var(--phil-image-radius, var(--phil-radius-md));
+}
+
+.isImage.hasFramed {
+    border: var(--phil-image-frame-width, var(--phil-border-sm)) solid var(--phil-image-frame-color, var(--phil-color-border));
+}
+
+.isImage.hasRaised {
+    box-shadow: var(--phil-image-shadow, var(--phil-shadow-md));
+}
+
+/* A token, a pawn or an avatar: the picture covering a square box cropped to a disc, inside a ring
+   --phil-image-token-width wide, of --phil-image-token-color, the loud line of the brand by default. Where colours are
+   forced, the ring takes the colour of the text. */
+.isImage.hasToken {
+    aspect-ratio: 1;
+    object-fit: cover;
+    border: var(--phil-image-token-width, var(--phil-border-lg)) solid var(--phil-image-token-color, var(--phil-color-brand-border-loud));
+    border-radius: 50%;
+}
+
+/* Pixel art, enlarged without blurring its pixels: each drawn as a square of its own colour. */
+.isImage.hasPixelated {
+    image-rendering: pixelated;
+}
+
+/* The name of the image in a view transition, so that it moves from one page to the next as one: --phil-image-transition,
+   set by a class of the site, or, where the browser types attr(), Chromium 133 and later, the data-transition of the
+   image. A name stands once in a page. */
+.isImage.hasTransition {
+    view-transition-name: var(--phil-image-transition, none);
+}
+
+@supports (view-transition-name: attr(data-transition type(<custom-ident>), none)) {
+    .isImage.hasTransition[data-transition] {
+        view-transition-name: attr(data-transition type(<custom-ident>), var(--phil-image-transition, none));
+    }
+}
+
 /* The long description of an image: a disclosure under it, before its caption. */
 .isDescription {
     margin-block: var(--phil-space-xs) 0;
@@ -518,6 +562,15 @@ summary.isReaction {
 .isGallery.hasLayoutCarousel > ul::scroll-button(inline-end) {
     content: "\203A" / attr(data-next);
     inset-inline-end: var(--phil-space-xs);
+}
+
+/* Right to left, the button at the start stands on the right and points to it, that at the end on the left. */
+.isGallery.hasLayoutCarousel > ul:dir(rtl)::scroll-button(inline-start) {
+    content: "\203A" / attr(data-previous);
+}
+
+.isGallery.hasLayoutCarousel > ul:dir(rtl)::scroll-button(inline-end) {
+    content: "\2039" / attr(data-next);
 }
 
 /* An image with points of interest: each link stands over the image at its point, its place a class to the nearest five
@@ -856,6 +909,66 @@ summary.isReaction {
 
 .isFigureGroup .isImage {
     inline-size: 100%;
+}
+
+/* The images on paper: a figure never cut between two pages, its caption kept with its image, an image never taller
+   than --phil-image-print-height, most of the page, and shown whole unless it covers its box; what lies over an image,
+   a caption, the content of a hero or a point, printed with its veil, which a printer would otherwise drop under light
+   text; a carousel laid out as the grid of a gallery, every figure printed, without markers or buttons; a deferred
+   gallery rendered whole; a lightbox open printed without its close button or backdrop; the canvas of a celebration
+   left out. */
+@media print {
+    figure,
+    .isGallery > ul > li,
+    .isLightbox,
+    .isHotspots,
+    .isHero {
+        break-inside: avoid;
+    }
+
+    figcaption {
+        break-before: avoid;
+    }
+
+    .isImage,
+    .isLightboxDialog .isImage {
+        max-block-size: var(--phil-image-print-height, 85vh);
+    }
+
+    .isImage:not(.hasFitCover, .hasToken) {
+        object-fit: contain;
+    }
+
+    .hasOverlayCaption > figcaption,
+    .isHeroContent,
+    .isHotspot > a {
+        print-color-adjust: exact;
+    }
+
+    .isGallery.hasLayoutCarousel > ul {
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--phil-gallery-column, 12rem)), 1fr));
+        grid-auto-columns: auto;
+        grid-auto-flow: row;
+        overflow: visible;
+        scroll-marker-group: none;
+    }
+
+    .isGallery.hasLayoutCarousel > ul::scroll-button(*) {
+        content: none;
+    }
+
+    .isGallery.isDeferred > ul > li {
+        content-visibility: visible;
+    }
+
+    .isLightboxClose,
+    .isCelebrationCanvas {
+        display: none;
+    }
+
+    .isLightboxDialog::backdrop {
+        background: none;
+    }
 }
 
 /* Long text written by people: a readable measure, a steady rhythm between blocks, headings that breathe. */

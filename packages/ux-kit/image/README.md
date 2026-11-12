@@ -416,6 +416,80 @@ stays under both. Without a caption, nothing is laid over the image.
 
 Keep the caption to a line or two: it covers the foot of the picture.
 
+### A frame
+
+`frame` draws a frame from the tokens of `phil/ux-css`, on the image alone, never on its caption: words separated by
+spaces, `rounded` corners of `--phil-image-radius`, a `framed` line of `--phil-image-frame-color` around it, `raised`
+over the page by the shadow of `--phil-image-shadow`. Each word is a class, `hasRounded`, `hasFramed`, `hasRaised`; an
+unknown word is left out. A class of the site sets the custom properties; nothing is written in a `style` attribute.
+
+```twig
+<twig:Image src="/images/team.jpg" alt="The team" :width="800" :height="533" frame="rounded raised" />
+```
+
+### A token
+
+`frame="token"` makes of the image a token, a pawn or an avatar: a square box the picture covers, cropped to a disc
+inside a ring `--phil-image-token-width` wide, of `--phil-image-token-color`, the loud line of the brand by default.
+`position` chooses what the disc keeps of the picture; `raised` lifts it from the page.
+
+```twig
+<twig:Image src="/images/pawns/knight.png" alt="The knight" :width="96" :height="96" frame="token raised" position="top" />
+```
+
+### Pixel art
+
+`pixelated` enlarges pixel art without blurring it, each pixel drawn as a square of its own colour, through
+`image-rendering: pixelated` and the class `hasPixelated`. Give the image its size on the page, a whole multiple of its
+own, so that every pixel stays the same size.
+
+```twig
+<twig:Image src="/images/map-16.png" alt="The map of the first level" :width="512" :height="512" :pixelated="true" />
+```
+
+### A view transition
+
+`transition` names the image in a view transition, so that it moves from one page to the next as one: the class
+`hasTransition` and `data-transition`, which the sheet reads through a typed `attr()` into `view-transition-name`,
+without a `style` attribute. A name that is no CSS identifier, or a keyword of `view-transition-name`, `none`, `auto`
+or `match-element`, is left out. Elsewhere than Chromium 133 and later, the image takes the name of
+`--phil-image-transition`, which a class of the site sets, or none, and the page simply changes.
+
+```twig
+{# On the list #}
+<twig:Image src="/images/posters/42.jpg" alt="The poster of the festival" :width="200" :height="300" transition="poster-42" />
+
+{# On the page of the festival #}
+<twig:Image src="/images/posters/42.jpg" alt="The poster of the festival" :width="800" :height="1200" transition="poster-42" :priority="true" />
+```
+
+With Turbo 8, a view transition runs between two pages when both say so in their head; Turbo then gives the browser the
+new page inside `document.startViewTransition()`:
+
+```twig
+<meta name="view-transition" content="same-origin">
+```
+
+Without Turbo, a full navigation between two pages of the same origin moves the image too where both stylesheets allow
+it, Chromium 126 and later:
+
+```css
+@view-transition {
+    navigation: auto;
+}
+```
+
+A name stands once in a page: two images under the same name, on a page of results showing the same poster twice,
+skip the whole transition. Name each image after what it shows, `poster-42` rather than `poster`, and only those that
+pass from one page to the other. Where motion is reduced, the site's stylesheet shortens or removes the animation of
+`::view-transition-group()`.
+
+### On paper
+
+Printed, a figure is never cut between two pages and its caption stays with its image; the image is never taller than
+`--phil-image-print-height`, 85% of the page, and shows whole unless it covers its box; a caption laid over the image
+prints with its veil. Nothing is to do: the rules are those of `phil/ux-css`, under `@media print`.
+
 ### Other attributes
 
 Of the other attributes, only `id`, `class`, `title`, `crossorigin`, `referrerpolicy`, `itemprop`, `draggable`,
@@ -454,6 +528,12 @@ itself is unchanged; a decorative image is only checked for its size. `phil_ux_k
 off whatever the debug.
 
 ## Security
+
+Nothing is written in a `style` attribute and nothing runs inline: the image works under a strict Content Security
+Policy, `default-src 'self'`, without `'unsafe-inline'` for scripts or styles, images of the site or `data:`. The
+browser suite of the kit renders it under such a policy. The blurred preview is painted through the CSSOM, which the
+policy allows, as an inline SVG, which `img-src data:` lets through; an image of a listed host needs its host in
+`img-src` too, and the JSON-LD script of `structured`, which is data and runs nothing, needs no nonce.
 
 Every value is escaped. A `javascript:`, `vbscript:` or `data:` URL is refused, in whatever case, after spaces or
 control characters, or cut by tabs and line breaks, but a `data:image/` one, which an `img` shows without running

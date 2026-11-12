@@ -95,6 +95,19 @@ browser; this layout is that of images, without a controller.
 `captionPosition="overlay"` lays the caption of each image over its foot, as for `Image`; a lightbox keeps its own under
 its thumbnail.
 
+### Frames, tokens and pixel art
+
+`frame` and `pixelated` reach every image, as for `Image`: `frame="token"` lays out a row of pawns or avatars, each a disc
+in its ring, and `pixelated` keeps the pixels of pixel art sharp, in the lightboxes too. Each image may carry its own
+`transition`, its name in a view transition, to move to the page it leads to.
+
+```twig
+<twig:Gallery label="The pawns" frame="token raised" :pixelated="true" :images="[
+    {src: '/images/pawns/knight.png', alt: 'The knight', width: 96, height: 96, transition: 'pawn-knight'},
+    {src: '/images/pawns/archer.png', alt: 'The archer', width: 96, height: 96, transition: 'pawn-archer'},
+]" />
+```
+
 ## Accessibility
 
 The gallery is a list named by `label`, `role="list"` keeping its semantics where the browser drops them from a list

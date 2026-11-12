@@ -4,6 +4,31 @@ All notable changes to `phil/ux-css` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.7.0-alpha - 2026-11-17
+
+### Added
+
+- `css/layers/components.css`: the frames of an image drawn from the tokens, `hasRounded` (`--phil-image-radius`),
+  `hasFramed` (`--phil-image-frame-width`, `--phil-image-frame-color`) and `hasRaised` (`--phil-image-shadow`); `hasToken`,
+  a square box the picture covers, cropped to a disc inside a ring (`--phil-image-token-width`,
+  `--phil-image-token-color`); `hasPixelated`, `image-rendering: pixelated`.
+- `hasTransition`, the name of an image in a view transition: `--phil-image-transition`, set by a class of the site, or
+  the `data-transition` of the image through a typed `attr()` where the browser reads one, Chromium 133 and later.
+- The images on paper: a figure, an item of a gallery, a lightbox, an image with points and a hero never cut between two
+  pages, a caption kept with its image, an image never taller than `--phil-image-print-height` (85% of the page) and
+  shown whole unless it covers its box, a caption, the content of a hero or a point laid over an image printed with its
+  veil, a carousel printed as the grid of a gallery without markers or buttons, a deferred gallery rendered whole, the
+  close button and backdrop of a lightbox and the canvas of a celebration left out.
+
+### Fixed
+
+- Right to left, the button at the start of a carousel gallery stands on the right and now points to it, that at its end
+  to the left.
+
+### Changed
+
+- The branch alias of `dev-main` is `0.7.x-dev`; `package.json` is at `0.7.0`.
+
 ## 0.6.0-alpha - 2026-11-15
 
 ### Added

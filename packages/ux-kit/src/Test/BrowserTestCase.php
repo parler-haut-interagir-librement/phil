@@ -14,7 +14,8 @@ use Symfony\Component\Panther\ProcessManager\WebServerManager;
 
 /**
  * One headless Chrome on the page of the recipes of a kit, driven by the chromedriver of the system. Each test opens
- * the page afresh, in clear, in dark or right to left.
+ * the page afresh, in clear, in dark or right to left, and each of them under a strict Content Security Policy too: on
+ * such a page, whatever the browser refused fails the test, checked before the next page and at the end of the test.
  *
  * Published for the browser suites of the kits built on the same controllers: a suite extends it and gives its
  * `RecipesPage`. It needs `phpunit/phpunit`, `symfony/panther` and `php-webdriver/webdriver`, which the kit requires
@@ -31,6 +32,11 @@ abstract class BrowserTestCase extends TestCase
     private static ?WebServerManager $server = null;
 
     private static ?Client $browser = null;
+
+    /**
+     * The page the test opened last.
+     */
+    private ?string $page = null;
 
     #[Override]
     public static function setUpBeforeClass(): void
@@ -67,10 +73,43 @@ abstract class BrowserTestCase extends TestCase
         yield 'right to left' => ['rtl.html'];
     }
 
+    /**
+     * The same modes under the strict policy of `RecipesPage`.
+     *
+     * @return iterable<string, array{string}>
+     */
+    public static function strictModes(): iterable
+    {
+        yield 'clear under a strict policy' => ['strict.html'];
+        yield 'dark under a strict policy' => ['strict-dark.html'];
+        yield 'right to left under a strict policy' => ['strict-rtl.html'];
+    }
+
     protected function open(string $page): void
     {
+        $this->assertThePolicyHeld();
         $this->browser()->request('GET', '/'.$page);
+        $this->page = $page;
         $this->waitUntil('document.documentElement.dataset.started === "true"');
+    }
+
+    #[Override]
+    protected function assertPostConditions(): void
+    {
+        $this->assertThePolicyHeld();
+    }
+
+    /**
+     * On a page under the strict policy, that the browser refused nothing: no inline style or script, no resource of
+     * another origin.
+     */
+    protected function assertThePolicyHeld(): void
+    {
+        if (null === $this->page || !$this->isStrict($this->page)) {
+            return;
+        }
+
+        self::assertSame([], $this->read('window.violations ?? ["the watcher of the policy did not run"]'), 'Refused under the strict policy of '.$this->page);
     }
 
     protected function browser(): Client
@@ -146,6 +185,11 @@ abstract class BrowserTestCase extends TestCase
 
     protected function isRightToLeft(string $page): bool
     {
-        return 'rtl.html' === $page;
+        return 'rtl.html' === $page || 'strict-rtl.html' === $page;
+    }
+
+    protected function isStrict(string $page): bool
+    {
+        return str_starts_with($page, 'strict');
     }
 }

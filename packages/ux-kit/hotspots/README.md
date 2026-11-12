@@ -55,6 +55,11 @@ not its corner.
 
 The place is physical, from the left and from the top, the same right to left: an image is not mirrored.
 
+## A frame and pixel art
+
+`frame` and `pixelated` are the image's, as for `Image`: `rounded`, `framed` or `raised`, never `token`, whose crop would
+move the points; `pixelated` for the map or the board of a game drawn in pixel art.
+
 ## Accessibility
 
 The points are a list of links named by `label`, read after the image whose text alternative says what it shows; each

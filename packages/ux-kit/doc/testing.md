@@ -11,6 +11,7 @@
 | `Image` and `Picture` in 0.4 | `deferred` and `fetchpriority="low"`, `priority` winning; each placeholder's class, an unknown one painting nothing; a preview handed to its controller beside one of the page, only a tiny raster image inline in base 64 kept; the variant for forced colours first and never preloaded; the description in its disclosure before the caption, escaped, described by the image beside a description of the page, its identifier from that of the image or its own, a decorative image showing it without being described; `Gallery`, `Lightbox` and `Logo` carrying them; the warnings of `image_check()` in debug, none when turned off or without debug; the priority, layout, ratio, fit and crop of `Logo`, carried by `ComingSoon` with the size of its logo and the loading of its illustration |
 | The images in 0.5 | A caption laid over its image, its figure's class, below by default and nothing laid without a caption; `Gallery` as a carousel, its list reached by the keyboard, the names of its markers and buttons, the position of its captions; `Hotspots`, each point a link placed by its classes to the nearest five per cent and by its data attributes, kept on the edge, a point without words, address or place or with a refused address left out, the picture's sources and preload, a refused image; `Hero`, its image the main one of the page, preloaded, covering, its sizes and sources, its heights and alignments, lazy below the fold, a refused image leaving the content; `Video`, its poster, sources and tracks, nothing fetched and no autoplay, a refused source, track or poster left out, its transcript described, nothing without a source; `Figure`, its images under one caption, credit, license and creation, its columns, the grid alone without them |
 | The images in 0.6 | `image_filters()`: the sets of an image sorted by width, AVIF then WebP as sources, the fallback's choice, the width read from the last resizing filter or given, the size only when cropped exactly, an unknown set or an unreadable width, the function without LiipImagine, and a `Picture` rendered through LiipImagine itself; `picture_props()`: the first provider that supports the object, its options, the props kept, an object no provider supports; `structured`: the `ImageObject` before the figure or the picture, without a nonce, its address made absolute and read by `phil/url`, its sizes, license and creation, the graph of the page, nothing for a refused or inline image or unless asked, a caption unable to close the script |
+| The images in 0.7 | `frame`, each word a class, an unknown one left out, `token`; `pixelated`; `transition`, a class and `data-transition`, a name that is no CSS identifier or a keyword of `view-transition-name` left out; carried by `Picture`, `Gallery`, each image its own name, `Lightbox`, the frame and the name on the thumbnail, pixel art on both, and `Hotspots`, never a token; never a style. `RecipesPage`: each mode under the strict policy, its inline scripts that run given its nonce, data blocks and scripts with a source left out, a nonce for each page, the watcher, the stylesheet of the page |
 | `Gallery` and `Lightbox` | The list named by its label, its figures, the lightbox of each image and their identifiers, the sizes of the grid, a refused image taking no place; the thumbnail in its button with the invokers, the dialog and its close button, the full image shown whole, the caption under both, the labels as props, a decorative image named by its caption, a refused image, `id` required |
 | `image_origin()` and `image_sources()` | `ImageOrigin`: relative paths, inline images and the page's origin local, the hosts of the list and those under them external, every other host, credentials, an IP address, `localhost` unless allowed and every other scheme refused, a `srcset` cut at every space and comma, no host hiding behind a comma, and judged by its worst piece; `ImageSources`: the formats and densities of an image, a single file without descriptor, widths, the formats and fallbacks chosen, the size of the fallback, a path refused, no fallback |
 | `AutosaveStatus` | The live region, the hidden notice, its buttons with their targets, actions and default labels; the labels as props, escaped; a `class` added |
@@ -58,12 +59,28 @@ hero, a video with its captions and transcript, and a figure of several images. 
 on the foot of its image, that the carousel is one row that snaps and scrolls at the arrows, its buttons named, that
 each point stands at its place, the same right to left, and under the image on a phone, that the image of a hero covers
 it, that a video fetches nothing before it is played, keeps its ratio on a phone and plays its file, and that a figure
-lays its images in columns over its caption. The button of the demonstration plays a `Celebration`: its message is
-said, its canvas comes over the whole page, hidden from screen readers and letting the pointer through, is drawn on and
-goes; the DOM event `celebrate` plays it with its own message, `autoplay` plays it at once and its removal frees the page
-for the next one, and nothing is drawn under reduced motion, emulated through the DevTools protocol or asked by
-`data-motion="reduce"`; axe-core audits it, waiting and playing, in each mode. A last test checks that every part of a page holding all the recipes
-carries a class of the sheet.
+lays its images in columns over its caption. The button of the demonstration plays a `Celebration`: its message is said,
+its canvas comes over the whole page, hidden from screen readers and letting the pointer through, is drawn on and goes;
+the DOM event `celebrate` plays it with its own message, `autoplay` plays it at once and its removal frees the page for
+the next one, and nothing is drawn under reduced motion, emulated through the DevTools protocol or asked by
+`data-motion="reduce"`; axe-core audits it, waiting and playing, in each mode. A last test checks that every part of a
+page holding all the recipes carries a class of the sheet.
+
+Each mode is also written under a strict Content Security Policy, the default policy of a site that sends nothing
+inline: `default-src 'self'`, no `'unsafe-inline'` for scripts or styles, the inline scripts of the page itself, its
+import map, allowed by a nonce of the page, `img-src 'self' data:`, `object-src 'none'`. The policy is the first element
+of the head, in a `meta` element, since the page is served as static files; a watcher, `strict.js`, lists whatever the
+browser refuses. Every test of the images and of the celebration runs under it too, and fails at the first refusal: the
+previews painted through the CSSOM, the lightboxes, the carousel, the points, the hero, the video and its captions, the
+canvas of the celebration. A test opens each strict page, finds nothing refused while every recipe renders, then writes
+a `style` attribute and sees it refused. A badge of a colour of its own and an aspect ratio, which write a custom
+property in a `style` attribute, are left out of the strict pages. The suite also checks that the frames, the token, the
+pixel art and the name of a view transition come from the sheet, a view transition moving the image under its name; that
+the images print legibly, the medium emulated through the DevTools protocol: the carousel a grid printed whole, a figure
+never cut and its caption kept with its veil, an image within the page, a deferred gallery rendered, the close button of
+a lightbox and the canvas of a celebration left out; and that right to left, a caption reads from the right, a gallery
+and a carousel start there, the button at the start of a carousel points to the right and the close button of a lightbox
+sits in the top left corner. axe-core audits the frames, the token and the pixel art.
 
 The suite is apart from `composer test`, in `phpunit.browser.dist.xml`, and runs at the end of a batch:
 
@@ -96,7 +113,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
         return new RecipesPage(
             new TestKernel('test', true),             // an application where the kit's recipes are installed
             TestKernel::KIT_DIR,                      // the kit, whose */assets/controllers are copied
-            __DIR__.'/resources',                     // its app.js, page.html.twig and media/
+            __DIR__.'/resources',                     // its app.js, page.html.twig, page.css and media/
             __DIR__.'/var/app.css',                   // its stylesheet
             sys_get_temp_dir().'/my-kit-browser',     // the web root written
             __DIR__.'/node_modules/@hotwired/stimulus/dist/stimulus.js',
@@ -107,7 +124,8 @@ final class InteractiveRecipesTest extends BrowserTestCase
 
 The suite pins its own `@hotwired/stimulus` and requires, for development, what the classes use: `phpunit/phpunit`,
 `symfony/panther`, `php-webdriver/webdriver`, `symfony/http-kernel` and `twig/twig`, which `phil/ux-kit` suggests. Each
-test then opens one of `modes()` and drives the page with `open()`, `focus()`, `press()`, `click()`,
+test then opens one of `modes()`, or of `strictModes()`, the same pages under the strict policy, where `open()` and the
+end of the test fail on anything the browser refused, and drives the page with `open()`, `focus()`, `press()`, `click()`,
 `clickBeside()`, a real click on the backdrop beside an element, `read()`, `perform()`, `waitUntil()` and
 `waitForFocus()`.
 

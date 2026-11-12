@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=763791d9e1294fa47dbd02e21547bb6d8f308755b94ed9af52921ffd25f47f90 -->
+<!-- phil-dev source-sha256=c0febae9466fe450ddbac1fccb6a3fcf57df2b092bcbfd51d3833498f0d0270b -->
 # Composants
 
 Ce que la base sans classe ne peut pas deviner, dans la couche `phil.components`, et les utilitaires, en tout dernier.
@@ -287,6 +287,37 @@ description reste sous les deux.
 </figure>
 ```
 
+Un cadre vient des jetons, sur l'image seule, jamais sur sa légende, et les classes vont ensemble :
+
+| Classe | Ce qu'elle fait | Propriétés personnalisées |
+|---|---|---|
+| `hasRounded` | Arrondit ses coins | `--phil-image-radius`, `--phil-radius-md` par défaut |
+| `hasFramed` | Trace une ligne autour | `--phil-image-frame-width` et `--phil-image-frame-color`, `--phil-border-sm` et `--phil-color-border` par défaut |
+| `hasRaised` | La soulève de la page par une ombre | `--phil-image-shadow`, `--phil-shadow-md` par défaut |
+| `hasToken` | Un jeton, un pion ou un avatar : une boîte carrée, l'image qui la couvre, recadrée en disque dans un anneau | `--phil-image-token-width` et `--phil-image-token-color`, `--phil-border-lg` et `--phil-color-brand-border-loud` par défaut |
+| `hasPixelated` | Du pixel art, agrandi sans flouter ses pixels, `image-rendering: pixelated` | |
+
+```html
+<img class="isImage hasToken hasRaised" src="/pawns/knight.png" alt="The knight" width="96" height="96">
+```
+
+`hasTransition` nomme l'image dans une transition de vue, pour qu'elle passe d'une page à la suivante d'un seul tenant :
+le nom est `--phil-image-transition`, posée par une classe du site, ou, là où le navigateur type `attr()`, Chromium 133
+et après, le `data-transition` de l'image, un identifiant CSS. Aucun n'est un attribut `style`, qu'une politique de
+sécurité du contenu stricte écarterait. Un nom ne figure qu'une fois par page : deux images sous le même nom sautent la
+transition. Donnez à l'image le même nom sur les deux pages, sur une liste et sur la page où elle mène.
+
+```html
+<img class="isImage hasTransition" src="/posters/42.jpg" alt="The poster of the festival" width="400" height="600" data-transition="poster-42">
+```
+
+Sur papier, une figure n'est jamais coupée entre deux pages et sa légende reste avec son image ; une image n'est jamais
+plus haute que `--phil-image-print-height`, 85 % de la page, et se montre entière à moins de couvrir sa boîte ; une
+légende, le contenu d'un héros ou un point posé sur une image s'imprime avec son voile, qu'une imprimante écarterait
+sinon sous son texte clair ; un carrousel s'imprime comme la grille d'une galerie, chaque figure sur papier, sans ses
+repères ni ses boutons ; une galerie différée est rendue en entier ; une visionneuse ouverte s'imprime sans son bouton de
+fermeture ni son arrière-plan, et le canevas d'une célébration est laissé de côté.
+
 ## La galerie
 
 `isGallery` : un conteneur dont la liste range ses figures en une grille de colonnes larges d'au moins
@@ -321,7 +352,8 @@ son confinement du dessin couperait sinon.
 faisant défiler une fois que la liste a le focus. Là où le navigateur les dessine, Chromium 135 et après,
 `::scroll-marker` donne à chaque `li` un marqueur sous la rangée, nommé par son `data-marker`, et `::scroll-button()`
 un bouton de chaque côté, à mi-hauteur de la rangée, nommé par les `data-previous` et `data-next` de la liste ;
-ailleurs la rangée défile seule.
+ailleurs la rangée défile seule. De droite à gauche, la rangée commence à droite, et le bouton de son début se tient à
+droite et pointe vers elle.
 
 ```html
 <div class="isGallery hasLayoutCarousel">
@@ -370,9 +402,9 @@ ses `width` et `height` tant que rien n'est chargé.
 
 ## Plusieurs images sous une légende
 
-`isFigureGroup` : une grille de colonnes d'au moins `--phil-figure-column` (10rem), autant que le conteneur en tient,
-ou deux, trois ou quatre sur tous les écrans avec `hasTwoColumns`, `hasThreeColumns` et `hasFourColumns` ; chaque image remplit
-sa cellule.
+`isFigureGroup` : une grille de colonnes d'au moins `--phil-figure-column` (10rem), autant que le conteneur en tient, ou
+deux, trois ou quatre sur tous les écrans avec `hasTwoColumns`, `hasThreeColumns` et `hasFourColumns` ; chaque image
+remplit sa cellule.
 
 ## Réactions
 

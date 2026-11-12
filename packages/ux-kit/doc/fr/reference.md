@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6a52c0c7a6d56521409aa90991d28d10bc00d41bddbc84b09e73f572c04e768e -->
+<!-- phil-dev source-sha256=905667a782e87716e9c18d8d87b0c042a0fa2ba015d47774d42f717f7ebbbd2a -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -16,8 +16,8 @@
 | `src/Infrastructure/DependencyInjection/ImageFiltersPass.php` | Écarte `ImageFilters` quand les services de LiipImagine ne sont pas enregistrés |
 | `src/Infrastructure/StructuredData/ImageJsonLd.php` | `Phil\UxKit\Infrastructure\StructuredData\ImageJsonLd` : l'`ImageObject` d'une image, ajouté au graphe de la page ou écrit dans son propre script JSON-LD |
 | `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()`, `image_sources()`, `image_filters()`, `picture_props()`, `image_json_ld()` et `image_check()`, qui journalise les problèmes d'`ImageTextCheck` en avertissements quand `phil_ux_kit.image.check` est actif |
-| `src/Test/BrowserTestCase.php` | `Phil\UxKit\Test\BrowserTestCase` : un Chrome sans interface sur la page des recettes d'un kit, et les aides d'un test en navigateur |
-| `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage` : la racine web de chaque recette d'un kit, avec sa feuille de style, ses contrôleurs, Stimulus et les fichiers de son dossier `media` |
+| `src/Test/BrowserTestCase.php` | `Phil\UxKit\Test\BrowserTestCase` : un Chrome sans interface sur la page des recettes d'un kit, ses modes tels quels et sous la politique stricte, qui fait échouer un test sur tout ce que le navigateur a refusé, et les aides d'un test en navigateur |
+| `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage` : la racine web de chaque recette d'un kit, dans chaque mode tel quel et sous une politique de sécurité du contenu stricte, avec sa feuille de style, celle de sa page, ses contrôleurs, Stimulus et les fichiers de son dossier `media` |
 | `logo/manifest.json`, `logo/README.md` | La recette `Logo` |
 | `logo/templates/components/Logo.html.twig` | Le composant `Logo` |
 | `animated-headline/manifest.json`, `animated-headline/README.md` | La recette `AnimatedHeadline` |

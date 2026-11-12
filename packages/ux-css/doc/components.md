@@ -277,6 +277,37 @@ under both.
 </figure>
 ```
 
+A frame comes from the tokens, on the image alone, never on its caption, and the classes go together:
+
+| Class | What it does | Custom properties |
+|---|---|---|
+| `hasRounded` | Rounds its corners | `--phil-image-radius`, `--phil-radius-md` by default |
+| `hasFramed` | Draws a line around it | `--phil-image-frame-width` and `--phil-image-frame-color`, `--phil-border-sm` and `--phil-color-border` by default |
+| `hasRaised` | Lifts it from the page by a shadow | `--phil-image-shadow`, `--phil-shadow-md` by default |
+| `hasToken` | A token, a pawn or an avatar: a square box, the picture covering it, cropped to a disc inside a ring | `--phil-image-token-width` and `--phil-image-token-color`, `--phil-border-lg` and `--phil-color-brand-border-loud` by default |
+| `hasPixelated` | Pixel art, enlarged without blurring its pixels, `image-rendering: pixelated` | |
+
+```html
+<img class="isImage hasToken hasRaised" src="/pawns/knight.png" alt="The knight" width="96" height="96">
+```
+
+`hasTransition` names the image in a view transition, so that it moves from one page to the next as one: the name is
+`--phil-image-transition`, set by a class of the site, or, where the browser types `attr()`, Chromium 133 and later,
+the `data-transition` of the image, a CSS identifier. Neither is a `style` attribute, which a strict Content Security
+Policy would drop. A name stands once in a page: two images under the same name skip the transition. Give the image the
+same name on both pages, on a list and on the page it leads to.
+
+```html
+<img class="isImage hasTransition" src="/posters/42.jpg" alt="The poster of the festival" width="400" height="600" data-transition="poster-42">
+```
+
+On paper, a figure is never cut between two pages and its caption stays with its image; an image is never taller than
+`--phil-image-print-height`, 85% of the page, and shows whole unless it covers its box; a caption, the content of a hero
+or a point laid over an image prints with its veil, which a printer would otherwise drop under its light text; a
+carousel prints as the grid of a gallery, every figure on paper, without its markers and buttons; a deferred gallery is
+rendered whole; an open lightbox prints without its close button or backdrop, and the canvas of a celebration is left
+out.
+
 ## The gallery
 
 `isGallery`: a container whose list lays its figures in a grid of columns `--phil-gallery-column` wide at least (12rem),
@@ -307,9 +338,10 @@ otherwise clip.
 ```
 
 `hasLayoutCarousel` lays the figures in one row that scrolls sideways and snaps on each, the keyboard scrolling it once
-the list has the focus. Where the browser draws them, Chromium 135 and later, `::scroll-marker` gives each `li` a
-marker under the row, named by its `data-marker`, and `::scroll-button()` a button on each side, half way down the row,
-named by the `data-previous` and `data-next` of the list; elsewhere the row scrolls alone.
+the list has the focus. Where the browser draws them, Chromium 135 and later, `::scroll-marker` gives each `li` a marker
+under the row, named by its `data-marker`, and `::scroll-button()` a button on each side, half way down the row, named
+by the `data-previous` and `data-next` of the list; elsewhere the row scrolls alone. Right to left, the row starts on
+the right, and the button at its start stands on the right and points to it.
 
 ```html
 <div class="isGallery hasLayoutCarousel">

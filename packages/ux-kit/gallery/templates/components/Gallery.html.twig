@@ -9,7 +9,7 @@
 {%- props
     ## string The name of the list, which screen readers read, such as "Photos of the festival".
     label,
-    ## list<array{src:string,alt:string,width:int,height:int,srcset?:string|array<int|string,string>,sources?:list<array<string,mixed>>,position?:string,full?:array<string,mixed>,caption?:string,credit?:string,license?:string,licenseHref?:string,creation?:string,creationLabel?:string,preview?:string,description?:string,id?:string}> The images, each with the props of a Picture, and the full image of its lightbox.
+    ## list<array{src:string,alt:string,width:int,height:int,srcset?:string|array<int|string,string>,sources?:list<array<string,mixed>>,position?:string,full?:array<string,mixed>,caption?:string,credit?:string,license?:string,licenseHref?:string,creation?:string,creationLabel?:string,preview?:string,description?:string,id?:string,transition?:string}> The images, each with the props of a Picture, its name in a view transition, and the full image of its lightbox.
     images = [],
     ## string|null The ratio every image is cropped to, as for Image, so that the rows line up.
     aspect = null,
@@ -38,7 +38,11 @@
     ## string What screen readers read for the button that scrolls a carousel on, where the browser draws it.
     nextLabel = 'Next',
     ## string Where the caption of each image stands, as for Image: "below" or "overlay"; a lightbox keeps its own under its thumbnail.
-    captionPosition = 'below'
+    captionPosition = 'below',
+    ## string|null The frame of every image, as for Image: "rounded", "framed", "raised" or "token", separated by spaces.
+    frame = null,
+    ## bool Whether every image is pixel art, enlarged without blurring its pixels, in its lightbox too.
+    pixelated = false
 -%}
 {%- set _images = images|filter(image => (image.src ?? '') is not empty and image_origin(image.src) is not same as('refused')) -%}
 {%- if _images is not empty -%}
@@ -53,9 +57,9 @@
                 {%- set _id = image.id ?? ((image.description ?? null) is empty ? null : (id ?? 'gallery') ~ '-' ~ loop.index) -%}
                 <li{% if _item is not empty %} {{ html_attr(_item) }}{% endif %}>
                     {%- if lightbox -%}
-                        <twig:Lightbox :id="(id ?? 'gallery') ~ '-' ~ loop.index" :src="image.src" :alt="image.alt" :width="image.width" :height="image.height" :srcset="image.srcset ?? null" :sizes="sizes" :sources="image.sources ?? []" :aspect="aspect" :fit="fit" :position="image.position ?? null" :full="image.full ?? null" :caption="image.caption ?? null" :credit="image.credit ?? null" :license="image.license ?? null" :licenseHref="image.licenseHref ?? null" :creation="image.creation ?? null" :creationLabel="image.creationLabel ?? null" :openLabel="openLabel" :closeLabel="closeLabel" :deferred="deferred" :placeholder="placeholder" :preview="image.preview ?? null" :description="image.description ?? null" :descriptionLabel="descriptionLabel" />
+                        <twig:Lightbox :id="(id ?? 'gallery') ~ '-' ~ loop.index" :src="image.src" :alt="image.alt" :width="image.width" :height="image.height" :srcset="image.srcset ?? null" :sizes="sizes" :sources="image.sources ?? []" :aspect="aspect" :fit="fit" :position="image.position ?? null" :full="image.full ?? null" :caption="image.caption ?? null" :credit="image.credit ?? null" :license="image.license ?? null" :licenseHref="image.licenseHref ?? null" :creation="image.creation ?? null" :creationLabel="image.creationLabel ?? null" :openLabel="openLabel" :closeLabel="closeLabel" :deferred="deferred" :placeholder="placeholder" :preview="image.preview ?? null" :description="image.description ?? null" :descriptionLabel="descriptionLabel" :frame="frame" :pixelated="pixelated" :transition="image.transition ?? null" />
                     {%- else -%}
-                        <twig:Picture :src="image.src" :alt="image.alt" :width="image.width" :height="image.height" :srcset="image.srcset ?? null" :sizes="sizes" :sources="image.sources ?? []" :aspect="aspect" :fit="fit" :position="image.position ?? null" :caption="image.caption ?? null" :credit="image.credit ?? null" :license="image.license ?? null" :licenseHref="image.licenseHref ?? null" :creation="image.creation ?? null" :creationLabel="image.creationLabel ?? null" :deferred="deferred" :placeholder="placeholder" :preview="image.preview ?? null" :description="image.description ?? null" :descriptionLabel="descriptionLabel" :captionPosition="captionPosition" :id="_id" />
+                        <twig:Picture :src="image.src" :alt="image.alt" :width="image.width" :height="image.height" :srcset="image.srcset ?? null" :sizes="sizes" :sources="image.sources ?? []" :aspect="aspect" :fit="fit" :position="image.position ?? null" :caption="image.caption ?? null" :credit="image.credit ?? null" :license="image.license ?? null" :licenseHref="image.licenseHref ?? null" :creation="image.creation ?? null" :creationLabel="image.creationLabel ?? null" :deferred="deferred" :placeholder="placeholder" :preview="image.preview ?? null" :description="image.description ?? null" :descriptionLabel="descriptionLabel" :captionPosition="captionPosition" :id="_id" :frame="frame" :pixelated="pixelated" :transition="image.transition ?? null" />
                     {%- endif -%}
                 </li>
             {%- endfor -%}

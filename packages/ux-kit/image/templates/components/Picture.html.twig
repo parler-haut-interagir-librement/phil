@@ -70,7 +70,13 @@
     ## string The words of the summary of the description's disclosure.
     descriptionLabel = 'Description',
     ## bool Whether the image is described to search engines as a schema.org ImageObject in JSON-LD, from its address, size, caption, credit, license address and creation, through phil/structured-data.
-    structured = false
+    structured = false,
+    ## string|null A frame drawn from the tokens, words separated by spaces: "rounded" corners, a "framed" line around it, "raised" over the page by a shadow, or "token", a disc in a ring for a pawn or an avatar.
+    frame = null,
+    ## bool Whether it is pixel art, enlarged without blurring its pixels.
+    pixelated = false,
+    ## string|null Its name in a view transition, a CSS identifier unique in the page and the same on the next one, so that it moves from one page to the other as one.
+    transition = null
 -%}
 {%- set _refused = '#(^|,)[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i' -%}
 {%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
@@ -142,7 +148,7 @@
     <twig:Image:Figure :caption="caption" :captionPosition="captionPosition" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel" :description="description" :descriptionId="_described" :descriptionLabel="descriptionLabel">
         {%- if _sources is not empty -%}<picture>{%- endif -%}
         {%- for source in _sources -%}<source {{ html_attr(source.attributes) }}>{%- endfor -%}
-        <twig:Image :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :layout="layout" :aspect="aspect" :fit="fit" :position="position" :priority="priority" :preload="_sources is empty ? preload : false" :loading="loading" :decoding="decoding" :deferred="deferred" :placeholder="placeholder" :preview="preview" {{ ..._attributes }} />
+        <twig:Image :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :layout="layout" :aspect="aspect" :fit="fit" :position="position" :priority="priority" :preload="_sources is empty ? preload : false" :loading="loading" :decoding="decoding" :deferred="deferred" :placeholder="placeholder" :preview="preview" :frame="frame" :pixelated="pixelated" :transition="transition" {{ ..._attributes }} />
         {%- if _sources is not empty -%}</picture>{%- endif -%}
     </twig:Image:Figure>
 {%- endif -%}

@@ -4,6 +4,45 @@ All notable changes to `phil/ux-kit` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.7.0-alpha - 2026-11-17
+
+### Added
+
+- On `Image` and `Picture`: `frame`, a frame drawn from the tokens of phil-ux, words separated by spaces, `rounded`
+  (`hasRounded`), `framed` (`hasFramed`) and `raised` (`hasRaised`), or `token` (`hasToken`), the picture covering a
+  square box cropped to a disc inside a ring, for a pawn or an avatar; an unknown word is left out.
+- On `Image` and `Picture`: `pixelated`, pixel art enlarged without blurring its pixels (`hasPixelated`).
+- On `Image` and `Picture`: `transition`, the name of the image in a view transition, written in `data-transition`
+  with the class `hasTransition`, which phil-ux reads into `view-transition-name` through a typed `attr()`, never a
+  `style` attribute; a name that is no CSS identifier, or a keyword of `view-transition-name`, is left out. The image
+  README shows its use with Turbo 8 and with cross-document view transitions, and its limit: a name stands once in a
+  page.
+- `Gallery` carries `frame` and `pixelated` to every image, and each image its own `transition`; `Lightbox` carries
+  `frame` and `transition` to its thumbnail and `pixelated` to both its images; `Hotspots` carries `frame`, never a
+  token, and `pixelated`.
+- `RecipesPage` writes each mode under a strict Content Security Policy too, `strict.html`, `strict-dark.html` and
+  `strict-rtl.html`: `default-src 'self'`, no `'unsafe-inline'` for scripts or styles, the inline scripts the page
+  runs allowed by a nonce of its own, `img-src 'self' data:`, in a `meta` element first in the head, with a watcher,
+  `strict.js`, that lists in `window.violations` what the browser refuses; the template reads `strict`; the `page.css`
+  of the resources, when there is one, is copied beside the page. `RecipesPage::POLICY` is the policy.
+- `BrowserTestCase::strictModes()`, the modes under the strict policy, on which `open()` and the end of a test fail on
+  anything the browser refused; `isStrict()`; `isRightToLeft()` knows `strict-rtl.html`.
+- The browser suite runs every test of the images and of the celebration under the strict policy too, finds nothing
+  refused on any strict page and sees a `style` attribute written afterwards refused; it checks the frames, the token,
+  the pixel art and a view transition moving an image under its name, the images on paper, the medium emulated, and the
+  images right to left: a caption, a gallery and a carousel starting on the right, the button at the start of a
+  carousel pointing to the right, the close button of a lightbox in the top left corner; axe-core audits the frames.
+- The image README says how the image behaves under a strict policy and on paper; the celebration README, under a
+  strict policy.
+
+### Changed
+
+- The page of the browser suite has no `style` attribute left, its own rules in `tests/Browser/resources/page.css`; a
+  badge of a colour of its own and an aspect ratio, which write a custom property in a `style` attribute, are left out
+  of the strict pages.
+- The image recipe requires `phil/ux-kit:^0.7@dev`; `manifest.json` requires `phil/ux-css:^0.7@dev`; the branch alias of
+  `dev-main` is `0.7.x-dev`.
+
 ## 0.6.0-alpha - 2026-11-15
 
 ### Added

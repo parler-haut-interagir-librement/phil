@@ -56,7 +56,13 @@
     ## string|null A long description of the image, in a disclosure after the thumbnail, which its button is described by.
     description = null,
     ## string The words of the summary of the description's disclosure.
-    descriptionLabel = 'Description'
+    descriptionLabel = 'Description',
+    ## string|null The frame of the thumbnail, as for Image: "rounded", "framed", "raised" or "token", separated by spaces; the full image is shown bare.
+    frame = null,
+    ## bool Whether the image is pixel art, enlarged without blurring its pixels, the thumbnail and the full image.
+    pixelated = false,
+    ## string|null The name of the thumbnail in a view transition, as for Image.
+    transition = null
 -%}
 {%- if image_origin(src) is not same as('refused') and not (src|replace({"\t": '', "\n": '', "\r": ''}) matches '#^[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i') -%}
     {%- set _dialog = 'lightbox-' ~ id -%}
@@ -65,12 +71,12 @@
     <div {{ html_attr({class: ['isLightbox', attributes.all.class ?? null]|filter(name => name is not empty)|join(' ')}) }} data-controller="lightbox">
         <twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel" :description="description" :descriptionId="_described" :descriptionLabel="descriptionLabel">
             <button type="button" class="isLightboxTrigger" command="show-modal" commandfor="{{ _dialog }}" aria-haspopup="dialog"{% if _described is not null %} aria-describedby="{{ _described }}"{% endif %} data-action="click->lightbox#open">
-                <twig:Picture :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :sources="sources" :aspect="aspect" :fit="fit" :position="position" :deferred="deferred" :placeholder="placeholder" :preview="preview" />
+                <twig:Picture :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :sources="sources" :aspect="aspect" :fit="fit" :position="position" :deferred="deferred" :placeholder="placeholder" :preview="preview" :frame="frame" :pixelated="pixelated" :transition="transition" />
                 {%- if openLabel is not empty %}<span class="isVisuallyHidden">{{ openLabel }}</span>{% endif -%}
             </button>
         </twig:Image:Figure>
         <dialog id="{{ _dialog }}" class="isLightboxDialog" closedby="any" aria-label="{{ alt is not empty ? alt : caption }}" data-lightbox-target="dialog" data-action="click->lightbox#closeOnClickOutside">
-            <twig:Picture :src="_full.src ?? src" :alt="alt" :width="_full.width ?? width" :height="_full.height ?? height" :srcset="_full.srcset ?? null" :sizes="_full.sizes ?? '100vw'" :sources="_full.sources ?? []" fit="contain" :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel" />
+            <twig:Picture :src="_full.src ?? src" :alt="alt" :width="_full.width ?? width" :height="_full.height ?? height" :srcset="_full.srcset ?? null" :sizes="_full.sizes ?? '100vw'" :sources="_full.sources ?? []" fit="contain" :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel" :pixelated="pixelated" />
             <button type="button" class="isLightboxClose" command="close" commandfor="{{ _dialog }}" data-action="click->lightbox#close"><span aria-hidden="true">&times;</span><span class="isVisuallyHidden">{{ closeLabel }}</span></button>
         </dialog>
     </div>

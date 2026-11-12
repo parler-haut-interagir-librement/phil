@@ -125,6 +125,9 @@ its description.
 | `preview` | `null` | A tiny version of the image, inline in base 64 (PNG, JPEG, GIF, WebP or AVIF), painted blurred behind it while it loads by the `image-preview` controller (`hasPreview`); any other value left out |
 | `description` | `null` | A long description, escaped, in a `details` of class `isDescription` after the image, its text the image is described by through `aria-describedby` |
 | `descriptionLabel` | `'Description'` | The words of the description's `summary` |
+| `frame` | `null` | A frame of the tokens, words separated by spaces: `rounded` (`hasRounded`), `framed` (`hasFramed`), `raised` (`hasRaised`), or `token` (`hasToken`), a square disc in a ring for a pawn or an avatar; an unknown word left out |
+| `pixelated` | `false` | Pixel art, enlarged without blurring its pixels (`hasPixelated`) |
+| `transition` | `null` | Its name in a view transition, a CSS identifier unique in the page, written in `data-transition` with `hasTransition`, which phil-ux reads into `view-transition-name`; any other value, `none`, `auto` or `match-element` left out |
 
 `<twig:Picture>`: a `picture` whose `source` elements, in the order given, precede an `Image` holding the fallback;
 the `Image` alone when no source is left; in a `figure` with its `caption`.
@@ -141,8 +144,10 @@ The sources are written in this order: the variant for forced colours, the still
 with a `media` query, in the order of their first query, then those without; within each group, AVIF, then WebP, then
 the other types, then the sources without a type. A `media` holding `<`, `>`, `{`, `}` or `;` leaves its source out; a
 `width` or `height` that is not a positive integer is left out. The layout, the ratio, the fit, the crop, the
-placeholder and the preview are classes of phil-ux on the `img` (`hasLayoutFixed`, `hasLayoutFullWidth`,
-`hasRatio16x9`…, `hasFitCover`, `hasPositionTop`…, `hasPlaceholderBlue`…, `hasPreview`), never an inline style.
+placeholder, the preview, the frame, the pixel art and the view transition are classes of phil-ux on the `img`
+(`hasLayoutFixed`, `hasLayoutFullWidth`, `hasRatio16x9`…, `hasFitCover`, `hasPositionTop`…, `hasPlaceholderBlue`…,
+`hasPreview`, `hasRounded`…, `hasPixelated`, `hasTransition`), never an inline style: the recipe works under a strict
+Content Security Policy, which the browser suite applies.
 
 The other attributes go to the `img`, not to a root, and only `id`, `class` (added to `isImage`), `title`,
 `crossorigin`, `referrerpolicy`, `itemprop`, `draggable`, `data-*` and `aria-*`, written with `html_attr()` of
@@ -182,7 +187,7 @@ a `Lightbox`; nothing without an image.
 | Prop | Default | |
 |---|---|---|
 | `label` | required | The name of the list for screen readers |
-| `images` | `[]` | Each with the props of a `Picture`, `src`, `alt`, `width`, `height` required, and `full` for its lightbox |
+| `images` | `[]` | Each with the props of a `Picture`, `src`, `alt`, `width`, `height` required, its `transition`, and `full` for its lightbox |
 | `aspect`, `fit` | `null` | The ratio and the fit of every image |
 | `sizes` | `null` | The width of a column, for the candidates of widths |
 | `lightbox` | `false` | Whether each image opens in a `Lightbox` |
@@ -194,6 +199,7 @@ a `Lightbox`; nothing without an image.
 | `layout` | `null` | `carousel`: a row that scrolls and snaps, which the keyboard reaches (`hasLayoutCarousel`, `tabindex="0"`), its markers and buttons drawn by `::scroll-marker` and `::scroll-button()` where the browser has them; a grid otherwise |
 | `previousLabel`, `nextLabel` | `'Previous'`, `'Next'` | The names of the buttons of a carousel, carried by the list in `data-previous` and `data-next`; each marker is named by the `data-marker` of its `li`, the text alternative of its image or its rank |
 | `captionPosition` | `'below'` | Where the caption of each image stands, as for `Image`; a lightbox keeps its own under its thumbnail |
+| `frame`, `pixelated` | `null`, `false` | The frame and the pixel art of every image, as for `Image`; in a lightbox, the frame on the thumbnail alone |
 
 ## Lightbox
 
@@ -212,6 +218,8 @@ a `Lightbox`; nothing without an image.
 | `closeLabel` | `'Close'` | What screen readers read for the close button |
 | `deferred`, `placeholder`, `preview` | `false`, `null`, `null` | The thumbnail's, as for `Image` |
 | `description`, `descriptionLabel` | `null`, `'Description'` | A long description after the thumbnail, outside its button, which it describes |
+| `frame`, `transition` | `null` | The thumbnail's, as for `Image`; the full image is shown bare |
+| `pixelated` | `false` | Pixel art, the thumbnail and the full image |
 
 ## Hotspots
 
@@ -226,6 +234,7 @@ its caption, credit and license. An image the `image` recipe refuses draws nothi
 | `spots` | `[]` | Each `{x, y, label, href}`: its place as percentages of the width from the left and of the height from the top, kept within 100, its words and its address |
 | `sources`, `srcset`, `sizes`, `priority`, `placeholder` | | The image's, as for `Picture` |
 | `caption`, `credit`, `license`, `licenseHref` | `null` | Under the image, in a `figure` |
+| `frame`, `pixelated` | `null`, `false` | The image's, as for `Image`, but never `token`, whose crop would move the points |
 
 Each point carries the classes `hasHotspotX0` to `hasHotspotX100` and `hasHotspotY0` to `hasHotspotY100`, its place to
 the nearest five per cent, and `data-x` and `data-y`, its exact place, which phil-ux reads through a typed `attr()` where

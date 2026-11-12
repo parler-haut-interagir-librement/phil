@@ -1,0 +1,26 @@
+/* The page of the browser tests, written as a site under a strict policy writes it: no style attribute, its own
+ * stylesheet beside that of the kit. */
+.demoPage {
+    padding: 2rem;
+    min-block-size: 200vh;
+}
+
+.demoBlock {
+    block-size: 6rem;
+}
+
+.demoTeal {
+    background: teal;
+}
+
+.demoOrange {
+    background: orange;
+}
+
+.demoScroller {
+    block-size: 4rem;
+}
+
+.demoRatio {
+    inline-size: 160px;
+}

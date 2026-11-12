@@ -6,11 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>The recipes of the kit</title>
     <link rel="stylesheet" href="phil-ux.css">
+    <link rel="stylesheet" href="page.css">
     <script type="importmap">{"imports": {"@hotwired/stimulus": "./stimulus.js"}}</script>
     <script type="module" src="app.js"></script>
 </head>
 <body>
-<main class="isStack" style="padding: 2rem; min-block-size: 200vh">
+<main class="isStack demoPage">
     <section id="accordion">
         <twig:Accordion id="faq" defaultValue="one">
             <twig:Accordion:Item value="one"><twig:Accordion:Trigger>One</twig:Accordion:Trigger><twig:Accordion:Content>First answer</twig:Accordion:Content></twig:Accordion:Item>
@@ -100,7 +101,7 @@
         <div class="isCluster" id="tags"><twig:Tag id="tag-one" label="One" :removable="true" /><twig:Tag id="tag-two" label="Two" :removable="true" /><twig:Tag label="Fixed" class="isDanger" /></div>
         <twig:RelativeTime id="moment" datetime="2020-01-01T00:00:00+00:00" locale="en" />
         <div class="isCluster"><twig:ProgressRing label="Upload" :value="40" /><twig:ProgressRing label="Waiting" /><twig:Sparkline label="Rising" :values="[2, 4, 3, 9]" :area="true" /></div>
-        <twig:BeforeAfter id="compare" label="Cut" :position="30"><twig:block name="after"><div style="block-size: 6rem; background: teal"></div></twig:block><twig:block name="before"><div style="block-size: 6rem; background: orange"></div></twig:block></twig:BeforeAfter>
+        <twig:BeforeAfter id="compare" label="Cut" :position="30"><twig:block name="after"><div class="demoBlock demoTeal"></div></twig:block><twig:block name="before"><div class="demoBlock demoOrange"></div></twig:block></twig:BeforeAfter>
     </section>
     {%- set wide = 'data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27400%27%20height=%27200%27%3E%3Crect%20width=%27400%27%20height=%27200%27%20fill=%27COLOUR%27/%3E%3C/svg%3E' -%}
     {%- set square = 'data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27400%27%20height=%27400%27%3E%3Crect%20width=%27400%27%20height=%27400%27%20fill=%27COLOUR%27/%3E%3C/svg%3E' -%}
@@ -136,6 +137,12 @@
             <twig:Image :src="square|replace({COLOUR: 'olive'})" alt="The first speech" :width="400" :height="400" />
         </twig:Figure>
     </section>
+    <section id="frames" class="isCluster">
+        <twig:Image id="framed" :src="square|replace({COLOUR: 'teal'})" alt="A framed square" :width="96" :height="96" frame="rounded framed raised" />
+        <twig:Image id="pawn" :src="wide|replace({COLOUR: 'maroon'})" alt="A pawn" :width="96" :height="48" frame="token" />
+        <twig:Image id="pixels" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEklEQVR4nGPQqIg6scWGAUIBACREBWVbKYK9AAAAAElFTkSuQmCC" alt="Four pixels" :width="96" :height="96" :pixelated="true" />
+        <twig:Image id="poster" :src="square|replace({COLOUR: 'navy'})" alt="The poster" :width="96" :height="96" transition="poster" />
+    </section>
     <section id="native" class="isStack">
         <twig:AlertDialog id="erase">
             <twig:AlertDialog:Trigger><twig:Button id="open-alert" variant="destructive" {{ ...alert_dialog_trigger_attrs }}>Erase</twig:Button></twig:AlertDialog:Trigger>
@@ -157,8 +164,9 @@
         <twig:NativeSelect aria-label="Country"><twig:NativeSelect:OptGroup label="Group"><twig:NativeSelect:Option value="ca">Canada</twig:NativeSelect:Option></twig:NativeSelect:OptGroup></twig:NativeSelect>
         <twig:Progress :value="40" aria-label="Progress" />
         <twig:RadioGroup id="plan" name="plan" value="free" aria-label="Plan"><twig:RadioGroup:Item value="free" id="plan-free" /><twig:Label for="plan-free">Free</twig:Label><twig:RadioGroup:Item value="pro" id="plan-pro" /><twig:Label for="plan-pro">Pro</twig:Label></twig:RadioGroup>
-        <twig:ScrollArea id="scroller" label="Notes" style="block-size: 4rem"><p>One</p><p>Two</p><p>Three</p><p>Four</p></twig:ScrollArea>
-        <twig:AspectRatio ratio="16 / 9" style="inline-size: 160px"><div style="background: teal"></div></twig:AspectRatio>
+        <twig:ScrollArea id="scroller" label="Notes" class="demoScroller"><p>One</p><p>Two</p><p>Three</p><p>Four</p></twig:ScrollArea>
+        {#- An aspect ratio writes its ratio in a style attribute, which a strict policy refuses. -#}
+        {%- if not strict %}<twig:AspectRatio ratio="16 / 9" class="demoRatio"><div class="demoTeal"></div></twig:AspectRatio>{% endif %}
         <twig:Collapsible><twig:Collapsible:Trigger>More</twig:Collapsible:Trigger><twig:Collapsible:Content>Hidden</twig:Collapsible:Content></twig:Collapsible>
     </section>
     <section id="blocks" class="isStack">
@@ -171,7 +179,7 @@
         <twig:Card size="sm"><twig:Card:Header><twig:Card:Title>Card</twig:Card:Title><twig:Card:Description>Described</twig:Card:Description><twig:Card:Action><twig:Button size="sm" variant="link">Act</twig:Button></twig:Card:Action></twig:Card:Header><twig:Card:Content>Body</twig:Card:Content><twig:Card:Footer>Foot</twig:Card:Footer></twig:Card>
         <twig:Alert variant="destructive"><twig:Alert:Title>Alert</twig:Alert:Title><twig:Alert:Description>Said</twig:Alert:Description><twig:Alert:Action><twig:Button variant="outline" size="sm">Undo</twig:Button></twig:Alert:Action></twig:Alert>
         <twig:Avatar:Group><twig:Avatar><twig:Avatar:Fallback>AB</twig:Avatar:Fallback><twig:Avatar:Badge>1</twig:Avatar:Badge></twig:Avatar><twig:Avatar><twig:Avatar:Fallback>CD</twig:Avatar:Fallback></twig:Avatar><twig:Avatar:GroupCount>+3</twig:Avatar:GroupCount></twig:Avatar:Group>
-        <div class="isCluster"><twig:Badge>Badge</twig:Badge><twig:Badge variant="secondary">Two</twig:Badge><twig:Badge variant="outline">Three</twig:Badge><twig:Badge variant="link" as="a" href="#">Four</twig:Badge><twig:Badge color="#663399">Five</twig:Badge></div>
+        <div class="isCluster"><twig:Badge>Badge</twig:Badge><twig:Badge variant="secondary">Two</twig:Badge><twig:Badge variant="outline">Three</twig:Badge><twig:Badge variant="link" as="a" href="#">Four</twig:Badge>{# A badge of a colour of its own writes it in a style attribute, which a strict policy refuses. #}{% if not strict %}<twig:Badge color="#663399">Five</twig:Badge>{% endif %}</div>
         <twig:ButtonGroup orientation="vertical"><twig:Button>A</twig:Button><twig:Button>B</twig:Button><twig:Button>C</twig:Button></twig:ButtonGroup>
         <twig:ButtonGroup><twig:Button>A</twig:Button><twig:ButtonGroup:Text>B</twig:ButtonGroup:Text><twig:Button>C</twig:Button></twig:ButtonGroup>
         <twig:Breadcrumb><twig:Breadcrumb:List><twig:Breadcrumb:Item><twig:Breadcrumb:Link href="#">Home</twig:Breadcrumb:Link></twig:Breadcrumb:Item><twig:Breadcrumb:Separator /><twig:Breadcrumb:Item><twig:Breadcrumb:Page>Here</twig:Breadcrumb:Page></twig:Breadcrumb:Item></twig:Breadcrumb:List></twig:Breadcrumb>
@@ -182,6 +190,8 @@
         <twig:Label for="i">Label</twig:Label><twig:Input id="i" /><twig:Textarea>Text</twig:Textarea><label><twig:Checkbox /> Check</label>
     </section>
     <section id="far" class="isStack">
+        {#- A JSON-LD script as the prop structured of an image writes it in a request: data, which a strict policy lets be. -#}
+        <script type="application/ld+json">{"@context":"https://schema.org","@type":"ImageObject","contentUrl":"http://127.0.0.1:9180/far-away.png","width":400,"height":300}</script>
         <twig:Image id="previewed" src="far-away.png" preview="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEklEQVR4nGPQqIg6scWGAUIBACREBWVbKYK9AAAAAElFTkSuQmCC" placeholder="neutral" alt="A field, far down the page" :width="400" :height="300" />
         {%- set archive = [] -%}
         {%- for index in 1..12 -%}

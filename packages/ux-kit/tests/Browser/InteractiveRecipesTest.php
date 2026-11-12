@@ -31,6 +31,17 @@ final class InteractiveRecipesTest extends BrowserTestCase
      */
     private const string WATCH = 'window.drawn = 0; new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach((node) => { if ("CANVAS" === node.nodeName) { window.drawn++; } }))).observe(document.querySelector("#victory"), {childList: true});';
 
+    /**
+     * The page in clear, then under the strict policy.
+     *
+     * @return iterable<string, array{string}>
+     */
+    public static function plainAndStrict(): iterable
+    {
+        yield 'clear' => ['index.html'];
+        yield 'clear under a strict policy' => ['strict.html'];
+    }
+
     #[Override]
     protected static function recipesPage(): RecipesPage
     {
@@ -510,6 +521,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * A picture wider than a phone shrinks to its container and keeps the ratio of its width and height.
      */
     #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
     public function testAnImageFitsAPhoneAtItsRatio(string $page): void
     {
         $this->browser()->manage()->window()->setSize(new WebDriverDimension(375, 800));
@@ -526,17 +538,18 @@ final class InteractiveRecipesTest extends BrowserTestCase
     /**
      * Art direction: the source of a phone's media query on a phone, the fallback on a wide screen, each at its own ratio.
      */
-    public function testAPictureChoosesItsCropByTheWidthOfTheScreen(): void
+    #[DataProvider('plainAndStrict')]
+    public function testAPictureChoosesItsCropByTheWidthOfTheScreen(string $page): void
     {
         $this->browser()->manage()->window()->setSize(new WebDriverDimension(375, 800));
-        $this->open('index.html');
+        $this->open($page);
         $this->perform('document.querySelector("#directed").scrollIntoView()');
         $this->waitUntil('document.querySelector("#directed").complete && document.querySelector("#directed").currentSrc');
 
         self::assertSame([true, 1], $this->read('(() => { const image = document.querySelector("#directed"), box = image.getBoundingClientRect(); return [image.currentSrc.includes("navy"), Math.round(box.width / box.height)]; })()'));
 
         $this->browser()->manage()->window()->setSize(new WebDriverDimension(1280, 800));
-        $this->open('index.html');
+        $this->open($page);
         $this->perform('document.querySelector("#directed").scrollIntoView()');
         $this->waitUntil('document.querySelector("#directed").complete && document.querySelector("#directed").currentSrc');
 
@@ -547,6 +560,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * A ratio of its own: the box kept square whatever the picture, the picture covering it, cropped on its left.
      */
     #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
     public function testAnImageKeepsItsRatioCoveredAndCropped(string $page): void
     {
         $this->open($page);
@@ -559,6 +573,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * against the rules of WCAG 2.2 A and AA, in clear, in dark and right to left.
      */
     #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
     public function testTheImagesPassAxe(string $page): void
     {
         $this->open($page);
@@ -579,6 +594,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * Escape closes it and gives the focus back to the thumbnail, a click on the backdrop closes it too.
      */
     #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
     public function testALightboxOpensAtItsThumbnailAndClosesAtEscapeOrOnItsBackdrop(string $page): void
     {
         $this->open($page);
@@ -602,19 +618,20 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * A gallery lays its images in columns as wide as its container allows: fewer on a phone, without overflowing it,
      * three at least on a wide screen.
      */
-    public function testAGalleryFitsItsColumnsToItsContainer(): void
+    #[DataProvider('plainAndStrict')]
+    public function testAGalleryFitsItsColumnsToItsContainer(string $page): void
     {
         $columns = 'getComputedStyle(document.querySelector("#festival > ul")).gridTemplateColumns.split(" ").length';
 
         $this->browser()->manage()->window()->setSize(new WebDriverDimension(375, 800));
-        $this->open('index.html');
+        $this->open($page);
         $phone = $this->read($columns);
         self::assertIsInt($phone);
         self::assertLessThanOrEqual(2, $phone);
         self::assertSame([], $this->read('[...document.querySelectorAll("#images > *")].filter((part) => part.getBoundingClientRect().right > document.documentElement.clientWidth + 1).map((part) => part.className)'));
 
         $this->browser()->manage()->window()->setSize(new WebDriverDimension(1280, 800));
-        $this->open('index.html');
+        $this->open($page);
         self::assertGreaterThan(max(2, $phone), $this->read($columns));
     }
 
@@ -622,7 +639,8 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * The variants of a picture follow the reader's system: the dark one where it is dark, the still one where motion
      * is reduced, the fallback otherwise.
      */
-    public function testAPictureFollowsTheColourSchemeAndTheMotionOfTheSystem(): void
+    #[DataProvider('plainAndStrict')]
+    public function testAPictureFollowsTheColourSchemeAndTheMotionOfTheSystem(string $page): void
     {
         $source = 'document.querySelector("#themed").currentSrc';
 
@@ -630,7 +648,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
 
         foreach ([[$light, 'teal'], [[['name' => 'prefers-color-scheme', 'value' => 'dark']], 'navy'], [[['name' => 'prefers-reduced-motion', 'value' => 'reduce'], ['name' => 'prefers-color-scheme', 'value' => 'dark']], 'olive']] as [$features, $colour]) {
             $this->emulate($features);
-            $this->open('index.html');
+            $this->open($page);
             $this->perform('document.querySelector("#themed").scrollIntoView()');
             $this->waitUntil('document.querySelector("#themed").complete && '.$source);
 
@@ -667,6 +685,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * to left.
      */
     #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
     public function testThePlaceholdersPreviewsDescriptionsAndDeferredGalleryPassAxe(string $page): void
     {
         $this->open($page);
@@ -688,10 +707,11 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * A deferred gallery: the browser skips its figures off screen, each kept at the ratio of its image until it is
      * rendered; its cells reach into the gap by the width of the focus ring, which the focus of a thumbnail then shows.
      */
-    public function testADeferredGallerySkipsItsFiguresOffScreenAtTheirRatio(): void
+    #[DataProvider('plainAndStrict')]
+    public function testADeferredGallerySkipsItsFiguresOffScreenAtTheirRatio(string $page): void
     {
         $this->browser()->manage()->window()->setSize(new WebDriverDimension(1280, 800));
-        $this->open('index.html');
+        $this->open($page);
 
         self::assertSame(
             ['auto', true, true],
@@ -708,9 +728,10 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * The preview of an image far down the page is painted behind it through the CSSOM until the image has been
      * fetched: here it fails, and the preview goes all the same.
      */
-    public function testAPreviewIsPaintedUntilTheImageArrives(): void
+    #[DataProvider('plainAndStrict')]
+    public function testAPreviewIsPaintedUntilTheImageArrives(string $page): void
     {
-        $this->open('index.html');
+        $this->open($page);
 
         self::assertTrue($this->read('getComputedStyle(document.querySelector("#previewed")).backgroundImage.startsWith("url(\"data:image/svg+xml")'));
 
@@ -721,12 +742,13 @@ final class InteractiveRecipesTest extends BrowserTestCase
     /**
      * Where colours are forced, the picture shows its variant drawn for them; its placeholder paints its box otherwise.
      */
-    public function testAPictureShowsItsVariantForForcedColours(): void
+    #[DataProvider('plainAndStrict')]
+    public function testAPictureShowsItsVariantForForcedColours(string $page): void
     {
         $source = 'document.querySelector("#forced").currentSrc';
 
         $this->emulate([['name' => 'forced-colors', 'value' => 'active']]);
-        $this->open('index.html');
+        $this->open($page);
         $this->perform('document.querySelector("#forced").scrollIntoView()');
         $this->waitUntil('document.querySelector("#forced").complete && '.$source);
         $forced = $this->read($source);
@@ -734,7 +756,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
         self::assertStringContainsString('black', $forced);
 
         $this->emulate([['name' => 'forced-colors', 'value' => 'none']]);
-        $this->open('index.html');
+        $this->open($page);
         $this->perform('document.querySelector("#forced").scrollIntoView()');
         $this->waitUntil('document.querySelector("#forced").complete && '.$source);
         $plain = $this->read($source);
@@ -747,22 +769,25 @@ final class InteractiveRecipesTest extends BrowserTestCase
 
     /**
      * axe-core on what 0.5 adds: the caption over its image, the gallery laid out as a carousel, the image with its points,
-     * the hero, the video with its captions and transcript, and the figure of several images; in clear, in dark and right
-     * to left.
+     * the hero, the video with its captions and transcript, and the figure of several images; then on the frames, the
+     * token and the pixel art of 0.7; in clear, in dark and right to left, and under the strict policy.
      */
     #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
     public function testTheNewImageRecipesPassAxe(string $page): void
     {
         $this->open($page);
         $this->perform((string) file_get_contents(__DIR__.'/node_modules/axe-core/axe.min.js'));
 
         self::assertSame([], $this->axe('#figures'));
+        self::assertSame([], $this->axe('#frames'));
     }
 
     /**
      * The caption lies over the foot of its image, as wide as it, its light text on a dark veil.
      */
     #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
     public function testACaptionOverItsImageLiesOnItsFoot(string $page): void
     {
         $this->open($page);
@@ -779,6 +804,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * has the focus; the browser draws a marker per figure and names its buttons from the attributes of the list.
      */
     #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
     public function testACarouselGalleryIsARowThatSnapsAndScrollsAtTheArrows(string $page): void
     {
         $this->open($page);
@@ -801,6 +827,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * classes exactly; on a phone, the points read as a list under the image.
      */
     #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
     public function testThePointsOfAnImageStandAtTheirPlace(string $page): void
     {
         $this->open($page);
@@ -823,6 +850,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * The image of a hero covers its whole box, its content on a veil over it.
      */
     #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
     public function testAHeroCoversItsBoxWithItsImage(string $page): void
     {
         $this->open($page);
@@ -837,10 +865,11 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * The video waits for its reader: nothing fetched, its space reserved at its ratio on a phone, its captions shown;
      * played by the reader, its file arrives.
      */
-    public function testAVideoWaitsForItsReader(): void
+    #[DataProvider('plainAndStrict')]
+    public function testAVideoWaitsForItsReader(string $page): void
     {
         $this->browser()->manage()->window()->setSize(new WebDriverDimension(375, 800));
-        $this->open('index.html');
+        $this->open($page);
         $video = 'document.querySelector("#clip")';
 
         self::assertSame(
@@ -858,6 +887,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * Several images under one caption, in as many columns as asked, the caption under them all.
      */
     #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
     public function testAFigureLaysItsImagesInColumnsUnderOneCaption(string $page): void
     {
         $this->open($page);
@@ -873,6 +903,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * readers and letting the pointer through, something is drawn on it, the message is said, and the canvas goes.
      */
     #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
     public function testACelebrationSaysItsMessageDrawsOverThePageAndGoes(string $page): void
     {
         $this->open($page);
@@ -892,9 +923,10 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * Any element of the page plays the celebration by the DOM event `celebrate`, its `detail` giving the message and
      * the effect of this time.
      */
-    public function testTheEventCelebratePlaysTheCelebrationWithItsOwnMessage(): void
+    #[DataProvider('plainAndStrict')]
+    public function testTheEventCelebratePlaysTheCelebrationWithItsOwnMessage(string $page): void
     {
-        $this->open('index.html');
+        $this->open($page);
         $this->perform('document.querySelector("#own").dispatchEvent(new CustomEvent("celebrate", {bubbles: true, detail: {message: "Bingo", effect: "fireworks"}}))');
 
         $this->waitUntil('document.querySelector("#victory canvas")');
@@ -907,12 +939,13 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * Where motion is reduced, by the system or by `data-motion="reduce"` on the root, the message is said and no canvas
      * ever comes.
      */
-    public function testNothingIsDrawnUnderReducedMotionButTheMessageIsSaid(): void
+    #[DataProvider('plainAndStrict')]
+    public function testNothingIsDrawnUnderReducedMotionButTheMessageIsSaid(string $page): void
     {
         $this->emulate([['name' => 'prefers-reduced-motion', 'value' => 'reduce']]);
 
         try {
-            $this->open('index.html');
+            $this->open($page);
             $this->perform(self::WATCH);
             $this->click('#celebrate');
             $this->waitUntil('document.querySelector("#victory .isCelebrationMessage").textContent === "You won!"');
@@ -923,7 +956,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
             $this->emulate([]);
         }
 
-        $this->open('index.html');
+        $this->open($page);
         $this->perform('document.documentElement.dataset.motion = "reduce"; '.self::WATCH);
         $this->perform('window.dispatchEvent(new CustomEvent("celebrate"))');
         $this->waitUntil('document.querySelector("#victory .isCelebrationMessage").textContent === "You won!"');
@@ -936,11 +969,12 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * A celebration on a page that arrives on a victory plays as soon as it connects; removed from the page, it stops at
      * once and leaves the page free for the next one.
      */
-    public function testACelebrationPlaysAtOnceWithAutoplayAndStopsWhenRemoved(): void
+    #[DataProvider('plainAndStrict')]
+    public function testACelebrationPlaysAtOnceWithAutoplayAndStopsWhenRemoved(string $page): void
     {
         $arrive = 'const copy = document.querySelector("#celebrations > .isCelebration").cloneNode(true); copy.id = "%s"; copy.querySelector("button")?.remove(); copy.querySelector("canvas")?.remove(); copy.querySelector(".isCelebrationMessage").textContent = ""; copy.dataset.celebrationAutoplayValue = "true"; copy.dataset.celebrationMessageValue = "First place"; copy.dataset.celebrationDurationValue = "4000"; document.querySelector("#celebrations").replaceChildren(copy);';
 
-        $this->open('index.html');
+        $this->open($page);
         $this->perform(\sprintf($arrive, 'arrival'));
         $this->waitUntil('document.querySelector("#arrival canvas")');
         $this->waitUntil('document.querySelector("#arrival .isCelebrationMessage").textContent === "First place"');
@@ -955,6 +989,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
      * axe-core on the celebration, waiting and while it plays, in clear, in dark and right to left.
      */
     #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
     public function testACelebrationPassesAxe(string $page): void
     {
         $this->open($page);
@@ -966,6 +1001,93 @@ final class InteractiveRecipesTest extends BrowserTestCase
         $this->waitUntil('document.querySelector("#victory canvas") && document.querySelector("#victory .isCelebrationMessage").textContent !== ""');
 
         self::assertSame([], $this->axe('#celebrations'));
+    }
+
+    /**
+     * The frame, the token, the pixel art and the name of a view transition come from the sheet alone: the corners, the
+     * line and the shadow of the tokens, a square disc in its ring, pixels kept square, and a name under which a view
+     * transition moves the image.
+     */
+    #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
+    public function testAFrameATokenPixelArtAndATransitionComeFromTheSheet(string $page): void
+    {
+        $this->open($page);
+        $this->perform('document.querySelector("#frames").scrollIntoView()');
+
+        self::assertSame(
+            [true, 'solid', true, '50%', true, 'cover', '4px', 'pixelated', 'poster'],
+            $this->read('(() => { const framed = getComputedStyle(document.querySelector("#framed")), pawn = document.querySelector("#pawn"), token = getComputedStyle(pawn), box = pawn.getBoundingClientRect(); return [framed.borderTopLeftRadius !== "0px", framed.borderTopStyle, framed.boxShadow !== "none", token.borderTopLeftRadius, Math.abs(box.width - box.height) < 1, token.objectFit, token.borderTopWidth, getComputedStyle(document.querySelector("#pixels")).imageRendering, getComputedStyle(document.querySelector("#poster")).viewTransitionName]; })()'),
+        );
+
+        $this->browser()->manage()->timeouts()->setScriptTimeout(10);
+        self::assertTrue($this->browser()->executeAsyncScript('const done = arguments[arguments.length - 1]; const transition = document.startViewTransition(() => document.querySelector("#poster").classList.add("isMoved")); transition.ready.then(() => done(document.documentElement.getAnimations({subtree: true}).some((animation) => animation.effect.pseudoElement === "::view-transition-group(poster)")), (error) => done(String(error)));'));
+    }
+
+    /**
+     * On paper: the carousel a grid printed whole, without markers or buttons; a figure never cut, its caption kept
+     * with its image and its veil printed; an image never taller than the page; a deferred gallery rendered whole; the
+     * close button of a lightbox and the canvas of a celebration left out.
+     */
+    #[DataProvider('plainAndStrict')]
+    public function testTheImagesPrintLegibly(string $page): void
+    {
+        $this->open($page);
+        $this->click('#celebrate');
+        $this->waitUntil('document.querySelector("#victory canvas")');
+        $this->emulate([], 'print');
+
+        try {
+            self::assertSame(
+                ['row', true, 'none', 'avoid', 'avoid', 'exact', true, 'visible', 'none', 'none', 'avoid'],
+                $this->read('(() => { const strip = document.querySelector("#strip ul"), style = getComputedStyle(strip), figure = document.querySelector("#overlaid").closest("figure"), caption = figure.querySelector("figcaption"); return [style.gridAutoFlow, strip.scrollWidth <= strip.clientWidth + 1, style.scrollMarkerGroup, getComputedStyle(figure).breakInside, getComputedStyle(caption).breakBefore, getComputedStyle(caption).printColorAdjust, getComputedStyle(document.querySelector("#photo")).maxHeight.endsWith("px"), getComputedStyle(document.querySelector("#archive li")).contentVisibility, getComputedStyle(document.querySelector("#lightbox-festival-1 .isLightboxClose")).display, getComputedStyle(document.querySelector("#victory canvas")).display, getComputedStyle(document.querySelector("#festival li")).breakInside]; })()'),
+            );
+        } finally {
+            $this->emulate([]);
+        }
+    }
+
+    /**
+     * Right to left: a caption reads from the right, a gallery and a carousel start on the right, the button at the
+     * start of a carousel points to the right, and the close button of a lightbox sits in the top left corner; the
+     * mirror left to right.
+     */
+    #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
+    public function testTheImagesReadInTheDirectionOfThePage(string $page): void
+    {
+        $rtl = $this->isRightToLeft($page);
+        $this->open($page);
+
+        self::assertSame(
+            [$rtl, $rtl, $rtl, $rtl, !$rtl],
+            $this->read('(() => { const caption = document.querySelector("#photo").closest("figure").querySelector("figcaption"), range = document.createRange(); range.selectNodeContents(caption.firstChild); const text = range.getBoundingClientRect(), box = caption.getBoundingClientRect(), gallery = [...document.querySelectorAll("#festival li")].map((item) => item.getBoundingClientRect()), strip = document.querySelector("#strip ul"), first = strip.firstElementChild.getBoundingClientRect(), list = strip.getBoundingClientRect(), start = getComputedStyle(strip, "::scroll-button(inline-start)").content; return [Math.abs(text.right - box.right) < Math.abs(text.left - box.left), gallery[0].left > gallery[1].left, Math.abs(first.right - list.right) < Math.abs(first.left - list.left), start.includes("\u203A"), start.includes("\u2039")]; })()'),
+        );
+
+        $this->focus('[commandfor="lightbox-festival-1"]');
+        $this->press(WebDriverKeys::ENTER);
+        $this->waitUntil('document.querySelector("#lightbox-festival-1").open');
+
+        self::assertSame($rtl, $this->read('(() => { const close = document.querySelector("#lightbox-festival-1 .isLightboxClose").getBoundingClientRect(), dialog = document.querySelector("#lightbox-festival-1").getBoundingClientRect(); return close.left + close.width / 2 < dialog.left + dialog.width / 2; })()'));
+    }
+
+    /**
+     * Every recipe of the page renders under the strict policy with nothing refused, and the policy holds: a style
+     * attribute written afterwards is refused, and seen.
+     */
+    #[DataProvider('strictModes')]
+    public function testThePageRendersUnderAStrictPolicyThatRefusesWhatItForbids(string $page): void
+    {
+        $this->open($page);
+
+        self::assertSame([], $this->read('window.violations'));
+
+        $this->perform('document.body.insertAdjacentHTML("beforeend", "<b id=\\"probe\\" style=\\"color: rgb(255, 0, 0)\\">Refused</b>")');
+        $this->waitUntil('window.violations.length === 1 && window.violations[0].startsWith("style-src-attr inline")');
+
+        self::assertNotSame('rgb(255, 0, 0)', $this->read('getComputedStyle(document.querySelector("#probe")).color'));
+
+        $this->perform('window.violations = []');
     }
 
     /**
@@ -986,14 +1108,15 @@ final class InteractiveRecipesTest extends BrowserTestCase
     }
 
     /**
-     * The media features Chrome emulates, through its DevTools protocol; none restores those of the system.
+     * The media features Chrome emulates, through its DevTools protocol, and the medium, `print` or the screen when
+     * empty; none restores those of the system.
      *
      * @param list<array{name: string, value: string}> $features
      */
-    private function emulate(array $features): void
+    private function emulate(array $features, string $media = ''): void
     {
         $driver = $this->browser()->getWebDriver();
         self::assertInstanceOf(RemoteWebDriver::class, $driver);
-        $driver->executeCustomCommand('/session/:sessionId/goog/cdp/execute', 'POST', ['cmd' => 'Emulation.setEmulatedMedia', 'params' => ['features' => $features]]);
+        $driver->executeCustomCommand('/session/:sessionId/goog/cdp/execute', 'POST', ['cmd' => 'Emulation.setEmulatedMedia', 'params' => ['media' => $media, 'features' => $features]]);
     }
 }

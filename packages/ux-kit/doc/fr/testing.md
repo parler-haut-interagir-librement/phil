@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1d0bab3b4aac0c253356b36902535d05e6007ccc3b8ab72850f242e41961d29e -->
+<!-- phil-dev source-sha256=58030eba3abe47337bc3b9ca2fd6ac01e7e6f9682d07cdbf427548aed563d550 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -12,6 +12,7 @@
 | `Image` et `Picture` en 0.4 | `deferred` et `fetchpriority="low"`, `priority` l'emportant ; la classe de chaque couleur d'attente, une inconnue ne peignant rien ; un aperçu remis à son contrôleur à côté de celui de la page, seule une toute petite image matricielle en ligne en base 64 gardée ; la variante des couleurs forcées d'abord et jamais préchargée ; la description dans son dévoilement avant la légende, échappée, décrivant l'image à côté d'une description de la page, son identifiant tiré de celui de l'image ou propre, une image décorative la montrant sans être décrite ; `Gallery`, `Lightbox` et `Logo` qui les portent ; les avertissements d'`image_check()` en débogage, aucun quand il est coupé ou sans débogage ; la priorité, la disposition, le rapport, l'ajustement et le recadrage de `Logo`, portés par `ComingSoon` avec la taille de son logo et le chargement de son illustration |
 | Les images en 0.5 | Une légende posée sur son image, la classe de sa figure, dessous par défaut et rien de posé sans légende ; `Gallery` en carrousel, sa liste atteinte au clavier, les noms de ses marqueurs et de ses boutons, la place de ses légendes ; `Hotspots`, chaque point un lien placé par ses classes aux cinq pour cent près et par ses attributs de données, gardé sur le bord, un point sans mots, sans adresse ou sans place ou avec une adresse refusée écarté, les sources et le préchargement de l'image, une image refusée ; `Hero`, son image principale de la page, préchargée, couvrante, ses tailles et ses sources, ses hauteurs et ses alignements, paresseuse sous la ligne de flottaison, une image refusée qui laisse le contenu ; `Video`, son affiche, ses sources et ses pistes, rien de demandé et aucune lecture automatique, une source, une piste ou une affiche refusée écartée, sa transcription qui la décrit, rien sans source ; `Figure`, ses images sous une légende, un crédit, une licence et une création, ses colonnes, la grille seule sans eux |
 | Les images en 0.6 | `image_filters()` : les jeux d'une image triés par largeur, AVIF puis WebP en sources, le choix du repli, la largeur lue dans le dernier filtre qui redimensionne ou donnée, la taille seulement quand le recadrage est exact, un jeu inconnu ou une largeur illisible, la fonction sans LiipImagine, et une `Picture` rendue par LiipImagine lui-même ; `picture_props()` : le premier fournisseur qui prend l'objet en charge, ses options, les props gardées, un objet qu'aucun fournisseur ne prend ; `structured` : l'`ImageObject` avant la figure ou l'image, sans nonce, son adresse rendue absolue et lue par `phil/url`, ses tailles, sa licence et sa création, le graphe de la page, rien pour une image refusée ou en ligne ou sans le demander, une légende incapable de fermer le script |
+| Les images en 0.7 | `frame`, chaque mot une classe, un mot inconnu laissé de côté, `token` ; `pixelated` ; `transition`, une classe et `data-transition`, un nom qui n'est pas un identifiant CSS ou un mot-clé de `view-transition-name` laissé de côté ; portés par `Picture`, `Gallery`, chaque image son propre nom, `Lightbox`, le cadre et le nom sur la vignette, le pixel art sur les deux, et `Hotspots`, jamais un jeton ; jamais un style. `RecipesPage` : chaque mode sous la politique stricte, ses scripts en ligne qui s'exécutent munis de son nonce, les blocs de données et les scripts à source laissés de côté, un nonce par page, le guetteur, la feuille de la page |
 | `Gallery` et `Lightbox` | La liste nommée par son libellé, ses figures, la visionneuse de chaque image et leurs identifiants, les tailles de la grille, une image refusée qui ne prend aucune place ; la vignette dans son bouton avec les invocateurs, le dialogue et son bouton de fermeture, l'image entière montrée en entier, la légende sous les deux, les libellés en props, une image décorative nommée par sa légende, une image refusée, `id` requis |
 | `image_origin()` et `image_sources()` | `ImageOrigin` : les chemins relatifs, les images en ligne et l'origine de la page locaux, les hôtes de la liste et ceux qui sont sous eux externes, tout autre hôte, des identifiants, une adresse IP, `localhost` sauf permission et tout autre schéma refusés, un `srcset` coupé à chaque espace et à chaque virgule, aucun hôte caché derrière une virgule, et jugé sur son pire morceau ; `ImageSources` : les formats et les densités d'une image, un fichier seul sans descripteur, les largeurs, les formats et les replis choisis, la taille du repli, un chemin refusé, aucun repli |
 | `AutosaveStatus` | La région active, l'avis caché, ses boutons avec leurs cibles, leurs actions et leurs libellés par défaut ; les libellés en props, échappés ; une `class` ajoutée |
@@ -55,17 +56,35 @@ et l'image avec sa variante des couleurs forcées, sa couleur d'attente et sa de
 galerie différée, une de ses visionneuses ouverte. La suite vérifie qu'une galerie différée garde ses figures hors de
 l'écran à leur rapport et son anneau de focus entier, qu'un aperçu est peint jusqu'à l'arrivée de son image, et qu'une
 image montre sa variante là où les couleurs sont forcées. axe-core audite aussi ce qu'ajoute la 0.5, dans chaque mode :
-une légende sur son image, une galerie en carrousel, une image avec ses points, un héros, une vidéo avec ses
-sous-titres et sa transcription, et une figure de plusieurs images. La suite vérifie que la légende repose sur le pied
-de son image, que le carrousel est une seule rangée qui s'aimante et défile aux flèches, ses boutons nommés, que chaque
-point se tient à sa place, la même de droite à gauche, et sous l'image sur un téléphone, que l'image d'un héros le
-couvre, qu'une vidéo ne demande rien avant sa lecture, garde son rapport sur un téléphone et lit son fichier, et qu'une
-figure dispose ses images en colonnes au-dessus de sa légende. Le bouton de la démonstration joue une `Celebration` :
-son message est dit, son canvas vient sur toute la page, caché aux lecteurs d'écran et laissant passer le pointeur, on y
-dessine, puis il s'en va ; l'événement DOM `celebrate` la joue avec son propre message, `autoplay` la joue d'emblée et
-son retrait libère la page pour la suivante, et rien n'est dessiné en mouvement réduit, émulé par le protocole DevTools
-ou demandé par `data-motion="reduce"` ; axe-core l'audite, en attente et en cours, dans chaque mode. Un dernier test vérifie que chaque partie d'une page qui
-contient toutes les recettes porte une classe de la feuille.
+une légende sur son image, une galerie en carrousel, une image avec ses points, un héros, une vidéo avec ses sous-titres
+et sa transcription, et une figure de plusieurs images. La suite vérifie que la légende repose sur le pied de son image,
+que le carrousel est une seule rangée qui s'aimante et défile aux flèches, ses boutons nommés, que chaque point se tient
+à sa place, la même de droite à gauche, et sous l'image sur un téléphone, que l'image d'un héros le couvre, qu'une vidéo
+ne demande rien avant sa lecture, garde son rapport sur un téléphone et lit son fichier, et qu'une figure dispose ses
+images en colonnes au-dessus de sa légende. Le bouton de la démonstration joue une `Celebration` : son message est dit,
+son canvas vient sur toute la page, caché aux lecteurs d'écran et laissant passer le pointeur, on y dessine, puis il
+s'en va ; l'événement DOM `celebrate` la joue avec son propre message, `autoplay` la joue d'emblée et son retrait libère
+la page pour la suivante, et rien n'est dessiné en mouvement réduit, émulé par le protocole DevTools ou demandé par
+`data-motion="reduce"` ; axe-core l'audite, en attente et en cours, dans chaque mode. Un dernier test vérifie que chaque
+partie d'une page qui contient toutes les recettes porte une classe de la feuille.
+
+Chaque mode est aussi écrit sous une politique de sécurité du contenu stricte, la politique par défaut d'un site qui
+n'envoie rien en ligne : `default-src 'self'`, aucun `'unsafe-inline'` pour les scripts ni pour les styles, les
+scripts en ligne de la page elle-même, sa carte d'importation, permis par un nonce de la page, `img-src 'self' data:`,
+`object-src 'none'`. La politique est le premier élément de l'en-tête, dans un élément `meta`, puisque la page est servie
+en fichiers statiques ; un guetteur, `strict.js`, relève tout ce que le navigateur refuse. Chaque test des images et de
+la célébration y tourne aussi, et échoue au premier refus : les aperçus peints par le CSSOM, les visionneuses, le
+carrousel, les points, le héros, la vidéo et ses sous-titres, le canvas de la célébration. Un test ouvre chaque page
+stricte, n'y trouve rien de refusé pendant que chaque recette s'affiche, puis écrit un attribut `style` et le voit
+refusé. Un badge d'une couleur à lui et un rapport d'aspect, qui écrivent une propriété personnalisée dans un attribut
+`style`, sont laissés hors des pages strictes. La suite vérifie aussi que les cadres, le jeton, le pixel art et le nom
+d'une transition de vue viennent de la feuille, une transition de vue déplaçant l'image sous son nom ; que les images
+s'impriment lisiblement, le support émulé par le protocole DevTools : le carrousel une grille imprimée en entier, une
+figure jamais coupée et sa légende gardée avec son voile, une image dans la page, une galerie différée rendue, le bouton
+de fermeture d'une visionneuse et le canvas d'une célébration laissés de côté ; et que de droite à gauche, une légende
+se lit depuis la droite, une galerie et un carrousel y commencent, le bouton du début d'un carrousel pointe vers la
+droite et le bouton de fermeture d'une visionneuse se tient dans le coin en haut à gauche. axe-core audite les cadres,
+le jeton et le pixel art.
 
 La suite est à part de `composer test`, dans `phpunit.browser.dist.xml`, et tourne à la fin d'un lot :
 
@@ -97,7 +116,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
         return new RecipesPage(
             new TestKernel('test', true),             // an application where the kit's recipes are installed
             TestKernel::KIT_DIR,                      // the kit, whose */assets/controllers are copied
-            __DIR__.'/resources',                     // its app.js, page.html.twig and media/
+            __DIR__.'/resources',                     // its app.js, page.html.twig, page.css and media/
             __DIR__.'/var/app.css',                   // its stylesheet
             sys_get_temp_dir().'/my-kit-browser',     // the web root written
             __DIR__.'/node_modules/@hotwired/stimulus/dist/stimulus.js',
@@ -107,10 +126,11 @@ final class InteractiveRecipesTest extends BrowserTestCase
 ```
 
 La suite épingle son propre `@hotwired/stimulus` et exige, pour le développement, ce qu'emploient les classes :
-`phpunit/phpunit`, `symfony/panther`, `php-webdriver/webdriver`, `symfony/http-kernel` et `twig/twig`, que
-`phil/ux-kit` suggère. Chaque test ouvre alors l'un des `modes()` et pilote la page avec `open()`, `focus()`, `press()`,
-`click()`, `clickBeside()`, un vrai clic sur l'arrière-plan à côté d'un élément, `read()`, `perform()`, `waitUntil()` et
-`waitForFocus()`.
+`phpunit/phpunit`, `symfony/panther`, `php-webdriver/webdriver`, `symfony/http-kernel` et `twig/twig`, que `phil/ux-kit`
+suggère. Chaque test ouvre alors l'un des `modes()`, ou des `strictModes()`, les mêmes pages sous la politique stricte,
+où `open()` et la fin du test échouent sur tout ce que le navigateur a refusé, et pilote la page avec `open()`,
+`focus()`, `press()`, `click()`, `clickBeside()`, un vrai clic sur l'arrière-plan à côté d'un élément, `read()`,
+`perform()`, `waitUntil()` et `waitForFocus()`.
 
 ## Sans navigateur
 

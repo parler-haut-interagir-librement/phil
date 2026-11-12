@@ -52,6 +52,15 @@ The caption, the credit, the license and the creation show under the thumbnail a
 <twig:Lightbox id="plan" src="/images/plan-480.png" alt="The plan of the hall" :width="480" :height="360" description="{{ 'hall.plan.description'|trans }}" />
 ```
 
+### A frame, pixel art and a view transition
+
+`frame` and `transition` are those of the thumbnail, as for `Image`; the full image is shown bare. `pixelated` keeps the
+pixels sharp on both, where enlarging matters most.
+
+```twig
+<twig:Lightbox id="map" src="/images/map-16.png" alt="The map of the first level" :width="256" :height="256" :full="{src: '/images/map-16.png', width: 1024, height: 1024}" frame="framed" :pixelated="true" />
+```
+
 ## Accessibility
 
 The button is named by the image's text alternative, then by `openLabel`, read by screen readers alone; the dialog is

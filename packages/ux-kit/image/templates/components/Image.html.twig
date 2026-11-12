@@ -6,7 +6,9 @@
  # those image_origin() allows; a refused src renders nothing, a refused srcset is left out whole. The image of a listed
  # host is fetched without a referrer; the main image is preloaded through Symfony WebLink. In development,
  # image_check() logs a text alternative or a size left wrong. With structured, image_json_ld() describes the image as a
- # schema.org ImageObject, in the graph of the page or in a JSON-LD script of its own before it.
+ # schema.org ImageObject, in the graph of the page or in a JSON-LD script of its own before it. Its frame, its pixel art
+ # and its name in a view transition are classes too, the name read from data-transition; a name that is no CSS
+ # identifier, or a keyword of view-transition-name, is left out.
  #}
 {%- props
     ## string The URL of the image.
@@ -62,7 +64,13 @@
     ## string The words of the summary of the description's disclosure.
     descriptionLabel = 'Description',
     ## bool Whether the image is described to search engines as a schema.org ImageObject in JSON-LD, from its address, size, caption, credit, license address and creation, through phil/structured-data.
-    structured = false
+    structured = false,
+    ## string|null A frame drawn from the tokens, words separated by spaces: "rounded" corners, a "framed" line around it, "raised" over the page by a shadow, or "token", a disc in a ring for a pawn or an avatar.
+    frame = null,
+    ## bool Whether it is pixel art, enlarged without blurring its pixels.
+    pixelated = false,
+    ## string|null Its name in a view transition, a CSS identifier unique in the page and the same on the next one, so that it moves from one page to the other as one.
+    transition = null
 -%}
 {%- set _refused = '#(^|,)[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i' -%}
 {%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
@@ -93,6 +101,8 @@
     {%- set _preview = preview is not empty and preview matches '#^data:image/(png|jpeg|gif|webp|avif);base64,[A-Za-z0-9+/]+={0,2}$#' ? preview : null -%}
     {%- set _described = description is empty ? null : (attributes.all.id is defined and attributes.all.id is not empty ? attributes.all.id ~ '-description' : 'image-description-' ~ random()) -%}
     {%- set _ratio = {'16/9': 'hasRatio16x9', '4/3': 'hasRatio4x3', '3/2': 'hasRatio3x2', '1/1': 'hasRatio1x1', '21/9': 'hasRatio21x9', '3/4': 'hasRatio3x4', '2/3': 'hasRatio2x3', '9/16': 'hasRatio9x16', custom: 'hasRatio'}[aspect|default('')|replace({' ': ''})] ?? null -%}
+    {%- set _frames = {rounded: 'hasRounded', framed: 'hasFramed', raised: 'hasRaised', token: 'hasToken'} -%}
+    {%- set _transition = transition is not empty and transition matches '#^-?[A-Za-z_][A-Za-z0-9_-]*$#' and transition|lower not in ['none', 'auto', 'match-element', 'initial', 'inherit', 'unset', 'revert', 'revert-layer', 'default'] ? transition : null -%}
     {%- set _class = [
         'isImage',
         {fixed: 'hasLayoutFixed', 'full-width': 'hasLayoutFullWidth'}[layout] ?? null,
@@ -101,6 +111,9 @@
         {center: 'hasPositionCenter', top: 'hasPositionTop', bottom: 'hasPositionBottom', left: 'hasPositionLeft', right: 'hasPositionRight'}[position] ?? null,
         {neutral: 'hasPlaceholderNeutral', brand: 'hasPlaceholderBrand', red: 'hasPlaceholderRed', green: 'hasPlaceholderGreen', amber: 'hasPlaceholderAmber', blue: 'hasPlaceholderBlue', violet: 'hasPlaceholderViolet', custom: 'hasPlaceholder'}[placeholder] ?? null,
         _preview is null ? null : 'hasPreview',
+        (frame ?? '')|split(' ')|filter(word => word in _frames|keys)|map(word => _frames[word])|join(' '),
+        pixelated ? 'hasPixelated' : null,
+        _transition is null ? null : 'hasTransition',
         attributes.all.class ?? null,
     ]|filter(name => name is not empty)|join(' ') -%}
     {%- set _allowed = alt is same as('')
@@ -128,6 +141,7 @@
             loading: _loading,
             decoding: decoding in ['async', 'sync', 'auto'] ? decoding : (priority ? null : 'async'),
             fetchpriority: priority ? 'high' : (deferred ? 'low' : null),
+            'data-transition': _transition,
         }, _attributes) }}>
     </twig:Image:Figure>
 {%- endif -%}

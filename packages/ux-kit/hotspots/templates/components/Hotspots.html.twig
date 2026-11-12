@@ -35,7 +35,11 @@
     ## string|null The name of the license of the image, under the caption.
     license = null,
     ## string|null The address of the license, which its name then links to with rel="license".
-    licenseHref = null
+    licenseHref = null,
+    ## string|null The frame of the image, as for Image: "rounded", "framed" or "raised", separated by spaces; never a token, whose crop would move the points.
+    frame = null,
+    ## bool Whether the image is pixel art, a map or a board enlarged without blurring its pixels.
+    pixelated = false
 -%}
 {%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
 {%- if src is not empty and not (src|replace(_controls) matches '#^[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i') and image_origin(src) is not same as('refused') -%}
@@ -49,7 +53,7 @@
     {%- set _root = {id: attributes.all.id ?? null, class: ['isHotspots', attributes.all.class ?? null]|filter(name => name is not empty)|join(' ')} -%}
     <twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref">
         <div {{ html_attr(_root) }}>
-            <twig:Picture :src="src" :alt="alt" :width="width" :height="height" :sources="sources" :srcset="srcset" :sizes="sizes" :priority="priority" :placeholder="placeholder" />
+            <twig:Picture :src="src" :alt="alt" :width="width" :height="height" :sources="sources" :srcset="srcset" :sizes="sizes" :priority="priority" :placeholder="placeholder" :frame="(frame ?? '')|split(' ')|filter(word => word is not same as('token'))|join(' ')" :pixelated="pixelated" />
             {%- if _spots is not empty -%}
                 <ul role="list" class="isHotspotsList" aria-label="{{ label }}">
                     {%- for spot in _spots -%}

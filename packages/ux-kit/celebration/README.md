@@ -71,3 +71,10 @@ twice; it stays shown. Where motion is reduced, by the system or by `data-motion
 drawn. There is no sound. The canvas is hidden from screen readers, lets every click through and never holds the page:
 the animation lasts a few seconds at most, holds while the tab is hidden, and its canvas is removed at the end, or as
 soon as the element leaves the page. Fireworks burst twice a second at most. One animation runs at a time.
+
+## Security
+
+Nothing is written in a `style` attribute and nothing runs inline: the canvas waits in a `template`, and the controller
+sets it over the page through the CSSOM, which a strict Content Security Policy allows, `default-src 'self'` without
+`'unsafe-inline'` for scripts or styles. The browser suite of the kit plays the celebration under such a policy. On paper, its
+canvas is left out.

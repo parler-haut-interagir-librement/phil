@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8f138dd90b79a6f8a8b810085d2b611145740d037cebeff74653e4441319b312 -->
+<!-- phil-dev source-sha256=e8c0c958828f70f5a53cf5816d9938a8299ddefcdeb70999f53ba703103f3222 -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -128,6 +128,9 @@ et sa description.
 | `preview` | `null` | Une toute petite version de l'image, en ligne en base 64 (PNG, JPEG, GIF, WebP ou AVIF), peinte floue derrière elle pendant son chargement par le contrôleur `image-preview` (`hasPreview`) ; toute autre valeur laissée de côté |
 | `description` | `null` | Une description longue, échappée, dans un `details` de classe `isDescription` après l'image, dont le texte décrit l'image par `aria-describedby` |
 | `descriptionLabel` | `'Description'` | Les mots du `summary` de la description |
+| `frame` | `null` | Un cadre des jetons, des mots séparés par des espaces : `rounded` (`hasRounded`), `framed` (`hasFramed`), `raised` (`hasRaised`), ou `token` (`hasToken`), un disque carré dans un anneau pour un pion ou un avatar ; un mot inconnu laissé de côté |
+| `pixelated` | `false` | Du pixel art, agrandi sans flouter ses pixels (`hasPixelated`) |
+| `transition` | `null` | Son nom dans une transition de vue, un identifiant CSS unique dans la page, écrit dans `data-transition` avec `hasTransition`, que phil-ux lit dans `view-transition-name` ; toute autre valeur, `none`, `auto` ou `match-element` laissée de côté |
 
 `<twig:Picture>` : une `picture` dont les éléments `source`, dans l'ordre donné, précèdent une `Image` qui porte le
 repli ; l'`Image` seule quand il ne reste aucune source ; dans une `figure` avec sa `caption`.
@@ -144,9 +147,11 @@ Les sources sont écrites dans cet ordre : la variante des couleurs forcées, l'
 celles qui ont une requête `media`, dans l'ordre de leur première requête, puis les autres ; dans chaque groupe,
 l'AVIF, puis le WebP, puis les autres types, puis les sources sans type. Un `media` qui contient `<`, `>`, `{`, `}` ou
 `;` laisse sa source de côté ; un `width` ou un `height` qui n'est pas un entier positif est laissé de côté. La
-disposition, le rapport, l'ajustement, le recadrage, la couleur d'attente et l'aperçu sont des classes de phil-ux sur
-l'`img` (`hasLayoutFixed`, `hasLayoutFullWidth`, `hasRatio16x9`…, `hasFitCover`, `hasPositionTop`…,
-`hasPlaceholderBlue`…, `hasPreview`), jamais un style en ligne.
+disposition, le rapport, l'ajustement, le recadrage, la couleur d'attente, l'aperçu, le cadre, le pixel art et la
+transition de vue sont des classes de phil-ux sur l'`img` (`hasLayoutFixed`, `hasLayoutFullWidth`, `hasRatio16x9`…,
+`hasFitCover`, `hasPositionTop`…, `hasPlaceholderBlue`…, `hasPreview`, `hasRounded`…, `hasPixelated`,
+`hasTransition`), jamais un style en ligne : la recette fonctionne sous une politique de sécurité du contenu stricte,
+que la suite navigateur applique.
 
 Les autres attributs vont à l'`img`, pas à une racine, et seulement `id`, `class` (ajoutée à `isImage`), `title`,
 `crossorigin`, `referrerpolicy`, `itemprop`, `draggable`, `data-*` et `aria-*`, écrits avec `html_attr()` de
@@ -188,7 +193,7 @@ dans son `li`, ou une `Lightbox` ; rien sans image.
 | Prop | Par défaut | |
 |---|---|---|
 | `label` | requis | Le nom de la liste pour les lecteurs d'écran |
-| `images` | `[]` | Chacune avec les props d'une `Picture`, `src`, `alt`, `width`, `height` requis, et `full` pour sa visionneuse |
+| `images` | `[]` | Chacune avec les props d'une `Picture`, `src`, `alt`, `width`, `height` requis, sa `transition`, et `full` pour sa visionneuse |
 | `aspect`, `fit` | `null` | Le rapport et l'ajustement de chaque image |
 | `sizes` | `null` | La largeur d'une colonne, pour les candidates de largeurs |
 | `lightbox` | `false` | Si chaque image s'ouvre dans une `Lightbox` |
@@ -200,6 +205,7 @@ dans son `li`, ou une `Lightbox` ; rien sans image.
 | `layout` | `null` | `carousel` : une rangée qui défile et s'aimante, que le clavier atteint (`hasLayoutCarousel`, `tabindex="0"`), ses marqueurs et ses boutons dessinés par `::scroll-marker` et `::scroll-button()` là où le navigateur les a ; une grille sinon |
 | `previousLabel`, `nextLabel` | `'Previous'`, `'Next'` | Les noms des boutons d'un carrousel, portés par la liste dans `data-previous` et `data-next` ; chaque marqueur est nommé par le `data-marker` de son `li`, le texte de remplacement de son image ou son rang |
 | `captionPosition` | `'below'` | Où se tient la légende de chaque image, comme pour `Image` ; une visionneuse garde la sienne sous sa vignette |
+| `frame`, `pixelated` | `null`, `false` | Le cadre et le pixel art de chaque image, comme pour `Image` ; dans une visionneuse, le cadre sur la vignette seule |
 
 ## Lightbox
 
@@ -218,6 +224,8 @@ classe `isLightboxTrigger` qui ouvre, par `command="show-modal"` et `commandfor`
 | `closeLabel` | `'Close'` | Ce que les lecteurs d'écran lisent pour le bouton de fermeture |
 | `deferred`, `placeholder`, `preview` | `false`, `null`, `null` | Ceux de la vignette, comme pour `Image` |
 | `description`, `descriptionLabel` | `null`, `'Description'` | Une description longue après la vignette, hors de son bouton, qu'elle décrit |
+| `frame`, `transition` | `null` | Ceux de la vignette, comme pour `Image` ; l'image entière se montre nue |
+| `pixelated` | `false` | Du pixel art, la vignette et l'image entière |
 
 ## Hotspots
 
@@ -232,6 +240,7 @@ dans une `figure` avec sa légende, son crédit et sa licence. Une image que la 
 | `spots` | `[]` | Chacun `{x, y, label, href}` : sa place en pourcentages de la largeur depuis la gauche et de la hauteur depuis le haut, ramenée à 100 au plus, ses mots et son adresse |
 | `sources`, `srcset`, `sizes`, `priority`, `placeholder` | | Ceux de l'image, comme pour `Picture` |
 | `caption`, `credit`, `license`, `licenseHref` | `null` | Sous l'image, dans une `figure` |
+| `frame`, `pixelated` | `null`, `false` | Ceux de l'image, comme pour `Image`, mais jamais `token`, dont le recadrage déplacerait les points |
 
 Chaque point porte les classes `hasHotspotX0` à `hasHotspotX100` et `hasHotspotY0` à `hasHotspotY100`, sa place aux
 cinq pour cent près, et `data-x` et `data-y`, sa place exacte, que phil-ux lit par un `attr()` typé là où le navigateur
