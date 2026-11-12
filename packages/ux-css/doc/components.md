@@ -421,6 +421,7 @@ Each recipe writes one of these classes on each of its parts.
 | Recipe | Classes |
 |---|---|
 | Copy button | `isCopyButton`, `isCopyButtonTrigger` |
+| Celebration | `isCelebration`, `isCelebrationMessage`, `isCelebrationCanvas`, laid over the page without taking a click and never drawn under reduced motion |
 | Animated button | `isAnimatedButton` with `hasShine`, `hasLift` or `hasArrow`; `isAnimatedButtonLabel`, `isAnimatedButtonArrow` |
 | Tree | `isTree`, `isTreeItem`, `isTreeRow`, `isTreeToggle`, `isTreeLabel`, `isTreeGroup` |
 | Rating | `isRating`, with `isReadonly` for the note alone; `isRatingLegend`, `isRatingStars`, `isRatingStar`, with `isFilled` or `isHalf` when read-only; `isRatingIcon`, `isRatingClear` |

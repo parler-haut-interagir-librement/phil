@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4d5814141c3644f516162d1a2693db593c1e0f1ad23f5b70092133b525933ae1 -->
+<!-- phil-dev source-sha256=763791d9e1294fa47dbd02e21547bb6d8f308755b94ed9af52921ffd25f47f90 -->
 # Composants
 
 Ce que la base sans classe ne peut pas deviner, dans la couche `phil.components`, et les utilitaires, en tout dernier.
@@ -434,6 +434,7 @@ Chaque recette écrit l'une de ces classes sur chacune de ses parties.
 | Recette | Classes |
 |---|---|
 | Bouton de copie | `isCopyButton`, `isCopyButtonTrigger` |
+| Célébration | `isCelebration`, `isCelebrationMessage`, `isCelebrationCanvas`, posé sur la page sans prendre de clic et jamais dessiné en mouvement réduit |
 | Bouton animé | `isAnimatedButton` avec `hasShine`, `hasLift` ou `hasArrow` ; `isAnimatedButtonLabel`, `isAnimatedButtonArrow` |
 | Arbre | `isTree`, `isTreeItem`, `isTreeRow`, `isTreeToggle`, `isTreeLabel`, `isTreeGroup` |
 | Note | `isRating`, avec `isReadonly` pour la note seule ; `isRatingLegend`, `isRatingStars`, `isRatingStar`, avec `isFilled` ou `isHalf` en lecture seule ; `isRatingIcon`, `isRatingClear` |

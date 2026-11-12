@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ef0a81d77be87ef0071268c8612e62beae4a3ebaf07aa82d9c86fac12e08ad33 -->
+<!-- phil-dev source-sha256=20d3e01c9ccfe9e002c551d8921114677439e7e26bf4ed0b1b55f549d6359236 -->
 # Installation
 
 ## La feuille de style
@@ -95,6 +95,8 @@ Copiez les fichiers des recettes dont la page a besoin, depuis ce dossier, en ga
 | DatePicker | `date-picker/assets/controllers/` | `assets/controllers/` |
 | CopyButton | `copy-button/templates/components/` | `templates/components/` |
 | CopyButton | `copy-button/assets/controllers/` | `assets/controllers/` |
+| Celebration | `celebration/templates/components/` | `templates/components/` |
+| Celebration | `celebration/assets/controllers/` | `assets/controllers/` |
 | AnimatedButton | `animated-button/templates/components/` | `templates/components/` |
 | Stepper | `stepper/templates/components/` | `templates/components/` |
 | ActivityCalendar | `activity-calendar/templates/components/` | `templates/components/` |

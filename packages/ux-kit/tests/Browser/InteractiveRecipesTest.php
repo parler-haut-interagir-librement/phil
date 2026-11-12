@@ -21,6 +21,16 @@ use PHPUnit\Framework\Attributes\DataProvider;
 #[CoversNothing]
 final class InteractiveRecipesTest extends BrowserTestCase
 {
+    /**
+     * Whether a pixel of the canvas of the celebration has been drawn.
+     */
+    private const string DRAWN = '(() => { const canvas = document.querySelector("#victory canvas"); if (!canvas) { return false; } const pixels = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data; for (let alpha = 3; alpha < pixels.length; alpha += 4) { if (pixels[alpha] > 0) { return true; } } return false; })()';
+
+    /**
+     * Counts, in `window.drawn`, the canvases that come into the celebration.
+     */
+    private const string WATCH = 'window.drawn = 0; new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach((node) => { if ("CANVAS" === node.nodeName) { window.drawn++; } }))).observe(document.querySelector("#victory"), {childList: true});';
+
     #[Override]
     protected static function recipesPage(): RecipesPage
     {
@@ -856,6 +866,106 @@ final class InteractiveRecipesTest extends BrowserTestCase
             [3, true, true],
             $this->read('(() => { const images = [...document.querySelectorAll("#moments img")], caption = document.querySelector("#moments").closest("figure").querySelector("figcaption").getBoundingClientRect(); return [getComputedStyle(document.querySelector("#moments")).gridTemplateColumns.split(" ").length, images.every((image) => Math.abs(image.getBoundingClientRect().top - images[0].getBoundingClientRect().top) < 1), images.every((image) => image.getBoundingClientRect().bottom <= caption.top)]; })()'),
         );
+    }
+
+    /**
+     * The button of the demonstration plays the celebration: its canvas comes over the whole page, hidden from screen
+     * readers and letting the pointer through, something is drawn on it, the message is said, and the canvas goes.
+     */
+    #[DataProvider('modes')]
+    public function testACelebrationSaysItsMessageDrawsOverThePageAndGoes(string $page): void
+    {
+        $this->open($page);
+
+        self::assertSame(['status', 'polite', '', false], $this->read('(() => { const region = document.querySelector("#victory .isCelebrationMessage"); return [region.getAttribute("role"), region.getAttribute("aria-live"), region.textContent, Boolean(document.querySelector("#victory canvas"))]; })()'));
+
+        $this->click('#celebrate');
+        $this->waitUntil('document.querySelector("#victory canvas")');
+
+        self::assertSame(['true', 'none', 'fixed', true, true], $this->read('(() => { const canvas = document.querySelector("#victory canvas"), style = getComputedStyle(canvas), box = canvas.getBoundingClientRect(); return [canvas.getAttribute("aria-hidden"), style.pointerEvents, style.position, Math.round(box.width) === document.documentElement.clientWidth && Math.round(box.height) === document.documentElement.clientHeight, !document.elementsFromPoint(innerWidth / 2, innerHeight / 2).includes(canvas)]; })()'));
+        $this->waitUntil(self::DRAWN);
+        $this->waitUntil('document.querySelector("#victory .isCelebrationMessage").textContent === "You won!"');
+        $this->waitUntil('!document.querySelector("#victory canvas")');
+    }
+
+    /**
+     * Any element of the page plays the celebration by the DOM event `celebrate`, its `detail` giving the message and
+     * the effect of this time.
+     */
+    public function testTheEventCelebratePlaysTheCelebrationWithItsOwnMessage(): void
+    {
+        $this->open('index.html');
+        $this->perform('document.querySelector("#own").dispatchEvent(new CustomEvent("celebrate", {bubbles: true, detail: {message: "Bingo", effect: "fireworks"}}))');
+
+        $this->waitUntil('document.querySelector("#victory canvas")');
+        $this->waitUntil(self::DRAWN);
+        $this->waitUntil('document.querySelector("#victory .isCelebrationMessage").textContent === "Bingo"');
+        $this->waitUntil('!document.querySelector("#victory canvas")');
+    }
+
+    /**
+     * Where motion is reduced, by the system or by `data-motion="reduce"` on the root, the message is said and no canvas
+     * ever comes.
+     */
+    public function testNothingIsDrawnUnderReducedMotionButTheMessageIsSaid(): void
+    {
+        $this->emulate([['name' => 'prefers-reduced-motion', 'value' => 'reduce']]);
+
+        try {
+            $this->open('index.html');
+            $this->perform(self::WATCH);
+            $this->click('#celebrate');
+            $this->waitUntil('document.querySelector("#victory .isCelebrationMessage").textContent === "You won!"');
+            usleep(300_000);
+
+            self::assertSame(0, $this->read('window.drawn'));
+        } finally {
+            $this->emulate([]);
+        }
+
+        $this->open('index.html');
+        $this->perform('document.documentElement.dataset.motion = "reduce"; '.self::WATCH);
+        $this->perform('window.dispatchEvent(new CustomEvent("celebrate"))');
+        $this->waitUntil('document.querySelector("#victory .isCelebrationMessage").textContent === "You won!"');
+        usleep(300_000);
+
+        self::assertSame(0, $this->read('window.drawn'));
+    }
+
+    /**
+     * A celebration on a page that arrives on a victory plays as soon as it connects; removed from the page, it stops at
+     * once and leaves the page free for the next one.
+     */
+    public function testACelebrationPlaysAtOnceWithAutoplayAndStopsWhenRemoved(): void
+    {
+        $arrive = 'const copy = document.querySelector("#celebrations > .isCelebration").cloneNode(true); copy.id = "%s"; copy.querySelector("button")?.remove(); copy.querySelector("canvas")?.remove(); copy.querySelector(".isCelebrationMessage").textContent = ""; copy.dataset.celebrationAutoplayValue = "true"; copy.dataset.celebrationMessageValue = "First place"; copy.dataset.celebrationDurationValue = "4000"; document.querySelector("#celebrations").replaceChildren(copy);';
+
+        $this->open('index.html');
+        $this->perform(\sprintf($arrive, 'arrival'));
+        $this->waitUntil('document.querySelector("#arrival canvas")');
+        $this->waitUntil('document.querySelector("#arrival .isCelebrationMessage").textContent === "First place"');
+
+        $this->perform(\sprintf($arrive, 'next'));
+        $this->waitUntil('document.querySelector("#next canvas")');
+
+        self::assertSame(1, $this->read('document.querySelectorAll("canvas").length'));
+    }
+
+    /**
+     * axe-core on the celebration, waiting and while it plays, in clear, in dark and right to left.
+     */
+    #[DataProvider('modes')]
+    public function testACelebrationPassesAxe(string $page): void
+    {
+        $this->open($page);
+        $this->perform((string) file_get_contents(__DIR__.'/node_modules/axe-core/axe.min.js'));
+
+        self::assertSame([], $this->axe('#celebrations'));
+
+        $this->click('#celebrate');
+        $this->waitUntil('document.querySelector("#victory canvas") && document.querySelector("#victory .isCelebrationMessage").textContent !== ""');
+
+        self::assertSame([], $this->axe('#celebrations'));
     }
 
     /**

@@ -3,6 +3,7 @@ import accordion from './controllers/accordion_controller.js';
 import animatedHeadline from './controllers/animated_headline_controller.js';
 import beforeAfter from './controllers/before_after_controller.js';
 import carousel from './controllers/carousel_controller.js';
+import celebration from './controllers/celebration_controller.js';
 import colorPicker from './controllers/color_picker_controller.js';
 import copyButton from './controllers/copy_button_controller.js';
 import datePicker from './controllers/date_picker_controller.js';
@@ -30,6 +31,7 @@ for (const [identifier, controller] of Object.entries({
     'animated-headline': animatedHeadline,
     'before-after': beforeAfter,
     carousel,
+    celebration,
     'color-picker': colorPicker,
     'copy-button': copyButton,
     'date-picker': datePicker,

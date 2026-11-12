@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d5784a9a8d97fe6fcca148e480aafffe447f921752701b02a94f53d345d19436 -->
+<!-- phil-dev source-sha256=3dd8436c4271a960b429d8ab3422e07a9456cbd4f08b7d43c3796ef79822f814 -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -118,6 +118,9 @@
 | `copy-button/manifest.json`, `copy-button/README.md` | La recette `CopyButton` |
 | `copy-button/templates/components/` | Le composant `CopyButton` |
 | `copy-button/assets/controllers/` | Le contrôleur Stimulus de la recette |
+| `celebration/manifest.json`, `celebration/README.md` | La recette `Celebration` |
+| `celebration/templates/components/` | Le composant `Celebration` |
+| `celebration/assets/controllers/` | Le contrôleur Stimulus de la recette, qui dessine dans le canvas |
 | `animated-button/manifest.json`, `animated-button/README.md` | La recette `AnimatedButton` |
 | `animated-button/templates/components/` | Le composant `AnimatedButton` |
 | `stepper/manifest.json`, `stepper/README.md` | La recette `Stepper` |

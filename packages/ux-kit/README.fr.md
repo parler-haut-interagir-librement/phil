@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f47ce41ab665bf791f0244afcb88de11bfe7e4ea02ff101c3b7b167bfeb7111e -->
+<!-- phil-dev source-sha256=ab87a2c8215e4d163bd9fa7bed955540a7f6622135a7fe7ca48ee738f5c49941 -->
 # phil/ux-kit
 
 **Le kit PHIL UX pour le Symfony UX Toolkit : les mêmes recettes que le kit Shadcn, habillées par phil-ux, installées
@@ -77,6 +77,7 @@ noms et props, sont le kit [`phil/ux-kit-shadcn`](https://github.com/parler-haut
 | [ColorPicker](color-picker/README.md) | composant | Le sélecteur de couleur du navigateur, sa valeur hexadécimale et des pastilles parmi lesquelles choisir. Le sélecteur est le champ : il fonctionne seul, sans script. | Implémenté et testé |
 | [DatePicker](date-picker/README.md) | composant | Le champ de date du navigateur, qui fonctionne seul, et un bouton qui ouvre un mois sur une grille, dans une bulle. | Implémenté et testé |
 | [CopyButton](copy-button/README.md) | composant | Un bouton qui copie un texte, donné ou lu dans un autre élément, et le dit. | Implémenté et testé |
+| [Celebration](celebration/README.md) | composant | Un message dit dans une région active, et des confettis ou des feux d'artifice dessinés sur la page dans un canvas pendant quelques secondes, aux couleurs du thème ; le message seul là où le mouvement est réduit. Joué d'emblée, sur un événement ou par un bouton. | Implémenté et testé |
 | [AnimatedButton](animated-button/README.md) | composant | Un bouton, ou un lien quand il a une adresse, qui bouge sous le pointeur et le focus : une lumière qui le balaie, une élévation ou sa flèche poussée vers l'avant. Du CSS seulement. | Implémenté et testé |
 | [Stepper](stepper/README.md) | composant | Les étapes d'un processus, celles qui sont terminées marquées, la courante annoncée, lues de haut en bas sur un téléphone. | Implémenté et testé |
 | [ActivityCalendar](activity-calendar/README.md) | composant | L'activité dans le temps : une case par jour, chacune lue par son libellé, la couleur jamais seule. Plus large que l'écran, il défile de lui-même et prend le focus pour le faire. | Implémenté et testé |

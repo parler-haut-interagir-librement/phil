@@ -4,6 +4,18 @@ All notable changes to `phil/ux-css` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.6.0-alpha - 2026-11-15
+
+### Added
+
+- `css/layers/components.css`: `isCelebration`, `isCelebrationMessage` and `isCelebrationCanvas`, the canvas of a
+  celebration fixed over the whole page above its content, letting every click through, and never shown under reduced
+  motion, whether the system asks for it or an ancestor carries `data-motion="reduce"`.
+
+### Changed
+
+- The branch alias of `dev-main` is `0.6.x-dev`; `package.json` is at `0.6.0`.
+
 ## 0.5.0-alpha - 2026-11-13
 
 ### Added

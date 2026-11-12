@@ -1,0 +1,20 @@
+{#-
+ # A celebration: its message, said in a polite live region when it plays, and confetti or fireworks that the
+ # `celebration` controller draws over the page on a canvas, where motion is not reduced. It plays as soon as the page
+ # shows it with `autoplay`, on the DOM event `celebrate`, or by the action `celebration#play`. No style is written here:
+ # the canvas waits in a template, and the controller sets it over the page through the CSSOM.
+ #}
+{%- props
+    ## string The words of the victory, said when it plays, and shown where motion is reduced.
+    message = '',
+    ## string What is drawn, `confetti` or `fireworks`; `confetti` for any other name.
+    effect = 'confetti',
+    ## bool Whether it plays as soon as the page shows it, for a page that arrives on a victory.
+    autoplay = false,
+    ## int How long the animation runs, in milliseconds, kept by the controller between 600 and 4000.
+    duration = 2500
+-%}
+<div data-celebration-message-value="{{ message }}" data-celebration-effect-value="{{ effect in ['confetti', 'fireworks'] ? effect : 'confetti' }}" data-celebration-autoplay-value="{{ autoplay ? 'true' : 'false' }}" data-celebration-duration-value="{{ duration }}" data-celebration-colors-value="--phil-color-brand-fill-loud --phil-color-success-fill-loud --phil-color-warning-fill-loud --phil-color-danger-fill-loud --phil-color-info-fill-loud"{{ attributes.defaults({class: 'isCelebration', 'data-controller': 'celebration'}) }}>
+{##- What plays it, a button with `data-action="celebration#play"`, or anything else shown with the message. -#}
+{%- block content %}{% endblock -%}
+<p class="isCelebrationMessage" role="status" aria-live="polite" data-celebration-target="message">{{ autoplay ? message }}</p><template data-celebration-target="stage"><canvas class="isCelebrationCanvas" aria-hidden="true"></canvas></template></div>

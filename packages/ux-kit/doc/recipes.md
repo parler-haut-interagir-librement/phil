@@ -1314,6 +1314,25 @@ action `copy`, the event `copy-button:copied`.
 | `failedLabel` | `Copy failed` | What the button says when the browser refuses |
 | `duration` | `2000` | How long the outcome shows, in milliseconds |
 
+## Celebration
+
+`<twig:Celebration>`: a `div` of class `isCelebration`: what plays it, in its block `content`, the paragraph of class
+`isCelebrationMessage`, a polite live region, and the `template` of its canvas, of class `isCelebrationCanvas`, hidden
+from screen readers. Controller `celebration`: the action `play`, whose params `message` and `effect` stand in for the
+props; the DOM event `celebrate`, dispatched on any element or on the window, whose `detail` may give a `message` and an
+`effect`; the events `celebration:start` and `celebration:end`. Where motion is reduced, by the system or by
+`data-motion="reduce"` on an ancestor, the message alone. One animation at a time on the page; the canvas set over the
+page through the CSSOM, without taking a click, and removed at the end or when the element leaves the page; the colours
+those of `--phil-color-brand-fill-loud`, `--phil-color-success-fill-loud`, `--phil-color-warning-fill-loud`,
+`--phil-color-danger-fill-loud` and `--phil-color-info-fill-loud`, resolved where the canvas stands.
+
+| Prop | Default | |
+|---|---|---|
+| `message` | `''` | The words of the victory, said when it plays, and shown where motion is reduced |
+| `effect` | `confetti` | What is drawn, `confetti` or `fireworks`; `confetti` for any other name |
+| `autoplay` | `false` | Whether it plays as soon as the page shows it, the message written in the page from the start |
+| `duration` | `2500` | How long the animation runs, in milliseconds, kept by the controller between 600 and 4000 |
+
 ## AnimatedButton
 
 `<twig:AnimatedButton>`: a `button`, or an `a` with `href`, of class `isAnimatedButton`; no controller.

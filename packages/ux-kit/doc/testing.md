@@ -26,6 +26,8 @@
 | The controller `image-preview` | A tiny raster image inline alone kept, its blur drawn in an inline SVG at the ratio of the image, painted through the CSSOM and taken away at the load, the error or the disconnection, an image already loaded or failed left alone; under Node's test runner |
 | `ImageTextCheck` | The name of the file in all its forms, through `phil/url`, the generic words and the redundant starts in English and in French, a width or a height missing or of the wrong shape, each message |
 | The controller `lightbox` | Left to the browser where it runs the invokers and `closedby`, opening and closing the dialog once where it does not, a click on the backdrop closing it and one on the image not; under Node's test runner |
+| `Celebration` | Rendered whole: its values, its live region empty until it plays or holding the message from the start with `autoplay`, the canvas in a `template`, an unknown effect drawn as confetti, what plays it before the message, its attributes kept, no style written |
+| The controller `celebration` | The duration kept within its bounds, the effects, the tokens, the message and the effect of an action or an event, the confetti and the bursts of fireworks spaced, their motion, opacity and drawing; the message said again, the canvas over the page through the CSSOM in the colours of the tokens, at the device pixel ratio, then removed with its bitmap; autoplay, reduced motion by the system, by an ancestor or turned on while it plays, one animation at a time, the tab hidden and shown again, disconnection, no template or no context; under Node's test runner |
 | The controllers `tree`, `date-picker`, `color-picker`, `copy-button`, `number-input`, `file-input`, `tag`, `relative-time`, `before-after` | The keyboard and its mirror right to left, what they write, the limits, the sieve of the files, the focus kept nearby, the timers, under Node's test runner |
 | The controllers `popover`, `tabs`, `accordion`, `dialog`, `tooltip`, `carousel`, `select`, `dropdown-menu`, `dropdown-menu-sub` | `placement()` of each, the keys and their mirror right to left, what the browser does left to it, the state on the trigger and the panel, the focus, the delays, automatic play held and paused, reduced motion, disconnection; for `dialog`, the invokers and `closedby` detected, left to the browser where it runs them and run by the controller where it does not; under Node's test runner, on the small DOM of `tests/js/fake.mjs` |
 
@@ -55,7 +57,11 @@ hero, a video with its captions and transcript, and a figure of several images. 
 on the foot of its image, that the carousel is one row that snaps and scrolls at the arrows, its buttons named, that
 each point stands at its place, the same right to left, and under the image on a phone, that the image of a hero covers
 it, that a video fetches nothing before it is played, keeps its ratio on a phone and plays its file, and that a figure
-lays its images in columns over its caption. A last test checks that every part of a page holding all the recipes
+lays its images in columns over its caption. The button of the demonstration plays a `Celebration`: its message is
+said, its canvas comes over the whole page, hidden from screen readers and letting the pointer through, is drawn on and
+goes; the DOM event `celebrate` plays it with its own message, `autoplay` plays it at once and its removal frees the page
+for the next one, and nothing is drawn under reduced motion, emulated through the DevTools protocol or asked by
+`data-motion="reduce"`; axe-core audits it, waiting and playing, in each mode. A last test checks that every part of a page holding all the recipes
 carries a class of the sheet.
 
 The suite is apart from `composer test`, in `phpunit.browser.dist.xml`, and runs at the end of a batch:

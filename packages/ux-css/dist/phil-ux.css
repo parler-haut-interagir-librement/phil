@@ -3552,6 +3552,42 @@
     }
 
     /*
+     * A celebration: what plays it, its message once said, and the canvas its controller draws on over the whole page,
+     * which never takes a click and is never drawn under reduced motion.
+     */
+    .isCelebration {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--phil-space-sm);
+    }
+
+    .isCelebrationMessage {
+        margin: 0;
+        font-size: var(--phil-text-lg);
+        font-weight: 600;
+    }
+
+    .isCelebrationCanvas {
+        position: fixed;
+        inset: 0;
+        z-index: var(--phil-z-overlay);
+        inline-size: 100%;
+        block-size: 100%;
+        pointer-events: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .isCelebrationCanvas {
+            display: none;
+        }
+    }
+
+    [data-motion="reduce"] .isCelebrationCanvas {
+        display: none;
+    }
+
+    /*
      * A button that moves under the pointer and the focus, and stands still under reduced motion: `hasShine` sweeps a
      * light across it, `hasLift` raises it, `hasArrow` pushes its arrow forward.
      */

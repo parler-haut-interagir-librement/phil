@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2b77da7750eecc99d8bf24c7d0960abba61810f709a31db217ec46772f225e7a -->
+<!-- phil-dev source-sha256=84e0baf20327e6cea1718a9a4a9c481301cbebdab945db579badffab2f770751 -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -1325,6 +1325,26 @@ l'action `copy`, l'événement `copy-button:copied`.
 | `copiedLabel` | `Copied` | Ce que dit le bouton une fois le texte copié |
 | `failedLabel` | `Copy failed` | Ce que dit le bouton quand le navigateur refuse |
 | `duration` | `2000` | Combien de temps le résultat s'affiche, en millisecondes |
+
+## Celebration
+
+`<twig:Celebration>` : un `div` de classe `isCelebration` : ce qui la joue, dans son bloc `content`, le paragraphe de
+classe `isCelebrationMessage`, une région active polie, et le `template` de son canvas, de classe
+`isCelebrationCanvas`, caché aux lecteurs d'écran. Contrôleur `celebration` : l'action `play`, dont les paramètres
+`message` et `effect` remplacent les props ; l'événement DOM `celebrate`, émis sur n'importe quel élément ou sur la
+fenêtre, dont le `detail` peut donner un `message` et un `effect` ; les événements `celebration:start` et
+`celebration:end`. Là où le mouvement est réduit, par le système ou par `data-motion="reduce"` sur un ancêtre, le
+message seul. Une seule animation à la fois sur la page ; le canvas posé sur la page par le CSSOM, sans prendre de clic,
+et retiré à la fin ou quand l'élément quitte la page ; les couleurs celles de `--phil-color-brand-fill-loud`,
+`--phil-color-success-fill-loud`, `--phil-color-warning-fill-loud`, `--phil-color-danger-fill-loud` et
+`--phil-color-info-fill-loud`, résolues là où se trouve le canvas.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `message` | `''` | Les mots de la victoire, dits quand elle joue, et affichés là où le mouvement est réduit |
+| `effect` | `confetti` | Ce qui est dessiné, `confetti` ou `fireworks` ; `confetti` pour tout autre nom |
+| `autoplay` | `false` | Si elle joue dès que la page l'affiche, le message écrit dans la page dès le départ |
+| `duration` | `2500` | La durée de l'animation, en millisecondes, que le contrôleur garde entre 600 et 4000 |
 
 ## AnimatedButton
 

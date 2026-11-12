@@ -4,6 +4,29 @@ All notable changes to `phil/ux-kit` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.6.0-alpha - 2026-11-15
+
+### Added
+
+- The recipe `Celebration`: a message said in a polite live region, and confetti or fireworks (`effect`) drawn over the
+  page on a canvas by its new Stimulus controller `celebration`, without a library, in the colours of the tokens of
+  phil-ux resolved through the CSSOM, so those of the theme; it plays as soon as the page shows it with `autoplay`, on
+  the DOM event `celebrate` dispatched anywhere on the page, its `detail` giving the `message` and the `effect` of this
+  time, and by the action `celebration#play`, whose params do the same; a block `content` holds what plays it. Where
+  motion is reduced, by the system or by `data-motion="reduce"`, only the message shows. No sound; the canvas, cloned
+  from a `template`, hidden from screen readers and set over the page through the CSSOM without taking a click, safe
+  under a strict Content Security Policy; `duration` kept between 600 and 4000 milliseconds, held while the tab is
+  hidden; one animation at a time; fireworks burst twice a second at most; the canvas and its bitmap removed at the end
+  or when the element leaves the page; the events `celebration:start` and `celebration:end`.
+- The browser suite checks the message said, the canvas shown then removed, nothing drawn under reduced motion, the event
+  `celebrate` and the button of the demonstration, and audits the celebration with axe-core in clear, in dark and right
+  to left.
+
+### Changed
+
+- The image recipe requires `phil/ux-kit:^0.6@dev`; `manifest.json` requires `phil/ux-css:^0.6@dev`; the branch alias of
+  `dev-main` is `0.6.x-dev`.
+
 ## 0.5.0-alpha - 2026-11-13
 
 ### Added

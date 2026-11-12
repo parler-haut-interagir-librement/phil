@@ -58,6 +58,7 @@ final class KitTest extends TestCase
         'button-group' => ['component', 'ButtonGroup'],
         'card' => ['component', 'Card'],
         'carousel' => ['component', 'Carousel'],
+        'celebration' => ['component', 'Celebration'],
         'chart' => ['component', 'Chart'],
         'chart-js' => ['component', 'ChartJs'],
         'checkbox' => ['component', 'Checkbox'],

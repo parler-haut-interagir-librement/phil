@@ -73,12 +73,13 @@ final class TestKernel extends Kernel
     }
 
     /**
-     * A recipe added to the kit rebuilds the container, whose Twig paths list the recipes.
+     * A recipe added to the kit rebuilds the container, whose Twig paths list the recipes: the resource follows the
+     * templates of the components, files, since a glob resource hashes the files it matches and never a directory.
      */
     #[Override]
     protected function build(ContainerBuilder $container): void
     {
-        $container->addResource(new GlobResource(self::KIT_DIR, '/*/templates', false));
+        $container->addResource(new GlobResource(self::KIT_DIR, '/*/templates/components/*.html.twig', false));
     }
 
     private function configureContainer(ContainerConfigurator $container): void

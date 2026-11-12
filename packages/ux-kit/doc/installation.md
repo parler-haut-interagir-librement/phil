@@ -93,6 +93,8 @@ Copy the files of the recipes the page needs, from this directory, keeping their
 | DatePicker | `date-picker/assets/controllers/` | `assets/controllers/` |
 | CopyButton | `copy-button/templates/components/` | `templates/components/` |
 | CopyButton | `copy-button/assets/controllers/` | `assets/controllers/` |
+| Celebration | `celebration/templates/components/` | `templates/components/` |
+| Celebration | `celebration/assets/controllers/` | `assets/controllers/` |
 | AnimatedButton | `animated-button/templates/components/` | `templates/components/` |
 | Stepper | `stepper/templates/components/` | `templates/components/` |
 | ActivityCalendar | `activity-calendar/templates/components/` | `templates/components/` |

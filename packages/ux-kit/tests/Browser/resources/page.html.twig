@@ -189,6 +189,11 @@
         {%- endfor -%}
         <twig:Gallery id="archive" label="The archive" :images="archive" :deferred="true" :lightbox="true" openLabel="Enlarge" placeholder="neutral" />
     </section>
+    <section id="celebrations" class="isStack">
+        <twig:Celebration id="victory" message="You won!" :duration="1500">
+            <twig:Button id="celebrate" data-action="celebration#play">Celebrate</twig:Button>
+        </twig:Celebration>
+    </section>
 </main>
 </body>
 </html>

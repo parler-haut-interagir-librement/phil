@@ -117,6 +117,9 @@
 | `copy-button/manifest.json`, `copy-button/README.md` | The `CopyButton` recipe |
 | `copy-button/templates/components/` | The `CopyButton` component |
 | `copy-button/assets/controllers/` | The Stimulus controller of the recipe |
+| `celebration/manifest.json`, `celebration/README.md` | The `Celebration` recipe |
+| `celebration/templates/components/` | The `Celebration` component |
+| `celebration/assets/controllers/` | The Stimulus controller of the recipe, which draws on the canvas |
 | `animated-button/manifest.json`, `animated-button/README.md` | The `AnimatedButton` recipe |
 | `animated-button/templates/components/` | The `AnimatedButton` component |
 | `stepper/manifest.json`, `stepper/README.md` | The `Stepper` recipe |

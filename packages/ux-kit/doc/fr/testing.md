@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=cb6923a4537abd82ced2740c2d9e0dc6ddbfaf686d1ec0120735bfeb929b039c -->
+<!-- phil-dev source-sha256=475ea6504a3d2a74a864e815a50ba614912e9dbfa34232609b443e5d959ebe07 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -27,6 +27,8 @@
 | Le contrôleur `image-preview` | Seule une toute petite image matricielle en ligne gardée, son flou dessiné dans un SVG en ligne au rapport de l'image, peint par le CSSOM et retiré au chargement, à l'erreur ou à la déconnexion, une image déjà chargée ou en échec laissée tranquille ; sous l'exécuteur de tests de Node |
 | `ImageTextCheck` | Le nom du fichier sous toutes ses formes, par `phil/url`, les mots génériques et les débuts redondants en anglais et en français, une largeur ou une hauteur absente ou de mauvaise forme, chaque message |
 | Le contrôleur `lightbox` | Laissé au navigateur là où il exécute les invocateurs et `closedby`, qui ouvre et ferme le dialogue une fois là où il ne le fait pas, un clic sur l'arrière-plan qui le ferme et un sur l'image qui ne le ferme pas ; sous l'exécuteur de tests de Node |
+| `Celebration` | Produite en entier : ses valeurs, sa région active vide jusqu'à ce qu'elle joue ou qui tient le message dès le départ avec `autoplay`, le canvas dans un `template`, un effet inconnu dessiné en confettis, ce qui la joue avant le message, ses attributs gardés, aucun style écrit |
+| Le contrôleur `celebration` | La durée gardée dans ses bornes, les effets, les jetons, le message et l'effet d'une action ou d'un événement, les confettis et les gerbes de feux d'artifice espacées, leur mouvement, leur opacité et leur dessin ; le message redit, le canvas sur la page par le CSSOM aux couleurs des jetons, à la densité de l'écran, puis retiré avec son image ; la lecture d'emblée, le mouvement réduit par le système, par un ancêtre ou activé pendant qu'elle joue, une seule animation à la fois, l'onglet caché puis montré, la déconnexion, sans gabarit ou sans contexte ; sous l'exécuteur de tests de Node |
 | Les contrôleurs `tree`, `date-picker`, `color-picker`, `copy-button`, `number-input`, `file-input`, `tag`, `relative-time`, `before-after` | Le clavier et son miroir de droite à gauche, ce qu'ils écrivent, les limites, le tri des fichiers, le focus gardé tout près, les minuteries, sous le lanceur de tests de Node |
 | Les contrôleurs `popover`, `tabs`, `accordion`, `dialog`, `tooltip`, `carousel`, `select`, `dropdown-menu`, `dropdown-menu-sub` | `placement()` de chacun, les touches et leur miroir de droite à gauche, ce qui est laissé au navigateur, l'état sur le déclencheur et le panneau, le focus, les délais, la lecture automatique retenue et en pause, le mouvement réduit, la déconnexion ; pour `dialog`, les invocateurs et `closedby` détectés, laissés au navigateur là où il les exécute et exécutés par le contrôleur là où il ne le fait pas ; sous le lanceur de tests de Node, sur le petit DOM de `tests/js/fake.mjs` |
 
@@ -57,7 +59,11 @@ sous-titres et sa transcription, et une figure de plusieurs images. La suite vé
 de son image, que le carrousel est une seule rangée qui s'aimante et défile aux flèches, ses boutons nommés, que chaque
 point se tient à sa place, la même de droite à gauche, et sous l'image sur un téléphone, que l'image d'un héros le
 couvre, qu'une vidéo ne demande rien avant sa lecture, garde son rapport sur un téléphone et lit son fichier, et qu'une
-figure dispose ses images en colonnes au-dessus de sa légende. Un dernier test vérifie que chaque partie d'une page qui
+figure dispose ses images en colonnes au-dessus de sa légende. Le bouton de la démonstration joue une `Celebration` :
+son message est dit, son canvas vient sur toute la page, caché aux lecteurs d'écran et laissant passer le pointeur, on y
+dessine, puis il s'en va ; l'événement DOM `celebrate` la joue avec son propre message, `autoplay` la joue d'emblée et
+son retrait libère la page pour la suivante, et rien n'est dessiné en mouvement réduit, émulé par le protocole DevTools
+ou demandé par `data-motion="reduce"` ; axe-core l'audite, en attente et en cours, dans chaque mode. Un dernier test vérifie que chaque partie d'une page qui
 contient toutes les recettes porte une classe de la feuille.
 
 La suite est à part de `composer test`, dans `phpunit.browser.dist.xml`, et tourne à la fin d'un lot :
