@@ -208,6 +208,7 @@ reference to an unknown kind is a mistake of the caller's code or configuration,
 | `name` | string 100, nullable | the name of a named draft; `null` for an autosave |
 | `data` | `json` | the submitted data, 256 KiB of JSON at most |
 | `saved_at` | `datetime_immutable` | when it was saved, in UTC |
+| `raw_html` | boolean, `false` by default | whether the editor who saved it last held the raw HTML permission; applying it writes its body with that permission |
 
 `DoctrineWorkingCopyRepository` implements its port, `Domain\Contract\WorkingCopyRepository`; it writes nothing
 itself, inside the caller's transaction.

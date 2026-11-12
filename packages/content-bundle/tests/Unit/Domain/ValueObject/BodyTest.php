@@ -21,6 +21,8 @@ final class BodyTest extends TestCase
         self::assertSame('# Title', $body->source);
         self::assertSame('markdown', $body->format);
         self::assertSame('<h1>Title</h1>', $body->html);
+        self::assertFalse($body->rawHtml, 'an author holds the raw HTML permission only when said');
+        self::assertTrue(Body::of('# Title', MarkupFormat::Markdown, '<h1>Title</h1>', true)->rawHtml);
     }
 
     /**

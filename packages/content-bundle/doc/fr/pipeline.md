@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=272efddbf7a7884281c2ae2f5ecc6935a6bb759fa598a2ffa0cbcdfa3d5927e5 -->
+<!-- phil-dev source-sha256=8e13886361120dca1cc6a0adb3c0da95236626d669c6fa72d1a91e25c8b4a996 -->
 # Le pipeline : mappeurs de données, fusionneurs, normaliseurs
 
 Trois étapes étiquetées lisent et écrivent les capacités d'une ligne. Chaque étape est un service par capacité, et un
@@ -129,6 +129,7 @@ conteneur. Un normaliseur renvoie un tableau vide pour une ligne qui n'a pas sa 
 | `bodySource` | chaîne ou `null` : le texte de l'auteur sur une ligne de brouillon, le JSON UJO sur une ligne en ligne | `BodyNormalizer` |
 | `bodyFormat` | une valeur de `MarkupFormat` sur une ligne de brouillon, `ujo` sur une ligne en ligne, ou `null` | `BodyNormalizer` |
 | `bodyHtml` | le HTML enregistré **purifié de nouveau à cette lecture**, ou `null` | `BodyNormalizer` |
+| `bodyRawHtml` | si l'auteur du corps avait la permission d'écrire du HTML brut, ou `null` sans corps ; aucun *data mapper* ne le relit | `BodyNormalizer` |
 
 La forme normalisée est ce que reçoit un gabarit sous le nom `content`, ce que renvoient `ContentManager::draft()` et
 `live()`, et la forme que relisent les mappeurs de données : un `link` normalisé peut être soumis tel quel.

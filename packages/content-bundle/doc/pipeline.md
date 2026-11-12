@@ -125,6 +125,7 @@ in the container. A normalizer returns an empty array for a row that lacks its c
 | `bodySource` | string or `null`: the author's text on a draft row, the UJO JSON on a live row | `BodyNormalizer` |
 | `bodyFormat` | a value of `MarkupFormat` on a draft row, `ujo` on a live row, or `null` | `BodyNormalizer` |
 | `bodyHtml` | the stored HTML **purified again on this read**, or `null` | `BodyNormalizer` |
+| `bodyRawHtml` | whether the author of the body held the raw HTML permission, or `null` without a body; a data mapper never reads it back | `BodyNormalizer` |
 
 The normalized form is what a template receives as `content`, what `ContentManager::draft()` and `live()`
 return, and the shape the data mappers read back: a normalized `link` can be submitted as it is.

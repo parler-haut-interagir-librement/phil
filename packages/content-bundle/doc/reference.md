@@ -107,6 +107,7 @@ Every class implements `Phil\DddBundle\Domain\Exception\DomainError`.
 | `Contract\PublicationSchedule` | port | Publishing or taking offline at a set moment |
 | `Exception\PublicationLosesContent` | exception | A publication refused for what its body would lose in UJO, with the losses |
 | `Editing\WorkingCopies` | implemented | The private autosave of each author and the named drafts of a content |
+| `Editing\AuthorRawHtml` | implemented | The raw HTML permission of the author of the revision being written: the user at work, or the author of the working copy being applied |
 | `Publication\PageEvents` | implemented | The `PagePublished` and `PageRetired` events of `phil/publishing`, read from the live row |
 | `Publication\ContentArchive`, `Publication\ArchivedVersion` | implemented, value | The dated archive of a kind, and one publication in it |
 | `Publication\ScheduledPublication` | value | A transition planned for a moment |
@@ -118,7 +119,7 @@ Every class implements `Phil\DddBundle\Domain\Exception\DomainError`.
 | `Pipeline\ContentNormalizer` | implemented | Runs every normalizer, refuses a repeated key |
 | `DataMapper\TemplateDataMapper`, `SeoDataMapper`, `ExcerptDataMapper`, `LinkDataMapper`, `RoutableDataMapper`, `BodyDataMapper` | implemented | One data mapper per capability (none for the workflow) |
 | `DataMapper\SubmittedData` | implemented | Typed readers of submitted data |
-| `Contract\RawHtmlPermission` | port | Whether the user at work holds the trusted role: their drafts show raw HTML, their publications keep it |
+| `Contract\RawHtmlPermission` | port | Whether the user at work holds the trusted role: the bodies they write record it, show their raw HTML and keep it when published, by anyone |
 | `Merger\TemplateMerger`, `WorkflowMerger`, `SeoMerger`, `ExcerptMerger`, `LinkMerger`, `RoutableMerger`, `BodyMerger` | implemented | One merger per capability |
 | `Normalizer\TemplateNormalizer`, `WorkflowNormalizer`, `SeoNormalizer`, `ExcerptNormalizer`, `LinkNormalizer`, `RoutableNormalizer`, `BodyNormalizer` | implemented | One normalizer per capability |
 | `Editing\ContentEditor` | implemented | Writes submitted data onto the draft of a locale, forking and creating rows |
@@ -194,6 +195,7 @@ Every class implements `Phil\DddBundle\Domain\Exception\DomainError`.
 | `Markup\MarkupServices` | Registers the default adapters of `phil/markup` and the bundle's converter, and aliases the three ports to them |
 | `Markup\UjoBodyConverter` | Adapter of `BodyConverter` and `ConversionLosses`: `phil/markup`'s readers, `phil/ujo`'s encoder, compiled and purified |
 | `Markup\RawHtmlRole` | Adapter of `RawHtmlPermission`: the trusted role of `raw_html_role`, checked by Symfony's authorization checker |
+| `Markup\RawHtmlAuthorPass` | Compiler pass: with a `RawHtmlPermission`, wraps it in `AuthorRawHtml` for `BodyDataMapper` and `WorkingCopies`, and tells `UjoBodyConverter` that raw HTML is configured |
 
 ### `Infrastructure\Twig`
 

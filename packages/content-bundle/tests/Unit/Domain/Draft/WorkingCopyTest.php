@@ -40,6 +40,22 @@ final class WorkingCopyTest extends TestCase
         self::assertSame($later, $copy->savedAt());
     }
 
+    /**
+     * A working copy holds the raw HTML permission of its author once told; saving it again forgets it, since the
+     * author may have changed.
+     */
+    public function testTheRawHtmlPermissionOfItsAuthorIsForgottenWhenItIsSavedAgain(): void
+    {
+        $copy = WorkingCopy::named(ContentReference::of('news', '42'), Locale::fromString('fr'), 'Court', 'alice', [], new DateTimeImmutable());
+        self::assertFalse($copy->rawHtml());
+
+        $copy->grantRawHtml();
+        self::assertTrue($copy->rawHtml());
+
+        $copy->replace([], 'bob', new DateTimeImmutable());
+        self::assertFalse($copy->rawHtml());
+    }
+
     public function testANamedDraftKeepsItsTrimmedName(): void
     {
         $copy = WorkingCopy::named(ContentReference::of('news', '42'), Locale::fromString('fr'), '  Court ', 'alice', [], new DateTimeImmutable());

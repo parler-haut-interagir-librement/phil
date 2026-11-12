@@ -28,7 +28,7 @@ class PageDimension extends AbstractDimensionContent implements TemplateCapable,
 | `ExcerptCapable` | title, description, image reference | title and description localized, image shared | `excerpt_title` `VARCHAR(255)`, `excerpt_description` text, `excerpt_image` `VARCHAR(2048)` |
 | `LinkCapable` | a `Link`: another content root, or a `Url` | localized row | `link_resource_key` `VARCHAR(64)`, `link_resource_id` `VARCHAR(64)`, `link_locale` (`phil_content_locale`, 12), `link_url` `VARCHAR(2048)` |
 | `RoutableCapable` | a `Slug` | localized row | `slug` `VARCHAR(255)` |
-| `BodyCapable` | a `Body`: source, `MarkupFormat`, HTML | localized row | `body_source` text, `body_format` `VARCHAR(16)`, `body_html` text |
+| `BodyCapable` | a `Body`: source, `MarkupFormat`, HTML, whether its author held the raw HTML permission | localized row | `body_source` text, `body_format` `VARCHAR(16)`, `body_html` text, `body_raw_html` boolean |
 
 Every column is nullable except `template_data` and `seo_keywords`, which hold an empty JSON array when
 nothing is set. "Written on" is where the bundle's data mapper writes the value; the merger reads both rows, so
@@ -171,8 +171,9 @@ screen:
    of an add-on through a UJO document, HTML as written, or plain text —, through the `MarkupCompiler` port, purifies
    the result through the `HtmlPurifier` port, and stores the source, its format and the purified HTML. **A draft keeps
    the format its author writes in.** A UJO source that is not a valid document is refused with `InvalidContent`. The
-   raw HTML of an editor granted [`raw_html_role`](configuration.md#raw_html_role) is rendered, as it will be published;
-   anyone else's is shown as text. The page is not compiled again on each read.
+   body records whether its author — the editor who writes a new source or format — holds
+   [`raw_html_role`](configuration.md#raw_html_role); the raw HTML of such an author is rendered, as it will be
+   published, anyone else's is shown as text. The page is not compiled again on each read.
 2. **On publication**, `ContentPublisher` stores on the live row the body the `BodyConverter` port makes of the draft's:
    **the source converted into UJO** — UJO (Universal JSON Output), the block document format of `phil/ujo` —, the
    format `ujo`, and the HTML compiled from that UJO, purified at `Level::All`; the UJO's `time` is the moment of the
@@ -189,7 +190,7 @@ screen:
    it prints — an excerpt needs no body —, or caches its own response. A cache keyed by the row's version would not
    be safe, since a row written around the data mapper keeps its version.
 
-`Body::of(string $source, MarkupFormat|string $format, string $html)` keeps the source as written, leading spaces
+`Body::of(string $source, MarkupFormat|string $format, string $html, bool $rawHtml = false)` keeps the source as written, leading spaces
 included (they mean something in Markdown), and the format by its name; it refuses a source that is only whitespace and
 a source or HTML that is not valid UTF-8. `MarkupFormat` is `phil/markup`'s: `Markdown` (`markdown`), `Html` (`html`),
 `BBCode` (`bbcode`), `MediaWiki` (`mediawiki`), `DokuWiki` (`dokuwiki`), `Creole` (`creole`), `Text` (`text`) and `Ujo`
@@ -213,14 +214,21 @@ The default adapters are `phil/markup`'s, which describes them:
   in milliseconds since the Unix epoch; `phil/ujo`'s encoder writes it as JSON, and that JSON is compiled and
   purified. HTML and plain text, which the draft compiles as written, are converted into blocks by their readers;
   what UJO has no block for is dropped.
-- **Raw HTML, for a trusted role only.** With [`raw_html_role`](configuration.md#raw_html_role) set, a publisher
-  granted that role by Symfony's authorization checker has the source read at `Level::All`: the raw HTML of the
-  written formats and the `raw` blocks of UJO are published as `raw` blocks, their HTML kept as `phil/ujo`'s `raw`
-  profile allows — the elements of a page's structure, no script, style, class or event — and purified again at
-  `Level::All`. **The draft of an editor granted that role shows it the same way**: `BodyDataMapper` compiles their
-  source for `Level::All`, through `compileFor()` of a `LevelAwareCompiler`, so the preview of their draft renders the
-  raw HTML as its publication will; every other editor's draft shows it as text. Without the key, the default, nobody
-  writes raw HTML; a save or a publication from the console, which has no signed-in user, never does.
+- **Raw HTML, for the authors of a trusted role only.** With [`raw_html_role`](configuration.md#raw_html_role) set,
+  **the role is checked on the author of each revision, never on the publisher**: `BodyDataMapper` records on the body
+  (`Body::$rawHtml`, the column `body_raw_html`) whether the editor who writes a new source or a new format holds it,
+  through Symfony's authorization checker; a save that leaves the source and the format as they were keeps the author
+  they had, so an editor without the role does not take it from a trusted author's text by changing another field,
+  and an editor with it does not lend it to a text they did not change. A body whose author held the role is read at
+  `Level::All` when it is published, by anyone: the raw HTML of the written formats and the `raw` blocks of UJO become
+  `raw` blocks, their HTML kept as `phil/ujo`'s `raw` profile allows — the elements of a page's structure, no script,
+  style, class or event — and purified again at `Level::All`. The raw HTML of any other author is published as text,
+  even by a publisher who holds the role. **The draft shows it the same way**: `BodyDataMapper` compiles the source of
+  an author who held the role for `Level::All`, through `compileFor()` of a `LevelAwareCompiler`, so the preview
+  renders the raw HTML as its publication will. A working copy records the role of the editor who saved it last, and
+  applying it writes its body with that role (`AuthorRawHtml`), whoever applies it. Without the key, the default,
+  nobody writes raw HTML, and a body recorded under the role is published as text once the key is removed; a save
+  from the console, which has no signed-in user, never holds it.
 
 The application replaces any of them by aliasing `MarkupCompiler`, `HtmlPurifier` or `BodyConverter` to its own
 service ([extension-points.md](extension-points.md#markup-ports)). The converter reads through `DefaultCompiler`

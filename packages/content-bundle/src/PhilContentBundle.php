@@ -92,6 +92,7 @@ use Phil\ContentBundle\Infrastructure\Http\PreviewController;
 use Phil\ContentBundle\Infrastructure\Http\PreviewLinks;
 use Phil\ContentBundle\Infrastructure\Http\ResourceRoutes;
 use Phil\ContentBundle\Infrastructure\Markup\MarkupServices;
+use Phil\ContentBundle\Infrastructure\Markup\RawHtmlAuthorPass;
 use Phil\ContentBundle\Infrastructure\Scheduling\PublicationReferences;
 use Phil\ContentBundle\Infrastructure\Scheduling\PublicationSubjects;
 use Phil\ContentBundle\Infrastructure\Scheduling\ScheduledTransitionsPublicationSchedule;
@@ -151,6 +152,7 @@ final class PhilContentBundle extends AbstractBundle
     public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new PublicationWorkflowPass());
+        $container->addCompilerPass(new RawHtmlAuthorPass());
     }
 
     #[Override]

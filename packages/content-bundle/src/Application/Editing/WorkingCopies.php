@@ -25,6 +25,9 @@ use Psr\Clock\ClockInterface;
  * - **`saveNamed()`** keeps data under a name, for every editor of the content; the same name replaces it.
  * - **`apply()`** writes a working copy into the draft through `ContentManager::edit()`, under the same validation:
  *   an autosave is then removed, a named draft stays for another use.
+ * - **A working copy keeps the raw HTML permission of its author**: saving one records whether the user who saves it
+ *   holds it (`AuthorRawHtml`, registered with a `RawHtmlPermission`), and applying it writes its body with
+ *   that permission, so an editor who holds it does not lend it to the text of an author who does not.
  *
  * The author is the identifier the application gives the person at work, as Symfony's user identifier. Each method
  * runs in its own transaction; a content that does not exist is refused before anything is kept, and deleting a
@@ -37,6 +40,7 @@ final readonly class WorkingCopies
         private ContentManager $contents,
         private ContentTransaction $transaction,
         private ClockInterface $clock,
+        private ?AuthorRawHtml $rawHtml = null,
     ) {
     }
 
@@ -56,13 +60,13 @@ final readonly class WorkingCopies
             if ($copy instanceof WorkingCopy) {
                 $copy->replace($data, $author, $now);
 
-                return $copy;
+                return $this->authored($copy);
             }
 
             $copy = WorkingCopy::autosave($content, $locale, $author, $data, $now);
             $this->copies->add($copy);
 
-            return $copy;
+            return $this->authored($copy);
         });
     }
 
@@ -98,13 +102,13 @@ final readonly class WorkingCopies
             if ($copy instanceof WorkingCopy) {
                 $copy->replace($data, $author, $now);
 
-                return $copy;
+                return $this->authored($copy);
             }
 
             $copy = WorkingCopy::named($content, $locale, $name, $author, $data, $now);
             $this->copies->add($copy);
 
-            return $copy;
+            return $this->authored($copy);
         });
     }
 
@@ -137,7 +141,7 @@ final readonly class WorkingCopies
         $this->transaction->run(function () use ($content, $locale, $author): void {
             $copy = $this->autosaved($content, $locale, $author) ?? throw ContentNotFound::autosave($content, $author);
 
-            $this->contents->edit($content, $copy->locale(), $copy->data());
+            $this->write($content, $copy);
             $this->copies->remove($copy);
         });
     }
@@ -152,8 +156,43 @@ final readonly class WorkingCopies
     {
         $this->transaction->run(function () use ($content, $locale, $name): void {
             $copy = $this->findNamed($content, $locale, $name);
-            $this->contents->edit($content, $copy->locale(), $copy->data());
+            $this->write($content, $copy);
         });
+    }
+
+    /**
+     * The working copy, recording whether the user who saves it holds the raw HTML permission.
+     */
+    private function authored(WorkingCopy $copy): WorkingCopy
+    {
+        if ($this->rawHtml?->userIsGranted() ?? false) {
+            $copy->grantRawHtml();
+        }
+
+        return $copy;
+    }
+
+    /**
+     * Writes the working copy into the draft as its author saved it: its body carries the raw HTML permission of
+     * that author, not that of the editor applying it.
+     *
+     * @throws DomainError
+     */
+    private function write(ContentReference $content, WorkingCopy $copy): void
+    {
+        $edit = function () use ($content, $copy): null {
+            $this->contents->edit($content, $copy->locale(), $copy->data());
+
+            return null;
+        };
+
+        if (!$this->rawHtml instanceof AuthorRawHtml) {
+            $edit();
+
+            return;
+        }
+
+        $this->rawHtml->as($copy->rawHtml(), $edit);
     }
 
     /**

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=218a42b06108f8e53b89ae082524b6858013795e39ac2ffd5c3b3c8ffabaac94 -->
+<!-- phil-dev source-sha256=9fe9ab899a4e522aa40908e555b37aa9cf6b4527f144017f15dd8889831414db -->
 # Référence de la configuration
 
 La configuration du bundle se trouve sous `phil_content`. Chaque clé est facultative. Une configuration vide construit
@@ -196,14 +196,16 @@ Le nombre d'entrées que contient un flux.
 |---|---|
 | Type | chaîne, non vide |
 | Valeur par défaut | `null` : personne n'écrit de HTML brut |
-| Branche | `Phil\ContentBundle\Infrastructure\Markup\RawHtmlRole`, avec l'alias `Phil\ContentBundle\Application\Contract\RawHtmlPermission` : l'argument `$rawHtml` de `BodyDataMapper` et de `UjoBodyConverter` |
+| Branche | `Phil\ContentBundle\Infrastructure\Markup\RawHtmlRole`, avec l'alias `Phil\ContentBundle\Application\Contract\RawHtmlPermission`, enveloppé par `RawHtmlAuthorPass` dans `AuthorRawHtml` : l'argument `$rawHtml` de `BodyDataMapper` et de `WorkingCopies` ; `UjoBodyConverter` reçoit `$rawHtml: true` |
 | Exige | SecurityBundle (`symfony/security-core` et son service `security.authorization_checker`) |
 
-Le rôle de confiance dont les titulaires écrivent du HTML brut. Quand l'utilisateur qui publie a ce rôle, le HTML brut
-d'un brouillon — écrit en Markdown, BBCode, MediaWiki, DokuWiki, Creole ou un format qu'apporte un module
-complémentaire, ou un bloc `raw` d'UJO — est publié comme bloc `raw`, gardé comme le permet le profil `raw` de
-`phil/ujo`. Quand l'utilisateur qui enregistre un brouillon a ce rôle, le HTML du brouillon, que montre son aperçu,
-produit le rendu de ce HTML brut de la même façon. Tous les autres l'enregistrent et le publient comme du texte
+Le rôle de confiance dont les titulaires écrivent du HTML brut. **Le rôle est vérifié sur l'auteur de chaque révision
+d'un corps, jamais sur la personne qui le publie** : le corps retient si le rédacteur qui a écrit sa source avait le
+rôle, et son HTML brut — écrit en Markdown, BBCode, MediaWiki, DokuWiki, Creole ou un format qu'apporte un module
+complémentaire, ou un bloc `raw` d'UJO — est alors publié comme bloc `raw`, gardé comme le permet le profil `raw` de
+`phil/ujo`, par n'importe quel rédacteur ; le HTML du brouillon, que montre son aperçu, en produit le rendu de la même
+façon. Le HTML brut d'un auteur sans le rôle s'affiche et se publie comme du texte, même par un publieur qui l'a. Une
+copie de travail garde le rôle du rédacteur qui l'a enregistrée, qui que ce soit qui l'applique
 ([capabilities.md](capabilities.md#bodycapable)).
 
 ### `singles`
@@ -272,6 +274,7 @@ Les services sont enregistrés sous leur nom de classe et sont privés, sauf les
 | `ContentDataMapper`, `ContentAggregator`, `ContentNormalizer`, les mappeurs de données, fusionneurs et normaliseurs du bundle | toujours | les étiquettes de [pipeline.md](pipeline.md) |
 | `DefaultCompiler` (alias `MarkupCompiler`), `SanitizerPurifier` (alias `HtmlPurifier`), de `phil/markup` ; `UjoBodyConverter` (alias `BodyConverter`) | toujours | — |
 | `RawHtmlRole` (alias `RawHtmlPermission`) | avec `raw_html_role` | `raw_html_role`, le `security.authorization_checker` du conteneur |
+| `AuthorRawHtml` | avec une `RawHtmlPermission`, par `RawHtmlAuthorPass` | le service que nomme `RawHtmlPermission` |
 | `ContentWorkflow`, `ContentPublisher`, `ContentVersions`, `DimensionContentCopier`, `LiveContentReader`, `PublishedContents`, `RouteUpdater`, `RouteResolver`, `ContentEditor`, `ContentManager` | toujours, injectés automatiquement sur les ports | le `clock` du conteneur, et son `event_dispatcher` s'il existe |
 | `PublicationMarkingStore`, `phil_content.publication_workflow` | toujours ; ajoutés à `workflow.registry` quand le conteneur l'a | l'`event_dispatcher` du conteneur s'il existe |
 | `TemplateResolver` | toujours | `templates`, `default_template` |

@@ -193,13 +193,15 @@ How many entries a feed holds.
 |---|---|
 | Type | string, not empty |
 | Default | `null`: nobody writes raw HTML |
-| Wires | `Phil\ContentBundle\Infrastructure\Markup\RawHtmlRole`, aliased as `Phil\ContentBundle\Application\Contract\RawHtmlPermission`: the `$rawHtml` argument of `BodyDataMapper` and `UjoBodyConverter` |
+| Wires | `Phil\ContentBundle\Infrastructure\Markup\RawHtmlRole`, aliased as `Phil\ContentBundle\Application\Contract\RawHtmlPermission`, wrapped by `RawHtmlAuthorPass` in `AuthorRawHtml`: the `$rawHtml` argument of `BodyDataMapper` and `WorkingCopies`; `UjoBodyConverter` gets `$rawHtml: true` |
 | Requires | SecurityBundle (`symfony/security-core` and its `security.authorization_checker` service) |
 
-The trusted role whose holders write raw HTML. When the user publishing is granted it, the raw HTML of a draft — written
-in Markdown, BBCode, MediaWiki, DokuWiki, Creole or a format an add-on brings, or a `raw` block of UJO — is published as
-a `raw` block, kept as `phil/ujo`'s `raw` profile allows; when the user saving a draft is granted it, the draft's HTML,
-which its preview shows, renders that raw HTML the same way. Everyone else saves and publishes it as text
+The trusted role whose holders write raw HTML. **The role is checked on the author of each revision of a body, never on
+whoever publishes it**: the body records whether the editor who wrote its source held the role, and its raw HTML —
+written in Markdown, BBCode, MediaWiki, DokuWiki, Creole or a format an add-on brings, or a `raw` block of UJO — is then
+published as a `raw` block, kept as `phil/ujo`'s `raw` profile allows, by any editor; the draft's HTML, which its
+preview shows, renders it the same way. The raw HTML of an author without the role is shown and published as text, even
+by a publisher who holds it. A working copy keeps the role of the editor who saved it, whoever applies it
 ([capabilities.md](capabilities.md#bodycapable)).
 
 ### `singles`
@@ -268,6 +270,7 @@ them by class.
 | `ContentDataMapper`, `ContentAggregator`, `ContentNormalizer`, the bundle's data mappers, mergers and normalizers | always | the tags of [pipeline.md](pipeline.md) |
 | `DefaultCompiler` (alias `MarkupCompiler`), `SanitizerPurifier` (alias `HtmlPurifier`), of `phil/markup`; `UjoBodyConverter` (alias `BodyConverter`) | always | — |
 | `RawHtmlRole` (alias `RawHtmlPermission`) | with `raw_html_role` | `raw_html_role`, the container's `security.authorization_checker` |
+| `AuthorRawHtml` | with a `RawHtmlPermission`, by `RawHtmlAuthorPass` | the service `RawHtmlPermission` names |
 | `ContentWorkflow`, `ContentPublisher`, `ContentVersions`, `DimensionContentCopier`, `LiveContentReader`, `PublishedContents`, `RouteUpdater`, `RouteResolver`, `ContentEditor`, `ContentManager` | always, autowired over the ports | the container's `clock`, and its `event_dispatcher` when present |
 | `PublicationMarkingStore`, `phil_content.publication_workflow` | always; added to `workflow.registry` when the container has it | the container's `event_dispatcher` when present |
 | `TemplateResolver` | always | `templates`, `default_template` |

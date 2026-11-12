@@ -8,12 +8,14 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Phil\ContentBundle\Application\Content\SingleKinds;
 use Phil\ContentBundle\Application\ContentManager;
+use Phil\ContentBundle\Application\Contract\RawHtmlPermission;
 use Phil\ContentBundle\Application\DataMapper\BodyDataMapper;
 use Phil\ContentBundle\Application\DataMapper\ExcerptDataMapper;
 use Phil\ContentBundle\Application\DataMapper\LinkDataMapper;
 use Phil\ContentBundle\Application\DataMapper\RoutableDataMapper;
 use Phil\ContentBundle\Application\DataMapper\SeoDataMapper;
 use Phil\ContentBundle\Application\DataMapper\TemplateDataMapper;
+use Phil\ContentBundle\Application\Editing\AuthorRawHtml;
 use Phil\ContentBundle\Application\Editing\ContentEditor;
 use Phil\ContentBundle\Application\Merger\BodyMerger;
 use Phil\ContentBundle\Application\Merger\ExcerptMerger;
@@ -95,6 +97,11 @@ final readonly class InMemoryContents
     public ContentNormalizer $normalizer;
 
     /**
+     * The permission of the author at work, wrapping the one given; `null` without one.
+     */
+    public ?AuthorRawHtml $rawHtml;
+
+    /**
      * The body is compiled by `EchoMarkupCompiler` and purified by `MarkingHtmlPurifier` unless a test gives its own,
      * and published into UJO by `UjoBodyConverter` over `phil/markup`'s compiler.
      *
@@ -106,6 +113,7 @@ final readonly class InMemoryContents
         MarkupCompiler $compiler = new EchoMarkupCompiler(),
         HtmlPurifier $purifier = new MarkingHtmlPurifier(),
         array $singles = [],
+        ?RawHtmlPermission $rawHtml = null,
     ) {
         $this->rows = new InMemoryDimensionContentRepository();
         $this->routes = new InMemoryRouteRepository();
@@ -132,7 +140,8 @@ final readonly class InMemoryContents
         $normalizer = $this->normalizer;
 
         $this->versions = new ContentVersions($this->rows, $copier, $this->transaction);
-        $converter = new UjoBodyConverter(new DefaultCompiler(), $purifier);
+        $this->rawHtml = $rawHtml instanceof RawHtmlPermission ? new AuthorRawHtml($rawHtml) : null;
+        $converter = new UjoBodyConverter($compiler instanceof DefaultCompiler ? $compiler : new DefaultCompiler(), $purifier, rawHtml: $rawHtml instanceof RawHtmlPermission);
         $this->publisher = new ContentPublisher($this->rows, $this->roots, $this->versions, $copier, $this->workflow, $routeUpdater, $this->transaction, $normalizer, $converter, $this->clock, $converter);
         $this->dispatcher = new EventDispatcher();
         $this->pages = new PageEvents($this->rows, $aggregator, new InMemoryCanonicalAddresses($this->routes), $this->dispatcher);
@@ -142,7 +151,7 @@ final readonly class InMemoryContents
             new ExcerptDataMapper(),
             new LinkDataMapper(),
             new RoutableDataMapper(),
-            new BodyDataMapper($compiler, $purifier),
+            new BodyDataMapper($compiler, $purifier, $this->rawHtml),
         ]), $routeUpdater);
         $this->reader = new LiveContentReader($this->rows, $aggregator);
         $this->publishedRows = new InMemoryPublishedRows($this->rows, $this->roots);

@@ -341,11 +341,13 @@ what readers can see.
 
 | Port | Method | Contract | Default adapter |
 |---|---|---|---|
-| `Phil\ContentBundle\Application\Contract\RawHtmlPermission` | `isGranted(): bool` | whether the user at work writes raw HTML: `BodyDataMapper` then compiles their draft for `Level::All` and `UjoBodyConverter` publishes `raw` blocks | `RawHtmlRole`, with `raw_html_role` |
+| `Phil\ContentBundle\Application\Contract\RawHtmlPermission` | `isGranted(): bool` | whether the user at work writes raw HTML: `BodyDataMapper` records it on the body they write and compiles it for `Level::All`, and `UjoBodyConverter` publishes its `raw` blocks, whoever publishes it | `RawHtmlRole`, with `raw_html_role` |
 
 An application that decides by something else than a role — a permission of its own, a voter on the content —
 aliases the port to its own service with `#[AsAlias(RawHtmlPermission::class)]`. It answers for the request at work,
-and holds no state between two requests.
+and holds no state between two requests. `RawHtmlAuthorPass` wraps whichever service the port names in
+`AuthorRawHtml`, so the permission is checked on the author of each revision, a working copy's included, and never
+on the publisher.
 
 ## Workflow events
 

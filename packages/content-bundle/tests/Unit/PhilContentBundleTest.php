@@ -98,6 +98,7 @@ use Phil\ContentBundle\Infrastructure\Http\PreviewController;
 use Phil\ContentBundle\Infrastructure\Http\PreviewLinks;
 use Phil\ContentBundle\Infrastructure\Http\ResourceRoutes;
 use Phil\ContentBundle\Infrastructure\Markup\MarkupServices;
+use Phil\ContentBundle\Infrastructure\Markup\RawHtmlAuthorPass;
 use Phil\ContentBundle\Infrastructure\Markup\RawHtmlRole;
 use Phil\ContentBundle\Infrastructure\Markup\UjoBodyConverter;
 use Phil\ContentBundle\Infrastructure\Scheduling\PublicationReferences;
@@ -221,9 +222,9 @@ final class PhilContentBundleTest extends TestCase
 
     /**
      * Raw HTML is shown and published as text unless a trusted role is configured; that role is checked by Symfony's
-     * authorization checker, and is the permission the body data mapper and the converter read.
+     * authorization checker, and is the permission `RawHtmlAuthorPass` checks on the author of each body.
      */
-    public function testATrustedRoleLetsItsHoldersPublishRawHtml(): void
+    public function testATrustedRoleLetsItsHoldersWriteRawHtml(): void
     {
         $container = $this->load();
         self::assertFalse($container->hasDefinition(RawHtmlRole::class));
@@ -234,8 +235,8 @@ final class PhilContentBundleTest extends TestCase
         $role = $container->getDefinition(RawHtmlRole::class);
         $this->assertReference('security.authorization_checker', $role->getArgument(0));
         self::assertSame('ROLE_EDITOR', $role->getArgument(1));
-        $this->assertReference(RawHtmlPermission::class, $container->getDefinition(UjoBodyConverter::class)->getArgument('$rawHtml'));
         self::assertSame(RawHtmlRole::class, (string) $container->getAlias(RawHtmlPermission::class));
+        self::assertSame([], $container->getDefinition(UjoBodyConverter::class)->getArguments());
     }
 
     public function testTheTrustedRoleCannotBeEmpty(): void
@@ -758,6 +759,7 @@ final class PhilContentBundleTest extends TestCase
         new PhilContentBundle()->build($container);
 
         self::assertCount(1, array_filter($container->getCompilerPassConfig()->getPasses(), static fn (object $pass): bool => $pass instanceof PublicationWorkflowPass));
+        self::assertCount(1, array_filter($container->getCompilerPassConfig()->getPasses(), static fn (object $pass): bool => $pass instanceof RawHtmlAuthorPass));
     }
 
     /**

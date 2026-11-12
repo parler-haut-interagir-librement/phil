@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5031bafb24d2ac596509bc315409648aa53b9b5dc21408cf73c009d479fb695a -->
+<!-- phil-dev source-sha256=25843744bc4d74e6f4493554d5d6c7be059f1ead4d84ff3c7bf7266368e35cda -->
 # Stockage Doctrine
 
 Avec DoctrineBundle, le bundle enregistre les racines, les lignes et les routes par l'ORM. L'application écrit **deux
@@ -214,6 +214,7 @@ locale ([administration.md](administration.md#copies-de-travail)).
 | `name` | chaîne de 100, nullable | le nom d'un brouillon nommé ; `null` pour un enregistrement automatique |
 | `data` | `json` | les données soumises, 256 Kio de JSON au plus |
 | `saved_at` | `datetime_immutable` | le moment de l'enregistrement, en UTC |
+| `raw_html` | booléen, `false` par défaut | si le rédacteur qui l'a enregistrée en dernier avait la permission d'écrire du HTML brut ; l'appliquer écrit son corps avec cette permission |
 
 `DoctrineWorkingCopyRepository` implémente son port, `Domain\Contract\WorkingCopyRepository` ; il n'écrit rien
 lui-même, dans la transaction de l'appelant.

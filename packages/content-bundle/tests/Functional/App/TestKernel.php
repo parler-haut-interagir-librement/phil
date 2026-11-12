@@ -72,11 +72,12 @@ final class TestKernel extends Kernel
             'csrf_protection' => true,
             'session' => ['storage_factory_id' => 'session.storage.factory.mock_file'],
         ]);
-        // The administration behind a firewall of two editors in memory, signed in by the tests.
+        // The administration behind a firewall of editors in memory, signed in by the tests; carol alone writes raw HTML.
         $container->extension('security', [
             'providers' => ['editors' => ['memory' => ['users' => [
                 'alice' => ['password' => 'unused', 'roles' => ['ROLE_EDITOR']],
                 'bob' => ['password' => 'unused', 'roles' => ['ROLE_EDITOR']],
+                'carol' => ['password' => 'unused', 'roles' => ['ROLE_EDITOR', 'ROLE_HTML']],
                 'reader' => ['password' => 'unused', 'roles' => ['ROLE_USER']],
             ]]]],
             'firewalls' => ['main' => ['lazy' => true, 'provider' => 'editors']],
@@ -112,6 +113,7 @@ final class TestKernel extends Kernel
             'default_template' => 'page.html.twig',
             'archives' => ['news'],
             'admin' => ['enabled' => true, 'role' => 'ROLE_EDITOR', 'timezone' => 'America/Montreal'],
+            'raw_html_role' => 'ROLE_HTML',
         ]);
     }
 

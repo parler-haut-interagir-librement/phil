@@ -18,6 +18,11 @@ use Phil\Markup\MarkupFormat;
  *
  * The source is taken as written, leading spaces included, since they mean something in Markdown; it must
  * only hold something other than whitespace, and be valid UTF-8 like the HTML.
+ *
+ * **`rawHtml` says whether the author of this source held the raw HTML permission when they wrote it**
+ * (`RawHtmlPermission`). It travels with the source, so the right is checked on the author of each revision, never
+ * on whoever publishes it: the publication keeps the raw HTML of a source whose author held it, and shows the raw HTML
+ * of any other source as text.
  */
 final readonly class Body
 {
@@ -25,13 +30,16 @@ final readonly class Body
         public string $source,
         public string $format,
         public string $html,
+        public bool $rawHtml,
     ) {
     }
 
     /**
+     * @param bool $rawHtml whether the author of the source held the raw HTML permission when they wrote it
+     *
      * @throws InvalidContent
      */
-    public static function of(string $source, MarkupFormat|string $format, string $html): self
+    public static function of(string $source, MarkupFormat|string $format, string $html, bool $rawHtml = false): self
     {
         if ('' === trim($source)) {
             throw InvalidContent::because('A body holds something other than whitespace; an absent body is null.');
@@ -41,6 +49,6 @@ final readonly class Body
             throw InvalidContent::because('A body is valid UTF-8, its source as its HTML.');
         }
 
-        return new self($source, MarkupFormat::nameOf($format), $html);
+        return new self($source, MarkupFormat::nameOf($format), $html, $rawHtml);
     }
 }

@@ -13,7 +13,9 @@ use Phil\Markup\HtmlPurifier;
 use Phil\Markup\Level;
 
 /**
- * `BodyCapable` as plain data: `bodySource`, `bodyFormat`, and `bodyHtml`, **purified here, on every read**.
+ * `BodyCapable` as plain data: `bodySource`, `bodyFormat`, `bodyHtml`, **purified here, on every read**, and
+ * `bodyRawHtml`, whether the author of the source held the raw HTML permission (`null` without a body). The data
+ * mapper never reads `bodyRawHtml` back: submitting it grants nothing.
  *
  * A draft row gives the source in its author's format; a live row gives the UJO its publication converted the
  * draft into, with the format `ujo` — the JSON a block editor opens —, and the HTML compiled from it.
@@ -42,6 +44,7 @@ final readonly class BodyNormalizer implements Normalizer
             'bodySource' => $body?->source,
             'bodyFormat' => $body?->format,
             'bodyHtml' => $body instanceof Body ? $this->purifier->purify($body->html, Level::All) : null,
+            'bodyRawHtml' => $body?->rawHtml,
         ];
     }
 }

@@ -12,6 +12,7 @@ use Phil\ContentBundle\Domain\Exception\InvalidContent;
 use Phil\ContentBundle\Domain\ValueObject\Body;
 use Phil\ContentBundle\Infrastructure\Markup\RawHtmlRole;
 use Phil\ContentBundle\Infrastructure\Markup\UjoBodyConverter;
+use Phil\ContentBundle\Tests\Unit\Fixture\LevelledReaders;
 use Phil\ContentBundle\Tests\Unit\Fixture\MarkingHtmlPurifier;
 use Phil\Markup\Adapter\DefaultCompiler;
 use Phil\Markup\Adapter\SanitizerPurifier;
@@ -100,27 +101,79 @@ final class UjoBodyConverterTest extends TestCase
     }
 
     /**
-     * A publisher granted the trusted role publishes the raw HTML of a written format and the `raw` blocks of UJO,
-     * kept as the `raw` profile allows.
+     * The raw HTML of an author who held the permission is published, the raw HTML of a written format and the `raw`
+     * blocks of UJO kept as the `raw` profile allows, and the published body says so.
      */
-    public function testTheTrustedRolePublishesRawHtml(): void
+    public function testTheRawHtmlOfAnAuthorWhoHeldThePermissionIsPublished(): void
     {
-        $converter = $this->converter(new RawHtmlRole($this->authorization(['ROLE_EDITOR']), 'ROLE_EDITOR'));
+        $converter = $this->converter(rawHtml: true);
 
-        $markdown = $converter->toUjo(Body::of("Le site **ouvre**.\n\n<div><p>Bonjour</p><script>alert(1)</script></div>", MarkupFormat::Markdown, ''), $this->publishedAt());
+        $markdown = $converter->toUjo(Body::of("Le site **ouvre**.\n\n<div><p>Bonjour</p><script>alert(1)</script></div>", MarkupFormat::Markdown, '', true), $this->publishedAt());
         self::assertSame('{"time":1793462400123,"blocks":[{"id":"b1","type":"paragraph","data":{"text":"Le site <b>ouvre</b>."}},{"id":"b2","type":"raw","data":{"html":"<div><p>Bonjour</p></div>"}}]}', $markdown->source);
         self::assertSame("<p>Le site <b>ouvre</b>.</p>\n<div><div><p>Bonjour</p></div></div>", $markdown->html);
+        self::assertTrue($markdown->rawHtml);
 
-        $ujo = $converter->toUjo(Body::of('{"blocks":[{"id":"r","type":"raw","data":{"html":"<p>Bonjour</p>"}}]}', MarkupFormat::Ujo, ''), $this->publishedAt());
+        $ujo = $converter->toUjo(Body::of('{"blocks":[{"id":"r","type":"raw","data":{"html":"<p>Bonjour</p>"}}]}', MarkupFormat::Ujo, '', true), $this->publishedAt());
         self::assertSame('{"time":1793462400123,"blocks":[{"id":"r","type":"raw","data":{"html":"<p>Bonjour</p>"}}]}', $ujo->source);
     }
 
-    public function testAPublisherWithoutTheTrustedRolePublishesRawHtmlAsText(): void
+    /**
+     * The raw HTML of an author without the permission is published as text, whoever publishes it: the converter
+     * never asks who is at work.
+     */
+    public function testTheRawHtmlOfAnAuthorWithoutThePermissionIsPublishedAsText(): void
     {
-        $published = $this->converter(new RawHtmlRole($this->authorization(['ROLE_USER']), 'ROLE_EDITOR'))
-            ->toUjo(Body::of('<div>Bonjour</div>', MarkupFormat::Markdown, ''), $this->publishedAt());
+        $converter = $this->converter(rawHtml: true);
+
+        $markdown = $converter->toUjo(Body::of('<div>Bonjour</div>', MarkupFormat::Markdown, ''), $this->publishedAt());
+        self::assertSame('{"time":1793462400123,"blocks":[{"id":"b1","type":"paragraph","data":{"text":"&lt;div&gt;Bonjour&lt;/div&gt;"}}]}', $markdown->source);
+        self::assertFalse($markdown->rawHtml);
+
+        $ujo = $converter->toUjo(Body::of('{"blocks":[{"id":"r","type":"raw","data":{"html":"<img src=\"https://example.org/x.png\">"}}]}', MarkupFormat::Ujo, ''), $this->publishedAt());
+        self::assertSame('{"time":1793462400123,"blocks":[{"id":"r","type":"paragraph","data":{"text":"&lt;img src=&quot;https://example.org/x.png&quot;&gt;"}}]}', $ujo->source);
+        self::assertFalse($ujo->rawHtml);
+    }
+
+    /**
+     * Once raw HTML is no longer configured, the body of an author who held the permission is published as text too.
+     */
+    public function testWithoutRawHtmlConfiguredNoAuthorPublishesIt(): void
+    {
+        $published = $this->converter()->toUjo(Body::of('<div>Bonjour</div>', MarkupFormat::Markdown, '', true), $this->publishedAt());
 
         self::assertSame('{"time":1793462400123,"blocks":[{"id":"b1","type":"paragraph","data":{"text":"&lt;div&gt;Bonjour&lt;/div&gt;"}}]}', $published->source);
+        self::assertFalse($published->rawHtml);
+    }
+
+    public function testRawHtmlIsNotConfiguredByDefault(): void
+    {
+        $published = new UjoBodyConverter(new DefaultCompiler(), SanitizerPurifier::defaultPolicies())
+            ->toUjo(Body::of('<div>Bonjour</div>', MarkupFormat::Markdown, '', true), $this->publishedAt());
+
+        self::assertFalse($published->rawHtml);
+    }
+
+    /**
+     * What a conversion loses is read at the level of the author of the source, as its publication reads it.
+     */
+    public function testTheLossesAreReadAtTheLevelOfTheAuthor(): void
+    {
+        $compiler = new DefaultCompiler(readers: ['levelled' => new LevelledReaders()]);
+        $loss = [new ConversionLoss('raw', 'levelled', 'unknown-element')];
+        $configured = new UjoBodyConverter($compiler, SanitizerPurifier::defaultPolicies(), rawHtml: true);
+
+        self::assertEquals($loss, $configured->of('<b>x</b>', 'levelled'));
+        self::assertSame([], $configured->of('<b>x</b>', 'levelled', true));
+        self::assertEquals($loss, new UjoBodyConverter($compiler, SanitizerPurifier::defaultPolicies())->of('<b>x</b>', 'levelled', true));
+    }
+
+    /**
+     * The trusted role is checked by Symfony's authorization checker.
+     */
+    public function testTheTrustedRoleIsCheckedByTheAuthorizationChecker(): void
+    {
+        self::assertTrue(new RawHtmlRole($this->authorization(['ROLE_EDITOR']), 'ROLE_EDITOR')->isGranted());
+        self::assertFalse(new RawHtmlRole($this->authorization(['ROLE_USER']), 'ROLE_EDITOR')->isGranted());
     }
 
     /**
@@ -150,7 +203,7 @@ final class UjoBodyConverterTest extends TestCase
 
         self::assertEquals([new ConversionLoss('object', 'body > p[1] > object[1]', 'unknown-element'), new ConversionLoss('a', 'body > p[1] > a[1]', 'refused-scheme')], $losses);
         self::assertSame([], $this->converter()->of('*a*', MarkupFormat::Markdown));
-        self::assertSame([], $this->converter(new RawHtmlRole($this->authorization(['ROLE_EDITOR']), 'ROLE_EDITOR'))->of('<p>a</p>', MarkupFormat::Html));
+        self::assertSame([], $this->converter(rawHtml: true)->of('<p>a</p>', MarkupFormat::Html));
         $this->expectException(InvalidContent::class);
         $this->converter()->of('{"blocks": 1}', MarkupFormat::Ujo);
     }
@@ -163,7 +216,7 @@ final class UjoBodyConverterTest extends TestCase
         $this->converter()->toUjo(Body::of('{"blocks":[{"id":"a","type":"nope","data":{}}]}', MarkupFormat::Ujo, ''), $this->publishedAt());
     }
 
-    private function converter(?RawHtmlRole $rawHtml = null): UjoBodyConverter
+    private function converter(bool $rawHtml = false): UjoBodyConverter
     {
         return new UjoBodyConverter(new DefaultCompiler(), SanitizerPurifier::defaultPolicies(), rawHtml: $rawHtml);
     }

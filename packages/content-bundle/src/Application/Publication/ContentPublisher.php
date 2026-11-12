@@ -41,7 +41,8 @@ use Psr\Clock\ClockInterface;
  * - **The published row stores its body in UJO.** The draft keeps the format its author writes in; the live copy
  *   holds the body the `BodyConverter` makes of it — the UJO as its source, the format `ujo`, the HTML compiled from
  *   that UJO, dated with the publication. The conversion runs before anything changes, so a body that cannot be read
- *   leaves the locale as it was.
+ *   leaves the locale as it was. **Raw HTML is kept only when the author of the draft's body held the permission**
+ *   (`Body::$rawHtml`); who publishes it does not matter.
  * - **Unpublishing removes the live row of the locale.** The route stays, so the address is not given to
  *   another root, and answers 404 until the locale is published again.
  * - **Removing the draft abandons the changes made since the last publication**: the frozen draft rows of the
@@ -221,7 +222,7 @@ final readonly class ContentPublisher
     private function refuseLosses(DimensionContent $draft): void
     {
         $body = $draft instanceof BodyCapable ? $draft->getBody() : null;
-        $losses = $body instanceof Body && $this->losses instanceof ConversionLosses ? $this->losses->of($body->source, $body->format) : [];
+        $losses = $body instanceof Body && $this->losses instanceof ConversionLosses ? $this->losses->of($body->source, $body->format, $body->rawHtml) : [];
 
         if ([] !== $losses) {
             throw PublicationLosesContent::of($draft->dimension()->toString(), $losses);

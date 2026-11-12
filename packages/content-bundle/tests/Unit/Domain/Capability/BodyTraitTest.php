@@ -15,6 +15,7 @@ use Phil\LocaleDimensions\Version;
 use Phil\Markup\MarkupFormat;
 use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 
 #[CoversTrait(BodyTrait::class)]
 final class BodyTraitTest extends TestCase
@@ -36,6 +37,27 @@ final class BodyTraitTest extends TestCase
         self::assertSame('<p>Bonjour</p>', $body->source);
         self::assertSame('html', $body->format);
         self::assertSame('<p>Bonjour</p>', $body->html);
+        self::assertFalse($body->rawHtml);
+    }
+
+    /**
+     * Whether the author held the raw HTML permission is kept with the body, and forgotten with it.
+     */
+    public function testTheRawHtmlPermissionOfTheAuthorIsKeptWithTheBody(): void
+    {
+        $row = $this->row();
+
+        $row->setBody(Body::of('<div>Bonjour</div>', MarkupFormat::Markdown, '<div>Bonjour</div>', true));
+        self::assertTrue($row->getBody()?->rawHtml);
+
+        $row->setBody(null);
+        $row->setBody(Body::of('Bonjour', MarkupFormat::Markdown, '<p>Bonjour</p>'));
+        self::assertFalse($row->getBody()?->rawHtml);
+
+        $row->setBody(Body::of('<div>Bonjour</div>', MarkupFormat::Markdown, '<div>Bonjour</div>', true));
+        $row->setBody(null);
+        self::assertNull($row->getBody());
+        self::assertFalse(new ReflectionProperty($row, 'bodyRawHtml')->getValue($row), 'cleared with the body');
     }
 
     public function testTheBodyIsReplacedAndCleared(): void

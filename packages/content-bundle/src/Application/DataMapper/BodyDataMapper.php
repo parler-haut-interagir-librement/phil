@@ -29,10 +29,15 @@ use Phil\Markup\MarkupFormat;
  * - `bodyFormat` is the name of a format the compiler knows — a value of `MarkupFormat`, `markdown`, `html`,
  *   `bbcode`, `mediawiki`, `dokuwiki`, `creole`, `text` or `ujo`, or a format an add-on brings —, and `markdown` when
  *   absent. A format the compiler does not know, and a UJO source that is not a valid document, are refused.
- * - **An editor granted the `RawHtmlPermission` sees their raw HTML rendered**: with a `LevelAwareCompiler`, the
- *   source is compiled for `Level::All`, so the raw HTML written in Markdown or another written format becomes `raw`
- *   blocks, kept as `phil/ujo`'s `raw` profile allows and purified, as their publication will show it. Every other
- *   editor sees it as text, as `MarkupCompiler::compile()` reads it.
+ * - **The body records whether its author holds the `RawHtmlPermission`** (`Body::$rawHtml`): the author is the
+ *   editor who writes a new source or format, and the publication reads the right from the body, never from whoever
+ *   publishes it. A save that leaves the source and the format as they were keeps the author they had, so an editor
+ *   without the right who changes another field does not take the right from the text of an author who holds it, and
+ *   one who holds it does not lend it to a text they did not write.
+ * - **The raw HTML of an author granted the permission is rendered**: with a `LevelAwareCompiler`, the source is
+ *   compiled for `Level::All`, so the raw HTML written in Markdown or another written format becomes `raw` blocks,
+ *   kept as `phil/ujo`'s `raw` profile allows and purified, as their publication will show it. The source of any other
+ *   author shows it as text, as `MarkupCompiler::compile()` reads it.
  */
 final readonly class BodyDataMapper implements DataMapper
 {
@@ -59,25 +64,42 @@ final readonly class BodyDataMapper implements DataMapper
         }
 
         $format = SubmittedData::string($data, 'bodyFormat') ?? MarkupFormat::Markdown->value;
+        $rawHtml = $this->authorHoldsRawHtml($localized->getBody(), $source, $format);
 
         try {
-            $html = $this->purifier->purify($this->compile($source, $format), Level::All);
+            $html = $this->purifier->purify($this->compile($source, $format, $rawHtml), Level::All);
         } catch (UnknownFormat $unknownFormat) {
             throw InvalidContent::because(\sprintf('"%s" is not a body format; use one of: %s.', $format, implode(', ', $unknownFormat->known)));
         } catch (InvalidSource $invalidSource) {
             throw InvalidContent::because($invalidSource->getMessage());
         }
 
-        $localized->setBody(Body::of($source, $format, $html));
+        $localized->setBody(Body::of($source, $format, $html, $rawHtml));
     }
 
     /**
-     * @throws InvalidSource
+     * Whether the author of the submitted body holds the permission: the author the body had when its source and
+     * format are unchanged, the editor at work otherwise; nobody without a `RawHtmlPermission`.
+     */
+    private function authorHoldsRawHtml(?Body $previous, string $source, string $format): bool
+    {
+        if (!$this->rawHtml instanceof RawHtmlPermission) {
+            return false;
+        }
+
+        if ($previous instanceof Body && $previous->source === $source && $previous->format === MarkupFormat::nameOf($format)) {
+            return $previous->rawHtml;
+        }
+
+        return $this->rawHtml->isGranted();
+    }
+
+    /**
      * @throws UnknownFormat
      */
-    private function compile(string $source, string $format): string
+    private function compile(string $source, string $format, bool $rawHtml): string
     {
-        if ($this->compiler instanceof LevelAwareCompiler && ($this->rawHtml?->isGranted() ?? false)) {
+        if ($this->compiler instanceof LevelAwareCompiler && $rawHtml) {
             return $this->compiler->compileFor($source, $format, Level::All);
         }
 

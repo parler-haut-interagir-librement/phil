@@ -136,13 +136,14 @@ final class CapabilityNormalizersTest extends TestCase
             'bodySource' => '<p>Bonjour</p><script>alert(1)</script>',
             'bodyFormat' => 'html',
             'bodyHtml' => '<purified><p>Bonjour</p><script>alert(1)</script></purified>',
+            'bodyRawHtml' => false,
         ], new BodyNormalizer(new MarkingHtmlPurifier())->normalize($row));
     }
 
     public function testARowWithoutABodyGivesNullValues(): void
     {
         self::assertSame(
-            ['bodySource' => null, 'bodyFormat' => null, 'bodyHtml' => null],
+            ['bodySource' => null, 'bodyFormat' => null, 'bodyHtml' => null, 'bodyRawHtml' => null],
             new BodyNormalizer(new MarkingHtmlPurifier())->normalize($this->row()),
         );
     }

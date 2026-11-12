@@ -15,11 +15,13 @@ use Phil\Markup\MarkupFormat;
 interface ConversionLosses
 {
     /**
-     * @param MarkupFormat|string $format a format of `phil/markup`, or the name of a format an add-on brings
+     * @param MarkupFormat|string $format  a format of `phil/markup`, or the name of a format an add-on brings
+     * @param bool                $rawHtml whether the author of the source held the raw HTML permission (`Body::$rawHtml`):
+     *                                     the source is then read as its publication will read it
      *
      * @return list<ConversionLoss> in the order of the source; empty when the conversion keeps everything
      *
      * @throws InvalidContent when the source cannot be read in its format
      */
-    public function of(string $source, MarkupFormat|string $format): array;
+    public function of(string $source, MarkupFormat|string $format, bool $rawHtml = false): array;
 }

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a46e66e61c8c04ef3dda387a97a48ee8ba7fc65645d235339b9528c9d4ae5b9f -->
+<!-- phil-dev source-sha256=1e953d2662f00d5d2833337646aa36175e8428de80a1b20409442757cbbf41f9 -->
 # Référence de l'API
 
 Chaque classe et interface du bundle, par couche. Tous les espaces de noms sont sous `Phil\ContentBundle`. « Port »
@@ -108,6 +108,7 @@ Chaque classe implémente `Phil\DddBundle\Domain\Exception\DomainError`.
 | `Contract\PublicationSchedule` | port | Publier ou mettre hors ligne à un moment fixé |
 | `Exception\PublicationLosesContent` | exception | Une publication refusée pour ce que son corps perdrait en UJO, avec les pertes |
 | `Editing\WorkingCopies` | implémenté | L'enregistrement automatique privé de chaque auteur et les brouillons nommés d'un contenu |
+| `Editing\AuthorRawHtml` | implémenté | La permission d'écrire du HTML brut de l'auteur de la révision en cours : l'utilisateur au travail, ou l'auteur de la copie de travail appliquée |
 | `Publication\PageEvents` | implémenté | Les événements `PagePublished` et `PageRetired` de `phil/publishing`, lus sur la ligne en ligne |
 | `Publication\ContentArchive`, `Publication\ArchivedVersion` | implémenté, valeur | L'archive datée d'un genre, et une publication qu'elle contient |
 | `Publication\ScheduledPublication` | valeur | Une transition prévue pour un moment |
@@ -119,7 +120,7 @@ Chaque classe implémente `Phil\DddBundle\Domain\Exception\DomainError`.
 | `Pipeline\ContentNormalizer` | implémenté | Exécute chaque normaliseur, refuse une clé répétée |
 | `DataMapper\TemplateDataMapper`, `SeoDataMapper`, `ExcerptDataMapper`, `LinkDataMapper`, `RoutableDataMapper`, `BodyDataMapper` | implémenté | Un mappeur de données par capacité (aucun pour le workflow) |
 | `DataMapper\SubmittedData` | implémenté | Lecteurs typés des données soumises |
-| `Contract\RawHtmlPermission` | port | Si l'utilisateur au travail a le rôle de confiance : ses brouillons montrent le HTML brut, ses publications le gardent |
+| `Contract\RawHtmlPermission` | port | Si l'utilisateur au travail a le rôle de confiance : les corps qu'il écrit le retiennent, montrent son HTML brut et le gardent une fois publiés, par n'importe qui |
 | `Merger\TemplateMerger`, `WorkflowMerger`, `SeoMerger`, `ExcerptMerger`, `LinkMerger`, `RoutableMerger`, `BodyMerger` | implémenté | Un fusionneur par capacité |
 | `Normalizer\TemplateNormalizer`, `WorkflowNormalizer`, `SeoNormalizer`, `ExcerptNormalizer`, `LinkNormalizer`, `RoutableNormalizer`, `BodyNormalizer` | implémenté | Un normaliseur par capacité |
 | `Editing\ContentEditor` | implémenté | Écrit des données soumises sur le brouillon d'une locale, en créant versions et lignes au besoin |
@@ -195,6 +196,7 @@ Chaque classe implémente `Phil\DddBundle\Domain\Exception\DomainError`.
 | `Markup\MarkupServices` | Enregistre les adaptateurs par défaut de `phil/markup` et le convertisseur du bundle, et fait des trois ports des alias vers eux |
 | `Markup\UjoBodyConverter` | Adaptateur de `BodyConverter` et de `ConversionLosses` : les lecteurs de `phil/markup`, l'encodeur de `phil/ujo`, compilé et purifié |
 | `Markup\RawHtmlRole` | Adaptateur de `RawHtmlPermission` : le rôle de confiance de `raw_html_role`, vérifié par le vérificateur d'autorisation de Symfony |
+| `Markup\RawHtmlAuthorPass` | Passe de compilation : avec une `RawHtmlPermission`, l'enveloppe dans `AuthorRawHtml` pour `BodyDataMapper` et `WorkingCopies`, et dit à `UjoBodyConverter` que le HTML brut est configuré |
 
 ### `Infrastructure\Twig`
 

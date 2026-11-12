@@ -21,8 +21,9 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
  * aliasing the interface to its own service; `phil/markup-bundle` registers the same two adapters.
  *
  * With a trusted role, `RawHtmlRole` checks it on Symfony's authorization checker, `security.authorization_checker`,
- * which SecurityBundle registers, and is the `RawHtmlPermission`: the body data mapper shows the raw HTML of the drafts
- * the users granted it save, and the converter publishes it.
+ * which SecurityBundle registers, and is the `RawHtmlPermission`; `RawHtmlAuthorPass` then wraps it in `AuthorRawHtml`:
+ * the body data mapper records on each body whether its author holds it and shows their raw HTML, and the converter
+ * publishes the raw HTML of the bodies whose author held it, whoever publishes them.
  */
 final class MarkupServices
 {
@@ -33,13 +34,12 @@ final class MarkupServices
         $services->set(SanitizerPurifier::class)
             ->factory([SanitizerPurifier::class, 'defaultPolicies']);
         $services->alias(HtmlPurifier::class, SanitizerPurifier::class);
-        $converter = $services->set(UjoBodyConverter::class)->autowire();
+        $services->set(UjoBodyConverter::class)->autowire();
 
         if (null !== $rawHtmlRole) {
             $services->set(RawHtmlRole::class)
                 ->args([service('security.authorization_checker'), $rawHtmlRole]);
             $services->alias(RawHtmlPermission::class, RawHtmlRole::class);
-            $converter->arg('$rawHtml', service(RawHtmlPermission::class));
         }
 
         $services->alias(BodyConverter::class, UjoBodyConverter::class);

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=22b9268bb0c6310b261c6d7adae7a31b1bc76d75a88d3b7ff704c884185063d7 -->
+<!-- phil-dev source-sha256=8131ec03947918256ee41706490b46b7d12395efa2c702b77a11bb79c757d0c6 -->
 # Points d'extension
 
 Ce qu'une application implémente, remplace ou utilise. Chaque port a un adaptateur Doctrine enregistré quand le noyau a
@@ -348,11 +348,13 @@ l'autre suit ce que les lecteurs peuvent voir.
 
 | Port | Méthode | Contrat | Adaptateur par défaut |
 |---|---|---|---|
-| `Phil\ContentBundle\Application\Contract\RawHtmlPermission` | `isGranted(): bool` | si l'utilisateur au travail écrit du HTML brut : `BodyDataMapper` compile alors son brouillon pour `Level::All` et `UjoBodyConverter` publie des blocs `raw` | `RawHtmlRole`, avec `raw_html_role` |
+| `Phil\ContentBundle\Application\Contract\RawHtmlPermission` | `isGranted(): bool` | si l'utilisateur au travail écrit du HTML brut : `BodyDataMapper` le retient sur le corps qu'il écrit et le compile pour `Level::All`, et `UjoBodyConverter` en publie les blocs `raw`, qui que ce soit qui le publie | `RawHtmlRole`, avec `raw_html_role` |
 
 Une application qui décide selon autre chose qu'un rôle — sa propre permission, un *voter* sur le contenu — fait du
 port un alias vers son propre service avec `#[AsAlias(RawHtmlPermission::class)]`. Il répond pour la requête en cours,
-et ne garde aucun état entre deux requêtes.
+et ne garde aucun état entre deux requêtes. `RawHtmlAuthorPass` enveloppe le service que nomme le port dans
+`AuthorRawHtml`, pour que la permission soit vérifiée sur l'auteur de chaque révision, celle d'une copie de travail
+comprise, et jamais sur le publieur.
 
 ## Les événements du workflow
 

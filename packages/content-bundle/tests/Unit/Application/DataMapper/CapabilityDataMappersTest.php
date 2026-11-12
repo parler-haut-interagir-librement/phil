@@ -328,13 +328,77 @@ final class CapabilityDataMappersTest extends TestCase
             ->map($this->unlocalized, $this->localized, ['bodySource' => $source]);
         self::assertSame('<purified><div class="ujo-raw"><div><p>Hi</p></div></div></purified>', $this->localized->getBody()?->html);
 
+        $this->localized->setBody(null);
         new BodyDataMapper(new DefaultCompiler(), new MarkingHtmlPurifier(), $this->rawHtml(false))
             ->map($this->unlocalized, $this->localized, ['bodySource' => $source]);
         self::assertStringContainsString('&lt;div&gt;&lt;p&gt;Hi&lt;/p&gt;', (string) $this->localized->getBody()?->html);
 
+        $this->localized->setBody(null);
         new BodyDataMapper(new DefaultCompiler(), new MarkingHtmlPurifier())
             ->map($this->unlocalized, $this->localized, ['bodySource' => $source]);
         self::assertStringContainsString('&lt;div&gt;&lt;p&gt;Hi&lt;/p&gt;', (string) $this->localized->getBody()?->html);
+    }
+
+    /**
+     * The body records whether its author holds the permission: the editor who writes a new source or a new format.
+     */
+    public function testTheBodyRecordsWhetherItsAuthorHoldsThePermission(): void
+    {
+        $source = "<div><p>Hi</p></div>\n";
+
+        new BodyDataMapper(new DefaultCompiler(), new MarkingHtmlPurifier(), $this->rawHtml(true))
+            ->map($this->unlocalized, $this->localized, ['bodySource' => $source]);
+        self::assertTrue($this->localized->getBody()?->rawHtml);
+
+        new BodyDataMapper(new DefaultCompiler(), new MarkingHtmlPurifier(), $this->rawHtml(false))
+            ->map($this->unlocalized, $this->localized, ['bodySource' => $source.'<p>More</p>']);
+        self::assertFalse($this->localized->getBody()?->rawHtml, 'a new source has a new author');
+        self::assertStringContainsString('&lt;div&gt;', $this->localized->getBody()->html);
+
+        new BodyDataMapper(new DefaultCompiler(), new MarkingHtmlPurifier(), $this->rawHtml(true))
+            ->map($this->unlocalized, $this->localized, ['bodySource' => $source]);
+        new BodyDataMapper(new DefaultCompiler(), new MarkingHtmlPurifier(), $this->rawHtml(false))
+            ->map($this->unlocalized, $this->localized, ['bodySource' => $source, 'bodyFormat' => 'html']);
+        self::assertFalse($this->localized->getBody()?->rawHtml, 'a new format has a new author');
+    }
+
+    /**
+     * A save that leaves the source and the format as they were keeps their author: an editor without the permission
+     * does not take it from the text of an author who holds it, and one who holds it does not lend it.
+     */
+    public function testAnUnchangedBodyKeepsTheAuthorItHad(): void
+    {
+        $source = "<div><p>Hi</p></div>\n";
+
+        new BodyDataMapper(new DefaultCompiler(), new MarkingHtmlPurifier(), $this->rawHtml(true))
+            ->map($this->unlocalized, $this->localized, ['bodySource' => $source]);
+        new BodyDataMapper(new DefaultCompiler(), new MarkingHtmlPurifier(), $this->rawHtml(false))
+            ->map($this->unlocalized, $this->localized, ['bodySource' => $source, 'bodyFormat' => MarkupFormat::Markdown->value]);
+        self::assertTrue($this->localized->getBody()?->rawHtml);
+        self::assertSame('<purified><div class="ujo-raw"><div><p>Hi</p></div></div></purified>', $this->localized->getBody()->html);
+
+        $this->localized->setBody(null);
+        new BodyDataMapper(new DefaultCompiler(), new MarkingHtmlPurifier(), $this->rawHtml(false))
+            ->map($this->unlocalized, $this->localized, ['bodySource' => $source]);
+        new BodyDataMapper(new DefaultCompiler(), new MarkingHtmlPurifier(), $this->rawHtml(true))
+            ->map($this->unlocalized, $this->localized, ['bodySource' => $source]);
+        self::assertFalse($this->localized->getBody()?->rawHtml);
+        self::assertStringContainsString('&lt;div&gt;', $this->localized->getBody()->html);
+    }
+
+    /**
+     * Without a `RawHtmlPermission` — raw HTML no longer configured —, even the unchanged text of an author who held it
+     * is shown as text.
+     */
+    public function testWithoutAPermissionNoAuthorHoldsIt(): void
+    {
+        $this->localized->setBody(Body::of('<div>Hi</div>', MarkupFormat::Markdown, '', true));
+
+        new BodyDataMapper(new DefaultCompiler(), new MarkingHtmlPurifier())
+            ->map($this->unlocalized, $this->localized, ['bodySource' => '<div>Hi</div>']);
+
+        self::assertFalse($this->localized->getBody()?->rawHtml);
+        self::assertStringContainsString('&lt;div&gt;', $this->localized->getBody()->html);
     }
 
     /**

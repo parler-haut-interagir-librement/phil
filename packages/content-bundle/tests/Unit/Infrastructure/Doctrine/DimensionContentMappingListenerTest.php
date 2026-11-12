@@ -134,6 +134,7 @@ final class DimensionContentMappingListenerTest extends TestCase
         yield 'body source' => ['bodySource', ['body_source', 'text', true, null]];
         yield 'body format' => ['bodyFormat', ['body_format', 'string', true, 16]];
         yield 'body HTML' => ['bodyHtml', ['body_html', 'text', true, null]];
+        yield 'body by a raw HTML author' => ['bodyRawHtml', ['body_raw_html', 'boolean', false, null]];
     }
 
     /**

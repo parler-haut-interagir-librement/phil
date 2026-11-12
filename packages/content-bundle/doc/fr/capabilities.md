@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ebcbdb6a77a12915a8f8fb01d035d79af3022cafde544588ff7c249578ed2073 -->
+<!-- phil-dev source-sha256=119c5fdcf811d6042b441a1e1bcb2ed567cdb5e061a1aa52dfe55ca14f14fc35 -->
 # Capacités
 
 Ce qu'une ligne contient au-delà de sa dimension est déclaré par les **capacités** qu'elle implémente. Chaque capacité
@@ -30,7 +30,7 @@ class PageDimension extends AbstractDimensionContent implements TemplateCapable,
 | `ExcerptCapable` | titre, description, référence d'image | titre et description localisés, image partagée | `excerpt_title` `VARCHAR(255)`, `excerpt_description` text, `excerpt_image` `VARCHAR(2048)` |
 | `LinkCapable` | un `Link` : une autre racine de contenu, ou une `Url` | ligne localisée | `link_resource_key` `VARCHAR(64)`, `link_resource_id` `VARCHAR(64)`, `link_locale` (`phil_content_locale`, 12), `link_url` `VARCHAR(2048)` |
 | `RoutableCapable` | un `Slug` | ligne localisée | `slug` `VARCHAR(255)` |
-| `BodyCapable` | un `Body` : source, `MarkupFormat`, HTML | ligne localisée | `body_source` text, `body_format` `VARCHAR(16)`, `body_html` text |
+| `BodyCapable` | un `Body` : source, `MarkupFormat`, HTML, et si son auteur avait la permission d'écrire du HTML brut | ligne localisée | `body_source` text, `body_format` `VARCHAR(16)`, `body_html` text, `body_raw_html` booléen |
 
 Chaque colonne peut être nulle, sauf `template_data` et `seo_keywords`, qui contiennent un tableau JSON vide quand rien
 n'est défini. « Écrites sur » indique où le mappeur de données du bundle écrit la valeur ; le fusionneur lit les deux
@@ -178,9 +178,9 @@ seul chemin vers l'écran :
    format d'un module complémentaire en passant par un document UJO, HTML tel qu'il est écrit, ou texte brut — par le
    port `MarkupCompiler`, purifie le résultat par le port `HtmlPurifier`, et enregistre la source, son format et le
    HTML purifié. **Un brouillon garde le format dans lequel son auteur écrit.** Une source UJO qui n'est pas un
-   document valide est refusée par `InvalidContent`. Le HTML brut d'un rédacteur qui a le rôle
-   [`raw_html_role`](configuration.md#raw_html_role) est rendu, comme il sera publié ; celui de tout autre rédacteur
-   s'affiche comme du texte. La page n'est pas recompilée à chaque lecture.
+   document valide est refusée par `InvalidContent`. Le corps retient si son auteur — le rédacteur qui écrit une
+   nouvelle source ou un nouveau format — a le rôle [`raw_html_role`](configuration.md#raw_html_role) ; le HTML brut
+   d'un tel auteur est rendu, comme il sera publié, celui de tout autre auteur s'affiche comme du texte. La page n'est pas recompilée à chaque lecture.
 2. **À la publication**, `ContentPublisher` enregistre sur la ligne en ligne le corps que le port `BodyConverter` tire
    de celui du brouillon : **la source convertie en UJO** — UJO (Universal JSON Output), le format de document par
    blocs de `phil/ujo` —, le format `ujo`, et le HTML compilé à partir de cet UJO, purifié au niveau `Level::All` ; le
@@ -198,7 +198,7 @@ seul chemin vers l'écran :
    met sa propre réponse en cache. Un cache indexé sur la version de la ligne ne serait pas sûr, puisqu'une ligne
    écrite en contournant le mappeur de données garde sa version.
 
-`Body::of(string $source, MarkupFormat|string $format, string $html)` garde la source telle qu'elle est écrite,
+`Body::of(string $source, MarkupFormat|string $format, string $html, bool $rawHtml = false)` garde la source telle qu'elle est écrite,
 espaces de tête comprises (elles ont un sens en Markdown), et le format par son nom ; il refuse une source faite
 seulement de blancs et une source ou un HTML qui n'est pas de l'UTF-8 valide. `MarkupFormat` est celui de
 `phil/markup` : `Markdown` (`markdown`), `Html` (`html`), `BBCode` (`bbcode`), `MediaWiki` (`mediawiki`), `DokuWiki`
@@ -225,16 +225,23 @@ Les adaptateurs par défaut sont ceux de `phil/markup`, qui les décrit :
   moment de la publication, en millisecondes depuis l'époque Unix ; l'encodeur de `phil/ujo` l'écrit en JSON, et ce
   JSON est compilé et purifié. HTML et texte brut, que le brouillon compile tels qu'ils sont écrits, sont convertis en
   blocs par leurs lecteurs ; ce pour quoi UJO n'a pas de bloc est écarté.
-- **Le HTML brut, pour un rôle de confiance seulement.** Avec [`raw_html_role`](configuration.md#raw_html_role)
-  défini, un publieur à qui le vérificateur d'autorisation de Symfony accorde ce rôle voit sa source lue au niveau
-  `Level::All` : le HTML brut des formats écrits et les blocs `raw` d'UJO sont publiés comme blocs `raw`, leur HTML
-  gardé comme le permet le profil `raw` de `phil/ujo` — les éléments de la structure d'une page, aucun script, style,
-  classe ou événement — et purifié de nouveau au niveau `Level::All`. **Le brouillon d'un rédacteur qui a ce rôle le
-  montre de la même façon** : `BodyDataMapper` compile sa source pour `Level::All`, par le `compileFor()` d'un
-  `LevelAwareCompiler`, pour que l'aperçu de son brouillon produise le rendu du HTML brut comme le fera sa
-  publication ; le brouillon de tout autre rédacteur le montre comme du texte. Sans la clé, la valeur par défaut,
-  personne n'écrit de HTML brut ; un enregistrement ou une publication depuis la console, qui n'a aucun utilisateur
-  connecté, n'en écrit jamais.
+- **Le HTML brut, pour les auteurs d'un rôle de confiance seulement.** Avec
+  [`raw_html_role`](configuration.md#raw_html_role) défini, **le rôle est vérifié sur l'auteur de chaque révision,
+  jamais sur le publieur** : `BodyDataMapper` retient sur le corps (`Body::$rawHtml`, la colonne `body_raw_html`) si le
+  rédacteur qui écrit une nouvelle source ou un nouveau format a ce rôle, par le vérificateur d'autorisation de
+  Symfony ; un enregistrement qui laisse la source et le format tels qu'ils étaient garde l'auteur qu'ils avaient, de
+  sorte qu'un rédacteur sans le rôle ne l'enlève pas au texte d'un auteur de confiance en changeant un autre champ, et
+  qu'un rédacteur qui l'a ne le prête pas à un texte qu'il n'a pas changé. Le corps d'un auteur qui avait le rôle est
+  lu au niveau `Level::All` quand il est publié, par n'importe qui : le HTML brut des formats écrits et les blocs `raw`
+  d'UJO deviennent des blocs `raw`, leur HTML gardé comme le permet le profil `raw` de `phil/ujo` — les éléments de la
+  structure d'une page, aucun script, style, classe ou événement — et purifié de nouveau au niveau `Level::All`. Le
+  HTML brut de tout autre auteur est publié comme du texte, même par un publieur qui a le rôle. **Le brouillon le
+  montre de la même façon** : `BodyDataMapper` compile la source d'un auteur qui avait le rôle pour `Level::All`, par
+  le `compileFor()` d'un `LevelAwareCompiler`, pour que l'aperçu produise le rendu du HTML brut comme le fera sa
+  publication. Une copie de travail retient le rôle du rédacteur qui l'a enregistrée en dernier, et l'appliquer écrit
+  son corps avec ce rôle (`AuthorRawHtml`), qui que ce soit qui l'applique. Sans la clé, la valeur par défaut,
+  personne n'écrit de HTML brut, et un corps retenu sous le rôle est publié comme du texte une fois la clé retirée ; un
+  enregistrement depuis la console, qui n'a aucun utilisateur connecté, n'a jamais le rôle.
 
 L'application remplace n'importe lequel d'entre eux en faisant de `MarkupCompiler`, `HtmlPurifier` ou `BodyConverter`
 un alias vers son propre service ([extension-points.md](extension-points.md#les-ports-de-balisage)). Le convertisseur

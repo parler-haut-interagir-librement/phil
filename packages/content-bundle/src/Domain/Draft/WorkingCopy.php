@@ -43,6 +43,9 @@ final class WorkingCopy
     #[ORM\Column(name: 'resource_id', length: 64)]
     private string $resourceId;
 
+    #[ORM\Column(name: 'raw_html', options: ['default' => false])]
+    private bool $rawHtml = false;
+
     /**
      * @param array<string, mixed> $data
      */
@@ -96,6 +99,24 @@ final class WorkingCopy
         $this->data = self::checkedData($data);
         $this->author = self::checkedAuthor($author);
         $this->savedAt = $savedAt;
+        $this->rawHtml = false;
+    }
+
+    /**
+     * Records that its author holds the raw HTML permission: applying it writes its body as theirs. Saving it again
+     * forgets it, until the new author is known to hold it too.
+     */
+    public function grantRawHtml(): void
+    {
+        $this->rawHtml = true;
+    }
+
+    /**
+     * Whether the author who saved it last held the raw HTML permission.
+     */
+    public function rawHtml(): bool
+    {
+        return $this->rawHtml;
     }
 
     public function id(): WorkingCopyId

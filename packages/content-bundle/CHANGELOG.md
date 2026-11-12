@@ -38,10 +38,16 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   its question in a terminal, the context `accept_losses` of the `phil_content_publication` workflow, or the box of the
   administration. The UJO's `time` is the moment of the
   publication, in milliseconds, from the clock. Raw HTML is published as text, a `raw` block of UJO included, unless
-  `raw_html_role` names a trusted role (off by default): a publisher granted it by Symfony's authorization checker
-  (`RawHtmlRole`, with the optional `symfony/security-core`, behind the port `Application\Contract\RawHtmlPermission`)
-  publishes `raw` blocks, kept as `phil/ujo`'s `raw` profile allows, and the draft they save, which its preview shows,
-  renders that raw HTML the same way (`BodyDataMapper` compiles it for `Level::All`). The conversion runs before the
+  `raw_html_role` names a trusted role (off by default), checked by Symfony's authorization checker (`RawHtmlRole`,
+  with the optional `symfony/security-core`, behind the port `Application\Contract\RawHtmlPermission`) **on the
+  author of each revision, never on the publisher**: the body records whether the editor who wrote its source held
+  the role (`Body::$rawHtml`, the column `body_raw_html`, `bodyRawHtml` in the normalized form), a save that leaves the
+  source and the format unchanged keeps that author, and a working copy keeps the role of the editor who saved it,
+  whoever applies it (`Editing\AuthorRawHtml`, wired by `Infrastructure\Markup\RawHtmlAuthorPass`, the column
+  `raw_html` of `phil_content_working_copy`). The raw HTML of an author who held the role is published as `raw`
+  blocks, kept as `phil/ujo`'s `raw` profile allows, by any editor, and the draft, which its preview shows, renders it
+  the same way (`BodyDataMapper` compiles it for `Level::All`); the raw HTML of any other author is published as text,
+  even by a publisher who holds the role. The conversion runs before the
   publication changes anything; the columns are unchanged. Removing a draft puts back the frozen draft rows of the
   published version, localized and shared, so the author's text returns in its own format; a frozen row that no longer
   exists is replaced by its live twin.
