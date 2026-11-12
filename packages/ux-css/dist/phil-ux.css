@@ -2391,6 +2391,15 @@
         border-radius: var(--phil-radius-full);
     }
 
+    /* A badge of a colour of its own: the colour of its data-color, read by a typed attr() where the browser reads one,
+       Chromium 133 and later, the colour of its variant elsewhere; --phil-badge-color, set by a class of the site, works
+       everywhere. Never an inline style, so that it holds under a strict Content Security Policy. */
+    @supports (color: attr(data-color type(<color>), red)) {
+        .isBadge[data-color] {
+            --phil-badge-color: attr(data-color type(<color>));
+        }
+    }
+
     .isBadge.isLoud {
         color: var(--phil-tone-on-loud);
         background-color: var(--phil-tone-fill-loud);
@@ -4717,11 +4726,52 @@
         position: relative;
     }
 
-    /* A box kept to a ratio, its picture or video covering it. */
+    /* A box kept to a ratio, its picture or video covering it: a common ratio by its class, hasRatio16x9 and the others of
+       an image; any other by the typed attr() of its data-ratio-width and data-ratio-height where the browser reads one,
+       Chromium 133 and later, else --phil-aspect-ratio, which a class of the site sets, else a square. Never an inline
+       style, so that it holds under a strict Content Security Policy. */
     .isAspectRatio {
         position: relative;
         overflow: hidden;
         aspect-ratio: var(--phil-aspect-ratio, 1);
+    }
+
+    @supports (aspect-ratio: attr(data-ratio-width type(<number>), 1) / 1) {
+        .isAspectRatio[data-ratio-width] {
+            aspect-ratio: attr(data-ratio-width type(<number>), 1) / attr(data-ratio-height type(<number>), 1);
+        }
+    }
+
+    .isAspectRatio.hasRatio16x9 {
+        aspect-ratio: 16 / 9;
+    }
+
+    .isAspectRatio.hasRatio4x3 {
+        aspect-ratio: 4 / 3;
+    }
+
+    .isAspectRatio.hasRatio3x2 {
+        aspect-ratio: 3 / 2;
+    }
+
+    .isAspectRatio.hasRatio1x1 {
+        aspect-ratio: 1;
+    }
+
+    .isAspectRatio.hasRatio21x9 {
+        aspect-ratio: 21 / 9;
+    }
+
+    .isAspectRatio.hasRatio3x4 {
+        aspect-ratio: 3 / 4;
+    }
+
+    .isAspectRatio.hasRatio2x3 {
+        aspect-ratio: 2 / 3;
+    }
+
+    .isAspectRatio.hasRatio9x16 {
+        aspect-ratio: 9 / 16;
     }
 
     .isAspectRatio > :is(img, video, iframe, picture, svg) {

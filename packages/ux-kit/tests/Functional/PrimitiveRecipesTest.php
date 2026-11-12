@@ -84,8 +84,16 @@ final class PrimitiveRecipesTest extends KitTestCase
 
     public function testTheColourOfABadgeIsWrittenOnlyWhenItIsOne(): void
     {
-        self::assertStringContainsString('style="--phil-badge-color: #7c3aed"', $this->render('<twig:Badge color="#7c3aed">W</twig:Badge>'));
-        self::assertStringNotContainsString('style=', $this->render('<twig:Badge color="red; background: url(x)">W</twig:Badge>'));
+        self::assertSame(
+            '<span data-slot="badge" data-variant="default" data-color="#7c3aed" class="isBadge">W</span>',
+            $this->render('<twig:Badge color="#7c3aed">W</twig:Badge>'),
+        );
+        self::assertStringContainsString('data-color="oklch(0.5 0.2 300)"', $this->render('<twig:Badge color="oklch(0.5 0.2 300)">W</twig:Badge>'));
+        self::assertSame(
+            '<span data-slot="badge" data-variant="default" class="isBadge">W</span>',
+            $this->render('<twig:Badge color="red; background: url(x)">W</twig:Badge>'),
+        );
+        self::assertStringNotContainsString('style=', $this->render('<twig:Badge color="#7c3aed">W</twig:Badge>'));
     }
 
     public function testAButtonGroupAndItsParts(): void

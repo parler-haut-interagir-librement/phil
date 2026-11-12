@@ -150,7 +150,7 @@ final class KitTest extends TestCase
         self::assertStringNotContainsString('/src export-ignore', $attributes);
         $tests = glob(self::KIT.'/src/Test/*');
         self::assertIsArray($tests);
-        self::assertSame(['BrowserTestCase.php', 'RecipesPage.php'], array_map(basename(...), $tests));
+        self::assertSame(['BrowserTestCase.php', 'RecipesPage.php', 'Screenshots.php'], array_map(basename(...), $tests));
     }
 
     public function testEachRecipeManifestCopiesFilesThatExistIntoTheToolkitDirectories(): void

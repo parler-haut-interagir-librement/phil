@@ -29,14 +29,31 @@ final class NativeRecipesTest extends KitTestCase
     public function testAnAspectRatioKeepsANumberOrAQuotientAndNothingElse(): void
     {
         self::assertSame(
-            '<div data-slot="aspect-ratio" class="isAspectRatio" style="--phil-aspect-ratio: 16 / 9"><img src="a" alt=""></div>',
+            '<div data-slot="aspect-ratio" data-ratio-width="16" data-ratio-height="9" class="isAspectRatio hasRatio16x9"><img src="a" alt=""></div>',
             $this->render('<twig:AspectRatio ratio="16 / 9"><img src="a" alt=""></twig:AspectRatio>'),
         );
-        self::assertStringContainsString('style="--phil-aspect-ratio: 1.5"', $this->render('<twig:AspectRatio :ratio="1.5" />'));
-        self::assertStringContainsString('style="--phil-aspect-ratio: 1"', $this->render('<twig:AspectRatio ratio="1;color:red" />'));
-        self::assertStringContainsString('style="--phil-aspect-ratio: 1"', $this->render('<twig:AspectRatio ratio="4/3 " />'));
-        self::assertStringContainsString('style="--phil-aspect-ratio: 1"', $this->render('<twig:AspectRatio :ratio="[4, 3]" />'));
-        self::assertStringContainsString('style="--phil-aspect-ratio: 1"', $this->render('<twig:AspectRatio />'));
+        self::assertSame(
+            '<div data-slot="aspect-ratio" data-ratio-width="1.5" data-ratio-height="1" class="isAspectRatio"></div>',
+            $this->render('<twig:AspectRatio :ratio="1.5" />'),
+        );
+        self::assertSame(
+            '<div data-slot="aspect-ratio" data-ratio-width="2.39" data-ratio-height="1" class="isAspectRatio x"></div>',
+            $this->render('<twig:AspectRatio ratio="2.39/1" class="x" />'),
+        );
+        self::assertStringContainsString('class="isAspectRatio hasRatio4x3"', $this->render('<twig:AspectRatio ratio="4/3" />'));
+        self::assertStringContainsString('class="isAspectRatio hasRatio9x16"', $this->render('<twig:AspectRatio ratio="9 / 16" />'));
+
+        foreach (['1;color:red', '4/3 ', '[4, 3]', null] as $ratio) {
+            $html = $this->render(match ($ratio) {
+                null => '<twig:AspectRatio />',
+                '[4, 3]' => '<twig:AspectRatio :ratio="[4, 3]" />',
+                default => '<twig:AspectRatio ratio="'.$ratio.'" />',
+            });
+
+            self::assertSame('<div data-slot="aspect-ratio" data-ratio-width="1" data-ratio-height="1" class="isAspectRatio hasRatio1x1"></div>', $html, (string) $ratio);
+        }
+
+        self::assertStringNotContainsString('style=', $this->render('<twig:AspectRatio ratio="21/9" />'));
     }
 
     public function testACollapsible(): void

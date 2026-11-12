@@ -4,6 +4,28 @@ All notable changes to `phil/ux-css` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.8.0-alpha - 2026-11-19
+
+### Added
+
+- `isAspectRatio` reads the ratio of its class, `hasRatio16x9`, `hasRatio4x3`, `hasRatio3x2`, `hasRatio1x1`,
+  `hasRatio21x9`, `hasRatio3x4`, `hasRatio2x3` and `hasRatio9x16`, as an image does, or of its `data-ratio-width` and
+  `data-ratio-height` through a typed `attr()` where the browser reads one, Chromium 133 and later; else
+  `--phil-aspect-ratio`, else a square.
+- `isBadge` reads the colour of its `data-color` through a typed `attr()` where the browser reads one, into
+  `--phil-badge-color`.
+
+### Changed
+
+- An aspect ratio and the colour of a badge no longer need a `style` attribute, and hold under a strict Content
+  Security Policy. `--phil-aspect-ratio` and `--phil-badge-color`, set by a class, still work everywhere; a ratio or a
+  colour given only in a data attribute applies where the browser types `attr()`.
+- The branch alias of `dev-main` is `0.8.x-dev`; `package.json` is at `0.8.0`.
+
+### Fixed
+
+- The dates of 0.3.0-alpha and 0.4.0-alpha, both released on 2026-11-11.
+
 ## 0.7.0-alpha - 2026-11-17
 
 ### Added
@@ -60,7 +82,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 - The branch alias of `dev-main` is `0.5.x-dev`; `package.json` is at `0.5.0`.
 
-## 0.4.0-alpha - 2026-11-13
+## 0.4.0-alpha - 2026-11-11
 
 ### Added
 
@@ -80,7 +102,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 - The branch alias of `dev-main` is `0.4.x-dev`; `package.json` is at `0.4.0`.
 
-## 0.3.0-alpha - 2026-11-13
+## 0.3.0-alpha - 2026-11-11
 
 ### Added
 

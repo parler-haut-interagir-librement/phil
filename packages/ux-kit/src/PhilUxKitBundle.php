@@ -9,14 +9,17 @@ use Override;
 use Phil\StructuredData\Contract\NodeCollector;
 use Phil\StructuredData\Type\ImageObject;
 use Phil\UxKit\Application\Contract\PicturePropsProvider;
+use Phil\UxKit\Application\ImageMigration;
 use Phil\UxKit\Application\ImageOrigin;
 use Phil\UxKit\Application\ImageTextCheck;
 use Phil\UxKit\Application\PictureProps;
+use Phil\UxKit\Infrastructure\Console\MigrateImagesCommand;
 use Phil\UxKit\Infrastructure\DependencyInjection\ImageFiltersPass;
 use Phil\UxKit\Infrastructure\LiipImagine\ImageFilters;
 use Phil\UxKit\Infrastructure\StructuredData\ImageJsonLd;
 use Phil\UxKit\Infrastructure\Twig\ImageExtension;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Kernel\AbstractBundle;
@@ -28,7 +31,8 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ReferenceConfigura
  * unless their host is listed, `image_sources()`, which reads the files of an image among the assets, `image_check()`,
  * which warns in development of a text alternative or a size left wrong, and the bridges of the images:
  * `image_filters()` to the filter sets of LiipImagine, `picture_props()` to the services tagged
- * `phil_ux_kit.picture_props`, and `image_json_ld()` to phil/structured-data, each when it is installed.
+ * `phil_ux_kit.picture_props`, and `image_json_ld()` to phil/structured-data, each when it is installed. With the
+ * Console component, `phil:ux-kit:migrate-images` proposes these recipes in place of the images written by hand.
  */
 final class PhilUxKitBundle extends AbstractBundle
 {
@@ -91,6 +95,13 @@ final class PhilUxKitBundle extends AbstractBundle
         $services->set(ImageTextCheck::class);
         $services->set(PictureProps::class)
             ->args([new TaggedIteratorArgument(self::PICTURE_PROPS_TAG)]);
+
+        if (class_exists(Command::class)) {
+            $services->set(ImageMigration::class);
+            $services->set(MigrateImagesCommand::class)
+                ->args([new ReferenceConfigurator(ImageMigration::class), '%kernel.project_dir%'])
+                ->tag('console.command');
+        }
 
         if (class_exists(CacheManager::class)) {
             $services->set(ImageFilters::class)

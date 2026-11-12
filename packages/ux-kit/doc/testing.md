@@ -26,6 +26,7 @@
 | The charts | `Chart`: the scale in plain steps from the smallest values to the largest, its decimals, a flat chart, bars sharing their band, a line broken at a missing value, a dot alone, the legend, the table shown or read by screen readers alone, the labels and series bounded; `ChartJs`: its figure and its table read from the chart's data, `render_chart` given by a stub |
 | The blocks `LoginForm` and `SignupForm` | Rendered whole, alone and after a refused submission: the field names, the autocompletion, the error tied to the fields, the CSRF field, the links written only with their address and text, a password never written back |
 | The controller `image-preview` | A tiny raster image inline alone kept, its blur drawn in an inline SVG at the ratio of the image, painted through the CSSOM and taken away at the load, the error or the disconnection, an image already loaded or failed left alone; under Node's test runner |
+| The images in 0.8 | `AspectRatio` and a coloured `Badge` without a `style` attribute: a common ratio as a class, any other in `data-ratio-width` and `data-ratio-height`, the colour in `data-color`; `Screenshots`, the shrinking to a scale of the CSS width, the threshold on each channel, a size off by more than a pixel, a row or a column off, the tolerance; `ImageMigration`, real templates made neutral, an image proposed or left with what stands in its way, a picture and its sources as Twig expressions, comments skipped, the proposals rendered by the recipes; `phil:ux-kit:migrate-images`, its report and `--write` |
 | `ImageTextCheck` | The name of the file in all its forms, through `phil/url`, the generic words and the redundant starts in English and in French, a width or a height missing or of the wrong shape, each message |
 | The controller `lightbox` | Left to the browser where it runs the invokers and `closedby`, opening and closing the dialog once where it does not, a click on the backdrop closing it and one on the image not; under Node's test runner |
 | `Celebration` | Rendered whole: its values, its live region empty until it plays or holding the message from the start with `autoplay`, the canvas in a `template`, an unknown effect drawn as confetti, what plays it before the message, its attributes kept, no style written |
@@ -73,8 +74,8 @@ of the head, in a `meta` element, since the page is served as static files; a wa
 browser refuses. Every test of the images and of the celebration runs under it too, and fails at the first refusal: the
 previews painted through the CSSOM, the lightboxes, the carousel, the points, the hero, the video and its captions, the
 canvas of the celebration. A test opens each strict page, finds nothing refused while every recipe renders, then writes
-a `style` attribute and sees it refused. A badge of a colour of its own and an aspect ratio, which write a custom
-property in a `style` attribute, are left out of the strict pages. The suite also checks that the frames, the token, the
+a `style` attribute and sees it refused. A badge of a colour of its own and an aspect ratio of any ratio hold there
+too, without a `style` attribute: the suite measures the box and reads the colour. The suite also checks that the frames, the token, the
 pixel art and the name of a view transition come from the sheet, a view transition moving the image under its name; that
 the images print legibly, the medium emulated through the DevTools protocol: the carousel a grid printed whole, a figure
 never cut and its caption kept with its veil, an image within the page, a deferred gallery rendered, the close button of
@@ -96,6 +97,36 @@ under the temporary directory by `RecipesPage`, with the media files of `tests/B
 WebM clip and its WebVTT captions, the real `@hotwired/stimulus`, pinned with `axe-core` in
 `tests/Browser/package.json` and its lock file and installed by the script: development dependencies of these tests,
 which the kit does not publish.
+
+## Visual tests
+
+Each layout of the images is compared with a reference screenshot, kept in `tests/Browser/screenshots/`: an image
+`fixed`, `constrained`, `full-width` and cropped to a ratio, a gallery in a grid, a figure of three columns, in flat
+colours without text, in a box of a set width. `assertLooksLike()` takes the screenshot of the element, shrinks it to
+half its width in CSS pixels, whatever the density of the screen, and counts the pixels whose red, green or blue moved
+by more than 48: the test fails above 2 % of them, or when the size changed by more than a pixel. The references are a
+few hundred bytes each. The comparison is `Screenshots`, in `src/Test/`, on GD: no other tool.
+
+A missing reference is written from the run and the test marked incomplete, so that it is seen; after a deliberate
+change of layout, write them again and review the images in the diff:
+
+```sh
+PHIL_UX_UPDATE_SCREENSHOTS=1 composer test:browser
+```
+
+On a mismatch, the screenshot seen is written under the temporary directory, in `phil-ux-screenshots/`, beside the
+message. The references are taken on the Chrome of the suite; another engine, or Chrome on another system, may smooth
+edges differently, which the tolerance absorbs, but not a change of fonts: the layouts compared hold no text.
+
+## Benchmark
+
+`tests/Benchmark/GalleryBench.php` measures, with PHPBench, the rendering through TwigComponent of a gallery of 100
+images, each with a `srcset` of three widths: in a grid, each opening a lightbox, deferred, and with the AVIF and WebP
+sources of `Picture`. The template is compiled before the measures.
+
+```sh
+composer bench -- packages/ux-kit/tests/Benchmark
+```
 
 ## For another kit
 
@@ -127,7 +158,8 @@ The suite pins its own `@hotwired/stimulus` and requires, for development, what 
 test then opens one of `modes()`, or of `strictModes()`, the same pages under the strict policy, where `open()` and the
 end of the test fail on anything the browser refused, and drives the page with `open()`, `focus()`, `press()`, `click()`,
 `clickBeside()`, a real click on the backdrop beside an element, `read()`, `perform()`, `waitUntil()` and
-`waitForFocus()`.
+`waitForFocus()`. A suite that returns the directory of its references from `screenshots()` compares parts of its page
+with `assertLooksLike()`; it then requires `ext-gd` for development.
 
 ## Without a browser
 

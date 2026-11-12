@@ -32,6 +32,7 @@
         "twig/twig": "^3.21"
     },
     "require-dev": {
+        "ext-gd": "*",
         "liip/imagine-bundle": "^2.18",
         "phil/qr-code-bundle": "^0.1@dev",
         "phil/structured-data": "^0.1@dev",
@@ -41,21 +42,25 @@
         "psr/link": "^2.0",
         "symfony/asset": "^8.2",
         "symfony/asset-mapper": "^8.2",
+        "symfony/console": "^8.2",
         "symfony/framework-bundle": "^8.2",
         "symfony/panther": "^2.4",
         "symfony/routing": "^8.2",
         "symfony/twig-bundle": "^8.2",
         "symfony/ux-twig-component": "^3.7",
         "symfony/web-link": "^8.2",
+        "symfony/yaml": "^8.2",
         "twig/extra-bundle": "^3.24",
         "twig/html-extra": "^3.24"
     },
     "suggest": {
+        "ext-gd": "To compare the screenshots of the browser test case of src/Test/ with their references",
         "liip/imagine-bundle": "For image_filters(), the props of a picture from the filter sets of LiipImagine",
         "phil/structured-data": "For image_json_ld(), the ImageObject of an image in JSON-LD, which the structured prop of the image recipes writes",
         "php-webdriver/webdriver": "To extend the browser test case of src/Test/",
         "phpunit/phpunit": "To extend the browser test case of src/Test/",
         "symfony/asset-mapper": "For image_sources(), the props of a picture from the files of an image among the assets",
+        "symfony/console": "For phil:ux-kit:migrate-images, which proposes the image recipes in place of the img and picture elements of templates",
         "symfony/panther": "To extend the browser test case of src/Test/",
         "symfony/web-link": "For the preload of the main image of a page, which the image recipe requires"
     },
@@ -73,7 +78,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.7.x-dev"
+            "dev-main": "0.8.x-dev"
         }
     }
 }

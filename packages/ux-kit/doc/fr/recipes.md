@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e8c0c958828f70f5a53cf5816d9938a8299ddefcdeb70999f53ba703103f3222 -->
+<!-- phil-dev source-sha256=224da7163b827de675e32cfc4f42a505c018b95a1721a660f7aa74e150fb958c -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -448,7 +448,11 @@ Un court libellé : une étiquette, un état, un compte.
 |---|---|---|
 | `variant` | `'default'` | La variante de style visuel. |
 | `as` | `'span'` | La balise HTML à produire ; employez `a` quand la pastille mène ailleurs. |
-| `color` | `null` | Une couleur CSS qui remplace la couleur de la variante ; tout ce qui n'est pas une couleur est laissé de côté. |
+| `color` | `null` | Une couleur CSS qui remplace la couleur de la variante, dans un attribut de données que la feuille de style lit là où le navigateur type attr() ; tout ce qui n'est pas une couleur est laissé de côté. |
+
+Aucun attribut `style` : la couleur est écrite dans `data-color`, que phil-ux lit par un `attr()` typé là où le
+navigateur en lit un, Chromium 133 et suivants ; ailleurs, la pastille garde la couleur de sa variante, et une classe du
+site qui pose `--phil-badge-color` fonctionne partout. Une politique de sécurité du contenu stricte la garde.
 
 ## Button
 
@@ -1116,6 +1120,12 @@ Une boîte tenue à un rapport, son image ou sa vidéo la couvrant.
 | Prop | Par défaut | |
 |---|---|---|
 | `ratio` | `1` | Le rapport de la largeur à la hauteur, un nombre ou un quotient comme `"16 / 9"` ; tout le reste donne un carré |
+
+Aucun attribut `style` : un rapport courant, `16 / 9`, `4 / 3`, `3 / 2`, `1`, `21 / 9`, `3 / 4`, `2 / 3` ou `9 / 16`,
+est une classe, `hasRatio16x9` et les autres, que tout navigateur lit ; tout autre est écrit dans `data-ratio-width` et
+`data-ratio-height`, que phil-ux lit par un `attr()` typé là où le navigateur en lit un, Chromium 133 et suivants, et
+ailleurs `--phil-aspect-ratio`, posé par une classe du site, ou un carré. Une politique de sécurité du contenu stricte
+le garde.
 
 ## Collapsible
 

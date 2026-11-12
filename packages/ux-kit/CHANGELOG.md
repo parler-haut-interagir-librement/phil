@@ -4,6 +4,41 @@ All notable changes to `phil/ux-kit` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.8.0-alpha - 2026-11-19
+
+### Added
+
+- Visual tests: each layout of the images, an image `fixed`, `constrained`, `full-width` and cropped to a ratio, a
+  gallery in a grid and a figure of three columns, compared in the browser suite with a reference screenshot kept in
+  `tests/Browser/screenshots/`, a few hundred bytes each. `Phil\UxKit\Test\Screenshots` compares, on GD, a screenshot
+  shrunk to a scale of its CSS width with its reference, pixel by pixel within a threshold, the share of changed pixels
+  within a tolerance; `BrowserTestCase::assertLooksLike()` and `screenshots()`, the directory of a suite's references, a
+  missing one written and the test marked incomplete, all of them written again with `PHIL_UX_UPDATE_SCREENSHOTS=1`.
+- `doc/images.md`: choosing `layout` and `sizes`, case by case, and the checklist of the largest contentful paint; in
+  French in `doc/fr/images.md`.
+- `phil:ux-kit:migrate-images`, with the Console component: the `Image` and `Picture` recipes proposed in place of the
+  `img` and `picture` elements of the Twig templates of a project, or what stands in the way of each; `--write`
+  rewrites the proposals only. `Phil\UxKit\Application\ImageMigration` and `ImageMigrationFinding`.
+- `tests/Benchmark/GalleryBench.php`: the rendering of a gallery of 100 images with PHPBench, in a grid, with lightboxes,
+  deferred and with the sources of `Picture`.
+- `ext-gd`, for the screenshots, and `symfony/console`, for the command, as development requirements, and suggested.
+
+### Changed
+
+- `AspectRatio` writes no `style` attribute: a common ratio is a class, `hasRatio16x9` and the others, any other its
+  width and height in `data-ratio-width` and `data-ratio-height`, which phil-ux reads through a typed `attr()`.
+- `Badge` writes its `color` in `data-color`, never in a `style` attribute.
+- Both hold under a strict Content Security Policy, and are back on the strict pages of the browser suite, which
+  measures the ratio and reads the colour.
+- The image recipe requires `phil/ux-kit:^0.8@dev`; `manifest.json` requires `phil/ux-css:^0.8@dev`; the branch alias of
+  `dev-main` is `0.8.x-dev`.
+
+### Fixed
+
+- `symfony/yaml` is a development requirement: the functional tests of LiipImagine load routes in YAML, and failed when
+  the package was installed on its own.
+- The dates of 0.3.0-alpha and 0.4.0-alpha, both released on 2026-11-11.
+
 ## 0.7.0-alpha - 2026-11-17
 
 ### Added
@@ -119,7 +154,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - The image recipe requires `phil/ux-kit:^0.5@dev`; `manifest.json` requires `phil/ux-css:^0.5@dev`; the branch alias of
   `dev-main` is `0.5.x-dev`.
 
-## 0.4.0-alpha - 2026-11-13
+## 0.4.0-alpha - 2026-11-11
 
 ### Added
 
@@ -161,7 +196,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - `composer.json` requires `psr/log`, for the warnings of `image_check()`; `manifest.json` requires
   `phil/ux-css:^0.4@dev`; the branch alias of `dev-main` is `0.4.x-dev`.
 
-## 0.3.0-alpha - 2026-11-13
+## 0.3.0-alpha - 2026-11-11
 
 ### Added
 

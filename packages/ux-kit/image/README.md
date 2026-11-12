@@ -113,6 +113,9 @@ container and `sizes` is as given.
 />
 ```
 
+Which layout and which `sizes` to choose, case by case, is in [the guide of the images](../doc/images.md), with the
+checklist of the main image of a page.
+
 ### A ratio, a fit and a crop
 
 `aspect` keeps the image's box to a ratio, `16/9`, `4/3`, `3/2`, `1/1`, `21/9`, `3/4`, `2/3` or `9/16`, the picture

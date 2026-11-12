@@ -443,7 +443,11 @@ A short label: a tag, a status, a count.
 |---|---|---|
 | `variant` | `'default'` | The visual style variant. |
 | `as` | `'span'` | The HTML tag to render; use `a` when the badge navigates. |
-| `color` | `null` | A CSS colour replacing the colour of the variant; anything else than a colour is left out. |
+| `color` | `null` | A CSS colour replacing the colour of the variant, in a data attribute the stylesheet reads where the browser types attr(); anything else than a colour is left out. |
+
+No `style` attribute: the colour is written in `data-color`, which phil-ux reads through a typed `attr()` where the
+browser reads one, Chromium 133 and later; elsewhere the badge keeps the colour of its variant, and a class of the site
+setting `--phil-badge-color` works everywhere. A strict Content Security Policy keeps it.
 
 ## Button
 
@@ -1107,6 +1111,11 @@ A box kept to a ratio, its picture or video covering it.
 | Prop | Default | |
 |---|---|---|
 | `ratio` | `1` | The ratio of the width to the height, a number or a quotient such as `"16 / 9"`; anything else is a square |
+
+No `style` attribute: a common ratio, `16 / 9`, `4 / 3`, `3 / 2`, `1`, `21 / 9`, `3 / 4`, `2 / 3` or `9 / 16`, is a class,
+`hasRatio16x9` and the others, which every browser reads; any other is written in `data-ratio-width` and
+`data-ratio-height`, which phil-ux reads through a typed `attr()` where the browser reads one, Chromium 133 and later,
+and elsewhere `--phil-aspect-ratio`, set by a class of the site, or a square. A strict Content Security Policy keeps it.
 
 ## Collapsible
 

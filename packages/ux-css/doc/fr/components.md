@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c0febae9466fe450ddbac1fccb6a3fcf57df2b092bcbfd51d3833498f0d0270b -->
+<!-- phil-dev source-sha256=687ce44145ba6b73007272f57c0e0bf960b95e2fa71c1a65d05e6f1e9e28fbae -->
 # Composants
 
 Ce que la base sans classe ne peut pas deviner, dans la couche `phil.components`, et les utilitaires, en tout dernier.
@@ -55,7 +55,8 @@ au-dessus de ses voisins ; `isVertical` les empile. `isButtonGroupText` est du t
 ## Pastilles et alertes
 
 `isBadge` : un état court, neutre et discret par défaut ; `isLoud` le rend plein et `isOutline` ne garde que sa
-bordure.
+bordure. Sa couleur et celle de sa bordure sont `--phil-badge-color`, posée par une classe, ou la couleur de son
+`data-color`, lue par un `attr()` typé là où le navigateur en lit un, Chromium 133 et suivants : aucun attribut `style`.
 
 `isAlert` : un avis dans la page, discret, avec un filet fort sur son côté de début et des liens dans sa propre couleur.
 Le gabarit lui donne le `role` dont il a besoin, `status` ou `alert`. `isLoud` le rend plein ; `hasIcon` met une icône
@@ -440,7 +441,7 @@ la même façon. Aucune de ces règles ne regarde un attribut de données des re
 | Pagination | `isPaginationList`, `isPaginationItem`, `isPaginationLink`, `isPaginationEllipsis` |
 | Carrousel à boutons | `isCarouselFrame` autour de `isCarouselViewport`, qui défile, `isCarouselTrack` et `isCarouselSlide` ; `isCarouselPrevious`, `isCarouselNext`, `isCarouselToggle` ; `isVertical`, `hasCenteredSlides` ou `hasEndSlides` sur le cadre |
 | Tableau | `isTable`, `isTableCaption` sous lui, `isTableHeader`, `isTableBody`, `isTableFooter`, `isTableRow` éclairée par `aria-selected`, `isTableHead`, `isTableCell` |
-| Rapport d'aspect | `isAspectRatio`, tenu à `--phil-aspect-ratio`, son image ou sa vidéo le couvrant |
+| Rapport d'aspect | `isAspectRatio`, son image ou sa vidéo le couvrant, tenu au rapport de sa classe, `hasRatio16x9`, `hasRatio4x3`, `hasRatio3x2`, `hasRatio1x1`, `hasRatio21x9`, `hasRatio3x4`, `hasRatio2x3`, `hasRatio9x16`, ou de ses `data-ratio-width` et `data-ratio-height` par un `attr()` typé là où le navigateur en lit un, sinon à `--phil-aspect-ratio`, sinon un carré |
 | Repliable | `isCollapsible`, un `details` sans cadre ; `isCollapsibleTrigger`, `isCollapsibleContent` |
 | Touches | `isKbdGroup`, les éléments `kbd` d'un raccourci côte à côte ; chaque touche est habillée par la base sans classe |
 | Champ | `isField`, empilé, ou côte à côte avec `isHorizontal`, ou avec `isResponsive` sur un conteneur de 40rem ou plus ; `isDanger` sur lui colore les bordures de son contrôle ; `isFieldLabel`, `isFieldDescription`, `isFieldError`, `isFieldSet`, `isFieldLegend`, `isFieldGroup`, `isFieldContent`, `isFieldTitle`, `isFieldSeparator` avec une ligne de chaque côté de son texte |

@@ -143,6 +143,23 @@
         <twig:Image id="pixels" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEklEQVR4nGPQqIg6scWGAUIBACREBWVbKYK9AAAAAElFTkSuQmCC" alt="Four pixels" :width="96" :height="96" :pixelated="true" />
         <twig:Image id="poster" :src="square|replace({COLOUR: 'navy'})" alt="The poster" :width="96" :height="96" transition="poster" />
     </section>
+    {#- Each layout of the images, compared with its reference screenshot: flat colours alone, no text, in a box of a set width. -#}
+    <section id="layouts" class="isStack demoLayouts">
+        <twig:Image id="layout-fixed" :src="wide|replace({COLOUR: 'teal'})" alt="A fixed band" :width="120" :height="60" layout="fixed" />
+        <twig:Image id="layout-constrained" :src="wide|replace({COLOUR: 'navy'})" alt="A constrained band" :width="200" :height="100" layout="constrained" />
+        <twig:Image id="layout-full-width" :src="wide|replace({COLOUR: 'olive'})" alt="A band across the box" :width="200" :height="100" layout="full-width" />
+        <twig:Image id="layout-ratio" :src="wide|replace({COLOUR: 'maroon'})" alt="A band cropped to a square" :width="160" :height="80" aspect="1/1" />
+        <twig:Gallery id="layout-grid" label="A grid" :images="[
+            {src: square|replace({COLOUR: 'teal'}), alt: 'A teal square', width: 400, height: 400},
+            {src: square|replace({COLOUR: 'navy'}), alt: 'A navy square', width: 400, height: 400},
+            {src: square|replace({COLOUR: 'olive'}), alt: 'An olive square', width: 400, height: 400},
+        ]" />
+        <twig:Figure id="layout-columns" :columns="3">
+            <twig:Image :src="square|replace({COLOUR: 'maroon'})" alt="A maroon square" :width="400" :height="400" />
+            <twig:Image :src="square|replace({COLOUR: 'purple'})" alt="A purple square" :width="400" :height="400" />
+            <twig:Image :src="square|replace({COLOUR: 'teal'})" alt="Another teal square" :width="400" :height="400" />
+        </twig:Figure>
+    </section>
     <section id="native" class="isStack">
         <twig:AlertDialog id="erase">
             <twig:AlertDialog:Trigger><twig:Button id="open-alert" variant="destructive" {{ ...alert_dialog_trigger_attrs }}>Erase</twig:Button></twig:AlertDialog:Trigger>
@@ -165,8 +182,8 @@
         <twig:Progress :value="40" aria-label="Progress" />
         <twig:RadioGroup id="plan" name="plan" value="free" aria-label="Plan"><twig:RadioGroup:Item value="free" id="plan-free" /><twig:Label for="plan-free">Free</twig:Label><twig:RadioGroup:Item value="pro" id="plan-pro" /><twig:Label for="plan-pro">Pro</twig:Label></twig:RadioGroup>
         <twig:ScrollArea id="scroller" label="Notes" class="demoScroller"><p>One</p><p>Two</p><p>Three</p><p>Four</p></twig:ScrollArea>
-        {#- An aspect ratio writes its ratio in a style attribute, which a strict policy refuses. -#}
-        {%- if not strict %}<twig:AspectRatio ratio="16 / 9" class="demoRatio"><div class="demoTeal"></div></twig:AspectRatio>{% endif %}
+        <twig:AspectRatio id="wide-ratio" ratio="16 / 9" class="demoRatio"><div class="demoTeal"></div></twig:AspectRatio>
+        <twig:AspectRatio id="odd-ratio" ratio="2.5" class="demoRatio"><div class="demoTeal"></div></twig:AspectRatio>
         <twig:Collapsible><twig:Collapsible:Trigger>More</twig:Collapsible:Trigger><twig:Collapsible:Content>Hidden</twig:Collapsible:Content></twig:Collapsible>
     </section>
     <section id="blocks" class="isStack">
@@ -179,7 +196,7 @@
         <twig:Card size="sm"><twig:Card:Header><twig:Card:Title>Card</twig:Card:Title><twig:Card:Description>Described</twig:Card:Description><twig:Card:Action><twig:Button size="sm" variant="link">Act</twig:Button></twig:Card:Action></twig:Card:Header><twig:Card:Content>Body</twig:Card:Content><twig:Card:Footer>Foot</twig:Card:Footer></twig:Card>
         <twig:Alert variant="destructive"><twig:Alert:Title>Alert</twig:Alert:Title><twig:Alert:Description>Said</twig:Alert:Description><twig:Alert:Action><twig:Button variant="outline" size="sm">Undo</twig:Button></twig:Alert:Action></twig:Alert>
         <twig:Avatar:Group><twig:Avatar><twig:Avatar:Fallback>AB</twig:Avatar:Fallback><twig:Avatar:Badge>1</twig:Avatar:Badge></twig:Avatar><twig:Avatar><twig:Avatar:Fallback>CD</twig:Avatar:Fallback></twig:Avatar><twig:Avatar:GroupCount>+3</twig:Avatar:GroupCount></twig:Avatar:Group>
-        <div class="isCluster"><twig:Badge>Badge</twig:Badge><twig:Badge variant="secondary">Two</twig:Badge><twig:Badge variant="outline">Three</twig:Badge><twig:Badge variant="link" as="a" href="#">Four</twig:Badge>{# A badge of a colour of its own writes it in a style attribute, which a strict policy refuses. #}{% if not strict %}<twig:Badge color="#663399">Five</twig:Badge>{% endif %}</div>
+        <div class="isCluster"><twig:Badge>Badge</twig:Badge><twig:Badge variant="secondary">Two</twig:Badge><twig:Badge variant="outline">Three</twig:Badge><twig:Badge variant="link" as="a" href="#">Four</twig:Badge><twig:Badge id="purple-badge" color="#663399">Five</twig:Badge></div>
         <twig:ButtonGroup orientation="vertical"><twig:Button>A</twig:Button><twig:Button>B</twig:Button><twig:Button>C</twig:Button></twig:ButtonGroup>
         <twig:ButtonGroup><twig:Button>A</twig:Button><twig:ButtonGroup:Text>B</twig:ButtonGroup:Text><twig:Button>C</twig:Button></twig:ButtonGroup>
         <twig:Breadcrumb><twig:Breadcrumb:List><twig:Breadcrumb:Item><twig:Breadcrumb:Link href="#">Home</twig:Breadcrumb:Link></twig:Breadcrumb:Item><twig:Breadcrumb:Separator /><twig:Breadcrumb:Item><twig:Breadcrumb:Page>Here</twig:Breadcrumb:Page></twig:Breadcrumb:Item></twig:Breadcrumb:List></twig:Breadcrumb>

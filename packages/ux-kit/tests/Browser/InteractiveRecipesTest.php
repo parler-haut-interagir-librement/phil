@@ -55,6 +55,38 @@ final class InteractiveRecipesTest extends BrowserTestCase
         );
     }
 
+    #[Override]
+    protected static function screenshots(): string
+    {
+        return __DIR__.'/screenshots';
+    }
+
+    /**
+     * Each layout of the images, its part of the page and its reference screenshot.
+     *
+     * @return iterable<string, array{string, string}>
+     */
+    public static function layouts(): iterable
+    {
+        yield 'a fixed image' => ['#layout-fixed', 'image-fixed'];
+        yield 'a constrained image' => ['#layout-constrained', 'image-constrained'];
+        yield 'an image across its box' => ['#layout-full-width', 'image-full-width'];
+        yield 'an image cropped to a ratio' => ['#layout-ratio', 'image-ratio'];
+        yield 'a gallery in a grid' => ['#layout-grid', 'gallery-grid'];
+        yield 'a figure of three columns' => ['#layout-columns', 'figure-columns'];
+    }
+
+    /**
+     * Each layout looks as it did when its reference was taken, within the tolerance of `Screenshots`: a change of the
+     * stylesheet or of a recipe that moves, resizes or crops an image shows here before a release.
+     */
+    #[DataProvider('layouts')]
+    public function testEachLayoutLooksAsItsReference(string $selector, string $name): void
+    {
+        $this->open('index.html');
+        $this->assertLooksLike($selector, $name);
+    }
+
     #[DataProvider('modes')]
     public function testADialogIsModalKeepsTheFocusAndEscapeGivesItBack(string $page): void
     {
@@ -1069,6 +1101,22 @@ final class InteractiveRecipesTest extends BrowserTestCase
         $this->waitUntil('document.querySelector("#lightbox-festival-1").open');
 
         self::assertSame($rtl, $this->read('(() => { const close = document.querySelector("#lightbox-festival-1 .isLightboxClose").getBoundingClientRect(), dialog = document.querySelector("#lightbox-festival-1").getBoundingClientRect(); return close.left + close.width / 2 < dialog.left + dialog.width / 2; })()'));
+    }
+
+    /**
+     * An aspect ratio and a badge of a colour of its own, without a style attribute: a common ratio by its class, any
+     * other by the typed attr() of its data attributes, the colour of the badge by that of its data-color; in clear and
+     * under the strict policy alike.
+     */
+    #[DataProvider('plainAndStrict')]
+    public function testARatioAndTheColourOfABadgeHoldWithoutAStyleAttribute(string $page): void
+    {
+        $this->open($page);
+
+        self::assertSame(
+            [false, 160, 90, 160, 64, 'rgb(102, 51, 153)', 'rgb(102, 51, 153)'],
+            $this->read('(() => { const wide = document.querySelector("#wide-ratio").getBoundingClientRect(), odd = document.querySelector("#odd-ratio").getBoundingClientRect(), badge = getComputedStyle(document.querySelector("#purple-badge")); return [["#wide-ratio", "#odd-ratio", "#purple-badge"].some((selector) => document.querySelector(selector).hasAttribute("style")), Math.round(wide.width), Math.round(wide.height), Math.round(odd.width), Math.round(odd.height), badge.color, badge.borderTopColor]; })()'),
+        );
     }
 
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\UxKit\Test;
 
 use Facebook\WebDriver\Interactions\WebDriverActions;
+use Facebook\WebDriver\Remote\RemoteWebElement;
 use Facebook\WebDriver\WebDriverBy;
 use Facebook\WebDriver\WebDriverHasInputDevices;
 use Override;
@@ -20,6 +21,10 @@ use Symfony\Component\Panther\ProcessManager\WebServerManager;
  * Published for the browser suites of the kits built on the same controllers: a suite extends it and gives its
  * `RecipesPage`. It needs `phpunit/phpunit`, `symfony/panther` and `php-webdriver/webdriver`, which the kit requires
  * for development only.
+ *
+ * A suite that gives the directory of its references, `screenshots()`, compares parts of the page with them through
+ * `assertLooksLike()`, within the tolerance of `Screenshots`: a reference missing, or every reference when
+ * `PHIL_UX_UPDATE_SCREENSHOTS` is `1`, is written from the run, and the test marked incomplete so that it is seen.
  */
 abstract class BrowserTestCase extends TestCase
 {
@@ -62,6 +67,14 @@ abstract class BrowserTestCase extends TestCase
      * The page of the kit under test.
      */
     abstract protected static function recipesPage(): RecipesPage;
+
+    /**
+     * The directory of the reference screenshots of the suite, none by default.
+     */
+    protected static function screenshots(): ?string
+    {
+        return null;
+    }
 
     /**
      * @return iterable<string, array{string}>
@@ -181,6 +194,42 @@ abstract class BrowserTestCase extends TestCase
     protected function waitForFocus(string $selector): void
     {
         $this->waitUntil(\sprintf('document.activeElement.matches(%s)', json_encode($selector, \JSON_THROW_ON_ERROR)));
+    }
+
+    /**
+     * That a part of the page looks like its reference, `<name>.png` in the directory of `screenshots()`, within the
+     * tolerance of `Screenshots`. On a mismatch, the screenshot is written beside the temporary directory for a look.
+     */
+    protected function assertLooksLike(string $selector, string $name, Screenshots $screenshots = new Screenshots()): void
+    {
+        $directory = static::screenshots();
+        self::assertNotNull($directory, 'The suite gives the directory of its reference screenshots in screenshots().');
+
+        $element = $this->browser()->findElement(WebDriverBy::cssSelector($selector));
+        self::assertInstanceOf(RemoteWebElement::class, $element);
+        $found = \sprintf('document.querySelector(%s)', json_encode($selector, \JSON_THROW_ON_ERROR));
+        // In view, so that its lazy images load, then once they have and the fonts with them.
+        $this->perform($found.'.scrollIntoView({block: "center"})');
+        $this->waitUntil(\sprintf('document.fonts.status === "loaded" && [%1$s, ...%1$s.querySelectorAll("img")].filter((image) => "IMG" === image.nodeName).every((image) => image.complete && image.naturalWidth > 0)', $found));
+        $width = $this->read('Math.round('.$found.'.getBoundingClientRect().width)');
+        self::assertIsInt($width);
+        $png = $element->takeElementScreenshot();
+        $reference = $directory.'/'.$name.'.png';
+
+        if ('1' === getenv(Screenshots::UPDATE) || !is_file($reference)) {
+            file_put_contents($reference, $screenshots->reference($png, $width));
+            self::markTestIncomplete('Reference screenshot written: '.$reference);
+        }
+
+        $difference = $screenshots->difference($png, $width, (string) file_get_contents($reference));
+        $seen = sys_get_temp_dir().'/phil-ux-screenshots/'.$name.'.png';
+
+        if (!$screenshots->tolerates($difference)) {
+            @mkdir(\dirname($seen), 0o777, true);
+            file_put_contents($seen, $screenshots->reference($png, $width));
+        }
+
+        self::assertTrue($screenshots->tolerates($difference), \sprintf('%s looks unlike %s: %.1f %% of its pixels changed; seen in %s.', $selector, $reference, $difference * 100, $seen));
     }
 
     protected function isRightToLeft(string $page): bool

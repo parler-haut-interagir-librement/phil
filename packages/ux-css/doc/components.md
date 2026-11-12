@@ -51,6 +51,8 @@ or a press mixes the fill towards the text colour, which raises its contrast wit
 ## Badges and alerts
 
 `isBadge`: a short status, neutral and quiet by default; `isLoud` makes it solid and `isOutline` keeps only its border.
+Its colour and that of its border are `--phil-badge-color`, set by a class, or the colour of its `data-color`, read
+through a typed `attr()` where the browser reads one, Chromium 133 and later: no `style` attribute.
 
 `isAlert`: a notice in the page, quiet, with a loud rule on its start side and links in its own colour. The template
 gives it the `role` it needs, `status` or `alert`. `isLoud` makes it solid; `hasIcon` lays an icon in a column.
@@ -427,7 +429,7 @@ same. None of these rules looks at a data attribute of the recipes.
 | Pagination | `isPaginationList`, `isPaginationItem`, `isPaginationLink`, `isPaginationEllipsis` |
 | Carousel with buttons | `isCarouselFrame` around `isCarouselViewport`, which scrolls, `isCarouselTrack` and `isCarouselSlide`; `isCarouselPrevious`, `isCarouselNext`, `isCarouselToggle`; `isVertical`, `hasCenteredSlides` or `hasEndSlides` on the frame |
 | Table | `isTable`, `isTableCaption` under it, `isTableHeader`, `isTableBody`, `isTableFooter`, `isTableRow` lit by `aria-selected`, `isTableHead`, `isTableCell` |
-| Aspect ratio | `isAspectRatio`, kept to `--phil-aspect-ratio`, its picture or video covering it |
+| Aspect ratio | `isAspectRatio`, its picture or video covering it, kept to the ratio of its class, `hasRatio16x9`, `hasRatio4x3`, `hasRatio3x2`, `hasRatio1x1`, `hasRatio21x9`, `hasRatio3x4`, `hasRatio2x3`, `hasRatio9x16`, or of its `data-ratio-width` and `data-ratio-height` through a typed `attr()` where the browser reads one, else to `--phil-aspect-ratio`, else a square |
 | Collapsible | `isCollapsible`, a `details` without a frame; `isCollapsibleTrigger`, `isCollapsibleContent` |
 | Keys | `isKbdGroup`, the `kbd` elements of one shortcut side by side; each key is dressed by the classless base |
 | Field | `isField`, stacked, or side by side with `isHorizontal`, or with `isResponsive` on a container of 40rem or wider; `isDanger` on it colours the borders of its control; `isFieldLabel`, `isFieldDescription`, `isFieldError`, `isFieldSet`, `isFieldLegend`, `isFieldGroup`, `isFieldContent`, `isFieldTitle`, `isFieldSeparator` with a line on each side of its text |

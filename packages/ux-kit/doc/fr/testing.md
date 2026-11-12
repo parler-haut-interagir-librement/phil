@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=58030eba3abe47337bc3b9ca2fd6ac01e7e6f9682d07cdbf427548aed563d550 -->
+<!-- phil-dev source-sha256=328a347c9604d1395691234803799e29e54853d567c371125a21c61696a31906 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -27,6 +27,7 @@
 | Les graphiques | `Chart` : l'échelle en pas simples des plus petites valeurs aux plus grandes, ses décimales, un graphique plat, des barres qui partagent leur bande, une ligne coupée à une valeur absente, un point seul, la légende, le tableau affiché ou lu par les lecteurs d'écran seulement, les étiquettes et les séries bornées ; `ChartJs` : sa figure et son tableau lu dans les données du graphique, `render_chart` fourni par un bouchon |
 | Les blocs `LoginForm` et `SignupForm` | Produits en entier, seuls et après une soumission refusée : les noms des champs, l'autocomplétion, l'erreur liée aux champs, le champ CSRF, les liens écrits seulement avec leur adresse et leur texte, un mot de passe jamais réécrit |
 | Le contrôleur `image-preview` | Seule une toute petite image matricielle en ligne gardée, son flou dessiné dans un SVG en ligne au rapport de l'image, peint par le CSSOM et retiré au chargement, à l'erreur ou à la déconnexion, une image déjà chargée ou en échec laissée tranquille ; sous l'exécuteur de tests de Node |
+| Les images en 0.8 | `AspectRatio` et un `Badge` coloré sans attribut `style` : un rapport courant en classe, tout autre dans `data-ratio-width` et `data-ratio-height`, la couleur dans `data-color` ; `Screenshots`, la réduction à une échelle de la largeur CSS, le seuil sur chaque canal, une taille décalée de plus d'un pixel, une rangée ou une colonne de trop ou de moins, la tolérance ; `ImageMigration`, des gabarits réels rendus neutres, une image proposée ou laissée avec ce qui s'y oppose, un `picture` et ses sources en expressions Twig, les commentaires sautés, les propositions rendues par les recettes ; `phil:ux-kit:migrate-images`, son rapport et `--write` |
 | `ImageTextCheck` | Le nom du fichier sous toutes ses formes, par `phil/url`, les mots génériques et les débuts redondants en anglais et en français, une largeur ou une hauteur absente ou de mauvaise forme, chaque message |
 | Le contrôleur `lightbox` | Laissé au navigateur là où il exécute les invocateurs et `closedby`, qui ouvre et ferme le dialogue une fois là où il ne le fait pas, un clic sur l'arrière-plan qui le ferme et un sur l'image qui ne le ferme pas ; sous l'exécuteur de tests de Node |
 | `Celebration` | Produite en entier : ses valeurs, sa région active vide jusqu'à ce qu'elle joue ou qui tient le message dès le départ avec `autoplay`, le canvas dans un `template`, un effet inconnu dessiné en confettis, ce qui la joue avant le message, ses attributs gardés, aucun style écrit |
@@ -76,8 +77,8 @@ en fichiers statiques ; un guetteur, `strict.js`, relève tout ce que le navigat
 la célébration y tourne aussi, et échoue au premier refus : les aperçus peints par le CSSOM, les visionneuses, le
 carrousel, les points, le héros, la vidéo et ses sous-titres, le canvas de la célébration. Un test ouvre chaque page
 stricte, n'y trouve rien de refusé pendant que chaque recette s'affiche, puis écrit un attribut `style` et le voit
-refusé. Un badge d'une couleur à lui et un rapport d'aspect, qui écrivent une propriété personnalisée dans un attribut
-`style`, sont laissés hors des pages strictes. La suite vérifie aussi que les cadres, le jeton, le pixel art et le nom
+refusé. Un badge d'une couleur à lui et un rapport d'aspect quelconque y tiennent aussi,
+sans attribut `style` : la suite mesure la boîte et lit la couleur. La suite vérifie aussi que les cadres, le jeton, le pixel art et le nom
 d'une transition de vue viennent de la feuille, une transition de vue déplaçant l'image sous son nom ; que les images
 s'impriment lisiblement, le support émulé par le protocole DevTools : le carrousel une grille imprimée en entier, une
 figure jamais coupée et sa légende gardée avec son voile, une image dans la page, une galerie différée rendue, le bouton
@@ -99,6 +100,38 @@ le pilote, la suite échoue avec le message de Panther. La page est écrite sous
 avec les fichiers de `tests/Browser/resources/media`, un extrait WebM de deux secondes et ses sous-titres WebVTT, le
 vrai `@hotwired/stimulus`, épinglé avec `axe-core` dans `tests/Browser/package.json` et son fichier de
 verrouillage et installé par le script : des dépendances de développement de ces tests, que le kit ne publie pas.
+
+## Tests visuels
+
+Chaque disposition des images est comparée à une capture de référence, gardée dans `tests/Browser/screenshots/` : une
+image `fixed`, `constrained`, `full-width` et recadrée à un rapport, une galerie en grille, une figure de trois
+colonnes, en aplats de couleur sans texte, dans une boîte d'une largeur fixée. `assertLooksLike()` prend la capture de
+l'élément, la réduit à la moitié de sa largeur en pixels CSS, quelle que soit la densité de l'écran, et compte les
+pixels dont le rouge, le vert ou le bleu a bougé de plus de 48 : le test échoue au-delà de 2 % d'entre eux, ou quand la
+taille a changé de plus d'un pixel. Les références pèsent quelques centaines d'octets chacune. La comparaison est
+`Screenshots`, dans `src/Test/`, sur GD : aucun autre outil.
+
+Une référence absente est écrite à partir de l'exécution et le test marqué incomplet, pour qu'on le voie ; après un
+changement voulu de disposition, les écrire de nouveau et relire les images dans le diff :
+
+```sh
+PHIL_UX_UPDATE_SCREENSHOTS=1 composer test:browser
+```
+
+En cas d'écart, la capture vue est écrite sous le dossier temporaire, dans `phil-ux-screenshots/`, à côté du message.
+Les références sont prises sur le Chrome de la suite ; un autre moteur, ou Chrome sur un autre système, peut lisser les
+bords autrement, ce qu'absorbe la tolérance, mais pas un changement de polices : les dispositions comparées ne portent
+aucun texte.
+
+## Banc
+
+`tests/Benchmark/GalleryBench.php` mesure, avec PHPBench, le rendu par TwigComponent d'une galerie de 100 images, chacune
+avec un `srcset` de trois largeurs : en grille, chacune ouvrant une visionneuse, différée, et avec les sources AVIF et
+WebP de `Picture`. Le gabarit est compilé avant les mesures.
+
+```sh
+composer bench -- packages/ux-kit/tests/Benchmark
+```
 
 ## Pour un autre kit
 
@@ -130,7 +163,8 @@ La suite épingle son propre `@hotwired/stimulus` et exige, pour le développeme
 suggère. Chaque test ouvre alors l'un des `modes()`, ou des `strictModes()`, les mêmes pages sous la politique stricte,
 où `open()` et la fin du test échouent sur tout ce que le navigateur a refusé, et pilote la page avec `open()`,
 `focus()`, `press()`, `click()`, `clickBeside()`, un vrai clic sur l'arrière-plan à côté d'un élément, `read()`,
-`perform()`, `waitUntil()` et `waitForFocus()`.
+`perform()`, `waitUntil()` et `waitForFocus()`. Une suite qui renvoie le dossier de ses références par `screenshots()`
+compare des parties de sa page avec `assertLooksLike()` ; elle exige alors `ext-gd` pour le développement.
 
 ## Sans navigateur
 

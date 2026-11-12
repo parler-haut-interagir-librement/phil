@@ -1,7 +1,7 @@
 {
     "name": "@phil/ux-css",
     "description": "phil-ux, the CSS framework of PHIL: real, mostly classless CSS with --phil-* tokens, light and dark, and isX/hasX state classes",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "license": "MIT",
     "homepage": "https://ph-il.ca",
     "repository": {

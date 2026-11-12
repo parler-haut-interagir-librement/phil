@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=905667a782e87716e9c18d8d87b0c042a0fa2ba015d47774d42f717f7ebbbd2a -->
+<!-- phil-dev source-sha256=fc5b0af915a59579151eeb3b61a83430f218af91136fecc5bbf19bdbb5854ff4 -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -10,13 +10,16 @@
 | `src/Application/ImageOrigin.php` | `Phil\UxKit\Application\ImageOrigin` : d'où vient l'image d'une adresse, ou chaque candidate d'un `srcset`, lue par `phil/url` : `local`, `external` ou `refused` |
 | `src/Application/ImageSources.php` | `Phil\UxKit\Application\ImageSources` : les props d'une `Picture` d'après les fichiers d'une image parmi les ressources d'AssetMapper |
 | `src/Application/ImageTextCheck.php` | `Phil\UxKit\Application\ImageTextCheck` : ce qu'un développeur a pu laisser de travers dans une image, un texte de remplacement qui est le nom de son fichier, un mot générique ou qui commence par dire que c'est une image, une largeur ou une hauteur absente |
+| `src/Application/ImageMigration.php`, `src/Application/ImageMigrationFinding.php` | `Phil\UxKit\Application\ImageMigration` : les recettes `Image` et `Picture` proposées à la place des éléments `img` et `picture` d'un gabarit Twig, ou ce qui s'oppose à chacune, et les propositions appliquées |
 | `src/Application/PictureProps.php` | `Phil\UxKit\Application\PictureProps` : les props d'une `Picture` pour un objet, du premier fournisseur qui le prend en charge, réduites à celles qui décrivent l'image |
 | `src/Application/Contract/PicturePropsProvider.php` | `Phil\UxKit\Application\Contract\PicturePropsProvider` : ce qu'implémente un service, balisé `phil_ux_kit.picture_props` par l'autoconfiguration, pour donner les props d'une image pour les objets qu'il prend en charge |
+| `src/Infrastructure/Console/MigrateImagesCommand.php` | `phil:ux-kit:migrate-images` : les propositions d'`ImageMigration` pour les gabarits d'un projet, écrites avec `--write` ; enregistrée avec le composant Console |
 | `src/Infrastructure/LiipImagine/ImageFilters.php` | `Phil\UxKit\Infrastructure\LiipImagine\ImageFilters` : les props d'une `Picture` à partir des jeux de filtres de LiipImagine appliqués à une image |
 | `src/Infrastructure/DependencyInjection/ImageFiltersPass.php` | Écarte `ImageFilters` quand les services de LiipImagine ne sont pas enregistrés |
 | `src/Infrastructure/StructuredData/ImageJsonLd.php` | `Phil\UxKit\Infrastructure\StructuredData\ImageJsonLd` : l'`ImageObject` d'une image, ajouté au graphe de la page ou écrit dans son propre script JSON-LD |
 | `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()`, `image_sources()`, `image_filters()`, `picture_props()`, `image_json_ld()` et `image_check()`, qui journalise les problèmes d'`ImageTextCheck` en avertissements quand `phil_ux_kit.image.check` est actif |
 | `src/Test/BrowserTestCase.php` | `Phil\UxKit\Test\BrowserTestCase` : un Chrome sans interface sur la page des recettes d'un kit, ses modes tels quels et sous la politique stricte, qui fait échouer un test sur tout ce que le navigateur a refusé, et les aides d'un test en navigateur |
+| `src/Test/Screenshots.php` | `Phil\UxKit\Test\Screenshots` : la capture d'une partie d'une page comparée à sa référence, toutes deux à une échelle de sa largeur CSS, dans une tolérance, sur GD |
 | `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage` : la racine web de chaque recette d'un kit, dans chaque mode tel quel et sous une politique de sécurité du contenu stricte, avec sa feuille de style, celle de sa page, ses contrôleurs, Stimulus et les fichiers de son dossier `media` |
 | `logo/manifest.json`, `logo/README.md` | La recette `Logo` |
 | `logo/templates/components/Logo.html.twig` | Le composant `Logo` |

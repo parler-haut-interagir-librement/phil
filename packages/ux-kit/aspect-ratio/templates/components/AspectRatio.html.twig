@@ -1,13 +1,16 @@
 {#-
  # A box kept to a ratio, its picture or video filling it. The ratio is a number or a quotient such as "16 / 9";
- # anything else is left out for a square.
+ # anything else is left out for a square. A common ratio is a class, any other its width and height in data
+ # attributes, read by the stylesheet; never an inline style, so that it holds under a strict Content Security Policy.
  #}
 {%- props
     ## float|int|string The ratio of the width to the height, a number or a quotient such as "16 / 9".
     ratio = 1
 -%}
-{%- set _ratio = ratio is not iterable and (ratio ~ '') matches '/^\\d+(\\.\\d+)?(\\s*\\/\\s*\\d+(\\.\\d+)?)?$/' ? ratio : 1 -%}
-<div data-slot="aspect-ratio"{{ attributes.defaults({class: 'isAspectRatio', style: '--phil-aspect-ratio: ' ~ _ratio}) }}>
+{%- set _ratio = ratio is not iterable and (ratio ~ '') matches '/^\\d+(\\.\\d+)?(\\s*\\/\\s*\\d+(\\.\\d+)?)?$/' ? (ratio ~ '')|replace({' ': ''}) : '1' -%}
+{%- set _parts = _ratio|split('/') -%}
+{%- set _class = {'16/9': 'hasRatio16x9', '4/3': 'hasRatio4x3', '3/2': 'hasRatio3x2', '1/1': 'hasRatio1x1', '1': 'hasRatio1x1', '21/9': 'hasRatio21x9', '3/4': 'hasRatio3x4', '2/3': 'hasRatio2x3', '9/16': 'hasRatio9x16'}[_ratio] ?? null -%}
+<div data-slot="aspect-ratio" data-ratio-width="{{ _parts[0] }}" data-ratio-height="{{ _parts[1] ?? 1 }}"{{ attributes.defaults({class: ('isAspectRatio ' ~ _class)|trim}) }}>
 {##- What fills the box, typically an image or a video. -#}
 {%- block content %}{% endblock -%}
 </div>
