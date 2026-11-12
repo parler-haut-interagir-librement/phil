@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e466a24b0be6ce1018b7104a13582e34a71c22096233a123d7796f14e7ff80f9 -->
+<!-- phil-dev source-sha256=8d0a37dae6ca4201d0a22a45b3a8bb9f74f0e5850c34909d612c88b52399e20d -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -19,6 +19,8 @@ composant prend aussi d'autres attributs, écrits sur son élément racine, une 
 | `dark` | `null` | Le logo d'un système sombre, une URL ou un tableau de densités, offert là où `prefers-color-scheme` est sombre |
 | `still` | `null` | Le logo fixe d'un logo animé, une URL ou un tableau de densités, offert là où le mouvement est réduit |
 | `forced` | `null` | Le logo dessiné pour les couleurs forcées, une URL ou un tableau de densités, offert d'abord là où `forced-colors` est actif |
+| `priority` | `false` | L'image principale de la page, préchargée par WebLink et demandée en premier, comme pour `Picture` |
+| `layout`, `aspect`, `fit`, `position` | `null` | La disposition, le rapport, l'ajustement et le recadrage de l'image, comme pour `Image` |
 | `theme` | `null` | Remplace `{theme}` dans chaque URL |
 | `locale` | `null` | Remplace `{locale}` dans chaque URL |
 | `href` | `null` | Un lien autour du logo |
@@ -269,6 +271,10 @@ ce que le contrôleur l'affiche ; chaque bouton fonctionne sans lui. Des `attrib
 | `illustrationAlt` | `''` | Le texte de remplacement de l'illustration |
 | `seed` | `null` | Le germe de l'illustration |
 | `landmarks` | `true` | `header` et `main`, ou `div` quand la mise en page les a |
+| `logoWidth`, `logoHeight` | `null` | La taille du logo, pour réserver sa place |
+| `logoPriority` | `false` | Le logo préchargé par WebLink et demandé en premier |
+| `logoLayout`, `logoAspect`, `logoFit`, `logoPosition` | `null` | La disposition, le rapport, l'ajustement et le recadrage du logo, comme pour `Image` |
+| `illustrationLoading` | `lazy` | `eager` charge l'illustration tout de suite |
 
 | Bloc | |
 |---|---|

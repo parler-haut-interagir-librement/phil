@@ -104,4 +104,12 @@ final class LogoTest extends KitTestCase
             $this->render('<twig:Logo src="/logo.png" webp="/logo.webp" dark="/logo-dark.png" forced="/logo-{theme}.svg" theme="forced" alt="Studio" href="/" :width="160" :height="40" />'),
         );
     }
+
+    public function testTheMainLogoIsPreloadedAndLaidOutAsAnImage(): void
+    {
+        [$html, $links] = $this->renderInRequest('<twig:Logo src="/logo.png" webp="/logo.webp" alt="Studio" :width="160" :height="40" :priority="true" layout="fixed" aspect="1/1" fit="contain" position="top" />');
+
+        self::assertSame('<span class="isLogo"><picture><source type="image/webp" srcset="/logo.webp"><img class="isImage hasLayoutFixed hasRatio1x1 hasFitContain hasPositionTop" src="/logo.png" alt="Studio" width="160" height="40" loading="eager" fetchpriority="high"></picture></span>', $html);
+        self::assertSame([[['preload'], '/logo.png', ['as' => 'image', 'imagesrcset' => '/logo.webp', 'type' => 'image/webp', 'fetchpriority' => 'high']]], $links);
+    }
 }

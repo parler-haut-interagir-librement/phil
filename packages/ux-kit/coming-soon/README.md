@@ -55,6 +55,17 @@ A layout that already writes `header` and `main` turns the landmarks off.
 <twig:ComingSoon :landmarks="false" logoSrc="/images/logo.png" logoAlt="Studio" eyebrow="Coming soon" words="Studio" />
 ```
 
+### The logo and the illustration at once
+
+The page is short: its logo and its illustration often show above the fold. `logoPriority` preloads the logo through
+Symfony WebLink and fetches it first, `logoWidth` and `logoHeight` reserve its space, and `logoLayout`, `logoAspect`,
+`logoFit` and `logoPosition` lay it out as for `Image`; `illustrationLoading="eager"` loads the illustration at once.
+Without them, the page is as before: the logo eager, the illustration lazy.
+
+```twig
+<twig:ComingSoon logoSrc="/images/logo.png" logoAlt="Studio" :logoWidth="160" :logoHeight="40" :logoPriority="true" illustrationLoading="eager" :illustrations="['/images/site.jpg']" eyebrow="Coming soon" words="Studio" />
+```
+
 ## Accessibility
 
 The column is a `header` (the logo) and a `main` (the text), unless `landmarks` is false. The eyebrow and the headline

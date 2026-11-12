@@ -24,6 +24,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   fetched last; `placeholder` for every image; `preview`, `description` and `id` per image; `descriptionLabel`.
 - On `Lightbox`: `deferred`, `placeholder` and `preview` for the thumbnail; `description` and `descriptionLabel`, the
   description after the thumbnail, outside its button, which it describes.
+- On `Logo`: `priority`, `layout`, `aspect`, `fit` and `position`, carried to its `Picture`. On `ComingSoon`:
+  `logoWidth`, `logoHeight`, `logoPriority`, `logoLayout`, `logoAspect`, `logoFit` and `logoPosition`, carried to its
+  `Logo`, and `illustrationLoading`, carried to its `Illustration`, so that the page can preload its logo and load its
+  illustration at once; by default, the page is unchanged.
 - `image_check()`, called by `Image`: while `phil_ux_kit.image.check` is on, by default with the debug of the kernel,
   `ImageTextCheck` finds a text alternative that is the name of the file (read by `phil/url`, `@2x`, `@480w` and the
   digest of AssetMapper set aside), a word that only says it is an image or a text that starts by saying so, in English

@@ -54,4 +54,13 @@ final class ComingSoonTest extends KitTestCase
         self::assertStringNotContainsString('<header', $html);
         self::assertStringNotContainsString('<figure', $html);
     }
+
+    public function testTheLogoCanBePreloadedAndTheIllustrationLoadedAtOnce(): void
+    {
+        [$html, $links] = $this->renderInRequest('<twig:ComingSoon logoSrc="/logo.png" logoAlt="Studio" :logoWidth="160" :logoHeight="40" :logoPriority="true" logoLayout="fixed" logoAspect="1/1" logoFit="contain" logoPosition="left" eyebrow="Soon" words="Studio" :illustrations="[\'/main.png\']" illustrationLoading="eager" />');
+
+        self::assertStringContainsString('<header><span class="isLogo"><img class="isImage hasLayoutFixed hasRatio1x1 hasFitContain hasPositionLeft" src="/logo.png" alt="Studio" width="160" height="40" loading="eager" fetchpriority="high"></span></header>', $html);
+        self::assertStringContainsString('<img src="/main.png" alt="" loading="eager" decoding="async">', $html);
+        self::assertSame([[['preload'], '/logo.png', ['as' => 'image', 'fetchpriority' => 'high']]], $links);
+    }
 }

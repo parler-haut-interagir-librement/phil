@@ -30,14 +30,30 @@
     ## int|null The seed of the illustration's choice; null draws one at random.
     seed = null,
     ## bool Whether the column is written as header and main landmarks; false when the page's layout has them.
-    landmarks = true
+    landmarks = true,
+    ## int|null The width of the logo, to reserve its space before it loads.
+    logoWidth = null,
+    ## int|null The height of the logo, to reserve its space before it loads.
+    logoHeight = null,
+    ## bool Whether the logo is the main image of the page: fetched first and preloaded through Symfony WebLink.
+    logoPriority = false,
+    ## string|null How the logo fills its container, as for Image: "fixed", "constrained" or "full-width".
+    logoLayout = null,
+    ## string|null The ratio of the logo's box, as for Image.
+    logoAspect = null,
+    ## string|null How the logo fills its box, "cover" or "contain".
+    logoFit = null,
+    ## string|null Where the logo is cropped in its box.
+    logoPosition = null,
+    ## string How the illustration loads: "lazy" by default, "eager" when it shows above the fold at once.
+    illustrationLoading = 'lazy'
 -%}
 {%- set _top = landmarks ? 'header' : 'div' -%}
 {%- set _body = landmarks ? 'main' : 'div' -%}
 <div{{ attributes.defaults({class: 'isSplit isFullHeight'}) }}>
     <div class="isCover">
         <{{ _top }}>
-            <twig:Logo :src="logoSrc" :alt="logoAlt" :webp="logoWebp" :href="logoHref" :theme="theme" :locale="locale" />
+            <twig:Logo :src="logoSrc" :alt="logoAlt" :webp="logoWebp" :href="logoHref" :theme="theme" :locale="locale" :width="logoWidth" :height="logoHeight" :priority="logoPriority" :layout="logoLayout" :aspect="logoAspect" :fit="logoFit" :position="logoPosition" />
         </{{ _top }}>
         <{{ _body }} class="isCoverBody">
             <div class="isNarrow">
@@ -54,6 +70,6 @@
         </{{ _body }}>
     </div>
     {%- if illustrations is not empty %}
-    <twig:Illustration class="isBleed hasEntrance" :candidates="illustrations" :alt="illustrationAlt" :seed="seed" />
+    <twig:Illustration class="isBleed hasEntrance" :candidates="illustrations" :alt="illustrationAlt" :seed="seed" :loading="illustrationLoading" />
     {%- endif %}
 </div>

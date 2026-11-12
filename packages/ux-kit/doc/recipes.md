@@ -18,6 +18,8 @@ it depends.
 | `dark` | `null` | The logo of a dark system, a URL or a map of densities, offered where `prefers-color-scheme` is dark |
 | `still` | `null` | The still logo of an animated one, a URL or a map of densities, offered where motion is reduced |
 | `forced` | `null` | The logo drawn for forced colours, a URL or a map of densities, offered first where `forced-colors` is active |
+| `priority` | `false` | The main image of the page, preloaded through WebLink and fetched first, as for `Picture` |
+| `layout`, `aspect`, `fit`, `position` | `null` | The image's layout, ratio, fit and crop, as for `Image` |
 | `theme` | `null` | Replaces `{theme}` in every URL |
 | `locale` | `null` | Replaces `{locale}` in every URL |
 | `href` | `null` | A link around the logo |
@@ -263,6 +265,10 @@ and `dismiss`. The controller writes the messages and shows the buttons each not
 | `illustrationAlt` | `''` | The illustration's text alternative |
 | `seed` | `null` | The illustration's seed |
 | `landmarks` | `true` | `header` and `main`, or `div` when the layout has them |
+| `logoWidth`, `logoHeight` | `null` | The logo's size, to reserve its space |
+| `logoPriority` | `false` | The logo preloaded through WebLink and fetched first |
+| `logoLayout`, `logoAspect`, `logoFit`, `logoPosition` | `null` | The logo's layout, ratio, fit and crop, as for `Image` |
+| `illustrationLoading` | `lazy` | `eager` loads the illustration at once |
 
 | Block | |
 |---|---|

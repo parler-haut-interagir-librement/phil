@@ -63,6 +63,15 @@ browser does not repaint in an image. Draw the variant so that it reads on both,
 <twig:Logo src="/images/logo.png" forced="/images/logo-outlined.png" alt="Studio" />
 ```
 
+### The main image of the page
+
+`priority` preloads the logo through Symfony WebLink and fetches it first, as for `Picture`; `layout`, `aspect`, `fit`
+and `position` lay it out as for `Image`.
+
+```twig
+<twig:Logo src="/images/logo.png" webp="/images/logo.webp" alt="Studio" :width="160" :height="40" :priority="true" />
+```
+
 ### By language
 
 A logo that writes a translated name.

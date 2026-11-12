@@ -31,7 +31,17 @@
     ## int|null The height of the image, to reserve its space before it loads.
     height = null,
     ## string How the image loads: "eager" above the fold, "lazy" below it.
-    loading = 'eager'
+    loading = 'eager',
+    ## bool Whether the logo is the main image of the page: fetched first and preloaded through Symfony WebLink, as for Picture.
+    priority = false,
+    ## string|null How the image fills its container, as for Image: "fixed", "constrained" or "full-width".
+    layout = null,
+    ## string|null The ratio of the image's box, as for Image.
+    aspect = null,
+    ## string|null How the image fills its box, "cover" or "contain".
+    fit = null,
+    ## string|null Where the image is cropped in its box.
+    position = null
 -%}
 {%- set _swap = {} -%}
 {%- if theme is not null %}{% set _swap = _swap|merge({'{theme}': theme}) %}{% endif -%}
@@ -42,5 +52,5 @@
 {%- if _urls.webp is not null %}{% set _sources = _sources|merge([{type: 'image/webp', srcset: _urls.webp}]) %}{% endif -%}
 {%- set _tag = href is null ? 'span' : 'a' -%}
 <{{ _tag }}{% if href is not null %} href="{{ href }}"{% endif %}{{ attributes.defaults({class: 'isLogo'}) }}>
-    {{- component('Picture', {src: src|replace(_swap), alt: alt, width: width, height: height, srcset: _urls.srcset, sources: _sources, dark: _urls.dark, still: _urls.still, forced: _urls.forced, loading: loading}) -}}
+    {{- component('Picture', {src: src|replace(_swap), alt: alt, width: width, height: height, srcset: _urls.srcset, sources: _sources, dark: _urls.dark, still: _urls.still, forced: _urls.forced, loading: loading, priority: priority, layout: layout, aspect: aspect, fit: fit, position: position}) -}}
 </{{ _tag }}>
