@@ -418,6 +418,446 @@ summary.isReaction {
     padding-inline: 0;
 }
 
+/* A caption laid over the foot of its image, on a veil dark enough for its light text whatever the picture: the figure
+   stacks the image and the caption in one cell, as wide as the image; a long description stays under them. */
+.hasOverlayCaption {
+    display: grid;
+    inline-size: fit-content;
+    max-inline-size: 100%;
+}
+
+.hasOverlayCaption:has(> .hasLayoutFullWidth, > picture > .hasLayoutFullWidth) {
+    inline-size: auto;
+}
+
+.hasOverlayCaption > :first-child,
+.hasOverlayCaption > figcaption {
+    grid-area: 1 / 1;
+}
+
+.hasOverlayCaption > figcaption {
+    align-self: end;
+    z-index: 1;
+    margin: 0;
+    padding: var(--phil-space-xs) var(--phil-space-sm);
+    color: var(--phil-color-on-veil);
+    background-color: var(--phil-color-veil);
+}
+
+.hasOverlayCaption > figcaption a {
+    color: inherit;
+}
+
+/* A gallery laid out as a carousel: its figures in a row that scrolls and snaps, the keyboard scrolling it once it has
+   the focus; where the browser draws them, a marker per figure under the row and a button on each side, half way down
+   the row, named by the attributes of the list. Elsewhere, the row scrolls alone. */
+.isGallery.hasLayoutCarousel {
+    --phil-gallery-markers: calc(var(--phil-space-sm) + 2 * var(--phil-space-xs));
+
+    position: relative;
+}
+
+.isGallery.hasLayoutCarousel > ul {
+    grid-template-columns: none;
+    grid-auto-columns: minmax(min(85%, var(--phil-gallery-column, 12rem)), 1fr);
+    grid-auto-flow: column;
+    padding-block-end: var(--phil-space-xs);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-marker-group: after;
+}
+
+.isGallery.hasLayoutCarousel > ul > li {
+    scroll-snap-align: start;
+}
+
+.isGallery.hasLayoutCarousel > ul > li::scroll-marker {
+    content: "" / attr(data-marker);
+    inline-size: var(--phil-space-sm);
+    block-size: var(--phil-space-sm);
+    border: var(--phil-border-sm) solid var(--phil-color-neutral-border-loud);
+    border-radius: 50%;
+}
+
+.isGallery.hasLayoutCarousel > ul > li::scroll-marker:target-current {
+    background-color: var(--phil-color-text);
+}
+
+.isGallery.hasLayoutCarousel > ul::scroll-marker-group {
+    display: flex;
+    gap: var(--phil-space-xs);
+    justify-content: center;
+    block-size: var(--phil-gallery-markers);
+    padding-block: var(--phil-space-xs);
+    box-sizing: border-box;
+}
+
+.isGallery.hasLayoutCarousel > ul::scroll-button(*) {
+    position: absolute;
+    inset-block-start: calc(50% - var(--phil-control-md) / 2 - var(--phil-gallery-markers) / 2);
+    inline-size: var(--phil-control-md);
+    block-size: var(--phil-control-md);
+    color: var(--phil-color-on-veil);
+    background-color: var(--phil-color-veil);
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.isGallery.hasLayoutCarousel > ul::scroll-button(*):disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.isGallery.hasLayoutCarousel > ul::scroll-button(inline-start) {
+    content: "\2039" / attr(data-previous);
+    inset-inline-start: var(--phil-space-xs);
+}
+
+.isGallery.hasLayoutCarousel > ul::scroll-button(inline-end) {
+    content: "\203A" / attr(data-next);
+    inset-inline-end: var(--phil-space-xs);
+}
+
+/* An image with points of interest: each link stands over the image at its point, its place a class to the nearest five
+   per cent, or exactly the typed attr() of its data-x and data-y where the browser reads one. The picture is not
+   mirrored right to left, so the list is laid out left to right and each link reads its words in their own direction.
+   On a narrow screen, the links read as a list under the image, in the direction of the page. */
+.isHotspots {
+    position: relative;
+    inline-size: fit-content;
+    max-inline-size: 100%;
+}
+
+.isHotspotsList {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    direction: ltr;
+}
+
+.isHotspot {
+    position: absolute;
+    inset-block-start: var(--phil-hotspot-y, 50%);
+    inset-inline-start: var(--phil-hotspot-x, 50%);
+    translate: -50% -50%;
+}
+
+.isHotspot > a {
+    display: inline-flex;
+    gap: var(--phil-space-2xs);
+    align-items: center;
+    min-block-size: var(--phil-check-size);
+    padding-inline: var(--phil-space-xs);
+    font-size: var(--phil-text-sm);
+    color: var(--phil-color-on-veil);
+    white-space: nowrap;
+    text-decoration: none;
+    unicode-bidi: plaintext;
+    background-color: var(--phil-color-veil);
+    border-radius: var(--phil-radius-full);
+}
+
+.isHotspot > a::before {
+    content: "";
+    inline-size: 0.5em;
+    block-size: 0.5em;
+    background-color: currentcolor;
+    border-radius: 50%;
+}
+
+.isHotspot > a:hover {
+    text-decoration: underline;
+}
+
+.isHotspot.hasHotspotX0 {
+    --phil-hotspot-x: 0%;
+}
+
+.isHotspot.hasHotspotX5 {
+    --phil-hotspot-x: 5%;
+}
+
+.isHotspot.hasHotspotX10 {
+    --phil-hotspot-x: 10%;
+}
+
+.isHotspot.hasHotspotX15 {
+    --phil-hotspot-x: 15%;
+}
+
+.isHotspot.hasHotspotX20 {
+    --phil-hotspot-x: 20%;
+}
+
+.isHotspot.hasHotspotX25 {
+    --phil-hotspot-x: 25%;
+}
+
+.isHotspot.hasHotspotX30 {
+    --phil-hotspot-x: 30%;
+}
+
+.isHotspot.hasHotspotX35 {
+    --phil-hotspot-x: 35%;
+}
+
+.isHotspot.hasHotspotX40 {
+    --phil-hotspot-x: 40%;
+}
+
+.isHotspot.hasHotspotX45 {
+    --phil-hotspot-x: 45%;
+}
+
+.isHotspot.hasHotspotX50 {
+    --phil-hotspot-x: 50%;
+}
+
+.isHotspot.hasHotspotX55 {
+    --phil-hotspot-x: 55%;
+}
+
+.isHotspot.hasHotspotX60 {
+    --phil-hotspot-x: 60%;
+}
+
+.isHotspot.hasHotspotX65 {
+    --phil-hotspot-x: 65%;
+}
+
+.isHotspot.hasHotspotX70 {
+    --phil-hotspot-x: 70%;
+}
+
+.isHotspot.hasHotspotX75 {
+    --phil-hotspot-x: 75%;
+}
+
+.isHotspot.hasHotspotX80 {
+    --phil-hotspot-x: 80%;
+}
+
+.isHotspot.hasHotspotX85 {
+    --phil-hotspot-x: 85%;
+}
+
+.isHotspot.hasHotspotX90 {
+    --phil-hotspot-x: 90%;
+}
+
+.isHotspot.hasHotspotX95 {
+    --phil-hotspot-x: 95%;
+}
+
+.isHotspot.hasHotspotX100 {
+    --phil-hotspot-x: 100%;
+}
+
+.isHotspot.hasHotspotY0 {
+    --phil-hotspot-y: 0%;
+}
+
+.isHotspot.hasHotspotY5 {
+    --phil-hotspot-y: 5%;
+}
+
+.isHotspot.hasHotspotY10 {
+    --phil-hotspot-y: 10%;
+}
+
+.isHotspot.hasHotspotY15 {
+    --phil-hotspot-y: 15%;
+}
+
+.isHotspot.hasHotspotY20 {
+    --phil-hotspot-y: 20%;
+}
+
+.isHotspot.hasHotspotY25 {
+    --phil-hotspot-y: 25%;
+}
+
+.isHotspot.hasHotspotY30 {
+    --phil-hotspot-y: 30%;
+}
+
+.isHotspot.hasHotspotY35 {
+    --phil-hotspot-y: 35%;
+}
+
+.isHotspot.hasHotspotY40 {
+    --phil-hotspot-y: 40%;
+}
+
+.isHotspot.hasHotspotY45 {
+    --phil-hotspot-y: 45%;
+}
+
+.isHotspot.hasHotspotY50 {
+    --phil-hotspot-y: 50%;
+}
+
+.isHotspot.hasHotspotY55 {
+    --phil-hotspot-y: 55%;
+}
+
+.isHotspot.hasHotspotY60 {
+    --phil-hotspot-y: 60%;
+}
+
+.isHotspot.hasHotspotY65 {
+    --phil-hotspot-y: 65%;
+}
+
+.isHotspot.hasHotspotY70 {
+    --phil-hotspot-y: 70%;
+}
+
+.isHotspot.hasHotspotY75 {
+    --phil-hotspot-y: 75%;
+}
+
+.isHotspot.hasHotspotY80 {
+    --phil-hotspot-y: 80%;
+}
+
+.isHotspot.hasHotspotY85 {
+    --phil-hotspot-y: 85%;
+}
+
+.isHotspot.hasHotspotY90 {
+    --phil-hotspot-y: 90%;
+}
+
+.isHotspot.hasHotspotY95 {
+    --phil-hotspot-y: 95%;
+}
+
+.isHotspot.hasHotspotY100 {
+    --phil-hotspot-y: 100%;
+}
+
+@supports (left: calc(attr(data-x type(<number>), 0) * 1%)) {
+    .isHotspot[data-x] {
+        --phil-hotspot-x: calc(attr(data-x type(<number>), 50) * 1%);
+    }
+
+    .isHotspot[data-y] {
+        --phil-hotspot-y: calc(attr(data-y type(<number>), 50) * 1%);
+    }
+}
+
+@media (max-width: 36rem) {
+    .isHotspotsList {
+        direction: inherit;
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--phil-space-xs);
+        margin-block-start: var(--phil-space-xs);
+    }
+
+    .isHotspot {
+        position: static;
+        translate: none;
+    }
+}
+
+/* A hero: its image covers the whole box, which stands the height of the screen, most of it, or that of its content;
+   the content lies over it on a veil dark enough for its light text, at the end of the height by default. */
+.isHero {
+    position: relative;
+    display: grid;
+    align-content: end;
+    min-block-size: 20rem;
+    padding: var(--phil-space-md);
+    overflow: hidden;
+}
+
+.isHero.hasHeroScreen {
+    min-block-size: 100svh;
+}
+
+.isHero.hasHeroLarge {
+    min-block-size: 70svh;
+}
+
+.isHero.hasHeroStart {
+    align-content: start;
+}
+
+.isHero.hasHeroCenter {
+    align-content: center;
+}
+
+.isHeroMedia {
+    position: absolute;
+    inset: 0;
+}
+
+.isHeroMedia .isImage {
+    inline-size: 100%;
+    max-inline-size: none;
+    block-size: 100%;
+}
+
+.isHeroContent {
+    position: relative;
+    max-inline-size: 40rem;
+    padding: var(--phil-space-md);
+    color: var(--phil-color-on-veil);
+    background-color: var(--phil-color-veil);
+    border-radius: var(--phil-radius-md);
+}
+
+.isHeroContent a {
+    color: inherit;
+}
+
+.isHeroContent:empty {
+    display: none;
+}
+
+/* A video: as wide as its width allows, never wider than its container, its height from the ratio of its width and
+   height while nothing is loaded. */
+.isVideo {
+    display: block;
+    max-inline-size: 100%;
+    block-size: auto;
+}
+
+@supports (aspect-ratio: attr(width type(<number>), 16) / 9) {
+    .isVideo[width][height] {
+        aspect-ratio: attr(width type(<number>), 16) / attr(height type(<number>), 9);
+    }
+}
+
+/* Several images under one caption: a grid of columns as wide as the container allows, --phil-figure-column at least,
+   or two, three or four on every screen; each image fills its cell. */
+.isFigureGroup {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--phil-figure-column, 10rem)), 1fr));
+    gap: var(--phil-space-sm);
+    align-items: start;
+}
+
+.isFigureGroup.hasTwoColumns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.isFigureGroup.hasThreeColumns {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.isFigureGroup.hasFourColumns {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.isFigureGroup .isImage {
+    inline-size: 100%;
+}
+
 /* Long text written by people: a readable measure, a steady rhythm between blocks, headings that breathe. */
 .isProse {
     max-inline-size: var(--phil-measure);

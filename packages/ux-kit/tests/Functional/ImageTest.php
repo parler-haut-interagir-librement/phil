@@ -740,4 +740,34 @@ final class ImageTest extends KitTestCase
             $this->render('<twig:Image src="/a.png" alt="" :width="1" :height="1" id="a" description="Lines" />'),
         );
     }
+
+    public function testACaptionLaidOverItsImageGivesTheFigureItsClass(): void
+    {
+        self::assertSame(
+            '<figure class="hasOverlayCaption"><img class="isImage" src="/a.jpg" alt="A" width="8" height="6" loading="lazy" decoding="async"><figcaption>Over it<small class="isCredit">Ana Lima</small></figcaption></figure>',
+            $this->render('<twig:Image src="/a.jpg" alt="A" :width="8" :height="6" caption="Over it" credit="Ana Lima" captionPosition="overlay" />'),
+        );
+        self::assertSame(
+            '<figure class="hasOverlayCaption"><picture><source type="image/webp" srcset="/a.webp"><img class="isImage" src="/a.jpg" alt="A" width="8" height="6" loading="lazy" decoding="async"></picture><figcaption>Over it</figcaption></figure>',
+            $this->render('<twig:Picture src="/a.jpg" :sources="[{type: \'image/webp\', srcset: \'/a.webp\'}]" alt="A" :width="8" :height="6" caption="Over it" captionPosition="overlay" />'),
+        );
+    }
+
+    public function testACaptionStandsBelowByDefaultAndAnOverlayNeedsACaption(): void
+    {
+        self::assertSame(
+            '<figure><img class="isImage" src="/a.jpg" alt="A" width="8" height="6" loading="lazy" decoding="async"><figcaption>Under it</figcaption></figure>',
+            $this->render('<twig:Image src="/a.jpg" alt="A" :width="8" :height="6" caption="Under it" captionPosition="below" />'),
+        );
+        self::assertSame(
+            '<figure><img class="isImage" src="/a.jpg" alt="A" width="8" height="6" loading="lazy" decoding="async"><figcaption>Under it</figcaption></figure>',
+            $this->render('<twig:Image src="/a.jpg" alt="A" :width="8" :height="6" caption="Under it" captionPosition="aside" />'),
+            'an unknown position stands below',
+        );
+        self::assertSame(
+            '<figure><img class="isImage" src="/a.jpg" alt="A" width="8" height="6" loading="lazy" decoding="async" id="a" aria-describedby="a-description"><details class="isDescription"><summary>Description</summary><p id="a-description">Long</p></details></figure>',
+            $this->render('<twig:Image src="/a.jpg" alt="A" :width="8" :height="6" id="a" description="Long" captionPosition="overlay" />'),
+            'without a caption, nothing is laid over the image',
+        );
+    }
 }

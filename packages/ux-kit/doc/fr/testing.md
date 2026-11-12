@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=72ecfa31a68864b7d9ddf710a01ccbb594494556550b7d5e68dbdb8bb26d0b79 -->
+<!-- phil-dev source-sha256=cb6923a4537abd82ced2740c2d9e0dc6ddbfaf686d1ec0120735bfeb929b039c -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -10,6 +10,7 @@
 | `Image` et `Picture` | En différé et en asynchrone par défaut, `priority` et les choix qui l'emportent sur elle, les valeurs inconnues ramenées au défaut, les tableaux de densités et de largeurs, `sizes` après `auto,` en différé, une image décorative qui laisse de côté `title` et `aria-*`, la légende et sa `figure`, aucune pour une légende vide, gardée sous une image décorative, les attributs permis seuls, l'échappement, les URL `javascript:`, `vbscript:` et `data:` autres qu'images refusées sous tous leurs déguisements, `data:image/` permise, `src`, `alt`, `width` et `height` requis ; les sources dans leur ordre, par densité, par largeur avec direction artistique, dimensionnées automatiquement en différé, une source d'un type inconnu ou sans candidate laissée de côté, l'`Image` seule sans source ; les dispositions et le `sizes` qu'elles calculent, chaque rapport, l'ajustement et le recadrage, les valeurs inconnues laissées de côté ; la direction artistique, les sources à requête d'abord dans l'ordre de leurs types, une requête ou une taille de mauvaise forme |
 | `Image` et `Picture` en 0.3 | Le préchargement de l'image principale par WebLink, ses attributs et son absence sans `priority`, avec `preload: false` ou avec une requête media ; les variantes sombre et fixe d'abord, en URL, en tableaux ou en sources de leurs propres types ; le crédit, la licence et son lien, la création dans les mots du vocabulaire ou du site, d'après un code ou une énumération ; une image d'un hôte listé demandée sans référent, une d'un autre hôte refusée, l'origine même de la page ; `image_sources()` sur les ressources d'AssetMapper |
 | `Image` et `Picture` en 0.4 | `deferred` et `fetchpriority="low"`, `priority` l'emportant ; la classe de chaque couleur d'attente, une inconnue ne peignant rien ; un aperçu remis à son contrôleur à côté de celui de la page, seule une toute petite image matricielle en ligne en base 64 gardée ; la variante des couleurs forcées d'abord et jamais préchargée ; la description dans son dévoilement avant la légende, échappée, décrivant l'image à côté d'une description de la page, son identifiant tiré de celui de l'image ou propre, une image décorative la montrant sans être décrite ; `Gallery`, `Lightbox` et `Logo` qui les portent ; les avertissements d'`image_check()` en débogage, aucun quand il est coupé ou sans débogage ; la priorité, la disposition, le rapport, l'ajustement et le recadrage de `Logo`, portés par `ComingSoon` avec la taille de son logo et le chargement de son illustration |
+| Les images en 0.5 | Une légende posée sur son image, la classe de sa figure, dessous par défaut et rien de posé sans légende ; `Gallery` en carrousel, sa liste atteinte au clavier, les noms de ses marqueurs et de ses boutons, la place de ses légendes ; `Hotspots`, chaque point un lien placé par ses classes aux cinq pour cent près et par ses attributs de données, gardé sur le bord, un point sans mots, sans adresse ou sans place ou avec une adresse refusée écarté, les sources et le préchargement de l'image, une image refusée ; `Hero`, son image principale de la page, préchargée, couvrante, ses tailles et ses sources, ses hauteurs et ses alignements, paresseuse sous la ligne de flottaison, une image refusée qui laisse le contenu ; `Video`, son affiche, ses sources et ses pistes, rien de demandé et aucune lecture automatique, une source, une piste ou une affiche refusée écartée, sa transcription qui la décrit, rien sans source ; `Figure`, ses images sous une légende, un crédit, une licence et une création, ses colonnes, la grille seule sans eux |
 | `Gallery` et `Lightbox` | La liste nommée par son libellé, ses figures, la visionneuse de chaque image et leurs identifiants, les tailles de la grille, une image refusée qui ne prend aucune place ; la vignette dans son bouton avec les invocateurs, le dialogue et son bouton de fermeture, l'image entière montrée en entier, la légende sous les deux, les libellés en props, une image décorative nommée par sa légende, une image refusée, `id` requis |
 | `image_origin()` et `image_sources()` | `ImageOrigin` : les chemins relatifs, les images en ligne et l'origine de la page locaux, les hôtes de la liste et ceux qui sont sous eux externes, tout autre hôte, des identifiants, une adresse IP, `localhost` sauf permission et tout autre schéma refusés, un `srcset` coupé à chaque espace et à chaque virgule, aucun hôte caché derrière une virgule, et jugé sur son pire morceau ; `ImageSources` : les formats et les densités d'une image, un fichier seul sans descripteur, les largeurs, les formats et les replis choisis, la taille du repli, un chemin refusé, aucun repli |
 | `AutosaveStatus` | La région active, l'avis caché, ses boutons avec leurs cibles, leurs actions et leurs libellés par défaut ; les libellés en props, échappés ; une `class` ajoutée |
@@ -50,7 +51,13 @@ la galerie, une visionneuse ouverte et l'image avec ses variantes, selon les rè
 et l'image avec sa variante des couleurs forcées, sa couleur d'attente et sa description, l'image avec son aperçu et la
 galerie différée, une de ses visionneuses ouverte. La suite vérifie qu'une galerie différée garde ses figures hors de
 l'écran à leur rapport et son anneau de focus entier, qu'un aperçu est peint jusqu'à l'arrivée de son image, et qu'une
-image montre sa variante là où les couleurs sont forcées. Un dernier test vérifie que chaque partie d'une page qui
+image montre sa variante là où les couleurs sont forcées. axe-core audite aussi ce qu'ajoute la 0.5, dans chaque mode :
+une légende sur son image, une galerie en carrousel, une image avec ses points, un héros, une vidéo avec ses
+sous-titres et sa transcription, et une figure de plusieurs images. La suite vérifie que la légende repose sur le pied
+de son image, que le carrousel est une seule rangée qui s'aimante et défile aux flèches, ses boutons nommés, que chaque
+point se tient à sa place, la même de droite à gauche, et sous l'image sur un téléphone, que l'image d'un héros le
+couvre, qu'une vidéo ne demande rien avant sa lecture, garde son rapport sur un téléphone et lit son fichier, et qu'une
+figure dispose ses images en colonnes au-dessus de sa légende. Un dernier test vérifie que chaque partie d'une page qui
 contient toutes les recettes porte une classe de la feuille.
 
 La suite est à part de `composer test`, dans `phpunit.browser.dist.xml`, et tourne à la fin d'un lot :
@@ -63,7 +70,8 @@ Elle a besoin de Chrome et du `chromedriver` du système dans le `PATH`, de la m
 `brew install --cask chromedriver` sur macOS, `apt install chromium-driver` sur Debian. `PANTHER_NO_HEADLESS=1` montre
 la fenêtre ; `phpunit.browser.dist.xml` pose `PANTHER_NO_REDUCED_MOTION`, pour que ce que la suite observe bouge. Sans
 le pilote, la suite échoue avec le message de Panther. La page est écrite sous le dossier temporaire par `RecipesPage`,
-avec le vrai `@hotwired/stimulus`, épinglé avec `axe-core` dans `tests/Browser/package.json` et son fichier de
+avec les fichiers de `tests/Browser/resources/media`, un extrait WebM de deux secondes et ses sous-titres WebVTT, le
+vrai `@hotwired/stimulus`, épinglé avec `axe-core` dans `tests/Browser/package.json` et son fichier de
 verrouillage et installé par le script : des dépendances de développement de ces tests, que le kit ne publie pas.
 
 ## Pour un autre kit
@@ -82,7 +90,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
         return new RecipesPage(
             new TestKernel('test', true),             // an application where the kit's recipes are installed
             TestKernel::KIT_DIR,                      // the kit, whose */assets/controllers are copied
-            __DIR__.'/resources',                     // its app.js and page.html.twig
+            __DIR__.'/resources',                     // its app.js, page.html.twig and media/
             __DIR__.'/var/app.css',                   // its stylesheet
             sys_get_temp_dir().'/my-kit-browser',     // the web root written
             __DIR__.'/node_modules/@hotwired/stimulus/dist/stimulus.js',

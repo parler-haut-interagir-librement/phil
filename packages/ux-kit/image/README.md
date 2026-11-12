@@ -306,6 +306,19 @@ with an empty `alt`, stays decorative: its caption still shows.
 <twig:Image src="/images/map.png" alt="The map of the city" :width="800" :height="600" caption="Where we meet" />
 ```
 
+### A caption over the image
+
+`captionPosition="overlay"` lays the caption, with its credit, its license and its creation, over the foot of the
+image, on a veil of `--phil-color-veil` dark enough for its light text whatever the picture; `below`, the default,
+keeps it under the image. The figure takes the class `hasOverlayCaption` and is as wide as its image; a description
+stays under both. Without a caption, nothing is laid over the image.
+
+```twig
+<twig:Image src="/images/hall.jpg" alt="The main hall" :width="960" :height="640" caption="The main hall" captionPosition="overlay" />
+```
+
+Keep the caption to a line or two: it covers the foot of the picture.
+
 ### Other attributes
 
 Of the other attributes, only `id`, `class`, `title`, `crossorigin`, `referrerpolicy`, `itemprop`, `draggable`,
@@ -360,4 +373,5 @@ when the container is narrower. Give `priority` to the main image above the fold
 still variant serves those whom motion makes ill (WCAG 2.3.3); the variant for forced colours, those who need the
 contrast of their system (WCAG 1.4.11); the creation is said in words, not by an icon alone. A long description gives
 the content of a chart or a diagram in text (WCAG 1.1.1), in a disclosure every reader can open, its summary a prop to
-translate. The placeholder and the preview are backgrounds, which screen readers do not see.
+translate. The placeholder and the preview are backgrounds, which screen readers do not see. A caption laid over its
+image keeps light text on a veil that reaches 9:1 over a white picture (WCAG 1.4.3).

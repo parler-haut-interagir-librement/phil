@@ -4,6 +4,25 @@ All notable changes to `phil/ux-css` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.5.0-alpha - 2026-11-13
+
+### Added
+
+- `css/tokens/colors.css`: `--phil-color-veil`, black at 72 % in both schemes, and `--phil-color-on-veil`, the light
+  text on it, which reaches 9:1 over a white picture.
+- `css/layers/components.css`: `hasOverlayCaption`, a figure whose caption lies over the foot of its image on the veil;
+  `isGallery.hasLayoutCarousel`, its figures in one row that scrolls and snaps, a marker per figure by `::scroll-marker`
+  named by `attr(data-marker)`, and a button on each side by `::scroll-button()`, named by `attr(data-previous)` and
+  `attr(data-next)`, where the browser draws them; `isHotspots`, `isHotspotsList` and `isHotspot`, the points over an
+  image, placed by `hasHotspotX0` to `hasHotspotX100` and `hasHotspotY0` to `hasHotspotY100` in steps of five, or by a
+  typed `attr()` of their `data-x` and `data-y`, a list under the image below 36rem; `isHero`, `hasHeroScreen`,
+  `hasHeroLarge`, `hasHeroStart`, `hasHeroCenter`, `isHeroMedia` and `isHeroContent`; `isVideo`, kept at the ratio of its
+  `width` and `height`; `isFigureGroup` with `hasTwoColumns`, `hasThreeColumns` and `hasFourColumns`.
+
+### Changed
+
+- The branch alias of `dev-main` is `0.5.x-dev`; `package.json` is at `0.5.0`.
+
 ## 0.4.0-alpha - 2026-11-13
 
 ### Added

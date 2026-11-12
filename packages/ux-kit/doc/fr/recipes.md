@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8d0a37dae6ca4201d0a22a45b3a8bb9f74f0e5850c34909d612c88b52399e20d -->
+<!-- phil-dev source-sha256=2b77da7750eecc99d8bf24c7d0960abba61810f709a31db217ec46772f225e7a -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -118,6 +118,7 @@ et sa description.
 | `loading` | `null` | `lazy` ou `eager`, qui l'emporte sur `priority` ; `lazy` quand il est nul sans `priority` |
 | `decoding` | `null` | `async`, `sync` ou `auto`, qui l'emporte sur `priority` ; `async` quand il est nul sans `priority` |
 | `caption` | `null` | Une `figcaption`, échappée : l'image est alors dans une `figure`, décorative ou non |
+| `captionPosition` | `'below'` | `below`, sous l'image, ou `overlay`, sur son pied, sur un voile assez sombre pour un texte clair, la `figure` de classe `hasOverlayCaption` |
 | `credit` | `null` | Qui a fait l'image, tel que le site l'écrit, dans un `small` de classe `isCredit` sous la légende |
 | `license`, `licenseHref` | `null` | Le nom de la licence, dans un `small` de classe `isLicense`, lié à son adresse avec `rel="license"` |
 | `creation` | `null` | Un code du vocabulaire IPTC Digital Source Type, ou une énumération dont la valeur en est un, dit dans un `small` de classe `isCreation` |
@@ -189,6 +190,9 @@ dans son `li`, ou une `Lightbox` ; rien sans image.
 | `deferred` | `false` | Une longue galerie : ses figures hors de l'écran sautées par `content-visibility: auto` (`isDeferred`), chaque `li` dimensionné par ses `data-width` et `data-height`, ses images demandées en dernier |
 | `placeholder` | `null` | La couleur d'attente de chaque image, comme pour `Image` |
 | `descriptionLabel` | `'Description'` | Les mots du résumé de la `description` de chaque image |
+| `layout` | `null` | `carousel` : une rangée qui défile et s'aimante, que le clavier atteint (`hasLayoutCarousel`, `tabindex="0"`), ses marqueurs et ses boutons dessinés par `::scroll-marker` et `::scroll-button()` là où le navigateur les a ; une grille sinon |
+| `previousLabel`, `nextLabel` | `'Previous'`, `'Next'` | Les noms des boutons d'un carrousel, portés par la liste dans `data-previous` et `data-next` ; chaque marqueur est nommé par le `data-marker` de son `li`, le texte de remplacement de son image ou son rang |
+| `captionPosition` | `'below'` | Où se tient la légende de chaque image, comme pour `Image` ; une visionneuse garde la sienne sous sa vignette |
 
 ## Lightbox
 
@@ -207,6 +211,85 @@ classe `isLightboxTrigger` qui ouvre, par `command="show-modal"` et `commandfor`
 | `closeLabel` | `'Close'` | Ce que les lecteurs d'écran lisent pour le bouton de fermeture |
 | `deferred`, `placeholder`, `preview` | `false`, `null`, `null` | Ceux de la vignette, comme pour `Image` |
 | `description`, `descriptionLabel` | `null`, `'Description'` | Une description longue après la vignette, hors de son bouton, qu'elle décrit |
+
+## Hotspots
+
+`<twig:Hotspots>` : un `div` de classe `isHotspots` qui contient une `Picture` de la recette `image` et, par-dessus, un
+`ul` de classe `isHotspotsList` nommé par `label`, chaque point un `li` de classe `isHotspot` qui contient son lien ;
+dans une `figure` avec sa légende, son crédit et sa licence. Une image que la recette `image` refuse ne dessine rien.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `src`, `alt`, `width`, `height` | requis | L'image, comme pour `Image` |
+| `label` | requis | Le nom de la liste des points pour les lecteurs d'écran |
+| `spots` | `[]` | Chacun `{x, y, label, href}` : sa place en pourcentages de la largeur depuis la gauche et de la hauteur depuis le haut, ramenée à 100 au plus, ses mots et son adresse |
+| `sources`, `srcset`, `sizes`, `priority`, `placeholder` | | Ceux de l'image, comme pour `Picture` |
+| `caption`, `credit`, `license`, `licenseHref` | `null` | Sous l'image, dans une `figure` |
+
+Chaque point porte les classes `hasHotspotX0` à `hasHotspotX100` et `hasHotspotY0` à `hasHotspotY100`, sa place aux
+cinq pour cent près, et `data-x` et `data-y`, sa place exacte, que phil-ux lit par un `attr()` typé là où le navigateur
+le fait ; jamais de `style`. Un point sans mots, sans adresse, avec une adresse `javascript:`, `vbscript:` ou `data:`,
+ou dont la place n'est pas un nombre à partir de 0, est écarté ; sans point, pas de liste. `id` et `class` vont au `div`.
+
+## Hero
+
+`<twig:Hero>` : un `div` de classe `isHero` qui contient un `div` de classe `isHeroMedia`, sa `Picture` disposée en
+`full-width` et qui couvre la boîte, puis un `div` de classe `isHeroContent`, son contenu par-dessus l'image.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `src`, `alt`, `width`, `height` | requis | L'image, comme pour `Image` ; `alt` vide quand elle ne fait que planter le décor |
+| `sources`, `srcset`, `placeholder`, `preview`, `position` | | Ceux de l'image, comme pour `Picture` |
+| `sizes` | `null` | `100vw` quand il est nul |
+| `priority` | `true` | L'image principale de la page : chargée tout de suite, demandée d'abord, préchargée par WebLink |
+| `size` | `'screen'` | `screen` (`hasHeroScreen`), `large` (`hasHeroLarge`) ou `auto` |
+| `align` | `'end'` | Où se tient le contenu dans la hauteur : `start` (`hasHeroStart`), `center` (`hasHeroCenter`) ou `end` |
+
+| Bloc | |
+|---|---|
+| `content` | Ce qui se tient par-dessus l'image, sur son voile |
+
+Une image que la recette `image` refuse laisse le contenu seul. `id` et `class` vont à la racine.
+
+## Video
+
+`<twig:Video>` : une `video` de classe `isVideo` avec `controls`, `playsinline` et `preload="none"`, ses éléments
+`source` et `track`, puis un lien vers la première source ; dans une `figure` avec sa transcription, sa légende, son
+crédit, sa licence et sa création. Sans source restante, rien n'est dessiné.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `width`, `height` | requis | La taille de la vidéo, pour réserver sa place |
+| `src` | `null` | Une source unique |
+| `sources` | `[]` | Chacune `{src, type}`, après `src` ; une source `data:`, un type autre que `video/*` ou un hôte refusé l'écarte |
+| `poster` | `null` | L'image montrée jusqu'à la lecture : une adresse que la recette `image` montrerait, ou une `data:image/` |
+| `tracks` | `[]` | Chacune `{src, srclang, label, kind, default}`, un fichier WebVTT : `kind` `captions`, par défaut, `subtitles`, `descriptions` ou `chapters` |
+| `preload` | `'none'` | `none` ou `metadata` ; toute autre valeur vaut `none` |
+| `muted`, `loop` | `false` | Pour un court extrait muet |
+| `label` | `null` | Le nom de la vidéo, `aria-label`, quand aucune légende ne la nomme |
+| `fallbackLabel` | `'Download the video'` | Les mots du lien que montre un navigateur qui ne lit aucune vidéo |
+| `caption`, `credit`, `license`, `licenseHref`, `creation`, `creationLabel` | `null` | Comme pour `Image` |
+| `transcript` | `null` | Un dévoilement de classe `isDescription` après la vidéo, qui la décrit par `aria-describedby` |
+| `transcriptLabel` | `'Transcript'` | Les mots de son résumé |
+
+Aucune lecture automatique : un attribut `autoplay` est écarté. Ses adresses sont contrôlées comme celles d'une image,
+par `image_origin()`. `id` et `class` vont à la `video`.
+
+## Figure
+
+`<twig:Figure>` : un `div` de classe `isFigureGroup` qui contient les images de son contenu, dans une `figure` avec
+une légende, un crédit, une licence et une création pour toutes ; le `div` seul sans eux.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `caption`, `credit`, `license`, `licenseHref`, `creation`, `creationLabel` | `null` | Comme pour `Image`, écrits une fois sous les images |
+| `columns` | `null` | `2`, `3` ou `4` colonnes sur tous les écrans (`hasTwoColumns`…) ; autant que le conteneur le permet quand il est nul |
+
+| Bloc | |
+|---|---|
+| `content` | Les images, chacune une `Image` ou une `Picture` sans légende à elle |
+
+`id` et `class` vont au `div`.
 
 ## ReactionButton
 
@@ -1176,10 +1259,10 @@ Composants : `<twig:ToggleGroup>`, `<twig:ToggleGroup:Item>`.
 
 ## Les recettes de ce kit seulement
 
-`Logo`, `AnimatedHeadline`, `Illustration`, `Gallery`, `Lightbox`, `AutosaveStatus`, `ReactionButton`, `ReactionPicker`,
-`QrCode`, les blocs `ComingSoon`, `LoginForm` et `SignupForm`, les deux graphiques et les recettes ci-dessous n'ont pas
-d'équivalent dans le kit Shadcn. Sur Tailwind, le kit `phil/ux-kit-shadcn` contient chacun d'eux sous les mêmes noms,
-props, blocs et contrôleurs.
+`Logo`, `AnimatedHeadline`, `Illustration`, `Gallery`, `Lightbox`, `Hotspots`, `Hero`, `Video`, `Figure`,
+`AutosaveStatus`, `ReactionButton`, `ReactionPicker`, `QrCode`, les blocs `ComingSoon`, `LoginForm` et `SignupForm`,
+les deux graphiques et les recettes ci-dessous n'ont pas d'équivalent dans le kit Shadcn. Sur Tailwind, le kit
+`phil/ux-kit-shadcn` contient chacun d'eux sous les mêmes noms, props, blocs et contrôleurs.
 
 ## Avec le kit Common
 

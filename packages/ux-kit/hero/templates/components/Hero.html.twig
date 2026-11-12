@@ -1,0 +1,43 @@
+{#-
+ # A hero: an image across the whole box, which stays a real image, a Picture of the image recipe with its text
+ # alternative, its sources and its preload, covering the box at the height asked; and over it the content given, on a
+ # veil dark enough for light text whatever the picture. The image is the main one of the page by default: loaded at
+ # once, fetched first and preloaded through Symfony WebLink. An image the image recipe refuses leaves the content alone.
+ #}
+{%- props
+    ## string The URL of the image.
+    src,
+    ## string What the image shows; an empty string when it only sets the scene, which screen readers then skip.
+    alt,
+    ## int The width of the image, from which the browser knows its ratio.
+    width,
+    ## int The height of the image, from which the browser knows its ratio.
+    height,
+    ## list<array{type?:string,srcset:string|array<int|string,string>,sizes?:string,media?:string,width?:int,height?:int}> The sources of the image, as for Picture: a narrower crop for phones by its media query.
+    sources = [],
+    ## string|array<int|string,string>|null The candidates of the image, as for Image, read as widths across the screen.
+    srcset = null,
+    ## string|null The sizes of a srcset of widths: "100vw" when null, the image spanning the screen.
+    sizes = null,
+    ## string|null Where the image is cropped in the box: "center" by default, "top", "bottom", "left" or "right".
+    position = null,
+    ## bool Whether it is the main image above the fold, loaded at once, fetched first and preloaded: true, a hero standing at the top of its page.
+    priority = true,
+    ## string|null The colour the box is painted while the image loads, as for Image.
+    placeholder = null,
+    ## string|null A tiny version of the image, inline in base 64, shown blurred while it loads, as for Image.
+    preview = null,
+    ## string How tall the hero stands: "screen", the height of the screen; "large", most of it; "auto", that of its content.
+    size = 'screen',
+    ## string Where the content stands in the height of the hero: "start", "center" or "end".
+    align = 'end'
+-%}
+<div {{ html_attr({id: attributes.all.id ?? null, class: ['isHero', {screen: 'hasHeroScreen', large: 'hasHeroLarge'}[size] ?? null, {start: 'hasHeroStart', center: 'hasHeroCenter'}[align] ?? null, attributes.all.class ?? null]|filter(name => name is not empty)|join(' ')}) }}>
+    <div class="isHeroMedia">
+        <twig:Picture :src="src" :alt="alt" :width="width" :height="height" :sources="sources" :srcset="srcset" :sizes="sizes" layout="full-width" fit="cover" :position="position" :priority="priority" :placeholder="placeholder" :preview="preview" />
+    </div>
+    <div class="isHeroContent">
+        {##- What stands over the image: a heading, a sentence, a call to action. -#}
+        {%- block content %}{% endblock -%}
+    </div>
+</div>

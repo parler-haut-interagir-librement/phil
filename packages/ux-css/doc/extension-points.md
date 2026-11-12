@@ -13,6 +13,7 @@
 | The size of controls | `--phil-control-sm`, `-md`, `-lg`; or `--phil-control-size` on one element |
 | A dialog's or sheet's width | `--phil-dialog-size` on the element |
 | The carousel | `--phil-carousel-item`, `--phil-carousel-gap` |
+| The images | `--phil-gallery-column`, `--phil-gallery-gap`, `--phil-figure-column`; `--phil-color-veil` and `--phil-color-on-veil` under a caption, a point or the content of a hero laid over a picture |
 | The colours of highlighted code | `--phil-hl-keyword`, `--phil-hl-string`, `--phil-hl-number`, `--phil-hl-comment`, `--phil-hl-name`, `--phil-hl-markup` |
 | The headline | `--phil-reveal-caret`, the durations through the controller's values, `.isRevealToggle` for the pause button |
 | Extra contrast pairs | `new ContrastRule([new Pair(…)])` |

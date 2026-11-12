@@ -10,6 +10,8 @@ use Phil\UxKit\PhilUxKitBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\TwigBundle\TwigBundle;
+use Symfony\Component\Config\Resource\GlobResource;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\UX\TwigComponent\TwigComponentBundle;
@@ -68,6 +70,15 @@ final class TestKernel extends Kernel
         $directories = glob(self::KIT_DIR.'/*/templates', \GLOB_ONLYDIR);
 
         return false === $directories ? [] : $directories;
+    }
+
+    /**
+     * A recipe added to the kit rebuilds the container, whose Twig paths list the recipes.
+     */
+    #[Override]
+    protected function build(ContainerBuilder $container): void
+    {
+        $container->addResource(new GlobResource(self::KIT_DIR, '/*/templates', false));
     }
 
     private function configureContainer(ContainerConfigurator $container): void

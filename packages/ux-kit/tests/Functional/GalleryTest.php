@@ -109,4 +109,28 @@ final class GalleryTest extends KitTestCase
         self::assertStringContainsString('<img class="isImage hasPlaceholderBlue" src="/a.jpg" alt="A" width="8" height="6" loading="lazy" decoding="async" fetchpriority="low">', $html);
         self::assertStringContainsString('</button><details class="isDescription"><summary>Description</summary><p id="lightbox-g-1-description">Lines</p></details></figure>', $html);
     }
+
+    public function testACarouselIsARowTheKeyboardReachesItsMarkersAndButtonsNamed(): void
+    {
+        self::assertSame(
+            '<div id="strip" class="isGallery hasLayoutCarousel"><ul role="list" aria-label="The strip" tabindex="0" data-previous="Back" data-next="On">'
+            .'<li data-marker="The stage"><figure class="hasOverlayCaption"><img class="isImage" src="/a.jpg" alt="The stage" width="800" height="600" loading="lazy" decoding="async"><figcaption>Opening</figcaption></figure></li>'
+            .'<li data-marker="2"><img class="isImage" src="/c.jpg" alt="" width="8" height="6" loading="lazy" decoding="async"></li>'
+            .'</ul></div>',
+            $this->render('<twig:Gallery id="strip" label="The strip" layout="carousel" previousLabel="Back" nextLabel="On" captionPosition="overlay" :images="[{src: \'/a.jpg\', alt: \'The stage\', width: 800, height: 600, caption: \'Opening\'}, {src: \'/c.jpg\', alt: \'\', width: 8, height: 6}]" />'),
+        );
+    }
+
+    public function testACarouselNamesItsButtonsInEnglishByDefaultAndKeepsTheRatioOfADeferredFigure(): void
+    {
+        self::assertSame(
+            '<div class="isGallery isDeferred hasLayoutCarousel"><ul role="list" aria-label="L" tabindex="0" data-previous="Previous" data-next="Next"><li data-width="8" data-height="6" data-marker="A"><img class="isImage" src="/a.jpg" alt="A" width="8" height="6" loading="lazy" decoding="async" fetchpriority="low"></li></ul></div>',
+            $this->render('<twig:Gallery label="L" layout="carousel" :deferred="true" :images="[{src: \'/a.jpg\', alt: \'A\', width: 8, height: 6}]" />'),
+        );
+        self::assertStringStartsWith(
+            '<div class="isGallery"><ul role="list" aria-label="L"><li>',
+            $this->render('<twig:Gallery label="L" layout="masonry" :images="[{src: \'/a.jpg\', alt: \'A\', width: 8, height: 6}]" />'),
+            'another layout is the grid',
+        );
+    }
 }

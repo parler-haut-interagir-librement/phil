@@ -1,0 +1,64 @@
+{#-
+ # An image with points of interest: a Picture of the image recipe and, over it, a list of links named by its label,
+ # each placed at its point without an inline style, by a class to the nearest five per cent and exactly by a typed
+ # attr() where the browser reads one. Without the stylesheet, or on a narrow screen, the links read as a list under the
+ # image. A point without words, without an address, with a refused address or without a place is left out; an image
+ # the image recipe refuses draws nothing. A caption, a credit and a license make a figure of it.
+ #}
+{%- props
+    ## string The URL of the image.
+    src,
+    ## string What the image shows, for those who do not see it; the points are read after it, in their list.
+    alt,
+    ## int The width of the image, so that its space is reserved at its ratio before it loads.
+    width,
+    ## int The height of the image, so that its space is reserved at its ratio before it loads.
+    height,
+    ## string The name of the list of points, which screen readers read, such as "Rooms of the venue".
+    label,
+    ## list<array{x:int|float,y:int|float,label:string,href:string}> The points: where each stands, as percentages of the width from the left and of the height from the top of the image, its words and its address.
+    spots = [],
+    ## list<array{type?:string,srcset:string|array<int|string,string>,sizes?:string}> The sources of the image, as for Picture, of the same crop: the points stand on every one.
+    sources = [],
+    ## string|array<int|string,string>|null The candidates of the image, as for Image.
+    srcset = null,
+    ## string|null The sizes of a srcset of widths, as for Image.
+    sizes = null,
+    ## bool Whether it is the main image above the fold, as for Image.
+    priority = false,
+    ## string|null The colour its box is painted while it loads, as for Image.
+    placeholder = null,
+    ## string|null A caption under the image, which a figure then holds with it.
+    caption = null,
+    ## string|null Who made the image, as the site writes it, under the caption.
+    credit = null,
+    ## string|null The name of the license of the image, under the caption.
+    license = null,
+    ## string|null The address of the license, which its name then links to with rel="license".
+    licenseHref = null
+-%}
+{%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
+{%- if src is not empty and not (src|replace(_controls) matches '#^[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i') and image_origin(src) is not same as('refused') -%}
+    {%- set _xs = {0: 'hasHotspotX0', 5: 'hasHotspotX5', 10: 'hasHotspotX10', 15: 'hasHotspotX15', 20: 'hasHotspotX20', 25: 'hasHotspotX25', 30: 'hasHotspotX30', 35: 'hasHotspotX35', 40: 'hasHotspotX40', 45: 'hasHotspotX45', 50: 'hasHotspotX50', 55: 'hasHotspotX55', 60: 'hasHotspotX60', 65: 'hasHotspotX65', 70: 'hasHotspotX70', 75: 'hasHotspotX75', 80: 'hasHotspotX80', 85: 'hasHotspotX85', 90: 'hasHotspotX90', 95: 'hasHotspotX95', 100: 'hasHotspotX100'} -%}
+    {%- set _ys = {0: 'hasHotspotY0', 5: 'hasHotspotY5', 10: 'hasHotspotY10', 15: 'hasHotspotY15', 20: 'hasHotspotY20', 25: 'hasHotspotY25', 30: 'hasHotspotY30', 35: 'hasHotspotY35', 40: 'hasHotspotY40', 45: 'hasHotspotY45', 50: 'hasHotspotY50', 55: 'hasHotspotY55', 60: 'hasHotspotY60', 65: 'hasHotspotY65', 70: 'hasHotspotY70', 75: 'hasHotspotY75', 80: 'hasHotspotY80', 85: 'hasHotspotY85', 90: 'hasHotspotY90', 95: 'hasHotspotY95', 100: 'hasHotspotY100'} -%}
+    {%- set _spots = spots|filter(spot => (spot.label ?? '') is not empty
+        and (spot.href ?? '') is not empty
+        and not (spot.href|replace(_controls) matches '#^[[:cntrl:] ]*(javascript:|vbscript:|data:)#i')
+        and (spot.x ?? '') matches '#^[0-9]+([.][0-9]+)?$#'
+        and (spot.y ?? '') matches '#^[0-9]+([.][0-9]+)?$#') -%}
+    {%- set _root = {id: attributes.all.id ?? null, class: ['isHotspots', attributes.all.class ?? null]|filter(name => name is not empty)|join(' ')} -%}
+    <twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref">
+        <div {{ html_attr(_root) }}>
+            <twig:Picture :src="src" :alt="alt" :width="width" :height="height" :sources="sources" :srcset="srcset" :sizes="sizes" :priority="priority" :placeholder="placeholder" />
+            {%- if _spots is not empty -%}
+                <ul role="list" class="isHotspotsList" aria-label="{{ label }}">
+                    {%- for spot in _spots -%}
+                        {%- set _x = min(100, spot.x) -%}
+                        {%- set _y = min(100, spot.y) -%}
+                        <li {{ html_attr({class: ['isHotspot', _xs[((_x / 5)|round * 5) ~ ''], _ys[((_y / 5)|round * 5) ~ '']]|join(' '), 'data-x': _x, 'data-y': _y}) }}><a href="{{ spot.href }}">{{ spot.label }}</a></li>
+                    {%- endfor -%}
+                </ul>
+            {%- endif -%}
+        </div>
+    </twig:Image:Figure>
+{%- endif -%}

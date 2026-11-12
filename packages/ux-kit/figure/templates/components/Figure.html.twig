@@ -1,0 +1,28 @@
+{#-
+ # Several images under one caption: the images given as content, each an Image or a Picture of the image recipe without
+ # a caption of its own, in a grid of columns as wide as the container allows, or as many as asked; then, through the
+ # figure of the image recipe, one caption, credit, license and creation for all of them. Without any, the grid alone.
+ #}
+{%- props
+    ## string|null The caption of all the images, which a figure then holds with them.
+    caption = null,
+    ## string|null Who made the images, as the site writes it, under the caption.
+    credit = null,
+    ## string|null The name of the license of the images, under the caption.
+    license = null,
+    ## string|null The address of the license, which its name then links to with rel="license".
+    licenseHref = null,
+    ## string|BackedEnum|null How the images were made, a code of the IPTC Digital Source Type vocabulary, or an enum whose value is one, as for Image.
+    creation = null,
+    ## string|null The words that say how the images were made; the name the vocabulary gives the code when null.
+    creationLabel = null,
+    ## int|null The number of columns, 2, 3 or 4, kept on every screen; as many as the container allows when null.
+    columns = null
+-%}
+{%- set _root = {id: attributes.all.id ?? null, class: ['isFigureGroup', {2: 'hasTwoColumns', 3: 'hasThreeColumns', 4: 'hasFourColumns'}[columns] ?? null, attributes.all.class ?? null]|filter(name => name is not empty)|join(' ')} -%}
+<twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel">
+    <div {{ html_attr(_root) }}>
+        {##- The images, each an Image or a Picture without a caption of its own. -#}
+        {{- block(outerBlocks.content) -}}
+    </div>
+</twig:Image:Figure>

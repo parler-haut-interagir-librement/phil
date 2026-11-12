@@ -11,7 +11,7 @@
 | `src/Application/ImageTextCheck.php` | `Phil\UxKit\Application\ImageTextCheck`: what a developer may have left wrong in an image, a text alternative that is the name of its file, a generic word or one that starts by saying it is an image, a missing width or height |
 | `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()`, `image_sources()` and `image_check()`, which logs the problems of `ImageTextCheck` as warnings when `phil_ux_kit.image.check` is on |
 | `src/Test/BrowserTestCase.php` | `Phil\UxKit\Test\BrowserTestCase`: one headless Chrome on the page of the recipes of a kit, and the helpers of a browser test |
-| `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage`: the web root of every recipe of a kit, with its stylesheet, its controllers and Stimulus |
+| `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage`: the web root of every recipe of a kit, with its stylesheet, its controllers, Stimulus and the files of its `media` directory |
 | `logo/manifest.json`, `logo/README.md` | The `Logo` recipe |
 | `logo/templates/components/Logo.html.twig` | The `Logo` component |
 | `animated-headline/manifest.json`, `animated-headline/README.md` | The `AnimatedHeadline` recipe |
@@ -27,6 +27,14 @@
 | `lightbox/manifest.json`, `lightbox/README.md` | The `Lightbox` recipe |
 | `lightbox/templates/components/Lightbox.html.twig` | The `Lightbox` component |
 | `lightbox/assets/controllers/lightbox_controller.js` | The Stimulus controller `lightbox`, which opens and closes the dialog where the browser runs neither the invokers nor `closedby` |
+| `hotspots/manifest.json`, `hotspots/README.md` | The `Hotspots` recipe |
+| `hotspots/templates/components/Hotspots.html.twig` | The `Hotspots` component |
+| `hero/manifest.json`, `hero/README.md` | The `Hero` recipe |
+| `hero/templates/components/Hero.html.twig` | The `Hero` component |
+| `video/manifest.json`, `video/README.md` | The `Video` recipe |
+| `video/templates/components/Video.html.twig` | The `Video` component |
+| `figure/manifest.json`, `figure/README.md` | The `Figure` recipe |
+| `figure/templates/components/Figure.html.twig` | The `Figure` component |
 | `autosave-status/manifest.json`, `autosave-status/README.md` | The `AutosaveStatus` recipe |
 | `autosave-status/templates/components/AutosaveStatus.html.twig` | The `AutosaveStatus` component |
 | `reaction-button/manifest.json`, `reaction-button/README.md` | The `ReactionButton` recipe |

@@ -266,6 +266,17 @@ described by the paragraph inside.
 </figure>
 ```
 
+`hasOverlayCaption`, on the figure, lays its caption over the foot of the image, on `--phil-color-veil`, its text in
+`--phil-color-on-veil`, which reaches 9:1 over a white picture; the figure is as wide as its image, a description stays
+under both.
+
+```html
+<figure class="hasOverlayCaption">
+    <img class="isImage" src="/hall.jpg" alt="The main hall" width="960" height="640">
+    <figcaption>The main hall</figcaption>
+</figure>
+```
+
 ## The gallery
 
 `isGallery`: a container whose list lays its figures in a grid of columns `--phil-gallery-column` wide at least (12rem),
@@ -295,12 +306,60 @@ otherwise clip.
 </div>
 ```
 
+`hasLayoutCarousel` lays the figures in one row that scrolls sideways and snaps on each, the keyboard scrolling it once
+the list has the focus. Where the browser draws them, Chromium 135 and later, `::scroll-marker` gives each `li` a
+marker under the row, named by its `data-marker`, and `::scroll-button()` a button on each side, half way down the row,
+named by the `data-previous` and `data-next` of the list; elsewhere the row scrolls alone.
+
+```html
+<div class="isGallery hasLayoutCarousel">
+    <ul role="list" aria-label="The strip" tabindex="0" data-previous="Previous" data-next="Next">
+        <li data-marker="The stage"><img class="isImage hasRatio1x1 hasFitCover" src="/stage.jpg" alt="The stage" width="800" height="600"></li>
+    </ul>
+</div>
+```
+
 ## The lightbox
 
 `isLightbox` holds `isLightboxTrigger`, the thumbnail's button, without a fill, with the focus ring and a zoom cursor,
 and `isLightboxDialog`, a dialog as wide as the screen allows whose image is shown whole within its height; its close
 button, `isLightboxClose`, sits in its end corner. Where colours are forced, the thumbnail's button keeps the frame of
 a system button.
+
+## Points over an image
+
+`isHotspots` holds an image and an `isHotspotsList`, each point an `isHotspot` laid over the image at its point, its
+link a pill of `--phil-color-on-veil` text on `--phil-color-veil`, 24 pixels high at least. The place comes from
+`hasHotspotX` and `hasHotspotY` followed by a multiple of five, `hasHotspotX0` to `hasHotspotX100`, which set
+`--phil-hotspot-x` and `--phil-hotspot-y`; where the browser types `attr()`, Chromium 133 and later, the `data-x` and
+`data-y` of the point, percentages without their sign, place it exactly. The place is from the left and from the top,
+the same right to left: the list is laid out left to right, each link reading its words in their own direction. Under
+36rem, the points read as a list under the image.
+
+```html
+<div class="isHotspots">
+    <img class="isImage" src="/plan.png" alt="The plan of the hall" width="800" height="400">
+    <ul role="list" class="isHotspotsList" aria-label="Rooms">
+        <li class="isHotspot hasHotspotX75 hasHotspotY65" data-x="72.5" data-y="64"><a href="/bar">Bar</a></li>
+    </ul>
+</div>
+```
+
+## The hero
+
+`isHero` stands 20rem high at least, `hasHeroScreen` the height of the screen, `hasHeroLarge` seven tenths of it; its
+`isHeroMedia` lays the image under the whole box, covering it, and its `isHeroContent` lies over it on
+`--phil-color-veil`, at the end of the height, or at its start with `hasHeroStart`, in its centre with `hasHeroCenter`.
+
+## The video
+
+`isVideo`: a video as wide as its width allows, never wider than its container, kept at the ratio of its `width` and
+`height` while nothing is loaded.
+
+## Several images under one caption
+
+`isFigureGroup`: a grid of columns `--phil-figure-column` wide at least (10rem), as many as the container holds, or
+two, three or four on every screen with `hasTwoColumns`, `hasThreeColumns` and `hasFourColumns`; each image fills its cell.
 
 ## Reactions
 

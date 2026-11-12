@@ -9,6 +9,7 @@
 | `Image` and `Picture` | Lazy and asynchronous by default, `priority` and the choices that override it, unknown values falling back, the density and width maps, `sizes` after `auto,` while lazy, a decorative image leaving out `title` and `aria-*`, the caption and its `figure`, none for an empty caption, kept under a decorative image, the allowed attributes alone, escaping, `javascript:`, `vbscript:` and non-image `data:` URLs refused in every disguise, `data:image/` allowed, `src`, `alt`, `width` and `height` required; the sources in their order, by density, by width with art direction, sized automatically while lazy, a source of an unknown type or without candidates left out, the `Image` alone without sources; the layouts and the `sizes` they compute, each ratio, the fit and the crop, unknown values left out; art direction, the sources with a query first in their type order, a query or a size of the wrong shape |
 | `Image` and `Picture` in 0.3 | The preload of the main image through WebLink, its attributes and its absence without `priority`, with `preload: false` or with a media query; the dark and still variants first, as URLs, maps or sources of their own types; the credit, the license and its link, the creation in the words of the vocabulary or of the site, from a code or an enum; an image of a listed host fetched without a referrer, one of another host refused, the page's own origin; `image_sources()` on the assets of AssetMapper |
 | `Image` and `Picture` in 0.4 | `deferred` and `fetchpriority="low"`, `priority` winning; each placeholder's class, an unknown one painting nothing; a preview handed to its controller beside one of the page, only a tiny raster image inline in base 64 kept; the variant for forced colours first and never preloaded; the description in its disclosure before the caption, escaped, described by the image beside a description of the page, its identifier from that of the image or its own, a decorative image showing it without being described; `Gallery`, `Lightbox` and `Logo` carrying them; the warnings of `image_check()` in debug, none when turned off or without debug; the priority, layout, ratio, fit and crop of `Logo`, carried by `ComingSoon` with the size of its logo and the loading of its illustration |
+| The images in 0.5 | A caption laid over its image, its figure's class, below by default and nothing laid without a caption; `Gallery` as a carousel, its list reached by the keyboard, the names of its markers and buttons, the position of its captions; `Hotspots`, each point a link placed by its classes to the nearest five per cent and by its data attributes, kept on the edge, a point without words, address or place or with a refused address left out, the picture's sources and preload, a refused image; `Hero`, its image the main one of the page, preloaded, covering, its sizes and sources, its heights and alignments, lazy below the fold, a refused image leaving the content; `Video`, its poster, sources and tracks, nothing fetched and no autoplay, a refused source, track or poster left out, its transcript described, nothing without a source; `Figure`, its images under one caption, credit, license and creation, its columns, the grid alone without them |
 | `Gallery` and `Lightbox` | The list named by its label, its figures, the lightbox of each image and their identifiers, the sizes of the grid, a refused image taking no place; the thumbnail in its button with the invokers, the dialog and its close button, the full image shown whole, the caption under both, the labels as props, a decorative image named by its caption, a refused image, `id` required |
 | `image_origin()` and `image_sources()` | `ImageOrigin`: relative paths, inline images and the page's origin local, the hosts of the list and those under them external, every other host, credentials, an IP address, `localhost` unless allowed and every other scheme refused, a `srcset` cut at every space and comma, no host hiding behind a comma, and judged by its worst piece; `ImageSources`: the formats and densities of an image, a single file without descriptor, widths, the formats and fallbacks chosen, the size of the fallback, a path refused, no fallback |
 | `AutosaveStatus` | The live region, the hidden notice, its buttons with their targets, actions and default labels; the labels as props, escaped; a `class` added |
@@ -48,8 +49,14 @@ an alert dialog. axe-core audits the images of the page, the gallery, a lightbox
 against the rules of WCAG 2.2 A and AA, in each mode, and the picture with its variant for forced colours, its
 placeholder and its description, the image with its preview and the deferred gallery, a lightbox of it open. The suite
 checks that a deferred gallery keeps its figures off screen at their ratio and its focus ring whole, that a preview is
-painted until its image arrives, and that a picture shows its variant where colours are forced. A last test checks that
-every part of a page holding all the recipes carries a class of the sheet.
+painted until its image arrives, and that a picture shows its variant where colours are forced. axe-core also audits
+what 0.5 adds, in each mode: a caption over its image, a gallery laid out as a carousel, an image with its points, a
+hero, a video with its captions and transcript, and a figure of several images. The suite checks that the caption lies
+on the foot of its image, that the carousel is one row that snaps and scrolls at the arrows, its buttons named, that
+each point stands at its place, the same right to left, and under the image on a phone, that the image of a hero covers
+it, that a video fetches nothing before it is played, keeps its ratio on a phone and plays its file, and that a figure
+lays its images in columns over its caption. A last test checks that every part of a page holding all the recipes
+carries a class of the sheet.
 
 The suite is apart from `composer test`, in `phpunit.browser.dist.xml`, and runs at the end of a batch:
 
@@ -61,7 +68,8 @@ It needs Chrome and the `chromedriver` of the system on the `PATH`, of the same 
 --cask chromedriver` on macOS, `apt install chromium-driver` on Debian.
 `PANTHER_NO_HEADLESS=1` shows the window; `phpunit.browser.dist.xml` sets `PANTHER_NO_REDUCED_MOTION`, so that what the
 suite watches moves. Without the driver the suite fails with Panther's message. The page is written
-under the temporary directory by `RecipesPage`, with the real `@hotwired/stimulus`, pinned with `axe-core` in
+under the temporary directory by `RecipesPage`, with the media files of `tests/Browser/resources/media`, a two-second
+WebM clip and its WebVTT captions, the real `@hotwired/stimulus`, pinned with `axe-core` in
 `tests/Browser/package.json` and its lock file and installed by the script: development dependencies of these tests,
 which the kit does not publish.
 
@@ -81,7 +89,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
         return new RecipesPage(
             new TestKernel('test', true),             // an application where the kit's recipes are installed
             TestKernel::KIT_DIR,                      // the kit, whose */assets/controllers are copied
-            __DIR__.'/resources',                     // its app.js and page.html.twig
+            __DIR__.'/resources',                     // its app.js, page.html.twig and media/
             __DIR__.'/var/app.css',                   // its stylesheet
             sys_get_temp_dir().'/my-kit-browser',     // the web root written
             __DIR__.'/node_modules/@hotwired/stimulus/dist/stimulus.js',

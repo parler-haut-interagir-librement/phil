@@ -736,6 +736,129 @@ final class InteractiveRecipesTest extends BrowserTestCase
     }
 
     /**
+     * axe-core on what 0.5 adds: the caption over its image, the gallery laid out as a carousel, the image with its points,
+     * the hero, the video with its captions and transcript, and the figure of several images; in clear, in dark and right
+     * to left.
+     */
+    #[DataProvider('modes')]
+    public function testTheNewImageRecipesPassAxe(string $page): void
+    {
+        $this->open($page);
+        $this->perform((string) file_get_contents(__DIR__.'/node_modules/axe-core/axe.min.js'));
+
+        self::assertSame([], $this->axe('#figures'));
+    }
+
+    /**
+     * The caption lies over the foot of its image, as wide as it, its light text on a dark veil.
+     */
+    #[DataProvider('modes')]
+    public function testACaptionOverItsImageLiesOnItsFoot(string $page): void
+    {
+        $this->open($page);
+        $this->perform('document.querySelector("#overlaid").scrollIntoView()');
+
+        self::assertSame(
+            [true, true, true, 'oklch(0.99 0 0)'],
+            $this->read('(() => { const image = document.querySelector("#overlaid").getBoundingClientRect(), caption = document.querySelector("#overlaid").closest("figure").querySelector("figcaption"), box = caption.getBoundingClientRect(); return [Math.abs(box.bottom - image.bottom) < 1, Math.abs(box.left - image.left) < 1 && Math.abs(box.right - image.right) < 1, box.top > image.top, getComputedStyle(caption).color]; })()'),
+        );
+    }
+
+    /**
+     * A gallery laid out as a carousel: one row wider than its box, which snaps, and which the arrows scroll once the list
+     * has the focus; the browser draws a marker per figure and names its buttons from the attributes of the list.
+     */
+    #[DataProvider('modes')]
+    public function testACarouselGalleryIsARowThatSnapsAndScrollsAtTheArrows(string $page): void
+    {
+        $this->open($page);
+        $list = 'document.querySelector("#strip ul")';
+
+        self::assertSame(
+            [true, true, 'x mandatory', true],
+            $this->read('(() => { const list = '.$list.', items = [...list.children], style = getComputedStyle(list); return [list.scrollWidth > list.clientWidth, items.every((item) => Math.abs(item.getBoundingClientRect().top - items[0].getBoundingClientRect().top) < 1), style.scrollSnapType, style.scrollMarkerGroup.startsWith("after")]; })()'),
+        );
+        self::assertStringContainsString('Next photo', (string) json_encode($this->read('getComputedStyle('.$list.', "::scroll-button(inline-end)").content')));
+
+        $this->perform($list.'.scrollIntoView()');
+        $this->focus('#strip ul');
+        $this->press($this->isRightToLeft($page) ? WebDriverKeys::ARROW_LEFT : WebDriverKeys::ARROW_RIGHT);
+        $this->waitUntil('Math.abs('.$list.'.scrollLeft) > 0');
+    }
+
+    /**
+     * Each point stands at its place on the image, the same right to left, the typed attr() placing the one between two
+     * classes exactly; on a phone, the points read as a list under the image.
+     */
+    #[DataProvider('modes')]
+    public function testThePointsOfAnImageStandAtTheirPlace(string $page): void
+    {
+        $this->open($page);
+        $this->perform('document.querySelector("#plan").scrollIntoView()');
+
+        self::assertSame(
+            [[20, 30], [72.5, 64]],
+            $this->read('(() => { const image = document.querySelector("#plan img").getBoundingClientRect(); return [...document.querySelectorAll("#plan .isHotspot")].map((point) => { const box = point.getBoundingClientRect(); return [Math.round(((box.left + box.width / 2) - image.left) / image.width * 200) / 2, Math.round(((box.top + box.height / 2) - image.top) / image.height * 200) / 2]; }); })()'),
+        );
+
+        $this->browser()->manage()->window()->setSize(new WebDriverDimension(375, 800));
+        $this->open($page);
+
+        self::assertTrue($this->read('(() => { const image = document.querySelector("#plan img").getBoundingClientRect(); return [...document.querySelectorAll("#plan .isHotspot")].every((point) => point.getBoundingClientRect().top >= image.bottom && point.getBoundingClientRect().right <= document.documentElement.clientWidth); })()'));
+
+        $this->browser()->manage()->window()->setSize(new WebDriverDimension(1280, 800));
+    }
+
+    /**
+     * The image of a hero covers its whole box, its content on a veil over it.
+     */
+    #[DataProvider('modes')]
+    public function testAHeroCoversItsBoxWithItsImage(string $page): void
+    {
+        $this->open($page);
+
+        self::assertSame(
+            [true, true, 'cover'],
+            $this->read('(() => { const hero = document.querySelector("#hero").getBoundingClientRect(), image = document.querySelector("#hero img"), box = image.getBoundingClientRect(), content = document.querySelector("#hero .isHeroContent").getBoundingClientRect(); return [Math.abs(box.width - hero.width) < 1 && Math.abs(box.height - hero.height) < 1, content.top >= hero.top && content.bottom <= hero.bottom, getComputedStyle(image).objectFit]; })()'),
+        );
+    }
+
+    /**
+     * The video waits for its reader: nothing fetched, its space reserved at its ratio on a phone, its captions shown;
+     * played by the reader, its file arrives.
+     */
+    public function testAVideoWaitsForItsReader(): void
+    {
+        $this->browser()->manage()->window()->setSize(new WebDriverDimension(375, 800));
+        $this->open('index.html');
+        $video = 'document.querySelector("#clip")';
+
+        self::assertSame(
+            [true, 0, true, 'showing'],
+            $this->read('(() => { const video = '.$video.', box = video.getBoundingClientRect(); return [video.paused, video.readyState, Math.abs(box.width / box.height - 16 / 9) < 0.02, video.textTracks[0].mode]; })()'),
+        );
+
+        $this->perform($video.'.muted = true; '.$video.'.play()');
+        $this->waitUntil($video.'.readyState > 0 && '.$video.'.videoWidth === 320');
+
+        $this->browser()->manage()->window()->setSize(new WebDriverDimension(1280, 800));
+    }
+
+    /**
+     * Several images under one caption, in as many columns as asked, the caption under them all.
+     */
+    #[DataProvider('modes')]
+    public function testAFigureLaysItsImagesInColumnsUnderOneCaption(string $page): void
+    {
+        $this->open($page);
+
+        self::assertSame(
+            [3, true, true],
+            $this->read('(() => { const images = [...document.querySelectorAll("#moments img")], caption = document.querySelector("#moments").closest("figure").querySelector("figcaption").getBoundingClientRect(); return [getComputedStyle(document.querySelector("#moments")).gridTemplateColumns.split(" ").length, images.every((image) => Math.abs(image.getBoundingClientRect().top - images[0].getBoundingClientRect().top) < 1), images.every((image) => image.getBoundingClientRect().bottom <= caption.top)]; })()'),
+        );
+    }
+
+    /**
      * The violations axe-core finds in a part of the page, each rule with the parts it found it in.
      *
      * @return list<string>

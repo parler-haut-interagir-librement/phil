@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=25c4afbdc9f4c153eec76361ddb0b77f2d87c2a98dfe82d2c2fde45a1ad5db9a -->
+<!-- phil-dev source-sha256=c9053ef3b7ad25fbdb3e0cd28c96f54b8507f190d2281a6d1968904a13498f2f -->
 # Points d'extension
 
 | Point | Comment |
@@ -14,6 +14,7 @@
 | La taille des contrôles | `--phil-control-sm`, `-md`, `-lg` ; ou `--phil-control-size` sur un élément |
 | La largeur d'un dialogue ou d'un panneau latéral | `--phil-dialog-size` sur l'élément |
 | Le carrousel | `--phil-carousel-item`, `--phil-carousel-gap` |
+| Les images | `--phil-gallery-column`, `--phil-gallery-gap`, `--phil-figure-column` ; `--phil-color-veil` et `--phil-color-on-veil` sous une légende, un point ou le contenu d'un héros posés sur une image |
 | Les couleurs du code coloré | `--phil-hl-keyword`, `--phil-hl-string`, `--phil-hl-number`, `--phil-hl-comment`, `--phil-hl-name`, `--phil-hl-markup` |
 | Le titre | `--phil-reveal-caret`, les durées par les valeurs du contrôleur, `.isRevealToggle` pour le bouton de pause |
 | Des paires de contraste en plus | `new ContrastRule([new Pair(…)])` |

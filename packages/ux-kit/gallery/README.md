@@ -67,6 +67,34 @@ size. Neither counts the caption, which shows when the figure is rendered, so th
 With `aspect="custom"`, which no attribute can say, the square cell serves everywhere. Leave `deferred` off for a short
 gallery, or for one at the top of the page, whose images should come first.
 
+### A carousel
+
+`layout="carousel"` lays the figures in a row that scrolls sideways and snaps on each, `scroll-snap`, without a script:
+by touch, by the trackpad, and by the arrows once the list has the focus, which its `tabindex="0"` gives it. Where the
+browser draws them, Chromium 135 and later, `::scroll-marker` adds a marker per figure under the row, named by the text
+alternative of its image or its rank, and `::scroll-button()` a button on each side, named by `previousLabel` and
+`nextLabel`, which the list carries in `data-previous` and `data-next`. Elsewhere the row scrolls alone, its scroll bar
+showing that there is more.
+
+```twig
+<twig:Gallery
+    label="The strip"
+    layout="carousel"
+    previousLabel="{{ 'carousel.previous'|trans }}"
+    nextLabel="{{ 'carousel.next'|trans }}"
+    :images="photos"
+    aspect="1/1"
+/>
+```
+
+The `Carousel` recipe of the Shadcn kit stays the carousel of any content, its buttons drawn by its controller in every
+browser; this layout is that of images, without a controller.
+
+### Captions over the images
+
+`captionPosition="overlay"` lays the caption of each image over its foot, as for `Image`; a lightbox keeps its own under
+its thumbnail.
+
 ## Accessibility
 
 The gallery is a list named by `label`, `role="list"` keeping its semantics where the browser drops them from a list
@@ -74,4 +102,6 @@ without markers. The columns follow the width of the gallery, not that of the sc
 column stays readable. An image refused by the `image` recipe takes no place; without an image, nothing is drawn. A
 figure skipped by a deferred gallery stays in the accessibility tree and is found by the search of the page; its cell
 reaches into the gap by the width of the focus ring, which the paint containment of `content-visibility` would
-otherwise clip. A `description` follows its image, and in a lightbox its thumbnail, whose button it describes.
+otherwise clip. A `description` follows its image, and in a lightbox its thumbnail, whose button it describes. A
+carousel never moves on its own; its markers and buttons are those of the browser, reached by the keyboard, and a
+browser without them still scrolls the row at the arrows.

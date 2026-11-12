@@ -1,0 +1,87 @@
+{#-
+ # A video with the controls of the browser, which never plays on its own: nothing fetched before the reader asks by
+ # default, its poster an image the image recipe would show, its sources in the order given, its text tracks, captions
+ # by default, and in a figure its caption, credit, license, creation and transcript, a disclosure the video is described
+ # by. An address of another host is refused unless image_origin() allows its host, and a data: URL but the poster's
+ # data:image/; a source of another type than video/*, a track of another kind, without language or without label is
+ # left out. Without a source left, nothing is drawn. A browser that plays no video shows a link to the first source.
+ #}
+{%- props
+    ## int The width of the video, so that its space is reserved at its ratio before it loads.
+    width,
+    ## int The height of the video, so that its space is reserved at its ratio before it loads.
+    height,
+    ## string|null The URL of the video, when it has a single source.
+    src = null,
+    ## list<array{src:string,type?:string}> The sources, each a URL and its type, "video/webm" or "video/mp4", in the order the browser tries them, after src.
+    sources = [],
+    ## string|null The image shown until the video plays: a URL, the src of a Picture, or a data:image/ one.
+    poster = null,
+    ## list<array{src:string,srclang:string,label:string,kind?:string,default?:bool}> The text tracks, WebVTT files: "captions" by default, or "subtitles", "descriptions" or "chapters"; the first marked default is shown at once.
+    tracks = [],
+    ## string How much is fetched before the reader plays it: "none" by default, or "metadata", its duration and size.
+    preload = 'none',
+    ## bool Whether it plays without sound until the reader turns it on.
+    muted = false,
+    ## bool Whether it starts again once ended.
+    loop = false,
+    ## string|null The name of the video, which screen readers read, when no caption names it.
+    label = null,
+    ## string The words of the link to the first source, shown by a browser that plays no video.
+    fallbackLabel = 'Download the video',
+    ## string|null A caption under the video, which a figure then holds with it.
+    caption = null,
+    ## string|null Who made the video, as the site writes it, under the caption.
+    credit = null,
+    ## string|null The name of the license of the video, under the caption.
+    license = null,
+    ## string|null The address of the license, which its name then links to with rel="license".
+    licenseHref = null,
+    ## string|BackedEnum|null How the video was made, a code of the IPTC Digital Source Type vocabulary, or an enum whose value is one, as for Image.
+    creation = null,
+    ## string|null The words that say how the video was made; the name the vocabulary gives the code when null.
+    creationLabel = null,
+    ## string|null The transcript of the video, what is said and shown, in a disclosure after it, which it is described by.
+    transcript = null,
+    ## string The words of the summary of the transcript's disclosure.
+    transcriptLabel = 'Transcript'
+-%}
+{%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
+{%- set _sources = (src is empty ? [] : [{src: src}])|merge(sources)|filter(source => (source.src ?? '') is not empty
+    and not (source.src|replace(_controls) matches '#^[[:cntrl:] ]*data:#i')
+    and image_origin(source.src) is not same as('refused')
+    and (source.type ?? 'video/any') matches '#^video/[a-z0-9.+-]+$#') -%}
+{%- if _sources is not empty -%}
+    {%- set _poster = poster is empty or poster|replace(_controls) matches '#^[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i' or image_origin(poster) is same as('refused') ? null : poster -%}
+    {%- set _tracks = tracks|filter(track => (track.src ?? '') is not empty
+        and not (track.src|replace(_controls) matches '#^[[:cntrl:] ]*data:#i')
+        and image_origin(track.src) is not same as('refused')
+        and (track.srclang ?? '') matches '#^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$#'
+        and (track.label ?? '') is not empty
+        and (track.kind ?? 'captions') in ['captions', 'subtitles', 'descriptions', 'chapters']) -%}
+    {%- set _default = _tracks|filter(track => track.default ?? false)|first -%}
+    {%- set _described = transcript is empty ? null : (attributes.all.id is defined and attributes.all.id is not empty ? attributes.all.id ~ '-transcript' : 'video-transcript-' ~ random()) -%}
+    {%- set _root = {id: attributes.all.id ?? null, class: ['isVideo', attributes.all.class ?? null]|filter(name => name is not empty)|join(' ')} -%}
+    <twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel" :description="transcript" :descriptionId="_described" :descriptionLabel="transcriptLabel">
+        <video {{ html_attr(_root, {
+            controls: true,
+            preload: preload in ['none', 'metadata'] ? preload : 'none',
+            playsinline: true,
+            width: width,
+            height: height,
+            poster: _poster,
+            muted: muted,
+            loop: loop,
+            'aria-label': label is empty ? null : label,
+            'aria-describedby': _described,
+        }) }}>
+            {%- for source in _sources -%}
+                <source {{ html_attr({src: source.src, type: source.type ?? null}) }}>
+            {%- endfor -%}
+            {%- for track in _tracks -%}
+                <track {{ html_attr({kind: track.kind ?? 'captions', src: track.src, srclang: track.srclang, label: track.label, default: track is same as(_default)}) }}>
+            {%- endfor -%}
+            <a href="{{ (_sources|first).src }}">{{ fallbackLabel }}</a>
+        </video>
+    </twig:Image:Figure>
+{%- endif -%}

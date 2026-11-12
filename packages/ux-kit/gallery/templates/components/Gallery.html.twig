@@ -2,7 +2,9 @@
  # A gallery: a list of figures in a grid that fills its container, named by its label, each image through the Picture
  # of the image recipe, under its caption, credit, license and creation; with lightbox, each opens in a Lightbox. An
  # image the image recipe refuses takes no place; without an image, nothing is drawn. A deferred gallery lets the
- # browser skip the rendering of its figures off screen, each sized meanwhile at the ratio its attributes say.
+ # browser skip the rendering of its figures off screen, each sized meanwhile at the ratio its attributes say. Laid out
+ # as a carousel, the list is a row that scrolls and snaps without a script, which the keyboard reaches; where the
+ # browser draws them, ::scroll-marker and ::scroll-button() add its markers and buttons, named by attributes.
  #}
 {%- props
     ## string The name of the list, which screen readers read, such as "Photos of the festival".
@@ -28,22 +30,32 @@
     ## string|null The colour the box of every image is painted while it loads, as for Image.
     placeholder = null,
     ## string The words of the summary of each description's disclosure.
-    descriptionLabel = 'Description'
+    descriptionLabel = 'Description',
+    ## string|null How the figures are laid out: in a grid that fills the container when null, or "carousel", a row that scrolls and snaps.
+    layout = null,
+    ## string What screen readers read for the button that scrolls a carousel back, where the browser draws it.
+    previousLabel = 'Previous',
+    ## string What screen readers read for the button that scrolls a carousel on, where the browser draws it.
+    nextLabel = 'Next',
+    ## string Where the caption of each image stands, as for Image: "below" or "overlay"; a lightbox keeps its own under its thumbnail.
+    captionPosition = 'below'
 -%}
 {%- set _images = images|filter(image => (image.src ?? '') is not empty and image_origin(image.src) is not same as('refused')) -%}
 {%- if _images is not empty -%}
     {%- set _crop = aspect is empty ? null : aspect|replace({' ': ''}) -%}
-    <div {{ html_attr({id: id, class: ['isGallery', deferred ? 'isDeferred' : null, attributes.all.class ?? null]|filter(name => name is not empty)|join(' ')}) }}>
-        <ul role="list" aria-label="{{ label }}">
+    {%- set _carousel = layout is same as('carousel') -%}
+    <div {{ html_attr({id: id, class: ['isGallery', deferred ? 'isDeferred' : null, _carousel ? 'hasLayoutCarousel' : null, attributes.all.class ?? null]|filter(name => name is not empty)|join(' ')}) }}>
+        <ul {{ html_attr({role: 'list', 'aria-label': label}|merge(_carousel ? {tabindex: '0', 'data-previous': previousLabel, 'data-next': nextLabel} : {})) }}>
             {%- for image in _images -%}
                 {%- set _ratio = _crop is null ? [image.width, image.height] : (_crop matches '#^[1-9][0-9]*/[1-9][0-9]*$#' ? _crop|split('/') : []) -%}
-                {%- set _item = deferred and _ratio|length == 2 and _ratio|filter(size => size matches '#^[1-9][0-9]*$#')|length == 2 ? {'data-width': _ratio|first, 'data-height': _ratio|last} : {} -%}
+                {%- set _item = (deferred and _ratio|length == 2 and _ratio|filter(size => size matches '#^[1-9][0-9]*$#')|length == 2 ? {'data-width': _ratio|first, 'data-height': _ratio|last} : {})
+                    |merge(_carousel ? {'data-marker': image.alt is not empty ? image.alt : loop.index} : {}) -%}
                 {%- set _id = image.id ?? ((image.description ?? null) is empty ? null : (id ?? 'gallery') ~ '-' ~ loop.index) -%}
                 <li{% if _item is not empty %} {{ html_attr(_item) }}{% endif %}>
                     {%- if lightbox -%}
                         <twig:Lightbox :id="(id ?? 'gallery') ~ '-' ~ loop.index" :src="image.src" :alt="image.alt" :width="image.width" :height="image.height" :srcset="image.srcset ?? null" :sizes="sizes" :sources="image.sources ?? []" :aspect="aspect" :fit="fit" :position="image.position ?? null" :full="image.full ?? null" :caption="image.caption ?? null" :credit="image.credit ?? null" :license="image.license ?? null" :licenseHref="image.licenseHref ?? null" :creation="image.creation ?? null" :creationLabel="image.creationLabel ?? null" :openLabel="openLabel" :closeLabel="closeLabel" :deferred="deferred" :placeholder="placeholder" :preview="image.preview ?? null" :description="image.description ?? null" :descriptionLabel="descriptionLabel" />
                     {%- else -%}
-                        <twig:Picture :src="image.src" :alt="image.alt" :width="image.width" :height="image.height" :srcset="image.srcset ?? null" :sizes="sizes" :sources="image.sources ?? []" :aspect="aspect" :fit="fit" :position="image.position ?? null" :caption="image.caption ?? null" :credit="image.credit ?? null" :license="image.license ?? null" :licenseHref="image.licenseHref ?? null" :creation="image.creation ?? null" :creationLabel="image.creationLabel ?? null" :deferred="deferred" :placeholder="placeholder" :preview="image.preview ?? null" :description="image.description ?? null" :descriptionLabel="descriptionLabel" :id="_id" />
+                        <twig:Picture :src="image.src" :alt="image.alt" :width="image.width" :height="image.height" :srcset="image.srcset ?? null" :sizes="sizes" :sources="image.sources ?? []" :aspect="aspect" :fit="fit" :position="image.position ?? null" :caption="image.caption ?? null" :credit="image.credit ?? null" :license="image.license ?? null" :licenseHref="image.licenseHref ?? null" :creation="image.creation ?? null" :creationLabel="image.creationLabel ?? null" :deferred="deferred" :placeholder="placeholder" :preview="image.preview ?? null" :description="image.description ?? null" :descriptionLabel="descriptionLabel" :captionPosition="captionPosition" :id="_id" />
                     {%- endif -%}
                 </li>
             {%- endfor -%}

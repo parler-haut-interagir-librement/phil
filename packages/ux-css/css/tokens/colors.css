@@ -40,6 +40,11 @@
     --phil-color-placeholder-blue: light-dark(var(--phil-blue-90), var(--phil-blue-20));
     --phil-color-placeholder-violet: light-dark(var(--phil-violet-90), var(--phil-violet-20));
 
+    /* The veil under a text laid over a picture, dark enough in both schemes for its light text to reach 4.5:1 whatever
+       the picture (9:1 over white), and that text */
+    --phil-color-veil: oklch(0 0 0 / 0.72);
+    --phil-color-on-veil: oklch(0.99 0 0);
+
     /* brand */
     --phil-color-brand-fill-quiet: light-dark(var(--phil-brand-95), var(--phil-brand-20));
     --phil-color-brand-fill-loud: light-dark(var(--phil-brand-40), var(--phil-brand-70));

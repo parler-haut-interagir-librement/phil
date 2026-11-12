@@ -3,11 +3,13 @@
  # figcaption when it has a caption, a credit, a license or a creation of the IPTC Digital Source Type vocabulary, every
  # text escaped. The description is a native disclosure after the content, its text under the identifier the image is
  # described by. A license links to its address with rel="license" unless that address is refused; a code outside the
- # vocabulary says nothing.
+ # vocabulary says nothing. Laid over the foot of the content, the caption gives the figure the class hasOverlayCaption.
  #}
 {%- props
     ## string|null A caption under the image.
     caption = null,
+    ## string Where the caption stands: "below" the image, by default, or "overlay", over its foot on a veil dark enough for light text.
+    captionPosition = 'below',
     ## string|null Who made the image, as the site writes it, "Photo: Ana Lima".
     credit = null,
     ## string|null The name of the license of the image, "CC BY 4.0".
@@ -52,7 +54,7 @@
 {%- set _href = licenseHref is empty or licenseHref|replace({"\t": '', "\n": '', "\r": ''}) matches '#^[[:cntrl:] ]*(javascript:|vbscript:|data:)#i' ? null : licenseHref -%}
 {%- set _caption = caption is not empty or credit is not empty or license is not empty or _creation is not null -%}
 {%- if _caption or description is not empty -%}
-    <figure>
+    <figure{% if _caption and captionPosition is same as('overlay') %} class="hasOverlayCaption"{% endif %}>
         {##- The image or the picture the figure holds. -#}
         {%- block content %}{% endblock -%}
         {%- if description is not empty -%}

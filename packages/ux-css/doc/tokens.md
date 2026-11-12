@@ -72,6 +72,8 @@ Components read roles, never the palette. Each role is `light-dark(<light tone>,
 | `--phil-color-border` | neutral 80 | neutral 30 |
 | `--phil-color-shadow` | black at 12 % | black at 50 % |
 | `--phil-color-backdrop` | black at 40 % | black at 60 % |
+| `--phil-color-veil` | black at 72 % | black at 72 % |
+| `--phil-color-on-veil` | white (lightness 0.99) | white (lightness 0.99) |
 | `--phil-color-activity-0` | neutral 95 | neutral 20 |
 | `--phil-color-activity-1` | brand 90 | brand 30 |
 | `--phil-color-activity-2` | brand 70 | brand 50 |

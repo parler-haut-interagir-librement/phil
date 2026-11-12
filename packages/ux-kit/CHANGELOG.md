@@ -4,6 +4,46 @@ All notable changes to `phil/ux-kit` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.5.0-alpha - 2026-11-13
+
+### Added
+
+- On `Image` and `Picture`: `captionPosition`, `below` by default, or `overlay`, which lays the caption, its credit, its
+  license and its creation over the foot of the image on a veil dark enough for light text whatever the picture, the
+  figure of class `hasOverlayCaption`, as wide as its image, a description staying under both; `Image:Figure` takes it.
+- On `Gallery`: `layout="carousel"`, its figures in one row that scrolls and snaps without a script, the list of class
+  `hasLayoutCarousel` reached by the keyboard through `tabindex="0"`; where the browser draws them, a marker per figure
+  by `::scroll-marker`, named by the `data-marker` of its `li`, the text alternative of its image or its rank, and a
+  button on each side by `::scroll-button()`, named by `previousLabel` and `nextLabel` through the `data-previous` and
+  `data-next` of the list; `captionPosition`, carried to each `Picture`.
+- The recipe `Hotspots`: an image of the `image` recipe with points of interest, a list of links named by `label` over
+  it, each point placed by the classes `hasHotspotX0` to `hasHotspotX100` and `hasHotspotY0` to `hasHotspotY100`, to
+  the nearest five per cent, and by its `data-x` and `data-y`, read exactly by a typed `attr()` where the browser does,
+  never by an inline style; a point without words, without an address, with a refused address or without a place left
+  out; the caption, credit and license in a figure.
+- The recipe `Hero`: an image across the whole box that stays a real image, a `Picture` laid out `full-width` and
+  covering, `priority` by default, so loaded at once, fetched first and preloaded through WebLink; `size` (`screen`,
+  `large`, `auto`) and `align` (`start`, `center`, `end`); its content over the image on a veil.
+- The recipe `Video`: a `video` with the controls of the browser, `preload="none"` by default or `metadata`, never an
+  autoplay, its poster checked as an image, its sources and WebVTT tracks (`captions` by default, `subtitles`,
+  `descriptions`, `chapters`) checked by `image_origin()`, a `data:` source or track refused, a link to the first source
+  for a browser that plays no video; `transcript` and `transcriptLabel`, a disclosure the video is described by; the
+  caption, credit, license and creation in a figure.
+- The recipe `Figure`: several images in a grid of class `isFigureGroup`, as many columns as the container allows or
+  `columns` (`2`, `3`, `4`), under one caption, credit, license and creation.
+- `RecipesPage` copies the files of the `media` directory of the resources under `media/` of the web root: the browser
+  suite plays a two-second WebM clip with its WebVTT captions.
+- The browser suite audits with axe-core, in clear, in dark and right to left, the caption over its image, the gallery
+  laid out as a carousel, the image with its points, the hero, the video and the figure of several images; it checks the
+  caption on the foot of its image, the row of the carousel scrolled at the arrows, each point at its place and under
+  the image on a phone, the hero covered by its image, the video fetching nothing before it is played and playing its
+  file, and the figure in its columns.
+
+### Changed
+
+- The image recipe requires `phil/ux-kit:^0.5@dev`; `manifest.json` requires `phil/ux-css:^0.5@dev`; the branch alias of
+  `dev-main` is `0.5.x-dev`.
+
 ## 0.4.0-alpha - 2026-11-13
 
 ### Added

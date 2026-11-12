@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c57206d1d6f1ab150a8fc8113c4b719e165fad674bf25995fc049d752d56783d -->
+<!-- phil-dev source-sha256=d5784a9a8d97fe6fcca148e480aafffe447f921752701b02a94f53d345d19436 -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -12,7 +12,7 @@
 | `src/Application/ImageTextCheck.php` | `Phil\UxKit\Application\ImageTextCheck` : ce qu'un développeur a pu laisser de travers dans une image, un texte de remplacement qui est le nom de son fichier, un mot générique ou qui commence par dire que c'est une image, une largeur ou une hauteur absente |
 | `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()`, `image_sources()` et `image_check()`, qui journalise les problèmes d'`ImageTextCheck` en avertissements quand `phil_ux_kit.image.check` est actif |
 | `src/Test/BrowserTestCase.php` | `Phil\UxKit\Test\BrowserTestCase` : un Chrome sans interface sur la page des recettes d'un kit, et les aides d'un test en navigateur |
-| `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage` : la racine web de chaque recette d'un kit, avec sa feuille de style, ses contrôleurs et Stimulus |
+| `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage` : la racine web de chaque recette d'un kit, avec sa feuille de style, ses contrôleurs, Stimulus et les fichiers de son dossier `media` |
 | `logo/manifest.json`, `logo/README.md` | La recette `Logo` |
 | `logo/templates/components/Logo.html.twig` | Le composant `Logo` |
 | `animated-headline/manifest.json`, `animated-headline/README.md` | La recette `AnimatedHeadline` |
@@ -28,6 +28,14 @@
 | `lightbox/manifest.json`, `lightbox/README.md` | La recette `Lightbox` |
 | `lightbox/templates/components/Lightbox.html.twig` | Le composant `Lightbox` |
 | `lightbox/assets/controllers/lightbox_controller.js` | Le contrôleur Stimulus `lightbox`, qui ouvre et ferme le dialogue là où le navigateur n'exécute ni les invocateurs ni `closedby` |
+| `hotspots/manifest.json`, `hotspots/README.md` | La recette `Hotspots` |
+| `hotspots/templates/components/Hotspots.html.twig` | Le composant `Hotspots` |
+| `hero/manifest.json`, `hero/README.md` | La recette `Hero` |
+| `hero/templates/components/Hero.html.twig` | Le composant `Hero` |
+| `video/manifest.json`, `video/README.md` | La recette `Video` |
+| `video/templates/components/Video.html.twig` | Le composant `Video` |
+| `figure/manifest.json`, `figure/README.md` | La recette `Figure` |
+| `figure/templates/components/Figure.html.twig` | Le composant `Figure` |
 | `autosave-status/manifest.json`, `autosave-status/README.md` | La recette `AutosaveStatus` |
 | `autosave-status/templates/components/AutosaveStatus.html.twig` | Le composant `AutosaveStatus` |
 | `reaction-button/manifest.json`, `reaction-button/README.md` | La recette `ReactionButton` |

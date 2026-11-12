@@ -11,7 +11,8 @@ use Twig\Environment;
 
 /**
  * Writes the web root the browser opens: every recipe of a kit rendered through TwigComponent, in clear, in dark and
- * right to left, beside its stylesheet, its Stimulus controllers and the build of Stimulus the suite pins.
+ * right to left, beside its stylesheet, its Stimulus controllers, the build of Stimulus the suite pins and the files of
+ * the `media` directory of its resources, the videos and text tracks the page plays, under `media/`.
  *
  * Published with `BrowserTestCase` for the browser suites of the kits built on the same controllers; it needs
  * `symfony/http-kernel`, `twig/twig` and `psr/container`, which the kit requires for development only.
@@ -30,7 +31,7 @@ final readonly class RecipesPage
     /**
      * @param KernelInterface $kernel     An application where the recipes of the kit are installed
      * @param string          $kit        The directory of the kit
-     * @param string          $resources  The directory of its app.js and page.html.twig
+     * @param string          $resources  The directory of its app.js, page.html.twig and media files
      * @param string          $stylesheet The stylesheet of the page, served under its own name
      * @param string          $root       The web root to write
      * @param string          $stimulus   The file `stimulus.js` of `@hotwired/stimulus`, installed by the suite
@@ -51,10 +52,7 @@ final readonly class RecipesPage
     public function write(): string
     {
         $controllers = $this->root.'/controllers';
-
-        if (!is_dir($controllers) && !mkdir($controllers, 0o777, true) && !is_dir($controllers)) {
-            throw new RuntimeException('Cannot create '.$controllers);
-        }
+        $this->directory($controllers);
 
         $this->copy($this->stylesheet, $this->root.'/'.basename($this->stylesheet));
 
@@ -71,6 +69,8 @@ final readonly class RecipesPage
             $this->copy($source, $controllers.'/'.basename($source));
         }
 
+        $this->copyMedia();
+
         $this->kernel->boot();
 
         $tests = $this->kernel->getContainer()->get('test.service_container');
@@ -80,7 +80,11 @@ final readonly class RecipesPage
             throw new RuntimeException('Twig is not there.');
         }
 
-        $page = (string) file_get_contents($this->resources.'/page.html.twig');
+        $page = file_get_contents($this->resources.'/page.html.twig');
+
+        if (false === $page) {
+            throw new RuntimeException('Cannot read '.$this->resources.'/page.html.twig');
+        }
 
         foreach (self::PAGES as $file => [$direction, $theme]) {
             file_put_contents($this->root.'/'.$file, $twig->createTemplate($page)->render(['dir' => $direction, 'theme' => $theme]));
@@ -89,6 +93,35 @@ final readonly class RecipesPage
         $this->kernel->shutdown();
 
         return $this->root;
+    }
+
+    /**
+     * The files of the `media` directory of the resources, when it holds any, copied under `media/` of the web root.
+     */
+    private function copyMedia(): void
+    {
+        $files = glob($this->resources.'/media/*');
+
+        if (false === $files || [] === $files) {
+            return;
+        }
+
+        $media = $this->root.'/media';
+        $this->directory($media);
+
+        foreach ($files as $file) {
+            $this->copy($file, $media.'/'.basename($file));
+        }
+    }
+
+    /**
+     * A directory and those above it, unless it is there: a failure is the warning of mkdir(), then that of the copy.
+     */
+    private function directory(string $path): void
+    {
+        if (!is_dir($path)) {
+            mkdir($path, recursive: true);
+        }
     }
 
     private function copy(string $from, string $to): void

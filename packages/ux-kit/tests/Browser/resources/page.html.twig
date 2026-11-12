@@ -114,6 +114,28 @@
         <twig:Logo :src="square|replace({COLOUR: 'teal'})" :dark="square|replace({COLOUR: 'navy'})" alt="Studio" href="#images" :width="48" :height="48" />
         <twig:Picture id="forced" :src="square|replace({COLOUR: 'teal'})" :forced="square|replace({COLOUR: 'black'})" placeholder="blue" alt="A square drawn again for forced colours" :width="200" :height="200" description="A teal square, drawn in black where colours are forced." />
     </section>
+    <section id="figures" class="isStack">
+        <twig:Picture id="overlaid" :src="wide|replace({COLOUR: 'navy'})" alt="A navy band" :width="400" :height="200" caption="Over the foot of the image" credit="Photo: Ana Lima" captionPosition="overlay" />
+        <twig:Gallery id="strip" label="The strip" layout="carousel" previousLabel="Previous photo" nextLabel="Next photo" captionPosition="overlay" :images="[
+            {src: square|replace({COLOUR: 'teal'}), alt: 'A teal square', width: 400, height: 400, caption: 'One'},
+            {src: square|replace({COLOUR: 'navy'}), alt: 'A navy square', width: 400, height: 400, caption: 'Two'},
+            {src: square|replace({COLOUR: 'olive'}), alt: 'An olive square', width: 400, height: 400, caption: 'Three'},
+            {src: square|replace({COLOUR: 'maroon'}), alt: 'A maroon square', width: 400, height: 400, caption: 'Four'},
+            {src: square|replace({COLOUR: 'purple'}), alt: 'A purple square', width: 400, height: 400, caption: 'Five'},
+            {src: square|replace({COLOUR: 'teal'}), alt: 'Another teal square', width: 400, height: 400, caption: 'Six'},
+        ]" />
+        <twig:Hotspots id="plan" :src="wide|replace({COLOUR: 'olive'})" alt="The plan of the hall" :width="400" :height="200" label="Rooms of the hall" caption="The hall" :spots="[
+            {x: 20, y: 30, label: 'Stage', href: '#figures'},
+            {x: 72.5, y: 64, label: 'Bar', href: '#figures'},
+        ]" />
+        <twig:Hero id="hero" :src="wide|replace({COLOUR: 'teal'})" alt="" :width="400" :height="200" size="auto" :priority="false"><h2>Welcome</h2><p>Over the image, on its veil. <a href="#figures">Read on</a></p></twig:Hero>
+        <twig:Video id="clip" src="media/clip.webm" :poster="wide|replace({COLOUR: 'teal'})" :width="320" :height="180" :tracks="[{src: 'media/clip.vtt', srclang: 'en', label: 'English', default: true}]" caption="A disc crosses the field" transcript="A light disc crosses a teal field from left to right." />
+        <twig:Figure id="moments" caption="Three moments of the opening" credit="Photo: Ana Lima" :columns="3">
+            <twig:Image :src="square|replace({COLOUR: 'teal'})" alt="The doors open" :width="400" :height="400" />
+            <twig:Image :src="square|replace({COLOUR: 'navy'})" alt="The first guests" :width="400" :height="400" />
+            <twig:Image :src="square|replace({COLOUR: 'olive'})" alt="The first speech" :width="400" :height="400" />
+        </twig:Figure>
+    </section>
     <section id="native" class="isStack">
         <twig:AlertDialog id="erase">
             <twig:AlertDialog:Trigger><twig:Button id="open-alert" variant="destructive" {{ ...alert_dialog_trigger_attrs }}>Erase</twig:Button></twig:AlertDialog:Trigger>

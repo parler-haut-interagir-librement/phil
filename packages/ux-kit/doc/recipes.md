@@ -115,6 +115,7 @@ its description.
 | `loading` | `null` | `lazy` or `eager`, overriding `priority`; `lazy` when null without `priority` |
 | `decoding` | `null` | `async`, `sync` or `auto`, overriding `priority`; `async` when null without `priority` |
 | `caption` | `null` | A `figcaption`, escaped: the image is then in a `figure`, decorative or not |
+| `captionPosition` | `'below'` | `below` the image, or `overlay`, over its foot on a veil dark enough for light text, the `figure` of class `hasOverlayCaption` |
 | `credit` | `null` | Who made the image, as the site writes it, in a `small` of class `isCredit` under the caption |
 | `license`, `licenseHref` | `null` | The name of the license, in a `small` of class `isLicense`, linked to its address with `rel="license"` |
 | `creation` | `null` | A code of the IPTC Digital Source Type vocabulary, or an enum whose value is one, said in a `small` of class `isCreation` |
@@ -183,6 +184,9 @@ a `Lightbox`; nothing without an image.
 | `deferred` | `false` | A long gallery: its figures off screen skipped with `content-visibility: auto` (`isDeferred`), each `li` sized by its `data-width` and `data-height`, its images fetched last |
 | `placeholder` | `null` | The placeholder of every image, as for `Image` |
 | `descriptionLabel` | `'Description'` | The words of the summary of each image's `description` |
+| `layout` | `null` | `carousel`: a row that scrolls and snaps, which the keyboard reaches (`hasLayoutCarousel`, `tabindex="0"`), its markers and buttons drawn by `::scroll-marker` and `::scroll-button()` where the browser has them; a grid otherwise |
+| `previousLabel`, `nextLabel` | `'Previous'`, `'Next'` | The names of the buttons of a carousel, carried by the list in `data-previous` and `data-next`; each marker is named by the `data-marker` of its `li`, the text alternative of its image or its rank |
+| `captionPosition` | `'below'` | Where the caption of each image stands, as for `Image`; a lightbox keeps its own under its thumbnail |
 
 ## Lightbox
 
@@ -201,6 +205,86 @@ a `Lightbox`; nothing without an image.
 | `closeLabel` | `'Close'` | What screen readers read for the close button |
 | `deferred`, `placeholder`, `preview` | `false`, `null`, `null` | The thumbnail's, as for `Image` |
 | `description`, `descriptionLabel` | `null`, `'Description'` | A long description after the thumbnail, outside its button, which it describes |
+
+## Hotspots
+
+`<twig:Hotspots>`: a `div` of class `isHotspots` holding a `Picture` of the `image` recipe and, over it, a `ul` of
+class `isHotspotsList` named by `label`, each point a `li` of class `isHotspot` holding its link; in a `figure` with
+its caption, credit and license. An image the `image` recipe refuses draws nothing.
+
+| Prop | Default | |
+|---|---|---|
+| `src`, `alt`, `width`, `height` | required | The image, as for `Image` |
+| `label` | required | The name of the list of points for screen readers |
+| `spots` | `[]` | Each `{x, y, label, href}`: its place as percentages of the width from the left and of the height from the top, kept within 100, its words and its address |
+| `sources`, `srcset`, `sizes`, `priority`, `placeholder` | | The image's, as for `Picture` |
+| `caption`, `credit`, `license`, `licenseHref` | `null` | Under the image, in a `figure` |
+
+Each point carries the classes `hasHotspotX0` to `hasHotspotX100` and `hasHotspotY0` to `hasHotspotY100`, its place to
+the nearest five per cent, and `data-x` and `data-y`, its exact place, which phil-ux reads through a typed `attr()` where
+the browser does; never a `style`. A point without words, without an address, with a `javascript:`, `vbscript:` or
+`data:` address, or whose place is not a number from 0 up, is left out; without a point, there is no list. `id` and
+`class` reach the `div`.
+
+## Hero
+
+`<twig:Hero>`: a `div` of class `isHero` holding a `div` of class `isHeroMedia`, its `Picture` laid out `full-width`
+and covering the box, then a `div` of class `isHeroContent`, its content over the image.
+
+| Prop | Default | |
+|---|---|---|
+| `src`, `alt`, `width`, `height` | required | The image, as for `Image`; `alt` empty when it only sets the scene |
+| `sources`, `srcset`, `placeholder`, `preview`, `position` | | The image's, as for `Picture` |
+| `sizes` | `null` | `100vw` when null |
+| `priority` | `true` | The main image of the page: loaded at once, fetched first, preloaded through WebLink |
+| `size` | `'screen'` | `screen` (`hasHeroScreen`), `large` (`hasHeroLarge`) or `auto` |
+| `align` | `'end'` | Where the content stands in the height: `start` (`hasHeroStart`), `center` (`hasHeroCenter`) or `end` |
+
+| Block | |
+|---|---|
+| `content` | What stands over the image, on its veil |
+
+An image the `image` recipe refuses leaves the content alone. `id` and `class` reach the root.
+
+## Video
+
+`<twig:Video>`: a `video` of class `isVideo` with `controls`, `playsinline` and `preload="none"`, its `source` and
+`track` elements, then a link to the first source; in a `figure` with its transcript, caption, credit, license and
+creation. Without a source left, nothing is drawn.
+
+| Prop | Default | |
+|---|---|---|
+| `width`, `height` | required | The size of the video, to reserve its space |
+| `src` | `null` | A single source |
+| `sources` | `[]` | Each `{src, type}`, after `src`; a `data:` source, a type other than `video/*` or a refused host leaves it out |
+| `poster` | `null` | The image shown until it plays: an address the `image` recipe would show, or a `data:image/` one |
+| `tracks` | `[]` | Each `{src, srclang, label, kind, default}`, a WebVTT file: `kind` `captions`, the default, `subtitles`, `descriptions` or `chapters` |
+| `preload` | `'none'` | `none` or `metadata`; any other value is `none` |
+| `muted`, `loop` | `false` | For a short silent clip |
+| `label` | `null` | The name of the video, `aria-label`, when no caption names it |
+| `fallbackLabel` | `'Download the video'` | The words of the link a browser that plays no video shows |
+| `caption`, `credit`, `license`, `licenseHref`, `creation`, `creationLabel` | `null` | As for `Image` |
+| `transcript` | `null` | A disclosure of class `isDescription` after the video, which describes it through `aria-describedby` |
+| `transcriptLabel` | `'Transcript'` | The words of its summary |
+
+There is no autoplay: an `autoplay` attribute is left out. Its addresses are checked as those of an image, by
+`image_origin()`. `id` and `class` reach the `video`.
+
+## Figure
+
+`<twig:Figure>`: a `div` of class `isFigureGroup` holding the images of its content, in a `figure` with one caption,
+credit, license and creation for all; the `div` alone without them.
+
+| Prop | Default | |
+|---|---|---|
+| `caption`, `credit`, `license`, `licenseHref`, `creation`, `creationLabel` | `null` | As for `Image`, written once under the images |
+| `columns` | `null` | `2`, `3` or `4` columns on every screen (`hasTwoColumns`…); as many as the container allows when null |
+
+| Block | |
+|---|---|
+| `content` | The images, each an `Image` or a `Picture` without a caption of its own |
+
+`id` and `class` reach the `div`.
 
 ## ReactionButton
 
@@ -1163,10 +1247,10 @@ Components: `<twig:ToggleGroup>`, `<twig:ToggleGroup:Item>`.
 
 ## Recipes of this kit alone
 
-`Logo`, `AnimatedHeadline`, `Illustration`, `Gallery`, `Lightbox`, `AutosaveStatus`, `ReactionButton`, `ReactionPicker`,
-`QrCode`, the blocks `ComingSoon`, `LoginForm` and `SignupForm`, the two charts and the recipes below have no equivalent
-in the Shadcn kit. On Tailwind, the kit `phil/ux-kit-shadcn` holds each of them under the same names, props, blocks and
-controllers.
+`Logo`, `AnimatedHeadline`, `Illustration`, `Gallery`, `Lightbox`, `Hotspots`, `Hero`, `Video`, `Figure`,
+`AutosaveStatus`, `ReactionButton`, `ReactionPicker`, `QrCode`, the blocks `ComingSoon`, `LoginForm` and `SignupForm`,
+the two charts and the recipes below have no equivalent in the Shadcn kit. On Tailwind, the kit `phil/ux-kit-shadcn`
+holds each of them under the same names, props, blocks and controllers.
 
 ## With the Common kit
 

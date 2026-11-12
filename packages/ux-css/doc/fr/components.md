@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=eabf69da289c3e9238b43c6ebf4cd221fc5dab83b08426d16f6dd8c913b7b114 -->
+<!-- phil-dev source-sha256=4d5814141c3644f516162d1a2693db593c1e0f1ad23f5b70092133b525933ae1 -->
 # Composants
 
 Ce que la base sans classe ne peut pas deviner, dans la couche `phil.components`, et les utilitaires, en tout dernier.
@@ -276,6 +276,17 @@ le paragraphe qu'il contient.
 </figure>
 ```
 
+`hasOverlayCaption`, sur la figure, pose sa légende sur le pied de l'image, sur `--phil-color-veil`, son texte en
+`--phil-color-on-veil`, qui atteint 9:1 sur une image blanche ; la figure est aussi large que son image, une
+description reste sous les deux.
+
+```html
+<figure class="hasOverlayCaption">
+    <img class="isImage" src="/hall.jpg" alt="The main hall" width="960" height="640">
+    <figcaption>The main hall</figcaption>
+</figure>
+```
+
 ## La galerie
 
 `isGallery` : un conteneur dont la liste range ses figures en une grille de colonnes larges d'au moins
@@ -306,12 +317,62 @@ son confinement du dessin couperait sinon.
 </div>
 ```
 
+`hasLayoutCarousel` dispose les figures en une seule rangée qui défile de côté et s'aimante sur chacune, le clavier la
+faisant défiler une fois que la liste a le focus. Là où le navigateur les dessine, Chromium 135 et après,
+`::scroll-marker` donne à chaque `li` un marqueur sous la rangée, nommé par son `data-marker`, et `::scroll-button()`
+un bouton de chaque côté, à mi-hauteur de la rangée, nommé par les `data-previous` et `data-next` de la liste ;
+ailleurs la rangée défile seule.
+
+```html
+<div class="isGallery hasLayoutCarousel">
+    <ul role="list" aria-label="The strip" tabindex="0" data-previous="Previous" data-next="Next">
+        <li data-marker="The stage"><img class="isImage hasRatio1x1 hasFitCover" src="/stage.jpg" alt="The stage" width="800" height="600"></li>
+    </ul>
+</div>
+```
+
 ## La visionneuse
 
 `isLightbox` tient `isLightboxTrigger`, le bouton de la vignette, sans fond, avec l'anneau de focus et un curseur de
 loupe, et `isLightboxDialog`, un dialogue aussi large que l'écran le permet, dont l'image s'affiche entière dans sa
 hauteur ; son bouton de fermeture, `isLightboxClose`, se tient dans son coin de fin. Là où les couleurs sont forcées,
 le bouton de la vignette garde le cadre d'un bouton du système.
+
+## Des points sur une image
+
+`isHotspots` contient une image et un `isHotspotsList`, chaque point un `isHotspot` posé sur l'image à sa place, son
+lien une pastille de texte en `--phil-color-on-veil` sur `--phil-color-veil`, d'au moins 24 pixels de haut. La place
+vient de `hasHotspotX` et `hasHotspotY` suivis d'un multiple de cinq, `hasHotspotX0` à `hasHotspotX100`, qui posent
+`--phil-hotspot-x` et `--phil-hotspot-y` ; là où le navigateur type `attr()`, Chromium 133 et après, les `data-x` et
+`data-y` du point, des pourcentages sans leur signe, le placent exactement. La place se compte depuis la gauche et
+depuis le haut, la même de droite à gauche : la liste est disposée de gauche à droite, chaque lien lisant ses mots dans
+leur sens. Sous 36rem, les points se lisent en liste sous l'image.
+
+```html
+<div class="isHotspots">
+    <img class="isImage" src="/plan.png" alt="The plan of the hall" width="800" height="400">
+    <ul role="list" class="isHotspotsList" aria-label="Rooms">
+        <li class="isHotspot hasHotspotX75 hasHotspotY65" data-x="72.5" data-y="64"><a href="/bar">Bar</a></li>
+    </ul>
+</div>
+```
+
+## Le héros
+
+`isHero` fait au moins 20rem de haut, `hasHeroScreen` la hauteur de l'écran, `hasHeroLarge` les sept dixièmes ; son
+`isHeroMedia` pose l'image sous toute la boîte, qu'elle couvre, et son `isHeroContent` repose par-dessus sur
+`--phil-color-veil`, au bas de la hauteur, ou en haut avec `hasHeroStart`, au centre avec `hasHeroCenter`.
+
+## La vidéo
+
+`isVideo` : une vidéo aussi large que sa largeur le permet, jamais plus large que son conteneur, gardée au rapport de
+ses `width` et `height` tant que rien n'est chargé.
+
+## Plusieurs images sous une légende
+
+`isFigureGroup` : une grille de colonnes d'au moins `--phil-figure-column` (10rem), autant que le conteneur en tient,
+ou deux, trois ou quatre sur tous les écrans avec `hasTwoColumns`, `hasThreeColumns` et `hasFourColumns` ; chaque image remplit
+sa cellule.
 
 ## Réactions
 

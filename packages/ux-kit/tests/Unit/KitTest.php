@@ -70,8 +70,11 @@ final class KitTest extends TestCase
         'dropdown-menu' => ['component', 'DropdownMenu'],
         'empty' => ['component', 'Empty'],
         'field' => ['component', 'Field'],
+        'figure' => ['component', 'Figure'],
         'file-input' => ['component', 'FileInput'],
         'gallery' => ['component', 'Gallery'],
+        'hero' => ['component', 'Hero'],
+        'hotspots' => ['component', 'Hotspots'],
         'illustration' => ['component', 'Illustration'],
         'image' => ['component', 'Image'],
         'input' => ['component', 'Input'],
@@ -111,6 +114,7 @@ final class KitTest extends TestCase
         'toggle-group' => ['component', 'ToggleGroup'],
         'tooltip' => ['component', 'Tooltip'],
         'tree' => ['component', 'Tree'],
+        'video' => ['component', 'Video'],
     ];
 
     public function testTheKitManifestHasTheFieldsOfTheToolkit(): void

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b8de426f6190559bea892fc319e61de76f5556be6fabc79c6ea05920295e6bec -->
+<!-- phil-dev source-sha256=c018595f570a4e4f3af634393a73aef08b99e45f360dbb06c5cd643026d3eb0b -->
 # Jetons
 
 Chaque jeton est une propriété personnalisée de `:root` nommée `--phil-*`, dans l'un de trois fichiers :
@@ -74,6 +74,8 @@ Les composants lisent des rôles, jamais la palette. Chaque rôle est `light-dar
 | `--phil-color-border` | neutral 80 | neutral 30 |
 | `--phil-color-shadow` | noir à 12 % | noir à 50 % |
 | `--phil-color-backdrop` | noir à 40 % | noir à 60 % |
+| `--phil-color-veil` | noir à 72 % | noir à 72 % |
+| `--phil-color-on-veil` | blanc (clarté 0,99) | blanc (clarté 0,99) |
 | `--phil-color-activity-0` | neutral 95 | neutral 20 |
 | `--phil-color-activity-1` | brand 90 | brand 30 |
 | `--phil-color-activity-2` | brand 70 | brand 50 |
