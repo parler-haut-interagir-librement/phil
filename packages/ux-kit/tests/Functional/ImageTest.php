@@ -602,4 +602,142 @@ final class ImageTest extends KitTestCase
             $this->render('<twig:Picture {{ ...image_sources(\'images/logo\') }} alt="Studio" />'),
         );
     }
+
+    public function testADeferredImageIsFetchedLast(): void
+    {
+        self::assertSame(
+            '<img class="isImage" src="/a.jpg" alt="A" width="1" height="1" loading="lazy" decoding="async" fetchpriority="low">',
+            $this->render('<twig:Image src="/a.jpg" alt="A" :width="1" :height="1" :deferred="true" />'),
+        );
+        self::assertSame(
+            '<picture><source type="image/webp" srcset="/a.webp"><img class="isImage" src="/a.jpg" alt="A" width="1" height="1" loading="lazy" decoding="async" fetchpriority="low"></picture>',
+            $this->render('<twig:Picture src="/a.jpg" :sources="[{type: \'image/webp\', srcset: \'/a.webp\'}]" alt="A" :width="1" :height="1" :deferred="true" />'),
+        );
+        self::assertSame(
+            '<img class="isImage" src="/a.jpg" alt="A" width="1" height="1" loading="eager" fetchpriority="high">',
+            $this->render('<twig:Image src="/a.jpg" alt="A" :width="1" :height="1" :deferred="true" :priority="true" />'),
+            'the priority wins',
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function placeholders(): iterable
+    {
+        yield 'neutral' => ['neutral', 'hasPlaceholderNeutral'];
+        yield 'brand' => ['brand', 'hasPlaceholderBrand'];
+        yield 'red' => ['red', 'hasPlaceholderRed'];
+        yield 'green' => ['green', 'hasPlaceholderGreen'];
+        yield 'amber' => ['amber', 'hasPlaceholderAmber'];
+        yield 'blue' => ['blue', 'hasPlaceholderBlue'];
+        yield 'violet' => ['violet', 'hasPlaceholderViolet'];
+        yield 'custom' => ['custom', 'hasPlaceholder'];
+    }
+
+    #[DataProvider('placeholders')]
+    public function testAPlaceholderPaintsTheBoxWithAColourOfTheTokens(string $placeholder, string $class): void
+    {
+        self::assertSame(
+            '<img class="isImage hasRatio16x9 hasFitCover '.$class.' rounded" src="/a.jpg" alt="A" width="16" height="9" loading="lazy" decoding="async">',
+            $this->render('<twig:Image src="/a.jpg" alt="A" :width="16" :height="9" aspect="16/9" :placeholder="placeholder" class="rounded" />', ['placeholder' => $placeholder]),
+        );
+    }
+
+    public function testAnUnknownPlaceholderPaintsNothingAndAPictureCarriesItToItsImage(): void
+    {
+        self::assertSame(
+            '<img class="isImage" src="/a.jpg" alt="A" width="1" height="1" loading="lazy" decoding="async">',
+            $this->render('<twig:Image src="/a.jpg" alt="A" :width="1" :height="1" placeholder="#336699" />'),
+        );
+        self::assertSame(
+            '<picture><source type="image/webp" srcset="/a.webp"><img class="isImage hasPlaceholderBlue" src="/a.jpg" alt="A" width="1" height="1" loading="lazy" decoding="async"></picture>',
+            $this->render('<twig:Picture src="/a.jpg" :sources="[{type: \'image/webp\', srcset: \'/a.webp\'}]" alt="A" :width="1" :height="1" placeholder="blue" />'),
+        );
+    }
+
+    public function testAPreviewIsHandedToItsControllerWithoutAStyle(): void
+    {
+        self::assertSame(
+            '<img class="isImage hasPreview" src="/a.jpg" alt="A" width="8" height="6" loading="lazy" decoding="async" data-controller="image-preview" data-image-preview-src-value="data:image/webp;base64,UklGRhoAAABXRUJQ+/8=">',
+            $this->render('<twig:Image src="/a.jpg" alt="A" :width="8" :height="6" preview="data:image/webp;base64,UklGRhoAAABXRUJQ+/8=" />'),
+        );
+        self::assertSame(
+            '<img class="isImage hasPreview" src="/a.jpg" alt="A" width="8" height="6" loading="lazy" decoding="async" id="hero" data-controller="zoom image-preview" data-image-preview-src-value="data:image/png;base64,iVBORw0KGgo=">',
+            $this->render('<twig:Image src="/a.jpg" alt="A" :width="8" :height="6" preview="data:image/png;base64,iVBORw0KGgo=" id="hero" data-controller="zoom" />'),
+            'beside a controller of the page',
+        );
+        self::assertSame(
+            '<picture><source type="image/webp" srcset="/a.webp"><img class="isImage hasPreview" src="/a.jpg" alt="A" width="8" height="6" loading="lazy" decoding="async" data-controller="image-preview" data-image-preview-src-value="data:image/jpeg;base64,/9j/4AAQ"></picture>',
+            $this->render('<twig:Picture src="/a.jpg" :sources="[{type: \'image/webp\', srcset: \'/a.webp\'}]" alt="A" :width="8" :height="6" preview="data:image/jpeg;base64,/9j/4AAQ" />'),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function refusedPreviews(): iterable
+    {
+        yield 'an address' => ['/a-tiny.jpg'];
+        yield 'an address of another host' => ['https://images.example.com/a-tiny.jpg'];
+        yield 'an inline SVG' => ['data:image/svg+xml;base64,PHN2Zz4='];
+        yield 'not in base 64' => ['data:image/png,abc'];
+        yield 'a quote that would end the URL of CSS' => ['data:image/png;base64,ab")c'];
+        yield 'a script' => ['javascript:alert(1)'];
+        yield 'empty' => [''];
+    }
+
+    #[DataProvider('refusedPreviews')]
+    public function testAPreviewIsATinyInlineImageOrNothing(string $preview): void
+    {
+        self::assertSame(
+            '<img class="isImage" src="/a.jpg" alt="A" width="8" height="6" loading="lazy" decoding="async">',
+            $this->render('<twig:Image src="/a.jpg" alt="A" :width="8" :height="6" :preview="preview" />', ['preview' => $preview]),
+        );
+    }
+
+    public function testAForcedColoursVariantIsOfferedBeforeEveryOther(): void
+    {
+        self::assertSame(
+            '<picture><source srcset="/map-forced.png" media="(forced-colors: active)"><source srcset="/map-still.png" media="(prefers-reduced-motion: reduce)"><source srcset="/map-dark.png" media="(prefers-color-scheme: dark)"><source type="image/webp" srcset="/map.webp"><img class="isImage" src="/map.png" alt="The map" width="8" height="6" loading="lazy" decoding="async"></picture>',
+            $this->render('<twig:Picture src="/map.png" :sources="[{type: \'image/webp\', srcset: \'/map.webp\'}]" dark="/map-dark.png" still="/map-still.png" forced="/map-forced.png" alt="The map" :width="8" :height="6" />'),
+        );
+        self::assertSame(
+            '<picture><source type="image/svg+xml" srcset="/map-forced.svg" media="(forced-colors: active)"><img class="isImage" src="/map.png" alt="The map" width="8" height="6" loading="lazy" decoding="async"></picture>',
+            $this->render('<twig:Picture src="/map.png" :forced="[{type: \'image/svg+xml\', srcset: \'/map-forced.svg\'}, {srcset: \'https://tracker.example.com/x.png\'}]" alt="The map" :width="8" :height="6" />'),
+            'sources of their own types, one of another host left out',
+        );
+        self::assertSame([], $this->renderInRequest('<twig:Picture src="/a.jpg" forced="/a-forced.png" alt="A" :width="8" :height="6" :priority="true" />')[1], 'nor is it preloaded');
+    }
+
+    public function testADescriptionIsADisclosureTheImageIsDescribedBy(): void
+    {
+        self::assertSame(
+            '<figure><img class="isImage" src="/chart.png" alt="Visits by month" width="8" height="6" loading="lazy" decoding="async" id="visits" aria-describedby="visits-description">'
+            .'<details class="isDescription"><summary>Description</summary><p id="visits-description">Visits rose from 12 in January to 30 in February.</p></details></figure>',
+            $this->render('<twig:Image src="/chart.png" alt="Visits by month" :width="8" :height="6" id="visits" description="Visits rose from 12 in January to 30 in February." />'),
+        );
+        self::assertSame(
+            '<figure><picture><source type="image/webp" srcset="/chart.webp"><img class="isImage" src="/chart.png" alt="Visits" width="8" height="6" loading="lazy" decoding="async" id="visits" aria-describedby="note visits-description"></picture>'
+            .'<details class="isDescription"><summary>Long description</summary><p id="visits-description">&lt;b&gt;Rising&lt;/b&gt;</p></details><figcaption>Visits in 2026</figcaption></figure>',
+            $this->render('<twig:Picture src="/chart.png" :sources="[{type: \'image/webp\', srcset: \'/chart.webp\'}]" alt="Visits" :width="8" :height="6" id="visits" aria-describedby="note" caption="Visits in 2026" description="<b>Rising</b>" descriptionLabel="Long description" />'),
+            'escaped, before the caption, beside a description of the page',
+        );
+    }
+
+    public function testWithoutAnIdentifierTheDescriptionHasOneOfItsOwn(): void
+    {
+        $html = $this->render('<twig:Image src="/chart.png" alt="Visits" :width="8" :height="6" description="Rising" />');
+
+        self::assertMatchesRegularExpression('#^<figure><img class="isImage" src="/chart.png" alt="Visits" width="8" height="6" loading="lazy" decoding="async" aria-describedby="(image-description-\d+)"><details class="isDescription"><summary>Description</summary><p id="\1">Rising</p></details></figure>$#', $html);
+        self::assertNotSame($html, $this->render('<twig:Image src="/chart.png" alt="Visits" :width="8" :height="6" description="Rising" />'), 'two images, two identifiers');
+    }
+
+    public function testADecorativeImageShowsItsDescriptionWithoutBeingDescribed(): void
+    {
+        self::assertSame(
+            '<figure><img class="isImage" src="/a.png" alt="" width="1" height="1" loading="lazy" decoding="async" id="a"><details class="isDescription"><summary>Description</summary><p id="a-description">Lines</p></details></figure>',
+            $this->render('<twig:Image src="/a.png" alt="" :width="1" :height="1" id="a" description="Lines" />'),
+        );
+    }
 }

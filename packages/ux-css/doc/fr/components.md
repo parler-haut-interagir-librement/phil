@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8168b776650df2d58bc0e12855d353ff0019bcd479c53261662e547a891a3451 -->
+<!-- phil-dev source-sha256=eabf69da289c3e9238b43c6ebf4cd221fc5dab83b08426d16f6dd8c913b7b114 -->
 # Composants
 
 Ce que la base sans classe ne peut pas deviner, dans la couche `phil.components`, et les utilitaires, en tout dernier.
@@ -256,6 +256,26 @@ comment elle a été faite.
 </figure>
 ```
 
+Pendant que l'image se charge, une couleur d'attente peint sa boîte d'une teinte discrète des jetons, proche de la
+couleur dominante de l'image : `hasPlaceholderNeutral`, `hasPlaceholderBrand`, `hasPlaceholderRed`,
+`hasPlaceholderGreen`, `hasPlaceholderAmber`, `hasPlaceholderBlue` ou `hasPlaceholderViolet`, chacune un rôle
+`--phil-color-placeholder-*` en clair et en sombre ; `hasPlaceholder` lit `--phil-image-placeholder`, posée par une classe
+du site. La teinte reste derrière une image transparente une fois chargée : donnez-la aux photographies, pas aux logos.
+
+`hasPreview` dispose l'aperçu flou que le contrôleur `image-preview` du kit peint derrière l'image pendant son
+chargement, comme le sera l'image, couvrant sa boîte ou, avec `hasFitContain`, contenu dedans. Le contrôleur pose le fond
+par le CSSOM, qu'une politique de sécurité du contenu stricte permet, là où un attribut `style` serait écarté.
+
+`isDescription`, un dévoilement sous l'image et avant sa légende, tient sa description longue ; l'image est décrite par
+le paragraphe qu'il contient.
+
+```html
+<figure>
+    <img class="isImage hasPlaceholderBlue" src="/chart.png" alt="Visits by month" width="800" height="600" aria-describedby="visits-description">
+    <details class="isDescription"><summary>Description</summary><p id="visits-description">Visits rose from 12 in January to 30 in February.</p></details>
+</figure>
+```
+
 ## La galerie
 
 `isGallery` : un conteneur dont la liste range ses figures en une grille de colonnes larges d'au moins
@@ -271,11 +291,27 @@ sa case.
 </div>
 ```
 
+`isDeferred`, sur une longue galerie, laisse le navigateur sauter le rendu des figures hors de l'écran avec
+`content-visibility: auto`. Chaque `li` garde entre-temps le rapport de ses `data-width` et `data-height`, que `attr()`
+lit là où le navigateur le type, Chromium 133 et suivants ; ailleurs, c'est une case carrée haute de
+`--phil-gallery-column`, jusqu'à son premier rendu, après quoi sa taille est retenue. Ni l'un ni l'autre ne compte la
+légende, qui paraît au rendu de la figure. Chaque case déborde sur l'espacement de la largeur de l'anneau de focus, que
+son confinement du dessin couperait sinon.
+
+```html
+<div class="isGallery isDeferred">
+    <ul role="list" aria-label="The archive">
+        <li data-width="4" data-height="3"><img class="isImage hasRatio4x3 hasFitCover" src="/stage.jpg" alt="The stage" width="800" height="600" loading="lazy" fetchpriority="low"></li>
+    </ul>
+</div>
+```
+
 ## La visionneuse
 
 `isLightbox` tient `isLightboxTrigger`, le bouton de la vignette, sans fond, avec l'anneau de focus et un curseur de
 loupe, et `isLightboxDialog`, un dialogue aussi large que l'écran le permet, dont l'image s'affiche entière dans sa
-hauteur ; son bouton de fermeture, `isLightboxClose`, se tient dans son coin de fin.
+hauteur ; son bouton de fermeture, `isLightboxClose`, se tient dans son coin de fin. Là où les couleurs sont forcées,
+le bouton de la vignette garde le cadre d'un bouton du système.
 
 ## Réactions
 

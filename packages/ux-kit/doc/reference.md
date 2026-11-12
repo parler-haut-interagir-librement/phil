@@ -5,10 +5,11 @@
 | `manifest.json` | The kit: name, description, licence, homepage, colour, icon, dependencies |
 | `icon.svg` | The kit's icon |
 | `.gitattributes` | Leaves the package's own files out of the archive `ux:install` downloads, but `src/` |
-| `src/PhilUxKitBundle.php` | `Phil\UxKit\PhilUxKitBundle`: the bundle, `phil_ux_kit.image.hosts` and `allow_localhost`, and the Twig functions of the image recipes |
+| `src/PhilUxKitBundle.php` | `Phil\UxKit\PhilUxKitBundle`: the bundle, `phil_ux_kit.image.hosts`, `allow_localhost` and `check`, and the Twig functions of the image recipes |
 | `src/Application/ImageOrigin.php` | `Phil\UxKit\Application\ImageOrigin`: where the image at an address, or every candidate of a `srcset`, comes from, read by `phil/url`: `local`, `external` or `refused` |
 | `src/Application/ImageSources.php` | `Phil\UxKit\Application\ImageSources`: the props of a `Picture` from the files of one image among the assets of AssetMapper |
-| `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()` and `image_sources()` |
+| `src/Application/ImageTextCheck.php` | `Phil\UxKit\Application\ImageTextCheck`: what a developer may have left wrong in an image, a text alternative that is the name of its file, a generic word or one that starts by saying it is an image, a missing width or height |
+| `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()`, `image_sources()` and `image_check()`, which logs the problems of `ImageTextCheck` as warnings when `phil_ux_kit.image.check` is on |
 | `src/Test/BrowserTestCase.php` | `Phil\UxKit\Test\BrowserTestCase`: one headless Chrome on the page of the recipes of a kit, and the helpers of a browser test |
 | `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage`: the web root of every recipe of a kit, with its stylesheet, its controllers and Stimulus |
 | `logo/manifest.json`, `logo/README.md` | The `Logo` recipe |
@@ -19,7 +20,8 @@
 | `illustration/manifest.json`, `illustration/README.md` | The `Illustration` recipe |
 | `illustration/templates/components/Illustration.html.twig` | The `Illustration` component |
 | `image/manifest.json`, `image/README.md` | The `Image` recipe |
-| `image/templates/components/` | The `Image` and `Picture` components, and `Image:Figure`, the figure of their caption, credit, license and creation |
+| `image/templates/components/` | The `Image` and `Picture` components, and `Image:Figure`, the figure of their description, caption, credit, license and creation |
+| `image/assets/controllers/image_preview_controller.js` | The Stimulus controller `image-preview`, which paints the blurred preview of an image through the CSSOM until it has loaded |
 | `gallery/manifest.json`, `gallery/README.md` | The `Gallery` recipe |
 | `gallery/templates/components/Gallery.html.twig` | The `Gallery` component |
 | `lightbox/manifest.json`, `lightbox/README.md` | The `Lightbox` recipe |

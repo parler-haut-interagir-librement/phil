@@ -3,7 +3,8 @@
  # command="show-modal" and commandfor, the dialog closed by Escape, by its close button or by a click on its backdrop
  # with closedby="any"; the lightbox controller stands in only where the browser runs neither. Both pictures go through
  # the Picture of the image recipe, the full one shown whole; the caption, the credit, the license and the creation
- # show under both. A refused image draws nothing.
+ # show under both; the description follows the thumbnail, which its button is described by. A refused image draws
+ # nothing.
  #}
 {%- props
     ## string The identifier of the lightbox, unique in the page, from which that of its dialog is made.
@@ -45,15 +46,26 @@
     ## string|null Words screen readers read after the text alternative in the button, such as "Enlarge".
     openLabel = null,
     ## string What screen readers read for the close button.
-    closeLabel = 'Close'
+    closeLabel = 'Close',
+    ## bool Whether the thumbnail lies far below the fold and is fetched after the others, as for Image.
+    deferred = false,
+    ## string|null The colour the thumbnail's box is painted while it loads, as for Image.
+    placeholder = null,
+    ## string|null A tiny version of the thumbnail, inline in base 64, shown blurred while it loads, as for Image.
+    preview = null,
+    ## string|null A long description of the image, in a disclosure after the thumbnail, which its button is described by.
+    description = null,
+    ## string The words of the summary of the description's disclosure.
+    descriptionLabel = 'Description'
 -%}
 {%- if image_origin(src) is not same as('refused') and not (src|replace({"\t": '', "\n": '', "\r": ''}) matches '#^[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i') -%}
     {%- set _dialog = 'lightbox-' ~ id -%}
+    {%- set _described = description is empty ? null : _dialog ~ '-description' -%}
     {%- set _full = full ?? {src: src, srcset: srcset, sources: sources, width: width, height: height} -%}
     <div {{ html_attr({class: ['isLightbox', attributes.all.class ?? null]|filter(name => name is not empty)|join(' ')}) }} data-controller="lightbox">
-        <twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel">
-            <button type="button" class="isLightboxTrigger" command="show-modal" commandfor="{{ _dialog }}" aria-haspopup="dialog" data-action="click->lightbox#open">
-                <twig:Picture :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :sources="sources" :aspect="aspect" :fit="fit" :position="position" />
+        <twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel" :description="description" :descriptionId="_described" :descriptionLabel="descriptionLabel">
+            <button type="button" class="isLightboxTrigger" command="show-modal" commandfor="{{ _dialog }}" aria-haspopup="dialog"{% if _described is not null %} aria-describedby="{{ _described }}"{% endif %} data-action="click->lightbox#open">
+                <twig:Picture :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :sources="sources" :aspect="aspect" :fit="fit" :position="position" :deferred="deferred" :placeholder="placeholder" :preview="preview" />
                 {%- if openLabel is not empty %}<span class="isVisuallyHidden">{{ openLabel }}</span>{% endif -%}
             </button>
         </twig:Image:Figure>

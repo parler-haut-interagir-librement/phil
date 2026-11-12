@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=32cb1f4847916cbecf9ad6f95f0a3d01313ac105ae44674fba262243fc0a0b81 -->
+<!-- phil-dev source-sha256=c57206d1d6f1ab150a8fc8113c4b719e165fad674bf25995fc049d752d56783d -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -6,10 +6,11 @@
 | `manifest.json` | Le kit : nom, description, licence, page d'accueil, couleur, icône, dépendances |
 | `icon.svg` | L'icône du kit |
 | `.gitattributes` | Laisse les fichiers propres au paquet hors de l'archive que télécharge `ux:install`, sauf `src/` |
-| `src/PhilUxKitBundle.php` | `Phil\UxKit\PhilUxKitBundle` : le bundle, `phil_ux_kit.image.hosts` et `allow_localhost`, et les fonctions Twig des recettes d'images |
+| `src/PhilUxKitBundle.php` | `Phil\UxKit\PhilUxKitBundle` : le bundle, `phil_ux_kit.image.hosts`, `allow_localhost` et `check`, et les fonctions Twig des recettes d'images |
 | `src/Application/ImageOrigin.php` | `Phil\UxKit\Application\ImageOrigin` : d'où vient l'image d'une adresse, ou chaque candidate d'un `srcset`, lue par `phil/url` : `local`, `external` ou `refused` |
 | `src/Application/ImageSources.php` | `Phil\UxKit\Application\ImageSources` : les props d'une `Picture` d'après les fichiers d'une image parmi les ressources d'AssetMapper |
-| `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()` et `image_sources()` |
+| `src/Application/ImageTextCheck.php` | `Phil\UxKit\Application\ImageTextCheck` : ce qu'un développeur a pu laisser de travers dans une image, un texte de remplacement qui est le nom de son fichier, un mot générique ou qui commence par dire que c'est une image, une largeur ou une hauteur absente |
+| `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()`, `image_sources()` et `image_check()`, qui journalise les problèmes d'`ImageTextCheck` en avertissements quand `phil_ux_kit.image.check` est actif |
 | `src/Test/BrowserTestCase.php` | `Phil\UxKit\Test\BrowserTestCase` : un Chrome sans interface sur la page des recettes d'un kit, et les aides d'un test en navigateur |
 | `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage` : la racine web de chaque recette d'un kit, avec sa feuille de style, ses contrôleurs et Stimulus |
 | `logo/manifest.json`, `logo/README.md` | La recette `Logo` |
@@ -20,7 +21,8 @@
 | `illustration/manifest.json`, `illustration/README.md` | La recette `Illustration` |
 | `illustration/templates/components/Illustration.html.twig` | Le composant `Illustration` |
 | `image/manifest.json`, `image/README.md` | La recette `Image` |
-| `image/templates/components/` | Les composants `Image` et `Picture`, et `Image:Figure`, la figure de leur légende, de leur crédit, de leur licence et de leur création |
+| `image/templates/components/` | Les composants `Image` et `Picture`, et `Image:Figure`, la figure de leur description, de leur légende, de leur crédit, de leur licence et de leur création |
+| `image/assets/controllers/image_preview_controller.js` | Le contrôleur Stimulus `image-preview`, qui peint l'aperçu flou d'une image par le CSSOM jusqu'à ce qu'elle soit chargée |
 | `gallery/manifest.json`, `gallery/README.md` | La recette `Gallery` |
 | `gallery/templates/components/Gallery.html.twig` | Le composant `Gallery` |
 | `lightbox/manifest.json`, `lightbox/README.md` | La recette `Lightbox` |

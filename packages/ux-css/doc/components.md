@@ -246,6 +246,26 @@ license, and how it was made.
 </figure>
 ```
 
+While the image loads, a placeholder paints its box in a quiet tone of the tokens, near the dominant colour of the
+picture: `hasPlaceholderNeutral`, `hasPlaceholderBrand`, `hasPlaceholderRed`, `hasPlaceholderGreen`,
+`hasPlaceholderAmber`, `hasPlaceholderBlue` or `hasPlaceholderViolet`, each a `--phil-color-placeholder-*` role in
+clear and in dark; `hasPlaceholder` reads `--phil-image-placeholder`, set by a class of the site. The tone stays behind
+a transparent picture once it has loaded: give it to photographs, not to logos.
+
+`hasPreview` lays out the blurred preview the `image-preview` controller of the kit paints behind the image while it
+loads, as the picture will be, covering its box or, with `hasFitContain`, inside it. The controller sets the background
+through the CSSOM, which a strict Content Security Policy allows, where a `style` attribute would be dropped.
+
+`isDescription`, a disclosure under the image and before its caption, holds its long description; the image is
+described by the paragraph inside.
+
+```html
+<figure>
+    <img class="isImage hasPlaceholderBlue" src="/chart.png" alt="Visits by month" width="800" height="600" aria-describedby="visits-description">
+    <details class="isDescription"><summary>Description</summary><p id="visits-description">Visits rose from 12 in January to 30 in February.</p></details>
+</figure>
+```
+
 ## The gallery
 
 `isGallery`: a container whose list lays its figures in a grid of columns `--phil-gallery-column` wide at least (12rem),
@@ -260,11 +280,27 @@ as many as its own width holds, read by a container query rather than the width 
 </div>
 ```
 
+`isDeferred`, on a long gallery, lets the browser skip the rendering of the figures off screen with
+`content-visibility: auto`. Each `li` is kept meanwhile at the ratio of its `data-width` and `data-height`, which
+`attr()` reads where the browser types it, Chromium 133 and later; elsewhere it is a square cell `--phil-gallery-column`
+high, until it has been rendered once, after which its size is remembered. Neither counts the caption, which shows once
+the figure is rendered. Each cell reaches into the gap by the width of the focus ring, which its paint containment would
+otherwise clip.
+
+```html
+<div class="isGallery isDeferred">
+    <ul role="list" aria-label="The archive">
+        <li data-width="4" data-height="3"><img class="isImage hasRatio4x3 hasFitCover" src="/stage.jpg" alt="The stage" width="800" height="600" loading="lazy" fetchpriority="low"></li>
+    </ul>
+</div>
+```
+
 ## The lightbox
 
 `isLightbox` holds `isLightboxTrigger`, the thumbnail's button, without a fill, with the focus ring and a zoom cursor,
 and `isLightboxDialog`, a dialog as wide as the screen allows whose image is shown whole within its height; its close
-button, `isLightboxClose`, sits in its end corner.
+button, `isLightboxClose`, sits in its end corner. Where colours are forced, the thumbnail's button keeps the frame of
+a system button.
 
 ## Reactions
 

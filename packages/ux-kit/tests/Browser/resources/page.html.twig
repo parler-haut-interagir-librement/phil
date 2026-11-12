@@ -102,6 +102,7 @@
         <div class="isCluster"><twig:ProgressRing label="Upload" :value="40" /><twig:ProgressRing label="Waiting" /><twig:Sparkline label="Rising" :values="[2, 4, 3, 9]" :area="true" /></div>
         <twig:BeforeAfter id="compare" label="Cut" :position="30"><twig:block name="after"><div style="block-size: 6rem; background: teal"></div></twig:block><twig:block name="before"><div style="block-size: 6rem; background: orange"></div></twig:block></twig:BeforeAfter>
     </section>
+    {%- set wide = 'data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27400%27%20height=%27200%27%3E%3Crect%20width=%27400%27%20height=%27200%27%20fill=%27COLOUR%27/%3E%3C/svg%3E' -%}
     {%- set square = 'data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27400%27%20height=%27400%27%3E%3Crect%20width=%27400%27%20height=%27400%27%20fill=%27COLOUR%27/%3E%3C/svg%3E' -%}
     <section id="images" class="isStack">
         <twig:Gallery id="festival" label="The festival" :lightbox="true" openLabel="Enlarge" aspect="1/1" sizes="(min-width: 48rem) 33vw, 100vw" :images="[
@@ -111,6 +112,7 @@
         ]" />
         <twig:Picture id="themed" :src="square|replace({COLOUR: 'teal'})" :dark="square|replace({COLOUR: 'navy'})" :still="square|replace({COLOUR: 'olive'})" alt="A square of the theme" :width="200" :height="200" caption="Navy where the system is dark, olive where motion is reduced" />
         <twig:Logo :src="square|replace({COLOUR: 'teal'})" :dark="square|replace({COLOUR: 'navy'})" alt="Studio" href="#images" :width="48" :height="48" />
+        <twig:Picture id="forced" :src="square|replace({COLOUR: 'teal'})" :forced="square|replace({COLOUR: 'black'})" placeholder="blue" alt="A square drawn again for forced colours" :width="200" :height="200" description="A teal square, drawn in black where colours are forced." />
     </section>
     <section id="native" class="isStack">
         <twig:AlertDialog id="erase">
@@ -156,6 +158,14 @@
         <twig:Empty><twig:Empty:Media>?</twig:Empty:Media><twig:Empty:Header><twig:Empty:Title>Nothing</twig:Empty:Title><twig:Empty:Description>Yet</twig:Empty:Description></twig:Empty:Header><twig:Empty:Content><twig:Button>Add</twig:Button></twig:Empty:Content></twig:Empty>
         <twig:Separator /><twig:Spinner /><twig:Skeleton />
         <twig:Label for="i">Label</twig:Label><twig:Input id="i" /><twig:Textarea>Text</twig:Textarea><label><twig:Checkbox /> Check</label>
+    </section>
+    <section id="far" class="isStack">
+        <twig:Image id="previewed" src="far-away.png" preview="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEklEQVR4nGPQqIg6scWGAUIBACREBWVbKYK9AAAAAElFTkSuQmCC" placeholder="neutral" alt="A field, far down the page" :width="400" :height="300" />
+        {%- set archive = [] -%}
+        {%- for index in 1..12 -%}
+            {%- set archive = archive|merge([{src: (index is odd ? square : wide)|replace({COLOUR: index is odd ? 'teal' : 'navy'}), alt: 'Archive ' ~ index, width: 400, height: index is odd ? 400 : 200, caption: 'Item ' ~ index}]) -%}
+        {%- endfor -%}
+        <twig:Gallery id="archive" label="The archive" :images="archive" :deferred="true" :lightbox="true" openLabel="Enlarge" placeholder="neutral" />
     </section>
 </main>
 </body>

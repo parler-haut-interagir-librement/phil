@@ -141,6 +141,14 @@
         --phil-color-activity-3: light-dark(var(--phil-brand-50), var(--phil-brand-70));
         --phil-color-activity-4: light-dark(var(--phil-brand-30), var(--phil-brand-90));
 
+        /* The quiet tones an image's box is painted in while it loads, near the dominant colour of the picture */
+        --phil-color-placeholder-brand: light-dark(var(--phil-brand-90), var(--phil-brand-20));
+        --phil-color-placeholder-red: light-dark(var(--phil-red-90), var(--phil-red-20));
+        --phil-color-placeholder-green: light-dark(var(--phil-green-90), var(--phil-green-20));
+        --phil-color-placeholder-amber: light-dark(var(--phil-amber-90), var(--phil-amber-20));
+        --phil-color-placeholder-blue: light-dark(var(--phil-blue-90), var(--phil-blue-20));
+        --phil-color-placeholder-violet: light-dark(var(--phil-violet-90), var(--phil-violet-20));
+
         /* brand */
         --phil-color-brand-fill-quiet: light-dark(var(--phil-brand-95), var(--phil-brand-20));
         --phil-color-brand-fill-loud: light-dark(var(--phil-brand-40), var(--phil-brand-70));
@@ -1435,6 +1443,62 @@
         display: block;
     }
 
+    /* The colour an image's box is painted while it loads, a quiet tone of the palette in clear and in dark; hasPlaceholder
+       reads --phil-image-placeholder, which a class of the site sets. It stays behind a transparent picture once loaded:
+       for photographs, not for logos. */
+    .isImage.hasPlaceholderNeutral {
+        background-color: var(--phil-color-surface-raised);
+    }
+
+    .isImage.hasPlaceholderBrand {
+        background-color: var(--phil-color-placeholder-brand);
+    }
+
+    .isImage.hasPlaceholderRed {
+        background-color: var(--phil-color-placeholder-red);
+    }
+
+    .isImage.hasPlaceholderGreen {
+        background-color: var(--phil-color-placeholder-green);
+    }
+
+    .isImage.hasPlaceholderAmber {
+        background-color: var(--phil-color-placeholder-amber);
+    }
+
+    .isImage.hasPlaceholderBlue {
+        background-color: var(--phil-color-placeholder-blue);
+    }
+
+    .isImage.hasPlaceholderViolet {
+        background-color: var(--phil-color-placeholder-violet);
+    }
+
+    .isImage.hasPlaceholder {
+        background-color: var(--phil-image-placeholder, var(--phil-color-surface-raised));
+    }
+
+    /* The blurred preview the image-preview controller paints behind an image while it loads, through the CSSOM, never a
+       style attribute: laid out as the picture will be. */
+    .isImage.hasPreview {
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+    }
+
+    .isImage.hasPreview.hasFitContain {
+        background-size: contain;
+    }
+
+    /* The long description of an image: a disclosure under it, before its caption. */
+    .isDescription {
+        margin-block: var(--phil-space-xs) 0;
+    }
+
+    .isDescription > p {
+        margin: 0;
+    }
+
     /* A gallery: its figures in a grid of columns as wide as its container allows, --phil-gallery-column at least, the
        gap growing with the container; each image fills its cell. */
     .isGallery {
@@ -1469,6 +1533,27 @@
         }
     }
 
+    /* A deferred gallery: the browser skips the rendering of the figures off screen, each kept meanwhile at the ratio of
+       its data-width and data-height, read by attr() where the browser types it, else a square cell; once rendered, its
+       size is remembered. The cell reaches into the gap by the width of the focus ring, which its paint containment would
+       otherwise clip. */
+    .isGallery.isDeferred > ul > li {
+        --phil-gallery-ring: calc(var(--phil-focus-width) + var(--phil-focus-offset));
+
+        box-sizing: content-box;
+        margin: calc(-1 * var(--phil-gallery-ring));
+        padding: var(--phil-gallery-ring);
+        content-visibility: auto;
+        contain-intrinsic-size: auto var(--phil-gallery-column, 12rem);
+    }
+
+    @supports (aspect-ratio: attr(data-width type(<number>), 1) / 1) {
+        .isGallery.isDeferred > ul > li[data-width][data-height] {
+            aspect-ratio: attr(data-width type(<number>), 1) / attr(data-height type(<number>), 1);
+            contain-intrinsic-size: auto none;
+        }
+    }
+
     /* A lightbox: its thumbnail, a button without a fill that keeps the focus ring, and its image shown whole in a dialog as
        wide as the screen allows, the close button in its corner. */
     .isLightbox {
@@ -1487,6 +1572,13 @@
         border: 0;
         border-radius: var(--phil-radius-md);
         cursor: zoom-in;
+    }
+
+    /* Where colours are forced, the thumbnail's button keeps the frame of a button of the system. */
+    @media (forced-colors: active) {
+        .isLightboxTrigger {
+            border: var(--phil-border-sm) solid ButtonBorder;
+        }
     }
 
     .isLightboxDialog {

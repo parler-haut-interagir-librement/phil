@@ -652,6 +652,90 @@ final class InteractiveRecipesTest extends BrowserTestCase
     }
 
     /**
+     * axe-core on what 0.4 adds: the picture with its variant for forced colours, its placeholder and its description,
+     * the image far down with its preview, and the deferred gallery, with a lightbox open; in clear, in dark and right
+     * to left.
+     */
+    #[DataProvider('modes')]
+    public function testThePlaceholdersPreviewsDescriptionsAndDeferredGalleryPassAxe(string $page): void
+    {
+        $this->open($page);
+        $this->perform((string) file_get_contents(__DIR__.'/node_modules/axe-core/axe.min.js'));
+
+        self::assertSame([], $this->axe('#forced'));
+        self::assertSame([], $this->axe('#images figure:has(#forced)'));
+        self::assertSame([], $this->axe('#far'));
+
+        $this->perform('document.querySelector("[commandfor=\\"lightbox-archive-12\\"]").scrollIntoView()');
+        $this->focus('[commandfor="lightbox-archive-12"]');
+        $this->press(WebDriverKeys::ENTER);
+        $this->waitUntil('document.querySelector("#lightbox-archive-12").open && getComputedStyle(document.querySelector("#lightbox-archive-12")).opacity === "1"');
+
+        self::assertSame([], $this->axe('#lightbox-archive-12'));
+    }
+
+    /**
+     * A deferred gallery: the browser skips its figures off screen, each kept at the ratio of its image until it is
+     * rendered; its cells reach into the gap by the width of the focus ring, which the focus of a thumbnail then shows.
+     */
+    public function testADeferredGallerySkipsItsFiguresOffScreenAtTheirRatio(): void
+    {
+        $this->browser()->manage()->window()->setSize(new WebDriverDimension(1280, 800));
+        $this->open('index.html');
+
+        self::assertSame(
+            ['auto', true, true],
+            $this->read('(() => { const items = [...document.querySelectorAll("#archive li")], last = items[items.length - 1], previous = items[items.length - 2], ratio = (item) => { const box = item.getBoundingClientRect(), style = getComputedStyle(item); return (box.height - 2 * parseFloat(style.paddingTop)) / (box.width - 2 * parseFloat(style.paddingLeft)); }; return [getComputedStyle(last).contentVisibility, last.getBoundingClientRect().top > innerHeight && Math.abs(ratio(last) - 0.5) < 0.02, previous.getBoundingClientRect().top > innerHeight && Math.abs(ratio(previous) - 1) < 0.02]; })()'),
+        );
+
+        $this->perform('document.querySelector("#archive li:last-child").scrollIntoView()');
+        $this->focus('[commandfor="lightbox-archive-12"]');
+
+        self::assertTrue($this->read('(() => { const item = document.querySelector("#archive li:last-child"), style = getComputedStyle(item), ring = getComputedStyle(document.querySelector("[commandfor=\\"lightbox-archive-12\\"]")); return parseFloat(style.paddingLeft) >= parseFloat(ring.outlineWidth) + parseFloat(ring.outlineOffset) && document.activeElement.matches(":focus-visible"); })()'));
+    }
+
+    /**
+     * The preview of an image far down the page is painted behind it through the CSSOM until the image has been
+     * fetched: here it fails, and the preview goes all the same.
+     */
+    public function testAPreviewIsPaintedUntilTheImageArrives(): void
+    {
+        $this->open('index.html');
+
+        self::assertTrue($this->read('getComputedStyle(document.querySelector("#previewed")).backgroundImage.startsWith("url(\"data:image/svg+xml")'));
+
+        $this->perform('document.querySelector("#previewed").scrollIntoView()');
+        $this->waitUntil('getComputedStyle(document.querySelector("#previewed")).backgroundImage === "none"');
+    }
+
+    /**
+     * Where colours are forced, the picture shows its variant drawn for them; its placeholder paints its box otherwise.
+     */
+    public function testAPictureShowsItsVariantForForcedColours(): void
+    {
+        $source = 'document.querySelector("#forced").currentSrc';
+
+        $this->emulate([['name' => 'forced-colors', 'value' => 'active']]);
+        $this->open('index.html');
+        $this->perform('document.querySelector("#forced").scrollIntoView()');
+        $this->waitUntil('document.querySelector("#forced").complete && '.$source);
+        $forced = $this->read($source);
+        self::assertIsString($forced);
+        self::assertStringContainsString('black', $forced);
+
+        $this->emulate([['name' => 'forced-colors', 'value' => 'none']]);
+        $this->open('index.html');
+        $this->perform('document.querySelector("#forced").scrollIntoView()');
+        $this->waitUntil('document.querySelector("#forced").complete && '.$source);
+        $plain = $this->read($source);
+        self::assertIsString($plain);
+        self::assertStringContainsString('teal', $plain);
+        self::assertNotSame('rgba(0, 0, 0, 0)', $this->read('getComputedStyle(document.querySelector("#forced")).backgroundColor'));
+
+        $this->emulate([]);
+    }
+
+    /**
      * The violations axe-core finds in a part of the page, each rule with the parts it found it in.
      *
      * @return list<string>

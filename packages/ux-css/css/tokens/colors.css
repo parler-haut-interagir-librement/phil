@@ -32,6 +32,14 @@
     --phil-color-activity-3: light-dark(var(--phil-brand-50), var(--phil-brand-70));
     --phil-color-activity-4: light-dark(var(--phil-brand-30), var(--phil-brand-90));
 
+    /* The quiet tones an image's box is painted in while it loads, near the dominant colour of the picture */
+    --phil-color-placeholder-brand: light-dark(var(--phil-brand-90), var(--phil-brand-20));
+    --phil-color-placeholder-red: light-dark(var(--phil-red-90), var(--phil-red-20));
+    --phil-color-placeholder-green: light-dark(var(--phil-green-90), var(--phil-green-20));
+    --phil-color-placeholder-amber: light-dark(var(--phil-amber-90), var(--phil-amber-20));
+    --phil-color-placeholder-blue: light-dark(var(--phil-blue-90), var(--phil-blue-20));
+    --phil-color-placeholder-violet: light-dark(var(--phil-violet-90), var(--phil-violet-20));
+
     /* brand */
     --phil-color-brand-fill-quiet: light-dark(var(--phil-brand-95), var(--phil-brand-20));
     --phil-color-brand-fill-loud: light-dark(var(--phil-brand-40), var(--phil-brand-70));

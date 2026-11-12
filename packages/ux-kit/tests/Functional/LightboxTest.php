@@ -73,4 +73,21 @@ final class LightboxTest extends KitTestCase
 
         $this->render('<twig:Lightbox src="/b.jpg" alt="A" :width="1" :height="1" />');
     }
+
+    public function testTheThumbnailTakesThePlaceholderThePreviewAndTheDeferral(): void
+    {
+        self::assertStringContainsString(
+            '<img class="isImage hasPlaceholderAmber hasPreview" src="/b.jpg" alt="A bridge" width="8" height="6" loading="lazy" decoding="async" fetchpriority="low" data-controller="image-preview" data-image-preview-src-value="data:image/png;base64,iVBORw0KGgo="><span class="isVisuallyHidden">Enlarge</span></button>',
+            $this->render('<twig:Lightbox id="bridge" src="/b.jpg" alt="A bridge" :width="8" :height="6" placeholder="amber" preview="data:image/png;base64,iVBORw0KGgo=" :deferred="true" openLabel="Enlarge" />'),
+        );
+    }
+
+    public function testADescriptionFollowsTheThumbnailAndDescribesItsButton(): void
+    {
+        self::assertStringContainsString(
+            '<figure><button type="button" class="isLightboxTrigger" command="show-modal" commandfor="lightbox-bridge" aria-haspopup="dialog" aria-describedby="lightbox-bridge-description" data-action="click->lightbox#open"><img class="isImage" src="/b.jpg" alt="A bridge" width="8" height="6" loading="lazy" decoding="async"></button>'
+            .'<details class="isDescription"><summary>Details</summary><p id="lightbox-bridge-description">Stone arches</p></details><figcaption>Dusk</figcaption></figure>',
+            $this->render('<twig:Lightbox id="bridge" src="/b.jpg" alt="A bridge" :width="8" :height="6" caption="Dusk" description="Stone arches" descriptionLabel="Details" />'),
+        );
+    }
 }

@@ -4,6 +4,44 @@ All notable changes to `phil/ux-kit` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.4.0-alpha - 2026-11-13
+
+### Added
+
+- On `Image` and `Picture`: `deferred`, `fetchpriority="low"` for an image far below the fold, `priority` winning over
+  it; `placeholder`, the colour of the box while the image loads, a quiet tone of the tokens (`neutral`, `brand`,
+  `red`, `green`, `amber`, `blue`, `violet`) or `custom`, written as the classes `hasPlaceholderBlue` and the others,
+  never as a style; `preview`, a tiny raster image inline in base 64, handed with the class `hasPreview` to the new
+  Stimulus controller `image-preview` of the recipe, which paints it blurred, in an inline SVG at the ratio of the
+  image, behind the image through the CSSOM until it has loaded or failed, safe under a strict Content Security
+  Policy; `description` and `descriptionLabel`, a long description in a `details` of class `isDescription` after the
+  image and before its caption, the image described by its text through `aria-describedby`, beside a description of
+  the page, under the identifier of the image followed by `-description` or one of its own.
+- On `Picture` and `Logo`: `forced`, the variant drawn for forced colours, offered first where `forced-colors` is
+  active, as a URL, a map of densities or sources of their own types on `Picture`; never preloaded.
+- On `Gallery`: `deferred`, its figures off screen skipped with `content-visibility: auto` through the class
+  `isDeferred`, each `li` carrying the `data-width` and `data-height` of its crop or of its image, and its images
+  fetched last; `placeholder` for every image; `preview`, `description` and `id` per image; `descriptionLabel`.
+- On `Lightbox`: `deferred`, `placeholder` and `preview` for the thumbnail; `description` and `descriptionLabel`, the
+  description after the thumbnail, outside its button, which it describes.
+- `image_check()`, called by `Image`: while `phil_ux_kit.image.check` is on, by default with the debug of the kernel,
+  `ImageTextCheck` finds a text alternative that is the name of the file (read by `phil/url`, `@2x`, `@480w` and the
+  digest of AssetMapper set aside), a word that only says it is an image or a text that starts by saying so, in English
+  and in French, and a missing width or height, and each is logged as a warning on the `phil_ux_kit` channel; the page
+  is unchanged.
+- The browser suite audits with axe-core the picture with its variant for forced colours, its placeholder and its
+  description, the image with its preview and the deferred gallery with a lightbox open; it checks the ratio of the
+  figures a deferred gallery skips and its focus ring, the preview painted until its image arrives, and the variant
+  shown where colours are forced.
+
+### Changed
+
+- The image recipe copies the `image-preview` controller and requires `symfony/stimulus-bundle` and
+  `phil/ux-kit:^0.4@dev`; `Image:Figure` makes a figure for a description alone, and writes its `figcaption` only with
+  a caption, a credit, a license or a creation.
+- `composer.json` requires `psr/log`, for the warnings of `image_check()`; `manifest.json` requires
+  `phil/ux-css:^0.4@dev`; the branch alias of `dev-main` is `0.4.x-dev`.
+
 ## 0.3.0-alpha - 2026-11-13
 
 ### Added

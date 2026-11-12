@@ -26,8 +26,9 @@ container query; each image a `Picture` of the `image` recipe, under its caption
 ```
 
 `label` names the list for screen readers. Each image takes the props of a `Picture`: `src`, `alt`, `width`, `height`,
-and `srcset`, `sources`, `position`, `caption`, `credit`, `license`, `licenseHref`, `creation` and `creationLabel` when
-it has them. `aspect` and `fit` apply to every image, so that the rows line up; `sizes` says how wide a column is.
+and `srcset`, `sources`, `position`, `caption`, `credit`, `license`, `licenseHref`, `creation`, `creationLabel`,
+`preview`, `description` and `id` when it has them. `aspect`, `fit` and `placeholder` apply to every image, so that the
+rows line up; `sizes` says how wide a column is.
 
 ## Examples
 
@@ -49,8 +50,28 @@ it has them. `aspect` and `fit` apply to every image, so that the rows line up; 
 The identifier of each lightbox is made from `id`, `lightbox-festival-1` and the others; give an `id` to each gallery
 of a page. `full` is the image the lightbox shows, the thumbnail itself when it has none.
 
+### A long gallery
+
+`deferred` lets the browser skip the rendering of the figures off screen, with `content-visibility: auto`, and fetches
+every image after the other resources of the page, with `fetchpriority="low"`. Each `li` then carries a `data-width`
+and a `data-height`, the ratio of the gallery's `aspect`, or of the image's `width` and `height`, which keep its place
+until it is rendered: no style attribute is written.
+
+```twig
+<twig:Gallery label="The archive" :images="archive" aspect="4/3" placeholder="neutral" :deferred="true" />
+```
+
+The ratio is read by `attr()` where the browser types it, Chromium 133 and later; elsewhere each figure off screen
+holds a square cell `--phil-gallery-column` high until it has been rendered once, after which the browser remembers its
+size. Neither counts the caption, which shows when the figure is rendered, so the scroll bar may still move a little.
+With `aspect="custom"`, which no attribute can say, the square cell serves everywhere. Leave `deferred` off for a short
+gallery, or for one at the top of the page, whose images should come first.
+
 ## Accessibility
 
 The gallery is a list named by `label`, `role="list"` keeping its semantics where the browser drops them from a list
 without markers. The columns follow the width of the gallery, not that of the screen, so that a gallery in a narrow
-column stays readable. An image refused by the `image` recipe takes no place; without an image, nothing is drawn.
+column stays readable. An image refused by the `image` recipe takes no place; without an image, nothing is drawn. A
+figure skipped by a deferred gallery stays in the accessibility tree and is found by the search of the page; its cell
+reaches into the gap by the width of the focus ring, which the paint containment of `content-visibility` would
+otherwise clip. A `description` follows its image, and in a lightbox its thumbnail, whose button it describes.

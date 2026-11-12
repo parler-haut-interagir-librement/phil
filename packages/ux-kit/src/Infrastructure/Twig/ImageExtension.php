@@ -8,13 +8,15 @@ use InvalidArgumentException;
 use LogicException;
 use Phil\UxKit\Application\ImageOrigin;
 use Phil\UxKit\Application\ImageSources;
+use Phil\UxKit\Application\ImageTextCheck;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\AssetMapper\AssetMapperInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Attribute\AsTwigFunction;
 
 /**
- * What the `image` recipe asks of PHP: where an image comes from, read by `phil/url`, and the props of a picture from
- * the assets of AssetMapper.
+ * What the `image` recipe asks of PHP: where an image comes from, read by `phil/url`, the props of a picture from the
+ * assets of AssetMapper, and, while the site is developed, a warning for a text alternative or a size left wrong.
  */
 final readonly class ImageExtension
 {
@@ -22,6 +24,8 @@ final readonly class ImageExtension
         private ImageOrigin $origin,
         private ?RequestStack $requests = null,
         private ?AssetMapperInterface $assets = null,
+        private ?ImageTextCheck $check = null,
+        private ?LoggerInterface $logger = null,
     ) {
     }
 
@@ -60,5 +64,21 @@ final readonly class ImageExtension
         }
 
         return new ImageSources($this->assets)->of($path, $options);
+    }
+
+    /**
+     * Logs a warning for each problem the check finds in an image, its text alternative or its size, when the check is
+     * on, in development; does nothing otherwise, and never changes the page.
+     */
+    #[AsTwigFunction(name: 'image_check')]
+    public function check(?string $src, ?string $alt, mixed $width = null, mixed $height = null): void
+    {
+        if (!$this->check instanceof ImageTextCheck || !$this->logger instanceof LoggerInterface) {
+            return;
+        }
+
+        foreach ($this->check->problems($src ?? '', $alt ?? '', $width, $height) as $problem => $message) {
+            $this->logger->warning($message, ['src' => $src, 'alt' => $alt, 'problem' => $problem]);
+        }
     }
 }

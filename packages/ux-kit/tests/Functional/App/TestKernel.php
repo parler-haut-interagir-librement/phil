@@ -7,7 +7,6 @@ namespace Phil\UxKit\Tests\Functional\App;
 use Override;
 use Phil\QrCodeBundle\PhilQrCodeBundle;
 use Phil\UxKit\PhilUxKitBundle;
-use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\TwigBundle\TwigBundle;
@@ -84,10 +83,11 @@ final class TestKernel extends Kernel
             // The assets image_sources() reads: the images of the unit tests, under images/.
             'asset_mapper' => ['paths' => [__DIR__.'/../../Unit/Fixtures/images' => 'images']],
         ]);
-        $container->extension('phil_ux_kit', ['image' => ['hosts' => ['images.example.com']]]);
+        // The check of text alternatives follows the debug of the kernel; the environment "quiet" turns it off.
+        $container->extension('phil_ux_kit', ['image' => ['hosts' => ['images.example.com']] + ('quiet' === $this->environment ? ['check' => false] : [])]);
         $container->extension('twig', ['strict_variables' => true, 'paths' => array_fill_keys(self::recipeTemplates(), null)]);
         $container->extension('twig_component', ['anonymous_template_directory' => 'components/', 'defaults' => []]);
-        $container->services()->set('logger', NullLogger::class);
+        $container->services()->set('logger', RecordingLogger::class)->public();
         $container->services()->set(ChartjsStubExtension::class)->tag('twig.extension');
     }
 }

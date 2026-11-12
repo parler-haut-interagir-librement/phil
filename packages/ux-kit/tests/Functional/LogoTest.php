@@ -96,4 +96,12 @@ final class LogoTest extends KitTestCase
             $this->render('<twig:Logo src="/logo.gif" still="/logo.png" alt="Studio" href="/" />'),
         );
     }
+
+    public function testAForcedColoursLogoIsOfferedFirst(): void
+    {
+        self::assertSame(
+            '<a href="/" class="isLogo"><picture><source srcset="/logo-forced.svg" media="(forced-colors: active)"><source srcset="/logo-dark.png" media="(prefers-color-scheme: dark)"><source type="image/webp" srcset="/logo.webp"><img class="isImage" src="/logo.png" alt="Studio" width="160" height="40" loading="eager" decoding="async"></picture></a>',
+            $this->render('<twig:Logo src="/logo.png" webp="/logo.webp" dark="/logo-dark.png" forced="/logo-{theme}.svg" theme="forced" alt="Studio" href="/" :width="160" :height="40" />'),
+        );
+    }
 }

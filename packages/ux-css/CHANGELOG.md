@@ -4,6 +4,26 @@ All notable changes to `phil/ux-css` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.4.0-alpha - 2026-11-13
+
+### Added
+
+- `css/tokens/colors.css`: `--phil-color-placeholder-brand`, `-red`, `-green`, `-amber`, `-blue` and `-violet`, quiet
+  tones in clear and in dark for the box of an image while it loads.
+- `css/layers/components.css`: with `isImage`, `hasPlaceholderNeutral`, `hasPlaceholderBrand`, `hasPlaceholderRed`,
+  `hasPlaceholderGreen`, `hasPlaceholderAmber`, `hasPlaceholderBlue`, `hasPlaceholderViolet`, and `hasPlaceholder`,
+  which reads `--phil-image-placeholder` set by a class of the site; `hasPreview`, the blurred preview the kit paints
+  laid out as the picture, covering or contained; `isDescription`, the disclosure of a long description under an
+  image; `isGallery.isDeferred`, its cells rendered with `content-visibility: auto`, kept off screen at the ratio of
+  their `data-width` and `data-height` read by a typed `attr()`, or in a square cell `--phil-gallery-column` high where
+  the browser does not type it, their size remembered once rendered, and reaching into the gap by the width of the
+  focus ring, which their paint containment would clip; where colours are forced, `isLightboxTrigger` keeps the frame
+  of a system button.
+
+### Changed
+
+- The branch alias of `dev-main` is `0.4.x-dev`; `package.json` is at `0.4.0`.
+
 ## 0.3.0-alpha - 2026-11-13
 
 ### Added

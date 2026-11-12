@@ -26,7 +26,7 @@ return [
     ],
     'docs' => [
         'public' => true,
-        'words' => ['Sparkline', 'OKLCH', 'WCAG', 'importmap', 'DTCG', 'Béziers', 'lightbox'],
+        'words' => ['Sparkline', 'OKLCH', 'WCAG', 'importmap', 'DTCG', 'Béziers', 'lightbox', 'CSSOM'],
     ],
     'infection' => [
         'mutators' => [

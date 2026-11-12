@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f18f2863e32ca32fe41fb1d7b35190cd609c09fca6037c0ad8c3c619cae6564a -->
+<!-- phil-dev source-sha256=ef0a81d77be87ef0071268c8612e62beae4a3ebaf07aa82d9c86fac12e08ad33 -->
 # Installation
 
 ## La feuille de style
@@ -27,11 +27,12 @@ refusé comme nom de kit invalide.
 
 ## Le PHP des recettes d'images
 
-`Image`, `Picture`, `Logo`, `Gallery` et `Lightbox` appellent deux fonctions Twig de `phil/ux-kit`, qui est aussi un
-bundle Symfony, et `preload()` de Symfony WebLink :
+`Image`, `Picture`, `Logo`, `Gallery` et `Lightbox` appellent trois fonctions Twig de `phil/ux-kit`, qui est aussi un
+bundle Symfony, et `preload()` de Symfony WebLink ; le StimulusBundle enregistre le contrôleur `image-preview` d'un
+aperçu flou :
 
 ```sh
-composer require phil/ux-kit symfony/web-link
+composer require phil/ux-kit symfony/web-link symfony/stimulus-bundle
 ```
 
 Symfony Flex enregistre `Phil\UxKit\PhilUxKitBundle` ; sans Flex, ajoutez-le à `config/bundles.php`. Sa configuration
@@ -43,8 +44,12 @@ phil_ux_kit:
     image:
         hosts: ['images.example.com']
         allow_localhost: false   # true in development only
+        check: null              # the debug of the kernel when null
 ```
 
+`check` journalise un avertissement, sur le canal `phil_ux_kit`, pour une image dont le texte de remplacement est le nom
+de son fichier ou dit seulement que c'est une image, et pour une image sans largeur ou sans hauteur ; il suit le
+débogage du noyau à moins d'être posé.
 `image_sources()` lit les ressources d'AssetMapper, `symfony/asset-mapper`, quand il est installé.
 
 ## Tant que le dépôt n'est pas publié
@@ -58,6 +63,7 @@ Copiez les fichiers des recettes dont la page a besoin, depuis ce dossier, en ga
 | AnimatedHeadline | `animated-headline/assets/controllers/animated_headline_controller.js` | `assets/controllers/animated_headline_controller.js` |
 | Illustration | `illustration/templates/components/Illustration.html.twig` | `templates/components/Illustration.html.twig` |
 | Image | `image/templates/components/` | `templates/components/` |
+| Image | `image/assets/controllers/` | `assets/controllers/` |
 | Gallery | `gallery/templates/components/` | `templates/components/` |
 | Lightbox | `lightbox/templates/components/` | `templates/components/` |
 | Lightbox | `lightbox/assets/controllers/` | `assets/controllers/` |

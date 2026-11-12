@@ -21,7 +21,7 @@ return [
             'PhilUxKitTest' => ['DefaultAllowed', 'Forbidden'],
         ],
     ],
-    'docs' => ['public' => true, 'words' => ['Sparkline', 'chromedriver', 'importmap', 'WCAG', 'seedable', 'IPTC', 'lightbox', 'lightboxes']],
+    'docs' => ['public' => true, 'words' => ['Sparkline', 'chromedriver', 'importmap', 'WCAG', 'seedable', 'IPTC', 'lightbox', 'lightboxes', 'CSSOM']],
     'phpstan' => [
         // La dette de phil/dev-tools v2 : ce que ses règles relèvent et qui reste à corriger.
         'ignoreErrors' => [

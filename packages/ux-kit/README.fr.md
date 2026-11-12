@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b08b7eb82028432da2ccd7fb70d44a5630230a2cfc339d0af150f5257cbf2848 -->
+<!-- phil-dev source-sha256=f4607bf35df0a3f854f56618eba3eb4dd6a92cb96242e18c4fa1935c2a49cf88 -->
 # phil/ux-kit
 
 **Le kit PHIL UX pour le Symfony UX Toolkit : les mêmes recettes que le kit Shadcn, habillées par phil-ux, installées
@@ -18,11 +18,11 @@ noms et props, sont le kit [`phil/ux-kit-shadcn`](https://github.com/parler-haut
 
 | Recette | Type | Ce que c'est | État |
 |---|---|---|---|
-| [Logo](logo/README.md) | composant | Une `Picture` avec ses sources AVIF et WebP et ses densités, ses variantes sombre et fixe, changée selon le thème ou la locale, avec un lien vers l'accueil ; `alt` requis | Implémenté et testé |
+| [Logo](logo/README.md) | composant | Une `Picture` avec ses sources AVIF et WebP et ses densités, ses variantes pour les couleurs forcées, les systèmes sombres et le mouvement réduit, changée selon le thème ou la locale, avec un lien vers l'accueil ; `alt` requis | Implémenté et testé |
 | [AnimatedHeadline](animated-headline/README.md) | composant | Un titre dont les mots se révèlent par un découpage, joué une fois ou en boucle avec un bouton de pause ; immobile sous le mouvement réduit ; lu en entier par les lecteurs d'écran | Implémenté et testé |
 | [Illustration](illustration/README.md) | composant | Une figure qui montre une image choisie parmi des candidates sur le serveur, par un tirage aléatoire à germe | Implémenté et testé |
-| [Image](image/README.md) | composant | Une image du contenu, `Image` ou `Picture` avec ses sources AVIF et WebP, par densité ou par largeur, sous les noms de props de Symfony UX Image : l'image principale préchargée par WebLink, des variantes sombre et fixe, crédit, licence et création, les images d'autres hôtes refusées sauf si listés, `image_sources()` sur AssetMapper ; aucun JavaScript | Implémenté et testé |
-| [Gallery](gallery/README.md) | composant | Une liste de figures en une grille qui suit son conteneur, chaque image ouverte dans une `Lightbox` sur demande | Implémenté et testé |
+| [Image](image/README.md) | composant | Une image du contenu, `Image` ou `Picture` avec ses sources AVIF et WebP, par densité ou par largeur, sous les noms de props de Symfony UX Image : l'image principale préchargée par WebLink, `fetchpriority="low"` pour une image loin en bas, une couleur d'attente des jetons, un aperçu flou facultatif, des variantes pour les couleurs forcées, les systèmes sombres et le mouvement réduit, une description longue, crédit, licence et création, les images d'autres hôtes refusées sauf si listés, `image_sources()` sur AssetMapper, des avertissements en développement pour un texte de remplacement de travers ; aucun style en ligne | Implémenté et testé |
+| [Gallery](gallery/README.md) | composant | Une liste de figures en une grille qui suit son conteneur, chaque image ouverte dans une `Lightbox` sur demande ; une longue galerie rendue à mesure qu'elle approche, par `content-visibility` | Implémenté et testé |
 | [Lightbox](lightbox/README.md) | composant | Une image agrandie dans un `dialog` modal natif, ouvert par les invocateurs de HTML, le contrôleur `lightbox` prenant le relais là où le navigateur ne les exécute pas | Implémenté et testé |
 | [AutosaveStatus](autosave-status/README.md) | composant | La région active et l'avis du brouillon d'un formulaire, pour le contrôleur d'enregistrement automatique de `phil/forms-autosave` | Implémenté et testé |
 | [ReactionButton](reaction-button/README.md) | composant | Une réaction de `phil/reactions-bundle` : un bouton qui dit s'il est enfoncé, ou du texte simple ; une cible assez large et haute pour un doigt | Implémenté et testé |
@@ -120,8 +120,8 @@ php bin/console ux:install coming-soon --kit=github.com/parler-haut-interagir-li
 ## Prérequis
 
 Symfony UX Twig Component 3.7 ou plus récent ; Symfony UX Toolkit 3.7 ou plus récent pour installer les recettes ; le
-StimulusBundle pour les recettes qui bougent ; `twig/extra-bundle`, `twig/html-extra`, `symfony/web-link` et le bundle de
-ce paquet pour `Image`, qui liste les hôtes dont une page peut montrer les images ;
+StimulusBundle pour les recettes qui bougent et l'aperçu flou d'`Image` ; `twig/extra-bundle`, `twig/html-extra`,
+`symfony/web-link` et le bundle de ce paquet pour `Image`, qui liste les hôtes dont une page peut montrer les images ;
 `phil/qr-code-bundle` pour `QrCode` ; Symfony UX Chart.js pour `ChartJs` ; la feuille de style phil-ux de `phil/ux-css`.
 
 ## Contribuer

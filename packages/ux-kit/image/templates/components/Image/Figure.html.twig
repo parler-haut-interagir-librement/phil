@@ -1,7 +1,9 @@
 {#-
- # The figure of an image or a picture: its content alone, or held in a figure with a figcaption when it has a caption,
- # a credit, a license or a creation of the IPTC Digital Source Type vocabulary, every text escaped. A license links to
- # its address with rel="license" unless that address is refused; a code outside the vocabulary says nothing.
+ # The figure of an image or a picture: its content alone, or held in a figure when it has a description, then a
+ # figcaption when it has a caption, a credit, a license or a creation of the IPTC Digital Source Type vocabulary, every
+ # text escaped. The description is a native disclosure after the content, its text under the identifier the image is
+ # described by. A license links to its address with rel="license" unless that address is refused; a code outside the
+ # vocabulary says nothing.
  #}
 {%- props
     ## string|null A caption under the image.
@@ -15,7 +17,13 @@
     ## string|BackedEnum|null How the image was made, a code of the IPTC Digital Source Type vocabulary, or an enum whose value is one.
     creation = null,
     ## string|null The words that say how the image was made; the name the vocabulary gives the code when null.
-    creationLabel = null
+    creationLabel = null,
+    ## string|null A long description of the image, in a disclosure after it.
+    description = null,
+    ## string|null The identifier of the description's text, which the image is described by.
+    descriptionId = null,
+    ## string The words of the summary of the description's disclosure.
+    descriptionLabel = 'Description'
 -%}
 {%- set _vocabulary = {
     digitalCapture: 'Digital capture sampled from real life',
@@ -42,16 +50,22 @@
 {%- set _code = creation is null ? null : (creation.value is defined ? creation.value : creation) -%}
 {%- set _creation = _code is not null and _code in _vocabulary|keys ? (creationLabel is not empty ? creationLabel : _vocabulary[_code]) : null -%}
 {%- set _href = licenseHref is empty or licenseHref|replace({"\t": '', "\n": '', "\r": ''}) matches '#^[[:cntrl:] ]*(javascript:|vbscript:|data:)#i' ? null : licenseHref -%}
-{%- if caption is not empty or credit is not empty or license is not empty or _creation is not null -%}
+{%- set _caption = caption is not empty or credit is not empty or license is not empty or _creation is not null -%}
+{%- if _caption or description is not empty -%}
     <figure>
         {##- The image or the picture the figure holds. -#}
         {%- block content %}{% endblock -%}
-        <figcaption>
-            {{- caption -}}
-            {%- if credit is not empty %}<small class="isCredit">{{ credit }}</small>{% endif -%}
-            {%- if license is not empty %}<small class="isLicense">{% if _href is not null %}<a href="{{ _href }}" rel="license">{{ license }}</a>{% else %}{{ license }}{% endif %}</small>{% endif -%}
-            {%- if _creation is not null %}<small {{ html_attr({class: 'isCreation', 'data-digital-source-type': _code}) }}>{{ _creation }}</small>{% endif -%}
-        </figcaption>
+        {%- if description is not empty -%}
+            <details class="isDescription"><summary>{{ descriptionLabel }}</summary><p {{ html_attr({id: descriptionId}) }}>{{ description }}</p></details>
+        {%- endif -%}
+        {%- if _caption -%}
+            <figcaption>
+                {{- caption -}}
+                {%- if credit is not empty %}<small class="isCredit">{{ credit }}</small>{% endif -%}
+                {%- if license is not empty %}<small class="isLicense">{% if _href is not null %}<a href="{{ _href }}" rel="license">{{ license }}</a>{% else %}{{ license }}{% endif %}</small>{% endif -%}
+                {%- if _creation is not null %}<small {{ html_attr({class: 'isCreation', 'data-digital-source-type': _code}) }}>{{ _creation }}</small>{% endif -%}
+            </figcaption>
+        {%- endif -%}
     </figure>
 {%- else -%}
     {{- block('content') -}}

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6e8dc06e2b0b2c7af76f5c8f4b4b41d14a14e9f53f4ef5ac04e2086a802f408c -->
+<!-- phil-dev source-sha256=e466a24b0be6ce1018b7104a13582e34a71c22096233a123d7796f14e7ff80f9 -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -18,6 +18,7 @@ composant prend aussi d'autres attributs, écrits sur son élément racine, une 
 | `srcset` | `null` | Les densités du repli, telles que HTML les écrit ou en tableau |
 | `dark` | `null` | Le logo d'un système sombre, une URL ou un tableau de densités, offert là où `prefers-color-scheme` est sombre |
 | `still` | `null` | Le logo fixe d'un logo animé, une URL ou un tableau de densités, offert là où le mouvement est réduit |
+| `forced` | `null` | Le logo dessiné pour les couleurs forcées, une URL ou un tableau de densités, offert d'abord là où `forced-colors` est actif |
 | `theme` | `null` | Remplace `{theme}` dans chaque URL |
 | `locale` | `null` | Remplace `{locale}` dans chaque URL |
 | `href` | `null` | Un lien autour du logo |
@@ -91,12 +92,13 @@ Aucune candidate ne produit rien.
 
 ## Image
 
-La recette `image` contient deux composants, sous les noms de props de Symfony UX Image ; aucun JavaScript, aucun style
-en ligne. Elle appelle `image_origin()` du bundle de `phil/ux-kit` et `preload()` de Symfony WebLink, et demande les deux
-paquets.
+La recette `image` contient deux composants, sous les noms de props de Symfony UX Image, et le contrôleur Stimulus
+`image-preview`, qui peint un aperçu flou seulement quand on en donne un ; aucun style en ligne. Elle appelle
+`image_origin()` et `image_check()` du bundle de `phil/ux-kit` et `preload()` de Symfony WebLink, et demande les deux
+paquets et le StimulusBundle.
 
-`<twig:Image>` : une `img` de classe `isImage`, dans une `figure` avec sa `caption`, son crédit, sa licence et sa
-création.
+`<twig:Image>` : une `img` de classe `isImage`, dans une `figure` avec sa `caption`, son crédit, sa licence, sa création
+et sa description.
 
 | Prop | Par défaut | |
 |---|---|---|
@@ -118,6 +120,11 @@ création.
 | `license`, `licenseHref` | `null` | Le nom de la licence, dans un `small` de classe `isLicense`, lié à son adresse avec `rel="license"` |
 | `creation` | `null` | Un code du vocabulaire IPTC Digital Source Type, ou une énumération dont la valeur en est un, dit dans un `small` de classe `isCreation` |
 | `creationLabel` | `null` | Les mots qui disent la création ; le nom que le vocabulaire donne au code quand il est nul |
+| `deferred` | `false` | Une image loin sous la ligne de flottaison, demandée après les autres : `fetchpriority="low"` ; `priority` l'emporte |
+| `placeholder` | `null` | La couleur de sa boîte pendant le chargement, une teinte discrète des jetons : `neutral`, `brand`, `red`, `green`, `amber`, `blue`, `violet` (`hasPlaceholderBlue`…), ou `custom`, lue dans `--phil-image-placeholder` (`hasPlaceholder`) |
+| `preview` | `null` | Une toute petite version de l'image, en ligne en base 64 (PNG, JPEG, GIF, WebP ou AVIF), peinte floue derrière elle pendant son chargement par le contrôleur `image-preview` (`hasPreview`) ; toute autre valeur laissée de côté |
+| `description` | `null` | Une description longue, échappée, dans un `details` de classe `isDescription` après l'image, dont le texte décrit l'image par `aria-describedby` |
+| `descriptionLabel` | `'Description'` | Les mots du `summary` de la description |
 
 `<twig:Picture>` : une `picture` dont les éléments `source`, dans l'ordre donné, précèdent une `Image` qui porte le
 repli ; l'`Image` seule quand il ne reste aucune source ; dans une `figure` avec sa `caption`.
@@ -128,13 +135,15 @@ repli ; l'`Image` seule quand il ne reste aucune source ; dans une `figure` avec
 | `sources` | `[]` | Chacune `{type, srcset, sizes, media, width, height}` : `type` un type `image/*` ou absent, `srcset` comme pour `Image`, `media` et la taille de son recadrage pour la direction artistique |
 | `dark` | `null` | Offerte là où `prefers-color-scheme` est sombre : des candidates comme pour `srcset`, ou des sources `{type, srcset}` |
 | `still` | `null` | Offerte là où `prefers-reduced-motion` vaut reduce, en premier : des candidates comme pour `srcset`, ou des sources `{type, srcset}` |
+| `forced` | `null` | Offerte là où `forced-colors` est actif, avant toute autre source : des candidates comme pour `srcset`, ou des sources `{type, srcset}` |
 
-Les sources sont écrites dans cet ordre : l'image fixe, la variante sombre, puis celles qui ont une requête `media`,
-dans l'ordre de leur première requête, puis les autres ; dans chaque groupe, l'AVIF, puis le WebP, puis les autres
-types, puis les sources sans type. Un `media` qui contient `<`, `>`, `{`, `}` ou `;` laisse sa source de côté ; un
-`width` ou un `height` qui n'est pas un entier positif est laissé de côté. La disposition, le rapport, l'ajustement et
-le recadrage sont des classes de phil-ux sur l'`img` (`hasLayoutFixed`, `hasLayoutFullWidth`, `hasRatio16x9`…,
-`hasFitCover`, `hasPositionTop`…), jamais un style en ligne.
+Les sources sont écrites dans cet ordre : la variante des couleurs forcées, l'image fixe, la variante sombre, puis
+celles qui ont une requête `media`, dans l'ordre de leur première requête, puis les autres ; dans chaque groupe,
+l'AVIF, puis le WebP, puis les autres types, puis les sources sans type. Un `media` qui contient `<`, `>`, `{`, `}` ou
+`;` laisse sa source de côté ; un `width` ou un `height` qui n'est pas un entier positif est laissé de côté. La
+disposition, le rapport, l'ajustement, le recadrage, la couleur d'attente et l'aperçu sont des classes de phil-ux sur
+l'`img` (`hasLayoutFixed`, `hasLayoutFullWidth`, `hasRatio16x9`…, `hasFitCover`, `hasPositionTop`…,
+`hasPlaceholderBlue`…, `hasPreview`), jamais un style en ligne.
 
 Les autres attributs vont à l'`img`, pas à une racine, et seulement `id`, `class` (ajoutée à `isImage`), `title`,
 `crossorigin`, `referrerpolicy`, `itemprop`, `draggable`, `data-*` et `aria-*`, écrits avec `html_attr()` de
@@ -149,7 +158,10 @@ Une adresse d'un autre hôte est refusée à moins que `phil_ux_kit.image.hosts`
 chemin relatif, un chemin `data:image/` et l'origine même de la page sont à la page. Une image d'un hôte listé est
 demandée avec `referrerpolicy="no-referrer"`, à moins que la page donne une autre politique. Avec `priority`, `Image`
 précharge son `src` avec son `srcset` et ses `sizes` ; `Picture` précharge sa première source avec son `type`, et rien
-quand une source a une requête `media`, les variantes sombre et fixe comprises.
+quand une source a une requête `media`, les variantes comprises. Tant que le noyau est en débogage, ou avec
+`phil_ux_kit.image.check`, `image_check()` journalise un avertissement pour un texte de remplacement qui est le nom du
+fichier, un mot qui dit seulement que c'est une image ou qui commence par le dire, et pour une largeur ou une hauteur
+absente.
 
 `image_sources('images/logo')` lit les fichiers d'une image parmi les ressources d'AssetMapper, `logo.avif`,
 `logo@2x.avif`, `logo.webp`, `logo.png`…, et donne le `src`, le `srcset`, les `sources`, le `width` et le `height`
@@ -172,6 +184,9 @@ dans son `li`, ou une `Lightbox` ; rien sans image.
 | `lightbox` | `false` | Si chaque image s'ouvre dans une `Lightbox` |
 | `id` | `null` | L'identifiant de la galerie, dont on tire ceux de ses visionneuses ; `gallery` quand il est nul |
 | `openLabel`, `closeLabel` | `null`, `'Close'` | Les mots des boutons de chaque visionneuse |
+| `deferred` | `false` | Une longue galerie : ses figures hors de l'écran sautées par `content-visibility: auto` (`isDeferred`), chaque `li` dimensionné par ses `data-width` et `data-height`, ses images demandées en dernier |
+| `placeholder` | `null` | La couleur d'attente de chaque image, comme pour `Image` |
+| `descriptionLabel` | `'Description'` | Les mots du résumé de la `description` de chaque image |
 
 ## Lightbox
 
@@ -188,6 +203,8 @@ classe `isLightboxTrigger` qui ouvre, par `command="show-modal"` et `commandfor`
 | `caption`, `credit`, `license`, `licenseHref`, `creation`, `creationLabel` | `null` | Sous la vignette et sous l'image entière |
 | `openLabel` | `null` | Des mots lus après le texte de remplacement dans le bouton |
 | `closeLabel` | `'Close'` | Ce que les lecteurs d'écran lisent pour le bouton de fermeture |
+| `deferred`, `placeholder`, `preview` | `false`, `null`, `null` | Ceux de la vignette, comme pour `Image` |
+| `description`, `descriptionLabel` | `null`, `'Description'` | Une description longue après la vignette, hors de son bouton, qu'elle décrit |
 
 ## ReactionButton
 

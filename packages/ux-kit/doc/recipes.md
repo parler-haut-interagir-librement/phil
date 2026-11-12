@@ -17,6 +17,7 @@ it depends.
 | `srcset` | `null` | The densities of the fallback, as HTML writes them or a map |
 | `dark` | `null` | The logo of a dark system, a URL or a map of densities, offered where `prefers-color-scheme` is dark |
 | `still` | `null` | The still logo of an animated one, a URL or a map of densities, offered where motion is reduced |
+| `forced` | `null` | The logo drawn for forced colours, a URL or a map of densities, offered first where `forced-colors` is active |
 | `theme` | `null` | Replaces `{theme}` in every URL |
 | `locale` | `null` | Replaces `{locale}` in every URL |
 | `href` | `null` | A link around the logo |
@@ -88,11 +89,13 @@ No candidate renders nothing.
 
 ## Image
 
-The `image` recipe holds two components, under the prop names of Symfony UX Image; no JavaScript, no inline style. It
-calls `image_origin()` of the bundle of `phil/ux-kit` and `preload()` of Symfony WebLink, and needs both packages.
+The `image` recipe holds two components, under the prop names of Symfony UX Image, and the Stimulus controller
+`image-preview`, which paints a blurred preview only when one is given; no inline style. It calls `image_origin()` and
+`image_check()` of the bundle of `phil/ux-kit` and `preload()` of Symfony WebLink, and needs both packages and the
+StimulusBundle.
 
-`<twig:Image>`: an `img` of class `isImage`, in a `figure` with its `caption`, its credit, its license and its
-creation.
+`<twig:Image>`: an `img` of class `isImage`, in a `figure` with its `caption`, its credit, its license, its creation and
+its description.
 
 | Prop | Default | |
 |---|---|---|
@@ -114,6 +117,11 @@ creation.
 | `license`, `licenseHref` | `null` | The name of the license, in a `small` of class `isLicense`, linked to its address with `rel="license"` |
 | `creation` | `null` | A code of the IPTC Digital Source Type vocabulary, or an enum whose value is one, said in a `small` of class `isCreation` |
 | `creationLabel` | `null` | The words that say the creation; the vocabulary's name of the code when null |
+| `deferred` | `false` | An image far below the fold, fetched after the others: `fetchpriority="low"`; `priority` wins over it |
+| `placeholder` | `null` | The colour of its box while it loads, a quiet tone of the tokens: `neutral`, `brand`, `red`, `green`, `amber`, `blue`, `violet` (`hasPlaceholderBlue`…), or `custom`, read from `--phil-image-placeholder` (`hasPlaceholder`) |
+| `preview` | `null` | A tiny version of the image, inline in base 64 (PNG, JPEG, GIF, WebP or AVIF), painted blurred behind it while it loads by the `image-preview` controller (`hasPreview`); any other value left out |
+| `description` | `null` | A long description, escaped, in a `details` of class `isDescription` after the image, its text the image is described by through `aria-describedby` |
+| `descriptionLabel` | `'Description'` | The words of the description's `summary` |
 
 `<twig:Picture>`: a `picture` whose `source` elements, in the order given, precede an `Image` holding the fallback;
 the `Image` alone when no source is left; in a `figure` with its `caption`.
@@ -124,12 +132,14 @@ the `Image` alone when no source is left; in a `figure` with its `caption`.
 | `sources` | `[]` | Each `{type, srcset, sizes, media, width, height}`: `type` an `image/*` type or left out, `srcset` as for `Image`, `media` and the size of its crop for art direction |
 | `dark` | `null` | Offered where `prefers-color-scheme` is dark: candidates as for `srcset`, or sources `{type, srcset}` |
 | `still` | `null` | Offered where `prefers-reduced-motion` is reduce, first: candidates as for `srcset`, or sources `{type, srcset}` |
+| `forced` | `null` | Offered where `forced-colors` is active, before every other source: candidates as for `srcset`, or sources `{type, srcset}` |
 
-The sources are written in this order: the still image, the dark variant, then those with a `media` query, in the order
-of their first query, then those without; within each group, AVIF, then WebP, then the other types, then the sources
-without a type. A `media` holding `<`, `>`, `{`, `}` or `;` leaves its source out; a `width` or `height` that is not a
-positive integer is left out. The layout, the ratio, the fit and the crop are classes of phil-ux on the `img`
-(`hasLayoutFixed`, `hasLayoutFullWidth`, `hasRatio16x9`…, `hasFitCover`, `hasPositionTop`…), never an inline style.
+The sources are written in this order: the variant for forced colours, the still image, the dark variant, then those
+with a `media` query, in the order of their first query, then those without; within each group, AVIF, then WebP, then
+the other types, then the sources without a type. A `media` holding `<`, `>`, `{`, `}` or `;` leaves its source out; a
+`width` or `height` that is not a positive integer is left out. The layout, the ratio, the fit, the crop, the
+placeholder and the preview are classes of phil-ux on the `img` (`hasLayoutFixed`, `hasLayoutFullWidth`,
+`hasRatio16x9`…, `hasFitCover`, `hasPositionTop`…, `hasPlaceholderBlue`…, `hasPreview`), never an inline style.
 
 The other attributes go to the `img`, not to a root, and only `id`, `class` (added to `isImage`), `title`,
 `crossorigin`, `referrerpolicy`, `itemprop`, `draggable`, `data-*` and `aria-*`, written with `html_attr()` of
@@ -143,7 +153,9 @@ An address of another host is refused unless `phil_ux_kit.image.hosts` lists its
 path, a `data:image/` one and the page's own origin are the page's. An image of a listed host is fetched with
 `referrerpolicy="no-referrer"` unless the page gives another policy. With `priority`, `Image` preloads its `src` with its
 `srcset` and `sizes`; `Picture` preloads its first source with its `type`, and nothing when a source has a `media`
-query, the dark and still variants included.
+query, the variants included. While the kernel is in debug, or with `phil_ux_kit.image.check`, `image_check()` logs a
+warning for a text alternative that is the name of the file, a word that only says it is an image or starts by saying
+so, and for a missing width or height.
 
 `image_sources('images/logo')` reads the files of an image among the assets of AssetMapper, `logo.avif`,
 `logo@2x.avif`, `logo.webp`, `logo.png`…, and gives the `src`, `srcset`, `sources`, `width` and `height` of a
@@ -166,6 +178,9 @@ a `Lightbox`; nothing without an image.
 | `lightbox` | `false` | Whether each image opens in a `Lightbox` |
 | `id` | `null` | The identifier of the gallery, from which those of its lightboxes are made; `gallery` when null |
 | `openLabel`, `closeLabel` | `null`, `'Close'` | The words of each lightbox's buttons |
+| `deferred` | `false` | A long gallery: its figures off screen skipped with `content-visibility: auto` (`isDeferred`), each `li` sized by its `data-width` and `data-height`, its images fetched last |
+| `placeholder` | `null` | The placeholder of every image, as for `Image` |
+| `descriptionLabel` | `'Description'` | The words of the summary of each image's `description` |
 
 ## Lightbox
 
@@ -182,6 +197,8 @@ a `Lightbox`; nothing without an image.
 | `caption`, `credit`, `license`, `licenseHref`, `creation`, `creationLabel` | `null` | Under the thumbnail and under the full image |
 | `openLabel` | `null` | Words read after the text alternative in the button |
 | `closeLabel` | `'Close'` | What screen readers read for the close button |
+| `deferred`, `placeholder`, `preview` | `false`, `null`, `null` | The thumbnail's, as for `Image` |
+| `description`, `descriptionLabel` | `null`, `'Description'` | A long description after the thumbnail, outside its button, which it describes |
 
 ## ReactionButton
 

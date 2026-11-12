@@ -1,11 +1,11 @@
 {#-
  # A picture: its sources before the Image that holds the fallback, under the prop names of Symfony UX Image, in a figure
- # when it has a caption, a credit, a license or a creation. The still image for a reader who reduces motion comes
- # first, then the dark variant, then the sources with a media query, in the order of their first media query, each
- # group AVIF, then WebP, then the other types; a source of another type than image/*, without candidates, holding a
- # refused URL, an address of a host image_origin() refuses or a media query of the wrong shape is left out; a refused
- # src renders nothing. Without a media query, the main picture preloads its first source. The other attributes go to
- # the img.
+ # when it has a caption, a credit, a license, a creation or a description. The variant for forced colours comes first,
+ # then the still image for a reader who reduces motion, then the dark variant, then the sources with a media query, in
+ # the order of their first media query, each group AVIF, then WebP, then the other types; a source of another type
+ # than image/*, without candidates, holding a refused URL, an address of a host image_origin() refuses or a media query
+ # of the wrong shape is left out; a refused src renders nothing. Without a media query, the main picture preloads its
+ # first source. The other attributes go to the img.
  #}
 {%- props
     ## string The URL of the fallback image, for the browsers that read none of the sources.
@@ -22,6 +22,8 @@
     dark = null,
     ## string|array<int|string,string>|list<array{type?:string,srcset:string|array<int|string,string>}>|null The still image of an animated one, offered where prefers-reduced-motion is reduce: candidates as for srcset, or sources of their own types.
     still = null,
+    ## string|array<int|string,string>|list<array{type?:string,srcset:string|array<int|string,string>}>|null The variant drawn for forced colours, offered first where forced-colors is active: candidates as for srcset, or sources of their own types.
+    forced = null,
     ## string|array<int|string,string>|null The candidates as HTML writes them, or a map of densities, or of widths with sizes or a fluid layout, to URLs.
     srcset = null,
     ## string|null The sizes of a srcset of widths, preceded by "auto, " while the image loads lazily; computed from the layout when null.
@@ -53,7 +55,17 @@
     ## string|BackedEnum|null How the image was made, a code of the IPTC Digital Source Type vocabulary such as "digitalCapture" or "trainedAlgorithmicMedia", or an enum whose value is one.
     creation = null,
     ## string|null The words that say how the image was made, in the language of the page; the name the vocabulary gives the code when null.
-    creationLabel = null
+    creationLabel = null,
+    ## bool Whether the image lies far below the fold and is fetched after the others, with fetchpriority="low"; priority wins over it.
+    deferred = false,
+    ## string|null The colour its box is painted while it loads, a tone of the tokens: "neutral", "brand", "red", "green", "amber", "blue", "violet", or "custom", read from a custom property a class sets.
+    placeholder = null,
+    ## string|null A tiny version of the image, inline in base 64, PNG, JPEG, GIF, WebP or AVIF, shown blurred while it loads by the image-preview controller of the recipe.
+    preview = null,
+    ## string|null A long description, for a chart or a diagram, in a disclosure after the image, which it is described by.
+    description = null,
+    ## string The words of the summary of the description's disclosure.
+    descriptionLabel = 'Description'
 -%}
 {%- set _refused = '#(^|,)[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i' -%}
 {%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
@@ -64,7 +76,7 @@
         'full-width': '100vw',
     }[layout] ?? null -%}
     {%- set _all = [] -%}
-    {%- for _variant in [{value: still, media: '(prefers-reduced-motion: reduce)'}, {value: dark, media: '(prefers-color-scheme: dark)'}] -%}
+    {%- for _variant in [{value: forced, media: '(forced-colors: active)'}, {value: still, media: '(prefers-reduced-motion: reduce)'}, {value: dark, media: '(prefers-color-scheme: dark)'}] -%}
         {%- if _variant.value is not empty -%}
             {%- set _list = _variant.value is iterable and (_variant.value|first).srcset is defined ? _variant.value : [{srcset: _variant.value}] -%}
             {%- set _all = _all|merge(_list|map(source => source|merge({media: _variant.media}))) -%}
@@ -104,7 +116,9 @@
         {%- endif -%}
     {%- endfor -%}
     {%- set _sources = _sources|sort((a, b) => a.order - b.order) -%}
-    {%- set _attributes = _external and attributes.all.referrerpolicy is not defined ? attributes.all|merge({referrerpolicy: 'no-referrer'}) : attributes.all -%}
+    {%- set _described = description is empty ? null : (attributes.all.id is defined and attributes.all.id is not empty ? attributes.all.id ~ '-description' : 'image-description-' ~ random()) -%}
+    {%- set _attributes = (_external and attributes.all.referrerpolicy is not defined ? attributes.all|merge({referrerpolicy: 'no-referrer'}) : attributes.all)
+        |merge(_described is null ? {} : {'aria-describedby': [attributes.all['aria-describedby'] ?? null, _described]|filter(name => name is not empty)|join(' ')}) -%}
     {%- if _sources is not empty and (preload ?? priority) and _sources|filter(source => source.attributes.media is not null) is empty -%}
         {%- set _first = _sources|first -%}
         {%- do preload(src, {
@@ -117,10 +131,10 @@
             referrerpolicy: _attributes.referrerpolicy ?? null,
         }|filter(value => value is not null)) -%}
     {%- endif -%}
-    <twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel">
+    <twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel" :description="description" :descriptionId="_described" :descriptionLabel="descriptionLabel">
         {%- if _sources is not empty -%}<picture>{%- endif -%}
         {%- for source in _sources -%}<source {{ html_attr(source.attributes) }}>{%- endfor -%}
-        <twig:Image :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :layout="layout" :aspect="aspect" :fit="fit" :position="position" :priority="priority" :preload="_sources is empty ? preload : false" :loading="loading" :decoding="decoding" {{ ..._attributes }} />
+        <twig:Image :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :layout="layout" :aspect="aspect" :fit="fit" :position="position" :priority="priority" :preload="_sources is empty ? preload : false" :loading="loading" :decoding="decoding" :deferred="deferred" :placeholder="placeholder" :preview="preview" {{ ..._attributes }} />
         {%- if _sources is not empty -%}</picture>{%- endif -%}
     </twig:Image:Figure>
 {%- endif -%}

@@ -1,10 +1,11 @@
 # Image
 
 An image of the content, in two components under the prop names of Symfony UX Image: `Image`, one `img`, and
-`Picture`, its sources in the order given, AVIF first, before that `img`. No JavaScript, no inline style: the sources
-are given whole, already produced. Two Twig functions of the bundle of `phil/ux-kit` serve them: `image_origin()`,
-which keeps the images of other hosts off the page unless their host is listed, and `image_sources()`, which reads the
-files of an image among the assets of AssetMapper.
+`Picture`, its sources in the order given, AVIF first, before that `img`. No inline style, and no JavaScript but the
+small `image-preview` controller of an optional blurred preview: the sources are given whole, already produced. Three
+Twig functions of the bundle of `phil/ux-kit` serve them: `image_origin()`, which keeps the images of other hosts off
+the page unless their host is listed, `image_sources()`, which reads the files of an image among the assets of
+AssetMapper, and `image_check()`, which warns in development of a text alternative or a size left wrong.
 
 ```twig {"preview":true}
 <twig:Picture
@@ -20,11 +21,11 @@ files of an image among the assets of AssetMapper.
 
 ::: installation
 
-The recipe needs `phil/ux-kit`, whose bundle Symfony Flex registers, and `symfony/web-link`, which preloads the main
-image:
+The recipe needs `phil/ux-kit`, whose bundle Symfony Flex registers, `symfony/web-link`, which preloads the main
+image, and the StimulusBundle, which registers the `image-preview` controller it copies:
 
 ```sh
-composer require phil/ux-kit symfony/web-link
+composer require phil/ux-kit symfony/web-link symfony/stimulus-bundle
 ```
 
 ## Usage
@@ -183,6 +184,79 @@ their own types, written before the other sources, the still image first.
 The system's scheme decides, not the `data-theme` a page may set: a site whose theme the reader chooses gives the
 logo of its theme through `{theme}`, as the `Logo` recipe does.
 
+### Where colours are forced
+
+`forced` is offered first, before the still image and the dark variant, where the reader's system forces its colours,
+`forced-colors: active`, as Windows does in its contrast themes. The browser repaints the page in the system's colours
+but never an image: a diagram drawn in dark lines on a transparent ground vanishes on a dark system background. Its
+variant, drawn to read on both, takes the same forms as `dark` and `still`.
+
+```twig
+<twig:Picture src="/images/network.png" forced="/images/network-outlined.png" alt="The network" :width="800" :height="600" />
+```
+
+An SVG drawn in `currentColor` needs no variant: it takes the colour of the system's text.
+
+### An image far below the fold
+
+`deferred` writes `fetchpriority="low"`: the browser fetches the image after the other resources of the page. It
+stays lazy. Give it to the images known to lie far below the fold, a footer's or the end of an article's; `priority`
+wins over it.
+
+```twig
+<twig:Image src="/images/sponsors.png" alt="Our sponsors" :width="1200" :height="300" :deferred="true" />
+```
+
+### A placeholder colour
+
+`placeholder` paints the image's box while it loads, in a quiet tone of the tokens of phil-ux, near the dominant
+colour of the picture: `neutral`, `brand`, `red`, `green`, `amber`, `blue` or `violet`, each a class, `hasPlaceholderBlue`
+and the others, that follows the clear and the dark scheme. `custom` reads `--phil-image-placeholder`, set by a class
+of the site's stylesheet passed in `class`, never by an inline style.
+
+```twig
+<twig:Image src="/images/lake.jpg" placeholder="blue" alt="The lake at noon" :width="1600" :height="900" />
+```
+
+The tone stays behind a transparent picture once it has loaded: give it to photographs, not to logos or diagrams.
+
+### A blurred preview
+
+`preview` takes a tiny version of the image, a few pixels written inline, `data:image/webp;base64,…`, in PNG, JPEG,
+GIF, WebP or AVIF, which the site produces once with the image. The `image-preview` controller the recipe copies
+paints it blurred behind the image until the image has loaded or failed, then takes it away; an image already loaded is
+left alone. Any other value, an address or an inline SVG, is left out.
+
+```twig
+<twig:Image src="/images/lake.jpg" preview="{{ lake.preview }}" alt="The lake at noon" :width="1600" :height="900" />
+```
+
+The template writes no style: the image takes the class `hasPreview` and the controller its value, then sets the
+background through the CSSOM, which a strict Content Security Policy allows, where a `style` attribute would be dropped;
+its `img-src` must allow `data:`, as for the inline images of the recipe. The blur is drawn by an inline SVG at the
+ratio of `width` and `height`. Without the controller, nothing is painted.
+
+### A long description
+
+`description` writes a native disclosure after the image, before its caption, for a chart, a diagram or a map whose
+text alternative cannot say everything; the image is described by its text through `aria-describedby`, beside any
+description the page already gives. Its identifier is that of the image followed by `-description`, or one of its own
+when the image has none. `descriptionLabel` is the words of its summary, `Description` by default.
+
+```twig
+<twig:Image
+    src="/images/visits.png"
+    alt="Visits by month in 2026"
+    :width="800"
+    :height="400"
+    id="visits"
+    description="{{ 'stats.visits.description'|trans }}"
+    descriptionLabel="{{ 'image.description'|trans }}"
+/>
+```
+
+The description is text, escaped. A decorative image shows it without being described by it.
+
 ### Credit, license and creation
 
 `credit`, `license` with `licenseHref`, and `creation` follow the caption, each in a `small` of its own, and make a
@@ -260,6 +334,15 @@ An image of a listed host is fetched with `referrerpolicy="no-referrer"`, unless
 nothing; a refused `srcset` is left out whole, as is a source holding a refused address. `allow_localhost: true` lets
 `localhost` be listed, in development.
 
+## Checks in development
+
+While the kernel is in debug, `image_check()` logs a warning on the `phil_ux_kit` channel, which the profiler shows,
+for an image whose text alternative is the name of its file, `hall` for `hall.jpg`, `@2x` and the digest of AssetMapper
+set aside; a word that says only that it is an image, `image`, `photo`, `logo`, in English or in French; or a text that
+starts by saying so, `Photo of the hall`, `Photo de la salle`; and for an image without a width or a height. The page
+itself is unchanged; a decorative image is only checked for its size. `phil_ux_kit.image.check` turns the check on or
+off whatever the debug.
+
 ## Security
 
 Every value is escaped. A `javascript:`, `vbscript:` or `data:` URL is refused, in whatever case, after spaces or
@@ -273,5 +356,8 @@ without candidates, or of a type other than `image/*`.
 decorative, skipped by screen readers through its implicit role; its `title` and `aria-*` attributes, which would name
 it again, are then left out. `width` and `height` are required: the browser reserves the image's space at its ratio
 before it loads, and the page does not shift under the reader (Cumulative Layout Shift); `isImage` keeps the ratio
-when the container is narrower. Give `priority` to the main image above the fold, never to an image below it. The still variant serves those whom motion
-makes ill (WCAG 2.3.3); the creation is said in words, not by an icon alone.
+when the container is narrower. Give `priority` to the main image above the fold, never to an image below it. The
+still variant serves those whom motion makes ill (WCAG 2.3.3); the variant for forced colours, those who need the
+contrast of their system (WCAG 1.4.11); the creation is said in words, not by an icon alone. A long description gives
+the content of a chart or a diagram in text (WCAG 1.1.1), in a disclosure every reader can open, its summary a prop to
+translate. The placeholder and the preview are backgrounds, which screen readers do not see.

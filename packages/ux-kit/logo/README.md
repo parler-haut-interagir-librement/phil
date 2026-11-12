@@ -1,8 +1,8 @@
 # Logo
 
 A logo: a `Picture` of the `image` recipe, with an AVIF source then a WebP one when it has them, each a URL or a map
-of densities, its variant for a dark system and its still image where motion is reduced, linked to the home page when
-it has an `href`.
+of densities, its variant for forced colours, its variant for a dark system and its still image where motion is
+reduced, linked to the home page when it has an `href`.
 `{theme}` and `{locale}` in its sources are replaced, so one line serves the logo of every theme and language.
 
 ```twig {"preview":true}
@@ -51,6 +51,16 @@ URL or a map of densities, its placeholders replaced.
 ```twig
 <twig:Logo src="/images/logo.png" :dark="{1: '/images/logo-dark.png', 2: '/images/logo-dark@2x.png'}" alt="Studio" />
 <twig:Logo src="/images/logo.gif" still="/images/logo.png" alt="Studio" />
+```
+
+### Where colours are forced
+
+`forced` is offered first where the reader's system forces its colours, `forced-colors: active`, as Windows does in its
+contrast themes: a logo drawn in dark lines on a transparent ground vanishes on a dark system background, which the
+browser does not repaint in an image. Draw the variant so that it reads on both, or as an SVG in `currentColor`.
+
+```twig
+<twig:Logo src="/images/logo.png" forced="/images/logo-outlined.png" alt="Studio" />
 ```
 
 ### By language

@@ -1,9 +1,11 @@
 {#-
- # An image: one img, in a figure when it has a caption, a credit, a license or a creation, under the prop names of
- # Symfony UX Image, without a service, a script or an inline style; its layout, ratio, fit and crop written as classes.
+ # An image: one img, in a figure when it has a caption, a credit, a license, a creation or a description, under the
+ # prop names of Symfony UX Image, without a service, a script or an inline style; its layout, ratio, fit, crop and
+ # placeholder written as classes, its preview handed to a controller that paints it through the CSSOM.
  # A javascript:, vbscript: or data: URL other than data:image/ is refused, and so is an address of another host than
  # those image_origin() allows; a refused src renders nothing, a refused srcset is left out whole. The image of a listed
- # host is fetched without a referrer; the main image is preloaded through Symfony WebLink.
+ # host is fetched without a referrer; the main image is preloaded through Symfony WebLink. In development,
+ # image_check() logs a text alternative or a size left wrong.
  #}
 {%- props
     ## string The URL of the image.
@@ -45,12 +47,23 @@
     ## string|BackedEnum|null How the image was made, a code of the IPTC Digital Source Type vocabulary such as "digitalCapture" or "trainedAlgorithmicMedia", or an enum whose value is one.
     creation = null,
     ## string|null The words that say how the image was made, in the language of the page; the name the vocabulary gives the code when null.
-    creationLabel = null
+    creationLabel = null,
+    ## bool Whether the image lies far below the fold and is fetched after the others, with fetchpriority="low"; priority wins over it.
+    deferred = false,
+    ## string|null The colour its box is painted while it loads, a tone of the tokens: "neutral", "brand", "red", "green", "amber", "blue", "violet", or "custom", read from a custom property a class sets.
+    placeholder = null,
+    ## string|null A tiny version of the image, inline in base 64, PNG, JPEG, GIF, WebP or AVIF, shown blurred while it loads by the image-preview controller of the recipe.
+    preview = null,
+    ## string|null A long description, for a chart or a diagram, in a disclosure after the image, which it is described by.
+    description = null,
+    ## string The words of the summary of the description's disclosure.
+    descriptionLabel = 'Description'
 -%}
 {%- set _refused = '#(^|,)[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i' -%}
 {%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
 {%- set _origin = src is empty or src|replace(_controls) matches _refused ? 'refused' : image_origin(src) -%}
 {%- if _origin is not same as('refused') -%}
+    {%- do image_check(src, alt, width, height) -%}
     {%- set _loading = loading in ['lazy', 'eager'] ? loading : (priority ? 'eager' : 'lazy') -%}
     {%- set _sizes = sizes is not empty ? sizes : {
         constrained: width is empty ? null : '(min-width: ' ~ width ~ 'px) ' ~ width ~ 'px, 100vw',
@@ -72,6 +85,8 @@
             referrerpolicy: _referrer,
         }|filter(value => value is not null)) -%}
     {%- endif -%}
+    {%- set _preview = preview is not empty and preview matches '#^data:image/(png|jpeg|gif|webp|avif);base64,[A-Za-z0-9+/]+={0,2}$#' ? preview : null -%}
+    {%- set _described = description is empty ? null : (attributes.all.id is defined and attributes.all.id is not empty ? attributes.all.id ~ '-description' : 'image-description-' ~ random()) -%}
     {%- set _ratio = {'16/9': 'hasRatio16x9', '4/3': 'hasRatio4x3', '3/2': 'hasRatio3x2', '1/1': 'hasRatio1x1', '21/9': 'hasRatio21x9', '3/4': 'hasRatio3x4', '2/3': 'hasRatio2x3', '9/16': 'hasRatio9x16', custom: 'hasRatio'}[aspect|default('')|replace({' ': ''})] ?? null -%}
     {%- set _class = [
         'isImage',
@@ -79,13 +94,21 @@
         _ratio,
         {cover: 'hasFitCover', contain: 'hasFitContain'}[fit ?? (_ratio is null ? '' : 'cover')] ?? null,
         {center: 'hasPositionCenter', top: 'hasPositionTop', bottom: 'hasPositionBottom', left: 'hasPositionLeft', right: 'hasPositionRight'}[position] ?? null,
+        {neutral: 'hasPlaceholderNeutral', brand: 'hasPlaceholderBrand', red: 'hasPlaceholderRed', green: 'hasPlaceholderGreen', amber: 'hasPlaceholderAmber', blue: 'hasPlaceholderBlue', violet: 'hasPlaceholderViolet', custom: 'hasPlaceholder'}[placeholder] ?? null,
+        _preview is null ? null : 'hasPreview',
         attributes.all.class ?? null,
     ]|filter(name => name is not empty)|join(' ') -%}
     {%- set _allowed = alt is same as('')
         ? '#^(id|crossorigin|referrerpolicy|itemprop|draggable|data-[a-z0-9-]+)$#'
         : '#^(id|title|crossorigin|referrerpolicy|itemprop|draggable|(data|aria)-[a-z0-9-]+)$#' -%}
-    {%- set _attributes = attributes.all|filter((value, name) => name matches _allowed)|merge(_referrer is null ? {} : {referrerpolicy: _referrer}) -%}
-    <twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel">
+    {%- set _preview_attributes = _preview is null ? {} : {'data-controller': 'image-preview', 'data-image-preview-src-value': _preview} -%}
+    {%- set _controllers = [attributes.all['data-controller'] ?? null, _preview_attributes['data-controller'] ?? null]|filter(name => name is not empty)|join(' ') -%}
+    {%- set _attributes = attributes.all|filter((value, name) => name matches _allowed)
+        |merge(_referrer is null ? {} : {referrerpolicy: _referrer})
+        |merge(_preview_attributes)
+        |merge(_controllers is empty ? {} : {'data-controller': _controllers})
+        |merge(_described is null or alt is same as('') ? {} : {'aria-describedby': [attributes.all['aria-describedby'] ?? null, _described]|filter(name => name is not empty)|join(' ')}) -%}
+    <twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel" :description="description" :descriptionId="_described" :descriptionLabel="descriptionLabel">
         <img {{ html_attr({
             class: _class,
             src: src,
@@ -96,7 +119,7 @@
             height: height,
             loading: _loading,
             decoding: decoding in ['async', 'sync', 'auto'] ? decoding : (priority ? null : 'async'),
-            fetchpriority: priority ? 'high' : null,
+            fetchpriority: priority ? 'high' : (deferred ? 'low' : null),
         }, _attributes) }}>
     </twig:Image:Figure>
 {%- endif -%}

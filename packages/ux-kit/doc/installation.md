@@ -26,11 +26,12 @@ refused as an invalid kit name.
 
 ## The PHP of the image recipes
 
-`Image`, `Picture`, `Logo`, `Gallery` and `Lightbox` call two Twig functions of `phil/ux-kit`, which is also a Symfony
-bundle, and `preload()` of Symfony WebLink:
+`Image`, `Picture`, `Logo`, `Gallery` and `Lightbox` call three Twig functions of `phil/ux-kit`, which is also a
+Symfony bundle, and `preload()` of Symfony WebLink; the StimulusBundle registers the `image-preview` controller of a
+blurred preview:
 
 ```sh
-composer require phil/ux-kit symfony/web-link
+composer require phil/ux-kit symfony/web-link symfony/stimulus-bundle
 ```
 
 Symfony Flex registers `Phil\UxKit\PhilUxKitBundle`; without Flex, add it to `config/bundles.php`. Its configuration
@@ -42,8 +43,11 @@ phil_ux_kit:
     image:
         hosts: ['images.example.com']
         allow_localhost: false   # true in development only
+        check: null              # the debug of the kernel when null
 ```
 
+`check` logs a warning, on the `phil_ux_kit` channel, for an image whose text alternative is the name of its file or
+only says it is an image, and for one without a width or a height; it follows the debug of the kernel unless set.
 `image_sources()` reads the assets of AssetMapper, `symfony/asset-mapper`, when it is installed.
 
 ## Until the repository is published
@@ -57,6 +61,7 @@ Copy the files of the recipes the page needs, from this directory, keeping their
 | AnimatedHeadline | `animated-headline/assets/controllers/animated_headline_controller.js` | `assets/controllers/animated_headline_controller.js` |
 | Illustration | `illustration/templates/components/Illustration.html.twig` | `templates/components/Illustration.html.twig` |
 | Image | `image/templates/components/` | `templates/components/` |
+| Image | `image/assets/controllers/` | `assets/controllers/` |
 | Gallery | `gallery/templates/components/` | `templates/components/` |
 | Lightbox | `lightbox/templates/components/` | `templates/components/` |
 | Lightbox | `lightbox/assets/controllers/` | `assets/controllers/` |

@@ -6,7 +6,7 @@
     "color": "oklch(0.40 0.058 195)",
     "icon": "icon.svg",
     "dependencies": {
-        "composer": ["phil/ux-css:^0.3@dev", "symfony/ux-twig-component:^3.7"],
+        "composer": ["phil/ux-css:^0.4@dev", "symfony/ux-twig-component:^3.7"],
         "npm": ["@phil/ux-css"],
         "importmap": ["@phil/ux-css/dist/phil-ux.css"]
     }
