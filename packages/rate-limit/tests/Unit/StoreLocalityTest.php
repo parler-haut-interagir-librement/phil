@@ -116,6 +116,19 @@ final class StoreLocalityTest extends TestCase
         self::assertFalse($locality->isLocal($container, 'storage.empty'));
     }
 
+    /**
+     * A storage given its pool both ways is read by position, as the container passes it.
+     */
+    public function testThePoolByPositionComesBeforeThePoolByName(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setDefinition('cache.local', new Definition(FilesystemAdapter::class));
+        $container->setDefinition('cache.shared', new Definition(RedisAdapter::class));
+        $container->setDefinition('storage.both', new Definition(CacheStorage::class, [new Reference('cache.local'), '$pool' => new Reference('cache.shared')]));
+
+        self::assertTrue(new StoreLocality()->isLocal($container, 'storage.both'));
+    }
+
     public function testAnotherClassTakingAPoolIsShared(): void
     {
         $container = new ContainerBuilder();

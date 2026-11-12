@@ -54,7 +54,7 @@ final class SheetXml
      */
     public static function text(string $text): string
     {
-        $valid = (string) preg_replace('/[^\x{9}\x{A}\x{D}\x{20}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]/u', '', mb_scrub($text, 'UTF-8'));
+        $valid = preg_replace('/[^\x{9}\x{A}\x{D}\x{20}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]/u', '', mb_scrub($text, 'UTF-8')) ?? '';
 
         return htmlspecialchars($valid, \ENT_XML1 | \ENT_QUOTES, 'UTF-8');
     }

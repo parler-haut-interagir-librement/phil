@@ -31,6 +31,11 @@ return [
     ],
     'infection' => [
         'mutators' => [
+            // `VERSION` is read only once `is_file()` found it: `file_get_contents()` returns its text, and the cast only
+            // types the `false` of a read that cannot fail there.
+            'CastString' => [
+                'ignoreSourceCodeByRegex' => ['\\$current = is_file\\(.*\\(string\\) file_get_contents\\(.*'],
+            ],
             // The two early exits of the distance stop the work once it can only exceed the limit: without them the
             // band is filled to its end and the final cap gives the same `$limit + 1`; only the cost changes.
             'ReturnRemoval' => [

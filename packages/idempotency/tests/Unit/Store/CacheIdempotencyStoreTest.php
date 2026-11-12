@@ -91,4 +91,26 @@ final class CacheIdempotencyStoreTest extends IdempotencyStoreTestCase
             self::assertNull($this->store->find($scope, $key));
         }
     }
+
+    /**
+     * The record expires at the application's time even when the pool, on another clock, still holds it: at its
+     * expiry and after, it is absent.
+     */
+    public function testARecordTheApplicationClockExpiredIsAbsentFromAPoolThatKeepsIt(): void
+    {
+        [$scope, $key] = $this->key();
+        $name = 'phil_idempotency.'.hash('sha256', '8:user:adak1');
+        $this->pool = new ArrayAdapter();
+        $store = new CacheIdempotencyStore($this->pool, new LockFactory($this->locks), $this->clock);
+        $now = $this->clock->now()->getTimestamp();
+
+        foreach ([$now, $now - 60] as $expiresAt) {
+            $this->pool->save($this->pool->getItem($name)->set(['fingerprint' => str_repeat('a', 64), 'state' => 'failed', 'expires_at' => $expiresAt]));
+
+            self::assertNull($store->find($scope, $key));
+        }
+
+        $this->pool->save($this->pool->getItem($name)->set(['fingerprint' => str_repeat('a', 64), 'state' => 'failed', 'expires_at' => $now + 1]));
+        self::assertNotNull($store->find($scope, $key));
+    }
 }

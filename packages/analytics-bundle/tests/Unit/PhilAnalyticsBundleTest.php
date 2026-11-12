@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\AnalyticsBundle\Tests\Unit;
 
+use Phil\AnalyticsBundle\Application\Measure\MeasureCounters;
 use Phil\AnalyticsBundle\Infrastructure\DependencyInjection\AnalyticsConfiguration;
 use Phil\AnalyticsBundle\PhilAnalyticsBundle;
 use Phil\RateLimit\RateLimitGuard;
@@ -66,6 +67,11 @@ final class PhilAnalyticsBundleTest extends TestCase
             RateLimitGuard::watched($this->loaded([])),
         );
         self::assertSame([], RateLimitGuard::watched($this->loaded(['single_server' => true])));
+    }
+
+    public function testLoadingTheExtensionRegistersTheServices(): void
+    {
+        self::assertTrue($this->loaded([])->hasDefinition(MeasureCounters::class));
     }
 
     public function testTheBuildChecksTheWatchedPools(): void

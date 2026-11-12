@@ -42,6 +42,12 @@ return [
             'IncrementInteger' => [
                 'ignoreSourceCodeByRegex' => ["'max_redirects' => 0,"],
             ],
+            // Symfony's NoPrivateNetworkHttpClient answers with an AsyncResponse, which keeps this option for itself and
+            // always hands `false` to the client it wraps: the body is read here chunk by chunk, so whether that response
+            // also keeps a copy only changes the memory it holds.
+            'FalseValue' => [
+                'ignoreSourceCodeByRegex' => ["'buffer' => false,"],
+            ],
             // The search of the stop mark starts one byte before the earliest place where a mark can newly end: a
             // start one byte earlier finds the same marks, as a mark that ended earlier already stopped the read.
             'DecrementInteger' => [

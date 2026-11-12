@@ -63,6 +63,16 @@ final class TmxTest extends TestCase
         self::assertStringContainsString('<seg><bpt i="2">&lt;a href="/x"&gt;</bpt><bpt i="1">&lt;B&gt;</bpt>in<ept i="1">&lt;/b&gt;</ept><ept i="2">&lt;/a&gt;</ept><ph>&lt;img src="i.png"/&gt;</ph><ph>&lt;span&gt;</ph></seg>', $xml);
     }
 
+    /**
+     * A closing tag pairs with the nearest opening tag of its name, and only with it.
+     */
+    public function testATagNestedInATagOfTheSameNamePairsWithTheNearest(): void
+    {
+        $xml = new TmxWriter()->write(LanguageTag::of('en'), [new MemoryUnit(LanguageTag::of('en'), LanguageTag::of('fr'), '<b>a<b>b</b>c</b>', 'x')]);
+
+        self::assertStringContainsString('<seg><bpt i="2">&lt;b&gt;</bpt>a<bpt i="1">&lt;b&gt;</bpt>b<ept i="1">&lt;/b&gt;</ept>c<ept i="2">&lt;/b&gt;</ept></seg>', $xml);
+    }
+
     public function testALoneClosingTagDoesNotPairWithASelfClosingOne(): void
     {
         $xml = new TmxWriter()->write(LanguageTag::of('en'), [new MemoryUnit(LanguageTag::of('en'), LanguageTag::of('fr'), '<br/>one</br><!-- note -->two', 'x')]);
@@ -104,6 +114,16 @@ final class TmxTest extends TestCase
             ['en-US', 'it', 'The cat <i>black &lt; white', 'Il gatto', 'file.po'],
             ['fr', 'en', 'Oui', 'Yes', null],
         ], array_map(static fn (MemoryUnit $unit): array => [$unit->sourceLanguage->value, $unit->targetLanguage->value, $unit->source, $unit->target, $unit->origin], $units));
+    }
+
+    /**
+     * Of two variants in the source language, the first is the source; the other is a target like any.
+     */
+    public function testTakesTheFirstVariantInTheSourceLanguage(): void
+    {
+        $units = new TmxReader()->read('<tmx version="1.4"><header srclang="en"/><body><tu><tuv xml:lang="en"><seg>One</seg></tuv><tuv xml:lang="en"><seg>Two</seg></tuv><tuv xml:lang="fr"><seg>Un</seg></tuv></tu></body></tmx>');
+
+        self::assertSame([['One', 'Two'], ['One', 'Un']], array_map(static fn (MemoryUnit $unit): array => [$unit->source, $unit->target], $units));
     }
 
     public function testTakesTheFirstVariantAsTheSourceOfAllLanguages(): void

@@ -47,7 +47,7 @@ final readonly class RegularPlurals implements Inflector
         return match (true) {
             1 !== preg_match('/^\p{L}+$/u', $word) => $word,
             1 === preg_match('/(?:s|x|z|ch|sh)$/iu', $word) => $word.'es',
-            1 === preg_match('/[^aeiou]y$/i', $word) => (string) preg_replace('/y$/i', 'ies', $word),
+            1 === preg_match('/[^aeiou]y$/i', $word) => substr($word, 0, -1).'ies',
             default => $word.'s',
         };
     }
@@ -76,7 +76,7 @@ final readonly class RegularPlurals implements Inflector
             1 !== preg_match('/^\p{L}+$/u', $word), 1 === preg_match('/[sxz]$/iu', $word) => $word,
             \in_array($lower, self::FRENCH_S, true) => $word.'s',
             \in_array($lower, self::FRENCH_X, true), 1 === preg_match('/(?:au|eu)$/i', $word) => $word.'x',
-            1 === preg_match('/al$/i', $word) => (string) preg_replace('/l$/i', 'ux', $word),
+            1 === preg_match('/al$/i', $word) => substr($word, 0, -1).'ux',
             default => $word.'s',
         };
     }

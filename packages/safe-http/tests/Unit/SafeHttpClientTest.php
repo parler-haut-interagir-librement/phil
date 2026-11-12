@@ -23,6 +23,7 @@ use Symfony\Component\HttpClient\Exception\TransportException;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
 #[CoversClass(SafeHttpClient::class)]
@@ -393,6 +394,37 @@ final class SafeHttpClientTest extends TestCase
         } catch (FetchFailed $fetchFailed) {
             self::assertSame('"https://example.com/next" took longer than the whole duration allowed.', $fetchFailed->getMessage());
         }
+    }
+
+    /**
+     * A response the client does not read to its end — a redirect, a body of another type, a body past the limit —
+     * is cancelled, so its connection does not keep downloading.
+     */
+    public function testAResponseThatIsNotReadToItsEndIsCancelled(): void
+    {
+        $cancelled = static function (array $responses, Limits $limits = new Limits(), ReadRule $rule = new ReadRule()): array {
+            $inner = new class(new MockHttpClient($responses)) implements HttpClientInterface {
+                use DecoratorTrait;
+
+                /** @var list<ResponseInterface> */
+                public array $sent = [];
+
+                /**
+                 * @param array<array-key, mixed> $options
+                 */
+                public function request(string $method, string $url, array $options = []): ResponseInterface
+                {
+                    return $this->sent[] = $this->client->request($method, $url, $options);
+                }
+            };
+            new SafeHttpClient($inner, $limits, self::RESOLVE)->get('https://example.com/', $rule);
+
+            return array_map(static fn (ResponseInterface $response): mixed => $response->getInfo('canceled'), $inner->sent);
+        };
+
+        self::assertSame([true, false], $cancelled([new MockResponse('', ['http_code' => 301, 'response_headers' => ['Location' => '/moved']]), new MockResponse('done')]));
+        self::assertSame([true], $cancelled([new MockResponse('PNG', ['response_headers' => ['Content-Type' => 'image/png']])], rule: ReadRule::htmlHead()));
+        self::assertSame([true], $cancelled([new MockResponse([str_repeat('a', 3000), str_repeat('b', 3000)])], new Limits(maxBytes: 4000)));
     }
 
     public function testTheClientIsResetBetweenReads(): void

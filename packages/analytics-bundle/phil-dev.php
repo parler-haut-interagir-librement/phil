@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Phil\AnalyticsBundle\Application\Collection\Collector;
+use Phil\AnalyticsBundle\Infrastructure\Doctrine\DbalCounterRollup;
 use Phil\AnalyticsBundle\Infrastructure\Doctrine\DbalCounterStore;
 use Phil\AnalyticsBundle\Infrastructure\Salt\CacheSaltStore;
 
@@ -30,6 +31,17 @@ return [
             ],
             'UnwrapFinally' => [
                 'ignore' => [CacheSaltStore::class.'::claim'],
+            ],
+            // A sum and a count of the column `n`, NOT NULL, read back by SQLite as an integer: the cast and the 0 of a
+            // value that is not a number only type what the drivers that answer in strings, or never, give.
+            'CastInt' => [
+                'ignore' => [DbalCounterRollup::class.'::integer'],
+            ],
+            'DecrementInteger' => [
+                'ignore' => [DbalCounterRollup::class.'::integer'],
+            ],
+            'IncrementInteger' => [
+                'ignore' => [DbalCounterRollup::class.'::integer'],
             ],
         ],
     ],
