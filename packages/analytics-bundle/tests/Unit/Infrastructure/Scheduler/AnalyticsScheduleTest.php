@@ -29,10 +29,14 @@ final class AnalyticsScheduleTest extends TestCase
             self::assertStringContainsString('every 1 day', $trigger);
         }
 
-        $next = new AnalyticsSchedule('05:30', true, false, false, false)->getSchedule()->getRecurringMessages()[0]->getTrigger()->getNextRunDate(new DateTimeImmutable('2026-11-11 06:00:00 UTC'));
+        // The periodic trigger starts from today's date: only the time of day and the order of the runs are fixed.
+        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $next = new AnalyticsSchedule('05:30', true, false, false, false)->getSchedule()->getRecurringMessages()[0]->getTrigger()->getNextRunDate($now);
 
         self::assertNotNull($next);
-        self::assertSame('2026-11-12 05:30', $next->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i'));
+        self::assertSame('05:30', $next->setTimezone(new DateTimeZone('UTC'))->format('H:i'));
+        self::assertGreaterThanOrEqual($now->getTimestamp(), $next->getTimestamp());
+        self::assertLessThanOrEqual($now->getTimestamp() + 86_400, $next->getTimestamp());
     }
 
     public function testADisabledJobIsLeftOut(): void
