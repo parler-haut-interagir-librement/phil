@@ -22,6 +22,11 @@ use Phil\Citations\Terms;
  */
 abstract class AbstractStyle implements CitationStyle
 {
+    /**
+     * What `\s` matches in a regular expression without the `u` flag.
+     */
+    private const string SPACES = " \t\n\v\f\r";
+
     private const array CONTAINED = [
         ItemType::ArticleJournal, ItemType::ArticleMagazine, ItemType::ArticleNewspaper, ItemType::Article,
         ItemType::Review, ItemType::ReviewBook,
@@ -216,7 +221,25 @@ abstract class AbstractStyle implements CitationStyle
      */
     protected function pages(string $pages): string
     {
-        return (string) preg_replace('/\s*-+\s*/', '–', $pages);
+        // Split on the hyphens, then trimmed around them: a regular expression that matched the spaces before a hyphen
+        // would scan a long run of spaces again from each of its positions.
+        $parts = preg_split('/-+/', $pages);
+
+        if (false === $parts || 1 === \count($parts)) {
+            return $pages;
+        }
+
+        $last = \count($parts) - 1;
+
+        foreach ($parts as $index => $part) {
+            $parts[$index] = match ($index) {
+                0 => rtrim($part, self::SPACES),
+                $last => ltrim($part, self::SPACES),
+                default => trim($part, self::SPACES),
+            };
+        }
+
+        return implode('–', $parts);
     }
 
     /**

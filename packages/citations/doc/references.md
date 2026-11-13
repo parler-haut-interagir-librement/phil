@@ -84,7 +84,7 @@ where; nothing is truncated in silence except the names past `maxNames`.
 
 | Limit | Default |
 |---|---|
-| `maxBytes` | 5 000 000 |
+| `maxBytes` | 5 000 000 bytes of input; in BibTeX, also the bytes of all values together, macros expanded |
 | `maxEntries` | 10 000 entries or records |
 | `maxFieldLength` | 65 536 bytes for one value, macros expanded |
 | `maxDepth` | 32 levels of braces |

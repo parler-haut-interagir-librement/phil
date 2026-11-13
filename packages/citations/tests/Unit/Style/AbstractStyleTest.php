@@ -88,4 +88,25 @@ final class AbstractStyleTest extends TestCase
         self::assertSame('', $style->writeLocator(new Cite('a', '   '), $terms));
         self::assertSame('', $style->writeLocator(new Cite('a'), $terms));
     }
+
+    public function testThePages(): void
+    {
+        $style = $this->style();
+
+        self::assertSame('45–67', $style->writePages('45-67'));
+        self::assertSame('45–67', $style->writePages("45 \t\n\v\f\r--- \t\n\v\f\r67"));
+        self::assertSame(' 1–2–3 ', $style->writePages(' 1 - 2 -- 3 '));
+        self::assertSame("12–\0", $style->writePages("12 -\0"));
+        self::assertSame("\0–12", $style->writePages("\0- 12"));
+        self::assertSame(' 47 ', $style->writePages(' 47 '));
+        self::assertSame('–', $style->writePages(' - '));
+    }
+
+    public function testPagesAfterALongRunOfSpacesTakeLinearTime(): void
+    {
+        $start = hrtime(true);
+
+        self::assertSame(str_repeat(' ', 1_000_000).'1–2', $this->style()->writePages(str_repeat(' ', 1_000_000).'1-2'));
+        self::assertLessThan(1_000_000_000, hrtime(true) - $start);
+    }
 }

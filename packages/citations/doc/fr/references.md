@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=376151df320d2f6ec2567701cd0f283551f7a5bc7d821d84bba867ad064cd247 -->
+<!-- phil-dev source-sha256=ab7a0708dfd7267dcdccda3b950845af3f4b34a17c9feb1e52088dc8ebc2da64 -->
 # Références et import
 
 ## Le modèle
@@ -88,7 +88,7 @@ Les deux lecteurs prennent un `Import\ImportLimits` et refusent l'entrée qui le
 
 | Limite | Valeur par défaut |
 |---|---|
-| `maxBytes` | 5 000 000 |
+| `maxBytes` | 5 000 000 octets lus ; en BibTeX, aussi les octets de toutes les valeurs ensemble, macros développées |
 | `maxEntries` | 10 000 entrées ou enregistrements |
 | `maxFieldLength` | 65 536 octets pour une valeur, macros développées |
 | `maxDepth` | 32 niveaux d'accolades |

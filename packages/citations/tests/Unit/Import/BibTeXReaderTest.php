@@ -263,6 +263,18 @@ final class BibTeXReaderTest extends TestCase
         $this->assertRefused($reader, "\xFF", 'the file is not UTF-8');
     }
 
+    public function testMacrosExpandedOverAndOverAreBoundedAsTheInputIs(): void
+    {
+        $reader = new BibTeXReader(new ImportLimits(maxBytes: 80, maxFieldLength: 70));
+
+        self::assertCount(1, $reader->read('@string{m = {0123456789}} @misc{a, title = m # m # m # m # m # m # m}'));
+        $this->assertRefused(
+            $reader,
+            '@string{m = {0123456789}} @misc{a, title = m # m # m # m # m # m # m, note = m}',
+            'the values, macros expanded, are longer than 80 bytes',
+        );
+    }
+
     public function testTheDefaultLimits(): void
     {
         $limits = new ImportLimits();

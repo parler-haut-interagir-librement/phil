@@ -13,8 +13,9 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   it, bounded in size, items and depth.
 - `BibTeXReader`: entries in braces or parentheses, `@string` and month macros, `#` concatenation, `@comment` and
   `@preamble`, LaTeX accents and commands made plain Unicode, names in BibTeX's three forms, `crossref`, BibLaTeX
-  dates; `RisReader`: records, types, tags, continued lines, names and made ids; `ImportLimits` and `InvalidImport`
-  with the line of the problem.
+  dates; `RisReader`: records, types, tags, continued lines, names and made ids; `ImportLimits`, the values of a
+  BibTeX file bounded with its input, macros expanded; `InvalidImport` with the line of the problem.
+- Page ranges written with an en dash in linear time, whatever the spaces around the hyphens.
 - `ReferenceList`: duplicates by DOI, or by title, year and first author, cited as one.
 - `Cite`, `Citation`, `Locator` and `CitationProcessor`: citations resolved, the bibliography ordered alphabetically
   in the collation of the language or by first citation, numbered, with year letters and first cites told apart, the

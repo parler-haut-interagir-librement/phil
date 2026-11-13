@@ -10,7 +10,7 @@ namespace Phil\Citations\Import;
 final readonly class ImportLimits
 {
     /**
-     * @param int $maxBytes       the longest input read
+     * @param int $maxBytes       the longest input read, and of all BibTeX values, macros expanded
      * @param int $maxEntries     the most entries or records read
      * @param int $maxFieldLength the longest value of one field, `@string` macros expanded, in bytes
      * @param int $maxDepth       the deepest nesting of braces in a BibTeX value

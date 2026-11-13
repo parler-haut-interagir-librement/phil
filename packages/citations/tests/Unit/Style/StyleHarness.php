@@ -67,4 +67,9 @@ final class StyleHarness extends AbstractStyle
     {
         return $this->locator($cite, $terms);
     }
+
+    public function writePages(string $pages): string
+    {
+        return $this->pages($pages);
+    }
 }

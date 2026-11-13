@@ -26,6 +26,12 @@ final class BibTeXParser
 
     private int $position = 0;
 
+    /**
+     * The bytes of every value read so far, `@string` macros expanded: bounded as the input is, so that a macro used
+     * over and over cannot make a small file into a large one.
+     */
+    private int $expanded = 0;
+
     /** @var array<string, string> */
     private array $macros = self::MONTHS;
 
@@ -161,6 +167,12 @@ final class BibTeXParser
             $this->skipSpace();
 
             if ('#' !== $this->peek()) {
+                $this->expanded += \strlen($value);
+
+                if ($this->expanded > $this->limits->maxBytes) {
+                    throw $this->error(\sprintf('the values, macros expanded, are longer than %d bytes', $this->limits->maxBytes));
+                }
+
                 return $value;
             }
 
