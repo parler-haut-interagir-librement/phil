@@ -90,12 +90,8 @@ final readonly class InputFile
             throw InvalidRequest::because(\sprintf('The file "%s" cannot be read.', $this->path));
         }
 
-        try {
-            while (\is_string($chunk = fread($handle, max(1, $size))) && '' !== $chunk) {
-                yield $chunk;
-            }
-        } finally {
-            fclose($handle);
+        while (\is_string($chunk = fread($handle, max(1, $size))) && '' !== $chunk) {
+            yield $chunk;
         }
     }
 

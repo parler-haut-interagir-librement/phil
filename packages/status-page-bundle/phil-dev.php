@@ -15,6 +15,11 @@ return [
             'PregMatchRemoveCaret' => [
                 'ignoreSourceCodeByRegex' => ['.*\\$date = 1 === preg_match\\(\'/\\^.*'],
             ],
+            // Without the D modifier, `$` also matches before a final line feed; createFromFormat() then refuses the
+            // trailing line feed, so a date followed by one is refused either way.
+            'PregMatchRemoveFlags' => [
+                'ignoreSourceCodeByRegex' => ['.*\\$date = 1 === preg_match\\(\'/\\^.*'],
+            ],
             // The XML document is written to memory: saveXml() returns false only when it cannot allocate, a branch no test reaches.
             'Throw_' => [
                 'ignoreSourceCodeByRegex' => ['.*The feed could not be written\\..*'],
