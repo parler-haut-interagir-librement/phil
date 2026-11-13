@@ -48,7 +48,7 @@ final class PageCommentsComponent
     public function mount(ResourceReference|string $subject): void
     {
         $this->subject = ($subject instanceof ResourceReference ? $subject : ResourceReference::fromString($subject))->toString();
-        $this->back = self::localPath($this->requests->getCurrentRequest()?->getRequestUri() ?? '/');
+        $this->back = $this->localPath($this->requests->getCurrentRequest()?->getRequestUri() ?? '/');
         $this->viewer = $this->authors?->author();
     }
 
@@ -150,7 +150,7 @@ final class PageCommentsComponent
      * The page to come back to, on this site only: a request line such as `//other.example/x` would otherwise send the
      * visitor to another host after the form.
      */
-    private static function localPath(string $uri): string
+    private function localPath(string $uri): string
     {
         return str_starts_with($uri, '/') && !str_starts_with($uri, '//') && !str_starts_with($uri, '/\\') ? $uri : '/';
     }

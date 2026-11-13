@@ -12,7 +12,6 @@ use Override;
 use Phil\CheckinBundle\Tests\Functional\App\TestKernel;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 use Symfony\Component\Panther\Client;
 use Symfony\Component\Panther\ProcessManager\WebServerManager;
 
@@ -42,7 +41,7 @@ final class CheckinDeskBrowserTest extends TestCase
     public static function setUpBeforeClass(): void
     {
         if (!is_file(__DIR__.'/node_modules/@hotwired/stimulus/dist/stimulus.js')) {
-            throw new RuntimeException('Stimulus is missing: run `npm ci --ignore-scripts` in '.__DIR__.'.');
+            self::markTestSkipped('Stimulus is missing: run `npm ci --ignore-scripts` in '.__DIR__.'.');
         }
 
         // A new ledger for each run: the file lives in the cache of the kernel's browser environment.

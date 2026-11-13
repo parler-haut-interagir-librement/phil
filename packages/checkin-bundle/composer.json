@@ -1,6 +1,6 @@
 {
     "name": "phil/checkin-bundle",
-    "description": "phil/checkin in Symfony: the desk on the application's resolvers, check-ins kept by Doctrine, the scan, manifest and synchronisation endpoints granted by the application's security and protected by a stateless CSRF token, and a Stimulus desk controller that keeps checking in offline from a manifest of keyed fingerprints and synchronises its journal once back online",
+    "description": "phil/checkin in Symfony: the desk on the application's resolvers, check-ins kept by Doctrine, scan, manifest and synchronisation endpoints granted by the application's security behind a stateless CSRF token, and a Stimulus desk that keeps checking in offline from a manifest of keyed fingerprints",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

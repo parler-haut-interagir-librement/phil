@@ -39,7 +39,7 @@ final class EmbedBrowserTest extends TestCase
     public static function setUpBeforeClass(): void
     {
         if (!is_file(__DIR__.'/node_modules/@hotwired/stimulus/dist/stimulus.js')) {
-            throw new RuntimeException('Stimulus is missing: run `npm ci --ignore-scripts` in '.__DIR__.'.');
+            self::markTestSkipped('Stimulus is missing: run `npm ci --ignore-scripts` in '.__DIR__.'.');
         }
 
         $env = ['TMPDIR' => sys_get_temp_dir()];

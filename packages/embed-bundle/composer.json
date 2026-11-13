@@ -1,6 +1,6 @@
 {
     "name": "phil/embed-bundle",
-    "description": "Features of a Symfony site that other sites embed: a token signed for one origin by an ordered list of keys, its format and algorithm named in it; the page answered in the theme the token or the page asks for and framed by that origin alone through frame-ancestors, with phil/browser-security-bundle or a header of its own; a <phil-embed> element that holds the frame at the height its content asks for by a small postMessage protocol, the origin checked on both sides, and keeps a plain link for readers without JavaScript",
+    "description": "Features of a Symfony site that other sites embed: a token signed for one origin by an ordered list of keys, the page framed by that origin alone through frame-ancestors, and a <phil-embed> element sized by a small postMessage protocol, origin checked on both sides, with a plain link without JavaScript",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

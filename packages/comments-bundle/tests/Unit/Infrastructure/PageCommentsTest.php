@@ -127,6 +127,7 @@ final class PageCommentsTest extends TestCase
 
         $request = Request::create('/');
         $request->server->set('REQUEST_URI', 'article');
+
         $this->requests->push($request);
         $component = $this->component('ada');
         $component->mount($page);
