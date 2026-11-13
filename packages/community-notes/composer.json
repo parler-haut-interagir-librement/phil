@@ -1,0 +1,57 @@
+{
+    "name": "phil/community-notes",
+    "description": "Community notes written by qualified members and published by an explainable cross-agreement rule.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "community-notes",
+        "fact-checking",
+        "moderation",
+        "bridging",
+        "cross-agreement"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "phil/resource": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2",
+        "symfony/security-core": "^8.2"
+    },
+    "suggest": {
+        "symfony/event-dispatcher": "To listen to the events of the notes",
+        "symfony/messenger": "To decide notes again in the background, by the message ReconsiderNote",
+        "symfony/security-core": "To ask Symfony Security who may write and rate notes"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\CommunityNotes\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\CommunityNotes\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

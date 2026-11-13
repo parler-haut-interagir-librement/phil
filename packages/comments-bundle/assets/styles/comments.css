@@ -1,0 +1,209 @@
+/*
+ * The comments panel beside the block editor, the button offered on a selection, and the passages highlighted in the
+ * editor through the CSS Custom Highlight API, which colours text without touching the editor's markup. Its custom
+ * properties take PHIL UX's tokens when that stylesheet is loaded, the page's own colours otherwise.
+ */
+:root {
+    --pcm-text: var(--phil-color-text, CanvasText);
+    --pcm-muted: var(--phil-color-text-muted, color-mix(in srgb, CanvasText 60%, Canvas));
+    --pcm-border: var(--phil-color-border, color-mix(in srgb, CanvasText 18%, Canvas));
+    --pcm-surface: var(--phil-color-surface, Canvas);
+    --pcm-accent: var(--phil-color-accent, #1f6f78);
+    --pcm-focus: var(--phil-color-focus, #3b82c4);
+    --pcm-mark: var(--phil-color-highlight, color-mix(in srgb, #f2c94c 45%, transparent));
+    --pcm-mark-active: var(--phil-color-highlight-strong, color-mix(in srgb, #f2994a 60%, transparent));
+    --pcm-radius: var(--phil-radius-md, 6px);
+}
+
+::highlight(phil-comments) {
+    background-color: var(--pcm-mark);
+}
+
+::highlight(phil-comments-active) {
+    background-color: var(--pcm-mark-active);
+}
+
+.phil-comments {
+    display: grid;
+    gap: 0.75rem;
+    color: var(--pcm-text);
+    font-size: 0.9rem;
+}
+
+.phil-comments__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.phil-comments__title {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.phil-comments__count,
+.phil-comments__meta,
+.phil-comments__state,
+.phil-comments__empty {
+    color: var(--pcm-muted);
+}
+
+.phil-comments__filter {
+    margin-inline-start: auto;
+}
+
+.phil-comments__thread,
+.phil-comments__composer {
+    display: grid;
+    gap: 0.4rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--pcm-border);
+    border-radius: var(--pcm-radius);
+    background: var(--pcm-surface);
+}
+
+.phil-comments__thread.is-active {
+    border-color: var(--pcm-accent);
+    box-shadow: 0 0 0 1px var(--pcm-accent);
+}
+
+.phil-comments__thread.is-resolved,
+.phil-comments__thread.is-detached {
+    opacity: 0.75;
+}
+
+.phil-comments__quote {
+    margin: 0;
+    padding-inline-start: 0.5rem;
+    border-inline-start: 3px solid var(--pcm-mark-active);
+    color: var(--pcm-muted);
+    cursor: pointer;
+    overflow-wrap: anywhere;
+}
+
+.phil-comments__thread.is-detached .phil-comments__quote {
+    text-decoration: line-through;
+}
+
+.phil-comments__state--orphaned {
+    font-weight: 600;
+}
+
+.phil-comments__page {
+    display: grid;
+    gap: 0.6rem;
+    padding-block-start: 0.6rem;
+    border-block-start: 1px solid var(--pcm-border);
+}
+
+.phil-comments__subtitle {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.phil-comments__comments {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.phil-comments__meta,
+.phil-comments__body,
+.phil-comments__state,
+.phil-comments__suggestion {
+    margin: 0;
+}
+
+.phil-comments__body {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.phil-comments__suggestion del {
+    color: var(--pcm-muted);
+}
+
+.phil-comments__suggestion ins {
+    text-decoration-color: var(--pcm-accent);
+}
+
+.phil-comments__label {
+    font-weight: 600;
+}
+
+.phil-comments__form,
+.phil-comments__replacement {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.phil-comments__form textarea,
+.phil-comments__replacement input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--pcm-border);
+    border-radius: var(--pcm-radius);
+    color: inherit;
+    background: var(--pcm-surface);
+    font: inherit;
+}
+
+.phil-comments__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.phil-comments button,
+.phil-comments__float button {
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--pcm-border);
+    border-radius: var(--pcm-radius);
+    color: inherit;
+    background: var(--pcm-surface);
+    font: inherit;
+    cursor: pointer;
+}
+
+.phil-comments .phil-comments__send,
+.phil-comments .phil-comments__action--accept {
+    border-color: var(--pcm-accent);
+    color: Canvas;
+    background: var(--pcm-accent);
+}
+
+.phil-comments button:focus-visible,
+.phil-comments__float button:focus-visible,
+.phil-comments__quote:focus-visible {
+    outline: 2px solid var(--pcm-focus);
+    outline-offset: 2px;
+}
+
+.phil-comments__float {
+    position: fixed;
+    z-index: 30;
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border: 1px solid var(--pcm-border);
+    border-radius: var(--pcm-radius);
+    color: var(--pcm-text);
+    background: var(--pcm-surface);
+    box-shadow: 0 4px 14px color-mix(in srgb, CanvasText 18%, transparent);
+}
+
+.phil-comments__float[hidden] {
+    display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .phil-comments__thread {
+        transition:
+            border-color 0.15s ease,
+            box-shadow 0.15s ease;
+    }
+}

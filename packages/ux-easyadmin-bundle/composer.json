@@ -1,0 +1,65 @@
+{
+    "name": "phil/ux-easyadmin-bundle",
+    "description": "PHIL UX in the EasyAdmin back-office: EasyAdmin's colours, corners and fonts taken from the tokens of phil/ux-css, light and dark, in EasyAdmin's cascade layers, linked on every page of every dashboard",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "easyadmin",
+        "design-system",
+        "css",
+        "dark-mode",
+        "asset-mapper",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "composer-runtime-api": "^2.2",
+        "easycorp/easyadmin-bundle": "^5.10",
+        "phil/ux-css": ">=0.1.0-alpha <1.0",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-kernel": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "php-webdriver/webdriver": "^1.16",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/panther": "^2.4",
+        "symfony/routing": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/extra-bundle": "^3.23"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\UxEasyAdminBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\UxEasyAdminBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

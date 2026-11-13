@@ -1,0 +1,3 @@
+# The status page at /status, its JSON at /status.json and its Atom feed at /status.atom.
+phil_status_page:
+    resource: '@PhilStatusPageBundle/config/routes.php'

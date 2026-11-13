@@ -1,0 +1,11 @@
+{
+    "bundles": {
+        "Phil\\EmbedBundle\\PhilEmbedBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "EMBED_KEY": "change-me-to-a-random-secret-of-32-bytes-or-more"
+    }
+}

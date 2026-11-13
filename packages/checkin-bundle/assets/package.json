@@ -1,0 +1,24 @@
+{
+    "name": "@phil/checkin-bundle",
+    "description": "The check-in desk controller: codes read at a checkpoint, decided by the server, or offline from a manifest of keyed fingerprints with a journal synchronised once back online",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/checkin_desk_controller.js",
+    "symfony": {
+        "controllers": {
+            "checkin-desk": {
+                "main": "src/checkin_desk_controller.js",
+                "webpackMode": "lazy",
+                "fetch": "lazy",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

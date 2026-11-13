@@ -1,0 +1,67 @@
+{
+    "name": "phil/epub-bundle",
+    "description": "phil/epub in Symfony: books built by sources registered by attribute, written now or by a Messenger message, kept in a directory or in phil/media-bundle, with the fonts of phil/fonts-bundle embedded after their licence and the images of the media library as assets",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "epub",
+        "ebook",
+        "messenger",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/epub": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/filesystem": "^8.2"
+    },
+    "require-dev": {
+        "ext-mbstring": "*",
+        "ext-zip": "*",
+        "ext-zlib": "*",
+        "phil/fonts": "^0.1@dev",
+        "phil/fonts-bundle": "^0.1@dev",
+        "phil/media-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/messenger": "^8.2"
+    },
+    "suggest": {
+        "phil/fonts-bundle": "For EpubFonts, the fonts of the font directory embedded after their licence",
+        "phil/media-bundle": "To keep the books in the media library, and for MediaAssets",
+        "psr/event-dispatcher": "To learn when a book written by a message is kept",
+        "symfony/messenger": "To write books in a worker"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\EpubBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\EpubBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

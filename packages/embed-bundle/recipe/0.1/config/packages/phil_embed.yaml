@@ -1,0 +1,6 @@
+# The embeds of phil/embed-bundle: see vendor/phil/embed-bundle/doc/configuration.md for every option.
+phil_embed:
+    # The keys that sign the tokens: the first signs, all verify. Put a new key first to rotate them.
+    keys:
+        - { id: '1', secret: '%env(EMBED_KEY)%' }
+    embeds: {}

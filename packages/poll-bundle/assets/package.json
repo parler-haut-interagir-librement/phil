@@ -1,0 +1,24 @@
+{
+    "name": "@phil/poll-bundle",
+    "description": "The Stimulus controller of phil/poll-bundle: the DOM event that says the results of a closed poll are revealed",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/results_controller.js",
+    "symfony": {
+        "controllers": {
+            "results": {
+                "main": "src/results_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

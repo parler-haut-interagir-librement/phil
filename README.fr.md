@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=093448b9e0aa77a4be11f3f0f9fa64cba1fed9f6b76bfb6339de6d30bea12b21 -->
+<!-- phil-dev source-sha256=54961723d1218fa0399745265c75615b72f9385d803c61980c1824c1351947ad -->
 # PHIL
 
 **Parler Haut, Interagir Librement : des bibliothèques PHP et des bundles Symfony ouverts pour les sites qui publient,
@@ -57,6 +57,10 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/content-warnings`](https://github.com/parler-haut-interagir-librement/content-warnings) | Des avertissements de contenu pour les jeux, les livres, les articles et les événements, et les thèmes que chaque lecteur replie ou masque. |
 | [`phil/content-warnings-bundle`](https://github.com/parler-haut-interagir-librement/content-warnings-bundle) | Des avertissements de contenu dans les applications Symfony : un catalogue tiré de la configuration, des avertissements sur n'importe quelle entité, et du contenu replié ou masqué selon le choix de chaque lecteur. |
 | [`phil/taxonomy-bundle`](https://github.com/parler-haut-interagir-librement/taxonomy-bundle) | Des étiquettes et un arbre de catégories traduit pour toute sorte de ressource, avec des types de formulaire pour les modifier. |
+| [`phil/epub`](https://github.com/parler-haut-interagir-librement/epub) | Des livres EPUB 3 à partir de HTML purifié ou de documents UJO : navigation, métadonnées d'accessibilité, polices, superpositions média et mise en page fixe. |
+| [`phil/epub-bundle`](https://github.com/parler-haut-interagir-librement/epub-bundle) | Des livres bâtis par des sources déclarées par attribut, écrits tout de suite ou par un message Messenger, avec leurs polices et leurs images. |
+| [`phil/latex-mathml`](https://github.com/parler-haut-interagir-librement/latex-mathml) | Des formules LaTeX converties en MathML Core, toute autre commande refusée avec sa position, longueur, profondeur et expansion bornées. |
+| [`phil/svg-blocks`](https://github.com/parler-haut-interagir-librement/svg-blocks) | Les blocs math, mermaid, chart et code QR des documents UJO dessinés une fois à l'enregistrement, en SVG ou MathML signés. |
 
 ### Formulaires et protection
 
@@ -116,6 +120,8 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/structured-data-bundle`](https://github.com/parler-haut-interagir-librement/structured-data-bundle) | Le graphe schema.org de chaque page dans Symfony, écrit dans un seul élément script JSON-LD, jamais pour une page tenue à l'écart des moteurs de recherche. |
 | [`phil/social-cards`](https://github.com/parler-haut-interagir-librement/social-cards) | Les balises Open Graph, X et du fédivers, des cartes de partage dessinées d'après un gabarit, et les balises des pages liées lues et vérifiées. |
 | [`phil/social-cards-bundle`](https://github.com/parler-haut-interagir-librement/social-cards-bundle) | Les balises de partage de chaque page, des cartes de partage dessinées par un worker, et des aperçus sûrs des liens que collent les membres. |
+| [`phil/embed-bundle`](https://github.com/parler-haut-interagir-librement/embed-bundle) | Des fonctions que d'autres sites intègrent : un jeton signé pour une origine, frame-ancestors pour elle seule, et un lien simple sans JavaScript. |
+| [`phil/pwa-bundle`](https://github.com/parler-haut-interagir-librement/pwa-bundle) | Un site installable qui se lit hors ligne, sans Workbox : manifeste, service worker, page hors ligne et second écran. |
 
 ### Communauté et événements
 
@@ -127,6 +133,10 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/listings`](https://github.com/parler-haut-interagir-librement/listings) | Le noyau des annonces : une petite annonce, une offre d'emploi, une recherche de partenaires, rédigées, modérées, reçoivent des réponses et expirent selon les mêmes règles. |
 | [`phil/open-badges`](https://github.com/parler-haut-interagir-librement/open-badges) | Des Open Badges 3.0 que tout le monde peut vérifier : émis, signés, intégrés à l'image, révoqués, appuyés et réunis dans un relevé d'apprentissage. |
 | [`phil/directory-bundle`](https://github.com/parler-haut-interagir-librement/directory-bundle) | Un répertoire de fiches avec leur historique, leurs éditeurs et leurs liens, chacune trouvée comme son auteur le décide. |
+| [`phil/checkin-bundle`](https://github.com/parler-haut-interagir-librement/checkin-bundle) | L'accueil dans Symfony : points de lecture, de manifeste et de synchronisation, et un poste qui continue hors ligne. |
+| [`phil/comments-bundle`](https://github.com/parler-haut-interagir-librement/comments-bundle) | Des commentaires sur une page entière ou sur un passage d'un texte, avec des ancres qui suivent les modifications et des remplacements proposés. |
+| [`phil/community-notes`](https://github.com/parler-haut-interagir-librement/community-notes) | Des notes communautaires écrites par des membres qualifiés et publiées par une règle d'accord croisé explicable. |
+| [`phil/poll-bundle`](https://github.com/parler-haut-interagir-librement/poll-bundle) | Scrutins et bulletins dans Symfony : bulletins anonymes modifiés par reçu, et vote unique transférable par la méthode de Meek avec ses tours. |
 
 ### Impression et produits
 
@@ -136,6 +146,11 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/print-preflight`](https://github.com/parler-haut-interagir-librement/print-preflight) | Ce qu'un imprimeur refuserait, avant que le fichier lui parvienne. |
 | [`phil/print-compositor`](https://github.com/parler-haut-interagir-librement/print-compositor) | Les maquettes que montre une boutique et les fichiers d'impression que reçoit un imprimeur, dessinés à partir des mêmes calques. |
 | [`phil/commerce-product-template`](https://github.com/parler-haut-interagir-librement/commerce-product-template) | Un gabarit et un visuel donnent chaque produit d'un catalogue : chaque UGS, son prix, ses canaux et ses illustrations. |
+| [`phil/paged-media`](https://github.com/parler-haut-interagir-librement/paged-media) | Des documents PDF derrière une seule API : un écrivain natif sans dépendance, des champs de formulaire, des imprimés et un client Gotenberg. |
+| [`phil/paged-media-bundle`](https://github.com/parler-haut-interagir-librement/paged-media-bundle) | L'écrivain PDF natif et Gotenberg derrière un seul service, des gabarits par attribut et le rendu asynchrone par Messenger. |
+| [`phil/paged-media-weasyprint`](https://github.com/parler-haut-interagir-librement/paged-media-weasyprint) | Du HTML et du CSS mis en page en PDF par WeasyPrint, sans accès au réseau et avec les fichiers d'un seul dossier. |
+| [`phil/fonts-bundle`](https://github.com/parler-haut-interagir-librement/fonts-bundle) | Un dossier de polices lu en catalogue, le CSS @font-face et un registre des licences vérifié par une commande. |
+| [`phil/print-preflight-bundle`](https://github.com/parler-haut-interagir-librement/print-preflight-bundle) | Des profils d'imprimeur tirés de la configuration, des vérifications ajoutées par attribut, et les documents vérifiés avant l'impression. |
 
 ### Contenu et recherche
 
@@ -180,6 +195,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/ux-css`](https://github.com/parler-haut-interagir-librement/ux-css) | phil-ux, un cadre CSS presque sans classes sur des jetons `--phil-*`, clair et sombre, aux thèmes vérifiés pour le contraste. |
 | [`phil/ux-kit`](https://github.com/parler-haut-interagir-librement/ux-kit) | Le kit PHIL UX du Symfony UX Toolkit : les recettes du kit Shadcn, habillées par phil-ux, copiées par `ux:install`. |
 | [`phil/ux-bundle`](https://github.com/parler-haut-interagir-librement/ux-bundle) | Le thème de formulaire PHIL UX sur chaque formulaire d'une application Symfony, et la feuille de `phil/ux-css` dans AssetMapper. |
+| [`phil/ux-easyadmin-bundle`](https://github.com/parler-haut-interagir-librement/ux-easyadmin-bundle) | L'administration EasyAdmin aux couleurs, coins et polices des jetons de phil-ux, en clair et en sombre. |
 
 ### Intégrations
 
@@ -208,6 +224,9 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/route-access-check`](https://github.com/parler-haut-interagir-librement/route-access-check) | Chaque route a une règle d'accès, ou dit pourquoi elle est publique : c'est vérifié en intégration continue, avant la mise en production. |
 | [`phil/route-access-check-bundle`](https://github.com/parler-haut-interagir-librement/route-access-check-bundle) | `bin/console phil:route-access:check` : chaque route de l'application a une règle d'accès, sinon l'étape d'intégration continue échoue. |
 | [`phil/data-table-export`](https://github.com/parler-haut-interagir-librement/data-table-export) | Des tableaux exportés en CSV gardé contre l'injection de formules, ou en XLSX écrit par blocs, les mêmes octets pour la même feuille. |
+| [`phil/incident-mode`](https://github.com/parler-haut-interagir-librement/incident-mode) | Un mode incident : des préréglages qui suspendent inscriptions, invitations ou messages pour une durée obligatoire, levés automatiquement. |
+| [`phil/status-page-bundle`](https://github.com/parler-haut-interagir-librement/status-page-bundle) | Une page d'état des services en HTML, JSON et Atom sans script, et un instantané statique poussé hors de l'infrastructure surveillée. |
+| [`phil/error-tracking`](https://github.com/parler-haut-interagir-librement/error-tracking) | Le suivi des erreurs gardé chez soi : événements groupés par empreinte stable, purgés des données personnelles et des secrets avant toute écriture. |
 
 Tous les paquets sont en `0.x` : leur API peut encore changer d'une version mineure à l'autre, comme le consigne leur
 CHANGELOG. D'autres paquets rejoignent la vitrine par petits groupes quotidiens.

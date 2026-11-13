@@ -1,0 +1,65 @@
+{
+    "name": "phil/print-preflight-bundle",
+    "description": "phil/print-preflight in Symfony: printer profiles from the configuration, checks added by attribute, documents measured in a browser read from JSON, a console check, and layouts recorded while phil/paged-media draws, with fonts from phil/fonts-bundle and images from phil/media-bundle",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "print",
+        "preflight",
+        "pdf",
+        "bleed",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/fonts": "^0.1@dev",
+        "phil/print-preflight": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/filesystem": "^8.2"
+    },
+    "require-dev": {
+        "ext-mbstring": "*",
+        "ext-zlib": "*",
+        "phil/fonts-bundle": "^0.1@dev",
+        "phil/media-bundle": "^0.1@dev",
+        "phil/paged-media": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/clock": "^1.0",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2"
+    },
+    "suggest": {
+        "phil/fonts-bundle": "To name the fonts of a measured document by family, weight and style",
+        "phil/media-bundle": "For MediaImages, the images of the media library placed on a page",
+        "phil/paged-media": "For PdfLayout, which records what the native PDF writer places"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\PrintPreflightBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\PrintPreflightBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

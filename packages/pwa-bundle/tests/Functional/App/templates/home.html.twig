@@ -1,0 +1,7 @@
+{% extends '@PhilPwa/layout.html.twig' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+    <p data-worker="{{ phil_pwa_service_worker_path() }}" data-scope="{{ phil_pwa_scope() }}">Home</p>
+{% endblock %}

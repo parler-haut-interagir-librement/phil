@@ -1,0 +1,77 @@
+{
+    "name": "phil/poll-bundle",
+    "description": "phil/poll in Symfony: polls and ballots kept with Doctrine, anonymous ballots changed by receipt, an application policy asked first, the single transferable vote by Meek's method in exact rationals with its rounds published, counts kept until the next ballot, and events naming the poll",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "poll",
+        "vote",
+        "ballot",
+        "anonymous-vote",
+        "single-transferable-vote",
+        "meek",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/poll": "^0.1@dev",
+        "phil/resource": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/cache-contracts": "^3.6",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/service-contracts": "^3.6",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/doctrine-bundle": "To keep the polls and their ballots in the application's database",
+        "phil/ux-css": "To draw the templates of a ballot and of the results as the kit's recipes are drawn",
+        "symfony/cache": "To keep the counts of the polls until their next ballot",
+        "symfony/event-dispatcher": "To listen to the events of the polls",
+        "symfony/twig-bundle": "For the templates of a ballot and of the results, and their functions"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\PollBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\PollBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

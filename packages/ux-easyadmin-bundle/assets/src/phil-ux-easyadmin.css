@@ -1,0 +1,94 @@
+/*!
+ * The PHIL UX theme of the EasyAdmin back-office. MIT License.
+ *
+ * The tokens of phil/ux-css — palette, colour roles and dimensions — sit under EasyAdmin's `vendor` layer, so they
+ * lose to every style of the back-office and only add the `--phil-*` custom properties. The base, layout, component
+ * and utility layers of phil/ux-css are left out: their rules on `button`, `input` or `code` would restyle EasyAdmin's
+ * own markup. `bin/build.php` writes `assets/styles/phil-ux-easyadmin.css` from `assets/src/phil-ux-easyadmin.css`,
+ * each import replaced by the token file in its layer.
+ *
+ * The theme itself is the layer `phil-easyadmin`, declared after `ea`: it gives EasyAdmin's variables the values of
+ * the PHIL UX roles and wins over EasyAdmin's tokens, while the application's styles, written outside any layer, win
+ * over it. The roles are `light-dark()` pairs that follow the `color-scheme` EasyAdmin sets on the body, so the light,
+ * dark and automatic schemes of the back-office need no rule of their own.
+ */
+@layer ea-overrides, ea-defaults, vendor, ea, phil-easyadmin;
+
+@import url("tokens/palette.css") layer(vendor.phil.palette);
+@import url("tokens/colors.css") layer(vendor.phil.colors);
+@import url("tokens/dimensions.css") layer(vendor.phil.dimensions);
+
+@layer phil-easyadmin {
+    /* Declared on both selectors, as EasyAdmin declares its own: the dark scheme is a class of the body. */
+    :root,
+    .ea-dark-scheme {
+        /* The accent: buttons, switches, the current item of the menu */
+        --ea-primary: var(--phil-color-brand-fill-loud);
+        --ea-primary-foreground: var(--phil-color-brand-on-loud);
+        --ea-primary-on-surface: var(--phil-color-link);
+        --ea-primary-mix-base: var(--phil-color-surface);
+        --ea-primary-contrast-base: var(--phil-color-text);
+
+        /* The page */
+        --body-bg: var(--phil-color-surface);
+        --content-bg: var(--phil-color-surface);
+        --sidebar-bg: var(--phil-color-surface-raised);
+        --secondary-bg: var(--phil-color-neutral-fill-quiet);
+        --sidebar-menu-color: var(--phil-color-text);
+        --sidebar-menu-active-item-bg: var(--phil-color-brand-fill-quiet);
+        --sidebar-menu-active-item-color: var(--phil-color-brand-on-quiet);
+        --text-color: var(--phil-color-text);
+        --text-muted: var(--phil-color-text-muted);
+        --link-color: var(--phil-color-link);
+        --link-hover-color: var(--phil-color-text);
+        --border-color: var(--phil-color-border);
+
+        /* Tables and forms */
+        --table-cell-border-color: var(--phil-color-border);
+        --table-hover-cell-bg: var(--phil-color-neutral-fill-quiet);
+        --form-input-border-color: var(--phil-color-neutral-border-loud);
+        --form-input-text-color: var(--phil-color-text);
+
+        /* Alerts and badges: each state its quiet fill, the text on it and its border */
+        --alert-primary-bg: var(--phil-color-brand-fill-quiet);
+        --alert-primary-color: var(--phil-color-brand-on-quiet);
+        --alert-primary-border-color: var(--phil-color-brand-border-quiet);
+        --alert-secondary-bg: var(--phil-color-neutral-fill-quiet);
+        --alert-secondary-color: var(--phil-color-neutral-on-quiet);
+        --alert-secondary-border-color: var(--phil-color-neutral-border-quiet);
+        --alert-success-bg: var(--phil-color-success-fill-quiet);
+        --alert-success-color: var(--phil-color-success-on-quiet);
+        --alert-success-border-color: var(--phil-color-success-border-quiet);
+        --alert-info-bg: var(--phil-color-info-fill-quiet);
+        --alert-info-color: var(--phil-color-info-on-quiet);
+        --alert-info-border-color: var(--phil-color-info-border-quiet);
+        --alert-warning-bg: var(--phil-color-warning-fill-quiet);
+        --alert-warning-color: var(--phil-color-warning-on-quiet);
+        --alert-warning-border-color: var(--phil-color-warning-border-quiet);
+        --alert-danger-bg: var(--phil-color-danger-fill-quiet);
+        --alert-danger-color: var(--phil-color-danger-on-quiet);
+        --alert-danger-border-color: var(--phil-color-danger-border-quiet);
+        --badge-primary-bg: var(--phil-color-brand-fill-quiet);
+        --badge-primary-color: var(--phil-color-brand-on-quiet);
+        --badge-secondary-bg: var(--phil-color-neutral-fill-quiet);
+        --badge-secondary-color: var(--phil-color-neutral-on-quiet);
+        --badge-success-bg: var(--phil-color-success-fill-quiet);
+        --badge-success-color: var(--phil-color-success-on-quiet);
+        --badge-info-bg: var(--phil-color-info-fill-quiet);
+        --badge-info-color: var(--phil-color-info-on-quiet);
+        --badge-warning-bg: var(--phil-color-warning-fill-quiet);
+        --badge-warning-color: var(--phil-color-warning-on-quiet);
+        --badge-danger-bg: var(--phil-color-danger-fill-quiet);
+        --badge-danger-color: var(--phil-color-danger-on-quiet);
+
+        /* Corners, focus and fonts */
+        --ea-radius: var(--phil-radius-md);
+        --border-radius-sm: var(--phil-radius-sm);
+        --border-radius: var(--phil-radius-md);
+        --border-radius-lg: var(--phil-radius-lg);
+        --border-radius-xl: var(--phil-radius-xl);
+        --ea-focus-ring-width: var(--phil-focus-width);
+        --font-family-sans-serif: var(--phil-font-sans);
+        --font-family-monospace: var(--phil-font-mono);
+    }
+}

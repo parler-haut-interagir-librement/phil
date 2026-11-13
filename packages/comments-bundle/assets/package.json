@@ -1,0 +1,24 @@
+{
+    "name": "@phil/comments-bundle",
+    "description": "The comments controller: threads anchored to passages of the block editor, opened from its selection, shown beside it and highlighted in it",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/comments_controller.js",
+    "symfony": {
+        "controllers": {
+            "comments": {
+                "main": "src/comments_controller.js",
+                "webpackMode": "eager",
+                "fetch": "lazy",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

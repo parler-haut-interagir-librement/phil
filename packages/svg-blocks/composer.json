@@ -1,0 +1,58 @@
+{
+    "name": "phil/svg-blocks",
+    "description": "The math, mermaid, chart and qrCode blocks of UJO documents drawn once, when they are saved, as SVG or MathML kept and signed with the block: QR codes, charts and formulas in PHP, diagrams through a Mermaid service whose answer is sanitized",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "ujo",
+        "svg",
+        "mathml",
+        "mermaid",
+        "qr-code",
+        "chart"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "phil/latex-mathml": "^0.1@dev",
+        "phil/qr-code": "^0.1@dev",
+        "phil/svg-chart": "^0.1@dev",
+        "phil/svg-sanitizer": "^0.1@dev",
+        "phil/ujo": "^0.1@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6"
+    },
+    "suggest": {
+        "symfony/http-client": "For HttpMermaidService, the diagrams drawn by the Mermaid service"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\SvgBlocks\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\SvgBlocks\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

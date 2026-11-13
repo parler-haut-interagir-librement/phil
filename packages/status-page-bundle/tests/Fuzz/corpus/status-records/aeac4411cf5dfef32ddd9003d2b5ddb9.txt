@@ -1,0 +1,1 @@
+{"incidents":[{"id":"s","title":"Sw","impact":"","components":["ai"],"updates":[{"at":"2027-11-12T10:00:00Z","state":"investigating","message":"kg"}]}]}

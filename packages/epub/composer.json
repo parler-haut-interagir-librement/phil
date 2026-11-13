@@ -1,0 +1,52 @@
+{
+    "name": "phil/epub",
+    "description": "EPUB 3 in PHP: package document with accessibility metadata, navigation with table of contents, landmarks and page list, EPUB 2 toc.ncx, well-formed XHTML from purified HTML, stylesheets, images, obfuscated fonts and cover, audio and video with fallbacks, media overlays, fixed layout, and UJO documents through phil/ujo",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "epub",
+        "ebook",
+        "xhtml",
+        "accessibility",
+        "publishing"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-zip": "*"
+    },
+    "require-dev": {
+        "phil/ujo": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/process": "^8.2"
+    },
+    "suggest": {
+        "phil/ujo": "To write UJO documents (Universal JSON Output, a block document format) as chapters"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Epub\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Epub\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bed30aa07fe465e0bf1b1b4befca1567",
+    "content-hash": "9c6903eefcea37ae8a3c9349c65e6118",
     "packages": [],
     "packages-dev": [
         {
@@ -7250,7 +7250,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-10-03T08:17:19+00:00"
+            "time": "2026-10-03T08:17:19+00:00",
+            "published-time": "2026-11-04T12:38:01+00:00"
         },
         {
             "name": "symfony/asset-mapper",
@@ -14214,6 +14215,7 @@
         "ext-mbstring": "*",
         "ext-openssl": "*",
         "ext-pdo": "*",
+        "ext-posix": "*",
         "ext-sodium": "*",
         "ext-tokenizer": "*",
         "ext-uri": "*",

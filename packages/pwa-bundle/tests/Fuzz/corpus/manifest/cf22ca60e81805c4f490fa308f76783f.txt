@@ -1,0 +1,1 @@
+{"name":"Ecb","icons":[{"src":"/g","purpose":["any","maskable"]}],"categories":[""]}

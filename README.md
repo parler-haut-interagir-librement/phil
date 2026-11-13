@@ -55,6 +55,10 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/content-warnings`](https://github.com/parler-haut-interagir-librement/content-warnings) | Content warnings for games, books, articles and events, and the themes each reader folds or hides. |
 | [`phil/content-warnings-bundle`](https://github.com/parler-haut-interagir-librement/content-warnings-bundle) | Content warnings in Symfony applications: a catalogue from configuration, warnings on any entity, and content folded or hidden as each reader chooses. |
 | [`phil/taxonomy-bundle`](https://github.com/parler-haut-interagir-librement/taxonomy-bundle) | Tags and a translated category tree for any kind of resource, with form types to edit them. |
+| [`phil/epub`](https://github.com/parler-haut-interagir-librement/epub) | EPUB 3 books from purified HTML or UJO documents: navigation, accessibility metadata, fonts, media overlays and fixed layout. |
+| [`phil/epub-bundle`](https://github.com/parler-haut-interagir-librement/epub-bundle) | Books built by sources registered by attribute, written now or by a Messenger message, with their fonts and images. |
+| [`phil/latex-mathml`](https://github.com/parler-haut-interagir-librement/latex-mathml) | LaTeX formulas converted to MathML Core, any other command refused with its position, length, depth and expansion bounded. |
+| [`phil/svg-blocks`](https://github.com/parler-haut-interagir-librement/svg-blocks) | The math, mermaid, chart and QR code blocks of UJO documents drawn once when saved, as signed SVG or MathML. |
 
 ### Forms and protection
 
@@ -114,6 +118,8 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/structured-data-bundle`](https://github.com/parler-haut-interagir-librement/structured-data-bundle) | The schema.org graph of each page in Symfony, printed as one JSON-LD script element, never for a page kept out of search engines. |
 | [`phil/social-cards`](https://github.com/parler-haut-interagir-librement/social-cards) | Open Graph, X and fediverse tags, share cards drawn from a template, and the tags of linked pages read and checked. |
 | [`phil/social-cards-bundle`](https://github.com/parler-haut-interagir-librement/social-cards-bundle) | Share tags on each page, share cards drawn by a worker, and safe previews of the links members paste. |
+| [`phil/embed-bundle`](https://github.com/parler-haut-interagir-librement/embed-bundle) | Features other sites embed: a token signed for one origin, frame-ancestors for that origin alone, and a plain link without JavaScript. |
+| [`phil/pwa-bundle`](https://github.com/parler-haut-interagir-librement/pwa-bundle) | An installable site that reads offline, without Workbox: a manifest, a service worker, an offline page and a second screen. |
 
 ### Community and events
 
@@ -125,6 +131,10 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/listings`](https://github.com/parler-haut-interagir-librement/listings) | The core of listings: a classified ad, a job offer, a search for partners — written, moderated, answered and expired by the same rules. |
 | [`phil/open-badges`](https://github.com/parler-haut-interagir-librement/open-badges) | Open Badges 3.0 that anyone can verify: issued, signed, baked into the image, revoked, endorsed and gathered in a learner record. |
 | [`phil/directory-bundle`](https://github.com/parler-haut-interagir-librement/directory-bundle) | A directory of listings with their history, editors and relations, each found as its author decides. |
+| [`phil/checkin-bundle`](https://github.com/parler-haut-interagir-librement/checkin-bundle) | The check-in desk in Symfony: scan, manifest and synchronisation endpoints, and a desk that keeps checking in offline. |
+| [`phil/comments-bundle`](https://github.com/parler-haut-interagir-librement/comments-bundle) | Comments on a whole page or on a passage of a text, with anchors that follow edits and suggested replacements. |
+| [`phil/community-notes`](https://github.com/parler-haut-interagir-librement/community-notes) | Community notes written by qualified members and published by an explainable cross-agreement rule. |
+| [`phil/poll-bundle`](https://github.com/parler-haut-interagir-librement/poll-bundle) | Polls and ballots in Symfony: anonymous ballots changed by receipt, and the single transferable vote by Meek's method with its rounds. |
 
 ### Print and products
 
@@ -134,6 +144,11 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/print-preflight`](https://github.com/parler-haut-interagir-librement/print-preflight) | What a printer would refuse, before the file reaches it. |
 | [`phil/print-compositor`](https://github.com/parler-haut-interagir-librement/print-compositor) | The mockups a shop shows and the print files a printer receives, drawn from the same layers. |
 | [`phil/commerce-product-template`](https://github.com/parler-haut-interagir-librement/commerce-product-template) | One template and one design give every product of a catalogue: each SKU, its price, its channels and its artworks. |
+| [`phil/paged-media`](https://github.com/parler-haut-interagir-librement/paged-media) | PDF documents behind one API: a native writer with no dependency, form fields, printed templates, and a Gotenberg client. |
+| [`phil/paged-media-bundle`](https://github.com/parler-haut-interagir-librement/paged-media-bundle) | The native PDF writer and Gotenberg behind one service, document templates by attribute, and asynchronous rendering by Messenger. |
+| [`phil/paged-media-weasyprint`](https://github.com/parler-haut-interagir-librement/paged-media-weasyprint) | HTML and CSS laid out as a PDF by WeasyPrint, with no access to the network and files from one directory only. |
+| [`phil/fonts-bundle`](https://github.com/parler-haut-interagir-librement/fonts-bundle) | A directory of font files read into a catalogue, @font-face CSS, and a licence register checked by a command. |
+| [`phil/print-preflight-bundle`](https://github.com/parler-haut-interagir-librement/print-preflight-bundle) | Printer profiles from the configuration, checks added by attribute, and documents checked before they are printed. |
 
 ### Content and search
 
@@ -178,6 +193,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/ux-css`](https://github.com/parler-haut-interagir-librement/ux-css) | phil-ux, a mostly classless CSS framework on `--phil-*` tokens, light and dark, whose themes are checked for contrast. |
 | [`phil/ux-kit`](https://github.com/parler-haut-interagir-librement/ux-kit) | The PHIL UX kit for the Symfony UX Toolkit: the recipes of the Shadcn kit, styled with phil-ux, copied by `ux:install`. |
 | [`phil/ux-bundle`](https://github.com/parler-haut-interagir-librement/ux-bundle) | The PHIL UX form theme on every form of a Symfony application, and the stylesheet of `phil/ux-css` in AssetMapper. |
+| [`phil/ux-easyadmin-bundle`](https://github.com/parler-haut-interagir-librement/ux-easyadmin-bundle) | The EasyAdmin back-office in the colours, corners and fonts of the phil-ux tokens, light and dark. |
 
 ### Integrations
 
@@ -206,6 +222,9 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/route-access-check`](https://github.com/parler-haut-interagir-librement/route-access-check) | Every route has an access rule, or says why it is public: checked in continuous integration, before it ships. |
 | [`phil/route-access-check-bundle`](https://github.com/parler-haut-interagir-librement/route-access-check-bundle) | `bin/console phil:route-access:check`: every route of the application has an access rule, or the CI step fails. |
 | [`phil/data-table-export`](https://github.com/parler-haut-interagir-librement/data-table-export) | Tables exported as CSV guarded against formula injection, or as XLSX written in blocks, the same bytes for the same sheet. |
+| [`phil/incident-mode`](https://github.com/parler-haut-interagir-librement/incident-mode) | An incident mode: presets that suspend sign-ups, invitations or messages for a required duration, lifted automatically. |
+| [`phil/status-page-bundle`](https://github.com/parler-haut-interagir-librement/status-page-bundle) | A service status page served as HTML, JSON and Atom without any script, and a static snapshot pushed off the monitored infrastructure. |
+| [`phil/error-tracking`](https://github.com/parler-haut-interagir-librement/error-tracking) | Error tracking kept at home: events grouped by a stable fingerprint, scrubbed of personal data and secrets before anything is written. |
 
 Every package is at `0.x`: its API may still change between minor versions, as its CHANGELOG records. More packages
 join the showcase by small daily groups.

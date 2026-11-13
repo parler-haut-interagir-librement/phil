@@ -1,0 +1,72 @@
+{
+    "name": "phil/paged-media-bundle",
+    "description": "phil/paged-media in Symfony: the native PDF writer and Gotenberg behind one service, Gotenberg's URL, credentials, signing certificate and timestamp authority from the configuration, document templates by attribute and the library's printed templates by name, and Messenger messages that render, run PDF stages or convert office documents asynchronously",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "pdf",
+        "gotenberg",
+        "messenger",
+        "pdf-a",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-sodium": "*",
+        "phil/paged-media": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2"
+    },
+    "require-dev": {
+        "ext-posix": "*",
+        "ext-zlib": "*",
+        "phil/footnotes-sidenotes": "^0.1@dev",
+        "phil/ujo": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/cache": "^3.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/filesystem": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-kernel": "^8.2",
+        "symfony/messenger": "^8.2"
+    },
+    "suggest": {
+        "phil/footnotes-sidenotes": "For the notes of a UJO (Universal JSON Output) document at the foot of the printed page",
+        "phil/paged-media-weasyprint": "For a print engine ready to use, on the weasyprint command",
+        "psr/cache": "For the job store in a cache pool shared by every worker",
+        "psr/event-dispatcher": "To learn when a file rendered by a message is kept",
+        "symfony/http-client": "For the Gotenberg client and the vault certificate source",
+        "symfony/messenger": "To render, run stages and convert asynchronously"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\PagedMediaBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\PagedMediaBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

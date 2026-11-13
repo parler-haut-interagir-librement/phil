@@ -1,0 +1,1 @@
+{\color{#0f8}x}\textcolor[rgb]{1,0.5,0}{y}\href{https://example.com/a}{site}\url{mailto:a@example.org}\boxed{z}\large w\tag*{A}

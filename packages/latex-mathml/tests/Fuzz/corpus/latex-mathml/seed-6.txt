@@ -1,0 +1,1 @@
+\ce{2H2 + O2 -> 2H2O} \ce{SO4^2- + Ba^{2+} <=>[aq][25 C] BaSO4 v} \ce{^{227}_{90}Th} \ce{CuSO4*5H2O(s) H2C=CH-C#N [Cu(NH3)4]^2+}

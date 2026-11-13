@@ -1,0 +1,1 @@
+\begin{array}{|c|l|}\hline a&b\tag{1}\\\hline c&d\\\hline\end{array}

@@ -1,0 +1,7 @@
+imports:
+    - { resource: services.yaml }
+
+services:
+    Phil\PagedMediaWeasyprint\LocalAssets:
+        arguments:
+            $directory: '%assets_directory%'

@@ -1,0 +1,39 @@
+{#
+ # The document of a snapshot, read outside the site: no script, no address of the site, the JSON and the feed beside
+ # it, and either the stylesheet the application names or a few rules for the classes of the kit's recipes.
+ #}
+<!doctype html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="alternate" type="application/atom+xml" href="{{ links.atom }}">
+    <link rel="alternate" type="application/json" href="{{ links.json }}">
+    {% if stylesheet is not null %}
+        <link rel="stylesheet" href="{{ stylesheet }}">
+    {% else %}
+        <style>
+            body { font-family: system-ui, sans-serif; line-height: 1.5; margin: 0 auto; max-width: 48rem; padding: 1rem; color: #1b1b1b; background: #fff; }
+            .isCard { border: 1px solid #d0d0d0; border-radius: .5rem; padding: 1rem; margin: 0 0 1rem; list-style: none; }
+            .isCardTitle { margin: 0 0 .5rem; }
+            .isBadge { display: inline-block; border: 1px solid currentColor; border-radius: 1rem; padding: 0 .6rem; font-size: .875rem; font-weight: 600; }
+            .isBadge.isDanger { color: #9b1c1c; }
+            .isBadge.isSecondary { color: #7a4a00; }
+            ul.phil-status-page__list { padding: 0; }
+            @media (prefers-color-scheme: dark) {
+                body { color: #ececec; background: #161616; }
+                .isCard { border-color: #444; }
+                .isBadge.isDanger { color: #ff9a9a; }
+                .isBadge.isSecondary { color: #ffcf80; }
+            }
+        </style>
+    {% endif %}
+</head>
+<body>
+<main>
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

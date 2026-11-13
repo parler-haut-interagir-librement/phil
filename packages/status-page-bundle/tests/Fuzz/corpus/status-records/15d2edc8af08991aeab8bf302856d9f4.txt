@@ -1,0 +1,1 @@
+{"incidents":[{"id":"sl","title":"Sw","impact":"degraded","components":["a"],"updates":[{"at":"2027-10-12T10:00:00Z","state":"investigating","message":"Look"}]}],"maintenances":[{"id":"m","title":"M","components":[1],"starts_at":"20"}]}

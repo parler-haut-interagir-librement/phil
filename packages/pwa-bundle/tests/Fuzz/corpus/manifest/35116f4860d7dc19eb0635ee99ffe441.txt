@@ -1,0 +1,1 @@
+{"name":"Expn","display_override":["0b","es./ip","lay"],"theme_color":"#2b","icons":[{"src":"ime/png","purpose":["any","maskable"]}],"shortcuts":[{"name":"ched","url":"/le"}],"categories":["eve1ts"]}

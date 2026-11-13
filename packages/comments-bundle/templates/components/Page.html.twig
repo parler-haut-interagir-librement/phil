@@ -1,0 +1,148 @@
+{#
+ # The comments on a whole page, drawn by the server: each thread a card of the kit, its comments, and the plain forms
+ # the viewer may use; then the form that opens a thread. Every action posts to the signed address of the section and
+ # comes back to the page, so nothing needs JavaScript. The recipes are called with `component()` because their names
+ # are only known once the application's subdirectory is read; they are named once, at the top, since the blocks of a
+ # recipe see the variables of this template but not its `this`. With the option `aria_roles`, each comment has the role
+ # `comment` of WAI-ARIA 1.3.
+ #}
+{%- set domain = 'phil_comments' -%}
+{%- set section = this.section -%}
+{%- set action = this.formAction -%}
+{%- set token = this.token -%}
+{%- set aria = this.hasAriaRoles() -%}
+{%- set kit = {
+    Alert: this.kit('Alert'),
+    AlertDescription: this.kit('Alert:Description'),
+    Badge: this.kit('Badge'),
+    Button: this.kit('Button'),
+    Card: this.kit('Card'),
+    CardContent: this.kit('Card:Content'),
+    CardFooter: this.kit('Card:Footer'),
+    CardHeader: this.kit('Card:Header'),
+    Field: this.kit('Field'),
+    FieldLabel: this.kit('Field:Label'),
+    Textarea: this.kit('Textarea'),
+} -%}
+{%- set threads = this.threads -%}
+{%- set mentions = this.mentions -%}
+{%- set m = 'phil--mentions-bundle--mention' -%}
+{%- set mention = mentions is null ? {} : {
+    'data-controller': m,
+    ('data-' ~ m ~ '-url-value'): mentions,
+    ('data-' ~ m ~ '-empty-value'): 'page.mentions.empty'|trans({}, domain),
+    ('data-' ~ m ~ '-found-value'): 'page.mentions.found'|trans({}, domain),
+} -%}
+<section{{ attributes.defaults({id: section, class: 'phil-comments-page', 'aria-labelledby': section ~ '-title'}) }}>
+    <h2 id="{{ section }}-title">{{ 'page.title'|trans({}, domain) }}</h2>
+    {%- if not this.isSignedIn() %}
+    {% component (kit.Alert) with {role: 'status'} %}
+        {% block content %}
+            {% component (kit.AlertDescription) %}{% block content %}{{ 'page.anonymous'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        {% endblock %}
+    {% endcomponent %}
+    {%- elseif not this.isReadable() %}
+    <p>{{ 'page.unreadable'|trans({}, domain) }}</p>
+    {%- else %}
+    {%- if threads is empty %}
+    <p class="phil-comments-page__empty">{{ 'page.empty'|trans({}, domain) }}</p>
+    {%- else %}
+    <ol class="phil-comments-page__threads">
+        {%- for thread in threads %}
+        {%- set resolved = thread.status == 'resolved' %}
+        <li id="{{ section }}-{{ thread.id }}">
+        {% component (kit.Card) with {as: 'article', size: 'sm', class: 'phil-comments-page__thread' ~ (resolved ? ' isResolved' : '')} %}
+            {% block content %}
+                {% if resolved %}
+                {% component (kit.CardHeader) %}
+                    {% block content %}
+                        {% component (kit.Badge) with {variant: 'secondary'} %}{% block content %}{{ 'page.resolved'|trans({'%name%': thread.resolvedBy.name ?? ''}, domain) }}{% endblock %}{% endcomponent %}
+                    {% endblock %}
+                {% endcomponent %}
+                {% endif %}
+                {% component (kit.CardContent) %}
+                    {% block content %}
+                        <ol class="phil-comments-page__comments">
+                            {%- for comment in thread.comments %}
+                            <li id="{{ section }}-{{ comment.id }}">
+                                <div{% if aria %} role="comment"{% endif %} class="phil-comments-page__comment">
+                                    <p class="phil-comments-page__meta"><strong>{{ comment.author.name }}</strong> <time datetime="{{ comment.createdAt }}">{{ comment.createdAt|date('Y-m-d') }}</time>{% if comment.editedAt is not null %} · {{ 'page.edited'|trans({}, domain) }}{% endif %}</p>
+                                    <p class="phil-comments-page__body">{{ comment.body }}</p>
+                                </div>
+                                {%- if comment.may %}
+                                <details class="phil-comments-page__edit">
+                                    <summary>{{ 'page.edit'|trans({}, domain) }}</summary>
+                                    <form method="post" action="{{ action }}">
+                                        <input type="hidden" name="_token" value="{{ token }}">
+                                        <input type="hidden" name="do" value="edit">
+                                        <input type="hidden" name="id" value="{{ comment.id }}">
+                                        {% component (kit.Field) %}
+                                            {% block content %}
+                                                {% component (kit.FieldLabel) with {for: section ~ '-edit-' ~ comment.id} %}{% block content %}{{ 'page.edit_label'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                                {% component (kit.Textarea) with {id: section ~ '-edit-' ~ comment.id, name: 'body', rows: 3, required: true}|merge(mention) %}{% block content %}{{ comment.body }}{% endblock %}{% endcomponent %}
+                                            {% endblock %}
+                                        {% endcomponent %}
+                                        {% component (kit.Button) with {type: 'submit', size: 'sm'} %}{% block content %}{{ 'page.save'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                    </form>
+                                </details>
+                                <form method="post" action="{{ action }}" class="phil-comments-page__delete">
+                                    <input type="hidden" name="_token" value="{{ token }}">
+                                    <input type="hidden" name="do" value="delete">
+                                    <input type="hidden" name="id" value="{{ comment.id }}">
+                                    {% component (kit.Button) with {type: 'submit', variant: 'destructive', size: 'sm'} %}{% block content %}{{ 'page.delete'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                </form>
+                                {%- endif %}
+                            </li>
+                            {%- endfor %}
+                        </ol>
+                    {% endblock %}
+                {% endcomponent %}
+                {% if thread.may.resolve or (thread.may.reply and not resolved) %}
+                {% component (kit.CardFooter) %}
+                    {% block content %}
+                        {% if thread.may.reply and not resolved %}
+                        <form method="post" action="{{ action }}" class="phil-comments-page__reply">
+                            <input type="hidden" name="_token" value="{{ token }}">
+                            <input type="hidden" name="do" value="reply">
+                            <input type="hidden" name="id" value="{{ thread.id }}">
+                            {% component (kit.Field) %}
+                                {% block content %}
+                                    {% component (kit.FieldLabel) with {for: section ~ '-reply-' ~ thread.id} %}{% block content %}{{ 'page.reply_label'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                    {% component (kit.Textarea) with {id: section ~ '-reply-' ~ thread.id, name: 'body', rows: 2, required: true}|merge(mention) %}{% block content %}{% endblock %}{% endcomponent %}
+                                {% endblock %}
+                            {% endcomponent %}
+                            {% component (kit.Button) with {type: 'submit', size: 'sm'} %}{% block content %}{{ 'page.reply'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                        </form>
+                        {% endif %}
+                        {% if thread.may.resolve %}
+                        <form method="post" action="{{ action }}" class="phil-comments-page__status">
+                            <input type="hidden" name="_token" value="{{ token }}">
+                            <input type="hidden" name="do" value="{{ resolved ? 'reopen' : 'resolve' }}">
+                            <input type="hidden" name="id" value="{{ thread.id }}">
+                            {% component (kit.Button) with {type: 'submit', variant: 'outline', size: 'sm'} %}{% block content %}{{ (resolved ? 'page.reopen' : 'page.resolve')|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                        </form>
+                        {% endif %}
+                    {% endblock %}
+                {% endcomponent %}
+                {% endif %}
+            {% endblock %}
+        {% endcomponent %}
+        </li>
+        {%- endfor %}
+    </ol>
+    {%- endif %}
+    {%- if this.mayComment() %}
+    <form method="post" action="{{ action }}" class="phil-comments-page__open">
+        <input type="hidden" name="_token" value="{{ token }}">
+        <input type="hidden" name="do" value="open">
+        {% component (kit.Field) %}
+            {% block content %}
+                {% component (kit.FieldLabel) with {for: section ~ '-open'} %}{% block content %}{{ 'page.write'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% component (kit.Textarea) with {id: section ~ '-open', name: 'body', rows: 3, required: true}|merge(mention) %}{% block content %}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {% component (kit.Button) with {type: 'submit'} %}{% block content %}{{ 'page.send'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+    </form>
+    {%- endif %}
+    {%- endif %}
+</section>

@@ -1,0 +1,49 @@
+{
+    "name": "phil/latex-mathml",
+    "description": "LaTeX formulas converted to MathML Core in PHP: scripts and limits, fractions, roots, accents, fonts, stretched delimiters, matrices and aligned equations, macros, colours, links, boxes, equation numbers and chemical notation, the formula kept as an annotation, any other command refused with its position, length, depth and expansion bounded",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "latex",
+        "mathml",
+        "math",
+        "formula",
+        "chemistry"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-ctype": "*",
+        "ext-mbstring": "*",
+        "phil/url": "^0.1@dev"
+    },
+    "require-dev": {
+        "ext-dom": "*",
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\LatexMathMl\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\LatexMathMl\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

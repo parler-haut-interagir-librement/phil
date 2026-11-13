@@ -1,0 +1,65 @@
+{
+    "name": "phil/fonts-bundle",
+    "description": "phil/fonts in Symfony: a directory of font files read into a catalogue, WOFF2 read when ext-brotli is loaded, @font-face CSS for the directory, a licence register checked by a command, and the fonts handed to phil/paged-media and read from phil/media-bundle",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "font",
+        "font-face",
+        "woff2",
+        "licence",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/fonts": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/filesystem": "^8.2"
+    },
+    "require-dev": {
+        "ext-mbstring": "*",
+        "phil/media-bundle": "^0.1@dev",
+        "phil/paged-media": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/clock": "^1.0",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "ext-brotli": "To read WOFF2 files; without it their WOFF, TrueType or OpenType siblings are read",
+        "phil/media-bundle": "For MediaFonts, the fonts uploaded to the media library",
+        "phil/paged-media": "For PdfFonts, the TrueType fonts of the catalogue for the native PDF writer",
+        "twig/twig": "For the fonts_css() function"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\FontsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\FontsBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

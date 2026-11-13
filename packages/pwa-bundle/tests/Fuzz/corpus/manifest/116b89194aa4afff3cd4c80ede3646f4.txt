@@ -1,0 +1,1 @@
+{"name":"n","display_override":["wg","ay"],"theme_color":"#1bb1b","icons":[{"src":"e/p","purpose":["any","maskable"]}]}

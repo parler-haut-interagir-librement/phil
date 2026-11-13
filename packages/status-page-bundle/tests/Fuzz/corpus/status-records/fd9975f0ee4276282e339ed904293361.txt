@@ -1,0 +1,1 @@
+{"incidents":[{"id":"s","title":"Sw","impact":"degraded","components":["apg","messagi"],"updates":[{"at":"2026-11-12T10:00:00Z","state":"investigating","message":"Lo."}]}],"maintenances":[{"id":"m","title":"M","components":["a","b"],"starts_at":"5310"}]}

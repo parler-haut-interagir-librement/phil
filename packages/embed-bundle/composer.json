@@ -1,0 +1,72 @@
+{
+    "name": "phil/embed-bundle",
+    "description": "Features of a Symfony site that other sites embed: a token signed for one origin by an ordered list of keys, its format and algorithm named in it; the page answered in the theme the token or the page asks for and framed by that origin alone through frame-ancestors, with phil/browser-security-bundle or a header of its own; a <phil-embed> element that holds the frame at the height its content asks for by a small postMessage protocol, the origin checked on both sides, and keeps a plain link for readers without JavaScript",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "embed",
+        "iframe",
+        "widget",
+        "postMessage",
+        "frame-ancestors",
+        "stimulus",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-sodium": "*",
+        "phil/url": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "phil/browser-security-bundle": "^0.1@dev",
+        "php-webdriver/webdriver": "^1.16",
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/panther": "^2.4",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/yaml": "^8.2"
+    },
+    "suggest": {
+        "phil/browser-security-bundle": "To write frame-ancestors into the site's content security policy rather than in a header of the bundle's own",
+        "symfony/asset-mapper": "To serve the frame controller without a build step",
+        "symfony/stimulus-bundle": "For the frame controller"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\EmbedBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\EmbedBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

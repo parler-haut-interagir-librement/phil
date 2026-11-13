@@ -1,0 +1,1 @@
+{"name":"E","icons":[{"src":"i","purpose":["maskable"]}],"shortcuts":[{"name":"S","url":"/ae"}],"categories":["3ts"]}

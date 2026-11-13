@@ -1,0 +1,24 @@
+{
+    "name": "@phil/embed-bundle",
+    "description": "The frame controller of an embedded page: its height and its readiness told to the page that holds it, the theme that page asks for applied, the origin checked both ways",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/frame_controller.js",
+    "symfony": {
+        "controllers": {
+            "frame": {
+                "main": "src/frame_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en" {{ phil_embed_frame_attributes() }}>
+<head>
+    <meta charset="utf-8">
+    <title>Calendar</title>
+    <style>body { margin: 0 } html[data-theme="dark"] body { background: #111; color: #eee }</style>
+    <script type="importmap">{"imports": {"@hotwired/stimulus": "/assets/stimulus.js"}}</script>
+    <script type="module">
+        import { Application } from '@hotwired/stimulus';
+        import Frame from '/assets/frame_controller.js';
+
+        window.application = Application.start();
+        window.application.register('phil--embed-bundle--frame', Frame);
+        document.documentElement.dataset.started = 'true';
+    </script>
+</head>
+<body>
+    {% set embed = phil_embed() %}
+    <p id="context">{{ embed is null ? 'none' : embed.embed ~ ' ' ~ embed.origin ~ ' ' ~ (embed.theme ?? '-') ~ ' ' ~ (embed.subject ?? '-') }}</p>
+    <div id="content" style="height: 640px">Events</div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+{
+    "name": "phil/paged-media-weasyprint",
+    "description": "The WeasyPrint engine of phil/paged-media-bundle: HTML and CSS laid out as a PDF by the weasyprint command, with no access to the network and files taken from one directory only",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "pdf",
+        "weasyprint",
+        "paged-media",
+        "css"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-libxml": "*",
+        "ext-sodium": "*",
+        "phil/paged-media-bundle": "^0.1@dev",
+        "symfony/process": "^8.2"
+    },
+    "require-dev": {
+        "ext-zlib": "*",
+        "phpunit/phpunit": "^13.4",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/filesystem": "^8.2",
+        "symfony/yaml": "^8.2"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\PagedMediaWeasyprint\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\PagedMediaWeasyprint\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

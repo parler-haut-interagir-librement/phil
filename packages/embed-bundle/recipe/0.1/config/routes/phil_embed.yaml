@@ -1,0 +1,4 @@
+# The script other sites load to embed the site's pages.
+phil_embed:
+    resource: '@PhilEmbedBundle/config/routes.php'
+    prefix: /_embed

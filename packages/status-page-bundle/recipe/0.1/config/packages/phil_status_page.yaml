@@ -1,0 +1,15 @@
+# The status page of the application, at /status. Name its components, and the checks of phil/monitoring-bundle each
+# depends on when it is installed; incidents and maintenances go in the JSON file below. To push a snapshot outside
+# the infrastructure, give the address it is read at and declare a target. See the configuration guide of
+# phil/status-page-bundle.
+phil_status_page:
+    title: 'Service status'
+    components:
+        website: { name: Website }
+    records:
+        file: '%kernel.project_dir%/var/status/records.json'
+    # snapshot:
+    #     base_url: 'https://status.example.com/'
+    #     schedule: '5 minutes'
+    #     targets:
+    #         mirror: { type: directory, path: '/mnt/status' }

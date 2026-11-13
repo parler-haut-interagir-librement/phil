@@ -1,0 +1,4 @@
+# The PHIL UX theme of the EasyAdmin back-office, linked on every page of every dashboard.
+# false: each dashboard lists phil-ux-easyadmin/phil-ux-easyadmin.css in its configureAssets().
+phil_ux_easy_admin:
+    theme: true

@@ -1,0 +1,24 @@
+{# The maintenance `maintenance` of the page `page`, `state` being "in_progress" or "upcoming", as a Card recipe. #}
+{% component (phil_status_kit('Card')) with {as: 'li', id: 'maintenance-' ~ maintenance.id} %}
+    {% block content %}
+        {% component (phil_status_kit('Card:Header')) %}
+            {% block content %}
+                {% component (phil_status_kit('Card:Title')) with {level: 3} %}
+                    {% block content %}{{ maintenance.title }}{% endblock %}
+                {% endcomponent %}
+                <p>{{ ('maintenance.' ~ state)|trans({}, 'phil_status_page') }}</p>
+            {% endblock %}
+        {% endcomponent %}
+        {% component (phil_status_kit('Card:Content')) %}
+            {% block content %}
+                <p>{{ include('@PhilStatusPage/_moment.html.twig', {date: maintenance.startsAt}) }} – {{ include('@PhilStatusPage/_moment.html.twig', {date: maintenance.endsAt}) }}</p>
+                {% if maintenance.components is not empty %}
+                    <p>{{ 'incident.affects'|trans({'%components%': maintenance.components|map(id => page.componentName(id))|join(', ')}, 'phil_status_page') }}</p>
+                {% endif %}
+                {% if maintenance.description is not null %}
+                    <p>{{ maintenance.description|nl2br }}</p>
+                {% endif %}
+            {% endblock %}
+        {% endcomponent %}
+    {% endblock %}
+{% endcomponent %}

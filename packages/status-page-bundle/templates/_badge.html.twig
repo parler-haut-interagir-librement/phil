@@ -1,0 +1,4 @@
+{# The state `status` as a Badge recipe, its name always written. #}
+{% component (phil_status_kit('Badge')) with {variant: phil_status_variant(status)} %}
+    {% block content %}{{ ('status.' ~ status.value)|trans({}, 'phil_status_page') }}{% endblock %}
+{% endcomponent %}

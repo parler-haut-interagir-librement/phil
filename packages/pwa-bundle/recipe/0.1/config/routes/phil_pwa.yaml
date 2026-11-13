@@ -1,0 +1,3 @@
+# The manifest, the service worker and the offline page, without a prefix so the worker controls the whole site.
+phil_pwa:
+    resource: '@PhilPwaBundle/config/routes.php'

@@ -1,0 +1,59 @@
+{
+    "name": "phil/paged-media",
+    "description": "PDF documents behind one API: a native writer with embedded and subset TrueType fonts, images, lines and rectangles and compressed streams, with no dependency, fillable form fields and printed templates, and a Gotenberg 9 client for PDF stages, PDF/A and PDF/UA, signatures and LibreOffice conversions",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "pdf",
+        "truetype",
+        "font-subsetting",
+        "print",
+        "paged-media",
+        "gotenberg",
+        "pdf-a",
+        "pdf-ua"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-ctype": "*",
+        "ext-mbstring": "*",
+        "ext-uri": "*",
+        "ext-zlib": "*",
+        "phil/url": "^0.1@dev"
+    },
+    "require-dev": {
+        "ext-openssl": "*",
+        "phpunit/phpunit": "^13.4",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6"
+    },
+    "suggest": {
+        "symfony/http-client": "For the Gotenberg client, which sends its requests through Symfony HttpClient"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\PagedMedia\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\PagedMedia\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

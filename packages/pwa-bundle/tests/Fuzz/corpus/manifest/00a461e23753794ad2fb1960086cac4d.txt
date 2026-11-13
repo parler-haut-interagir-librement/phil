@@ -1,0 +1,1 @@
+{"name":"Ex","start_url":"/a5a","scope":"/a","shortcuts":[{"name":"d","url":"/e"}]}

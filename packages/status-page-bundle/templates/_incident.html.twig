@@ -1,0 +1,31 @@
+{# The incident `incident` of the page `page`, as a Card recipe with its thread of updates, newest first. #}
+{% component (phil_status_kit('Card')) with {as: 'li', id: 'incident-' ~ incident.id} %}
+    {% block content %}
+        {% component (phil_status_kit('Card:Header')) %}
+            {% block content %}
+                {% component (phil_status_kit('Card:Title')) with {level: 3} %}
+                    {% block content %}{{ incident.title }}{% endblock %}
+                {% endcomponent %}
+                <p>
+                    {{ include('@PhilStatusPage/_badge.html.twig', {status: incident.impact}) }}
+                    {{ ('state.' ~ incident.state.value)|trans({}, 'phil_status_page') }}
+                </p>
+            {% endblock %}
+        {% endcomponent %}
+        {% component (phil_status_kit('Card:Content')) %}
+            {% block content %}
+                {% if incident.components is not empty %}
+                    <p>{{ 'incident.affects'|trans({'%components%': incident.components|map(id => page.componentName(id))|join(', ')}, 'phil_status_page') }}</p>
+                {% endif %}
+                <ol class="phil-status-page__updates" reversed>
+                    {% for update in incident.updates %}
+                        <li>
+                            <p><strong>{{ ('state.' ~ update.state.value)|trans({}, 'phil_status_page') }}</strong> — {{ include('@PhilStatusPage/_moment.html.twig', {date: update.at}) }}</p>
+                            <p>{{ update.message|nl2br }}</p>
+                        </li>
+                    {% endfor %}
+                </ol>
+            {% endblock %}
+        {% endcomponent %}
+    {% endblock %}
+{% endcomponent %}

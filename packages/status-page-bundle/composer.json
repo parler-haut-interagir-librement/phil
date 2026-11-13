@@ -1,0 +1,87 @@
+{
+    "name": "phil/status-page-bundle",
+    "description": "A service status page for Symfony: components, incidents, planned maintenances and history, served as HTML, JSON and Atom without any script, the states read from phil/monitoring-bundle or declared, and a static snapshot pushed outside the monitored infrastructure by a console command or the Scheduler",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "status-page",
+        "incidents",
+        "maintenance",
+        "uptime",
+        "atom",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-mbstring": "*",
+        "ext-uri": "*",
+        "phil/url": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/filesystem": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "league/flysystem": "^3.30",
+        "league/flysystem-memory": "^3.29",
+        "phil/monitoring-bundle": "^0.1@dev",
+        "phil/ux-kit": ">=0.1.0-alpha <1.0",
+        "phpunit/phpunit": "^13.4",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/cache-contracts": "^3.6",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/scheduler": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2"
+    },
+    "suggest": {
+        "league/flysystem": "For a \"flysystem\" target: the snapshot written to an object storage or a remote server",
+        "phil/monitoring-bundle": "For the states of the components read from its checks and scheduled tasks",
+        "phil/ux-kit": "For the recipes the templates draw — Badge, Card —, through the Symfony UX Toolkit",
+        "symfony/cache": "To keep the states read from the checks for a while",
+        "symfony/console": "For phil:status-page:push",
+        "symfony/messenger": "To push a snapshot in a worker",
+        "symfony/scheduler": "To push a snapshot at a regular interval",
+        "symfony/translation": "For the page in English and French"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\StatusPageBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\StatusPageBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

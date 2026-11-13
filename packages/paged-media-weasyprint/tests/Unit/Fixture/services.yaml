@@ -1,0 +1,6 @@
+services:
+    _defaults:
+        autowire: true
+        public: true
+
+    Phil\PagedMediaBundle\Application\Contract\PrintEngine: { class: Phil\PagedMediaWeasyprint\WeasyPrintEngine }

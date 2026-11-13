@@ -1,0 +1,24 @@
+/* The desk controller's result, coloured by its outcome; the colours are custom properties a theme can replace. */
+[data-controller~="phil--checkin-bundle--checkin-desk"] {
+    --phil-checkin-admitted: #1b7f3a;
+    --phil-checkin-refused: #b3261e;
+    --phil-checkin-neutral: #5f6368;
+}
+
+[data-controller~="phil--checkin-bundle--checkin-desk"] [data-phil--checkin-bundle--checkin-desk-target="result"] {
+    display: block;
+    padding: 0.75em 1em;
+    border-inline-start: 0.4em solid var(--phil-checkin-neutral);
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+[data-outcome="admitted"] [data-phil--checkin-bundle--checkin-desk-target="result"],
+[data-outcome="checked_out"] [data-phil--checkin-bundle--checkin-desk-target="result"] {
+    border-color: var(--phil-checkin-admitted);
+}
+
+[data-outcome]:not([data-outcome="admitted"], [data-outcome="checked_out"])
+    [data-phil--checkin-bundle--checkin-desk-target="result"] {
+    border-color: var(--phil-checkin-refused);
+}

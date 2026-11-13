@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Partner</title>
+</head>
+<body>
+    <h1>A partner's page</h1>
+    <div id="good">{{ phil_embed_code('calendar', constant('Phil\\EmbedBundle\\Tests\\Functional\\App\\TestKernel::HOST'), 'calendar', {id: 7}, constant('Phil\\EmbedBundle\\Tests\\Functional\\App\\TestKernel::SITE') ~ '/plain', 'Our calendar')|raw }}</div>
+    <div id="forged">
+        <phil-embed src="{{ constant('Phil\\EmbedBundle\\Tests\\Functional\\App\\TestKernel::SITE') }}/embed/calendar/7?embed_token=pe1.hs256.2026-11.e30.AAAA" title="Forged" timeout="1500">
+            <a href="{{ constant('Phil\\EmbedBundle\\Tests\\Functional\\App\\TestKernel::SITE') }}/plain">Forged calendar</a>
+        </phil-embed>
+    </div>
+</body>
+</html>

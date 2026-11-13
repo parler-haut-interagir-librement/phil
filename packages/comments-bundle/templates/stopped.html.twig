@@ -1,0 +1,23 @@
+{#
+ # What stopped a comment sent by a plain form, with the text sent, to copy, and the way back to the page. An application
+ # dresses this page by overriding the template under `templates/bundles/PhilCommentsBundle/stopped.html.twig`.
+ #}
+<!doctype html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ 'page.stopped.title'|trans({}, 'phil_comments') }}</title>
+</head>
+<body>
+    <main>
+        <h1>{{ 'page.stopped.title'|trans({}, 'phil_comments') }}</h1>
+        <p role="alert">{{ message }}</p>
+        {% if body is not empty %}
+        <p><label for="phil-comments-stopped-body">{{ 'page.stopped.text'|trans({}, 'phil_comments') }}</label></p>
+        <p><textarea id="phil-comments-stopped-body" rows="6" readonly>{{ body }}</textarea></p>
+        {% endif %}
+        <p><a href="{{ back }}">{{ 'page.stopped.back'|trans({}, 'phil_comments') }}</a></p>
+    </main>
+</body>
+</html>

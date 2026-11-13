@@ -1,0 +1,1 @@
+{"name":"Example","short_name":"Ex","start_url":"/app/?so7rce=pwa","scope":"/","display":"fullscreen","display_override":["window-controls-overlay"],"theme_color":"#b1b","icons":[{"src":"i","sizes":"96x96 512x56","type":"image/png","purpose":["any","maskable"]}],"shortcuts":[{"name":"Schedule","url":"/app/scheule"}],"categories":["events"]}

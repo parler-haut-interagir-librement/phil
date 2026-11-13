@@ -1,0 +1,80 @@
+{#
+ # The status page: the overall state, the incidents going on, the maintenances, each component in its state and the
+ # incidents resolved within the history. Its parts are recipes of the kit — Card, Badge —, installed in the
+ # application by the Symfony UX Toolkit and called by the names `phil_status_kit()` gives, drawn by the partials
+ # `_badge`, `_moment`, `_incident` and `_maintenance`. It carries no script.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_status_page' %}
+
+{% block title %}{{ page.title }}{% endblock %}
+
+{% block content %}
+    <article class="phil-status-page" aria-labelledby="phil-status-title">
+        <h1 id="phil-status-title">{{ page.title }}</h1>
+
+        <p class="phil-status-page__overall">
+            {{ include('@PhilStatusPage/_badge.html.twig', {status: page.status}) }}
+            {{ ('overall.' ~ page.status.value)|trans({}, domain) }}
+        </p>
+
+        {% if page.activeIncidents is not empty %}
+            <section aria-labelledby="phil-status-incidents">
+                <h2 id="phil-status-incidents">{{ 'incidents.heading'|trans({}, domain) }}</h2>
+                <ul class="phil-status-page__list">
+                    {% for incident in page.activeIncidents %}{{ include('@PhilStatusPage/_incident.html.twig', {incident: incident}) }}{% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
+        {% if page.maintenancesInProgress is not empty or page.upcomingMaintenances is not empty %}
+            <section aria-labelledby="phil-status-maintenances">
+                <h2 id="phil-status-maintenances">{{ 'maintenances.heading'|trans({}, domain) }}</h2>
+                <ul class="phil-status-page__list">
+                    {% for maintenance in page.maintenancesInProgress %}{{ include('@PhilStatusPage/_maintenance.html.twig', {maintenance: maintenance, state: 'in_progress'}) }}{% endfor %}
+                    {% for maintenance in page.upcomingMaintenances %}{{ include('@PhilStatusPage/_maintenance.html.twig', {maintenance: maintenance, state: 'upcoming'}) }}{% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
+        <section aria-labelledby="phil-status-components">
+            <h2 id="phil-status-components">{{ 'components.heading'|trans({}, domain) }}</h2>
+            {% for group, states in page.groups %}
+                {% if group is not same as('') %}<h3>{{ group }}</h3>{% endif %}
+                <ul class="phil-status-page__list">
+                    {% for state in states %}
+                        {% component (phil_status_kit('Card')) with {as: 'li', size: 'sm', id: 'component-' ~ state.component.id} %}
+                            {% block content %}
+                                <p>
+                                    <strong>{{ state.component.name }}</strong>
+                                    {{ include('@PhilStatusPage/_badge.html.twig', {status: state.status}) }}
+                                </p>
+                                {% if state.component.description is not null %}<p>{{ state.component.description }}</p>{% endif %}
+                            {% endblock %}
+                        {% endcomponent %}
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+        </section>
+
+        <section aria-labelledby="phil-status-history">
+            <h2 id="phil-status-history">{{ 'history.heading'|trans({}, domain) }}</h2>
+            {% if page.history is empty %}
+                <p>{{ 'history.empty'|trans({}, domain) }}</p>
+            {% else %}
+                <ul class="phil-status-page__list">
+                    {% for incident in page.history %}{{ include('@PhilStatusPage/_incident.html.twig', {incident: incident}) }}{% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+
+        <footer>
+            <p>{{ 'updated'|trans({}, domain) }} {{ include('@PhilStatusPage/_moment.html.twig', {date: page.generatedAt}) }}</p>
+            <p>
+                <a href="{{ links.atom }}" type="application/atom+xml">{{ 'atom'|trans({}, domain) }}</a>
+                · <a href="{{ links.json }}" type="application/json">{{ 'json'|trans({}, domain) }}</a>
+            </p>
+        </footer>
+    </article>
+{% endblock %}

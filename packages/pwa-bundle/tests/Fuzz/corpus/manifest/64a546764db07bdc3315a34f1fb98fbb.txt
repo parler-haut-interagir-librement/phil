@@ -1,0 +1,1 @@
+{"name":"Expp","display":"fuliln","shortcuts":[{"name":"e","url":"/`"}],"categories":["events"]}

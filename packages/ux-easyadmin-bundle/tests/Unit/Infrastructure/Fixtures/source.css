@@ -1,0 +1,17 @@
+/* Header */
+@layer one, two;
+
+@import url("tokens/first-tokens.css") layer(one.inner-part);
+  @import url("tokens/first-tokens.css") layer(one);
+@import url("tokens/../tokens/first-tokens.css") layer(one);
+@import url("tokens/first-tokens.css") layer(one) screen;
+@import url("other/first-tokens.css") layer(one);
+@import url("tokens/first-tokens.css") layer(one); /* after */
+@import url("tokens/.css") layer(one);
+@import url("tokens/first-tokens.css") layer();
+@import url("tokens/First.css") layer(one);
+@import url("tokens/first-tokens.css") layer(One);
+
+@layer two {
+    a { color: red; }
+}

@@ -1,0 +1,1 @@
+{"icons":[{"src":"image","sizes":"95x2","type":"image/png","purpose":[]}],"shortcuts":[{"name":"hedule","url":"pple"}],"categories":["en"]}

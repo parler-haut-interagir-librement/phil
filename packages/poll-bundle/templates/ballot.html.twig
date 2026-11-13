@@ -1,0 +1,83 @@
+{#-
+ # The form of a poll's ballot, in the markup of the kit's recipes — Field, RadioGroup, Checkbox, NativeSelect and
+ # Button —, so that phil/ux-css draws it whether the recipes are installed or not. It posts the fields `BallotForm`
+ # reads, and works without JavaScript. Embed it to replace a block: `choices`, `status` or `actions`.
+ #
+ #   ballot       the BallotView of `phil_poll_ballot()`
+ #   action       the address the form posts to
+ #   csrf_token   the CSRF token of the form, posted as `_token`; none when null
+ #}
+{%- set domain = 'phil_poll' -%}
+{%- set id = 'phil-poll-' ~ ballot.poll -%}
+<form method="post" action="{{ action }}" class="phil-poll-ballot" data-phil-poll="{{ ballot.poll }}">
+    {%- if csrf_token ?? null %}
+    <input type="hidden" name="_token" value="{{ csrf_token }}">
+    {%- endif %}
+    <fieldset data-slot="field-set" class="isFieldSet" aria-describedby="{{ id }}-help"{% if not ballot.editable %} disabled{% endif %}>
+        <legend data-slot="field-legend" data-variant="legend" class="isFieldLegend">{{ ballot.question }}</legend>
+        <p data-slot="field-description" class="isFieldDescription" id="{{ id }}-help">
+            {%- if ballot.kind is same as('single') -%}
+                {{ 'ballot.help.single'|trans({}, domain) }}
+            {%- elseif ballot.kind is same as('multiple') -%}
+                {{ 'ballot.help.multiple'|trans({'%min%': ballot.minChoices, '%max%': ballot.maxChoices}, domain) }}
+            {%- else -%}
+                {{ 'ballot.help.ranked'|trans({'%min%': ballot.minChoices, '%max%': ballot.maxChoices}, domain) }}
+            {%- endif -%}
+            {%- if ballot.seats > 1 %} {{ 'ballot.help.seats'|trans({'%count%': ballot.seats}, domain) }}{% endif -%}
+        </p>
+        {%- block choices %}
+        {%- if ballot.kind is same as('single') %}
+        <div role="radiogroup" data-slot="radio-group" data-orientation="vertical" class="isRadioGroup" aria-labelledby="{{ id }}-question">
+            <span id="{{ id }}-question" hidden>{{ ballot.question }}</span>
+            {%- for choice in ballot.choices %}
+            <div role="group" data-slot="field" data-orientation="horizontal" class="isField isHorizontal">
+                <input type="radio" data-slot="radio-group-item" name="choice" value="{{ choice.id }}" id="{{ id }}-{{ choice.id }}"{% if choice.chosen %} checked{% endif %}{% if not ballot.abstention %} required{% endif %}>
+                <label data-slot="field-label" class="isFieldLabel" for="{{ id }}-{{ choice.id }}">{{ choice.label }}</label>
+            </div>
+            {%- endfor %}
+            {%- if ballot.abstention %}
+            <div role="group" data-slot="field" data-orientation="horizontal" class="isField isHorizontal">
+                <input type="radio" data-slot="radio-group-item" name="choice" value="" id="{{ id }}--blank">
+                <label data-slot="field-label" class="isFieldLabel" for="{{ id }}--blank">{{ 'ballot.blank'|trans({}, domain) }}</label>
+            </div>
+            {%- endif %}
+        </div>
+        {%- elseif ballot.kind is same as('multiple') %}
+        {%- for choice in ballot.choices %}
+        <div role="group" data-slot="field" data-orientation="horizontal" class="isField isHorizontal">
+            <input type="checkbox" data-slot="checkbox" name="choices[]" value="{{ choice.id }}" id="{{ id }}-{{ choice.id }}"{% if choice.chosen %} checked{% endif %}>
+            <label data-slot="field-label" class="isFieldLabel" for="{{ id }}-{{ choice.id }}">{{ choice.label }}</label>
+        </div>
+        {%- endfor %}
+        {%- else %}
+        {%- for choice in ballot.choices %}
+        <div role="group" data-slot="field" data-orientation="horizontal" class="isField isHorizontal">
+            <label data-slot="field-label" class="isFieldLabel" for="{{ id }}-{{ choice.id }}">{{ choice.label }}</label>
+            <select data-slot="native-select" data-size="sm" class="isSmall" name="ranks[{{ choice.id }}]" id="{{ id }}-{{ choice.id }}">
+                <option data-slot="native-select-option" value="">{{ 'ballot.unranked'|trans({}, domain) }}</option>
+                {%- for rank in 1..ballot.maxChoices %}
+                <option data-slot="native-select-option" value="{{ rank }}"{% if choice.rank is same as(rank) %} selected{% endif %}>{{ 'ballot.rank'|trans({'%rank%': rank}, domain) }}</option>
+                {%- endfor %}
+            </select>
+        </div>
+        {%- endfor %}
+        {%- endif %}
+        {%- endblock %}
+    </fieldset>
+    {%- block status %}
+    <p class="phil-poll-ballot__status" role="status">
+        {%- if not ballot.open -%}
+            {{ 'ballot.closed'|trans({}, domain) }}
+        {%- elseif ballot.voted -%}
+            {{ (ballot.anonymous ? 'ballot.voted_anonymous' : 'ballot.voted')|trans({}, domain) }}
+        {%- elseif ballot.anonymous -%}
+            {{ 'ballot.anonymous'|trans({}, domain) }}
+        {%- endif -%}
+    </p>
+    {%- endblock %}
+    {%- block actions %}
+    {%- if ballot.editable %}
+    <button type="submit" data-slot="button" data-variant="default" data-size="default" class="isPrimary">{{ (ballot.mayChange ? 'ballot.change' : 'ballot.cast')|trans({}, domain) }}</button>
+    {%- endif %}
+    {%- endblock %}
+</form>

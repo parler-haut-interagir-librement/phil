@@ -1,0 +1,57 @@
+{
+    "name": "phil/incident-mode",
+    "description": "A standalone incident mode: named presets that suspend sign-ups, invitations, new messages or everything but reading, a duration required on every activation, automatic lifting at the end, manual lifting and a journal; moderation offers it when both are installed.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "incident",
+        "moderation",
+        "read-only",
+        "maintenance"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2",
+        "symfony/messenger": "^8.2"
+    },
+    "suggest": {
+        "doctrine/dbal": "To keep the activations in a database with DbalActivationStore",
+        "doctrine/orm": "To add the table of the activations to the schema the ORM generates, with IncidentSchemaListener",
+        "symfony/messenger": "To lift an incident at its end by a delayed message, with MessengerLiftScheduler and its handlers"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\IncidentMode\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\IncidentMode\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

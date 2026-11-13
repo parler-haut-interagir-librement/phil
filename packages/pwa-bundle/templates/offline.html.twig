@@ -1,0 +1,15 @@
+{#
+ # The page the service worker shows when a page cannot be fetched: cached when the worker installs, so it carries no
+ # script and links to the start of the site to try again.
+ #}
+{% extends layout %}
+
+{% block title %}{{ 'offline.title'|trans({'%name%': manifest.name}, 'phil_pwa') }}{% endblock %}
+
+{% block content %}
+    <article class="phil-pwa-offline" aria-labelledby="phil-pwa-offline-title">
+        <h1 id="phil-pwa-offline-title">{{ 'offline.heading'|trans({}, 'phil_pwa') }}</h1>
+        <p>{{ 'offline.message'|trans({'%name%': manifest.name}, 'phil_pwa') }}</p>
+        <p><a href="{{ manifest.startUrl }}">{{ 'offline.retry'|trans({}, 'phil_pwa') }}</a></p>
+    </article>
+{% endblock %}
