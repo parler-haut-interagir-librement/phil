@@ -1,0 +1,1 @@
+@article{smith2020, author = {Smith, John A. and Jean-Paul Dupont and {World Health Organization}}, title = {On {T}esting Caf\'e}, journal = jnl # " Quarterly", year = 2020, month = may, volume = 12, number = {3}, pages = {45--67}}

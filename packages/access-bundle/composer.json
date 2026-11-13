@@ -1,0 +1,79 @@
+{
+    "name": "phil/access-bundle",
+    "description": "Per-item visibility, sharing levels, access groups and their entry points, self-expiring access and 'view as this member', declared as relations on the shared resource permission model and decided by Symfony Security voters, EasyAdmin's included.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "symfony-bundle",
+        "authorization",
+        "permissions",
+        "sharing",
+        "access-control"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "doctrine/dbal": "^4.5",
+        "phil/resource": "^0.1@dev",
+        "phil/resource-permissions": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "doctrine/orm": "^3.7",
+        "easycorp/easyadmin-bundle": "^5.8",
+        "phil/ux-kit": ">=0.1.0-alpha <1.0",
+        "phpunit/phpunit": "^13.4",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.1",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bundle": "^8.2"
+    },
+    "suggest": {
+        "doctrine/orm": "To add the tuple table to the schema the ORM generates",
+        "easycorp/easyadmin-bundle": "For the voter on EA_ACCESS_ENTITY and EA_EXECUTE_ACTION",
+        "phil/ux-kit": "For the recipes the banner and the summary draw — Alert, Badge, Button, Table —, through the Symfony UX Toolkit",
+        "symfony/security-bundle": "For the voters and the member of the security token"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\AccessBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\AccessBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

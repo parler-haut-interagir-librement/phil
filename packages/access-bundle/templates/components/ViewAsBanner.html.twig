@@ -1,0 +1,29 @@
+{#
+ # The banner of "view as this member": an alert of the kit with the member viewed, and a plain form, posted with its
+ # token, whose button of the kit stops the view. The recipes are named once, at the top, since the blocks of a recipe
+ # see the variables of this template but not its `this`.
+ #}
+{%- set member = this.member -%}
+{%- if member is not null -%}
+{%- set domain = 'phil_access' -%}
+{%- set action = this.stopAction -%}
+{%- set token = this.token -%}
+{%- set kit = {
+    Alert: this.kit('Alert'),
+    AlertTitle: this.kit('Alert:Title'),
+    AlertDescription: this.kit('Alert:Description'),
+    Button: this.kit('Button'),
+} -%}
+<div{{ attributes.defaults({class: 'phil-access-view-as'}) }}>
+    {% component (kit.Alert) with {role: 'status'} %}
+        {% block content %}
+            {% component (kit.AlertTitle) %}{% block content %}{{ 'view_as.title'|trans({'%member%': member}, domain) }}{% endblock %}{% endcomponent %}
+            {% component (kit.AlertDescription) %}{% block content %}{{ 'view_as.description'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            <form method="post" action="{{ action }}" class="phil-access-view-as__form">
+                <input type="hidden" name="_token" value="{{ token }}">
+                {% component (kit.Button) with {type: 'submit', variant: 'outline', size: 'sm'} %}{% block content %}{{ 'view_as.stop'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            </form>
+        {% endblock %}
+    {% endcomponent %}
+</div>
+{%- endif -%}

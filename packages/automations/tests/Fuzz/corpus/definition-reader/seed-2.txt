@@ -1,0 +1,1 @@
+{"id":"a","version":2,"name":"A","trigger":{"type":"t"},"steps":[{"id":"b","type":"branch","condition":{"language":"expression","source":"payload['plan'] == 'pro'"},"then":[{"id":"c","type":"filter","condition":{"source":"true"}}],"else":[{"id":"d","type":"delay","seconds":5}]}]}

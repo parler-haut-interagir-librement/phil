@@ -1,0 +1,58 @@
+{
+    "name": "phil/access-links",
+    "description": "Invitations by personal link: an opaque 256-bit token stored as a keyed hash under an ordered list of keys, a recipient named by a stable identifier, validity and closure on a PSR-20 clock, an answer editable until closure, reminders to non-respondents through Messenger with identifier-only messages, links on phil/url, memory and DBAL stores",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "invitations",
+        "personal-link",
+        "rsvp",
+        "reminders",
+        "token",
+        "hmac"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "phil/url": "^0.1@dev",
+        "psr/clock": "^1.0"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/clock": "^8.2",
+        "symfony/messenger": "^8.2"
+    },
+    "suggest": {
+        "doctrine/dbal": "To keep the invitations and the link hashes in a database with DbalInvitationStore",
+        "symfony/messenger": "To send the reminders as messages, with ReminderDispatcher and SendInvitationReminderHandler"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\AccessLinks\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\AccessLinks\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

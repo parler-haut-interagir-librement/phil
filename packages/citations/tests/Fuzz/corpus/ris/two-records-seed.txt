@@ -1,0 +1,8 @@
+﻿TY  - BOOK
+AU  - Acme Corp
+PY  - 2018
+ER  - 
+TY  - ELEC
+ID  - x
+UR  - https://example.org
+ER  - 

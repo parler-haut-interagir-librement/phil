@@ -1,0 +1,4 @@
+# The tavern scene
+12 x foam-sword
+4 lantern @ crate-3
+banner

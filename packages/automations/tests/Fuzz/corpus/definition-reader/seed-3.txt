@@ -1,0 +1,1 @@
+{"id":"x","version":1,"name":"X","trigger":{"type":"a.b","options":{"tags":["a",1],"on":true,"n":null}},"steps":[{"id":"s","type":"action","action":"webhook","options":{"url":"https://hooks.example.com/in","event":"e","key":"main"}}]}

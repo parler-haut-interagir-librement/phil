@@ -1,0 +1,11 @@
+TY  - JOUR
+AU  - Lee, Ann, Jr.
+TI  - Hello
+  world
+T2  - Science
+PY  - 2018/03/04/
+VL  - 7
+SP  - 1
+EP  - 9
+SN  - 1234-5678
+ER  - 

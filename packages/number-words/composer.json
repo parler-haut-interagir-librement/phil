@@ -1,0 +1,48 @@
+{
+    "name": "phil/number-words",
+    "description": "Numbers spelled out in words: a typed facade over ICU for cardinals, ordinals, gender and amounts of money in words, with corrections for French, English, Spanish, German, Italian and Portuguese.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "number",
+        "words",
+        "spellout",
+        "icu",
+        "intl",
+        "ordinal",
+        "amount"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-intl": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\NumberWords\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\NumberWords\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

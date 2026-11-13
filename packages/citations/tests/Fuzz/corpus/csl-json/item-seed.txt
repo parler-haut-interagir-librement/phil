@@ -1,0 +1,1 @@
+[{"id": "a", "type": "article-journal", "author": [{"family": "Gogh", "given": "Vincent", "non-dropping-particle": "van"}, {"literal": "WHO"}], "issued": {"date-parts": [[2020, 5, 1], [2020, 6]], "circa": true}, "accessed": {"raw": "2021-01-02"}, "title": "T", "volume": 12}]

@@ -59,6 +59,8 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/epub-bundle`](https://github.com/parler-haut-interagir-librement/epub-bundle) | Books built by sources registered by attribute, written now or by a Messenger message, with their fonts and images. |
 | [`phil/latex-mathml`](https://github.com/parler-haut-interagir-librement/latex-mathml) | LaTeX formulas converted to MathML Core, any other command refused with its position, length, depth and expansion bounded. |
 | [`phil/svg-blocks`](https://github.com/parler-haut-interagir-librement/svg-blocks) | The math, mermaid, chart and QR code blocks of UJO documents drawn once when saved, as signed SVG or MathML. |
+| [`phil/number-words`](https://github.com/parler-haut-interagir-librement/number-words) | Numbers spelled out in words over ICU: cardinals, ordinals, gender and amounts of money, corrected for six languages. |
+| [`phil/citations`](https://github.com/parler-haut-interagir-librement/citations) | References kept as CSL-JSON, BibTeX and RIS import, and author-date, notes and numeric styles in English and French. |
 
 ### Forms and protection
 
@@ -135,6 +137,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/comments-bundle`](https://github.com/parler-haut-interagir-librement/comments-bundle) | Comments on a whole page or on a passage of a text, with anchors that follow edits and suggested replacements. |
 | [`phil/community-notes`](https://github.com/parler-haut-interagir-librement/community-notes) | Community notes written by qualified members and published by an explainable cross-agreement rule. |
 | [`phil/poll-bundle`](https://github.com/parler-haut-interagir-librement/poll-bundle) | Polls and ballots in Symfony: anonymous ballots changed by receipt, and the single transferable vote by Meek's method with its rounds. |
+| [`phil/stockroom`](https://github.com/parler-haut-interagir-librement/stockroom) | A props stockroom: nested containers, items counted or tracked one by one, a journal of every movement, and load lists checked at the return. |
 
 ### Print and products
 
@@ -185,6 +188,10 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/idempotency`](https://github.com/parler-haut-interagir-librement/idempotency) | Run an operation once per idempotency key, replay its answer, and handle each Messenger message once. |
 | [`phil/browser-security-bundle`](https://github.com/parler-haut-interagir-librement/browser-security-bundle) | Content Security Policy with nonces, HSTS, signed cookies and the other protections a browser enforces, page by page. |
 | [`phil/legal-notices`](https://github.com/parler-haut-interagir-librement/legal-notices) | The legal notice and the privacy policy as versioned documents, filled from the identity of the publisher. |
+| [`phil/resource-permissions`](https://github.com/parler-haut-interagir-librement/resource-permissions) | Permissions per resource on one subject-relation-object model: declared relations, rights inherited through a tree, bounded checks and listings. |
+| [`phil/access-bundle`](https://github.com/parler-haut-interagir-librement/access-bundle) | Per-item visibility, sharing levels that expire on their own, access groups and a logged "view as this member", decided by Symfony voters. |
+| [`phil/access-codes`](https://github.com/parler-haut-interagir-librement/access-codes) | Single-use codes in named batches, given once and stored as keyed hashes, redeemed atomically with attempts bounded by a rate limiter. |
+| [`phil/access-links`](https://github.com/parler-haut-interagir-librement/access-links) | Invitations by personal link: a token stored as a keyed hash, an answer editable until closure, and reminders to non-respondents only. |
 
 ### PHIL UX
 
@@ -206,6 +213,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/bounce-parser`](https://github.com/parler-haut-interagir-librement/bounce-parser) | Know what every message on your bounce mailbox says, and what to do about the address it names. |
 | [`phil/api-contract`](https://github.com/parler-haut-interagir-librement/api-contract) | Both sides of an HTTP API contract: problem details, deprecation signals, and an OpenAPI document checked against levels of rules. |
 | [`phil/api-contract-bundle`](https://github.com/parler-haut-interagir-librement/api-contract-bundle) | Problem details, idempotent and deprecated controllers, and the OpenAPI document checked in CI, for Symfony. |
+| [`phil/automations`](https://github.com/parler-haut-interagir-librement/automations) | A no-code automation builder for site events: JSON definitions, delays, filters and branches, retries and compensation, run by Messenger. |
 
 ### Operations
 

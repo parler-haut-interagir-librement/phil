@@ -1,0 +1,1 @@
+{"id": 7, "type": "book", "issued": {"literal": "forthcoming"}, "submitted": {"date-parts": [[2019, 14]]}}

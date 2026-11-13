@@ -1,0 +1,51 @@
+{
+    "name": "phil/citations",
+    "description": "Citations and bibliographies: references kept as CSL-JSON, BibTeX and RIS import, and author-date, notes and numeric styles written in PHP, in English and French, as text or escaped HTML.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "citation",
+        "bibliography",
+        "csl-json",
+        "bibtex",
+        "ris",
+        "apa",
+        "chicago",
+        "ieee"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-ctype": "*",
+        "ext-intl": "*",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Citations\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Citations\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

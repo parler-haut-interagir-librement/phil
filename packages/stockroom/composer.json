@@ -1,0 +1,50 @@
+{
+    "name": "phil/stockroom",
+    "description": "A props stockroom: nested containers, items counted or tracked one by one, a journal of every movement in, out, between containers, lost and back, per-event load lists deployed and checked at the return, and a read port of the stock",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "stockroom",
+        "inventory",
+        "props",
+        "load-list",
+        "stock-movements"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "psr/clock": "^1.0",
+        "symfony/service-contracts": "^3.6",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Stockroom\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Stockroom\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

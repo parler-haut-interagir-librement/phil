@@ -1,0 +1,1 @@
+@string{jnl = "J"} @incollection{c, author = {Ludwig van Beethoven}, title = {S}, crossref = {b}} @book{b, editor = {Doe, Jane}, title = {Works}, year = 2019, date = {2019-05-01/2019-06}}

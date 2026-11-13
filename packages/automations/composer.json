@@ -1,0 +1,65 @@
+{
+    "name": "phil/automations",
+    "description": "A no-code automation builder for site events: definitions as JSON, triggers and actions registered by packages, delay, filter and branch steps, retries and per-step compensation, runs advanced by Messenger and Scheduler, idempotent and safe on several workers, a signed webhook action, Doctrine DBAL storage",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "automation",
+        "workflow",
+        "no-code",
+        "messenger",
+        "scheduler",
+        "webhook",
+        "saga"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "phil/standard-webhooks": "^0.1@dev",
+        "phil/url": "^0.1.3@dev",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/cache": "^8.2",
+        "symfony/expression-language": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-foundation": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/scheduler": "^8.2",
+        "symfony/service-contracts": "^3.6"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2"
+    },
+    "suggest": {
+        "doctrine/dbal": "To keep definitions and runs in a database with DbalDefinitions and DbalRunStore"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Automations\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Automations\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

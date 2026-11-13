@@ -1,0 +1,1 @@
+{"id":"welcome","version":1,"name":"Welcome","trigger":{"type":"newsletter.confirmed","options":{"list":"news"}},"steps":[{"id":"hello","type":"action","action":"newsletter.send","options":{"template":"hello"},"retries":3},{"id":"wait","type":"delay","seconds":86400}]}

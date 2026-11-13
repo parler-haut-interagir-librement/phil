@@ -1,0 +1,59 @@
+{#
+ # Who has access to an item: its visibility as a badge of the kit, then its shares in a table of the kit. Drawn only
+ # for those holding the widest level on the item. The recipes are named once, at the top, since the blocks of a recipe
+ # see the variables of this template but not its `this`.
+ #}
+{%- if this.isVisible() -%}
+{%- set domain = 'phil_access' -%}
+{%- set visibility = this.visibility -%}
+{%- set shares = this.shares -%}
+{%- set kit = {
+    Badge: this.kit('Badge'),
+    Table: this.kit('Table'),
+    TableCaption: this.kit('Table:Caption'),
+    TableHeader: this.kit('Table:Header'),
+    TableBody: this.kit('Table:Body'),
+    TableRow: this.kit('Table:Row'),
+    TableHead: this.kit('Table:Head'),
+    TableCell: this.kit('Table:Cell'),
+} -%}
+<section{{ attributes.defaults({class: 'phil-access-summary'}) }}>
+    <p class="phil-access-summary__visibility">
+        {{ 'summary.visibility'|trans({}, domain) }}
+        {% component (kit.Badge) with {variant: 'secondary'} %}{% block content %}{{ ('visibility.' ~ (visibility ?? 'none'))|trans({}, domain) }}{% endblock %}{% endcomponent %}
+    </p>
+    {%- if shares is empty %}
+    <p class="phil-access-summary__empty">{{ 'summary.no_share'|trans({}, domain) }}</p>
+    {%- else %}
+    {% component (kit.Table) %}
+        {% block content %}
+            {% component (kit.TableCaption) %}{% block content %}{{ 'summary.shares'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% component (kit.TableHeader) %}
+                {% block content %}
+                    {% component (kit.TableRow) %}
+                        {% block content %}
+                            {% component (kit.TableHead) %}{% block content %}{{ 'summary.grantee'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                            {% component (kit.TableHead) %}{% block content %}{{ 'summary.level'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                            {% component (kit.TableHead) %}{% block content %}{{ 'summary.until'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                        {% endblock %}
+                    {% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
+            {% component (kit.TableBody) %}
+                {% block content %}
+                    {%- for share in shares %}
+                    {% component (kit.TableRow) %}
+                        {% block content %}
+                            {% component (kit.TableCell) %}{% block content %}{{ ('summary.' ~ share.granteeKind)|trans({'%id%': share.grantee}, domain) }}{% endblock %}{% endcomponent %}
+                            {% component (kit.TableCell) %}{% block content %}{% component (kit.Badge) with {variant: 'outline'} %}{% block content %}{{ share.level }}{% endblock %}{% endcomponent %}{% endblock %}{% endcomponent %}
+                            {% component (kit.TableCell) %}{% block content %}{% if share.expiresAt is null %}{{ 'summary.forever'|trans({}, domain) }}{% else %}<time datetime="{{ share.expiresAt|date('c', 'UTC') }}">{{ share.expiresAt|date('Y-m-d H:i', 'UTC') }} UTC</time>{% endif %}{% endblock %}{% endcomponent %}
+                        {% endblock %}
+                    {% endcomponent %}
+                    {%- endfor %}
+                {% endblock %}
+            {% endcomponent %}
+        {% endblock %}
+    {% endcomponent %}
+    {%- endif %}
+</section>
+{%- endif -%}

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=54961723d1218fa0399745265c75615b72f9385d803c61980c1824c1351947ad -->
+<!-- phil-dev source-sha256=2260389a8adc2bdacec5fece7df45aeb7d7cd41a36b37e154a4d64471f11f32a -->
 # PHIL
 
 **Parler Haut, Interagir Librement : des bibliothèques PHP et des bundles Symfony ouverts pour les sites qui publient,
@@ -61,6 +61,8 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/epub-bundle`](https://github.com/parler-haut-interagir-librement/epub-bundle) | Des livres bâtis par des sources déclarées par attribut, écrits tout de suite ou par un message Messenger, avec leurs polices et leurs images. |
 | [`phil/latex-mathml`](https://github.com/parler-haut-interagir-librement/latex-mathml) | Des formules LaTeX converties en MathML Core, toute autre commande refusée avec sa position, longueur, profondeur et expansion bornées. |
 | [`phil/svg-blocks`](https://github.com/parler-haut-interagir-librement/svg-blocks) | Les blocs math, mermaid, chart et code QR des documents UJO dessinés une fois à l'enregistrement, en SVG ou MathML signés. |
+| [`phil/number-words`](https://github.com/parler-haut-interagir-librement/number-words) | Nombres en toutes lettres sur ICU : cardinaux, ordinaux, genre et montants d'argent, corrigés pour six langues. |
+| [`phil/citations`](https://github.com/parler-haut-interagir-librement/citations) | Références gardées en CSL-JSON, import BibTeX et RIS, et styles auteur-date, notes et numérique en anglais et en français. |
 
 ### Formulaires et protection
 
@@ -137,6 +139,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/comments-bundle`](https://github.com/parler-haut-interagir-librement/comments-bundle) | Des commentaires sur une page entière ou sur un passage d'un texte, avec des ancres qui suivent les modifications et des remplacements proposés. |
 | [`phil/community-notes`](https://github.com/parler-haut-interagir-librement/community-notes) | Des notes communautaires écrites par des membres qualifiés et publiées par une règle d'accord croisé explicable. |
 | [`phil/poll-bundle`](https://github.com/parler-haut-interagir-librement/poll-bundle) | Scrutins et bulletins dans Symfony : bulletins anonymes modifiés par reçu, et vote unique transférable par la méthode de Meek avec ses tours. |
+| [`phil/stockroom`](https://github.com/parler-haut-interagir-librement/stockroom) | Un magasin d'accessoires : contenants imbriqués, objets comptés ou suivis un à un, journal de chaque mouvement, listes de chargement vérifiées au retour. |
 
 ### Impression et produits
 
@@ -187,6 +190,10 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/idempotency`](https://github.com/parler-haut-interagir-librement/idempotency) | Exécuter une opération une fois par clé d'idempotence, rejouer sa réponse, et traiter une fois chaque message de Messenger. |
 | [`phil/browser-security-bundle`](https://github.com/parler-haut-interagir-librement/browser-security-bundle) | La Content Security Policy avec ses nonces, HSTS, des cookies signés et les autres protections qu'impose un navigateur, page par page. |
 | [`phil/legal-notices`](https://github.com/parler-haut-interagir-librement/legal-notices) | Les mentions légales et la politique de confidentialité en documents versionnés, remplis à partir de l'identité de l'éditeur. |
+| [`phil/resource-permissions`](https://github.com/parler-haut-interagir-librement/resource-permissions) | Permissions par ressource sur un seul modèle sujet-relation-objet : relations déclarées, droits hérités dans un arbre, vérifications et listes bornées. |
+| [`phil/access-bundle`](https://github.com/parler-haut-interagir-librement/access-bundle) | Visibilité par élément, niveaux de partage qui expirent seuls, groupes d'accès et « voir comme ce membre » journalisé, décidés par des voteurs Symfony. |
+| [`phil/access-codes`](https://github.com/parler-haut-interagir-librement/access-codes) | Codes à usage unique par lots nommés, remis une seule fois et gardés en empreintes à clé, rachetés de façon atomique, essais bornés par un limiteur. |
+| [`phil/access-links`](https://github.com/parler-haut-interagir-librement/access-links) | Invitations par lien personnel : jeton gardé en empreinte à clé, réponse modifiable jusqu'à la clôture, rappels aux seuls non-répondants. |
 
 ### PHIL UX
 
@@ -208,6 +215,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/bounce-parser`](https://github.com/parler-haut-interagir-librement/bounce-parser) | Sachez ce que dit chaque message de votre boîte de rebonds, et quoi faire de l'adresse qu'il nomme. |
 | [`phil/api-contract`](https://github.com/parler-haut-interagir-librement/api-contract) | Les deux côtés du contrat d'une API HTTP : détails de problème, signaux de dépréciation, et un document OpenAPI vérifié selon des niveaux de règles. |
 | [`phil/api-contract-bundle`](https://github.com/parler-haut-interagir-librement/api-contract-bundle) | Détails de problème, contrôleurs idempotents et dépréciés, et le document OpenAPI vérifié en intégration continue, pour Symfony. |
+| [`phil/automations`](https://github.com/parler-haut-interagir-librement/automations) | Un constructeur d'automatisations sans code pour les événements d'un site : définitions JSON, délais, filtres et branches, reprises et compensation, par Messenger. |
 
 ### Exploitation
 

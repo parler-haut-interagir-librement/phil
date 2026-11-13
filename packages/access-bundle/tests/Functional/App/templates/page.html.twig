@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><title>Page</title></head>
+<body>
+<twig:PhilAccess:ViewAsBanner />
+<main>
+    <p id="can-view">{{ access_can('view', 'page:1') ? 'yes' : 'no' }}</p>
+    <p id="can-edit">{{ access_can('edit', 'page:1') ? 'yes' : 'no' }}</p>
+    <p id="visibility">{{ access_visibility('page:1') ?? 'none' }}</p>
+    <p id="viewing-as">{{ access_viewing_as() ?? 'nobody' }}</p>
+    <p id="granted">{{ is_granted('access.manage', page) ? 'yes' : 'no' }}</p>
+    <twig:PhilAccess:AccessSummary item="page:1" />
+    {%- if is_granted('access.view_as') %}
+    <form id="view-as" method="post" action="{{ path('phil_access_view_as_start', {member: 'ann'}) }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('phil_access_view_as') }}">
+        <button type="submit">View as Ann</button>
+    </form>
+    {%- endif %}
+</main>
+</body>
+</html>

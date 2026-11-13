@@ -1,0 +1,54 @@
+{
+    "name": "phil/resource-permissions",
+    "description": "Per-resource permissions inherited through a tree (a role, 'everyone else', most specific wins), as a shared subject-relation-object access model: declared relations, inheritance and rewrites, bounded checks and listings, in-memory and Doctrine DBAL stores.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "authorization",
+        "permissions",
+        "access-control",
+        "rebac",
+        "relations"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/resource": "^0.1@dev",
+        "psr/clock": "^1.0"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2"
+    },
+    "suggest": {
+        "doctrine/dbal": "To keep the tuples in a database with DbalTupleStore",
+        "doctrine/orm": "To add the tuple table to the schema the ORM generates, with TupleSchemaListener"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ResourcePermissions\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ResourcePermissions\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

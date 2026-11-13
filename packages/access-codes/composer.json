@@ -1,0 +1,57 @@
+{
+    "name": "phil/access-codes",
+    "description": "Single-use codes in named batches: an alphabet without lookalike symbols, a check symbol, chosen length and entropy; codes given once at creation, as CSV with prefilled redemption links, stored as keyed hashes under an ordered list of keys; atomic redemption, expiry, batch revocation, counters, rate-limited attempts, memory and DBAL stores",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "access-codes",
+        "redemption",
+        "download-codes",
+        "vouchers",
+        "single-use",
+        "hmac"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "phil/url": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "symfony/rate-limiter": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/clock": "^8.2",
+        "symfony/process": "^8.2"
+    },
+    "suggest": {
+        "doctrine/dbal": "To keep the batches and the code hashes in a database with DbalCodeStore"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\AccessCodes\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\AccessCodes\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}
