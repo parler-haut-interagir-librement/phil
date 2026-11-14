@@ -4,7 +4,7 @@ All notable changes to `phil/doctrine-behaviours` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## 0.2.0-alpha - YYYY-MM-DD
+## Unreleased
 
 ### Added
 
