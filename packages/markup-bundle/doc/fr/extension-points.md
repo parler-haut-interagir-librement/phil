@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1749e4e67a01bb205f80a4fc5d040232dc720c6d8c6808a4a44eb21bea9583a3 -->
+<!-- phil-dev source-sha256=f66fe766f9073f40295c297618aa031b2a4bb03ae602dccd4fdd640fb17ec86d -->
 # Points d'extension
 
 Ce qu'une application configure, remplace ou décore. Les compilateurs, les purificateurs et les analyseurs sont ceux de
@@ -13,6 +13,7 @@ Ce qu'une application configure, remplace ou décore. Les compilateurs, les puri
 | `levels`, `default_level` | Le niveau le plus élevé auquel chaque format est purifié, quoi que demande un gabarit, et le niveau pris quand aucun n'est nommé |
 | `smart_punctuation` | Si le HTML passe par un typographe avant d'être purifié, et dans quelle locale |
 | `media_hosts` | Les hôtes d'où peuvent venir les images, donnés à `SanitizerPurifier` quel que soit le bundle qui l'enregistre |
+| `purifier` | `auto`, `sanitizer` ou `ammonia` : le purificateur que vise `HtmlPurifier`, l'extension `ammonia` de PHP par défaut là où elle est chargée |
 
 Voir [Configuration](configuration.md).
 

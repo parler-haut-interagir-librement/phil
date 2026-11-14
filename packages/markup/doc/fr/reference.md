@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e654bdb747aea564a73c553770e89ff32f92b793d02ee16414c073ad7eab8782 -->
+<!-- phil-dev source-sha256=e6606c8762f06b73c156821cc39384322bc1a03fe9e9c7ced75e7ee5b4b250e5 -->
 # Référence
 
 ## Types
@@ -32,8 +32,10 @@
 | `Reader\UjoReader` | `MarkupReader` | Le JSON UJO, par `phil/ujo` |
 | `Reader\Text\TextReader` | `MarkupReader` | Le texte brut : un `paragraph` pour chaque suite de lignes, sauts de ligne gardés, adresses changées en liens |
 | `Adapter\DefaultCompiler` | `LevelAwareCompiler` | Chaque format, ceux des modules complémentaires donnés par nom ; `reader($format, $level)` donne le lecteur d'un format vers UJO, y compris ceux du HTML et du texte brut, même si les deux se compilent sans lui ; `formats()`, le nom de chacun |
-| `Adapter\SanitizerPurifier` | `HtmlPurifier` | `defaultPolicies()`, un assainisseur par niveau |
-| `Adapter\CodeClasses` | `final readonly class` | Les classes gardées sur `code` (`language-…`) et `span` (`hl-…`), un assainisseur d'attributs de `symfony/html-sanitizer` |
+| `Adapter\SanitizerPurifier` | `HtmlPurifier` | `defaultPolicies()`, un assainisseur par niveau ; `configurations()`, la configuration de chaque niveau |
+| `Adapter\AmmoniaPurifier` | `HtmlPurifier` | `defaultPolicies()` sur l'extension `ammonia`, les mêmes politiques ; `isAvailable()` : voir [Accélérateurs](accelerators.md) |
+| `Adapter\Purifiers` | `final readonly class` | `defaultPolicies($mediaHosts, $extension)` : `AmmoniaPurifier` là où l'extension est chargée, `SanitizerPurifier` sinon |
+| `Adapter\CodeClasses` | `final readonly class` | Les classes gardées sur `code` (`language-…`) et `span` (`hl-…`), un assainisseur d'attributs de `symfony/html-sanitizer` ; `keep()`, les classes qu'il garde d'une valeur |
 | `Adapter\PlainText`, `Adapter\Autolink` | compilateurs | Le texte brut, les liens dans le texte |
 
 L'espace de noms racine (formats, niveaux, ports et exceptions) est ce qu'un modèle de domaine peut nommer ;
@@ -90,4 +92,5 @@ Une image d'un autre hôte perd son `src` ; une image relative, servie par le si
 dont les membres écrivent des textes à `forum` donne les hôtes depuis lesquels il sert des images, ou `[]`.
 
 Assainissez de nouveau ce qui a été stocké au moment de l'afficher : une politique resserrée s'applique alors aux textes
-écrits avant.
+écrits avant. `Purifiers::defaultPolicies()` prend les mêmes hôtes, et assainit avec l'extension `ammonia` là où elle est
+chargée : voir [Accélérateurs](accelerators.md).

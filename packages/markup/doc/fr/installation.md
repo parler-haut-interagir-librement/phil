@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=115281d354756bf8b3e27e57641d867fcfa52c233cbdde49ffa2a920d5219327 -->
+<!-- phil-dev source-sha256=40ec0e67ea828abc71bd2ec0e30f6ed3c32aa20ea555424e52d9373d20589074 -->
 # Installation
 
 ## Prérequis
@@ -14,6 +14,10 @@
 | `phil/ujo` | Les documents qu'écrivent les lecteurs, leur vérification et leur HTML |
 | `symfony/html-sanitizer` 8.2 | Les politiques de `SanitizerPurifier` |
 | `symfony/yaml` 8.2 | Le préambule de Markdown, et le YAML qu'un dialecte lit avec `FrontMatter::yaml()` |
+
+L'extension `ammonia` de PHP est facultative elle aussi, suggérée comme `ext-ammonia` : là où elle est chargée,
+`Purifiers` assainit avec elle, environ deux fois plus vite sur les longs textes. Voir
+[Accélérateurs](accelerators.md) pour PIE, ses versions de PHP et ses systèmes.
 
 Doctrine ORM 3.7 et DBAL 4.5 sont facultatifs : seule une application qui stocke un `MarkedUpText` comme objet
 intégrable en a besoin, et elle les exige elle-même.

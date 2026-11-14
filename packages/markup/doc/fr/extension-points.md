@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=63c850bd4aeff35e97d8f9c540dae51241161e555b32500798af2ecd7b3a5653 -->
+<!-- phil-dev source-sha256=3e13fdf90361930dfe22e5f19a2f927bf824a8bf2831f614dbd3d94d7b500786 -->
 # Points d'extension
 
 La bibliothèque est du PHP simple et ne déclare aucun service. `Markup` se compose de deux ports, un compilateur et un
@@ -35,7 +35,9 @@ l'application le décore (pour ajouter une ponctuation typographique, par exempl
 
 `Adapter\SanitizerPurifier` contient un `symfony/html-sanitizer` par niveau : `defaultPolicies($mediaHosts)` construit
 ceux qui sont fournis, avec les hôtes d'où peuvent venir les images ; `new SanitizerPurifier($sanitizers)` prend ceux de
-l'application.
+l'application ; `configurations($mediaHosts)` donne la configuration de chaque niveau fourni, pour qu'un autre
+assainisseur la traduise. `Adapter\AmmoniaPurifier` applique les politiques fournies sur l'extension `ammonia` de PHP,
+et `Adapter\Purifiers` la choisit là où l'extension est chargée : voir [Accélérateurs](accelerators.md).
 
 ## Lecteurs
 
