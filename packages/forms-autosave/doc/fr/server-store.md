@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c505680eb4819d2fdb69cc830a9e120515c9c50a76da8759dba733973e4951db -->
+<!-- phil-dev source-sha256=a8b8608314eae476de215fd8a79fce1e2aac464f08b5e4b67b4c4c68810342a3 -->
 # Le stockage serveur
 
 Avec `server.enabled`, les brouillons d'un utilisateur connecté sont aussi conservés sur le serveur, pour qu'ils le
@@ -27,12 +27,14 @@ enveloppée par la clé maîtresse que nomme `server.key`, le contenu chiffré l
 authentifié avec lui, l'enveloppe enregistrée en base64. L'enveloppe nomme sa clé maîtresse : les brouillons scellés
 avant que `server.key` change s'ouvrent encore tant que le KMS détient l'ancienne clé. Un brouillon qui ne s'ouvre plus
 — altéré, déplacé, sous une clé maîtresse que le KMS ne détient plus, ou pendant que le KMS est injoignable — est
-supprimé à la lecture. Avec `server.encrypt: false`, `PlainSealer` stocke en clair ce que les utilisateurs ont tapé.
+supprimé à la lecture, sauf si une autre révision a été enregistrée entre-temps. Avec `server.encrypt: false`, `PlainSealer` stocke en clair ce que les utilisateurs ont tapé.
 
 ## Expiration
 
 Un brouillon est conservé `ttl` secondes après son dernier enregistrement. Un brouillon expiré se lit comme absent, et
-un enregistrement par-dessus en commence un nouveau ; `phil:forms-autosave:purge` supprime les brouillons expirés :
+un enregistrement par-dessus en commence un nouveau. Le brouillon expiré n'est retiré que s'il est encore celui qui a
+été lu, par sa révision et son expiration : de deux enregistrements qui se croisent sur lui, le second répond `409` au
+lieu de supprimer le premier. `phil:forms-autosave:purge` supprime les brouillons expirés :
 
 ```sh
 bin/console phil:forms-autosave:purge

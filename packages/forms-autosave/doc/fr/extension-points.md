@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=27b48b49754a8ee179b558c218ceebd9ca6611d34fbd06f499c47b203e81c221 -->
+<!-- phil-dev source-sha256=3e4ac0e80ab5127c3b7819131cd7f5db0ab3985a86d78748bdd8863bd6220a4c -->
 # Points d'extension
 
 Ce qu'une application implémente, configure ou utilise.
@@ -26,6 +26,7 @@ l'utilisateur de Symfony Security quand SecurityBundle est installé, et seuleme
 | `find(string $owner, DraftKey $key): ?Draft` | Le brouillon sous l'empreinte d'un propriétaire et une clé |
 | `insert(Draft $draft): bool` | Faux quand le propriétaire a déjà un brouillon sous cette clé |
 | `replace(Draft $read, Draft $next): bool` | Faux quand la révision stockée n'est plus celle qui a été lue |
+| `remove(Draft $read): void` | Supprime le brouillon lu seulement tant que celui qui est stocké a la même révision et la même expiration ; un brouillon enregistré entre-temps reste |
 | `delete(string $owner, DraftKey $key): void` | |
 | `purge(DateTimeImmutable $now): int` | Supprime les brouillons expirés à ce moment et dit combien |
 

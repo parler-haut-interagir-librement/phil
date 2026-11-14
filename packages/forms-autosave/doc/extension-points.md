@@ -25,6 +25,7 @@ Symfony Security when SecurityBundle is installed, and visitors only otherwise.
 | `find(string $owner, DraftKey $key): ?Draft` | The draft under an owner's hash and a key |
 | `insert(Draft $draft): bool` | False when the owner already has a draft under that key |
 | `replace(Draft $read, Draft $next): bool` | False when the stored revision is no longer the one read |
+| `remove(Draft $read): void` | Deletes the draft read only while the stored one has the same revision and the same expiry; a draft saved meanwhile stays |
 | `delete(string $owner, DraftKey $key): void` | |
 | `purge(DateTimeImmutable $now): int` | Deletes the drafts expired at that moment, and tells how many |
 

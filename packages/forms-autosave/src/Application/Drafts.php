@@ -38,7 +38,8 @@ final readonly class Drafts
     }
 
     /**
-     * The user's draft under a key, or null when none is kept, it has expired, or it no longer opens — then it is deleted.
+     * The user's draft under a key, or null when none is kept, it has expired, or it no longer opens — then it is deleted,
+     * unless another revision was saved meanwhile.
      */
     public function read(string $user, DraftKey $key): ?DraftCopy
     {
@@ -58,7 +59,7 @@ final readonly class Drafts
         }
 
         if (!$content instanceof DraftContent) {
-            $this->store->delete($owner, $key);
+            $this->store->remove($draft);
 
             return null;
         }
@@ -68,7 +69,8 @@ final readonly class Drafts
 
     /**
      * Saves a content in place of the revision the browser read — null when it read none — and tells the new revision.
-     * An expired draft counts as none.
+     * An expired draft counts as none: it is removed only if it is still the one read, so that of two saves that meet on
+     * it, the second is a conflict instead of deleting the first.
      *
      * @throws DraftTooLarge    when the encoded content is larger than the server keeps
      * @throws RevisionConflict when another revision was saved meanwhile
@@ -90,7 +92,7 @@ final readonly class Drafts
             $draft = Draft::first($owner, $key, $payload, $now, $this->seconds);
 
             if ($read instanceof Draft) {
-                $this->store->delete($owner, $key);
+                $this->store->remove($read);
             }
 
             return $this->store->insert($draft) ? 1 : throw new RevisionConflict($this->store->find($owner, $key)?->revision());

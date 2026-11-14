@@ -16,8 +16,8 @@ use Phil\FormsAutosave\Domain\ValueObject\DraftKey;
 
 /**
  * The drafts in the table `phil_form_draft`, by plain queries on a Doctrine connection: an insertion that meets the
- * primary key of a draft saved meanwhile fails, a replacement is an `UPDATE` on the revision read, so that a race is
- * decided by the database and the entity manager stays open. Times are kept in UTC.
+ * primary key of a draft saved meanwhile fails, a replacement is an `UPDATE` on the revision read, a removal a `DELETE` on
+ * the revision and the expiry read, so that a race is decided by the database and the entity manager stays open. Times are kept in UTC.
  */
 final readonly class DoctrineDraftStore implements DraftStore
 {
@@ -73,6 +73,17 @@ final readonly class DoctrineDraftStore implements DraftStore
             'owner' => $read->owner(),
             'draft_key' => $read->key()->value,
             'revision' => $read->revision(),
+        ]);
+    }
+
+    #[Override]
+    public function remove(Draft $read): void
+    {
+        $this->connection->delete(Draft::TABLE, [
+            'owner' => $read->owner(),
+            'draft_key' => $read->key()->value,
+            'revision' => $read->revision(),
+            'expires_at' => $this->format($read->expiresAt()),
         ]);
     }
 

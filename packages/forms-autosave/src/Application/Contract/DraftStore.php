@@ -10,7 +10,8 @@ use Phil\FormsAutosave\Domain\ValueObject\DraftKey;
 
 /**
  * Where the drafts of the server are kept, each under its owner's hash and its key, written by compare-and-set: an
- * insertion fails when the draft exists, a replacement when another revision was saved meanwhile.
+ * insertion fails when the draft exists, a replacement when another revision was saved meanwhile, and a removal leaves
+ * a draft saved meanwhile in place.
  */
 interface DraftStore
 {
@@ -25,6 +26,12 @@ interface DraftStore
      * Puts the next revision in place of the one read; false when the stored revision is no longer the one read.
      */
     public function replace(Draft $read, Draft $next): bool;
+
+    /**
+     * Deletes the draft read only while the stored one is still that draft, with the same revision and the same expiry:
+     * a draft saved meanwhile, even a first revision saved again after an expired one, stays.
+     */
+    public function remove(Draft $read): void;
 
     public function delete(string $owner, DraftKey $key): void;
 

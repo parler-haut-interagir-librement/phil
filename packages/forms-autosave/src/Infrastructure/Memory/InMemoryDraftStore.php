@@ -50,6 +50,16 @@ final class InMemoryDraftStore implements DraftStore, ResetInterface
     }
 
     #[Override]
+    public function remove(Draft $read): void
+    {
+        $stored = $this->find($read->owner(), $read->key());
+
+        if ($stored?->revision() === $read->revision() && $stored->expiresAt()->getTimestamp() === $read->expiresAt()->getTimestamp()) {
+            $this->delete($read->owner(), $read->key());
+        }
+    }
+
+    #[Override]
     public function delete(string $owner, DraftKey $key): void
     {
         unset($this->drafts[$owner][$key->value]);
