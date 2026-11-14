@@ -278,6 +278,7 @@ final class CommentsTest extends TestCase
             $this->threads->race = static function (InMemoryThreadRepository $threads) use ($thread): void {
                 $other = clone ($threads->get($thread) ?? throw new LogicException('The thread was opened.'));
                 $other->reject(self::user('bob'), new DateTimeImmutable('2026-11-06 10:00:00 UTC'));
+
                 $threads->decide($other);
             };
 

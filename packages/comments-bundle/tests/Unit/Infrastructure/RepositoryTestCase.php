@@ -64,6 +64,7 @@ abstract class RepositoryTestCase extends TestCase
         $threads->save($this->thread('t1', 'page:1', '2026-11-06 10:00:00'));
         $threads->save($this->thread('t2', 'page:1', '2026-11-06 10:00:00'));
         $threads->save(Thread::open('t3', ResourceReference::of('page', '1'), null, ResourceReference::of('user', 'ada'), new DateTimeImmutable('2026-11-06 10:00:00 UTC')));
+
         $read = $this->reread($threads, 't1');
         $read->accept(ResourceReference::of('user', 'bob'), new DateTimeImmutable('2026-11-06 11:00:00 UTC'));
 

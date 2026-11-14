@@ -15,7 +15,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 ### Fixed
 
 - Two saves over the same expired draft no longer delete each other's: the second is a `RevisionConflict`, answered
-  `409`, instead of removing the revision the first had just saved.
+  `409`, instead of removing the revision the first saved.
 - A draft read while it no longer opens is no longer deleted when another revision was saved meanwhile.
 
 ## 0.1.0-alpha - 2026-11-12

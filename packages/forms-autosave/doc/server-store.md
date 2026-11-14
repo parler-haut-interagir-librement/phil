@@ -24,8 +24,8 @@ Symfony's KeyManagement component: a fresh data key per draft wrapped by the mas
 content encrypted locally with AES-256-GCM, the context authenticated with it, the envelope stored in base64. The
 envelope names its master key, so drafts sealed before `server.key` changed still open while the KMS holds the old
 key. A draft that no longer opens — altered, moved, under a master key the KMS no longer holds, or while the KMS
-cannot be reached — is deleted when read, unless another revision was saved meanwhile. With `server.encrypt: false`, `PlainSealer` stores what
-users typed in clear.
+cannot be reached — is deleted when read, unless another revision was saved meanwhile. With `server.encrypt: false`,
+`PlainSealer` stores what users typed in clear.
 
 ## Expiry
 

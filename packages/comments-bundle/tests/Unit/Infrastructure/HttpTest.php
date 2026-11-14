@@ -123,6 +123,7 @@ final class HttpTest extends TestCase
         $threads->race = static function (InMemoryThreadRepository $store): void {
             $other = clone ($store->get('id1') ?? throw new LogicException('The thread was opened.'));
             $other->accept(ResourceReference::of('user', 'ada'), new DateTimeImmutable('2026-11-06 10:00:00 UTC'));
+
             $store->decide($other);
         };
 

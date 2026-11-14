@@ -113,6 +113,7 @@ abstract class DraftStoreTestCase extends TestCase
         $expired = $this->draft(self::ADA, $key, 'old');
         $store->insert($expired);
         $store->remove($expired);
+
         $fresh = Draft::first(self::ADA, $key, 'new', new DateTimeImmutable('2026-11-08 15:02:00 UTC'), 60);
         $store->insert($fresh);
 

@@ -188,6 +188,7 @@ final class DraftsTest extends TestCase
             $store->insert($other);
         });
         $store->inner->insert(Draft::first($owner, $this->key, '{}', $this->clock->now(), 60));
+
         $this->clock->sleep(60);
 
         try {
@@ -209,6 +210,7 @@ final class DraftsTest extends TestCase
             $store->replace($broken, $saved);
         });
         $store->inner->insert($broken);
+
         $drafts = new Drafts($store, new ContextSealer(), $this->keys, $this->clock, 60);
 
         self::assertNull($drafts->read('ada', $this->key));

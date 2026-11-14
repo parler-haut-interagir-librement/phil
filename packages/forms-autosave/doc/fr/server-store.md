@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a8b8608314eae476de215fd8a79fce1e2aac464f08b5e4b67b4c4c68810342a3 -->
+<!-- phil-dev source-sha256=239ee80072a1def7289e23277bd02fd8b5586049fb7afde2bbc58073b7ebddb1 -->
 # Le stockage serveur
 
 Avec `server.enabled`, les brouillons d'un utilisateur connecté sont aussi conservés sur le serveur, pour qu'ils le
@@ -27,7 +27,8 @@ enveloppée par la clé maîtresse que nomme `server.key`, le contenu chiffré l
 authentifié avec lui, l'enveloppe enregistrée en base64. L'enveloppe nomme sa clé maîtresse : les brouillons scellés
 avant que `server.key` change s'ouvrent encore tant que le KMS détient l'ancienne clé. Un brouillon qui ne s'ouvre plus
 — altéré, déplacé, sous une clé maîtresse que le KMS ne détient plus, ou pendant que le KMS est injoignable — est
-supprimé à la lecture, sauf si une autre révision a été enregistrée entre-temps. Avec `server.encrypt: false`, `PlainSealer` stocke en clair ce que les utilisateurs ont tapé.
+supprimé à la lecture, sauf si une autre révision a été enregistrée entre-temps. Avec `server.encrypt: false`,
+`PlainSealer` stocke en clair ce que les utilisateurs ont tapé.
 
 ## Expiration
 

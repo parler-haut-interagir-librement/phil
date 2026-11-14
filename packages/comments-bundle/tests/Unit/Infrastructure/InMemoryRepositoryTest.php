@@ -35,6 +35,7 @@ final class InMemoryRepositoryTest extends RepositoryTestCase
         $suggesting = Thread::open('t2', ResourceReference::of('page', '1'), Anchor::of(null, null, 0, 'cat'), ResourceReference::of('user', 'ada'), new DateTimeImmutable(), 'dog');
         $threads->save($suggesting);
         $threads->reset();
+
         $suggesting->accept(ResourceReference::of('user', 'ada'), new DateTimeImmutable());
 
         $this->expectException(SuggestionDecided::class);
