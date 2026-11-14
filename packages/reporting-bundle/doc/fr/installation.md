@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d7c85116f23088992cea98de2144f67ab58f1308f39db5d482d7fbda2fe1dd10 -->
+<!-- phil-dev source-sha256=01479eb6e6d2e3d2a027c8bb340a069bce35d77dd9c2353f03a415f58f83e562 -->
 # Installation
 
 ## Prérequis
@@ -54,7 +54,10 @@ Avec AssetMapper, la feuille de style est associée sous `phil-reporting/reporti
 
 Elle est écrite dans la couche de cascade `phil.components` sur les jetons de PHIL UX (`phil/ux-css`), avec une valeur
 propre pour chacun quand PHIL UX n'est pas chargé. Ses barres lisent leur longueur dans un attribut `data-share` : aucun
-style en ligne, ce qui permet de les afficher avec une Content Security Policy sans `'unsafe-inline'` pour les styles.
+style en ligne, ce qui permet de les afficher avec une Content Security Policy sans `'unsafe-inline'` pour les styles. Les gabarits portent les
+classes propres du bundle, `phil-reporting-*`, et aucune classe d'un kit : ils sont dessinés de la même façon à côté de
+PHIL UX ou de Tailwind, et la légende du tableau des barres est masquée par la feuille de style,
+`phil-reporting-bars__caption`, pour les lecteurs d'écran seulement.
 
 ## Le répertoire du *claim check*
 

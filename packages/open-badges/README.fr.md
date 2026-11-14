@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9eb052638b088dfc0db647b3c40cafa0c9a88c04c8d95c8ada2e2ee6d70ace24 -->
+<!-- phil-dev source-sha256=170c41b55ef8b877a48c8eff76efc2b03b959c310d5b6b59b3725bbe42fd6eac -->
 # phil/open-badges
 
 **Des Open Badges 3.0 que tout le monde peut vérifier : émis, signés, intégrés à l'image, révoqués, appuyés et
@@ -15,18 +15,20 @@ certificats, une communauté qui remercie ses bénévoles, un événement qui re
 ne lit aucun compte et ne stocke rien : l'application dit qui est le destinataire, tel qu'il se présente, et garde ce
 qu'elle a émis.
 
-C'est une simple bibliothèque PHP qui n'exige que PHP et ses extensions. Un titre est sécurisé de
-l'une des deux façons que reconnaît Open Badges 3.0 : comme un JSON Web Token (`EdDSA` ou `RS256`), ou avec une preuve
-Data Integrity intégrée de la suite cryptographique `eddsa-rdfc-2022`. Pour celle-ci, la bibliothèque a son propre
-processeur JSON-LD et sa propre canonicalisation RDF. La vérification ne télécharge jamais rien : les contextes
-JSON-LD sont inclus, et les clés sont celles que donne l'application.
+C'est une simple bibliothèque PHP, qui repose sur les extensions de PHP, `phil/url` et `phil/safe-http`. Un titre est
+sécurisé de l'une des deux façons que reconnaît Open Badges 3.0 : comme un JSON Web Token (`EdDSA` ou `RS256`), ou avec
+une preuve Data Integrity intégrée de la suite cryptographique `eddsa-rdfc-2022`. Pour celle-ci, la bibliothèque a son
+propre processeur JSON-LD et sa propre canonicalisation RDF. La vérification ne télécharge rien tant que l'application
+ne le demande pas : les contextes JSON-LD sont inclus, et les clés sont celles que donne l'application, ou celles
+qu'un émetteur `did:web` publie dans son document DID, lu dans des limites.
 
 ## État
 
 | Partie | État |
 |---|---|
 | Émetteurs, réalisations, destinataires (DID, adresse courriel sous forme d'empreinte ou URL), `OpenBadgeCredential` | Implémenté et testé |
-| VC-JWT avec `EdDSA` (Ed25519) et `RS256` (RSA de 2048 bits ou plus) | Implémenté et testé |
+| VC-JWT avec `EdDSA` (Ed25519) et `RS256` (RSA de 2048 bits ou plus), clés lues en PEM, en JSON Web Keys et en Multikeys | Implémenté et testé |
+| Émetteurs identifiés par `did:web` : leur document DID lu par `phil/safe-http`, ses clés vérifiées | Implémenté, testé et soumis au fuzzing |
 | Data Integrity `eddsa-rdfc-2022`, JSON-LD en mode sûr, canonicalisation RDFC-1.0 | Implémenté et testé selon les vecteurs du W3C |
 | Intégration dans une image PNG (`iTXt`) et SVG, relecture | Implémenté, testé et soumis au fuzzing |
 | Révocation et suspension par une Bitstring Status List | Implémenté et testé |
@@ -42,11 +44,11 @@ JSON-LD sont inclus, et les clés sont celles que donne l'application.
 | [Installation](doc/fr/installation.md) | Prérequis, installation, les clés. |
 | [Émettre](doc/fr/issuing.md) | Émetteurs, réalisations, destinataires, titres. |
 | [Sécuriser](doc/fr/securing.md) | JSON Web Tokens et preuves Data Integrity, le document de profil. |
-| [Vérifier](doc/fr/verifying.md) | `CredentialVerifier`, méthodes de vérification, le destinataire, le sous-ensemble de JSON-LD. |
+| [Vérifier](doc/fr/verifying.md) | `CredentialVerifier`, méthodes de vérification, émetteurs `did:web`, le destinataire, le sous-ensemble de JSON-LD. |
 | [Intégrer à l'image](doc/fr/baking.md) | Un titre dans une image PNG ou SVG. |
 | [Révocation](doc/fr/revocation.md) | Entrées d'état, listes d'état et leur titre. |
 | [Appuis et relevés d'apprentissage](doc/fr/endorsements-and-clr.md) | `EndorsementCredential` et CLR 2.0. |
-| [Points d'extension](doc/fr/extension-points.md) | Signataires, méthodes de vérification, chargeurs de contextes. |
+| [Points d'extension](doc/fr/extension-points.md) | Signataires, méthodes de vérification, lecteurs de documents DID, chargeurs de contextes. |
 | [Exceptions](doc/fr/exceptions.md) | `OpenBadgesException` et ses trois exceptions. |
 | [Tests](doc/fr/testing.md) | Les tests de la bibliothèque, ses vecteurs, ses cibles de fuzzing et son banc d'essai. |
 | [Référence](doc/fr/reference.md) | Chaque type de la bibliothèque, avec son rôle. |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=efae755e73360668da7819139c401a222ea0651a11ff30bdec521c1bd99f7496 -->
+<!-- phil-dev source-sha256=fb215f20315577843c0308811235adfc17e88c19c8027996ab7b3874d4f4c66f -->
 # phil/poll-bundle
 
 **Des sondages et leurs bulletins pour les applications Symfony : à choix unique, multiple ou classé, anonymes ou non,
@@ -28,8 +28,9 @@ d'une association. Un sondage peut appartenir à l'une des ressources de l'appli
 par une référence de `phil/resource` (`idea:42`), tout comme ses votants (`user:7`). L'application dit qui peut créer un
 sondage, voter et le gérer ; elle peut ajouter ses propres méthodes de dépouillement à côté des quatre de la
 bibliothèque. Les bundles qui reposent sur lui affichent un sondage avec les mêmes vues et les mêmes gabarits : le
-formulaire d'un bulletin et les résultats, dans le balisage des recettes du kit PHIL UX, sans JavaScript, et un
-événement du DOM quand les résultats d'un sondage fermé sont révélés, sur lequel joue la célébration du kit.
+formulaire d'un bulletin et les résultats, dessinés avec les recettes du kit PHIL UX ou du kit Shadcn sur Tailwind,
+sans JavaScript, et un événement du DOM quand les résultats d'un sondage fermé sont révélés, sur lequel joue la
+célébration du kit.
 
 C'est un bundle Symfony qui repose sur `phil/poll`, `phil/resource` et Doctrine ORM : les sondages, les bulletins et
 les participations vivent dans trois tables, ou en mémoire pour les tests. Les services ne gardent aucun état entre les
@@ -47,7 +48,7 @@ nomme un.
 | Les méthodes de dépouillement de l'application, autoconfigurées à côté de celles de la bibliothèque | Implémenté et testé |
 | Le vote unique transférable selon la méthode de Meek, en nombres exacts, avec ses tours publiés | Implémenté, testé, soumis au fuzzing et mesuré par un banc d'essai |
 | Les dépouillements gardés dans un pool de cache jusqu'au prochain bulletin, derrière une option | Implémenté et testé |
-| L'interface de vote : les vues, les gabarits dans le balisage des recettes du kit, la lecture d'un formulaire soumis | Implémenté et testé |
+| L'interface de vote : les vues, les gabarits dessinés avec les recettes du kit, la lecture d'un formulaire soumis | Implémenté et testé |
 | L'événement du DOM des résultats révélés, pour la célébration du kit | Implémenté et testé |
 | Stockages Doctrine et en mémoire, ceux en mémoire vidés entre deux requêtes | Implémenté et testé, sur SQLite |
 | Les événements qui nomment le sondage : créé, bulletin déposé, modifié, retiré, fermé, supprimé | Implémenté et testé |

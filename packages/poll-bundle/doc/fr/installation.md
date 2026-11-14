@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4fc3b5e21b9184ceb557aa01a882d95c24d8b334d0cf741c77bf130ca3eba9e3 -->
+<!-- phil-dev source-sha256=5e4a51893fdd869f67ea5bba7f0c3fc3b7b443e941d59da4b927f2ab3a7bb0c8 -->
 # Installation
 
 ## Prérequis
@@ -14,8 +14,8 @@
 | `psr/clock`, `psr/event-dispatcher` | `^1.0` | L'heure d'un bulletin et des dates ; les événements. |
 
 DoctrineBundle garde les tables dans la base de données de l'application ; sans lui, le stockage `memory` sert aux
-tests. TwigBundle, avec le traducteur, dessine l'[interface de vote](voting-interface.md) ; `phil/ux-css` la met en
-forme.
+tests. TwigBundle, avec le traducteur, dessine l'[interface de vote](voting-interface.md), avec Symfony UX Twig Component 3.7
+ou plus récent et les recettes du kit ci-dessous.
 
 ## Activer le bundle
 
@@ -32,6 +32,23 @@ return [
 ```
 
 Le bundle a besoin d'un service `clock`, qu'enregistre FrameworkBundle.
+
+## Les recettes du kit
+
+Les gabarits dessinent leurs parties avec des recettes du kit PHIL UX, installées dans l'application par le Symfony UX
+Toolkit ; rien n'est rendu depuis `vendor/` :
+
+```sh
+composer require symfony/ux-twig-component
+for recipe in field radio-group checkbox native-select button progress; do
+    php bin/console ux:install $recipe --kit=github.com/parler-haut-interagir-librement/ux-kit
+done
+```
+
+Elles ont les noms, les props et les blocs du kit Shadcn du Toolkit : un site sur Tailwind installe donc les six mêmes
+recettes depuis le kit Shadcn. On les trouve sous le sous-répertoire des composants de la configuration `ux_toolkit` ;
+dans un environnement où le Toolkit n'est pas activé, comme l'est souvent la production, répétez-le dans
+`kit_subdirectory`.
 
 ## Les tables
 

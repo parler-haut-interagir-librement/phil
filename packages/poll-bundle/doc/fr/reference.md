@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=55b173ac7fe87a51fdbba00e3be1348dd3a5fc7383d55a6a4768842fedbe2a0d -->
+<!-- phil-dev source-sha256=3674ffce6bd91c3acc816c2ecd90a0bc6e671a6531c45250e1c5853c12dc205d -->
 # Référence
 
 | Classe | Nature | Rôle |
@@ -32,7 +32,7 @@
 | `Phil\PollBundle\Domain\Exception\InvalidPollDefinition`, `AlreadyVoted` | `final class` | Un sondage qui ne peut pas être conservé ; un deuxième bulletin |
 | `Phil\PollBundle\Infrastructure\Doctrine\DoctrinePollRepository`, `DoctrineVoteRepository` | `final readonly class` | Les stockages Doctrine |
 | `Phil\PollBundle\Infrastructure\Memory\InMemoryPollRepository`, `InMemoryVoteRepository` | `final class` | Les stockages en mémoire, vidés entre deux requêtes |
-| `Phil\PollBundle\Infrastructure\Twig\PollTwig` | `final readonly class` | Les fonctions `phil_poll_ballot()` et `phil_poll_results()` |
+| `Phil\PollBundle\Infrastructure\Twig\PollTwig` | `final readonly class` | Les fonctions `phil_poll_ballot()`, `phil_poll_results()` et `phil_poll_kit()` |
 | `Phil\PollBundle\Infrastructure\DependencyInjection\PollServices` | `final class` | Les services, et l'étiquette `phil_poll.counting_method` |
 
 | Gabarit, script | Rôle |

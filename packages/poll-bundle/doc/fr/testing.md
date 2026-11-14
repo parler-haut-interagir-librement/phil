@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c5ec0f43b5b000a973df7008555bc192282c69108e0ccb57f8a54128daac9c4e -->
+<!-- phil-dev source-sha256=550ed17c4c30e1ff300a54e880b32671e9e7b883013b72021851d305790d965d -->
 # Tests
 
 ## Les tests du bundle
@@ -12,9 +12,10 @@ transférable — l'élection de la nourriture publiée dans l'article de Wikip�
 épuisée qui s'additionnent à chaque tour, les transferts, les égalités, les bornes — ; les vues, la lecture d'un
 formulaire soumis et les fonctions Twig ; les stockages Doctrine et en mémoire contre un même contrat partagé, sur
 SQLite en mémoire, ceux en mémoire vidés par une réinitialisation ; le mappage des trois tables ; et la configuration
-et les services du bundle. La suite `tests/Functional` démarre un noyau avec DoctrineBundle sur SQLite et TwigBundle,
-fait tourner un sondage anonyme à bulletins classés, dépouillé par une méthode de l'application et entendu par un
-écouteur, et dessine les gabarits en anglais et en français.
+et les services du bundle. La suite `tests/Functional` démarre un noyau avec DoctrineBundle sur SQLite, TwigBundle et TwigComponentBundle, avec
+les recettes du kit PHIL UX copiées là où le Toolkit les installe, fait tourner un sondage anonyme à bulletins classés,
+dépouillé par une méthode de l'application et entendu par un écouteur, et dessine les gabarits en anglais et en
+français, leurs blocs remplacés par un gabarit qui les intègre.
 
 Le contrôleur Stimulus est testé avec l'exécuteur de tests de Node :
 

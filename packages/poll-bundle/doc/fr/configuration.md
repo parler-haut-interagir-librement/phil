@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=dbeec9adc9eb8b952a9cd18a33f7bb2200c6bebd3234093a1f7046dc698f9959 -->
+<!-- phil-dev source-sha256=569124b55bd259350ead8b36c926f3af7ba68f807c2985ee5863db76842443e8 -->
 # Configuration
 
 ```yaml
@@ -10,6 +10,7 @@ phil_poll:
     results_cache:
         pool: null           # a cache pool, such as "cache.app"; no count is kept when null
         lifetime: 3600       # the seconds a count is kept at most
+    kit_subdirectory: null   # where the recipes of the kit are; the subdirectory of "ux_toolkit" when null
 ```
 
 | Option | Valeur par défaut | Effet |
@@ -19,6 +20,7 @@ phil_poll:
 | `policy` | `null` | Le service qui dit qui peut créer un sondage, voter et le gérer. |
 | `results_cache.pool` | `null` | Le pool de cache, un `Symfony\Contracts\Cache\CacheInterface`, où les dépouillements sont gardés jusqu'au prochain bulletin ; aucun par défaut, chaque dépouillement lisant chaque bulletin. |
 | `results_cache.lifetime` | `3600` | Les secondes pendant lesquelles un dépouillement est gardé, au plus, 1 ou plus. |
+| `kit_subdirectory` | `null` | Le sous-répertoire du répertoire des composants qui contient les recettes du kit, `ui` pour `ui:Field` ; le sous-répertoire de la configuration `ux_toolkit` quand il vaut null, aucun sans elle. À définir dans un environnement où le Toolkit n'est pas activé. |
 
 ## Les services
 
@@ -32,7 +34,7 @@ phil_poll:
 | `Phil\PollBundle\Application\Contract\PollPolicy` | non | Un alias de la politique configurée, ou de `DefaultPollPolicy`. |
 | `ChoiceCount`, `InstantRunoff`, `Borda`, `Schulze` | non | Les méthodes de la bibliothèque, étiquetées `phil_poll.counting_method`. |
 | `Phil\PollBundle\Domain\Counting\MeekStv` | non | Le vote unique transférable, étiqueté `phil_poll.counting_method`. |
-| `Phil\PollBundle\Infrastructure\Twig\PollTwig` | non | Les fonctions `phil_poll_ballot()` et `phil_poll_results()`, enregistrées quand Twig est installé. |
+| `Phil\PollBundle\Infrastructure\Twig\PollTwig` | non | Les fonctions `phil_poll_ballot()`, `phil_poll_results()` et `phil_poll_kit()`, enregistrées quand Twig est installé. |
 
 Chaque service de l'application qui implémente `Phil\Poll\Contract\CountingMethod` reçoit l'étiquette
 `phil_poll.counting_method` par autoconfiguration et est ajouté à `CountingMethods`. `Polls` diffuse ses événements par

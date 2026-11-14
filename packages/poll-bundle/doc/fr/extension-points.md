@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8b2b9cf2b5767837747d3f305a740ff4438e5d7003d0edb5c1bb9c60f725eaaf -->
+<!-- phil-dev source-sha256=8eeebb73951e39d6fe6227aa78974f846558ea2d1aca9fc4d78635ce0f0294d3 -->
 # Points d'extension
 
 ## `PollPolicy`
@@ -80,10 +80,15 @@ conserve un nouveau bulletin et sa participation ensemble ou pas du tout, refuse
 ## Les gabarits
 
 `@PhilPoll/ballot.html.twig` et `@PhilPoll/results.html.twig` ont des blocs qu'une page qui les intègre remplace :
-`choices`, `status` et `actions` pour le bulletin ; `lines` et `revealed` pour les résultats. Une application remplace
-un gabarit entier sous `templates/bundles/PhilPollBundle/`, et les mots sous son propre domaine de traduction
-`phil_poll`. Une page qui dessine les vues à sa façon les lit dans `PollViews`. Voir
-[L'interface de vote](voting-interface.md).
+`choices`, `status` et `actions` pour le bulletin ; `lines` et `revealed` pour les résultats. Un bloc dessine les
+recettes du kit par la table `kit` que définit le gabarit — `kit.Checkbox`, `kit.Field`, `kit.Progress` — ou par
+`phil_poll_kit('Name')`, qui préfixe le sous-répertoire des recettes. Une application remplace un gabarit entier sous
+`templates/bundles/PhilPollBundle/`, et les mots sous son propre domaine de traduction `phil_poll`. Une page qui
+dessine les vues à sa façon les lit dans `PollViews`. Voir [L'interface de vote](voting-interface.md).
+
+| Quoi | Où |
+|---|---|
+| Les recettes | Installées par le Symfony UX Toolkit depuis le kit PHIL UX ou le kit Shadcn ; leur sous-répertoire lu dans `ux_toolkit`, ou `kit_subdirectory` |
 
 ## Les événements
 

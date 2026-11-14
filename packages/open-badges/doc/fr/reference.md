@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e924968e9e39a40f5c921cb7adcb5c1eb15573c0f50c7245f6ca602b209b367c -->
+<!-- phil-dev source-sha256=a5a5498768508bb473d8337d2d0d7c4ecefee558d5dde47cc15ab3581cead5aa -->
 # Référence
 
 ## `Phil\OpenBadges`
@@ -21,8 +21,9 @@
 | `Contract\Signer`, `Contract\VerificationKey` | Une clé privée qui signe, une clé publique qui vérifie. |
 | `Contract\VerificationMethods` | Trouve la clé que nomme une méthode de vérification. |
 | `Contract\ContextLoader` | Donne le contexte JSON-LD d'une URL. |
+| `Contract\DocumentFetcher` | Lit le document DID d'un `did:web` à son adresse. |
 | `Key\Ed25519Signer`, `Key\Ed25519Key` | `EdDSA` par libsodium ; JSON Web Keys et Multikeys. |
-| `Key\RsaSigner`, `Key\RsaKey` | `RS256` par OpenSSL, 2048 bits ou plus. |
+| `Key\RsaSigner`, `Key\RsaKey` | `RS256` par OpenSSL, 2048 bits ou plus ; `RsaKey::fromJwk()` lit une JSON Web Key de 2048 à 8192 bits. |
 
 ## Sécuriser et vérifier
 
@@ -31,6 +32,9 @@
 | `Jwt\JwtSigner`, `Jwt\JwtVerifier` | VC-JWT, l'algorithme étant pris de la clé. |
 | `DataIntegrity\EddsaRdfc2022` | La suite cryptographique `eddsa-rdfc-2022` : `sign()`, `verify()`, `canonicalize()`. |
 | `DataIntegrity\DidKeyMethods` | Les clés de l'application et chaque `did:key` Ed25519. |
+| `Did\DidWeb` | Un identifiant `did:web` et l'adresse HTTPS de son document DID. |
+| `Did\DidWebMethods` | Les clés des émetteurs `did:web` lues dans leurs documents DID, les autres méthodes transmises. |
+| `Adapter\SafeHttpFetcher` | Le `DocumentFetcher` sur `phil/safe-http`. |
 | `JsonLd\BundledContexts` | Les contextes inclus et ceux que l'application ajoute. |
 | `JsonLd\ToRdf`, `JsonLd\Conversion`, `JsonLd\ContextProcessor`, `JsonLd\ActiveContext`, `JsonLd\TermDefinition`, `JsonLd\TermDefining` | Interne : JSON-LD vers RDF en mode sûr. |
 | `Rdf\Canonicalizer`, `Rdf\IdentifierIssuer`, `Rdf\NQuads` | Interne : RDFC-1.0 et N-Quads canoniques. |
