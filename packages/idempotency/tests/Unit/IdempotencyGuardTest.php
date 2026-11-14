@@ -8,11 +8,13 @@ use DateTimeImmutable;
 use Phil\Idempotency\Exception\IdempotencyKeyReused;
 use Phil\Idempotency\Exception\InvalidIdempotencyValue;
 use Phil\Idempotency\Exception\RequestInProgress;
+use Phil\Idempotency\Exception\ReservationLost;
 use Phil\Idempotency\IdempotencyDecision;
 use Phil\Idempotency\IdempotencyGuard;
 use Phil\Idempotency\IdempotencyKey;
 use Phil\Idempotency\IdempotencyOutcome;
 use Phil\Idempotency\IdempotencyRecord;
+use Phil\Idempotency\IdempotencyReservation;
 use Phil\Idempotency\IdempotencyScope;
 use Phil\Idempotency\IdempotencyState;
 use Phil\Idempotency\IdempotentRun;
@@ -30,6 +32,8 @@ use Symfony\Component\Clock\MockClock;
 #[CoversClass(IdempotencyKeyReused::class)]
 #[CoversClass(RequestInProgress::class)]
 #[CoversClass(InvalidIdempotencyValue::class)]
+#[CoversClass(ReservationLost::class)]
+#[CoversClass(IdempotencyReservation::class)]
 final class IdempotencyGuardTest extends TestCase
 {
     private RecordingStore $store;
@@ -144,6 +148,7 @@ final class IdempotencyGuardTest extends TestCase
 
         self::assertSame(IdempotencyOutcome::Replay, $decision->outcome);
         self::assertSame('other run', $decision->replay()?->body);
+        self::assertNull($decision->reservation);
         self::assertSame(['find', 'reserve', 'find'], $this->store->calls);
     }
 
@@ -154,6 +159,7 @@ final class IdempotencyGuardTest extends TestCase
         $decision = $this->guard()->begin($this->scope, $this->key, $this->fingerprint());
 
         self::assertSame(IdempotencyOutcome::InProgress, $decision->outcome);
+        self::assertNull($decision->reservation);
         self::assertSame(['find', 'reserve', 'find', 'reserve', 'find', 'reserve'], $this->store->calls);
         self::assertSame(300, $this->guard()->inProgress($decision)->retryAfter);
     }
@@ -161,8 +167,10 @@ final class IdempotencyGuardTest extends TestCase
     public function testAKeyReservedOnTheSecondAttemptProceeds(): void
     {
         $this->store->losses = 2;
+        $decision = $this->guard()->begin($this->scope, $this->key, $this->fingerprint());
 
-        self::assertSame(IdempotencyOutcome::Proceed, $this->guard()->begin($this->scope, $this->key, $this->fingerprint())->outcome);
+        self::assertSame(IdempotencyOutcome::Proceed, $decision->outcome);
+        self::assertSame($this->store->tokens['client:1|k-1'], $decision->reservation?->token);
         self::assertCount(6, $this->store->calls);
     }
 
@@ -187,13 +195,12 @@ final class IdempotencyGuardTest extends TestCase
         $this->expectException(InvalidIdempotencyValue::class);
         $this->expectExceptionMessageIsOrContains('The retention of an idempotency key is at least 1 second; 0 is not.');
 
-        $this->guard()->complete($this->scope, $this->key, StoredResponse::nothing(), 0);
+        $this->guard()->complete($this->reservation(), StoredResponse::nothing(), 0);
     }
 
     public function testFailingKeepsTheKeyForTheRetention(): void
     {
-        $this->guard()->begin($this->scope, $this->key, $this->fingerprint());
-        $this->guard()->fail($this->scope, $this->key, 120);
+        $this->guard()->fail($this->reservation(), 120);
 
         self::assertSame('2026-11-11 12:02:00', $this->store->keptUntil?->format('Y-m-d H:i:s'));
     }
@@ -208,10 +215,54 @@ final class IdempotencyGuardTest extends TestCase
     public function testOneSecondIsEnough(): void
     {
         $guard = new IdempotencyGuard($this->store, $this->clock, 1, 1);
-        $guard->begin($this->scope, $this->key, $this->fingerprint());
-        $guard->complete($this->scope, $this->key, StoredResponse::nothing(), 1);
+        $reservation = $guard->begin($this->scope, $this->key, $this->fingerprint())->reservation;
+        self::assertInstanceOf(IdempotencyReservation::class, $reservation);
+        $guard->complete($reservation, StoredResponse::nothing(), 1);
 
         self::assertSame(['2026-11-11 12:00:01', '2026-11-11 12:00:01'], [$this->store->reservedUntil?->format('Y-m-d H:i:s'), $this->store->keptUntil?->format('Y-m-d H:i:s')]);
+    }
+
+    public function testTheDecisionOfANewKeyHoldsItsReservation(): void
+    {
+        $decision = $this->guard()->begin($this->scope, $this->key, $this->fingerprint());
+
+        self::assertSame(IdempotencyOutcome::Proceed, $decision->outcome);
+        self::assertSame([$this->scope, $this->key, $this->store->tokens['client:1|k-1']], [$decision->reservation?->scope, $decision->reservation?->key, $decision->reservation?->token]);
+    }
+
+    public function testARunThatEndsAfterAnotherRunTookItsKeyIsTold(): void
+    {
+        $guard = $this->guard();
+
+        try {
+            $guard->run($this->scope, $this->key, $this->fingerprint(), function (): StoredResponse {
+                $this->store->tokens['client:1|k-1'] = 'another-run';
+
+                return StoredResponse::of(200, [], 'late');
+            });
+            self::fail('A lost reservation was not reported.');
+        } catch (ReservationLost) {
+        }
+
+        self::assertSame(IdempotencyState::InProgress, $this->store->records['client:1|k-1']->state, 'The other run was overwritten.');
+        self::assertSame(['find', 'reserve', 'complete'], $this->store->calls);
+    }
+
+    public function testAFailedRunWhoseKeyWasTakenThrowsItsOwnFailure(): void
+    {
+        try {
+            $this->guard()->run($this->scope, $this->key, $this->fingerprint(), function (): StoredResponse {
+                $this->store->tokens['client:1|k-1'] = 'another-run';
+
+                throw new RuntimeException('Down.');
+            });
+            self::fail('The failure was swallowed.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame('Down.', $runtimeException->getMessage());
+        }
+
+        self::assertSame(IdempotencyState::InProgress, $this->store->records['client:1|k-1']->state, 'The other run was marked failed.');
+        self::assertSame(['find', 'reserve', 'fail'], $this->store->calls);
     }
 
     #[TestWith([-5, 1])]
@@ -221,6 +272,14 @@ final class IdempotencyGuardTest extends TestCase
     public function testARetryIsAtLeastOneSecondAway(int $seconds, int $retryAfter): void
     {
         self::assertSame($retryAfter, RequestInProgress::retryAfter($seconds)->retryAfter);
+    }
+
+    private function reservation(): IdempotencyReservation
+    {
+        $reservation = $this->guard()->begin($this->scope, $this->key, $this->fingerprint())->reservation;
+        self::assertInstanceOf(IdempotencyReservation::class, $reservation);
+
+        return $reservation;
     }
 
     private function guard(): IdempotencyGuard

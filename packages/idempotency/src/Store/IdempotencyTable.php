@@ -13,11 +13,12 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Types;
 use Phil\Idempotency\IdempotencyKey;
+use Phil\Idempotency\IdempotencyReservation;
 use Phil\Idempotency\IdempotencyScope;
 
 /**
  * The table of `DbalIdempotencyStore`: one row per scope and key, its fingerprint, its state, its response once
- * there is one, and when it expires, indexed for the purge.
+ * there is one, when it expires, indexed for the purge, and the token of the reservation that holds it.
  *
  * Scopes and keys compare byte for byte. On MySQL and MariaDB, whose default collations fold case and accents, the two
  * columns take `utf8mb4_bin` when the platform is given: without it, `Acme` and `acme` would name the same row.
@@ -50,6 +51,7 @@ final class IdempotencyTable
                 Column::editor()->setUnquotedName('headers')->setTypeName(Types::JSON)->setNotNull(false)->create(),
                 Column::editor()->setUnquotedName('body')->setTypeName(Types::BLOB)->setNotNull(false)->create(),
                 Column::editor()->setUnquotedName('expires_at')->setTypeName(Types::DATETIME_IMMUTABLE)->create(),
+                Column::editor()->setUnquotedName('token')->setTypeName(Types::STRING)->setLength(IdempotencyReservation::TOKEN_LENGTH)->setFixed(true)->create(),
             )
             ->setPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('scope', 'idempotency_key')->create())
             ->setIndexes(Index::editor()->setUnquotedName(self::NAME.'_expires_at')->setUnquotedColumnNames('expires_at')->create())

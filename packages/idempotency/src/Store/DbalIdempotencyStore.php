@@ -15,8 +15,10 @@ use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\DBAL\Types\Types;
 use Override;
 use Phil\Idempotency\Contract\IdempotencyStore;
+use Phil\Idempotency\Exception\ReservationLost;
 use Phil\Idempotency\IdempotencyKey;
 use Phil\Idempotency\IdempotencyRecord;
+use Phil\Idempotency\IdempotencyReservation;
 use Phil\Idempotency\IdempotencyScope;
 use Phil\Idempotency\IdempotencyState;
 use Phil\Idempotency\PayloadFingerprint;
@@ -29,8 +31,13 @@ use Psr\Clock\ClockInterface;
  * A reservation deletes the key's expired or failed row, then inserts the key unless it is there, in one statement
  * that never touches a live row and does not abort the transaction: `ON CONFLICT DO NOTHING` on PostgreSQL,
  * `INSERT IGNORE` on MySQL and MariaDB, `INSERT OR IGNORE` on SQLite; elsewhere, a plain insert whose unique
- * violation is a `false`. The primary key on scope and key makes the insert the atomic step. An expired row is
- * never read.
+ * violation is a lost reservation. The primary key on scope and key makes the insert the atomic step. An expired row
+ * is never read.
+ *
+ * Each row carries the token of its reservation. The completion and the failure are one `UPDATE … WHERE token = ?`:
+ * a run whose reservation another run replaced matches no row, and gets `ReservationLost`. Where the driver counts
+ * the changed rows rather than the matched ones, as MySQL does, an update that changes nothing is told apart from a
+ * lost reservation by reading the token back.
  */
 final readonly class DbalIdempotencyStore implements IdempotencyStore
 {
@@ -69,8 +76,10 @@ final readonly class DbalIdempotencyStore implements IdempotencyStore
     }
 
     #[Override]
-    public function reserve(IdempotencyScope $scope, IdempotencyKey $key, PayloadFingerprint $fingerprint, DateTimeImmutable $expiresAt): bool
+    public function reserve(IdempotencyScope $scope, IdempotencyKey $key, PayloadFingerprint $fingerprint, DateTimeImmutable $expiresAt): ?IdempotencyReservation
     {
+        $reservation = IdempotencyReservation::create($scope, $key);
+
         // An expired or failed row takes no place: once it is gone, the insert decides alone.
         $this->connection->executeStatement(
             \sprintf('DELETE FROM %s WHERE scope = ? AND idempotency_key = ? AND (expires_at <= ? OR state = ?)', IdempotencyTable::NAME),
@@ -79,34 +88,36 @@ final readonly class DbalIdempotencyStore implements IdempotencyStore
         );
 
         try {
-            return 0 < $this->connection->executeStatement(
+            $inserted = $this->connection->executeStatement(
                 self::reservation($this->connection->getDatabasePlatform()),
-                [$scope->value, $key->value, $fingerprint->hex, IdempotencyState::InProgress->value, $this->utc($expiresAt)],
-                [Types::STRING, Types::STRING, Types::STRING, Types::STRING, Types::DATETIME_IMMUTABLE],
+                [$scope->value, $key->value, $fingerprint->hex, IdempotencyState::InProgress->value, $this->utc($expiresAt), $reservation->token],
+                [Types::STRING, Types::STRING, Types::STRING, Types::STRING, Types::DATETIME_IMMUTABLE, Types::STRING],
             );
         } catch (UniqueConstraintViolationException) {
-            return false;
+            return null;
         }
+
+        return 0 < $inserted ? $reservation : null;
     }
 
     #[Override]
-    public function complete(IdempotencyScope $scope, IdempotencyKey $key, StoredResponse $response, DateTimeImmutable $expiresAt): void
+    public function complete(IdempotencyReservation $reservation, StoredResponse $response, DateTimeImmutable $expiresAt): void
     {
-        $this->connection->executeStatement(
-            \sprintf('UPDATE %s SET state = ?, status = ?, headers = ?, body = ?, expires_at = ? WHERE scope = ? AND idempotency_key = ?', IdempotencyTable::NAME),
-            [IdempotencyState::Completed->value, $response->status, $response->headers, $response->body, $this->utc($expiresAt), $scope->value, $key->value],
-            [Types::STRING, Types::SMALLINT, Types::JSON, Types::BLOB, Types::DATETIME_IMMUTABLE, Types::STRING, Types::STRING],
-        );
+        $this->held($reservation, $this->connection->executeStatement(
+            \sprintf('UPDATE %s SET state = ?, status = ?, headers = ?, body = ?, expires_at = ? WHERE scope = ? AND idempotency_key = ? AND token = ?', IdempotencyTable::NAME),
+            [IdempotencyState::Completed->value, $response->status, $response->headers, $response->body, $this->utc($expiresAt), $reservation->scope->value, $reservation->key->value, $reservation->token],
+            [Types::STRING, Types::SMALLINT, Types::JSON, Types::BLOB, Types::DATETIME_IMMUTABLE, Types::STRING, Types::STRING, Types::STRING],
+        ));
     }
 
     #[Override]
-    public function fail(IdempotencyScope $scope, IdempotencyKey $key, DateTimeImmutable $expiresAt): void
+    public function fail(IdempotencyReservation $reservation, DateTimeImmutable $expiresAt): void
     {
-        $this->connection->executeStatement(
-            \sprintf('UPDATE %s SET state = ?, status = NULL, headers = NULL, body = NULL, expires_at = ? WHERE scope = ? AND idempotency_key = ?', IdempotencyTable::NAME),
-            [IdempotencyState::Failed->value, $this->utc($expiresAt), $scope->value, $key->value],
-            [Types::STRING, Types::DATETIME_IMMUTABLE, Types::STRING, Types::STRING],
-        );
+        $this->held($reservation, $this->connection->executeStatement(
+            \sprintf('UPDATE %s SET state = ?, status = NULL, headers = NULL, body = NULL, expires_at = ? WHERE scope = ? AND idempotency_key = ? AND token = ?', IdempotencyTable::NAME),
+            [IdempotencyState::Failed->value, $this->utc($expiresAt), $reservation->scope->value, $reservation->key->value, $reservation->token],
+            [Types::STRING, Types::DATETIME_IMMUTABLE, Types::STRING, Types::STRING, Types::STRING],
+        ));
     }
 
     #[Override]
@@ -137,7 +148,7 @@ final readonly class DbalIdempotencyStore implements IdempotencyStore
      */
     public static function reservation(AbstractPlatform $platform): string
     {
-        $into = \sprintf('INTO %s (scope, idempotency_key, fingerprint, state, expires_at) VALUES (?, ?, ?, ?, ?)', IdempotencyTable::NAME);
+        $into = \sprintf('INTO %s (scope, idempotency_key, fingerprint, state, expires_at, token) VALUES (?, ?, ?, ?, ?, ?)', IdempotencyTable::NAME);
 
         return match (true) {
             $platform instanceof PostgreSQLPlatform => 'INSERT '.$into.' ON CONFLICT (scope, idempotency_key) DO NOTHING',
@@ -145,6 +156,25 @@ final readonly class DbalIdempotencyStore implements IdempotencyStore
             $platform instanceof SQLitePlatform => 'INSERT OR IGNORE '.$into,
             default => 'INSERT '.$into,
         };
+    }
+
+    /**
+     * Throws unless the update of `$reservation` found its row: none updated, and none left under its token.
+     */
+    private function held(IdempotencyReservation $reservation, int|string $updated): void
+    {
+        if (0 < $updated) {
+            return;
+        }
+
+        $row = $this->connection->fetchOne(
+            \sprintf('SELECT 1 FROM %s WHERE scope = ? AND idempotency_key = ? AND token = ?', IdempotencyTable::NAME),
+            [$reservation->scope->value, $reservation->key->value, $reservation->token],
+        );
+
+        if (false === $row) {
+            throw ReservationLost::toAnotherRun();
+        }
     }
 
     /**

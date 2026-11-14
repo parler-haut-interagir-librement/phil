@@ -7,12 +7,15 @@ A store of your own — another database, a key-value service — implements fiv
 | Method | Contract |
 |---|---|
 | `find($scope, $key): ?IdempotencyRecord` | Never returns an expired record. |
-| `reserve($scope, $key, $fingerprint, $expiresAt): bool` | **Atomic**: `false` when an unexpired record is in progress or completed; an expired or failed record is replaced. |
-| `complete($scope, $key, $response, $expiresAt): void` | Attaches the response and keeps the key until the retention, whatever expiry the reservation had. |
-| `fail($scope, $key, $expiresAt): void` | Marks the key failed until the retention, and drops any response. |
+| `reserve($scope, $key, $fingerprint, $expiresAt): ?IdempotencyReservation` | **Atomic**: `null` when an unexpired record is in progress or completed; an expired or failed record is replaced. The reservation returned, from `IdempotencyReservation::create()`, has a token the store keeps with the record. |
+| `complete($reservation, $response, $expiresAt): void` | Attaches the response and keeps the key until the retention, whatever expiry the reservation had. |
+| `fail($reservation, $expiresAt): void` | Marks the key failed until the retention, and drops any response. |
 | `release($scope, $key): void` | Forgets the key, whatever its state. |
 
-Completing, failing or releasing an unknown key does nothing. Keep the fingerprint, never the payload.
+`complete()` and `fail()` **compare and write in one step**: they write only when the record still holds the token of
+`$reservation`, and throw `ReservationLost` otherwise — when another run reserved the key since, or the key was
+released or forgotten. A conditional update, a compare-and-set or a lock gives that step. Releasing an unknown key
+does nothing. Keep the fingerprint, never the payload.
 
 The library's contract test runs against any store: extend `Phil\Idempotency\Tests\Unit\Store\IdempotencyStoreTestCase`
 from the package's tests and return your store from `createStore(MockClock $clock)`.

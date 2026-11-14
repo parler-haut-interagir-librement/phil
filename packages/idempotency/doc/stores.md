@@ -10,13 +10,17 @@ new DbalIdempotencyStore(Connection $connection, ClockInterface $clock)
 ```
 
 The keys live in the table `phil_idempotency` (`Store\IdempotencyTable::NAME`): scope, key, fingerprint, state, the
-status, headers and body of the answer, and the expiry, with a primary key on scope and key and an index on the
-expiry.
+status, headers and body of the answer, the expiry, and the token of the reservation that holds the key, with a
+primary key on scope and key and an index on the expiry.
 
 - **The reservation is atomic**: it deletes the key's expired or failed row, then inserts the key unless it is
   there, in one statement that leaves a live row alone without aborting the transaction — `ON CONFLICT DO NOTHING`
   on PostgreSQL, `INSERT IGNORE` on MySQL and MariaDB, `INSERT OR IGNORE` on SQLite. Elsewhere, a plain insert
   whose unique violation is a lost reservation.
+- **Only the holder writes the outcome**: `complete()` and `fail()` are one `UPDATE … WHERE token = ?`. A run whose
+  reservation another run replaced matches no row and gets `ReservationLost`. Where the driver counts the changed
+  rows rather than the matched ones, as MySQL does, an update that changes nothing is told apart from a lost
+  reservation by reading the token back.
 - **Expiries are written in UTC** and read back in UTC, whatever the zone of PHP. An expired row is never read.
 - `purge(): int` forgets the expired rows; run it from a scheduled task.
 - `IdempotencyTable::configure(Schema $schema, ?AbstractPlatform $platform = null): Schema` adds the table to a
@@ -39,6 +43,12 @@ Symfony Lock component, for at most 10 seconds: the read and the write of a rese
   a scope or a key may hold characters PSR-6 reserves.
 - Each entry expires with its record, so the pool forgets it on its own. The record's expiry is checked against the
   application's clock as well.
+- **Only the holder writes the outcome**: each entry keeps the token of its reservation, and `complete()` and
+  `fail()` read it and write under the same lock, throwing `ReservationLost` when the entry holds another token or
+  none. PSR-6 has no compare-and-set: the check holds because every write of the store takes the lock of its key,
+  and as long as a write ends within the 10 seconds of that lock.
+- A reservation past its expiry may already be gone from the pool, unlike a row of the table: its completion is then
+  lost too, and reported as such.
 
 ## Which one
 

@@ -45,4 +45,8 @@ an asynchronous message is not its handling.
 
 A handler that throws marks the key failed, so that the retry Messenger schedules runs it again.
 
+A handler that outlives its reservation, while a redelivery of the same message reserved the key, ends with
+`ReservationLost`: its outcome is not kept, and the retry Messenger schedules finds the other delivery's record —
+acknowledged once it has completed. Set the reservation of the guard longer than the slowest handler.
+
 Next: [exceptions](exceptions.md).

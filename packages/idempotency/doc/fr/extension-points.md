@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9162b86933fa978aef43c7ab9c6eaffb2420552edfe2893915395a5187fe37c4 -->
+<!-- phil-dev source-sha256=23a217ee02b64a86c8f2f3b60f39580ee2411575f833c10b7b5ccde5036aef18 -->
 # Points d'extension
 
 ## `Contract\IdempotencyStore`
@@ -8,12 +8,15 @@ Un stockage à soi — une autre base de données, un service clé-valeur — im
 | Méthode | Contrat |
 |---|---|
 | `find($scope, $key): ?IdempotencyRecord` | Ne retourne jamais un enregistrement expiré. |
-| `reserve($scope, $key, $fingerprint, $expiresAt): bool` | **Atomique** : `false` quand un enregistrement non expiré est en cours ou terminé ; un enregistrement expiré ou échoué est remplacé. |
-| `complete($scope, $key, $response, $expiresAt): void` | Attache la réponse et garde la clé jusqu'à la rétention, quelle que soit l'expiration de la réservation. |
-| `fail($scope, $key, $expiresAt): void` | Marque la clé échouée jusqu'à la rétention, et laisse tomber toute réponse. |
+| `reserve($scope, $key, $fingerprint, $expiresAt): ?IdempotencyReservation` | **Atomique** : `null` quand un enregistrement non expiré est en cours ou terminé ; un enregistrement expiré ou échoué est remplacé. La réservation retournée, venue de `IdempotencyReservation::create()`, a un jeton que le stockage garde avec l'enregistrement. |
+| `complete($reservation, $response, $expiresAt): void` | Attache la réponse et garde la clé jusqu'à la rétention, quelle que soit l'expiration de la réservation. |
+| `fail($reservation, $expiresAt): void` | Marque la clé échouée jusqu'à la rétention, et laisse tomber toute réponse. |
 | `release($scope, $key): void` | Oublie la clé, quel que soit son état. |
 
-Terminer, faire échouer ou libérer une clé inconnue ne fait rien. Gardez l'empreinte, jamais la charge.
+`complete()` et `fail()` **comparent et écrivent en une étape** : elles n'écrivent que si l'enregistrement porte encore
+le jeton de `$reservation`, et lèvent `ReservationLost` sinon — quand une autre exécution a réservé la clé depuis, ou
+que la clé a été libérée ou oubliée. Une mise à jour conditionnelle, un comparer-et-écrire ou un verrou donne cette
+étape. Libérer une clé inconnue ne fait rien. Gardez l'empreinte, jamais la charge.
 
 Le test de contrat de la bibliothèque s'exécute contre n'importe quel stockage : étendez
 `Phil\Idempotency\Tests\Unit\Store\IdempotencyStoreTestCase` depuis les tests du paquet et retournez votre stockage

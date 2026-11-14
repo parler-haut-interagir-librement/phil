@@ -14,12 +14,16 @@ namespace Phil\Idempotency;
  * | in progress | same | `InProgress` |
  * | failed | same | `Proceed` |
  * | completed | same | `Replay` |
+ *
+ * `IdempotencyGuard::begin()` returns a `Proceed` decision with the reservation it took, which the caller gives back to
+ * `complete()` or `fail()`.
  */
 final readonly class IdempotencyDecision
 {
     private function __construct(
         public IdempotencyOutcome $outcome,
         public ?IdempotencyRecord $existing,
+        public ?IdempotencyReservation $reservation = null,
     ) {
     }
 
@@ -40,6 +44,14 @@ final readonly class IdempotencyDecision
             IdempotencyState::Failed => IdempotencyOutcome::Proceed,
             IdempotencyState::Completed => IdempotencyOutcome::Replay,
         }, $existing);
+    }
+
+    /**
+     * The same decision, holding the reservation the caller took for it.
+     */
+    public function reserved(IdempotencyReservation $reservation): self
+    {
+        return new self($this->outcome, $this->existing, $reservation);
     }
 
     /**

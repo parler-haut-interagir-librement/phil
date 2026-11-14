@@ -7,14 +7,17 @@ namespace Phil\Idempotency\Tests\Unit\Fixture;
 use DateTimeImmutable;
 use Override;
 use Phil\Idempotency\Contract\IdempotencyStore;
+use Phil\Idempotency\Exception\ReservationLost;
 use Phil\Idempotency\IdempotencyKey;
 use Phil\Idempotency\IdempotencyRecord;
+use Phil\Idempotency\IdempotencyReservation;
 use Phil\Idempotency\IdempotencyScope;
 use Phil\Idempotency\PayloadFingerprint;
 use Phil\Idempotency\StoredResponse;
 
 /**
- * Keys in memory, for the tests of the guard; each call is written down, and `reserve()` can be made to lose.
+ * Keys in memory, for the tests of the guard; each call is written down, `reserve()` can be made to lose, and a
+ * reservation can be taken over by changing its token in `$tokens`.
  */
 final class RecordingStore implements IdempotencyStore
 {
@@ -29,6 +32,9 @@ final class RecordingStore implements IdempotencyStore
 
     public ?IdempotencyRecord $stolenBy = null;
 
+    /** @var array<string, string> the token that holds each key */
+    public array $tokens = [];
+
     public ?DateTimeImmutable $reservedUntil = null;
 
     public ?DateTimeImmutable $keptUntil = null;
@@ -42,7 +48,7 @@ final class RecordingStore implements IdempotencyStore
     }
 
     #[Override]
-    public function reserve(IdempotencyScope $scope, IdempotencyKey $key, PayloadFingerprint $fingerprint, DateTimeImmutable $expiresAt): bool
+    public function reserve(IdempotencyScope $scope, IdempotencyKey $key, PayloadFingerprint $fingerprint, DateTimeImmutable $expiresAt): ?IdempotencyReservation
     {
         $this->calls[] = 'reserve';
         $this->reservedUntil = $expiresAt;
@@ -54,36 +60,49 @@ final class RecordingStore implements IdempotencyStore
                 $this->records[$scope->value.'|'.$key->value] = $this->stolenBy;
             }
 
-            return false;
+            return null;
         }
 
+        $reservation = IdempotencyReservation::create($scope, $key);
         $this->records[$scope->value.'|'.$key->value] = IdempotencyRecord::inProgress($fingerprint, $expiresAt);
+        $this->tokens[$scope->value.'|'.$key->value] = $reservation->token;
 
-        return true;
+        return $reservation;
     }
 
     #[Override]
-    public function complete(IdempotencyScope $scope, IdempotencyKey $key, StoredResponse $response, DateTimeImmutable $expiresAt): void
+    public function complete(IdempotencyReservation $reservation, StoredResponse $response, DateTimeImmutable $expiresAt): void
     {
         $this->calls[] = 'complete';
+        $existing = $this->held($reservation);
         $this->keptUntil = $expiresAt;
-        $existing = $this->records[$scope->value.'|'.$key->value];
-        $this->records[$scope->value.'|'.$key->value] = IdempotencyRecord::completed($existing->fingerprint, $response, $expiresAt);
+        $this->records[$reservation->scope->value.'|'.$reservation->key->value] = IdempotencyRecord::completed($existing->fingerprint, $response, $expiresAt);
     }
 
     #[Override]
-    public function fail(IdempotencyScope $scope, IdempotencyKey $key, DateTimeImmutable $expiresAt): void
+    public function fail(IdempotencyReservation $reservation, DateTimeImmutable $expiresAt): void
     {
         $this->calls[] = 'fail';
+        $existing = $this->held($reservation);
         $this->keptUntil = $expiresAt;
-        $existing = $this->records[$scope->value.'|'.$key->value];
-        $this->records[$scope->value.'|'.$key->value] = IdempotencyRecord::failed($existing->fingerprint, $expiresAt);
+        $this->records[$reservation->scope->value.'|'.$reservation->key->value] = IdempotencyRecord::failed($existing->fingerprint, $expiresAt);
     }
 
     #[Override]
     public function release(IdempotencyScope $scope, IdempotencyKey $key): void
     {
         $this->calls[] = 'release';
-        unset($this->records[$scope->value.'|'.$key->value]);
+        unset($this->records[$scope->value.'|'.$key->value], $this->tokens[$scope->value.'|'.$key->value]);
+    }
+
+    private function held(IdempotencyReservation $reservation): IdempotencyRecord
+    {
+        $name = $reservation->scope->value.'|'.$reservation->key->value;
+
+        if (($this->tokens[$name] ?? null) !== $reservation->token) {
+            throw ReservationLost::toAnotherRun();
+        }
+
+        return $this->records[$name];
     }
 }
