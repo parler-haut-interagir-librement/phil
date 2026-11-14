@@ -22,7 +22,7 @@
     "homepage": "https://ph-il.ca",
     "require": {
         "php": ">=8.5",
-        "phil/safe-http": "^0.1@dev",
+        "phil/safe-http": "^0.1@dev || ^0.2@dev",
         "phil/social-cards": "^0.1@dev",
         "symfony/cache-contracts": "^3.6",
         "symfony/config": "^8.2",

@@ -19,7 +19,7 @@
         "doctrine/orm": "^3.7",
         "phil/ddd-bundle": "^0.1@dev",
         "phil/locale-dimensions": "^0.1@dev",
-        "phil/markup": "^0.1.1@dev",
+        "phil/markup": "^0.2@dev",
         "phil/publishing": "^0.1@dev",
         "phil/sitemap": "^0.1@dev",
         "phil/slug": "^0.1@dev",

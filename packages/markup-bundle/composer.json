@@ -23,7 +23,7 @@
     "homepage": "https://ph-il.ca",
     "require": {
         "php": ">=8.5",
-        "phil/markup": "^0.1@dev",
+        "phil/markup": "^0.1@dev || ^0.2@dev",
         "phil/ujo": "^0.1@dev",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",

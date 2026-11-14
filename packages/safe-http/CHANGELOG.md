@@ -14,6 +14,11 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - `FetchFailed::headersTooLarge()`.
 - The bounds each transport of Symfony HttpClient puts on the headers by itself, in `doc/reading.md`.
 
+### Changed
+
+- An answer whose headers pass 64 KiB or 100 headers now fails with `FetchFailed::headersTooLarge()`, where it was
+  read; raise `Limits::$maxHeaderBytes` or `Limits::$maxHeaders` to read it again.
+
 ### Fixed
 
 - A chunk larger than the bytes that remain is cut before it joins the body: the body held never exceeds `maxBytes`,

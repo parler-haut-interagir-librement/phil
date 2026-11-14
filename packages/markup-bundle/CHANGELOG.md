@@ -4,6 +4,12 @@ All notable changes to `phil/markup-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Changed
+
+- `phil/markup` 0.2 accepted as well as 0.1.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

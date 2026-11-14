@@ -29,13 +29,14 @@
         "ext-openssl": "*",
         "ext-sodium": "*",
         "ext-zlib": "*",
-        "phil/safe-http": "^0.1@dev",
+        "phil/safe-http": "^0.1@dev || ^0.2@dev",
         "phil/url": "^0.1@dev",
         "symfony/service-contracts": "^3.6"
     },
     "require-dev": {
         "phpunit/phpunit": "^13.4",
-        "symfony/http-client": "^8.2"
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
