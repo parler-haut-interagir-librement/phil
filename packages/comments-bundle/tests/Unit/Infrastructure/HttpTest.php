@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\CommentsBundle\Tests\Unit\Infrastructure;
 
+use DateTimeImmutable;
 use LogicException;
 use Phil\CommentsBundle\Application\Comments;
 use Phil\CommentsBundle\Infrastructure\Http\ClientConfig;
@@ -17,6 +18,7 @@ use Phil\CommentsBundle\Tests\Unit\Fixture\FixedAuthor;
 use Phil\CommentsBundle\Tests\Unit\Fixture\Json;
 use Phil\CommentsBundle\Tests\Unit\Fixture\Names;
 use Phil\CommentsBundle\Tests\Unit\Fixture\Policy;
+use Phil\CommentsBundle\Tests\Unit\Fixture\RecordingThreads;
 use Phil\CommentsBundle\Tests\Unit\Fixture\Router;
 use Phil\Resource\ResourceReference;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -110,6 +112,23 @@ final class HttpTest extends TestCase
         [$status, $deleted] = $this->call($controller->delete($this->request(), 'id2'));
         self::assertSame([200, ['id3']], [$status, Json::column($deleted, 'thread.comments', 'id')]);
         self::assertSame([200, ['thread' => null]], $this->call($controller->delete($this->request(), 'id3')));
+    }
+
+    public function testADecisionThatComesSecondIsAConflict(): void
+    {
+        $threads = new RecordingThreads();
+        $this->comments = new Comments($threads, new InMemoryCommentRepository(), $this->clock, new Policy(deciders: ['user:bob']), fn (): string => 'id'.++$this->next);
+        $controller = $this->controller();
+        $this->call($controller->open($this->request(['subject' => 'page:1', 'anchor' => ['start' => 0, 'quote' => 'cat'], 'body' => 'Hi', 'suggestion' => 'dog'])));
+        $threads->race = static function (InMemoryThreadRepository $store): void {
+            $other = clone ($store->get('id1') ?? throw new LogicException('The thread was opened.'));
+            $other->accept(ResourceReference::of('user', 'ada'), new DateTimeImmutable('2026-11-06 10:00:00 UTC'));
+
+            $store->decide($other);
+        };
+
+        self::assertSame([409, ['error' => 'decided']], $this->call($controller->reject($this->request(), 'id1')));
+        self::assertSame('accepted', Json::at($this->thread($controller, 'id1'), 'suggestion.state'));
     }
 
     public function testACommentOnTheWholePage(): void

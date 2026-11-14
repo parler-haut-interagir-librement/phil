@@ -179,6 +179,45 @@ final class DraftsTest extends TestCase
         }
     }
 
+    public function testAnExpiredDraftReplacedMeanwhileIsNotDeletedByAnotherSave(): void
+    {
+        $owner = $this->keys->owner('ada');
+        $other = Draft::first($owner, $this->key, '{"version":"v","fields":{"a":["other"]}}', $this->clock->now()->modify('+60 seconds'), 60);
+        $store = new RacingStore(static function (InMemoryDraftStore $store) use ($owner, $other): void {
+            $store->delete($owner, $other->key());
+            $store->insert($other);
+        });
+        $store->inner->insert(Draft::first($owner, $this->key, '{}', $this->clock->now(), 60));
+
+        $this->clock->sleep(60);
+
+        try {
+            new Drafts($store, new PlainSealer(), $this->keys, $this->clock, 60)->save('ada', $this->key, null, DraftContent::of('v', ['a' => ['mine']]));
+            self::fail('a save that meets another one on an expired draft is refused');
+        } catch (RevisionConflict $revisionConflict) {
+            self::assertSame(1, $revisionConflict->current);
+        }
+
+        self::assertSame($other, $store->inner->find($owner, $this->key), 'the save of the other request is kept');
+    }
+
+    public function testADraftSavedWhileAnUnopenableOneIsReadIsKept(): void
+    {
+        $owner = $this->keys->owner('ada');
+        $broken = Draft::first($owner, $this->key, 'moved|{"version":"v","fields":{}}', $this->clock->now(), 60);
+        $saved = $broken->next('phil_form_draft:'.$owner.':abcdefghijklmnop|{"version":"v","fields":{}}', $this->clock->now(), 60);
+        $store = new RacingStore(static function (InMemoryDraftStore $store) use ($broken, $saved): void {
+            $store->replace($broken, $saved);
+        });
+        $store->inner->insert($broken);
+
+        $drafts = new Drafts($store, new ContextSealer(), $this->keys, $this->clock, 60);
+
+        self::assertNull($drafts->read('ada', $this->key));
+        self::assertSame($saved, $store->inner->find($owner, $this->key), 'the revision saved meanwhile is kept');
+        self::assertNotNull($drafts->read('ada', $this->key));
+    }
+
     public function testAFirstSaveRefusedByAStoreThatThenHasNothingIsAConflictWithoutRevision(): void
     {
         $store = new class implements DraftStore {
@@ -195,6 +234,10 @@ final class DraftsTest extends TestCase
             public function replace(Draft $read, Draft $next): bool
             {
                 return false;
+            }
+
+            public function remove(Draft $read): void
+            {
             }
 
             public function delete(string $owner, DraftKey $key): void

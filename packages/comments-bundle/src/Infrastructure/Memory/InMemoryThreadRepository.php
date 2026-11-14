@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\CommentsBundle\Infrastructure\Memory;
 
 use Override;
+use Phil\CommentsBundle\Domain\Exception\SuggestionDecided;
 use Phil\CommentsBundle\Domain\Model\Thread;
 use Phil\CommentsBundle\Domain\Repository\ThreadRepository;
 use Phil\Resource\ResourceReference;
@@ -19,6 +20,9 @@ final class InMemoryThreadRepository implements ThreadRepository, ResetInterface
 {
     /** @var array<string, Thread> */
     private array $threads = [];
+
+    /** @var array<string, bool> by thread, whether its suggestion was pending when it was last kept */
+    private array $pending = [];
 
     #[Override]
     public function get(string $id): ?Thread
@@ -43,17 +47,29 @@ final class InMemoryThreadRepository implements ThreadRepository, ResetInterface
     public function save(Thread $thread): void
     {
         $this->threads[$thread->id] = $thread;
+        $this->pending[$thread->id] = true === $thread->suggestion()?->isPending();
+    }
+
+    #[Override]
+    public function decide(Thread $thread): void
+    {
+        if (true !== ($this->pending[$thread->id] ?? false)) {
+            throw SuggestionDecided::onThread($thread->id);
+        }
+
+        $this->save($thread);
     }
 
     #[Override]
     public function remove(Thread $thread): void
     {
-        unset($this->threads[$thread->id]);
+        unset($this->threads[$thread->id], $this->pending[$thread->id]);
     }
 
     #[Override]
     public function reset(): void
     {
         $this->threads = [];
+        $this->pending = [];
     }
 }

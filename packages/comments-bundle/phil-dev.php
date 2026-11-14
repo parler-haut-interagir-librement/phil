@@ -32,6 +32,17 @@ return [
             ],
         ],
     ],
+    'infection' => [
+        'mutators' => [
+            // DBAL 4 types the affected rows as int|numeric-string: the driver of the tests, PDO SQLite, gives an int,
+            // where another driver may give "1"; the cast keeps the comparison right for both.
+            'CastInt' => [
+                'ignoreSourceCodeByRegex' => [
+                    '.*1 !== \\(int\\) \\$claimed.*',
+                ],
+            ],
+        ],
+    ],
     'fuzz' => [
         // The anchoring on inputs nobody wrote, from the seeds of tests/Fuzz/corpus/<target>.
         'targets' => [

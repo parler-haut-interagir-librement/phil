@@ -24,13 +24,15 @@ Symfony's KeyManagement component: a fresh data key per draft wrapped by the mas
 content encrypted locally with AES-256-GCM, the context authenticated with it, the envelope stored in base64. The
 envelope names its master key, so drafts sealed before `server.key` changed still open while the KMS holds the old
 key. A draft that no longer opens — altered, moved, under a master key the KMS no longer holds, or while the KMS
-cannot be reached — is deleted when read. With `server.encrypt: false`, `PlainSealer` stores what
-users typed in clear.
+cannot be reached — is deleted when read, unless another revision was saved meanwhile. With `server.encrypt: false`,
+`PlainSealer` stores what users typed in clear.
 
 ## Expiry
 
 A draft is kept `ttl` seconds after its last save. An expired draft is read as none, and a save over it starts a new
-one; `phil:forms-autosave:purge` deletes the expired drafts:
+one. The expired draft is removed only while it is still the one read, by its revision and its expiry: of two saves
+that meet on it, the second answers `409` instead of deleting the first. `phil:forms-autosave:purge` deletes the
+expired drafts:
 
 ```sh
 bin/console phil:forms-autosave:purge

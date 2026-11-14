@@ -45,7 +45,7 @@ tests, emptied between requests; an application points them at its own services 
 
 | Port | Methods |
 |---|---|
-| `ThreadRepository` | `get()`, `ofSubject()` — the subject's threads —, `save()`, `remove()` |
+| `ThreadRepository` | `get()`, `ofSubject()` — the subject's threads —, `save()`, `decide()` — a decision kept only while the stored suggestion is pending, `SuggestionDecided` otherwise —, `remove()` |
 | `CommentRepository` | `get()`, `ofThreads()` — the comments of a list of threads, read at once —, `save()`, `remove()` |
 
 ## Events

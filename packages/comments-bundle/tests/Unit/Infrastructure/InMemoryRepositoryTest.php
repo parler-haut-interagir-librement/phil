@@ -6,8 +6,10 @@ namespace Phil\CommentsBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
 use Override;
+use Phil\CommentsBundle\Domain\Exception\SuggestionDecided;
 use Phil\CommentsBundle\Domain\Model\Comment;
 use Phil\CommentsBundle\Domain\Model\Thread;
+use Phil\CommentsBundle\Domain\ValueObject\Anchor;
 use Phil\CommentsBundle\Infrastructure\Memory\InMemoryCommentRepository;
 use Phil\CommentsBundle\Infrastructure\Memory\InMemoryThreadRepository;
 use Phil\Resource\ResourceReference;
@@ -29,6 +31,15 @@ final class InMemoryRepositoryTest extends RepositoryTestCase
         $comments->reset();
 
         self::assertSame([null, null, [], []], [$threads->get('t1'), $comments->get('c1'), $threads->ofSubject(ResourceReference::of('page', '1')), $comments->ofThreads(['t1'])]);
+
+        $suggesting = Thread::open('t2', ResourceReference::of('page', '1'), Anchor::of(null, null, 0, 'cat'), ResourceReference::of('user', 'ada'), new DateTimeImmutable(), 'dog');
+        $threads->save($suggesting);
+        $threads->reset();
+
+        $suggesting->accept(ResourceReference::of('user', 'ada'), new DateTimeImmutable());
+
+        $this->expectException(SuggestionDecided::class);
+        $threads->decide($suggesting);
     }
 
     #[Override]

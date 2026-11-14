@@ -6,6 +6,7 @@ namespace Phil\CommentsBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
 use LogicException;
+use Phil\CommentsBundle\Domain\Exception\SuggestionDecided;
 use Phil\CommentsBundle\Domain\Model\Comment;
 use Phil\CommentsBundle\Domain\Model\Thread;
 use Phil\CommentsBundle\Domain\Repository\CommentRepository;
@@ -55,6 +56,43 @@ abstract class RepositoryTestCase extends TestCase
         $threads->remove($found);
         self::assertNull($threads->get('t2'));
         self::assertNull($threads->get('t9'));
+    }
+
+    public function testADecisionIsKeptOnlyOnAPendingSuggestion(): void
+    {
+        [$threads] = $this->stores();
+        $threads->save($this->thread('t1', 'page:1', '2026-11-06 10:00:00'));
+        $threads->save($this->thread('t2', 'page:1', '2026-11-06 10:00:00'));
+        $threads->save(Thread::open('t3', ResourceReference::of('page', '1'), null, ResourceReference::of('user', 'ada'), new DateTimeImmutable('2026-11-06 10:00:00 UTC')));
+
+        $read = $this->reread($threads, 't1');
+        $read->accept(ResourceReference::of('user', 'bob'), new DateTimeImmutable('2026-11-06 11:00:00 UTC'));
+
+        $threads->decide($read);
+        $found = $this->reread($threads, 't1');
+        self::assertSame([SuggestionState::Accepted, ThreadStatus::Resolved, 'user:bob'], [$found->suggestion()?->state, $found->status(), $found->resolvedBy()?->toString()]);
+
+        $refused = [
+            't1' => $found,
+            't3' => $this->reread($threads, 't3'),
+            't4' => $this->thread('t4', 'page:1', '2026-11-06 10:00:00'),
+        ];
+        $removed = $this->reread($threads, 't2');
+        $threads->remove($removed);
+        $refused['t2'] = $removed;
+
+        foreach ($refused as $id => $thread) {
+            try {
+                $threads->decide($thread);
+                self::fail($id.': only a pending suggestion is decided');
+            } catch (SuggestionDecided $suggestionDecided) {
+                self::assertSame(\sprintf('The suggestion of the thread "%s" was decided meanwhile.', $id), $suggestionDecided->getMessage());
+            }
+        }
+
+        self::assertSame(SuggestionState::Accepted, $this->reread($threads, 't1')->suggestion()?->state);
+        self::assertNull($threads->get('t2'));
+        self::assertNull($threads->get('t4'));
     }
 
     public function testAThreadOnTheWholePageIsKept(): void

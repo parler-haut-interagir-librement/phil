@@ -4,6 +4,20 @@ All notable changes to `phil/forms-autosave` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Changed
+
+- `DraftStore::remove(Draft $read)`: a draft is deleted only while the stored one is still the draft read, with the
+  same revision and the same expiry; `DoctrineDraftStore` deletes by `DELETE … WHERE revision = ? AND expires_at = ?`,
+  `InMemoryDraftStore` compares the same. A store of the application implements it.
+
+### Fixed
+
+- Two saves over the same expired draft no longer delete each other's: the second is a `RevisionConflict`, answered
+  `409`, instead of removing the revision the first saved.
+- A draft read while it no longer opens is no longer deleted when another revision was saved meanwhile.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

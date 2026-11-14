@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * The contract of every store: a draft by its owner and key, an insertion that fails on an existing draft, a
- * replacement only of the revision read, deletion and the purge of expired drafts.
+ * replacement only of the revision read, a removal only of the draft read, deletion and the purge of expired drafts.
  */
 abstract class DraftStoreTestCase extends TestCase
 {
@@ -78,6 +78,48 @@ abstract class DraftStoreTestCase extends TestCase
         self::assertNotNull($replaced);
         self::assertSame(['ada', 1], [$kept->payload(), $kept->revision()]);
         self::assertSame('bob 2', $replaced->payload());
+    }
+
+    public function testARemovalDeletesOnlyTheDraftStillStored(): void
+    {
+        $store = $this->store();
+        $key = DraftKey::of('abcdefghijklmnop');
+        $first = $this->draft(self::ADA, $key, 'one');
+        $store->insert($first);
+        $second = $first->next('two', new DateTimeImmutable('2026-11-08 15:00:30 UTC'), 60);
+        $store->replace($first, $second);
+        $bob = $this->draft(self::BOB, $key, 'bob');
+        $store->insert($bob);
+
+        $store->remove($first);
+        self::assertSame(2, $store->find(self::ADA, $key)?->revision(), 'an older revision removes nothing');
+
+        $again = Draft::first(self::ADA, $key, 'two', new DateTimeImmutable('2026-11-08 15:00:00 UTC'), 90);
+        $store->remove($again->next('two', new DateTimeImmutable('2026-11-08 15:00:00 UTC'), 120));
+        self::assertSame(2, $store->find(self::ADA, $key)?->revision(), 'the same revision with another expiry removes nothing');
+
+        $store->remove($second);
+        self::assertNull($store->find(self::ADA, $key));
+        self::assertSame('bob', $store->find(self::BOB, $key)?->payload(), 'the drafts of other owners stay');
+
+        $store->remove($second);
+        self::assertNull($store->find(self::ADA, $key));
+    }
+
+    public function testAnExpiredDraftReplacedByAFirstRevisionIsNotRemoved(): void
+    {
+        $store = $this->store();
+        $key = DraftKey::of('abcdefghijklmnop');
+        $expired = $this->draft(self::ADA, $key, 'old');
+        $store->insert($expired);
+        $store->remove($expired);
+
+        $fresh = Draft::first(self::ADA, $key, 'new', new DateTimeImmutable('2026-11-08 15:02:00 UTC'), 60);
+        $store->insert($fresh);
+
+        $store->remove($expired);
+
+        self::assertSame('new', $store->find(self::ADA, $key)?->payload());
     }
 
     public function testDeletingAndPurging(): void

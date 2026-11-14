@@ -13,7 +13,7 @@ use Phil\FormsAutosave\Domain\ValueObject\DraftKey;
 use Phil\FormsAutosave\Infrastructure\Memory\InMemoryDraftStore;
 
 /**
- * A store in memory where another request writes just before an insertion or a replacement: the closure runs on the
+ * A store in memory where another request writes just before an insertion, a replacement or a removal: the closure runs on the
  * inner store first, once.
  */
 final class RacingStore implements DraftStore
@@ -59,6 +59,14 @@ final class RacingStore implements DraftStore
     {
         $this->deleted[] = $key->value;
         $this->inner->delete($owner, $key);
+    }
+
+    #[Override]
+    public function remove(Draft $read): void
+    {
+        $this->race();
+        $this->deleted[] = $read->key()->value;
+        $this->inner->remove($read);
     }
 
     #[Override]

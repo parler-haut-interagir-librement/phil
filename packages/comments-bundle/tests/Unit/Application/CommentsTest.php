@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phil\CommentsBundle\Tests\Unit\Application;
 
+use DateTimeImmutable;
+use LogicException;
 use Phil\CommentsBundle\Application\Comments;
 use Phil\CommentsBundle\Application\DefaultCommentPolicy;
 use Phil\CommentsBundle\Application\Discussion;
@@ -13,11 +15,13 @@ use Phil\CommentsBundle\Application\Exception\CommentRefused;
 use Phil\CommentsBundle\Application\Exception\NotFound;
 use Phil\CommentsBundle\Domain\Anchoring\Passage;
 use Phil\CommentsBundle\Domain\Exception\InvalidComment;
+use Phil\CommentsBundle\Domain\Exception\SuggestionDecided;
 use Phil\CommentsBundle\Domain\Model\Comment;
 use Phil\CommentsBundle\Domain\Model\Thread;
 use Phil\CommentsBundle\Domain\Status\SuggestionState;
 use Phil\CommentsBundle\Domain\Status\ThreadStatus;
 use Phil\CommentsBundle\Domain\ValueObject\Anchor;
+use Phil\CommentsBundle\Infrastructure\Memory\InMemoryThreadRepository;
 use Phil\CommentsBundle\Tests\Unit\Fixture\Events;
 use Phil\CommentsBundle\Tests\Unit\Fixture\Policy;
 use Phil\CommentsBundle\Tests\Unit\Fixture\RecordingComments;
@@ -36,6 +40,7 @@ use Symfony\Component\Clock\MockClock;
 #[CoversClass(DefaultCommentPolicy::class)]
 #[CoversClass(CommentWritten::class)]
 #[CoversClass(CommentDeleted::class)]
+#[CoversClass(SuggestionDecided::class)]
 final class CommentsTest extends TestCase
 {
     private RecordingThreads $threads;
@@ -256,6 +261,36 @@ final class CommentsTest extends TestCase
         self::assertSame([SuggestionState::Accepted, '2026-11-06 10:01:00'], [$comments->accept('id1', self::user('ada'))->thread->suggestion()?->state, $comments->thread('id1')->resolvedAt()?->format('Y-m-d H:i:s')]);
         self::assertSame(SuggestionState::Rejected, $comments->reject('id3', self::user('ada'))->thread->suggestion()?->state);
         self::assertSame(['id1', 'id3', 'id1', 'id1', 'id1', 'id3'], $this->threads->saved);
+    }
+
+    public function testOfTwoDecisionsOnASuggestionTheSecondIsRefused(): void
+    {
+        $comments = $this->comments(new Policy(deciders: ['user:ada', 'user:bob']));
+        $document = new Document([new Block('b1', 'paragraph', ['text' => 'the cat sat'])]);
+        $decisions = [
+            'accept' => static fn (string $thread): Discussion => $comments->accept($thread, self::user('ada')),
+            'reject' => static fn (string $thread): Discussion => $comments->reject($thread, self::user('ada')),
+            'apply' => static fn (string $thread): Document => $comments->applySuggestion($thread, self::user('ada'), $document),
+        ];
+
+        foreach ($decisions as $name => $decide) {
+            $thread = $comments->open(self::page(), Anchor::of('b1', 'text', 4, 'cat'), self::user('bob'), 'Hi', 'dog')->thread->id;
+            $this->threads->race = static function (InMemoryThreadRepository $threads) use ($thread): void {
+                $other = clone ($threads->get($thread) ?? throw new LogicException('The thread was opened.'));
+                $other->reject(self::user('bob'), new DateTimeImmutable('2026-11-06 10:00:00 UTC'));
+
+                $threads->decide($other);
+            };
+
+            try {
+                $decide($thread);
+                self::fail($name.': a decision that comes second is refused');
+            } catch (SuggestionDecided $suggestionDecided) {
+                self::assertSame(\sprintf('The suggestion of the thread "%s" was decided meanwhile.', $thread), $suggestionDecided->getMessage());
+            }
+
+            self::assertSame([SuggestionState::Rejected, 'user:bob'], [$comments->thread($thread)->suggestion()?->state, $comments->thread($thread)->resolvedBy()?->toString()], $name);
+        }
     }
 
     public function testASuggestionIsAppliedToADocument(): void
