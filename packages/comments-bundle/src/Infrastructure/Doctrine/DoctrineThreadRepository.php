@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phil\CommentsBundle\Infrastructure\Doctrine;
 
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Phil\CommentsBundle\Domain\Exception\SuggestionDecided;
@@ -51,7 +50,8 @@ final readonly class DoctrineThreadRepository implements ThreadRepository
     public function decide(Thread $thread): void
     {
         try {
-            $this->entityManager->getConnection()->transactional(function (Connection $connection) use ($thread): void {
+            $connection = $this->entityManager->getConnection();
+            $connection->transactional(function () use ($connection, $thread): void {
                 $claimed = $connection->executeStatement(
                     'UPDATE '.Thread::TABLE.' SET suggestion_state = ? WHERE id = ? AND suggestion_state = ?',
                     [$thread->suggestion()?->state->value, $thread->id, SuggestionState::Pending->value],
