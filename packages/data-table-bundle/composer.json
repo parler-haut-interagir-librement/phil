@@ -45,7 +45,7 @@
         "doctrine/orm": "^3.7",
         "phil/data-table-export": "^0.1@dev",
         "phil/settings-bundle": "^0.1@dev",
-        "phil/ux-kit": ">=0.1.0-alpha <1.0",
+        "phil/ux-kit": ">=0.5.0-alpha <1.0",
         "php-webdriver/webdriver": "^1.16",
         "phpunit/phpunit": "^13.4",
         "symfony/asset-mapper": "^8.2",
