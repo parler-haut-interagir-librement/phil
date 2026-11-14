@@ -234,6 +234,45 @@ final class TarTest extends TestCase
         self::assertSame([false], $types, 'A NUL type is a regular file, as in old archives.');
     }
 
+    public function testTheEndBlockIsTwoEmptyBlocksAndOnlyPaddingFollows(): void
+    {
+        file_put_contents($this->directory.'/a', str_repeat('y', 700));
+        $writer = TarWriter::create($this->directory.'/archive.tar');
+        $writer->addFile('uploads/a', $this->directory.'/a', 0o644, 0);
+        $writer->close();
+
+        $archive = (string) file_get_contents($this->directory.'/archive.tar');
+        $entries = substr($archive, 0, -1024);
+        $empty = str_repeat("\0", 512);
+        self::assertSame($entries.$empty.$empty, $archive, 'The writer ends with two empty blocks.');
+
+        foreach ([
+            'one empty block, then nothing' => [$entries.$empty, false],
+            'one empty block and part of a second' => [$entries.$empty.str_repeat("\0", 511), false],
+            'one empty block, then a header' => [$entries.$empty.$entries, false],
+            'one empty block, then another block' => [$entries.$empty.str_repeat('x', 512), false],
+            'two empty blocks' => [$entries.$empty.$empty, true],
+            'two empty blocks padded to the record' => [$entries.$empty.$empty.str_repeat("\0", 10240 - 1024), true],
+            'two empty blocks padded past the record' => [$entries.$empty.$empty.str_repeat("\0", 10240 - 1024 + 1), false],
+            'two empty blocks, then data' => [$entries.$empty.$empty."\0\0x", false],
+            'two empty blocks padded to the record, then data' => [$entries.$empty.$empty.str_repeat("\0", 10240 - 1024).'x', false],
+        ] as $case => [$content, $complete]) {
+            file_put_contents($this->directory.'/ended.tar', $content);
+            $names = [];
+
+            try {
+                new TarReader($this->directory.'/ended.tar')->read(static function (TarEntry $entry) use (&$names): void {
+                    $names[] = $entry->name;
+                });
+                self::assertTrue($complete, $case);
+                self::assertSame(['uploads/a'], $names, $case);
+            } catch (BackupFailed $backupFailed) {
+                self::assertFalse($complete, $case);
+                self::assertSame('The archive '.$this->directory.'/ended.tar is damaged.', $backupFailed->getMessage(), $case);
+            }
+        }
+    }
+
     public function testACopyThatCannotBeWrittenIsNamed(): void
     {
         file_put_contents($this->directory.'/a', 'a');

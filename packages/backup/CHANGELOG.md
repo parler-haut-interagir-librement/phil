@@ -4,6 +4,23 @@ All notable changes to `phil/backup` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Fixed
+
+- `TarReader`: the end of an archive is two empty blocks; an archive cut after its first empty block, or one whose
+  empty block is followed by anything but a second, is refused as damaged by `MediaArchive::verify()` and
+  `extract()` instead of being read as complete. NUL padding after the end block, up to the 10 240-byte record, is
+  ignored; any other byte after it is refused.
+
+### Changed
+
+- `MediaArchive::write()` walks the media directories one directory at a time as it writes the archive, instead of
+  holding every path of the tree in memory: each directory is followed by its entries sorted by name, in byte order.
+  An archive of the same files stays the same from one backup to the next; next to the order by whole path of
+  0.1.0-alpha, only sibling names that extend another with a byte below `/`, such as `a` and `a-b`, are ordered
+  differently.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

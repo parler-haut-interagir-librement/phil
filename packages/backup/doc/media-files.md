@@ -19,14 +19,18 @@ machine restores on another whose directories are elsewhere, provided the names 
 
 `write($file)` writes one POSIX ustar archive, readable by its owner alone, and gives the number of files back:
 
-- every directory and regular file under each directory, sorted by path, so that the same files give the same
-  archive, with their permission bits and modification times;
+- every directory and regular file under each directory, each directory followed by its entries sorted by name, in
+  byte order, so that the same files give the same archive, with their permission bits and modification times;
 - **no symbolic link**, which could point anywhere on the machine, and no socket, pipe or device;
 - a directory that does not exist yet, as an empty directory: a fresh installation without uploads backs up.
 
 A path longer than 100 bytes is split at a slash into the archive's 155-byte prefix and its name; one that cannot
 be split, or a file of 8 GiB or more, is refused, as is a file whose size changes while it is archived. A directory
 that cannot be read whole is named in the error.
+
+The tree is walked one directory at a time, as the archive is written: only the names of the directories being
+walked are held in memory, never the whole tree, so the memory an archive takes follows the size of the directories
+on the way, not the number of files in the store.
 
 ## Writing back
 
@@ -59,3 +63,8 @@ padded to 512 bytes, two empty blocks at the end. The reader accepts directories
 regular file, as in old archives — and refuses links and every other kind of entry, an archive without its end
 block, a header whose checksum or `ustar` magic is wrong, and an archive cut short. Content left unread by the
 reader's visitor is skipped without being read.
+
+The end block is two empty blocks. An archive that holds one empty block alone, followed by nothing, by part of a
+block or by anything but a second empty block, is damaged, and `verify()` and `extract()` refuse it. NUL bytes after
+the end block, up to the 10 240-byte record that `tar` pads its archives to, are ignored; any other byte after it,
+or more padding than that, is refused.

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b600a422f32eb64d074aa3c35fe2220d0d8e09469662eaf9a7d08b28a97378c0 -->
+<!-- phil-dev source-sha256=b700a5399663cd69819d299f0ac476d8d4e6a0b16ec8a094d218c6555dafcf4d -->
 # Fichiers médias
 
 ## Répertoires nommés
@@ -21,8 +21,9 @@ que les noms soient les mêmes.
 
 `write($file)` écrit une archive POSIX ustar, lisible par son seul propriétaire, et retourne le nombre de fichiers :
 
-- chaque répertoire et chaque fichier ordinaire sous chaque répertoire, triés par chemin pour que les mêmes fichiers
-  donnent la même archive, avec leurs bits de permission et leurs heures de modification ;
+- chaque répertoire et chaque fichier ordinaire sous chaque répertoire, chaque répertoire suivi de ses entrées triées
+  par nom, dans l'ordre des octets, pour que les mêmes fichiers donnent la même archive, avec leurs bits de permission
+  et leurs heures de modification ;
 - **aucun lien symbolique**, qui pourrait pointer n'importe où sur la machine, ni aucun socket, tube ou périphérique ;
 - un répertoire qui n'existe pas encore, sous forme de répertoire vide : une nouvelle installation sans téléversements
   se sauvegarde.
@@ -30,6 +31,10 @@ que les noms soient les mêmes.
 Un chemin de plus de 100 octets est coupé à une barre oblique entre le préfixe de 155 octets de l'archive et son nom ;
 un chemin qui ne peut pas être coupé, ou un fichier de 8 Gio ou plus, est refusé, tout comme un fichier dont la taille
 change pendant l'archivage. Un répertoire qui ne peut pas être lu en entier est nommé dans l'erreur.
+
+L'arborescence est parcourue un répertoire à la fois, à mesure que l'archive s'écrit : seuls les noms des répertoires
+en cours de parcours sont gardés en mémoire, jamais toute l'arborescence, si bien que la mémoire que prend une
+archive suit la taille des répertoires sur le chemin, et non le nombre de fichiers du stockage.
 
 ## Réécriture
 
@@ -65,3 +70,8 @@ contenu complété à 512 octets, deux blocs vides à la fin. Le lecteur accepte
 — un type NUL est un fichier ordinaire, comme dans les anciennes archives — et refuse les liens et toute autre sorte
 d'entrée, une archive sans son bloc de fin, un en-tête dont la somme de contrôle ou la signature `ustar` est erronée, et
 une archive tronquée. Le contenu que le visiteur du lecteur laisse non lu est sauté sans être lu.
+
+Le bloc de fin est fait de deux blocs vides. Une archive qui ne contient qu'un bloc vide, suivi de rien, d'une partie
+de bloc ou de quoi que ce soit d'autre qu'un second bloc vide, est endommagée, et `verify()` et `extract()` la
+refusent. Les octets NUL après le bloc de fin, jusqu'à l'enregistrement de 10 240 octets auquel `tar` complète ses
+archives, sont ignorés ; tout autre octet après lui, ou plus de remplissage que cela, est refusé.

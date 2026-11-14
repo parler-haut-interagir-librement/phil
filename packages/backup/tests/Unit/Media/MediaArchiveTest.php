@@ -180,6 +180,54 @@ final class MediaArchiveTest extends TestCase
         }
     }
 
+    public function testAnArchiveCutAfterItsFirstEmptyBlockIsRefused(): void
+    {
+        $source = $this->directory.'/source';
+        mkdir($source);
+        file_put_contents($source.'/a.txt', 'a');
+        $archive = new MediaArchive(['media' => $source]);
+        $archive->write($this->directory.'/media.tar');
+        file_put_contents($this->directory.'/cut.tar', substr((string) file_get_contents($this->directory.'/media.tar'), 0, -512));
+        $target = new MediaArchive(['media' => $this->directory.'/target']);
+
+        foreach (['verify' => $target->verify(...), 'extract' => $target->extract(...)] as $method => $read) {
+            try {
+                $read($this->directory.'/cut.tar');
+                self::fail($method);
+            } catch (BackupFailed $backupFailed) {
+                self::assertSame(\sprintf('The archive %s/cut.tar is damaged.', $this->directory), $backupFailed->getMessage(), $method);
+            }
+        }
+
+        self::assertDirectoryDoesNotExist($this->directory.'/target', 'Nothing is written from a cut archive.');
+        self::assertSame(1, $target->extract($this->directory.'/media.tar'));
+    }
+
+    public function testEachDirectoryIsArchivedBeforeItsEntriesSortedByName(): void
+    {
+        $source = $this->directory.'/source';
+        mkdir($source.'/a/z', 0o755, true);
+        mkdir($source.'/b');
+        file_put_contents($source.'/a-c.txt', '');
+        file_put_contents($source.'/a/z/deep.txt', '');
+        file_put_contents($source.'/a/y.txt', '');
+        file_put_contents($source.'/B.txt', '');
+        file_put_contents($source.'/b/x.txt', '');
+        file_put_contents($source.'/a.txt', '');
+
+        $archive = new MediaArchive(['media' => $source]);
+        self::assertSame(6, $archive->write($this->directory.'/media.tar'));
+
+        $names = [];
+        new TarReader($this->directory.'/media.tar')->read(static function (TarEntry $entry) use (&$names): void {
+            $names[] = $entry->name;
+        });
+        self::assertSame(['media/', 'media/B.txt', 'media/a/', 'media/a/y.txt', 'media/a/z/', 'media/a/z/deep.txt', 'media/a-c.txt', 'media/a.txt', 'media/b/', 'media/b/x.txt'], $names, 'Byte order, each directory followed by what it holds.');
+
+        $archive->write($this->directory.'/again.tar');
+        self::assertFileEquals($this->directory.'/media.tar', $this->directory.'/again.tar', 'The same files give the same archive.');
+    }
+
     public function testADirectoryThatCannotBeCreatedOrReadIsNamed(): void
     {
         $writer = TarWriter::create($this->directory.'/media.tar');

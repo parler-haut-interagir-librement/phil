@@ -11,9 +11,19 @@ use Phil\Backup\Exception\BackupFailed;
  * Reads the ustar archives that `TarWriter` writes: directories and regular files only. Each header's checksum is
  * verified; an archive cut short, with no end block, or holding a link, a device or any other kind of entry, is
  * refused.
+ *
+ * The end block is two empty 512-byte blocks: one empty block alone, followed by nothing or by anything but a second,
+ * is a damaged archive. NUL bytes after the end block, up to the 10 240-byte record that tar pads its archives to,
+ * are ignored; anything else after it is refused.
  */
 final readonly class TarReader
 {
+    /**
+     * The record of 20 blocks that tar pads an archive to: after the end block, at most a record less those two
+     * blocks of padding.
+     */
+    private const int RECORD = 10240;
+
     public function __construct(
         private string $file,
     ) {
@@ -61,6 +71,8 @@ final readonly class TarReader
         $header = $this->block($stream);
 
         if (str_repeat("\0", 512) === $header) {
+            $this->end($stream);
+
             return null;
         }
 
@@ -79,6 +91,20 @@ final readonly class TarReader
         }
 
         return new TarEntry('' === $prefix ? $name : $prefix.'/'.$name, '5' === $type, $this->number($header, 100, 8), $this->number($header, 124, 12), $this->number($header, 136, 12));
+    }
+
+    /**
+     * Checks what follows the first empty block: the second, then NUL bytes up to the record at most, then nothing.
+     *
+     * @param resource $stream
+     */
+    private function end($stream): void
+    {
+        $rest = stream_get_contents($stream, self::RECORD - 512);
+
+        if (false === $rest || \strlen($rest) < 512 || '' !== trim($rest, "\0") || false !== fgetc($stream)) {
+            throw $this->damaged();
+        }
     }
 
     /**
