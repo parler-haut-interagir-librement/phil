@@ -19,10 +19,10 @@ phil_rate_limit:
             interval: '1 minute'
             key: ip                    # ip, user, user_or_ip, ip_route, or a KeyResolver service id
             amount: 1
-        login: { policy: fixed_window, limit: 5, interval: '15 minutes', key: ip_route, lock_factory: lock.factory }
+        reset: { policy: fixed_window, limit: 5, interval: '15 minutes', key: ip_route, lock_factory: lock.factory }
         monthly: { policy: fixed_window, limit: 10000, interval: '1 month', anchor_at: '2026-01-01', key: user }
         contact: { policy: token_bucket, limit: 3, rate: { interval: '10 minutes', amount: 1 } }
-        strict: { policy: compound, limiters: [api, login] }
+        strict: { policy: compound, limiters: [api, reset] }
         shared: { service: limiter.anonymous_api }
         sessions: { policy: sliding_window, limit: 30, interval: '1 minute', storage: app.rate_limit_storage }
         search: { policy: sliding_window, limit: 30, interval: '1 minute', observe: true }
@@ -45,6 +45,25 @@ phil_rate_limit:
 | `network.ipv4_prefix`, `network.ipv6_prefix` | `32`, `64` | The prefixes kept. |
 | `limiters` | `{}` | The limiters, by name: 1 to 64 letters, digits, `_`, `.` and `-`. |
 | `forms` | `{}` | The rules of forms by form name. |
+
+## Login forms
+
+A login form is limited with Symfony's `login_throttling`, not with this bundle: it counts each attempt before the
+password is checked, so a wrong password and a right one weigh the same, and it groups IPv6 addresses by /64, so one
+host cannot spread its attempts over its own network.
+
+```yaml
+# config/packages/security.yaml
+security:
+    firewalls:
+        main:
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
+```
+
+The bundle limits everything else: the APIs, the other forms — password reset, contact, sign-up —, and the controllers
+and routes declared with `#[RateLimit]` or `_rate_limit`.
 
 ## A limiter
 

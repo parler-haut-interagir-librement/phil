@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0477daa72e760488b254daa607d3d34bfdb81bdbfa6e1c5cd493debf173ed69c -->
+<!-- phil-dev source-sha256=a226ba28d3bdbb71d6ce7521f5373481cbd534ff353e97ac8ce611cfba510087 -->
 # Configuration
 
 ```yaml
@@ -20,10 +20,10 @@ phil_rate_limit:
             interval: '1 minute'
             key: ip                    # ip, user, user_or_ip, ip_route, or a KeyResolver service id
             amount: 1
-        login: { policy: fixed_window, limit: 5, interval: '15 minutes', key: ip_route, lock_factory: lock.factory }
+        reset: { policy: fixed_window, limit: 5, interval: '15 minutes', key: ip_route, lock_factory: lock.factory }
         monthly: { policy: fixed_window, limit: 10000, interval: '1 month', anchor_at: '2026-01-01', key: user }
         contact: { policy: token_bucket, limit: 3, rate: { interval: '10 minutes', amount: 1 } }
-        strict: { policy: compound, limiters: [api, login] }
+        strict: { policy: compound, limiters: [api, reset] }
         shared: { service: limiter.anonymous_api }
         sessions: { policy: sliding_window, limit: 30, interval: '1 minute', storage: app.rate_limit_storage }
         search: { policy: sliding_window, limit: 30, interval: '1 minute', observe: true }
@@ -46,6 +46,25 @@ phil_rate_limit:
 | `network.ipv4_prefix`, `network.ipv6_prefix` | `32`, `64` | Les préfixes gardés. |
 | `limiters` | `{}` | Les limiteurs, par nom : de 1 à 64 lettres, chiffres, `_`, `.` et `-`. |
 | `forms` | `{}` | Les règles des formulaires par nom de formulaire. |
+
+## Formulaires de connexion
+
+Un formulaire de connexion est limité par le `login_throttling` de Symfony, pas par ce bundle : il compte chaque
+tentative avant la vérification du mot de passe, si bien qu'un mauvais mot de passe et un bon pèsent autant, et il
+regroupe les adresses IPv6 par /64, si bien qu'un hôte ne peut pas répartir ses tentatives sur son propre réseau.
+
+```yaml
+# config/packages/security.yaml
+security:
+    firewalls:
+        main:
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
+```
+
+Le bundle limite tout le reste : les API, les autres formulaires (réinitialisation du mot de passe, contact,
+inscription), et les contrôleurs et les routes déclarés avec `#[RateLimit]` ou `_rate_limit`.
 
 ## Un limiteur
 

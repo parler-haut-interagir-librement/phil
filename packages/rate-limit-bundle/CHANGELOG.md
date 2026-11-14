@@ -5,6 +5,14 @@ All notable changes to `phil/rate-limit-bundle` will be documented in this file.
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles. Until the package is launched
 publicly, split to its public repository, this file keeps one "Added" section that describes the current state.
 
+## Unreleased
+
+### Changed
+
+- Documentation: login forms are limited with Symfony's `security.firewalls.<name>.login_throttling`, which counts
+  each attempt before the password is checked and groups IPv6 addresses by /64; the examples limit a password reset
+  instead, and the bundle stays for the APIs, the other forms, the controllers and the routes.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

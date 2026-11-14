@@ -50,7 +50,7 @@ phil_rate_limit:
     cache_pool: cache.rate_limits
     limiters:
         api: { policy: sliding_window, limit: 100, interval: '1 minute' }
-        login: { policy: fixed_window, limit: 5, interval: '15 minutes', key: ip_route }
+        reset: { policy: fixed_window, limit: 5, interval: '15 minutes', key: ip_route }
         contact: { policy: token_bucket, limit: 3, rate: { interval: '10 minutes' } }
     forms:
         contact: contact
@@ -62,10 +62,14 @@ use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
 #[RateLimit('api')]
 final class SearchController
 {
-    #[RateLimit('login')]
-    public function login(): Response
+    #[RateLimit('reset')]
+    public function resetPassword(): Response
 }
 ```
+
+A login form is limited by Symfony itself: `security.firewalls.<name>.login_throttling` counts each attempt before the
+password is checked and groups IPv6 addresses by /64. The bundle limits everything else: APIs, the other forms, the
+controllers and routes. See [Login forms](doc/configuration.md#login-forms).
 
 ## Requirements
 

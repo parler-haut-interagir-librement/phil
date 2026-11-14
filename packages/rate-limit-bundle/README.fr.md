@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=897e042bca6029eb5d08d4c9022284ff7b71c5ddf6573401ca1e2f57c5a5727b -->
+<!-- phil-dev source-sha256=6f884c89f3ae6be50bcb6cef0b40aa71c0eebd748399fdc30216694123c84077 -->
 # phil/rate-limit-bundle
 
 **Des limites de débit déclarées sur les contrôleurs, les routes et les formulaires Symfony.**
@@ -52,7 +52,7 @@ phil_rate_limit:
     cache_pool: cache.rate_limits
     limiters:
         api: { policy: sliding_window, limit: 100, interval: '1 minute' }
-        login: { policy: fixed_window, limit: 5, interval: '15 minutes', key: ip_route }
+        reset: { policy: fixed_window, limit: 5, interval: '15 minutes', key: ip_route }
         contact: { policy: token_bucket, limit: 3, rate: { interval: '10 minutes' } }
     forms:
         contact: contact
@@ -64,10 +64,14 @@ use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
 #[RateLimit('api')]
 final class SearchController
 {
-    #[RateLimit('login')]
-    public function login(): Response
+    #[RateLimit('reset')]
+    public function resetPassword(): Response
 }
 ```
+
+Un formulaire de connexion est limité par Symfony lui-même : `security.firewalls.<name>.login_throttling` compte chaque
+tentative avant la vérification du mot de passe et regroupe les adresses IPv6 par /64. Le bundle limite tout le reste :
+les API, les autres formulaires, les contrôleurs et les routes. Voir [Formulaires de connexion](doc/fr/configuration.md#formulaires-de-connexion).
 
 ## Prérequis
 
