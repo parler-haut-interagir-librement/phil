@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\ReportingBundle\Application\Report;
 
 use InvalidArgumentException;
+use Phil\ReportingBundle\Application\Exception\ExportFailed;
 
 /**
  * The stream a report is written to or read from: a temporary buffer, a file, the standard output or the body of a
@@ -84,8 +85,17 @@ final class ReportStream
         return (int) stream_copy_to_stream($this->handle, $target->handle);
     }
 
+    /**
+     * Flushes and closes the stream.
+     *
+     * @throws ExportFailed when the stream could not be flushed or closed: what was written is not all there
+     */
     public function close(): void
     {
-        fclose($this->handle);
+        $flushed = fflush($this->handle);
+
+        if (!fclose($this->handle) || !$flushed) {
+            throw ExportFailed::because('the stream could not be flushed and closed');
+        }
     }
 }

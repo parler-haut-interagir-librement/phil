@@ -9,17 +9,20 @@ use Override;
 use Phil\ReportingBundle\Application\Contract\ExportStore;
 use Phil\ReportingBundle\Application\Contract\JobStore;
 use Phil\ReportingBundle\Application\Exception\AccessDenied;
+use Phil\ReportingBundle\Application\Exception\PngUnavailable;
 use Phil\ReportingBundle\Application\Message\RunScheduledReport;
 use Phil\ReportingBundle\Application\Periods;
 use Phil\ReportingBundle\Application\Report\ReportJob;
 use Phil\ReportingBundle\Application\Report\ReportRequest;
 use Phil\ReportingBundle\Application\Report\Reports;
 use Phil\ReportingBundle\Application\Sources;
+use Phil\ReportingBundle\Infrastructure\Http\ChartResponses;
 use Phil\ReportingBundle\Infrastructure\Memory\InMemoryExportStore;
 use Phil\ReportingBundle\Infrastructure\Memory\InMemoryJobStore;
 use Phil\ReportingBundle\Infrastructure\Messenger\ReportQueue;
 use Phil\ReportingBundle\PhilReportingBundle;
 use Phil\ReportingBundle\Tests\Functional\App\TestKernel;
+use Phil\SvgChart\Raster\ResvgRasterizer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Bundle\FrameworkBundle\Test\MailerAssertionsTrait;
@@ -153,12 +156,36 @@ final class ReportingBundleTest extends KernelTestCase
         self::assertSame('members-20261001-20261031.csv', $email->getAttachments()[0]->getFilename());
         self::assertSame("Name,Since\r\nAda,2026-10-01\r\n\"'=HYPERLINK(\"\"http://example.com\"\")\",2026-10-01\r\n", $email->getAttachments()[0]->getBody());
 
+        // The chart of the report, inline, where the resvg extension draws it; the file alone otherwise.
+        self::assertCount(ResvgRasterizer::isAvailable() ? 2 : 1, $email->getAttachments());
+        self::assertSame(ResvgRasterizer::isAvailable(), str_contains((string) $email->getHtmlBody(), '<img src="cid:chart.png" alt="Sign-ups &lt;weekly&gt;">'));
+
         $jobs = self::getContainer()->get(JobStore::class);
         self::assertInstanceOf(InMemoryJobStore::class, $jobs);
         self::assertSame([], $jobs->ids());
         $exports = self::getContainer()->get(ExportStore::class);
         self::assertInstanceOf(InMemoryExportStore::class, $exports);
         self::assertSame([], $exports->contents());
+    }
+
+    public function testAChartAsAPngWhereTheExtensionIsLoaded(): void
+    {
+        $responses = self::getContainer()->get(ChartResponses::class);
+        self::assertInstanceOf(ChartResponses::class, $responses);
+        $periods = self::getContainer()->get(Periods::class);
+        self::assertInstanceOf(Periods::class, $periods);
+        $period = $periods->period($periods->preset('last_month'));
+
+        self::assertSame(ResvgRasterizer::isAvailable(), $responses->hasPng());
+
+        if (!ResvgRasterizer::isAvailable()) {
+            $this->expectException(PngUnavailable::class);
+        }
+
+        $png = (string) $responses->png('signups', $period)->getContent();
+
+        self::assertStringStartsWith("\x89PNG\r\n\x1a\n", $png);
+        self::assertSame(['width' => 1280, 'height' => 640], unpack('Nwidth/Nheight', $png, 16));
     }
 
     public function testAQueuedReportWithoutDeliveryStaysInTheStore(): void

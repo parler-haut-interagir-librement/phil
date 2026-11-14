@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0af4e641045ca22456d32a2dc36948d9b5cd56520841e7e3db6171d222c0f561 -->
+<!-- phil-dev source-sha256=591dfd342ce215cf8f2e62b6056be35d0342998a38510580b4f275c8f8c64773 -->
 # Points d'extension
 
 Chaque port se trouve dans `Phil\ReportingBundle\Application\Contract`. Jusqu'à la première version, chacun peut encore
@@ -32,6 +32,12 @@ interface SeriesSource
 ## `ReportDefinition`
 
 Un rapport : ses colonnes et ses lignes pour une requête. Voir [Rapports](reports.md).
+
+## `ChartedReport`
+
+Un rapport qui a un graphique, que la livraison `mail` met dans son courriel sous forme d'image PNG : `chart()` donne un
+`ReportChart`, la clé d'une source de séries, un `ChartType` et un titre. Voir
+[Rapports](reports.md#le-graphique-dun-rapport-dans-son-courriel).
 
 ## `ReportFormat`
 
@@ -81,7 +87,16 @@ services:
 `ReportJob::toArray()` et `ReportJob::fromArray()` donnent à un magasin de tâches le JSON à garder et le relisent. Un
 magasin lève `JobUnavailable` pour un identifiant sous lequel il ne contient rien, et ignore le retrait d'un tel
 identifiant. Un magasin d'exports lit le fichier depuis un `ReportStream` et le rend sous forme d'un autre par `open()`,
-que l'appelant ferme ; `ReportStream::of()` enveloppe ce que renvoie `fopen()`.
+que l'appelant ferme ; `ReportStream::of()` enveloppe ce que renvoie `fopen()`. Un magasin qui ne peut pas écrire un
+fichier en entier lève `ExportFailed` et ne garde rien : la tâche reste, pour que Messenger réessaie.
+`ReportStream::close()` lève `ExportFailed` quand le flux ne peut pas être vidé et fermé.
+
+## Le rasterizer
+
+Les graphiques PNG sont dessinés par le service `Phil\SvgChart\Contract\Rasterizer` : `ResvgRasterizer` quand
+l'extension `resvg` est chargée et que `png.fonts` liste un fichier. Quand aucune police n'est listée, une application
+qui dessine les images PNG autrement enregistre son propre service sous cette interface, et les graphiques, les
+téléchargements et les courriels l'utilisent.
 
 ## Enregistrement
 

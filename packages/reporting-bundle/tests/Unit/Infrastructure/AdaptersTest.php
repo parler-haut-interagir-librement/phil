@@ -6,10 +6,15 @@ namespace Phil\ReportingBundle\Tests\Unit\Infrastructure;
 
 use Override;
 use Phil\ReportingBundle\Application\Exception\NotFound;
+use Phil\ReportingBundle\Application\Exception\PngUnavailable;
+use Phil\ReportingBundle\Application\View\ChartDrawing;
 use Phil\ReportingBundle\Infrastructure\Console\ExportReportCommand;
 use Phil\ReportingBundle\Infrastructure\EasyAdmin\ReportingAdmin;
+use Phil\ReportingBundle\Infrastructure\Http\ChartResponses;
 use Phil\ReportingBundle\Infrastructure\Http\ReportResponses;
+use Phil\ReportingBundle\Tests\Unit\Fixture\RecordingRasterizer;
 use Phil\ReportingBundle\Tests\Unit\Fixture\Reporting;
+use Phil\SvgChart\ChartType;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
@@ -18,6 +23,7 @@ use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
 
 #[CoversClass(ReportResponses::class)]
+#[CoversClass(ChartResponses::class)]
 #[CoversClass(ExportReportCommand::class)]
 #[CoversClass(ReportingAdmin::class)]
 final class AdaptersTest extends TestCase
@@ -67,16 +73,64 @@ final class AdaptersTest extends TestCase
         }
     }
 
+    public function testAChartAsAPngDownload(): void
+    {
+        $rasterizer = new RecordingRasterizer();
+        $responses = new ChartResponses(Reporting::sources(), new ChartDrawing(rasterizer: $rasterizer));
+        $period = Reporting::request()->period;
+
+        self::assertTrue($responses->hasPng());
+        $response = $responses->png('visits', $period, ChartType::Line);
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame('PNG 2', $response->getContent());
+        self::assertSame('image/png', $response->headers->get('Content-Type'));
+        self::assertSame('attachment; filename=visits-20261001-20261031.png', $response->headers->get('Content-Disposition'));
+        self::assertSame('nosniff', $response->headers->get('X-Content-Type-Options'));
+        self::assertSame('no-store, private', $response->headers->get('Cache-Control'));
+        self::assertStringContainsString('<title>Visits</title>', $rasterizer->drawn[0][0]);
+        self::assertStringContainsString('<path ', $rasterizer->drawn[0][0]);
+
+        $responses->png('visits', $period, title: 'Pages seen');
+        self::assertStringContainsString('<title>Pages seen</title>', $rasterizer->drawn[1][0]);
+        self::assertStringNotContainsString('<path ', $rasterizer->drawn[1][0]);
+    }
+
+    public function testAPngDownloadOfNothingFailsBeforeAnythingIsDrawn(): void
+    {
+        $rasterizer = new RecordingRasterizer();
+        $period = Reporting::request()->period;
+
+        try {
+            new ChartResponses(Reporting::sources(), new ChartDrawing(rasterizer: $rasterizer))->png('nope', $period);
+            self::fail('Drawn.');
+        } catch (NotFound $notFound) {
+            self::assertSame('There is no series source "nope".', $notFound->getMessage());
+        }
+
+        $without = new ChartResponses(Reporting::sources(), new ChartDrawing());
+        self::assertFalse($without->hasPng());
+
+        try {
+            $without->png('nope', $period);
+            self::fail('Drawn.');
+        } catch (PngUnavailable $pngUnavailable) {
+            self::assertStringStartsWith('The charts are drawn as SVG only', $pngUnavailable->getMessage());
+        }
+
+        self::assertSame([], $rasterizer->drawn);
+    }
+
     public function testTheCommand(): void
     {
         $tester = $this->tester();
 
         self::assertSame(Command::SUCCESS, $tester->execute([]));
-        self::assertStringContainsString('* sales', $tester->getDisplay());
+        self::assertStringContainsString('* sales', $this->display($tester));
 
         $file = $this->directory.'/sales.csv';
         self::assertSame(Command::SUCCESS, $tester->execute(['report' => 'sales', '--output' => $file]));
-        self::assertStringContainsString('3 rows written to', $tester->getDisplay());
+        self::assertStringContainsString('3 rows written to', $this->display($tester));
         self::assertSame("Day,Amount,Paid,Note\r\n2026-10-01,1.5,false,'=SUM(A1)\r\n", explode('2026-10-01,3,', (string) file_get_contents($file))[0]);
 
         $json = $this->directory.'/sales.json';
@@ -84,7 +138,7 @@ final class AdaptersTest extends TestCase
         self::assertStringStartsWith("[\n{\"Day\":\"2026-11-01\"", (string) file_get_contents($json));
 
         self::assertSame(Command::FAILURE, $tester->execute(['report' => 'sales', '--output' => $file]));
-        self::assertStringContainsString('cannot be created', (string) preg_replace('/\s+/', ' ', $tester->getDisplay()));
+        self::assertStringContainsString('cannot be created', $this->display($tester));
 
         /** @var array<string, array<string, string>> $failures */
         $failures = [
@@ -97,7 +151,7 @@ final class AdaptersTest extends TestCase
 
         foreach ($failures as $message => $input) {
             $statuses[] = $tester->execute($input);
-            self::assertStringContainsString($message, $tester->getDisplay());
+            self::assertStringContainsString($message, $this->display($tester));
         }
 
         // Command::FAILURE, which PHPStan narrows to nothing after the assertions above.
@@ -123,5 +177,13 @@ final class AdaptersTest extends TestCase
         $application->addCommand(new ExportReportCommand(Reporting::reports(), Reporting::periods()));
 
         return new CommandTester($application->find('phil:reporting:export'));
+    }
+
+    /**
+     * What the command wrote, on one line: the blocks of SymfonyStyle wrap at the width of the console, which varies.
+     */
+    private function display(CommandTester $tester): string
+    {
+        return (string) preg_replace('/\s+/', ' ', $tester->getDisplay());
     }
 }

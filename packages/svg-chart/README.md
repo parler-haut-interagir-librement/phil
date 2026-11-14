@@ -11,7 +11,11 @@ It is for any PHP code that must show a chart without a script: a document block
 PDF, an e-mail, a page read without JavaScript. The configuration is checked against limits, so one sent by a client
 costs no more than a large honest one.
 
-It is a plain PHP library built on `ext-mbstring`. Its output is deterministic.
+Where the `resvg` PHP extension is loaded, `ResvgRasterizer` draws the image as a PNG for the readers that take no
+SVG — an e-mail, an image to share —, after the image goes through phil/svg-sanitizer, with the fonts given and no
+other, and within limits of size; without the extension, the package draws SVG and the PNG is simply not offered.
+
+It is a plain PHP library built on `ext-mbstring`, phil/svg-sanitizer and phil/fonts. Its SVG output is deterministic.
 
 ## Status
 
@@ -23,6 +27,7 @@ It is a plain PHP library built on `ext-mbstring`. Its output is deterministic.
 | Pies and doughnuts, from the first series | Implemented and tested |
 | Round ticks, labels thinned when they crowd, a legend in rows, Okabe-Ito colours | Implemented and tested |
 | `<title>` on every mark, a `<desc>` of every value, `role="img"` | Implemented and tested |
+| PNG images through the optional `resvg` extension: sanitized first, fonts given, files and limits confined | Implemented and tested |
 
 ## Documentation
 
@@ -31,6 +36,7 @@ It is a plain PHP library built on `ext-mbstring`. Its output is deterministic.
 | [Installation](doc/installation.md) | Requirements and installing. |
 | [Configuration](doc/configuration.md) | What `Chart::fromConfig()` reads, what it ignores, and its limits. |
 | [Drawing](doc/drawing.md) | The image `SvgChartWriter` draws, its options and its accessibility. |
+| [PNG images](doc/png.md) | `ResvgRasterizer`: the optional extension, the fonts, the limits and what it never reads. |
 | [Extension points](doc/extension-points.md) | What an application may replace or add, and when it is stable. |
 | [Testing](doc/testing.md) | The package's tests and its mutation bar. |
 | [Reference](doc/reference.md) | Every public type, with its role. |
@@ -54,7 +60,7 @@ $svg = new SvgChartWriter(640, 400)->write(Chart::fromConfig([
 
 ## Requirements
 
-PHP 8.5 or later, with `ext-mbstring`.
+PHP 8.5 or later, with `ext-mbstring`; the `resvg` extension for the PNG images.
 
 ## Contributing
 

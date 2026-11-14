@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\ReportingBundle\Infrastructure\DependencyInjection;
 
+use Closure;
 use Phil\ReportingBundle\Application\Contract\ExportStore;
 use Phil\ReportingBundle\Application\Contract\JobStore;
 use Phil\ReportingBundle\Application\Contract\MetricSource;
@@ -25,6 +26,7 @@ use Phil\ReportingBundle\Infrastructure\Delivery\NotificationDelivery;
 use Phil\ReportingBundle\Infrastructure\Format\CsvFormat;
 use Phil\ReportingBundle\Infrastructure\Format\JsonFormat;
 use Phil\ReportingBundle\Infrastructure\Format\TsvFormat;
+use Phil\ReportingBundle\Infrastructure\Http\ChartResponses;
 use Phil\ReportingBundle\Infrastructure\Http\ReportResponses;
 use Phil\ReportingBundle\Infrastructure\Memory\InMemoryExportStore;
 use Phil\ReportingBundle\Infrastructure\Memory\InMemoryJobStore;
@@ -39,6 +41,8 @@ use Phil\ReportingBundle\Infrastructure\Twig\Components\DashboardComponent;
 use Phil\ReportingBundle\Infrastructure\Twig\Components\LiveDashboardComponent;
 use Phil\ReportingBundle\Infrastructure\Twig\Components\MetricComponent;
 use Phil\ReportingBundle\Infrastructure\Twig\DashboardAccess;
+use Phil\SvgChart\Contract\Rasterizer;
+use Phil\SvgChart\Raster\ResvgRasterizer;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
@@ -56,9 +60,10 @@ use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 /**
  * The bundle's services: the sources, reports, formats and deliveries found by their tags, the periods, the
  * dashboards, the stores of the claim check and the runner; the components, the queue and its handlers, the schedule,
- * the deliveries, the command and the downloads when their Symfony packages are there.
+ * the deliveries, the command and the downloads when their Symfony packages are there; the PNG charts when the resvg
+ * extension is loaded and fonts are listed.
  *
- * @phpstan-type Config array{timezone: string, chart: array{width: int, height: int}, max_rows: int, store: string, directory: string, keep_delivered: bool, mail: array{enabled: bool, from: string}, notification: array{enabled: bool, channels: list<string>}, dashboards: array<string, mixed>, schedules: array<string, mixed>}
+ * @phpstan-type Config array{timezone: string, chart: array{width: int, height: int}, png: array{fonts: list<string>, scale: int<1, 4>, max_pixels: int}, max_rows: int, store: string, directory: string, keep_delivered: bool, mail: array{enabled: bool, from: string}, notification: array{enabled: bool, channels: list<string>}, dashboards: array<string, mixed>, schedules: array<string, mixed>}
  */
 final class ReportingServices
 {
@@ -73,9 +78,10 @@ final class ReportingServices
     public const string DELIVERY_TAG = 'phil_reporting.delivery';
 
     /**
-     * @param Config $config
+     * @param Config          $config
+     * @param Closure(): bool $pngAvailable whether the resvg extension is loaded; another answer in the tests, which run with or without it
      */
-    public static function register(ContainerBuilder $container, array $config): void
+    public static function register(ContainerBuilder $container, array $config, Closure $pngAvailable = ResvgRasterizer::isAvailable(...)): void
     {
         foreach ([
             MetricSource::class => self::METRIC_SOURCE_TAG,
@@ -101,8 +107,14 @@ final class ReportingServices
             ->setFactory([Dashboards::class, 'fromConfig'])
             ->setArguments([$config['dashboards']])
             ->setPublic(true);
+        self::png($container, $config['png'], $pngAvailable());
         $container->register(ChartDrawing::class, ChartDrawing::class)
-            ->setArguments([$config['chart']['width'], $config['chart']['height']]);
+            ->setArguments([
+                $config['chart']['width'],
+                $config['chart']['height'],
+                new Reference(Rasterizer::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                $config['png']['scale'],
+            ]);
         $container->register(MetricReading::class, MetricReading::class);
         $container->register(Reports::class, Reports::class)
             ->setArguments([self::locator(self::REPORT_TAG), self::locator(self::FORMAT_TAG), $config['max_rows']])
@@ -139,7 +151,27 @@ final class ReportingServices
             $container->register(ReportResponses::class, ReportResponses::class)
                 ->setArguments([new Reference(Reports::class)])
                 ->setPublic(true);
+            $container->register(ChartResponses::class, ChartResponses::class)
+                ->setArguments([new Reference(Sources::class), new Reference(ChartDrawing::class)])
+                ->setPublic(true);
         }
+    }
+
+    /**
+     * The rasterizer of the PNG charts: resvg with the fonts listed, when the extension is loaded where the container
+     * is compiled. Without fonts, a `Rasterizer` service of the application draws them, if it registers one.
+     *
+     * @param array{fonts: list<string>, scale: int, max_pixels: int} $png
+     */
+    private static function png(ContainerBuilder $container, array $png, bool $available): void
+    {
+        if ([] === $png['fonts'] || !$available) {
+            return;
+        }
+
+        $container->register(ResvgRasterizer::class, ResvgRasterizer::class)
+            ->setArguments([$png['fonts'], 1_048_576, $png['max_pixels']]);
+        $container->setAlias(Rasterizer::class, ResvgRasterizer::class);
     }
 
     private static function locator(string $tag): ServiceLocatorArgument
@@ -172,7 +204,7 @@ final class ReportingServices
     {
         if ($mail['enabled'] && interface_exists(TransportInterface::class)) {
             $container->register(MailDelivery::class, MailDelivery::class)
-                ->setArguments([new Reference('mailer.transports'), new Reference(Reports::class), $mail['from']])
+                ->setArguments([new Reference('mailer.transports'), new Reference(Reports::class), $mail['from'], new Reference(ChartDrawing::class), new Reference(Sources::class)])
                 ->addTag(self::DELIVERY_TAG, ['key' => MailDelivery::key()]);
         }
 

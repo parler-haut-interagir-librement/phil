@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace Phil\ReportingBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
+use Override;
+use Phil\ReportingBundle\Application\Contract\ExportStore;
+use Phil\ReportingBundle\Application\Exception\ExportFailed;
 use Phil\ReportingBundle\Application\Message\RunReport;
 use Phil\ReportingBundle\Application\Message\RunScheduledReport;
 use Phil\ReportingBundle\Application\Report\ReportJob;
 use Phil\ReportingBundle\Application\Report\ReportRunner;
+use Phil\ReportingBundle\Application\Report\ReportStream;
 use Phil\ReportingBundle\Application\Report\Schedules;
+use Phil\ReportingBundle\Application\Report\StoredExport;
 use Phil\ReportingBundle\Infrastructure\Memory\InMemoryExportStore;
 use Phil\ReportingBundle\Infrastructure\Memory\InMemoryJobStore;
 use Phil\ReportingBundle\Infrastructure\Messenger\ReportQueue;
@@ -86,6 +91,40 @@ final class MessengerTest extends TestCase
             self::fail('Handled.');
         } catch (RuntimeException $runtimeException) {
             self::assertNotInstanceOf(UnrecoverableMessageHandlingException::class, $runtimeException);
+        }
+
+        self::assertSame([$id], $jobs->ids());
+    }
+
+    public function testAnExportThatCannotBeWrittenIsLeftForARetry(): void
+    {
+        $jobs = new InMemoryJobStore();
+        $full = new class implements ExportStore {
+            #[Override]
+            public function keep(ReportStream $content, string $filename, string $mediaType, int $rows): StoredExport
+            {
+                throw ExportFailed::because('the disk is full');
+            }
+
+            #[Override]
+            public function open(string $id): ReportStream
+            {
+                return ReportStream::temporary();
+            }
+
+            #[Override]
+            public function remove(string $id): void
+            {
+            }
+        };
+        $handler = new RunReportHandler(new ReportRunner(Reporting::reports(), $jobs, $full, new ServiceLocator([])), $jobs);
+        $id = $jobs->keep(new ReportJob('sales', 'csv', Reporting::request()));
+
+        try {
+            $handler(new RunReport($id));
+            self::fail('Handled.');
+        } catch (ExportFailed $exportFailed) {
+            self::assertSame('The export failed: the disk is full.', $exportFailed->getMessage());
         }
 
         self::assertSame([$id], $jobs->ids());

@@ -6,11 +6,26 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
+### Added
+
+- PNG charts, where the `resvg` PHP extension is loaded and `phil_reporting.png.fonts` lists the fonts to draw them
+  with: `ChartDrawing::png()` and `hasPng()`, through the `Rasterizer` of phil/svg-chart; `ChartResponses`, the chart
+  of a series source as a PNG download; `ChartedReport` and `ReportChart`, the chart a report names, which the `mail`
+  delivery shows as an image of its HTML part. The options `png.scale` and `png.max_pixels`. Without the extension or
+  the fonts, `PngUnavailable` says the charts are SVG only, and an e-mail goes with its file alone.
+- `ExportFailed`: a file of the directory store that cannot be created, or a stream that cannot be flushed and closed,
+  fails the export — the file cut short removed, the job left for Messenger to retry.
+- The documentation of the back office's assets in EasyAdmin, and of the minute after which Caddy cuts a streamed
+  download that its client stops reading.
+
 ### Changed
 
 - The caption of the bars of `render="html"` is hidden for screen readers alone by the bundle's stylesheet, with the
   class `phil-reporting-bars__caption`, instead of a class of PHIL UX: the templates carry no class of a kit and draw
   the same beside Tailwind.
+- The stylesheet's path is written to the `asset_mapper` extension, and only when AssetMapperBundle is registered,
+  instead of `framework.asset_mapper`.
+- `ReportStream::close()` checks that the stream was flushed and closed.
 
 ## 0.1.0-alpha - 2026-11-11
 

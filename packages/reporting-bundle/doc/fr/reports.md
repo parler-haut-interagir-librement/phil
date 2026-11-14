@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fd12ea9101713d0a141422a3a0bad097c227223673e56d5386c4aea5548049ca -->
+<!-- phil-dev source-sha256=f6ab0b4e39d1c568719633e50916565bada62a4b42876f1c72d6de13fb21a8bd -->
 # Rapports
 
 ## Une définition
@@ -73,6 +73,11 @@ public function sales(ReportResponses $responses, Periods $periods): StreamedRes
 Un rapport ou un format inconnu échoue avec `NotFound` avant que rien ne soit envoyé. La réponse est une pièce jointe,
 avec `Cache-Control: private, no-store` et `X-Content-Type-Options: nosniff`.
 
+Le rapport est écrit dans la réponse au fur et à mesure qu'il est lu, ligne par ligne : un long rapport démarre aussitôt
+et ne garde pas plus d'une ligne en mémoire. Derrière FrankenPHP, Caddy coupe une écriture qui reste bloquée une
+minute — un client qui cesse de lire —, et le fichier arrive tronqué. Un rapport trop long pour être téléchargé pendant
+que le lecteur attend passe plutôt par [le *claim check*](#dans-un-worker--le-claim-check).
+
 ## La commande
 
 ```sh
@@ -111,6 +116,7 @@ son identifiant.
 |---|---|
 | Un échec du bundle : la tâche disparue, un rapport, un format ou une livraison inconnus, trop de lignes, une ligne mal formée | `UnrecoverableMessageHandlingException` : jamais de nouvelle tentative ; la tâche est oubliée avec ses destinataires. |
 | Une livraison qui échoue : un serveur de courriel injoignable | Nouvelle tentative par Messenger ; le fichier de la tentative est retiré, la tâche reste. |
+| Un export qui ne peut pas être écrit : le fichier non créé, ou son flux non vidé et fermé, comme sur un disque plein | `ExportFailed`, nouvelle tentative par Messenger ; le fichier tronqué est retiré, la tâche reste. |
 
 Le magasin `directory` garde chaque tâche sous forme de fichier JSON et chaque export sous forme de fichier, nommés par
 32 chiffres hexadécimaux aléatoires, dans un répertoire lisible par son seul propriétaire ; un identifiant d'une autre
@@ -132,7 +138,31 @@ bin/console messenger:consume scheduler_phil_reporting async
 
 | Clé | Livre |
 |---|---|
-| `mail` | Un courriel à chaque destinataire, le fichier en pièce jointe, envoyé par les transports du mailer depuis le *worker* : la pièce jointe n'entre jamais dans une file d'attente. Le fichier est lu une seule fois, en entier. |
+| `mail` | Un courriel à chaque destinataire, le fichier en pièce jointe, envoyé par les transports du mailer depuis le *worker* : la pièce jointe n'entre jamais dans une file d'attente. Le fichier est lu une seule fois, en entier. Le graphique d'un `ChartedReport` est l'image du courriel là où des graphiques PNG sont dessinés. |
 | `notification` | Une notification sur les canaux configurés de Notifier, avec le titre du rapport, sa période, son nombre de lignes et le nom du fichier ; aucun canal ne joint le fichier. |
 
 Une livraison de l'application implémente `ReportDelivery` ; voir [Points d'extension](extension-points.md).
+
+### Le graphique d'un rapport dans son courriel
+
+Un rapport qui implémente aussi `ChartedReport` nomme le graphique qui l'accompagne : une source de séries, dessinée sur
+la période du rapport, en barres par défaut.
+
+```php
+final class SalesReport implements ReportDefinition, ChartedReport
+{
+    // key(), title(), columns(), rows()…
+
+    public function chart(): ReportChart
+    {
+        return new ReportChart('sales_by_day', ChartType::Line);
+    }
+}
+```
+
+Là où des graphiques PNG sont dessinés — voir [Configuration](configuration.md#les-graphiques-png) —, la livraison
+`mail` ajoute une partie HTML au courriel : le texte, puis le graphique en image PNG affichée en place (`cid:chart.png`),
+dont le `alt` est le titre du graphique ; le fichier reste en pièce jointe. Les clients de courriel n'affichent pas le
+SVG : il n'y a donc pas de repli SVG. Sans l'extension ni ses polices, ou quand l'image ne peut pas être dessinée, le
+courriel est le texte et son fichier, comme pour tout rapport. Une source qui n'existe pas fait échouer la livraison avec
+`NotFound`, sans nouvelle tentative.

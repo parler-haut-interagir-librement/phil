@@ -7,6 +7,7 @@ namespace Phil\ReportingBundle\Tests\Unit\Infrastructure;
 use Override;
 use Phil\ReportingBundle\Application\Contract\ExportStore;
 use Phil\ReportingBundle\Application\Contract\JobStore;
+use Phil\ReportingBundle\Application\Exception\ExportFailed;
 use Phil\ReportingBundle\Application\Exception\JobUnavailable;
 use Phil\ReportingBundle\Application\Report\ReportJob;
 use Phil\ReportingBundle\Application\Report\ReportStream;
@@ -15,6 +16,7 @@ use Phil\ReportingBundle\Infrastructure\Memory\InMemoryJobStore;
 use Phil\ReportingBundle\Infrastructure\Store\DirectoryExportStore;
 use Phil\ReportingBundle\Infrastructure\Store\DirectoryJobStore;
 use Phil\ReportingBundle\Infrastructure\Store\PrivateDirectory;
+use Phil\ReportingBundle\Tests\Unit\Fixture\FailingStream;
 use Phil\ReportingBundle\Tests\Unit\Fixture\Reporting;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -27,6 +29,7 @@ use Symfony\Component\Filesystem\Filesystem;
 #[CoversClass(InMemoryJobStore::class)]
 #[CoversClass(InMemoryExportStore::class)]
 #[CoversClass(JobUnavailable::class)]
+#[CoversClass(ExportFailed::class)]
 final class StoresTest extends TestCase
 {
     private string $directory;
@@ -40,6 +43,10 @@ final class StoresTest extends TestCase
     #[Override]
     protected function tearDown(): void
     {
+        if (is_dir($this->directory)) {
+            chmod($this->directory, 0o700);
+        }
+
         new Filesystem()->remove($this->directory);
     }
 
@@ -125,6 +132,41 @@ final class StoresTest extends TestCase
                 self::assertSame(\sprintf('The directory "%s" cannot be created.', $this->directory.(str_contains($runtimeException->getMessage(), 'jobs') ? '/jobs' : '/exports')), $runtimeException->getMessage());
             }
         }
+    }
+
+    public function testAnExportThatCannotBeCreatedFails(): void
+    {
+        $store = new DirectoryExportStore($this->directory);
+        $store->keep(self::stream('x'), 'a.csv', 'text/csv', 1);
+        chmod($this->directory, 0o500);
+        clearstatcache();
+
+        if (is_writable($this->directory)) {
+            self::markTestSkipped('The superuser writes in a directory without the right to.');
+        }
+
+        try {
+            $store->keep(self::stream('y'), 'b.csv', 'text/csv', 1);
+            self::fail('Kept.');
+        } catch (ExportFailed $exportFailed) {
+            self::assertMatchesRegularExpression('#^The export failed: "'.preg_quote($this->directory, '#').'/[0-9a-f]{32}\.export" cannot be created\.$#D', $exportFailed->getMessage());
+        }
+    }
+
+    public function testAnExportCutShortLeavesNoFile(): void
+    {
+        FailingStream::register();
+        $store = new DirectoryExportStore($this->directory);
+        $store->keep(self::stream('x'), 'a.csv', 'text/csv', 1);
+
+        try {
+            $store->keep(ReportStream::of(fopen(FailingStream::SCHEME.'://read', 'r')), 'b.csv', 'text/csv', 1);
+            self::fail('Kept.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame('The source broke.', $runtimeException->getMessage());
+        }
+
+        self::assertCount(1, (array) glob($this->directory.'/*.export'));
     }
 
     public function testTheMemoryStoresAreReset(): void

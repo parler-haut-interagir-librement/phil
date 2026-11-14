@@ -27,6 +27,7 @@ use Phil\ReportingBundle\Infrastructure\DependencyInjection\ReportingServices;
 use Phil\ReportingBundle\Infrastructure\Format\CsvFormat;
 use Phil\ReportingBundle\Infrastructure\Format\JsonFormat;
 use Phil\ReportingBundle\Infrastructure\Format\TsvFormat;
+use Phil\ReportingBundle\Infrastructure\Http\ChartResponses;
 use Phil\ReportingBundle\Infrastructure\Http\ReportResponses;
 use Phil\ReportingBundle\Infrastructure\Memory\InMemoryExportStore;
 use Phil\ReportingBundle\Infrastructure\Memory\InMemoryJobStore;
@@ -42,27 +43,34 @@ use Phil\ReportingBundle\Infrastructure\Twig\Components\LiveDashboardComponent;
 use Phil\ReportingBundle\Infrastructure\Twig\Components\MetricComponent;
 use Phil\ReportingBundle\Infrastructure\Twig\DashboardAccess;
 use Phil\ReportingBundle\PhilReportingBundle;
-use Phil\ReportingBundle\Tests\Unit\Fixture\FrameworkStub;
+use Phil\ReportingBundle\Tests\Unit\Fixture\ExtensionStub;
 use Phil\ReportingBundle\Tests\Unit\Fixture\NullBus;
 use Phil\ReportingBundle\Tests\Unit\Fixture\OrdersSource;
 use Phil\ReportingBundle\Tests\Unit\Fixture\RecordingDelivery;
 use Phil\ReportingBundle\Tests\Unit\Fixture\SalesReport;
 use Phil\ReportingBundle\Tests\Unit\Fixture\VisitsSource;
+use Phil\SvgChart\Contract\Rasterizer;
+use Phil\SvgChart\Raster\ResvgRasterizer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
+use Symfony\Component\DependencyInjection\Extension\ConfigurationExtensionInterface;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Messenger\MessageBusInterface;
 
+/**
+ * @phpstan-import-type Config from ReportingServices
+ */
 #[CoversClass(PhilReportingBundle::class)]
 #[CoversClass(ReportingServices::class)]
 #[CoversClass(KeyedServicesPass::class)]
@@ -81,7 +89,7 @@ final class PhilReportingBundleTest extends TestCase
             ReportRunner::class,
             DashboardAccess::class, MetricComponent::class, ChartComponent::class, DashboardComponent::class, LiveDashboardComponent::class,
             ReportQueue::class, RunReportHandler::class, RunScheduledReportHandler::class,
-            ExportReportCommand::class, ReportResponses::class,
+            ExportReportCommand::class, ReportResponses::class, ChartResponses::class,
         ], array_keys($container->getDefinitions()));
 
         foreach ([CsvFormat::class => 'csv', TsvFormat::class => 'tsv', JsonFormat::class => 'json'] as $format => $key) {
@@ -91,7 +99,9 @@ final class PhilReportingBundleTest extends TestCase
         self::assertEquals([new Reference('clock'), 'UTC'], $container->getDefinition(Periods::class)->getArguments());
         self::assertEquals([$this->locator('phil_reporting.metric_source'), $this->locator('phil_reporting.series_source')], $container->getDefinition(Sources::class)->getArguments());
         self::assertSame([[Dashboards::class, 'fromConfig'], [[]]], [$container->getDefinition(Dashboards::class)->getFactory(), $container->getDefinition(Dashboards::class)->getArguments()]);
-        self::assertSame([640, 320], $container->getDefinition(ChartDrawing::class)->getArguments());
+        self::assertEquals([640, 320, new Reference(Rasterizer::class, ContainerInterface::NULL_ON_INVALID_REFERENCE), 2], $container->getDefinition(ChartDrawing::class)->getArguments());
+        self::assertFalse($container->hasDefinition(ResvgRasterizer::class));
+        self::assertFalse($container->hasAlias(Rasterizer::class));
         self::assertEquals([$this->locator('phil_reporting.report'), $this->locator('phil_reporting.format'), 100_000], $container->getDefinition(Reports::class)->getArguments());
         self::assertEquals([[Schedules::class, 'fromConfig'], [[], new Reference(Periods::class)]], [$container->getDefinition(Schedules::class)->getFactory(), $container->getDefinition(Schedules::class)->getArguments()]);
         self::assertSame(['%kernel.project_dir%/var/phil_reporting/jobs'], $container->getDefinition(DirectoryJobStore::class)->getArguments());
@@ -126,8 +136,9 @@ final class PhilReportingBundleTest extends TestCase
         self::assertEquals([new Reference(Reports::class), new Reference(Periods::class)], $container->getDefinition(ExportReportCommand::class)->getArguments());
         self::assertSame([[]], $container->getDefinition(ExportReportCommand::class)->getTag('console.command'));
         self::assertEquals([new Reference(Reports::class)], $container->getDefinition(ReportResponses::class)->getArguments());
+        self::assertEquals([new Reference(Sources::class), new Reference(ChartDrawing::class)], $container->getDefinition(ChartResponses::class)->getArguments());
 
-        foreach ([Periods::class, Sources::class, Dashboards::class, Reports::class, Schedules::class, ReportRunner::class, ReportQueue::class, ReportResponses::class] as $public) {
+        foreach ([Periods::class, Sources::class, Dashboards::class, Reports::class, Schedules::class, ReportRunner::class, ReportQueue::class, ReportResponses::class, ChartResponses::class] as $public) {
             self::assertTrue($container->getDefinition($public)->isPublic(), $public);
         }
 
@@ -161,7 +172,7 @@ final class PhilReportingBundleTest extends TestCase
         ]);
 
         self::assertSame('America/Toronto', $container->getDefinition(Periods::class)->getArgument(1));
-        self::assertSame([800, 400], $container->getDefinition(ChartDrawing::class)->getArguments());
+        self::assertSame([800, 400], \array_slice($container->getDefinition(ChartDrawing::class)->getArguments(), 0, 2));
         self::assertSame(50, $container->getDefinition(Reports::class)->getArgument(2));
         self::assertTrue($container->getDefinition(ReportRunner::class)->getArgument(5));
         self::assertSame([InMemoryJobStore::class, true], [(string) $container->getAlias(JobStore::class), $container->getAlias(JobStore::class)->isPublic()]);
@@ -169,7 +180,7 @@ final class PhilReportingBundleTest extends TestCase
         self::assertSame([['method' => 'reset']], $container->getDefinition(InMemoryJobStore::class)->getTag('kernel.reset'));
         self::assertSame([['method' => 'reset']], $container->getDefinition(InMemoryExportStore::class)->getTag('kernel.reset'));
         self::assertFalse($container->hasDefinition(DirectoryJobStore::class));
-        self::assertEquals([new Reference('mailer.transports'), new Reference(Reports::class), 'reports@example.com'], $container->getDefinition(MailDelivery::class)->getArguments());
+        self::assertEquals([new Reference('mailer.transports'), new Reference(Reports::class), 'reports@example.com', new Reference(ChartDrawing::class), new Reference(Sources::class)], $container->getDefinition(MailDelivery::class)->getArguments());
         self::assertSame([['key' => 'mail']], $container->getDefinition(MailDelivery::class)->getTag('phil_reporting.delivery'));
         self::assertEquals([new Reference('notifier'), new Reference(Reports::class), ['chat/slack']], $container->getDefinition(NotificationDelivery::class)->getArguments());
         self::assertSame([['key' => 'notification']], $container->getDefinition(NotificationDelivery::class)->getTag('phil_reporting.delivery'));
@@ -218,6 +229,11 @@ final class PhilReportingBundleTest extends TestCase
             'The value "fortnight" is not allowed' => ['schedules' => ['s' => ['report' => 'r', 'every' => '1 day', 'period' => 'fortnight']]],
             'The value "radar" is not allowed' => ['dashboards' => ['d' => ['title' => 'D', 'widgets' => [['series' => 's', 'chart' => 'radar']]]]],
             'The child config "title" under' => ['dashboards' => ['d' => []]],
+            'The value 0 is too small for path "phil_reporting.png.scale"' => ['png' => ['scale' => 0]],
+            'The value 5 is too big for path "phil_reporting.png.scale"' => ['png' => ['scale' => 5]],
+            'The value 0 is too small for path "phil_reporting.png.max_pixels"' => ['png' => ['max_pixels' => 0]],
+            'The value 67108865 is too big for path "phil_reporting.png.max_pixels"' => ['png' => ['max_pixels' => 67_108_865]],
+            'The path "phil_reporting.png.fonts.0" cannot contain an empty value' => ['png' => ['fonts' => ['']]],
         ] as $message => $config) {
             try {
                 $this->load($config);
@@ -228,8 +244,10 @@ final class PhilReportingBundleTest extends TestCase
         }
 
         self::assertTrue($this->load(['mail' => ['enabled' => false]])->hasDefinition(Periods::class));
-        self::assertSame([100, 100], $this->load(['chart' => ['width' => 100, 'height' => 100]])->getDefinition(ChartDrawing::class)->getArguments());
-        self::assertSame([4000, 4000], $this->load(['chart' => ['width' => 4000, 'height' => 4000]])->getDefinition(ChartDrawing::class)->getArguments());
+        self::assertSame([100, 100], \array_slice($this->load(['chart' => ['width' => 100, 'height' => 100]])->getDefinition(ChartDrawing::class)->getArguments(), 0, 2));
+        self::assertSame([4000, 4000], \array_slice($this->load(['chart' => ['width' => 4000, 'height' => 4000]])->getDefinition(ChartDrawing::class)->getArguments(), 0, 2));
+        self::assertSame(1, $this->load(['png' => ['scale' => 1]])->getDefinition(ChartDrawing::class)->getArgument(3));
+        self::assertSame(4, $this->load(['png' => ['scale' => 4]])->getDefinition(ChartDrawing::class)->getArgument(3));
         self::assertSame(1, $this->load(['max_rows' => 1])->getDefinition(Reports::class)->getArgument(2));
         self::assertSame(10_000_000, $this->load(['max_rows' => 10_000_000])->getDefinition(Reports::class)->getArgument(2));
         self::assertTrue($this->load(['store' => 'directory'])->hasDefinition(DirectoryJobStore::class));
@@ -238,23 +256,72 @@ final class PhilReportingBundleTest extends TestCase
         self::assertEquals([$name => ['title' => 'D', 'role' => null, 'period' => 'last_30_days', 'periods' => ['last_30_days'], 'widgets' => []]], $this->load(['dashboards' => [$name => ['title' => 'D']]])->getDefinition(Dashboards::class)->getArgument(0));
     }
 
-    public function testTheStylesheetIsPrepended(): void
+    public function testThePngChartsNeedFontsAndTheExtension(): void
+    {
+        $font = \dirname(__DIR__).'/Fixtures/fonts/test.ttf';
+        $container = $this->load(['png' => ['fonts' => [$font], 'max_pixels' => 1_000_000]]);
+
+        self::assertSame(ResvgRasterizer::isAvailable(), $container->hasDefinition(ResvgRasterizer::class));
+        self::assertSame(ResvgRasterizer::isAvailable(), $container->hasAlias(Rasterizer::class));
+
+        if (ResvgRasterizer::isAvailable()) {
+            self::assertSame([[$font], 1_048_576, 1_000_000], $container->getDefinition(ResvgRasterizer::class)->getArguments());
+            self::assertSame(ResvgRasterizer::class, (string) $container->getAlias(Rasterizer::class));
+        }
+
+        self::assertFalse($this->load(['png' => ['max_pixels' => 1_000_000]])->hasDefinition(ResvgRasterizer::class));
+    }
+
+    public function testThePngRasterizerIsRegisteredWhereTheExtensionIsLoadedWhateverTheTestMachine(): void
+    {
+        $font = \dirname(__DIR__).'/Fixtures/fonts/test.ttf';
+        $config = $this->processed(['png' => ['fonts' => [$font]]]);
+        self::assertSame(16_777_216, $config['png']['max_pixels']);
+
+        $loaded = new ContainerBuilder();
+        ReportingServices::register($loaded, $config, static fn (): bool => true);
+        self::assertSame([[$font], 1_048_576, 16_777_216], $loaded->getDefinition(ResvgRasterizer::class)->getArguments());
+        self::assertSame(ResvgRasterizer::class, (string) $loaded->getAlias(Rasterizer::class));
+
+        $absent = new ContainerBuilder();
+        ReportingServices::register($absent, $config, static fn (): bool => false);
+        self::assertFalse($absent->hasDefinition(ResvgRasterizer::class));
+        self::assertFalse($absent->hasAlias(Rasterizer::class));
+
+        $noFonts = new ContainerBuilder();
+        ReportingServices::register($noFonts, $this->processed([]), static fn (): bool => true);
+        self::assertFalse($noFonts->hasDefinition(ResvgRasterizer::class));
+
+        self::assertSame(1, $this->processed(['png' => ['max_pixels' => 1]])['png']['max_pixels']);
+    }
+
+    public function testTheStylesheetIsMappedForAssetMapper(): void
     {
         $extension = $this->extension();
         self::assertInstanceOf(PrependExtensionInterface::class, $extension);
         $container = new ContainerBuilder();
-        $container->registerExtension(new FrameworkStub());
+        $container->registerExtension(new ExtensionStub('framework'));
+        $container->registerExtension(new ExtensionStub('asset_mapper'));
         $container->registerExtension($extension);
 
         $extension->prepend($container);
 
-        self::assertSame([['asset_mapper' => ['paths' => [\dirname(__DIR__, 2).'/assets/styles' => 'phil-reporting']]]], $container->getExtensionConfig('framework'));
+        self::assertSame([['paths' => [\dirname(__DIR__, 2).'/assets/styles' => 'phil-reporting']]], $container->getExtensionConfig('asset_mapper'));
+        self::assertSame([], $container->getExtensionConfig('framework'));
+    }
 
-        $bare = new ContainerBuilder();
-        $bare->registerExtension($extension);
+    public function testNoPathIsWrittenWithoutAssetMapperBundle(): void
+    {
+        $extension = $this->extension();
+        self::assertInstanceOf(PrependExtensionInterface::class, $extension);
+        $container = new ContainerBuilder();
+        $container->registerExtension(new ExtensionStub('framework'));
+        $container->registerExtension($extension);
 
-        $extension->prepend($bare);
-        self::assertSame([], $bare->getExtensionConfig('framework'));
+        $extension->prepend($container);
+
+        self::assertSame([], $container->getExtensionConfig('framework'));
+        self::assertSame([], $container->getExtensionConfig('asset_mapper'));
     }
 
     public function testTheKeysOfTheTaggedServices(): void
@@ -320,6 +387,22 @@ final class PhilReportingBundleTest extends TestCase
         $this->extension()->load([$config], $container);
 
         return $container;
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     *
+     * @return Config
+     */
+    private function processed(array $config): array
+    {
+        $extension = $this->extension();
+        self::assertInstanceOf(ConfigurationExtensionInterface::class, $extension);
+        $configuration = $extension->getConfiguration([], new ContainerBuilder());
+        self::assertNotNull($configuration);
+
+        /** @var Config */
+        return new Processor()->processConfiguration($configuration, [$config]);
     }
 
     private function extension(): ExtensionInterface

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\ReportingBundle\Infrastructure\Messenger;
 
 use Phil\ReportingBundle\Application\Contract\JobStore;
+use Phil\ReportingBundle\Application\Exception\ExportFailed;
 use Phil\ReportingBundle\Application\Message\RunReport;
 use Phil\ReportingBundle\Application\Report\ReportRunner;
 use Phil\ReportingBundle\Domain\Exception\ReportingException;
@@ -13,7 +14,8 @@ use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 /**
  * Runs the job of a `RunReport`. A failure of the bundle — a job gone, an unknown report, format or delivery, too
  * many rows — is never retried, and the job is forgotten with its recipients; anything else, a mail server out of
- * reach, is left for Messenger to retry with the job still kept.
+ * reach or an export that could not be written (`ExportFailed`, a full disk), is left for Messenger to retry with the
+ * job still kept.
  */
 final readonly class RunReportHandler
 {
@@ -27,6 +29,9 @@ final readonly class RunReportHandler
     {
         try {
             $this->runner->run($message->job);
+        } catch (ExportFailed $exportFailed) {
+            // A full disk passes: the job stays for a retry, which exports again.
+            throw $exportFailed;
         } catch (ReportingException $reportingException) {
             $this->jobs->remove($message->job);
 

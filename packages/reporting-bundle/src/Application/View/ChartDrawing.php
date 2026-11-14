@@ -4,24 +4,58 @@ declare(strict_types=1);
 
 namespace Phil\ReportingBundle\Application\View;
 
+use Phil\ReportingBundle\Application\Exception\PngUnavailable;
 use Phil\ReportingBundle\Domain\ValueObject\Series;
 use Phil\ReportingBundle\Domain\ValueObject\SeriesSet;
 use Phil\SvgChart\Chart;
 use Phil\SvgChart\ChartType;
+use Phil\SvgChart\Contract\Rasterizer;
 use Phil\SvgChart\Dataset;
+use Phil\SvgChart\Exception\RasterizationFailed;
 use Phil\SvgChart\SvgChartWriter;
 
 /**
  * A set of series drawn for a page: as an SVG image by phil/svg-chart — `role="img"`, a title, and a description that
- * reads every value —, or as the rows of horizontal bars, each value with its share of the largest one.
+ * reads every value —, or as the rows of horizontal bars, each value with its share of the largest one; and as a PNG
+ * image, for an e-mail or a download, when a rasterizer is given.
  */
 final readonly class ChartDrawing
 {
     private SvgChartWriter $writer;
 
-    public function __construct(int $width = 640, int $height = 320)
-    {
+    /**
+     * @param int<1, 4> $scale the scale of the PNG images, 2 for screens of high density
+     */
+    public function __construct(
+        int $width = 640,
+        int $height = 320,
+        private ?Rasterizer $rasterizer = null,
+        private int $scale = 2,
+    ) {
         $this->writer = new SvgChartWriter($width, $height);
+    }
+
+    /**
+     * Whether the charts are drawn as PNG images too.
+     */
+    public function hasPng(): bool
+    {
+        return $this->rasterizer instanceof Rasterizer;
+    }
+
+    /**
+     * The SVG image of `svg()`, drawn as a PNG at the configured scale.
+     *
+     * @throws PngUnavailable      when no rasterizer is given
+     * @throws RasterizationFailed when the image is not drawn
+     */
+    public function png(SeriesSet $set, ChartType $type, string $title): string
+    {
+        if (!$this->rasterizer instanceof Rasterizer) {
+            throw PngUnavailable::create();
+        }
+
+        return $this->rasterizer->png($this->svg($set, $type, $title), $this->scale);
     }
 
     public function svg(SeriesSet $set, ChartType $type, string $title): string

@@ -36,7 +36,6 @@
         "easycorp/easyadmin-bundle": "^5.8",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",
-        "symfony/asset-mapper": "^8.2",
         "symfony/clock": "^8.2",
         "symfony/console": "^8.2",
         "symfony/event-dispatcher": "^8.2",
@@ -60,6 +59,7 @@
         "twig/twig": "^3.21"
     },
     "suggest": {
+        "ext-resvg": "To draw the charts as PNG images too: a download, and the image of a report's e-mail",
         "easycorp/easyadmin-bundle": "To show a dashboard as a page of an EasyAdmin back office",
         "phil/ux-css": "For the look of the dashboards, on the tokens of PHIL UX",
         "symfony/console": "For phil:reporting:export",

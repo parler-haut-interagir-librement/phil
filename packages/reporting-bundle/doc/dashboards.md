@@ -41,6 +41,30 @@ No script draws anything. Every rendering keeps the values readable as text:
 - a metric's change is written as a sentence — "Up 20% from the previous period" —, the arrow beside it hidden from
   screen readers.
 
+## A chart as a PNG download
+
+Where PNG charts are drawn — the `resvg` extension loaded and `png.fonts` listed, see
+[Configuration](configuration.md#the-png-charts) —, `ChartResponses` gives the chart of a series source as a PNG file,
+from a controller of the application, which first checks who may see it:
+
+```php
+use Phil\ReportingBundle\Infrastructure\Http\ChartResponses;
+use Phil\SvgChart\ChartType;
+
+#[Route('/reports/visits.png')]
+#[IsGranted('ROLE_MANAGER')]
+public function visits(ChartResponses $charts, Periods $periods): Response
+{
+    return $charts->png('visits', $periods->period(PeriodPreset::Last30Days), ChartType::Line);
+}
+```
+
+The image is the SVG chart of the page, drawn at the configured scale; the file is named after the source and the
+first and last days of the period, `visits-20261009-20261107.png`, sent as an attachment with
+`Cache-Control: private, no-store` and `X-Content-Type-Options: nosniff`. A link to it is offered only when
+`$charts->hasPng()` is true: elsewhere `png()` throws `PngUnavailable` before anything is drawn, and the page keeps its
+SVG image and its table. An unknown source fails with `NotFound`.
+
 ## Access
 
 A dashboard that names a `role` is shown only to a viewer who has it, asked of Symfony's authorization checker at every
@@ -71,3 +95,18 @@ public function configureMenuItems(): iterable
 ```
 
 With `live: false`, the page shows `PhilReporting:Dashboard` with the `period` of the query.
+
+The back office loads its own assets, not those of the application's pages: declare them in `configureAssets()` of
+the dashboard controller. The `app` entry of AssetMapper starts Stimulus, which the Live Component needs to change the
+period without reloading the page, and the bundle's stylesheet draws the metrics and the bars:
+
+```php
+use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
+
+public function configureAssets(): Assets
+{
+    return Assets::new()
+        ->addAssetMapperEntry('app')
+        ->addCssFile('phil-reporting/reporting.css');
+}
+```

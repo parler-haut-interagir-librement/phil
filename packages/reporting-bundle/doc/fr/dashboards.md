@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=43317227f2557caa4a600dcef78cbbc5a57014d4bfd805167a8465c1f8d6d6ef -->
+<!-- phil-dev source-sha256=0bbec68fde23f04b641e9df45feb008facd7f7e2ce16ee6e0cde8d662d5257c8 -->
 # Tableaux de bord
 
 ## Les composants
@@ -43,6 +43,30 @@ Aucun script ne dessine quoi que ce soit. Chaque rendu garde les valeurs lisible
 - la variation d'une mesure s'écrit sous forme de phrase — « En hausse de 20 % par rapport à la période précédente » —,
   la flèche à côté étant cachée aux lecteurs d'écran.
 
+## Un graphique en téléchargement PNG
+
+Là où des graphiques PNG sont dessinés — l'extension `resvg` chargée et `png.fonts` listé, voir
+[Configuration](configuration.md#les-graphiques-png) —, `ChartResponses` donne le graphique d'une source de séries sous
+forme de fichier PNG, depuis un contrôleur de l'application, qui vérifie d'abord qui peut le voir :
+
+```php
+use Phil\ReportingBundle\Infrastructure\Http\ChartResponses;
+use Phil\SvgChart\ChartType;
+
+#[Route('/reports/visits.png')]
+#[IsGranted('ROLE_MANAGER')]
+public function visits(ChartResponses $charts, Periods $periods): Response
+{
+    return $charts->png('visits', $periods->period(PeriodPreset::Last30Days), ChartType::Line);
+}
+```
+
+L'image est le graphique SVG de la page, dessiné à l'échelle configurée ; le fichier porte le nom de la source et des
+premier et dernier jours de la période, `visits-20261009-20261107.png`, et est envoyé en pièce jointe avec
+`Cache-Control: private, no-store` et `X-Content-Type-Options: nosniff`. Un lien vers lui n'est offert que lorsque
+`$charts->hasPng()` est vrai : ailleurs, `png()` lève `PngUnavailable` avant que rien ne soit dessiné, et la page garde
+son image SVG et son tableau. Une source inconnue échoue avec `NotFound`.
+
 ## Accès
 
 Un tableau de bord qui nomme un `role` n'est montré qu'à un lecteur qui l'a, demandé au vérificateur d'autorisation de
@@ -74,3 +98,19 @@ public function configureMenuItems(): iterable
 ```
 
 Avec `live: false`, la page affiche `PhilReporting:Dashboard` avec la `period` de la requête.
+
+Le back-office charge ses propres ressources, pas celles des pages de l'application : déclarez-les dans
+`configureAssets()` du contrôleur du tableau de bord. L'entrée `app` d'AssetMapper démarre Stimulus, dont le Live
+Component a besoin pour changer la période sans recharger la page, et la feuille de style du bundle dessine les mesures
+et les barres :
+
+```php
+use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
+
+public function configureAssets(): Assets
+{
+    return Assets::new()
+        ->addAssetMapperEntry('app')
+        ->addCssFile('phil-reporting/reporting.css');
+}
+```

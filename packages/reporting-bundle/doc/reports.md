@@ -71,6 +71,11 @@ public function sales(ReportResponses $responses, Periods $periods): StreamedRes
 An unknown report or format fails with `NotFound` before anything is sent. The response is an attachment,
 `Cache-Control: private, no-store`, `X-Content-Type-Options: nosniff`.
 
+The report is written to the response as it is read, row by row: a long report starts at once and holds no more than
+a row in memory. Behind FrankenPHP, Caddy cuts a write that stays blocked for a minute — a client that stops reading
+—, and the file arrives cut short. A report too long to download while the reader waits goes through
+[the claim check](#in-a-worker-the-claim-check) instead.
+
 ## The command
 
 ```sh
@@ -108,6 +113,7 @@ leaves its file in the export store, for the application to hand out by its iden
 |---|---|
 | A failure of the bundle: the job gone, an unknown report, format or delivery, too many rows, a row out of shape | `UnrecoverableMessageHandlingException`: never retried; the job is forgotten with its recipients. |
 | A delivery that fails: a mail server out of reach | Retried by Messenger; the file of the attempt is removed, the job stays. |
+| An export that cannot be written: the file not created, or its stream not flushed and closed, as on a full disk | `ExportFailed`, retried by Messenger; the file cut short is removed, the job stays. |
 
 The `directory` store keeps each job as a JSON file and each export as a file, named by 32 random hexadecimal digits,
 in a directory readable by its owner only; an identifier of another shape never reaches the disk. Nothing is
@@ -128,7 +134,30 @@ bin/console messenger:consume scheduler_phil_reporting async
 
 | Key | Delivers |
 |---|---|
-| `mail` | An e-mail to each recipient, the file attached, sent by the mailer's transports from the worker: the attachment never enters a queue. The file is read once, whole. |
+| `mail` | An e-mail to each recipient, the file attached, sent by the mailer's transports from the worker: the attachment never enters a queue. The file is read once, whole. The chart of a `ChartedReport` is the image of the e-mail where PNG charts are drawn. |
 | `notification` | A notification on the configured channels of Notifier, with the report's title, period, number of rows and file name; no channel attaches the file. |
 
 A delivery of the application implements `ReportDelivery`; see [Extension points](extension-points.md).
+
+### The chart of a report in its e-mail
+
+A report that also implements `ChartedReport` names the chart that goes with it: a series source, drawn over the
+report's period, as bars by default.
+
+```php
+final class SalesReport implements ReportDefinition, ChartedReport
+{
+    // key(), title(), columns(), rows()…
+
+    public function chart(): ReportChart
+    {
+        return new ReportChart('sales_by_day', ChartType::Line);
+    }
+}
+```
+
+Where PNG charts are drawn — see [Configuration](configuration.md#the-png-charts) —, the `mail` delivery adds an HTML
+part to the e-mail: the text, then the chart as a PNG image shown in place (`cid:chart.png`), whose `alt` is the
+chart's title; the file stays attached. E-mail clients do not show SVG, so there is no SVG fallback: without the
+extension or its fonts, or when the image cannot be drawn, the e-mail is the text and its file, as for any report. A
+source that does not exist fails the delivery with `NotFound`, never retried.

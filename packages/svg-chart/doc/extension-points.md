@@ -8,5 +8,6 @@ change them, and its CHANGELOG says how.
 | Read another configuration format | Build a `Chart` from `ChartType`, labels and `Dataset` values |
 | Use the colours of a brand | Pass a palette to `SvgChartWriter` |
 | Draw another kind of chart | Read the `Chart` and write the image yourself; `SvgChartWriter` is final |
+| Draw PNG images otherwise | Implement `Contract\Rasterizer`; `ResvgRasterizer` is final |
 
 The classes under `Internal` are not extension points.

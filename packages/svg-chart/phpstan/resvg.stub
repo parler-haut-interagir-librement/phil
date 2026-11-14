@@ -1,0 +1,35 @@
+<?php
+
+// The classes of the resvg extension the package calls, for PHPStan where the extension is not loaded.
+
+namespace Resvg;
+
+class Exception extends \RuntimeException
+{
+}
+
+final class Renderer
+{
+    /**
+     * @param array<string, mixed> $options
+     */
+    public function __construct(array $options = [])
+    {
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     *
+     * @return array{width: int, height: int}
+     */
+    public function measure(string $svg, array $options = []): array
+    {
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     */
+    public function render(string $svg, array $options = []): string|bool
+    {
+    }
+}

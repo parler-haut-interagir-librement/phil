@@ -5,6 +5,7 @@
 | `Phil\ReportingBundle\PhilReportingBundle` | bundle | The configuration `phil_reporting`, the stylesheet mapped |
 | `Phil\ReportingBundle\Application\Contract\MetricSource`, `SeriesSource` | interface | The data-source port |
 | `Phil\ReportingBundle\Application\Contract\ReportDefinition` | interface | A report's columns and rows |
+| `Phil\ReportingBundle\Application\Contract\ChartedReport` | interface | A report that has a chart, for its e-mail |
 | `Phil\ReportingBundle\Application\Contract\ReportFormat` | interface | A file format |
 | `Phil\ReportingBundle\Application\Contract\ReportDelivery` | interface | How a file reaches its recipients |
 | `Phil\ReportingBundle\Application\Contract\JobStore`, `ExportStore` | interface | The claim check |
@@ -13,17 +14,20 @@
 | `Phil\ReportingBundle\Application\Periods` | `final readonly class` | The presets in the configured time zone |
 | `Phil\ReportingBundle\Application\Dashboard\Dashboards`, `Dashboard`, `Widget` | `final readonly class` | The dashboards of the configuration |
 | `Phil\ReportingBundle\Application\Dashboard\WidgetKind`, `ChartRendering` | enum | `metric`, `chart`; `svg`, `html`, `table` |
-| `Phil\ReportingBundle\Application\View\ChartDrawing` | `final readonly class` | The SVG image and the bars |
+| `Phil\ReportingBundle\Application\View\ChartDrawing` | `final readonly class` | The SVG image, the bars, and the PNG image where a rasterizer is given |
 | `Phil\ReportingBundle\Application\View\MetricReading` | `final readonly class` | A metric, a value and a change written in a locale |
 | `Phil\ReportingBundle\Application\Report\Reports` | `final readonly class` | The reports and formats by key; `write()`, `filename()` |
 | `Phil\ReportingBundle\Application\Report\ReportRequest`, `ReportJob` | `final readonly class` | What a report is asked for; a job of the queue |
 | `Phil\ReportingBundle\Application\Report\StoredExport` | `final readonly class` | A file of the export store |
+| `Phil\ReportingBundle\Application\Report\ReportChart` | `final readonly class` | The chart of a report: a series source, a kind of chart, a title |
 | `Phil\ReportingBundle\Application\Report\ReportStream` | `final class` | A stream a report is written to or read from |
 | `Phil\ReportingBundle\Application\Report\ReportRunner` | `final readonly class` | Exports, delivers and forgets a kept job |
 | `Phil\ReportingBundle\Application\Report\ReportSchedule`, `Schedules` | `final readonly class` | The schedules of the configuration |
 | `Phil\ReportingBundle\Application\Message\RunReport`, `RunScheduledReport` | `final readonly class` | The messages, identifiers only |
 | `Phil\ReportingBundle\Application\Event\ReportExported` | `final readonly class` | A job exported |
 | `Phil\ReportingBundle\Application\Exception\NotFound`, `JobUnavailable`, `ReportTooLarge`, `InvalidReportJob`, `AccessDenied` | `final class` | What the services refuse |
+| `Phil\ReportingBundle\Application\Exception\ExportFailed` | `final class` | A file not written whole; retried |
+| `Phil\ReportingBundle\Application\Exception\PngUnavailable` | `final class` | A PNG asked where none is drawn |
 | `Phil\ReportingBundle\Domain\ValueObject\Period`, `Metric`, `Series`, `SeriesSet` | `final readonly class` | The figures |
 | `Phil\ReportingBundle\Domain\Format\MetricFormat` | enum | `number`, `percent`, `currency` |
 | `Phil\ReportingBundle\Domain\Exception\ReportingException` | interface | Every exception of the bundle |
@@ -38,6 +42,7 @@
 | `Phil\ReportingBundle\Infrastructure\Twig\Components\DashboardComponent`, `LiveDashboardComponent`, `MetricComponent`, `ChartComponent` | `final class` | The components |
 | `Phil\ReportingBundle\Infrastructure\Twig\DashboardAccess` | `final readonly class` | A dashboard given only to a viewer with its role |
 | `Phil\ReportingBundle\Infrastructure\Http\ReportResponses` | `final readonly class` | A report streamed as a download |
+| `Phil\ReportingBundle\Infrastructure\Http\ChartResponses` | `final readonly class` | The chart of a series source as a PNG download |
 | `Phil\ReportingBundle\Infrastructure\Console\ExportReportCommand` | `final readonly class` | `phil:reporting:export` |
 | `Phil\ReportingBundle\Infrastructure\EasyAdmin\ReportingAdmin` | `final class` | The EasyAdmin template and menu link |
 | `Phil\ReportingBundle\Infrastructure\DependencyInjection\ReportingServices` | `final class` | The services and the tags `phil_reporting.*` |

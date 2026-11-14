@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=48b15261595270f977fe3706a6e2a79ba7442ea25f832fa5d11795634bffc895 -->
+<!-- phil-dev source-sha256=fa1d7fc49dde37224ea1532b33b903e6fd9c2a385ae22250bdd1b1860f8b01f9 -->
 # phil/svg-chart
 
 **Des graphiques dessinés en SVG sur le serveur, à partir de la configuration qu'écrit déjà un éditeur de graphiques.**
@@ -13,7 +13,13 @@ Il s'adresse à tout code PHP qui doit afficher un graphique sans script : un bl
 son enregistrement, un PDF, un courriel, une page lue sans JavaScript. La configuration est vérifiée par rapport à des
 limites : celle qu'envoie un client ne coûte donc pas plus qu'une grande configuration honnête.
 
-C'est une simple bibliothèque PHP au-dessus de `ext-mbstring`. Sa sortie est déterministe.
+Là où l'extension PHP `resvg` est chargée, `ResvgRasterizer` dessine l'image en PNG pour les lecteurs qui n'acceptent
+pas le SVG — un courriel, une image à partager —, après avoir fait passer l'image par phil/svg-sanitizer, avec les
+polices données et aucune autre, et dans des limites de taille ; sans l'extension, le paquet dessine du SVG et le PNG
+n'est tout simplement pas offert.
+
+C'est une simple bibliothèque PHP au-dessus de `ext-mbstring`, de phil/svg-sanitizer et de phil/fonts. Sa sortie SVG est
+déterministe.
 
 ## État
 
@@ -25,6 +31,7 @@ C'est une simple bibliothèque PHP au-dessus de `ext-mbstring`. Sa sortie est d�
 | Graphiques circulaires et en anneau, à partir de la première série | Implémenté et testé |
 | Graduations rondes, libellés éclaircis quand ils se chevauchent, légende en rangées, couleurs Okabe-Ito | Implémenté et testé |
 | `<title>` sur chaque marque, `<desc>` de chaque valeur, `role="img"` | Implémenté et testé |
+| Images PNG par l'extension facultative `resvg` : nettoyées d'abord, polices données, fichiers et limites confinés | Implémenté et testé |
 
 ## Documentation
 
@@ -33,6 +40,7 @@ C'est une simple bibliothèque PHP au-dessus de `ext-mbstring`. Sa sortie est d�
 | [Installation](doc/fr/installation.md) | Les prérequis et l'installation. |
 | [Configuration](doc/fr/configuration.md) | Ce que lit `Chart::fromConfig()`, ce qu'il ignore, et ses limites. |
 | [Dessin](doc/fr/drawing.md) | L'image que dessine `SvgChartWriter`, ses options et son accessibilité. |
+| [Images PNG](doc/fr/png.md) | `ResvgRasterizer` : l'extension facultative, les polices, les limites et ce qu'il ne lit jamais. |
 | [Points d'extension](doc/fr/extension-points.md) | Ce qu'une application peut remplacer ou ajouter, et quand c'est stable. |
 | [Tests](doc/fr/testing.md) | Les tests du paquet et son seuil de mutation. |
 | [Référence](doc/fr/reference.md) | Chaque type public, avec son rôle. |
@@ -56,7 +64,7 @@ $svg = new SvgChartWriter(640, 400)->write(Chart::fromConfig([
 
 ## Prérequis
 
-PHP 8.5 ou plus récent, avec `ext-mbstring`.
+PHP 8.5 ou plus récent, avec `ext-mbstring` ; l'extension `resvg` pour les images PNG.
 
 ## Contribuer
 
