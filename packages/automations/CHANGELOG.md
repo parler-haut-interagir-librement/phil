@@ -4,6 +4,14 @@ All notable changes to `phil/automations` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- `ValidatedDefinitions`: `Definitions` in front of another store that refuse, with every problem, a definition the
+  `DefinitionValidator` does not accept, its conditions parsed by the evaluator that runs them; the installation
+  wires it in front of `DbalDefinitions`.
+
 ## 0.1.0-alpha - 2026-11-13
 
 ### Added

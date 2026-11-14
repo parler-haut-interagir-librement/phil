@@ -91,3 +91,18 @@ use Phil\Automations\Definition\DefinitionValidator;
 $problems = new DefinitionValidator($catalogue)->problems($definition);   // list of sentences, none when valid
 new DefinitionValidator($catalogue)->validate($definition);               // throws InvalidDefinition with all of them
 ```
+
+`ValidatedDefinitions` puts the validator in front of the store, so that nothing reaches it unchecked — a definition
+saved from a no-code builder is refused when it is saved, with every problem, rather than failing when its run
+reaches the step:
+
+```php
+use Phil\Automations\Definition\ValidatedDefinitions;
+
+$definitions = new ValidatedDefinitions(new DbalDefinitions($connection), new DefinitionValidator($catalogue));
+$definitions->publish($definition);   // throws InvalidDefinition, and keeps nothing, when the definition has a problem
+```
+
+A condition in the language `expression` is checked by the evaluator that runs it: the same parser, no function, and
+the variables `payload`, `outputs` and `subject` only. Definitions live in a database, not in the configuration of the
+application, so Symfony's `lint:expressions` does not list them; the check at publication takes its place.

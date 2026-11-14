@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=84b894999f50f696d56c37bd841d43b7d29f7a24ea6e18be060d5ab38b36078e -->
+<!-- phil-dev source-sha256=ad62c338a3b1b5cde85551b3d662a308766eafd5b175bc058a46d812a916d6aa -->
 # Référence
 
 | Classe | Rôle |
@@ -17,7 +17,7 @@
 | `Infrastructure\Http\CheckinRequest` | Si une requête vient du contrôleur du poste ; `cookieName()`. |
 | `Infrastructure\Http\DeskConfig` | La configuration du contrôleur du poste pour un point de contrôle ; `for()`. |
 | `Infrastructure\Http\Routes` | Les noms des routes. |
-| `Infrastructure\Rules\CheckpointRules` | Évalue la règle d'un point de contrôle avec ExpressionLanguage ; `has()`, `admits()`, `lint()`. |
+| `Infrastructure\Rules\CheckpointRules` | Évalue la règle d'un point de contrôle avec ExpressionLanguage ; `has()`, `admits()`, `check()`, `lint()`. |
 | `Infrastructure\Rules\CheckpointDesks` | Le poste et l'émetteur de manifestes d'un point de contrôle, avec sa règle ; `desk()`, `manifests()`. |
 | `Infrastructure\Rules\RuledCredentials` | Le résolveur et le catalogue tels que la règle d'un point de contrôle les voit. |
 | `Infrastructure\Rules\ConfiguredAdmissionRules` | Les règles de `rules.checkpoints`. |
@@ -27,6 +27,7 @@
 |---|---|
 | `Phil\CheckinBundle\Infrastructure\Rules\CheckpointDesks` | Le poste et les manifestes de chaque point de contrôle, sur les résolveurs étiquetés, avec sa règle. |
 | `Phil\CheckinBundle\Infrastructure\Rules\CheckpointRules` | L'évaluateur des règles. |
+| `phil_checkin.expression_language` | L'`ExpressionLanguage` des règles, étiqueté `expression_language.compiled` avec les règles de la configuration, pour `lint:expressions` et le réchauffeur de cache. |
 | `Phil\CheckinBundle\Application\Contract\AdmissionRules` | L'alias de `ConfiguredAdmissionRules`, ou de `rules.provider`. |
 | `Phil\CheckinBundle\Application\Contract\CredentialAttributes` | L'alias de `NoCredentialAttributes`, ou de `rules.attributes`. |
 | `Phil\Checkin\CredentialResolvers` | Les résolveurs étiquetés, interrogés ensemble. |

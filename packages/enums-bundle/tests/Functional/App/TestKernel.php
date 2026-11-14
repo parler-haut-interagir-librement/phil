@@ -24,6 +24,11 @@ final class TestKernel extends Kernel
 {
     use MicroKernelTrait;
 
+    /**
+     * The environment with a controller whose expression calls a function nobody provides, for the expression lint.
+     */
+    public const string BROKEN_EXPRESSION = 'broken_expression';
+
     #[Override]
     public function getProjectDir(): string
     {
@@ -83,6 +88,10 @@ final class TestKernel extends Kernel
         ]);
 
         $container->services()->set(TestController::class)->tag('controller.service_arguments')->public();
+
+        if (self::BROKEN_EXPRESSION === $this->environment) {
+            $container->services()->set(BrokenExpressionController::class)->tag('controller.service_arguments')->public();
+        }
 
         $container->extension('phil_enums', [
             'paths' => [__DIR__.'/src'],

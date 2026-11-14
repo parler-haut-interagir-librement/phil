@@ -16,6 +16,7 @@ use Phil\EnumsBundle\Infrastructure\Console\ExportIcuCommand;
 use Phil\EnumsBundle\Infrastructure\Console\ExportTypeScriptCommand;
 use Phil\EnumsBundle\Infrastructure\Doctrine\EnumSetStorage;
 use Phil\EnumsBundle\Infrastructure\Doctrine\EnumSetType;
+use Phil\EnumsBundle\Infrastructure\ExpressionLanguage\EnumsExpressionLanguagesPass;
 use Phil\EnumsBundle\Infrastructure\ExpressionLanguage\EnumsExpressionProvider;
 use Phil\EnumsBundle\Infrastructure\Form\EnumSetType as EnumSetFormType;
 use Phil\EnumsBundle\Infrastructure\Form\EnumTypeExtension;
@@ -56,7 +57,8 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
  * rest is registered when its component is installed: the translation extractor with `symfony/translation`, the
  * commands with `symfony/console`, the normalizer with `symfony/serializer`, the `EnumSet` column types with
  * `doctrine/dbal` and their check with `doctrine/orm`, the `#[ParseEnum]` resolver with `symfony/http-kernel`, the
- * expression functions with `symfony/expression-language`, the state machines with `symfony/workflow`, the
+ * expression functions with `symfony/expression-language` — for the expressions of security, routing, validation,
+ * controller attributes and workflow guards —, the state machines with `symfony/workflow`, the
  * enum schemas with NelmioApiDocBundle and API Platform, and `make:enum` with MakerBundle.
  *
  * ```yaml
@@ -256,6 +258,15 @@ final class PhilEnumsBundle extends AbstractBundle
                 ->args([service('translator')->nullOnInvalid()])
                 ->tag('serializer.normalizer', ['before' => ['serializer.normalizer.translatable', 'serializer.normalizer.backed_enum', 'serializer.normalizer.object']]);
         }
+    }
+
+    /**
+     * Gives the expression functions to the expression languages of controller attributes and workflow guards.
+     */
+    #[Override]
+    public function build(ContainerBuilder $container): void
+    {
+        $container->addCompilerPass(new EnumsExpressionLanguagesPass());
     }
 
     /**

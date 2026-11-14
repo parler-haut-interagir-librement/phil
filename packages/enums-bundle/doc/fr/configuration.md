@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=65a00bf01b1f83adf163a338f8a6b4dbd55f94c9829bc28e9bf13dc4e1c1ae3a -->
+<!-- phil-dev source-sha256=f3c28bc7d30c7ba30d5fd470c7b7fa47999a3ca116ab88da3416ebe6168d87bf -->
 # Configuration
 
 L'alias est `phil_enums`. Il y a trois clés, toutes facultatives :
@@ -48,7 +48,7 @@ besoin est installé. Chacun n'agit que sur ce qui le demande.
 | `Infrastructure\Console\DebugEnumsCommand`, `Infrastructure\Console\ExportTypeScriptCommand`, `Infrastructure\Console\ExportIcuCommand` | `console.command` | Avec `symfony/console` | `debug:enums`, `phil:enums:typescript` et `phil:enums:icu` ([Commandes](commands.md)). |
 | `Infrastructure\Console\CheckSetColumnsCommand` | `console.command` | Avec `symfony/console` et `doctrine/orm` | `phil:enums:check-sets` ([Doctrine](doctrine.md)). |
 | `Infrastructure\Http\ParsedEnumValueResolver` | `controller.argument_value_resolver` | Avec `symfony/http-kernel` | Les arguments marqués `#[ParseEnum]` ([Routage, expressions et workflows](routing-and-workflows.md)). |
-| `Infrastructure\ExpressionLanguage\EnumsExpressionProvider` | `security.`, `routing.` et `validator.expression_language_provider` | Avec `symfony/expression-language` | `enum_meta()`, `enum_in_group()`, `enum_from()`. |
+| `Infrastructure\ExpressionLanguage\EnumsExpressionProvider` | `security.`, `routing.` et `validator.expression_language_provider` ; donné à `controller.expression_language` et à `workflow.security.expression_language` par `EnumsExpressionLanguagesPass` | Avec `symfony/expression-language` | `enum_meta()`, `enum_in_group()`, `enum_from()`. |
 | `Infrastructure\OpenApi\NelmioEnumModelDescriber` | `nelmio_api_doc.model_describer`, avant `nelmio_api_doc.model_describers.enum` | Avec `nelmio/api-doc-bundle` | Les modèles d'enum ([API](api.md)). |
 | `Infrastructure\OpenApi\ApiPlatformEnumPropertyMetadataFactory` | décore `api_platform.metadata.property.metadata_factory`, autour de son décorateur de schéma et à l'intérieur de son cache | Avec `api-platform/symfony` | Les propriétés d'enum des ressources ([API](api.md)). |
 | `Infrastructure\Maker\MakeEnum` | `maker.command` | Avec `symfony/maker-bundle` | `make:enum` ([Commandes](commands.md)). |

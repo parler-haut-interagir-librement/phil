@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f2309ca3b1c7200adae810c0a10055865047c03d1523bd4b34a7959b92987389 -->
+<!-- phil-dev source-sha256=89eec96dd7312efeb0c7495208f7c458ac9b0f732babc768e442a4b074d7869b -->
 # Routage, expressions et workflows
 
 Hors des formulaires et des gabarits, les déclarations d'une enum comptent à trois endroits : un argument de contrôleur
@@ -33,8 +33,9 @@ jamais pour un argument sans l'attribut.
 ## Fonctions d'expression
 
 Elles sont enregistrées avec `symfony/expression-language` pour les expressions de la sécurité (`is_granted` avec une
-expression), du routage (`condition`) et de la validation (`Expression`), à côté du `enum()` natif du langage, qui lit
-un cas par sa constante :
+expression), du routage (`condition`), de la validation (`Expression`), des attributs de contrôleur (`#[Cache]`,
+`#[RateLimit]`, `#[Lock]`) et des gardes de workflow, à côté du `enum()` natif du langage, qui lit un cas par sa
+constante :
 
 | Fonction | Retourne |
 |---|---|
@@ -46,6 +47,10 @@ un cas par sa constante :
 $routes->add('open_orders', '/orders/{status}')
     ->condition("enum_in_group(enum_from(params['status'], 'App\\\\OrderStatus'), 'open')");
 ```
+
+Le `bin/console lint:expressions` de Symfony connaît ces fonctions partout où il vérifie une expression — les attributs
+des contrôleurs, le `allow_if` d'`access_control`, les gardes des workflows — : une expression qui les appelle passe, et
+une qui les orthographie mal échoue en indiquant l'endroit où elle est écrite.
 
 ## Workflows tirés des transitions
 

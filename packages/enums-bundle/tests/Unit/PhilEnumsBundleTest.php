@@ -11,6 +11,7 @@ use Phil\EnumsBundle\Infrastructure\Console\ExportIcuCommand;
 use Phil\EnumsBundle\Infrastructure\Console\ExportTypeScriptCommand;
 use Phil\EnumsBundle\Infrastructure\Doctrine\EnumSetStorage;
 use Phil\EnumsBundle\Infrastructure\Doctrine\EnumSetType;
+use Phil\EnumsBundle\Infrastructure\ExpressionLanguage\EnumsExpressionLanguagesPass;
 use Phil\EnumsBundle\Infrastructure\ExpressionLanguage\EnumsExpressionProvider;
 use Phil\EnumsBundle\Infrastructure\Form\EnumSetType as EnumSetFormType;
 use Phil\EnumsBundle\Infrastructure\Form\EnumTypeExtension;
@@ -172,6 +173,14 @@ final class PhilEnumsBundleTest extends TestCase
         foreach (['security', 'routing', 'validator'] as $component) {
             self::assertTrue($provider->hasTag($component.'.expression_language_provider'));
         }
+    }
+
+    public function testTheBundleAddsThePassOfTheOtherExpressionLanguages(): void
+    {
+        $container = new ContainerBuilder();
+        new PhilEnumsBundle()->build($container);
+
+        self::assertCount(1, array_filter($container->getCompilerPassConfig()->getBeforeOptimizationPasses(), static fn (object $pass): bool => $pass instanceof EnumsExpressionLanguagesPass));
     }
 
     public function testTheNelmioDescriberComesBeforeNelmiosOwn(): void

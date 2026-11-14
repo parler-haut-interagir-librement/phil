@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=700007d7894ec3cda02c7cf1beebadf4684eb820414ffeb36f44e412dadd3e86 -->
+<!-- phil-dev source-sha256=e43afb3b868fe9f72473d46fbb1c857a75edbf5602f98c5ee61a4317bf4a68ed -->
 # Points d'extension
 
 ## Résolveurs
@@ -32,9 +32,16 @@ final readonly class DatabaseRules implements AdmissionRules
 }
 ```
 
-Le bundle vérifie les règles de sa configuration à la compilation du conteneur ; il ne peut pas vérifier celles d'un
-fournisseur, qui vérifie donc chacune avec `CheckpointRules::lint()` quand le personnel l'enregistre. À la porte, une
-règle qui ne s'analyse pas ou qui échoue refuse le titre d'accès.
+Le bundle vérifie les règles de sa configuration à la compilation du conteneur, et `lint:expressions` les liste ; il ne
+peut pas vérifier celles d'un fournisseur, qui vérifie donc chacune quand le personnel l'enregistre, avec `check()` du
+service `CheckpointRules`, qui l'analyse avec le langage d'expressions dont les règles sont évaluées et les quatre
+variables qu'elles lisent :
+
+```php
+$problem = $this->checkpointRules->check($rule); // null: the rule parses
+```
+
+À la porte, une règle qui ne s'analyse pas ou qui échoue refuse le titre d'accès.
 
 ## Attributs des titres d'accès
 

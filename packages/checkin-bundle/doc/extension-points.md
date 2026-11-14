@@ -29,9 +29,16 @@ final readonly class DatabaseRules implements AdmissionRules
 }
 ```
 
-The bundle checks the rules of its configuration when the container compiles; it cannot check those of a provider,
-so the provider checks each one with `CheckpointRules::lint()` when the staff saves it. At the door, a rule that does
-not parse or fails refuses the credential.
+The bundle checks the rules of its configuration when the container compiles, and `lint:expressions` lists them; it
+cannot check those of a provider, so the provider checks each one when the staff saves it, with `check()` of the
+`CheckpointRules` service, which parses it with the expression language the rules are evaluated with and the four
+variables they read:
+
+```php
+$problem = $this->checkpointRules->check($rule); // null: the rule parses
+```
+
+At the door, a rule that does not parse or fails refuses the credential.
 
 ## Credential attributes
 

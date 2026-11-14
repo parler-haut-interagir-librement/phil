@@ -43,6 +43,7 @@ use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 #[CoversClass(PhilCheckinBundle::class)]
 #[CoversClass(CheckinServices::class)]
@@ -62,7 +63,7 @@ final class PhilCheckinBundleTest extends TestCase
 
         self::assertSame('phil_checkin', $this->extension()->getAlias());
         self::assertSame(
-            ['service_container', DoctrineCheckInLedger::class, CheckInSchemaListener::class, CredentialResolvers::class, AdmissionPolicy::class, ConfiguredAdmissionRules::class, NoCredentialAttributes::class, CheckpointRules::class, CheckpointDesks::class, CheckinRequest::class, DeskConfig::class, CheckinController::class],
+            ['service_container', DoctrineCheckInLedger::class, CheckInSchemaListener::class, CredentialResolvers::class, AdmissionPolicy::class, ConfiguredAdmissionRules::class, NoCredentialAttributes::class, CheckinServices::EXPRESSION_LANGUAGE, CheckpointRules::class, CheckpointDesks::class, CheckinRequest::class, DeskConfig::class, CheckinController::class],
             array_keys($container->getDefinitions()),
         );
 
@@ -78,7 +79,9 @@ final class PhilCheckinBundleTest extends TestCase
         self::assertSame([[]], $container->getDefinition(ConfiguredAdmissionRules::class)->getArguments());
         self::assertSame(ConfiguredAdmissionRules::class, (string) $container->getAlias(AdmissionRules::class));
         self::assertSame(NoCredentialAttributes::class, (string) $container->getAlias(CredentialAttributes::class));
-        self::assertEquals([new Reference(AdmissionRules::class), new Reference('clock'), new Reference(CredentialAttributes::class), null], $container->getDefinition(CheckpointRules::class)->getArguments());
+        self::assertEquals([new Reference(AdmissionRules::class), new Reference('clock'), new Reference(CredentialAttributes::class), null, new Reference('phil_checkin.expression_language')], $container->getDefinition(CheckpointRules::class)->getArguments());
+        self::assertSame(ExpressionLanguage::class, $container->getDefinition('phil_checkin.expression_language')->getClass());
+        self::assertSame(['expression_language.compiled' => [['expressions' => [], 'variables' => ['credential', 'attributes', 'checkpoint', 'now'], 'source' => 'the "phil_checkin.rules.checkpoints" option']]], $container->getDefinition('phil_checkin.expression_language')->getTags());
         self::assertFalse($container->hasDefinition(OfflineSync::class));
         self::assertEquals([new Reference('security.csrf.token_manager')], $container->getDefinition(CheckinRequest::class)->getArguments());
         self::assertEquals([new Reference(CheckinRequest::class), new Reference('router', ContainerInterface::NULL_ON_INVALID_REFERENCE), false], $container->getDefinition(DeskConfig::class)->getArguments());
@@ -239,6 +242,7 @@ final class PhilCheckinBundleTest extends TestCase
         ]]);
 
         self::assertSame([['bar' => "attributes['age'] >= 18", 'Main.Door' => "now.format('H') < '22'"]], $container->getDefinition(ConfiguredAdmissionRules::class)->getArguments());
+        self::assertSame(["attributes['age'] >= 18", "now.format('H') < '22'"], $this->listedRules($container));
         self::assertSame('app.attributes', (string) $container->getAlias(CredentialAttributes::class));
         self::assertFalse($container->hasDefinition(NoCredentialAttributes::class));
         $timezone = $container->getDefinition(CheckpointRules::class)->getArgument(3);
@@ -255,6 +259,10 @@ final class PhilCheckinBundleTest extends TestCase
         $container = $this->load(['rules' => ['checkpoints' => ['main-door' => $longest]]]);
 
         self::assertSame([['main-door' => $longest]], $container->getDefinition(ConfiguredAdmissionRules::class)->getArguments());
+
+        // Two checkpoints with the same rule list it once.
+        $shared = $this->load(['rules' => ['checkpoints' => ['in' => 'true', 'out' => 'true', 'bar' => 'false']]]);
+        self::assertSame(['true', 'false'], $this->listedRules($shared));
     }
 
     public function testARuleThatDoesNotParseStopsTheContainer(): void
@@ -350,5 +358,23 @@ final class PhilCheckinBundleTest extends TestCase
         self::assertInstanceOf(ExtensionInterface::class, $extension);
 
         return $extension;
+    }
+
+    /**
+     * The rules the expression language of the rules lists to Symfony's expression collector.
+     *
+     * @return list<string>
+     */
+    private function listedRules(ContainerBuilder $container): array
+    {
+        $tags = $container->getDefinition(CheckinServices::EXPRESSION_LANGUAGE)->getTag('expression_language.compiled');
+        self::assertCount(1, $tags);
+        self::assertIsArray($tags[0]);
+        self::assertArrayHasKey('expressions', $tags[0]);
+        $rules = $tags[0]['expressions'];
+        self::assertIsList($rules);
+        self::assertContainsOnlyString($rules);
+
+        return $rules;
     }
 }

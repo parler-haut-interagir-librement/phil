@@ -17,6 +17,7 @@ Every public type of the library, with its role.
 | `Phil\Automations\Definition\DefinitionReader` | `final readonly class` | Reads a definition from JSON, strictly |
 | `Phil\Automations\Definition\DefinitionWriter` | `final readonly class` | Writes a definition as canonical JSON |
 | `Phil\Automations\Definition\DefinitionValidator` | `final readonly class` | Checks a definition against the catalogue |
+| `Phil\Automations\Definition\ValidatedDefinitions` | `final readonly class` | `Definitions` that validate each definition before publishing it |
 | `Phil\Automations\Definition\InMemoryDefinitions` | `final class` | The definitions in memory |
 | `Phil\Automations\Catalogue\Catalogue` | `final readonly class` | The registered triggers, actions and condition languages |
 | `Phil\Automations\Catalogue\ComponentDescription` | `final readonly class` | What a trigger or an action says of itself |

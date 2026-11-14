@@ -35,7 +35,12 @@ services:
 
     Phil\Automations\Dbal\DbalDefinitions: ~
     Phil\Automations\Dbal\DbalRunStore: ~
-    Phil\Automations\Contract\Definitions: '@Phil\Automations\Dbal\DbalDefinitions'
+    Phil\Automations\Definition\DefinitionValidator: ~
+    # Every definition published is checked against the catalogue first.
+    Phil\Automations\Definition\ValidatedDefinitions:
+        arguments:
+            $definitions: '@Phil\Automations\Dbal\DbalDefinitions'
+    Phil\Automations\Contract\Definitions: '@Phil\Automations\Definition\ValidatedDefinitions'
     Phil\Automations\Contract\RunStore: '@Phil\Automations\Dbal\DbalRunStore'
 
     Phil\Automations\Engine\AutomationEngine: ~

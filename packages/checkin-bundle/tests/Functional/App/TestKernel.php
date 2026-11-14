@@ -41,6 +41,14 @@ final class TestKernel extends Kernel
      */
     public const string BROWSER = 'browser';
 
+    /**
+     * The environment whose hall rule reads a variable a rule does not have, for the expression lint.
+     */
+    public const string BROKEN_RULE = 'broken_rule';
+
+    /** The rule of the hall in the broken environment: `holder` is not a variable of the rules. */
+    public const string BROKEN = 'holder.age >= 18';
+
     #[Override]
     public function getProjectDir(): string
     {
@@ -73,7 +81,12 @@ final class TestKernel extends Kernel
         $browser = self::BROWSER === $this->environment;
         $container->extension('doctrine', ['dbal' => ['url' => $browser ? 'sqlite:///'.$this->getCacheDir().'/checkin.sqlite' : 'sqlite:///:memory:']]);
         // No catalog named: the tickets, a resolver and a catalog, plug in by autoconfiguration, as a module would.
-        $container->extension('phil_checkin', ['enabled' => true, 'offline' => ['min_code_bits' => 0], 'rules' => ['checkpoints' => $browser ? [] : ['hall' => 'credential.label != null']]]);
+        $rules = match ($this->environment) {
+            self::BROWSER => [],
+            self::BROKEN_RULE => ['hall' => self::BROKEN],
+            default => ['hall' => 'credential.label != null'],
+        };
+        $container->extension('phil_checkin', ['enabled' => true, 'offline' => ['min_code_bits' => 0], 'rules' => ['checkpoints' => $rules]]);
 
         $services = $container->services();
         $services->set('event_dispatcher', EventDispatcher::class)->public()->tag('container.hot_path');
