@@ -6,7 +6,7 @@
 |---|---|---|
 | PHP | 8.5 or later | |
 | `phil/migration` | ^0.1 | The announcements, the channels, the decorators |
-| `doctrine/doctrine-migrations-bundle` | ^3.7 | The migrations, and the dependency factory the bundle wraps |
+| `doctrine/doctrine-migrations-bundle` | ^4.0 | The migrations, and the dependency factory the bundle wraps |
 | `doctrine/migrations` | ^3.9 | The migration factory and the migrator |
 | `symfony/notifier` | ^8.2 | The chatter the channels are sent through |
 | `symfony/config`, `symfony/dependency-injection` | ^8.2 | The configuration and the services |

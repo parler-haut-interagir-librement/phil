@@ -4,6 +4,19 @@ All notable changes to `phil/migration-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Fixed
+
+- The bundle installs beside DoctrineMigrationsBundle 4.0, the version a Symfony 8.2 application gets: it requires
+  `doctrine/doctrine-migrations-bundle` `^4.0`. Of the 3.x versions, only 3.7.0 accepted Symfony 8, and only because
+  it did not declare its dependency on `symfony/http-kernel`.
+- The migrations of the container, with `enable_service_migrations`, get the announcements: each `Announcing` one
+  tagged `doctrine_migrations.migration` is given them through `announceWith()` as it is built, instead of failing
+  with `AnnouncementsMissing`.
+- The migration factory and the migrator are decorated after the other decorators of the same service, with the
+  priority `-1`, so that what the factory of the service migrations returns gets the announcements too.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

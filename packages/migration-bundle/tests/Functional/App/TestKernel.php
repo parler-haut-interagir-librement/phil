@@ -6,6 +6,7 @@ namespace Phil\MigrationBundle\Tests\Functional\App;
 
 use Override;
 use Phil\Migration\Publisher;
+use Phil\MigrationBundle\Tests\Functional\App\ServiceMigrations\Version20261104000200;
 use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -49,12 +50,16 @@ final class TestKernel extends Kernel
             'notifier' => ['chatter_transports' => ['discord_alice' => 'null://null']],
         ]);
         $container->extension('doctrine', ['dbal' => ['url' => 'sqlite:///:memory:']]);
-        $container->extension('doctrine_migrations', ['migrations_paths' => [__NAMESPACE__.'\Migrations' => '%kernel.project_dir%/Migrations']]);
+        $container->extension('doctrine_migrations', [
+            'migrations_paths' => [__NAMESPACE__.'\Migrations' => '%kernel.project_dir%/Migrations'],
+            'enable_service_migrations' => true,
+        ]);
         $container->extension('phil_migration', ['channels' => [
             'discord_alice' => ['title' => '# Nouvelle version{counter}', 'continued' => '## Suite{counter}'],
             'news' => ['transport' => 'discord_news', 'content' => 'news', 'heading' => '# {title}', 'link' => 'Pour voir la nouvelle {url}'],
         ]]);
 
+        $container->services()->set(Version20261104000200::class)->autoconfigure();
         $container->services()->set(RecordingPublisher::class)->public();
         $container->services()->alias(Publisher::class, RecordingPublisher::class);
         $container->services()->set('logger', NullLogger::class);

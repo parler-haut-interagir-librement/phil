@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a22c82ab2d0dca66c11f126efa0f11b5d6026380c2e995c8ee861fc57e4facdb -->
+<!-- phil-dev source-sha256=39a876e0c1785cd06a6c3107d25337c58d28627eebebce32154a19048ab20bf4 -->
 # Migrations
 
 ## Une migration qui annonce
@@ -51,6 +51,26 @@ doctrine_migrations:
 ```
 
 Il en va de même pour un `Doctrine\Migrations\Migrator` donné à cet endroit.
+
+La décoration du bundle vient après les autres décorations du même service : DoctrineMigrationsBundle décore sa propre
+fabrique pour rendre les migrations du conteneur, et les annonces sont données à ce que rend cette fabrique.
+
+## Migrations du conteneur
+
+Avec `enable_service_migrations`, DoctrineMigrationsBundle prend des migrations dans le conteneur, étiquetées
+`doctrine_migrations.migration`, et celles qu'aucun dossier ne liste ne passent jamais par une fabrique. Chacune qui est
+`Announcing` reçoit les annonces au moment où le conteneur la construit, par un appel à `announceWith()` :
+
+```yaml
+doctrine_migrations:
+    enable_service_migrations: true
+
+services:
+    App\Migrations\Version20261104000200:
+        autoconfigure: true
+```
+
+Une migration dont la définition appelle déjà `announceWith()` garde cet appel.
 
 ## Un processus, une exécution
 

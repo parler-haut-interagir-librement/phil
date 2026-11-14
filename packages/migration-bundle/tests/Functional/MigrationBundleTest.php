@@ -31,7 +31,7 @@ final class MigrationBundleTest extends KernelTestCase
     public function testOneRunIsAnnouncedOnce(): void
     {
         self::assertSame([
-            ['discord_alice', "# Nouvelle version\n\n* Nouveau calendrier.\n* Mise à jour des librairies."],
+            ['discord_alice', "# Nouvelle version\n\n* Nouveau calendrier.\n* Mise à jour des librairies.\n* Migrations en service."],
             ['discord_news', "# Le calendrier\nTous les événements.\nPour voir la nouvelle https://example.com/calendrier"],
         ], $this->migrate());
     }
