@@ -20,16 +20,16 @@ final class LimitsTest extends TestCase
     {
         $limits = new Limits();
 
-        self::assertSame([5.0, 10.0, 1_048_576, 3, 'PhilSafeHttp/0.1'], [$limits->timeout, $limits->maxDuration, $limits->maxBytes, $limits->maxRedirects, $limits->userAgent]);
+        self::assertSame([5.0, 10.0, 1_048_576, 3, 'PhilSafeHttp/0.1', 65_536, 100], [$limits->timeout, $limits->maxDuration, $limits->maxBytes, $limits->maxRedirects, $limits->userAgent, $limits->maxHeaderBytes, $limits->maxHeaders]);
     }
 
     public function testTheBoundsThemselvesAreAllowed(): void
     {
-        $low = new Limits(0.1, 0.1, 1024, 0, 'a');
-        $high = new Limits(60.0, 120.0, 64 * 1024 * 1024, 10, 'b');
+        $low = new Limits(0.1, 0.1, 1024, 0, 'a', 1024, 1);
+        $high = new Limits(60.0, 120.0, 64 * 1024 * 1024, 10, 'b', 1024 * 1024, 1000);
 
-        self::assertSame([0.1, 0.1, 1024, 0], [$low->timeout, $low->maxDuration, $low->maxBytes, $low->maxRedirects]);
-        self::assertSame([60.0, 120.0, 67_108_864, 10], [$high->timeout, $high->maxDuration, $high->maxBytes, $high->maxRedirects]);
+        self::assertSame([0.1, 0.1, 1024, 0, 1024, 1], [$low->timeout, $low->maxDuration, $low->maxBytes, $low->maxRedirects, $low->maxHeaderBytes, $low->maxHeaders]);
+        self::assertSame([60.0, 120.0, 67_108_864, 10, 1_048_576, 1000], [$high->timeout, $high->maxDuration, $high->maxBytes, $high->maxRedirects, $high->maxHeaderBytes, $high->maxHeaders]);
     }
 
     /**
@@ -45,6 +45,10 @@ final class LimitsTest extends TestCase
         yield 'too many bytes' => [static fn (): Limits => new Limits(maxBytes: 67_108_865), 'The bytes read is 67108865; it must lie between 1024 and 67108864.'];
         yield 'negative redirects' => [static fn (): Limits => new Limits(maxRedirects: -1), 'The redirects is -1; it must lie between 0 and 10.'];
         yield 'too many redirects' => [static fn (): Limits => new Limits(maxRedirects: 11), 'The redirects is 11; it must lie between 0 and 10.'];
+        yield 'too few header bytes' => [static fn (): Limits => new Limits(maxHeaderBytes: 1023), 'The bytes of the headers is 1023; it must lie between 1024 and 1048576.'];
+        yield 'too many header bytes' => [static fn (): Limits => new Limits(maxHeaderBytes: 1_048_577), 'The bytes of the headers is 1048577; it must lie between 1024 and 1048576.'];
+        yield 'no header' => [static fn (): Limits => new Limits(maxHeaders: 0), 'The headers is 0; it must lie between 1 and 1000.'];
+        yield 'too many headers' => [static fn (): Limits => new Limits(maxHeaders: 1001), 'The headers is 1001; it must lie between 1 and 1000.'];
         yield 'empty user agent' => [static fn (): Limits => new Limits(userAgent: ' '), 'The User-Agent is empty, or holds a line break or a control character.'];
         yield 'split user agent' => [static fn (): Limits => new Limits(userAgent: "Bot\r\nX-Evil: 1"), 'The User-Agent is empty, or holds a line break or a control character.'];
         yield 'delete in user agent' => [static fn (): Limits => new Limits(userAgent: "Bot\x7F"), 'The User-Agent is empty, or holds a line break or a control character.'];

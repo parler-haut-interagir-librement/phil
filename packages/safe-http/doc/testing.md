@@ -8,7 +8,7 @@ vendor/bin/phpunit packages/safe-http/tests
 |---|---|
 | `Limits`, `ReadRule` | The defaults, each bound and the value past it, headers on two lines or with a control character |
 | `AddressGuard` | Addresses normalised; IP addresses in every spelling, credentials, port 0, other schemes, single labels and lengths refused; redirects absolute, relative, without a scheme and with `..`; redirects to other schemes refused |
-| `SafeHttpClient`, `SafeResponse` | The limits in each request, the body cut at its bytes or after its mark — split between two chunks too —, bodies of other types not read, error statuses as answers, `HEAD`, each kind of redirect followed and checked, the count of redirects, hosts that resolve to the loopback, a private network or the metadata endpoint refused at the start and at a redirect, transport errors, the whole duration across redirects, `reset()` |
+| `SafeHttpClient`, `SafeResponse` | The limits in each request, the body cut at its bytes or after its mark — split between two chunks too —, a chunk larger than the bytes left cut before it joins the body, the peak of memory near the bytes allowed, the headers bounded in bytes and in count, counted as they arrive and once all in, bodies of other types not read, error statuses as answers, `HEAD`, each kind of redirect followed and checked, the count of redirects, hosts that resolve to the loopback, a private network or the metadata endpoint refused at the start and at a redirect, transport errors, the whole duration across redirects, `reset()` |
 
 The tests use Symfony's `MockHttpClient` and fixed addresses: no test resolves a name or opens a connection.
 

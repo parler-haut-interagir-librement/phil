@@ -23,9 +23,29 @@ worker calls it between messages, as `kernel.reset` does in Symfony.
 | `maxBytes` | 1,048,576 | 1 KiB to 64 MiB | The body kept, after decompression |
 | `maxRedirects` | 3 | 0 to 10 | The redirects followed |
 | `userAgent` | `PhilSafeHttp/0.1` | One line, no control character | The `User-Agent` of every request |
+| `maxHeaderBytes` | 65,536 | 1 KiB to 1 MiB | The headers of an answer, every line counted, status lines included |
+| `maxHeaders` | 100 | 1 to 1,000 | The header lines of an answer, status lines left out |
 
 Limits out of their bounds throw `InvalidLimits`. Give the `User-Agent` the name of the site and a way to reach
 whoever runs it, as the robots of link previews do: a site that sees an unknown reader blocks it.
+
+## The headers
+
+The headers of an answer are counted as the transport reports them, through its progress, and once more when they are
+all in. Past `maxHeaderBytes` or `maxHeaders`, the transfer is aborted and the read throws `FetchFailed`. The body is
+bounded in the same spirit: a chunk is cut to the bytes that remain of `maxBytes` before it joins the body, so the body
+held never exceeds the limit, whatever the size of the chunk the transport hands over.
+
+What each transport of Symfony HttpClient bounds by itself, before these limits:
+
+| Transport | Bounds of its own | When the limits of the package apply |
+|---|---|---|
+| curl (`CurlHttpClient`) | libcurl refuses a header line over 100 KiB (`CURL_MAX_HTTP_HEADER`), and, in its recent versions, an answer whose headers pass 300 KiB in all or 5,000 lines | During the reception, at each progress of the transfer |
+| native (`NativeHttpClient`) | None on the count or the total: PHP's `http` stream wrapper keeps every line, of any length; only the status line (127 bytes) and `Location` (8,182 bytes) are bounded | Once PHP's wrapper has read every header: the silence and the whole duration still bound how long that takes |
+| amphp (`AmpHttpClient`) | amphp/http-client's header size limit, left at its default of 16 KiB; Symfony lifts its body size limit | Once the headers are in |
+
+Symfony HttpClient bounds neither the count nor the bytes of the headers, and keeps every line twice: raw in the
+`response_headers` information, and by name.
 
 ## The rule of a read
 
@@ -71,5 +91,5 @@ All implement `SafeHttpException`.
 |---|---|
 | `RefusedAddress` | The address or a redirect is not an HTTP or HTTPS address of a host name, or its host is or resolves to a private network |
 | `TooManyRedirects` | The redirects outnumber `maxRedirects` |
-| `FetchFailed` | The host does not answer, stays silent past `timeout`, the read outlasts `maxDuration`, or the connection breaks |
+| `FetchFailed` | The host does not answer, stays silent past `timeout`, the read outlasts `maxDuration`, the headers pass `maxHeaderBytes` or `maxHeaders`, or the connection breaks |
 | `InvalidLimits` | Limits, or a header of a rule, out of their bounds |

@@ -13,8 +13,9 @@ a database, an administration page on the loopback. phil/safe-http reads such ad
   reserved address, and connects to the address it checked;
 - the redirects are followed one by one, each checked, up to a count;
 - the silence of the host and the whole duration of the read, redirects included, are bounded;
+- the headers of an answer are bounded in bytes and in count, counted as they arrive;
 - the body is read in chunks, only for the media types asked for, up to a number of bytes or a stop mark, and the
-  transfer is then cancelled.
+  transfer is then cancelled; a chunk is cut to the bytes that remain before it joins the body.
 
 A read gives a `SafeResponse` — the address that answered, the redirects, the status, the headers and the body as far
 as it was read — or one of three exceptions: the address is refused, the redirects are too many, or the read failed.

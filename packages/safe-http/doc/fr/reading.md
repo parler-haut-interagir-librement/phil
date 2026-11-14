@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7dcf4286e7af0d62fe2193b01f532708db562dbcecb8314a8a7f76fbfb0bd85b -->
+<!-- phil-dev source-sha256=c477e32cc224782f8cc7fe63f3d35335ebaf2dbbbe9d16a91ac19aa9268ff254 -->
 # Lecture
 
 ## Le client
@@ -24,9 +24,30 @@ que `reset()` oublie : un *worker* l'appelle entre deux messages, comme `kernel.
 | `maxBytes` | 1,048,576 | 1 Kio à 64 Mio | Le corps conservé, après décompression |
 | `maxRedirects` | 3 | 0 à 10 | Les redirections suivies |
 | `userAgent` | `PhilSafeHttp/0.1` | Une ligne, aucun caractère de contrôle | Le `User-Agent` de chaque requête |
+| `maxHeaderBytes` | 65,536 | 1 Kio à 1 Mio | Les en-têtes d'une réponse, chaque ligne comptée, lignes de statut comprises |
+| `maxHeaders` | 100 | 1 à 1 000 | Les lignes d'en-tête d'une réponse, lignes de statut exclues |
 
 Des limites hors de leurs bornes lancent `InvalidLimits`. Donnez au `User-Agent` le nom du site et un moyen de joindre
 la personne qui l'exploite, comme le font les robots d'aperçu de lien : un site qui voit un lecteur inconnu le bloque.
+
+## Les en-têtes
+
+Les en-têtes d'une réponse sont comptés à mesure que le transport les signale, par sa progression, puis une fois de
+plus quand ils sont tous arrivés. Au-delà de `maxHeaderBytes` ou de `maxHeaders`, le transfert est interrompu et la
+lecture lance `FetchFailed`. Le corps est borné dans le même esprit : un morceau est coupé aux octets qui restent de
+`maxBytes` avant de rejoindre le corps, de sorte que le corps conservé ne dépasse jamais la limite, quelle que soit la
+taille du morceau que remet le transport.
+
+Ce que chaque transport de Symfony HttpClient borne de lui-même, avant ces limites :
+
+| Transport | Bornes propres | Quand les limites du paquet s'appliquent |
+|---|---|---|
+| curl (`CurlHttpClient`) | libcurl refuse une ligne d'en-tête de plus de 100 Kio (`CURL_MAX_HTTP_HEADER`) et, dans ses versions récentes, une réponse dont les en-têtes dépassent 300 Kio au total ou 5 000 lignes | Pendant la réception, à chaque progression du transfert |
+| natif (`NativeHttpClient`) | Aucune sur le nombre ni le total : l'enveloppe de flux `http` de PHP garde chaque ligne, de toute longueur ; seules la ligne de statut (127 octets) et `Location` (8 182 octets) sont bornées | Une fois que l'enveloppe de PHP a lu tous les en-têtes : le silence et la durée totale bornent encore le temps que cela prend |
+| amphp (`AmpHttpClient`) | La limite de taille des en-têtes d'amphp/http-client, laissée à sa valeur par défaut de 16 Kio ; Symfony lève sa limite de taille du corps | Une fois les en-têtes arrivés |
+
+Symfony HttpClient ne borne ni le nombre ni les octets des en-têtes, et garde chaque ligne deux fois : brute dans
+l'information `response_headers`, et par nom.
 
 ## La règle d'une lecture
 
@@ -72,5 +93,5 @@ Toutes implémentent `SafeHttpException`.
 |---|---|
 | `RefusedAddress` | L'adresse ou une redirection n'est pas une adresse HTTP ou HTTPS d'un nom d'hôte, ou son hôte est un réseau privé ou s'y résout |
 | `TooManyRedirects` | Les redirections dépassent `maxRedirects` |
-| `FetchFailed` | L'hôte ne répond pas, reste silencieux plus longtemps que `timeout`, la lecture dépasse `maxDuration`, ou la connexion se rompt |
+| `FetchFailed` | L'hôte ne répond pas, reste silencieux plus longtemps que `timeout`, la lecture dépasse `maxDuration`, les en-têtes dépassent `maxHeaderBytes` ou `maxHeaders`, ou la connexion se rompt |
 | `InvalidLimits` | Des limites, ou un en-tête d'une règle, hors de leurs bornes |
