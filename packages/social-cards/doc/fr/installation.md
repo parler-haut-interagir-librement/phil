@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bb28422dc0c65c497c241e415672e06dee008e9ab52e42ca3512ac2f8dd8b673 -->
+<!-- phil-dev source-sha256=a962b05f339554cbe7696c1d2a32ade642568ad49d3428dc89c31fc18c9e8bcd -->
 # Installation
 
 ```sh
@@ -15,5 +15,6 @@ composer require phil/social-cards
 | `ext-mbstring` | Le décompte et la coupe des textes en caractères |
 | `phil/fonts` | La lecture des polices d'un gabarit : leur format, leur famille, leur licence et leur empreinte |
 | `phil/url` | La vérification des adresses lues dans les pages d'autres sites : un nom d'hôte public, jamais une adresse IP ni `localhost` |
+| `ext-imagick`, suggérée | `ImagickCardRenderer` : avec ImageMagick compilé avec libraqm, le texte de l'arabe, de l'hébreu et des écritures de l'Inde mis en forme et disposé dans son sens |
 
 Une application Symfony installe phil/social-cards-bundle, qui exige cette bibliothèque.

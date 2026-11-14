@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=66a3993dab4fdf8251de07992af243981d40fdf2e07aa517c359f7da22aa905f -->
+<!-- phil-dev source-sha256=d176392289a75f7a3a34cb2a11c4ccd339dcc0b545b3be3ba814ada86a24a6e5 -->
 # phil/social-cards
 
 **Ce qu'une page dit d'elle-même quand on la partage : les balises Open Graph, X et du fédivers, une carte de 1200×630
@@ -24,7 +24,8 @@ page.
 
 Les cartes sont dessinées par GD, sans mise en forme du texte : le latin, le grec, le cyrillique et les écritures de la
 Chine, du Japon et de la Corée se dessinent bien ; l'arabe, l'hébreu et les écritures de l'Inde, non, comme
-l'expliquent [les cartes](doc/fr/cards.md#ce-que-gd-dessine-et-ce-quil-ne-dessine-pas).
+l'expliquent [les cartes](doc/fr/cards.md#ce-que-gd-dessine-et-ce-quil-ne-dessine-pas). `ImagickCardRenderer` les dessine
+au moyen d'ImageMagick lorsqu'il est compilé avec libraqm, qui met le texte en forme et le dispose dans son sens.
 
 C'est une simple bibliothèque PHP : PHP 8.5 avec les extensions ctype, DOM, GD, intl, libxml, mbstring et URI, et
 phil/fonts. Dans une application Symfony, phil/social-cards-bundle définit les balises de chaque page depuis une
@@ -38,6 +39,8 @@ page depuis la ligne de commande.
 | `ShareMetadata`, `ShareImage`, `ShareType`, `TwitterCard`, `MetaTags` | Implémenté et testé |
 | `CardTemplate`, `CardFont`, `CardImage`, `Color`, `CardContent` | Implémenté et testé |
 | `LineBreaker`, `TextFitter`, `GdCardRenderer`, `CardGenerator`, les stockages | Implémenté et testé |
+| `ImagickCardRenderer`, `ImagickTextMeasure` | Implémenté ; testé là où `ext-imagick` est installée |
+| `TextDirection` | Implémenté et testé |
 | `TagReader`, `PageTags`, `LinkPreview`, `TagCheck` | Implémenté, testé et soumis au *fuzzing* |
 | `LinkFinder` | Implémenté, testé et soumis au *fuzzing* |
 
@@ -77,7 +80,7 @@ echo MetaTags::html(MetaTags::of(ShareMetadata::fromArray([
 ## Prérequis
 
 PHP 8.5 ou plus récent, avec les extensions ctype, DOM, GD (avec FreeType), intl, libxml, mbstring et URI, et
-`phil/fonts`.
+`phil/fonts` ; `ext-imagick`, avec ImageMagick compilé avec libraqm, pour `ImagickCardRenderer`.
 
 ## Contribuer
 

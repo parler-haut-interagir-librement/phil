@@ -78,9 +78,33 @@ other, from left to right, with no text shaping:
 | Emoji in colour, flags, sequences joined by U+200D | Wrong: in the outline the font has, if any, one piece of a sequence after the other |
 | A character the font lacks | The font's missing-glyph box |
 
-A site whose titles are in a script of the wrong rows draws its cards elsewhere, with a renderer that shapes text,
-through the `CardRenderer` port; the default image of the page is another way out. The font of a template must cover
-every character its titles use, the ellipsis `…` that ends a cut title included.
+A site whose titles are in a script of the wrong rows draws its cards with `ImagickCardRenderer`, below, or with
+another renderer that shapes text, through the `CardRenderer` port; the default image of the page is another way out.
+The font of a template must cover every character its titles use, the ellipsis `…` that ends a cut title included.
+
+### Drawing with ImageMagick
+
+`ImagickCardRenderer` draws the same layout through `ext-imagick`, measured by `ImagickTextMeasure`. When ImageMagick
+is built with libraqm, the text is shaped and laid out in its direction: the letters of Arabic, Persian and Urdu join
+and run from right to left, Hebrew runs from right to left, and the scripts of India place their vowel signs and
+conjuncts. `ImagickCardRenderer::shapes()` tells whether the installed ImageMagick does; without libraqm, ImageMagick
+draws as GD does, from left to right and unshaped.
+
+```php
+use Phil\SocialCards\Card\{CardGenerator, DirectoryCardStore, ImagickCardRenderer};
+
+$cards = new CardGenerator(new ImagickCardRenderer(), new DirectoryCardStore('/var/cards'));
+```
+
+A title or subtitle whose base direction is from right to left — its first letter of a strong direction is Hebrew or
+Arabic, as `TextDirection::of()` reads it — is aligned on the right margin; any other on the left. The images of a
+template are read by the coder of their type alone, PNG, JPEG, GIF or WebP, never as another format. The PNG is
+opaque, at the highest compression, without the dates ImageMagick writes, so that the same template and content draw
+the same bytes with the same ImageMagick. Its `version()` — the renderer's own, ImageMagick's, and whether libraqm
+shapes — enters the fingerprint: switching renderers, or installing libraqm, draws new cards.
+
+The renderer is optional: `ext-imagick` is suggested, not required. Its fonts are the template's; libraqm shapes
+only what the font holds, so a card in Arabic needs a font with Arabic glyphs and their joined forms.
 
 ## Fingerprints and stores
 

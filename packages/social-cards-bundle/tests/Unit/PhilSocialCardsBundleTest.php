@@ -11,6 +11,8 @@ use Phil\SafeHttp\SafeHttpClient;
 use Phil\SocialCards\Card\CardGenerator;
 use Phil\SocialCards\Card\DirectoryCardStore;
 use Phil\SocialCards\Card\GdCardRenderer;
+use Phil\SocialCards\Card\ImagickCardRenderer;
+use Phil\SocialCards\Contract\CardRenderer;
 use Phil\SocialCards\Contract\CardStore;
 use Phil\SocialCards\Preview\TagReader;
 use Phil\SocialCardsBundle\Application\CardTemplates;
@@ -36,6 +38,7 @@ use Phil\SocialCardsBundle\Infrastructure\Twig\SocialMetaExtension;
 use Phil\SocialCardsBundle\PhilSocialCardsBundle;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\RequiresPhpExtension;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -112,7 +115,9 @@ final class PhilSocialCardsBundleTest extends TestCase
         self::assertSame(['/var/cards'], $container->getDefinition(DirectoryCardRequestStore::class)->getArguments());
         self::assertSame(DirectoryCardRequestStore::class, (string) $container->getAlias(CardRequestStore::class));
         self::assertTrue($container->hasDefinition(GdCardRenderer::class));
-        self::assertEquals([new Reference(GdCardRenderer::class), new Reference(CardStore::class)], $container->getDefinition(CardGenerator::class)->getArguments());
+        self::assertFalse($container->hasDefinition(ImagickCardRenderer::class));
+        self::assertSame(GdCardRenderer::class, (string) $container->getAlias(CardRenderer::class));
+        self::assertEquals([new Reference(CardRenderer::class), new Reference(CardStore::class)], $container->getDefinition(CardGenerator::class)->getArguments());
         self::assertEquals([new Reference('messenger.default_bus')], $container->getDefinition(MessengerCardQueue::class)->getArguments());
         self::assertEquals([new Reference(SocialCards::class)], $container->getDefinition(GenerateSocialCardHandler::class)->getArguments());
         self::assertTrue($container->getDefinition(GenerateSocialCardHandler::class)->hasTag('messenger.message_handler'));
@@ -134,6 +139,37 @@ final class PhilSocialCardsBundleTest extends TestCase
         self::assertSame(31_536_000, $this->load(['cards' => ['templates' => ['default' => self::TEMPLATE]]])->getDefinition(SocialCardController::class)->getArgument(1));
         $defaults = $this->load(['default_image' => 'https://example.com/i.png'])->getDefinition(ShareMetadataFactory::class)->getArgument(3);
         self::assertSame(['image' => 'https://example.com/i.png'], $defaults);
+    }
+
+    public function testTheGdRendererNeedsNoExtensionOfItsOwn(): void
+    {
+        $container = $this->load(['cards' => ['templates' => ['default' => self::TEMPLATE], 'renderer' => 'gd']]);
+
+        self::assertTrue($container->hasDefinition(GdCardRenderer::class));
+        self::assertFalse($container->hasDefinition(ImagickCardRenderer::class));
+        self::assertSame(GdCardRenderer::class, (string) $container->getAlias(CardRenderer::class));
+    }
+
+    #[RequiresPhpExtension('imagick')]
+    public function testTheCardsDrawnByImageMagick(): void
+    {
+        $container = $this->load(['cards' => ['templates' => ['default' => self::TEMPLATE], 'renderer' => 'imagick']]);
+
+        self::assertTrue($container->hasDefinition(ImagickCardRenderer::class));
+        self::assertFalse($container->hasDefinition(GdCardRenderer::class));
+        self::assertSame(ImagickCardRenderer::class, (string) $container->getAlias(CardRenderer::class));
+    }
+
+    public function testImageMagickNeedsItsExtension(): void
+    {
+        if (\extension_loaded('imagick')) {
+            self::markTestSkipped('The imagick extension is loaded.');
+        }
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageIsOrContains('The "imagick" renderer needs the imagick extension of PHP.');
+
+        $this->load(['cards' => ['templates' => ['default' => self::TEMPLATE], 'renderer' => 'imagick']]);
     }
 
     public function testThePreviewOptions(): void
@@ -192,6 +228,7 @@ final class PhilSocialCardsBundleTest extends TestCase
         yield 'no user agent' => [['preview' => ['user_agent' => '']], 'user_agent'];
         yield 'a user agent that is a number' => [['preview' => ['user_agent' => 5]], 'is not a header value'];
         yield 'a user agent on two lines' => [['preview' => ['user_agent' => "Bot\r\nX-Evil: 1"]], 'is not a header value: one line, without a control character.'];
+        yield 'an unknown renderer' => [['cards' => ['renderer' => 'cairo']], 'renderer'];
         yield 'no default template' => [['cards' => ['default_template' => '']], 'default_template'];
     }
 

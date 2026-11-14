@@ -28,8 +28,9 @@ cards for a purge.
 |---|---|
 | `social_meta()`, `social_page()`, `SharePage`, the sources | Implemented and tested |
 | The cards, their route, their store and their worker | Implemented and tested |
+| `cards.renderer: imagick`, the cards drawn by ImageMagick | Implemented; tested where `ext-imagick` is installed |
 | The guarded fetcher, `LinkPreviews` and the `LinkPreview` component | Implemented and tested |
-| Pasted links: `LinkPreviews::firstIn()`, the endpoint and the `link-preview` controller | Implemented and tested |
+| Pasted links: `LinkPreviews::firstIn()` and `forMessage()`, the endpoint and the `link-preview` controller | Implemented and tested |
 | `phil:social-cards:check` | Implemented and tested |
 
 ## Documentation
@@ -72,7 +73,8 @@ phil_social_cards:
 ## Requirements
 
 PHP 8.5 or later with GD, Symfony 8.2 or later, Twig 3.21 or later, `phil/social-cards` and `phil/safe-http`.
-Messenger, the console, the rate limiter, Symfony UX Twig Component and the StimulusBundle are optional.
+Messenger, the console, the rate limiter, Symfony UX Twig Component, the StimulusBundle and `ext-imagick` are
+optional.
 
 ## Contributing
 

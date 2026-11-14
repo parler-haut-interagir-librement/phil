@@ -17,7 +17,8 @@ use Symfony\Contracts\Cache\ItemInterface;
 /**
  * The previews of links to other sites: the page fetched by the guarded fetcher, its tags read, the preview kept in
  * the cache — a page that cannot be fetched too, as nothing, so that a dead link is not fetched on every view. The
- * preview of a pasted link is that of the first link of a text a member writes, as `firstIn()` reads it.
+ * preview of a pasted link is that of the first link of a text a member writes, as `firstIn()` reads it, or the one
+ * its author kept or removed, as `forMessage()` reads it.
  */
 final readonly class LinkPreviews
 {
@@ -65,6 +66,21 @@ final readonly class LinkPreviews
         }
 
         return null;
+    }
+
+    /**
+     * The preview a message keeps, from its text and the link its author chose: null when no choice was sent — a form
+     * without the Stimulus controller —, the first link of the text; an empty choice, the preview removed, nothing; a
+     * link, its preview when it is one of the links of the text, nothing otherwise, so that a forged choice previews no
+     * page the message does not link to.
+     */
+    public function forMessage(string $text, ?string $chosen): ?LinkPreview
+    {
+        if (null === $chosen) {
+            return $this->firstIn($text);
+        }
+
+        return \in_array($chosen, LinkFinder::find($text), true) ? $this->preview($chosen) : null;
     }
 
     /**

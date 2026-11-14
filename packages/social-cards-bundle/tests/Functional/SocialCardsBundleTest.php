@@ -8,6 +8,7 @@ use Override;
 use Phil\SocialCardsBundle\Infrastructure\Http\LinkPreviewController;
 use Phil\SocialCardsBundle\Infrastructure\Twig\Components\LinkPreviewComponent;
 use Phil\SocialCardsBundle\PhilSocialCardsBundle;
+use Phil\SocialCardsBundle\Tests\Functional\App\SentCards;
 use Phil\SocialCardsBundle\Tests\Functional\App\TestKernel;
 use Phil\SocialCardsBundle\Tests\Support\Directories;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -51,7 +52,11 @@ final class SocialCardsBundleTest extends WebTestCase
         self::assertStringContainsString('<meta property="og:image:width" content="1200">', $html);
         self::assertStringContainsString('<meta name="twitter:card" content="summary_large_image">', $html);
 
-        // The card is drawn by the handler of its message, routed here to the synchronous transport.
+        // The card is drawn by the handler of its message, routed here to the synchronous transport, through which
+        // Messenger dispatched its event.
+        $sent = self::getContainer()->get(SentCards::class);
+        self::assertInstanceOf(SentCards::class, $sent);
+        self::assertSame([[$match[1], ['cards']]], $sent->sent);
         self::assertFileExists(TestKernel::cardDirectory().'/'.substr($match[1], 0, 2).'/'.$match[1].'.png');
         self::assertFileExists(TestKernel::cardDirectory().'/'.substr($match[1], 0, 2).'/'.$match[1].'.json');
 

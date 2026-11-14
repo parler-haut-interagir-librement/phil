@@ -35,6 +35,9 @@
     "require-dev": {
         "phpunit/phpunit": "^13.4"
     },
+    "suggest": {
+        "ext-imagick": "To draw the cards with ImageMagick, ImagickCardRenderer: shaped text for Arabic, Hebrew and the scripts of India when ImageMagick is built with libraqm"
+    },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "autoload": {

@@ -108,6 +108,23 @@ final class LinkPreviewsTest extends TestCase
         self::assertSame(['https://example.org/post', 'https://example.com/dead'], $fetcher->fetched);
     }
 
+    public function testTheMessageKeepsThePreviewItsAuthorChose(): void
+    {
+        $fetcher = new FakeFetcher([
+            'https://example.org/post' => new FetchedPage(self::PAGE, 'https://example.org/post'),
+            'https://example.net/other' => new FetchedPage('<title>Other</title>', 'https://example.net/other'),
+        ]);
+        $previews = new LinkPreviews($fetcher);
+        $text = 'See https://example.org/post, and https://example.net/other.';
+
+        self::assertSame('The post', $previews->forMessage($text, null)?->title, 'No choice sent: the first link.');
+        self::assertSame('Other', $previews->forMessage($text, 'https://example.net/other')?->title, 'The link chosen.');
+        self::assertNull($previews->forMessage($text, ''), 'The preview removed.');
+        self::assertNull($previews->forMessage($text, 'https://example.com/elsewhere'), 'A link the text does not hold.');
+        self::assertNull($previews->forMessage($text, 'https://example.org/post,'), 'The links of the text are compared whole.');
+        self::assertSame(['https://example.org/post', 'https://example.net/other'], $fetcher->fetched, 'Nothing else is fetched.');
+    }
+
     public function testACharsetIsPassedOn(): void
     {
         $fetcher = new FakeFetcher(['https://example.org/' => new FetchedPage("<meta property=\"og:title\" content=\"\xE9t\xE9\">", 'https://example.org/', 'iso-8859-1')]);

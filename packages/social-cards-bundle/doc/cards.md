@@ -32,6 +32,22 @@ template with `card_template`.
 A card whose template the configuration no longer declares is a `404` until a page names it again under a template
 that exists.
 
+## The renderer
+
+`cards.renderer` picks what draws the cards: `gd`, the default, or `imagick`, which draws through ImageMagick and,
+when ImageMagick is built with libraqm, shapes the text of Arabic, Hebrew and the scripts of India and lays it out in
+its direction, a title from right to left on the right margin; see the
+[library's documentation of cards](../../social-cards/doc/cards.md#drawing-with-imagemagick). `imagick` needs the
+imagick extension of PHP on the web servers and the workers alike: the container is not built without it. The
+renderer's version enters every fingerprint, so switching renderers gives every page a new card, drawn on its next
+view.
+
+```yaml
+phil_social_cards:
+    cards:
+        renderer: imagick
+```
+
 ## The store
 
 The cards and their requests are files under `cards.directory`, written under a temporary name and renamed into

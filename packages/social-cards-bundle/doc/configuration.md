@@ -13,6 +13,7 @@ phil_social_cards:
         directory: '%kernel.project_dir%/var/social-cards'
         cache_max_age: 31536000
         async: true
+        renderer: gd                      # gd, or imagick for Arabic, Hebrew and the scripts of India
         default_template: default
         templates:
             default:
@@ -41,6 +42,7 @@ phil_social_cards:
 | `cards.directory` | `%kernel.project_dir%/var/social-cards` | The cards and their requests; shared by the web servers and the workers |
 | `cards.cache_max_age` | 31,536,000 | Seconds, 0 or more |
 | `cards.async` | true | The cards are drawn by a worker when `messenger.default_bus` exists |
+| `cards.renderer` | `gd` | `gd`, `GdCardRenderer`, or `imagick`, `ImagickCardRenderer`, which needs `ext-imagick` when the container is built; the service `Phil\SocialCards\Contract\CardRenderer` |
 | `cards.default_template` | `default` | Must be among the templates when any is declared |
 | `cards.templates` | none | The keys of `CardTemplate::KEYS`: `title_font` required, colours in hexadecimal, sizes as integers |
 | `preview.enabled` | true | The client, the fetcher, the previews, the endpoint, the component and the command |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ad3b2aa08c17e590ec8a07fdc1e2294ea658d5c0943ca84497dfe772cb1571e6 -->
+<!-- phil-dev source-sha256=960e881d84ba8783b563e6a738b19c84946f12db8c58cd58d90a1ca55d85d2f9 -->
 # Cartes
 
 Une carte est l'image de 1200×630 avec laquelle une page est partagée quand elle n'en a pas de propre. Elle est dessinée
@@ -82,10 +82,36 @@ l'un après l'autre, de gauche à droite, sans mise en forme du texte :
 | Émojis en couleur, drapeaux, séquences jointes par U+200D | Faux : dans le contour que la police possède, s'il y en a un, une pièce d'une séquence après l'autre |
 | Un caractère que la police n'a pas | La boîte de glyphe manquant de la police |
 
-Un site dont les titres sont dans une écriture des mauvaises rangées dessine ses cartes ailleurs, avec un moteur de rendu
-qui met le texte en forme, par le port `CardRenderer` ; l'image par défaut de la page est une autre issue. La police
-d'un gabarit doit couvrir chaque caractère qu'emploient ses titres, y compris les points de suspension `…` qui
-terminent un titre coupé.
+Un site dont les titres sont dans une écriture des mauvaises rangées dessine ses cartes avec `ImagickCardRenderer`,
+ci-dessous, ou avec un autre moteur de rendu qui met le texte en forme, par le port `CardRenderer` ; l'image par défaut
+de la page est une autre issue. La police d'un gabarit doit couvrir chaque caractère qu'emploient ses titres, y compris
+les points de suspension `…` qui terminent un titre coupé.
+
+### Dessiner avec ImageMagick
+
+`ImagickCardRenderer` dessine la même mise en page au moyen de `ext-imagick`, mesurée par `ImagickTextMeasure`.
+Lorsqu'ImageMagick est compilé avec libraqm, le texte est mis en forme et disposé dans son sens : les lettres de
+l'arabe, du persan et de l'ourdou se lient et courent de droite à gauche, l'hébreu court de droite à gauche, et les
+écritures de l'Inde placent leurs signes vocaliques et leurs conjonctions. `ImagickCardRenderer::shapes()` dit si
+l'ImageMagick installé le fait ; sans libraqm, ImageMagick dessine comme GD, de gauche à droite et sans mise en forme.
+
+```php
+use Phil\SocialCards\Card\{CardGenerator, DirectoryCardStore, ImagickCardRenderer};
+
+$cards = new CardGenerator(new ImagickCardRenderer(), new DirectoryCardStore('/var/cards'));
+```
+
+Un titre ou un sous-titre dont la direction de base va de droite à gauche — sa première lettre d'une direction forte est
+de l'hébreu ou de l'arabe, comme la lit `TextDirection::of()` — est aligné sur la marge de droite ; tout autre, sur celle
+de gauche. Les images d'un gabarit sont lues par le codeur de leur seul type, PNG, JPEG, GIF ou WebP, jamais comme un
+autre format. Le PNG est opaque, à la compression la plus haute, sans les dates qu'écrit ImageMagick, de sorte que le
+même gabarit et le même contenu dessinent les mêmes octets avec le même ImageMagick. Sa `version()` — celle du moteur de
+rendu, celle d'ImageMagick, et si libraqm met en forme — entre dans l'empreinte : changer de moteur de rendu, ou
+installer libraqm, dessine de nouvelles cartes.
+
+Le moteur de rendu est facultatif : `ext-imagick` est suggérée, non exigée. Ses polices sont celles du gabarit ; libraqm
+ne met en forme que ce que la police contient, et une carte en arabe a donc besoin d'une police qui a les glyphes
+arabes et leurs formes liées.
 
 ## Empreintes et stockages
 

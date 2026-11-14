@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2c0855de7183ead8db9b67cfb2eda67631c1b9fec3d3058bacd5ee2f37e92dda -->
+<!-- phil-dev source-sha256=0d5ac150b2c8efd8ffed6c18690954f550d9b6557a273a1543c5ba67aaaf0127 -->
 # Points d'extension
 
 La bibliothèque ne déclare aucun service. Ce qu'une application peut implémenter ou remplacer, c'est le dessin et la
@@ -6,8 +6,8 @@ conservation des cartes.
 
 ## `CardRenderer`
 
-`Phil\SocialCards\Contract\CardRenderer` dessine une carte. `GdCardRenderer` est celui qui est fourni ; un moteur de
-rendu Imagick, ou un qui met en forme les écritures complexes, l'implémente.
+`Phil\SocialCards\Contract\CardRenderer` dessine une carte. `GdCardRenderer` et `ImagickCardRenderer` sont ceux qui
+sont fournis ; un moteur de rendu d'une autre bibliothèque l'implémente.
 
 | Méthode | Contrat |
 |---|---|

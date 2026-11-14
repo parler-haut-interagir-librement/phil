@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b4f484db0d0a23341f4b1bfd048093eb1df5eb46a45bef72acecf7bcc1702fc8 -->
+<!-- phil-dev source-sha256=a61db55f3ed7488d11e6d48e7fb4382998f5d6f40ce6946807293ff247c8bd56 -->
 # Cartes
 
 ## La vie d'une carte
@@ -33,6 +33,22 @@ une seule fois. Une page choisit un gabarit avec `card_template`.
 
 Une carte dont la configuration ne déclare plus le gabarit donne un `404` jusqu'à ce qu'une page la nomme de nouveau
 sous un gabarit qui existe.
+
+## Le moteur de rendu
+
+`cards.renderer` choisit ce qui dessine les cartes : `gd`, par défaut, ou `imagick`, qui dessine au moyen d'ImageMagick
+et, lorsqu'ImageMagick est compilé avec libraqm, met en forme le texte de l'arabe, de l'hébreu et des écritures de
+l'Inde et le dispose dans son sens, un titre de droite à gauche sur la marge de droite ; voyez la
+[documentation des cartes de la bibliothèque](../../../social-cards/doc/fr/cards.md#dessiner-avec-imagemagick). `imagick`
+a besoin de l'extension imagick de PHP sur les serveurs web comme sur les workers : le conteneur n'est pas construit
+sans elle. La version du moteur de rendu entre dans chaque empreinte : changer de moteur de rendu donne à chaque page
+une nouvelle carte, dessinée à sa prochaine consultation.
+
+```yaml
+phil_social_cards:
+    cards:
+        renderer: imagick
+```
 
 ## Le stockage
 

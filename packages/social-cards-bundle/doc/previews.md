@@ -31,6 +31,16 @@ nothing, so that a dead link is not fetched on every view. Without `cache.app`, 
 `LinkPreviews::firstIn($text)` is the preview of a pasted link: the first link of the text, as `LinkFinder` of
 phil/social-cards finds it, that the client fetches. One link is fetched at most, whatever the text holds.
 
+`LinkPreviews::forMessage($text, $chosen)` is the preview a message keeps, from its text and the link its author
+chose in the form:
+
+| `$chosen` | Preview |
+|---|---|
+| null, no choice sent | That of the first link of the text, as `firstIn()` |
+| `''`, the preview removed | None |
+| A link among the first ten links of the text | Its preview |
+| Any other address | None: a choice forged in the browser previews no page the message does not link to |
+
 ## The component
 
 ```twig
@@ -41,8 +51,9 @@ phil/social-cards finds it, that the client fetches. One link is fetched at most
 
 It renders a link with the page's image, site, title and description, as `phil-link-preview` and its `__image`,
 `__body`, `__site`, `__title` and `__description` parts, or a plain link, `phil-link-preview--plain`, when the page
-gives nothing; an address that cannot be fetched, a `javascript:` or `data:` one among them, gives no link at all. The image is loaded lazily and without a referrer; `:image="false"` leaves it out, so that a reader's
-browser fetches nothing from the other site. The links are `rel="noopener nofollow"`.
+gives nothing; an address that cannot be fetched, a `javascript:` or `data:` one among them, gives no link at all.
+The image is loaded lazily and without a referrer; `:image="false"` leaves it out, so that a reader's browser fetches
+nothing from the other site. The links are `rel="noopener nofollow"`.
 
 `:snapshot` takes a preview kept with a message, the array of `LinkPreview::toArray()`: nothing is fetched, and the card
 stays as it was when the message was written, whatever the page becomes. It wins over `url`; an array that is not a
@@ -93,7 +104,7 @@ client's address. An address refused does not count against the limit.
         'data-phil--social-cards-bundle--link-preview-target': 'source',
         'data-action': 'input->phil--social-cards-bundle--link-preview#scan paste->phil--social-cards-bundle--link-preview#scan',
     }}) }}
-    {{ form_widget(form.link, {attr: {'data-phil--social-cards-bundle--link-preview-target': 'field'}}) }}
+    <input type="hidden" name="link_preview" disabled data-phil--social-cards-bundle--link-preview-target="field">
     <div data-phil--social-cards-bundle--link-preview-target="preview" hidden></div>
 </div>
 ```
@@ -101,15 +112,21 @@ client's address. An address refused does not count against the limit.
 The controller scans the text `delay` milliseconds — 400 by default — after the author stops typing, finds its first
 link as `LinkFinder` does, asks the endpoint for it and builds the card from text nodes, never from HTML, with a
 button, `phil-link-preview__remove`, labelled by its `remove-label` value. The link shown is written in the `field`
-target, a hidden field of the form; a link removed empties it, and stays removed while it is in the text. An answer
-that comes after the text changed is dropped. It dispatches `shown` with the preview and `removed` with the address.
+target, a hidden field; a link removed empties it, and stays removed while it is in the text. An answer that comes
+after the text changed is dropped. It dispatches `shown` with the preview and `removed` with the address.
 
-On submission, the application reads the field, takes the preview again — from the cache — and keeps its array with
-the message:
+The field is rendered `disabled`, and the controller enables it when it connects: a browser without the script does
+not send it, and the message then keeps the preview of its first link; with the script, the
+field holds the link shown, or nothing once its author removed it.
+
+On submission, the application passes the text and the field to `forMessage()`, which takes the preview again — from
+the cache — and keeps its array with the message, a snapshot that `:snapshot` shows as it was, whatever the page
+becomes:
 
 ```php
-$link = $form->get('link')->getData();
-$message->linkPreview = is_string($link) && '' !== $link ? $previews->preview($link)?->toArray() : null;
+$chosen = $request->getPayload()->get('link_preview');
+$message->linkPreview = $previews->forMessage($message->text, is_string($chosen) ? $chosen : null)?->toArray();
 ```
 
-The address of the field comes from the browser: `preview()` checks it as any other.
+The field comes from the browser: `forMessage()` previews only a link the text holds, and `preview()` checks it as
+any other.

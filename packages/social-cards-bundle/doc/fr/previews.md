@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8ddf5bffbff0ef7f49c5e8afdbca99c929952846df2c58ecca6a5803f5572b3f -->
+<!-- phil-dev source-sha256=f3819201caa7df2624630ea5236b5b9aa301f9c76a42798c574bacde17f967e0 -->
 # Aperçus de liens
 
 Le bundle affiche la carte d'un lien vers un autre site à deux endroits : un lien qu'écrit un gabarit, par le composant
@@ -33,6 +33,16 @@ récupère la page.
 
 `LinkPreviews::firstIn($text)` est l'aperçu d'un lien collé : le premier lien du texte, tel que `LinkFinder` de
 phil/social-cards le trouve, que le client récupère. Au plus un lien est récupéré, quoi que contienne le texte.
+
+`LinkPreviews::forMessage($text, $chosen)` est l'aperçu que garde un message, d'après son texte et le lien que son auteur
+a choisi dans le formulaire :
+
+| `$chosen` | Aperçu |
+|---|---|
+| null, aucun choix envoyé | Celui du premier lien du texte, comme `firstIn()` |
+| `''`, l'aperçu retiré | Aucun |
+| Un lien parmi les dix premiers liens du texte | Son aperçu |
+| Toute autre adresse | Aucun : un choix forgé dans le navigateur n'aperçoit aucune page vers laquelle le message ne renvoie pas |
 
 ## Le composant
 
@@ -97,7 +107,7 @@ limiteur de débit, par adresse du client. Une adresse refusée ne compte pas da
         'data-phil--social-cards-bundle--link-preview-target': 'source',
         'data-action': 'input->phil--social-cards-bundle--link-preview#scan paste->phil--social-cards-bundle--link-preview#scan',
     }}) }}
-    {{ form_widget(form.link, {attr: {'data-phil--social-cards-bundle--link-preview-target': 'field'}}) }}
+    <input type="hidden" name="link_preview" disabled data-phil--social-cards-bundle--link-preview-target="field">
     <div data-phil--social-cards-bundle--link-preview-target="preview" hidden></div>
 </div>
 ```
@@ -105,15 +115,21 @@ limiteur de débit, par adresse du client. Une adresse refusée ne compte pas da
 Le contrôleur analyse le texte `delay` millisecondes — 400 par défaut — après que l'auteur cesse de taper, en trouve le
 premier lien comme le fait `LinkFinder`, demande son aperçu au point de terminaison et construit la carte à partir de
 nœuds de texte, jamais de HTML, avec un bouton, `phil-link-preview__remove`, dont l'étiquette vient de sa valeur
-`remove-label`. Le lien montré est écrit dans la cible `field`, un champ caché du formulaire ; un lien retiré le vide, et
-reste retiré tant qu'il est dans le texte. Une réponse qui arrive après que le texte a changé est abandonnée. Le
-contrôleur émet `shown` avec l'aperçu et `removed` avec l'adresse.
+`remove-label`. Le lien montré est écrit dans la cible `field`, un champ caché ; un lien retiré le vide, et reste
+retiré tant qu'il est dans le texte. Une réponse qui arrive après que le texte a changé est abandonnée. Le contrôleur
+émet `shown` avec l'aperçu et `removed` avec l'adresse.
 
-À la soumission, l'application lit le champ, reprend l'aperçu — depuis le cache — et garde son tableau avec le message :
+Le champ est rendu `disabled`, et le contrôleur l'active en se connectant : un navigateur sans le script ne l'envoie pas,
+et le message garde alors l'aperçu de son premier lien ; avec le script, le champ contient le lien montré, ou rien une
+fois que son auteur l'a retiré.
+
+À la soumission, l'application passe le texte et le champ à `forMessage()`, qui reprend l'aperçu — depuis le cache — et
+garde son tableau avec le message, un instantané que `:snapshot` montre tel qu'il était, quoi que la page devienne :
 
 ```php
-$link = $form->get('link')->getData();
-$message->linkPreview = is_string($link) && '' !== $link ? $previews->preview($link)?->toArray() : null;
+$chosen = $request->getPayload()->get('link_preview');
+$message->linkPreview = $previews->forMessage($message->text, is_string($chosen) ? $chosen : null)?->toArray();
 ```
 
-L'adresse du champ vient du navigateur : `preview()` la vérifie comme toute autre.
+Le champ vient du navigateur : `forMessage()` n'aperçoit qu'un lien que le texte contient, et `preview()` le vérifie
+comme toute autre.

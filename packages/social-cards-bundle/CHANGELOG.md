@@ -4,6 +4,22 @@ All notable changes to `phil/social-cards-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- `cards.renderer`: `gd`, the default, or `imagick`, the cards drawn by `ImagickCardRenderer` of phil/social-cards —
+  the text of Arabic, Hebrew and the scripts of India shaped when ImageMagick is built with libraqm —, refused when the
+  container is built without the imagick extension; the service `Phil\SocialCards\Contract\CardRenderer`, an alias of
+  the renderer picked, which `CardGenerator` takes. `ext-imagick` is suggested.
+- `LinkPreviews::forMessage()`: the preview a message keeps from its text and the link its author chose — the first
+  link when no choice is sent, none when the preview was removed, and only a link the text holds.
+
+### Changed
+
+- The `link-preview` Stimulus controller enables its `field` target when it connects: rendered `disabled`, the field
+  is sent only with the script, so that a form sent without it keeps the preview of the first link.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

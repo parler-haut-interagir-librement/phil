@@ -11,11 +11,14 @@ use Phil\SocialCards\Card\CardImage;
 use Phil\SocialCards\Card\CardTemplate;
 use Phil\SocialCards\Card\Color;
 use Phil\SocialCards\Card\GdCardRenderer;
+use Phil\SocialCards\Card\ImagickCardRenderer;
+use Phil\SocialCards\Contract\CardRenderer;
 use Phil\SocialCards\Tests\Support\Images;
 
 /**
  * A card is drawn once per title, out of the request when Messenger is there, during it otherwise: a short title, a
- * long one fitted by halving its size, and one cut at its smallest size, plain or over a background image with a logo.
+ * long one fitted by halving its size, and one cut at its smallest size, plain or over a background image with a logo;
+ * by GD, and by ImageMagick where `ext-imagick` is installed.
  *
  * @BeforeMethods("setUp")
  */
@@ -27,7 +30,7 @@ final class CardRendererBench
         'cut' => 'A title far too long for any card: it goes on and on, past the three lines of the template, past the smallest size it may be drawn at, so that the fitter cuts it with an ellipsis',
     ];
 
-    private readonly GdCardRenderer $renderer;
+    private CardRenderer $renderer;
 
     private readonly CardFont $font;
 
@@ -44,10 +47,11 @@ final class CardRendererBench
     }
 
     /**
-     * @param array{title: string, images: bool} $params
+     * @param array{title: string, images: bool, renderer: 'gd'|'imagick'} $params
      */
     public function setUp(array $params): void
     {
+        $this->renderer = 'imagick' === $params['renderer'] ? new ImagickCardRenderer() : new GdCardRenderer();
         $this->template = $params['images']
             ? new CardTemplate($this->font, accent: new Color(225, 29, 72), backgroundImage: CardImage::fromBytes(Images::png(1600, 900)), logo: CardImage::fromBytes(Images::png(400, 120, 0xFF0000, true)))
             : new CardTemplate($this->font);
@@ -67,13 +71,19 @@ final class CardRendererBench
     }
 
     /**
-     * @return Generator<string, array{title: string, images: bool}>
+     * @return Generator<string, array{title: string, images: bool, renderer: 'gd'|'imagick'}>
      */
     public function cards(): Generator
     {
-        foreach (array_keys(self::TITLES) as $title) {
-            yield $title => ['title' => $title, 'images' => false];
-            yield $title.' with images' => ['title' => $title, 'images' => true];
+        $renderers = \extension_loaded('imagick') ? ['gd', 'imagick'] : ['gd'];
+
+        foreach ($renderers as $renderer) {
+            $prefix = 'gd' === $renderer ? '' : 'imagick ';
+
+            foreach (array_keys(self::TITLES) as $title) {
+                yield $prefix.$title => ['title' => $title, 'images' => false, 'renderer' => $renderer];
+                yield $prefix.$title.' with images' => ['title' => $title, 'images' => true, 'renderer' => $renderer];
+            }
         }
     }
 }

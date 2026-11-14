@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4e1442dbc383c6cd19a9e99d0ccfc8c5a7984e88b13382c1c72a6cc823831dc1 -->
+<!-- phil-dev source-sha256=30e0cae8d67cef0fb43ab50103f3605ab4200646debd821c123fa32195271c0d -->
 # Installation
 
 ```sh
@@ -21,6 +21,7 @@ composer require phil/social-cards-bundle
 | `symfony/ux-twig-component` | ^3.7, facultatif | Le composant `LinkPreview` |
 | `symfony/rate-limiter` | ^8.2, facultatif | La limite de débit des liens collés |
 | `symfony/stimulus-bundle` | ^3.7, facultatif | Le contrôleur `link-preview`, depuis `assets/` |
+| `ext-imagick` | facultative | `cards.renderer: imagick`, le texte de l'arabe, de l'hébreu et des écritures de l'Inde mis en forme quand ImageMagick est compilé avec libraqm |
 | `phil/media-bundle` | ^0.1, facultatif | Un média comme image d'une page |
 | `phil/http-cache-tags-bundle` | ^0.1, facultatif | Les étiquettes des cartes servies |
 
