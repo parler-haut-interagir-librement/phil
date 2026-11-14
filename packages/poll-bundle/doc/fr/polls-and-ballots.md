@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5c7bc85122f64fa5c1e7cd317314c38152ea04dffe1c4ae85958520915bbc9c6 -->
+<!-- phil-dev source-sha256=893827bc446f53fc90a9bc12fff6f41c8797bf526c33d164533821af2b14c0d7 -->
 # Sondages et bulletins
 
 ## Créer un sondage
@@ -9,11 +9,11 @@ conserve le sondage :
 | `PollDraft` | Valeur par défaut | Ce qu'il règle |
 |---|---|---|
 | `question` | — | Un texte UTF-8 de 1 à 500 caractères. |
-| `options` | — | De 2 à 100 `PollOption` : un identifiant de 1 à 64 lettres ASCII, chiffres, `_` ou `-`, et un libellé de 1 à 200 caractères. |
-| `kind` | `BallotKind::Single` | Une option, plusieurs, ou des options classées. |
-| `minChoices`, `maxChoices` | 1, toutes les options | Les bornes d'un bulletin à choix multiple ou classé ; un bulletin à choix unique les ignore. |
+| `options` | — | De 2 à 100 `PollOption` : un identifiant de 1 à 64 lettres ASCII, chiffres, `_` ou `-`, et un libellé de 1 à 200 caractères ; les notes d'une échelle, écrites par `PollDraft::marks()`. |
+| `kind` | `BallotKind::Single` | Une option, plusieurs, des options classées, ou une note sur une échelle. |
+| `minChoices`, `maxChoices` | 1, toutes les options | Les bornes d'un bulletin à choix multiple ou classé ; un bulletin à choix unique et une échelle les ignorent. |
 | `abstention` | `false` | Indique si un bulletin blanc est une abstention ou s'il est refusé. |
-| `counting` | celle du type | Le nom de la méthode de dépouillement : `choices` pour les bulletins à choix unique et multiple, `instant_runoff` pour les bulletins classés, par défaut. |
+| `counting` | celle du type | Le nom de la méthode de dépouillement : `choices` pour les bulletins à choix unique et multiple, `instant_runoff` pour les bulletins classés, `scale` pour une échelle, par défaut ; `nps` pour un Net Promoter Score. |
 | `anonymous` | `false` | Indique si les bulletins sont gardés à l'écart de leurs votants : voir [Anonymat](anonymity.md). |
 | `results` | `ResultsVisibility::Always` | Qui voit les résultats : voir [Résultats](results.md). |
 | `subject` | `null` | La ressource de l'application à laquelle appartient le sondage. |
@@ -28,6 +28,35 @@ aléatoire.
 
 `get()` trouve un sondage par son identifiant, `ofSubject()` les sondages d'une ressource, du plus ancien au plus
 récent.
+
+## Les notes d'une échelle
+
+Une question sans pointage demande une note : comment était la soirée, de 1 à 5 ; quelle est la probabilité que vous
+nous recommandiez, de 0 à 10. Ses options sont ses notes, qu'écrit `PollDraft::marks($lowest, $highest, $labels)`,
+chacune étiquetée par `$labels` sous sa note ou par la note elle-même ; une échelle a de 2 à 100 notes, négatives
+comprises. Un bulletin contient une note, ou aucune quand le sondage accepte un bulletin blanc.
+
+```php
+use Phil\Poll\BallotKind;
+
+$evening = $polls->create(new PollDraft(
+    'How was the evening?',
+    PollDraft::marks(1, 5, [1 => 'Poor', 5 => 'Great']),
+    BallotKind::Scale,
+), $member);
+
+$recommend = $polls->create(new PollDraft(
+    'How likely are you to recommend us to a friend?',
+    PollDraft::marks(0, 10),
+    BallotKind::Scale,
+    counting: 'nps',
+), $member);
+
+$polls->cast($recommend->id, $member, ['9']);
+```
+
+`scale` compte la distribution des notes et leur moyenne ; `nps`, sur une échelle de 0 à 10 seulement, ajoute les
+promoteurs, les passifs et les détracteurs et le score : voir [Résultats](results.md).
 
 ## Ouvert et fermé
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5e4a51893fdd869f67ea5bba7f0c3fc3b7b443e941d59da4b927f2ab3a7bb0c8 -->
+<!-- phil-dev source-sha256=8a273cbbd631c9a972179c4ba14401c424f7aab5c67cbc067c26f63cb26fd445 -->
 # Installation
 
 ## Prérequis
@@ -44,8 +44,9 @@ for recipe in field radio-group checkbox native-select button progress; do
 done
 ```
 
-Elles ont les noms, les props et les blocs du kit Shadcn du Toolkit : un site sur Tailwind installe donc les six mêmes
-recettes depuis le kit Shadcn. On les trouve sous le sous-répertoire des composants de la configuration `ux_toolkit` ;
+Un site sur Tailwind installe plutôt les six mêmes recettes depuis le kit Shadcn du Toolkit, avec `label`, qu'appelle
+son `Field:Label`, et Symfony UX Icons, que dessinent sa case à cocher et sa liste ; les gabarits ne donnent aux
+recettes que ce que les deux kits lisent de la même façon. On les trouve sous le sous-répertoire des composants de la configuration `ux_toolkit` ;
 dans un environnement où le Toolkit n'est pas activé, comme l'est souvent la production, répétez-le dans
 `kit_subdirectory`.
 

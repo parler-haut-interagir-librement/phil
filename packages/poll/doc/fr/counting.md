@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3b541e8b03170f441037157bae256679e942275a8c63fe65be847cfb62a5fac7 -->
+<!-- phil-dev source-sha256=dcd826b4c57f34438d8a24fa1cd916d3e0b4d65762014bb9685668733585d077 -->
 # Dépouillement
 
 Une `CountingMethod` lit les bulletins une seule fois, dans leur ordre, et retourne un `Result` :
@@ -10,6 +10,8 @@ Une `CountingMethod` lit les bulletins une seule fois, dans leur ordre, et retou
 | `abstentions` | Les bulletins blancs. |
 | `standings` | Un `Standing` par option — `option`, `score`, `place` — de la première place à la dernière. |
 | `rounds` | Les tours d'un vote alternatif ; vide pour les autres méthodes. |
+| `rating` | Pour une échelle, un `Rating` : `marked`, les bulletins qui ont donné une note, `sum`, la somme de leurs notes, et `mean()` ; `null` pour les autres sortes. |
+| `netPromoter` | Pour un Net Promoter Score, un `NetPromoter` : `promoters`, `passives`, `detractors`, `respondents()` et `score()` ; `null` sinon. |
 
 Les options à égalité partagent leur place, et la place suivante compte toutes les options qui la précèdent : deux
 options à égalité au premier rang sont toutes deux premières, et la suivante est troisième. Au sein d'une place, le
@@ -21,7 +23,7 @@ d'une option.
 
 `ChoiceCount`, nommé `choices`, dépouille les bulletins uniques et multiples : le score d'une option est le nombre de
 bulletins qui l'ont choisie. Pour des bulletins uniques, c'est une majorité simple ; pour des bulletins multiples, un
-vote par approbation. Il refuse les bulletins classés.
+vote par approbation. Il refuse les bulletins classés et les échelles.
 
 ## Le vote alternatif
 
@@ -60,11 +62,28 @@ place, et une option qui bat toutes les autres — le gagnant de Condorcet, quan
 est le nombre d'options qu'une option bat. Deux options dont aucune ne bat l'autre peuvent se trouver à des places
 différentes, quand d'autres options battent l'une et pas l'autre.
 
+## Le dépouillement d'une échelle
+
+`ScaleCount`, nommé `scale`, dépouille les notes d'une échelle et en est la méthode par défaut. Le score d'une note est
+le nombre de bulletins qui l'ont donnée : la distribution des notes, la note donnée le plus souvent en premier, que
+`winners()` nomme. Le `Rating` du résultat contient les bulletins qui ont donné une note et la somme de leurs notes,
+deux entiers exacts ; `mean()` est leur quotient, `null` tant qu'aucun bulletin n'a donné de note. Les abstentions
+sont comptées à part et laissées hors de la moyenne.
+
+## Le Net Promoter Score
+
+`NetPromoterScore`, nommé `nps`, dépouille seulement une échelle de 0 à 10, telle que `PollRules::netPromoter()` la
+construit, et refuse toute autre. Ses classements et sa cote sont ceux du dépouillement d'une échelle ; son
+`NetPromoter` répartit les notes en trois groupes : les promoteurs ont donné 9 ou 10, les passifs 7 ou 8, les
+détracteurs de 0 à 6. `score()` est la part des promoteurs moins la part des détracteurs, en points de -100 à 100 —
+25.0 pour quatre promoteurs, deux passifs et deux détracteurs —, `null` tant qu'aucun bulletin n'a donné de note. Les
+groupes sont des entiers exacts ; arrondir le score revient à l'affichage.
+
 ## Coût
 
 | Méthode | Temps | Mémoire |
 |---|---|---|
-| `choices`, `borda` | une passe, proportionnelle aux choix | les scores |
+| `choices`, `borda`, `scale`, `nps` | une passe, proportionnelle aux choix | les scores |
 | `instant_runoff` | une passe pour regrouper, puis une passe sur les classements distincts à chaque tour | les classements distincts |
 | `schulze` | une passe pour regrouper, les paires de chaque classement distinct, puis le cube du nombre d'options | les classements distincts et deux tableaux carrés |
 

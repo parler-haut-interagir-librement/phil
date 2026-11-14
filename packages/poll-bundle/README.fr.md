@@ -1,9 +1,9 @@
-<!-- phil-dev source-sha256=fb215f20315577843c0308811235adfc17e88c19c8027996ab7b3874d4f4c66f -->
+<!-- phil-dev source-sha256=e5f9f194db489e7e76075b506004e79a1634b70b8400c06f1dee39915e4c816a -->
 # phil/poll-bundle
 
-**Des sondages et leurs bulletins pour les applications Symfony : à choix unique, multiple ou classé, anonymes ou non,
-dépouillés à la demande, avec le vote unique transférable pour plusieurs sièges et une interface de vote pour les
-afficher.**
+**Des sondages et leurs bulletins pour les applications Symfony : à choix unique, multiple, classé ou une note sur une
+échelle, anonymes ou non, dépouillés à la demande, avec le vote unique transférable pour plusieurs sièges, le Net
+Promoter Score et une interface de vote pour les afficher.**
 
 phil/poll-bundle place le moteur de vote de `phil/poll` derrière les services d'une application Symfony. Un sondage a
 une question, de deux à cent options avec libellé, les règles de ses bulletins, la méthode qui les dépouille et, quand
@@ -11,6 +11,10 @@ l'application le veut, une ouverture et une fermeture. Les gens déposent un bul
 pendant que le sondage est ouvert ; les personnes qui le gèrent le ferment, en changent les dates ou le suppriment ; les
 résultats sont comptés quand on les demande, et affichés comme le dit la visibilité du sondage — en tout temps, après
 le vote, après la fermeture, ou à ses gestionnaires seulement.
+
+Une question sans pointage demande une note sur une échelle — comment était la soirée, de 1 à 5 —, dépouillée en
+distribution des notes et en moyenne, ou un Net Promoter Score de 0 à 10, dépouillé en promoteurs, passifs et
+détracteurs.
 
 Un sondage qui pourvoit plusieurs sièges — un conseil, un jury — est dépouillé par le vote unique transférable, selon
 la méthode de Meek, en nombres exacts : chaque tour est publié, avec son quota, les votes et le facteur de rétention de
@@ -26,7 +30,7 @@ Il sert à toute application Symfony où des gens votent, et aux bundles qui rep
 disponibilités qui trouve une date, un questionnaire, une boîte à idées votées par les membres, l'assemblée générale
 d'une association. Un sondage peut appartenir à l'une des ressources de l'application — une idée, une réunion — nommée
 par une référence de `phil/resource` (`idea:42`), tout comme ses votants (`user:7`). L'application dit qui peut créer un
-sondage, voter et le gérer ; elle peut ajouter ses propres méthodes de dépouillement à côté des quatre de la
+sondage, voter et le gérer ; elle peut ajouter ses propres méthodes de dépouillement à côté des six de la
 bibliothèque. Les bundles qui reposent sur lui affichent un sondage avec les mêmes vues et les mêmes gabarits : le
 formulaire d'un bulletin et les résultats, dessinés avec les recettes du kit PHIL UX ou du kit Shadcn sur Tailwind,
 sans JavaScript, et un événement du DOM quand les résultats d'un sondage fermé sont révélés, sur lequel joue la
@@ -35,8 +39,8 @@ célébration du kit.
 C'est un bundle Symfony qui repose sur `phil/poll`, `phil/resource` et Doctrine ORM : les sondages, les bulletins et
 les participations vivent dans trois tables, ou en mémoire pour les tests. Les services ne gardent aucun état entre les
 requêtes et sont sûrs dans un *worker* de longue durée ; chaque action diffuse un événement qui nomme le sondage et rien
-d'autre. Un dépouillement peut être gardé dans un pool de cache jusqu'au prochain bulletin, quand l'application en
-nomme un.
+d'autre. Un dépouillement peut être gardé dans un pool de cache jusqu'au prochain changement du sondage, quand
+l'application en nomme un.
 
 ## État
 
@@ -47,13 +51,14 @@ nomme un.
 | Les résultats affichés selon la visibilité de chaque sondage | Implémenté et testé |
 | Les méthodes de dépouillement de l'application, autoconfigurées à côté de celles de la bibliothèque | Implémenté et testé |
 | Le vote unique transférable selon la méthode de Meek, en nombres exacts, avec ses tours publiés | Implémenté, testé, soumis au fuzzing et mesuré par un banc d'essai |
-| Les dépouillements gardés dans un pool de cache jusqu'au prochain bulletin, derrière une option | Implémenté et testé |
-| L'interface de vote : les vues, les gabarits dessinés avec les recettes du kit, la lecture d'un formulaire soumis | Implémenté et testé |
+| Les échelles, dépouillées en distribution et en moyenne de leurs notes, et les Net Promoter Scores | Implémenté et testé |
+| Les dépouillements gardés dans un pool de cache jusqu'au prochain changement du sondage, derrière une option | Implémenté et testé, sur SQLite et un vrai pool |
+| L'interface de vote : les vues, les gabarits dessinés avec les recettes du kit, la lecture d'un formulaire soumis, les erreurs annoncées | Implémenté et testé, dans Chrome avec le kit PHIL UX et le kit Shadcn |
 | L'événement du DOM des résultats révélés, pour la célébration du kit | Implémenté et testé |
 | Stockages Doctrine et en mémoire, ceux en mémoire vidés entre deux requêtes | Implémenté et testé, sur SQLite |
 | Les événements qui nomment le sondage : créé, bulletin déposé, modifié, retiré, fermé, supprimé | Implémenté et testé |
 | Les routes et les contrôleurs pour voter | Hors du bundle : les bundles qui reposent sur lui et l'application gardent les leurs |
-| Les notes, le jugement majoritaire ; les échelles, les nuages de mots, les indices de recommandation et les remue-méninges, sans pointage | Pas commencé : construits quand un site les demande |
+| Les notes, le jugement majoritaire ; les nuages de mots et les remue-méninges, des textes libres qui appellent la modération | Pas commencé : construits quand un site les demande |
 
 ## Documentation
 
@@ -61,9 +66,9 @@ nomme un.
 |---|---|
 | [Installation](doc/fr/installation.md) | Les prérequis, l'activation du bundle, les tables, un premier sondage. |
 | [Configuration](doc/fr/configuration.md) | Chaque option et les services enregistrés. |
-| [Sondages et bulletins](doc/fr/polls-and-ballots.md) | Créer un sondage, ses dates, déposer, modifier et retirer un bulletin, gérer un sondage. |
+| [Sondages et bulletins](doc/fr/polls-and-ballots.md) | Créer un sondage, les échelles et les Net Promoter Scores, ses dates, déposer, modifier et retirer un bulletin, gérer un sondage. |
 | [Anonymat](doc/fr/anonymity.md) | Ce que garde un sondage anonyme, le reçu, et ce que l'anonymat ne couvre pas. |
-| [Résultats](doc/fr/results.md) | Le dépouillement, la visibilité des résultats, le coût d'un dépouillement. |
+| [Résultats](doc/fr/results.md) | Le dépouillement, la cote d'une échelle et le Net Promoter Score, la visibilité des résultats, le coût d'un dépouillement. |
 | [Vote unique transférable](doc/fr/single-transferable-vote.md) | Les sondages à sièges, la méthode de Meek, les tours publiés, les nombres exacts. |
 | [L'interface de vote](doc/fr/voting-interface.md) | Les vues, les gabarits, le formulaire soumis, la célébration des résultats révélés, l'accessibilité. |
 | [Événements](doc/fr/events.md) | Les événements diffusés, et ce qu'ils transportent. |
