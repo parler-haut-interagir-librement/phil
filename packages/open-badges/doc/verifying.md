@@ -47,8 +47,51 @@ $verifier = new CredentialVerifier($methods, controllers: [
     'https://example.org/issuer' => ['https://keys.example.org/1'],
 ]);
 ```
- To verify foreign issuers, the application implements
-`VerificationMethods` (see [Extension points](extension-points.md)), fetching and caching their profiles as it decides.
+
+To verify issuers of other kinds, the application implements `VerificationMethods` (see
+[Extension points](extension-points.md)), fetching and caching their profiles as it decides.
+
+## Issuers identified by `did:web`
+
+An issuer identified by a `did:web` publishes its keys in its DID document, on its own site. `DidWebMethods` reads it
+when a credential names one of its methods, and passes every other method to the methods it is given — the
+application's keys and every `did:key` by default:
+
+```php
+use Phil\OpenBadges\Adapter\SafeHttpFetcher;
+use Phil\OpenBadges\DataIntegrity\DidKeyMethods;
+use Phil\OpenBadges\Did\DidWebMethods;
+use Phil\OpenBadges\Verification\CredentialVerifier;
+
+$methods = new DidWebMethods(new SafeHttpFetcher(), new DidKeyMethods($knownKeys));
+$verified = new CredentialVerifier($methods)->verify($tokenOrJson);
+```
+
+The document of `did:web:example.org` is at `https://example.org/.well-known/did.json`; the one of
+`did:web:example.org:issuers:42` at `https://example.org/issuers/42/did.json`; a port is written `%3A`
+(`did:web:example.org%3A8443`). A host that is an IP address, `localhost` or a single name is refused, and so is a
+segment `.`, `..`, or one holding an escaped slash.
+
+The key of `did:web:example.org#key-1` is accepted when the document:
+
+| Rule | Why |
+|---|---|
+| Has the `id` `did:web:example.org` | A document served for another identifier says nothing of this one. |
+| Lists the method in `verificationMethod`, or embeds it in `assertionMethod`, as `#key-1` or whole | The method is the issuer's. |
+| Names it in `assertionMethod` | The issuer signs credentials with it, not only signs in. |
+| Gives `controller` as `did:web:example.org` | Nobody else controls the key. |
+| Holds the key as a `publicKeyMultibase`, an Ed25519 Multikey, or a `publicKeyJwk`: Ed25519 (`OKP`) or RSA of 2048 to 8192 bits | The algorithms of Open Badges 3.0; a document that publishes a private key is refused. |
+| Is a JSON object of 256 KiB and 16 levels at most | A document is read within bounds. |
+
+`SafeHttpFetcher` reads the document through `phil/safe-http`: over HTTPS only, a host on a private network refused,
+each redirect checked and kept on HTTPS, within 5 seconds of silence and 10 in all, 256 KiB at most, and only when it
+answers 200 whole. It identifies itself as `PhilOpenBadges/0.1`; a client of `phil/safe-http` with other limits is given
+to its constructor.
+
+Each verification reads the document again: `DidWebMethods` keeps nothing between two calls, so it is safe in a
+long-running worker. An application that verifies often decorates its `DocumentFetcher` with a cache, the documents
+kept a few minutes, and calls `reset()` of `SafeHttpFetcher` between the messages of a worker. A document that cannot
+be read, or that does not give the key, raises `InvalidCredential` with the reason; the credential does not verify.
 
 ## The recipient
 

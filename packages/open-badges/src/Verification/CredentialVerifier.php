@@ -18,8 +18,8 @@ use Phil\OpenBadges\Jwt\JwtVerifier;
  * verification method. Then that the key is one of the credential's issuer, and, at the moment given — the current
  * time when none is —, that the credential is valid already and not expired.
  *
- * The keys come from the verification methods the application gives: nothing is fetched, and a key a token carries in
- * its own header is never trusted. A verification method is one of an issuer when it is the issuer's identifier, a
+ * The keys come from the verification methods the application gives — nothing is fetched but by them —, and a key a
+ * token carries in its own header is never trusted. A verification method is one of an issuer when it is the issuer's identifier, a
  * fragment of it — `https://example.org/issuer#key-1`, `did:key:z6Mk…#z6Mk…` —, or one the application lists for that
  * issuer: a key the application knows, or a `did:key`, can sign only in its own issuer's name.
  */

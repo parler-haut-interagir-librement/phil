@@ -12,18 +12,19 @@ It is for any PHP application that recognizes what people do: a training platfor
 community that thanks its volunteers, an event that credits its speakers. The library reads no account and stores
 nothing: the application says who the recipient is, as they give it, and keeps what it issued.
 
-It is a plain PHP library that requires only PHP and its extensions. A credential is secured in
-one of the two ways Open Badges 3.0 recognizes: as a JSON Web Token (`EdDSA` or `RS256`), or with an embedded Data
-Integrity proof of the `eddsa-rdfc-2022` cryptosuite, for which the library carries its own JSON-LD processor and RDF
-canonicalization. Verifying never fetches anything: the JSON-LD contexts are bundled, and the keys are the ones the
-application gives.
+It is a plain PHP library on PHP's extensions, `phil/url` and `phil/safe-http`. A credential is secured in one of the
+two ways Open Badges 3.0 recognizes: as a JSON Web Token (`EdDSA` or `RS256`), or with an embedded Data Integrity proof
+of the `eddsa-rdfc-2022` cryptosuite, for which the library carries its own JSON-LD processor and RDF canonicalization.
+Verifying fetches nothing unless the application asks for it: the JSON-LD contexts are bundled, and the keys are the
+ones the application gives, or those a `did:web` issuer publishes in its DID document, read within bounds.
 
 ## Status
 
 | Part | State |
 |---|---|
 | Issuers, achievements, recipients (DID, hashed e-mail address or URL), `OpenBadgeCredential` | Implemented and tested |
-| VC-JWT with `EdDSA` (Ed25519) and `RS256` (RSA of 2048 bits or more) | Implemented and tested |
+| VC-JWT with `EdDSA` (Ed25519) and `RS256` (RSA of 2048 bits or more), keys read from PEM, JSON Web Keys and Multikeys | Implemented and tested |
+| Issuers identified by `did:web`: their DID document read through `phil/safe-http`, its keys checked | Implemented, tested and fuzzed |
 | Data Integrity `eddsa-rdfc-2022`, JSON-LD in safe mode, RDFC-1.0 canonicalization | Implemented and tested against the W3C vectors |
 | Baking into PNG (`iTXt`) and SVG, reading back | Implemented, tested and fuzzed |
 | Revocation and suspension through a Bitstring Status List | Implemented and tested |
@@ -39,11 +40,11 @@ application gives.
 | [Installation](doc/installation.md) | Requirements, installing, the keys. |
 | [Issuing](doc/issuing.md) | Issuers, achievements, recipients, credentials. |
 | [Securing](doc/securing.md) | JSON Web Tokens and Data Integrity proofs, the profile document. |
-| [Verifying](doc/verifying.md) | `CredentialVerifier`, verification methods, the recipient, the JSON-LD subset. |
+| [Verifying](doc/verifying.md) | `CredentialVerifier`, verification methods, `did:web` issuers, the recipient, the JSON-LD subset. |
 | [Baking](doc/baking.md) | A credential in a PNG or an SVG image. |
 | [Revocation](doc/revocation.md) | Status entries, status lists and their credential. |
 | [Endorsements and learner records](doc/endorsements-and-clr.md) | `EndorsementCredential` and CLR 2.0. |
-| [Extension points](doc/extension-points.md) | Signers, verification methods, context loaders. |
+| [Extension points](doc/extension-points.md) | Signers, verification methods, DID document fetchers, context loaders. |
 | [Exceptions](doc/exceptions.md) | `OpenBadgesException` and its three exceptions. |
 | [Testing](doc/testing.md) | The library's tests, vectors, fuzz targets and benchmark. |
 | [Reference](doc/reference.md) | Every type of the library, with its role. |

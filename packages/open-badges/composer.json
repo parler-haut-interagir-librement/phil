@@ -28,10 +28,14 @@
         "ext-mbstring": "*",
         "ext-openssl": "*",
         "ext-sodium": "*",
-        "ext-zlib": "*"
+        "ext-zlib": "*",
+        "phil/safe-http": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "symfony/service-contracts": "^3.6"
     },
     "require-dev": {
-        "phpunit/phpunit": "^13.4"
+        "phpunit/phpunit": "^13.4",
+        "symfony/http-client": "^8.2"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

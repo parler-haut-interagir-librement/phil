@@ -14,9 +14,10 @@ return [
         'words' => ['libsodium', 'Multikey', 'Multikeys', 'cryptosuite', 'cryptosuites', 'RDFC', 'Bitstring', 'multibase'],
     ],
     'deptrac' => [
-        // The SVG baker reads and writes images through the DOM extension of PHP, which is outside the default.
+        // The SVG baker reads and writes images through the DOM extension of PHP, which is outside the default; the
+        // resolution of a did:web reads its address through phil/url and its document through phil/safe-http.
         'ruleset' => [
-            'PhilOpenBadges' => ['DefaultAllowed', 'Forbidden'],
+            'PhilOpenBadges' => ['DefaultAllowed', 'Forbidden', 'PhilUrl', 'PhilSafeHttp'],
         ],
     ],
     'phpstan' => [
@@ -56,6 +57,7 @@ return [
             'open-badges-png' => 'tests/Fuzz/open-badges-png.php',
             'open-badges-svg' => 'tests/Fuzz/open-badges-svg.php',
             'open-badges-data-integrity' => 'tests/Fuzz/open-badges-data-integrity.php',
+            'open-badges-did-web' => 'tests/Fuzz/open-badges-did-web.php',
         ],
     ],
 ];
