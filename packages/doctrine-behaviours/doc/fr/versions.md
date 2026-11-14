@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9eb5d82d1c15e39880cc1971aa91ed904c29dc90d70bfe933eb66d857ff00bb1 -->
+<!-- phil-dev source-sha256=e82f4f21d4627d2d64997dd6655f5af2980d8cc392cfb6b711d74a851c60fd0d -->
 # Versions
 
 | Type | Genre | Rôle |
@@ -7,7 +7,7 @@
 | `VersionableEntity` | trait | Les colonnes `version_number` et `version_frozen` |
 | `VersionListener` | écouteur : `onFlush` | Crée la version suivante d'un enregistrement figé quand un champ versionné change |
 | `Versions` | service | Liste, fige, revient en arrière |
-| `Version\RecordVersion` | entité | Une version figée, dans la table `phil_record_version` |
+| `Version\RecordVersion` | entité | Une version figée, dans la table `phil_record_version`, son `frozen_at` un `datetime_utc_immutable` |
 | `Contract\VersionRestoreGuard` | interface | Le droit de revenir à une version passée |
 | `AllowVersionRestore`, `RefuseVersionRestore` | gardes | Tout le monde, ou personne |
 | `Exception\UnknownVersion`, `Exception\VersionRestoreDenied`, `Exception\InvalidVersionedState` | exceptions | |

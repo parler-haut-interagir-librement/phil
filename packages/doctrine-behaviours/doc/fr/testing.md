@@ -1,9 +1,9 @@
-<!-- phil-dev source-sha256=8acdadd96b7d4b92001a10768b724bb039e3ab5fa7ab16e232fd62a47cb2ee8c -->
+<!-- phil-dev source-sha256=b07d8e8a581500820d563c9ca9ed2c104b02bfe6f80032b8a7459fdfbcfb2ca2 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
 |---|---|
-| Horodatage et auteur | Des entités horodatées et nommées à leur persistance et à leur modification, en UTC, personne de connu, des valeurs données gardées, des entités sans comportement laissées en paix |
+| Horodatage et auteur | Des entités horodatées et nommées à leur persistance et à leur modification, l'instant de l'horloge relu en UTC, personne de connu, des valeurs données gardées, des entités sans comportement laissées en paix |
 | Suppression douce | Une suppression gardée comme date, les données d'origine que garde l'unité de travail, le filtre actif et inactif, la restauration, une seconde suppression qui efface pour de bon, une entité qui a son propre `deletedAt` laissée visible |
 | Désactivation | Éteindre et rallumer, la date gardée accordée, des dates données gardées, le filtre actif et inactif, une entité sans colonne à elle laissée visible |
 | Propriétaire | Les identifiants refusés et acceptés, le propriétaire donné à la persistance, gardé à la modification, transféré, personne de connu, l'effaceur sur les tables et les sous-classes |
@@ -21,10 +21,10 @@ vendor/bin/phpunit packages/doctrine-behaviours/tests
 
 ## Vrais serveurs
 
-`tests/Integration` exécute ce qui dépend d'une base de données, la graphie du vrai, le `IN` des slugs, l'état en JSON,
-les clés `guid`, l'effaceur, les traductions lues le long d'une chaîne et gardées une par locale, et les déplacements
-qui s'attendent dans un groupe mais pas d'un groupe à l'autre, sur MySQL et PostgreSQL, quand `PHIL_TEST_MYSQL_URL` et
-`PHIL_TEST_POSTGRESQL_URL` sont définies. Sans elles, les tests sont ignorés.
+`tests/Integration` exécute ce qui dépend d'une base de données, la graphie du vrai, un instant écrit et relu en UTC,
+le `IN` des slugs, l'état en JSON, les clés `guid`, l'effaceur, les traductions lues le long d'une chaîne et gardées une
+par locale, et les déplacements qui s'attendent dans un groupe mais pas d'un groupe à l'autre, sur MySQL et PostgreSQL,
+quand `PHIL_TEST_MYSQL_URL` et `PHIL_TEST_POSTGRESQL_URL` sont définies. Sans elles, les tests sont ignorés.
 
 ```sh
 vendor/bin/phil-dev services up

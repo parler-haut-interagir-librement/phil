@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=e86ae5b196cf08170c1889102832757959084631a4c5621a13e12183a06530b5 -->
+<!-- phil-dev source-sha256=a4c90f49a75d0fa7c7b295a1b7c3105470537e33597af079b13d14d812d020da -->
 # phil/doctrine-behaviours
 
 **Douze comportements Doctrine, de l'horodatage et des arbres aux positions, aux slugs, aux traductions et aux versions,
 chacun à activer au besoin.**
 
 phil/doctrine-behaviours donne douze comportements aux entités de Doctrine ORM. L'horodatage note quand une entité est
-créée et modifiée, en UTC. L'auteur garde qui l'a créée et qui l'a changée en dernier, comme identifiant d'utilisateur.
+créée et modifiée, ces instants étant gardés en UTC. L'auteur garde qui l'a créée et qui l'a changée en dernier, comme identifiant d'utilisateur.
 La suppression douce cache une entité supprimée derrière un filtre au lieu de l'effacer, et la supprimer une seconde
 fois l'efface. Les arbres gardent le chemin matérialisé et la profondeur de chaque nœud, et le lecteur `Tree` donne les
 racines, les enfants, les descendants, les ancêtres et la hiérarchie. La désactivation éteint un enregistrement et le
@@ -65,6 +65,7 @@ fournit l'application, comme `FixedBlame` pour une commande qui agit pour un com
 | [Intégration](doc/fr/integration.md) | Enregistrer les écouteurs et le filtre sans Symfony. |
 | [Points d'extension](doc/fr/extension-points.md) | Les ports, les arguments et les données qu'une application choisit ou remplace. |
 | [Tests](doc/fr/testing.md) | Comment la librairie est testée. |
+| [Mises à niveau](doc/fr/upgrading.md) | Ce qui change d'une version à l'autre, et la migration des tables existantes. |
 
 ## Démarrage rapide
 
@@ -94,8 +95,8 @@ Dans une application Symfony, `phil/doctrine-behaviours-bundle` enregistre les �
 
 ## Prérequis
 
-PHP 8.5 ou une version plus récente, Doctrine ORM 3.7 ou plus récent, DBAL 4.5, `doctrine/collections`, `psr/clock` et
-`phil/locale-dimensions` ; `phil/slug` pour les slugs, `symfony/uid` pour les identifiants datés, et `symfony/workflow`
+PHP 8.5 ou une version plus récente, Doctrine ORM 3.7 ou plus récent, DBAL 4.5, `doctrine/collections` 3.1 ou plus récent,
+`psr/clock`, `symfony/polyfill-php86` et `phil/locale-dimensions` ; `phil/slug` pour les slugs, `symfony/uid` pour les identifiants datés, et `symfony/workflow`
 pour la publication.
 
 ## Contribuer

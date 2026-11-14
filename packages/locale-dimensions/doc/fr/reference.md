@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b8d2af2331c25530ff15db5579e76a96075ac5763ba4d3631685d834399f7c5f -->
+<!-- phil-dev source-sha256=cbb2fc3daf5bbfc4cf794dd7e2784bbd651f578c6ff133dd8acc61b8add98466 -->
 # Référence
 
 Chaque type public de la librairie, sous `Phil\LocaleDimensions`. Chacun est un objet valeur final et immuable,
@@ -25,6 +25,12 @@ Symfony et `intl`. Les lignes sont trouvées par égalité sur cette chaîne : a
 | `sharesLanguageWith(Locale)` | si les deux ont la même langue : `fr` et `fr_CA` oui, `fr_CA` et `en_CA` non |
 | `toLanguageTag()` | l'étiquette BCP 47, `fr-CA`, que lisent `hreflang`, `lang` et `Content-Language` |
 | `equals(Locale)`, `toString()`, `__toString()` | comparaison et forme en chaîne |
+| `Locale::tryFromString(string)` | la locale, ou `null` pour une chaîne qui ne peut pas en être une |
+
+`tryFromString()` sert pour une locale lue de l'extérieur — une adresse, un formulaire, un en-tête `Accept-Language`, une
+ligne enregistrée — où un refus est une réponse, une 404 ou une erreur de formulaire, plutôt qu'une faute. Sa graphie
+est plus étroite que les caractères qu'admet `LocaleFallbackProvider::validateLocale()` de Symfony : une locale qu'elle
+accepte est donc aussi acceptée par le traducteur.
 
 Les locales qui existent relèvent de la décision de l'application ; `Locale` refuse seulement ce qui ne peut pas en
 être une. Les écritures (`zh_Hant`) et les régions numériques (`es_419`) ne sont pas acceptées.
@@ -53,8 +59,9 @@ La liste ordonnée des locales essayées pour une locale demandée, la locale de
 | `leavesRequestedLanguage(Locale)` | si servir cette locale quitte la langue demandée |
 | `toString()` | `fr_CA → fr → en` |
 
-- **La chaîne est déclarée, jamais déduite.** Retirer la région (`fr_CA → fr`) puis se replier sur une langue par
-  défaut a l'air général et se trompe dès que deux variantes régionales d'une langue coexistent.
+- **La chaîne est déclarée.** Retirer la région (`fr_CA → fr`) puis se replier sur une langue par défaut a l'air
+  général et se trompe dès que deux variantes régionales d'une langue coexistent. Une locale qui ne déclare aucune chaîne
+  reçoit la chaîne par défaut de `DeclaredLocales`, limitée aux locales servies.
 - **Une chaîne épuisée ne mène à rien.** L'appelant refuse — une 404, `null`, une exception à lui — plutôt que de
   servir une locale que personne n'a déclarée.
 - **Un changement de langue est signalé, un changement de région ne l'est pas.** `leavesRequestedLanguage()` permet à
@@ -66,17 +73,29 @@ négociation `Accept-Language`, une préférence de la personne — se fait avan
 ## `DeclaredLocales`
 
 Les locales que sert une application, à partir du tableau qu'elle déclare : chaque clé est une locale servie, chaque
-valeur les locales essayées après elle, dans l'ordre.
+valeur les locales essayées après elle, dans l'ordre, ou `null` pour la chaîne par défaut.
 
 | Membre | Renvoie |
 |---|---|
-| `DeclaredLocales::fromArray(array)` | les locales déclarées ; refuse une locale mal formée, une locale de repli qui n'est pas servie, des locales de repli qui ne forment pas une liste, une chaîne qui répète une locale |
+| `DeclaredLocales::fromArray(array, array $defaultFallbacks = [])` | les locales déclarées ; refuse une locale mal formée, un repli ou un repli par défaut qui n'est pas servi, des locales de repli qui ne forment ni une liste ni `null`, une chaîne qui répète une locale |
 | `all()` | les locales servies, dans l'ordre de leur déclaration |
 | `isServed(Locale)` | si la locale est déclarée |
 | `chainFor(Locale)` | sa `FallbackChain` ; refuse une locale qui n'est pas servie |
 
 **Une locale de repli doit elle-même être servie** : une chaîne qui finit sur une locale que personne n'a déclarée
 servirait ce que l'application ne publie pas.
+
+**La chaîne par défaut.** Une locale déclarée avec `null` reçoit les parents que `LocaleFallbackProvider` de Symfony
+dérive des données ICU — `fr_CA → fr`, `en_CA → en`, `es_MX → es` —, puis les replis par défaut dans leur ordre, chacun
+conservé seulement s'il est servi et jamais la locale elle-même. C'est la chaîne que parcourt le traducteur de Symfony,
+coupée à ce que l'application publie. Une liste vide est une chaîne sans repli :
+
+```php
+$locales = DeclaredLocales::fromArray(['fr_CA' => null, 'pt_BR' => null, 'fr' => [], 'en' => []], ['en']);
+$locales->chainFor(Locale::fromString('fr_CA'))->toString();   // 'fr_CA → fr → en'
+$locales->chainFor(Locale::fromString('pt_BR'))->toString();   // 'pt_BR → en': pt is not served
+$locales->chainFor(Locale::fromString('fr'))->toString();      // 'fr'
+```
 
 ## `Exception\InvalidLocaleDimension`
 
