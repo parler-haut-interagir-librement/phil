@@ -12,6 +12,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   and `<i>`, instead of turning them into `<b>` and `<i>`; publishing that UJO or that HTML again gives the same
   document. Brought by `phil/ujo` and `phil/markup`.
 
+### Changed
+
+- Requires `phil/ujo` and `phil/markup` `^0.1.1`, the versions that keep `<strong>` and `<em>`.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added
