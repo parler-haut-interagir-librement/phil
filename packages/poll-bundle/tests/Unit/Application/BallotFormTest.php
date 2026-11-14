@@ -23,6 +23,14 @@ final class BallotFormTest extends TestCase
         self::assertSame([], BallotForm::choices($rules, []));
     }
 
+    public function testAScaleBallotIsItsOneMark(): void
+    {
+        $rules = PollRules::scale(1, 5);
+
+        self::assertSame(['4'], BallotForm::choices($rules, ['choice' => '4', 'choices' => ['2']]));
+        self::assertSame([], BallotForm::choices($rules, []));
+    }
+
     public function testAMultipleBallotIsItsListOfChoices(): void
     {
         $rules = PollRules::multiple(['tea', 'coffee', 'cocoa']);

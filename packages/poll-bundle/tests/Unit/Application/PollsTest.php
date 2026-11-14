@@ -107,6 +107,18 @@ final class PollsTest extends TestCase
         self::assertSame([1, 1, true], [new PollDraft('Q', $this->options('a', 'b'), minChoices: 2, maxChoices: 2, abstention: true)->rules()->minChoices, new PollDraft('Q', $this->options('a', 'b'), minChoices: 2, maxChoices: 2)->rules()->maxChoices, new PollDraft('Q', $this->options('a', 'b'), abstention: true)->rules()->abstention]);
     }
 
+    public function testTheDraftOfAScaleHoldsOneMarkWhateverItsBounds(): void
+    {
+        $rules = new PollDraft('Q', PollDraft::marks(1, 5), BallotKind::Scale, minChoices: 2, maxChoices: 4, abstention: true)->rules();
+
+        self::assertSame([BallotKind::Scale, 1, 1, true], [$rules->kind, $rules->minChoices, $rules->maxChoices, $rules->abstention]);
+    }
+
+    public function testTheMarksOfAScaleAreLabelledWhereTheyAreNamed(): void
+    {
+        self::assertEquals([PollOption::of('1', 'Poor'), PollOption::of('2', '2'), PollOption::of('3', 'Great')], PollDraft::marks(1, 3, [1 => 'Poor', 3 => 'Great']));
+    }
+
     public function testAPollIsCreatedByWhomThePolicyLets(): void
     {
         $this->policy->creates = false;

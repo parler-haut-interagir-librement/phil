@@ -26,7 +26,11 @@ return [
             ],
             // SQLite gives the revision as a number; other drivers may give a numeric string, which the cast turns into one.
             'CastInt' => [
-                'ignoreSourceCodeByRegex' => ['return is_numeric\\(\\$revision\\) \\? \\(int\\) \\$revision : 0;'],
+                // PHP turns the key "3" of an array into the integer 3, so the label of a mark is found with or without the cast.
+                'ignoreSourceCodeByRegex' => [
+                    'return is_numeric\\(\\$revision\\) \\? \\(int\\) \\$revision : 0;',
+                    '.*\\$labels\\[\\(int\\) \\$mark\\] \\?\\? \\$mark.*',
+                ],
             ],
         ],
     ],

@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Phil\Poll\BallotKind;
 use Phil\Poll\Counting\ChoiceCount;
 use Phil\Poll\Counting\InstantRunoff;
+use Phil\Poll\Counting\ScaleCount;
 use Phil\Poll\CountingMethods;
 use Phil\PollBundle\Application\PollDraft;
 use Phil\PollBundle\Application\Polls;
@@ -44,7 +45,7 @@ final class PollViewsTest extends TestCase
     {
         $this->clock = new MockClock('2026-11-08 10:00:00 UTC');
         $policy = new Policy(refusedVoters: ['user:guest']);
-        $methods = new CountingMethods([new ChoiceCount(), new InstantRunoff(), new MeekStv()]);
+        $methods = new CountingMethods([new ChoiceCount(), new InstantRunoff(), new ScaleCount(), new MeekStv()]);
         $this->polls = new Polls(new InMemoryPollRepository(), new InMemoryVoteRepository(), $this->clock, $policy, $methods);
         $this->views = new PollViews($this->polls, $policy, $methods, $this->clock);
     }
@@ -185,6 +186,20 @@ final class PollViewsTest extends TestCase
         $displays = array_map(static fn (ResultLine $line): string => $line->display, $this->views->results($poll->id, null)->lines ?? []);
 
         self::assertSame(['2.00', '1.00', '0.00'], $displays);
+    }
+
+    public function testTheLinesOfAScaleFollowItsMarksAndNoneWins(): void
+    {
+        $poll = $this->polls->create(new PollDraft('How was it?', PollDraft::marks(1, 3), BallotKind::Scale), $this->ref('user:ada'));
+
+        foreach (['bob' => '3', 'cid' => '3', 'dan' => '1'] as $voter => $mark) {
+            $this->polls->cast($poll->id, $this->ref('user:'.$voter), [$mark]);
+        }
+
+        $view = $this->views->results($poll->id, null);
+
+        self::assertSame(['1', '2', '3'], array_map(static fn (ResultLine $line): string => $line->option, $view->lines ?? []));
+        self::assertSame([], $view?->winners());
     }
 
     /**
