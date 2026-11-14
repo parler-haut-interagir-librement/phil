@@ -20,6 +20,11 @@ final class WordlistTest extends TestCase
             self::assertSame($list->words, array_values(array_unique($list->words)));
             self::assertSame([], array_values(array_filter($list->words, static fn (string $word): bool => 1 !== preg_match('/^[a-z]{3,10}$/', $word))));
             self::assertEqualsWithDelta(log($list->count(), 2), $list->bitsPerWord(), 1e-12);
+            // Lowercase words, each once: capitalised, each still gives a form of its own.
+            self::assertSame($list->bitsPerWord(), $list->bitsPerCapitalisedWord());
+            self::assertSame($list->bitsPerWord() + 1.0, $list->bitsPerRandomlyCapitalisedWord());
+            self::assertSame($list->bitsPerCapitalisedWord(), Wordlist::of('copy', $list->words)->bitsPerCapitalisedWord());
+            self::assertSame($list->bitsPerRandomlyCapitalisedWord(), Wordlist::of('copy', $list->words)->bitsPerRandomlyCapitalisedWord());
             // Built-in lists are valid custom lists too.
             self::assertSame($list->words, Wordlist::of('copy', $list->words)->words);
         }
@@ -46,6 +51,28 @@ final class WordlistTest extends TestCase
         self::assertSame(8.0, $list->bitsPerWord());
         self::assertSame(['123', ...\array_slice($words, 1)], Wordlist::of('digits', ['123', ...\array_slice($words, 1)])->words);
         self::assertSame(str_repeat('é', 32), Wordlist::of('long', [str_repeat('é', 32), ...\array_slice($words, 1)])->words[0]);
+    }
+
+    public function testTheEntropyOfACustomList(): void
+    {
+        $list = Wordlist::of('site', $this->words(256));
+
+        self::assertSame(8.0, $list->bitsPerCapitalisedWord());
+        self::assertSame(9.0, $list->bitsPerRandomlyCapitalisedWord());
+
+        $list = Wordlist::of('twins', ['w1', 'W1', ...\array_slice($this->words(256), 2)]);
+
+        self::assertSame(8.0 - 2 / 256, $list->bitsPerCapitalisedWord());
+        // Of the 512 equally likely draws, `W1` comes three times: from `w1` capitalised and from `W1` either way.
+        self::assertEqualsWithDelta(9.0 - 3 * log(3, 2) / 512, $list->bitsPerRandomlyCapitalisedWord(), 1e-12);
+    }
+
+    public function testCapitalise(): void
+    {
+        self::assertSame('Word', Wordlist::capitalise('word'));
+        self::assertSame('Élan', Wordlist::capitalise('élan'));
+        self::assertSame('Word', Wordlist::capitalise('Word'));
+        self::assertSame('123', Wordlist::capitalise('123'));
     }
 
     public function testTooFewWords(): void

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=356a2b9d872c5f4a5788953bca38aac2751262c8da6cab959668e2d545916aff -->
+<!-- phil-dev source-sha256=c8b9b95c74fca58b735b85fd0bc0b9499eb33cafa54b3bbde0bc7e670c92688c -->
 # Renouvellement des jetons
 
 `refresh.enabled` renouvelle le jeton d'accès avant son expiration, pour une application qui appelle une API au nom de
@@ -27,6 +27,11 @@ L'écouteur remplace l'écouteur natif sur le pare-feu. Quand une requête trouv
 | Fournisseur injoignable | Les jetons restent, et la prochaine tentative vient après 5 secondes |
 
 Une requête dont l'attente expire garde ses jetons et réessaie à sa requête suivante.
+
+`TokensRefreshed` et `RefreshTokenRejected` sont distribués en dernier, une fois le résultat publié, appliqué à la
+session et le verrou libéré. Un abonné qui lève une exception ne peut pas faire perdre des jetons que le fournisseur a
+déjà remplacés : son exception parvient à l'appelant, comme pour tout autre événement du bundle, mais chaque requête qui
+détient l'ancien jeton trouve toujours le résultat.
 
 Les résultats vivent dans une réserve de cache pendant `refresh.outcome_ttl` secondes, chiffrés avec une clé dérivée du
 jeton de renouvellement auquel ils répondent. La réserve seule ne révèle rien, et il n'y a aucune clé à gérer.

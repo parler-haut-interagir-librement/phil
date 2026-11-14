@@ -103,6 +103,49 @@ final class PassphraseTest extends TestCase
         self::assertEqualsWithDelta(32.0 + log(40, 2), $generator->entropyBits(new PassphrasePolicy(4, includeDigit: true)), 1e-12);
     }
 
+    public function testCapitalisationAddsNoEntropyToWordsWithoutCase(): void
+    {
+        $generator = new PassphraseGenerator(Wordlist::of('digits', array_map(strval(...), range(1000, 1255))));
+
+        self::assertSame(32.0, $generator->entropyBits(new PassphrasePolicy(4, '', Capitalization::Random)));
+        self::assertSame(32.0, $generator->entropyBits(new PassphrasePolicy(4, '', Capitalization::Words)));
+        self::assertSame(32.0, $generator->entropyBits(new PassphrasePolicy(4, '', Capitalization::First)));
+
+        $generator = new PassphraseGenerator(Wordlist::of('hebrew', array_map(static fn (int $i): string => 'א'.mb_chr(0x05D0 + intdiv($i, 16)).mb_chr(0x05D0 + $i % 16), range(0, 255))));
+
+        self::assertSame(32.0, $generator->entropyBits(new PassphrasePolicy(4, '', Capitalization::Random)));
+    }
+
+    public function testCapitalisationAddsNoEntropyToWordsAlreadyCapitalised(): void
+    {
+        $generator = new PassphraseGenerator(Wordlist::of('names', array_map(ucfirst(...), $this->list()->words)));
+
+        self::assertSame(32.0, $generator->entropyBits(new PassphrasePolicy(4, '', Capitalization::Random)));
+        self::assertSame(32.0, $generator->entropyBits(new PassphrasePolicy(4, '', Capitalization::Words)));
+    }
+
+    public function testWordsThatDifferOnlyByCaseShareTheirCapitalisedForm(): void
+    {
+        $lower = \array_slice($this->list()->words, 0, 128);
+        $generator = new PassphraseGenerator(Wordlist::of('twins', [...$lower, ...array_map(ucfirst(...), $lower)]));
+
+        // Capitalised, each pair gives one form: 128 forms, 7 bits.
+        self::assertSame(32.0, $generator->entropyBits(new PassphrasePolicy(4)));
+        self::assertSame(28.0, $generator->entropyBits(new PassphrasePolicy(4, '', Capitalization::Words)));
+        self::assertSame(31.0, $generator->entropyBits(new PassphrasePolicy(4, '', Capitalization::First)));
+        // At random, of the 512 equally likely draws, each pair gives its lowercase form once and its capitalised form
+        // three times.
+        self::assertEqualsWithDelta(4 * (9 - 0.75 * log(3, 2)), $generator->entropyBits(new PassphrasePolicy(4, '', Capitalization::Random)), 1e-12);
+    }
+
+    public function testOnlyTheWordsWithCaseAddTheirBit(): void
+    {
+        $words = [...array_map(strval(...), range(1000, 1127)), ...\array_slice($this->list()->words, 0, 128)];
+        $generator = new PassphraseGenerator(Wordlist::of('mixed', $words));
+
+        self::assertSame(34.0, $generator->entropyBits(new PassphrasePolicy(4, '', Capitalization::Random)));
+    }
+
     public function testTheBoundsOfThePolicy(): void
     {
         self::assertSame(3, new PassphrasePolicy(3)->words);
