@@ -12,8 +12,11 @@ use Phil\Url\Url;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
+use Symfony\Component\HttpClient\DecoratorTrait;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\Service\ResetInterface;
 
 #[CoversClass(SafeHttpFetcher::class)]
 final class SafeHttpFetcherTest extends TestCase
@@ -108,6 +111,24 @@ final class SafeHttpFetcherTest extends TestCase
         $fetcher->reset();
         $this->fetcher()->reset();
         self::assertSame([], $this->requests);
+    }
+
+    public function testTheClientIsResetWhenTheFetcherIs(): void
+    {
+        $inner = new class(new MockHttpClient()) implements HttpClientInterface, ResetInterface {
+            use DecoratorTrait;
+
+            public int $resets = 0;
+
+            public function reset(): void
+            {
+                ++$this->resets;
+            }
+        };
+
+        new SafeHttpFetcher(new SafeHttpClient($inner))->reset();
+
+        self::assertSame(1, $inner->resets);
     }
 
     private function fetcher(MockResponse ...$responses): SafeHttpFetcher

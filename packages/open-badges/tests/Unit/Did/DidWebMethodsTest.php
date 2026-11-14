@@ -170,6 +170,39 @@ final class DidWebMethodsTest extends TestCase
         self::assertSame([], $fetcher->fetched);
     }
 
+    public function testOnlyTheFirstHashSplitsTheDidFromItsFragment(): void
+    {
+        $this->expectExceptionObject(InvalidCredential::because(\sprintf('The DID document of "%s" lists no verification method "%s##key" for its assertions.', self::DID, self::DID)));
+        new DidWebMethods(new Documents([self::DID => self::document([])]))->key(self::DID.'##key');
+    }
+
+    public function testADocumentOfTheLargestSizeIsRead(): void
+    {
+        $key = Ed25519Signer::fromSeed(str_repeat("\x07", 32))->verificationKey();
+        self::assertInstanceOf(Ed25519Key::class, $key);
+        $document = self::document(['id' => '#key-1', 'controller' => self::DID, 'publicKeyMultibase' => $key->toMultibase()]);
+        $padded = str_pad($document, DidWebMethods::MAX_BYTES);
+        self::assertSame(DidWebMethods::MAX_BYTES, \strlen($padded));
+
+        self::assertInstanceOf(Ed25519Key::class, new DidWebMethods(new Documents([self::DID => $padded]))->key(self::METHOD));
+    }
+
+    public function testTheFirstEmbeddedMethodOfAnIdentifierIsTheOneRead(): void
+    {
+        $first = Ed25519Signer::fromSeed(str_repeat("\x07", 32))->verificationKey();
+        $second = Ed25519Signer::fromSeed(str_repeat("\x08", 32))->verificationKey();
+        self::assertInstanceOf(Ed25519Key::class, $first);
+        self::assertInstanceOf(Ed25519Key::class, $second);
+        $document = ['id' => self::DID, 'assertionMethod' => [
+            ['id' => self::METHOD, 'type' => 'Multikey', 'controller' => self::DID, 'publicKeyMultibase' => $first->toMultibase()],
+            ['id' => self::METHOD, 'type' => 'Multikey', 'controller' => self::DID, 'publicKeyMultibase' => $second->toMultibase()],
+        ]];
+        $found = new DidWebMethods(new Documents([self::DID => (string) json_encode($document)]))->key(self::METHOD);
+
+        self::assertInstanceOf(Ed25519Key::class, $found);
+        self::assertSame($first->publicKey, $found->publicKey);
+    }
+
     public function testTheMethodIsLookedUpWholeAndAsAFragment(): void
     {
         $key = Ed25519Signer::fromSeed(str_repeat("\x07", 32))->verificationKey();

@@ -13,6 +13,7 @@ use Phil\OpenBadges\Key\RsaSigner;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
 use ReflectionProperty;
 
 #[CoversClass(RsaKey::class)]
@@ -124,6 +125,25 @@ final class RsaKeyTest extends TestCase
 
         self::assertSame('RS256', RsaKey::fromJwk(['kty' => 'RSA', 'n' => $n, 'e' => 'Aw'])->algorithm());
         self::assertSame('RS256', RsaKey::fromJwk(['kty' => 'RSA', 'n' => $n, 'e' => Base64Url::encode(str_repeat("\x01", 8))])->algorithm());
+    }
+
+    /**
+     * @return iterable<string, array{int, string}>
+     */
+    public static function lengths(): iterable
+    {
+        yield 'none' => [0, "\x00"];
+        yield 'the longest short form' => [127, "\x7f"];
+        yield 'the shortest long form' => [128, "\x82\x00\x80"];
+        yield 'two bytes' => [300, "\x82\x01\x2c"];
+    }
+
+    #[DataProvider('lengths')]
+    public function testTheLengthOfAnElementIsInTheShortFormUnder128BytesAndOnTwoBytesFromThere(int $length, string $encoded): void
+    {
+        $der = new ReflectionMethod(RsaKey::class, 'der');
+
+        self::assertSame("\x04".$encoded.str_repeat('a', $length), $der->invoke(null, "\x04", str_repeat('a', $length)));
     }
 
     private function pem(int $bits, int $index = 0): string

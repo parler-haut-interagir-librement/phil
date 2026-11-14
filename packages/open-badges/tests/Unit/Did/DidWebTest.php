@@ -43,6 +43,16 @@ final class DidWebTest extends TestCase
         DidWeb::fromString('did:web:example.com.');
     }
 
+    public function testAnIdentifierOfTheLongestLengthIsReadAsAnAddressNotRefusedAsSyntax(): void
+    {
+        $did = 'did:web:example.com:'.str_repeat('a', 2048 - \strlen('did:web:example.com:'));
+        self::assertSame(2048, \strlen($did));
+
+        $this->expectException(InvalidCredential::class);
+        $this->expectExceptionMessageMatches('/^"did:web:example\.com:a+" names no host a did:web resolves: /');
+        DidWeb::fromString($did);
+    }
+
     public function testOtherMethodsAreNotDidWeb(): void
     {
         self::assertFalse(DidWeb::isDidWeb('did:key:z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2'));
@@ -72,6 +82,7 @@ final class DidWebTest extends TestCase
         yield 'a space' => ['did:web:example.com:a b', $syntax('did:web:example.com:a b')];
         yield 'a new line' => ["did:web:example.com\n", $syntax("did:web:example.com\n")];
         yield 'too long' => ['did:web:example.com:'.str_repeat('a', 2048), $syntax('did:web:example.com:'.str_repeat('a', 2048))];
+        yield 'a text before the prefix' => ['xdid:web:example.com', $syntax('xdid:web:example.com')];
         yield 'a dot segment' => ['did:web:example.com:.', $segment('did:web:example.com:.')];
         yield 'a dot dot segment' => ['did:web:example.com:a:..', $segment('did:web:example.com:a:..')];
         yield 'an escaped dot dot' => ['did:web:example.com:%2E%2e', $segment('did:web:example.com:%2E%2e')];
