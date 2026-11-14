@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=70f703ad4c74559f9fe646cd17c124bad22fa789a44fe18ef6757fa248698419 -->
+<!-- phil-dev source-sha256=17c84fa0ba3747e7f71d41e70bee6ceee7852bbae0b7970a678f830aa344ebd1 -->
 # Configuration
 
 ```yaml
@@ -14,6 +14,7 @@ phil_markup:
         enabled: true                 # when phil/typography is installed
         locale: ~                     # the locale of the request by default
     media_hosts: [cdn.example.com]    # null by default: any host
+    purifier: auto                    # auto, sanitizer or ammonia
 ```
 
 ## Formats
@@ -92,8 +93,25 @@ brut : aucun texte n'est corrigé deux fois.
 `[]` ne garde que les images du site, et `null`, la valeur par défaut, accepte tout hôte. Une image d'un autre hôte fait
 appeler cet hôte par le navigateur de chaque lecteur, ce qui lui apprend son adresse : un site dont les membres écrivent
 des textes à `forum` la définit. Une image d'un hôte non listé perd son `src`. Les hôtes parviennent à
-`SanitizerPurifier`, quel que soit le bundle qui l'enregistre, `phil/content-bundle` compris, par une passe de
-compilation ; un purificateur que l'application construit elle-même n'est pas touché.
+`SanitizerPurifier`, quel que soit le bundle qui l'enregistre, `phil/content-bundle` compris, et au purificateur que
+choisit `purifier`, par une passe de compilation ; un purificateur que l'application construit elle-même n'est pas
+touché.
+
+## Purificateur
+
+`purifier` choisit ce que vise `Phil\Markup\HtmlPurifier` :
+
+| Valeur | Purificateur |
+|---|---|
+| `auto`, la valeur par défaut | `Purifiers::defaultPolicies()`, décidé là où l'application s'exécute : `AmmoniaPurifier` là où l'extension `ammonia` de PHP est chargée, `SanitizerPurifier` sinon |
+| `sanitizer` | `SanitizerPurifier`, sur `symfony/html-sanitizer`, partout |
+| `ammonia` | `AmmoniaPurifier` ; refusé quand le conteneur est construit là où l'extension n'est pas chargée |
+
+Les deux gardent les mêmes éléments à chaque niveau, avec les mêmes hôtes d'images ; l'extension assainit les longs
+textes environ deux fois plus vite. La page [Accélérateurs](https://github.com/parler-haut-interagir-librement/markup/blob/main/doc/accelerators.md)
+de `phil/markup` dit ce qui diffère, et comment installer l'extension. Un bundle qui pointe `HtmlPurifier` vers
+`SanitizerPurifier` après celui-ci, comme le fait `phil/content-bundle`, le rend au purificateur choisi ; `sanitizer`
+garde l'assainisseur.
 
 ## Remplacer le compilateur ou le purificateur
 

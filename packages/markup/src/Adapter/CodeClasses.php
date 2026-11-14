@@ -30,6 +30,15 @@ final readonly class CodeClasses implements AttributeSanitizerInterface
     #[Override]
     public function sanitizeAttribute(string $element, string $attribute, string $value, HtmlSanitizerConfig $config): ?string
     {
+        return self::keep($element, $value);
+    }
+
+    /**
+     * The classes of a `class` attribute this filter keeps on the element, separated by single spaces; `null` when it
+     * keeps none, and the attribute is removed.
+     */
+    public static function keep(string $element, string $value): ?string
+    {
         $pattern = 'code' === $element ? '/^language-[A-Za-z0-9_+#.-]{1,32}$/D' : '/^hl-[a-z-]{1,32}$/D';
         $classes = explode(' ', str_replace(["\t", "\n", "\r", "\f"], ' ', $value));
         $kept = implode(' ', array_filter($classes, static fn (string $class): bool => 1 === preg_match($pattern, $class)));

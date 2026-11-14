@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=51bc3c8993f570dde27ed96c1bdbfe499cd4ed12e7bc07190a0d1c17dcef2dc8 -->
+<!-- phil-dev source-sha256=cda77e022a33eb229f4377e43952294d90fe65b5ae50cc8372f05abd7746b2f1 -->
 # Exceptions
 
 Chaque exception de la bibliothèque implémente `Phil\Markup\Exception\MarkupException`.
@@ -6,6 +6,7 @@ Chaque exception de la bibliothèque implémente `Phil\Markup\Exception\MarkupEx
 | Exception | Étend | Lancée quand |
 |---|---|---|
 | `InvalidSource` | `InvalidArgumentException` | Une source UJO n'est pas du JSON, enfreint la structure d'un document, ou contient un bloc d'un type inconnu ou dont les données enfreignent son type |
+| `MissingExtension` | `LogicException` | `AmmoniaPurifier::defaultPolicies()` est appelé là où l'extension `ammonia` de PHP n'est pas chargée ; `$extension` la nomme |
 | `UnknownFormat` | `InvalidArgumentException` | On demande à un compilateur un format qu'aucun lecteur ne connaît ; ou un module complémentaire donne à `DefaultCompiler` un nom qui est déjà un format, ou qui n'est pas fait de 1 à 16 lettres minuscules, chiffres et traits d'union commençant par une lettre |
 
 Le message nomme le format et ce qui ne va pas, par exemple `The ujo source cannot be read: …`, suivi du message de

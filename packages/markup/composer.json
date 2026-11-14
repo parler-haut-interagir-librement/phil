@@ -45,6 +45,7 @@
         "doctrine/orm": "<3.7"
     },
     "suggest": {
+        "ext-ammonia": "To purify HTML with ammonia, in Rust, about twice as fast on long texts: AmmoniaPurifier, chosen by Purifiers where it is loaded (PHP 8.2 to 8.5)",
         "doctrine/orm": "To store a MarkedUpText as an embeddable of an entity: body_source, body_format and body_html"
     },
     "minimum-stability": "dev",

@@ -6,6 +6,23 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
+### Added
+
+- `Adapter\AmmoniaPurifier`: the policies of `SanitizerPurifier::defaultPolicies()` on the `ammonia` extension of PHP,
+  for PHP 8.2 to 8.5, about twice as fast as the sanitizer from 12 KB and with a seventh of its memory on 100 KB; the
+  same elements kept at each level, `style` and the addresses the extension does not check removed, classes filtered as
+  `CodeClasses` filters them. A short HTML, an HTML of more than 10,000 tags, one holding `<noscript`, one that is not
+  valid UTF-8, and images of limited hosts go to the sanitizer. `isAvailable()` tells whether the extension is loaded;
+  `ext-ammonia` in `suggest`.
+- `Adapter\Purifiers::defaultPolicies()`: `AmmoniaPurifier` where the extension is loaded, `SanitizerPurifier`
+  otherwise, or always the sanitizer.
+- `SanitizerPurifier::configurations()`, the configuration of each level the default policies are built from;
+  `CodeClasses::keep()`, the classes kept of a `class` attribute.
+- `Exception\MissingExtension`, thrown by an adapter whose extension is not loaded.
+- `PurifierCorpusTest`, hostile HTML given to both purifiers at each level; the fuzz target `markup-purifier`; the
+  benchmark `PurifierBench`, the purification alone; the worker page purifies with `Purifiers`.
+- The page [Accelerators](doc/accelerators.md).
+
 ### Fixed
 
 - The HTML reader, and the HTML tags read in wikitext, keep `<strong>` and `<em>` as `<strong>` and `<em>` in UJO,

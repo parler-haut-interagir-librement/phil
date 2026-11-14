@@ -13,6 +13,7 @@ phil_markup:
         enabled: true                 # when phil/typography is installed
         locale: ~                     # the locale of the request by default
     media_hosts: [cdn.example.com]    # null by default: any host
+    purifier: auto                    # auto, sanitizer or ammonia
 ```
 
 ## Formats
@@ -88,7 +89,24 @@ fixed twice.
 the site's own images only, and `null`, the default, any host. An image of another host makes every reader's browser
 call it, which learns their address: a site whose members write texts at `forum` sets it. An image from a host not
 listed loses its `src`. The hosts reach `SanitizerPurifier` whichever bundle registers it, `phil/content-bundle`
-included, through a compiler pass; a purifier the application builds itself is left alone.
+included, and the purifier `purifier` chooses, through a compiler pass; a purifier the application builds itself is
+left alone.
+
+## Purifier
+
+`purifier` chooses what `Phil\Markup\HtmlPurifier` points at:
+
+| Value | Purifier |
+|---|---|
+| `auto`, the default | `Purifiers::defaultPolicies()`, decided where the application runs: `AmmoniaPurifier` where the `ammonia` extension of PHP is loaded, `SanitizerPurifier` otherwise |
+| `sanitizer` | `SanitizerPurifier`, on `symfony/html-sanitizer`, everywhere |
+| `ammonia` | `AmmoniaPurifier`; refused when the container is built where the extension is not loaded |
+
+Both keep the same elements at each level, with the same image hosts; the extension purifies long texts about twice as
+fast. The [Accelerators](https://github.com/parler-haut-interagir-librement/markup/blob/main/doc/accelerators.md) page
+of `phil/markup` says what differs, and how to install the extension. A bundle that points `HtmlPurifier` at
+`SanitizerPurifier` after this one, as `phil/content-bundle` does, gives it back to the purifier chosen; `sanitizer`
+keeps the sanitizer.
 
 ## Replacing the compiler or the purifier
 

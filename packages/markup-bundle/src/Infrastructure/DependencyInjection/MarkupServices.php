@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Phil\MarkupBundle\Infrastructure\DependencyInjection;
 
 use InvalidArgumentException;
+use Phil\Markup\Adapter\AmmoniaPurifier;
 use Phil\Markup\Adapter\DefaultCompiler;
+use Phil\Markup\Adapter\Purifiers;
 use Phil\Markup\Adapter\SanitizerPurifier;
 use Phil\Markup\HtmlPurifier;
 use Phil\Markup\Level;
@@ -34,6 +36,12 @@ final class MarkupServices
 {
     /** @var list<string> */
     public const array LEVELS = ['basic', 'forum', 'all'];
+
+    /** @var list<string> */
+    public const array PURIFIERS = ['auto', 'sanitizer', 'ammonia'];
+
+    /** The purifier the configuration chose, `HtmlPurifier` unless it chose the sanitizer. */
+    public const string PURIFIER = 'phil_markup.purifier';
 
     /** The compiler that decorates `MarkupCompiler` with smart punctuation, when `phil/typography` is installed. */
     public const string SMART_PUNCTUATION = 'phil_markup.smart_punctuation';
@@ -82,8 +90,9 @@ final class MarkupServices
      * @param array<string, string>                               $levels     the highest level of a format, by format
      * @param string|false|null                                   $smart      the locale of the smart punctuation, `null` for the current one; none when `false`
      * @param array<string, array{label: string, reader: string}> $added      the formats add-ons bring, by name: their label, and the service of their `ReaderProvider`
+     * @param string                                              $purifier   `auto` for the ammonia extension where it is loaded, `sanitizer` or `ammonia` for one of them
      */
-    public static function register(ContainerBuilder $container, string $level, ?array $mediaHosts = null, array $formats = [], ?string $default = null, array $levels = [], string|false|null $smart = false, array $added = []): void
+    public static function register(ContainerBuilder $container, string $level, ?array $mediaHosts = null, array $formats = [], ?string $default = null, array $levels = [], string|false|null $smart = false, array $added = [], string $purifier = 'auto'): void
     {
         $enabled = [] === $formats ? [...MarkupFormat::values(), ...array_keys($added)] : $formats;
 
@@ -98,6 +107,14 @@ final class MarkupServices
             ->setArguments([$mediaHosts]);
         $container->setParameter(MediaHostsPass::PARAMETER, $mediaHosts);
         $container->setAlias(HtmlPurifier::class, SanitizerPurifier::class);
+
+        if ('sanitizer' !== $purifier) {
+            $container->register(self::PURIFIER, HtmlPurifier::class)
+                ->setFactory(['ammonia' === $purifier ? AmmoniaPurifier::class : Purifiers::class, 'defaultPolicies'])
+                ->setArguments([$mediaHosts]);
+            $container->setAlias(HtmlPurifier::class, self::PURIFIER);
+        }
+
         $container->register(Markup::class, Markup::class)
             ->setArguments([new Reference(MarkupCompiler::class), new Reference(HtmlPurifier::class)])
             ->setPublic(true);

@@ -1,0 +1,47 @@
+<?php
+
+namespace Switon\Ammonia;
+
+/**
+ * The part of the `ammonia` extension `AmmoniaPurifier` calls, for PHPStan where the extension is not loaded: every
+ * setter records a rule of the policy and returns the same builder.
+ */
+final class Builder
+{
+    public function __construct() {}
+
+    /** @param list<string> $tags */
+    public function tags(array $tags): static {}
+
+    /** @param list<string> $tags */
+    public function cleanContentTags(array $tags): static {}
+
+    /** @param list<string> $attributes */
+    public function genericAttributes(array $attributes): static {}
+
+    /** @param list<string> $prefixes */
+    public function genericAttributePrefixes(array $prefixes): static {}
+
+    /** @param array<string, list<string>> $attributes */
+    public function tagAttributes(array $attributes): static {}
+
+    /** @param array<string, array<string, list<string>>> $values */
+    public function tagAttributeValues(array $values): static {}
+
+    /** @param array<string, array<string, string>> $values */
+    public function setTagAttributeValues(array $values): static {}
+
+    /** @param array<string, list<string>> $classes */
+    public function allowedClasses(array $classes): static {}
+
+    /** @param list<string> $schemes */
+    public function urlSchemes(array $schemes): static {}
+
+    public function passRelativeUrls(): static {}
+
+    public function linkRel(?string $rel): static {}
+
+    public function stripComments(bool $strip): static {}
+
+    public function clean(string $html): string {}
+}

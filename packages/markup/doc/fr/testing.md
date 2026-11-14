@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6decfa8024616e93ca07d6cc77b1a7c5ca226e221fd2da676e86f11d6a75e990 -->
+<!-- phil-dev source-sha256=eaa30dff5102bc06abbb5557237209bd5e57339ef2d678b09b67f2953e2d2368 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -17,21 +17,34 @@
 | `Adapter\DefaultCompiler`, `Adapter\PlainText` | Chaque format, le HTML brut selon le niveau, les lecteurs qu'il donne, les paragraphes et les sauts de ligne |
 | `Reader\Text\TextReader` | Paragraphes, sauts de ligne, échappement et liens comme blocs UJO, le même texte que `PlainText` une fois rendu |
 | `Adapter\SanitizerPurifier` | Ce que chaque niveau garde et retire, les schémas des liens et des images, les hôtes d'où viennent les images, une longue entrée |
+| `PurifierCorpusTest` | Du HTML hostile à chaque niveau (vecteurs XSS connus, XSS par mutation, schémas d'adresses, éléments qui agissent sur la page, arbres profonds) : rien qui s'exécute, rien hors du niveau, les mêmes éléments une fois assaini de nouveau ; `AmmoniaPurifier` garde les mêmes éléments que `SanitizerPurifier` |
+| `Adapter\AmmoniaPurifier`, `Adapter\Purifiers` | Ce que chaque niveau garde, les adresses que l'extension ne vérifie pas, les classes du code, le HTML donné à l'assainisseur (court, de nombreuses balises, avec `<noscript`, qui n'est pas en UTF-8, avec des images d'hôtes limités), le choix d'un assainisseur, l'extension absente |
 | `Markup`, `MarkedUpText` | Compiler et assainir, avec un compilateur qui connaît les niveaux et un qui ne les connaît pas ; l'objet intégrable écrit et relu par Doctrine sur SQLite |
 
 ```sh
 vendor/bin/phpunit packages/markup/tests
 ```
 
+Les tests d'`AmmoniaPurifier` s'exécutent là où l'extension `ammonia` est chargée (`RequiresPhpExtension`), comme dans
+l'image `bench-ext` de `phil/dev-tools` ; ailleurs, et sous PHP 8.6, pour lequel l'extension n'est pas construite, le
+même HTML hostile ne passe que par `SanitizerPurifier` :
+
+```sh
+docker run --rm -v "$PWD":"$PWD" -w "$PWD" phil-dev/bench-ext:8.5 php vendor/bin/phpunit packages/markup/tests/Unit/Adapter
+```
+
 Les fichiers source sont maintenus à 100 % de mutants tués par Infection, lancé depuis la racine du monodépôt.
 
 ## Bancs d'essai
 
-`BBCodeBench` lit des messages de forum, puis des sources écrites pour être lentes (balises imbriquées profondément,
-balises fermantes sans ouvrante, crochets qui n'ouvrent aucune balise, éléments, lignes et cellules laissés ouverts,
-titres et notes de bas de page par milliers), à 25, 50 et 100 Ko ; le temps double avec la taille. `ReadersBench` lit
-un petit document dans chaque format, le même document répété jusqu'à 10 et 100 Ko, et 10 et 100 Ko de délimiteurs
-laissés ouverts ; le temps est multiplié par dix de 10 à 100 Ko. Depuis la racine du monodépôt :
+`PurifierBench` assainit le HTML que devient un document Markdown compilé, à chaque niveau, sur 300 octets, 12 Ko et
+100 Ko, avec `SanitizerPurifier`, et avec `AmmoniaPurifier` là où son extension est chargée : voir
+[Accélérateurs](accelerators.md) pour les mesures. `BBCodeBench` lit des messages de forum, puis des sources écrites
+pour être lentes (balises imbriquées profondément, balises fermantes sans ouvrante, crochets qui n'ouvrent aucune
+balise, éléments, lignes et cellules laissés ouverts, titres et notes de bas de page par milliers), à 25, 50 et 100 Ko ;
+le temps double avec la taille. `ReadersBench` lit un petit document dans chaque format, le même document répété jusqu'à
+10 et 100 Ko, et 10 et 100 Ko de délimiteurs laissés ouverts ; le temps est multiplié par dix de 10 à 100 Ko. Depuis la
+racine du monodépôt :
 
 ```sh
 composer bench -- packages/markup/tests/Benchmark

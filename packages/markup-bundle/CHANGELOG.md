@@ -6,9 +6,17 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
+### Added
+
+- The `purifier` configuration: `auto`, the default, for `Purifiers::defaultPolicies()` of `phil/markup` 0.2 — the
+  `ammonia` extension of PHP where it is loaded, `symfony/html-sanitizer` otherwise —, `sanitizer` or `ammonia`, the
+  last refused where the extension is not loaded; the service `phil_markup.purifier`, aliased by `HtmlPurifier`.
+
 ### Changed
 
-- `phil/markup` 0.2 accepted as well as 0.1.
+- `MediaHostsPass` gives the `media_hosts` to `AmmoniaPurifier` and `Purifiers` too, and points `HtmlPurifier` back
+  at the purifier chosen when a later bundle points it at `SanitizerPurifier`.
+- `phil/markup` ^0.2 is required, the version that brings `Purifiers` and `AmmoniaPurifier`.
 
 ## 0.1.0-alpha - 2026-11-11
 

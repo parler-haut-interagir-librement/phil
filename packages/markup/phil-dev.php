@@ -8,6 +8,8 @@ declare(strict_types=1);
 return [
     'paths' => ['src', 'tests'],
     'phpstan' => [
+        // The classes of the ammonia extension, for `AmmoniaPurifier`, where the extension is not loaded.
+        'includes' => ['tests/PHPStan/ammonia.neon'],
         // The fuzz targets run inside nikic/php-fuzzer, which gives them `$config`, and the worker-mode page inside
         // FrankenPHP, which gives it `frankenphp_handle_request()`; PHPStan knows neither.
         'excludePaths' => ['tests/Fuzz/*', 'tests/Worker/*'],
@@ -57,6 +59,21 @@ return [
     ],
     'infection' => [
         'mutators' => [
+            // The choice of `Purifiers` and `AmmoniaPurifier::isAvailable()` is only seen where the `ammonia` extension is
+            // loaded: Infection runs where it is not, so negating a condition on it, or its default, gives the sanitizer
+            // either way. The tests under `RequiresPhpExtension('ammonia')` and `testTheChoiceFollowsTheExtension()`
+            // kill them where the extension is loaded.
+            'LogicalAndSingleSubExprNegation' => [
+                'ignoreSourceCodeByRegex' => [
+                    'return \\\\extension_loaded\\(\'ammonia\'\\) && class_exists\\(Builder::class\\);',
+                    'return \\$extension && AmmoniaPurifier::isAvailable\\(\\)',
+                ],
+            ],
+            'TrueValue' => [
+                'ignoreSourceCodeByRegex' => [
+                    'public static function defaultPolicies\\(\\?array \\$mediaHosts = null, bool \\$extension = true\\).*',
+                ],
+            ],
             // The HTML reader reads no Markdown: whether its context keeps raw HTML changes nothing, the HTML it gives
             // the inline parser being written already.
             'FalseValue' => [
@@ -241,7 +258,7 @@ return [
         ],
     ],
     'fuzz' => [
-        // Each parser on inputs nobody wrote, from the seeds of tests/Fuzz/corpus/<target>.
+        // Each parser, and the purifiers, on inputs nobody wrote, from the seeds of tests/Fuzz/corpus/<target>.
         'targets' => [
             'markup-bbcode' => 'tests/Fuzz/markup-bbcode.php',
             'markup-creole' => 'tests/Fuzz/markup-creole.php',
@@ -249,6 +266,7 @@ return [
             'markup-html' => 'tests/Fuzz/markup-html.php',
             'markup-markdown' => 'tests/Fuzz/markup-markdown.php',
             'markup-mediawiki' => 'tests/Fuzz/markup-mediawiki.php',
+            'markup-purifier' => 'tests/Fuzz/markup-purifier.php',
         ],
     ],
     // The page `composer bench:worker phil/markup` measures, served by FrankenPHP in worker mode.

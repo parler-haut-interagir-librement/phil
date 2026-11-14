@@ -14,6 +14,9 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
  * names them, in its mapping attributes, which PHP reads only when Doctrine asks for them: the class loads, and
  * `Markup::text()` builds one, without Doctrine installed. The exception is scoped to that file, so an import of
  * Doctrine anywhere else in the library still fails.
+ *
+ * The classes of the ammonia extension, in `suggest` as `ext-ammonia`, are unknown where the extension is not loaded:
+ * only `AmmoniaPurifier` names them, after checking that the extension is loaded.
  */
 return new Configuration()
     ->addPathToScan(__DIR__.'/src', isDev: false)
@@ -22,4 +25,5 @@ return new Configuration()
         ['doctrine/dbal', 'doctrine/orm'],
         [__DIR__.'/src/MarkedUpText.php'],
         [ErrorType::DEV_DEPENDENCY_IN_PROD],
-    );
+    )
+    ->ignoreUnknownClassesRegex('~^Switon\\\\Ammonia\\\\~');

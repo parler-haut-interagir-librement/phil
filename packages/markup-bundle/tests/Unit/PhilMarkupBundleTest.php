@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Phil\MarkupBundle\Tests\Unit;
 
+use Phil\Markup\Adapter\AmmoniaPurifier;
 use Phil\Markup\Adapter\DefaultCompiler;
+use Phil\Markup\Adapter\Purifiers;
 use Phil\Markup\Adapter\SanitizerPurifier;
 use Phil\Markup\HtmlPurifier;
 use Phil\Markup\Level;
@@ -40,11 +42,14 @@ final class PhilMarkupBundleTest extends TestCase
         $container = $this->load([]);
 
         self::assertSame('phil_markup', $this->extension()->getAlias());
-        self::assertSame(['service_container', HtmlRenderer::class, DefaultCompiler::class, SanitizerPurifier::class, Markup::class, MarkupFormats::class, UjoConverter::class, MarkupServices::SMART_PUNCTUATION, MarkupFormatType::class, MarkupExtension::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', HtmlRenderer::class, DefaultCompiler::class, SanitizerPurifier::class, MarkupServices::PURIFIER, Markup::class, MarkupFormats::class, UjoConverter::class, MarkupServices::SMART_PUNCTUATION, MarkupFormatType::class, MarkupExtension::class], array_keys($container->getDefinitions()));
         self::assertSame([HtmlRenderer::class, 'default'], $container->getDefinition(HtmlRenderer::class)->getFactory());
         self::assertEquals([new Reference(HtmlRenderer::class), []], $container->getDefinition(DefaultCompiler::class)->getArguments());
         self::assertSame(DefaultCompiler::class, (string) $container->getAlias(MarkupCompiler::class));
-        self::assertSame(SanitizerPurifier::class, (string) $container->getAlias(HtmlPurifier::class));
+        self::assertSame(MarkupServices::PURIFIER, (string) $container->getAlias(HtmlPurifier::class));
+        self::assertSame([Purifiers::class, 'defaultPolicies'], $container->getDefinition(MarkupServices::PURIFIER)->getFactory());
+        self::assertSame(HtmlPurifier::class, $container->getDefinition(MarkupServices::PURIFIER)->getClass());
+        self::assertSame([null], $container->getDefinition(MarkupServices::PURIFIER)->getArguments());
         self::assertSame([SanitizerPurifier::class, 'defaultPolicies'], $container->getDefinition(SanitizerPurifier::class)->getFactory());
         self::assertEquals([new Reference(MarkupCompiler::class), new Reference(HtmlPurifier::class)], $container->getDefinition(Markup::class)->getArguments());
         self::assertTrue($container->getDefinition(Markup::class)->isPublic());
@@ -68,6 +73,35 @@ final class PhilMarkupBundleTest extends TestCase
         self::assertNull($container->getParameter(MediaHostsPass::PARAMETER));
         self::assertSame([['cdn.example.com', 'img.example.org']], $this->load(['media_hosts' => ['cdn.example.com', 'img.example.org']])->getDefinition(SanitizerPurifier::class)->getArguments());
         self::assertSame([[]], $this->load(['media_hosts' => []])->getDefinition(SanitizerPurifier::class)->getArguments());
+        self::assertSame([[]], $this->load(['media_hosts' => []])->getDefinition(MarkupServices::PURIFIER)->getArguments());
+    }
+
+    /**
+     * The purifier is chosen where the application runs, the extension where it is loaded; `sanitizer` keeps
+     * symfony/html-sanitizer, `ammonia` asks for the extension.
+     */
+    public function testThePurifierIsChosen(): void
+    {
+        $sanitizer = $this->load(['purifier' => 'sanitizer']);
+        self::assertSame(SanitizerPurifier::class, (string) $sanitizer->getAlias(HtmlPurifier::class));
+        self::assertFalse($sanitizer->hasDefinition(MarkupServices::PURIFIER));
+        self::assertSame(['auto', 'sanitizer', 'ammonia'], MarkupServices::PURIFIERS);
+        self::assertSame('phil_markup.purifier', MarkupServices::PURIFIER);
+
+        if (AmmoniaPurifier::isAvailable()) {
+            $ammonia = $this->load(['purifier' => 'ammonia', 'media_hosts' => ['cdn.example.com']]);
+            self::assertSame([AmmoniaPurifier::class, 'defaultPolicies'], $ammonia->getDefinition(MarkupServices::PURIFIER)->getFactory());
+            self::assertSame([['cdn.example.com']], $ammonia->getDefinition(MarkupServices::PURIFIER)->getArguments());
+
+            return;
+        }
+
+        try {
+            $this->load(['purifier' => 'ammonia']);
+            self::fail('The ammonia purifier needs its extension.');
+        } catch (InvalidConfigurationException $invalidConfigurationException) {
+            self::assertStringContainsString('The "ammonia" purifier needs the ammonia extension of PHP, which is not loaded.', $invalidConfigurationException->getMessage());
+        }
     }
 
     public function testTheFormatsAndTheLevels(): void
