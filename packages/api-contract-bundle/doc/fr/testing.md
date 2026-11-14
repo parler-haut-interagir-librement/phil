@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=c5d6cfc254fcb15d3e1d302abffa145be6b85d541b4f09fc6cf51f0027a6bda3 -->
+<!-- phil-dev source-sha256=159731ccc775b1cea08ba0ecfcd57215e2a2d452fc00b06b5448254cec1a5a02 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
 |---|---|
 | `PhilApiContractBundle` | Chaque service, argument, alias, étiquette et décoration ; les valeurs par défaut ; aucune connexion Doctrine sans DoctrineBundle ; le pool de cache et sa fabrique de verrous |
 | `ProblemDetailsListener`, `ProblemException`, `ProblemDetailsResponse` | Les problèmes partout, les exceptions HTTP et les autres sous les chemins, le mode débogage, la borne `400` |
-| `IdempotencyListener`, `Idempotent`, `IdempotencyReservation` | Réservation et expiration, rejeu, clé réutilisée, requête en cours avec son `Retry-After`, clé échouée exécutée de nouveau, clés manquantes et erronées, `5xx` et flux marqués échoués, en-têtes rejoués, absence de stockage |
+| `IdempotencyListener`, `Idempotent`, `IdempotencyReservation` | Réservation et expiration, rejeu, clé réutilisée, requête en cours avec son `Retry-After`, clé échouée exécutée de nouveau, clés manquantes et erronées, `5xx` et flux marqués échoués, réservation perdue au profit d'une autre requête (`409`, ou le `5xx` laissé tel quel), en-têtes rejoués, absence de stockage |
 | `CallerScopeResolver` | L'utilisateur, l'adresse, ni l'un ni l'autre |
 | `IdempotencySchemaListener` | La table de `phil/idempotency` dans le schéma de sa connexion, et pas d'une autre ; les stockages eux-mêmes sont testés dans `phil/idempotency` |
 | `DeprecatedEndpoint`, `DeprecationListener` | Les en-têtes d'un contrôleur obsolète, aucun sur un autre |

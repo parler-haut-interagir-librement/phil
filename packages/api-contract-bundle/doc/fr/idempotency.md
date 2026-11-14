@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=dd9f5d7eb909c747cde27f3062a681a178673e172d3c0144172bf3d39f15de9b -->
+<!-- phil-dev source-sha256=76a0e765e87c9667d62bb94389c6e20dd4951a9af518a88e37dff0a2fc8dac7f -->
 # Idempotence
 
 Un contrôleur marqué `#[Idempotent]` exige un en-tête `Idempotency-Key` et s'exécute une fois par clé : une nouvelle
@@ -20,6 +20,7 @@ public function create(Request $request): Response
 | Une clé déjà répondue, avec la même méthode, le même chemin, la même requête et le même corps | La réponse conservée, avec `Idempotent-Replayed: true` ; le contrôleur ne s'exécute pas |
 | Une clé déjà utilisée avec une autre requête | Problème `422`, que la première requête soit terminée, en cours ou échouée |
 | Une clé dont la première requête s'exécute encore | Problème `409` avec `Retry-After` : les secondes qui restent à sa réservation |
+| Une clé nouvelle dont la requête s'est terminée après l'expiration de sa réservation et la réservation de la clé par une autre requête | Problème `409` à la place de la réponse du contrôleur, qui n'est pas conservée : la clé répond pour l'autre requête. Un `5xx` du contrôleur est laissé tel quel |
 | Une clé dont la première requête a échoué, avec la même requête | Le contrôleur s'exécute de nouveau |
 
 Chaque refus est un problème RFC 9457, `application/problem+json`. Les deux refus suivent le brouillon IETF de
@@ -33,7 +34,10 @@ si elle est plus courte) pendant que sa première requête s'exécute, puis cons
 une erreur fatale, un délai dépassé, un processus de travail tué — ne laisse rien pour compléter la clé : ses
 nouvelles tentatives reçoivent donc `409` jusqu'à l'expiration de la réservation, et non pendant toute la rétention.
 Gardez la réservation plus longue que la requête la plus lente : une réservation qui expire pendant que sa requête
-s'exécute encore laisse une nouvelle tentative s'exécuter à côté d'elle.
+s'exécute encore laisse une nouvelle tentative s'exécuter à côté d'elle. La requête en retard n'écrase alors jamais
+l'issue de la nouvelle tentative — chaque réservation porte un jeton à elle, que `phil/idempotency` vérifie avant
+d'écrire — et son client reçoit un problème `409` intitulé `IdempotencyListener::RESERVATION_LOST`, pour qu'une
+nouvelle tentative lise l'issue de la requête qui tient la clé.
 
 Seuls le statut, le corps et `idempotency.replayed_headers` sont conservés. Un rejeu remplace le contrôleur ; l'écouteur
 s'exécute donc après les écouteurs de `kernel.controller` qui lisent le contrôleur de la route — `DeprecationListener`,

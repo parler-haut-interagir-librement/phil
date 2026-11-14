@@ -4,7 +4,7 @@
 |---|---|
 | `PhilApiContractBundle` | Every service, argument, alias, tag and decoration; the defaults; no Doctrine connection without DoctrineBundle; the cache pool and its lock factory |
 | `ProblemDetailsListener`, `ProblemException`, `ProblemDetailsResponse` | Problems anywhere, HTTP exceptions and others under the paths, debug, the `400` bound |
-| `IdempotencyListener`, `Idempotent`, `IdempotencyReservation` | Reservation and expiry, replay, reuse, in progress with its `Retry-After`, a failed key run again, missing and bad keys, `5xx` and streams marked failed, the replayed headers, no store |
+| `IdempotencyListener`, `Idempotent`, `IdempotencyReservation` | Reservation and expiry, replay, reuse, in progress with its `Retry-After`, a failed key run again, missing and bad keys, `5xx` and streams marked failed, a reservation lost to another request (`409`, or the `5xx` left as it is), the replayed headers, no store |
 | `CallerScopeResolver` | The user, the address, neither |
 | `IdempotencySchemaListener` | The table of `phil/idempotency` in the schema of its connection, and not of another; the stores themselves are tested in `phil/idempotency` |
 | `DeprecatedEndpoint`, `DeprecationListener` | The headers of a deprecated controller, none on another |

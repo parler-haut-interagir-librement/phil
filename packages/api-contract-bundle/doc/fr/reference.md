@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b6c7c1ddb6c7b9f97174df5896b0880d19819b5b0cc0cd338540f31287083c7e -->
+<!-- phil-dev source-sha256=c3185a0a3471ba1d3a11c6264cda052b8490d49c90849c9cf8afe9ef0b2c97cd -->
 # Référence
 
 | Type | Nature | Rôle |
@@ -10,7 +10,7 @@
 | `Infrastructure\Http\ProblemDetailsListener` | écouteur de `kernel.exception` | Les exceptions sous forme de problèmes |
 | `Infrastructure\Http\Idempotent` | attribut | Un contrôleur qui exige un `Idempotency-Key` |
 | `Infrastructure\Http\IdempotencyListener` | écouteur | La garde de `phil/idempotency` autour d'un tel contrôleur |
-| `Infrastructure\Http\IdempotencyReservation` | valeur | La clé qu'une requête a réservée, et la rétention de sa réponse |
+| `Infrastructure\Http\IdempotencyReservation` | valeur | La réservation qu'une requête a prise, venue de `phil/idempotency`, et la rétention de sa réponse |
 | `Infrastructure\Http\IdempotencyScopeResolver` | interface | Qui a envoyé une requête |
 | `Infrastructure\Http\CallerScopeResolver` | résolveur | L'utilisateur, sinon l'adresse |
 | `Infrastructure\Http\DeprecatedEndpoint` | attribut | Un contrôleur obsolète et ses dates |
