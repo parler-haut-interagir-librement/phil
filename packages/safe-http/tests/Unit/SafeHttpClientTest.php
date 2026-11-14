@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\SafeHttp\Tests\Unit;
 
 use ArrayObject;
+use Closure;
 use Generator;
 use LogicException;
 use Phil\SafeHttp\Exception\FetchFailed;
@@ -110,6 +111,162 @@ final class SafeHttpClientTest extends TestCase
 
         $over = $this->client([new MockResponse([str_repeat('a', 4000), 'b'])], new Limits(maxBytes: 4000))->get('https://example.com/');
         self::assertSame([str_repeat('a', 4000), false], [$over->body, $over->complete]);
+    }
+
+    /**
+     * @param int $headers the headers after the status line, each `X-<n>: v`
+     *
+     * @return list<string>
+     */
+    private static function headerLines(int $headers): array
+    {
+        $lines = ['HTTP/1.1 100 Continue', 'HTTP/1.1 200 OK'];
+
+        for ($i = 0; $i < $headers; ++$i) {
+            $lines[] = 'X-'.$i.': v';
+        }
+
+        return $lines;
+    }
+
+    public function testTheHeadersAreBoundedInCount(): void
+    {
+        $limits = new Limits(maxHeaders: 100);
+        $whole = $this->client([new MockResponse('ok', ['response_headers' => self::headerLines(100)])], $limits)->get('https://example.com/');
+        self::assertSame(['ok', 'v'], [$whole->body, $whole->header('X-99')], 'Exactly the headers allowed, the status lines not counted, are read.');
+
+        try {
+            $this->client([new MockResponse('ok', ['response_headers' => self::headerLines(101)])], $limits)->get('https://example.com/many');
+            self::fail('Too many headers are refused.');
+        } catch (FetchFailed $fetchFailed) {
+            self::assertSame('"https://example.com/many" sent headers past 65536 bytes or 100 headers.', $fetchFailed->getMessage());
+        }
+    }
+
+    public function testTheHeadersAreBoundedInBytes(): void
+    {
+        $limits = new Limits(maxHeaderBytes: 1024);
+        // The status line, 15 bytes, counts with the header: `X-Big: ` and its value fill the rest.
+        $exact = ['HTTP/1.1 200 OK', 'X-Big: '.str_repeat('a', 1024 - 15 - 7)];
+        $whole = $this->client([new MockResponse('ok', ['response_headers' => $exact])], $limits)->get('https://example.com/');
+        self::assertSame('ok', $whole->body, 'Exactly the bytes allowed are read.');
+
+        try {
+            $this->client([new MockResponse('ok', ['response_headers' => [$exact[0], $exact[1].'a']])], $limits)->head('https://example.com/big');
+            self::fail('Headers past their bytes are refused.');
+        } catch (FetchFailed $fetchFailed) {
+            self::assertSame('"https://example.com/big" sent headers past 1024 bytes or 100 headers.', $fetchFailed->getMessage());
+        }
+    }
+
+    /**
+     * A transport that reports no progress still has the headers counted once they are all in.
+     */
+    public function testTheHeadersAreCountedOnceAllInWithoutProgress(): void
+    {
+        $inner = new class(new MockHttpClient([new MockResponse('ok', ['response_headers' => self::headerLines(101)])])) implements HttpClientInterface {
+            use DecoratorTrait;
+
+            /**
+             * @param array<array-key, mixed> $options
+             */
+            public function request(string $method, string $url, array $options = []): ResponseInterface
+            {
+                unset($options['on_progress']);
+
+                return $this->client->request($method, $url, $options);
+            }
+        };
+
+        $this->expectException(FetchFailed::class);
+        $this->expectExceptionMessageIsOrContains('sent headers past 65536 bytes or 100 headers.');
+        new SafeHttpClient($inner, new Limits(), self::RESOLVE)->get('https://example.com/');
+    }
+
+    /**
+     * The progress of the transport counts the headers as they arrive, before they are all in.
+     */
+    public function testTheHeadersAreCountedAsTheyArrive(): void
+    {
+        /** @var ArrayObject<int, Closure> $progress */
+        $progress = new ArrayObject();
+        $client = $this->client(static function (string $method, string $url, array $options) use ($progress): MockResponse {
+            $onProgress = $options['on_progress'] ?? null;
+            if (!\is_callable($onProgress)) {
+                throw new LogicException('The client hands a progress to the transport.');
+            }
+
+            $progress[] = $onProgress(...);
+
+            return new MockResponse('ok');
+        }, new Limits(maxHeaders: 2));
+        $client->get('https://example.com/');
+
+        $onProgress = $progress[0] ?? null;
+        self::assertNotNull($onProgress);
+
+        $onProgress(0, 0, ['url' => 'https://example.com/']);
+        $onProgress(0, 0, ['url' => 'https://example.com/', 'response_headers' => 'not a list']);
+        $onProgress(0, 0, ['url' => 'https://example.com/', 'response_headers' => ['HTTP/1.1 200 OK', 7, null, 'A: 1', 'B: 2']]);
+
+        $this->expectException(FetchFailed::class);
+        $this->expectExceptionMessageIsOrContains('"https://example.com/" sent headers past 65536 bytes or 2 headers.');
+        // A line the transport did not give as a string is passed over, the lines after it still counted.
+        $onProgress(0, 0, ['url' => 'https://example.com/', 'response_headers' => ['HTTP/1.1 200 OK', 7, 'A: 1', 'B: 2', 'C: 3']]);
+    }
+
+    /**
+     * Thrown by the progress while the transport runs, the refusal comes back wrapped in the transport's error: it is
+     * handed on as it was thrown.
+     */
+    public function testARefusalThrownDuringTheTransferIsHandedOnAsItIs(): void
+    {
+        $client = $this->client(static function (string $method, string $url, array $options): MockResponse {
+            $onProgress = $options['on_progress'] ?? null;
+            if (!\is_callable($onProgress)) {
+                throw new LogicException('The client hands a progress to the transport.');
+            }
+
+            $body = static function () use ($onProgress): Generator {
+                yield 'a';
+                $onProgress(1, 0, ['url' => 'https://example.com/', 'response_headers' => self::headerLines(101)]);
+
+                yield 'b';
+            };
+
+            return new MockResponse($body());
+        });
+
+        try {
+            $client->get('https://example.com/');
+            self::fail('The headers are refused.');
+        } catch (FetchFailed $fetchFailed) {
+            self::assertSame('"https://example.com/" sent headers past 65536 bytes or 100 headers.', $fetchFailed->getMessage());
+            self::assertNull($fetchFailed->getPrevious());
+        }
+    }
+
+    /**
+     * A chunk larger than the bytes that remain is cut before it joins the body: the body never holds more than the
+     * limits' bytes, whatever the size of the chunk the transport hands over.
+     */
+    public function testAChunkLargerThanTheBytesLeftIsCutBeforeItJoinsTheBody(): void
+    {
+        $limit = 1024 * 1024;
+        $huge = 'H'.str_repeat('h', 16 * $limit);
+
+        $single = $this->client([new MockResponse([$huge])], new Limits(maxBytes: $limit))->get('https://example.com/');
+        self::assertSame(['H'.str_repeat('h', $limit - 1), false], [$single->body, $single->complete], 'The chunk is kept from its start.');
+
+        $client = $this->client([new MockResponse(['a', $huge])], new Limits(maxBytes: $limit));
+        gc_collect_cycles();
+        memory_reset_peak_usage();
+        $before = memory_get_usage();
+        $response = $client->get('https://example.com/');
+        $peak = memory_get_peak_usage() - $before;
+
+        self::assertSame(['aH'.str_repeat('h', $limit - 2), false], [$response->body, $response->complete]);
+        self::assertLessThan(4 * $limit, $peak, 'The peak stays near the bytes allowed, far below the chunk received.');
     }
 
     public function testTheBodyStopsAfterTheMark(): void

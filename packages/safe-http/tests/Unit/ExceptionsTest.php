@@ -29,6 +29,7 @@ final class ExceptionsTest extends TestCase
         $cases = [
             [FetchFailed::transport($address, $previous), '"'.$cut.'" could not be read: why'],
             [FetchFailed::outOfTime($address), '"'.$cut.'" took longer than the whole duration allowed.'],
+            [FetchFailed::headersTooLarge($address, 1024, 10), '"'.$cut.'" sent headers past 1024 bytes or 10 headers.'],
             [RefusedAddress::notPublic($address, $previous), '"'.$cut.'" is not an http or https address of a host name.'],
             [RefusedAddress::redirect($address, $previous), 'The redirect to "'.$cut.'" is not an http or https address of a host name.'],
             [RefusedAddress::privateNetwork($address, $previous), '"'.$cut.'" is or resolves to a private, loopback, link-local or reserved network.'],

@@ -4,6 +4,21 @@ All notable changes to `phil/safe-http` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- `Limits::$maxHeaderBytes`, 64 KiB by default, and `Limits::$maxHeaders`, 100 by default: the headers of an answer,
+  counted as the transport reports them and once more when they are all in; past either, the transfer is aborted and
+  the read throws `FetchFailed`.
+- `FetchFailed::headersTooLarge()`.
+- The bounds each transport of Symfony HttpClient puts on the headers by itself, in `doc/reading.md`.
+
+### Fixed
+
+- A chunk larger than the bytes that remain is cut before it joins the body: the body held never exceeds `maxBytes`,
+  where it could pass it by one chunk of the transport. The body returned and the errors are unchanged.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

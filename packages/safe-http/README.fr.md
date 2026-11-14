@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b5ecaf4d72b05aeb0826c1e383fd619f96a339337ed8280648fd787fe440c33a -->
+<!-- phil-dev source-sha256=ee22014902058470846c2bf939dc4d9086846a14487e46f9e7ad0cae22664684 -->
 # phil/safe-http
 
 **Reading other sites safely: an HTTP client on Symfony HttpClient that refuses private networks, follows redirects it checks itself, and bounds the time, the size and the redirects of what it reads.**
@@ -14,8 +14,9 @@ d'administration sur la boucle locale. phil/safe-http lit de telles adresses :
   ou réservée, ou qui s'y résout, et se connecte à l'adresse qu'il a vérifiée ;
 - les redirections sont suivies une à une, chacune vérifiée, jusqu'à un nombre donné ;
 - le silence de l'hôte et la durée totale de la lecture, redirections comprises, sont bornés ;
+- les en-têtes d'une réponse sont bornés en octets et en nombre, comptés à mesure qu'ils arrivent ;
 - le corps est lu par morceaux, seulement pour les types de média demandés, jusqu'à un nombre d'octets ou une marque
-  d'arrêt, puis le transfert est annulé.
+  d'arrêt, puis le transfert est annulé ; un morceau est coupé aux octets qui restent avant de rejoindre le corps.
 
 Une lecture donne une `SafeResponse` — l'adresse qui a répondu, les redirections, le statut, les en-têtes et le corps
 dans la mesure où il a été lu — ou l'une de trois exceptions : l'adresse est refusée, les redirections sont trop
