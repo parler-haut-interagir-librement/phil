@@ -41,7 +41,7 @@ final readonly class PassphraseGenerator
                 Capitalization::Words => true,
                 Capitalization::Random => 1 === $this->randomizer->getInt(0, 1),
             };
-            $words[] = $capitalise ? mb_strtoupper(mb_substr($word, 0, 1)).mb_substr($word, 1) : $word;
+            $words[] = $capitalise ? Wordlist::capitalise($word) : $word;
         }
 
         if ($policy->includeDigit) {
@@ -53,11 +53,18 @@ final readonly class PassphraseGenerator
 
     /**
      * The entropy of a passphrase of the policy, in bits, for an attacker who knows the wordlist and the policy.
+     * Capitalisation counts the forms it writes: a word it leaves as it is adds nothing.
      */
     public function entropyBits(PassphrasePolicy $policy = new PassphrasePolicy()): float
     {
-        return $policy->words * $this->wordlist->bitsPerWord()
-            + (Capitalization::Random === $policy->capitalization ? $policy->words : 0)
-            + ($policy->includeDigit ? log(10 * $policy->words, 2) : 0);
+        $list = $this->wordlist;
+        $words = match ($policy->capitalization) {
+            Capitalization::None => $policy->words * $list->bitsPerWord(),
+            Capitalization::First => $list->bitsPerCapitalisedWord() + ($policy->words - 1) * $list->bitsPerWord(),
+            Capitalization::Words => $policy->words * $list->bitsPerCapitalisedWord(),
+            Capitalization::Random => $policy->words * $list->bitsPerRandomlyCapitalisedWord(),
+        };
+
+        return $words + ($policy->includeDigit ? log(10 * $policy->words, 2) : 0);
     }
 }

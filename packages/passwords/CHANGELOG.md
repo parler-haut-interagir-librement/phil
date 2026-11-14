@@ -4,6 +4,20 @@ All notable changes to `phil/passwords` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- `Wordlist::bitsPerCapitalisedWord()`, `Wordlist::bitsPerRandomlyCapitalisedWord()` and `Wordlist::capitalise()`.
+
+### Fixed
+
+- `PassphraseGenerator::entropyBits()` counts capitalisation on the forms it writes: a word without case, a word
+  already capitalised, or two words of a custom list that differ only by the case of their first letter no longer add
+  a bit each with `Random`, and the forms two words share are no longer counted twice with `First` and `Words`.
+  `Wordlist::of()` computes the entropy once, as Shannon entropy over the equally likely draws of a word; the bundled
+  lists keep their values.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added
