@@ -10,7 +10,7 @@ element beside the syntax of the other formats.
 $reading = new HtmlReader()->read('<h2>Rules</h2><p>Roll <strong>two</strong> dice.</p>');
 
 $reading->document->blocks[0];   // a `header` block, level 2, its anchor `rules`
-$reading->document->blocks[1];   // a `paragraph` block, `Roll <b>two</b> dice.`
+$reading->document->blocks[1];   // a `paragraph` block, `Roll <strong>two</strong> dice.`
 ```
 
 The source is parsed by the HTML5 parser of PHP, `Dom\HTMLDocument`, as a browser parses it: tags left open are
@@ -72,7 +72,7 @@ A stat block is read as its blocks, a class table as its table.
 
 | HTML | UJO |
 |---|---|
-| `<b>`, `<strong>`; `<i>`, `<em>`, `<cite>`, `<dfn>`, `<var>` | `<b>`; `<i>` |
+| `<strong>`; `<b>`; `<em>`; `<i>`, `<cite>`, `<dfn>`, `<var>` | `<strong>`; `<b>`; `<em>`; `<i>`: the strong importance and the stress emphasis keep their meaning |
 | `<u>`, `<ins>`; `<s>`, `<del>`, `<strike>`; `<mark>`; `<sup>`, `<sub>` | `<u>`; `<s>`; `<mark>`; `<sup>`, `<sub>` |
 | `<code>`, `<kbd>`, `<samp>`, `<tt>` | `<code>` |
 | `<a href>` to an address of a scheme `phil/ujo` allows — the web, `mailto`, `tel`, `sms`, `geo`, the messengers — or a path of the site | `<a href>`; any other address keeps the text alone |

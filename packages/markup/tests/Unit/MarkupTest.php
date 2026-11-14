@@ -63,7 +63,7 @@ final class MarkupTest extends TestCase
         self::assertSame('<p class="ujo-paragraph"><b>x</b> y</p>', $compiler->compileFor('<b>x</b> [y](javascript:z)', MarkupFormat::Markdown, Level::All));
         self::assertSame('<p class="ujo-paragraph">&lt;b&gt;x&lt;/b&gt;</p>', $compiler->compileFor('<b>x</b>', MarkupFormat::Markdown, Level::Basic));
         self::assertSame('<p class="ujo-paragraph">x^2^</p>', $compiler->compile('x^2^', MarkupFormat::Markdown));
-        self::assertSame("<p class=\"ujo-paragraph\"><b>x</b></p>\n<div class=\"ujo-raw\"><p>r</p></div>", $compiler->compile($ujo, MarkupFormat::Ujo));
+        self::assertSame("<p class=\"ujo-paragraph\"><strong>x</strong></p>\n<div class=\"ujo-raw\"><p>r</p></div>", $compiler->compile($ujo, MarkupFormat::Ujo));
         self::assertSame('<b onclick="x">a</b>', $compiler->compile('<b onclick="x">a</b>', MarkupFormat::Html));
         self::assertSame('<p class="ujo-paragraph"><b>a</b></p>', $compiler->compile('[b]a[/b]', MarkupFormat::BBCode));
         self::assertSame('<p class="ujo-paragraph">&lt;b&gt;</p>', $compiler->compile('[html]<b>[/html]', MarkupFormat::BBCode));

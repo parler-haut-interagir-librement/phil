@@ -55,7 +55,7 @@ final class BlockSavesTest extends TestCase
         $this->locks->acquire(LeaseKey::of('page', 'b1'), $this->bob);
         $block = $this->blocks->save('page', $this->bob, ['id' => 'b1', 'type' => 'paragraph', 'data' => ['text' => '<strong>Hi</strong>']], 'root', 'b0');
 
-        self::assertSame(['b1', 'paragraph', ['text' => '<b>Hi</b>']], [$block->id, $block->type, $block->data]);
+        self::assertSame(['b1', 'paragraph', ['text' => '<strong>Hi</strong>']], [$block->id, $block->type, $block->data]);
         self::assertSame(['save page b1 paragraph root b0 bob'], $this->kept->kept);
         $first = $this->told->told;
 
@@ -71,7 +71,7 @@ final class BlockSavesTest extends TestCase
             'save page b1 paragraph t9 - bob',
             'remove page b1 bob',
         ], $this->kept->kept);
-        self::assertSame(['saved page by bob in root after b0 {"blocks":[{"id":"b1","type":"paragraph","data":{"text":"<b>Hi</b>"}}]}'], $first);
+        self::assertSame(['saved page by bob in root after b0 {"blocks":[{"id":"b1","type":"paragraph","data":{"text":"<strong>Hi</strong>"}}]}'], $first);
         self::assertSame([
             'saved page by bob in root after - {"blocks":[{"id":"b1","type":"header","data":{"text":"T","level":2}}]}',
             'saved page by bob in t9:12 after - {"blocks":[{"id":"b1","type":"paragraph","data":{"text":"x"}}]}',

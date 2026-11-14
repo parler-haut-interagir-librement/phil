@@ -567,7 +567,7 @@ final class TypesTest extends UjoTestCase
 
     public function testRichTextIsSanitized(): void
     {
-        self::assertSame(['text' => '<b>a</b>'], self::normalize('paragraph', ['text' => '<strong onclick="x">a</strong><script>b</script>'])->data);
+        self::assertSame(['text' => '<strong>a</strong>'], self::normalize('paragraph', ['text' => '<strong onclick="x">a</strong><script>b</script>'])->data);
         self::assertSame(['html' => '<p>a</p><img src="/i.png">'], self::normalize('raw', ['html' => '<p class="x">a</p><img src="/i.png" onerror="x"><img src="javascript:x">'])->data);
         self::assertSame(['code' => '<b>a</b>'], self::normalize('code', ['code' => '<b>a</b>'])->data);
     }

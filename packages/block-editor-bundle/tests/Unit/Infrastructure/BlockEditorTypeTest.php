@@ -128,7 +128,7 @@ final class BlockEditorTypeTest extends TestCase
         $form->submit('{"blocks":[{"id":"a","type":"paragraph","data":{"text":"<strong>x</strong> <mark>m</mark>"}}]}');
 
         self::assertTrue($form->isSynchronized());
-        self::assertSame('{"blocks":[{"id":"a","type":"paragraph","data":{"text":"<b>x</b> m"}}]}', $form->getData());
+        self::assertSame('{"blocks":[{"id":"a","type":"paragraph","data":{"text":"<strong>x</strong> m"}}]}', $form->getData());
 
         $document = $this->forms()->create(BlockEditorType::class, null, ['document' => true]);
         $document->submit('{"blocks":[{"id":"a","type":"paragraph","data":{"text":"<mark>m</mark>"}}]}');

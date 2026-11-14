@@ -43,9 +43,9 @@ final class UjoBundleTest extends KernelTestCase
         self::assertInstanceOf(Environment::class, $twig);
 
         self::assertSame(<<<'HTML'
-            <article><p class="ujo-paragraph">a <b>b</b></p>
+            <article><p class="ujo-paragraph">a <strong>b</strong></p>
             <div class="ujo-raw"><p>r</p></div></article>
-            <aside><p class="ujo-paragraph">a <b>b</b></p>
+            <aside><p class="ujo-paragraph">a <strong>b</strong></p>
             <div class="ujo-raw"><p>r</p></div></aside>
             <p>a b
 
@@ -66,7 +66,7 @@ final class UjoBundleTest extends KernelTestCase
         $form = $forms->create(UjoType::class);
         $form->submit('{"blocks":[{"id":"a","type":"paragraph","data":{"text":"<em>t</em>"}}]}');
         self::assertTrue($form->isValid());
-        self::assertSame('{"blocks":[{"id":"a","type":"paragraph","data":{"text":"<i>t</i>"}}]}', $form->getData());
+        self::assertSame('{"blocks":[{"id":"a","type":"paragraph","data":{"text":"<em>t</em>"}}]}', $form->getData());
 
         $invalid = $forms->create(UjoType::class, null, ['document' => true]);
         $invalid->submit('{"blocks":[{"id":"a","type":"header","data":{"text":"t","level":0}}]}');

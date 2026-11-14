@@ -87,7 +87,7 @@ final class Walker
     private const array HEADINGS = ['h1' => 1, 'h2' => 2, 'h3' => 3, 'h4' => 4, 'h5' => 5, 'h6' => 6];
 
     private const array INLINE = [
-        'b' => 'b', 'strong' => 'b', 'i' => 'i', 'em' => 'i', 'cite' => 'i', 'dfn' => 'i', 'var' => 'i', 'u' => 'u',
+        'b' => 'b', 'strong' => 'strong', 'i' => 'i', 'em' => 'em', 'cite' => 'i', 'dfn' => 'i', 'var' => 'i', 'u' => 'u',
         'ins' => 'u', 's' => 's', 'del' => 's', 'strike' => 's', 'mark' => 'mark', 'code' => 'code', 'kbd' => 'code',
         'samp' => 'code', 'tt' => 'code', 'sup' => 'sup', 'sub' => 'sub',
     ];

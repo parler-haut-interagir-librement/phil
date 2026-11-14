@@ -4,6 +4,14 @@ All notable changes to `phil/ujo` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Fixed
+
+- The `rich` profile keeps `<strong>` and `<em>` apart from `<b>` and `<i>`, instead of writing them as `<b>` and
+  `<i>`: the strong importance and the stress emphasis keep their meaning for screen readers and search engines. Each
+  pair is two tools sharing the name `bold` or `italic`, so a profile without `bold` leaves out both.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

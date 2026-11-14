@@ -229,7 +229,7 @@ final class MarkdownReaderTest extends TestCase
     public static function rawHtml(): iterable
     {
         yield 'raw block' => ["<div class=\"x\" onclick=\"y\">\n*a*\n</div>\n\n<script>alert(1)</script>\n\n<!-- hidden -->", "<div class=\"ujo-raw\"><div>\n*a*\n</div></div>\n<div class=\"ujo-raw\"></div>"];
-        yield 'raw inline' => ['a <b onclick=x>b</b> <span>c</span> <em>d</em> <!-- e --> <x-y z=">"> <a href=\'/q\'>q</a> </b> <1> <a', '<p class="ujo-paragraph">a <b>b</b> c <i>d</i>   <a href="/q">q</a>  &lt;1&gt; &lt;a</p>'];
+        yield 'raw inline' => ['a <b onclick=x>b</b> <span>c</span> <em>d</em> <!-- e --> <x-y z=">"> <a href=\'/q\'>q</a> </b> <1> <a', '<p class="ujo-paragraph">a <b>b</b> c <em>d</em>   <a href="/q">q</a>  &lt;1&gt; &lt;a</p>'];
         yield 'raw type7' => ["<custom-el attr=\"1\">\ntext\n\npara", "<div class=\"ujo-raw\">\ntext</div>\n<p class=\"ujo-paragraph\">para</p>"];
         yield 'raw in para' => ["p\n<custom-el>\nq", "<p class=\"ujo-paragraph\">p\n\nq</p>"];
         yield 'html variants' => ["<DIV>\nx\n</DIV>\n\n<pre>\na\n\nb\n</pre>\n<scripts>\n\n<a\n\nz <b>\n\n</p>", "<div class=\"ujo-raw\"><div>\nx\n</div></div>\n<div class=\"ujo-raw\"><pre>\na\n\nb\n</pre></div>\n<div class=\"ujo-raw\"></div>\n<p class=\"ujo-paragraph\">&lt;a</p>\n<p class=\"ujo-paragraph\">z <b></b></p>\n<div class=\"ujo-raw\"></div>"];

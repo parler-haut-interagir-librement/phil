@@ -53,7 +53,9 @@ final readonly class InlineProfile
     }
 
     /**
-     * The inline tools of Editor.js and of the community, as PHIL writes them: bold `<b>`, italic `<i>`, underline
+     * The inline tools of Editor.js and of the community, as PHIL writes them: bold, the strong importance `<strong>`
+     * and the stylistic offset `<b>` kept apart, italic, the stress emphasis `<em>` and the alternate voice `<i>` kept
+     * apart — each pair one tool by its name, so that leaving a tool out leaves both out —, underline
      * `<u class="cdx-underline">`, strikethrough `<s class="cdx-strikethrough">`, marker `<mark class="cdx-marker">`,
      * inline code `<code class="inline-code">`, links with `target` and `rel`, mentions `<a data-mention>`, wiki links
      * `<a data-ref>`, exponents, footnote references `<sup data-footnote>`, line breaks, text colour by token, tooltip,
@@ -64,9 +66,11 @@ final readonly class InlineProfile
     public static function rich(): self
     {
         return new self([
-            new InlineTool('bold', 'b', ['b', 'strong']),
+            new InlineTool('bold', 'strong', ['strong']),
+            new InlineTool('bold', 'b', ['b']),
             new InlineTool('icon', 'i', ['i[data-icon]'], null, ['data-icon' => AttributeValue::Reference]),
-            new InlineTool('italic', 'i', ['i', 'em']),
+            new InlineTool('italic', 'em', ['em']),
+            new InlineTool('italic', 'i', ['i']),
             new InlineTool('underline', 'u', ['u'], 'cdx-underline'),
             new InlineTool('strikethrough', 's', ['s', 'strike', 'del'], 'cdx-strikethrough'),
             new InlineTool('marker', 'mark', ['mark'], 'cdx-marker'),

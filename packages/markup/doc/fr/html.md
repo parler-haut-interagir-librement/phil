@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1168fa1265ced108ce283ee13a3b0c54650e6e91eb4dc4e042786f79faa071f8 -->
+<!-- phil-dev source-sha256=8ec2e5dc5f413347a95f45d8b8680b32dcf650179d19ba8527de4693ba6a7588 -->
 # HTML
 
 `Reader\Html\HtmlReader` lit du HTML et en fait un document UJO : le HTML que produit un éditeur par blocs (celui de
@@ -11,7 +11,7 @@ dans un éditeur par blocs. [Formats](formats.md) place chaque élément à côt
 $reading = new HtmlReader()->read('<h2>Rules</h2><p>Roll <strong>two</strong> dice.</p>');
 
 $reading->document->blocks[0];   // a `header` block, level 2, its anchor `rules`
-$reading->document->blocks[1];   // a `paragraph` block, `Roll <b>two</b> dice.`
+$reading->document->blocks[1];   // a `paragraph` block, `Roll <strong>two</strong> dice.`
 ```
 
 La source est analysée par l'analyseur HTML5 de PHP, `Dom\HTMLDocument`, comme un navigateur l'analyse : les balises
@@ -74,7 +74,7 @@ Un bloc de statistiques se lit comme ses blocs, une table de classe comme son ta
 
 | HTML | UJO |
 |---|---|
-| `<b>`, `<strong>` ; `<i>`, `<em>`, `<cite>`, `<dfn>`, `<var>` | `<b>` ; `<i>` |
+| `<strong>` ; `<b>` ; `<em>` ; `<i>`, `<cite>`, `<dfn>`, `<var>` | `<strong>` ; `<b>` ; `<em>` ; `<i>` : l'importance forte et l'accent d'insistance gardent leur sens |
 | `<u>`, `<ins>` ; `<s>`, `<del>`, `<strike>` ; `<mark>` ; `<sup>`, `<sub>` | `<u>` ; `<s>` ; `<mark>` ; `<sup>`, `<sub>` |
 | `<code>`, `<kbd>`, `<samp>`, `<tt>` | `<code>` |
 | `<a href>` vers une adresse d'un schéma que permet `phil/ujo` (le Web, `mailto`, `tel`, `sms`, `geo`, les messageries) ou un chemin du site | `<a href>` ; toute autre adresse garde le texte seul |

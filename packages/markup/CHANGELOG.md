@@ -6,6 +6,11 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
+### Fixed
+
+- The HTML reader, and the HTML tags read in wikitext, keep `<strong>` and `<em>` as `<strong>` and `<em>` in UJO,
+  instead of `<b>` and `<i>`.
+
 ### Changed
 
 - The level `all` follows the safe elements of Symfony 8.2.0-BETA2's HtmlSanitizer: `link`, `meta`, `plaintext`,

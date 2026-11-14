@@ -34,7 +34,7 @@ that the HTML reader reads back.
 
 | Feature | UJO | Markdown | BBCode | MediaWiki | DokuWiki | Creole | HTML |
 |---|---|---|---|---|---|---|---|
-| Bold, italic | `<b>`, `<i>` | `**b**`, `*i*`, `__b__`, `_i_` | `[b]`, `[i]` | `'''b'''`, `''i''`, `'''''both'''''` | `**b**`, `//i//` | `**b**`, `//i//` | `<b>`, `<strong>`, `<i>`, `<em>`, `<cite>`, a bold or italic style |
+| Bold, italic | `<b>`, `<i>`; `<strong>`, `<em>` from the tags of HTML | `**b**`, `*i*`, `__b__`, `_i_` | `[b]`, `[i]` | `'''b'''`, `''i''`, `'''''both'''''` | `**b**`, `//i//` | `**b**`, `//i//` | `<b>`, `<strong>`, `<i>`, `<em>`, `<cite>`, a bold or italic style |
 | Strikethrough | `<s>` | `~s~`, `~~s~~` | `[s]` | `<s>`, `<del>`, `<strike>`, `{{s\|…}}` | `<del>` | `<<s>>…<</s>>` | `<s>`, `<del>`, `<strike>`, `text-decoration: line-through` |
 | Underline | `<u>` | — | `[u]` | `<u>`, `<ins>`, `{{u\|…}}` | `__u__` | `__u__` | `<u>`, `<ins>`, `text-decoration: underline` |
 | Highlight | `<mark>` | `==text==` | `[mark]`, `[highlight]` | `<mark>`, `{{Mark\|…}}`, `{{Highlight\|…}}` | `<mark>` | `<<mark>>…<</mark>>` | `<mark>` |

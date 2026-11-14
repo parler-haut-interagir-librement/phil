@@ -32,7 +32,7 @@ final class Spans
 
     /** The tags whose content is read, by the element they make; `''` keeps the content alone. */
     private const array ELEMENTS = [
-        'b' => 'b', 'strong' => 'b', 'i' => 'i', 'em' => 'i', 'u' => 'u', 'ins' => 'u', 's' => 's', 'del' => 's',
+        'b' => 'b', 'strong' => 'strong', 'i' => 'i', 'em' => 'em', 'u' => 'u', 'ins' => 'u', 's' => 's', 'del' => 's',
         'strike' => 's', 'sup' => 'sup', 'sub' => 'sub', 'mark' => 'mark', 'tt' => 'code', 'kbd' => 'code', 'span' => '',
         'small' => '', 'big' => '',
     ];

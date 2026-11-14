@@ -31,18 +31,18 @@ final class BlockEditorTransformerTest extends TestCase
 
         self::assertSame('', $transformer->transform(null));
         self::assertSame('{"blocks":[]}', $transformer->transform('{"blocks":[]}'));
-        self::assertSame('{"blocks":[{"id":"a","type":"paragraph","data":{"text":"<b>x</b>"}}]}', $transformer->transform(Document::fromArray(['blocks' => [['id' => 'a', 'type' => 'paragraph', 'data' => ['text' => '<strong>x</strong>']]]])));
+        self::assertSame('{"blocks":[{"id":"a","type":"paragraph","data":{"text":"<strong>x</strong>"}}]}', $transformer->transform(Document::fromArray(['blocks' => [['id' => 'a', 'type' => 'paragraph', 'data' => ['text' => '<strong>x</strong>']]]])));
     }
 
     public function testTheJsonIsCheckedAndNarrowedToTheToolset(): void
     {
         $json = '{"time":1,"blocks":[{"id":"a","type":"paragraph","data":{"text":"<strong>x</strong> <u>u</u>"}}],"version":"2.31.7"}';
 
-        self::assertSame('{"time":1,"blocks":[{"id":"a","type":"paragraph","data":{"text":"<b>x</b> u"}}],"version":"2.31.7"}', $this->transformer()->reverseTransform($json));
+        self::assertSame('{"time":1,"blocks":[{"id":"a","type":"paragraph","data":{"text":"<strong>x</strong> u"}}],"version":"2.31.7"}', $this->transformer()->reverseTransform($json));
 
         $document = $this->transformer(true)->reverseTransform($json);
         self::assertInstanceOf(Document::class, $document);
-        self::assertSame(['text' => '<b>x</b> u'], $document->blocks[0]->data);
+        self::assertSame(['text' => '<strong>x</strong> u'], $document->blocks[0]->data);
     }
 
     public function testNothingIsNoValue(): void

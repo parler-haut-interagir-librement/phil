@@ -37,9 +37,9 @@ attributes, end tags, comments — and writes back only what the profile allows,
 
 | Tool | Read from | Written as |
 |---|---|---|
-| bold | `b`, `strong` | `<b>` |
+| bold | `strong`, the strong importance; `b`, the stylistic offset — kept apart | `<strong>`; `<b>` |
 | icon | `i[data-icon]`, a reference `set:name` | `<i data-icon="fa:dragon">` |
-| italic | `i`, `em` | `<i>` |
+| italic | `em`, the stress emphasis; `i`, the alternate voice — kept apart | `<em>`; `<i>` |
 | underline | `u` | `<u class="cdx-underline">` |
 | strikethrough | `s`, `strike`, `del` | `<s class="cdx-strikethrough">` |
 | marker | `mark` | `<mark class="cdx-marker">` |
@@ -61,6 +61,11 @@ attributes, end tags, comments — and writes back only what the profile allows,
 | inline math | `math` with `display`, and inside it the elements of MathML Core — `mrow`, `mi`, `mn`, `mo`, `mtext`, `ms`, `mfrac`, `msqrt`, `mroot`, `msub`, `msup`, `msubsup`, `munder`, `mover`, `munderover`, `mmultiscripts`, `mprescripts`, `none`, `mtable`, `mtr`, `mtd`, `mspace`, `mpadded`, `mphantom`, `mstyle`, `merror`, `semantics`, `annotation` — with their own attributes, keywords and lengths only | `<math><mi>x</mi></math>` |
 
 Free colours — `<font color>`, `style="color:…"` — are unwrapped: a colour is a token the look defines.
+
+The bold and italic tools each write two elements, as HTML tells them apart and as screen readers and search engines
+read them: `<strong>` and `<em>` carry meaning, `<b>` and `<i>` only a style. Editor.js writes `<b>` and `<i>`; HTML
+written elsewhere keeps its `<strong>` and `<em>`. The two tools of a pair share their name, so
+`InlineProfile::without('bold')` leaves out both.
 
 ## Adding a profile or a tool
 
