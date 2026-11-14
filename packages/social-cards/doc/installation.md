@@ -14,5 +14,6 @@ composer require phil/social-cards
 | `ext-mbstring` | Counting and cutting texts in characters |
 | `phil/fonts` | Reading the fonts of a template: their format, family, licence and hash |
 | `phil/url` | Checking the addresses read in the pages of other sites: a public host name, never an IP address nor `localhost` |
+| `ext-imagick`, suggested | `ImagickCardRenderer`: with ImageMagick built with libraqm, the text of Arabic, Hebrew and the scripts of India shaped and laid out in its direction |
 
 A Symfony application installs phil/social-cards-bundle, which requires this library.

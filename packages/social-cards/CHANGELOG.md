@@ -4,6 +4,20 @@ All notable changes to `phil/social-cards` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- `ImagickCardRenderer` and `ImagickTextMeasure`: the cards drawn through `ext-imagick` in the layout of
+  `GdCardRenderer`, the text shaped and laid out in its direction when ImageMagick is built with libraqm — Arabic
+  joined and from right to left, Hebrew from right to left, the vowel signs and conjuncts of the scripts of India in
+  place —, as `ImagickCardRenderer::shapes()` tells; a title or subtitle from right to left aligned on the right
+  margin; the images read by the coder of their type alone; an opaque PNG without dates, the same bytes for the same
+  template and content; ImageMagick's version and libraqm in `version()`. `ext-imagick` is suggested.
+- `TextDirection`: the base direction of a text, from its first letter of a strong direction, within its first 1,024
+  characters.
+- The benchmark of the drawing by ImageMagick, where `ext-imagick` is installed.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

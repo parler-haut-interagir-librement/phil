@@ -7,6 +7,8 @@
 | `Color`, `CardTemplate`, `CardFont`, `CardImage` | The spellings of a colour, the defaults and bounds of a template, fonts read and refused, images within and beyond their bounds, the fingerprint |
 | `LineBreaker`, `TextFitter`, `FittedText` | Line breaks in English, French and Japanese, the halving checked against a linear search, words cut, the ellipsis, the measures counted; the cut of a French title measured by GD in the box font |
 | `GdCardRenderer`, `GdTextMeasure` | Margins, the accent, the background image, the logo, the subtitle's room, the compression, and three whole cards compared pixel by pixel with the cards GD 2.3.3 drew |
+| `ImagickCardRenderer`, `ImagickTextMeasure` | Where `ext-imagick` is installed, skipped elsewhere: the size and opacity of the card, the same bytes twice, no date written, the accent and the subtitle, a Hebrew title on the right margin, the background image and the logo, an unreadable image, the measure in the box font |
+| `TextDirection` | Latin, Hebrew, Arabic and Devanagari, the first strong letter after digits and marks, no strong letter, the bound of the scan |
 | `CardGenerator`, the stores, `Fingerprint` | Each card drawn once, every part of the fingerprint, atomic files, fingerprints refused |
 | `TagReader`, `PageTags`, `LinkPreview`, `TagCheck` | The tags of a page, the bounds of the reader, pages that are not HTML, character sets, the fallbacks of a preview, every finding |
 | `LinkFinder` | Links in order and once, the punctuation after them, parentheses and brackets opened or not, other schemes, the bounds of the text, of a link and of the count, invalid UTF-8 |
@@ -24,8 +26,8 @@ vendor/bin/phpunit packages/social-cards/tests
 ## Benchmarks
 
 `CardRendererBench` draws a short title, a long one fitted by halving and one cut at its smallest size, plain or over
-a background image with a logo. `TagReaderBench` reads a small head, a head of hundreds of tags and a page of 512 KiB
-without a head. From the monorepo root:
+a background image with a logo, by GD and, where `ext-imagick` is installed, by ImageMagick. `TagReaderBench`
+reads a small head, a head of hundreds of tags and a page of 512 KiB without a head. From the monorepo root:
 
 ```sh
 composer bench -- packages/social-cards/tests/Benchmark

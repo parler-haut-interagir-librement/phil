@@ -5,8 +5,8 @@ cards.
 
 ## `CardRenderer`
 
-`Phil\SocialCards\Contract\CardRenderer` — draws a card. `GdCardRenderer` is the shipped one; an Imagick renderer, or
-one that shapes complex scripts, implements it.
+`Phil\SocialCards\Contract\CardRenderer` — draws a card. `GdCardRenderer` and `ImagickCardRenderer` are the shipped
+ones; a renderer of another library implements it.
 
 | Method | Contract |
 |---|---|

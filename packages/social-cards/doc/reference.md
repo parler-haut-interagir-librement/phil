@@ -20,6 +20,9 @@
 | `Phil\SocialCards\Card\FittedText` | `final readonly class` | The lines of a fitted text and their size |
 | `Phil\SocialCards\Card\GdCardRenderer` | `final readonly class` | The drawing with GD and FreeType |
 | `Phil\SocialCards\Card\GdTextMeasure` | `final class` | The measure of text with GD |
+| `Phil\SocialCards\Card\ImagickCardRenderer` | `final readonly class` | The drawing with ImageMagick, the text shaped by libraqm when ImageMagick has it; `shapes()` |
+| `Phil\SocialCards\Card\ImagickTextMeasure` | `final class` | The measure of text with ImageMagick |
+| `Phil\SocialCards\Card\TextDirection` | enum | The base direction of a text, from its first letter of a strong direction |
 | `Phil\SocialCards\Card\CardGenerator` | `final readonly class` | Each card drawn once, under its fingerprint |
 | `Phil\SocialCards\Card\GeneratedCard` | `final readonly class` | A fingerprint and its PNG |
 | `Phil\SocialCards\Card\Fingerprint` | `final class` | The rule of a fingerprint |
@@ -38,4 +41,4 @@
 | `Phil\SocialCards\Exception\SocialCardsException` | interface | Every exception of the library |
 | `Phil\SocialCards\Exception\InvalidShareMetadata` | `final class` | Share metadata that the tags cannot carry |
 | `Phil\SocialCards\Exception\InvalidCardTemplate` | `final class` | A template or card that cannot be drawn |
-| `Phil\SocialCards\Exception\CardRenderingFailed` | `final class` | GD or a store failed |
+| `Phil\SocialCards\Exception\CardRenderingFailed` | `final class` | GD, ImageMagick or a store failed |

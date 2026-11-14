@@ -21,7 +21,8 @@ pasted in a text, and `TagCheck` says what is missing or wrong in the tags of a 
 
 The cards are drawn by GD, without text shaping: Latin, Greek, Cyrillic and the scripts of China, Japan and Korea draw
 well; Arabic, Hebrew and the scripts of India do not, as [the cards](doc/cards.md#what-gd-draws-and-what-it-does-not)
-explain.
+explain. `ImagickCardRenderer` draws them through ImageMagick when it is built with libraqm, which shapes the text and
+lays it out in its direction.
 
 It is a plain PHP library: PHP 8.5 with the ctype, DOM, GD, intl, libxml, mbstring and URI extensions, and
 phil/fonts. In a
@@ -35,6 +36,8 @@ draws them in a worker, fetches linked pages safely and checks a page from the c
 | `ShareMetadata`, `ShareImage`, `ShareType`, `TwitterCard`, `MetaTags` | Implemented and tested |
 | `CardTemplate`, `CardFont`, `CardImage`, `Color`, `CardContent` | Implemented and tested |
 | `LineBreaker`, `TextFitter`, `GdCardRenderer`, `CardGenerator`, the stores | Implemented and tested |
+| `ImagickCardRenderer`, `ImagickTextMeasure` | Implemented; tested where `ext-imagick` is installed |
+| `TextDirection` | Implemented and tested |
 | `TagReader`, `PageTags`, `LinkPreview`, `TagCheck` | Implemented, tested and fuzzed |
 | `LinkFinder` | Implemented, tested and fuzzed |
 
@@ -74,7 +77,7 @@ echo MetaTags::html(MetaTags::of(ShareMetadata::fromArray([
 ## Requirements
 
 PHP 8.5 or later, with the ctype, DOM, GD (with FreeType), intl, libxml, mbstring and URI extensions, and
-`phil/fonts`.
+`phil/fonts`; `ext-imagick`, with ImageMagick built with libraqm, for `ImagickCardRenderer`.
 
 ## Contributing
 
