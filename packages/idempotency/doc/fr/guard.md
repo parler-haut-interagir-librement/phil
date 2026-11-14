@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=63d19aa8cde802a3885993209600db7256c4134b871f5bbbf59324d79f7d7394 -->
+<!-- phil-dev source-sha256=9d38ba57cf51562c02b4c1821bbd914ce1d131cf82a24377f7198ae845f295ac -->
 # La garde
 
 `IdempotencyGuard` exécute la séquence du stockage : trouver, décider, réserver, puis terminer ou échouer. Elle ne
@@ -13,7 +13,8 @@ new IdempotencyGuard(IdempotencyStore $store, ClockInterface $clock, int $retent
   et s'exécute deux fois.
 - `$reservationTtl` : combien de secondes une clé reste en cours avant sa réponse, ou la rétention si elle est plus
   courte. Gardez-la plus longue que l'exécution la plus lente : une réservation qui expire pendant que son exécution
-  se poursuit laisse une nouvelle tentative s'exécuter à côté.
+  se poursuit laisse une nouvelle tentative s'exécuter à côté, et l'exécution en retard reçoit alors
+  `ReservationLost` au lieu de garder sa réponse.
 
 Les deux valent au moins 1 seconde. Chaque méthode prend un `$retention` facultatif qui remplace celui de la garde pour
 une clé.
@@ -28,6 +29,7 @@ public function run(IdempotencyScope $scope, IdempotencyKey $key, PayloadFingerp
 | Issue | Ce que fait `run()` |
 |---|---|
 | `Proceed` | Exécute `$operation`, garde sa réponse, la retourne avec `replayed: false`. Une exception marque la clé échouée et est relancée. |
+| `Proceed`, terminée après qu'une autre exécution a réservé la clé | Lève `ReservationLost` et ne garde rien : l'autre exécution garde la clé. Une exception de l'opération est relancée telle quelle. |
 | `Replay` | Retourne la réponse stockée avec `replayed: true`, sans rien exécuter. |
 | `Reused` | Lève `IdempotencyKeyReused`. |
 | `InProgress` | Lève `RequestInProgress`, dont `retryAfter` donne les secondes qui restent à la réservation. |
@@ -45,9 +47,20 @@ match ($decision->outcome) {
     IdempotencyOutcome::InProgress => throw $guard->inProgress($decision),
     IdempotencyOutcome::Proceed => null, // reserved: run, then complete() or fail()
 };
+
+// After the run, with the reservation the decision holds:
+$guard->complete($decision->reservation, $response);
+// or, for a failure the client may retry:
+$guard->fail($decision->reservation);
 ```
 
-`begin()` réserve sur `Proceed`. Quand une autre exécution prend la clé entre la lecture et la réservation, elle relit
+`begin()` réserve sur `Proceed`, et la décision porte la réservation dans `$decision->reservation` : une
+`IdempotencyReservation` avec la portée, la clé et un jeton aléatoire. Gardez-la jusqu'à la fin de l'exécution, sur la
+requête par exemple. `complete()` et `fail()` n'écrivent que tant que la clé est encore tenue sous ce jeton ; quand la
+réservation a expiré et qu'une autre exécution a réservé la clé depuis, elles lèvent `ReservationLost` et laissent
+l'enregistrement de l'autre exécution tranquille.
+
+Quand une autre exécution prend la clé entre la lecture et la réservation, elle relit
 et décide selon ce qui l'a prise — un rejeu, une réutilisation, une exécution en cours. Après trois réservations
 perdues, elle répond `InProgress`. `inProgress($decision)` construit l'exception avec les secondes qui restent à
 l'enregistrement.

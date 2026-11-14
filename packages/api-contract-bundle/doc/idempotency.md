@@ -19,6 +19,7 @@ public function create(Request $request): Response
 | A key already answered, with the same method, path, query and body | The kept response, with `Idempotent-Replayed: true`; the controller does not run |
 | A key already used with another request | `422` problem, whether the first request has finished, is running or has failed |
 | A key whose first request is still running | `409` problem with `Retry-After`: the seconds left on its reservation |
+| A new key whose request ended after its reservation expired and another request reserved the key | `409` problem in place of the controller's answer, which is not kept: the key answers for the other request. A `5xx` of the controller is left as it is |
 | A key whose first request failed, with the same request | The controller runs again |
 
 Every refusal is an RFC 9457 problem, `application/problem+json`. The two refusals follow the IETF draft of the header:
@@ -30,7 +31,9 @@ shorter) while its first request runs, then kept for its retention, `idempotency
 answered or failed. A process that dies before its response — a fatal error, a timeout, a killed worker — leaves
 nothing to complete the key, so its retries get `409` until the reservation expires, not for the whole retention.
 Keep the reservation longer than the slowest request: a reservation that expires while its request still runs lets a
-retry run beside it.
+retry run beside it. The late request then never overwrites the retry's outcome — each reservation carries a token
+of its own, which `phil/idempotency` checks before it writes — and its client gets a `409` problem titled
+`IdempotencyListener::RESERVATION_LOST`, so that a retry reads the outcome of the request that holds the key.
 
 Only the status, the body and `idempotency.replayed_headers` are kept. A replay replaces the controller, so the listener
 runs after the listeners of `kernel.controller` that read the route's controller — `DeprecationListener`, the profiler's

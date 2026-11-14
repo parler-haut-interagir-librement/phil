@@ -15,8 +15,10 @@ use Phil\ApiContractBundle\Infrastructure\Http\Idempotent;
 use Phil\ApiContractBundle\Infrastructure\Http\ProblemException;
 use Phil\Idempotency\Exception\InvalidIdempotencyValue;
 use Phil\Idempotency\Exception\RequestInProgress;
+use Phil\Idempotency\Exception\ReservationLost;
 use Phil\Idempotency\IdempotencyKey;
 use Phil\Idempotency\IdempotencyRecord;
+use Phil\Idempotency\IdempotencyReservation as Reservation;
 use Phil\Idempotency\IdempotencyScope;
 use Phil\Idempotency\IdempotencyState;
 use Phil\Idempotency\PayloadFingerprint;
@@ -212,9 +214,61 @@ final class IdempotencyListenerTest extends TestCase
         self::assertSame([], $store->calls);
         self::assertSame('_phil_api_contract_idempotency', IdempotencyListener::RESERVED);
 
-        $request->attributes->set(IdempotencyListener::RESERVED, new IdempotencyReservation(IdempotencyScope::of('ip:10.0.0.1'), IdempotencyKey::fromString('k1'), 100));
+        $request->attributes->set(IdempotencyListener::RESERVED, new IdempotencyReservation(Reservation::create(IdempotencyScope::of('ip:10.0.0.1'), IdempotencyKey::fromString('k1')), 100));
         new IdempotencyListener(null, new CallerScopeResolver(), 100, new NativeClock())->onResponse($this->response($request, new Response()));
         self::assertTrue($request->attributes->has(IdempotencyListener::RESERVED));
+    }
+
+    public function testTheRequestKeepsTheReservationTheStoreGave(): void
+    {
+        $store = new InMemoryIdempotencyStore();
+        $request = self::request('k1');
+        self::listener($store)->onController(self::controller($request, new Idempotent(ttl: 60)));
+
+        $reserved = $request->attributes->get(IdempotencyListener::RESERVED);
+        self::assertInstanceOf(IdempotencyReservation::class, $reserved);
+        self::assertSame([$store->tokens['ip:10.0.0.1|k1'], 60], [$reserved->reservation->token, $reserved->ttl]);
+    }
+
+    /**
+     * The controller outlived its reservation and another request reserved the key: its answer is not kept, and the
+     * client is told so with a `409`, while the other request keeps the key.
+     */
+    public function testAnAnswerAfterAnotherRequestTookTheKeyIsAConflict(): void
+    {
+        $store = new InMemoryIdempotencyStore();
+        $listener = self::listener($store);
+        $request = self::request('k1');
+        $listener->onController(self::controller($request, new Idempotent()));
+        $store->tokens['ip:10.0.0.1|k1'] = 'another request';
+
+        try {
+            $listener->onResponse($this->response($request, new Response('{"id":1}', Response::HTTP_CREATED)));
+            self::fail('A lost reservation was not reported.');
+        } catch (ProblemException $problemException) {
+            self::assertSame([409, 'Another request with this Idempotency-Key took over: this response was not kept.'], [$problemException->problem->status, $problemException->problem->title]);
+            self::assertSame(IdempotencyListener::RESERVATION_LOST, $problemException->problem->title);
+            self::assertInstanceOf(ReservationLost::class, $problemException->getPrevious());
+        }
+
+        self::assertSame(IdempotencyState::InProgress, $store->records['ip:10.0.0.1|k1']->state, 'The other request was overwritten.');
+        self::assertFalse($request->attributes->has(IdempotencyListener::RESERVED));
+    }
+
+    public function testAFailureAfterAnotherRequestTookTheKeyKeepsItsOwnResponse(): void
+    {
+        $store = new InMemoryIdempotencyStore();
+        $listener = self::listener($store);
+        $request = self::request('k1');
+        $listener->onController(self::controller($request, new Idempotent()));
+        $store->tokens['ip:10.0.0.1|k1'] = 'another request';
+        $event = $this->response($request, new Response('', Response::HTTP_BAD_GATEWAY));
+
+        $listener->onResponse($event);
+
+        self::assertSame(502, $event->getResponse()->getStatusCode());
+        self::assertSame(['reserve ip:10.0.0.1|k1', 'fail ip:10.0.0.1|k1'], $store->calls);
+        self::assertSame(IdempotencyState::InProgress, $store->records['ip:10.0.0.1|k1']->state);
     }
 
     public function testTheDefaultHeadersAreReplayed(): void

@@ -4,7 +4,7 @@
 |---|---|---|
 | PHP | `>=8.5` | The declared minimum |
 | `phil/api-contract` | `^0.1@dev` | The contract: problems and signals |
-| `phil/idempotency` | `^0.1@dev` | Keys, fingerprints, the guard and its stores |
+| `phil/idempotency` | `^0.2@dev` | Keys, fingerprints, the guard and its stores |
 | `symfony/dependency-injection`, `symfony/config` | `^8.2` | The bundle class and its configuration |
 | `symfony/http-foundation`, `symfony/http-kernel` | `^8.2` | The listeners and the attributes |
 | `psr/clock` | `^1.0` | When a key expires, when a signal is seen; the container's `clock` service, which FrameworkBundle registers once `symfony/clock` is installed |

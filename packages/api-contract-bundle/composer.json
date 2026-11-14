@@ -24,7 +24,7 @@
         "php": ">=8.5",
         "ext-uri": "*",
         "phil/api-contract": "^0.1@dev",
-        "phil/idempotency": "^0.1@dev",
+        "phil/idempotency": "^0.2@dev",
         "psr/clock": "^1.0",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",

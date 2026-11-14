@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=b5284084b02cbceba9c0015c29068f3e4a0228fbad9fb977028fef05623512df -->
+<!-- phil-dev source-sha256=afeb055290f915551277cec040e099c9e603c36350a9ae66ff1750d0b114f320 -->
 # Installation
 
 | Prérequis | Contrainte | Pourquoi |
 |---|---|---|
 | PHP | `>=8.5` | Le minimum déclaré |
 | `phil/api-contract` | `^0.1@dev` | Le contrat : problèmes et signaux |
-| `phil/idempotency` | `^0.1@dev` | Les clés, les empreintes, la garde et ses stockages |
+| `phil/idempotency` | `^0.2@dev` | Les clés, les empreintes, la garde et ses stockages |
 | `symfony/dependency-injection`, `symfony/config` | `^8.2` | La classe du bundle et sa configuration |
 | `symfony/http-foundation`, `symfony/http-kernel` | `^8.2` | Les écouteurs et les attributs |
 | `psr/clock` | `^1.0` | Le moment où une clé expire, où un signal est vu ; le service `clock` du conteneur, que FrameworkBundle enregistre dès que `symfony/clock` est installé |

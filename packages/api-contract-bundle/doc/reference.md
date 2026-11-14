@@ -9,7 +9,7 @@
 | `Infrastructure\Http\ProblemDetailsListener` | `kernel.exception` listener | Exceptions as problems |
 | `Infrastructure\Http\Idempotent` | attribute | A controller that requires an `Idempotency-Key` |
 | `Infrastructure\Http\IdempotencyListener` | listener | The guard of `phil/idempotency` around such a controller |
-| `Infrastructure\Http\IdempotencyReservation` | value | The key a request reserved, and the retention of its answer |
+| `Infrastructure\Http\IdempotencyReservation` | value | The reservation a request took, from `phil/idempotency`, and the retention of its answer |
 | `Infrastructure\Http\IdempotencyScopeResolver` | interface | Who sent a request |
 | `Infrastructure\Http\CallerScopeResolver` | resolver | The user, or else the address |
 | `Infrastructure\Http\DeprecatedEndpoint` | attribute | A deprecated controller and its dates |

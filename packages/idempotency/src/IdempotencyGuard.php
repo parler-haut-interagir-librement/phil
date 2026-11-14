@@ -10,6 +10,7 @@ use Phil\Idempotency\Contract\IdempotencyStore;
 use Phil\Idempotency\Exception\IdempotencyKeyReused;
 use Phil\Idempotency\Exception\InvalidIdempotencyValue;
 use Phil\Idempotency\Exception\RequestInProgress;
+use Phil\Idempotency\Exception\ReservationLost;
 use Psr\Clock\ClockInterface;
 use Throwable;
 
@@ -18,7 +19,8 @@ use Throwable;
  *
  * `run()` wraps an operation that happens in one call — a message handler, a webhook, a form submission.
  * `begin()`, `complete()` and `fail()` split it for a caller that sees the start and the end apart, such as a
- * listener on the request and the response.
+ * listener on the request and the response: the decision of `begin()` carries the reservation that `complete()` and
+ * `fail()` take back.
  *
  * A key is reserved for `$reservationTtl` seconds, or the retention if shorter, then kept for its retention once
  * answered or failed. The guard keeps no state between calls.
@@ -40,7 +42,8 @@ final readonly class IdempotencyGuard
     }
 
     /**
-     * Decides, and on `Proceed` holds the reservation: the caller runs, then calls `complete()` or `fail()`.
+     * Decides, and on `Proceed` holds the reservation, in `$decision->reservation`: the caller runs, then gives it to
+     * `complete()` or `fail()`.
      *
      * @param ?int $retention the seconds an answered key is kept, instead of the guard's
      */
@@ -51,8 +54,14 @@ final readonly class IdempotencyGuard
         for ($attempt = 1;; ++$attempt) {
             $decision = IdempotencyDecision::for($this->store->find($scope, $key), $fingerprint);
 
-            if (IdempotencyOutcome::Proceed !== $decision->outcome || $this->store->reserve($scope, $key, $fingerprint, $expiresAt)) {
+            if (IdempotencyOutcome::Proceed !== $decision->outcome) {
                 return $decision;
+            }
+
+            $reservation = $this->store->reserve($scope, $key, $fingerprint, $expiresAt);
+
+            if ($reservation instanceof IdempotencyReservation) {
+                return $decision->reserved($reservation);
             }
 
             if (self::ATTEMPTS === $attempt) {
@@ -62,28 +71,44 @@ final readonly class IdempotencyGuard
         }
     }
 
-    public function complete(IdempotencyScope $scope, IdempotencyKey $key, StoredResponse $response, ?int $retention = null): void
+    /**
+     * @throws ReservationLost when another run holds the key since the reservation expired
+     */
+    public function complete(IdempotencyReservation $reservation, StoredResponse $response, ?int $retention = null): void
     {
-        $this->store->complete($scope, $key, $response, $this->in($this->retention($retention)));
+        $this->store->complete($reservation, $response, $this->in($this->retention($retention)));
     }
 
-    public function fail(IdempotencyScope $scope, IdempotencyKey $key, ?int $retention = null): void
+    /**
+     * @throws ReservationLost when another run holds the key since the reservation expired
+     */
+    public function fail(IdempotencyReservation $reservation, ?int $retention = null): void
     {
-        $this->store->fail($scope, $key, $this->in($this->retention($retention)));
+        $this->store->fail($reservation, $this->in($this->retention($retention)));
     }
 
     /**
      * Runs `$operation` once per key: a replay returns the stored response without running it; a throwable marks
      * the key failed and is thrown again.
      *
+     * When the run outlived its reservation and another run reserved the key since, the response is not kept and
+     * `ReservationLost` is thrown. A throwable of the operation is thrown as it is, whether or not its failure could
+     * be written: the key then stays with the other run.
+     *
      * @param Closure(): StoredResponse $operation
      *
      * @throws IdempotencyKeyReused when the key was used with another payload
      * @throws RequestInProgress    when the first run is still in progress
+     * @throws ReservationLost      when the run ended after another run took its key
      */
     public function run(IdempotencyScope $scope, IdempotencyKey $key, PayloadFingerprint $fingerprint, Closure $operation, ?int $retention = null): IdempotentRun
     {
         $decision = $this->begin($scope, $key, $fingerprint, $retention);
+        $reservation = $decision->reservation;
+
+        if ($reservation instanceof IdempotencyReservation) {
+            return $this->reserved($reservation, $operation, $retention);
+        }
 
         if (IdempotencyOutcome::Reused === $decision->outcome) {
             throw IdempotencyKeyReused::withAnotherRequest();
@@ -93,21 +118,7 @@ final readonly class IdempotencyGuard
             throw $this->inProgress($decision);
         }
 
-        if (IdempotencyOutcome::Replay === $decision->outcome) {
-            return new IdempotentRun($decision->replay() ?? StoredResponse::nothing(), true);
-        }
-
-        try {
-            $response = $operation();
-        } catch (Throwable $throwable) {
-            $this->fail($scope, $key, $retention);
-
-            throw $throwable;
-        }
-
-        $this->complete($scope, $key, $response, $retention);
-
-        return new IdempotentRun($response, false);
+        return new IdempotentRun($decision->replay() ?? StoredResponse::nothing(), true);
     }
 
     /**
@@ -116,6 +127,28 @@ final readonly class IdempotencyGuard
     public function inProgress(IdempotencyDecision $decision): RequestInProgress
     {
         return RequestInProgress::retryAfter($decision->existing?->secondsLeft($this->clock->now()) ?? $this->reservationTtl);
+    }
+
+    /**
+     * @param Closure(): StoredResponse $operation
+     */
+    private function reserved(IdempotencyReservation $reservation, Closure $operation, ?int $retention): IdempotentRun
+    {
+        try {
+            $response = $operation();
+        } catch (Throwable $throwable) {
+            try {
+                $this->fail($reservation, $retention);
+            } catch (ReservationLost) {
+                // The operation's own failure is what its caller handles; the key stays with the run that holds it.
+            }
+
+            throw $throwable;
+        }
+
+        $this->complete($reservation, $response, $retention);
+
+        return new IdempotentRun($response, false);
     }
 
     private function retention(?int $retention): int

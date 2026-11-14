@@ -4,6 +4,23 @@ All notable changes to `phil/api-contract-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Fixed
+
+- A request whose controller outlived its idempotency reservation, after which another request reserved the key,
+  no longer overwrites that request's outcome: before, its late answer or failure replaced the other request's
+  record, so that a retry could run a third time or replay the wrong response.
+
+### Changed
+
+- A request that ends after another request took its key answers a `409` problem,
+  `IdempotencyListener::RESERVATION_LOST`, instead of keeping its response; a `5xx` of its own is left as it is.
+- `IdempotencyReservation` holds the `Phil\Idempotency\IdempotencyReservation` the store gave, and the retention,
+  instead of the scope and the key.
+- The bundle requires `phil/idempotency` `^0.2@dev`, whose stores write an outcome only under the token of its
+  reservation; a table created with 0.1 needs its `token` column.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

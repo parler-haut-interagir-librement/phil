@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=08f0d63fe6d96b4b41f42806a24014154f1d5fcd0b5fc4990500fb6597762618 -->
+<!-- phil-dev source-sha256=d5f5991424215d675acc784815efb7698f3b8593ede908cb985f6a1508ad64ee -->
 # Référence
 
 Tous les types vivent sous `Phil\Idempotency`.
@@ -12,7 +12,8 @@ Tous les types vivent sous `Phil\Idempotency`.
 | `IdempotencyState` | enum à valeur chaîne | `InProgress` (`in_progress`), `Completed` (`completed`), `Failed` (`failed`). |
 | `IdempotencyRecord` | final readonly class | Ce que contient un stockage : `$fingerprint`, `$state`, `$expiresAt`, `$response` ; `inProgress()`, `completed()`, `failed()`, `of()`, `secondsLeft()`. |
 | `IdempotencyOutcome` | enum | `Proceed`, `Replay`, `Reused`, `InProgress`. |
-| `IdempotencyDecision` | final readonly class | `for()`, `$outcome`, `$existing`, `replay()`. |
+| `IdempotencyReservation` | final readonly class | La prise d'une exécution sur une clé : `TOKEN_LENGTH`, `$scope`, `$key`, `$token`, `create()`. |
+| `IdempotencyDecision` | final readonly class | `for()`, `$outcome`, `$existing`, `$reservation`, `reserved()`, `replay()`. |
 | `IdempotencyGuard` | final readonly class | `begin()`, `complete()`, `fail()`, `run()`, `inProgress()`. |
 | `IdempotentRun` | final readonly class | Ce que retourne `run()` : `$response`, `$replayed`. |
 | `Contract\IdempotencyStore` | interface | `find()`, `reserve()`, `complete()`, `fail()`, `release()`. |
@@ -26,3 +27,4 @@ Tous les types vivent sous `Phil\Idempotency`.
 | `Exception\MissingIdempotencyKey` | final class | Aucune clé sur une requête qui en demande une ; `onRequest()`. |
 | `Exception\IdempotencyKeyReused` | final class | La clé a servi avec une autre charge ; `withAnotherRequest()`. |
 | `Exception\RequestInProgress` | final class | La première exécution se poursuit ; `$retryAfter`, `retryAfter()`. |
+| `Exception\ReservationLost` | final class | Une autre exécution tient la clé depuis l'expiration de la réservation ; `toAnotherRun()`. |

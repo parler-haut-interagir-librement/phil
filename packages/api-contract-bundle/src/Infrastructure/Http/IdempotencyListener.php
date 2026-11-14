@@ -9,9 +9,11 @@ use Phil\ApiContract\Problem\ProblemDetails;
 use Phil\Idempotency\Contract\IdempotencyStore;
 use Phil\Idempotency\Exception\InvalidIdempotencyValue;
 use Phil\Idempotency\Exception\MissingIdempotencyKey;
+use Phil\Idempotency\Exception\ReservationLost;
 use Phil\Idempotency\IdempotencyGuard;
 use Phil\Idempotency\IdempotencyKey;
 use Phil\Idempotency\IdempotencyOutcome;
+use Phil\Idempotency\IdempotencyReservation as Reservation;
 use Phil\Idempotency\PayloadFingerprint;
 use Phil\Idempotency\StoredResponse;
 use Psr\Clock\ClockInterface;
@@ -27,6 +29,10 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
  * controller, and its response kept after it — or the key marked failed, when the response is a `5xx` or cannot be
  * kept, so that the client may retry.
  *
+ * A controller that outlived its reservation, after which another request reserved the key, never overwrites that
+ * request's outcome: its answer is replaced by a `409` problem, since the key now answers for the other request, and a
+ * `5xx` of its own is left as it is.
+ *
  * The reservation expires after `$reservationTtl` seconds (or the key's own retention, if shorter): a process that
  * dies before its response blocks retries for that long only. The answered key is then kept for its retention, `$ttl`
  * or the controller's `#[Idempotent(ttl: …)]`.
@@ -36,6 +42,9 @@ final readonly class IdempotencyListener
     public const string REPLAYED_HEADER = 'Idempotent-Replayed';
 
     public const string RESERVED = '_phil_api_contract_idempotency';
+
+    /** The title of the `409` of a request that ended after another request took its key. */
+    public const string RESERVATION_LOST = 'Another request with this Idempotency-Key took over: this response was not kept.';
 
     /** The `detail` of an unreadable key: fixed, never the exception's message. */
     public const string KEY_FORMAT = 'An idempotency key is 1 to 255 printable ASCII characters, without quotes, backslashes or surrounding spaces.';
@@ -96,11 +105,10 @@ final readonly class IdempotencyListener
         if (IdempotencyOutcome::Replay === $decision->outcome) {
             $replay = $decision->replay();
             $event->setController(static fn (): Response => self::replay($replay));
-
-            return;
+        } elseif ($decision->reservation instanceof Reservation) {
+            // A new key, or a failed one run again: the reservation waits on the request for its response.
+            $request->attributes->set(self::RESERVED, new IdempotencyReservation($decision->reservation, $ttl));
         }
-
-        $request->attributes->set(self::RESERVED, new IdempotencyReservation($scope, $key, $ttl));
     }
 
     public function onResponse(ResponseEvent $event): void
@@ -112,13 +120,16 @@ final readonly class IdempotencyListener
         }
 
         $event->getRequest()->attributes->remove(self::RESERVED);
-        [$scope, $key] = [$reserved->scope, $reserved->key];
 
         $response = $event->getResponse();
         $content = $response->getContent();
 
         if (false === $content || $response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
-            $this->guard->fail($scope, $key, $reserved->ttl);
+            try {
+                $this->guard->fail($reserved->reservation, $reserved->ttl);
+            } catch (ReservationLost) {
+                // The response is already a failure; the key stays with the request that holds it.
+            }
 
             return;
         }
@@ -133,7 +144,11 @@ final readonly class IdempotencyListener
             }
         }
 
-        $this->guard->complete($scope, $key, StoredResponse::of($response->getStatusCode(), $headers, $content), $reserved->ttl);
+        try {
+            $this->guard->complete($reserved->reservation, StoredResponse::of($response->getStatusCode(), $headers, $content), $reserved->ttl);
+        } catch (ReservationLost $reservationLost) {
+            throw ProblemException::of(Response::HTTP_CONFLICT, self::RESERVATION_LOST, previous: $reservationLost);
+        }
     }
 
     private static function replay(?StoredResponse $stored): Response

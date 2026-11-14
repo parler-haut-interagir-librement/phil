@@ -10,7 +10,8 @@ new IdempotencyGuard(IdempotencyStore $store, ClockInterface $clock, int $retent
 - `$retention`: how many seconds an answered or failed key is kept. It must **outlast any plausible outage**, or
   the retry the key exists to absorb arrives after the key is forgotten and runs twice.
 - `$reservationTtl`: how many seconds a key stays in progress before its answer, or the retention if shorter. Make
-  it longer than the slowest run: a reservation that expires while its run still goes lets a retry run beside it.
+  it longer than the slowest run: a reservation that expires while its run still goes lets a retry run beside it,
+  and the late run then gets `ReservationLost` instead of keeping its response.
 
 Both are at least 1 second. Each method takes an optional `$retention` that replaces the guard's for one key.
 
@@ -24,6 +25,7 @@ public function run(IdempotencyScope $scope, IdempotencyKey $key, PayloadFingerp
 | Outcome | What `run()` does |
 |---|---|
 | `Proceed` | Runs `$operation`, keeps its response, returns it with `replayed: false`. A throwable marks the key failed and is thrown again. |
+| `Proceed`, ended after another run reserved the key | Throws `ReservationLost` and keeps nothing: the other run keeps the key. A throwable of the operation is thrown as it is. |
 | `Replay` | Returns the stored response with `replayed: true`, without running anything. |
 | `Reused` | Throws `IdempotencyKeyReused`. |
 | `InProgress` | Throws `RequestInProgress`, whose `retryAfter` is the seconds left on the reservation. |
@@ -41,11 +43,20 @@ match ($decision->outcome) {
     IdempotencyOutcome::InProgress => throw $guard->inProgress($decision),
     IdempotencyOutcome::Proceed => null, // reserved: run, then complete() or fail()
 };
+
+// After the run, with the reservation the decision holds:
+$guard->complete($decision->reservation, $response);
+// or, for a failure the client may retry:
+$guard->fail($decision->reservation);
 ```
 
-`begin()` reserves on `Proceed`. When another run takes the key between the read and the reservation, it reads
-again and decides on what took it — a replay, a reuse, a run in progress. After three lost reservations it answers
-`InProgress`. `inProgress($decision)` builds the exception with the seconds left on the record.
+`begin()` reserves on `Proceed`, and the decision holds the reservation in `$decision->reservation`: an
+`IdempotencyReservation` with the scope, the key and a random token. Keep it until the end of the run, on the request
+for instance. `complete()` and `fail()` write only while the key is still held under that token; when the reservation
+expired and another run reserved the key since, they throw `ReservationLost` and leave the other run's record alone.
+
+When another run takes the key between the read and the reservation, `begin()` reads again and decides on what took
+it — a replay, a reuse, a run in progress. After three lost reservations it answers `InProgress`. `inProgress($decision)` builds the exception with the seconds left on the record.
 
 ## An API
 

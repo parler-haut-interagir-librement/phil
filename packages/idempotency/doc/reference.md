@@ -11,7 +11,8 @@ All types live under `Phil\Idempotency`.
 | `IdempotencyState` | string enum | `InProgress` (`in_progress`), `Completed` (`completed`), `Failed` (`failed`). |
 | `IdempotencyRecord` | final readonly class | What a store holds: `$fingerprint`, `$state`, `$expiresAt`, `$response`; `inProgress()`, `completed()`, `failed()`, `of()`, `secondsLeft()`. |
 | `IdempotencyOutcome` | enum | `Proceed`, `Replay`, `Reused`, `InProgress`. |
-| `IdempotencyDecision` | final readonly class | `for()`, `$outcome`, `$existing`, `replay()`. |
+| `IdempotencyReservation` | final readonly class | The hold of one run on a key: `TOKEN_LENGTH`, `$scope`, `$key`, `$token`, `create()`. |
+| `IdempotencyDecision` | final readonly class | `for()`, `$outcome`, `$existing`, `$reservation`, `reserved()`, `replay()`. |
 | `IdempotencyGuard` | final readonly class | `begin()`, `complete()`, `fail()`, `run()`, `inProgress()`. |
 | `IdempotentRun` | final readonly class | What `run()` returns: `$response`, `$replayed`. |
 | `Contract\IdempotencyStore` | interface | `find()`, `reserve()`, `complete()`, `fail()`, `release()`. |
@@ -25,3 +26,4 @@ All types live under `Phil\Idempotency`.
 | `Exception\MissingIdempotencyKey` | final class | No key on a request that needs one; `onRequest()`. |
 | `Exception\IdempotencyKeyReused` | final class | The key was used with another payload; `withAnotherRequest()`. |
 | `Exception\RequestInProgress` | final class | The first run is still going; `$retryAfter`, `retryAfter()`. |
+| `Exception\ReservationLost` | final class | Another run holds the key since the reservation expired; `toAnotherRun()`. |

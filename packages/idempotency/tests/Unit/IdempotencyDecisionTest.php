@@ -6,8 +6,11 @@ namespace Phil\Idempotency\Tests\Unit;
 
 use DateTimeImmutable;
 use Phil\Idempotency\IdempotencyDecision;
+use Phil\Idempotency\IdempotencyKey;
 use Phil\Idempotency\IdempotencyOutcome;
 use Phil\Idempotency\IdempotencyRecord;
+use Phil\Idempotency\IdempotencyReservation;
+use Phil\Idempotency\IdempotencyScope;
 use Phil\Idempotency\PayloadFingerprint;
 use Phil\Idempotency\StoredResponse;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -23,6 +26,17 @@ final class IdempotencyDecisionTest extends TestCase
         self::assertSame(IdempotencyOutcome::Proceed, $decision->outcome);
         self::assertNull($decision->existing);
         self::assertNull($decision->replay());
+        self::assertNull($decision->reservation);
+    }
+
+    public function testAReservedDecisionKeepsItsOutcomeAndRecord(): void
+    {
+        $record = IdempotencyRecord::failed($this->fingerprint('{"a":1}'), $this->later());
+        $reservation = IdempotencyReservation::create(IdempotencyScope::of('s'), IdempotencyKey::fromString('k'));
+
+        $reserved = IdempotencyDecision::for($record, $this->fingerprint('{"a":1}'))->reserved($reservation);
+
+        self::assertSame([IdempotencyOutcome::Proceed, $record, $reservation], [$reserved->outcome, $reserved->existing, $reserved->reservation]);
     }
 
     public function testTheSamePayloadAfterCompletionReplaysTheOriginalResponse(): void

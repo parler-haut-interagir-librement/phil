@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8e1d7948b781a75b11b8f6339d57677db28b12940f2f8b336908a28a4d04299d -->
+<!-- phil-dev source-sha256=fb390e0ec6258698d853c2629bc1b3044346abcec02956b73a5aafc6dbe7c412 -->
 # Messenger
 
 `Messenger\IdempotencyMiddleware` traite un message reçu une fois par clé.
@@ -46,5 +46,10 @@ message asynchrone n'est pas son traitement.
 
 Un gestionnaire qui lève une exception marque la clé échouée, pour que la nouvelle tentative que planifie Messenger
 l'exécute de nouveau.
+
+Un gestionnaire qui dure plus longtemps que sa réservation, pendant qu'une nouvelle livraison du même message a réservé
+la clé, se termine par `ReservationLost` : son issue n'est pas gardée, et la nouvelle tentative que planifie Messenger
+trouve l'enregistrement de l'autre livraison — acquitté une fois terminé. Réglez la réservation de la garde plus
+longue que le gestionnaire le plus lent.
 
 Ensuite : [exceptions](exceptions.md).
