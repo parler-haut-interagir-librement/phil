@@ -122,6 +122,26 @@ final class MessengerTest extends TestCase
         self::assertSame([], new ReportScheduleProvider(Schedules::fromConfig([], Reporting::periods()))->getSchedule()->getRecurringMessages());
     }
 
+    public function testAMonthlyReportFallsOnTheSameDayOfEveryMonth(): void
+    {
+        $schedules = Schedules::fromConfig([
+            'monthly' => ['report' => 'sales', 'format' => 'csv', 'every' => '1 month', 'from' => '2026-11-01 06:00:00', 'period' => 'last_month', 'delivery' => null, 'recipients' => [], 'parameters' => []],
+        ], Reporting::periods());
+        $trigger = new ReportScheduleProvider($schedules)->getSchedule()->getRecurringMessages()[0]->getTrigger();
+
+        $runs = [];
+        $run = new DateTimeImmutable('2026-11-01 06:00:00');
+
+        for ($i = 0; $i < 6; ++$i) {
+            $run = $trigger->getNextRunDate($run);
+            self::assertInstanceOf(DateTimeImmutable::class, $run);
+            $runs[] = $run->format('Y-m-d H:i');
+        }
+
+        // A month is a month of the calendar, not 30 days: February is crossed without a shift.
+        self::assertSame(['2026-12-01 06:00', '2027-01-01 06:00', '2027-02-01 06:00', '2027-03-01 06:00', '2027-04-01 06:00', '2027-05-01 06:00'], $runs);
+    }
+
     /**
      * @return MessageBusInterface&object{messages: list<object>}
      */

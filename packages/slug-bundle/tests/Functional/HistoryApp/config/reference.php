@@ -171,7 +171,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     }>,
  * }
  * @psalm-type AssetConfig = bool|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     strict_mode?: bool|Param, // Throw an exception if an entry is missing from the manifest.json. // Default: false
  *     version_strategy?: scalar|Param|null, // Default: null
  *     version?: scalar|Param|null, // Default: null
@@ -190,7 +190,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     }>,
  * }
  * @psalm-type SerializerConfig = bool|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     enable_attributes?: bool|Param, // Default: true
  *     name_converter?: scalar|Param|null,
  *     circular_reference_handler?: scalar|Param|null,
@@ -207,7 +207,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     }>,
  * }
  * @psalm-type ValidationConfig = bool|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     enable_attributes?: bool|Param, // Default: true
  *     static_method?: Param|string|list<scalar|Param|null>,
  *     translation_domain?: scalar|Param|null, // Default: "validators"
@@ -216,7 +216,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         paths?: list<scalar|Param|null>,
  *     },
  *     not_compromised_password?: bool|array{
- *         enabled?: bool|Param|null, // When disabled, compromised passwords will be accepted as valid. Defaults to false when "framework.test" is enabled, to true otherwise. // Default: null
+ *         enabled?: bool|Param|null, // When disabled, compromised passwords will be accepted as valid. Defaults to false when "framework.test" is enabled, to true otherwise. // Resolved at compile time // Default: null
  *         endpoint?: scalar|Param|null, // API endpoint for the NotCompromisedPassword Validator. // Default: null
  *     },
  *     disable_translation?: bool|Param, // Default: false
@@ -226,7 +226,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     }>,
  * }
  * @psalm-type TranslationConfig = bool|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     fallbacks?: Param|string|list<scalar|Param|null>,
  *     logging?: bool|Param, // Default: false
  *     formatter?: scalar|Param|null, // Default: "translator.formatter.default"
@@ -234,7 +234,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     default_path?: scalar|Param|null, // The default path used to load translations. // Default: "%kernel.project_dir%/translations"
  *     paths?: list<scalar|Param|null>,
  *     pseudo_localization?: bool|array{
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *         accents?: bool|Param, // Default: true
  *         expansion_factor?: float|Param, // Default: 1.0
  *         brackets?: bool|Param, // Default: true
@@ -254,14 +254,14 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     }>,
  * }
  * @psalm-type WebLinkConfig = bool|array{ // Web links configuration
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  * }
  * @psalm-type LockConfig = Param|bool|string|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     resources?: Param|string|array<string, Param|string|list<mixed>>,
  * }
  * @psalm-type MessengerConfig = bool|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     routing?: array<string, Param|string|list<scalar|Param|null>>,
  *     serializer?: array{
  *         default_serializer?: scalar|Param|null, // Service id to use as the default serializer for the transports. // Default: "messenger.transport.native_php_serializer"
@@ -284,7 +284,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         failure_transport?: scalar|Param|null, // Transport name to send failed messages to (after all retries have failed). // Default: null
  *         outbox?: scalar|Param|null, // Name or DSN of the transport that stores the messages inside the current database transaction; consume that transport to forward them to this one. A value that is not the name of a configured transport is a DSN, used to create the "orders.outbox" transport for an "orders" transport. // Default: null
  *         inbox?: bool|array{ // Records the handled messages in a database table, in the transaction of their handlers, so that a redelivered message is not handled twice. Needs the "identity_stamps" option and a middleware that runs the handlers in a transaction.
- *             enabled?: bool|Param, // Default: false
+ *             enabled?: bool|Param, // Resolved at compile time // Default: false
  *             connection?: scalar|Param|null, // Name of the Doctrine DBAL connection of that transaction, the default connection when not set. // Default: null
  *             table_name?: scalar|Param|null, // Default: "messenger_inbox"
  *             retention?: int|Param, // Number of seconds a record is kept, which must exceed the time the transport can take to redeliver a message. // Default: 604800
@@ -298,7 +298,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             jitter?: float|Param, // Randomness to apply to the delay (between 0 and 1). // Default: 0.1
  *         },
  *         cooldown_strategy?: Param|bool|string|array{ // Stops consuming this transport for a while after its messages fail. With the default strategy, each worker counts its own failures.
- *             enabled?: bool|Param, // Default: false
+ *             enabled?: bool|Param, // Resolved at compile time // Default: false
  *             service?: scalar|Param|null, // Service id to override the cooldown strategy entirely. // Default: null
  *             failure_threshold?: int|Param, // Number of failures in a row that start a cooldown. // Default: 5
  *             delay?: int|Param, // Duration in ms of the first cooldown (or the initial value when multiplier is used). // Default: 1000
@@ -319,7 +319,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     default_bus?: scalar|Param|null, // Default: null
  *     buses?: array<string, array{ // Default: {"messenger.bus.default":{"default_middleware":{"enabled":true,"allow_no_handlers":false,"allow_no_senders":true},"middleware":[],"messages":[],"unwrap_exceptions":false}}
  *         default_middleware?: Param|bool|string|array{
- *             enabled?: bool|Param, // Default: true
+ *             enabled?: bool|Param, // Resolved at compile time // Default: true
  *             allow_no_handlers?: bool|Param, // Default: false
  *             allow_no_senders?: bool|Param, // Default: true
  *         },
@@ -332,10 +332,10 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     }>,
  * }
  * @psalm-type WorkflowConfig = bool|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     workflows?: array<string, array{ // Default: []
  *         audit_trail?: bool|array{
- *             enabled?: bool|Param, // Default: false
+ *             enabled?: bool|Param, // Resolved at compile time // Default: false
  *         },
  *         type?: "workflow"|"state_machine"|Param, // Default: "state_machine"
  *         marking_store?: array{
@@ -370,7 +370,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     }>,
  * }
  * @psalm-type HtmlSanitizerConfig = bool|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     sanitizers?: array<string, array{ // Default: []
  *         default_action?: "drop"|"block"|"allow"|Param, // Defines how the sanitizer must behave by default.
  *         allow_safe_elements?: bool|Param, // Allows "safe" elements and attributes. // Default: false
@@ -394,11 +394,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     }>,
  * }
  * @psalm-type TypeInfoConfig = bool|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     aliases?: array<string, scalar|Param|null>,
  * }
  * @psalm-type PropertyAccessConfig = bool|array{ // Property access configuration
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     magic_call?: bool|Param, // Default: false
  *     magic_get?: bool|Param, // Default: true
  *     magic_set?: bool|Param, // Default: true
@@ -407,11 +407,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     wildcard_reads?: bool|Param, // Enables reading every element of a collection through a "[*]" wildcard. // Default: false
  * }
  * @psalm-type PropertyInfoConfig = bool|array{ // Property info configuration
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     with_constructor_extractor?: bool|Param, // Registers the constructor extractor. // Default: true
  * }
  * @psalm-type UidConfig = bool|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     default_uuid_version?: 7|6|4|1|Param, // Default: 7
  *     name_based_uuid_version?: 5|3|Param, // Default: 5
  *     name_based_uuid_namespace?: scalar|Param|null,
@@ -420,7 +420,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     uuid47_secret?: scalar|Param|null, // A high-entropy secret used by the "uuid47_transformer" service. Defaults to the "kernel.secret" parameter; the service is not registered when neither is defined. // Default: null
  * }
  * @psalm-type SchedulerConfig = bool|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     use_messenger_routing?: bool|Param|null, // Whether scheduled messages are routed to the Messenger senders configured for their class, as any other dispatched message is. A class with no sender configured still runs in the scheduler worker, and a "transports" option set on a task still wins. // Default: null
  *     schedules?: array<string, array{ // Default: []
  *         stateful?: bool|Param, // Whether the schedule keeps its state in the "cache.scheduler" pool and, when locks are enabled, runs in only one worker at a time. // Default: false
@@ -430,11 +430,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     }>,
  * }
  * @psalm-type AssetMapperConfig = bool|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     paths?: Param|string|array<string, scalar|Param|null>,
  *     excluded_patterns?: list<scalar|Param|null>,
  *     exclude_dotfiles?: bool|Param, // If true, any files starting with "." will be excluded from the asset mapper. // Default: true
- *     server?: bool|Param, // If true, a "dev server" will return the assets from the public directory (true in "debug" mode only by default). // Default: "%kernel.debug%"
+ *     server?: bool|Param, // If true, a "dev server" will return the assets from the public directory (true in "debug" mode only by default). // Resolved at compile time // Default: "%kernel.debug%"
  *     public_prefix?: scalar|Param|null, // The public path where the assets will be written to (and served from when "server" is true). // Default: "/assets/"
  *     metadata_dir?: scalar|Param|null, // The directory where "asset-map:compile" writes manifest.json, importmap.json and entrypoint.*.json. These files are read by PHP only, so they do not need to be exposed to the browser. // Default: null
  *     missing_import_mode?: "strict"|"warn"|"ignore"|Param|null, // Behavior if an asset cannot be found when imported from JavaScript or CSS files - e.g. "import './non-existent.js'". "strict" means an exception is thrown, "warn" means a warning is logged, "ignore" means the import is left as-is. Defaults to "strict" in debug mode and to "warn" otherwise. // Default: null
@@ -447,13 +447,13 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     vendor_dir?: scalar|Param|null, // The directory to store JavaScript vendors. // Default: "%kernel.project_dir%/assets/vendor"
  *     minimum_release_age?: int|Param, // Minimum age in seconds a package version must have to be considered when checking for updates (0 disables the check). Enabling it makes update checks download the full npm metadata document, which is larger than the abbreviated one. // Default: 0
  *     precompress?: bool|array{ // Precompress assets with Brotli, Zstandard and gzip.
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *         formats?: list<scalar|Param|null>,
  *         extensions?: list<scalar|Param|null>,
  *     },
  * }
  * @psalm-type RateLimiterConfig = bool|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     builder?: array{ // Configuration for the RateLimiterBuilder service.
  *         lock_factory?: scalar|Param|null, // The service ID of the lock factory to use with the RateLimiterBuilder. // Default: "auto"
  *         cache_pool?: scalar|Param|null, // The cache pool to use with RateLimiterBuilder. // Default: "cache.rate_limiter"
@@ -477,10 +477,10 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     }>,
  * }
  * @psalm-type HttpClientConfig = bool|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     max_host_connections?: int|Param, // The maximum number of connections to a single host.
  *     recorder?: bool|array{ // Record HTTP exchanges into HAR files and replay them in tests (see RecorderHttpClient).
- *         enabled?: bool|Param|null, // Defaults to true when "framework.test" is enabled, to false otherwise. // Default: null
+ *         enabled?: bool|Param|null, // Defaults to true when "framework.test" is enabled, to false otherwise. // Resolved at compile time // Default: null
  *         redactor?: scalar|Param|null, // Service id of a RedactorInterface; when set, "redact" and "redact_except" are ignored. // Default: null
  *         redact?: list<scalar|Param|null>,
  *         redact_except?: list<scalar|Param|null>,
@@ -514,13 +514,13 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         extra?: array<string, mixed>,
  *         rate_limiter?: scalar|Param|null, // Rate limiter name to use for throttling requests. // Default: null
  *         caching?: bool|array{ // Caching configuration.
- *             enabled?: bool|Param, // Default: false
+ *             enabled?: bool|Param, // Resolved at compile time // Default: false
  *             cache_pool?: string|Param, // The taggable cache pool to use for storing the responses. // Default: "cache.http_client"
  *             shared?: bool|Param, // Indicates whether the cache is shared (public) or private. // Default: true
  *             max_ttl?: int|Param, // The maximum TTL (in seconds) allowed for cached responses. // Default: 86400
  *         },
  *         retry_failed?: bool|array{
- *             enabled?: bool|Param, // Default: false
+ *             enabled?: bool|Param, // Resolved at compile time // Default: false
  *             base_uris?: Param|string|list<string|Param>,
  *             retry_strategy?: scalar|Param|null, // service id to override the retry strategy. // Default: null
  *             http_codes?: Param|int|string|array<string, array{ // Default: []
@@ -536,7 +536,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     },
  *     mock_response_factory?: scalar|Param|null, // `true` to always return empty 200 responses, or the id of the service to use to generate mock responses - which should be either an invokable or an iterable.
  *     scoped_clients?: array<string, Param|string|array{ // Default: []
- *         scope?: scalar|Param|null, // The regular expression that the request URL must match before adding the other options. When none is provided, the base URI is used instead.
+ *         scope?: scalar|Param|null, // The regular expression that the request URL must match before adding the other options. When none is provided, the base URI is used instead. The regular expression should end with a "/", for example "https://api\.github\.com/", so that it doesn't match other hosts.
  *         base_uri?: scalar|Param|null, // The URI to resolve relative URLs, following rules in RFC 3985, section 2.
  *         auth_basic?: scalar|Param|null, // An HTTP Basic authentication "username:password".
  *         auth_bearer?: scalar|Param|null, // A token enabling HTTP Bearer authorization.
@@ -570,13 +570,13 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         extra?: array<string, mixed>,
  *         rate_limiter?: scalar|Param|null, // Rate limiter name to use for throttling requests. // Default: null
  *         caching?: bool|array{ // Caching configuration.
- *             enabled?: bool|Param, // Default: false
+ *             enabled?: bool|Param, // Resolved at compile time // Default: false
  *             cache_pool?: string|Param, // The taggable cache pool to use for storing the responses. // Default: "cache.http_client"
  *             shared?: bool|Param, // Indicates whether the cache is shared (public) or private. // Default: true
  *             max_ttl?: int|Param, // The maximum TTL (in seconds) allowed for cached responses. // Default: 86400
  *         },
  *         retry_failed?: bool|array{
- *             enabled?: bool|Param, // Default: false
+ *             enabled?: bool|Param, // Resolved at compile time // Default: false
  *             base_uris?: Param|string|list<string|Param>,
  *             retry_strategy?: scalar|Param|null, // service id to override the retry strategy. // Default: null
  *             http_codes?: Param|int|string|array<string, array{ // Default: []
@@ -592,7 +592,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     }>,
  * }
  * @psalm-type MailerConfig = bool|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     message_bus?: scalar|Param|null, // The message bus to use. Defaults to the default bus if the Messenger component is installed. // Default: null
  *     dsn?: scalar|Param|null, // Default: null
  *     transports?: array<string, Param|string|array{ // Default: []
@@ -612,7 +612,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         clicks?: true|false|Param|null, // Default: null
  *     },
  *     dkim_signer?: bool|array{ // DKIM signer configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *         key?: scalar|Param|null, // Key content, or path to key (in PEM format with the `file://` prefix) // Default: ""
  *         domain?: scalar|Param|null, // Default: ""
  *         select?: scalar|Param|null, // Default: ""
@@ -620,7 +620,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         options?: array<string, mixed>,
  *     },
  *     smime_signer?: bool|array{ // S/MIME signer configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *         key?: scalar|Param|null, // Path to key (in PEM format) // Default: ""
  *         certificate?: scalar|Param|null, // Path to certificate (in PEM format without the `file://` prefix) // Default: ""
  *         passphrase?: scalar|Param|null, // The private key passphrase // Default: null
@@ -628,7 +628,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         sign_options?: int|Param, // Default: null
  *     },
  *     smime_encrypter?: bool|array{ // S/MIME encrypter configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *         repository?: scalar|Param|null, // S/MIME certificate repository service. This service shall implement the `Symfony\Component\Mailer\EventListener\SmimeCertificateRepositoryInterface`. // Default: ""
  *         certificates?: array<string, scalar|Param|null>,
  *         on_missing_certificate?: "send_unencrypted"|"fail"|"encrypt"|"skip"|Param, // Default behavior when a recipient has no S/MIME certificate: "send_unencrypted" (send the message unencrypted, deprecated since 8.2), "fail" (throw an exception), "encrypt" (encrypt for the recipients that have a certificate, the others receive an unreadable message), "skip" (encrypt for the recipients that have a certificate and drop the others from the envelope; note that "mailer.envelope.recipients" is applied afterwards and overrides that list). Can be overridden per message by setting the "X-SMime-Encrypt" header to one of these values. // Default: "send_unencrypted"
@@ -636,7 +636,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         cipher?: int|Param, // A set of algorithms used to encrypt the message // Default: null
  *     },
  *     pgp_signer?: bool|array{ // PGP/MIME signer configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *         secret_key?: scalar|Param|null, // Path to the secret key (ASCII armored format without the `file://` prefix) // Default: ""
  *         public_key?: scalar|Param|null, // Path to the public key (ASCII armored format without the `file://` prefix) // Default: null
  *         passphrase?: scalar|Param|null, // The secret key passphrase // Default: null
@@ -644,7 +644,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         digest_algorithm?: "SHA224"|"SHA256"|"SHA384"|"SHA512"|Param, // The digest algorithm used to sign the message // Default: "SHA512"
  *     },
  *     pgp_encrypter?: bool|array{ // PGP/MIME encrypter configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *         repository?: scalar|Param|null, // Service or class implementing `Symfony\Component\Mailer\EventListener\PgpPublicKeyRepositoryInterface` to provide recipient PGP public keys. // Default: ""
  *         keys?: array<string, scalar|Param|null>,
  *         binary?: scalar|Param|null, // Path to the GnuPG binary // Default: "gpg"
@@ -656,7 +656,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     },
  * }
  * @psalm-type NotifierConfig = bool|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     message_bus?: scalar|Param|null, // The message bus to use. Defaults to the default bus if the Messenger component is installed. // Default: null
  *     chatter_transports?: array<string, scalar|Param|null>,
  *     texter_transports?: array<string, scalar|Param|null>,
@@ -668,7 +668,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     }>,
  * }
  * @psalm-type KeyManagementConfig = Param|bool|string|array{
- *     enabled?: bool|Param, // Default: true
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     default_client?: scalar|Param|null, // Name of the default client (must match an entry of "clients"); inferred when only one client is registered. // Default: null
  *     clients?: Param|string|array<string, Param|string|array{ // Default: []
  *         dsn?: string|Param,
@@ -699,7 +699,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     allowed_http_method_override?: null|list<string|Param>,
  *     trust_x_sendfile_type_header?: scalar|Param|null, // Set true to enable support for xsendfile in binary file responses. // Default: "%env(bool:default::SYMFONY_TRUST_X_SENDFILE_TYPE_HEADER)%"
  *     ide?: scalar|Param|null, // Deprecated: Setting the "framework.ide.ide" configuration option is deprecated, use the "SYMFONY_IDE" env var instead. // Default: null
- *     test?: bool|Param,
+ *     test?: bool|Param, // Resolved at compile time
  *     default_locale?: scalar|Param|null, // Default: "en"
  *     set_locale_from_accept_language?: bool|Param, // Whether to use the Accept-Language HTTP header to set the Request locale (only when the "_locale" request attribute is not passed). // Default: false
  *     set_content_language_from_locale?: bool|Param, // Whether to set the Content-Language HTTP header on the Response using the Request locale. // Default: false
@@ -716,7 +716,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         cookie_name?: scalar|Param|null, // The name of the cookie to use when using stateless protection. // Default: "csrf-token"
  *     },
  *     form?: bool|array{ // Form configuration
- *         enabled?: bool|Param, // Default: true
+ *         enabled?: bool|Param, // Resolved at compile time // Default: true
  *         csrf_protection?: bool|array{
  *             enabled?: scalar|Param|null, // Default: null
  *             token_id?: scalar|Param|null, // Default: null
@@ -725,7 +725,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         },
  *     },
  *     http_cache?: bool|array{ // HTTP cache configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *         debug?: bool|Param, // Default: "%kernel.debug%"
  *         trace_level?: "none"|"short"|"full"|Param,
  *         trace_header?: scalar|Param|null,
@@ -740,13 +740,13 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         terminate_on_cache_hit?: bool|Param, // Deprecated: Setting the "framework.http_cache.terminate_on_cache_hit.terminate_on_cache_hit" configuration option is deprecated. It will be removed in version 9.0.
  *     },
  *     esi?: bool|array{ // ESI configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *     },
  *     ssi?: bool|array{ // SSI configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *     },
  *     fragments?: bool|array{ // Fragments configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *         hinclude_default_template?: scalar|Param|null, // Deprecated: Setting the "framework.fragments.hinclude_default_template.hinclude_default_template" configuration option is deprecated. It will be removed in version 9.0. // Default: null
  *         path?: scalar|Param|null, // Default: "/_fragment"
  *     },
@@ -755,7 +755,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         expiration?: int|Param, // Default expiration of signed URIs, in seconds. // Default: null
  *     },
  *     profiler?: bool|array{ // Profiler configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *         collect?: bool|Param, // Default: true
  *         collect_parameter?: scalar|Param|null, // The name of the parameter to use to enable or disable collection on a per request basis. // Default: null
  *         only_exceptions?: bool|Param, // Default: false
@@ -791,7 +791,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     remote_event?: mixed,
  *     json_streamer?: mixed,
  *     session?: bool|array{ // Session configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *         storage_factory_id?: scalar|Param|null, // Defaults to "session.storage.factory.mock_file" when "framework.test" is true, to "session.storage.factory.native" otherwise. // Default: null
  *         handler_id?: scalar|Param|null, // Defaults to using the native session handler, or to the native *file* session handler if "save_path" is not null.
  *         name?: scalar|Param|null,
@@ -810,7 +810,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         isolate_attributes?: bool|Param, // Whether to deep-clone the values read from and passed to session attributes, so that only values passed to set() are saved. // Default: false
  *     },
  *     request?: bool|array{ // Request configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *         formats?: array<string, Param|string|list<scalar|Param|null>>,
  *         serializer?: scalar|Param|null, // Service id of the serializer that maps request payloads and query strings to controller arguments with #[MapRequestPayload] and #[MapQueryString], e.g. "serializer.api" for the named serializer "api". // Default: null
  *     },
@@ -826,9 +826,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         status_code?: scalar|Param|null, // The status code of the response. Null or 0 to let Symfony decide. // Default: null
  *         log_channel?: scalar|Param|null, // The channel of log message. Null to let Symfony decide. // Default: null
  *     }>,
- *     disallow_search_engine_index?: bool|Param|null, // Enabled by default when debug is enabled. // Default: null
+ *     disallow_search_engine_index?: bool|Param|null, // Enabled by default when debug is enabled. // Resolved at compile time // Default: null
  *     secrets?: bool|array{
- *         enabled?: bool|Param, // Default: true
+ *         enabled?: bool|Param, // Resolved at compile time // Default: true
  *         vault_directory?: scalar|Param|null, // Default: "%kernel.project_dir%/config/secrets/%kernel.runtime_environment%"
  *         local_dotenv_file?: scalar|Param|null, // Default: "%kernel.project_dir%/.env.%kernel.environment%.local"
  *         decryption_env_var?: scalar|Param|null, // Default: "base64:default::SYMFONY_DECRYPTION_SECRET"
@@ -926,7 +926,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         default_entity_manager?: scalar|Param|null,
  *         enable_native_lazy_objects?: bool|Param, // Deprecated: The "enable_native_lazy_objects" option is deprecated and will be removed in DoctrineBundle 4.0, as native lazy objects are now always enabled. // Default: true
  *         controller_resolver?: bool|array{
- *             enabled?: bool|Param, // Default: true
+ *             enabled?: bool|Param, // Resolved at compile time // Default: true
  *             auto_mapping?: bool|Param, // Deprecated: The "doctrine.orm.controller_resolver.auto_mapping.auto_mapping" option is deprecated and will be removed in DoctrineBundle 4.0, as it only accepts `false` since 3.0. // Set to true to enable using route placeholders as lookup criteria when the primary key doesn't match the argument name // Default: false
  *             evict_cache?: bool|Param, // Set to true to fetch the entity from the database instead of using the cache, if any // Default: false
  *         },
@@ -1032,7 +1032,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         leading_words?: list<scalar|Param|null>,
  *     }>,
  *     history?: bool|array{ // The history of former slugs in the table phil_slug_history, through doctrine/dbal: "phil_slug.history", autowired as SlugHistory.
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *         connection?: scalar|Param|null, // The DBAL connection of the table. // Default: "default"
  *         clock?: scalar|Param|null, // Service id of the PSR-20 clock of the recorded changes. // Default: "clock"
  *     },

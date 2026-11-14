@@ -157,10 +157,23 @@ final class CalDavTest extends TestCase
         }
     }
 
-    public function testAHostOnAPrivateNetworkIsRefused(): void
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function privateAddresses(): iterable
+    {
+        yield 'a private network' => ['10.0.0.1'];
+        yield 'a private network in an IPv4-mapped IPv6 address' => ['::ffff:10.0.0.1'];
+        yield 'a private network in a 6to4 IPv6 address' => ['2002:a00:1::1'];
+        yield 'a private network in a Teredo IPv6 address' => ['2001:0:4136:e378:8000:63bf:f5ff:fffe'];
+        yield 'a private network in a NAT64 IPv6 address' => ['64:ff9b::a00:1'];
+    }
+
+    #[DataProvider('privateAddresses')]
+    public function testAHostOnAPrivateNetworkIsRefused(string $ip): void
     {
         $recorder = new Recorder(new MockResponse('BEGIN:VCALENDAR'));
-        $calDav = new CalDav($recorder->client, ['dav.example.com' => '10.0.0.1']);
+        $calDav = new CalDav($recorder->client, ['dav.example.com' => $ip]);
         $this->expectExceptionObject(ProviderFailed::unreachable('caldav'));
 
         try {

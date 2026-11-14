@@ -22,7 +22,7 @@ use Symfony\Contracts\Service\ResetInterface;
 final class GuardedPageFetcherTest extends TestCase
 {
     /** Pinned addresses, so that no test resolves a name. */
-    private const array RESOLVE = ['example.com' => '93.184.215.14', 'example.org' => '93.184.215.15', 'internal.example' => '10.0.0.5'];
+    private const array RESOLVE = ['example.com' => '93.184.215.14', 'example.org' => '93.184.215.15', 'internal.example' => '10.0.0.5', 'mapped.example' => '::ffff:10.0.0.5', 'sixtofour.example' => '2002:a00:5::1', 'teredo.example' => '2001:0:4136:e378:8000:63bf:f5ff:fffa', 'nat64.example' => '64:ff9b::a00:5'];
 
     /**
      * @param list<MockResponse>|callable(string, string, array<array-key, mixed>): MockResponse $responses
@@ -94,6 +94,10 @@ final class GuardedPageFetcherTest extends TestCase
 
         self::assertNull($fetcher->fetch('http://169.254.169.254/latest/meta-data/'));
         self::assertNull($fetcher->fetch('https://internal.example/'));
+        self::assertNull($fetcher->fetch('https://mapped.example/'), 'A private address in an IPv4-mapped IPv6 address is refused.');
+        self::assertNull($fetcher->fetch('https://sixtofour.example/'), 'A private address in a 6to4 IPv6 address is refused.');
+        self::assertNull($fetcher->fetch('https://teredo.example/'), 'A private address in a Teredo IPv6 address is refused.');
+        self::assertNull($fetcher->fetch('https://nat64.example/'), 'A private address in a NAT64 IPv6 address is refused.');
     }
 
     public function testTheClientIsResetBetweenRequests(): void

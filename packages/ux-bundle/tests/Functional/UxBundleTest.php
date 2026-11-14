@@ -110,7 +110,7 @@ final class UxBundleTest extends KernelTestCase
         $form->get('format')->addError(new FormError('Choose one.'));
 
         self::assertSame(
-            '<fieldset class="isFieldSet isDanger" data-slot="field-set" data-invalid="true"><legend class="isFieldLegend required">Format</legend><div class="isFieldError" data-slot="field-error"><p id="event_format_error1">Choose one.</p></div><div id="event_format" aria-describedby="event_format_error1" aria-invalid="true" class="isRadioGroup"><input type="radio" id="event_format_0" name="event[format]" required="required" value="online" /><label for="event_format_0" class="required">Online</label><input type="radio" id="event_format_1" name="event[format]" required="required" value="onsite" /><label for="event_format_1" class="required">On site</label></div></fieldset>',
+            '<fieldset class="isFieldSet isDanger" data-slot="field-set" data-invalid="true"><legend class="isFieldLegend required">Format</legend><div class="isFieldError" data-slot="field-error"><p id="event_format_error1">Choose one.</p></div><div id="event_format" aria-describedby="event_format_error1" aria-invalid="true" class="isRadioGroup"><input type="radio" id="event_format_0" name="event[format]" required="required" value="online" /><label for="event_format_0">Online</label><input type="radio" id="event_format_1" name="event[format]" required="required" value="onsite" /><label for="event_format_1">On site</label></div></fieldset>',
             $this->render($form, 'format'),
         );
         self::assertStringContainsString('<div id="event_tags" class="tags"><input type="checkbox"', $this->render($form, 'tags'));

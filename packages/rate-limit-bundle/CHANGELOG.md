@@ -2,8 +2,7 @@
 
 All notable changes to `phil/rate-limit-bundle` will be documented in this file.
 
-Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles. Until the package is launched
-publicly, split to its public repository, this file keeps one "Added" section that describes the current state.
+Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
 ## Unreleased
 

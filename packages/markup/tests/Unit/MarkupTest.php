@@ -236,6 +236,20 @@ final class MarkupTest extends TestCase
     }
 
     /**
+     * Symfony's safe elements no longer keep what acts on the whole page: a style sheet, a refresh, the end of the
+     * parsing, the referrer sent by a link.
+     */
+    public function testTheLevelAllDropsWhatActsOnThePage(): void
+    {
+        $policies = SanitizerPurifier::defaultPolicies();
+
+        self::assertSame('<p>a</p>', $policies->purify('<link rel="stylesheet" href="https://example.com/a.css"><meta http-equiv="refresh" content="0;url=https://example.com/"><p>a</p>', Level::All));
+        self::assertSame('', $policies->purify('<plaintext>a</plaintext>', Level::All));
+        self::assertSame('<p>a</p>', $policies->purify('<html><body><p>a</p></body></html>', Level::All));
+        self::assertSame('<a href="https://example.com/">a</a>', $policies->purify('<a href="https://example.com/" referrerpolicy="unsafe-url">a</a>', Level::All));
+    }
+
+    /**
      * An image of another site is a request every reader's browser makes to it: the hosts given are the only ones kept,
      * subdomains included, and the site's own images always.
      */

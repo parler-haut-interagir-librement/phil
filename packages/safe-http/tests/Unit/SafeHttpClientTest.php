@@ -42,6 +42,10 @@ final class SafeHttpClientTest extends TestCase
         'metadata.example' => '169.254.169.254',
         'loopback.example' => '127.0.0.1',
         'v6.example' => '::1',
+        'mapped.example' => '::ffff:10.0.0.1',
+        'sixtofour.example' => '2002:a00:1::1',
+        'teredo.example' => '2001:0:4136:e378:8000:63bf:f5ff:fffe',
+        'nat64.example' => '64:ff9b::a00:1',
     ];
 
     /**
@@ -312,6 +316,10 @@ final class SafeHttpClientTest extends TestCase
         yield 'a cloud metadata endpoint' => ['http://metadata.example/latest/meta-data/'];
         yield 'the loopback' => ['https://loopback.example/'];
         yield 'the IPv6 loopback' => ['https://v6.example/'];
+        yield 'a private network in an IPv4-mapped IPv6 address' => ['https://mapped.example/'];
+        yield 'a private network in a 6to4 IPv6 address' => ['https://sixtofour.example/'];
+        yield 'a private network in a Teredo IPv6 address' => ['https://teredo.example/'];
+        yield 'a private network in a NAT64 IPv6 address' => ['https://nat64.example/'];
     }
 
     #[DataProvider('privateHosts')]

@@ -4,6 +4,13 @@ All notable changes to `phil/markup` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Changed
+
+- The level `all` follows the safe elements of Symfony 8.2.0-BETA2's HtmlSanitizer: `link`, `meta`, `plaintext`,
+  `html`, `body` and the attribute `referrerpolicy` are no longer kept.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added
