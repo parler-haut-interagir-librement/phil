@@ -19,6 +19,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   kit, so a site on Tailwind draws them too; the application installs the recipes and Symfony UX Twig Component. The
   blocks `choices`, `status`, `actions`, `lines` and `revealed` stay, and the map `kit` of the recipes' names is
   theirs to use.
+- `symfony/ux-twig-component: ^3.7` is required, no longer suggested: the templates do not render without it.
 
 ## 0.1.0-alpha - 2026-11-13
 

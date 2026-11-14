@@ -39,7 +39,6 @@ Les gabarits dessinent leurs parties avec des recettes du kit PHIL UX, installé
 Toolkit ; rien n'est rendu depuis `vendor/` :
 
 ```sh
-composer require symfony/ux-twig-component
 for recipe in field radio-group checkbox native-select button progress; do
     php bin/console ux:install $recipe --kit=github.com/parler-haut-interagir-librement/ux-kit
 done
