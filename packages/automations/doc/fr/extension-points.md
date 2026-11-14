@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e8ed2f8da6bba3cdc051c5ed5a17fa04634f1391c11fb52c063f60076b5db121 -->
+<!-- phil-dev source-sha256=1a63caa2c7b41d8197b42aa9aa8af91f31855326b11a6fe275e90ae222457c26 -->
 # Points d'extension
 
 Le paquet est en `0.x` : ses points d'extension sont stables seulement à partir de sa version 1.0. D'ici là, une
@@ -13,7 +13,7 @@ implémentation fournie, ou revient à l'application ou à un paquet d'écrire.
 | `Action` | `describe()`, `execute(ActionContext $context): Payload` ; idempotente sous `ActionContext::$idempotencyKey` ; lève `ActionFailed` | `WebhookAction` |
 | `CompensableAction` | `compensate(ActionContext $context, Payload $result): void` ; défait ce qu'`execute()` a fait, idempotente aussi | — |
 | `ConditionEvaluator` | `language()`, `check(string $source)` qui lève `InvalidDefinition`, `evaluate(string $source, array $variables): bool` | `ExpressionConditions` |
-| `Definitions` | `enabledFor()`, `get()`, `publish()`, `disable()` ; une version une fois conservée ne change jamais | `InMemoryDefinitions`, `DbalDefinitions` |
+| `Definitions` | `enabledFor()`, `get()`, `publish()`, `disable()` ; une version une fois conservée ne change jamais | `InMemoryDefinitions`, `DbalDefinitions`, `ValidatedDefinitions` (devant une autre) |
 | `RunStore` | `create()` une fois par identifiant, `save()` seulement sur la révision lue, `due()`, `purge()` | `InMemoryRunStore`, `DbalRunStore` |
 | `WebhookKeys` | `signingKeys(string $name): list<SigningKey>`, la plus récente d'abord, aucune pour un nom inconnu | — |
 

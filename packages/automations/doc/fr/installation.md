@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fe374068029b7a913b7976f755280d84271802f81fb206204eda1a6d9010c026 -->
+<!-- phil-dev source-sha256=4de472d9eebe43030334af1d61e65211043c102b3afa6ba73182abce37dd274f -->
 # Installation
 
 ```sh
@@ -37,7 +37,12 @@ services:
 
     Phil\Automations\Dbal\DbalDefinitions: ~
     Phil\Automations\Dbal\DbalRunStore: ~
-    Phil\Automations\Contract\Definitions: '@Phil\Automations\Dbal\DbalDefinitions'
+    Phil\Automations\Definition\DefinitionValidator: ~
+    # Every definition published is checked against the catalogue first.
+    Phil\Automations\Definition\ValidatedDefinitions:
+        arguments:
+            $definitions: '@Phil\Automations\Dbal\DbalDefinitions'
+    Phil\Automations\Contract\Definitions: '@Phil\Automations\Definition\ValidatedDefinitions'
     Phil\Automations\Contract\RunStore: '@Phil\Automations\Dbal\DbalRunStore'
 
     Phil\Automations\Engine\AutomationEngine: ~

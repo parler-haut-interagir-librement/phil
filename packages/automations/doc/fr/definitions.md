@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c5d85cded76b424d4818f1773f41c3f1e16ac16ac984d74f4ebd68b6f23c4a5c -->
+<!-- phil-dev source-sha256=4f02496e34db2b1d49a5bd0f3ac2f2c5f48d2da6b69eafa0b06f251d83b65452 -->
 # Définitions
 
 Une définition est une version d'une automatisation : son identifiant, sa version, un nom, le déclencheur sur lequel
@@ -96,3 +96,19 @@ use Phil\Automations\Definition\DefinitionValidator;
 $problems = new DefinitionValidator($catalogue)->problems($definition);   // list of sentences, none when valid
 new DefinitionValidator($catalogue)->validate($definition);               // throws InvalidDefinition with all of them
 ```
+
+`ValidatedDefinitions` place le validateur devant le magasin, de sorte que rien n'y arrive sans vérification : une
+définition enregistrée depuis un constructeur sans code est refusée à son enregistrement, avec tous ses problèmes, au
+lieu d'échouer quand son exécution atteint l'étape :
+
+```php
+use Phil\Automations\Definition\ValidatedDefinitions;
+
+$definitions = new ValidatedDefinitions(new DbalDefinitions($connection), new DefinitionValidator($catalogue));
+$definitions->publish($definition);   // throws InvalidDefinition, and keeps nothing, when the definition has a problem
+```
+
+Une condition dans le langage `expression` est vérifiée par l'évaluateur qui l'exécute : le même analyseur, aucune
+fonction, et seulement les variables `payload`, `outputs` et `subject`. Les définitions vivent dans une base de
+données, pas dans la configuration de l'application ; le `lint:expressions` de Symfony ne les liste donc pas, et la
+vérification à la publication en tient lieu.

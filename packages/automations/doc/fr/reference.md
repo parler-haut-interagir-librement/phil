@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=727d67e036423651ef1a31557488f62488cedcdf5ecd751e4282c2fa4322187d -->
+<!-- phil-dev source-sha256=327ab276d9f4085bd9c43a06577ede4a6ced7b0d1b7364da3bb551e49bdf5e0c -->
 # Référence
 
 Chaque type public de la bibliothèque, avec son rôle.
@@ -18,6 +18,7 @@ Chaque type public de la bibliothèque, avec son rôle.
 | `Phil\Automations\Definition\DefinitionReader` | `final readonly class` | Lit une définition à partir de JSON, strictement |
 | `Phil\Automations\Definition\DefinitionWriter` | `final readonly class` | Écrit une définition en JSON canonique |
 | `Phil\Automations\Definition\DefinitionValidator` | `final readonly class` | Vérifie une définition contre le catalogue |
+| `Phil\Automations\Definition\ValidatedDefinitions` | `final readonly class` | `Definitions` qui valident chaque définition avant de la publier |
 | `Phil\Automations\Definition\InMemoryDefinitions` | `final class` | Les définitions en mémoire |
 | `Phil\Automations\Catalogue\Catalogue` | `final readonly class` | Les déclencheurs, les actions et les langages de condition enregistrés |
 | `Phil\Automations\Catalogue\ComponentDescription` | `final readonly class` | Ce qu'un déclencheur ou une action dit de lui-même |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=027170d7b5fe5790be14b1a1737927f31b80352a5245897245cc22bf7bbcf097 -->
+<!-- phil-dev source-sha256=ec1e9f0c9eccc5d62d7ad622ea7d98cac301cb4432cd8cd030a2c5e88ba4f4e5 -->
 # Configuration
 
 ```yaml
@@ -70,5 +70,8 @@ enregistré avec les décisions de l'appareil, que la règle avait filtrées.
 
 Chaque règle de la configuration est vérifiée à la compilation du conteneur : une règle de plus de 1000 octets, une
 règle qui ne s'analyse pas ou une règle qui lit une autre variable arrête la construction en nommant le point de
-contrôle. Une règle qui échoue sur un titre d'accès — un attribut manquant, une méthode qui lance une exception — le
-refuse. `rules.provider` remplace la configuration : voyez [Points d'extension](extension-points.md#règles-dadmission).
+contrôle. Les règles sont évaluées par le service `phil_checkin.expression_language`, qui les liste au collecteur
+d'expressions de Symfony avec les quatre variables qu'elles lisent : `bin/console lint:expressions` les vérifie à côté
+du `allow_if` d'`access_control`, et hors du mode débogage le réchauffeur de cache les compile, de sorte qu'une lecture
+exécute du code PHP au lieu d'analyser la règle. Une règle qui échoue sur un titre d'accès — un attribut manquant, une
+méthode qui lance une exception — le refuse. `rules.provider` remplace la configuration : voyez [Points d'extension](extension-points.md#règles-dadmission).

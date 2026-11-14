@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=883e471ad5d1d02aef514036484f700edcf7d61b9fd1e0e028918a3334a5ab8f -->
+<!-- phil-dev source-sha256=388265d557d8a70bcbad732820305ae7def6608506a29e630a381ca97c80b7a4 -->
 # Référence
 
 | Type | Rôle |
@@ -25,6 +25,7 @@
 | `Infrastructure\Validator\EnumSetOf`, `Infrastructure\Validator\EnumSetOfValidator` | La contrainte d'un `EnumSet`, et son validateur. |
 | `Infrastructure\Http\ParseEnum`, `Infrastructure\Http\ParsedEnumValueResolver` | L'attribut d'argument de contrôleur, et son résolveur. |
 | `Infrastructure\ExpressionLanguage\EnumsExpressionProvider` | `enum_meta()`, `enum_in_group()`, `enum_from()`. |
+| `Infrastructure\ExpressionLanguage\EnumsExpressionLanguagesPass` | Donne les fonctions aux langages d'expressions des attributs de contrôleur et des gardes de workflow. |
 | `Infrastructure\Workflow\EnumWorkflows` | La configuration de machine à états des transitions d'une enum. |
 | `Infrastructure\Console\ExportIcuCommand` | `phil:enums:icu`. |
 | `Infrastructure\Console\CheckSetColumnsCommand` | `phil:enums:check-sets`. |
