@@ -196,11 +196,101 @@ final class TemplatesTest extends KernelTestCase
         self::assertSame('true', $page->filter('li.phil-poll-results__line')->first()->attr('data-winner'));
         self::assertSame('Winner', $page->filter('li.phil-poll-results__line strong')->text());
         $bars = $page->filter('li.phil-poll-results__line progress[data-slot="progress"]');
-        self::assertSame(['1', '1'], $bars->each(static fn (Crawler $bar): ?string => $bar->attr('max')));
-        self::assertSame(['1', '0'], $bars->each(static fn (Crawler $bar): ?string => $bar->attr('value')));
+        self::assertSame(['100', '100'], $bars->each(static fn (Crawler $bar): ?string => $bar->attr('max')));
+        self::assertSame(['100', '0'], $bars->each(static fn (Crawler $bar): ?string => $bar->attr('value')));
+        self::assertSame(['1', '0'], $bars->each(static fn (Crawler $bar): ?string => $bar->attr('aria-valuetext')));
         self::assertSame([$id.'-tea', $id.'-coffee'], $bars->each(static fn (Crawler $bar): ?string => $bar->attr('aria-labelledby')));
         self::assertSame('Tea', $page->filter('#'.$id.'-tea')->text());
         self::assertStringContainsString('<p>Hurray</p>', $html);
+    }
+
+    public function testAScaleIsARowOfMarks(): void
+    {
+        $poll = $this->polls->create(new PollDraft('How was it?', PollDraft::marks(1, 5, [1 => 'Poor', 5 => 'Great']), BallotKind::Scale, abstention: true), ResourceReference::of('user', 'ada'));
+        $this->polls->cast($poll->id, ResourceReference::of('user', 'bob'), ['4']);
+        $page = new Crawler($this->draw("{{ include('@PhilPoll/ballot.html.twig', {ballot: phil_poll_ballot(poll, 'user:bob'), action: '/vote'}) }}", $poll->id));
+        $id = 'phil-poll-'.$poll->id;
+
+        self::assertSame('Choose one mark from 1 to 5.', $page->filter('#'.$id.'-help')->text());
+        $group = $page->filter('[role="radiogroup"][data-orientation="horizontal"].isRadioGroup.isHorizontal');
+        $radios = $group->filter('input[type="radio"][name="choice"]');
+        self::assertSame(['1', '2', '3', '4', '5', ''], $radios->each(static fn (Crawler $radio): ?string => $radio->attr('value')));
+        self::assertSame(['Poor', '2', '3', '4', 'Great', 'Blank ballot'], $group->filter('label')->each(static fn (Crawler $label): string => $label->text()));
+        self::assertSame(['4'], $page->filter('input[checked]')->each(static fn (Crawler $radio): ?string => $radio->attr('value')));
+        self::assertSame(['4'], BallotForm::choices($poll->rules(), ['choice' => '4']));
+    }
+
+    public function testABlankBallotIsCheckedWhenItIsTheVotersOwn(): void
+    {
+        $poll = $this->polls->create(new PollDraft('Tea or coffee?', [PollOption::of('tea', 'Tea'), PollOption::of('coffee', 'Coffee')], abstention: true), ResourceReference::of('user', 'ada'));
+        $this->polls->cast($poll->id, ResourceReference::of('user', 'bob'), []);
+        $page = new Crawler($this->draw("{{ include('@PhilPoll/ballot.html.twig', {ballot: phil_poll_ballot(poll, 'user:bob'), action: '/vote'}) }}", $poll->id));
+
+        self::assertSame([''], $page->filter('input[checked]')->each(static fn (Crawler $radio): ?string => $radio->attr('value')));
+        self::assertCount(0, new Crawler($this->draw("{{ include('@PhilPoll/ballot.html.twig', {ballot: phil_poll_ballot(poll, 'user:cid'), action: '/vote'}) }}", $poll->id))->filter('input[checked]'));
+    }
+
+    public function testTheErrorsOfABallotRefusedAreAnnounced(): void
+    {
+        $poll = $this->polls->create(new PollDraft('Which?', [PollOption::of('a', 'A'), PollOption::of('b', 'B'), PollOption::of('c', 'C')], BallotKind::Multiple, maxChoices: 2), ResourceReference::of('user', 'ada'));
+        $id = 'phil-poll-'.$poll->id;
+        $page = new Crawler($this->draw("{{ include('@PhilPoll/ballot.html.twig', {ballot: phil_poll_ballot(poll, 'user:bob'), action: '/vote', errors: ['Choose at most 2 options.']}) }}", $poll->id));
+
+        $fieldset = $page->filter('fieldset');
+        self::assertSame($id.'-help '.$id.'-error', $fieldset->attr('aria-describedby'));
+        self::assertSame('true', $fieldset->attr('aria-invalid'));
+        self::assertSame('Choose at most 2 options.', $fieldset->filter('#'.$id.'-error[role="alert"][data-slot="field-error"]')->text());
+
+        $calm = new Crawler($this->draw("{{ include('@PhilPoll/ballot.html.twig', {ballot: phil_poll_ballot(poll, 'user:bob'), action: '/vote'}) }}", $poll->id));
+        self::assertSame($id.'-help', $calm->filter('fieldset')->attr('aria-describedby'));
+        self::assertNull($calm->filter('fieldset')->attr('aria-invalid'));
+        self::assertCount(0, $calm->filter('[role="alert"]'));
+    }
+
+    public function testTheResultsOfAScaleAreItsDistributionAndItsMean(): void
+    {
+        $poll = $this->polls->create(new PollDraft('How was it?', PollDraft::marks(1, 3), BallotKind::Scale), ResourceReference::of('user', 'ada'));
+        $this->polls->cast($poll->id, ResourceReference::of('user', 'bob'), ['3']);
+        $this->polls->cast($poll->id, ResourceReference::of('user', 'cid'), ['3']);
+        $this->polls->cast($poll->id, ResourceReference::of('user', 'dee'), ['2']);
+
+        $page = new Crawler($this->draw("{{ include('@PhilPoll/results.html.twig', {results: phil_poll_results(poll, 'user:bob')}) }}", $poll->id));
+
+        self::assertSame(['1', '2', '3'], $page->filter('li.phil-poll-results__line > span:first-child')->each(static fn (Crawler $label): string => $label->text()));
+        self::assertSame(['0', '1', '2'], $page->filter('.phil-poll-results__score')->each(static fn (Crawler $score): string => $score->text()));
+        self::assertSame(['0', '50', '100'], $page->filter('progress')->each(static fn (Crawler $bar): ?string => $bar->attr('value')));
+        self::assertCount(0, $page->filter('[data-winner]'));
+        self::assertSame('Mean mark: 2.67, from 3 marks.', $page->filter('p.phil-poll-results__mean')->text());
+        self::assertCount(0, $page->filter('.phil-poll-results__nps'));
+    }
+
+    public function testTheResultsOfANetPromoterScoreInFrench(): void
+    {
+        $poll = $this->polls->create(new PollDraft('Le recommanderiez-vous ?', PollDraft::marks(0, 10), BallotKind::Scale, counting: 'nps'), ResourceReference::of('user', 'ada'));
+
+        foreach (['bob' => '10', 'cid' => '9', 'dee' => '8', 'eve' => '3'] as $voter => $mark) {
+            $this->polls->cast($poll->id, ResourceReference::of('user', $voter), [$mark]);
+        }
+
+        $locale = self::getContainer()->get('translation.locale_switcher');
+        self::assertInstanceOf(LocaleSwitcher::class, $locale);
+        $page = new Crawler($locale->runWithLocale('fr', fn (): string => $this->draw("{{ include('@PhilPoll/results.html.twig', {results: phil_poll_results(poll, 'user:bob')}) }}", $poll->id)));
+
+        self::assertSame('Note moyenne : 7,50, sur 4 notes.', $page->filter('p.phil-poll-results__mean')->text());
+        self::assertSame(['Net Promoter Score', 'Promoteurs (9–10)', 'Passifs (7–8)', 'Détracteurs (0–6)'], $page->filter('.phil-poll-results__nps dt')->each(static fn (Crawler $term): string => $term->text()));
+        self::assertSame(['25', '2', '1', '1'], $page->filter('.phil-poll-results__nps dd')->each(static fn (Crawler $value): string => $value->text()));
+        self::assertCount(11, $page->filter('li.phil-poll-results__line'));
+    }
+
+    public function testNoMeanIsWrittenWhileEveryBallotIsBlank(): void
+    {
+        $poll = $this->polls->create(new PollDraft('Le recommanderiez-vous ?', PollDraft::marks(0, 10), BallotKind::Scale, abstention: true, counting: 'nps'), ResourceReference::of('user', 'ada'));
+        $this->polls->cast($poll->id, ResourceReference::of('user', 'bob'), []);
+        $page = new Crawler($this->draw("{{ include('@PhilPoll/results.html.twig', {results: phil_poll_results(poll, 'user:bob')}) }}", $poll->id));
+
+        self::assertCount(0, $page->filter('.phil-poll-results__mean'));
+        self::assertCount(0, $page->filter('.phil-poll-results__nps'));
+        self::assertSame(['0'], array_unique($page->filter('progress')->each(static fn (Crawler $bar): ?string => $bar->attr('value'))));
     }
 
     public function testTheRecipesAreNamedAfterTheSubdirectoryOfTheToolkit(): void

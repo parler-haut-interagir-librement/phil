@@ -30,6 +30,7 @@ final class ChoiceCountTest extends TestCase
         self::assertTrue($method->supports(BallotKind::Single));
         self::assertTrue($method->supports(BallotKind::Multiple));
         self::assertFalse($method->supports(BallotKind::Ranked));
+        self::assertFalse($method->supports(BallotKind::Scale));
     }
 
     public function testASingleBallotIsAPlurality(): void
@@ -67,7 +68,7 @@ final class ChoiceCountTest extends TestCase
 
     public function testRankedBallotsAreNotCounted(): void
     {
-        $this->expectExceptionObject(InvalidPoll::because('The count of choices does not count ranked ballots.'));
+        $this->expectExceptionObject(InvalidPoll::because('The count of choices counts single and multiple ballots only.'));
 
         new ChoiceCount()->count(PollRules::ranked(['a', 'b']), []);
     }

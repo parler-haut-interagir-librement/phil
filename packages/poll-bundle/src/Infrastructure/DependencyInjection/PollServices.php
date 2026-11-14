@@ -8,6 +8,8 @@ use Phil\Poll\Contract\CountingMethod;
 use Phil\Poll\Counting\Borda;
 use Phil\Poll\Counting\ChoiceCount;
 use Phil\Poll\Counting\InstantRunoff;
+use Phil\Poll\Counting\NetPromoterScore;
+use Phil\Poll\Counting\ScaleCount;
 use Phil\Poll\Counting\Schulze;
 use Phil\Poll\CountingMethods;
 use Phil\PollBundle\Application\Contract\PollPolicy;
@@ -30,7 +32,7 @@ use Twig\Attribute\AsTwigFunction;
 
 /**
  * The bundle's services: the stores, the policy the configuration names or the default one, the counting methods —
- * the library's four, the single transferable vote of the bundle and every service of the application implementing
+ * the library's six, the single transferable vote of the bundle and every service of the application implementing
  * `CountingMethod` —, the polls, with the cache of their counts when the configuration names one, their views for a
  * page, and the functions of the templates when Twig is there.
  */
@@ -65,7 +67,7 @@ final class PollServices
 
         $container->registerForAutoconfiguration(CountingMethod::class)->addTag(self::COUNTING_METHOD_TAG);
 
-        foreach ([ChoiceCount::class, InstantRunoff::class, Borda::class, Schulze::class, MeekStv::class] as $method) {
+        foreach ([ChoiceCount::class, InstantRunoff::class, Borda::class, Schulze::class, ScaleCount::class, NetPromoterScore::class, MeekStv::class] as $method) {
             $container->register($method, $method)->addTag(self::COUNTING_METHOD_TAG);
         }
 

@@ -6,7 +6,8 @@ namespace Phil\Poll;
 
 /**
  * The count of a poll: the method that made it, the ballots counted and the abstentions among them, every option's
- * standing from the first place down, and, for an instant runoff, its rounds.
+ * standing from the first place down, and, for an instant runoff, its rounds; for a scale, the sum of its marks, and
+ * for a Net Promoter Score, its three groups.
  */
 final readonly class Result
 {
@@ -20,6 +21,8 @@ final readonly class Result
         public int $abstentions,
         public array $standings,
         public array $rounds = [],
+        public ?Rating $rating = null,
+        public ?NetPromoter $netPromoter = null,
     ) {
     }
 

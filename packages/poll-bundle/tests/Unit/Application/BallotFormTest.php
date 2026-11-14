@@ -51,7 +51,7 @@ final class BallotFormTest extends TestCase
         $multiple = PollRules::multiple(['tea', 'coffee']);
         $ranked = PollRules::ranked(['tea', 'coffee', '7']);
 
-        yield 'a single choice as a list' => [$single, ['choice' => ['tea']], 'The choice of a single ballot is one option.'];
+        yield 'a single choice as a list' => [$single, ['choice' => ['tea']], 'The choice of a single ballot or a scale is one option.'];
         yield 'multiple choices as text' => [$multiple, ['choices' => 'tea'], 'The choices of a multiple ballot are a list of options.'];
         yield 'multiple choices keyed' => [$multiple, ['choices' => ['a' => 'tea']], 'The choices of a multiple ballot are a list of options.'];
         yield 'a multiple choice that is no text' => [$multiple, ['choices' => ['tea', ['coffee']]], 'The choices of a multiple ballot are a list of options.'];

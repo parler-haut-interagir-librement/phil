@@ -4,6 +4,24 @@ All notable changes to `phil/poll` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- `BallotKind::Scale`: one mark on a bounded range of whole numbers, the marks being the options from the lowest up.
+- `PollRules::scale()`, 2 to 100 marks, `PollRules::netPromoter()`, the marks 0 to 10, and `PollRules::mark()`, the
+  number an option of a scale stands for; `PollRules::of()` checks that the options of a scale are its marks in order.
+- `ScaleCount`, named `scale`, the default method of a scale: the distribution of the marks, and `Rating`, the ballots
+  that gave a mark, the sum of their marks and `mean()`.
+- `NetPromoterScore`, named `nps`, on a scale from 0 to 10: `NetPromoter`, the promoters, passives and detractors,
+  `respondents()` and `score()`, from -100 to 100.
+- `Result::$rating` and `Result::$netPromoter`, `null` for the other methods.
+
+### Changed
+
+- `CountingMethods::defaults()` holds the six methods of the library, and `CountingMethods::defaultFor()` names
+  `scale` for a scale; `ChoiceCount` counts single and multiple ballots only.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

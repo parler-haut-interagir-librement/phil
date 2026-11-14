@@ -1,13 +1,18 @@
 # phil/poll-bundle
 
-**Polls and their ballots for Symfony applications: single, multiple or ranked, anonymous or not, counted on demand,
-with the single transferable vote for several seats and a voting interface to show them.**
+**Polls and their ballots for Symfony applications: single, multiple, ranked or a mark on a scale, anonymous or not,
+counted on demand, with the single transferable vote for several seats, the Net Promoter Score and a voting interface
+to show them.**
 
 phil/poll-bundle puts the voting engine of `phil/poll` behind the services of a Symfony application. A poll has a
 question, two to a hundred labelled options, the rules of its ballots, the method its ballots are counted by, and,
 when the application wants it, an opening and a closing. People cast a ballot, change it, withdraw it while the poll
 is open; the people who manage it close it, reschedule it or delete it; the results are counted when they are asked
 for, and shown as the poll's visibility says — at any time, after voting, after closing, or to its managers only.
+
+A question that is not scored asks for a mark on a scale — how was the evening, from 1 to 5 —, counted into the
+distribution of the marks and their mean, or for a Net Promoter Score from 0 to 10, counted into its promoters,
+passives and detractors.
 
 A poll that fills several seats — a board, a jury — is counted by the single transferable vote, by Meek's method, in
 exact numbers: every round is published, with its quota, the votes and keep factor of each option and the value
@@ -21,7 +26,7 @@ It is for any Symfony application where people vote, and for the bundles that bu
 availabilities that finds a date, a questionnaire, a box of ideas voted by members, the general assembly of an
 association. A poll may belong to one of the application's resources — an idea, a meeting — named as a reference of
 `phil/resource` (`idea:42`), and so may its voters (`user:7`). The application says who may create a poll, vote and
-manage it; it may add counting methods of its own beside the four of the library. The bundles built on it show a
+manage it; it may add counting methods of its own beside the six of the library. The bundles built on it show a
 poll with the same views and templates: the form of a ballot and the results, drawn with the recipes of the PHIL UX
 kit or of the Shadcn kit on Tailwind, working without JavaScript, and a DOM event when the results of a closed poll
 are revealed, on which the kit's celebration plays.
@@ -29,7 +34,7 @@ are revealed, on which the kit's celebration plays.
 It is a Symfony bundle on `phil/poll`, `phil/resource` and Doctrine ORM: polls, ballots and participations live in
 three tables, or in memory for tests. The services keep no state between requests and are safe in a long-running
 worker; every action dispatches an event that names the poll and nothing else. A count can be kept in a cache pool
-until the next ballot, when the application names one.
+until the poll next changes, when the application names one.
 
 ## Status
 
@@ -40,13 +45,14 @@ until the next ballot, when the application names one.
 | Results shown as each poll's visibility says | Implemented and tested |
 | Counting methods of the application, autoconfigured beside the library's | Implemented and tested |
 | The single transferable vote by Meek's method, in exact numbers, with its rounds published | Implemented, tested, fuzzed and benchmarked |
-| Counts kept in a cache pool until the next ballot, behind an option | Implemented and tested |
-| The voting interface: views, templates drawn with the kit's recipes, the reading of a posted form | Implemented and tested |
+| Scales, counted into the distribution and the mean of their marks, and Net Promoter Scores | Implemented and tested |
+| Counts kept in a cache pool until the poll next changes, behind an option | Implemented and tested, on SQLite and a real pool |
+| The voting interface: views, templates drawn with the kit's recipes, the reading of a posted form, the errors announced | Implemented and tested, in Chrome with the PHIL UX kit and the Shadcn kit |
 | The DOM event of revealed results, for the kit's celebration | Implemented and tested |
 | Doctrine and in-memory stores, the in-memory ones emptied between requests | Implemented and tested, on SQLite |
 | Events naming the poll: created, ballot cast, changed, withdrawn, closed, deleted | Implemented and tested |
 | Routes and controllers for voting | Not part of the bundle: the bundles built on it and the application keep their own |
-| Grades, majority judgment; scales, word clouds, recommendation indexes and brainstorms, not scored | Not started: built when a site asks for them |
+| Grades, majority judgment; word clouds and brainstorms, free text calling for moderation | Not started: built when a site asks for them |
 
 ## Documentation
 
@@ -54,9 +60,9 @@ until the next ballot, when the application names one.
 |---|---|
 | [Installation](doc/installation.md) | Requirements, enabling the bundle, the tables, a first poll. |
 | [Configuration](doc/configuration.md) | Every option and the services registered. |
-| [Polls and ballots](doc/polls-and-ballots.md) | Creating a poll, its dates, casting, changing and withdrawing a ballot, managing a poll. |
+| [Polls and ballots](doc/polls-and-ballots.md) | Creating a poll, scales and Net Promoter Scores, its dates, casting, changing and withdrawing a ballot, managing a poll. |
 | [Anonymity](doc/anonymity.md) | What an anonymous poll keeps, the receipt, and what anonymity does not cover. |
-| [Results](doc/results.md) | Counting, the visibility of the results, the cost of a count. |
+| [Results](doc/results.md) | Counting, the rating of a scale and the Net Promoter Score, the visibility of the results, the cost of a count. |
 | [Single transferable vote](doc/single-transferable-vote.md) | Polls with seats, Meek's method, the published rounds, exact numbers. |
 | [The voting interface](doc/voting-interface.md) | The views, the templates, the posted form, celebrating revealed results, accessibility. |
 | [Events](doc/events.md) | The events dispatched, and what they carry. |

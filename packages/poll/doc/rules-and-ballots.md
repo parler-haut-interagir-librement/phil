@@ -7,6 +7,7 @@
 | `Single` | exactly one option | `PollRules::single($options, $abstention)` |
 | `Multiple` | between `$min` and `$max` options, in no order | `PollRules::multiple($options, $min, $max, $abstention)` |
 | `Ranked` | between `$min` and `$max` options, the first one preferred | `PollRules::ranked($options, $min, $max, $abstention)` |
+| `Scale` | exactly one mark, from the lowest to the highest | `PollRules::scale($lowest, $highest, $abstention)`, `PollRules::netPromoter($abstention)` |
 
 `$min` defaults to 1 and `$max` to every option. `PollRules::of($kind, $options, $min, $max, $abstention)` builds the
 rules of any kind, as a store keeps them.
@@ -18,13 +19,19 @@ A poll has 2 to 100 options (`PollRules::MAX_OPTIONS`). Each is identified by 1 
 application. The declared order is kept: it is the order of the standings among tied options, and the last tie-break
 of an instant runoff.
 
+The options of a scale are its marks: whole numbers written in decimal, from the lowest to the highest, each one more
+than the one before — `"1"` to `"5"`, `"-2"` to `"2"`, `"0"` to `"10"` for a Net Promoter Score —, at most nine digits
+each, without leading zeros or `-0`. A scale has 2 to 100 marks. `mark($option)` gives the number an option of a scale
+stands for, `null` for an option the rules do not have or rules of another kind. `PollRules::of()` refuses the
+options of a scale that are not its marks in order.
+
 The bound on the options bounds the cost of a count: the pairwise count of the Schulze method grows with the square
 of the options, its strongest paths with their cube.
 
 ## The bounds and the abstention
 
-The bounds satisfy 1 ≤ min ≤ max ≤ the number of options; a single ballot holds exactly one choice. A ballot outside
-them is refused.
+The bounds satisfy 1 ≤ min ≤ max ≤ the number of options; a single ballot and a scale hold exactly one choice. A ballot
+outside them is refused.
 
 A blank ballot — no choice at all — is an abstention when the rules accept one (`$abstention: true`) and refused
 otherwise. A count counts it among the ballots and among the abstentions, and gives it to no option.

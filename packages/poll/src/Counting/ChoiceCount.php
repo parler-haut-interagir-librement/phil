@@ -28,14 +28,14 @@ final readonly class ChoiceCount implements CountingMethod
     #[Override]
     public function supports(BallotKind $kind): bool
     {
-        return BallotKind::Ranked !== $kind;
+        return BallotKind::Single === $kind || BallotKind::Multiple === $kind;
     }
 
     #[Override]
     public function count(PollRules $rules, iterable $ballots): Result
     {
         if (!$this->supports($rules->kind)) {
-            throw InvalidPoll::because('The count of choices does not count ranked ballots.');
+            throw InvalidPoll::because('The count of choices counts single and multiple ballots only.');
         }
 
         $index = Choices::index($rules);

@@ -7,15 +7,21 @@
  #   ballot       the BallotView of `phil_poll_ballot()`
  #   action       the address the form posts to
  #   csrf_token   the CSRF token of the form, posted as `_token`; none when null
+ #   errors       the messages of a ballot refused, already translated, announced as an alert; none by default
+ #
+ # Each radio button is given its name, its checked state and whether it is required, so that a kit whose group
+ # passes none of them to its buttons, as the Shadcn kit's, draws the same form.
  #}
 {%- set domain = 'phil_poll' -%}
 {%- set id = 'phil-poll-' ~ ballot.poll -%}
+{%- set errors = errors ?? [] -%}
 {%- set kit = {
     Field: phil_poll_kit('Field'),
     FieldSet: phil_poll_kit('Field:Set'),
     FieldLegend: phil_poll_kit('Field:Legend'),
     FieldDescription: phil_poll_kit('Field:Description'),
     FieldLabel: phil_poll_kit('Field:Label'),
+    FieldError: phil_poll_kit('Field:Error'),
     RadioGroup: phil_poll_kit('RadioGroup'),
     RadioGroupItem: phil_poll_kit('RadioGroup:Item'),
     Checkbox: phil_poll_kit('Checkbox'),
@@ -30,6 +36,8 @@
     {%- set help -%}
         {%- if ballot.kind is same as('single') -%}
             {{ 'ballot.help.single'|trans({}, domain) }}
+        {%- elseif ballot.kind is same as('scale') -%}
+            {{ 'ballot.help.scale'|trans({'%lowest%': (ballot.choices|first).id, '%highest%': (ballot.choices|last).id}, domain) }}
         {%- elseif ballot.kind is same as('multiple') -%}
             {{ 'ballot.help.multiple'|trans({'%min%': ballot.minChoices, '%max%': ballot.maxChoices}, domain) }}
         {%- else -%}
@@ -40,14 +48,14 @@
     {#- The choices are drawn here, where an embedding template replaces them, then placed in the fieldset. -#}
     {%- set fields -%}
         {%- block choices %}
-        {%- if ballot.kind is same as('single') %}
-        {% component (kit.RadioGroup) with {name: 'choice', value: ballot.choices|filter(choice => choice.chosen)|map(choice => choice.id)|first|default(null), required: not ballot.abstention, 'aria-labelledby': id ~ '-question'} %}
+        {%- if ballot.kind is same as('single') or ballot.kind is same as('scale') %}
+        {% component (kit.RadioGroup) with {name: 'choice', 'aria-labelledby': id ~ '-question'}|merge(ballot.kind is same as('scale') ? {orientation: 'horizontal'} : {}) %}
             {% block content %}
             <span id="{{ id }}-question" hidden>{{ ballot.question }}</span>
             {%- for choice in ballot.choices %}
             {% component (kit.Field) with {orientation: 'horizontal'} %}
                 {% block content %}
-                {{ component(kit.RadioGroupItem, {value: choice.id, id: id ~ '-' ~ choice.id}) }}
+                {{ component(kit.RadioGroupItem, {name: 'choice', value: choice.id, id: id ~ '-' ~ choice.id, checked: choice.chosen, required: not ballot.abstention}) }}
                 {% component (kit.FieldLabel) with {for: id ~ '-' ~ choice.id} %}{% block content %}{{ choice.label }}{% endblock %}{% endcomponent %}
                 {% endblock %}
             {% endcomponent %}
@@ -55,7 +63,7 @@
             {%- if ballot.abstention %}
             {% component (kit.Field) with {orientation: 'horizontal'} %}
                 {% block content %}
-                {{ component(kit.RadioGroupItem, {value: '', id: id ~ '--blank'}) }}
+                {{ component(kit.RadioGroupItem, {name: 'choice', value: '', id: id ~ '--blank', checked: ballot.voted and not ballot.anonymous and ballot.choices|filter(choice => choice.chosen) is empty}) }}
                 {% component (kit.FieldLabel) with {for: id ~ '--blank'} %}{% block content %}{{ 'ballot.blank'|trans({}, domain) }}{% endblock %}{% endcomponent %}
                 {% endblock %}
             {% endcomponent %}
@@ -90,11 +98,12 @@
         {%- endif %}
         {%- endblock %}
     {%- endset %}
-    {% component (kit.FieldSet) with {'aria-describedby': id ~ '-help', disabled: not ballot.editable} %}
+    {% component (kit.FieldSet) with {'aria-describedby': id ~ '-help' ~ (errors is empty ? '' : ' ' ~ id ~ '-error'), disabled: not ballot.editable}|merge(errors is empty ? {} : {'aria-invalid': 'true'}) %}
         {% block content %}
         {% component (kit.FieldLegend) %}{% block content %}{{ ballot.question }}{% endblock %}{% endcomponent %}
         {% component (kit.FieldDescription) with {id: id ~ '-help'} %}{% block content %}{{ help }}{% endblock %}{% endcomponent %}
         {{ fields }}
+        {{ component(kit.FieldError, {errors: errors, id: id ~ '-error'}) }}
         {% endblock %}
     {% endcomponent %}
     {%- block status %}

@@ -9,6 +9,8 @@ A `CountingMethod` reads the ballots once, in their order, and returns a `Result
 | `abstentions` | The blank ballots. |
 | `standings` | A `Standing` per option — `option`, `score`, `place` — from the first place down. |
 | `rounds` | The rounds of an instant runoff; empty for the other methods. |
+| `rating` | For a scale, a `Rating`: `marked`, the ballots that gave a mark, `sum`, the sum of their marks, and `mean()`; `null` for the other kinds. |
+| `netPromoter` | For a Net Promoter Score, a `NetPromoter`: `promoters`, `passives`, `detractors`, `respondents()` and `score()`; `null` otherwise. |
 
 Options tied share their place, and the next place counts every option before it: two options tied first are both
 first, and the next one is third. Within a place, the higher score comes first, then the declared order.
@@ -18,7 +20,8 @@ anything. `standingOf()` finds the standing of one option.
 ## The count of choices
 
 `ChoiceCount`, named `choices`, counts single and multiple ballots: an option's score is the number of ballots that
-chose it. For single ballots it is a plurality; for multiple ballots, an approval count. It refuses ranked ballots.
+chose it. For single ballots it is a plurality; for multiple ballots, an approval count. It refuses ranked ballots and
+scales.
 
 ## The instant runoff
 
@@ -53,11 +56,26 @@ that beats every other one — the Condorcet winner, when there is one — wins 
 an option beats. Two options neither of which beats the other may stand at different places, when other options beat
 one of them and not the other.
 
+## The count of a scale
+
+`ScaleCount`, named `scale`, counts the marks of a scale, and is its default method. A mark's score is the number of
+ballots that gave it: the distribution of the marks, the mark given most often first, which `winners()` names. The
+result's `Rating` holds the ballots that gave a mark and the sum of their marks, both exact integers; `mean()` is
+their quotient, `null` while no ballot gave a mark. Abstentions are counted apart and left out of the mean.
+
+## The Net Promoter Score
+
+`NetPromoterScore`, named `nps`, counts a scale from 0 to 10 only, as `PollRules::netPromoter()` builds it, and
+refuses any other. Its standings and its rating are those of the count of a scale; its `NetPromoter` puts the marks in
+three groups: the promoters gave 9 or 10, the passives 7 or 8, the detractors 0 to 6. `score()` is the share of
+promoters less the share of detractors, in points from -100 to 100 — 25.0 for four promoters, two passives and two
+detractors —, `null` while no ballot gave a mark. The groups are exact integers; rounding the score is the display's.
+
 ## Cost
 
 | Method | Time | Memory |
 |---|---|---|
-| `choices`, `borda` | one pass, proportional to the choices | the scores |
+| `choices`, `borda`, `scale`, `nps` | one pass, proportional to the choices | the scores |
 | `instant_runoff` | one pass to group, then one pass over the distinct rankings per round | the distinct rankings |
 | `schulze` | one pass to group, the pairs of each distinct ranking, then the cube of the options | the distinct rankings and two square tables |
 

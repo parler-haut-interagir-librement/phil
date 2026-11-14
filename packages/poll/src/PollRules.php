@@ -11,8 +11,9 @@ use Phil\Poll\Exception\InvalidPoll;
  * What a ballot of one poll may hold: its kind, the identifiers of its options in their declared order, the minimum
  * and maximum of choices, and whether a blank ballot is an abstention or refused.
  *
- * An option is identified by 1 to 64 ASCII letters, digits, `_` or `-`; its label belongs to the application. A poll
- * has 2 to 100 options, which bounds the cost of a count: the pairwise count of Schulze grows with the square of the
+ * An option is identified by 1 to 64 ASCII letters, digits, `_` or `-`; its label belongs to the application. The
+ * options of a scale are its marks, whole numbers written in decimal from the lowest to the highest, each one more than
+ * the one before: `0` to `10` for a Net Promoter Score. A poll has 2 to 100 options, which bounds the cost of a count: the pairwise count of Schulze grows with the square of the
  * options, its strongest paths with their cube.
  */
 final readonly class PollRules
@@ -70,12 +71,35 @@ final readonly class PollRules
     }
 
     /**
+     * One mark per ballot, from `$lowest` to `$highest`: the marks are the options, `"1"` to `"5"` for a scale of five.
+     *
+     * @throws InvalidPoll when the scale has fewer than 2 or more than 100 marks
+     */
+    public static function scale(int $lowest, int $highest, bool $abstention = false): self
+    {
+        if ($highest <= $lowest || $highest - $lowest >= self::MAX_OPTIONS) {
+            throw InvalidPoll::because(\sprintf('A scale has 2 to %d marks, from its lowest to its highest; not %d to %d.', self::MAX_OPTIONS, $lowest, $highest));
+        }
+
+        return self::of(BallotKind::Scale, array_map(strval(...), range($lowest, $highest)), 1, 1, $abstention);
+    }
+
+    /**
+     * The scale of a Net Promoter Score: one mark from 0 to 10.
+     */
+    public static function netPromoter(bool $abstention = false): self
+    {
+        return self::scale(0, 10, $abstention);
+    }
+
+    /**
      * The rules of any kind, as a store keeps them.
      *
      * @param list<string> $options
      *
      * @throws InvalidPoll when the options are not 2 to 100 distinct identifiers, the bounds not 1 ≤ min ≤ max ≤ options,
-     *                     or a single ballot is given other bounds than one choice
+     *                     a single ballot or a scale is given other bounds than one choice, or the options of a scale are
+     *                     not its marks in order
      */
     public static function of(BallotKind $kind, array $options, int $min, int $max, bool $abstention = false): self
     {
@@ -105,7 +129,19 @@ final readonly class PollRules
             throw InvalidPoll::because('A single ballot holds exactly one choice.');
         }
 
+        if (BallotKind::Scale === $kind) {
+            self::checkScale($options, $max);
+        }
+
         return new self($kind, $options, $min, $max, $abstention);
+    }
+
+    /**
+     * The mark an option of a scale stands for, `null` for an option the rules do not have or rules of another kind.
+     */
+    public function mark(string $option): ?int
+    {
+        return BallotKind::Scale === $this->kind && $this->has($option) ? (int) $option : null;
     }
 
     /**
@@ -163,5 +199,29 @@ final readonly class PollRules
 
         /** @var list<string> $choices */
         return Ballot::of($choices);
+    }
+
+    /**
+     * @param list<string> $options
+     *
+     * @throws InvalidPoll
+     */
+    private static function checkScale(array $options, int $max): void
+    {
+        if (1 !== $max) {
+            throw InvalidPoll::because('A ballot on a scale holds exactly one mark.');
+        }
+
+        $lowest = $options[0];
+
+        if (1 !== preg_match('/^(?:0|-?[1-9]\d{0,8})$/D', $lowest)) {
+            throw InvalidPoll::because(\sprintf('The marks of a scale are whole numbers, not "%s".', $lowest));
+        }
+
+        $marks = array_map(strval(...), range((int) $lowest, (int) $lowest + \count($options) - 1));
+
+        if ($marks !== $options) {
+            throw InvalidPoll::because(\sprintf('The options of a scale are its marks in order, from %s to %s.', $lowest, $marks[\count($marks) - 1]));
+        }
     }
 }

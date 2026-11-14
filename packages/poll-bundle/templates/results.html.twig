@@ -6,6 +6,11 @@
  # kit's Celebration for one.
  #
  #   results   the ResultsView of `phil_poll_results()`, or null
+ #
+ # Each bar is given its share of the highest score, from 0 to 100, as both kits' Progress take it, and the score as
+ # written for its text. A scale lists its marks from the lowest, and adds its mean mark; a Net Promoter Score adds its
+ # three groups and its score. The numbers are written with the separators of the domain's `number.decimal` and
+ # `number.thousands`.
  #}
 {%- set domain = 'phil_poll' -%}
 {%- if results is not null %}
@@ -21,11 +26,30 @@
         <li class="phil-poll-results__line"{% if line.winner %} data-winner="true"{% endif %}>
             <span id="{{ id }}-{{ line.option }}">{{ line.label }}</span>
             {%- if line.winner %} <strong>{{ (results.seats > 1 ? 'results.elected' : 'results.winner')|trans({}, domain) }}</strong>{% endif %}
-            {{ component(kit.Progress, {max: line.max, value: line.score, 'aria-labelledby': id ~ '-' ~ line.option}) }}
+            {{ component(kit.Progress, {value: (line.score * 100 / line.max)|round, 'aria-labelledby': id ~ '-' ~ line.option, 'aria-valuetext': line.display}) }}
             <span class="phil-poll-results__score">{{ line.display }}</span>
         </li>
         {%- endfor %}
     </ol>
+    {%- endblock %}
+    {%- block rating %}
+    {%- set decimal = 'number.decimal'|trans({}, domain) -%}
+    {%- set thousands = 'number.thousands'|trans({}, domain) -%}
+    {%- if results.rating is not null and results.rating.mean is not null %}
+    <p class="phil-poll-results__mean">{{ 'results.mean'|trans({'%mean%': results.rating.mean|number_format(2, decimal, thousands), '%count%': results.rating.marked}, domain) }}</p>
+    {%- endif %}
+    {%- if results.netPromoter is not null and results.netPromoter.score is not null %}
+    <dl class="phil-poll-results__nps">
+        <dt>{{ 'results.nps.score'|trans({}, domain) }}</dt>
+        <dd>{{ results.netPromoter.score|round|number_format(0, decimal, thousands) }}</dd>
+        <dt>{{ 'results.nps.promoters'|trans({}, domain) }}</dt>
+        <dd>{{ results.netPromoter.promoters|number_format(0, decimal, thousands) }}</dd>
+        <dt>{{ 'results.nps.passives'|trans({}, domain) }}</dt>
+        <dd>{{ results.netPromoter.passives|number_format(0, decimal, thousands) }}</dd>
+        <dt>{{ 'results.nps.detractors'|trans({}, domain) }}</dt>
+        <dd>{{ results.netPromoter.detractors|number_format(0, decimal, thousands) }}</dd>
+    </dl>
+    {%- endif %}
     {%- endblock %}
     {%- if results.revealed %}
     {%- block revealed %}{% endblock %}
