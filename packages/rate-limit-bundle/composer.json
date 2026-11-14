@@ -45,6 +45,7 @@
         "symfony/event-dispatcher": "^8.2",
         "symfony/form": "^8.2",
         "symfony/framework-bundle": "^8.2",
+        "symfony/lock": "^8.2",
         "symfony/options-resolver": "^8.2",
         "symfony/security-core": "^8.2",
         "symfony/translation": "^8.2",
@@ -56,7 +57,7 @@
         "phil/ip-anonymizer": "To count the ip keys by network, so that an IPv6 subscriber's /64 shares one key",
         "psr/log": "For the warning logged when a limiter in observation would have refused a request",
         "symfony/form": "To limit the submissions of forms by their name",
-        "symfony/lock": "For exact counts when requests of one key run at once",
+        "symfony/lock": "For the lock the limiters reserve under, so that two requests of one key never both pass a full limit",
         "symfony/security-core": "For the user and user_or_ip keys of the signed-in user",
         "symfony/translation": "For the refusal page and the form error in the request's language",
         "twig/twig": "For the HTML page of a refusal"

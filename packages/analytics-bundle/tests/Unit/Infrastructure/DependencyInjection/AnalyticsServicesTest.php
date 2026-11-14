@@ -131,7 +131,8 @@ final class AnalyticsServicesTest extends TestCase
         self::assertSame(['id' => 'phil_analytics_collection', 'policy' => 'sliding_window', 'limit' => 50, 'interval' => '1 minute'], $factory->getArgument(0));
         self::assertEquals(new Reference('lock.redis'), $factory->getArgument(2));
         self::assertEquals([new Reference('cache.redis')], $container->getDefinition('phil_analytics.collection_limiter_storage')->getArguments());
-        self::assertNull($this->load([])->getDefinition(AnalyticsServices::LIMITER_FACTORY)->getArgument(2));
+        self::assertEquals(new Reference('lock.factory', ContainerInterface::NULL_ON_INVALID_REFERENCE), $this->load([])->getDefinition(AnalyticsServices::LIMITER_FACTORY)->getArgument(2));
+        self::assertNull($this->load(['rate_limiter' => ['lock_factory' => null]])->getDefinition(AnalyticsServices::LIMITER_FACTORY)->getArgument(2));
     }
 
     public function testEachAdapterCanBeTheApplicationsService(): void
@@ -336,7 +337,7 @@ final class AnalyticsServicesTest extends TestCase
             AnalyticsServices::SALT_PROVIDER => [ForgottenSalt::class, null, ['@'.AnalyticsServices::SALT_STORE, '@clock'], [], false],
             ClientDigester::class => [null, null, ['@'.AnalyticsServices::SALT_PROVIDER], [], false],
             'phil_analytics.collection_limiter_storage' => [CacheStorage::class, null, ['@cache.app'], [], false],
-            AnalyticsServices::LIMITER_FACTORY => [RateLimiterFactory::class, null, [['id' => 'phil_analytics_collection', 'policy' => 'sliding_window', 'limit' => 600, 'interval' => '10 minutes'], '@phil_analytics.collection_limiter_storage', null], [], false],
+            AnalyticsServices::LIMITER_FACTORY => [RateLimiterFactory::class, null, [['id' => 'phil_analytics_collection', 'policy' => 'sliding_window', 'limit' => 600, 'interval' => '10 minutes'], '@phil_analytics.collection_limiter_storage', '@lock.factory'], [], false],
             SymfonyCollectionRateLimiter::class => [null, null, ['@'.AnalyticsServices::LIMITER_FACTORY], [], false],
             MeasureCounters::class => [null, null, ['@'.OutboundLinkDirectory::class], [], false],
             ConfiguredCollectionProjection::class => [null, null, [[]], [], false],

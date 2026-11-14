@@ -6,7 +6,7 @@ phil_rate_limit:
     headers: draft                     # draft, legacy, both or none
     error_template: '@PhilRateLimit/too_many_requests.html.twig'
     cache_pool: cache.app              # where the limiters keep their state
-    lock_factory: null                 # a lock factory, for exact counts under concurrency
+    lock_factory: auto                 # lock.factory when it is defined, a service id, or null for none
     single_server: false               # accepts a store local to the server in prod
     network:                           # needs phil/ip-anonymizer
         enabled: false
@@ -39,7 +39,7 @@ phil_rate_limit:
 | `headers` | `draft` | `draft` writes `RateLimit-Policy` and `RateLimit`; `legacy` writes `RateLimit-Limit`, `RateLimit-Remaining` and `RateLimit-Reset`; `both`; `none` keeps `Retry-After` alone. |
 | `error_template` | `@PhilRateLimit/too_many_requests.html.twig` | The page of a refusal answered in HTML. |
 | `cache_pool` | `cache.app` | The cache pool of every limiter that names neither a pool nor a storage. |
-| `lock_factory` | `null` | The lock factory of every limiter that names none. |
+| `lock_factory` | `auto` | The lock factory of every limiter that names none: `auto` takes `lock.factory` when it is defined, as FrameworkBundle does; `null` reserves without a lock. |
 | `single_server` | `false` | Accepts a pool or a storage local to the server in the `prod` environment. |
 | `network.enabled` | `false` | The `ip` keys of the client's network rather than its host. |
 | `network.ipv4_prefix`, `network.ipv6_prefix` | `32`, `64` | The prefixes kept. |

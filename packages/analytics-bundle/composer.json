@@ -51,7 +51,7 @@
         "doctrine/dbal": "To keep the counters in two tables of a Doctrine connection, the default store",
         "doctrine/orm": "To add the counter tables to the schema the ORM generates",
         "phil/broken-flow-alerts": "To be told when a goal stops being reached, under phil_analytics.broken_flows",
-        "symfony/lock": "To make the first claim of the daily salt atomic between servers",
+        "symfony/lock": "To make the first claim of the daily salt atomic between servers, and for the lock the collection limiter reserves under",
         "symfony/messenger": "To run the retention, the reports and the flow check as messages",
         "symfony/notifier": "To send the broken-flow alerts as notifications",
         "symfony/routing": "To import the collection endpoint's route",

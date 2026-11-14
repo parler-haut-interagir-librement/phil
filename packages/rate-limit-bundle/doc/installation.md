@@ -43,6 +43,21 @@ A limiter names its own pool with `cache_pool`, or a `StorageInterface` service 
 lock factory that is not defined fails the container build, with the limiter that needs it, rather than the first
 request.
 
+## The lock
+
+A limiter reads its state, decides and writes it back. Without a lock, two requests of one key on two workers read the
+same state, and both may pass a limit that has room for one of them. Each limiter therefore reserves under the lock
+factory `lock.factory` when it is defined — `framework.lock` enabled, with symfony/lock —, as FrameworkBundle does for
+its own limiters. Its store is shared by the servers, as the pool is:
+
+```yaml
+framework:
+    lock: '%env(REDIS_URL)%'
+```
+
+`lock_factory` names another factory, for the bundle or for one limiter; a name that is not defined fails the build.
+`lock_factory: null` reserves without a lock.
+
 ## Worker mode
 
 Every service of the bundle keeps nothing between requests: the decision of a request travels in a request attribute,

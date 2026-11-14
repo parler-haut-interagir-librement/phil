@@ -4,6 +4,14 @@ All notable changes to `phil/analytics-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Security
+
+- `rate_limiter.lock_factory` defaults to `lock.factory`, taken when it is defined, as FrameworkBundle does: the
+  collection limiter reserves under it, so that two sends of one client that read the same window can no longer both
+  pass its last place. `null` keeps reserving without a lock.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

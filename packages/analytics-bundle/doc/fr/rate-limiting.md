@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4f5d4a665bc5f5af2f59c5fc9ba6807702f44743464d8a35398f32d535cd8a36 -->
+<!-- phil-dev source-sha256=7d3ca6248e9c0a6b57dd986fd510f05876b31ff41dbc2937b1686f2033218167 -->
 # Limitation de débit et empreinte du client
 
 Le point de collecte est public et fonctionne sans identifiants : un limiteur de débit **par site et par empreinte de
@@ -79,7 +79,8 @@ Invariants d'un adaptateur `CollectionRateLimiter` :
 `SymfonyCollectionRateLimiter` prend un limiteur d'une fabrique de Symfony Rate Limiter pour chaque site et chaque
 empreinte, avec pour clé le hachage des deux, et consomme un envoi. Le bundle configure la fabrique en fenêtre glissante
 de `rate_limiter.limit` envois par `rate_limiter.interval` (600 par 10 minutes par défaut), son état dans
-`rate_limiter.cache_pool` ([configuration.md](configuration.md#le-limiteur-de-débit)). Toute exception du limiteur ou de
+`rate_limiter.cache_pool` et sa réservation sous `lock.factory` quand il est défini
+([configuration.md](configuration.md#le-limiteur-de-débit)). Toute exception du limiteur ou de
 son stockage répond `false` : la page vue est abandonnée.
 
 Le sel de l'empreinte vient de `ForgottenSalt` sur `CacheSaltStore` : un sel aléatoire par jour UTC dans

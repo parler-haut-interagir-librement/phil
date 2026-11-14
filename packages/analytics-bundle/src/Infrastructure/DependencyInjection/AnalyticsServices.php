@@ -245,10 +245,24 @@ final class AnalyticsServices
         $services->set(self::LIMITER_FACTORY, RateLimiterFactory::class)->args([
             ['id' => 'phil_analytics_collection', 'policy' => 'sliding_window', 'limit' => $limiter['limit'], 'interval' => $limiter['interval']],
             new Reference('phil_analytics.collection_limiter_storage'),
-            null === $limiter['lock_factory'] ? null : new Reference($limiter['lock_factory']),
+            self::limiterLock($limiter['lock_factory']),
         ]);
         $services->set(SymfonyCollectionRateLimiter::class)->args([new Reference(self::LIMITER_FACTORY)]);
         $services->alias(CollectionRateLimiter::class, SymfonyCollectionRateLimiter::class)->public();
+    }
+
+    /**
+     * The lock the limiter reserves under: the default `lock.factory` when it is defined, as FrameworkBundle does, any
+     * other factory named as it is, none for null. Without a lock, two sends of one client read the same window and may
+     * both pass its last place.
+     */
+    private static function limiterLock(?string $lock): ?Reference
+    {
+        return match ($lock) {
+            null => null,
+            AnalyticsConfiguration::LIMITER_LOCK => new Reference($lock, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            default => new Reference($lock),
+        };
     }
 
     /**

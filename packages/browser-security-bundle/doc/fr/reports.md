@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b61d816ffa14f9510a168af4e159054b2853208f1ea42c083acc6c438361b200 -->
+<!-- phil-dev source-sha256=65f82f3ca8f0af5882347eca9372598bef8bac11e768fe6dfe77400a653a486a -->
 # Rapports
 
 Un navigateur qui rencontre une violation envoie un rapport à l'adresse que nomme la politique. Le bundle nomme son
@@ -64,7 +64,9 @@ type ou trop grand ne compte jamais dans la limitation de débit.
 Chaque client peut envoyer `limit` corps par `interval` (60 à la minute par défaut), comptés dans une fenêtre glissante
 gardée dans `cache_pool`. La clé est toujours l'empreinte à clé de l'adresse. `symfony/rate-limiter` est nécessaire :
 avec `rate_limit` activé, le conteneur ne se construit pas sans lui ; réglez `rate_limit: false` pour se passer de
-limitation de débit.
+limitation de débit. Le limiteur construit par le bundle réserve sous `lock.factory` quand il est défini —
+`framework.lock` activé, avec symfony/lock —, comme FrameworkBundle : sans verrou, deux corps d'un même client qui
+lisent la même fenêtre peuvent tous deux passer sa dernière place.
 
 Dans l'environnement `prod`, la construction refuse aussi un `cache_pool` propre à chaque serveur, sur l'adaptateur
 filesystem, APCu, array ou system, ce qu'est `cache.app` par défaut : nommez un pool sur Redis, Memcached ou une base de

@@ -61,7 +61,9 @@ large never counts against the throttle.
 
 Each client may post `limit` bodies per `interval` — 60 a minute by default —, counted in a sliding window kept in
 `cache_pool`. The key is always the keyed digest of the address. `symfony/rate-limiter` is needed: with `rate_limit`
-enabled, the container does not build without it; set `rate_limit: false` to go without a throttle.
+enabled, the container does not build without it; set `rate_limit: false` to go without a throttle. The limiter built
+by the bundle reserves under `lock.factory` when it is defined — `framework.lock` enabled, with symfony/lock —, as
+FrameworkBundle does: without a lock, two bodies of one client that read the same window may both pass its last place.
 
 In the `prod` environment, the build also refuses a `cache_pool` local to each server, on the filesystem, APCu, array
 or system adapter, which is what `cache.app` is by default: name a pool on Redis, Memcached or a database. The check is

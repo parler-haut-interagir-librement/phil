@@ -6,6 +6,12 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
+### Security
+
+- `lock_factory` defaults to `auto`: each limiter reserves under `lock.factory` when it is defined, as FrameworkBundle
+  does, so that two requests of one key that read the same state can no longer both pass a full limit. `null` keeps
+  reserving without a lock; a named factory that is not defined still fails the container build.
+
 ### Changed
 
 - Documentation: login forms are limited with Symfony's `security.firewalls.<name>.login_throttling`, which counts
