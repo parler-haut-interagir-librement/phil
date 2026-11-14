@@ -141,6 +141,15 @@ final class PhilSocialCardsBundleTest extends TestCase
         self::assertSame(['image' => 'https://example.com/i.png'], $defaults);
     }
 
+    public function testTheGdRendererNeedsNoExtensionOfItsOwn(): void
+    {
+        $container = $this->load(['cards' => ['templates' => ['default' => self::TEMPLATE], 'renderer' => 'gd']]);
+
+        self::assertTrue($container->hasDefinition(GdCardRenderer::class));
+        self::assertFalse($container->hasDefinition(ImagickCardRenderer::class));
+        self::assertSame(GdCardRenderer::class, (string) $container->getAlias(CardRenderer::class));
+    }
+
     #[RequiresPhpExtension('imagick')]
     public function testTheCardsDrawnByImageMagick(): void
     {
