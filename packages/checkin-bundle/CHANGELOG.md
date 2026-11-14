@@ -4,6 +4,16 @@ All notable changes to `phil/checkin-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- The rules of `rules.checkpoints` are listed to Symfony's expression collector by the service
+  `phil_checkin.expression_language`, tagged `expression_language.compiled` with the four variables a rule reads:
+  `bin/console lint:expressions` checks them, and outside of debug mode the cache warmer compiles them.
+- `CheckpointRules::check()`: a rule kept by the application, checked when it is saved with the expression language
+  the rules are evaluated with.
+
 ## 0.1.0-alpha - 2026-11-13
 
 ### Added

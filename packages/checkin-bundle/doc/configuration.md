@@ -68,6 +68,9 @@ offline only at the next manifest, a minute after it closes online. A journal sy
 device's decisions, which the rule had filtered.
 
 Each rule of the configuration is checked when the container compiles: a rule longer than 1000 bytes, one that does
-not parse, or one that reads another variable stops the build with the checkpoint's name. A rule that fails on a
-credential — an attribute missing, a method that throws — refuses it. `rules.provider` replaces the configuration: see
-[Extension points](extension-points.md#admission-rules).
+not parse, or one that reads another variable stops the build with the checkpoint's name. The rules are evaluated by
+the service `phil_checkin.expression_language`, which lists them to Symfony's expression collector with the four
+variables they read: `bin/console lint:expressions` checks them beside the `allow_if` of `access_control`, and outside
+of debug mode the cache warmer compiles them, so that a scan evaluates PHP code rather than parsing the rule. A rule
+that fails on a credential — an attribute missing, a method that throws — refuses it. `rules.provider` replaces the
+configuration: see [Extension points](extension-points.md#admission-rules).

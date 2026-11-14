@@ -12,7 +12,7 @@ implementation or is the application's or a package's to write.
 | `Action` | `describe()`, `execute(ActionContext $context): Payload`; idempotent under `ActionContext::$idempotencyKey`; throws `ActionFailed` | `WebhookAction` |
 | `CompensableAction` | `compensate(ActionContext $context, Payload $result): void`; undoes what `execute()` did, idempotent too | — |
 | `ConditionEvaluator` | `language()`, `check(string $source)` throwing `InvalidDefinition`, `evaluate(string $source, array $variables): bool` | `ExpressionConditions` |
-| `Definitions` | `enabledFor()`, `get()`, `publish()`, `disable()`; a version once kept never changes | `InMemoryDefinitions`, `DbalDefinitions` |
+| `Definitions` | `enabledFor()`, `get()`, `publish()`, `disable()`; a version once kept never changes | `InMemoryDefinitions`, `DbalDefinitions`, `ValidatedDefinitions` (in front of another) |
 | `RunStore` | `create()` once per id, `save()` only over the revision read, `due()`, `purge()` | `InMemoryRunStore`, `DbalRunStore` |
 | `WebhookKeys` | `signingKeys(string $name): list<SigningKey>`, the newest first, none for an unknown name | — |
 

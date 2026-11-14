@@ -24,6 +24,7 @@
 | `Infrastructure\Validator\EnumSetOf`, `Infrastructure\Validator\EnumSetOfValidator` | The constraint of an `EnumSet`, and its validator. |
 | `Infrastructure\Http\ParseEnum`, `Infrastructure\Http\ParsedEnumValueResolver` | The controller argument attribute, and its resolver. |
 | `Infrastructure\ExpressionLanguage\EnumsExpressionProvider` | `enum_meta()`, `enum_in_group()`, `enum_from()`. |
+| `Infrastructure\ExpressionLanguage\EnumsExpressionLanguagesPass` | Gives the functions to the expression languages of controller attributes and workflow guards. |
 | `Infrastructure\Workflow\EnumWorkflows` | The state machine configuration of an enum's transitions. |
 | `Infrastructure\Console\ExportIcuCommand` | `phil:enums:icu`. |
 | `Infrastructure\Console\CheckSetColumnsCommand` | `phil:enums:check-sets`. |

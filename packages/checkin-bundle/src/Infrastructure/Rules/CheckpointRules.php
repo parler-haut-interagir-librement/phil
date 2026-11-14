@@ -69,6 +69,16 @@ final readonly class CheckpointRules
     }
 
     /**
+     * The syntax error of a rule with the expression language the rules are evaluated with — the one
+     * `lint:expressions` checks the configured rules with —, or null for a rule that parses: what an application
+     * that keeps its rules elsewhere asks when one is saved.
+     */
+    public function check(string $rule): ?string
+    {
+        return self::lint($rule, $this->language);
+    }
+
+    /**
      * Whether a checkpoint has a rule at all: one without admits on the policy alone.
      */
     public function has(CheckpointId $checkpoint): bool

@@ -31,6 +31,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 /**
  * The services of the configuration: the ledger, the resolvers asked together, the policy, the admission rules, the
@@ -51,6 +52,17 @@ final readonly class CheckinServices
      * configuration names no catalog.
      */
     public const string CATALOG_TAG = 'phil_checkin.credential_catalog';
+
+    /**
+     * The expression language the admission rules are evaluated with; it lists the rules of the configuration to
+     * Symfony's expression collector, so that `lint:expressions` checks them and the cache warmer compiles them.
+     */
+    public const string EXPRESSION_LANGUAGE = 'phil_checkin.expression_language';
+
+    /**
+     * Where `lint:expressions` says the rules it checks come from.
+     */
+    public const string RULES_SOURCE = 'the "phil_checkin.rules.checkpoints" option';
 
     public const string STORE_DOCTRINE = 'doctrine';
 
@@ -108,8 +120,8 @@ final readonly class CheckinServices
     }
 
     /**
-     * The admission rules — the configuration's, each checked when the container compiles, or the application's
-     * service —, the attributes the rules read, and their evaluator.
+     * The admission rules — the configuration's, each checked when the container compiles and listed to Symfony's
+     * expression collector, or the application's service —, the attributes the rules read, and their evaluator.
      *
      * @param array{checkpoints: array<string, string>, provider: ?string, attributes: ?string, timezone: ?string} $rules
      *
@@ -133,11 +145,21 @@ final readonly class CheckinServices
         }
 
         $container->setAlias(CredentialAttributes::class, $rules['attributes'] ?? NoCredentialAttributes::class);
+
+        // With FrameworkBundle, the tag lists the rules to `lint:expressions` and has them compiled when the cache
+        // warms up outside of debug mode; without it, the tag is left unread and the rules are parsed as they come.
+        $container->register(self::EXPRESSION_LANGUAGE, ExpressionLanguage::class)
+            ->addTag('expression_language.compiled', [
+                'expressions' => array_values(array_unique($rules['checkpoints'])),
+                'variables' => CheckpointRules::NAMES,
+                'source' => self::RULES_SOURCE,
+            ]);
         $container->register(CheckpointRules::class, CheckpointRules::class)->setArguments([
             new Reference(AdmissionRules::class),
             $clock,
             new Reference(CredentialAttributes::class),
             null === $rules['timezone'] ? null : new Definition(DateTimeZone::class, [$rules['timezone']]),
+            new Reference(self::EXPRESSION_LANGUAGE),
         ]);
     }
 

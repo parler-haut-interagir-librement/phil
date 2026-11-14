@@ -16,7 +16,7 @@
 | `Infrastructure\Http\CheckinRequest` | Whether a request comes from the desk controller; `cookieName()`. |
 | `Infrastructure\Http\DeskConfig` | The desk controller's configuration for a checkpoint; `for()`. |
 | `Infrastructure\Http\Routes` | The names of the routes. |
-| `Infrastructure\Rules\CheckpointRules` | Evaluates a checkpoint's rule with ExpressionLanguage; `has()`, `admits()`, `lint()`. |
+| `Infrastructure\Rules\CheckpointRules` | Evaluates a checkpoint's rule with ExpressionLanguage; `has()`, `admits()`, `check()`, `lint()`. |
 | `Infrastructure\Rules\CheckpointDesks` | The desk and the manifest issuer of a checkpoint, with its rule; `desk()`, `manifests()`. |
 | `Infrastructure\Rules\RuledCredentials` | The resolver and catalog as a checkpoint's rule sees them. |
 | `Infrastructure\Rules\ConfiguredAdmissionRules` | The rules of `rules.checkpoints`. |
@@ -26,6 +26,7 @@
 |---|---|
 | `Phil\CheckinBundle\Infrastructure\Rules\CheckpointDesks` | The desk and manifests of each checkpoint, on the tagged resolvers, with its rule. |
 | `Phil\CheckinBundle\Infrastructure\Rules\CheckpointRules` | The evaluator of the rules. |
+| `phil_checkin.expression_language` | The `ExpressionLanguage` of the rules, tagged `expression_language.compiled` with the rules of the configuration, for `lint:expressions` and the cache warmer. |
 | `Phil\CheckinBundle\Application\Contract\AdmissionRules` | Alias of `ConfiguredAdmissionRules`, or of `rules.provider`. |
 | `Phil\CheckinBundle\Application\Contract\CredentialAttributes` | Alias of `NoCredentialAttributes`, or of `rules.attributes`. |
 | `Phil\Checkin\CredentialResolvers` | The tagged resolvers asked together. |

@@ -4,6 +4,15 @@ All notable changes to `phil/enums-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- `EnumsExpressionLanguagesPass`: the `enum_meta`, `enum_in_group` and `enum_from` expression functions in the
+  expressions of controller attributes (`controller.expression_language`) and of workflow guards
+  (`workflow.security.expression_language`), so that Symfony's `lint:expressions` checks the expressions that call
+  them there, and a misspelled function fails the lint.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

@@ -31,8 +31,8 @@ argument without the attribute.
 ## Expression functions
 
 Registered with `symfony/expression-language` for the expressions of security (`is_granted` with an expression),
-routing (`condition`) and validation (`Expression`), beside the language's own `enum()`, which reads one case by its
-constant:
+routing (`condition`), validation (`Expression`), controller attributes (`#[Cache]`, `#[RateLimit]`, `#[Lock]`) and
+workflow guards, beside the language's own `enum()`, which reads one case by its constant:
 
 | Function | Returns |
 |---|---|
@@ -44,6 +44,10 @@ constant:
 $routes->add('open_orders', '/orders/{status}')
     ->condition("enum_in_group(enum_from(params['status'], 'App\\\\OrderStatus'), 'open')");
 ```
+
+Symfony's `bin/console lint:expressions` knows these functions wherever it checks an expression — the attributes of
+controllers, the `allow_if` of `access_control`, the guards of workflows —: an expression that calls them passes, and
+one that misspells them fails with the place it is written.
 
 ## Workflows from transitions
 
