@@ -4,6 +4,12 @@ All notable changes to `phil/calendar-sync` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Changed
+
+- `phil/safe-http` 0.2 accepted as well as 0.1.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

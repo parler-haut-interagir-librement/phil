@@ -8,9 +8,9 @@ use DateTimeImmutable;
 use Phil\PrivacyBundle\Domain\Exception\InvalidPrivacyValue;
 
 /**
- * A ZIP archive written in memory, from scratch: the local headers, the central directory and its end, as the PKWARE
- * application note describes them, with no extension needed. Each file is compressed with raw deflate when zlib is
- * there, and stored otherwise; names are UTF-8 (general purpose bit 11).
+ * A ZIP archive built in memory, without the zip extension: the local headers, the central directory and its end, as
+ * the PKWARE application note describes them. Each file is compressed with raw deflate when zlib is there, and stored
+ * otherwise; names are UTF-8 (general purpose bit 11).
  *
  * The archive stays within what the plain format can say, without ZIP64: at most 65,535 files and 4 GiB in all. A
  * person's export is far smaller; a larger one is refused rather than written broken.

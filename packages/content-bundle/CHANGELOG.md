@@ -14,7 +14,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ### Changed
 
-- Requires `phil/ujo` and `phil/markup` `^0.1.1`, the versions that keep `<strong>` and `<em>`.
+- Requires `phil/ujo` `^0.1.1` and `phil/markup` `^0.2`, the versions that keep `<strong>` and `<em>`.
 
 ## 0.1.0-alpha - 2026-11-12
 

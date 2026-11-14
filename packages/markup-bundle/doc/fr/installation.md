@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f2524b8c6d4ab99dc14ea48e8f049e29336ed9f58766d507231dfb32c29304d9 -->
+<!-- phil-dev source-sha256=e7ec46f96469b92b32f2c938bf0d09e33489689761fd9556a7d82f7bc426a482 -->
 # Installation
 
 ## Prérequis
@@ -6,7 +6,7 @@
 | Paquet | Version | Utilisé pour |
 |---|---|---|
 | PHP | 8.5 ou plus récent | |
-| `phil/markup` | ^0.1 | Les formats, les niveaux, les analyseurs, le compilateur et le purificateur |
+| `phil/markup` | ^0.1 \|\| ^0.2 | Les formats, les niveaux, les analyseurs, le compilateur et le purificateur |
 | `phil/ujo` | ^0.1 | Le moteur de rendu UJO et le JSON qu'écrit le convertisseur |
 | `symfony/config`, `symfony/dependency-injection` | ^8.2 | La configuration et les services |
 | `symfony/translation-contracts` | ^3.6 | La locale courante de la ponctuation soignée, lue dans le `LocaleSwitcher` de Symfony |

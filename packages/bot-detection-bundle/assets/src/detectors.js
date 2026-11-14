@@ -1,8 +1,8 @@
 /*
- * The detectors of phil/bot-detection-bundle, written from scratch: each asks one question — is this browser driven
- * by automation? — of what the page can read, and answers `true`, `false`, or `undefined` when it cannot tell. Each
- * signal is read here and dropped: only the verdict, `human` or `robot`, leaves the browser. A browser that blanks or
- * randomizes an attribute to resist fingerprinting answers `undefined`, never `true`: privacy is not automation.
+ * The detectors of phil/bot-detection-bundle: each asks one question — is this browser driven by automation? — of
+ * what the page can read, and answers `true`, `false`, or `undefined` when it cannot tell. Each signal is read here
+ * and dropped: only the verdict, `human` or `robot`, leaves the browser. A browser that blanks or randomizes an
+ * attribute to resist fingerprinting answers `undefined`, never `true`: privacy is not automation.
  */
 
 /** A browser under WebDriver control says so. */

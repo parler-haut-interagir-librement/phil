@@ -31,7 +31,7 @@
         "ext-libxml": "*",
         "ext-mbstring": "*",
         "phil/svg-sanitizer": "^0.1@dev",
-        "phil/ujo": "^0.1@dev",
+        "phil/ujo": "^0.1.1@dev",
         "symfony/html-sanitizer": "^8.2",
         "symfony/yaml": "^8.2"
     },
@@ -61,7 +61,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.1.x-dev"
+            "dev-main": "0.2.x-dev"
         }
     }
 }

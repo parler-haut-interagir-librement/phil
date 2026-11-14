@@ -26,7 +26,7 @@
         "ext-libxml": "*",
         "ext-mbstring": "*",
         "phil/recurrence": "^0.1@dev",
-        "phil/safe-http": "^0.1@dev",
+        "phil/safe-http": "^0.1@dev || ^0.2@dev",
         "phil/url": "^0.1@dev",
         "symfony/clock": "^8.2",
         "symfony/http-client": "^8.2",

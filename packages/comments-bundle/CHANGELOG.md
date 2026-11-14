@@ -10,10 +10,13 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 - `SuggestionDecided`: a decision on a suggestion that comes second, answered `409` with the error `decided` by the
   endpoints.
-- `ThreadRepository::decide()`: keeps a decision on a suggestion only while the stored one is still pending;
-  `DoctrineThreadRepository` claims it by an `UPDATE … WHERE suggestion_state = 'pending'` in the transaction of the
-  flush and detaches a thread that loses, its entity manager left open; `InMemoryThreadRepository` keeps the same rule.
-  A store of the application implements it.
+
+### Changed
+
+- `ThreadRepository::decide()` added to the interface: keeps a decision on a suggestion only while the stored one is
+  still pending; `DoctrineThreadRepository` claims it by an `UPDATE … WHERE suggestion_state = 'pending'` in the
+  transaction of the flush and detaches a thread that loses, its entity manager left open; `InMemoryThreadRepository`
+  keeps the same rule. A store of the application must implement it.
 
 ### Fixed
 

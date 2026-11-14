@@ -21,6 +21,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   bounded, a document read only when it answers 200 whole; `reset()` between the messages of a worker.
 - The fuzz target of the resolution of a `did:web` from its document.
 
+### Changed
+
+- `phil/safe-http` 0.2 accepted as well as 0.1.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added
