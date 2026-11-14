@@ -125,6 +125,22 @@ final class ResvgRasterizerTest extends TestCase
         self::assertCount(1, $engine->measured);
     }
 
+    public function testTheDefaultLimitsAreOneMebibyteAndSixteenMegapixels(): void
+    {
+        $head = '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1">';
+        $svg = $head.str_repeat(' ', 1_048_576 - \strlen($head) - 6).'</svg>';
+        $rasterizer = new ResvgRasterizer([self::FONT], engine: new RecordingEngine());
+
+        self::assertSame(1_048_576, \strlen($svg));
+        self::assertSame("\x89PNG", $rasterizer->png($svg));
+        $this->assertRefused('The image cannot be drawn as a PNG: it has 1048577 bytes, more than the 1048576 allowed.', static fn (): string => $rasterizer->png($svg.' '));
+
+        $small = '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>';
+        self::assertSame("\x89PNG", new ResvgRasterizer([self::FONT], engine: new RecordingEngine(4096, 4096))->png($small));
+        $this->assertRefused('The image cannot be drawn as a PNG: it would have 4097 × 4096 pixels, more than the 16777216 allowed.', static fn (): string => new ResvgRasterizer([self::FONT], engine: new RecordingEngine(4097, 4096))->png($small));
+        self::assertInstanceOf(ResvgRasterizer::class, new ResvgRasterizer([self::FONT], maxBytes: 1, engine: new RecordingEngine()));
+    }
+
     public function testTheLimitsAreInRange(): void
     {
         $engine = new RecordingEngine();

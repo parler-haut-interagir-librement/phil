@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\ReportingBundle\Infrastructure\DependencyInjection;
 
+use Closure;
 use Phil\ReportingBundle\Application\Contract\ExportStore;
 use Phil\ReportingBundle\Application\Contract\JobStore;
 use Phil\ReportingBundle\Application\Contract\MetricSource;
@@ -77,9 +78,10 @@ final class ReportingServices
     public const string DELIVERY_TAG = 'phil_reporting.delivery';
 
     /**
-     * @param Config $config
+     * @param Config          $config
+     * @param Closure(): bool $pngAvailable whether the resvg extension is loaded; another answer in the tests, which run with or without it
      */
-    public static function register(ContainerBuilder $container, array $config): void
+    public static function register(ContainerBuilder $container, array $config, Closure $pngAvailable = ResvgRasterizer::isAvailable(...)): void
     {
         foreach ([
             MetricSource::class => self::METRIC_SOURCE_TAG,
@@ -105,7 +107,7 @@ final class ReportingServices
             ->setFactory([Dashboards::class, 'fromConfig'])
             ->setArguments([$config['dashboards']])
             ->setPublic(true);
-        self::png($container, $config['png']);
+        self::png($container, $config['png'], $pngAvailable());
         $container->register(ChartDrawing::class, ChartDrawing::class)
             ->setArguments([
                 $config['chart']['width'],
@@ -161,9 +163,9 @@ final class ReportingServices
      *
      * @param array{fonts: list<string>, scale: int, max_pixels: int} $png
      */
-    private static function png(ContainerBuilder $container, array $png): void
+    private static function png(ContainerBuilder $container, array $png, bool $available): void
     {
-        if ([] === $png['fonts'] || !ResvgRasterizer::isAvailable()) {
+        if ([] === $png['fonts'] || !$available) {
             return;
         }
 

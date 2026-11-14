@@ -55,17 +55,22 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
+use Symfony\Component\DependencyInjection\Extension\ConfigurationExtensionInterface;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Messenger\MessageBusInterface;
 
+/**
+ * @phpstan-import-type Config from ReportingServices
+ */
 #[CoversClass(PhilReportingBundle::class)]
 #[CoversClass(ReportingServices::class)]
 #[CoversClass(KeyedServicesPass::class)]
@@ -267,6 +272,29 @@ final class PhilReportingBundleTest extends TestCase
         self::assertFalse($this->load(['png' => ['max_pixels' => 1_000_000]])->hasDefinition(ResvgRasterizer::class));
     }
 
+    public function testThePngRasterizerIsRegisteredWhereTheExtensionIsLoadedWhateverTheTestMachine(): void
+    {
+        $font = \dirname(__DIR__).'/Fixtures/fonts/test.ttf';
+        $config = $this->processed(['png' => ['fonts' => [$font]]]);
+        self::assertSame(16_777_216, $config['png']['max_pixels']);
+
+        $loaded = new ContainerBuilder();
+        ReportingServices::register($loaded, $config, static fn (): bool => true);
+        self::assertSame([[$font], 1_048_576, 16_777_216], $loaded->getDefinition(ResvgRasterizer::class)->getArguments());
+        self::assertSame(ResvgRasterizer::class, (string) $loaded->getAlias(Rasterizer::class));
+
+        $absent = new ContainerBuilder();
+        ReportingServices::register($absent, $config, static fn (): bool => false);
+        self::assertFalse($absent->hasDefinition(ResvgRasterizer::class));
+        self::assertFalse($absent->hasAlias(Rasterizer::class));
+
+        $noFonts = new ContainerBuilder();
+        ReportingServices::register($noFonts, $this->processed([]), static fn (): bool => true);
+        self::assertFalse($noFonts->hasDefinition(ResvgRasterizer::class));
+
+        self::assertSame(1, $this->processed(['png' => ['max_pixels' => 1]])['png']['max_pixels']);
+    }
+
     public function testTheStylesheetIsMappedForAssetMapper(): void
     {
         $extension = $this->extension();
@@ -359,6 +387,22 @@ final class PhilReportingBundleTest extends TestCase
         $this->extension()->load([$config], $container);
 
         return $container;
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     *
+     * @return Config
+     */
+    private function processed(array $config): array
+    {
+        $extension = $this->extension();
+        self::assertInstanceOf(ConfigurationExtensionInterface::class, $extension);
+        $configuration = $extension->getConfiguration([], new ContainerBuilder());
+        self::assertNotNull($configuration);
+
+        /** @var Config */
+        return new Processor()->processConfiguration($configuration, [$config]);
     }
 
     private function extension(): ExtensionInterface

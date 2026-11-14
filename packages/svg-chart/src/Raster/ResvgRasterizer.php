@@ -116,7 +116,7 @@ final readonly class ResvgRasterizer implements Rasterizer
      */
     private function family(array $fontFiles): string
     {
-        $family = null;
+        $families = [];
 
         foreach ($fontFiles as $file) {
             try {
@@ -129,9 +129,9 @@ final readonly class ResvgRasterizer implements Rasterizer
                 throw InvalidRasterizer::because(\sprintf('the font file "%s" is %s, and the renderer reads TrueType and OpenType files', $file, strtoupper($font->format->value)));
             }
 
-            $family ??= $font->face()->family();
+            $families[] = $font->face()->family();
         }
 
-        return $family ?? throw InvalidRasterizer::because('at least one font file is expected');
+        return $families[0] ?? throw InvalidRasterizer::because('at least one font file is expected');
     }
 }
