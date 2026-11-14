@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3c713fa0612e0e37be80d7bd206152d31d09a1fa1cf81168ff49ac5e8c04a82f -->
+<!-- phil-dev source-sha256=c259d935a674ee1ee1975ef05513f2747175127f6a63a0bf3a1dbf0dfd886a03 -->
 # HTML en ligne
 
 UJO (Universal JSON Output) garde la mise en forme en ligne de ses textes en HTML : `Hello <b>world</b>`.
@@ -39,9 +39,9 @@ attributs, balises fermantes, commentaires) et ne réécrit que ce que le profil
 
 | Outil | Lu à partir de | Écrit comme |
 |---|---|---|
-| gras | `b`, `strong` | `<b>` |
+| gras | `strong`, l'importance forte ; `b`, le décalage stylistique — distincts | `<strong>` ; `<b>` |
 | icône | `i[data-icon]`, une référence `set:name` | `<i data-icon="fa:dragon">` |
-| italique | `i`, `em` | `<i>` |
+| italique | `em`, l'accent d'insistance ; `i`, la voix différente — distincts | `<em>` ; `<i>` |
 | souligné | `u` | `<u class="cdx-underline">` |
 | barré | `s`, `strike`, `del` | `<s class="cdx-strikethrough">` |
 | surligneur | `mark` | `<mark class="cdx-marker">` |
@@ -64,6 +64,11 @@ attributs, balises fermantes, commentaires) et ne réécrit que ce que le profil
 
 Les couleurs libres (`<font color>`, `style="color:…"`) sont déballées : une couleur est un jeton que définit
 l'apparence.
+
+Les outils gras et italique écrivent chacun deux éléments, comme HTML les distingue et comme les lisent les lecteurs
+d'écran et les moteurs de recherche : `<strong>` et `<em>` portent un sens, `<b>` et `<i>` seulement un style.
+Editor.js écrit `<b>` et `<i>` ; le HTML écrit ailleurs garde ses `<strong>` et `<em>`. Les deux outils d'une paire
+partagent leur nom, si bien que `InlineProfile::without('bold')` écarte les deux.
 
 ## Ajouter un profil ou un outil
 

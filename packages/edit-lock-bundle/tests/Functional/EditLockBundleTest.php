@@ -91,7 +91,7 @@ final class EditLockBundleTest extends WebTestCase
             'update', 'update', 'replace', 'update', 'update', 'remove', 'update', 'update',
         ], array_map(static fn (string $stream): string => (string) preg_replace('/^<turbo-stream action="([a-z]+)".*$/s', '$1', $stream), $streams));
         self::assertStringContainsString('<li data-holder="bob" data-part="b1" data-expires-in="30">Bob</li>', $streams[0]);
-        self::assertStringContainsString('data-after="b0" data-ujo="{&quot;blocks&quot;:[{&quot;id&quot;:&quot;b1&quot;,&quot;type&quot;:&quot;paragraph&quot;,&quot;data&quot;:{&quot;text&quot;:&quot;&lt;b&gt;Hi&lt;/b&gt;&quot;}}]}"', $streams[2]);
+        self::assertStringContainsString('data-after="b0" data-ujo="{&quot;blocks&quot;:[{&quot;id&quot;:&quot;b1&quot;,&quot;type&quot;:&quot;paragraph&quot;,&quot;data&quot;:{&quot;text&quot;:&quot;&lt;strong&gt;Hi&lt;/strong&gt;&quot;}}]}"', $streams[2]);
         self::assertStringContainsString('<li data-holder="ada" data-part="b1" data-expires-in="30">Ada</li>', $streams[4]);
         self::assertSame('<turbo-stream action="update" target="'.TurboStreams::presenceTarget('page:1').'"><template><ul class="phil-edit-lock-presence"></ul></template></turbo-stream>', $streams[7]);
     }

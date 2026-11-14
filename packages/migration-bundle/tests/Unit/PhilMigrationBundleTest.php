@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\MigrationBundle\Tests\Unit;
 
+use Doctrine\Migrations\AbstractMigration;
 use Doctrine\Migrations\Migrator;
 use Doctrine\Migrations\Version\MigrationFactory;
 use Phil\Migration\Announcements;
@@ -17,6 +18,7 @@ use Phil\Migration\Publisher;
 use Phil\MigrationBundle\Infrastructure\DependencyInjection\AnnouncementServices;
 use Phil\MigrationBundle\Infrastructure\DependencyInjection\AnnouncingMigrationsPass;
 use Phil\MigrationBundle\PhilMigrationBundle;
+use Phil\MigrationBundle\Tests\Functional\App\ServiceMigrations\Version20261104000200;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -46,7 +48,7 @@ final class PhilMigrationBundleTest extends TestCase
         new AnnouncingMigrationsPass()->process($container);
 
         $factory = $container->getDefinition(AnnouncingMigrationsPass::FACTORY_ID);
-        self::assertSame([AnnouncingMigrationFactory::class, ['custom.factory', null, 0]], [$factory->getClass(), $factory->getDecoratedService()]);
+        self::assertSame([AnnouncingMigrationFactory::class, ['custom.factory', null, -1]], [$factory->getClass(), $factory->getDecoratedService()]);
         self::assertEquals([new Reference(AnnouncingMigrationsPass::FACTORY_ID.'.inner'), new Reference(Announcements::class)], $factory->getArguments());
         self::assertFalse($container->hasDefinition(AnnouncingMigrationsPass::MIGRATOR_ID));
         self::assertCount(5, $container->getDefinition(AnnouncingMigrationsPass::DEPENDENCY_FACTORY)->getMethodCalls());
@@ -78,7 +80,7 @@ final class PhilMigrationBundleTest extends TestCase
         new AnnouncingMigrationsPass()->process($container);
 
         $migrator = $container->getDefinition(AnnouncingMigrationsPass::MIGRATOR_ID);
-        self::assertSame([AnnouncingMigrator::class, ['custom.migrator', null, 0]], [$migrator->getClass(), $migrator->getDecoratedService()]);
+        self::assertSame([AnnouncingMigrator::class, ['custom.migrator', null, -1]], [$migrator->getClass(), $migrator->getDecoratedService()]);
         self::assertEquals([new Reference(AnnouncingMigrationsPass::MIGRATOR_ID.'.inner'), new Reference(Announcements::class), new Reference(Announcer::class)], $migrator->getArguments());
 
         $factory = $container->getDefinition(AnnouncingMigrationsPass::FACTORY_ID);
@@ -101,6 +103,29 @@ final class PhilMigrationBundleTest extends TestCase
         self::assertEquals([Migrator::class, [new Reference(AnnouncingMigrationsPass::DEPENDENCY_FACTORY), 'getMigrator']], [$made->getClass(), $made->getFactory()]);
         self::assertSame('doctrine.migrations.migrations_factory', $container->getDefinition(AnnouncingMigrationsPass::FACTORY_ID)->getDecoratedService()[0] ?? null);
         self::assertEquals(['setDefinition', [Migrator::class, new ServiceClosureArgument(new Reference(AnnouncingMigrationsPass::MIGRATOR_ID))]], $container->getDefinition(AnnouncingMigrationsPass::DEPENDENCY_FACTORY)->getMethodCalls()[5]);
+    }
+
+    public function testTheMigrationsOfTheContainerThatAnnounceGetTheAnnouncements(): void
+    {
+        $container = $this->withDependencyFactory($this->load([]), ['doctrine.migrations.migrations_factory']);
+        $container->setParameter('migration.class', Version20261104000200::class);
+
+        $tagged = static fn (?string $class): Definition => new Definition($class)->addTag(AnnouncingMigrationsPass::MIGRATION_TAG);
+        $container->setDefinition('announcing', $tagged('%migration.class%'));
+        $container->setDefinition('announcing.already', $tagged(Version20261104000200::class)->addMethodCall('announceWith', [new Reference('custom.announcements')]));
+        $container->setDefinition('plain', $tagged(AbstractMigration::class));
+        $container->setDefinition('unknown', $tagged('Phil\\MigrationBundle\\Tests\\NoSuchMigration'));
+        $container->setDefinition('classless', $tagged(null));
+        $container->setDefinition('untagged', new Definition(Version20261104000200::class));
+
+        new AnnouncingMigrationsPass()->process($container);
+
+        self::assertEquals([['announceWith', [new Reference(Announcements::class)]]], $container->getDefinition('announcing')->getMethodCalls());
+        self::assertEquals([['announceWith', [new Reference('custom.announcements')]]], $container->getDefinition('announcing.already')->getMethodCalls());
+
+        foreach (['plain', 'unknown', 'classless', 'untagged'] as $id) {
+            self::assertSame([], $container->getDefinition($id)->getMethodCalls(), $id);
+        }
     }
 
     public function testWithoutDoctrineMigrationsNothingIsWrapped(): void

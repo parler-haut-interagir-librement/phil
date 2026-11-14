@@ -96,7 +96,7 @@ final class NormalizerTest extends UjoTestCase
     {
         $block = self::normalize('columns', ['cols' => [['blocks' => [['id' => 'h', 'type' => 'header', 'data' => ['text' => '<em>x</em>'], 'tunes' => ['alignmentTune' => ['alignment' => 'center']]]]]]]);
 
-        self::assertEquals([new Block('h', 'header', ['text' => '<i>x</i>', 'level' => 2], ['alignment' => ['alignment' => 'center']])], $block->children());
+        self::assertEquals([new Block('h', 'header', ['text' => '<em>x</em>', 'level' => 2], ['alignment' => ['alignment' => 'center']])], $block->children());
     }
 
     public function testFlatChildrenAreFoldedIntoTheirToggle(): void

@@ -61,7 +61,12 @@ final class UjoBodyConverterTest extends TestCase
         yield 'MediaWiki' => [MarkupFormat::MediaWiki, "== Ouverture ==\n\nLe site '''ouvre'''.", self::HEADING_AND_PARAGRAPH, self::HEADING_AND_PARAGRAPH_HTML];
         yield 'DokuWiki' => [MarkupFormat::DokuWiki, "===== Ouverture =====\n\nLe site **ouvre**.", self::HEADING_AND_PARAGRAPH, self::HEADING_AND_PARAGRAPH_HTML];
         yield 'Creole' => [MarkupFormat::Creole, "== Ouverture\n\nLe site **ouvre**.", self::HEADING_AND_PARAGRAPH, self::HEADING_AND_PARAGRAPH_HTML];
-        yield 'HTML, converted into blocks' => [MarkupFormat::Html, '<h2>Ouverture</h2><p>Le site <strong>ouvre</strong>.</p>', self::HEADING_AND_PARAGRAPH, self::HEADING_AND_PARAGRAPH_HTML];
+        yield 'HTML, converted into blocks' => [
+            MarkupFormat::Html,
+            '<h2>Ouverture</h2><p>Le site <strong>ouvre</strong>.</p>',
+            '{"time":1793462400123,"blocks":[{"id":"b1","type":"header","data":{"text":"Ouverture","level":2},"tunes":{"anchor":{"anchor":"ouverture"}}},{"id":"b2","type":"paragraph","data":{"text":"Le site <strong>ouvre</strong>."}}]}',
+            "<h2 id=\"ouverture\">Ouverture</h2>\n<p>Le site <strong>ouvre</strong>.</p>",
+        ];
         yield 'plain text' => [
             MarkupFormat::Text,
             "Ouverture\n\nLe site ouvre.",
@@ -74,6 +79,40 @@ final class UjoBodyConverterTest extends TestCase
             '{"time":1793462400123,"blocks":[{"id":"a","type":"paragraph","data":{"text":"Le site <b>ouvre</b>."}}]}',
             '<p>Le site <b>ouvre</b>.</p>',
         ];
+    }
+
+    /**
+     * The strong importance and the stress emphasis stay `<strong>` and `<em>` from the HTML of the draft to the UJO
+     * and to its HTML, apart from `<b>` and `<i>`; the published UJO and its HTML, published again, give them back.
+     */
+    public function testTheEmphasisKeepsItsMeaningThereAndBack(): void
+    {
+        $text = '<strong>Important</strong>, <em>vraiment</em>, <b>Le Monde</b>, <i lang="la">in situ</i>';
+        $paragraph = '{"time":1793462400123,"blocks":[{"id":"b1","type":"paragraph","data":{"text":"<strong>Important</strong>, <em>vraiment</em>, <b>Le Monde</b>, <span lang=\"la\"><i>in situ</i></span>"}}]}';
+        $html = '<p><strong>Important</strong>, <em>vraiment</em>, <b>Le Monde</b>, <span lang="la"><i>in situ</i></span></p>';
+
+        $published = $this->converter()->toUjo(Body::of('<p>'.$text.'</p>', MarkupFormat::Html, ''), $this->publishedAt());
+        self::assertSame([$paragraph, $html], [$published->source, $published->html]);
+
+        foreach ([MarkupFormat::Ujo->value => $published->source, MarkupFormat::Html->value => $published->html] as $format => $source) {
+            $again = $this->converter()->toUjo(Body::of($source, $format, ''), $this->publishedAt());
+
+            self::assertSame([$paragraph, $html], [$again->source, $again->html], $format);
+        }
+    }
+
+    /**
+     * A list of checkboxes is a checklist and a table a table: UJO has a block for each, and nothing is lost.
+     */
+    public function testCheckboxesAndTablesBecomeTheirBlocks(): void
+    {
+        $source = '<ul><li><input type="checkbox" checked> Fait</li><li><input type="checkbox"> À faire</li></ul><table><thead><tr><th>Jour</th><th>Lieu</th></tr></thead><tbody><tr><td>Samedi</td><td><strong>Salle 2</strong></td></tr></tbody></table>';
+
+        $published = $this->converter()->toUjo(Body::of($source, MarkupFormat::Html, ''), $this->publishedAt());
+
+        self::assertSame([], $this->converter()->of($source, MarkupFormat::Html));
+        self::assertSame('{"time":1793462400123,"blocks":[{"id":"b3","type":"list","data":{"style":"checklist","meta":{},"items":[{"content":"Fait","meta":{"checked":true},"items":[]},{"content":"À faire","meta":{"checked":false},"items":[]}]}},{"id":"b8","type":"table","data":{"withHeadings":true,"stretched":false,"content":[["Jour","Lieu"],["Samedi","<strong>Salle 2</strong>"]]}}]}', $published->source);
+        self::assertStringEndsWith("\n<table><thead><tr><th>Jour</th><th>Lieu</th></tr></thead><tbody><tr><td>Samedi</td><td><strong>Salle 2</strong></td></tr></tbody></table>", $published->html);
     }
 
     /**

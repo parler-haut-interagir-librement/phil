@@ -36,7 +36,7 @@ final class IntegrationTest extends ConstraintValidatorTestCase
 {
     private const string JSON = '{"blocks":[{"id":"a","type":"paragraph","data":{"text":"<strong>Hi</strong>"}},{"id":"w","type":"wide","data":{"blocks":[{"id":"q","type":"quote","data":{"text":"Q"}},{"id":"r","type":"quote","data":{"text":"R"}}]}}]}';
 
-    private const string CANONICAL = '{"blocks":[{"id":"a","type":"paragraph","data":{"text":"<b>Hi</b>"}},{"id":"w","type":"wide","data":{"blocks":[{"id":"q","type":"quote","data":{"text":"Q","caption":"","alignment":"left"}},{"id":"r","type":"quote","data":{"text":"R","caption":"","alignment":"left"}}]}}]}';
+    private const string CANONICAL = '{"blocks":[{"id":"a","type":"paragraph","data":{"text":"<strong>Hi</strong>"}},{"id":"w","type":"wide","data":{"blocks":[{"id":"q","type":"quote","data":{"text":"Q","caption":"","alignment":"left"}},{"id":"r","type":"quote","data":{"text":"R","caption":"","alignment":"left"}}]}}]}';
 
     #[Override]
     protected function createValidator(): ValidUjoValidator
@@ -184,7 +184,7 @@ final class IntegrationTest extends ConstraintValidatorTestCase
         $extension = new UjoExtension(new Ujo());
 
         self::assertSame(['', ''], [$extension->html(null), $extension->text(null)]);
-        self::assertStringStartsWith('<p class="ujo-paragraph"><b>Hi</b></p>', $extension->html(self::JSON));
+        self::assertStringStartsWith('<p class="ujo-paragraph"><strong>Hi</strong></p>', $extension->html(self::JSON));
         self::assertSame("Hi\n\nQ\n\nR", $extension->text(self::JSON));
         self::assertSame('<p class="ujo-paragraph">t</p>', $extension->html(new Document([new Block('a', 'paragraph', ['text' => 't'])])));
     }

@@ -51,6 +51,26 @@ doctrine_migrations:
 
 The same goes for a `Doctrine\Migrations\Migrator` given there.
 
+The bundle's decoration comes after the others of the same service: DoctrineMigrationsBundle decorates its own
+factory to return the migrations of the container, and the announcements are given to what that factory returns.
+
+## Migrations of the container
+
+With `enable_service_migrations`, DoctrineMigrationsBundle takes migrations from the container, tagged
+`doctrine_migrations.migration`, and those no directory lists never go through a factory. Each one that is
+`Announcing` gets the announcements as the container builds it, through a call to `announceWith()`:
+
+```yaml
+doctrine_migrations:
+    enable_service_migrations: true
+
+services:
+    App\Migrations\Version20261104000200:
+        autoconfigure: true
+```
+
+A migration whose definition already calls `announceWith()` keeps that call.
+
 ## One process, one run
 
 Doctrine Migrations freezes a migration once it ran, dry run included. Each `doctrine:migrations:migrate` runs in

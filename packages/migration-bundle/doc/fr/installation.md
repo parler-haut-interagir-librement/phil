@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7b321f637f9c50e91d093bb5dafe24acbed9b04747b4af81cec5a617d7f274fe -->
+<!-- phil-dev source-sha256=c0c3ccdda982a916751b4374660619cf7a1bb5e79ce1535ae0bb6a66f5136695 -->
 # Installation
 
 ## Prérequis
@@ -7,7 +7,7 @@
 |---|---|---|
 | PHP | 8.5 ou plus récent | |
 | `phil/migration` | ^0.1 | Les annonces, les canaux, les décorateurs |
-| `doctrine/doctrine-migrations-bundle` | ^3.7 | Les migrations, et la fabrique de dépendances qu'enveloppe le bundle |
+| `doctrine/doctrine-migrations-bundle` | ^4.0 | Les migrations, et la fabrique de dépendances qu'enveloppe le bundle |
 | `doctrine/migrations` | ^3.9 | La fabrique de migrations et le migrateur |
 | `symfony/notifier` | ^8.2 | Le chatter par lequel les canaux sont envoyés |
 | `symfony/config`, `symfony/dependency-injection` | ^8.2 | La configuration et les services |

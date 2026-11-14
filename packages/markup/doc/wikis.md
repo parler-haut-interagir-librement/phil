@@ -41,7 +41,7 @@ its name in any case, and closed by `</name>` or `<</name>>`. A value holding sp
 
 | Tag | UJO |
 |---|---|
-| `<b>`, `<strong>`, `<i>`, `<em>`, `<u>`, `<ins>`, `<s>`, `<del>`, `<strike>`, `<sup>`, `<sub>`, `<mark>`, `<tt>`, `<kbd>` | `<b>`, `<i>`, `<u>`, `<s>`, `<sup>`, `<sub>`, `<mark>`, `<code>` |
+| `<b>`, `<strong>`, `<i>`, `<em>`, `<u>`, `<ins>`, `<s>`, `<del>`, `<strike>`, `<sup>`, `<sub>`, `<mark>`, `<tt>`, `<kbd>` | `<b>`, `<strong>`, `<i>`, `<em>`, `<u>`, `<s>`, `<sup>`, `<sub>`, `<mark>`, `<code>` |
 | `<span>`, `<small>`, `<big>` | the text alone |
 | `<code>…</code>` closed on its line, `<nowiki>…</nowiki>` | `<code>`, or the text, as written |
 | `<br>`, `<br/>` | `<br>` |

@@ -27,8 +27,8 @@ final class InlineSanitizerTest extends TestCase
         yield 'text' => ['Hello', 'Hello'];
         yield 'entities' => ['a &amp; b &lt; c &eacute; &nbsp;&#39;&quot;', "a &amp; b &lt; c é \u{A0}&#039;&quot;"];
         yield 'bare characters' => ['a < b > c & d " \'', 'a &lt; b &gt; c &amp; d &quot; &#039;'];
-        yield 'bold' => ['<b>a</b><strong>b</strong>', '<b>a</b><b>b</b>'];
-        yield 'italic' => ['<i>a</i><em>b</em>', '<i>a</i><i>b</i>'];
+        yield 'bold, the strong importance and the stylistic offset kept apart' => ['<b>a</b><strong>b</strong>', '<b>a</b><strong>b</strong>'];
+        yield 'italic, the stress emphasis and the alternate voice kept apart' => ['<i>a</i><em>b</em>', '<i>a</i><em>b</em>'];
         yield 'icon' => ['<i data-icon="fa:dragon"></i><i data-icon="bad icon">x</i>', '<i data-icon="fa:dragon"></i><i>x</i>'];
         yield 'underline' => ['<u class="cdx-underline">a</u><u>b</u>', '<u class="cdx-underline">a</u><u class="cdx-underline">b</u>'];
         yield 'strikethrough' => ['<s class="cdx-strikethroughs">a</s><strike>b</strike><del>c</del>', '<s class="cdx-strikethrough">a</s><s class="cdx-strikethrough">b</s><s class="cdx-strikethrough">c</s>'];
@@ -80,7 +80,7 @@ final class InlineSanitizerTest extends TestCase
         yield 'nested same elements' => ['<b>a<b>b</b>c</b>', '<b>a<b>b</b>c</b>'];
         yield 'nested same elements, then text' => ['<b>a<b>b</b>c</b>d', '<b>a<b>b</b>c</b>d'];
         yield 'an end tag of an element already closed' => ['<b>a</b></b>c', '<b>a</b>c'];
-        yield 'unclosed elements written under another tag' => ['<strong>a<em>b', '<b>a<i>b</i></b>'];
+        yield 'unclosed elements written under another tag' => ['<strong>a<em>b', '<strong>a<em>b</em></strong>'];
         yield 'unclosed unwrapped element' => ['<span>a<b>b', 'a<b>b</b>'];
         yield 'links one after the other' => ['<a href="/a">a</a> <a href="/b">b</a>', '<a href="/a">a</a> <a href="/b">b</a>'];
         yield 'a link closed by the end of its parent' => ['<b><a href="/a">a</b><a href="/b">b</a>', '<b><a href="/a">a</a></b><a href="/b">b</a>'];
@@ -165,9 +165,9 @@ final class InlineSanitizerTest extends TestCase
         $profile = InlineProfile::rich()->without('bold', 'italic')->with(new InlineTool('emphasis', 'em', ['i', 'em']), new InlineTool('keyboard', 'kbd', ['kbd']));
         $sanitizer = new InlineSanitizer(['custom' => $profile]);
 
-        self::assertSame('a<em>b</em><kbd>c</kbd><u class="cdx-underline">d</u>', $sanitizer->sanitize('<b>a</b><i>b</i><kbd>c</kbd><u>d</u>', 'custom'));
-        self::assertSame(['bold', 'icon', 'italic', 'underline', 'strikethrough', 'marker', 'inlineCode', 'mention', 'wikiLink', 'link', 'footnoteReference', 'superscript', 'subscript', 'lineBreak', 'textColor', 'tooltip', 'annotation', 'spoiler', 'horizontalSpace', 'abbreviation', 'language', 'ruby', 'rubyText', 'rubyParenthesis', 'inlineMath'], \array_slice(array_map(static fn (InlineTool $tool): string => $tool->name, InlineProfile::rich()->tools), 0, 25));
-        self::assertCount(\count(InlineProfile::mathMl()->tools) + 24, InlineProfile::rich()->tools);
+        self::assertSame('ab<em>c</em><kbd>d</kbd><u class="cdx-underline">e</u>', $sanitizer->sanitize('<b>a</b><strong>b</strong><i>c</i><kbd>d</kbd><u>e</u>', 'custom'));
+        self::assertSame(['bold', 'bold', 'icon', 'italic', 'italic', 'underline', 'strikethrough', 'marker', 'inlineCode', 'mention', 'wikiLink', 'link', 'footnoteReference', 'superscript', 'subscript', 'lineBreak', 'textColor', 'tooltip', 'annotation', 'spoiler', 'horizontalSpace', 'abbreviation', 'language', 'ruby', 'rubyText', 'rubyParenthesis', 'inlineMath'], \array_slice(array_map(static fn (InlineTool $tool): string => $tool->name, InlineProfile::rich()->tools), 0, 27));
+        self::assertCount(\count(InlineProfile::mathMl()->tools) + 26, InlineProfile::rich()->tools);
     }
 
     public function testAToolWithinAnotherOrNeedingOneOfItsAttributes(): void
@@ -246,7 +246,7 @@ final class InlineSanitizerTest extends TestCase
         $tool = new InlineTool('keyboard', 'kbd', ['kbd']);
 
         self::assertSame([0], array_keys(InlineProfile::plain()->with(...['x' => $tool])->tools));
-        self::assertSame(range(0, \count(InlineProfile::rich()->tools) - 2), array_keys(InlineProfile::rich()->without('bold')->tools));
+        self::assertSame(range(0, \count(InlineProfile::rich()->tools) - 3), array_keys(InlineProfile::rich()->without('bold')->tools));
         self::assertTrue(false === new InlineTool('t', 't', ['bad pattern'])->accepts('bad', []) && false === new InlineTool('t', 't', ['bad pattern'])->accepts('pattern', []));
         self::assertFalse(new InlineTool('t', 'u', ["u\n"])->accepts('u', []));
     }

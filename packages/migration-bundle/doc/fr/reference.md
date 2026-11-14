@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f8cb8bd1cefbab613ef7a4dd9105960d8d373e75cee8fdc28e262fb283c02043 -->
+<!-- phil-dev source-sha256=1b9b8a177814f179d1f9db83f0f66d5937152219fd9610c40e0a08ab7eca7001 -->
 # Référence
 
 | Type | Nature | Rôle |
@@ -24,6 +24,7 @@
 | `AnnouncingMigrationsPass::DEPENDENCY_FACTORY` | `doctrine.migrations.dependency_factory` |
 | `AnnouncingMigrationsPass::FACTORY_ID` | `phil_migration.migration_factory` |
 | `AnnouncingMigrationsPass::MIGRATOR_ID` | `phil_migration.migrator` |
+| `AnnouncingMigrationsPass::MIGRATION_TAG` | `doctrine_migrations.migration`, les migrations du conteneur |
 | `AnnouncementServices::MIN_LENGTH` | `100`, le message le plus court |
 | `AnnouncementServices::CONTENTS` | `notes`, `news` |
 

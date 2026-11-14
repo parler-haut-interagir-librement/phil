@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8f47438d5ffe707c788ee6584919b841513e7c55cff8a1e9636acec645c18c72 -->
+<!-- phil-dev source-sha256=a726af1f33d2ef9575fd78850c658c0b4e348ba001ad1392c26be4cc5fd97cc7 -->
 # Les wikis
 
 `Reader\MediaWiki\MediaWikiReader`, `Reader\DokuWiki\DokuWikiReader` et `Reader\Creole\CreoleReader` lisent la syntaxe
@@ -45,7 +45,7 @@ espaces se met entre guillemets.
 
 | Balise | UJO |
 |---|---|
-| `<b>`, `<strong>`, `<i>`, `<em>`, `<u>`, `<ins>`, `<s>`, `<del>`, `<strike>`, `<sup>`, `<sub>`, `<mark>`, `<tt>`, `<kbd>` | `<b>`, `<i>`, `<u>`, `<s>`, `<sup>`, `<sub>`, `<mark>`, `<code>` |
+| `<b>`, `<strong>`, `<i>`, `<em>`, `<u>`, `<ins>`, `<s>`, `<del>`, `<strike>`, `<sup>`, `<sub>`, `<mark>`, `<tt>`, `<kbd>` | `<b>`, `<strong>`, `<i>`, `<em>`, `<u>`, `<s>`, `<sup>`, `<sub>`, `<mark>`, `<code>` |
 | `<span>`, `<small>`, `<big>` | le texte seul |
 | `<code>…</code>` fermé sur sa ligne, `<nowiki>…</nowiki>` | `<code>`, ou le texte, tel qu'écrit |
 | `<br>`, `<br/>` | `<br>` |

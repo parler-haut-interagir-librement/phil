@@ -23,6 +23,7 @@
 | `AnnouncingMigrationsPass::DEPENDENCY_FACTORY` | `doctrine.migrations.dependency_factory` |
 | `AnnouncingMigrationsPass::FACTORY_ID` | `phil_migration.migration_factory` |
 | `AnnouncingMigrationsPass::MIGRATOR_ID` | `phil_migration.migrator` |
+| `AnnouncingMigrationsPass::MIGRATION_TAG` | `doctrine_migrations.migration`, the migrations of the container |
 | `AnnouncementServices::MIN_LENGTH` | `100`, the shortest message |
 | `AnnouncementServices::CONTENTS` | `notes`, `news` |
 

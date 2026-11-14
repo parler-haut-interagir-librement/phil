@@ -8,6 +8,7 @@ use Doctrine\Migrations\Migrator;
 use Doctrine\Migrations\Version\MigrationFactory;
 use Phil\Migration\Announcements;
 use Phil\Migration\Announcer;
+use Phil\Migration\Announcing;
 use Phil\Migration\AnnouncingMigrationFactory;
 use Phil\Migration\AnnouncingMigrator;
 use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
@@ -22,6 +23,12 @@ use Symfony\Component\DependencyInjection\Reference;
  *
  * A factory or a migrator the application gave in `doctrine_migrations.services` is decorated; otherwise the one
  * Doctrine Migrations makes is wrapped, as it is built while the dependency factory resolves it.
+ *
+ * The decoration comes last, outside any other: the factory of the service migrations of DoctrineMigrationsBundle
+ * decorates the same service, and returns the migrations of the container without calling the factory it wraps.
+ *
+ * The migrations of the container (`enable_service_migrations`, tagged `doctrine_migrations.migration`) never go
+ * through a factory when no directory lists them: each `Announcing` one gets the announcements as it is built.
  */
 final readonly class AnnouncingMigrationsPass implements CompilerPassInterface
 {
@@ -30,6 +37,13 @@ final readonly class AnnouncingMigrationsPass implements CompilerPassInterface
     public const string FACTORY_ID = 'phil_migration.migration_factory';
 
     public const string MIGRATOR_ID = 'phil_migration.migrator';
+
+    public const string MIGRATION_TAG = 'doctrine_migrations.migration';
+
+    /**
+     * The priority of the decorations: below the default one, so that they wrap the decorators of the same service.
+     */
+    private const int PRIORITY = -1;
 
     public function process(ContainerBuilder $container): void
     {
@@ -42,6 +56,24 @@ final readonly class AnnouncingMigrationsPass implements CompilerPassInterface
         if ($container->hasDefinition(Announcer::class)) {
             $this->wrap($container, Migrator::class, self::MIGRATOR_ID, AnnouncingMigrator::class, 'getMigrator', [new Reference(Announcements::class), new Reference(Announcer::class)]);
         }
+
+        foreach (array_keys($container->findTaggedServiceIds(self::MIGRATION_TAG)) as $id) {
+            $this->announce($container, $container->getDefinition($id));
+        }
+    }
+
+    /**
+     * A migration of the container gets the announcements as it is built, when it announces.
+     */
+    private function announce(ContainerBuilder $container, Definition $migration): void
+    {
+        $class = $container->getParameterBag()->resolveValue($migration->getClass());
+
+        if (!\is_string($class) || true !== $container->getReflectionClass($class)?->implementsInterface(Announcing::class) || $migration->hasMethodCall('announceWith')) {
+            return;
+        }
+
+        $migration->addMethodCall('announceWith', [new Reference(Announcements::class)]);
     }
 
     /**
@@ -56,7 +88,7 @@ final readonly class AnnouncingMigrationsPass implements CompilerPassInterface
 
         if (null !== $given) {
             $container->register($id, $class)
-                ->setDecoratedService($given)
+                ->setDecoratedService($given, null, self::PRIORITY)
                 ->setArguments([new Reference($id.'.inner'), ...$arguments]);
 
             return;

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=119c5fdcf811d6042b441a1e1bcb2ed567cdb5e061a1aa52dfe55ca14f14fc35 -->
+<!-- phil-dev source-sha256=ea934ad38ad86c359ddcf07dbbc2d22f7cc425dd0927ed899237608f40205e6a -->
 # Capacités
 
 Ce qu'une ligne contient au-delà de sa dimension est déclaré par les **capacités** qu'elle implémente. Chaque capacité
@@ -224,7 +224,9 @@ Les adaptateurs par défaut sont ceux de `phil/markup`, qui les décrit :
   bloc `raw` écrit en UJO devient un paragraphe qui montre son HTML comme du texte. Le `time` du document est fixé au
   moment de la publication, en millisecondes depuis l'époque Unix ; l'encodeur de `phil/ujo` l'écrit en JSON, et ce
   JSON est compilé et purifié. HTML et texte brut, que le brouillon compile tels qu'ils sont écrits, sont convertis en
-  blocs par leurs lecteurs ; ce pour quoi UJO n'a pas de bloc est écarté.
+  blocs par leurs lecteurs ; ce pour quoi UJO n'a pas de bloc est écarté. L'emphase garde son sens en chemin :
+  `<strong>` et `<em>` restent `<strong>` et `<em>`, distincts de `<b>` et `<i>` ; une liste de cases à cocher devient
+  un bloc `list` au style `checklist`, et un tableau un bloc `table`.
 - **Le HTML brut, pour les auteurs d'un rôle de confiance seulement.** Avec
   [`raw_html_role`](configuration.md#raw_html_role) défini, **le rôle est vérifié sur l'auteur de chaque révision,
   jamais sur le publieur** : `BodyDataMapper` retient sur le corps (`Body::$rawHtml`, la colonne `body_raw_html`) si le

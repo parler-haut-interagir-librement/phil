@@ -213,7 +213,9 @@ The default adapters are `phil/markup`'s, which describes them:
   UJO becomes a paragraph showing its HTML as text —; the document's `time` is set to the moment of the publication,
   in milliseconds since the Unix epoch; `phil/ujo`'s encoder writes it as JSON, and that JSON is compiled and
   purified. HTML and plain text, which the draft compiles as written, are converted into blocks by their readers;
-  what UJO has no block for is dropped.
+  what UJO has no block for is dropped. The emphasis keeps its meaning on the way: `<strong>` and `<em>` stay
+  `<strong>` and `<em>`, apart from `<b>` and `<i>`; a list of checkboxes becomes a `list` block in the `checklist`
+  style, and a table a `table` block.
 - **Raw HTML, for the authors of a trusted role only.** With [`raw_html_role`](configuration.md#raw_html_role) set,
   **the role is checked on the author of each revision, never on the publisher**: `BodyDataMapper` records on the body
   (`Body::$rawHtml`, the column `body_raw_html`) whether the editor who writes a new source or a new format holds it,
