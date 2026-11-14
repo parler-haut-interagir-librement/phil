@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=27b4985eb34c0f8afb32e9f8217f9447add00f023f4611f1f8fddcc41464a176 -->
+<!-- phil-dev source-sha256=39b9b45b6cdf5f0f73ffb0e859b2614f82396f71bc229e94609bee0d69c4a1e9 -->
 # Points d'extension
 
 ## `ShareMetadataSource`
@@ -19,6 +19,12 @@ empreinte ; l'alias pointe vers `DirectoryCardRequestStore`.
 |---|---|
 | `save(string $fingerprint, CardRequest $request): bool` | Garde la demande ; indique si elle n'était pas encore gardée |
 | `find(string $fingerprint): ?CardRequest` | La demande, ou null |
+
+## `CardRenderer`
+
+`Phil\SocialCards\Contract\CardRenderer` — dessine les cartes ; l'alias pointe vers `GdCardRenderer`, ou vers
+`ImagickCardRenderer` avec `cards.renderer: imagick`. Un moteur de rendu d'une autre bibliothèque remplace l'alias ; sa
+`version()` entre dans chaque empreinte.
 
 ## `CardQueue`
 

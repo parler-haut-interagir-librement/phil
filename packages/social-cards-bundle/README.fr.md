@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a166b1df26fb1ed9dd7f5b66819f032f4fd0afca0849312b07a5cf1bdb085267 -->
+<!-- phil-dev source-sha256=cd75b4baea08029b2890603194f5efaf652fd37de14118ff65e64f86d854a504 -->
 # phil/social-cards-bundle
 
 **Les balises de partage et la carte de chaque page d'un site Symfony, des aperçus sûrs des liens vers d'autres
@@ -30,8 +30,9 @@ phil/http-cache-tags-bundle étiquette les cartes servies pour une purge.
 |---|---|
 | `social_meta()`, `social_page()`, `SharePage`, les sources | Implémenté et testé |
 | Les cartes, leur route, leur stockage et leur worker | Implémenté et testé |
+| `cards.renderer: imagick`, les cartes dessinées par ImageMagick | Implémenté ; testé là où `ext-imagick` est installée |
 | Le récupérateur protégé, `LinkPreviews` et le composant `LinkPreview` | Implémenté et testé |
-| Les liens collés : `LinkPreviews::firstIn()`, le point de terminaison et le contrôleur `link-preview` | Implémenté et testé |
+| Les liens collés : `LinkPreviews::firstIn()` et `forMessage()`, le point de terminaison et le contrôleur `link-preview` | Implémenté et testé |
 | `phil:social-cards:check` | Implémenté et testé |
 
 ## Documentation
@@ -74,7 +75,7 @@ phil_social_cards:
 ## Prérequis
 
 PHP 8.5 ou plus récent avec GD, Symfony 8.2 ou plus récent, Twig 3.21 ou plus récent, `phil/social-cards` et
-`phil/safe-http`. Messenger, la console, le limiteur de débit, Symfony UX Twig Component et le StimulusBundle sont
+`phil/safe-http`. Messenger, la console, le limiteur de débit, Symfony UX Twig Component, le StimulusBundle et `ext-imagick` sont
 facultatifs.
 
 ## Contribuer

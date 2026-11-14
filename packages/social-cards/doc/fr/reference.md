@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=719c49613535542016f1942960b4848ff96c59d30b5786340ea630df251ad3d0 -->
+<!-- phil-dev source-sha256=813340431a3841a4dd171bf21afefc0ce4c78f359cf561d02cef0827c0dafea1 -->
 # Référence
 
 | Type | Sorte | Rôle |
@@ -21,6 +21,9 @@
 | `Phil\SocialCards\Card\FittedText` | `final readonly class` | Les lignes d'un texte ajusté et leur taille |
 | `Phil\SocialCards\Card\GdCardRenderer` | `final readonly class` | Le dessin avec GD et FreeType |
 | `Phil\SocialCards\Card\GdTextMeasure` | `final class` | La mesure du texte avec GD |
+| `Phil\SocialCards\Card\ImagickCardRenderer` | `final readonly class` | Le dessin avec ImageMagick, le texte mis en forme par libraqm quand ImageMagick l'a ; `shapes()` |
+| `Phil\SocialCards\Card\ImagickTextMeasure` | `final class` | La mesure du texte avec ImageMagick |
+| `Phil\SocialCards\Card\TextDirection` | enum | La direction de base d'un texte, d'après sa première lettre d'une direction forte |
 | `Phil\SocialCards\Card\CardGenerator` | `final readonly class` | Chaque carte dessinée une fois, sous son empreinte |
 | `Phil\SocialCards\Card\GeneratedCard` | `final readonly class` | Une empreinte et son PNG |
 | `Phil\SocialCards\Card\Fingerprint` | `final class` | La règle d'une empreinte |
@@ -39,4 +42,4 @@
 | `Phil\SocialCards\Exception\SocialCardsException` | interface | Chaque exception de la bibliothèque |
 | `Phil\SocialCards\Exception\InvalidShareMetadata` | `final class` | Des métadonnées de partage que les balises ne peuvent pas porter |
 | `Phil\SocialCards\Exception\InvalidCardTemplate` | `final class` | Un gabarit ou une carte qui ne peut pas être dessiné |
-| `Phil\SocialCards\Exception\CardRenderingFailed` | `final class` | GD ou un stockage a échoué |
+| `Phil\SocialCards\Exception\CardRenderingFailed` | `final class` | GD, ImageMagick ou un stockage a échoué |

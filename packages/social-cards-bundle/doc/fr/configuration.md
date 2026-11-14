@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=77c8bd7968610b4732596f75b13ede4b1f014d3434d40907248aa10006b5b9aa -->
+<!-- phil-dev source-sha256=ed689d8693b6ce2aee66937d897ea5378060e30f01894fe2ad80d629deff58a5 -->
 # Configuration
 
 ```yaml
@@ -14,6 +14,7 @@ phil_social_cards:
         directory: '%kernel.project_dir%/var/social-cards'
         cache_max_age: 31536000
         async: true
+        renderer: gd                      # gd, or imagick for Arabic, Hebrew and the scripts of India
         default_template: default
         templates:
             default:
@@ -42,6 +43,7 @@ phil_social_cards:
 | `cards.directory` | `%kernel.project_dir%/var/social-cards` | Les cartes et leurs demandes ; partagé par les serveurs Web et les workers |
 | `cards.cache_max_age` | 31 536 000 | Des secondes, 0 ou plus |
 | `cards.async` | true | Les cartes sont dessinées par un worker quand `messenger.default_bus` existe |
+| `cards.renderer` | `gd` | `gd`, `GdCardRenderer`, ou `imagick`, `ImagickCardRenderer`, qui a besoin de `ext-imagick` quand le conteneur est construit ; le service `Phil\SocialCards\Contract\CardRenderer` |
 | `cards.default_template` | `default` | Doit être parmi les gabarits dès qu'on en déclare un |
 | `cards.templates` | aucun | Les clés de `CardTemplate::KEYS` : `title_font` obligatoire, couleurs en hexadécimal, tailles en entiers |
 | `preview.enabled` | true | Le client, le récupérateur, les aperçus, le point de terminaison, le composant et la commande |

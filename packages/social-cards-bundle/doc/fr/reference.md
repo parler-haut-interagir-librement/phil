@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2474e74a0b39c268b812213710f0b0e4c4af98f8c1ba622fc47023aa1a92e741 -->
+<!-- phil-dev source-sha256=3ea9f02e40574afb9b85bdd83a95107cf13150f98a11f6e1cb8d026f2f882ddc -->
 # Référence
 
 | Type | Genre | Rôle |
@@ -13,7 +13,7 @@
 | `Phil\SocialCardsBundle\Application\SocialCards` | `final readonly class` | L'empreinte et l'image de la carte d'une page |
 | `Phil\SocialCardsBundle\Application\Contract\PageFetcher` | interface | L'en-tête d'une page d'un autre site |
 | `Phil\SocialCardsBundle\Application\FetchedPage` | `final readonly class` | Une page récupérée |
-| `Phil\SocialCardsBundle\Application\LinkPreviews` | `final readonly class` | Les aperçus, en cache |
+| `Phil\SocialCardsBundle\Application\LinkPreviews` | `final readonly class` | Les aperçus, en cache ; le premier lien d'un texte, et l'aperçu que garde un message |
 | `Phil\SocialCardsBundle\Application\Exception\UnknownCardTemplate` | `final class` | Un gabarit que la configuration ne déclare pas |
 | `Phil\SocialCardsBundle\Infrastructure\Http\ShareMetadataFactory` | `final readonly class` | Les quatre couches des métadonnées d'une page |
 | `Phil\SocialCardsBundle\Infrastructure\Http\SocialCardController` | `final readonly class` | `/social-cards/{fingerprint}.png` |
