@@ -1,0 +1,75 @@
+{#-
+ # A "coming soon" page: the logo at the top of one column, the eyebrow, the animated headline and the paragraphs
+ # centred below it, and an illustration filling the other column; stacked on small screens.
+ #}
+{%- props
+    ## string The logo image, PNG or SVG; "{theme}" and "{locale}" in it are replaced.
+    logoSrc,
+    ## string The text alternative of the logo, the name it writes.
+    logoAlt,
+    ## string The label above the headline, such as "Coming soon".
+    eyebrow,
+    ## list<string>|string The word, or the words to cycle through, of the headline.
+    words,
+    ## string|null The WebP source of the logo.
+    logoWebp = null,
+    ## string|null A link around the logo.
+    logoHref = null,
+    ## string|null The theme written in place of "{theme}" in the logo's sources.
+    theme = null,
+    ## string|null The locale written in place of "{locale}" in the logo's sources.
+    locale = null,
+    ## string|null Static text before the words of the headline.
+    headlineText = null,
+    ## list<string> Paragraphs under the headline, each escaped.
+    paragraphs = [],
+    ## list<string|array<string,mixed>>|string The illustrations to choose from; none leaves the column out.
+    illustrations = [],
+    ## string The text alternative of an illustration that has none; an empty string for a decorative one.
+    illustrationAlt = '',
+    ## int|null The seed of the illustration's choice; null draws one at random.
+    seed = null,
+    ## bool Whether the column is written as header and main landmarks; false when the page's layout has them.
+    landmarks = true,
+    ## int|null The width of the logo, to reserve its space before it loads.
+    logoWidth = null,
+    ## int|null The height of the logo, to reserve its space before it loads.
+    logoHeight = null,
+    ## bool Whether the logo is the main image of the page: fetched first and preloaded through Symfony WebLink.
+    logoPriority = false,
+    ## string|null How the logo fills its container, as for Image: "fixed", "constrained" or "full-width".
+    logoLayout = null,
+    ## string|null The ratio of the logo's box, as for Image.
+    logoAspect = null,
+    ## string|null How the logo fills its box, "cover" or "contain".
+    logoFit = null,
+    ## string|null Where the logo is cropped in its box.
+    logoPosition = null,
+    ## string How the illustration loads: "lazy" by default, "eager" when it shows above the fold at once.
+    illustrationLoading = 'lazy'
+-%}
+{%- set _top = landmarks ? 'header' : 'div' -%}
+{%- set _body = landmarks ? 'main' : 'div' -%}
+<div data-slot="coming-soon"{{ attributes.defaults({class: 'grid min-h-svh grid-cols-1 bg-background text-foreground md:grid-cols-2'}) }}>
+    <div class="flex flex-col gap-4 p-6 md:p-10">
+        <{{ _top }}>
+            <twig:Logo :src="logoSrc" :alt="logoAlt" :webp="logoWebp" :href="logoHref" :theme="theme" :locale="locale" :width="logoWidth" :height="logoHeight" :priority="logoPriority" :layout="logoLayout" :aspect="logoAspect" :fit="logoFit" :position="logoPosition" />
+        </{{ _top }}>
+        <{{ _body }} class="grid flex-1 place-items-center">
+            <div class="max-w-[36ch]">
+                <hgroup class="mb-4">
+                    <p class="mb-1 text-sm font-medium text-muted-foreground">{{ eyebrow }}</p>
+                    <twig:AnimatedHeadline :words="words" :text="headlineText" />
+                </hgroup>
+                {%- for paragraph in paragraphs %}
+                <p class="mt-4 leading-7">{{ paragraph }}</p>
+                {%- endfor %}
+                {##- More content under the paragraphs: a translated text with markup, a form, links. -#}
+                {%- block content %}{% endblock -%}
+            </div>
+        </{{ _body }}>
+    </div>
+    {%- if illustrations is not empty %}
+    <twig:Illustration class="relative min-h-[40vh] overflow-hidden md:min-h-0 [&_img]:absolute [&_img]:inset-0 [&_img]:size-full [&_img]:object-cover motion-safe:md:animate-in motion-safe:md:fade-in motion-safe:md:slide-in-from-end-8 motion-safe:md:duration-700" :candidates="illustrations" :alt="illustrationAlt" :seed="seed" :loading="illustrationLoading" />
+    {%- endif %}
+</div>

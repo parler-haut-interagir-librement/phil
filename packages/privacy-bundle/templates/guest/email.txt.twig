@@ -1,0 +1,11 @@
+{% autoescape false %}
+{% block subject %}{{ ('guest.email.subject.' ~ kind)|trans({}, 'phil_privacy') }}{% endblock %}
+
+{{ ('guest.email.intro.' ~ kind)|trans({}, 'phil_privacy') }}
+
+{{ link }}
+
+{{ 'guest.email.expiry'|trans({'%date%': expires_at|date('Y-m-d H:i', 'UTC')}, 'phil_privacy') }}
+
+{{ 'guest.email.ignore'|trans({}, 'phil_privacy') }}
+{% endautoescape %}

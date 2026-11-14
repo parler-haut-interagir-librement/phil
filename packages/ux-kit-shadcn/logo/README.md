@@ -1,0 +1,89 @@
+# Logo
+
+A logo: a `Picture` of the `image` recipe, with an AVIF source then a WebP one when it has them, each a URL or a map
+of densities, its variant for forced colours, its variant for a dark system and its still image where motion is
+reduced, linked to the home page when it has an `href`.
+`{theme}` and `{locale}` in its sources are replaced, so one line serves the logo of every theme and language.
+
+```twig {"preview":true}
+<twig:Logo src="/images/logo.png" webp="/images/logo.webp" alt="Studio" href="/" />
+```
+
+## Installation
+
+::: installation
+
+## Usage
+
+```twig
+<twig:Logo src="{{ asset('images/logo.svg') }}" alt="Studio" />
+```
+
+## Examples
+
+### By density
+
+```twig
+<twig:Logo
+    src="/images/1x/logo.png"
+    :srcset="{1: '/images/1x/logo.png', 2: '/images/2x/logo.png'}"
+    :avif="{1: '/images/1x/logo.avif', 2: '/images/2x/logo.avif'}"
+    :webp="{1: '/images/1x/logo.webp', 2: '/images/2x/logo.webp'}"
+    alt="Studio"
+    :width="160"
+    :height="40"
+/>
+```
+
+### By theme
+
+The theme the page was given picks the logo drawn for its background.
+
+```twig
+<twig:Logo src="/images/logo-{theme}.svg" alt="Studio" :theme="theme" />
+```
+
+### For a dark system
+
+`dark` is offered where the system is dark, `still` where the reader reduces motion, before the other sources; each a
+URL or a map of densities, its placeholders replaced.
+
+```twig
+<twig:Logo src="/images/logo.png" :dark="{1: '/images/logo-dark.png', 2: '/images/logo-dark@2x.png'}" alt="Studio" />
+<twig:Logo src="/images/logo.gif" still="/images/logo.png" alt="Studio" />
+```
+
+### Where colours are forced
+
+`forced` is offered first where the reader's system forces its colours, `forced-colors: active`, as Windows does in its
+contrast themes: a logo drawn in dark lines on a transparent ground vanishes on a dark system background, which the
+browser does not repaint in an image. Draw the variant so that it reads on both, or as an SVG in `currentColor`.
+
+```twig
+<twig:Logo src="/images/logo.png" forced="/images/logo-outlined.png" alt="Studio" />
+```
+
+### The main image of the page
+
+`priority` preloads the logo through Symfony WebLink and fetches it first, as for `Picture`; `layout`, `aspect`, `fit`
+and `position` lay it out as for `Image`.
+
+```twig
+<twig:Logo src="/images/logo.png" webp="/images/logo.webp" alt="Studio" :width="160" :height="40" :priority="true" />
+```
+
+### By language
+
+A logo that writes a translated name.
+
+```twig
+<twig:Logo src="/images/logo-{locale}.svg" alt="{{ 'site.name'|trans }}" :locale="app.request.locale" />
+```
+
+With an asset versioning strategy, resolve each variant with `asset()` instead, as the placeholders are replaced after
+the URL is built.
+
+## Accessibility
+
+`alt` is required: the logo's text alternative is the name it writes. It is empty only when that name is written next
+to the logo, so that screen readers do not read it twice. Give `width` and `height` to reserve the logo's space.

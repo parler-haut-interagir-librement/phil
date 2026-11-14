@@ -1,0 +1,13 @@
+{
+    "name": "@phil/ux-kit-shadcn-browser-tests",
+    "private": true,
+    "description": "The Tailwind the browser tests of the kit compile their stylesheet with, the Stimulus of their page, and axe-core, which audits its images: for these tests alone, outside what the kit publishes.",
+    "license": "MIT",
+    "devDependencies": {
+        "@hotwired/stimulus": "3.2.2",
+        "@tailwindcss/cli": "4.3.5",
+        "axe-core": "4.14.0",
+        "tailwindcss": "4.3.5",
+        "tw-animate-css": "1.4.0"
+    }
+}

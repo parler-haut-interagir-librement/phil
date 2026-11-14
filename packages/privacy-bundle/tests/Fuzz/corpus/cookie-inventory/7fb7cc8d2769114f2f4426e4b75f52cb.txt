@@ -1,0 +1,1 @@
+{"analytics":{"_pd.*":{"purpose":{"en":"Vi","fr":"Visites"},"duration":"P6M","provider":"Matomo"}},"videos":{"yt":{"purpose":"Playr","duration":"session","storage":"local_storage"}}}

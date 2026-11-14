@@ -1,0 +1,6 @@
+# The cookie inventory of the test application: what each consent category writes.
+analytics:
+    _visit:
+        purpose: { en: Counts visits, fr: Compte les visites }
+        duration: P13M
+        provider: A measurement service

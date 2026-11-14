@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2260389a8adc2bdacec5fece7df45aeb7d7cd41a36b37e154a4d64471f11f32a -->
+<!-- phil-dev source-sha256=68b703ff09aea0daa74c6de180d24b7b62ab2fd58d9077d9441eaf43c09d60fc -->
 # PHIL
 
 **Parler Haut, Interagir Librement : des bibliothèques PHP et des bundles Symfony ouverts pour les sites qui publient,
@@ -29,6 +29,9 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/ddd-bundle`](https://github.com/parler-haut-interagir-librement/ddd-bundle) | Les quelques types que partagent tous les contextes délimités : identifiants, événements du domaine, erreurs, bus de commandes et de requêtes. |
 | [`phil/references-bundle`](https://github.com/parler-haut-interagir-librement/references-bundle) | Sachez où chaque ressource est utilisée, et refusez d'en supprimer une dont quelque chose a encore besoin. |
 | [`phil/trash-bundle`](https://github.com/parler-haut-interagir-librement/trash-bundle) | Une corbeille pour les pages et les autres ressources supprimées : restaurez-les, ou purgez-les après un délai fixé. |
+| [`phil/tenancy-bundle`](https://github.com/parler-haut-interagir-librement/tenancy-bundle) | Le locataire actif d'une application multilocataire : résolu par le compte ou l'hôte, gardé par un filtre Doctrine fermé par défaut, porté par Messenger, les sessions, le courriel et les caches. |
+| [`phil/tenancy-database-bundle`](https://github.com/parler-haut-interagir-librement/tenancy-database-bundle) | Une base par locataire, ou la base commune : la connexion suit le locataire, les migrations passent base par base, et un locataire change de base, vérifié et réversible. |
+| [`phil/settings-bundle`](https://github.com/parler-haut-interagir-librement/settings-bundle) | Des réglages que chacun change lui-même : déclarés par les paquets, lus typés avec leur défaut, un centre de préférences, des réglages du site et des préférences d'affichage appliquées à la page. |
 
 ### Texte et documents
 
@@ -75,6 +78,9 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/passwords`](https://github.com/parler-haut-interagir-librement/passwords) | Dites aux gens à quel point leur mot de passe se devine, refusez ceux qui ont déjà fui et donnez-leur-en de bons. |
 | [`phil/upload-scan`](https://github.com/parler-haut-interagir-librement/upload-scan) | Chaque fichier téléversé passe par un antivirus avant que quiconque puisse l'ouvrir. |
 | [`phil/forms-autosave`](https://github.com/parler-haut-interagir-librement/forms-autosave) | La saisie d'un formulaire gardée pendant qu'on le remplit, rendue après un rechargement, oubliée une fois envoyée. |
+| [`phil/form-logic`](https://github.com/parler-haut-interagir-librement/form-logic) | Une logique conditionnelle typée pour les formulaires, évaluée pareil en PHP et dans un contrôleur Stimulus, le serveur ayant le dernier mot, en sous-ensemble strict de JsonLogic. |
+| [`phil/forms-bundle`](https://github.com/parler-haut-interagir-librement/forms-bundle) | Des formulaires définis en base : une page pour chacun, protégée du pourriel, des questions posées sous condition, des réponses gardées le temps nécessaire, envoyées par courriel ou à un webhook signé. |
+| [`phil/upload-scan-bundle`](https://github.com/parler-haut-interagir-librement/upload-scan-bundle) | Les téléversements passés à l'antivirus dans Symfony : une contrainte, une quarantaine hors de la racine web, une page d'administration, des analyses sur un worker et un contrôle de santé. |
 
 ### Argent, téléphones et dates
 
@@ -140,6 +146,12 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/community-notes`](https://github.com/parler-haut-interagir-librement/community-notes) | Des notes communautaires écrites par des membres qualifiés et publiées par une règle d'accord croisé explicable. |
 | [`phil/poll-bundle`](https://github.com/parler-haut-interagir-librement/poll-bundle) | Scrutins et bulletins dans Symfony : bulletins anonymes modifiés par reçu, et vote unique transférable par la méthode de Meek avec ses tours. |
 | [`phil/stockroom`](https://github.com/parler-haut-interagir-librement/stockroom) | Un magasin d'accessoires : contenants imbriqués, objets comptés ou suivis un à un, journal de chaque mouvement, listes de chargement vérifiées au retour. |
+| [`phil/notifications-bundle`](https://github.com/parler-haut-interagir-librement/notifications-bundle) | Des notifications sur Symfony Notifier, remises sur les canaux que chacun a choisis : centre de notifications et toasts, courriel et son résumé, Web Push, Slack ou Discord. |
+| [`phil/mentions-bundle`](https://github.com/parler-haut-interagir-librement/mentions-bundle) | Des @mentions de membres en texte, en Markdown et dans les documents UJO, seuls les nouveaux mentionnés qui peuvent voir le contenu étant avisés, avec une autocomplétion. |
+| [`phil/onboarding-bundle`](https://github.com/parler-haut-interagir-librement/onboarding-bundle) | L'accueil d'un nouveau membre : des parcours d'étapes ordonnées, la progression de chacun, une liste de contrôle et une visite guidée accessibles. |
+| [`phil/open-badges-bundle`](https://github.com/parler-haut-interagir-librement/open-badges-bundle) | Open Badges dans Symfony : l'émetteur et sa clé par la configuration, son profil, ses clés et ses listes de statut servis, et une page de vérification des jetons, documents et images. |
+| [`phil/certificates-bundle`](https://github.com/parler-haut-interagir-librement/certificates-bundle) | Des attestations de réussite sur Open Badges : cours et critères, attestation PDF avec code QR de vérification et justificatif signé, registre public et révocation. |
+| [`phil/stockroom-bundle`](https://github.com/parler-haut-interagir-librement/stockroom-bundle) | Le magasin d'accessoires dans Symfony : contenants, objets, journal et listes de chargement dans des tables Doctrine DBAL, mouvements dans une transaction qui verrouille les objets. |
 
 ### Impression et produits
 
@@ -194,6 +206,9 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/access-bundle`](https://github.com/parler-haut-interagir-librement/access-bundle) | Visibilité par élément, niveaux de partage qui expirent seuls, groupes d'accès et « voir comme ce membre » journalisé, décidés par des voteurs Symfony. |
 | [`phil/access-codes`](https://github.com/parler-haut-interagir-librement/access-codes) | Codes à usage unique par lots nommés, remis une seule fois et gardés en empreintes à clé, rachetés de façon atomique, essais bornés par un limiteur. |
 | [`phil/access-links`](https://github.com/parler-haut-interagir-librement/access-links) | Invitations par lien personnel : jeton gardé en empreinte à clé, réponse modifiable jusqu'à la clôture, rappels aux seuls non-répondants. |
+| [`phil/privacy-bundle`](https://github.com/parler-haut-interagir-librement/privacy-bundle) | Les lois sur la vie privée en code : champs personnels déclarés, journaux expurgés, export et effacement, purges de conservation, consentement aux témoins refusé par défaut, demandes par lien vérifié et copies de base anonymisées. |
+| [`phil/audit-bundle`](https://github.com/parler-haut-interagir-librement/audit-bundle) | Un journal d'audit en ajout seul : lignes chaînées par empreinte, indexées par acteur, action et enregistrement, engagements salés sur les champs personnels et ancrages externes. |
+| [`phil/audit-viewer`](https://github.com/parler-haut-interagir-librement/audit-viewer) | Le journal d'audit lu dans EasyAdmin : filtres, historique d'un enregistrement, état de chaque chaîne et export CSV journalisé. |
 
 ### PHIL UX
 
@@ -203,6 +218,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/ux-kit`](https://github.com/parler-haut-interagir-librement/ux-kit) | Le kit PHIL UX du Symfony UX Toolkit : les recettes du kit Shadcn, habillées par phil-ux, copiées par `ux:install`. |
 | [`phil/ux-bundle`](https://github.com/parler-haut-interagir-librement/ux-bundle) | Le thème de formulaire PHIL UX sur chaque formulaire d'une application Symfony, et la feuille de `phil/ux-css` dans AssetMapper. |
 | [`phil/ux-easyadmin-bundle`](https://github.com/parler-haut-interagir-librement/ux-easyadmin-bundle) | L'administration EasyAdmin aux couleurs, coins et polices des jetons de phil-ux, en clair et en sombre. |
+| [`phil/ux-kit-shadcn`](https://github.com/parler-haut-interagir-librement/ux-kit-shadcn) | Les versions Tailwind, dans le style du kit Shadcn, des recettes de plus de PHIL UX, sous les mêmes noms et props, copiées par `ux:install`. |
 
 ### Intégrations
 
@@ -235,6 +251,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/incident-mode`](https://github.com/parler-haut-interagir-librement/incident-mode) | Un mode incident : des préréglages qui suspendent inscriptions, invitations ou messages pour une durée obligatoire, levés automatiquement. |
 | [`phil/status-page-bundle`](https://github.com/parler-haut-interagir-librement/status-page-bundle) | Une page d'état des services en HTML, JSON et Atom sans script, et un instantané statique poussé hors de l'infrastructure surveillée. |
 | [`phil/error-tracking`](https://github.com/parler-haut-interagir-librement/error-tracking) | Le suivi des erreurs gardé chez soi : événements groupés par empreinte stable, purgés des données personnelles et des secrets avant toute écriture. |
+| [`phil/data-table-bundle`](https://github.com/parler-haut-interagir-librement/data-table-bundle) | Des tableaux de données en Live Component : tri, filtres, pagination, actions par ligne et en lot, édition sur place, et le même état dans l'adresse sans JavaScript. |
 
 Tous les paquets sont en `0.x` : leur API peut encore changer d'une version mineure à l'autre, comme le consigne leur
 CHANGELOG. D'autres paquets rejoignent la vitrine par petits groupes quotidiens.

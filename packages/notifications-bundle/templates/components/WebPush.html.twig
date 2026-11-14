@@ -1,0 +1,21 @@
+{# The Web Push button: hidden until the Stimulus controller finds that this browser can receive notifications. #}
+{% if this.visible %}
+    <div{{ attributes.defaults({
+        class: 'phil-notifications-push',
+        hidden: true,
+        'data-controller': 'phil--notifications-bundle--web-push',
+        'data-phil--notifications-bundle--web-push-config-value': this.config|merge({messages: {
+            on: 'push.on'|trans({}, 'phil_notifications'),
+            off: 'push.off'|trans({}, 'phil_notifications'),
+            denied: 'push.denied'|trans({}, 'phil_notifications'),
+            failed: 'push.failed'|trans({}, 'phil_notifications'),
+        }})|json_encode,
+    }) }}>
+        <button type="button" class="phil-notifications-push__button" aria-pressed="false"
+                data-phil--notifications-bundle--web-push-target="button"
+                data-action="phil--notifications-bundle--web-push#toggle">
+            {{- 'push.label'|trans({}, 'phil_notifications') -}}
+        </button>
+        <p class="phil-notifications-push__status" role="status" data-phil--notifications-bundle--web-push-target="status"></p>
+    </div>
+{% endif %}

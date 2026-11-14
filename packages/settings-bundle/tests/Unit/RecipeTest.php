@@ -1,0 +1,47 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Phil\SettingsBundle\Tests\Unit;
+
+use Phil\SettingsBundle\PhilSettingsBundle;
+use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\Config\Definition\Processor;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Extension\ConfigurationExtensionInterface;
+use Symfony\Component\Yaml\Yaml;
+
+/**
+ * The Flex recipe: it registers the bundle, gives the site's settings to the administrators and imports the preferences and the site's pages; the configuration it writes is one the bundle accepts.
+ */
+#[CoversNothing]
+final class RecipeTest extends TestCase
+{
+    private const string RECIPE = __DIR__.'/../../recipe/0.1';
+
+    public function testTheRecipeRegistersTheBundleAndCopiesItsFiles(): void
+    {
+        $manifest = json_decode((string) file_get_contents(self::RECIPE.'/manifest.json'), true, flags: \JSON_THROW_ON_ERROR);
+
+        self::assertSame(['bundles' => [PhilSettingsBundle::class => ['all']], 'copy-from-recipe' => ['config/' => '%CONFIG_DIR%/']], $manifest);
+        self::assertSame(['phil_settings' => ['resource' => '@PhilSettingsBundle/config/routes.php', 'prefix' => '/preferences'], 'phil_settings_site' => ['resource' => '@PhilSettingsBundle/config/routes/site.php', 'prefix' => '/admin/settings']], Yaml::parseFile(self::RECIPE.'/config/routes/phil_settings.yaml'));
+        self::assertFileExists(\dirname(__DIR__, 2).'/config/routes.php');
+        self::assertFileExists(\dirname(__DIR__, 2).'/config/routes/site.php');
+    }
+
+    public function testTheBundleAcceptsTheConfigurationOfTheRecipe(): void
+    {
+        $config = Yaml::parseFile(self::RECIPE.'/config/packages/phil_settings.yaml');
+        self::assertIsArray($config);
+        self::assertSame(['phil_settings'], array_keys($config));
+
+        $extension = new PhilSettingsBundle()->getContainerExtension();
+        self::assertInstanceOf(ConfigurationExtensionInterface::class, $extension);
+        $configuration = $extension->getConfiguration([], new ContainerBuilder());
+        self::assertInstanceOf(ConfigurationInterface::class, $configuration);
+
+        self::assertIsArray(new Processor()->processConfiguration($configuration, [$config['phil_settings']]));
+    }
+}

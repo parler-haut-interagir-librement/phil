@@ -1,0 +1,24 @@
+{
+    "name": "@phil/form-logic",
+    "description": "The logic controller: a form's fields shown and hidden as it is filled, and its computed variables shown, by the same JsonLogic subset the server judges with",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/logic_controller.js",
+    "symfony": {
+        "controllers": {
+            "logic": {
+                "main": "src/logic_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

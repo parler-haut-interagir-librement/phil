@@ -1,0 +1,1 @@
+{"an5s":{"_j":{"purpose":{"en":"Visits","fr":"Visites"},"duration":"P1r","duration":"session","storage":"local_storage"}}}

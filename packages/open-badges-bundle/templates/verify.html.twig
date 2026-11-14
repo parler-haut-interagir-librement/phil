@@ -1,0 +1,64 @@
+{#
+    The verification page. An application gives its own layout through phil_open_badges.verification.layout; the
+    layout defines the "title" and "content" blocks.
+#}
+{% extends layout %}
+
+{% trans_default_domain 'phil_open_badges' %}
+
+{% block title %}{{ 'verify.title'|trans }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'verify.title'|trans }}</h1>
+
+    {% if result is not null %}
+        <section class="{{ result.holds ? 'holds' : 'fails' }}" role="status">
+            {% if result.credential is null %}
+                <h2>{{ 'verify.refused'|trans }}</h2>
+                <p>{{ result.reason }}</p>
+            {% else %}
+                <h2>{{ (result.holds ? 'verify.holds' : 'verify.does_not_hold')|trans }}</h2>
+                <dl>
+                    <dt>{{ 'verify.achievement'|trans }}</dt>
+                    <dd>{{ result.achievement('name') }}</dd>
+                    {% if result.achievement('description') %}
+                        <dt>{{ 'verify.description'|trans }}</dt>
+                        <dd>{{ result.achievement('description') }}</dd>
+                    {% endif %}
+                    <dt>{{ 'verify.issuer'|trans }}</dt>
+                    <dd>{{ result.issuerName }}</dd>
+                    <dt>{{ 'verify.valid_from'|trans }}</dt>
+                    <dd>{{ result.credential.credential.validFrom|default('—') }}</dd>
+                    {% if result.credential.credential.validUntil is defined %}
+                        <dt>{{ 'verify.valid_until'|trans }}</dt>
+                        <dd>{{ result.credential.credential.validUntil }}</dd>
+                    {% endif %}
+                    <dt>{{ 'verify.secured_as'|trans }}</dt>
+                    <dd>{{ ('verify.secured.' ~ result.credential.securedAs)|trans }}</dd>
+                    <dt>{{ 'verify.status'|trans }}</dt>
+                    <dd>{{ (result.statusApplies is null ? 'verify.status.unknown' : (result.statusApplies ? 'verify.status.revoked' : 'verify.status.active'))|trans }}</dd>
+                    {% if result.recipientMatches is not null %}
+                        <dt>{{ 'verify.recipient'|trans }}</dt>
+                        <dd>{{ (result.recipientMatches ? 'verify.recipient.matches' : 'verify.recipient.differs')|trans }}</dd>
+                    {% endif %}
+                </dl>
+            {% endif %}
+        </section>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        <p>
+            <label for="phil-open-badges-credential">{{ 'verify.credential'|trans }}</label>
+            <textarea id="phil-open-badges-credential" name="credential" spellcheck="false"></textarea>
+        </p>
+        <p>
+            <label for="phil-open-badges-image">{{ 'verify.image'|trans }}</label>
+            <input id="phil-open-badges-image" type="file" name="image" accept="image/png,image/svg+xml">
+        </p>
+        <p>
+            <label for="phil-open-badges-identity">{{ 'verify.identity'|trans }}</label>
+            <input id="phil-open-badges-identity" type="text" name="identity" autocomplete="off">
+        </p>
+        <p><button type="submit">{{ 'verify.submit'|trans }}</button></p>
+    </form>
+{% endblock %}

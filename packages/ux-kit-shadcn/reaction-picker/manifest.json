@@ -1,0 +1,7 @@
+{
+    "type": "component",
+    "name": "ReactionPicker",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    }
+}

@@ -1,0 +1,8 @@
+# The preferences, which visitors reach too, and the site's settings, behind the firewall of the administration.
+phil_settings:
+    resource: '@PhilSettingsBundle/config/routes.php'
+    prefix: /preferences
+
+phil_settings_site:
+    resource: '@PhilSettingsBundle/config/routes/site.php'
+    prefix: /admin/settings

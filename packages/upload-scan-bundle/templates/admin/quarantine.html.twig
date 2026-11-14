@@ -1,0 +1,52 @@
+{% extends layout %}
+
+{% block title %}Quarantine{% endblock %}
+
+{% block content %}
+<main class="phil-upload-scan-quarantine">
+    <h1>Quarantine</h1>
+    <p>Files the antivirus found infected, kept outside the web root. Their contents are never shown or served here.</p>
+    {% if deleted %}
+        <p role="status">The file was deleted.</p>
+    {% endif %}
+    {% if files is empty %}
+        <p>The quarantine holds no file.</p>
+    {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Signature</th>
+                    <th scope="col">Quarantined</th>
+                    <th scope="col">Size</th>
+                    <th scope="col">Identifier</th>
+                    <th scope="col"><span class="visually-hidden">Actions</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                    <tr>
+                        <td>{{ file.name is empty ? '(unknown)' : file.name }}</td>
+                        <td>{{ file.signature ?? '(none)' }}</td>
+                        <td><time datetime="{{ file.quarantinedAt|date('c') }}">{{ file.quarantinedAt|date('Y-m-d H:i') }}</time></td>
+                        <td>{{ file.size }} bytes</td>
+                        <td><code>{{ file.id }}</code></td>
+                        <td>
+                            <form method="post" action="{{ path('phil_upload_scan_quarantine_delete', {id: file.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token(csrf_token_id) }}">
+                                <button type="submit" aria-label="Delete {{ file.name is empty ? file.id : file.name }} for good">Delete for good</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+    {% if page > 1 or more %}
+        <nav aria-label="Pages">
+            {% if page > 1 %}<a href="{{ path('phil_upload_scan_quarantine', {page: page - 1}) }}" rel="prev">Newer</a>{% endif %}
+            {% if more %}<a href="{{ path('phil_upload_scan_quarantine', {page: page + 1}) }}" rel="next">Older</a>{% endif %}
+        </nav>
+    {% endif %}
+</main>
+{% endblock %}

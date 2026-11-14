@@ -1,0 +1,84 @@
+{#
+ # A table: its controls, the question of an action, the count in a live region, the rows and the pagination. Every
+ # control is a plain link or a plain form the component takes over when it can, so the table works the same without
+ # JavaScript. The roles repeat what the elements say because a stacked table, drawn in blocks, would lose it. The
+ # buttons are the Button recipe of the kit, named by phil_data_table_kit().
+ #}
+{%- set view = this.view -%}
+{%- set domain = 'phil_data_table' -%}
+<section{{ attributes.defaults({class: 'phil-data-table', 'data-controller': 'phil--data-table-bundle--table', 'aria-label': view.caption}) }}>
+    {{- include('@PhilDataTable/table/_controls.html.twig') }}
+    {%- if view.confirmation is not null %}
+        {{- include('@PhilDataTable/table/_confirm.html.twig', {confirmation: view.confirmation}) }}
+    {%- endif %}
+    <p class="phil-data-table__status" role="status">{% if this.notice != '' %}{{ this.notice }} {% endif %}{% if view.editLeft %}{{ 'table.edit.left'|trans({}, domain) }} {% endif %}{{ 'table.results'|trans({'%count%': view.total}, domain) }}</p>
+    <div class="phil-data-table__frame">
+        <table class="phil-data-table__table" role="table">
+            <caption class="phil-data-table__caption">{{ view.caption }}</caption>
+            <thead role="rowgroup">
+                <tr role="row">
+                    {%- if view.bulkActions is not empty %}
+                    <th class="phil-data-table__select" role="columnheader" scope="col">
+                        <span class="phil-data-table__hidden">{{ 'table.select.heading'|trans({}, domain) }}</span>
+                        <input class="phil-data-table__toggle-all" type="checkbox" aria-label="{{ 'table.select.all'|trans({}, domain) }}" data-phil-focus="toggle-all" data-action="change->live#action" data-live-action-param="toggleAll">
+                    </th>
+                    {%- endif %}
+                    {%- for header in view.headers %}
+                    <th class="phil-data-table__heading" role="columnheader" scope="col"{% if header.ariaSort is not null %} aria-sort="{{ header.ariaSort }}"{% endif %}>
+                        {%- if header.nextSort is null %}{{ header.label }}{% else -%}
+                        <button class="phil-data-table__sort" type="submit" form="{{ view.formId }}" name="{{ view.prefix }}sort" value="{{ header.nextSort }}" data-phil-focus="sort:{{ header.name }}" data-action="live#action:prevent" data-live-action-param="applySort" data-live-value-param="{{ header.nextSort }}">{{ header.label }}</button>
+                        {%- endif -%}
+                    </th>
+                    {%- endfor %}
+                    {%- if view.hasRowActions %}
+                    <th class="phil-data-table__heading" role="columnheader" scope="col">{{ 'table.actions'|trans({}, domain) }}</th>
+                    {%- endif %}
+                </tr>
+            </thead>
+            <tbody role="rowgroup">
+                {%- for line in view.rows %}
+                <tr class="phil-data-table__row{% if line.selected %} is-selected{% endif %}" role="row">
+                    {%- if view.bulkActions is not empty %}
+                    <td class="phil-data-table__select" role="cell">
+                        <input type="checkbox" form="{{ view.formId }}" name="{{ view.prefix }}selected[]" value="{{ line.id }}" aria-label="{{ 'table.select.row'|trans({'%row%': line.label}, domain) }}"{% if line.selected %} checked{% endif %} data-phil-focus="select:{{ line.id }}" data-model="norender|selected[]">
+                    </td>
+                    {%- endif %}
+                    {%- for cell in line.cells %}
+                    {%- set tag = cell.header ? 'th' : 'td' %}
+                    <{{ tag }} class="phil-data-table__cell phil-data-table__cell--{{ cell.type }}" role="{{ cell.header ? 'rowheader' : 'cell' }}"{% if cell.header %} scope="row"{% endif %} data-label="{{ cell.label }}">
+                        {%- if cell.edit is not null -%}
+                            {{- include('@PhilDataTable/table/_edit.html.twig') -}}
+                        {%- else -%}
+                            {%- if cell.block is not null -%}
+                                {{- phil_data_table_cell(cell) -}}
+                            {%- elseif cell.href is not null -%}
+                                <a href="{{ cell.href }}">{{ cell.text }}</a>
+                            {%- else -%}
+                                {{ cell.text }}
+                            {%- endif -%}
+                            {%- if cell.editHref is not null -%}
+                                <a class="phil-data-table__edit-link" href="{{ cell.editHref }}" data-phil-focus="edit:{{ line.id }}:{{ cell.name }}" data-action="live#action:prevent" data-live-action-param="startEdit" data-live-row-param="{{ line.id|json_encode }}" data-live-column-param="{{ cell.name }}"><span aria-hidden="true">✎</span><span class="phil-data-table__hidden">{{ 'table.edit.start'|trans({'%column%': cell.label, '%row%': line.label}, domain) }}</span></a>
+                            {%- endif -%}
+                        {%- endif -%}
+                    </{{ tag }}>
+                    {%- endfor %}
+                    {%- if view.hasRowActions %}
+                    <td class="phil-data-table__actions" role="cell" data-label="{{ 'table.actions'|trans({}, domain) }}">
+                        {%- for action in line.actions -%}
+                            {%- component (phil_data_table_kit('Button')) with {as: 'a', variant: 'secondary', size: 'sm', href: action.href, 'data-phil-focus': 'ask:' ~ action.name ~ ':' ~ line.id, 'data-action': 'live#action:prevent', 'data-live-action-param': 'ask', 'data-live-command-param': action.name, 'data-live-row-param': line.id|json_encode, 'data-live-token-param': this.token} -%}
+                                {%- block content %}{{ action.label }}<span class="phil-data-table__hidden"> — {{ line.label }}</span>{% endblock -%}
+                            {%- endcomponent -%}
+                        {%- endfor -%}
+                    </td>
+                    {%- endif %}
+                </tr>
+                {%- else %}
+                <tr role="row">
+                    <td class="phil-data-table__empty" role="cell" colspan="{{ view.width }}">{{ 'table.empty'|trans({}, domain) }}</td>
+                </tr>
+                {%- endfor %}
+            </tbody>
+        </table>
+    </div>
+    {{- include('@PhilDataTable/table/_pagination.html.twig', {pagination: view.pagination}) }}
+</section>

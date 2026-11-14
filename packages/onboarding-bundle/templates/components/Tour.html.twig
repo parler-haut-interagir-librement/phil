@@ -1,0 +1,5 @@
+{# The tour component: the shared template, with the component's attributes on its main element. #}
+{%- set data = this.data -%}
+{%- if data is not null -%}
+    {{- include('@PhilOnboarding/_tour.html.twig', {data: data, autostart: this.autostart, attributes: attributes}) -}}
+{%- endif -%}

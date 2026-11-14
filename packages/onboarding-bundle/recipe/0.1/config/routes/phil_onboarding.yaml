@@ -1,0 +1,4 @@
+# The endpoints of the checklist and the tour, behind the firewall of the members.
+phil_onboarding:
+    resource: '@PhilOnboardingBundle/config/routes.php'
+    prefix: /onboarding

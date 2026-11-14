@@ -1,0 +1,264 @@
+/*
+ * The table, on the tokens of PHIL UX — `--phil-*` — with a value of their own when PHIL UX is not loaded. In the
+ * `phil.components` layer, so that an application's styles win without a fight over specificity.
+ *
+ * In a narrow container the rows become stacked blocks: each cell is headed by its column, from `data-label`. A browser
+ * drops the table semantics of what it draws as blocks, so the template repeats them as roles.
+ */
+@layer phil.components {
+    .phil-data-table {
+        container-type: inline-size;
+        display: flex;
+        flex-direction: column;
+        gap: var(--phil-space-m, 1rem);
+    }
+
+    .phil-data-table__controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: end;
+        gap: var(--phil-space-m, 1rem);
+    }
+
+    .phil-data-table__filter {
+        display: flex;
+        flex-direction: column;
+        gap: var(--phil-space-2xs, 0.25rem);
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    .phil-data-table__filter--range {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .phil-data-table__buttons,
+    .phil-data-table__bulk,
+    .phil-data-table__export,
+    .phil-data-table__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--phil-space-xs, 0.5rem);
+    }
+
+    .phil-data-table__status,
+    .phil-data-table__range {
+        margin: 0;
+        color: var(--phil-color-text-muted, #5b656d);
+        font-size: var(--phil-text-sm, 0.875rem);
+    }
+
+    /* The question of an action: in the page without JavaScript, a modal window with it. */
+    .phil-data-table__dialog {
+        position: static;
+        max-width: min(36rem, 100%);
+        margin: 0;
+        padding: var(--phil-space-s, 0.75rem);
+        border: 1px solid var(--phil-color-border-strong, #8a949b);
+        border-radius: var(--phil-radius-md, 0.5rem);
+        background: var(--phil-color-surface-muted, #f3f5f6);
+        color: inherit;
+    }
+
+    .phil-data-table__dialog:modal {
+        position: fixed;
+        margin: auto;
+        padding: var(--phil-space-m, 1rem);
+        background: var(--phil-color-surface, #fff);
+    }
+
+    .phil-data-table__dialog::backdrop {
+        background: rgb(0 0 0 / 0.4);
+    }
+
+    .phil-data-table__confirm {
+        display: flex;
+        flex-direction: column;
+        gap: var(--phil-space-s, 0.75rem);
+    }
+
+    .phil-data-table__confirm p {
+        margin: 0;
+    }
+
+    .phil-data-table__hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .phil-data-table__frame {
+        overflow-x: auto;
+    }
+
+    .phil-data-table__table {
+        width: 100%;
+        margin: 0;
+        border-collapse: collapse;
+    }
+
+    .phil-data-table__caption {
+        padding-block-end: var(--phil-space-xs, 0.5rem);
+        font-weight: var(--phil-weight-bold, 700);
+        text-align: start;
+    }
+
+    .phil-data-table__table th,
+    .phil-data-table__table td {
+        padding: var(--phil-space-xs, 0.5rem);
+        border-block-end: 1px solid var(--phil-color-border, #dde1e4);
+        text-align: start;
+        vertical-align: top;
+    }
+
+    .phil-data-table__cell--number {
+        font-variant-numeric: tabular-nums;
+        text-align: end;
+    }
+
+    .phil-data-table__row.is-selected {
+        background: var(--phil-color-accent-soft, #e3f2f1);
+    }
+
+    .phil-data-table__sort {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: inherit;
+        font: inherit;
+        font-weight: var(--phil-weight-bold, 700);
+        cursor: pointer;
+    }
+
+    .phil-data-table__sort::after {
+        margin-inline-start: 0.25em;
+        content: "↕";
+        opacity: 0.5;
+    }
+
+    [aria-sort="ascending"] > .phil-data-table__sort::after {
+        content: "↑";
+        opacity: 1;
+    }
+
+    [aria-sort="descending"] > .phil-data-table__sort::after {
+        content: "↓";
+        opacity: 1;
+    }
+
+    .phil-data-table__edit-link {
+        margin-inline-start: var(--phil-space-xs, 0.5rem);
+        text-decoration: none;
+    }
+
+    .phil-data-table__edit {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--phil-space-2xs, 0.25rem);
+    }
+
+    .phil-data-table__errors {
+        flex-basis: 100%;
+        margin: 0;
+        padding: 0;
+        color: var(--phil-color-danger, #b3261e);
+        font-size: var(--phil-text-sm, 0.875rem);
+        list-style: none;
+    }
+
+    .phil-data-table__empty {
+        color: var(--phil-color-text-muted, #5b656d);
+        text-align: center;
+    }
+
+    .phil-data-table__pagination {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--phil-space-s, 0.75rem);
+    }
+
+    .phil-data-table__pages {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--phil-space-xs, 0.5rem);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .phil-data-table__pages [aria-current="page"] {
+        font-weight: var(--phil-weight-bold, 700);
+        text-decoration: none;
+    }
+
+    .phil-data-table__truncated {
+        flex-basis: 100%;
+        margin: 0;
+        font-size: var(--phil-text-sm, 0.875rem);
+    }
+
+    /* Selecting a whole page takes the component: without scripting, each row is ticked on its own. */
+    @media (scripting: none) {
+        .phil-data-table__toggle-all {
+            display: none;
+        }
+    }
+
+    @container (max-width: 40rem) {
+        .phil-data-table__table,
+        .phil-data-table__table tbody,
+        .phil-data-table__table tr,
+        .phil-data-table__table td,
+        .phil-data-table__table tbody th,
+        .phil-data-table__caption {
+            display: block;
+        }
+
+        .phil-data-table__table thead tr {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--phil-space-xs, 0.5rem);
+        }
+
+        .phil-data-table__table thead th {
+            padding: 0;
+            border: 0;
+        }
+
+        .phil-data-table__row {
+            padding-block: var(--phil-space-xs, 0.5rem);
+            border-block-end: 1px solid var(--phil-color-border-strong, #8a949b);
+        }
+
+        .phil-data-table__table tbody td,
+        .phil-data-table__table tbody th {
+            display: grid;
+            grid-template-columns: minmax(6rem, 1fr) 2fr;
+            gap: var(--phil-space-xs, 0.5rem);
+            border: 0;
+            text-align: start;
+        }
+
+        .phil-data-table__table tbody [data-label]::before {
+            color: var(--phil-color-text-muted, #5b656d);
+            content: attr(data-label);
+            font-size: var(--phil-text-sm, 0.875rem);
+        }
+
+        .phil-data-table__edit {
+            grid-column: 2;
+        }
+    }
+}

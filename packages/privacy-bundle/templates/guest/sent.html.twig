@@ -1,0 +1,8 @@
+{% extends layout %}
+
+{% block title %}{{ 'guest.title'|trans({}, 'phil_privacy') }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'guest.title'|trans({}, 'phil_privacy') }}</h1>
+    <p role="status">{{ 'guest.sent'|trans({}, 'phil_privacy') }}</p>
+{% endblock %}

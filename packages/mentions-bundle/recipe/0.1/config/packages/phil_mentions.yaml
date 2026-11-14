@@ -1,0 +1,4 @@
+# The members the handles of a text resolve to: App\Mentions\Members finds nobody until it reads the application's
+# accounts. See the installation guide of phil/mentions-bundle.
+phil_mentions:
+    member_directory: App\Mentions\Members

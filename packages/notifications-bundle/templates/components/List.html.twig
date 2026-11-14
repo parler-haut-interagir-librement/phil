@@ -1,0 +1,4 @@
+{# The latest notifications of the current recipient, on a page of their own. #}
+<section{{ attributes.defaults({class: 'phil-notifications-page'}) }}>
+    {{ include('@PhilNotifications/_list.html.twig', {notifications: this.notifications, token: this.token}) }}
+</section>

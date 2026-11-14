@@ -1,0 +1,147 @@
+{
+    "source": {
+        "file": "tests.json",
+        "repository": "https://github.com/jwadhams/json-logic",
+        "branch": "gh-pages",
+        "commit": "2964b8da2db6ed04bbd2a0625d6725c6a14c7423",
+        "date": "2024-07-09",
+        "sha256": "a202b65edda0d7ab687c758b8f10cfe9ba75561cd7166e5650710f88f26303a4",
+        "license": "MIT, in LICENSE beside it"
+    },
+    "refused": [
+        {
+            "reason": "An operator outside the subset, or a rule holding one: text building (`cat`, `substr`), list building (`merge`), iteration (`map`, `filter`, `reduce`, `all`, `none`, `some`) and `?:`, the synonym of `if`. The conditions of a form compare its answers; each operator of the subset evaluates every node once at most, in time proportional to the size of the rule.",
+            "rules": [
+                {"?:":[true,1,2]},
+                {"?:":[false,1,2]},
+                {"cat":"ice"},
+                {"cat":["ice"]},
+                {"cat":["ice","cream"]},
+                {"cat":[1,2]},
+                {"cat":["Robocop",2]},
+                {"cat":["we all scream for ","ice","cream"]},
+                {"substr":["jsonlogic",4]},
+                {"substr":["jsonlogic",-5]},
+                {"substr":["jsonlogic",0,1]},
+                {"substr":["jsonlogic",-1,1]},
+                {"substr":["jsonlogic",4,5]},
+                {"substr":["jsonlogic",-5,5]},
+                {"substr":["jsonlogic",-5,-2]},
+                {"substr":["jsonlogic",1,-5]},
+                {"merge":[]},
+                {"merge":[[1]]},
+                {"merge":[[1],[]]},
+                {"merge":[[1],[2]]},
+                {"merge":[[1],[2],[3]]},
+                {"merge":[[1,2],[3]]},
+                {"merge":[[1],[2,3]]},
+                {"merge":1},
+                {"merge":[1,2]},
+                {"merge":[1,[2]]},
+                {"if":[true,{"cat":["ap","ple"]},{"cat":["ba","na","na"]}]},
+                {"if":[false,{"cat":["ap","ple"]},{"cat":["ba","na","na"]}]},
+                {"?:":[{">":[3,1]},"visible","hidden"]},
+                {"filter":[{"var":"integers"},true]},
+                {"filter":[{"var":"integers"},false]},
+                {"filter":[{"var":"integers"},{">=":[{"var":""},2]}]},
+                {"filter":[{"var":"integers"},{"%":[{"var":""},2]}]},
+                {"map":[{"var":"integers"},{"*":[{"var":""},2]}]},
+                {"map":[{"var":"desserts"},{"var":"qty"}]},
+                {"reduce":[{"var":"integers"},{"+":[{"var":"current"},{"var":"accumulator"}]},0]},
+                {"reduce":[{"var":"integers"},{"+":[{"var":"current"},{"var":"accumulator"}]},{"var":"start_with"}]},
+                {"reduce":[{"var":"integers"},{"*":[{"var":"current"},{"var":"accumulator"}]},1]},
+                {"reduce":[{"var":"integers"},{"*":[{"var":"current"},{"var":"accumulator"}]},0]},
+                {"reduce":[{"var":"desserts"},{"+":[{"var":"accumulator"},{"var":"current.qty"}]},0]},
+                {"all":[{"var":"integers"},{">=":[{"var":""},1]}]},
+                {"all":[{"var":"integers"},{"==":[{"var":""},1]}]},
+                {"all":[{"var":"integers"},{"<":[{"var":""},1]}]},
+                {"all":[{"var":"items"},{">=":[{"var":"qty"},1]}]},
+                {"all":[{"var":"items"},{">":[{"var":"qty"},1]}]},
+                {"all":[{"var":"items"},{"<":[{"var":"qty"},1]}]},
+                {"none":[{"var":"integers"},{">=":[{"var":""},1]}]},
+                {"none":[{"var":"integers"},{"==":[{"var":""},1]}]},
+                {"none":[{"var":"integers"},{"<":[{"var":""},1]}]},
+                {"none":[{"var":"items"},{">=":[{"var":"qty"},1]}]},
+                {"none":[{"var":"items"},{">":[{"var":"qty"},1]}]},
+                {"none":[{"var":"items"},{"<":[{"var":"qty"},1]}]},
+                {"some":[{"var":"integers"},{">=":[{"var":""},1]}]},
+                {"some":[{"var":"integers"},{"==":[{"var":""},1]}]},
+                {"some":[{"var":"integers"},{"<":[{"var":""},1]}]},
+                {"some":[{"var":"items"},{">=":[{"var":"qty"},1]}]},
+                {"some":[{"var":"items"},{">":[{"var":"qty"},1]}]},
+                {"some":[{"var":"items"},{"<":[{"var":"qty"},1]}]}
+            ]
+        },
+        {
+            "reason": "A variable named by a number, or by no name: `{\"var\": \"\"}` would read the whole answer and a number reads an item of a list given as the whole answer. A variable is the name of a field, or a dotted path into one.",
+            "rules": [
+                {"var":1},
+                {"var":"1"},
+                {"var":"1.1"},
+                {"var":""},
+                {"var":null},
+                {"var":[]}
+            ]
+        },
+        {
+            "reason": "A name computed by an operation, in a `var` or a `missing`. Names are literal texts, so that the type checker knows every variable a rule reads before the rule runs.",
+            "rules": [
+                {"var":[{"?:":[{"<":[{"var":"temp"},110]},"pie.filling","pie.eta"]}]},
+                {"missing":{"merge":["vin",{"if":[{"var":"financing"},["apr"],[]]}]}}
+            ]
+        },
+        {
+            "reason": "An `if` without a condition and its value. JsonLogic gives `null` or the lone operand; the reader takes such a rule for a mistake rather than a constant.",
+            "rules": [
+                {"if":[]},
+                {"if":[true]},
+                {"if":[false]},
+                {"if":["apple"]}
+            ]
+        },
+        {
+            "reason": "A `missing` that names nothing, whose value would always be `[]`.",
+            "rules": [
+                {"missing":[]}
+            ]
+        }
+    ],
+    "values": [
+        {
+            "rule": {"==": ["0x10", 16]},
+            "data": {},
+            "value": false,
+            "reason": "A text is read as a number in decimal notation only. JavaScript's == reads \"0x10\" as 16, \"Infinity\" as infinite and \" 0b1 \" as 1; a form's answer means none of these."
+        },
+        {
+            "rule": {"<": [1, "Infinity"]},
+            "data": {},
+            "value": false,
+            "reason": "\"Infinity\" is a text that is no number, so it is neither before nor after anything; JavaScript reads it as infinite, which no answer is."
+        },
+        {
+            "rule": {"==": [[1], [1]]},
+            "data": {},
+            "value": false,
+            "reason": "Two lists are never equal, as with JavaScript's ==, which compares them by reference. Implementations in other languages that compare lists by value give true; the server and the browser give the same answer only if neither does."
+        },
+        {
+            "rule": {"/": [1, 0]},
+            "data": {},
+            "value": null,
+            "reason": "A result that is not a finite number is null. JavaScript gives Infinity or NaN, which JSON cannot write and the server could not judge again."
+        },
+        {
+            "rule": {"var": ["a", "none"]},
+            "data": {"a": null},
+            "value": "none",
+            "reason": "A variable whose value is null takes its default, as an absent one does. The reference implementation gives null; a field left empty and a field not sent are one answer to a form."
+        },
+        {
+            "rule": {"!=": [{"var": "size"}, "L"]},
+            "data": {},
+            "value": true,
+            "reason": "!= is true for a field without a value, as in JsonLogic, since null equals only null. The basic conditions of phil/forms-bundle give true there too."
+        }
+    ]
+}

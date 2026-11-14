@@ -1,0 +1,1 @@
+{"id":"https://partner.example/issuer","verificationMethod":[{"id":"https://partner.example/issuer#WjbKey","publicKeyJwk":{"kty":"OKP","Jrv":"ElwIRo"}}]}

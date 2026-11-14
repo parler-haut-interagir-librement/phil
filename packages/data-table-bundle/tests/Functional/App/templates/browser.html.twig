@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Books</title>
+    <link rel="stylesheet" href="/assets/data-table.css">
+    <script type="importmap">{"imports": {"@hotwired/stimulus": "/assets/stimulus.js", "@symfony/ux-live-component": "/assets/live_controller.js"}}</script>
+    <script type="module">
+        import { Application } from '@hotwired/stimulus';
+        import LiveController from '@symfony/ux-live-component';
+        import TableController from '/assets/table_controller.js';
+
+        const application = Application.start();
+        application.register('live', LiveController);
+        application.register('phil--data-table-bundle--table', TableController);
+        window.application = application;
+        document.documentElement.dataset.started = 'true';
+    </script>
+</head>
+<body>
+    <main>
+        <twig:PhilDataTable:Table name="books" />
+    </main>
+</body>
+</html>

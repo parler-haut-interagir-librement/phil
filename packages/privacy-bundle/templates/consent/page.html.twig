@@ -1,0 +1,40 @@
+{% extends layout %}
+
+{% block title %}{{ 'consent.title'|trans({}, 'phil_privacy') }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'consent.title'|trans({}, 'phil_privacy') }}</h1>
+    <p>{{ 'consent.intro'|trans({}, 'phil_privacy') }}</p>
+    <p>{{ 'consent.version'|trans({'%version%': state.policy.version}, 'phil_privacy') }}</p>
+
+    {% if state.globalPrivacyControl %}
+        <p role="status">{{ 'consent.global_privacy_control'|trans({}, 'phil_privacy') }}</p>
+    {% endif %}
+
+    <form method="post" action="{{ path('phil_privacy_consent_decide') }}"
+          data-controller="phil--privacy-bundle--consent"
+          data-phil--privacy-bundle--consent-granted-value="{{ state.granted|json_encode }}"
+          data-action="submit->phil--privacy-bundle--consent#submit">
+        <input type="hidden" name="_token" value="{{ csrf_token }}">
+
+        {% for category in state.policy.categories %}
+            <fieldset>
+                <legend>{{ category.label(locale) }}</legend>
+                <p>{{ category.description(locale) }}</p>
+                {% if category.cookies %}<p>{{ category.cookies|join(', ') }}</p>{% endif %}
+                <label>
+                    <input type="checkbox" name="categories[]" value="{{ category.name }}"
+                           {{ state.isGranted(category.name) ? 'checked' }}
+                           {{ category.necessary or state.globalPrivacyControl ? 'disabled' }}>
+                    {{ (category.necessary ? 'consent.always_on' : 'consent.allow')|trans({}, 'phil_privacy') }}
+                </label>
+            </fieldset>
+        {% endfor %}
+
+        <button type="submit" name="decision" value="refuse" class="phil-privacy-consent__decision">{{ 'consent.refuse_all'|trans({}, 'phil_privacy') }}</button>
+        <button type="submit" name="decision" value="accept" class="phil-privacy-consent__decision">{{ 'consent.accept_all'|trans({}, 'phil_privacy') }}</button>
+        <button type="submit" name="decision" value="save" class="phil-privacy-consent__decision">{{ 'consent.save'|trans({}, 'phil_privacy') }}</button>
+    </form>
+
+    <p><a href="{{ path('phil_privacy_cookies') }}">{{ 'cookies.title'|trans({}, 'phil_privacy') }}</a></p>
+{% endblock %}

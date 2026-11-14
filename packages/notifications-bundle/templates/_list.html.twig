@@ -1,0 +1,44 @@
+{# The notifications, the latest change first, each with its buttons; a form of its own each, which works without
+   JavaScript and which the Stimulus controller sends in the background. #}
+<div class="phil-notifications-list">
+    <header class="phil-notifications-list__header">
+        <h2 class="phil-notifications-list__title">{{ 'centre.title'|trans({}, 'phil_notifications') }}</h2>
+        {% if notifications is not empty %}
+            <form method="post" action="{{ path('phil_notifications_read_all') }}" data-phil-notifications-form>
+                <input type="hidden" name="_token" value="{{ token }}">
+                <button type="submit" class="phil-notifications-list__action">{{ 'centre.read_all'|trans({}, 'phil_notifications') }}</button>
+            </form>
+        {% endif %}
+    </header>
+    {% if notifications is empty %}
+        <p class="phil-notifications-list__empty">{{ 'centre.empty'|trans({}, 'phil_notifications') }}</p>
+    {% else %}
+        <ol class="phil-notifications-list__items">
+            {% for item in notifications %}
+                {% set unread = item.notification.state.value == 'unread' %}
+                <li class="phil-notifications-item{{ unread ? ' phil-notifications-item--unread' }}" data-notification-id="{{ item.notification.id }}">
+                    <p class="phil-notifications-item__title">
+                        {%- if item.url -%}<a href="{{ item.url }}">{{ item.title }}</a>{%- else -%}{{ item.title }}{%- endif -%}
+                        {%- if unread %} <span class="phil-notifications-visually-hidden">{{ 'centre.unread_mark'|trans({}, 'phil_notifications') }}</span>{% endif -%}
+                    </p>
+                    {% if item.body %}<p class="phil-notifications-item__body">{{ item.body }}</p>{% endif %}
+                    <p class="phil-notifications-item__meta">
+                        <time datetime="{{ item.notification.updatedAt|date('c') }}">{{ item.notification.updatedAt|date('Y-m-d H:i') }}</time>
+                    </p>
+                    <div class="phil-notifications-item__actions">
+                        {% if unread %}
+                            <form method="post" action="{{ path('phil_notifications_read', {id: item.notification.id}) }}" data-phil-notifications-form>
+                                <input type="hidden" name="_token" value="{{ token }}">
+                                <button type="submit">{{ 'centre.mark_read'|trans({}, 'phil_notifications') }}</button>
+                            </form>
+                        {% endif %}
+                        <form method="post" action="{{ path('phil_notifications_archive', {id: item.notification.id}) }}" data-phil-notifications-form>
+                            <input type="hidden" name="_token" value="{{ token }}">
+                            <button type="submit">{{ 'centre.archive'|trans({}, 'phil_notifications') }}</button>
+                        </form>
+                    </div>
+                </li>
+            {% endfor %}
+        </ol>
+    {% endif %}
+</div>

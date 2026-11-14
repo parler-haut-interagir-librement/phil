@@ -1,0 +1,220 @@
+/*
+ * The bell, its panel, the list of notifications, the toasts and the Web Push button. Their custom properties take PHIL UX's tokens when
+ * that stylesheet is loaded, the page's own colours otherwise. Motion is dropped when the visitor asks for less.
+ */
+.phil-notifications-bell,
+.phil-notifications-page,
+.phil-notifications-push,
+.phil-notifications-toasts {
+    --pn-text: var(--phil-color-text, CanvasText);
+    --pn-muted: var(--phil-color-text-muted, color-mix(in srgb, CanvasText 60%, Canvas));
+    --pn-surface: var(--phil-color-surface-raised, Canvas);
+    --pn-border: var(--phil-color-border, color-mix(in srgb, CanvasText 18%, Canvas));
+    --pn-accent: var(--phil-color-brand-fill-loud, #1f6f78);
+    --pn-on-accent: var(--phil-color-brand-on-loud, #fff);
+    --pn-unread: var(--phil-color-info-fill-quiet, color-mix(in srgb, #1f6f78 10%, Canvas));
+    --pn-focus: var(--phil-color-focus, #3b82c4);
+    --pn-radius: var(--phil-radius-md, 6px);
+    --pn-shadow: var(--phil-shadow-md, 0 4px 12px rgb(0 0 0 / 0.15));
+    --pn-space: var(--phil-space-sm, 0.5rem);
+    --pn-duration: var(--phil-duration-md, 200ms);
+    --pn-ease: var(--phil-ease-out, ease-out);
+
+    color: var(--pn-text);
+}
+
+.phil-notifications-bell {
+    position: relative;
+    display: inline-block;
+}
+
+.phil-notifications-bell__button,
+.phil-notifications-push__button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--pn-border);
+    border-radius: var(--pn-radius);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.phil-notifications-bell__button:focus-visible,
+.phil-notifications-push__button:focus-visible,
+.phil-notifications-toasts :focus-visible,
+.phil-notifications-list :focus-visible {
+    outline: var(--phil-focus-width, 2px) solid var(--pn-focus);
+    outline-offset: var(--phil-focus-offset, 2px);
+}
+
+.phil-notifications-bell__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.phil-notifications-bell__count {
+    min-width: 1.4em;
+    padding: 0 0.35em;
+    border-radius: 999px;
+    background: var(--pn-accent);
+    color: var(--pn-on-accent);
+    font-size: 0.8em;
+    font-weight: 700;
+    text-align: center;
+}
+
+.phil-notifications-bell__panel {
+    position: absolute;
+    z-index: 10;
+    inset-inline-end: 0;
+    width: min(24rem, 90vw);
+    max-height: 70vh;
+    margin-top: var(--pn-space);
+    overflow-y: auto;
+    border: 1px solid var(--pn-border);
+    border-radius: var(--pn-radius);
+    background: var(--pn-surface);
+    box-shadow: var(--pn-shadow);
+}
+
+.phil-notifications-list__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--pn-space);
+    padding: var(--pn-space);
+    border-bottom: 1px solid var(--pn-border);
+}
+
+.phil-notifications-list__title {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.phil-notifications-list__empty {
+    margin: 0;
+    padding: var(--pn-space);
+    color: var(--pn-muted);
+}
+
+.phil-notifications-list__items {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.phil-notifications-item {
+    padding: var(--pn-space);
+    border-bottom: 1px solid var(--pn-border);
+}
+
+.phil-notifications-item--unread {
+    background: var(--pn-unread);
+}
+
+.phil-notifications-item__title,
+.phil-notifications-item__body,
+.phil-notifications-item__meta {
+    margin: 0 0 0.25rem;
+}
+
+.phil-notifications-item__title {
+    font-weight: 600;
+}
+
+.phil-notifications-item__meta {
+    color: var(--pn-muted);
+    font-size: 0.85em;
+}
+
+.phil-notifications-item__actions {
+    display: flex;
+    gap: var(--pn-space);
+}
+
+.phil-notifications-item__actions form,
+.phil-notifications-list__header form {
+    margin: 0;
+}
+
+.phil-notifications-toasts {
+    position: fixed;
+    z-index: 20;
+    inset-block-end: var(--phil-space-md, 1rem);
+    inset-inline-end: var(--phil-space-md, 1rem);
+    display: flex;
+    flex-direction: column;
+    gap: var(--pn-space);
+    width: min(22rem, calc(100vw - 2rem));
+}
+
+.phil-notifications-toast {
+    position: relative;
+    padding: var(--pn-space) 2rem var(--pn-space) var(--pn-space);
+    border: 1px solid var(--pn-border);
+    border-radius: var(--pn-radius);
+    background: var(--pn-surface);
+    box-shadow: var(--pn-shadow);
+    animation: phil-notifications-in var(--pn-duration) var(--pn-ease);
+}
+
+.phil-notifications-toast--still {
+    animation: none;
+}
+
+.phil-notifications-toast__title,
+.phil-notifications-toast__body {
+    margin: 0;
+}
+
+.phil-notifications-toast__title {
+    font-weight: 600;
+}
+
+.phil-notifications-toast__close {
+    position: absolute;
+    inset-block-start: 0.25rem;
+    inset-inline-end: 0.25rem;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.phil-notifications-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.phil-notifications-push__button[aria-pressed="true"]::before {
+    content: "\2713\00a0";
+}
+
+.phil-notifications-push__status:empty {
+    display: none;
+}
+
+@keyframes phil-notifications-in {
+    from {
+        opacity: 0;
+        transform: translateY(0.5rem);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .phil-notifications-toast {
+        animation: none;
+    }
+}

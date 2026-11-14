@@ -1,0 +1,86 @@
+{
+    "name": "phil/certificates-bundle",
+    "description": "Certificates of completion for Symfony on Open Badges: courses and their pass criteria, certificates awarded to those who meet them, a PDF certificate with a verification QR code and the signed credential embedded, a public register, and revocation through status lists",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "certificates",
+        "open-badges",
+        "verifiable-credentials",
+        "pdf",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-intl": "*",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "doctrine/persistence": "^4.1",
+        "phil/open-badges": "^0.1@dev",
+        "phil/open-badges-bundle": "^0.1@dev",
+        "phil/paged-media": "^0.1@dev",
+        "phil/paged-media-bundle": "^0.1@dev",
+        "phil/qr-code": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/uid": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "ext-zlib": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/lock": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2"
+    },
+    "suggest": {
+        "doctrine/doctrine-bundle": "To store courses and certificates with the bundle's own mapping",
+        "symfony/console": "For the commands that award, revoke and show certificates",
+        "symfony/lock": "To take the status index of an award under a lock shared by every server"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\CertificatesBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\CertificatesBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

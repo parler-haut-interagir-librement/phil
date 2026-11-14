@@ -1,0 +1,70 @@
+{
+    "name": "phil/stockroom-bundle",
+    "description": "phil/stockroom in Symfony: the containers, items, balances, journal of movements and load lists in tables of a Doctrine DBAL connection that join the schema the ORM generates, a transaction that locks the items it moves, a console command for the schema, and the stockroom services configured",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "stockroom",
+        "inventory",
+        "props",
+        "doctrine-dbal",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "phil/stockroom": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2"
+    },
+    "suggest": {
+        "doctrine/doctrine-bundle": "For the DBAL connections the store \"dbal\" names",
+        "doctrine/orm": "To add the stockroom's tables to the schema the ORM generates, and so to its migrations",
+        "symfony/console": "For phil:stockroom:schema, which shows or creates the tables"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\StockroomBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\StockroomBundle\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "policy": {
+            "advisories": {
+                "block": true
+            }
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

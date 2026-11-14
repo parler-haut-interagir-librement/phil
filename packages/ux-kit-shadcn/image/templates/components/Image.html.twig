@@ -1,0 +1,151 @@
+{#-
+ # An image: one img, in a figure when it has a caption, a credit, a license, a creation or a description, under the
+ # prop names of Symfony UX Image, without a service, a script or an inline style; its layout, ratio, fit, crop and
+ # placeholder written as classes, its preview handed to a controller that paints it through the CSSOM.
+ # A javascript:, vbscript: or data: URL other than data:image/ is refused, and so is an address of another host than
+ # those image_origin() allows; a refused src renders nothing, a refused srcset is left out whole. The image of a listed
+ # host is fetched without a referrer; the main image is preloaded through Symfony WebLink. In development,
+ # image_check() logs a text alternative or a size left wrong. With structured, image_json_ld() describes the image as a
+ # schema.org ImageObject, in the graph of the page or in a JSON-LD script of its own before it. Its frame, its pixel art
+ # and its name in a view transition are utilities too, the name read from data-transition; a name that is no CSS
+ # identifier, or a keyword of view-transition-name, is left out. On paper, it never stands taller than most of the page.
+ #}
+{%- props
+    ## string The URL of the image.
+    src,
+    ## string The text alternative; an empty string for a decorative image, which screen readers then skip.
+    alt,
+    ## int The width of the image, so that its space is reserved at its ratio before it loads.
+    width,
+    ## int The height of the image, so that its space is reserved at its ratio before it loads.
+    height,
+    ## string|array<int|string,string>|null The candidates as HTML writes them, or a map of densities, or of widths with sizes or a fluid layout, to URLs.
+    srcset = null,
+    ## string|null The sizes of a srcset of widths, preceded by "auto, " while the image loads lazily; computed from the layout when null.
+    sizes = null,
+    ## string|null How the image fills its container: "fixed", at its width; "constrained", never wider than its width; "full-width"; none by default.
+    layout = null,
+    ## string|null The ratio of its box, "16/9", "4/3", "3/2", "1/1", "21/9", "3/4", "2/3", "9/16", or "custom", read from a custom property a class sets.
+    aspect = null,
+    ## string|null How the image fills its box, "cover" or "contain": "cover" by default when it has a ratio.
+    fit = null,
+    ## string|null Where the image is cropped in its box: "center", "top", "bottom", "left" or "right".
+    position = null,
+    ## bool Whether it is the main image above the fold: loaded eagerly, fetched first and preloaded, its decoding left to the browser.
+    priority = false,
+    ## bool|null Whether the image is preloaded through Symfony WebLink, in a Link header the server may send as an early hint: with priority when null.
+    preload = null,
+    ## string|null How it loads, "lazy" or "eager": "lazy" by default, "eager" with priority.
+    loading = null,
+    ## string|null How it is decoded, "async", "sync" or "auto": "async" by default, none written with priority.
+    decoding = null,
+    ## string|null A caption under the image, which a figure then holds with it; shown even when the image is decorative.
+    caption = null,
+    ## string Where the caption stands: "below" the image, by default, or "overlay", over its foot on a veil dark enough for light text.
+    captionPosition = 'below',
+    ## string|null Who made the image, as the site writes it, "Photo: Ana Lima", under the caption.
+    credit = null,
+    ## string|null The name of the license of the image, "CC BY 4.0", under the caption.
+    license = null,
+    ## string|null The address of the license, which its name then links to with rel="license".
+    licenseHref = null,
+    ## string|BackedEnum|null How the image was made, a code of the IPTC Digital Source Type vocabulary such as "digitalCapture" or "trainedAlgorithmicMedia", or an enum whose value is one.
+    creation = null,
+    ## string|null The words that say how the image was made, in the language of the page; the name the vocabulary gives the code when null.
+    creationLabel = null,
+    ## bool Whether the image lies far below the fold and is fetched after the others, with fetchpriority="low"; priority wins over it.
+    deferred = false,
+    ## string|null The colour its box is painted while it loads, a tone of the tokens: "neutral", "brand", "red", "green", "amber", "blue", "violet", or "custom", read from a custom property a class sets.
+    placeholder = null,
+    ## string|null A tiny version of the image, inline in base 64, PNG, JPEG, GIF, WebP or AVIF, shown blurred while it loads by the image-preview controller of the recipe.
+    preview = null,
+    ## string|null A long description, for a chart or a diagram, in a disclosure after the image, which it is described by.
+    description = null,
+    ## string The words of the summary of the description's disclosure.
+    descriptionLabel = 'Description',
+    ## bool Whether the image is described to search engines as a schema.org ImageObject in JSON-LD, from its address, size, caption, credit, license address and creation, through phil/structured-data.
+    structured = false,
+    ## string|null A frame drawn from the tokens, words separated by spaces: "rounded" corners, a "framed" line around it, "raised" over the page by a shadow, or "token", a disc in a ring for a pawn or an avatar.
+    frame = null,
+    ## bool Whether it is pixel art, enlarged without blurring its pixels.
+    pixelated = false,
+    ## string|null Its name in a view transition, a CSS identifier unique in the page and the same on the next one, so that it moves from one page to the other as one.
+    transition = null
+-%}
+{%- set _refused = '#(^|,)[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i' -%}
+{%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
+{%- set _origin = src is empty or src|replace(_controls) matches _refused ? 'refused' : image_origin(src) -%}
+{%- if _origin is not same as('refused') -%}
+    {%- do image_check(src, alt, width, height) -%}
+    {%- set _loading = loading in ['lazy', 'eager'] ? loading : (priority ? 'eager' : 'lazy') -%}
+    {%- set _sizes = sizes is not empty ? sizes : {
+        constrained: width is empty ? null : '(min-width: ' ~ width ~ 'px) ' ~ width ~ 'px, 100vw',
+        'full-width': '100vw',
+    }[layout] ?? null -%}
+    {%- set _srcset = srcset is iterable ? srcset|map((url, key) => url ~ ' ' ~ key ~ (_sizes is empty ? 'x' : 'w'))|join(', ') : srcset -%}
+    {%- set _set_origin = _srcset is empty ? null : (_srcset|replace(_controls) matches _refused ? 'refused' : image_origin(_srcset, true)) -%}
+    {%- set _srcset = _set_origin in [null, 'refused'] ? null : _srcset -%}
+    {%- set _preload_sizes = _srcset is null or _sizes is empty ? null : _sizes -%}
+    {%- set _sizes = _preload_sizes is null ? null : (_loading is same as('lazy') and not (_sizes|lower starts with 'auto') ? 'auto, ' ~ _sizes : _sizes) -%}
+    {%- set _referrer = attributes.all.referrerpolicy ?? (_origin is same as('external') or _set_origin is same as('external') ? 'no-referrer' : null) -%}
+    {%- if preload ?? priority -%}
+        {%- do preload(src, {
+            as: 'image',
+            imagesrcset: _srcset,
+            imagesizes: _preload_sizes,
+            fetchpriority: priority ? 'high' : null,
+            crossorigin: attributes.all.crossorigin ?? null,
+            referrerpolicy: _referrer,
+        }|filter(value => value is not null)) -%}
+    {%- endif -%}
+    {%- set _preview = preview is not empty and preview matches '#^data:image/(png|jpeg|gif|webp|avif);base64,[A-Za-z0-9+/]+={0,2}$#' ? preview : null -%}
+    {%- set _described = description is empty ? null : (attributes.all.id is defined and attributes.all.id is not empty ? attributes.all.id ~ '-description' : 'image-description-' ~ random()) -%}
+    {%- set _ratio = {'16/9': 'aspect-video', '4/3': 'aspect-[4/3]', '3/2': 'aspect-[3/2]', '1/1': 'aspect-square', '21/9': 'aspect-[21/9]', '3/4': 'aspect-[3/4]', '2/3': 'aspect-[2/3]', '9/16': 'aspect-[9/16]', custom: 'aspect-(--image-ratio)'}[aspect|default('')|replace({' ': ''})] ?? null -%}
+    {%- set _frames = {rounded: 'rounded-lg', framed: 'border border-border', raised: 'shadow-md', token: 'aspect-square object-cover rounded-full border-4 border-primary'} -%}
+    {%- set _frame = (frame ?? '')|split(' ')|filter(word => word in _frames|keys) -%}
+    {%- set _frame = 'token' in _frame ? _frame|filter(word => word not in ['rounded', 'framed']) : _frame -%}
+    {%- set _transition = transition is not empty and transition matches '#^-?[A-Za-z_][A-Za-z0-9_-]*$#' and transition|lower not in ['none', 'auto', 'match-element', 'initial', 'inherit', 'unset', 'revert', 'revert-layer', 'default'] ? transition : null -%}
+    {%- set _class = [
+        'block h-auto print:max-h-[85vh]',
+        {fixed: 'max-w-none', 'full-width': 'max-w-full w-full'}[layout] ?? 'max-w-full',
+        'token' in _frame ? null : _ratio,
+        'token' in _frame ? null : {cover: 'object-cover', contain: 'object-contain'}[fit ?? (_ratio is null ? '' : 'cover')] ?? null,
+        {center: 'object-center', top: 'object-top', bottom: 'object-bottom', left: 'object-left', right: 'object-right'}[position] ?? null,
+        {neutral: 'bg-muted', brand: 'bg-primary/10', red: 'bg-red-100 dark:bg-red-950', green: 'bg-green-100 dark:bg-green-950', amber: 'bg-amber-100 dark:bg-amber-950', blue: 'bg-blue-100 dark:bg-blue-950', violet: 'bg-violet-100 dark:bg-violet-950', custom: 'bg-(--image-placeholder)'}[placeholder] ?? null,
+        _preview is null ? null : (fit is same as('contain') ? 'bg-contain bg-center bg-no-repeat' : 'bg-cover bg-center bg-no-repeat'),
+        _frame|map(word => _frames[word])|join(' '),
+        (fit ?? (_ratio is null ? '' : 'cover')) in ['cover', 'contain'] or 'token' in _frame ? null : 'print:object-contain',
+        pixelated ? '[image-rendering:pixelated]' : null,
+        _transition is null ? null : '[view-transition-name:var(--image-transition,none)] supports-[view-transition-name:attr(data-transition_type(<custom-ident>),none)]:[view-transition-name:attr(data-transition_type(<custom-ident>),var(--image-transition,none))]',
+        attributes.all.class ?? null,
+    ]|filter(name => name is not empty)|join(' ') -%}
+    {%- set _allowed = alt is same as('')
+        ? '#^(id|crossorigin|referrerpolicy|itemprop|draggable|data-[a-z0-9-]+)$#'
+        : '#^(id|title|crossorigin|referrerpolicy|itemprop|draggable|(data|aria)-[a-z0-9-]+)$#' -%}
+    {%- set _preview_attributes = _preview is null ? {} : {'data-controller': 'image-preview', 'data-image-preview-src-value': _preview} -%}
+    {%- set _controllers = [attributes.all['data-controller'] ?? null, _preview_attributes['data-controller'] ?? null]|filter(name => name is not empty)|join(' ') -%}
+    {%- set _attributes = attributes.all|filter((value, name) => name matches _allowed)
+        |merge(_referrer is null ? {} : {referrerpolicy: _referrer})
+        |merge(_preview_attributes)
+        |merge(_controllers is empty ? {} : {'data-controller': _controllers})
+        |merge(_described is null or alt is same as('') ? {} : {'aria-describedby': [attributes.all['aria-describedby'] ?? null, _described]|filter(name => name is not empty)|join(' ')}) -%}
+    {%- if structured -%}
+        {{- image_json_ld({src: src, width: width, height: height, caption: caption, credit: credit, licenseHref: licenseHref, creation: creation}) -}}
+    {%- endif -%}
+    <twig:Image:Figure :caption="caption" :captionPosition="captionPosition" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel" :description="description" :descriptionId="_described" :descriptionLabel="descriptionLabel">
+        <img {{ html_attr({
+            'data-slot': 'image',
+            class: _class,
+            src: src,
+            srcset: _srcset,
+            sizes: _sizes,
+            alt: alt,
+            width: width,
+            height: height,
+            loading: _loading,
+            decoding: decoding in ['async', 'sync', 'auto'] ? decoding : (priority ? null : 'async'),
+            fetchpriority: priority ? 'high' : (deferred ? 'low' : null),
+            'data-transition': _transition,
+        }, _attributes) }}>
+    </twig:Image:Figure>
+{%- endif -%}

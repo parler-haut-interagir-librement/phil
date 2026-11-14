@@ -1,0 +1,36 @@
+{#-
+ # A chart of Symfony UX Chart.js, in a figure: its caption, the canvas the controller of Chart.js draws, hidden from
+ # screen readers, and the table of the same values, read from the chart's data. Chart.js, its options and its plugins
+ # stay those of the application; the recipe adds the caption, the table and the utilities of Tailwind.
+ #}
+{%- props
+    ## object The chart, a `Symfony\UX\Chartjs\Model\Chart` built by the application.
+    chart,
+    ## string What the chart shows, written as its caption.
+    label,
+    ## string|null The summary of a disclosure showing the table of the values; without it, the table is read by screen readers alone.
+    tableLabel = null
+-%}
+{%- set _data = chart.data ?? {} -%}
+{%- set _labels = (_data.labels ?? [])|slice(-366) -%}
+{%- set _series = (_data.datasets ?? [])|slice(0, 6) -%}
+<figure data-slot="chart" data-type="chart-js"{{ attributes.defaults({class: 'm-0 grid max-w-full gap-2'}) }}>
+    <figcaption class="font-medium">{{ label }}</figcaption>
+    <div class="relative w-full">{{ render_chart(chart, {'aria-hidden': 'true'}) }}</div>
+    {%- set _table -%}
+        <table class="w-full caption-bottom text-sm tabular-nums [&_td]:p-2 [&_th]:p-2 [&_th]:text-start [&_th]:font-medium">
+            <thead><tr><td></td>{%- for _one in _series -%}<th scope="col">{{ _one.label ?? '' }}</th>{%- endfor -%}</tr></thead>
+            <tbody>
+                {%- for _name in _labels -%}
+                    {%- set _row = loop.index0 -%}
+                    <tr><th scope="row">{{ _name }}</th>{%- for _one in _series -%}<td>{{ (_one.data ?? [])[_row] ?? '' }}</td>{%- endfor -%}</tr>
+                {%- endfor -%}
+            </tbody>
+        </table>
+    {%- endset -%}
+    {%- if tableLabel is not null -%}
+        <details class="text-sm"><summary class="cursor-pointer">{{ tableLabel }}</summary>{{ _table }}</details>
+    {%- else -%}
+        <div class="sr-only">{{ _table }}</div>
+    {%- endif -%}
+</figure>

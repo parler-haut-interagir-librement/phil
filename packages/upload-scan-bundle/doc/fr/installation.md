@@ -1,0 +1,66 @@
+<!-- phil-dev source-sha256=b8e96b975601fe3e25bf76cbed4ebbeae0fd932bf37aed0edf9365781efc3e91 -->
+# Installation
+
+## Prérequis
+
+| Paquet | Version | Pourquoi |
+|---|---|---|
+| PHP | 8.5 ou plus récent | Les classes en lecture seule, les constantes typées, `new` sans parenthèses. |
+| `ext-sodium` | | Les identifiants aléatoires de la quarantaine, écrits en temps constant. |
+| Symfony | 8.2 | Le conteneur, le validateur, les fichiers de HttpFoundation. |
+| `phil/upload-scan` | `^0.1` | Les analyseurs et la politique. |
+| clamd | toute version de ClamAV prise en charge | L'antivirus, sur un socket Unix ou un port TCP : voir [ClamAV](clamav.md). |
+
+Facultatifs :
+
+| Paquet | Pour |
+|---|---|
+| `symfony/messenger` | Les nouvelles analyses sur un *worker*. |
+| `phil/media-bundle` | Les originaux de la médiathèque, analysés avant d'être stockés. |
+| `phil/document-import-bundle` | Les documents, analysés avant d'être importés, par sa propre option `scan`. |
+| `phil/monitoring-bundle` | Le contrôle de santé de l'antivirus. |
+| `twig/twig` et `symfony/security-csrf` | La page d'administration de la quarantaine. |
+| `easycorp/easyadmin-bundle` | `QuarantineAdmin`, le lien d'un menu EasyAdmin vers cette page. |
+
+## Enregistrer le bundle
+
+```sh
+composer require phil/upload-scan-bundle
+```
+
+```php
+// config/bundles.php
+return [
+    // …
+    Phil\UploadScanBundle\PhilUploadScanBundle::class => ['all' => true],
+];
+```
+
+## Une première analyse
+
+Si clamd écoute sur `tcp://127.0.0.1:3310`, la valeur par défaut, rien d'autre n'est nécessaire. Placez `#[CleanFile]`
+sur un téléversement ([Validation](validation.md)), ou injectez le `UploadScanner` :
+
+```php
+use Phil\UploadScanBundle\Application\UploadScanner;
+
+final readonly class AttachmentController
+{
+    public function __construct(
+        private UploadScanner $scanner,
+    ) {
+    }
+
+    public function attach(UploadedFile $file): void
+    {
+        $inspection = $this->scanner->inspectPath($file->getPathname(), $file->getClientOriginalName(), 'attachment');
+
+        if (!$inspection->accepted()) {
+            throw new UnprocessableEntityHttpException('This file was refused.');
+        }
+        // …
+    }
+}
+```
+
+Dans l'environnement de test, `scanner: fake` analyse sans clamd : voir [Tests](testing.md).

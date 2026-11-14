@@ -1,0 +1,11 @@
+{
+    "controllers": {
+        "@phil/form-logic": {
+            "logic": {
+                "enabled": true,
+                "fetch": "eager"
+            }
+        }
+    },
+    "entrypoints": []
+}

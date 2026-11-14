@@ -1,0 +1,50 @@
+{#
+    A certificate's page, which its QR code opens: whom it was awarded to, for what, when, until when, whether it
+    still holds, and the certificates it renews and that renew it.
+#}
+{% extends layout %}
+
+{% trans_default_domain 'phil_certificates' %}
+
+{% block title %}{{ 'certificate.title'|trans({'%code%': code.formatted}) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'certificate.title'|trans({'%code%': code.formatted}) }}</h1>
+
+    <section class="{{ status }}" role="status">
+        <h2>{{ ('certificate.status.' ~ status)|trans }}</h2>
+        <dl>
+            <dt>{{ 'certificate.recipient'|trans }}</dt>
+            <dd>{{ certificate.recipientName }}</dd>
+            <dt>{{ 'certificate.course'|trans }}</dt>
+            <dd><a href="{{ path('phil_certificates_course', {slug: certificate.course.slug}) }}">{{ certificate.course.name }}</a></dd>
+            <dt>{{ 'certificate.awarded_at'|trans }}</dt>
+            <dd><time datetime="{{ certificate.awardedAt|date('c') }}">{{ certificate.awardedAt|date('Y-m-d') }}</time></dd>
+            {% if certificate.validUntil is not null %}
+                <dt>{{ 'certificate.valid_until'|trans }}</dt>
+                <dd><time datetime="{{ certificate.validUntil|date('c') }}">{{ certificate.validUntil|date('Y-m-d') }}</time></dd>
+            {% endif %}
+            {% if certificate.renews is not null %}
+                <dt>{{ 'certificate.renews'|trans }}</dt>
+                <dd><a href="{{ path('phil_certificates_certificate', {code: certificate.renews.code.value}) }}">{{ certificate.renews.code.formatted }}</a></dd>
+            {% endif %}
+            {% if renewal is not null %}
+                <dt>{{ 'certificate.renewed_by'|trans }}</dt>
+                <dd><a href="{{ path('phil_certificates_certificate', {code: renewal.code.value}) }}">{{ renewal.code.formatted }}</a></dd>
+            {% endif %}
+            {% if certificate.revokedAt is not null %}
+                <dt>{{ 'certificate.revoked_at'|trans }}</dt>
+                <dd><time datetime="{{ certificate.revokedAt|date('c') }}">{{ certificate.revokedAt|date('Y-m-d') }}</time></dd>
+                <dt>{{ 'certificate.reason'|trans }}</dt>
+                <dd>{{ certificate.revocationReason }}</dd>
+            {% endif %}
+        </dl>
+    </section>
+
+    {% if status != 'revoked' %}
+        <ul>
+            <li><a href="{{ path('phil_certificates_pdf', {code: code.value}) }}">{{ 'certificate.pdf'|trans }}</a></li>
+            <li><a href="{{ path('phil_certificates_credential', {code: code.value}) }}">{{ 'certificate.credential'|trans }}</a></li>
+        </ul>
+    {% endif %}
+{% endblock %}

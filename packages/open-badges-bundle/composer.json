@@ -1,0 +1,72 @@
+{
+    "name": "phil/open-badges-bundle",
+    "description": "phil/open-badges in Symfony: the issuer and its key from configuration, credentials secured as JSON Web Tokens or Data Integrity proofs, the issuer's profile and keys served, Bitstring Status Lists served, a verification page for tokens, documents and baked images, and the keys of other issuers read from their profiles",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "open-badges",
+        "verifiable-credentials",
+        "clr",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/open-badges": "^0.1.1@dev",
+        "phil/safe-http": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "symfony/cache-contracts": "^3.6",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "ext-openssl": "*",
+        "phil/rate-limit-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/cache": "^3.0",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/mime": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bundle": "^8.2"
+    },
+    "suggest": {
+        "phil/rate-limit-bundle": "To count the checks of the verification page against a limiter",
+        "symfony/twig-bundle": "For the verification page"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\OpenBadgesBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\OpenBadgesBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

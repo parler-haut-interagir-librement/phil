@@ -1,0 +1,9 @@
+{% extends layout %}
+
+{% block title %}{{ 'guest.invalid.title'|trans({}, 'phil_privacy') }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'guest.invalid.title'|trans({}, 'phil_privacy') }}</h1>
+    <p>{{ 'guest.invalid.intro'|trans({}, 'phil_privacy') }}</p>
+    <p><a href="{{ path('phil_privacy_guest_request') }}">{{ 'guest.invalid.again'|trans({}, 'phil_privacy') }}</a></p>
+{% endblock %}

@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Phil\AuditBundle\Tests\Integration\Infrastructure;
+
+use Override;
+use Phil\AuditBundle\Infrastructure\Doctrine\AuditTable;
+use Phil\AuditBundle\Infrastructure\Doctrine\DbalAuditLogReader;
+use Phil\AuditBundle\Infrastructure\Doctrine\DbalAuditRowRepository;
+use Phil\AuditBundle\Infrastructure\Doctrine\DbalFeedCheckpoints;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
+
+/**
+ * MySQL 8, through `pdo_mysql`: `phil-dev services test` gives it `PHIL_TEST_MYSQL_URL`.
+ */
+#[CoversClass(DbalAuditRowRepository::class)]
+#[CoversClass(DbalAuditLogReader::class)]
+#[CoversClass(DbalFeedCheckpoints::class)]
+#[CoversClass(AuditTable::class)]
+#[Group('mysql')]
+final class MySqlStorageTest extends SqlStorageTestCase
+{
+    #[Override]
+    protected function url(): ?string
+    {
+        $url = getenv('PHIL_TEST_MYSQL_URL');
+
+        return \is_string($url) ? $url : null;
+    }
+}

@@ -1,0 +1,26 @@
+{%- props
+    ## string The name of the item.
+    label,
+    ## string|null What the event `tree:select` carries; the name when null.
+    value = null,
+    ## bool Whether the item holds others, written as its content.
+    branch = false,
+    ## bool Whether the branch shows what it holds at first.
+    expanded = false,
+    ## bool Whether the item is the chosen one.
+    selected = false,
+    ## string|null Where the item leads.
+    href = null
+-%}
+<li role="treeitem" tabindex="-1" aria-selected="{{ selected ? 'true' : 'false' }}"{% if branch %} aria-expanded="{{ expanded ? 'true' : 'false' }}"{% endif %} data-value="{{ value ?? label }}" data-tree-target="item" data-slot="tree-item"{{ attributes.defaults({class: 'outline-none'}) }}>
+    <span class="flex min-h-8 cursor-pointer items-center gap-1 rounded-sm px-1 hover:bg-muted [li:focus-visible>&]:ring-3 [li:focus-visible>&]:ring-ring/50 [li[aria-selected=true]>&]:bg-accent [li[aria-selected=true]>&]:text-accent-foreground pointer-coarse:min-h-11">
+        {%- if branch -%}<span class="w-4 shrink-0 text-center transition-transform before:content-['\25B8'] [li[aria-expanded=true]>span>&]:rotate-90 rtl:before:content-['\25C2'] rtl:[li[aria-expanded=true]>span>&]:-rotate-90 motion-reduce:transition-none" aria-hidden="true" data-tree-target="toggle"></span>{%- endif -%}
+        {%- if href is not null -%}<a class="wrap-anywhere text-inherit" href="{{ href }}" tabindex="-1" data-tree-target="link">{{ label }}</a>{%- else -%}<span class="wrap-anywhere text-inherit">{{ label }}</span>{%- endif -%}
+    </span>
+    {%- if branch -%}
+        <ul class="m-0 list-none ps-4 [@media(scripting:enabled)]:[li[aria-expanded=false]>&]:hidden" role="group">
+        {##- The items this branch holds, each a `Tree:Item`. -#}
+        {%- block content %}{% endblock -%}
+        </ul>
+    {%- endif -%}
+</li>

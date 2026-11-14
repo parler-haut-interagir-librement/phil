@@ -1,0 +1,68 @@
+{
+    "name": "phil/audit-bundle",
+    "description": "Append-only audit trail for Symfony: hash-chained rows indexed by actor, action and record, read a page at a time, one chain per site, facts fed to dashboards, salted commitments on personal fields, external anchors",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/ddd-bundle": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2"
+    },
+    "require-dev": {
+        "ext-pdo_sqlite": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/tenancy-bundle": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-kernel": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/workflow": "^8.2"
+    },
+    "suggest": {
+        "doctrine/dbal": "To keep the trail in a table of a Doctrine connection",
+        "phil/tenancy-bundle": "To stamp each row with the active tenant and hold reading to it",
+        "phil/url": "To read the collector's endpoint (feed.otlp), with symfony/http-client",
+        "symfony/console": "For phil:audit:anchor, phil:audit:verify and phil:audit:feed",
+        "symfony/http-client": "To send the facts to an OpenTelemetry collector (feed.otlp)",
+        "symfony/messenger": "To dispatch each recorded row to dashboards (dispatch_bus)",
+        "symfony/security-core": "To name the current account in the rows the bundle records",
+        "symfony/workflow": "To record the transitions of Auditable subjects (workflow_segment)"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\AuditBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\AuditBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

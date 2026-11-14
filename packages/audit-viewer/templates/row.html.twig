@@ -1,0 +1,41 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}{{ 'title.row'|trans({'%segment%': row.segment, '%sequence%': row.sequence}, 'phil_audit_viewer') }}{% endblock %}
+
+{% block main %}
+    {% set route = ea().dashboardRouteName ~ '_audit_' %}
+
+    {% if not row.isIntact() %}
+        <div class="alert alert-danger" role="alert">{{ 'row.not_intact'|trans({}, 'phil_audit_viewer') }}</div>
+    {% endif %}
+
+    <dl class="row">
+        <dt class="col-sm-3">{{ 'column.recorded_at'|trans({}, 'phil_audit_viewer') }}</dt>
+        <dd class="col-sm-9"><time datetime="{{ row.instant() }}">{{ row.recordedAt|date('Y-m-d H:i:s.u', timezone) }}</time> ({{ timezone }})</dd>
+        <dt class="col-sm-3">{{ 'column.kind'|trans({}, 'phil_audit_viewer') }}</dt>
+        <dd class="col-sm-9">{{ ('kind.' ~ row.kind.value)|trans({}, 'phil_audit_viewer') }}</dd>
+        <dt class="col-sm-3">{{ 'column.action'|trans({}, 'phil_audit_viewer') }}</dt>
+        <dd class="col-sm-9">{{ row.facts.action ?? '—' }}</dd>
+        <dt class="col-sm-3">{{ 'column.actor'|trans({}, 'phil_audit_viewer') }}</dt>
+        <dd class="col-sm-9">{{ row.facts.actor ?? '—' }}</dd>
+        <dt class="col-sm-3">{{ 'column.subject'|trans({}, 'phil_audit_viewer') }}</dt>
+        <dd class="col-sm-9">
+            {% if row.facts.subject is not null %}
+                <a href="{{ path(route ~ 'history', {type: row.facts.subject.type, id: row.facts.subject.id}) }}">{{ row.facts.subject.type }} {{ row.facts.subject.id }}</a>
+            {% else %}—{% endif %}
+        </dd>
+        <dt class="col-sm-3">{{ 'column.tenant'|trans({}, 'phil_audit_viewer') }}</dt>
+        <dd class="col-sm-9">{{ row.facts.tenant ?? '—' }}</dd>
+        <dt class="col-sm-3">{{ 'column.version'|trans({}, 'phil_audit_viewer') }}</dt>
+        <dd class="col-sm-9"><code>{{ row.version }}</code></dd>
+        <dt class="col-sm-3">{{ 'column.previous_hash'|trans({}, 'phil_audit_viewer') }}</dt>
+        <dd class="col-sm-9"><code>{{ row.previousHash }}</code></dd>
+        <dt class="col-sm-3">{{ 'column.hash'|trans({}, 'phil_audit_viewer') }}</dt>
+        <dd class="col-sm-9"><code>{{ row.hash }}</code></dd>
+    </dl>
+
+    <h2 class="h5">{{ 'row.payload'|trans({}, 'phil_audit_viewer') }}</h2>
+    {{ include('@PhilAuditViewer/_fields.html.twig', {fields: fields, row: row}) }}
+
+    <p><a href="{{ path(route ~ 'verify', {segment: row.segment}) }}">{{ 'action.verify'|trans({'%segment%': row.segment}, 'phil_audit_viewer') }}</a></p>
+{% endblock %}

@@ -1,0 +1,8 @@
+analytics:
+    _a:
+        purpose: { en: Counts visits, fr: Compte les visites }
+        duration: P13M
+        provider: A measurement service
+    '_a_ses.*':
+        purpose: Tells one visit from the next
+        duration: session

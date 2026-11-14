@@ -1,0 +1,30 @@
+{%- props
+    ## 'default'|'secondary'|'destructive'|'outline'|'ghost'|'link' The button style variant.
+    variant = 'outline',
+    ## 'default'|'xs'|'sm'|'lg'|'icon'|'icon-xs'|'icon-sm'|'icon-lg' The button size.
+    size = 'icon-sm',
+    ## string The accessible label of the button.
+    text = 'Previous slide'
+-%}
+{#- The variants and sizes of the Shadcn kit's button, so that the button looks like the others of the page. -#}
+{%- set _carousel_variant = {
+    default: 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
+    secondary: 'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
+    destructive: 'border-transparent bg-destructive/10 text-destructive hover:bg-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30',
+    outline: 'border-border bg-background hover:bg-muted hover:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50',
+    ghost: 'border-transparent hover:bg-muted hover:text-foreground dark:hover:bg-muted/50',
+    link: 'border-transparent text-primary underline-offset-4 hover:underline',
+}[variant] ?? 'border-border bg-background hover:bg-muted hover:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50' -%}
+{%- set _carousel_size = {
+    default: 'h-8 gap-1.5 px-2.5',
+    xs: 'h-6 gap-1 px-2 text-xs',
+    sm: 'h-7 gap-1 px-2.5 text-[0.8rem]',
+    lg: 'h-9 gap-1.5 px-2.5',
+    icon: 'size-8',
+    'icon-xs': 'size-6',
+    'icon-sm': 'size-7',
+    'icon-lg': 'size-9',
+}[size] ?? 'size-7' -%}
+<button type="button" data-slot="carousel-previous" data-variant="{{ variant }}" data-size="{{ size }}" hidden data-carousel-target="previous" {{ attributes.defaults({class: 'row-start-1 col-start-1 inline-flex shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-full border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 print:hidden ' ~ _carousel_variant ~ ' ' ~ _carousel_size, 'data-action': 'click->carousel#scrollPrev'}) }}>
+    <span aria-hidden="true">&lsaquo;</span><span class="sr-only">{{ text }}</span>
+</button>

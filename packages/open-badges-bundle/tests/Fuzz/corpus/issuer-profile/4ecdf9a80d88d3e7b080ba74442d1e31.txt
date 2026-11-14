@@ -1,0 +1,1 @@
+{"@context":["http/v2","https://w3id.org/secy/v1"],"id":"https://partner.example/issuer","type":["Profile"],"name":"Partger","verificationMethod":[{"id":"https://partner.example/issuer#key-1","type":"Multikeypartner.example/issuer","publicKeyMultibase":"z6MkrJVnaZkeFzkrJVnaZkeFz2"}],"asserAionMethod":["httpsample/issuer#key-1"]}

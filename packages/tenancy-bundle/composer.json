@@ -1,0 +1,73 @@
+{
+    "name": "phil/tenancy-bundle",
+    "description": "Active tenant for multi-tenant Symfony applications: resolved from the tenants an account can reach or from the host, switched without a round trip to the identity provider, a fail-closed Doctrine filter, the tenant carried across Messenger, sessions, mail and cache pools, shops by domain, and PostgreSQL row-level security as a second barrier",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "doctrine/dbal": "^4.2",
+        "doctrine/orm": "^3.5",
+        "doctrine/persistence": "^4.1",
+        "phil/ddd-bundle": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "psr/event-dispatcher": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "phpunit/phpunit": "^13.4",
+        "psr/cache": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/cache-contracts": "^3.6",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/mailer": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/mime": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-http": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "symfony/cache": "To scope cache.app, and the pools built on it, to the active tenant",
+        "symfony/console": "For the --tenant option of every command, and the commands of row-level security",
+        "symfony/mailer": "For the transport, the sender and the reply address of each tenant",
+        "symfony/messenger": "To carry the active tenant across transports",
+        "symfony/security-http": "For the sessions scoped to the tenant their accounts signed in on",
+        "twig/twig": "For the active_tenant() and reachable_tenants() functions"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\TenancyBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\TenancyBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

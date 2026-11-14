@@ -1,0 +1,11 @@
+{# The digest: the unread notifications the last digest did not hold, oldest first, each linked to its subject. #}
+<h1>{{ ('digest.heading.' ~ frequency)|trans({}, 'phil_notifications') }}</h1>
+<ul>
+    {% for item in notifications %}
+        <li>
+            <p><strong>{% if item.url %}<a href="{{ item.url }}">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</strong></p>
+            {% if item.body %}<p>{{ item.body }}</p>{% endif %}
+        </li>
+    {% endfor %}
+</ul>
+<p>{{ 'digest.footer'|trans({}, 'phil_notifications') }}</p>

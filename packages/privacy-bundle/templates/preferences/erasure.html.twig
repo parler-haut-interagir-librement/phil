@@ -1,0 +1,13 @@
+{% extends layout %}
+
+{% block title %}{{ 'preferences.erasure.title'|trans({}, 'phil_privacy') }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'preferences.erasure.title'|trans({}, 'phil_privacy') }}</h1>
+    <p role="alert">{{ 'preferences.erasure.warning'|trans({}, 'phil_privacy') }}</p>
+    <form method="post">
+        <input type="hidden" name="_token" value="{{ csrf_token }}">
+        <button type="submit">{{ 'preferences.erasure.confirm'|trans({}, 'phil_privacy') }}</button>
+    </form>
+    <p><a href="{{ path('phil_privacy_preferences') }}">{{ 'preferences.erasure.keep'|trans({}, 'phil_privacy') }}</a></p>
+{% endblock %}

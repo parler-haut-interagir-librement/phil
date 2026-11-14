@@ -1,0 +1,83 @@
+{
+    "name": "phil/upload-scan-bundle",
+    "description": "phil/upload-scan in Symfony: the scanner and its policy from configuration, a #[CleanFile] constraint for uploads, infected files quarantined outside the web root, listed on an admin page and purged after their retention, rescans on a worker, and the uploads of phil/media-bundle and the health checks of phil/monitoring-bundle behind the antivirus",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "antivirus",
+        "clamav",
+        "upload",
+        "validator",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-sodium": "*",
+        "phil/upload-scan": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/filesystem": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/validator": "^8.2"
+    },
+    "require-dev": {
+        "easycorp/easyadmin-bundle": "^5.8",
+        "phil/media-bundle": "^0.1@dev",
+        "phil/monitoring-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/browser-kit": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "easycorp/easyadmin-bundle": "For QuarantineAdmin, the link of an EasyAdmin menu to the quarantine",
+        "phil/media-bundle": "To scan the files of the media library before they are stored",
+        "phil/monitoring-bundle": "For the health check of the antivirus",
+        "symfony/console": "For phil:upload-scan:purge-quarantine, the retention of the quarantine",
+        "symfony/messenger": "To scan files again on a worker",
+        "symfony/security-csrf": "With Twig, for the administration of the quarantine",
+        "twig/twig": "With the CSRF component, for the administration of the quarantine"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\UploadScanBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\UploadScanBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

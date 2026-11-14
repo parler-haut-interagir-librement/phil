@@ -1,0 +1,11 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * What phil/dev-tools reads of this package: its paths and its exceptions to the shared configurations.
+ */
+return [
+    'paths' => ['tests'],
+    'docs' => ['public' => true, 'words' => ['Sparkline', 'chromedriver', 'importmap', 'seedable', 'IPTC', 'lightbox', 'lightboxes', 'WCAG']],
+];

@@ -1,0 +1,56 @@
+{#
+    The sections of the page, the current one's form and what happened to the last change, for a page of the
+    application:
+
+        {{ include('@PhilSettings/_settings.html.twig') }}
+
+    Given form, sections (each key, label, translation_domain, url and current), section, scope, saved, and preview:
+    the settings of the section before a save (each key, label, translation_domain, current, proposed and changed, a
+    value being parts that are a translation key with its domain, or a text when the domain is null), empty unless the
+    preview button was pressed.
+#}
+<nav aria-label="{{ 'phil_settings.sections'|trans({}, 'phil_settings') }}">
+    <ul>
+        {%- for link in sections %}
+            <li><a href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.label|trans({}, link.translation_domain) }}</a></li>
+        {%- endfor %}
+    </ul>
+</nav>
+<section aria-labelledby="phil-settings-section">
+    <h2 id="phil-settings-section">{{ section.label|trans({}, section.translationDomain) }}</h2>
+    {%- if section.help is not null %}
+        <p>{{ section.help|trans({}, section.translationDomain) }}</p>
+    {%- endif %}
+    {%- if saved %}
+        <p role="status">{{ 'phil_settings.saved'|trans({}, 'phil_settings') }}</p>
+    {%- endif %}
+    {%- if preview is not empty %}
+        <section aria-labelledby="phil-settings-preview" role="status">
+            <h3 id="phil-settings-preview">{{ 'phil_settings.preview.title'|trans({}, 'phil_settings') }}</h3>
+            <p>{{ 'phil_settings.preview.help'|trans({}, 'phil_settings') }}</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">{{ 'phil_settings.preview.setting'|trans({}, 'phil_settings') }}</th>
+                        <th scope="col">{{ 'phil_settings.preview.current'|trans({}, 'phil_settings') }}</th>
+                        <th scope="col">{{ 'phil_settings.preview.proposed'|trans({}, 'phil_settings') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {%- for row in preview %}
+                    <tr{% if row.changed %} data-changed{% endif %}>
+                        <th scope="row">{{ row.label|trans({}, row.translation_domain) }}{% if row.changed %} <strong>{{ 'phil_settings.preview.changed'|trans({}, 'phil_settings') }}</strong>{% endif %}</th>
+                        <td>{% for part in row.current %}{{ part.domain is null ? part.message : part.message|trans({}, part.domain) }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+                        <td>{% for part in row.proposed %}{{ part.domain is null ? part.message : part.message|trans({}, part.domain) }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+                    </tr>
+                    {%- endfor %}
+                </tbody>
+            </table>
+        </section>
+    {%- endif %}
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button type="submit">{{ 'phil_settings.save'|trans({}, 'phil_settings') }}</button>
+        <button type="submit" name="phil_settings_preview" value="1">{{ 'phil_settings.preview'|trans({}, 'phil_settings') }}</button>
+    {{ form_end(form) }}
+</section>

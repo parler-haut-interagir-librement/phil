@@ -1,0 +1,61 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}{{ 'title.log'|trans({}, 'phil_audit_viewer') }}{% endblock %}
+
+{% block main %}
+    {% set route = ea().dashboardRouteName ~ '_audit_' %}
+    {% set values = filters.values %}
+
+    {% if filters.errors is not empty %}
+        <div class="alert alert-danger" role="alert">
+            {{ 'log.invalid'|trans({'%fields%': filters.errors|map(field => ('filter.' ~ field)|trans({'%timezone%': timezone}, 'phil_audit_viewer'))|join(', ')}, 'phil_audit_viewer') }}
+        </div>
+    {% endif %}
+
+    <form method="get" action="{{ path(route ~ 'log') }}" class="mb-3" role="search">
+        <div class="row g-2">
+            {% for field in ['actor', 'action', 'subject_type', 'subject_id', 'segment', 'tenant'] %}
+                <div class="col-sm-4 col-lg-2">
+                    <label class="form-label" for="phil-audit-{{ field }}">{{ ('filter.' ~ field)|trans({}, 'phil_audit_viewer') }}</label>
+                    <input class="form-control{{ field in filters.errors ? ' is-invalid' }}" type="text" id="phil-audit-{{ field }}" name="{{ field }}" value="{{ values[field] ?? '' }}">
+                </div>
+            {% endfor %}
+            <div class="col-sm-4 col-lg-2 d-flex align-items-end">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="phil-audit-prefix" name="prefix" value="1"{{ values.prefix is defined ? ' checked' }}>
+                    <label class="form-check-label" for="phil-audit-prefix">{{ 'filter.prefix'|trans({}, 'phil_audit_viewer') }}</label>
+                </div>
+            </div>
+            {% for field in ['since', 'until'] %}
+                <div class="col-sm-6 col-lg-3">
+                    <label class="form-label" for="phil-audit-{{ field }}">{{ ('filter.' ~ field)|trans({'%timezone%': timezone}, 'phil_audit_viewer') }}</label>
+                    <input class="form-control{{ field in filters.errors ? ' is-invalid' }}" type="datetime-local" id="phil-audit-{{ field }}" name="{{ field }}" value="{{ values[field] ?? '' }}">
+                </div>
+            {% endfor %}
+            <div class="col-12">
+                <button class="btn btn-primary" type="submit">{{ 'action.filter'|trans({}, 'phil_audit_viewer') }}</button>
+                <a class="btn btn-secondary" href="{{ path(route ~ 'log') }}">{{ 'action.clear'|trans({}, 'phil_audit_viewer') }}</a>
+                <a class="btn btn-link" href="{{ path(route ~ 'chain') }}">{{ 'menu.chain'|trans({}, 'phil_audit_viewer') }}</a>
+            </div>
+        </div>
+    </form>
+
+    {% if exportable and page is not null %}
+        <form method="post" action="{{ path(route ~ 'export') }}" class="mb-3">
+            {% for field, value in filters.parameters() %}
+                <input type="hidden" name="{{ field }}" value="{{ value }}">
+            {% endfor %}
+            <input type="hidden" name="_token" value="{{ csrf_token(csrf_id) }}">
+            <button class="btn btn-outline-secondary" type="submit">{{ 'action.export'|trans({}, 'phil_audit_viewer') }}</button>
+            <small class="text-muted">{{ 'log.export_recorded'|trans({}, 'phil_audit_viewer') }}</small>
+        </form>
+    {% endif %}
+
+    {% if page is not null %}
+        {{ include('@PhilAuditViewer/_rows.html.twig', {rows: page.rows}) }}
+
+        {% if page.next is not null %}
+            <a class="btn btn-secondary" rel="next" href="{{ path(route ~ 'log', filters.parameters()|merge({cursor: page.next.token()})) }}">{{ 'action.next'|trans({}, 'phil_audit_viewer') }}</a>
+        {% endif %}
+    {% endif %}
+{% endblock %}

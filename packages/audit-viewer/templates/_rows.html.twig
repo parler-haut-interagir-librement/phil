@@ -1,0 +1,34 @@
+{# The rows of a page: instant, place, action, actor, record and tenant, each row linked to its page. #}
+{% set route = ea().dashboardRouteName ~ '_audit_' %}
+<table class="table datagrid">
+    <thead>
+    <tr>
+        <th scope="col">{{ 'column.recorded_at'|trans({}, 'phil_audit_viewer') }}</th>
+        <th scope="col">{{ 'column.place'|trans({}, 'phil_audit_viewer') }}</th>
+        <th scope="col">{{ 'column.action'|trans({}, 'phil_audit_viewer') }}</th>
+        <th scope="col">{{ 'column.actor'|trans({}, 'phil_audit_viewer') }}</th>
+        <th scope="col">{{ 'column.subject'|trans({}, 'phil_audit_viewer') }}</th>
+        <th scope="col">{{ 'column.tenant'|trans({}, 'phil_audit_viewer') }}</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for row in rows %}
+        <tr>
+            <td><time datetime="{{ row.instant() }}">{{ row.recordedAt|date('Y-m-d H:i:s', timezone) }}</time></td>
+            <td><a href="{{ path(route ~ 'row', {segment: row.segment, sequence: row.sequence}) }}">{{ row.segment }} #{{ row.sequence }}</a></td>
+            <td>{{ row.facts.action ?? ('kind.' ~ row.kind.value)|trans({}, 'phil_audit_viewer') }}</td>
+            <td>{{ row.facts.actor ?? '—' }}</td>
+            <td>
+                {% if row.facts.subject is not null %}
+                    <a href="{{ path(route ~ 'history', {type: row.facts.subject.type, id: row.facts.subject.id}) }}">{{ row.facts.subject.type }} {{ row.facts.subject.id }}</a>
+                {% else %}—{% endif %}
+            </td>
+            <td>{{ row.facts.tenant ?? '—' }}</td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="6">{{ 'log.empty'|trans({}, 'phil_audit_viewer') }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

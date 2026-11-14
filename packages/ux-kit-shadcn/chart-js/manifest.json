@@ -1,0 +1,10 @@
+{
+    "type": "component",
+    "name": "ChartJs",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    },
+    "dependencies": {
+        "composer": ["symfony/ux-chartjs:^3.7", "symfony/ux-twig-component:^3.7"]
+    }
+}

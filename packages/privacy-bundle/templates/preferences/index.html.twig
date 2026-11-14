@@ -1,0 +1,63 @@
+{% extends layout %}
+
+{% block content %}
+    <h1>{{ 'preferences.title'|trans({}, 'phil_privacy') }}</h1>
+
+    {% if busy %}
+        <p role="alert">{{ 'preferences.busy'|trans({}, 'phil_privacy') }}</p>
+    {% endif %}
+
+    <p><a href="{{ path('phil_privacy_consent') }}">{{ 'consent.title'|trans({}, 'phil_privacy') }}</a></p>
+
+    {% if can_export %}
+        <section>
+            <h2>{{ 'preferences.export.title'|trans({}, 'phil_privacy') }}</h2>
+            <p>{{ 'preferences.export.intro'|trans({}, 'phil_privacy') }}</p>
+            <form method="post" action="{{ path('phil_privacy_export') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token }}">
+                <button type="submit">{{ 'preferences.export.submit'|trans({}, 'phil_privacy') }}</button>
+            </form>
+        </section>
+    {% endif %}
+
+    {% if email_tracking %}
+        <section>
+            <h2>{{ 'preferences.email_tracking.title'|trans({}, 'phil_privacy') }}</h2>
+            <p>{{ 'preferences.email_tracking.intro'|trans({}, 'phil_privacy') }}</p>
+            <form method="post" action="{{ path('phil_privacy_email_tracking') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token }}">
+                <p>
+                    <input type="checkbox" id="phil-privacy-email-opens" name="opens" value="1"{% if email_tracking_choice and email_tracking_choice.opens %} checked{% endif %}>
+                    <label for="phil-privacy-email-opens">{{ 'preferences.email_tracking.opens'|trans({}, 'phil_privacy') }}</label>
+                </p>
+                <p>
+                    <input type="checkbox" id="phil-privacy-email-clicks" name="clicks" value="1"{% if email_tracking_choice and email_tracking_choice.clicks %} checked{% endif %}>
+                    <label for="phil-privacy-email-clicks">{{ 'preferences.email_tracking.clicks'|trans({}, 'phil_privacy') }}</label>
+                </p>
+                <p><small>{{ 'consent.version'|trans({'%version%': email_tracking_version}, 'phil_privacy') }}</small></p>
+                <button type="submit">{{ 'preferences.email_tracking.submit'|trans({}, 'phil_privacy') }}</button>
+            </form>
+            {% if email_tracking_choice %}
+                <p role="status">{{ 'preferences.email_tracking.decided'|trans({'%date%': email_tracking_choice.decidedAt|date('Y-m-d', 'UTC')}, 'phil_privacy') }}</p>
+            {% endif %}
+        </section>
+    {% endif %}
+
+    {% if can_erase %}
+        <section>
+            <h2>{{ 'preferences.erasure.title'|trans({}, 'phil_privacy') }}</h2>
+            {% if deletion %}
+                <p role="status">{{ 'preferences.erasure.scheduled'|trans({'%date%': deletion.effectiveAt|date('Y-m-d')}, 'phil_privacy') }}</p>
+                {% if cancellable %}
+                    <form method="post" action="{{ path('phil_privacy_erasure_cancel') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token }}">
+                        <button type="submit">{{ 'preferences.erasure.cancel'|trans({}, 'phil_privacy') }}</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <p>{{ 'preferences.erasure.intro'|trans({}, 'phil_privacy') }}</p>
+                <p><a href="{{ path('phil_privacy_erasure') }}">{{ 'preferences.erasure.start'|trans({}, 'phil_privacy') }}</a></p>
+            {% endif %}
+        </section>
+    {% endif %}
+{% endblock %}

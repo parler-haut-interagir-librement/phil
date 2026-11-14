@@ -1,0 +1,4 @@
+# The page of each form, /forms/{key}.
+phil_forms:
+    resource: '@PhilFormsBundle/config/routes.php'
+    prefix: /forms

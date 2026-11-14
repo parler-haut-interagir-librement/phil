@@ -1,0 +1,91 @@
+{
+    "name": "phil/onboarding-bundle",
+    "description": "The welcome of a new member, for Symfony: flows of ordered steps completed by hand, by an event, by a checker or by an answer the application turns into roles and subscriptions, each user's progress kept under their identifier, and an accessible checklist and guided tour, in English and French",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "onboarding",
+        "checklist",
+        "guided-tour",
+        "product-tour",
+        "accessibility",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/service-contracts": "^3.6"
+    },
+    "require-dev": {
+        "ext-pdo": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "phil/privacy-bundle": "^0.1@dev",
+        "phil/settings-bundle": "^0.1@dev",
+        "phil/ux-kit": ">=0.5.0-alpha <1.0",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.1",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "symfony/yaml": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/doctrine-bundle": "To keep the progress of each user in the application's database",
+        "phil/privacy-bundle": "For a user's progress in the export and the erasure of their data",
+        "phil/settings-bundle": "To let each user turn the guided tours off in their preferences",
+        "phil/ux-kit": "For the recipe Button the checklist and the tour draw, through the Symfony UX Toolkit",
+        "symfony/asset-mapper": "To serve the Stimulus controller and its stylesheet without a build step",
+        "symfony/routing": "For the endpoints that mark a step done or skipped, dismiss and reset a flow",
+        "symfony/security-core": "To name the current user from the authenticated user",
+        "symfony/stimulus-bundle": "For the guided tour",
+        "symfony/twig-bundle": "For the checklist and the tour in templates",
+        "symfony/ux-twig-component": "For the checklist and the tour, whose buttons are a recipe of the kit, and their components"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\OnboardingBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\OnboardingBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

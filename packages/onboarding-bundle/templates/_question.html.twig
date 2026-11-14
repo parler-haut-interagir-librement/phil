@@ -1,0 +1,22 @@
+{#
+ # The form that answers the question of a step: its choices, as radio buttons, or as checkboxes when several may be
+ # picked, grouped under the step's title, and a button of the kit that sends them. It needs no script.
+ #
+ # item: the StepProgress. title: the step's title, translated. domain: the flow's translation domain. data: what
+ # OnboardingView gives.
+ #}
+{%- set question = item.step.question -%}
+{%- set field = data.id ~ '-' ~ item.step.id -%}
+<form class="phil-onboarding-question" method="post" action="{{ data.urls.answer[item.step.id] }}">
+    <input type="hidden" name="_token" value="{{ data.token }}">
+    <fieldset class="phil-onboarding-question__choices">
+        <legend class="phil-onboarding-visually-hidden">{{ title }}</legend>
+        {%- for choice in question.choices %}
+        <label class="phil-onboarding-question__choice">
+            <input type="{{ question.multiple ? 'checkbox' : 'radio' }}" name="choices[]" value="{{ choice.id }}"{% if not question.multiple %} required{% endif %} id="{{ field }}-{{ choice.id }}">
+            {{ choice.label|trans({}, domain) }}
+        </label>
+        {%- endfor %}
+    </fieldset>
+    {% component (phil_onboarding_kit('Button')) with {type: 'submit', variant: 'default', size: 'sm'} %}{% block content %}{{ 'checklist.answer'|trans({}, 'phil_onboarding') }}<span class="phil-onboarding-visually-hidden">: {{ title }}</span>{% endblock %}{% endcomponent %}
+</form>

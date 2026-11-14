@@ -1,0 +1,13 @@
+{
+    "type": "component",
+    "name": "Tag",
+    "copy-files": {
+        "assets/controllers/": "%CONTROLLERS_DIR%/",
+        "templates/components/": "%COMPONENTS_DIR%/"
+    },
+    "dependencies": {
+        "composer": [
+            "symfony/stimulus-bundle:^3.7"
+        ]
+    }
+}

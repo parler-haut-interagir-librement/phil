@@ -1,0 +1,6 @@
+# The archive Composer installs holds the library, its controller and its documentation: the tests, among them the
+# test cases of JsonLogic kept with their own licence, and the development files stay in the repository.
+/tests export-ignore
+/composer-dependency-analyser.php export-ignore
+/phil-dev.php export-ignore
+/.gitattributes export-ignore

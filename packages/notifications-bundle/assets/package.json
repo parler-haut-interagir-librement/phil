@@ -1,0 +1,30 @@
+{
+    "name": "@phil/notifications-bundle",
+    "description": "The notification centre controller — the bell and its unread count, the panel of the latest notifications, marking them read, and the toasts that arrive through Mercure — and the Web Push controller, which turns this browser's notifications on and off",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/notifications_controller.js",
+    "symfony": {
+        "controllers": {
+            "notifications": {
+                "main": "src/notifications_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            },
+            "web-push": {
+                "main": "src/web_push_controller.js",
+                "webpackMode": "lazy",
+                "fetch": "lazy",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

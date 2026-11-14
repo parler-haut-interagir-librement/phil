@@ -1,0 +1,10 @@
+{% extends layout %}
+
+{% block title %}{{ 'cookies.title'|trans({}, 'phil_privacy') }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'cookies.title'|trans({}, 'phil_privacy') }}</h1>
+    <p>{{ 'cookies.intro'|trans({}, 'phil_privacy') }}</p>
+    {{ include('@PhilPrivacy/cookies/_inventory.html.twig') }}
+    <p><a href="{{ path('phil_privacy_consent') }}">{{ 'cookies.change'|trans({}, 'phil_privacy') }}</a></p>
+{% endblock %}

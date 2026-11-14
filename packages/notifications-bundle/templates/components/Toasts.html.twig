@@ -1,0 +1,6 @@
+{# The region toasts appear in: those the session kept, and those the Stimulus controller adds as they arrive. #}
+<div{{ attributes.defaults({class: 'phil-notifications-toasts', role: 'status', 'aria-live': 'polite', 'data-phil-notifications-toasts': true}) }}>
+    {% for toast in this.toasts %}
+        {{ include('@PhilNotifications/_toast.html.twig', {toast: toast}) }}
+    {% endfor %}
+</div>

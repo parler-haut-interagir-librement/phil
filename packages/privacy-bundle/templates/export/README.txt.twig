@@ -1,0 +1,14 @@
+{% autoescape false %}
+{{ 'export.readme.title'|trans({}, 'phil_privacy') }}
+
+{{ 'export.readme.intro'|trans({'%date%': made_at|date('Y-m-d H:i', 'UTC')}, 'phil_privacy') }}
+
+{{ 'export.readme.files'|trans({}, 'phil_privacy') }}
+
+- README.txt : {{ 'export.readme.this_file'|trans({}, 'phil_privacy') }}
+{% for module, entries in modules %}
+- {{ module }}.json : {{ 'export.readme.entries'|trans({'%count%': entries}, 'phil_privacy') }}
+{% endfor %}
+
+{{ 'export.readme.keep_safe'|trans({}, 'phil_privacy') }}
+{% endautoescape %}

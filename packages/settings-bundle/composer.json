@@ -1,0 +1,88 @@
+{
+    "name": "phil/settings-bundle",
+    "description": "Settings people change themselves, for Symfony: declared by packages and the application, read typed with their default, stored per person and key, a preferences centre and site settings in Twig forms with migrations and a preview before saving, and display preferences applied as data attributes on the page",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "settings",
+        "preferences",
+        "user-preferences",
+        "accessibility",
+        "reduced-motion",
+        "dark-mode",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "psr/clock": "^1.0",
+        "psr/container": "^2.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/service-contracts": "^3.6",
+        "symfony/translation-contracts": "^3.6",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "ext-pdo": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "phil/notifications-bundle": "^0.1@dev",
+        "phil/privacy-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/yaml": "^8.2"
+    },
+    "suggest": {
+        "doctrine/orm": "To add the table to the schema the ORM generates, for doctrine:migrations:diff",
+        "phil/notifications-bundle": "To provide the notification preferences of its recipients from the preferences centre",
+        "phil/privacy-bundle": "To export and erase a person's settings with the rest of their account",
+        "phil/ux-css": "To dress the settings pages and to apply the display preferences the page's root element carries",
+        "symfony/asset-mapper": "To serve the Stimulus controller without a build step",
+        "symfony/security-bundle": "To name the current user and to check the roles of the site's settings",
+        "symfony/stimulus-bundle": "To apply a display preference as soon as it is chosen"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\SettingsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\SettingsBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

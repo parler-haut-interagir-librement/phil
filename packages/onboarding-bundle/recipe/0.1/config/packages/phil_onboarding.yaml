@@ -1,0 +1,5 @@
+# The onboarding flows of the site, by identifier, each with its ordered steps; a flow may also be declared with
+# #[AsOnboardingFlow]. A question whose choices grant roles or subscriptions needs answer_grants. See the flows guide
+# of phil/onboarding-bundle.
+phil_onboarding:
+    flows: {}

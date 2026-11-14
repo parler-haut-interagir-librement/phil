@@ -1,0 +1,10 @@
+# The archive ux:install downloads holds the kit alone: a directory of the kit's root without a manifest.json is not
+# a recipe, and the Toolkit's linter refuses it.
+/doc export-ignore
+/src export-ignore
+/tests export-ignore
+/composer.json export-ignore
+/composer-dependency-analyser.php export-ignore
+/phil-dev.php export-ignore
+/phpunit.dist.xml export-ignore
+/.gitattributes export-ignore

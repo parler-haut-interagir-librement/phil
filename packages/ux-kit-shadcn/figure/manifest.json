@@ -1,0 +1,11 @@
+{
+    "type": "component",
+    "name": "Figure",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    },
+    "dependencies": {
+        "composer": ["symfony/ux-twig-component:^3.7"],
+        "recipe": ["image"]
+    }
+}

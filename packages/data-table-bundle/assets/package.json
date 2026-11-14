@@ -1,0 +1,24 @@
+{
+    "name": "@phil/data-table-bundle",
+    "description": "The Stimulus controller of phil/data-table-bundle: the focus kept across a re-render and Escape while editing a cell",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/table_controller.js",
+    "symfony": {
+        "controllers": {
+            "table": {
+                "main": "src/table_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

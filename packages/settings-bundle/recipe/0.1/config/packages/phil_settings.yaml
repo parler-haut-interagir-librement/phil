@@ -1,0 +1,4 @@
+# The settings people change themselves, and the site's: the bundle declares the general, notifications, privacy and
+# display sections; the application and its packages add theirs. See the configuration guide of phil/settings-bundle.
+phil_settings:
+    site_role: ROLE_ADMIN

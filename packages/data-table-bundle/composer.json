@@ -1,0 +1,90 @@
+{
+    "name": "phil/data-table-bundle",
+    "description": "Data tables for Symfony as a Live Component: sorting, filters, pagination, row and bulk actions, inline editing, a stacked list on narrow screens, and the same state in the address for a link, a reload or a browser without JavaScript",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "data-table",
+        "live-component",
+        "pagination",
+        "symfony-bundle",
+        "symfony-ux"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-intl": "*",
+        "ext-mbstring": "*",
+        "psr/container": "^2.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/property-access": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/ux-live-component": "^3.7",
+        "symfony/ux-twig-component": "^3.7",
+        "symfony/validator": "^8.2",
+        "twig/twig": "^3.30"
+    },
+    "require-dev": {
+        "ext-dom": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/data-table-export": "^0.1@dev",
+        "phil/settings-bundle": "^0.1@dev",
+        "phil/ux-kit": ">=0.1.0-alpha <1.0",
+        "php-webdriver/webdriver": "^1.16",
+        "phpunit/phpunit": "^13.4",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.1",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/panther": "^2.4",
+        "symfony/security-core": "^8.2",
+        "symfony/stimulus-bundle": "^3.7",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/yaml": "^8.2"
+    },
+    "suggest": {
+        "doctrine/orm": "For DoctrineDataSource, a table read from a QueryBuilder",
+        "phil/data-table-export": "For the export of a table, filtered and sorted, as CSV or XLSX",
+        "phil/settings-bundle": "For the column visibility and the page size each user chooses, kept among their settings",
+        "phil/ux-kit": "For the Button recipe the templates draw, and the tokens the stylesheet reads, through the Symfony UX Toolkit",
+        "symfony/asset-mapper": "For the stylesheet and the Stimulus controller without a build step",
+        "symfony/security-core": "For the voter attributes of the actions and of the editable columns"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\DataTableBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\DataTableBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

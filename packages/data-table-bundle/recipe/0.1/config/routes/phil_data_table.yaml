@@ -1,0 +1,4 @@
+# The changes of a browser without JavaScript and the export of a table, behind the application's firewall.
+phil_data_table:
+    resource: '@PhilDataTableBundle/config/routes.php'
+    prefix: /_tables

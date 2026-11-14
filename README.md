@@ -27,6 +27,9 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/ddd-bundle`](https://github.com/parler-haut-interagir-librement/ddd-bundle) | The few types every bounded context shares: identifiers, domain events, errors, command and query buses. |
 | [`phil/references-bundle`](https://github.com/parler-haut-interagir-librement/references-bundle) | Know where each resource is used, and refuse to delete one that something still needs. |
 | [`phil/trash-bundle`](https://github.com/parler-haut-interagir-librement/trash-bundle) | A trash for deleted pages and other resources: restore them, or purge them after a set time. |
+| [`phil/tenancy-bundle`](https://github.com/parler-haut-interagir-librement/tenancy-bundle) | The active tenant of a multi-tenant application: resolved from the account or the host, kept by a fail-closed Doctrine filter, carried across Messenger, sessions, mail and caches. |
+| [`phil/tenancy-database-bundle`](https://github.com/parler-haut-interagir-librement/tenancy-database-bundle) | A database for each tenant, or the shared one: the connection follows the tenant, migrations run per database, and a tenant moves from one database to another, verified and reversible. |
+| [`phil/settings-bundle`](https://github.com/parler-haut-interagir-librement/settings-bundle) | Settings people change themselves: declared by packages, read typed with their default, a preferences centre and site settings, and display preferences applied to the page. |
 
 ### Text and documents
 
@@ -73,6 +76,9 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/passwords`](https://github.com/parler-haut-interagir-librement/passwords) | Tell people how guessable their password is, refuse the ones already leaked, and give them good ones. |
 | [`phil/upload-scan`](https://github.com/parler-haut-interagir-librement/upload-scan) | Every uploaded file through an antivirus before anyone else can open it. |
 | [`phil/forms-autosave`](https://github.com/parler-haut-interagir-librement/forms-autosave) | A form's input kept while it is filled, restored after a reload, and forgotten once it is sent. |
+| [`phil/form-logic`](https://github.com/parler-haut-interagir-librement/form-logic) | Typed conditional logic for forms, evaluated alike in PHP and in a Stimulus controller with the server as judge, as a strict JsonLogic subset. |
+| [`phil/forms-bundle`](https://github.com/parler-haut-interagir-librement/forms-bundle) | Forms defined in the database: a page for each, protected against spam, questions asked under conditions, entries kept no longer than needed, sent by email or to a signed webhook. |
+| [`phil/upload-scan-bundle`](https://github.com/parler-haut-interagir-librement/upload-scan-bundle) | Uploads through the antivirus in Symfony: a constraint, a quarantine outside the web root, an admin page, rescans on a worker and a health check. |
 
 ### Money, phone numbers and dates
 
@@ -138,6 +144,12 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/community-notes`](https://github.com/parler-haut-interagir-librement/community-notes) | Community notes written by qualified members and published by an explainable cross-agreement rule. |
 | [`phil/poll-bundle`](https://github.com/parler-haut-interagir-librement/poll-bundle) | Polls and ballots in Symfony: anonymous ballots changed by receipt, and the single transferable vote by Meek's method with its rounds. |
 | [`phil/stockroom`](https://github.com/parler-haut-interagir-librement/stockroom) | A props stockroom: nested containers, items counted or tracked one by one, a journal of every movement, and load lists checked at the return. |
+| [`phil/notifications-bundle`](https://github.com/parler-haut-interagir-librement/notifications-bundle) | Notifications on Symfony Notifier, delivered to the channels each recipient chose: a notification centre with toasts, email and its digest, Web Push, Slack or Discord. |
+| [`phil/mentions-bundle`](https://github.com/parler-haut-interagir-librement/mentions-bundle) | @mentions of members in plain text, Markdown and UJO documents, with only the newly mentioned members who may see the content notified, and an autocomplete. |
+| [`phil/onboarding-bundle`](https://github.com/parler-haut-interagir-librement/onboarding-bundle) | The welcome of a new member: flows of ordered steps, each person's progress, and an accessible checklist and guided tour. |
+| [`phil/open-badges-bundle`](https://github.com/parler-haut-interagir-librement/open-badges-bundle) | Open Badges in Symfony: the issuer and its key from the configuration, its profile, keys and status lists served, and a verification page for tokens, documents and baked images. |
+| [`phil/certificates-bundle`](https://github.com/parler-haut-interagir-librement/certificates-bundle) | Certificates of completion on Open Badges: courses and pass criteria, a PDF certificate with a verification QR code and the signed credential, a public register and revocation. |
+| [`phil/stockroom-bundle`](https://github.com/parler-haut-interagir-librement/stockroom-bundle) | The props stockroom in Symfony: containers, items, journal and load lists in Doctrine DBAL tables, moves in a transaction that locks the items. |
 
 ### Print and products
 
@@ -192,6 +204,9 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/access-bundle`](https://github.com/parler-haut-interagir-librement/access-bundle) | Per-item visibility, sharing levels that expire on their own, access groups and a logged "view as this member", decided by Symfony voters. |
 | [`phil/access-codes`](https://github.com/parler-haut-interagir-librement/access-codes) | Single-use codes in named batches, given once and stored as keyed hashes, redeemed atomically with attempts bounded by a rate limiter. |
 | [`phil/access-links`](https://github.com/parler-haut-interagir-librement/access-links) | Invitations by personal link: a token stored as a keyed hash, an answer editable until closure, and reminders to non-respondents only. |
+| [`phil/privacy-bundle`](https://github.com/parler-haut-interagir-librement/privacy-bundle) | Privacy law in code: personal fields declared, logs redacted, export and erasure, retention purges, cookie consent refused by default, requests by verified link and anonymized database copies. |
+| [`phil/audit-bundle`](https://github.com/parler-haut-interagir-librement/audit-bundle) | An append-only audit trail: hash-chained rows indexed by actor, action and record, salted commitments on personal fields, and external anchors. |
+| [`phil/audit-viewer`](https://github.com/parler-haut-interagir-librement/audit-viewer) | The audit trail read in EasyAdmin: filters, the history of a record, the state of each hash chain and an audited CSV export. |
 
 ### PHIL UX
 
@@ -201,6 +216,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/ux-kit`](https://github.com/parler-haut-interagir-librement/ux-kit) | The PHIL UX kit for the Symfony UX Toolkit: the recipes of the Shadcn kit, styled with phil-ux, copied by `ux:install`. |
 | [`phil/ux-bundle`](https://github.com/parler-haut-interagir-librement/ux-bundle) | The PHIL UX form theme on every form of a Symfony application, and the stylesheet of `phil/ux-css` in AssetMapper. |
 | [`phil/ux-easyadmin-bundle`](https://github.com/parler-haut-interagir-librement/ux-easyadmin-bundle) | The EasyAdmin back-office in the colours, corners and fonts of the phil-ux tokens, light and dark. |
+| [`phil/ux-kit-shadcn`](https://github.com/parler-haut-interagir-librement/ux-kit-shadcn) | Tailwind versions, in the style of the Shadcn kit, of the extra PHIL UX recipes, under the same names and props, copied by `ux:install`. |
 
 ### Integrations
 
@@ -233,6 +249,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/incident-mode`](https://github.com/parler-haut-interagir-librement/incident-mode) | An incident mode: presets that suspend sign-ups, invitations or messages for a required duration, lifted automatically. |
 | [`phil/status-page-bundle`](https://github.com/parler-haut-interagir-librement/status-page-bundle) | A service status page served as HTML, JSON and Atom without any script, and a static snapshot pushed off the monitored infrastructure. |
 | [`phil/error-tracking`](https://github.com/parler-haut-interagir-librement/error-tracking) | Error tracking kept at home: events grouped by a stable fingerprint, scrubbed of personal data and secrets before anything is written. |
+| [`phil/data-table-bundle`](https://github.com/parler-haut-interagir-librement/data-table-bundle) | Data tables as a Live Component: sorting, filters, pagination, row and bulk actions, inline editing, and the same state in the address without JavaScript. |
 
 Every package is at `0.x`: its API may still change between minor versions, as its CHANGELOG records. More packages
 join the showcase by small daily groups.

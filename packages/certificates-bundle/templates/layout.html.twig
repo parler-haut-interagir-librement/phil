@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %}</title>
+    <style>
+        .phil-certificates { font-family: system-ui, sans-serif; max-width: 48rem; margin: 0 auto; padding: 1rem; }
+        .phil-certificates input[type=text] { width: 100%; box-sizing: border-box; }
+        .phil-certificates .valid { border-left: .4rem solid #2e7d32; padding: .5rem 1rem; }
+        .phil-certificates .expired { border-left: .4rem solid #ef6c00; padding: .5rem 1rem; }
+        .phil-certificates .revoked { border-left: .4rem solid #c62828; padding: .5rem 1rem; }
+        .phil-certificates dt { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <main class="phil-certificates">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

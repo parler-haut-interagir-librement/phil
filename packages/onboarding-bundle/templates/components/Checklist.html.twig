@@ -1,0 +1,5 @@
+{# The checklist component: the shared template, with the component's attributes on its main element. #}
+{%- set data = this.data -%}
+{%- if data is not null -%}
+    {{- include('@PhilOnboarding/_checklist.html.twig', {data: data, attributes: attributes}) -}}
+{%- endif -%}

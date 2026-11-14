@@ -1,0 +1,30 @@
+{
+    "name": "@phil/privacy-bundle",
+    "description": "The Stimulus controllers of phil/privacy-bundle: the consent to cookies and the third-party frames blocked until it",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/consent_controller.js",
+    "symfony": {
+        "controllers": {
+            "consent": {
+                "main": "src/consent_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            },
+            "embed": {
+                "main": "src/embed_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

@@ -1,0 +1,154 @@
+{#-
+ # A picture: its sources before the Image that holds the fallback, under the prop names of Symfony UX Image, in a figure
+ # when it has a caption, a credit, a license, a creation or a description. The variant for forced colours comes first,
+ # then the still image for a reader who reduces motion, then the dark variant, then the sources with a media query, in
+ # the order of their first media query, each group AVIF, then WebP, then the other types; a source of another type
+ # than image/*, without candidates, holding a refused URL, an address of a host image_origin() refuses or a media query
+ # of the wrong shape is left out; a refused src renders nothing. Without a media query, the main picture preloads its
+ # first source. The other attributes go to the img. With structured, image_json_ld() describes the fallback as a
+ # schema.org ImageObject, in the graph of the page or in a JSON-LD script of its own before it.
+ #}
+{%- props
+    ## string The URL of the fallback image, for the browsers that read none of the sources.
+    src,
+    ## string The text alternative; an empty string for a decorative image, which screen readers then skip.
+    alt,
+    ## int The width of the image, so that its space is reserved at its ratio before it loads.
+    width,
+    ## int The height of the image, so that its space is reserved at its ratio before it loads.
+    height,
+    ## list<array{type?:string,srcset:string|array<int|string,string>,sizes?:string,media?:string,width?:int,height?:int}> The sources: a type, candidates as for srcset, sizes, a media query and the size of its crop.
+    sources = [],
+    ## string|array<int|string,string>|list<array{type?:string,srcset:string|array<int|string,string>}>|null The variant drawn for a dark system, offered where prefers-color-scheme is dark: candidates as for srcset, or sources of their own types.
+    dark = null,
+    ## string|array<int|string,string>|list<array{type?:string,srcset:string|array<int|string,string>}>|null The still image of an animated one, offered where prefers-reduced-motion is reduce: candidates as for srcset, or sources of their own types.
+    still = null,
+    ## string|array<int|string,string>|list<array{type?:string,srcset:string|array<int|string,string>}>|null The variant drawn for forced colours, offered first where forced-colors is active: candidates as for srcset, or sources of their own types.
+    forced = null,
+    ## string|array<int|string,string>|null The candidates as HTML writes them, or a map of densities, or of widths with sizes or a fluid layout, to URLs.
+    srcset = null,
+    ## string|null The sizes of a srcset of widths, preceded by "auto, " while the image loads lazily; computed from the layout when null.
+    sizes = null,
+    ## string|null How the image fills its container: "fixed", at its width; "constrained", never wider than its width; "full-width"; none by default.
+    layout = null,
+    ## string|null The ratio of its box, "16/9", "4/3", "3/2", "1/1", "21/9", "3/4", "2/3", "9/16", or "custom", read from a custom property a class sets.
+    aspect = null,
+    ## string|null How the image fills its box, "cover" or "contain": "cover" by default when it has a ratio.
+    fit = null,
+    ## string|null Where the image is cropped in its box: "center", "top", "bottom", "left" or "right".
+    position = null,
+    ## bool Whether it is the main image above the fold: loaded eagerly, fetched first and preloaded, its decoding left to the browser.
+    priority = false,
+    ## bool|null Whether the first source, or the image without sources, is preloaded through Symfony WebLink: with priority when null; never with a media query.
+    preload = null,
+    ## string|null How it loads, "lazy" or "eager": "lazy" by default, "eager" with priority.
+    loading = null,
+    ## string|null How it is decoded, "async", "sync" or "auto": "async" by default, none written with priority.
+    decoding = null,
+    ## string|null A caption under the image, which a figure then holds with it; shown even when the image is decorative.
+    caption = null,
+    ## string Where the caption stands: "below" the image, by default, or "overlay", over its foot on a veil dark enough for light text.
+    captionPosition = 'below',
+    ## string|null Who made the image, as the site writes it, "Photo: Ana Lima", under the caption.
+    credit = null,
+    ## string|null The name of the license of the image, "CC BY 4.0", under the caption.
+    license = null,
+    ## string|null The address of the license, which its name then links to with rel="license".
+    licenseHref = null,
+    ## string|BackedEnum|null How the image was made, a code of the IPTC Digital Source Type vocabulary such as "digitalCapture" or "trainedAlgorithmicMedia", or an enum whose value is one.
+    creation = null,
+    ## string|null The words that say how the image was made, in the language of the page; the name the vocabulary gives the code when null.
+    creationLabel = null,
+    ## bool Whether the image lies far below the fold and is fetched after the others, with fetchpriority="low"; priority wins over it.
+    deferred = false,
+    ## string|null The colour its box is painted while it loads, a tone of the tokens: "neutral", "brand", "red", "green", "amber", "blue", "violet", or "custom", read from a custom property a class sets.
+    placeholder = null,
+    ## string|null A tiny version of the image, inline in base 64, PNG, JPEG, GIF, WebP or AVIF, shown blurred while it loads by the image-preview controller of the recipe.
+    preview = null,
+    ## string|null A long description, for a chart or a diagram, in a disclosure after the image, which it is described by.
+    description = null,
+    ## string The words of the summary of the description's disclosure.
+    descriptionLabel = 'Description',
+    ## bool Whether the image is described to search engines as a schema.org ImageObject in JSON-LD, from its address, size, caption, credit, license address and creation, through phil/structured-data.
+    structured = false,
+    ## string|null A frame drawn from the tokens, words separated by spaces: "rounded" corners, a "framed" line around it, "raised" over the page by a shadow, or "token", a disc in a ring for a pawn or an avatar.
+    frame = null,
+    ## bool Whether it is pixel art, enlarged without blurring its pixels.
+    pixelated = false,
+    ## string|null Its name in a view transition, a CSS identifier unique in the page and the same on the next one, so that it moves from one page to the other as one.
+    transition = null
+-%}
+{%- set _refused = '#(^|,)[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i' -%}
+{%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
+{%- if src is not empty and not (src|replace(_controls) matches _refused) and image_origin(src) is not same as('refused') -%}
+    {%- set _lazy = (loading in ['lazy', 'eager'] ? loading : (priority ? 'eager' : 'lazy')) is same as('lazy') -%}
+    {%- set _default = sizes is not empty ? sizes : {
+        constrained: width is empty ? null : '(min-width: ' ~ width ~ 'px) ' ~ width ~ 'px, 100vw',
+        'full-width': '100vw',
+    }[layout] ?? null -%}
+    {%- set _all = [] -%}
+    {%- for _variant in [{value: forced, media: '(forced-colors: active)'}, {value: still, media: '(prefers-reduced-motion: reduce)'}, {value: dark, media: '(prefers-color-scheme: dark)'}] -%}
+        {%- if _variant.value is not empty -%}
+            {%- set _list = _variant.value is iterable and (_variant.value|first).srcset is defined ? _variant.value : [{srcset: _variant.value}] -%}
+            {%- set _all = _all|merge(_list|map(source => source|merge({media: _variant.media}))) -%}
+        {%- endif -%}
+    {%- endfor -%}
+    {%- set _all = _all|merge(sources) -%}
+    {%- set _medias = [] -%}
+    {%- for source in _all -%}
+        {%- set _media = (source.media ?? '')|trim -%}
+        {%- if _media is not empty and _media not in _medias -%}{%- set _medias = _medias|merge([_media]) -%}{%- endif -%}
+    {%- endfor -%}
+    {%- set _sources = [] -%}
+    {%- set _external = false -%}
+    {%- for source in _all -%}
+        {%- set _type = source.type ?? null -%}
+        {%- set _media = (source.media ?? '')|trim -%}
+        {%- set _sizes = source.sizes ?? _default -%}
+        {%- set _set = source.srcset ?? null -%}
+        {%- set _set = _set is iterable ? _set|map((url, key) => url ~ ' ' ~ key ~ (_sizes is empty ? 'x' : 'w'))|join(', ') : _set -%}
+        {%- set _origin = _set is empty or _set|replace(_controls) matches _refused ? 'refused' : image_origin(_set, true) -%}
+        {%- if _origin is not same as('refused')
+            and (_type is null or _type matches '#^image/[a-z0-9.+-]+$#')
+            and (_media is empty or _media matches '#^[^<>{};]+$#') -%}
+            {%- set _external = _external or _origin is same as('external') -%}
+            {%- set _sources = _sources|merge([{
+                order: (_media is empty ? 999 : _medias|keys|filter(index => _medias[index] is same as(_media))|first) * 10 + ({'image/avif': 0, 'image/webp': 1}[_type] ?? (_type is null ? 3 : 2)),
+                preload_sizes: _sizes is empty ? null : _sizes,
+                attributes: {
+                    type: _type,
+                    srcset: _set,
+                    sizes: _sizes is empty ? null : (_lazy and not (_sizes|lower starts with 'auto') ? 'auto, ' ~ _sizes : _sizes),
+                    media: _media is empty ? null : _media,
+                    width: (source.width ?? null) matches '#^[1-9][0-9]*$#' ? source.width : null,
+                    height: (source.height ?? null) matches '#^[1-9][0-9]*$#' ? source.height : null,
+                },
+            }]) -%}
+        {%- endif -%}
+    {%- endfor -%}
+    {%- set _sources = _sources|sort((a, b) => a.order - b.order) -%}
+    {%- set _described = description is empty ? null : (attributes.all.id is defined and attributes.all.id is not empty ? attributes.all.id ~ '-description' : 'image-description-' ~ random()) -%}
+    {%- set _attributes = (_external and attributes.all.referrerpolicy is not defined ? attributes.all|merge({referrerpolicy: 'no-referrer'}) : attributes.all)
+        |merge(_described is null ? {} : {'aria-describedby': [attributes.all['aria-describedby'] ?? null, _described]|filter(name => name is not empty)|join(' ')}) -%}
+    {%- if _sources is not empty and (preload ?? priority) and _sources|filter(source => source.attributes.media is not null) is empty -%}
+        {%- set _first = _sources|first -%}
+        {%- do preload(src, {
+            as: 'image',
+            imagesrcset: _first.attributes.srcset,
+            imagesizes: _first.preload_sizes,
+            type: _first.attributes.type,
+            fetchpriority: priority ? 'high' : null,
+            crossorigin: _attributes.crossorigin ?? null,
+            referrerpolicy: _attributes.referrerpolicy ?? null,
+        }|filter(value => value is not null)) -%}
+    {%- endif -%}
+    {%- if structured -%}
+        {{- image_json_ld({src: src, width: width, height: height, caption: caption, credit: credit, licenseHref: licenseHref, creation: creation}) -}}
+    {%- endif -%}
+    <twig:Image:Figure :caption="caption" :captionPosition="captionPosition" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel" :description="description" :descriptionId="_described" :descriptionLabel="descriptionLabel">
+        {%- if _sources is not empty -%}<picture data-slot="picture">{%- endif -%}
+        {%- for source in _sources -%}<source {{ html_attr(source.attributes) }}>{%- endfor -%}
+        <twig:Image :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :layout="layout" :aspect="aspect" :fit="fit" :position="position" :priority="priority" :preload="_sources is empty ? preload : false" :loading="loading" :decoding="decoding" :deferred="deferred" :placeholder="placeholder" :preview="preview" :frame="frame" :pixelated="pixelated" :transition="transition" {{ ..._attributes }} />
+        {%- if _sources is not empty -%}</picture>{%- endif -%}
+    </twig:Image:Figure>
+{%- endif -%}

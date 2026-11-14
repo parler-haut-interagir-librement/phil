@@ -1,0 +1,59 @@
+{#
+ # The guided tour of a flow: one template per step, which the Stimulus controller shows in turn in the panel, a
+ # non-modal dialog, while it highlights the step's target; and a status the screen readers announce. A step with a
+ # question shows the form that answers it. Without script, nothing shows: the checklist is the way through the flow.
+ # The buttons are the recipe `Button` of the kit, installed by the Symfony UX Toolkit.
+ #
+ # data: what OnboardingView::tour() gives. autostart: whether it starts when the page loads. attributes: those of the
+ # component, or null.
+ #}
+{%- set progress = data.progress -%}
+{%- set domain = progress.flow.translationDomain -%}
+{%- set prefix = 'data-phil--onboarding-bundle--tour-' -%}
+{%- set root = {
+    class: 'phil-onboarding-tour',
+    'data-controller': 'phil--onboarding-bundle--tour',
+    'data-action': 'keydown->phil--onboarding-bundle--tour#keydown phil-onboarding:start@window->phil--onboarding-bundle--tour#start',
+    (prefix ~ 'flow-value'): progress.flow.id,
+    (prefix ~ 'token-value'): data.token,
+    (prefix ~ 'header-value'): data.header,
+    (prefix ~ 'dismiss-url-value'): data.urls.dismiss,
+    (prefix ~ 'autostart-value'): autostart ? 'true' : 'false',
+    (prefix ~ 'progress-value'): 'tour.progress'|trans({}, 'phil_onboarding'),
+    (prefix ~ 'next-value'): 'tour.next'|trans({}, 'phil_onboarding'),
+    (prefix ~ 'finish-value'): 'tour.finish'|trans({}, 'phil_onboarding'),
+} -%}
+{%- if attributes|default(null) -%}
+<div{{ attributes.defaults(root) }}>
+{%- else -%}
+<div{% for name, value in root %} {{ name }}="{{ value }}"{% endfor %}>
+{%- endif %}
+    {%- for item in progress.steps %}
+    <template data-phil--onboarding-bundle--tour-target="step" data-id="{{ item.step.id }}" data-state="{{ item.state.value }}"
+              data-selector="{{ item.step.target }}" data-done-url="{{ data.urls.done[item.step.id] ?? '' }}"
+              data-skip-url="{{ data.urls.skip[item.step.id] ?? '' }}">
+        <h2 class="phil-onboarding-tour__title">{{ item.step.title|trans({}, domain) }}</h2>
+        {%- if item.step.description is not null %}
+        <p class="phil-onboarding-tour__description">{{ item.step.description|trans({}, domain) }}</p>
+        {%- endif %}
+        {%- if data.links[item.step.id] is defined %}
+        <p class="phil-onboarding-tour__link"><a href="{{ data.links[item.step.id] }}">{{ 'tour.go'|trans({}, 'phil_onboarding') }}</a></p>
+        {%- endif %}
+        {%- if item.answerable %}
+        {{- include('@PhilOnboarding/_question.html.twig', {item: item, title: item.step.title|trans({}, domain), domain: domain, data: data}) }}
+        {%- endif %}
+    </template>
+    {%- endfor %}
+    <div class="phil-onboarding-tour__panel" role="dialog" aria-modal="false" aria-labelledby="{{ data.id }}-tour-title"
+         tabindex="-1" hidden data-phil--onboarding-bundle--tour-target="panel">
+        <p class="phil-onboarding-tour__progress" data-phil--onboarding-bundle--tour-target="progress"></p>
+        <div class="phil-onboarding-tour__content" data-phil--onboarding-bundle--tour-target="content"></div>
+        <div class="phil-onboarding-tour__actions">
+            {% component (phil_onboarding_kit('Button')) with {variant: 'secondary', size: 'sm', 'data-phil--onboarding-bundle--tour-target': 'previous', 'data-action': 'phil--onboarding-bundle--tour#previous'} %}{% block content %}{{ 'tour.previous'|trans({}, 'phil_onboarding') }}{% endblock %}{% endcomponent %}
+            {% component (phil_onboarding_kit('Button')) with {variant: 'ghost', size: 'sm', 'data-phil--onboarding-bundle--tour-target': 'skip', 'data-action': 'phil--onboarding-bundle--tour#skip'} %}{% block content %}{{ 'tour.skip'|trans({}, 'phil_onboarding') }}{% endblock %}{% endcomponent %}
+            {% component (phil_onboarding_kit('Button')) with {variant: 'default', size: 'sm', 'data-phil--onboarding-bundle--tour-target': 'next', 'data-action': 'phil--onboarding-bundle--tour#next'} %}{% block content %}{{ 'tour.next'|trans({}, 'phil_onboarding') }}{% endblock %}{% endcomponent %}
+        </div>
+        {% component (phil_onboarding_kit('Button')) with {variant: 'ghost', size: 'icon-sm', class: 'phil-onboarding-tour__end', 'aria-label': 'tour.end'|trans({}, 'phil_onboarding'), 'data-action': 'phil--onboarding-bundle--tour#end'} %}{% block content %}<span aria-hidden="true">×</span>{% endblock %}{% endcomponent %}
+    </div>
+    <p class="phil-onboarding-visually-hidden" role="status" data-phil--onboarding-bundle--tour-target="status"></p>
+</div>

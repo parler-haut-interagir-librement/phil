@@ -1,0 +1,11 @@
+{# A payload: its fields when a PayloadReader reads its version, the bytes as stored otherwise. #}
+{% if fields is not null %}
+    <dl class="row mb-0">
+        {% for name, value in fields %}
+            <dt class="col-sm-3"><code>{{ name }}</code></dt>
+            <dd class="col-sm-9">{{ value is null ? '—' : (value is same as(true) ? 'true' : (value is same as(false) ? 'false' : value)) }}</dd>
+        {% endfor %}
+    </dl>
+{% else %}
+    <pre class="mb-0"><code>{{ row.payload }}</code></pre>
+{% endif %}

@@ -1,0 +1,15 @@
+{# One toast: its title, linked to its subject when it has one, and its body. #}
+<div class="phil-notifications-toast" data-notification-id="{{ toast.id }}">
+    <p class="phil-notifications-toast__title">
+        {%- if toast.url -%}
+            <a href="{{ toast.url }}">{{ toast.title }}</a>
+        {%- else -%}
+            {{ toast.title }}
+        {%- endif -%}
+    </p>
+    {% if toast.body %}<p class="phil-notifications-toast__body">{{ toast.body }}</p>{% endif %}
+    <button type="button" class="phil-notifications-toast__close" data-phil-notifications-dismiss>
+        <span aria-hidden="true">&times;</span>
+        <span class="phil-notifications-visually-hidden">{{ 'toast.dismiss'|trans({}, 'phil_notifications') }}</span>
+    </button>
+</div>

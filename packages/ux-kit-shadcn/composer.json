@@ -1,0 +1,64 @@
+{
+    "name": "phil/ux-kit-shadcn",
+    "description": "Tailwind versions, in the style of the Shadcn kit of the Symfony UX Toolkit, of the extra PHIL UX recipes, under the same names and props, installed with ux:install --kit",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "symfony-ux",
+        "ux-toolkit",
+        "twig-component",
+        "stimulus",
+        "design-system",
+        "accessibility",
+        "tailwind",
+        "shadcn"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5"
+    },
+    "require-dev": {
+        "ext-zip": "*",
+        "phil/qr-code-bundle": "^0.1@dev",
+        "phil/structured-data": "^0.1@dev",
+        "phil/ux-kit": ">=0.5.0-alpha <1.0",
+        "php-webdriver/webdriver": "^1.16",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/filesystem": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/panther": "^2.4",
+        "symfony/process": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-toolkit": "^3.7.1",
+        "symfony/ux-twig-component": "^3.7",
+        "symfony/web-link": "^8.2",
+        "twig/extra-bundle": "^3.24",
+        "twig/html-extra": "^3.24",
+        "twig/twig": "^3.21"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\UxKitShadcn\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

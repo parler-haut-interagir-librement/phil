@@ -1,0 +1,1 @@
+{"id":"https://partner.example/issuer","verificatiood":[{"iliMultibase":"z6Mk("}],"assertionMethod":[{"i'":"https.emple/issuer#key-1"}]}

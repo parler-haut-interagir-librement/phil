@@ -1,0 +1,8 @@
+{
+    "bundles": {
+        "Phil\\SettingsBundle\\PhilSettingsBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    }
+}

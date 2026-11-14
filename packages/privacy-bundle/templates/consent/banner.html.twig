@@ -1,0 +1,24 @@
+<aside class="phil-privacy-consent" aria-label="{{ 'consent.title'|trans({}, 'phil_privacy') }}"
+       data-controller="phil--privacy-bundle--consent"
+       data-phil--privacy-bundle--consent-granted-value="{{ state.granted|json_encode }}"
+       data-phil--privacy-bundle--consent-dismiss-value="true">
+    <p>{{ 'consent.intro'|trans({}, 'phil_privacy') }}</p>
+    {% if groups is defined and groups %}
+        <details>
+            <summary>{{ 'consent.what'|trans({}, 'phil_privacy') }}</summary>
+            <ul>
+                {% for group in groups %}
+                    <li><strong>{{ group.category ? group.category.label(locale) : 'cookies.choice'|trans({}, 'phil_privacy') }}</strong>{% if group.cookies %} : {{ group.cookies|map(cookie => cookie.name)|join(', ') }}{% endif %}</li>
+                {% endfor %}
+            </ul>
+            <a href="{{ path('phil_privacy_cookies') }}">{{ 'cookies.title'|trans({}, 'phil_privacy') }}</a>
+        </details>
+    {% endif %}
+    <form method="post" action="{{ path('phil_privacy_consent_decide') }}" data-action="submit->phil--privacy-bundle--consent#submit">
+        <input type="hidden" name="_token" value="{{ csrf_token }}">
+        <input type="hidden" name="_target" value="{{ target }}">
+        <button type="submit" name="decision" value="refuse" class="phil-privacy-consent__decision">{{ 'consent.refuse_all'|trans({}, 'phil_privacy') }}</button>
+        <button type="submit" name="decision" value="accept" class="phil-privacy-consent__decision">{{ 'consent.accept_all'|trans({}, 'phil_privacy') }}</button>
+        <a href="{{ path('phil_privacy_consent') }}">{{ 'consent.choose'|trans({}, 'phil_privacy') }}</a>
+    </form>
+</aside>

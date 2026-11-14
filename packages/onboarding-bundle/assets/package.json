@@ -1,0 +1,24 @@
+{
+    "name": "@phil/onboarding-bundle",
+    "description": "The guided tour controller of phil/onboarding-bundle: each step's target highlighted in turn, next, previous, skip and end, with the keyboard and a screen reader, and without motion for those who ask",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/tour_controller.js",
+    "symfony": {
+        "controllers": {
+            "tour": {
+                "main": "src/tour_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

@@ -1,0 +1,62 @@
+{
+    "name": "phil/form-logic",
+    "description": "Typed conditional logic for forms, evaluated alike in PHP and in a Stimulus controller with the server as judge: field conditions and computed variables, serialized as a strict JsonLogic subset with bounded size",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "conditional-logic",
+        "forms",
+        "jsonlogic",
+        "stimulus"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phil/forms-bundle": "^0.1@dev",
+        "php-webdriver/webdriver": "^1.16",
+        "phpunit/phpunit": "^13.4",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/panther": "^2.4",
+        "symfony/routing": "^8.2",
+        "symfony/stimulus-bundle": "^3.7",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "phil/forms-bundle": "To read the conditions of its forms as the whole subset, with JsonLogicConditions",
+        "symfony/asset-mapper": "To serve the Stimulus controller without a build step",
+        "symfony/stimulus-bundle": "For the Stimulus controller that shows and hides the fields"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\FormLogic\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\FormLogic\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

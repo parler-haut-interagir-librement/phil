@@ -1,0 +1,83 @@
+{#-
+ # An image enlarged in a modal dialog: its thumbnail in a button that opens the native dialog by the invokers of HTML,
+ # command="show-modal" and commandfor, the dialog closed by Escape, by its close button or by a click on its backdrop
+ # with closedby="any"; the lightbox controller stands in only where the browser runs neither. Both pictures go through
+ # the Picture of the image recipe, the full one shown whole; the caption, the credit, the license and the creation
+ # show under both; the description follows the thumbnail, which its button is described by. A refused image draws
+ # nothing.
+ #}
+{%- props
+    ## string The identifier of the lightbox, unique in the page, from which that of its dialog is made.
+    id,
+    ## string The URL of the thumbnail.
+    src,
+    ## string The text alternative, which also names the dialog; an empty string names it by the caption.
+    alt,
+    ## int The width of the thumbnail, so that its space is reserved at its ratio before it loads.
+    width,
+    ## int The height of the thumbnail, so that its space is reserved at its ratio before it loads.
+    height,
+    ## string|array<int|string,string>|null The candidates of the thumbnail as HTML writes them, or a map of densities, or of widths with sizes, to URLs.
+    srcset = null,
+    ## string|null The sizes of the thumbnail's candidates of widths.
+    sizes = null,
+    ## list<array{type?:string,srcset:string|array<int|string,string>,sizes?:string,media?:string,width?:int,height?:int}> The sources of the thumbnail, as for Picture.
+    sources = [],
+    ## string|null The ratio of the thumbnail's box, as for Image.
+    aspect = null,
+    ## string|null How the thumbnail fills its box, "cover" or "contain".
+    fit = null,
+    ## string|null Where the thumbnail is cropped in its box.
+    position = null,
+    ## array{src:string,width:int,height:int,srcset?:string|array<int|string,string>,sizes?:string,sources?:list<array<string,mixed>>}|null The full image shown in the dialog: the thumbnail itself when null; its candidates sized to the width of the screen unless it has sizes.
+    full = null,
+    ## string|null A caption under the thumbnail and under the full image.
+    caption = null,
+    ## string|null Who made the image, as the site writes it, under the caption.
+    credit = null,
+    ## string|null The name of the license of the image, under the caption.
+    license = null,
+    ## string|null The address of the license, which its name then links to with rel="license".
+    licenseHref = null,
+    ## string|BackedEnum|null How the image was made, a code of the IPTC Digital Source Type vocabulary, or an enum whose value is one.
+    creation = null,
+    ## string|null The words that say how the image was made; the name the vocabulary gives the code when null.
+    creationLabel = null,
+    ## string|null Words screen readers read after the text alternative in the button, such as "Enlarge".
+    openLabel = null,
+    ## string What screen readers read for the close button.
+    closeLabel = 'Close',
+    ## bool Whether the thumbnail lies far below the fold and is fetched after the others, as for Image.
+    deferred = false,
+    ## string|null The colour the thumbnail's box is painted while it loads, as for Image.
+    placeholder = null,
+    ## string|null A tiny version of the thumbnail, inline in base 64, shown blurred while it loads, as for Image.
+    preview = null,
+    ## string|null A long description of the image, in a disclosure after the thumbnail, which its button is described by.
+    description = null,
+    ## string The words of the summary of the description's disclosure.
+    descriptionLabel = 'Description',
+    ## string|null The frame of the thumbnail, as for Image: "rounded", "framed", "raised" or "token", separated by spaces; the full image is shown bare.
+    frame = null,
+    ## bool Whether the image is pixel art, enlarged without blurring its pixels, the thumbnail and the full image.
+    pixelated = false,
+    ## string|null The name of the thumbnail in a view transition, as for Image.
+    transition = null
+-%}
+{%- if image_origin(src) is not same as('refused') and not (src|replace({"\t": '', "\n": '', "\r": ''}) matches '#^[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i') -%}
+    {%- set _dialog = 'lightbox-' ~ id -%}
+    {%- set _described = description is empty ? null : _dialog ~ '-description' -%}
+    {%- set _full = full ?? {src: src, srcset: srcset, sources: sources, width: width, height: height} -%}
+    <div data-slot="lightbox" {{ html_attr({class: ['block print:break-inside-avoid', attributes.all.class ?? null]|filter(name => name is not empty)|join(' ')}) }} data-controller="lightbox">
+        <twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel" :description="description" :descriptionId="_described" :descriptionLabel="descriptionLabel">
+            <button type="button" data-slot="lightbox-trigger" class="block cursor-zoom-in rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50 forced-colors:border forced-colors:border-[ButtonBorder]" command="show-modal" commandfor="{{ _dialog }}" aria-haspopup="dialog"{% if _described is not null %} aria-describedby="{{ _described }}"{% endif %} data-action="click->lightbox#open">
+                <twig:Picture :src="src" :alt="alt" :width="width" :height="height" :srcset="srcset" :sizes="sizes" :sources="sources" :aspect="aspect" :fit="fit" :position="position" :deferred="deferred" :placeholder="placeholder" :preview="preview" :frame="frame" :pixelated="pixelated" :transition="transition" />
+                {%- if openLabel is not empty %}<span class="sr-only">{{ openLabel }}</span>{% endif -%}
+            </button>
+        </twig:Image:Figure>
+        <dialog id="{{ _dialog }}" data-slot="lightbox-dialog" class="m-auto max-h-[calc(100dvh-2rem)] max-w-[calc(100vw-2rem)] overflow-auto rounded-lg border bg-background p-4 text-foreground shadow-lg backdrop:bg-black/50 print:backdrop:bg-transparent [&_img]:mx-auto [&_img]:max-h-[calc(100dvh-6rem)] [&_img]:w-auto print:[&_img]:max-h-[85vh]" closedby="any" aria-label="{{ alt is not empty ? alt : caption }}" data-lightbox-target="dialog" data-action="click->lightbox#closeOnClickOutside">
+            <twig:Picture :src="_full.src ?? src" :alt="alt" :width="_full.width ?? width" :height="_full.height ?? height" :srcset="_full.srcset ?? null" :sizes="_full.sizes ?? '100vw'" :sources="_full.sources ?? []" fit="contain" :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref" :creation="creation" :creationLabel="creationLabel" :pixelated="pixelated" />
+            <button type="button" data-slot="lightbox-close" class="absolute end-2 top-2 inline-flex size-9 items-center justify-center rounded-lg bg-background outline-none hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 print:hidden" command="close" commandfor="{{ _dialog }}" data-action="click->lightbox#close"><span aria-hidden="true">&times;</span><span class="sr-only">{{ closeLabel }}</span></button>
+        </dialog>
+    </div>
+{%- endif -%}

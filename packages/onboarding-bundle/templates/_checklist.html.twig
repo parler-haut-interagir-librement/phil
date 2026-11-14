@@ -1,0 +1,75 @@
+{#
+ # The checklist of a flow: its title, the share of the steps done, the steps in order with their state, and the forms
+ # that tick a step, answer its question, skip it, put the list away or start it again. It needs no script. The buttons
+ # are the recipe `Button` of the kit, installed by the Symfony UX Toolkit.
+ #
+ # data: what OnboardingView::checklist() gives. attributes: those of the component, or null.
+ #}
+{%- set progress = data.progress -%}
+{%- set domain = progress.flow.translationDomain -%}
+{%- set current = progress.current -%}
+{%- set root = {class: 'phil-onboarding-checklist', 'aria-labelledby': data.id ~ '-title'} -%}
+{%- if attributes|default(null) -%}
+<section{{ attributes.defaults(root) }}>
+{%- else -%}
+<section class="{{ root.class }}" aria-labelledby="{{ root['aria-labelledby'] }}">
+{%- endif %}
+    <h2 id="{{ data.id }}-title" class="phil-onboarding-checklist__title">{{ progress.flow.title|trans({}, domain) }}</h2>
+    {%- if progress.flow.description is not null %}
+    <p class="phil-onboarding-checklist__description">{{ progress.flow.description|trans({}, domain) }}</p>
+    {%- endif %}
+    <p id="{{ data.id }}-summary" class="phil-onboarding-checklist__summary">
+        {{- progress.finished ? 'checklist.finished'|trans({}, 'phil_onboarding') : 'checklist.progress'|trans({'%done%': progress.done, '%total%': progress.total}, 'phil_onboarding') -}}
+    </p>
+    <progress class="phil-onboarding-checklist__bar" max="{{ progress.total }}" value="{{ progress.done }}" aria-labelledby="{{ data.id }}-summary"></progress>
+    <ol class="phil-onboarding-checklist__steps">
+        {%- for item in progress.steps %}
+        {%- set title = item.step.title|trans({}, domain) %}
+        <li class="phil-onboarding-step phil-onboarding-step--{{ item.state.value }}"{% if current is not null and current.step.id == item.step.id %} aria-current="step"{% endif %}>
+            <span class="phil-onboarding-step__mark" aria-hidden="true">{{ item.completed ? '✓' : (item.skipped ? '–' : '') }}</span>
+            <span class="phil-onboarding-step__body">
+                {%- if item.pending and data.links[item.step.id] is defined %}
+                <a class="phil-onboarding-step__title" href="{{ data.links[item.step.id] }}">{{ title }}</a>
+                {%- else %}
+                <span class="phil-onboarding-step__title">{{ title }}</span>
+                {%- endif %}
+                <span class="phil-onboarding-visually-hidden">({{ ('state.' ~ item.state.value)|trans({}, 'phil_onboarding') }})</span>
+                {%- if item.step.description is not null %}
+                <span class="phil-onboarding-step__description">{{ item.step.description|trans({}, domain) }}</span>
+                {%- endif %}
+            </span>
+            {%- if item.answerable %}
+            {{- include('@PhilOnboarding/_question.html.twig', {item: item, title: title, domain: domain, data: data}) }}
+            {%- endif %}
+            {%- if item.tickable or item.skippable %}
+            <span class="phil-onboarding-step__actions">
+                {%- if item.tickable %}
+                <form method="post" action="{{ data.urls.done[item.step.id] }}">
+                    <input type="hidden" name="_token" value="{{ data.token }}">
+                    {% component (phil_onboarding_kit('Button')) with {type: 'submit', variant: 'secondary', size: 'sm'} %}{% block content %}{{ 'checklist.done'|trans({}, 'phil_onboarding') }}<span class="phil-onboarding-visually-hidden">: {{ title }}</span>{% endblock %}{% endcomponent %}
+                </form>
+                {%- endif %}
+                {%- if item.skippable %}
+                <form method="post" action="{{ data.urls.skip[item.step.id] }}">
+                    <input type="hidden" name="_token" value="{{ data.token }}">
+                    {% component (phil_onboarding_kit('Button')) with {type: 'submit', variant: 'ghost', size: 'sm'} %}{% block content %}{{ 'checklist.skip'|trans({}, 'phil_onboarding') }}<span class="phil-onboarding-visually-hidden">: {{ title }}</span>{% endblock %}{% endcomponent %}
+                </form>
+                {%- endif %}
+            </span>
+            {%- endif %}
+        </li>
+        {%- endfor %}
+    </ol>
+    <div class="phil-onboarding-checklist__footer">
+        {%- if progress.finished %}
+        <form method="post" action="{{ data.urls.reset }}">
+            <input type="hidden" name="_token" value="{{ data.token }}">
+            {% component (phil_onboarding_kit('Button')) with {type: 'submit', variant: 'ghost', size: 'sm'} %}{% block content %}{{ 'checklist.reset'|trans({}, 'phil_onboarding') }}{% endblock %}{% endcomponent %}
+        </form>
+        {%- endif %}
+        <form method="post" action="{{ data.urls.dismiss }}">
+            <input type="hidden" name="_token" value="{{ data.token }}">
+            {% component (phil_onboarding_kit('Button')) with {type: 'submit', variant: 'ghost', size: 'sm'} %}{% block content %}{{ 'checklist.dismiss'|trans({}, 'phil_onboarding') }}{% endblock %}{% endcomponent %}
+        </form>
+    </div>
+</section>

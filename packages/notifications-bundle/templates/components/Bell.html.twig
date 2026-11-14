@@ -1,0 +1,25 @@
+{# The bell: the unread count on a button that opens the latest notifications, kept live by the Stimulus controller. #}
+{% if this.visible %}
+    {% set panel = 'phil-notifications-panel-' ~ random() %}
+    <div{{ attributes.defaults({
+        class: 'phil-notifications-bell',
+        'data-controller': 'phil--notifications-bundle--notifications',
+        'data-phil--notifications-bundle--notifications-config-value': this.config|merge({dismiss: 'toast.dismiss'|trans({}, 'phil_notifications')})|json_encode,
+    }) }}>
+        <button type="button" class="phil-notifications-bell__button" aria-expanded="false" aria-controls="{{ panel }}"
+                data-phil--notifications-bundle--notifications-target="button"
+                data-action="phil--notifications-bundle--notifications#toggle">
+            <span class="phil-notifications-bell__icon" aria-hidden="true">&#128276;</span>
+            <span class="phil-notifications-bell__label">{{ 'centre.title'|trans({}, 'phil_notifications') }}</span>
+            <span class="phil-notifications-bell__count" data-phil--notifications-bundle--notifications-target="count"
+                  {% if this.unread == 0 %}hidden{% endif %}>{{ this.unread }}</span>
+            <span class="phil-notifications-visually-hidden" data-phil--notifications-bundle--notifications-target="countLabel">
+                {{- 'centre.unread'|trans({'%count%': this.unread}, 'phil_notifications') -}}
+            </span>
+        </button>
+        <div id="{{ panel }}" class="phil-notifications-bell__panel" hidden
+             data-phil--notifications-bundle--notifications-target="panel">
+            {{ include('@PhilNotifications/_list.html.twig', {notifications: this.notifications, token: this.token}) }}
+        </div>
+    </div>
+{% endif %}

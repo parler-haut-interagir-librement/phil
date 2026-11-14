@@ -1,0 +1,23 @@
+{#
+ # What stopped a change sent by a plain form, with the way back to the table. An application dresses this page by
+ # overriding the template under `templates/bundles/PhilDataTableBundle/table/stopped.html.twig`.
+ #}
+<!doctype html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ 'table.stopped.title'|trans({}, 'phil_data_table') }}</title>
+</head>
+<body>
+    <main>
+        <h1>{{ 'table.stopped.title'|trans({}, 'phil_data_table') }}</h1>
+        <ul role="alert">
+            {%- for message in messages %}
+            <li>{{ message }}</li>
+            {%- endfor %}
+        </ul>
+        <p><a href="{{ back }}">{{ 'table.stopped.back'|trans({}, 'phil_data_table') }}</a></p>
+    </main>
+</body>
+</html>

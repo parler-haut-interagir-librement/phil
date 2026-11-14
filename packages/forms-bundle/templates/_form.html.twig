@@ -1,0 +1,22 @@
+{#
+    A form and what happened to the last entry, for a page of the application:
+
+        {% include '@PhilForms/_form.html.twig' %}
+
+    When phil/form-logic is installed and a field is asked under a condition, the form carries the library's Stimulus
+    controller and the steps of its conditions: the browser shows and hides the fields as they are filled.
+#}
+{%- set form_attr = {class: 'phil-form', novalidate: 'novalidate'} %}
+{%- if form.vars.phil_form_logic_steps ?? null %}
+    {%- set form_attr = form_attr|merge({
+        'data-controller': 'phil--form-logic--logic',
+        'data-phil--form-logic--logic-steps-value': form.vars.phil_form_logic_steps|json_encode,
+    }) %}
+{%- endif %}
+{%- if sent %}
+    <p class="phil-form__sent" role="status">{{ 'phil_forms.sent'|trans({}, 'phil_forms') }}</p>
+{%- endif %}
+{{ form_start(form, {attr: form_attr}) }}
+    {{ form_widget(form) }}
+    <button type="submit">{{ 'phil_forms.send'|trans({}, 'phil_forms') }}</button>
+{{ form_end(form) }}

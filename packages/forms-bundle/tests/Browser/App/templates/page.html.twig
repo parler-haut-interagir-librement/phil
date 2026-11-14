@@ -1,0 +1,15 @@
+{#
+    The page of a form as an application writes it: its layout, with the import map, and the bundle's form.
+#}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ definition.title }}</title>
+    {{ importmap('app') }}
+</head>
+<body>
+    <h1>{{ definition.title }}</h1>
+    {{ include('@PhilForms/_form.html.twig') }}
+</body>
+</html>

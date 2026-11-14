@@ -1,0 +1,36 @@
+{#
+    The register's home: a form to find a certificate by its code, and the open courses. An application gives its own
+    layout through phil_certificates.register.layout; the layout defines the "title" and "content" blocks.
+#}
+{% extends layout %}
+
+{% trans_default_domain 'phil_certificates' %}
+
+{% block title %}{{ 'register.title'|trans }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'register.title'|trans }}</h1>
+
+    <form method="get" action="{{ path('phil_certificates_register') }}" role="search">
+        <p>
+            <label for="phil-certificates-code">{{ 'register.code'|trans }}</label>
+            <input id="phil-certificates-code" type="text" name="code" value="{{ searched }}" autocomplete="off" spellcheck="false">
+        </p>
+        <p><button type="submit">{{ 'register.find'|trans }}</button></p>
+    </form>
+
+    {% if searched is not null %}
+        <p class="revoked" role="status">{{ 'register.not_found'|trans({'%code%': searched}) }}</p>
+    {% endif %}
+
+    <h2>{{ 'register.courses'|trans }}</h2>
+    {% if courses is empty %}
+        <p>{{ 'register.no_course'|trans }}</p>
+    {% else %}
+        <ul>
+            {% for course in courses %}
+                <li><a href="{{ path('phil_certificates_course', {slug: course.slug}) }}">{{ course.name }}</a></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

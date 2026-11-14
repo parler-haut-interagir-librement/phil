@@ -1,0 +1,24 @@
+{% extends layout %}
+
+{% block title %}{{ 'guest.title'|trans({}, 'phil_privacy') }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'guest.title'|trans({}, 'phil_privacy') }}</h1>
+    <p>{{ 'guest.intro'|trans({}, 'phil_privacy') }}</p>
+
+    {% if error %}<p role="alert">{{ error|trans({}, 'phil_privacy') }}</p>{% endif %}
+
+    <form method="post" action="{{ path('phil_privacy_guest_request') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token }}">
+        <fieldset>
+            <legend>{{ 'guest.kind'|trans({}, 'phil_privacy') }}</legend>
+            <label><input type="radio" name="kind" value="access" checked> {{ 'guest.kind.access'|trans({}, 'phil_privacy') }}</label>
+            <label><input type="radio" name="kind" value="erasure"> {{ 'guest.kind.erasure'|trans({}, 'phil_privacy') }}</label>
+        </fieldset>
+        <label>
+            {{ 'guest.email'|trans({}, 'phil_privacy') }}
+            <input type="email" name="email" required maxlength="254" autocomplete="email">
+        </label>
+        <button type="submit">{{ 'guest.submit'|trans({}, 'phil_privacy') }}</button>
+    </form>
+{% endblock %}

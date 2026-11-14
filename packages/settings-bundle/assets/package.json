@@ -1,0 +1,24 @@
+{
+    "name": "@phil/settings-bundle",
+    "description": "The Stimulus controller of the settings pages: a display preference applied to the page as soon as it is chosen",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/document_controller.js",
+    "symfony": {
+        "controllers": {
+            "document": {
+                "main": "src/document_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

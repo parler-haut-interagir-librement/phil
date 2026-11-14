@@ -1,0 +1,9 @@
+# Forms defined in the database, each with a page at /forms/{key}. Name the site's own address to email the entries,
+# and a Standard Webhooks secret to post them; a form with a sensitive field needs a master key of a KMS. See the
+# installation guide of phil/forms-bundle.
+phil_forms:
+    sender: null                    # the site's own address, such as site@example.com; null sends no email
+    webhook_secret: null            # whsec_…, such as '%env(FORMS_WEBHOOK_SECRET)%'; null posts to no webhook
+    allow_unsealed_sensitive: false # never true unless sensitive values may lie in the database as sent
+    sealing:
+        key: null                   # a master key of the client of symfony/key-management; null: sensitive fields refused

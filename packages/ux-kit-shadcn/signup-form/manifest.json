@@ -1,0 +1,7 @@
+{
+    "type": "block",
+    "name": "SignupForm",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    }
+}

@@ -1,0 +1,30 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}{{ 'title.segment'|trans({'%segment%': status.segment}, 'phil_audit_viewer') }}{% endblock %}
+
+{% block main %}
+    {% set route = ea().dashboardRouteName ~ '_audit_' %}
+    {% set state = status.state().value %}
+
+    <div class="alert {{ state == 'broken' ? 'alert-danger' : (state == 'explained' ? 'alert-warning' : 'alert-success') }}" role="status">
+        {{ ('state.' ~ state)|trans({'%count%': status.breaks|length}, 'phil_audit_viewer') }}
+    </div>
+
+    {% if status.breaks is not empty %}
+        <ul>
+            {% for break in status.breaks %}
+                <li>
+                    {% if break.sequence is not null %}<a href="{{ path(route ~ 'row', {segment: break.segment, sequence: break.sequence}) }}">#{{ break.sequence }}</a>:{% endif %}
+                    {{ break.reason }}
+                    <span class="badge {{ break.isAlarm() ? 'badge-danger' : 'badge-warning' }}">{{ (break.isAlarm() ? 'break.alarm' : 'break.explained')|trans({}, 'phil_audit_viewer') }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <p>
+        {{ 'segment.head'|trans({'%sequence%': status.head.sequence}, 'phil_audit_viewer') }}
+        <time datetime="{{ status.head.instant() }}">{{ status.head.recordedAt|date('Y-m-d H:i:s', timezone) }}</time>
+    </p>
+    <a class="btn btn-secondary" href="{{ path(route ~ 'chain') }}">{{ 'menu.chain'|trans({}, 'phil_audit_viewer') }}</a>
+{% endblock %}

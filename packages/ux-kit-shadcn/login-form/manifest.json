@@ -1,0 +1,7 @@
+{
+    "type": "block",
+    "name": "LoginForm",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    }
+}

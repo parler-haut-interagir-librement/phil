@@ -1,0 +1,5 @@
+# The tables of phil/data-table-bundle: Symfony Security answers the voter attributes of actions and editing when it is
+# installed, and phil/settings-bundle keeps each user's columns and page size. The templates of cell_themes override
+# the blocks of Column::block(). See the installation guide of phil/data-table-bundle.
+phil_data_table:
+    cell_themes: []

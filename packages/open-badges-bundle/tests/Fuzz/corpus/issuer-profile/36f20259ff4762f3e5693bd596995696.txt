@@ -1,0 +1,1 @@
+{"id":"https://partner.example/issuer","verificationMethod":[{"id":"https://partner.example/issuer#key-1","type":"JsonWebKey","controller":"https://partner.example/issuer","publicKeyJwk":{"kty":"RSA","n":"w-mkMT2iIjR8QV4H4CEj00JHmuD3Bo7LbNcGCpcJjLH_GIbRjdPLY-6E2LIX6DrTTdArfs4Xz1IS-BxhKuIdTXdUt_1hM7SQ","e":"AQAB"}}]}

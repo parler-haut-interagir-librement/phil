@@ -1,0 +1,25 @@
+{#-
+ # Activity over time: a cell per day, seven rows, as many columns as there are weeks. Each day is read through its
+ # label, the colour never standing alone; the calendar scrolls by itself and takes the focus to do so.
+ #}
+{%- props
+    ## array The days in order, each a map of `level`, from 0 to 4, and `label`.
+    days,
+    ## string What screen readers call the calendar.
+    label,
+    ## int The empty cells before the first day, from 0 to 6, so that it sits on its weekday.
+    offset = 0,
+    ## string|null The word at the low end of the legend, which needs both ends.
+    lessLabel = null,
+    ## string|null The word at the high end of the legend, which needs both ends.
+    moreLabel = null
+-%}
+<div data-slot="activity-calendar"{{ attributes.defaults({class: 'max-w-full'}) }}>
+    <ol class="grid list-none auto-cols-[0.75rem] grid-flow-col grid-rows-[repeat(7,0.75rem)] gap-0.5 overflow-x-auto ps-0 outline-none focus-visible:ring-3 focus-visible:ring-ring/50" aria-label="{{ label }}" tabindex="0">
+        {%- if offset > 0 -%}{%- for blank in 1..min(offset, 6) -%}<li class="bg-transparent" aria-hidden="true"></li>{%- endfor -%}{%- endif -%}
+        {%- for day in days -%}<li class="size-3 rounded-sm bg-muted data-[level=1]:bg-primary/25 data-[level=2]:bg-primary/50 data-[level=3]:bg-primary/75 data-[level=4]:bg-primary" data-level="{{ max(0, min(4, day.level)) }}" title="{{ day.label }}"><span class="sr-only">{{ day.label }}</span></li>{%- endfor -%}
+    </ol>
+    {%- if lessLabel is not null and moreLabel is not null -%}
+        <p class="m-0 flex items-center gap-0.5 text-xs text-muted-foreground"><span>{{ lessLabel }}</span>{%- for level in 0..4 -%}<span class="size-3 rounded-sm bg-muted data-[level=1]:bg-primary/25 data-[level=2]:bg-primary/50 data-[level=3]:bg-primary/75 data-[level=4]:bg-primary" data-level="{{ level }}" aria-hidden="true"></span>{%- endfor -%}<span>{{ moreLabel }}</span></p>
+    {%- endif -%}
+</div>

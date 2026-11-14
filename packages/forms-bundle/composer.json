@@ -1,0 +1,99 @@
+{
+    "name": "phil/forms-bundle",
+    "description": "Forms defined in the database for Symfony: a page for each, protected against spam, questions asked under conditions or for some tiers, choices with places, entries kept no longer than needed, sensitive values sealed, sent by email or to a signed webhook",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "form-builder",
+        "forms",
+        "privacy",
+        "symfony-bundle",
+        "webhooks"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-filter": "*",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/spam-protection-bundle": "^0.1@dev",
+        "phil/standard-webhooks": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/uid": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "ext-intl": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/persistence": "^4.1",
+        "phil/form-logic": "^0.1@dev",
+        "phil/privacy-bundle": "^0.1@dev",
+        "phil/spam-protection": "^0.1@dev",
+        "php-webdriver/webdriver": "^1.16",
+        "phpunit/phpunit": "^13.4",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/key-management": "^8.2",
+        "symfony/mailer": "^8.2",
+        "symfony/mime": "^8.2",
+        "symfony/panther": "^2.4",
+        "symfony/routing": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/stimulus-bundle": "^3.7",
+        "symfony/translation": "^8.2",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/validator": "^8.2",
+        "symfony/yaml": "^8.2"
+    },
+    "suggest": {
+        "phil/form-logic": "To show and hide the fields in the browser as the form is filled, and to read the conditions as its whole JsonLogic subset, with JsonLogicConditions",
+        "phil/privacy-bundle": "For access and erasure requests that find the entries about a person",
+        "symfony/console": "For phil:forms:purge",
+        "symfony/http-client": "To post entries to a webhook",
+        "symfony/key-management": "To seal the values of sensitive fields by envelope encryption under a master key of a KMS",
+        "symfony/mailer": "To email entries",
+        "symfony/routing": "To import config/routes.php, the page of each form",
+        "symfony/security-core": "To keep who sent an entry when they are signed in"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\FormsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\FormsBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

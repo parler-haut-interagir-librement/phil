@@ -27,6 +27,12 @@ parameters:
             - packages/address/bin/import-data.php
 
     ignoreErrors:
+        # Without a console application, an argument of a command is `mixed`.
+        -
+            identifier: argument.type
+            path: packages/privacy-bundle/src/Infrastructure/Console/EraseSubjectCommand.php
+            count: 1
+
         # Without a container, a service read from a test kernel is an `object`.
         -
             identifier: method.notFound

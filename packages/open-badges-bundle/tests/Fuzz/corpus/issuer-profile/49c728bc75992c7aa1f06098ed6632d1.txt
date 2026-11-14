@@ -1,0 +1,1 @@
+{"@context":["http//v1"],"id":"https://partner.example/issuer","type":["Profile"],"name":"Prtger","verificationMethod":["h.examxample/isssuer#key-1"]}

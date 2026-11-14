@@ -1,0 +1,38 @@
+{#-
+ # A file field that also takes a drop: the input stays the field, its label the zone. What the browser picked is
+ # listed with its size; what the props refuse is left out and said aloud. The server decides in the end.
+ #}
+{%- props
+    ## string The name of the field.
+    name,
+    ## string What the zone says.
+    label,
+    ## string|null A second line in the zone: the types and the size expected.
+    hint = null,
+    ## string|null The identifier of the field.
+    id = null,
+    ## string|null The types taken, as the attribute `accept` writes them.
+    accept = null,
+    ## bool Whether several files can be given.
+    multiple = false,
+    ## int The largest file taken, in bytes; 0 for no limit.
+    maxSize = 0,
+    ## string What is said of the files left out, `{count}` replaced.
+    rejectedLabel = 'Files left out: {count}',
+    ## string The button that empties the field.
+    clearLabel = 'Remove',
+    ## bool Whether a file has to be given.
+    required = false,
+    ## bool Whether the field cannot be changed for now.
+    disabled = false
+-%}
+<div data-file-input-max-size-value="{{ maxSize }}" data-file-input-rejected-label-value="{{ rejectedLabel }}" data-file-input-item-class="wrap-anywhere" data-file-input-dragging-class="border-primary bg-accent" data-action="dragover->file-input#over dragleave->file-input#leave drop->file-input#drop" data-slot="file-input"{{ attributes.defaults({class: 'grid max-w-full gap-2', 'data-controller': 'file-input'}) }}>
+    <label class="relative grid cursor-pointer justify-items-center gap-1 rounded-md border-2 border-dashed border-input p-6 text-center has-focus-visible:ring-3 has-focus-visible:ring-ring/50" data-file-input-target="zone">
+        <input class="[@media(scripting:enabled)]:absolute [@media(scripting:enabled)]:size-px [@media(scripting:enabled)]:overflow-hidden [@media(scripting:enabled)]:opacity-0" type="file" name="{{ name }}"{% if id is not null %} id="{{ id }}"{% endif %}{% if accept is not null %} accept="{{ accept }}"{% endif %}{% if multiple %} multiple{% endif %}{% if required %} required{% endif %}{% if disabled %} disabled{% endif %} data-file-input-target="input" data-action="change->file-input#list">
+        <span class="font-medium">{{ label }}</span>
+        {%- if hint is not null -%}<span class="text-sm text-muted-foreground">{{ hint }}</span>{%- endif -%}
+    </label>
+    <ul class="m-0 list-none ps-0 text-sm empty:hidden" data-file-input-target="list"></ul>
+    <p class="m-0 text-sm text-destructive empty:hidden" role="status" aria-live="polite" data-file-input-target="error"></p>
+    <button type="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 border border-border bg-background hover:bg-muted hover:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-9 justify-self-start px-4" hidden data-file-input-target="clear" data-action="file-input#clear">{{ clearLabel }}</button>
+</div>

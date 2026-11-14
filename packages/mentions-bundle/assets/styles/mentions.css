@@ -1,0 +1,76 @@
+/*
+ * The mentions of a text and the list of the mention controller. Its custom properties take PHIL UX's tokens when that
+ * stylesheet is loaded, the page's own colours otherwise, light or dark alike.
+ */
+:root {
+    --pmn-text: var(--phil-color-text, CanvasText);
+    --pmn-muted: var(--phil-color-text-muted, color-mix(in srgb, CanvasText 60%, Canvas));
+    --pmn-border: var(--phil-color-border, color-mix(in srgb, CanvasText 18%, Canvas));
+    --pmn-surface: var(--phil-color-surface, Canvas);
+    --pmn-accent: var(--phil-color-accent, #1f6f78);
+    --pmn-tint: color-mix(in srgb, var(--pmn-accent) 12%, transparent);
+    --pmn-radius: var(--phil-radius-md, 6px);
+}
+
+.mention {
+    border-radius: 0.25em;
+    padding: 0 0.15em;
+    background: var(--pmn-tint);
+    color: var(--pmn-accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+a.mention:hover,
+a.mention:focus-visible {
+    text-decoration: underline;
+}
+
+.phil-mentions-menu {
+    position: absolute;
+    z-index: 10;
+    min-width: 14rem;
+    max-width: min(24rem, 100%);
+    margin: 0.25rem 0 0;
+    padding: 0.25rem 0;
+    border: 1px solid var(--pmn-border);
+    border-radius: var(--pmn-radius);
+    background: var(--pmn-surface);
+    color: var(--pmn-text);
+    list-style: none;
+    box-shadow: 0 0.5rem 1.5rem color-mix(in srgb, CanvasText 12%, transparent);
+}
+
+.phil-mentions-menu [role="option"],
+.phil-mentions-empty {
+    padding: 0.375rem 0.75rem;
+}
+
+.phil-mentions-menu [role="option"] {
+    cursor: pointer;
+}
+
+.phil-mentions-menu [aria-selected="true"] {
+    background: var(--pmn-tint);
+}
+
+.phil-mentions-menu small,
+.phil-mentions-empty {
+    color: var(--pmn-muted);
+}
+
+@media (forced-colors: active) {
+    .phil-mentions-menu [aria-selected="true"] {
+        outline: 2px solid Highlight;
+    }
+}
+
+/* The live region that says how many members were found: read by screen readers, never shown. */
+.phil-mentions-status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}

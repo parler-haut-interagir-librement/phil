@@ -1,0 +1,47 @@
+{#
+    A course: what it is, what it takes to pass it and to be recertified, when it ends, and the certificates their
+    holders chose to list.
+#}
+{% extends layout %}
+
+{% trans_default_domain 'phil_certificates' %}
+
+{% block title %}{{ course.name }}{% endblock %}
+
+{% block content %}
+    <h1>{{ course.name }}</h1>
+    {% if course.retired %}
+        <p class="expired">{{ 'course.retired'|trans }}</p>
+    {% elseif course.endsAt is not null %}
+        <p>{{ 'course.ends_at'|trans({'%date%': course.endsAt|date('Y-m-d')}) }}</p>
+    {% endif %}
+    <p>{{ course.description }}</p>
+
+    <h2>{{ 'course.criteria'|trans }}</h2>
+    <p>{{ course.narrative }}</p>
+    {% if course.validityMonths is not null %}
+        <p>{{ 'course.validity'|trans({'%count%': course.validityMonths}) }}</p>
+    {% endif %}
+    {% if course.recertificationCredits is not null %}
+        <p>{{ 'course.recertification'|trans({'%credits%': course.recertificationCredits.formatted}) }}</p>
+    {% endif %}
+
+    <h2>{{ 'course.certificates'|trans({'%count%': total}) }}</h2>
+    {% if certificates is not empty %}
+        <ul>
+            {% for certificate in certificates %}
+                <li>
+                    <a href="{{ path('phil_certificates_certificate', {code: certificate.code.value}) }}">{{ certificate.recipientName }}</a>,
+                    <time datetime="{{ certificate.awardedAt|date('Y-m-d') }}">{{ certificate.awardedAt|date('Y-m-d') }}</time>
+                </li>
+            {% endfor %}
+        </ul>
+        {% if pages > 1 %}
+            <nav aria-label="{{ 'course.pages'|trans }}">
+                {% if page > 1 %}<a href="{{ path('phil_certificates_course', {slug: course.slug, page: page - 1}) }}" rel="prev">{{ 'course.previous'|trans }}</a>{% endif %}
+                <span>{{ page }} / {{ pages }}</span>
+                {% if page < pages %}<a href="{{ path('phil_certificates_course', {slug: course.slug, page: page + 1}) }}" rel="next">{{ 'course.next'|trans }}</a>{% endif %}
+            </nav>
+        {% endif %}
+    {% endif %}
+{% endblock %}

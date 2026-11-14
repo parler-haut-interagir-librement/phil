@@ -1,0 +1,83 @@
+{
+    "name": "phil/mentions-bundle",
+    "description": "@mentions of members for Symfony: handles found in plain text and Markdown with a configurable pattern and in UJO (Universal JSON Output) documents, members resolved through the application's directory, only newly mentioned members who may see the content notified, a Twig filter linking mentions to profiles and a Stimulus autocomplete",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "mentions",
+        "notifications",
+        "autocomplete",
+        "ujo",
+        "markdown",
+        "stimulus",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/notifications-bundle": "^0.1@dev",
+        "phil/resource": "^0.1@dev",
+        "phil/ujo": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/service-contracts": "^3.6",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "phil/block-editor-bundle": "^0.1@dev",
+        "phil/comments-bundle": "^0.1@dev",
+        "phil/settings-bundle": "^0.1@dev",
+        "php-webdriver/webdriver": "^1.16",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/panther": "^2.4",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "phil/block-editor-bundle": "For the editor's @ menu on the members of the directory, and the endpoint the autocomplete controller calls",
+        "phil/comments-bundle": "To record the mentions of comments and name their authors from the directory",
+        "phil/markup-bundle": "To render Markdown before linking its mentions",
+        "phil/settings-bundle": "For the members' choice to be notified of their mentions",
+        "symfony/asset-mapper": "To serve the controller and its stylesheet without a build step",
+        "symfony/stimulus-bundle": "For the autocomplete controller",
+        "twig/twig": "For the mentions filter"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\MentionsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\MentionsBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

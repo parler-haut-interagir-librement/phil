@@ -1,0 +1,12 @@
+# The bundle's configuration for the functional suite, as an application writes it: entries emailed from the site's
+# address and posted to a signed webhook; no sealer, so a form with a sensitive field is refused.
+phil_forms:
+    sender: site@example.com
+    subject_prefix: '[Site] '
+    webhook_secret: whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw
+    template: '@PhilForms/form.html.twig'
+    digest_key: '%kernel.secret%'
+    allow_unsealed_sensitive: false
+    sealing:
+        key: null
+        kms: null

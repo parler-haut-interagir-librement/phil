@@ -1,0 +1,27 @@
+{% set frame %}
+    <iframe src="{{ source.url }}" title="{{ title }}"{% if width %} width="{{ width }}"{% endif %}{% if height %} height="{{ height }}"{% endif %}
+            loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="{{ allow }}" allowfullscreen></iframe>
+{% endset %}
+<figure class="phil-privacy-embed" data-category="{{ category.name }}">
+    {% if granted %}
+        {{ frame }}
+    {% else %}
+        <div class="phil-privacy-embed__blocked"
+             data-controller="phil--privacy-bundle--embed"
+             data-phil--privacy-bundle--embed-category-value="{{ category.name }}"
+             data-action="phil--privacy-bundle--consent:changed@window->phil--privacy-bundle--embed#changed">
+            {% if preview %}<img class="phil-privacy-embed__preview" src="{{ preview }}" alt=""{% if width %} width="{{ width }}"{% endif %}{% if height %} height="{{ height }}"{% endif %} loading="lazy">{% endif %}
+            <p>{{ 'embed.blocked'|trans({'%title%': title, '%provider%': provider, '%category%': category.label(locale)}, 'phil_privacy') }}</p>
+            <form method="post" action="{{ path('phil_privacy_consent_decide') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token }}">
+                <input type="hidden" name="_target" value="{{ target }}">
+                <input type="hidden" name="category" value="{{ category.name }}">
+                <button type="submit" name="decision" value="grant">{{ 'embed.grant'|trans({'%category%': category.label(locale)}, 'phil_privacy') }}</button>
+                <button type="button" hidden data-phil--privacy-bundle--embed-target="once" data-action="phil--privacy-bundle--embed#once">{{ 'embed.once'|trans({}, 'phil_privacy') }}</button>
+            </form>
+            <p><a href="{{ source.original }}" rel="noopener noreferrer external">{{ 'embed.open'|trans({'%provider%': provider}, 'phil_privacy') }}</a></p>
+            <template data-phil--privacy-bundle--embed-target="frame">{{ frame }}</template>
+        </div>
+    {% endif %}
+    <figcaption class="phil-privacy-embed__caption">{{ title }}</figcaption>
+</figure>

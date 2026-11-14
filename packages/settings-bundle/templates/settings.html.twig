@@ -1,0 +1,18 @@
+{#
+    A settings page as the bundle renders it; an application gives its own, extending its layout and including
+    '@PhilSettings/_settings.html.twig', with the template key of the configuration.
+#}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|default('en') }}" {{ phil_document_attributes() }}>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ ('phil_settings.title.' ~ scope)|trans({}, 'phil_settings') }}</title>
+</head>
+<body>
+    <main>
+        <h1>{{ ('phil_settings.title.' ~ scope)|trans({}, 'phil_settings') }}</h1>
+        {{ include('@PhilSettings/_settings.html.twig') }}
+    </main>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+    "name": "PHIL UX for Shadcn",
+    "description": "Tailwind versions, in the style of the Shadcn kit, of the extra PHIL UX recipes, for ux:install --kit.",
+    "license": "MIT",
+    "homepage": "https://github.com/parler-haut-interagir-librement/ux-kit-shadcn",
+    "color": "hsl(0,0%,0%)",
+    "icon": "icon.svg",
+    "dependencies": {
+        "npm": ["shadcn", "tw-animate-css"],
+        "importmap": ["tw-animate-css/dist/tw-animate.css", "shadcn/dist/tailwind.css"]
+    }
+}

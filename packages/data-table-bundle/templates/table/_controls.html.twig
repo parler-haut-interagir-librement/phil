@@ -1,0 +1,76 @@
+{#
+ # The table's plain GET form: its filters, the page size and the columns, which the buttons of the headings and the
+ # checkboxes of the rows also belong to. The component takes each change over when it can.
+ #}
+<form class="phil-data-table__controls" id="{{ view.formId }}" method="get" data-action="change->live#action submit->live#action:prevent" data-live-action-param="applyFilters">
+    {%- for field in view.hiddenFields %}
+    <input type="hidden" name="{{ field.name }}" value="{{ field.value }}">
+    {%- endfor %}
+    {%- for filter in view.filters %}
+    {%- set id = view.formId ~ '-' ~ filter.name %}
+    {%- set field = view.prefix ~ 'filters[' ~ filter.name ~ ']' %}
+    {%- if filter.type == 'date_range' %}
+    <fieldset class="phil-data-table__filter phil-data-table__filter--range">
+        <legend>{{ filter.label }}</legend>
+        <label for="{{ id }}-from">{{ 'table.filter.from'|trans({}, domain) }}</label>
+        <input id="{{ id }}-from" type="date" name="{{ view.prefix }}filters[{{ filter.name }}_from]" value="{{ filter.from }}" data-phil-focus="filter:{{ filter.name }}_from" data-model="norender|filters.{{ filter.name }}_from">
+        <label for="{{ id }}-until">{{ 'table.filter.until'|trans({}, domain) }}</label>
+        <input id="{{ id }}-until" type="date" name="{{ view.prefix }}filters[{{ filter.name }}_until]" value="{{ filter.until }}" data-phil-focus="filter:{{ filter.name }}_until" data-model="norender|filters.{{ filter.name }}_until">
+    </fieldset>
+    {%- elseif filter.type == 'text' %}
+    <div class="phil-data-table__filter">
+        <label for="{{ id }}">{{ filter.label }}</label>
+        <input id="{{ id }}" type="search" name="{{ field }}" value="{{ filter.value }}" maxlength="200" data-phil-focus="filter:{{ filter.name }}" data-model="norender|filters.{{ filter.name }}">
+    </div>
+    {%- else %}
+    <div class="phil-data-table__filter">
+        <label for="{{ id }}">{{ filter.label }}</label>
+        <select id="{{ id }}" name="{{ field }}" data-phil-focus="filter:{{ filter.name }}" data-model="norender|filters.{{ filter.name }}">
+            <option value="">{{ 'table.filter.any'|trans({}, domain) }}</option>
+            {%- for choice in filter.choices %}
+            <option value="{{ choice.value }}"{% if choice.value == filter.value %} selected{% endif %}>{{ choice.label }}</option>
+            {%- endfor %}
+        </select>
+    </div>
+    {%- endif %}
+    {%- endfor %}
+    {%- if view.pageSizes|length > 1 %}
+    <div class="phil-data-table__filter">
+        <label for="{{ view.formId }}-size">{{ 'table.page_size'|trans({}, domain) }}</label>
+        <select id="{{ view.formId }}-size" name="{{ view.prefix }}size" data-phil-focus="size" data-model="norender|size" data-action="change->live#action:stop" data-live-action-param="rememberSize" data-live-token-param="{{ this.token }}">
+            {%- for size in view.pageSizes %}
+            <option value="{{ size }}"{% if size == view.pageSize %} selected{% endif %}>{{ size }}</option>
+            {%- endfor %}
+        </select>
+    </div>
+    {%- endif %}
+    {%- if view.columnOptions|length > 1 %}
+    <details class="phil-data-table__columns"{% if this.columnsOpen %} open{% endif %}>
+        <summary>{{ 'table.columns'|trans({}, domain) }}</summary>
+        {%- for option in view.columnOptions %}
+        <label><input type="checkbox" name="{{ view.prefix }}columns[]" value="{{ option.name }}"{% if option.visible %} checked{% endif %} data-phil-focus="column:{{ option.name }}" data-action="change->live#action:stop" data-live-action-param="toggleColumn" data-live-column-param="{{ option.name }}" data-live-token-param="{{ this.token }}"> {{ option.label }}</label>
+        {%- endfor %}
+    </details>
+    {%- endif %}
+    <div class="phil-data-table__buttons">
+        {%- component (phil_data_table_kit('Button')) with {type: 'submit', variant: 'secondary', size: 'sm', 'data-phil-focus': 'apply'} %}{% block content %}{{ 'table.filter.apply'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        {%- if view.filtered %}
+        {%- component (phil_data_table_kit('Button')) with {as: 'a', variant: 'ghost', size: 'sm', href: view.clearHref, 'data-phil-focus': 'clear', 'data-action': 'live#action:prevent', 'data-live-action-param': 'clearFilters'} %}{% block content %}{{ 'table.filter.clear'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        {%- endif %}
+        {%- if view.bulkActions is not empty %}
+        <span class="phil-data-table__bulk" role="group" aria-label="{{ 'table.select.actions'|trans({}, domain) }}">
+            {%- for action in view.bulkActions %}
+            {%- component (phil_data_table_kit('Button')) with {type: 'submit', variant: action.destructive ? 'destructive' : 'secondary', size: 'sm', name: view.prefix ~ 'confirm', value: action.name, 'data-phil-focus': 'ask:' ~ action.name ~ ':', 'data-action': 'live#action:stop:prevent', 'data-live-action-param': 'ask', 'data-live-command-param': action.name, 'data-live-token-param': this.token} %}{% block content %}{{ action.label }}{% endblock %}{% endcomponent %}
+            {%- endfor %}
+        </span>
+        {%- endif %}
+        {%- set exports = this.exports %}
+        {%- if exports is not empty %}
+        <span class="phil-data-table__export" role="group" aria-label="{{ 'table.export.label'|trans({}, domain) }}">
+            {%- for link in exports %}
+            {%- component (phil_data_table_kit('Button')) with {as: 'a', variant: 'outline', size: 'sm', href: link.href, download: true, 'data-phil-focus': 'export:' ~ link.format} %}{% block content %}{{ ('table.export.' ~ link.format)|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {%- endfor %}
+        </span>
+        {%- endif %}
+    </div>
+</form>

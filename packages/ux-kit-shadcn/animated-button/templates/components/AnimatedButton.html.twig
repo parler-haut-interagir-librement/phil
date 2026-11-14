@@ -1,0 +1,21 @@
+{#-
+ # A button, or a link when it has an address, that moves under the pointer and the focus, and stands still under
+ # reduced motion. While `loading`, it says so and waits under a spinner.
+ #}
+{%- props
+    ## 'shine'|'lift'|'arrow' How it moves.
+    effect = 'shine',
+    ## string|null Where the link leads; a button when null.
+    href = null,
+    ## 'button'|'submit'|'reset' The type of the button.
+    type = 'button',
+    ## bool Whether what it started is still running.
+    loading = false
+-%}
+{%- set _effect = {shine: 'before:absolute before:inset-y-0 before:-start-[60%] before:w-1/2 before:bg-linear-to-r before:from-transparent before:via-primary-foreground/35 before:to-transparent before:transition-[inset-inline-start] before:duration-500 before:content-[] hover:before:start-[110%] focus-visible:before:start-[110%] motion-reduce:before:hidden', lift: 'hover:-translate-y-0.5 hover:shadow-md focus-visible:-translate-y-0.5 focus-visible:shadow-md motion-reduce:hover:translate-y-0 motion-reduce:focus-visible:translate-y-0', arrow: ''}[effect] ?? 'before:absolute before:inset-y-0 before:-start-[60%] before:w-1/2 before:bg-linear-to-r before:from-transparent before:via-primary-foreground/35 before:to-transparent before:transition-[inset-inline-start] before:duration-500 before:content-[] hover:before:start-[110%] focus-visible:before:start-[110%] motion-reduce:before:hidden' -%}
+{%- set _class = 'inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 bg-primary text-primary-foreground hover:bg-primary/80 group relative h-8 overflow-hidden px-2.5 ' ~ _effect ~ (loading ? ' cursor-progress opacity-70' : '') -%}
+{%- set _tag = href is null ? 'button' : 'a' -%}
+<{{ _tag }}{% if href is null %} type="{{ type in ['submit', 'reset'] ? type : 'button' }}"{% else %} href="{{ href }}"{% endif %} data-slot="animated-button"{{ attributes.defaults({class: _class}|merge(loading ? {'aria-busy': 'true'} : {})) }}><span class="relative">
+{##- What the button says. -#}
+{%- block content %}{% endblock -%}
+</span>{% if effect is same as('arrow') %}<span class="inline-block transition-transform rtl:-scale-x-100 group-hover:translate-x-1 group-focus-visible:translate-x-1 rtl:group-hover:-translate-x-1 rtl:group-focus-visible:-translate-x-1 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 motion-reduce:group-focus-visible:translate-x-0" aria-hidden="true">&rarr;</span>{% endif %}</{{ _tag }}>

@@ -1,0 +1,72 @@
+{#-
+ # A gallery: a list of figures in a grid that fills its container, named by its label, each image through the Picture
+ # of the image recipe, under its caption, credit, license and creation; with lightbox, each opens in a Lightbox. An
+ # image the image recipe refuses takes no place; without an image, nothing is drawn. A deferred gallery lets the
+ # browser skip the rendering of its figures off screen, each sized meanwhile at the ratio its attributes say. Laid out
+ # as a carousel, the list is a row that scrolls and snaps without a script, which the keyboard reaches; where the
+ # browser draws them, ::scroll-marker and ::scroll-button() add its markers and buttons, named by attributes.
+ #}
+{%- props
+    ## string The name of the list, which screen readers read, such as "Photos of the festival".
+    label,
+    ## list<array{src:string,alt:string,width:int,height:int,srcset?:string|array<int|string,string>,sources?:list<array<string,mixed>>,position?:string,full?:array<string,mixed>,caption?:string,credit?:string,license?:string,licenseHref?:string,creation?:string,creationLabel?:string,preview?:string,description?:string,id?:string,transition?:string}> The images, each with the props of a Picture, its name in a view transition, and the full image of its lightbox.
+    images = [],
+    ## string|null The ratio every image is cropped to, as for Image, so that the rows line up.
+    aspect = null,
+    ## string|null How every image fills its box, "cover" or "contain".
+    fit = null,
+    ## string|null The sizes of the candidates of widths, as wide as a column of the grid, "(min-width: 48rem) 33vw, 100vw".
+    sizes = null,
+    ## bool Whether each image opens in a Lightbox, which the lightbox recipe draws.
+    lightbox = false,
+    ## string|null The identifier of the gallery, from which those of its lightboxes are made: "gallery" when null.
+    id = null,
+    ## string|null Words screen readers read after the text alternative of each lightbox's button, such as "Enlarge".
+    openLabel = null,
+    ## string What screen readers read for the close button of each lightbox.
+    closeLabel = 'Close',
+    ## bool Whether the gallery is long or far below the fold: its figures off screen rendered only as they come near, with content-visibility, and its images fetched after the others.
+    deferred = false,
+    ## string|null The colour the box of every image is painted while it loads, as for Image.
+    placeholder = null,
+    ## string The words of the summary of each description's disclosure.
+    descriptionLabel = 'Description',
+    ## string|null How the figures are laid out: in a grid that fills the container when null, or "carousel", a row that scrolls and snaps.
+    layout = null,
+    ## string What screen readers read for the button that scrolls a carousel back, where the browser draws it.
+    previousLabel = 'Previous',
+    ## string What screen readers read for the button that scrolls a carousel on, where the browser draws it.
+    nextLabel = 'Next',
+    ## string Where the caption of each image stands, as for Image: "below" or "overlay"; a lightbox keeps its own under its thumbnail.
+    captionPosition = 'below',
+    ## string|null The frame of every image, as for Image: "rounded", "framed", "raised" or "token", separated by spaces.
+    frame = null,
+    ## bool Whether every image is pixel art, enlarged without blurring its pixels, in its lightbox too.
+    pixelated = false
+-%}
+{%- set _images = images|filter(image => (image.src ?? '') is not empty and image_origin(image.src) is not same as('refused')) -%}
+{%- if _images is not empty -%}
+    {%- set _crop = aspect is empty ? null : aspect|replace({' ': ''}) -%}
+    {%- set _carousel = layout is same as('carousel') -%}
+    <div data-slot="gallery" {{ html_attr({id: id, class: ['@container', _carousel ? 'relative' : null, attributes.all.class ?? null]|filter(name => name is not empty)|join(' ')}) }}>
+        {%- if _carousel -%}
+            <ul role="list" aria-label="{{ label }}" tabindex="0" {{ html_attr({'data-previous': previousLabel, 'data-next': nextLabel}) }} class="m-0 grid list-none auto-cols-[minmax(min(85%,12rem),1fr)] grid-flow-col gap-2 overflow-x-auto overscroll-x-contain p-0 pb-2 snap-x snap-mandatory [scroll-marker-group:after] @3xl:gap-4 [&_figure]:m-0 [&_img]:w-full [&::scroll-marker-group]:flex [&::scroll-marker-group]:h-7 [&::scroll-marker-group]:items-center [&::scroll-marker-group]:justify-center [&::scroll-marker-group]:gap-2 [&::scroll-button(*)]:absolute [&::scroll-button(*)]:top-[calc(50%-2.25rem)] [&::scroll-button(*)]:size-9 [&::scroll-button(*)]:cursor-pointer [&::scroll-button(*)]:rounded-full [&::scroll-button(*)]:border-0 [&::scroll-button(*)]:bg-black/70 [&::scroll-button(*)]:text-white [&::scroll-button(*):disabled]:cursor-default [&::scroll-button(*):disabled]:opacity-40 [&::scroll-button(inline-start)]:start-2 [&::scroll-button(inline-start)]:content-['‹'_/_attr(data-previous)] [&::scroll-button(inline-end)]:end-2 [&::scroll-button(inline-end)]:content-['›'_/_attr(data-next)] rtl:[&::scroll-button(inline-start)]:content-['›'_/_attr(data-previous)] rtl:[&::scroll-button(inline-end)]:content-['‹'_/_attr(data-next)] print:auto-cols-auto print:grid-flow-row print:grid-cols-[repeat(auto-fill,minmax(min(100%,12rem),1fr))] print:overflow-visible print:[scroll-marker-group:none] print:[&::scroll-button(*)]:content-none">
+        {%- else -%}
+            <ul role="list" aria-label="{{ label }}" class="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,12rem),1fr))] gap-2 p-0 @3xl:gap-4 [&_figure]:m-0 [&_img]:w-full">
+        {%- endif -%}
+            {%- for image in _images -%}
+                {%- set _ratio = _crop is null ? [image.width, image.height] : (_crop matches '#^[1-9][0-9]*/[1-9][0-9]*$#' ? _crop|split('/') : []) -%}
+                {%- set _item = deferred and _ratio|length == 2 and _ratio|filter(size => size matches '#^[1-9][0-9]*$#')|length == 2 ? {'data-width': _ratio|first, 'data-height': _ratio|last} : {} -%}
+                {%- set _marker = _carousel ? {'data-marker': image.alt is not empty ? image.alt : loop.index} : {} -%}
+                {%- set _id = image.id ?? ((image.description ?? null) is empty ? null : (id ?? 'gallery') ~ '-' ~ loop.index) -%}
+                <li {{ html_attr(_item|merge(_marker)|merge({class: [deferred ? ['-m-[3px] box-content min-w-0 p-[3px] [content-visibility:auto] [contain-intrinsic-size:auto_12rem] print:[content-visibility:visible] print:break-inside-avoid', _item is empty ? null : 'supports-[aspect-ratio:attr(data-width_type(<number>),1)/1]:[aspect-ratio:attr(data-width_type(<number>),1)/attr(data-height_type(<number>),1)] supports-[aspect-ratio:attr(data-width_type(<number>),1)/1]:[contain-intrinsic-size:auto_none]']|filter(name => name is not empty)|join(' ') : 'min-w-0 print:break-inside-avoid', _carousel ? "snap-start [&::scroll-marker]:size-3 [&::scroll-marker]:rounded-full [&::scroll-marker]:border [&::scroll-marker]:border-foreground [&::scroll-marker]:content-[''_/_attr(data-marker)] [&::scroll-marker:target-current]:bg-foreground" : null]|filter(name => name is not empty)|join(' ')})) }}>
+                    {%- if lightbox -%}
+                        <twig:Lightbox :id="(id ?? 'gallery') ~ '-' ~ loop.index" :src="image.src" :alt="image.alt" :width="image.width" :height="image.height" :srcset="image.srcset ?? null" :sizes="sizes" :sources="image.sources ?? []" :aspect="aspect" :fit="fit" :position="image.position ?? null" :full="image.full ?? null" :caption="image.caption ?? null" :credit="image.credit ?? null" :license="image.license ?? null" :licenseHref="image.licenseHref ?? null" :creation="image.creation ?? null" :creationLabel="image.creationLabel ?? null" :openLabel="openLabel" :closeLabel="closeLabel" :deferred="deferred" :placeholder="placeholder" :preview="image.preview ?? null" :description="image.description ?? null" :descriptionLabel="descriptionLabel" :frame="frame" :pixelated="pixelated" :transition="image.transition ?? null" />
+                    {%- else -%}
+                        <twig:Picture :src="image.src" :alt="image.alt" :width="image.width" :height="image.height" :srcset="image.srcset ?? null" :sizes="sizes" :sources="image.sources ?? []" :aspect="aspect" :fit="fit" :position="image.position ?? null" :caption="image.caption ?? null" :credit="image.credit ?? null" :license="image.license ?? null" :licenseHref="image.licenseHref ?? null" :creation="image.creation ?? null" :creationLabel="image.creationLabel ?? null" :deferred="deferred" :placeholder="placeholder" :preview="image.preview ?? null" :description="image.description ?? null" :descriptionLabel="descriptionLabel" :captionPosition="captionPosition" :id="_id" :frame="frame" :pixelated="pixelated" :transition="image.transition ?? null" />
+                    {%- endif -%}
+                </li>
+            {%- endfor -%}
+        </ul>
+    </div>
+{%- endif -%}

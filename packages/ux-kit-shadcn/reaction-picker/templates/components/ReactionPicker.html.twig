@@ -1,0 +1,47 @@
+{#-
+ # The other reactions: a disclosure of plain buttons under their headings, written inside the form that receives them.
+ # The picker controller of phil/reactions-bundle shows the search and adds the keyboard; every button works without it.
+ #}
+{%- props
+    ## string The name of the disclosure.
+    label,
+    ## array The reactions under their headings: each {label, options}, an option being {label, emoji, image, imageAlt, attributes}; of the attributes, only name, value, title, data-* and aria-* are written.
+    groups,
+    ## string The name of the search field.
+    searchLabel = 'Search reactions by name',
+    ## string What is shown when the search finds nothing.
+    emptyLabel = 'No reaction has this name.',
+    ## string What screen readers hear after a search, {count} being the number of reactions shown.
+    resultsLabel = 'Reactions shown: {count}'
+-%}
+{%- set _c = 'phil--reactions-bundle--picker' -%}
+{%- set _button = 'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-1 rounded-lg border border-border bg-background px-2 text-sm font-medium text-foreground outline-none hover:bg-muted hover:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 [&[hidden]]:hidden' -%}
+<details data-slot="reaction-picker"{{ attributes.defaults({
+    class: 'relative',
+    'data-controller': _c,
+    'data-action': 'toggle->' ~ _c ~ '#toggled keydown->' ~ _c ~ '#keydown click->' ~ _c ~ '#choose click@window->' ~ _c ~ '#outside',
+    ('data-' ~ _c ~ '-results-value'): resultsLabel,
+}) }}>
+    <summary class="{{ _button }} list-none" data-phil--reactions-bundle--picker-target="summary">{{ label }}</summary>
+    <div class="absolute z-50 mt-1 grid w-72 max-w-[calc(100vw-2rem)] gap-2 rounded-lg bg-popover p-2 text-popover-foreground shadow-md ring-1 ring-foreground/10">
+        <input class="h-11 w-full rounded-lg border border-input bg-transparent px-2.5 dark:bg-input/30 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 [&[hidden]]:hidden" type="search" hidden autocomplete="off" aria-label="{{ searchLabel }}" placeholder="{{ searchLabel }}" data-phil--reactions-bundle--picker-target="search" data-action="input->phil--reactions-bundle--picker#filter">
+        <p class="sr-only" role="status" data-phil--reactions-bundle--picker-target="status"></p>
+        <p class="m-0 text-sm text-muted-foreground [&[hidden]]:hidden" hidden data-phil--reactions-bundle--picker-target="empty">{{ emptyLabel }}</p>
+        {%- for group in groups %}
+        <div class="grid gap-1 [&[hidden]]:hidden" role="group" aria-label="{{ group.label }}" data-phil--reactions-bundle--picker-target="group">
+            <p class="m-0 text-xs text-muted-foreground" aria-hidden="true">{{ group.label }}</p>
+            <div class="flex flex-wrap gap-1">
+                {%- for option in group.options %}
+                <button class="{{ _button }}" type="submit" data-phil--reactions-bundle--picker-target="option" data-search="{{ option.label }}"{% for name, value in option.attributes %}{% if name matches '/^(name|value|title|(data|aria)-[a-z0-9-]+)$/' %} {{ name }}="{{ value }}"{% endif %}{% endfor %}>
+                    {%- if option.image is not null -%}
+                    <img class="size-5" src="{{ option.image }}" alt="{{ option.imageAlt ?? option.label }}" width="20" height="20" loading="lazy">
+                    {%- else -%}
+                    <span aria-hidden="true">{{ option.emoji }}</span><span class="sr-only">{{ option.label }}</span>
+                    {%- endif -%}
+                </button>
+                {%- endfor %}
+            </div>
+        </div>
+        {%- endfor %}
+    </div>
+</details>

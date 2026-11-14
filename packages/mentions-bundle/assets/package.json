@@ -1,0 +1,24 @@
+{
+    "name": "@phil/mentions-bundle",
+    "description": "The mention controller: an @ autocomplete on plain text fields, from the block editor's member search",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/mention_controller.js",
+    "symfony": {
+        "controllers": {
+            "mention": {
+                "main": "src/mention_controller.js",
+                "webpackMode": "eager",
+                "fetch": "lazy",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "type": "component",
+    "name": "QrCode",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    },
+    "dependencies": {
+        "composer": ["phil/qr-code-bundle:^0.1@dev"]
+    }
+}

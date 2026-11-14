@@ -1,0 +1,35 @@
+{#
+ # The control of a cell being edited, in a plain form the component takes over when it can. Enter saves and Escape
+ # goes back; what stops the edit is announced and tied to the control.
+ #}
+{%- set edit = cell.edit -%}
+{%- set id = view.formId ~ '-edit' -%}
+<form class="phil-data-table__edit" method="post" action="{{ path('phil_data_table_edit', {table: view.name, column: cell.name}) }}" data-action="live#action:prevent" data-live-action-param="save" data-live-token-param="{{ this.token }}">
+    <input type="hidden" name="_token" value="{{ this.token }}">
+    <input type="hidden" name="context" value="{{ this.encodedContext }}">
+    <input type="hidden" name="seal" value="{{ this.seal }}">
+    <input type="hidden" name="back" value="{{ this.backTo(view.currentHref) }}">
+    <input type="hidden" name="row" value="{{ line.id }}">
+    {%- if edit.version is not null %}
+    <input type="hidden" name="version" value="{{ edit.version }}">
+    {%- endif %}
+    <label class="phil-data-table__hidden" for="{{ id }}">{{ cell.label }}</label>
+    {%- if edit.input == 'select' %}
+    <select id="{{ id }}" name="value" autofocus data-phil-focus="edit:{{ line.id }}:{{ cell.name }}" data-model="norender|draft" data-action="keydown.esc->phil--data-table-bundle--table#cancel"{% if edit.errors is not empty %} aria-invalid="true" aria-describedby="{{ id }}-errors"{% endif %}>
+        {%- for choice in edit.choices %}
+        <option value="{{ choice.value }}"{% if choice.value == edit.value %} selected{% endif %}>{{ choice.label }}</option>
+        {%- endfor %}
+    </select>
+    {%- else %}
+    <input id="{{ id }}" type="{{ edit.input }}"{% if edit.input == 'number' %} step="any"{% endif %} name="value" value="{{ edit.value }}" autofocus data-phil-focus="edit:{{ line.id }}:{{ cell.name }}" data-model="norender|draft" data-action="keydown.esc->phil--data-table-bundle--table#cancel"{% if edit.errors is not empty %} aria-invalid="true" aria-describedby="{{ id }}-errors"{% endif %}>
+    {%- endif %}
+    {%- component (phil_data_table_kit('Button')) with {type: 'submit', size: 'sm'} %}{% block content %}{{ 'table.edit.save'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+    {%- component (phil_data_table_kit('Button')) with {as: 'a', variant: 'ghost', size: 'sm', href: edit.cancelHref, 'data-phil--data-table-bundle--table-target': 'cancel', 'data-action': 'live#action:prevent', 'data-live-action-param': 'stopEdit'} %}{% block content %}{{ 'table.cancel'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+    {%- if edit.errors is not empty %}
+    <ul class="phil-data-table__errors" id="{{ id }}-errors" role="alert">
+        {%- for error in edit.errors %}
+        <li>{{ error }}</li>
+        {%- endfor %}
+    </ul>
+    {%- endif %}
+</form>

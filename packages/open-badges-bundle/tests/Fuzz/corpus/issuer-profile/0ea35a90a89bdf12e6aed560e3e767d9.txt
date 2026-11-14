@@ -1,0 +1,1 @@
+{"@context":["h"],"id":"https://partner.example/issuer","type":["Profile"],"name":"Partger","verificationMethod":[{"id":"https://partner.example/issuer#key-1","type":"Multikeypartner.example/issuer","publicKeyMultibase":"z6MkrJVnaZkeFzkrJVnaZkeFzdQyMZu1cgjg7kJPt4swbTS2"}],"assertionMethod":["https://partner.example/issuer#key-1"]}

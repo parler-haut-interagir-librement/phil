@@ -1,0 +1,125 @@
+{
+    "name": "phil/notifications-bundle",
+    "description": "Notifications for Symfony on Symfony Notifier: declared types delivered to each recipient's chosen channels — a notification centre with toasts, email and its daily or weekly digest, Web Push, Slack or Discord —, messages of identifiers only written out when shown, and notifications received signed from the other sites of a network",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "notifications",
+        "notification-centre",
+        "toast",
+        "digest",
+        "notifier",
+        "mercure",
+        "stimulus",
+        "symfony-bundle",
+        "web-push",
+        "vapid"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.5",
+        "phil/url": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/notifier": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/service-contracts": "^3.6",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "ext-openssl": "*",
+        "ext-pdo": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "minishlink/web-push": "^11.0",
+        "nyholm/psr7": "^1.8",
+        "phil/standard-webhooks": "^0.1@dev",
+        "phil/standard-webhooks-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/asset": "^8.2",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/discord-notifier": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-kernel": "^8.2",
+        "symfony/mailer": "^8.2",
+        "symfony/mercure": "^0.10",
+        "symfony/mercure-bundle": "^0.7",
+        "symfony/messenger": "^8.2",
+        "symfony/mime": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/scheduler": "^8.2",
+        "symfony/slack-notifier": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-turbo": "^3.7",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/twig": "^3.21"
+    },
+    "conflict": {
+        "symfony/mailer": "<8.2"
+    },
+    "suggest": {
+        "ext-openssl": "To make VAPID keys with phil:notifications:vapid-keys and encrypt Web Push messages",
+        "doctrine/orm": "To add the tables to the schema the ORM generates, for doctrine:migrations:diff",
+        "minishlink/web-push": "For the bundle's Web Push sender, with a PSR-7 implementation such as nyholm/psr7",
+        "nyholm/psr7": "The PSR-7 messages minishlink/web-push builds its requests with",
+        "phil/standard-webhooks-bundle": "To receive the notifications of the other sites of a network, signed",
+        "symfony/asset": "To give the Web Push button the URL of the bundle's service worker",
+        "symfony/asset-mapper": "To serve the controller and its stylesheet without a build step",
+        "symfony/console": "For the purge command",
+        "symfony/discord-notifier": "For the chat/discord channel",
+        "symfony/http-client": "To post Web Push messages to the browsers' push services",
+        "symfony/mailer": "For the email digest",
+        "symfony/mercure-bundle": "To push toasts and the unread count live",
+        "symfony/messenger": "To deliver notifications and digests in the background, one recipient at a time",
+        "symfony/routing": "For the endpoints of the notification centre",
+        "symfony/scheduler": "To send the digests and purge on schedule",
+        "symfony/slack-notifier": "For the chat/slack channel",
+        "symfony/stimulus-bundle": "For the notification centre controller",
+        "symfony/twig-bridge": "For the email digest's template",
+        "symfony/ux-turbo": "To keep the bell across Turbo page visits",
+        "symfony/ux-twig-component": "For the bell, list and toasts components"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\NotificationsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\NotificationsBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,68 @@
+{#-
+ # An image with points of interest: a Picture of the image recipe and, over it, a list of links named by its label,
+ # each placed at its point without an inline style, by a utility to the nearest five per cent and exactly by a typed
+ # attr() where the browser reads one. Without the stylesheet, or on a narrow screen, the links read as a list under the
+ # image. A point without words, without an address, with a refused address or without a place is left out; an image
+ # the image recipe refuses draws nothing. A caption, a credit and a license make a figure of it.
+ #}
+{%- props
+    ## string The URL of the image.
+    src,
+    ## string What the image shows, for those who do not see it; the points are read after it, in their list.
+    alt,
+    ## int The width of the image, so that its space is reserved at its ratio before it loads.
+    width,
+    ## int The height of the image, so that its space is reserved at its ratio before it loads.
+    height,
+    ## string The name of the list of points, which screen readers read, such as "Rooms of the venue".
+    label,
+    ## list<array{x:int|float,y:int|float,label:string,href:string}> The points: where each stands, as percentages of the width from the left and of the height from the top of the image, its words and its address.
+    spots = [],
+    ## list<array{type?:string,srcset:string|array<int|string,string>,sizes?:string}> The sources of the image, as for Picture, of the same crop: the points stand on every one.
+    sources = [],
+    ## string|array<int|string,string>|null The candidates of the image, as for Image.
+    srcset = null,
+    ## string|null The sizes of a srcset of widths, as for Image.
+    sizes = null,
+    ## bool Whether it is the main image above the fold, as for Image.
+    priority = false,
+    ## string|null The colour its box is painted while it loads, as for Image.
+    placeholder = null,
+    ## string|null A caption under the image, which a figure then holds with it.
+    caption = null,
+    ## string|null Who made the image, as the site writes it, under the caption.
+    credit = null,
+    ## string|null The name of the license of the image, under the caption.
+    license = null,
+    ## string|null The address of the license, which its name then links to with rel="license".
+    licenseHref = null,
+    ## string|null The frame of the image, as for Image: "rounded", "framed" or "raised", separated by spaces; never a token, whose crop would move the points.
+    frame = null,
+    ## bool Whether the image is pixel art, a map or a board enlarged without blurring its pixels.
+    pixelated = false
+-%}
+{%- set _controls = {"\t": '', "\n": '', "\r": ''} -%}
+{%- if src is not empty and not (src|replace(_controls) matches '#^[[:cntrl:] ]*(javascript:|vbscript:|data:(?!image/))#i') and image_origin(src) is not same as('refused') -%}
+    {%- set _xs = {0: 'start-[0%]', 5: 'start-[5%]', 10: 'start-[10%]', 15: 'start-[15%]', 20: 'start-[20%]', 25: 'start-[25%]', 30: 'start-[30%]', 35: 'start-[35%]', 40: 'start-[40%]', 45: 'start-[45%]', 50: 'start-[50%]', 55: 'start-[55%]', 60: 'start-[60%]', 65: 'start-[65%]', 70: 'start-[70%]', 75: 'start-[75%]', 80: 'start-[80%]', 85: 'start-[85%]', 90: 'start-[90%]', 95: 'start-[95%]', 100: 'start-[100%]'} -%}
+    {%- set _ys = {0: 'top-[0%]', 5: 'top-[5%]', 10: 'top-[10%]', 15: 'top-[15%]', 20: 'top-[20%]', 25: 'top-[25%]', 30: 'top-[30%]', 35: 'top-[35%]', 40: 'top-[40%]', 45: 'top-[45%]', 50: 'top-[50%]', 55: 'top-[55%]', 60: 'top-[60%]', 65: 'top-[65%]', 70: 'top-[70%]', 75: 'top-[75%]', 80: 'top-[80%]', 85: 'top-[85%]', 90: 'top-[90%]', 95: 'top-[95%]', 100: 'top-[100%]'} -%}
+    {%- set _spots = spots|filter(spot => (spot.label ?? '') is not empty
+        and (spot.href ?? '') is not empty
+        and not (spot.href|replace(_controls) matches '#^[[:cntrl:] ]*(javascript:|vbscript:|data:)#i')
+        and (spot.x ?? '') matches '#^[0-9]+([.][0-9]+)?$#'
+        and (spot.y ?? '') matches '#^[0-9]+([.][0-9]+)?$#') -%}
+    {%- set _root = {'data-slot': 'hotspots', id: attributes.all.id ?? null, class: ['relative w-fit max-w-full print:break-inside-avoid', attributes.all.class ?? null]|filter(name => name is not empty)|join(' ')} -%}
+    <twig:Image:Figure :caption="caption" :credit="credit" :license="license" :licenseHref="licenseHref">
+        <div {{ html_attr(_root) }}>
+            <twig:Picture :src="src" :alt="alt" :width="width" :height="height" :sources="sources" :srcset="srcset" :sizes="sizes" :priority="priority" :placeholder="placeholder" :frame="(frame ?? '')|split(' ')|filter(word => word is not same as('token'))|join(' ')" :pixelated="pixelated" />
+            {%- if _spots is not empty -%}
+                <ul role="list" data-slot="hotspots-list" class="m-0 list-none p-0 [direction:ltr] max-[36rem]:mt-2 max-[36rem]:flex max-[36rem]:flex-wrap max-[36rem]:gap-2 max-[36rem]:[direction:inherit]" aria-label="{{ label }}">
+                    {%- for spot in _spots -%}
+                        {%- set _x = min(100, spot.x) -%}
+                        {%- set _y = min(100, spot.y) -%}
+                        <li {{ html_attr({'data-slot': 'hotspot', class: ['absolute -translate-1/2 max-[36rem]:static max-[36rem]:translate-none supports-[left:calc(attr(data-x_type(<number>),0)*1%)]:start-[calc(attr(data-x_type(<number>),50)*1%)] supports-[left:calc(attr(data-x_type(<number>),0)*1%)]:top-[calc(attr(data-y_type(<number>),50)*1%)]', _xs[((_x / 5)|round * 5) ~ ''], _ys[((_y / 5)|round * 5) ~ '']]|join(' '), 'data-x': _x, 'data-y': _y}) }}><a href="{{ spot.href }}" class="inline-flex min-h-6 items-center gap-1 rounded-full bg-black/70 px-2 text-sm whitespace-nowrap text-white no-underline [unicode-bidi:plaintext] outline-none print:[print-color-adjust:exact] before:size-[0.5em] before:rounded-full before:bg-current before:content-[''] hover:underline focus-visible:ring-3 focus-visible:ring-ring/50">{{ spot.label }}</a></li>
+                    {%- endfor -%}
+                </ul>
+            {%- endif -%}
+        </div>
+    </twig:Image:Figure>
+{%- endif -%}

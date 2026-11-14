@@ -1,0 +1,14 @@
+{
+    "type": "block",
+    "name": "ComingSoon",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    },
+    "dependencies": {
+        "recipe": [
+            "logo",
+            "animated-headline",
+            "illustration"
+        ]
+    }
+}

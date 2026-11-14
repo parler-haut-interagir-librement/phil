@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %}</title>
+    <style>
+        .phil-open-badges { font-family: system-ui, sans-serif; max-width: 48rem; margin: 0 auto; padding: 1rem; }
+        .phil-open-badges textarea, .phil-open-badges input[type=text] { width: 100%; box-sizing: border-box; }
+        .phil-open-badges textarea { min-height: 8rem; font-family: monospace; }
+        .phil-open-badges .holds { border-left: .4rem solid #2e7d32; padding: .5rem 1rem; }
+        .phil-open-badges .fails { border-left: .4rem solid #c62828; padding: .5rem 1rem; }
+        .phil-open-badges dt { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <main class="phil-open-badges">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{#
+ # The pagination: links to the same table on another page, which the component follows in place when it can.
+ #}
+<nav class="phil-data-table__pagination" aria-label="{{ 'table.pagination.label'|trans({'%table%': view.caption}, domain) }}">
+    <p class="phil-data-table__range">{{ 'table.pagination.range'|trans({'%first%': pagination.first, '%last%': pagination.last, '%count%': view.total}, domain) }}</p>
+    {%- if pagination.lastPage > 1 %}
+    <ul class="phil-data-table__pages">
+        {%- if pagination.previousHref is not null %}
+        <li><a rel="prev" href="{{ pagination.previousHref }}" data-phil-focus="page:previous" data-action="live#action:prevent" data-live-action-param="goTo" data-live-page-param="{{ pagination.page - 1 }}">{{ 'table.pagination.previous'|trans({}, domain) }}</a></li>
+        {%- endif %}
+        {%- for link in pagination.links %}
+        {%- if link is null %}
+        <li aria-hidden="true">…</li>
+        {%- else %}
+        <li><a href="{{ link.href }}"{% if link.current %} aria-current="page"{% endif %} aria-label="{{ 'table.pagination.page'|trans({'%page%': link.number}, domain) }}" data-phil-focus="page:{{ link.number }}" data-action="live#action:prevent" data-live-action-param="goTo" data-live-page-param="{{ link.number }}">{{ link.number }}</a></li>
+        {%- endif %}
+        {%- endfor %}
+        {%- if pagination.nextHref is not null %}
+        <li><a rel="next" href="{{ pagination.nextHref }}" data-phil-focus="page:next" data-action="live#action:prevent" data-live-action-param="goTo" data-live-page-param="{{ pagination.page + 1 }}">{{ 'table.pagination.next'|trans({}, domain) }}</a></li>
+        {%- endif %}
+    </ul>
+    {%- endif %}
+    {%- if pagination.truncated %}
+    <p class="phil-data-table__truncated">{{ 'table.pagination.truncated'|trans({}, domain) }}</p>
+    {%- endif %}
+</nav>

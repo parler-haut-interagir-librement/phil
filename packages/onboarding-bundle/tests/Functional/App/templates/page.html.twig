@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en">
+    <body>
+        <main>
+            <form id="profile"></form>
+            <twig:PhilOnboarding:Checklist flow="author" class="sidebar" />
+            {{ onboarding_checklist('member') }}
+        </main>
+        <twig:PhilOnboarding:Tour flow="author" :autostart="false" />
+    </body>
+</html>

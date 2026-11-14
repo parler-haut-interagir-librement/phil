@@ -1,0 +1,8 @@
+{#- An entry as plain text. `entry` is the Entry, `fields` the fields asked; a sensitive value is withheld. -#}
+{{ 'phil_forms.email_intro'|trans({'%form%': entry.form.title}, 'phil_forms') }}
+{% for field in fields %}
+{% set value = entry.values[field.name] ?? null %}
+
+{{ field.label }}
+{% if field.sensitive %}{{ 'phil_forms.withheld'|trans({}, 'phil_forms') }}{% elseif value is same as(true) %}{{ 'phil_forms.yes'|trans({}, 'phil_forms') }}{% elseif value is same as(false) %}{{ 'phil_forms.no'|trans({}, 'phil_forms') }}{% elseif value is null %}—{% else %}{{ value }}{% endif %}
+{% endfor %}

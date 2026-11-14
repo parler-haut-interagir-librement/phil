@@ -1,0 +1,8 @@
+{%- props
+    ## string|null What screen readers call the list of steps.
+    label = null
+-%}
+<ol data-slot="stepper"{{ attributes.defaults({class: 'flex list-none flex-col gap-2 ps-0 [counter-reset:step] sm:flex-row sm:gap-0'}|merge(label is null ? {} : {'aria-label': label})) }}>
+{##- The steps, each a `Stepper:Item`. -#}
+{%- block content %}{% endblock -%}
+</ol>

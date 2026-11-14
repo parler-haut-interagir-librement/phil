@@ -1,0 +1,56 @@
+{#-
+ # A logo: drawn through the Picture of the image recipe, with its AVIF and WebP sources and its densities, its variant
+ # for forced colours, its variant for a dark system and its still image where motion is reduced, swapped by theme or
+ # locale, linked when it has an href.
+ #}
+{%- props
+    ## string The image shown where neither AVIF nor WebP is read, PNG or SVG; "{theme}" and "{locale}" in it are replaced.
+    src,
+    ## string The text alternative, the name the logo writes; an empty string only when that name is written next to it.
+    alt,
+    ## string|array<int|string,string>|null A WebP source, offered after the AVIF one: a URL or a map of densities to URLs; "{theme}" and "{locale}" in it are replaced.
+    webp = null,
+    ## string|array<int|string,string>|null An AVIF source, offered first: a URL or a map of densities to URLs; "{theme}" and "{locale}" in it are replaced.
+    avif = null,
+    ## string|array<int|string,string>|null The logo drawn for a dark system, offered where prefers-color-scheme is dark: a URL or a map of densities to URLs; "{theme}" and "{locale}" in it are replaced.
+    dark = null,
+    ## string|array<int|string,string>|null The still logo of an animated one, offered where prefers-reduced-motion is reduce: a URL or a map of densities to URLs; "{theme}" and "{locale}" in it are replaced.
+    still = null,
+    ## string|array<int|string,string>|null The logo drawn for forced colours, offered first where forced-colors is active: a URL or a map of densities to URLs; "{theme}" and "{locale}" in it are replaced.
+    forced = null,
+    ## string|array<int|string,string>|null The densities of the fallback image, as HTML writes them or a map of densities to URLs; "{theme}" and "{locale}" in them are replaced.
+    srcset = null,
+    ## string|null The theme written in place of "{theme}", such as "default" or "dark".
+    theme = null,
+    ## string|null The locale written in place of "{locale}", such as "fr".
+    locale = null,
+    ## string|null A link around the logo, usually to the home page.
+    href = null,
+    ## int|null The width of the image, to reserve its space before it loads.
+    width = null,
+    ## int|null The height of the image, to reserve its space before it loads.
+    height = null,
+    ## string How the image loads: "eager" above the fold, "lazy" below it.
+    loading = 'eager',
+    ## bool Whether the logo is the main image of the page: fetched first and preloaded through Symfony WebLink, as for Picture.
+    priority = false,
+    ## string|null How the image fills its container, as for Image: "fixed", "constrained" or "full-width".
+    layout = null,
+    ## string|null The ratio of the image's box, as for Image.
+    aspect = null,
+    ## string|null How the image fills its box, "cover" or "contain".
+    fit = null,
+    ## string|null Where the image is cropped in its box.
+    position = null
+-%}
+{%- set _swap = {} -%}
+{%- if theme is not null %}{% set _swap = _swap|merge({'{theme}': theme}) %}{% endif -%}
+{%- if locale is not null %}{% set _swap = _swap|merge({'{locale}': locale}) %}{% endif -%}
+{%- set _urls = {avif: avif, webp: webp, srcset: srcset, dark: dark, still: still, forced: forced}|map(value => value is iterable ? value|map(url => url|replace(_swap)) : (value is null ? null : value|replace(_swap))) -%}
+{%- set _sources = [] -%}
+{%- if _urls.avif is not null %}{% set _sources = _sources|merge([{type: 'image/avif', srcset: _urls.avif}]) %}{% endif -%}
+{%- if _urls.webp is not null %}{% set _sources = _sources|merge([{type: 'image/webp', srcset: _urls.webp}]) %}{% endif -%}
+{%- set _tag = href is null ? 'span' : 'a' -%}
+<{{ _tag }} data-slot="logo"{% if href is not null %} href="{{ href }}"{% endif %}{{ attributes.defaults({class: 'inline-block rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&_img]:h-12 [&_img]:w-auto'}) }}>
+    {{- component('Picture', {src: src|replace(_swap), alt: alt, width: width, height: height, srcset: _urls.srcset, sources: _sources, dark: _urls.dark, still: _urls.still, forced: _urls.forced, loading: loading, priority: priority, layout: layout, aspect: aspect, fit: fit, position: position}) -}}
+</{{ _tag }}>

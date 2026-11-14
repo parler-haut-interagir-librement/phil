@@ -1,0 +1,22 @@
+{#
+ # The question of an action, in a native dialog drawn open, so that a browser without JavaScript shows it in the page
+ # with its plain form and its way back; the controller makes it modal, closes it on Escape as Cancel does, and gives
+ # the focus back to the button that asked. The focus starts on Cancel, the answer that does no harm.
+ #}
+{%- set question = view.formId ~ '-question' -%}
+<dialog class="phil-data-table__dialog" open role="alertdialog" aria-labelledby="{{ question }}" data-phil--data-table-bundle--table-target="dialog" data-action="cancel->phil--data-table-bundle--table#dismiss">
+    <form class="phil-data-table__confirm" method="post" action="{{ path('phil_data_table_action', {table: view.name, action: confirmation.action}) }}" data-action="live#action:prevent" data-live-action-param="perform" data-live-token-param="{{ this.token }}">
+        <input type="hidden" name="_token" value="{{ this.token }}">
+        <input type="hidden" name="context" value="{{ this.encodedContext }}">
+        <input type="hidden" name="seal" value="{{ this.seal }}">
+        <input type="hidden" name="back" value="{{ this.backTo(view.currentHref) }}">
+        {%- for id in confirmation.ids %}
+        <input type="hidden" name="ids[]" value="{{ id }}">
+        {%- endfor %}
+        <p id="{{ question }}">{{ confirmation.question }}</p>
+        <div class="phil-data-table__buttons">
+            {%- component (phil_data_table_kit('Button')) with {type: 'submit', variant: confirmation.destructive ? 'destructive' : 'default', size: 'sm'} %}{% block content %}{{ confirmation.label }}{% endblock %}{% endcomponent %}
+            {%- component (phil_data_table_kit('Button')) with {as: 'a', variant: 'outline', size: 'sm', href: confirmation.cancelHref, autofocus: true, 'data-phil--data-table-bundle--table-target': 'dismiss', 'data-action': 'live#action:prevent', 'data-live-action-param': 'dismiss'} %}{% block content %}{{ 'table.cancel'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        </div>
+    </form>
+</dialog>

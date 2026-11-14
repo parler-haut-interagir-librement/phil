@@ -1,0 +1,1 @@
+{"id":"https://partner.example/issuer","verificationMethod":[{"id":"https://partner.example/issuer#kesonWebKey","controller":"https://partner.example/issuer","publicKeyJwk":{"kty":"RSA"," ":"w-mkLTpEcjjjTTTTTTTTTTTTTTTM7SQ","e":"AQAB"}}]}

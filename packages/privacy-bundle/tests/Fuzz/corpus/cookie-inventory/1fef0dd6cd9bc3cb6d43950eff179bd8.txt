@@ -1,0 +1,1 @@
+{"analytics":{"_d.j":{"purpose":{"en":"Visi","r":"Visites"},"duration":"P6M","provider":"omo"}},"videos":{"yt":{"purpose":"Plr","duration":"session","storage":"local_storage"}}}

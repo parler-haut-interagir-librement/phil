@@ -1,0 +1,1 @@
+{"id":"https://partner.example/issuer","verificationMethod":[{"id":"https://partner.example/issuer#key-1","publicKeyMultibase":"z64Mggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggy-1","publicKeyMultibase":"z64Mgggggggggggk"}],"assertionMethod":[{"id":"https://partner.example/issuer#key-1"}]}

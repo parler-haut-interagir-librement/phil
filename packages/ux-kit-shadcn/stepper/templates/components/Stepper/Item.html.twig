@@ -1,0 +1,15 @@
+{%- props
+    ## 'done'|'current'|'upcoming' Where the process stands at this step.
+    state = 'upcoming',
+    ## string|null Where the step leads, when it can be gone back to.
+    href = null,
+    ## string|null What screen readers read before the name of a finished step.
+    doneLabel = null
+-%}
+<li data-slot="stepper-item"{{ attributes.defaults({class: 'group relative flex min-w-0 flex-1 flex-row items-center gap-2 text-start text-sm wrap-anywhere text-muted-foreground [counter-increment:step] before:grid before:size-8 before:shrink-0 before:place-items-center before:rounded-full before:border before:border-input before:bg-muted before:font-medium before:text-muted-foreground before:content-[counter(step)] aria-[current=step]:font-medium aria-[current=step]:text-foreground aria-[current=step]:before:border-transparent aria-[current=step]:before:bg-primary aria-[current=step]:before:text-primary-foreground sm:flex-col sm:text-center' ~ (state is same as('done') ? ' text-foreground before:border-primary before:bg-accent before:text-accent-foreground' : '')}|merge(state is same as('current') ? {'aria-current': 'step'} : {})) }}>
+    {%- if state is same as('done') and doneLabel is not null -%}<span class="sr-only">{{ doneLabel }}</span>{%- endif -%}
+    {%- if href is not null -%}<a class="min-w-0 wrap-anywhere" href="{{ href }}">{%- else -%}<span class="min-w-0 wrap-anywhere">{%- endif -%}
+    {##- The name of the step. -#}
+    {%- block content %}{% endblock -%}
+    {%- if href is not null -%}</a>{%- else -%}</span>{%- endif -%}
+</li>

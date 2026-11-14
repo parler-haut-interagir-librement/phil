@@ -1,0 +1,39 @@
+<div class="phil-privacy-cookies">
+    {% for group in groups %}
+        <section>
+            {% if group.category %}
+                <h2>{{ group.category.label(locale) }}</h2>
+                {% if group.category.description(locale) %}<p>{{ group.category.description(locale) }}</p>{% endif %}
+            {% else %}
+                <h2>{{ 'cookies.choice'|trans({}, 'phil_privacy') }}</h2>
+                <p>{{ 'cookies.choice_intro'|trans({}, 'phil_privacy') }}</p>
+            {% endif %}
+            {% if group.cookies is empty %}
+                <p>{{ 'cookies.none'|trans({}, 'phil_privacy') }}</p>
+            {% else %}
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">{{ 'cookies.name'|trans({}, 'phil_privacy') }}</th>
+                        <th scope="col">{{ 'cookies.provider'|trans({}, 'phil_privacy') }}</th>
+                        <th scope="col">{{ 'cookies.purpose'|trans({}, 'phil_privacy') }}</th>
+                        <th scope="col">{{ 'cookies.duration'|trans({}, 'phil_privacy') }}</th>
+                        <th scope="col">{{ 'cookies.storage'|trans({}, 'phil_privacy') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cookie in group.cookies %}
+                        <tr>
+                            <td><code>{{ cookie.name }}</code></td>
+                            <td>{{ cookie.provider ?? 'cookies.this_site'|trans({}, 'phil_privacy') }}</td>
+                            <td>{{ cookie.purpose(locale) }}</td>
+                            <td>{{ cookie.session ? 'cookies.session'|trans({}, 'phil_privacy') : cookie.duration }}</td>
+                            <td>{{ ('cookies.storage.' ~ cookie.storage.value)|trans({}, 'phil_privacy') }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </section>
+    {% endfor %}
+</div>

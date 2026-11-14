@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Registration</title>
+    {{ importmap('app') }}
+</head>
+<body>
+<form id="registration" method="get" action="/sent"
+      data-controller="phil--form-logic--logic"
+      data-phil--form-logic--logic-steps-value="{{ steps|json_encode }}">
+    <fieldset>
+        <legend>Attending</legend>
+        <label><input type="radio" id="yes" name="entry[attending]" value="yes"> Yes</label>
+        <label><input type="radio" id="no" name="entry[attending]" value="no"> No</label>
+    </fieldset>
+    <div id="guest-field" data-form-logic-field="guest">
+        <label><input type="checkbox" id="guest" name="entry[guest]" value="1"> Bringing a guest</label>
+    </div>
+    <div id="guest-name-field" data-form-logic-field="guest_name">
+        <label for="guest_name">Guest</label>
+        <input id="guest_name" name="entry[guest_name]">
+    </div>
+    <div id="note-field" data-form-logic-field="note">
+        <label for="note">Note</label>
+        <textarea id="note" name="entry[note]" disabled>Seated together</textarea>
+    </div>
+    <p>Seats: <output id="seats" data-form-logic-output="seats"></output></p>
+    <button type="submit" id="send">Send</button>
+</form>
+</body>
+</html>
