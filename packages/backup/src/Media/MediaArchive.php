@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Phil\Backup\Media;
 
 use Closure;
+use Generator;
 use Phil\Backup\Exception\BackupFailed;
 use Phil\Backup\Exception\InvalidBackupValue;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 use SplFileInfo;
-use UnexpectedValueException;
 
 /**
  * The media files of an application — uploads, generated images, documents — kept beside its database backup as
@@ -43,8 +41,9 @@ final readonly class MediaArchive
     }
 
     /**
-     * Writes every directory to the archive, sorted by path so that the same files give the same archive, and gives
-     * the number of files back.
+     * Writes every directory to the archive, each directory followed by its entries sorted by name, so that the same
+     * files give the same archive, and gives the number of files back. The tree is walked one directory at a time, as
+     * it is written: only the names of the directories being walked are held in memory, never the whole tree.
      */
     public function write(string $file): int
     {
@@ -145,7 +144,7 @@ final readonly class MediaArchive
         $removed = 0;
 
         foreach ($held as $base => $paths) {
-            foreach (array_reverse($this->entries($base, true), true) as $relative => $entry) {
+            foreach ($this->entries($base, true) as $relative => $entry) {
                 if (isset($paths[$relative])) {
                     continue;
                 }
@@ -191,33 +190,50 @@ final readonly class MediaArchive
     }
 
     /**
-     * The directories and regular files under the directory, by relative path, sorted; with `everything`, links and
-     * special files too, never followed.
+     * The directories and regular files under the directory, by relative path, each directory before its entries
+     * sorted by name; with `everything`, links and special files too, never followed, and each directory after its
+     * entries, so that it is emptied before it is reached. Only the names of the directories being walked are held.
      *
-     * @return array<string, SplFileInfo>
+     * @return Generator<string, SplFileInfo>
      */
-    private function entries(string $directory, bool $everything = false): array
+    private function entries(string $directory, bool $everything = false): Generator
     {
-        if (!is_dir($directory)) {
-            return [];
+        if (is_dir($directory)) {
+            yield from $this->walk(rtrim($directory, '/'), '', $everything);
+        }
+    }
+
+    /**
+     * The entries under the directory at the relative path of the root, as `entries()` gives them.
+     *
+     * @return Generator<string, SplFileInfo>
+     */
+    private function walk(string $root, string $relative, bool $everything): Generator
+    {
+        $path = '' === $relative ? $root : $root.'/'.$relative;
+        $names = @scandir($path, \SCANDIR_SORT_NONE);
+
+        if (false === $names) {
+            throw BackupFailed::because(\sprintf('The media directory %s cannot be read whole: %s cannot be listed.', $root, $path));
         }
 
-        $directory = rtrim($directory, '/');
-        $entries = [];
+        $names = array_diff($names, ['.', '..']);
+        sort($names, \SORT_STRING);
 
-        try {
-            /** @var SplFileInfo $entry */
-            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::SELF_FIRST) as $entry) {
-                if ($everything || (!$entry->isLink() && ($entry->isDir() || $entry->isFile()))) {
-                    $entries[substr($entry->getPathname(), \strlen($directory) + 1)] = $entry;
-                }
+        foreach ($names as $name) {
+            $entry = new SplFileInfo($path.'/'.$name);
+            $child = '' === $relative ? $name : $relative.'/'.$name;
+            if (!$everything && !$entry->isLink() && ($entry->isDir() || $entry->isFile())) {
+                yield $child => $entry;
             }
-        } catch (UnexpectedValueException $unexpectedValueException) {
-            throw BackupFailed::because(\sprintf('The media directory %s cannot be read whole: %s', $directory, $unexpectedValueException->getMessage()));
+
+            if (!$entry->isLink() && $entry->isDir()) {
+                yield from $this->walk($root, $child, $everything);
+            }
+
+            if ($everything) {
+                yield $child => $entry;
+            }
         }
-
-        ksort($entries, \SORT_STRING);
-
-        return $entries;
     }
 }
