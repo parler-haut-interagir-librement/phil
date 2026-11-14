@@ -39,7 +39,7 @@
     "require-dev": {
         "doctrine/doctrine-bundle": "^3.3",
         "phil/block-editor-bundle": "^0.1@dev",
-        "phil/comments-bundle": "^0.1@dev",
+        "phil/comments-bundle": "^0.1@dev || ^0.2@dev",
         "phil/settings-bundle": "^0.1@dev",
         "php-webdriver/webdriver": "^1.16",
         "phpunit/phpunit": "^13.4",
