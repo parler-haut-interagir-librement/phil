@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=94c671ecaa49f56cee40ae6138168797debc31e4bac4e8ff88d51e2862d08349 -->
+<!-- phil-dev source-sha256=eaad4f3fa911291c27519158f359994a4364eaeae6d6596b8328c3221345147b -->
 # L'interface de vote
 
 Le bundle donne aux bundles qui reposent sur les sondages — un sondage de disponibilités, un questionnaire, une boîte à
 idées, une assemblée — et à l'application une façon d'afficher un sondage : le formulaire de son bulletin et ses
-résultats, sous forme de vues que dessine un gabarit. Les gabarits écrivent le balisage des recettes du kit, si bien
-que `phil/ux-css` les met en forme comme il met en forme les recettes, que celles-ci soient installées ou non. La page
-qui les affiche garde sa propre route, son propre contrôleur et ses propres mots autour d'eux.
+résultats, sous forme de vues que dessine un gabarit. Les gabarits dessinent leurs parties avec les recettes du kit,
+installées depuis le kit PHIL UX ou, sur Tailwind, depuis le kit Shadcn. La page qui les affiche garde sa propre route,
+son propre contrôleur et ses propres mots autour d'eux.
 
 ## Les vues
 
@@ -56,14 +56,33 @@ CSRF posté sous `_token`. Il dessine un `fieldset` nommé par la question, une 
 bulletin à choix unique est un groupe de boutons radio, avec un bulletin blanc quand le sondage en accepte un ; un
 bulletin à choix multiple, des cases à cocher ; un bulletin classé, une liste de rangs par option. Le `fieldset` est
 désactivé, sans bouton, quand la personne ne peut ni déposer ni modifier un bulletin ; une phrase en donne la raison.
-L'intégrer remplace un bloc : `choices`, `status` ou `actions`.
+L'intégrer remplace un bloc : `choices`, `status` ou `actions`. Le
+bloc `choices` est dessiné dans le `fieldset`, après sa légende et son aide ; un bloc dessine les recettes par la table
+`kit` :
+
+```twig
+{% embed '@PhilPoll/ballot.html.twig' with {ballot: phil_poll_ballot(poll.id, member), action: path('poll_vote', {id: poll.id})} %}
+    {% block choices %}
+        {% for choice in ballot.choices %}
+            {% component (kit.Field) with {orientation: 'horizontal'} %}
+                {% block content %}
+                    {{ component(kit.Checkbox, {name: 'choices[]', value: choice.id, id: 'choice-' ~ choice.id, checked: choice.chosen}) }}
+                    {% component (kit.FieldLabel) with {for: 'choice-' ~ choice.id} %}{% block content %}{{ choice.label }}{% endblock %}{% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
+        {% endfor %}
+    {% endblock %}
+{% endembed %}
+```
 
 `@PhilPoll/results.html.twig` prend la vue. Il dessine la question, les bulletins comptés et une ligne par option avec
 sa barre, son score et, pour les gagnantes, le mot qui le dit ; ou une phrase tant que les résultats sont cachés.
 L'intégrer remplace `lines`, ou remplit `revealed`.
 
-Le balisage est celui des recettes `Field`, `RadioGroup`, `Checkbox`, `NativeSelect`, `Button` et `Progress` : leurs
-attributs `data-slot` et leurs classes `isX`. Les mots viennent du domaine de traduction `phil_poll`, en anglais et en
+Les parties sont les recettes `Field`, `RadioGroup`, `Checkbox`, `NativeSelect`, `Button` et `Progress`, nommées par
+`phil_poll_kit()` d'après le sous-répertoire où l'application les a installées, comme le montre
+[Installation](installation.md#les-recettes-du-kit) ; leurs noms, leurs props et leurs blocs sont les mêmes dans le kit
+PHIL UX et dans le kit Shadcn. Les mots viennent du domaine de traduction `phil_poll`, en anglais et en
 français ; une application les remplace dans son propre `translations/phil_poll.<locale>.php`, et un gabarit sous
 `templates/bundles/PhilPollBundle/`.
 

@@ -104,6 +104,19 @@
         text-align: end;
     }
 
+    /* The caption names the table for screen readers; the figure's caption already shows it. */
+    .phil-reporting-bars__caption {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
+    }
+
     .phil-reporting-bars td {
         display: flex;
         align-items: center;

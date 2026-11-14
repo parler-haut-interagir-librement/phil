@@ -9,6 +9,7 @@ phil_poll:
     results_cache:
         pool: null           # a cache pool, such as "cache.app"; no count is kept when null
         lifetime: 3600       # the seconds a count is kept at most
+    kit_subdirectory: null   # where the recipes of the kit are; the subdirectory of "ux_toolkit" when null
 ```
 
 | Option | Default | What it does |
@@ -18,6 +19,7 @@ phil_poll:
 | `policy` | `null` | The service that says who may create a poll, vote and manage it. |
 | `results_cache.pool` | `null` | The cache pool, a `Symfony\Contracts\Cache\CacheInterface`, where counts are kept until the next ballot; none by default, every count reading every ballot. |
 | `results_cache.lifetime` | `3600` | The seconds a count is kept at most, 1 or more. |
+| `kit_subdirectory` | `null` | The subdirectory of the components directory holding the recipes of the kit, `ui` for `ui:Field`; the subdirectory of the `ux_toolkit` configuration when null, none without it. To set in an environment where the Toolkit is not enabled. |
 
 ## The services
 
@@ -31,7 +33,7 @@ phil_poll:
 | `Phil\PollBundle\Application\Contract\PollPolicy` | no | An alias of the configured policy, or of `DefaultPollPolicy`. |
 | `ChoiceCount`, `InstantRunoff`, `Borda`, `Schulze` | no | The library's methods, tagged `phil_poll.counting_method`. |
 | `Phil\PollBundle\Domain\Counting\MeekStv` | no | The single transferable vote, tagged `phil_poll.counting_method`. |
-| `Phil\PollBundle\Infrastructure\Twig\PollTwig` | no | The functions `phil_poll_ballot()` and `phil_poll_results()`, registered when Twig is installed. |
+| `Phil\PollBundle\Infrastructure\Twig\PollTwig` | no | The functions `phil_poll_ballot()`, `phil_poll_results()` and `phil_poll_kit()`, registered when Twig is installed. |
 
 Every service of the application implementing `Phil\Poll\Contract\CountingMethod` is tagged
 `phil_poll.counting_method` by autoconfiguration and added to `CountingMethods`. `Polls` dispatches its events through

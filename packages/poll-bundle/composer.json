@@ -39,23 +39,28 @@
     },
     "require-dev": {
         "doctrine/doctrine-bundle": "^3.3",
+        "phil/ux-kit": ">=0.1.0-alpha <1.0",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",
         "symfony/cache": "^8.2",
         "symfony/clock": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
         "symfony/event-dispatcher": "^8.2",
         "symfony/framework-bundle": "^8.2",
         "symfony/http-kernel": "^8.2",
         "symfony/translation": "^8.2",
         "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
         "twig/twig": "^3.21"
     },
     "suggest": {
         "doctrine/doctrine-bundle": "To keep the polls and their ballots in the application's database",
-        "phil/ux-css": "To draw the templates of a ballot and of the results as the kit's recipes are drawn",
+        "phil/ux-kit": "For the recipes the templates draw — Field, RadioGroup, Checkbox, NativeSelect, Button, Progress —, through the Symfony UX Toolkit; or the Shadcn kit on Tailwind",
         "symfony/cache": "To keep the counts of the polls until their next ballot",
         "symfony/event-dispatcher": "To listen to the events of the polls",
-        "symfony/twig-bundle": "For the templates of a ballot and of the results, and their functions"
+        "symfony/twig-bundle": "For the templates of a ballot and of the results, and their functions",
+        "symfony/ux-twig-component": "For the templates of a ballot and of the results, which draw the recipes of the kit as components"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

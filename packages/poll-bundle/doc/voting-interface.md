@@ -2,9 +2,8 @@
 
 The bundle gives the bundles built on the polls — a poll of availabilities, a questionnaire, a box of ideas, an
 assembly — and the application one way to show a poll: the form of its ballot and its results, as views a template
-draws. The templates write the markup of the kit's recipes, so that `phil/ux-css` draws them as it draws the recipes,
-whether the recipes are installed or not. The page that shows them keeps its own route, its own controller and its
-own words around them.
+draws. The templates draw their parts with the kit's recipes, installed from the PHIL UX kit or, on Tailwind, from the
+Shadcn kit. The page that shows them keeps its own route, its own controller and its own words around them.
 
 ## The views
 
@@ -53,14 +52,33 @@ them:
 posted as `_token`. It draws a `fieldset` named by the question, a sentence of help, the choices and a button. A single
 ballot is a group of radio buttons, with a blank ballot when the poll accepts one; a multiple ballot, checkboxes; a
 ranked ballot, a select of ranks per option. The fieldset is disabled, without a button, when the viewer may neither
-cast nor change a ballot; a sentence says why. Embedding it replaces a block: `choices`, `status` or `actions`.
+cast nor change a ballot; a sentence says why. Embedding it replaces a block: `choices`, `status` or `actions`. The
+`choices` block is drawn inside the fieldset, after its legend and its help; a block draws the recipes through the map
+`kit`:
+
+```twig
+{% embed '@PhilPoll/ballot.html.twig' with {ballot: phil_poll_ballot(poll.id, member), action: path('poll_vote', {id: poll.id})} %}
+    {% block choices %}
+        {% for choice in ballot.choices %}
+            {% component (kit.Field) with {orientation: 'horizontal'} %}
+                {% block content %}
+                    {{ component(kit.Checkbox, {name: 'choices[]', value: choice.id, id: 'choice-' ~ choice.id, checked: choice.chosen}) }}
+                    {% component (kit.FieldLabel) with {for: 'choice-' ~ choice.id} %}{% block content %}{{ choice.label }}{% endblock %}{% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
+        {% endfor %}
+    {% endblock %}
+{% endembed %}
+```
 
 `@PhilPoll/results.html.twig` takes the view. It draws the question, the ballots counted and one line per option with
 its bar, its score and, for the winners, the word that says so; or a sentence while the results are hidden. Embedding
 it replaces `lines`, or fills `revealed`.
 
-The markup is the one of the recipes `Field`, `RadioGroup`, `Checkbox`, `NativeSelect`, `Button` and `Progress`: their
-`data-slot` attributes and `isX` classes. The words come from the translation domain `phil_poll`, in English and in
+The parts are the recipes `Field`, `RadioGroup`, `Checkbox`, `NativeSelect`, `Button` and `Progress`, named by
+`phil_poll_kit()` after the subdirectory where the application installed them, as
+[Installation](installation.md#the-recipes-of-the-kit) shows; their names, props and blocks are the same in the PHIL
+UX kit and in the Shadcn kit. The words come from the translation domain `phil_poll`, in English and in
 French; an application overrides them in its own `translations/phil_poll.<locale>.php`, and a template under
 `templates/bundles/PhilPollBundle/`.
 

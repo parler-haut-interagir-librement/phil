@@ -17,6 +17,7 @@ use Phil\PollBundle\Application\PollViews;
 use Phil\PollBundle\Domain\Counting\MeekStv;
 use Phil\PollBundle\Domain\Repository\PollRepository;
 use Phil\PollBundle\Domain\Repository\VoteRepository;
+use Phil\PollBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\PollBundle\Infrastructure\DependencyInjection\PollServices;
 use Phil\PollBundle\Infrastructure\Doctrine\DoctrinePollRepository;
 use Phil\PollBundle\Infrastructure\Doctrine\DoctrineVoteRepository;
@@ -37,6 +38,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 #[CoversClass(PhilPollBundle::class)]
 #[CoversClass(PollServices::class)]
+#[CoversClass(KitSubdirectoryPass::class)]
 final class PhilPollBundleTest extends TestCase
 {
     public function testTheServices(): void
@@ -75,7 +77,7 @@ final class PhilPollBundleTest extends TestCase
         self::assertFalse($container->getDefinition(Borda::class)->isPublic());
         self::assertEquals([new Reference(Polls::class), new Reference(PollPolicy::class), new Reference(CountingMethods::class), new Reference('clock')], $container->getDefinition(PollViews::class)->getArguments());
         self::assertTrue($container->getDefinition(PollViews::class)->isPublic());
-        self::assertEquals([new Reference(PollViews::class)], $container->getDefinition(PollTwig::class)->getArguments());
+        self::assertEquals([new Reference(PollViews::class), null], $container->getDefinition(PollTwig::class)->getArguments());
         self::assertTrue($container->getDefinition(PollTwig::class)->isAutoconfigured());
         self::assertFalse($container->getDefinition(PollTwig::class)->isPublic());
         self::assertSame([], $container->getDefinition(DoctrinePollRepository::class)->getTags());
@@ -97,6 +99,38 @@ final class PhilPollBundleTest extends TestCase
         $cached = $this->load(['results_cache' => ['pool' => 'cache.app', 'lifetime' => 60]])->getDefinition(Polls::class)->getArguments();
         self::assertEquals([new Reference('cache.app'), 60], \array_slice($cached, 6));
         self::assertSame(1, $this->load(['results_cache' => ['lifetime' => 1]])->getDefinition(Polls::class)->getArgument(7));
+        self::assertSame('admin/ui', $this->load(['kit_subdirectory' => 'admin/ui'])->getDefinition(PollTwig::class)->getArgument(1));
+    }
+
+    public function testTheSubdirectoryOfTheRecipesIsTheToolkitsUnlessConfigured(): void
+    {
+        $bundle = new PhilPollBundle();
+        $passes = new ContainerBuilder();
+        $bundle->build($passes);
+        self::assertCount(1, array_filter($passes->getCompilerPassConfig()->getBeforeOptimizationPasses(), static fn (object $pass): bool => $pass instanceof KitSubdirectoryPass));
+
+        $toolkit = $this->load([]);
+        $toolkit->setParameter('.ux_toolkit.components.subdirectory', 'ui');
+        new KitSubdirectoryPass()->process($toolkit);
+        self::assertSame('ui', $toolkit->getDefinition(PollTwig::class)->getArgument(1));
+
+        $none = $this->load([]);
+        new KitSubdirectoryPass()->process($none);
+        self::assertSame('', $none->getDefinition(PollTwig::class)->getArgument(1));
+
+        $odd = $this->load([]);
+        $odd->setParameter('.ux_toolkit.components.subdirectory', ['ui']);
+        new KitSubdirectoryPass()->process($odd);
+        self::assertSame('', $odd->getDefinition(PollTwig::class)->getArgument(1));
+
+        $configured = $this->load(['kit_subdirectory' => 'kit']);
+        $configured->setParameter('.ux_toolkit.components.subdirectory', 'ui');
+        new KitSubdirectoryPass()->process($configured);
+        self::assertSame('kit', $configured->getDefinition(PollTwig::class)->getArgument(1));
+
+        $empty = new ContainerBuilder();
+        new KitSubdirectoryPass()->process($empty);
+        self::assertFalse($empty->hasDefinition(PollTwig::class));
     }
 
     public function testABadConfigurationIsRefused(): void

@@ -75,9 +75,15 @@ rather than loading them at once.
 ## The templates
 
 `@PhilPoll/ballot.html.twig` and `@PhilPoll/results.html.twig` have blocks an embedding page replaces: `choices`,
-`status` and `actions` for the ballot; `lines` and `revealed` for the results. An application overrides a whole
-template under `templates/bundles/PhilPollBundle/`, and the words under its own translation domain `phil_poll`. A page
-that draws the views its own way reads them from `PollViews`. See [The voting interface](voting-interface.md).
+`status` and `actions` for the ballot; `lines` and `revealed` for the results. A block draws the recipes of the kit
+through the map `kit` the template sets — `kit.Checkbox`, `kit.Field`, `kit.Progress` —, or `phil_poll_kit('Name')`,
+which prefixes the subdirectory of the recipes. An application overrides a whole template under
+`templates/bundles/PhilPollBundle/`, and the words under its own translation domain `phil_poll`. A page that draws the
+views its own way reads them from `PollViews`. See [The voting interface](voting-interface.md).
+
+| What | Where |
+|---|---|
+| The recipes | Installed by the Symfony UX Toolkit from the PHIL UX kit or the Shadcn kit; their subdirectory read from `ux_toolkit`, or `kit_subdirectory` |
 
 ## The events
 

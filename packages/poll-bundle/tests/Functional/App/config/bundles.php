@@ -6,10 +6,12 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Phil\PollBundle\PhilPollBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\TwigBundle\TwigBundle;
+use Symfony\UX\TwigComponent\TwigComponentBundle;
 
 return [
     FrameworkBundle::class => ['all' => true],
     DoctrineBundle::class => ['all' => true],
     TwigBundle::class => ['all' => true],
+    TwigComponentBundle::class => ['all' => true],
     PhilPollBundle::class => ['all' => true],
 ];

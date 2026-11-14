@@ -13,7 +13,8 @@
 | `psr/clock`, `psr/event-dispatcher` | `^1.0` | The time of a ballot and of the dates; the events. |
 
 DoctrineBundle keeps the tables in the application's database; without it, the `memory` store serves tests. TwigBundle,
-with the translator, draws the [voting interface](voting-interface.md); `phil/ux-css` styles it.
+with the translator, draws the [voting interface](voting-interface.md), with Symfony UX Twig Component 3.7 or later and
+the recipes of the kit below.
 
 ## Enabling the bundle
 
@@ -30,6 +31,23 @@ return [
 ```
 
 The bundle needs a `clock` service, which FrameworkBundle registers.
+
+## The recipes of the kit
+
+The templates draw their parts with recipes of the PHIL UX kit, installed in the application by the Symfony UX
+Toolkit; nothing is rendered from `vendor/`:
+
+```sh
+composer require symfony/ux-twig-component
+for recipe in field radio-group checkbox native-select button progress; do
+    php bin/console ux:install $recipe --kit=github.com/parler-haut-interagir-librement/ux-kit
+done
+```
+
+They have the names, props and blocks of the Shadcn kit of the Toolkit, so a site on Tailwind installs the same six
+recipes from the Shadcn kit instead. They are found under the components subdirectory of the `ux_toolkit`
+configuration; in an environment where the Toolkit is not enabled, as production often is, repeat it in
+`kit_subdirectory`.
 
 ## The tables
 

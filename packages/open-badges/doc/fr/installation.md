@@ -1,10 +1,11 @@
-<!-- phil-dev source-sha256=9c0ab1846d920ddc77ee965ec777f2eb68b615d2dc09f7c6e6eaaf4e88e649d8 -->
+<!-- phil-dev source-sha256=7db74bf65c0ea1aef8dd02798f17c674db94fe5e55d39ca8a1c65025b06343a2 -->
 # Installation
 
 ## Prérequis
 
-PHP 8.5 ou plus récent avec les extensions `dom`, `json`, `libxml`, `mbstring`, `openssl`, `sodium` et `zlib` ; rien
-d'autre.
+PHP 8.5 ou plus récent avec les extensions `dom`, `json`, `libxml`, `mbstring`, `openssl`, `sodium` et `zlib` ;
+`phil/url`, `phil/safe-http` et `symfony/service-contracts`, qui résolvent un émetteur `did:web` quand l'application le
+demande.
 
 ```sh
 composer require phil/open-badges

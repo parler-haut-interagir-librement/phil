@@ -53,7 +53,9 @@ With AssetMapper, the stylesheet is mapped as `phil-reporting/reporting.css`:
 
 It is written in the `phil.components` cascade layer on the tokens of PHIL UX (`phil/ux-css`), with a value of its own
 for each when PHIL UX is not loaded. Its bars read their length from a `data-share` attribute: no inline style, so a
-Content Security Policy without `'unsafe-inline'` for styles shows them.
+Content Security Policy without `'unsafe-inline'` for styles shows them. The templates carry the bundle's own classes,
+`phil-reporting-*`, and no class of a kit: they are drawn the same beside PHIL UX or Tailwind, and the caption of the
+bars' table is hidden by the stylesheet, `phil-reporting-bars__caption`, for screen readers alone.
 
 ## The directory of the claim check
 

@@ -95,6 +95,8 @@ final class ReportingBundleTest extends KernelTestCase
         self::assertStringContainsString('Up 20% from the previous period', $html);
         self::assertStringContainsString('<figcaption class="phil-reporting-chart__title">Sign-ups &lt;weekly&gt;</figcaption>', $html);
         self::assertStringContainsString('<span class="phil-reporting-bars__bar" data-share="100"></span>', $html);
+        self::assertStringContainsString('<caption class="phil-reporting-bars__caption">Sign-ups &lt;weekly&gt;</caption>', $html);
+        self::assertStringNotContainsString('class="is', $html, 'No class of a kit: the templates draw under PHIL UX and under Tailwind alike.');
         self::assertStringContainsString('<th scope="row">Nov 1</th>', $html);
         self::assertStringContainsString('<svg xmlns="http://www.w3.org/2000/svg"', $html);
         self::assertStringContainsString('<title>Sign-ups drawn</title>', $html);

@@ -10,8 +10,10 @@ ballot —; the single transferable vote — the published food election of the 
 and the exhausted value adding up in every round, transfers, ties, the bounds —; the views, the reading of a posted
 form and the Twig functions; the Doctrine and in-memory stores against one shared contract, on SQLite in memory, the
 in-memory ones emptied by a reset; the mapping of the three tables; and the bundle's configuration and services. The
-suite `tests/Functional` boots a kernel with DoctrineBundle on SQLite and TwigBundle, runs an anonymous ranked poll
-counted by a method of the application, heard by a listener, and draws the templates in English and in French.
+suite `tests/Functional` boots a kernel with DoctrineBundle on SQLite, TwigBundle and TwigComponentBundle with the
+recipes of the PHIL UX kit copied where the Toolkit installs them, runs an anonymous ranked poll counted by a method of
+the application, heard by a listener, and draws the templates in English and in French, their blocks replaced by an
+embedding template.
 
 The Stimulus controller is tested with Node's test runner:
 

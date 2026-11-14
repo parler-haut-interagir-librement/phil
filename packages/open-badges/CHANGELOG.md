@@ -4,6 +4,23 @@ All notable changes to `phil/open-badges` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- `RsaKey::fromJwk()`: an `RS256` issuer key read from a JSON Web Key of type `RSA`, its modulus of 2048 to 8192 bits
+  and its exponent odd and at least 3; `RsaKey::MIN_BITS` and `RsaKey::MAX_BITS`.
+- `DidWeb`: a `did:web` identifier and the HTTPS address of its DID document, a port written `%3A`, the host a name,
+  never an IP address nor `localhost`, and no segment `.`, `..` or holding a slash.
+- `DidWebMethods`: the verification methods of `did:web` issuers read from their DID documents — the document's `id`
+  the identifier, the method listed or embedded, named in `assertionMethod` and controlled by the identifier, its
+  key an Ed25519 Multikey or a public Ed25519 or RSA JSON Web Key, the document 256 KiB and 16 levels at most —, every
+  other method passed to the methods given, `DidKeyMethods` by default; nothing kept between two calls.
+- `DocumentFetcher`, the port that reads a DID document at its address, and `SafeHttpFetcher`, its adapter on
+  `phil/safe-http`: HTTPS only, private networks refused, redirects checked and kept on HTTPS, the time and the bytes
+  bounded, a document read only when it answers 200 whole; `reset()` between the messages of a worker.
+- The fuzz target of the resolution of a `did:web` from its document.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\PollBundle;
 
 use Override;
+use Phil\PollBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\PollBundle\Infrastructure\DependencyInjection\PollServices;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -15,7 +16,8 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
  * The voting engine of phil/poll for an application: polls and their ballots kept with Doctrine, anonymous or not,
  * the application's policy asked before every action, its own counting methods beside the library's and the single
  * transferable vote, and the results counted on demand and kept until the next ballot. The tables are mapped for
- * Doctrine.
+ * Doctrine. The templates draw their parts with recipes of the PHIL UX kit — or the Shadcn kit — installed by the
+ * Symfony UX Toolkit.
  */
 final class PhilPollBundle extends AbstractBundle
 {
@@ -56,7 +58,18 @@ final class PhilPollBundle extends AbstractBundle
                         ->end()
                     ->end()
                 ->end()
+                ->scalarNode('kit_subdirectory')
+                    ->info('Where the recipes of the kit are, under the components directory; the subdirectory of "ux_toolkit" when null. To set in an environment without the Toolkit.')
+                    ->defaultNull()
+                ->end()
             ->end();
+    }
+
+    #[Override]
+    public function build(ContainerBuilder $container): void
+    {
+        parent::build($container);
+        $container->addCompilerPass(new KitSubdirectoryPass());
     }
 
     #[Override]
@@ -78,7 +91,7 @@ final class PhilPollBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{store: string, entity_manager: string, policy: ?string, results_cache: array{pool: ?string, lifetime: int}} $config */
+        /** @var array{store: string, entity_manager: string, policy: ?string, results_cache: array{pool: ?string, lifetime: int}, kit_subdirectory: ?string} $config */
         PollServices::register($builder, $config);
     }
 }

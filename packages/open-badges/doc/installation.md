@@ -2,8 +2,9 @@
 
 ## Requirements
 
-PHP 8.5 or later with the `dom`, `json`, `libxml`, `mbstring`, `openssl`, `sodium` and `zlib` extensions; nothing
-else.
+PHP 8.5 or later with the `dom`, `json`, `libxml`, `mbstring`, `openssl`, `sodium` and `zlib` extensions;
+`phil/url`, `phil/safe-http` and `symfony/service-contracts`, which resolve a `did:web` issuer when the application asks
+for it.
 
 ```sh
 composer require phil/open-badges

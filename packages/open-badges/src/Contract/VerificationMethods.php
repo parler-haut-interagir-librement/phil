@@ -7,8 +7,9 @@ namespace Phil\OpenBadges\Contract;
 use Phil\OpenBadges\Exception\InvalidCredential;
 
 /**
- * Finds the public key a Data Integrity proof names as its `verificationMethod`: a `did:key`, or a key the issuer
- * publishes in its profile. An implementation decides whether it fetches anything; the library's own never do.
+ * Finds the public key a Data Integrity proof or a token names as its verification method: a `did:key`, a key the
+ * issuer publishes in its profile or in the DID document of its `did:web`. An implementation decides whether it fetches
+ * anything: `DidKeyMethods` never does, `DidWebMethods` reads DID documents through the `DocumentFetcher` it is given.
  */
 interface VerificationMethods
 {

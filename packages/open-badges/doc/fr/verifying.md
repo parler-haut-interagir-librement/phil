@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=876eb7ffc309c60b9ce447a2bfa2172f1e9f2092362b30e129afb642ef149e63 -->
+<!-- phil-dev source-sha256=0d6e669b47d01cf0e5ab31b71279c984246a95c47c4e111f62c5577ec6add1c4 -->
 # Vérifier
 
 ## Un titre
@@ -39,9 +39,7 @@ sécurisés.
 
 `DidKeyMethods` connaît les clés que l'application lui donne, par identifiant de méthode de vérification — celles de
 son propre émetteur, celles d'un partenaire —, et chaque `did:key` Ed25519, dont la clé est l'identifiant. Il ne
-télécharge rien : un titre signé par une clé que l'application ne connaît pas est refusé. Pour vérifier des
-émetteurs étrangers, l'application implémente `VerificationMethods` (voyez [Points d'extension](extension-points.md)).
-Elle télécharge leurs profils et les garde en cache comme elle l'entend.
+télécharge rien : un titre signé par une clé que l'application ne connaît pas est refusé.
 
 Une clé connue ne signe qu'au nom de son propre émetteur. Une clé est celle de l'émetteur quand sa méthode de
 vérification est sous l'identifiant de l'émetteur : la clé d'un partenaire ne peut pas émettre au nom d'un autre
@@ -53,6 +51,51 @@ $verifier = new CredentialVerifier($methods, controllers: [
     'https://example.org/issuer' => ['https://keys.example.org/1'],
 ]);
 ```
+
+Pour vérifier des émetteurs d'une autre sorte, l'application implémente `VerificationMethods` (voyez
+[Points d'extension](extension-points.md)). Elle télécharge leurs profils et les garde en cache comme elle l'entend.
+
+## Émetteurs identifiés par `did:web`
+
+Un émetteur identifié par un `did:web` publie ses clés dans son document DID, sur son propre site. `DidWebMethods` le
+lit quand un titre nomme l'une de ses méthodes, et transmet toute autre méthode aux méthodes qu'on lui donne — par
+défaut les clés de l'application et chaque `did:key` :
+
+```php
+use Phil\OpenBadges\Adapter\SafeHttpFetcher;
+use Phil\OpenBadges\DataIntegrity\DidKeyMethods;
+use Phil\OpenBadges\Did\DidWebMethods;
+use Phil\OpenBadges\Verification\CredentialVerifier;
+
+$methods = new DidWebMethods(new SafeHttpFetcher(), new DidKeyMethods($knownKeys));
+$verified = new CredentialVerifier($methods)->verify($tokenOrJson);
+```
+
+Le document de `did:web:example.org` est à `https://example.org/.well-known/did.json` ; celui de
+`did:web:example.org:issuers:42`, à `https://example.org/issuers/42/did.json` ; un port s'écrit `%3A`
+(`did:web:example.org%3A8443`). Un hôte qui est une adresse IP, `localhost` ou un nom simple est refusé, tout comme un
+segment `.`, `..` ou contenant une barre oblique échappée.
+
+La clé de `did:web:example.org#key-1` est acceptée quand le document :
+
+| Règle | Pourquoi |
+|---|---|
+| A pour `id` `did:web:example.org` | Un document servi pour un autre identifiant ne dit rien de celui-ci. |
+| Liste la méthode dans `verificationMethod`, ou l'intègre dans `assertionMethod`, sous la forme `#key-1` ou en entier | La méthode est celle de l'émetteur. |
+| La nomme dans `assertionMethod` | L'émetteur signe des titres avec elle, il ne s'en sert pas seulement pour s'authentifier. |
+| Donne `controller` comme `did:web:example.org` | Personne d'autre ne contrôle la clé. |
+| Contient la clé sous la forme d'une `publicKeyMultibase`, une Multikey Ed25519, ou d'une `publicKeyJwk` : Ed25519 (`OKP`) ou RSA de 2048 à 8192 bits | Les algorithmes d'Open Badges 3.0 ; un document qui publie une clé privée est refusé. |
+| Est un objet JSON d'au plus 256 Kio et 16 niveaux | Un document est lu dans des limites. |
+
+`SafeHttpFetcher` lit le document par `phil/safe-http` : en HTTPS seulement, un hôte d'un réseau privé refusé, chaque
+redirection vérifiée et maintenue en HTTPS, avec 5 secondes de silence et 10 au total, 256 Kio au plus, et seulement
+quand la réponse est un 200 complet. Il s'identifie comme `PhilOpenBadges/0.1` ; on donne à son constructeur un client
+de `phil/safe-http` aux autres limites.
+
+Chaque vérification relit le document : `DidWebMethods` ne garde rien entre deux appels, et il est donc sûr dans un
+worker de longue durée. Une application qui vérifie souvent décore son `DocumentFetcher` d'un cache, les documents
+gardés quelques minutes, et appelle `reset()` de `SafeHttpFetcher` entre les messages d'un worker. Un document qui ne
+peut être lu, ou qui ne donne pas la clé, lance `InvalidCredential` avec la raison : le titre ne se vérifie pas.
 
 ## Le destinataire
 
