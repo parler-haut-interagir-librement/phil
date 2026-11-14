@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=162df3c3575af4ed0bf261616958e682556dde3b6ecdb00110aa8cef0b7ec6d3 -->
+<!-- phil-dev source-sha256=26cf32a2cbf82c91d248e9f921b7f26d5d0b98835282b1e85eb6927afe33f5e4 -->
 # Points d'extension
 
 Ce qu'une application implémente, configure ou utilise. Les auteurs et les sujets sont des références de
@@ -46,7 +46,7 @@ mémoire pour les tests, vidée entre deux requêtes ; une application les fait 
 
 | Port | Méthodes |
 |---|---|
-| `ThreadRepository` | `get()`, `ofSubject()` — les fils du sujet —, `save()`, `remove()` |
+| `ThreadRepository` | `get()`, `ofSubject()` — les fils du sujet —, `save()`, `decide()` — une décision gardée seulement tant que la suggestion stockée est en attente, `SuggestionDecided` sinon —, `remove()` |
 | `CommentRepository` | `get()`, `ofThreads()` — les commentaires d'une liste de fils, lus d'un coup —, `save()`, `remove()` |
 
 ## Les événements

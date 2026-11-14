@@ -3,6 +3,10 @@
 A thread can propose a replacement for its passage: a text, or an empty text to propose removing it. The suggestion
 waits (`pending`) until someone the policy lets decide accepts or rejects it; either decision resolves the thread.
 
+Only one decision is kept. The store keeps it only while the stored suggestion is still pending — Doctrine by an
+`UPDATE … WHERE suggestion_state = 'pending'` —, so of two decisions taken at the same time, the second throws
+`SuggestionDecided`, which the endpoints answer `409`, and changes nothing.
+
 ## Applied by the application
 
 `Comments::applySuggestion($thread, $actor, $document)` replaces the passage, where the thread is anchored, by the
@@ -14,7 +18,8 @@ $article->setBody($ujo->encode($document));
 ```
 
 The passage must still be at its place, the same characters at the same offsets — re-anchor first if the document
-changed —, or `InvalidComment` is thrown and nothing changes.
+changed —, or `InvalidComment` is thrown and nothing changes. When another decision came first, `SuggestionDecided`
+is thrown and the document changed is not returned.
 
 ## Applied in the editor
 

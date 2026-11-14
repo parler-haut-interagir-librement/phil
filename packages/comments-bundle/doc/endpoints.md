@@ -74,6 +74,7 @@ edit and delete it.
 | 403 | `refused` | The policy does not allow it |
 | 404 | `missing` | No thread or comment has this identifier |
 | 404 | `disabled` | The author provider or the policy is not configured |
+| 409 | `decided` | Another decision on the suggestion was kept since the thread was read; the first one stands |
 
 ## The controller's configuration
 

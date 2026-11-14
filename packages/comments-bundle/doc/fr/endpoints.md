@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a3d6809fb959fcfdc92352bef0275a29829774cfceb5866e1d76f718504b68aa -->
+<!-- phil-dev source-sha256=56a5a2974b31289275c60ef93d6307525923c1b24c1ad9821911c3f9ff6725c4 -->
 # Points de terminaison
 
 Importés de `config/routes.php` sous le préfixe de l'application, ici `/_comments`. Chaque point de terminaison ne
@@ -76,6 +76,7 @@ suggestion, répondre ; sur un commentaire, le modifier et le supprimer.
 | 403 | `refused` | La politique ne le permet pas |
 | 404 | `missing` | Aucun fil ni commentaire n'a cet identifiant |
 | 404 | `disabled` | Le fournisseur d'auteurs ou la politique n'est pas configuré |
+| 409 | `decided` | Une autre décision sur la suggestion a été gardée depuis la lecture du fil ; la première tient |
 
 ## La configuration du contrôleur
 

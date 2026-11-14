@@ -12,6 +12,7 @@ use Phil\CommentsBundle\Application\Exception\NotFound;
 use Phil\CommentsBundle\Domain\Anchoring\Passage;
 use Phil\CommentsBundle\Domain\Anchoring\Reanchoring;
 use Phil\CommentsBundle\Domain\Exception\InvalidComment;
+use Phil\CommentsBundle\Domain\Exception\SuggestionDecided;
 use Phil\CommentsBundle\Domain\Model\Comment;
 use Phil\CommentsBundle\Domain\Model\Thread;
 use Phil\CommentsBundle\Domain\Repository\CommentRepository;
@@ -176,32 +177,35 @@ final readonly class Comments
      * Records that the suggestion was accepted — the passage replaced by the application or the editor — and resolves
      * the thread.
      *
-     * @throws NotFound       when there is no such thread
-     * @throws CommentRefused when the actor may not decide on its suggestion
-     * @throws InvalidComment when it has no suggestion waiting for a decision
+     * @throws NotFound          when there is no such thread
+     * @throws CommentRefused    when the actor may not decide on its suggestion
+     * @throws InvalidComment    when it has no suggestion waiting for a decision
+     * @throws SuggestionDecided when another decision was kept since it was read
      */
     public function accept(string $thread, ResourceReference $actor): Discussion
     {
-        return $this->change($thread, fn (Thread $found): bool => $this->policy->mayDecide($actor, $found), 'decide on this suggestion', fn (Thread $found) => $found->accept($actor, $this->clock->now()));
+        return $this->change($thread, fn (Thread $found): bool => $this->policy->mayDecide($actor, $found), 'decide on this suggestion', fn (Thread $found) => $found->accept($actor, $this->clock->now()), true);
     }
 
     /**
-     * @throws NotFound       when there is no such thread
-     * @throws CommentRefused when the actor may not decide on its suggestion
-     * @throws InvalidComment when it has no suggestion waiting for a decision
+     * @throws NotFound          when there is no such thread
+     * @throws CommentRefused    when the actor may not decide on its suggestion
+     * @throws InvalidComment    when it has no suggestion waiting for a decision
+     * @throws SuggestionDecided when another decision was kept since it was read
      */
     public function reject(string $thread, ResourceReference $actor): Discussion
     {
-        return $this->change($thread, fn (Thread $found): bool => $this->policy->mayDecide($actor, $found), 'decide on this suggestion', fn (Thread $found) => $found->reject($actor, $this->clock->now()));
+        return $this->change($thread, fn (Thread $found): bool => $this->policy->mayDecide($actor, $found), 'decide on this suggestion', fn (Thread $found) => $found->reject($actor, $this->clock->now()), true);
     }
 
     /**
      * Replaces the passage of a thread by its suggestion in a UJO document, accepts the suggestion, and returns the
      * document changed, for the application to keep.
      *
-     * @throws NotFound       when there is no such thread
-     * @throws CommentRefused when the actor may not decide on its suggestion
-     * @throws InvalidComment when it has no suggestion waiting for a decision, or its passage is not at its place
+     * @throws NotFound          when there is no such thread
+     * @throws CommentRefused    when the actor may not decide on its suggestion
+     * @throws InvalidComment    when it has no suggestion waiting for a decision, or its passage is not at its place
+     * @throws SuggestionDecided when another decision was kept since it was read; the document changed is not returned
      */
     public function applySuggestion(string $thread, ResourceReference $actor, Document $document): Document
     {
@@ -224,7 +228,7 @@ final readonly class Comments
 
         $changed = UjoPassages::apply($document, $anchor, $suggestion->text);
         $found->accept($actor, $this->clock->now());
-        $this->threads->save($found);
+        $this->threads->decide($found);
 
         return $changed;
     }
@@ -329,8 +333,9 @@ final readonly class Comments
     /**
      * @param Closure(Thread): bool $allowed
      * @param Closure(Thread): void $change
+     * @param bool                  $decision whether the change decides on the suggestion, kept only while it is pending
      */
-    private function change(string $thread, Closure $allowed, string $action, Closure $change): Discussion
+    private function change(string $thread, Closure $allowed, string $action, Closure $change, bool $decision = false): Discussion
     {
         $found = $this->thread($thread);
 
@@ -339,7 +344,12 @@ final readonly class Comments
         }
 
         $change($found);
-        $this->threads->save($found);
+
+        if ($decision) {
+            $this->threads->decide($found);
+        } else {
+            $this->threads->save($found);
+        }
 
         return $this->discussion($found);
     }

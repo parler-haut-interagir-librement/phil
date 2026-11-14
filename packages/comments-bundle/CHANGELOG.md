@@ -4,6 +4,22 @@ All notable changes to `phil/comments-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- `SuggestionDecided`: a decision on a suggestion that comes second, answered `409` with the error `decided` by the
+  endpoints.
+- `ThreadRepository::decide()`: keeps a decision on a suggestion only while the stored one is still pending;
+  `DoctrineThreadRepository` claims it by an `UPDATE … WHERE suggestion_state = 'pending'` in the transaction of the
+  flush and detaches a thread that loses, its entity manager left open; `InMemoryThreadRepository` keeps the same rule.
+  A store of the application implements it.
+
+### Fixed
+
+- Two decisions on the same suggestion, `accept()`, `reject()` or `applySuggestion()`, no longer both succeed with the
+  last one written: the first is kept, the second throws `SuggestionDecided`.
+
 ## 0.1.0-alpha - 2026-11-13
 
 ### Added

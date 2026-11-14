@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\CommentsBundle\Domain\Repository;
 
+use Phil\CommentsBundle\Domain\Exception\SuggestionDecided;
 use Phil\CommentsBundle\Domain\Model\Thread;
 use Phil\Resource\ResourceReference;
 
@@ -25,6 +26,14 @@ interface ThreadRepository
      * Keeps a new thread, or the changes made to one.
      */
     public function save(Thread $thread): void;
+
+    /**
+     * Keeps the decision just taken on the thread's suggestion, and the resolution that goes with it, only while the
+     * stored suggestion is still pending: of two decisions that meet, the second is refused and changes nothing.
+     *
+     * @throws SuggestionDecided when the stored suggestion is no longer pending
+     */
+    public function decide(Thread $thread): void;
 
     public function remove(Thread $thread): void;
 }

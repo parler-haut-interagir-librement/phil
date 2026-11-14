@@ -11,6 +11,7 @@ use Phil\CommentsBundle\Application\Discussion;
 use Phil\CommentsBundle\Application\Exception\CommentRefused;
 use Phil\CommentsBundle\Application\Exception\NotFound;
 use Phil\CommentsBundle\Domain\Exception\InvalidComment;
+use Phil\CommentsBundle\Domain\Exception\SuggestionDecided;
 use Phil\CommentsBundle\Domain\ValueObject\Anchor;
 use Phil\Resource\InvalidResource;
 use Phil\Resource\ResourceReference;
@@ -137,6 +138,8 @@ final readonly class CommentsController
             return $this->error(Response::HTTP_FORBIDDEN, 'refused');
         } catch (NotFound) {
             return $this->error(Response::HTTP_NOT_FOUND, 'missing');
+        } catch (SuggestionDecided) {
+            return $this->error(Response::HTTP_CONFLICT, 'decided');
         }
     }
 

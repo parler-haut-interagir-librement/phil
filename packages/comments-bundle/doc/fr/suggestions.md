@@ -1,9 +1,13 @@
-<!-- phil-dev source-sha256=c7e897cfe2f22334b1e154bfc8d6c291ecca266b6e046ece727b44b8aa45b4d9 -->
+<!-- phil-dev source-sha256=f19b94c8ad8aad7d8a08a105722f4d8a51a718ceb0facd6d60af0926d5bcc252 -->
 # Suggestions
 
 Un fil peut proposer un remplacement pour son passage : un texte, ou un texte vide pour proposer de le retirer. La
 suggestion attend (`pending`) qu'une personne autorisée par la politique à décider l'accepte ou la rejette ; l'une ou
 l'autre décision résout le fil.
+
+Une seule décision est gardée. Le stockage ne la garde que tant que la suggestion stockée est encore en attente —
+Doctrine par un `UPDATE … WHERE suggestion_state = 'pending'` —, si bien que de deux décisions prises en même temps, la
+seconde lève `SuggestionDecided`, que les points de terminaison traduisent en `409`, et ne change rien.
 
 ## Appliquée par l'application
 
@@ -16,7 +20,8 @@ $article->setBody($ujo->encode($document));
 ```
 
 Le passage doit toujours être à sa place, les mêmes caractères aux mêmes positions — réancrez d'abord si le document a
-changé —, sinon `InvalidComment` est levée et rien ne change.
+changé —, sinon `InvalidComment` est levée et rien ne change. Quand une autre décision est arrivée avant,
+`SuggestionDecided` est levée et le document modifié n'est pas retourné.
 
 ## Appliquée dans l'éditeur
 
