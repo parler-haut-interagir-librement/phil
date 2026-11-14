@@ -4,6 +4,17 @@ All notable changes to `phil/incident-mode` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- `IncidentRestrictions`: whether a restriction applies to a member now — it does when an incident suspends it,
+  unless the restriction is one the configuration spares established members from and the member is one;
+  `read-only` spares a member only when it is spared too; a visitor, a null member, is never spared. The spared
+  restrictions are checked as restriction names when it is built.
+- `Contract\EstablishedMembers`, who is an established member, by the application's identifier as a string, and
+  `NoEstablishedMembers`, the default that holds nobody for established.
+
 ## 0.1.0-alpha - 2026-11-13
 
 ### Added

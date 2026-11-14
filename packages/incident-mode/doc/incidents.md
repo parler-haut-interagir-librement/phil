@@ -74,6 +74,37 @@ names the person to whoever reads the journal. `null` stands for the system.
 An incident is in force from its start until its end or its lifting, whichever comes first. Each answer is one
 indexed question to the store at the moment the clock gives; nothing is kept between two calls.
 
+## Sparing established members
+
+`IncidentRestrictions` answers for one member: a restriction applies to them when an incident suspends it, unless
+the configuration spares established members from it and the member is one. The application says who is established
+— a trust level, an age of account, a role — by implementing `Contract\EstablishedMembers`, given the member's
+identifier as a string; `NoEstablishedMembers` holds nobody for established, so that an incident restricts everyone.
+
+```php
+use Phil\IncidentMode\IncidentRestrictions;
+use Phil\IncidentMode\Restriction;
+
+$restrictions = new IncidentRestrictions($incidents, $establishedMembers, [Restriction::NEW_POSTS]);
+
+if ($restrictions->appliesTo(Restriction::NEW_POSTS, $memberId)) {
+    // Show the notice instead of the form.
+}
+```
+
+| Case | Applies |
+|---|---|
+| No incident suspends the restriction | No |
+| The restriction is not spared, or the member is not established | Yes |
+| The member is `null`, a visitor | Yes: a visitor is never spared |
+| The restriction is spared and the member is established | No |
+| A `read-only` incident is in force | Yes, unless `read-only` is spared too |
+
+`read-only` covers every restriction, so sparing `new-posts` alone leaves an established member restricted while a
+read-only incident is in force; sparing `read-only` as well lets them through. The spared names are checked when the
+object is built, and an invalid one is refused with `InvalidIncident`. The established members are asked about only
+when the answer depends on them, and nothing is kept between two calls.
+
 ## Extending and lifting
 
 `extend($id, $additional, $actor)` moves the end of an incident in force; the incident as a whole stays within the
