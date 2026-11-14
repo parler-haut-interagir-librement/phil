@@ -24,6 +24,11 @@ Anything else is refused, never normalized.
 | `sharesLanguageWith(Locale)` | whether the two have the same language: `fr` and `fr_CA` do, `fr_CA` and `en_CA` do not |
 | `toLanguageTag()` | the BCP 47 tag, `fr-CA`, which `hreflang`, `lang` and `Content-Language` read |
 | `equals(Locale)`, `toString()`, `__toString()` | comparison and string form |
+| `Locale::tryFromString(string)` | the locale, or `null` for a string that cannot be one |
+
+`tryFromString()` is for a locale read from outside — a URL, a form, an `Accept-Language` header, a stored row —
+where a refusal is an answer, a 404 or a form error, rather than a fault. Its spelling is narrower than the characters
+Symfony's `LocaleFallbackProvider::validateLocale()` admits, so a locale it accepts is one the translator accepts too.
 
 Which locales exist is the application's decision; `Locale` only refuses what cannot be one. Scripts (`zh_Hant`) and
 numeric regions (`es_419`) are not accepted.
@@ -50,8 +55,9 @@ The ordered list of locales tried for one requested locale, the requested one fi
 | `leavesRequestedLanguage(Locale)` | whether serving that locale leaves the requested language |
 | `toString()` | `fr_CA → fr → en` |
 
-- **The chain is declared, never derived.** Stripping the region (`fr_CA → fr`) and then falling back to a default
-  looks general and is wrong as soon as two regional variants of a language coexist.
+- **The chain is declared.** Stripping the region (`fr_CA → fr`) and then falling back to a default looks general and
+  is wrong as soon as two regional variants of a language coexist. A locale that declares no chain gets the default
+  one of `DeclaredLocales`, limited to the served locales.
 - **A chain that runs out resolves to nothing.** The caller refuses — a 404, `null`, an exception of its own — rather
   than serving a locale nobody declared.
 - **A change of language is reported, a change of region is not.** `leavesRequestedLanguage()` lets the application
@@ -63,17 +69,29 @@ an `Accept-Language` negotiation, a user preference — happens before, in the a
 ## `DeclaredLocales`
 
 The locales an application serves, from the array it declares: each key a served locale, each value the locales
-tried after it, in order.
+tried after it, in order, or `null` for the default chain.
 
 | Member | Returns |
 |---|---|
-| `DeclaredLocales::fromArray(array)` | the declared locales; refuses a malformed locale, a fallback that is not served, fallbacks that are not a list, a chain that repeats a locale |
+| `DeclaredLocales::fromArray(array, array $defaultFallbacks = [])` | the declared locales; refuses a malformed locale, a fallback or a default fallback that is not served, fallbacks that are neither a list nor `null`, a chain that repeats a locale |
 | `all()` | the served locales, in declaration order |
 | `isServed(Locale)` | whether the locale is declared |
 | `chainFor(Locale)` | its `FallbackChain`; refuses a locale that is not served |
 
 **A fallback must itself be served**: a chain that ends on a locale nobody declared would serve what the application
 does not publish.
+
+**The default chain.** A locale declared with `null` gets the parents that Symfony's `LocaleFallbackProvider` derives
+from ICU data — `fr_CA → fr`, `en_CA → en`, `es_MX → es` —, then the default fallbacks in their order, each kept only
+when it is served and never the locale itself. It is the chain Symfony's translator walks, cut to what the application
+publishes. An empty list is a chain with no fallback:
+
+```php
+$locales = DeclaredLocales::fromArray(['fr_CA' => null, 'pt_BR' => null, 'fr' => [], 'en' => []], ['en']);
+$locales->chainFor(Locale::fromString('fr_CA'))->toString();   // 'fr_CA → fr → en'
+$locales->chainFor(Locale::fromString('pt_BR'))->toString();   // 'pt_BR → en': pt is not served
+$locales->chainFor(Locale::fromString('fr'))->toString();      // 'fr'
+```
 
 ## `Exception\InvalidLocaleDimension`
 

@@ -16,12 +16,6 @@ return [
                 'identifier' => 'doctrine.columnType',
                 'path' => 'src/DatedIdentifierEntity.php',
             ],
-            // à corriger : API dépréciée de Doctrine, constant à remplacer.
-            [
-                'identifier' => 'classConstant.deprecatedEnum',
-                'path' => 'src/Tree.php',
-                'count' => 1,
-            ],
             // à corriger : variable de boucle jamais lue.
             [
                 'identifier' => 'foreach.unusedValue',

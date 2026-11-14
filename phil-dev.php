@@ -21,9 +21,11 @@ return [
     'deptrac' => [
         // What every library and every domain may use: the default of phil/dev-tools — the Symfony components and
         // contracts, the polyfills and the PSR interfaces —, the Doctrine mapping attributes, which the domain models
-        // of the bundles carry, the rest of Doctrine staying outside the domain, and the URI extension of PHP 8.5, whose
-        // WHATWG parser reads an address as a browser does, as phil/url does on it.
+        // of the bundles carry, the rest of Doctrine staying outside the domain, the URI extension of PHP 8.5, whose
+        // WHATWG parser reads an address as a browser does, as phil/url does on it, and `\SortDirection`, an enum of
+        // PHP 8.6 that symfony/polyfill-php86 brings to PHP 8.5 and Doctrine Collections orders by.
         'default' => [
+            '^SortDirection$',
             '^Uri\\\\.*',
             '^Symfony\\\\Component\\\\.*',
             '^Symfony\\\\Contracts\\\\.*',

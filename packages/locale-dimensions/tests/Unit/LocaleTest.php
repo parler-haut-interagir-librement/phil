@@ -23,6 +23,14 @@ final class LocaleTest extends TestCase
         self::assertNull($locale->region);
     }
 
+    public function testALocaleReadFromOutsideIsNullWhenItCannotBeOne(): void
+    {
+        self::assertSame(['fr_CA', 'fr', 'CA'], [Locale::tryFromString('fr_CA')?->value, Locale::tryFromString('fr_CA')?->language, Locale::tryFromString('fr_CA')?->region]);
+        self::assertNull(Locale::tryFromString('fr-CA'));
+        self::assertNull(Locale::tryFromString('../fr'));
+        self::assertNull(Locale::tryFromString(''));
+    }
+
     public function testTheLanguageTagJoinsTheRegionWithAHyphen(): void
     {
         self::assertSame('fr-CA', Locale::fromString('fr_CA')->toLanguageTag());

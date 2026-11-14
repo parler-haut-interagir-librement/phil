@@ -3,8 +3,8 @@
 | Type | Kind | Role |
 |---|---|---|
 | `Contract\Timestampable` | interface | `createdAt()`, `updatedAt()`, `stampCreated()`, `stampUpdated()` |
-| `TimestampableEntity` | trait | The columns `created_at` and `updated_at`, `datetime_immutable` |
-| `TimestampListener` | listener: `prePersist`, `onFlush` | Stamps with the clock's time, in UTC |
+| `TimestampableEntity` | trait | The columns `created_at` and `updated_at`, `datetime_utc_immutable` |
+| `TimestampListener` | listener: `prePersist`, `onFlush` | Stamps with the clock's time |
 | `Contract\Blameable` | interface | `createdBy()`, `updatedBy()`, `blameCreated()`, `blameUpdated()` |
 | `BlameableEntity` | trait | The columns `created_by` and `updated_by`, 255 characters, nullable |
 | `BlameListener` | listener: `prePersist`, `onFlush` | Blames whoever the resolver names |

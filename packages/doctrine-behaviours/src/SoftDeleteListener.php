@@ -29,7 +29,7 @@ final readonly class SoftDeleteListener
                 continue;
             }
 
-            $now = Utc::now($this->clock);
+            $now = $this->clock->now();
             $entity->markDeleted($now);
             $manager->persist($entity);
             $work->scheduleExtraUpdate($entity, ['deletedAt' => [null, $now]]);

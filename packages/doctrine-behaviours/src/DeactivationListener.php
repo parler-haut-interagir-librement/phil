@@ -53,6 +53,6 @@ final readonly class DeactivationListener
 
     private function synchronize(Deactivatable $entity): void
     {
-        $entity->stampDeactivated($entity->isActive() ? null : Utc::now($this->clock));
+        $entity->stampDeactivated($entity->isActive() ? null : $this->clock->now());
     }
 }

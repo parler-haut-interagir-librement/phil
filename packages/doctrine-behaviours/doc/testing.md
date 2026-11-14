@@ -2,7 +2,7 @@
 
 | Area | What is covered |
 |---|---|
-| Timestamps and blame | Entities stamped and blamed as they are persisted and updated, in UTC, nobody known, given values kept, entities without a behaviour left alone |
+| Timestamps and blame | Entities stamped and blamed as they are persisted and updated, the clock's moment read back in UTC, nobody known, given values kept, entities without a behaviour left alone |
 | Soft delete | A removal kept as a date, the original data the unit of work keeps, the filter on and off, restoring, a second removal deleting for good, an entity with a `deletedAt` of its own left visible |
 | Deactivation | Switching off and on, the date kept in step, given dates kept, the filter on and off, an entity with no column of its own left visible |
 | Owner | The identifiers refused and accepted, the owner given on persist, kept on update, transferred, nobody known, the eraser over tables and subclasses |
@@ -20,10 +20,10 @@ vendor/bin/phpunit packages/doctrine-behaviours/tests
 
 ## Real servers
 
-`tests/Integration` runs what depends on a database, the spelling of true, the `IN` of the slugs, JSON state, `guid` keys,
-the eraser, translations read along a chain and kept one per locale, and moves that wait for each other in one group but
-not across groups, against MySQL and PostgreSQL, when `PHIL_TEST_MYSQL_URL` and `PHIL_TEST_POSTGRESQL_URL` are set.
-Without them the tests are skipped.
+`tests/Integration` runs what depends on a database, the spelling of true, a moment written and read back in UTC,
+the `IN` of the slugs, JSON state, `guid` keys, the eraser, translations read along a chain and kept one per locale,
+and moves that wait for each other in one group but not across groups, against MySQL and PostgreSQL, when
+`PHIL_TEST_MYSQL_URL` and `PHIL_TEST_POSTGRESQL_URL` are set. Without them the tests are skipped.
 
 ```sh
 vendor/bin/phil-dev services up

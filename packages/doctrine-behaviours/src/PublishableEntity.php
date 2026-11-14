@@ -10,7 +10,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Phil\DoctrineBehaviours\Contract\Publishable;
 
 /**
- * `Publishable`, mapped: the columns `publication_state`, `published_at` and `unpublished_at`, in UTC.
+ * `Publishable`, mapped: the columns `publication_state`, `published_at` and `unpublished_at`, kept in UTC by the type
+ * `datetime_utc_immutable`.
  *
  * @phpstan-require-implements Publishable
  */
@@ -19,10 +20,10 @@ trait PublishableEntity
     #[ORM\Column(name: 'publication_state', type: Types::STRING, length: 32, options: ['default' => PublicationWorkflow::DRAFT])]
     protected string $publicationState = PublicationWorkflow::DRAFT;
 
-    #[ORM\Column(name: 'published_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    #[ORM\Column(name: 'published_at', type: Types::DATETIME_UTC_IMMUTABLE, nullable: true)]
     protected ?DateTimeImmutable $publishedAt = null;
 
-    #[ORM\Column(name: 'unpublished_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    #[ORM\Column(name: 'unpublished_at', type: Types::DATETIME_UTC_IMMUTABLE, nullable: true)]
     protected ?DateTimeImmutable $unpublishedAt = null;
 
     public function getPublicationState(): string

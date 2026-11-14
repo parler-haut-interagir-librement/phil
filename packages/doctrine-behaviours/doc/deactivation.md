@@ -3,8 +3,8 @@
 | Type | Kind | Role |
 |---|---|---|
 | `Contract\Deactivatable` | interface | `isActive()`, `deactivatedAt()`, `deactivate()`, `reactivate()`, `stampDeactivated()` |
-| `DeactivatableEntity` | trait | The columns `active`, boolean, and `deactivated_at`, `datetime_immutable`, nullable |
-| `DeactivationListener` | listener: `prePersist`, `onFlush` | Keeps the date in step with the state, in UTC |
+| `DeactivatableEntity` | trait | The columns `active`, boolean, and `deactivated_at`, `datetime_utc_immutable`, nullable |
+| `DeactivationListener` | listener: `prePersist`, `onFlush` | Keeps the date in step with the state |
 | `DeactivatedFilter` | SQL filter `phil_deactivated` | `active = true` on every `Deactivatable` entity |
 
 A deactivated record is switched off, not removed: its row stays whole, its relations stay, and it comes back with

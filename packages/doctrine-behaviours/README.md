@@ -4,7 +4,7 @@
 opt-in.**
 
 phil/doctrine-behaviours gives Doctrine ORM entities twelve behaviours. Timestamps stamp when an entity is created and
-updated, in UTC. Blame records who created and last changed it, as a user identifier. Soft delete hides a removed entity
+updated, kept in UTC. Blame records who created and last changed it, as a user identifier. Soft delete hides a removed entity
 behind a filter instead of deleting it, and removing it a second time deletes it. Trees keep each node's materialized
 path and depth, and the `Tree` reader gives roots, children, descendants, ancestors and the hierarchy. Deactivation
 switches a record off and back on behind a filter of its own. An owner is a stable identifier, never an e-mail address.
@@ -61,6 +61,7 @@ such as `FixedBlame` for a command that acts for a known account, or a test.
 | [Integration](doc/integration.md) | Registering the listeners and the filter without Symfony. |
 | [Extension points](doc/extension-points.md) | The ports, arguments and data an application chooses or replaces. |
 | [Testing](doc/testing.md) | How the library is tested. |
+| [Upgrading](doc/upgrading.md) | What changes from one version to the next, and the migration of existing tables. |
 
 ## Quick start
 
@@ -90,8 +91,8 @@ In a Symfony application, `phil/doctrine-behaviours-bundle` registers the listen
 
 ## Requirements
 
-PHP 8.5 or later, Doctrine ORM 3.7 or later, DBAL 4.5, `doctrine/collections`, `psr/clock` and
-`phil/locale-dimensions`; `phil/slug` for slugs,
+PHP 8.5 or later, Doctrine ORM 3.7 or later, DBAL 4.5, `doctrine/collections` 3.1 or later, `psr/clock`,
+`symfony/polyfill-php86` and `phil/locale-dimensions`; `phil/slug` for slugs,
 `symfony/uid` for dated identifiers, and `symfony/workflow` for publication.
 
 ## Contributing

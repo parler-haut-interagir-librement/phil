@@ -10,16 +10,16 @@ use Doctrine\ORM\Mapping as ORM;
 use Phil\DoctrineBehaviours\Contract\Timestampable;
 
 /**
- * `Timestampable`, mapped: the columns `created_at` and `updated_at`, in UTC.
+ * `Timestampable`, mapped: the columns `created_at` and `updated_at`, kept in UTC by the type `datetime_utc_immutable`.
  *
  * @phpstan-require-implements Timestampable
  */
 trait TimestampableEntity
 {
-    #[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE)]
+    #[ORM\Column(name: 'created_at', type: Types::DATETIME_UTC_IMMUTABLE)]
     protected ?DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column(name: 'updated_at', type: Types::DATETIME_IMMUTABLE)]
+    #[ORM\Column(name: 'updated_at', type: Types::DATETIME_UTC_IMMUTABLE)]
     protected ?DateTimeImmutable $updatedAt = null;
 
     public function createdAt(): ?DateTimeImmutable

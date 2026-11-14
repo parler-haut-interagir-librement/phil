@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phil\DoctrineBehaviours;
 
 use Doctrine\Common\Collections\Criteria;
-use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityManagerInterface;
 use Phil\DoctrineBehaviours\Contract\TreeNode;
+use SortDirection;
 
 /**
  * Reads a tree from the paths of its nodes: roots, children, descendants and ancestors, each in the order of the
@@ -153,6 +153,6 @@ final readonly class Tree
      */
     private function matching(string $class, Criteria $criteria): array
     {
-        return $this->manager->getRepository($class)->matching($criteria->orderBy([TreeNode::PATH_FIELD => Order::Ascending]))->getValues();
+        return $this->manager->getRepository($class)->matching($criteria->orderBy([TreeNode::PATH_FIELD => SortDirection::Ascending]))->getValues();
     }
 }

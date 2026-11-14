@@ -74,7 +74,7 @@ final readonly class Versions
             $state = $entity->versionedState();
             $this->assertMapped($entity, $state);
             $subject = $this->subject($entity);
-            $version = new RecordVersion($subject['subjectTable'], $subject['subjectId'], $entity->versionNumber(), $state, Utc::now($this->clock));
+            $version = new RecordVersion($subject['subjectTable'], $subject['subjectId'], $entity->versionNumber(), $state, $this->clock->now());
             $this->manager->persist($version);
             $entity->markVersionFrozen();
 

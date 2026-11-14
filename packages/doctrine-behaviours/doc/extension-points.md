@@ -67,7 +67,7 @@ through the methods only.
 
 | Point | How |
 |---|---|
-| The time | The PSR-20 clock given to `TimestampListener` and `SoftDeleteListener`: stamps are in UTC |
+| The time | The PSR-20 clock given to `TimestampListener`, `SoftDeleteListener`, `DeactivationListener`, `PublicationListener`, `DatedIdentifierListener` and `Versions`, in any time zone: the columns keep UTC — see [Moments in UTC](#moments-in-utc) |
 | Which behaviours run | Only the listeners registered: each stands alone |
 | Seeing deleted rows | `SoftDeletedFilter`, under `SoftDeletedFilter::NAME`, disabled for the queries that need them |
 | Seeing deactivated rows | `DeactivatedFilter`, under `DeactivatedFilter::NAME`, disabled for the queries that need them |
@@ -75,3 +75,18 @@ through the methods only.
 | Erasing an owner | `OwnerEraser::find()` and `replace()`, over every owned table |
 | The locales served | The `FallbackChain` the application gives `Translations`, from the `DeclaredLocales` of `phil/locale-dimensions` |
 | The publication workflow | `PublicationWorkflow`'s places and transitions, or a workflow of the application's own with those three places |
+
+## Moments in UTC
+
+Every column that marks a moment — `created_at`, `updated_at`, `deleted_at`, `deactivated_at`, `published_at`,
+`unpublished_at` and the `frozen_at` of `phil_record_version` — has the DBAL type `datetime_utc_immutable`. DBAL writes
+the moment in UTC whatever the time zone of the `DateTimeImmutable` it is given, and reads it back in UTC, whatever the
+time zone of PHP or of the database server: two servers in different zones read the same moment, and a query that
+compares a column with a moment compares like with like.
+
+A stamp keeps the time zone of the clock until the entity is read again: `createdAt()` right after the flush is the
+clock's moment, `2026-11-04T08:00:00-05:00`, and the same moment read back is `2026-11-04T13:00:00+00:00`. Compare
+moments with `<`, `>` or their timestamps, never with `==`, which a coding standard may turn into `===`, an identity
+test between objects. To show a moment in a visitor's time zone, convert it with `setTimezone()` at display.
+
+A table created before these columns had this type keeps its schema: see [Upgrading](upgrading.md).
