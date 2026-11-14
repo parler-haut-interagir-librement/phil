@@ -11,6 +11,8 @@ use Phil\SafeHttp\SafeHttpClient;
 use Phil\SocialCards\Card\CardGenerator;
 use Phil\SocialCards\Card\DirectoryCardStore;
 use Phil\SocialCards\Card\GdCardRenderer;
+use Phil\SocialCards\Card\ImagickCardRenderer;
+use Phil\SocialCards\Contract\CardRenderer;
 use Phil\SocialCards\Contract\CardStore;
 use Phil\SocialCards\Preview\TagReader;
 use Phil\SocialCardsBundle\Application\CardTemplates;
@@ -45,7 +47,7 @@ use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
  * route and, with Messenger, their queue; the link previews, their component and the check command; the integrations
  * with phil/media-bundle and phil/http-cache-tags-bundle when they are there.
  *
- * @phpstan-type Config array{site_name: ?string, locale: ?string, twitter_site: ?string, fediverse_creator: ?string, default_image: array<string, mixed>|string|null, cards: array{enabled: bool, directory: string, cache_max_age: int, async: bool, default_template: string, templates: array<string, array<string, mixed>>}, preview: array{enabled: bool, timeout: float, max_duration: float, max_bytes: int, max_redirects: int, cache_ttl: int, user_agent: string, limiter: ?string}}
+ * @phpstan-type Config array{site_name: ?string, locale: ?string, twitter_site: ?string, fediverse_creator: ?string, default_image: array<string, mixed>|string|null, cards: array{enabled: bool, directory: string, cache_max_age: int, async: bool, renderer: 'gd'|'imagick', default_template: string, templates: array<string, array<string, mixed>>}, preview: array{enabled: bool, timeout: float, max_duration: float, max_bytes: int, max_redirects: int, cache_ttl: int, user_agent: string, limiter: ?string}}
  */
 final class SocialCardsServices
 {
@@ -109,7 +111,7 @@ final class SocialCardsServices
     }
 
     /**
-     * @param array{enabled: bool, directory: string, cache_max_age: int, async: bool, default_template: string, templates: array<string, array<string, mixed>>} $config
+     * @param array{enabled: bool, directory: string, cache_max_age: int, async: bool, renderer: 'gd'|'imagick', default_template: string, templates: array<string, array<string, mixed>>} $config
      */
     private static function cards(ContainerBuilder $container, array $config): void
     {
@@ -118,8 +120,10 @@ final class SocialCardsServices
         $container->setAlias(CardStore::class, DirectoryCardStore::class);
         $container->register(DirectoryCardRequestStore::class, DirectoryCardRequestStore::class)->setArguments([$config['directory']]);
         $container->setAlias(CardRequestStore::class, DirectoryCardRequestStore::class);
-        $container->register(GdCardRenderer::class, GdCardRenderer::class);
-        $container->register(CardGenerator::class, CardGenerator::class)->setArguments([new Reference(GdCardRenderer::class), new Reference(CardStore::class)]);
+        $renderer = 'imagick' === $config['renderer'] ? ImagickCardRenderer::class : GdCardRenderer::class;
+        $container->register($renderer, $renderer);
+        $container->setAlias(CardRenderer::class, $renderer);
+        $container->register(CardGenerator::class, CardGenerator::class)->setArguments([new Reference(CardRenderer::class), new Reference(CardStore::class)]);
 
         if ($config['async'] && interface_exists(MessageBusInterface::class)) {
             $container->register(MessengerCardQueue::class, MessengerCardQueue::class)->setArguments([new Reference('messenger.default_bus')]);

@@ -52,6 +52,7 @@
         "symfony/ux-twig-component": "^3.7"
     },
     "suggest": {
+        "ext-imagick": "For cards.renderer: imagick, the cards drawn with ImageMagick",
         "phil/http-cache-tags-bundle": "To tag the served cards, for a purge of every card or of one",
         "phil/media-bundle": "To give a page a medium of the library as its image",
         "symfony/console": "For phil:social-cards:check",

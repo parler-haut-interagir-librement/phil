@@ -12,7 +12,7 @@
 | `Phil\SocialCardsBundle\Application\SocialCards` | `final readonly class` | The fingerprint and image of a page's card |
 | `Phil\SocialCardsBundle\Application\Contract\PageFetcher` | interface | The head of a page of another site |
 | `Phil\SocialCardsBundle\Application\FetchedPage` | `final readonly class` | A fetched page |
-| `Phil\SocialCardsBundle\Application\LinkPreviews` | `final readonly class` | The previews, cached |
+| `Phil\SocialCardsBundle\Application\LinkPreviews` | `final readonly class` | The previews, cached; the first link of a text, and the preview a message keeps |
 | `Phil\SocialCardsBundle\Application\Exception\UnknownCardTemplate` | `final class` | A template the configuration does not declare |
 | `Phil\SocialCardsBundle\Infrastructure\Http\ShareMetadataFactory` | `final readonly class` | The four layers of a page's metadata |
 | `Phil\SocialCardsBundle\Infrastructure\Http\SocialCardController` | `final readonly class` | `/social-cards/{fingerprint}.png` |

@@ -14,11 +14,12 @@ use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 /**
- * An application as small as the bundle needs: FrameworkBundle with Messenger on the synchronous transport, Twig and its
- * components, a card template in the fixture font, a page whose template sets its values, previews two links and shows a
+ * An application as small as the bundle needs: FrameworkBundle with Messenger on the synchronous transport and the event
+ * dispatcher with a listener of the card messages sent, Twig and its components, a card template in the fixture font, a page whose template sets its values, previews two links and shows a
  * kept preview, the endpoint of pasted links behind a rate limiter of two, and a fetcher of fixed pages in place of the
  * network.
  */
@@ -80,6 +81,8 @@ final class TestKernel extends Kernel
         $services = $container->services()->defaults()->autowire()->autoconfigure();
         $services->set(PageController::class)->public()->tag('controller.service_arguments');
         $services->set('logger', NullLogger::class);
+        // The card messages Messenger sends, heard through the event dispatcher of FrameworkBundle.
+        $services->set(SentCards::class)->public()->tag('kernel.event_listener', ['event' => SendMessageToTransportsEvent::class]);
         $services->set('test.fetched_post', FetchedPage::class)->args(['<head><meta property="og:title" content="Un billet"><meta property="og:site_name" content="Ailleurs"><meta property="og:description" content="Le résumé"><meta property="og:image" content="/i.png"></head>', 'https://example.org/post']);
         $services->set(FakeFetcher::class)->args([['https://example.org/post' => new Reference('test.fetched_post')]]);
         $services->alias(PageFetcher::class, FakeFetcher::class)->public();

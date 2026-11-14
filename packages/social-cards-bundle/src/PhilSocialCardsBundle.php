@@ -65,6 +65,12 @@ final class PhilSocialCardsBundle extends AbstractBundle
                         ->scalarNode('directory')->info('Where the cards and what they are drawn from are kept.')->defaultValue('%kernel.project_dir%/var/social-cards')->cannotBeEmpty()->end()
                         ->integerNode('cache_max_age')->info('The seconds a card may be kept by browsers and shared caches.')->defaultValue(31_536_000)->min(0)->end()
                         ->booleanNode('async')->info('Whether the cards are drawn by a worker, as GenerateSocialCard messages, when Messenger is there.')->defaultTrue()->end()
+                        ->enumNode('renderer')
+                            ->info('What draws the cards: gd, or imagick for the scripts that need shaping — Arabic, Hebrew, the scripts of India — when ImageMagick is built with libraqm.')
+                            ->values(['gd', 'imagick'])
+                            ->defaultValue('gd')
+                            ->validate()->ifTrue(static fn (mixed $renderer): bool => 'imagick' === $renderer && !\extension_loaded('imagick'))->thenInvalid('The %s renderer needs the imagick extension of PHP.')->end()
+                        ->end()
                         ->scalarNode('default_template')->defaultValue('default')->cannotBeEmpty()->end()
                         ->arrayNode('templates')
                             ->info('The card templates by name: title_font is required; see CardTemplate::KEYS.')
@@ -149,7 +155,7 @@ final class PhilSocialCardsBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{site_name: ?string, locale: ?string, twitter_site: ?string, fediverse_creator: ?string, default_image: array<string, mixed>|string|null, cards: array{enabled: bool, directory: string, cache_max_age: int, async: bool, default_template: string, templates: array<string, array<string, mixed>>}, preview: array{enabled: bool, timeout: float, max_duration: float, max_bytes: int, max_redirects: int, cache_ttl: int, user_agent: string, limiter: ?string}} $config */
+        /** @var array{site_name: ?string, locale: ?string, twitter_site: ?string, fediverse_creator: ?string, default_image: array<string, mixed>|string|null, cards: array{enabled: bool, directory: string, cache_max_age: int, async: bool, renderer: 'gd'|'imagick', default_template: string, templates: array<string, array<string, mixed>>}, preview: array{enabled: bool, timeout: float, max_duration: float, max_bytes: int, max_redirects: int, cache_ttl: int, user_agent: string, limiter: ?string}} $config */
         SocialCardsServices::register($builder, $config);
     }
 }

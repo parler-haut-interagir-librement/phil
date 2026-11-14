@@ -46,7 +46,7 @@ const controller = (text = '') => {
     const instance = new LinkPreviewController();
     instance.element = { ownerDocument: { createElement: (tag) => new Node(tag) } };
     instance.sourceTarget = { value: text };
-    instance.fieldTarget = { value: '' };
+    instance.fieldTarget = { value: '', disabled: true };
     instance.previewTarget = new Node('div');
     instance.previewTarget.hidden = true;
     instance.endpointValue = '/social-cards/link-preview';
@@ -73,6 +73,10 @@ const answers = (byUrl) => {
 
     return asked;
 };
+
+test('the field, rendered disabled, is enabled on connect so that the form sends the choice', () => {
+    assert.equal(controller().fieldTarget.disabled, false);
+});
 
 test('the first link of a text', () => {
     assert.equal(firstLink('See (https://example.org/wiki/A_(b)), then https://example.org/b.'), 'https://example.org/wiki/A_(b)');

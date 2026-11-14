@@ -19,6 +19,12 @@ alias points at `DirectoryCardRequestStore`.
 | `save(string $fingerprint, CardRequest $request): bool` | Keeps the request; whether it was not kept yet |
 | `find(string $fingerprint): ?CardRequest` | The request, or null |
 
+## `CardRenderer`
+
+`Phil\SocialCards\Contract\CardRenderer` — draws the cards; the alias points at `GdCardRenderer`, or at
+`ImagickCardRenderer` with `cards.renderer: imagick`. A renderer of another library replaces the alias; its
+`version()` enters every fingerprint.
+
 ## `CardQueue`
 
 `Phil\SocialCardsBundle\Application\Contract\CardQueue` — has a card drawn out of the request; `MessengerCardQueue`

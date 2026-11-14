@@ -6,12 +6,14 @@
  *          data-phil--social-cards-bundle--link-preview-endpoint-value="{{ path('phil_social_cards_link_preview') }}">
  *         <textarea name="message" data-phil--social-cards-bundle--link-preview-target="source"
  *                   data-action="input->phil--social-cards-bundle--link-preview#scan paste->phil--social-cards-bundle--link-preview#scan"></textarea>
- *         <input type="hidden" name="link" data-phil--social-cards-bundle--link-preview-target="field">
+ *         <input type="hidden" name="link_preview" disabled data-phil--social-cards-bundle--link-preview-target="field">
  *         <div data-phil--social-cards-bundle--link-preview-target="preview" hidden></div>
  *     </div>
  *
  * The text is scanned `delay` milliseconds after the author stops typing. The link shown is written in the `field`
- * target, so that the server keeps its preview with the message; a link removed stays removed while it is in the text.
+ * target, so that the server keeps its preview with the message; a link removed stays removed while it is in the text,
+ * and leaves the field empty. The field is rendered disabled and enabled on connect: a form sent without the controller
+ * does not send it, and the server then previews the first link of the text.
  * The card is built from text nodes, never from HTML, its image loaded lazily and without a referrer. It dispatches
  * `shown` with the preview, and `removed` with the address.
  */
@@ -66,6 +68,7 @@ export default class extends Controller {
     };
 
     connect() {
+        this.fieldTarget.disabled = false;
         this.current = null;
         this.dismissed = new Set();
         this.request = 0;

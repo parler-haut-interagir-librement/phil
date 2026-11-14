@@ -20,6 +20,7 @@ composer require phil/social-cards-bundle
 | `symfony/ux-twig-component` | ^3.7, optional | The `LinkPreview` component |
 | `symfony/rate-limiter` | ^8.2, optional | The rate limit of the pasted links |
 | `symfony/stimulus-bundle` | ^3.7, optional | The `link-preview` controller, from `assets/` |
+| `ext-imagick` | optional | `cards.renderer: imagick`, the text of Arabic, Hebrew and the scripts of India shaped when ImageMagick is built with libraqm |
 | `phil/media-bundle` | ^0.1, optional | A medium as a page's image |
 | `phil/http-cache-tags-bundle` | ^0.1, optional | The tags of the served cards |
 
