@@ -59,6 +59,21 @@ return [
     ],
     'infection' => [
         'mutators' => [
+            // The choice of `Purifiers` and `AmmoniaPurifier::isAvailable()` is only seen where the `ammonia` extension is
+            // loaded: Infection runs where it is not, so negating a condition on it, or its default, gives the sanitizer
+            // either way. The tests under `RequiresPhpExtension('ammonia')` and `testTheChoiceFollowsTheExtension()`
+            // kill them where the extension is loaded.
+            'LogicalAndSingleSubExprNegation' => [
+                'ignoreSourceCodeByRegex' => [
+                    'return \\\\extension_loaded\\(\'ammonia\'\\) && class_exists\\(Builder::class\\);',
+                    'return \\$extension && AmmoniaPurifier::isAvailable\\(\\)',
+                ],
+            ],
+            'TrueValue' => [
+                'ignoreSourceCodeByRegex' => [
+                    'public static function defaultPolicies\\(\\?array \\$mediaHosts = null, bool \\$extension = true\\).*',
+                ],
+            ],
             // The HTML reader reads no Markdown: whether its context keeps raw HTML changes nothing, the HTML it gives
             // the inline parser being written already.
             'FalseValue' => [

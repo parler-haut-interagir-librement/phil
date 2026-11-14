@@ -278,7 +278,6 @@ final class ExtensionsTest extends TestCase
     public function testNamesTheWholeCharacterItDoesNotRead(): void
     {
         // The test of the case of a byte depends on the locale; the formula is read in the one every machine has.
-        $locale = setlocale(\LC_CTYPE, '0');
         setlocale(\LC_CTYPE, 'C');
 
         try {
@@ -287,7 +286,9 @@ final class ExtensionsTest extends TestCase
         } catch (InvalidLatex $invalidLatex) {
             self::assertSame('The formula cannot be converted at byte 5: "€" is not read in a chemical formula.', $invalidLatex->getMessage());
         } finally {
-            setlocale(\LC_CTYPE, false === $locale ? 'C' : $locale);
+            // Back to `C`, the locale PCRE assumes: restoring `C.UTF-8` makes it build locale tables, where a byte such as
+            // 0xA0 is a space, and the tests that run after read `à` as holding one.
+            setlocale(\LC_CTYPE, 'C');
         }
     }
 

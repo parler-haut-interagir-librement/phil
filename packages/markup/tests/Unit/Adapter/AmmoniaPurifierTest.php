@@ -13,6 +13,7 @@ use Phil\Markup\Level;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RequiresPhpExtension;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 /**
  * The ammonia purifier where its extension is loaded, and the choice of a purifier everywhere. A line break tells
@@ -124,6 +125,34 @@ final class AmmoniaPurifierTest extends TestCase
 
         self::assertSame('<br>', $restricted->purify('<img SRC="https://tracker.example/p.gif"><br>', Level::Basic));
         self::assertSame('<img /><br />', $restricted->purify('<img SRC="https://tracker.example/p.gif"><br>', Level::Forum));
+    }
+
+    /**
+     * `CodeClasses::keep()` is called by `AmmoniaPurifier`, from outside its class, so it is public, and it needs no
+     * extension.
+     */
+    public function testCodeClassesKeepOnlyTheirOwnClasses(): void
+    {
+        self::assertSame('language-php language-c++', CodeClasses::keep('code', "language-php\tx language-c++\n\rlanguage-"));
+        self::assertNull(CodeClasses::keep('code', 'hl-keyword language-'));
+        self::assertSame('hl-keyword hl-string', CodeClasses::keep('span', 'hl-keyword language-php hl-string x'));
+        self::assertNull(CodeClasses::keep('span', 'language-php'));
+    }
+
+    /**
+     * A class named `Builder` without the extension does not make the purifier available: both conditions are needed.
+     */
+    public function testAClassWithoutTheExtensionIsNotEnough(): void
+    {
+        if (\extension_loaded('ammonia')) {
+            self::assertTrue(AmmoniaPurifier::isAvailable());
+
+            return;
+        }
+
+        class_alias(stdClass::class, 'Switon\\Ammonia\\Builder');
+
+        self::assertFalse(AmmoniaPurifier::isAvailable());
     }
 
     public function testTheChoiceFollowsTheExtension(): void
