@@ -27,6 +27,11 @@ seconds of expiring:
 
 A request that times out keeps its tokens and tries again on its next request.
 
+`TokensRefreshed` and `RefreshTokenRejected` are dispatched last, once the outcome is published, applied to the session
+and the lock released. A subscriber that throws cannot lose tokens the provider has already rotated: its exception
+reaches the caller, as with every other event of the bundle, but every request holding the old token still finds the
+outcome.
+
 Outcomes live in a cache pool for `refresh.outcome_ttl` seconds, encrypted with a key derived from the refresh token they
 answer. The pool alone reveals nothing, and there is no key to manage.
 

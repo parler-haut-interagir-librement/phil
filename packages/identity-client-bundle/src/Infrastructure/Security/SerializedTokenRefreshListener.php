@@ -33,6 +33,10 @@ use Symfony\Component\Security\Http\Firewall\ContextListener;
  * It stands in for the native refresh listener. A rotating provider treats a refresh token presented twice as stolen
  * and revokes the family: the lock is held per refresh token, and the result is published before the lock is released,
  * so that a request holding the same token applies that result instead of presenting it again.
+ *
+ * The event of a refresh is dispatched last, once the result is published, applied to the session and the lock released:
+ * a subscriber that throws cannot lose tokens the provider has already rotated, and its exception reaches the caller as
+ * any other subscriber's would.
  */
 #[FirewallListenerOrder(after: ContextListener::class)]
 final class SerializedTokenRefreshListener extends AbstractListener
@@ -83,10 +87,21 @@ final class SerializedTokenRefreshListener extends AbstractListener
             return;
         }
 
+        $refreshEvent = null;
+
         try {
-            $this->apply($event->getRequest(), $token, $this->outcomes->find($refreshToken) ?? $this->refresh($token, $refreshToken));
+            $outcome = $this->outcomes->find($refreshToken);
+            if (!$outcome instanceof RefreshOutcome) {
+                [$outcome, $refreshEvent] = $this->refresh($token, $refreshToken);
+            }
+
+            $this->apply($event->getRequest(), $token, $outcome);
         } finally {
             $lock->release();
+        }
+
+        if (null !== $refreshEvent) {
+            $this->dispatcher->dispatch($refreshEvent);
         }
     }
 
@@ -103,15 +118,22 @@ final class SerializedTokenRefreshListener extends AbstractListener
         return true;
     }
 
-    private function refresh(TokenInterface $token, #[SensitiveParameter] string $refreshToken): RefreshOutcome
+    /**
+     * Publishes the outcome and returns it with the event to dispatch, which waits until nothing is left to lose.
+     *
+     * @return array{RefreshOutcome, TokensRefreshed|RefreshTokenRejected|null}
+     */
+    private function refresh(TokenInterface $token, #[SensitiveParameter] string $refreshToken): array
     {
+        $event = null;
+
         try {
             $this->refresher->refresh($token);
             $outcome = new RefreshOutcome(RefreshStatus::Refreshed, array_intersect_key($token->getAttributes(), array_flip(TokenAttribute::REFRESHED)));
-            $this->dispatcher->dispatch(new TokensRefreshed($token->getUserIdentifier()));
+            $event = new TokensRefreshed($token->getUserIdentifier());
         } catch (OidcInvalidGrantException) {
             $outcome = new RefreshOutcome(RefreshStatus::Revoked);
-            $this->dispatcher->dispatch(new RefreshTokenRejected($token->getUserIdentifier()));
+            $event = new RefreshTokenRejected($token->getUserIdentifier());
         } catch (AuthenticationException) {
             $outcome = new RefreshOutcome(RefreshStatus::Unavailable);
             $this->logger->warning('Could not renew the tokens of the session; they stay as they are.');
@@ -119,7 +141,7 @@ final class SerializedTokenRefreshListener extends AbstractListener
 
         $this->outcomes->publish($refreshToken, $outcome);
 
-        return $outcome;
+        return [$outcome, $event];
     }
 
     /**

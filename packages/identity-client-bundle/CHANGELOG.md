@@ -4,6 +4,16 @@ All notable changes to `phil/identity-client-bundle` will be documented in this 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Fixed
+
+- `SerializedTokenRefreshListener` dispatches `TokensRefreshed` and `RefreshTokenRejected` once the outcome is
+  published, applied to the session and the lock released. A subscriber that threw used to leave the rotated tokens
+  unpublished, so that a request still holding the previous refresh token presented it again to a provider that had
+  already rotated it; a subscriber throwing an `AuthenticationException` also turned a rotation into an unreachable
+  provider. The exception of a subscriber still reaches the caller, after the fact.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

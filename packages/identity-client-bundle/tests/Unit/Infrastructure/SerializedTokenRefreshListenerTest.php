@@ -165,6 +165,80 @@ final class SerializedTokenRefreshListenerTest extends TestCase
         }
     }
 
+    public function testASubscriberThatFailsCannotLoseTheRotation(): void
+    {
+        $this->dispatcher->failure = new RuntimeException('subscriber');
+        $winner = $this->expiring(self::NOW);
+        $this->storage->setToken($winner);
+
+        try {
+            $this->listener()->authenticate($this->event());
+            self::fail('The subscriber fails.');
+        } catch (RuntimeException $exception) {
+            self::assertSame('subscriber', $exception->getMessage());
+        }
+
+        self::assertSame('rt2', $winner->getAttribute(TokenAttribute::REFRESH_TOKEN));
+        self::assertTrue(new LockFactory($this->store)->createLock('phil_identity_client.refresh.'.hash('sha256', 'rt1'))->acquire(false));
+
+        $this->dispatcher->failure = null;
+        $stale = $this->expiring(self::NOW);
+        $this->storage->setToken($stale);
+        $this->listener()->authenticate($this->event());
+
+        self::assertSame(['rt1'], $this->client->presented);
+        self::assertSame('at2', $stale->getAttribute(TokenAttribute::ACCESS_TOKEN));
+        self::assertSame('rt2', $stale->getAttribute(TokenAttribute::REFRESH_TOKEN));
+    }
+
+    public function testASubscriberThatFailsAsAnAuthenticationErrorDoesNotTurnTheRotationIntoAnOutage(): void
+    {
+        $this->dispatcher->failure = new AuthenticationException('subscriber');
+        $this->storage->setToken($this->expiring(self::NOW));
+
+        try {
+            $this->listener()->authenticate($this->event());
+            self::fail('The subscriber fails.');
+        } catch (AuthenticationException $exception) {
+            self::assertSame('subscriber', $exception->getMessage());
+        }
+
+        self::assertSame(RefreshStatus::Refreshed, $this->outcomes->find('rt1')?->status);
+        self::assertSame([], $this->logger->messages);
+    }
+
+    public function testASubscriberThatFailsCannotLoseTheRevocation(): void
+    {
+        $this->client->failure = new OidcInvalidGrantException('gone');
+        $this->dispatcher->failure = new RuntimeException('subscriber');
+        $this->storage->setToken($this->expiring(self::NOW));
+
+        try {
+            $this->listener()->authenticate($this->event());
+            self::fail('The subscriber fails.');
+        } catch (RuntimeException) {
+            self::assertNull($this->storage->getToken());
+            self::assertSame(RefreshStatus::Revoked, $this->outcomes->find('rt1')?->status);
+            self::assertTrue(new LockFactory($this->store)->createLock('phil_identity_client.refresh.'.hash('sha256', 'rt1'))->acquire(false));
+        }
+    }
+
+    public function testTheEventIsDispatchedOnceTheOutcomeIsPublishedAndTheLockReleased(): void
+    {
+        $seen = [];
+        $this->dispatcher->listener = function () use (&$seen): void {
+            $seen = [
+                $this->outcomes->find('rt1')?->status,
+                new LockFactory($this->store)->createLock('phil_identity_client.refresh.'.hash('sha256', 'rt1'))->acquire(false),
+            ];
+        };
+        $this->storage->setToken($this->expiring(self::NOW));
+
+        $this->listener()->authenticate($this->event());
+
+        self::assertSame([RefreshStatus::Refreshed, true], $seen);
+    }
+
     public function testOnlyTheRefreshedAttributesAreShared(): void
     {
         $token = $this->expiring(self::NOW);
