@@ -4,6 +4,25 @@ All notable changes to `phil/doctrine-behaviours` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.2.0-alpha - YYYY-MM-DD
+
+### Added
+
+- `doc/upgrading.md`: the upgrade from 0.1 to 0.2, and the conversion of the moments an application wrote itself in
+  another time zone.
+
+### Changed
+
+- The columns that mark a moment — `created_at`, `updated_at`, `deleted_at`, `deactivated_at`, `published_at`,
+  `unpublished_at` and the `frozen_at` of `phil_record_version` — have the DBAL type `datetime_utc_immutable`: written
+  and read back in UTC, whatever the time zone of PHP or of the database. The SQL of the columns is the same, so no
+  migration of the schema is written; rows an application stamped itself in another time zone are converted once, as
+  the upgrade guide shows.
+- The listeners and `Versions` stamp the clock's moment as it is, in the clock's time zone until the entity is read
+  again; DBAL converts it to UTC as it writes.
+- `Tree` orders by the native `\SortDirection`; the package requires `doctrine/collections` 3.1 or later and
+  `symfony/polyfill-php86`.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

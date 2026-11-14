@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=8a1714fa6e210a31feafac7da65e9aa3dc911827c623afe93aa10e94b8ec3039 -->
+<!-- phil-dev source-sha256=cb5389d86dc75a881416af1f4b4e52bdb33003786e120ec7b97dc63851667e2c -->
 # Désactivation
 
 | Type | Genre | Rôle |
 |---|---|---|
 | `Contract\Deactivatable` | interface | `isActive()`, `deactivatedAt()`, `deactivate()`, `reactivate()`, `stampDeactivated()` |
-| `DeactivatableEntity` | trait | Les colonnes `active`, booléenne, et `deactivated_at`, `datetime_immutable`, nullable |
-| `DeactivationListener` | écouteur : `prePersist`, `onFlush` | Garde la date accordée à l'état, en UTC |
+| `DeactivatableEntity` | trait | Les colonnes `active`, booléenne, et `deactivated_at`, `datetime_utc_immutable`, nullable |
+| `DeactivationListener` | écouteur : `prePersist`, `onFlush` | Garde la date accordée à l'état |
 | `DeactivatedFilter` | filtre SQL `phil_deactivated` | `active = true` sur chaque entité `Deactivatable` |
 
 Un enregistrement désactivé est éteint, non supprimé : sa ligne reste entière, ses relations restent, et il revient d'un

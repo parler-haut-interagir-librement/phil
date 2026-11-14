@@ -10,13 +10,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Phil\DoctrineBehaviours\Contract\SoftDeletable;
 
 /**
- * `SoftDeletable`, mapped: the column `deleted_at`, in UTC, null while the entity is not deleted.
+ * `SoftDeletable`, mapped: the column `deleted_at`, kept in UTC by the type `datetime_utc_immutable`, null while the entity is not deleted.
  *
  * @phpstan-require-implements SoftDeletable
  */
 trait SoftDeletableEntity
 {
-    #[ORM\Column(name: 'deleted_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    #[ORM\Column(name: 'deleted_at', type: Types::DATETIME_UTC_IMMUTABLE, nullable: true)]
     protected ?DateTimeImmutable $deletedAt = null;
 
     public function deletedAt(): ?DateTimeImmutable

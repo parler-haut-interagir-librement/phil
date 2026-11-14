@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\DoctrineBehaviours\Tests\Integration;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -19,6 +20,7 @@ use Phil\DoctrineBehaviours\OwnerEraser;
 use Phil\DoctrineBehaviours\OwnerId;
 use Phil\DoctrineBehaviours\Positions;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Database;
+use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Article;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Bike;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Course;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Lamp;
@@ -38,9 +40,9 @@ use Symfony\Component\Clock\MockClock;
 
 /**
  * The SQL that depends on a database, on a real server: the spelling of true in the filter and in the columns, the
- * slugs found by `IN` within a scope, the positions moved in a transaction, the state of a version in a JSON column, a
- * UUID in a `guid` column. Each subclass names the environment variable that holds the URL of its server; without it,
- * the test is skipped.
+ * moments written and read in UTC, the slugs found by `IN` within a scope, the positions moved in a transaction, the
+ * state of a version in a JSON column, a UUID in a `guid` column. Each subclass names the environment variable that
+ * holds the URL of its server; without it, the test is skipped.
  */
 abstract class RealDatabaseTestCase extends TestCase
 {
@@ -86,6 +88,20 @@ abstract class RealDatabaseTestCase extends TestCase
             new SchemaTool($this->database)->dropSchema($this->database->getMetadataFactory()->getAllMetadata());
             $this->database->getConnection()->close();
         }
+    }
+
+    public function testAMomentIsWrittenAndReadBackInUtc(): void
+    {
+        $manager = $this->manager();
+        $article = new Article('a', 'Bonjour');
+        $article->stampCreated(new DateTimeImmutable('2026-11-04 08:00', new DateTimeZone('America/Toronto')));
+
+        $manager->persist($article);
+        $manager->flush();
+        $manager->clear();
+
+        self::assertSame('2026-11-04 13:00:00', $manager->getConnection()->fetchOne("SELECT created_at FROM article WHERE id = 'a'"));
+        self::assertSame('2026-11-04T13:00:00+00:00', $manager->find(Article::class, 'a')?->createdAt()?->format('c'));
     }
 
     public function testTheFilterHidesWhatIsDeactivated(): void

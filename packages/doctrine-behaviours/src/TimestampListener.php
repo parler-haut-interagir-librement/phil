@@ -25,7 +25,7 @@ final readonly class TimestampListener
         $entity = $event->getObject();
 
         if ($entity instanceof Timestampable) {
-            $entity->stampCreated(Utc::now($this->clock));
+            $entity->stampCreated($this->clock->now());
         }
     }
 
@@ -36,7 +36,7 @@ final readonly class TimestampListener
 
         foreach ($work->getScheduledEntityUpdates() as $entity) {
             if ($entity instanceof Timestampable && !\array_key_exists('updatedAt', $work->getEntityChangeSet($entity))) {
-                $entity->stampUpdated(Utc::now($this->clock));
+                $entity->stampUpdated($this->clock->now());
                 $work->recomputeSingleEntityChangeSet($manager->getClassMetadata($entity::class), $entity);
             }
         }

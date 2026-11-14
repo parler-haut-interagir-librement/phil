@@ -38,6 +38,19 @@ final readonly class Locale implements Stringable
     }
 
     /**
+     * The locale, or `null` when the string cannot be one: for a locale read from a URL, a form, a header or a stored
+     * row, where a refusal is an answer rather than a fault.
+     */
+    public static function tryFromString(string $value): ?self
+    {
+        try {
+            return self::fromString($value);
+        } catch (InvalidLocaleDimension) {
+            return null;
+        }
+    }
+
+    /**
      * `fr` and `fr_CA` share a language; `fr_CA` and `en_CA` share only a region, which does not count.
      */
     public function sharesLanguageWith(self $other): bool

@@ -9,10 +9,11 @@ use Phil\LocaleDimensions\Exception\InvalidLocaleDimension;
 /**
  * The ordered locales tried for one requested locale, the requested one first.
  *
- * **The chain is declared, never derived.** Stripping the region (`fr_CA → fr`) and then falling back to a default
- * looks general and is wrong as soon as two regional variants of a language coexist: a missing `fr` translation would
- * fall to the default language while the `fr_CA` one sits one row away. The application writes the chain for each
- * locale it serves; this type only keeps it well formed and walks it.
+ * **The chain is declared.** Stripping the region (`fr_CA → fr`) and then falling back to a default looks general and
+ * is wrong as soon as two regional variants of a language coexist: a missing `fr` translation would fall to the
+ * default language while the `fr_CA` one sits one row away. The application writes the chain for each locale it
+ * serves, or asks `DeclaredLocales` for the default one, cut to the served locales; this type only keeps it well
+ * formed and walks it.
  *
  * A chain resolves what is served; it does not choose which locale was requested. That choice happens before.
  */

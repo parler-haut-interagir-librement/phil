@@ -1,12 +1,12 @@
-<!-- phil-dev source-sha256=de3999ab46494b09e8c38f7061272728777881341cdb64775e0b0e6f971c7dfc -->
+<!-- phil-dev source-sha256=113ecc0f4464b02289de4e1a284fbe214857d0938f705a27fd81c6818ff863ed -->
 # Publication
 
 | Type | Genre | Rôle |
 |---|---|---|
 | `Contract\Publishable` | interface | L'état dans les accesseurs propres au workflow, `isPublished()`, les dates |
-| `PublishableEntity` | trait | Les colonnes `publication_state`, 32 caractères, `published_at` et `unpublished_at` |
+| `PublishableEntity` | trait | Les colonnes `publication_state`, 32 caractères, `published_at` et `unpublished_at`, `datetime_utc_immutable` |
 | `PublicationWorkflow` | constantes, `definition()`, `markingStore()` | La machine à états, sous le nom `phil_publication` |
-| `PublicationListener` | écouteur : `workflow.<name>.entered` | Horodate les dates, en UTC |
+| `PublicationListener` | écouteur : `workflow.<name>.entered` | Horodate les dates à l'heure de l'horloge |
 
 L'état est tenu par `symfony/workflow`, une dépendance facultative : une garde ou un écouteur de l'application peut
 retenir ou suivre une publication comme toute autre transition.

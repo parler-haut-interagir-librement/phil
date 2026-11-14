@@ -13,7 +13,8 @@ each answers on its own, `fr-CA` and `fr_CA` end up as two rows, a missing trans
 while the regional variant sits one row away, and a version zero means "nothing yet" in one place and a real row in
 another. One set of value objects keeps them in step.
 
-It is a plain PHP library with no dependency. It stores nothing and reads no request: a bundle reads the declared
+It is a plain PHP library; its one dependency is `symfony/translation`, whose `LocaleFallbackProvider` derives the
+default chain of a locale that declares none. It stores nothing and reads no request: a bundle reads the declared
 locales from its configuration, the application chooses the requested locale, and the chain says what to serve.
 
 ## Status
@@ -41,6 +42,7 @@ use Phil\LocaleDimensions\{DeclaredLocales, Locale, Version};
 $locales = DeclaredLocales::fromArray([
     'fr_CA' => ['fr', 'en'],
     'fr' => ['en'],
+    'en_CA' => null,                                      // the default chain: en_CA → en
     'en' => [],
 ]);
 
@@ -49,13 +51,14 @@ $chain->toString();                                       // 'fr_CA → fr → e
 $served = $chain->resolve([Locale::fromString('en'), Locale::fromString('fr')]);   // fr
 $chain->leavesRequestedLanguage($served);                 // false: still French
 $served->toLanguageTag();                                 // 'fr', for hreflang
+Locale::tryFromString('fr-CA');                           // null: not a locale
 
 Version::first()->next()->number;                         // 2
 ```
 
 ## Requirements
 
-PHP 8.5 or later.
+PHP 8.5 or later and `symfony/translation` 8.2 or later.
 
 ## Contributing
 

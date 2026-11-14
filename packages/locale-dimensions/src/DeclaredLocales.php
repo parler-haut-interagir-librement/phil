@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\LocaleDimensions;
 
 use Phil\LocaleDimensions\Exception\InvalidLocaleDimension;
+use Symfony\Component\Translation\LocaleFallbackProvider;
 
 /**
  * The locales an application serves, each with its declared fallback chain.
@@ -21,6 +22,10 @@ use Phil\LocaleDimensions\Exception\InvalidLocaleDimension;
  * configuration. **A fallback must itself be served**: a chain that ends on a locale nobody declared would serve what
  * the application does not publish. A chain that names its own locale, or one locale twice, is refused by
  * `FallbackChain`.
+ *
+ * A locale whose value is `null` declares no chain and gets the default one: the parents Symfony's
+ * `LocaleFallbackProvider` derives from ICU (`fr_CA → fr`, `en_CA → en`), then the default fallbacks, each kept only
+ * when it is served. An empty list declares a chain with no fallback.
  */
 final readonly class DeclaredLocales
 {
@@ -33,11 +38,13 @@ final readonly class DeclaredLocales
     }
 
     /**
-     * @param array<array-key, mixed> $declared served locale => list of its fallbacks
+     * @param array<array-key, mixed> $declared         served locale => list of its fallbacks, or `null` for the
+     *                                                  default chain
+     * @param array<array-key, mixed> $defaultFallbacks the served locales that end every default chain, in order
      *
      * @throws InvalidLocaleDimension when a locale is malformed, a fallback is not served, or a chain repeats a locale
      */
-    public static function fromArray(array $declared): self
+    public static function fromArray(array $declared, array $defaultFallbacks = []): self
     {
         $served = [];
         $entries = [];
@@ -48,9 +55,22 @@ final readonly class DeclaredLocales
             $entries[] = [$locale, $fallbacks];
         }
 
+        $defaults = [];
+
+        foreach ($defaultFallbacks as $fallback) {
+            if (!\is_string($fallback) || !isset($served[$fallback])) {
+                throw InvalidLocaleDimension::because(\sprintf('The default fallback "%s" is not a served locale.', \is_string($fallback) ? $fallback : get_debug_type($fallback)));
+            }
+
+            $defaults[] = $fallback;
+        }
+
+        $provider = new LocaleFallbackProvider($defaults);
         $chains = [];
 
         foreach ($entries as [$locale, $fallbacks]) {
+            $fallbacks ??= array_filter($provider->computeFallbackLocales($locale->value), static fn (string $fallback): bool => isset($served[$fallback]));
+
             if (!\is_array($fallbacks)) {
                 throw InvalidLocaleDimension::because(\sprintf('The fallbacks of "%s" are not a list of locales.', $locale->value));
             }

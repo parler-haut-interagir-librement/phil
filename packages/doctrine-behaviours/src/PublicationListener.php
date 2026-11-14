@@ -9,8 +9,8 @@ use Psr\Clock\ClockInterface;
 use Symfony\Component\Workflow\Event\EnteredEvent;
 
 /**
- * Stamps the dates of a `Publishable` record as it enters a place of the publication workflow, in UTC. To listen to
- * `workflow.<name>.entered`; the record's flush stays the application's, as with every workflow.
+ * Stamps the dates of a `Publishable` record as it enters a place of the publication workflow, with the clock's time.
+ * To listen to `workflow.<name>.entered`; the record's flush stays the application's, as with every workflow.
  */
 final readonly class PublicationListener
 {
@@ -28,9 +28,9 @@ final readonly class PublicationListener
         }
 
         if ($event->getMarking()->has(PublicationWorkflow::PUBLISHED)) {
-            $subject->markPublished(Utc::now($this->clock));
+            $subject->markPublished($this->clock->now());
         } elseif ($event->getMarking()->has(PublicationWorkflow::UNPUBLISHED)) {
-            $subject->markUnpublished(Utc::now($this->clock));
+            $subject->markUnpublished($this->clock->now());
         }
     }
 }

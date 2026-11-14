@@ -25,11 +25,12 @@
     "homepage": "https://ph-il.ca",
     "require": {
         "php": ">=8.5",
-        "doctrine/collections": "^3.0",
+        "doctrine/collections": "^3.1",
         "doctrine/dbal": "^4.5",
         "doctrine/orm": "^3.7",
         "phil/locale-dimensions": "^0.1@dev",
-        "psr/clock": "^1.0"
+        "psr/clock": "^1.0",
+        "symfony/polyfill-php86": "^1.36"
     },
     "require-dev": {
         "ext-pdo": "*",
@@ -59,7 +60,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.1.x-dev"
+            "dev-main": "0.2.x-dev"
         }
     }
 }

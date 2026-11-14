@@ -6,7 +6,7 @@
 | `VersionableEntity` | trait | The columns `version_number` and `version_frozen` |
 | `VersionListener` | listener: `onFlush` | Forks a frozen record as a versioned field changes |
 | `Versions` | service | Lists, freezes, goes back |
-| `Version\RecordVersion` | entity | A frozen version, in the table `phil_record_version` |
+| `Version\RecordVersion` | entity | A frozen version, in the table `phil_record_version`, its `frozen_at` a `datetime_utc_immutable` |
 | `Contract\VersionRestoreGuard` | interface | The right to go back to a past version |
 | `AllowVersionRestore`, `RefuseVersionRestore` | guards | Everyone, or no one |
 | `Exception\UnknownVersion`, `Exception\VersionRestoreDenied`, `Exception\InvalidVersionedState` | exceptions | |

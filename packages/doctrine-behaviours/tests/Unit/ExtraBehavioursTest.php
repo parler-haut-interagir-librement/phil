@@ -170,7 +170,7 @@ final class ExtraBehavioursTest extends TestCase
         $this->manager->persist($active);
         $this->manager->flush();
 
-        self::assertSame('2026-11-04T13:00:00+00:00', $inactive->deactivatedAt()?->format('c'));
+        self::assertSame('2026-11-04T08:00:00-05:00', $inactive->deactivatedAt()?->format('c'));
         self::assertSame($given, $imported->deactivatedAt());
         self::assertNull($active->deactivatedAt());
 
@@ -318,7 +318,7 @@ final class ExtraBehavioursTest extends TestCase
         $workflow->apply($story, 'publish');
         self::assertTrue($story->isPublished());
         self::assertSame('published', $story->getPublicationState());
-        self::assertSame('2026-11-04T13:00:00+00:00', $story->publishedAt()?->format('c'));
+        self::assertSame('2026-11-04T08:00:00-05:00', $story->publishedAt()?->format('c'));
         self::assertNull($story->unpublishedAt());
         self::assertFalse($workflow->can($story, 'publish'));
 
@@ -326,17 +326,19 @@ final class ExtraBehavioursTest extends TestCase
         $workflow->apply($story, 'unpublish');
         self::assertFalse($story->isPublished());
         self::assertSame('unpublished', $story->getPublicationState());
-        self::assertSame('2026-11-05T13:00:00+00:00', $this->iso($story->unpublishedAt()));
+        self::assertSame('2026-11-05T08:00:00-05:00', $this->iso($story->unpublishedAt()));
 
         $this->clock->modify('+1 day');
         $workflow->apply($story, 'publish');
-        self::assertSame('2026-11-04T13:00:00+00:00', $this->iso($story->publishedAt()));
+        self::assertSame('2026-11-04T08:00:00-05:00', $this->iso($story->publishedAt()));
         self::assertNull($story->unpublishedAt());
 
         $this->manager->persist($story);
         $this->manager->flush();
         $this->manager->clear();
-        self::assertSame('published', $this->manager->find(Story::class, 's')?->getPublicationState());
+
+        $kept = $this->manager->find(Story::class, 's');
+        self::assertSame(['published', '2026-11-04T13:00:00+00:00'], [$kept?->getPublicationState(), $this->iso($kept?->publishedAt())]);
     }
 
     public function testATransitionTheWorkflowRefusesChangesNothing(): void
@@ -585,7 +587,7 @@ final class ExtraBehavioursTest extends TestCase
 
         $frozen = $versions->freeze($manual);
         self::assertSame([1, true], [$manual->versionNumber(), $manual->isVersionFrozen()]);
-        self::assertSame(['manual', 'm', 1, ['title' => 'Un', 'body' => 'Encore'], '2026-11-04T13:00:00+00:00', 'ada'], [$frozen->subjectTable(), $frozen->subjectId(), $frozen->number(), $frozen->state(), $frozen->frozenAt()->format('c'), $frozen->createdBy()]);
+        self::assertSame(['manual', 'm', 1, ['title' => 'Un', 'body' => 'Encore'], '2026-11-04T08:00:00-05:00', 'ada'], [$frozen->subjectTable(), $frozen->subjectId(), $frozen->number(), $frozen->state(), $frozen->frozenAt()->format('c'), $frozen->createdBy()]);
         self::assertTrue($versions->isFrozen($manual, 1));
         self::assertFalse($versions->isFrozen($manual, 2));
         self::assertSame($frozen, $versions->freeze($manual));
@@ -603,7 +605,7 @@ final class ExtraBehavioursTest extends TestCase
         $reread = $this->manager->find(Manual::class, 'm');
         self::assertInstanceOf(Manual::class, $reread);
         self::assertSame([2, false, 'Deux'], [$reread->versionNumber(), $reread->isVersionFrozen(), $reread->title]);
-        self::assertSame(['title' => 'Un', 'body' => 'Encore'], $versions->get($reread, 1)?->state());
+        self::assertSame([['title' => 'Un', 'body' => 'Encore'], '2026-11-04T13:00:00+00:00'], [$versions->get($reread, 1)?->state(), $versions->get($reread, 1)?->frozenAt()->format('c')]);
         self::assertNull($versions->get($reread, 2));
     }
 

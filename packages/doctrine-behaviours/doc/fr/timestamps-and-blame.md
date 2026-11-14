@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=6eb1f99f9cf4bb1a548c69be8c0a740cf458e2b1feeeb895dae4dff013f3599a -->
+<!-- phil-dev source-sha256=c5cc39c2ff53e6b4d648d2e8d5cc22ec9c39c94783719c92b1344de2fbff12b9 -->
 # Horodatage et auteur
 
 | Type | Genre | Rôle |
 |---|---|---|
 | `Contract\Timestampable` | interface | `createdAt()`, `updatedAt()`, `stampCreated()`, `stampUpdated()` |
-| `TimestampableEntity` | trait | Les colonnes `created_at` et `updated_at`, `datetime_immutable` |
-| `TimestampListener` | écouteur : `prePersist`, `onFlush` | Horodate à l'heure de l'horloge, en UTC |
+| `TimestampableEntity` | trait | Les colonnes `created_at` et `updated_at`, `datetime_utc_immutable` |
+| `TimestampListener` | écouteur : `prePersist`, `onFlush` | Horodate à l'heure de l'horloge |
 | `Contract\Blameable` | interface | `createdBy()`, `updatedBy()`, `blameCreated()`, `blameUpdated()` |
 | `BlameableEntity` | trait | Les colonnes `created_by` et `updated_by`, 255 caractères, nullables |
 | `BlameListener` | écouteur : `prePersist`, `onFlush` | Inscrit comme auteur celui que nomme le résolveur |

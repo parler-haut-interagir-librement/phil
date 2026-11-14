@@ -59,7 +59,3 @@ parameters:
             identifier: doctrine.columnType
             path: packages/content-bundle/tests/Unit/Infrastructure/Doctrine/Fixture/Label.php
             count: 2
-        -
-            identifier: doctrine.columnType
-            path: packages/doctrine-behaviours/src/TimestampableEntity.php
-            count: 2

@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Phil\DoctrineBehaviours\Contract\Deactivatable;
 
 /**
- * `Deactivatable`, mapped: the columns `active` and `deactivated_at`, in UTC, null while the record is active.
+ * `Deactivatable`, mapped: the columns `active` and `deactivated_at`, kept in UTC by the type `datetime_utc_immutable`, null while the record is active.
  *
  * @phpstan-require-implements Deactivatable
  */
@@ -19,7 +19,7 @@ trait DeactivatableEntity
     #[ORM\Column(name: 'active', type: Types::BOOLEAN, options: ['default' => true])]
     protected bool $active = true;
 
-    #[ORM\Column(name: 'deactivated_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    #[ORM\Column(name: 'deactivated_at', type: Types::DATETIME_UTC_IMMUTABLE, nullable: true)]
     protected ?DateTimeImmutable $deactivatedAt = null;
 
     public function isActive(): bool

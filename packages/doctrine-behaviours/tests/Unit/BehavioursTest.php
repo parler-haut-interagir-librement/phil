@@ -30,7 +30,6 @@ use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Shelf;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\MutableBlame;
 use Phil\DoctrineBehaviours\TimestampableEntity;
 use Phil\DoctrineBehaviours\TimestampListener;
-use Phil\DoctrineBehaviours\Utc;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\TestCase;
@@ -42,7 +41,6 @@ use Symfony\Component\Clock\MockClock;
 #[CoversClass(SoftDeletedFilter::class)]
 #[CoversClass(FixedBlame::class)]
 #[CoversClass(BlameEraser::class)]
-#[CoversClass(Utc::class)]
 #[CoversTrait(TimestampableEntity::class)]
 #[CoversTrait(BlameableEntity::class)]
 #[CoversTrait(SoftDeletableEntity::class)]
@@ -69,7 +67,7 @@ final class BehavioursTest extends TestCase
         $this->manager->persist(new Note('n', 'rien'));
         $this->manager->flush();
 
-        self::assertSame(['2026-11-04T13:00:00+00:00', '2026-11-04T13:00:00+00:00', 'ada', 'ada'], [$article->createdAt()?->format('c'), $article->updatedAt()?->format('c'), $article->createdBy(), $article->updatedBy()]);
+        self::assertSame(['2026-11-04T08:00:00-05:00', '2026-11-04T08:00:00-05:00', 'ada', 'ada'], [$article->createdAt()?->format('c'), $article->updatedAt()?->format('c'), $article->createdBy(), $article->updatedBy()]);
 
         $this->clock->modify('+1 hour');
         $this->blame->who = 'grace';
@@ -107,7 +105,7 @@ final class BehavioursTest extends TestCase
         $this->manager->flush();
 
         self::assertSame([$given, $given, 'importer', 'importer'], [$article->createdAt(), $article->updatedAt(), $article->createdBy(), $article->updatedBy()]);
-        self::assertSame(['2026-11-04T13:00:00+00:00', $given, 'ada', 'editor'], [$edited->createdAt()?->format('c'), $edited->updatedAt(), $edited->createdBy(), $edited->updatedBy()]);
+        self::assertSame(['2026-11-04T08:00:00-05:00', $given, 'ada', 'editor'], [$edited->createdAt()?->format('c'), $edited->updatedAt(), $edited->createdBy(), $edited->updatedBy()]);
 
         $this->blame->who = null;
         $nobody = new Article('b', 'Personne');
@@ -144,7 +142,7 @@ final class BehavioursTest extends TestCase
         self::assertEquals($article->deletedAt(), $this->manager->getUnitOfWork()->getOriginalEntityData($article)['deletedAt'] ?? null);
 
         self::assertTrue($this->manager->contains($article));
-        self::assertSame('2026-11-05T13:00:00+00:00', $article->deletedAt()?->format('c'));
+        self::assertSame('2026-11-05T08:00:00-05:00', $article->deletedAt()?->format('c'));
         self::assertTrue($article->isDeleted());
         self::assertNull($this->manager->find(Note::class, 'n'));
         $this->manager->flush();

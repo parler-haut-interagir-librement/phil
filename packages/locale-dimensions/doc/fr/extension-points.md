@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=97ae2a89f5fc01f121b19e5df1208e78c8b81f9fdeecd2dd330658c290640d84 -->
+<!-- phil-dev source-sha256=c8fb436e60f36b17744972db040c5f8c66740e53bbecf97ef4a5f6b3f51352b8 -->
 # Points d'extension
 
 La librairie est du PHP simple et ne déclare ni service ni interface. Le paquet est en `0.x` : ses types ne sont
@@ -12,15 +12,21 @@ qu'une déclaration mal formée échoue là et non à la première requête :
 ```php
 $services->set(DeclaredLocales::class)
     ->factory([DeclaredLocales::class, 'fromArray'])
-    ->args([$config['locales']]);
+    ->args([$config['locales'], $config['default_fallbacks']]);
 ```
 
 ```yaml
 locales:
     fr_CA: [fr, en]
     fr: [en]
+    en_CA: ~        # the default chain: en_CA → en
     en: []
+default_fallbacks: [en]
 ```
+
+Une locale écrite `~` reçoit la chaîne par défaut, dérivée comme le traducteur de Symfony la dérive et coupée aux locales
+servies ; `default_fallbacks` est la liste que contient l'option `fallbacks` du traducteur, quand l'application veut que
+les deux s'accordent.
 
 Gardez les clés telles qu'elles sont écrites : la normalisation par défaut de la configuration de Symfony lirait
 `fr-CA` comme `fr_CA`, là où la librairie le refuse.
@@ -36,5 +42,5 @@ $available = $repository->localesOf($record, $chain->locales);
 $served = $chain->resolve($available) ?? throw new NotFoundHttpException();
 ```
 
-Une locale tapée par un visiteur est lue par `Locale::fromString()` ; son refus, et celui de `chainFor()` pour une
-locale qui n'est pas servie, sont l'endroit où répondre par une 404.
+Une locale tapée par un visiteur est lue par `Locale::tryFromString()`, dont le `null`, comme le refus de `chainFor()`
+pour une locale qui n'est pas servie, est l'endroit où répondre par une 404.

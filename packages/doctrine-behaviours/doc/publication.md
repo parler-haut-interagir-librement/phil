@@ -3,9 +3,9 @@
 | Type | Kind | Role |
 |---|---|---|
 | `Contract\Publishable` | interface | The state in the workflow's own accessors, `isPublished()`, the dates |
-| `PublishableEntity` | trait | The columns `publication_state`, 32 characters, `published_at` and `unpublished_at` |
+| `PublishableEntity` | trait | The columns `publication_state`, 32 characters, `published_at` and `unpublished_at`, `datetime_utc_immutable` |
 | `PublicationWorkflow` | constants, `definition()`, `markingStore()` | The state machine, under the name `phil_publication` |
-| `PublicationListener` | listener: `workflow.<name>.entered` | Stamps the dates, in UTC |
+| `PublicationListener` | listener: `workflow.<name>.entered` | Stamps the dates with the clock's time |
 
 The state is kept by `symfony/workflow`, an optional dependency, so a guard or a listener of the application can hold
 or follow a publication like any other transition.

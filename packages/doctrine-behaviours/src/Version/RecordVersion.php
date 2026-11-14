@@ -39,7 +39,7 @@ class RecordVersion implements Blameable
         protected int $number,
         #[ORM\Column(name: 'state', type: Types::JSON)]
         protected array $state,
-        #[ORM\Column(name: 'frozen_at', type: Types::DATETIME_IMMUTABLE)]
+        #[ORM\Column(name: 'frozen_at', type: Types::DATETIME_UTC_IMMUTABLE)]
         protected DateTimeImmutable $frozenAt,
     ) {
     }

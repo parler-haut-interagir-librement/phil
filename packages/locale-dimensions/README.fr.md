@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=36e3afe5f18969134b9d371a32a777ab3ad150619afbd3a011c586511183be89 -->
+<!-- phil-dev source-sha256=9be19ee95c1a852222812890f48932c67c8c403076a86337372baa424c7135af -->
 # phil/locale-dimensions
 
 **Des locales, des versions et des chaînes de repli déclarées entre locales, en objets valeur simples.**
@@ -15,7 +15,8 @@ d'une interface. Si chacun y répond seul, `fr-CA` et `fr_CA` finissent en deux 
 dans la langue par défaut alors que la variante régionale est à une ligne de là, et une version zéro veut dire « rien
 encore » à un endroit et une vraie ligne à un autre. Un seul jeu d'objets valeur les garde d'accord.
 
-C'est une librairie PHP simple, sans dépendance. Elle ne conserve rien et ne lit aucune requête : un bundle lit les
+C'est une librairie PHP simple ; sa seule dépendance est `symfony/translation`, dont `LocaleFallbackProvider` dérive la
+chaîne par défaut d'une locale qui n'en déclare aucune. Elle ne conserve rien et ne lit aucune requête : un bundle lit les
 locales déclarées dans sa configuration, l'application choisit la locale demandée, et la chaîne dit quoi servir.
 
 ## État
@@ -43,6 +44,7 @@ use Phil\LocaleDimensions\{DeclaredLocales, Locale, Version};
 $locales = DeclaredLocales::fromArray([
     'fr_CA' => ['fr', 'en'],
     'fr' => ['en'],
+    'en_CA' => null,                                      // the default chain: en_CA → en
     'en' => [],
 ]);
 
@@ -51,13 +53,14 @@ $chain->toString();                                       // 'fr_CA → fr → e
 $served = $chain->resolve([Locale::fromString('en'), Locale::fromString('fr')]);   // fr
 $chain->leavesRequestedLanguage($served);                 // false: still French
 $served->toLanguageTag();                                 // 'fr', for hreflang
+Locale::tryFromString('fr-CA');                           // null: not a locale
 
 Version::first()->next()->number;                         // 2
 ```
 
 ## Prérequis
 
-PHP 8.5 ou une version plus récente.
+PHP 8.5 ou une version plus récente et `symfony/translation` 8.2 ou plus récent.
 
 ## Contribuer
 

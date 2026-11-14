@@ -1,10 +1,10 @@
-<!-- phil-dev source-sha256=b1b7262c777af489515af48c50e2c7333143b5b6d4ac89df426f35aa5d46072e -->
+<!-- phil-dev source-sha256=35ab26c981460f869305151ff62f33f1a2d624c63ec8b085ff90faa6857ae258 -->
 # Suppression douce
 
 | Type | Genre | Rôle |
 |---|---|---|
 | `Contract\SoftDeletable` | interface | `deletedAt()`, `isDeleted()`, `markDeleted()`, `restore()` |
-| `SoftDeletableEntity` | trait | La colonne `deleted_at`, `datetime_immutable`, nullable |
+| `SoftDeletableEntity` | trait | La colonne `deleted_at`, `datetime_utc_immutable`, nullable |
 | `SoftDeleteListener` | écouteur : `onFlush` | Change une suppression en date de suppression |
 | `SoftDeletedFilter` | filtre SQL `phil_soft_deleted` | `deleted_at IS NULL` sur chaque entité `SoftDeletable` |
 

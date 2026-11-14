@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d6ca9aad796611fb85dc1159656b600d291cf53832a35a41c113453ad19a53e0 -->
+<!-- phil-dev source-sha256=df8bbcfebb84b6ca412ad9033d4694b3450b15be870b73d7d7bfb303b16fcdc5 -->
 # Points d'extension
 
 La librairie ne déclare aucun service : une application enregistre les écouteurs qu'elle veut sur son gestionnaire
@@ -72,7 +72,7 @@ et écrivent par les méthodes seulement.
 
 | Point | Comment |
 |---|---|
-| L'heure | L'horloge PSR-20 donnée à `TimestampListener` et à `SoftDeleteListener` : les horodatages sont en UTC |
+| L'heure | L'horloge PSR-20 donnée à `TimestampListener`, `SoftDeleteListener`, `DeactivationListener`, `PublicationListener`, `DatedIdentifierListener` et `Versions`, dans n'importe quel fuseau horaire : les colonnes gardent l'UTC — voir [Les instants en UTC](#les-instants-en-utc) |
 | Quels comportements s'exécutent | Seulement les écouteurs enregistrés : chacun est indépendant |
 | Voir les lignes supprimées | `SoftDeletedFilter`, sous `SoftDeletedFilter::NAME`, désactivé pour les requêtes qui en ont besoin |
 | Voir les lignes désactivées | `DeactivatedFilter`, sous `DeactivatedFilter::NAME`, désactivé pour les requêtes qui en ont besoin |
@@ -80,3 +80,19 @@ et écrivent par les méthodes seulement.
 | Effacer un propriétaire | `OwnerEraser::find()` et `replace()`, sur chaque table qui garde un propriétaire |
 | Les locales servies | La `FallbackChain` que l'application donne à `Translations`, tirée du `DeclaredLocales` de `phil/locale-dimensions` |
 | Le workflow de publication | Les places et les transitions de `PublicationWorkflow`, ou un workflow propre à l'application avec ces trois places |
+
+## Les instants en UTC
+
+Chaque colonne qui marque un instant — `created_at`, `updated_at`, `deleted_at`, `deactivated_at`, `published_at`,
+`unpublished_at` et le `frozen_at` de `phil_record_version` — a le type DBAL `datetime_utc_immutable`. DBAL écrit
+l'instant en UTC quel que soit le fuseau horaire du `DateTimeImmutable` qu'on lui donne, et le relit en UTC, quel que
+soit le fuseau horaire de PHP ou du serveur de base de données : deux serveurs de fuseaux différents lisent le même
+instant, et une requête qui compare une colonne à un instant compare des choses comparables.
+
+Un horodatage garde le fuseau horaire de l'horloge jusqu'à ce que l'entité soit relue : `createdAt()` juste après le
+vidage est l'instant de l'horloge, `2026-11-04T08:00:00-05:00`, et le même instant relu est `2026-11-04T13:00:00+00:00`.
+Comparez les instants avec `<`, `>` ou leurs horodatages, jamais avec `==`, qu'une norme de codage peut changer en
+`===`, un test d'identité entre objets. Pour montrer un instant dans le fuseau horaire d'un visiteur, convertissez-le
+avec `setTimezone()` à l'affichage.
+
+Une table créée avant que ces colonnes aient ce type garde son schéma : voir [Mises à niveau](upgrading.md).

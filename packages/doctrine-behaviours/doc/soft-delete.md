@@ -3,7 +3,7 @@
 | Type | Kind | Role |
 |---|---|---|
 | `Contract\SoftDeletable` | interface | `deletedAt()`, `isDeleted()`, `markDeleted()`, `restore()` |
-| `SoftDeletableEntity` | trait | The column `deleted_at`, `datetime_immutable`, nullable |
+| `SoftDeletableEntity` | trait | The column `deleted_at`, `datetime_utc_immutable`, nullable |
 | `SoftDeleteListener` | listener: `onFlush` | Turns a removal into the deletion date |
 | `SoftDeletedFilter` | SQL filter `phil_soft_deleted` | `deleted_at IS NULL` on every `SoftDeletable` entity |
 
