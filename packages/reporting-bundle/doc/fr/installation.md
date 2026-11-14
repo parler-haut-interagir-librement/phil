@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=01479eb6e6d2e3d2a027c8bb340a069bce35d77dd9c2353f03a415f58f83e562 -->
+<!-- phil-dev source-sha256=d6047677b8c61354e124d3695bca15f3437d11df63f7792534a721841a89984f -->
 # Installation
 
 ## Prérequis
@@ -6,7 +6,7 @@
 | Paquet | Version | Pourquoi |
 |---|---|---|
 | PHP | 8.5 ou plus récent, avec `intl`, `json`, `mbstring` et `sodium` | Chiffres écrits dans une locale ; tâches en JSON ; libellés comptés en caractères ; identifiants aléatoires. |
-| `phil/svg-chart` | `^0.1` | Les images SVG des graphiques. |
+| `phil/svg-chart` | `^0.1` | Les images SVG des graphiques, et leurs images PNG par son rasterizer. |
 | `symfony/config`, `symfony/dependency-injection` | `^8.2` | Le bundle et sa configuration. |
 | `symfony/service-contracts` | `^3.6` | Les localisateurs des sources, rapports, formats et livraisons. |
 | `psr/clock`, `psr/event-dispatcher` | `^1.0` | Le moment à partir duquel les périodes sont comptées ; `ReportExported`. |
@@ -22,10 +22,11 @@ Chacun de ces paquets est utilisé quand il est installé :
 | `symfony/mailer`, `symfony/mime` | La livraison `mail`. |
 | `symfony/notifier` | La livraison `notification`. |
 | `symfony/console` | `phil:reporting:export`. |
-| `symfony/http-foundation` | `ReportResponses`. |
+| `symfony/http-foundation` | `ReportResponses` et `ChartResponses`. |
 | `symfony/security-core` | Les tableaux de bord réservés à un rôle. |
 | `easycorp/easyadmin-bundle` | Un tableau de bord comme page de l'interface d'administration. |
-| `symfony/asset-mapper` | La feuille de style associée sous `phil-reporting`. |
+| `symfony/asset-mapper` | La feuille de style associée sous `phil-reporting`, quand AssetMapperBundle est enregistré. |
+| L'extension PHP `resvg` | Les graphiques en images PNG, avec les polices de `png.fonts` : un téléchargement, l'image du courriel d'un rapport. Voir [Configuration](configuration.md#les-graphiques-png). |
 
 ## Activer le bundle
 
@@ -46,7 +47,7 @@ traducteur, pour leurs libellés du domaine `phil_reporting`.
 
 ## La feuille de style
 
-Avec AssetMapper, la feuille de style est associée sous `phil-reporting/reporting.css` :
+Avec AssetMapper — AssetMapperBundle enregistré —, la feuille de style est associée sous `phil-reporting/reporting.css` :
 
 ```twig
 <link rel="stylesheet" href="{{ asset('phil-reporting/reporting.css') }}">

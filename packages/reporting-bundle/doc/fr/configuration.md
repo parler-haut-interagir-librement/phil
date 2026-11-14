@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=984ad03882cd150eaaf33793abaca7d56c604b59bf747d1be4ad378e9a573938 -->
+<!-- phil-dev source-sha256=ee2bdeb455d78d17e61d0dd065ba055abd814ac4e2642195be9c0009f1d66946 -->
 # Configuration
 
 ```yaml
@@ -6,6 +6,10 @@
 phil_reporting:
     timezone: America/Toronto        # the periods are whole days of this time zone; UTC by default
     chart: { width: 640, height: 320 } # the SVG images, 100 to 4000 pixels; they scale to their container
+    png:                             # the charts as PNG images too, where the resvg extension is loaded
+        fonts: ['%kernel.project_dir%/assets/fonts/Inter-Regular.ttf']
+        scale: 2                     # 1 to 4; 2 for screens of high density
+        max_pixels: 16777216         # the largest image, width times height
     max_rows: 100000                 # the most rows a report exports, 1 to 10 000 000
     store: directory                 # or memory, for the tests and the sync transport
     directory: '%kernel.project_dir%/var/phil_reporting'
@@ -80,7 +84,27 @@ Un *widget* nomme une source `metric` ou une source `series` par sa clé :
 Un calendrier est nommé comme un tableau de bord. Les destinataires sont gardés dans le magasin de tâches avec la
 tâche, jamais dans le message.
 
+## Les graphiques PNG
+
+Les clients de courriel n'affichent pas les images SVG, et un graphique téléchargé pour être collé dans un document est
+voulu en image matricielle. Là où l'extension PHP `resvg` est chargée, les graphiques sont aussi dessinés en images PNG,
+par le `ResvgRasterizer` de phil/svg-chart :
+
+| Clé | Défaut | Sens |
+|---|---|---|
+| `fonts` | `[]` | Les fichiers TrueType ou OpenType avec lesquels les images sont dessinées ; la famille du premier dessine chaque texte. Aucune police du système n'est lue : sans polices, il n'y a pas de PNG. |
+| `scale` | `2` | L'échelle des images, de 1 à 4 : un graphique de 640 × 320 est dessiné en 1280 × 640 par défaut. |
+| `max_pixels` | `16777216` | La plus grande image, sa largeur fois sa hauteur, jusqu'à 67 108 864 ; une image plus grande est refusée avant d'être dessinée. |
+
+Le rasterizer est enregistré quand `fonts` liste un fichier et que l'extension est chargée là où le conteneur est
+compilé : compilez-le avec le PHP qui sert l'application. Sans l'extension ni les polices, rien n'est enregistré, les
+graphiques restent des images SVG, et le PNG n'est explicitement pas offert : `ChartResponses::hasPng()` est faux et
+`ChartResponses::png()` lève `PngUnavailable`, et le courriel d'un rapport part avec son fichier seulement. Quand aucune
+police n'est listée, un service `Phil\SvgChart\Contract\Rasterizer` de l'application dessine les images, s'il en
+enregistre un.
+
 ## Les livraisons
 
-`mail` a besoin de son adresse `from` ; elle est enregistrée quand Mailer est installé et que `mail` est activé.
-`notification` est enregistrée quand Notifier est installé et que `notification` est activé.
+`mail` a besoin de son adresse `from` ; elle est enregistrée quand Mailer est installé et que `mail` est activé. Le
+graphique d'un rapport qui en a un est l'image de son courriel quand des graphiques PNG sont dessinés ; voir
+[Rapports](reports.md#le-graphique-dun-rapport-dans-son-courriel). `notification` est enregistrée quand Notifier est installé et que `notification` est activé.

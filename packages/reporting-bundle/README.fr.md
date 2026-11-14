@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ba19e60ed7686afa7fa0fe69460f91f465c4c4e31447e183587c91d0c0d71542 -->
+<!-- phil-dev source-sha256=5b6cebb846de17b71d65fefcdea0857ce880e14519e279b018edb75b836b3feb -->
 # phil/reporting-bundle
 
 **Des tableaux de bord et des rapports pour les applications Symfony : des chiffres fournis par n'importe quel bundle,
@@ -13,8 +13,10 @@ l'une de ses pages quand EasyAdmin est installé.
 
 Les graphiques sont du HTML, du CSS et du SVG, jamais un script. Une image SVG est dessinée sur le serveur par
 `phil/svg-chart`, avec un titre, une description qui lit chaque valeur, et le tableau de ses valeurs à côté. Des barres
-en HTML et en CSS forment elles-mêmes un tableau, et un tableau seul est un troisième rendu. Une mesure affiche sa
-valeur écrite dans la locale du lecteur, et sa variation par rapport à la période précédente.
+en HTML et en CSS forment elles-mêmes un tableau, et un tableau seul est un troisième rendu. Là où l'extension PHP
+`resvg` est chargée, les mêmes graphiques sont aussi dessinés en images PNG, pour un téléchargement et pour le courriel
+d'un rapport, que les clients de courriel n'afficheraient pas en SVG. Une mesure affiche sa valeur écrite dans la locale
+du lecteur, et sa variation par rapport à la période précédente.
 
 Un rapport est un service avec des colonnes et des lignes, lu ligne par ligne. Il peut être exporté en CSV, en TSV ou
 en JSON, diffusé en téléchargement, écrit depuis la ligne de commande, ou planifié avec Symfony Scheduler et livré par
@@ -39,6 +41,8 @@ Notifier, Console et EasyAdmin sont chacun utilisés quand ils sont installés.
 | Le calendrier `phil_reporting` de Symfony Scheduler | Implémenté et testé |
 | Les livraisons `mail` et `notification` | Implémenté et testé |
 | Téléchargements `ReportResponses`, `phil:reporting:export`, la page EasyAdmin | Implémenté et testé |
+| Graphiques PNG par l'extension `resvg`, quand elle est chargée : téléchargements `ChartResponses`, le graphique d'un `ChartedReport` dans son courriel | Implémenté et testé |
+| Exports qui échouent en entier : `ExportFailed`, nouvelle tentative, aucun fichier tronqué conservé | Implémenté et testé |
 
 ## Documentation
 
