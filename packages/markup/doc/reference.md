@@ -31,8 +31,10 @@
 | `Reader\UjoReader` | `MarkupReader` | UJO JSON, through `phil/ujo` |
 | `Reader\Text\TextReader` | `MarkupReader` | Plain text: a `paragraph` for each run of lines, line breaks kept, addresses made links |
 | `Adapter\DefaultCompiler` | `LevelAwareCompiler` | Every format, the add-ons' given by name; `reader($format, $level)` gives the reader of a format into UJO — HTML's and plain text's too, though both are compiled without it —; `formats()` the name of each |
-| `Adapter\SanitizerPurifier` | `HtmlPurifier` | `defaultPolicies()`, one sanitizer per level |
-| `Adapter\CodeClasses` | `final readonly class` | The classes kept on `code` (`language-…`) and `span` (`hl-…`), an attribute sanitizer of `symfony/html-sanitizer` |
+| `Adapter\SanitizerPurifier` | `HtmlPurifier` | `defaultPolicies()`, one sanitizer per level; `configurations()`, the configuration of each level |
+| `Adapter\AmmoniaPurifier` | `HtmlPurifier` | `defaultPolicies()` on the `ammonia` extension, the same policies; `isAvailable()`: see [Accelerators](accelerators.md) |
+| `Adapter\Purifiers` | `final readonly class` | `defaultPolicies($mediaHosts, $extension)`: `AmmoniaPurifier` where the extension is loaded, `SanitizerPurifier` otherwise |
+| `Adapter\CodeClasses` | `final readonly class` | The classes kept on `code` (`language-…`) and `span` (`hl-…`), an attribute sanitizer of `symfony/html-sanitizer`; `keep()`, the classes it keeps of a value |
 | `Adapter\PlainText`, `Adapter\Autolink` | compilers | Plain text, links in text |
 
 The root namespace — formats, levels, ports and exceptions — is what a domain model may name; the analyser, the
@@ -87,3 +89,5 @@ An image from another host loses its `src`; a relative image, served by the site
 members write texts at `forum` gives the hosts it serves images from, or `[]`.
 
 Purify again what was stored when it is shown: a policy that tightens then applies to texts written before.
+`Purifiers::defaultPolicies()` takes the same hosts, and purifies with the `ammonia` extension where it is loaded:
+see [Accelerators](accelerators.md).

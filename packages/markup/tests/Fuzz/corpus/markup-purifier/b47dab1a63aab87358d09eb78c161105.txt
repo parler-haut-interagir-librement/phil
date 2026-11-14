@@ -1,0 +1,1 @@
+<p onclick="x">a<@q href="javascript:alert(1)>b</a><img src=x onerror=alerh>e><Img ,rc=x ont:ae1)">b</a><img sc=rx onerror=alerh>e><Img ,rc=x ont:alert(=1)">b</a><img src=x rr=oalerh>e><Img ,rc=x rror=alerh>e><Img ,r ">a<a><img sc=rp ipt>

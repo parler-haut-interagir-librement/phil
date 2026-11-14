@@ -4,7 +4,7 @@
 |---|---|---|
 | `Phil\MarkupBundle\PhilMarkupBundle` | `AbstractBundle` | The `phil_markup` configuration and the services |
 | `…\Infrastructure\DependencyInjection\MarkupServices` | `final class` | Registers the services; `formats()`, `isEnabledDefault()` for the configuration |
-| `…\Infrastructure\DependencyInjection\MediaHostsPass` | compiler pass | Gives `SanitizerPurifier` the `media_hosts`, whichever bundle registered it |
+| `…\Infrastructure\DependencyInjection\MediaHostsPass` | compiler pass | Gives `SanitizerPurifier`, `AmmoniaPurifier` and `Purifiers` the `media_hosts`, whichever bundle registered them; keeps `HtmlPurifier` on the purifier chosen |
 | `…\Infrastructure\DependencyInjection\SmartPunctuationPass` | compiler pass | Gives the smart punctuation the typographers of `phil/typography-bundle`, or its own, and its formats |
 | `…\Infrastructure\Typography\SmartPunctuationCompiler` | `final readonly class` | A `LevelAwareCompiler` decorating `MarkupCompiler`: its HTML through a typographer |
 | `…\Infrastructure\Format\MarkupFormats` | `final readonly class` | `enabled()`, `isEnabled()`, `format()`, `label()`, `level()`, `ceiling()`; formats by name |
@@ -19,7 +19,8 @@
 |---|---|
 | `Phil\Ujo\Html\HtmlRenderer` | built by `HtmlRenderer::default()` |
 | `Phil\Markup\Adapter\DefaultCompiler`, alias `Phil\Markup\MarkupCompiler` | renders UJO with `HtmlRenderer` |
-| `Phil\Markup\Adapter\SanitizerPurifier`, alias `Phil\Markup\HtmlPurifier` | built by `defaultPolicies(media_hosts)` |
+| `Phil\Markup\Adapter\SanitizerPurifier` | built by `defaultPolicies(media_hosts)`; alias `Phil\Markup\HtmlPurifier` with `purifier: sanitizer` |
+| `phil_markup.purifier`, alias `Phil\Markup\HtmlPurifier` | built by `Purifiers::defaultPolicies(media_hosts)`, or `AmmoniaPurifier::defaultPolicies(media_hosts)` with `purifier: ammonia`; absent with `purifier: sanitizer` |
 | `phil_markup.smart_punctuation` | `SmartPunctuationCompiler`, decorating `Phil\Markup\MarkupCompiler`; with `phil/typography`, unless `smart_punctuation` is off |
 | `phil_markup.typographers` | `Phil\Typography\Typographers` of the smart punctuation, when `phil/typography-bundle` registers none |
 | `Phil\Markup\Markup` | public |

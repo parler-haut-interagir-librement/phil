@@ -31,8 +31,9 @@ It is a plain PHP library with Doctrine attributes on `MarkedUpText`, read only 
 maps it. Its root namespace holds what a domain model may name: the `MarkupFormat` and `Level` enums, the
 `MarkupCompiler`, `LevelAwareCompiler` and `HtmlPurifier` ports and the exceptions. `Lexer` holds the analyser every
 reader shares, a cursor that lexes without regular expressions; `Reader` the readers into UJO; `Adapter` the
-compilers and the purifier. `DefaultCompiler` reads or compiles every format, and `SanitizerPurifier` applies one
-`symfony/html-sanitizer` policy per level, and takes the readers of the add-ons' formats by name. `Markup` chains the
+compilers and the purifiers. `DefaultCompiler` reads or compiles every format, and takes the readers of the add-ons'
+formats by name; `SanitizerPurifier` applies one `symfony/html-sanitizer` policy per level, and `AmmoniaPurifier` the
+same policies on the `ammonia` extension of PHP where it is loaded. `Markup` chains the
 two: source, reader, UJO, renderer, HTML, purifier.
 
 ## Status
@@ -51,6 +52,7 @@ two: source, reader, UJO, renderer, HTML, purifier.
 | `Reader\UjoReader`, `Reader\Text\TextReader` | Implemented and tested |
 | `Adapter\DefaultCompiler`: Markdown, BBCode, MediaWiki, DokuWiki, Creole, UJO and the add-ons' formats through UJO; HTML and plain text as written, their readers on demand | Implemented and tested |
 | `Adapter\SanitizerPurifier`: one policy per level | Implemented and tested |
+| `Adapter\AmmoniaPurifier`, `Adapter\Purifiers`: the same policies on the `ammonia` extension, where it is loaded | Implemented and tested |
 | Mentions, embeds, external links, smart punctuation, in every format | Not started |
 
 ## Documentation
@@ -64,7 +66,8 @@ two: source, reader, UJO, renderer, HTML, purifier.
 | [BBCode](doc/bbcode.md) | The tags and the extensions, their UJO types, how a source that is not well formed is read, and why reading is linear. |
 | [The wikis](doc/wikis.md) | MediaWiki, DokuWiki and Creole: their syntax, the extension tags they share, where pages and files are found, and why reading is linear. |
 | [HTML](doc/html.md) | What the HTML reader reads, the classes of `phil/ujo` it reads back, and what it leaves out. |
-| [Exceptions](doc/exceptions.md) | `MarkupException`, `InvalidSource` and `UnknownFormat`. |
+| [Accelerators](doc/accelerators.md) | The `ammonia` extension: what `AmmoniaPurifier` keeps, the measures, installing it by PIE. |
+| [Exceptions](doc/exceptions.md) | `MarkupException`, `InvalidSource`, `MissingExtension` and `UnknownFormat`. |
 | [Extension points](doc/extension-points.md) | The ports, arguments and data an application chooses or replaces, the dialects of Markdown and the formats of add-ons. |
 | [Testing](doc/testing.md) | How the library is tested. |
 | [Reference](doc/reference.md) | The types, the formats, the levels and what each keeps. |
@@ -99,7 +102,8 @@ In a Symfony application, `phil/markup-bundle` registers the services and the Tw
 PHP 8.5 or later with `ext-ctype`, `ext-dom`, `ext-filter`, `ext-libxml` and `ext-mbstring`, `phil/ujo`, `symfony/html-sanitizer` 8.2 and
 `symfony/yaml` 8.2. Doctrine ORM 3.7 and DBAL 4.5 are optional: only an application that stores a `MarkedUpText` as
 an embeddable needs them, and it requires them itself; the readers, the compiler, the purifier and `Markup::text()`
-work without.
+work without. The `ammonia` extension, for PHP 8.2 to 8.5, is optional as well: `Purifiers::defaultPolicies()` purifies
+with it where it is loaded, `SanitizerPurifier` everywhere else.
 
 ## Contributing
 

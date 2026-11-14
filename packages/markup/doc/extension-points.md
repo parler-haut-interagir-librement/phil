@@ -33,7 +33,10 @@ smart punctuation, say — and keeps it level aware.
 | `purify(string $html, Level $level): string` | HTML safe to show at that level, whatever it was given |
 
 `Adapter\SanitizerPurifier` holds one `symfony/html-sanitizer` per level: `defaultPolicies($mediaHosts)` builds the
-shipped ones, with the hosts images may come from; `new SanitizerPurifier($sanitizers)` takes the application's own.
+shipped ones, with the hosts images may come from; `new SanitizerPurifier($sanitizers)` takes the application's own;
+`configurations($mediaHosts)` gives the configuration of each shipped level, for another purifier to translate.
+`Adapter\AmmoniaPurifier` applies the shipped policies on the `ammonia` extension of PHP, and `Adapter\Purifiers`
+chooses it where the extension is loaded: see [Accelerators](accelerators.md).
 
 ## Readers
 

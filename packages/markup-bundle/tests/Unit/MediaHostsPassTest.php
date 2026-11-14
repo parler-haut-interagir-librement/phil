@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Phil\MarkupBundle\Tests\Unit;
 
+use Phil\Markup\Adapter\AmmoniaPurifier;
+use Phil\Markup\Adapter\Purifiers;
 use Phil\Markup\Adapter\SanitizerPurifier;
+use Phil\Markup\HtmlPurifier;
+use Phil\MarkupBundle\Infrastructure\DependencyInjection\MarkupServices;
 use Phil\MarkupBundle\Infrastructure\DependencyInjection\MediaHostsPass;
 use Phil\MarkupBundle\PhilMarkupBundle;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -28,6 +32,56 @@ final class MediaHostsPassTest extends TestCase
         new MediaHostsPass()->process($container);
 
         self::assertSame([['cdn.example.com']], $container->getDefinition(SanitizerPurifier::class)->getArguments());
+    }
+
+    public function testTheHostsReachEveryPurifierOfTheDefaultPolicies(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter(MediaHostsPass::PARAMETER, ['cdn.example.com']);
+        $container->register('a', AmmoniaPurifier::class)->setFactory([AmmoniaPurifier::class, 'defaultPolicies']);
+        $container->register('b', HtmlPurifier::class)->setFactory([Purifiers::class, 'defaultPolicies']);
+        $container->register('c', AmmoniaPurifier::class)->setFactory([Purifiers::class, 'defaultPolicies']);
+        $container->register('d', HtmlPurifier::class)->setFactory([AmmoniaPurifier::class, 'other']);
+
+        new MediaHostsPass()->process($container);
+
+        self::assertSame([['cdn.example.com']], $container->getDefinition('a')->getArguments());
+        self::assertSame([['cdn.example.com']], $container->getDefinition('b')->getArguments());
+        self::assertSame([], $container->getDefinition('c')->getArguments());
+        self::assertSame([], $container->getDefinition('d')->getArguments());
+    }
+
+    /**
+     * A bundle that points `HtmlPurifier` back to the sanitizer after this one loses it to the purifier chosen.
+     */
+    public function testThePurifierChosenKeepsTheAlias(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter(MediaHostsPass::PARAMETER, null);
+        $container->register(MarkupServices::PURIFIER, HtmlPurifier::class)->setFactory([Purifiers::class, 'defaultPolicies']);
+        $container->register(SanitizerPurifier::class, SanitizerPurifier::class)->setFactory([SanitizerPurifier::class, 'defaultPolicies']);
+        $container->setAlias(HtmlPurifier::class, SanitizerPurifier::class);
+
+        new MediaHostsPass()->process($container);
+        self::assertSame(MarkupServices::PURIFIER, (string) $container->getAlias(HtmlPurifier::class));
+
+        $container->register('app.purifier', SanitizerPurifier::class);
+        $container->setAlias(HtmlPurifier::class, 'app.purifier');
+        new MediaHostsPass()->process($container);
+        self::assertSame('app.purifier', (string) $container->getAlias(HtmlPurifier::class), 'A purifier of the application is kept.');
+
+        $without = new ContainerBuilder();
+        $without->setParameter(MediaHostsPass::PARAMETER, null);
+        $without->register(SanitizerPurifier::class, SanitizerPurifier::class);
+        $without->setAlias(HtmlPurifier::class, SanitizerPurifier::class);
+        new MediaHostsPass()->process($without);
+        self::assertSame(SanitizerPurifier::class, (string) $without->getAlias(HtmlPurifier::class), 'The sanitizer chosen is kept.');
+
+        $unaliased = new ContainerBuilder();
+        $unaliased->setParameter(MediaHostsPass::PARAMETER, null);
+        $unaliased->register(MarkupServices::PURIFIER, HtmlPurifier::class);
+        new MediaHostsPass()->process($unaliased);
+        self::assertFalse($unaliased->hasAlias(HtmlPurifier::class));
     }
 
     public function testAPurifierBuiltOtherwiseIsLeftAlone(): void

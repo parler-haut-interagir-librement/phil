@@ -16,21 +16,33 @@
 | `Adapter\DefaultCompiler`, `Adapter\PlainText` | Every format, raw HTML by level, the readers it gives, paragraphs and line breaks |
 | `Reader\Text\TextReader` | Paragraphs, line breaks, escaping and links as UJO blocks, the same text as `PlainText` once rendered |
 | `Adapter\SanitizerPurifier` | What each level keeps and removes, schemes of links and images, the hosts images come from, a long input |
+| `PurifierCorpusTest` | Hostile HTML at each level — known XSS vectors, mutation XSS, address schemes, elements that act on the page, deep trees —: nothing that runs, nothing outside the level, the same elements once purified again; `AmmoniaPurifier` keeps the same elements as `SanitizerPurifier` |
+| `Adapter\AmmoniaPurifier`, `Adapter\Purifiers` | What each level keeps, the addresses the extension does not check, the classes of code, the HTML given to the sanitizer — short, of many tags, with `<noscript`, not UTF-8, with images of limited hosts —, the choice of a purifier, the extension missing |
 | `Markup`, `MarkedUpText` | Compiling and purifying, with a compiler that knows levels and one that does not; the embeddable written and read back by Doctrine on SQLite |
 
 ```sh
 vendor/bin/phpunit packages/markup/tests
 ```
 
+The tests of `AmmoniaPurifier` run where the `ammonia` extension is loaded (`RequiresPhpExtension`), as in the
+`bench-ext` image of `phil/dev-tools`; elsewhere, and under PHP 8.6, for which the extension is not built, the same
+hostile HTML runs through `SanitizerPurifier` only:
+
+```sh
+docker run --rm -v "$PWD":"$PWD" -w "$PWD" phil-dev/bench-ext:8.5 php vendor/bin/phpunit packages/markup/tests/Unit/Adapter
+```
+
 The source files are held to 100 % of mutants killed by Infection, run from the monorepo root.
 
 ## Benchmarks
 
-`BBCodeBench` reads forum posts, then sources written to be slow — tags nested deep, closing tags without an opening
-one, brackets that open no tag, items, rows and cells left open, headings and footnotes by the thousand —, at 25, 50
-and 100 KB; the time doubles with the size. `ReadersBench` reads a small document in each format, the same document
-repeated to 10 and 100 KB, and 10 and 100 KB of delimiters left open; the time grows ten times from 10 to 100 KB. From
-the monorepo root:
+`PurifierBench` purifies the HTML a Markdown document compiles to, at each level, on 300 bytes, 12 KB and 100 KB, with
+`SanitizerPurifier`, and with `AmmoniaPurifier` where its extension is loaded: see [Accelerators](accelerators.md) for
+the measures. `BBCodeBench` reads forum posts, then sources written to be slow — tags nested deep, closing tags without
+an opening one, brackets that open no tag, items, rows and cells left open, headings and footnotes by the thousand —, at
+25, 50 and 100 KB; the time doubles with the size. `ReadersBench` reads a small document in each format, the same
+document repeated to 10 and 100 KB, and 10 and 100 KB of delimiters left open; the time grows ten times from 10 to 100
+KB. From the monorepo root:
 
 ```sh
 composer bench -- packages/markup/tests/Benchmark

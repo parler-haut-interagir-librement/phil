@@ -5,19 +5,32 @@ declare(strict_types=1);
 namespace Phil\MarkupBundle\Infrastructure\DependencyInjection;
 
 use Override;
+use Phil\Markup\Adapter\AmmoniaPurifier;
+use Phil\Markup\Adapter\Purifiers;
 use Phil\Markup\Adapter\SanitizerPurifier;
+use Phil\Markup\HtmlPurifier;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
- * Gives every `SanitizerPurifier` built by `defaultPolicies()` the media hosts of the configuration, once every bundle
- * is loaded: another bundle that registers the same adapter under the same identifier, as `phil/content-bundle` does,
- * may load after this one and replace its definition. A purifier the application built otherwise — another factory,
- * another class — is left alone.
+ * Gives every purifier built by `defaultPolicies()` — of `SanitizerPurifier`, `AmmoniaPurifier` or `Purifiers` — the
+ * media hosts of the configuration, once every bundle is loaded: another bundle that registers the same adapter under
+ * the same identifier, as `phil/content-bundle` does, may load after this one and replace its definition. A purifier
+ * the application built otherwise — another factory, another class — is left alone.
+ *
+ * When such a bundle points `HtmlPurifier` back to `SanitizerPurifier`, the purifier the configuration chose takes it
+ * again: `purifier: sanitizer` is the way to keep the sanitizer.
  */
 final readonly class MediaHostsPass implements CompilerPassInterface
 {
     public const string PARAMETER = 'phil_markup.media_hosts';
+
+    /** The factories of the purifiers, each with the class of the service it builds. */
+    private const array PURIFIERS = [
+        [[SanitizerPurifier::class, 'defaultPolicies'], SanitizerPurifier::class],
+        [[AmmoniaPurifier::class, 'defaultPolicies'], AmmoniaPurifier::class],
+        [[Purifiers::class, 'defaultPolicies'], HtmlPurifier::class],
+    ];
 
     #[Override]
     public function process(ContainerBuilder $container): void
@@ -30,9 +43,13 @@ final readonly class MediaHostsPass implements CompilerPassInterface
         }
 
         foreach ($container->getDefinitions() as $definition) {
-            if (SanitizerPurifier::class === $definition->getClass() && [SanitizerPurifier::class, 'defaultPolicies'] === $definition->getFactory()) {
+            if (\in_array([$definition->getFactory(), $definition->getClass()], self::PURIFIERS, true)) {
                 $definition->setArguments([$parameters[self::PARAMETER]]);
             }
+        }
+
+        if ($container->hasDefinition(MarkupServices::PURIFIER) && $container->hasAlias(HtmlPurifier::class) && SanitizerPurifier::class === (string) $container->getAlias(HtmlPurifier::class)) {
+            $container->setAlias(HtmlPurifier::class, MarkupServices::PURIFIER);
         }
     }
 }

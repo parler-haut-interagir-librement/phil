@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\MarkupBundle;
 
 use Override;
+use Phil\Markup\Adapter\AmmoniaPurifier;
 use Phil\MarkupBundle\Infrastructure\DependencyInjection\MarkupServices;
 use Phil\MarkupBundle\Infrastructure\DependencyInjection\MediaHostsPass;
 use Phil\MarkupBundle\Infrastructure\DependencyInjection\SmartPunctuationPass;
@@ -74,6 +75,15 @@ final class PhilMarkupBundle extends AbstractBundle
                         ->end()
                     ->end()
                 ->end()
+                ->enumNode('purifier')
+                    ->info('The purifier: auto for the ammonia extension of PHP where it is loaded and symfony/html-sanitizer elsewhere, sanitizer or ammonia for one of them. Both keep the same elements.')
+                    ->values(MarkupServices::PURIFIERS)
+                    ->defaultValue('auto')
+                    ->validate()
+                        ->ifTrue(static fn (mixed $purifier): bool => 'ammonia' === $purifier && !AmmoniaPurifier::isAvailable())
+                        ->thenInvalid('The %s purifier needs the ammonia extension of PHP, which is not loaded.')
+                    ->end()
+                ->end()
                 ->variableNode('media_hosts')
                     ->info("The hosts images may come from, besides the site itself: a list of host names, subdomains included; [] for none; null for any, which lets a member's image call another site from every reader's browser.")
                     ->defaultNull()
@@ -98,8 +108,8 @@ final class PhilMarkupBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{formats: list<string>, default_format: string|null, levels: array<string, string>, added_formats: array<string, array{label: string, reader: string}>, default_level: string, smart_punctuation: array{enabled: bool, locale: string|null}, media_hosts: list<string>|null} $config */
-        MarkupServices::register($builder, $config['default_level'], $config['media_hosts'], $config['formats'], $config['default_format'], $config['levels'], $config['smart_punctuation']['enabled'] ? $config['smart_punctuation']['locale'] : false, $config['added_formats']);
+        /** @var array{formats: list<string>, default_format: string|null, levels: array<string, string>, added_formats: array<string, array{label: string, reader: string}>, default_level: string, smart_punctuation: array{enabled: bool, locale: string|null}, media_hosts: list<string>|null, purifier: string} $config */
+        MarkupServices::register($builder, $config['default_level'], $config['media_hosts'], $config['formats'], $config['default_format'], $config['levels'], $config['smart_punctuation']['enabled'] ? $config['smart_punctuation']['locale'] : false, $config['added_formats'], $config['purifier']);
     }
 
     /**

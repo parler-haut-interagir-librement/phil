@@ -11,6 +11,7 @@ What an application configures, replaces or decorates. The compilers, purifiers 
 | `levels`, `default_level` | The highest level each format is purified at, whatever a template asks, and the level taken when none is named |
 | `smart_punctuation` | Whether, and in which locale, the HTML goes through a typographer before it is purified |
 | `media_hosts` | The hosts images may come from, given to `SanitizerPurifier` whichever bundle registers it |
+| `purifier` | `auto`, `sanitizer` or `ammonia`: the purifier `HtmlPurifier` points at, the `ammonia` extension of PHP where it is loaded by default |
 
 See [Configuration](configuration.md).
 

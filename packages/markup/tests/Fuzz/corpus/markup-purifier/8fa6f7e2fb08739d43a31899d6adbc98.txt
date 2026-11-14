@@ -1,0 +1,1 @@
+<p onclick="x">a<a href="javascript:_lert(1)">b</a><img sr=x onerrolaert(1)><math><ytext><table><mglyph><style>t>

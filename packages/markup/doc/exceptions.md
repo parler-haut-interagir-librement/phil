@@ -5,6 +5,7 @@ Every exception of the library implements `Phil\Markup\Exception\MarkupException
 | Exception | Extends | Thrown when |
 |---|---|---|
 | `InvalidSource` | `InvalidArgumentException` | A UJO source is not JSON, breaks the structure of a document, or holds a block of no known type or whose data breaks its type |
+| `MissingExtension` | `LogicException` | `AmmoniaPurifier::defaultPolicies()` is called where the `ammonia` extension of PHP is not loaded; `$extension` names it |
 | `UnknownFormat` | `InvalidArgumentException` | A compiler is asked a format no reader knows; or an add-on gives `DefaultCompiler` a name that is already a format, or not 1 to 16 lower-case letters, digits and hyphens starting with a letter |
 
 The message names the format and what is wrong, for example `The ujo source cannot be read: …`, followed by the

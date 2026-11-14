@@ -14,6 +14,10 @@
 | `symfony/html-sanitizer` 8.2 | The policies of `SanitizerPurifier` |
 | `symfony/yaml` 8.2 | The front matter of Markdown, and the YAML a dialect reads with `FrontMatter::yaml()` |
 
+The `ammonia` extension of PHP is optional too, suggested as `ext-ammonia`: where it is loaded, `Purifiers` purifies
+with it, about twice as fast on long texts. See [Accelerators](accelerators.md) for PIE, its PHP versions and its
+systems.
+
 Doctrine ORM 3.7 and DBAL 4.5 are optional: only an application that stores a `MarkedUpText` as an embeddable needs
 them, and it requires them itself.
 

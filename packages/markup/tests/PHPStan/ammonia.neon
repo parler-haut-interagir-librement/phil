@@ -1,0 +1,4 @@
+# The classes of the ammonia extension, which PHPStan discovers in this file where the extension is not loaded.
+parameters:
+    scanFiles:
+        - ammonia.stub

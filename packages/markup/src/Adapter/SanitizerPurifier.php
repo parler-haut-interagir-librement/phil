@@ -50,6 +50,19 @@ final readonly class SanitizerPurifier implements HtmlPurifier
      */
     public static function defaultPolicies(?array $mediaHosts = null): self
     {
+        return new self(array_map(static fn (HtmlSanitizerConfig $config): HtmlSanitizer => new HtmlSanitizer($config), self::configurations($mediaHosts)));
+    }
+
+    /**
+     * The configuration of each level that `defaultPolicies()` builds its sanitizers from, which another purifier may
+     * translate into its own policy.
+     *
+     * @param list<string>|null $mediaHosts the hosts images may come from, as `defaultPolicies()` takes them
+     *
+     * @return array{basic: HtmlSanitizerConfig, forum: HtmlSanitizerConfig, all: HtmlSanitizerConfig}
+     */
+    public static function configurations(?array $mediaHosts = null): array
+    {
         $basic = self::schemes(new HtmlSanitizerConfig(), $mediaHosts);
         $forum = $basic->allowElement('a', ['href', 'title'])->allowElement('img', ['src', 'alt', 'title']);
 
@@ -74,11 +87,7 @@ final readonly class SanitizerPurifier implements HtmlPurifier
             $all = $all->allowElement($tool->tag, array_keys($tool->attributes));
         }
 
-        return new self([
-            'basic' => new HtmlSanitizer($basic),
-            'forum' => new HtmlSanitizer($forum),
-            'all' => new HtmlSanitizer($all),
-        ]);
+        return ['basic' => $basic, 'forum' => $forum, 'all' => $all];
     }
 
     public function purify(string $html, Level $level): string

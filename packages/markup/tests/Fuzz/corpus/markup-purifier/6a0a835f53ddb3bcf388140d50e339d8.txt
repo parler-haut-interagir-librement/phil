@@ -1,0 +1,1 @@
+<p onclick="x">a<a href="javascript:alert(1)">b</a><img src=x onerror=alert(1)><math><ytext><table>rt(1)"</a><img src=t><table><}glyph><(1)></math><code class="language-php x">c</codpt>
