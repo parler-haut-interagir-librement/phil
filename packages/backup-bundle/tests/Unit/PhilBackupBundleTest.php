@@ -24,6 +24,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
@@ -56,7 +57,10 @@ final class PhilBackupBundleTest extends TestCase
     {
         $container = $this->load([]);
 
-        self::assertSame([[], null], $container->getDefinition(ProcessCommandRunner::class)->getArguments());
+        $logger = new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE);
+        $dispatcher = new Reference('event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE);
+        self::assertEquals([[], null, 3600.0, 10.0, $logger, $dispatcher], $container->getDefinition(ProcessCommandRunner::class)->getArguments());
+        self::assertSame([['channel' => 'backup']], $container->getDefinition(ProcessCommandRunner::class)->getTag('monolog.logger'));
         self::assertEquals([new Reference('database_connection'), new Reference(ProcessCommandRunner::class)], $container->getDefinition(PhilBackupBundle::DATABASE_CLIENT)->getArguments());
         self::assertSame(['%kernel.project_dir%/var/backup'], $container->getDefinition(BackupDirectory::class)->getArguments());
         self::assertSame([[]], $container->getDefinition(MediaArchive::class)->getArguments());
@@ -83,6 +87,8 @@ final class PhilBackupBundleTest extends TestCase
             'directory' => '/backups',
             'binaries' => ['pg_dump' => '/opt/pg/bin/pg_dump', 'mariadb-dump' => '/opt/mariadb/bin/mariadb-dump'],
             'timeout' => 600,
+            'warn_after' => null,
+            'grace_period' => 30,
             'key' => '%env(PHIL_BACKUP_KEY)%',
             'media' => ['my-uploads' => '/srv/uploads', 'Documents_2' => '/srv/documents'],
             'rotation' => ['last' => 3, 'daily' => 0, 'weekly' => 0, 'monthly' => 12],
@@ -90,7 +96,7 @@ final class PhilBackupBundleTest extends TestCase
             'verify' => ['database' => 'shop_restore_test'],
         ]);
 
-        self::assertSame([['pg_dump' => '/opt/pg/bin/pg_dump', 'mariadb-dump' => '/opt/mariadb/bin/mariadb-dump'], 600], $container->getDefinition(ProcessCommandRunner::class)->getArguments());
+        self::assertSame([['pg_dump' => '/opt/pg/bin/pg_dump', 'mariadb-dump' => '/opt/mariadb/bin/mariadb-dump'], 600, 0.0, 30], \array_slice($container->getDefinition(ProcessCommandRunner::class)->getArguments(), 0, 4));
         self::assertEquals(new Reference('doctrine.dbal.legacy_connection'), $container->getDefinition(PhilBackupBundle::DATABASE_CLIENT)->getArgument(0));
         self::assertSame(['/backups'], $container->getDefinition(BackupDirectory::class)->getArguments());
         self::assertSame([['my-uploads' => '/srv/uploads', 'Documents_2' => '/srv/documents']], $container->getDefinition(MediaArchive::class)->getArguments());
@@ -103,6 +109,11 @@ final class PhilBackupBundleTest extends TestCase
         self::assertEquals(new Reference(RotationPolicy::class), $container->getDefinition(Backups::class)->getArgument(4));
         self::assertSame('shop_restore_test', $container->getDefinition(VerifyBackupCommand::class)->getArgument(1));
         self::assertSame(1, $container->getDefinition(RestoreBackupCommand::class)->getArgument(2));
+    }
+
+    public function testZeroIsAcceptedForEachDuration(): void
+    {
+        self::assertSame([[], 0, 0, 0], \array_slice($this->load(['timeout' => 0, 'warn_after' => 0, 'grace_period' => 0])->getDefinition(ProcessCommandRunner::class)->getArguments(), 0, 4));
     }
 
     public function testARuleMayKeepNone(): void
@@ -125,6 +136,9 @@ final class PhilBackupBundleTest extends TestCase
             ['connection' => ''],
             ['directory' => ''],
             ['restore' => ['keep_before_restore' => 0]],
+            ['timeout' => -1],
+            ['warn_after' => -1],
+            ['grace_period' => -1],
         ] as $config) {
             try {
                 $this->load($config);

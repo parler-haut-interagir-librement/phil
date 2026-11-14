@@ -20,6 +20,18 @@ return [
             ],
         ],
     ],
+    'infection' => [
+        'mutators' => [
+            // A tool's running time is read from the monotonic clock between two checks at least 0.2 s apart: it never
+            // lands on the limit itself, so stopping or warning at the limit or just past it cannot be told apart.
+            'GreaterThanOrEqualTo' => [
+                'ignoreSourceCodeByRegex' => [
+                    '.*\$elapsed >= \$timeout.*',
+                    '.*\$elapsed >= \$warnAfter.*',
+                ],
+            ],
+        ],
+    ],
     // The package is released from its own repository: its CHANGELOG uses every section.
     'docs' => ['public' => true],
 ];
