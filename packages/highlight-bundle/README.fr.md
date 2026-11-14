@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2bf6ae8ff1f907f34f757a7acc0b71cd59695d8fe07f2169a11c892bc06a34f1 -->
+<!-- phil-dev source-sha256=8a1ed0c589fcf27ade1c170ebb643d32795698d0b9f1631da9ed356039766b03 -->
 # phil/highlight-bundle
 
 **Du code coloré sur le serveur dans une application Symfony : dans les documents UJO, dans les gabarits, avec un thème
@@ -17,7 +17,7 @@ avec `{{ snippet|highlight('php') }}`. La page n'a besoin d'aucun script ; le co
 C'est un bundle mince sur `symfony/config` et `symfony/dependency-injection`. Twig, `phil/ujo-bundle` et
 AssetMapper sont facultatifs : le filtre n'est enregistré que si Twig est installé, les blocs de code ne sont colorés
 que si le moteur de rendu de ce bundle se trouve dans le conteneur, et la feuille de style n'est déclarée que si
-AssetMapper est installé.
+AssetMapperBundle est enregistré, ce que FrameworkBundle fait quand `symfony/asset-mapper` est installé.
 
 La conception est simple. `PhilHighlightBundle` lit la configuration et déclare la feuille de style, `HighlightServices`
 enregistre les services, `HighlighterPass` ajoute les langages et les alias et décore le moteur de rendu UJO,

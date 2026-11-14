@@ -14,8 +14,8 @@ colours, in the browser, the blocks whose language the server does not know.
 
 It is a thin bundle built on `symfony/config` and `symfony/dependency-injection`. Twig,
 `phil/ujo-bundle` and AssetMapper are optional: the filter is registered only when Twig is installed, the code blocks
-are coloured only when that bundle's renderer is in the container, and the stylesheet is mapped only when AssetMapper
-is installed.
+are coloured only when that bundle's renderer is in the container, and the stylesheet is mapped only when
+AssetMapperBundle is registered, which FrameworkBundle does when `symfony/asset-mapper` is installed.
 
 The design is small: `PhilHighlightBundle` reads the configuration and maps the stylesheet, `HighlightServices`
 registers the services, `HighlighterPass` adds the languages and the aliases and decorates the UJO renderer,

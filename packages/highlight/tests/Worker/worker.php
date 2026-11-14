@@ -6,6 +6,10 @@ declare(strict_types=1);
  * The page `composer bench:worker phil/highlight` measures: FrankenPHP keeps this script alive across requests, so
  * the highlighter built here, and the grammars it compiles on first use, serve every request, as one service of an
  * application's worker does. Each request highlights about 10 KB of PHP and 10 KB of JavaScript.
+ *
+ * At the end of each request, the page says it was served whole (`X-Phil-Bench: ok`) and how much memory the worker
+ * holds (`X-Phil-Bench-Memory`, in bytes), so that the benchmark counts a broken page as failed and sees memory that
+ * still grows after the warm-up. The page is buffered so that both headers go out after the work, before any byte.
  */
 
 use Phil\Highlight\Highlighter;
@@ -23,9 +27,14 @@ $sources = [
 ];
 
 $page = static function () use ($highlighter, $sources): void {
+    ob_start();
     foreach ($sources as $language => $code) {
         echo '<pre><code>', $highlighter->toHtml($code, $language), '</code></pre>';
     }
+
+    header('X-Phil-Bench: ok');
+    header('X-Phil-Bench-Memory: '.memory_get_usage());
+    ob_end_flush();
 };
 
 while (frankenphp_handle_request($page)) {
