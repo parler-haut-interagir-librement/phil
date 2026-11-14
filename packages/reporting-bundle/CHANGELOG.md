@@ -4,6 +4,14 @@ All notable changes to `phil/reporting-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Changed
+
+- The caption of the bars of `render="html"` is hidden for screen readers alone by the bundle's stylesheet, with the
+  class `phil-reporting-bars__caption`, instead of a class of PHIL UX: the templates carry no class of a kit and draw
+  the same beside Tailwind.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added
