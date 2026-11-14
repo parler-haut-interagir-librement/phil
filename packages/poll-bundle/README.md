@@ -22,9 +22,9 @@ availabilities that finds a date, a questionnaire, a box of ideas voted by membe
 association. A poll may belong to one of the application's resources — an idea, a meeting — named as a reference of
 `phil/resource` (`idea:42`), and so may its voters (`user:7`). The application says who may create a poll, vote and
 manage it; it may add counting methods of its own beside the four of the library. The bundles built on it show a
-poll with the same views and templates: the form of a ballot and the results, in the markup of the PHIL UX kit's
-recipes, working without JavaScript, and a DOM event when the results of a closed poll are revealed, on which the
-kit's celebration plays.
+poll with the same views and templates: the form of a ballot and the results, drawn with the recipes of the PHIL UX
+kit or of the Shadcn kit on Tailwind, working without JavaScript, and a DOM event when the results of a closed poll
+are revealed, on which the kit's celebration plays.
 
 It is a Symfony bundle on `phil/poll`, `phil/resource` and Doctrine ORM: polls, ballots and participations live in
 three tables, or in memory for tests. The services keep no state between requests and are safe in a long-running
@@ -41,7 +41,7 @@ until the next ballot, when the application names one.
 | Counting methods of the application, autoconfigured beside the library's | Implemented and tested |
 | The single transferable vote by Meek's method, in exact numbers, with its rounds published | Implemented, tested, fuzzed and benchmarked |
 | Counts kept in a cache pool until the next ballot, behind an option | Implemented and tested |
-| The voting interface: views, templates in the markup of the kit's recipes, the reading of a posted form | Implemented and tested |
+| The voting interface: views, templates drawn with the kit's recipes, the reading of a posted form | Implemented and tested |
 | The DOM event of revealed results, for the kit's celebration | Implemented and tested |
 | Doctrine and in-memory stores, the in-memory ones emptied between requests | Implemented and tested, on SQLite |
 | Events naming the poll: created, ballot cast, changed, withdrawn, closed, deleted | Implemented and tested |

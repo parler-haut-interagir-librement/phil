@@ -1,7 +1,8 @@
 {#-
- # The form of a poll's ballot, in the markup of the kit's recipes — Field, RadioGroup, Checkbox, NativeSelect and
- # Button —, so that phil/ux-css draws it whether the recipes are installed or not. It posts the fields `BallotForm`
- # reads, and works without JavaScript. Embed it to replace a block: `choices`, `status` or `actions`.
+ # The form of a poll's ballot, drawn with the kit's recipes — Field, RadioGroup, Checkbox, NativeSelect and Button —,
+ # installed from the PHIL UX kit or from the Shadcn kit. It posts the fields `BallotForm` reads, and works without
+ # JavaScript. Embed it to replace a block: `choices`, `status` or `actions`. The recipes are named once, at the top,
+ # by `phil_poll_kit()`, in the map `kit` the blocks may use.
  #
  #   ballot       the BallotView of `phil_poll_ballot()`
  #   action       the address the form posts to
@@ -9,61 +10,93 @@
  #}
 {%- set domain = 'phil_poll' -%}
 {%- set id = 'phil-poll-' ~ ballot.poll -%}
+{%- set kit = {
+    Field: phil_poll_kit('Field'),
+    FieldSet: phil_poll_kit('Field:Set'),
+    FieldLegend: phil_poll_kit('Field:Legend'),
+    FieldDescription: phil_poll_kit('Field:Description'),
+    FieldLabel: phil_poll_kit('Field:Label'),
+    RadioGroup: phil_poll_kit('RadioGroup'),
+    RadioGroupItem: phil_poll_kit('RadioGroup:Item'),
+    Checkbox: phil_poll_kit('Checkbox'),
+    NativeSelect: phil_poll_kit('NativeSelect'),
+    NativeSelectOption: phil_poll_kit('NativeSelect:Option'),
+    Button: phil_poll_kit('Button'),
+} -%}
 <form method="post" action="{{ action }}" class="phil-poll-ballot" data-phil-poll="{{ ballot.poll }}">
     {%- if csrf_token ?? null %}
     <input type="hidden" name="_token" value="{{ csrf_token }}">
     {%- endif %}
-    <fieldset data-slot="field-set" class="isFieldSet" aria-describedby="{{ id }}-help"{% if not ballot.editable %} disabled{% endif %}>
-        <legend data-slot="field-legend" data-variant="legend" class="isFieldLegend">{{ ballot.question }}</legend>
-        <p data-slot="field-description" class="isFieldDescription" id="{{ id }}-help">
-            {%- if ballot.kind is same as('single') -%}
-                {{ 'ballot.help.single'|trans({}, domain) }}
-            {%- elseif ballot.kind is same as('multiple') -%}
-                {{ 'ballot.help.multiple'|trans({'%min%': ballot.minChoices, '%max%': ballot.maxChoices}, domain) }}
-            {%- else -%}
-                {{ 'ballot.help.ranked'|trans({'%min%': ballot.minChoices, '%max%': ballot.maxChoices}, domain) }}
-            {%- endif -%}
-            {%- if ballot.seats > 1 %} {{ 'ballot.help.seats'|trans({'%count%': ballot.seats}, domain) }}{% endif -%}
-        </p>
+    {%- set help -%}
+        {%- if ballot.kind is same as('single') -%}
+            {{ 'ballot.help.single'|trans({}, domain) }}
+        {%- elseif ballot.kind is same as('multiple') -%}
+            {{ 'ballot.help.multiple'|trans({'%min%': ballot.minChoices, '%max%': ballot.maxChoices}, domain) }}
+        {%- else -%}
+            {{ 'ballot.help.ranked'|trans({'%min%': ballot.minChoices, '%max%': ballot.maxChoices}, domain) }}
+        {%- endif -%}
+        {%- if ballot.seats > 1 %} {{ 'ballot.help.seats'|trans({'%count%': ballot.seats}, domain) }}{% endif -%}
+    {%- endset -%}
+    {#- The choices are drawn here, where an embedding template replaces them, then placed in the fieldset. -#}
+    {%- set fields -%}
         {%- block choices %}
         {%- if ballot.kind is same as('single') %}
-        <div role="radiogroup" data-slot="radio-group" data-orientation="vertical" class="isRadioGroup" aria-labelledby="{{ id }}-question">
+        {% component (kit.RadioGroup) with {name: 'choice', value: ballot.choices|filter(choice => choice.chosen)|map(choice => choice.id)|first|default(null), required: not ballot.abstention, 'aria-labelledby': id ~ '-question'} %}
+            {% block content %}
             <span id="{{ id }}-question" hidden>{{ ballot.question }}</span>
             {%- for choice in ballot.choices %}
-            <div role="group" data-slot="field" data-orientation="horizontal" class="isField isHorizontal">
-                <input type="radio" data-slot="radio-group-item" name="choice" value="{{ choice.id }}" id="{{ id }}-{{ choice.id }}"{% if choice.chosen %} checked{% endif %}{% if not ballot.abstention %} required{% endif %}>
-                <label data-slot="field-label" class="isFieldLabel" for="{{ id }}-{{ choice.id }}">{{ choice.label }}</label>
-            </div>
+            {% component (kit.Field) with {orientation: 'horizontal'} %}
+                {% block content %}
+                {{ component(kit.RadioGroupItem, {value: choice.id, id: id ~ '-' ~ choice.id}) }}
+                {% component (kit.FieldLabel) with {for: id ~ '-' ~ choice.id} %}{% block content %}{{ choice.label }}{% endblock %}{% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
             {%- endfor %}
             {%- if ballot.abstention %}
-            <div role="group" data-slot="field" data-orientation="horizontal" class="isField isHorizontal">
-                <input type="radio" data-slot="radio-group-item" name="choice" value="" id="{{ id }}--blank">
-                <label data-slot="field-label" class="isFieldLabel" for="{{ id }}--blank">{{ 'ballot.blank'|trans({}, domain) }}</label>
-            </div>
+            {% component (kit.Field) with {orientation: 'horizontal'} %}
+                {% block content %}
+                {{ component(kit.RadioGroupItem, {value: '', id: id ~ '--blank'}) }}
+                {% component (kit.FieldLabel) with {for: id ~ '--blank'} %}{% block content %}{{ 'ballot.blank'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
             {%- endif %}
-        </div>
+            {% endblock %}
+        {% endcomponent %}
         {%- elseif ballot.kind is same as('multiple') %}
         {%- for choice in ballot.choices %}
-        <div role="group" data-slot="field" data-orientation="horizontal" class="isField isHorizontal">
-            <input type="checkbox" data-slot="checkbox" name="choices[]" value="{{ choice.id }}" id="{{ id }}-{{ choice.id }}"{% if choice.chosen %} checked{% endif %}>
-            <label data-slot="field-label" class="isFieldLabel" for="{{ id }}-{{ choice.id }}">{{ choice.label }}</label>
-        </div>
+        {% component (kit.Field) with {orientation: 'horizontal'} %}
+            {% block content %}
+            {{ component(kit.Checkbox, {name: 'choices[]', value: choice.id, id: id ~ '-' ~ choice.id, checked: choice.chosen}) }}
+            {% component (kit.FieldLabel) with {for: id ~ '-' ~ choice.id} %}{% block content %}{{ choice.label }}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
         {%- endfor %}
         {%- else %}
         {%- for choice in ballot.choices %}
-        <div role="group" data-slot="field" data-orientation="horizontal" class="isField isHorizontal">
-            <label data-slot="field-label" class="isFieldLabel" for="{{ id }}-{{ choice.id }}">{{ choice.label }}</label>
-            <select data-slot="native-select" data-size="sm" class="isSmall" name="ranks[{{ choice.id }}]" id="{{ id }}-{{ choice.id }}">
-                <option data-slot="native-select-option" value="">{{ 'ballot.unranked'|trans({}, domain) }}</option>
+        {% component (kit.Field) with {orientation: 'horizontal'} %}
+            {% block content %}
+            {% component (kit.FieldLabel) with {for: id ~ '-' ~ choice.id} %}{% block content %}{{ choice.label }}{% endblock %}{% endcomponent %}
+            {% component (kit.NativeSelect) with {size: 'sm', name: 'ranks[' ~ choice.id ~ ']', id: id ~ '-' ~ choice.id} %}
+                {% block content %}
+                {% component (kit.NativeSelectOption) with {value: ''} %}{% block content %}{{ 'ballot.unranked'|trans({}, domain) }}{% endblock %}{% endcomponent %}
                 {%- for rank in 1..ballot.maxChoices %}
-                <option data-slot="native-select-option" value="{{ rank }}"{% if choice.rank is same as(rank) %} selected{% endif %}>{{ 'ballot.rank'|trans({'%rank%': rank}, domain) }}</option>
+                {% component (kit.NativeSelectOption) with {value: rank, selected: choice.rank is same as(rank)} %}{% block content %}{{ 'ballot.rank'|trans({'%rank%': rank}, domain) }}{% endblock %}{% endcomponent %}
                 {%- endfor %}
-            </select>
-        </div>
+                {% endblock %}
+            {% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
         {%- endfor %}
         {%- endif %}
         {%- endblock %}
-    </fieldset>
+    {%- endset %}
+    {% component (kit.FieldSet) with {'aria-describedby': id ~ '-help', disabled: not ballot.editable} %}
+        {% block content %}
+        {% component (kit.FieldLegend) %}{% block content %}{{ ballot.question }}{% endblock %}{% endcomponent %}
+        {% component (kit.FieldDescription) with {id: id ~ '-help'} %}{% block content %}{{ help }}{% endblock %}{% endcomponent %}
+        {{ fields }}
+        {% endblock %}
+    {% endcomponent %}
     {%- block status %}
     <p class="phil-poll-ballot__status" role="status">
         {%- if not ballot.open -%}
@@ -77,7 +110,7 @@
     {%- endblock %}
     {%- block actions %}
     {%- if ballot.editable %}
-    <button type="submit" data-slot="button" data-variant="default" data-size="default" class="isPrimary">{{ (ballot.mayChange ? 'ballot.change' : 'ballot.cast')|trans({}, domain) }}</button>
+    {% component (kit.Button) with {type: 'submit'} %}{% block content %}{{ (ballot.mayChange ? 'ballot.change' : 'ballot.cast')|trans({}, domain) }}{% endblock %}{% endcomponent %}
     {%- endif %}
     {%- endblock %}
 </form>

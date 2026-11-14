@@ -1,8 +1,9 @@
 {#-
- # The results of a poll, in the markup of the kit's recipe Progress, or a sentence while they are not the viewer's to
- # see. Once the poll is closed, its results are revealed: the controller `phil--poll-bundle--results` dispatches the
- # DOM event `poll:revealed` on the window, once per page and poll, and the block `revealed` is drawn — empty, for an
- # embedding page to fill, with the kit's Celebration for one.
+ # The results of a poll, each bar the kit's recipe Progress — installed from the PHIL UX kit or from the Shadcn kit,
+ # named by `phil_poll_kit()` —, or a sentence while they are not the viewer's to see. Once the poll is closed, its
+ # results are revealed: the controller `phil--poll-bundle--results` dispatches the DOM event `poll:revealed` on the
+ # window, once per page and poll, and the block `revealed` is drawn — empty, for an embedding page to fill, with the
+ # kit's Celebration for one.
  #
  #   results   the ResultsView of `phil_poll_results()`, or null
  #}
@@ -10,6 +11,7 @@
 {%- if results is not null %}
 {%- set id = 'phil-poll-results-' ~ results.poll -%}
 {%- set c = 'phil--poll-bundle--results' -%}
+{%- set kit = {Progress: phil_poll_kit('Progress')} -%}
 <section class="phil-poll-results" aria-labelledby="{{ id }}-title" data-controller="{{ c }}" data-{{ c }}-poll-value="{{ results.poll }}" data-{{ c }}-revealed-value="{{ results.revealed ? 'true' : 'false' }}" data-{{ c }}-winners-value="{{ results.winners|json_encode }}">
     <h2 id="{{ id }}-title">{{ results.question }}</h2>
     <p class="phil-poll-results__ballots">{{ 'results.ballots'|trans({'%count%': results.ballots}, domain) }}{% if results.abstentions > 0 %} {{ 'results.abstentions'|trans({'%count%': results.abstentions}, domain) }}{% endif %}</p>
@@ -19,7 +21,7 @@
         <li class="phil-poll-results__line"{% if line.winner %} data-winner="true"{% endif %}>
             <span id="{{ id }}-{{ line.option }}">{{ line.label }}</span>
             {%- if line.winner %} <strong>{{ (results.seats > 1 ? 'results.elected' : 'results.winner')|trans({}, domain) }}</strong>{% endif %}
-            <progress data-slot="progress" max="{{ line.max }}" value="{{ max(0, min(line.max, line.score)) }}" aria-labelledby="{{ id }}-{{ line.option }}"></progress>
+            {{ component(kit.Progress, {max: line.max, value: line.score, 'aria-labelledby': id ~ '-' ~ line.option}) }}
             <span class="phil-poll-results__score">{{ line.display }}</span>
         </li>
         {%- endfor %}

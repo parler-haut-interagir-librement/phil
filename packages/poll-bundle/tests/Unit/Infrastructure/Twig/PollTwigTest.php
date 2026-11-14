@@ -43,8 +43,23 @@ final class PollTwigTest extends TestCase
         self::assertNull($twig->results($poll->id));
     }
 
+    public function testARecipeIsNamedAfterTheSubdirectoryOfTheKit(): void
+    {
+        $clock = new MockClock('2026-11-08 10:00:00 UTC');
+        $policy = new Policy();
+        $methods = new CountingMethods([new ChoiceCount()]);
+        $views = new PollViews(new Polls(new InMemoryPollRepository(), new InMemoryVoteRepository(), $clock, $policy, $methods), $policy, $methods, $clock);
+
+        self::assertSame('Field:Set', new PollTwig($views)->kit('Field:Set'));
+        self::assertSame('Button', new PollTwig($views, '')->kit('Button'));
+        self::assertSame('Button', new PollTwig($views, '/')->kit('Button'));
+        self::assertSame('ui:Button', new PollTwig($views, 'ui')->kit('Button'));
+        self::assertSame('admin:ui:Field:Label', new PollTwig($views, '/admin/ui/')->kit('Field:Label'));
+    }
+
     public function testTheFunctionsAreNamedForTwig(): void
     {
+        self::assertSame('phil_poll_kit', new ReflectionMethod(PollTwig::class, 'kit')->getAttributes(AsTwigFunction::class)[0]->newInstance()->name);
         self::assertSame('phil_poll_ballot', new ReflectionMethod(PollTwig::class, 'ballot')->getAttributes(AsTwigFunction::class)[0]->newInstance()->name);
         self::assertSame('phil_poll_results', new ReflectionMethod(PollTwig::class, 'results')->getAttributes(AsTwigFunction::class)[0]->newInstance()->name);
     }

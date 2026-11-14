@@ -19,6 +19,7 @@ use Phil\Resource\ResourceReference;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Translation\LocaleSwitcher;
 use Twig\Environment;
@@ -59,22 +60,54 @@ final class TemplatesTest extends KernelTestCase
         $this->twig = $twig;
     }
 
-    public function testASingleBallotIsAGroupOfRadioButtons(): void
+    public function testASingleBallotIsAGroupOfRadioButtonsDrawnByTheRecipes(): void
     {
         $poll = $this->polls->create(new PollDraft('Tea or coffee?', [PollOption::of('tea', 'Tea'), PollOption::of('coffee', 'Coffee & milk')], abstention: true), ResourceReference::of('user', 'ada'));
         $html = $this->draw("{{ include('@PhilPoll/ballot.html.twig', {ballot: phil_poll_ballot(poll, 'user:bob'), action: '/vote', csrf_token: 'tok'}) }}", $poll->id);
+        $page = new Crawler($html);
+        $id = 'phil-poll-'.$poll->id;
 
-        self::assertStringContainsString('<form method="post" action="/vote" class="phil-poll-ballot" data-phil-poll="'.$poll->id.'">', $html);
-        self::assertStringContainsString('<input type="hidden" name="_token" value="tok">', $html);
-        self::assertStringContainsString('<legend data-slot="field-legend" data-variant="legend" class="isFieldLegend">Tea or coffee?</legend>', $html);
-        self::assertStringContainsString('Choose one option.', $html);
-        self::assertStringContainsString('role="radiogroup" data-slot="radio-group"', $html);
-        self::assertStringContainsString('<input type="radio" data-slot="radio-group-item" name="choice" value="tea" id="phil-poll-'.$poll->id.'-tea">', $html);
+        $form = $page->filter('form.phil-poll-ballot');
+        self::assertSame('post', $form->attr('method'));
+        self::assertSame('/vote', $form->attr('action'));
+        self::assertSame($poll->id, $form->attr('data-phil-poll'));
+        self::assertSame('tok', $page->filter('input[type="hidden"][name="_token"]')->attr('value'));
+
+        $fieldset = $page->filter('fieldset[data-slot="field-set"].isFieldSet');
+        self::assertSame($id.'-help', $fieldset->attr('aria-describedby'));
+        self::assertNull($fieldset->attr('disabled'));
+        self::assertSame('Tea or coffee?', $fieldset->filter('legend[data-slot="field-legend"][data-variant="legend"].isFieldLegend')->text());
+        self::assertSame('Choose one option.', $page->filter('#'.$id.'-help[data-slot="field-description"].isFieldDescription')->text());
+
+        $group = $page->filter('[role="radiogroup"][data-slot="radio-group"].isRadioGroup');
+        self::assertSame($id.'-question', $group->attr('aria-labelledby'));
+        self::assertSame('Tea or coffee?', $group->filter('#'.$id.'-question')->text());
+        self::assertCount(3, $group->filter('[role="group"][data-slot="field"][data-orientation="horizontal"].isField.isHorizontal'));
+        $radios = $group->filter('input[type="radio"][data-slot="radio-group-item"][name="choice"]');
+        self::assertSame(['tea', 'coffee', ''], $radios->each(static fn (Crawler $radio): ?string => $radio->attr('value')));
+        self::assertSame([$id.'-tea', $id.'-coffee', $id.'--blank'], $radios->each(static fn (Crawler $radio): ?string => $radio->attr('id')));
+        self::assertSame([null, null, null], $radios->each(static fn (Crawler $radio): ?string => $radio->attr('checked')));
+        self::assertSame([null, null, null], $radios->each(static fn (Crawler $radio): ?string => $radio->attr('required')), 'A poll accepting a blank ballot requires no choice.');
+        self::assertSame('Coffee & milk', $page->filter('label[data-slot="field-label"].isFieldLabel[for="'.$id.'-coffee"]')->text());
         self::assertStringContainsString('>Coffee &amp; milk</label>', $html);
-        self::assertStringContainsString('name="choice" value="" id="phil-poll-'.$poll->id.'--blank"', $html);
-        self::assertStringContainsString('Blank ballot', $html);
-        self::assertStringContainsString('class="isPrimary">Vote</button>', $html);
-        self::assertStringNotContainsString(' disabled', $html);
+        self::assertSame('Blank ballot', $page->filter('label[for="'.$id.'--blank"]')->text());
+
+        $button = $page->filter('button[type="submit"][data-slot="button"][data-variant="default"].isPrimary');
+        self::assertSame('Vote', $button->text());
+        self::assertSame('', $page->filter('p.phil-poll-ballot__status[role="status"]')->text());
+    }
+
+    public function testASingleBallotWithoutBlankRequiresAChoiceAndChecksTheVotersOwn(): void
+    {
+        $poll = $this->polls->create(new PollDraft('Tea or coffee?', [PollOption::of('tea', 'Tea'), PollOption::of('coffee', 'Coffee')]), ResourceReference::of('user', 'ada'));
+        $this->polls->cast($poll->id, ResourceReference::of('user', 'bob'), ['coffee']);
+        $page = new Crawler($this->draw("{{ include('@PhilPoll/ballot.html.twig', {ballot: phil_poll_ballot(poll, 'user:bob'), action: '/vote'}) }}", $poll->id));
+        $radios = $page->filter('input[type="radio"][name="choice"]');
+
+        self::assertSame(['tea', 'coffee'], $radios->each(static fn (Crawler $radio): ?string => $radio->attr('value')));
+        self::assertSame([null, 'checked'], $radios->each(static fn (Crawler $radio): ?string => null === $radio->attr('checked') ? null : 'checked'));
+        self::assertSame(['required', 'required'], $radios->each(static fn (Crawler $radio): ?string => null === $radio->attr('required') ? null : 'required'));
+        self::assertCount(0, $page->filter('input[type="hidden"][name="_token"]'));
     }
 
     public function testAVoterSeesTheirRankedBallotAndChangesIt(): void
@@ -82,16 +115,22 @@ final class TemplatesTest extends KernelTestCase
         $poll = $this->polls->create(new PollDraft('Order?', [PollOption::of('a', 'A'), PollOption::of('b', 'B'), PollOption::of('c', 'C')], BallotKind::Ranked, maxChoices: 2), ResourceReference::of('user', 'ada'));
         $this->polls->cast($poll->id, ResourceReference::of('user', 'bob'), ['c', 'a']);
         $html = $this->draw("{{ include('@PhilPoll/ballot.html.twig', {ballot: phil_poll_ballot(poll, viewer), action: '/vote'}) }}", $poll->id, ['viewer' => ResourceReference::of('user', 'bob')]);
+        $page = new Crawler($html);
+        $id = 'phil-poll-'.$poll->id;
 
         self::assertStringNotContainsString('_token', $html);
-        self::assertStringContainsString('Rank 1 to 2 options, 1 being your first choice.', $html);
-        self::assertStringContainsString('<select data-slot="native-select" data-size="sm" class="isSmall" name="ranks[c]"', $html);
-        self::assertMatchesRegularExpression('/name="ranks\[c\]".*?value="1" selected>Rank 1</s', $html);
-        self::assertMatchesRegularExpression('/name="ranks\[a\]".*?value="2" selected>Rank 2</s', $html);
-        self::assertStringContainsString('<option data-slot="native-select-option" value="">Not ranked</option>', $html);
-        self::assertStringNotContainsString('value="3"', $html);
-        self::assertStringContainsString('Your ballot is recorded. You may change it while the poll is open.', $html);
-        self::assertStringContainsString('>Change my ballot</button>', $html);
+        self::assertSame('Rank 1 to 2 options, 1 being your first choice.', $page->filter('#'.$id.'-help')->text());
+        $select = $page->filter('select[data-slot="native-select"][data-size="sm"].isSmall[name="ranks[c]"]');
+        self::assertSame($id.'-c', $select->attr('id'));
+        self::assertSame('C', $page->filter('label[for="'.$id.'-c"]')->text());
+        self::assertSame(['', '1', '2'], $select->filter('option[data-slot="native-select-option"]')->each(static fn (Crawler $option): ?string => $option->attr('value')));
+        self::assertSame(['Not ranked', 'Rank 1', 'Rank 2'], $select->filter('option')->each(static fn (Crawler $option): string => $option->text()));
+        self::assertSame('1', $select->filter('option[selected]')->attr('value'));
+        self::assertSame('2', $page->filter('select[name="ranks[a]"] option[selected]')->attr('value'));
+        self::assertCount(0, $page->filter('select[name="ranks[b]"] option[selected]'));
+        self::assertCount(0, $page->filter('option[value="3"]'));
+        self::assertSame('Your ballot is recorded. You may change it while the poll is open.', $page->filter('p.phil-poll-ballot__status')->text());
+        self::assertSame('Change my ballot', $page->filter('button[type="submit"]')->text());
         self::assertSame(['c', 'a'], BallotForm::choices($poll->rules(), ['ranks' => ['a' => '2', 'b' => '', 'c' => '1']]));
     }
 
@@ -101,12 +140,36 @@ final class TemplatesTest extends KernelTestCase
         $locale = self::getContainer()->get('translation.locale_switcher');
         self::assertInstanceOf(LocaleSwitcher::class, $locale);
         $html = $locale->runWithLocale('fr', fn (): string => $this->draw("{{ include('@PhilPoll/ballot.html.twig', {ballot: phil_poll_ballot(poll), action: '/vote'}) }}", $poll->id));
+        $page = new Crawler($html);
+        $id = 'phil-poll-'.$poll->id;
 
-        self::assertStringContainsString('<input type="checkbox" data-slot="checkbox" name="choices[]" value="b"', $html);
-        self::assertStringContainsString('Choisissez de 1 à 2 options.', $html);
-        self::assertStringContainsString('aria-describedby="phil-poll-'.$poll->id.'-help" disabled>', $html);
-        self::assertStringContainsString('Ce sondage est anonyme', $html);
+        $checkboxes = $page->filter('[data-slot="field"].isHorizontal input[type="checkbox"][data-slot="checkbox"][name="choices[]"]');
+        self::assertSame(['a', 'b', 'c'], $checkboxes->each(static fn (Crawler $checkbox): ?string => $checkbox->attr('value')));
+        self::assertSame($id.'-b', $checkboxes->eq(1)->attr('id'));
+        self::assertCount(0, $page->filter('input[checked]'));
+        self::assertSame('Choisissez de 1 à 2 options.', $page->filter('#'.$id.'-help')->text());
+        self::assertNotNull($page->filter('fieldset')->attr('disabled'));
+        self::assertStringContainsString('Ce sondage est anonyme', $page->filter('p.phil-poll-ballot__status')->text());
         self::assertStringNotContainsString('<button', $html);
+    }
+
+    public function testAnEmbeddingTemplateReplacesTheBlocksOfTheBallot(): void
+    {
+        $poll = $this->polls->create(new PollDraft('Tea or coffee?', [PollOption::of('tea', 'Tea'), PollOption::of('coffee', 'Coffee')]), ResourceReference::of('user', 'ada'));
+        $template = "{% embed '@PhilPoll/ballot.html.twig' with {ballot: phil_poll_ballot(poll, 'user:bob'), action: '/vote'} %}"
+            ."{% block choices %}<p class=\"mine\">{{ ballot.choices|length }}</p>{{ component(kit.Checkbox, {name: 'agree'}) }}{% endblock %}"
+            .'{% block status %}<p class="status">Mine</p>{% endblock %}'
+            .'{% block actions %}<button class="send">Send</button>{% endblock %}'
+            .'{% endembed %}';
+        $page = new Crawler($this->draw($template, $poll->id));
+
+        self::assertSame('2', $page->filter('fieldset > p.mine')->text());
+        self::assertSame('checkbox', $page->filter('fieldset input[name="agree"][data-slot="checkbox"]')->attr('type'));
+        self::assertCount(0, $page->filter('[role="radiogroup"]'));
+        self::assertSame('Tea or coffee?', $page->filter('fieldset legend')->text());
+        self::assertSame('Mine', $page->filter('form > p.status')->text());
+        self::assertSame('Send', $page->filter('form > button.send')->text());
+        self::assertCount(0, $page->filter('[data-slot="button"]'));
     }
 
     public function testTheResultsAreBarsAndRevealedOnceClosed(): void
@@ -125,14 +188,24 @@ final class TemplatesTest extends KernelTestCase
 
         $this->polls->close($poll->id, ResourceReference::of('user', 'ada'));
         $html = $this->draw($template, $poll->id, ['viewer' => 'user:bob']);
+        $page = new Crawler($html);
+        $id = 'phil-poll-results-'.$poll->id;
 
         self::assertStringContainsString('data-controller="phil--poll-bundle--results" data-phil--poll-bundle--results-poll-value="'.$poll->id.'" data-phil--poll-bundle--results-revealed-value="true" data-phil--poll-bundle--results-winners-value="[&quot;Tea&quot;]"', $html);
         self::assertStringContainsString('2 ballots. 1 of them blank.', $html);
-        self::assertStringContainsString('<li class="phil-poll-results__line" data-winner="true">', $html);
-        self::assertStringContainsString('<strong>Winner</strong>', $html);
-        self::assertStringContainsString('<progress data-slot="progress" max="1" value="1" aria-labelledby="phil-poll-results-'.$poll->id.'-tea"></progress>', $html);
-        self::assertStringContainsString('<progress data-slot="progress" max="1" value="0"', $html);
+        self::assertSame('true', $page->filter('li.phil-poll-results__line')->first()->attr('data-winner'));
+        self::assertSame('Winner', $page->filter('li.phil-poll-results__line strong')->text());
+        $bars = $page->filter('li.phil-poll-results__line progress[data-slot="progress"]');
+        self::assertSame(['1', '1'], $bars->each(static fn (Crawler $bar): ?string => $bar->attr('max')));
+        self::assertSame(['1', '0'], $bars->each(static fn (Crawler $bar): ?string => $bar->attr('value')));
+        self::assertSame([$id.'-tea', $id.'-coffee'], $bars->each(static fn (Crawler $bar): ?string => $bar->attr('aria-labelledby')));
+        self::assertSame('Tea', $page->filter('#'.$id.'-tea')->text());
         self::assertStringContainsString('<p>Hurray</p>', $html);
+    }
+
+    public function testTheRecipesAreNamedAfterTheSubdirectoryOfTheToolkit(): void
+    {
+        self::assertSame('ui:Field:Set', $this->draw("{{ phil_poll_kit('Field:Set') }}", ''));
     }
 
     /**

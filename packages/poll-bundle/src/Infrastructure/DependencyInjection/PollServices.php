@@ -39,7 +39,7 @@ final class PollServices
     public const string COUNTING_METHOD_TAG = 'phil_poll.counting_method';
 
     /**
-     * @param array{store: string, entity_manager: string, policy: ?string, results_cache: array{pool: ?string, lifetime: int}} $config
+     * @param array{store: string, entity_manager: string, policy: ?string, results_cache: array{pool: ?string, lifetime: int}, kit_subdirectory: ?string} $config
      */
     public static function register(ContainerBuilder $container, array $config): void
     {
@@ -90,7 +90,8 @@ final class PollServices
 
         if (class_exists(AsTwigFunction::class)) {
             $container->register(PollTwig::class, PollTwig::class)
-                ->setArguments([new Reference(PollViews::class)])
+                // The subdirectory of the Toolkit is read by KitSubdirectoryPass when the configuration names none.
+                ->setArguments([new Reference(PollViews::class), $config['kit_subdirectory']])
                 ->setAutoconfigured(true);
         }
     }
