@@ -8,6 +8,8 @@ use Phil\Poll\Contract\CountingMethod;
 use Phil\Poll\Counting\Borda;
 use Phil\Poll\Counting\ChoiceCount;
 use Phil\Poll\Counting\InstantRunoff;
+use Phil\Poll\Counting\NetPromoterScore;
+use Phil\Poll\Counting\ScaleCount;
 use Phil\Poll\Counting\Schulze;
 use Phil\Poll\CountingMethods;
 use Phil\PollBundle\Application\Contract\PollPolicy;
@@ -46,7 +48,7 @@ final class PhilPollBundleTest extends TestCase
         $container = $this->load([]);
 
         self::assertSame('phil_poll', $this->extension()->getAlias());
-        self::assertSame(['service_container', DoctrinePollRepository::class, DoctrineVoteRepository::class, DefaultPollPolicy::class, ChoiceCount::class, InstantRunoff::class, Borda::class, Schulze::class, MeekStv::class, CountingMethods::class, Polls::class, PollViews::class, PollTwig::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', DoctrinePollRepository::class, DoctrineVoteRepository::class, DefaultPollPolicy::class, ChoiceCount::class, InstantRunoff::class, Borda::class, Schulze::class, ScaleCount::class, NetPromoterScore::class, MeekStv::class, CountingMethods::class, Polls::class, PollViews::class, PollTwig::class], array_keys($container->getDefinitions()));
         self::assertEquals([new Reference('doctrine.orm.default_entity_manager')], $container->getDefinition(DoctrinePollRepository::class)->getArguments());
         self::assertEquals([new Reference('doctrine.orm.default_entity_manager')], $container->getDefinition(DoctrineVoteRepository::class)->getArguments());
         self::assertSame([DoctrinePollRepository::class, true], [(string) $container->getAlias(PollRepository::class), $container->getAlias(PollRepository::class)->isPublic()]);
@@ -54,7 +56,7 @@ final class PhilPollBundleTest extends TestCase
         self::assertSame(DefaultPollPolicy::class, (string) $container->getAlias(PollPolicy::class));
         self::assertFalse($container->getAlias(PollPolicy::class)->isPublic());
 
-        foreach ([ChoiceCount::class, InstantRunoff::class, Borda::class, Schulze::class, MeekStv::class] as $method) {
+        foreach ([ChoiceCount::class, InstantRunoff::class, Borda::class, Schulze::class, ScaleCount::class, NetPromoterScore::class, MeekStv::class] as $method) {
             self::assertSame([[]], $container->getDefinition($method)->getTag('phil_poll.counting_method'), $method);
             self::assertSame($method, $container->getDefinition($method)->getClass());
         }
@@ -87,7 +89,7 @@ final class PhilPollBundleTest extends TestCase
     {
         $container = $this->load(['store' => 'memory', 'policy' => 'app.policy']);
 
-        self::assertSame(['service_container', InMemoryPollRepository::class, InMemoryVoteRepository::class, ChoiceCount::class, InstantRunoff::class, Borda::class, Schulze::class, MeekStv::class, CountingMethods::class, Polls::class, PollViews::class, PollTwig::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', InMemoryPollRepository::class, InMemoryVoteRepository::class, ChoiceCount::class, InstantRunoff::class, Borda::class, Schulze::class, ScaleCount::class, NetPromoterScore::class, MeekStv::class, CountingMethods::class, Polls::class, PollViews::class, PollTwig::class], array_keys($container->getDefinitions()));
         self::assertSame([InMemoryPollRepository::class, true], [(string) $container->getAlias(PollRepository::class), $container->getAlias(PollRepository::class)->isPublic()]);
         self::assertSame([InMemoryVoteRepository::class, true], [(string) $container->getAlias(VoteRepository::class), $container->getAlias(VoteRepository::class)->isPublic()]);
         self::assertSame('app.policy', (string) $container->getAlias(PollPolicy::class));

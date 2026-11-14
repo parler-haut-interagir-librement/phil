@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Phil\PollBundle\Application\View;
 
 /**
- * What one viewer sees of the form of a poll: the question, the kind of ballot and its bounds, the options with what
- * the viewer's ballot gave them, and what the viewer may do — cast a ballot, change it, or neither. A template draws it
+ * What one viewer sees of the form of a poll: the question, the kind of ballot and its bounds, the options — the marks
+ * of a scale, from the lowest — with what the viewer's ballot gave them, and what the viewer may do — cast a ballot, change it, or neither. A template draws it
  * as it is; it asks nothing more.
  */
 final readonly class BallotView
 {
     /**
-     * @param 'single'|'multiple'|'ranked' $kind
-     * @param list<BallotChoice>           $choices
+     * @param 'single'|'multiple'|'ranked'|'scale' $kind
+     * @param list<BallotChoice>                   $choices
      */
     public function __construct(
         public string $poll,

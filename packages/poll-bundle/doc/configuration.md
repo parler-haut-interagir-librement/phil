@@ -17,7 +17,7 @@ phil_poll:
 | `store` | `doctrine` | Where polls and ballots are kept: the Doctrine stores, or the in-memory ones, for tests, emptied between two requests. |
 | `entity_manager` | `default` | The entity manager of the Doctrine stores. |
 | `policy` | `null` | The service that says who may create a poll, vote and manage it. |
-| `results_cache.pool` | `null` | The cache pool, a `Symfony\Contracts\Cache\CacheInterface`, where counts are kept until the next ballot; none by default, every count reading every ballot. |
+| `results_cache.pool` | `null` | The cache pool, a `Symfony\Contracts\Cache\CacheInterface`, where counts are kept until the poll next changes; none by default, every count reading every ballot. |
 | `results_cache.lifetime` | `3600` | The seconds a count is kept at most, 1 or more. |
 | `kit_subdirectory` | `null` | The subdirectory of the components directory holding the recipes of the kit, `ui` for `ui:Field`; the subdirectory of the `ux_toolkit` configuration when null, none without it. To set in an environment where the Toolkit is not enabled. |
 
@@ -27,7 +27,7 @@ phil_poll:
 |---|---|---|
 | `Phil\PollBundle\Application\Polls` | yes | The entry point of the application. |
 | `Phil\PollBundle\Application\PollViews` | yes | The form of a ballot and the results, as a viewer sees them. |
-| `Phil\Poll\CountingMethods` | yes | The counting methods: the library's four, the single transferable vote and the application's. |
+| `Phil\Poll\CountingMethods` | yes | The counting methods: the library's six, the single transferable vote and the application's. |
 | `Phil\PollBundle\Domain\Repository\PollRepository` | yes | An alias of the Doctrine or in-memory store of polls. |
 | `Phil\PollBundle\Domain\Repository\VoteRepository` | yes | An alias of the Doctrine or in-memory store of ballots and participations. |
 | `Phil\PollBundle\Application\Contract\PollPolicy` | no | An alias of the configured policy, or of `DefaultPollPolicy`. |
@@ -48,7 +48,9 @@ Doctrine store on SQLite.
 ## The cache of the counts
 
 With `results_cache.pool`, `results()`, `resultsFor()`, `election()` and `electionFor()` keep each count in the pool,
-under a key that names the poll and the revision of its ballots. Every ballot cast, changed or withdrawn raises the
-revision in the store, by one statement, so that the next count reads the ballots again; a count that was running
-while a ballot arrived is kept under a revision nobody asks for any more, and expires with its lifetime. Closing a poll
-changes nobody's count. The pool holds the counts only: which options won, by how much, never who voted.
+under a key that names the poll and its revision. Every ballot cast, changed or withdrawn, every closing and every new
+schedule raises the revision in the store, by one statement, so that the next count reads the ballots again; the
+revision is read from the table, not from the poll the entity manager holds. A count that was running while a ballot
+arrived is kept under a revision nobody asks for any more, and expires with its lifetime. Deleting a poll removes the
+counts of its current revision from the pool. The pool holds the counts only — which options won, by how much, the sum
+of the marks of a scale —, never a voter, a receipt or its hash, anonymous poll or not.

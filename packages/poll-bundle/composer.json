@@ -27,7 +27,7 @@
         "ext-sodium": "*",
         "doctrine/dbal": "^4.5",
         "doctrine/orm": "^3.7",
-        "phil/poll": "^0.1@dev",
+        "phil/poll": "^0.1.1@dev",
         "phil/resource": "^0.1@dev",
         "psr/clock": "^1.0",
         "psr/event-dispatcher": "^1.0",
@@ -41,6 +41,7 @@
     "require-dev": {
         "doctrine/doctrine-bundle": "^3.3",
         "phil/ux-kit": ">=0.1.0-alpha <1.0",
+        "php-webdriver/webdriver": "^1.16",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",
         "symfony/cache": "^8.2",
@@ -50,8 +51,11 @@
         "symfony/event-dispatcher": "^8.2",
         "symfony/framework-bundle": "^8.2",
         "symfony/http-kernel": "^8.2",
+        "symfony/panther": "^2.4",
         "symfony/translation": "^8.2",
         "symfony/twig-bundle": "^8.2",
+        "symfony/ux-toolkit": "^3.7.1",
+        "twig/html-extra": "^3.24",
         "twig/twig": "^3.21"
     },
     "suggest": {

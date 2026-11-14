@@ -78,7 +78,8 @@ final readonly class PollViews
 
     /**
      * The results of the poll for a viewer, `null` while they are not theirs to see. A score counted in billionths of
-     * a vote, as a single transferable vote counts it, is written with two decimals, truncated.
+     * a vote, as a single transferable vote counts it, is written with two decimals, truncated. The marks of a scale
+     * are listed from the lowest, none of them winning: their distribution is what is shown, with the rating.
      *
      * @throws NotFound
      */
@@ -92,11 +93,18 @@ final readonly class PollViews
 
         $result = $this->polls->results($poll->id);
         $billionths = $this->methods->get($poll->counting()) instanceof ElectingMethod;
-        $winners = $result->winners();
+        $scale = BallotKind::Scale === $poll->rules()->kind;
+        $winners = $scale ? [] : $result->winners();
         $max = max(1, ...array_map(static fn (Standing $standing): int => $standing->score, $result->standings));
+        $standings = $result->standings;
         $lines = [];
 
-        foreach ($result->standings as $standing) {
+        if ($scale) {
+            $order = array_flip($poll->rules()->options);
+            usort($standings, static fn (Standing $a, Standing $b): int => $order[$a->option] <=> $order[$b->option]);
+        }
+
+        foreach ($standings as $standing) {
             $lines[] = new ResultLine(
                 $standing->option,
                 $poll->label($standing->option) ?? $standing->option,
@@ -117,6 +125,8 @@ final readonly class PollViews
             $poll->seats(),
             $lines,
             $poll->isClosedAt($this->clock->now()),
+            $result->rating,
+            $result->netPromoter,
         );
     }
 

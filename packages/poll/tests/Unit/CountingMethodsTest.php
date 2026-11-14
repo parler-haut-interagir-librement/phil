@@ -10,6 +10,8 @@ use Phil\Poll\Contract\CountingMethod;
 use Phil\Poll\Counting\Borda;
 use Phil\Poll\Counting\ChoiceCount;
 use Phil\Poll\Counting\InstantRunoff;
+use Phil\Poll\Counting\NetPromoterScore;
+use Phil\Poll\Counting\ScaleCount;
 use Phil\Poll\Counting\Schulze;
 use Phil\Poll\CountingMethods;
 use Phil\Poll\Exception\InvalidPoll;
@@ -33,6 +35,9 @@ final class CountingMethodsTest extends TestCase
         self::assertInstanceOf(InstantRunoff::class, $methods->get('instant_runoff'));
         self::assertInstanceOf(Borda::class, $methods->get('borda'));
         self::assertInstanceOf(Schulze::class, $methods->get('schulze'));
+        self::assertInstanceOf(ScaleCount::class, $methods->get('scale'));
+        self::assertInstanceOf(NetPromoterScore::class, $methods->get('nps'));
+        self::assertSame(['scale', 'nps'], $methods->namesFor(BallotKind::Scale));
         self::assertSame(['choices'], $methods->namesFor(BallotKind::Single));
         self::assertSame(['choices'], $methods->namesFor(BallotKind::Multiple));
         self::assertSame(['instant_runoff', 'borda', 'schulze'], $methods->namesFor(BallotKind::Ranked));
@@ -41,6 +46,7 @@ final class CountingMethodsTest extends TestCase
         self::assertSame('choices', CountingMethods::defaultFor(BallotKind::Single));
         self::assertSame('choices', CountingMethods::defaultFor(BallotKind::Multiple));
         self::assertSame('instant_runoff', CountingMethods::defaultFor(BallotKind::Ranked));
+        self::assertSame('scale', CountingMethods::defaultFor(BallotKind::Scale));
     }
 
     public function testACountByName(): void

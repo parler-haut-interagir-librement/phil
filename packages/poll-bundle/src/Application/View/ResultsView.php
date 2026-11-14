@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Phil\PollBundle\Application\View;
 
+use Phil\Poll\NetPromoter;
+use Phil\Poll\Rating;
+
 /**
  * What one viewer sees of the results of a poll, when they are theirs to see: the method, the ballots and abstentions
- * counted, the seats, one line per option in the order of the standings, and whether the poll is closed. A closed
- * poll's results are revealed: a template may celebrate them.
+ * counted, the seats, one line per option in the order of the standings — per mark from the lowest, for a scale —, and
+ * whether the poll is closed; for a scale, the rating, whose mean is the sum of the marks over the ballots marked, and
+ * for a Net Promoter Score, its three groups. A closed poll's results are revealed: a template may celebrate them.
  */
 final readonly class ResultsView
 {
@@ -23,6 +27,8 @@ final readonly class ResultsView
         public int $seats,
         public array $lines,
         public bool $revealed,
+        public ?Rating $rating = null,
+        public ?NetPromoter $netPromoter = null,
     ) {
     }
 

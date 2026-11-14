@@ -43,8 +43,9 @@ for recipe in field radio-group checkbox native-select button progress; do
 done
 ```
 
-They have the names, props and blocks of the Shadcn kit of the Toolkit, so a site on Tailwind installs the same six
-recipes from the Shadcn kit instead. They are found under the components subdirectory of the `ux_toolkit`
+A site on Tailwind installs the same six recipes from the Shadcn kit of the Toolkit instead, with `label`, which its
+`Field:Label` calls, and Symfony UX Icons, which its checkbox and select draw; the templates give the recipes only
+what both kits read the same way. They are found under the components subdirectory of the `ux_toolkit`
 configuration; in an environment where the Toolkit is not enabled, as production often is, repeat it in
 `kit_subdirectory`.
 

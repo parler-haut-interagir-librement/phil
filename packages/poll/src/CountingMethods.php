@@ -8,6 +8,8 @@ use Phil\Poll\Contract\CountingMethod;
 use Phil\Poll\Counting\Borda;
 use Phil\Poll\Counting\ChoiceCount;
 use Phil\Poll\Counting\InstantRunoff;
+use Phil\Poll\Counting\NetPromoterScore;
+use Phil\Poll\Counting\ScaleCount;
 use Phil\Poll\Counting\Schulze;
 use Phil\Poll\Exception\InvalidBallot;
 use Phil\Poll\Exception\InvalidPoll;
@@ -48,20 +50,25 @@ final readonly class CountingMethods
     }
 
     /**
-     * The four methods of the library: the count of choices, the instant runoff, the Borda count and Schulze.
+     * The six methods of the library: the count of choices, the instant runoff, the Borda count, Schulze, the count of
+     * a scale and the Net Promoter Score.
      */
     public static function defaults(): self
     {
-        return new self([new ChoiceCount(), new InstantRunoff(), new Borda(), new Schulze()]);
+        return new self([new ChoiceCount(), new InstantRunoff(), new Borda(), new Schulze(), new ScaleCount(), new NetPromoterScore()]);
     }
 
     /**
      * The method a poll of this kind is counted by when it names none: the count of choices for single and multiple
-     * ballots, the instant runoff for ranked ones.
+     * ballots, the instant runoff for ranked ones, the count of a scale for marks.
      */
     public static function defaultFor(BallotKind $kind): string
     {
-        return BallotKind::Ranked === $kind ? InstantRunoff::NAME : ChoiceCount::NAME;
+        return match ($kind) {
+            BallotKind::Single, BallotKind::Multiple => ChoiceCount::NAME,
+            BallotKind::Ranked => InstantRunoff::NAME,
+            BallotKind::Scale => ScaleCount::NAME,
+        };
     }
 
     /**

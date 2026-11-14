@@ -7,11 +7,11 @@
 | `PollDraft` | Default | What it sets |
 |---|---|---|
 | `question` | — | A UTF-8 text of 1 to 500 characters. |
-| `options` | — | 2 to 100 `PollOption`: an identifier of 1 to 64 ASCII letters, digits, `_` or `-`, and a label of 1 to 200 characters. |
-| `kind` | `BallotKind::Single` | One option, several, or options ranked. |
-| `minChoices`, `maxChoices` | 1, every option | The bounds of a multiple or ranked ballot; a single ballot ignores them. |
+| `options` | — | 2 to 100 `PollOption`: an identifier of 1 to 64 ASCII letters, digits, `_` or `-`, and a label of 1 to 200 characters; the marks of a scale, written by `PollDraft::marks()`. |
+| `kind` | `BallotKind::Single` | One option, several, options ranked, or one mark on a scale. |
+| `minChoices`, `maxChoices` | 1, every option | The bounds of a multiple or ranked ballot; a single ballot and a scale ignore them. |
 | `abstention` | `false` | Whether a blank ballot is an abstention or refused. |
-| `counting` | the kind's default | The name of the counting method: `choices` for single and multiple ballots, `instant_runoff` for ranked ones by default. |
+| `counting` | the kind's default | The name of the counting method: `choices` for single and multiple ballots, `instant_runoff` for ranked ones, `scale` for a scale by default; `nps` for a Net Promoter Score. |
 | `anonymous` | `false` | Whether ballots are kept apart from their voters: see [Anonymity](anonymity.md). |
 | `results` | `ResultsVisibility::Always` | Who sees the results: see [Results](results.md). |
 | `subject` | `null` | The resource of the application the poll belongs to. |
@@ -24,6 +24,35 @@ kept: it orders the options tied in the results, and breaks the last ties of an 
 wants a lot declares them in a random order.
 
 `get()` finds a poll by its identifier, `ofSubject()` the polls of a resource, oldest first.
+
+## Marks on a scale
+
+A question that is not scored asks for a mark: how was the evening, from 1 to 5; how likely are you to recommend us,
+from 0 to 10. Its options are its marks, which `PollDraft::marks($lowest, $highest, $labels)` writes, each labelled by
+`$labels` under its mark or by the mark itself; a scale has 2 to 100 marks, negative ones included. A ballot holds one
+mark, or none when the poll accepts a blank ballot.
+
+```php
+use Phil\Poll\BallotKind;
+
+$evening = $polls->create(new PollDraft(
+    'How was the evening?',
+    PollDraft::marks(1, 5, [1 => 'Poor', 5 => 'Great']),
+    BallotKind::Scale,
+), $member);
+
+$recommend = $polls->create(new PollDraft(
+    'How likely are you to recommend us to a friend?',
+    PollDraft::marks(0, 10),
+    BallotKind::Scale,
+    counting: 'nps',
+), $member);
+
+$polls->cast($recommend->id, $member, ['9']);
+```
+
+`scale` counts the distribution of the marks and their mean; `nps`, on a scale from 0 to 10 only, adds the promoters,
+passives and detractors and the score: see [Results](results.md).
 
 ## Open and closed
 

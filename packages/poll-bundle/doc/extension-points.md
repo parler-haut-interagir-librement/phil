@@ -57,7 +57,7 @@ The policy is asked on every action: it keeps no state between requests, or rese
 ## Counting methods
 
 Every service implementing `Phil\Poll\Contract\CountingMethod` is added to `CountingMethods` beside the library's
-four, by autoconfiguration; a poll names it by its `name()`. See the extension points of `phil/poll` for the
+six, by autoconfiguration; a poll names it by its `name()`. See the extension points of `phil/poll` for the
 contract. Removing a method a stored poll names makes its results fail with `UnknownCountingMethod`.
 
 A method that fills several seats implements `Phil\PollBundle\Domain\Counting\Contract\ElectingMethod`, which extends

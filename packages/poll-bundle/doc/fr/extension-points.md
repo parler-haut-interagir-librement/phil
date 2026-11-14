@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8eeebb73951e39d6fe6227aa78974f846558ea2d1aca9fc4d78635ce0f0294d3 -->
+<!-- phil-dev source-sha256=a80900df1b15a580f6c13f8cb2249271087dea951b36f6d025035ca89a9be8ec -->
 # Points d'extension
 
 ## `PollPolicy`
@@ -60,7 +60,7 @@ La politique est consultée à chaque action : elle ne garde aucun état entre l
 
 ## Méthodes de dépouillement
 
-Chaque service qui implémente `Phil\Poll\Contract\CountingMethod` est ajouté à `CountingMethods` à côté des quatre de
+Chaque service qui implémente `Phil\Poll\Contract\CountingMethod` est ajouté à `CountingMethods` à côté des six de
 la bibliothèque, par autoconfiguration ; un sondage la nomme par son `name()`. Voir les points d'extension de
 `phil/poll` pour le contrat. Retirer une méthode que nomme un sondage conservé fait échouer ses résultats avec
 `UnknownCountingMethod`.

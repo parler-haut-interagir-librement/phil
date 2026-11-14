@@ -8,6 +8,37 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ### Added
 
+- Scales and Net Promoter Scores: `PollDraft::marks()`, the options of a scale with their labels; the counting methods
+  `scale` and `nps` of `phil/poll` registered beside the others; the kind `scale` of `BallotView`, drawn by
+  `@PhilPoll/ballot.html.twig` as a row of radio buttons, one per mark; `ResultsView::$rating` and
+  `ResultsView::$netPromoter`, drawn by `@PhilPoll/results.html.twig` in the block `rating` as the mean mark and as the
+  score with its promoters, passives and detractors, the marks listed from the lowest and none of them winning; the
+  words of the domain `phil_poll` for them, and `number.decimal` and `number.thousands`, the separators of the numbers
+  written, in English and French.
+- The variable `errors` of `@PhilPoll/ballot.html.twig`: the messages of a ballot refused, drawn by the recipe
+  `Field:Error` in an alert the fieldset names with `aria-describedby`, the fieldset marked `aria-invalid`.
+- The browser suite: each kind of ballot filled and sent with the keyboard in Chrome, with the PHIL UX kit and with the
+  Shadcn kit, its alert, its disabled form, and the accessible names and roles of its parts.
+
+### Changed
+
+- A closing and a new schedule raise the revision of the poll, as a ballot does, so that its kept counts are read
+  again; deleting a poll removes the counts kept for its current revision from the cache pool.
+- Each bar of `@PhilPoll/results.html.twig` is given its share of the highest score, from 0 to 100, and the score as
+  its `aria-valuetext`.
+- `phil/poll: ^0.1.1` is required, for its scales.
+
+### Fixed
+
+- With the recipes of the Shadcn kit, `@PhilPoll/ballot.html.twig` renders: each radio button is given its name, its
+  checked state and whether it is required, which the Shadcn group does not pass to its buttons; each bar of the
+  results is a percentage, as the Shadcn `Progress` reads it.
+- The blank ballot of a voter who cast one is checked on the form.
+
+## 0.2.0-alpha - 2026-11-14
+
+### Added
+
 - The Twig function `phil_poll_kit()`, the name under which a recipe of the kit is installed, and the option
   `kit_subdirectory`, the subdirectory of the recipes under the components directory, read from the `ux_toolkit`
   configuration when null.

@@ -8,19 +8,26 @@ use Phil\Poll\Ballot;
 use Phil\Poll\Counting\Borda;
 use Phil\Poll\Counting\ChoiceCount;
 use Phil\Poll\Counting\InstantRunoff;
+use Phil\Poll\Counting\NetPromoterScore;
+use Phil\Poll\Counting\ScaleCount;
 use Phil\Poll\Counting\Schulze;
 use Phil\Poll\PollRules;
 
 /**
  * A count reads every ballot of a poll: ten thousand ballots over ten options, single for the count of choices and
- * ranked, three to ten choices deep and in a few hundred distinct orders, for the other methods; and the check of one
- * ballot as a request gives it.
+ * ranked, three to ten choices deep and in a few hundred distinct orders, for the other methods; ten thousand marks
+ * from 0 to 10 for the count of a scale and the Net Promoter Score; and the check of one ballot as a request gives it.
  */
 final readonly class CountBench
 {
     private PollRules $single;
 
     private PollRules $ranked;
+
+    private PollRules $scale;
+
+    /** @var list<Ballot> */
+    private array $marks;
 
     /** @var list<Ballot> */
     private array $singles;
@@ -33,11 +40,14 @@ final readonly class CountBench
         $options = array_map(static fn (int $i): string => 'option-'.$i, range(0, 9));
         $this->single = PollRules::single($options);
         $this->ranked = PollRules::ranked($options);
+        $this->scale = PollRules::netPromoter();
         $singles = [];
+        $marks = [];
         $rankings = [];
 
         for ($voter = 0; $voter < 10_000; ++$voter) {
             $singles[] = Ballot::of([$options[($voter * 7) % 10]]);
+            $marks[] = Ballot::of([(string) (($voter * 7) % 11)]);
             $order = [];
 
             for ($rank = 0, $depth = 3 + ($voter % 8); $rank < $depth; ++$rank) {
@@ -49,6 +59,7 @@ final readonly class CountBench
 
         $this->singles = $singles;
         $this->rankings = $rankings;
+        $this->marks = $marks;
     }
 
     public function benchChoiceCount(): void
@@ -69,6 +80,16 @@ final readonly class CountBench
     public function benchSchulze(): void
     {
         new Schulze()->count($this->ranked, $this->rankings);
+    }
+
+    public function benchScaleCount(): void
+    {
+        new ScaleCount()->count($this->scale, $this->marks);
+    }
+
+    public function benchNetPromoterScore(): void
+    {
+        new NetPromoterScore()->count($this->scale, $this->marks);
     }
 
     public function benchBallotChecked(): void

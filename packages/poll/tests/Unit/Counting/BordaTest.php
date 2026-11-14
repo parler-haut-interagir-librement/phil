@@ -25,6 +25,7 @@ final class BordaTest extends TestCase
         self::assertTrue($method->supports(BallotKind::Ranked));
         self::assertFalse($method->supports(BallotKind::Single));
         self::assertFalse($method->supports(BallotKind::Multiple));
+        self::assertFalse($method->supports(BallotKind::Scale));
     }
 
     public function testRanksArePoints(): void

@@ -41,9 +41,10 @@ use Symfony\Contracts\Cache\ItemInterface;
  * What the application does with polls: create them, cast, change and withdraw ballots, close, reschedule and delete
  * them, and count their ballots. Every action asks the policy first, and dispatches an event naming the poll once done.
  *
- * With a cache, a count is kept until the next ballot: the key names the revision of the poll's ballots, which every
- * ballot cast, changed or withdrawn raises in the store, so that a count running while a ballot arrives is kept under
- * a revision nobody asks for any more.
+ * With a cache, a count is kept until the poll next changes: the key names the revision of the poll, which every
+ * ballot cast, changed or withdrawn, every closing and every new schedule raises in the store, so that a count running
+ * while a ballot arrives is kept under a revision nobody asks for any more; a deleted poll's counts are removed with
+ * it. A count holds the standings only, never a voter nor a receipt.
  *
  * The service keeps no state between two calls, and is safe to share across the requests of a long-running worker.
  */
@@ -250,6 +251,7 @@ final readonly class Polls
         $poll->close($this->now());
 
         $this->polls->save($poll);
+        $this->polls->raiseRevision($poll->id);
         $this->events?->dispatch(new PollClosed($poll->id));
     }
 
@@ -266,6 +268,7 @@ final readonly class Polls
         $poll->reschedule($opensAt, $closesAt);
 
         $this->polls->save($poll);
+        $this->polls->raiseRevision($poll->id);
     }
 
     /**
@@ -277,6 +280,7 @@ final readonly class Polls
     public function delete(string $pollId, ResourceReference $actor): void
     {
         $poll = $this->managedBy($pollId, $actor);
+        $this->forget($poll);
         $this->votes->removeAllOf($poll->id);
         $this->polls->remove($poll);
         $this->events?->dispatch(new PollDeleted($poll->id));
@@ -407,13 +411,27 @@ final readonly class Polls
         $lifetime = $this->cacheLifetime;
 
         return $this->cache->get(
-            \sprintf('phil_poll.%s.%s.%d', $what, $poll->id, $this->polls->revision($poll->id)),
+            $this->key($what, $poll),
             static function (ItemInterface $item) use ($count, $lifetime): Result|Election {
                 $item->expiresAfter($lifetime);
 
                 return $count();
             },
         );
+    }
+
+    /**
+     * Removes the counts kept for the poll's current revision.
+     */
+    private function forget(Poll $poll): void
+    {
+        $this->cache?->delete($this->key('results', $poll));
+        $this->cache?->delete($this->key('election', $poll));
+    }
+
+    private function key(string $what, Poll $poll): string
+    {
+        return \sprintf('phil_poll.%s.%s.%d', $what, $poll->id, $this->polls->revision($poll->id));
     }
 
     /**

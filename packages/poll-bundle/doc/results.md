@@ -6,6 +6,12 @@
 ballots and abstentions counted, the standings with their shared places, the winners and, for an instant runoff, its
 rounds. See the counting documentation of `phil/poll` for each method. `turnout($poll)` is the number of ballots cast.
 
+A scale is counted by `scale`, its default method, or by `nps` when it runs from 0 to 10. Each mark's score is the
+number of ballots that gave it, and the result carries a `Rating`: the ballots that gave a mark and the sum of the
+marks, both exact integers, whose quotient `mean()` is the mean mark, `null` while nobody gave one. `nps` adds a
+`NetPromoter`: the promoters, who gave 9 or 10, the passives, 7 or 8, the detractors, 0 to 6, and `score()`, the share
+of promoters less the share of detractors, from -100 to 100. Abstentions are left out of both.
+
 A poll that fills several seats is counted into an election, with its rounds: see
 [Single transferable vote](single-transferable-vote.md). [The voting interface](voting-interface.md) shows the results
 to a viewer.
@@ -34,5 +40,5 @@ Showing the results before the end changes how people vote; `AfterClosing` is th
 A count reads every ballot of the poll, streamed row by row from the table, and the library groups identical rankings.
 Ten thousand ballots over ten options are counted in about ten milliseconds, plus the time of reading them. An
 application that shows the results of large polls to many visitors names a cache pool under `results_cache`: a count
-is then kept until the next ballot, and read from the pool in a few microseconds. See
+is then kept until the poll next changes, and read from the pool in a few microseconds. See
 [Configuration](configuration.md#the-cache-of-the-counts).

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3674ffce6bd91c3acc816c2ecd90a0bc6e671a6531c45250e1c5853c12dc205d -->
+<!-- phil-dev source-sha256=16bdbfad651830a183f75153d59252bf4c53a7ac1f9dcc1ef8760db365f9bb6c -->
 # Référence
 
 | Classe | Nature | Rôle |
@@ -8,8 +8,8 @@
 | `Phil\PollBundle\Application\PollViews` | `final readonly class` | Ce qu'une page montre d'un sondage à une personne : `ballot()`, `results()` |
 | `Phil\PollBundle\Application\BallotForm` | `final readonly class` | Les choix d'un bulletin lus dans les champs que poste son formulaire : `choices()` |
 | `Phil\PollBundle\Application\View\BallotView`, `BallotChoice` | `final readonly class` | Le formulaire d'un bulletin pour une personne, et l'une de ses options |
-| `Phil\PollBundle\Application\View\ResultsView`, `ResultLine` | `final readonly class` | Les résultats pour une personne, et l'une de leurs lignes |
-| `Phil\PollBundle\Application\PollDraft` | `final readonly class` | Ce dont est fait un nouveau sondage : `rules()` |
+| `Phil\PollBundle\Application\View\ResultsView`, `ResultLine` | `final readonly class` | Les résultats pour une personne, avec la cote d'une échelle et les groupes d'un Net Promoter Score, et l'une de leurs lignes |
+| `Phil\PollBundle\Application\PollDraft` | `final readonly class` | Ce dont est fait un nouveau sondage : `rules()`, et `marks()`, les options d'une échelle |
 | `Phil\PollBundle\Application\CastVote` | `final readonly class` | Un bulletin tout juste déposé : `vote`, `receipt` |
 | `Phil\PollBundle\Application\Contract\PollPolicy` | interface | Qui peut créer, voter et gérer |
 | `Phil\PollBundle\Application\DefaultPollPolicy` | `final readonly class` | Tout le monde vote, le créateur gère |
@@ -39,5 +39,5 @@
 |---|---|
 | `templates/ballot.html.twig` | Le formulaire d'un bulletin, `@PhilPoll/ballot.html.twig` |
 | `templates/results.html.twig` | Les résultats, `@PhilPoll/results.html.twig` |
-| `translations/phil_poll.en.php`, `phil_poll.fr.php` | Les mots des gabarits |
+| `translations/phil_poll.en.php`, `phil_poll.fr.php` | Les mots des gabarits, et les séparateurs de leurs nombres |
 | `assets/src/results_controller.js` | Le contrôleur Stimulus `phil--poll-bundle--results`, qui diffuse `poll:revealed` |

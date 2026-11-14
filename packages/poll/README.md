@@ -3,11 +3,12 @@
 **A voting engine: ballots checked against the rules of their poll, and counted into standings.**
 
 phil/poll is the core every vote of an application goes through: a question with one answer, a choice of several
-options, a ranking of preferences. The rules of a poll say what a ballot may hold — one option, between a minimum
-and a maximum of options, or options ranked — and whether a blank ballot is an abstention; a ballot is checked
-against them as a form or a request gives it. A counting method turns the ballots into standings: the count of
-choices for single and multiple ballots, the instant runoff, the Borda count and the Schulze method for ranked ones.
-Options tied share their place, an instant runoff keeps its rounds, and abstentions are counted apart.
+options, a ranking of preferences, a mark on a scale. The rules of a poll say what a ballot may hold — one option,
+between a minimum and a maximum of options, options ranked, or one mark — and whether a blank ballot is an abstention; a
+ballot is checked against them as a form or a request gives it. A counting method turns the ballots into standings: the
+count of choices for single and multiple ballots, the instant runoff, the Borda count and the Schulze method for ranked
+ones, the distribution and mean of the marks of a scale, and the Net Promoter Score. Options tied share their place, an
+instant runoff keeps its rounds, and abstentions are counted apart.
 
 It is for any PHP application where people vote: a club choosing the date of its next meeting, a community ranking
 the ideas of its members, an association electing its board, a site asking its readers a question. Who may vote,
@@ -27,9 +28,11 @@ safe to share across the requests of a long-running worker.
 | The count of choices: plurality and approval | Implemented and tested |
 | The instant runoff, its rounds, its exhausted ballots and its tie-breaks | Implemented and tested |
 | The Borda count and the Schulze method | Implemented and tested |
+| Scales: one mark on a range of whole numbers, their distribution, sum and mean; the Net Promoter Score | Implemented and tested |
 | `CountingMethods`, the methods of an application by name, and the port of a method of its own | Implemented and tested |
 | Polls, ballots and their anonymity in Symfony and Doctrine | Implemented in `phil/poll-bundle` |
-| The single transferable vote of an election with several seats, score and majority judgment ballots | Not started |
+| The single transferable vote of an election with several seats | Implemented in `phil/poll-bundle` |
+| Score and majority judgment ballots | Not started |
 
 ## Documentation
 
@@ -37,7 +40,7 @@ safe to share across the requests of a long-running worker.
 |---|---|
 | [Installation](doc/installation.md) | Requirements, installing, a first count. |
 | [Rules and ballots](doc/rules-and-ballots.md) | The kinds of ballot, the options, the bounds, the abstention, the checks. |
-| [Counting](doc/counting.md) | The four methods, their scores, places, rounds and tie-breaks, and their cost. |
+| [Counting](doc/counting.md) | The six methods, their scores, places, rounds and tie-breaks, the rating of a scale, the Net Promoter Score, and their cost. |
 | [Extension points](doc/extension-points.md) | A counting method of the application. |
 | [Exceptions](doc/exceptions.md) | `PollException` and its three exceptions. |
 | [Testing](doc/testing.md) | The library's tests, mutation bar and benchmark, and how to test a count. |

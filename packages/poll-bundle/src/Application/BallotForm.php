@@ -10,7 +10,7 @@ use Phil\Poll\PollRules;
 
 /**
  * The choices of a ballot read from the fields the template `@PhilPoll/ballot.html.twig` posts: `choice`, the option
- * of a single ballot; `choices[]`, the options of a multiple one; `ranks[option]`, the rank given to each option of a
+ * of a single ballot or the mark of a scale; `choices[]`, the options of a multiple one; `ranks[option]`, the rank given to each option of a
  * ranked one, an empty rank leaving the option out. What a browser sends is not trusted: anything else than text is
  * refused, and the list read is checked again by the rules of the poll when it is cast.
  */
@@ -34,7 +34,7 @@ final readonly class BallotForm
     public static function choices(PollRules $rules, array $fields): array
     {
         return match ($rules->kind) {
-            BallotKind::Single => self::single($fields[self::SINGLE] ?? ''),
+            BallotKind::Single, BallotKind::Scale => self::single($fields[self::SINGLE] ?? ''),
             BallotKind::Multiple => self::multiple($fields[self::MULTIPLE] ?? []),
             BallotKind::Ranked => self::ranked($rules, $fields[self::RANKED] ?? []),
         };
@@ -46,7 +46,7 @@ final readonly class BallotForm
     private static function single(mixed $choice): array
     {
         if (!\is_string($choice)) {
-            throw InvalidBallot::because('The choice of a single ballot is one option.');
+            throw InvalidBallot::because('The choice of a single ballot or a scale is one option.');
         }
 
         return '' === $choice ? [] : [$choice];

@@ -7,8 +7,8 @@
 | `Phil\PollBundle\Application\PollViews` | `final readonly class` | What a page shows of a poll to a viewer: `ballot()`, `results()` |
 | `Phil\PollBundle\Application\BallotForm` | `final readonly class` | The choices of a ballot read from the fields its form posts: `choices()` |
 | `Phil\PollBundle\Application\View\BallotView`, `BallotChoice` | `final readonly class` | The form of a ballot for a viewer, and one of its options |
-| `Phil\PollBundle\Application\View\ResultsView`, `ResultLine` | `final readonly class` | The results for a viewer, and one of their lines |
-| `Phil\PollBundle\Application\PollDraft` | `final readonly class` | What a new poll is made of: `rules()` |
+| `Phil\PollBundle\Application\View\ResultsView`, `ResultLine` | `final readonly class` | The results for a viewer, with the rating of a scale and the groups of a Net Promoter Score, and one of their lines |
+| `Phil\PollBundle\Application\PollDraft` | `final readonly class` | What a new poll is made of: `rules()`, and `marks()`, the options of a scale |
 | `Phil\PollBundle\Application\CastVote` | `final readonly class` | A ballot just cast: `vote`, `receipt` |
 | `Phil\PollBundle\Application\Contract\PollPolicy` | interface | Who may create, vote and manage |
 | `Phil\PollBundle\Application\DefaultPollPolicy` | `final readonly class` | Everyone votes, the creator manages |
@@ -38,5 +38,5 @@
 |---|---|
 | `templates/ballot.html.twig` | The form of a ballot, `@PhilPoll/ballot.html.twig` |
 | `templates/results.html.twig` | The results, `@PhilPoll/results.html.twig` |
-| `translations/phil_poll.en.php`, `phil_poll.fr.php` | The words of the templates |
+| `translations/phil_poll.en.php`, `phil_poll.fr.php` | The words of the templates, and the separators of their numbers |
 | `assets/src/results_controller.js` | The Stimulus controller `phil--poll-bundle--results`, which dispatches `poll:revealed` |
