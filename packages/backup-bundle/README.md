@@ -26,9 +26,9 @@ database's client tools where the commands run.
 
 | Area | State |
 |---|---|
-| `PhilBackupBundle`: connection, directory, binaries, timeout, key, allow_unencrypted, media, rotation, restore, verify | Implemented and tested |
+| `PhilBackupBundle`: connection, directory, binaries, timeout, warn_after, grace_period, key, allow_unencrypted, media, rotation, restore, verify | Implemented and tested |
 | `DatabaseClients`: the client of a DBAL connection, without connecting | Implemented and tested |
-| `ProcessCommandRunner`: Symfony Process, no shell, an optional time limit | Implemented and tested |
+| `ProcessCommandRunner`: Symfony Process, no shell, a warning and an event for a slow tool, an optional time limit | Implemented and tested |
 | `phil:backup:create`, `phil:backup:restore`, `phil:backup:verify` | Implemented and tested on SQLite with the real `sqlite3`; MySQL, MariaDB and PostgreSQL by their command lines |
 
 ## Documentation

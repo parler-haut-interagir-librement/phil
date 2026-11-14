@@ -4,6 +4,25 @@ All notable changes to `phil/backup-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- `warn_after` (default 3600 seconds, null or 0 never): a client tool still running after it is logged as a warning
+  on the `backup` channel, once, and announced by the `BackupToolRunningLong` event — its tool name, process id and
+  the threshold, identifiers only — so that monitoring can tell a slow backup from a stuck one.
+- `grace_period` (default 10 seconds): how long a client tool past its `timeout` is given to stop after SIGTERM
+  before it is sent SIGKILL.
+- `ProcessCommandRunner` takes the warning threshold, the grace period, an optional PSR-3 logger and an optional
+  event dispatcher after its existing arguments.
+
+### Changed
+
+- A client tool past its `timeout` is sent SIGTERM, then SIGKILL after the grace period, and the backup fails with
+  a `BackupFailed` naming the tool and the limit, instead of Symfony Process's `ProcessTimedOutException` after an
+  immediate SIGKILL. `timeout: 0` still means no limit; a negative `timeout`, `warn_after` or `grace_period` fails
+  the container build.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

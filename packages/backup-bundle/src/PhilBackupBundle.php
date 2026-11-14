@@ -22,6 +22,7 @@ use Phil\BackupBundle\Infrastructure\Process\ProcessCommandRunner;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Kernel\AbstractBundle;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
@@ -73,8 +74,20 @@ final class PhilBackupBundle extends AbstractBundle
                     ->defaultValue([])
                 ->end()
                 ->floatNode('timeout')
-                    ->info('Seconds a client tool may run; null, no limit.')
+                    ->info('Seconds a client tool may run before it is stopped and the backup fails; null or 0, no limit.')
                     ->defaultNull()
+                    ->min(0)
+                ->end()
+                ->floatNode('warn_after')
+                    ->info('Seconds after which a client tool still running is logged as a warning and announced by a BackupToolRunningLong event, once; null or 0, never.')
+                    ->defaultValue(3600.0)
+                    ->treatNullLike(0.0)
+                    ->min(0)
+                ->end()
+                ->floatNode('grace_period')
+                    ->info('Seconds a client tool past its timeout is given to stop after SIGTERM before it is sent SIGKILL.')
+                    ->defaultValue(10.0)
+                    ->min(0)
                 ->end()
                 ->scalarNode('key')
                     ->info('The backup key, 32 random bytes in base64, such as "%env(PHIL_BACKUP_KEY)%"; null is refused unless allow_unencrypted is true.')
@@ -138,7 +151,7 @@ final class PhilBackupBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{connection: string, directory: string, binaries: array<string, string>, timeout: ?float, key: ?string, allow_unencrypted: bool, media: array<string, string>, rotation: array{last: int, daily: int, weekly: int, monthly: int}, restore: array{production_environments: list<string>, keep_before_restore: int}, verify: array{database: ?string}} $config */
+        /** @var array{connection: string, directory: string, binaries: array<string, string>, timeout: ?float, warn_after: float, grace_period: float, key: ?string, allow_unencrypted: bool, media: array<string, string>, rotation: array{last: int, daily: int, weekly: int, monthly: int}, restore: array{production_environments: list<string>, keep_before_restore: int}, verify: array{database: ?string}} $config */
         $rotation = $config['rotation'];
 
         // Built once here so that a bad media name fails the container build rather than the first backup.
@@ -149,7 +162,9 @@ final class PhilBackupBundle extends AbstractBundle
         }
 
         $services = $container->services();
-        $services->set(ProcessCommandRunner::class)->args([$config['binaries'], $config['timeout']]);
+        $services->set(ProcessCommandRunner::class)
+            ->args([$config['binaries'], $config['timeout'], $config['warn_after'], $config['grace_period'], new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE), new Reference('event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE)])
+            ->tag('monolog.logger', ['channel' => 'backup']);
         $services->set(self::DATABASE_CLIENT, DatabaseClient::class)
             ->factory(DatabaseClients::forConnection(...))
             ->args([new Reference($config['connection']), new Reference(ProcessCommandRunner::class)]);

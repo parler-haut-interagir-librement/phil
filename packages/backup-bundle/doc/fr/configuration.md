@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e7606b02daa6515367bdcc4659c71b6e42e5fa7951de3b6edfb72bdccdd6baca -->
+<!-- phil-dev source-sha256=8c2e9001871db3b9cb98074e3895fa5a3aebde38329f5a34cb3f389a529cf731 -->
 # Configuration
 
 Chaque clé de `phil_backup`, avec sa valeur par défaut :
@@ -8,7 +8,9 @@ phil_backup:
     connection: database_connection             # a Doctrine DBAL connection service
     directory: '%kernel.project_dir%/var/backup'
     binaries: {}                                # { pg_dump: /usr/lib/postgresql/17/bin/pg_dump }
-    timeout: null                               # seconds; null, no limit
+    timeout: null                               # seconds; null or 0, no limit
+    warn_after: 3600                            # seconds; null or 0, no warning
+    grace_period: 10                            # seconds between SIGTERM and SIGKILL past the timeout
     key: null                                   # '%env(PHIL_BACKUP_KEY)%'; required unless allow_unencrypted
     allow_unencrypted: false                    # true, backups without a key are written in clear; with a key, older ones in clear are read
     media: {}                                   # { uploads: '%kernel.project_dir%/public/uploads' }
@@ -25,7 +27,9 @@ phil_backup:
 | `connection` | chaîne non vide | `database_connection` | Identifiant du service de la connexion Doctrine DBAL sauvegardée et restaurée ; sa plateforme choisit le client, et ses paramètres donnent les identifiants de connexion. |
 | `directory` | chaîne non vide | `%kernel.project_dir%/var/backup` | L'endroit où les jeux sont écrits et trouvés, créé en `0700`. |
 | `binaries` | table d'un nom d'outil vers un chemin | `{}` | Les chemins des outils clients qui ne sont pas dans le `PATH`. |
-| `timeout` | nombre à virgule ou null | `null` | Le nombre de secondes pendant lesquelles un outil client peut s'exécuter. |
+| `timeout` | nombre à virgule, 0 ou plus, ou null | `null` | Le nombre de secondes pendant lesquelles un outil client peut s'exécuter ; au-delà, il reçoit SIGTERM, puis SIGKILL après `grace_period`, et la sauvegarde, la restauration ou le test de restauration échoue avec `<tool> was still running after <timeout> seconds, the limit of phil_backup.timeout, and was stopped.` Avec null ou `0`, aucune limite : une grosse base de données prend le temps qu'il faut. |
+| `warn_after` | nombre à virgule, 0 ou plus, ou null | `3600` | Le nombre de secondes après lequel un outil client toujours en cours est consigné comme avertissement, une seule fois, et annoncé par un événement `BackupToolRunningLong` ; voir [Outils lents ou bloqués](#outils-lents-ou-bloqués). Avec null ou `0`, jamais. |
+| `grace_period` | nombre à virgule, 0 ou plus | `10` | Le nombre de secondes laissées à un outil client qui a dépassé son `timeout` pour s'arrêter après SIGTERM, avant qu'il reçoive SIGKILL. |
 | `key` | chaîne ou null | `null` | La clé de sauvegarde, 32 octets aléatoires en base64 ; lue lorsqu'une commande en a besoin pour la première fois, ce qui permet une variable d'environnement. Exigée sauf si `allow_unencrypted` est vrai. |
 | `allow_unencrypted` | booléen | `false` | Si les sauvegardes peuvent être écrites en clair lorsque `key` est null. Une clé, lorsqu'elle est donnée, est toujours utilisée, et une sauvegarde en clair est alors refusée par `phil:backup:restore` et `phil:backup:verify` — quiconque peut écrire dans le stockage des sauvegardes aurait pu l'y déposer — sauf si cette option est vraie, pour les sauvegardes écrites avant la clé. |
 | `media` | table d'un nom vers un répertoire | `{}` | Les répertoires de médias sauvegardés à côté de la base de données, chacun sous un nom formé de lettres, de chiffres, de `-` et de `_`. |
@@ -38,7 +42,7 @@ phil_backup:
 
 | Identifiant de service | Classe | Visibilité | Définition |
 |---|---|---|---|
-| `Phil\BackupBundle\Infrastructure\Process\ProcessCommandRunner` | — | privé | À partir de `binaries` et de `timeout`. |
+| `Phil\BackupBundle\Infrastructure\Process\ProcessCommandRunner` | — | privé | À partir de `binaries`, de `timeout`, de `warn_after` et de `grace_period`, avec le service `logger` sur le canal `backup` et le service `event_dispatcher` lorsqu'ils existent. |
 | `phil_backup.database_client` | `DatabaseClient` | privé | Construit par `DatabaseClients::forConnection()` à partir de `connection` et de l'exécuteur (`PhilBackupBundle::DATABASE_CLIENT`). |
 | `Phil\Backup\Storage\BackupDirectory`, `Phil\Backup\Media\MediaArchive` | — | privé | À partir de `directory` et de `media`. |
 | `Phil\Backup\Encryption\BackupKey`, `BackupCipher` | — | privé | Seulement avec une `key` : `BackupKey::fromBase64()` de la clé, et le chiffreur qui l'utilise. |
@@ -50,10 +54,43 @@ phil_backup:
 Rien ne se connecte à la base de données pendant la construction du conteneur ou la création du client : la plateforme
 vient des paramètres de la connexion, ou de la version du serveur qu'ils donnent.
 
+## Outils lents ou bloqués
+
+Une sauvegarde n'a pas de durée maximale par défaut, pour qu'une grosse sauvegarde ne soit jamais interrompue. Pour
+distinguer une sauvegarde lente d'une sauvegarde bloquée sans arrêter ni l'une ni l'autre, l'exécuteur surveille chaque
+outil client pendant qu'il s'exécute : une fois qu'il a tourné `warn_after` secondes, il consigne, une seule fois, sur le
+canal `backup`,
+
+```
+The backup tool {tool} is still running after {seconds} seconds.
+```
+
+avec le nom de l'outil, son identifiant de processus et le seuil dans le contexte, et distribue un événement
+`Phil\BackupBundle\Application\Event\BackupToolRunningLong` qui porte les trois mêmes valeurs — des identifiants
+seulement, jamais la ligne de commande. Un écouteur peut lever une alerte, puis vérifier plus tard si le processus
+s'exécute toujours.
+
+```php
+use Phil\BackupBundle\Application\Event\BackupToolRunningLong;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+
+#[AsEventListener]
+final class AlertOnSlowBackup
+{
+    public function __invoke(BackupToolRunningLong $event): void
+    {
+        // $event->tool, $event->pid, $event->seconds
+    }
+}
+```
+
+Donnez aussi un `timeout` pour arrêter un outil qui a duré trop longtemps : il reçoit SIGTERM, puis SIGKILL s'il ne
+s'est pas arrêté après `grace_period` secondes, et la commande échoue avec une `BackupFailed`.
+
 ## Validation à la construction
 
 Le composant Config refuse un `connection` ou un `directory` vide, un répertoire de médias vide, un compte de rotation
-négatif et un `keep_before_restore` inférieur à 1. Une sauvegarde contient les données de chaque personne : une
+négatif, un `timeout`, un `warn_after` ou un `grace_period` négatif, et un `keep_before_restore` inférieur à 1. Une sauvegarde contient les données de chaque personne : une
 configuration sans `key` est donc refusée, sauf si elle indique le contraire :
 
 ```

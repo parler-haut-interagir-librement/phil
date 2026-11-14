@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e3632f5132d53b23b6474e4b0b0b14f5060eca7607f270d3ae72cfa0bf7ae222 -->
+<!-- phil-dev source-sha256=f477e9f401a44dd998e32154e8fcc186619d0a9f57414e7f856e84e36bff33d2 -->
 # phil/backup-bundle
 
 **Sauvegardez la base de données et les fichiers médias d'une application Symfony à partir de sa configuration,
@@ -31,9 +31,9 @@ exige les outils clients de la base de données là où s'exécutent les command
 
 | Domaine | État |
 |---|---|
-| `PhilBackupBundle` : connection, directory, binaries, timeout, key, allow_unencrypted, media, rotation, restore, verify | Implémenté et testé |
+| `PhilBackupBundle` : connection, directory, binaries, timeout, warn_after, grace_period, key, allow_unencrypted, media, rotation, restore, verify | Implémenté et testé |
 | `DatabaseClients` : le client d'une connexion DBAL, sans se connecter | Implémenté et testé |
-| `ProcessCommandRunner` : Symfony Process, aucun shell, une limite de temps facultative | Implémenté et testé |
+| `ProcessCommandRunner` : Symfony Process, aucun shell, un avertissement et un événement pour un outil lent, une limite de temps facultative | Implémenté et testé |
 | `phil:backup:create`, `phil:backup:restore`, `phil:backup:verify` | Implémenté et testé sur SQLite avec le vrai `sqlite3` ; MySQL, MariaDB et PostgreSQL par leurs lignes de commande |
 
 ## Documentation
