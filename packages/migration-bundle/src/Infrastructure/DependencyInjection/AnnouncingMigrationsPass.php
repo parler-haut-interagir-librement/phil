@@ -69,7 +69,7 @@ final readonly class AnnouncingMigrationsPass implements CompilerPassInterface
     {
         $class = $container->getParameterBag()->resolveValue($migration->getClass());
 
-        if (!\is_string($class) || true !== $container->getReflectionClass($class, false)?->implementsInterface(Announcing::class) || $migration->hasMethodCall('announceWith')) {
+        if (!\is_string($class) || true !== $container->getReflectionClass($class)?->implementsInterface(Announcing::class) || $migration->hasMethodCall('announceWith')) {
             return;
         }
 
