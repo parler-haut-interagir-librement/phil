@@ -8,7 +8,6 @@ use Override;
 use Phil\Highlight\Language;
 use Phil\HighlightBundle\Infrastructure\DependencyInjection\HighlighterPass;
 use Phil\HighlightBundle\Infrastructure\DependencyInjection\HighlightServices;
-use Symfony\Component\AssetMapper\AssetMapperInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Kernel\AbstractBundle;
@@ -53,8 +52,9 @@ final class PhilHighlightBundle extends AbstractBundle
     #[Override]
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        if (interface_exists(AssetMapperInterface::class) && $builder->hasExtension('framework')) {
-            $container->extension('framework', ['asset_mapper' => ['paths' => [\dirname(__DIR__).'/assets/styles' => HighlightServices::ASSET_NAMESPACE]]]);
+        // AssetMapperBundle has its own extension since Symfony 8.2; `framework.asset_mapper` is only an alias of it.
+        if ($builder->hasExtension('asset_mapper')) {
+            $container->extension('asset_mapper', ['paths' => [\dirname(__DIR__).'/assets/styles' => HighlightServices::ASSET_NAMESPACE]]);
         }
     }
 

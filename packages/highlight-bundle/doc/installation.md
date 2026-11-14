@@ -31,12 +31,15 @@ documents are coloured when `phil/ujo-bundle` is installed.
 
 ## The stylesheet
 
-With AssetMapper, the bundle maps its `assets/styles` folder as `phil-highlight/`; a layout links the theme:
+With AssetMapper, the bundle maps its `assets/styles` folder as `phil-highlight/` in the `asset_mapper` configuration;
+a layout links the theme:
 
 ```twig
 <link rel="stylesheet" href="{{ asset('phil-highlight/highlight.css') }}">
 ```
 
-With another pipeline, import `vendor/phil/highlight-bundle/assets/styles/highlight.css`. The themes of
+The mapping is added only when AssetMapperBundle is registered, which FrameworkBundle does when
+`symfony/asset-mapper` is installed; without it, the bundle leaves the configuration alone. With another pipeline,
+import `vendor/phil/highlight-bundle/assets/styles/highlight.css`. The themes of
 `phil/highlight`, in `vendor/phil/highlight/themes/`, colour the same classes and serve as well: see
 [Theme](theme.md).

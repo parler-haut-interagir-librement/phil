@@ -8,6 +8,16 @@
 
 The library has no other dependency, not even an extension beyond PHP's core.
 
+## PHP extensions
+
+The tokenizers are plain PHP, and the highlighter uses no extension, even when one is installed. The syntax
+highlighting extensions installable by PIE do not fit:
+
+| Extension | Why it is not used |
+|---|---|
+| `yiipress/highlighter` (syntect) | It returns HTML with inline styles rather than tokens, so neither the `hl-` classes, the themes nor the line annotations would apply; it has no Twig grammar; and it is slower than these tokenizers on PHP, JavaScript, HTML, CSS, YAML and SQL. |
+| `xberg-io/tree-sitter-language-pack` | It downloads each grammar from the network on first use, which a server must never do; it publishes no thread-safe build, which FrankenPHP needs; and its PHP API runs no highlighting query. |
+
 ## Installing
 
 ```sh

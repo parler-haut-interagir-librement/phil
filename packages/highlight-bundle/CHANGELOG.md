@@ -4,6 +4,14 @@ All notable changes to `phil/highlight-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Fixed
+
+- The stylesheet is mapped in the configuration of AssetMapperBundle, under `asset_mapper`, and only when that bundle
+  is registered: an application with `symfony/asset-mapper` installed but AssetMapperBundle left out no longer fails
+  to compile its container on the `framework.asset_mapper` alias.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

@@ -73,24 +73,26 @@ final class PhilHighlightBundleTest extends TestCase
 
     public function testTheStylesheetIsMappedForAssetMapper(): void
     {
-        $container = $this->prepend();
+        $container = $this->prepend(new AssetMapperStub(), new FrameworkStub());
         $bundle = new PhilHighlightBundle();
 
-        self::assertSame([['asset_mapper' => ['paths' => [$bundle->getPath().'/assets/styles' => 'phil-highlight']]]], $container->getExtensionConfig('framework'));
+        self::assertSame([['paths' => [$bundle->getPath().'/assets/styles' => 'phil-highlight']]], $container->getExtensionConfig('asset_mapper'));
+        self::assertSame([], $container->getExtensionConfig('framework'));
         self::assertFileExists($bundle->getPath().'/assets/styles/highlight.css');
         self::assertSame('phil-highlight', HighlightServices::ASSET_NAMESPACE);
     }
 
-    public function testWithoutFrameworkBundleNothingIsMapped(): void
+    public function testWithoutAssetMapperBundleNothingIsMapped(): void
     {
-        $container = new ContainerBuilder();
-        $extension = $this->extension();
-        $container->registerExtension($extension);
-        self::assertInstanceOf(PrependExtensionInterface::class, $extension);
+        // FrameworkBundle alone: `framework.asset_mapper` would be an alias of an extension nobody registered.
+        $container = $this->prepend(new FrameworkStub());
 
-        $extension->prepend($container);
+        self::assertSame([], $container->getExtensionConfig('framework'));
+        self::assertFalse($container->hasExtension('asset_mapper'));
 
-        self::assertFalse($container->hasExtension('framework'));
+        $bare = $this->prepend();
+
+        self::assertSame(['phil_highlight'], array_keys($bare->getExtensions()));
     }
 
     public function testTheBundleAddsItsPass(): void
@@ -112,12 +114,15 @@ final class PhilHighlightBundleTest extends TestCase
         return $container;
     }
 
-    private function prepend(): ContainerBuilder
+    private function prepend(ExtensionInterface ...$others): ContainerBuilder
     {
         $container = new ContainerBuilder();
         $extension = $this->extension();
         $container->registerExtension($extension);
-        $container->registerExtension(new FrameworkStub());
+        foreach ($others as $other) {
+            $container->registerExtension($other);
+        }
+
         self::assertInstanceOf(PrependExtensionInterface::class, $extension);
         $extension->prepend($container);
 
