@@ -62,6 +62,12 @@ final class RateLimitServices
     /** What a limiter's name is: it names the policy of the headers, a structured-field string. */
     public const string NAME_PATTERN = '/^[A-Za-z0-9_.-]{1,64}$/D';
 
+    /** The value of `lock_factory` that takes `lock.factory` when it is defined, and no lock otherwise. */
+    public const string AUTO_LOCK = 'auto';
+
+    /** The lock factory FrameworkBundle defines when `framework.lock` is enabled. */
+    public const string DEFAULT_LOCK = 'lock.factory';
+
     /** The tag of a limiter, with its `name` and, optionally, its default `key` and `amount` and `observe`. */
     public const string LIMITER_TAG = 'phil_rate_limit.limiter';
 
@@ -226,12 +232,12 @@ final class RateLimitServices
                 self::watch($container, $storage, $path.'.storage', $limiter, $config);
             }
 
-            if (null !== $lock) {
+            if (null !== $lock && self::AUTO_LOCK !== $lock) {
                 $required[$lock] = $path.' (its lock factory)';
             }
 
             $container->register($factory, RateLimiterFactory::class)
-                ->setArguments([$options, new Reference($storage), null === $lock ? null : new Reference($lock)]);
+                ->setArguments([$options, new Reference($storage), self::lockOf($lock)]);
             $window = \in_array($limiter['policy'], ['fixed_window', 'sliding_window'], true) ? self::seconds((string) $limiter['interval']) : null;
         }
 
@@ -240,6 +246,20 @@ final class RateLimitServices
             ->addTag(self::LIMITER_TAG, ['name' => $name, 'key' => $limiter['key'], 'amount' => $limiter['amount'], 'observe' => $limiter['observe']]);
 
         return $required;
+    }
+
+    /**
+     * The lock a factory reserves under: `lock.factory` when it is defined for "auto", as FrameworkBundle does, the
+     * service named otherwise, none for null. Without a lock, two requests of one key read the same state and may both
+     * pass a limit that allows only one of them.
+     */
+    private static function lockOf(?string $lock): ?Reference
+    {
+        return match ($lock) {
+            null => null,
+            self::AUTO_LOCK => new Reference(self::DEFAULT_LOCK, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            default => new Reference($lock),
+        };
     }
 
     /**

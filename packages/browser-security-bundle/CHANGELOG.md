@@ -4,6 +4,13 @@ All notable changes to `phil/browser-security-bundle` will be documented in this
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Security
+
+- The report throttle the bundle builds reserves under `lock.factory` when it is defined, as FrameworkBundle does,
+  so that two bodies of one client that read the same window can no longer both pass its last place.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

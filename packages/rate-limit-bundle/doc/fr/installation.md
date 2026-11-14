@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c646158456018abe3cb3fb84a678b9e09e73f85b5ffc60dba4ef4b1379520545 -->
+<!-- phil-dev source-sha256=7609e760cbd29c0693788e3827405a54c00ba7ea13d635da0af5fed3854e6319 -->
 # Installation
 
 ## Prérequis
@@ -44,6 +44,21 @@ phil_rate_limit:
 Un limiteur nomme son propre pool avec `cache_pool`, ou un service `StorageInterface` avec `storage`. Un pool, un
 stockage ou une fabrique de verrous qui n'est pas défini fait échouer la construction du conteneur, avec le limiteur
 qui en a besoin, plutôt que la première requête.
+
+## Le verrou
+
+Un limiteur lit son état, décide et le réécrit. Sans verrou, deux requêtes d'une même clé sur deux workers lisent le
+même état, et toutes deux peuvent passer une limite qui n'a de place que pour l'une d'elles. Chaque limiteur réserve
+donc sous la fabrique de verrous `lock.factory` quand elle est définie — `framework.lock` activé, avec symfony/lock —,
+comme FrameworkBundle le fait pour ses propres limiteurs. Son magasin est partagé par les serveurs, comme le pool :
+
+```yaml
+framework:
+    lock: '%env(REDIS_URL)%'
+```
+
+`lock_factory` nomme une autre fabrique, pour le bundle ou pour un limiteur ; un nom qui n'est pas défini fait échouer
+la construction. `lock_factory: null` réserve sans verrou.
 
 ## Mode worker
 

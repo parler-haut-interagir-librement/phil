@@ -29,7 +29,7 @@ phil_analytics:
         limit: 600
         interval: '10 minutes'
         cache_pool: cache.app
-        lock_factory: ~
+        lock_factory: lock.factory     # null for none
     collection:
         enabled: true
         projection: config             # or the id of a CollectionProjection
@@ -157,6 +157,10 @@ A sliding window of `limit` sends per `interval`, per site and keyed client dige
 `rate_limiter.cache_pool`. Calibrate the limit on a group behind one address (a conference Wi-Fi, a carrier-grade NAT),
 counting several sends per page: the page view, the second send when the page is left, one per event. The limiter fails
 closed: an error of the pool refuses the page view ([rate-limiting.md](rate-limiting.md)).
+
+The window is read, checked and written back under `rate_limiter.lock_factory`, `lock.factory` by default when it is
+defined, as FrameworkBundle does: without a lock, two sends of one client that read the same window may both pass its
+last place. Another factory is named as it is, and must be defined; `null` reserves without a lock.
 
 ## The collection endpoint
 

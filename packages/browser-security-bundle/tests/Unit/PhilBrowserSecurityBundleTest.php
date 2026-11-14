@@ -160,6 +160,7 @@ final class PhilBrowserSecurityBundleTest extends TestCase
         self::assertEquals([
             ['id' => 'phil_csp_report', 'policy' => 'sliding_window', 'limit' => 60, 'interval' => '1 minute'],
             new Reference('phil_browser_security.report_limiter.storage'),
+            new Reference('lock.factory', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ], $container->getDefinition('phil_browser_security.report_limiter')->getArguments());
         self::assertEquals([new Reference('phil_browser_security.report_limiter')], $container->getDefinition(RateLimiterThrottle::class)->getArguments());
         self::assertEquals([new Reference('cache.app'), CacheDeduplicator::DEFAULT_WINDOW], $container->getDefinition(CacheDeduplicator::class)->getArguments());

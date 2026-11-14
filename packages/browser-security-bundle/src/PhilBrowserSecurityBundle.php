@@ -668,7 +668,8 @@ final class PhilBrowserSecurityBundle extends AbstractBundle
     }
 
     /**
-     * The throttle of the report bodies, on a sliding window built here or the factory the configuration names: through
+     * The throttle of the report bodies, on a sliding window built here — reserved under `lock.factory` when it is
+     * defined — or the factory the configuration names: through
      * a named limiter when phil/rate-limit-bundle is registered, directly on `symfony/rate-limiter` otherwise.
      *
      * @param array<array-key, mixed> $rate
@@ -685,6 +686,9 @@ final class PhilBrowserSecurityBundle extends AbstractBundle
             $services->set('phil_browser_security.report_limiter', RateLimiterFactory::class)->args([
                 ['id' => 'phil_csp_report', 'policy' => 'sliding_window', 'limit' => $rate['limit'], 'interval' => $this->string($rate, 'interval')],
                 service('phil_browser_security.report_limiter.storage'),
+                // Reserved under the lock, as FrameworkBundle does: without it, two bodies of one client read the same
+                // window and may both pass its last place.
+                service('lock.factory')->nullOnInvalid(),
             ]);
         }
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a226ba28d3bdbb71d6ce7521f5373481cbd534ff353e97ac8ce611cfba510087 -->
+<!-- phil-dev source-sha256=c5c2e5cf7bddd421f2135976560cec19d4b8c45589758b2b1784517a06769092 -->
 # Configuration
 
 ```yaml
@@ -7,7 +7,7 @@ phil_rate_limit:
     headers: draft                     # draft, legacy, both or none
     error_template: '@PhilRateLimit/too_many_requests.html.twig'
     cache_pool: cache.app              # where the limiters keep their state
-    lock_factory: null                 # a lock factory, for exact counts under concurrency
+    lock_factory: auto                 # lock.factory when it is defined, a service id, or null for none
     single_server: false               # accepts a store local to the server in prod
     network:                           # needs phil/ip-anonymizer
         enabled: false
@@ -40,7 +40,7 @@ phil_rate_limit:
 | `headers` | `draft` | `draft` écrit `RateLimit-Policy` et `RateLimit` ; `legacy` écrit `RateLimit-Limit`, `RateLimit-Remaining` et `RateLimit-Reset` ; `both` ; `none` garde `Retry-After` seul. |
 | `error_template` | `@PhilRateLimit/too_many_requests.html.twig` | La page d'un refus donné en HTML. |
 | `cache_pool` | `cache.app` | Le pool de cache de chaque limiteur qui ne nomme ni pool ni stockage. |
-| `lock_factory` | `null` | La fabrique de verrous de chaque limiteur qui n'en nomme aucune. |
+| `lock_factory` | `auto` | La fabrique de verrous de chaque limiteur qui n'en nomme aucune : `auto` prend `lock.factory` quand il est défini, comme FrameworkBundle ; `null` réserve sans verrou. |
 | `single_server` | `false` | Accepte un pool ou un stockage propre au serveur dans l'environnement `prod`. |
 | `network.enabled` | `false` | Les clés `ip` du réseau du client plutôt que de son hôte. |
 | `network.ipv4_prefix`, `network.ipv6_prefix` | `32`, `64` | Les préfixes gardés. |

@@ -77,7 +77,8 @@ Invariants of a `CollectionRateLimiter` adapter:
 `SymfonyCollectionRateLimiter` takes a limiter from a Symfony Rate Limiter factory for each site and digest, keyed on
 the hash of the two, and consumes one send. The bundle configures the factory as a sliding window of
 `rate_limiter.limit` sends per `rate_limiter.interval` (600 per 10 minutes by default), its state in
-`rate_limiter.cache_pool` ([configuration.md](configuration.md#the-rate-limiter)). Any exception of the limiter or of its
+`rate_limiter.cache_pool` and reserved under `lock.factory` when it is defined
+([configuration.md](configuration.md#the-rate-limiter)). Any exception of the limiter or of its
 storage answers `false`: the page view is dropped.
 
 The digest's salt comes from `ForgottenSalt` over `CacheSaltStore`: a random salt per UTC day in `salt.cache_pool`,

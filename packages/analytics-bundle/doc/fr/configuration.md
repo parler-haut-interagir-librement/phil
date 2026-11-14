@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5aa72600f8eae73b9abdea0603707811948743b45ce122edbaae8509a46742ac -->
+<!-- phil-dev source-sha256=4a3d37126673d99e966891cbcff9318b0e47b9093e04c7ce32c81b11496fbe0e -->
 # Configuration
 
 Le bundle configure ses services du domaine à partir de `phil_analytics`, et un adaptateur par contrat. Chaque
@@ -30,7 +30,7 @@ phil_analytics:
         limit: 600
         interval: '10 minutes'
         cache_pool: cache.app
-        lock_factory: ~
+        lock_factory: lock.factory     # null for none
     collection:
         enabled: true
         projection: config             # or the id of a CollectionProjection
@@ -161,6 +161,10 @@ Une fenêtre glissante de `limit` envois par `interval`, par site et par emprein
 traduction d'adresses d'opérateur), en comptant plusieurs envois par page : la page vue, le second envoi quand on la
 quitte, un par événement. Le limiteur est fermé en cas d'échec : une erreur de la réserve refuse la page vue
 ([rate-limiting.md](rate-limiting.md)).
+
+La fenêtre est lue, vérifiée et réécrite sous `rate_limiter.lock_factory`, `lock.factory` par défaut quand il est
+défini, comme FrameworkBundle : sans verrou, deux envois d'un même client qui lisent la même fenêtre peuvent tous deux
+passer sa dernière place. Une autre fabrique se nomme telle quelle et doit être définie ; `null` réserve sans verrou.
 
 ## Le point de collecte
 

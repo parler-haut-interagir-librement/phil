@@ -23,6 +23,9 @@ final class AnalyticsConfiguration
 
     public const string LIMITER_SYMFONY = 'symfony';
 
+    /** The lock factory the Symfony limiter reserves under by default, when it is defined. */
+    public const string LIMITER_LOCK = 'lock.factory';
+
     public const string PROJECTION_CONFIG = 'config';
 
     public const string CRAWLERS_USER_AGENT = 'user_agent';
@@ -195,7 +198,7 @@ final class AnalyticsConfiguration
                     ->end()
                     ->scalarNode('interval')->info('The window, such as "10 minutes".')->defaultValue('10 minutes')->cannotBeEmpty()->end()
                     ->scalarNode('cache_pool')->info("The pool of the limiter's state: never persisted.")->defaultValue('cache.app')->cannotBeEmpty()->end()
-                    ->scalarNode('lock_factory')->info('A lock factory for exact counts under concurrency; null for none.')->defaultNull()->end()
+                    ->scalarNode('lock_factory')->info('The lock factory the limiter reserves under, so that two sends of one client never both pass its last place: lock.factory when it is defined, by default; null for none.')->defaultValue(self::LIMITER_LOCK)->end()
                 ->end()
             ->end()
             ->arrayNode('collection')
