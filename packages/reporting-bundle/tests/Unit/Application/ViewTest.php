@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\ReportingBundle\Tests\Unit\Application;
 
 use DateTimeImmutable;
+use Phil\ReportingBundle\Application\Exception\PngUnavailable;
 use Phil\ReportingBundle\Application\View\ChartDrawing;
 use Phil\ReportingBundle\Application\View\MetricReading;
 use Phil\ReportingBundle\Domain\Format\MetricFormat;
@@ -12,6 +13,7 @@ use Phil\ReportingBundle\Domain\ValueObject\Metric;
 use Phil\ReportingBundle\Domain\ValueObject\Period;
 use Phil\ReportingBundle\Domain\ValueObject\Series;
 use Phil\ReportingBundle\Domain\ValueObject\SeriesSet;
+use Phil\ReportingBundle\Tests\Unit\Fixture\RecordingRasterizer;
 use Phil\ReportingBundle\Tests\Unit\Fixture\VisitsSource;
 use Phil\SvgChart\ChartType;
 use Phil\SvgChart\Exception\InvalidChart;
@@ -20,6 +22,7 @@ use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ChartDrawing::class)]
 #[CoversClass(MetricReading::class)]
+#[CoversClass(PngUnavailable::class)]
 final class ViewTest extends TestCase
 {
     public function testAnSvgImage(): void
@@ -37,6 +40,33 @@ final class ViewTest extends TestCase
 
         $this->expectException(InvalidChart::class);
         new ChartDrawing(50);
+    }
+
+    public function testAPngImageWhereARasterizerIsGiven(): void
+    {
+        $set = new VisitsSource()->series(new Period(new DateTimeImmutable('2026-11-01'), new DateTimeImmutable('2026-11-02')));
+        $rasterizer = new RecordingRasterizer();
+        $drawing = new ChartDrawing(300, 200, $rasterizer, 3);
+
+        self::assertTrue($drawing->hasPng());
+        self::assertSame('PNG 3', $drawing->png($set, ChartType::Bar, 'Visits'));
+        self::assertSame([[$drawing->svg($set, ChartType::Bar, 'Visits'), 3]], $rasterizer->drawn);
+        self::assertSame('PNG 2', new ChartDrawing(rasterizer: $rasterizer)->png($set, ChartType::Bar, 'Visits'));
+    }
+
+    public function testNoPngWithoutARasterizer(): void
+    {
+        $set = new VisitsSource()->series(new Period(new DateTimeImmutable('2026-11-01'), new DateTimeImmutable('2026-11-02')));
+        $drawing = new ChartDrawing();
+
+        self::assertFalse($drawing->hasPng());
+
+        try {
+            $drawing->png($set, ChartType::Bar, 'Visits');
+            self::fail('Drawn.');
+        } catch (PngUnavailable $pngUnavailable) {
+            self::assertSame('The charts are drawn as SVG only: a PNG needs the resvg extension and the fonts of "phil_reporting.png.fonts".', $pngUnavailable->getMessage());
+        }
     }
 
     public function testBars(): void

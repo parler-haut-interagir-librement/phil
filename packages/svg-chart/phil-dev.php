@@ -8,6 +8,10 @@ declare(strict_types=1);
  */
 return [
     'paths' => ['src', 'tests'],
+    // The classes of the optional resvg extension, which PHPStan does not know without it.
+    'phpstan' => ['includes' => ['phpstan/resvg.neon']],
+    // The classes of the optional resvg extension, which only Internal\ResvgEngine calls.
+    'deptrac' => ['allow' => ['^Resvg\\\\.*']],
     'infection' => [
         'mutators' => [
             'DecrementInteger' => [

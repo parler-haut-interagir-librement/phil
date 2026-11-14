@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\ReportingBundle\Application\Contract;
 
+use Phil\ReportingBundle\Application\Exception\ExportFailed;
 use Phil\ReportingBundle\Application\Exception\JobUnavailable;
 use Phil\ReportingBundle\Application\Report\ReportStream;
 use Phil\ReportingBundle\Application\Report\StoredExport;
@@ -16,6 +17,8 @@ interface ExportStore
 {
     /**
      * Keeps the content of the stream, read from its start, and describes it.
+     *
+     * @throws ExportFailed when the file cannot be written whole; nothing is kept
      */
     public function keep(ReportStream $content, string $filename, string $mediaType, int $rows): StoredExport;
 

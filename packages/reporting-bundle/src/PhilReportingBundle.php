@@ -11,7 +11,7 @@ use Phil\ReportingBundle\Application\PeriodPreset;
 use Phil\ReportingBundle\Infrastructure\DependencyInjection\KeyedServicesPass;
 use Phil\ReportingBundle\Infrastructure\DependencyInjection\ReportingServices;
 use Phil\SvgChart\ChartType;
-use Symfony\Component\AssetMapper\AssetMapperInterface;
+use Phil\SvgChart\Raster\ResvgRasterizer;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -56,6 +56,18 @@ final class PhilReportingBundle extends AbstractBundle
                 ->children()
                     ->integerNode('width')->defaultValue(640)->min(100)->max(4000)->end()
                     ->integerNode('height')->defaultValue(320)->min(100)->max(4000)->end()
+                ->end()
+            ->end()
+            ->arrayNode('png')
+                ->info("The charts drawn as PNG images too — a download, the image of a report's e-mail —, by the resvg extension when it is loaded and fonts are listed.")
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->arrayNode('fonts')
+                        ->info('The TrueType or OpenType files the PNG images are drawn with, the first one for every text; no font of the system is read, so without fonts there is no PNG.')
+                        ->scalarPrototype()->cannotBeEmpty()->end()
+                    ->end()
+                    ->integerNode('scale')->info('The scale of the PNG images: 2 for screens of high density.')->defaultValue(2)->min(1)->max(ResvgRasterizer::MAX_SCALE)->end()
+                    ->integerNode('max_pixels')->info('The largest PNG image, its width times its height.')->defaultValue(16_777_216)->min(1)->max(ResvgRasterizer::MAX_PIXELS)->end()
                 ->end()
             ->end()
             ->integerNode('max_rows')
@@ -104,8 +116,9 @@ final class PhilReportingBundle extends AbstractBundle
     #[Override]
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        if (interface_exists(AssetMapperInterface::class) && $builder->hasExtension('framework')) {
-            $container->extension('framework', ['asset_mapper' => ['paths' => [\dirname(__DIR__).'/assets/styles' => 'phil-reporting']]]);
+        // AssetMapperBundle has its own extension since Symfony 8.2; `framework.asset_mapper` is only an alias of it.
+        if ($builder->hasExtension('asset_mapper')) {
+            $container->extension('asset_mapper', ['paths' => [\dirname(__DIR__).'/assets/styles' => 'phil-reporting']]);
         }
     }
 
@@ -115,7 +128,7 @@ final class PhilReportingBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{timezone: string, chart: array{width: int, height: int}, max_rows: int, store: string, directory: string, keep_delivered: bool, mail: array{enabled: bool, from: string}, notification: array{enabled: bool, channels: list<string>}, dashboards: array<string, mixed>, schedules: array<string, mixed>} $config */
+        /** @var array{timezone: string, chart: array{width: int, height: int}, png: array{fonts: list<string>, scale: int<1, 4>, max_pixels: int}, max_rows: int, store: string, directory: string, keep_delivered: bool, mail: array{enabled: bool, from: string}, notification: array{enabled: bool, channels: list<string>}, dashboards: array<string, mixed>, schedules: array<string, mixed>} $config */
         ReportingServices::register($builder, $config);
     }
 

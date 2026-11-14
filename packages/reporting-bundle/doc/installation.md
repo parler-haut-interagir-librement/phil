@@ -5,7 +5,7 @@
 | Package | Version | Why |
 |---|---|---|
 | PHP | 8.5 or later, with `intl`, `json`, `mbstring` and `sodium` | Figures written in a locale; jobs as JSON; labels counted in characters; random identifiers. |
-| `phil/svg-chart` | `^0.1` | The SVG images of the charts. |
+| `phil/svg-chart` | `^0.1` | The SVG images of the charts, and their PNG images through its rasterizer. |
 | `symfony/config`, `symfony/dependency-injection` | `^8.2` | The bundle and its configuration. |
 | `symfony/service-contracts` | `^3.6` | The locators of the sources, reports, formats and deliveries. |
 | `psr/clock`, `psr/event-dispatcher` | `^1.0` | The moment the periods are counted from; `ReportExported`. |
@@ -21,10 +21,11 @@ Each of these is used when it is installed:
 | `symfony/mailer`, `symfony/mime` | The `mail` delivery. |
 | `symfony/notifier` | The `notification` delivery. |
 | `symfony/console` | `phil:reporting:export`. |
-| `symfony/http-foundation` | `ReportResponses`. |
+| `symfony/http-foundation` | `ReportResponses` and `ChartResponses`. |
 | `symfony/security-core` | Dashboards restricted to a role. |
 | `easycorp/easyadmin-bundle` | A dashboard as a page of the back office. |
-| `symfony/asset-mapper` | The stylesheet mapped as `phil-reporting`. |
+| `symfony/asset-mapper` | The stylesheet mapped as `phil-reporting`, when AssetMapperBundle is registered. |
+| The `resvg` PHP extension | The charts as PNG images, with the fonts of `png.fonts`: a download, the image of a report's e-mail. See [Configuration](configuration.md#the-png-charts). |
 
 ## Enabling the bundle
 
@@ -45,7 +46,7 @@ translator, for their labels in the `phil_reporting` domain.
 
 ## The stylesheet
 
-With AssetMapper, the stylesheet is mapped as `phil-reporting/reporting.css`:
+With AssetMapper — AssetMapperBundle registered —, the stylesheet is mapped as `phil-reporting/reporting.css`:
 
 ```twig
 <link rel="stylesheet" href="{{ asset('phil-reporting/reporting.css') }}">

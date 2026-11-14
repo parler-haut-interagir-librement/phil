@@ -5,6 +5,22 @@ All notable changes to `phil/svg-chart` will be documented in this file.
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles, and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `Contract\Rasterizer`, the port of the PNG images, and `Raster\ResvgRasterizer`, which draws SVG as PNG through the
+  optional `resvg` PHP extension, at a scale of 1 to 4: every image sanitized by phil/svg-sanitizer without the raster
+  images of `data:` addresses, the fonts given read by phil/fonts and no font of the system, the images an SVG names
+  confined to an empty directory, limits of bytes and pixels checked before anything is drawn; `isAvailable()`.
+- `RasterizerUnavailable`, `InvalidRasterizer` and `RasterizationFailed`.
+- `ext-resvg` suggested; the tests of the renderer run where it is loaded.
+- The documentation of the PNG images, in `doc/png.md`.
+
+### Changed
+
+- phil/svg-sanitizer and phil/fonts are required.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

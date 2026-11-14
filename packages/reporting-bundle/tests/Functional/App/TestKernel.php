@@ -61,6 +61,7 @@ final class TestKernel extends Kernel
             'timezone' => 'America/Toronto',
             'store' => 'memory',
             'mail' => ['from' => 'reports@example.com'],
+            'png' => ['fonts' => [\dirname(__DIR__, 2).'/Fixtures/fonts/test.ttf']],
             'dashboards' => [
                 'members' => [
                     'title' => 'Members',

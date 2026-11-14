@@ -1,6 +1,6 @@
 {
     "name": "phil/svg-chart",
-    "description": "Charts in PHP, drawn as SVG: bars, lines, pies and doughnuts from the shape of a Chart.js configuration, round ticks, a legend, colours told apart by every colour vision, and a description that reads every value",
+    "description": "Charts in PHP, drawn as SVG: bars, lines, pies and doughnuts from the shape of a Chart.js configuration, round ticks, a legend, colours told apart by every colour vision, a description that reads every value, and PNG images through the resvg extension",
     "license": "MIT",
     "type": "library",
     "keywords": [
@@ -8,7 +8,8 @@
         "svg",
         "bar-chart",
         "pie-chart",
-        "accessibility"
+        "accessibility",
+        "png"
     ],
     "authors": [
         {
@@ -21,11 +22,17 @@
     "homepage": "https://ph-il.ca",
     "require": {
         "php": ">=8.5",
-        "ext-mbstring": "*"
+        "ext-mbstring": "*",
+        "phil/fonts": "^0.1@dev",
+        "phil/svg-sanitizer": "^0.1@dev"
     },
     "require-dev": {
+        "ext-zlib": "*",
         "phpunit/phpunit": "^13.4",
         "roave/security-advisories": "dev-latest"
+    },
+    "suggest": {
+        "ext-resvg": "To draw the charts as PNG images, through ResvgRasterizer"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

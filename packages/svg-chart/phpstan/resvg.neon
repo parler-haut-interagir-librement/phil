@@ -1,0 +1,4 @@
+# The classes of the optional resvg extension, which PHPStan does not know without it.
+parameters:
+    scanFiles:
+        - resvg.stub

@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Phil\ReportingBundle\Tests\Unit\Application;
 
 use InvalidArgumentException;
+use Phil\ReportingBundle\Application\Exception\ExportFailed;
 use Phil\ReportingBundle\Application\Report\ReportStream;
+use Phil\ReportingBundle\Tests\Unit\Fixture\FailingStream;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ReportStream::class)]
+#[CoversClass(ExportFailed::class)]
 final class ReportStreamTest extends TestCase
 {
     public function testWrittenRewoundAndRead(): void
@@ -48,6 +51,23 @@ final class ReportStreamTest extends TestCase
     {
         $handle = fopen('php://memory', 'w+');
         ReportStream::of($handle)->close();
+
+        self::assertFalse(\is_resource($handle));
+    }
+
+    public function testAStreamThatCannotBeFlushedFailsTheExport(): void
+    {
+        FailingStream::register();
+        $handle = fopen(FailingStream::SCHEME.'://flush', 'w');
+        $stream = ReportStream::of($handle);
+        $stream->write('a,b');
+
+        try {
+            $stream->close();
+            self::fail('Closed.');
+        } catch (ExportFailed $exportFailed) {
+            self::assertSame('The export failed: the stream could not be flushed and closed.', $exportFailed->getMessage());
+        }
 
         self::assertFalse(\is_resource($handle));
     }

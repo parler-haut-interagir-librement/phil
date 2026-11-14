@@ -8,6 +8,7 @@ use Phil\ReportingBundle\Application\Contract\ExportStore;
 use Phil\ReportingBundle\Application\Contract\JobStore;
 use Phil\ReportingBundle\Application\Contract\ReportDelivery;
 use Phil\ReportingBundle\Application\Event\ReportExported;
+use Phil\ReportingBundle\Application\Exception\ExportFailed;
 use Phil\ReportingBundle\Application\Exception\NotFound;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Service\ServiceProviderInterface;
@@ -33,7 +34,8 @@ final readonly class ReportRunner
     }
 
     /**
-     * @throws NotFound when the job names a report, a format or a delivery that does not exist
+     * @throws NotFound     when the job names a report, a format or a delivery that does not exist
+     * @throws ExportFailed when the file cannot be written whole
      */
     public function run(string $id): StoredExport
     {

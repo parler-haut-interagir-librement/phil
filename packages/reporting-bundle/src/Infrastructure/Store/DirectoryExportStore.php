@@ -6,10 +6,11 @@ namespace Phil\ReportingBundle\Infrastructure\Store;
 
 use Override;
 use Phil\ReportingBundle\Application\Contract\ExportStore;
+use Phil\ReportingBundle\Application\Exception\ExportFailed;
 use Phil\ReportingBundle\Application\Exception\JobUnavailable;
 use Phil\ReportingBundle\Application\Report\ReportStream;
 use Phil\ReportingBundle\Application\Report\StoredExport;
-use RuntimeException;
+use Throwable;
 
 /**
  * The exported files in a directory readable by its owner only, each under an identifier of its own; the name and the
@@ -31,16 +32,23 @@ final readonly class DirectoryExportStore implements ExportStore
         $target = @fopen($file, 'x');
 
         if (false === $target) {
-            throw new RuntimeException(\sprintf('The export cannot be written to "%s".', $file));
+            throw ExportFailed::because(\sprintf('"%s" cannot be created', $file));
         }
 
         chmod($file, 0o600);
         $target = ReportStream::of($target);
 
         try {
-            $size = $content->copyTo($target);
-        } finally {
-            $target->close();
+            try {
+                $size = $content->copyTo($target);
+            } finally {
+                $target->close();
+            }
+        } catch (Throwable $throwable) {
+            // A file cut short is no export: nobody may read it as one.
+            $this->directory->remove($id);
+
+            throw $throwable;
         }
 
         return new StoredExport($id, $filename, $mediaType, $size, $rows);

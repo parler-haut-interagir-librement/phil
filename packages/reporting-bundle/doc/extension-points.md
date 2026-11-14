@@ -32,6 +32,11 @@ interface SeriesSource
 
 A report: its columns and its rows for a request. See [Reports](reports.md).
 
+## `ChartedReport`
+
+A report that has a chart, which the `mail` delivery puts in its e-mail as a PNG image: `chart()` gives a
+`ReportChart`, the key of a series source, a `ChartType` and a title. See [Reports](reports.md#the-chart-of-a-report-in-its-e-mail).
+
 ## `ReportFormat`
 
 A file format beside CSV, TSV and JSON: its key, media type and extension, and how it writes the headings and the
@@ -78,7 +83,15 @@ services:
 `ReportJob::toArray()` and `ReportJob::fromArray()` give a job store the JSON to keep and read it back. A store throws
 `JobUnavailable` for an identifier it holds nothing under, and ignores the removal of one. An export store reads the
 file from a `ReportStream` and gives it back as another from `open()`, which the caller closes; `ReportStream::of()`
-wraps what `fopen()` returns.
+wraps what `fopen()` returns. A store that cannot write a file whole throws `ExportFailed` and keeps nothing: the
+job stays, for Messenger to retry. `ReportStream::close()` throws `ExportFailed` when the stream cannot be flushed and
+closed.
+
+## The rasterizer
+
+The PNG charts are drawn by the `Phil\SvgChart\Contract\Rasterizer` service: `ResvgRasterizer` when the `resvg`
+extension is loaded and `png.fonts` lists a file. With no fonts listed, an application that draws PNG images otherwise
+registers its own service under that interface, and the charts, the downloads and the e-mails use it.
 
 ## Registration
 

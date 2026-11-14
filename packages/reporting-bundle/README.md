@@ -11,8 +11,9 @@ installed.
 
 The charts are HTML, CSS and SVG, never a script. An SVG image is drawn on the server by `phil/svg-chart`, with a
 title, a description that reads every value, and the table of its values beside it; bars of HTML and CSS are a table
-themselves; a table alone is a third rendering. A metric shows its value written in the reader's locale, and its
-change from the period before.
+themselves; a table alone is a third rendering. Where the `resvg` PHP extension is loaded, the same charts are drawn
+as PNG images too, for a download and for the e-mail of a report, which e-mail clients would not show as SVG. A metric
+shows its value written in the reader's locale, and its change from the period before.
 
 A report is a service with columns and rows, read row by row: exported to CSV, TSV or JSON, streamed as a download,
 written from the command line, or scheduled with Symfony Scheduler and delivered by Mailer or Notifier from a
@@ -36,6 +37,8 @@ Notifier, Console and EasyAdmin are each used when they are installed.
 | The `phil_reporting` schedule of Symfony Scheduler | Implemented and tested |
 | The `mail` and `notification` deliveries | Implemented and tested |
 | `ReportResponses` downloads, `phil:reporting:export`, the EasyAdmin page | Implemented and tested |
+| PNG charts through the `resvg` extension, when it is loaded: `ChartResponses` downloads, the chart of a `ChartedReport` in its e-mail | Implemented and tested |
+| Exports that fail whole: `ExportFailed`, retried, no file cut short kept | Implemented and tested |
 
 ## Documentation
 
