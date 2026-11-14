@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bab22c7d5af52867f6787fa3f9e349152d3fadde6db1543de5ad8feb7879333d -->
+<!-- phil-dev source-sha256=05c4e64dd23730f74980fe6b3826020be1a85cfe436c365c90925d467a3eee04 -->
 # Installation
 
 ## Prérequis
@@ -8,6 +8,16 @@
 | PHP 8.5 ou plus récent | Classes en lecture seule, constantes typées, `array_find()` et `array_any()` |
 
 La bibliothèque n'a aucune autre dépendance, pas même une extension hors du cœur de PHP.
+
+## Extensions PHP
+
+Les analyseurs lexicaux sont en PHP pur, et le surligneur n'emploie aucune extension, même installée. Les extensions de
+coloration syntaxique installables par PIE ne conviennent pas :
+
+| Extension | Pourquoi elle n'est pas employée |
+|---|---|
+| `yiipress/highlighter` (syntect) | Elle renvoie du HTML à styles en ligne plutôt que des jetons : ni les classes `hl-`, ni les thèmes, ni les annotations de lignes ne s'appliqueraient ; elle n'a pas de grammaire Twig ; et elle est plus lente que ces analyseurs sur PHP, JavaScript, HTML, CSS, YAML et SQL. |
+| `xberg-io/tree-sitter-language-pack` | Elle télécharge chaque grammaire du réseau à la première utilisation, ce qu'un serveur ne doit jamais faire ; elle ne publie aucune version à fils d'exécution sûrs, que FrankenPHP exige ; et son API PHP n'exécute aucune requête de coloration. |
 
 ## Installer
 

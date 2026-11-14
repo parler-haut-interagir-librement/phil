@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e77b0b4cbc5da5289387e263197ab3446be94aa6b6a782d6ea6dd33185f86d81 -->
+<!-- phil-dev source-sha256=c5d6ab48be6b20881eade9dd4a3b502f0212898663d7b59fbe2ee64f913589d0 -->
 # Installation
 
 ## Prérequis
@@ -32,13 +32,15 @@ UJO sont colorés quand `phil/ujo-bundle` est installé.
 
 ## La feuille de style
 
-Avec AssetMapper, le bundle déclare son dossier `assets/styles` sous le nom `phil-highlight/` ; une mise en page lie le
-thème :
+Avec AssetMapper, le bundle déclare son dossier `assets/styles` sous le nom `phil-highlight/` dans la configuration
+`asset_mapper` ; une mise en page lie le thème :
 
 ```twig
 <link rel="stylesheet" href="{{ asset('phil-highlight/highlight.css') }}">
 ```
 
-Avec une autre chaîne, importez `vendor/phil/highlight-bundle/assets/styles/highlight.css`. Les thèmes de
+La déclaration n'est ajoutée que si AssetMapperBundle est enregistré, ce que FrameworkBundle fait quand
+`symfony/asset-mapper` est installé ; sans lui, le bundle laisse la configuration intacte. Avec une autre chaîne,
+importez `vendor/phil/highlight-bundle/assets/styles/highlight.css`. Les thèmes de
 `phil/highlight`, dans `vendor/phil/highlight/themes/`, colorent les mêmes classes et conviennent aussi : voir
 [Thème](theme.md).
