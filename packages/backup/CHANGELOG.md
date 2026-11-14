@@ -20,6 +20,8 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   An archive of the same files stays the same from one backup to the next; next to the order by whole path of
   0.1.0-alpha, only sibling names that extend another with a byte below `/`, such as `a` and `a-b`, are ordered
   differently.
+- `TarReader` computes each header's checksum by counting its byte values instead of building an array of one
+  element per byte: reading an archive of 100,000 small entries takes about a third of the time.
 
 ## 0.1.0-alpha - 2026-11-11
 

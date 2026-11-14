@@ -76,7 +76,13 @@ final readonly class TarReader
             return null;
         }
 
-        $checksum = array_sum(array_map(ord(...), str_split(substr_replace($header, '        ', 148, 8))));
+        // The checksum is the sum of the header's bytes, its own field counted as eight spaces: each byte value times
+        // the number of times it occurs, so a header costs one small array instead of one element per byte.
+        $checksum = 0;
+
+        foreach (count_chars(substr_replace($header, '        ', 148, 8), 1) as $byte => $count) {
+            $checksum += $byte * $count;
+        }
 
         if ("ustar\0" !== substr($header, 257, 6) || $this->number($header, 148, 8) !== $checksum) {
             throw $this->damaged();

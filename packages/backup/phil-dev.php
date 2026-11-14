@@ -52,9 +52,11 @@ return [
                     '\$size = fstat\(\$in\)\[\'size\'\] \?\? 0;',
                 ],
             ],
-            // See `IncrementInteger`.
+            // See `IncrementInteger`. And count_chars() in mode 0 also gives the byte values that do not occur, with a
+            // count of zero: they add nothing to the checksum, so mode 0 and mode 1 give the same sum.
             'DecrementInteger' => [
                 'ignoreSourceCodeByRegex' => [
+                    'foreach \(count_chars\(substr_replace\(\$header, \'        \', 148, 8\), 1\) as \$byte => \$count\) \{',
                     '\$header = \\\\is_string\(\$pushed\[1\] \?\? null\) \? \$pushed\[1\] : \'\';',
                     '\$size = fstat\(\$in\)\[\'size\'\] \?\? 0;',
                 ],
