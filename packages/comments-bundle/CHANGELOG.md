@@ -4,7 +4,7 @@ All notable changes to `phil/comments-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## 0.2.1-alpha - Unreleased
+## Unreleased
 
 ### Added
 
