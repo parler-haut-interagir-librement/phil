@@ -13,9 +13,11 @@ use Phil\Ujo\Type\TableGrid;
 
 /**
  * The structured blocks: lists, nested and checklists included, definition lists, tables, indexes, tables of contents
- * and lists of abbreviations. A table's caption is its `<caption>`; a cell of the rich form keeps its spans, a header
- * cell is a `<th>` whose `scope` is its column in the head and its row in the body, and an alignment, the cell's or
- * else its column's, is a class `ujo-align-…`.
+ * and lists of abbreviations. A checklist item starts with a disabled checkbox, `checked` when the item is, in a
+ * `<label>` with the item's text, which names it; its `data-checked` says the same for styles and scripts. A table's
+ * caption is its `<caption>`; a cell of the rich form keeps its spans, a header cell is a `<th>` whose `scope` is its
+ * column in the head and its row in the body, and an alignment, the cell's or else its column's, is a class
+ * `ujo-align-…`.
  */
 final readonly class ListRenderer implements BlockRenderer
 {
@@ -58,12 +60,24 @@ final readonly class ListRenderer implements BlockRenderer
 
         foreach (Rendering::rows($items) as $item) {
             $nested = Rendering::rows($item['items'] ?? null);
+            $checked = $checklist ? true === (Rendering::array($item['meta'] ?? null)['checked'] ?? false) : null;
+            $content = $rendering->inline($item['content'] ?? null);
             $html .= Rendering::tag('li', [
-                'data-checked' => $checklist ? (true === (Rendering::array($item['meta'] ?? null)['checked'] ?? false) ? 'true' : 'false') : null,
-            ], $rendering->inline($item['content'] ?? null).([] === $nested ? '' : Rendering::tag($ordered ? 'ol' : 'ul', [], $this->items($nested, $ordered, $checklist, $rendering))));
+                'data-checked' => null === $checked ? null : ($checked ? 'true' : 'false'),
+            ], (null === $checked ? $content : $this->checkbox($checked, $content)).([] === $nested ? '' : Rendering::tag($ordered ? 'ol' : 'ul', [], $this->items($nested, $ordered, $checklist, $rendering))));
         }
 
         return $html;
+    }
+
+    /**
+     * The content of a checklist item after its checkbox, both in a `<label>`: the box is named by the item's text,
+     * and says to assistive technologies whether it is checked. It is disabled, the state being the document's, not
+     * the reader's to change.
+     */
+    private function checkbox(bool $checked, string $content): string
+    {
+        return '<label>'.Rendering::tag('input', ['type' => 'checkbox', 'disabled' => true, 'checked' => $checked]).$content.'</label>';
     }
 
     /**

@@ -14,8 +14,10 @@ each wiki and the extensions they share, written as each wiki writes its own —
 `{{TOC}}`, macros `~~PAGEBREAK~~`, placeholders `<<footnote>>` —, every feature of the Markdown reader again. HTML is
 compiled as written, and its reader converts it into UJO — the HTML of `phil/ujo` read back into its blocks, a paste and
 older texts into theirs —; plain text is compiled straight to HTML, and its reader converts it into UJO paragraphs.
-`basic` keeps inline emphasis, for a name or a comment; `forum` adds paragraphs, links, lists, quotes and images, for a
-forum message; `all` keeps every element the sanitizer counts as safe, for an article an editor writes. `MarkedUpText`
+Bold and italic in Markdown and the wikis are the strong importance `<strong>` and the stress emphasis `<em>`, as
+CommonMark writes them. `basic` keeps inline emphasis, for a name or a comment; `forum` adds paragraphs, links, lists,
+quotes and images, for a forum message; `all` keeps every element the sanitizer counts as safe, for an article an
+editor writes. A checklist keeps its accessible checkboxes at `all` and says the state of each item in text below. `MarkedUpText`
 keeps the source, its format and the purified HTML together as a Doctrine embeddable, so a page is not compiled on every
 read. It does not cap the length of the input. An add-on brings a dialect of Markdown — its inline and block rules,
 the syntax it reads differently — or a whole format, read by a reader of its own under a name of its own.
@@ -70,7 +72,7 @@ two: source, reader, UJO, renderer, HTML, purifier.
 | [Exceptions](doc/exceptions.md) | `MarkupException`, `InvalidSource`, `MissingExtension` and `UnknownFormat`. |
 | [Extension points](doc/extension-points.md) | The ports, arguments and data an application chooses or replaces, the dialects of Markdown and the formats of add-ons. |
 | [Testing](doc/testing.md) | How the library is tested. |
-| [Reference](doc/reference.md) | The types, the formats, the levels and what each keeps. |
+| [Reference](doc/reference.md) | The types, the formats, the levels and what each keeps, and how each level renders a checklist. |
 
 ## Quick start
 

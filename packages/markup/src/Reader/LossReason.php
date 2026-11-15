@@ -38,4 +38,13 @@ enum LossReason: string
 
     /** A comment no block could take as its note. */
     case Comment = 'comment';
+
+    /** A checkbox in a list item that is not at its start, where a checklist puts it: the box and its state are dropped. */
+    case MisplacedCheckbox = 'misplaced-checkbox';
+
+    /** A checkbox at the start of an item, in a list some items of which say no state: the list is not a checklist. */
+    case PartialChecklist = 'partial-checklist';
+
+    /** A table in a list item, which UJO has no place for: the table is dropped, the rest of the item kept. */
+    case TableInListItem = 'table-in-list-item';
 }

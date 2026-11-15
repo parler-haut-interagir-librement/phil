@@ -24,7 +24,7 @@ use Phil\Markup\Reader\Markdown\Rule\RubyRule;
  */
 final class InlineParser
 {
-    private const array TAGS = ['*' => [1 => 'i', 2 => 'b'], '_' => [1 => 'i', 2 => 'b'], '~' => [1 => 's', 2 => 's'], '=' => [2 => 'mark'], '^' => [1 => 'sup', 2 => 'sub']];
+    private const array TAGS = ['*' => [1 => 'em', 2 => 'strong'], '_' => [1 => 'em', 2 => 'strong'], '~' => [1 => 's', 2 => 's'], '=' => [2 => 'mark'], '^' => [1 => 'sup', 2 => 'sub']];
 
     /** @var array<string, list<InlineRule>> */
     private array $rules = [];

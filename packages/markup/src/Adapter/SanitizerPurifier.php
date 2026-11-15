@@ -24,6 +24,10 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
  * member, not an editor, wrote it. `defaultPolicies()` takes the hosts images may come from; an image from any other
  * loses its `src`. A relative image, served by the site itself, is always kept.
  *
+ * At `all`, the checkbox of a checklist is kept, written again disabled: an `input` of any other type is removed, so
+ * that no purified text holds a field a reader could type in or submit. Below `all`, an `input` is removed, and a
+ * `label` unwrapped, its text kept.
+ *
  * Classes are dropped, but for those of code (`CodeClasses`): `language-…` on `code` at every level, and `hl-…` on
  * `span` where spans are kept, so highlighted code keeps its colours.
  */
@@ -33,8 +37,11 @@ final readonly class SanitizerPurifier implements HtmlPurifier
 
     private const array FORUM = ['p', 'ul', 'ol', 'li', 'blockquote', 'cite', 'pre', 'hr'];
 
+    /** An `input` element as the sanitizer writes it — its attribute values never hold `>` —, its attributes captured. */
+    private const string INPUT = '/<input\b([^>]*)>/';
+
     /** The containers a level does not allow, removed with their text kept. */
-    private const array CONTAINERS = ['p', 'div', 'span', 'a', 'ul', 'ol', 'li', 'blockquote', 'cite', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'dl', 'dt', 'dd', 'figure', 'figcaption', 'section', 'article', 'header', 'footer', 'aside', 'small', 'mark', 'abbr', 'q', 'details', 'summary'];
+    private const array CONTAINERS = ['p', 'div', 'span', 'a', 'label', 'ul', 'ol', 'li', 'blockquote', 'cite', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'dl', 'dt', 'dd', 'figure', 'figcaption', 'section', 'article', 'header', 'footer', 'aside', 'small', 'mark', 'abbr', 'q', 'details', 'summary'];
 
     /**
      * @param array{basic: HtmlSanitizerInterface, forum: HtmlSanitizerInterface, all: HtmlSanitizerInterface} $sanitizers
@@ -87,12 +94,36 @@ final readonly class SanitizerPurifier implements HtmlPurifier
             $all = $all->allowElement($tool->tag, array_keys($tool->attributes));
         }
 
-        return ['basic' => $basic, 'forum' => $forum, 'all' => $all];
+        return ['basic' => $basic, 'forum' => $forum, 'all' => $all->allowElement('input', ['type', 'checked', 'disabled'])];
     }
 
     public function purify(string $html, Level $level): string
     {
-        return $this->sanitizers[$level->value]->sanitize($html);
+        $clean = $this->sanitizers[$level->value]->sanitize($html);
+
+        return Level::All === $level && str_contains($clean, '<input') ? $this->checkboxes($clean) : $clean;
+    }
+
+    /**
+     * The `input` elements the level `all` keeps, each written again as the disabled checkbox of a checklist, checked
+     * or not: an input of another type — a text field, a button, an input with no type — is removed, so that no
+     * purified text holds a field a reader could type in or submit.
+     */
+    private function checkboxes(string $html): string
+    {
+        return (string) preg_replace_callback(self::INPUT, static function (array $input): string {
+            preg_match_all('/ ([^\s"=\/>]+)(?:="([^"]*)")?/', $input[1], $attributes, \PREG_SET_ORDER);
+            $type = '';
+            $checked = false;
+
+            foreach ($attributes as $attribute) {
+                $name = strtolower($attribute[1]);
+                $type = 'type' === $name ? strtolower($attribute[2] ?? '') : $type;
+                $checked = $checked || 'checked' === $name;
+            }
+
+            return 'checkbox' === $type ? '<input type="checkbox" disabled'.($checked ? ' checked' : '').' />' : '';
+        }, $html);
     }
 
     /**

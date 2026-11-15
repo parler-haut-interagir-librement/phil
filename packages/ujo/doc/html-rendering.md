@@ -24,7 +24,7 @@ Every root element has the class `ujo-` followed by its type in kebab case: `ujo
 |---|---|
 | `paragraph` | `<p>` |
 | `header` | `<h1>`–`<h6>`, its `id` the anchor tune or the block's identifier |
-| `list` | `<ul>` or `<ol>` with `start` and `type`, class `ujo-list--{style}`, nested lists inside their item; a checklist item has `data-checked="true"` or `"false"` |
+| `list` | `<ul>` or `<ol>` with `start` and `type`, class `ujo-list--{style}`, nested lists inside their item; a checklist item has `data-checked="true"` or `"false"`, and starts with a checkbox (see [Checklists](#checklists)) |
 | `quote` | `<figure><blockquote>…</blockquote><figcaption>…</figcaption></figure>`, `ujo-align-center` when centered |
 | `warning` | `<aside role="note">` with `ujo-warning__title` and `ujo-warning__message` |
 | `alert` | `<div role="alert">`, classes `ujo-alert--{type}` and `ujo-align-{align}` |
@@ -58,6 +58,24 @@ Every root element has the class `ujo-` followed by its type in kebab case: `ujo
 | `definitionList` | `<dl>` |
 | `credit` | `<p>` with `ujo-credit__title` |
 | `statblock` | `<section>`, classes `ujo-statblock--{kind}`, `ujo-frame`, `ujo-wide`, `data-record`; the name in `<h3>`, sections with `<h4>`, a `<dl>` of properties and a `<table>` of abilities |
+
+## Checklists
+
+Each item of a `checklist` starts with a checkbox, in a `<label>` that holds the item's text, its nested list after
+the label:
+
+```html
+<ul class="ujo-list ujo-list--checklist">
+  <li data-checked="true"><label><input type="checkbox" disabled checked>Pack the dice</label></li>
+  <li data-checked="false"><label><input type="checkbox" disabled>Print the maps</label></li>
+</ul>
+```
+
+The state is not only a style: a screen reader announces a checkbox, checked or not, named by the item's text, and
+`data-checked` says the same to styles and scripts. The checkbox is `disabled`, the state being the document's, not
+the reader's to change; a site that lets its readers tick items replaces the renderer of `list`. An inline sanitizer
+or a purifier that does not keep `input` loses the state: a purifier for texts from people writes it as text instead,
+as `phil/markup` does below its level `all`.
 
 ## Tunes
 

@@ -91,7 +91,7 @@ final class UjoTest extends TestCase
         self::assertSame('{"time":1762387200000,"blocks":[{"id":"h","type":"header","data":{"text":"Hi <strong>you</strong>","level":2},"tunes":{"alignment":{"alignment":"center"}}},{"id":"c","type":"list","data":{"style":"checklist","meta":{},"items":[{"content":"a","meta":{"checked":true},"items":[]}]}}],"version":"2.31.7"}', $ujo->encode($document));
         self::assertStringStartsWith("{\n", $ujo->encode($document, true));
         self::assertSame($ujo->toHtml($document), $ujo->toHtml(self::JSON));
-        self::assertSame("<h2 id=\"h\" class=\"ujo-header ujo-align-center\">Hi <strong>you</strong></h2>\n<ul class=\"ujo-list ujo-list--checklist\"><li data-checked=\"true\">a</li></ul>", $ujo->toHtml(self::JSON));
+        self::assertSame("<h2 id=\"h\" class=\"ujo-header ujo-align-center\">Hi <strong>you</strong></h2>\n<ul class=\"ujo-list ujo-list--checklist\"><li data-checked=\"true\"><label><input type=\"checkbox\" disabled checked>a</label></li></ul>", $ujo->toHtml(self::JSON));
         self::assertSame("Hi you\n\n[x] a", $ujo->toText(self::JSON));
         self::assertSame("Hi you\n\n[x] a", $ujo->toText($document));
         self::assertEquals($document, $ujo->normalize(new Document($document->blocks, 1_762_387_200_000, '2.31.7')));

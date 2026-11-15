@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\Markup\Tests\Unit\Adapter;
 
+use Dom\Attr;
 use Dom\Element;
 use Dom\HTMLDocument;
 use Dom\HTMLElement;
@@ -54,6 +55,7 @@ final class PurifierCorpusTest extends TestCase
         yield 'nested forms mxss' => ['<form><math><mtext></form><form><mglyph><svg><mtext><textarea><path id="</textarea><img onerror=alert(1) src=1>">'];
         yield 'styles' => ['<style>@import "javascript:alert(1)";</style><div style="background:url(javascript:alert(1))">d</div><p style="position:fixed">p</p>'];
         yield 'page' => ['<base href="javascript:/"><meta http-equiv="refresh" content="0;url=javascript:alert(1)"><link rel="stylesheet" href="https://example.com/a.css"><title><script>alert(1)</script></title>'];
+        yield 'inputs' => ['<ul><li><input type="checkbox" checked onclick=alert(1) name=x value=y form=f>a</li></ul><input type="text" value="password" autofocus onfocus=alert(1)><input><input type="image" src="javascript:alert(1)"><input type="CHECKBOX" formaction="javascript:alert(1)"><label for=x><input type=hidden name=csrf>l</label>'];
         yield 'toggle' => ['<details open ontoggle=alert(1)><summary>s</summary>t</details>'];
         yield 'template' => ['<template><script>alert(1)</script><img src=x onerror=alert(1)></template>'];
         yield 'comments' => ['<!--<img src=x onerror=alert(1)>--><![CDATA[<script>alert(1)</script>]]><!--><img src=x onerror=alert(1)>-->'];
@@ -114,6 +116,7 @@ final class PurifierCorpusTest extends TestCase
             foreach ($this->body($output)->getElementsByTagName('*') as $element) {
                 self::assertContains(strtolower($element->localName), [...$allowed, 'tbody'], $output);
                 $this->assertInert($element, $output);
+                $this->assertNoField($element, $output);
             }
         }
 
@@ -128,6 +131,18 @@ final class PurifierCorpusTest extends TestCase
             self::assertNotContains($name, ['style', 'srcdoc', 'action', 'formaction'], $output);
             $value = (string) preg_replace('/[\x00-\x20]+/', '', $attribute->value);
             self::assertDoesNotMatchRegularExpression(self::DANGEROUS, $value, $output);
+        }
+    }
+
+    /**
+     * An input is only ever the disabled checkbox of a checklist: nothing a reader could type in or submit.
+     */
+    private function assertNoField(Element $element, string $output): void
+    {
+        if ('input' === strtolower($element->localName)) {
+            self::assertSame('checkbox', $element->getAttribute('type'), $output);
+            self::assertTrue($element->hasAttribute('disabled'), $output);
+            self::assertSame(\array_slice(['type', 'disabled', 'checked'], 0, $element->attributes->length), array_values(array_map(static fn (Attr $attribute): string => $attribute->localName, iterator_to_array($element->attributes))), $output);
         }
     }
 

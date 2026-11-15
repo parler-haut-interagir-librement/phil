@@ -2,7 +2,7 @@
 
 `Reader\Markdown\MarkdownReader` reads Markdown into a UJO document. It never throws: a construct that is not well
 formed stays text. The document is normalized by `phil/ujo` before it is returned, so its inline HTML is in the
-canonical form of the inline tools — `<b>`, `<i>`, `<s class="cdx-strikethrough">`, `<code class="inline-code">`.
+canonical form of the inline tools — `<strong>`, `<em>`, `<s class="cdx-strikethrough">`, `<code class="inline-code">`.
 
 ```php
 $reader = new MarkdownReader();                  // raw HTML escaped
@@ -21,7 +21,7 @@ gives a `MarkdownDialect`, the syntax a dialect adds or reads differently: see
 | A paragraph | `paragraph`; split around the images it holds, each an `image` |
 | `# Heading`, `Heading` over `===` or `---` | `header`, level 1 to 6, with an `anchor` tune |
 | `- item`, `+ item`, `* item`, `1. item`, `1) item` | `list`, `unordered` or `ordered` with its `start`; nested lists are nested items |
-| `- [ ] task`, `- [x] done`, on every item | `list`, style `checklist`, each item `checked` |
+| `- [ ] task`, `- [x] done`, on every item | `list`, style `checklist`, each item `checked`; see [Checklists](reference.md#checklists) for how each level renders it |
 | `> quote` | `quote`, its blocks folded into its text |
 | ```` ``` ```` or `~~~` fence, four spaces of indentation | `code`, the first word of the fence its `language` |
 | `***`, `---`, `___` | `delimiter` |
@@ -48,7 +48,7 @@ text takes `-1`.
 
 | Markdown | UJO |
 |---|---|
-| `*i*`, `_i_`, `**b**`, `__b__` | `<i>`, `<b>`, paired as CommonMark pairs them |
+| `*i*`, `_i_`, `**b**`, `__b__` | `<em>`, `<strong>`, paired as CommonMark pairs them: `***x***` is `<em><strong>x</strong></em>`, `***a** b*` is `<em><strong>a</strong> b</em>` |
 | `~s~`, `~~s~~` | `<s>` |
 | `==text==` | `<mark>` |
 | `{漢字\|かんじ}` | a ruby: the base and its reading, each up to 100 characters without a brace or a bar |

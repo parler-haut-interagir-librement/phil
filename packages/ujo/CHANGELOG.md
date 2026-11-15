@@ -4,6 +4,15 @@ All notable changes to `phil/ujo` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Changed
+
+- A checklist item is rendered with a disabled checkbox, `checked` when the item is, in a `<label>` that holds the
+  item's text: the state is announced by screen readers with the item's text as the checkbox's name, not only given
+  to styles by `data-checked`. A nested list stays after the label.
+- `Rendering::tag()` writes `input` without content or end tag.
+
 ## 0.1.1-alpha - 2026-11-14
 
 ### Fixed

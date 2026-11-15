@@ -21,7 +21,8 @@ at `all` and escaped below.
 | `compileFor(string $source, MarkupFormat\|string $format, Level $level): string` | As `compile()`, for that level |
 
 `Adapter\DefaultCompiler` compiles every format through UJO; it takes the `HtmlRenderer` of `phil/ujo`, so the
-application's block renderers render its own blocks. A compiler of the application's own decorates it — to add
+application's block renderers render its own blocks. Below the level `all`, it adds `CheckboxText` to that renderer's
+filters, so that the state of a checklist item is written as text. A compiler of the application's own decorates it — to add
 smart punctuation, say — and keeps it level aware.
 
 ## `HtmlPurifier`

@@ -92,7 +92,7 @@ final class BBCodeReaderTest extends TestCase
         yield 'an item outside a list' => ['[*]a', '<p class="ujo-paragraph">[*]a</p>'];
         yield 'an item inside a tag of an item' => ['[list][*]a [b]b[*]c[/list]', '<ul class="ujo-list ujo-list--unordered"><li>a <b>b</b></li><li>c</li></ul>'];
         yield 'a nested list' => ['[list][*]a[list][*]b[/list][*]c[/list]', '<ul class="ujo-list ujo-list--unordered"><li>a<ul><li>b</li></ul></li><li>c</li></ul>'];
-        yield 'a checklist' => ['[list=check][*=x]done[*]todo[*=X]also[/list]', '<ul class="ujo-list ujo-list--checklist"><li data-checked="true">done</li><li data-checked="false">todo</li><li data-checked="true">also</li></ul>'];
+        yield 'a checklist' => ['[list=check][*=x]done[*]todo[*=X]also[/list]', '<ul class="ujo-list ujo-list--checklist"><li data-checked="true"><label><input type="checkbox" disabled checked>done</label></li><li data-checked="false"><label><input type="checkbox" disabled>todo</label></li><li data-checked="true"><label><input type="checkbox" disabled checked>also</label></li></ul>'];
         yield 'headings' => ["[h1]a[/h1]\nb[h6]c[/h6][h2]a[/h2]", "<h1 id=\"a\" class=\"ujo-header\">a</h1>\n<p class=\"ujo-paragraph\">b</p>\n<h6 id=\"c\" class=\"ujo-header\">c</h6>\n<h2 id=\"a-1\" class=\"ujo-header\">a</h2>"];
         yield 'a heading with attributes' => ['[h2 id=intro class=lead align=center]a[/h2]', '<div class="ujo-container lead"><h2 id="intro" class="ujo-header ujo-align-center">a</h2></div>'];
         yield 'a rule' => ['a[hr]b', "<p class=\"ujo-paragraph\">a</p>\n<hr class=\"ujo-delimiter\">\n<p class=\"ujo-paragraph\">b</p>"];
@@ -152,7 +152,7 @@ final class BBCodeReaderTest extends TestCase
         yield 'an alignment in capitals' => ['[align=CENTER]a[/align]', '<p class="ujo-paragraph ujo-align-center">a</p>'];
         yield 'an unknown alignment keeps every block' => ["[align=up]a\n\nb[/align]", "<p class=\"ujo-paragraph\">a</p>\n<p class=\"ujo-paragraph\">b</p>"];
         yield 'an alignment keeps the other tunes' => ['[center][h2 id=x]a[/h2][/center]', '<h2 id="x" class="ujo-header ujo-align-center">a</h2>'];
-        yield 'a negative start' => ['[list=-1][*]a[/list][list=2][*]b[/list][list=CHECK][*=x]c[/list]', "<ul class=\"ujo-list ujo-list--unordered\"><li>a</li></ul>\n<ol class=\"ujo-list ujo-list--ordered\" start=\"2\"><li>b</li></ol>\n<ul class=\"ujo-list ujo-list--checklist\"><li data-checked=\"true\">c</li></ul>"];
+        yield 'a negative start' => ['[list=-1][*]a[/list][list=2][*]b[/list][list=CHECK][*=x]c[/list]', "<ul class=\"ujo-list ujo-list--unordered\"><li>a</li></ul>\n<ol class=\"ujo-list ujo-list--ordered\" start=\"2\"><li>b</li></ol>\n<ul class=\"ujo-list ujo-list--checklist\"><li data-checked=\"true\"><label><input type=\"checkbox\" disabled checked>c</label></li></ul>"];
         yield 'items holding several lists' => ['[list][*]a[list][*]b[*]c[/list][list][*]d[/list][/list]', '<ul class="ujo-list ujo-list--unordered"><li>a<ul><li>b</li><li>c</li><li>d</li></ul></li></ul>'];
         yield 'one heading cell' => ['[table][tr][th]a[/th][/tr][tr][td]b[/td][/tr][/table]', '<table class="ujo-table"><thead><tr><th>a</th></tr></thead><tbody><tr><td>b</td></tr></tbody></table>'];
         yield 'three heading cells' => ['[table][tr][th]a[/th][th]b[/th][th]c[/th][/tr][/table]', '<table class="ujo-table"><thead><tr><th>a</th><th>b</th><th>c</th></tr></thead><tbody></tbody></table>'];

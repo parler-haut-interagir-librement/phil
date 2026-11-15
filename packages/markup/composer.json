@@ -31,7 +31,7 @@
         "ext-libxml": "*",
         "ext-mbstring": "*",
         "phil/svg-sanitizer": "^0.1@dev",
-        "phil/ujo": "^0.1.1@dev",
+        "phil/ujo": "^0.1.2@dev",
         "symfony/html-sanitizer": "^8.2",
         "symfony/yaml": "^8.2"
     },

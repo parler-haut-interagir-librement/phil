@@ -122,7 +122,7 @@ final readonly class Rendering
 
     /**
      * An element with attributes: `true` writes the attribute alone, `false` and `null` leave it out. `br`, `hr`,
-     * `img`, `source` and `track` are written without content or end tag.
+     * `img`, `input`, `source` and `track` are written without content or end tag.
      *
      * @param array<string, bool|int|string|null> $attributes
      */
@@ -138,7 +138,7 @@ final readonly class Rendering
             };
         }
 
-        return \in_array($tag, ['br', 'hr', 'img', 'source', 'track'], true) ? $html.'>' : $html.'>'.$content.'</'.$tag.'>';
+        return \in_array($tag, ['br', 'hr', 'img', 'input', 'source', 'track'], true) ? $html.'>' : $html.'>'.$content.'</'.$tag.'>';
     }
 
     /**

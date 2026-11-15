@@ -25,7 +25,7 @@ in order, the `phil/ujo` normalizer the document is checked by, the `EmbedServic
 | `<p>`, `<address>`, text between blocks | `paragraph` |
 | `<h1>`…`<h6>` | `header`, its anchor the `id`, or generated |
 | `<ul>`, `<ol>`, `<menu>`, `<li>` | `list`; `start` and `type` — `a`, `A`, `i`, `I` — kept; another element the list holds is an item too; a list inside an item its nested items, other blocks folded into its content |
-| a checkbox, or `data-checked`, in every item | `list`, style `checklist` |
+| a checkbox at the start of every item — a child of the `<li>`, or the first child of a `<label>` or a `<p>` the item starts with —, or `data-checked` | `list`, style `checklist`; the checkbox is taken out of the item's content |
 | `<blockquote>` | `quote` |
 | `<figure>` holding `<img>` and `<figcaption>` | `image`, the `alt` of the image as its alternative text, the `<figcaption>` as its caption, the layout of the figure as its own |
 | `<figure>` holding `<blockquote>` and `<figcaption>` | `quote`, the caption as its attribution |
@@ -112,6 +112,9 @@ names the element, its path — `body > div[2] > p[1]`, each element counted amo
 | `MissingSource` | a video or a sound without any source kept |
 | `DataAttribute` | `data-*` on an inline element: UJO keeps them on blocks only |
 | `Comment` | a comment no block took as its note |
+| `MisplacedCheckbox` | a checkbox in a list item that is not at its start: it says no state of the item, and is left out |
+| `PartialChecklist` | a checkbox at the start of an item, in a list some items of which have neither a checkbox nor `data-checked`: the list is not a checklist, and the checkbox is left out |
+| `TableInListItem` | a table in a list item, which UJO has no place for: the table is left out, the rest of the item kept |
 
 A site shows them to the writer before publishing; `phil/content-bundle` does in `phil:content:publish`.
 

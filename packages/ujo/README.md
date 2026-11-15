@@ -36,7 +36,7 @@ The design is small: `Document` and `Block` are the values; `BlockTypeRegistry` 
 | Two validation levels: the shape for every save, required values filled in and bounds for publication | Implemented and tested |
 | Tunes: alignment, anchor, text variant, notice, indent, layout, mask, table of contents, variant | Implemented and tested |
 | `InlineSanitizer`: `rich`, `plain` and `raw` profiles of inline tools | Implemented and tested |
-| `HtmlRenderer`: one renderer per type, replaceable; tunes as classes, identifiers and styles | Implemented and tested |
+| `HtmlRenderer`: one renderer per type, replaceable; tunes as classes, identifiers and styles; checklists with accessible checkboxes | Implemented and tested |
 | `PlainText`: one conversion per type, replaceable | Implemented and tested |
 | The `layout` community tool (free CSS layouts) | Not read, by design |
 
@@ -49,7 +49,7 @@ The design is small: `Document` and `Block` are the values; `BlockTypeRegistry` 
 | [Block types](doc/block-types.md) | Every type, its data, the forms it also reads, and the tunes. |
 | [Normalization](doc/normalization.md) | What `Normalizer` checks and changes, registries, and adding a type. |
 | [Inline HTML](doc/inline-html.md) | The sanitizer, its profiles and inline tools, and why it is the library's own. |
-| [HTML rendering](doc/html-rendering.md) | The HTML of each type, the tunes, replacing a renderer, and purification. |
+| [HTML rendering](doc/html-rendering.md) | The HTML of each type, checklists and their accessible checkboxes, the tunes, replacing a renderer, and purification. |
 | [Plain text](doc/plain-text.md) | The text of each type, and replacing a conversion. |
 | [Extension points](doc/extension-points.md) | What an application may replace or add, and when it is stable. |
 | [Exceptions](doc/exceptions.md) | `UjoException` and its four exceptions, with their messages. |

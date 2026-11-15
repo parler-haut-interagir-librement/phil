@@ -208,8 +208,8 @@ final readonly class MediaWikiSyntax implements Syntax
         }
 
         $extra = 4 === $run ? 1 : max(0, $run - 5);
-        $italic = new Toggle("''", 'i');
-        $bold = new Toggle("'''", 'b');
+        $italic = new Toggle("''", 'em');
+        $bold = new Toggle("'''", 'strong');
         $toggles = match ($run - $extra) {
             2 => [$italic],
             3 => [$bold],

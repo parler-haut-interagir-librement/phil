@@ -27,7 +27,8 @@ use Phil\Ujo\Ujo;
 
 /**
  * Every format. Markdown, BBCode, MediaWiki, DokuWiki, Creole and UJO are read into a UJO document, which `phil/ujo`
- * renders as HTML; raw HTML written in them is kept at the level `all` and escaped below it. HTML is taken as written
+ * renders as HTML; raw HTML written in them is kept at the level `all` and escaped below it. The checkbox of a
+ * checklist item is kept at `all`, and written as text below it, `☑` or `☐` (`CheckboxText`). HTML is taken as written
  * and plain text by this library's own compiler, their readers only converting them into UJO on demand. The formats of
  * add-ons are read by the readers their `ReaderProvider` gives, by name, then rendered the same way.
  */
@@ -37,6 +38,9 @@ final readonly class DefaultCompiler implements LevelAwareCompiler
     private const string NAME = '/^[a-z][a-z0-9-]{0,15}$/D';
 
     private HtmlRenderer $renderer;
+
+    /** The renderer below the level `all`, the checkboxes of checklists written as text. */
+    private HtmlRenderer $textRenderer;
 
     private Normalizer $normalizer;
 
@@ -51,6 +55,7 @@ final readonly class DefaultCompiler implements LevelAwareCompiler
     public function __construct(?HtmlRenderer $renderer = null, iterable $readers = [])
     {
         $this->renderer = $renderer ?? HtmlRenderer::default();
+        $this->textRenderer = $this->renderer->withFilter(new CheckboxText());
         $this->normalizer = RawNormalizer::get();
         $added = [];
 
@@ -93,7 +98,7 @@ final readonly class DefaultCompiler implements LevelAwareCompiler
         return match (MarkupFormat::tryFrom(MarkupFormat::nameOf($format))) {
             MarkupFormat::Html => $source,
             MarkupFormat::Text => PlainText::compile($source),
-            default => $this->renderer->render($this->reader($format, $level)->read($source)->document),
+            default => (Level::All === $level ? $this->renderer : $this->textRenderer)->render($this->reader($format, $level)->read($source)->document),
         };
     }
 
