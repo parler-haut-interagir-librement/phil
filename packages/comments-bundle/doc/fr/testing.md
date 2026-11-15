@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ea18c5cbb85687b4f7b2c0a29b1fe6fe8c398748739d7a85406ab3df8dcb7927 -->
+<!-- phil-dev source-sha256=3b570312c65d984b5f3efbfc7f91c893729f6ac3b7b9a01e03e8e9c7f3802162 -->
 # Tests
 
 ## Les tests du bundle
@@ -31,7 +31,9 @@ fonctionnelle est sautée.
 remplacements, le passage retrouvé avec les mêmes cas que les tests PHP, les chemins des champs, les points DOM et les
 positions sur de petits nœuds factices, les suggestions appliquées à un document, les requêtes et leur jeton CSRF, un commentaire sur la page, les éléments du
 panneau — les fils sur la page, les fils orphelins, le formulaire de la page, les rôles de WAI-ARIA 1.3 écrits seulement
-sur demande —, et les libellés.
+sur demande —, les libellés, et la réponse du contrôleur à une requête qui échoue — une décision arrivée en second
+dite et les fils rechargés une fois, un autre conflit, un autre état nommant `decided` et un refus dit sans
+rechargement.
 
 Depuis la racine du monodépôt, puis depuis le bundle :
 
@@ -83,4 +85,5 @@ Chaque vérification dit quoi faire et ce qui doit se produire.
 | Sans éditeur | Une page avec le contrôleur et sans éditeur | La section de la page et son formulaire ; les fils sur des passages montrent leur citation, seuls ceux que le serveur a rendus orphelins le disent |
 | Navigation | Cliquez sur un mot surligné, puis sur le passage d'un fil | Le fil est encadré ; l'éditeur défile jusqu'au passage |
 | Acceptation | *Accept* une suggestion | Le passage est remplacé dans l'éditeur, le fil est résolu ; enregistrer le formulaire garde le changement |
+| Décidée | Dans deux fenêtres, *Reject* une suggestion dans l'une, puis *Accept* dans l'autre | La seconde dit *This suggestion has already been decided.*, son panneau montre la suggestion rejetée et son éditeur reste inchangé |
 | Émoji | Commentez un mot qui suit un émoji | Le surlignage couvre exactement le mot |

@@ -35,6 +35,15 @@ const ACTIVE = 'phil-comments-active';
 
 let panels = 0;
 
+/** The label of an answer that failed: `refused`, `decided` — a `409` whose body names it — or `failed`. */
+function problem(answer) {
+    if (403 === answer.status) {
+        return 'refused';
+    }
+
+    return 409 === answer.status && 'decided' === answer.data?.error ? 'decided' : 'failed';
+}
+
 export default class extends Controller {
     static targets = ['panel'];
 
@@ -344,8 +353,12 @@ export default class extends Controller {
         ]);
     }
 
+    /**
+     * Says in the panel's live region why a request failed: refused by the policy, a decision that came second — the
+     * server names it `decided` in its body —, or failed for any other reason; an answer that succeeded clears it.
+     */
     status(answer = null) {
-        this.message = null === answer || answer.ok ? '' : this.t(403 === answer.status ? 'refused' : 'failed');
+        this.message = null === answer || answer.ok ? '' : this.t(problem(answer));
         const element = this.panel.querySelector('.phil-comments__status');
 
         if (null !== element) {
@@ -353,11 +366,18 @@ export default class extends Controller {
         }
     }
 
-    /** A thread the server answered, put in place of its copy — or removed when it is gone. */
+    /**
+     * A thread the server answered, put in place of its copy — or removed when it is gone. A decision that came second
+     * reloads the threads, for the reader to see the one that was kept.
+     */
     replace(id, answer) {
         this.status(answer);
 
         if (!answer.ok) {
+            if ('decided' === problem(answer)) {
+                this.reloading = this.load();
+            }
+
             return false;
         }
 

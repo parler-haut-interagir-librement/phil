@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=56a5a2974b31289275c60ef93d6307525923c1b24c1ad9821911c3f9ff6725c4 -->
+<!-- phil-dev source-sha256=fb21a0f3d08f30c3bdac674939a6576d74c43ee90ea2a46ac5e68d30d5f14bd5 -->
 # Points de terminaison
 
 Importés de `config/routes.php` sous le préfixe de l'application, ici `/_comments`. Chaque point de terminaison ne
@@ -77,6 +77,9 @@ suggestion, répondre ; sur un commentaire, le modifier et le supprimer.
 | 404 | `missing` | Aucun fil ni commentaire n'a cet identifiant |
 | 404 | `disabled` | Le fournisseur d'auteurs ou la politique n'est pas configuré |
 | 409 | `decided` | Une autre décision sur la suggestion a été gardée depuis la lecture du fil ; la première tient |
+
+Le contrôleur lit `error` dans le corps : sur `decided`, il le dit et recharge les fils ; voyez
+[JavaScript](javascript.md#ce-quil-fait).
 
 ## La configuration du contrôleur
 

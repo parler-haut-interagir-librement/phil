@@ -4,6 +4,18 @@ All notable changes to `phil/comments-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.2.1-alpha - Unreleased
+
+### Added
+
+- The controller's label `decided`, in English and French, which `messages` may replace.
+
+### Fixed
+
+- The controller answers a decision on a suggestion that came second, a `409` whose body names the error `decided`, by
+  *This suggestion has already been decided.* in the panel's live region, then loads the threads again so that the
+  reader sees the decision that was kept; any other `409` still says *The request failed.*, without a reload.
+
 ## 0.2.0-alpha - 2026-11-14
 
 ### Added

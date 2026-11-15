@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=55a66f107da0580bf775b6a5e13cc300039fb0c8023f0deefccdf28ddbca9779 -->
+<!-- phil-dev source-sha256=9436c79b2b6cd986a3c12c76c9f626b27ca8ff5c7b9b6becfe833febee968294 -->
 # JavaScript
 
 ## Le contrôleur
@@ -67,6 +67,11 @@ chaque commentaire écrit, et seuls les membres qui peuvent voir le commentaire 
   fil dans le panneau fait défiler l'éditeur jusqu'à lui.
 - **Acceptation.** Le passage est remplacé dans le bloc de l'éditeur, l'acceptation est enregistrée et le bloc est
   appliqué à l'éditeur par son événement `phil-block-editor:apply` ; voyez [les suggestions](suggestions.md).
+- **Erreurs.** Une requête qui échoue est dite dans l'état du panneau, une région vive (`role="status"`) que les
+  lecteurs d'écran annoncent : *You may not do this.* pour un `403` ; *This suggestion has already been decided.* pour
+  un `409` dont le corps nomme l'erreur `decided`, après quoi les fils sont rechargés, pour que le lecteur voie la
+  décision qui a été gardée — l'éditeur est laissé tel quel ; *The request failed.* pour toute autre réponse, un autre
+  `409` compris, sans rechargement. Les libellés sont `refused`, `decided` et `failed`, que `messages` peut remplacer.
 
 ## Modules
 

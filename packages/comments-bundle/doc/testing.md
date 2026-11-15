@@ -27,8 +27,9 @@ development requirement, the functional suite is skipped.
 `tests/js` runs the pure modules under Node's test runner: characters, the text of inline HTML, replacements, finding
 a passage again with the same cases as the PHP tests, field paths, DOM points and offsets on small fake nodes,
 suggestions applied to a document, requests and their CSRF token, a comment on the page, the panel's elements —
-threads on the page, orphaned threads, the form of the page, the roles of WAI-ARIA 1.3 written only when asked —, and
-labels.
+threads on the page, orphaned threads, the form of the page, the roles of WAI-ARIA 1.3 written only when asked —,
+labels, and the controller's answer to a failed request — a decision that came second said and the threads reloaded
+once, another conflict, another status naming `decided` and a refusal said without a reload.
 
 From the monorepo root, then from the bundle:
 
@@ -79,4 +80,5 @@ check states what to do and what must happen.
 | No editor | A page with the controller and no editor | The section of the page and its form; threads on passages show their quote, only those the server orphaned say so |
 | Navigation | Click a highlighted word, then a thread's passage | The thread is outlined; the editor scrolls to the passage |
 | Accepting | *Accept* a suggestion | The passage is replaced in the editor, the thread resolved; saving the form keeps the change |
+| Decided | In two windows, *Reject* a suggestion in one, then *Accept* it in the other | The second says *This suggestion has already been decided.*, its panel shows the suggestion rejected and its editor is left unchanged |
 | Emoji | Comment a word after an emoji | The highlight covers exactly the word |
