@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2e7023c863a2137fac53ba369833afcc938aac05c00621762e2f81db9bbfc30e -->
+<!-- phil-dev source-sha256=d0c2b7803761af8dc98e77d5953433bcbef8a7633b7f6447172ad360b575bca3 -->
 # La médiathèque
 
 `MediaLibrary` est le service qu'appelle une application ; `MediaRepository` enregistre ce qu'il change.
@@ -90,6 +90,32 @@ $found = $repository->getMany(...$ids);   // array<string, Media>, by identifier
 galerie, les émojis image d'une page. Un identifiant demandé deux fois est lu une fois, celui qui ne nomme rien est
 laissé de côté. La requête lit au plus `DoctrineMediaRepository::BATCH` identifiants, 500, et une requête de plus lit
 chaque tranche de 500 au-delà, pour que le nombre de paramètres liés reste sous les limites de chaque base de données.
+
+## Lire l'original
+
+```php
+$bytes = $library->original($media);                    // the whole file, in memory
+
+$stream = $library->readOriginal($media);               // a readable stream at its start
+$response = new StreamedResponse(static function () use ($stream): void {
+    fpassthru($stream);
+    fclose($stream);                                    // the caller closes it
+});
+
+$library->copyOriginalTo($media, $directory.'/input.mp4'); // to a local path, for a tool that reads files
+```
+
+`MediaLibrary::original()` lit en entier en mémoire le fichier de la version courante : très bien pour une image,
+trop pour une vidéo. `MediaLibrary::readOriginal()` renvoie le fichier comme un flux PHP lisible, placé à son début,
+que l'appelant ferme ; `MediaLibrary::copyOriginalTo()` le copie vers un chemin local, pour un outil comme `ffmpeg` qui
+lit des fichiers, par morceaux de taille bornée, et ferme chaque flux qu'elle a ouvert, que la copie ait échoué ou non.
+Un chemin qui nomme un enveloppeur de flux (`scheme://`) est refusé, le fichier au chemin est remplacé, et une copie
+qui échoue est supprimée. Un fichier absent est une `InvalidMedia`, comme avec `original()`.
+
+`FilesystemStorage` et `FlysystemStorage` lisent le fichier en flux depuis l'endroit où il est gardé, par
+`StreamingMediaStorage` ; un stockage propre à l'application qui n'implémente que `MediaStorage` fonctionne toujours :
+il est lu en entier d'abord, puis remis comme un flux, qui passe par un fichier temporaire au-delà de 2 MiB. Voir
+[Stockage](storage.md#lecture-en-flux).
 
 ## Supprimer
 

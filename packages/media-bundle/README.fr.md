@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=634545d4be24d0c7769318bc951424207ac34cd4d93b6592552877215bd27d60 -->
+<!-- phil-dev source-sha256=76e27a5c64b2553988249acdce53a27529aeb51efbaa1c14456218079119e30c -->
 # phil/media-bundle
 
 **Des fichiers et des images téléversés, décrits, versionnés et servis à des URL signées dans les formats que vous
@@ -62,6 +62,7 @@ quand on l'ouvre directement.
 | Les images SVG purifiées et allégées : `SanitizingSvgPurifier`, `SvgMinifier` ; servies en `image/svg+xml` | Implémentées et testées |
 | La politique « contenu d'usager » de `phil/browser-security-bundle` sur chaque fichier servi | Implémenté et testé |
 | `MediaRepository::getMany()` : plusieurs médias en une requête | Implémenté et testé |
+| L'original lu comme un flux ou copié vers un chemin : `readOriginal()`, `copyOriginalTo()`, `StreamingMediaStorage` | Implémenté et testé |
 | Comment un média a été fait, par un type de source numérique de l'IPTC de `phil/creation-disclosure` | Implémenté et testé |
 
 ## Documentation
@@ -69,9 +70,9 @@ quand on l'ouvre directement.
 | Document | Ce qu'il couvre |
 |---|---|
 | [Installation](doc/fr/installation.md) | Prérequis, enregistrement, configuration, routes, tables. |
-| [La médiathèque](doc/fr/library.md) | Téléverser, remplacer, décrire, attribuer une licence, les collections, supprimer. |
+| [La médiathèque](doc/fr/library.md) | Téléverser, remplacer, décrire, attribuer une licence, les collections, lire l'original comme un flux, supprimer. |
 | [Formats et URL](doc/fr/formats.md) | Les formats et leurs transformations, le point focal, le rendu et les encodeurs, les URL signées, le cache. |
-| [Stockage](doc/fr/storage.md) | Le répertoire, les systèmes de fichiers Flysystem (local, S3), un stockage propre à l'application. |
+| [Stockage](doc/fr/storage.md) | Le répertoire, les systèmes de fichiers Flysystem (local, S3), la lecture en flux, un stockage propre à l'application. |
 | [Images adaptatives](doc/fr/images.md) | Les composants `Img` et `Picture` : tailles, `srcset`, types de fichiers, solutions de repli, priorité, aperçus. |
 | [Enregistrements qui montrent des médias](doc/fr/doctrine.md) | Le type de colonne `phil_media`, la contrainte `MediaFile`, ce que fait une suppression. |
 | [L'explorateur de fichiers](doc/fr/admin.md) | Routes, liste, téléversements, les contrôleurs Stimulus, le sélecteur et son champ de formulaire. |

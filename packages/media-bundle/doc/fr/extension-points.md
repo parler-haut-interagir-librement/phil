@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3fb6e7042a5ba1ab641796ef9480877337e719f235b5df96899cc071ecd7ef1e -->
+<!-- phil-dev source-sha256=985367fb35061bae0966e987e5ca2d42c5210836fb9e4324638b77cbac1e2fc5 -->
 # Points d'extension
 
 Ce qu'une application implémente, remplace, configure ou redéfinit. Chaque port est un alias que remplace un service
@@ -17,6 +17,16 @@ le service `filesystem`. Voir [Stockage](storage.md).
 | `write(string $key, string $contents): void` | Garde le fichier sous la clé, en remplaçant celui qui s'y trouve |
 | `read(string $key): ?string` | Son contenu, ou `null` s'il n'y en a pas |
 | `deletePrefix(string $prefix): void` | Supprime chaque fichier dont la clé commence ainsi |
+
+### `StreamingMediaStorage`
+
+`Phil\MediaBundle\Application\Contract\StreamingMediaStorage` : facultatif, étend `MediaStorage` : un stockage qui lit un
+fichier comme un flux. Les deux adaptateurs l'implémentent ; un stockage qui ne l'implémente pas est lu en entier par
+`MediaLibrary::readOriginal()` et `MediaLibrary::copyOriginalTo()`. Voir [Stockage](storage.md#lecture-en-flux).
+
+| Méthode | Contrat |
+|---|---|
+| `readStream(string $key): resource\|null` | Le fichier comme un flux lisible, à son début, ou `null` s'il n'y en a pas ; l'appelant le ferme. Une clé refusée ou une défaillance du stockage est une `InvalidMedia` |
 
 ### `ImageProcessor`
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ceb65f4df412cb062a5d6de8d725e3229c9f7819dbb2e307a9881ce92e78bc26 -->
+<!-- phil-dev source-sha256=73b7664f324acabc15d595402868a94088451c7a1abdbf25829a4937acd17a95 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -60,4 +60,5 @@ composer bench -- packages/media-bundle/tests/Benchmark
 
 `BatchReadBench` compare un `get()` par média à un seul `getMany()` pour 12, 48 et 200 médias ; `VipsRenderBench`
 compare GD et libvips sur une vignette d'une photo de 1920 × 1080 et de 6000 × 4000, et ne mesure rien pour libvips
-quand il n'est pas installé.
+quand il n'est pas installé ; `OriginalStreamBench` compare le pic de mémoire de `original()`, de `copyOriginalTo()` et
+de `readOriginal()` sur un fichier de 16 et de 128 MiB.

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=836bbb9efe1ed11589b8e01059218f6ced41446455538a29f08cbc900b9f2ec7 -->
+<!-- phil-dev source-sha256=0be78f4c81c81772ee2ec0f5d982f2076de49811bf916a40597d0a7dace29138 -->
 # Référence
 
 | Type | Nature | Rôle |
@@ -10,7 +10,7 @@
 | `Domain\Media\AiDisclosure` | enum | `None`, `Assisted`, `Generated` |
 | `Domain\Repository\MediaRepository` | interface | Enregistrer, trouver, lister |
 | `Domain\Exception\MediaException`, `InvalidMedia`, `MediaInUse` | exceptions | Tout ce que lance le bundle |
-| `Application\MediaLibrary` | `final readonly class` | Téléverser, remplacer, supprimer, lire, rendre |
+| `Application\MediaLibrary` | `final readonly class` | Téléverser, remplacer, supprimer, lire (en entier, comme un flux ou copié vers un chemin), rendre |
 | `Application\ImageFormat`, `RenderBox` | valeurs | Un format : ses transformations, sa qualité et ses largeurs plus étroites ; la partie d'une image que garde une vignette et la taille rendue |
 | `Application\Transform\Transformer` | interface | Une transformation : le `Step` qu'elle dessine sur la `Geometry` d'une image, et sa définition |
 | `Application\Transform\Thumbnail`, `Crop`, `Resize`, `Widen`, `Heighten`, `Expand` | valeurs | Les transformations |
@@ -21,6 +21,7 @@
 | `Application\MediaSchema` | `final class` | Le média sous forme de données schema.org |
 | `Application\MediaStorage`, `ImageProcessor` | interfaces | Où les fichiers sont gardés ; comment les images sont rendues |
 | `Application\Contract\SvgPurifier` | interface | Comment une image SVG est purifiée avant d'être gardée |
+| `Application\Contract\StreamingMediaStorage` | interface | Un stockage qui lit aussi un fichier comme un flux ; facultatif |
 | `Infrastructure\Storage\FilesystemStorage` | adaptateur | Un répertoire |
 | `Infrastructure\Storage\FlysystemStorage` | adaptateur | Un système de fichiers Flysystem : local, S3, SFTP |
 | `Infrastructure\Image\GdImageProcessor` | adaptateur | GD, avec une limite de pixels et des encodeurs binaires facultatifs |

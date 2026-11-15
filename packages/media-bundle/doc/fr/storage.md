@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b31ee981ae451d5d24ef70aac244651de31452753cfd36696506546985ecd708 -->
+<!-- phil-dev source-sha256=c6c6bec3d396aafafb53518ea236a9aef9d89fcb8565b70fc4d2222a12129515 -->
 # Stockage
 
 Les fichiers sont gardés par clé : un original sous `originals/{id}/{version}/{safe name}`, un rendu sous
@@ -55,6 +55,16 @@ Les fichiers sont toujours servis par `MediaController`, à des URL signées : l
 devant l'application garde les réponses un an, puisque leurs URL portent la version. Un système de fichiers défini par
 `league/flysystem-bundle` fonctionne de la même façon : nommez son service.
 
+## Lecture en flux
+
+Les deux adaptateurs implémentent aussi `StreamingMediaStorage`, qui ajoute `readStream()` : le fichier comme un flux
+lisible, ou `null` s'il n'y en a pas. `FilesystemStorage` ouvre le fichier sur le disque, `FlysystemStorage` demande son
+`readStream()` au système de fichiers : un fichier dans un seau S3 est donc lu à mesure qu'il arrive.
+`MediaLibrary::readOriginal()` et `MediaLibrary::copyOriginalTo()` lisent par ce moyen, et la mémoire qu'utilise un
+*worker* reste constante, quelle que soit la taille du fichier : voir [La médiathèque](library.md#lire-loriginal).
+
 ## Un stockage propre à l'application
 
-Un service `MediaStorage` propre à l'application, aliasé à l'interface, remplace les deux adaptateurs.
+Un service `MediaStorage` propre à l'application, aliasé à l'interface, remplace les deux adaptateurs. Implémenter aussi
+`StreamingMediaStorage` est facultatif : sans cela, la médiathèque lit un fichier en entier, puis le remet comme un
+flux.
