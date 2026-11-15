@@ -1,0 +1,26 @@
+WEBVTT Episode 12 - captions
+
+REGION
+id:speakers width:40% lines:3
+regionanchor:0%,100% viewportanchor:10%,90% scroll:up
+
+STYLE
+::cue(.loud) {
+  font-weight: bold;
+}
+
+NOTE Recorded live; the timings were checked by hand.
+
+intro
+00:00:01.000 --> 00:00:04.500 region:speakers align:start
+<v Alice>Welcome to the show &amp; thanks for listening.
+
+00:00:04.500 --> 00:00:08.250 line:85% position:50%,center size:80%
+<v Bob>Glad to be here.
+<c.loud>Really</c> <i>glad</i>.
+
+NOTE
+Second half.
+
+01:02:03.004 --> 01:02:05.000
+<v.host Alice>A <b>last</b> word &lt;3

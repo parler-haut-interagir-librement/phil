@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=68b703ff09aea0daa74c6de180d24b7b62ab2fd58d9077d9441eaf43c09d60fc -->
+<!-- phil-dev source-sha256=e272d9f8f5678c9dbda97ee9433a2543ddd60ca82ce17c7191e68ee2cb46bdc7 -->
 # PHIL
 
 **Parler Haut, Interagir Librement : des bibliothèques PHP et des bundles Symfony ouverts pour les sites qui publient,
@@ -50,6 +50,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/qr-code`](https://github.com/parler-haut-interagir-librement/qr-code) | Des codes QR dessinés en SVG ou en PNG par PHP seul, sans service et sans bibliothèque d'images. |
 | [`phil/markup`](https://github.com/parler-haut-interagir-librement/markup) | Du Markdown, du BBCode, du MediaWiki, du DokuWiki, du Creole, de l'UJO, du HTML ou du texte brut, changés en HTML qu'on peut afficher sans risque. |
 | [`phil/markup-bundle`](https://github.com/parler-haut-interagir-librement/markup-bundle) | Le Markdown, le BBCode, les wikis, UJO et le HTML des utilisateurs rendus de façon sûre dans Twig, convertis en UJO, avec phil/markup sous forme de services Symfony. |
+| [`phil/timed-text`](https://github.com/parler-haut-interagir-librement/timed-text) | Sous-titres, chapitres et transcriptions lus et écrits en WebVTT, en SRT et en Podcasting 2.0, en millisecondes entières, décalés, fusionnés et coupés. |
 | [`phil/svg-sanitizer`](https://github.com/parler-haut-interagir-librement/svg-sanitizer) | Laissez les gens téléverser et coller des images SVG sans leur permettre d'exécuter du code, de charger ce qu'ils ne devraient pas ou d'intégrer un autre document. |
 | [`phil/qr-code-bundle`](https://github.com/parler-haut-interagir-librement/qr-code-bundle) | Des codes QR dans une application Symfony : dans Twig, dans un composant accessible, à une adresse mise en cache, dans les documents UJO et dans les documents PDF. |
 | [`phil/block-editor-bundle`](https://github.com/parler-haut-interagir-librement/block-editor-bundle) | Un éditeur par blocs pour les formulaires Symfony, en contrôleurs Stimulus, qui écrit des documents UJO (Universal JSON Output) vérifiés sur le serveur. |
