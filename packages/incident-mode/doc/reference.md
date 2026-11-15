@@ -13,6 +13,9 @@ Every public type of the package, with its role.
 | `Activation` | One incident, in force or over |
 | `LiftReason` | `Manual` or `Expired` |
 | `Contract\ActivationStore` | Where the activations are kept |
+| `IncidentRestrictions` | Whether a restriction applies to one member now, established members spared as configured |
+| `Contract\EstablishedMembers` | Who is an established member, by the application's identifier |
+| `NoEstablishedMembers` | Holds nobody for established |
 | `Contract\LiftScheduler` | Arranges the automatic lifting of an activation at its end |
 | `NoLiftScheduler` | Arranges nothing; a sweep lifts the expired incidents |
 | `InMemoryActivationStore` | The activations of one process |

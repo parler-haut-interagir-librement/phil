@@ -41,6 +41,12 @@ services:
             $clock: '@clock'
             $events: '@event_dispatcher'
 
+    Phil\IncidentMode\Contract\EstablishedMembers: '@Phil\IncidentMode\NoEstablishedMembers'
+    Phil\IncidentMode\NoEstablishedMembers: ~
+    Phil\IncidentMode\IncidentRestrictions:
+        arguments:
+            $spared: ['new-posts', 'new-comments']
+
     Phil\IncidentMode\Messenger\LiftIncidentHandler:
         autoconfigure: true
     Phil\IncidentMode\Messenger\LiftExpiredIncidentsHandler:

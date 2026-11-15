@@ -8,7 +8,8 @@ is started from a named preset — suspend sign-ups, suspend invitations, suspen
 contribution, read only — for a duration the preset bounds: there is no incident without an end. While it is in force,
 the application asks `isSuspended('signups')` before it lets someone sign up, and shows a notice; at its end the
 incident stops applying by itself, and the automatic lifting records it in the journal. Someone may lift it before, or
-extend it within what its preset allows. Every start, extension and lifting sends an event, and the journal keeps who
+extend it within what its preset allows. `IncidentRestrictions` answers for one member: the configuration may
+spare established members — of a trust level the application decides — from some restrictions. Every start, extension and lifting sends an event, and the journal keeps who
 started and who lifted each incident, by a stable identifier, never an e-mail address.
 
 It is for any PHP application with members: a community, a forum, a site with sign-ups or invitations, a messaging
@@ -38,14 +39,14 @@ services, the table and the lifting, and proposes an incident when reports surge
 | Actors found and forgotten, for the export and the erasure of personal data | Implemented and tested |
 | A page, a banner and a back office | Implemented in `phil/moderation-bundle` |
 | An incident scheduled to start later | Not started: an incident starts when it is started |
-| Restrictions that spare established members | Not started: the application checks the member's standing before it asks |
+| Restrictions that spare established members, `IncidentRestrictions` with the application's `EstablishedMembers` | Implemented and tested |
 
 ## Documentation
 
 | Document | What it covers |
 |---|---|
 | [Installation](doc/installation.md) | Requirements, installing, declaring the services in Symfony. |
-| [Incidents](doc/incidents.md) | Restrictions, presets, starting, checking, extending, lifting, the journal and the events. |
+| [Incidents](doc/incidents.md) | Restrictions, presets, starting, checking, sparing established members, extending, lifting, the journal and the events. |
 | [Automatic lifting](doc/automatic-lifting.md) | The end of an incident, the delayed message and the recurring sweep. |
 | [Storage](doc/storage.md) | The stores, the table, concurrency, the schema listener, personal data. |
 | [Extension points](doc/extension-points.md) | The ports, presets, restrictions and events an application chooses or replaces. |

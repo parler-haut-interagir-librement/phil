@@ -7,6 +7,7 @@ change them, and its CHANGELOG says how.
 |---|---|
 | Add a preset, replace or leave out a built-in one | `Presets::withDefaults($presets, $without)`, or `new Presets($presets)` |
 | Suspend something of the application's | Name a restriction in a preset and check it with `isSuspended()` |
+| Spare established members from some restrictions | Implement `Contract\EstablishedMembers` and give it to `IncidentRestrictions` with the names spared |
 | Keep the activations elsewhere | Implement `Contract\ActivationStore`; its `lift()` and `extend()` change a row only while it is not lifted |
 | Lift at the end another way | Implement `Contract\LiftScheduler` |
 | React to an incident | Listen to `Event\IncidentStarted`, `Event\IncidentExtended` and `Event\IncidentLifted` |

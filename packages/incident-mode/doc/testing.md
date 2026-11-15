@@ -12,6 +12,7 @@ vendor/bin/phpunit --no-configuration tests
 | The values | Restriction names and their bounds, durations and their bounds with overflows, actors and the refusal of addresses |
 | Presets | Their checks, the built-in ones, the application's added, replaced and left out |
 | Activations | In force, due, lifted, extended, what they suspend, every refusal |
+| `IncidentRestrictions` | Established members spared from the restrictions listed only, `read-only` sparing only when listed, visitors never spared, nobody looked up when the answer does not depend on it, names checked |
 | `IncidentMode` | Starting within the preset, checking, extending, lifting by hand, the expiry recorded once, the sweep, the journal, the events, a store that lost the race |
 | The stores | One suite for the in-memory store, the DBAL store on SQLite, MySQL 8.4 and PostgreSQL 17: order, limits, conditional updates, UTC, actors found and forgotten, rows that no longer read |
 | Messenger | The delay of the message, the handler lifting once due, the sweep |
@@ -36,4 +37,5 @@ composer bench -- packages/incident-mode/tests/Benchmark
 ## Testing an application
 
 Give `IncidentMode` an `InMemoryActivationStore` and a `MockClock`, start an incident, check the page refuses what it
-suspends, then move the clock past the end and check the page is open again.
+suspends, then move the clock past the end and check the page is open again. To test a page that spares established
+members, give `IncidentRestrictions` an `EstablishedMembers` of the test that holds the identifiers it chooses.
