@@ -71,6 +71,27 @@ final class PassphraseDecodingTest extends TestCase
         yield 'a separator holding a digit, with the digit' => [self::words(), new PassphrasePolicy(4, '1', includeDigit: true), true];
         yield 'a separator holding a digit, without the digit' => [self::words(), new PassphrasePolicy(4, '1'), true];
 
+        // "x" and the digit "9" write "x9", as the digit 9 appended to "x" does; the other digits are no word.
+        $lastDigit = [...self::words(), 'x', '9'];
+
+        yield 'a digit that is a word, with the digit' => [$lastDigit, new PassphrasePolicy(4, '', includeDigit: true), false];
+
+        // The word "wa-1" and the separator write "wa-1-"; "wa", the separator and the digit are not a word of it.
+        $dashed = [...self::words(), 'wa-1'];
+
+        yield 'a word holding the separator and a digit, with the digit' => [$dashed, new PassphrasePolicy(4, '-', includeDigit: true), true];
+
+        // The digit comes between a word and the separator: "0wa" and "-" are not "0", "wa" and "-".
+        $leading = [...self::words(), '0wa'];
+
+        yield 'a word that starts with a digit, with the digit' => [$leading, new PassphrasePolicy(4, '-', includeDigit: true), true];
+
+        // The digit comes between a word and the separator, and the separator holds a digit: the words "0a", "a", "0" and
+        // "-0" write the same only if the digit follows the separator or a word follows the digit.
+        $mixed = [...self::words(), '0a', 'a', '0', '-0'];
+
+        yield 'words made of digits and dashes, a separator holding both' => [$mixed, new PassphrasePolicy(4, '0-', includeDigit: true), true];
+
         // Four digits each: 1000, then 1100 and a digit, write what 1000 and a digit, then 1001, write.
         $numbers = array_map(strval(...), range(1000, 1255));
 

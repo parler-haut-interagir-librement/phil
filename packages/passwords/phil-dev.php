@@ -83,6 +83,21 @@ return [
                     'for \\(\\$j = \\$i; \\$j < min\\(\\$count, \\$i \\+ 10\\); \\+\\+\\$j\\) \\{',
                 ],
             ],
+            // The sets of codewords, of dangling suffixes seen and of forms are read through `isset()` and `array_keys()`
+            // only: a value of `false` is as present as `true`, so the value stored with a key means nothing.
+            'TrueValue' => [
+                'ignoreSourceCodeByRegex' => [
+                    '\\$(set|seen|forms)\\[.*\\] = true;',
+                ],
+            ],
+            // The two shortcuts that return `true` before the Sardinas–Patterson walk — a prefix code, or a separator that
+            // closes every word — spare its work: without them the walk starts from nothing to follow and answers `true`.
+            'ReturnRemoval' => [
+                'ignore' => [
+                    'Phil\\Passwords\\Generator\\Internal\\UniqueDecoding::holds::49',
+                    'Phil\\Passwords\\Generator\\PassphraseGenerator::separates::183',
+                ],
+            ],
             // A cover with as many patterns that costs more is overwritten right after: removing it first changes nothing.
             'GreaterThan' => [
                 'ignoreSourceCodeByRegex' => [

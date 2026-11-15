@@ -31,6 +31,7 @@ final class UniqueDecodingTest extends TestCase
         yield 'capitals that start each word' => [['Week', 'End', 'Weekend'], true];
         yield 'ambiguous after a dangling suffix that comes back' => [['a', 'ab', 'bb', 'bba', 'ba'], false];
         yield 'ambiguous after three steps' => [['a', 'c', 'ad', 'abb', 'bad', 'deb', 'bbcde'], false];
+        yield 'ambiguous through the second of two codewords that start a codeword' => [['a', 'ab', 'abcd', 'cd'], false];
         yield 'ambiguous through the shortest codeword' => [['ab', 'abcd', 'cd'], false];
         yield 'a digit appended to a number' => [['1000', '1001', '1100', '10001', '11001'], false];
         yield 'a digit and a separator' => [['1000-', '1001-', '1100-', '10001-', '11001-'], true];
