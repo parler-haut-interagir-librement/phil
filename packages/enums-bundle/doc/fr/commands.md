@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d7e9c8ede16a7b9edc3f82806814e668e5ee1093f11221476f4720a19623523a -->
+<!-- phil-dev source-sha256=d1f5f8e37cf1c054f01b34fbd3e41ad7167f38a336b76255825d7b1145921245 -->
 # Commandes
 
 Quatre commandes sont enregistrées lorsque `symfony/console` est installé (`phil:enums:check-sets` exige aussi
@@ -49,8 +49,8 @@ enums restent libellées et traduites.
 Écrit des enums en TypeScript, pour que le côté client partage leurs valeurs et leurs libellés au lieu de les copier :
 
 ```console
-$ bin/console phil:enums:typescript --output=assets/enums.ts
-$ bin/console phil:enums:typescript 'App\Order\OrderStatus' --locale=fr
+bin/console phil:enums:typescript --output=assets/enums.ts
+bin/console phil:enums:typescript 'App\Order\OrderStatus' --locale=fr
 ```
 
 ```ts
@@ -119,7 +119,7 @@ Lorsque MakerBundle est installé, `make:enum` écrit une nouvelle enum dans l'e
 avec `AsEnumerableEnumTrait`, `#[Meta(Label::class)]` et un `Label` sur chaque cas :
 
 ```console
-$ bin/console make:enum OrderStatus --case=Pending --case=InTransit --translatable
+bin/console make:enum OrderStatus --case=Pending --case=InTransit --translatable
 ```
 
 ```php

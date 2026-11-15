@@ -48,7 +48,7 @@ Platform, NelmioApiDoc and the maker.
 | [Selecting cases](doc/selection.md) | `CaseSelection`: the four criteria every part shares, and groups as named subsets. |
 | [Translation](doc/translation.md) | Translatable enums, the label and description keys, the domain and prefix, and extracting the keys. |
 | [Forms](doc/forms.md) | The `EnumType` options, the label of a choice, and `EnumSetType`. |
-| [Validation](doc/validation.md) | The `EnumCase` and `EnumSetOf` constraints, what they read, and their error codes. |
+| [Validation](doc/validation.md) | The `EnumCase`, `EnumSetOf` and `Transition` constraints, what they read, their error codes, and their messages in English and French. |
 | [Twig](doc/twig.md) | The functions and filters, and badges. |
 | [Commands](doc/commands.md) | `debug:enums`, `phil:enums:typescript`, `phil:enums:icu`, `phil:enums:check-sets` and `make:enum`. |
 | [APIs](doc/api.md) | The serializer's normalizer, reading sets and maps back, the JSON Schema of an enum, API Platform and NelmioApiDoc. |
@@ -91,7 +91,8 @@ public ?OrderStatus $status = null;
 PHP 8.5 or later with `ext-mbstring` and `ext-tokenizer`, `phil/enums`, and Symfony 8.2's form, validator and
 translation contracts; Twig 3.21 or later for the Twig part. Optional: `symfony/translation`, `symfony/console`,
 `symfony/serializer`, `doctrine/dbal`, `doctrine/orm`, `symfony/http-kernel`, `symfony/expression-language` and
-`symfony/workflow`, API Platform, NelmioApiDoc and MakerBundle, for the parts that need them.
+`symfony/workflow`, API Platform, NelmioApiDoc and MakerBundle, for the parts that need them; `ext-intl` for the
+ICU catalogues of the constraint messages.
 
 ## Contributing
 

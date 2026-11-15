@@ -19,6 +19,7 @@ them.
 | Optional package | Enables |
 |---|---|
 | `symfony/translation` | The translation extractor, and the translation check of `debug:enums` ([Translation](translation.md)). |
+| `ext-intl` or `symfony/polyfill-intl-messageformatter` | The ICU catalogues of the constraint messages ([Validation](validation.md#messages-and-translations)). |
 | `symfony/console` | The commands `debug:enums` and `phil:enums:typescript` ([Commands](commands.md)). |
 | `symfony/serializer` | The normalizer of enum sets, enum maps and labelled cases ([APIs](api.md)). |
 | `doctrine/dbal` | The `EnumSet` column types ([Doctrine](doctrine.md)). |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ca1cf602aea2ab320ac208987ff6b97b268433f6b7aeaae5a60899898fa6d5a9 -->
+<!-- phil-dev source-sha256=f78067e75ff6bcbb47b7df72441dd8ddac51c251701ee5fe072df5bb260dd739 -->
 # phil/enums-bundle
 
 **Vos enums PHP dans les formulaires, les traductions, Twig, la validation, Doctrine et les contrats d'API de Symfony.**
@@ -50,7 +50,7 @@ d'expression, Symfony Workflow, API Platform, NelmioApiDoc et le maker.
 | [Sélection des cas](doc/fr/selection.md) | `CaseSelection` : les quatre critères communs à toutes les parties, et les groupes comme sous-ensembles nommés. |
 | [Traduction](doc/fr/translation.md) | Les enums traduisibles, les clés de libellé et de description, le domaine et le préfixe, et l'extraction des clés. |
 | [Formulaires](doc/fr/forms.md) | Les options de `EnumType`, le libellé d'un choix, et `EnumSetType`. |
-| [Validation](doc/fr/validation.md) | Les contraintes `EnumCase` et `EnumSetOf`, ce qu'elles lisent et leurs codes d'erreur. |
+| [Validation](doc/fr/validation.md) | Les contraintes `EnumCase`, `EnumSetOf` et `Transition`, ce qu'elles lisent, leurs codes d'erreur et leurs messages en anglais et en français. |
 | [Twig](doc/fr/twig.md) | Les fonctions, les filtres et les badges. |
 | [Commandes](doc/fr/commands.md) | `debug:enums`, `phil:enums:typescript`, `phil:enums:icu`, `phil:enums:check-sets` et `make:enum`. |
 | [API](doc/fr/api.md) | Le normaliseur du sérialiseur, la relecture des ensembles et des tables de correspondance, le JSON Schema d'une enum, API Platform et NelmioApiDoc. |
@@ -94,7 +94,7 @@ PHP 8.5 ou plus récent avec `ext-mbstring` et `ext-tokenizer`, `phil/enums`, et
 validation ainsi que les contrats de traduction de Symfony 8.2 ; Twig 3.21 ou plus récent pour la partie Twig.
 Facultatifs : `symfony/translation`, `symfony/console`, `symfony/serializer`, `doctrine/dbal`, `doctrine/orm`,
 `symfony/http-kernel`, `symfony/expression-language` et `symfony/workflow`, API Platform, NelmioApiDoc et MakerBundle,
-pour les parties qui en ont besoin.
+pour les parties qui en ont besoin ; `ext-intl` pour les catalogues ICU des messages des contraintes.
 
 ## Contribuer
 

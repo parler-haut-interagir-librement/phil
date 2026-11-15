@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=87ff0ca2160d35941c7de7c3ed43cfa38141ae47821bfd472ba671ff5221727b -->
+<!-- phil-dev source-sha256=0ef3e1a2352ae40899da23e0ee4c0c07a42d7663e075ec09b74fa48b2ddcbfa5 -->
 # Installation
 
 ## Prérequis
@@ -20,6 +20,7 @@ suggère.
 | Paquet facultatif | Active |
 |---|---|
 | `symfony/translation` | L'extracteur de traductions et la vérification des traductions de `debug:enums` ([Traduction](translation.md)). |
+| `ext-intl` ou `symfony/polyfill-intl-messageformatter` | Les catalogues ICU des messages des contraintes ([Validation](validation.md#messages-et-traductions)). |
 | `symfony/console` | Les commandes `debug:enums` et `phil:enums:typescript` ([Commandes](commands.md)). |
 | `symfony/serializer` | Le normaliseur des ensembles d'enums, des tables d'enums et des cas avec libellé ([API](api.md)). |
 | `doctrine/dbal` | Les types de colonne `EnumSet` ([Doctrine](doctrine.md)). |

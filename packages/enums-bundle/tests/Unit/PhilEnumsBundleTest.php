@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phil\EnumsBundle\Tests\Unit;
 
 use Doctrine\DBAL\Types\Type;
+use MessageFormatter;
+use Override;
 use Phil\EnumsBundle\Infrastructure\Console\CheckSetColumnsCommand;
 use Phil\EnumsBundle\Infrastructure\Console\DebugEnumsCommand;
 use Phil\EnumsBundle\Infrastructure\Console\ExportIcuCommand;
@@ -30,6 +32,7 @@ use Phil\EnumsBundle\Tests\Unit\Fixture\Access;
 use Phil\EnumsBundle\Tests\Unit\Fixture\Delivery;
 use Phil\EnumsBundle\Tests\Unit\Fixture\Shape;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\FrameworkBundle\DependencyInjection\FrameworkExtension;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -37,10 +40,21 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Translation\Translator;
+
+use function Phil\EnumsBundle\hidden_classes;
+
+require_once __DIR__.'/Fixture/class_exists.php';
 
 #[CoversClass(PhilEnumsBundle::class)]
 final class PhilEnumsBundleTest extends TestCase
 {
+    #[Override]
+    protected function tearDown(): void
+    {
+        hidden_classes([]);
+    }
+
     public function testTheExtensionAliasIsPhilEnums(): void
     {
         self::assertSame('phil_enums', new PhilEnumsBundle()->getContainerExtension()?->getAlias());
@@ -225,6 +239,48 @@ final class PhilEnumsBundleTest extends TestCase
         self::assertSame(['delivery'], array_keys($workflows));
         self::assertIsArray($workflows['delivery']);
         self::assertSame(['type' => 'method', 'property' => 'status'], $workflows['delivery']['marking_store']);
+    }
+
+    public function testTheIcuCataloguesArePrependedToFrameworkBundle(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->registerExtension(new FrameworkExtension());
+
+        $extension = new PhilEnumsBundle()->getContainerExtension();
+        self::assertInstanceOf(PrependExtensionInterface::class, $extension);
+        $extension->prepend($builder);
+
+        $directory = \dirname(__DIR__, 2).'/translations-icu';
+        self::assertSame([['translator' => ['paths' => [$directory]]]], $builder->getExtensionConfig('framework'));
+        self::assertFileExists($directory.'/validators+intl-icu.en.php');
+        self::assertFileExists($directory.'/validators+intl-icu.fr.php');
+    }
+
+    /**
+     * @return iterable<string, array{class-string}>
+     */
+    public static function provideTheClassesTheIcuCataloguesNeed(): iterable
+    {
+        yield 'without the intl extension nor its polyfill' => [MessageFormatter::class];
+        yield 'without the translation component' => [Translator::class];
+    }
+
+    /**
+     * @param class-string $absent
+     */
+    #[DataProvider('provideTheClassesTheIcuCataloguesNeed')]
+    public function testTheIcuCataloguesNeedBothTheFormatterAndTheTranslator(string $absent): void
+    {
+        hidden_classes([$absent]);
+
+        $builder = new ContainerBuilder();
+        $builder->registerExtension(new FrameworkExtension());
+
+        $extension = new PhilEnumsBundle()->getContainerExtension();
+        self::assertInstanceOf(PrependExtensionInterface::class, $extension);
+        $extension->prepend($builder);
+
+        self::assertSame([], $builder->getExtensionConfig('framework'));
     }
 
     public function testWithoutWorkflowsNothingIsPrepended(): void

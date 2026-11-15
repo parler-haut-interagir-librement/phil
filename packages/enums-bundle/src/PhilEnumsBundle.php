@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use BackedEnum;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManagerInterface;
+use MessageFormatter;
 use Nelmio\ApiDocBundle\ModelDescriber\ModelDescriberInterface;
 use Override;
 use Phil\EnumsBundle\Infrastructure\Console\CheckSetColumnsCommand;
@@ -44,6 +45,7 @@ use Symfony\Component\ExpressionLanguage\ExpressionFunctionProviderInterface;
 use Symfony\Component\HttpKernel\Controller\ValueResolverInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Translation\Extractor\ExtractorInterface;
+use Symfony\Component\Translation\Translator;
 use Symfony\Component\Workflow\WorkflowInterface;
 use UnitEnum;
 
@@ -135,28 +137,29 @@ final class PhilEnumsBundle extends AbstractBundle
     }
 
     /**
-     * Gives FrameworkBundle the state machines the configuration declares, built from the enums' transitions, so
-     * that the component validates and wires them as its own.
+     * Gives FrameworkBundle the translations of the constraint messages, and the state machines the configuration
+     * declares, built from the enums' transitions, so that the component validates and wires them as its own.
      */
     #[Override]
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        if (!interface_exists(WorkflowInterface::class)) {
-            return;
+        $framework = [];
+
+        // The messages that show a number are in ICU MessageFormat, which the translator formats with the intl
+        // extension or its polyfill: without either, the messages stay as written, and Symfony's own catalogues
+        // still translate those it shares with the Choice constraint.
+        if (class_exists(MessageFormatter::class) && class_exists(Translator::class) && $builder->hasExtension('framework')) {
+            $framework['translator'] = ['paths' => [\dirname(__DIR__).'/translations-icu']];
         }
 
-        // The bundle's own tree, read before its extension loads: the workflows must reach FrameworkBundle first.
-        $configuration = new Configuration($this, $builder, $this->extensionAlias);
-
-        /** @var array{workflows: array<string, array{enum: class-string<BackedEnum>, supports: list<class-string>, property: string}>} $config */
-        $config = new Processor()->processConfiguration($configuration, $builder->getExtensionConfig($this->extensionAlias));
-        $workflows = array_map(
-            static fn (array $workflow): array => EnumWorkflows::definition($workflow['enum'], $workflow['supports'], $workflow['property']),
-            $config['workflows'],
-        );
+        $workflows = $this->workflows($builder);
 
         if ([] !== $workflows) {
-            $container->extension('framework', ['workflows' => $workflows]);
+            $framework['workflows'] = $workflows;
+        }
+
+        if ([] !== $framework) {
+            $container->extension('framework', $framework);
         }
     }
 
@@ -291,5 +294,28 @@ final class PhilEnumsBundle extends AbstractBundle
                 Type::addType($name, new EnumSetType($set['enum'], EnumSetStorage::from($set['storage'])));
             }
         }
+    }
+
+    /**
+     * The state machines of the configuration, read from the bundle's own tree before its extension loads: they
+     * must reach FrameworkBundle first.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function workflows(ContainerBuilder $builder): array
+    {
+        if (!interface_exists(WorkflowInterface::class)) {
+            return [];
+        }
+
+        $configuration = new Configuration($this, $builder, $this->extensionAlias);
+
+        /** @var array{workflows: array<string, array{enum: class-string<BackedEnum>, supports: list<class-string>, property: string}>} $config */
+        $config = new Processor()->processConfiguration($configuration, $builder->getExtensionConfig($this->extensionAlias));
+
+        return array_map(
+            static fn (array $workflow): array => EnumWorkflows::definition($workflow['enum'], $workflow['supports'], $workflow['property']),
+            $config['workflows'],
+        );
     }
 }

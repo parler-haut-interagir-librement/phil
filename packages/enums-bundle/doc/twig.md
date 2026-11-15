@@ -53,4 +53,3 @@ enum OrderStatus: string
 - **The output is HTML**: the template escapes what it prints, and the filter is marked safe.
 
 The badge needs TwigBundle, which registers the bundle's `templates/` directory under `@PhilEnums`.
-
