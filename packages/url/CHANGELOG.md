@@ -4,6 +4,27 @@ All notable changes to `phil/url` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- `ServiceUrl` and `ServiceHosts`: the address of a service the application runs beside it, whose host is a name
+  without a domain or an IP address — `http://whisper:8080`, `http://10.0.0.5:9200` —, read by
+  `ServiceUrl::fromString($text, $hosts)` only for a host the application declares in `ServiceHosts`; any other host
+  is refused, a public one included. The other rules of `Url` hold. `resolve()` resolves a reference on the same
+  scheme, host and port and refuses one that leaves them; `origin()` gives the scheme, host and port.
+  `Url::fromString()` keeps refusing these hosts.
+- `InvalidUrl::serviceHost()`, `InvalidUrl::tooManyServiceHosts()`, `InvalidUrl::undeclaredServiceHost()` and
+  `InvalidUrl::leavesService()`.
+- `doc/service-addresses.md`, and the fuzz target `url-service-addresses`.
+
+### Fixed
+
+- `Url::fromString()` reads an address the same whatever the locale of the process. Under `LC_CTYPE` set to
+  `C.UTF-8` or another UTF-8 locale, PCRE took the byte 0xA0 for a space, so an address holding `à`, whose UTF-8 ends
+  with that byte, `https://example.com/voilà`, was refused; whitespace is now ASCII whitespace, and every pattern of
+  the library names its bytes.
+
 ## 0.1.3-alpha - 2026-11-11
 
 ### Added

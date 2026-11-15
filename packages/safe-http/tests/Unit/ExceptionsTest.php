@@ -6,7 +6,9 @@ namespace Phil\SafeHttp\Tests\Unit;
 
 use Exception;
 use Phil\SafeHttp\Exception\FetchFailed;
+use Phil\SafeHttp\Exception\InvalidRequest;
 use Phil\SafeHttp\Exception\RefusedAddress;
+use Phil\SafeHttp\Exception\RefusedRedirect;
 use Phil\SafeHttp\Exception\TooManyRedirects;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -15,6 +17,8 @@ use Throwable;
 #[CoversClass(FetchFailed::class)]
 #[CoversClass(RefusedAddress::class)]
 #[CoversClass(TooManyRedirects::class)]
+#[CoversClass(InvalidRequest::class)]
+#[CoversClass(RefusedRedirect::class)]
 final class ExceptionsTest extends TestCase
 {
     /**
@@ -34,6 +38,9 @@ final class ExceptionsTest extends TestCase
             [RefusedAddress::redirect($address, $previous), 'The redirect to "'.$cut.'" is not an http or https address of a host name.'],
             [RefusedAddress::privateNetwork($address, $previous), '"'.$cut.'" is or resolves to a private, loopback, link-local or reserved network.'],
             [TooManyRedirects::after(3, $address), '"'.$cut.'" redirects more than 3 times.'],
+            [RefusedRedirect::forRequest('POST', $address, 303), '"'.$cut.'" answered POST with the redirect 303, which a request with a body or a method other than GET, HEAD or OPTIONS does not follow.'],
+            [InvalidRequest::method(str_repeat('é', 40)), '"'.str_repeat('é', 30).'" is not a method the client sends.'],
+            [InvalidRequest::headerName(str_repeat('é', 70)), '"'.str_repeat('é', 60).'" is not a header name.'],
         ];
 
         foreach ($cases as [$exception, $message]) {

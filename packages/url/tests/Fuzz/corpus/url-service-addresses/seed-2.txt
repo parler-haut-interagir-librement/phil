@@ -1,0 +1,4 @@
+HTTP://Example.COM:443/a/../b
+10.0.0.6
+http://[::1]:9000/v1/
+//whisper:8080/inference?lang=fr

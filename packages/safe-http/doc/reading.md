@@ -65,9 +65,56 @@ Symfony HttpClient bounds neither the count nor the bytes of the headers, and ke
 |---|---|
 | `get($url, $rule)` | The status, the headers, and the body the rule reads |
 | `head($url)` | The status and the headers, no body |
+| `send($method, $url, $headers, $body, $rule)` | Any method, with its headers and body: the status, the headers, and the body the rule reads |
 
 `$url` is a `Phil\Url\Url`, or a string the guard reads. A redirect — `301`, `302`, `303`, `307` or `308` with a
 `Location` — is followed with the same method; another `3xx`, or one without `Location`, is the answer.
+
+## Sending
+
+`send()` makes a request of any method under the guards of `get()`: the first address and each redirect checked, the
+private networks refused, the silence, the whole duration, the redirects and the bytes of the answer bounded by the
+limits. It is the call for a token endpoint, a web service of another platform, a webhook to send.
+
+```php
+$response = $client->send(
+    'POST',
+    'https://platform.example/oauth/token',
+    ['Authorization' => 'Basic '.base64_encode($id.':'.$secret), 'Content-Type' => 'application/x-www-form-urlencoded'],
+    http_build_query(['grant_type' => 'client_credentials', 'scope' => $scope]),
+    new ReadRule('application/json', ['application/json']),
+);
+```
+
+What it checks before any request, with `InvalidRequest`:
+
+| Part | Rule |
+|---|---|
+| The method | Letters only, written in capitals by the client, 20 at most, as Symfony HttpClient takes them; `CONNECT`, which opens a tunnel, and `TRACE`, which echoes the request and its credentials, are refused |
+| A header's name | A token of RFC 9110, not digits only — PHP keeps such a name as an integer key, which Symfony HttpClient reads as a whole header line; never `Accept`, which the rule gives, nor `User-Agent`, which the limits give, nor a header of the connection or of the message's framing — `Host`, `Content-Length`, `Transfer-Encoding`, `Connection`, `Keep-Alive`, `Upgrade`, `TE`, `Trailer`, `Expect` — nor any `Proxy-` header |
+| A header's value | One line, not empty, no control character |
+| The headers | `maxHeaderBytes` and `maxHeaders` of the limits, each counted as the line `Name: value` |
+| The body | `maxBytes` of the limits |
+
+The message of an `InvalidRequest` names a header, never its value.
+
+### Redirects of a request
+
+Only a request of `GET`, `HEAD` or `OPTIONS` without a body follows redirects, each checked as for `get()`. Any other
+request — a `POST`, a `PUT`, a `DELETE`, or a `GET` with a body — follows none: a redirect answered to it throws
+`RefusedRedirect`, so a body is never sent twice, nor to a host it was not meant for. Another `3xx`, or one without
+`Location`, is the answer, as for `get()`.
+
+### Headers and credentials
+
+The headers given to `send()` go to the scheme, the host and the port of the first address only. A redirect to the
+same origin carries them; a redirect anywhere else — another host, a subdomain, another port, HTTPS to HTTP — carries
+none of them, only the `Accept` of the rule and the `User-Agent` of the limits. An `Authorization`, a `Cookie` or an
+API key never reach a host the request did not name.
+
+The client writes no log, and none of its messages names a header's value: the exceptions name the address, the
+method and the status. A transport given to the client keeps its own logger, if it has one; Symfony HttpClient's logs
+name the method and the address of a request, never its headers.
 
 ## The answer
 
@@ -79,7 +126,7 @@ Symfony HttpClient bounds neither the count nor the bytes of the headers, and ke
 | `redirects` | The addresses redirected to, in order, the last one being `url` |
 | `status`, `isSuccessful()` | The status; whether it is `2xx` |
 | `headers`, `header($name)` | The headers by lowercase name; the first value of one |
-| `mediaType()`, `charset()` | The media type of `Content-Type` in lowercase, and its character set as written |
+| `mediaType()`, `charset()` | The media type of `Content-Type` in lowercase, and its character set as written, read by ASCII classes whatever the locale of the process |
 | `body` | The body as far as it was read |
 | `complete` | Whether the body was read to its end: false when it was cut at `maxBytes` or after the stop mark, or not read |
 
@@ -92,4 +139,6 @@ All implement `SafeHttpException`.
 | `RefusedAddress` | The address or a redirect is not an HTTP or HTTPS address of a host name, or its host is or resolves to a private network |
 | `TooManyRedirects` | The redirects outnumber `maxRedirects` |
 | `FetchFailed` | The host does not answer, stays silent past `timeout`, the read outlasts `maxDuration`, the headers pass `maxHeaderBytes` or `maxHeaders`, or the connection breaks |
+| `RefusedRedirect` | A request with a body, or of a method other than `GET`, `HEAD` or `OPTIONS`, was answered by a redirect |
+| `InvalidRequest` | A method, a header or a body that `send()` refuses, before any request |
 | `InvalidLimits` | Limits, or a header of a rule, out of their bounds |

@@ -48,7 +48,7 @@ final readonly class CookielessVideo
             return new self(KnownUrlType::YouTube, Url::fromString('https://www.youtube-nocookie.com/embed/'.$id.(null === $start ? '' : '?start='.$start)));
         }
 
-        if (KnownUrlType::Vimeo->accepts($url) && 1 === preg_match('#^/(?:video/)?(\d{1,20})(?:/([0-9a-f]{1,32}))?/?$#D', $url->path, $match)) {
+        if (KnownUrlType::Vimeo->accepts($url) && 1 === preg_match('#^/(?:video/)?([0-9]{1,20})(?:/([0-9a-f]{1,32}))?/?$#D', $url->path, $match)) {
             $hash = $match[2] ?? (\is_string($query['h'] ?? null) && 1 === preg_match('/^[0-9a-f]{1,32}$/D', $query['h']) ? $query['h'] : '');
 
             return new self(KnownUrlType::Vimeo, Url::fromString('https://player.vimeo.com/video/'.$match[1].'?'.('' === $hash ? '' : 'h='.$hash.'&').'dnt=1'));
@@ -78,7 +78,7 @@ final readonly class CookielessVideo
      */
     private static function seconds(mixed $value): ?int
     {
-        if (\is_string($value) && 1 === preg_match('/^(?:(\d{1,2})h)?(?:(\d{1,4})m)?(?:(\d{1,6})s?)?$/D', $value, $match)) {
+        if (\is_string($value) && 1 === preg_match('/^(?:([0-9]{1,2})h)?(?:([0-9]{1,4})m)?(?:([0-9]{1,6})s?)?$/D', $value, $match)) {
             $seconds = (int) ($match[1] ?? 0) * 3600 + (int) ($match[2] ?? 0) * 60 + (int) ($match[3] ?? 0);
 
             if (0 !== $seconds) {

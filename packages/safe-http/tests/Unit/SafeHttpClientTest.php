@@ -326,6 +326,30 @@ final class SafeHttpClientTest extends TestCase
         $this->client([new MockResponse('', ['error' => 'The proxy said: Host "internal.example" is blocked for security reasons.'])])->get('https://example.com/');
     }
 
+    public function testTheMediaTypeAndCharsetAreReadByAsciiClassesWhateverTheLocale(): void
+    {
+        $locale = setlocale(\LC_CTYPE, '0');
+
+        if (false === setlocale(\LC_CTYPE, 'C.UTF-8', 'en_US.UTF-8', 'fr_CA.UTF-8')) {
+            self::markTestSkipped('No UTF-8 locale on this system.');
+        }
+
+        try {
+            self::assertNull(SafeResponse::mediaTypeOf("text/h\xE9ml"));
+            self::assertNull(SafeResponse::mediaTypeOf("\xA0text/html"));
+            self::assertNull(SafeResponse::mediaTypeOf("text/html\xA0"));
+            self::assertSame('text/html', SafeResponse::mediaTypeOf("\ttext/html \t; charset=utf-8"));
+            $response = new SafeResponse(Url::fromString('https://example.com/'), 200, ['content-type' => ["text/html;\xA0charset=utf-8"]], '', true);
+            self::assertNull($response->charset());
+            $cut = new SafeResponse(Url::fromString('https://example.com/'), 200, ['content-type' => ["text/html; charset=ut\xE9f"]], '', true);
+            self::assertSame('ut', $cut->charset());
+            $spaced = new SafeResponse(Url::fromString('https://example.com/'), 200, ['content-type' => ["text/html;\tcharset\t=\t'utf_8'"]], '', true);
+            self::assertSame('utf_8', $spaced->charset());
+        } finally {
+            setlocale(\LC_CTYPE, false === $locale ? 'C' : $locale);
+        }
+    }
+
     public function testTheCharsetIsReadWhateverTheCase(): void
     {
         $response = $this->client([new MockResponse('x', ['response_headers' => ['Content-Type' => 'text/html; CHARSET=ISO-8859-1']])])->get('https://example.com/');

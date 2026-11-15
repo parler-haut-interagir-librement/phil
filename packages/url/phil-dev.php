@@ -13,6 +13,13 @@ return [
             'PhilUrl' => ['DefaultAllowed', 'Forbidden', 'PhilEnums', 'PhilEnumsPhpstan'],
         ],
     ],
+    'fuzz' => [
+        // The readers of a Url, of the declared service hosts and of a ServiceUrl and its references, on addresses
+        // nobody wrote, from the seeds of tests/Fuzz/corpus/<target>.
+        'targets' => [
+            'url-service-addresses' => 'tests/Fuzz/url-service-addresses.php',
+        ],
+    ],
     'infection' => [
         'mutators' => [
             // A Url refuses every whitespace in its text, so the path of a Vimeo address never ends with a new line: the
@@ -25,6 +32,8 @@ return [
         ],
     ],
     'phpstan' => [
+        // The fuzz targets run inside nikic/php-fuzzer, which gives them `$config`; PHPStan knows neither.
+        'excludePaths' => ['tests/Fuzz/*'],
         // La dette de phil/dev-tools v2 : ce que ses règles relèvent et qui reste à corriger.
         'ignoreErrors' => [
             // à corriger : déplacer les interfaces dans un espace de noms Contract (rupture de l’API publique).

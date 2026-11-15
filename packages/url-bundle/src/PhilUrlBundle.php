@@ -45,6 +45,16 @@ final class PhilUrlBundle extends AbstractBundle
         UrlColumnType::allowLocalhost($container instanceof ContainerInterface && $container->hasParameter('phil_url.allow_localhost') && true === $container->getParameter('phil_url.allow_localhost'));
     }
 
+    /**
+     * The column type's switch goes back to its default with the kernel: a kernel booted next, or a test after it, reads
+     * its own configuration, never the last one's.
+     */
+    #[Override]
+    public function shutdown(): void
+    {
+        UrlColumnType::allowLocalhost(false);
+    }
+
     #[Override]
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {

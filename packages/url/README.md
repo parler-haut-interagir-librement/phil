@@ -8,7 +8,8 @@ resolved, and a `display()` form as people read it. Kinds of address are enum
 cases implementing `UrlType`, each carrying its own rule: a Facebook page is an address on `facebook.com`.
 `KnownUrlType` holds 26 international kinds, from Facebook and YouTube to Mastodon on any server and a plain website.
 `UrlTypes` detects which kind an address is among the enum sets a field accepts, and `CookielessVideo` turns a
-YouTube or Vimeo video into its player that writes no cookies. **It does not** fetch addresses,
+YouTube or Vimeo video into its player that writes no cookies. `ServiceUrl` reads the address of a service the
+application runs beside it, `http://whisper:8080`, for the hosts it declares in `ServiceHosts`. **It does not** fetch addresses,
 follow redirects, check that a page exists, or hold the kinds of a region.
 
 It is for applications where people enter links to their profiles and sites: a directory, a member page, an event
@@ -29,6 +30,7 @@ constraint `UrlOfType`, a Doctrine column type and Twig filters. The design rest
 | `UrlType`, and `KnownUrlType`: 26 international kinds | Implemented and tested |
 | `TypedUrl`, and `UrlTypes`: detecting the kind among enum sets | Implemented and tested |
 | `CookielessVideo`: YouTube and Vimeo players without cookies | Implemented and tested |
+| `ServiceUrl` and `ServiceHosts`: service addresses on declared hosts | Implemented and tested |
 | Exceptions under one `UrlException` interface | Implemented and tested |
 
 ## Documentation
@@ -37,6 +39,7 @@ constraint `UrlOfType`, a Doctrine column type and Twig filters. The design rest
 |---|---|
 | [Installation](doc/installation.md) | Requirements and installing. |
 | [Addresses](doc/addresses.md) | `Url`: what is accepted, how it is normalised and shown. |
+| [Service addresses](doc/service-addresses.md) | `ServiceUrl` and `ServiceHosts`: the addresses of an application's own services, on the hosts it declares. |
 | [Kinds](doc/kinds.md) | `UrlType`, the international kinds, an application's own, detection among enum sets, video players without cookies. |
 | [Extension points](doc/extension-points.md) | The ports, arguments and data an application chooses or replaces. |
 | [Testing](doc/testing.md) | The library's tests and mutation bar. |

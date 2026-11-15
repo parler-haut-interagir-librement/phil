@@ -13,6 +13,17 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   the read throws `FetchFailed`.
 - `FetchFailed::headersTooLarge()`.
 - The bounds each transport of Symfony HttpClient puts on the headers by itself, in `doc/reading.md`.
+- `SafeHttpClient::send($method, $url, $headers, $body, $rule)`: a request of any method, with its headers and body,
+  under the guards of `get()` — every address checked, the private networks refused, the time, the redirects and the
+  bytes of the answer bounded. The method is letters only, put in capitals; `CONNECT` and `TRACE` are refused. A
+  header's name is a token, never digits only, which PHP keeps as an integer key, never `Accept`, `User-Agent`, a header
+  of the connection or of the framing, nor a `Proxy-` header; its value is one line; the headers are held to
+  `maxHeaderBytes` and `maxHeaders`, the body to `maxBytes`. Only a request of `GET`, `HEAD` or `OPTIONS` without a body
+  follows redirects; the headers given never leave the scheme, host and port of the first address. No message names a
+  header's value.
+- `InvalidRequest`, refused before any request, and `RefusedRedirect`, a redirect answered to a request that follows
+  none.
+- Sending a request with headers and a body, its redirects and its credentials, in `doc/reading.md`.
 
 ### Changed
 
@@ -21,6 +32,8 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ### Fixed
 
+- `SafeResponse::mediaType()`, `mediaTypeOf()` and `charset()` read by ASCII classes: under `LC_CTYPE` set to a UTF-8
+  locale, PCRE took bytes outside ASCII for letters and spaces, and `text/h\xE9ml` was a media type.
 - A chunk larger than the bytes that remain is cut before it joins the body: the body held never exceeds `maxBytes`,
   where it could pass it by one chunk of the transport. The body returned and the errors are unchanged.
 

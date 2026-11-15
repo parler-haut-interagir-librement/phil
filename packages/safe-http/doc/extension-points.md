@@ -9,6 +9,8 @@ change them, and its CHANGELOG says how.
 | Pin a host to an address, or make tests resolve no name | Pass `resolve`: the address is still checked against the private networks |
 | Change what one read may cost | Pass other `Limits` |
 | Read another part of a body | Pass another `ReadRule` |
+| Call another platform's web service — a token endpoint, a webhook — with credentials | `send()` with the method, the headers and the body: the headers stay on the first address's origin |
 
 What stays closed: the guard itself. `SafeHttpClient`, `AddressGuard` and the value objects are final; a site that
-needs an address the guard refuses — a service of its own network — reads it with its own client, not this one.
+needs an address the guard refuses — a service of its own network — reads it with its own client, not this one, its
+address read by `phil/url`'s `ServiceUrl` for the hosts it declares.

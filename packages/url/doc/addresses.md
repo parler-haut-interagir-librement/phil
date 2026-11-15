@@ -10,7 +10,14 @@ URL Standard, `Uri\WhatWg\Url`, then `Url` applies its own rules below.
 | A port from 1 to 65535, a path, a query, a fragment | Port 0, spaces, a user name or a password (`https://ada@…`, `https://@…`), a third slash or a backslash before the host (`https:///path`, `https://\example.com/`) |
 | 2048 characters at most, as written and once normalised | Longer: `<` written 1000 times becomes `%3C` 1000 times |
 
-Every refusal throws `InvalidUrl`, an `UrlException`.
+Every refusal throws `InvalidUrl`, an `UrlException`. The address of a service the application runs beside it,
+`http://whisper:8080`, is read by `ServiceUrl` for the hosts the application declares: see
+[Service addresses](service-addresses.md).
+
+An address reads the same whatever the locale of the process: the patterns name their bytes, so a `LC_CTYPE` set to
+`C.UTF-8` or another UTF-8 locale, which gives PCRE its character classes, changes nothing. Whitespace is ASCII
+whitespace — a tab, a line feed, a vertical tab, a form feed, a carriage return or a space; a non-breaking space is
+percent-encoded like any letter outside ASCII.
 
 ## Localhost in development and tests
 
