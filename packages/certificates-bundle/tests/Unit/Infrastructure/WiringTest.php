@@ -16,6 +16,7 @@ use Phil\CertificatesBundle\Application\ExpiryReminders;
 use Phil\CertificatesBundle\Application\Revocation;
 use Phil\CertificatesBundle\Application\StatusListLayout;
 use Phil\CertificatesBundle\Domain\Contract\CertificateRepository;
+use Phil\CertificatesBundle\Domain\Contract\CourseCompletions;
 use Phil\CertificatesBundle\Domain\Contract\CourseRepository;
 use Phil\CertificatesBundle\Domain\Contract\LearningActivityRepository;
 use Phil\CertificatesBundle\Infrastructure\Console\AwardCommand;
@@ -86,7 +87,7 @@ final class WiringTest extends TestCase
         self::assertSame(RoutedCertificateUrls::class, (string) $container->getAlias(CertificateUrls::class));
         self::assertEquals([$courses], $container->getDefinition(Courses::class)->getArguments());
         $events = new Reference('event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE);
-        self::assertEquals([new Reference(Courses::class), $certificates, new Reference(CredentialIssuer::class), new Reference(Securing::class), $urls, $clock, $layout, new Reference('lock.factory', ContainerInterface::NULL_ON_INVALID_REFERENCE), $events, new Reference(LearningActivityRepository::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(Awarding::class)->getArguments());
+        self::assertEquals([new Reference(Courses::class), $certificates, new Reference(CredentialIssuer::class), new Reference(Securing::class), $urls, $clock, $layout, new Reference('lock.factory', ContainerInterface::NULL_ON_INVALID_REFERENCE), $events, new Reference(LearningActivityRepository::class, ContainerInterface::NULL_ON_INVALID_REFERENCE), new Reference(CourseCompletions::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(Awarding::class)->getArguments());
         self::assertEquals([$certificates, $clock, new Reference('event_dispatcher'), [60, 30, 7]], $container->getDefinition(ExpiryReminders::class)->getArguments());
         self::assertEquals([new Reference(LearningActivityRepository::class), new Reference(Courses::class), $certificates, $clock, $events], $container->getDefinition(ContinuingEducation::class)->getArguments());
         self::assertEquals([new Reference('doctrine.orm.entity_manager')], $container->getDefinition(DoctrineLearningActivityRepository::class)->getArguments());

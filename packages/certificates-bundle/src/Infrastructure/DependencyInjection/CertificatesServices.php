@@ -14,6 +14,7 @@ use Phil\CertificatesBundle\Application\ExpiryReminders;
 use Phil\CertificatesBundle\Application\Revocation;
 use Phil\CertificatesBundle\Application\StatusListLayout;
 use Phil\CertificatesBundle\Domain\Contract\CertificateRepository;
+use Phil\CertificatesBundle\Domain\Contract\CourseCompletions;
 use Phil\CertificatesBundle\Domain\Contract\CourseRepository;
 use Phil\CertificatesBundle\Domain\Contract\LearningActivityRepository;
 use Phil\CertificatesBundle\Infrastructure\Console\AwardCommand;
@@ -46,7 +47,8 @@ use Symfony\Component\DependencyInjection\Reference;
 /**
  * The bundle's services: the courses, the awarding, the recertification and the revocation of certificates, the
  * reminders of their end, the credits of continuing education, their status lists, their PDF and their URLs; the
- * Doctrine repositories when DoctrineBundle is registered; the register's controller when Twig is; the console
+ * Doctrine repositories when DoctrineBundle is registered; the source of completions the application registers under
+ * `CourseCompletions`, when it does; the register's controller when Twig is; the console
  * commands when the Console component is installed. None keeps anything from one request to the next.
  */
 final class CertificatesServices
@@ -89,7 +91,7 @@ final class CertificatesServices
 
         $container->register(Courses::class, Courses::class)->setArguments([$courses]);
         $container->register(Awarding::class, Awarding::class)
-            ->setArguments([new Reference(Courses::class), $certificates, new Reference(CredentialIssuer::class), new Reference(Securing::class), $urls, $clock, new Reference(StatusListLayout::class), self::locks($config['lock_factory']), $events, $activities]);
+            ->setArguments([new Reference(Courses::class), $certificates, new Reference(CredentialIssuer::class), new Reference(Securing::class), $urls, $clock, new Reference(StatusListLayout::class), self::locks($config['lock_factory']), $events, $activities, new Reference(CourseCompletions::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)]);
         $container->register(Revocation::class, Revocation::class)->setArguments([$certificates, $clock, $events]);
         $container->register(ExpiryReminders::class, ExpiryReminders::class)->setArguments([$certificates, $clock, new Reference('event_dispatcher'), $config['reminders']['days']]);
         $container->register(ContinuingEducation::class, ContinuingEducation::class)

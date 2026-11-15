@@ -15,8 +15,8 @@ use Phil\CertificatesBundle\Domain\Model\Certificate;
 use Phil\CertificatesBundle\Domain\Model\Course;
 
 /**
- * The certificates through Doctrine; `save()` flushes, and the unique status index refuses a second award that took
- * the same index at the same moment.
+ * The certificates through Doctrine; `save()` flushes, and the unique indexes refuse a second award that took the same
+ * status index, or the same completion of a course, at the same moment.
  *
  * Doctrine closes an entity manager whose flush failed. With the registry, the refused award resets the manager it was
  * stored with before `StatusIndexTaken` is thrown, so that the award starts again on a manager that is open; without
@@ -86,6 +86,12 @@ final readonly class DoctrineCertificateRepository implements CertificateReposit
     public function findRenewalOf(Certificate $certificate): ?Certificate
     {
         return $this->entityManager->getRepository(Certificate::class)->findOneBy(['renews' => $certificate]);
+    }
+
+    #[Override]
+    public function findByCompletion(Course $course, string $completion): ?Certificate
+    {
+        return $this->entityManager->getRepository(Certificate::class)->findOneBy(['course' => $course, 'completion' => $completion]);
     }
 
     #[Override]

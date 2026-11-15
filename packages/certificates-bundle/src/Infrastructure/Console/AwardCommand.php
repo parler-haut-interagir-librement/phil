@@ -22,7 +22,9 @@ use Symfony\Component\Console\Output\OutputInterface;
  *     bin/console phil:certificates:award first-aid "Ada Lovelace" ada@example.org --score=82 --minutes=240 --module=cpr --listed --holder=member-42.
  *
  * Awards the certificate of a course, as `Awarding` does, and prints its verification code and the address of its
- * page in the register. The identity is never printed: the credential keeps it as a salted hash only.
+ * page in the register. The identity is never printed: the credential keeps it as a salted hash only. A course that
+ * names a completion source asks it whether the holder completed the course; the identifier of the completion is
+ * printed. With `--on-completion`, a completion already awarded prints the certificate it holds instead of failing.
  */
 #[AsCommand(name: 'phil:certificates:award', description: 'Awards the certificate of a course to a learner who meets its criteria')]
 final class AwardCommand extends Command
@@ -45,7 +47,8 @@ final class AwardCommand extends Command
             ->addOption('minutes', null, InputOption::VALUE_REQUIRED, 'The minutes of training followed', '0')
             ->addOption('module', 'm', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A module completed; repeat it for each')
             ->addOption('listed', null, InputOption::VALUE_NONE, "Whether the certificate appears on its course's page in the register")
-            ->addOption('holder', null, InputOption::VALUE_REQUIRED, 'The stable identifier of the member, by which credits of continuing education are counted');
+            ->addOption('holder', null, InputOption::VALUE_REQUIRED, 'The stable identifier of the member, by which credits of continuing education are counted and the completion of the course asked')
+            ->addOption('on-completion', null, InputOption::VALUE_NONE, 'Award on the completion of a course that names a completion source, or show the certificate already awarded on it');
     }
 
     #[Override]
@@ -68,9 +71,14 @@ final class AwardCommand extends Command
         /** @var string|null $holder */
         $holder = $input->getOption('holder');
 
+        $listed = true === $input->getOption('listed');
+        $onCompletion = true === $input->getOption('on-completion');
+
         try {
             $attainment = new Attainment(null === $score ? null : Numbers::integer('score', $score), Numbers::integer('minutes', $minutes), $modules);
-            $certificate = $this->awarding->award($course, $name, $identity, $attainment, (bool) $input->getOption('listed'), $holder);
+            $certificate = $onCompletion
+                ? $this->awarding->awardOnCompletion($course, $holder ?? throw InvalidValue::because('An award on completion names the holder, with --holder.'), $name, $identity, $attainment, $listed)
+                : $this->awarding->award($course, $name, $identity, $attainment, $listed, $holder);
         } catch (InvalidValue $invalidValue) {
             $errors->writeln($invalidValue->getMessage());
 
@@ -81,8 +89,12 @@ final class AwardCommand extends Command
             return Command::FAILURE;
         }
 
-        $output->writeln(\sprintf('Awarded the certificate %s of "%s" to %s.', $certificate->code->formatted(), $certificate->course->slug, $certificate->recipientName));
+        $output->writeln(\sprintf($onCompletion ? 'The certificate %s of "%s" is awarded to %s on that completion.' : 'Awarded the certificate %s of "%s" to %s.', $certificate->code->formatted(), $certificate->course->slug, $certificate->recipientName));
         $output->writeln($this->urls->certificate($certificate->code));
+
+        if (null !== $certificate->completion) {
+            $output->writeln(\sprintf('Completion: %s', $certificate->completion));
+        }
 
         return Command::SUCCESS;
     }

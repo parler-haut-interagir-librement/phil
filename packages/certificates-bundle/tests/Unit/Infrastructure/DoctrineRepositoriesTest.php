@@ -241,6 +241,41 @@ final class DoctrineRepositoriesTest extends TestCase
         }
     }
 
+    public function testCoursesKeepTheirCompletionSourceAndCertificatesTheirCompletion(): void
+    {
+        $course = Course::define('botany', 'Botany', '', 'Pass.', completionSource: 'botany-2027');
+        $other = Course::define('zoology', 'Zoology', '', 'Pass.');
+        $this->courses->save($course);
+        $this->courses->save($other);
+
+        $this->certificates->save(Certificate::award('id-1', VerificationCode::fromString('AAAAAAAAAAA1'), $course, 'Ada', new DateTimeImmutable('2026-01-02 UTC'), 1, 'a.b.c', completion: 'enrolment-7'));
+        $this->certificates->save(Certificate::award('id-2', VerificationCode::fromString('AAAAAAAAAAA2'), $other, 'Ada', new DateTimeImmutable('2026-01-02 UTC'), 2, 'a.b.c', completion: 'enrolment-8'));
+
+        $this->entityManager->clear();
+
+        $course = $this->courses->findBySlug('botany');
+        self::assertInstanceOf(Course::class, $course);
+        self::assertSame('botany-2027', $course->completionSource);
+        self::assertSame('id-1', $this->certificates->findByCompletion($course, 'enrolment-7')?->id);
+        self::assertSame('enrolment-7', $this->certificates->findByCode('AAAAAAAAAAA1')?->completion);
+        self::assertNull($this->certificates->findByCompletion($course, 'enrolment-8'));
+        self::assertNull($this->certificates->findByCompletion($course, 'enrolment-9'));
+    }
+
+    public function testACompletionAwardedTwiceIsRefusedAsATakenIndex(): void
+    {
+        $course = Course::define('botany', 'Botany', '', 'Pass.', completionSource: 'botany-2027');
+        $this->courses->save($course);
+        $this->certificates->save(Certificate::award('id-1', VerificationCode::fromString('AAAAAAAAAAA1'), $course, 'Ada', new DateTimeImmutable('2026-01-02 UTC'), 1, 'a.b.c', completion: 'enrolment-7'));
+
+        $registry = $this->createMock(ManagerRegistry::class);
+        $registry->expects($this->once())->method('resetManager')->with(null);
+        $certificates = new DoctrineCertificateRepository($this->entityManager, $registry);
+
+        $this->expectException(StatusIndexTaken::class);
+        $certificates->save(Certificate::award('id-2', VerificationCode::fromString('AAAAAAAAAAA2'), $course, 'Ada', new DateTimeImmutable('2026-01-02 UTC'), 2, 'a.b.c', completion: 'enrolment-7'));
+    }
+
     public function testATakenIndexIsDoctrinesRefusalWithoutARegistry(): void
     {
         $course = Course::define('botany', 'Botany', '', 'Pass.');

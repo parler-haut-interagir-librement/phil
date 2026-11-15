@@ -46,6 +46,7 @@ final class MappingTest extends TestCase
                 'retired' => ['retired', 'boolean', null, false, []],
                 'recertificationHundredths' => ['recertification_credits', 'integer', null, true, []],
                 'endsAt' => ['ends_at', 'datetime_immutable', null, true, []],
+                'completionSource' => ['completion_source', 'string', 255, true, []],
                 'id' => ['id', 'string', 36, false, ['fixed' => true]],
                 'slug' => ['slug', 'string', 64, false, []],
             ],
@@ -58,7 +59,7 @@ final class MappingTest extends TestCase
         self::assertSame('7KQ2M9XA04TZ', Kit::awarded()->code->value);
         self::assertSame([
             'table' => 'phil_certificates_certificate',
-            'unique' => [['code'], ['status_index']],
+            'unique' => [['code'], ['status_index'], ['course_id', 'completion']],
             'indexes' => [['course_id', 'listed', 'awarded_at'], ['valid_until'], ['holder']],
             'columns' => [
                 'revokedAt' => ['revoked_at', 'datetime_immutable', null, true, []],
@@ -73,6 +74,7 @@ final class MappingTest extends TestCase
                 'credential' => ['credential', 'text', null, false, []],
                 'listed' => ['listed', 'boolean', null, false, []],
                 'holder' => ['holder', 'string', 191, true, []],
+                'completion' => ['completion', 'string', 255, true, []],
             ],
             'associations' => ['course' => [Course::class, 'course_id', false], 'renews' => [Certificate::class, 'renews_id', true]],
         ], $this->describe(Certificate::class));

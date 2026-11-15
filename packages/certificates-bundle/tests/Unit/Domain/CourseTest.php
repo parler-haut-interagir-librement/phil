@@ -39,6 +39,44 @@ final class CourseTest extends TestCase
         self::assertFalse($course->retired);
     }
 
+    public function testACourseNamesItsCompletionSourceWhichARevisionKeeps(): void
+    {
+        self::assertNull(Course::define('first-aid', 'First aid', '', 'Pass.')->completionSource);
+
+        $course = Course::define('first-aid', 'First aid', '', 'Pass.', completionSource: 'first-aid-2027');
+        self::assertSame('first-aid-2027', $course->completionSource);
+
+        $course->revise('First aid, revised', '', 'Pass.');
+        self::assertSame('first-aid-2027', $course->completionSource);
+
+        $course->changeCompletionSource(str_repeat('k', 255));
+        self::assertSame(str_repeat('k', 255), $course->completionSource);
+
+        $course->changeCompletionSource(null);
+        self::assertNull($course->completionSource);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidCompletionSources(): iterable
+    {
+        yield 'an empty key' => [''];
+        yield 'a key too long' => [str_repeat('k', 256)];
+        yield 'a key with a space' => ['first aid'];
+        yield 'a key with a line break' => ["first-aid\n"];
+        yield 'a key with a control character' => ["first\x7Faid"];
+    }
+
+    #[DataProvider('invalidCompletionSources')]
+    public function testACompletionSourceThatCannotBeKeptIsRefused(string $source): void
+    {
+        $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessageIsOrContains('The completion source of a course has from 1 to 255 characters, without spaces nor control characters.');
+
+        Course::define('first-aid', 'First aid', '', 'Pass.', completionSource: $source);
+    }
+
     public function testValuesAtTheirBoundsAreAccepted(): void
     {
         $slug = str_repeat('a', 64);

@@ -17,6 +17,7 @@ use Phil\CertificatesBundle\Infrastructure\Console\ExportCommand;
 use Phil\CertificatesBundle\Infrastructure\Console\Numbers;
 use Phil\CertificatesBundle\Infrastructure\Console\RevokeCommand;
 use Phil\CertificatesBundle\Infrastructure\Console\StatusCommand;
+use Phil\CertificatesBundle\Tests\Unit\Support\FixedCompletions;
 use Phil\CertificatesBundle\Tests\Unit\Support\FixedUrls;
 use Phil\CertificatesBundle\Tests\Unit\Support\InMemoryCertificates;
 use Phil\CertificatesBundle\Tests\Unit\Support\InMemoryCourses;
@@ -107,6 +108,48 @@ final class ConsoleTest extends TestCase
         self::assertSame($message."\n", $tester->getDisplay());
     }
 
+    public function testAnAwardOnACourseThatNamesACompletionSourcePrintsTheCompletion(): void
+    {
+        $tester = new CommandTester($this->awardCommand('fa-2027', new FixedCompletions(['fa-2027' => ['member-42' => 'enrolment-7']])));
+        $tester->execute(['course' => 'first-aid', 'name' => 'Ada', 'identity' => 'ada@example.org', '--score' => '70', '--minutes' => '60', '-m' => ['cpr'], '--holder' => 'member-42']);
+
+        self::assertSame(Command::SUCCESS, $tester->getStatusCode());
+        $certificate = $this->awarded();
+        self::assertSame(
+            \sprintf("Awarded the certificate %s of \"first-aid\" to Ada.\nhttps://example.com/certificates/%s\nCompletion: enrolment-7\n", $certificate->code->formatted(), $certificate->code->value),
+            $tester->getDisplay(),
+        );
+
+        self::assertStringContainsString("holder             member-42\ncompletion         enrolment-7\n", $this->showStatus(['code' => $certificate->code->value])->getDisplay());
+
+        $tester->execute(['course' => 'first-aid', 'name' => 'Ada', 'identity' => 'ada@example.org', '--score' => '70', '--minutes' => '60', '-m' => ['cpr'], '--holder' => 'member-43']);
+        self::assertSame(Command::FAILURE, $tester->getStatusCode());
+        self::assertSame("The holder has not completed the course \"first-aid\".\n", $tester->getDisplay());
+    }
+
+    public function testAnAwardOnCompletionShowsTheCertificateAlreadyAwardedOnIt(): void
+    {
+        $tester = new CommandTester($this->awardCommand('fa-2027', new FixedCompletions(['fa-2027' => ['member-42' => 'enrolment-7']])));
+        $input = ['course' => 'first-aid', 'name' => 'Ada', 'identity' => 'ada@example.org', '--score' => '70', '--minutes' => '60', '-m' => ['cpr'], '--holder' => 'member-42', '--on-completion' => true, '--listed' => true];
+
+        $tester->execute($input);
+        self::assertSame(Command::SUCCESS, $tester->getStatusCode());
+        $certificate = $this->awarded();
+        $display = \sprintf("The certificate %s of \"first-aid\" is awarded to Ada on that completion.\nhttps://example.com/certificates/%s\nCompletion: enrolment-7\n", $certificate->code->formatted(), $certificate->code->value);
+        self::assertSame($display, $tester->getDisplay());
+        self::assertTrue($certificate->listed);
+
+        $tester->execute($input);
+        self::assertSame(Command::SUCCESS, $tester->getStatusCode());
+        self::assertSame($display, $tester->getDisplay());
+        self::assertSame($certificate, $this->awarded());
+
+        unset($input['--holder']);
+        $tester->execute($input);
+        self::assertSame(Command::INVALID, $tester->getStatusCode());
+        self::assertSame("An award on completion names the holder, with --holder.\n", $tester->getDisplay());
+    }
+
     public function testTheLargestNumberIsRead(): void
     {
         self::assertSame(999_999_999, Numbers::integer('minutes', '999999999'));
@@ -171,6 +214,7 @@ final class ConsoleTest extends TestCase
             'revoked_at' => '2026-12-01T12:00:00+00:00',
             'revocation_reason' => 'Fraud.',
             'holder' => null,
+            'completion' => null,
             'renews' => null,
             'renewed_by' => null,
             'reminded_at' => null,
@@ -292,10 +336,13 @@ final class ConsoleTest extends TestCase
         return new StatusCommand($this->certificates, $this->clock);
     }
 
-    private function awardCommand(): AwardCommand
+    private function awardCommand(?string $source = null, ?FixedCompletions $completions = null): AwardCommand
     {
         $courses = new InMemoryCourses();
-        $courses->save(Kit::firstAid(12, new PassCriteria(minimumScore: 70, minimumMinutes: 60, requiredModules: ['cpr'])));
+        $course = Kit::firstAid(12, new PassCriteria(minimumScore: 70, minimumMinutes: 60, requiredModules: ['cpr']));
+        $course->changeCompletionSource($source);
+
+        $courses->save($course);
 
         $urls = new FixedUrls();
 
@@ -307,6 +354,7 @@ final class ConsoleTest extends TestCase
             $urls,
             $this->clock,
             new StatusListLayout('awards', 8),
+            completions: $completions,
         ), $urls);
     }
 }

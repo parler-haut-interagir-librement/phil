@@ -23,7 +23,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  *     bin/console phil:certificates:status 7KQ2-M9XA-04TZ [--format=json].
  *
  * Where a certificate stands now — valid, expired or revoked —, with what the register shows of it, its holder, the
- * certificate it renews and the one that renews it, and when its holder was last reminded of its end. It fails when
+ * completion it was awarded on, the certificate it renews and the one that renews it, and when its holder was last reminded of its end. It fails when
  * there is no such certificate, so a script can tell.
  */
 #[AsCommand(name: 'phil:certificates:status', description: 'Shows where a certificate stands: valid, expired or revoked')]
@@ -98,6 +98,7 @@ final class StatusCommand extends Command
             'revoked_at' => $certificate->revokedAt?->format(\DATE_ATOM),
             'revocation_reason' => $certificate->revocationReason,
             'holder' => $certificate->holder,
+            'completion' => $certificate->completion,
             'renews' => $certificate->renews?->code->formatted(),
             'renewed_by' => $this->certificates->findRenewalOf($certificate)?->code->formatted(),
             'reminded_at' => $certificate->remindedAt?->format(\DATE_ATOM),

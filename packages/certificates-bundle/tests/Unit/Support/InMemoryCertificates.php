@@ -96,6 +96,18 @@ final class InMemoryCertificates implements CertificateRepository
     }
 
     #[Override]
+    public function findByCompletion(Course $course, string $completion): ?Certificate
+    {
+        foreach ($this->certificates as $certificate) {
+            if ($certificate->course === $course && $certificate->completion === $completion) {
+                return $certificate;
+            }
+        }
+
+        return null;
+    }
+
+    #[Override]
     public function expiring(DateTimeImmutable $after, DateTimeImmutable $until, int $limit, int $offset = 0): array
     {
         if ($offset < 0 || $limit < 1) {

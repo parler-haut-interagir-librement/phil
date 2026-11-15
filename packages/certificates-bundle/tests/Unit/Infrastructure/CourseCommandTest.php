@@ -63,6 +63,31 @@ final class CourseCommandTest extends TestCase
         self::assertNull($this->course('cpr')->endsAt);
     }
 
+    public function testACourseNamesItsCompletionSourceWhichARevisionChangesOnlyWhenGiven(): void
+    {
+        $this->tester->execute(['slug' => 'cpr', 'name' => 'CPR', 'narrative' => 'Attend.', '--completion-source' => 'cpr-2027']);
+        self::assertSame(Command::SUCCESS, $this->tester->getStatusCode());
+        self::assertSame('cpr-2027', $this->course('cpr')->completionSource);
+
+        $this->tester->execute(['slug' => 'cpr', 'name' => 'CPR II', 'narrative' => 'Attend.', '--revise' => true]);
+        self::assertSame(['CPR II', 'cpr-2027'], [$this->course('cpr')->name, $this->course('cpr')->completionSource]);
+
+        $this->tester->execute(['slug' => 'cpr', 'name' => 'CPR II', 'narrative' => 'Attend.', '--revise' => true, '--completion-source' => 'cpr-2028']);
+        self::assertSame("Revised the course \"cpr\", CPR II.\nhttps://example.com/certificates/courses/cpr\n", $this->tester->getDisplay());
+        self::assertSame('cpr-2028', $this->course('cpr')->completionSource);
+
+        $this->tester->execute(['slug' => 'cpr', 'name' => 'CPR II', 'narrative' => 'Attend.', '--revise' => true, '--completion-source' => '']);
+        self::assertSame(Command::SUCCESS, $this->tester->getStatusCode());
+        self::assertNull($this->course('cpr')->completionSource);
+
+        $this->tester->execute(['slug' => 'botany', 'name' => 'Botany', 'narrative' => 'Attend.', '--completion-source' => '']);
+        self::assertNull($this->course('botany')->completionSource);
+
+        $this->tester->execute(['slug' => 'zoology', 'name' => 'Zoology', 'narrative' => 'Attend.', '--completion-source' => 'a b']);
+        self::assertSame(Command::INVALID, $this->tester->getStatusCode());
+        self::assertSame("The completion source of a course has from 1 to 255 characters, without spaces nor control characters.\n", $this->tester->getDisplay());
+    }
+
     public function testACourseWithoutOptionsIsPassedByCompletingItAndHoldsForEver(): void
     {
         $this->tester->execute(['slug' => 'botany', 'name' => 'Botany', 'narrative' => 'Attend.']);

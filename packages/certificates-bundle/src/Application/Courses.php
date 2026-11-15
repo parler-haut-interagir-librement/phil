@@ -13,7 +13,8 @@ use Phil\CertificatesBundle\Domain\ValueObject\PassCriteria;
 
 /**
  * The courses an application defines, revises, retires and reopens, each known by its slug, with the credits of
- * continuing education their recertification asks for and the moment they end.
+ * continuing education their recertification asks for, the moment they end and the completion source they are
+ * awarded on.
  */
 final readonly class Courses
 {
@@ -22,13 +23,13 @@ final readonly class Courses
     ) {
     }
 
-    public function define(string $slug, string $name, string $description, string $narrative, PassCriteria $criteria = new PassCriteria(), ?int $validityMonths = null, ?string $image = null, ?Credits $recertificationCredits = null, ?DateTimeImmutable $endsAt = null): Course
+    public function define(string $slug, string $name, string $description, string $narrative, PassCriteria $criteria = new PassCriteria(), ?int $validityMonths = null, ?string $image = null, ?Credits $recertificationCredits = null, ?DateTimeImmutable $endsAt = null, ?string $completionSource = null): Course
     {
         if ($this->courses->findBySlug($slug) instanceof Course) {
             throw CertificateRefused::because(\sprintf('A course "%s" already exists.', $slug));
         }
 
-        $course = Course::define($slug, $name, $description, $narrative, $criteria, $validityMonths, $image, $recertificationCredits, $endsAt);
+        $course = Course::define($slug, $name, $description, $narrative, $criteria, $validityMonths, $image, $recertificationCredits, $endsAt, $completionSource);
         $this->courses->save($course);
 
         return $course;
@@ -38,6 +39,19 @@ final readonly class Courses
     {
         $course = $this->get($slug);
         $course->revise($name, $description, $narrative, $criteria, $validityMonths, $image, $recertificationCredits, $endsAt);
+
+        $this->courses->save($course);
+
+        return $course;
+    }
+
+    /**
+     * Names the key of the course in the system its completions are asked of, or none.
+     */
+    public function changeCompletionSource(string $slug, ?string $source): Course
+    {
+        $course = $this->get($slug);
+        $course->changeCompletionSource($source);
 
         $this->courses->save($course);
 

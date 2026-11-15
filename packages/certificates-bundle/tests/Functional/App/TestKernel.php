@@ -10,6 +10,7 @@ use Phil\CertificatesBundle\Application\CertificateStatusLists;
 use Phil\CertificatesBundle\Application\Courses;
 use Phil\CertificatesBundle\Application\Revocation;
 use Phil\CertificatesBundle\Domain\Contract\CertificateRepository;
+use Phil\CertificatesBundle\Domain\Contract\CourseCompletions;
 use Phil\CertificatesBundle\Domain\Contract\CourseRepository;
 use Phil\OpenBadges\Verification\CredentialVerifier;
 use Psr\Log\NullLogger;
@@ -21,8 +22,8 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 /**
  * An application as small as the bundle needs: FrameworkBundle with Gotenberg played by its HTTP client, TwigBundle,
- * DoctrineBundle on an in-memory SQLite database, an issuer whose key is a fixed seed, a frozen clock, and the routes
- * of the issuer under `/open-badges` and of the register under `/certificates`.
+ * DoctrineBundle on an in-memory SQLite database, an issuer whose key is a fixed seed, a frozen clock, a source of
+ * completions, and the routes of the issuer under `/open-badges` and of the register under `/certificates`.
  *
  * Its locks are kept in memory: each test process has its own, so that tests run at once in other processes never hold
  * the lock of the status index one of them reaches for.
@@ -77,6 +78,8 @@ final class TestKernel extends Kernel
         $services = $container->services()->defaults()->autowire()->autoconfigure()->public();
         $services->set(GotenbergResponses::class);
         $services->set(RecordedEvents::class);
+        $services->set(KnownCompletions::class);
+        $services->alias(CourseCompletions::class, KnownCompletions::class);
         $services->set('clock', MockClock::class)->args(['2026-11-08 10:00:00 UTC']);
 
         // The services an application injects, kept public for the tests to reach.
