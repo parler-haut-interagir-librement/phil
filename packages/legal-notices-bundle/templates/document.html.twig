@@ -1,0 +1,94 @@
+{#
+ # The page of a version: where it stands as a Badge, its body, and under the privacy policy the retention periods in
+ # the Table recipe and the consent categories. The recipes of the kit are called by the names
+ # `phil_legal_notices_kit()` gives.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_legal_notices' %}
+{% set title = ('title.' ~ type.value)|trans({}, domain) %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+    {% if version.state.value == 'withdrawn' %}
+        {% set standing = 'page.withdrawn'|trans({}, domain) %}
+        {% set variant = 'destructive' %}
+    {% elseif in_force is not null and in_force.number == version.number %}
+        {% set standing = 'page.in_force'|trans({'%date%': version.effectiveAt|date('Y-m-d')}, domain) %}
+        {% set variant = 'default' %}
+    {% elseif version.effectiveAt > now %}
+        {% set standing = 'page.upcoming'|trans({'%date%': version.effectiveAt|date('Y-m-d')}, domain) %}
+        {% set variant = 'outline' %}
+    {% else %}
+        {% set standing = 'page.superseded'|trans({}, domain) %}
+        {% set variant = 'secondary' %}
+    {% endif %}
+    <article>
+        <header>
+            <h1>{{ title }}</h1>
+            <p>
+                {{ 'page.version'|trans({'%version%': version.number}, domain) }}
+                {% component (phil_legal_notices_kit('Badge')) with {variant: variant} %}{% block content %}{{ standing }}{% endblock %}{% endcomponent %}
+                <a href="{{ path('phil_legal_notices_' ~ type.value ~ '_history') }}">{{ 'page.history'|trans({}, domain) }}</a>
+            </p>
+            {% if summary is not null %}
+                <p>{{ 'page.summary'|trans({'%summary%': summary}, domain) }}</p>
+            {% endif %}
+            {% if upcoming is not null and upcoming.number != version.number %}
+                <p><a href="{{ path('phil_legal_notices_' ~ type.value ~ '_version', {number: upcoming.number}) }}">{{ 'page.next'|trans({'%version%': upcoming.number, '%date%': upcoming.effectiveAt|date('Y-m-d')}, domain) }}</a></p>
+            {% endif %}
+        </header>
+
+        <div>{{ html|raw }}</div>
+
+        {% if retention is not empty %}
+            <section aria-labelledby="phil-legal-notices-retention">
+                <h2 id="phil-legal-notices-retention">{{ 'retention.title'|trans({}, domain) }}</h2>
+                {% component (phil_legal_notices_kit('Table')) %}
+                    {% block content %}
+                        {% component (phil_legal_notices_kit('Table:Header')) %}
+                            {% block content %}
+                                {% component (phil_legal_notices_kit('Table:Row')) %}
+                                    {% block content %}
+                                        {% component (phil_legal_notices_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'retention.what'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                        {% component (phil_legal_notices_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'retention.period'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                    {% endblock %}
+                                {% endcomponent %}
+                            {% endblock %}
+                        {% endcomponent %}
+                        {% component (phil_legal_notices_kit('Table:Body')) %}
+                            {% block content %}
+                                {% for row in retention %}
+                                    {% component (phil_legal_notices_kit('Table:Row')) %}
+                                        {% block content %}
+                                            {% component (phil_legal_notices_kit('Table:Cell')) %}{% block content %}{{ row.label }}{% endblock %}{% endcomponent %}
+                                            {% component (phil_legal_notices_kit('Table:Cell')) %}{% block content %}{{ row.period }}{% endblock %}{% endcomponent %}
+                                        {% endblock %}
+                                    {% endcomponent %}
+                                {% endfor %}
+                            {% endblock %}
+                        {% endcomponent %}
+                    {% endblock %}
+                {% endcomponent %}
+            </section>
+        {% endif %}
+
+        {% if consent is not empty %}
+            <section aria-labelledby="phil-legal-notices-consent">
+                <h2 id="phil-legal-notices-consent">{{ 'consent.title'|trans({}, domain) }}</h2>
+                <dl>
+                    {% for category in consent %}
+                        <dt>{{ 'consent.category'|trans({'%category%': category.label, '%standing%': (category.necessary ? 'consent.necessary' : 'consent.optional')|trans({}, domain)}, domain) }}</dt>
+                        {% if category.description is not null %}
+                            <dd>{{ category.description }}</dd>
+                        {% endif %}
+                        {% if category.cookies is not empty %}
+                            <dd>{{ 'consent.cookies'|trans({'%cookies%': category.cookies|format_list(locale: app.request.locale)}, domain) }}</dd>
+                        {% endif %}
+                    {% endfor %}
+                </dl>
+            </section>
+        {% endif %}
+    </article>
+{% endblock %}

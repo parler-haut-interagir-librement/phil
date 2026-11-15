@@ -1,0 +1,9 @@
+# The audio of phil/audio-bundle: see vendor/phil/audio-bundle/doc/configuration.md for every option.
+phil_audio:
+    # "null" serves the files as they were uploaded; "ffmpeg" produces the renditions and the waveform in the workers.
+    tools: 'null'
+    renditions:
+        mp3: { format: mp3, bitrate: 128 }
+    listening:
+        # The default of a creator who has not chosen: full, excerpt or purchase_only.
+        mode: full

@@ -1,0 +1,36 @@
+/*
+ * The few rules the player of phil/audio-bundle needs beyond the kit: the waveform under the audio element, the bars
+ * heard so far in the accent colour, and the current chapter and cue marked. The colours are the page's.
+ */
+.phil-audio {
+    margin: 0;
+}
+
+.phil-audio audio {
+    inline-size: 100%;
+}
+
+.phil-audio__waveform {
+    display: block;
+    inline-size: 100%;
+    block-size: 3rem;
+    cursor: pointer;
+}
+
+.phil-audio__bars {
+    fill: color-mix(in oklch, currentColor 30%, transparent);
+}
+
+.phil-audio__bars--played {
+    fill: var(--accent, currentColor);
+}
+
+.phil-audio [aria-current="true"] {
+    font-weight: bold;
+}
+
+.phil-audio__transcript ol,
+.phil-audio__chapters ol {
+    padding-inline-start: 0;
+    list-style: none;
+}

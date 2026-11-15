@@ -1,0 +1,1 @@
+{"https://purl.imsglobal.org/spec/lti-dl/claim/content_items":[{"type":"ltiResourceLink","url":"https://tool.ex"},{"type":"file","0rl":"hts:ink","url":"https://toom.ex/q","lilable":{"te":"202601:0:0Z"}},{"'tpe":"hmp>"},{"type":"file","url":"https://tooxatoxample.com/q","liailable":{"startDateTime":"506-11-7T"}},{"ttpe":"htmp>"},{"type":"file","url":"https://e.com/f"}]}

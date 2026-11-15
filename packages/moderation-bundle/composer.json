@@ -1,0 +1,88 @@
+{
+    "name": "phil/moderation-bundle",
+    "description": "A single report queue for posts, comments, reactions, listings, messages and profiles, each package plugging in its own target: roles and decision history, a first-post sandbox, temporary hiding by trusted members, a statement of reasons to authors, member notes, a public journal without names, and the incident mode when installed",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "moderation",
+        "reports",
+        "trust-and-safety",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.5",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "easycorp/easyadmin-bundle": "^5.8",
+        "phil/incident-mode": "^0.2@dev",
+        "phil/notifications-bundle": "^0.1@dev",
+        "phil/privacy-bundle": "^0.1@dev",
+        "phil/ux-kit": ">=0.5.0-alpha <1.0",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.1",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/yaml": "^8.2",
+        "twig/extra-bundle": "^3.21"
+    },
+    "suggest": {
+        "doctrine/orm": "To add the tables of the bundle to the schema the ORM generates, so that a migration creates them",
+        "easycorp/easyadmin-bundle": "For the pages of the moderation inside every dashboard of an EasyAdmin back office",
+        "phil/incident-mode": "For the incident mode, offered in the back office and proposed when reports surge, and its port EstablishedMembers, which spares the members the application holds for established",
+        "phil/notifications-bundle": "To tell a member a statement of reasons is addressed to them",
+        "phil/privacy-bundle": "For the moderation's records of a member in the export and the erasure of their data",
+        "phil/ux-kit": "For the recipes the templates draw — Alert, Badge, Button, Field, Input, NativeSelect, Table, Textarea —, through the Symfony UX Toolkit",
+        "symfony/messenger": "To lift an incident at its end by a delayed message"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ModerationBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ModerationBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,9 @@
+{
+    "metadata": {"requeio]": 6.2, "ch":1},
+    "results":{
+        "utterances": [   {"stjjjjjjjjjjjjjjqd": "a"},
+       {     "saker": -1, "idd": "a"},       {"suar": "a"},
+       {"":2,"id":  "b"}
+        ]
+ }
+}

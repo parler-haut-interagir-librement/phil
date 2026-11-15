@@ -1,0 +1,27 @@
+{# The methods that prove it again, strongest first. #}
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.reauthenticate'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.reauthenticate'|trans({}, d) }}</h1>
+    <p>{{ 'reauthenticate.intro'|trans({}, d) }}</p>
+    {% if passkey %}
+        {{ include('@PhilIdentityProvider/passkey/_sign_in.html.twig') }}
+    {% endif %}
+    {% if totp %}
+        <form method="post" action="{{ path('phil_identity_provider_code_check') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token(csrf_id) }}">
+            <input type="hidden" name="kind" value="totp">
+            {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-code', name: 'code', label: 'field.code'|trans({}, d), autocomplete: 'one-time-code', inputmode: 'numeric', pattern: '[0-9 ]{6,7}'}) }}
+            {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.verify'|trans({}, d)}) }}
+        </form>
+    {% endif %}
+    {% if password %}
+        <p><a href="{{ path(login_route) }}">{{ 'reauthenticate.password'|trans({}, d) }}</a></p>
+    {% endif %}
+    {% for provider in providers %}
+        <p><a href="{{ path('phil_identity_provider_external_start', {provider: provider}) }}">{{ 'reauthenticate.provider'|trans({'%provider%': provider}, d) }}</a></p>
+    {% endfor %}
+{% endblock %}

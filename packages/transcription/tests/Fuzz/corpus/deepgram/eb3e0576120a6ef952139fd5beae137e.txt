@@ -1,0 +1,9 @@
+{
+  "": {"rs": 1},
+    "results": {
+    "utterances": [
+   {"start": 0.9, "end":  1,"ztraip": "BonjJour.", "sp.aker": 0},
+        {"": "b"}
+        ]
+    }
+}

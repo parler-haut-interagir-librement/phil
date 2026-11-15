@@ -1,0 +1,10 @@
+{% set links = phil_legal_notices_links() %}
+{% if links is not empty %}
+    <nav aria-label="{{ 'links.label'|trans({}, 'phil_legal_notices') }}">
+        <ul>
+            {% for link in links %}
+                <li><a href="{{ link.url }}">{{ link.label|trans({}, link.domain)|capitalize }}</a></li>
+            {% endfor %}
+        </ul>
+    </nav>
+{% endif %}

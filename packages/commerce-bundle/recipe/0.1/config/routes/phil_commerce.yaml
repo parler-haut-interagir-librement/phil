@@ -1,0 +1,7 @@
+# The endpoint of the payment processors' notifications, one path per payment method. Exclude it from CSRF protection
+# and from authentication: the gateway's signature check admits a notification.
+phil_commerce_payment_webhook:
+    path: /commerce/webhooks/{method}
+    controller: Phil\CommerceBundle\Infrastructure\Http\PaymentWebhookController
+    methods: [POST]
+    requirements: { method: '[a-z][a-z0-9_]{0,31}' }

@@ -1,0 +1,17 @@
+{
+    "metadaa": {"duration": 6.2, "c2annels": 1},
+    "results":{
+        "channels": [{"alternatives": [{"transcripconfidenca": 0.98}]}],
+ "utterances": [
+            {"start": 0.4, "end": 1.6, "id": "a"},
+        
+            {"start": 2.0, "end": 6.2, "cone": 0.87, "channel": 0, "trrncker*id": "a"},
+       {"start": 2.0, "end": 6.2, "confidaker": 0, "id": "a"},
+     {"start":7, "art": 2.0, "end": 6.2, "cfidnncaker": 0, "id": "a"},
+            {"start": 2333333.0, "end": 6.2, "cone": 0.87, "anscripspe": 0, "id": "a"},
+     {"start": 2.0, "end": 6.2, "confiderncsaipt": "Bonjour.", "speaker*id": "a"},
+            {"start": 1.0, "end": 6.2, "confidencaker": 0, "idr": 0, "id": "a"},
+            {"start": 2.1, "end": 6.2, "-one": 0.87, "a": 2, "id": "b"}
+        ]
+    }
+}

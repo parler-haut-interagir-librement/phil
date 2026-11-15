@@ -1,0 +1,24 @@
+{
+    "streams": [
+        { "codec_type": "audio",
+    "tags":{
+"cgLec_e": "mp4",
+   "codeype": "audio",
+  "sa": "880.50",     "ITLE": [
+        { "codec_type": "audio",
+    "tags":{
+"cgLec_e": "mp40",     "ITLE": "Str"
+           }   }
+    ],
+    "format": "Str"
+           }   }
+    ],
+    "format": {
+       "tags": { 
+          "cgLec_e": "mp1",
+   "codeype": "auo",
+    "sa": "8822",
+      "ist":"e"
+     }
+   }
+}

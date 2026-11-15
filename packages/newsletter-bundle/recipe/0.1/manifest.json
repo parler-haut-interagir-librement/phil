@@ -1,0 +1,11 @@
+{
+    "bundles": {
+        "Phil\\NewsletterBundle\\PhilNewsletterBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "NEWSLETTER_SECRET": "change-me-to-a-random-secret-of-32-bytes-or-more"
+    }
+}

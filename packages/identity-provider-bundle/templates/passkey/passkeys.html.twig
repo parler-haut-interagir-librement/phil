@@ -1,0 +1,51 @@
+{#
+ # The passkeys of the account: each with its name, whether it is synced, when it was added and last used, a form to
+ # rename it and one to remove it; and the button that adds one, driven by the Stimulus controller `passkey`.
+ #}
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.passkeys'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.passkeys'|trans({}, d) }}</h1>
+    {{ include('@PhilIdentityProvider/_errors.html.twig') }}
+    <p>{{ 'passkey.intro'|trans({}, d) }}</p>
+
+    {% if passkeys is empty %}
+        <p>{{ 'passkey.none'|trans({}, d) }}</p>
+    {% else %}
+        <ul>
+            {% for passkey in passkeys %}
+                <li>
+                    <strong>{{ passkey.name }}</strong>
+                    — {{ (passkey.backedUp ? 'passkey.synced' : 'passkey.device_bound')|trans({}, d) }}
+                    — {{ 'passkey.added'|trans({'%date%': passkey.createdAt|date('Y-m-d')}, d) }}
+                    {% if passkey.lastUsedAt is not null %}— {{ 'passkey.last_used'|trans({'%date%': passkey.lastUsedAt|date('Y-m-d')}, d) }}{% endif %}
+                    <form method="post" action="{{ path('phil_identity_provider_passkeys_rename', {id: passkey.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+                        {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-passkey-' ~ passkey.id, name: 'name', label: 'field.passkey_name'|trans({}, d), value: passkey.name}) }}
+                        {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.rename'|trans({}, d), variant: 'secondary'}) }}
+                    </form>
+                    <form method="post" action="{{ path('phil_identity_provider_passkeys_remove', {id: passkey.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+                        {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.remove'|trans({}, d), variant: 'destructive'}) }}
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <div data-controller="phil--identity-provider-bundle--passkey"
+     data-phil--identity-provider-bundle--passkey-unsupported-message-value="{{ 'passkey.unsupported'|trans({}, 'phil_identity_provider') }}"
+     data-phil--identity-provider-bundle--passkey-cancelled-message-value="{{ 'passkey.cancelled'|trans({}, 'phil_identity_provider') }}"
+     data-phil--identity-provider-bundle--passkey-failed-message-value="{{ 'passkey.failed'|trans({}, 'phil_identity_provider') }}"
+         data-phil--identity-provider-bundle--passkey-options-url-value="{{ path('phil_identity_provider_passkeys_options') }}"
+         data-phil--identity-provider-bundle--passkey-register-url-value="{{ path('phil_identity_provider_passkeys_register') }}"
+         data-phil--identity-provider-bundle--passkey-token-value="{{ csrf_token('phil_identity_provider') }}"
+         data-phil--identity-provider-bundle--passkey-reload-url-value="{{ path('phil_identity_provider_passkeys', {added: 1}) }}">
+        {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-new-passkey', name: 'passkey_name', label: 'field.passkey_name'|trans({}, d), value: 'passkey.default_name'|trans({}, d)}) }}
+        {% component (phil_identity_kit('Button')) with {'data-action': 'phil--identity-provider-bundle--passkey#register', 'data-phil--identity-provider-bundle--passkey-target': 'button'} %}{% block content %}{{ 'action.add_passkey'|trans({}, d) }}{% endblock %}{% endcomponent %}
+        <p role="status" data-phil--identity-provider-bundle--passkey-target="status"></p>
+    </div>
+{% endblock %}

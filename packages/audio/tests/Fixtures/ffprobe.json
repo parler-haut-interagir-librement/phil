@@ -1,0 +1,27 @@
+{
+    "streams": [
+        {
+            "index": 0,
+            "codec_name": "mp3",
+            "codec_type": "audio",
+            "sample_rate": "44100",
+            "channels": 2,
+            "duration": "215.040000",
+            "bit_rate": "128000",
+            "tags": {
+                "encoder": "LAME3.100",
+                "TITLE": "Stream title"
+            }
+        }
+    ],
+    "format": {
+        "filename": "episode.mp3",
+        "format_name": "mp3",
+        "duration": "215.042000",
+        "bit_rate": "128512",
+        "tags": {
+            "title": "The first episode",
+            "artist": "Ada & Grace"
+        }
+    }
+}

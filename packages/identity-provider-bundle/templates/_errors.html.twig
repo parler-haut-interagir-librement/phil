@@ -1,0 +1,20 @@
+{#
+ # The reasons a form was refused, as translation keys of the domain phil_identity_provider, in a destructive Alert
+ # announced at once.
+ #}
+{% if errors is not empty %}
+    {% component (phil_identity_kit('Alert')) with {variant: 'destructive'} %}
+        {% block content %}
+            {% component (phil_identity_kit('Alert:Title')) %}{% block content %}{{ 'error.title'|trans({}, 'phil_identity_provider') }}{% endblock %}{% endcomponent %}
+            {% component (phil_identity_kit('Alert:Description')) %}
+                {% block content %}
+                    <ul>
+                        {% for error in errors %}
+                            <li>{{ ('error.' ~ error)|trans({}, 'phil_identity_provider') }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endblock %}
+            {% endcomponent %}
+        {% endblock %}
+    {% endcomponent %}
+{% endif %}

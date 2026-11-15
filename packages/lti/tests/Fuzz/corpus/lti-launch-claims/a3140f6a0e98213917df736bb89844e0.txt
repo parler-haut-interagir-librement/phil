@@ -1,0 +1,1 @@
+{"https://purl.imsglobal.org/spec/lti-dl/claim/content_items":[{"type":"html","html":"<x</"},{"y0I":{"2tartime":"26:0::Z"}},{"type":"html","html":"m/f"}]}

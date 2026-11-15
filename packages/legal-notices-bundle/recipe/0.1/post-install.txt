@@ -1,0 +1,5 @@
+  * Install the recipes of the kit the pages draw:
+    <comment>php bin/console ux:install badge --kit=github.com/parler-haut-interagir-librement/ux-kit</>
+    <comment>php bin/console ux:install table --kit=github.com/parler-haut-interagir-librement/ux-kit</>
+  * Fill in <comment>identity</> in <comment>config/packages/phil_legal_notices.yaml</>, adapt the bodies in <comment>legal/</>,
+    publish each version, then run <comment>php bin/console phil:legal-notices:check</>.

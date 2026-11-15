@@ -1,0 +1,29 @@
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.external'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.external'|trans({}, d) }}</h1>
+    {{ include('@PhilIdentityProvider/_errors.html.twig') }}
+    {% if identities is not empty %}
+        <ul>
+            {% for identity in identities %}
+                <li>
+                    <strong>{{ identity.provider }}</strong> — {{ 'external.linked'|trans({'%date%': identity.linkedAt|date('Y-m-d')}, d) }}
+                    <form method="post" action="{{ path('phil_identity_provider_external_unlink', {id: identity.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+                        {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.unlink'|trans({}, d), variant: 'destructive'}) }}
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <ul>
+        {% for provider in providers %}
+            <li>
+                {% component (phil_identity_kit('Button')) with {as: 'a', variant: 'outline', href: path('phil_identity_provider_external_start', {provider: provider.name})} %}{% block content %}{{ 'external.link_with'|trans({'%provider%': provider.label}, d) }}{% endblock %}{% endcomponent %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

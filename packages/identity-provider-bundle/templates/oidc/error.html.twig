@@ -1,0 +1,11 @@
+{# A request refused before its redirect address could be trusted: shown, never sent back. #}
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.oidc_error'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.oidc_error'|trans({}, d) }}</h1>
+    <p>{{ 'oidc.error'|trans({}, d) }}</p>
+    <p><code>{{ error }}</code></p>
+{% endblock %}

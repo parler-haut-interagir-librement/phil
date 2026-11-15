@@ -1,0 +1,72 @@
+{
+    "name": "phil/video-bundle",
+    "description": "Videos in Symfony: hosted files or HLS played by the browser's video element, YouTube and Vimeo behind a facade without tracking, WebVTT captions, chapters and a transcript from phil/timed-text, and viewing progress and an aggregate heat map counted only with consent.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "video",
+        "captions",
+        "youtube",
+        "privacy",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/timed-text": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "psr/cache": "^3.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/service-contracts": "^3.6"
+    },
+    "require-dev": {
+        "phil/ux-kit": ">=0.5.0-alpha <1.0",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/cache": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/extra-bundle": "^3.24",
+        "twig/html-extra": "^3.24",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "phil/ux-kit": "For the recipes Video and Button, and image_origin(), which the player draws with",
+        "symfony/routing": "For the route of the viewings, @PhilVideoBundle/config/routes.php",
+        "symfony/ux-twig-component": "For the player component"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\VideoBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\VideoBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

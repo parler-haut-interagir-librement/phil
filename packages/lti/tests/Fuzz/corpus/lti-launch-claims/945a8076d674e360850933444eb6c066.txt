@@ -1,0 +1,1 @@
+{"https://purl.imsglobal.org/spec/lti-dl/claim/content_items":[{"type":"ltiRes","la":{"me":"524"}},{"type":"htmp>"},{"type":"e","upe":"htmp>"},{"type":"fitp./f"}]}

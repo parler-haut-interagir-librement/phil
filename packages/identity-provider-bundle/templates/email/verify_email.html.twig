@@ -1,0 +1,6 @@
+{# The email of the message verify_email: a greeting, what the link does and how long it lasts, the link. #}
+{% set d = 'phil_identity_provider' %}
+<p>{{ name is not null ? 'email.greeting_name'|trans({'%name%': name}, d) : 'email.greeting'|trans({}, d) }}</p>
+<p>{{ 'email.verify_email.body'|trans({'%site%': site}, d) }}</p>
+<p><a href="{{ url }}">{{ 'email.verify_email.action'|trans({}, d) }}</a></p>
+<p>{{ 'email.ignore'|trans({}, d) }}</p>

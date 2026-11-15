@@ -1,0 +1,35 @@
+{#
+ # The second step of a sign-in, or a re-authentication: a code of the authenticator application, a recovery code, or
+ # a passkey of the account.
+ #}
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.challenge'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.challenge'|trans({}, d) }}</h1>
+    {% if error %}{{ include('@PhilIdentityProvider/_errors.html.twig', {errors: [error]}) }}{% endif %}
+    {% if totp %}
+        <form method="post" action="{{ path('phil_identity_provider_code_check') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token(csrf_id) }}">
+            <input type="hidden" name="kind" value="totp">
+            {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-code', name: 'code', label: 'field.code'|trans({}, d), autocomplete: 'one-time-code', inputmode: 'numeric', pattern: '[0-9 ]{6,7}'}) }}
+            {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.verify'|trans({}, d)}) }}
+        </form>
+    {% endif %}
+    {% if recovery %}
+        <details>
+            <summary>{{ 'challenge.use_recovery'|trans({}, d) }}</summary>
+            <form method="post" action="{{ path('phil_identity_provider_code_check') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token(csrf_id) }}">
+                <input type="hidden" name="kind" value="recovery">
+                {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-recovery', name: 'code', label: 'field.recovery_code'|trans({}, d)}) }}
+                {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.verify'|trans({}, d), variant: 'secondary'}) }}
+            </form>
+        </details>
+    {% endif %}
+    {% if passkey %}
+        {{ include('@PhilIdentityProvider/passkey/_sign_in.html.twig') }}
+    {% endif %}
+{% endblock %}

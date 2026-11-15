@@ -1,0 +1,39 @@
+/*
+ * The few rules the player of phil/video-bundle needs beyond the kit: the facade of a linked video at the ratio of the
+ * video, its button over the image, and the current chapter and cue marked.
+ */
+.phil-video__facade {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 9;
+    background: color-mix(in oklch, currentColor 12%, transparent);
+}
+
+.phil-video__facade > img,
+.phil-video__facade > iframe {
+    grid-area: 1 / 1;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    border: 0;
+}
+
+.phil-video__facade > button {
+    grid-area: 1 / 1;
+    z-index: 1;
+}
+
+.phil-video__notice {
+    display: block;
+}
+
+.phil-video [aria-current="true"] {
+    font-weight: bold;
+}
+
+.phil-video__transcript ol,
+.phil-video__chapters ol {
+    padding-inline-start: 0;
+    list-style: none;
+}

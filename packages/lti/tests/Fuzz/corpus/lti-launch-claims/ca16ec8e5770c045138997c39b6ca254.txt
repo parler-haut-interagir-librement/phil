@@ -1,0 +1,1 @@
+{"https://purl.imsglobal.org/spec/lti-dl/claim/content_items":[{"type":"ltiResourceLink","available":{"startDateTime":"26-12Z"}},{"typetypa":"e.com/f"}]}

@@ -1,0 +1,5 @@
+# The routes of the modules turned on, and the OpenID Connect discovery document at
+# /.well-known/openid-configuration when the provider is on.
+phil_identity_provider:
+    resource: .
+    type: phil_identity_provider

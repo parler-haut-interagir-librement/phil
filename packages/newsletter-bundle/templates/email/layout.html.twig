@@ -1,0 +1,40 @@
+{#- The house layout of a campaign: one column, readable without images, its styles inline for mail clients. -#}
+<!DOCTYPE html>
+<html lang="{{ 'locale'|trans({}, 'phil_newsletter') }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>{{ subject }}</title>
+</head>
+<body style="margin: 0; padding: 0; background: #f4f4f5; color: #18181b; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.6;">
+    {% if preheader is not empty %}
+        <div style="display: none; max-height: 0; overflow: hidden;">{{ preheader }}</div>
+    {% endif %}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #f4f4f5;">
+        <tr>
+            <td align="center" style="padding: 24px 16px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; background: #ffffff; border-radius: 8px;">
+                    <tr>
+                        <td style="padding: 32px 32px 8px; font-size: 16px;">
+                            {{ content }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 16px 32px 32px; font-size: 13px; color: #52525b; border-top: 1px solid #e4e4e7;">
+                            {% if list_name is defined and list_name is not empty %}
+                                <p style="margin: 0 0 8px;">{{ 'email.received'|trans({'%list%': list_name}, 'phil_newsletter') }}</p>
+                            {% endif %}
+                            <p style="margin: 0;">
+                                <a href="{{ preferences_url|default('#') }}" style="color: #52525b;">{{ 'email.preferences'|trans({}, 'phil_newsletter') }}</a>
+                                ·
+                                <a href="{{ unsubscribe_url|default('#') }}" style="color: #52525b;">{{ 'email.unsubscribe'|trans({}, 'phil_newsletter') }}</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

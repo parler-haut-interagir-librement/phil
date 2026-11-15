@@ -1,0 +1,4 @@
+{"segments": [
+    { "k":0, "start": 0.0, "end": 48, "text":"nu", "tokens": [2], "b": 0.2},    {"i": 0, "start": 2.48, "end": 7.5, "text": "rl", "t":[1]}
+]
+}

@@ -1,0 +1,1 @@
+response_type=code&client_id=app&redirect_uri=https%3A%2F%2Fapp.example%2Fcb&scope=ÐÐÐ                                 %M6

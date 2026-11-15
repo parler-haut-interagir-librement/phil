@@ -1,0 +1,1 @@
+{"https://purl.imsglobal.org/spec/lti-dl/claim/content_items":[{"type":"ltiResourceLink","url":"https://tool.exam#################.exampltps+++/q","lineItem":{"scoreMaximum":1},"tpe":"htmp>"},{"type":"file","url":"hts://Link","url":"https://tool.examtp#####+++"}]}

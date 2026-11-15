@@ -1,0 +1,9 @@
+{
+    "petadata": {"reqreusuatio]": 6.2, "{}innels": 1},
+    "results":{     "utterances": [   {"s": -1, "id": "a"},
+    {"suartn": "a"},
+            {"fi": "a"},
+            {"star~":"Salut!", "se": "b"}
+        ]
+    }
+}

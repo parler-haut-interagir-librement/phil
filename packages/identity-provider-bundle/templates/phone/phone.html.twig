@@ -1,0 +1,28 @@
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.phone'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.phone'|trans({}, d) }}</h1>
+    {{ include('@PhilIdentityProvider/_errors.html.twig') }}
+    {% if account.phone is not null %}
+        <p>{{ 'phone.verified'|trans({'%phone%': account.phone}, d) }}</p>
+        <form method="post" action="{{ path('phil_identity_provider_phone_remove') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+            {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.remove'|trans({}, d), variant: 'destructive'}) }}
+        </form>
+    {% endif %}
+    {% if pending is not null %}
+        <form method="post" action="{{ path('phil_identity_provider_phone_confirm') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+            {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-sms-code', name: 'code', label: 'field.sms_code'|trans({'%phone%': pending}, d), autocomplete: 'one-time-code', inputmode: 'numeric', pattern: '[0-9]{6}'}) }}
+            {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.confirm'|trans({}, d)}) }}
+        </form>
+    {% endif %}
+    <form method="post" action="{{ path('phil_identity_provider_phone_start') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+        {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-phone', name: 'phone', type: 'tel', label: 'field.phone'|trans({}, d), autocomplete: 'tel', description: 'field.phone_help'|trans({}, d)}) }}
+        {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.send_code'|trans({}, d)}) }}
+    </form>
+{% endblock %}

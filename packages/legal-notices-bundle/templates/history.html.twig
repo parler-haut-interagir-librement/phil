@@ -1,0 +1,31 @@
+{#
+ # The versions of a document, the newest first: the version in force and the withdrawn ones marked by the Badge recipe
+ # of the kit, called by the name `phil_legal_notices_kit()` gives.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_legal_notices' %}
+{% set title = 'history.title'|trans({'%document%': ('title.' ~ type.value)|trans({}, domain)}, domain) %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+    <ol reversed>
+        {% for version in versions %}
+            {% set current = in_force is not null and in_force.number == version.number %}
+            <li>
+                <a href="{{ path('phil_legal_notices_' ~ type.value ~ '_version', {number: version.number}) }}"{% if current %} aria-current="page"{% endif %}>{{ 'page.version'|trans({'%version%': version.number}, domain) }}</a>
+                {{ 'history.effective_on'|trans({'%date%': version.effectiveAt|date('Y-m-d')}, domain) }}
+                {% if version.state.value == 'withdrawn' %}
+                    {% component (phil_legal_notices_kit('Badge')) with {variant: 'destructive'} %}{% block content %}{{ 'page.withdrawn'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% elseif current %}
+                    {% component (phil_legal_notices_kit('Badge')) %}{% block content %}{{ 'history.in_force'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% endif %}
+                {% if version.summary(app.request.locale, app.request.defaultLocale) is not null %}
+                    <br>{{ version.summary(app.request.locale, app.request.defaultLocale) }}
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ol>
+{% endblock %}

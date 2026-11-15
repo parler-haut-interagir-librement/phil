@@ -1,0 +1,17 @@
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.reset'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.reset'|trans({}, d) }}</h1>
+    {{ include('@PhilIdentityProvider/_errors.html.twig') }}
+    <form method="post" action="{{ path('phil_identity_provider_reset_password') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+        {% for name, value in link %}
+            <input type="hidden" name="{{ name }}" value="{{ value }}">
+        {% endfor %}
+        {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-password', name: 'password', type: 'password', label: 'field.new_password'|trans({}, d), autocomplete: 'new-password', description: 'field.password_help'|trans({}, d)}) }}
+        {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.reset'|trans({}, d)}) }}
+    </form>
+{% endblock %}

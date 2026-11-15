@@ -1,0 +1,10 @@
+# Every behaviour of the bundle on, as an application configures it.
+phil_doctrine_behaviours:
+    owner:
+        user_method: getUserIdentifier
+    publication: true
+    slug: true
+    versions: true
+    dated_identifier: true
+    privacy:
+        owner_replacement: former

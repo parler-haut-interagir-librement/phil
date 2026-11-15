@@ -1,0 +1,29 @@
+{#
+ # A form the browser posts to the other side of a launch — an id_token, a deep linking response —, which submits
+ # itself through the Stimulus controller of the bundle. Without scripts, its button is the recipe `Button` of the kit,
+ # installed by the Symfony UX Toolkit.
+ #
+ # action: the address the form posts to. fields: the names and values of the hidden fields.
+ #}
+<!doctype html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <title>{{ 'form_post.title'|trans({}, 'phil_lti') }}</title>
+    {% block head %}{% endblock %}
+</head>
+<body>
+<main class="phil-lti-form-post">
+    <form method="post" action="{{ action }}" data-controller="phil--lti-bundle--auto-submit">
+        {%- for name, value in fields %}
+        <input type="hidden" name="{{ name }}" value="{{ value }}">
+        {%- endfor %}
+        <p>{{ 'form_post.message'|trans({}, 'phil_lti') }}</p>
+        <noscript><p>{{ 'form_post.no_script'|trans({}, 'phil_lti') }}</p></noscript>
+        {% component (phil_lti_kit('Button')) with {type: 'submit', variant: 'default'} %}{% block content %}{{ 'form_post.continue'|trans({}, 'phil_lti') }}{% endblock %}{% endcomponent %}
+    </form>
+</main>
+</body>
+</html>

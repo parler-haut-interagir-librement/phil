@@ -1,0 +1,9 @@
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.link_invalid'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.link_invalid'|trans({}, d) }}</h1>
+    <p>{{ 'link.invalid'|trans({}, d) }}</p>
+{% endblock %}

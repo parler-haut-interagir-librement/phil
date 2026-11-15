@@ -1,0 +1,10 @@
+{
+    "task": "transcribe",
+    "language": "french",
+    "duration": 7.5,
+    "text": "Bonjour et bienvenue. Aujourd'hui, on parle de jeux.",
+    "segments": [
+        {"id": 0, "seek": 0, "start": 0.0, "end": 2.48, "text": " Bonjour et bienvenue.", "tokens": [50364, 2], "avg_logprob": -0.2},
+        {"id": 1, "seek": 0, "start": 2.48, "end": 7.5, "text": " Aujourd'hui, on parle\n de jeux & d'<humour>.", "tokens": [1]}
+    ]
+}

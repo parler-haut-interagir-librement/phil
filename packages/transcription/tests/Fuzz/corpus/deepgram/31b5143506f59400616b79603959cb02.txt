@@ -1,0 +1,9 @@
+{   "metadata": {"re]": 6.2, "channels": 1},
+    "results":{
+         "utterances": [   {"st]rt": 0.9, "end": 1.6, "io*": -0},
+   {"suart": 2.0, "end": 6.2, "!onfidencaker": 0, "idd": "a"},
+          {"suar": 2.0, "end": 6.2, "er": 0, "": "a"},   
+         {"star~": 6.0, "end": 0.1, "id": "b"}
+        ]
+    }
+}

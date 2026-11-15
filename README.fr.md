@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e272d9f8f5678c9dbda97ee9433a2543ddd60ca82ce17c7191e68ee2cb46bdc7 -->
+<!-- phil-dev source-sha256=64a8d80d0d4633e38c3c9213e65cbdbf994216d9eb2b2d09c4763a91a6e56dfb -->
 # PHIL
 
 **Parler Haut, Interagir Librement : des bibliothèques PHP et des bundles Symfony ouverts pour les sites qui publient,
@@ -153,6 +153,8 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/open-badges-bundle`](https://github.com/parler-haut-interagir-librement/open-badges-bundle) | Open Badges dans Symfony : l'émetteur et sa clé par la configuration, son profil, ses clés et ses listes de statut servis, et une page de vérification des jetons, documents et images. |
 | [`phil/certificates-bundle`](https://github.com/parler-haut-interagir-librement/certificates-bundle) | Des attestations de réussite sur Open Badges : cours et critères, attestation PDF avec code QR de vérification et justificatif signé, registre public et révocation. |
 | [`phil/stockroom-bundle`](https://github.com/parler-haut-interagir-librement/stockroom-bundle) | Le magasin d'accessoires dans Symfony : contenants, objets, journal et listes de chargement dans des tables Doctrine DBAL, mouvements dans une transaction qui verrouille les objets. |
+| [`phil/moderation-bundle`](https://github.com/parler-haut-interagir-librement/moderation-bundle) | Une seule file de signalements pour les messages, commentaires, réactions, annonces, messages privés et profils : rôles, historique des décisions, avis motivé aux auteurs et journal public sans noms. |
+| [`phil/newsletter-bundle`](https://github.com/parler-haut-interagir-librement/newsletter-bundle) | L'infolettre d'un site : listes, double confirmation, campagnes en Markdown, envoi au rythme des profils d'expéditeur, désabonnement en un clic, centre de préférences et retours lus. |
 
 ### Impression et produits
 
@@ -167,6 +169,8 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/paged-media-weasyprint`](https://github.com/parler-haut-interagir-librement/paged-media-weasyprint) | Du HTML et du CSS mis en page en PDF par WeasyPrint, sans accès au réseau et avec les fichiers d'un seul dossier. |
 | [`phil/fonts-bundle`](https://github.com/parler-haut-interagir-librement/fonts-bundle) | Un dossier de polices lu en catalogue, le CSS @font-face et un registre des licences vérifié par une commande. |
 | [`phil/print-preflight-bundle`](https://github.com/parler-haut-interagir-librement/print-preflight-bundle) | Des profils d'imprimeur tirés de la configuration, des vérifications ajoutées par attribut, et les documents vérifiés avant l'impression. |
+| [`phil/commerce-bundle`](https://github.com/parler-haut-interagir-librement/commerce-bundle) | Le noyau du commerce dans Symfony : commandes et ajustements, canaux, taxes par ligne, paiements aux notifications vérifiées, reçus et notes de crédit numérotés sans trou avec leur facture PDF. |
+| [`phil/product-feeds`](https://github.com/parler-haut-interagir-librement/product-feeds) | Des flux de produits pour les comparateurs et les places de marché, écrits en mémoire constante en RSS avec données de produits ou en TSV, et mis en place d'un seul coup. |
 
 ### Contenu et recherche
 
@@ -177,12 +181,17 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/publishing`](https://github.com/parler-haut-interagir-librement/publishing) | Les événements qu'envoie une page quand elle est mise en ligne ou retirée, pour ceux qui la suivent. |
 | [`phil/scheduled-transitions-bundle`](https://github.com/parler-haut-interagir-librement/scheduled-transitions-bundle) | Publier ou dépublier à une date : des transitions de workflow planifiées et lancées par le Scheduler de Symfony. |
 | [`phil/doctrine-behaviours`](https://github.com/parler-haut-interagir-librement/doctrine-behaviours) | Des comportements Doctrine : horodatage, auteurs, corbeille, arbres, slugs, positions et traductions. |
+| [`phil/doctrine-behaviours-bundle`](https://github.com/parler-haut-interagir-librement/doctrine-behaviours-bundle) | Les comportements Doctrine dans Symfony : écouteurs activés par la configuration, auteur et propriétaire tirés de la personne connectée, arbres, positions, traductions, versions et leur restauration protégée. |
 | [`phil/search-bundle`](https://github.com/parler-haut-interagir-librement/search-bundle) | La recherche avec facettes sur la base de données, Meilisearch ou Loupe, des synonymes par langue, et des filtres qui marchent sans JavaScript. |
 | [`phil/search-loupe`](https://github.com/parler-haut-interagir-librement/search-loupe) | L'adaptateur Loupe de `phil/search-bundle` : des index de recherche dans des fichiers SQLite, sans serveur à faire tourner. |
 | [`phil/search-synonyms`](https://github.com/parler-haut-interagir-librement/search-synonyms) | Des règles de synonymes par langue, vérifiées pour leurs chevauchements, lues et écrites aux formats Solr et JSON. |
 | [`phil/translation-memory`](https://github.com/parler-haut-interagir-librement/translation-memory) | La traduction par segments : une mémoire de traduction, un glossaire, des contrôles de qualité, et les échanges XLIFF, TMX et TBX. |
 | [`phil/translation-bundle`](https://github.com/parler-haut-interagir-librement/translation-bundle) | La traduction par segments dans Symfony : un écran de traduction, une mémoire et des glossaires dans Doctrine, des révisions et les échanges XLIFF. |
 | [`phil/media-bundle`](https://github.com/parler-haut-interagir-librement/media-bundle) | Une médiathèque pour Symfony : des images autour de leur point focal en WebP ou AVIF, des SVG purifiés, des composants adaptatifs et un explorateur de fichiers. |
+| [`phil/audio`](https://github.com/parler-haut-interagir-librement/audio) | De l'audio derrière un port : transcodage par ffmpeg, métadonnées, crêtes de la forme d'onde calculées sur le serveur, extraits, politique d'écoute du créateur, chapitres et transcriptions en texte minuté. |
+| [`phil/audio-bundle`](https://github.com/parler-haut-interagir-librement/audio-bundle) | L'audio dans Symfony : versions et formes d'onde produites par des tâches Messenger, téléversements par la médiathèque, et un composant de lecteur accessible. |
+| [`phil/video-bundle`](https://github.com/parler-haut-interagir-librement/video-bundle) | Des vidéos dans Symfony : fichiers hébergés ou HLS dans l'élément vidéo du navigateur, YouTube et Vimeo derrière une façade sans pistage, sous-titres, chapitres et transcriptions, progression comptée seulement avec consentement. |
+| [`phil/transcription`](https://github.com/parler-haut-interagir-librement/transcription) | La transcription des enregistrements derrière un port : un serveur whisper.cpp tenu par le site, des adaptateurs infonuagiques refusés sans le consentement des personnes entendues, et une relecture avant publication. |
 
 ### Vie privée, sécurité et accessibilité
 
@@ -196,6 +205,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/analytics-bundle`](https://github.com/parler-haut-interagir-librement/analytics-bundle) | Une analytique sans identifiant de visiteur : des compteurs par jour, les petits nombres masqués, des rapports et des alertes. |
 | [`phil/broken-flow-alerts`](https://github.com/parler-haut-interagir-librement/broken-flow-alerts) | Une alerte quand une inscription ou un achat cesse de se compléter, selon le rythme habituel de la semaine. |
 | [`phil/identity-client-bundle`](https://github.com/parler-haut-interagir-librement/identity-client-bundle) | Un client Symfony d'un fournisseur OpenID Connect : déconnexion par canal arrière, authentification renforcée et rafraîchissements sérialisés. |
+| [`phil/identity-provider-bundle`](https://github.com/parler-haut-interagir-librement/identity-provider-bundle) | Un fournisseur d'identité ouvert, un module par méthode : comptes vérifiés, mots de passe vérifiés contre les fuites, clés d'accès, TOTP, liens de connexion, réauthentification et OpenID Connect avec PKCE et clés tournantes. |
 | [`phil/email-address`](https://github.com/parler-haut-interagir-librement/email-address) | Des adresses de courriel qu'un serveur peut livrer, avec des suggestions pour les fautes comme gmial.com. |
 | [`phil/rate-limit`](https://github.com/parler-haut-interagir-librement/rate-limit) | Une garde de construction qui refuse, en production, une limite de débit comptée à part sur chaque serveur. |
 | [`phil/rate-limit-bundle`](https://github.com/parler-haut-interagir-librement/rate-limit-bundle) | Des limites de débit déclarées sur les contrôleurs, les routes et les formulaires, avec des réponses 429 et les en-têtes RateLimit. |
@@ -203,6 +213,9 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/idempotency`](https://github.com/parler-haut-interagir-librement/idempotency) | Exécuter une opération une fois par clé d'idempotence, rejouer sa réponse, et traiter une fois chaque message de Messenger. |
 | [`phil/browser-security-bundle`](https://github.com/parler-haut-interagir-librement/browser-security-bundle) | La Content Security Policy avec ses nonces, HSTS, des cookies signés et les autres protections qu'impose un navigateur, page par page. |
 | [`phil/legal-notices`](https://github.com/parler-haut-interagir-librement/legal-notices) | Les mentions légales et la politique de confidentialité en documents versionnés, remplis à partir de l'identité de l'éditeur. |
+| [`phil/legal-notices-bundle`](https://github.com/parler-haut-interagir-librement/legal-notices-bundle) | Les mentions légales et la politique de confidentialité d'un site à leurs propres adresses, dans chaque langue, chaque version gardée et liée depuis le pied de page. |
+| [`phil/terms-bundle`](https://github.com/parler-haut-interagir-librement/terms-bundle) | Des conditions d'utilisation versionnées : versions publiées une fois, registre d'acceptations en ajout seul, barrière pour une nouvelle version importante, rappels et pages publiques avec leurs changements. |
+| [`phil/accessibility-statement-bundle`](https://github.com/parler-haut-interagir-librement/accessibility-statement-bundle) | La déclaration d'accessibilité d'une application : versionnée, publiée à /accessibilite en français et en anglais avec le libellé des WCAG, d'EN 301 549 ou de la Loi canadienne sur l'accessibilité. |
 | [`phil/resource-permissions`](https://github.com/parler-haut-interagir-librement/resource-permissions) | Permissions par ressource sur un seul modèle sujet-relation-objet : relations déclarées, droits hérités dans un arbre, vérifications et listes bornées. |
 | [`phil/access-bundle`](https://github.com/parler-haut-interagir-librement/access-bundle) | Visibilité par élément, niveaux de partage qui expirent seuls, groupes d'accès et « voir comme ce membre » journalisé, décidés par des voteurs Symfony. |
 | [`phil/access-codes`](https://github.com/parler-haut-interagir-librement/access-codes) | Codes à usage unique par lots nommés, remis une seule fois et gardés en empreintes à clé, rachetés de façon atomique, essais bornés par un limiteur. |
@@ -233,6 +246,8 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/api-contract`](https://github.com/parler-haut-interagir-librement/api-contract) | Les deux côtés du contrat d'une API HTTP : détails de problème, signaux de dépréciation, et un document OpenAPI vérifié selon des niveaux de règles. |
 | [`phil/api-contract-bundle`](https://github.com/parler-haut-interagir-librement/api-contract-bundle) | Détails de problème, contrôleurs idempotents et dépréciés, et le document OpenAPI vérifié en intégration continue, pour Symfony. |
 | [`phil/automations`](https://github.com/parler-haut-interagir-librement/automations) | Un constructeur d'automatisations sans code pour les événements d'un site : définitions JSON, délais, filtres et branches, reprises et compensation, par Messenger. |
+| [`phil/lti`](https://github.com/parler-haut-interagir-librement/lti) | LTI 1.3 des deux côtés, outil et plateforme : le lancement OpenID Connect, Deep Linking 2.0, des rôles et des revendications typés, et les services de notes et de listes de LTI Advantage. |
+| [`phil/lti-bundle`](https://github.com/parler-haut-interagir-librement/lti-bundle) | LTI 1.3 dans Symfony : les routes du lancement, de Deep Linking et du jeu de clés, un authentificateur des lancements vérifiés, des magasins sur Doctrine DBAL et des notes envoyées par Messenger. |
 
 ### Exploitation
 

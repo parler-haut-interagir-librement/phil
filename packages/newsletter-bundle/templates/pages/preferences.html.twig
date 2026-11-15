@@ -1,0 +1,48 @@
+{% extends '@PhilNewsletter/pages/layout.html.twig' %}
+
+{% block body %}
+    <h1>{{ 'preferences.title'|trans({}, 'phil_newsletter') }}</h1>
+    {% if saved %}
+        <p role="status">{{ 'preferences.saved'|trans({}, 'phil_newsletter') }}</p>
+    {% endif %}
+    {% set token_value = csrf_token('phil_newsletter_preferences') %}
+
+    <form method="post">
+        <fieldset>
+            <legend>{{ 'preferences.lists'|trans({}, 'phil_newsletter') }}</legend>
+            {% for choice in lists %}
+                <label><input type="checkbox" name="lists[]" value="{{ choice.list.key }}"{% if choice.active %} checked{% endif %}> {{ choice.list.name }}</label>
+            {% endfor %}
+        </fieldset>
+        <input type="hidden" name="_token" value="{{ token_value }}">
+        <button type="submit" name="action" value="lists">{{ 'preferences.save'|trans({}, 'phil_newsletter') }}</button>
+    </form>
+
+    <form method="post">
+        {% if subscriber.status.value == 'paused' %}
+            <p>{{ 'preferences.paused'|trans({'%date%': subscriber.pausedUntil|date('Y-m-d')}, 'phil_newsletter') }}</p>
+            <button type="submit" name="action" value="resume">{{ 'preferences.resume'|trans({}, 'phil_newsletter') }}</button>
+        {% else %}
+            <label for="phil-newsletter-weeks">{{ 'preferences.pause'|trans({}, 'phil_newsletter') }}</label>
+            <select id="phil-newsletter-weeks" name="weeks">
+                {% for weeks in pauses %}
+                    <option value="{{ weeks }}">{{ 'preferences.weeks'|trans({'%count%': weeks}, 'phil_newsletter') }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" name="action" value="pause">{{ 'preferences.pause.button'|trans({}, 'phil_newsletter') }}</button>
+        {% endif %}
+        <input type="hidden" name="_token" value="{{ token_value }}">
+    </form>
+
+    <form method="post">
+        <fieldset>
+            <legend>{{ 'unsubscribe.reason'|trans({}, 'phil_newsletter') }}</legend>
+            {% for reason in reasons %}
+                <label><input type="radio" name="reason" value="{{ reason.value }}"> {{ ('reason.' ~ reason.value)|trans({}, 'phil_newsletter') }}</label>
+            {% endfor %}
+            <p>{{ 'unsubscribe.anonymous'|trans({}, 'phil_newsletter') }}</p>
+        </fieldset>
+        <input type="hidden" name="_token" value="{{ token_value }}">
+        <button type="submit" name="action" value="leave">{{ 'preferences.leave'|trans({}, 'phil_newsletter') }}</button>
+    </form>
+{% endblock %}

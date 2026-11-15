@@ -1,0 +1,46 @@
+{#
+ # The versions of the statement, the newest first, in the Table recipe of the kit: `versions` by number, `current`
+ # the number of the version shown, `link` whether each version links to its page.
+ #}
+{% set domain = 'phil_accessibility_statement' %}
+{% component (phil_accessibility_kit('Table')) %}
+    {% block content %}
+        {% component (phil_accessibility_kit('Table:Header')) %}
+            {% block content %}
+                {% component (phil_accessibility_kit('Table:Row')) %}
+                    {% block content %}
+                        {% component (phil_accessibility_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'versions.number'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                        {% component (phil_accessibility_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'versions.published'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% endblock %}
+                {% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {% component (phil_accessibility_kit('Table:Body')) %}
+            {% block content %}
+                {% for version, publishedAt in versions %}
+                    {# The blocks of a component do not see the loop: what they need of it is set before. #}
+                    {% set inForce = loop.first %}
+                    {% component (phil_accessibility_kit('Table:Row')) %}
+                        {% block content %}
+                            {% component (phil_accessibility_kit('Table:Cell')) %}
+                                {% block content %}
+                                    {% if link %}
+                                        <a href="{{ path('phil_accessibility_statement_version', {version: version}) }}"{% if version == current %} aria-current="page"{% endif %}>{{ 'versions.version'|trans({'%version%': version, '%date%': publishedAt|date('Y-m-d')}, domain) }}</a>
+                                    {% else %}
+                                        {{ 'versions.version'|trans({'%version%': version, '%date%': publishedAt|date('Y-m-d')}, domain) }}
+                                    {% endif %}
+                                    {% if inForce %}
+                                        {% component (phil_accessibility_kit('Badge')) with {variant: 'secondary'} %}{% block content %}{{ 'versions.in_force'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                    {% endif %}
+                                {% endblock %}
+                            {% endcomponent %}
+                            {% component (phil_accessibility_kit('Table:Cell')) %}
+                                {% block content %}<time datetime="{{ publishedAt|date('Y-m-d') }}">{{ publishedAt|date('Y-m-d') }}</time>{% endblock %}
+                            {% endcomponent %}
+                        {% endblock %}
+                    {% endcomponent %}
+                {% endfor %}
+            {% endblock %}
+        {% endcomponent %}
+    {% endblock %}
+{% endcomponent %}

@@ -1,0 +1,11 @@
+{#
+    The refusal of a form, when there is one: the recipe Alert of the kit.
+#}
+{% if error is not null %}
+    {% component (phil_moderation_kit('Alert')) with {variant: 'destructive', role: 'alert'} %}
+        {% block content %}
+            {% component (phil_moderation_kit('Alert:Title')) %}{% block content %}{{ 'form.refused'|trans({}, 'phil_moderation') }}{% endblock %}{% endcomponent %}
+            {% component (phil_moderation_kit('Alert:Description')) %}{% block content %}{{ error }}{% endblock %}{% endcomponent %}
+        {% endblock %}
+    {% endcomponent %}
+{% endif %}

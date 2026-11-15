@@ -1,0 +1,77 @@
+{#-
+ # The player of a video, hosted or linked, with its chapters and its transcript beside it.
+ #
+ # A hosted video is the kit's recipe Video, named by `this.kit()`: the browser's video element with its controls, its
+ # poster, its WebVTT tracks, captions first, nothing fetched or played before the viewer asks. The controller
+ # `phil--video-bundle--player` switches it to its HLS stream where the browser plays HLS, makes the instants of the
+ # chapters and of the transcript seek it, and, only when `this.tracking` says the viewer agreed, sends the parts
+ # watched when the page is left or the video ends.
+ #
+ # A linked video is a facade: the image the site serves, a button the controller shows, and a link to the platform for
+ # a viewer without JavaScript. Nothing of the platform is fetched before the button is pressed; the controller then
+ # puts the platform's player, from its address without cookies, in the facade's place.
+ #}
+{%- set domain = 'phil_video' -%}
+{%- set c = 'phil--video-bundle--player' -%}
+{%- set video = this.video -%}
+{%- set id = this.id -%}
+{%- set href = this.href -%}
+{%- set chapters = this.chapters -%}
+{%- set cues = this.cues -%}
+{%- if this.linked %}
+<figure {{ attributes.defaults({id: id, class: 'phil-video phil-video--linked', 'data-controller': c}) }} data-{{ c }}-embed-value="{{ video.embed }}" data-{{ c }}-title-value="{{ video.title }}" data-{{ c }}-width-value="{{ video.width }}" data-{{ c }}-height-value="{{ video.height }}">
+    <div class="phil-video__facade" data-{{ c }}-target="facade">
+        {%- if video.poster is not null %}
+        <img src="{{ video.poster.toString }}" alt="" width="{{ video.width }}" height="{{ video.height }}" loading="lazy" decoding="async">
+        {%- endif %}
+        {% component (this.kit('Button')) with {hidden: true, 'data-action': c ~ '#load', ('data-' ~ c ~ '-target'): 'play'} %}{% block content %}{{ 'player.play'|trans({'%title%': video.title}, domain) }}{% endblock %}{% endcomponent %}
+    </div>
+    <figcaption class="phil-video__caption">
+        <span id="{{ id }}-title">{{ video.title }}</span>
+        <small class="phil-video__notice">{{ 'player.notice'|trans({'%platform%': video.platform}, domain) }}</small>
+        <a href="{{ video.watch.toString }}" rel="noopener noreferrer">{{ 'player.watch'|trans({'%platform%': video.platform}, domain) }}</a>
+    </figcaption>
+{%- else %}
+<div {{ attributes.defaults({id: id, class: 'phil-video', 'data-controller': c}) }} data-{{ c }}-video-value="{{ video.id }}" data-{{ c }}-hls-value="{{ video.hls is null ? '' : video.hls.toString }}" data-{{ c }}-tracking-value="{{ this.tracking ? 'true' : 'false' }}" data-{{ c }}-endpoint-value="{{ this.tracking ? this.endpoint : '' }}">
+    {{ component(this.kit('Video'), {id: id ~ '-video', width: video.width, height: video.height, sources: this.sources, poster: video.poster is null ? null : video.poster.toString, tracks: this.tracks, label: video.title, fallbackLabel: 'player.download'|trans({}, domain)}) }}
+{%- endif %}
+    {%- if chapters is not empty %}
+    <nav class="phil-video__chapters" aria-labelledby="{{ id }}-chapters">
+        <h3 id="{{ id }}-chapters">{{ 'player.chapters'|trans({}, domain) }}</h3>
+        <ol>
+            {%- for chapter in chapters %}
+            <li data-{{ c }}-target="chapter" data-start="{{ chapter.start }}">
+                <time datetime="{{ chapter.datetime }}">{{ chapter.clock }}</time>
+                {%- if href is null %}
+                {{ chapter.title }}
+                {%- else %}
+                {% component (this.kit('Button')) with {as: 'a', variant: 'link', href: href ~ '#t=' ~ chapter.start, 'data-action': c ~ '#seek', ('data-' ~ c ~ '-time-param'): chapter.start} %}{% block content %}{{ chapter.title }}{% endblock %}{% endcomponent %}
+                {%- endif %}
+            </li>
+            {%- endfor %}
+        </ol>
+    </nav>
+    {%- endif %}
+    {%- if cues is not empty %}
+    <details class="phil-video__transcript"{% if video.transcriptLanguage is not null %} lang="{{ video.transcriptLanguage }}"{% endif %}>
+        <summary>{{ 'player.transcript'|trans({}, domain) }}</summary>
+        <ol>
+            {%- for cue in cues %}
+            <li data-{{ c }}-target="cue" data-start="{{ cue.start }}" data-end="{{ cue.end }}">
+                {%- if href is null %}
+                <time datetime="{{ cue.datetime }}">{{ cue.clock }}</time>
+                {%- else %}
+                {% component (this.kit('Button')) with {as: 'a', variant: 'link', href: href ~ '#t=' ~ cue.start, 'data-action': c ~ '#seek', ('data-' ~ c ~ '-time-param'): cue.start} %}{% block content %}<time datetime="{{ cue.datetime }}">{{ cue.clock }}</time>{% endblock %}{% endcomponent %}
+                {%- endif %}
+                {%- if cue.speaker is not null %} <strong>{{ cue.speaker }}</strong>{% endif %}
+                {{ cue.text }}
+            </li>
+            {%- endfor %}
+        </ol>
+    </details>
+    {%- endif %}
+{%- if this.linked %}
+</figure>
+{%- else %}
+</div>
+{%- endif %}

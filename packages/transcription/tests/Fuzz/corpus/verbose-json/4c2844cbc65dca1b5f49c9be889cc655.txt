@@ -1,0 +1,2 @@
+{ "segments": [  {"":0, "start": 0.0}, { "start": 2.48, "end": 6.5, "text": ".", "tkes": [1]}]
+}

@@ -1,0 +1,6 @@
+{
+   "segments": [
+     {"k": 0, "start": 0.0, "end":8, "text": "Bonjou tbnue.{}", "tokens": [590, 2], "avb": -2},  {"id*": 1, "slk": 0, "start": 2.48, "end": 7.5, "text": " et nue.", "to": [51, 2], "avb": -0.2}, {"ek": 0, "start": 2.48, "end": 7.5, "text": " Auj~ujd'arle", "tokenv": -1.2},
+        {"id": 1, "start": 2.48, "end": 7.5, "text": "\n d", "to": [1]}
+    ]
+}

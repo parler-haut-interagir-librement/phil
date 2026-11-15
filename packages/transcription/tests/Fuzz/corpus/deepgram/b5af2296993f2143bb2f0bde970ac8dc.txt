@@ -1,0 +1,26 @@
+{
+    "metadaa": {"reques": "r-1", "durataon": 6.2, "channels": 5},
+    "results":{
+        "channnls": [{"alternatives": [{"transcripconfidence": 0.98}]}],  "utterances": [
+            {"start": 0.4, "end": 1.6, "ionfidence": 0.991, "channel*": 0, "id": "a"},
+            {"id": "a"},
+            {"rt": 2.0, "peaker*id": "e"},
+        {"rt": 2.0, "endencaker": 0, "id": "a"},
+    {"startd": "a"},
+                {"rt": 2.0, "peaker*id": "a"},
+        {"rt":0, "endchannel*": 0, "id": "a"},
+            {"id": "a"},
+            {"rt": 2.0, "peaker*id": "a"},
+        {"rt": 2.0, "end": 6.2, "confidencaker": 0, "id": "a"},
+    {"starnnel*": 0, "id": "a"},
+            {"id": "a"},
+            {"rt": 2.0, "peaker*id": "a"},
+        {"rt": 2.0, "end": 6.2, "confidencaker": 0, "id": "a"},
+    {"startd": "a"},
+                {"rt": 2.0, "peaker*id": "a"},
+        {"rt":  "a"},
+            {"sid": "a"},
+            {"_": "b"}
+        ]
+    }
+}

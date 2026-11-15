@@ -1,0 +1,93 @@
+{#
+    The incident mode, for the role that may start one: the incidents in force with their end and the form that lifts
+    each, the form that starts one from a preset for a duration it requires, and the journal. Its parts are recipes of
+    the kit — Alert, Badge, Button, Field, Input, NativeSelect, Textarea.
+#}
+{% extends layout %}
+
+{% set domain = 'phil_moderation' %}
+
+{% block title %}{{ 'incidents.title'|trans({}, domain) }}{% endblock %}
+
+{% block main %}
+    <h1>{{ 'incidents.title'|trans({}, domain) }}</h1>
+    {{ include('@PhilModeration/admin/_nav.html.twig') }}
+
+    {% if panel.proposed %}
+        {% component (phil_moderation_kit('Alert')) with {variant: 'destructive', role: 'status'} %}
+            {% block content %}
+                {% component (phil_moderation_kit('Alert:Title')) %}{% block content %}{{ 'incidents.proposed'|trans({'%count%': panel.surge.count, '%minutes%': panel.surge.window // 60}, domain) }}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+    {% endif %}
+
+    {{ include('@PhilModeration/admin/_error.html.twig') }}
+
+    <section aria-labelledby="phil-moderation-in-force">
+        <h2 id="phil-moderation-in-force">{{ 'incidents.in_force'|trans({}, domain) }}</h2>
+        {% for activation in in_force %}
+            <article>
+                {% component (phil_moderation_kit('Badge')) with {variant: 'destructive'} %}{% block content %}{{ include('@PhilModeration/admin/_preset.html.twig', {name: activation.preset}) }}{% endblock %}{% endcomponent %}
+                {{ 'incidents.until'|trans({}, domain) }} <time datetime="{{ activation.endsAt|date('c') }}">{{ activation.endsAt|date('Y-m-d H:i') }}</time>
+                {% if activation.reason is not null %}<p>{{ activation.reason }}</p>{% endif %}
+                <form method="post" action="{{ path(routes.incident_lift, {id: activation.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token }}">
+                    {% component (phil_moderation_kit('Button')) with {type: 'submit', variant: 'outline'} %}{% block content %}{{ 'incidents.lift'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                </form>
+            </article>
+        {% else %}
+            <p>{{ 'incidents.none'|trans({}, domain) }}</p>
+        {% endfor %}
+    </section>
+
+    <section aria-labelledby="phil-moderation-start">
+        <h2 id="phil-moderation-start">{{ 'incidents.start'|trans({}, domain) }}</h2>
+        <form method="post" action="{{ path(routes.incident_start) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token }}">
+            {% component (phil_moderation_kit('Field')) %}
+                {% block content %}
+                    {% component (phil_moderation_kit('Field:Label')) with {for: 'phil-moderation-preset'} %}{% block content %}{{ 'incidents.preset'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% component (phil_moderation_kit('NativeSelect')) with {id: 'phil-moderation-preset', name: 'preset', required: true} %}
+                        {% block content %}
+                            {% for preset in presets %}
+                                {% component (phil_moderation_kit('NativeSelect:Option')) with {value: preset.name} %}{% block content %}{{ include('@PhilModeration/admin/_preset.html.twig', {name: preset.name}) }} — {{ 'incidents.durations'|trans({'%default%': preset.defaultDuration.seconds // 60, '%maximum%': preset.maximumDuration.seconds // 60}, domain) }}{% endblock %}{% endcomponent %}
+                            {% endfor %}
+                        {% endblock %}
+                    {% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
+            {% component (phil_moderation_kit('Field')) %}
+                {% block content %}
+                    {% component (phil_moderation_kit('Field:Label')) with {for: 'phil-moderation-minutes'} %}{% block content %}{{ 'incidents.minutes'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% component (phil_moderation_kit('Input')) with {id: 'phil-moderation-minutes', name: 'minutes', type: 'number', min: 1, required: true, value: presets is empty ? 60 : presets|first.defaultDuration.seconds // 60, 'aria-describedby': 'phil-moderation-minutes-help'} %}{% endcomponent %}
+                    {% component (phil_moderation_kit('Field:Description')) with {id: 'phil-moderation-minutes-help'} %}{% block content %}{{ 'incidents.minutes_help'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
+            {% component (phil_moderation_kit('Field')) %}
+                {% block content %}
+                    {% component (phil_moderation_kit('Field:Label')) with {for: 'phil-moderation-incident-reason'} %}{% block content %}{{ 'incidents.reason'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% component (phil_moderation_kit('Textarea')) with {id: 'phil-moderation-incident-reason', name: 'reason', rows: 2, maxlength: 500} %}{% block content %}{% endblock %}{% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
+            <p>
+                {% component (phil_moderation_kit('Button')) with {type: 'submit', variant: 'destructive'} %}{% block content %}{{ 'incidents.submit'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            </p>
+        </form>
+    </section>
+
+    <section aria-labelledby="phil-moderation-incident-journal">
+        <h2 id="phil-moderation-incident-journal">{{ 'incidents.journal'|trans({}, domain) }}</h2>
+        <ol>
+            {% for activation in journal %}
+                <li>
+                    {{ include('@PhilModeration/admin/_preset.html.twig', {name: activation.preset}) }} ·
+                    <time datetime="{{ activation.startedAt|date('c') }}">{{ activation.startedAt|date('Y-m-d H:i') }}</time> →
+                    <time datetime="{{ (activation.liftedAt ?? activation.endsAt)|date('c') }}">{{ (activation.liftedAt ?? activation.endsAt)|date('Y-m-d H:i') }}</time>
+                    {% if activation.liftReason is not null %} · {{ ('lift.' ~ activation.liftReason.value)|trans({}, domain) }}{% endif %}
+                </li>
+            {% else %}
+                <li>{{ 'incidents.never'|trans({}, domain) }}</li>
+            {% endfor %}
+        </ol>
+    </section>
+{% endblock %}

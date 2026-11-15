@@ -1,0 +1,17 @@
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.logout'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.logout'|trans({}, d) }}</h1>
+    <p>{{ 'logout.confirm'|trans({}, d) }}</p>
+    <form method="post" action="{{ path('phil_identity_provider_oidc_end_session') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token(csrf_id) }}">
+        <input type="hidden" name="confirm" value="yes">
+        {% for name, value in parameters %}
+            <input type="hidden" name="{{ name }}" value="{{ value }}">
+        {% endfor %}
+        {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.sign_out'|trans({}, d)}) }}
+    </form>
+{% endblock %}

@@ -1,0 +1,57 @@
+{#
+    A member as the moderation sees them: the decisions on their content, and the notes of the moderation on them —
+    read by moderators only, never by the member, and distinct from the private notes a member keeps for themselves.
+    Its parts are recipes of the kit — Alert, Badge, Button, Field, Textarea.
+#}
+{% extends layout %}
+
+{% set domain = 'phil_moderation' %}
+
+{% block title %}{{ 'member.title'|trans({}, domain) }}{% endblock %}
+
+{% block main %}
+    <h1>{{ 'member.title'|trans({}, domain) }}</h1>
+    {{ include('@PhilModeration/admin/_nav.html.twig') }}
+    <p><small>{{ member.value }}</small></p>
+
+    {{ include('@PhilModeration/admin/_error.html.twig') }}
+
+    <section aria-labelledby="phil-moderation-member-notes">
+        <h2 id="phil-moderation-member-notes">{{ 'member.notes'|trans({}, domain) }}</h2>
+        <p>{{ 'member.notes_help'|trans({}, domain) }}</p>
+        {% for note in notes %}
+            <article>
+                <p>{{ note.body|nl2br }}</p>
+                <footer>
+                    <time datetime="{{ note.writtenAt|date('c') }}">{{ note.writtenAt|date('Y-m-d H:i') }}</time>
+                    <form method="post" action="{{ path(routes.note_remove, {id: note.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="member" value="{{ member.value }}">
+                        {% component (phil_moderation_kit('Button')) with {type: 'submit', variant: 'outline', size: 'sm'} %}{% block content %}{{ 'member.remove_note'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    </form>
+                </footer>
+            </article>
+        {% else %}
+            <p>{{ 'member.no_note'|trans({}, domain) }}</p>
+        {% endfor %}
+
+        <form method="post" action="{{ path(routes.note) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token }}">
+            <input type="hidden" name="member" value="{{ member.value }}">
+            {% component (phil_moderation_kit('Field')) %}
+                {% block content %}
+                    {% component (phil_moderation_kit('Field:Label')) with {for: 'phil-moderation-note-body'} %}{% block content %}{{ 'member.new_note'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% component (phil_moderation_kit('Textarea')) with {id: 'phil-moderation-note-body', name: 'body', rows: 4, maxlength: 5000, required: true} %}{% block content %}{% endblock %}{% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
+            <p>
+                {% component (phil_moderation_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'member.add_note'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            </p>
+        </form>
+    </section>
+
+    <section aria-labelledby="phil-moderation-member-decisions">
+        <h2 id="phil-moderation-member-decisions">{{ 'member.decisions'|trans({}, domain) }}</h2>
+        {{ include('@PhilModeration/admin/_decisions.html.twig', {decisions: decisions}) }}
+    </section>
+{% endblock %}

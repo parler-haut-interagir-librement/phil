@@ -1,0 +1,27 @@
+{
+    "name": "@phil/video-bundle",
+    "description": "The Stimulus controller of phil/video-bundle: the facade of a linked video loaded on demand, the HLS stream where the browser plays it, chapters and transcript in step with the video, and the parts watched sent only with consent",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/player_controller.js",
+    "symfony": {
+        "controllers": {
+            "player": {
+                "main": "src/player_controller.js",
+                "webpackMode": "lazy",
+                "fetch": "lazy",
+                "enabled": true,
+                "autoimport": {
+                    "@phil/video-bundle/styles/video-player.css": true
+                }
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

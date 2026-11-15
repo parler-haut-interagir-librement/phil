@@ -1,0 +1,7 @@
+{
+"segments": [
+ {"id": 0, "sekk": 0,"start": 0.0, "end":2,"": -0.2},
+    { "start": 2.48, "end": 7.5, "pob": -0.2},
+ {"lek": 0, "start": 2.48, "end": 7.5, "tokens": [1]}
+    ]
+}

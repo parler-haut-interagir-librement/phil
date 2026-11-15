@@ -1,0 +1,27 @@
+{% extends '@PhilNewsletter/pages/layout.html.twig' %}
+
+{% block title %}{{ list.name }}{% endblock %}
+
+{% block body %}
+    <h1>{{ list.name }}</h1>
+    {% if sent is defined %}
+        <p role="status">{{ 'subscribe.sent'|trans({}, 'phil_newsletter') }}</p>
+    {% else %}
+        {% if error is defined %}
+            <p role="alert">{{ ('subscribe.error.' ~ error)|trans({}, 'phil_newsletter') }}</p>
+            {% if suggestion is defined and suggestion is not null %}
+                <p>{{ 'subscribe.suggestion'|trans({'%address%': suggestion}, 'phil_newsletter') }}</p>
+            {% endif %}
+        {% endif %}
+        <form method="post">
+            <label for="phil-newsletter-email">{{ 'subscribe.email'|trans({}, 'phil_newsletter') }}</label>
+            <input id="phil-newsletter-email" type="email" name="email" autocomplete="email" required maxlength="254">
+            <div hidden aria-hidden="true">
+                <label for="phil-newsletter-website">Website</label>
+                <input id="phil-newsletter-website" type="text" name="website" tabindex="-1" autocomplete="off">
+            </div>
+            <input type="hidden" name="_token" value="{{ csrf_token('phil_newsletter_subscribe') }}">
+            <button type="submit">{{ 'subscribe.button'|trans({}, 'phil_newsletter') }}</button>
+        </form>
+    {% endif %}
+{% endblock %}

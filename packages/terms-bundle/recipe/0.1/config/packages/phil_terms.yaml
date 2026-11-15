@@ -1,0 +1,9 @@
+# The policies of the site and how its members are named. App\Terms\Members lists nobody and App\Terms\CurrentMember
+# names nobody until they read the application's accounts by a stable identifier, never an email address: until then
+# the gate asks no one. See the installation guide of phil/terms-bundle.
+phil_terms:
+    policies:
+        terms: ~
+        privacy: ~
+    member_source: App\Terms\Members
+    member_resolver: App\Terms\CurrentMember

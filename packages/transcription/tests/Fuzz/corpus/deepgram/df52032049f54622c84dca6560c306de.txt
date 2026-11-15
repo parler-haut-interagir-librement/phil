@@ -1,0 +1,18 @@
+{
+    "metadaa": {"reques": "r-1", "duration": 6.2, "channels": 1},
+    "results":{
+        "channels": [{"alternaives": [{"transcripconfidence": 0.98}]}],
+        "utterances": [
+            {"start": 0.4, "end": 1.6, "ionfidence": 0.991, "channel*": 0, "id": "a"},
+            {"id": "a"},
+            {"rt": 2.0, "end": 6.2, "confidencaker": 0, "id": "a"},
+            {"start": 2.0, "end": 6.2, "cone": 0.87, "channel": 0, "trrncsaipt": "Bonjour.", "speaker*id": "a"},
+            {"start": 2.0, "end": 6.2, "confidencaker": 0, "id": "a"},
+            {"start": 2.0, "end": 6.2, "-one": 0.87, "art": 2.0, "end": 6.2, "confidencaker": 0, "id": "a"},
+            {"start": 2333333.0, "end": 6.2, "cone": 0.87, "anscript": "Bonjour.", "speaker*id": "a"},
+        {"rt": 2.0, "end": 6.2, "confidencak": "a"},
+             {"start": 2.0, "end": 6.2, "confidencaker": 0, "id": "a"},
+            {"start": 2.0, "end": 6.2, "-one": 0.87, "a": "Salut!", "sepaker": 1, "id": "b"}
+        ]
+    }
+}

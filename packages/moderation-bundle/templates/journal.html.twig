@@ -1,0 +1,59 @@
+{#
+    The public journal of the moderation: what was decided, on what type of content, under which role, why and when —
+    never the moderator, never the author of the content. Its parts are recipes of the kit — Badge, Table.
+#}
+{% extends layout %}
+
+{% set domain = 'phil_moderation' %}
+
+{% block title %}{{ 'journal.title'|trans({}, domain) }}{% endblock %}
+
+{% block main %}
+    <h1>{{ 'journal.title'|trans({}, domain) }}</h1>
+    <p>{{ 'journal.intro'|trans({}, domain) }}</p>
+
+    {% if entries is empty %}
+        <p>{{ 'journal.empty'|trans({}, domain) }}</p>
+    {% else %}
+        {% component (phil_moderation_kit('Table')) %}
+            {% block content %}
+                {% component (phil_moderation_kit('Table:Header')) %}
+                    {% block content %}
+                        {% component (phil_moderation_kit('Table:Row')) %}
+                            {% block content %}
+                                {% component (phil_moderation_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'journal.date'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (phil_moderation_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'journal.decision'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (phil_moderation_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'journal.content'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (phil_moderation_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'journal.by'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (phil_moderation_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'journal.reason'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                            {% endblock %}
+                        {% endcomponent %}
+                    {% endblock %}
+                {% endcomponent %}
+                {% component (phil_moderation_kit('Table:Body')) %}
+                    {% block content %}
+                        {% for entry in entries %}
+                            {% component (phil_moderation_kit('Table:Row')) %}
+                                {% block content %}
+                                    {% component (phil_moderation_kit('Table:Cell')) %}{% block content %}<time datetime="{{ entry.decidedAt|date('c') }}">{{ entry.decidedAt|date('Y-m-d') }}</time>{% endblock %}{% endcomponent %}
+                                    {% component (phil_moderation_kit('Table:Cell')) %}{% block content %}{% component (phil_moderation_kit('Badge')) %}{% block content %}{{ ('action.' ~ entry.action.value)|trans({}, domain) }}{% endblock %}{% endcomponent %}{% endblock %}{% endcomponent %}
+                                    {% component (phil_moderation_kit('Table:Cell')) %}{% block content %}{{ include('@PhilModeration/_label.html.twig', {prefix: 'type', code: entry.targetType}) }}{% endblock %}{% endcomponent %}
+                                    {% component (phil_moderation_kit('Table:Cell')) %}{% block content %}{{ include('@PhilModeration/_label.html.twig', {prefix: 'role', code: entry.role}) }}{% endblock %}{% endcomponent %}
+                                    {% component (phil_moderation_kit('Table:Cell')) %}{% block content %}{{ entry.reason ?? '—' }}{% endblock %}{% endcomponent %}
+                                {% endblock %}
+                            {% endcomponent %}
+                        {% endfor %}
+                    {% endblock %}
+                {% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+
+        {% if pages > 1 %}
+            <nav aria-label="{{ 'pagination.label'|trans({}, domain) }}">
+                {% if page > 1 %}<a href="{{ path(route, {page: page - 1}) }}" rel="prev">{{ 'pagination.previous'|trans({}, domain) }}</a>{% endif %}
+                <span>{{ 'pagination.page'|trans({'%page%': page, '%pages%': pages}, domain) }}</span>
+                {% if page < pages %}<a href="{{ path(route, {page: page + 1}) }}" rel="next">{{ 'pagination.next'|trans({}, domain) }}</a>{% endif %}
+            </nav>
+        {% endif %}
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,1 @@
+{"https://purl.imsglobal.org/spec/lti-dl/claim/content_items":[{"html":"<p>x-/p>"},{"type":"html","html":"<p>x</p>"},{"typ(eneItem":{"2xium":8},"available":{"startDateTime":"Z"}},{"type":"html","html":"<p>x</pz"},{"tavailable":{"StraTetaDtime":"506-111:0Z"}},{"type":"","htpe~eItem":{"3coreMkxiime":"2Z"}},{"typ":"<p>x</p>"},{"tyeIteavailable":{"SetaDtime":""}},{"type":"h"}]}

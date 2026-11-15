@@ -1,0 +1,9 @@
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.forgot'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.check_email'|trans({}, d) }}</h1>
+    <p>{{ 'reset.sent'|trans({}, d) }}</p>
+{% endblock %}

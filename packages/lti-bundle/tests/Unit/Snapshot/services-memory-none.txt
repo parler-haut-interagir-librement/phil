@@ -1,0 +1,46 @@
+parameter phil_lti.platform = false
+service Phil\LtiBundle\Infrastructure\Controller\JwksController [public] class=Phil\LtiBundle\Infrastructure\Controller\JwksController
+    arg 0 = @Phil\Lti\Contract\KeyStore (behavior 1)
+    tag controller.service_arguments [[]]
+service Phil\LtiBundle\Infrastructure\Dbal\LtiTables [private] class=Phil\LtiBundle\Infrastructure\Dbal\LtiTables
+    arg 0 = "phil_lti_"
+service Phil\LtiBundle\Infrastructure\Http\FormPostResponder [public] class=Phil\LtiBundle\Infrastructure\Http\FormPostResponder
+    arg 0 = @twig (behavior 1)
+service Phil\LtiBundle\Infrastructure\Twig\KitComponents [private] class=Phil\LtiBundle\Infrastructure\Twig\KitComponents
+    arg 0 = null
+service Phil\LtiBundle\Infrastructure\Twig\LtiExtension [private] class=Phil\LtiBundle\Infrastructure\Twig\LtiExtension
+    arg 0 = @Phil\LtiBundle\Infrastructure\Twig\KitComponents (behavior 1)
+    tag twig.attribute_extension [[]]
+    tag twig.runtime [[]]
+service Phil\Lti\Http\SafeHttpServiceClient [private] class=Phil\Lti\Http\SafeHttpServiceClient
+    arg 0 = @phil_lti.service_http_client (behavior 1)
+    tag kernel.reset [{"method":"reset"}]
+service Phil\Lti\Jwt\JwtVerifier [private] class=Phil\Lti\Jwt\JwtVerifier
+    arg 0 = @Phil\Lti\Contract\KeySetSource (behavior 1)
+    arg 1 = @clock (behavior 1)
+service Phil\Lti\Key\CachedKeySetSource [private] class=Phil\Lti\Key\CachedKeySetSource
+    arg 0 = @Phil\Lti\Key\SafeHttpKeySetSource (behavior 1)
+    arg 1 = @cache.app (behavior 1)
+    arg 2 = @clock (behavior 1)
+service Phil\Lti\Key\InMemoryKeyStore [private] class=Phil\Lti\Key\InMemoryKeyStore
+    factory ["Phil\\LtiBundle\\Infrastructure\\Configuration\\Registrations","keys"]
+    arg 0 = <TestKeys::pem()>
+    arg 1 = null
+    arg 2 = []
+    arg 3 = null
+service Phil\Lti\Key\SafeHttpKeySetSource [private] class=Phil\Lti\Key\SafeHttpKeySetSource
+    arg 0 = @phil_lti.key_set_http_client (behavior 1)
+    tag kernel.reset [{"method":"reset"}]
+service Phil\Lti\Security\InMemoryNonces [private] class=Phil\Lti\Security\InMemoryNonces
+    arg 0 = @clock (behavior 1)
+    tag kernel.reset [{"method":"reset"}]
+service phil_lti.key_set_http_client [private] class=Phil\SafeHttp\SafeHttpClient
+    arg 0 = null
+    arg 1 = definition Phil\SafeHttp\Limits
+service phil_lti.service_http_client [private] class=Phil\SafeHttp\SafeHttpClient
+    arg 0 = null
+    arg 1 = definition Phil\SafeHttp\Limits
+alias Phil\Lti\Contract\KeySetSource -> Phil\Lti\Key\CachedKeySetSource [private]
+alias Phil\Lti\Contract\KeyStore -> Phil\Lti\Key\InMemoryKeyStore [public]
+alias Phil\Lti\Contract\Nonces -> Phil\Lti\Security\InMemoryNonces [public]
+alias Phil\Lti\Contract\ServiceClient -> Phil\Lti\Http\SafeHttpServiceClient [private]

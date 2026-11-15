@@ -1,0 +1,53 @@
+{#
+ # The open sessions of the account, the current one marked, each closable; all the others closed at once; and the
+ # applications the account allowed, with their consent withdrawn.
+ #}
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.sessions'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.sessions'|trans({}, d) }}</h1>
+    <ul>
+        {% for session in sessions %}
+            <li{% if session.id == current %} aria-current="true"{% endif %}>
+                <strong>{{ session.device }}</strong>
+                — {{ 'session.opened'|trans({'%date%': session.createdAt|date('Y-m-d H:i')}, d) }}
+                — {{ 'session.seen'|trans({'%date%': session.lastSeenAt|date('Y-m-d H:i')}, d) }}
+                {% if session.risky %}— {{ 'session.risky'|trans({}, d) }}{% endif %}
+                {% if session.id == current %}
+                    — {{ 'session.current'|trans({}, d) }}
+                {% else %}
+                    <form method="post" action="{{ path('phil_identity_provider_sessions_close', {id: session.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+                        {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.close_session'|trans({}, d), variant: 'secondary'}) }}
+                    </form>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    {% if sessions|length > 1 %}
+        <form method="post" action="{{ path('phil_identity_provider_sessions_close_others') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+            {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.close_others'|trans({}, d), variant: 'destructive'}) }}
+        </form>
+    {% endif %}
+
+    {% if consents is not empty %}
+        <section aria-labelledby="phil-identity-applications">
+            <h2 id="phil-identity-applications">{{ 'session.applications'|trans({}, d) }}</h2>
+            <ul>
+                {% for consent in consents %}
+                    <li>
+                        <strong>{{ consent.clientId }}</strong> — {{ consent.scopes|join(', ') }}
+                        <form method="post" action="{{ path('phil_identity_provider_consent_withdraw', {client: consent.clientId}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+                            {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.withdraw'|trans({}, d), variant: 'destructive'}) }}
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+{% endblock %}

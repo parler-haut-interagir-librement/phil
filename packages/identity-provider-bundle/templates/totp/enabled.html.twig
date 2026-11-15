@@ -1,0 +1,20 @@
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.totp'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.totp'|trans({}, d) }}</h1>
+    <p>{{ 'totp.enabled'|trans({}, d) }}</p>
+    {% if recovery %}
+        <p>{{ 'totp.remaining'|trans({'%count%': remaining}, d) }}</p>
+        <form method="post" action="{{ path('phil_identity_provider_recovery_codes') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+            {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.new_codes'|trans({}, d), variant: 'secondary'}) }}
+        </form>
+    {% endif %}
+    <form method="post" action="{{ path('phil_identity_provider_totp_disable') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+        {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.disable_totp'|trans({}, d), variant: 'destructive'}) }}
+    </form>
+{% endblock %}

@@ -1,0 +1,13 @@
+# The newsletter of the site: its tables in the default Doctrine DBAL connection, which join the schema the ORM
+# generates (run doctrine:migrations:diff), the key of the signed links of its messages, the site's base address and
+# one sender profile. Route its messages to an asynchronous transport and consume the schedule `newsletter`. See the
+# installation and configuration guides of phil/newsletter-bundle.
+phil_newsletter:
+    secret: '%env(NEWSLETTER_SECRET)%'
+    sites:
+        default: { base_url: 'https://example.com' }
+    profiles:
+        default: { from: 'news@example.com', from_name: 'Example' }
+    # bounces:
+    #     verp: { domain: 'example.com' }
+    #     remote_event_consumer: mail_provider

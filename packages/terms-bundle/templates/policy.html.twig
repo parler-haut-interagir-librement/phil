@@ -1,0 +1,52 @@
+{#
+ # A version of a policy, with the list of its versions. Its standing is a Badge of the kit — from the PHIL UX kit or
+ # the Shadcn kit, called by the name `phil_terms_kit()` gives —, as is the mark of a material version.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_terms' %}
+{% set title = ('policy.' ~ version.policy)|trans({}, domain) %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+    <article>
+        <h1>{{ title }}</h1>
+        <p>
+            {{ 'page.version'|trans({'%version%': version.number}, domain) }}
+            {% if version.effectiveAt > now %}
+                {% set standing = 'page.upcoming'|trans({'%date%': version.effectiveAt|date('Y-m-d')}, domain) %}
+                {% set variant = 'outline' %}
+            {% elseif in_force is not null and in_force.number != version.number %}
+                {% set standing = 'page.superseded'|trans({}, domain) %}
+                {% set variant = 'outline' %}
+            {% else %}
+                {% set standing = 'page.effective'|trans({'%date%': version.effectiveAt|date('Y-m-d')}, domain) %}
+                {% set variant = 'secondary' %}
+            {% endif %}
+            {% component (phil_terms_kit('Badge')) with {variant: variant} %}{% block content %}{{ standing }}{% endblock %}{% endcomponent %}
+        </p>
+        <div>{{ html|raw }}</div>
+        {% if version.licence is not null %}
+            <p>{{ 'page.licence'|trans({'%licence%': version.licence}, domain) }}</p>
+        {% endif %}
+    </article>
+
+    <nav aria-labelledby="phil-terms-versions">
+        <h2 id="phil-terms-versions">{{ 'page.versions'|trans({}, domain) }}</h2>
+        <ul>
+            {% for other in versions %}
+                <li>
+                    <a href="{{ path('phil_terms_version', {policy: other.policy, number: other.number}) }}"{% if other.number == version.number %} aria-current="page"{% endif %}>{{ 'page.version'|trans({'%version%': other.number}, domain) }}</a>
+                    — {{ 'page.effective_on'|trans({'%date%': other.effectiveAt|date('Y-m-d')}, domain) }}
+                    {% if other.material %}
+                        {% component (phil_terms_kit('Badge')) with {variant: 'outline'} %}{% block content %}{{ 'page.material'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% endif %}
+                    {% if other.number > 1 %}
+                        · <a href="{{ path('phil_terms_changes', {policy: other.policy, number: other.number, from: other.number - 1}) }}">{{ 'page.changes'|trans({'%from%': other.number - 1}, domain) }}</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </nav>
+{% endblock %}

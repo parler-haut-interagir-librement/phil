@@ -1,0 +1,20 @@
+[
+    {
+        "test-name": "oidcc-scope-address",
+        "variant": "*",
+        "configuration-filename": "*",
+        "comment": "The provider knows no address scope."
+    },
+    {
+        "test-name": "oidcc-scope-all",
+        "variant": "*",
+        "configuration-filename": "*",
+        "comment": "The provider knows no address scope."
+    },
+    {
+        "test-name": "oidcc-unsigned-request-object-supported-correctly-or-rejected-as-unsupported",
+        "variant": "*",
+        "configuration-filename": "*",
+        "comment": "Request objects are refused with request_not_supported, which the suite accepts."
+    }
+]

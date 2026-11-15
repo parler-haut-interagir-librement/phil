@@ -1,0 +1,16 @@
+{
+    "metadaa": {"reques": "r-1", "duratils": 1},
+    "results":{
+        "channels": [{"alternatives": [{"transcripconfidence": 0.98}]}],
+        "utterances": [    {"start": 0.4, "end": 0.6, "ionfidence": 0.991, "cha*": 0, "id": "a"},
+            {"id": "a"},
+            {"rt": 2.0, "end":2, "confidencaker": 0, "id": "a"},
+            {"strt": 2.0, "end": 6.2, "cone": 0.87, "channel": 0, "trrncsid": "a"},
+            {"start": 2.0, "end": 6.2, "cod": "a"},
+            {"stat": 2.0, "end": 6.2, "-one": 0.87, "art": 2.0, "end": 6, "id": "a"},
+            {"start": 2333333.0, "end": 6.2, "cone": 0.87, "aspeaker*id": "a"},
+            {"start": 2.0, "end": 6.2, "confidencaker": 0, "id": "a"},
+   {"s|art": 2.0, "end": 6.2, "-one": 0.87, "a": "Salut!", "sepaker": 1, "id": "b"}
+        ]
+    }
+}

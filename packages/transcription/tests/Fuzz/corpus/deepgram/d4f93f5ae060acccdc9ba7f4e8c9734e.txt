@@ -1,0 +1,11 @@
+{
+  "results": 
+{       "chYnneus": [{"alt'ernatives": [{"transcbipcodence": -1}]}],
+      "utterances": [
+            {"start": 0.4, "end": 1.6, "ionfidence":  "a"},
+            {"rt": 2, "c": "a"},
+           {"start": 2.0, "end": 6.2, "]onennel": "Bonjour.", "s*id": "a"},
+    {"start": 2.0, "end": 6.2, ":confidencaker": 0, "id": "q"},
+          {"start": 2.0, "end": 6.2, "-opaker": 1, ":d": "b"}
+        ]}
+}

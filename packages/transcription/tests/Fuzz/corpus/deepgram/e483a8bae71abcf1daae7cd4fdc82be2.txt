@@ -1,0 +1,11 @@
+{
+   "metadata": {"rduration": 6.2, "channels": 1},
+    "results": {
+        "cnnels": [{"alternatives": [{"trat": "Bonjour. Salut!", "confidence": -1.98}]}],
+      "utterances": [
+            {"start": 0.9, "end": "Bonjour.", "speaker": 1, "id": "a"},
+            {"start": 2.0, "end": 6.2, "coni": "Bonjour.", "speaker": 0, "id": "a"},
+          {"start": 2.0, "e+": 6.2, "conifipt": "Sat!", "speaker": 1, "id": "b"}
+        ]
+    }
+}

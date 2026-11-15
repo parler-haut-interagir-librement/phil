@@ -1,0 +1,5 @@
+# The acceptance page and the public pages of the policies. With phil_terms.admin enabled, import
+# '@PhilTermsBundle/config/routes/admin.php' under /admin/terms, behind the firewall of the administration.
+phil_terms:
+    resource: '@PhilTermsBundle/config/routes/pages.php'
+    prefix: /terms

@@ -1,0 +1,136 @@
+parameter phil_lti.platform = true
+service Phil\LtiBundle\Infrastructure\Console\PurgeCommand [private] class=Phil\LtiBundle\Infrastructure\Console\PurgeCommand
+    arg 0 = @Phil\LtiBundle\Infrastructure\Dbal\DbalNonces (behavior 1)
+    arg 1 = @Phil\LtiBundle\Infrastructure\Dbal\DbalLoginStates (behavior 2)
+    arg 2 = @Phil\LtiBundle\Infrastructure\Dbal\DbalAccessTokens (behavior 2)
+    tag console.command [[]]
+service Phil\LtiBundle\Infrastructure\Console\SchemaCommand [private] class=Phil\LtiBundle\Infrastructure\Console\SchemaCommand
+    arg 0 = @doctrine.dbal.default_connection (behavior 1)
+    arg 1 = @Phil\LtiBundle\Infrastructure\Dbal\LtiTables (behavior 1)
+    tag console.command [[]]
+service Phil\LtiBundle\Infrastructure\Controller\AgsController [public] class=Phil\LtiBundle\Infrastructure\Controller\AgsController
+    arg 0 = @Phil\Lti\Platform\Token\ServiceGuard (behavior 1)
+    arg 1 = @Phil\Lti\Platform\Ags\AgsService (behavior 1)
+    arg 2 = @Phil\LtiBundle\Infrastructure\Routing\PlatformUrls (behavior 1)
+    arg 3 = @event_dispatcher (behavior 1)
+    tag controller.service_arguments [[]]
+service Phil\LtiBundle\Infrastructure\Controller\JwksController [public] class=Phil\LtiBundle\Infrastructure\Controller\JwksController
+    arg 0 = @Phil\Lti\Contract\KeyStore (behavior 1)
+    tag controller.service_arguments [[]]
+service Phil\LtiBundle\Infrastructure\Controller\NrpsController [public] class=Phil\LtiBundle\Infrastructure\Controller\NrpsController
+    arg 0 = @Phil\Lti\Platform\Token\ServiceGuard (behavior 1)
+    arg 1 = @Phil\Lti\Platform\Nrps\NrpsService (behavior 1)
+    arg 2 = @Phil\LtiBundle\Infrastructure\Routing\PlatformUrls (behavior 1)
+    tag controller.service_arguments [[]]
+service Phil\LtiBundle\Infrastructure\Controller\PlatformLaunchController [public] class=Phil\LtiBundle\Infrastructure\Controller\PlatformLaunchController
+    arg 0 = @Phil\Lti\Platform\LaunchIssuer (behavior 1)
+    arg 1 = @Phil\LtiBundle\Application\Contract\LaunchMessages (behavior 1)
+    arg 2 = @Phil\Lti\Platform\DeepLinkingReturn (behavior 1)
+    arg 3 = @security.token_storage (behavior 1)
+    arg 4 = @Phil\LtiBundle\Infrastructure\Http\FormPostResponder (behavior 1)
+    arg 5 = @event_dispatcher (behavior 1)
+    arg 6 = @twig (behavior 1)
+    tag controller.service_arguments [[]]
+service Phil\LtiBundle\Infrastructure\Controller\TokenController [public] class=Phil\LtiBundle\Infrastructure\Controller\TokenController
+    arg 0 = @Phil\Lti\Platform\Token\TokenEndpoint (behavior 1)
+    tag controller.service_arguments [[]]
+service Phil\LtiBundle\Infrastructure\Dbal\DbalAccessTokens [private] class=Phil\LtiBundle\Infrastructure\Dbal\DbalAccessTokens
+    arg 0 = @doctrine.dbal.default_connection (behavior 1)
+    arg 1 = @Phil\LtiBundle\Infrastructure\Dbal\LtiTables (behavior 1)
+    arg 2 = @clock (behavior 1)
+service Phil\LtiBundle\Infrastructure\Dbal\DbalLineItemStore [private] class=Phil\LtiBundle\Infrastructure\Dbal\DbalLineItemStore
+    arg 0 = @doctrine.dbal.default_connection (behavior 1)
+    arg 1 = @Phil\LtiBundle\Infrastructure\Dbal\LtiTables (behavior 1)
+service Phil\LtiBundle\Infrastructure\Dbal\DbalNonces [private] class=Phil\LtiBundle\Infrastructure\Dbal\DbalNonces
+    arg 0 = @doctrine.dbal.default_connection (behavior 1)
+    arg 1 = @Phil\LtiBundle\Infrastructure\Dbal\LtiTables (behavior 1)
+    arg 2 = @clock (behavior 1)
+service Phil\LtiBundle\Infrastructure\Dbal\DbalScoreStore [private] class=Phil\LtiBundle\Infrastructure\Dbal\DbalScoreStore
+    arg 0 = @doctrine.dbal.default_connection (behavior 1)
+    arg 1 = @Phil\LtiBundle\Infrastructure\Dbal\LtiTables (behavior 1)
+service Phil\LtiBundle\Infrastructure\Dbal\LtiSchemaListener [private] class=Phil\LtiBundle\Infrastructure\Dbal\LtiSchemaListener
+    arg 0 = @doctrine.dbal.default_connection (behavior 1)
+    arg 1 = @Phil\LtiBundle\Infrastructure\Dbal\LtiTables (behavior 1)
+    tag doctrine.event_listener [{"event":"postGenerateSchema","connection":"default"}]
+service Phil\LtiBundle\Infrastructure\Dbal\LtiTables [private] class=Phil\LtiBundle\Infrastructure\Dbal\LtiTables
+    arg 0 = "phil_lti_"
+service Phil\LtiBundle\Infrastructure\Http\FormPostResponder [public] class=Phil\LtiBundle\Infrastructure\Http\FormPostResponder
+    arg 0 = @twig (behavior 1)
+service Phil\LtiBundle\Infrastructure\Routing\PlatformUrls [public] class=Phil\LtiBundle\Infrastructure\Routing\PlatformUrls
+    arg 0 = @router (behavior 1)
+    arg 1 = false
+service Phil\LtiBundle\Infrastructure\Twig\KitComponents [private] class=Phil\LtiBundle\Infrastructure\Twig\KitComponents
+    arg 0 = null
+service Phil\LtiBundle\Infrastructure\Twig\LtiExtension [private] class=Phil\LtiBundle\Infrastructure\Twig\LtiExtension
+    arg 0 = @Phil\LtiBundle\Infrastructure\Twig\KitComponents (behavior 1)
+    tag twig.attribute_extension [[]]
+    tag twig.runtime [[]]
+service Phil\Lti\Http\SafeHttpServiceClient [private] class=Phil\Lti\Http\SafeHttpServiceClient
+    arg 0 = @phil_lti.service_http_client (behavior 1)
+    tag kernel.reset [{"method":"reset"}]
+service Phil\Lti\Jwt\JwtVerifier [private] class=Phil\Lti\Jwt\JwtVerifier
+    arg 0 = @Phil\Lti\Contract\KeySetSource (behavior 1)
+    arg 1 = @clock (behavior 1)
+service Phil\Lti\Key\CachedKeySetSource [private] class=Phil\Lti\Key\CachedKeySetSource
+    arg 0 = @Phil\Lti\Key\SafeHttpKeySetSource (behavior 1)
+    arg 1 = @cache.app (behavior 1)
+    arg 2 = @clock (behavior 1)
+service Phil\Lti\Key\InMemoryKeyStore [private] class=Phil\Lti\Key\InMemoryKeyStore
+    factory ["Phil\\LtiBundle\\Infrastructure\\Configuration\\Registrations","keys"]
+    arg 0 = <TestKeys::pem()>
+    arg 1 = "k1"
+    arg 2 = ["pem"]
+    arg 3 = "pp"
+service Phil\Lti\Key\SafeHttpKeySetSource [private] class=Phil\Lti\Key\SafeHttpKeySetSource
+    arg 0 = @phil_lti.key_set_http_client (behavior 1)
+    tag kernel.reset [{"method":"reset"}]
+service Phil\Lti\Platform\Ags\AgsService [private] class=Phil\Lti\Platform\Ags\AgsService
+    arg 0 = @Phil\Lti\Contract\Roster (behavior 1)
+    arg 1 = @Phil\Lti\Contract\LineItemStore (behavior 1)
+    arg 2 = @Phil\Lti\Contract\ScoreStore (behavior 1)
+service Phil\Lti\Platform\DeepLinkingReturn [private] class=Phil\Lti\Platform\DeepLinkingReturn
+    arg 0 = "https://courses.example.com"
+    arg 1 = @Phil\Lti\Contract\ToolRegistrations (behavior 1)
+    arg 2 = @Phil\Lti\Contract\Nonces (behavior 1)
+    arg 3 = @Phil\Lti\Jwt\JwtVerifier (behavior 1)
+    arg 4 = false
+service Phil\Lti\Platform\LaunchIssuer [private] class=Phil\Lti\Platform\LaunchIssuer
+    arg 0 = "https://courses.example.com"
+    arg 1 = @Phil\Lti\Contract\ToolRegistrations (behavior 1)
+    arg 2 = @Phil\Lti\Contract\KeyStore (behavior 1)
+    arg 3 = @clock (behavior 1)
+    arg 4 = false
+service Phil\Lti\Platform\LaunchStarter [public] class=Phil\Lti\Platform\LaunchStarter
+    arg 0 = "https://courses.example.com"
+    arg 1 = @Phil\Lti\Contract\ToolRegistrations (behavior 1)
+    arg 2 = false
+service Phil\Lti\Platform\Nrps\NrpsService [private] class=Phil\Lti\Platform\Nrps\NrpsService
+    arg 0 = @Phil\Lti\Contract\Roster (behavior 1)
+service Phil\Lti\Platform\Token\ServiceGuard [private] class=Phil\Lti\Platform\Token\ServiceGuard
+    arg 0 = @Phil\Lti\Contract\AccessTokens (behavior 1)
+service Phil\Lti\Platform\Token\TokenEndpoint [private] class=Phil\Lti\Platform\Token\TokenEndpoint
+    arg 0 = "https://courses.example.com/token"
+    arg 1 = @Phil\Lti\Contract\ToolRegistrations (behavior 1)
+    arg 2 = @Phil\Lti\Contract\AccessTokens (behavior 1)
+    arg 3 = @Phil\Lti\Contract\Nonces (behavior 1)
+    arg 4 = @Phil\Lti\Jwt\JwtVerifier (behavior 1)
+    arg 5 = @clock (behavior 1)
+    arg 6 = 3600
+service Phil\Lti\Registration\InMemoryToolRegistrations [private] class=Phil\Lti\Registration\InMemoryToolRegistrations
+    factory ["Phil\\LtiBundle\\Infrastructure\\Configuration\\Registrations","tools"]
+    arg 0 = [["c", "https://tool.example.com/l", ["https://tool.example.com/r"], "https://tool.example.com/j", ["https://purl.imsglobal.org/spec/lti-ags/scope/score"], null, null, []]]
+    arg 1 = false
+service phil_lti.key_set_http_client [private] class=Phil\SafeHttp\SafeHttpClient
+    arg 0 = null
+    arg 1 = definition Phil\SafeHttp\Limits
+service phil_lti.service_http_client [private] class=Phil\SafeHttp\SafeHttpClient
+    arg 0 = null
+    arg 1 = definition Phil\SafeHttp\Limits
+alias Phil\Lti\Contract\AccessTokens -> Phil\LtiBundle\Infrastructure\Dbal\DbalAccessTokens [public]
+alias Phil\Lti\Contract\KeySetSource -> Phil\Lti\Key\CachedKeySetSource [private]
+alias Phil\Lti\Contract\KeyStore -> Phil\Lti\Key\InMemoryKeyStore [public]
+alias Phil\Lti\Contract\LineItemStore -> Phil\LtiBundle\Infrastructure\Dbal\DbalLineItemStore [public]
+alias Phil\Lti\Contract\Nonces -> Phil\LtiBundle\Infrastructure\Dbal\DbalNonces [public]
+alias Phil\Lti\Contract\ScoreStore -> Phil\LtiBundle\Infrastructure\Dbal\DbalScoreStore [public]
+alias Phil\Lti\Contract\ServiceClient -> Phil\Lti\Http\SafeHttpServiceClient [private]
+alias Phil\Lti\Contract\ToolRegistrations -> Phil\Lti\Registration\InMemoryToolRegistrations [public]

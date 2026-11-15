@@ -1,0 +1,19 @@
+{#
+    The page the moderation renders in when the application names no layout of its own: a document with the blocks
+    "title" and "main", the names of EasyAdmin's content page. An application gives its own through
+    phil_moderation.admin.layout.
+#}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{% block title %}{% endblock %}</title>
+</head>
+<body>
+<main>
+    {% block main %}{% endblock %}
+</main>
+</body>
+</html>

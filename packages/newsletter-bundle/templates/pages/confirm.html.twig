@@ -1,0 +1,12 @@
+{% extends '@PhilNewsletter/pages/layout.html.twig' %}
+
+{% block body %}
+    {% if done is defined %}
+        <h1>{{ 'confirm.done'|trans({}, 'phil_newsletter') }}</h1>
+    {% else %}
+        <h1>{{ 'confirm.title'|trans({}, 'phil_newsletter') }}</h1>
+        <form method="post">
+            <button type="submit">{{ 'confirm.button'|trans({}, 'phil_newsletter') }}</button>
+        </form>
+    {% endif %}
+{% endblock %}

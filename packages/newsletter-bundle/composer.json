@@ -1,0 +1,102 @@
+{
+    "name": "phil/newsletter-bundle",
+    "description": "A site's newsletter for Symfony: lists, double opt-in, campaigns in Markdown in a house layout or sandboxed templates, sending through Symfony Mailer at the pace of sender profiles, one-click unsubscription, a preference center with pause, bounces from IMAP and webhooks, aggregate click counts, multi-site, and automation actions",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "symfony-bundle",
+        "newsletter",
+        "email",
+        "mailing-list",
+        "double-opt-in",
+        "unsubscribe",
+        "bounce"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.5",
+        "phil/bounce-parser": "^0.1@dev",
+        "phil/email-address": "^0.1@dev",
+        "phil/markup": "^0.2.1@dev",
+        "phil/standard-webhooks": "^0.1@dev",
+        "phil/url": "^0.1.4@dev",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/http-foundation": "^8.2",
+        "symfony/mailer": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/mime": "^8.2",
+        "symfony/rate-limiter": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/scheduler": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/service-contracts": "^3.6",
+        "symfony/translation": "^8.2",
+        "symfony/uid": "^8.2",
+        "twig/twig": "^3.30"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "phil/automations": "^0.1@dev",
+        "phil/privacy-bundle": "^0.1@dev",
+        "phil/standard-webhooks-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/remote-event": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/yaml": "^8.2"
+    },
+    "suggest": {
+        "doctrine/orm": "To add the newsletter's tables to the schema the ORM generates, with NewsletterSchemaListener",
+        "phil/automations": "To offer the triggers and the send and list actions of the newsletter to automations",
+        "phil/privacy-bundle": "To answer access and erasure requests for the newsletter's subscribers",
+        "phil/standard-webhooks-bundle": "To send the audience events to receivers as signed webhooks",
+        "symfony/console": "For the command that reads the bounce mailbox",
+        "symfony/remote-event": "To consume the bounce and complaint events of a mail provider's webhook"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\NewsletterBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\NewsletterBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,1 @@
+response_type=code&client_id=app&redirect_uri=https%3A%2F%2fapp.example%2Fcb&scope=+26M+ÐÚÐ+pe=+13µ+ÐÐÐÐÐ+;+Ï+ÐÐ+;+ÐÏÐ+ÐÐ+MÐ+Ð+ÐÐM+Ð+ÐÐ+Ð+;+ÐÐ++¢ÐÐ|+Ð+ÐÐ+Ð+M+++¢¢Ð+ÐÐ+ÐÐM+Ð+ÐÐ+Ð+;+Ðl

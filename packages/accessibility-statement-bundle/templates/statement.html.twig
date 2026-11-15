@@ -1,0 +1,149 @@
+{#
+ # The page of a version of the statement. Its parts are recipes of the kit — Card, Badge, Table, Button —, installed
+ # in the application by the Symfony UX Toolkit from the PHIL UX kit or the Shadcn kit, and called by the names
+ # `phil_accessibility_kit()` gives. Only the props both kits share are passed: the list items and the headings are the
+ # template's own, as the Shadcn card is a `div` and its title is not a heading.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_accessibility_statement' %}
+{% set entity = statement.entity ?? ('entity.default'|trans({}, domain)) %}
+{% set scope = statement.scope is not null ? statement.scope|phil_accessibility_text : 'scope.default'|trans({}, domain) %}
+
+{% block title %}{{ 'title'|trans({}, domain) }}{% endblock %}
+
+{% block content %}
+    <article class="phil-accessibility-statement">
+        <h1>{{ 'title'|trans({}, domain) }}</h1>
+
+        {{ include('@PhilAccessibilityStatement/wording/' ~ wording ~ '.html.twig') }}
+
+        <section aria-labelledby="phil-accessibility-status">
+            <h2 id="phil-accessibility-status">{{ 'status.heading'|trans({}, domain) }}</h2>
+            <p>
+                {{ ('status.' ~ statement.status.value)|trans({'%scope%': scope, '%target%': statement.target.describe()}, domain) }}
+                <a href="{{ statement.target.standard.url() }}" hreflang="en">{{ 'status.standard'|trans({'%standard%': statement.target.standard.title()}, domain) }}</a>
+            </p>
+        </section>
+
+        {% if groups is not empty %}
+            <section aria-labelledby="phil-accessibility-content">
+                <h2 id="phil-accessibility-content">{{ 'content.heading'|trans({}, domain) }}</h2>
+                {% for reason, nonConformities in groups %}
+                    <h3>{{ ('reason.' ~ reason)|trans({}, domain) }}</h3>
+                    <ul class="phil-accessibility-statement__criteria">
+                        {% for nonConformity in nonConformities %}
+                            <li>
+                            {% component (phil_accessibility_kit('Card')) with {size: 'sm'} %}
+                                {% block content %}
+                                    {% component (phil_accessibility_kit('Card:Header')) %}
+                                        {% block content %}
+                                            <h4 class="phil-accessibility-statement__criterion">{{ 'criterion.title'|trans({'%number%': nonConformity.criterion.value, '%title%': ('criterion.' ~ nonConformity.criterion.value)|trans({}, domain), '%level%': nonConformity.criterion.level().value}, domain) }}</h4>
+                                        {% endblock %}
+                                    {% endcomponent %}
+                                    {% component (phil_accessibility_kit('Card:Content')) %}
+                                        {% block content %}
+                                            {% if nonConformity.description is not null %}
+                                                <p>{{ nonConformity.description|phil_accessibility_text }}</p>
+                                            {% endif %}
+                                            {% if nonConformity.occurrences > 0 %}
+                                                <p>{{ 'content.occurrences'|trans({'%count%': nonConformity.occurrences}, domain) }}</p>
+                                            {% endif %}
+                                            {% if nonConformity.alternative is not null %}
+                                                <p>{{ 'content.alternative'|trans({'%alternative%': nonConformity.alternative|phil_accessibility_text}, domain) }}</p>
+                                            {% endif %}
+                                            {% if nonConformity.fixBy is not null %}
+                                                <p>{{ 'content.fix_by'|trans({'%date%': nonConformity.fixBy|date('Y-m-d')}, domain) }}</p>
+                                            {% endif %}
+                                        {% endblock %}
+                                    {% endcomponent %}
+                                {% endblock %}
+                            {% endcomponent %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endfor %}
+            </section>
+        {% endif %}
+
+        {% if statement.alternatives is not empty %}
+            <section aria-labelledby="phil-accessibility-alternatives">
+                <h2 id="phil-accessibility-alternatives">{{ 'alternatives.heading'|trans({}, domain) }}</h2>
+                <ul>
+                    {% for alternative in statement.alternatives %}
+                        <li>{{ alternative|phil_accessibility_text }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
+        <section aria-labelledby="phil-accessibility-feedback">
+            <h2 id="phil-accessibility-feedback">{{ 'feedback.heading'|trans({}, domain) }}</h2>
+            <p>{{ 'feedback.intro'|trans({'%entity%': entity}, domain) }}</p>
+            {% set feedback = statement.feedback %}
+            {% if feedback_route is not null or feedback_form is not null %}
+                <p>
+                    {% component (phil_accessibility_kit('Button')) with {as: 'a', variant: 'outline', href: feedback_form is not null ? path('phil_forms_form', {key: feedback_form}) : path(feedback_route)} %}
+                        {% block content %}{{ 'feedback.form'|trans({}, domain) }}{% endblock %}
+                    {% endcomponent %}
+                </p>
+            {% endif %}
+            <ul>
+                {% if feedback.url is not null %}
+                    <li><a href="{{ feedback.url }}">{{ 'feedback.page'|trans({}, domain) }}</a></li>
+                {% endif %}
+                {% if feedback.email is not null %}
+                    <li>{{ 'feedback.email'|trans({}, domain) }} <a href="mailto:{{ feedback.email }}">{{ feedback.email }}</a></li>
+                {% endif %}
+                {% if feedback.phone is not null %}
+                    <li>{{ 'feedback.phone'|trans({}, domain) }} <a href="{{ feedback.phoneUri() }}">{{ feedback.phone }}</a></li>
+                {% endif %}
+                {% if feedback.postalAddress is not null %}
+                    <li>{{ 'feedback.postal_address'|trans({}, domain) }} <address>{{ feedback.postalAddress|phil_accessibility_text|nl2br }}</address></li>
+                {% endif %}
+            </ul>
+            {% if feedback.responseDays is not null %}
+                <p>{{ 'feedback.response_days'|trans({'%count%': feedback.responseDays}, domain) }}</p>
+            {% endif %}
+        </section>
+
+        {% if statement.enforcement is not null %}
+            <section aria-labelledby="phil-accessibility-enforcement">
+                <h2 id="phil-accessibility-enforcement">{{ 'enforcement.heading'|trans({}, domain) }}</h2>
+                <p>{{ statement.enforcement.procedure|phil_accessibility_text }}</p>
+                {% if statement.enforcement.authority is not null %}
+                    <p>
+                        {% if statement.enforcement.url is not null %}
+                            <a href="{{ statement.enforcement.url }}">{{ statement.enforcement.authority|phil_accessibility_text }}</a>
+                        {% else %}
+                            {{ statement.enforcement.authority|phil_accessibility_text }}
+                        {% endif %}
+                    </p>
+                {% elseif statement.enforcement.url is not null %}
+                    <p><a href="{{ statement.enforcement.url }}">{{ statement.enforcement.url }}</a></p>
+                {% endif %}
+            </section>
+        {% endif %}
+
+        <section aria-labelledby="phil-accessibility-preparation">
+            <h2 id="phil-accessibility-preparation">{{ 'preparation.heading'|trans({}, domain) }}</h2>
+            <p>{{ 'preparation.published'|trans({'%date%': statement.publishedAt|date('Y-m-d'), '%version%': statement.version}, domain) }}</p>
+            {% if statement.evaluation is not null %}
+                <p>
+                    {{ ('preparation.method.' ~ statement.evaluation.method.value)|trans({'%date%': statement.evaluation.evaluatedAt|date('Y-m-d')}, domain) }}
+                    {% if statement.evaluation.pages > 0 %}{{ 'preparation.pages'|trans({'%count%': statement.evaluation.pages}, domain) }}{% endif %}
+                </p>
+                {% if statement.evaluation.reportUrl is not null %}
+                    <p><a href="{{ statement.evaluation.reportUrl }}">{{ 'preparation.report'|trans({}, domain) }}</a></p>
+                {% endif %}
+            {% endif %}
+        </section>
+
+        {% if versions|length > 1 %}
+            <nav aria-labelledby="phil-accessibility-versions">
+                <h2 id="phil-accessibility-versions">{{ 'versions.heading'|trans({}, domain) }}</h2>
+                {{ include('@PhilAccessibilityStatement/_versions.html.twig', {current: statement.version, link: true}) }}
+            </nav>
+        {% endif %}
+    </article>
+{% endblock %}

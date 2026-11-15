@@ -1,0 +1,6 @@
+{# A notice that something was done, announced politely. #}
+{% component (phil_identity_kit('Alert')) with {role: 'status'} %}
+    {% block content %}
+        {% component (phil_identity_kit('Alert:Description')) %}{% block content %}{{ message }}{% endblock %}{% endcomponent %}
+    {% endblock %}
+{% endcomponent %}

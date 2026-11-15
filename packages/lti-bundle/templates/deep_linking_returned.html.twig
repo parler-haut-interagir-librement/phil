@@ -1,0 +1,25 @@
+{#
+ # The page a deep linking response ends on when no listener of DeepLinkingReturned answers it: how many items were
+ # picked, and the message or the error of the tool.
+ #
+ # result: the DeepLinkingResult the platform verified.
+ #}
+<!doctype html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ 'deep_linking.title'|trans({}, 'phil_lti') }}</title>
+</head>
+<body>
+<main class="phil-lti-deep-linking">
+    <h1>{{ 'deep_linking.title'|trans({}, 'phil_lti') }}</h1>
+    <p>{{ 'deep_linking.count'|trans({count: result.items|length}, 'phil_lti') }}</p>
+    {%- if result.errorMessage is not null %}
+    <p role="alert">{{ result.errorMessage }}</p>
+    {%- elseif result.message is not null %}
+    <p role="status">{{ result.message }}</p>
+    {%- endif %}
+</main>
+</body>
+</html>

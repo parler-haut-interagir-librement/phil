@@ -1,0 +1,70 @@
+{#-
+ # The player of a track. The browser's audio element plays it, with its own controls, without JavaScript, from the
+ # keyboard and for screen readers, named by the title; nothing plays before the listener asks, and only the duration
+ # is fetched beforehand. Its files are those this listener may hear: the whole track, its excerpt, or none before a
+ # purchase, said in a sentence. The waveform is drawn by the controller `phil--audio-bundle--player`, hidden from
+ # screen readers, the audio element being the control. The chapters and the cues of the transcripts link to their
+ # instant in the file — a media fragment, which a browser opens without JavaScript —, and seek the player once the
+ # controller runs, which also marks the current chapter and cue. The links are the kit's recipe Button, installed from
+ # the PHIL UX kit or the Shadcn kit and named by `this.kit()`.
+ #}
+{%- set domain = 'phil_audio' -%}
+{%- set c = 'phil--audio-bundle--player' -%}
+{%- set id = this.id -%}
+{%- set sources = this.sources -%}
+{%- set amplitudes = this.amplitudes -%}
+{%- set chapters = this.chapters -%}
+{%- set href = sources is empty ? null : (sources|first).url.toString -%}
+<figure {{ attributes.defaults({id: id, class: 'phil-audio', 'data-controller': c}) }} data-{{ c }}-peaks-value="{{ amplitudes|json_encode }}" data-phil-audio-mode="{{ this.mode }}">
+    <figcaption id="{{ id }}-title" class="phil-audio__title">
+        {{- this.audio.title -}}
+        {%- if this.excerpt %} <span class="phil-audio__excerpt">{{ 'player.excerpt'|trans({}, domain) }}</span>{% endif -%}
+    </figcaption>
+    {%- if sources is empty %}
+    <p class="phil-audio__locked" role="note">{{ 'player.purchase_only'|trans({}, domain) }}</p>
+    {%- else %}
+    <audio controls preload="metadata" aria-labelledby="{{ id }}-title" data-{{ c }}-target="audio">
+        {%- for source in sources %}
+        <source src="{{ source.url.toString }}" type="{{ source.mediaType }}">
+        {%- endfor %}
+        <a href="{{ href }}">{{ 'player.download'|trans({}, domain) }}</a>
+    </audio>
+    {%- if amplitudes is not empty %}
+    <svg class="phil-audio__waveform" aria-hidden="true" focusable="false" preserveAspectRatio="none" viewBox="0 0 {{ amplitudes|length }} 100" data-{{ c }}-target="waveform" data-action="click->{{ c }}#scrub"></svg>
+    {%- endif %}
+    {%- endif %}
+    {%- if chapters is not empty and href is not null %}
+    <nav class="phil-audio__chapters" aria-labelledby="{{ id }}-chapters">
+        <h3 id="{{ id }}-chapters">{{ 'player.chapters'|trans({}, domain) }}</h3>
+        <ol>
+            {%- for chapter in chapters %}
+            <li data-{{ c }}-target="chapter" data-start="{{ chapter.start }}">
+                <time datetime="{{ chapter.datetime }}">{{ chapter.clock }}</time>
+                {% component (this.kit('Button')) with {as: 'a', variant: 'link', href: href ~ '#t=' ~ chapter.start, 'data-action': c ~ '#seek', ('data-' ~ c ~ '-time-param'): chapter.start} %}{% block content %}{{ chapter.title }}{% endblock %}{% endcomponent %}
+            </li>
+            {%- endfor %}
+        </ol>
+    </nav>
+    {%- endif %}
+    {%- for transcript in this.transcripts|filter(transcript => transcript.cues is not empty) %}
+    <details class="phil-audio__transcript" lang="{{ transcript.language }}">
+        <summary>{{ 'player.transcript'|trans({'%label%': transcript.label}, domain) }}</summary>
+        <ol>
+            {%- for cue in transcript.cues %}
+            <li data-{{ c }}-target="cue" data-start="{{ cue.start }}" data-end="{{ cue.end }}">
+                {%- if href is not null %}
+                {% component (this.kit('Button')) with {as: 'a', variant: 'link', href: href ~ '#t=' ~ cue.start, 'data-action': c ~ '#seek', ('data-' ~ c ~ '-time-param'): cue.start} %}{% block content %}<time datetime="{{ cue.datetime }}">{{ cue.clock }}</time>{% endblock %}{% endcomponent %}
+                {%- else %}
+                <time datetime="{{ cue.datetime }}">{{ cue.clock }}</time>
+                {%- endif %}
+                {%- if cue.speaker is not null %} <strong>{{ cue.speaker }}</strong>{% endif %}
+                {{ cue.text }}
+            </li>
+            {%- endfor %}
+        </ol>
+        {%- if transcript.url is not null %}
+        <p><a href="{{ transcript.url }}" download>{{ 'player.download_transcript'|trans({'%label%': transcript.label}, domain) }}</a></p>
+        {%- endif %}
+    </details>
+    {%- endfor %}
+</figure>

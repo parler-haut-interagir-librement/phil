@@ -1,0 +1,8 @@
+{
+     "results": {
+       "utterances": [
+  {"start": 0, "end": 8, "i": 0, "transcript": "Bona"},
+  {"start":0, "end": 2, "transcript": "a"},
+ {"start": 2.0, "end": 2, "transcript": "Salutb"}
+      ]   }
+}
