@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5e2867317ab02205626bddfdce57ceac92294b91373815ddca5d808f2128705d -->
+<!-- phil-dev source-sha256=e95294d89a3d269288af28e352952b130c5d197c9477617f280939f82835cc60 -->
 # Formats
 
 Chaque format atteint les mêmes fonctionnalités. Ce qu'un langage a nativement s'écrit à sa façon ; ce qui lui manque
@@ -36,7 +36,7 @@ colonne MediaWiki, dans ses propres délimiteurs. La colonne HTML nomme les él�
 
 | Fonctionnalité | UJO | Markdown | BBCode | MediaWiki | DokuWiki | Creole | HTML |
 |---|---|---|---|---|---|---|---|
-| Gras, italique | `<b>`, `<i>` ; `<strong>`, `<em>` venus des balises HTML | `**b**`, `*i*`, `__b__`, `_i_` | `[b]`, `[i]` | `'''b'''`, `''i''`, `'''''both'''''` | `**b**`, `//i//` | `**b**`, `//i//` | `<b>`, `<strong>`, `<i>`, `<em>`, `<cite>`, un style gras ou italique |
+| Gras, italique | `<strong>`, `<em>` venus de Markdown, des wikis et des balises HTML ; `<b>`, `<i>` venus de BBCode et des balises HTML | `**b**`, `*i*`, `__b__`, `_i_` | `[b]`, `[i]` | `'''b'''`, `''i''`, `'''''both'''''` | `**b**`, `//i//` | `**b**`, `//i//` | `<b>`, `<strong>`, `<i>`, `<em>`, `<cite>`, un style gras ou italique |
 | Barré | `<s>` | `~s~`, `~~s~~` | `[s]` | `<s>`, `<del>`, `<strike>`, `{{s\|…}}` | `<del>` | `<<s>>…<</s>>` | `<s>`, `<del>`, `<strike>`, `text-decoration: line-through` |
 | Souligné | `<u>` | — | `[u]` | `<u>`, `<ins>`, `{{u\|…}}` | `__u__` | `__u__` | `<u>`, `<ins>`, `text-decoration: underline` |
 | Surlignage | `<mark>` | `==text==` | `[mark]`, `[highlight]` | `<mark>`, `{{Mark\|…}}`, `{{Highlight\|…}}` | `<mark>` | `<<mark>>…<</mark>>` | `<mark>` |

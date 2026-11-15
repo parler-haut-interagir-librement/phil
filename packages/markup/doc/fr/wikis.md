@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a726af1f33d2ef9575fd78850c658c0b4e348ba001ad1392c26be4cc5fd97cc7 -->
+<!-- phil-dev source-sha256=263317a031b1068687d61f6859e02eca454fb06b7f2e3637fdf7d45e5217223d -->
 # Les wikis
 
 `Reader\MediaWiki\MediaWikiReader`, `Reader\DokuWiki\DokuWikiReader` et `Reader\Creole\CreoleReader` lisent la syntaxe
@@ -105,7 +105,7 @@ qui l'entoure. Une balise fermante qui ne ferme rien d'ouvert est laissée de c�
 | Syntaxe | UJO |
 |---|---|
 | `= … =` à `====== … ======` | `header`, son niveau étant le plus petit des nombres de signes qui l'ouvrent et le ferment |
-| `''italic''`, `'''bold'''`, `'''''both'''''` | `<i>`, `<b>` ; une quatrième apostrophe et celles au-delà de cinq sont des apostrophes ; une marque laissée ouverte est du texte |
+| `''italic''`, `'''bold'''`, `'''''both'''''` | `<em>`, `<strong>`, l'emphase d'insistance et l'importance forte ; une quatrième apostrophe et celles au-delà de cinq sont des apostrophes ; une marque laissée ouverte est du texte |
 | `[[Page]]`, `[[Page\|text]]`, `[[Page#Section\|text]]`, `[[#Section]]`, `[[dog]]s` | un lien vers la page, les lettres qui suivent faisant partie de son texte |
 | `[[Category:…]]` | rien ; `[[:Category:…]]` est un lien |
 | `[https://… text]`, `[https://…]`, `[mailto:…]`, une adresse dans le texte | un lien |
@@ -131,7 +131,7 @@ Un modèle se nomme en majuscules ou en minuscules, ses espaces et ses traits de
 | Syntaxe | UJO |
 |---|---|
 | `====== … ======` à `== … ==` | `header` : six signes donnent le premier niveau, deux le cinquième |
-| `**bold**`, `//italic//`, `__underline__`, `''monospace''` | `<b>`, `<i>`, `<u>`, `<code>` |
+| `**bold**`, `//italic//`, `__underline__`, `''monospace''` | `<strong>`, `<em>`, `<u>`, `<code>` |
 | `[[page]]`, `[[namespace:page#section\|text]]`, `[[https://…\|text]]`, `[[name@example.com]]` | un lien ; un lien vers un autre wiki, `[[wp>Name]]`, garde son texte seul |
 | `<name@example.com>`, une adresse dans le texte | un lien |
 | `((text))` | une note de bas de page |
@@ -152,7 +152,7 @@ Un modèle se nomme en majuscules ou en minuscules, ses espaces et ses traits de
 | Syntaxe | UJO |
 |---|---|
 | `= … =` à `====== … ======` | `header`, son niveau étant le nombre de signes qui l'ouvrent ; ceux qui le ferment sont facultatifs |
-| `**bold**`, `//italic//` ; `##monospace##`, `^^superscript^^`, `,,subscript,,`, `__underline__` | `<b>`, `<i>`, `<code>`, `<sup>`, `<sub>`, `<u>` ; `//` dans une adresse fait partie de l'adresse |
+| `**bold**`, `//italic//` ; `##monospace##`, `^^superscript^^`, `,,subscript,,`, `__underline__` | `<strong>`, `<em>`, `<code>`, `<sup>`, `<sub>`, `<u>` ; `//` dans une adresse fait partie de l'adresse |
 | `[[page]]`, `[[page\|text]]`, `[[https://…\|text]]`, `[[page\|{{image.png}}]]` | un lien |
 | `{{image.png\|text}}` | `image`, le texte comme texte de remplacement : Creole n'a pas de légende |
 | `{{{text}}}` | `<code>`, le texte tel qu'écrit ; les accolades qui le ferment sont les trois dernières de leur suite |

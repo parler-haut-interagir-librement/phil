@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3e13fdf90361930dfe22e5f19a2f927bf824a8bf2831f614dbd3d94d7b500786 -->
+<!-- phil-dev source-sha256=df1e50fc480bc59a8096972b962c731e28dd739c9f39c504faa06bfe60e4f7e4 -->
 # Points d'extension
 
 La bibliothèque est du PHP simple et ne déclare aucun service. `Markup` se compose de deux ports, un compilateur et un
@@ -22,8 +22,10 @@ HTML brut soit gardé à `all` et échappé en dessous.
 | `compileFor(string $source, MarkupFormat\|string $format, Level $level): string` | Comme `compile()`, pour ce niveau |
 
 `Adapter\DefaultCompiler` compile chaque format par UJO ; il prend le `HtmlRenderer` de `phil/ujo`, pour que les
-moteurs de rendu de blocs de l'application produisent le rendu de ses propres blocs. Un compilateur propre à
-l'application le décore (pour ajouter une ponctuation typographique, par exemple) et reste attentif au niveau.
+moteurs de rendu de blocs de l'application produisent le rendu de ses propres blocs. Sous le niveau `all`, il ajoute
+`CheckboxText` aux filtres de ce moteur de rendu, pour que l'état d'un élément de liste de contrôle soit écrit en texte.
+Un compilateur propre à l'application le décore (pour ajouter une ponctuation typographique, par exemple) et reste
+attentif au niveau.
 
 ## `HtmlPurifier`
 

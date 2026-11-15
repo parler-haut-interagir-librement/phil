@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e6606c8762f06b73c156821cc39384322bc1a03fe9e9c7ced75e7ee5b4b250e5 -->
+<!-- phil-dev source-sha256=e51a0a86757b07ca933701fb38b96bac4067218551fee80c3e9eef1e8bfc2d2d -->
 # Référence
 
 ## Types
@@ -68,7 +68,7 @@ des matières. [Formats](formats.md) liste, fonctionnalité par fonctionnalité,
 |---|---|---|
 | `basic` | `strong`, `b`, `em`, `i`, `u`, `s`, `del`, `sub`, `sup`, `code`, `br` | un nom, une légende, un court commentaire |
 | `forum` | basic, avec `p`, `a`, `img`, `ul`, `ol`, `li`, `blockquote`, `cite`, `pre`, `hr` | un message de forum |
-| `all` | chaque élément que `symfony/html-sanitizer` considère comme sûr, titres et tableaux compris | un article qu'écrit un rédacteur |
+| `all` | chaque élément que `symfony/html-sanitizer` considère comme sûr, titres et tableaux compris, et la case à cocher désactivée d'un élément de liste de contrôle | un article qu'écrit un rédacteur |
 
 Un conteneur qu'un niveau ne permet pas (un paragraphe, une liste, un titre, un tableau) est retiré et son texte
 gardé ; tout autre élément (un script, un cadre, un formulaire, un objet) est retiré avec son contenu. Chaque niveau
@@ -94,3 +94,21 @@ dont les membres écrivent des textes à `forum` donne les hôtes depuis lesquel
 Assainissez de nouveau ce qui a été stocké au moment de l'afficher : une politique resserrée s'applique alors aux textes
 écrits avant. `Purifiers::defaultPolicies()` prend les mêmes hôtes, et assainit avec l'extension `ammonia` là où elle est
 chargée : voir [Accélérateurs](accelerators.md).
+
+## Listes de contrôle
+
+`phil/ujo` produit le rendu de chaque élément d'une `checklist` avec une case à cocher désactivée, `checked` quand
+l'élément l'est, dans un `<label>` qui contient le texte de l'élément : un lecteur d'écran annonce une case à cocher,
+son état et son nom, et personne ne peut la cocher. Le niveau décide de ce qui en reste :
+
+| Niveau | Un élément coché, `- [x] done` | Pourquoi |
+|---|---|---|
+| `all` | `<li><label><input type="checkbox" disabled checked />done</label></li>` | La case à cocher est la forme accessible de l'état |
+| `forum` | `<li>☑ done</li>` | Aucun `input` n'est gardé sous `all` : l'état est écrit en texte, `☑` coché et `☐` non coché, que les lecteurs d'écran nomment |
+| `basic` | `☑ done` | Les listes sont retirées et leur texte gardé ; l'état reste dans le texte |
+
+`DefaultCompiler` écrit l'état en texte sous `all` avec `CheckboxText`, un filtre sur le HTML dont le rendu est produit ;
+le HTML compilé tel qu'il est écrit perd l'état de ses cases à cocher sous `all`. À `all`, `SanitizerPurifier` réécrit
+chaque `input` comme `<input type="checkbox" disabled>`, avec `checked` quand il l'avait, et retire un champ de tout
+autre type, un champ sans type compris : aucun texte assaini ne contient un champ qu'un lecteur pourrait remplir ou
+soumettre.
