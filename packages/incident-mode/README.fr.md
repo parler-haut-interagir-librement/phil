@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7d7193ec8f6fa8bb975b8834ace02087303ac7ed6f7d95fdaef40074b40cd95e -->
+<!-- phil-dev source-sha256=7e7822ea81419e3447abc8c7006d912b066834a40c3341945578fa836e85ad93 -->
 # phil/incident-mode
 
 **Un interrupteur pour les mauvais jours : suspendre les inscriptions, les invitations, les nouveaux messages ou tout
@@ -10,7 +10,8 @@ invitations, suspendre les nouveaux messages, suspendre toute nouvelle contribut
 le préréglage borne : il n'y a pas d'incident sans fin. Tant qu'il est en vigueur, l'application demande
 `isSuspended('signups')` avant de laisser quelqu'un s'inscrire, et affiche un avis ; à sa fin, l'incident cesse de
 s'appliquer de lui-même, et la levée automatique l'inscrit au journal. Quelqu'un peut le lever avant, ou le prolonger
-dans les limites de son préréglage. Chaque début, chaque prolongation et chaque levée envoie un événement, et le
+dans les limites de son préréglage. `IncidentRestrictions` répond pour un membre : la configuration peut épargner de
+certaines restrictions les membres établis, d'un niveau de confiance que l'application décide. Chaque début, chaque prolongation et chaque levée envoie un événement, et le
 journal garde qui a déclenché et qui a levé chaque incident, par un identifiant stable, jamais une adresse de
 courriel.
 
@@ -43,14 +44,14 @@ flèche.
 | Les acteurs retrouvés et oubliés, pour l'export et l'effacement des renseignements personnels | Implémenté et testé |
 | Une page, une bannière et une interface d'administration | Implémenté dans `phil/moderation-bundle` |
 | Un incident planifié pour commencer plus tard | Pas commencé : un incident commence quand on le déclenche |
-| Des restrictions qui épargnent les membres établis | Pas commencé : l'application vérifie le statut du membre avant de demander |
+| Des restrictions qui épargnent les membres établis, `IncidentRestrictions` avec les `EstablishedMembers` de l'application | Implémenté et testé |
 
 ## Documentation
 
 | Document | Contenu |
 |---|---|
 | [Installation](doc/fr/installation.md) | Les prérequis, l'installation, la déclaration des services dans Symfony. |
-| [Incidents](doc/fr/incidents.md) | Les restrictions, les préréglages, le déclenchement, la vérification, la prolongation, la levée, le journal et les événements. |
+| [Incidents](doc/fr/incidents.md) | Les restrictions, les préréglages, le déclenchement, la vérification, les membres établis épargnés, la prolongation, la levée, le journal et les événements. |
 | [Levée automatique](doc/fr/automatic-lifting.md) | La fin d'un incident, le message différé et le balayage récurrent. |
 | [Stockage](doc/fr/storage.md) | Les magasins, la table, la concurrence, l'écouteur de schéma, les renseignements personnels. |
 | [Points d'extension](doc/fr/extension-points.md) | Les ports, préréglages, restrictions et événements qu'une application choisit ou remplace. |

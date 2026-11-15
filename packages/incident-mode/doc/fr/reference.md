@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0cd92c01a182c079273a1bb4ee1c6d58b2b7fdc1e88e00bf5a9dc471c614a631 -->
+<!-- phil-dev source-sha256=62c36263a17d9314d66b120b95e7322de323a0b54f0d806630af9c25d343f2a7 -->
 # Référence
 
 Chaque type public du paquet, avec son rôle.
@@ -14,6 +14,9 @@ Chaque type public du paquet, avec son rôle.
 | `Activation` | Un incident, en vigueur ou terminé |
 | `LiftReason` | `Manual` ou `Expired` |
 | `Contract\ActivationStore` | Où les activations sont conservées |
+| `IncidentRestrictions` | Si une restriction s'applique maintenant à un membre, les membres établis épargnés selon la configuration |
+| `Contract\EstablishedMembers` | Qui est un membre établi, par l'identifiant de l'application |
+| `NoEstablishedMembers` | Ne tient personne pour établi |
 | `Contract\LiftScheduler` | Prévoit la levée automatique d'une activation à sa fin |
 | `NoLiftScheduler` | Ne prévoit rien ; un balayage lève les incidents échus |
 | `InMemoryActivationStore` | Les activations d'un seul processus |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c47ef8669cbf1e507fb84858fad660f6784771660f1e8f4265ff28ca651ded82 -->
+<!-- phil-dev source-sha256=5238226229609aadeef3bedae5bb9a75f3a8fd38d9d486882efffc8038018d1e -->
 # Incidents
 
 ## Restrictions
@@ -76,6 +76,38 @@ adresse change et désigne la personne à quiconque lit le journal. `null` repr�
 
 Un incident est en vigueur de son début jusqu'à sa fin ou sa levée, selon la première éventualité. Chaque réponse est
 une seule question indexée au magasin, au moment que donne l'horloge ; rien n'est conservé entre deux appels.
+
+## Épargner les membres établis
+
+`IncidentRestrictions` répond pour un membre : une restriction s'applique à lui quand un incident la suspend, sauf si
+la configuration en épargne les membres établis et que le membre en est un. L'application dit qui est établi — un
+niveau de confiance, l'âge d'un compte, un rôle — en implémentant `Contract\EstablishedMembers`, qui reçoit
+l'identifiant du membre sous forme de chaîne ; `NoEstablishedMembers` ne tient personne pour établi, de sorte qu'un
+incident restreint tout le monde.
+
+```php
+use Phil\IncidentMode\IncidentRestrictions;
+use Phil\IncidentMode\Restriction;
+
+$restrictions = new IncidentRestrictions($incidents, $establishedMembers, [Restriction::NEW_POSTS]);
+
+if ($restrictions->appliesTo(Restriction::NEW_POSTS, $memberId)) {
+    // Show the notice instead of the form.
+}
+```
+
+| Cas | S'applique |
+|---|---|
+| Aucun incident ne suspend la restriction | Non |
+| La restriction n'est pas épargnée, ou le membre n'est pas établi | Oui |
+| Le membre est `null`, un visiteur | Oui : un visiteur n'est jamais épargné |
+| La restriction est épargnée et le membre est établi | Non |
+| Un incident `read-only` est en vigueur | Oui, sauf si `read-only` est épargnée aussi |
+
+`read-only` couvre toutes les restrictions : épargner `new-posts` seule laisse donc un membre établi restreint tant
+qu'un incident en lecture seule est en vigueur ; épargner aussi `read-only` le laisse passer. Les noms épargnés sont
+vérifiés à la construction de l'objet, et un nom invalide est refusé avec `InvalidIncident`. Les membres établis ne
+sont interrogés que lorsque la réponse en dépend, et rien n'est conservé entre deux appels.
 
 ## Prolonger et lever
 

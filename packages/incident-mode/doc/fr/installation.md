@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d437e26be325aa11e280329bd61fdc9c36e920953444b5a204ac529995d7d50a -->
+<!-- phil-dev source-sha256=33a0d06a1c9572589abd9cacb07801f856dfa18e02ed6df80895fd7048b674c2 -->
 # Installation
 
 ```sh
@@ -41,6 +41,12 @@ services:
         arguments:
             $clock: '@clock'
             $events: '@event_dispatcher'
+
+    Phil\IncidentMode\Contract\EstablishedMembers: '@Phil\IncidentMode\NoEstablishedMembers'
+    Phil\IncidentMode\NoEstablishedMembers: ~
+    Phil\IncidentMode\IncidentRestrictions:
+        arguments:
+            $spared: ['new-posts', 'new-comments']
 
     Phil\IncidentMode\Messenger\LiftIncidentHandler:
         autoconfigure: true
