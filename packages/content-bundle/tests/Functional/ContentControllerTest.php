@@ -35,7 +35,7 @@ final class ContentControllerTest extends FunctionalTestCase
         self::assertStringContainsString('<meta name="robots" content="nofollow">', $html);
         self::assertStringContainsString('<link rel="canonical" href="https://example.org/fr/ouverture">', $html);
         self::assertStringContainsString('<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","name":"Le site ouvre & accueille","headline":"Le site ouvre & accueille","description":"Une \\"grande\\" ouverture","datePublished":', $html);
-        self::assertStringContainsString('<b>ouvre</b>', $html);
+        self::assertStringContainsString('<strong>ouvre</strong>', $html);
         self::assertStringNotContainsString('<script>', $html, 'The body is purified.');
         self::assertStringContainsString('<p class="locale">fr|fr|stayed</p>', $html);
         self::assertStringContainsString('<a class="self" href="/fr/news/ouverture">', $html);

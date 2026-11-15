@@ -100,7 +100,7 @@ closes nothing open is left out.
 | Syntax | UJO |
 |---|---|
 | `= … =` to `====== … ======` | `header`, its level the fewer of the signs that open and close it |
-| `''italic''`, `'''bold'''`, `'''''both'''''` | `<i>`, `<b>`; a fourth apostrophe and those beyond five are apostrophes; a mark left open is text |
+| `''italic''`, `'''bold'''`, `'''''both'''''` | `<em>`, `<strong>`, the stress emphasis and the strong importance; a fourth apostrophe and those beyond five are apostrophes; a mark left open is text |
 | `[[Page]]`, `[[Page\|text]]`, `[[Page#Section\|text]]`, `[[#Section]]`, `[[dog]]s` | a link to the page, the letters after it part of its text |
 | `[[Category:…]]` | nothing; `[[:Category:…]]` is a link |
 | `[https://… text]`, `[https://…]`, `[mailto:…]`, an address in the text | a link |
@@ -126,7 +126,7 @@ template not known is text.
 | Syntax | UJO |
 |---|---|
 | `====== … ======` to `== … ==` | `header`: six signs are the first level, two the fifth |
-| `**bold**`, `//italic//`, `__underline__`, `''monospace''` | `<b>`, `<i>`, `<u>`, `<code>` |
+| `**bold**`, `//italic//`, `__underline__`, `''monospace''` | `<strong>`, `<em>`, `<u>`, `<code>` |
 | `[[page]]`, `[[namespace:page#section\|text]]`, `[[https://…\|text]]`, `[[name@example.com]]` | a link; a link to another wiki, `[[wp>Name]]`, keeps its text alone |
 | `<name@example.com>`, an address in the text | a link |
 | `((text))` | a footnote |
@@ -147,7 +147,7 @@ template not known is text.
 | Syntax | UJO |
 |---|---|
 | `= … =` to `====== … ======` | `header`, its level the signs that open it; those that close it are optional |
-| `**bold**`, `//italic//`; `##monospace##`, `^^superscript^^`, `,,subscript,,`, `__underline__` | `<b>`, `<i>`, `<code>`, `<sup>`, `<sub>`, `<u>`; `//` inside an address is the address |
+| `**bold**`, `//italic//`; `##monospace##`, `^^superscript^^`, `,,subscript,,`, `__underline__` | `<strong>`, `<em>`, `<code>`, `<sup>`, `<sub>`, `<u>`; `//` inside an address is the address |
 | `[[page]]`, `[[page\|text]]`, `[[https://…\|text]]`, `[[page\|{{image.png}}]]` | a link |
 | `{{image.png\|text}}` | `image`, the text its alternative text: Creole has no caption |
 | `{{{text}}}` | `<code>`, the text as written; the braces that close it are the last three of their run |

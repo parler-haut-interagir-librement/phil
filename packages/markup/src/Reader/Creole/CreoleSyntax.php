@@ -49,8 +49,8 @@ final readonly class CreoleSyntax implements Syntax
     public function inline(Cursor $cursor, Spans $spans): Toggle|string|null
     {
         return match ($cursor->current()) {
-            '*' => $this->toggle($cursor, '**', 'b'),
-            '/' => $this->toggle($cursor, '//', 'i'),
+            '*' => $this->toggle($cursor, '**', 'strong'),
+            '/' => $this->toggle($cursor, '//', 'em'),
             '#' => $this->toggle($cursor, '##', 'code'),
             '^' => $this->toggle($cursor, '^^', 'sup'),
             ',' => $this->toggle($cursor, ',,', 'sub'),

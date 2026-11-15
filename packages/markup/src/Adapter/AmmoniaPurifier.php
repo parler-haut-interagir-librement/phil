@@ -25,7 +25,7 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
  * - at `all`, the safe attributes every HTML element keeps are kept on the elements of MathML too;
  * - classes are filtered after the extension, as `CodeClasses` filters them.
  *
- * Five kinds of HTML are given to `SanitizerPurifier` instead, which purifies them faster or checks what the extension
+ * Six kinds of HTML are given to `SanitizerPurifier` instead, which purifies them faster or checks what the extension
  * cannot:
  * - an HTML shorter than `$minimumBytes` (512 bytes by default): the extension rebuilds its policy at each call, about
  *   25 to 45 µs, which a short text does not repay;
@@ -34,6 +34,8 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
  * - an HTML that holds `<noscript`, whose content the HTML5 parser of the extension reads as text, as a browser running
  *   scripts does, and the sanitizer as markup: both outputs are inert, but they keep different elements;
  * - an HTML that is not valid UTF-8, which the extension refuses;
+ * - an HTML that holds `<input`, whose checkboxes the sanitizer writes again as those of a checklist at `all`, any
+ *   other input removed;
  * - at `forum` and `all`, an HTML that holds `src` when images are limited to some hosts.
  *
  * The extension is built for PHP 8.2 to 8.5: `isAvailable()` tells whether it is loaded, and `Purifiers` chooses this
@@ -132,6 +134,7 @@ final readonly class AmmoniaPurifier implements HtmlPurifier
         if (\strlen($html) < $this->minimumBytes
             || substr_count($html, '<') > self::MAXIMUM_TAGS
             || false !== stripos($html, '<noscript')
+            || false !== stripos($html, '<input')
             || !mb_check_encoding($html, 'UTF-8')
             || (null !== $this->hosts && $this->media[$level->value] && false !== stripos($html, 'src'))) {
             return $this->sanitizer->purify($html, $level);

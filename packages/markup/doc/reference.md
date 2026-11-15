@@ -67,7 +67,7 @@ to. [Formats](formats.md) lists, feature by feature, how each format writes it.
 |---|---|---|
 | `basic` | `strong`, `b`, `em`, `i`, `u`, `s`, `del`, `sub`, `sup`, `code`, `br` | a name, a caption, a short comment |
 | `forum` | basic, with `p`, `a`, `img`, `ul`, `ol`, `li`, `blockquote`, `cite`, `pre`, `hr` | a message of a forum |
-| `all` | every element `symfony/html-sanitizer` counts as safe, headings and tables included | an article an editor writes |
+| `all` | every element `symfony/html-sanitizer` counts as safe, headings and tables included, and the disabled checkbox of a checklist item | an article an editor writes |
 
 A container a level does not allow — a paragraph, a list, a heading, a table — is removed and its text kept; any
 other element — a script, a frame, a form, an object — is removed with its content. Every level removes attributes
@@ -91,3 +91,20 @@ members write texts at `forum` gives the hosts it serves images from, or `[]`.
 Purify again what was stored when it is shown: a policy that tightens then applies to texts written before.
 `Purifiers::defaultPolicies()` takes the same hosts, and purifies with the `ammonia` extension where it is loaded:
 see [Accelerators](accelerators.md).
+
+## Checklists
+
+`phil/ujo` renders each item of a `checklist` with a disabled checkbox, `checked` when the item is, in a `<label>` that
+holds the item's text: a screen reader announces a checkbox, its state and its name, and nobody can tick it. The level
+decides what is left of it:
+
+| Level | A checked item, `- [x] done` | Why |
+|---|---|---|
+| `all` | `<li><label><input type="checkbox" disabled checked />done</label></li>` | The checkbox is the accessible form of the state |
+| `forum` | `<li>☑ done</li>` | No `input` is kept below `all`: the state is written as text, `☑` checked and `☐` not, which screen readers name |
+| `basic` | `☑ done` | Lists are removed with their text kept; the state stays in the text |
+
+`DefaultCompiler` writes the state as text below `all` with `CheckboxText`, a filter on the rendered HTML; HTML
+compiled as written loses the state of its checkboxes below `all`. At `all`, `SanitizerPurifier` writes each
+`input` again as `<input type="checkbox" disabled>`, with `checked` when it had it, and removes an input of any other
+type, an input without a type included: no purified text holds a field a reader could type in or submit.

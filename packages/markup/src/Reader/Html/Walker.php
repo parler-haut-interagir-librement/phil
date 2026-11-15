@@ -775,15 +775,27 @@ final class Walker
 
     /**
      * A list, its items the `<li>` it holds — another element it holds is an item too —, a list inside an item its
-     * children; a checklist when every item is checked or not, by `data-checked` or a checkbox.
+     * children; a checklist when every item is checked or not, by `data-checked` or a checkbox at its start. The
+     * checkbox at the start of an item is taken out of its content; in a list some items of which say no state, it is
+     * dropped, a loss.
      *
      * @return list<Block>
      */
     private function listing(Element $element): array
     {
         $items = iterator_to_array($element->children);
-        $checks = array_map($this->checked(...), $items);
+        $boxes = array_map(self::leadingBox(...), $items);
+        $checks = array_map($this->checked(...), $items, $boxes);
         $checklist = [] !== $items && !\in_array(null, $checks, true);
+
+        foreach ($boxes as $box) {
+            if (!$checklist && $box instanceof Element) {
+                $this->context->lose('input', $this->path($box), LossReason::PartialChecklist);
+            }
+
+            $box?->remove();
+        }
+
         $start = filter_var($element->getAttribute('start'), \FILTER_VALIDATE_INT);
         $counter = ['a' => 'lower-alpha', 'A' => 'upper-alpha', 'i' => 'lower-roman', 'I' => 'upper-roman'][$element->getAttribute('type') ?? ''] ?? null;
 
@@ -807,18 +819,45 @@ final class Walker
     }
 
     /**
-     * Whether an item is checked: its `data-checked`, or a checkbox it holds; `null` when it says neither.
+     * Whether an item is checked: its `data-checked`, or the checkbox at its start; `null` when it says neither.
      */
-    private function checked(Element $item): ?bool
+    private function checked(Element $item, ?Element $box): ?bool
     {
         $data = $item->getAttribute('data-checked');
-        $box = array_find(iterator_to_array($item->children), static fn (Element $child): bool => 'input' === $child->localName && 'checkbox' === strtolower($child->getAttribute('type') ?? ''));
 
         return match (true) {
             null !== $data => 'true' === $data,
             $box instanceof Element => $box->hasAttribute('checked'),
             default => null,
         };
+    }
+
+    /**
+     * The checkbox an item starts with, before any text or other element: a child of the item, or the first child of
+     * a `<label>` or a `<p>` the item starts with — `phil/ujo` writes its checkbox in a `<label>`, a loose list puts
+     * it in a paragraph —; `null` when the item starts otherwise.
+     */
+    private static function leadingBox(Element $item, bool $nested = false): ?Element
+    {
+        foreach ($item->childNodes as $child) {
+            if ($child instanceof Comment || ($child instanceof Text && '' === trim($child->data, " \t\n\r\f"))) {
+                continue;
+            }
+
+            return match (true) {
+                !$child instanceof Element => null,
+                self::isCheckbox($child) => $child,
+                !$nested && ('label' === $child->localName || 'p' === $child->localName) => self::leadingBox($child, true),
+                default => null,
+            };
+        }
+
+        return null;
+    }
+
+    private static function isCheckbox(Element $element): bool
+    {
+        return 'input' === $element->localName && 'checkbox' === strtolower($element->getAttribute('type') ?? '');
     }
 
     /**
@@ -859,6 +898,10 @@ final class Walker
     {
         $rows = [];
         $headings = [];
+
+        if ($element->closest('li') instanceof Element) {
+            $this->context->lose('table', $this->path($element), LossReason::TableInListItem);
+        }
 
         foreach ($this->rows($element) as $row) {
             $cells = iterator_to_array($row->children);
@@ -1037,6 +1080,10 @@ final class Walker
 
         if ('math' === $name || 'svg' === $name) {
             return $this->spoken($node, 'math' === $name ? $this->markup($node) : $this->drawing($node));
+        }
+
+        if (self::isCheckbox($node) && $node->closest('li') instanceof Element) {
+            $this->context->lose($name, $this->path($node), LossReason::MisplacedCheckbox);
         }
 
         if (\in_array($name, self::DROPPED, true)) {

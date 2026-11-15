@@ -44,7 +44,7 @@ Inline SVG stays with `phil/svg-sanitizer`, as with the sanitizer.
 
 ### What goes to the sanitizer
 
-`AmmoniaPurifier` gives five kinds of HTML to the `SanitizerPurifier` of the same policies:
+`AmmoniaPurifier` gives six kinds of HTML to the `SanitizerPurifier` of the same policies:
 
 | HTML | Why |
 |---|---|
@@ -52,6 +52,7 @@ Inline SVG stays with `phil/svg-sanitizer`, as with the sanitizer.
 | More than 10,000 tags (`AmmoniaPurifier::MAXIMUM_TAGS`) | The time of an HTML5 parser grows with the square of the depth of the tree, faster in the extension than in the sanitizer: nested `div` elements by the tens of thousands take seconds |
 | Holding `<noscript` | The extension reads its content as text, as a browser running scripts does, the sanitizer as markup: both are inert, but they keep different elements |
 | Not valid UTF-8 | The extension refuses it; the sanitizer gives an empty string |
+| Holding `<input` | The sanitizer writes each checkbox again as the disabled checkbox of a checklist at `all`, and removes any other input |
 | At `forum` and `all`, holding `src`, when `$mediaHosts` is not `null` | The extension cannot check the host of an image |
 
 ## Measures

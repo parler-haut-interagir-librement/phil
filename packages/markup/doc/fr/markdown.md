@@ -1,9 +1,9 @@
-<!-- phil-dev source-sha256=7a4c7c1e7b3b8b90a95d4c9faa09a24f64d418aaa7159d15962b15cf72a3ffd7 -->
+<!-- phil-dev source-sha256=b7651d9573cd7281a10c18a3362fa2030c5d79e1447ac89cef5752816103ddd4 -->
 # Markdown
 
 `Reader\Markdown\MarkdownReader` lit du Markdown et en fait un document UJO. Il ne lance jamais d'exception : une
 construction mal formée reste du texte. Le document est normalisé par `phil/ujo` avant d'être retourné ; son HTML en
-ligne est donc dans la forme canonique des outils en ligne : `<b>`, `<i>`, `<s class="cdx-strikethrough">`,
+ligne est donc dans la forme canonique des outils en ligne : `<strong>`, `<em>`, `<s class="cdx-strikethrough">`,
 `<code class="inline-code">`.
 
 ```php
@@ -23,7 +23,7 @@ troisième donne un `MarkdownDialect`, la syntaxe qu'un dialecte ajoute ou lit a
 | Un paragraphe | `paragraph` ; coupé autour des images qu'il contient, chacune un `image` |
 | `# Heading`, `Heading` au-dessus de `===` ou `---` | `header`, niveau 1 à 6, avec un ajustement `anchor` |
 | `- item`, `+ item`, `* item`, `1. item`, `1) item` | `list`, `unordered` ou `ordered` avec son `start` ; les listes imbriquées sont des éléments imbriqués |
-| `- [ ] task`, `- [x] done`, sur chaque élément | `list`, style `checklist`, chaque élément `checked` |
+| `- [ ] task`, `- [x] done`, sur chaque élément | `list`, style `checklist`, chaque élément `checked` ; voir [Listes de contrôle](reference.md#listes-de-contrôle) pour le rendu de chaque niveau |
 | `> quote` | `quote`, ses blocs repliés dans son texte |
 | Clôture ```` ``` ```` ou `~~~`, indentation de quatre espaces | `code`, le premier mot de la clôture comme `language` |
 | `***`, `---`, `___` | `delimiter` |
@@ -50,7 +50,7 @@ document : un deuxième titre au même texte prend `-1`.
 
 | Markdown | UJO |
 |---|---|
-| `*i*`, `_i_`, `**b**`, `__b__` | `<i>`, `<b>`, appariés comme CommonMark les apparie |
+| `*i*`, `_i_`, `**b**`, `__b__` | `<em>`, `<strong>`, appariés comme CommonMark les apparie : `***x***` donne `<em><strong>x</strong></em>`, `***a** b*` donne `<em><strong>a</strong> b</em>` |
 | `~s~`, `~~s~~` | `<s>` |
 | `==text==` | `<mark>` |
 | `{漢字\|かんじ}` | un ruby : la base et sa lecture, chacune jusqu'à 100 caractères sans accolade ni barre |

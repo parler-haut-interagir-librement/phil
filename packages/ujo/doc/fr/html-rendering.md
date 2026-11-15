@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ca79973b6d23c94fe5bec6b0c8c5cfed6566503b24009e726c5802aebf69eece -->
+<!-- phil-dev source-sha256=b24ba15969e616516a9f08f362defb592ce77aa6ed87210bfdb5ea8eb27878a8 -->
 # Rendu HTML
 
 `HtmlRenderer::render($document)` produit le rendu d'un document, un bloc de premier niveau par ligne, avec le
@@ -27,7 +27,7 @@ Chaque élément racine a la classe `ujo-` suivie de son type en kebab case : `u
 |---|---|
 | `paragraph` | `<p>` |
 | `header` | `<h1>` à `<h6>`, son `id` étant le réglage d'ancre ou l'identifiant du bloc |
-| `list` | `<ul>` ou `<ol>` avec `start` et `type`, classe `ujo-list--{style}`, les listes imbriquées dans leur élément ; un élément de liste de contrôle a `data-checked="true"` ou `"false"` |
+| `list` | `<ul>` ou `<ol>` avec `start` et `type`, classe `ujo-list--{style}`, les listes imbriquées dans leur élément ; un élément de liste de contrôle a `data-checked="true"` ou `"false"`, et commence par une case à cocher (voir [Listes de contrôle](#listes-de-contrôle)) |
 | `quote` | `<figure><blockquote>…</blockquote><figcaption>…</figcaption></figure>`, `ujo-align-center` quand elle est centrée |
 | `warning` | `<aside role="note">` avec `ujo-warning__title` et `ujo-warning__message` |
 | `alert` | `<div role="alert">`, classes `ujo-alert--{type}` et `ujo-align-{align}` |
@@ -61,6 +61,24 @@ Chaque élément racine a la classe `ujo-` suivie de son type en kebab case : `u
 | `definitionList` | `<dl>` |
 | `credit` | `<p>` avec `ujo-credit__title` |
 | `statblock` | `<section>`, classes `ujo-statblock--{kind}`, `ujo-frame`, `ujo-wide`, `data-record` ; le nom dans `<h3>`, les sections avec `<h4>`, une `<dl>` des propriétés et une `<table>` des capacités |
+
+## Listes de contrôle
+
+Chaque élément d'une `checklist` commence par une case à cocher, dans un `<label>` qui contient le texte de l'élément,
+sa liste imbriquée après le `<label>` :
+
+```html
+<ul class="ujo-list ujo-list--checklist">
+  <li data-checked="true"><label><input type="checkbox" disabled checked>Pack the dice</label></li>
+  <li data-checked="false"><label><input type="checkbox" disabled>Print the maps</label></li>
+</ul>
+```
+
+L'état n'est pas qu'un style : un lecteur d'écran annonce une case à cocher, cochée ou non, nommée par le texte de
+l'élément, et `data-checked` dit la même chose aux styles et aux scripts. La case est `disabled`, l'état étant celui du
+document et non au lecteur de le changer ; un site qui laisse ses lecteurs cocher des éléments remplace le moteur de
+rendu de `list`. Un assainisseur en ligne ou un assainisseur qui ne garde pas `input` perd l'état : un assainisseur de
+textes de personnes l'écrit plutôt en texte, comme le fait `phil/markup` sous son niveau `all`.
 
 ## Réglages
 

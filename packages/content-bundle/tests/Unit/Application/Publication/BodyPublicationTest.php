@@ -37,9 +37,14 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UjoBodyConverter::class)]
 final class BodyPublicationTest extends TestCase
 {
-    private const string HEADING_AND_PARAGRAPH = '{"time":1793462400000,"blocks":[{"id":"b1","type":"header","data":{"text":"Ouverture","level":2},"tunes":{"anchor":{"anchor":"ouverture"}}},{"id":"b2","type":"paragraph","data":{"text":"Le site <b>ouvre</b>."}}]}';
+    private const string HEADING_AND_PARAGRAPH = '{"time":1793462400000,"blocks":[{"id":"b1","type":"header","data":{"text":"Ouverture","level":2},"tunes":{"anchor":{"anchor":"ouverture"}}},{"id":"b2","type":"paragraph","data":{"text":"Le site <strong>ouvre</strong>."}}]}';
 
-    private const string HEADING_AND_PARAGRAPH_HTML = "<h2 id=\"ouverture\">Ouverture</h2>\n<p>Le site <b>ouvre</b>.</p>";
+    private const string HEADING_AND_PARAGRAPH_HTML = "<h2 id=\"ouverture\">Ouverture</h2>\n<p>Le site <strong>ouvre</strong>.</p>";
+
+    /**
+     * BBCode writes `[b]`, which UJO keeps as `<b>`, a presentational bold.
+     */
+    private const string BBCODE_HTML = "<h2 id=\"ouverture\">Ouverture</h2>\n<p>Le site <b>ouvre</b>.</p>";
 
     private InMemoryContents $contents;
 
@@ -66,7 +71,7 @@ final class BodyPublicationTest extends TestCase
         $live = $this->manager->live($reference, 'fr');
         self::assertSame($ujo, $live['bodySource']);
         self::assertSame('ujo', $live['bodyFormat']);
-        self::assertSame(self::HEADING_AND_PARAGRAPH_HTML, $live['bodyHtml']);
+        self::assertSame('bbcode' === $format ? self::BBCODE_HTML : self::HEADING_AND_PARAGRAPH_HTML, $live['bodyHtml']);
     }
 
     /**
@@ -75,14 +80,14 @@ final class BodyPublicationTest extends TestCase
     public static function formats(): iterable
     {
         $bbcode = '{"time":1793462400000,"blocks":[{"id":"b2","type":"header","data":{"text":"Ouverture","level":2},"tunes":{"anchor":{"anchor":"ouverture"}}},{"id":"b3","type":"paragraph","data":{"text":"Le site <b>ouvre</b>."}}]}';
-        $ujo = '{"blocks":[{"id":"ouverture","type":"header","data":{"text":"Ouverture","level":2}},{"id":"p","type":"paragraph","data":{"text":"Le site <b>ouvre</b>."}}]}';
+        $ujo = '{"blocks":[{"id":"ouverture","type":"header","data":{"text":"Ouverture","level":2}},{"id":"p","type":"paragraph","data":{"text":"Le site <strong>ouvre</strong>."}}]}';
 
         yield 'Markdown' => ['markdown', "## Ouverture\n\nLe site **ouvre**.", self::HEADING_AND_PARAGRAPH_HTML, self::HEADING_AND_PARAGRAPH];
-        yield 'BBCode' => ['bbcode', "[h2]Ouverture[/h2]\n\nLe site [b]ouvre[/b].", self::HEADING_AND_PARAGRAPH_HTML, $bbcode];
+        yield 'BBCode' => ['bbcode', "[h2]Ouverture[/h2]\n\nLe site [b]ouvre[/b].", self::BBCODE_HTML, $bbcode];
         yield 'MediaWiki' => ['mediawiki', "== Ouverture ==\n\nLe site '''ouvre'''.", self::HEADING_AND_PARAGRAPH_HTML, self::HEADING_AND_PARAGRAPH];
         yield 'DokuWiki' => ['dokuwiki', "===== Ouverture =====\n\nLe site **ouvre**.", self::HEADING_AND_PARAGRAPH_HTML, self::HEADING_AND_PARAGRAPH];
         yield 'Creole' => ['creole', "== Ouverture\n\nLe site **ouvre**.", self::HEADING_AND_PARAGRAPH_HTML, self::HEADING_AND_PARAGRAPH];
-        yield 'HTML, compiled as written in the draft' => ['html', '<h2 id="ouverture">Ouverture</h2><p>Le site <b>ouvre</b>.</p>', '<h2 id="ouverture">Ouverture</h2><p>Le site <b>ouvre</b>.</p>', self::HEADING_AND_PARAGRAPH];
+        yield 'HTML, compiled as written in the draft' => ['html', '<h2 id="ouverture">Ouverture</h2><p>Le site <strong>ouvre</strong>.</p>', '<h2 id="ouverture">Ouverture</h2><p>Le site <strong>ouvre</strong>.</p>', self::HEADING_AND_PARAGRAPH];
         yield 'UJO, dated with the publication' => ['ujo', $ujo, self::HEADING_AND_PARAGRAPH_HTML, '{"time":1793462400000,'.substr($ujo, 1)];
     }
 
@@ -106,7 +111,7 @@ final class BodyPublicationTest extends TestCase
         $this->manager->edit($reference, 'fr', ['bodySource' => '[b]Fermé[/b]', 'bodyFormat' => 'bbcode']);
 
         self::assertSame('bbcode', $this->manager->draft($reference, 'fr')['bodyFormat']);
-        self::assertSame('<p>Le site <b>ouvre</b>.</p>', $this->manager->live($reference, 'fr')['bodyHtml']);
+        self::assertSame('<p>Le site <strong>ouvre</strong>.</p>', $this->manager->live($reference, 'fr')['bodyHtml']);
 
         $this->manager->publish($reference, 'fr');
 
@@ -119,7 +124,7 @@ final class BodyPublicationTest extends TestCase
      * published, in its own format, while the live row keeps the UJO.
      */
     #[DataProvider('publishedTexts')]
-    public function testRemovingTheDraftPutsTheTextItsAuthorPublishedBack(string $format, string $source): void
+    public function testRemovingTheDraftPutsTheTextItsAuthorPublishedBack(string $format, string $source, string $html): void
     {
         $reference = $this->manager->create('example', 'fr', ['bodySource' => $source, 'bodyFormat' => $format]);
         $this->manager->publish($reference, 'fr');
@@ -129,18 +134,18 @@ final class BodyPublicationTest extends TestCase
         $draft = $this->manager->draft($reference, 'fr');
         self::assertSame($source, $draft['bodySource']);
         self::assertSame($format, $draft['bodyFormat']);
-        self::assertSame(self::HEADING_AND_PARAGRAPH_HTML, $draft['bodyHtml']);
+        self::assertSame($html, $draft['bodyHtml']);
         self::assertSame('published', $draft['workflowPlace']);
         self::assertSame('ujo', $this->manager->live($reference, 'fr')['bodyFormat']);
     }
 
     /**
-     * @return iterable<string, array{string, string}>
+     * @return iterable<string, array{string, string, string}>
      */
     public static function publishedTexts(): iterable
     {
-        yield 'Markdown' => ['markdown', "## Ouverture\n\nLe site **ouvre**."];
-        yield 'BBCode' => ['bbcode', "[h2]Ouverture[/h2]\n\nLe site [b]ouvre[/b]."];
+        yield 'Markdown' => ['markdown', "## Ouverture\n\nLe site **ouvre**.", self::HEADING_AND_PARAGRAPH_HTML];
+        yield 'BBCode' => ['bbcode', "[h2]Ouverture[/h2]\n\nLe site [b]ouvre[/b].", self::BBCODE_HTML];
     }
 
     /**
@@ -162,7 +167,7 @@ final class BodyPublicationTest extends TestCase
 
         $draft = $this->manager->draft($reference, 'fr');
         self::assertSame('ujo', $draft['bodyFormat']);
-        self::assertSame('{"time":1793462400000,"blocks":[{"id":"b1","type":"paragraph","data":{"text":"Le site <b>ouvre</b>."}}]}', $draft['bodySource']);
+        self::assertSame('{"time":1793462400000,"blocks":[{"id":"b1","type":"paragraph","data":{"text":"Le site <strong>ouvre</strong>."}}]}', $draft['bodySource']);
         self::assertSame('published', $draft['workflowPlace']);
     }
 

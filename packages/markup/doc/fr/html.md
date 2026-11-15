@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8ec2e5dc5f413347a95f45d8b8680b32dcf650179d19ba8527de4693ba6a7588 -->
+<!-- phil-dev source-sha256=1aa7b8a601abd026ff67b5bb1c4aabeeb97030de21ae23c1fcaa1fd3ba28dd69 -->
 # HTML
 
 `Reader\Html\HtmlReader` lit du HTML et en fait un document UJO : le HTML que produit un éditeur par blocs (celui de
@@ -27,7 +27,7 @@ dessins en ligne, et le `SvgSanitizer` qui les assainit.
 | `<p>`, `<address>`, le texte entre les blocs | `paragraph` |
 | `<h1>`…`<h6>` | `header`, son ancre étant l'`id`, ou générée |
 | `<ul>`, `<ol>`, `<menu>`, `<li>` | `list` ; `start` et `type` (`a`, `A`, `i`, `I`) gardés ; un autre élément que contient la liste est aussi un élément ; une liste dans un élément donne ses éléments imbriqués, les autres blocs sont repliés dans son contenu |
-| une case à cocher, ou `data-checked`, dans chaque élément | `list`, style `checklist` |
+| une case à cocher au début de chaque élément (enfant du `<li>`, ou premier enfant d'un `<label>` ou d'un `<p>` par lequel l'élément commence), ou `data-checked` | `list`, style `checklist` ; la case est retirée du contenu de l'élément |
 | `<blockquote>` | `quote` |
 | `<figure>` qui contient `<img>` et `<figcaption>` | `image`, l'`alt` de l'image comme texte de remplacement, le `<figcaption>` comme légende, la mise en page de la figure comme la sienne |
 | `<figure>` qui contient `<blockquote>` et `<figcaption>` | `quote`, la légende comme attribution |
@@ -115,6 +115,9 @@ Ce que le lecteur ne garde pas est listé dans `Reading::$losses`, dans l'ordre 
 | `MissingSource` | une vidéo ou un son sans aucune source gardée |
 | `DataAttribute` | `data-*` sur un élément en ligne : UJO ne les garde que sur les blocs |
 | `Comment` | un commentaire qu'aucun bloc n'a pris comme note |
+| `MisplacedCheckbox` | une case à cocher dans un élément de liste qui n'est pas à son début : elle ne dit aucun état de l'élément, et elle est omise |
+| `PartialChecklist` | une case à cocher au début d'un élément, dans une liste dont certains éléments n'ont ni case à cocher ni `data-checked` : la liste n'est pas une liste de contrôle, et la case est omise |
+| `TableInListItem` | un tableau dans un élément de liste, pour lequel UJO n'a pas de place : le tableau est omis, le reste de l'élément gardé |
 
 Un site les montre à l'auteur avant la publication ; `phil/content-bundle` le fait dans `phil:content:publish`.
 

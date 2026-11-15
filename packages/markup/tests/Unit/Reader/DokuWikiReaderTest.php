@@ -82,8 +82,9 @@ final class DokuWikiReaderTest extends TestCase
     {
         yield 'headings' => ["====== One ======\n===== Two =====\n==== Three ====\n=== Four ===\n== Five ==\n======= Seven =======", "<h1 id=\"one\" class=\"ujo-header\">One</h1>\n<h2 id=\"two\" class=\"ujo-header\">Two</h2>\n<h3 id=\"three\" class=\"ujo-header\">Three</h3>\n<h4 id=\"four\" class=\"ujo-header\">Four</h4>\n<h5 id=\"five\" class=\"ujo-header\">Five</h5>\n<h1 id=\"seven\" class=\"ujo-header\">Seven</h1>"];
         yield 'not headings' => ["= One =\n==\n== ==\n==a", "<p class=\"ujo-paragraph\">= One =\n==\n== ==\n==a</p>"];
-        yield 'emphasis' => ["**b** //i// __u__ ''m'' **//both//**", '<p class="ujo-paragraph"><b>b</b> <i>i</i> <u class="cdx-underline">u</u> <code class="inline-code">m</code> <b><i>both</i></b></p>'];
-        yield 'marks left open or crossing' => ['**a //b** c// __x', '<p class="ujo-paragraph"><b>a //b</b> c// __x</p>'];
+        yield 'emphasis' => ["**b** //i// __u__ ''m'' **//both//**", '<p class="ujo-paragraph"><strong>b</strong> <em>i</em> <u class="cdx-underline">u</u> <code class="inline-code">m</code> <strong><em>both</em></strong></p>'];
+        yield 'emphasis nested the other way' => ['//**x**// //a **b**//', '<p class="ujo-paragraph"><em><strong>x</strong></em> <em>a <strong>b</strong></em></p>'];
+        yield 'marks left open or crossing' => ['**a //b** c// __x', '<p class="ujo-paragraph"><strong>a //b</strong> c// __x</p>'];
         yield 'formatting tags' => ['<del>d</del> <sup>2</sup> <sub>i</sub> <mark>m</mark> <nowiki>**x**</nowiki> %%//y// [[z]]%% %%open', '<p class="ujo-paragraph"><s class="cdx-strikethrough">d</s> <sup>2</sup> <sub>i</sub> <mark class="cdx-marker">m</mark> **x** //y// [[z]] %%open</p>'];
         yield 'line breaks' => ["a\\\\ b\\\\\nc\\\\d \\\\", "<p class=\"ujo-paragraph\">a<br>b<br>\nc\\\\d <br></p>"];
         yield 'links' => ['[[page]] [[ns:Page Name|text]] [[page#Some Section|s]] [[https://example.com|site]] [[www.example.com]] [[a@b.ca]] [[wp>Wiki]] [[wp>Wiki|w]]', '<p class="ujo-paragraph"><a href="/page">page</a> <a href="/ns:page_name">text</a> <a href="/page#some-section">s</a> <a href="https://example.com">site</a> <a href="https://www.example.com">www.example.com</a> <a href="mailto:a@b.ca">a@b.ca</a> wp&gt;Wiki w</p>'];
@@ -91,7 +92,7 @@ final class DokuWikiReaderTest extends TestCase
         yield 'a link around an image' => ['[[page|{{img.png|Alt}}]]', '<p class="ujo-paragraph"><a href="/page">Alt</a></p>'];
         yield 'e-mail addresses' => ['<a@b.ca> <nope> <a@b.ca', '<p class="ujo-paragraph"><a href="mailto:a@b.ca">a@b.ca</a> &lt;nope&gt; &lt;a@b.ca</p>'];
         yield 'addresses in the text' => ['See https://example.com/a//b and www.example.com.', '<p class="ujo-paragraph">See <a href="https://example.com/a//b">https://example.com/a//b</a> and <a href="https://www.example.com">www.example.com</a>.</p>'];
-        yield 'footnotes' => ['a((one //x//)) b((two)) ((open', "<p class=\"ujo-paragraph\">a<sup data-footnote=\"fn-1\"><a href=\"#footnote-fn-1\">1</a></sup> b<sup data-footnote=\"fn-2\"><a href=\"#footnote-fn-2\">2</a></sup> ((open</p>\n<aside id=\"footnote-fn-1\" class=\"ujo-footnote\" role=\"note\">one <i>x</i></aside>\n<aside id=\"footnote-fn-2\" class=\"ujo-footnote\" role=\"note\">two</aside>"];
+        yield 'footnotes' => ['a((one //x//)) b((two)) ((open', "<p class=\"ujo-paragraph\">a<sup data-footnote=\"fn-1\"><a href=\"#footnote-fn-1\">1</a></sup> b<sup data-footnote=\"fn-2\"><a href=\"#footnote-fn-2\">2</a></sup> ((open</p>\n<aside id=\"footnote-fn-1\" class=\"ujo-footnote\" role=\"note\">one <em>x</em></aside>\n<aside id=\"footnote-fn-2\" class=\"ujo-footnote\" role=\"note\">two</aside>"];
         yield 'images' => ['{{img.png}} {{ right.png}} {{left.png }} {{ center.png }}', "<figure class=\"ujo-image\"><img src=\"/img.png\" alt=\"\" loading=\"lazy\"></figure>\n<figure class=\"ujo-image ujo-wrap-right\"><img src=\"/right.png\" alt=\"\" loading=\"lazy\"></figure>\n<figure class=\"ujo-image ujo-wrap-left\"><img src=\"/left.png\" alt=\"\" loading=\"lazy\"></figure>\n<figure class=\"ujo-image ujo-align-center\"><img src=\"/center.png\" alt=\"\" loading=\"lazy\"></figure>"];
         yield 'images sized' => ['{{a.png?200|Caption}} {{b.png?200x100&nolink}} {{c.png?x}} {{https://example.com/d.jpg|Web}}', "<figure class=\"ujo-image\" style=\"width:200px\"><img src=\"/a.png\" alt=\"Caption\" loading=\"lazy\"><figcaption>Caption</figcaption></figure>\n<figure class=\"ujo-image\" style=\"width:200px;height:100px\"><img src=\"/b.png\" alt=\"\" loading=\"lazy\"></figure>\n<figure class=\"ujo-image\"><img src=\"/c.png\" alt=\"\" loading=\"lazy\"></figure>\n<figure class=\"ujo-image\"><img src=\"https://example.com/d.jpg\" alt=\"Web\" loading=\"lazy\"><figcaption>Web</figcaption></figure>"];
         yield 'files linked' => ['{{doc.pdf|The doc}} {{ns:doc.pdf}}', '<p class="ujo-paragraph"><a href="/doc.pdf">The doc</a> <a href="/ns:doc.pdf">ns:doc.pdf</a></p>'];
@@ -99,7 +100,7 @@ final class DokuWikiReaderTest extends TestCase
         yield 'lists' => ["  * one\n    * two\n  * three\n  - four\n    - five", "<ul class=\"ujo-list ujo-list--unordered\"><li>one<ul><li>two</li></ul></li><li>three</li></ul>\n<ol class=\"ujo-list ujo-list--ordered\"><li>four<ol><li>five</li></ol></li></ol>"];
         yield 'lists with tabs' => ["\t* one\n\t\t* two", '<ul class="ujo-list ujo-list--unordered"><li>one<ul><li>two</li></ul></li></ul>'];
         yield 'list kinds changing' => ["  * a\n  - b\n  * c", "<ul class=\"ujo-list ujo-list--unordered\"><li>a</li></ul>\n<ol class=\"ujo-list ujo-list--ordered\"><li>b</li></ol>\n<ul class=\"ujo-list ujo-list--unordered\"><li>c</li></ul>"];
-        yield 'task lists' => ["  * [x] done\n  * [ ] todo", '<ul class="ujo-list ujo-list--checklist"><li data-checked="true">done</li><li data-checked="false">todo</li></ul>'];
+        yield 'task lists' => ["  * [x] done\n  * [ ] todo", '<ul class="ujo-list ujo-list--checklist"><li data-checked="true"><label><input type="checkbox" disabled checked>done</label></li><li data-checked="false"><label><input type="checkbox" disabled>todo</label></li></ul>'];
         yield 'definitions' => ["  = Term : Definition\n  : More\n  = Other\n  : One", '<dl class="ujo-definition-list"><dt>Term</dt><dd>Definition</dd><dd>More</dd><dt>Other</dt><dd>One</dd></dl>'];
         yield 'code by indentation' => ["  code one\n    code two\nafter", "<pre class=\"ujo-code\"><code>code one\n  code two</code></pre>\n<p class=\"ujo-paragraph\">after</p>"];
         yield 'code with a tab' => ["\tcode", '<pre class="ujo-code"><code>code</code></pre>'];
@@ -141,7 +142,7 @@ final class DokuWikiReaderTest extends TestCase
 
     public function testRawHtmlIsKeptForTheSanitizer(): void
     {
-        self::assertSame("<div class=\"ujo-raw\"><div>x</div></div>\n<p class=\"ujo-paragraph\"><b>a</b> <b>y</b></p>", $this->html(new DokuWikiReader(true)->read("<html>\n<div>x</div>\n</html>\n**a** <html><b>y</b></html>")->document->blocks));
+        self::assertSame("<div class=\"ujo-raw\"><div>x</div></div>\n<p class=\"ujo-paragraph\"><strong>a</strong> <b>y</b></p>", $this->html(new DokuWikiReader(true)->read("<html>\n<div>x</div>\n</html>\n**a** <html><b>y</b></html>")->document->blocks));
     }
 
     public function testTheNormalizerCanBeReplaced(): void

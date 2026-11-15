@@ -32,9 +32,9 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 #[CoversClass(ConversionLoss::class)]
 final class UjoBodyConverterTest extends TestCase
 {
-    private const string HEADING_AND_PARAGRAPH = '{"time":1793462400123,"blocks":[{"id":"b1","type":"header","data":{"text":"Ouverture","level":2},"tunes":{"anchor":{"anchor":"ouverture"}}},{"id":"b2","type":"paragraph","data":{"text":"Le site <b>ouvre</b>."}}]}';
+    private const string HEADING_AND_PARAGRAPH = '{"time":1793462400123,"blocks":[{"id":"b1","type":"header","data":{"text":"Ouverture","level":2},"tunes":{"anchor":{"anchor":"ouverture"}}},{"id":"b2","type":"paragraph","data":{"text":"Le site <strong>ouvre</strong>."}}]}';
 
-    private const string HEADING_AND_PARAGRAPH_HTML = "<h2 id=\"ouverture\">Ouverture</h2>\n<p>Le site <b>ouvre</b>.</p>";
+    private const string HEADING_AND_PARAGRAPH_HTML = "<h2 id=\"ouverture\">Ouverture</h2>\n<p>Le site <strong>ouvre</strong>.</p>";
 
     #[DataProvider('formats')]
     public function testEveryFormatIsPublishedAsUjoAndItsHtml(MarkupFormat $format, string $source, string $ujo, string $html): void
@@ -56,7 +56,7 @@ final class UjoBodyConverterTest extends TestCase
             MarkupFormat::BBCode,
             "[h2]Ouverture[/h2]\n\nLe site [b]ouvre[/b].",
             '{"time":1793462400123,"blocks":[{"id":"b2","type":"header","data":{"text":"Ouverture","level":2},"tunes":{"anchor":{"anchor":"ouverture"}}},{"id":"b3","type":"paragraph","data":{"text":"Le site <b>ouvre</b>."}}]}',
-            self::HEADING_AND_PARAGRAPH_HTML,
+            "<h2 id=\"ouverture\">Ouverture</h2>\n<p>Le site <b>ouvre</b>.</p>",
         ];
         yield 'MediaWiki' => [MarkupFormat::MediaWiki, "== Ouverture ==\n\nLe site '''ouvre'''.", self::HEADING_AND_PARAGRAPH, self::HEADING_AND_PARAGRAPH_HTML];
         yield 'DokuWiki' => [MarkupFormat::DokuWiki, "===== Ouverture =====\n\nLe site **ouvre**.", self::HEADING_AND_PARAGRAPH, self::HEADING_AND_PARAGRAPH_HTML];
@@ -122,8 +122,8 @@ final class UjoBodyConverterTest extends TestCase
     {
         $published = $this->converter()->toUjo(Body::of("Le site **ouvre**.\n\n<script>alert(1)</script>", MarkupFormat::Markdown, ''), $this->publishedAt());
 
-        self::assertSame('{"time":1793462400123,"blocks":[{"id":"b1","type":"paragraph","data":{"text":"Le site <b>ouvre</b>."}},{"id":"b2","type":"paragraph","data":{"text":"&lt;script&gt;alert(1)&lt;/script&gt;"}}]}', $published->source);
-        self::assertSame("<p>Le site <b>ouvre</b>.</p>\n<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>", $published->html);
+        self::assertSame('{"time":1793462400123,"blocks":[{"id":"b1","type":"paragraph","data":{"text":"Le site <strong>ouvre</strong>."}},{"id":"b2","type":"paragraph","data":{"text":"&lt;script&gt;alert(1)&lt;/script&gt;"}}]}', $published->source);
+        self::assertSame("<p>Le site <strong>ouvre</strong>.</p>\n<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>", $published->html);
         self::assertSame(Level::Forum, UjoBodyConverter::LEVEL);
     }
 
@@ -148,8 +148,8 @@ final class UjoBodyConverterTest extends TestCase
         $converter = $this->converter(rawHtml: true);
 
         $markdown = $converter->toUjo(Body::of("Le site **ouvre**.\n\n<div><p>Bonjour</p><script>alert(1)</script></div>", MarkupFormat::Markdown, '', true), $this->publishedAt());
-        self::assertSame('{"time":1793462400123,"blocks":[{"id":"b1","type":"paragraph","data":{"text":"Le site <b>ouvre</b>."}},{"id":"b2","type":"raw","data":{"html":"<div><p>Bonjour</p></div>"}}]}', $markdown->source);
-        self::assertSame("<p>Le site <b>ouvre</b>.</p>\n<div><div><p>Bonjour</p></div></div>", $markdown->html);
+        self::assertSame('{"time":1793462400123,"blocks":[{"id":"b1","type":"paragraph","data":{"text":"Le site <strong>ouvre</strong>."}},{"id":"b2","type":"raw","data":{"html":"<div><p>Bonjour</p></div>"}}]}', $markdown->source);
+        self::assertSame("<p>Le site <strong>ouvre</strong>.</p>\n<div><div><p>Bonjour</p></div></div>", $markdown->html);
         self::assertTrue($markdown->rawHtml);
 
         $ujo = $converter->toUjo(Body::of('{"blocks":[{"id":"r","type":"raw","data":{"html":"<p>Bonjour</p>"}}]}', MarkupFormat::Ujo, '', true), $this->publishedAt());

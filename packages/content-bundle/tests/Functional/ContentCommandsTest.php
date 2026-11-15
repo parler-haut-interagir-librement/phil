@@ -83,7 +83,7 @@ final class ContentCommandsTest extends FunctionalTestCase
         self::assertStringNotContainsString('news:', $list->getDisplay(), 'Only the kinds named are listed.');
         self::assertSame(Command::SUCCESS, $list->execute([]));
         self::assertStringContainsString('news:', $list->getDisplay());
-        self::assertStringContainsString('<b>site</b>', (string) $this->request('/fr/news/ouverture')->getContent());
+        self::assertStringContainsString('<strong>site</strong>', (string) $this->request('/fr/news/ouverture')->getContent());
     }
 
     /**

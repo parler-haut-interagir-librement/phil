@@ -182,9 +182,11 @@ return [
                     '\\$split\\[\\] = substr\\(\\$line, 0, \\\\strlen\\(\\$line\\) \\- \\\\strlen\\(\\$found\\[1\\]\\)\\);',
                 ],
             ],
-            // The memo of `Structures::cells()`: see `ArrayItemRemoval`.
+            // The memo of `Structures::cells()`: see `ArrayItemRemoval`. `AmmoniaPurifier::isAvailable()`: see
+            // `LogicalAndSingleSubExprNegation`.
             'LogicalAndAllSubExprNegation' => [
                 'ignoreSourceCodeByRegex' => [
+                    'return \\\\extension_loaded\\(\'ammonia\'\\) && class_exists\\(Builder::class\\);',
                     '\\$missing = null === \\$inner \\&\\& null !== \\$close \\? \\[\\.\\.\\.\\$missing, \\$close\\] : \\$missing;',
                 ],
             ],

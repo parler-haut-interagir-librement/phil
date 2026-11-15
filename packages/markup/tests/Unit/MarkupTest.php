@@ -58,7 +58,7 @@ final class MarkupTest extends TestCase
         $compiler = new DefaultCompiler();
         $ujo = '{"blocks":[{"id":"a","type":"paragraph","data":{"text":"<strong>x</strong>"}},{"id":"r","type":"raw","data":{"html":"<p>r</p>"}}]}';
 
-        self::assertSame('<p class="ujo-paragraph"><b>a</b> <a href="https://example.com">https://example.com</a></p>', $compiler->compile('**a** https://example.com', MarkupFormat::Markdown));
+        self::assertSame('<p class="ujo-paragraph"><strong>a</strong> <a href="https://example.com">https://example.com</a></p>', $compiler->compile('**a** https://example.com', MarkupFormat::Markdown));
         self::assertSame('<p class="ujo-paragraph">&lt;b&gt;x&lt;/b&gt; y</p>', $compiler->compile('<b>x</b> [y](javascript:z)', MarkupFormat::Markdown));
         self::assertSame('<p class="ujo-paragraph"><b>x</b> y</p>', $compiler->compileFor('<b>x</b> [y](javascript:z)', MarkupFormat::Markdown, Level::All));
         self::assertSame('<p class="ujo-paragraph">&lt;b&gt;x&lt;/b&gt;</p>', $compiler->compileFor('<b>x</b>', MarkupFormat::Markdown, Level::Basic));
@@ -69,12 +69,12 @@ final class MarkupTest extends TestCase
         self::assertSame('<p class="ujo-paragraph">&lt;b&gt;</p>', $compiler->compile('[html]<b>[/html]', MarkupFormat::BBCode));
         self::assertSame('<div class="ujo-raw"><b></b></div>', $compiler->compileFor('[html]<b>[/html]', MarkupFormat::BBCode, Level::All));
         self::assertSame('<p>a</p>', $compiler->compile('a', MarkupFormat::Text));
-        self::assertSame('<p class="ujo-paragraph"><b>a</b> &lt;b&gt;</p>', $compiler->compile("'''a''' <html><b></html>", MarkupFormat::MediaWiki));
-        self::assertSame('<p class="ujo-paragraph"><b>a</b> <b></b></p>', $compiler->compileFor("'''a''' <html><b></html>", MarkupFormat::MediaWiki, Level::All));
-        self::assertSame('<p class="ujo-paragraph"><i>a</i> &lt;b&gt;</p>', $compiler->compile('//a// <html><b></html>', MarkupFormat::DokuWiki));
-        self::assertSame('<p class="ujo-paragraph"><i>a</i> <b></b></p>', $compiler->compileFor('//a// <html><b></html>', MarkupFormat::DokuWiki, Level::All));
-        self::assertSame('<p class="ujo-paragraph"><b>a</b> &lt;b&gt;</p>', $compiler->compile('**a** <<html>><b><</html>>', MarkupFormat::Creole));
-        self::assertSame('<p class="ujo-paragraph"><b>a</b> <b></b></p>', $compiler->compileFor('**a** <<html>><b><</html>>', MarkupFormat::Creole, Level::All));
+        self::assertSame('<p class="ujo-paragraph"><strong>a</strong> &lt;b&gt;</p>', $compiler->compile("'''a''' <html><b></html>", MarkupFormat::MediaWiki));
+        self::assertSame('<p class="ujo-paragraph"><strong>a</strong> <b></b></p>', $compiler->compileFor("'''a''' <html><b></html>", MarkupFormat::MediaWiki, Level::All));
+        self::assertSame('<p class="ujo-paragraph"><em>a</em> &lt;b&gt;</p>', $compiler->compile('//a// <html><b></html>', MarkupFormat::DokuWiki));
+        self::assertSame('<p class="ujo-paragraph"><em>a</em> <b></b></p>', $compiler->compileFor('//a// <html><b></html>', MarkupFormat::DokuWiki, Level::All));
+        self::assertSame('<p class="ujo-paragraph"><strong>a</strong> &lt;b&gt;</p>', $compiler->compile('**a** <<html>><b><</html>>', MarkupFormat::Creole));
+        self::assertSame('<p class="ujo-paragraph"><strong>a</strong> <b></b></p>', $compiler->compileFor('**a** <<html>><b><</html>>', MarkupFormat::Creole, Level::All));
         self::assertSame(['markdown', 'html', 'bbcode', 'mediawiki', 'dokuwiki', 'creole', 'text', 'ujo'], MarkupFormat::values());
         self::assertSame(['basic', 'forum', 'all'], array_map(static fn (Level $level): string => $level->value, Level::cases()));
     }
@@ -119,7 +119,7 @@ final class MarkupTest extends TestCase
         $compiler = new DefaultCompiler(null, ['shout' => $provider, 'a-1' => $provider, 'abcdefghijklmnop' => $provider]);
 
         self::assertSame(['markdown', 'html', 'bbcode', 'mediawiki', 'dokuwiki', 'creole', 'text', 'ujo', 'shout', 'a-1', 'abcdefghijklmnop'], $compiler->formats());
-        self::assertSame('<p class="ujo-paragraph"><b>a</b></p>', $compiler->compile('**a**', 'shout'));
+        self::assertSame('<p class="ujo-paragraph"><strong>a</strong></p>', $compiler->compile('**a**', 'shout'));
         self::assertSame('<div class="ujo-raw"><div>x</div></div>', $compiler->compileFor('<div>x</div>', 'shout', Level::All));
         self::assertSame('<p class="ujo-paragraph">&lt;div&gt;x&lt;/div&gt;</p>', $compiler->compileFor('<div>x</div>', 'shout', Level::Forum));
         self::assertInstanceOf(MarkdownReader::class, $compiler->reader('shout'));
@@ -201,16 +201,38 @@ final class MarkupTest extends TestCase
         self::assertSame('', PlainText::compile(" \n\n "));
     }
 
+    /**
+     * @return iterable<string, array{MarkupFormat, string}>
+     */
+    public static function emphasis(): iterable
+    {
+        yield 'markdown' => [MarkupFormat::Markdown, '***a*** __b__ _c_'];
+        yield 'mediawiki' => [MarkupFormat::MediaWiki, "'''''a''''' '''b''' ''c''"];
+        yield 'dokuwiki' => [MarkupFormat::DokuWiki, '**//a//** **b** //c//'];
+        yield 'creole' => [MarkupFormat::Creole, '**//a//** **b** //c//'];
+    }
+
+    #[DataProvider('emphasis')]
+    public function testStrongImportanceAndStressEmphasisPassEveryLevel(MarkupFormat $format, string $source): void
+    {
+        $markup = new Markup(new DefaultCompiler(), SanitizerPurifier::defaultPolicies());
+
+        foreach (Level::cases() as $level) {
+            self::assertStringContainsString('<strong>b</strong> <em>c</em>', $markup->toHtml($source, $format, $level), $level->value);
+            self::assertMatchesRegularExpression('~<(strong|em)><(strong|em)>a</\\2></\\1>~', $markup->toHtml($source, $format, $level), $level->value);
+        }
+    }
+
     public function testEachLevelKeepsWhatItAllows(): void
     {
         $markup = new Markup(new DefaultCompiler(), SanitizerPurifier::defaultPolicies());
 
         $basic = $markup->toHtml(self::MARKDOWN, MarkupFormat::Markdown, Level::Basic);
-        self::assertSame('Titre Un <b>gras</b> et lien un cité ab &lt;script&gt;x&lt;/script&gt; js', $this->words($basic));
+        self::assertSame('Titre Un <strong>gras</strong> et lien un cité ab &lt;script&gt;x&lt;/script&gt; js', $this->words($basic));
         self::assertStringNotContainsString('<img', $basic);
 
         $forum = $markup->toHtml(self::MARKDOWN, MarkupFormat::Markdown, Level::Forum);
-        self::assertSame('Titre <p>Un <b>gras</b> et <a href="https://example.com">lien</a></p> <img src="https://example.com/a.png" alt="Logo" /> <ul><li>un</li></ul> <blockquote>cité</blockquote> ab <p>&lt;script&gt;x&lt;/script&gt;</p> <p>js</p>', $this->words($forum));
+        self::assertSame('Titre <p>Un <strong>gras</strong> et <a href="https://example.com">lien</a></p> <img src="https://example.com/a.png" alt="Logo" /> <ul><li>un</li></ul> <blockquote>cité</blockquote> ab <p>&lt;script&gt;x&lt;/script&gt;</p> <p>js</p>', $this->words($forum));
 
         $all = $markup->toHtml(self::MARKDOWN, MarkupFormat::Markdown);
         self::assertStringContainsString('<h1 id="titre">Titre</h1>', $all);

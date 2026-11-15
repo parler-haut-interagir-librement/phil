@@ -58,8 +58,8 @@ final readonly class DokuWikiSyntax implements Syntax
     public function inline(Cursor $cursor, Spans $spans): Toggle|string|null
     {
         return match ($cursor->current()) {
-            '*' => $this->toggle($cursor, '**', 'b'),
-            '/' => $this->toggle($cursor, '//', 'i'),
+            '*' => $this->toggle($cursor, '**', 'strong'),
+            '/' => $this->toggle($cursor, '//', 'em'),
             '_' => $this->toggle($cursor, '__', 'u'),
             "'" => $this->toggle($cursor, "''", 'code'),
             '(' => $this->footnote($cursor, $spans),

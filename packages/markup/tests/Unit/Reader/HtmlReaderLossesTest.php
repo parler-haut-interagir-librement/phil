@@ -102,6 +102,37 @@ final class HtmlReaderLossesTest extends TestCase
         ], array_map(static fn (Loss $loss): array => [$loss->element, $loss->path, $loss->reason], $reading->losses));
     }
 
+    /**
+     * @return iterable<string, array{string, string, list<array{string, string, LossReason}>}>
+     */
+    public static function checklists(): iterable
+    {
+        yield 'boxes at the start, in a label or a paragraph' => ['<ul><li> <!-- c --><input type="checkbox" checked> a</li><li><label><input type="checkbox">b</label></li><li><p><input type="checkbox" checked>c</p></li></ul>', '<ul class="ujo-list ujo-list--checklist"><li data-checked="true"><label><input type="checkbox" disabled checked>a</label></li><li data-checked="false"><label><input type="checkbox" disabled>b</label></li><li data-checked="true"><label><input type="checkbox" disabled checked>c</label></li></ul>', [['#comment', 'body > ul[1] > li[1]', LossReason::Comment]]];
+        yield 'a box after the text' => ['<ul><li>a <input type="checkbox" checked></li><li><input type="checkbox"> b</li></ul>', '<ul class="ujo-list ujo-list--unordered"><li>a</li><li>b</li></ul>', [['input', 'body > ul[1] > li[2] > input[1]', LossReason::PartialChecklist], ['input', 'body > ul[1] > li[1] > input[1]', LossReason::MisplacedCheckbox]]];
+        yield 'a second box' => ['<ul><li><input type="checkbox" checked>a<input type="checkbox"></li></ul>', '<ul class="ujo-list ujo-list--checklist"><li data-checked="true"><label><input type="checkbox" disabled checked>a</label></li></ul>', [['input', 'body > ul[1] > li[1] > input[1]', LossReason::MisplacedCheckbox]]];
+        yield 'a box after an element' => ['<ul><li data-checked="true"><b>a</b><input type="checkbox"></li></ul>', '<ul class="ujo-list ujo-list--checklist"><li data-checked="true"><label><input type="checkbox" disabled checked><b>a</b></label></li></ul>', [['input', 'body > ul[1] > li[1] > input[1]', LossReason::MisplacedCheckbox]]];
+        yield 'a box two elements deep' => ['<ul><li><span><b><input type="checkbox"></b></span>a</li></ul>', '<ul class="ujo-list ujo-list--unordered"><li><b></b>a</li></ul>', [['input', 'body > ul[1] > li[1] > span[1] > b[1] > input[1]', LossReason::MisplacedCheckbox]]];
+        yield 'a box in a span' => ['<ul><li><span><input type="checkbox" checked>a</span></li></ul>', '<ul class="ujo-list ujo-list--unordered"><li>a</li></ul>', [['input', 'body > ul[1] > li[1] > span[1] > input[1]', LossReason::MisplacedCheckbox]]];
+        yield 'a box in a label in a paragraph' => ['<ul><li><p><label><input type="checkbox" checked>a</label></p></li></ul>', '<ul class="ujo-list ujo-list--unordered"><li>a</li></ul>', [['input', 'body > ul[1] > li[1] > p[1] > label[1] > input[1]', LossReason::MisplacedCheckbox]]];
+        yield 'a box in a paragraph after text' => ['<ul><li>x<p><input type="checkbox" checked>a</p></li></ul>', '<ul class="ujo-list ujo-list--unordered"><li>x<br>a</li></ul>', [['input', 'body > ul[1] > li[1] > p[1] > input[1]', LossReason::MisplacedCheckbox]]];
+        yield 'a box in a list where an item has none' => ['<ul><li><input type="checkbox" checked>a</li><li>b</li></ul>', '<ul class="ujo-list ujo-list--unordered"><li>a</li><li>b</li></ul>', [['input', 'body > ul[1] > li[1] > input[1]', LossReason::PartialChecklist]]];
+        yield 'a box outside a list' => ['<p>a <input type="checkbox" checked></p>', '<p class="ujo-paragraph">a</p>', []];
+        yield 'an input that is no box' => ['<ul><li><input type="text">a</li></ul>', '<ul class="ujo-list ujo-list--unordered"><li>a</li></ul>', []];
+        yield 'a table in an item' => ['<ul><li>a<table><tr><td>x</td></tr></table>b</li><li><div><table><tr><td>y</td></tr></table></div></li></ul><table><tr><td>z</td></tr></table>', "<ul class=\"ujo-list ujo-list--unordered\"><li>a<br>b</li><li></li></ul>\n<table class=\"ujo-table\"><tbody><tr><td>z</td></tr></tbody></table>", [['table', 'body > ul[1] > li[1] > table[1]', LossReason::TableInListItem], ['table', 'body > ul[1] > li[2] > div[1] > table[1]', LossReason::TableInListItem]]];
+    }
+
+    /**
+     * @param list<array{string, string, LossReason}> $losses
+     */
+    #[DataProvider('checklists')]
+    public function testACheckboxOutOfPlaceAndATableInAnItemAreLosses(string $source, string $html, array $losses): void
+    {
+        $reading = new HtmlReader()->read($source);
+
+        self::assertSame($html, HtmlRenderer::default()->render($reading->document));
+        self::assertSame($losses, array_map(static fn (Loss $loss): array => [$loss->element, $loss->path, $loss->reason], $reading->losses));
+    }
+
     public function testLossesAreCountedUpToTheirLimit(): void
     {
         self::assertCount(Context::MAX_LOSSES, new HtmlReader()->read('<p>'.str_repeat('<object></object>', Context::MAX_LOSSES + 5).'</p>')->losses);

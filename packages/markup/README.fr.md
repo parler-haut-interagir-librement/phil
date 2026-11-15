@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4d17fb12f17586974d7d1fe56e4d36393b7f4de48f6ae794930a3f3e734dd0e0 -->
+<!-- phil-dev source-sha256=55a1097839c69d2c6ffd04b535f41f7cf2b6a56d254bb6bd79e795c6eb06873a -->
 # phil/markup
 
 **Du Markdown, du BBCode, du MediaWiki, du DokuWiki, du Creole, de l'UJO, du HTML ou du texte brut, changés en HTML
@@ -17,10 +17,12 @@ Creole lisent la syntaxe native de chaque wiki et les extensions qu'ils partagen
 siennes (balises `<note>`, `<ref>`, modèles `{{TOC}}`, macros `~~PAGEBREAK~~`, espaces réservés `<<footnote>>`) : là
 encore, toutes les fonctionnalités du lecteur Markdown. Le HTML est compilé tel qu'il est écrit, et son lecteur le
 convertit en UJO : le HTML de `phil/ujo` est relu en ses blocs, un collage et des textes plus anciens en les leurs. Le
-texte brut est compilé directement en HTML, et son lecteur le convertit en paragraphes UJO. `basic` garde l'emphase en
-ligne, pour un nom ou un commentaire ; `forum` ajoute les paragraphes, les liens, les listes, les citations et les
-images, pour un message de forum ; `all` garde chaque élément que l'assainisseur considère comme sûr, pour un article
-qu'écrit un rédacteur. `MarkedUpText` garde ensemble la source, son format et le HTML assaini, sous forme d'objet
+texte brut est compilé directement en HTML, et son lecteur le convertit en paragraphes UJO. Le gras et l'italique de
+Markdown et des wikis sont l'importance forte `<strong>` et l'emphase d'insistance `<em>`, comme CommonMark les écrit.
+`basic` garde l'emphase en ligne, pour un nom ou un commentaire ; `forum` ajoute les paragraphes, les liens, les listes,
+les citations et les images, pour un message de forum ; `all` garde chaque élément que l'assainisseur considère comme
+sûr, pour un article qu'écrit un rédacteur. Une liste de contrôle garde ses cases à cocher accessibles à `all` et dit
+l'état de chaque élément en texte en dessous. `MarkedUpText` garde ensemble la source, son format et le HTML assaini, sous forme d'objet
 intégrable (*embeddable*) Doctrine, pour qu'une page ne soit pas compilée à chaque lecture. Il ne plafonne pas la
 longueur de l'entrée. Un module complémentaire apporte un dialecte de Markdown (ses règles en ligne et de bloc, la
 syntaxe qu'il lit autrement) ou un format entier, lu par un lecteur à lui sous un nom à lui.
@@ -76,7 +78,7 @@ assainisseur.
 | [Exceptions](doc/fr/exceptions.md) | `MarkupException`, `InvalidSource`, `MissingExtension` et `UnknownFormat`. |
 | [Points d'extension](doc/fr/extension-points.md) | Les ports, arguments et données qu'une application choisit ou remplace, les dialectes de Markdown et les formats des modules complémentaires. |
 | [Tests](doc/fr/testing.md) | Comment la bibliothèque est testée. |
-| [Référence](doc/fr/reference.md) | Les types, les formats, les niveaux et ce que garde chacun. |
+| [Référence](doc/fr/reference.md) | Les types, les formats, les niveaux et ce que garde chacun, et comment chaque niveau produit le rendu d'une liste de contrôle. |
 
 ## Démarrage rapide
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=eff8793a56b0f63b37a627ec507ef7dbd688f868543bd6fb49133d7194e2cc66 -->
+<!-- phil-dev source-sha256=37dec2ac541412fa25a34b1b1369fbd0f14290e82eb7a28f89858a314468a882 -->
 # Accélérateurs
 
 La bibliothèque fonctionne en PHP simple. Une extension de PHP, quand elle est chargée, assainit plus vite : `ammonia`,
@@ -47,7 +47,7 @@ Le SVG en ligne reste à `phil/svg-sanitizer`, comme avec l'assainisseur.
 
 ### Ce qui va à l'assainisseur
 
-`AmmoniaPurifier` donne cinq sortes de HTML au `SanitizerPurifier` des mêmes politiques :
+`AmmoniaPurifier` donne six sortes de HTML au `SanitizerPurifier` des mêmes politiques :
 
 | HTML | Pourquoi |
 |---|---|
@@ -55,6 +55,7 @@ Le SVG en ligne reste à `phil/svg-sanitizer`, comme avec l'assainisseur.
 | Plus de 10 000 balises (`AmmoniaPurifier::MAXIMUM_TAGS`) | Le temps d'un analyseur HTML5 croît avec le carré de la profondeur de l'arbre, plus vite dans l'extension que dans l'assainisseur : des éléments `div` imbriqués par dizaines de milliers prennent des secondes |
 | Contenant `<noscript` | L'extension lit son contenu comme du texte, comme le fait un navigateur qui exécute des scripts, l'assainisseur comme du balisage : les deux sont inertes, mais ils gardent des éléments différents |
 | Qui n'est pas de l'UTF-8 valide | L'extension le refuse ; l'assainisseur donne une chaîne vide |
+| Contenant `<input` | L'assainisseur réécrit chaque case à cocher comme la case désactivée d'une liste de contrôle à `all`, et retire tout autre champ `input` |
 | À `forum` et `all`, contenant `src`, quand `$mediaHosts` n'est pas `null` | L'extension ne peut pas vérifier l'hôte d'une image |
 
 ## Mesures
