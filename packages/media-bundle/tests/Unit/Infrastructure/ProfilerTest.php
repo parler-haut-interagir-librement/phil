@@ -6,6 +6,7 @@ namespace Phil\MediaBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
 use Override;
+use Phil\MediaBundle\Application\Contract\StreamingMediaStorage;
 use Phil\MediaBundle\Application\ImageFormat;
 use Phil\MediaBundle\Application\MediaLibrary;
 use Phil\MediaBundle\Application\MediaStorage;
@@ -128,6 +129,52 @@ final class ProfilerTest extends TestCase
             ['operation' => 'stream', 'key' => 'originals/a/2/a.txt', 'bytes' => 0, 'found' => false],
             ['operation' => 'stream', 'key' => 'originals/a/1/a.txt', 'bytes' => 3, 'found' => true],
         ], $trace->storage());
+    }
+
+    public function testAStreamOfUnknownSizeIsNotedAsEmpty(): void
+    {
+        $trace = new MediaTrace();
+        $inner = new class implements StreamingMediaStorage {
+            #[Override]
+            public function write(string $key, string $contents): void
+            {
+            }
+
+            #[Override]
+            public function read(string $key): ?string
+            {
+                return null;
+            }
+
+            /**
+             * @return resource
+             */
+            #[Override]
+            public function readStream(string $key): mixed
+            {
+                $stream = fopen('phil-media-unknown-size://'.$key, 'r');
+                \assert(false !== $stream);
+
+                return $stream;
+            }
+
+            #[Override]
+            public function deletePrefix(string $prefix): void
+            {
+            }
+        };
+
+        stream_wrapper_register('phil-media-unknown-size', UnknownSizeStream::class);
+
+        try {
+            $stream = new TraceableMediaStorage($inner, $trace)->readStream('a');
+        } finally {
+            stream_wrapper_unregister('phil-media-unknown-size');
+        }
+
+        self::assertNotNull($stream);
+        fclose($stream);
+        self::assertSame([['operation' => 'stream', 'key' => 'a', 'bytes' => 0, 'found' => true]], $trace->storage());
     }
 
     public function testTheHitsAreRenderingsFoundInTheStorage(): void
