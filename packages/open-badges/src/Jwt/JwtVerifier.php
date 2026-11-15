@@ -92,7 +92,7 @@ final readonly class JwtVerifier
      */
     public static function peek(string $token): array
     {
-        $parts = \strlen($token) > self::MAX_LENGTH ? [] : explode('.', $token, 4);
+        $parts = \strlen($token) > self::MAX_LENGTH ? [] : explode('.', $token);
 
         if (3 !== \count($parts)) {
             throw InvalidCredential::because('A credential token has three parts separated by dots.');

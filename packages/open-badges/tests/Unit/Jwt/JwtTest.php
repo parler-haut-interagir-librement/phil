@@ -92,4 +92,16 @@ final class JwtTest extends TestCase
         $this->expectExceptionObject(InvalidCredential::because('A credential token has three parts separated by dots.'));
         JwtVerifier::peek('a.b');
     }
+
+    public function testPeekRefusesMoreThanThreeParts(): void
+    {
+        foreach (['a.b.c.d', 'a.b.c.d.e'] as $token) {
+            try {
+                JwtVerifier::peek($token);
+                self::fail('A token of more than three parts was read.');
+            } catch (InvalidCredential $invalidCredential) {
+                self::assertSame('A credential token has three parts separated by dots.', $invalidCredential->getMessage());
+            }
+        }
+    }
 }

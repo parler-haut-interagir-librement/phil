@@ -157,6 +157,36 @@ final class EddsaRdfc2022Test extends TestCase
         $suite->verify($secured, new DidKeyMethods([self::METHOD => $key]));
     }
 
+    public function testAKeyOrASignatureThatCannotVerifyIsRefusedBeforeTheDocumentIsRead(): void
+    {
+        $secured = $this->suite()->sign($this->alumni(), $this->signer(), self::METHOD, new DateTimeImmutable('2023-02-24T23:36:38Z'));
+        $proof = $secured['proof'];
+        self::assertIsArray($proof);
+        self::assertIsString($proof['proofValue']);
+        $short = $secured;
+        $short['proof'] = ['proofValue' => 'z'.Base58Btc::encode(substr(Base58Btc::decode(substr($proof['proofValue'], 1)), 1))] + $proof;
+        $rsa = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => \OPENSSL_KEYTYPE_RSA]);
+        self::assertNotFalse($rsa);
+        openssl_pkey_export($rsa, $pem);
+        self::assertIsString($pem);
+
+        // A suite that does not know the context of the document would refuse it with another reason, were it read.
+        $blind = new EddsaRdfc2022();
+        $cases = [
+            [$secured, RsaSigner::fromPem($pem)->verificationKey()],
+            [$short, $this->signer()->verificationKey()],
+        ];
+
+        foreach ($cases as [$document, $key]) {
+            try {
+                $blind->verify($document, new DidKeyMethods([self::METHOD => $key]));
+                self::fail('A proof that cannot verify was accepted.');
+            } catch (InvalidCredential $refused) {
+                self::assertSame('The signature of the credential does not verify.', $refused->getMessage());
+            }
+        }
+    }
+
     public function testAKeyOfAnotherAlgorithmDoesNotVerify(): void
     {
         $suite = $this->suite();

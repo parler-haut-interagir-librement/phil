@@ -505,6 +505,14 @@ final class CredentialIssuerTest extends TestCase
         RsaSigner::fromPem($private);
     }
 
+    public function testAnRsaKeyOf8192BitsIsTheLargestRead(): void
+    {
+        $pem = file_get_contents(__DIR__.'/../Fixtures/rsa-8192.pem');
+        self::assertIsString($pem);
+
+        self::assertSame(8192, RsaKey::bits(Base64Url::decode(RsaSigner::fromPem($pem)->publicJwk()['n'])));
+    }
+
     public function testAnRsaSignerIsAnRsaKey(): void
     {
         $this->expectExceptionObject(InvalidBadge::because('The key is not an RSA private key.'));

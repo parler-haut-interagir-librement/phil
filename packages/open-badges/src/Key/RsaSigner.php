@@ -47,7 +47,7 @@ final readonly class RsaSigner implements Signer
             throw InvalidBadge::because('The key is not an RSA private key.');
         }
 
-        $bits = RsaKey::bits(ltrim(RsaKey::decode($jwk->get('n')), "\x00"));
+        $bits = RsaKey::bits(RsaKey::decode($jwk->get('n')));
 
         if ($bits < self::MIN_BITS || $bits > self::MAX_BITS) {
             throw InvalidBadge::because(\sprintf('An RSA key has %d to %d bits; this one has %d.', self::MIN_BITS, self::MAX_BITS, $bits));
