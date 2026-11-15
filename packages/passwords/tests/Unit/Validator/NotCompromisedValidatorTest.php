@@ -56,6 +56,9 @@ final class NotCompromisedValidatorTest extends ConstraintValidatorTestCase
             ->setCode(NotCompromised::COMPROMISED_ERROR)
             ->setInvalidValue('')
             ->assertRaised();
+
+        // The occurrences are an integer, which the comparison of the violations above does not tell.
+        self::assertSame(['{{ occurrences }}' => 3], $this->context->getViolations()[0]?->getParameters());
     }
 
     public function testTheThreshold(): void

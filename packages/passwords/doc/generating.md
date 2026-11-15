@@ -38,12 +38,13 @@ $generator->entropyBits(new PassphrasePolicy());
 | Member of `PassphrasePolicy` | Default | Effect |
 |---|---|---|
 | `words` | 7 | 3 to 64 words, each drawn uniformly and independently. |
-| `separator` | `-` | Up to 8 bytes and no letter, so that it never merges with the words; may be empty. |
+| `separator` | `-` | Up to 8 bytes and no letter, so that it never merges with the words; may be empty when the words still read back ([below](#passphrases-that-read-back)). |
 | `capitalization` | `Capitalization::None` | `First` capitalises the first word, `Words` every word, `Random` each word at random. |
 | `includeDigit` | `false` | Appends a random digit to a random word. |
 
 `entropyBits()` counts the words for an attacker who knows the list and the policy: `words × log2(list size)`, and
-`log2(10 × words)` with the digit. Seven words of the bundled lists give 66 to 70 bits.
+`log2(10 × words)` with the digit. Seven words of the bundled lists give 66 to 70 bits. Both methods refuse, with
+`InvalidPolicy`, a policy whose passphrases do not read back; `accepts($policy)` tells beforehand.
 
 Capitalisation is counted on the forms it writes, as Shannon entropy over the equally likely draws of a word. Of `n`
 draws, a form written by `c` of them makes the entropy `log2(n) − Σ c·log2(c) / n`:
@@ -59,6 +60,37 @@ A list whose words each give a capitalised form of their own, as the bundled lis
 without case), a word already capitalised, or two words that differ only by the case of their first letter give less.
 `Wordlist::bitsPerCapitalisedWord()` and `bitsPerRandomlyCapitalisedWord()` hold the result, which `Wordlist::of()`
 computes once, when it reads the list.
+
+### Passphrases that read back
+
+The entropy counts the draws — each word as written, and with the digit the word that takes it and the digit. It
+holds only if two different draws never write the same passphrase: otherwise an attacker has fewer passphrases to try
+than the draws say. The generator therefore accepts a policy only when every passphrase it writes gives back its
+draws, and refuses the others rather than counting them lower, since no bound below the count can be read from the
+list alone.
+
+| Policy | What could write the same passphrase | Accepted |
+|---|---|---|
+| A separator that no word holds | Nothing: the separator closes each word. | Always. |
+| A separator that a word holds, such as `-` with `well-known` | `well` + `-` + `known` and `well-known`. | When the words still read back. |
+| No separator | Compound words: `week` + `end` and `weekend`, all three in the English list. | When the words still read back: with the bundled lists, only with `Capitalization::Words`, whose capitals start each word (`WeekEnd`, `Weekend`). |
+| The digit, on a list holding `ab` and `ab1` | `ab` + `1` and `ab1`: the passphrase does not tell which word took the digit. | Never: `InvalidPolicy` names the digit. |
+| The digit, on a word ending with a digit of its own, such as `r2` without `r` | Nothing: the digit appended to `r2` writes `r27`, read back as `r2` and `7`. | When the words still read back. |
+
+"The words still read back" is the Sardinas–Patterson test, run on the forms the policy writes — the words as they
+are, capitalised, or both for `First` and `Random` —, each followed by the separator, and with the digit, by a digit
+and the separator. It follows the suffixes left when a form is cut from the start of another; each is a suffix of a
+form and followed once, so the work is bounded by the length of the list. A separator that no form holds needs no test,
+nor a digit that neither the forms nor the separator hold, since it marks the end of its word.
+
+| Bundled list, seven words | `-` (default) | `''`, `None`, `First` or `Random` | `''`, `Words` |
+|---|---|---|---|
+| English | 70.4 bits | Refused (`week` + `end`, `butter` + `fly`…) | 70.4 bits |
+| French | 68.3 bits | Refused | 68.3 bits |
+| Spanish | 66.5 bits | Refused | 66.5 bits |
+| German | 66.0 bits | Refused | 66.0 bits |
+
+The digit adds `log2(70)`, 6.1 bits, wherever it is accepted.
 
 ## Wordlists
 

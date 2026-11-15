@@ -49,7 +49,7 @@ final class NotCompromisedValidator extends ConstraintValidator
 
         if ($check->isCompromised()) {
             $this->context->buildViolation($constraint->message)
-                ->setParameter('{{ occurrences }}', (string) $check->occurrences)
+                ->setParameter('{{ occurrences }}', $check->occurrences)
                 ->setCode(NotCompromised::COMPROMISED_ERROR)
                 ->setInvalidValue('')
                 ->addViolation();

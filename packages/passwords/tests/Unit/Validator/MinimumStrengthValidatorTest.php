@@ -65,6 +65,11 @@ final class MinimumStrengthValidatorTest extends ConstraintValidatorTestCase
             ->setCode(MinimumStrength::TOO_WEAK_ERROR)
             ->setInvalidValue('')
             ->assertRaised();
+
+        // The score and the minimum are integers, which the comparison of the violations above does not tell.
+        $parameters = $this->context->getViolations()[0]?->getParameters() ?? [];
+        self::assertSame(0, $parameters['{{ score }}'] ?? null);
+        self::assertSame(3, $parameters['{{ min_score }}'] ?? null);
     }
 
     public function testTheMinimumAndTheMessage(): void

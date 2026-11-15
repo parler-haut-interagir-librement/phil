@@ -98,6 +98,21 @@ final class StrengthEstimatorTest extends TestCase
         self::assertSame(21.0, $estimator->estimate('2000')->guesses);
     }
 
+    /**
+     * A password that a compound word and its parts both write is given the guesses of its cheapest reading, never
+     * the readings added up.
+     */
+    public function testAPasswordReadInSeveralWaysCountsItsCheapestReading(): void
+    {
+        $compound = new StrengthEstimator([Dictionary::of('words', ['week', 'end', 'weekend'])], [], 2026);
+        $parts = new StrengthEstimator([Dictionary::of('words', ['week', 'end'])], [], 2026);
+
+        self::assertSame([[Pattern::Dictionary, 'weekend', 'words']], $this->describe($compound->estimate('weekend')->sequence));
+        self::assertSame([[Pattern::Dictionary, 'week', 'words'], [Pattern::Dictionary, 'end', 'words']], $this->describe($parts->estimate('weekend')->sequence));
+        self::assertLessThan($parts->estimate('weekend')->guesses, $compound->estimate('weekend')->guesses);
+        self::assertLessThanOrEqual($parts->estimate('weekend7')->guesses, $compound->estimate('weekend7')->guesses);
+    }
+
     public function testTheCurrentYearByDefault(): void
     {
         $year = idate('Y');

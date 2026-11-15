@@ -35,6 +35,9 @@ return [
                     'while \\(\\$i < \\$count - 2\\) \\{',
                     // A base that fits only once never repeats: trying it only costs time.
                     'for \\(\\$length = 1; \\$start \\+ 2 \\* \\$length <= \\$count; \\+\\+\\$length\\) \\{',
+                    // The completions of the Sardinas–Patterson test are looked up by a dangling suffix, never empty
+                    // nor a whole codeword: the test ends on either first, so neither prefix is ever read.
+                    'for \\(\\$length = 1; \\$length < \\\\strlen\\(\\$codeword\\); \\+\\+\\$length\\) \\{',
                 ],
             ],
             'Minus' => [
@@ -46,6 +49,31 @@ return [
                 'ignoreSourceCodeByRegex' => [
                     'while \\(\\$i < \\$count - 1\\) \\{',
                     'while \\(\\$i < \\$count - 2\\) \\{',
+                    'for \\(\\$length = 1; \\$length < \\\\strlen\\(\\$codeword\\); \\+\\+\\$length\\) \\{',
+                ],
+            ],
+            // The two shortcuts of PassphraseGenerator::separates() only spare the Sardinas–Patterson test where its
+            // answer is known: a separator that no word holds closes each word, and a digit that no word holds marks
+            // the end of the word that takes it, a digit of the separator included. Taking the test instead gives the
+            // same answer, more slowly.
+            'LogicalNot' => [
+                'ignoreSourceCodeByRegex' => [
+                    'if \\(\'\' !== \\$separator && !\\$digitCodewords && false === strpbrk\\(\\$written, \\$separator\\)\\) \\{',
+                ],
+            ],
+            'LogicalAndSingleSubExprNegation' => [
+                'ignoreSourceCodeByRegex' => [
+                    'if \\(\'\' !== \\$separator && !\\$digitCodewords && false === strpbrk\\(\\$written, \\$separator\\)\\) \\{',
+                ],
+            ],
+            'Concat' => [
+                'ignoreSourceCodeByRegex' => [
+                    '\\$digitCodewords = \\$policy->includeDigit && false !== strpbrk\\(\\$written\\.\\$separator, .*',
+                ],
+            ],
+            'ConcatOperandRemoval' => [
+                'ignoreSourceCodeByRegex' => [
+                    '\\$digitCodewords = \\$policy->includeDigit && false !== strpbrk\\(\\$written\\.\\$separator, .*',
                 ],
             ],
             // A date is at most ten characters, a four-digit year, a month, a day and two separators: a longer part is
