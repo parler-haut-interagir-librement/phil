@@ -54,6 +54,16 @@ The files are still served by `MediaController`, at signed URLs: the bucket stay
 application keeps the responses a year, since their URLs carry the version. A filesystem defined by
 `league/flysystem-bundle` works the same way: name its service.
 
+## Streaming
+
+Both adapters also implement `StreamingMediaStorage`, which adds `readStream()`: the file as a readable stream, or
+`null` when there is none. `FilesystemStorage` opens the file on the disk, `FlysystemStorage` asks the filesystem for
+its `readStream()`, so a file in an S3 bucket is read as it arrives. `MediaLibrary::readOriginal()` and
+`MediaLibrary::copyOriginalTo()` read through it, and the memory a worker uses stays flat whatever the size of the
+file: see [The library](library.md#reading-the-original).
+
 ## A storage of the application's own
 
-A `MediaStorage` service of the application's own, aliased to the interface, replaces both adapters.
+A `MediaStorage` service of the application's own, aliased to the interface, replaces both adapters. Implementing
+`StreamingMediaStorage` as well is optional: without it, the library reads a file whole, then hands it over as a
+stream.

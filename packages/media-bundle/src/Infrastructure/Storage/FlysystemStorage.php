@@ -7,7 +7,7 @@ namespace Phil\MediaBundle\Infrastructure\Storage;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\FilesystemOperator;
 use Override;
-use Phil\MediaBundle\Application\MediaStorage;
+use Phil\MediaBundle\Application\Contract\StreamingMediaStorage;
 use Phil\MediaBundle\Domain\Exception\InvalidMedia;
 
 /**
@@ -15,7 +15,7 @@ use Phil\MediaBundle\Domain\Exception\InvalidMedia;
  * starts with a slash, is refused before it reaches the filesystem, and a failure of the filesystem is an
  * `InvalidMedia`.
  */
-final readonly class FlysystemStorage implements MediaStorage
+final readonly class FlysystemStorage implements StreamingMediaStorage
 {
     public function __construct(
         private FilesystemOperator $filesystem,
@@ -32,6 +32,15 @@ final readonly class FlysystemStorage implements MediaStorage
     public function read(string $key): ?string
     {
         return $this->attempt(fn (): ?string => $this->filesystem->fileExists($this->checked($key)) ? $this->filesystem->read($key) : null, $key);
+    }
+
+    /**
+     * @return resource|null
+     */
+    #[Override]
+    public function readStream(string $key): mixed
+    {
+        return $this->attempt(fn () => $this->filesystem->fileExists($this->checked($key)) ? $this->filesystem->readStream($key) : null, $key);
     }
 
     #[Override]

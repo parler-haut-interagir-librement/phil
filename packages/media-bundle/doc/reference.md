@@ -9,7 +9,7 @@
 | `Domain\Media\AiDisclosure` | enum | `None`, `Assisted`, `Generated` |
 | `Domain\Repository\MediaRepository` | interface | Saving, finding, listing |
 | `Domain\Exception\MediaException`, `InvalidMedia`, `MediaInUse` | exceptions | Everything the bundle throws |
-| `Application\MediaLibrary` | `final readonly class` | Upload, replace, delete, read, render |
+| `Application\MediaLibrary` | `final readonly class` | Upload, replace, delete, read — whole, as a stream or copied to a path —, render |
 | `Application\ImageFormat`, `RenderBox` | values | A format: its transformations, quality and narrower widths; the part of an image a thumbnail keeps and the size rendered |
 | `Application\Transform\Transformer` | interface | One transformation: the `Step` it draws on an image's `Geometry`, and its definition |
 | `Application\Transform\Thumbnail`, `Crop`, `Resize`, `Widen`, `Heighten`, `Expand` | values | The transformations |
@@ -20,6 +20,7 @@
 | `Application\MediaSchema` | `final class` | The medium as schema.org data |
 | `Application\MediaStorage`, `ImageProcessor` | interfaces | Where files are kept; how images are rendered |
 | `Application\Contract\SvgPurifier` | interface | How an SVG image is purified before it is kept |
+| `Application\Contract\StreamingMediaStorage` | interface | A storage that also reads a file as a stream; optional |
 | `Infrastructure\Storage\FilesystemStorage` | adapter | A directory |
 | `Infrastructure\Storage\FlysystemStorage` | adapter | A Flysystem filesystem: local, S3, SFTP |
 | `Infrastructure\Image\GdImageProcessor` | adapter | GD, with a pixel limit and optional binary encoders |

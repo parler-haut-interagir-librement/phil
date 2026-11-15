@@ -7,6 +7,8 @@ namespace Phil\MediaBundle\Tests\Unit\Infrastructure;
 use League\Flysystem\Filesystem;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use League\Flysystem\Local\LocalFilesystemAdapter;
+use League\Flysystem\UnableToReadFile;
+use Override;
 use Phil\MediaBundle\Domain\Exception\InvalidMedia;
 use Phil\MediaBundle\Infrastructure\Storage\FlysystemStorage;
 use Phil\MediaBundle\Tests\Unit\Fixtures\Images;
@@ -27,6 +29,12 @@ final class FlysystemStorageTest extends TestCase
         $storage->write('originals/b/1/photo.png', 'four');
 
         self::assertSame(['one', 'two', null], [$storage->read('originals/a/1/photo.png'), $storage->read('originals/a/2/photo.png'), $storage->read('originals/a/3/photo.png')]);
+
+        $stream = $storage->readStream('originals/a/2/photo.png');
+        self::assertNotNull($stream);
+        self::assertSame('two', stream_get_contents($stream));
+        fclose($stream);
+        self::assertNull($storage->readStream('originals/a/3/photo.png'));
 
         $storage->deletePrefix('originals/a/');
         self::assertSame([null, null, 'three', 'four'], [$storage->read('originals/a/1/photo.png'), $storage->read('originals/a/2/photo.png'), $storage->read('formats/a/1/thumb.webp'), $storage->read('originals/b/1/photo.png')]);
@@ -54,7 +62,7 @@ final class FlysystemStorageTest extends TestCase
         $storage = new FlysystemStorage(new Filesystem(new InMemoryFilesystemAdapter()));
 
         foreach (['', '/etc/passwd', '../outside', 'a/../../outside'] as $key) {
-            foreach ([static fn (): ?string => $storage->read($key), static fn () => $storage->write($key, 'x'), static fn () => $storage->deletePrefix($key)] as $operation) {
+            foreach ([static fn (): ?string => $storage->read($key), static fn () => $storage->write($key, 'x'), static fn () => $storage->deletePrefix($key), static fn (): mixed => $storage->readStream($key)] as $operation) {
                 try {
                     $operation();
                     self::fail($key);
@@ -75,6 +83,22 @@ final class FlysystemStorageTest extends TestCase
         } catch (InvalidMedia $invalidMedia) {
             self::assertStringStartsWith(\sprintf('The storage failed on "%s/inside": ', basename($file)), $invalidMedia->getMessage());
             self::assertNotNull($invalidMedia->getPrevious());
+        }
+
+        $unreadable = new FlysystemStorage(new Filesystem(new class extends InMemoryFilesystemAdapter {
+            #[Override]
+            public function readStream(string $path): never
+            {
+                throw UnableToReadFile::fromLocation($path, 'refused');
+            }
+        }));
+        $unreadable->write('a', 'x');
+
+        try {
+            $unreadable->readStream('a');
+            self::fail('A refused stream was read.');
+        } catch (InvalidMedia $invalidMedia) {
+            self::assertStringStartsWith('The storage failed on "a": ', $invalidMedia->getMessage());
         }
     }
 }

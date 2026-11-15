@@ -90,6 +90,31 @@ gallery, the image emojis of a page. An identifier asked twice is read once, one
 query reads at most `DoctrineMediaRepository::BATCH` identifiers, 500, and one more query reads each 500 beyond, so the
 number of bound parameters stays under the limits of every database.
 
+## Reading the original
+
+```php
+$bytes = $library->original($media);                    // the whole file, in memory
+
+$stream = $library->readOriginal($media);               // a readable stream at its start
+$response = new StreamedResponse(static function () use ($stream): void {
+    fpassthru($stream);
+    fclose($stream);                                    // the caller closes it
+});
+
+$library->copyOriginalTo($media, $directory.'/input.mp4'); // to a local path, for a tool that reads files
+```
+
+`MediaLibrary::original()` reads the current version's file whole into memory: fine for an image, too much for a
+video. `MediaLibrary::readOriginal()` returns the file as a readable PHP stream positioned at its start, which the
+caller closes; `MediaLibrary::copyOriginalTo()` copies it to a local path, for a tool such as `ffmpeg` that reads files,
+in chunks of bounded size, and closes every stream it opened, the copy failed or not. A path that names a stream
+wrapper (`scheme://`) is refused, the file at the path is replaced, and a copy that fails is removed. A missing file
+is an `InvalidMedia`, as with `original()`.
+
+`FilesystemStorage` and `FlysystemStorage` stream the file from where it is kept, through `StreamingMediaStorage`; a
+storage of the application's own that implements only `MediaStorage` still works, read whole first then handed over as
+a stream, which goes to a temporary file above 2 MiB. See [Storage](storage.md#streaming).
+
 ## Deleting
 
 ```php

@@ -6,7 +6,7 @@ namespace Phil\MediaBundle\Infrastructure\Storage;
 
 use FilesystemIterator;
 use Override;
-use Phil\MediaBundle\Application\MediaStorage;
+use Phil\MediaBundle\Application\Contract\StreamingMediaStorage;
 use Phil\MediaBundle\Domain\Exception\InvalidMedia;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -15,7 +15,7 @@ use SplFileInfo;
 /**
  * Files in a directory of the server, by key: a key with `..`, or that starts with a slash, is refused.
  */
-final readonly class FilesystemStorage implements MediaStorage
+final readonly class FilesystemStorage implements StreamingMediaStorage
 {
     public function __construct(
         private string $directory,
@@ -46,6 +46,23 @@ final readonly class FilesystemStorage implements MediaStorage
         $contents = file_get_contents($path);
 
         return false === $contents ? null : $contents;
+    }
+
+    /**
+     * @return resource|null
+     */
+    #[Override]
+    public function readStream(string $key): mixed
+    {
+        $path = $this->path($key);
+
+        if (!is_file($path)) {
+            return null;
+        }
+
+        $stream = fopen($path, 'r');
+
+        return false === $stream ? null : $stream;
     }
 
     #[Override]

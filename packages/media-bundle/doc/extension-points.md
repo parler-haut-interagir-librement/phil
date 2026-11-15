@@ -17,6 +17,16 @@ application's own, aliased to the interface, replaces.
 | `read(string $key): ?string` | Its contents, or `null` when there is none |
 | `deletePrefix(string $prefix): void` | Deletes every file whose key starts so |
 
+### `StreamingMediaStorage`
+
+`Phil\MediaBundle\Application\Contract\StreamingMediaStorage` — optional, extends `MediaStorage`: a storage that reads a
+file as a stream. Both adapters implement it; a storage that does not is read whole by
+`MediaLibrary::readOriginal()` and `MediaLibrary::copyOriginalTo()`. See [Storage](storage.md#streaming).
+
+| Method | Contract |
+|---|---|
+| `readStream(string $key): resource\|null` | The file as a readable stream at its start, or `null` when there is none; the caller closes it. A refused key or a failure of the storage is an `InvalidMedia` |
+
 ### `ImageProcessor`
 
 `Phil\MediaBundle\Application\ImageProcessor` — draws a format. `GdImageProcessor` draws with GD and hands WebP and AVIF
