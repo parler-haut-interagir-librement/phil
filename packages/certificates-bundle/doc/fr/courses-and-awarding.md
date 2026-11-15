@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=af1158b7eb00b539488a53b9a60721166e42e6bd4e981242dd573019f0f3c5d5 -->
+<!-- phil-dev source-sha256=52ed3533446127b106a55285363639065bf00d1da647b683d0dcb7778d70e3c2 -->
 # Formations et attribution
 
 ## Formations
@@ -35,12 +35,14 @@ $courses->define(
 | Image | Une URL HTTP absolue d'au plus 2048 caractères |
 | Crédits de recertification | Plus de 0, avec jusqu'à deux décimales; null quand une recertification exige des acquis |
 | Fin | N'importe quel moment; aucun certificat n'est décerné à partir de là, ni valide au-delà |
+| Source d'achèvement | De 1 à 255 caractères, sans espaces ni caractères de contrôle; null quand l'application seule décide qui a réussi |
 
 Une valeur hors de ces règles lève `InvalidValue`; un *slug* déjà pris, `CertificateRefused`. `revise()` change ce
 qu'une formation dit et exige : les certificats déjà décernés gardent l'attestation qu'ils ont reçue. `retire()` empêche
 une formation de décerner des certificats, `reopen()` le lui permet de nouveau; ceux qui ont été décernés restent
 valides. Une formation arrivée à sa fin n'en décerne plus non plus; [Expiration et recertification](recertification.md)
-traite de la fin des formations et des certificats.
+traite de la fin des formations et des certificats. Une formation qui nomme une source d'achèvement n'est décernée qu'à
+un membre qu'un autre système dit l'avoir achevée ([Sources d'achèvement](completion-sources.md)).
 
 `phil:certificates:course` définit ou révise une formation depuis la console
 ([Commandes de console](console.md#formations)).
@@ -87,6 +89,7 @@ Le certificat contient alors :
 | `holder` | L'identifiant stable du membre quand l'application en a donné un; une adresse de courriel est refusée |
 | `renews` | Le certificat qu'il renouvelle, quand une recertification l'a décerné |
 | `remindedAt` | Le moment où son titulaire a été rappelé de sa fin pour la dernière fois |
+| `completion` | L'identifiant de l'achèvement sur lequel il a été décerné, pour une formation qui nomme une source d'achèvement |
 
 La réalisation de l'attestation est la formation : son identifiant est l'URL de la page de la formation dans le
 registre, et son nom, sa description, ses critères et son image sont ceux de la formation. Les révisions ultérieures de

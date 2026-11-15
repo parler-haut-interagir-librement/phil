@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=84567af72dbd31649e9a4acf1652eb08f2d06e9410f4a404d4889a19ab3c5a10 -->
+<!-- phil-dev source-sha256=7e3559ac9440dfa78ad3131270d876649f7bb2920c24748d60776fd862f753c8 -->
 # Commandes de console
 
 Avec le composant Console installé, le bundle enregistre neuf commandes. Chacune passe par les mêmes services que le
@@ -38,9 +38,11 @@ qui identifie la réalisation de ses certificats. `--min-score` est un nombre en
 `--validity` des nombres entiers de minutes et de mois; `--module` se répète pour chaque module à terminer; une
 formation sans `--validity` donne des certificats qui n'expirent pas. `--credits` est le nombre de crédits de formation
 continue qu'une recertification exige, avec jusqu'à deux décimales après un point ou une virgule; `--ends` le jour où la
-formation prend fin, écrit `AAAA-MM-JJ`, à minuit UTC. Avec `--revise`, la formation de ce *slug* est
-révisée avec les valeurs données (celles qu'on omet sont effacées, comme avec `Courses::revise()`), et les certificats
-déjà décernés gardent leur attestation. Retirer et rouvrir une formation passe par `Courses`.
+formation prend fin, écrit `AAAA-MM-JJ`, à minuit UTC; `--completion-source` la clé de la formation dans le système
+auquel ses achèvements sont demandés ([Sources d'achèvement](completion-sources.md)). Avec `--revise`, la formation de
+ce *slug* est révisée avec les valeurs données (celles qu'on omet sont effacées, comme avec `Courses::revise()`), et les
+certificats déjà décernés gardent leur attestation; la source d'achèvement ne change que si `--completion-source` est
+donné, et une source vide la retire. Retirer et rouvrir une formation passe par `Courses`.
 
 ## Attribution
 
@@ -57,8 +59,21 @@ L'identité est une adresse de courriel, une URL ou un identifiant décentralis�
 n'est jamais imprimée, et l'attestation ne garde une adresse ou une URL que sous forme d'empreinte salée. `--score` est
 un nombre entier de 0 à 100, `--minutes` un nombre entier de minutes, 0 si on l'omet; `--module` se répète pour chaque
 module terminé; `--listed` affiche le certificat sur la page de sa formation dans le registre; `--holder` nomme le membre par l'identifiant
-stable que l'application lui donne, selon lequel les crédits de formation continue sont comptés, jamais par une adresse de
-courriel.
+stable que l'application lui donne, selon lequel les crédits de formation continue sont comptés et l'achèvement d'une
+formation demandé, jamais par une adresse de courriel.
+
+Une formation qui nomme une source d'achèvement lui demande si le titulaire a achevé la formation, et l'identifiant de
+l'achèvement est imprimé sur une troisième ligne :
+
+```text
+Awarded the certificate 7KQ2-M9XA-04TZ of "first-aid" to Ada Lovelace.
+https://example.org/certificates/7KQ2M9XA04TZ
+Completion: enrolment-7
+```
+
+`--on-completion` décerne comme le fait `Awarding::awardOnCompletion()` : il exige `--holder`, et un achèvement déjà
+décerné imprime le certificat qui le porte et réussit, au lieu d'échouer; la première ligne se lit alors
+`The certificate 7KQ2-M9XA-04TZ of "first-aid" is awarded to Ada Lovelace on that completion.`
 
 ## Révocation
 
@@ -83,7 +98,8 @@ awarded_at         2026-11-08T10:00:00+00:00
 valid_until        2027-11-08T10:00:00+00:00
 ```
 
-Viennent ensuite, quand ils s'appliquent, `revoked_at` et `revocation_reason`, `holder`, `renews` et `renewed_by` (les
+Viennent ensuite, quand ils s'appliquent, `revoked_at` et `revocation_reason`, `holder`, `completion`, `renews` et
+`renewed_by` (les
 codes du certificat qu'il renouvelle et de celui qui le renouvelle) et `reminded_at`. `--format=json` donne les mêmes
 champs dans un seul objet JSON, `null` pour ceux qui ne s'appliquent pas : `valid_until` d'un certificat qui n'expire
 pas, `revoked_at` et `revocation_reason` d'un certificat qui n'est pas révoqué. L'état est

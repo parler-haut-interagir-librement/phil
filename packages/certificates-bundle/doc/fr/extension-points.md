@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=22a3e4c0150d53e6142b4287c4714197cea7a44a4ad7114b89e69319d9e96b32 -->
+<!-- phil-dev source-sha256=fbe03dbbafcea45c9e0eb1fc8ade011e2ed62db89c259d34a33f741834a4480a -->
 # Points d'extension
 
 ## Les dépôts
@@ -18,6 +18,7 @@ interface CertificateRepository
     public function listed(Course $course, int $limit, int $offset = 0): array;
     public function countListed(Course $course): int;
     public function findRenewalOf(Certificate $certificate): ?Certificate;
+    public function findByCompletion(Course $course, string $completion): ?Certificate;
     public function expiring(DateTimeImmutable $after, DateTimeImmutable $until, int $limit, int $offset = 0): array;
 }
 
@@ -37,14 +38,35 @@ celui qui finit le premier en tête, puis par identifiant; `total()` additionne 
 d'un membre ne sont jamais chargés pour être additionnés. Sans `LearningActivityRepository`, une recertification qui
 exige des crédits est refusée.
 
+`findByCompletion()` donne le certificat d'une formation décerné sur cet achèvement; le stockage garde un achèvement
+pour un seul certificat d'une formation.
+
 `nextStatusIndex()` répond l'indice qui suit le plus élevé déjà donné, et le stockage garde les indices et les codes
 uniques : deux attributions simultanées ne peuvent donc pas en partager un. La seconde est refusée plutôt que de
 partager un bit d'état. `Awarding` demande l'indice et enregistre le certificat sous le verrou de `lock_factory` quand
-il y en a un : un dépôt n'a donc pas besoin de verrou propre. Quand le stockage refuse un certificat dont l'indice ou le
-code appartient à un autre, `save()` lève `Phil\CertificatesBundle\Domain\Exception\StatusIndexTaken`, une fois le
+il y en a un : un dépôt n'a donc pas besoin de verrou propre. Quand le stockage refuse un certificat dont l'indice, le
+code ou l'achèvement de la formation appartient à un autre, `save()` lève `Phil\CertificatesBundle\Domain\Exception\StatusIndexTaken`, une fois le
 stockage prêt pour une autre tentative, et `Awarding` réessaie avec l'indice suivant
 ([Formations et attribution](courses-and-awarding.md#deux-attributions-à-la-fois)). Le dépôt Doctrine le fait avec le
 registre `doctrine`, dont il réinitialise d'abord le gestionnaire.
+
+## La source des achèvements
+
+`Phil\CertificatesBundle\Domain\Contract\CourseCompletions` dit si un membre a achevé la formation d'un autre système,
+par la clé que la formation du certificat nomme comme source d'achèvement et l'identifiant stable du membre :
+
+```php
+interface CourseCompletions
+{
+    /** opaque non-empty identifier of the completion, or null when not completed */
+    public function completion(string $course, string $holder): ?string;
+}
+```
+
+Le bundle n'en enregistre aucune. Quand l'application fait de l'interface un alias d'un service qui lui est propre,
+`Awarding` l'interroge pour les formations qui nomment une source d'achèvement et garde sur le certificat
+l'identifiant qu'elle répond; sans elle, ces formations ne décernent rien. [Sources d'achèvement](completion-sources.md)
+décrit le port, les attributions sur achèvement et un écouteur de l'événement d'achèvement propre à l'application.
 
 ## Les URL
 
@@ -104,4 +126,5 @@ licence relève de sa décision. Un site sans ce bundle n'a rien à configurer; 
 ## Les services
 
 `Courses`, `Awarding`, `Revocation`, `ExpiryReminders`, `ContinuingEducation` et `CertificatePdf` sont enregistrés par
-leur classe et peuvent être décorés : par exemple, un décorateur d'`Awarding` qui envoie son certificat à la personne apprenante par courriel.
+leur classe et peuvent être décorés : par exemple, un décorateur d'`Awarding` qui envoie son certificat à la personne
+apprenante par courriel.

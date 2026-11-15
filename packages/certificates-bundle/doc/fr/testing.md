@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2d45a46aa4d31cc0747a3e414b1711f1996a89f87e9f38d62a54c3f4365b49a2 -->
+<!-- phil-dev source-sha256=38532501422db5f6607b8c2303b628745b03128f3b3eaba2b1f261b6d5d39858 -->
 # Tests
 
 ## Les tests du bundle
@@ -14,14 +14,18 @@ périodes sont testés en mémoire et sur Doctrine avec SQLite. Les attestations
 forme que décrit Open Badges 3.0, par `tests/Unit/Support/Ob3Shape.php`
 ([Validation](validation.md#ce-qui-est-vérifié-hors-ligne)). Les commandes de console sont testées avec
 `CommandTester`, le verrou avec un stockage en mémoire qui dit s'il était tenu pendant que l'indice était pris et le
-certificat stocké, chaque tentative d'une attribution dont l'indice était pris comprise.
+certificat stocké, chaque tentative d'une attribution dont l'indice était pris comprise. Les attributions sur achèvement sont testées avec
+une source d'achèvements qui répond à partir d'une liste et note ce qu'on lui demande.
 
 `tests/Functional` démarre une petite application avec FrameworkBundle, TwigBundle et DoctrineBundle sur SQLite. Il
 décerne des certificats, demande les pages et les téléchargements du registre, révoque, lit les dépôts Doctrine, et
-exécute les commandes avec la fabrique de verrous et le répartiteur d'événements du framework. Il joue deux attributions
-simultanées sans verrou : une autre attribution stocke son certificat à l'indice qu'avait reçu celle-ci, entre le moment
-où il a été donné et l'enregistrement, et l'on voit l'attribution reprendre sur un gestionnaire d'entités réinitialisé
-avec l'indice suivant, ou abandonner après ses tentatives.
+exécute les commandes avec la fabrique de verrous et le répartiteur d'événements du framework. Ses verrous sont gardés
+en mémoire, un stockage par processus de test, de sorte que des tests exécutés en même temps dans d'autres processus ne
+tiennent jamais le verrou qu'un autre atteint; sa source d'achèvements répond à partir d'une liste fixe. Il joue deux
+attributions simultanées sans verrou : une autre attribution stocke son certificat à l'indice qu'avait reçu celle-ci,
+entre le moment où il a été donné et l'enregistrement, et l'on voit l'attribution reprendre sur un gestionnaire
+d'entités réinitialisé avec l'indice suivant, ou abandonner après ses tentatives; et deux attributions sur le même
+achèvement, dont la seconde rend le certificat de la première.
 
 `tests/Integration` produit le rendu d'un certificat par un vrai Gotenberg 9, nommé par `PHIL_GOTENBERG_URL`, et vérifie
 que l'attestation est le fichier associé du PDF, de relation `Data`, octet pour octet, et que le fichier passe la
