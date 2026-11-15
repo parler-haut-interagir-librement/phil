@@ -1,0 +1,42 @@
+{
+    "name": "phil/timed-text",
+    "description": "A shared timed-text library reading and writing WebVTT, SRT, chapters and Podcasting 2.0 transcripts for audio, video, podcast and transcription packages.",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "phil/url": "^0.1@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\TimedText\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\TimedText\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

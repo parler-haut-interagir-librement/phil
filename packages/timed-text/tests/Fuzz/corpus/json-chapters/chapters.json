@@ -1,0 +1,29 @@
+{
+    "version": "1.2.0",
+    "title": "Episode 12",
+    "author": "The hosts",
+    "podcastName": "A show",
+    "chapters": [
+        {
+            "startTime": 0,
+            "title": "Introduction",
+            "img": "https://example.com/intro.jpg"
+        },
+        {
+            "startTime": 168.5,
+            "title": "The interview",
+            "endTime": 2400,
+            "url": "https://example.com/guest",
+            "location": {
+                "name": "Montréal",
+                "geo": "geo:45.5,-73.6",
+                "osm": "R1634158"
+            }
+        },
+        {
+            "startTime": 2400,
+            "title": "Sponsor",
+            "toc": false
+        }
+    ]
+}
