@@ -23,6 +23,9 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
  * An application as small as the bundle needs: FrameworkBundle with Gotenberg played by its HTTP client, TwigBundle,
  * DoctrineBundle on an in-memory SQLite database, an issuer whose key is a fixed seed, a frozen clock, and the routes
  * of the issuer under `/open-badges` and of the register under `/certificates`.
+ *
+ * Its locks are kept in memory: each test process has its own, so that tests run at once in other processes never hold
+ * the lock of the status index one of them reaches for.
  */
 final class TestKernel extends Kernel
 {
@@ -60,6 +63,7 @@ final class TestKernel extends Kernel
             'router' => ['default_uri' => 'https://example.com'],
             'translator' => ['default_path' => '%kernel.project_dir%/translations', 'fallbacks' => ['en']],
             'http_client' => ['mock_response_factory' => GotenbergResponses::class],
+            'lock' => 'in-memory',
         ]);
         $container->extension('twig', ['default_path' => '%kernel.project_dir%/templates']);
         $container->extension('doctrine', ['dbal' => ['url' => 'sqlite:///:memory:'], 'orm' => []]);
