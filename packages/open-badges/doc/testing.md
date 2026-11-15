@@ -13,6 +13,10 @@ Two published vectors anchor the cryptography: the `eddsa-rdfc-2022` example of 
 cryptosuites — its canonical form and its proof value are reproduced exactly — and the key pair of its examples as a
 Multikey. The canonicalization also passes every evaluation test of the W3C RDFC-1.0 suite.
 
+Two tokens issued by version 0.1, in `tests/Fixtures`, keep the tokens stable from one version to the next: an
+`EdDSA` token signed with that key pair, which still verifies and is signed again to the same bytes, and an `RS256`
+token, which verifies with its public key.
+
 From the monorepo root:
 
 ```sh

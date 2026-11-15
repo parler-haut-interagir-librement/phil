@@ -21,8 +21,10 @@ $verified->status();     // its StatusListEntry, or null
    Web Key the token carries, which anyone can put there. The algorithm is the key's: a token whose `alg` is another
    one — `none`, `HS256` over a public key, `RS256` for an Ed25519 key — is refused before its signature is read, and
    `web-token/jwt-library` checks the signature with that one algorithm only. A token that marks a header parameter
-   critical (`crit`) or leaves its claims unencoded (`b64`) is refused. Then `nbf` and `exp` are checked at the moment
-   given: the token is valid from `nbf` included to `exp` excluded.
+   critical (`crit`) or leaves its claims unencoded (`b64`) is refused. Before the library parses it, the token is
+   bounded: `JwtVerifier::MAX_LENGTH` bytes (1 MiB), three parts, a header and claims nested `JwtVerifier::MAX_DEPTH`
+   levels (64) at most. Then `nbf` and `exp` are checked at the moment given: the token is valid from `nbf` included
+   to `exp` excluded.
 2. A document: the proof is a `DataIntegrityProof` of `eddsa-rdfc-2022` for `assertionMethod`, its verification method
    is found, its signature is checked over the canonical forms, then `validFrom` and `validUntil` at the moment given.
 3. Either way, the key must be one of the credential's issuer: the verification method is the issuer's identifier, a
