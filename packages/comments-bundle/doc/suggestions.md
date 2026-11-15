@@ -29,6 +29,10 @@ the block, asks the server to record the acceptance, then hands the block to the
 editor is editable and the passage is found. A block another writer holds through `phil/edit-lock-bundle` is left
 alone.
 
+When another decision came first, the server answers `409` with the error `decided`: the controller applies nothing
+to the editor, says *This suggestion has already been decided.* in the panel's status and loads the threads again, so
+that the reader sees the decision that was kept. A rejection that comes second is answered the same way.
+
 ## How the passage is replaced
 
 In a field of inline HTML, the characters of the passage are removed and the replacement, escaped, written where the

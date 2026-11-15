@@ -64,6 +64,11 @@ is written, and only the members who may see the comment are notified, as `phil/
   passage in the panel scrolls the editor to it.
 - **Accepting.** The passage is replaced in the editor's block, the acceptance recorded, and the block applied to the
   editor by its `phil-block-editor:apply` event; see [suggestions](suggestions.md).
+- **Errors.** A request that fails is said in the panel's status, a live region (`role="status"`) that screen readers
+  announce: *You may not do this.* for a `403`; *This suggestion has already been decided.* for a `409` whose body
+  names the error `decided`, after which the threads are loaded again, so that the reader sees the decision that was
+  kept — the editor is left as it was; *The request failed.* for any other answer, another `409` included, without a
+  reload. The labels are `refused`, `decided` and `failed`, which `messages` may replace.
 
 ## Modules
 

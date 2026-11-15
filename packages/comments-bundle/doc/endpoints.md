@@ -76,6 +76,9 @@ edit and delete it.
 | 404 | `disabled` | The author provider or the policy is not configured |
 | 409 | `decided` | Another decision on the suggestion was kept since the thread was read; the first one stands |
 
+The controller reads `error` from the body: on `decided`, it says so and loads the threads again; see
+[JavaScript](javascript.md#what-it-does).
+
 ## The controller's configuration
 
 `ClientConfig::for($subject, $viewer, $page = true)` gives the controller what it needs for one page: the subject, the
