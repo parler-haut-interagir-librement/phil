@@ -4,6 +4,19 @@ All notable changes to `phil/css-sanitizer` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- Catalogues of the `SafeCss` messages in ICU MessageFormat (`translations/validators+intl-icu.<locale>.php`), which
+  the application gives to its translator: in English, `moreMessage`, whose plural follows `{{ count }}`; in
+  French, every default message, what was removed named from `{{ reason }}`. The default messages, which are the
+  translation keys, are unchanged.
+
+### Changed
+
+- `SafeCss`: the `{{ line }}` and `{{ count }}` parameters of its violations are integers.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

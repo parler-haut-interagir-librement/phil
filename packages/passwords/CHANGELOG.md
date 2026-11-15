@@ -4,6 +4,23 @@ All notable changes to `phil/passwords` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- `PassphraseGenerator::accepts()`: whether every passphrase of a policy gives back its draws on the generator's list.
+
+### Changed
+
+- `PassphraseGenerator::generate()` and `entropyBits()` throw `InvalidPolicy` for a policy whose passphrases do not
+  read back, instead of counting draws that write the same passphrase as different ones: words that run together
+  with the separator (with an empty separator, the compound words of the bundled lists, such as `week` + `end` and
+  `weekend`; they still read back with `Capitalization::Words`), checked by the Sardinas–Patterson test on the forms
+  the policy writes, and a digit appended to a word that writes another word of the list (`ab` + `1` and `ab1`). An
+  empty separator with `Capitalization::None`, `First` or `Random` on a bundled list is refused.
+- `MinimumStrength`: the `{{ score }}` and `{{ min_score }}` parameters of its violation are integers.
+- `NotCompromised`: the `{{ occurrences }}` parameter of its violation is an integer.
+
 ## 0.1.1-alpha - 2026-11-14
 
 ### Added

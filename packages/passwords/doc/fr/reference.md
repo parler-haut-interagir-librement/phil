@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=01061fb994c08e947a6859dd8310076ebfe7c0b8c8db898846b897c511adb064 -->
+<!-- phil-dev source-sha256=518b32db93b263abd0dffaea93fd806c289651e5ad7f53c8b99e1c2ac6082fea -->
 # Référence
 
 ## Robustesse
@@ -33,7 +33,7 @@
 | Type | Rôle |
 |---|---|
 | `Generator\PasswordGenerator`, `Generator\PasswordPolicy`, `Generator\CharacterSet` | Mots de passe aléatoires. |
-| `Generator\PassphraseGenerator`, `Generator\PassphrasePolicy`, `Generator\Capitalization` | Phrases de passe. |
+| `Generator\PassphraseGenerator`, `Generator\PassphrasePolicy`, `Generator\Capitalization` | Phrases de passe ; `accepts()` dit si les phrases de passe d'une politique se relisent sur la liste. |
 | `Generator\Wordlist` | Les mots des phrases de passe. |
 
 ## Validation

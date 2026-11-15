@@ -42,6 +42,10 @@ one by one: an attacker who tries sequences of `l` patterns pays `l!` times the 
 to the power `l - 1` for having tried the shorter sequences first. A part of a longer password costs at least 10
 guesses for one character and 50 for more, so that cutting it in small patterns is never cheaper.
 
+A password read in several ways — `weekend` as one word or as `week` and `end`, a digit after a word that ends with
+one, a date written without separators — is given the guesses of its cheapest reading only: the readings are never
+added up, so a password that two readings share is never counted twice.
+
 ## The score
 
 | `Score` | Guesses |

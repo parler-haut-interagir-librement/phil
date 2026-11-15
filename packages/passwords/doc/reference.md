@@ -32,7 +32,7 @@
 | Type | Role |
 |---|---|
 | `Generator\PasswordGenerator`, `Generator\PasswordPolicy`, `Generator\CharacterSet` | Random passwords. |
-| `Generator\PassphraseGenerator`, `Generator\PassphrasePolicy`, `Generator\Capitalization` | Passphrases. |
+| `Generator\PassphraseGenerator`, `Generator\PassphrasePolicy`, `Generator\Capitalization` | Passphrases; `accepts()` tells whether the passphrases of a policy read back on the list. |
 | `Generator\Wordlist` | The words of passphrases. |
 
 ## Validation

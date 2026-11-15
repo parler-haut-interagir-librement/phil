@@ -47,8 +47,8 @@ final class MinimumStrengthValidator extends ConstraintValidator
         }
 
         $this->context->buildViolation($constraint->message)
-            ->setParameter('{{ score }}', (string) $strength->score->value)
-            ->setParameter('{{ min_score }}', (string) $constraint->minScore->value)
+            ->setParameter('{{ score }}', $strength->score->value)
+            ->setParameter('{{ min_score }}', $constraint->minScore->value)
             ->setParameter('{{ warning }}', $strength->feedback->warning?->translationKey() ?? '')
             ->setParameter('{{ suggestion }}', ($strength->feedback->suggestions[0] ?? null)?->translationKey() ?? '')
             ->setCode(MinimumStrength::TOO_WEAK_ERROR)

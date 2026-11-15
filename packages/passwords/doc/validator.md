@@ -19,9 +19,9 @@ public string $plainPassword;
 | `minScore` | `Score::Strong` | The lowest score accepted. |
 | `message` | `This password is too easy to guess.` | The violation. |
 
-The violation, coded `MinimumStrength::TOO_WEAK_ERROR`, has the parameters `{{ score }}`, `{{ min_score }}`,
-`{{ warning }}` and `{{ suggestion }}`: the last two are translation keys of the `phil_passwords` domain, or empty, for
-the form to show the feedback.
+The violation, coded `MinimumStrength::TOO_WEAK_ERROR`, has the parameters `{{ score }}` and `{{ min_score }}`,
+integers from 0 to 4, and `{{ warning }}` and `{{ suggestion }}`, translation keys of the `phil_passwords` domain, or
+empty, for the form to show the feedback.
 
 When the object validated implements `Contract\PasswordUserInputs`, its `passwordUserInputs()` — name, email address,
 username — are given to the estimator.
@@ -39,8 +39,10 @@ public string $plainPassword;
 |---|---|---|
 | `threshold` | 1 | The occurrences from which a password is refused. |
 | `skipOnError` | `false` | Accepts the password when the source cannot answer, instead of refusing it. |
-| `message` | `This password appears in known data breaches: choose another one.` | The violation, coded `COMPROMISED_ERROR`, with `{{ occurrences }}`. |
+| `message` | `This password appears in known data breaches: choose another one.` | The violation, coded `COMPROMISED_ERROR`, with `{{ occurrences }}`, an integer. |
 | `unavailableMessage` | `This password could not be checked against known data breaches: try again later.` | The violation when the source cannot answer, coded `UNAVAILABLE_ERROR`. |
 
 `NotCompromisedValidator` needs a `BreachChecker`: register it as a service, as [Installation](installation.md)
-shows. The messages are translated in English and French in `translations/validators.<locale>.php`.
+shows. The messages are translated in English and French in `translations/validators.<locale>.php`. None of the
+default messages shows a number, so none needs a plural: a message of the application that shows `{{ score }}` or
+`{{ occurrences }}` receives an integer, which an ICU catalogue (`validators+intl-icu`) of the application can pluralise.

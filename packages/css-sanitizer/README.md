@@ -46,7 +46,7 @@ violations.
 
 | Document | What it covers |
 |---|---|
-| [Installation](doc/installation.md) | Requirements, installing, the sanitizer as a Symfony service. |
+| [Installation](doc/installation.md) | Requirements, installing, the sanitizer as a Symfony service, the translations. |
 | [Sanitizing](doc/sanitizing.md) | Style sheets and `style` attributes, the result, the removals and their reasons. |
 | [Policy](doc/policy.md) | What the default policy allows, every `with…()`, the scope, nesting and the limits. |
 | [URLs](doc/urls.md) | Rewriters, allowed files, `image-set()`, `@import`, fragments, the schemes always refused. |
@@ -54,7 +54,7 @@ violations.
 | [At-rules](doc/at-rules.md) | `@media`, `@supports`, `@page` and its margin boxes, `@font-face`, `@import`, rules nested in style rules. |
 | [Threats](doc/threats.md) | What the sanitizer protects from, how, and what stays the application's. |
 | [Syntax](doc/syntax.md) | The tokenizer, the parser and the serializer used on their own. |
-| [Validator](doc/validator.md) | The `SafeCss` constraint. |
+| [Validator](doc/validator.md) | The `SafeCss` constraint, its parameters, and its messages in English and French. |
 | [Exceptions](doc/exceptions.md) | `CssSanitizerException` and its two exceptions. |
 | [Extension points](doc/extension-points.md) | The ports, arguments and data an application chooses or replaces. |
 | [Testing](doc/testing.md) | The library's tests and mutation bar, and how to test code that sanitizes CSS. |
@@ -104,7 +104,8 @@ foreach ($sanitized->removals as $removal) {
 
 ## Requirements
 
-PHP 8.5 or later and `ext-mbstring`; `symfony/validator` for the `SafeCss` constraint.
+PHP 8.5 or later and `ext-mbstring`; `symfony/validator` for the `SafeCss` constraint, and `symfony/translation` with
+`ext-intl` for the ICU catalogues of its messages.
 
 ## Contributing
 
