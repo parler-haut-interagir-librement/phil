@@ -1,0 +1,104 @@
+{
+    "name": "phil/terms-bundle",
+    "description": "Versioned terms of use for Symfony: versions published once and never changed, an append-only record of each acceptance, a gate to accept a new material version, a signup checkbox, renewal and reminders, public versioned pages with their changes, an administration to publish, and who has not accepted",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "consent",
+        "privacy-policy",
+        "terms-of-service",
+        "terms-of-use",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-filter": "*",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/service-contracts": "^3.6",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "easycorp/easyadmin-bundle": "^5.8",
+        "phil/ip-anonymizer": "^0.1@dev",
+        "phil/legal-notices": "^0.1@dev",
+        "phil/legal-notices-bundle": "^0.1@dev",
+        "phil/notifications-bundle": "^0.1@dev",
+        "phil/privacy-bundle": "^0.1@dev",
+        "phil/text-diff": "^0.1@dev",
+        "phil/ujo": "^0.1@dev",
+        "phil/ux-kit": ">=0.5.0-alpha <1.0",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/scheduler": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-toolkit": "^3.7.1",
+        "symfony/yaml": "^8.2",
+        "twig/html-extra": "^3.24"
+    },
+    "suggest": {
+        "doctrine/orm": "To add the two tables to the schema the ORM generates, for doctrine:migrations:diff",
+        "easycorp/easyadmin-bundle": "For the links of the administration in an EasyAdmin back office",
+        "phil/ip-anonymizer": "To keep the network of the address an acceptance came from, never the address itself",
+        "phil/legal-notices-bundle": "For phil:terms:check-legal-links, the check that the legal links exist on the site",
+        "phil/notifications-bundle": "To tell the members that a new version awaits their acceptance, and to remind them",
+        "phil/privacy-bundle": "For the acceptance records in the export and the erasure of a person's data",
+        "phil/text-diff": "For the changes between two versions on the public pages",
+        "phil/ujo": "For policy texts written as UJO (Universal JSON Output) documents",
+        "phil/ux-kit": "For the recipes the pages draw — Alert, Badge, Button, Checkbox, Field, Input, NativeSelect, Table, Textarea —, through the Symfony UX Toolkit; or the same recipes from the Shadcn kit of the Toolkit, on Tailwind",
+        "symfony/console": "For phil:terms:outstanding, the list of the members who have not accepted",
+        "symfony/form": "For the acceptance checkbox added to a signup form",
+        "symfony/scheduler": "For the reminders sent on a schedule",
+        "symfony/translation": "For the pages and the administration in English and French"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\TermsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\TermsBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

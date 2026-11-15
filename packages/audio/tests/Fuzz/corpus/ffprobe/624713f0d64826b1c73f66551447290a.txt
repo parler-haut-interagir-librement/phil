@@ -1,0 +1,10 @@
+{"streams": 
+[  {
+  "codec_type": "audio",    "tags": { "TE": "S"
+ }}
+  ],
+    "format": {
+   "tags": {
+"l": "hTpide",
+   "st":"dace"       }}
+}

@@ -1,0 +1,16 @@
+{#-
+    The Markdown editor of a campaign's body: a toolbar, the text area and a preview laid out as the message, in a
+    sandboxed frame. Include it in a form:
+
+        {{ include('@PhilNewsletter/editor/markdown.html.twig', {name: 'body', value: campaign.body, preview_url: path('phil_newsletter_preview')}) }}
+-#}
+<div class="phil-newsletter-editor" data-controller="phil--newsletter-bundle--markdown-editor" data-phil--newsletter-bundle--markdown-editor-preview-url-value="{{ preview_url }}">
+    <div role="toolbar" aria-label="{{ 'editor.toolbar'|trans({}, 'phil_newsletter') }}">
+        {% for action in ['heading', 'bold', 'italic', 'link', 'list', 'quote'] %}
+            <button type="button" data-action="phil--newsletter-bundle--markdown-editor#format" data-phil--newsletter-bundle--markdown-editor-format-param="{{ action }}">{{ ('editor.' ~ action)|trans({}, 'phil_newsletter') }}</button>
+        {% endfor %}
+        <button type="button" data-action="phil--newsletter-bundle--markdown-editor#preview">{{ 'editor.preview'|trans({}, 'phil_newsletter') }}</button>
+    </div>
+    <textarea name="{{ name }}" rows="20" data-phil--newsletter-bundle--markdown-editor-target="source">{{ value|default('') }}</textarea>
+    <iframe title="{{ 'editor.preview'|trans({}, 'phil_newsletter') }}" sandbox="" hidden data-phil--newsletter-bundle--markdown-editor-target="frame"></iframe>
+</div>

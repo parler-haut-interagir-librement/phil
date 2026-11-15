@@ -10,8 +10,8 @@
 | `doctrine/dbal` | `^4.2` | The DBAL types of locales, stages, versions and identifiers. |
 | `symfony/workflow` | `^8.2` | The editorial workflow and the publication workflow are `StateMachine`s of the component. |
 | `phil/locale-dimensions` | `^0.1@dev` | `Locale`, `Version`, `FallbackChain` and `DeclaredLocales`: the locale and the version of a row, and the declared chains a reader walks. |
-| `phil/markup` | `^0.2@dev` | `MarkupFormat`, the ports `MarkupCompiler` and `HtmlPurifier`, their default adapters, and the readers that convert a draft into UJO. |
-| `phil/ujo` | `^0.1.1@dev` | The JSON encoder of the UJO a published body stores. |
+| `phil/markup` | `^0.2.1@dev` | `MarkupFormat`, the ports `MarkupCompiler` and `HtmlPurifier`, their default adapters, and the readers that convert a draft into UJO. |
+| `phil/ujo` | `^0.1.2@dev` | The JSON encoder of the UJO a published body stores. |
 | `symfony/routing`, `symfony/http-foundation`, `symfony/http-kernel` | `^8.2` | The controller, the URL generator and the route configuration. |
 | `twig/twig` | `^3.21` | The controller renders templates; the Twig extension and runtime. |
 | `symfony/console` | `^8.2` | The `phil:content:*` commands. |

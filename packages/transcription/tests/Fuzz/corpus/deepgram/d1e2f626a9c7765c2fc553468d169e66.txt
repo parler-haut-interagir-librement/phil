@@ -1,0 +1,10 @@
+{
+    "metadaa": {"reques":1},
+    "results":{
+  "utterances": [       {"start": 0.4, "": 0, "i;": "a"},
+           {"start":2.0, "ipt": "Bonjour"},
+            {"start": 2.0, "eaker*id": "a"},
+            {"start": 2.0, "ent": "Slutb"}
+        ]
+    }
+}

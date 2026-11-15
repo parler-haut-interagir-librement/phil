@@ -1,0 +1,19 @@
+{#- The confirmation of a double opt-in, when the site has no template "confirmation" of its own. -#}
+{% block subject %}{{ 'confirmation.subject'|trans({'%list%': list_name}, 'phil_newsletter') }}{% endblock %}
+
+{% block html %}
+<!DOCTYPE html>
+<html lang="{{ 'locale'|trans({}, 'phil_newsletter') }}">
+<head>
+    <meta charset="utf-8">
+    <title>{{ 'confirmation.subject'|trans({'%list%': list_name}, 'phil_newsletter') }}</title>
+</head>
+<body style="margin: 0; padding: 24px 16px; background: #f4f4f5; color: #18181b; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.6;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 32px; background: #ffffff; border-radius: 8px;">
+        <p>{{ 'confirmation.intro'|trans({'%list%': list_name}, 'phil_newsletter') }}</p>
+        <p><a href="{{ confirm_url }}" style="display: inline-block; padding: 12px 20px; background: #18181b; color: #ffffff; border-radius: 6px; text-decoration: none;">{{ 'confirmation.button'|trans({}, 'phil_newsletter') }}</a></p>
+        <p style="font-size: 13px; color: #52525b;">{{ 'confirmation.ignore'|trans({}, 'phil_newsletter') }}</p>
+    </div>
+</body>
+</html>
+{% endblock %}

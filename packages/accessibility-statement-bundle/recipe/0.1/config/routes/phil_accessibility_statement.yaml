@@ -1,0 +1,5 @@
+# The page of the statement, at /accessibility in English and /accessibilite in French. With
+# phil_accessibility_statement.admin enabled, import '@PhilAccessibilityStatementBundle/config/admin_routes.php' under
+# /admin, behind the firewall of the administration.
+phil_accessibility_statement:
+    resource: '@PhilAccessibilityStatementBundle/config/routes.php'

@@ -1,0 +1,1 @@
+{"https://purl.imsglobal.org/spec/lti-dl/claim/content_items":[{"tl":"p>x</p>"},{"ty":{"":"3T1:$1:0Z"}},{"typo":"hth-dl/clp>"},{"typa":"le.com/f"}]}

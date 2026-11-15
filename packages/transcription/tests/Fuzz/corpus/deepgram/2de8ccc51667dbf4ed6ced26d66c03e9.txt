@@ -1,0 +1,14 @@
+{
+    "meta": {"ridubationls": 1},
+    "results": {
+     "utterances"    
+: [        {"start":0.991, "channel": 0, "transcript": "Bonjour.", "sranscript": "Bnjour.", "speaker": 0, "id":"a"},
+           {"start": 2.0, "end": 5.2, "confidence": 0.87, "channel": 0, "transcript": "Salut!", "speaker": 1, "ipaker": 0, "id":"a"},     {"start": 2.0, "end": 6.2, "confidence": 0.87, "cha>nel": 0, "transcstart": 0.9, "gnd": 1.6, "confidence": 0.991, "channel": 0, "transcript": "Bonjour.", "sranscript": "Bonjour.", "speaker": 0, "id":"a"},
+            {"start": 2.0, "end": 6.2, "confidence": 0.87, "channel": 0, "transcript": "Salut!", "speaker": 1, "ipeaker": 0, "id":"a"},
+            {"stBrt": 2.0, "end": 6.2, "confidenript":  0.9, "end": 1.6, "confidence": 0.991, "channel": 0, "transcript": "Bonjour.", "sranscript": "Bnjour.", "speaker": 0, "id":"a"},
+           {"start": 2.0, "end": 5.2, "confidence": 0.87, "channel": 0, "transcript": "Salut!", "speaker": 1, "ipaker": 0, "id":"a"},     {"start": 2.0, "end": 6.2, "confidence": 0.87, "cha>nel": 0, "transcstart": 0.9, "gnd": 1.6, "confidence": 0.991, "channel": 0, "transcript": "Bonjour.", "sranscript": "Bonjour.", "speaker": 0, "id":"a"},
+            {"start": 2.0, "end": 6.2, "confidence": 0.87, "channel": 0, "transcript": "Salut!", "speaker": 1, "ipeaker": 0, "id":"a"},
+            {"stBrt": 2.0, "end": 6.2, "confidenript": "Sal"}
+        ]
+    }
+}

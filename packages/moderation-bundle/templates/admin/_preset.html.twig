@@ -1,0 +1,11 @@
+{#
+    The name of a preset, translated by its name in the domain "phil_moderation"; a preset of the application without a
+    translation shows its own label.
+#}
+{%- set label = ('preset.' ~ name)|trans({}, 'phil_moderation') -%}
+{%- if label starts with 'preset.' -%}
+    {%- set found = presets|filter(p => p.name == name)|first -%}
+    {{- found ? found.label : name -}}
+{%- else -%}
+    {{- label -}}
+{%- endif -%}

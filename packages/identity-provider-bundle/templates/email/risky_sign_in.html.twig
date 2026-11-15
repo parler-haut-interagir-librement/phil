@@ -1,0 +1,5 @@
+{# The warning of a sign-in from a new device. #}
+{% set d = 'phil_identity_provider' %}
+<p>{{ name is not null ? 'email.greeting_name'|trans({'%name%': name}, d) : 'email.greeting'|trans({}, d) }}</p>
+<p>{{ 'email.risky_sign_in.body'|trans({'%site%': site, '%device%': device, '%date%': at|date('Y-m-d H:i')}, d) }}</p>
+<p>{{ 'email.risky_sign_in.action'|trans({}, d) }}</p>

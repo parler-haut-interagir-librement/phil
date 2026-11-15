@@ -1,0 +1,1 @@
+{"https://purl.imsglobal.org/spec/lti/claim/message_type":"LtiResourceLinkRequest","https://purl.imsglobal.org/spec/lti/claim/version":"1.3.0","h.imsgltnd":{"scope":[],"lineitem":"htts:/2"}}

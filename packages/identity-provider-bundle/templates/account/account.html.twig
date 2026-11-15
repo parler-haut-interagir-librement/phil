@@ -1,0 +1,65 @@
+{#
+ # The account page: the name and the address, the password, and links to the pages of the modules turned on. The
+ # address and the password change only after a recent proof of the account's strongest method.
+ #}
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.account'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.account'|trans({}, d) }}</h1>
+    {% if sent %}{{ include('@PhilIdentityProvider/_notice.html.twig', {message: 'account.sent'|trans({}, d)}) }}{% endif %}
+    {% if saved %}{{ include('@PhilIdentityProvider/_notice.html.twig', {message: 'account.saved'|trans({}, d)}) }}{% endif %}
+    {{ include('@PhilIdentityProvider/_errors.html.twig') }}
+
+    <section aria-labelledby="phil-identity-profile">
+        <h2 id="phil-identity-profile">{{ 'account.profile'|trans({}, d) }}</h2>
+        <form method="post" action="{{ path('phil_identity_provider_account_profile') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+            {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-name', name: 'name', label: 'field.name'|trans({}, d), value: account.displayName ?? '', autocomplete: 'name', required: false}) }}
+            {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.save'|trans({}, d)}) }}
+        </form>
+    </section>
+
+    <section aria-labelledby="phil-identity-email-heading">
+        <h2 id="phil-identity-email-heading">{{ 'account.email'|trans({}, d) }}</h2>
+        <p>
+            {{ account.email }} —
+            {{ (account.emailVerified ? 'account.email_verified' : 'account.email_unverified')|trans({}, d) }}
+        </p>
+        {% if not account.emailVerified %}
+            <form method="post" action="{{ path('phil_identity_provider_resend_verification') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+                {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.resend'|trans({}, d), variant: 'secondary'}) }}
+            </form>
+        {% endif %}
+        <form method="post" action="{{ path('phil_identity_provider_account_email') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+            {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-new-email', name: 'email', type: 'email', label: 'field.new_email'|trans({}, d), autocomplete: 'email'}) }}
+            {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.change_email'|trans({}, d)}) }}
+        </form>
+    </section>
+
+    {% if 'password' in modules %}
+        <section aria-labelledby="phil-identity-password-heading">
+            <h2 id="phil-identity-password-heading">{{ 'account.password'|trans({}, d) }}</h2>
+            <form method="post" action="{{ path('phil_identity_provider_account_password') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+                {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-password', name: 'password', type: 'password', label: 'field.new_password'|trans({}, d), autocomplete: 'new-password', description: 'field.password_help'|trans({}, d)}) }}
+                {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.change_password'|trans({}, d)}) }}
+            </form>
+        </section>
+    {% endif %}
+
+    <nav aria-labelledby="phil-identity-security">
+        <h2 id="phil-identity-security">{{ 'account.security'|trans({}, d) }}</h2>
+        <ul>
+            {% if 'passkeys' in modules %}<li><a href="{{ path('phil_identity_provider_passkeys') }}">{{ 'title.passkeys'|trans({}, d) }}</a></li>{% endif %}
+            {% if 'totp' in modules %}<li><a href="{{ path('phil_identity_provider_totp') }}">{{ 'title.totp'|trans({}, d) }}</a></li>{% endif %}
+            {% if 'sms' in modules %}<li><a href="{{ path('phil_identity_provider_phone') }}">{{ 'title.phone'|trans({}, d) }}</a></li>{% endif %}
+            {% if 'sessions' in modules %}<li><a href="{{ path('phil_identity_provider_sessions') }}">{{ 'title.sessions'|trans({}, d) }}</a></li>{% endif %}
+            {% if 'external' in modules %}<li><a href="{{ path('phil_identity_provider_external') }}">{{ 'title.external'|trans({}, d) }}</a></li>{% endif %}
+        </ul>
+    </nav>
+{% endblock %}

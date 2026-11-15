@@ -1,0 +1,11 @@
+{
+    "bundles": {
+        "Phil\\LtiBundle\\PhilLtiBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "LTI_MASTER_KEY": "lti"
+    }
+}

@@ -1,0 +1,18 @@
+{#
+ # The layout the pages extend unless the configuration names the application's own: it gives the page its language,
+ # its title and a main landmark. The stylesheet of the kit belongs to the application's layout.
+ #}
+<!doctype html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <title>{% block title %}{{ 'title.account'|trans({}, 'phil_identity_provider') }}{% endblock %}</title>
+</head>
+<body>
+<main id="main">
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

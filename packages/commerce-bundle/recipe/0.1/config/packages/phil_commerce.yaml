@@ -1,0 +1,10 @@
+# The core of commerce: orders, channels, taxes, payments and receipts. Every key and its default are in the
+# configuration guide of phil/commerce-bundle; the tables join the schema the ORM generates (doctrine:migrations:diff).
+phil_commerce:
+    # The rates per tax category and zone, as the sellables and the orders name them; empty: no tax.
+    tax_rates: {}
+    # The methods paid offline and confirmed by hand, such as cheque or bank_transfer.
+    offline_payments: []
+    # Granting a refund and executing it are two rights; true merges them for a store run by one person.
+    refunds:
+        single_step: false

@@ -1,0 +1,6 @@
+{
+   "results": {
+     "utterances": [   {"start": 0.9, "end": 1.6,"transcript": "B.", "seaker": "a"},
+     {"start":0, "end": 2, "transcript": "Salu"}
+   ]   }
+}

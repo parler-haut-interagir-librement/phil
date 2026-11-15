@@ -1,0 +1,22 @@
+# Accounts and the ways to sign in, one module per method, and the OpenID Connect provider. The firewall of
+# config/packages/security.yaml names the bundle's user provider, user checker and authenticators: see the installation
+# guide of phil/identity-provider-bundle, and its configuration guide for every option.
+phil_identity_provider:
+    site_name: Example
+    login_route: app_login
+    mailer:
+        from: ~
+    modules:
+        passkeys: false
+        totp: false
+        recovery_codes: false
+        login_link: false
+        sms: false
+        external: false
+        oidc: false
+    # passkeys: { rp_id: example.com, origins: ['https://example.com'] }
+    # oidc: { issuer: 'https://id.example.com', algorithm: ES256 }
+
+when@test:
+    phil_identity_provider:
+        store: memory

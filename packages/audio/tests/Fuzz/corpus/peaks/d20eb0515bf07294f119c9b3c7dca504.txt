@@ -1,0 +1,1 @@
+{"":2,"sample_rate":81,"samples_per_pixel":40,"bits":8,"length":3,"data":[-9,6,-6,2,0,0]}

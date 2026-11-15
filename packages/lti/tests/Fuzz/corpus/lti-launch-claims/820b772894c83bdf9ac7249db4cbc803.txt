@@ -1,0 +1,1 @@
+{"https://purl.imsglobal.org/spec/lti-dl/claim/content_items":[{"type":"ltiResourceLink","url":"h8ps:.com/q","lineItem":{"um":4},"avaipe/ineitem":"t//lle","url":"https://to.lo.com/f"}]}

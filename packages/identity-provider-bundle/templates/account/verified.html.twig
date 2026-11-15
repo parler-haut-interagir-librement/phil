@@ -1,0 +1,9 @@
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.verified'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.verified'|trans({}, d) }}</h1>
+    <p>{{ 'verify.done'|trans({}, d) }}</p>
+{% endblock %}

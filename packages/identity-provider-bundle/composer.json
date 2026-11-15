@@ -1,0 +1,104 @@
+{
+    "name": "phil/identity-provider-bundle",
+    "description": "An open identity brick for Symfony, one module per method: verified accounts, Argon2id passwords checked against breaches, passkeys, TOTP and recovery codes, sign-in links, SMS verification, step-up, remote sign-out of devices, linked federated identities, and an OpenID Connect provider with PKCE, rotating keys, revocation and logout",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "identity",
+        "authentication",
+        "passkeys",
+        "webauthn",
+        "totp",
+        "openid-connect",
+        "oidc",
+        "oauth2",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "ext-sodium": "*",
+        "doctrine/orm": "^3.7",
+        "phil/passwords": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/password-hasher": "^8.1",
+        "symfony/property-access": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/security-http": "^8.2",
+        "symfony/service-contracts": "^3.6",
+        "symfony/uid": "^8.2",
+        "twig/twig": "^3.21",
+        "web-token/jwt-library": "^4.2"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/doctrine-bundle": "^3.3",
+        "phil/audit-bundle": "^0.1@dev",
+        "phil/ux-kit": ">=0.5.0-alpha <1.0",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.1",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/key-management": "^8.2",
+        "symfony/mailer": "^8.2",
+        "symfony/mime": "^8.2",
+        "symfony/notifier": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7"
+    },
+    "suggest": {
+        "phil/audit-bundle": "To write every event of the accounts to a hash-chained audit trail",
+        "phil/ux-kit": "For the recipes the templates draw — Alert, Button, Card, Field, Input —, through the Symfony UX Toolkit",
+        "symfony/console": "For the commands of the clients, the rotation of the keys and the purge",
+        "symfony/key-management": "To encrypt the TOTP secrets and the private signing keys under a key management service",
+        "symfony/mailer": "For the emails: address verification, password reset, sign-in links, risky sign-ins",
+        "symfony/notifier": "For the SMS codes, through its texter",
+        "symfony/stimulus-bundle": "For the Stimulus controller of passkeys",
+        "symfony/ux-twig-component": "For the pages, drawn with the recipes of the kit"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\IdentityProviderBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\IdentityProviderBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,74 @@
+# The OpenID Foundation conformance suite, at a pinned release of its published images, and the application of
+# App/ConformanceKernel.php served over https by FrankenPHP. run.sh starts it, prepares the application and plays the
+# test plans; the suite's own interface stays at https://localhost.emobix.co.uk:8443 while it runs.
+name: phil-identity-provider-conformance
+
+services:
+  mongodb:
+    image: mongo:6.0.13
+    tmpfs:
+      - /data/db
+
+  server:
+    image: registry.gitlab.com/openid/conformance-suite:${PHIL_CONFORMANCE_SUITE_VERSION:-release-v5.3.4}
+    environment:
+      BASE_URL: https://localhost.emobix.co.uk:8443
+      BASE_MTLS_URL: https://localhost.emobix.co.uk:8444
+      MONGODB_HOST: mongodb
+      SPRING_PROFILES_ACTIVE: dev
+      # The suite's own sign-in, unused in development mode, still wants a client of each provider.
+      OIDC_GOOGLE_CLIENTID: google-client
+      OIDC_GOOGLE_SECRET: google-secret
+      OIDC_GITLAB_CLIENTID: gitlab-client
+      OIDC_GITLAB_SECRET: gitlab-secret
+    depends_on:
+      - mongodb
+
+  nginx:
+    image: registry.gitlab.com/openid/conformance-suite/nginx:${PHIL_CONFORMANCE_SUITE_VERSION:-release-v5.3.4}
+    ports:
+      - "127.0.0.1:8443:8443"
+    networks:
+      default:
+        aliases:
+          # The suite reaches its own public address through nginx.
+          - localhost.emobix.co.uk
+    depends_on:
+      - server
+
+  op:
+    build: .
+    environment:
+      SERVER_NAME: op.phil.test
+      CADDY_GLOBAL_OPTIONS: "auto_https disable_redirects"
+      CADDY_SERVER_EXTRA_DIRECTIVES: "tls internal"
+      SERVER_ROOT: /app/packages/identity-provider-bundle/tests/Conformance/public
+      PHIL_CONFORMANCE_ISSUER: https://op.phil.test
+      PHIL_CONFORMANCE_ROOT: /tmp/phil-conformance
+      PHIL_CONFORMANCE_SUITE: https://localhost.emobix.co.uk:8443
+    volumes:
+      # The monorepo, and the published packages its path repository links to, at the same relative places.
+      - ../../../..:/app:ro
+      - ../../../../../phil/packages:/phil/packages:ro
+    networks:
+      default:
+        aliases:
+          # A name with a dot: Java sends no server name (SNI) for a bare host, and Caddy has then no certificate to offer.
+          - op.phil.test
+
+  runner:
+    image: python:3.13-slim
+    profiles: [run]
+    working_dir: /suite/scripts
+    environment:
+      CONFORMANCE_SERVER: https://localhost.emobix.co.uk:8443/
+      CONFORMANCE_DEV_MODE: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+    volumes:
+      - ${PHIL_CONFORMANCE_WORK:?run.sh sets the work directory}/suite:/suite:ro
+      - ${PHIL_CONFORMANCE_WORK}/results:/results
+      - ${PHIL_CONFORMANCE_WORK}/plan:/plan:ro
+      - .:/expected:ro
+    depends_on:
+      - nginx
+      - op

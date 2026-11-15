@@ -1,0 +1,24 @@
+{#
+ # A labelled control: a Field with its Label, an Input and, when given, a Description the input points at.
+ # Variables: id, name, label, type (text), value (''), autocomplete, required (true), description, inputmode, pattern.
+ #}
+{% set description = description|default(null) %}
+{% component (phil_identity_kit('Field')) %}
+    {% block content %}
+        {% component (phil_identity_kit('Field:Label')) with {for: id} %}{% block content %}{{ label }}{% endblock %}{% endcomponent %}
+        {% component (phil_identity_kit('Input')) with {
+            id: id,
+            name: name,
+            type: type|default('text'),
+            value: value|default(''),
+            autocomplete: autocomplete|default('off'),
+            required: required ?? true,
+            inputmode: inputmode|default(false),
+            pattern: pattern|default(false),
+            'aria-describedby': description is not null ? id ~ '-help' : false,
+        } %}{% endcomponent %}
+        {% if description is not null %}
+            {% component (phil_identity_kit('Field:Description')) with {id: id ~ '-help'} %}{% block content %}{{ description }}{% endblock %}{% endcomponent %}
+        {% endif %}
+    {% endblock %}
+{% endcomponent %}

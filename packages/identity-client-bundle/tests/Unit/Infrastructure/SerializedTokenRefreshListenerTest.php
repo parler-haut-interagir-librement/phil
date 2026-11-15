@@ -174,8 +174,8 @@ final class SerializedTokenRefreshListenerTest extends TestCase
         try {
             $this->listener()->authenticate($this->event());
             self::fail('The subscriber fails.');
-        } catch (RuntimeException $exception) {
-            self::assertSame('subscriber', $exception->getMessage());
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame('subscriber', $runtimeException->getMessage());
         }
 
         self::assertSame('rt2', $winner->getAttribute(TokenAttribute::REFRESH_TOKEN));
@@ -199,8 +199,8 @@ final class SerializedTokenRefreshListenerTest extends TestCase
         try {
             $this->listener()->authenticate($this->event());
             self::fail('The subscriber fails.');
-        } catch (AuthenticationException $exception) {
-            self::assertSame('subscriber', $exception->getMessage());
+        } catch (AuthenticationException $authenticationException) {
+            self::assertSame('subscriber', $authenticationException->getMessage());
         }
 
         self::assertSame(RefreshStatus::Refreshed, $this->outcomes->find('rt1')?->status);

@@ -1,0 +1,13 @@
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.login_link'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.login_link'|trans({}, d) }}</h1>
+    <form method="post" action="{{ path('phil_identity_provider_login_link') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+        {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-email', name: 'email', type: 'email', label: 'field.email'|trans({}, d), autocomplete: 'email'}) }}
+        {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.send_link'|trans({}, d)}) }}
+    </form>
+{% endblock %}

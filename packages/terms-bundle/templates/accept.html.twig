@@ -1,0 +1,55 @@
+{#
+ # The page that asks a signed-in member to accept the versions awaiting them, one box per version. Its parts are
+ # recipes of the kit — Alert, Field, Checkbox, Button —, from the PHIL UX kit or the Shadcn kit, called by the names
+ # `phil_terms_kit()` gives; only the props both kits share are passed.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_terms' %}
+
+{% block title %}{{ 'title.accept'|trans({}, domain) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.accept'|trans({}, domain) }}</h1>
+    <p>{{ 'accept.intro'|trans({}, domain) }}</p>
+
+    {% if missing %}
+        {% component (phil_terms_kit('Alert')) with {variant: 'destructive'} %}
+            {% block content %}
+                {% component (phil_terms_kit('Alert:Title')) %}{% block content %}{{ 'accept.missing'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+    {% endif %}
+
+    <form method="post">
+        <input type="hidden" name="_token" value="{{ csrf_token }}">
+
+        {% for item in versions %}
+            {# The blocks of a component do not see the loop: what they need of it is set before. #}
+            {% set version = item.version %}
+            {% set title = ('policy.' ~ version.policy)|trans({}, domain) %}
+            {% set box = 'phil-terms-accept-' ~ version.policy %}
+            <section aria-labelledby="phil-terms-{{ version.policy }}">
+                <h2 id="phil-terms-{{ version.policy }}">{{ title }}</h2>
+                <p>
+                    {{ 'page.version'|trans({'%version%': version.number}, domain) }}
+                    · <a href="{{ path('phil_terms_version', {policy: version.policy, number: version.number}) }}">{{ 'accept.permalink'|trans({}, domain) }}</a>
+                </p>
+                <div>{{ item.html|raw }}</div>
+                {% if version.licence is not null %}
+                    <p>{{ 'page.licence'|trans({'%licence%': version.licence}, domain) }}</p>
+                {% endif %}
+                {% component (phil_terms_kit('Field')) with {orientation: 'horizontal'} %}
+                    {% block content %}
+                        {% component (phil_terms_kit('Checkbox')) with {id: box, name: 'accept[' ~ version.policy ~ ']', value: version.number, required: true} %}{% endcomponent %}
+                        {% component (phil_terms_kit('Field:Label')) with {for: box} %}{% block content %}{{ 'accept.checkbox'|trans({'%policy%': title, '%version%': version.number}, domain) }}{% endblock %}{% endcomponent %}
+                    {% endblock %}
+                {% endcomponent %}
+            </section>
+        {% endfor %}
+
+        <p>
+            {% component (phil_terms_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'accept.submit'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        </p>
+    </form>
+{% endblock %}

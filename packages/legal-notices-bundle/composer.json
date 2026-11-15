@@ -1,0 +1,89 @@
+{
+    "name": "phil/legal-notices-bundle",
+    "description": "phil/legal-notices in Symfony: the legal notice and privacy policy at /legal and /privacy in each locale, every version at its own address, written in configuration or read from a source, rendered by phil/markup, with retention periods, consent categories, footer links, a check of what a document lacks and an event per version",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "legal-notice",
+        "imprint",
+        "privacy-policy",
+        "gdpr",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-intl": "*",
+        "phil/legal-notices": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/clock": "^8.2",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/intl-extra": "^3.30",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "phil/markup": "^0.2.1@dev",
+        "phil/privacy-bundle": "^0.1@dev",
+        "phil/sitemap": "^0.1@dev",
+        "phil/sitemap-bundle": "^0.1@dev",
+        "phil/structured-data": "^0.1@dev",
+        "phil/structured-data-bundle": "^0.1@dev",
+        "phil/ux-kit": ">=0.5.0-alpha <1.0",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-toolkit": "^3.7.1",
+        "symfony/yaml": "^8.2",
+        "twig/extra-bundle": "^3.24",
+        "twig/html-extra": "^3.24"
+    },
+    "suggest": {
+        "phil/markup": "For bodies written in Markdown, UJO (Universal JSON Output), HTML and the other formats it reads",
+        "phil/privacy-bundle": "For the retention periods of its schedule in the privacy policy",
+        "phil/sitemap-bundle": "For the pages of the documents in the sitemap",
+        "phil/structured-data-bundle": "For the legal pages described in JSON-LD",
+        "phil/terms-bundle": "For the policies of the terms among the footer links",
+        "phil/ux-kit": "For the recipes the pages draw — Badge, Table —, through the Symfony UX Toolkit; or the Shadcn kit on Tailwind",
+        "symfony/translation": "For the pages in English and French",
+        "symfony/twig-bundle": "For the pages and the footer links"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\LegalNoticesBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\LegalNoticesBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

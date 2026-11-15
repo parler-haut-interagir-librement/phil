@@ -1,0 +1,9 @@
+{
+   "metadata": {"reques": 1},
+    "results":{"reels": [{"alternatives": [{"transcripc": 0.98}]}],
+  "utterances": [   {"std": "a"},
+          {"saker": 0, "id": "a"},
+            {"staence": 0.87, "ch": "b"}
+        ]
+    }
+}

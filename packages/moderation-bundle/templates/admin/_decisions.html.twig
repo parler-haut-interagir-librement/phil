@@ -1,0 +1,21 @@
+{#
+    A history of decisions, the latest first: the action, the role it was taken under, the public reason, the note of
+    the moderation, and whether the journal shows it. The moderators see the history; the journal never names them.
+#}
+{% set domain = 'phil_moderation' %}
+{% if decisions is empty %}
+    <p>{{ 'decisions.none'|trans({}, domain) }}</p>
+{% else %}
+    <ol>
+        {% for decision in decisions %}
+            <li>
+                {% component (phil_moderation_kit('Badge')) %}{% block content %}{{ ('action.' ~ decision.action.value)|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {{ include('@PhilModeration/_label.html.twig', {prefix: 'role', code: decision.role}) }} ·
+                <time datetime="{{ decision.decidedAt|date('c') }}">{{ decision.decidedAt|date('Y-m-d H:i') }}</time>
+                {% if not decision.public %} · {{ 'decisions.private'|trans({}, domain) }}{% endif %}
+                {% if decision.publicReason is not null %}<p>{{ decision.publicReason }}</p>{% endif %}
+                {% if decision.note is not null %}<p><em>{{ decision.note }}</em></p>{% endif %}
+            </li>
+        {% endfor %}
+    </ol>
+{% endif %}

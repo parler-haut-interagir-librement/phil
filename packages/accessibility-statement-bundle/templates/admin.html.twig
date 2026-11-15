@@ -1,0 +1,66 @@
+{#
+ # The administration page of the statement: what was published, the versions, and the form that publishes the next
+ # one from its draft. Its parts are recipes of the kit — Alert, Field, Textarea, Button, Table, Badge —, from the PHIL
+ # UX kit or the Shadcn kit, called by the names `phil_accessibility_kit()` gives. Only the props both kits share are
+ # passed: an invalid field says so by its class and its `data-invalid`, which each kit styles.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_accessibility_statement' %}
+
+{% block title %}{{ 'admin.title'|trans({}, domain) }}{% endblock %}
+
+{% block content %}
+    <article class="phil-accessibility-statement-admin">
+        <h1>{{ 'admin.title'|trans({}, domain) }}</h1>
+
+        {% if published > 0 %}
+            {% component (phil_accessibility_kit('Alert')) %}
+                {% block content %}
+                    {% component (phil_accessibility_kit('Alert:Title')) %}{% block content %}{{ 'admin.published'|trans({'%version%': published}, domain) }}{% endblock %}{% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
+        {% endif %}
+
+        <section aria-labelledby="phil-accessibility-admin-versions">
+            <h2 id="phil-accessibility-admin-versions">{{ 'versions.heading'|trans({}, domain) }}</h2>
+            {% if versions is empty %}
+                <p>{{ 'admin.none'|trans({}, domain) }}</p>
+            {% else %}
+                {{ include('@PhilAccessibilityStatement/_versions.html.twig', {current: latest.version ?? 0, link: true}) }}
+            {% endif %}
+        </section>
+
+        <section aria-labelledby="phil-accessibility-admin-next">
+            <h2 id="phil-accessibility-admin-next">{{ 'admin.next'|trans({}, domain) }}</h2>
+            {% if not writable %}
+                <p>{{ 'admin.read_only'|trans({}, domain) }}</p>
+                {% if draft is not null %}
+                    <pre><code>{{ draft }}</code></pre>
+                {% endif %}
+            {% else %}
+                {% if error is not null %}
+                    {% component (phil_accessibility_kit('Alert')) with {variant: 'destructive'} %}
+                        {% block content %}
+                            {% component (phil_accessibility_kit('Alert:Title')) %}{% block content %}{{ 'admin.refused'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                            {% component (phil_accessibility_kit('Alert:Description')) %}{% block content %}{{ error }}{% endblock %}{% endcomponent %}
+                        {% endblock %}
+                    {% endcomponent %}
+                {% endif %}
+                <form method="post" action="{{ path('phil_accessibility_statement_admin_publish') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token }}">
+                    {% component (phil_accessibility_kit('Field')) with error is not null ? {class: 'isDanger', 'data-invalid': 'true'} : {} %}
+                        {% block content %}
+                            {% component (phil_accessibility_kit('Field:Label')) with {for: 'phil-accessibility-admin-statement'} %}{% block content %}{{ 'admin.document'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                            {% component (phil_accessibility_kit('Textarea')) with {id: 'phil-accessibility-admin-statement', name: 'statement', rows: 24, spellcheck: 'false', required: true, 'aria-describedby': 'phil-accessibility-admin-help', 'aria-invalid': error is not null ? 'true' : false} %}{% block content %}{{ draft }}{% endblock %}{% endcomponent %}
+                            {% component (phil_accessibility_kit('Field:Description')) with {id: 'phil-accessibility-admin-help'} %}{% block content %}{{ 'admin.help'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                        {% endblock %}
+                    {% endcomponent %}
+                    <p>
+                        {% component (phil_accessibility_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'admin.publish'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    </p>
+                </form>
+            {% endif %}
+        </section>
+    </article>
+{% endblock %}

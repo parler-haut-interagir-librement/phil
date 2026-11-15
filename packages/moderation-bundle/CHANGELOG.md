@@ -1,0 +1,40 @@
+# Changelog
+
+All notable changes to `phil/moderation-bundle` will be documented in this file.
+
+Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
+
+## 0.1.0-alpha - 2026-11-15
+
+### Added
+
+- `MemberId`, a stable identifier that refuses an e-mail address, and `TargetReference`, a type and an identifier.
+- `ModerationTarget`, the contract each package implements for its content, registered by autoconfiguration;
+  `ProfileTarget` over the application's `MemberProfiles`.
+- `Reports`: one report per member and target while it is open, reasons from the configuration, reports of the bundle
+  for held, flagged and hidden content.
+- Roles of the moderation in the configuration: the first held, the target types each covers.
+- `Decisions`: dismiss, approve, hide, restore, remove, warn; applied by the target's package, closing the open
+  reports; the history per target and per author.
+- `StatementsOfReasons`: a decision that hides, removes or warns comes with a statement of reasons to the author — the
+  reason, the terms or the law it rests on (`ReasonGrounds`), the facts, whether a report or automated detection
+  prompted it, the ways to contest it (`Redress`) —, its `Grounds` checked before the action is applied; the member's
+  pages of their statements; the notification through `phil/notifications-bundle` when the configuration names its
+  type.
+- `ModerationQueue`: one queue for every registered type, by the role of the moderator.
+- `Submissions`: the hook of the watched words (port `WordScreen`) and of the first-post sandbox (port
+  `SandboxPolicy`, `FirstPostSandbox` by default), left on the first approval.
+- `TemporaryHides`: hiding by trusted members (port `TrustedHiders`), reviewed by the moderation.
+- `MemberNotes`, the notes of the moderation on a member.
+- `PublicJournal`: the public decisions with their role, never the moderator.
+- `ReportSurge`, and the incident mode wired and proposed when `phil/incident-mode` 0.2 is installed, with its
+  `IncidentRestrictions`, which spares the established members of its port `EstablishedMembers` from the restrictions
+  configured; `CurrentMemberRestrictions` asks it for the member of the current request.
+- The events `ReportFiled`, `DecisionTaken`, `ContentHeld`, `ContentHiddenByMember` and `StatementIssued`.
+- Five DBAL tables, their moments in UTC, added to the schema the ORM generates.
+- The pages of the moderation, the report form, the public journal and the statements of reasons of a member, drawn
+  with recipes of the PHIL UX kit, in English and French; the same pages grafted on every EasyAdmin dashboard.
+- `TokenCurrentMember` and `TokenCurrentModerator`, which read `ModerationMember`, never the user identifier.
+- `ModerationPrivacy`, the export and the erasure through `phil/privacy-bundle`.
+- A Flex recipe, a benchmark, and the documentation in `doc/`.
+- `CONTRIBUTING.md`, `SECURITY.md` and `CODE_OF_CONDUCT.md`.

@@ -1,0 +1,49 @@
+{#
+    The report form of a content, for a page of the site to include:
+
+        {{ include('@PhilModeration/_report_form.html.twig', {type: 'forum.post', id: post.id}) }}
+
+    The member picks a reason of the catalogue and may add a comment; a trusted member may also hide the content until
+    the moderation reviews it. Each form goes back to the current page. Its parts are recipes of the kit — Button,
+    Field, NativeSelect, Textarea.
+#}
+{% set domain = 'phil_moderation' %}
+{% set back = app.request.requestUri|default('/') %}
+{% set key = 'phil-moderation-' ~ type|replace({'.': '-'}) ~ '-' ~ id|url_encode %}
+<details class="phil-moderation-report">
+    <summary>{{ 'report.open'|trans({}, domain) }}</summary>
+    <form method="post" action="{{ path('phil_moderation_report') }}">
+        <input type="hidden" name="_token" value="{{ phil_moderation_report_token() }}">
+        <input type="hidden" name="type" value="{{ type }}">
+        <input type="hidden" name="id" value="{{ id }}">
+        <input type="hidden" name="_target_path" value="{{ back }}">
+        {% component (phil_moderation_kit('Field')) %}
+            {% block content %}
+                {% component (phil_moderation_kit('Field:Label')) with {for: key ~ '-reason'} %}{% block content %}{{ 'report.reason'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% component (phil_moderation_kit('NativeSelect')) with {id: key ~ '-reason', name: 'reason', required: true} %}
+                    {% block content %}
+                        {% for reason in phil_moderation_reasons() %}
+                            {% component (phil_moderation_kit('NativeSelect:Option')) with {value: reason} %}{% block content %}{{ include('@PhilModeration/_label.html.twig', {prefix: 'reason', code: reason}) }}{% endblock %}{% endcomponent %}
+                        {% endfor %}
+                    {% endblock %}
+                {% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {% component (phil_moderation_kit('Field')) %}
+            {% block content %}
+                {% component (phil_moderation_kit('Field:Label')) with {for: key ~ '-comment'} %}{% block content %}{{ 'report.comment'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% component (phil_moderation_kit('Textarea')) with {id: key ~ '-comment', name: 'comment', rows: 3, maxlength: 1000} %}{% block content %}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {% component (phil_moderation_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'report.submit'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+    </form>
+    {% if phil_moderation_may_hide() %}
+        <form method="post" action="{{ path('phil_moderation_hide') }}">
+            <input type="hidden" name="_token" value="{{ phil_moderation_report_token() }}">
+            <input type="hidden" name="type" value="{{ type }}">
+            <input type="hidden" name="id" value="{{ id }}">
+            <input type="hidden" name="_target_path" value="{{ back }}">
+            {% component (phil_moderation_kit('Button')) with {type: 'submit', variant: 'outline'} %}{% block content %}{{ 'report.hide'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        </form>
+    {% endif %}
+</details>

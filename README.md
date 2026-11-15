@@ -151,6 +151,8 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/open-badges-bundle`](https://github.com/parler-haut-interagir-librement/open-badges-bundle) | Open Badges in Symfony: the issuer and its key from the configuration, its profile, keys and status lists served, and a verification page for tokens, documents and baked images. |
 | [`phil/certificates-bundle`](https://github.com/parler-haut-interagir-librement/certificates-bundle) | Certificates of completion on Open Badges: courses and pass criteria, a PDF certificate with a verification QR code and the signed credential, a public register and revocation. |
 | [`phil/stockroom-bundle`](https://github.com/parler-haut-interagir-librement/stockroom-bundle) | The props stockroom in Symfony: containers, items, journal and load lists in Doctrine DBAL tables, moves in a transaction that locks the items. |
+| [`phil/moderation-bundle`](https://github.com/parler-haut-interagir-librement/moderation-bundle) | One report queue for posts, comments, reactions, listings, messages and profiles: roles, decision history, a statement of reasons to authors and a public journal without names. |
+| [`phil/newsletter-bundle`](https://github.com/parler-haut-interagir-librement/newsletter-bundle) | A site's newsletter: lists, double opt-in, campaigns in Markdown, sending at the pace of sender profiles, one-click unsubscription, a preference centre and bounces read back. |
 
 ### Print and products
 
@@ -165,6 +167,8 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/paged-media-weasyprint`](https://github.com/parler-haut-interagir-librement/paged-media-weasyprint) | HTML and CSS laid out as a PDF by WeasyPrint, with no access to the network and files from one directory only. |
 | [`phil/fonts-bundle`](https://github.com/parler-haut-interagir-librement/fonts-bundle) | A directory of font files read into a catalogue, @font-face CSS, and a licence register checked by a command. |
 | [`phil/print-preflight-bundle`](https://github.com/parler-haut-interagir-librement/print-preflight-bundle) | Printer profiles from the configuration, checks added by attribute, and documents checked before they are printed. |
+| [`phil/commerce-bundle`](https://github.com/parler-haut-interagir-librement/commerce-bundle) | The core of commerce in Symfony: orders and adjustments, channels, taxes per line, payments with verified notifications, gapless receipts and credit notes with their PDF invoice. |
+| [`phil/product-feeds`](https://github.com/parler-haut-interagir-librement/product-feeds) | Product feeds for comparison sites and marketplaces, written in constant memory as RSS with product data or as TSV, and swapped into place whole. |
 
 ### Content and search
 
@@ -175,12 +179,17 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/publishing`](https://github.com/parler-haut-interagir-librement/publishing) | The events a page sends when it goes online or offline, for the listeners that follow it. |
 | [`phil/scheduled-transitions-bundle`](https://github.com/parler-haut-interagir-librement/scheduled-transitions-bundle) | Publish or unpublish at a date: workflow transitions planned and run by the Symfony Scheduler. |
 | [`phil/doctrine-behaviours`](https://github.com/parler-haut-interagir-librement/doctrine-behaviours) | Doctrine behaviours: timestamps, authors, soft delete, trees, slugs, positions and translations. |
+| [`phil/doctrine-behaviours-bundle`](https://github.com/parler-haut-interagir-librement/doctrine-behaviours-bundle) | Doctrine behaviours in Symfony: listeners switched on by configuration, blame and owner from the signed-in user, trees, positions, translations, versions and their guarded restore. |
 | [`phil/search-bundle`](https://github.com/parler-haut-interagir-librement/search-bundle) | Search with facets on the database, Meilisearch or Loupe, synonyms per language, and filters that work without JavaScript. |
 | [`phil/search-loupe`](https://github.com/parler-haut-interagir-librement/search-loupe) | The Loupe adapter of `phil/search-bundle`: search indexes in SQLite files, with no server to run. |
 | [`phil/search-synonyms`](https://github.com/parler-haut-interagir-librement/search-synonyms) | Synonym rules per language, checked for overlaps, read and written in the Solr and JSON formats. |
 | [`phil/translation-memory`](https://github.com/parler-haut-interagir-librement/translation-memory) | Translation by segments: a translation memory, a glossary, quality checks, and XLIFF, TMX and TBX exchange. |
 | [`phil/translation-bundle`](https://github.com/parler-haut-interagir-librement/translation-bundle) | Translation by segments in Symfony: a translation screen, a memory and glossaries in Doctrine, reviews and XLIFF exchange. |
 | [`phil/media-bundle`](https://github.com/parler-haut-interagir-librement/media-bundle) | A media library for Symfony: images around their focal point in WebP or AVIF, purified SVG, responsive components and a file explorer. |
+| [`phil/audio`](https://github.com/parler-haut-interagir-librement/audio) | Audio behind a port: transcoding with ffmpeg, metadata, waveform peaks computed on the server, excerpts, the creator's listening policy, and chapters and transcripts in timed text. |
+| [`phil/audio-bundle`](https://github.com/parler-haut-interagir-librement/audio-bundle) | Audio in Symfony: renditions and waveforms made by Messenger jobs, uploads through the media library, and an accessible player component. |
+| [`phil/video-bundle`](https://github.com/parler-haut-interagir-librement/video-bundle) | Videos in Symfony: hosted files or HLS in the browser's video element, YouTube and Vimeo behind a facade without tracking, captions, chapters and transcripts, progress counted only with consent. |
+| [`phil/transcription`](https://github.com/parler-haut-interagir-librement/transcription) | Transcription of recordings behind one port: a whisper.cpp server run by the site, cloud adapters refused without the consent of the people heard, and a review before publication. |
 
 ### Privacy, security and accessibility
 
@@ -194,6 +203,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/analytics-bundle`](https://github.com/parler-haut-interagir-librement/analytics-bundle) | Analytics without a visitor identifier: counters per day, small numbers suppressed, reports and alerts. |
 | [`phil/broken-flow-alerts`](https://github.com/parler-haut-interagir-librement/broken-flow-alerts) | An alert when a sign-up or a purchase stops completing, measured against the usual rhythm of the week. |
 | [`phil/identity-client-bundle`](https://github.com/parler-haut-interagir-librement/identity-client-bundle) | A Symfony client of an OpenID Connect provider: back-channel logout, step-up authentication and serialized refreshes. |
+| [`phil/identity-provider-bundle`](https://github.com/parler-haut-interagir-librement/identity-provider-bundle) | An open identity provider, one module per method: verified accounts, breach-checked passwords, passkeys, TOTP, sign-in links, step-up, and OpenID Connect with PKCE and rotating keys. |
 | [`phil/email-address`](https://github.com/parler-haut-interagir-librement/email-address) | Email addresses a mail server can deliver to, with suggestions for slips such as gmial.com. |
 | [`phil/rate-limit`](https://github.com/parler-haut-interagir-librement/rate-limit) | A build-time guard that refuses, in production, a rate limit counted separately on each server. |
 | [`phil/rate-limit-bundle`](https://github.com/parler-haut-interagir-librement/rate-limit-bundle) | Rate limits declared on controllers, routes and forms, answered with 429 and the RateLimit headers. |
@@ -201,6 +211,9 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/idempotency`](https://github.com/parler-haut-interagir-librement/idempotency) | Run an operation once per idempotency key, replay its answer, and handle each Messenger message once. |
 | [`phil/browser-security-bundle`](https://github.com/parler-haut-interagir-librement/browser-security-bundle) | Content Security Policy with nonces, HSTS, signed cookies and the other protections a browser enforces, page by page. |
 | [`phil/legal-notices`](https://github.com/parler-haut-interagir-librement/legal-notices) | The legal notice and the privacy policy as versioned documents, filled from the identity of the publisher. |
+| [`phil/legal-notices-bundle`](https://github.com/parler-haut-interagir-librement/legal-notices-bundle) | The legal notice and the privacy policy of a site at their own addresses, in each language, every version kept and linked from the footer. |
+| [`phil/terms-bundle`](https://github.com/parler-haut-interagir-librement/terms-bundle) | Versioned terms of use: versions published once, an append-only record of acceptances, a gate for a new material version, reminders and public pages with their changes. |
+| [`phil/accessibility-statement-bundle`](https://github.com/parler-haut-interagir-librement/accessibility-statement-bundle) | The accessibility statement of an application: versioned, published at /accessibility in English and French with the wording of WCAG, EN 301 549 or the Accessible Canada Act. |
 | [`phil/resource-permissions`](https://github.com/parler-haut-interagir-librement/resource-permissions) | Permissions per resource on one subject-relation-object model: declared relations, rights inherited through a tree, bounded checks and listings. |
 | [`phil/access-bundle`](https://github.com/parler-haut-interagir-librement/access-bundle) | Per-item visibility, sharing levels that expire on their own, access groups and a logged "view as this member", decided by Symfony voters. |
 | [`phil/access-codes`](https://github.com/parler-haut-interagir-librement/access-codes) | Single-use codes in named batches, given once and stored as keyed hashes, redeemed atomically with attempts bounded by a rate limiter. |
@@ -231,6 +244,8 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/api-contract`](https://github.com/parler-haut-interagir-librement/api-contract) | Both sides of an HTTP API contract: problem details, deprecation signals, and an OpenAPI document checked against levels of rules. |
 | [`phil/api-contract-bundle`](https://github.com/parler-haut-interagir-librement/api-contract-bundle) | Problem details, idempotent and deprecated controllers, and the OpenAPI document checked in CI, for Symfony. |
 | [`phil/automations`](https://github.com/parler-haut-interagir-librement/automations) | A no-code automation builder for site events: JSON definitions, delays, filters and branches, retries and compensation, run by Messenger. |
+| [`phil/lti`](https://github.com/parler-haut-interagir-librement/lti) | LTI 1.3 on both sides, tool and platform: the OpenID Connect launch, Deep Linking 2.0, typed roles and claims, and the grade and roster services of LTI Advantage. |
+| [`phil/lti-bundle`](https://github.com/parler-haut-interagir-librement/lti-bundle) | LTI 1.3 in Symfony: the routes of the launch, Deep Linking and the key set, an authenticator for verified launches, stores on Doctrine DBAL and scores sent through Messenger. |
 
 ### Operations
 

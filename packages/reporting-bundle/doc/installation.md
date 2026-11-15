@@ -5,7 +5,7 @@
 | Package | Version | Why |
 |---|---|---|
 | PHP | 8.5 or later, with `intl`, `json`, `mbstring` and `sodium` | Figures written in a locale; jobs as JSON; labels counted in characters; random identifiers. |
-| `phil/svg-chart` | `^0.1` | The SVG images of the charts, and their PNG images through its rasterizer. |
+| `phil/svg-chart` | `^0.1.1` | The SVG images of the charts, and their PNG images through its rasterizer. |
 | `symfony/config`, `symfony/dependency-injection` | `^8.2` | The bundle and its configuration. |
 | `symfony/service-contracts` | `^3.6` | The locators of the sources, reports, formats and deliveries. |
 | `psr/clock`, `psr/event-dispatcher` | `^1.0` | The moment the periods are counted from; `ReportExported`. |

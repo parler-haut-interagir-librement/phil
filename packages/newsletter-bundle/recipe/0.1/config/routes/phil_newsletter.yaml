@@ -1,0 +1,5 @@
+# The subscription form, the confirmation, the unsubscription, the preference center, the tracked links and the
+# preview of the Markdown editor, under /newsletter.
+phil_newsletter:
+    resource: '@PhilNewsletterBundle/config/routes.php'
+    prefix: /newsletter

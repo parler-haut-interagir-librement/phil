@@ -1,0 +1,97 @@
+phil_newsletter_campaign
+  id string(36) not null
+  site string(64) not null
+  list_id string(36) not null
+  subject string(200) not null
+  body text(-) not null
+  preheader string(255) not null
+  segment string(64) null
+  template string(64) null
+  sender_profile string(64) null
+  click_tracking string(16) not null
+  status string(16) not null
+  scheduled_at bigint(-) null
+  sent_at bigint(-) null
+  primary id
+  index phil_newsletter_campaign_i0 (status,scheduled_at)
+phil_newsletter_click
+  campaign_id string(36) not null
+  link_index integer(-) not null
+  clicks bigint(-) not null
+  primary campaign_id,link_index
+phil_newsletter_delivery
+  id string(32) not null
+  subscriber_id string(36) not null
+  campaign_id string(36) null
+  template string(64) null
+  status string(16) not null
+  attempts integer(-) not null
+  created_at bigint(-) not null
+  sent_at bigint(-) null
+  primary id
+  index phil_newsletter_delivery_i0 (campaign_id,status)
+  index phil_newsletter_delivery_i1 (subscriber_id)
+phil_newsletter_link
+  campaign_id string(36) not null
+  link_index integer(-) not null
+  url_hash string(64) not null
+  url text(-) not null
+  primary campaign_id,link_index
+  unique phil_newsletter_link_u0 (campaign_id,url_hash)
+phil_newsletter_list
+  id string(36) not null
+  site string(64) not null
+  list_key string(64) not null
+  name string(120) not null
+  double_opt_in smallint(-) not null
+  sender_profile string(64) not null
+  created_at bigint(-) not null
+  primary id
+  unique phil_newsletter_list_u0 (site,list_key)
+phil_newsletter_membership
+  subscriber_id string(36) not null
+  list_id string(36) not null
+  status string(16) not null
+  changed_at bigint(-) not null
+  primary subscriber_id,list_id
+  index phil_newsletter_membership_i0 (list_id,status,subscriber_id)
+phil_newsletter_recipient_click
+  subscriber_id string(36) not null
+  campaign_id string(36) not null
+  link_index integer(-) not null
+  clicked_at bigint(-) not null
+  primary subscriber_id,campaign_id,link_index,clicked_at
+phil_newsletter_subscriber
+  id string(36) not null
+  site string(64) not null
+  email string(254) not null
+  email_key string(254) not null
+  external_id string(191) null
+  status string(16) not null
+  created_at bigint(-) not null
+  confirmed_at bigint(-) null
+  paused_until bigint(-) null
+  soft_bounces integer(-) not null
+  primary id
+  index phil_newsletter_subscriber_i0 (external_id)
+  unique phil_newsletter_subscriber_u0 (site,email_key)
+phil_newsletter_suppression
+  site string(64) not null
+  email_hash string(64) not null
+  reason string(16) not null
+  created_at bigint(-) not null
+  primary site,email_hash
+phil_newsletter_template
+  site string(64) not null
+  template_key string(64) not null
+  subject string(200) not null
+  source text(-) not null
+  updated_at bigint(-) not null
+  primary site,template_key
+phil_newsletter_unsubscribe_reason
+  site string(64) not null
+  list_id string(36) not null
+  reason string(32) not null
+  day bigint(-) not null
+  total bigint(-) not null
+  primary site,list_id,reason,day

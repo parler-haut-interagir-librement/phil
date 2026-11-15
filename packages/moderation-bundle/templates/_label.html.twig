@@ -1,0 +1,6 @@
+{#
+    The label of a code — a role, a target type, a reason —, translated as "<prefix>.<code>" in the domain
+    "phil_moderation"; a code of the application without a translation shows itself.
+#}
+{%- set label = (prefix ~ '.' ~ code)|trans({}, 'phil_moderation') -%}
+{{- label == prefix ~ '.' ~ code ? code : label -}}

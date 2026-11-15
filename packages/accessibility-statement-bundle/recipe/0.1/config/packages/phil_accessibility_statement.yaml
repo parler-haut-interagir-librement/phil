@@ -1,0 +1,11 @@
+# The accessibility statement of the site. Until a statement is written here, none is published: the page answers
+# "not found" and the footer does not link to it. Write the first version with what the site really meets, as below;
+# the installation guide of phil/accessibility-statement-bundle lists the other keys.
+phil_accessibility_statement:
+    # statement:
+    #     version: 1
+    #     published_at: '2026-01-01'
+    #     entity: Example Org
+    #     feedback: { email: accessibility@example.com, response_days: 10 }
+    #     non_conformities:
+    #         - { criterion: '1.4.3', description: { en: Grey text on the event pages. } }

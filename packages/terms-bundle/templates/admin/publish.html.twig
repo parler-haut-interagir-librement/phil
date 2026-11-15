@@ -1,0 +1,79 @@
+{#
+ # The form that publishes the next version of a policy. Its parts are recipes of the kit — Alert, Field, NativeSelect,
+ # Textarea, Input, Checkbox, Button —, from the PHIL UX kit or the Shadcn kit, called by the names `phil_terms_kit()`
+ # gives; only the props both kits share are passed.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_terms' %}
+
+{% block title %}{{ 'title.publish'|trans({'%version%': next}, domain) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ ('policy.' ~ policy)|trans({}, domain) }} — {{ 'title.publish'|trans({'%version%': next}, domain) }}</h1>
+    <p><a href="{{ path('phil_terms_admin_list') }}">{{ 'title.admin'|trans({}, domain) }}</a></p>
+
+    {% if error %}
+        {% component (phil_terms_kit('Alert')) with {variant: 'destructive'} %}
+            {% block content %}
+                {% component (phil_terms_kit('Alert:Title')) %}{% block content %}{{ ('error.' ~ error.reason)|trans(error.parameters, domain) }}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+    {% endif %}
+
+    <form method="post">
+        <input type="hidden" name="_token" value="{{ csrf_token }}">
+
+        {% component (phil_terms_kit('Field')) %}
+            {% block content %}
+                {% component (phil_terms_kit('Field:Label')) with {for: 'phil-terms-format'} %}{% block content %}{{ 'field.format'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% component (phil_terms_kit('NativeSelect')) with {id: 'phil-terms-format', name: 'format'} %}
+                    {% block content %}
+                        {% for format in formats %}
+                            {% component (phil_terms_kit('NativeSelect:Option')) with {value: format, selected: format == draft.format} %}{% block content %}{{ ('format.' ~ format)|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                        {% endfor %}
+                    {% endblock %}
+                {% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+
+        {% for locale in locales %}
+            {% component (phil_terms_kit('Field')) %}
+                {% block content %}
+                    {% component (phil_terms_kit('Field:Label')) with {for: 'phil-terms-text-' ~ locale} %}{% block content %}{{ 'field.text'|trans({'%locale%': locale}, domain) }}{% endblock %}{% endcomponent %}
+                    {% component (phil_terms_kit('Textarea')) with {id: 'phil-terms-text-' ~ locale, name: 'texts[' ~ locale ~ ']', rows: 20, cols: 80} %}{% block content %}{{ draft.texts[locale] ?? '' }}{% endblock %}{% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
+        {% endfor %}
+
+        {% component (phil_terms_kit('Field')) %}
+            {% block content %}
+                {% component (phil_terms_kit('Field:Label')) with {for: 'phil-terms-effective-at'} %}{% block content %}{{ 'field.effective_at'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% component (phil_terms_kit('Input')) with {id: 'phil-terms-effective-at', type: 'datetime-local', name: 'effective_at', value: draft.effective_at, 'aria-describedby': 'phil-terms-effective-at-help'} %}{% endcomponent %}
+                {% component (phil_terms_kit('Field:Description')) with {id: 'phil-terms-effective-at-help'} %}{% block content %}{{ 'help.effective_at'|trans({'%timezone%': timezone}, domain) }}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+
+        {% if licensing %}
+            {% component (phil_terms_kit('Field')) %}
+                {% block content %}
+                    {% component (phil_terms_kit('Field:Label')) with {for: 'phil-terms-licence'} %}{% block content %}{{ 'field.licence'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% component (phil_terms_kit('Input')) with {id: 'phil-terms-licence', type: 'text', name: 'licence', value: draft.licence, required: true, maxlength: 64, pattern: '[A-Za-z0-9][A-Za-z0-9.+\\-]*', 'aria-describedby': 'phil-terms-licence-help'} %}{% endcomponent %}
+                    {% component (phil_terms_kit('Field:Description')) with {id: 'phil-terms-licence-help'} %}{% block content %}{{ 'help.licence'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
+        {% endif %}
+
+        {% component (phil_terms_kit('Field')) with {orientation: 'horizontal'} %}
+            {% block content %}
+                {% component (phil_terms_kit('Checkbox')) with {id: 'phil-terms-material', name: 'material', value: '1', checked: draft.material, 'aria-describedby': 'phil-terms-material-help'} %}{% endcomponent %}
+                {% component (phil_terms_kit('Field:Label')) with {for: 'phil-terms-material'} %}{% block content %}{{ 'field.material'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {% component (phil_terms_kit('Field:Description')) with {id: 'phil-terms-material-help'} %}{% block content %}{{ 'help.material'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+
+        <p>
+            {% component (phil_terms_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'action.publish'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        </p>
+    </form>
+{% endblock %}

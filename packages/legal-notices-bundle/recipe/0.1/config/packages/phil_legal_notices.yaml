@@ -1,0 +1,45 @@
+# The legal notice and the privacy policy of the site: see vendor/phil/legal-notices-bundle/doc/configuration.md for
+# every option. Both documents start as drafts, which no page shows: fill in the identity, adapt the bodies in legal/,
+# then publish each version by giving it a publication date and removing its "state: draft".
+phil_legal_notices:
+    default_locale: en
+    identity:
+        # The fields a published document requires: the legal notice names the publisher, the director of
+        # publication, a contact and the host; the privacy policy, the publisher, a contact and who answers for
+        # personal information. Each is a placeholder of the bodies too: ${publisher_name}.
+        site_name: ~
+        publisher_name: ~
+        publisher_address: ~
+        publication_director: ~
+        contact_email: ~
+        host_name: ~
+        host_address: ~
+        host_contact: ~
+        dpo_name: ~
+        dpo_contact: ~
+    documents:
+        legal_notice:
+            - number: 1
+              format: markdown
+              state: draft
+              effective_at: '2026-12-01'
+              # published_at: '2026-12-01'
+              files:
+                  en: '%kernel.project_dir%/legal/notice.en.md'
+                  fr: '%kernel.project_dir%/legal/notice.fr.md'
+        privacy_policy:
+            - number: 1
+              format: markdown
+              state: draft
+              effective_at: '2026-12-01'
+              # published_at: '2026-12-01'
+              files:
+                  en: '%kernel.project_dir%/legal/privacy.en.md'
+                  fr: '%kernel.project_dir%/legal/privacy.fr.md'
+    consent:
+        categories:
+            necessary:
+                necessary: true
+                labels: { en: Necessary, fr: Nécessaires }
+                descriptions: { en: The session of your visit., fr: La session de votre visite. }
+                cookies: [PHPSESSID]

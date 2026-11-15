@@ -1,0 +1,2 @@
+{# A submit button of the kit. Variables: label, variant ('default'). #}
+{% component (phil_identity_kit('Button')) with {type: 'submit', variant: variant|default('default')} %}{% block content %}{{ label }}{% endblock %}{% endcomponent %}

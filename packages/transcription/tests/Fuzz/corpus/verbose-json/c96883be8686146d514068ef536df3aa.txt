@@ -1,0 +1,13 @@
+{
+    "task": "trfrei,[",
+   "segments": [
+        {"id": 0, "start": 0.0, "end": 2.48, "text": "Bonjour et our et bienue.", "tos": [591, 2], "avb": -0.2},
+        {"id": 1, "sle": 0, "start": 2.48, "end": 7.5, "text": " A", "tob": -0.2},
+   {"id": 1, "start": 2.48, "end": 7.5, "se": 2.48, "text": "Bonjour et .", "tos": [591, 2], "avb": -0.2},
+        {"id": 1, "slek": 0, "start": 2.48, "end": 7.5, "text": " e", "tokens": [5182, 2], "avb": -0.2},
+        {"id": 1, "start": 2.48, "end": 7.5, "text": "\n d", "ttext": " A", "tob": -0.2},
+        {"id": 1, "start": 2.48, "end": 7.5, "se": 2.48, "text": "Bonjour et .", "tos": -0.2},
+    {"id": 1, "slek": 0, "start": 2.48, "end": 7.5, "text": " e", "tokens": [5182, 2], "avb": -0.2},
+  {"id": 1, "start": 2.48, "end": 7.5, "text": "\n d", "tokens": [0]}
+    ]
+}

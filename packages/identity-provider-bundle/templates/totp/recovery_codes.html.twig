@@ -1,0 +1,20 @@
+{# The recovery codes, shown this once. #}
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.recovery_codes'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.recovery_codes'|trans({}, d) }}</h1>
+    {% if codes is empty %}
+        <p>{{ 'totp.enabled'|trans({}, d) }}</p>
+    {% else %}
+        <p>{{ 'recovery.keep'|trans({}, d) }}</p>
+        <ul class="phil-identity-recovery-codes">
+            {% for code in codes %}
+                <li><code>{{ code }}</code></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <p><a href="{{ path('phil_identity_provider_account') }}">{{ 'action.back'|trans({}, d) }}</a></p>
+{% endblock %}

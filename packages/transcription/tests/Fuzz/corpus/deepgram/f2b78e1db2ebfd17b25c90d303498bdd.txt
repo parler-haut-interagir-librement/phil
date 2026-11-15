@@ -1,0 +1,10 @@
+{
+    "metadata": { "dtion": 3.2, "channels": 1},
+    "results": {
+  "utterances": [
+       {"start": 0.9, "end": 1.6, "iol": 0, "transcript": "Bonjour.", "sprip": "a"},
+            {"start": 2.0, "end": 2, "transcript": "a"},
+            {"start": 2.0, "end": 2, "transcript": "Salutb"}
+        ]
+    }
+}

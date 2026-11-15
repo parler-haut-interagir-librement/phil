@@ -1,0 +1,29 @@
+[
+    {
+        "test-name": "oidcc-scope-profile",
+        "variant": "*",
+        "configuration-filename": "*",
+        "current-block": "*",
+        "condition": "VerifyScopesReturnedInUserInfoClaims",
+        "expected-result": "warning",
+        "comment": "An account has a name, not the other claims of the profile scope (given_name, family_name, picture...)."
+    },
+    {
+        "test-name": "oidcc-ensure-request-with-acr-values-succeeds",
+        "variant": "*",
+        "configuration-filename": "*",
+        "current-block": "*",
+        "condition": "ValidateIdTokenACRClaimAgainstAcrValuesRequest",
+        "expected-result": "warning",
+        "comment": "The provider states the methods proven in amr and names no authentication context class (acr), a SHOULD."
+    },
+    {
+        "test-name": "oidcc-claims-essential",
+        "variant": "*",
+        "configuration-filename": "*",
+        "current-block": "*",
+        "condition": "EnsureUserInfoContainsName",
+        "expected-result": "warning",
+        "comment": "The claims parameter is not supported (claims_parameter_supported: false); claims follow the scopes."
+    }
+]

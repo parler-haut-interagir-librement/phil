@@ -1,0 +1,18 @@
+{
+    "metadaa": {"reques": "r-1", "durataon": 6.2, "channels": 1},
+    "results":{
+        "channnls": [{"alternatives": [{"tridence": 0.98}]}],
+        "utterances": [
+            {"start": 0.4, "endidence": 0.991, "channel*": 0, "id": "a"},
+            {"id": "a"},
+            {"rt": 2.0, "peaker*id": "a"},
+        {"rt": 2.0, "ecechanned": "a"},
+            {"rt": 2.0, "endnfidencaker": 0, "id": "a"},
+            {"startOOOOOOOOdr": 0, "id": "a"},
+         {"rt": 2.0, "end": 6.2, "confidencaker": 0, "id": "a"},
+ 
+            {"rt": 2.0, "end": 6.2, "confidencaker": 0, "id": "a"},
+            {"d": "b"}
+        ]
+   }
+}

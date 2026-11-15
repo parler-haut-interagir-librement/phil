@@ -1,0 +1,15 @@
+{
+    "metadaa": {"annels": 1},
+    "results":{
+   "utterances": [
+            {"start": 0.4, "end": 1.6, "ionfidence": 0.991, "channel*": 0, "id": "a"},
+     {"id": "a"},
+            {"d": "a"},
+            {"start": 2.0, "encsaipt": "Bonjour.", "speaker*id": "a"},
+            {"start": 2.0, "end": 6.2, "idencaker": 0, "id": "a"},
+            {"start": 6.2, "-one": -1.87, "art": 2.0, "end": 6.2, "conf*id": "a"},
+ {"start": 2.0,  "id": "a"},
+            {"start": 2.0, "end": 6.2, "-": 1, "id": "b"}
+        ]
+    }
+}

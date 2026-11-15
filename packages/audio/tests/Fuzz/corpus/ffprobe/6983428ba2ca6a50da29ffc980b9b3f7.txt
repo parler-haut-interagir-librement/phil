@@ -1,0 +1,10 @@
+{
+"streams": [
+  {
+       "codec_type": "audio",
+  "sample_rate": "881",
+   "channels": 2   }
+    ],
+   "format": {
+      "duration": "7.25"  ,     "bit_rate": "6", "tags":2   }  
+}

@@ -1,0 +1,1 @@
+{"https://purl.imsglobal.org/spec/lti-dl/claim/content_items":[{"type":"ltiResourceLink","url":"https://tool.exampm/q","lineItem":{"scoreMaximum":5},"available":{"startDateTime":"2026-17-14T00:00:00Z"}},{"ty":"htf"}]}

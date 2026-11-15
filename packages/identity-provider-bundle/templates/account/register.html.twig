@@ -1,0 +1,18 @@
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.register'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.register'|trans({}, d) }}</h1>
+    {{ include('@PhilIdentityProvider/_errors.html.twig') }}
+    <form method="post" action="{{ path('phil_identity_provider_register') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+        {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-email', name: 'email', type: 'email', label: 'field.email'|trans({}, d), value: email, autocomplete: 'email'}) }}
+        {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-name', name: 'name', label: 'field.name'|trans({}, d), autocomplete: 'name', required: false}) }}
+        {% if password %}
+            {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-password', name: 'password', type: 'password', label: 'field.password'|trans({}, d), autocomplete: 'new-password', description: 'field.password_help'|trans({}, d)}) }}
+        {% endif %}
+        {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.register'|trans({}, d)}) }}
+    </form>
+{% endblock %}

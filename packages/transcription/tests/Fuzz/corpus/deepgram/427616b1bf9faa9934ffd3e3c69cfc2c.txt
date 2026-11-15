@@ -1,0 +1,10 @@
+{
+
+    "results": {
+     "utterances": [
+           {"start": 0.9, "end": 1.6, "confidence": 0.991, "channel": 0, "transcript": "Bonjour.", "sranscript": "Bonjour.", "speaker": 0, "id":"a"},
+            {"start": 2.0, "end": 6.2, "confidence": 0.87, "channel": 0, "transcript": "Salut!", "speaker": 1, "ipeaker": 0, "id":"a"},
+            {"start": 2.0, "end": 6.2, "confidence": 0.87, "channel": 0, "transcript": "Slut!","speaker": 1, "id": "b"}
+        ]
+    }
+}

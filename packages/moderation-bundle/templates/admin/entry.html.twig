@@ -1,0 +1,126 @@
+{#
+    A target as a moderator reviews it: what the package says of it, its open reports, the decision form — the action,
+    the grounds the statement of reasons tells the author when the decision restricts them, the reason the public
+    journal shows, the note only the moderation reads, whether the journal shows it —, and the
+    history of the decisions on it, with the role of each moderator. Its parts are recipes of the kit — Alert, Badge,
+    Button, Field, Input, NativeSelect, Textarea, Table.
+#}
+{% extends layout %}
+
+{% set domain = 'phil_moderation' %}
+{% set view = entry.view %}
+
+{% block title %}{{ 'entry.title'|trans({}, domain) }}{% endblock %}
+
+{% block main %}
+    <h1>{{ view is null ? 'queue.gone'|trans({}, domain) : view.title }}</h1>
+    {{ include('@PhilModeration/admin/_nav.html.twig') }}
+
+    <p>
+        <small>{{ entry.target.type }} · {{ entry.target.id }}</small>
+        {% if view is not null and view.url is not null %} · <a href="{{ view.url }}" rel="noopener noreferrer">{{ 'entry.open'|trans({}, domain) }}</a>{% endif %}
+        {% if view is not null and view.author is not null %} · <a href="{{ path(routes.member, {member: view.author.value}) }}">{{ 'entry.author'|trans({}, domain) }}</a>{% endif %}
+    </p>
+    {% if view is not null and view.excerpt is not null %}
+        <blockquote>{{ view.excerpt }}</blockquote>
+    {% endif %}
+
+    {{ include('@PhilModeration/admin/_error.html.twig') }}
+
+    <section aria-labelledby="phil-moderation-reports">
+        <h2 id="phil-moderation-reports">{{ 'entry.reports'|trans({'%count%': entry.reports|length}, domain) }}</h2>
+        {% if entry.reports is empty %}
+            <p>{{ 'entry.no_report'|trans({}, domain) }}</p>
+        {% else %}
+            <ul>
+                {% for report in entry.reports %}
+                    <li>
+                        {% component (phil_moderation_kit('Badge')) with {variant: 'outline'} %}{% block content %}{{ include('@PhilModeration/_label.html.twig', {prefix: 'reason', code: report.reason}) }}{% endblock %}{% endcomponent %}
+                        {{ ('source.' ~ report.source.value)|trans({}, domain) }} ·
+                        <time datetime="{{ report.reportedAt|date('c') }}">{{ report.reportedAt|date('Y-m-d H:i') }}</time>
+                        {% if report.comment is not null %}<p>{{ report.comment }}</p>{% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </section>
+
+    {% if may_decide %}
+        <section aria-labelledby="phil-moderation-decide">
+            <h2 id="phil-moderation-decide">{{ 'entry.decide'|trans({}, domain) }}</h2>
+            <form method="post" action="{{ path(routes.decide) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token }}">
+                <input type="hidden" name="type" value="{{ entry.target.type }}">
+                <input type="hidden" name="id" value="{{ entry.target.id }}">
+                {% component (phil_moderation_kit('Field')) %}
+                    {% block content %}
+                        {% component (phil_moderation_kit('Field:Label')) with {for: 'phil-moderation-action'} %}{% block content %}{{ 'entry.action'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                        {% component (phil_moderation_kit('NativeSelect')) with {id: 'phil-moderation-action', name: 'action', required: true} %}
+                            {% block content %}
+                                {% for action in actions %}
+                                    {% component (phil_moderation_kit('NativeSelect:Option')) with {value: action.value} %}{% block content %}{{ ('action.' ~ action.value)|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% endfor %}
+                            {% endblock %}
+                        {% endcomponent %}
+                    {% endblock %}
+                {% endcomponent %}
+                {% if statements %}
+                    <fieldset aria-describedby="phil-moderation-grounds-help">
+                        <legend>{{ 'entry.grounds'|trans({}, domain) }}</legend>
+                        <p id="phil-moderation-grounds-help"><small>{{ 'entry.grounds_help'|trans({}, domain) }}</small></p>
+                        {% component (phil_moderation_kit('Field')) %}
+                            {% block content %}
+                                {% component (phil_moderation_kit('Field:Label')) with {for: 'phil-moderation-ground'} %}{% block content %}{{ 'entry.ground'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (phil_moderation_kit('NativeSelect')) with {id: 'phil-moderation-ground', name: 'ground'} %}
+                                    {% block content %}
+                                        {% component (phil_moderation_kit('NativeSelect:Option')) with {value: ''} %}{% block content %}—{% endblock %}{% endcomponent %}
+                                        {% for code in phil_moderation_reasons() %}
+                                            {% component (phil_moderation_kit('NativeSelect:Option')) with {value: code} %}{% block content %}{{ include('@PhilModeration/_label.html.twig', {prefix: 'reason', code: code}) }}{% endblock %}{% endcomponent %}
+                                        {% endfor %}
+                                    {% endblock %}
+                                {% endcomponent %}
+                            {% endblock %}
+                        {% endcomponent %}
+                        {% component (phil_moderation_kit('Field')) %}
+                            {% block content %}
+                                {% component (phil_moderation_kit('Field:Label')) with {for: 'phil-moderation-explanation'} %}{% block content %}{{ 'entry.explanation'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (phil_moderation_kit('Textarea')) with {id: 'phil-moderation-explanation', name: 'explanation', rows: 3, maxlength: 2000} %}{% block content %}{% endblock %}{% endcomponent %}
+                            {% endblock %}
+                        {% endcomponent %}
+                        {% component (phil_moderation_kit('Field')) %}
+                            {% block content %}
+                                {% component (phil_moderation_kit('Field:Label')) with {for: 'phil-moderation-reference'} %}{% block content %}{{ 'entry.reference'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (phil_moderation_kit('Input')) with {id: 'phil-moderation-reference', name: 'reference', maxlength: 255, 'aria-describedby': 'phil-moderation-reference-help'} %}{% endcomponent %}
+                                {% component (phil_moderation_kit('Field:Description')) with {id: 'phil-moderation-reference-help'} %}{% block content %}{{ 'entry.reference_help'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                            {% endblock %}
+                        {% endcomponent %}
+                    </fieldset>
+                {% endif %}
+                {% component (phil_moderation_kit('Field')) %}
+                    {% block content %}
+                        {% component (phil_moderation_kit('Field:Label')) with {for: 'phil-moderation-reason'} %}{% block content %}{{ 'entry.reason'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                        {% component (phil_moderation_kit('Textarea')) with {id: 'phil-moderation-reason', name: 'reason', rows: 2, maxlength: 500, 'aria-describedby': 'phil-moderation-reason-help'} %}{% block content %}{% endblock %}{% endcomponent %}
+                        {% component (phil_moderation_kit('Field:Description')) with {id: 'phil-moderation-reason-help'} %}{% block content %}{{ 'entry.reason_help'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% endblock %}
+                {% endcomponent %}
+                {% component (phil_moderation_kit('Field')) %}
+                    {% block content %}
+                        {% component (phil_moderation_kit('Field:Label')) with {for: 'phil-moderation-note'} %}{% block content %}{{ 'entry.note'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                        {% component (phil_moderation_kit('Textarea')) with {id: 'phil-moderation-note', name: 'note', rows: 3, maxlength: 2000} %}{% block content %}{% endblock %}{% endcomponent %}
+                    {% endblock %}
+                {% endcomponent %}
+                <p>
+                    <label><input type="checkbox" name="public" value="1" checked> {{ 'entry.public'|trans({}, domain) }}</label>
+                </p>
+                <p>
+                    {% component (phil_moderation_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'entry.submit'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                </p>
+            </form>
+        </section>
+    {% endif %}
+
+    <section aria-labelledby="phil-moderation-history">
+        <h2 id="phil-moderation-history">{{ 'entry.history'|trans({}, domain) }}</h2>
+        {{ include('@PhilModeration/admin/_decisions.html.twig', {decisions: entry.decisions}) }}
+    </section>
+{% endblock %}

@@ -1,0 +1,15 @@
+{#- The page the public pages of the newsletter extend; an application overrides it to wear its own layout. -#}
+<!DOCTYPE html>
+<html lang="{{ 'locale'|trans({}, 'phil_newsletter') }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{% block title %}{{ 'page.title'|trans({}, 'phil_newsletter') }}{% endblock %}</title>
+</head>
+<body>
+    <main class="phil-newsletter">
+        {% block body %}{% endblock %}
+    </main>
+</body>
+</html>

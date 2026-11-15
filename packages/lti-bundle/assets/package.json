@@ -1,0 +1,24 @@
+{
+    "name": "@phil/lti-bundle",
+    "description": "The auto-submit controller of phil/lti-bundle: the form of a launch or of a deep linking response posts itself to the other side",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/auto_submit_controller.js",
+    "symfony": {
+        "controllers": {
+            "auto-submit": {
+                "main": "src/auto_submit_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

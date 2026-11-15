@@ -15,9 +15,12 @@ return [
     ],
     'deptrac' => [
         // The SVG baker reads and writes images through the DOM extension of PHP, which is outside the default; the
-        // resolution of a did:web reads its address through phil/url and its document through phil/safe-http.
+        // resolution of a did:web reads its address through phil/url and its document through phil/safe-http; the tokens
+        // and proofs are signed and verified by web-token/jwt-library, a layer of its own once another package of the
+        // monorepo is allowed it too.
+        'allow' => ['^Jose\\\\.*'],
         'ruleset' => [
-            'PhilOpenBadges' => ['DefaultAllowed', 'Forbidden', 'PhilUrl', 'PhilSafeHttp'],
+            'PhilOpenBadges' => ['DefaultAllowed', 'Forbidden', 'AllowedJose', 'PhilUrl', 'PhilSafeHttp'],
         ],
     ],
     'phpstan' => [

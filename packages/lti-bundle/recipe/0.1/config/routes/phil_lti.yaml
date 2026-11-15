@@ -1,0 +1,12 @@
+phil_lti_jwks:
+    resource: '@PhilLtiBundle/config/routes/jwks.php'
+    prefix: /lti
+
+# Uncomment the side the application plays.
+#phil_lti_tool:
+#    resource: '@PhilLtiBundle/config/routes/tool.php'
+#    prefix: /lti
+#
+#phil_lti_platform:
+#    resource: '@PhilLtiBundle/config/routes/platform.php'
+#    prefix: /lti/platform

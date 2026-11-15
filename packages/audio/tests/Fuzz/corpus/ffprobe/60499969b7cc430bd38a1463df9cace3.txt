@@ -1,0 +1,7 @@
+{  "streams": 
+[   {
+ "codec_type": "audio",  "sample_rate": "445",  "duration":"9'" }
+    ],
+   "format": 
+    {   "duration":".9",    "bit_rate": "" }
+}

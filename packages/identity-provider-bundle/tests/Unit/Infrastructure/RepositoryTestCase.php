@@ -1,0 +1,460 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Phil\IdentityProviderBundle\Tests\Unit\Infrastructure;
+
+use DateTimeImmutable;
+use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
+use Phil\IdentityProviderBundle\Domain\Contract\AccountSessionRepository;
+use Phil\IdentityProviderBundle\Domain\Contract\ClientRepository;
+use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
+use Phil\IdentityProviderBundle\Domain\Contract\LinkedIdentityRepository;
+use Phil\IdentityProviderBundle\Domain\Contract\PasskeyRepository;
+use Phil\IdentityProviderBundle\Domain\Contract\SecondFactorRepository;
+use Phil\IdentityProviderBundle\Domain\Contract\SigningKeyRepository;
+use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
+use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
+use Phil\IdentityProviderBundle\Domain\Model\External\LinkedIdentity;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\Client;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\Consent;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\SigningKey;
+use Phil\IdentityProviderBundle\Domain\Model\Passkey\Passkey;
+use Phil\IdentityProviderBundle\Domain\Model\Session\AccountSession;
+use Phil\IdentityProviderBundle\Domain\Model\Totp\RecoveryCodeSet;
+use Phil\IdentityProviderBundle\Domain\Model\Totp\TotpCredential;
+use Phil\IdentityProviderBundle\Domain\Oidc\TokenKind;
+use Phil\IdentityProviderBundle\Domain\WebAuthn\RegisteredCredential;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * What every store keeps and reads back, the same in memory and in each database: the rows written, read again once
+ * the unit of work is cleared, in the order each list promises.
+ */
+abstract class RepositoryTestCase extends TestCase
+{
+    protected const string ADA = '01JCZ6Q7Y3W0000000000000AA';
+
+    protected const string BOB = '01JCZ6Q7Y3W0000000000000BB';
+
+    abstract protected function accounts(): AccountRepository;
+
+    abstract protected function passkeys(): PasskeyRepository;
+
+    abstract protected function factors(): SecondFactorRepository;
+
+    abstract protected function sessions(): AccountSessionRepository;
+
+    abstract protected function identities(): LinkedIdentityRepository;
+
+    abstract protected function clients(): ClientRepository;
+
+    abstract protected function grants(): GrantRepository;
+
+    abstract protected function keys(): SigningKeyRepository;
+
+    /**
+     * Forgets what the store holds in memory, so that the next read comes from its storage.
+     */
+    abstract protected function clear(): void;
+
+    public function testAccounts(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $ada = Account::register(self::ADA, 'ada@example.com', $now, 'Ada');
+        $ada->changePassword('$argon2id$hash', $now);
+        $ada->grantRoles(['ROLE_ADMIN']);
+
+        $bob = Account::register(self::BOB, 'bob@example.com', $now);
+        $this->accounts()->save($ada, $bob);
+        $this->clear();
+
+        $found = $this->accounts()->get(self::ADA);
+        self::assertNotNull($found);
+        self::assertSame(['ada@example.com', 'Ada', '$argon2id$hash', ['ROLE_USER', 'ROLE_ADMIN']], [$found->email(), $found->displayName(), $found->passwordHash(), $found->roles()]);
+        self::assertSame($now->getTimestamp(), $found->createdAt()->getTimestamp());
+        self::assertSame(self::BOB, $this->accounts()->findByEmail(' BOB@example.com ')?->id());
+        self::assertNull($this->accounts()->findByEmail('nobody@example.com'));
+        self::assertNull($this->accounts()->get('01JCZ6Q7Y3W0000000000000ZZ'));
+
+        $found->verifyEmail($now);
+        $this->accounts()->save($found);
+        $this->clear();
+        self::assertTrue($this->accounts()->get(self::ADA)?->isEmailVerified());
+
+        $bob = $this->accounts()->get(self::BOB);
+        self::assertNotNull($bob);
+        $this->accounts()->remove($bob);
+        $this->clear();
+        self::assertNull($this->accounts()->get(self::BOB));
+    }
+
+    public function testPasskeys(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $first = Passkey::register(self::ADA, new RegisteredCredential(str_repeat("\xFF", 64), 'cose-1', 0, str_repeat("\x01", 16), true, true, true), 'Phone', $now);
+        $second = Passkey::register(self::ADA, new RegisteredCredential('second', 'cose-2', 5, str_repeat("\x02", 16), false, false, false), 'Key', $now->modify('+1 hour'));
+        $other = Passkey::register(self::BOB, new RegisteredCredential('other', 'cose-3', 0, str_repeat("\x03", 16), false, false, false), 'Bob', $now);
+        $this->passkeys()->save($second, $first, $other);
+        $this->clear();
+
+        $found = $this->passkeys()->findByCredentialId(str_repeat("\xFF", 64));
+        self::assertNotNull($found);
+        self::assertSame(['cose-1', 'Phone', true, '01010101-0101-0101-0101-010101010101'], [$found->coseKey(), $found->name(), $found->isBackedUp(), $found->aaguid()]);
+        self::assertSame(['Phone', 'Key'], array_map(static fn (Passkey $passkey): string => $passkey->name(), $this->passkeys()->forAccount(self::ADA)));
+        self::assertNull($this->passkeys()->findByCredentialId('unknown'));
+
+        $found->recordUse(9, false, $now);
+        $this->passkeys()->save($found);
+        $this->clear();
+        self::assertSame(9, $this->passkeys()->findByCredentialId(str_repeat("\xFF", 64))?->signCount());
+
+        $found = $this->passkeys()->findByCredentialId('second');
+        self::assertNotNull($found);
+        $this->passkeys()->remove($found);
+        $this->clear();
+        self::assertCount(1, $this->passkeys()->forAccount(self::ADA));
+    }
+
+    public function testSecondFactors(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $totp = TotpCredential::enroll(self::ADA, 'plain.SECRET', $now);
+        $codes = RecoveryCodeSet::generate(self::ADA, ['a', 'b'], $now);
+        $this->factors()->save($totp, $codes);
+        $this->clear();
+
+        $found = $this->factors()->totp(self::ADA);
+        self::assertNotNull($found);
+        self::assertSame(['plain.SECRET', false], [$found->storedSecret(), $found->isConfirmed()]);
+        $found->accept(57_000_000_000, $now);
+        $set = $this->factors()->recoveryCodes(self::ADA);
+        self::assertNotNull($set);
+        $set->use(0);
+        $this->factors()->save($found, $set);
+        $this->clear();
+
+        self::assertSame(57_000_000_000, $this->factors()->totp(self::ADA)?->lastCounter());
+        self::assertSame([null, 'b'], $this->factors()->recoveryCodes(self::ADA)?->hashes());
+        self::assertNull($this->factors()->totp(self::BOB));
+        self::assertNull($this->factors()->recoveryCodes(self::BOB));
+
+        $found = $this->factors()->totp(self::ADA);
+        $set = $this->factors()->recoveryCodes(self::ADA);
+        self::assertNotNull($found);
+        self::assertNotNull($set);
+        $this->factors()->remove($found);
+        $this->factors()->remove($set);
+        $this->clear();
+        self::assertNull($this->factors()->totp(self::ADA));
+        self::assertNull($this->factors()->recoveryCodes(self::ADA));
+    }
+
+    public function testSessions(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $old = AccountSession::open(str_repeat('a', 43), self::ADA, 'Firefox on Linux', ['pwd'], false, $now);
+        $recent = AccountSession::open(str_repeat('b', 43), self::ADA, 'Safari on iOS', ['hwk', 'user'], true, $now->modify('+1 hour'));
+        $closed = AccountSession::open(str_repeat('c', 43), self::ADA, 'Chrome on Windows', [], false, $now);
+        $closed->close($now);
+        $this->sessions()->save($old, $recent, $closed);
+        $this->clear();
+
+        self::assertSame([str_repeat('b', 43), str_repeat('a', 43)], array_map(static fn (AccountSession $session): string => $session->id(), $this->sessions()->openFor(self::ADA)));
+        self::assertSame(['hwk', 'user'], $this->sessions()->get(str_repeat('b', 43))?->methods());
+        self::assertTrue($this->sessions()->hasAny(self::ADA));
+        self::assertFalse($this->sessions()->hasAny(self::BOB));
+        self::assertTrue($this->sessions()->knowsDevice(self::ADA, 'Chrome on Windows'));
+        self::assertFalse($this->sessions()->knowsDevice(self::ADA, 'Edge on Windows'));
+        self::assertFalse($this->sessions()->knowsDevice(self::BOB, 'Safari on iOS'));
+        self::assertNull($this->sessions()->get(str_repeat('z', 43)));
+
+        self::assertSame(2, $this->sessions()->purge($now->modify('+30 minutes')));
+        $this->clear();
+        self::assertSame([str_repeat('b', 43)], array_map(static fn (AccountSession $session): string => $session->id(), $this->sessions()->openFor(self::ADA)));
+        self::assertSame(0, $this->sessions()->purge($now));
+    }
+
+    public function testLinkedIdentities(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $google = LinkedIdentity::link(self::ADA, 'google', 'g-1', $now);
+        $github = LinkedIdentity::link(self::ADA, 'github', 'h-1', $now->modify('+1 hour'));
+        $this->identities()->save($github, $google);
+        $this->clear();
+
+        self::assertSame(self::ADA, $this->identities()->find('google', 'g-1')?->accountId());
+        self::assertNull($this->identities()->find('google', 'h-1'));
+        self::assertSame(['google', 'github'], array_map(static fn (LinkedIdentity $identity): string => $identity->provider(), $this->identities()->forAccount(self::ADA)));
+
+        $found = $this->identities()->find('google', 'g-1');
+        self::assertNotNull($found);
+        $this->identities()->remove($found);
+        $this->clear();
+        self::assertCount(1, $this->identities()->forAccount(self::ADA));
+    }
+
+    public function testClientsAndConsents(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $this->clients()->save(Client::register('zeta', 'Zeta', null, ['https://z/cb'], [], [], false, $now), Client::register('alpha', 'Alpha', 'secret', ['https://a/cb'], ['https://a/out'], ['email'], true, $now));
+        $this->clear();
+
+        self::assertSame(['alpha', 'zeta'], array_map(static fn (Client $client): string => $client->id(), $this->clients()->all()));
+        $alpha = $this->clients()->get('alpha');
+        self::assertNotNull($alpha);
+        self::assertSame([['https://a/cb'], ['https://a/out'], ['openid', 'email'], true, true], [$alpha->redirectUris(), $alpha->postLogoutRedirectUris(), $alpha->scopes(), $alpha->isFirstParty(), $alpha->verifySecret('secret')]);
+        self::assertNull($this->clients()->get('nobody'));
+
+        $this->clients()->saveConsent(Consent::grant(self::ADA, 'alpha', ['openid'], $now));
+        $this->clients()->saveConsent(Consent::grant(self::ADA, 'zeta', ['openid', 'email'], $now->modify('+1 hour')));
+        $this->clear();
+        self::assertSame(['zeta', 'alpha'], array_map(static fn (Consent $consent): string => $consent->clientId(), $this->clients()->consentsOf(self::ADA)));
+        self::assertSame(['openid', 'email'], $this->clients()->consent(self::ADA, 'zeta')?->scopes());
+        self::assertNull($this->clients()->consent(self::BOB, 'zeta'));
+
+        $consent = $this->clients()->consent(self::ADA, 'alpha');
+        self::assertNotNull($consent);
+        $this->clients()->removeConsent($consent);
+        $this->clear();
+        self::assertNull($this->clients()->consent(self::ADA, 'alpha'));
+        $zeta = $this->clients()->get('zeta');
+        self::assertNotNull($zeta);
+        $this->clients()->remove($zeta);
+        $this->clear();
+        self::assertNull($this->clients()->consent(self::ADA, 'alpha'));
+        self::assertSame(['alpha'], array_map(static fn (Client $client): string => $client->id(), $this->clients()->all()));
+    }
+
+    public function testGrants(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $this->grants()->saveCode(AuthorizationCode::issue('code', 'app', self::ADA, 'https://a/cb?x=1', ['openid'], 'nonce', 'challenge', $now, ['pwd'], str_repeat('s', 43), 'FAMILY0000000000000000000A', $now->modify('+60 seconds')));
+        $access = IssuedToken::issue('jti-1', TokenKind::Access, 'FAMILY0000000000000000000A', 'app', self::ADA, ['openid'], str_repeat('s', 43), $now, ['pwd'], $now, $now->modify('+10 minutes'));
+        $refresh = IssuedToken::issue(IssuedToken::idOfRefresh('r'), TokenKind::Refresh, 'FAMILY0000000000000000000A', 'other', self::ADA, ['openid', 'offline_access'], null, $now, [], $now->modify('+1 second'), $now->modify('+30 days'));
+        $foreign = IssuedToken::issue('jti-2', TokenKind::Access, 'FAMILY0000000000000000000B', 'app', self::BOB, [], null, $now, [], $now, $now->modify('+10 minutes'));
+        $this->grants()->saveToken($refresh, $access, $foreign);
+        $this->clear();
+
+        $code = $this->grants()->code(AuthorizationCode::idOf('code'));
+        self::assertNotNull($code);
+        self::assertSame(['https://a/cb?x=1', 'nonce', 'challenge', ['pwd'], str_repeat('s', 43), false], [$code->redirectUri(), $code->nonce(), $code->codeChallenge(), $code->methods(), $code->sessionId(), $code->isUsed()]);
+        $code->use($now);
+        $this->grants()->saveCode($code);
+        $this->clear();
+        self::assertTrue($this->grants()->code(AuthorizationCode::idOf('code'))?->isUsed());
+        self::assertNull($this->grants()->code('unknown'));
+
+        self::assertSame(TokenKind::Refresh, $this->grants()->token(IssuedToken::idOfRefresh('r'))?->kind());
+        self::assertSame(['jti-1', IssuedToken::idOfRefresh('r')], array_map(static fn (IssuedToken $token): string => $token->id(), $this->grants()->family('FAMILY0000000000000000000A')));
+        self::assertSame(['jti-1', IssuedToken::idOfRefresh('r')], array_map(static fn (IssuedToken $token): string => $token->id(), $this->grants()->activeFor(self::ADA)));
+        self::assertSame(['jti-1'], array_map(static fn (IssuedToken $token): string => $token->id(), $this->grants()->activeFor(self::ADA, 'app')));
+        self::assertSame(['jti-1'], array_map(static fn (IssuedToken $token): string => $token->id(), $this->grants()->forSession(str_repeat('s', 43))));
+
+        $token = $this->grants()->token('jti-1');
+        self::assertNotNull($token);
+        $token->revoke($now);
+        $this->grants()->saveToken($token);
+        $this->clear();
+        self::assertSame([IssuedToken::idOfRefresh('r')], array_map(static fn (IssuedToken $token): string => $token->id(), $this->grants()->activeFor(self::ADA)));
+        self::assertSame([], $this->grants()->forSession(str_repeat('s', 43)));
+
+        self::assertSame(3, $this->grants()->purge($now->modify('+11 minutes')));
+        $this->clear();
+        self::assertNull($this->grants()->code(AuthorizationCode::idOf('code')));
+        self::assertNull($this->grants()->token('jti-2'));
+        self::assertNotNull($this->grants()->token(IssuedToken::idOfRefresh('r')));
+    }
+
+    public function testSigningKeys(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $this->keys()->save(SigningKey::create('second', SigningAlgorithm::EdDSA, 'plain.b', ['kid' => 'second'], $now->modify('+1 hour')), SigningKey::create('first', SigningAlgorithm::ES256, 'plain.a', ['kid' => 'first'], $now));
+        $this->clear();
+
+        self::assertSame(['first', 'second'], array_map(static fn (SigningKey $key): string => $key->kid(), $this->keys()->all()));
+        $first = $this->keys()->get('first');
+        self::assertNotNull($first);
+        self::assertSame([SigningAlgorithm::ES256, 'plain.a', ['kid' => 'first']], [$first->algorithm(), $first->privateMaterial(), $first->publicJwk()]);
+        $first->activate($now);
+        $this->keys()->save($first);
+        $this->clear();
+        self::assertTrue($this->keys()->get('first')?->isActive());
+        self::assertNull($this->keys()->get('unknown'));
+
+        $second = $this->keys()->get('second');
+        self::assertNotNull($second);
+        $this->keys()->remove($second);
+        $this->clear();
+        self::assertCount(1, $this->keys()->all());
+    }
+
+    public function testListsOrderTiesById(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $this->sessions()->save(AccountSession::open(str_repeat('b', 43), self::ADA, 'B', [], false, $now), AccountSession::open(str_repeat('a', 43), self::ADA, 'A', [], false, $now));
+        $this->identities()->save(...$this->descending([LinkedIdentity::link(self::ADA, 'zeta', '1', $now), LinkedIdentity::link(self::ADA, 'alpha', '1', $now)]));
+        $this->identities()->save(LinkedIdentity::link(self::BOB, 'alpha', '2', $now->modify('-1 hour')));
+        $this->passkeys()->save(...$this->descending([
+            Passkey::register(self::ADA, new RegisteredCredential('one', 'c', 0, str_repeat("\x01", 16), false, false, false), 'One', $now),
+            Passkey::register(self::ADA, new RegisteredCredential('two', 'c', 0, str_repeat("\x02", 16), false, false, false), 'Two', $now),
+        ]));
+        $this->passkeys()->save(Passkey::register(self::BOB, new RegisteredCredential('three', 'c', 0, str_repeat("\x03", 16), false, false, false), 'Three', $now->modify('-1 hour')));
+        $this->keys()->save(SigningKey::create('kid-b', SigningAlgorithm::ES256, 'p', ['kid' => 'kid-b'], $now), SigningKey::create('kid-a', SigningAlgorithm::ES256, 'p', ['kid' => 'kid-a'], $now));
+        foreach ($this->descending([Consent::grant(self::ADA, 'one', ['openid'], $now), Consent::grant(self::ADA, 'two', ['openid'], $now)]) as $consent) {
+            $this->clients()->saveConsent($consent);
+        }
+
+        $this->clients()->saveConsent(Consent::grant(self::BOB, 'one', ['openid'], $now->modify('+1 hour')));
+        $this->grants()->saveToken(
+            IssuedToken::issue('jti-b', TokenKind::Access, 'FAMILY0000000000000000000A', 'app', self::ADA, [], str_repeat('s', 43), $now, [], $now, $now->modify('+1 hour')),
+            IssuedToken::issue('jti-a', TokenKind::Access, 'FAMILY0000000000000000000A', 'app', self::ADA, [], str_repeat('s', 43), $now, [], $now, $now->modify('+1 hour')),
+        );
+        $this->clear();
+
+        self::assertSame([str_repeat('a', 43), str_repeat('b', 43)], $this->idsOf($this->sessions()->openFor(self::ADA)));
+        $linked = $this->identities()->forAccount(self::ADA);
+        self::assertCount(2, $linked);
+        self::assertSame($this->idsOf($linked), $this->sortedIds($this->idsOf($linked)));
+        $passkeys = $this->passkeys()->forAccount(self::ADA);
+        self::assertCount(2, $passkeys);
+        self::assertSame($this->idsOf($passkeys), $this->sortedIds($this->idsOf($passkeys)));
+        self::assertSame(['kid-a', 'kid-b'], $this->idsOf($this->keys()->all()));
+        $consents = $this->clients()->consentsOf(self::ADA);
+        self::assertCount(2, $consents);
+        self::assertSame($this->idsOf($consents), $this->sortedIds($this->idsOf($consents)));
+        self::assertSame(['jti-a', 'jti-b'], $this->idsOf($this->grants()->family('FAMILY0000000000000000000A')));
+        self::assertSame(['jti-a', 'jti-b'], $this->idsOf($this->grants()->activeFor(self::ADA)));
+        self::assertSame(['jti-a', 'jti-b'], $this->idsOf($this->grants()->forSession(str_repeat('s', 43))));
+    }
+
+    public function testListsAreOrderedByTheirMomentBeforeTheirIdentifier(): void
+    {
+        $other = new DateTimeImmutable('2026-11-14 09:00:00');
+        $signed = static fn (int $i): string => str_repeat(\chr(97 + $i % 26), 43);
+
+        [$sessions, $expected] = $this->opposed(static fn (int $i, DateTimeImmutable $time): array => [AccountSession::open($signed($i), self::ADA, 'Device', [], false, $time), $signed($i)], true);
+        $this->sessions()->save(...$sessions, ...[AccountSession::open($signed(9), self::BOB, 'Device', [], false, $other->modify('+9 hours'))]);
+        [$consents, $expectedConsents] = $this->opposed(static fn (int $i, DateTimeImmutable $time): array => [Consent::grant(self::ADA, 'client'.$i, ['openid'], $time), Consent::idOf(self::ADA, 'client'.$i)], true);
+
+        foreach ($consents as $consent) {
+            $this->clients()->saveConsent($consent);
+        }
+
+        $this->clients()->saveConsent(Consent::grant(self::BOB, 'client0', ['openid'], $other->modify('+9 hours')));
+        [$tokens, $expectedTokens] = $this->opposed(static fn (int $i, DateTimeImmutable $time): array => [IssuedToken::issue('jti'.$i, TokenKind::Access, 'FAMILY0000000000000000000A', 'app', self::ADA, [], str_repeat('s', 43), $time, [], $time, $time->modify('+1 day')), 'jti'.$i], false);
+        $this->grants()->saveToken(...$tokens);
+        $this->grants()->saveToken(IssuedToken::issue('foreign', TokenKind::Access, 'FAMILY0000000000000000000B', 'app', self::BOB, [], str_repeat('t', 43), $other, [], $other, $other->modify('+1 day')));
+        [$linked, $expectedLinked] = $this->opposed(static fn (int $i, DateTimeImmutable $time): array => [LinkedIdentity::link(self::ADA, 'p'.\chr(97 + $i % 26), 'sub', $time), LinkedIdentity::idOf('p'.\chr(97 + $i % 26), 'sub')], false);
+        $this->identities()->save(...$linked);
+        $this->identities()->save(LinkedIdentity::link(self::BOB, 'pz', 'sub', $other));
+        [$keys, $expectedKeys] = $this->opposed(static fn (int $i, DateTimeImmutable $time): array => [SigningKey::create('kid'.$i, SigningAlgorithm::ES256, 'p', ['kid' => 'kid'.$i], $time), 'kid'.$i], false);
+        $this->keys()->save(...$keys);
+        [$passkeys, $expectedPasskeys] = $this->opposed(static fn (int $i, DateTimeImmutable $time): array => [Passkey::register(self::ADA, new RegisteredCredential('cred'.$i, 'c', 0, str_repeat("\x01", 16), false, false, false), 'P'.$i, $time), Passkey::idOf('cred'.$i)], false);
+        $this->passkeys()->save(...$passkeys);
+        $this->clear();
+
+        self::assertSame($expected, $this->idsOf($this->sessions()->openFor(self::ADA)));
+        self::assertSame($expectedConsents, $this->idsOf($this->clients()->consentsOf(self::ADA)));
+        self::assertSame($expectedTokens, $this->idsOf($this->grants()->forSession(str_repeat('s', 43))));
+        self::assertSame($expectedTokens, $this->idsOf($this->grants()->family('FAMILY0000000000000000000A')));
+        self::assertSame($expectedTokens, $this->idsOf($this->grants()->activeFor(self::ADA)));
+        self::assertSame($expectedLinked, $this->idsOf($this->identities()->forAccount(self::ADA)));
+        self::assertSame($expectedKeys, $this->idsOf($this->keys()->all()));
+        self::assertSame($expectedPasskeys, $this->idsOf($this->passkeys()->forAccount(self::ADA)));
+    }
+
+    /**
+     * Three items whose moments are the opposite of their identifiers' order, so that a list that forgets the moment, or
+     * the account it belongs to, is out of order.
+     *
+     * @template T of object
+     *
+     * @param callable(int, DateTimeImmutable): array{T, string} $make the item of an index at a moment, and its identifier
+     *
+     * @return array{list<T>, list<string>} the items, and their identifiers in the order the list must give them
+     */
+    private function opposed(callable $make, bool $descending): array
+    {
+        $base = new DateTimeImmutable('2026-11-14 10:00:00');
+        $identifiers = array_map(static fn (int $i): string => $make($i, $base)[1], [0, 1, 2]);
+        $byIdentifier = [0, 1, 2];
+        usort($byIdentifier, static fn (int $a, int $b): int => strcmp($identifiers[$a], $identifiers[$b]));
+        $order = $descending ? [2, 1, 0] : [0, 1, 2];
+        $rank = static fn (int $i): int => $i;
+
+        if ($byIdentifier === $order) {
+            $rank = static fn (int $i): int => 2 - $i;
+            $order = array_reverse($order);
+        }
+
+        return [
+            array_map(static fn (int $i): object => $make($i, $base->modify(\sprintf('+%d hours', $rank($i))))[0], [0, 1, 2]),
+            array_map(static fn (int $i): string => $identifiers[$i], $order),
+        ];
+    }
+
+    public function testPurgeKeepsWhatExpiresAtTheLimit(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $this->sessions()->save(AccountSession::open(str_repeat('a', 43), self::ADA, 'A', [], false, $now));
+        $this->grants()->saveCode(AuthorizationCode::issue('code', 'app', self::ADA, 'https://a/cb', ['openid'], null, 'challenge', $now, [], null, 'FAMILY0000000000000000000A', $now->modify('+60 seconds')));
+        $this->grants()->saveCode(AuthorizationCode::issue('late', 'app', self::ADA, 'https://a/cb', ['openid'], null, 'challenge', $now, [], null, 'FAMILY0000000000000000000A', $now->modify('+1 hour')));
+        $this->grants()->saveToken(IssuedToken::issue('jti', TokenKind::Access, 'FAMILY0000000000000000000A', 'app', self::ADA, [], null, $now, [], $now, $now->modify('+60 seconds')));
+        $this->clear();
+
+        self::assertSame(0, $this->sessions()->purge($now));
+        self::assertSame(0, $this->grants()->purge($now->modify('+60 seconds')));
+        self::assertSame(2, $this->grants()->purge($now->modify('+61 seconds')));
+        self::assertNotNull($this->grants()->code(AuthorizationCode::idOf('late')));
+    }
+
+    public function testAnAddressIsFoldedAsText(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $account = Account::register(self::ADA, ' ÉMILE@Example.COM ', $now);
+        $this->accounts()->save($account);
+        $this->clear();
+
+        self::assertSame('émile@example.com', $account->email());
+        self::assertSame(self::ADA, $this->accounts()->findByEmail('ÉMILE@EXAMPLE.com')?->id());
+    }
+
+    /**
+     * @template T of Consent|LinkedIdentity|Passkey
+     *
+     * @param list<T> $items
+     *
+     * @return list<T> the items by decreasing id, the order a list must not keep
+     */
+    private function descending(array $items): array
+    {
+        usort($items, static fn (Consent|LinkedIdentity|Passkey $a, Consent|LinkedIdentity|Passkey $b): int => strcmp($b->id(), $a->id()));
+
+        return $items;
+    }
+
+    /**
+     * @param list<AccountSession|Consent|IssuedToken|LinkedIdentity|Passkey|SigningKey> $items
+     *
+     * @return list<string>
+     */
+    private function idsOf(array $items): array
+    {
+        return array_map(static fn (AccountSession|Consent|IssuedToken|LinkedIdentity|Passkey|SigningKey $item): string => $item instanceof SigningKey ? $item->kid() : $item->id(), $items);
+    }
+
+    /**
+     * @param list<string> $ids
+     *
+     * @return list<string>
+     */
+    private function sortedIds(array $ids): array
+    {
+        sort($ids, \SORT_STRING);
+
+        return $ids;
+    }
+}

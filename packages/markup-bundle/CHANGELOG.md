@@ -16,7 +16,8 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 - `MediaHostsPass` gives the `media_hosts` to `AmmoniaPurifier` and `Purifiers` too, and points `HtmlPurifier` back
   at the purifier chosen when a later bundle points it at `SanitizerPurifier`.
-- `phil/markup` ^0.2 is required, the version that brings `Purifiers` and `AmmoniaPurifier`.
+- `phil/markup` ^0.2.1 and `phil/ujo` ^0.1.2 are required: `Purifiers` and `AmmoniaPurifier`, bold and italic of
+  Markdown and the wikis as `<strong>` and `<em>`, and the accessible checkboxes of checklists.
 
 ## 0.1.1-alpha - 2026-11-14
 

@@ -1,0 +1,511 @@
+Phil\EmailAddress\EmailValidator
+  class: (none)
+  public: no
+  argument 0: inline
+      class: Phil\EmailAddress\SyntaxPolicy
+      public: no
+  argument 1: NULL
+  argument 2: inline
+      class: Phil\EmailAddress\DisposableDomains
+      public: no
+      factory: [
+          0 => 'Phil\\EmailAddress\\DisposableDomains'
+          1 => 'bundled'
+        ]
+  argument 3: NULL
+  argument 4: inline
+      class: Phil\EmailAddress\TypoSuggester
+      public: no
+  argument 5: inline
+      class: Phil\EmailAddress\TopLevelDomains
+      public: no
+      factory: [
+          0 => 'Phil\\EmailAddress\\TopLevelDomains'
+          1 => 'bundled'
+        ]
+Phil\Markup\Markup
+  class: (none)
+  public: no
+  argument 0: inline
+      class: Phil\Markup\Adapter\DefaultCompiler
+      public: no
+  argument 1: inline
+      class: Phil\Markup\Adapter\SanitizerPurifier
+      public: no
+      factory: [
+          0 => 'Phil\\Markup\\Adapter\\SanitizerPurifier'
+          1 => 'defaultPolicies'
+        ]
+Phil\NewsletterBundle\Application\Bounces\BounceHandler
+  class: (none)
+  public: no
+  argument 0: inline
+      class: Phil\BounceParser\BounceParser
+      public: no
+      argument $verp: @phil_newsletter.verp
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\SubscriberRepository
+  argument 2: @Phil\NewsletterBundle\Domain\Contract\DeliveryRepository
+  argument 3: @Phil\NewsletterBundle\Domain\Contract\SuppressionRepository
+  argument 4: @Phil\NewsletterBundle\Application\Subscriptions
+  argument 5: @Phil\NewsletterBundle\Application\Contract\CurrentSite
+  argument 6: @clock
+  argument 7: @phil_newsletter.verp
+  argument 8: '82fd7ae17a69bce6831e4574fc90af73186658771e7bf9fe406da5f48c39a626'
+  argument 9: 5
+Phil\NewsletterBundle\Application\Campaigns
+  class: (none)
+  public: no
+  argument 0: @Phil\NewsletterBundle\Domain\Contract\CampaignRepository
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\DeliveryRepository
+  argument 2: @Phil\NewsletterBundle\Domain\Contract\EngagementRepository
+  argument 3: @messenger.default_bus
+  argument 4: @clock
+Phil\NewsletterBundle\Application\Content\ContentRenderer
+  class: (none)
+  public: no
+  argument 0: @Phil\Markup\Markup
+  argument 1: @twig
+  argument 2: @Phil\NewsletterBundle\Application\Content\SandboxedTemplates
+Phil\NewsletterBundle\Application\Content\SandboxedTemplates
+  class: (none)
+  public: no
+  tag kernel.reset: [
+      0 => [
+        'method' => 'reset'
+      ]
+    ]
+Phil\NewsletterBundle\Application\Contract\AudienceWebhookSender
+  class: Phil\NewsletterBundle\Infrastructure\Webhook\StandardWebhooksAudienceSender
+  public: no
+  argument 0: @Phil\StandardWebhooksBundle\Infrastructure\Http\WebhookSender
+Phil\NewsletterBundle\Application\Contract\BounceMailbox
+  class: Phil\NewsletterBundle\Infrastructure\Imap\ImapBounceMailbox
+  public: no
+  factory: [
+      0 => 'Phil\\NewsletterBundle\\Infrastructure\\Imap\\ImapBounceMailbox'
+      1 => 'overTls'
+    ]
+  tag kernel.reset: [
+      0 => [
+        'method' => 'reset'
+      ]
+    ]
+  argument 0: 'imap.example.com'
+  argument 1: 143
+  argument 2: 'bounces'
+  argument 3: 'secret'
+  argument 4: 'Bounces'
+  argument 5: true
+Phil\NewsletterBundle\Application\Contract\CurrentSite
+  class: Phil\NewsletterBundle\Infrastructure\Site\ConfiguredSite
+  public: no
+  argument 0: 'main'
+Phil\NewsletterBundle\Application\Contract\SegmentResolver
+  class: Phil\NewsletterBundle\Application\ListRecipients
+  public: no
+  argument 0: @Phil\NewsletterBundle\Domain\Contract\SubscriberRepository
+Phil\NewsletterBundle\Application\Contract\SendThrottle
+  class: Phil\NewsletterBundle\Infrastructure\RateLimiter\RateLimiterSendThrottle
+  public: no
+  argument 0: inline
+      class: Symfony\Component\RateLimiter\Storage\CacheStorage
+      public: no
+      argument 0: @cache.news_limiter
+  argument 1: @clock
+Phil\NewsletterBundle\Application\Handler\DeliverAudienceWebhookHandler
+  class: (none)
+  public: no
+  tag messenger.message_handler: [
+      0 => []
+    ]
+  argument 0: @Phil\NewsletterBundle\Application\Contract\AudienceWebhookSender
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\MailingListRepository
+  argument 2: [
+      'crm' => 'https://crm.example.com/hooks'
+      'all' => 'https://all.example.com/hooks'
+    ]
+  argument 3: @logger (null on invalid)
+Phil\NewsletterBundle\Application\Handler\DispatchDueCampaignsHandler
+  class: (none)
+  public: no
+  tag messenger.message_handler: [
+      0 => []
+    ]
+  argument 0: @Phil\NewsletterBundle\Application\Campaigns
+Phil\NewsletterBundle\Application\Handler\FetchBouncesHandler
+  class: (none)
+  public: no
+  tag messenger.message_handler: [
+      0 => []
+    ]
+  argument 0: @Phil\NewsletterBundle\Application\Contract\BounceMailbox
+  argument 1: @Phil\NewsletterBundle\Application\Bounces\BounceHandler
+Phil\NewsletterBundle\Application\Handler\NewsletterSchedule
+  class: (none)
+  public: no
+  tag scheduler.schedule_provider: [
+      0 => [
+        'name' => 'newsletter'
+      ]
+    ]
+  argument 0: true
+Phil\NewsletterBundle\Application\Handler\SendCampaignHandler
+  class: (none)
+  public: no
+  tag messenger.message_handler: [
+      0 => []
+    ]
+  argument 0: @Phil\NewsletterBundle\Domain\Contract\CampaignRepository
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\DeliveryRepository
+  argument 2: @Phil\NewsletterBundle\Application\Contract\SegmentResolver
+  argument 3: @messenger.default_bus
+  argument 4: @clock
+Phil\NewsletterBundle\Application\Handler\SendConfirmationHandler
+  class: (none)
+  public: no
+  tag messenger.message_handler: [
+      0 => []
+    ]
+  argument 0: @Phil\NewsletterBundle\Domain\Contract\SubscriberRepository
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\MailingListRepository
+  argument 2: @Phil\NewsletterBundle\Domain\Contract\TemplateRepository
+  argument 3: @Phil\NewsletterBundle\Application\Sending\SenderProfiles
+  argument 4: @Phil\NewsletterBundle\Application\SignedLinks
+  argument 5: @Phil\NewsletterBundle\Application\NewsletterUrls
+  argument 6: @Phil\NewsletterBundle\Application\Content\ContentRenderer
+  argument 7: @Phil\NewsletterBundle\Application\Sending\MessageComposer
+  argument 8: @twig
+  argument 9: @mailer.mailer
+  argument 10: @clock
+  argument 11: NULL
+  argument 12: @logger (null on invalid)
+Phil\NewsletterBundle\Application\Handler\SendDeliveryHandler
+  class: (none)
+  public: no
+  tag messenger.message_handler: [
+      0 => []
+    ]
+  argument 0: @Phil\NewsletterBundle\Domain\Contract\DeliveryRepository
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\SubscriberRepository
+  argument 2: @Phil\NewsletterBundle\Domain\Contract\CampaignRepository
+  argument 3: @Phil\NewsletterBundle\Domain\Contract\MailingListRepository
+  argument 4: @Phil\NewsletterBundle\Domain\Contract\TemplateRepository
+  argument 5: @Phil\NewsletterBundle\Domain\Contract\SuppressionRepository
+  argument 6: @Phil\NewsletterBundle\Application\Sending\SenderProfiles
+  argument 7: @Phil\NewsletterBundle\Application\Contract\SendThrottle
+  argument 8: @Phil\NewsletterBundle\Application\Content\ContentRenderer
+  argument 9: @Phil\NewsletterBundle\Application\Sending\MessageComposer
+  argument 10: @Phil\NewsletterBundle\Application\Tracking\ClickTracker
+  argument 11: @Phil\NewsletterBundle\Application\SignedLinks
+  argument 12: @Phil\NewsletterBundle\Application\NewsletterUrls
+  argument 13: @mailer.mailer
+  argument 14: @messenger.default_bus
+  argument 15: @clock
+Phil\NewsletterBundle\Application\NewsletterUrls
+  class: (none)
+  public: no
+  argument 0: @router
+  argument 1: [
+      'main' => 'https://example.com'
+      'shop' => 'https://shop.example.com'
+    ]
+Phil\NewsletterBundle\Application\Sending\MessageComposer
+  class: (none)
+  public: no
+  argument 0: @phil_newsletter.verp
+  argument 1: '82fd7ae17a69bce6831e4574fc90af73186658771e7bf9fe406da5f48c39a626'
+Phil\NewsletterBundle\Application\Sending\SenderProfiles
+  class: (none)
+  public: no
+  argument 0: tagged phil_newsletter.sender_profile
+  argument 1: '2024'
+Phil\NewsletterBundle\Application\SignedLinks
+  class: (none)
+  public: no
+  argument 0: 'a-secret-of-sixteen-bytes'
+  argument 1: @clock
+Phil\NewsletterBundle\Application\Subscriptions
+  class: (none)
+  public: no
+  argument 0: @Phil\NewsletterBundle\Domain\Contract\MailingListRepository
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\SubscriberRepository
+  argument 2: @Phil\NewsletterBundle\Domain\Contract\SuppressionRepository
+  argument 3: @Phil\NewsletterBundle\Domain\Contract\DeliveryRepository
+  argument 4: @Phil\NewsletterBundle\Domain\Contract\EngagementRepository
+  argument 5: @Phil\EmailAddress\EmailValidator
+  argument 6: @messenger.default_bus
+  argument 7: @event_dispatcher
+  argument 8: @clock
+Phil\NewsletterBundle\Application\Tracking\ClickTracker
+  class: (none)
+  public: no
+  argument 0: @Phil\NewsletterBundle\Application\SignedLinks
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\CampaignRepository
+  argument 2: @Phil\NewsletterBundle\Domain\Contract\DeliveryRepository
+  argument 3: @Phil\NewsletterBundle\Domain\Contract\EngagementRepository
+  argument 4: @event_dispatcher
+  argument 5: @clock
+  argument 6: 4
+Phil\NewsletterBundle\Domain\Contract\CampaignRepository
+  class: Phil\NewsletterBundle\Infrastructure\Dbal\DbalCampaignRepository
+  public: no
+  argument 0: @doctrine.dbal.news_connection
+Phil\NewsletterBundle\Domain\Contract\DeliveryRepository
+  class: Phil\NewsletterBundle\Infrastructure\Dbal\DbalDeliveryRepository
+  public: no
+  argument 0: @doctrine.dbal.news_connection
+Phil\NewsletterBundle\Domain\Contract\EngagementRepository
+  class: Phil\NewsletterBundle\Infrastructure\Dbal\DbalEngagementRepository
+  public: no
+  argument 0: @doctrine.dbal.news_connection
+Phil\NewsletterBundle\Domain\Contract\MailingListRepository
+  class: Phil\NewsletterBundle\Infrastructure\Dbal\DbalMailingListRepository
+  public: no
+  argument 0: @doctrine.dbal.news_connection
+Phil\NewsletterBundle\Domain\Contract\SubscriberRepository
+  class: Phil\NewsletterBundle\Infrastructure\Dbal\DbalSubscriberRepository
+  public: no
+  argument 0: @doctrine.dbal.news_connection
+Phil\NewsletterBundle\Domain\Contract\SuppressionRepository
+  class: Phil\NewsletterBundle\Infrastructure\Dbal\DbalSuppressionRepository
+  public: no
+  argument 0: @doctrine.dbal.news_connection
+  argument 1: @clock
+  argument 2: '326afe030f5162dda33e55d017a2b54aae5d1632db2a0171147e1e8c9d860051'
+Phil\NewsletterBundle\Domain\Contract\TemplateRepository
+  class: Phil\NewsletterBundle\Infrastructure\Dbal\DbalTemplateRepository
+  public: no
+  argument 0: @doctrine.dbal.news_connection
+Phil\NewsletterBundle\Infrastructure\Automations\LinkClickedTrigger
+  class: (none)
+  public: no
+  tag phil.automations.trigger: [
+      0 => []
+    ]
+Phil\NewsletterBundle\Infrastructure\Automations\SendAction
+  class: (none)
+  public: no
+  tag phil.automations.action: [
+      0 => []
+    ]
+  argument 0: @Phil\NewsletterBundle\Domain\Contract\SubscriberRepository
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\DeliveryRepository
+  argument 2: @messenger.default_bus
+  argument 3: @clock
+Phil\NewsletterBundle\Infrastructure\Automations\SubscribeAction
+  class: (none)
+  public: no
+  tag phil.automations.action: [
+      0 => []
+    ]
+  argument 0: @Phil\NewsletterBundle\Application\Subscriptions
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\SubscriberRepository
+  argument 2: @Phil\NewsletterBundle\Domain\Contract\MailingListRepository
+Phil\NewsletterBundle\Infrastructure\Automations\UnsubscribeAction
+  class: (none)
+  public: no
+  tag phil.automations.action: [
+      0 => []
+    ]
+  argument 0: @Phil\NewsletterBundle\Application\Subscriptions
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\SubscriberRepository
+  argument 2: @Phil\NewsletterBundle\Domain\Contract\MailingListRepository
+Phil\NewsletterBundle\Infrastructure\Console\FetchBouncesCommand
+  class: (none)
+  public: no
+  tag console.command: [
+      0 => [
+        'command' => 'phil:newsletter:fetch-bounces'
+      ]
+    ]
+  argument 0: @Phil\NewsletterBundle\Application\Handler\FetchBouncesHandler
+Phil\NewsletterBundle\Infrastructure\Dbal\NewsletterSchemaListener
+  class: (none)
+  public: no
+  tag doctrine.event_listener: [
+      0 => [
+        'event' => 'postGenerateSchema'
+      ]
+    ]
+  argument 0: @doctrine.dbal.news_connection
+Phil\NewsletterBundle\Infrastructure\Http\ClickController
+  class: (none)
+  public: yes
+  tag controller.service_arguments: [
+      0 => []
+    ]
+  argument 0: @Phil\NewsletterBundle\Application\Tracking\ClickTracker
+Phil\NewsletterBundle\Infrastructure\Http\PreviewController
+  class: (none)
+  public: yes
+  tag controller.service_arguments: [
+      0 => []
+    ]
+  argument 0: @Phil\NewsletterBundle\Application\Content\ContentRenderer
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\TemplateRepository
+  argument 2: @Phil\NewsletterBundle\Application\Contract\CurrentSite
+  argument 3: @security.authorization_checker
+  argument 4: 'ROLE_EDITOR'
+Phil\NewsletterBundle\Infrastructure\Http\SubscriptionController
+  class: (none)
+  public: yes
+  tag controller.service_arguments: [
+      0 => []
+    ]
+  argument 0: @Phil\NewsletterBundle\Application\Subscriptions
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\MailingListRepository
+  argument 2: @Phil\NewsletterBundle\Domain\Contract\SubscriberRepository
+  argument 3: @Phil\NewsletterBundle\Application\SignedLinks
+  argument 4: @Phil\NewsletterBundle\Application\Contract\CurrentSite
+  argument 5: @security.csrf.token_manager
+  argument 6: @twig
+  argument 7: @clock
+Phil\NewsletterBundle\Infrastructure\Privacy\NewsletterPrivacy
+  class: (none)
+  public: no
+  autoconfigured
+  argument 0: @Phil\NewsletterBundle\Domain\Contract\SubscriberRepository
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\MailingListRepository
+  argument 2: @Phil\NewsletterBundle\Domain\Contract\DeliveryRepository
+  argument 3: @Phil\NewsletterBundle\Domain\Contract\EngagementRepository
+  argument 4: @Phil\NewsletterBundle\Application\Subscriptions
+Phil\NewsletterBundle\Infrastructure\RemoteEvent\MailerEventConsumer
+  class: (none)
+  public: no
+  tag remote_event.consumer: [
+      0 => [
+        'consumer' => 'provider'
+      ]
+    ]
+  argument 0: @Phil\NewsletterBundle\Application\Bounces\BounceHandler
+Phil\NewsletterBundle\Infrastructure\Webhook\AudienceWebhookListener
+  class: (none)
+  public: no
+  tag kernel.event_listener: [
+      0 => [
+        'event' => 'Phil\\NewsletterBundle\\Application\\Event\\AudienceChanged'
+      ]
+    ]
+  argument 0: @messenger.default_bus
+  argument 1: [
+      'crm' => [
+        0 => 'subscribed'
+        1 => 'unsubscribed'
+      ]
+      'all' => []
+    ]
+phil_newsletter.profile.2024
+  class: Phil\NewsletterBundle\Application\Sending\SenderProfile
+  public: no
+  tag phil_newsletter.sender_profile: [
+      0 => []
+    ]
+  argument 0: '2024'
+  argument 1: 'news@example.com'
+  argument 2: 'News'
+  argument 3: 'reply@example.com'
+  argument 4: 'bulk'
+  argument 5: inline
+      class: Phil\NewsletterBundle\Domain\ValueObject\SendWindow
+      public: no
+      factory: [
+          0 => 'Phil\\NewsletterBundle\\Domain\\ValueObject\\SendWindow'
+          1 => 'of'
+        ]
+      argument 0: [
+          0 => 1
+          1 => 2
+          2 => 3
+        ]
+      argument 1: '09:00'
+      argument 2: '17:00'
+      argument 3: 'America/Toronto'
+  argument 6: 1000
+  argument 7: 30
+  argument 8: [
+      'gmail.com' => 10
+    ]
+  argument 9: 'stop@example.com'
+phil_newsletter.profile.plain
+  class: Phil\NewsletterBundle\Application\Sending\SenderProfile
+  public: no
+  tag phil_newsletter.sender_profile: [
+      0 => []
+    ]
+  argument 0: 'plain'
+  argument 1: 'plain@example.com'
+  argument 2: ''
+  argument 3: NULL
+  argument 4: NULL
+  argument 5: inline
+      class: Phil\NewsletterBundle\Domain\ValueObject\SendWindow
+      public: no
+      factory: [
+          0 => 'Phil\\NewsletterBundle\\Domain\\ValueObject\\SendWindow'
+          1 => 'of'
+        ]
+      argument 0: [
+          0 => 1
+          1 => 2
+          2 => 3
+          3 => 4
+          4 => 5
+          5 => 6
+          6 => 7
+        ]
+      argument 1: '00:00'
+      argument 2: '24:00'
+      argument 3: 'UTC'
+  argument 6: NULL
+  argument 7: 120
+  argument 8: []
+  argument 9: NULL
+phil_newsletter.trigger.confirmed
+  class: Phil\NewsletterBundle\Infrastructure\Automations\AudienceTrigger
+  public: no
+  tag phil.automations.trigger: [
+      0 => []
+    ]
+  argument 0: \Phil\NewsletterBundle\Domain\Enum\AudienceEventType::Confirmed
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\MailingListRepository
+phil_newsletter.trigger.paused
+  class: Phil\NewsletterBundle\Infrastructure\Automations\AudienceTrigger
+  public: no
+  tag phil.automations.trigger: [
+      0 => []
+    ]
+  argument 0: \Phil\NewsletterBundle\Domain\Enum\AudienceEventType::Paused
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\MailingListRepository
+phil_newsletter.trigger.resumed
+  class: Phil\NewsletterBundle\Infrastructure\Automations\AudienceTrigger
+  public: no
+  tag phil.automations.trigger: [
+      0 => []
+    ]
+  argument 0: \Phil\NewsletterBundle\Domain\Enum\AudienceEventType::Resumed
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\MailingListRepository
+phil_newsletter.trigger.subscribed
+  class: Phil\NewsletterBundle\Infrastructure\Automations\AudienceTrigger
+  public: no
+  tag phil.automations.trigger: [
+      0 => []
+    ]
+  argument 0: \Phil\NewsletterBundle\Domain\Enum\AudienceEventType::Subscribed
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\MailingListRepository
+phil_newsletter.trigger.unsubscribed
+  class: Phil\NewsletterBundle\Infrastructure\Automations\AudienceTrigger
+  public: no
+  tag phil.automations.trigger: [
+      0 => []
+    ]
+  argument 0: \Phil\NewsletterBundle\Domain\Enum\AudienceEventType::Unsubscribed
+  argument 1: @Phil\NewsletterBundle\Domain\Contract\MailingListRepository
+phil_newsletter.verp
+  class: Phil\BounceParser\Verp
+  public: no
+  argument 0: 'rebonds'
+  argument 1: 'bounce.example.com'
+  argument 2: '-'
+service_container
+  class: Symfony\Component\DependencyInjection\ContainerInterface
+  public: yes

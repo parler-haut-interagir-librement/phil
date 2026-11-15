@@ -1,0 +1,10 @@
+{"streams":[  {   "codec_type": "audio", "tags": {   "der": "LAME",
+"TI": "Se"
+  }    }
+ ],
+    "format": {
+   "tags": {
+  "i": "Tt",
+"atst": "G"
+  }}
+}

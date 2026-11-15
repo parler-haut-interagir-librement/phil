@@ -1,0 +1,23 @@
+{#
+ # The setup of an authenticator application: the address to scan — a link an application on the same device opens —,
+ # the secret to type by hand, and the first code that confirms it.
+ #}
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.totp'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.totp'|trans({}, d) }}</h1>
+    {{ include('@PhilIdentityProvider/_errors.html.twig') }}
+    <ol>
+        <li>{{ 'totp.step_scan'|trans({}, d) }} <a href="{{ uri }}">{{ 'totp.open_app'|trans({}, d) }}</a></li>
+        <li>{{ 'totp.step_secret'|trans({}, d) }} <code>{{ secret }}</code></li>
+        <li>{{ 'totp.step_code'|trans({}, d) }}</li>
+    </ol>
+    <form method="post" action="{{ path('phil_identity_provider_totp_confirm') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+        {{ include('@PhilIdentityProvider/_field.html.twig', {id: 'phil-identity-code', name: 'code', label: 'field.code'|trans({}, d), autocomplete: 'one-time-code', inputmode: 'numeric', pattern: '[0-9 ]{6,7}'}) }}
+        {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.confirm'|trans({}, d)}) }}
+    </form>
+{% endblock %}

@@ -1,0 +1,75 @@
+{#
+ # The policies and their versions, each with the link that publishes the next one. Its parts are recipes of the kit —
+ # Alert, Badge, Button, Table —, from the PHIL UX kit or the Shadcn kit, called by the names `phil_terms_kit()` gives;
+ # the moments are shown in the time zone of the administration.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_terms' %}
+
+{% block title %}{{ 'title.admin'|trans({}, domain) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.admin'|trans({}, domain) }}</h1>
+
+    {% if published %}
+        {% component (phil_terms_kit('Alert')) %}
+            {% block content %}
+                {% component (phil_terms_kit('Alert:Title')) %}{% block content %}{{ 'admin.done'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+    {% endif %}
+
+    {% for item in policies %}
+        {# The blocks of a component do not see the loop: what they need of it is set before. #}
+        {% set key = item.policy.key %}
+        {% set policy = item.policy %}
+        {% set versions = item.versions %}
+        <section aria-labelledby="phil-terms-admin-{{ key }}">
+            <h2 id="phil-terms-admin-{{ key }}">{{ ('policy.' ~ key)|trans({}, domain) }} <small>({{ key }})</small></h2>
+            <p>
+                {% component (phil_terms_kit('Badge')) with {variant: policy.required ? 'default' : 'outline'} %}{% block content %}{{ (policy.required ? 'admin.required' : 'admin.optional')|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% if policy.renewAfterDays is not null %}{{ 'admin.renewal'|trans({'%days%': policy.renewAfterDays}, domain) }}{% endif %}
+            </p>
+            <p>
+                {% component (phil_terms_kit('Button')) with {as: 'a', variant: 'outline', href: path('phil_terms_admin_publish', {policy: key})} %}{% block content %}{{ 'action.publish'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            </p>
+
+            {% if versions is empty %}
+                <p>{{ 'admin.none'|trans({}, domain) }}</p>
+            {% else %}
+                {% component (phil_terms_kit('Table')) %}
+                    {% block content %}
+                        {% component (phil_terms_kit('Table:Caption')) %}{% block content %}{{ 'admin.timezone'|trans({'%timezone%': timezone}, domain) }}{% endblock %}{% endcomponent %}
+                        {% component (phil_terms_kit('Table:Header')) %}
+                            {% block content %}
+                                {% component (phil_terms_kit('Table:Row')) %}
+                                    {% block content %}
+                                        {% for column in ['admin.number', 'admin.published_at', 'admin.effective_at', 'admin.material', 'admin.locales'] %}
+                                            {% component (phil_terms_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ column|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                        {% endfor %}
+                                    {% endblock %}
+                                {% endcomponent %}
+                            {% endblock %}
+                        {% endcomponent %}
+                        {% component (phil_terms_kit('Table:Body')) %}
+                            {% block content %}
+                                {% for version in versions %}
+                                    {% component (phil_terms_kit('Table:Row')) %}
+                                        {% block content %}
+                                            {% component (phil_terms_kit('Table:Cell')) %}{% block content %}{{ version.number }}{% endblock %}{% endcomponent %}
+                                            {% component (phil_terms_kit('Table:Cell')) %}{% block content %}{{ version.publishedAt|date('Y-m-d H:i', timezone) }}{% endblock %}{% endcomponent %}
+                                            {% component (phil_terms_kit('Table:Cell')) %}{% block content %}{{ version.effectiveAt|date('Y-m-d H:i', timezone) }}{% endblock %}{% endcomponent %}
+                                            {% component (phil_terms_kit('Table:Cell')) %}{% block content %}{{ (version.material ? 'admin.yes' : 'admin.no')|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                            {% component (phil_terms_kit('Table:Cell')) %}{% block content %}{{ version.locales|join(', ') }}{% endblock %}{% endcomponent %}
+                                        {% endblock %}
+                                    {% endcomponent %}
+                                {% endfor %}
+                            {% endblock %}
+                        {% endcomponent %}
+                    {% endblock %}
+                {% endcomponent %}
+            {% endif %}
+        </section>
+    {% endfor %}
+{% endblock %}

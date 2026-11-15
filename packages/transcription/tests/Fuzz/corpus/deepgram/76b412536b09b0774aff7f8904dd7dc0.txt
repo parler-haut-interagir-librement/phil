@@ -1,0 +1,6 @@
+{
+   "results": {
+    "utterances": [          {"start": 0.9, "end": 1.6,"ne": 0, "transcript": "Salut!", "s": 1, "id": "b"}
+        ]
+    }
+}

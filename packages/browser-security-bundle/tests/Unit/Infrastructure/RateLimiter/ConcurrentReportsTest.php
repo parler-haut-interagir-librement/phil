@@ -40,6 +40,7 @@ final class ConcurrentReportsTest extends TestCase
         $loaded = new ContainerBuilder();
         $loaded->setParameter('kernel.bundles', []);
         $loaded->setParameter('kernel.debug', false);
+
         $extension = new PhilBrowserSecurityBundle()->getContainerExtension();
         self::assertInstanceOf(ExtensionInterface::class, $extension);
         $extension->load([['reporting' => ['rate_limit' => ['limit' => 1]]]], $loaded);
@@ -54,8 +55,9 @@ final class ConcurrentReportsTest extends TestCase
             $container->register('lock.factory', LockFactory::class)->setArguments([new ExclusiveLockStore()]);
         }
 
-        $container->compile();
+        $container->compile(true);
         $container->set('storage', $storage);
+
         $factory = $container->get('limiter');
         self::assertInstanceOf(RateLimiterFactoryInterface::class, $factory);
 

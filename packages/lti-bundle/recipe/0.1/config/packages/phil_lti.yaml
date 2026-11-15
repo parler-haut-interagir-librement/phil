@@ -1,0 +1,16 @@
+# The LTI 1.3 side of the application: enable the tool, the platform, or both, and register the other side.
+# See vendor/phil/lti-bundle/doc/configuration.md for every option.
+phil_lti:
+    keys:
+        source: dbal
+        master_key: '%env(LTI_MASTER_KEY)%'
+    tool:
+        enabled: false
+        platforms: []
+    platform:
+        enabled: false
+        tools: []
+
+when@test:
+    phil_lti:
+        store: memory

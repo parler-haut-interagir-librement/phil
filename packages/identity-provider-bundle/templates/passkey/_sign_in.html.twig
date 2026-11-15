@@ -1,0 +1,11 @@
+{# The button that signs in — or proves it again — with a passkey, driven by the Stimulus controller `passkey`. #}
+{% set d = 'phil_identity_provider' %}
+<div data-controller="phil--identity-provider-bundle--passkey"
+     data-phil--identity-provider-bundle--passkey-unsupported-message-value="{{ 'passkey.unsupported'|trans({}, 'phil_identity_provider') }}"
+     data-phil--identity-provider-bundle--passkey-cancelled-message-value="{{ 'passkey.cancelled'|trans({}, 'phil_identity_provider') }}"
+     data-phil--identity-provider-bundle--passkey-failed-message-value="{{ 'passkey.failed'|trans({}, 'phil_identity_provider') }}"
+     data-phil--identity-provider-bundle--passkey-options-url-value="{{ path('phil_identity_provider_passkey_login_options') }}"
+     data-phil--identity-provider-bundle--passkey-login-url-value="{{ path('phil_identity_provider_passkey_login') }}">
+    {% component (phil_identity_kit('Button')) with {variant: 'secondary', 'data-action': 'phil--identity-provider-bundle--passkey#signIn', 'data-phil--identity-provider-bundle--passkey-target': 'button'} %}{% block content %}{{ 'action.use_passkey'|trans({}, d) }}{% endblock %}{% endcomponent %}
+    <p role="status" data-phil--identity-provider-bundle--passkey-target="status"></p>
+</div>

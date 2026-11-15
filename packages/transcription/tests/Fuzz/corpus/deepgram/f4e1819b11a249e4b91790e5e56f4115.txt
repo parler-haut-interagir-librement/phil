@@ -1,0 +1,9 @@
+{
+    "meta": {"rid": "r-1", "durationls": 1},
+"results": {
+     "utterances": [
+            {"start": 0.9, "end": 1.6, "confidence": 0.981, "channel": 0, "transcript": "Bon", "speaker": 0, "i":"a"},
+    {"start": 2.0, "end": 6.2,"confidence": 0.87, "chanel": 0, "transcript": "Salut!", "speaker":2, "id": "b"}
+      ]
+    }
+}

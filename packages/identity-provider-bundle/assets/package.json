@@ -1,0 +1,24 @@
+{
+    "name": "@phil/identity-provider-bundle",
+    "description": "The Stimulus controller of phil/identity-provider-bundle: the registration of a passkey and the sign-in with one",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/passkey_controller.js",
+    "symfony": {
+        "controllers": {
+            "passkey": {
+                "main": "src/passkey_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

@@ -1,0 +1,5 @@
+# The pages of the legal notice and the privacy policy: /legal and /privacy, their history and each version, in
+# English at the root and in French under /fr.
+phil_legal_notices:
+    resource: '@PhilLegalNoticesBundle/config/routes.php'
+    prefix: { en: '', fr: '/fr' }

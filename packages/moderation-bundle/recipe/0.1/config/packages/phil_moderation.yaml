@@ -1,0 +1,17 @@
+# The moderation of the site: the roles of its moderators, the content held until a first approval, when the
+# incident mode is proposed, and the ways a member contests a decision, which a statement of reasons lists. Each
+# package that holds content plugs in its own target. See the configuration guide of phil/moderation-bundle.
+phil_moderation:
+    roles:
+        - { name: moderator, attribute: ROLE_MODERATOR }
+        - { name: administrator, attribute: ROLE_ADMIN }
+    sandbox:
+        types: []
+    incident:
+        role: ROLE_ADMIN
+        # With phil/incident-mode: the restrictions an incident leaves established members free from, once the
+        # application aliases Phil\IncidentMode\Contract\EstablishedMembers to its own service.
+        spare_established: []
+    statements:
+        terms_url: ~
+        complaint_url: ~

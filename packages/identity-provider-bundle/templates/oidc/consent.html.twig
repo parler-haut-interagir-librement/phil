@@ -1,0 +1,38 @@
+{#
+ # The consent page: which application asks, for what — each scope in words —, and the two answers. The request
+ # travels in hidden fields and is read again on the answer.
+ #}
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.consent'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    {% component (phil_identity_kit('Card')) %}
+        {% block content %}
+            {% component (phil_identity_kit('Card:Header')) %}
+                {% block content %}
+                    {% component (phil_identity_kit('Card:Title')) %}{% block content %}<h1>{{ 'consent.title'|trans({'%client%': client.name}, d) }}</h1>{% endblock %}{% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
+            {% component (phil_identity_kit('Card:Content')) %}
+                {% block content %}
+                    <p>{{ 'consent.intro'|trans({'%client%': client.name}, d) }}</p>
+                    <ul>
+                        {% for scope in request.scopes %}
+                            <li>{{ ('scope.' ~ scope)|trans({}, d) }}</li>
+                        {% endfor %}
+                    </ul>
+                    <form method="post" action="{{ path('phil_identity_provider_oidc_consent') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token(csrf_id) }}">
+                        {% for name, value in parameters %}
+                            <input type="hidden" name="{{ name }}" value="{{ value }}">
+                        {% endfor %}
+                        {% component (phil_identity_kit('Button')) with {type: 'submit', name: 'decision', value: 'allow'} %}{% block content %}{{ 'action.allow'|trans({}, d) }}{% endblock %}{% endcomponent %}
+                        {% component (phil_identity_kit('Button')) with {type: 'submit', name: 'decision', value: 'deny', variant: 'outline'} %}{% block content %}{{ 'action.deny'|trans({}, d) }}{% endblock %}{% endcomponent %}
+                    </form>
+                {% endblock %}
+            {% endcomponent %}
+        {% endblock %}
+    {% endcomponent %}
+{% endblock %}

@@ -1,0 +1,6 @@
+{
+"streams": [{
+ "codec_type": "audio" }
+],"format": {"duration": "50",
+"bit_rate": "8"}
+}

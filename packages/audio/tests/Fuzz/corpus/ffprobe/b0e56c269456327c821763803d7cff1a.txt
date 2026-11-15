@@ -1,0 +1,6 @@
+{ "streams": [
+{"codec_type": "audio",
+"bit_rate": "99"}
+  ],
+"format": {   "duration":"71" }
+}

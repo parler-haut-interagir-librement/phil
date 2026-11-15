@@ -1,0 +1,1 @@
+{"https://purl.imsglobal.org/spec/lti-dl/claim/content_items":[{"type":"","type":"file","url":"https://tgol.examom/q","lpe":"htmp;"},{"type":"file","url":"https://tl.exf"}]}

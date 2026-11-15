@@ -1,0 +1,1 @@
+{"https://purl.imsglobal.org/spec/lti-dl/claim/content_items":[{"type":"ltiResourceLink","url":"https://l.eps:5/t/f"}]}

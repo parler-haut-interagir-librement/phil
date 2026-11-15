@@ -1,0 +1,1 @@
+{"https://purl.imsglobal.org/spec/lti-dl/claim/content_items":[{"type":"html","html":">"},{"type":"html","html":"<p>x</p>"},{"typeneItem":{"2creMkxiTime":"213-11-7T0:0*:0Z"}},{"type":"html","html":"<p>x</p>"},{"tyeIteavailable":{"ime":"2026--11r71-1"}},{"type":"html","html":"p>"}]}

@@ -1,0 +1,63 @@
+table x_nonce
+    column scope string length=64 notnull=true charset=NULL collation='C'
+    column value_hash string length=64 notnull=true charset=NULL collation='C'
+    column expires_at bigint length=NULL notnull=true charset=NULL collation=NULL
+    primary scope, value_hash
+    index x_nonce_expiry (expires_at)
+    index primary (scope, value_hash)
+table x_login_state
+    column state_hash string length=64 notnull=true charset=NULL collation='C'
+    column nonce string length=255 notnull=true charset=NULL collation=NULL
+    column issuer string length=1024 notnull=true charset=NULL collation=NULL
+    column client_id string length=255 notnull=true charset=NULL collation=NULL
+    column target string length=2048 notnull=true charset=NULL collation=NULL
+    column expires_at bigint length=NULL notnull=true charset=NULL collation=NULL
+    primary state_hash
+    index x_login_state_expiry (expires_at)
+    index primary (state_hash)
+table x_access_token
+    column token_hash string length=64 notnull=true charset=NULL collation='C'
+    column client_id string length=255 notnull=true charset=NULL collation=NULL
+    column scopes string length=1024 notnull=true charset=NULL collation=NULL
+    column expires_at bigint length=NULL notnull=true charset=NULL collation=NULL
+    primary token_hash
+    index x_access_token_expiry (expires_at)
+    index primary (token_hash)
+table x_key
+    column kid string length=64 notnull=true charset=NULL collation='C'
+    column sealed text length=NULL notnull=true charset=NULL collation=NULL
+    column created_at bigint length=NULL notnull=true charset=NULL collation=NULL
+    column retired_at bigint length=NULL notnull=false charset=NULL collation=NULL
+    primary kid
+    index primary (kid)
+table x_line_item
+    column id string length=64 notnull=true charset=NULL collation='C'
+    column client_id string length=255 notnull=true charset=NULL collation='C'
+    column context_id string length=255 notnull=true charset=NULL collation='C'
+    column score_maximum float length=NULL notnull=true charset=NULL collation=NULL
+    column label string length=4096 notnull=true charset=NULL collation=NULL
+    column resource_id string length=255 notnull=false charset=NULL collation=NULL
+    column resource_link_id string length=255 notnull=false charset=NULL collation=NULL
+    column tag string length=255 notnull=false charset=NULL collation=NULL
+    column start_at string length=64 notnull=false charset=NULL collation=NULL
+    column end_at string length=64 notnull=false charset=NULL collation=NULL
+    column grades_released smallint length=NULL notnull=false charset=NULL collation=NULL
+    primary id
+    index x_line_item_context (client_id, context_id)
+    index primary (id)
+table x_score
+    column line_item_id string length=64 notnull=true charset=NULL collation='C'
+    column user_id string length=255 notnull=true charset=NULL collation='C'
+    column payload text length=NULL notnull=true charset=NULL collation=NULL
+    column scored_at bigint length=NULL notnull=true charset=NULL collation=NULL
+    primary line_item_id, user_id
+    index primary (line_item_id, user_id)
+table x_pending_score
+    column id string length=64 notnull=true charset=NULL collation='C'
+    column issuer string length=1024 notnull=true charset=NULL collation=NULL
+    column client_id string length=255 notnull=true charset=NULL collation=NULL
+    column line_item string length=2048 notnull=true charset=NULL collation=NULL
+    column payload text length=NULL notnull=true charset=NULL collation=NULL
+    column created_at bigint length=NULL notnull=true charset=NULL collation=NULL
+    primary id
+    index primary (id)

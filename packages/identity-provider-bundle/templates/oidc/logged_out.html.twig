@@ -1,0 +1,9 @@
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.logout'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.logged_out'|trans({}, d) }}</h1>
+    <p>{{ 'logout.done'|trans({}, d) }}</p>
+{% endblock %}

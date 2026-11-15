@@ -1,0 +1,84 @@
+{#
+    The single queue: every target with open reports that the moderator's role covers, the earliest report first, with
+    its type, what the package says of it, how many reports, their reasons and sources. When reports surge, and the
+    incident mode is installed, the page proposes it. Its parts are recipes of the kit — Alert, Badge, Table.
+#}
+{% extends layout %}
+
+{% set domain = 'phil_moderation' %}
+
+{% block title %}{{ 'queue.title'|trans({}, domain) }}{% endblock %}
+
+{% block main %}
+    <h1>{{ 'queue.title'|trans({}, domain) }}</h1>
+    {{ include('@PhilModeration/admin/_nav.html.twig') }}
+
+    {% if incident_proposed %}
+        {% component (phil_moderation_kit('Alert')) with {variant: 'destructive', role: 'status'} %}
+            {% block content %}
+                {% component (phil_moderation_kit('Alert:Title')) %}{% block content %}{{ 'queue.surge'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% component (phil_moderation_kit('Alert:Description')) %}{% block content %}<a href="{{ path(routes.incidents) }}">{{ 'queue.surge_action'|trans({}, domain) }}</a>{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+    {% endif %}
+
+    <p>{{ 'queue.total'|trans({'%count%': total}, domain) }} · {{ 'queue.role'|trans({'%role%': include('@PhilModeration/_label.html.twig', {prefix: 'role', code: moderator.role.name})}, domain) }}</p>
+
+    {% if items is empty %}
+        <p>{{ 'queue.empty'|trans({}, domain) }}</p>
+    {% else %}
+        {% component (phil_moderation_kit('Table')) %}
+            {% block content %}
+                {% component (phil_moderation_kit('Table:Header')) %}
+                    {% block content %}
+                        {% component (phil_moderation_kit('Table:Row')) %}
+                            {% block content %}
+                                {% component (phil_moderation_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'queue.content'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (phil_moderation_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'queue.reports'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (phil_moderation_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'queue.reasons'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (phil_moderation_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'queue.first'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                            {% endblock %}
+                        {% endcomponent %}
+                    {% endblock %}
+                {% endcomponent %}
+                {% component (phil_moderation_kit('Table:Body')) %}
+                    {% block content %}
+                        {% for index, item in items %}
+                            {% set view = views[index] %}
+                            {% component (phil_moderation_kit('Table:Row')) %}
+                                {% block content %}
+                                    {% component (phil_moderation_kit('Table:Cell')) %}
+                                        {% block content %}
+                                            <a href="{{ path(routes.entry, {type: item.target.type, id: item.target.id}) }}">{{ view is null ? 'queue.gone'|trans({}, domain) : view.title }}</a>
+                                            <small>{{ item.target.type }}</small>
+                                            {% if item.held %}
+                                                {% component (phil_moderation_kit('Badge')) with {variant: 'secondary'} %}{% block content %}{{ 'queue.held'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                            {% endif %}
+                                        {% endblock %}
+                                    {% endcomponent %}
+                                    {% component (phil_moderation_kit('Table:Cell')) %}{% block content %}{{ item.reports }}{% endblock %}{% endcomponent %}
+                                    {% component (phil_moderation_kit('Table:Cell')) %}
+                                        {% block content %}
+                                            {% for reason in item.reasons %}
+                                                {% component (phil_moderation_kit('Badge')) with {variant: 'outline'} %}{% block content %}{{ include('@PhilModeration/_label.html.twig', {prefix: 'reason', code: reason}) }}{% endblock %}{% endcomponent %}
+                                            {% endfor %}
+                                        {% endblock %}
+                                    {% endcomponent %}
+                                    {% component (phil_moderation_kit('Table:Cell')) %}{% block content %}<time datetime="{{ item.firstReportedAt|date('c') }}">{{ item.firstReportedAt|date('Y-m-d H:i') }}</time>{% endblock %}{% endcomponent %}
+                                {% endblock %}
+                            {% endcomponent %}
+                        {% endfor %}
+                    {% endblock %}
+                {% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+
+        {% if pages > 1 %}
+            <nav aria-label="{{ 'pagination.label'|trans({}, domain) }}">
+                {% if page > 1 %}<a href="{{ path(routes.queue, {page: page - 1}) }}" rel="prev">{{ 'pagination.previous'|trans({}, domain) }}</a>{% endif %}
+                <span>{{ 'pagination.page'|trans({'%page%': page, '%pages%': pages}, domain) }}</span>
+                {% if page < pages %}<a href="{{ path(routes.queue, {page: page + 1}) }}" rel="next">{{ 'pagination.next'|trans({}, domain) }}</a>{% endif %}
+            </nav>
+        {% endif %}
+    {% endif %}
+{% endblock %}

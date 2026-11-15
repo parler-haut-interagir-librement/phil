@@ -1,0 +1,68 @@
+{#
+    A statement of reasons, for the member it is addressed to: what was decided on their content and its reach, the
+    reason, whether it rests on the terms of the site or on the law, the facts, how the decision came about — a report
+    or the moderation's own initiative, automated detection or not, always a person deciding —, and the ways to contest
+    it. It never names the moderator nor the member who reported. Its parts are recipes of the kit — Alert, Badge.
+#}
+{% extends layout %}
+
+{% set domain = 'phil_moderation' %}
+
+{% block title %}{{ 'statement.title'|trans({}, domain) }}{% endblock %}
+
+{% block main %}
+    <h1>{{ 'statement.title'|trans({}, domain) }}</h1>
+    <p><a href="{{ path(list_route) }}">{{ 'statement.all'|trans({}, domain) }}</a></p>
+
+    {% component (phil_moderation_kit('Alert')) with {role: 'status'} %}
+        {% block content %}
+            {% component (phil_moderation_kit('Alert:Title')) %}{% block content %}{{ ('statement.decided.' ~ statement.action.value)|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% component (phil_moderation_kit('Alert:Description')) %}
+                {% block content %}
+                    {{ include('@PhilModeration/_label.html.twig', {prefix: 'type', code: statement.target.type}) }} ·
+                    <time datetime="{{ statement.issuedAt|date('c') }}">{{ statement.issuedAt|date('Y-m-d H:i') }}</time>
+                {% endblock %}
+            {% endcomponent %}
+        {% endblock %}
+    {% endcomponent %}
+
+    <dl>
+        <dt>{{ 'statement.reach'|trans({}, domain) }}</dt>
+        <dd>{{ ('statement.reach.' ~ statement.action.value)|trans({}, domain) }}</dd>
+
+        <dt>{{ 'statement.reason'|trans({}, domain) }}</dt>
+        <dd>{% component (phil_moderation_kit('Badge')) with {variant: 'outline'} %}{% block content %}{{ include('@PhilModeration/_label.html.twig', {prefix: 'reason', code: statement.reason}) }}{% endblock %}{% endcomponent %}</dd>
+
+        <dt>{{ 'statement.ground'|trans({}, domain) }}</dt>
+        <dd>
+            {{ ('statement.ground.' ~ statement.ground.value)|trans({}, domain) }}
+            {% if statement.reference is not null %}— {{ statement.reference }}{% endif %}
+        </dd>
+
+        <dt>{{ 'statement.facts'|trans({}, domain) }}</dt>
+        <dd>{{ statement.explanation|nl2br }}</dd>
+
+        <dt>{{ 'statement.origin'|trans({}, domain) }}</dt>
+        <dd>
+            {{ (statement.prompted ? 'statement.origin.report' : 'statement.origin.own')|trans({}, domain) }}
+            {{ (statement.automatedDetection ? 'statement.detection.automated' : 'statement.detection.none')|trans({}, domain) }}
+            {{ 'statement.decided_by_person'|trans({}, domain) }}
+        </dd>
+    </dl>
+
+    <section aria-labelledby="phil-moderation-redress">
+        <h2 id="phil-moderation-redress">{{ 'statement.redress'|trans({}, domain) }}</h2>
+        <ul>
+            {% if redress.complaintUrl is not null %}
+                <li><a href="{{ redress.complaintUrl }}">{{ 'statement.redress.complaint'|trans({}, domain) }}</a></li>
+            {% endif %}
+            {% if redress.termsUrl is not null %}
+                <li><a href="{{ redress.termsUrl }}">{{ 'statement.redress.terms'|trans({}, domain) }}</a></li>
+            {% endif %}
+            {% for body in redress.outOfCourt %}
+                <li>{{ 'statement.redress.out_of_court'|trans({}, domain) }} <a href="{{ body.url }}" rel="noopener noreferrer">{{ body.name }}</a></li>
+            {% endfor %}
+            <li>{{ 'statement.redress.court'|trans({}, domain) }}</li>
+        </ul>
+    </section>
+{% endblock %}

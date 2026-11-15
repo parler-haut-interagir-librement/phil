@@ -27,6 +27,13 @@ parameters:
             - packages/address/bin/import-data.php
 
     ignoreErrors:
+        # The closure of a configuration rule receives the node as an array whose values the installed release of
+        # symfony/config leaves `mixed`.
+        -
+            identifier: booleanAnd.leftNotBoolean
+            path: packages/commerce-bundle/src/PhilCommerceBundle.php
+            count: 1
+
         # Without a console application, an argument of a command is `mixed`.
         -
             identifier: argument.type

@@ -1,0 +1,11 @@
+{   "streams": [  {  "codec_type": "audio",
+  "tags": {
+ "enr": "LA",
+     "E": "S"    }
+     }],
+"format": {
+ "tags":{
+"`c": "adi",
+    "e": "1", "": "Ge"
+} }
+}

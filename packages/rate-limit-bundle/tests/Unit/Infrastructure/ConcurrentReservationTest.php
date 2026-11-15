@@ -59,8 +59,9 @@ final class ConcurrentReservationTest extends TestCase
         self::assertInstanceOf(ExtensionInterface::class, $extension);
         $extension->load([$config + ['limiters' => ['once' => ['policy' => 'fixed_window', 'limit' => 1, 'interval' => '1 hour', 'storage' => 'app.storage']]]], $container);
         $container->getDefinition('phil_rate_limit.factory.once')->setPublic(true);
-        $container->compile();
+        $container->compile(true);
         $container->set('app.storage', $storage);
+
         $factory = $container->get('phil_rate_limit.factory.once');
         self::assertInstanceOf(RateLimiterFactoryInterface::class, $factory);
 

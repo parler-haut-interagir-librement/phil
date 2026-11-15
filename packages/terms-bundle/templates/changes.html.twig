@@ -1,0 +1,20 @@
+{#
+ # The changes between two versions of a policy, each version linked by a Button of the kit — from the PHIL UX kit or
+ # the Shadcn kit, called by the name `phil_terms_kit()` gives.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_terms' %}
+{% set title = ('policy.' ~ new.policy)|trans({}, domain) %}
+
+{% block title %}{{ title }} — {{ 'changes.title'|trans({'%from%': old.number, '%version%': new.number}, domain) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+    <p>{{ 'changes.title'|trans({'%from%': old.number, '%version%': new.number}, domain) }}</p>
+    <p>
+        {% component (phil_terms_kit('Button')) with {as: 'a', variant: 'outline', href: path('phil_terms_version', {policy: old.policy, number: old.number})} %}{% block content %}{{ 'page.version'|trans({'%version%': old.number}, domain) }}{% endblock %}{% endcomponent %}
+        {% component (phil_terms_kit('Button')) with {as: 'a', variant: 'outline', href: path('phil_terms_version', {policy: new.policy, number: new.number})} %}{% block content %}{{ 'page.version'|trans({'%version%': new.number}, domain) }}{% endblock %}{% endcomponent %}
+    </p>
+    <div class="phil-terms-changes">{{ changes|raw }}</div>
+{% endblock %}

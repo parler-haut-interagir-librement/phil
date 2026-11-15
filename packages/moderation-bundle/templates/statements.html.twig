@@ -1,0 +1,56 @@
+{#
+    The statements of reasons addressed to the current member, the latest first: the decision, on what type of content,
+    the reason and the date, each linking to its statement. Its parts are recipes of the kit — Badge, Table.
+#}
+{% extends layout %}
+
+{% set domain = 'phil_moderation' %}
+
+{% block title %}{{ 'statements.title'|trans({}, domain) }}{% endblock %}
+
+{% block main %}
+    <h1>{{ 'statements.title'|trans({}, domain) }}</h1>
+
+    {% if statements is empty %}
+        <p>{{ 'statements.empty'|trans({}, domain) }}</p>
+    {% else %}
+        {% component (phil_moderation_kit('Table')) %}
+            {% block content %}
+                {% component (phil_moderation_kit('Table:Header')) %}
+                    {% block content %}
+                        {% component (phil_moderation_kit('Table:Row')) %}
+                            {% block content %}
+                                {% component (phil_moderation_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'journal.date'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (phil_moderation_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'journal.decision'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (phil_moderation_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'journal.content'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (phil_moderation_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ 'journal.reason'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                            {% endblock %}
+                        {% endcomponent %}
+                    {% endblock %}
+                {% endcomponent %}
+                {% component (phil_moderation_kit('Table:Body')) %}
+                    {% block content %}
+                        {% for statement in statements %}
+                            {% component (phil_moderation_kit('Table:Row')) %}
+                                {% block content %}
+                                    {% component (phil_moderation_kit('Table:Cell')) %}{% block content %}<a href="{{ path(show_route, {id: statement.id}) }}"><time datetime="{{ statement.issuedAt|date('c') }}">{{ statement.issuedAt|date('Y-m-d') }}</time></a>{% endblock %}{% endcomponent %}
+                                    {% component (phil_moderation_kit('Table:Cell')) %}{% block content %}{% component (phil_moderation_kit('Badge')) %}{% block content %}{{ ('action.' ~ statement.action.value)|trans({}, domain) }}{% endblock %}{% endcomponent %}{% endblock %}{% endcomponent %}
+                                    {% component (phil_moderation_kit('Table:Cell')) %}{% block content %}{{ include('@PhilModeration/_label.html.twig', {prefix: 'type', code: statement.target.type}) }}{% endblock %}{% endcomponent %}
+                                    {% component (phil_moderation_kit('Table:Cell')) %}{% block content %}{{ include('@PhilModeration/_label.html.twig', {prefix: 'reason', code: statement.reason}) }}{% endblock %}{% endcomponent %}
+                                {% endblock %}
+                            {% endcomponent %}
+                        {% endfor %}
+                    {% endblock %}
+                {% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+
+        {% if pages > 1 %}
+            <nav aria-label="{{ 'pagination.label'|trans({}, domain) }}">
+                {% if page > 1 %}<a href="{{ path(route, {page: page - 1}) }}" rel="prev">{{ 'pagination.previous'|trans({}, domain) }}</a>{% endif %}
+                <span>{{ 'pagination.page'|trans({'%page%': page, '%pages%': pages}, domain) }}</span>
+                {% if page < pages %}<a href="{{ path(route, {page: page + 1}) }}" rel="next">{{ 'pagination.next'|trans({}, domain) }}</a>{% endif %}
+            </nav>
+        {% endif %}
+    {% endif %}
+{% endblock %}

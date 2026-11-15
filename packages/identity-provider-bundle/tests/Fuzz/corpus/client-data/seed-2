@@ -1,0 +1,1 @@
+{"type":"webauthn.create","challenge":"x","origin":"https://evil.example","crossOrigin":true}

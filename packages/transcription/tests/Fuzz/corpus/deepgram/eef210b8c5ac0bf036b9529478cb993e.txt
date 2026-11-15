@@ -1,0 +1,11 @@
+{
+    "meta": {"ridurationls": 1},
+    "results": {
+     "utterances"    
+: [       {"speaker": 0, "ipeaker": 0, "id":"a"},
+            {"starpt": "Bonjor.", "srAnscript": "Bonjour.", "speaker": 0, "id":"a"},
+            {"startpt": "Salut!", "speaker": 1, "ipeaker": 0, "id":"a"},
+            {"start": 2.0, "": "Salut!", "speaker": 1, "id": "b"}
+     ]
+    }
+}

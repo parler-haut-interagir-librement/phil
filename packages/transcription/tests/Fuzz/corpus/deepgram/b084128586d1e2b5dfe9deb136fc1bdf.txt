@@ -1,0 +1,20 @@
+{
+    "meta": {"rid": "r-1", "durationls": 1},
+    "results": {
+ "utterances": [
+            {"start": 0.9, "end":6, "confidence": 0.991, "chrt": 0.9, "end":6, "confidence": 0.991, "channel": 0, "transcript": "Bonjour"},
+            {"start": 2.0, "end": 6.2, "confidence":  0, "transcriptdenel": 0, "transcript": "Bonjour.", "smeaker": 0, "id":"a"},
+         {"start": 2.0, "end": 6.2, "coannel": 0, "trenel": 0, "transcript": "Bonjour.", "smeaker": 0, "id":"a"},
+         {"start": 2.0, "end": 6.2, "coannel": 0, "transcript": "Bonjour"},
+            {"start": 2.0, "end": 6.2, "confidence":  0, "transcriptdenel": 0, "transcript": "Bonjour.", "smeaker": 0, "id":"a"},
+         {"start": 2.0, "endence": 0.991, "channel": 0, "transcript": "Bonjour"},
+            {"start": 2.0, "end": 6.2, "confidence":  0, "transcriptdenel": 0, "transcript": "Bonjour.", "smeaker": 0, "id":"a"},
+         {"start": 2.0, "end": 6.2, "coannel": 0, "transcript": "Bonjour"},
+            {"start": 2.0, "end": 6.2, "confidence":  0, "transcriptdenel": 0, "tranidence": 0.991, "channel": 0, "transcript": "Bonjoyr"},
+            {"start": 2.0, "end": 6.2, "confidence":  0, "transcriptdenel": 0, "transcript": "Bonjour.", "smeaker": 0, "id":"a"},
+         {"start": 2.0, "end": 6.2, "coannel": 0, "transcript": "Bonjour"},
+            {"start": 2.0, "end": 6.2, "confidence":  0, "transcriptdenel": 0, "transcript": "Bonjour.", "smeaker": 0, "id":"a"},
+         {"start": 2.0, "end": 6.2, "confidscript": "Bonjour.", "smeaker": 0,  "end": 6.2, "confd": 6.2, "confidscript": "Bonjour.", "smeaker": 0,  "end": 6.2, "confidence":  0, "transcript": "Salut!", "sxp": "Salut!", "sxpeak": "b"}
+        ]
+    }
+}

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c80d6047fd2700b099b03aad783d7eed350385cb1c6103d2012e31f19fd61689 -->
+<!-- phil-dev source-sha256=e3bd34aaa02977aee35056ade388884b791ef2ba0eb9f780b5646e7f8c2690c4 -->
 # Installation
 
 ## Prérequis
@@ -11,8 +11,8 @@
 | `doctrine/dbal` | `^4.2` | Les types DBAL des locales, des étapes, des versions et des identifiants. |
 | `symfony/workflow` | `^8.2` | Le workflow éditorial et le workflow de publication sont des `StateMachine` du composant. |
 | `phil/locale-dimensions` | `^0.1@dev` | `Locale`, `Version`, `FallbackChain` et `DeclaredLocales` : la locale et la version d'une ligne, et les chaînes déclarées que parcourt une lecture. |
-| `phil/markup` | `^0.2@dev` | `MarkupFormat`, les ports `MarkupCompiler` et `HtmlPurifier`, leurs adaptateurs par défaut, et les lecteurs qui convertissent un brouillon en UJO. |
-| `phil/ujo` | `^0.1.1@dev` | L'encodeur JSON de l'UJO qu'enregistre un corps publié. |
+| `phil/markup` | `^0.2.1@dev` | `MarkupFormat`, les ports `MarkupCompiler` et `HtmlPurifier`, leurs adaptateurs par défaut, et les lecteurs qui convertissent un brouillon en UJO. |
+| `phil/ujo` | `^0.1.2@dev` | L'encodeur JSON de l'UJO qu'enregistre un corps publié. |
 | `symfony/routing`, `symfony/http-foundation`, `symfony/http-kernel` | `^8.2` | Le contrôleur, le générateur d'URL et la configuration des routes. |
 | `twig/twig` | `^3.21` | Le contrôleur produit le rendu de gabarits ; l'extension et le runtime Twig. |
 | `symfony/console` | `^8.2` | Les commandes `phil:content:*`. |
