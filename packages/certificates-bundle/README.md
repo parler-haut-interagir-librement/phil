@@ -33,6 +33,7 @@ attainment, and receives a new certificate linked to the one it renews.
 | Expired distinct from revoked; reminders before the end through `CertificateExpiring`, once per threshold | Implemented and tested |
 | Recertification: a new certificate linked to the one it renews, by credits of continuing education or an attainment | Implemented and tested |
 | Credits of continuing education by member and period, toward a course, recorded once per source | Implemented and tested |
+| Courses awarded on the completion another system knows, through the port `CourseCompletions`, the completion kept as evidence, once per completion | Implemented and tested |
 | Console commands: define a course, award, recertify, revoke, status, export of a credential, reminders, credits | Implemented and tested |
 | The QR code of the PDF decoded back to the certificate's address | Tested |
 | The shape of the exported credentials against what Open Badges 3.0 describes, offline | Tested |
@@ -48,10 +49,11 @@ attainment, and receives a new certificate linked to the one it renews.
 | [The PDF](doc/pdf.md) | What the certificate shows, the fonts, the embedded credential, the archival PDF, the signature. |
 | [The register](doc/register.md) | The pages and downloads the routes serve, and what they disclose. |
 | [Revocation](doc/revocation.md) | Revoking a certificate, the status lists. |
+| [Completion sources](doc/completion-sources.md) | Courses awarded on what another system knows of their completion, through the port `CourseCompletions`. |
 | [Expiry and recertification](doc/recertification.md) | The end of certificates and courses, reminders, recertification, credits of continuing education. |
 | [Console commands](doc/console.md) | Defining courses, awarding, recertifying, revoking, showing, exporting, reminding and crediting from the console. |
 | [Validation](doc/validation.md) | Where 1EdTech conformance testing stands, how to verify a certificate today, what is checked offline, and the run of 1EdTech's validator. |
-| [Extension points](doc/extension-points.md) | The repositories, the URLs, the events, the print subject, the layout, the translations, other status lists. |
+| [Extension points](doc/extension-points.md) | The repositories, the source of completions, the URLs, the events, the print subject, the layout, the translations, other status lists. |
 | [Testing](doc/testing.md) | The bundle's tests, and testing an application that awards certificates. |
 | [Reference](doc/reference.md) | Every class of the bundle, with its role. |
 

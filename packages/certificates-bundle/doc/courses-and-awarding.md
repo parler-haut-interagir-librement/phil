@@ -34,11 +34,13 @@ $courses->define(
 | Image | An absolute HTTP URL of up to 2048 characters |
 | Recertification credits | More than 0, up to two decimals; null when a recertification asks for an attainment |
 | End | Any moment; no certificate is awarded from then on, nor valid past it |
+| Completion source | 1 to 255 characters, without spaces nor control characters; null when the application alone decides who passed |
 
 A value outside these rules throws `InvalidValue`; a slug already taken, `CertificateRefused`. `revise()` changes what a
 course says and asks: certificates already awarded keep the credential they were given. `retire()` stops a course from
 awarding certificates, `reopen()` lets it again; those awarded stay valid. A course past its end awards no more
-either; [Recertification](recertification.md) covers the end of courses and certificates.
+either; [Recertification](recertification.md) covers the end of courses and certificates. A course that names a
+completion source is awarded only to a member another system says completed it ([Completion sources](completion-sources.md)).
 
 `phil:certificates:course` defines or revises a course from the console ([Console commands](console.md#courses)).
 
@@ -83,6 +85,7 @@ The certificate then holds:
 | `holder` | The member's stable identifier when the application gave one; an e-mail address is refused |
 | `renews` | The certificate it renews, when a recertification awarded it |
 | `remindedAt` | When its holder was last reminded of its end |
+| `completion` | The identifier of the completion it was awarded on, for a course that names a completion source |
 
 The credential's achievement is the course: its identifier is the URL of the course's page in the register, its name,
 description, criteria and image the course's. The course's later revisions do not change it.

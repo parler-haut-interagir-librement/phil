@@ -37,9 +37,11 @@ identifies the achievement of its certificates. `--min-score` is a whole number 
 `--validity` whole numbers of minutes and months; `--module` repeats for each module to complete; a course without
 `--validity` gives certificates that do not end. `--credits` is the number of credits of continuing education a
 recertification asks for, with up to two decimals after a point or a comma; `--ends` the day the course ends, written
-`YYYY-MM-DD`, at midnight UTC. With `--revise`, the course of that slug is revised with the values
+`YYYY-MM-DD`, at midnight UTC; `--completion-source` the key of the course in the system its completions are asked of
+([Completion sources](completion-sources.md)). With `--revise`, the course of that slug is revised with the values
 given — those left out are cleared, as with `Courses::revise()` — and certificates already awarded keep their
-credential. Retiring and reopening a course go through `Courses`.
+credential; the completion source alone changes only when `--completion-source` is given, and an empty one removes
+it. Retiring and reopening a course go through `Courses`.
 
 ## Awarding
 
@@ -56,7 +58,21 @@ The identity is an e-mail address, a URL or a decentralized identifier, as with 
 printed, and the credential keeps an address or a URL as a salted hash only. `--score` is a whole number from 0 to
 100, `--minutes` a whole number of minutes, 0 when left out; `--module` repeats for each module completed; `--listed`
 lists the certificate on its course's page in the register; `--holder` names the member by the stable identifier the
-application gives it, by which credits of continuing education are counted — never an e-mail address.
+application gives it, by which credits of continuing education are counted and the completion of a course asked —
+never an e-mail address.
+
+A course that names a completion source asks it whether the holder completed the course, and the identifier of the
+completion is printed on a third line:
+
+```text
+Awarded the certificate 7KQ2-M9XA-04TZ of "first-aid" to Ada Lovelace.
+https://example.org/certificates/7KQ2M9XA04TZ
+Completion: enrolment-7
+```
+
+`--on-completion` awards as `Awarding::awardOnCompletion()` does: it needs `--holder`, and a completion already
+awarded prints the certificate that holds it and succeeds, rather than failing; the first line then reads
+`The certificate 7KQ2-M9XA-04TZ of "first-aid" is awarded to Ada Lovelace on that completion.`
 
 ## Revoking
 
@@ -81,7 +97,8 @@ awarded_at         2026-11-08T10:00:00+00:00
 valid_until        2027-11-08T10:00:00+00:00
 ```
 
-Below them come, when they apply, `revoked_at` and `revocation_reason`, `holder`, `renews` and `renewed_by` — the
+Below them come, when they apply, `revoked_at` and `revocation_reason`, `holder`, `completion`, `renews` and
+`renewed_by` — the
 codes of the certificate it renews and of the one that renews it — and `reminded_at`. `--format=json` gives the same
 fields as one JSON object, `null` for those that do not apply — `valid_until` of a certificate that does not end,
 `revoked_at` and `revocation_reason` of one that is not revoked. The status is
