@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f19b94c8ad8aad7d8a08a105722f4d8a51a718ceb0facd6d60af0926d5bcc252 -->
+<!-- phil-dev source-sha256=28bb990c8fe82a99088a3fc30b779ccdd69c9016e136b5614518c999b51c28f3 -->
 # Suggestions
 
 Un fil peut proposer un remplacement pour son passage : un texte, ou un texte vide pour proposer de le retirer. La
@@ -30,6 +30,10 @@ le remplace dans le bloc et demande au serveur d'enregistrer l'acceptation. Il r
 son événement `phil-block-editor:apply` ; l'auteur enregistre le formulaire comme d'habitude. Le bouton *Accept*
 n'est offert que lorsque l'éditeur est modifiable et que le passage est trouvé. Un bloc qu'un autre auteur détient
 par `phil/edit-lock-bundle` n'est pas touché.
+
+Quand une autre décision est arrivée avant, le serveur répond `409` avec l'erreur `decided` : le contrôleur n'applique
+rien à l'éditeur, dit *This suggestion has already been decided.* dans l'état du panneau et recharge les fils, pour
+que le lecteur voie la décision qui a été gardée. Un rejet qui arrive en second est traité de la même façon.
 
 ## Comment le passage est remplacé
 
