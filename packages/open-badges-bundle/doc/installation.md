@@ -2,7 +2,7 @@
 
 ## Requirements
 
-PHP 8.5 or later, Symfony 8.2 or later, `phil/open-badges` 0.1.1 or later, `phil/url`, `phil/safe-http` and
+PHP 8.5 or later, Symfony 8.2 or later, `phil/open-badges` 0.2 or later, `phil/url`, `phil/safe-http` and
 Symfony's cache contracts. The verification page needs TwigBundle; without it, the page is not registered and the
 rest works. A limit on its checks needs `phil/rate-limit-bundle`.
 

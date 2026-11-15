@@ -4,6 +4,34 @@ All notable changes to `phil/open-badges` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the two key contracts change. [Upgrading](doc/upgrading.md) lists what to change.
+
+### Added
+
+- `Signer::signatureAlgorithm()` and `Signer::jwk()`: the algorithm of `web-token/jwt-library` and the key it signs
+  with; `VerificationKey::jwk()`, the public key it verifies with.
+- `RsaKey::toJwk()`, the public JSON Web Key of an RSA key; `RsaSigner::MAX_BITS`; `Ed25519Key::BYTES`,
+  `Ed25519Signer::SEED_BYTES` and `EddsaRdfc2022::SIGNATURE_BYTES`.
+- `JwtVerifier::MAX_DEPTH`, the deepest nesting of a token's header and claims.
+
+### Changed
+
+- `web-token/jwt-library` signs, serializes and verifies the JSON Web Tokens, and makes and checks the Ed25519
+  signatures of `eddsa-rdfc-2022` proofs.
+- `JwtVerifier` refuses a token that marks a header parameter critical (`crit`) or leaves its claims unencoded
+  (`b64`), and verifies the signature with the key's algorithm only, `EdDSA` or `RS256`; a key naming another
+  algorithm verifies nothing.
+- `RsaKey::fromPem()` refuses a modulus under 2048 or over 8192 bits; `RsaSigner::fromPem()` refuses one over 8192
+  bits and a key that is not an RSA private key.
+
+### Removed
+
+- `Signer::sign()` and `VerificationKey::verify()`, replaced by the keys and algorithms handed to
+  `web-token/jwt-library`.
+- `RsaKey::details()` and `RsaKey::text()`.
+
 ## 0.1.1-alpha - 2026-11-14
 
 ### Added

@@ -13,12 +13,15 @@ use Phil\OpenBadges\Exception\InvalidBadge;
 use Phil\OpenBadges\Exception\InvalidCredential;
 use Phil\OpenBadges\JsonLd\BundledContexts;
 use Phil\OpenBadges\JsonLd\ToRdf;
+use Phil\OpenBadges\Jwt\Algorithms;
 use Phil\OpenBadges\Key\Ed25519Signer;
 use Phil\OpenBadges\Rdf\Canonicalizer;
+use Throwable;
 
 /**
  * The `eddsa-rdfc-2022` cryptosuite of Data Integrity: a proof embedded in the document, signed with an Ed25519 key
- * over the SHA-256 of the canonical form (RDFC-1.0) of the proof's options and of the document's.
+ * over the SHA-256 of the canonical form (RDFC-1.0) of the proof's options and of the document's. The Ed25519 signature
+ * is made and checked by the `EdDSA` algorithm of `web-token/jwt-library`, over those bytes.
  *
  * The documents are read as JSON-LD through the contexts the loader gives — by default only the bundled ones —, in
  * safe mode: a property that no context defines is refused, since it would be left out of the signature.
@@ -26,6 +29,11 @@ use Phil\OpenBadges\Rdf\Canonicalizer;
 final readonly class EddsaRdfc2022
 {
     public const string CRYPTOSUITE = 'eddsa-rdfc-2022';
+
+    /**
+     * The length of an Ed25519 signature, in bytes.
+     */
+    public const int SIGNATURE_BYTES = 64;
 
     private ToRdf $rdf;
 
@@ -55,7 +63,7 @@ final readonly class EddsaRdfc2022
             'proofPurpose' => 'assertionMethod',
         ];
 
-        return [...$document, 'proof' => [...$options, 'proofValue' => 'z'.Base58Btc::encode($signer->sign($this->hashData($document, $options)))]];
+        return [...$document, 'proof' => [...$options, 'proofValue' => 'z'.Base58Btc::encode($signer->signatureAlgorithm()->sign($signer->jwk(), $this->hashData($document, $options)))]];
     }
 
     /**
@@ -87,7 +95,19 @@ final readonly class EddsaRdfc2022
         $signature = Base58Btc::decode(substr($proof['proofValue'], 1));
         unset($document['proof'], $proof['proofValue']);
 
-        if ('EdDSA' !== $key->algorithm() || !$key->verify($this->hashData($document, $proof), $signature)) {
+        if ('EdDSA' !== $key->algorithm() || self::SIGNATURE_BYTES !== \strlen($signature)) {
+            throw InvalidCredential::because('The signature of the credential does not verify.');
+        }
+
+        $data = $this->hashData($document, $proof);
+
+        try {
+            $verified = Algorithms::of('EdDSA')->verify($key->jwk(), $data, $signature);
+        } catch (Throwable) {
+            $verified = false;
+        }
+
+        if (!$verified) {
             throw InvalidCredential::because('The signature of the credential does not verify.');
         }
 

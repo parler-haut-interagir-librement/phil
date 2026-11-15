@@ -4,29 +4,34 @@ declare(strict_types=1);
 
 namespace Phil\OpenBadges\Key;
 
+use Jose\Component\Core\JWK;
+use Jose\Component\KeyManagement\JWKFactory;
+use Jose\Component\Signature\Algorithm\EdDSA;
 use Override;
 use Phil\OpenBadges\Contract\Signer;
 use Phil\OpenBadges\Exception\InvalidBadge;
 use SensitiveParameter;
 
 /**
- * An Ed25519 private key, signing with the `EdDSA` algorithm through libsodium: the key of JSON Web Tokens and of
- * `eddsa-rdfc-2022` Data Integrity proofs.
+ * An Ed25519 private key, signing with the `EdDSA` algorithm of `web-token/jwt-library`: the key of JSON Web Tokens and
+ * of `eddsa-rdfc-2022` Data Integrity proofs.
  */
 final readonly class Ed25519Signer implements Signer
 {
     /**
-     * @var non-empty-string
+     * The length of an Ed25519 seed, in bytes.
      */
-    private string $secretKey;
+    public const int SEED_BYTES = 32;
 
-    private function __construct(#[SensitiveParameter] string $secretKey)
-    {
-        if ('' === $secretKey) {
-            throw InvalidBadge::because('An Ed25519 secret key is not empty.');
-        }
+    /**
+     * The DER of an Ed25519 private key in PKCS #8 (RFC 8410) before its seed: the library reads the key from it.
+     */
+    private const string PKCS8_PREFIX = "\x30\x2e\x02\x01\x00\x30\x05\x06\x03\x2b\x65\x70\x04\x22\x04\x20";
 
-        $this->secretKey = $secretKey;
+    private function __construct(
+        #[SensitiveParameter]
+        private JWK $jwk,
+    ) {
     }
 
     /**
@@ -34,11 +39,13 @@ final readonly class Ed25519Signer implements Signer
      */
     public static function fromSeed(#[SensitiveParameter] string $seed): self
     {
-        if (\SODIUM_CRYPTO_SIGN_SEEDBYTES !== \strlen($seed)) {
-            throw InvalidBadge::because(\sprintf('An Ed25519 seed is %d bytes; this one is %d.', \SODIUM_CRYPTO_SIGN_SEEDBYTES, \strlen($seed)));
+        if (self::SEED_BYTES !== \strlen($seed)) {
+            throw InvalidBadge::because(\sprintf('An Ed25519 seed is %d bytes; this one is %d.', self::SEED_BYTES, \strlen($seed)));
         }
 
-        return new self(sodium_crypto_sign_secretkey(sodium_crypto_sign_seed_keypair($seed)));
+        $pem = "-----BEGIN PRIVATE KEY-----\n".sodium_bin2base64(self::PKCS8_PREFIX.$seed, \SODIUM_BASE64_VARIANT_ORIGINAL)."\n-----END PRIVATE KEY-----\n";
+
+        return new self(JWKFactory::createFromKey($pem));
     }
 
     #[Override]
@@ -48,25 +55,29 @@ final readonly class Ed25519Signer implements Signer
     }
 
     #[Override]
-    public function sign(string $data): string
+    public function signatureAlgorithm(): EdDSA
     {
-        return sodium_crypto_sign_detached($data, $this->secretKey);
+        return new EdDSA();
     }
 
     #[Override]
+    public function jwk(): JWK
+    {
+        return $this->jwk;
+    }
+
+    /**
+     * @return array{kty: 'OKP', crv: 'Ed25519', x: string}
+     */
+    #[Override]
     public function publicJwk(): array
     {
-        return $this->publicKey()->toJwk();
+        return $this->verificationKey()->toJwk();
     }
 
     #[Override]
     public function verificationKey(): Ed25519Key
     {
-        return $this->publicKey();
-    }
-
-    private function publicKey(): Ed25519Key
-    {
-        return new Ed25519Key(sodium_crypto_sign_publickey_from_secretkey($this->secretKey));
+        return Ed25519Key::fromJwk($this->jwk->toPublic()->all());
     }
 }

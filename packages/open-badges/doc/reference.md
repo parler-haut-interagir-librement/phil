@@ -21,14 +21,14 @@
 | `Contract\VerificationMethods` | Finds the key a verification method names. |
 | `Contract\ContextLoader` | Gives the JSON-LD context of a URL. |
 | `Contract\DocumentFetcher` | Reads the DID document of a `did:web` at its address. |
-| `Key\Ed25519Signer`, `Key\Ed25519Key` | `EdDSA` through libsodium; JSON Web Keys and Multikeys. |
-| `Key\RsaSigner`, `Key\RsaKey` | `RS256` through OpenSSL, 2048 bits or more; `RsaKey::fromJwk()` reads a JSON Web Key of 2048 to 8192 bits. |
+| `Key\Ed25519Signer`, `Key\Ed25519Key` | `EdDSA` through `web-token/jwt-library`; JSON Web Keys and Multikeys. |
+| `Key\RsaSigner`, `Key\RsaKey` | `RS256` through `web-token/jwt-library`, a modulus of 2048 to 8192 bits; read from PEM or from a JSON Web Key. |
 
 ## Securing and verifying
 
 | Type | Role |
 |---|---|
-| `Jwt\JwtSigner`, `Jwt\JwtVerifier` | VC-JWT, the algorithm taken from the key. |
+| `Jwt\JwtSigner`, `Jwt\JwtVerifier` | VC-JWT through `web-token/jwt-library`, the algorithm taken from the key. |
 | `DataIntegrity\EddsaRdfc2022` | The `eddsa-rdfc-2022` cryptosuite: `sign()`, `verify()`, `canonicalize()`. |
 | `DataIntegrity\DidKeyMethods` | The application's keys and every Ed25519 `did:key`. |
 | `Did\DidWeb` | A `did:web` identifier and the HTTPS address of its DID document. |

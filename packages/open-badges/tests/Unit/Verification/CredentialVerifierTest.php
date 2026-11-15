@@ -16,6 +16,7 @@ use Phil\OpenBadges\Jwt\JwtSigner;
 use Phil\OpenBadges\Key\Ed25519Signer;
 use Phil\OpenBadges\Recipient;
 use Phil\OpenBadges\Status\StatusListEntry;
+use Phil\OpenBadges\Tests\Unit\Support\Signatures;
 use Phil\OpenBadges\Verification\CredentialVerifier;
 use Phil\OpenBadges\Verification\IssuerMethods;
 use Phil\OpenBadges\Verification\VerifiedCredential;
@@ -264,7 +265,7 @@ final class CredentialVerifierTest extends TestCase
     {
         $signed = Base64Url::encode((string) json_encode(['alg' => 'EdDSA', 'typ' => 'vc+jwt', 'kid' => self::METHOD])).'.'.Base64Url::encode((string) json_encode($claims));
 
-        return $signed.'.'.Base64Url::encode($this->signer()->sign($signed));
+        return $signed.'.'.Base64Url::encode(Signatures::sign($this->signer(), $signed));
     }
 
     private function verifier(): CredentialVerifier

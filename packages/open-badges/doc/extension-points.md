@@ -8,24 +8,32 @@ an application implements one for what the library leaves to it.
 The issuer's private key:
 
 ```php
+use Jose\Component\Core\JWK;
+use Jose\Component\Signature\Algorithm\SignatureAlgorithm;
+
 interface Signer
 {
     public function algorithm(): string;               // the JSON Web Algorithm: EdDSA, RS256
-    public function sign(string $data): string;
+    public function signatureAlgorithm(): SignatureAlgorithm;   // the web-token/jwt-library algorithm of that name
+    public function jwk(): JWK;                        // the key that algorithm signs with
     public function publicJwk(): array;                // the public key as a JSON Web Key
     public function verificationKey(): VerificationKey;
 }
 ```
 
-`Ed25519Signer` and `RsaSigner` hold the key in memory. A signer over a key management service — the private key never
-leaving it — implements the interface and is given to `JwtSigner` and `CredentialIssuer`. Data Integrity proofs take
-an `Ed25519Signer`.
+Tokens are built, signed and serialized by `web-token/jwt-library`: `JwtSigner` hands it `signatureAlgorithm()` and
+`jwk()`. `Ed25519Signer` and `RsaSigner` hold the key in memory, `jwk()` being the private JSON Web Key. A signer over a
+key management service — the private key never leaving it — returns its own `SignatureAlgorithm`, which signs through
+the service, and the public JSON Web Key as `jwk()`; it is given to `JwtSigner` and `CredentialIssuer`. Data Integrity
+proofs take an `Ed25519Signer`.
 
 ## `VerificationKey`
 
-A public key: `algorithm()` and `verify(string $data, string $signature): bool`. `Ed25519Key` and `RsaKey` implement
-it. `verify()` answers false for a signature of the wrong length rather than raising. `Ed25519Key::fromJwk()`,
-`Ed25519Key::fromMultibase()` and `RsaKey::fromJwk()` read the keys an issuer publishes.
+A public key: `algorithm()`, the one JSON Web Algorithm it verifies, and `jwk()`, the public JSON Web Key of
+`web-token/jwt-library`. `Ed25519Key` and `RsaKey` implement it. The verifier takes the algorithm from the key, never
+from the token, and knows `EdDSA` and `RS256` only: a key naming another algorithm verifies nothing.
+`Ed25519Key::fromJwk()`, `Ed25519Key::fromMultibase()`, `RsaKey::fromJwk()` and `RsaKey::fromPem()` read the keys an
+issuer publishes.
 
 ## `VerificationMethods`
 

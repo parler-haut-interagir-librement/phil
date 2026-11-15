@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace Phil\OpenBadges\Jwt;
 
 use DateTimeImmutable;
+use Jose\Component\Core\AlgorithmManager;
+use Jose\Component\Signature\JWSBuilder;
+use Jose\Component\Signature\Serializer\CompactSerializer;
 use Phil\OpenBadges\Contract\Signer;
-use Phil\OpenBadges\Encoding\Base64Url;
 use Phil\OpenBadges\Exception\InvalidBadge;
+use Throwable;
 
 /**
  * Secures a credential as a JSON Web Token signed by the issuer's key — the VC-JWT securing that Open Badges 3.0 and
- * CLR 2.0 recognize —, verifiable away from the site with the issuer's public key.
+ * CLR 2.0 recognize —, verifiable away from the site with the issuer's public key. The token is built, signed and
+ * serialized by `web-token/jwt-library`, with the signer's algorithm and key.
  *
  * The token's header names the algorithm, the type `vc+jwt`, the key's identifier when one is given and the public key
  * as a JSON Web Key; its claims are the credential's, with `iss`, `jti`, `sub`, `nbf` and `exp` mirroring the issuer,
@@ -34,10 +38,17 @@ final readonly class JwtSigner
             throw InvalidBadge::because('A credential secured as a JSON Web Token has no embedded proof.');
         }
 
-        $header = array_filter(['alg' => $this->signer->algorithm(), 'typ' => 'vc+jwt', 'kid' => $this->keyId, 'jwk' => $this->signer->publicJwk()], static fn (array|string|null $value): bool => null !== $value);
-        $signed = $this->json($header).'.'.$this->json([...$credential, ...$this->claims($credential)]);
+        $algorithm = $this->signer->signatureAlgorithm();
+        $header = array_filter(['alg' => $algorithm->name(), 'typ' => 'vc+jwt', 'kid' => $this->keyId, 'jwk' => $this->signer->publicJwk()], static fn (array|string|null $value): bool => null !== $value);
+        $payload = json_encode([...$credential, ...$this->claims($credential)], \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE);
 
-        return $signed.'.'.Base64Url::encode($this->signer->sign($signed));
+        try {
+            $token = new JWSBuilder(new AlgorithmManager([$algorithm]))->create()->withPayload($payload)->addSignature($this->signer->jwk(), $header)->build();
+        } catch (Throwable $throwable) {
+            throw InvalidBadge::because(\sprintf('The signer cannot sign the token: %s', $throwable->getMessage()));
+        }
+
+        return new CompactSerializer()->serialize($token, 0);
     }
 
     /**
@@ -75,13 +86,5 @@ final readonly class JwtSigner
         }
 
         return $parsed->getTimestamp();
-    }
-
-    /**
-     * @param array<string, mixed> $value
-     */
-    private function json(array $value): string
-    {
-        return Base64Url::encode(json_encode($value, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE));
     }
 }

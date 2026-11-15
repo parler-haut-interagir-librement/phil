@@ -31,8 +31,7 @@ return [
             // - A permutation whose path is already worse than the chosen one is skipped as soon as that is known: to
             //   skip it later, or to stop pruning it, or to prune it on an equal path, chooses the same path.
             'Continue_' => ['ignoreSourceCodeByRegex' => ['continue 2;']],
-            'DecrementInteger' => ['ignoreSourceCodeByRegex' => ['continue 2;', '.*gzdecode\\(.*', "\\\$address = 'https://'.*", '.*chunk_split\\(sodium_bin2base64.*']],
-            'IncrementInteger' => ['ignoreSourceCodeByRegex' => ['.*chunk_split\\(sodium_bin2base64.*']],
+            'DecrementInteger' => ['ignoreSourceCodeByRegex' => ['continue 2;', '.*gzdecode\\(.*', "\\\$address = 'https://'.*"]],
             'GreaterThanOrEqualTo' => ['ignoreSourceCodeByRegex' => ["return '' !== \\\$chosen.*"]],
             'GreaterThanOrEqualToNegotiation' => ['ignoreSourceCodeByRegex' => ["return '' !== \\\$chosen.*"]],
             'GreaterThan' => ['ignoreSourceCodeByRegex' => ["return '' !== \\\$chosen.*"]],
