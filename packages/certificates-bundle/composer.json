@@ -27,8 +27,8 @@
         "doctrine/dbal": "^4.5",
         "doctrine/orm": "^3.7",
         "doctrine/persistence": "^4.1",
-        "phil/open-badges": "^0.1@dev",
-        "phil/open-badges-bundle": "^0.1@dev",
+        "phil/open-badges": "^0.2@dev",
+        "phil/open-badges-bundle": "^0.1.1@dev",
         "phil/paged-media": "^0.1@dev",
         "phil/paged-media-bundle": "^0.1@dev",
         "phil/qr-code": "^0.1@dev",
@@ -80,7 +80,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.1.x-dev"
+            "dev-main": "0.2.x-dev"
         }
     }
 }
