@@ -15,7 +15,7 @@ use Phil\IncidentMode\Contract\EstablishedMembers;
  */
 final readonly class IncidentRestrictions
 {
-    /** @var array<string, true> */
+    /** @var array<array-key, string> */
     private array $spared;
 
     /**
@@ -28,13 +28,7 @@ final readonly class IncidentRestrictions
         private EstablishedMembers $established,
         array $spared = [],
     ) {
-        $names = [];
-
-        foreach ($spared as $name) {
-            $names[Restriction::named($name)->name] = true;
-        }
-
-        $this->spared = $names;
+        $this->spared = array_map(static fn (string $name): string => Restriction::named($name)->name, $spared);
     }
 
     /**
@@ -55,10 +49,10 @@ final readonly class IncidentRestrictions
 
     private function spares(string $restriction): bool
     {
-        if (!isset($this->spared[$restriction])) {
+        if (!\in_array($restriction, $this->spared, true)) {
             return false;
         }
 
-        return isset($this->spared[Restriction::READ_ONLY]) || !$this->incidents->isSuspended(Restriction::READ_ONLY);
+        return \in_array(Restriction::READ_ONLY, $this->spared, true) || !$this->incidents->isSuspended(Restriction::READ_ONLY);
     }
 }
