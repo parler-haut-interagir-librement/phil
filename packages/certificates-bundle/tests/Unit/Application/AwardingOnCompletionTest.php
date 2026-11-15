@@ -223,10 +223,13 @@ final class AwardingOnCompletionTest extends TestCase
 
     public function testCoursesNameAndChangeTheirCompletionSource(): void
     {
-        $courses = new Courses(new InMemoryCourses());
+        $repository = new InMemoryCourses();
+        $courses = new Courses($repository);
 
         self::assertSame('fa-2027', $courses->define('first-aid', 'First aid', '', 'Pass.', completionSource: 'fa-2027')->completionSource);
+        self::assertSame(1, $repository->saved);
         self::assertSame('fa-2028', $courses->changeCompletionSource('first-aid', 'fa-2028')->completionSource);
+        self::assertSame(2, $repository->saved);
         self::assertSame('fa-2028', $courses->get('first-aid')->completionSource);
         self::assertNull($courses->changeCompletionSource('first-aid', null)->completionSource);
 
