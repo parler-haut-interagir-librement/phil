@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=cca2f0f32a0e292ac98b9887aefb80cc4f37473f5dbfcd55c5b8e930aadeaf8c -->
+<!-- phil-dev source-sha256=fda0fa1984bc0c79cc68f2d47c4d38c16e55f29ac5ae32e1e91ced93d0657c01 -->
 # Traduction
 
 Une enum devient traduisible en implémentant le `TranslatableInterface` de Symfony avec `AsTranslatableEnumTrait`. Ses

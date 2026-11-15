@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=87892585d1e4db4eab5939ac517104076dd1c4ea1cfaaac7a0eb3315e16a55e6 -->
+<!-- phil-dev source-sha256=02db3978d8e7bef1cb318ba99bf5102684e7142e4c9cba6daa85428715656d0f -->
 # Validation
 
 `EnumCase` n'accepte une valeur que si elle est un cas d'une [sélection](selection.md) :
@@ -89,7 +89,7 @@ public EnumSet $permissions;
 |---|---|
 | `enum`, `only`, `except`, `inGroup`, `whereMeta` | La sélection, comme pour `EnumCase`. |
 | `min`, `max` | Les bornes du nombre de cas, toutes deux incluses ; `null` pour aucune. Une borne négative, ou un minimum supérieur au maximum, est refusé à la construction de la contrainte. |
-| `message`, `notAllowedMessage`, `minMessage`, `maxMessage` | Les quatre messages ; les deux derniers sont au pluriel, avec `{{ count }}` et `{{ limit }}`. |
+| `message`, `notAllowedMessage`, `minMessage`, `maxMessage` | Les quatre messages ; les deux derniers sont au pluriel, avec `{{ count }}` et `{{ limit }}`, tous deux des entiers. |
 
 | Code | Levé |
 |---|---|
@@ -98,3 +98,31 @@ public EnumSet $permissions;
 | `EnumSetOf::TOO_FEW_ERROR`, `EnumSetOf::TOO_MANY_ERROR` | Lorsque le nombre est hors des bornes. |
 
 `null` est valide, comme pour toute contrainte sauf `NotNull`.
+
+## Messages et traductions
+
+Les violations portent leurs nombres comme des entiers — `{{ count }}` et `{{ limit }}` de `EnumSetOf` — et les autres
+paramètres comme des chaînes. Les messages par défaut sont les clés de traduction, dans le domaine `validators`.
+
+Le bundle fournit des catalogues en ICU MessageFormat, dans le domaine `validators+intl-icu`, dans `translations-icu/` :
+
+| Locale | Messages |
+|---|---|
+| `en` | `minMessage` et `maxMessage` de `EnumSetOf`, dont le pluriel suit `{{ limit }}`. |
+| `fr` | Chaque message par défaut de `EnumCase`, `EnumSetOf` et `Transition`. |
+
+```text
+You must select at least {{ limit }} choice.|You must select at least {{ limit }} choices.
+→ {limit, plural, one {You must select at least # choice.} other {You must select at least # choices.}}
+```
+
+Le bundle remet le répertoire au traducteur de FrameworkBundle (`framework.translator.paths`) lorsque le traducteur, et
+`MessageFormatter` d'`ext-intl` ou de `symfony/polyfill-intl-messageformatter`, sont installés. Sans `MessageFormatter`,
+les catalogues sont omis et les messages restent tels qu'écrits, au pluriel par la forme `|` ; les catalogues de Symfony
+traduisent tout de même `minMessage` et `maxMessage`, qui sont aussi les messages de sa contrainte `Choice`. Avec les
+catalogues, les messages anglais et français de `Choice` qui partagent ces clés se lisent de la même façon, en ICU.
+
+Le répertoire `translations/` de l'application vient après celui du bundle : un message qu'elle y traduit, dans le
+domaine `validators` ou `validators+intl-icu`, remplace celui du bundle. Un message donné à une contrainte
+(`minMessage: '…'`) est traduit comme n'importe quelle clé du domaine ; écrit en ICU, il appartient à un catalogue ICU de
+l'application, puisque le formateur par défaut ne connaît que le pluriel en `|`.
