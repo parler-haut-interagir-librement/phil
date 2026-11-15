@@ -199,9 +199,67 @@ final readonly class MediaLibrary
         return $this->references->of(MediaId::fromString($media->id));
     }
 
+    /**
+     * The current version's file, read whole into memory; `readOriginal()` and `copyOriginalTo()` read it as a stream.
+     */
     public function original(Media $media): string
     {
-        return $this->storage->read($media->storageKey()) ?? throw InvalidMedia::because(\sprintf('The file of %s is missing.', $media->id));
+        return $this->storage->read($media->storageKey()) ?? throw $this->missing($media);
+    }
+
+    /**
+     * The current version's file as a readable stream positioned at its start, which the caller closes. A storage that
+     * implements `StreamingMediaStorage` streams it from where it is kept; another one reads it whole first.
+     *
+     * @return resource
+     *
+     * @throws InvalidMedia when the file is missing or the storage fails
+     */
+    public function readOriginal(Media $media): mixed
+    {
+        return MediaStreams::open($this->storage, $media->storageKey()) ?? throw $this->missing($media);
+    }
+
+    /**
+     * Copies the current version's file to a local path, for a tool that reads files, in chunks of bounded size: the
+     * file is never held whole in memory. A path with a stream wrapper (`scheme://`) is refused; the file at the path
+     * is replaced, and removed when the copy fails or throws.
+     *
+     * @throws InvalidMedia when the path is refused, the file is missing, or the copy fails
+     */
+    public function copyOriginalTo(Media $media, string $path): void
+    {
+        if ('' === $path || str_contains($path, '://')) {
+            throw InvalidMedia::because(\sprintf('"%s" is not a local path.', $path));
+        }
+
+        $source = $this->readOriginal($media);
+
+        try {
+            $target = @fopen($path, 'w');
+
+            if (false === $target) {
+                throw $this->notCopied($media, $path);
+            }
+
+            $copied = false;
+
+            try {
+                $copied = stream_copy_to_stream($source, $target);
+            } finally {
+                fclose($target);
+
+                if (false === $copied) {
+                    unlink($path);
+                }
+            }
+
+            if (false === $copied) {
+                throw $this->notCopied($media, $path);
+            }
+        } finally {
+            fclose($source);
+        }
     }
 
     /**
@@ -290,6 +348,16 @@ final readonly class MediaLibrary
         $dimensions = @getimagesize($path);
 
         return [FileInfo::of($filename, $mimeType, $size, false === $dimensions ? null : $dimensions[0], false === $dimensions ? null : $dimensions[1]), $contents];
+    }
+
+    private function missing(Media $media): InvalidMedia
+    {
+        return InvalidMedia::because(\sprintf('The file of %s is missing.', $media->id));
+    }
+
+    private function notCopied(Media $media, string $path): InvalidMedia
+    {
+        return InvalidMedia::because(\sprintf('The file of %s cannot be copied to "%s".', $media->id, $path));
     }
 
     private function now(): DateTimeImmutable

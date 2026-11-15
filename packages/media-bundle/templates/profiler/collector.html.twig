@@ -45,7 +45,7 @@
             <thead><tr><th>Operation</th><th>Key</th><th>Bytes</th><th>Found</th></tr></thead>
             <tbody>
             {% for entry in collector.storage %}
-                <tr><td>{{ entry.operation }}</td><td><code>{{ entry.key }}</code></td><td>{{ entry.bytes }}</td><td>{{ entry.operation == 'read' ? (entry.found ? 'yes' : 'no') : '—' }}</td></tr>
+                <tr><td>{{ entry.operation }}</td><td><code>{{ entry.key }}</code></td><td>{{ entry.bytes }}</td><td>{{ entry.operation in ['read', 'stream'] ? (entry.found ? 'yes' : 'no') : '—' }}</td></tr>
             {% endfor %}
             </tbody>
         </table>

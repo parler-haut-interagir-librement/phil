@@ -6,7 +6,7 @@ Everything the bundle throws implements `Phil\MediaBundle\Domain\Exception\Media
 | Exception | Extends | Thrown when |
 |---|---|---|
 | `MediaInUse` | `RuntimeException` | `MediaLibrary::delete()` meets a record that shows the medium in a column that restricts; `places` lists each column and its count, `App\Entity\Post.cover (3)` |
-| `InvalidMedia` | `InvalidArgumentException` | A value the bundle refuses — a file name, a media type, a license, a focal point, a collection key, a format, a transformation, a storage key —; a file that cannot be read or decoded; an image larger than `max_pixels`; a format, a width or a type an image is not rendered at; a storage or an encoder that fails |
+| `InvalidMedia` | `InvalidArgumentException` | A value the bundle refuses — a file name, a media type, a license, a focal point, a collection key, a format, a transformation, a storage key, a target path with a stream wrapper —; an original that is missing or cannot be copied; a file that cannot be read or decoded; an image larger than `max_pixels`; a format, a width or a type an image is not rendered at; a storage or an encoder that fails |
 
 `MediaInUse::by(string $id, list<string> $places)` names the medium and the columns that still show it; the file
 explorer reports it beside the medium. `InvalidMedia::because(string $reason, ?Throwable $previous = null)` carries the

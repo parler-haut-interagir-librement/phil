@@ -6,7 +6,8 @@ template, `@PhilMedia/profiler/collector.html.twig`. With WebProfilerBundle, the
 request rendered, and the panel lists:
 
 - each rendering: its format, its file type, its size in bytes and the time it took;
-- each storage operation: a read — found or missing —, a write, a deletion, with its key and size.
+- each storage operation: a read or a stream — found or missing —, a write, a deletion, with its key and size; a
+  stream's size is the one the stream reports, its contents left unread.
 
 A rendering read back from the storage is a hit: the toolbar counts them, so a page that renders its formats on every
 request stands out. Outside debug, nothing is wrapped and nothing is noted.

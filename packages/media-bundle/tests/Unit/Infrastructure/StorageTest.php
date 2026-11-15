@@ -35,6 +35,23 @@ final class StorageTest extends TestCase
         self::assertDirectoryExists($directory.'/originals/b');
     }
 
+    public function testAFileIsReadAsAStream(): void
+    {
+        $storage = new FilesystemStorage(Images::directory());
+        $storage->write('originals/a/1/photo.png', 'one');
+
+        $stream = $storage->readStream('originals/a/1/photo.png');
+        self::assertNotNull($stream);
+        self::assertSame(['r', 'one'], [stream_get_meta_data($stream)['mode'], stream_get_contents($stream)]);
+        fclose($stream);
+        self::assertNull($storage->readStream('originals/a/2/photo.png'));
+        self::assertNull($storage->readStream('originals/a/1'));
+
+        $this->expectException(InvalidMedia::class);
+        $this->expectExceptionMessageIsOrContains('"../outside" is not a storage key.');
+        $storage->readStream('../outside');
+    }
+
     public function testAKeyStaysInTheDirectory(): void
     {
         $storage = new FilesystemStorage(Images::directory());

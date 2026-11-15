@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Phil\MediaBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
+use Override;
 use Phil\MediaBundle\Application\ImageFormat;
 use Phil\MediaBundle\Application\MediaLibrary;
+use Phil\MediaBundle\Application\MediaStorage;
 use Phil\MediaBundle\Infrastructure\Doctrine\DoctrineMediaRepository;
 use Phil\MediaBundle\Infrastructure\Image\GdImageProcessor;
 use Phil\MediaBundle\Infrastructure\Profiler\MediaDataCollector;
@@ -78,6 +80,56 @@ final class ProfilerTest extends TestCase
         self::assertSame([[], [], [], []], [$collector->storage(), $collector->renders(), $trace->storage(), $trace->renders()]);
     }
 
+    public function testAStreamIsNotedWithItsSize(): void
+    {
+        $trace = new MediaTrace();
+        $inner = new FilesystemStorage(Images::directory());
+        $inner->write('originals/a/1/a.txt', 'abc');
+
+        $storage = new TraceableMediaStorage($inner, $trace);
+
+        $stream = $storage->readStream('originals/a/1/a.txt');
+        self::assertNotNull($stream);
+        self::assertSame('abc', stream_get_contents($stream));
+        fclose($stream);
+        self::assertNull($storage->readStream('originals/a/2/a.txt'));
+
+        $plain = new TraceableMediaStorage(new readonly class($inner) implements MediaStorage {
+            public function __construct(
+                private MediaStorage $storage,
+            ) {
+            }
+
+            #[Override]
+            public function write(string $key, string $contents): void
+            {
+                $this->storage->write($key, $contents);
+            }
+
+            #[Override]
+            public function read(string $key): ?string
+            {
+                return $this->storage->read($key);
+            }
+
+            #[Override]
+            public function deletePrefix(string $prefix): void
+            {
+                $this->storage->deletePrefix($prefix);
+            }
+        }, $trace);
+        $stream = $plain->readStream('originals/a/1/a.txt');
+        self::assertNotNull($stream);
+        self::assertSame('abc', stream_get_contents($stream));
+        fclose($stream);
+
+        self::assertSame([
+            ['operation' => 'stream', 'key' => 'originals/a/1/a.txt', 'bytes' => 3, 'found' => true],
+            ['operation' => 'stream', 'key' => 'originals/a/2/a.txt', 'bytes' => 0, 'found' => false],
+            ['operation' => 'stream', 'key' => 'originals/a/1/a.txt', 'bytes' => 3, 'found' => true],
+        ], $trace->storage());
+    }
+
     public function testTheHitsAreRenderingsFoundInTheStorage(): void
     {
         $trace = new MediaTrace();
@@ -99,6 +151,7 @@ final class ProfilerTest extends TestCase
         $trace = new MediaTrace();
         $trace->stored('read', 'formats/a/1/x.png', 3);
         $trace->stored('write', 'formats/a/1/z.png', 3);
+        $trace->stored('stream', 'originals/a/1/a.mp4', 0, false);
         $trace->rendered('thumb', 'webp', 120, 1.25);
 
         $collector = new MediaDataCollector($trace);
@@ -118,6 +171,7 @@ final class ProfilerTest extends TestCase
         self::assertStringContainsString('<tr><td>thumb</td><td>webp</td><td>120</td><td>1.3</td></tr>', $html);
         self::assertStringContainsString('<tr><td>read</td><td><code>formats/a/1/x.png</code></td><td>3</td><td>yes</td></tr>', $html);
         self::assertStringContainsString('<tr><td>write</td><td><code>formats/a/1/z.png</code></td><td>3</td><td>—</td></tr>', $html);
+        self::assertStringContainsString('<tr><td>stream</td><td><code>originals/a/1/a.mp4</code></td><td>0</td><td>no</td></tr>', $html);
         self::assertStringContainsString('<span class="label">', $html);
 
         $collector->reset();

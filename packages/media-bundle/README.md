@@ -55,6 +55,7 @@ downloaded rather than shown; a purified SVG image shows in an `<img>`, and is s
 | SVG images purified and minified: `SanitizingSvgPurifier`, `SvgMinifier`; served as `image/svg+xml` | Implemented and tested |
 | The policy of user content of `phil/browser-security-bundle` on every file served | Implemented and tested |
 | `MediaRepository::getMany()`: several media in one query | Implemented and tested |
+| The original read as a stream or copied to a path: `readOriginal()`, `copyOriginalTo()`, `StreamingMediaStorage` | Implemented and tested |
 | How a medium was made, as an IPTC digital source type of `phil/creation-disclosure` | Implemented and tested |
 
 ## Documentation
@@ -62,9 +63,9 @@ downloaded rather than shown; a purified SVG image shows in an `<img>`, and is s
 | Document | What it covers |
 |---|---|
 | [Installation](doc/installation.md) | Requirements, registering, configuration, routes, tables. |
-| [The library](doc/library.md) | Uploading, replacing, describing, licensing, collections, deleting. |
+| [The library](doc/library.md) | Uploading, replacing, describing, licensing, collections, reading the original as a stream, deleting. |
 | [Formats and URLs](doc/formats.md) | Formats and their transformations, the focal point, rendering and encoders, signed URLs, caching. |
-| [Storage](doc/storage.md) | The directory, Flysystem filesystems — local, S3 —, a storage of the application's own. |
+| [Storage](doc/storage.md) | The directory, Flysystem filesystems — local, S3 —, streaming, a storage of the application's own. |
 | [Responsive images](doc/images.md) | The `Img` and `Picture` components: sizes, `srcset`, file types, fallbacks, priority, placeholders. |
 | [Records that show media](doc/doctrine.md) | The `phil_media` column type, the `MediaFile` constraint, what a deletion does. |
 | [The file explorer](doc/admin.md) | Routes, listing, uploads, the Stimulus controllers, the picker and its form field. |

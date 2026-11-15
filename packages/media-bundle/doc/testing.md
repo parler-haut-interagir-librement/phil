@@ -57,4 +57,5 @@ composer bench -- packages/media-bundle/tests/Benchmark
 
 `BatchReadBench` compares one `get()` per medium with one `getMany()` for 12, 48 and 200 media; `VipsRenderBench`
 compares GD and libvips on a thumbnail of a 1920 × 1080 and a 6000 × 4000 photo, and measures nothing for libvips when
-it is not installed.
+it is not installed; `OriginalStreamBench` compares the peak memory of `original()`, `copyOriginalTo()` and
+`readOriginal()` on a file of 16 and 128 MiB.

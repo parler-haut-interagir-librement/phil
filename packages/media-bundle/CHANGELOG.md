@@ -4,6 +4,18 @@ All notable changes to `phil/media-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- `MediaLibrary::readOriginal()`, the current version's file as a readable stream that the caller closes, and
+  `MediaLibrary::copyOriginalTo()`, which copies it to a local path in chunks of bounded size, refuses a path with a
+  stream wrapper and removes a copy that fails: a large file, a video, is never held whole in memory.
+- `StreamingMediaStorage`, an optional interface beside `MediaStorage` whose `readStream()` reads a file as a stream,
+  implemented by `FilesystemStorage`, `FlysystemStorage` and `TraceableMediaStorage`; a storage that implements only
+  `MediaStorage` is read whole, then handed over as a stream. The profiler panel lists each stream with the size it
+  reports.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added
