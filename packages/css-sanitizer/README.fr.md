@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ed25d53177bfbe534fa9de296ca2ba8c0c28598f3eb7ab4e34003fb05133e7c4 -->
+<!-- phil-dev source-sha256=00bd2c8274ad8215614aaab2f94976ab52665d0586f5cab6e67fb1647604e641 -->
 # phil/css-sanitizer
 
 **Laissez les gens styliser leurs pages sans que leur CSS exécute du code, charge ce qu'il ne doit pas ou sorte de son
@@ -51,7 +51,7 @@ réécrit le CSS de façon qu'il se relise avec les mêmes valeurs et ne contien
 
 | Document | Ce qu'il couvre |
 |---|---|
-| [Installation](doc/fr/installation.md) | Prérequis, installation, l'assainisseur comme service Symfony. |
+| [Installation](doc/fr/installation.md) | Prérequis, installation, l'assainisseur comme service Symfony, les traductions. |
 | [Assainir](doc/fr/sanitizing.md) | Feuilles de style et attributs `style`, le résultat, les retraits et leurs raisons. |
 | [Politique](doc/fr/policy.md) | Ce que permet la politique par défaut, chaque `with…()`, la portée, l'imbrication et les limites. |
 | [URL](doc/fr/urls.md) | Réécrivains, fichiers permis, `image-set()`, `@import`, fragments, schémas toujours refusés. |
@@ -59,7 +59,7 @@ réécrit le CSS de façon qu'il se relise avec les mêmes valeurs et ne contien
 | [Règles @](doc/fr/at-rules.md) | `@media`, `@supports`, `@page` et ses boîtes de marge, `@font-face`, `@import`, les règles imbriquées dans une règle de style. |
 | [Menaces](doc/fr/threats.md) | Ce dont l'assainisseur protège, comment, et ce qui reste à l'application. |
 | [Syntaxe](doc/fr/syntax.md) | L'analyseur lexical, l'analyseur et le sérialiseur utilisés seuls. |
-| [Validateur](doc/fr/validator.md) | La contrainte `SafeCss`. |
+| [Validateur](doc/fr/validator.md) | La contrainte `SafeCss`, ses paramètres, et ses messages en anglais et en français. |
 | [Exceptions](doc/fr/exceptions.md) | `CssSanitizerException` et ses deux exceptions. |
 | [Points d'extension](doc/fr/extension-points.md) | Les ports, arguments et données qu'une application choisit ou remplace. |
 | [Tests](doc/fr/testing.md) | Les tests de la bibliothèque et son seuil de mutation, et comment tester du code qui assainit du CSS. |
@@ -109,7 +109,8 @@ foreach ($sanitized->removals as $removal) {
 
 ## Prérequis
 
-PHP 8.5 ou plus récent et `ext-mbstring` ; `symfony/validator` pour la contrainte `SafeCss`.
+PHP 8.5 ou plus récent et `ext-mbstring` ; `symfony/validator` pour la contrainte `SafeCss`, et
+`symfony/translation` avec `ext-intl` pour les catalogues ICU de ses messages.
 
 ## Contribuer
 

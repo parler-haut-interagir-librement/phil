@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c8e55674bb44c51e8c933b3a7c55f650b951269baa7c865a03e5b72e054e3eaf -->
+<!-- phil-dev source-sha256=ba73c4ddf60fa6ffdb46a224e04dcfd1c6b9c9d47088d4e3da4bb6604b809e2e -->
 # Estimer la robustesse
 
 ## L'estimation
@@ -43,6 +43,10 @@ suivent aucun étant devinés un par un. Un attaquant qui essaie des suites de `
 leurs essais, plus 10 000 à la puissance `l - 1` pour avoir d'abord essayé les suites plus courtes. Une partie d'un mot
 de passe plus long coûte au moins 10 essais pour un caractère et 50 pour plusieurs : la découper en petits motifs n'est
 ainsi jamais moins coûteux.
+
+Un mot de passe lisible de plusieurs façons — `weekend` comme un mot ou comme `week` et `end`, un chiffre après un mot qui en
+finit un, une date écrite sans séparateurs — reçoit les essais de sa lecture la moins coûteuse seulement : les lectures
+ne sont jamais additionnées, si bien qu'un mot de passe que deux lectures partagent n'est jamais compté deux fois.
 
 ## La note
 
