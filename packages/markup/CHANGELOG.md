@@ -23,6 +23,8 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   benchmark `PurifierBench`, the purification alone; the worker page purifies with `Purifiers`.
 - The page [Accelerators](doc/accelerators.md).
 
+## 0.2.0-alpha - 2026-11-14
+
 ### Fixed
 
 - The HTML reader, and the HTML tags read in wikitext, keep `<strong>` and `<em>` as `<strong>` and `<em>` in UJO,

@@ -20,12 +20,17 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ### Changed
 
-- The caption of the bars of `render="html"` is hidden for screen readers alone by the bundle's stylesheet, with the
-  class `phil-reporting-bars__caption`, instead of a class of PHIL UX: the templates carry no class of a kit and draw
-  the same beside Tailwind.
 - The stylesheet's path is written to the `asset_mapper` extension, and only when AssetMapperBundle is registered,
   instead of `framework.asset_mapper`.
 - `ReportStream::close()` checks that the stream was flushed and closed.
+
+## 0.1.1-alpha - 2026-11-14
+
+### Changed
+
+- The caption of the bars of `render="html"` is hidden for screen readers alone by the bundle's stylesheet, with the
+  class `phil-reporting-bars__caption`, instead of a class of PHIL UX: the templates carry no class of a kit and draw
+  the same beside Tailwind.
 
 ## 0.1.0-alpha - 2026-11-11
 
