@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=170c41b55ef8b877a48c8eff76efc2b03b959c310d5b6b59b3725bbe42fd6eac -->
+<!-- phil-dev source-sha256=60f436ef2e32638b8aa6c147da454f54354f15ab8f19299ca4967f5a7aa1d753 -->
 # phil/open-badges
 
 **Des Open Badges 3.0 que tout le monde peut vérifier : émis, signés, intégrés à l'image, révoqués, appuyés et
@@ -52,6 +52,7 @@ qu'un émetteur `did:web` publie dans son document DID, lu dans des limites.
 | [Exceptions](doc/fr/exceptions.md) | `OpenBadgesException` et ses trois exceptions. |
 | [Tests](doc/fr/testing.md) | Les tests de la bibliothèque, ses vecteurs, ses cibles de fuzzing et son banc d'essai. |
 | [Référence](doc/fr/reference.md) | Chaque type de la bibliothèque, avec son rôle. |
+| [Mise à niveau](doc/fr/upgrading.md) | Ce qui change d'une version à la suivante. |
 
 ## Démarrage rapide
 
@@ -84,7 +85,8 @@ $document = new EddsaRdfc2022()->sign(                                          
 
 ## Prérequis
 
-PHP 8.5 ou plus récent avec les extensions `dom`, `json`, `libxml`, `mbstring`, `openssl`, `sodium` et `zlib`.
+PHP 8.5 ou plus récent avec les extensions `dom`, `json`, `libxml`, `mbstring`, `openssl`, `sodium` et `zlib` ; les jetons et les preuves sont signés et vérifiés par
+`web-token/jwt-library`.
 
 ## Contribuer
 

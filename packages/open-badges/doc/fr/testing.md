@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=066bdf8c753c10545dfe0cc38c798827ac11fd90d6d820791148da9bf73895e1 -->
+<!-- phil-dev source-sha256=91ba65aa4a9bbfe34e88deff1371799c62c23caa623dea74edea30f5491609ed -->
 # Tests
 
 ## Les tests de la bibliothèque
@@ -14,6 +14,10 @@ Deux vecteurs publiés ancrent la cryptographie : l'exemple `eddsa-rdfc-2022` de
 cryptographiques EdDSA — sa forme canonique et la valeur de sa preuve sont reproduites exactement — et la paire de clés
 de ses exemples sous forme de Multikey. La canonicalisation réussit aussi tous les tests d'évaluation de la suite
 RDFC-1.0 du W3C.
+
+Deux jetons émis par la version 0.1, dans `tests/Fixtures`, gardent les jetons stables d'une version à la suivante :
+un jeton `EdDSA` signé avec cette paire de clés, qui se vérifie encore et est signé de nouveau avec les mêmes octets,
+et un jeton `RS256`, qui se vérifie avec sa clé publique.
 
 Depuis la racine du monodépôt :
 

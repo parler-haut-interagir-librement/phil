@@ -1,9 +1,9 @@
-<!-- phil-dev source-sha256=bac4e1547984aa9e804a75447b2cc4555e9a8c07f649dce9639c29808389bfe2 -->
+<!-- phil-dev source-sha256=f6b4f0b0b8bfcaf373f5baf0991ef8e4a736d913a603a0a92c920bf5fb83a098 -->
 # Installation
 
 ## Prérequis
 
-PHP 8.5 ou plus récent, Symfony 8.2 ou plus récent, `phil/open-badges` 0.1.1 ou plus récent, `phil/url`,
+PHP 8.5 ou plus récent, Symfony 8.2 ou plus récent, `phil/open-badges` 0.2 ou plus récent, `phil/url`,
 `phil/safe-http` et les contrats de cache de Symfony. La page de vérification exige TwigBundle; sans lui, la page n'est
 pas enregistrée et le reste fonctionne. Une limite sur ses vérifications exige `phil/rate-limit-bundle`.
 
