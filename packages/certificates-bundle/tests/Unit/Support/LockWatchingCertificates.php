@@ -111,6 +111,14 @@ final class LockWatchingCertificates implements CertificateRepository
     }
 
     #[Override]
+    public function findByCompletion(Course $course, string $completion): ?Certificate
+    {
+        $this->held[] = 'completion:'.($this->isHeld() ? 'held' : 'free');
+
+        return $this->inner->findByCompletion($course, $completion);
+    }
+
+    #[Override]
     public function expiring(DateTimeImmutable $after, DateTimeImmutable $until, int $limit, int $offset = 0): array
     {
         return $this->inner->expiring($after, $until, $limit, $offset);

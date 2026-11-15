@@ -11,6 +11,7 @@ use Phil\CertificatesBundle\Domain\Exception\CertificateRefused;
 use Phil\CertificatesBundle\Domain\Exception\InvalidValue;
 use Phil\CertificatesBundle\Domain\Status\CertificateStatus;
 use Phil\CertificatesBundle\Domain\ValueObject\MemberId;
+use Phil\CertificatesBundle\Domain\ValueObject\OpaqueId;
 use Phil\CertificatesBundle\Domain\ValueObject\VerificationCode;
 
 /**
@@ -22,12 +23,15 @@ use Phil\CertificatesBundle\Domain\ValueObject\VerificationCode;
  * certificate keeps its reason, and its index is set in the status list; an expired one is not revoked, and its index
  * stays clear. It may name its holder by the stable identifier the application gives the member, by which credits of
  * continuing education are counted, and the certificate it renews, when it was awarded by a recertification. The
- * moment its holder was last reminded of its end is kept, so that each reminder is sent once.
+ * moment its holder was last reminded of its end is kept, so that each reminder is sent once. A certificate of a course
+ * that names a completion source keeps the identifier of the completion it was awarded on, as its evidence: one
+ * certificate for each completion of a course.
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'phil_certificates_certificate')]
 #[ORM\UniqueConstraint(columns: ['code'])]
 #[ORM\UniqueConstraint(columns: ['status_index'])]
+#[ORM\UniqueConstraint(columns: ['course_id', 'completion'])]
 #[ORM\Index(columns: ['course_id', 'listed', 'awarded_at'])]
 #[ORM\Index(columns: ['valid_until'])]
 #[ORM\Index(columns: ['holder'])]
@@ -77,6 +81,8 @@ final class Certificate
         #[ORM\OneToOne(targetEntity: self::class)]
         #[ORM\JoinColumn(name: 'renews_id', nullable: true)]
         public readonly ?self $renews,
+        #[ORM\Column(name: 'completion', length: OpaqueId::MAX_LENGTH, nullable: true)]
+        public readonly ?string $completion,
     ) {
         $this->codeValue = $code->value;
     }
@@ -88,8 +94,10 @@ final class Certificate
      * @param string           $credential the credential signed for it
      * @param MemberId|null    $holder     the member it is awarded to, when the application names one
      * @param Certificate|null $renews     the certificate this one renews, awarded by a recertification
+     * @param string|null      $completion the identifier of the completion it is awarded on, as the course's completion
+     *                                     source gave it
      */
-    public static function award(string $id, VerificationCode $code, Course $course, string $recipientName, DateTimeImmutable $awardedAt, int $statusIndex, string $credential, bool $listed = false, ?MemberId $holder = null, ?self $renews = null): self
+    public static function award(string $id, VerificationCode $code, Course $course, string $recipientName, DateTimeImmutable $awardedAt, int $statusIndex, string $credential, bool $listed = false, ?MemberId $holder = null, ?self $renews = null, ?string $completion = null): self
     {
         if ('' === trim($recipientName) || mb_strlen($recipientName) > 255) {
             throw InvalidValue::because('The name on a certificate has from 1 to 255 characters.');
@@ -103,7 +111,9 @@ final class Certificate
             throw InvalidValue::because('A certificate renews a certificate of its own course.');
         }
 
-        return new self($id, $code, $course, $recipientName, $awardedAt, self::validUntil($course, $awardedAt, $renews), $statusIndex, $credential, $listed, $holder?->value, $renews);
+        $completion = null === $completion ? null : OpaqueId::fromString($completion, 'identifier of a completion')->value;
+
+        return new self($id, $code, $course, $recipientName, $awardedAt, self::validUntil($course, $awardedAt, $renews), $statusIndex, $credential, $listed, $holder?->value, $renews, $completion);
     }
 
     /**

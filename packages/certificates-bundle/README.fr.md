@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5b37afe435c007c4ec6e86675fcdb71b11c4c78abcf5d0bb91dfbad9f5acb541 -->
+<!-- phil-dev source-sha256=49b747d594760eca319901b9c7eefb06eb649395c0592048694d598b8604f1b6 -->
 # phil/certificates-bundle
 
 **Des certificats de réussite qu'une application Symfony décerne, imprime et laisse vérifier par n'importe qui : des
@@ -36,6 +36,7 @@ nouveaux acquis, et reçoit un nouveau certificat lié à celui qu'il renouvelle
 | Expiré distinct de révoqué; rappels avant la fin par `CertificateExpiring`, une fois par seuil | Implémenté et testé |
 | Recertification : un nouveau certificat lié à celui qu'il renouvelle, par des crédits de formation continue ou des acquis | Implémenté et testé |
 | Crédits de formation continue par membre et par période, au profit d'une formation, consignés une fois par source | Implémenté et testé |
+| Formations décernées sur l'achèvement qu'un autre système connaît, par le port `CourseCompletions`, l'achèvement gardé comme preuve, une fois par achèvement | Implémenté et testé |
 | Commandes de console : définir une formation, décerner, recertifier, révoquer, état, export d'une attestation, rappels, crédits | Implémenté et testé |
 | Le code QR du PDF décodé jusqu'à l'adresse du certificat | Testé |
 | La forme des attestations exportées comparée à ce que décrit Open Badges 3.0, hors ligne | Testé |
@@ -51,10 +52,11 @@ nouveaux acquis, et reçoit un nouveau certificat lié à celui qu'il renouvelle
 | [Le PDF](doc/fr/pdf.md) | Ce que montre le certificat, les polices, l'attestation intégrée, le PDF d'archivage, la signature. |
 | [Le registre](doc/fr/register.md) | Les pages et les téléchargements que servent les routes, et ce qu'ils divulguent. |
 | [Révocation](doc/fr/revocation.md) | Révoquer un certificat, les listes d'état. |
+| [Sources d'achèvement](doc/fr/completion-sources.md) | Les formations décernées sur ce qu'un autre système sait de leur achèvement, par le port `CourseCompletions`. |
 | [Expiration et recertification](doc/fr/recertification.md) | La fin des certificats et des formations, les rappels, la recertification, les crédits de formation continue. |
 | [Commandes de console](doc/fr/console.md) | Définir des formations, décerner, recertifier, révoquer, afficher, exporter, rappeler et créditer depuis la console. |
 | [Validation](doc/fr/validation.md) | Où en sont les tests de conformité de 1EdTech, comment vérifier un certificat dès aujourd'hui, ce qui est vérifié hors ligne, et l'exécution du validateur de 1EdTech. |
-| [Points d'extension](doc/fr/extension-points.md) | Les dépôts, les URL, les événements, le sujet d'impression, la mise en page, les traductions, d'autres listes d'état. |
+| [Points d'extension](doc/fr/extension-points.md) | Les dépôts, la source des achèvements, les URL, les événements, le sujet d'impression, la mise en page, les traductions, d'autres listes d'état. |
 | [Tests](doc/fr/testing.md) | Les tests du bundle, et le test d'une application qui décerne des certificats. |
 | [Référence](doc/fr/reference.md) | Chaque classe du bundle, avec son rôle. |
 

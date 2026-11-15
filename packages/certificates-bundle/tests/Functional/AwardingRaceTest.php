@@ -12,9 +12,11 @@ use Phil\CertificatesBundle\Application\Contract\CertificateUrls;
 use Phil\CertificatesBundle\Application\Courses;
 use Phil\CertificatesBundle\Domain\Contract\CertificateRepository;
 use Phil\CertificatesBundle\Domain\Exception\StatusIndexTaken;
+use Phil\CertificatesBundle\Domain\Model\Certificate;
 use Phil\CertificatesBundle\Domain\ValueObject\Attainment;
 use Phil\CertificatesBundle\Domain\ValueObject\PassCriteria;
 use Phil\CertificatesBundle\Infrastructure\Doctrine\DoctrineCertificateRepository;
+use Phil\CertificatesBundle\Tests\Functional\App\KnownCompletions;
 use Phil\CertificatesBundle\Tests\Functional\App\RacingCertificates;
 use Phil\CertificatesBundle\Tests\Functional\App\TestKernel;
 use Phil\OpenBadges\CredentialIssuer;
@@ -25,7 +27,8 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
  * Two awards at once without a lock, on Doctrine and its registry: another award stores its certificate at the index
- * this one was given, and this one starts again with the next.
+ * this one was given, and this one starts again with the next — or finds the certificate the other awarded on the same
+ * completion.
  */
 #[CoversClass(Awarding::class)]
 #[CoversClass(DoctrineCertificateRepository::class)]
@@ -80,6 +83,21 @@ final class AwardingRaceTest extends KernelTestCase
         self::assertSame(3, $certificates->nextStatusIndex());
     }
 
+    public function testAnAwardOnCompletionWhoseCompletionWasTakenGivesBackTheOtherCertificate(): void
+    {
+        $this->service(Courses::class)->changeCompletionSource('first-aid', 'first-aid-2027');
+        $certificates = $this->service(CertificateRepository::class);
+        $onCompletion = static fn (Awarding $awarding): Certificate => $awarding->awardOnCompletion('first-aid', 'member-42', 'Ada Lovelace', 'ada@example.org', new Attainment(90));
+        $racing = new RacingCertificates($certificates, $this->awarding($certificates), 1, $onCompletion);
+
+        $certificate = $onCompletion($this->awarding($racing));
+
+        self::assertSame([0], $racing->given);
+        self::assertSame($racing->rivals[0]->id, $certificate->id);
+        self::assertSame(['enrolment-7', 0], [$certificate->completion, $certificate->statusIndex]);
+        self::assertSame(1, $certificates->nextStatusIndex());
+    }
+
     private function awarding(CertificateRepository $certificates): Awarding
     {
         return new Awarding(
@@ -89,6 +107,7 @@ final class AwardingRaceTest extends KernelTestCase
             $this->service(Securing::class),
             $this->service(CertificateUrls::class),
             $this->service(ClockInterface::class, 'clock'),
+            completions: $this->service(KnownCompletions::class),
         );
     }
 

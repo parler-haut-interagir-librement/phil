@@ -4,8 +4,8 @@
 
 | Class | Role |
 |---|---|
-| `Domain\Model\Course` | A course: slug, name, description, narrative, criteria, validity, image, retired, recertification credits, end. |
-| `Domain\Model\Certificate` | A certificate: code, course, name, dates, status index, credential, listed, revocation, holder, the certificate it renews, last reminder. |
+| `Domain\Model\Course` | A course: slug, name, description, narrative, criteria, validity, image, retired, recertification credits, end, completion source. |
+| `Domain\Model\Certificate` | A certificate: code, course, name, dates, status index, credential, listed, revocation, holder, the certificate it renews, last reminder, the completion it was awarded on. |
 | `Domain\Model\LearningActivity` | An activity of continuing education: member, title, credits, completion, course, source. |
 | `Domain\ValueObject\PassCriteria` | The minimum score, minutes and modules of a course; what an attainment lacks. |
 | `Domain\ValueObject\Attainment` | What a learner attained: score, minutes, modules completed. |
@@ -13,12 +13,14 @@
 | `Domain\ValueObject\Credits` | Credits of continuing education, to the hundredth. |
 | `Domain\ValueObject\MemberId` | The stable identifier of a member; never an e-mail address. |
 | `Domain\ValueObject\Period` | A period, its start included and its end excluded. |
+| `Domain\ValueObject\OpaqueId` | An identifier another system gives: a course's completion source, a completion. |
 | `Domain\Status\CertificateStatus` | Valid, expired or revoked. |
 | `Domain\Contract\CourseRepository`, `CertificateRepository`, `LearningActivityRepository` | Where courses, certificates and activities are kept. |
+| `Domain\Contract\CourseCompletions` | Whether a member completed a course of another system, and the identifier of that completion. |
 | `Domain\Exception\CertificatesException` | The marker every exception of the bundle implements. |
 | `Domain\Exception\InvalidValue` | A value that does not hold together. |
 | `Domain\Exception\CertificateRefused` | An award or a revocation refused. |
-| `Domain\Exception\StatusIndexTaken` | A certificate refused because another took its index or its code; the award starts again. |
+| `Domain\Exception\StatusIndexTaken` | A certificate refused because another took its index, its code or its completion; the award starts again. |
 | `Domain\Event\CertificateAwarded` | A certificate awarded and stored, by identifiers. |
 | `Domain\Event\CertificateRevoked` | A certificate revoked and stored so, by identifiers. |
 | `Domain\Event\CertificateRenewed` | A recertification's certificate stored, by identifiers. |
@@ -29,8 +31,8 @@
 
 | Class | Role |
 |---|---|
-| `Application\Courses` | Defines, revises, retires and reopens courses. |
-| `Application\Awarding` | Awards a certificate with its signed credential, again when its index was taken; recertifies. |
+| `Application\Courses` | Defines, revises, retires and reopens courses; names their completion source. |
+| `Application\Awarding` | Awards a certificate with its signed credential, again when its index was taken, on a completion when its course names a source; recertifies. |
 | `Application\ExpiryReminders` | Dispatches the reminders of the certificates about to end. |
 | `Application\ContinuingEducation` | Records, lists and sums the credits of continuing education; a holder's progress. |
 | `Application\Revocation` | Revokes a certificate. |

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\CertificatesBundle\Tests\Functional\App;
 
+use Closure;
 use DateTimeImmutable;
 use Override;
 use Phil\CertificatesBundle\Application\Awarding;
@@ -15,7 +16,7 @@ use Phil\CertificatesBundle\Domain\ValueObject\Attainment;
 /**
  * The application's certificates, where another award slips in, as many times as `$races` says, between the moment an
  * index is given and the moment the certificate that took it is saved: the rival stores its certificate at that index
- * first.
+ * first. The rival awards a certificate of `first-aid` to another learner, or what `$award` makes it award.
  */
 final class RacingCertificates implements CertificateRepository
 {
@@ -25,10 +26,14 @@ final class RacingCertificates implements CertificateRepository
     /** @var list<Certificate> */
     public array $rivals = [];
 
+    /**
+     * @param (Closure(Awarding): Certificate)|null $award
+     */
     public function __construct(
         private readonly CertificateRepository $inner,
         private readonly Awarding $rival,
         private int $races,
+        private readonly ?Closure $award = null,
     ) {
     }
 
@@ -40,7 +45,7 @@ final class RacingCertificates implements CertificateRepository
 
         if ($this->races > 0) {
             --$this->races;
-            $this->rivals[] = $this->rival->award('first-aid', 'Grace Hopper', 'grace@example.org', new Attainment(90));
+            $this->rivals[] = $this->award instanceof Closure ? ($this->award)($this->rival) : $this->rival->award('first-aid', 'Grace Hopper', 'grace@example.org', new Attainment(90));
         }
 
         return $index;
@@ -80,6 +85,12 @@ final class RacingCertificates implements CertificateRepository
     public function findRenewalOf(Certificate $certificate): ?Certificate
     {
         return $this->inner->findRenewalOf($certificate);
+    }
+
+    #[Override]
+    public function findByCompletion(Course $course, string $completion): ?Certificate
+    {
+        return $this->inner->findByCompletion($course, $completion);
     }
 
     #[Override]

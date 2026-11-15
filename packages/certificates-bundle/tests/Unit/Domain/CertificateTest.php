@@ -9,6 +9,7 @@ use Phil\CertificatesBundle\Domain\Exception\CertificateRefused;
 use Phil\CertificatesBundle\Domain\Exception\InvalidValue;
 use Phil\CertificatesBundle\Domain\Model\Certificate;
 use Phil\CertificatesBundle\Domain\Status\CertificateStatus;
+use Phil\CertificatesBundle\Domain\ValueObject\OpaqueId;
 use Phil\CertificatesBundle\Tests\Unit\Support\Kit;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -16,6 +17,7 @@ use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Certificate::class)]
 #[CoversClass(CertificateRefused::class)]
+#[CoversClass(OpaqueId::class)]
 final class CertificateTest extends TestCase
 {
     public function testACertificateIsValidForTheMonthsOfItsCourse(): void
@@ -95,6 +97,25 @@ final class CertificateTest extends TestCase
                 self::assertNotSame('', $invalidValue->getMessage());
             }
         }
+    }
+
+    public function testACertificateKeepsTheCompletionItWasAwardedOn(): void
+    {
+        self::assertNull(Kit::awarded()->completion);
+        self::assertSame('enrolment-7', Certificate::award('id', Kit::awarded()->code, Kit::firstAid(), 'A', new DateTimeImmutable(), 0, 'x', completion: 'enrolment-7')->completion);
+        self::assertSame(str_repeat('c', 255), Certificate::award('id', Kit::awarded()->code, Kit::firstAid(), 'A', new DateTimeImmutable(), 0, 'x', completion: str_repeat('c', 255))->completion);
+        self::assertSame(255, OpaqueId::MAX_LENGTH);
+
+        foreach (['', str_repeat('c', 256), 'enrolment 7', "\x00", "a\x20b", "a\x7F"] as $completion) {
+            try {
+                Certificate::award('id', Kit::awarded()->code, Kit::firstAid(), 'A', new DateTimeImmutable(), 0, 'x', completion: $completion);
+                self::fail('The completion is refused.');
+            } catch (InvalidValue $invalidValue) {
+                self::assertSame('The identifier of a completion has from 1 to 255 characters, without spaces nor control characters.', $invalidValue->getMessage());
+            }
+        }
+
+        self::assertSame("!~\x21", OpaqueId::fromString("!~\x21", 'key')->value);
     }
 
     public function testACredentialIsATokenOrADocument(): void

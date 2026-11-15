@@ -7,10 +7,12 @@ namespace Phil\CertificatesBundle\Application;
 use JsonException;
 use Phil\CertificatesBundle\Application\Contract\CertificateUrls;
 use Phil\CertificatesBundle\Domain\Contract\CertificateRepository;
+use Phil\CertificatesBundle\Domain\Contract\CourseCompletions;
 use Phil\CertificatesBundle\Domain\Contract\LearningActivityRepository;
 use Phil\CertificatesBundle\Domain\Event\CertificateAwarded;
 use Phil\CertificatesBundle\Domain\Event\CertificateRenewed;
 use Phil\CertificatesBundle\Domain\Exception\CertificateRefused;
+use Phil\CertificatesBundle\Domain\Exception\InvalidValue;
 use Phil\CertificatesBundle\Domain\Exception\StatusIndexTaken;
 use Phil\CertificatesBundle\Domain\Model\Certificate;
 use Phil\CertificatesBundle\Domain\Model\Course;
@@ -18,6 +20,7 @@ use Phil\CertificatesBundle\Domain\Status\CertificateStatus;
 use Phil\CertificatesBundle\Domain\ValueObject\Attainment;
 use Phil\CertificatesBundle\Domain\ValueObject\Credits;
 use Phil\CertificatesBundle\Domain\ValueObject\MemberId;
+use Phil\CertificatesBundle\Domain\ValueObject\OpaqueId;
 use Phil\CertificatesBundle\Domain\ValueObject\Period;
 use Phil\CertificatesBundle\Domain\ValueObject\VerificationCode;
 use Phil\OpenBadges\Achievement;
@@ -53,6 +56,14 @@ use Symfony\Component\Uid\Uuid;
  * that requires none, an attainment that meets its criteria. A revoked certificate, or one already renewed, is not
  * renewed. The new certificate is valid from the end of the first when that end is still to come; `CertificateAwarded`
  * then `CertificateRenewed` are dispatched.
+ *
+ * A course that names a completion source is awarded only to a member the source says completed it: the award names
+ * the holder, `CourseCompletions` is asked for the completion of the course's key by the holder's identifier, and the
+ * identifier it answers is kept on the certificate as its evidence. No answer, no holder, or no `CourseCompletions`
+ * configured, and the award is refused; a completion is awarded one certificate. `awardOnCompletion()` gives back the
+ * certificate already awarded on the completion instead of refusing it, for a listener that may hear the same
+ * completion more than once. The completion is looked for, and the certificate stored, under the same lock as the
+ * status index.
  */
 final readonly class Awarding
 {
@@ -77,19 +88,43 @@ final readonly class Awarding
         private ?LockFactory $locks = null,
         private ?EventDispatcherInterface $events = null,
         private ?LearningActivityRepository $activities = null,
+        private ?CourseCompletions $completions = null,
     ) {
     }
 
     /**
      * @param string|null $holder the stable identifier of the member, by which the credits of continuing education of a
-     *                            recertification are counted; never an e-mail address
+     *                            recertification are counted and the completion of a course is asked; never an e-mail
+     *                            address
      */
     public function award(string $course, string $recipientName, #[SensitiveParameter] string $identity, Attainment $attainment = new Attainment(), bool $listed = false, ?string $holder = null): Certificate
     {
         $course = $this->open($course);
         $this->checkCriteria($course, $attainment);
+        $member = null === $holder ? null : MemberId::fromString($holder);
 
-        return $this->store($course, $recipientName, $identity, $listed, null === $holder ? null : MemberId::fromString($holder), null);
+        return $this->store($course, $recipientName, $identity, $listed, $member, null, $this->completionOf($course, $member), false);
+    }
+
+    /**
+     * Awards the certificate of a course that names a completion source to the holder who completed it, or gives back
+     * the certificate already awarded on that completion, without dispatching anything again: what a listener of the
+     * application's own completion event calls, however many times it hears it.
+     *
+     * @param string $holder the stable identifier of the member whose completion is asked; never an e-mail address
+     */
+    public function awardOnCompletion(string $course, string $holder, string $recipientName, #[SensitiveParameter] string $identity, Attainment $attainment = new Attainment(), bool $listed = false): Certificate
+    {
+        $course = $this->open($course);
+
+        if (null === $course->completionSource) {
+            throw CertificateRefused::because(\sprintf('The course "%s" names no completion source: its certificates are awarded by award().', $course->slug));
+        }
+
+        $this->checkCriteria($course, $attainment);
+        $member = MemberId::fromString($holder);
+
+        return $this->store($course, $recipientName, $identity, $listed, $member, null, $this->completionOf($course, $member), true);
     }
 
     /**
@@ -139,7 +174,7 @@ final readonly class Awarding
         }
 
         $holder = null === $previous->holder ? null : MemberId::fromString($previous->holder);
-        $certificate = $this->store($course, $previous->recipientName, $identity, $listed ?? $previous->listed, $holder, $previous);
+        $certificate = $this->store($course, $previous->recipientName, $identity, $listed ?? $previous->listed, $holder, $previous, null, false);
         $this->events?->dispatch(new CertificateRenewed($certificate->id, $certificate->code->value, $course->slug, $previous->id));
 
         return $certificate;
@@ -173,6 +208,34 @@ final readonly class Awarding
     }
 
     /**
+     * The identifier of the completion a course that names a completion source is awarded on, as the source answers
+     * it for the holder; null for a course that names none.
+     */
+    private function completionOf(Course $course, ?MemberId $holder): ?string
+    {
+        if (null === $course->completionSource) {
+            return null;
+        }
+
+        if (!$holder instanceof MemberId) {
+            throw CertificateRefused::because(\sprintf('The course "%s" is awarded on completion: the award names the holder whose completion is asked.', $course->slug));
+        }
+
+        if (!$this->completions instanceof CourseCompletions) {
+            throw CertificateRefused::because(\sprintf('The course "%s" is awarded on completion, and no source of completions is configured.', $course->slug));
+        }
+
+        $completion = $this->completions->completion($course->completionSource, $holder->value)
+            ?? throw CertificateRefused::because(\sprintf('The holder has not completed the course "%s".', $course->slug));
+
+        try {
+            return OpaqueId::fromString($completion, 'identifier of a completion')->value;
+        } catch (InvalidValue) {
+            throw CertificateRefused::because(\sprintf('The completion source of the course "%s" answered an identifier of a completion that cannot be kept.', $course->slug));
+        }
+    }
+
+    /**
      * Whether the identity is the one the certificate's credential was issued to. The credential is the one the
      * bundle signed and stored: it is read without its proof being verified again.
      */
@@ -189,11 +252,14 @@ final readonly class Awarding
         return \is_array($subject) && Recipient::identifies($subject, $identity);
     }
 
-    private function store(Course $course, string $recipientName, #[SensitiveParameter] string $identity, bool $listed, ?MemberId $holder, ?Certificate $renews): Certificate
+    /**
+     * @param bool $existing whether the certificate already awarded on the completion is the answer, rather than a refusal
+     */
+    private function store(Course $course, string $recipientName, #[SensitiveParameter] string $identity, bool $listed, ?MemberId $holder, ?Certificate $renews, ?string $completion, bool $existing): Certificate
     {
         for ($attempt = 1;; ++$attempt) {
             try {
-                $certificate = $this->attempt($course, $recipientName, $identity, $listed, $holder, $renews);
+                [$certificate, $awarded] = $this->attempt($course, $recipientName, $identity, $listed, $holder, $renews, $completion);
             } catch (StatusIndexTaken $statusIndexTaken) {
                 if (self::ATTEMPTS === $attempt) {
                     throw $statusIndexTaken;
@@ -207,13 +273,20 @@ final readonly class Awarding
                 continue;
             }
 
+            if (!$awarded) {
+                return $existing ? $certificate : throw CertificateRefused::because(\sprintf('The certificate %s of the course "%s" was already awarded on that completion.', $certificate->code->formatted(), $course->slug));
+            }
+
             $this->events?->dispatch(new CertificateAwarded($certificate->id, $certificate->code->value, $course->slug));
 
             return $certificate;
         }
     }
 
-    private function attempt(Course $course, string $recipientName, #[SensitiveParameter] string $identity, bool $listed, ?MemberId $holder, ?Certificate $renews): Certificate
+    /**
+     * @return array{Certificate, bool} the certificate, and whether it was awarded now rather than found on its completion
+     */
+    private function attempt(Course $course, string $recipientName, #[SensitiveParameter] string $identity, bool $listed, ?MemberId $holder, ?Certificate $renews, ?string $completion): array
     {
         $id = Uuid::v7()->toRfc4122();
         $code = VerificationCode::generate();
@@ -221,6 +294,12 @@ final readonly class Awarding
         $lock?->acquire(true);
 
         try {
+            $found = null === $completion ? null : $this->certificates->findByCompletion($course, $completion);
+
+            if ($found instanceof Certificate) {
+                return [$found, false];
+            }
+
             $index = $this->certificates->nextStatusIndex();
             [$list, $listIndex] = $this->layout->locate($index);
             $awardedAt = $this->clock->now();
@@ -234,13 +313,13 @@ final readonly class Awarding
                 $this->urls->statusEntry($list, $listIndex),
             );
 
-            $certificate = Certificate::award($id, $code, $course, $recipientName, $awardedAt, $index, $this->securing->secure($credential)->content, $listed, $holder, $renews);
+            $certificate = Certificate::award($id, $code, $course, $recipientName, $awardedAt, $index, $this->securing->secure($credential)->content, $listed, $holder, $renews, $completion);
             $this->certificates->save($certificate);
         } finally {
             $lock?->release();
         }
 
-        return $certificate;
+        return [$certificate, true];
     }
 
     private function recipient(#[SensitiveParameter] string $identity): Recipient

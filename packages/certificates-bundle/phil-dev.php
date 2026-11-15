@@ -21,6 +21,11 @@ return [
             'DecrementInteger' => [
                 'ignoreSourceCodeByRegex' => ['.*\\$certificate->daysLeft\\(\\$now\\) \\?\\? 0.*'],
             ],
+            // A renewal carries no completion, so the certificate it stores is always awarded now and the flag that
+            // tells an award on a known completion to return the certificate found is never read.
+            'FalseValue' => [
+                'ignoreSourceCodeByRegex' => ['.*\\$holder, \\$previous, null, false\\);.*'],
+            ],
             // The number of a list is checked to be digits before it is multiplied: without the cast, PHP multiplies
             // the numeric string to the same integer.
             'CastInt' => [

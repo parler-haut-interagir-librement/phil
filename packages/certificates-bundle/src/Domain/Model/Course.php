@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use Phil\CertificatesBundle\Domain\Exception\InvalidValue;
 use Phil\CertificatesBundle\Domain\ValueObject\Credits;
+use Phil\CertificatesBundle\Domain\ValueObject\OpaqueId;
 use Phil\CertificatesBundle\Domain\ValueObject\PassCriteria;
 use Symfony\Component\Uid\Uuid;
 
@@ -15,7 +16,8 @@ use Symfony\Component\Uid\Uuid;
  * A course or a training a certificate recognizes: its slug in the register's URLs, its name and description, the
  * narrative of its criteria as the certificate's credential states them, the criteria a learner's attainment is
  * checked against, how many months a certificate stays valid — forever when none —, the image of its badge, the
- * credits of continuing education a holder gathers to be recertified, and the moment the course itself ends.
+ * credits of continuing education a holder gathers to be recertified, the moment the course itself ends, and the
+ * completion source its certificates are awarded on.
  *
  * A retired course awards no more certificates, and neither does a course past its end; those already awarded stay as
  * they are. No certificate of a course that ends is valid past that end.
@@ -72,6 +74,13 @@ final class Course
     #[ORM\Column(name: 'ends_at', nullable: true)]
     public private(set) ?DateTimeImmutable $endsAt = null;
 
+    /**
+     * The key of the course in another system that knows who completed it, asked through `CourseCompletions` before
+     * a certificate is awarded; null when the application alone decides who passed.
+     */
+    #[ORM\Column(name: 'completion_source', length: OpaqueId::MAX_LENGTH, nullable: true)]
+    public private(set) ?string $completionSource = null;
+
     private function __construct(
         #[ORM\Id]
         #[ORM\Column(name: 'id', length: 36, options: ['fixed' => true])]
@@ -82,10 +91,11 @@ final class Course
     }
 
     /**
-     * @param int|null    $validityMonths how many months a certificate stays valid, from 1 to 1200; forever when null
-     * @param string|null $image          the absolute URL of the badge's image
+     * @param int|null    $validityMonths   how many months a certificate stays valid, from 1 to 1200; forever when null
+     * @param string|null $image            the absolute URL of the badge's image
+     * @param string|null $completionSource the key of the course in the system its completions are asked of
      */
-    public static function define(string $slug, string $name, string $description, string $narrative, PassCriteria $criteria = new PassCriteria(), ?int $validityMonths = null, ?string $image = null, ?Credits $recertificationCredits = null, ?DateTimeImmutable $endsAt = null): self
+    public static function define(string $slug, string $name, string $description, string $narrative, PassCriteria $criteria = new PassCriteria(), ?int $validityMonths = null, ?string $image = null, ?Credits $recertificationCredits = null, ?DateTimeImmutable $endsAt = null, ?string $completionSource = null): self
     {
         if (\strlen($slug) > 64 || 1 !== preg_match('/^'.self::SLUG.'$/D', $slug)) {
             throw InvalidValue::because(\sprintf('The slug of a course is up to 64 lower-case letters, digits and single dashes; "%s" is not.', $slug));
@@ -93,12 +103,14 @@ final class Course
 
         $course = new self(Uuid::v7()->toRfc4122(), $slug);
         $course->revise($name, $description, $narrative, $criteria, $validityMonths, $image, $recertificationCredits, $endsAt);
+        $course->changeCompletionSource($completionSource);
 
         return $course;
     }
 
     /**
-     * Changes what the course says and asks; certificates already awarded keep the credential they were given.
+     * Changes what the course says and asks; certificates already awarded keep the credential they were given. The
+     * completion source stays as it is.
      */
     public function revise(string $name, string $description, string $narrative, PassCriteria $criteria = new PassCriteria(), ?int $validityMonths = null, ?string $image = null, ?Credits $recertificationCredits = null, ?DateTimeImmutable $endsAt = null): void
     {
@@ -132,6 +144,15 @@ final class Course
         $this->image = $image;
         $this->recertificationHundredths = $recertificationCredits?->hundredths;
         $this->endsAt = $endsAt;
+    }
+
+    /**
+     * Names the key of the course in the system its completions are asked of, or none: from then on, a certificate is
+     * awarded only to a member that system says completed it. Certificates already awarded stay as they are.
+     */
+    public function changeCompletionSource(?string $source): void
+    {
+        $this->completionSource = null === $source ? null : OpaqueId::fromString($source, 'completion source of a course')->value;
     }
 
     /**

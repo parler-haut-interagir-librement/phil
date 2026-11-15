@@ -12,13 +12,17 @@ or attainment and its refusals, and the sums of credits over periods are tested 
 The exported credentials are checked offline for the shape Open Badges 3.0 describes, by
 `tests/Unit/Support/Ob3Shape.php` ([Validation](validation.md#what-is-checked-offline)). The console commands are tested
 with `CommandTester`, the lock with an in-memory store that tells whether it was held while the index was taken and the
-certificate stored, each attempt of an award whose index was taken included.
+certificate stored, each attempt of an award whose index was taken included. The awards on completion are tested with a
+source of completions that answers from a list and notes what it is asked.
 
 `tests/Functional` boots a small application with FrameworkBundle, TwigBundle and DoctrineBundle on SQLite, awards
 certificates, requests the register's pages and downloads, revokes, reads the Doctrine repositories, and runs the
-commands with the framework's lock factory and event dispatcher. It plays two awards at once without a lock: another
-award stores its certificate at the index this one was given, between the moment it was given and the save, and the
-award is seen starting again on a reset entity manager with the next index, or giving up after its attempts.
+commands with the framework's lock factory and event dispatcher. Its locks are kept in memory, one store for each test
+process, so that tests run at once in other processes never hold the lock one of them reaches for; its source of
+completions answers from a fixed list. It plays two awards at once without a lock: another award stores its
+certificate at the index this one was given, between the moment it was given and the save, and the award is seen
+starting again on a reset entity manager with the next index, or giving up after its attempts; and two awards on the
+same completion, the second of which gives back the certificate of the first.
 
 `tests/Integration` renders a certificate through a real Gotenberg 9, named by `PHIL_GOTENBERG_URL`, and checks that the
 credential is the PDF's associated file of relationship `Data`, byte for byte, and that the file passes PDF/A-3b

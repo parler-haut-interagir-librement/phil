@@ -20,10 +20,11 @@ use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- *     bin/console phil:certificates:course first-aid "First aid" "Score 70 % or more and practise CPR." --min-score=70 --module=cpr --validity=24 --credits=12 --ends=2030-01-01.
+ *     bin/console phil:certificates:course first-aid "First aid" "Score 70 % or more and practise CPR." --min-score=70 --module=cpr --validity=24 --credits=12 --ends=2030-01-01 --completion-source=first-aid-2027.
  *
  * Defines a course, as `Courses::define()` does, or revises it with `--revise`, and prints the address of its page in
- * the register, which identifies the achievement of its certificates.
+ * the register, which identifies the achievement of its certificates. A revision changes the completion source only
+ * when `--completion-source` is given, and an empty one removes it.
  */
 #[AsCommand(name: 'phil:certificates:course', description: 'Defines a course and its pass criteria, or revises it')]
 final class CourseCommand extends Command
@@ -50,6 +51,7 @@ final class CourseCommand extends Command
             ->addOption('image', null, InputOption::VALUE_REQUIRED, 'The absolute URL of the image of its badge')
             ->addOption('credits', null, InputOption::VALUE_REQUIRED, 'The credits of continuing education a recertification asks for, such as 12 or 7.5')
             ->addOption('ends', null, InputOption::VALUE_REQUIRED, 'The day the course ends, YYYY-MM-DD: no certificate is awarded from then on, nor valid past it')
+            ->addOption('completion-source', null, InputOption::VALUE_REQUIRED, 'The key of the course in the system its completions are asked of; empty to remove it on a revision')
             ->addOption('revise', null, InputOption::VALUE_NONE, 'Revise the course of this slug instead of defining a new one');
     }
 
@@ -75,6 +77,9 @@ final class CourseCommand extends Command
         $credits = $input->getOption('credits');
         /** @var string|null $ends */
         $ends = $input->getOption('ends');
+        /** @var string|null $sourceOption */
+        $sourceOption = $input->getOption('completion-source');
+        $source = '' === $sourceOption ? null : $sourceOption;
 
         try {
             $criteria = new PassCriteria($this->number($input, 'min-score', 'minimum score'), $this->number($input, 'min-minutes', 'minimum of minutes'), $modules);
@@ -83,7 +88,11 @@ final class CourseCommand extends Command
             $ends = null === $ends ? null : Numbers::date('end', $ends);
             $course = $revise
                 ? $this->courses->revise($slug, $name, $description, $narrative, $criteria, $validity, $image, $credits, $ends)
-                : $this->courses->define($slug, $name, $description, $narrative, $criteria, $validity, $image, $credits, $ends);
+                : $this->courses->define($slug, $name, $description, $narrative, $criteria, $validity, $image, $credits, $ends, $source);
+
+            if ($revise && null !== $sourceOption) {
+                $course = $this->courses->changeCompletionSource($slug, $source);
+            }
         } catch (InvalidValue $invalidValue) {
             $errors->writeln($invalidValue->getMessage());
 

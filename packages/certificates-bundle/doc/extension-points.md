@@ -17,6 +17,7 @@ interface CertificateRepository
     public function listed(Course $course, int $limit, int $offset = 0): array;
     public function countListed(Course $course): int;
     public function findRenewalOf(Certificate $certificate): ?Certificate;
+    public function findByCompletion(Course $course, string $completion): ?Certificate;
     public function expiring(DateTimeImmutable $after, DateTimeImmutable $until, int $limit, int $offset = 0): array;
 }
 
@@ -35,13 +36,34 @@ interface LearningActivityRepository
 end first, then by identifier; `total()` sums in the storage, so that a member's credits are never loaded to be added
 up. Without a `LearningActivityRepository`, a recertification that asks for credits is refused.
 
+`findByCompletion()` gives the certificate of a course awarded on that completion; the storage keeps a completion to one
+certificate of a course.
+
 `nextStatusIndex()` answers one past the highest index given, and the storage keeps the indexes and the codes unique,
 so that two awards at once cannot share one: the second is refused rather than share a status bit. `Awarding` asks for
 the index and saves the certificate under the lock of `lock_factory` when there is one, so a repository needs no lock of
-its own. When the storage refuses a certificate whose index or code another holds, `save()` throws
+its own. When the storage refuses a certificate whose index, code or completion of the course another holds, `save()` throws
 `Phil\CertificatesBundle\Domain\Exception\StatusIndexTaken`, once the storage is ready for another attempt, and
 `Awarding` tries again with the next index ([Courses and awarding](courses-and-awarding.md#two-awards-at-once)). The
 Doctrine repository does so with the `doctrine` registry, whose manager it resets first.
+
+## The source of completions
+
+`Phil\CertificatesBundle\Domain\Contract\CourseCompletions` tells whether a member completed a course of another
+system, by the key the certificate course names as its completion source and the member's stable identifier:
+
+```php
+interface CourseCompletions
+{
+    /** opaque non-empty identifier of the completion, or null when not completed */
+    public function completion(string $course, string $holder): ?string;
+}
+```
+
+The bundle registers none. When the application aliases the interface to a service of its own, `Awarding` asks it for
+the courses that name a completion source and keeps the identifier it answers on the certificate; without one, those
+courses award nothing. [Completion sources](completion-sources.md) describes the port, the awards on completion and a
+listener of the application's own completion event.
 
 ## The URLs
 
@@ -100,5 +122,5 @@ on `PrintStarting` reads `$event->subject->type` and lets `certificate` through 
 ## The services
 
 `Courses`, `Awarding`, `Revocation`, `ExpiryReminders`, `ContinuingEducation` and `CertificatePdf` are registered by
-their class and can be decorated: a
-decorator of `Awarding` that sends the learner their certificate by e-mail, for instance.
+their class and can be decorated: a decorator of `Awarding` that sends the learner their certificate by e-mail, for
+instance.

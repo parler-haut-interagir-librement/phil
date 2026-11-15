@@ -87,6 +87,23 @@ final class ConsoleTest extends KernelTestCase
         self::assertSame(Command::SUCCESS, $this->execute('phil:certificates:award', ['course' => 'botany', 'name' => 'Ada', 'identity' => 'ada@example.org', '--score' => '80'])->getStatusCode());
     }
 
+    public function testACourseAwardedOnCompletionAsksTheApplicationsSource(): void
+    {
+        self::assertSame(Command::SUCCESS, $this->execute('phil:certificates:course', ['slug' => 'cpr', 'name' => 'CPR', 'narrative' => 'Complete the course.', '--completion-source' => 'first-aid-2027'])->getStatusCode());
+
+        $input = ['course' => 'cpr', 'name' => 'Ada', 'identity' => 'ada@example.org', '--holder' => 'member-42', '--on-completion' => true];
+        $first = $this->execute('phil:certificates:award', $input);
+        self::assertSame(Command::SUCCESS, $first->getStatusCode());
+        self::assertStringEndsWith("\nCompletion: enrolment-7\n", $first->getDisplay());
+        self::assertSame($first->getDisplay(), $this->execute('phil:certificates:award', $input)->getDisplay());
+
+        self::assertSame(Command::FAILURE, $this->execute('phil:certificates:award', [...$input, '--holder' => 'member-43'])->getStatusCode());
+
+        $recorded = self::getContainer()->get(RecordedEvents::class);
+        self::assertInstanceOf(RecordedEvents::class, $recorded);
+        self::assertCount(1, $recorded->events);
+    }
+
     public function testTheLockFactoryOfTheFrameworkGuardsTheStatusIndex(): void
     {
         $locks = self::getContainer()->get('lock.factory');

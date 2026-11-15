@@ -45,6 +45,12 @@ interface CertificateRepository
     public function findRenewalOf(Certificate $certificate): ?Certificate;
 
     /**
+     * The certificate of the course awarded on that completion, when there is one. The storage keeps a completion to one
+     * certificate of a course.
+     */
+    public function findByCompletion(Course $course, string $completion): ?Certificate;
+
+    /**
      * The certificates that end after `$after` and by `$until` included, neither revoked nor renewed, the first to end
      * first.
      *

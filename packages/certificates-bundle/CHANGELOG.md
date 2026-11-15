@@ -6,10 +6,32 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
+The next version is 0.2.0-alpha: `CertificateRepository` gains a method, and the schema two columns.
+
+### Added
+
+- `CourseCompletions`, the port a course system answers: whether a member completed a course, as the opaque
+  identifier of that completion or `null`; registered by the application under the interface, none by default.
+- `Course::$completionSource`, the key of the course in the system its completions are asked of, given to
+  `Course::define()` and `Courses::define()`, changed by `changeCompletionSource()`, kept by `revise()`; `OpaqueId`,
+  the rules of such keys and identifiers.
+- `Certificate::$completion`, the identifier of the completion it was awarded on, kept as its evidence; one
+  certificate for each completion of a course.
+- `Awarding::award()` asks `CourseCompletions` for a course that names a completion source, under the lock of the
+  status index, and refuses the award with `CertificateRefused` without a holder, without a source configured, without
+  a completion or for a completion already awarded; `Awarding::awardOnCompletion()`, for a listener of the
+  application's own completion event, gives back the certificate already awarded on the completion instead.
+- `phil:certificates:course --completion-source`, `phil:certificates:award --on-completion` and the completion printed
+  by the award and by `phil:certificates:status`.
+- The documentation page [Completion sources](doc/completion-sources.md).
+
 ### Changed
 
-- `phil/open-badges` 0.2 is required, the version that signs and verifies through `web-token/jwt-library`; the
-  courses, the certificates, the PDF and the register are the same.
+- `CertificateRepository::findByCompletion()`: a repository of the application's own implements it. The tables gain
+  `phil_certificates_course.completion_source` and `phil_certificates_certificate.completion`, nullable, with a unique
+  index on the course and the completion; a generated migration adds them.
+- `phil/open-badges` 0.2 is required, the version that signs and verifies through `web-token/jwt-library`, and
+  `phil/open-badges-bundle` 0.1.1.
 
 ## 0.1.0-alpha - 2026-11-14
 
