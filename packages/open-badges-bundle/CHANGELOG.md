@@ -4,6 +4,15 @@ All notable changes to `phil/open-badges-bundle` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Changed
+
+- `phil/open-badges` 0.2 required: the issuer's key signs and other issuers' keys verify through
+  `web-token/jwt-library`; the configuration, the services and the routes are the same.
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

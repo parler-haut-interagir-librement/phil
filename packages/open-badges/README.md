@@ -48,6 +48,7 @@ ones the application gives, or those a `did:web` issuer publishes in its DID doc
 | [Exceptions](doc/exceptions.md) | `OpenBadgesException` and its three exceptions. |
 | [Testing](doc/testing.md) | The library's tests, vectors, fuzz targets and benchmark. |
 | [Reference](doc/reference.md) | Every type of the library, with its role. |
+| [Upgrading](doc/upgrading.md) | What changes from one version to the next. |
 
 ## Quick start
 
@@ -80,7 +81,8 @@ $document = new EddsaRdfc2022()->sign(                                          
 
 ## Requirements
 
-PHP 8.5 or later with the `dom`, `json`, `libxml`, `mbstring`, `openssl`, `sodium` and `zlib` extensions.
+PHP 8.5 or later with the `dom`, `json`, `libxml`, `mbstring`, `openssl`, `sodium` and `zlib` extensions; tokens and
+proofs are signed and verified by `web-token/jwt-library`.
 
 ## Contributing
 

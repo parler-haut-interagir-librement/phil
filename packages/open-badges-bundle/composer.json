@@ -20,7 +20,7 @@
     "homepage": "https://ph-il.ca",
     "require": {
         "php": ">=8.5",
-        "phil/open-badges": "^0.1.1@dev",
+        "phil/open-badges": "^0.2@dev",
         "phil/safe-http": "^0.1@dev || ^0.2@dev",
         "phil/url": "^0.1@dev",
         "psr/clock": "^1.0",

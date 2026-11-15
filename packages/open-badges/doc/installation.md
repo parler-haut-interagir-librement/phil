@@ -3,8 +3,9 @@
 ## Requirements
 
 PHP 8.5 or later with the `dom`, `json`, `libxml`, `mbstring`, `openssl`, `sodium` and `zlib` extensions;
-`phil/url`, `phil/safe-http` and `symfony/service-contracts`, which resolve a `did:web` issuer when the application asks
-for it.
+`web-token/jwt-library`, which signs and verifies the tokens and the proofs — `RS256` through `openssl`, `EdDSA` through
+`sodium`; `phil/url`, `phil/safe-http` and `symfony/service-contracts`, which resolve a `did:web` issuer when the
+application asks for it.
 
 ```sh
 composer require phil/open-badges
@@ -17,7 +18,7 @@ The issuer signs with one private key, kept as a secret of the application — n
 | Key | Signer | Secures |
 |---|---|---|
 | Ed25519, a seed of 32 bytes | `Ed25519Signer::fromSeed($seed)` | JSON Web Tokens (`EdDSA`) and Data Integrity proofs (`eddsa-rdfc-2022`) |
-| RSA of 2048 bits or more, in PEM | `RsaSigner::fromPem($pem, $passphrase)` | JSON Web Tokens (`RS256`), the algorithm every verifier accepts |
+| RSA of 2048 to 8192 bits, in PEM | `RsaSigner::fromPem($pem, $passphrase)` | JSON Web Tokens (`RS256`), the algorithm every verifier accepts |
 
 A seed is drawn once, for instance with `php -r 'echo base64_encode(random_bytes(32));'`, and stored as a secret.
 

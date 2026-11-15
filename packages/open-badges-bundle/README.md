@@ -91,7 +91,7 @@ verifier that reads VC-JWT or `eddsa-rdfc-2022`, or by running 1EdTech's validat
 
 ## Requirements
 
-PHP 8.5 or later, Symfony 8.2 or later, `phil/open-badges` 0.1.1 or later, `phil/url` and `phil/safe-http`. The
+PHP 8.5 or later, Symfony 8.2 or later, `phil/open-badges` 0.2 or later, `phil/url` and `phil/safe-http`. The
 verification page needs TwigBundle; reading other issuers' profiles and DID documents, a cache pool.
 
 ## Contributing

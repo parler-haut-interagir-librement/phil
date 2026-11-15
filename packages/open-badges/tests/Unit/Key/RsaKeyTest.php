@@ -10,11 +10,10 @@ use Phil\OpenBadges\Encoding\Base64Url;
 use Phil\OpenBadges\Exception\InvalidBadge;
 use Phil\OpenBadges\Key\RsaKey;
 use Phil\OpenBadges\Key\RsaSigner;
+use Phil\OpenBadges\Tests\Unit\Support\Signatures;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use ReflectionMethod;
-use ReflectionProperty;
 
 #[CoversClass(RsaKey::class)]
 final class RsaKeyTest extends TestCase
@@ -30,22 +29,28 @@ final class RsaKeyTest extends TestCase
         $key = RsaKey::fromJwk($signer->publicJwk());
 
         self::assertSame('RS256', $key->algorithm());
-        self::assertTrue($key->verify('data', $signer->sign('data')));
-        self::assertFalse($key->verify('other', $signer->sign('data')));
-        self::assertFalse(RsaKey::fromJwk(RsaSigner::fromPem($this->pem(2048, 1))->publicJwk())->verify('data', $signer->sign('data')));
+        self::assertSame('RS256', $signer->signatureAlgorithm()->name());
+        self::assertTrue(Signatures::verifies($key, 'data', Signatures::sign($signer, 'data')));
+        self::assertFalse(Signatures::verifies($key, 'other', Signatures::sign($signer, 'data')));
+        self::assertFalse(Signatures::verifies(RsaKey::fromJwk(RsaSigner::fromPem($this->pem(2048, 1))->publicJwk()), 'data', Signatures::sign($signer, 'data')));
+        self::assertTrue($signer->jwk()->has('d'));
+        self::assertSame($signer->publicJwk(), $key->jwk()->all());
     }
 
     public function testTheKeyReadIsTheOneOfThePem(): void
     {
         $signer = RsaSigner::fromPem($this->pem(3072));
-        $jwk = $signer->publicJwk();
-        $key = openssl_pkey_get_details(self::opened(openssl_pkey_get_public($this->publicPem(3072))));
-        self::assertIsArray($key);
+        $fromPem = RsaKey::fromPem($this->publicPem(3072));
 
-        $fromJwk = new ReflectionProperty(RsaKey::class, 'key')->getValue(RsaKey::fromJwk($jwk));
-        self::assertInstanceOf(OpenSSLAsymmetricKey::class, $fromJwk);
-        self::assertSame($key['key'], openssl_pkey_get_details($fromJwk)['key'] ?? null);
-        self::assertSame(3072, openssl_pkey_get_details($fromJwk)['bits'] ?? null);
+        self::assertSame($signer->publicJwk(), $fromPem->toJwk());
+        self::assertSame($signer->publicJwk(), RsaKey::fromPem($this->pem(3072))->toJwk());
+        self::assertSame(3072, RsaKey::bits(Base64Url::decode($fromPem->toJwk()['n'])));
+    }
+
+    public function testAPemKeyHasTheBitsOfAJsonWebKey(): void
+    {
+        $this->expectExceptionObject(InvalidBadge::because('The modulus of an RSA JSON Web Key has 2048 to 8192 bits; this one has 1024.'));
+        RsaKey::fromPem($this->publicPem(1024));
     }
 
     public function testAModulusWithLeadingZerosAndAnRs256AlgorithmAreRead(): void
@@ -54,7 +59,8 @@ final class RsaKeyTest extends TestCase
         $jwk = $signer->publicJwk();
         $padded = ['kty' => 'RSA', 'alg' => 'RS256', 'use' => 'sig', 'n' => Base64Url::encode("\x00\x00".Base64Url::decode($jwk['n'])), 'e' => Base64Url::encode("\x00".Base64Url::decode($jwk['e'])), 'd' => 'ignored'];
 
-        self::assertTrue(RsaKey::fromJwk($padded)->verify('data', $signer->sign('data')));
+        self::assertTrue(Signatures::verifies(RsaKey::fromJwk($padded), 'data', Signatures::sign($signer, 'data')));
+        self::assertSame($jwk, RsaKey::fromJwk($padded)->toJwk());
     }
 
     public function testTheLimitsOfTheModulusAreItsBits(): void
@@ -81,7 +87,8 @@ final class RsaKeyTest extends TestCase
         }
 
         $key = RsaKey::fromJwk(['kty' => 'RSA', 'n' => Base64Url::encode($max), 'e' => 'AQAB']);
-        self::assertFalse($key->verify('data', str_repeat("\x00", 1024)));
+        self::assertSame(8192, RsaKey::bits(Base64Url::decode($key->toJwk()['n'])));
+        self::assertFalse(Signatures::verifies($key, 'data', str_repeat("\x00", 1024)));
     }
 
     /**
@@ -127,23 +134,13 @@ final class RsaKeyTest extends TestCase
         self::assertSame('RS256', RsaKey::fromJwk(['kty' => 'RSA', 'n' => $n, 'e' => Base64Url::encode(str_repeat("\x01", 8))])->algorithm());
     }
 
-    /**
-     * @return iterable<string, array{int, string}>
-     */
-    public static function lengths(): iterable
+    public function testTheBitsOfAModulusAreCountedFromItsHighestBitSet(): void
     {
-        yield 'none' => [0, "\x00"];
-        yield 'the longest short form' => [127, "\x7f"];
-        yield 'the shortest long form' => [128, "\x82\x00\x80"];
-        yield 'two bytes' => [300, "\x82\x01\x2c"];
-    }
-
-    #[DataProvider('lengths')]
-    public function testTheLengthOfAnElementIsInTheShortFormUnder128BytesAndOnTwoBytesFromThere(int $length, string $encoded): void
-    {
-        $der = new ReflectionMethod(RsaKey::class, 'der');
-
-        self::assertSame("\x04".$encoded.str_repeat('a', $length), $der->invoke(null, "\x04", str_repeat('a', $length)));
+        self::assertSame(0, RsaKey::bits(''));
+        self::assertSame(1, RsaKey::bits("\x01"));
+        self::assertSame(8, RsaKey::bits("\x80"));
+        self::assertSame(9, RsaKey::bits("\x01\xff"));
+        self::assertSame(16, RsaKey::bits("\xff\x00"));
     }
 
     private function pem(int $bits, int $index = 0): string

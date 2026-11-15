@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Phil\OpenBadges\Tests\Unit\Key;
 
+use Phil\OpenBadges\Encoding\Base64Url;
 use Phil\OpenBadges\Encoding\Multibase;
 use Phil\OpenBadges\Exception\InvalidCredential;
 use Phil\OpenBadges\Key\Ed25519Key;
 use Phil\OpenBadges\Key\Ed25519Signer;
+use Phil\OpenBadges\Tests\Unit\Support\Signatures;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -31,7 +33,13 @@ final class Ed25519KeyTest extends TestCase
         self::assertSame($key->publicKey, Ed25519Key::fromMultibase(self::PUBLIC)->publicKey);
         self::assertSame($key->toJwk(), $signer->publicJwk());
         self::assertSame($key->publicKey, Ed25519Key::fromJwk($key->toJwk())->publicKey);
-        self::assertTrue(Ed25519Key::fromMultibase(self::PUBLIC)->verify('data', $signer->sign('data')));
+        self::assertTrue(Signatures::verifies(Ed25519Key::fromMultibase(self::PUBLIC), 'data', Signatures::sign($signer, 'data')));
+        self::assertFalse(Signatures::verifies(Ed25519Key::fromMultibase(self::PUBLIC), 'other', Signatures::sign($signer, 'data')));
+        $private = $signer->jwk()->all();
+        ksort($private);
+        self::assertSame(['crv' => 'Ed25519', 'd' => Base64Url::encode(substr(Multibase::decode(self::SECRET), 2)), 'kty' => 'OKP', 'x' => $key->toJwk()['x']], $private);
+        self::assertSame($key->toJwk(), $key->jwk()->all());
+        self::assertSame('EdDSA', $signer->signatureAlgorithm()->name());
     }
 
     public function testAMultikeyIsInBase58(): void

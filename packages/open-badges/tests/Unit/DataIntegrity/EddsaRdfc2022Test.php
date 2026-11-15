@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Phil\OpenBadges\Tests\Unit\DataIntegrity;
 
 use DateTimeImmutable;
+use Jose\Component\Core\JWK;
 use Phil\OpenBadges\Achievement;
+use Phil\OpenBadges\Contract\VerificationKey;
 use Phil\OpenBadges\CredentialIssuer;
 use Phil\OpenBadges\DataIntegrity\DidKeyMethods;
 use Phil\OpenBadges\DataIntegrity\EddsaRdfc2022;
+use Phil\OpenBadges\Encoding\Base58Btc;
 use Phil\OpenBadges\Encoding\Multibase;
 use Phil\OpenBadges\Exception\InvalidBadge;
 use Phil\OpenBadges\Exception\InvalidCredential;
@@ -119,6 +122,69 @@ final class EddsaRdfc2022Test extends TestCase
 
         $this->expectExceptionObject(InvalidCredential::because('The signature of the credential does not verify.'));
         $suite->verify($secured, new DidKeyMethods([self::METHOD => $other]));
+    }
+
+    public function testASignatureOfAnotherLengthDoesNotVerify(): void
+    {
+        $suite = $this->suite();
+        $secured = $suite->sign($this->alumni(), $this->signer(), self::METHOD, new DateTimeImmutable('2023-02-24T23:36:38Z'));
+        $proof = $secured['proof'];
+        self::assertIsArray($proof);
+        self::assertIsString($proof['proofValue']);
+        $secured['proof'] = ['proofValue' => 'z'.Base58Btc::encode(substr(Base58Btc::decode(substr($proof['proofValue'], 1)), 1))] + $proof;
+
+        $this->expectExceptionObject(InvalidCredential::because('The signature of the credential does not verify.'));
+        $suite->verify($secured, new DidKeyMethods());
+    }
+
+    public function testAKeyTheLibraryRefusesDoesNotVerify(): void
+    {
+        $suite = $this->suite();
+        $secured = $suite->sign($this->alumni(), $this->signer(), self::METHOD, new DateTimeImmutable('2023-02-24T23:36:38Z'));
+        $key = new class implements VerificationKey {
+            public function algorithm(): string
+            {
+                return 'EdDSA';
+            }
+
+            public function jwk(): JWK
+            {
+                return new JWK(['kty' => 'RSA']);
+            }
+        };
+
+        $this->expectExceptionObject(InvalidCredential::because('The signature of the credential does not verify.'));
+        $suite->verify($secured, new DidKeyMethods([self::METHOD => $key]));
+    }
+
+    public function testAKeyOrASignatureThatCannotVerifyIsRefusedBeforeTheDocumentIsRead(): void
+    {
+        $secured = $this->suite()->sign($this->alumni(), $this->signer(), self::METHOD, new DateTimeImmutable('2023-02-24T23:36:38Z'));
+        $proof = $secured['proof'];
+        self::assertIsArray($proof);
+        self::assertIsString($proof['proofValue']);
+        $short = $secured;
+        $short['proof'] = ['proofValue' => 'z'.Base58Btc::encode(substr(Base58Btc::decode(substr($proof['proofValue'], 1)), 1))] + $proof;
+        $rsa = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => \OPENSSL_KEYTYPE_RSA]);
+        self::assertNotFalse($rsa);
+        openssl_pkey_export($rsa, $pem);
+        self::assertIsString($pem);
+
+        // A suite that does not know the context of the document would refuse it with another reason, were it read.
+        $blind = new EddsaRdfc2022();
+        $cases = [
+            [$secured, RsaSigner::fromPem($pem)->verificationKey()],
+            [$short, $this->signer()->verificationKey()],
+        ];
+
+        foreach ($cases as [$document, $key]) {
+            try {
+                $blind->verify($document, new DidKeyMethods([self::METHOD => $key]));
+                self::fail('A proof that cannot verify was accepted.');
+            } catch (InvalidCredential $refused) {
+                self::assertSame('The signature of the credential does not verify.', $refused->getMessage());
+            }
+        }
     }
 
     public function testAKeyOfAnotherAlgorithmDoesNotVerify(): void

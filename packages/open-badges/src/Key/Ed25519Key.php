@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\OpenBadges\Key;
 
+use Jose\Component\Core\JWK;
 use Override;
 use Phil\OpenBadges\Contract\VerificationKey;
 use Phil\OpenBadges\Encoding\Base64Url;
@@ -12,8 +13,8 @@ use Phil\OpenBadges\Exception\InvalidBadge;
 use Phil\OpenBadges\Exception\InvalidCredential;
 
 /**
- * An Ed25519 public key, verifying `EdDSA` signatures through libsodium; read from a JSON Web Key or from the
- * `publicKeyMultibase` of a Multikey.
+ * An Ed25519 public key, verifying `EdDSA` signatures through `web-token/jwt-library`; read from a JSON Web Key or from
+ * the `publicKeyMultibase` of a Multikey.
  */
 final readonly class Ed25519Key implements VerificationKey
 {
@@ -23,14 +24,19 @@ final readonly class Ed25519Key implements VerificationKey
     public const string MULTICODEC = "\xed\x01";
 
     /**
+     * The length of an Ed25519 public key, in bytes.
+     */
+    public const int BYTES = 32;
+
+    /**
      * @var non-empty-string
      */
     public string $publicKey;
 
     public function __construct(string $publicKey)
     {
-        if (\SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES !== \strlen($publicKey)) {
-            throw InvalidBadge::because(\sprintf('An Ed25519 public key is %d bytes; this one is %d.', \SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES, \strlen($publicKey)));
+        if (self::BYTES !== \strlen($publicKey)) {
+            throw InvalidBadge::because(\sprintf('An Ed25519 public key is %d bytes; this one is %d.', self::BYTES, \strlen($publicKey)));
         }
 
         $this->publicKey = $publicKey;
@@ -95,12 +101,8 @@ final readonly class Ed25519Key implements VerificationKey
     }
 
     #[Override]
-    public function verify(string $data, string $signature): bool
+    public function jwk(): JWK
     {
-        if (\SODIUM_CRYPTO_SIGN_BYTES !== \strlen($signature)) {
-            return false;
-        }
-
-        return sodium_crypto_sign_verify_detached($signature, $data, $this->publicKey);
+        return new JWK($this->toJwk());
     }
 }

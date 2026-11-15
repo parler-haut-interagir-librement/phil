@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0d6e669b47d01cf0e5ab31b71279c984246a95c47c4e111f62c5577ec6add1c4 -->
+<!-- phil-dev source-sha256=d671569b4327c520f5d69289b917cad5e768bcccaa1ebba6d506bfb07dd5f116 -->
 # Vérifier
 
 ## Un titre
@@ -20,7 +20,13 @@ $verified->status();     // its StatusListEntry, or null
 
 1. Un jeton : la clé est celle que nomme son `kid`, ou la méthode par défaut du vérificateur quand il n'en nomme
    aucune — jamais la JSON Web Key que transporte le jeton, que n'importe qui peut y mettre. L'algorithme est celui de
-   la clé, la signature est vérifiée, puis `nbf` et `exp` au moment donné.
+   la clé : un jeton dont l'`alg` en est un autre — `none`, `HS256` sur une clé publique, `RS256` pour une clé
+   Ed25519 — est refusé avant que sa signature soit lue, et `web-token/jwt-library` vérifie la signature avec cet
+   algorithme seulement. Un jeton qui marque un paramètre d'en-tête comme critique (`crit`) ou qui laisse ses
+   revendications non encodées (`b64`) est refusé. Avant que la bibliothèque l'analyse, le jeton est borné :
+   `JwtVerifier::MAX_LENGTH` octets (1 Mio), trois parties, un en-tête et des revendications imbriqués sur
+   `JwtVerifier::MAX_DEPTH` niveaux (64) au plus. Ensuite `nbf` et `exp` sont vérifiés au moment donné : le jeton est
+   valide de `nbf` inclus à `exp` exclu.
 2. Un document : la preuve est une `DataIntegrityProof` de `eddsa-rdfc-2022` pour `assertionMethod`. Sa méthode de
    vérification est trouvée, sa signature est vérifiée sur les formes canoniques, puis `validFrom` et `validUntil` au
    moment donné.

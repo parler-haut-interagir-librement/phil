@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a5a5498768508bb473d8337d2d0d7c4ecefee558d5dde47cc15ab3581cead5aa -->
+<!-- phil-dev source-sha256=8b5338bb018330628e5cc179c909ee67a45a743952819e6bb01276df83a96368 -->
 # Référence
 
 ## `Phil\OpenBadges`
@@ -22,14 +22,14 @@
 | `Contract\VerificationMethods` | Trouve la clé que nomme une méthode de vérification. |
 | `Contract\ContextLoader` | Donne le contexte JSON-LD d'une URL. |
 | `Contract\DocumentFetcher` | Lit le document DID d'un `did:web` à son adresse. |
-| `Key\Ed25519Signer`, `Key\Ed25519Key` | `EdDSA` par libsodium ; JSON Web Keys et Multikeys. |
-| `Key\RsaSigner`, `Key\RsaKey` | `RS256` par OpenSSL, 2048 bits ou plus ; `RsaKey::fromJwk()` lit une JSON Web Key de 2048 à 8192 bits. |
+| `Key\Ed25519Signer`, `Key\Ed25519Key` | `EdDSA` par `web-token/jwt-library` ; JSON Web Keys et Multikeys. |
+| `Key\RsaSigner`, `Key\RsaKey` | `RS256` par `web-token/jwt-library`, un module de 2048 à 8192 bits ; lue depuis un PEM ou depuis une JSON Web Key. |
 
 ## Sécuriser et vérifier
 
 | Type | Rôle |
 |---|---|
-| `Jwt\JwtSigner`, `Jwt\JwtVerifier` | VC-JWT, l'algorithme étant pris de la clé. |
+| `Jwt\JwtSigner`, `Jwt\JwtVerifier` | VC-JWT par `web-token/jwt-library`, l'algorithme étant pris de la clé. |
 | `DataIntegrity\EddsaRdfc2022` | La suite cryptographique `eddsa-rdfc-2022` : `sign()`, `verify()`, `canonicalize()`. |
 | `DataIntegrity\DidKeyMethods` | Les clés de l'application et chaque `did:key` Ed25519. |
 | `Did\DidWeb` | Un identifiant `did:web` et l'adresse HTTPS de son document DID. |

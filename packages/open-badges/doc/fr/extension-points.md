@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1d4639fb53ea7ba98996e1ac67d53e17fb0cf01f2bef8b0e4088cc68293b0410 -->
+<!-- phil-dev source-sha256=9c38c3cf73f3b75a8bf2556672ad1190e48fdca1d77ef5ca070d39f8afae778e -->
 # Points d'extension
 
 La bibliothèque a cinq ports, les interfaces de `Phil\OpenBadges\Contract`. Chacun a une implémentation dans la
@@ -9,24 +9,32 @@ bibliothèque ; une application en implémente un pour ce que la bibliothèque l
 La clé privée de l'émetteur :
 
 ```php
+use Jose\Component\Core\JWK;
+use Jose\Component\Signature\Algorithm\SignatureAlgorithm;
+
 interface Signer
 {
     public function algorithm(): string;               // the JSON Web Algorithm: EdDSA, RS256
-    public function sign(string $data): string;
+    public function signatureAlgorithm(): SignatureAlgorithm;   // the web-token/jwt-library algorithm of that name
+    public function jwk(): JWK;                        // the key that algorithm signs with
     public function publicJwk(): array;                // the public key as a JSON Web Key
     public function verificationKey(): VerificationKey;
 }
 ```
 
-`Ed25519Signer` et `RsaSigner` gardent la clé en mémoire. Un signataire qui repose sur un service de gestion de clés —
-la clé privée ne le quittant jamais — implémente l'interface et se donne à `JwtSigner` et à `CredentialIssuer`. Les
-preuves Data Integrity prennent un `Ed25519Signer`.
+Les jetons sont construits, signés et sérialisés par `web-token/jwt-library` : `JwtSigner` lui remet
+`signatureAlgorithm()` et `jwk()`. `Ed25519Signer` et `RsaSigner` gardent la clé en mémoire, `jwk()` étant la JSON Web
+Key privée. Un signataire qui repose sur un service de gestion de clés — la clé privée ne le quittant jamais — retourne
+son propre `SignatureAlgorithm`, qui signe par le service, et la JSON Web Key publique comme `jwk()` ; il se donne à
+`JwtSigner` et à `CredentialIssuer`. Les preuves Data Integrity prennent un `Ed25519Signer`.
 
 ## `VerificationKey`
 
-Une clé publique : `algorithm()` et `verify(string $data, string $signature): bool`. `Ed25519Key` et `RsaKey`
-l'implémentent. `verify()` répond false pour une signature de mauvaise longueur plutôt que de lancer une exception.
-`Ed25519Key::fromJwk()`, `Ed25519Key::fromMultibase()` et `RsaKey::fromJwk()` lisent les clés qu'un émetteur publie.
+Une clé publique : `algorithm()`, l'unique JSON Web Algorithm qu'elle vérifie, et `jwk()`, la JSON Web Key publique de
+`web-token/jwt-library`. `Ed25519Key` et `RsaKey` l'implémentent. Le vérificateur prend l'algorithme de la clé, jamais
+du jeton, et ne connaît que `EdDSA` et `RS256` : une clé qui nomme un autre algorithme ne vérifie rien.
+`Ed25519Key::fromJwk()`, `Ed25519Key::fromMultibase()`, `RsaKey::fromJwk()` et `RsaKey::fromPem()` lisent les clés
+qu'un émetteur publie.
 
 ## `VerificationMethods`
 

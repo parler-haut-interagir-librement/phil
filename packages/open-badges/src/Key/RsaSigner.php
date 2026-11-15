@@ -4,48 +4,56 @@ declare(strict_types=1);
 
 namespace Phil\OpenBadges\Key;
 
-use OpenSSLAsymmetricKey;
+use Jose\Component\Core\JWK;
+use Jose\Component\KeyManagement\JWKFactory;
+use Jose\Component\Signature\Algorithm\RS256;
 use Override;
 use Phil\OpenBadges\Contract\Signer;
-use Phil\OpenBadges\Contract\VerificationKey;
-use Phil\OpenBadges\Encoding\Base64Url;
 use Phil\OpenBadges\Exception\InvalidBadge;
 use SensitiveParameter;
+use Throwable;
 
 /**
- * An RSA private key of at least 2048 bits, signing with the `RS256` algorithm through OpenSSL — the algorithm every
- * Open Badges 3.0 verifier supports.
+ * An RSA private key of 2048 to 8192 bits, signing with the `RS256` algorithm of `web-token/jwt-library` — the
+ * algorithm every Open Badges 3.0 verifier supports.
  */
 final readonly class RsaSigner implements Signer
 {
-    public const int MIN_BITS = 2048;
+    public const int MIN_BITS = RsaKey::MIN_BITS;
+
+    public const int MAX_BITS = RsaKey::MAX_BITS;
 
     private function __construct(
-        private OpenSSLAsymmetricKey $key,
-        private string $publicPem,
-        private string $modulus,
-        private string $exponent,
+        #[SensitiveParameter]
+        private JWK $jwk,
+        private RsaKey $publicKey,
     ) {
     }
 
+    /**
+     * The key of a private key in PEM, encrypted with the passphrase when one is given, read by `web-token/jwt-library`.
+     *
+     * @throws InvalidBadge
+     */
     public static function fromPem(#[SensitiveParameter] string $pem, #[SensitiveParameter] ?string $passphrase = null): self
     {
-        $key = openssl_pkey_get_private($pem, $passphrase);
-
-        if (false === $key) {
+        try {
+            $jwk = JWKFactory::createFromKey($pem, $passphrase);
+        } catch (Throwable) {
             throw InvalidBadge::because('The private key is not a key in PEM, or its passphrase is wrong.');
         }
 
-        $details = RsaKey::details($key);
-        $bits = $details['bits'] ?? null;
-
-        if (!\is_int($bits) || $bits < self::MIN_BITS) {
-            throw InvalidBadge::because(\sprintf('An RSA key has at least %d bits.', self::MIN_BITS));
+        if ('RSA' !== $jwk->get('kty') || !$jwk->has('d') || !\is_string($jwk->get('n'))) {
+            throw InvalidBadge::because('The key is not an RSA private key.');
         }
 
-        $rsa = $details['rsa'] ?? [];
+        $bits = RsaKey::bits(RsaKey::decode($jwk->get('n')));
 
-        return new self($key, RsaKey::text($details['key'] ?? null), RsaKey::text(\is_array($rsa) ? $rsa['n'] ?? null : null), RsaKey::text(\is_array($rsa) ? $rsa['e'] ?? null : null));
+        if ($bits < self::MIN_BITS || $bits > self::MAX_BITS) {
+            throw InvalidBadge::because(\sprintf('An RSA key has %d to %d bits; this one has %d.', self::MIN_BITS, self::MAX_BITS, $bits));
+        }
+
+        return new self($jwk, RsaKey::fromJwk($jwk->toPublic()->all()));
     }
 
     #[Override]
@@ -55,22 +63,29 @@ final readonly class RsaSigner implements Signer
     }
 
     #[Override]
-    public function sign(string $data): string
+    public function signatureAlgorithm(): RS256
     {
-        openssl_sign($data, $signature, $this->key, \OPENSSL_ALGO_SHA256);
-
-        return RsaKey::text($signature);
+        return new RS256();
     }
 
+    #[Override]
+    public function jwk(): JWK
+    {
+        return $this->jwk;
+    }
+
+    /**
+     * @return array{kty: 'RSA', n: string, e: string}
+     */
     #[Override]
     public function publicJwk(): array
     {
-        return ['kty' => 'RSA', 'n' => Base64Url::encode($this->modulus), 'e' => Base64Url::encode($this->exponent)];
+        return $this->publicKey->toJwk();
     }
 
     #[Override]
-    public function verificationKey(): VerificationKey
+    public function verificationKey(): RsaKey
     {
-        return RsaKey::fromPem($this->publicPem);
+        return $this->publicKey;
     }
 }

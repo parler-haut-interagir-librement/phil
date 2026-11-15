@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5387644a9bea6fc68d0cdb202f83c4766330e36efda5a32aa5d9a8c1facb4463 -->
+<!-- phil-dev source-sha256=51f3415f980fcb28a6dc5d594ca3e89326b2caecbe527827e0fe4522b673978d -->
 # phil/open-badges-bundle
 
 **Les Open Badges dans une application Symfony : l'émetteur configuré une fois, son profil et ses clés publiés, ses
@@ -92,7 +92,7 @@ contre un émetteur déployé; voir [Conformité](doc/fr/conformance.md).
 
 ## Prérequis
 
-PHP 8.5 ou plus récent, Symfony 8.2 ou plus récent, `phil/open-badges` 0.1.1 ou plus récent, `phil/url` et
+PHP 8.5 ou plus récent, Symfony 8.2 ou plus récent, `phil/open-badges` 0.2 ou plus récent, `phil/url` et
 `phil/safe-http`. La page de vérification exige TwigBundle; la lecture des profils et des documents DID d'autres
 émetteurs, un pool de cache.
 
