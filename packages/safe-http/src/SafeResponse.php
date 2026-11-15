@@ -10,7 +10,8 @@ use Phil\Url\Url;
  * An answer of another site, read within the limits: the address that answered after the redirects, those redirects
  * in order, its status and headers, the media type and character set its `Content-Type` declares, and its body as far
  * as it was read. `complete` says whether the body was read to its end; it is false when the body was cut at the bytes
- * of the limits or at the stop mark, or not read at all.
+ * of the limits or at the stop mark, or not read at all. The media type and the character set are read by ASCII
+ * classes, whatever the locale of the process.
  */
 final readonly class SafeResponse
 {
@@ -46,7 +47,7 @@ final readonly class SafeResponse
      */
     public function charset(): ?string
     {
-        return 1 === preg_match('/;\s*charset\s*=\s*["\']?([\w.:-]{1,40})/i', (string) $this->header('content-type'), $charset) ? $charset[1] : null;
+        return 1 === preg_match('/;[ \t]*charset[ \t]*=[ \t]*["\']?([A-Za-z0-9_.:-]{1,40})/i', (string) $this->header('content-type'), $charset) ? $charset[1] : null;
     }
 
     public function isSuccessful(): bool
@@ -56,6 +57,6 @@ final readonly class SafeResponse
 
     public static function mediaTypeOf(?string $contentType): ?string
     {
-        return 1 === preg_match('{^\s*([\w!#$&^.+-]{1,127}/[\w!#$&^.+-]{1,127})\s*(?:;|$)}', (string) $contentType, $type) ? strtolower($type[1]) : null;
+        return 1 === preg_match('{^[ \t]*([A-Za-z0-9_!#$&^.+-]{1,127}/[A-Za-z0-9_!#$&^.+-]{1,127})[ \t]*(?:;|$)}', (string) $contentType, $type) ? strtolower($type[1]) : null;
     }
 }

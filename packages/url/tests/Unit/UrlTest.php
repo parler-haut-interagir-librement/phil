@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\Url\Tests\Unit;
 
+use Phil\Url\AddressReader;
 use Phil\Url\Exception\InvalidUrl;
 use Phil\Url\Exception\UrlException;
 use Phil\Url\Url;
@@ -13,6 +14,7 @@ use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Url::class)]
 #[CoversClass(InvalidUrl::class)]
+#[CoversClass(AddressReader::class)]
 final class UrlTest extends TestCase
 {
     public function testAnAddressIsReadInParts(): void
@@ -30,6 +32,7 @@ final class UrlTest extends TestCase
     public static function normalised(): iterable
     {
         yield 'case' => ['HTTPS://Example.COM/Shop', 'https://example.com/Shop'];
+        yield 'a scheme in mixed case' => ['hTtPs://example.com/', 'https://example.com/'];
         yield 'no path' => ['https://example.com', 'https://example.com/'];
         yield 'the https port' => ['https://example.com:443/a', 'https://example.com/a'];
         yield 'the http port' => ['http://example.com:80/a', 'http://example.com/a'];
@@ -298,6 +301,42 @@ final class UrlTest extends TestCase
     public function testAnAddressIsDisplayedAsPeopleReadIt(string $text, string $display): void
     {
         self::assertSame($display, Url::fromString($text)->display());
+    }
+
+    /**
+     * Under `C.UTF-8`, PCRE builds its character classes from the locale: a byte 0xA0, the second of `à`, is then a
+     * space for `\s`. An address reads the same whatever the locale.
+     */
+    #[DataProvider('displays')]
+    public function testAnAddressReadsTheSameWhateverTheLocale(string $text, string $display): void
+    {
+        $written = Url::fromString($text)->toString();
+        $locale = setlocale(\LC_CTYPE, '0');
+
+        if (false === setlocale(\LC_CTYPE, 'C.UTF-8', 'en_US.UTF-8', 'fr_CA.UTF-8')) {
+            self::markTestSkipped('No UTF-8 locale on this system.');
+        }
+
+        try {
+            self::assertSame($written, Url::fromString($text)->toString());
+            self::assertSame($display, Url::fromString($text)->display());
+        } finally {
+            setlocale(\LC_CTYPE, false === $locale ? 'C' : $locale);
+        }
+    }
+
+    public function testWhitespaceIsAsciiWhitespace(): void
+    {
+        foreach (["\t", "\n", "\x0B", "\f", "\r", ' '] as $space) {
+            try {
+                Url::fromString('https://example.com/a'.$space.'b');
+                self::fail(\sprintf('The whitespace %s was read.', bin2hex($space)));
+            } catch (InvalidUrl $invalidUrl) {
+                self::assertStringContainsString('is not an http or https address.', $invalidUrl->getMessage());
+            }
+        }
+
+        self::assertSame('https://example.com/a%C2%A0b%C2%85', Url::fromString("https://example.com/a\u{A0}b\u{85}")->toString());
     }
 
     public function testThePathIsCutInSegments(): void

@@ -90,6 +90,18 @@ final class PhilUrlBundleTest extends TestCase
         self::assertSame(2, $refused);
     }
 
+    public function testTheSwitchGoesBackToItsDefaultWithTheKernel(): void
+    {
+        $bundle = new PhilUrlBundle();
+        $bundle->setContainer($this->containerAllowing(true));
+        $bundle->boot();
+        $bundle->shutdown();
+
+        $this->expectException(ValueNotConvertible::class);
+
+        new UrlColumnType()->convertToPHPValue('http://localhost/', new PostgreSQLPlatform());
+    }
+
     private function containerAllowing(bool $value): ContainerBuilder
     {
         $container = new ContainerBuilder();

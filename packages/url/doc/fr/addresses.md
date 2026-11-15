@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=af211fda85ff0a945020408a819e181a27b6f00bd440d7b936a98567d3278d9f -->
+<!-- phil-dev source-sha256=5ccb792eb0017d9dd1f456cf6c1b1e30622a9bdbfae51327f42143e196e26e31 -->
 # Adresses
 
 `Url::fromString()` lit une adresse Web absolue comme un navigateur la lit : l'extension URI de PHP l'analyse selon le
@@ -11,7 +11,15 @@ WHATWG URL Standard, `Uri\WhatWg\Url`, puis `Url` applique ses propres règles c
 | Un port de 1 à 65535, un chemin, une chaîne de requête, un fragment | Le port 0, des espaces, un nom d'utilisateur ou un mot de passe (`https://ada@…`, `https://@…`), une troisième barre oblique ou une barre oblique inverse avant l'hôte (`https:///path`, `https://\example.com/`) |
 | 2048 caractères au plus, tel qu'écrit et une fois normalisé | Plus long : `<` écrit 1000 fois devient `%3C` 1000 fois |
 
-Chaque refus lance `InvalidUrl`, une `UrlException`.
+Chaque refus lance `InvalidUrl`, une `UrlException`. L'adresse d'un service que l'application exécute à côté d'elle,
+`http://whisper:8080`, est lue par `ServiceUrl` pour les hôtes que l'application déclare : voir
+[Adresses de service](service-addresses.md).
+
+Une adresse se lit de la même façon quelle que soit la locale du processus : les motifs nomment leurs octets, de sorte
+qu'un `LC_CTYPE` réglé à `C.UTF-8` ou à une autre locale UTF-8, qui donne à PCRE ses classes de caractères, ne change
+rien. Les espaces blancs sont des espaces blancs ASCII — une tabulation, un saut de ligne, une tabulation verticale, un
+saut de page, un retour chariot ou une espace ; une espace insécable est encodée en pourcentage comme toute lettre hors
+d'ASCII.
 
 ## Localhost en développement et en test
 

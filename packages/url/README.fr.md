@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d4753444c9bf9201b45cac49b9aec5e778164e3c5b4069e21f66fe8264aea86d -->
+<!-- phil-dev source-sha256=f8733d58cb01ccadec2332a4cfa0dc461a2a397c223c691ebe794681b86aeb40 -->
 # phil/url
 
 **Des adresses Web comme des valeurs normalisées, avec leur genre détecté : Facebook, YouTube, Mastodon, un site Web.**
@@ -10,7 +10,8 @@ d'adresse sont des cas d'enum qui implémentent `UrlType`, chacun avec sa propre
 adresse sur `facebook.com`. `KnownUrlType` contient 26 genres internationaux, de Facebook et YouTube jusqu'à Mastodon
 sur n'importe quel serveur et à un simple site Web. `UrlTypes` détecte le genre d'une adresse parmi les ensembles
 d'enums qu'un champ accepte, et `CookielessVideo` change une vidéo YouTube ou Vimeo en son lecteur qui n'écrit aucun
-témoin de connexion. **Il ne fait pas** de requête vers les adresses, ne suit pas les redirections, ne vérifie
+témoin de connexion. `ServiceUrl` lit l'adresse d'un service que l'application exécute à côté d'elle,
+`http://whisper:8080`, pour les hôtes qu'elle déclare dans `ServiceHosts`. **Il ne fait pas** de requête vers les adresses, ne suit pas les redirections, ne vérifie
 pas qu'une page existe et ne contient pas les genres d'une région.
 
 Il s'adresse aux applications où des gens entrent des liens vers leurs profils et leurs sites : un répertoire, une page
@@ -33,6 +34,7 @@ quelle enum qui dit s'il accepte une adresse.
 | `UrlType`, et `KnownUrlType` : 26 genres internationaux | Implémenté et testé |
 | `TypedUrl`, et `UrlTypes` : détection du genre parmi des ensembles d'enums | Implémenté et testé |
 | `CookielessVideo` : lecteurs YouTube et Vimeo sans témoins | Implémenté et testé |
+| `ServiceUrl` et `ServiceHosts` : adresses de service sur des hôtes déclarés | Implémentés et testés |
 | Exceptions sous une seule interface `UrlException` | Implémenté et testé |
 
 ## Documentation
@@ -41,6 +43,7 @@ quelle enum qui dit s'il accepte une adresse.
 |---|---|
 | [Installation](doc/fr/installation.md) | Prérequis et installation. |
 | [Adresses](doc/fr/addresses.md) | `Url` : ce qui est accepté, comment c'est normalisé et affiché. |
+| [Adresses de service](doc/fr/service-addresses.md) | `ServiceUrl` et `ServiceHosts` : les adresses des propres services d'une application, sur les hôtes qu'elle déclare. |
 | [Genres](doc/fr/kinds.md) | `UrlType`, les genres internationaux, ceux de l'application, la détection parmi des ensembles d'enums, les lecteurs vidéo sans témoins. |
 | [Points d'extension](doc/fr/extension-points.md) | Les ports, les arguments et les données qu'une application choisit ou remplace. |
 | [Tests](doc/fr/testing.md) | Les tests de la bibliothèque et son seuil de mutation. |

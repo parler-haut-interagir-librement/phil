@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ee22014902058470846c2bf939dc4d9086846a14487e46f9e7ad0cae22664684 -->
+<!-- phil-dev source-sha256=78fabf8f7ae60a59a6bd8be8b2d18b0a7a5c0c00f5a7067acd372489b368da9e -->
 # phil/safe-http
 
 **Reading other sites safely: an HTTP client on Symfony HttpClient that refuses private networks, follows redirects it checks itself, and bounds the time, the size and the redirects of what it reads.**
@@ -16,18 +16,21 @@ d'administration sur la boucle locale. phil/safe-http lit de telles adresses :
 - le silence de l'hôte et la durée totale de la lecture, redirections comprises, sont bornés ;
 - les en-têtes d'une réponse sont bornés en octets et en nombre, comptés à mesure qu'ils arrivent ;
 - le corps est lu par morceaux, seulement pour les types de média demandés, jusqu'à un nombre d'octets ou une marque
-  d'arrêt, puis le transfert est annulé ; un morceau est coupé aux octets qui restent avant de rejoindre le corps.
+  d'arrêt, puis le transfert est annulé ; un morceau est coupé aux octets qui restent avant de rejoindre le corps ;
+- `send()` fait une requête de n'importe quelle méthode, avec des en-têtes et un corps, sous les mêmes gardes : les
+  en-têtes qu'on lui donne ne quittent jamais le schéma, l'hôte et le port de la première adresse, et une requête avec
+  un corps, ou d'une méthode autre que `GET`, `HEAD` ou `OPTIONS`, ne suit aucune redirection.
 
 Une lecture donne une `SafeResponse` — l'adresse qui a répondu, les redirections, le statut, les en-têtes et le corps
-dans la mesure où il a été lu — ou l'une de trois exceptions : l'adresse est refusée, les redirections sont trop
-nombreuses, ou la lecture a échoué. Un statut d'erreur est une réponse, de sorte qu'une vérification de lien distingue
+dans la mesure où il a été lu — ou une exception : l'adresse ou une redirection est refusée, les redirections sont
+trop nombreuses, la requête est refusée avant d'être envoyée, ou la lecture a échoué. Un statut d'erreur est une réponse, de sorte qu'une vérification de lien distingue
 un `404` d'un délai dépassé.
 
 ## État
 
 | Partie | État |
 |---|---|
-| `SafeHttpClient`, `Limits`, `ReadRule`, `SafeResponse` | Implémentés et testés |
+| `SafeHttpClient` : `get()`, `head()`, `send()` ; `Limits`, `ReadRule`, `SafeResponse` | Implémentés et testés |
 | `AddressGuard` | Implémenté, testé et soumis au fuzzing |
 
 ## Documentation
@@ -35,7 +38,7 @@ un `404` d'un délai dépassé.
 | Document | Contenu |
 |---|---|
 | [Installation](doc/fr/installation.md) | Les prérequis et l'installation. |
-| [Lecture](doc/fr/reading.md) | Le client, ses limites, les règles d'une lecture, la réponse et les exceptions. |
+| [Lecture](doc/fr/reading.md) | Le client, ses limites, les règles d'une lecture, l'envoi d'une requête avec des en-têtes et un corps, la réponse et les exceptions. |
 | [La garde](doc/fr/guard.md) | Ce qu'une adresse doit être, les redirections, les réseaux privés, et ce que la garde ne couvre pas. |
 | [Points d'extension](doc/fr/extension-points.md) | Le transport, les adresses fixes, et ce qui reste fermé. |
 | [Tests](doc/fr/testing.md) | Les tests du paquet et sa cible de fuzzing. |
@@ -60,6 +63,9 @@ try {
 if (null !== $page && 200 === $page->status) {
     // $page->body: the page up to the end of its head, 1 MiB at most
 }
+
+// A request of another platform's web service, its credentials kept on that host.
+$token = $client->send('POST', 'https://platform.example/oauth/token', ['Authorization' => 'Basic '.$credentials, 'Content-Type' => 'application/x-www-form-urlencoded'], 'grant_type=client_credentials', new ReadRule('application/json'));
 ```
 
 ## Prérequis

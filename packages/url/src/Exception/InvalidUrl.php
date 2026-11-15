@@ -40,4 +40,24 @@ final class InvalidUrl extends InvalidArgumentException implements UrlException
     {
         return new self(\sprintf('%s is not a %s address.', $url, $type));
     }
+
+    public static function serviceHost(string $host): self
+    {
+        return new self(\sprintf('"%s" is not a host a service can be declared on: name the host alone.', mb_substr($host, 0, 100)));
+    }
+
+    public static function tooManyServiceHosts(int $count, int $max): self
+    {
+        return new self(\sprintf('%d service hosts are declared; %d at most.', $count, $max));
+    }
+
+    public static function undeclaredServiceHost(string $host): self
+    {
+        return new self(\sprintf('"%s" is not a declared service host.', mb_substr($host, 0, 100)));
+    }
+
+    public static function leavesService(string $reference, string $origin): self
+    {
+        return new self(\sprintf('"%s" leaves the service at %s.', mb_substr($reference, 0, 100), $origin));
+    }
 }

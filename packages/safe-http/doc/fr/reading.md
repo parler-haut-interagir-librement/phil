@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c477e32cc224782f8cc7fe63f3d35335ebaf2dbbbe9d16a91ac19aa9268ff254 -->
+<!-- phil-dev source-sha256=b7e4dc806b9144fa2113701ed2c9a09af5a3a80efd0c31ea8d8c8c2fc9a2efd7 -->
 # Lecture
 
 ## Le client
@@ -67,9 +67,57 @@ l'information `response_headers`, et par nom.
 |---|---|
 | `get($url, $rule)` | Le statut, les en-têtes et le corps que la règle lit |
 | `head($url)` | Le statut et les en-têtes, sans corps |
+| `send($method, $url, $headers, $body, $rule)` | Une méthode quelconque, avec ses en-têtes et son corps : le statut, les en-têtes, et le corps que la règle lit |
 
 `$url` est un `Phil\Url\Url`, ou une chaîne que la garde lit. Une redirection — `301`, `302`, `303`, `307` ou `308` avec
 un `Location` — est suivie avec la même méthode ; un autre `3xx`, ou un `3xx` sans `Location`, est la réponse.
+
+## Envoyer
+
+`send()` fait une requête d'une méthode quelconque sous les gardes de `get()` : la première adresse et chaque
+redirection vérifiées, les réseaux privés refusés, le silence, la durée totale, les redirections et les octets de la
+réponse bornés par les limites. C'est l'appel pour un point de terminaison de jeton, le service Web d'une autre
+plateforme, un webhook à envoyer.
+
+```php
+$response = $client->send(
+    'POST',
+    'https://platform.example/oauth/token',
+    ['Authorization' => 'Basic '.base64_encode($id.':'.$secret), 'Content-Type' => 'application/x-www-form-urlencoded'],
+    http_build_query(['grant_type' => 'client_credentials', 'scope' => $scope]),
+    new ReadRule('application/json', ['application/json']),
+);
+```
+
+Ce qu'il vérifie avant toute requête, avec `InvalidRequest` :
+
+| Partie | Règle |
+|---|---|
+| La méthode | Des lettres seulement, mises en majuscules par le client, 20 au plus, comme HttpClient de Symfony les prend ; `CONNECT`, qui ouvre un tunnel, et `TRACE`, qui renvoie la requête et ses identifiants de connexion, sont refusés |
+| Le nom d'un en-tête | Un jeton de la RFC 9110, pas fait de chiffres seulement — PHP garde un tel nom comme clé entière, que HttpClient de Symfony lit comme une ligne d'en-tête entière ; jamais `Accept`, que la règle donne, ni `User-Agent`, que les limites donnent, ni un en-tête de la connexion ou du découpage du message — `Host`, `Content-Length`, `Transfer-Encoding`, `Connection`, `Keep-Alive`, `Upgrade`, `TE`, `Trailer`, `Expect` — ni aucun en-tête `Proxy-` |
+| La valeur d'un en-tête | Une ligne, non vide, aucun caractère de contrôle |
+| Les en-têtes | `maxHeaderBytes` et `maxHeaders` des limites, chacun compté comme la ligne `Name: value` |
+| Le corps | `maxBytes` des limites |
+
+Le message d'une `InvalidRequest` nomme un en-tête, jamais sa valeur.
+
+### Les redirections d'une requête
+
+Seule une requête de `GET`, `HEAD` ou `OPTIONS` sans corps suit les redirections, chacune vérifiée comme pour `get()`.
+Toute autre requête — un `POST`, un `PUT`, un `DELETE`, ou un `GET` avec un corps — n'en suit aucune : une redirection
+répondue à celle-ci lance `RefusedRedirect`, de sorte qu'un corps n'est jamais envoyé deux fois, ni à un hôte auquel il
+n'était pas destiné. Un autre `3xx`, ou un `3xx` sans `Location`, est la réponse, comme pour `get()`.
+
+### Les en-têtes et les identifiants de connexion
+
+Les en-têtes donnés à `send()` vont seulement au schéma, à l'hôte et au port de la première adresse. Une redirection
+vers la même origine les porte ; une redirection ailleurs — un autre hôte, un sous-domaine, un autre port, HTTPS vers
+HTTP — n'en porte aucun, seulement l'en-tête `Accept` de la règle et le `User-Agent` des limites. Un `Authorization`,
+un `Cookie` ou une clé d'API n'atteint jamais un hôte que la requête n'a pas nommé.
+
+Le client n'écrit aucun journal, et aucun de ses messages ne nomme la valeur d'un en-tête : les exceptions nomment
+l'adresse, la méthode et le statut. Un transport donné au client garde son propre journaliseur, s'il en a un ; les
+journaux de HttpClient de Symfony nomment la méthode et l'adresse d'une requête, jamais ses en-têtes.
 
 ## La réponse
 
@@ -81,7 +129,7 @@ un `Location` — est suivie avec la même méthode ; un autre `3xx`, ou un `3xx
 | `redirects` | Les adresses vers lesquelles on a été redirigé, dans l'ordre, la dernière étant `url` |
 | `status`, `isSuccessful()` | Le statut ; s'il est `2xx` |
 | `headers`, `header($name)` | Les en-têtes par nom en minuscules ; la première valeur de l'un d'eux |
-| `mediaType()`, `charset()` | Le type de média de `Content-Type` en minuscules, et son jeu de caractères tel qu'écrit |
+| `mediaType()`, `charset()` | Le type de média de `Content-Type` en minuscules, et son jeu de caractères tel qu'écrit, lus par des classes ASCII quelle que soit la locale du processus |
 | `body` | Le corps dans la mesure où il a été lu |
 | `complete` | Si le corps a été lu jusqu'à sa fin : faux s'il a été coupé à `maxBytes` ou après la marque d'arrêt, ou s'il n'a pas été lu |
 
@@ -94,4 +142,6 @@ Toutes implémentent `SafeHttpException`.
 | `RefusedAddress` | L'adresse ou une redirection n'est pas une adresse HTTP ou HTTPS d'un nom d'hôte, ou son hôte est un réseau privé ou s'y résout |
 | `TooManyRedirects` | Les redirections dépassent `maxRedirects` |
 | `FetchFailed` | L'hôte ne répond pas, reste silencieux plus longtemps que `timeout`, la lecture dépasse `maxDuration`, les en-têtes dépassent `maxHeaderBytes` ou `maxHeaders`, ou la connexion se rompt |
+| `RefusedRedirect` | Une requête avec un corps, ou d'une méthode autre que `GET`, `HEAD` ou `OPTIONS`, a reçu une redirection pour réponse |
+| `InvalidRequest` | Une méthode, un en-tête ou un corps que `send()` refuse, avant toute requête |
 | `InvalidLimits` | Des limites, ou un en-tête d'une règle, hors de leurs bornes |

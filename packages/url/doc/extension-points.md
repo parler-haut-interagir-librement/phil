@@ -1,6 +1,7 @@
 # Extension points
 
-The library is plain PHP and declares no service. What an application adds is kinds of address.
+The library is plain PHP and declares no service. What an application adds is kinds of address, and the hosts of
+its own services.
 
 ## `UrlType`
 
@@ -23,3 +24,14 @@ specific cases first: detection takes the first case that accepts.
 
 A kind is kept by its enum class and case wherever an address is stored with it: renaming or removing a case the
 data still name is a migration of the data.
+
+## Service hosts
+
+`Phil\Url\ServiceHosts` — the hosts on which `ServiceUrl` reads an address, from the application's configuration. See
+[Service addresses](service-addresses.md).
+
+| Point | How |
+|---|---|
+| Which hosts are services | The arguments of `new ServiceHosts(...)`: names without a domain, names of a private zone, IP addresses; 256 at most |
+| Where the list comes from | A parameter or an environment variable, never a form or a request |
+| Sharing it | One instance for the application: it is immutable and keeps nothing between requests |

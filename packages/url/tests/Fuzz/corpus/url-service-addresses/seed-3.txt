@@ -1,0 +1,4 @@
+https://ada@example.com/
+pdf.internal.
+https://pdf.internal/convert
+http://pdf.internal/../x

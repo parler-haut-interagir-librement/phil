@@ -8,7 +8,6 @@ use Override;
 use Phil\Url\Exception\InvalidUrl;
 use Spoofchecker;
 use Stringable;
-use Uri\WhatWg\Url as WhatWgUrl;
 
 /**
  * An absolute web address, `http` or `https`, read as a browser reads it, by PHP's URI extension and the WHATWG URL
@@ -24,7 +23,10 @@ use Uri\WhatWg\Url as WhatWgUrl;
  * address whose host is an IP address, or port 0: a link on a public page names a host. So is `localhost`, and any
  * name under `.localhost`, which RFC 6761 keeps for the loopback address — unless the caller allows them, as an
  * application does in development and in its tests: `Url::fromString($text, allowLocalhost: true)`. Even then, an IP
- * address and any other single name stay refused.
+ * address and any other single name stay refused. The address of a service the application runs beside it, whose host
+ * is a bare name or an IP address, is a `ServiceUrl`, read only for the hosts the application declares.
+ *
+ * No result depends on the locale of the process: an address reads the same whatever `LC_CTYPE` is.
  */
 final readonly class Url implements Stringable
 {
@@ -46,60 +48,24 @@ final readonly class Url implements Stringable
      */
     public static function fromString(string $text, bool $allowLocalhost = false): self
     {
-        $text = trim($text);
-
-        if (\strlen($text) > self::MAX_LENGTH) {
-            throw InvalidUrl::tooLong(\strlen($text));
-        }
-
-        // The host follows the two slashes at once: `https:///path` and `https://\host`, which a browser would still open,
-        // are refused.
-        if (1 !== preg_match('#^https?://[^/\\\\]#i', $text) || 1 === preg_match('/\s/', $text)) {
-            throw InvalidUrl::notAUrl($text);
-        }
-
-        // An `@` before the end of the authority — `/`, `\`, `?` or `#` — separates credentials, empty ones included.
-        if (1 === preg_match('#^https?://[^/\\\\?\#]*@#i', $text)) {
-            throw InvalidUrl::credentials();
-        }
-
-        $parsed = WhatWgUrl::parse($text);
-
-        if (!$parsed instanceof WhatWgUrl) {
-            throw InvalidUrl::notAUrl($text);
-        }
-
-        $port = $parsed->getPort();
-
-        if (0 === $port) {
-            throw InvalidUrl::port($port);
-        }
+        $parsed = AddressReader::parse($text);
 
         $url = new self(
             $parsed->getScheme(),
             self::checkedHost((string) $parsed->getAsciiHost(), $allowLocalhost),
-            $port,
+            $parsed->getPort(),
             $parsed->getPath(),
-            self::nonEmpty($parsed->getQuery()),
-            self::nonEmpty($parsed->getFragment()),
+            AddressReader::nonEmpty($parsed->getQuery()),
+            AddressReader::nonEmpty($parsed->getFragment()),
         );
-
-        $length = \strlen($url->toString());
-
-        if ($length > self::MAX_LENGTH) {
-            throw InvalidUrl::tooLong($length);
-        }
+        AddressReader::checkLength($url->toString());
 
         return $url;
     }
 
     public function toString(): string
     {
-        return $this->scheme.'://'.$this->host
-            .(null === $this->port ? '' : ':'.$this->port)
-            .$this->path
-            .(null === $this->query ? '' : '?'.$this->query)
-            .(null === $this->fragment ? '' : '#'.$this->fragment);
+        return AddressReader::write($this->scheme, $this->host, $this->port, $this->path, $this->query, $this->fragment);
     }
 
     #[Override]
@@ -153,7 +119,7 @@ final readonly class Url implements Stringable
      */
     private function readable(string $text): string
     {
-        return (string) preg_replace_callback('/(?:%[89A-F][0-9A-F])+/i', static function (array $match): string {
+        return (string) preg_replace_callback('/(?:%[89A-Fa-f][0-9A-Fa-f])+/', static function (array $match): string {
             $decoded = rawurldecode($match[0]);
 
             return mb_check_encoding($decoded, 'UTF-8') && 1 !== preg_match('/[\p{C}\p{Z}]/u', $decoded) ? $decoded : $match[0];
@@ -182,11 +148,6 @@ final readonly class Url implements Stringable
     public function segments(): array
     {
         return array_values(array_filter(explode('/', $this->path), static fn (string $segment): bool => '' !== $segment));
-    }
-
-    private static function nonEmpty(?string $part): ?string
-    {
-        return '' === $part ? null : $part;
     }
 
     /**

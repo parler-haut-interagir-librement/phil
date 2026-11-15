@@ -4,6 +4,13 @@ All notable changes to `phil/url-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Fixed
+
+- `PhilUrlBundle::shutdown()` sets `UrlColumnType::allowLocalhost()` back to `false`: a kernel booted after one that
+  allowed `localhost`, or a test that runs after it in the same process, no longer inherits its switch.
+
 ## 0.1.1-alpha - 2026-11-11
 
 ### Added

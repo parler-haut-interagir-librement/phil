@@ -15,17 +15,21 @@ a database, an administration page on the loopback. phil/safe-http reads such ad
 - the silence of the host and the whole duration of the read, redirects included, are bounded;
 - the headers of an answer are bounded in bytes and in count, counted as they arrive;
 - the body is read in chunks, only for the media types asked for, up to a number of bytes or a stop mark, and the
-  transfer is then cancelled; a chunk is cut to the bytes that remain before it joins the body.
+  transfer is then cancelled; a chunk is cut to the bytes that remain before it joins the body;
+- `send()` makes a request of any method, with headers and a body, under the same guards: the headers it is given
+  never leave the scheme, host and port of the first address, and a request with a body, or of a method other than
+  `GET`, `HEAD` or `OPTIONS`, follows no redirect.
 
 A read gives a `SafeResponse` — the address that answered, the redirects, the status, the headers and the body as far
-as it was read — or one of three exceptions: the address is refused, the redirects are too many, or the read failed.
+as it was read — or an exception: the address or a redirect is refused, the redirects are too many, the request is
+refused before it is sent, or the read failed.
 An error status is an answer, so that a link check can tell a `404` from a timeout.
 
 ## Status
 
 | Part | State |
 |---|---|
-| `SafeHttpClient`, `Limits`, `ReadRule`, `SafeResponse` | Implemented and tested |
+| `SafeHttpClient`: `get()`, `head()`, `send()`; `Limits`, `ReadRule`, `SafeResponse` | Implemented and tested |
 | `AddressGuard` | Implemented, tested and fuzzed |
 
 ## Documentation
@@ -33,7 +37,7 @@ An error status is an answer, so that a link check can tell a `404` from a timeo
 | Document | What it covers |
 |---|---|
 | [Installation](doc/installation.md) | Requirements and installing. |
-| [Reading](doc/reading.md) | The client, its limits, the rules of a read, the answer and the exceptions. |
+| [Reading](doc/reading.md) | The client, its limits, the rules of a read, sending a request with headers and a body, the answer and the exceptions. |
 | [The guard](doc/guard.md) | What an address must be, redirects, private networks, and what the guard does not cover. |
 | [Extension points](doc/extension-points.md) | The transport, fixed addresses, and what stays closed. |
 | [Testing](doc/testing.md) | The package's tests and its fuzz target. |
@@ -58,6 +62,9 @@ try {
 if (null !== $page && 200 === $page->status) {
     // $page->body: the page up to the end of its head, 1 MiB at most
 }
+
+// A request of another platform's web service, its credentials kept on that host.
+$token = $client->send('POST', 'https://platform.example/oauth/token', ['Authorization' => 'Basic '.$credentials, 'Content-Type' => 'application/x-www-form-urlencoded'], 'grant_type=client_credentials', new ReadRule('application/json'));
 ```
 
 ## Requirements
