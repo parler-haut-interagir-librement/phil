@@ -48,8 +48,8 @@ when a key lacks its translation: run it in continuous integration to keep enums
 Writes enums as TypeScript, so that a front end shares their values and labels instead of copying them:
 
 ```console
-$ bin/console phil:enums:typescript --output=assets/enums.ts
-$ bin/console phil:enums:typescript 'App\Order\OrderStatus' --locale=fr
+bin/console phil:enums:typescript --output=assets/enums.ts
+bin/console phil:enums:typescript 'App\Order\OrderStatus' --locale=fr
 ```
 
 ```ts
@@ -114,7 +114,7 @@ With MakerBundle installed, `make:enum` writes a new enum in the application's `
 `AsEnumerableEnumTrait`, `#[Meta(Label::class)]` and a `Label` on each case:
 
 ```console
-$ bin/console make:enum OrderStatus --case=Pending --case=InTransit --translatable
+bin/console make:enum OrderStatus --case=Pending --case=InTransit --translatable
 ```
 
 ```php
@@ -140,5 +140,5 @@ enum OrderStatus: string implements TranslatableInterface
 | `--translatable` | Implement `TranslatableInterface` with `AsTranslatableEnumTrait`, the labels as keys. |
 
 A name that is not a PHP identifier, or comes twice, is refused; so are, for a string enum, two names whose words
-give the same value (`FooBar` and `Foo_Bar`, `ACTIVE` and `Active`), which PHP would refuse in the written enum. Labels are the names as words: `InTransit` and
-`IN_TRANSIT` both read `In transit`.
+give the same value (`FooBar` and `Foo_Bar`, `ACTIVE` and `Active`), which PHP would refuse in the written enum.
+Labels are the names as words: `InTransit` and `IN_TRANSIT` both read `In transit`.

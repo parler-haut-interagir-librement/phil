@@ -52,8 +52,8 @@ final class EnumSetOfValidator extends ConstraintValidator
         foreach ([[$constraint->min, $count < $constraint->min, $constraint->minMessage, EnumSetOf::TOO_FEW_ERROR], [$constraint->max, $count > $constraint->max, $constraint->maxMessage, EnumSetOf::TOO_MANY_ERROR]] as [$limit, $outside, $message, $code]) {
             if (null !== $limit && $outside) {
                 $this->context->buildViolation($message)
-                    ->setParameter('{{ count }}', (string) $count)
-                    ->setParameter('{{ limit }}', (string) $limit)
+                    ->setParameter('{{ count }}', $count)
+                    ->setParameter('{{ limit }}', $limit)
                     ->setPlural($limit)
                     ->setCode($code)
                     ->addViolation();

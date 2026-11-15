@@ -61,6 +61,9 @@ final class OpenApiKernel extends Kernel
         $container->extension('api_platform', [
             'mapping' => ['paths' => [__DIR__.'/Api']],
             'doctrine' => ['enabled' => false],
+            // API Platform turns Mercure on as soon as the MercureBundle class can be loaded, even when the kernel
+            // does not register the bundle: its link processor then has no Discovery service to receive.
+            'mercure' => ['enabled' => false],
         ]);
         $container->extension('nelmio_api_doc', [
             'areas' => ['default' => ['path_patterns' => ['^/api']]],

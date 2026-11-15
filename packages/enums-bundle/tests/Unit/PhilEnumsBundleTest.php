@@ -227,6 +227,21 @@ final class PhilEnumsBundleTest extends TestCase
         self::assertSame(['type' => 'method', 'property' => 'status'], $workflows['delivery']['marking_store']);
     }
 
+    public function testTheIcuCataloguesArePrependedToFrameworkBundle(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->registerExtension(new FrameworkExtension());
+
+        $extension = new PhilEnumsBundle()->getContainerExtension();
+        self::assertInstanceOf(PrependExtensionInterface::class, $extension);
+        $extension->prepend($builder);
+
+        $directory = \dirname(__DIR__, 2).'/translations-icu';
+        self::assertSame([['translator' => ['paths' => [$directory]]]], $builder->getExtensionConfig('framework'));
+        self::assertFileExists($directory.'/validators+intl-icu.en.php');
+        self::assertFileExists($directory.'/validators+intl-icu.fr.php');
+    }
+
     public function testWithoutWorkflowsNothingIsPrepended(): void
     {
         $builder = new ContainerBuilder();

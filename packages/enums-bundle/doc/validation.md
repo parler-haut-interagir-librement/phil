@@ -87,7 +87,7 @@ public EnumSet $permissions;
 |---|---|
 | `enum`, `only`, `except`, `inGroup`, `whereMeta` | The selection, as for `EnumCase`. |
 | `min`, `max` | The bounds on the number of cases, both included; `null` for none. A negative bound, or a minimum above the maximum, is refused when the constraint is built. |
-| `message`, `notAllowedMessage`, `minMessage`, `maxMessage` | The four messages; the last two are plural, with `{{ count }}` and `{{ limit }}`. |
+| `message`, `notAllowedMessage`, `minMessage`, `maxMessage` | The four messages; the last two are plural, with `{{ count }}` and `{{ limit }}`, both integers. |
 
 | Code | Raised |
 |---|---|
@@ -96,3 +96,32 @@ public EnumSet $permissions;
 | `EnumSetOf::TOO_FEW_ERROR`, `EnumSetOf::TOO_MANY_ERROR` | When the count is outside the bounds. |
 
 `null` is valid, as for every constraint but `NotNull`.
+
+## Messages and translations
+
+The violations carry their numbers as integers — `{{ count }}` and `{{ limit }}` of `EnumSetOf` — and the other
+parameters as strings. The default messages are the translation keys, in the `validators` domain.
+
+The bundle ships catalogues in ICU MessageFormat, in the `validators+intl-icu` domain, in `translations-icu/`:
+
+| Locale | Messages |
+|---|---|
+| `en` | `minMessage` and `maxMessage` of `EnumSetOf`, whose plural follows `{{ limit }}`. |
+| `fr` | Every default message of `EnumCase`, `EnumSetOf` and `Transition`. |
+
+```text
+You must select at least {{ limit }} choice.|You must select at least {{ limit }} choices.
+→ {limit, plural, one {You must select at least # choice.} other {You must select at least # choices.}}
+```
+
+The bundle hands the directory to FrameworkBundle's translator (`framework.translator.paths`) when the translator,
+and `MessageFormatter` of `ext-intl` or of `symfony/polyfill-intl-messageformatter`, are installed. Without
+`MessageFormatter`, the catalogues are left out and the messages stay as written, plural by the `|` form; Symfony's
+own catalogues still translate `minMessage` and `maxMessage`, which are also the messages of its `Choice`
+constraint. With the catalogues, the English and French messages of `Choice` that share these keys read the same,
+in ICU.
+
+The application's own `translations/` directory comes after the bundle's: a message it translates there, in the
+`validators` or the `validators+intl-icu` domain, replaces the bundle's. A message given to a constraint
+(`minMessage: '…'`) is translated as any key of the domain; written in ICU, it belongs in an ICU catalogue of the
+application, since the default formatter only knows the `|` plural.

@@ -129,6 +129,20 @@ final class IntegrationTest extends FunctionalTestCase
 
         self::assertCount(1, $violations);
         self::assertSame('options', $violations[0]?->getPropertyPath());
+        self::assertSame('You must select at most 2 choices.', $violations[0]->getMessage());
+    }
+
+    public function testTheSetConstraintSpeaksTheLocaleThroughTheIcuCatalogues(): void
+    {
+        $parcel = new Parcel();
+        $parcel->options = EnumSet::all(ParcelOption::class);
+        $this->service('translator', LocaleAwareInterface::class)->setLocale('fr');
+
+        $violations = $this->service('validator', ValidatorInterface::class)->validate($parcel);
+
+        self::assertCount(1, $violations);
+        self::assertSame('Vous devez sélectionner au plus 2 choix.', $violations[0]?->getMessage());
+        self::assertSame(2, $violations[0]->getParameters()['{{ limit }}'] ?? null);
     }
 
     public function testTheCommandsReadTheEnumsOfTheConfiguredPaths(): void

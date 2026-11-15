@@ -66,6 +66,7 @@
         "zircote/swagger-php": "^7.1"
     },
     "suggest": {
+        "ext-intl": "For the ICU catalogues of the constraint messages",
         "api-platform/symfony": "To complete the JSON Schema of enum properties",
         "doctrine/dbal": "To store an EnumSet in a column",
         "doctrine/orm": "For the phil:enums:check-sets command",

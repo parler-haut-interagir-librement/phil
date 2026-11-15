@@ -84,4 +84,3 @@ Each case adds its label key and, when it has one, its description key, in its e
 key is the key with the command's prefix, as Symfony's own extractors write it. Without the extractor, the keys an
 enum translates by its metadata appear in no catalogue, and `debug:translation` cannot say they are missing.
 `debug:enums --locale=fr` checks one enum's keys directly ([Commands](commands.md)).
-

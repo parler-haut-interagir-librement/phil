@@ -15,7 +15,7 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
  * - the optional integrations — `doctrine/dbal`, `doctrine/orm`, `doctrine/persistence`, `symfony/console`,
  *   `symfony/expression-language`, `symfony/http-foundation`, `symfony/http-kernel`, `symfony/serializer`,
  *   `symfony/translation`, `symfony/workflow`, API Platform, NelmioApiDoc and its `zircote/swagger-php`,
- *   `symfony/type-info`, MakerBundle —,
+ *   `symfony/type-info`, MakerBundle, and `ext-intl` for the ICU catalogues of the constraint messages —,
  *   which the production code uses but only requires in development and suggests: the bundle registers each one
  *   only when its package is installed;
  * - the two enums of `tests/Unit/Pair/pair.php`, which no autoloader maps on purpose: the test loads the file
@@ -25,6 +25,7 @@ return new Configuration()
     ->addPathToScan(__DIR__.'/src', isDev: false)
     ->addPathToScan(__DIR__.'/tests', isDev: true)
     ->ignoreErrorsOnPackages(['doctrine/dbal', 'doctrine/orm', 'doctrine/persistence', 'symfony/console', 'symfony/expression-language', 'symfony/http-foundation', 'symfony/http-kernel', 'symfony/serializer', 'symfony/translation', 'symfony/workflow', 'api-platform/json-schema', 'api-platform/metadata', 'nelmio/api-doc-bundle', 'zircote/swagger-php', 'symfony/type-info', 'symfony/maker-bundle'], [ErrorType::DEV_DEPENDENCY_IN_PROD])
+    ->ignoreErrorsOnExtension('ext-intl', [ErrorType::DEV_DEPENDENCY_IN_PROD])
     ->ignoreUnknownClasses([
         Left::class,
         Right::class,

@@ -4,6 +4,16 @@ All notable changes to `phil/enums-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Changed
+
+- `EnumSetOf`: the `{{ count }}` and `{{ limit }}` parameters of its violations are integers.
+- The constraint messages are translated by catalogues in ICU MessageFormat (`validators+intl-icu`), which the
+  bundle hands to FrameworkBundle's translator when `MessageFormatter` is installed: in English, `minMessage` and
+  `maxMessage` of `EnumSetOf`, whose plural follows `{{ limit }}`; in French, every default message of `EnumCase`,
+  `EnumSetOf` and `Transition`. The default messages, which are the translation keys, are unchanged.
+
 ## 0.1.1-alpha - 2026-11-14
 
 ### Added
