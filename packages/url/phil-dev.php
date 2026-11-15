@@ -22,6 +22,22 @@ return [
     ],
     'infection' => [
         'mutators' => [
+            // The hosts are looked up with isset(): a value of false is as present as a value of true.
+            'TrueValue' => [
+                'ignoreSourceCodeByRegex' => ['\\$normalised\\[\\$this->normalise\\(\\$host\\)\\] = true;'],
+            ],
+            // The written host has no slash, and a special scheme reads `http:///host` as `http://host`: the host is the
+            // same with or without the slash after it or before it.
+            'Concat' => [
+                'ignoreSourceCodeByRegex' => ['\\$ascii = WhatWgUrl::parse\\(.http://.\\.\\$written\\..\\/.\\)\\?->getAsciiHost\\(\\);'],
+            ],
+            'ConcatOperandRemoval' => [
+                'ignoreSourceCodeByRegex' => ['\\$ascii = WhatWgUrl::parse\\(.http://.\\.\\$written\\..\\/.\\)\\?->getAsciiHost\\(\\);'],
+            ],
+            // An address read by AddressReader is http or https with a host after the slashes: its ASCII host is never null.
+            'CastString' => [
+                'ignoreSourceCodeByRegex' => ['\\$host = \\(string\\) \\$parsed->getAsciiHost\\(\\);'],
+            ],
             // A Url refuses every whitespace in its text, so the path of a Vimeo address never ends with a new line: the
             // pattern of its path matches the same with or without the D modifier.
             'PregMatchRemoveFlags' => [

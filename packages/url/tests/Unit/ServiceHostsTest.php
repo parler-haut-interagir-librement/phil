@@ -79,4 +79,13 @@ final class ServiceHostsTest extends TestCase
 
         new ServiceHosts(str_repeat('a', 150).'/');
     }
+
+    public function testTheMessagesCutAtOneHundredCharactersNotBytes(): void
+    {
+        $long = str_repeat('é', 150);
+
+        self::assertSame(\sprintf('"%s" is not a host a service can be declared on: name the host alone.', str_repeat('é', 100)), InvalidUrl::serviceHost($long)->getMessage());
+        self::assertSame(\sprintf('"%s" is not a declared service host.', str_repeat('é', 100)), InvalidUrl::undeclaredServiceHost($long)->getMessage());
+        self::assertSame(\sprintf('"%s" leaves the service at http://whisper.', str_repeat('é', 100)), InvalidUrl::leavesService($long, 'http://whisper')->getMessage());
+    }
 }

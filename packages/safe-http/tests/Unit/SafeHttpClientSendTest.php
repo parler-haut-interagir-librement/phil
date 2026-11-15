@@ -219,6 +219,14 @@ final class SafeHttpClientSendTest extends TestCase
         $this->client([new MockResponse('')], $limits)->send('GET', 'https://example.com/', ['X' => str_repeat('a', 1021)]);
         self::assertCount(1, $this->sent);
 
+        // One byte past the limit is refused: the count starts at 0.
+        try {
+            $this->client([], $limits)->send('GET', 'https://example.com/', ['X' => str_repeat('a', 1022)]);
+            self::fail('Headers past the bytes were sent.');
+        } catch (InvalidRequest $invalidRequest) {
+            self::assertSame('The headers of the request pass 1024 bytes or 100 headers.', $invalidRequest->getMessage());
+        }
+
         $this->expectException(InvalidRequest::class);
         $this->expectExceptionMessageIsOrContains('The headers of the request pass 1024 bytes or 100 headers.');
 
