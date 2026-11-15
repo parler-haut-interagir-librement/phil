@@ -23,6 +23,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - The stylesheet's path is written to the `asset_mapper` extension, and only when AssetMapperBundle is registered,
   instead of `framework.asset_mapper`.
 - `ReportStream::close()` checks that the stream was flushed and closed.
+- `phil/svg-chart` 0.1.1 is required, for its rasterizer.
 
 ## 0.1.1-alpha - 2026-11-14
 

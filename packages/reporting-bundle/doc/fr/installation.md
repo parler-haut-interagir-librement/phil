@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d6047677b8c61354e124d3695bca15f3437d11df63f7792534a721841a89984f -->
+<!-- phil-dev source-sha256=bc496bf17eeaf2c2a9df04430e14b8b202338889e25f2fe25368e2055b9f77fd -->
 # Installation
 
 ## Prérequis
@@ -6,7 +6,7 @@
 | Paquet | Version | Pourquoi |
 |---|---|---|
 | PHP | 8.5 ou plus récent, avec `intl`, `json`, `mbstring` et `sodium` | Chiffres écrits dans une locale ; tâches en JSON ; libellés comptés en caractères ; identifiants aléatoires. |
-| `phil/svg-chart` | `^0.1` | Les images SVG des graphiques, et leurs images PNG par son rasterizer. |
+| `phil/svg-chart` | `^0.1.1` | Les images SVG des graphiques, et leurs images PNG par son rasterizer. |
 | `symfony/config`, `symfony/dependency-injection` | `^8.2` | Le bundle et sa configuration. |
 | `symfony/service-contracts` | `^3.6` | Les localisateurs des sources, rapports, formats et livraisons. |
 | `psr/clock`, `psr/event-dispatcher` | `^1.0` | Le moment à partir duquel les périodes sont comptées ; `ReportExported`. |

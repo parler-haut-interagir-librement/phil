@@ -4,6 +4,13 @@ All notable changes to `phil/certificates-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Changed
+
+- `phil/open-badges` 0.2 is required, the version that signs and verifies through `web-token/jwt-library`; the
+  courses, the certificates, the PDF and the register are the same.
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

@@ -53,8 +53,9 @@ final class ConcurrentCollectionTest extends TestCase
             $container->register('lock.factory', LockFactory::class)->setArguments([new ExclusiveLockStore()]);
         }
 
-        $container->compile();
+        $container->compile(true);
         $container->set('storage', $storage);
+
         $factory = $container->get('limiter');
         self::assertInstanceOf(RateLimiterFactoryInterface::class, $factory);
 
