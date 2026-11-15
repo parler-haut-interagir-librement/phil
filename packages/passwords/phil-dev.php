@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Phil\Passwords\Generator\Internal\UniqueDecoding;
+use Phil\Passwords\Generator\PassphraseGenerator;
+
 /*
  * What phil/dev-tools reads of this package: its paths and its exceptions to the shared configurations.
  */
@@ -94,8 +97,8 @@ return [
             // closes every word — spare its work: without them the walk starts from nothing to follow and answers `true`.
             'ReturnRemoval' => [
                 'ignore' => [
-                    'Phil\\Passwords\\Generator\\Internal\\UniqueDecoding::holds::49',
-                    'Phil\\Passwords\\Generator\\PassphraseGenerator::separates::183',
+                    UniqueDecoding::class.'::holds::49',
+                    PassphraseGenerator::class.'::separates::183',
                 ],
             ],
             // A cover with as many patterns that costs more is overwritten right after: removing it first changes nothing.
