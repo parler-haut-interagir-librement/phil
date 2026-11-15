@@ -59,7 +59,7 @@ final class MarkupBundleTest extends KernelTestCase
             Titre</aside>
             <section><p>a</p>c</section>
             <footer><h2>t</h2></footer>
-            <pre>{&quot;blocks&quot;:[{&quot;id&quot;:&quot;b1&quot;,&quot;type&quot;:&quot;paragraph&quot;,&quot;data&quot;:{&quot;text&quot;:&quot;&lt;b&gt;a&lt;/b&gt;&quot;}}]}</pre>
+            <pre>{&quot;blocks&quot;:[{&quot;id&quot;:&quot;b1&quot;,&quot;type&quot;:&quot;paragraph&quot;,&quot;data&quot;:{&quot;text&quot;:&quot;&lt;strong&gt;a&lt;/strong&gt;&quot;}}]}</pre>
 
             HTML, $page);
     }

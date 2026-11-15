@@ -837,7 +837,7 @@ final class Walker
      * a `<label>` or a `<p>` the item starts with — `phil/ujo` writes its checkbox in a `<label>`, a loose list puts
      * it in a paragraph —; `null` when the item starts otherwise.
      */
-    private static function leadingBox(Element $item, int $depth = 0): ?Element
+    private static function leadingBox(Element $item, bool $nested = false): ?Element
     {
         foreach ($item->childNodes as $child) {
             if ($child instanceof Comment || ($child instanceof Text && '' === trim($child->data, " \t\n\r\f"))) {
@@ -847,7 +847,7 @@ final class Walker
             return match (true) {
                 !$child instanceof Element => null,
                 self::isCheckbox($child) => $child,
-                $depth < 1 && ('label' === $child->localName || 'p' === $child->localName) => self::leadingBox($child, $depth + 1),
+                !$nested && ('label' === $child->localName || 'p' === $child->localName) => self::leadingBox($child, true),
                 default => null,
             };
         }
@@ -899,7 +899,7 @@ final class Walker
         $rows = [];
         $headings = [];
 
-        if ($element->parentElement?->closest('li') instanceof Element) {
+        if ($element->closest('li') instanceof Element) {
             $this->context->lose('table', $this->path($element), LossReason::TableInListItem);
         }
 
@@ -1082,7 +1082,7 @@ final class Walker
             return $this->spoken($node, 'math' === $name ? $this->markup($node) : $this->drawing($node));
         }
 
-        if (self::isCheckbox($node) && $node->parentElement?->closest('li') instanceof Element) {
+        if (self::isCheckbox($node) && $node->closest('li') instanceof Element) {
             $this->context->lose($name, $this->path($node), LossReason::MisplacedCheckbox);
         }
 

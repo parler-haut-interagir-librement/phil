@@ -52,7 +52,7 @@ final class MarkupExtensionTest extends TestCase
 
         self::assertSame('{"blocks":[]}', $extension->ujo(null));
         self::assertSame('{"blocks":[]}', $extension->ujo(null, 'html'));
-        self::assertSame('{"blocks":[{"id":"b1","type":"paragraph","data":{"text":"<b>a</b>"}}]}', $extension->ujo('**a**'));
+        self::assertSame('{"blocks":[{"id":"b1","type":"paragraph","data":{"text":"<strong>a</strong>"}}]}', $extension->ujo('**a**'));
         self::assertSame('{"blocks":[{"id":"b1","type":"paragraph","data":{"text":"<b>a</b>"}}]}', $extension->ujo('[b]a[/b]', 'bbcode', 'basic'));
         self::assertStringStartsWith('{"blocks":[{"id":"b1","type":"paragraph"', $extension->ujo("[html]\n<i>x</i>\n[/html]", 'bbcode', 'all'));
 

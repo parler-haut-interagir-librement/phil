@@ -37,8 +37,8 @@ final readonly class SanitizerPurifier implements HtmlPurifier
 
     private const array FORUM = ['p', 'ul', 'ol', 'li', 'blockquote', 'cite', 'pre', 'hr'];
 
-    /** An `input` element as the sanitizer writes it — its attribute values never hold `>` —, its attributes captured. */
-    private const string INPUT = '/<input\b([^>]*)>/';
+    /** An `input` element as the sanitizer writes it: its attribute values never hold `>`. */
+    private const string INPUT = '/<input\b[^>]*>/';
 
     /** The containers a level does not allow, removed with their text kept. */
     private const array CONTAINERS = ['p', 'div', 'span', 'a', 'label', 'ul', 'ol', 'li', 'blockquote', 'cite', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'dl', 'dt', 'dd', 'figure', 'figcaption', 'section', 'article', 'header', 'footer', 'aside', 'small', 'mark', 'abbr', 'q', 'details', 'summary'];
@@ -101,7 +101,7 @@ final readonly class SanitizerPurifier implements HtmlPurifier
     {
         $clean = $this->sanitizers[$level->value]->sanitize($html);
 
-        return Level::All === $level && str_contains($clean, '<input') ? $this->checkboxes($clean) : $clean;
+        return str_contains($clean, '<input') ? $this->checkboxes($clean) : $clean;
     }
 
     /**
@@ -112,12 +112,12 @@ final readonly class SanitizerPurifier implements HtmlPurifier
     private function checkboxes(string $html): string
     {
         return (string) preg_replace_callback(self::INPUT, static function (array $input): string {
-            preg_match_all('/ ([^\s"=\/>]+)(?:="([^"]*)")?/', $input[1], $attributes, \PREG_SET_ORDER);
+            preg_match_all('/ ([^\s"=\/>]+)(?:="([^"]*)")?/', $input[0], $attributes, \PREG_SET_ORDER);
             $type = '';
             $checked = false;
 
             foreach ($attributes as $attribute) {
-                $name = strtolower($attribute[1]);
+                $name = $attribute[1];
                 $type = 'type' === $name ? strtolower($attribute[2] ?? '') : $type;
                 $checked = $checked || 'checked' === $name;
             }
