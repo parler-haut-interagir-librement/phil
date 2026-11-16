@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\IdentityProviderBundle\Infrastructure\Doctrine;
 
 use DateTimeImmutable;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
@@ -13,7 +14,8 @@ use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
 
 /**
  * The codes in `phil_identity_code` and the tokens in `phil_identity_token`; each save is flushed, the purge is two
- * statements.
+ * statements. A code is used, and a refresh token rotated, by one conditional `UPDATE`, whose count of rows tells the
+ * one request that won.
  */
 final readonly class DoctrineGrantRepository implements GrantRepository
 {
@@ -33,6 +35,23 @@ final readonly class DoctrineGrantRepository implements GrantRepository
     {
         $this->entityManager->persist($code);
         $this->entityManager->flush();
+    }
+
+    #[Override]
+    public function consumeCode(AuthorizationCode $code, DateTimeImmutable $now): bool
+    {
+        $count = $this->entityManager->createQuery(\sprintf('UPDATE %s c SET c.usedAt = :now WHERE c.id = :id AND c.usedAt IS NULL', AuthorizationCode::class))
+            ->setParameter('now', $now, Types::DATETIME_IMMUTABLE)
+            ->setParameter('id', $code->id())
+            ->execute();
+
+        if (1 !== $count) {
+            return false;
+        }
+
+        $code->use($now);
+
+        return true;
     }
 
     #[Override]
@@ -70,6 +89,23 @@ final readonly class DoctrineGrantRepository implements GrantRepository
         }
 
         $this->entityManager->flush();
+    }
+
+    #[Override]
+    public function rotateToken(IssuedToken $token, DateTimeImmutable $now): bool
+    {
+        $count = $this->entityManager->createQuery(\sprintf('UPDATE %s t SET t.rotatedAt = :now WHERE t.id = :id AND t.rotatedAt IS NULL AND t.revokedAt IS NULL', IssuedToken::class))
+            ->setParameter('now', $now, Types::DATETIME_IMMUTABLE)
+            ->setParameter('id', $token->id())
+            ->execute();
+
+        if (1 !== $count) {
+            return false;
+        }
+
+        $token->rotate($now);
+
+        return true;
     }
 
     #[Override]

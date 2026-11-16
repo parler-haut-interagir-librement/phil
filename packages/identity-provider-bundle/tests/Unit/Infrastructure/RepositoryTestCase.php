@@ -268,6 +268,87 @@ abstract class RepositoryTestCase extends TestCase
         self::assertNotNull($this->grants()->token(IssuedToken::idOfRefresh('r')));
     }
 
+    public function testACodeIsUsedOnceAndARefreshTokenRotatedOnce(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $this->grants()->saveCode(AuthorizationCode::issue('code', 'app', self::ADA, 'https://a/cb', ['openid'], null, null, $now, [], null, 'FAMILY0000000000000000000A', $now->modify('+60 seconds')));
+        $refresh = IssuedToken::issue(IssuedToken::idOfRefresh('r'), TokenKind::Refresh, 'FAMILY0000000000000000000A', 'app', self::ADA, ['offline_access'], null, $now, [], $now, $now->modify('+30 days'));
+        $revoked = IssuedToken::issue(IssuedToken::idOfRefresh('gone'), TokenKind::Refresh, 'FAMILY0000000000000000000A', 'app', self::ADA, ['offline_access'], null, $now, [], $now, $now->modify('+30 days'));
+        $revoked->revoke($now);
+        $this->grants()->saveToken($refresh, $revoked);
+        $this->clear();
+
+        $code = $this->grants()->code(AuthorizationCode::idOf('code'));
+        self::assertNotNull($code);
+        self::assertTrue($this->grants()->consumeCode($code, $now));
+        self::assertTrue($code->isUsed());
+        self::assertFalse($this->grants()->consumeCode($code, $now));
+        $this->clear();
+        $stale = $this->grants()->code(AuthorizationCode::idOf('code'));
+        self::assertNotNull($stale);
+        self::assertTrue($stale->isUsed());
+        self::assertFalse($this->grants()->consumeCode($stale, $now));
+        self::assertFalse($this->grants()->consumeCode(AuthorizationCode::issue('unknown', 'app', self::ADA, 'https://a/cb', [], null, null, $now, [], null, 'FAMILY0000000000000000000A', $now), $now));
+
+        $token = $this->grants()->token(IssuedToken::idOfRefresh('r'));
+        self::assertNotNull($token);
+        self::assertTrue($this->grants()->rotateToken($token, $now));
+        self::assertTrue($token->isRotated());
+        self::assertFalse($this->grants()->rotateToken($token, $now));
+        $this->clear();
+        self::assertTrue($this->grants()->token(IssuedToken::idOfRefresh('r'))?->isRotated());
+        $gone = $this->grants()->token(IssuedToken::idOfRefresh('gone'));
+        self::assertNotNull($gone);
+        self::assertFalse($this->grants()->rotateToken($gone, $now));
+        $this->clear();
+        self::assertFalse($this->grants()->token(IssuedToken::idOfRefresh('gone'))?->isRotated());
+    }
+
+    public function testAChangeToAFactorAppliesToItsStoredRow(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $this->factors()->save(TotpCredential::enroll(self::ADA, 'plain.FIRST', $now), RecoveryCodeSet::generate(self::ADA, ['a', 'b'], $now));
+        $this->clear();
+
+        $totp = $this->factors()->totp(self::ADA);
+        self::assertNotNull($totp);
+        self::assertTrue($this->factors()->apply($totp, static function (TotpCredential $current) use ($now): bool {
+            $current->accept(57_000_000_000, $now);
+
+            return true;
+        }));
+        self::assertFalse($this->factors()->apply($totp, static function (TotpCredential $current) use ($now): bool {
+            $current->accept(57_000_000_009, $now);
+
+            return false;
+        }));
+        $this->clear();
+        self::assertSame(57_000_000_000, $this->factors()->totp(self::ADA)?->lastCounter());
+
+        $stale = $this->factors()->totp(self::ADA);
+        self::assertNotNull($stale);
+        $this->factors()->remove($stale);
+        self::assertFalse($this->factors()->apply($stale, static fn (TotpCredential $current): bool => true));
+        $this->factors()->save(TotpCredential::enroll(self::ADA, 'plain.SECOND', $now));
+        $seen = null;
+        self::assertFalse($this->factors()->apply($stale, static function (TotpCredential $current) use (&$seen): bool {
+            $seen = [$current->storedSecret(), $current->lastCounter()];
+
+            return false;
+        }));
+        self::assertSame(['plain.SECOND', null], $seen);
+
+        $set = $this->factors()->recoveryCodes(self::ADA);
+        self::assertNotNull($set);
+        self::assertTrue($this->factors()->apply($set, static function (RecoveryCodeSet $current): bool {
+            $current->use(1);
+
+            return true;
+        }));
+        $this->clear();
+        self::assertSame(['a', null], $this->factors()->recoveryCodes(self::ADA)?->hashes());
+    }
+
     public function testSigningKeys(): void
     {
         $now = new DateTimeImmutable('2026-11-14 10:00:00');

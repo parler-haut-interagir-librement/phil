@@ -79,14 +79,20 @@ state and `iss`.
 
 The code lives `oidc.code_lifetime` seconds and is exchanged once, by its client, with the same redirect address and the
 PKCE verifier of its challenge — and without a verifier when the request carried no challenge, so that one cannot be
-added afterwards (RFC 9700, section 2.1.1); a second exchange revokes every token issued from it. The answer holds:
+added afterwards (RFC 9700, section 2.1.1); a second exchange revokes every token issued from it. The code is marked
+used by one conditional write, so that of two requests presenting it at the same time only one gets tokens; the other
+is refused as a reuse. The answer holds:
 
 - an access token, a JSON Web Token of type `at+jwt` (RFC 9068) whose `jti` has a row, so that it can be revoked and
   introspected; its audience is the issuer, for userinfo;
 - an ID token with `iss`, `sub`, `aud`, `exp`, `iat`, `auth_time`, `nonce`, `amr` — the methods proven —, `sid` and
   `at_hash`; the claims of the scopes come from userinfo;
-- with the scope `offline_access`, an opaque refresh token, rotated at each use: a rotated token presented again
-  revokes its whole family, the sign of a stolen token.
+- with the scope `offline_access`, an opaque refresh token, rotated at each use by one conditional write: a rotated
+  token presented again — even by a request that read it at the same time as the one that rotated it — revokes its
+  whole family, the sign of a stolen token.
+
+Introspection answers `active: false` for a token that is not the asking client's, expired, revoked or rotated, and for
+every token of an account that was removed or disabled, as userinfo refuses them.
 
 The subject is the account's ULID, the same for every client. Userinfo takes the access token in the `Authorization`
 header or, by `POST`, in the `access_token` member of a form body (RFC 6750), never in the query and never both ways.
@@ -123,6 +129,12 @@ removes the keys retired for longer than `oidc.retired_key_retention`, activates
 published for `oidc.key_activation_delay` — retiring the active one —, and creates the next pending key. Clients that
 cache the key set see each key before it signs, and keep it until the last token it signed has expired. After a key
 was exposed, `--now` activates the pending key at once.
+
+Instances that start, or rotate, at the same time may each activate or create a key. Every read of the keys settles
+that, the same way on every instance: of several active keys, all but the one activated last — the greatest `kid`
+breaking a tie — are retired, and stay published for the tokens they signed; of several pending keys, all but the
+oldest are removed, having signed nothing. The settlement is journaled as `identity.oidc.key_rotated`, with the keys retired
+and the count removed.
 
 ## Consent and logout
 

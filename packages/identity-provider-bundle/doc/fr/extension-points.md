@@ -12,7 +12,7 @@ mineure peut les changer, et son CHANGELOG dit comment.
 | Écrire les événements ailleurs | Implémentez `Application\Contract\AuditRecorder` et nommez le service dans `audit` |
 | Sceller autrement les secrets | Donnez à `Application\Contract\SecretCipher` un alias vers votre propre service |
 | Réagir à ce qui arrive aux comptes | Écoutez `Application\Event\IdentityEvent` sur le répartiteur d'événements : son type et ses identifiants |
-| Garder les lignes ailleurs | Donnez à une interface de `Domain\Contract` — `AccountRepository`, `PasskeyRepository`, … — un alias vers votre propre magasin |
+| Garder les lignes ailleurs | Donnez à une interface de `Domain\Contract` — `AccountRepository`, `PasskeyRepository`, … — un alias vers votre propre magasin ; `GrantRepository::consumeCode()` et `rotateToken()` doivent changer la ligne par une seule écriture conditionnelle, et `SecondFactorRepository::apply()` doit relire la ligne et la retenir pendant qu'elle change, de sorte qu'un code ne serve qu'une fois même à deux requêtes simultanées |
 | Protéger vos propres actions | Exigez `PHIL_STEP_UP` avec `#[IsGranted]` ou `isGranted()` |
 | Changer une page | Remplacez son gabarit sous `templates/bundles/PhilIdentityProviderBundle/`, ou nommez votre mise en page dans `layout` |
 | Traduire les pages | Ajoutez `translations/phil_identity_provider.<locale>.php` (ou `.yaml`, `.xlf`) avec les clés du fichier anglais |

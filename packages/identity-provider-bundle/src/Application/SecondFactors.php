@@ -20,7 +20,8 @@ use SensitiveParameter;
  * The authenticator application and the recovery codes of an account.
  *
  * Enrolment keeps a sealed secret that counts for nothing until a first code confirms it; a code is accepted once,
- * within one period before or after the current one. Recovery codes are generated when the application is confirmed,
+ * within one period before or after the current one — once even when two requests present it at the same time, the
+ * counter and the recovery codes being read again and held while they change. Recovery codes are generated when the application is confirmed,
  * shown once, and each one replaces a code of the application one time.
  */
 final readonly class SecondFactors
@@ -157,11 +158,24 @@ final readonly class SecondFactors
             return false;
         }
 
-        $set->use($position);
-        $this->factors->save($set);
-        $this->journal->record(IdentityEventType::RecoveryCodeUsed, $account->id(), ['remaining' => $set->remaining()]);
+        $hash = $set->hashes()[$position];
+        $remaining = null;
+        $used = $this->factors->apply($set, static function (RecoveryCodeSet $current) use ($position, $hash, &$remaining): bool {
+            if (($current->hashes()[$position] ?? null) !== $hash) {
+                return false;
+            }
 
-        return true;
+            $current->use($position);
+            $remaining = $current->remaining();
+
+            return true;
+        });
+
+        if ($used) {
+            $this->journal->record(IdentityEventType::RecoveryCodeUsed, $account->id(), ['remaining' => $remaining]);
+        }
+
+        return $used;
     }
 
     private function accept(Account $account, TotpCredential $credential, #[SensitiveParameter] string $code): bool
@@ -174,10 +188,17 @@ final readonly class SecondFactors
             return false;
         }
 
-        $credential->accept($counter, $now);
-        $this->factors->save($credential);
+        $secret = $credential->storedSecret();
 
-        return true;
+        return $this->factors->apply($credential, static function (TotpCredential $current) use ($secret, $counter, $now): bool {
+            if ($current->storedSecret() !== $secret || (null !== $current->lastCounter() && $counter <= $current->lastCounter())) {
+                return false;
+            }
+
+            $current->accept($counter, $now);
+
+            return true;
+        });
     }
 
     private function context(Account $account): string

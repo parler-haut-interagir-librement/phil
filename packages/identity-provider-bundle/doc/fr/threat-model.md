@@ -46,7 +46,7 @@ Ce dont le bundle se défend, comment, et ce qu'il laisse à l'application. Une 
 | Mots de passe faibles ou divulgués | `phil/passwords` : estimateur de force avec les données propres au compte comme premières hypothèses ; Pwned Passwords par k-anonymat quand il est activé. |
 | Base de données de mots de passe volée | Argon2id ; aucun mot de passe dans un journal, un message ou un événement. |
 | Hameçonnage | Clés d'accès : le navigateur ne signe que pour la partie de confiance ; origines vérifiées. |
-| Code TOTP rejoué | Le compteur accepté est conservé ; un code ne se vérifie qu'une fois. |
+| Code TOTP rejoué | Le compteur accepté est conservé, relu et retenu avant d'être enregistré ; un code ne se vérifie qu'une fois, même présenté par deux requêtes en même temps. |
 | Authentificateur cloné | Le compteur de signature doit avancer quand l'authentificateur en tient un. |
 | Réponses d'authentificateur malformées | Lecteur CBOR borné : profondeur, éléments et longueurs vérifiés avant l'allocation ; soumis au fuzzing. |
 | Énumération de comptes | L'inscription, la réinitialisation du mot de passe et les liens de connexion répondent la même chose pour les adresses connues et inconnues. |
@@ -68,13 +68,14 @@ Ce dont le bundle se défend, comment, et ce qu'il laisse à l'application. Une 
 |---|---|
 | Redirection ouverte, vol de code par une adresse de redirection | Correspondance exacte avec une adresse enregistrée, lue par `phil/url` ; erreurs sur le client montrées, non redirigées. |
 | Interception ou injection de code | PKCE S256 exigé de chaque client public et, par défaut, de chaque client confidentiel ; un code émis sans défi refuse un vérificateur au point de terminaison de jeton (RFC 9700, section 2.1.1) ; codes hachés, de courte durée, utilisés une fois, la réutilisation révoquant la famille. |
-| Vol de jeton d'actualisation | Rotation avec détection de réutilisation qui révoque la famille. |
+| Vol de jeton d'actualisation | Rotation par une seule écriture conditionnelle, avec détection de réutilisation qui révoque la famille, même entre deux requêtes simultanées. |
 | Falsification de jeton | Signatures asymétriques seulement — RS256, ES256, EdDSA. Avant la bibliothèque : un jeton d'au plus `Jws::MAX_LENGTH` octets, trois parties, un en-tête et des revendications qui sont des objets JSON de profondeur bornée, un en-tête qui nomme un algorithme et un `kid`, ni `crit` ni `b64`. Ensuite le `kid` doit nommer une clé publiée, l'algorithme de l'en-tête doit être l'`alg` propre à la clé, et la bibliothèque vérifie avec cet algorithme seul : `none`, HMAC et la confusion d'algorithmes sont refusés. |
 | Clés trop faibles ou d'un mauvais genre | Nouvelles clés : RSA de 3072 bits, P-256, Ed25519, créées par `JWKFactory`. Une clé relue du magasin doit correspondre au type et à la courbe de son algorithme et contenir tous ses membres privés ; un module RSA de moins de 2048 bits est refusé. |
 | Objets de requête et assertions de client | Non acceptés : `request` et `request_uri` sont refusés avec `request_not_supported` et `request_uri_not_supported` avant que quoi que ce soit les lise ; les clients s'authentifient par secret ou, publics, par PKCE. Aucun JSON Web Token d'un client n'atteint la bibliothèque. |
 | Confusion entre fournisseurs | L'émetteur dans la réponse d'autorisation (RFC 9207). |
 | Compromission de clé | Rotation avec publication avant l'emploi ; `rotate-keys --now` ; clés privées scellées par le composant KeyManagement quand il est configuré. |
 | Un client qui lit les jetons d'un autre | L'introspection et la révocation ne répondent que pour les jetons du client qui demande. |
+| Un compte désactivé qui garde son accès | L'introspection répond `active: false` pour les jetons d'un compte désactivé, comme userinfo les refuse. |
 
 ## Liaison de comptes
 

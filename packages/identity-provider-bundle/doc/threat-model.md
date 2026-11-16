@@ -43,7 +43,7 @@ write the code comes before the bundle is used in production, against this page 
 | Weak or breached passwords | `phil/passwords`: strength estimator with the account's own data as first guesses; Pwned Passwords by k-anonymity when turned on. |
 | Stolen password database | Argon2id; no password in a log, a message or an event. |
 | Phishing | Passkeys: the browser signs only for the relying party; origins checked. |
-| Replayed TOTP code | The counter accepted is kept; a code verifies once. |
+| Replayed TOTP code | The counter accepted is kept, read again and held before it is saved; a code verifies once, even presented by two requests at the same time. |
 | Cloned authenticator | The signature counter must move forward when the authenticator keeps one. |
 | Malformed authenticator answers | Bounded CBOR reader: depth, items and lengths checked before allocation; fuzzed. |
 | Account enumeration | Registration, password reset and sign-in links answer the same for known and unknown addresses. |
@@ -65,13 +65,14 @@ write the code comes before the bundle is used in production, against this page 
 |---|---|
 | Open redirect, code theft through a redirect address | Exact match with a registered address, read by `phil/url`; errors about the client shown, not redirected. |
 | Code interception or injection | PKCE S256 required of every public client and, by default, of every confidential one; a code issued without a challenge refuses a verifier at the token endpoint (RFC 9700, section 2.1.1); codes hashed, short-lived, used once, reuse revoking the family. |
-| Refresh token theft | Rotation with reuse detection revoking the family. |
+| Refresh token theft | Rotation by one conditional write, with reuse detection revoking the family, even between two requests at the same time. |
 | Token forgery | Asymmetric signatures only — RS256, ES256, EdDSA. Before the library: a token of at most `Jws::MAX_LENGTH` bytes, three parts, a header and claims that are JSON objects of bounded depth, a header naming an algorithm and a `kid`, no `crit` and no `b64`. Then the `kid` must name a published key, the header's algorithm must be the key's own `alg`, and the library verifies with that algorithm alone: `none`, HMAC and algorithm confusion are refused. |
 | Keys too weak or of the wrong kind | New keys: RSA of 3072 bits, P-256, Ed25519, made by `JWKFactory`. A key read back from the store must match the type and curve of its algorithm and hold every private member; an RSA modulus under 2048 bits is refused. |
 | Request objects and client assertions | Not accepted: `request` and `request_uri` are refused with `request_not_supported` and `request_uri_not_supported` before anything reads them; clients authenticate by secret or, public, by PKCE. No JSON Web Token from a client reaches the library. |
 | Mix-up between providers | The issuer in the authorization response (RFC 9207). |
 | Key compromise | Rotation with publication before use; `rotate-keys --now`; private keys sealed by the KeyManagement component when configured. |
 | A client reading another client's tokens | Introspection and revocation answer only for the asking client's tokens. |
+| A disabled account keeping its access | Introspection answers `active: false` for the tokens of a disabled account, as userinfo refuses them. |
 
 ## Account linking
 

@@ -17,6 +17,14 @@ interface GrantRepository
 
     public function saveCode(AuthorizationCode $code): void;
 
+    /**
+     * Marks the code used, in one step, unless it already is: of two requests that read it unused at once, only one is
+     * told it used it (RFC 6749, section 4.1.2).
+     *
+     * @return bool whether this call used the code
+     */
+    public function consumeCode(AuthorizationCode $code, DateTimeImmutable $now): bool;
+
     public function token(string $id): ?IssuedToken;
 
     /**
@@ -35,6 +43,14 @@ interface GrantRepository
     public function forSession(string $sessionId): array;
 
     public function saveToken(IssuedToken ...$tokens): void;
+
+    /**
+     * Marks the refresh token rotated, in one step, unless it already is rotated or revoked: of two requests that read
+     * it active at once, only one is told it rotated it (RFC 9700, section 4.14).
+     *
+     * @return bool whether this call rotated the token
+     */
+    public function rotateToken(IssuedToken $token, DateTimeImmutable $now): bool;
 
     /**
      * Removes the codes and tokens expired before the date.

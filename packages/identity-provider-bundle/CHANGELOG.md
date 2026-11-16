@@ -4,6 +4,34 @@ All notable changes to `phil/identity-provider-bundle` will be documented in thi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: introspection refuses what it accepted, and two repository contracts gain a method.
+
+### Changed
+
+- `GrantRepository::consumeCode()` and `GrantRepository::rotateToken()`: a repository of the application's own
+  implements them, each by one conditional write that tells whether this call changed the row.
+- `SecondFactorRepository::apply()`: a repository of the application's own implements it, reading the row again and
+  holding it while the change applies.
+- `TotpCredential::$secret` and `TotpCredential::$createdAt` are no longer read-only properties, so that the store can
+  read the row again over the object. The schema does not change.
+
+### Security
+
+- `Tokens::introspect()` answers `active: false` for the tokens of a disabled account, as `Tokens::bearer()` refuses
+  them; an access or refresh token of a disabled account was reported active until it expired or was revoked.
+- `Tokens::exchangeCode()` marks the code used with `GrantRepository::consumeCode()`: two requests presenting the same
+  code at the same time could both receive tokens; the second is now refused as a reuse and revokes the family.
+- `Tokens::refresh()` rotates the refresh token with `GrantRepository::rotateToken()`: two requests presenting the same
+  refresh token at the same time could both rotate it; the second is now refused as a reuse and revokes the family.
+- `SecondFactors` accepts a TOTP counter and crosses out a recovery code through `SecondFactorRepository::apply()`,
+  under `SELECT … FOR UPDATE` with Doctrine: the same code presented by two requests at the same time could be accepted
+  twice; it is now accepted once.
+- `SigningKeys` settles the keys at every read: instances starting or rotating at the same time could leave several
+  active or pending keys, the extra ones never retired; all but the last activated are now retired, and all but the
+  oldest pending removed, the same way on every instance.
+
 ## 0.1.0-alpha - 2026-11-15
 
 ### Added

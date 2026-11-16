@@ -11,7 +11,9 @@ use SensitiveParameter;
 /**
  * The authenticator application of an account, as a row of `phil_identity_totp`: its secret — encrypted by the key
  * management service when one is configured —, when its first code confirmed it, and the last counter accepted, so
- * that a code is never accepted twice. Until it is confirmed, it does not count as a second factor.
+ * that a code is never accepted twice. Until it is confirmed, it does not count as a second factor. Only its account
+ * is a read-only property: the store reads the row again over the object before accepting a code, and the secret may
+ * have been replaced by a new enrolment meanwhile.
  */
 #[ORM\Entity]
 #[ORM\Table(name: self::TABLE)]
@@ -24,9 +26,9 @@ final class TotpCredential
         #[ORM\Column(name: 'account_id', length: 26, options: ['fixed' => true])]
         private readonly string $accountId,
         #[ORM\Column(name: 'secret', type: 'text')]
-        private readonly string $secret,
+        private string $secret,
         #[ORM\Column(name: 'created_at')]
-        private readonly DateTimeImmutable $createdAt,
+        private DateTimeImmutable $createdAt,
         #[ORM\Column(name: 'confirmed_at', nullable: true)]
         private ?DateTimeImmutable $confirmedAt = null,
         #[ORM\Column(name: 'last_counter', type: 'bigint', nullable: true)]

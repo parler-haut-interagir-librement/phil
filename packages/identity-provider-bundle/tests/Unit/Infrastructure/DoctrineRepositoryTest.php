@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Tests\Unit\Infrastructure;
 
+use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Name\OptionallyQualifiedName;
 use Override;
+use Phil\IdentityProviderBundle\Domain\Model\Totp\TotpCredential;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountSessionRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineClientRepository;
@@ -35,6 +37,23 @@ final class DoctrineRepositoryTest extends DoctrineRepositoryTestCase
     protected function connection(): Connection
     {
         return DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+    }
+
+    public function testAChangeReadsTheRowAgainOverWhatTheUnitOfWorkHolds(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $this->factors()->save(TotpCredential::enroll(self::ADA, 'plain.SECRET', $now));
+        $held = $this->factors()->totp(self::ADA);
+        self::assertNotNull($held);
+        $this->entityManager()->getConnection()->executeStatement('UPDATE phil_identity_totp SET last_counter = 99');
+        $seen = null;
+
+        self::assertFalse($this->factors()->apply($held, static function (TotpCredential $current) use (&$seen): bool {
+            $seen = $current->lastCounter();
+
+            return false;
+        }));
+        self::assertSame(99, $seen);
     }
 
     public function testTheTables(): void

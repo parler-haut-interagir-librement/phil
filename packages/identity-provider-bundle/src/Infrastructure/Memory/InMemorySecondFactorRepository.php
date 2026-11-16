@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Infrastructure\Memory;
 
+use Closure;
 use Override;
 use Phil\IdentityProviderBundle\Domain\Contract\SecondFactorRepository;
 use Phil\IdentityProviderBundle\Domain\Model\Totp\RecoveryCodeSet;
@@ -55,6 +56,27 @@ final class InMemorySecondFactorRepository implements SecondFactorRepository, Re
         } else {
             unset($this->codes[$factor->accountId()]);
         }
+    }
+
+    /**
+     * @template T of TotpCredential|RecoveryCodeSet
+     *
+     * @param T                $factor
+     * @param Closure(T): bool $change
+     */
+    #[Override]
+    public function apply(TotpCredential|RecoveryCodeSet $factor, Closure $change): bool
+    {
+        /** @var T|null $stored the same class as the factor */
+        $stored = $factor instanceof TotpCredential ? $this->totp($factor->accountId()) : $this->recoveryCodes($factor->accountId());
+
+        if (null === $stored || !$change($stored)) {
+            return false;
+        }
+
+        $this->save($stored);
+
+        return true;
     }
 
     #[Override]

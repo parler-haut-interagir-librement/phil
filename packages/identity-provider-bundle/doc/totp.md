@@ -10,13 +10,16 @@ link an application on the same device opens, the content of a QR code — and t
 The secret is kept sealed by the `SecretCipher`: encrypted by the KeyManagement component when `secrets.kms_key` is
 set. It counts for nothing until a first code confirms it. A code is accepted within `totp.window` periods before and
 after the current one, and once: the counter it matched is kept, and the same code, or an older one, never verifies
-again. Every counter of the window is computed, so that the time taken says nothing of which one matched.
+again. Every counter of the window is computed, so that the time taken says nothing of which one matched. The counter
+is read again, and held, before it is saved: of two requests presenting the same code at the same time, only one is
+accepted.
 
 ## Recovery codes
 
 With the module `recovery_codes`, confirming the application generates ten codes of ten characters from an alphabet
 without look-alikes, shown once as `XXXXX-XXXXX`. They are kept as HMAC-SHA-256 under a key derived from `secret`; a
-code is read without case, spaces or dashes, compared in constant time, and used once. New codes replace the old ones.
+code is read without case, spaces or dashes, compared in constant time, and used once — once even by two requests at
+the same time, the codes being read again and held before one is crossed out. New codes replace the old ones.
 Turning the application off removes them.
 
 ## The second step

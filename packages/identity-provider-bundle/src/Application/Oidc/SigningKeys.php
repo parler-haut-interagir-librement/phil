@@ -21,6 +21,11 @@ use Psr\Clock\ClockInterface;
  * activates the pending key once it has been published for `keyActivationDelay` — retiring the active one —, and
  * creates the next pending key. Clients that cache the key set thus see each key before it signs and keep it until
  * the last token it signed has expired. A provider without any key creates and activates one at once.
+ *
+ * Instances that start or rotate at the same time may each activate or create a key. Every read settles that: of
+ * several active keys, all but the one activated last — the greatest identifier breaking a tie — are retired, and stay
+ * published for the tokens they signed; of several pending keys, all but the oldest are removed, having signed
+ * nothing. Every instance settles the same way, so that they all sign with the same key.
  */
 final readonly class SigningKeys
 {
@@ -40,7 +45,7 @@ final readonly class SigningKeys
      */
     public function active(): PrivateKey
     {
-        $active = array_find($this->keys->all(), static fn (SigningKey $key): bool => $key->isActive());
+        $active = array_find($this->settled(), static fn (SigningKey $key): bool => $key->isActive());
 
         if (null === $active) {
             $active = $this->create();
@@ -91,7 +96,7 @@ final readonly class SigningKeys
             }
         }
 
-        $keys = $this->keys->all();
+        $keys = $this->settled();
         $pending = array_find($keys, static fn (SigningKey $key): bool => $key->isPending());
         $active = array_find($keys, static fn (SigningKey $key): bool => $key->isActive());
 
@@ -118,6 +123,41 @@ final readonly class SigningKeys
         $this->journal?->record(IdentityEventType::SigningKeyRotated, null, ['activated' => $activated, 'created' => $created, 'removed' => $removed]);
 
         return ['removed' => $removed, 'activated' => $activated, 'created' => $created];
+    }
+
+    /**
+     * Every key, at most one of them active and one pending, the extra ones retired or removed.
+     *
+     * @return list<SigningKey>
+     */
+    private function settled(): array
+    {
+        $keys = $this->keys->all();
+        $active = array_filter($keys, static fn (SigningKey $key): bool => $key->isActive());
+        $pending = array_filter($keys, static fn (SigningKey $key): bool => $key->isPending());
+
+        if (\count($active) < 2 && \count($pending) < 2) {
+            return $keys;
+        }
+
+        usort($active, static fn (SigningKey $a, SigningKey $b): int => [$b->activatedAt(), $b->kid()] <=> [$a->activatedAt(), $a->kid()]);
+        $retired = \array_slice($active, 1);
+        $now = $this->clock->now();
+
+        foreach ($retired as $key) {
+            $key->retire($now);
+        }
+
+        $this->keys->save(...$retired);
+        $removed = \array_slice($pending, 1);
+
+        foreach ($removed as $key) {
+            $this->keys->remove($key);
+        }
+
+        $this->journal?->record(IdentityEventType::SigningKeyRotated, null, ['retired' => implode(' ', array_map(static fn (SigningKey $key): string => $key->kid(), $retired)), 'removed' => \count($removed)]);
+
+        return $this->keys->all();
     }
 
     /**

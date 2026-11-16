@@ -12,14 +12,16 @@ la main. Le secret est conservé scellé par le `SecretCipher` : chiffré par le
 `secrets.kms_key` est défini. Il ne compte pour rien tant qu'un premier code ne l'a pas confirmé. Un code est accepté
 dans les `totp.window` périodes avant et après la période courante, et une seule fois : le compteur qu'il a trouvé est
 conservé, et le même code, ou un plus ancien, ne se vérifie plus jamais. Chaque compteur de la fenêtre est calculé, de
-sorte que le temps pris ne dit rien de celui qui a correspondu.
+sorte que le temps pris ne dit rien de celui qui a correspondu. Le compteur est relu, et retenu, avant d'être
+enregistré : de deux requêtes qui présentent le même code en même temps, une seule est acceptée.
 
 ## Codes de récupération
 
 Avec le module `recovery_codes`, confirmer l'application génère dix codes de dix caractères tirés d'un alphabet sans
 caractères qui se ressemblent, affichés une seule fois sous la forme `XXXXX-XXXXX`. Ils sont conservés sous forme de
 HMAC-SHA-256 sous une clé dérivée de `secret` ; un code est lu sans tenir compte de la casse, des espaces ni des
-tirets, comparé en temps constant, et utilisé une seule fois. De nouveaux codes remplacent les anciens. Désactiver
+tirets, comparé en temps constant, et utilisé une seule fois — une seule fois même par deux requêtes simultanées, les
+codes étant relus et retenus avant d'en rayer un. De nouveaux codes remplacent les anciens. Désactiver
 l'application les retire.
 
 ## La deuxième étape

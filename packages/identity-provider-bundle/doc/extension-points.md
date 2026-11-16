@@ -11,7 +11,7 @@ change them, and its CHANGELOG says how.
 | Write the events elsewhere | Implement `Application\Contract\AuditRecorder` and name the service in `audit` |
 | Seal the secrets otherwise | Alias `Application\Contract\SecretCipher` to your own service |
 | React to what happens to accounts | Listen to `Application\Event\IdentityEvent` on the event dispatcher: its type and identifiers |
-| Keep the rows elsewhere | Alias an interface of `Domain\Contract` — `AccountRepository`, `PasskeyRepository`, … — to your own store |
+| Keep the rows elsewhere | Alias an interface of `Domain\Contract` — `AccountRepository`, `PasskeyRepository`, … — to your own store; `GrantRepository::consumeCode()` and `rotateToken()` must change the row in one conditional write, and `SecondFactorRepository::apply()` must read the row again and hold it while it changes, so that a code is used once even by two requests at the same time |
 | Protect your own actions | Require `PHIL_STEP_UP` with `#[IsGranted]` or `isGranted()` |
 | Change a page | Replace its template under `templates/bundles/PhilIdentityProviderBundle/`, or name your layout in `layout` |
 | Translate the pages | Add `translations/phil_identity_provider.<locale>.php` (or `.yaml`, `.xlf`) with the keys of the English file |

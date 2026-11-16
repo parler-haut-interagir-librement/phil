@@ -82,14 +82,20 @@ de sorte que chaque façon de se connecter — le formulaire de l'application co
 Le code vit `oidc.code_lifetime` secondes et s'échange une seule fois, par son client, avec la même adresse de
 redirection et le vérificateur PKCE de son défi — et sans vérificateur quand la demande ne portait aucun défi, de sorte
 qu'on ne peut pas en ajouter après coup (RFC 9700, section 2.1.1) ; un deuxième échange révoque tous les jetons qui en
-sont issus. La réponse contient :
+sont issus. Le code est marqué utilisé par une seule écriture conditionnelle, de sorte que de deux requêtes qui le
+présentent en même temps, une seule reçoit des jetons ; l'autre est refusée comme une réutilisation. La réponse
+contient :
 
 - un jeton d'accès, un JSON Web Token de type `at+jwt` (RFC 9068) dont le `jti` a une ligne, de sorte qu'il peut être
   révoqué et introspecté ; son audience est l'émetteur, pour userinfo ;
 - un jeton d'identité avec `iss`, `sub`, `aud`, `exp`, `iat`, `auth_time`, `nonce`, `amr` — les méthodes prouvées —,
   `sid` et `at_hash` ; les revendications des portées viennent d'userinfo ;
-- avec la portée `offline_access`, un jeton d'actualisation opaque, renouvelé à chaque utilisation : un jeton renouvelé
-  présenté de nouveau révoque toute sa famille, signe d'un jeton volé.
+- avec la portée `offline_access`, un jeton d'actualisation opaque, renouvelé à chaque utilisation par une seule
+  écriture conditionnelle : un jeton renouvelé présenté de nouveau — même par une requête qui l'a lu en même temps que
+  celle qui l'a renouvelé — révoque toute sa famille, signe d'un jeton volé.
+
+L'introspection répond `active: false` pour un jeton qui n'est pas celui du client qui demande, expiré, révoqué ou
+renouvelé, et pour tous les jetons d'un compte supprimé ou désactivé, comme userinfo les refuse.
 
 Le sujet est l'ULID du compte, le même pour tous les clients. Userinfo prend le jeton d'accès dans l'en-tête
 `Authorization` ou, par `POST`, dans le membre `access_token` d'un corps de formulaire (RFC 6750), jamais dans la requête
@@ -128,6 +134,12 @@ qu'elle a été publiée pendant `oidc.key_activation_delay` — retirant celle 
 en attente. Les clients qui mettent le jeu de clés en cache voient chaque clé avant qu'elle signe, et la gardent jusqu'à
 l'expiration du dernier jeton qu'elle a signé. Après l'exposition d'une clé, `--now` active tout de suite la clé en
 attente.
+
+Des instances qui démarrent, ou font la rotation, en même temps peuvent chacune activer ou créer une clé. Chaque lecture
+des clés règle cela, de la même façon sur chaque instance : de plusieurs clés actives, toutes sauf la dernière activée —
+le plus grand `kid` départageant une égalité — sont retirées, et restent publiées pour les jetons qu'elles ont signés ;
+de plusieurs clés en attente, toutes sauf la plus ancienne sont supprimées, n'ayant rien signé. Le règlement est
+journalisé comme `identity.oidc.key_rotated`, avec les clés retirées et le nombre de clés supprimées.
 
 ## Consentement et déconnexion
 

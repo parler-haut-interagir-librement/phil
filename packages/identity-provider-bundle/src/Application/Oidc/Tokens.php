@@ -32,12 +32,14 @@ use SensitiveParameter;
  *   standing for the secret.
  * - A code is exchanged once, by its client, with the same redirect address and the PKCE verifier of its challenge
  *   — none when the request carried no challenge, so that a verifier cannot be added after the fact (RFC 9700,
- *   section 2.1.1) —; a second exchange revokes every token issued from it.
+ *   section 2.1.1) —; a second exchange revokes every token issued from it. The code is marked used in one step, so
+ *   that of two requests presenting it at once only one gets tokens, the other being refused as a reuse.
  * - The access token is a JSON Web Token (RFC 9068) whose `jti` has a row, so that it can be revoked and introspected;
  *   the ID token carries `auth_time`, `amr`, `nonce`, `sid` and `at_hash`; a refresh token, opaque, is issued for the
- *   scope `offline_access` and rotated at each use, a rotated one presented again revoking its whole family.
+ *   scope `offline_access` and rotated at each use, in one step, a rotated one presented again — even by a request
+ *   that read it at the same time as the one that rotated it — revoking its whole family.
  * - Revocation (RFC 7009) answers the same whether the token was known or not; introspection (RFC 7662) answers
- *   `active: false` for any token that is not the asking client's.
+ *   `active: false` for any token that is not the asking client's, and for the tokens of a disabled account.
  */
 final readonly class Tokens
 {
@@ -84,14 +86,11 @@ final readonly class Tokens
             throw OAuthError::invalidGrant('The code is unknown.');
         }
 
-        if ($grant->isUsed()) {
+        if ($grant->isUsed() || !$this->grants->consumeCode($grant, $now)) {
             $this->revokeFamily($grant->family(), $grant->accountId(), $now);
 
             throw OAuthError::invalidGrant('The code was already used.');
         }
-
-        $grant->use($now);
-        $this->grants->saveCode($grant);
 
         if ($grant->isExpired($now) || $grant->redirectUri() !== $redirectUri || !$this->provesPkce($verifier, $grant->codeChallenge())) {
             throw OAuthError::invalidGrant('The code expired, or its redirect address or PKCE verifier does not match.');
@@ -138,8 +137,12 @@ final readonly class Tokens
             $scopes = array_values(array_unique([...$asked, 'offline_access']));
         }
 
-        $token->rotate($now);
-        $this->grants->saveToken($token);
+        if (!$this->grants->rotateToken($token, $now)) {
+            $this->revokeFamily($token->family(), $token->accountId(), $now);
+
+            throw OAuthError::invalidGrant('The refresh token was already used.');
+        }
+
         $account = $this->activeAccount($token->accountId());
 
         return $this->issue($client, $account, $scopes, $token->family(), $token->sessionId(), $token->authTime(), $token->methods(), null, $now);
@@ -176,7 +179,13 @@ final readonly class Tokens
         $issued = $this->find($token);
         $now = $this->clock->now();
 
-        if (!$issued instanceof IssuedToken || $issued->clientId() !== $client->id() || !$issued->isActive($now) || !$this->accounts->get($issued->accountId()) instanceof Account) {
+        if (!$issued instanceof IssuedToken || $issued->clientId() !== $client->id() || !$issued->isActive($now)) {
+            return ['active' => false];
+        }
+
+        $account = $this->accounts->get($issued->accountId());
+
+        if (!$account instanceof Account || $account->isDisabled()) {
             return ['active' => false];
         }
 

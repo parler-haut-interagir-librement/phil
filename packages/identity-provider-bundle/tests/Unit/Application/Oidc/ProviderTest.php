@@ -124,6 +124,7 @@ final class ProviderTest extends TestCase
         $this->services->clock->modify('+1 second');
         self::assertNull($keys->publicKey($first->kid));
         self::assertCount(2, $keys->jwks()['keys']);
+        self::assertTrue(array_is_list($keys->jwks()['keys']));
         $result = $keys->rotate(true);
         self::assertSame(1, $result['removed']);
         self::assertIsString($result['activated']);

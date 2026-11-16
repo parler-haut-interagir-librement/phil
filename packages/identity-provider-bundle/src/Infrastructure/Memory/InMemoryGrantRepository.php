@@ -37,6 +37,21 @@ final class InMemoryGrantRepository implements GrantRepository, ResetInterface
     }
 
     #[Override]
+    public function consumeCode(AuthorizationCode $code, DateTimeImmutable $now): bool
+    {
+        $stored = $this->codes[$code->id()] ?? null;
+
+        if (null === $stored || $stored->isUsed()) {
+            return false;
+        }
+
+        $stored->use($now);
+        $code->use($now);
+
+        return true;
+    }
+
+    #[Override]
     public function token(string $id): ?IssuedToken
     {
         return self::copy($this->tokens[$id] ?? null);
@@ -66,6 +81,21 @@ final class InMemoryGrantRepository implements GrantRepository, ResetInterface
         foreach ($tokens as $token) {
             $this->tokens[$token->id()] = clone $token;
         }
+    }
+
+    #[Override]
+    public function rotateToken(IssuedToken $token, DateTimeImmutable $now): bool
+    {
+        $stored = $this->tokens[$token->id()] ?? null;
+
+        if (null === $stored || $stored->isRotated() || $stored->isRevoked()) {
+            return false;
+        }
+
+        $stored->rotate($now);
+        $token->rotate($now);
+
+        return true;
     }
 
     #[Override]

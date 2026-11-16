@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Tests\Unit\Fixture;
 
+use Closure;
 use Override;
 use Phil\IdentityProviderBundle\Domain\Contract\SecondFactorRepository;
 use Phil\IdentityProviderBundle\Domain\Model\Totp\RecoveryCodeSet;
@@ -39,6 +40,14 @@ final class CountingFactors implements SecondFactorRepository
     {
         $this->operations[] = 'save';
         $this->inner->save(...$factors);
+    }
+
+    #[Override]
+    public function apply(TotpCredential|RecoveryCodeSet $factor, Closure $change): bool
+    {
+        $this->operations[] = 'apply';
+
+        return $this->inner->apply($factor, $change);
     }
 
     #[Override]
