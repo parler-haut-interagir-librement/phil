@@ -16,6 +16,7 @@ The next version is 0.2.0-alpha: introspection refuses what it accepted, and two
   holding it while the change applies.
 - `TotpCredential::$secret` and `TotpCredential::$createdAt` are no longer read-only properties, so that the store can
   read the row again over the object. The schema does not change.
+- `doctrine/dbal` moves from `require-dev` to `require`: the Doctrine stores name its types and lock modes.
 
 ### Security
 

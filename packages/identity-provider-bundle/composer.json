@@ -28,6 +28,7 @@
         "ext-mbstring": "*",
         "ext-openssl": "*",
         "ext-sodium": "*",
+        "doctrine/dbal": "^4.5",
         "doctrine/orm": "^3.7",
         "phil/passwords": "^0.1@dev || ^0.2@dev",
         "phil/url": "^0.1@dev",
@@ -51,7 +52,6 @@
         "web-token/jwt-library": "^4.2"
     },
     "require-dev": {
-        "doctrine/dbal": "^4.5",
         "doctrine/doctrine-bundle": "^3.3",
         "phil/audit-bundle": "^0.1@dev",
         "phil/ux-kit": ">=0.5.0-alpha <1.0",
