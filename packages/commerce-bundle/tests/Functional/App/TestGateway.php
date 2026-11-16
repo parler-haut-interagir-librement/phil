@@ -35,7 +35,7 @@ final readonly class TestGateway implements PaymentGateway
     }
 
     #[Override]
-    public function refund(Payment $payment, Money $amount): void
+    public function refund(Payment $payment, Money $amount, string $idempotencyKey): void
     {
     }
 

@@ -32,8 +32,12 @@ interface PaymentGateway
     /**
      * Asks the processor to refund part or all of a completed payment. The refund is recorded when the processor's
      * notification says it happened, not when it is asked.
+     *
+     * @param string $idempotencyKey the same for every try of one refund: hand it to the processor as its idempotency
+     *                               key, so that a refund asked again — after a timeout, a crash, a second worker — is
+     *                               made once
      */
-    public function refund(Payment $payment, Money $amount): void;
+    public function refund(Payment $payment, Money $amount, string $idempotencyKey): void;
 
     /**
      * Verifies a notification as the processor signed it and reads it.

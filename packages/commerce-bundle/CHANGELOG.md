@@ -4,6 +4,25 @@ All notable changes to `phil/commerce-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: a refund is refused that was granted before, and `PaymentGateway::refund()` and
+`Payments::refund()` take an idempotency key.
+
+### Changed
+
+- `PaymentGateway::refund()` takes a third argument, `string $idempotencyKey`, which an adapter hands to its processor;
+  `Payments::refund()` takes it too and passes it on.
+
+### Security
+
+- `Refunds::grant()` counts the refunds executed and not confirmed yet: once a refund was asked of the processor, it
+  no longer counted until the processor's notification, so that 70 and 70 could be granted on a payment of 100. What
+  is left is now the payment's amount, less the refunds granted, and less the larger of what the processor confirmed
+  and what was asked of it.
+- `Refunds::execute()` hands the refund's identifier to the gateway as the idempotency key: a refund asked again,
+  after a timeout or a crash, could be made twice by the processor.
+
 ## 0.1.0-alpha - 2026-11-15
 
 ### Added

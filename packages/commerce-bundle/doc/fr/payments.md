@@ -123,8 +123,9 @@ qui admet une notification.
 
 ## Remboursements
 
-`Payments::refund(Payment $payment, Money $amount)` demande à la passerelle du paiement de rembourser une partie ou
-la totalité de ce qui reste d'un paiement complété. **Le remboursement est enregistré quand la notification du
+`Payments::refund(Payment $payment, Money $amount, string $idempotencyKey)` demande à la passerelle du paiement de
+rembourser une partie ou la totalité de ce qui reste d'un paiement complété, avec une clé qui reste la même pour chaque
+tentative d'un même remboursement. **Le remboursement est enregistré quand la notification du
 processeur le confirme**, pas quand il est demandé : le processeur peut le refuser, ou prendre du temps. Un remboursement accordé par une
 personne et exécuté par une autre passe par `Refunds` ([refunds.md](refunds.md)).
 

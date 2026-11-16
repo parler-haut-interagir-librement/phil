@@ -129,7 +129,7 @@ unit it is given.
 |---|---|
 | `supports(string $method): bool` | Whether the gateway answers for this method; exactly one should |
 | `start(Payment $payment, Order $order): PaymentStart` | Hands the payment to the processor for `$payment->amount`; returns the processor's reference and a page or a client secret |
-| `refund(Payment $payment, Money $amount): void` | Asks the processor for a refund; records nothing |
+| `refund(Payment $payment, Money $amount, string $idempotencyKey): void` | Asks the processor for a refund, handing it the key as its idempotency key; records nothing |
 | `read(string $payload, array $headers): PaymentNotification` | Verifies the processor's signature and reads its event; throws `InvalidNotification` otherwise |
 
 Invariants:
@@ -141,6 +141,8 @@ Invariants:
 - **Map the processor's events onto `PaymentEvent`**; an event the store does not act on is read as
   `InvalidNotification`, which the webhook answers 400, or simply not subscribed to.
 - **Never take an amount from the request**: `start()` charges the payment's amount, `refund()` the amount asked.
+- **Hand the idempotency key to the processor**: the same key comes with every try of one refund, so that the
+  processor makes it once.
 - Keep the processor's credentials in the application's secrets, read by the adapter.
 
 ## `StockCommitments`

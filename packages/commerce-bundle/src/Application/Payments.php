@@ -212,8 +212,11 @@ final readonly class Payments
 
     /**
      * Asks the gateway of the payment to refund part or all of what is left.
+     *
+     * @param string $idempotencyKey the same for every try of one refund — `Refunds` gives the refund's identifier —, so
+     *                               that the processor refunds once however often it is asked
      */
-    public function refund(Payment $payment, Money $amount): void
+    public function refund(Payment $payment, Money $amount, string $idempotencyKey): void
     {
         if (PaymentState::Completed !== $payment->state()) {
             throw PaymentRefused::notRefundable($payment->id, $payment->state());
@@ -232,7 +235,7 @@ final readonly class Payments
             return;
         }
 
-        $this->gateway($payment->method)->refund($payment, $amount);
+        $this->gateway($payment->method)->refund($payment, $amount, $idempotencyKey);
     }
 
     public function summary(Order $order): OrderPayments

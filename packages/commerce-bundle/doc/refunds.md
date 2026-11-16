@@ -12,10 +12,13 @@ $refunds->execute($refund, 'manager-2', $now);   // asks the processor, or recor
 $refunds->withdraw($refund, $now);               // or gives it up before it is executed
 ```
 
-- **What is granted never exceeds what is left**: the payment's refundable amount, less the refunds granted and not
-  executed yet; the payment is completed.
-- **Executing goes through `Payments::refund()`**: the processor is asked, and the refund is recorded when its
-  notification comes; an offline payment's refund is recorded at once ([payments.md](payments.md#offline-payments)).
+- **What is granted never exceeds what is left**: the payment's amount, less the refunds granted and not executed yet,
+  and less the larger of what the processor confirmed and what was asked of it; the payment is completed. A refund
+  executed but not confirmed yet thus stays owed, and the refunds of a payment never add up to more than it.
+- **Executing goes through `Payments::refund()`**: the processor is asked, with the refund's identifier as the
+  idempotency key, so that a refund asked again — after a timeout or a crash — is made once; the refund is recorded
+  when the notification comes; an offline payment's refund is recorded at once
+  ([payments.md](payments.md#offline-payments)).
 - **Who granted and who executed are kept**, with their moments, on the `Refund`, whose states are `granted`,
   `executed` and `withdrawn`.
 - **`phil_commerce.refunds.single_step: true`** makes granting execute at once, by the same person.

@@ -119,8 +119,8 @@ CSRF protection and from authentication: the gateway's signature check is what a
 
 ## Refunds
 
-`Payments::refund(Payment $payment, Money $amount)` asks the gateway of the payment to refund part or all of
-what is left of a completed payment. **The refund is recorded when the processor's notification confirms it**,
+`Payments::refund(Payment $payment, Money $amount, string $idempotencyKey)` asks the gateway of the payment to refund
+part or all of what is left of a completed payment, with a key that stays the same for every try of one refund. **The refund is recorded when the processor's notification confirms it**,
 not when it is asked: the processor may refuse it, or take time. A refund granted by one person and executed by
 another goes through `Refunds` ([refunds.md](refunds.md)).
 

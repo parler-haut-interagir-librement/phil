@@ -14,10 +14,14 @@ $refunds->execute($refund, 'manager-2', $now);   // asks the processor, or recor
 $refunds->withdraw($refund, $now);               // or gives it up before it is executed
 ```
 
-- **Ce qui est accordé ne dépasse jamais ce qui reste** : le montant remboursable du paiement, moins les remboursements
-  accordés et pas encore exécutés ; le paiement est complété.
-- **Exécuter passe par `Payments::refund()`** : le processeur est sollicité, et le remboursement est enregistré quand sa
-  notification arrive ; le remboursement d'un paiement hors ligne est enregistré aussitôt
+- **Ce qui est accordé ne dépasse jamais ce qui reste** : le montant du paiement, moins les remboursements accordés et
+  pas encore exécutés, et moins le plus grand de ce que le processeur a confirmé et de ce qui lui a été demandé ; le
+  paiement est complété. Un remboursement exécuté mais pas encore confirmé reste donc dû, et les remboursements d'un
+  paiement ne dépassent jamais son montant.
+- **Exécuter passe par `Payments::refund()`** : le processeur est sollicité, avec l'identifiant du remboursement comme
+  clé d'idempotence, de sorte qu'un remboursement demandé de nouveau — après un délai dépassé ou un plantage — ne soit
+  fait qu'une fois ; le remboursement est enregistré quand sa notification arrive ; le remboursement d'un paiement hors
+  ligne est enregistré aussitôt
   ([payments.md](payments.md#paiements-hors-ligne)).
 - **Qui a accordé et qui a exécuté sont gardés**, avec leurs moments, sur le `Refund`, dont les états sont `granted`,
   `executed` et `withdrawn`.

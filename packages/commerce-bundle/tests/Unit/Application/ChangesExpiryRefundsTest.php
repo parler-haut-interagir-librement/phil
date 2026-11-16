@@ -31,6 +31,7 @@ use Phil\CommerceBundle\Domain\Model\OrderStateChange;
 use Phil\CommerceBundle\Domain\Model\Payment;
 use Phil\CommerceBundle\Domain\Model\Receipt;
 use Phil\CommerceBundle\Domain\Order\OrderState;
+use Phil\CommerceBundle\Domain\Payment\PaymentEvent;
 use Phil\CommerceBundle\Domain\Payment\PaymentState;
 use Phil\CommerceBundle\Domain\Refund\RefundState;
 use Phil\CommerceBundle\Domain\Repository\ChannelRepository;
@@ -39,6 +40,7 @@ use Phil\CommerceBundle\Domain\ValueObject\DocumentType;
 use Phil\CommerceBundle\Domain\ValueObject\Issuer;
 use Phil\CommerceBundle\Domain\ValueObject\OrderChangeLine;
 use Phil\CommerceBundle\Domain\ValueObject\OrderLine;
+use Phil\CommerceBundle\Domain\ValueObject\PaymentNotification;
 use Phil\CommerceBundle\Domain\ValueObject\PricingContext;
 use Phil\CommerceBundle\Domain\ValueObject\SellableReference;
 use Phil\CommerceBundle\Tests\Unit\Support\FakeGateway;
@@ -349,6 +351,41 @@ final class ChangesExpiryRefundsTest extends TestCase
         $this->expectException(PaymentRefused::class);
 
         $refunds->grant($payment, $this->cad(0), 'Nothing', 'clerk-1', new DateTimeImmutable());
+    }
+
+    public function testARefundAskedOfTheProcessorStaysReservedUntilItIsConfirmed(): void
+    {
+        [$payment, , $refunds] = $this->paid();
+        $first = $refunds->grant($payment, $this->cad(2_800), 'One', 'clerk-1', new DateTimeImmutable());
+        $refunds->execute($first, 'manager-1', new DateTimeImmutable());
+
+        try {
+            $refunds->grant($payment, $this->cad(2_800), 'Two', 'clerk-1', new DateTimeImmutable());
+            self::fail('The refund asked and not confirmed yet is still owed.');
+        } catch (PaymentRefused $paymentRefused) {
+            self::assertSame('A refund of 28.00 CAD is refused: it must be above zero and at most 12.00 CAD.', $paymentRefused->getMessage());
+        }
+
+        $payment->apply(PaymentNotification::of('evt_r1', (string) $payment->externalReference(), PaymentEvent::Refunded, $this->cad(2_800)));
+        self::assertSame(1_200, $payment->refundable()->minorUnits);
+
+        try {
+            $refunds->grant($payment, $this->cad(1_201), 'Three', 'clerk-1', new DateTimeImmutable());
+            self::fail('The refund confirmed is not counted twice, nor forgotten.');
+        } catch (PaymentRefused $paymentRefused) {
+            self::assertStringEndsWith('at most 12.00 CAD.', $paymentRefused->getMessage());
+        }
+
+        self::assertSame(1_200, $refunds->grant($payment, $this->cad(1_200), 'Rest', 'clerk-1', new DateTimeImmutable())->amount->minorUnits);
+    }
+
+    public function testTheProcessorIsAskedWithTheRefundAsItsIdempotencyKey(): void
+    {
+        [$payment, $gateway, $refunds] = $this->paid();
+        $refund = $refunds->grant($payment, $this->cad(400), 'Broken die', 'clerk-1', new DateTimeImmutable());
+        $refunds->execute($refund, 'manager-1', new DateTimeImmutable());
+
+        self::assertSame([$refund->id], $gateway->idempotencyKeys);
     }
 
     public function testASmallStoreGrantsAndExecutesAtOnce(): void

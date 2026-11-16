@@ -24,6 +24,9 @@ final class FakeGateway implements PaymentGateway
     /** @var list<array{string, int}> */
     public array $refunds = [];
 
+    /** @var list<string> the idempotency key of each refund asked */
+    public array $idempotencyKeys = [];
+
     /** @var array<string, list<string>> the headers of the last notification read */
     public array $headers = [];
 
@@ -47,9 +50,10 @@ final class FakeGateway implements PaymentGateway
     }
 
     #[Override]
-    public function refund(Payment $payment, Money $amount): void
+    public function refund(Payment $payment, Money $amount, string $idempotencyKey): void
     {
         $this->refunds[] = [$payment->id, $amount->minorUnits];
+        $this->idempotencyKeys[] = $idempotencyKey;
     }
 
     #[Override]

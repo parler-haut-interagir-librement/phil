@@ -22,9 +22,11 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  * Refunds in two steps, granted then executed, each by someone the application allows — two rights, which a small
  * store merges with `phil_commerce.refunds.single_step`, where granting executes at once.
  *
- * - **What is granted never exceeds what is left**: the payment's refundable amount, less the refunds granted and not
- *   executed yet.
- * - **Executing asks the payment's processor**, or records an offline refund, through `Payments::refund()`.
+ * - **What is granted never exceeds what is left**: the payment's amount, less the refunds granted and not executed yet,
+ *   and less the refunds asked of the processor — confirmed or not yet —, so that the refunds of a payment never add
+ *   up to more than it.
+ * - **Executing asks the payment's processor**, or records an offline refund, through `Payments::refund()`, with the
+ *   refund's identifier as the idempotency key: asked again, the processor refunds once.
  * - **A refund executed is announced once** by `OrderRefunded`, with the order's channel and customer when the order
  *   is found — what an activity feed or a loyalty programme listens to.
  *
@@ -49,13 +51,7 @@ final readonly class Refunds
         }
 
         $refund = Refund::grant($payment, $amount, $reason, $grantedBy, $at);
-        $left = $payment->refundable();
-
-        foreach ($this->refunds->refundsOf($payment->id) as $granted) {
-            if (RefundState::Granted === $granted->state()) {
-                $left = $left->subtract($granted->amount);
-            }
-        }
+        $left = $this->left($payment);
 
         if (!$amount->isPositive() || $amount->isGreaterThan($left)) {
             throw PaymentRefused::amount('A refund', $amount->toDecimal().' '.$amount->currency->code, $left->toDecimal().' '.$left->currency->code);
@@ -70,6 +66,29 @@ final readonly class Refunds
         return $refund;
     }
 
+    /**
+     * What may still be granted: the payment's amount, less the refunds granted and not executed, and less the larger of
+     * what the processor confirmed and what was asked of it — a refund asked and not confirmed yet is still owed, and
+     * one confirmed is not counted twice.
+     */
+    private function left(Payment $payment): Money
+    {
+        $granted = Money::zero($payment->amount->currency);
+        $asked = $granted;
+
+        foreach ($this->refunds->refundsOf($payment->id) as $refund) {
+            match ($refund->state()) {
+                RefundState::Granted => $granted = $granted->add($refund->amount),
+                RefundState::Executed => $asked = $asked->add($refund->amount),
+                RefundState::Withdrawn => null,
+            };
+        }
+
+        $settled = $asked->isGreaterThan($payment->refunded) ? $asked : $payment->refunded;
+
+        return $payment->amount->subtract($settled)->subtract($granted);
+    }
+
     public function execute(Refund $refund, string $executedBy, DateTimeImmutable $at): void
     {
         if (RefundState::Granted !== $refund->state()) {
@@ -77,7 +96,7 @@ final readonly class Refunds
         }
 
         $payment = $this->payments->find($refund->paymentId) ?? throw PaymentRefused::refundSettled($refund->id, 'without its payment');
-        $this->gateway->refund($payment, $refund->amount);
+        $this->gateway->refund($payment, $refund->amount, $refund->id);
         $refund->execute($executedBy, $at);
 
         if ($this->dispatcher instanceof EventDispatcherInterface) {

@@ -221,7 +221,7 @@ final class PaymentsTest extends TestCase
         [$payment] = $this->payments->start($this->order(), 'card', new DateTimeImmutable());
         $this->payments->notify('card', 'evt_1|ref-1|captured', ['x-signature' => ['ok']]);
 
-        $this->payments->refund($payment, $this->cad(250));
+        $this->payments->refund($payment, $this->cad(250), 'refund-1');
 
         self::assertSame([[$payment->id, 250]], $this->card->refunds);
         self::assertTrue($payment->refunded->isZero());
@@ -238,7 +238,7 @@ final class PaymentsTest extends TestCase
         $this->expectException(PaymentRefused::class);
         $this->expectExceptionMessageIsOrContains(\sprintf('The payment %s is processing: only a completed payment is refunded.', $payment->id));
 
-        $this->payments->refund($payment, $this->cad(1));
+        $this->payments->refund($payment, $this->cad(1), 'refund-1');
     }
 
     /**
@@ -257,7 +257,7 @@ final class PaymentsTest extends TestCase
         $this->payments->notify('card', 'evt_1|ref-1|captured', ['x-signature' => ['ok']]);
 
         try {
-            $this->payments->refund($payment, $this->cad($minorUnits));
+            $this->payments->refund($payment, $this->cad($minorUnits), 'refund-1');
             self::fail('The refund was asked.');
         } catch (PaymentRefused $paymentRefused) {
             self::assertSame($message, $paymentRefused->getMessage());
@@ -272,7 +272,7 @@ final class PaymentsTest extends TestCase
         $this->payments->notify('card', 'evt_1|ref-1|captured', ['x-signature' => ['ok']]);
 
         try {
-            $this->payments->refund($payment, Money::of(1, Currency::of('USD')));
+            $this->payments->refund($payment, Money::of(1, Currency::of('USD')), 'refund-1');
             self::fail('The refund was asked.');
         } catch (CurrencyMismatch) {
         }

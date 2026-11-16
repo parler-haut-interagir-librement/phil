@@ -144,7 +144,7 @@ final class PurchasesAndOfflineTest extends TestCase
         $payment = $this->payments->declareOffline($order, 'cheque', new DateTimeImmutable());
         $this->payments->confirmOffline($order, $payment, new DateTimeImmutable());
 
-        $this->payments->refund($payment, $this->cad(250));
+        $this->payments->refund($payment, $this->cad(250), 'refund-1');
 
         self::assertSame(250, $payment->refunded->minorUnits);
         self::assertSame([], $this->card->refunds);
