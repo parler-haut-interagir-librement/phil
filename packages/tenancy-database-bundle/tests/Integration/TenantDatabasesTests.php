@@ -28,6 +28,14 @@ use Symfony\Contracts\Service\ResetInterface;
  */
 trait TenantDatabasesTests
 {
+    public function testTheKernelLeavesNoTrustedHostToTheTestsAfterIt(): void
+    {
+        self::assertSame(200, $this->request('/invoices', 'wholesale.test')->getStatusCode());
+        self::ensureKernelShutdown();
+
+        self::assertSame('localhost', Request::create('http://localhost/')->getHost());
+    }
+
     public function testEachTenantReadsItsOwnDatabaseWithinOneRequest(): void
     {
         $this->seed();

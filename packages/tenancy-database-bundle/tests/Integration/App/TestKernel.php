@@ -10,6 +10,7 @@ use Override;
 use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
@@ -41,6 +42,17 @@ final class TestKernel extends Kernel
     public function __construct(string $environment, bool $debug, private readonly bool $storedPlacements = false)
     {
         parent::__construct($environment, $debug);
+    }
+
+    /**
+     * Forgets the trusted hosts as well: FrameworkBundle sets them on `Request` statically when the kernel boots, and
+     * they would refuse the hosts of every test that runs after this one in the same process.
+     */
+    #[Override]
+    public function shutdown(): void
+    {
+        parent::shutdown();
+        Request::setTrustedHosts([]);
     }
 
     #[Override]
