@@ -34,6 +34,10 @@ use Symfony\Component\Security\Http\Firewall\ContextListener;
  * and revokes the family: the lock is held per refresh token, and the result is published before the lock is released,
  * so that a request holding the same token applies that result instead of presenting it again.
  *
+ * Before the provider is called, a pending outcome is published: when the store does not keep it, the provider is not
+ * called and the tokens stay as they are. When the result itself is then lost, the pending outcome stays, and a request
+ * holding the same token leaves its tokens as they are instead of presenting the token again.
+ *
  * The event of a refresh is dispatched last, once the result is published, applied to the session and the lock released:
  * a subscriber that throws cannot lose tokens the provider has already rotated, and its exception reaches the caller as
  * any other subscriber's would.
@@ -125,6 +129,12 @@ final class SerializedTokenRefreshListener extends AbstractListener
      */
     private function refresh(TokenInterface $token, #[SensitiveParameter] string $refreshToken): array
     {
+        if (!$this->outcomes->publish($refreshToken, new RefreshOutcome(RefreshStatus::Pending))) {
+            $this->logger->warning('Could not share that the tokens of the session are being renewed; they stay as they are.');
+
+            return [new RefreshOutcome(RefreshStatus::Unavailable), null];
+        }
+
         $event = null;
 
         try {
@@ -139,7 +149,9 @@ final class SerializedTokenRefreshListener extends AbstractListener
             $this->logger->warning('Could not renew the tokens of the session; they stay as they are.');
         }
 
-        $this->outcomes->publish($refreshToken, $outcome);
+        if (!$this->outcomes->publish($refreshToken, $outcome)) {
+            $this->logger->error('Could not share the renewal of the session tokens; the requests holding the previous ones keep them until they expire.');
+        }
 
         return [$outcome, $event];
     }

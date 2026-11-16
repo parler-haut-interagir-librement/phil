@@ -10,7 +10,8 @@ use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Lock\LockFactory;
 
 /**
- * Keeps the claimed identifiers in a cache pool, under a lock since a pool has no atomic "add".
+ * Keeps the claimed identifiers in a cache pool, under a lock since a pool has no atomic "add". A claim the pool did not
+ * keep — its `save()` answered `false` — is refused: accepting it would let the same token be accepted again.
  *
  * Both have to be shared by every server of the application.
  */
@@ -39,9 +40,7 @@ final readonly class CacheReplayStore implements ReplayStore
                 return false;
             }
 
-            $this->pool->save($item->set('claimed')->expiresAfter($ttl));
-
-            return true;
+            return $this->pool->save($item->set('claimed')->expiresAfter($ttl));
         } finally {
             $lock->release();
         }

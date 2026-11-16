@@ -12,4 +12,9 @@ enum RefreshStatus: string
     case Revoked = 'revoked';
     /** The provider could not be reached or answered with an error; the tokens stay as they are. */
     case Unavailable = 'unavailable';
+    /**
+     * A request is renewing the tokens, or did and could not share the result: the tokens stay as they are, and the
+     * refresh token is never presented again.
+     */
+    case Pending = 'pending';
 }

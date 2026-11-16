@@ -18,13 +18,16 @@ L'écouteur remplace l'écouteur natif sur le pare-feu. Quand une requête trouv
 
 1. Elle prend un verrou nommé d'après son jeton de renouvellement, en attendant jusqu'à `refresh.wait_timeout` secondes.
 2. Si une autre requête a déjà utilisé ce jeton, elle applique le résultat publié et n'appelle rien.
-3. Sinon, elle renouvelle et publie le résultat avant de libérer le verrou.
+3. Sinon, elle publie un résultat en attente, renouvelle, et publie le résultat avant de libérer le verrou. Quand la
+   réserve ne garde pas le résultat en attente — son `save()` répond `false` —, le fournisseur n'est pas appelé et les
+   jetons restent tels quels.
 
 | Résultat | Effet sur chaque requête qui détient le jeton |
 |---|---|
 | Remplacé | Les nouveaux jetons sont appliqués à la session |
 | Refusé par le fournisseur (`invalid_grant`) | Toute la session locale est invalidée, et `RefreshTokenRejected` le signale |
 | Fournisseur injoignable | Les jetons restent, et la prochaine tentative vient après 5 secondes |
+| En attente : la réserve a perdu le résultat, ou la requête qui renouvelait est morte | Les jetons restent, et l'ancien jeton de renouvellement n'est jamais présenté de nouveau ; le résultat en attente dure `refresh.outcome_ttl` secondes |
 
 Une requête dont l'attente expire garde ses jetons et réessaie à sa requête suivante.
 

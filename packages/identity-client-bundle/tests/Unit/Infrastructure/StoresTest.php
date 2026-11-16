@@ -32,6 +32,14 @@ final class StoresTest extends TestCase
         self::assertTrue($store->claim('another', 60));
     }
 
+    public function testAClaimThePoolDidNotKeepIsRefused(): void
+    {
+        $store = new CacheReplayStore(new RefusingPool(), new LockFactory(new InMemoryStore()));
+
+        self::assertFalse($store->claim('jti', 60));
+        self::assertFalse($store->claim('jti', 60));
+    }
+
     public function testAClaimLastsForItsLifetime(): void
     {
         $clock = new MockClock();

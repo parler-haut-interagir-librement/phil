@@ -42,14 +42,14 @@ final readonly class EncryptedRefreshOutcomes implements RefreshOutcomes
     }
 
     #[Override]
-    public function publish(#[SensitiveParameter] string $refreshToken, RefreshOutcome $outcome): void
+    public function publish(#[SensitiveParameter] string $refreshToken, RefreshOutcome $outcome): bool
     {
         [$key, $secret] = $this->derive($refreshToken);
         $nonce = random_bytes(\SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
         $payload = json_encode(['status' => $outcome->status->value, 'attributes' => $outcome->attributes], \JSON_THROW_ON_ERROR);
         $ttl = RefreshStatus::Unavailable === $outcome->status ? min(self::UNAVAILABLE_TTL, $this->ttl) : $this->ttl;
 
-        $this->pool->save($this->pool->getItem($key)->set($nonce.sodium_crypto_secretbox($payload, $nonce, $secret))->expiresAfter($ttl));
+        return $this->pool->save($this->pool->getItem($key)->set($nonce.sodium_crypto_secretbox($payload, $nonce, $secret))->expiresAfter($ttl));
     }
 
     /**

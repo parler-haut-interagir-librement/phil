@@ -17,13 +17,16 @@ seconds of expiring:
 
 1. It takes a lock named after its refresh token, waiting up to `refresh.wait_timeout` seconds.
 2. If another request already used that token, it applies the published outcome and calls nothing.
-3. Otherwise it refreshes and publishes the outcome before releasing the lock.
+3. Otherwise it publishes a pending outcome, refreshes, and publishes the outcome before releasing the lock. When the
+   pool does not keep the pending outcome — its `save()` answers `false` —, the provider is not called and the tokens
+   stay as they are.
 
 | Outcome | Effect on every request holding the token |
 |---|---|
 | Rotated | The new tokens are applied to the session |
 | Refused by the provider (`invalid_grant`) | The whole local session is invalidated, and `RefreshTokenRejected` reports it |
 | Provider unreachable | The tokens stay, and the next try comes after 5 seconds |
+| Pending: the result was lost by the pool, or the request renewing died | The tokens stay, and the old refresh token is never presented again; the pending outcome lasts `refresh.outcome_ttl` seconds |
 
 A request that times out keeps its tokens and tries again on its next request.
 

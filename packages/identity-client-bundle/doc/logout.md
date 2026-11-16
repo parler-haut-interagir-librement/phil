@@ -10,7 +10,9 @@ The token is verified with the pinned algorithm against the keys of the provider
 session is refused rather than ending every session of that user.
 
 Each `jti` is then accepted once. `CacheReplayStore` keeps it for `replay_ttl` seconds, or until the token can no longer
-pass its `exp` check when that is later. A repeated token gets a `400` and ends nothing.
+pass its `exp` check when that is later. A repeated token gets a `400` and ends nothing. A claim the pool did not keep —
+its `save()` answers `false` — is refused the same way, so that the same token cannot be accepted twice; the provider
+delivers it again later.
 
 The request comes from the provider, so it cannot touch the browser's session. The ended `sid` is recorded, and the next
 request of that session is deauthenticated by the native listener. `EndedSessionListener` then invalidates the whole

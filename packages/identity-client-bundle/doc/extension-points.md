@@ -11,7 +11,7 @@ Each is an alias the application points at a service of its own.
 | `UserProvisioner` | `StatelessUserProvisioner` | Creates and finds the accounts; see [Provisioning](provisioning.md) |
 | `ReturnToPolicy` | `DeclaredOriginsReturnToPolicy` | Another rule for where a sign-in lands; returns null to discard |
 | `ReplayStore` | `CacheReplayStore` | Keeps accepted `jti` elsewhere; `claim()` stays atomic across servers |
-| `RefreshOutcomes` | `EncryptedRefreshOutcomes` | Shares refresh results elsewhere; the outcome holds tokens, so it must not be stored in clear |
+| `RefreshOutcomes` | `EncryptedRefreshOutcomes` | Shares refresh results elsewhere; the outcome holds tokens, so it must not be stored in clear; `publish()` answers whether the store kept it |
 
 ## Events
 

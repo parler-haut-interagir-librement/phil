@@ -19,7 +19,8 @@ final class FailingRefreshOutcomes implements RefreshOutcomes
     }
 
     #[Override]
-    public function publish(#[SensitiveParameter] string $refreshToken, RefreshOutcome $outcome): void
+    public function publish(#[SensitiveParameter] string $refreshToken, RefreshOutcome $outcome): bool
     {
+        return false;
     }
 }

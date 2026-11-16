@@ -13,7 +13,9 @@ utilisateur.
 
 Chaque `jti` n'est ensuite accepté qu'une fois. `CacheReplayStore` le garde pendant `replay_ttl` secondes, ou jusqu'à ce
 que le jeton ne puisse plus passer sa vérification de `exp` si ce moment est plus tardif. Un jeton répété reçoit un
-`400` et ne met fin à rien.
+`400` et ne met fin à rien. Une revendication que la réserve n'a pas gardée — son `save()` répond `false` — est refusée
+de la même façon, de sorte que le même jeton ne puisse pas être accepté deux fois ; le fournisseur le livre de nouveau
+plus tard.
 
 La requête vient du fournisseur : elle ne peut donc pas toucher la session du navigateur. Le `sid` terminé est
 enregistré, et l'écouteur natif désauthentifie la requête suivante de cette session. `EndedSessionListener` invalide

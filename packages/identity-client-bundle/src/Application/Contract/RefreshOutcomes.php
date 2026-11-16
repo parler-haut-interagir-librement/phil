@@ -17,5 +17,8 @@ interface RefreshOutcomes
 {
     public function find(#[SensitiveParameter] string $refreshToken): ?RefreshOutcome;
 
-    public function publish(#[SensitiveParameter] string $refreshToken, RefreshOutcome $outcome): void;
+    /**
+     * @return bool whether the store kept the outcome, so that the other requests can read it
+     */
+    public function publish(#[SensitiveParameter] string $refreshToken, RefreshOutcome $outcome): bool;
 }

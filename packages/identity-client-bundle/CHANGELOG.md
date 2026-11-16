@@ -4,6 +4,29 @@ All notable changes to `phil/identity-client-bundle` will be documented in this 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: a logout token whose claim the pool did not keep is refused, and
+`RefreshOutcomes::publish()` returns whether the store kept the outcome.
+
+### Added
+
+- `RefreshStatus::Pending`: a request is renewing the tokens, or did and could not share the result; the tokens stay as
+  they are, and the refresh token is never presented again.
+
+### Changed
+
+- `RefreshOutcomes::publish()` returns a `bool`: a store of the application's own answers whether it kept the outcome.
+
+### Security
+
+- `CacheReplayStore::claim()` refuses a claim the pool did not keep, its `save()` answering `false`: the logout token
+  was accepted without its `jti` being remembered, so that it could be replayed until it expired.
+- `SerializedTokenRefreshListener` publishes a pending outcome before it calls the provider, and does not call it when
+  the pool does not keep that outcome; when the result is then lost, the pending outcome keeps the requests holding the
+  previous refresh token from presenting it again. A rotation whose result the pool did not keep let those requests
+  present the rotated token, which a provider detecting reuse answers by revoking the whole family.
+
 ## 0.1.1-alpha - 2026-11-14
 
 ### Fixed

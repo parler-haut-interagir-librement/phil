@@ -12,7 +12,7 @@ Chacun est un alias que l'application fait pointer vers un service à elle.
 | `UserProvisioner` | `StatelessUserProvisioner` | Crée et retrouve les comptes ; voir [Approvisionnement](provisioning.md) |
 | `ReturnToPolicy` | `DeclaredOriginsReturnToPolicy` | Une autre règle pour l'aboutissement d'une connexion ; retourne null pour écarter |
 | `ReplayStore` | `CacheReplayStore` | Garde ailleurs les `jti` acceptés ; `claim()` reste atomique entre les serveurs |
-| `RefreshOutcomes` | `EncryptedRefreshOutcomes` | Partage ailleurs les résultats de renouvellement ; le résultat contient des jetons, il ne doit donc pas être stocké en clair |
+| `RefreshOutcomes` | `EncryptedRefreshOutcomes` | Partage ailleurs les résultats de renouvellement ; le résultat contient des jetons, il ne doit donc pas être stocké en clair ; `publish()` répond si le magasin l'a gardé |
 
 ## Événements
 
