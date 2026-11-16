@@ -130,8 +130,11 @@ published for `oidc.key_activation_delay` — retiring the active one —, and c
 cache the key set see each key before it signs, and keep it until the last token it signed has expired. After a key
 was exposed, `--now` activates the pending key at once.
 
-Instances that start, or rotate, at the same time may each activate or create a key. Every read of the keys settles
-that, the same way on every instance: of several active keys, all but the one activated last — the greatest `kid`
+The first key and each rotation are made under one lock, `phil_identity_provider.signing_keys`, taken from the
+`LockFactory` of `oidc.lock_factory` — `lock.factory` by default —, the keys read again once it is held: instances that
+start, or rotate, at the same time make one key, not one each. The lock's store must be shared by every server: a
+`flock` store guards one server only. Every read of the keys still settles what an unshared store, or keys written
+before, may have left, the same way on every instance: of several active keys, all but the one activated last — the greatest `kid`
 breaking a tie — are retired, and stay published for the tokens they signed; of several pending keys, all but the
 oldest are removed, having signed nothing. The settlement is journaled as `identity.oidc.key_rotated`, with the keys retired
 and the count removed.

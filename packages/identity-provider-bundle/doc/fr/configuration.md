@@ -108,6 +108,7 @@ phil_identity_provider:
 | `oidc.key_activation_delay` | `86400` | Secondes pendant lesquelles une nouvelle clé est publiée avant de signer. |
 | `oidc.retired_key_retention` | `604800` | Secondes pendant lesquelles une clé retirée reste publiée. |
 | `oidc.allow_localhost` | `false` | Si les adresses de redirection sur `localhost` en http sont acceptées, pour le développement. |
+| `oidc.lock_factory` | `lock.factory` | Le service `LockFactory` qui sérialise la première clé de signature et chaque rotation ; son magasin doit être partagé par tous les serveurs. |
 
 ## Un site qui refuse certaines méthodes
 

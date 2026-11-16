@@ -29,6 +29,8 @@ use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Query;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Services;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\InMemoryStore;
 
 #[CoversClass(ProviderSettings::class)]
 #[CoversClass(SigningKeys::class)]
@@ -476,7 +478,7 @@ final class ProviderTest extends TestCase
 
     private function keys(): SigningKeys
     {
-        return new SigningKeys($this->keyStore, new PlainSecretCipher(), $this->settings, $this->services->clock, $this->services->journal);
+        return new SigningKeys($this->keyStore, new PlainSecretCipher(), $this->settings, $this->services->clock, new LockFactory(new InMemoryStore()), $this->services->journal);
     }
 
     private function registry(): ClientRegistry

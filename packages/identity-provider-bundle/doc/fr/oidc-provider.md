@@ -135,8 +135,11 @@ en attente. Les clients qui mettent le jeu de clés en cache voient chaque clé 
 l'expiration du dernier jeton qu'elle a signé. Après l'exposition d'une clé, `--now` active tout de suite la clé en
 attente.
 
-Des instances qui démarrent, ou font la rotation, en même temps peuvent chacune activer ou créer une clé. Chaque lecture
-des clés règle cela, de la même façon sur chaque instance : de plusieurs clés actives, toutes sauf la dernière activée —
+La première clé et chaque rotation se font sous un seul verrou, `phil_identity_provider.signing_keys`, pris à la
+`LockFactory` de `oidc.lock_factory` — `lock.factory` par défaut —, les clés étant relues une fois le verrou tenu : des
+instances qui démarrent, ou font la rotation, en même temps créent une clé, pas une chacune. Le magasin du verrou doit
+être partagé par tous les serveurs : un magasin `flock` ne protège qu'un serveur. Chaque lecture des clés règle encore
+ce qu'un magasin non partagé, ou des clés écrites avant, ont pu laisser, de la même façon sur chaque instance : de plusieurs clés actives, toutes sauf la dernière activée —
 le plus grand `kid` départageant une égalité — sont retirées, et restent publiées pour les jetons qu'elles ont signés ;
 de plusieurs clés en attente, toutes sauf la plus ancienne sont supprimées, n'ayant rien signé. Le règlement est
 journalisé comme `identity.oidc.key_rotated`, avec les clés retirées et le nombre de clés supprimées.

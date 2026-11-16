@@ -30,8 +30,10 @@ use Phil\IdentityProviderBundle\Tests\Unit\Fixture\InterleavedGrants;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\InterleavedKeys;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Query;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Services;
+use Phil\IdentityProviderBundle\Tests\Unit\Fixture\WaitingLockStore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Lock\LockFactory;
 
 /**
  * What a single use promises when two requests, or two instances, read the same row before either writes: one wins,
@@ -54,8 +56,14 @@ final class ConcurrentUseTest extends TestCase
 
     private ProviderSettings $settings;
 
+    private WaitingLockStore $lockStore;
+
+    private LockFactory $locks;
+
     protected function setUp(): void
     {
+        $this->lockStore = new WaitingLockStore();
+        $this->locks = new LockFactory($this->lockStore);
         $this->services = new Services();
         $this->clients = new InMemoryClientRepository();
         $this->grants = new InterleavedGrants();
@@ -164,39 +172,42 @@ final class ConcurrentUseTest extends TestCase
         self::assertSame(9, $factors->remainingRecoveryCodes($account));
     }
 
-    public function testTwoInstancesStartingAtOnceEndWithOneActiveKey(): void
+    public function testTwoInstancesStartingAtOnceMakeOneKey(): void
     {
         $first = $this->keys();
         $second = $this->keys();
-        $this->keyStore->meanwhile = static function () use ($second): void {
-            $second->active();
+        $made = null;
+        $this->keyStore->meanwhile = static function () use ($second, &$made): void {
+            $made = $second->active()->kid;
         };
 
-        $first->active();
         $signing = $first->active()->kid;
 
-        self::assertSame([$signing], $this->kids(static fn (SigningKey $key): bool => $key->isActive()));
-        self::assertSame($signing, $second->active()->kid);
-        self::assertCount(2, $first->jwks()['keys'], 'The key retired stays published for the tokens it signed.');
+        self::assertSame($made, $signing);
+        self::assertCount(1, $this->keyStore->inner->all());
     }
 
-    public function testTwoRotationsAtOnceLeaveOnePendingKey(): void
+    public function testTheFirstKeyAndEachRotationAreMadeUnderTheLockOfTheKeys(): void
     {
-        $first = $this->keys();
-        $second = $this->keys();
-        $first->active();
-        $store = $this->keyStore;
-        $store->meanwhile = static function () use ($store, $second): void {
-            $store->meanwhile = static function () use ($second): void {
-                $second->rotate();
-            };
+        $locks = $this->locks;
+        $held = [];
+        $watch = static function () use ($locks, &$held): void {
+            $held[] = !$locks->createLock(SigningKeys::LOCK)->acquire(false);
         };
+        $store = $this->keyStore;
+        $store->meanwhile = static function () use ($store, $watch): void {
+            $store->meanwhile = $watch;
+        };
+        $keys = $this->keys();
 
-        $first->rotate();
-        $first->rotate();
+        $keys->active();
 
-        self::assertCount(1, $this->kids(static fn (SigningKey $key): bool => $key->isPending()));
-        self::assertCount(1, $this->kids(static fn (SigningKey $key): bool => $key->isActive()));
+        $store->meanwhile = $watch;
+        $keys->rotate();
+
+        self::assertSame([true, true], $held);
+        self::assertSame(['wait', 'try', 'wait', 'try'], $this->lockStore->acquisitions);
+        self::assertTrue($locks->createLock(SigningKeys::LOCK)->acquire(false), 'The lock is released.');
     }
 
     public function testOfSeveralActiveKeysTheOneActivatedLastSignsAndTheOldestPendingOneStays(): void
@@ -222,7 +233,7 @@ final class ConcurrentUseTest extends TestCase
         $at = $this->services->clock->now();
         $this->keyStore->inner->save($this->key('a', $at, $at), $this->key('b', $at, $at));
 
-        self::assertSame('b', new SigningKeys($this->keyStore, new PlainSecretCipher(), $this->settings, $this->services->clock)->active()->kid);
+        self::assertSame('b', new SigningKeys($this->keyStore, new PlainSecretCipher(), $this->settings, $this->services->clock, $this->locks)->active()->kid);
     }
 
     public function testAnExpiredRefreshTokenIsRefusedWithoutBeingTakenForAReuse(): void
@@ -268,7 +279,7 @@ final class ConcurrentUseTest extends TestCase
 
     private function keys(): SigningKeys
     {
-        return new SigningKeys($this->keyStore, new PlainSecretCipher(), $this->settings, $this->services->clock, $this->services->journal);
+        return new SigningKeys($this->keyStore, new PlainSecretCipher(), $this->settings, $this->services->clock, $this->locks, $this->services->journal);
     }
 
     private function tokens(): Tokens

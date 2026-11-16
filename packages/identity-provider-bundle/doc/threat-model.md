@@ -70,6 +70,7 @@ write the code comes before the bundle is used in production, against this page 
 | Keys too weak or of the wrong kind | New keys: RSA of 3072 bits, P-256, Ed25519, made by `JWKFactory`. A key read back from the store must match the type and curve of its algorithm and hold every private member; an RSA modulus under 2048 bits is refused. |
 | Request objects and client assertions | Not accepted: `request` and `request_uri` are refused with `request_not_supported` and `request_uri_not_supported` before anything reads them; clients authenticate by secret or, public, by PKCE. No JSON Web Token from a client reaches the library. |
 | Mix-up between providers | The issuer in the authorization response (RFC 9207). |
+| Several keys active at once | The first key and each rotation under one shared lock; extra active or pending keys settled at every read. |
 | Key compromise | Rotation with publication before use; `rotate-keys --now`; private keys sealed by the KeyManagement component when configured. |
 | A client reading another client's tokens | Introspection and revocation answer only for the asking client's tokens. |
 | A disabled account keeping its access | Introspection answers `active: false` for the tokens of a disabled account, as userinfo refuses them. |
@@ -98,6 +99,7 @@ templates when it replaces the bundle's.
 | A key store without the KeyManagement component | The private JSON Web Keys are then kept in clear in the database. | Configure `secrets.kms_key`; restrict access to `phil_identity_signing_key`. |
 | The cost of RS256 | The library rebuilds the PEM of an RSA key at each signature: a few milliseconds per RS256 signature, against well under a millisecond for ES256 or EdDSA (`tests/Benchmark/JwsBench.php`). A flood of token requests costs more processor time with RS256. | The firewall's rate limits on the token endpoint; `oidc.algorithm: ES256` or `EdDSA` where the clients support them. |
 | `web-token/jwt-library` itself | A flaw in the library is a flaw in the provider. | One maintained library; its version follows the security advisories (`composer deps:audit`); untrusted input bounded before it. |
+| A code presented by two requests at once | The request that loses the code revokes its family as a reuse; when it does so before the winner has stored its tokens, those tokens stay valid. | Rare: two exchanges of one code within milliseconds; bounded by `oidc.access_token_lifetime` and, for a refresh token, by its next rotation or revocation; the reuse is journaled as `identity.oidc.token_reuse`. |
 | Certification | The suite runs locally; certification by the OpenID Foundation needs a provider at a public address. | Done before the provider is used in production; see [OpenID conformance](openid-conformance.md). |
 
 ## The review before production

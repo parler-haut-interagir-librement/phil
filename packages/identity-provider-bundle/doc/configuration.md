@@ -106,6 +106,7 @@ phil_identity_provider:
 | `oidc.key_activation_delay` | `86400` | Seconds a new key is published before it signs. |
 | `oidc.retired_key_retention` | `604800` | Seconds a retired key stays published. |
 | `oidc.allow_localhost` | `false` | Whether redirect addresses on `localhost` over http are accepted, for development. |
+| `oidc.lock_factory` | `lock.factory` | The `LockFactory` service that serializes the first signing key and each rotation; its store must be shared by every server. |
 
 ## A site that refuses some methods
 

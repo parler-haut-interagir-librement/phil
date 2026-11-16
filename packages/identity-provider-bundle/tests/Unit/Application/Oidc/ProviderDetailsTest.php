@@ -27,6 +27,8 @@ use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Query;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Services;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\InMemoryStore;
 
 /**
  * The tokens down to their shape: the sizes of the secrets, the headers, the claims and what is journaled, and the
@@ -60,7 +62,7 @@ final class ProviderDetailsTest extends TestCase
         $this->clients = new InMemoryClientRepository();
         $this->grants = new InMemoryGrantRepository();
         $this->settings = new ProviderSettings(self::ISSUER, SigningAlgorithm::ES256);
-        $this->keys = new SigningKeys(new InMemorySigningKeyRepository(), new PlainSecretCipher(), $this->settings, $this->services->clock, $this->services->journal);
+        $this->keys = new SigningKeys(new InMemorySigningKeyRepository(), new PlainSecretCipher(), $this->settings, $this->services->clock, new LockFactory(new InMemoryStore()), $this->services->journal);
         $this->account = $this->services->account();
         [$this->client] = new ClientRegistry($this->clients, $this->services->clock, $this->settings, $this->services->journal)->register('app', 'App', ['https://app.example/cb'], [], ['email', 'offline_access']);
     }

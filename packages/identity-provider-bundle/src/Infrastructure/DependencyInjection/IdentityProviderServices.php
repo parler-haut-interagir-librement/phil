@@ -143,7 +143,7 @@ use Symfony\Component\Security\Http\LoginLink\LoginLinkHandlerInterface;
  *     step_up: array{attribute: string, lifetime: positive-int},
  *     sessions: array{touch_interval: non-negative-int},
  *     external: array{link_verified_email: bool, register: bool},
- *     oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool},
+ *     oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string},
  *     secrets: array{kms_key: ?string, encrypter: string, decrypter: string},
  *     audit: string,
  * }
@@ -431,7 +431,7 @@ final class IdentityProviderServices
             $config['oidc']['retired_key_retention'],
         ]);
         $container->register(SigningKeys::class, SigningKeys::class)
-            ->setArguments([new Reference(SigningKeyRepository::class), new Reference(SecretCipher::class), new Reference(ProviderSettings::class), $clock, $journal])
+            ->setArguments([new Reference(SigningKeyRepository::class), new Reference(SecretCipher::class), new Reference(ProviderSettings::class), $clock, new Reference($config['oidc']['lock_factory']), $journal])
             ->setPublic(true);
         $container->register(ClientRegistry::class, ClientRegistry::class)
             ->setArguments([new Reference(ClientRepository::class), $clock, new Reference(ProviderSettings::class), $journal, $config['oidc']['allow_localhost']])

@@ -43,6 +43,8 @@ use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Services;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\InMemoryStore;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Security\Core\Signature\SignatureHasher;
 
@@ -272,7 +274,7 @@ final class ApplicationDetailsTest extends TestCase
         $services = new Services();
         $store = new InMemorySigningKeyRepository();
         $cipher = new RecordingCipher();
-        $keys = new SigningKeys($store, $cipher, new ProviderSettings('https://id.example', SigningAlgorithm::ES256, keyActivationDelay: 100, retiredKeyRetention: 200), $services->clock, $services->journal);
+        $keys = new SigningKeys($store, $cipher, new ProviderSettings('https://id.example', SigningAlgorithm::ES256, keyActivationDelay: 100, retiredKeyRetention: 200), $services->clock, new LockFactory(new InMemoryStore()), $services->journal);
 
         $first = $keys->active();
         self::assertSame(['signing-key:'.$first->kid, 'signing-key:'.$first->kid], $cipher->contexts);
@@ -294,7 +296,7 @@ final class ApplicationDetailsTest extends TestCase
     public function testRotatingWithoutAJournal(): void
     {
         $services = new Services();
-        $keys = new SigningKeys(new InMemorySigningKeyRepository(), new RecordingCipher(), new ProviderSettings('https://id.example', SigningAlgorithm::ES256), $services->clock);
+        $keys = new SigningKeys(new InMemorySigningKeyRepository(), new RecordingCipher(), new ProviderSettings('https://id.example', SigningAlgorithm::ES256), $services->clock, new LockFactory(new InMemoryStore()));
 
         self::assertIsString($keys->rotate()['created']);
     }

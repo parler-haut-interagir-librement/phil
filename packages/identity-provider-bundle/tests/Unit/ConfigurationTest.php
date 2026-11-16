@@ -101,6 +101,7 @@ final class ConfigurationTest extends TestCase
             'key_activation_delay' => 86400,
             'retired_key_retention' => 604800,
             'allow_localhost' => false,
+            'lock_factory' => 'lock.factory',
         ],
         'secrets' => [
             'kms_key' => null,

@@ -17,6 +17,8 @@ The next version is 0.2.0-alpha: introspection refuses what it accepted, and two
 - `TotpCredential::$secret` and `TotpCredential::$createdAt` are no longer read-only properties, so that the store can
   read the row again over the object. The schema does not change.
 - `doctrine/dbal` moves from `require-dev` to `require`: the Doctrine stores name its types and lock modes.
+- `SigningKeys` takes a `LockFactory`, after the clock; `symfony/lock` joins `require`, and `oidc.lock_factory` names the
+  service, `lock.factory` by default.
 
 ### Security
 
@@ -29,9 +31,11 @@ The next version is 0.2.0-alpha: introspection refuses what it accepted, and two
 - `SecondFactors` accepts a TOTP counter and crosses out a recovery code through `SecondFactorRepository::apply()`,
   under `SELECT … FOR UPDATE` with Doctrine: the same code presented by two requests at the same time could be accepted
   twice; it is now accepted once.
-- `SigningKeys` settles the keys at every read: instances starting or rotating at the same time could leave several
-  active or pending keys, the extra ones never retired; all but the last activated are now retired, and all but the
-  oldest pending removed, the same way on every instance.
+- `SigningKeys` makes the first key and each rotation under the lock `phil_identity_provider.signing_keys`, reading the
+  keys again once it is held: instances starting or rotating at the same time could leave several active or pending
+  keys, the extra ones never retired. Every read still settles what an unshared lock store or older keys may have
+  left: all but the last activated are retired, and all but the oldest pending removed, the same way on every
+  instance.
 
 ## 0.1.0-alpha - 2026-11-15
 
