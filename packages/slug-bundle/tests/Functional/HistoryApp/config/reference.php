@@ -369,6 +369,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         metadata?: array<string, mixed>,
  *     }>,
  * }
+ * @psalm-type RemoteEventConfig = bool|array{
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
+ * }
  * @psalm-type HtmlSanitizerConfig = bool|array{
  *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     sanitizers?: array<string, array{ // Default: []
@@ -788,7 +791,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     uid?: UidConfig,
  *     html_sanitizer?: HtmlSanitizerConfig,
  *     webhook?: mixed,
- *     remote_event?: mixed,
+ *     remote_event?: RemoteEventConfig,
  *     json_streamer?: mixed,
  *     session?: bool|array{ // Session configuration
  *         enabled?: bool|Param, // Resolved at compile time // Default: false
@@ -1051,6 +1054,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     lock?: LockConfig,
  *     messenger?: MessengerConfig,
  *     workflow?: WorkflowConfig,
+ *     remote_event?: RemoteEventConfig,
  *     html_sanitizer?: HtmlSanitizerConfig,
  *     type_info?: TypeInfoConfig,
  *     property_access?: PropertyAccessConfig,
@@ -1080,6 +1084,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         lock?: LockConfig,
  *         messenger?: MessengerConfig,
  *         workflow?: WorkflowConfig,
+ *         remote_event?: RemoteEventConfig,
  *         html_sanitizer?: HtmlSanitizerConfig,
  *         type_info?: TypeInfoConfig,
  *         property_access?: PropertyAccessConfig,

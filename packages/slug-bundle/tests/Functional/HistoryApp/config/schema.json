@@ -1642,7 +1642,7 @@
                         "$ref": "#/$defs/types/variable"
                     },
                     "remote_event": {
-                        "$ref": "#/$defs/types/variable"
+                        "$ref": "#/$defs/nodes/remote_event"
                     },
                     "json_streamer": {
                         "$ref": "#/$defs/types/variable"
@@ -5279,6 +5279,28 @@
                     "limiters": []
                 }
             },
+            "remote_event": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": [
+                            "boolean"
+                        ]
+                    }
+                ],
+                "default": {
+                    "enabled": true
+                }
+            },
             "router": {
                 "anyOf": [
                     {
@@ -8142,6 +8164,9 @@
         "rate_limiter": {
             "$ref": "#/$defs/nodes/rate_limiter"
         },
+        "remote_event": {
+            "$ref": "#/$defs/nodes/remote_event"
+        },
         "router": {
             "$ref": "#/$defs/nodes/router"
         },
@@ -8221,6 +8246,9 @@
                 },
                 "rate_limiter": {
                     "$ref": "#/$defs/nodes/rate_limiter"
+                },
+                "remote_event": {
+                    "$ref": "#/$defs/nodes/remote_event"
                 },
                 "router": {
                     "$ref": "#/$defs/nodes/router"
