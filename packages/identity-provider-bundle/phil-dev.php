@@ -36,6 +36,10 @@ return [
             ],
             // What the callee does anyway: the estimator slices its inputs, a variadic parameter is a list, the
             // identifiers of a scope are distinct once split, and the diff of two lists is spread by position.
+            // Doctrine reads the refresh hint with isset(): false refreshes the row as true does.
+            'TrueValue' => [
+                'ignoreSourceCodeByRegex' => ['->setHint\\(Query::HINT_REFRESH, true\\)'],
+            ],
             'UnwrapArrayValues' => [
                 'ignoreSourceCodeByRegex' => [
                     '\\$inputs = array_values\\(array_filter.*',

@@ -175,6 +175,7 @@ final class SerializedTokenRefreshListenerTest extends TestCase
         self::assertSame(['rt1'], $this->client->presented);
         self::assertSame('rt1', $stale->getAttribute(TokenAttribute::REFRESH_TOKEN));
         self::assertSame($stale, $this->storage->getToken());
+        self::assertContains('Could not share the renewal of the session tokens; the requests holding the previous ones keep them until they expire.', $this->logger->messages);
     }
 
     public function testTheLockIsReleasedAfterwards(): void
