@@ -143,6 +143,9 @@ Invariants:
 - **Never take an amount from the request**: `start()` charges the payment's amount, `refund()` the amount asked.
 - **Hand the idempotency key to the processor**: the same key comes with every try of one refund, so that the
   processor makes it once.
+- **A gateway that is its own processor** — it records a refund at once, with no notification to wait for — applies
+  the refund under its key, as the notification's id: `Payments::refund()` then finds the key applied
+  (`Payment::hasApplied()`) and does nothing when the refund is asked again.
 - Keep the processor's credentials in the application's secrets, read by the adapter.
 
 ## `StockCommitments`

@@ -231,6 +231,28 @@ final class PaymentsTest extends TestCase
         self::assertSame(250, $payment->refunded->minorUnits);
     }
 
+    /**
+     * A gateway that is its own processor records a refund at once, under its key: asked again, the refund is neither
+     * made twice nor refused, whether it took all of the payment or part of it.
+     */
+    public function testARefundAskedAgainUnderAnAppliedKeyDoesNothing(): void
+    {
+        $this->card->settlesAtOnce = true;
+        [$payment] = $this->payments->start($this->order(), 'card', new DateTimeImmutable());
+        $this->payments->notify('card', 'evt_1|ref-1|captured', ['x-signature' => ['ok']]);
+
+        $this->payments->refund($payment, $this->cad(700), 'refund-1');
+        $this->payments->refund($payment, $this->cad(700), 'refund-1');
+
+        self::assertSame([700, PaymentState::Completed, ['refund-1']], [$payment->refunded->minorUnits, $payment->state(), $this->card->idempotencyKeys]);
+
+        $this->payments->refund($payment, $this->cad(300), 'refund-2');
+        $this->payments->refund($payment, $this->cad(300), 'refund-2');
+        $this->payments->refund($payment, $this->cad(700), 'refund-1');
+
+        self::assertSame([1_000, PaymentState::Refunded, ['refund-1', 'refund-2']], [$payment->refunded->minorUnits, $payment->state(), $this->card->idempotencyKeys]);
+    }
+
     public function testOnlyACompletedPaymentIsRefunded(): void
     {
         [$payment] = $this->payments->start($this->order(), 'card', new DateTimeImmutable());

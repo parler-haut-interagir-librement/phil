@@ -9,10 +9,17 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 The next version is 0.2.0-alpha: a refund is refused that was granted before, and `PaymentGateway::refund()` and
 `Payments::refund()` take an idempotency key.
 
+### Added
+
+- `Payment::hasApplied()`: whether a notification of this id, or a refund under this idempotency key, was applied.
+
 ### Changed
 
 - `PaymentGateway::refund()` takes a third argument, `string $idempotencyKey`, which an adapter hands to its processor;
   `Payments::refund()` takes it too and passes it on.
+- `Payments::refund()` does nothing when the payment already applied the key: a gateway that is its own processor
+  records a refund at once under its key, and asking it again — all of the payment or part of it — was refused once
+  what is left no longer covered it.
 
 ### Security
 

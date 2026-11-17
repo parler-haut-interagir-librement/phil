@@ -228,11 +228,20 @@ final class Payment
     }
 
     /**
+     * Whether a notification of this id was applied: a gateway that is its own processor applies a refund under its
+     * idempotency key, so that the key tells whether the refund was made.
+     */
+    public function hasApplied(string $notificationId): bool
+    {
+        return \in_array($notificationId, $this->appliedNotifications, true);
+    }
+
+    /**
      * Applies a verified notification of the processor; `false` when it was already applied.
      */
     public function apply(PaymentNotification $notification): bool
     {
-        if (\in_array($notification->id, $this->appliedNotifications, true)) {
+        if ($this->hasApplied($notification->id)) {
             return false;
         }
 

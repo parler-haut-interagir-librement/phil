@@ -196,7 +196,10 @@ final class PaymentTest extends TestCase
         $payment = $this->payment();
         $captured = PaymentNotification::of('evt_1', 'pi_1', PaymentEvent::Captured);
 
+        self::assertFalse($payment->hasApplied('evt_1'));
         self::assertTrue($payment->apply($captured));
+        self::assertTrue($payment->hasApplied('evt_1'));
+        self::assertFalse($payment->hasApplied('evt_2'));
         self::assertFalse($payment->apply($captured));
         self::assertFalse($payment->apply(PaymentNotification::of('evt_1', 'pi_1', PaymentEvent::Failed)));
         self::assertSame(PaymentState::Completed, $payment->state());

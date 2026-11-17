@@ -211,13 +211,19 @@ final readonly class Payments
     }
 
     /**
-     * Asks the gateway of the payment to refund part or all of what is left.
+     * Asks the gateway of the payment to refund part or all of what is left. A refund whose key the payment already
+     * applied — a gateway that is its own processor records it at once, under its key — was made: asked again, it does
+     * nothing and refuses nothing, even when what is left no longer covers it.
      *
      * @param string $idempotencyKey the same for every try of one refund — `Refunds` gives the refund's identifier —, so
      *                               that the processor refunds once however often it is asked
      */
     public function refund(Payment $payment, Money $amount, string $idempotencyKey): void
     {
+        if ($payment->hasApplied($idempotencyKey)) {
+            return;
+        }
+
         if (PaymentState::Completed !== $payment->state()) {
             throw PaymentRefused::notRefundable($payment->id, $payment->state());
         }

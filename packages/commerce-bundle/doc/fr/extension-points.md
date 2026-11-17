@@ -147,6 +147,9 @@ Invariants :
   demandé.
 - **Remettez la clé d'idempotence au processeur** : la même clé accompagne chaque tentative d'un même remboursement,
   de sorte que le processeur ne le fasse qu'une fois.
+- **Une passerelle qui est son propre processeur** — elle enregistre un remboursement aussitôt, sans notification à
+  attendre — applique le remboursement sous sa clé, comme identifiant de la notification : `Payments::refund()` trouve
+  alors la clé appliquée (`Payment::hasApplied()`) et ne fait rien quand le remboursement est redemandé.
 - Gardez les identifiants de connexion du processeur dans les secrets de l'application, lus par l'adaptateur.
 
 ## `StockCommitments`
