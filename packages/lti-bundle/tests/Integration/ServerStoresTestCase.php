@@ -12,16 +12,19 @@ use Phil\LtiBundle\Tests\Unit\Fixture\Stores;
 use Phil\LtiBundle\Tests\Unit\Infrastructure\StoresTestCase;
 
 /**
- * The contract of the stores on a real server, read from the environment; skipped without it.
+ * The contract of the stores on a real server, read from the environment; skipped without it. `phil-dev services up`
+ * starts MySQL 8.4 and PostgreSQL 17 in Docker, and `phil-dev services env` gives their addresses.
  */
 abstract class ServerStoresTestCase extends StoresTestCase
 {
     private ?Connection $connection = null;
 
     /**
-     * The variable of the server's URL.
+     * The variables of the server's URL: the one of this package, then the one `phil-dev services` sets.
+     *
+     * @return array{string, string}
      */
-    abstract protected function variable(): string;
+    abstract protected function variables(): array;
 
     #[Override]
     protected function tearDown(): void
@@ -36,12 +39,14 @@ abstract class ServerStoresTestCase extends StoresTestCase
             return $this->connection;
         }
 
-        $url = getenv($this->variable());
+        [$variable, $shared] = $this->variables();
+        $url = getenv($variable);
+        $url = \is_string($url) && '' !== $url ? $url : getenv($shared);
 
         if (!\is_string($url) || '' === $url) {
-            self::markTestSkipped(\sprintf('Set %s to run this test against a real server.', $this->variable()));
+            self::markTestSkipped(\sprintf('Set %s, or %s, to run this test against a real server.', $variable, $shared));
         }
 
-        return $this->connection = Stores::prepare(DriverManager::getConnection(new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql', 'postgres' => 'pdo_pgsql'])->parse($url)), $this->tables);
+        return $this->connection = Stores::prepare(DriverManager::getConnection(new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql', 'postgres' => 'pdo_pgsql'])->parse($url), Stores::configuration($this->interleaving)), $this->tables);
     }
 }

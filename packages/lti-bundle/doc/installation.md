@@ -68,15 +68,15 @@ application's provider instead, or a chain of both.
 
 ## The tables
 
-With the ORM, the bundle adds its seven tables to the schema the ORM generates for the connection:
+With the ORM, the bundle adds its eight tables to the schema the ORM generates for the connection:
 
 ```sh
 bin/console doctrine:migrations:diff
 bin/console doctrine:migrations:migrate
 ```
 
-Without the ORM, `bin/console phil:lti:schema` shows the SQL of the missing tables and `--force` runs it. See
-[storage](storage.md).
+Without the ORM, `bin/console phil:lti:schema` shows the SQL of the missing tables and of the columns the tables there
+lack, and `--force` runs it. An application coming from 0.1 follows the upgrade of [storage](storage.md).
 
 ## The kit and the assets
 
@@ -105,5 +105,7 @@ With AssetMapper, the bundle serves its Stimulus controller as `@phil/lti-bundle
 
 ## Scheduled tasks
 
-Run `phil:lti:purge` daily, to remove the expired nonces, login states and access tokens, and
-`phil:lti:rotate-keys --if-due` daily, to rotate the signing key once it reaches its lifetime.
+Run `phil:lti:purge` daily, to remove the expired nonces, login states, access tokens and deep linking responses and the
+scores refused beyond their retention, and `phil:lti:rotate-keys --if-due` daily, to rotate the signing key once it
+reaches its lifetime. A tool also runs `phil:lti:recover-scores` every few minutes, to send again the scores whose
+message was never dispatched.

@@ -26,8 +26,23 @@ to keep part of the state elsewhere:
 | `Phil\Lti\Contract\ScoreStore` | `DbalScoreStore` | `InMemoryScoreStore` |
 | `Phil\Lti\Contract\KeyStore` | `DbalKeyStore` (keys `dbal`) | `InMemoryKeyStore` |
 | `Phil\LtiBundle\Application\Contract\PendingScores` | `DbalPendingScores` | `InMemoryPendingScores` |
+| `Phil\LtiBundle\Application\Contract\DeepLinkingReturns` | `DbalDeepLinkingReturns` | `InMemoryDeepLinkingReturns` |
 | `Phil\Lti\Contract\PlatformRegistrations` | from `tool.platforms` | the same |
 | `Phil\Lti\Contract\ToolRegistrations` | from `platform.tools` | the same |
+
+An adapter keeps the contract of its port:
+
+- `ScoreStore::record()` compares and writes in one atomic step, and answers whether it kept the score (see the
+  extension points of `phil/lti`);
+- `PendingScores::claim()` takes each score in one atomic step — a guarded update, or a lock — and marks it claimed at
+  the moment given, so that of two recoveries at once each score goes to one; `markDispatched()` and `markRefused()` do
+  nothing for a score that is gone; a refused or dispatched score is never claimed;
+- `DeepLinkingReturns::save()` keeps the first response saved under a key; `find()` and `unhandled()` never answer a
+  response expired.
+
+`PendingScores` has the shape of an outbox — `save()` writes the entry, `markDispatched()` acknowledges it, `claim()`
+polls, `refused()` and `delete()` keep and purge the dead letters —: an application with an outbox of its own implements
+the port over it.
 
 ## The events
 
@@ -35,14 +50,15 @@ to keep part of the state elsewhere:
 |---|---|---|
 | `LaunchReceived` | Tool | Answers a verified launch with `setResponse()`. |
 | `ScorePublished` | Tool | Learns that a score was taken by the platform. |
-| `DeepLinkingReturned` | Platform | Places the items picked and answers with `setResponse()`. |
+| `ScoreRefused` | Tool | Keeps its own trace of a score the platform refused for good. |
+| `DeepLinkingReturned` | Platform | Places the items picked, once per `key`, and answers with `setResponse()`; idempotent, as a response whose handling failed is told again with `resumed` true. |
 | `LineItemSaved`, `LineItemDeleted` | Platform | Keeps the gradebook's columns. |
 | `ScoreReceived` | Platform | Keeps the gradebook's grades. |
 
 ## The services to use
 
-`ScorePublisher`, `DeepLinkingResponder`, `FormPostResponder`, `AgsClient`, `NrpsClient`, `LaunchStarter`,
-`PlatformUrls` and `KeyStore` are public services.
+`ScorePublisher`, `DeepLinkingResponder`, `DeepLinkingHandler`, `FormPostResponder`, `AgsClient`, `NrpsClient`,
+`LaunchStarter`, `PlatformUrls` and `KeyStore` are public services.
 
 ## What stays closed
 

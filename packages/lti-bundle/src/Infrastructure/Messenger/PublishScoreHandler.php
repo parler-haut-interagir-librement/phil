@@ -13,7 +13,8 @@ use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 
 /**
  * Sends the pending score a message names. A refusal the platform will repeat — the platform no longer registered, a
- * status of 400 to 499 other than 408 and 429 — is not tried again; any other failure is.
+ * status of 400 to 499 other than 408 and 429, a request that cannot be sent — marks the score refused and is not tried
+ * again; any other failure is.
  */
 final readonly class PublishScoreHandler
 {
@@ -26,16 +27,12 @@ final readonly class PublishScoreHandler
     {
         try {
             $this->publisher->send($message->id);
-        } catch (UnknownRegistration|InvalidRequest $exception) {
-            throw new UnrecoverableMessageHandlingException($exception->getMessage(), 0, $exception);
-        } catch (ServiceFailed $serviceFailed) {
-            $status = $serviceFailed->status();
-
-            if ($status >= 400 && $status < 500 && !\in_array($status, [408, 429], true)) {
-                throw new UnrecoverableMessageHandlingException($serviceFailed->getMessage(), 0, $serviceFailed);
+        } catch (UnknownRegistration|InvalidRequest|ServiceFailed $exception) {
+            if (ScorePublisher::isFinal($exception)) {
+                throw new UnrecoverableMessageHandlingException($exception->getMessage(), 0, $exception);
             }
 
-            throw $serviceFailed;
+            throw $exception;
         }
     }
 }

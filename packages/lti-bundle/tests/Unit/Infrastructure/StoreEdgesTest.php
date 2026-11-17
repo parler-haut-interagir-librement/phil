@@ -19,8 +19,10 @@ use Phil\Lti\Service\Ags\LineItem;
 use Phil\Lti\Service\Ags\Score;
 use Phil\Lti\Service\Scope;
 use Phil\LtiBundle\Application\PendingScore;
+use Phil\LtiBundle\Application\StoredDeepLinkingReturn;
 use Phil\LtiBundle\Infrastructure\Console\PurgeCommand;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalAccessTokens;
+use Phil\LtiBundle\Infrastructure\Dbal\DbalDeepLinkingReturns;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalKeyStore;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalLineItemStore;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalLoginStates;
@@ -60,6 +62,9 @@ use UnexpectedValueException;
 #[CoversClass(DbalLineItemStore::class)]
 #[CoversClass(DbalScoreStore::class)]
 #[CoversClass(DbalPendingScores::class)]
+#[CoversClass(DbalDeepLinkingReturns::class)]
+#[CoversClass(StoredDeepLinkingReturn::class)]
+#[CoversClass(PendingScore::class)]
 #[CoversClass(DbalNonces::class)]
 #[CoversClass(DbalLoginStates::class)]
 #[CoversClass(DbalAccessTokens::class)]
@@ -231,12 +236,37 @@ final class StoreEdgesTest extends TestCase
         $nonces->use('s', 'v', new DateTimeImmutable('2026-11-14 12:00:01 UTC'));
         $states->save(new LoginState('state', 'nonce', 'https://lms.example.org', 'client', 'https://tool.example.com/launch', new DateTimeImmutable('2026-11-14 12:00:01 UTC')));
         $tokens->save(new AccessToken('hash', 'client', [Scope::SCORE], new DateTimeImmutable('2026-11-14 12:00:01 UTC')));
+        $pending = new DbalPendingScores($this->connection, $this->tables);
+        $returns = new DbalDeepLinkingReturns($this->connection, $this->tables);
+        $score = new Score('learner', ActivityProgress::Completed, GradingProgress::FullyGraded, new DateTimeImmutable('2026-11-14T12:00:00+00:00'), 1.0, 1.0);
+
+        for ($i = 0; $i < PurgeCommand::BATCH + 1; ++$i) {
+            $pending->save(new PendingScore(\sprintf('old-%03d', $i), 'https://lms.example.org', 'client', Url::fromString('https://lms.example.org/items/1'), $score, $this->clock->now()));
+            $pending->markRefused(\sprintf('old-%03d', $i), 'Refused: 404', new DateTimeImmutable('2026-11-13 11:59:59 UTC'));
+        }
+
+        $pending->save(new PendingScore('recent', 'https://lms.example.org', 'client', Url::fromString('https://lms.example.org/items/1'), $score, $this->clock->now()));
+        $pending->markRefused('recent', 'Refused: 400', new DateTimeImmutable('2026-11-13 12:00:03 UTC'));
+        $pending->save(new PendingScore('waiting', 'https://lms.example.org', 'client', Url::fromString('https://lms.example.org/items/1'), $score, new DateTimeImmutable('2026-11-01 12:00:00 UTC')));
+
+        $returns->save(new StoredDeepLinkingReturn('gone', 'client', [], $this->clock->now(), new DateTimeImmutable('2026-11-14 12:00:02 UTC')));
+        $returns->save(new StoredDeepLinkingReturn('kept', 'client', [], $this->clock->now(), new DateTimeImmutable('2026-11-14 12:00:03 UTC')));
+
         $this->clock->sleep(2);
 
         $output = new BufferedOutput();
-        self::assertSame(0, new PurgeCommand($nonces, $states, $tokens)(new SymfonyStyle(new ArrayInput([]), $output)));
+        self::assertSame(0, new PurgeCommand($nonces, $this->clock, $states, $tokens, $pending, $returns, 86_400)(new SymfonyStyle(new ArrayInput([]), $output)));
 
-        self::assertStringContainsString('Removed 1 nonces, 1 login states and 1 access tokens.', $output->fetch());
+        $display = (string) preg_replace('/\s+/', ' ', $output->fetch());
+        self::assertStringContainsString('Removed 1 nonces, 1 login states, 1 access tokens, 1 deep linking responses and 101 refused scores.', $display);
+        self::assertStringContainsString('Refused score old-000 of https://lms.example.org, client client, refused at 2026-11-13T11:59:59+00:00: Refused: 404', $display);
+        self::assertStringContainsString('Refused score old-100 of', $display);
+        self::assertStringNotContainsString('learner', $display);
+        self::assertNull($pending->find('old-100'));
+        self::assertNotNull($pending->find('recent'));
+        self::assertNotNull($pending->find('waiting'));
+        self::assertNull($returns->find('gone', new DateTimeImmutable('2026-11-14 12:00:00 UTC')));
+        self::assertNotNull($returns->find('kept', $this->clock->now()));
     }
 
     public function testASealedKeyIsBoundToItsIdentifierByAFixedContext(): void

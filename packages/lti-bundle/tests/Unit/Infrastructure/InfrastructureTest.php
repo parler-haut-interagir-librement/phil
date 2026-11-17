@@ -120,11 +120,11 @@ final class InfrastructureTest extends TestCase
         $nonces = new DbalNonces($connection, $tables, $clock);
         $nonces->use('s', 'v', $clock->now());
 
-        $purge = new PurgeCommand($nonces, new DbalLoginStates($connection, $tables, $clock), new DbalAccessTokens($connection, $tables, $clock));
+        $purge = new PurgeCommand($nonces, $clock, new DbalLoginStates($connection, $tables, $clock), new DbalAccessTokens($connection, $tables, $clock));
         self::assertSame(0, $purge(new SymfonyStyle(new ArrayInput([]), $output)));
-        self::assertStringContainsString('Removed 1 nonces, 0 login states and 0 access tokens.', $output->fetch());
-        new PurgeCommand($nonces)(new SymfonyStyle(new ArrayInput([]), $output));
-        self::assertStringContainsString('Removed 0 nonces, 0 login states and 0 access tokens.', $output->fetch());
+        self::assertStringContainsString('Removed 1 nonces, 0 login states, 0 access tokens, 0 deep linking responses and 0 refused scores.', (string) preg_replace('/\s+/', ' ', $output->fetch()));
+        new PurgeCommand($nonces, $clock)(new SymfonyStyle(new ArrayInput([]), $output));
+        self::assertStringContainsString('Removed 0 nonces, 0 login states, 0 access tokens, 0 deep linking responses and 0 refused scores.', (string) preg_replace('/\s+/', ' ', $output->fetch()));
     }
 
     public function testRowsAreReadWhateverTheDriverGives(): void

@@ -59,5 +59,22 @@ table x_pending_score
     column line_item string length=2048 notnull=true charset=NULL collation=NULL
     column payload text length=NULL notnull=true charset=NULL collation=NULL
     column created_at bigint length=NULL notnull=true charset=NULL collation=NULL
+    column dispatched_at bigint length=NULL notnull=false charset=NULL collation=NULL
+    column claimed_at bigint length=NULL notnull=false charset=NULL collation=NULL
+    column refused_at bigint length=NULL notnull=false charset=NULL collation=NULL
+    column refusal string length=1024 notnull=false charset=NULL collation=NULL
     primary id
+    index x_pending_score_created (created_at)
+    index x_pending_score_refused (refused_at)
+    index primary (id)
+table x_deep_linking
+    column id string length=64 notnull=true charset=NULL collation=NULL
+    column client_id string length=255 notnull=true charset=NULL collation=NULL
+    column payload text length=NULL notnull=true charset=NULL collation=NULL
+    column received_at bigint length=NULL notnull=true charset=NULL collation=NULL
+    column expires_at bigint length=NULL notnull=true charset=NULL collation=NULL
+    column handled_at bigint length=NULL notnull=false charset=NULL collation=NULL
+    primary id
+    index x_deep_linking_expiry (expires_at)
+    index x_deep_linking_received (received_at)
     index primary (id)

@@ -104,7 +104,8 @@ $publisher->publish($launch, new Score($launch->subject(), ActivityProgress::Com
 pending, and sends it: through the bus named by `message_bus`, the message `PublishScore` carrying the score's
 identifier only, or at once without a bus. Once the platform takes it, the pending score is removed and `ScorePublished`
 is dispatched. `PublishScoreHandler` lets Messenger retry a failure of the network or of the platform, and stops for a
-refusal the platform will repeat — a platform no longer registered, a status of 400 to 499 other than 408 and 429.
+refusal the platform will repeat — a platform no longer registered, a status of 400 to 499 other than 408 and 429, a
+request that cannot be sent.
 
 ```yaml
 # config/packages/messenger.yaml
@@ -113,6 +114,39 @@ framework:
         routing:
             Phil\LtiBundle\Application\Message\PublishScore: async
 ```
+
+### Recovery
+
+The message carries the identifier of the score only; the score itself waits in the store, which records whether the
+bus took the message. A score whose message was never taken — the process stopped between the save and the dispatch,
+the transport refused it, or, without a bus, the platform could not be reached — is sent again by
+`phil:lti:recover-scores`, run every few minutes:
+
+```bash
+bin/console phil:lti:recover-scores --delay=300 --limit=100
+```
+
+The command claims each score saved, or last claimed, `--delay` seconds ago or more, in one atomic step per score, then
+dispatches its message again, or sends it without a bus: two runs at once never take the same score within the delay,
+and a run after another sends nothing new. When the transport refuses the message in `publish()`, the score is kept all
+the same and its identifier returned; the recovery sends it. Sending a score twice is harmless: the platform keeps the
+latest by its timestamp. A message the bus took but that failed for good stays in Messenger's failure transport, where
+`messenger:failed:retry` sends it again.
+
+### Refused scores
+
+A refusal the platform will repeat marks the score refused, with the moment and the reason, and dispatches
+`ScoreRefused`: a refused score is never sent again, nor recovered. It stays as a trace for
+`tool.refused_score_retention` seconds — thirty days by default —, then `phil:lti:purge` removes it and writes its
+identifier, platform, client, moment and reason, never the score itself. An application that keeps its own trace
+listens to `ScoreRefused`.
+
+### An outbox
+
+`PendingScores` has the shape of a transactional outbox: `save()` writes the entry, `markDispatched()` is the
+acknowledgement of the relay, `claim()` its poll, `refused()` and `delete()` the dead letters and their purge. An
+application with an outbox of its own implements the port over it, and a later version of the bundle may hand the relay
+to a shared outbox package without changing the port.
 
 ## The other services
 

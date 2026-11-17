@@ -6,7 +6,9 @@ namespace Phil\LtiBundle\Tests\Unit\Infrastructure;
 
 use Doctrine\DBAL\Connection;
 use Override;
+use Phil\LtiBundle\Infrastructure\Console\SchemaCommand;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalAccessTokens;
+use Phil\LtiBundle\Infrastructure\Dbal\DbalDeepLinkingReturns;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalKeyStore;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalLineItemStore;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalLoginStates;
@@ -24,6 +26,8 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(DbalLineItemStore::class)]
 #[CoversClass(DbalScoreStore::class)]
 #[CoversClass(DbalPendingScores::class)]
+#[CoversClass(DbalDeepLinkingReturns::class)]
+#[CoversClass(SchemaCommand::class)]
 #[CoversClass(DbalKeyStore::class)]
 #[CoversClass(LtiTables::class)]
 #[CoversClass(Row::class)]
@@ -34,6 +38,6 @@ final class SqliteStoresTest extends StoresTestCase
     #[Override]
     protected function connection(): Connection
     {
-        return $this->connection ??= Stores::sqlite($this->tables);
+        return $this->connection ??= Stores::sqlite($this->tables, $this->interleaving);
     }
 }

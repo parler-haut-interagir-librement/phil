@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Phil\LtiBundle\Tests\Unit\Application;
 
 use DateTimeImmutable;
+use InvalidArgumentException;
 use Phil\Lti\Contract\ServiceClient;
 use Phil\Lti\Exception\InvalidRequest;
 use Phil\Lti\Exception\ServiceFailed;
+use Phil\Lti\Exception\TokenRequestRefused;
 use Phil\Lti\Exception\UnknownRegistration;
 use Phil\Lti\Http\ServiceRequest;
 use Phil\Lti\Http\ServiceResponse;
@@ -30,17 +32,24 @@ use Phil\Lti\Service\Ags\Score;
 use Phil\Lti\Service\Scope;
 use Phil\Lti\Service\ServiceCall;
 use Phil\LtiBundle\Application\Event\ScorePublished;
+use Phil\LtiBundle\Application\Event\ScoreRefused;
 use Phil\LtiBundle\Application\Message\PublishScore;
 use Phil\LtiBundle\Application\PendingScore;
 use Phil\LtiBundle\Application\ScorePublisher;
+use Phil\LtiBundle\Infrastructure\Console\RecoverScoresCommand;
 use Phil\LtiBundle\Infrastructure\Memory\InMemoryPendingScores;
 use Phil\LtiBundle\Infrastructure\Messenger\PublishScoreHandler;
+use Phil\LtiBundle\Tests\Unit\Fixture\RecordingBus;
 use Phil\LtiBundle\Tests\Unit\Fixture\TestKeys;
 use Phil\Url\Url;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Clock\MockClock;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
@@ -51,6 +60,8 @@ use Throwable;
 #[CoversClass(PendingScore::class)]
 #[CoversClass(PublishScore::class)]
 #[CoversClass(ScorePublished::class)]
+#[CoversClass(ScoreRefused::class)]
+#[CoversClass(RecoverScoresCommand::class)]
 #[CoversClass(PublishScoreHandler::class)]
 #[CoversClass(InMemoryPendingScores::class)]
 final class ScorePublisherTest extends TestCase
@@ -178,7 +189,7 @@ final class ScorePublisherTest extends TestCase
             self::assertSame(0, $unrecoverableMessageHandlingException->getCode());
         }
 
-        self::assertNull($this->pending->find($id));
+        self::assertEquals($this->clock->now(), $this->pending->find($id)?->refusedAt, 'A score of an unknown platform is kept as refused.');
 
         try {
             $publisher->send($publisher->publish($this->launch(issuer: 'https://gone.example.org'), $this->score()));
@@ -186,6 +197,189 @@ final class ScorePublisherTest extends TestCase
         } catch (UnknownRegistration) {
             self::addToAssertionCount(1);
         }
+    }
+
+    public function testARefusalForGoodIsKeptWithItsReasonAndToldOnce(): void
+    {
+        $events = new EventDispatcher();
+        $refused = [];
+        $events->addListener(ScoreRefused::class, static function (ScoreRefused $event) use (&$refused): void {
+            $refused[] = $event->score;
+        });
+        $publisher = $this->publisher($this->bus(), $events);
+        $id = $publisher->publish($this->launch(), $this->score());
+        $this->clock->sleep(5);
+        $this->status = 404;
+
+        try {
+            $publisher->send($id);
+            self::fail('A refused score was taken.');
+        } catch (ServiceFailed $serviceFailed) {
+            self::assertSame(404, $serviceFailed->status());
+        }
+
+        $kept = $this->pending->find($id);
+        self::assertNotNull($kept);
+        self::assertEquals($this->clock->now(), $kept->refusedAt);
+        self::assertSame($serviceFailed->getMessage(), $kept->refusal);
+        self::assertCount(1, $refused);
+        self::assertEquals($kept, $refused[0]);
+        self::assertEquals($this->clock->now()->modify('-5 seconds'), $kept->createdAt);
+
+        $requests = \count($this->scoreRequests());
+        $publisher->send($id);
+        new PublishScoreHandler($publisher)(new PublishScore($id));
+        self::assertCount($requests, $this->scoreRequests(), 'A refused score is never sent again.');
+        self::assertCount(1, $refused);
+        self::assertSame(0, $publisher->recover(1), 'A refused score is never recovered.');
+    }
+
+    public function testAFailureThatMayPassLeavesTheScorePending(): void
+    {
+        $publisher = $this->publisher($this->bus(), new EventDispatcher());
+        $id = $publisher->publish($this->launch(), $this->score());
+
+        foreach ([500, 429, 408] as $status) {
+            $this->status = $status;
+
+            try {
+                $publisher->send($id);
+                self::fail((string) $status);
+            } catch (ServiceFailed) {
+                self::assertNull($this->pending->find($id)?->refusedAt, (string) $status);
+            }
+        }
+
+        $this->failure = TokenRequestRefused::invalidRequest('Later.');
+
+        try {
+            $publisher->send($id);
+            self::fail('The token was given.');
+        } catch (TokenRequestRefused) {
+            self::assertNull($this->pending->find($id)?->refusedAt);
+        }
+    }
+
+    public function testTheFailuresThePlatformWillRepeatAreFinal(): void
+    {
+        foreach ([400 => true, 401 => true, 404 => true, 499 => true, 408 => false, 429 => false, 399 => false, 500 => false, 0 => false] as $status => $final) {
+            self::assertSame($final, ScorePublisher::isFinal(ServiceFailed::because('x', null, $status)), (string) $status);
+        }
+
+        self::assertTrue(ScorePublisher::isFinal(UnknownRegistration::platform('i', 'c')));
+        self::assertTrue(ScorePublisher::isFinal(InvalidRequest::because('x')));
+        self::assertFalse(ScorePublisher::isFinal(TokenRequestRefused::invalidRequest('x')));
+    }
+
+    public function testTheBusTakingTheMessageIsRecorded(): void
+    {
+        $bus = $this->bus();
+        $publisher = $this->publisher($bus);
+        $id = $publisher->publish($this->launch(), $this->score());
+
+        self::assertEquals($this->clock->now(), $this->pending->find($id)?->dispatchedAt);
+        self::assertCount(1, $bus->messages);
+        $this->clock->sleep(3600);
+        self::assertSame(0, $publisher->recover(60), 'A score whose message was taken is not sent again.');
+        self::assertCount(1, $bus->messages);
+    }
+
+    public function testAScoreWhoseMessageWasNeverTakenIsRecovered(): void
+    {
+        $bus = $this->bus();
+        $publisher = $this->publisher($bus);
+        $bus->failures = 1;
+        $id = $publisher->publish($this->launch(), $this->score());
+
+        self::assertSame(32, \strlen($id), 'A transport that refuses the message still gives the identifier of the score.');
+        self::assertNull($this->pending->find($id)?->dispatchedAt);
+        self::assertSame([], $bus->messages);
+
+        $this->clock->sleep(59);
+        self::assertSame(0, $publisher->recover(60), 'A score saved less than the delay ago may still be on its way.');
+        $this->clock->sleep(1);
+        $bus->failures = 1;
+        self::assertSame(0, $publisher->recover(60), 'A transport that refuses again leaves the score for the next recovery.');
+        self::assertNull($this->pending->find($id)?->dispatchedAt);
+        self::assertSame(0, $publisher->recover(60), 'A score claimed waits the delay again.');
+        $this->clock->sleep(60);
+        self::assertSame(1, $publisher->recover(60));
+        self::assertEquals([new PublishScore($id)], $bus->messages);
+        self::assertEquals($this->clock->now(), $this->pending->find($id)?->dispatchedAt);
+        self::assertSame(0, $publisher->recover(60));
+
+        new PublishScoreHandler($publisher)(new PublishScore($id));
+        self::assertNull($this->pending->find($id));
+    }
+
+    public function testARecoverySendsAtOnceWithoutABusAndStopsAtItsLimit(): void
+    {
+        $publisher = $this->publisher();
+
+        foreach (['a', 'b', 'c'] as $id) {
+            $this->pending->save(new PendingScore($id, 'https://lms.example.org', 'client', Url::fromString(self::ITEM), $this->score(), $this->clock->now()));
+            $this->clock->sleep(1);
+        }
+
+        $this->clock->sleep(60);
+        $this->status = 503;
+        self::assertSame(0, $publisher->recover(60), 'A platform that still fails leaves the scores pending.');
+        self::assertCount(3, $this->scoreRequests());
+        self::assertNotNull($this->pending->find('a'));
+        $this->clock->sleep(60);
+        $this->status = 204;
+        self::assertSame(2, $publisher->recover(60, 2));
+        self::assertSame([null, null, false], [$this->pending->find('a'), $this->pending->find('b'), !$this->pending->find('c') instanceof PendingScore]);
+        self::assertSame(1, $publisher->recover(60), 'The one the limit left out is sent by the next recovery.');
+        self::assertNull($this->pending->find('c'));
+        self::assertCount(6, $this->scoreRequests());
+    }
+
+    public function testTheCommandRecoversTheScoresWithinItsBounds(): void
+    {
+        $bus = $this->bus();
+        $bus->failures = 2;
+
+        $publisher = $this->publisher($bus);
+        $publisher->publish($this->launch(), $this->score());
+        $publisher->publish($this->launch(), $this->score());
+
+        $command = new RecoverScoresCommand($publisher);
+        $run = static function (int $delay, int $limit) use ($command): array {
+            $output = new BufferedOutput();
+            $status = $command(new SymfonyStyle(new ArrayInput([]), $output), $delay, $limit);
+
+            return [$status, (string) preg_replace('/\s+/', ' ', $output->fetch())];
+        };
+
+        foreach ([[59, 1], [60, 0], [60, 1001]] as [$delay, $limit]) {
+            self::assertSame([Command::INVALID, ' [ERROR] The delay is 60 seconds or more, and the limit 1 to 1,000. '], $run($delay, $limit), $delay.' '.$limit);
+        }
+
+        self::assertSame([Command::SUCCESS, ' [OK] Sent again 0 scores. '], $run(300, 100));
+        $this->clock->sleep(60);
+        self::assertSame([Command::SUCCESS, ' [OK] Sent again 1 scores. '], $run(60, 1));
+        self::assertSame([Command::SUCCESS, ' [OK] Sent again 1 scores. '], $run(60, 1000));
+        self::assertSame([Command::SUCCESS, ' [OK] Sent again 0 scores. '], $run(60, 1000));
+        self::assertCount(2, $bus->messages);
+    }
+
+    public function testARecoveryWaitsASecondAtLeast(): void
+    {
+        try {
+            $this->publisher()->recover(0);
+            self::fail('A recovery without delay was made.');
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            self::assertSame('A recovery waits a second at least: a score saved now may still be on its way.', $invalidArgumentException->getMessage());
+        }
+    }
+
+    public function testAReasonIsKeptAsValidTextOfBoundedLength(): void
+    {
+        self::assertSame('abc', PendingScore::refusal('abc'));
+        self::assertSame(str_repeat('a', 1023), PendingScore::refusal(str_repeat('a', 1023).'é'));
+        self::assertSame(str_repeat('a', 1022).'é', PendingScore::refusal(str_repeat('a', 1022).'éé'));
+        self::assertSame('a?b', PendingScore::refusal("a\xFFb"));
     }
 
     public function testARequestThatCannotBeSentIsDroppedWithoutRetry(): void
@@ -214,6 +408,11 @@ final class ScorePublisherTest extends TestCase
         $this->pending->reset();
 
         self::assertNull($this->pending->find('p'));
+    }
+
+    private function bus(): RecordingBus
+    {
+        return new RecordingBus();
     }
 
     private function publisher(?MessageBusInterface $bus = null, ?EventDispatcher $events = null): ScorePublisher

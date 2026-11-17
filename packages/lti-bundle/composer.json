@@ -24,7 +24,7 @@
         "ext-mbstring": "*",
         "ext-sodium": "*",
         "doctrine/dbal": "^4.5",
-        "phil/lti": "^0.1@dev",
+        "phil/lti": "^0.2@dev",
         "phil/safe-http": "^0.2.1@dev",
         "phil/url": "^0.1.4@dev",
         "psr/clock": "^1.0",
@@ -96,7 +96,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.1.x-dev"
+            "dev-main": "0.2.x-dev"
         }
     }
 }
