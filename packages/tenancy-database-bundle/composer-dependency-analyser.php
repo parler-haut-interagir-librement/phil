@@ -16,4 +16,7 @@ return new Configuration()
     ->addPathToScan(__DIR__.'/src', isDev: false)
     ->addPathToScan(__DIR__.'/tests', isDev: true)
     ->ignoreErrorsOnPackages(['symfony/console', 'symfony/messenger', 'symfony/process'], [ErrorType::DEV_DEPENDENCY_IN_PROD])
-    ->ignoreUnknownFunctions(['Symfony\Component\DependencyInjection\Loader\Configurator\service']);
+    ->ignoreUnknownFunctions([
+        'Symfony\Component\DependencyInjection\Loader\Configurator\iterator',
+        'Symfony\Component\DependencyInjection\Loader\Configurator\service',
+    ]);

@@ -21,6 +21,7 @@ a message or a command enters a tenant and leaves it.
 | The same tenant is entered again | Nothing. |
 | Another tenant of the same database is entered | The connection stays open; the entity managers are cleared. |
 | The tenant is left | The connection returns to the shared database, where the Doctrine filter shows nothing without a tenant. |
+| The end of a request, a command or a message | A transaction still open is rolled back, then the tenant is left (see [Workers](#workers)). |
 | `kernel.reset` | The same as leaving: the next request of a worker starts in the shared database. |
 
 The placement is read at each entry, never kept: once a tenant is moved, the next request, message or command finds it
@@ -32,8 +33,12 @@ A transaction belongs to the database it started on. Entering a tenant of anothe
 throws `TenantSwitchInTransaction`, and the connection stays where it is: commit or roll back first. A tenant of the
 same database is entered inside the transaction.
 
+A transaction still open when a request, a command or a message ends is rolled back by `RollBackOpenTransactions`,
+before the tenant is left (see [Workers](#workers)).
+
 Leaving a tenant while a transaction is still open cannot be refused — it happens in a `finally` and at `kernel.reset`
-— so the connection is closed with the transaction, which the server rolls back, and a warning is logged.
+— so the connection of a dedicated database is closed with the transaction, which the server rolls back, and a warning
+is logged.
 
 ## The identity map
 
@@ -45,9 +50,43 @@ Changes not flushed before a change of tenant are discarded with the identity ma
 
 ## Workers
 
-The router and the switch keep the current database, and both are reset with the kernel: a FrankenPHP or Messenger
-worker starts each unit of work on the shared database, with clean entity managers. Nothing else is kept between
-requests.
+A FrankenPHP worker, a Messenger worker or a long-running console serves one unit of work after another in the same
+process, with the same services. The router and the switch keep the current database, and nothing else is kept between
+units of work. Each unit of work ends in two steps.
+
+### At the end: terminate
+
+`RollBackOpenTransactions` listens to the events that end a unit of work:
+
+| Event | When it runs |
+|---|---|
+| `kernel.terminate` | After the response is sent, after the application's own listeners (priority `-2048`). |
+| `console.terminate` | Before the tenant of the command is left by `phil/tenancy-bundle`. |
+| `WorkerMessageHandledEvent`, `WorkerMessageFailedEvent` | After a message is handled or has failed (priority `-2048`). |
+
+For the connection that follows the tenant, and for `phil_tenancy_database.store_connection` when the bundle declares
+it:
+
+1. A transaction still open is rolled back, as many times as it is nested, and a warning is logged. The warning names
+   the tenant, the active one or the one the message was stamped with, and nothing else: no statement, row, host or
+   account.
+2. A connection that cannot roll back, such as one the server dropped, is closed: the server rolls back what it had
+   open, and the next statement opens a new connection.
+3. A connection never opened in the process is not created; one with no transaction, or closed, is left as it is.
+
+Then the tenant is left: the connection returns to the shared database and the entity managers of the connection are
+cleared. A request that throws in the middle of a transaction therefore leaves neither its writes nor its locks to the
+next one, which `kernel.reset` alone would only reach when the next request starts.
+
+A connection without autocommit begins a new transaction after each rollback: its work not committed by the end of the
+unit of work is discarded.
+
+### At the start: reset
+
+`kernel.reset` runs as the next request starts. The router, the switch and the tenant context of `phil/tenancy-bundle`
+are reset, which returns the connection to the shared database once more, and the store connection is closed, so that
+a worker never reads through a connection the server dropped while it waited. The next request, message or command
+starts on the shared database, with clean entity managers and no transaction.
 
 ## Messenger
 

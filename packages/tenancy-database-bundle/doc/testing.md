@@ -51,17 +51,27 @@ packages keep the restricted account. The PostgreSQL account is the server's own
 Each server runs two suites. `MySqlTenantDatabasesTest` and `PostgreSqlTenantDatabasesTest` keep the placements in
 memory; they cover two tenants of each kind read one after the other in one request, with no row of one seen by the
 other — through the entity manager, native SQL and `find()` on the same key —, the refusal inside a transaction, the
-reset of a worker, the creation of a database, a migration that fails for one database while the others succeed and
-are served, and moves that succeed, collide on a key or lose their placement store, each rolled back to the source.
+reset of a worker, two tenants taking turns in one worker, the creation of a database, a migration that fails for one
+database while the others succeed and are served, and moves that succeed, collide on a key or lose their placement
+store, each rolled back to the source.
 `MySqlStoredPlacementsTest` and `PostgreSqlStoredPlacementsTest` keep the placements and the suspensions in the tables
 of the shared database: the tables created with the schema, the placements read from the shared database while a
 dedicated tenant is entered, a move recorded in the table and back, and suspensions that survive a cleared cache and the
 end of the unit of work, which closes the store connection.
 
+`testTwoTenantsTakeTurnsInOneWorker` serves requests with one kernel as a FrankenPHP worker does — each request
+handled, then terminated, and the services reset as the next one starts — for the shared tenant, the dedicated one,
+the shared one again, then a request of each that throws in the middle of a transaction, and one of each after that.
+Each request finds the database of its tenant selected, an empty identity map, no transaction open, the first invoice
+of its own tenant on a key both tenants use, and only its own tenant's cache items; the entity manager is cleared as
+the tenant is entered and as it is left at `kernel.terminate`; the writes of the requests that threw are rolled back.
+
 ## Testing an application
 
 - **Isolation**: seed two tenants, one shared and one dedicated, with rows on the same keys; enter one, then the other,
   in one test, and read through the repository, native SQL and `find()`.
+- **Workers**: serve several requests with one kernel, calling `handle()` then `terminate()` for each and never
+  rebooting it, for tenants of different databases in turn, including a request that fails in a transaction.
 - **Moves**: run `phil:tenancy:database:move` against a copy of production data before a real move; the command
   verifies every table, and rolls back on any difference.
 - **Migrations**: run `phil:tenancy:database:migrate --concurrency=1` in the pipeline, against databases created by

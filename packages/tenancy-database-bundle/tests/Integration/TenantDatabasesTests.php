@@ -11,6 +11,7 @@ use Phil\TenancyDatabaseBundle\Domain\Exception\TenantNotMoved;
 use Phil\TenancyDatabaseBundle\Domain\Exception\TenantSwitchInTransaction;
 use Phil\TenancyDatabaseBundle\Infrastructure\Doctrine\TenantDatabaseRouter;
 use Phil\TenancyDatabaseBundle\Infrastructure\Move\TenantMover;
+use Phil\TenancyDatabaseBundle\Tests\Integration\App\ClearRecorder;
 use Phil\TenancyDatabaseBundle\Tests\Integration\App\Entity\Invoice;
 use Phil\TenancyDatabaseBundle\Tests\Integration\App\Entity\Party;
 use Phil\TenancyDatabaseBundle\Tests\Integration\App\MemoryPlacements;
@@ -20,6 +21,7 @@ use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\HttpKernel\TerminableInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
 /**
@@ -101,6 +103,32 @@ trait TenantDatabasesTests
         self::assertTrue($this->service(TenantDatabaseRouter::class, TenantDatabaseRouter::class)->current()->isShared());
         self::assertSame(['R-1', 'R-2'], $this->entityManager()->getConnection()->fetchFirstColumn('SELECT label FROM invoice ORDER BY label'));
         self::assertSame([], $this->entityManager()->getRepository(Invoice::class)->findAll(), 'No tenant: the filter shows nothing.');
+    }
+
+    /**
+     * One kernel serving request after request, as a worker does: each request handled, then terminated, and the
+     * services reset as the next one starts.
+     */
+    public function testTwoTenantsTakeTurnsInOneWorker(): void
+    {
+        $this->seed();
+        $run = bin2hex(random_bytes(8));
+        $shared = TestKernel::SHARED;
+        $wholesale = TestKernel::DEDICATED['wholesale'];
+
+        $this->assertWorkerRequest('retail', $run, ['database' => $shared, 'first' => 'R-1', 'cached' => null]);
+        $this->assertWorkerRequest('wholesale', $run, ['database' => $wholesale, 'first' => 'W-1', 'cached' => null]);
+        $this->assertWorkerRequest('retail', $run, ['database' => $shared, 'first' => 'R-1', 'cached' => 'retail']);
+
+        foreach (['retail' => $shared, 'wholesale' => $wholesale] as $tenant => $database) {
+            $response = $this->serve('/fail', $tenant.'.test');
+            self::assertSame(500, $response->getStatusCode());
+            $this->assertCleanAfterTerminate($tenant);
+            self::assertSame(0, $this->currenciesIn($database, 'EUR'), 'The write of the failed request was rolled back.');
+        }
+
+        $this->assertWorkerRequest('wholesale', $run, ['database' => $wholesale, 'first' => 'W-1', 'cached' => 'wholesale']);
+        $this->assertWorkerRequest('retail', $run, ['database' => $shared, 'first' => 'R-1', 'cached' => 'retail']);
     }
 
     public function testTheDatabaseOfANewTenantIsCreatedOnce(): void
@@ -256,6 +284,64 @@ trait TenantDatabasesTests
         $this->service('services_resetter', ResetInterface::class)->reset();
 
         return $response;
+    }
+
+    /**
+     * Serves a request as a worker does, without resetting the services: the kernel resets them as the next request
+     * starts.
+     */
+    private function serve(string $path, string $host): Response
+    {
+        $kernel = self::$kernel;
+        self::assertInstanceOf(TerminableInterface::class, $kernel);
+        self::assertInstanceOf(HttpKernelInterface::class, $kernel);
+        $this->service(ClearRecorder::class, ClearRecorder::class)->clears = [];
+        $request = Request::create('http://'.$host.$path);
+        $response = $kernel->handle($request);
+        $kernel->terminate($request, $response);
+
+        return $response;
+    }
+
+    /**
+     * @param array{database: string, first: string, cached: ?string} $expected
+     */
+    private function assertWorkerRequest(string $tenant, string $run, array $expected): void
+    {
+        $response = $this->serve('/worker?run='.$run, $tenant.'.test');
+
+        self::assertSame(200, $response->getStatusCode(), (string) $response->getContent());
+        self::assertSame(
+            ['identity_map' => 0, 'transactions' => 0, ...$expected],
+            json_decode((string) $response->getContent(), true, flags: \JSON_THROW_ON_ERROR),
+            'Nothing of the request before, in the database, the entities, the transactions and the cache of the tenant.',
+        );
+        self::assertContains($tenant, $this->service(ClearRecorder::class, ClearRecorder::class)->clears, 'The entity manager was cleared as the tenant was entered.');
+        $this->assertCleanAfterTerminate($tenant);
+    }
+
+    private function assertCleanAfterTerminate(string $tenant): void
+    {
+        $clears = $this->service(ClearRecorder::class, ClearRecorder::class)->clears;
+
+        self::assertFalse($this->entityManager()->getConnection()->isTransactionActive(), \sprintf('No transaction of "%s" left open.', $tenant));
+        self::assertNull($this->context()->current(), 'The tenant was left at kernel.terminate.');
+        self::assertTrue($this->service(TenantDatabaseRouter::class, TenantDatabaseRouter::class)->current()->isShared(), 'The connection is back in the shared database.');
+        self::assertNull(end($clears), 'The entity manager was cleared as the tenant was left.');
+        self::assertSame(0, $this->entityManager()->getUnitOfWork()->size());
+    }
+
+    private function currenciesIn(string $database, string $code): int
+    {
+        $connection = $this->onDatabase($database);
+
+        try {
+            $count = $connection->fetchOne('SELECT COUNT(*) FROM currency WHERE code = ?', [$code]);
+
+            return is_numeric($count) ? (int) $count : -1;
+        } finally {
+            $connection->close();
+        }
     }
 
     private function command(string $name): CommandTester

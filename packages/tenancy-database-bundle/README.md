@@ -11,10 +11,11 @@ tenant, and a new tenant needs no deployment.
 The placements and the suspensions live in two small tables of the shared database, or in the application's own
 store. It refuses to change databases inside an open transaction. It clears the entity managers of the connection at each
 change of tenant, so that an entity loaded for one tenant is never handed to another. In a long-running worker, the
-end of each unit of work returns the connection to the shared database. The bundle runs the migrations of every
-database a bounded number at a time: a database that fails is suspended, its tenants are answered with a `503` and
-their messages wait, while the other tenants are served. It creates the database of a new tenant, and moves a tenant
-from one database to another — copied, verified, and rolled back on any failure.
+end of each unit of work rolls back a transaction left open and returns the connection to the shared database. The
+bundle runs the migrations of every database a bounded number at a time: a database that fails is suspended, its
+tenants are answered with a `503` and their messages wait, while the other tenants are served. It creates the
+database of a new tenant, and moves a tenant from one database to another — copied, verified, and rolled back on any
+failure.
 
 It is a Symfony bundle on Doctrine DBAL and ORM and `phil/tenancy-bundle`, whose `TenantPlacement` port it answers
 from its configuration, from its table or from the application's own store. The Console component, the Process
@@ -26,6 +27,7 @@ component, Messenger and FrameworkBundle's cache pools are optional. It works on
 |---|---|
 | `TenantDatabaseRouter`, `TenantDatabaseMiddleware`, `TenantDatabaseDriver` | Implemented and tested on MySQL and PostgreSQL |
 | `TenantConnectionSwitch` | Implemented and tested on MySQL and PostgreSQL; a tenant activation, reset with the kernel |
+| `RollBackOpenTransactions` | Implemented and tested on MySQL and PostgreSQL; at `kernel.terminate`, `console.terminate` and the end of each Messenger message |
 | `ConfiguredPlacements`, `PlacedTenants`, `PlacementStore` | Implemented and tested |
 | `DbalPlacementStore`, `DbalTenantDatabaseAvailability`, `StoreTables`, `StoreSchemaListener`, `PinnedConnection` | Implemented and tested on MySQL and PostgreSQL; the default availability |
 | `TenantDatabaseAvailability`, `CacheTenantDatabaseAvailability`, `TenantAvailabilityGuard` | Implemented and tested; the cache pool with `availability: cache`, not durable |

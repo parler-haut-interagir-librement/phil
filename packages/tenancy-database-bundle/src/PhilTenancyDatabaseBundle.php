@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Override;
 use Phil\TenancyBundle\Application\Contract\TenantPlacement;
 use Phil\TenancyBundle\Application\TenantContext;
+use Phil\TenancyBundle\Infrastructure\Console\TenantOption;
 use Phil\TenancyBundle\Infrastructure\Http\ResolveActiveTenant;
 use Phil\TenancyBundle\Infrastructure\Http\ResolveHostTenant;
 use Phil\TenancyBundle\PhilTenancyBundle;
@@ -21,6 +22,7 @@ use Phil\TenancyDatabaseBundle\Infrastructure\Console\MigrationTargets;
 use Phil\TenancyDatabaseBundle\Infrastructure\Console\MoveTenantCommand;
 use Phil\TenancyDatabaseBundle\Infrastructure\Database\TenantDatabaseCreator;
 use Phil\TenancyDatabaseBundle\Infrastructure\Doctrine\PinnedConnection;
+use Phil\TenancyDatabaseBundle\Infrastructure\Doctrine\RollBackOpenTransactions;
 use Phil\TenancyDatabaseBundle\Infrastructure\Doctrine\StoreSchemaListener;
 use Phil\TenancyDatabaseBundle\Infrastructure\Doctrine\TenantConnectionSwitch;
 use Phil\TenancyDatabaseBundle\Infrastructure\Doctrine\TenantDatabaseMiddleware;
@@ -39,9 +41,12 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Kernel\AbstractBundle;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Process\Process;
 
+use function Symfony\Component\DependencyInjection\Loader\Configurator\iterator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 /**
@@ -80,6 +85,12 @@ final class PhilTenancyDatabaseBundle extends AbstractBundle
      * The value of `availability` that keeps the suspensions in the {@see self::AVAILABILITY_POOL} pool.
      */
     public const string CACHE = 'cache';
+
+    /**
+     * The priority of the rollback of the transactions left open at `kernel.terminate` and in a Messenger worker: after
+     * the listeners of the application, which may still write.
+     */
+    public const int ROLLBACK_PRIORITY = -2048;
 
     #[Override]
     protected string $extensionAlias = 'phil_tenancy_database';
@@ -215,6 +226,7 @@ final class PhilTenancyDatabaseBundle extends AbstractBundle
             ->args([$connection, service(TenantDatabaseRouter::class), service(TenantPlacement::class), service('doctrine')->nullOnInvalid(), service('logger')->nullOnInvalid()])
             ->tag(PhilTenancyBundle::ACTIVATION_TAG)
             ->tag('kernel.reset', ['method' => 'reset']);
+        $this->loadRollback($config['connection'], null === $config['store_connection'] && (self::DBAL === $config['placement'] || self::DBAL === $config['availability']), $container);
 
         $services->set(TenantAvailabilityGuard::class)->args([service(TenantPlacement::class), service(TenantDatabaseAvailability::class)]);
         // Once the host's tenant is entered, before the firewall reads an account from its database; and once the
@@ -263,6 +275,36 @@ final class PhilTenancyDatabaseBundle extends AbstractBundle
         $services->set(MoveTenantCommand::class)
             ->args([service(TenantMover::class)])
             ->tag('console.command');
+    }
+
+    /**
+     * The rollback of the transactions left open at the end of each request, command and message, on the connection
+     * that follows the tenant and on the store connection of the bundle; a connection not yet created is skipped.
+     *
+     * @param bool $store whether the bundle declares its own store connection
+     */
+    private function loadRollback(string $connection, bool $store, ContainerConfigurator $container): void
+    {
+        $connections = [service(\sprintf('doctrine.dbal.%s_connection', $connection))->ignoreOnUninitialized()];
+
+        if ($store) {
+            $connections[] = service(self::STORE_CONNECTION)->ignoreOnUninitialized();
+        }
+
+        $listener = $container->services()->set(RollBackOpenTransactions::class)
+            ->args([iterator($connections), service(TenantContext::class), service('logger')->nullOnInvalid()])
+            ->tag('kernel.event_listener', ['event' => KernelEvents::TERMINATE, 'method' => 'endUnitOfWork', 'priority' => self::ROLLBACK_PRIORITY]);
+
+        if (class_exists(ConsoleEvents::class)) {
+            // Before the tenant of the command is left, which would close the connection of a dedicated database.
+            $listener->tag('kernel.event_listener', ['event' => ConsoleEvents::TERMINATE, 'method' => 'endUnitOfWork', 'before' => [TenantOption::class]]);
+        }
+
+        if (class_exists(WorkerMessageHandledEvent::class)) {
+            $listener
+                ->tag('kernel.event_listener', ['event' => WorkerMessageHandledEvent::class, 'method' => 'endUnitOfWork', 'priority' => self::ROLLBACK_PRIORITY])
+                ->tag('kernel.event_listener', ['event' => WorkerMessageFailedEvent::class, 'method' => 'endUnitOfWork', 'priority' => self::ROLLBACK_PRIORITY]);
+        }
     }
 
     /**
