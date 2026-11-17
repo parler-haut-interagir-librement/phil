@@ -32,6 +32,11 @@ The next version is 0.2.0-alpha: the two key contracts change. [Upgrading](doc/u
   `web-token/jwt-library`.
 - `RsaKey::details()` and `RsaKey::text()`.
 
+### Security
+
+- `JwtVerifier` reads `nbf` and `exp` as NumericDates, with or without a fraction of a second, and refuses a value of
+  another type: a fractional value was skipped, so a signed credential passed before its start or after its expiry.
+
 ## 0.1.1-alpha - 2026-11-14
 
 ### Added

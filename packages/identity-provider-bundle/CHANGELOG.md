@@ -6,9 +6,41 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.2.0-alpha: introspection refuses what it accepted, and two repository contracts gain a method.
+The next version is 0.2.0-alpha: introspection, userinfo and the authorization endpoint refuse what they accepted,
+the modules that keep secrets need a key or an explicit option, the address is verified by a form, and three
+repository contracts gain a method.
+
+### Added
+
+- `login_limiter` and the service `phil_identity_provider.login_limiter`, `Infrastructure\Security\LoginRateLimiter`:
+  the limiter the firewall's `login_throttling` names with its option `limiter`. It counts per address — an IPv6
+  client by its /64 network —, per identifier and address, and per identifier whatever the address, against guessing
+  spread over many addresses; its keys are keyed hashes. Needs `symfony/rate-limiter`, suggested.
+- `secrets.allow_plaintext_secrets`, false by default: whether TOTP secrets and private signing keys may be kept in
+  clear when `secrets.kms_key` is null.
+- `Application\Contract\Transactions`, with `Infrastructure\Doctrine\DoctrineTransactions` and
+  `Infrastructure\Memory\ImmediateTransactions`: work that writes to several stores at once.
+- `Accounts::resetPassword()`: the password a reset link asks for, set once.
+- The template `account/verify` and the texts `title.verify` and `verify.confirm`, in English and in French.
 
 ### Changed
+
+- With the module `totp` or `oidc`, a null `secrets.kms_key` is refused unless `secrets.allow_plaintext_secrets` is
+  true; a key without `symfony/key-management` is refused instead of falling back to `PlainSecretCipher`. Setting a
+  key encrypts what is written from then on: the threat model says how to replace what was written in clear before.
+- `GET /verify-email` shows a page that asks to confirm; `POST /verify-email`, with the link and a CSRF token,
+  verifies the address.
+- `Accounts::changePassword()` takes `$keepSession` and closes every other session of the account; `Accounts` takes
+  `Sessions`, last and optional.
+- `AccountUser::isEqualTo()` compares the password hash: a session signed in before the password changed or was
+  removed is signed out at its next request.
+- `AccountRepository::apply()`: a repository of the application's own implements it, reading the row again and holding
+  it while the change applies. `Account::$createdAt` is no longer a read-only property, for the same reason as those
+  of `TotpCredential`. The schema does not change.
+- `Sessions` takes `Transactions`, last and optional, and revokes the tokens of a session before it closes the row.
+- `SecondFactorListener::OPEN_ROUTES`: the routes open before the second step, by their exact names.
+- `AuthorizationRequestParser::PROMPTS` is public and no longer holds `select_account`; the discovery document reads
+  `prompt_values_supported` from it.
 
 - `GrantRepository::consumeCode()` and `GrantRepository::rotateToken()`: a repository of the application's own
   implements them, each by one conditional write that tells whether this call changed the row.
@@ -36,6 +68,26 @@ The next version is 0.2.0-alpha: introspection refuses what it accepted, and two
   keys, the extra ones never retired. Every read still settles what an unshared lock store or older keys may have
   left: all but the last activated are retired, and all but the oldest pending removed, the same way on every
   instance.
+- The modules `totp` and `oidc` no longer keep their secrets in clear without being told to: a missing key, or a key
+  without the KeyManagement component, kept the TOTP secrets and the private signing keys in clear in the database.
+- `SecondFactorListener` opens only the routes it names exactly and those of `open_routes`: every route whose name
+  began with `_`, `phil_identity_provider_challenge`, `phil_identity_provider_code` or
+  `phil_identity_provider_passkey_login` was reachable before the second step of a sign-in.
+- A new or reset password closes the other sessions and the tokens issued in them, and `AccountUser::isEqualTo()`
+  ends a session signed in before the change: a session stolen before the password changed stayed signed in.
+- `Accounts::resetPassword()` sets the password through `AccountRepository::apply()`, only while the account still has
+  the hash and the date the link was signed over: two requests presenting the same reset link at the same time could
+  both set a password.
+- `Accounts::recordFailedSignIn()` counts through `AccountRepository::apply()`: failed sign-ins at the same time could
+  each write a stale count, delaying the lock.
+- `Sessions` revokes the tokens of a session, then closes it, in one transaction: a failure between the two left the
+  session closed and some of its tokens active, with no way to finish.
+- Opening the link of `/verify-email` verifies nothing: the scanners of mail services that open links verified the
+  address in the person's place.
+- `Tokens::bearer()` refuses the tokens of a disabled or removed client: userinfo kept answering a client that was
+  disabled.
+- `prompt=select_account` is refused with `invalid_request` and no longer offered by the discovery document: the
+  provider showed no account chooser and issued the code for the account signed in.
 
 ## 0.1.0-alpha - 2026-11-15
 

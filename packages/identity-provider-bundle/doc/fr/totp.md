@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b68b9f812fe725139ff7447165555d68728bc2356a0ff058a846d050727124c0 -->
+<!-- phil-dev source-sha256=d2d08022bc164de5bf0fab6308f527c2cd8ee32c5e68889536b9332a5522c6b3 -->
 # Application d'authentification et codes de récupération
 
 ## L'application d'authentification
@@ -8,12 +8,13 @@ unique fondés sur le temps (RFC 6238) : HMAC-SHA-1 du nombre de périodes de 30
 
 `/account/two-factor`, après une preuve récente, génère un secret de 160 bits et montre son adresse `otpauth://` — le
 lien qu'ouvre une application du même appareil, le contenu d'un code QR — ainsi que le secret en base32 pour le saisir à
-la main. Le secret est conservé scellé par le `SecretCipher` : chiffré par le composant KeyManagement quand
-`secrets.kms_key` est défini. Il ne compte pour rien tant qu'un premier code ne l'a pas confirmé. Un code est accepté
-dans les `totp.window` périodes avant et après la période courante, et une seule fois : le compteur qu'il a trouvé est
-conservé, et le même code, ou un plus ancien, ne se vérifie plus jamais. Chaque compteur de la fenêtre est calculé, de
-sorte que le temps pris ne dit rien de celui qui a correspondu. Le compteur est relu, et retenu, avant d'être
-enregistré : de deux requêtes qui présentent le même code en même temps, une seule est acceptée.
+la main. Le secret est conservé scellé par le `SecretCipher` : chiffré par le composant KeyManagement sous
+`secrets.kms_key`, ou, avec `secrets.allow_plaintext_secrets: true` seulement, en clair. Il ne compte pour rien tant
+qu'un premier code ne l'a pas confirmé. Un code est accepté dans les `totp.window` périodes avant et après la période
+courante, et une seule fois : le compteur qu'il a trouvé est conservé, et le même code, ou un plus ancien, ne se vérifie
+plus jamais. Chaque compteur de la fenêtre est calculé, de sorte que le temps pris ne dit rien de celui qui a
+correspondu. Le compteur est relu, et retenu, avant d'être enregistré : de deux requêtes qui présentent le même code en
+même temps, une seule est acceptée.
 
 ## Codes de récupération
 
@@ -31,7 +32,9 @@ Quand un compte a une application d'authentification confirmée, `SecondFactorLi
 première méthode : un mot de passe, un lien de connexion, un fournisseur fédéré. La page du défi offre un code de
 l'application, un code de récupération et une clé d'accès du compte. `OneTimeCodeAuthenticator` prend le code,
 authentifie de nouveau le même compte avec la preuve `otp`, que Symfony Security 8.2 ajoute aux preuves que le jeton
-détient déjà, et envoie la personne là où elle allait. Les routes du défi, des clés d'accès et celles de `open_routes`
-restent joignables, de sorte que la personne peut se déconnecter.
+détient déjà, et envoie la personne là où elle allait. Seules les routes nommées exactement restent joignables — le
+défi, le code qu'il envoie, la connexion par clé d'accès et celles de `open_routes` comme la route de déconnexion —, de
+sorte que la personne peut se déconnecter ; aucun préfixe n'ouvre une route, pas même le trait de soulignement de
+celles du profileur, qu'une application inscrit dans `open_routes` en développement si elle veut la barre d'outils.
 
 Le `login_throttling` du pare-feu s'applique à `OneTimeCodeAuthenticator` comme à n'importe quel authentificateur.

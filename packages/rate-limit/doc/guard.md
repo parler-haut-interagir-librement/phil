@@ -52,6 +52,8 @@ A store whose service is not defined is left to the container, which reports it 
 | A child of `cache.adapter.filesystem`, `cache.adapter.apcu`, `cache.adapter.array` or `cache.adapter.system`, directly or through other pools | Yes |
 | A definition of `FilesystemAdapter`, `PhpFilesAdapter`, `ApcuAdapter`, `ArrayAdapter` or `InMemoryStorage`, its class given or read from a parameter | Yes |
 | A `CacheStorage` whose first argument, or `$pool`, is a reference to a local pool | Yes |
+| A `RateLimiterFactory` whose second argument, or `$storage`, is a reference to a local storage | Yes |
+| A limiter of the framework's configuration, `limiter.<name>`, a child of the abstract `limiter` whose storage is local | Yes |
 | An alias of any of these | Yes |
 | Any other adapter or storage — Redis, Memcached, PDO, DBAL, a class of the application | No |
 | A chain of more than 32 services, or one that loops | No, left to the container |

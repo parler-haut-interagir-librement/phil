@@ -7,12 +7,12 @@ The module `totp` lets an account add an authenticator application, which comput
 
 `/account/two-factor`, after a recent proof, generates a secret of 160 bits and shows its `otpauth://` address — the
 link an application on the same device opens, the content of a QR code — and the secret in base32 for typing by hand.
-The secret is kept sealed by the `SecretCipher`: encrypted by the KeyManagement component when `secrets.kms_key` is
-set. It counts for nothing until a first code confirms it. A code is accepted within `totp.window` periods before and
-after the current one, and once: the counter it matched is kept, and the same code, or an older one, never verifies
-again. Every counter of the window is computed, so that the time taken says nothing of which one matched. The counter
-is read again, and held, before it is saved: of two requests presenting the same code at the same time, only one is
-accepted.
+The secret is kept sealed by the `SecretCipher`: encrypted by the KeyManagement component under `secrets.kms_key`, or,
+with `secrets.allow_plaintext_secrets: true` only, in clear. It counts for nothing until a first code confirms it. A
+code is accepted within `totp.window` periods before and after the current one, and once: the counter it matched is
+kept, and the same code, or an older one, never verifies again. Every counter of the window is computed, so that the
+time taken says nothing of which one matched. The counter is read again, and held, before it is saved: of two requests
+presenting the same code at the same time, only one is accepted.
 
 ## Recovery codes
 
@@ -29,7 +29,8 @@ When an account has a confirmed authenticator application, `SecondFactorListener
 a sign-in link, a federated provider. The challenge page offers a code of the application, a recovery code and a
 passkey of the account. `OneTimeCodeAuthenticator` takes the code, authenticates the same account again with the proof
 `otp`, which Symfony Security 8.2 adds to the proofs the token already holds, and sends the person where they were
-going. The routes of the challenge, of passkeys and those of `open_routes` stay reachable, so that the person can sign
-out.
+going. Only routes named exactly stay reachable — the challenge, the code it posts, the sign-in with a passkey, and
+those of `open_routes` such as the logout route —, so that the person can sign out; no prefix opens a route, not even
+the underscore of the profiler's, which an application lists in `open_routes` in development if it wants the toolbar.
 
 The firewall's `login_throttling` applies to `OneTimeCodeAuthenticator` like to any authenticator.

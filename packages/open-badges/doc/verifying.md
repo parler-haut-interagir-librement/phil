@@ -24,7 +24,8 @@ $verified->status();     // its StatusListEntry, or null
    critical (`crit`) or leaves its claims unencoded (`b64`) is refused. Before the library parses it, the token is
    bounded: `JwtVerifier::MAX_LENGTH` bytes (1 MiB), three parts, a header and claims nested `JwtVerifier::MAX_DEPTH`
    levels (64) at most. Then `nbf` and `exp` are checked at the moment given: the token is valid from `nbf` included
-   to `exp` excluded.
+   to `exp` excluded. Both are numbers of seconds, with or without a fraction, compared to the microsecond; a value of
+   another type is refused.
 2. A document: the proof is a `DataIntegrityProof` of `eddsa-rdfc-2022` for `assertionMethod`, its verification method
    is found, its signature is checked over the canonical forms, then `validFrom` and `validUntil` at the moment given.
 3. Either way, the key must be one of the credential's issuer: the verification method is the issuer's identifier, a

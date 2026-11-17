@@ -47,10 +47,11 @@ phil_identity_provider:
 | `require_verified_email` | `false` | Whether an account signs in only once its address is verified. |
 | `login_route` | `null` | The route of the sign-in form, offered for a re-authentication by password and after a failed external sign-in. |
 | `default_target` | `/` | Where a sign-in by the bundle's authenticators goes when nothing asked for a page. |
-| `open_routes` | `[]` | Routes reachable before the second step of a sign-in, such as the logout route. |
+| `open_routes` | `[]` | Routes reachable before the second step of a sign-in, by their exact names, such as the logout route; in development, `_wdt` and `_profiler` if the toolbar should show. Beside them, only the challenge, the code it posts and the sign-in with a passkey are open. |
 | `mailer.from` | `null` | The sender of the emails; without it, nothing is sent and the events still are. |
 | `audit` | `auto` | `auto` writes to `phil/audit-bundle` when it is installed, `none` nowhere, or the id of an `AuditRecorder`. |
-| `secrets.kms_key` | `null` | The key of the KeyManagement component that encrypts TOTP secrets and private signing keys; null keeps them in clear. |
+| `secrets.kms_key` | `null` | The key of the KeyManagement component that encrypts TOTP secrets and private signing keys. With the modules `totp` or `oidc`, null is refused unless `secrets.allow_plaintext_secrets` is true; a key without `symfony/key-management` is refused. |
+| `secrets.allow_plaintext_secrets` | `false` | Whether TOTP secrets and private signing keys may be kept in clear when no key is set, as in tests; the access controls of the database are then their only protection. |
 | `secrets.encrypter`, `secrets.decrypter` | `key_management.encrypter`, `key_management.decrypter` | The services of the KeyManagement component. |
 
 ## Modules
@@ -79,6 +80,13 @@ phil_identity_provider:
 | `lockout.threshold` | `5` | Failed password sign-ins in a row before the first lock. |
 | `lockout.base` | `60` | Seconds of the first lock, doubled at each further failure. |
 | `lockout.max` | `3600` | The longest lock. |
+| `login_limiter.enabled` | `false` | Registers `phil_identity_provider.login_limiter`, the limiter the firewall's `login_throttling` names with its option `limiter`; needs `symfony/rate-limiter`. See [Limiting the sign-ins](accounts.md#limiting-the-sign-ins). |
+| `login_limiter.max_attempts` | `5` | Sign-ins per identifier and address in each interval. |
+| `login_limiter.network_max_attempts` | `25` | Sign-ins per address, or IPv6 /64 network, in each interval. |
+| `login_limiter.account_max_attempts` | `50` | Sign-ins per identifier in each interval, whatever the address. Anyone who knows the identifier can spend it. |
+| `login_limiter.interval` | `15 minutes` | The window of the counts. |
+| `login_limiter.cache_pool` | `cache.rate_limiter` | The cache pool of the counts, shared by every server. |
+| `login_limiter.lock_factory` | `null` | A `LockFactory` on a shared store, so that two sign-ins at once both count. |
 | `links.verify_lifetime` | `86400` | Seconds a link that verifies an address lasts. |
 | `links.reset_lifetime` | `3600` | Seconds a link that resets a password lasts. |
 | `passkeys.rp_id` | `null` | The relying party identifier: the registrable domain of the site, such as `example.com`. |

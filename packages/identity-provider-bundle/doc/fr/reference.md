@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=002cc0b5149f0672b940be2cfacbda9c1d6a11f76739bd26e2bf1f2f56bd3f5b -->
+<!-- phil-dev source-sha256=3d34b9548e7777383ea0070e083a542713bdbeb754607c7db19af17aa11fa710 -->
 # Référence
 
 ## Types publics
@@ -18,7 +18,7 @@
 | `Application\AccountUser` | Le compte tel que Symfony Security le voit. |
 | `Application\Modules` | Les modules activés. |
 | `Application\Journal`, `Application\Event\IdentityEvent`, `Application\Event\IdentityEventType` | Les événements, écrits dans la piste d'audit et répartis. |
-| `Application\Contract\SecretCipher`, `ChallengeStore`, `SmsSender`, `AccountMailer`, `AuditRecorder` | Les ports. |
+| `Application\Contract\SecretCipher`, `ChallengeStore`, `SmsSender`, `AccountMailer`, `AuditRecorder`, `Transactions` | Les ports. |
 | `Application\Exception\Refused`, `OAuthError`, `DeliveryFailed` | Ce que les services refusent, avec des clés de traduction ou des erreurs OAuth. |
 | `Domain\Model\*` | Les lignes de chaque module. |
 | `Domain\Contract\*Repository` | Les magasins de chaque module. |
@@ -40,6 +40,7 @@
 | `Phil\IdentityProviderBundle\Infrastructure\Security\OneTimeCodeAuthenticator` | Le code de la deuxième étape ou d'une réauthentification. |
 | `Phil\IdentityProviderBundle\Infrastructure\Security\ExternalAuthenticator` | Le rappel d'un fournisseur fédéré. |
 | `phil_identity_provider.re_authentication_entry_point` | Le point d'entrée de la réauthentification. |
+| `phil_identity_provider.login_limiter` | Avec `login_limiter.enabled`, le limiteur de `login_throttling` : par adresse, par identifiant et adresse, par identifiant. |
 
 ## Routes
 

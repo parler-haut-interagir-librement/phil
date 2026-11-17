@@ -20,8 +20,11 @@ stays public.
 
 `/account/sessions` lists the open sessions of the account with their device and when they were opened and last seen,
 the current one marked with `aria-current`. One is closed from there; all the others at once after a recent proof.
-Closing a session revokes the tokens the OpenID Connect provider issued in it. With the provider on, the page also lists
-the applications the account allowed, whose consent is withdrawn from there, revoking their tokens.
+Closing a session revokes the tokens the OpenID Connect provider issued in it, then closes the row, in one transaction
+of the `Transactions` contract — `DoctrineTransactions` on the entity manager of the stores. Without one, a failure
+leaves the row open, so that closing it again finishes the work. A new password closes every other session of the
+account, a reset password all of them (see [Accounts and passwords](accounts.md)). With the provider on, the page also
+lists the applications the account allowed, whose consent is withdrawn from there, revoking their tokens.
 
 ## Risky sign-ins
 

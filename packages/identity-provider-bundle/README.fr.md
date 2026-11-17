@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fab4a8bf309bf9e4b80add18e60135dd61f8c3f945717eae70d8c241bf90939a -->
+<!-- phil-dev source-sha256=042555f0a80f1b49a36b455ed68c71b4242235bc25266ab9c6c35382e47b9d39 -->
 # phil/identity-provider-bundle
 
 **Une brique d'identité ouverte pour Symfony : des comptes, un module par façon de se connecter et un fournisseur OpenID Connect.**
@@ -28,8 +28,8 @@ le minimum sur les personnes — aucune adresse de leur connexion, aucun jeton d
 
 | Partie | État |
 |---|---|
-| Comptes : inscription sans révéler qui a un compte, adresses vérifiées par des liens signés, page du compte | Implémenté et testé |
-| Mots de passe : Argon2id, force et fuites vérifiées par `phil/passwords`, réinitialisation par un lien signé sur le mot de passe, verrou progressif | Implémenté et testé |
+| Comptes : inscription sans révéler qui a un compte, adresses vérifiées par des liens signés confirmés par un formulaire, page du compte | Implémenté et testé |
+| Mots de passe : Argon2id, force et fuites vérifiées par `phil/passwords`, réinitialisation par un lien signé sur le mot de passe et servi une fois, autres sessions fermées à chaque changement, verrou progressif, limiteur de connexion par identifiant pour `login_throttling` | Implémenté et testé |
 | Clés d'accès : enregistrement, connexion, renommage, retrait ; la dernière façon de se connecter est conservée | Implémenté et testé |
 | Application d'authentification (TOTP), codes de récupération, deuxième étape d'une connexion | Implémenté et testé |
 | Liens de connexion par courriel (`login_link` de Symfony Security) | Implémenté et testé |
@@ -40,7 +40,7 @@ le minimum sur les personnes — aucune adresse de leur connexion, aucun jeton d
 | Fournisseur OpenID Connect : découverte, JWKS avec rotation, flux du code avec PKCE, jetons signés par `web-token/jwt-library`, rotation de l'actualisation, userinfo, révocation, introspection, déconnexion, consentement | Implémenté et testé |
 | Magasins Doctrine sur SQLite, MySQL 8.4 et PostgreSQL 17 ; magasins en mémoire pour les tests | Implémenté et testé |
 | Gabarits dessinés avec les recettes du kit, un contrôleur Stimulus pour les clés d'accès | Implémenté et testé |
-| Piste d'audit par `phil/audit-bundle` quand il est installé ; secrets chiffrés par le composant KeyManagement quand il est configuré | Implémenté et testé |
+| Piste d'audit par `phil/audit-bundle` quand il est installé ; secrets chiffrés par le composant KeyManagement, en clair seulement quand la configuration le dit | Implémenté et testé |
 | Suite de conformité de l'OpenID Foundation : plans Basic OP, Config OP et RP-Initiated Logout OP, dans Docker | Exécutée et réussie — voir [Conformité OpenID](doc/fr/openid-conformance.md) |
 | Certification par l'OpenID Foundation, revue de sécurité par quelqu'un d'autre | Avant l'utilisation en production — voir [Modèle de menaces](doc/fr/threat-model.md) et [Guide du réviseur](doc/fr/security-review.md) |
 | Connexion entre appareils par code QR, authentification unique d'entreprise (SAML), comptes d'enfants avec un tuteur, comptes invités, comptes de service, usurpation d'identité auditée et revendication `act` (RFC 8693), déconnexion par canal arrière, enregistrement dynamique de clients, sujets par paire, objets de requête, SMS comme deuxième facteur, inscription par clé d'accès d'abord, suppression de compte | Prévu |
@@ -81,6 +81,7 @@ phil_identity_provider:
     mailer: { from: accounts@example.com }
     modules: { passkeys: true, totp: true, recovery_codes: true }
     passkeys: { rp_id: example.com, origins: ['https://example.com'] }
+    secrets: { kms_key: identity }   # the TOTP secrets, encrypted by symfony/key-management
 ```
 
 ```yaml

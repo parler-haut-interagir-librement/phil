@@ -10,7 +10,7 @@ write the code comes before the bundle is used in production, against this page 
 |---|---|---|
 | Password hashes | `phil_identity_account` | Argon2id; never logged, never in an event. |
 | Passkey public keys and counters | `phil_identity_passkey` | Public by nature; the counter must move forward. |
-| TOTP secrets, recovery code hashes | `phil_identity_totp`, `phil_identity_recovery_codes` | Sealed by the `SecretCipher` (KeyManagement component) when a key is configured; codes keyed with `secret`. |
+| TOTP secrets, recovery code hashes | `phil_identity_totp`, `phil_identity_recovery_codes` | Sealed by the `SecretCipher` (KeyManagement component): the module refuses to start without a key unless `secrets.allow_plaintext_secrets` allows clear; codes keyed with `secret`. |
 | Sessions | `phil_identity_session` and the PHP session | Rows closed remotely; Symfony Security migrates the session at sign-in. |
 | The provider's private signing keys | `phil_identity_signing_key` | The private JSON Web Key sealed by the `SecretCipher`, bound to its `kid`; it never leaves the server. |
 | Codes, access and refresh tokens | `phil_identity_code`, `phil_identity_token` | Only their SHA-256 or their `jti` is kept; short lives; rotation with reuse detection. |
@@ -39,7 +39,9 @@ write the code comes before the bundle is used in production, against this page 
 
 | Threat | Defence |
 |---|---|
-| Guessing passwords online | The firewall's `login_throttling` per address and network; the progressive lock per account, checked before the password; passkeys still sign a locked account in. |
+| Guessing passwords online | The firewall's `login_throttling` per address and per identifier and address; with `login_limiter`, per identifier whatever the address too, against guessing spread over many addresses; the progressive lock per account, counted under a lock of its row and checked before the password; passkeys still sign a locked account in. |
+| Holding an account's sign-ins back | The count per identifier and the progressive lock can be spent by anyone who knows an address; the lock refuses the password only, the count lasts its interval, and `login_limiter.account_max_attempts` is kept well above the other limits. |
+| Choosing one's own address | The addresses counted are the ones Symfony sees: `framework.trusted_proxies` and `framework.trusted_headers` name the proxies only, so that no client sets its address by a header. |
 | Weak or breached passwords | `phil/passwords`: strength estimator with the account's own data as first guesses; Pwned Passwords by k-anonymity when turned on. |
 | Stolen password database | Argon2id; no password in a log, a message or an event. |
 | Phishing | Passkeys: the browser signs only for the relying party; origins checked. |
@@ -47,16 +49,18 @@ write the code comes before the bundle is used in production, against this page 
 | Cloned authenticator | The signature counter must move forward when the authenticator keeps one. |
 | Malformed authenticator answers | Bounded CBOR reader: depth, items and lengths checked before allocation; fuzzed. |
 | Account enumeration | Registration, password reset and sign-in links answer the same for known and unknown addresses. |
-| Reused links | Links signed over the properties they change — the address and its verification, the password hash and its date —, so each works once with nothing stored. |
+| Reused links | Links signed over the properties they change — the address and its verification, the password hash and its date —, so each works once with nothing stored; a reset link sets its password under a lock of the account's row, so two requests at once cannot both use it. |
+| A link opened by a mail scanner | `/verify-email` only shows a page that asks to confirm; the address is verified by the form it posts, with a CSRF token. |
 
 ## Session attacks
 
 | Threat | Defence |
 |---|---|
 | Session fixation | Symfony Security migrates the session at sign-in. |
-| A stolen device | Sessions closed from another device take effect at the next request; tokens issued in them are revoked. |
+| A stolen device | Sessions closed from another device take effect at the next request; tokens issued in them are revoked, then the session closed, in one transaction. |
+| A stolen session after a password change | A new or reset password closes the other sessions and their tokens; `AccountUser::isEqualTo()` compares the password hash, so a session signed in before the change ends at its next request. |
 | A session opened long ago used for a sensitive action | `PHIL_STEP_UP` asks for a recent proof of the strongest method. |
-| A second factor skipped | The second step is enforced on every request until a strong proof is on the token. |
+| A second factor skipped | The second step is enforced on every request until a strong proof is on the token; only routes named exactly stay open — the challenge, its code, the sign-in with a passkey and `open_routes` —, no prefix. |
 | Cross-site request forgery | Every form and script request carries a CSRF token; logout from a link asks to confirm. |
 
 ## Provider attacks
@@ -74,6 +78,8 @@ write the code comes before the bundle is used in production, against this page 
 | Key compromise | Rotation with publication before use; `rotate-keys --now`; private keys sealed by the KeyManagement component when configured. |
 | A client reading another client's tokens | Introspection and revocation answer only for the asking client's tokens. |
 | A disabled account keeping its access | Introspection answers `active: false` for the tokens of a disabled account, as userinfo refuses them. |
+| A disabled client keeping its access | A disabled client cannot authenticate to the token, revocation and introspection endpoints, and userinfo refuses the tokens issued to it. |
+| A client asking for an account chooser | The provider shows none: `prompt=select_account` is refused with `invalid_request` and is not in the discovery document, so no client takes the current account for a chosen one. |
 
 ## Account linking
 
@@ -96,7 +102,8 @@ templates when it replaces the bundle's.
 | Risk | Why it stays | What reduces it |
 |---|---|---|
 | A confidential client registered with `--pkce-optional` | The OpenID Connect Basic profile lets a confidential client go without PKCE, and the conformance suite plays such a client. | Off by default; such a client sends a `nonce`, which the ID token carries back; a public client can never go without. |
-| A key store without the KeyManagement component | The private JSON Web Keys are then kept in clear in the database. | Configure `secrets.kms_key`; restrict access to `phil_identity_signing_key`. |
+| Secrets kept in clear on purpose | With `secrets.allow_plaintext_secrets: true`, the private JSON Web Keys and the TOTP secrets are kept in clear in the database. | Off by default: without it, the modules `totp` and `oidc` refuse to start with no `secrets.kms_key`; restrict access to `phil_identity_signing_key` and `phil_identity_totp`. |
+| Secrets written before the key | Setting `secrets.kms_key` encrypts what is written from then on; the rows written in clear before stay readable in clear, and the cipher still opens them. A TOTP secret is sealed again only when the person enrols again, a signing key only when it is replaced. | Rotate the signing keys (`rotate-keys --now`, then wait for `oidc.retired_key_retention`) and ask the people with an authenticator application to enrol again; until then, those rows are as exposed as before the key. |
 | The cost of RS256 | The library rebuilds the PEM of an RSA key at each signature: a few milliseconds per RS256 signature, against well under a millisecond for ES256 or EdDSA (`tests/Benchmark/JwsBench.php`). A flood of token requests costs more processor time with RS256. | The firewall's rate limits on the token endpoint; `oidc.algorithm: ES256` or `EdDSA` where the clients support them. |
 | `web-token/jwt-library` itself | A flaw in the library is a flaw in the provider. | One maintained library; its version follows the security advisories (`composer deps:audit`); untrusted input bounded before it. |
 | A code presented by two requests at once | The request that loses the code revokes its family as a reuse; when it does so before the winner has stored its tokens, those tokens stay valid. | Rare: two exchanges of one code within milliseconds; bounded by `oidc.access_token_lifetime` and, for a refresh token, by its next rotation or revocation; the reuse is journaled as `identity.oidc.token_reuse`. |

@@ -11,8 +11,10 @@ it, register the bundle and write the configuration by hand, as below. The firew
 
 The package needs PHP 8.5 or later with the `mbstring`, `openssl` and `sodium` extensions, Symfony 8.2 or later,
 Doctrine ORM 3.7 or later and `web-token/jwt-library` 4.2 or later. The Mailer component sends its emails, the Notifier component its text messages, the
-KeyManagement component encrypts its secrets, StimulusBundle serves its passkey controller, and Symfony UX Twig
-Component with the recipes of the kit draws its pages: each is optional.
+KeyManagement component encrypts its secrets, the Rate Limiter component counts the sign-ins per identifier,
+StimulusBundle serves its passkey controller, and Symfony UX Twig Component with the recipes of the kit draws its
+pages: each is optional. The modules `totp` and `oidc` keep secrets, and refuse to start without `secrets.kms_key`
+unless `secrets.allow_plaintext_secrets: true` says they may stay in clear.
 
 ## The bundle
 
@@ -59,10 +61,12 @@ security:
             logout:
                 path: app_logout
             login_throttling:
-                max_attempts: 5
+                limiter: phil_identity_provider.login_limiter   # with login_limiter.enabled; else max_attempts: 5
 ```
 
-`login_throttling` limits the attempts per address and per network address in front of every authenticator; the
+`login_throttling` limits the attempts in front of every authenticator: by default per address and per identifier and
+address, and with the bundle's limiter per identifier whatever the address too (see [Limiting the
+sign-ins](accounts.md#limiting-the-sign-ins), with what `framework.trusted_proxies` must say behind a proxy); the
 bundle's lock counts the failures of each account on top of it. `max_uses` of `login_link` needs a cache pool.
 
 ## The routes

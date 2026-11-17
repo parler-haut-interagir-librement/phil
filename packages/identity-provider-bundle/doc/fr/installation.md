@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3418426d50dc8611d68f37c0a6d8396fefd8311791e80fb92ecb2f694984c00b -->
+<!-- phil-dev source-sha256=b6b4ca98a7dc507e4e8d0bedd5124c2c8213fb57c5cb303af749f42f3a7f49e1 -->
 # Installation
 
 ```sh
@@ -14,9 +14,11 @@ pare-feu reste à écrire par l'application.
 Le paquet exige PHP 8.5 ou une version plus récente avec les extensions `mbstring`, `openssl` et `sodium`, Symfony 8.2
 ou une version plus récente, Doctrine ORM 3.7 ou une version plus récente et `web-token/jwt-library` 4.2 ou une version
 plus récente. Le composant Mailer envoie ses courriels,
-le composant Notifier ses messages texte, le composant KeyManagement chiffre ses secrets, StimulusBundle sert son
-contrôleur de clés d'accès, et Symfony UX Twig Component avec les recettes du kit dessine ses pages : chacun est
-facultatif.
+le composant Notifier ses messages texte, le composant KeyManagement chiffre ses secrets, le composant Rate Limiter
+compte les connexions par identifiant, StimulusBundle sert son contrôleur de clés d'accès, et Symfony UX Twig Component
+avec les recettes du kit dessine ses pages : chacun est facultatif. Les modules `totp` et `oidc` gardent des secrets, et
+refusent de démarrer sans `secrets.kms_key` sauf si `secrets.allow_plaintext_secrets: true` permet de les garder en
+clair.
 
 ## Le bundle
 
@@ -63,11 +65,14 @@ security:
             logout:
                 path: app_logout
             login_throttling:
-                max_attempts: 5
+                limiter: phil_identity_provider.login_limiter   # with login_limiter.enabled; else max_attempts: 5
 ```
 
-`login_throttling` limite les tentatives par adresse et par adresse réseau devant chaque authentificateur ; le verrou
-du bundle compte en plus les échecs de chaque compte. `max_uses` de `login_link` exige un pool de cache.
+`login_throttling` limite les tentatives devant chaque authentificateur : par défaut par adresse et par identifiant et
+adresse, et avec le limiteur du bundle aussi par identifiant quelle que soit l'adresse (voir [Limiter les
+connexions](accounts.md#limiter-les-connexions), avec ce que `framework.trusted_proxies` doit dire derrière un
+mandataire) ; le verrou du bundle compte en plus les échecs de chaque compte. `max_uses` de `login_link` exige un pool
+de cache.
 
 ## Les routes
 

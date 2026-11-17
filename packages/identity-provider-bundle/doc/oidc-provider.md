@@ -64,8 +64,9 @@ its ID token carries back. A challenge sent anyway is checked the same way, and 
    redirected, so that the provider cannot send people anywhere;
 2. a parameter given twice, a request object (`request_not_supported`, `request_uri_not_supported`), a response type
    other than `code`, a response mode other than `query`, no `openid` scope, a PKCE challenge that is not `S256`, out of
-   shape, or missing when the client requires one, `prompt=none` with another value, an out-of-shape `max_age` go back
-   to the client with the error, the state and the issuer (RFC 9207);
+   shape, or missing when the client requires one, a `prompt` other than `none`, `login` and `consent` — the provider
+   shows no account chooser, so `select_account` is refused rather than ignored —, `prompt=none` with another value, an
+   out-of-shape `max_age` go back to the client with the error, the state and the issuer (RFC 9207);
 3. scopes the provider or the client does not know are dropped.
 
 Then: nobody signed in, the firewall asks them to sign in and comes back — `prompt=none` answers `login_required`;
@@ -92,7 +93,8 @@ is refused as a reuse. The answer holds:
   whole family, the sign of a stolen token.
 
 Introspection answers `active: false` for a token that is not the asking client's, expired, revoked or rotated, and for
-every token of an account that was removed or disabled, as userinfo refuses them.
+every token of an account that was removed or disabled, as userinfo refuses them. Userinfo also refuses the tokens of
+a client that was disabled or removed.
 
 The subject is the account's ULID, the same for every client. Userinfo takes the access token in the `Authorization`
 header or, by `POST`, in the `access_token` member of a form body (RFC 6750), never in the query and never both ways.

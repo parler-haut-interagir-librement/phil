@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4678975cfe8aa6b0c5b6c7ecf7c2170816a18d4ac561212f76a114fc489f2941 -->
+<!-- phil-dev source-sha256=90566eb91c31e587ee0eaaae753e68f7f086d403e1240e3c0f5cb44ca0b88843 -->
 # La garde
 
 `RateLimitGuard` fait échouer la construction du conteneur sur une limite de débit qui ne limiterait rien. Elle vérifie
@@ -54,6 +54,8 @@ Un magasin dont le service n'est pas défini est laissé au conteneur, qui le si
 | Un enfant de `cache.adapter.filesystem`, `cache.adapter.apcu`, `cache.adapter.array` ou `cache.adapter.system`, directement ou par d'autres pools | Oui |
 | Une définition de `FilesystemAdapter`, `PhpFilesAdapter`, `ApcuAdapter`, `ArrayAdapter` ou `InMemoryStorage`, sa classe donnée ou lue d'un paramètre | Oui |
 | Un `CacheStorage` dont le premier argument, ou `$pool`, est une référence à un pool local | Oui |
+| Une `RateLimiterFactory` dont le deuxième argument, ou `$storage`, est une référence à un stockage local | Oui |
+| Un limiteur de la configuration du framework, `limiter.<nom>`, enfant de l'abstrait `limiter`, dont le stockage est local | Oui |
 | Un alias de l'un d'eux | Oui |
 | Tout autre adaptateur ou stockage : Redis, Memcached, PDO, DBAL, une classe de l'application | Non |
 | Une chaîne de plus de 32 services, ou qui boucle | Non, laissée au conteneur |

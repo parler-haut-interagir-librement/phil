@@ -4,6 +4,17 @@ All notable changes to `phil/rate-limit` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Added
+
+- `StoreLocality` reads a rate limiter factory: a `RateLimiterFactory` defined by hand, its storage given by position
+  or by name, and a limiter of the framework's configuration, `limiter.<name>`, a child of the abstract `limiter`, are
+  as local as their storage. A bundle given the id of a limiter can hand it to `RateLimitGuard::watch()`.
+- `StoreLocality::LIMITER`, the abstract service of the framework's limiters.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

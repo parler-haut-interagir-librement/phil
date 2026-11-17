@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1117d696aeeafc2fec0b526cb52be310316cdbef25e1b357c190e4ffa67f2f5e -->
+<!-- phil-dev source-sha256=48c2ee453e5a3e247e97e6a2a054652c91643908dd4fc41c0e8fcade19a86357 -->
 # Fournisseur OpenID Connect
 
 Le module `oidc` fait du site un fournisseur OpenID Connect pour ses clients : d'autres sites et applications
@@ -66,8 +66,10 @@ ne peut jamais s'en passer.
    personne, jamais redirigé, de sorte que le fournisseur ne peut envoyer personne n'importe où ;
 2. un paramètre donné deux fois, un objet de requête (`request_not_supported`, `request_uri_not_supported`), un type de
    réponse autre que `code`, un mode de réponse autre que `query`, l'absence de la portée `openid`, un défi PKCE autre
-   que `S256`, de forme invalide, ou manquant quand le client en exige un, `prompt=none` avec une autre valeur, un
-   `max_age` de forme invalide reviennent au client avec l'erreur, l'état et l'émetteur (RFC 9207) ;
+   que `S256`, de forme invalide, ou manquant quand le client en exige un, un `prompt` autre que `none`, `login` et
+   `consent` — le fournisseur n'affiche aucun sélecteur de compte, donc `select_account` est refusé plutôt qu'ignoré —,
+   `prompt=none` avec une autre valeur, un `max_age` de forme invalide reviennent au client avec l'erreur, l'état et
+   l'émetteur (RFC 9207) ;
 3. les portées que le fournisseur ou le client ne connaît pas sont écartées.
 
 Ensuite : si personne n'est connecté, le pare-feu lui demande de se connecter et revient — `prompt=none` répond
@@ -95,7 +97,8 @@ contient :
   celle qui l'a renouvelé — révoque toute sa famille, signe d'un jeton volé.
 
 L'introspection répond `active: false` pour un jeton qui n'est pas celui du client qui demande, expiré, révoqué ou
-renouvelé, et pour tous les jetons d'un compte supprimé ou désactivé, comme userinfo les refuse.
+renouvelé, et pour tous les jetons d'un compte supprimé ou désactivé, comme userinfo les refuse. Userinfo refuse aussi
+les jetons d'un client désactivé ou supprimé.
 
 Le sujet est l'ULID du compte, le même pour tous les clients. Userinfo prend le jeton d'accès dans l'en-tête
 `Authorization` ou, par `POST`, dans le membre `access_token` d'un corps de formulaire (RFC 6750), jamais dans la requête

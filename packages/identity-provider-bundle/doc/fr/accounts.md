@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=039532742e9f0fc1db0e5ac83452f6e47a84c1ef32d407d29398f2fadc497e5b -->
+<!-- phil-dev source-sha256=7259a441e9a5879285d90dd8274e363b21b151674faf274e57469475e29d939f -->
 # Comptes et mots de passe
 
 ## Comptes
@@ -12,9 +12,10 @@ profil plus étoffé relève de l'application.
 Symfony Security le voit comme `AccountUser`, identifié par l'ULID du compte — jamais par son adresse, qui peut changer
 et ne doit pas voyager dans des liens. `AccountUserProvider` le charge par cet identifiant ou par l'adresse saisie dans
 un formulaire de connexion, et réécrit une empreinte que le hacheur de mots de passe demande de renforcer. Deux
-utilisateurs sont les mêmes tant que leur identifiant, leurs rôles et leur état le sont : un changement de mot de passe
-ne met pas fin à la session où il a été fait ; les autres sessions sont fermées par leurs lignes (voir [Appareils et
-sessions](sessions.md)).
+utilisateurs sont les mêmes tant que leur identifiant, leurs rôles, leur état et l'empreinte de leur mot de passe le
+sont : une session ouverte avant que le mot de passe change ou soit retiré est déconnectée à sa requête suivante. La
+session où le changement est fait porte la nouvelle empreinte et reste ouverte ; les lignes des autres sessions, et les
+jetons émis dans celles-ci, sont fermés aussi (voir [Appareils et sessions](sessions.md)).
 
 `AccountUserChecker` refuse un compte désactivé, par n'importe quelle méthode, avec `account.disabled` et, avec
 `require_verified_email`, un compte dont l'adresse n'est pas vérifiée, avec `account.unverified`.
@@ -30,9 +31,11 @@ d'avertir le titulaire. Un nouveau compte reçoit un lien qui vérifie son adres
 
 Le lien de `/verify-email` porte l'identifiant du compte, une expiration et une signature calculée par le
 `SignatureHasher` de Symfony Security, celui qu'utilisent ses liens de connexion, sur l'adresse et la date de sa
-vérification, sous une clé dérivée de `secret` pour cet usage seulement. Il cesse de fonctionner une fois suivi, une
-fois l'adresse changée, ou après `links.verify_lifetime` secondes, sans rien stocker. Une adresse changée n'est pas
-vérifiée tant que son propre lien n'a pas été suivi.
+vérification, sous une clé dérivée de `secret` pour cet usage seulement. L'ouvrir affiche une page qui demande de
+confirmer ; l'adresse est vérifiée par le formulaire que cette page envoie, avec son jeton CSRF. Les analyseurs des
+services de courriel qui ouvrent les liens d'un message ne vérifient donc rien. Le lien cesse de fonctionner une fois
+servi, une fois l'adresse changée, ou après `links.verify_lifetime` secondes, sans rien stocker. Une adresse changée
+n'est pas vérifiée tant que son propre lien n'a pas servi.
 
 ## Mots de passe
 
@@ -51,7 +54,14 @@ Argon2id — pour `AccountUser`, et l'application peut l'ajuster dans `security.
 `/forgot-password` envoie un lien à l'adresse quand elle a un compte, et répond la même chose quand elle n'en a pas. Le
 lien de `/reset-password` est signé sur l'empreinte du mot de passe et la date de son dernier changement : il cesse de
 fonctionner dès que le mot de passe change, ou après `links.reset_lifetime` secondes. Le suivre et choisir un mot de
-passe vérifie aussi l'adresse, ce que le lien a prouvé.
+passe vérifie aussi l'adresse, ce que le lien a prouvé, et ferme toutes les sessions du compte.
+
+Le lien sert une fois même quand deux requêtes le présentent en même temps : `Accounts::resetPassword()` pose le mot de
+passe par `AccountRepository::apply()`, qui relit le compte sous un verrou de sa ligne, et seulement s'il a encore
+l'empreinte et la date sur lesquelles le lien a été signé. La requête qui arrive en second voit le lien comme déjà
+servi.
+
+Un mot de passe changé depuis la page du compte ferme les autres sessions du compte et garde celle où il a été changé.
 
 ## Le verrou
 
@@ -61,7 +71,53 @@ passe vérifie aussi l'adresse, ce que le lien a prouvé.
 vers le verrou ; une réussite remet le compte à zéro. Après `lockout.threshold` échecs de suite, chaque échec de plus
 verrouille le compte deux fois plus longtemps que le précédent, de `lockout.base` secondes jusqu'à `lockout.max`. Le
 verrou refuse seulement le mot de passe : une clé d'accès, qu'un attaquant qui devine ne peut pas rejouer, connecte
-quand même. Le `login_throttling` du pare-feu limite les tentatives par adresse réseau devant lui.
+quand même. Chaque échec est compté sur le compte relu sous un verrou de sa ligne, de sorte que des échecs au même
+moment comptent tous.
+
+## Limiter les connexions
+
+Le `login_throttling` du pare-feu limite les tentatives devant chaque authentificateur. Son limiteur par défaut compte
+par adresse et par identifiant et adresse ; une attaque répartie sur beaucoup d'adresses reste sous les deux. Avec
+`login_limiter` activé, le bundle offre un limiteur qui compte aussi par identifiant, quelle que soit l'adresse :
+
+```yaml
+# config/packages/phil_identity_provider.yaml
+phil_identity_provider:
+    login_limiter:
+        enabled: true
+        account_max_attempts: 50   # per identifier, whatever the address
+        cache_pool: cache.redis    # shared by every server
+
+# config/packages/security.yaml
+security:
+    firewalls:
+        main:
+            login_throttling:
+                limiter: phil_identity_provider.login_limiter
+```
+
+`LoginRateLimiter` compte trois choses à chaque `login_limiter.interval` : les tentatives par adresse — un client IPv6
+par son réseau /64 —, `network_max_attempts` ; par identifiant et adresse, `max_attempts` ; par identifiant, quelle que
+soit l'adresse, `account_max_attempts`. Les clés sont des empreintes à clé de l'adresse et de l'identifiant en
+minuscules : le cache ne garde ni l'une ni l'autre. Une connexion réussie efface les deux comptes de son identifiant et
+rend son jeton à son adresse. Les options de `login_throttling` lui-même, `max_attempts` et `interval`, ne sont plus
+lues dès qu'un limiteur est nommé.
+
+Deux réglages comptent :
+
+- Le compte par identifiant peut être dépensé par quiconque connaît une adresse : échouer exprès retient les connexions
+  de ce compte pendant l'intervalle. Gardez `account_max_attempts` bien au-dessus de `max_attempts` ; les clés d'accès
+  et les liens de connexion passent par le même pare-feu, et l'application qui veut les épargner nomme leurs
+  authentificateurs dans un autre pare-feu ou un autre limiteur. Le verrou progressif, qui refuse seulement le mot de
+  passe, reste par-dessus.
+- L'adresse est celle que voit Symfony. Derrière un mandataire ou un répartiteur de charge, réglez
+  `framework.trusted_proxies` et `framework.trusted_headers` sur les seuls mandataires : sinon tous les clients
+  partagent l'adresse du mandataire et sa limite, ou, avec un en-tête cru de n'importe qui, un client choisit son
+  adresse et y échappe.
+
+Les comptes vivent dans `login_limiter.cache_pool`, `cache.rate_limiter` par défaut : sur plusieurs serveurs, une
+réserve sur un stockage partagé — Redis, une base de données — compte pour tous, et `login_limiter.lock_factory`, sur
+un stockage de verrous partagé, fait compter deux tentatives au même moment.
 
 ## La page du compte
 

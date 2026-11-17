@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d671569b4327c520f5d69289b917cad5e768bcccaa1ebba6d506bfb07dd5f116 -->
+<!-- phil-dev source-sha256=85b5de4da7d0a02fe572498c79bb0b2961b5a79368a63dcad08a3a50782fd0b8 -->
 # Vérifier
 
 ## Un titre
@@ -26,7 +26,8 @@ $verified->status();     // its StatusListEntry, or null
    revendications non encodées (`b64`) est refusé. Avant que la bibliothèque l'analyse, le jeton est borné :
    `JwtVerifier::MAX_LENGTH` octets (1 Mio), trois parties, un en-tête et des revendications imbriqués sur
    `JwtVerifier::MAX_DEPTH` niveaux (64) au plus. Ensuite `nbf` et `exp` sont vérifiés au moment donné : le jeton est
-   valide de `nbf` inclus à `exp` exclu.
+   valide de `nbf` inclus à `exp` exclu. Les deux sont des nombres de secondes, avec ou sans fraction, comparés à la
+   microseconde ; une valeur d'un autre type est refusée.
 2. Un document : la preuve est une `DataIntegrityProof` de `eddsa-rdfc-2022` pour `assertionMethod`. Sa méthode de
    vérification est trouvée, sa signature est vérifiée sur les formes canoniques, puis `validFrom` et `validUntil` au
    moment donné.

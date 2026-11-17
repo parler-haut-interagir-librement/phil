@@ -29,7 +29,7 @@ rate limiter components are named by their classes and need not be installed.
 |---|---|
 | A rate limit refused without `symfony/rate-limiter` | Implemented and tested |
 | Stores noted by configuration path, `single_server`, the option that turns a limit off | Implemented and tested |
-| Local pools by adapter or class, `InMemoryStorage`, `CacheStorage` followed to its pool, aliases and parents followed, bounded | Implemented and tested |
+| Local pools by adapter or class, `InMemoryStorage`, `CacheStorage` followed to its pool, rate limiter factories followed to their storage, aliases and parents followed, bounded | Implemented and tested |
 | The check in `prod` only, once for every bundle | Implemented and tested |
 
 ## Documentation

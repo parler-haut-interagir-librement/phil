@@ -24,8 +24,8 @@ people — no address of their connection, no token of a federated provider — 
 
 | Part | State |
 |---|---|
-| Accounts: registration without telling who has an account, verified addresses by signed links, the account page | Implemented and tested |
-| Passwords: Argon2id, strength and breach checks by `phil/passwords`, reset by a link signed over the password, progressive lock | Implemented and tested |
+| Accounts: registration without telling who has an account, verified addresses by signed links confirmed by a form, the account page | Implemented and tested |
+| Passwords: Argon2id, strength and breach checks by `phil/passwords`, reset by a link signed over the password and used once, other sessions closed at each change, progressive lock, sign-in limiter per identifier for `login_throttling` | Implemented and tested |
 | Passkeys: registration, sign-in, rename, removal; the last way to sign in kept | Implemented and tested |
 | Authenticator application (TOTP), recovery codes, the second step of a sign-in | Implemented and tested |
 | Sign-in links by email (`login_link` of Symfony Security) | Implemented and tested |
@@ -36,7 +36,7 @@ people — no address of their connection, no token of a federated provider — 
 | OpenID Connect provider: discovery, JWKS with rotation, code flow with PKCE, tokens signed by `web-token/jwt-library`, refresh rotation, userinfo, revocation, introspection, logout, consent | Implemented and tested |
 | Doctrine stores on SQLite, MySQL 8.4 and PostgreSQL 17; memory stores for tests | Implemented and tested |
 | Templates drawn with the recipes of the kit, a Stimulus controller for passkeys | Implemented and tested |
-| Audit trail through `phil/audit-bundle` when installed; secrets encrypted by the KeyManagement component when configured | Implemented and tested |
+| Audit trail through `phil/audit-bundle` when installed; secrets encrypted by the KeyManagement component, in clear only when the configuration says so | Implemented and tested |
 | OpenID Foundation conformance suite: Basic OP, Config OP and RP-Initiated Logout OP plans, in Docker | Run and passed — see [OpenID conformance](doc/openid-conformance.md) |
 | Certification by the OpenID Foundation, security review by someone else | Before use in production — see [Threat model](doc/threat-model.md) and [Reviewer guide](doc/security-review.md) |
 | Sign-in across devices by QR code, enterprise SSO (SAML), children's accounts with a guardian, guest accounts, service accounts, audited impersonation and the `act` claim (RFC 8693), back-channel logout, dynamic client registration, pairwise subjects, request objects, SMS as a second factor, passkey-first registration, account deletion | Planned |
@@ -77,6 +77,7 @@ phil_identity_provider:
     mailer: { from: accounts@example.com }
     modules: { passkeys: true, totp: true, recovery_codes: true }
     passkeys: { rp_id: example.com, origins: ['https://example.com'] }
+    secrets: { kms_key: identity }   # the TOTP secrets, encrypted by symfony/key-management
 ```
 
 ```yaml

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9118a4523777a6388781034c9ed9471e1efd2e774fc316cffb3d7f793b727aef -->
+<!-- phil-dev source-sha256=eae5df177c2e2983a524546faa1522527904ee7bda5e89862e46f917e4b0b236 -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_identity_provider`. Chaque option a une valeur par défaut, sauf les
@@ -49,10 +49,11 @@ phil_identity_provider:
 | `require_verified_email` | `false` | Si un compte ne se connecte qu'une fois son adresse vérifiée. |
 | `login_route` | `null` | La route du formulaire de connexion, proposée pour une réauthentification par mot de passe et après l'échec d'une connexion externe. |
 | `default_target` | `/` | Où mène une connexion par les authentificateurs du bundle quand rien n'a demandé de page. |
-| `open_routes` | `[]` | Les routes joignables avant la deuxième étape d'une connexion, comme la route de déconnexion. |
+| `open_routes` | `[]` | Les routes joignables avant la deuxième étape d'une connexion, par leur nom exact, comme la route de déconnexion ; en développement, `_wdt` et `_profiler` si la barre d'outils doit s'afficher. À côté d'elles, seuls le défi, le code qu'il envoie et la connexion par clé d'accès sont ouverts. |
 | `mailer.from` | `null` | L'expéditeur des courriels ; sans lui, rien n'est envoyé et les événements le sont quand même. |
 | `audit` | `auto` | `auto` écrit dans `phil/audit-bundle` quand il est installé, `none` nulle part, ou l'identifiant d'un `AuditRecorder`. |
-| `secrets.kms_key` | `null` | La clé du composant KeyManagement qui chiffre les secrets TOTP et les clés privées de signature ; nulle, elle les garde en clair. |
+| `secrets.kms_key` | `null` | La clé du composant KeyManagement qui chiffre les secrets TOTP et les clés privées de signature. Avec les modules `totp` ou `oidc`, nulle, elle est refusée sauf si `secrets.allow_plaintext_secrets` vaut true ; une clé sans `symfony/key-management` est refusée. |
+| `secrets.allow_plaintext_secrets` | `false` | Si les secrets TOTP et les clés privées de signature peuvent être gardés en clair quand aucune clé n'est réglée, comme dans les tests ; les contrôles d'accès de la base sont alors leur seule protection. |
 | `secrets.encrypter`, `secrets.decrypter` | `key_management.encrypter`, `key_management.decrypter` | Les services du composant KeyManagement. |
 
 ## Modules
@@ -81,6 +82,13 @@ phil_identity_provider:
 | `lockout.threshold` | `5` | Échecs de connexion par mot de passe de suite avant le premier verrou. |
 | `lockout.base` | `60` | Secondes du premier verrou, doublées à chaque échec de plus. |
 | `lockout.max` | `3600` | Le plus long verrou. |
+| `login_limiter.enabled` | `false` | Enregistre `phil_identity_provider.login_limiter`, le limiteur que le `login_throttling` du pare-feu nomme par son option `limiter` ; demande `symfony/rate-limiter`. Voir [Limiter les connexions](accounts.md#limiter-les-connexions). |
+| `login_limiter.max_attempts` | `5` | Les connexions par identifiant et adresse à chaque intervalle. |
+| `login_limiter.network_max_attempts` | `25` | Les connexions par adresse, ou réseau IPv6 /64, à chaque intervalle. |
+| `login_limiter.account_max_attempts` | `50` | Les connexions par identifiant à chaque intervalle, quelle que soit l'adresse. Quiconque connaît l'identifiant peut le dépenser. |
+| `login_limiter.interval` | `15 minutes` | La fenêtre des comptes. |
+| `login_limiter.cache_pool` | `cache.rate_limiter` | La réserve de cache des comptes, partagée par tous les serveurs. |
+| `login_limiter.lock_factory` | `null` | Une `LockFactory` sur un stockage partagé, pour que deux connexions au même moment comptent toutes les deux. |
 | `links.verify_lifetime` | `86400` | Secondes de validité d'un lien qui vérifie une adresse. |
 | `links.reset_lifetime` | `3600` | Secondes de validité d'un lien qui réinitialise un mot de passe. |
 | `passkeys.rp_id` | `null` | L'identifiant de la partie de confiance : le domaine enregistrable du site, comme `example.com`. |

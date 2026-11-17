@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=05db1468342394777808f6a33150b3257036c6faa1a4306c1c79757d40317ac2 -->
+<!-- phil-dev source-sha256=6173c083ae4e850ba0c5c09625c309a1514fee0dda834508217d1a24dd8d8a63 -->
 # Appareils et sessions
 
 Le module `sessions` lie chaque session PHP à une ligne de `phil_identity_session` : un identifiant opaque de 256 bits
@@ -22,8 +22,12 @@ publique reste public.
 `/account/sessions` liste les sessions ouvertes du compte avec leur appareil et le moment où elles ont été ouvertes et
 vues pour la dernière fois, la session courante étant marquée par `aria-current`. On en ferme une depuis la page ; on
 ferme toutes les autres d'un coup après une preuve récente. Fermer une session révoque les jetons que le fournisseur
-OpenID Connect y a émis. Quand le fournisseur est activé, la page liste aussi les applications que le compte a
-autorisées, dont on retire le consentement depuis la page, ce qui révoque leurs jetons.
+OpenID Connect y a émis, puis ferme la ligne, dans une seule transaction du contrat `Transactions` —
+`DoctrineTransactions` sur le gestionnaire d'entités des stockages. Sans transaction, un échec laisse la ligne ouverte,
+de sorte que la fermer de nouveau termine le travail. Un nouveau mot de passe ferme toutes les autres sessions du
+compte, un mot de passe réinitialisé toutes (voir [Comptes et mots de passe](accounts.md)). Quand le fournisseur est
+activé, la page liste aussi les applications que le compte a autorisées, dont on retire le consentement depuis la page,
+ce qui révoque leurs jetons.
 
 ## Connexions risquées
 

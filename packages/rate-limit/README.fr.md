@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e7a143bf26af123d4c5c323b49a9ea1250f3b6fe5979e386c544ed50bd8dc193 -->
+<!-- phil-dev source-sha256=113b7662fa6383fa03fbfb2abce5299874177043025c6dd99851a292cefc6ede -->
 # phil/rate-limit
 
 **La garde de production des limites de débit sur `symfony/rate-limiter` : un conteneur qui bâtirait une limite qui ne
@@ -30,7 +30,7 @@ composants cache et rate limiter sont nommés par leurs classes et n'ont pas à 
 |---|---|
 | Une limite refusée sans `symfony/rate-limiter` | Implémenté et testé |
 | Magasins notés par chemin de configuration, `single_server`, l'option qui coupe une limite | Implémenté et testé |
-| Pools locaux par adaptateur ou par classe, `InMemoryStorage`, `CacheStorage` suivi jusqu'à son pool, alias et parents suivis, avec une borne | Implémenté et testé |
+| Pools locaux par adaptateur ou par classe, `InMemoryStorage`, `CacheStorage` suivi jusqu'à son pool, fabriques de limiteurs suivies jusqu'à leur stockage, alias et parents suivis, avec une borne | Implémenté et testé |
 | La vérification en `prod` seulement, une fois pour tous les bundles | Implémenté et testé |
 
 ## Documentation
