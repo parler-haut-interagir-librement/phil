@@ -306,6 +306,7 @@ final class ViewAsTest extends TestCase
         $stage->spaces->addMember(AccessGroup::of('supporters', [EntryPoint::Purchase]));
         $stage->groups->join('supporters', MemberId::of('ann'), EntryPoint::Purchase);
         $stage->member->signIn('ada');
+
         $viewAs = new ViewAs($stage->viewAsStore, $stage->member, $stage->spaces);
 
         $this->expectException(ViewAsRefused::class);

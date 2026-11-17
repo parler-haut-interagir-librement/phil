@@ -329,7 +329,7 @@ final class StoreEdgesTest extends TestCase
         });
 
         self::assertTrue($scores->record('item', $at('12:00:00', 3.0)));
-        self::assertSame(0, $count('SELECT scored_at'), 'A score that replaces the one written meanwhile asks nothing more.');
+        self::assertSame([0], [$count('SELECT scored_at')], 'A score that replaces the one written meanwhile asks nothing more.');
     }
 
     public function testAScoreWrittenAgainAsItIsIsKeptWhateverTheDatabaseCounts(): void
