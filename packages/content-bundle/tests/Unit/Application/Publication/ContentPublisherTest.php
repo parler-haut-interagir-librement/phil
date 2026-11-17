@@ -60,6 +60,17 @@ final class ContentPublisherTest extends TestCase
         }
     }
 
+    public function testTheRowsAreFlushedApartFromTheRouteSoTheirConflictIsNotASlugTaken(): void
+    {
+        $content = $this->manager->create('example', 'fr', ['slug' => 'course', 'excerptTitle' => 'Course']);
+        // The flushes of a publication: the stale rows, then the live rows before the route, then the route.
+        $this->contents->transaction->conflictOnFlush(2);
+
+        $this->expectException(WriteConflict::class);
+
+        $this->manager->publish($content, 'fr');
+    }
+
     public function testAConflictOnTheRowsIsNotASlugTaken(): void
     {
         $content = $this->manager->create('example', 'fr', ['slug' => 'course', 'excerptTitle' => 'Course']);

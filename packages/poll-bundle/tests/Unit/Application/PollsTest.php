@@ -305,6 +305,14 @@ final class PollsTest extends TestCase
         $this->assertRefused(fn () => $this->polls->withdraw($poll->id, $this->ref('user:bob')), 'This poll is not open.');
     }
 
+    public function testAClosedPollIsRefusedAsNotOpenBeforeThePolicyIsAsked(): void
+    {
+        $this->policy->refusedVoters = ['user:eve'];
+        $poll = $this->polls->create(new PollDraft('Q', $this->options('a', 'b'), opensAt: new DateTimeImmutable('2026-11-08 11:00:00 UTC')), $this->ref('user:ada'));
+
+        $this->assertRefused(fn (): CastVote => $this->polls->cast($poll->id, $this->ref('user:eve'), ['a']), 'This poll is not open.');
+    }
+
     public function testTheVotersThePolicyRefuses(): void
     {
         $this->policy->refusedVoters = ['user:eve'];

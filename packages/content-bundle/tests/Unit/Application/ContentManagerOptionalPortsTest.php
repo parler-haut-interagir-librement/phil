@@ -6,6 +6,7 @@ namespace Phil\ContentBundle\Tests\Unit\Application;
 
 use DateTimeImmutable;
 use Override;
+use Phil\ContentBundle\Application\Content\SingleKinds;
 use Phil\ContentBundle\Application\ContentManager;
 use Phil\ContentBundle\Domain\Contract\WorkingCopyRepository;
 use Phil\ContentBundle\Domain\Draft\WorkingCopy;
@@ -54,6 +55,22 @@ final class ContentManagerOptionalPortsTest extends TestCase
         $this->expectExceptionMessageIs('"example" is not a single kind; declare it under "phil_content.singles".');
 
         $manager->single('example');
+    }
+
+    public function testWithoutTheSingleRootsASingleKindIsStillRefusedItsSecondRootAndDeleted(): void
+    {
+        $manager = $this->contents->managerWith(singles: SingleKinds::fromArray(['example']));
+        $first = $manager->create('example', 'fr', []);
+
+        try {
+            $manager->create('example', 'en', []);
+            self::fail('A second root of a single kind was created.');
+        } catch (InvalidContent $invalidContent) {
+            self::assertSame('"example" is a single kind and already has its content: edit it instead.', $invalidContent->getMessage());
+        }
+
+        $manager->delete($first);
+        self::assertSame([], $manager->list('example'));
     }
 
     public function testDeletingAContentRemovesItsWorkingCopies(): void

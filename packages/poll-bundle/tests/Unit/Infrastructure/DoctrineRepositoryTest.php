@@ -89,6 +89,18 @@ final class DoctrineRepositoryTest extends RepositoryTestCase
         self::assertSame(0, $polls->revision('p1'));
     }
 
+    public function testAWriteWhileOpenIsCommitted(): void
+    {
+        $entityManager = $this->entityManager();
+        $polls = new DoctrinePollRepository($entityManager);
+        $polls->save($this->poll('p1', '2026-11-08 08:00:00', null));
+
+        self::assertTrue($polls->raiseRevisionWhileOpen('p1', new DateTimeImmutable('2026-11-08 10:00:00 UTC'), static fn (): null => null));
+
+        self::assertFalse($entityManager->getConnection()->isTransactionActive());
+        self::assertSame(1, $polls->revision('p1'));
+    }
+
     public function testABallotAlreadyCastRollsTheWriteBackAndLeavesTheEntityManagerOpen(): void
     {
         $entityManager = $this->entityManager();
