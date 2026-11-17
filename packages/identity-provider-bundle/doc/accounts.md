@@ -108,7 +108,9 @@ Two settings matter:
 
 The counts live in `login_limiter.cache_pool`, `cache.rate_limiter` by default: on several servers, a pool on a shared
 store — Redis, a database — counts for all of them, and `login_limiter.lock_factory`, on a shared lock store, makes two
-attempts at the same moment both count.
+attempts at the same moment both count. The bundle hands the pool to the `RateLimitGuard` of `phil/rate-limit`: in the
+`prod` environment, a pool local to each server — the filesystem, APCu, an array — fails the container build, unless
+`login_limiter.single_server: true` says the application runs on one server.
 
 ## The account page
 

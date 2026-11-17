@@ -103,6 +103,7 @@ use Phil\Passwords\Breach\Adapter\PwnedPasswordsSource;
 use Phil\Passwords\Breach\BreachChecker;
 use Phil\Passwords\Strength\Score;
 use Phil\Passwords\Strength\StrengthEstimator;
+use Phil\RateLimit\RateLimitGuard;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
@@ -142,7 +143,7 @@ use Symfony\Component\Security\Http\LoginLink\LoginLinkHandlerInterface;
  *     mailer: array{from: ?string},
  *     password: array{min_score: int<0, 4>, breach_check: bool, http_client: string},
  *     lockout: array{threshold: positive-int, base: positive-int, max: positive-int},
- *     login_limiter: array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string},
+ *     login_limiter: array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string, single_server: bool},
  *     links: array{verify_lifetime: positive-int, reset_lifetime: positive-int},
  *     passkeys: array{rp_id: ?string, rp_name: ?string, origins: list<string>, require_user_verification: bool},
  *     totp: array{issuer: ?string, window: int<0, 10>},
@@ -354,10 +355,11 @@ final class IdentityProviderServices
 
     /**
      * The limiter of the firewall's `login_throttling`, when `login_limiter` is enabled: three counts of the Rate Limiter
-     * component in the cache pool named, under the lock factory named.
+     * component in the cache pool named, under the lock factory named. The pool is handed to `RateLimitGuard`, which
+     * refuses in the prod environment a pool local to each server unless `single_server` says the application runs on one.
      *
-     * @param array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string} $limiter
-     * @param bool                                                                                                                                                                                  $installed whether `symfony/rate-limiter` is there
+     * @param array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string, single_server: bool} $limiter
+     * @param bool                                                                                                                                                                                                       $installed whether `symfony/rate-limiter` is there
      *
      * @throws InvalidConfigurationException when it is enabled without the component
      */
@@ -386,6 +388,7 @@ final class IdentityProviderServices
             $secret,
         ]);
         $container->setAlias(LoginRateLimiter::class, self::LOGIN_LIMITER);
+        RateLimitGuard::watch($container, $limiter['cache_pool'], 'phil_identity_provider.login_limiter.cache_pool', $limiter['single_server'], 'enabled');
     }
 
     /**

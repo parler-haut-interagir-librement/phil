@@ -27,8 +27,11 @@ use Phil\IdentityProviderBundle\Infrastructure\Secret\PlainSecretCipher;
 use Phil\IdentityProviderBundle\Infrastructure\Security\LoginRateLimiter;
 use Phil\IdentityProviderBundle\Infrastructure\Twig\KitComponents;
 use Phil\IdentityProviderBundle\PhilIdentityProviderBundle;
+use Phil\RateLimit\RateLimitGuard;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -179,7 +182,41 @@ final class PhilIdentityProviderBundleTest extends TestCase
         self::assertNull($factory->getArgument(2));
 
         $this->expectExceptionObject(new InvalidConfigurationException('"login_limiter" needs symfony/rate-limiter: install it, or turn the limiter off.'));
-        IdentityProviderServices::loginLimiter(new ContainerBuilder(), ['enabled' => true, 'max_attempts' => 5, 'network_max_attempts' => 25, 'account_max_attempts' => 50, 'interval' => '15 minutes', 'cache_pool' => 'cache.rate_limiter', 'lock_factory' => null], 'secret', false);
+        IdentityProviderServices::loginLimiter(new ContainerBuilder(), ['enabled' => true, 'max_attempts' => 5, 'network_max_attempts' => 25, 'account_max_attempts' => 50, 'interval' => '15 minutes', 'cache_pool' => 'cache.rate_limiter', 'lock_factory' => null, 'single_server' => false], 'secret', false);
+    }
+
+    /**
+     * The pool of the sign-in limiter is checked as every PHIL rate limit is: in production, a pool local to each server
+     * would let a client spend the limits once per server, and the container build refuses it unless the application
+     * runs on one.
+     */
+    public function testASignInLimiterPoolLocalToEachServerIsRefusedInProduction(): void
+    {
+        $build = static function (array $config, string $environment): void {
+            $container = new ContainerBuilder();
+            $container->setParameter('kernel.environment', $environment);
+            $container->setDefinition('cache.local', new Definition(FilesystemAdapter::class));
+            $container->setDefinition('cache.shared', new Definition(RedisAdapter::class));
+            $bundle = new PhilIdentityProviderBundle();
+            $extension = $bundle->getContainerExtension();
+            self::assertNotNull($extension);
+            $extension->load([$config], $container);
+            $bundle->build($container);
+
+            foreach ($container->getCompilerPassConfig()->getBeforeOptimizationPasses() as $pass) {
+                if ($pass instanceof RateLimitGuard) {
+                    $pass->process($container);
+                }
+            }
+        };
+
+        $build(['login_limiter' => ['enabled' => true, 'cache_pool' => 'cache.local']], 'test');
+        $build(['login_limiter' => ['enabled' => true, 'cache_pool' => 'cache.shared']], 'prod');
+        $build(['login_limiter' => ['enabled' => true, 'cache_pool' => 'cache.local', 'single_server' => true]], 'prod');
+        $build(['login_limiter' => ['enabled' => false, 'cache_pool' => 'cache.local']], 'prod');
+
+        $this->expectExceptionObject(new InvalidConfigurationException('phil_identity_provider.login_limiter.cache_pool: the store "cache.local" is local to each server, so a client could spend the limit once per server. Name a cache pool on a shared store — Redis, Memcached, a database —, set "single_server" to true on a single server, or set "enabled" to false.'));
+        $build(['login_limiter' => ['enabled' => true, 'cache_pool' => 'cache.local']], 'prod');
     }
 
     public function testTheLimitsOfTheSignInLimiterAreOneOrMore(): void

@@ -85,8 +85,9 @@ phil_identity_provider:
 | `login_limiter.network_max_attempts` | `25` | Sign-ins per address, or IPv6 /64 network, in each interval. |
 | `login_limiter.account_max_attempts` | `50` | Sign-ins per identifier in each interval, whatever the address. Anyone who knows the identifier can spend it. |
 | `login_limiter.interval` | `15 minutes` | The window of the counts. |
-| `login_limiter.cache_pool` | `cache.rate_limiter` | The cache pool of the counts, shared by every server. |
+| `login_limiter.cache_pool` | `cache.rate_limiter` | The cache pool of the counts, shared by every server: in the `prod` environment, a pool local to each server fails the container build. |
 | `login_limiter.lock_factory` | `null` | A `LockFactory` on a shared store, so that two sign-ins at once both count. |
+| `login_limiter.single_server` | `false` | Accepts in the `prod` environment a cache pool local to the server, for an application on one server. |
 | `links.verify_lifetime` | `86400` | Seconds a link that verifies an address lasts. |
 | `links.reset_lifetime` | `3600` | Seconds a link that resets a password lasts. |
 | `passkeys.rp_id` | `null` | The relying party identifier: the registrable domain of the site, such as `example.com`. |

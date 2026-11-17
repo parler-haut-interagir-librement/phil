@@ -15,7 +15,9 @@ repository contracts gain a method.
 - `login_limiter` and the service `phil_identity_provider.login_limiter`, `Infrastructure\Security\LoginRateLimiter`:
   the limiter the firewall's `login_throttling` names with its option `limiter`. It counts per address — an IPv6
   client by its /64 network —, per identifier and address, and per identifier whatever the address, against guessing
-  spread over many addresses; its keys are keyed hashes. Needs `symfony/rate-limiter`, suggested.
+  spread over many addresses; its keys are keyed hashes. Needs `symfony/rate-limiter`, suggested. Its cache pool is
+  handed to the `RateLimitGuard` of `phil/rate-limit`, which joins `require`: in the `prod` environment, a pool local
+  to each server fails the container build unless `login_limiter.single_server` is true.
 - `secrets.allow_plaintext_secrets`, false by default: whether TOTP secrets and private signing keys may be kept in
   clear when `secrets.kms_key` is null.
 - `Application\Contract\Transactions`, with `Infrastructure\Doctrine\DoctrineTransactions` and

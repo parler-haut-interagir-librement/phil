@@ -92,7 +92,7 @@ The firewall names the bundle's user provider, user checker and authenticators: 
 ## Requirements
 
 PHP 8.5 or later with the `mbstring`, `openssl` and `sodium` extensions, Symfony 8.2 or later, Doctrine ORM 3.7 or
-later, `web-token/jwt-library` 4.2 or later, `phil/passwords` and `phil/url`.
+later, `web-token/jwt-library` 4.2 or later, `phil/passwords`, `phil/rate-limit` and `phil/url`.
 
 ## Contributing
 

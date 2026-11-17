@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=eae5df177c2e2983a524546faa1522527904ee7bda5e89862e46f917e4b0b236 -->
+<!-- phil-dev source-sha256=13ca7faecf4a2c1aa17d3e99291299f02247e1bb395cc607e07f70cb1365d6c6 -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_identity_provider`. Chaque option a une valeur par défaut, sauf les
@@ -87,8 +87,9 @@ phil_identity_provider:
 | `login_limiter.network_max_attempts` | `25` | Les connexions par adresse, ou réseau IPv6 /64, à chaque intervalle. |
 | `login_limiter.account_max_attempts` | `50` | Les connexions par identifiant à chaque intervalle, quelle que soit l'adresse. Quiconque connaît l'identifiant peut le dépenser. |
 | `login_limiter.interval` | `15 minutes` | La fenêtre des comptes. |
-| `login_limiter.cache_pool` | `cache.rate_limiter` | La réserve de cache des comptes, partagée par tous les serveurs. |
+| `login_limiter.cache_pool` | `cache.rate_limiter` | La réserve de cache des comptes, partagée par tous les serveurs : dans l'environnement `prod`, une réserve locale à chaque serveur fait échouer la construction du conteneur. |
 | `login_limiter.lock_factory` | `null` | Une `LockFactory` sur un stockage partagé, pour que deux connexions au même moment comptent toutes les deux. |
+| `login_limiter.single_server` | `false` | Accepte dans l'environnement `prod` une réserve de cache locale au serveur, pour une application sur un seul serveur. |
 | `links.verify_lifetime` | `86400` | Secondes de validité d'un lien qui vérifie une adresse. |
 | `links.reset_lifetime` | `3600` | Secondes de validité d'un lien qui réinitialise un mot de passe. |
 | `passkeys.rp_id` | `null` | L'identifiant de la partie de confiance : le domaine enregistrable du site, comme `example.com`. |

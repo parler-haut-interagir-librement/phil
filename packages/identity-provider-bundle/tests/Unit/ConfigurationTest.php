@@ -67,6 +67,7 @@ final class ConfigurationTest extends TestCase
             'interval' => '15 minutes',
             'cache_pool' => 'cache.rate_limiter',
             'lock_factory' => null,
+            'single_server' => false,
         ],
         'links' => [
             'verify_lifetime' => 86400,

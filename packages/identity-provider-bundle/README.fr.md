@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=042555f0a80f1b49a36b455ed68c71b4242235bc25266ab9c6c35382e47b9d39 -->
+<!-- phil-dev source-sha256=7a19a3131a50b2518368bbef11874d901b8b72c9a92e8a8e6c3796f5a31fb90c -->
 # phil/identity-provider-bundle
 
 **Une brique d'identité ouverte pour Symfony : des comptes, un module par façon de se connecter et un fournisseur OpenID Connect.**
@@ -97,7 +97,7 @@ voir [Installation](doc/fr/installation.md).
 ## Prérequis
 
 PHP 8.5 ou une version plus récente avec les extensions `mbstring`, `openssl` et `sodium`, Symfony 8.2 ou une version
-plus récente, Doctrine ORM 3.7 ou une version plus récente, `web-token/jwt-library` 4.2 ou une version plus récente, `phil/passwords` et `phil/url`.
+plus récente, Doctrine ORM 3.7 ou une version plus récente, `web-token/jwt-library` 4.2 ou une version plus récente, `phil/passwords`, `phil/rate-limit` et `phil/url`.
 
 ## Contribuer
 

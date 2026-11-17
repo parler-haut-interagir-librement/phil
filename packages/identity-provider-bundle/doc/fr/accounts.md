@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7259a441e9a5879285d90dd8274e363b21b151674faf274e57469475e29d939f -->
+<!-- phil-dev source-sha256=29231157779bf922b451648fc61caa2c4ea21fdae918b7429eb06f5948c9b50f -->
 # Comptes et mots de passe
 
 ## Comptes
@@ -117,7 +117,10 @@ Deux réglages comptent :
 
 Les comptes vivent dans `login_limiter.cache_pool`, `cache.rate_limiter` par défaut : sur plusieurs serveurs, une
 réserve sur un stockage partagé — Redis, une base de données — compte pour tous, et `login_limiter.lock_factory`, sur
-un stockage de verrous partagé, fait compter deux tentatives au même moment.
+un stockage de verrous partagé, fait compter deux tentatives au même moment. Le bundle confie la réserve au
+`RateLimitGuard` de `phil/rate-limit` : dans l'environnement `prod`, une réserve locale à chaque serveur — le système de
+fichiers, APCu, un tableau — fait échouer la construction du conteneur, sauf si `login_limiter.single_server: true` dit
+que l'application tourne sur un seul serveur.
 
 ## La page du compte
 
