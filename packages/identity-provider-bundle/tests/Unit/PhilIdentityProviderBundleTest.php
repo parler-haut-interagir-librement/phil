@@ -182,6 +182,21 @@ final class PhilIdentityProviderBundleTest extends TestCase
         IdentityProviderServices::loginLimiter(new ContainerBuilder(), ['enabled' => true, 'max_attempts' => 5, 'network_max_attempts' => 25, 'account_max_attempts' => 50, 'interval' => '15 minutes', 'cache_pool' => 'cache.rate_limiter', 'lock_factory' => null], 'secret', false);
     }
 
+    public function testTheLimitsOfTheSignInLimiterAreOneOrMore(): void
+    {
+        foreach (['max_attempts', 'network_max_attempts', 'account_max_attempts'] as $option) {
+            $limiter = $this->load([['login_limiter' => ['enabled' => true, $option => 1]]])->getDefinition(IdentityProviderServices::LOGIN_LIMITER);
+            self::assertSame(LoginRateLimiter::class, $limiter->getClass());
+
+            try {
+                $this->load([['login_limiter' => ['enabled' => true, $option => 0]]]);
+                self::fail(\sprintf('A limit of 0 was accepted for "%s".', $option));
+            } catch (InvalidConfigurationException $invalidConfigurationException) {
+                self::assertStringContainsString($option, $invalidConfigurationException->getMessage());
+            }
+        }
+    }
+
     public function testThePrependedConfiguration(): void
     {
         $container = new ContainerBuilder();

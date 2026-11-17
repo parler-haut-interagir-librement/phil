@@ -71,13 +71,9 @@ final readonly class StoreLocality
                     continue;
                 }
 
+                // A limiter not given its storage is left to the container, as an undefined service is.
                 $storage = $definition->getArguments()['index_1'] ?? null;
-
-                if (!$storage instanceof Reference) {
-                    return false;
-                }
-
-                $id = (string) $storage;
+                $id = $storage instanceof Reference ? (string) $storage : '';
 
                 continue;
             }

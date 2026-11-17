@@ -67,7 +67,8 @@ final readonly class SecondFactorListener
             return;
         }
 
-        if ($request->isMethodSafe() && $request->hasSession()) {
+        // A previous session was required above: the request has one.
+        if ($request->isMethodSafe()) {
             $request->getSession()->set(self::TARGET, $request->getRequestUri());
         }
 

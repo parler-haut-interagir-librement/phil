@@ -47,6 +47,43 @@ final class LoginRateLimiterTest extends TestCase
         self::assertTrue($limiter->consume($this->request('bob@example.com', '192.0.2.2'))->isAccepted());
     }
 
+    public function testTheCountPerIdentifierAndAddressIsKeptForEachAddress(): void
+    {
+        $limiter = $this->limiter(network: 100, local: 2, account: 100);
+
+        self::assertTrue($limiter->consume($this->request('ada@example.com', '192.0.2.1'))->isAccepted());
+        self::assertTrue($limiter->consume($this->request('ada@example.com', '192.0.2.1'))->isAccepted());
+        self::assertTrue($limiter->consume($this->request('ada@example.com', '198.51.100.7'))->isAccepted());
+        self::assertTrue($limiter->consume($this->request('ada@example.com', '198.51.100.7'))->isAccepted());
+        self::assertFalse($limiter->consume($this->request('ada@example.com', '198.51.100.7'))->isAccepted());
+    }
+
+    public function testAnIdentifierIsLowercasedBeyondAscii(): void
+    {
+        $limiter = $this->limiter(network: 100, local: 100, account: 1);
+
+        self::assertTrue($limiter->consume($this->request('ÉLODIE@example.com', '192.0.2.1'))->isAccepted());
+        self::assertFalse($limiter->consume($this->request('élodie@example.com', '192.0.2.2'))->isAccepted());
+    }
+
+    public function testAnIpv6NetworkIsItsFirstSixtyFourBits(): void
+    {
+        $limiter = $this->limiter(network: 1, local: 100, account: 100);
+
+        self::assertTrue($limiter->consume($this->request('a@example.com', '2001:db8::1'))->isAccepted());
+        self::assertFalse($limiter->consume($this->request('b@example.com', '2001:db8::100:0:0:1'))->isAccepted(), 'The ninth byte is in the same /64.');
+        self::assertTrue($limiter->consume($this->request('c@example.com', '2001:db8:0:1::1'))->isAccepted(), 'The eighth byte is another /64.');
+    }
+
+    public function testAnIpv4AddressMappedInIpv6IsCountedWhole(): void
+    {
+        $limiter = $this->limiter(network: 1, local: 100, account: 100);
+
+        self::assertTrue($limiter->consume($this->request('a@example.com', '::ffff:192.0.2.1'))->isAccepted());
+        self::assertTrue($limiter->consume($this->request('b@example.com', '::ffff:192.0.2.2'))->isAccepted());
+        self::assertFalse($limiter->consume($this->request('c@example.com', '::ffff:192.0.2.2'))->isAccepted());
+    }
+
     public function testAnIpv6ClientIsCountedByItsNetwork(): void
     {
         $limiter = $this->limiter(network: 2, local: 100, account: 100);

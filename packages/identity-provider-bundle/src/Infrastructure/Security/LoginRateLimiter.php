@@ -69,17 +69,17 @@ final class LoginRateLimiter extends AbstractRequestRateLimiter
 
     private function networkLimiter(Request $request): LimiterInterface
     {
-        return $this->network->create($this->key('network', self::network($request)));
+        return $this->network->create($this->key(self::network($request)));
     }
 
     private function localLimiter(Request $request, string $identifier): LimiterInterface
     {
-        return $this->local->create($this->key('local', $identifier."\n".self::network($request)));
+        return $this->local->create($this->key($identifier, self::network($request)));
     }
 
     private function accountLimiter(string $identifier): LimiterInterface
     {
-        return $this->account->create($this->key('account', $identifier));
+        return $this->account->create($this->key($identifier));
     }
 
     private function identifier(Request $request): ?string
@@ -100,8 +100,11 @@ final class LoginRateLimiter extends AbstractRequestRateLimiter
         return IpUtils::checkIp($address, '::/0') ? IpUtils::anonymize($address, 0, 8) : $address;
     }
 
-    private function key(string $count, string $value): string
+    /**
+     * A keyed hash of the parts; each factory adds its own id before it, so the three counts never share a key.
+     */
+    private function key(string ...$parts): string
     {
-        return $count.'.'.sodium_bin2base64(hash_hmac('sha256', $value, $this->secret, true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+        return sodium_bin2base64(hash_hmac('sha256', implode("\0", $parts), $this->secret, true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
     }
 }

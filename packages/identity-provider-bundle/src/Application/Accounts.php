@@ -183,16 +183,15 @@ final readonly class Accounts
         $signedAt = $account->passwordChangedAt()?->format('U.u');
         $hash = $this->hasher->hashPassword(new AccountUser($account), $new);
         $now = $this->clock->now();
-        $verified = false;
-        $applied = $this->accounts->apply($account, static function (Account $stored) use ($signedHash, $signedAt, $hash, $now, &$verified): bool {
+        $verifies = !$account->isEmailVerified();
+        $applied = $this->accounts->apply($account, static function (Account $stored) use ($signedHash, $signedAt, $hash, $now): bool {
             if ($stored->passwordHash() !== $signedHash || $stored->passwordChangedAt()?->format('U.u') !== $signedAt) {
                 return false;
             }
 
             $stored->changePassword($hash, $now);
-            $verified = !$stored->isEmailVerified();
 
-            if ($verified) {
+            if (!$stored->isEmailVerified()) {
                 $stored->verifyEmail($now);
             }
 
@@ -205,7 +204,7 @@ final readonly class Accounts
 
         $this->journal->record(IdentityEventType::PasswordChanged, $account->id(), ['reset' => true]);
 
-        if ($verified) {
+        if ($verifies) {
             $this->journal->record(IdentityEventType::EmailVerified, $account->id());
         }
 
@@ -227,22 +226,21 @@ final readonly class Accounts
     public function recordFailedSignIn(Account $account): void
     {
         $now = $this->clock->now();
-        $failures = 0;
-        $lockedUntil = null;
+        $counted = null;
         $lockout = $this->lockout;
-        $applied = $this->accounts->apply($account, static function (Account $stored) use ($now, $lockout, &$failures, &$lockedUntil): bool {
+        $this->accounts->apply($account, static function (Account $stored) use ($now, $lockout, &$counted): bool {
             $wasLocked = $stored->isLocked($now);
             $stored->recordFailedSignIn($now, $lockout);
-            $failures = $stored->failedSignIns();
-            $lockedUntil = !$wasLocked && $stored->isLocked($now) ? $stored->lockedUntil() : null;
+            $counted = [$stored->failedSignIns(), !$wasLocked && $stored->isLocked($now) ? $stored->lockedUntil() : null];
 
             return true;
         });
 
-        if (!$applied) {
+        if (null === $counted) {
             return;
         }
 
+        [$failures, $lockedUntil] = $counted;
         $this->journal->record(IdentityEventType::SignInFailed, $account->id(), ['failures' => $failures]);
 
         if ($lockedUntil instanceof DateTimeImmutable) {

@@ -72,7 +72,8 @@ final readonly class JwtVerifier
 
         $notBefore = self::numericDate($claims, 'nbf');
         $expires = self::numericDate($claims, 'exp');
-        $now = null === $at ? null : (float) $at->format('U.u');
+        // A numeric string against a number compares as numbers: to the microsecond.
+        $now = $at?->format('U.u');
 
         if (null !== $now && null !== $notBefore && $now < $notBefore) {
             throw InvalidCredential::because('The credential is not valid yet.');

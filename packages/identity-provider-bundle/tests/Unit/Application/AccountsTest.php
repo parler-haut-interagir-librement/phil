@@ -313,6 +313,22 @@ final class AccountsTest extends TestCase
         }
     }
 
+    public function testAResetLinkGivesAPasswordToAnAccountThatHadNone(): void
+    {
+        $services = new Services();
+        $account = $services->account('ada@example.com', null);
+        $account->verifyEmail($services->clock->now());
+        $services->accounts->save($account);
+        $link = $services->accounts->get($account->id());
+        self::assertNotNull($link);
+        self::assertNull($link->passwordChangedAt());
+
+        self::assertTrue($services->accounts()->resetPassword($link, Services::STRONG));
+
+        self::assertSame(Services::STRONG, $services->accounts->get($account->id())?->passwordHash());
+        self::assertSame(IdentityEventType::PasswordChanged->value, array_last($services->audit->actions()), 'An address already verified is not verified again.');
+    }
+
     public function testTheUserOfSymfonySecurity(): void
     {
         $services = new Services();

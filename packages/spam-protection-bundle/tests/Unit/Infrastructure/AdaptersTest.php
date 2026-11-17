@@ -55,6 +55,15 @@ final class AdaptersTest extends TestCase
         self::assertFalse(new CacheUsedTokens($refusing)->claim('abc', 60));
         self::assertFalse(new CacheUsedTokens($refusing, new LockFactory(new InMemoryStore()))->claim('abc', 60));
         self::assertFalse(new CacheUsedTokens(new NullAdapter())->claim('abc', 60), 'A pool that keeps nothing cannot tell a token used.');
+        $unsure = new class extends ArrayAdapter {
+            public function save(CacheItemInterface $item): bool
+            {
+                parent::save($item);
+
+                return false;
+            }
+        };
+        self::assertFalse(new CacheUsedTokens($unsure)->claim('abc', 60), 'A write the pool does not confirm is not trusted, even if it went through.');
         self::assertTrue(new CacheUsedTokens(new ArrayAdapter())->claim('abc', 60));
     }
 
