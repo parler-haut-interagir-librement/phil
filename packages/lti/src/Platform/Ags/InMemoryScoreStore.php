@@ -10,7 +10,8 @@ use Phil\Lti\Service\Ags\Score;
 use Symfony\Contracts\Service\ResetInterface;
 
 /**
- * Scores held in one process, for tests.
+ * Scores held in one process, for tests: a process runs one write at a time, so the comparison and the write are one
+ * step.
  */
 final class InMemoryScoreStore implements ScoreStore, ResetInterface
 {
@@ -24,9 +25,17 @@ final class InMemoryScoreStore implements ScoreStore, ResetInterface
     }
 
     #[Override]
-    public function record(string $lineItemId, Score $score): void
+    public function record(string $lineItemId, Score $score): bool
     {
+        $kept = $this->scores[$lineItemId][$score->userId] ?? null;
+
+        if ($kept instanceof Score && $score->timestamp < $kept->timestamp) {
+            return false;
+        }
+
         $this->scores[$lineItemId][$score->userId] = $score;
+
+        return true;
     }
 
     #[Override]

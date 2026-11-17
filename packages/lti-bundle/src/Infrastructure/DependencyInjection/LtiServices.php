@@ -42,13 +42,17 @@ use Phil\Lti\Service\ServiceCall;
 use Phil\Lti\Tool\DeepLinkingResponder;
 use Phil\Lti\Tool\LaunchValidator;
 use Phil\Lti\Tool\LoginInitiator;
+use Phil\LtiBundle\Application\Contract\DeepLinkingReturns;
 use Phil\LtiBundle\Application\Contract\KeySealer;
 use Phil\LtiBundle\Application\Contract\LaunchMessages;
 use Phil\LtiBundle\Application\Contract\LaunchUsers;
 use Phil\LtiBundle\Application\Contract\PendingScores;
+use Phil\LtiBundle\Application\DeepLinkingHandler;
 use Phil\LtiBundle\Application\ScorePublisher;
 use Phil\LtiBundle\Infrastructure\Configuration\Registrations;
 use Phil\LtiBundle\Infrastructure\Console\PurgeCommand;
+use Phil\LtiBundle\Infrastructure\Console\RecoverScoresCommand;
+use Phil\LtiBundle\Infrastructure\Console\ResumeDeepLinkingCommand;
 use Phil\LtiBundle\Infrastructure\Console\RotateKeysCommand;
 use Phil\LtiBundle\Infrastructure\Console\SchemaCommand;
 use Phil\LtiBundle\Infrastructure\Controller\AgsController;
@@ -58,6 +62,7 @@ use Phil\LtiBundle\Infrastructure\Controller\PlatformLaunchController;
 use Phil\LtiBundle\Infrastructure\Controller\TokenController;
 use Phil\LtiBundle\Infrastructure\Controller\ToolController;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalAccessTokens;
+use Phil\LtiBundle\Infrastructure\Dbal\DbalDeepLinkingReturns;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalKeyStore;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalLineItemStore;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalLoginStates;
@@ -68,6 +73,7 @@ use Phil\LtiBundle\Infrastructure\Dbal\LtiSchemaListener;
 use Phil\LtiBundle\Infrastructure\Dbal\LtiTables;
 use Phil\LtiBundle\Infrastructure\Http\FormPostResponder;
 use Phil\LtiBundle\Infrastructure\KeyManagement\KeyManagementSealer;
+use Phil\LtiBundle\Infrastructure\Memory\InMemoryDeepLinkingReturns;
 use Phil\LtiBundle\Infrastructure\Memory\InMemoryPendingScores;
 use Phil\LtiBundle\Infrastructure\Messenger\PublishScoreHandler;
 use Phil\LtiBundle\Infrastructure\Routing\PlatformUrls;
@@ -91,7 +97,7 @@ use Symfony\Component\DependencyInjection\Reference;
  * @phpstan-import-type ToolConfig from Registrations
  *
  * @phpstan-type KeysConfig array{source: string, kms: string, master_key: ?string, lifetime: int, overlap: int, bits: int, private_key: ?string, passphrase: ?string, key_id: ?string, retired_public_keys: list<string>}
- * @phpstan-type LtiConfig array{store: string, connection: string, table_prefix: string, clock: string, cache: string, http_client: ?string, message_bus: ?string, allow_localhost: bool, kit_subdirectory: ?string, keys: KeysConfig, tool: array{enabled: bool, state_lifetime: int, platforms: list<PlatformConfig>}, platform: array{enabled: bool, issuer: ?string, token_url: ?string, token_lifetime: int, tools: list<ToolConfig>}}
+ * @phpstan-type LtiConfig array{store: string, connection: string, table_prefix: string, clock: string, cache: string, http_client: ?string, message_bus: ?string, allow_localhost: bool, kit_subdirectory: ?string, keys: KeysConfig, tool: array{enabled: bool, state_lifetime: int, refused_score_retention: int, platforms: list<PlatformConfig>}, platform: array{enabled: bool, issuer: ?string, token_url: ?string, token_lifetime: int, deep_linking_retention: positive-int, tools: list<ToolConfig>}}
  */
 final class LtiServices
 {
@@ -174,7 +180,15 @@ final class LtiServices
         if (class_exists(Command::class)) {
             $container->register(SchemaCommand::class, SchemaCommand::class)->setArguments([$connection, $tables])->addTag('console.command');
             $container->register(PurgeCommand::class, PurgeCommand::class)
-                ->setArguments([new Reference(DbalNonces::class), new Reference(DbalLoginStates::class, ContainerInterface::NULL_ON_INVALID_REFERENCE), new Reference(DbalAccessTokens::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)])
+                ->setArguments([
+                    new Reference(DbalNonces::class),
+                    $clock,
+                    new Reference(DbalLoginStates::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference(DbalAccessTokens::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference(PendingScores::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference(DeepLinkingReturns::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    $config['tool']['refused_score_retention'],
+                ])
                 ->addTag('console.command');
         }
     }
@@ -243,6 +257,11 @@ final class LtiServices
         $container->register(PublishScoreHandler::class, PublishScoreHandler::class)
             ->setArguments([new Reference(ScorePublisher::class)])
             ->addTag('messenger.message_handler');
+
+        if (class_exists(Command::class)) {
+            $container->register(RecoverScoresCommand::class, RecoverScoresCommand::class)->setArguments([new Reference(ScorePublisher::class)])->addTag('console.command');
+        }
+
         $container->register(LtiUserProvider::class, LtiUserProvider::class);
         $container->register(LtiLaunchAuthenticator::class, LtiLaunchAuthenticator::class)
             ->setArguments([new Reference(LaunchValidator::class), new Reference(LaunchUsers::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)]);
@@ -266,6 +285,14 @@ final class LtiServices
         self::store($container, AccessTokens::class, $dbal ? DbalAccessTokens::class : InMemoryAccessTokens::class, $dbal ? [$connection, $tables, $clock] : [$clock]);
         self::store($container, LineItemStore::class, $dbal ? DbalLineItemStore::class : InMemoryLineItemStore::class, $dbal ? [$connection, $tables] : []);
         self::store($container, ScoreStore::class, $dbal ? DbalScoreStore::class : InMemoryScoreStore::class, $dbal ? [$connection, $tables] : []);
+        self::store($container, DeepLinkingReturns::class, $dbal ? DbalDeepLinkingReturns::class : InMemoryDeepLinkingReturns::class, $dbal ? [$connection, $tables] : []);
+        $container->register(DeepLinkingHandler::class, DeepLinkingHandler::class)
+            ->setArguments([new Reference(DeepLinkingReturns::class), new Reference('event_dispatcher'), $clock, $config['platform']['deep_linking_retention'], $localhost])
+            ->setPublic(true);
+
+        if (class_exists(Command::class)) {
+            $container->register(ResumeDeepLinkingCommand::class, ResumeDeepLinkingCommand::class)->setArguments([new Reference(DeepLinkingHandler::class)])->addTag('console.command');
+        }
 
         $container->register(PlatformUrls::class, PlatformUrls::class)->setArguments([new Reference('router'), $localhost])->setPublic(true);
         $container->register(LaunchStarter::class, LaunchStarter::class)->setArguments([$issuer, new Reference(ToolRegistrations::class), $localhost])->setPublic(true);
@@ -286,7 +313,7 @@ final class LtiServices
         $container->register(NrpsService::class, NrpsService::class)->setArguments([new Reference(Roster::class)]);
 
         $container->register(PlatformLaunchController::class, PlatformLaunchController::class)
-            ->setArguments([new Reference(LaunchIssuer::class), new Reference(LaunchMessages::class), new Reference(DeepLinkingReturn::class), new Reference('security.token_storage'), new Reference(FormPostResponder::class), new Reference('event_dispatcher'), new Reference('twig')])
+            ->setArguments([new Reference(LaunchIssuer::class), new Reference(LaunchMessages::class), new Reference(DeepLinkingReturn::class), new Reference('security.token_storage'), new Reference(FormPostResponder::class), new Reference(DeepLinkingHandler::class), new Reference('twig')])
             ->setPublic(true)
             ->addTag('controller.service_arguments');
         $container->register(TokenController::class, TokenController::class)->setArguments([new Reference(TokenEndpoint::class)])->setPublic(true)->addTag('controller.service_arguments');

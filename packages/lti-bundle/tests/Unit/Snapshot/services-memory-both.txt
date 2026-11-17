@@ -1,4 +1,10 @@
 parameter phil_lti.platform = true
+service Phil\LtiBundle\Application\DeepLinkingHandler [public] class=Phil\LtiBundle\Application\DeepLinkingHandler
+    arg 0 = @Phil\LtiBundle\Application\Contract\DeepLinkingReturns (behavior 1)
+    arg 1 = @event_dispatcher (behavior 1)
+    arg 2 = @clock (behavior 1)
+    arg 3 = 86400
+    arg 4 = false
 service Phil\LtiBundle\Application\ScorePublisher [public] class=Phil\LtiBundle\Application\ScorePublisher
     arg 0 = @Phil\LtiBundle\Application\Contract\PendingScores (behavior 1)
     arg 1 = @Phil\Lti\Contract\PlatformRegistrations (behavior 1)
@@ -6,6 +12,12 @@ service Phil\LtiBundle\Application\ScorePublisher [public] class=Phil\LtiBundle\
     arg 3 = @clock (behavior 1)
     arg 4 = null
     arg 5 = @event_dispatcher (behavior 2)
+service Phil\LtiBundle\Infrastructure\Console\RecoverScoresCommand [private] class=Phil\LtiBundle\Infrastructure\Console\RecoverScoresCommand
+    arg 0 = @Phil\LtiBundle\Application\ScorePublisher (behavior 1)
+    tag console.command [[]]
+service Phil\LtiBundle\Infrastructure\Console\ResumeDeepLinkingCommand [private] class=Phil\LtiBundle\Infrastructure\Console\ResumeDeepLinkingCommand
+    arg 0 = @Phil\LtiBundle\Application\DeepLinkingHandler (behavior 1)
+    tag console.command [[]]
 service Phil\LtiBundle\Infrastructure\Controller\AgsController [public] class=Phil\LtiBundle\Infrastructure\Controller\AgsController
     arg 0 = @Phil\Lti\Platform\Token\ServiceGuard (behavior 1)
     arg 1 = @Phil\Lti\Platform\Ags\AgsService (behavior 1)
@@ -26,7 +38,7 @@ service Phil\LtiBundle\Infrastructure\Controller\PlatformLaunchController [publi
     arg 2 = @Phil\Lti\Platform\DeepLinkingReturn (behavior 1)
     arg 3 = @security.token_storage (behavior 1)
     arg 4 = @Phil\LtiBundle\Infrastructure\Http\FormPostResponder (behavior 1)
-    arg 5 = @event_dispatcher (behavior 1)
+    arg 5 = @Phil\LtiBundle\Application\DeepLinkingHandler (behavior 1)
     arg 6 = @twig (behavior 1)
     tag controller.service_arguments [[]]
 service Phil\LtiBundle\Infrastructure\Controller\TokenController [public] class=Phil\LtiBundle\Infrastructure\Controller\TokenController
@@ -43,6 +55,8 @@ service Phil\LtiBundle\Infrastructure\Dbal\LtiTables [private] class=Phil\LtiBun
     arg 0 = "phil_lti_"
 service Phil\LtiBundle\Infrastructure\Http\FormPostResponder [public] class=Phil\LtiBundle\Infrastructure\Http\FormPostResponder
     arg 0 = @twig (behavior 1)
+service Phil\LtiBundle\Infrastructure\Memory\InMemoryDeepLinkingReturns [private] class=Phil\LtiBundle\Infrastructure\Memory\InMemoryDeepLinkingReturns
+    tag kernel.reset [{"method":"reset"}]
 service Phil\LtiBundle\Infrastructure\Memory\InMemoryPendingScores [private] class=Phil\LtiBundle\Infrastructure\Memory\InMemoryPendingScores
     tag kernel.reset [{"method":"reset"}]
 service Phil\LtiBundle\Infrastructure\Messenger\PublishScoreHandler [private] class=Phil\LtiBundle\Infrastructure\Messenger\PublishScoreHandler
@@ -168,6 +182,7 @@ service phil_lti.key_set_http_client [private] class=Phil\SafeHttp\SafeHttpClien
 service phil_lti.service_http_client [private] class=Phil\SafeHttp\SafeHttpClient
     arg 0 = null
     arg 1 = definition Phil\SafeHttp\Limits
+alias Phil\LtiBundle\Application\Contract\DeepLinkingReturns -> Phil\LtiBundle\Infrastructure\Memory\InMemoryDeepLinkingReturns [public]
 alias Phil\LtiBundle\Application\Contract\PendingScores -> Phil\LtiBundle\Infrastructure\Memory\InMemoryPendingScores [public]
 alias Phil\Lti\Contract\AccessTokens -> Phil\Lti\Platform\Token\InMemoryAccessTokens [public]
 alias Phil\Lti\Contract\KeySetSource -> Phil\Lti\Key\CachedKeySetSource [private]

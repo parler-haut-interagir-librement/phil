@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Phil\LtiBundle\Tests\Integration;
 
 use Override;
+use Phil\LtiBundle\Infrastructure\Console\SchemaCommand;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalAccessTokens;
+use Phil\LtiBundle\Infrastructure\Dbal\DbalDeepLinkingReturns;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalKeyStore;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalLineItemStore;
 use Phil\LtiBundle\Infrastructure\Dbal\DbalLoginStates;
@@ -23,6 +25,8 @@ use PHPUnit\Framework\Attributes\Group;
 #[CoversClass(DbalLineItemStore::class)]
 #[CoversClass(DbalScoreStore::class)]
 #[CoversClass(DbalPendingScores::class)]
+#[CoversClass(DbalDeepLinkingReturns::class)]
+#[CoversClass(SchemaCommand::class)]
 #[CoversClass(DbalKeyStore::class)]
 #[CoversClass(LtiTables::class)]
 #[CoversClass(Row::class)]
@@ -30,8 +34,8 @@ use PHPUnit\Framework\Attributes\Group;
 final class PostgreSqlStoresTest extends ServerStoresTestCase
 {
     #[Override]
-    protected function variable(): string
+    protected function variables(): array
     {
-        return 'PHIL_TEST_POSTGRESQL_URL';
+        return ['PHIL_LTI_TEST_POSTGRESQL_URL', 'PHIL_TEST_POSTGRESQL_URL'];
     }
 }

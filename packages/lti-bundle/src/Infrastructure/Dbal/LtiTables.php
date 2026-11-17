@@ -14,14 +14,15 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Types;
 use InvalidArgumentException;
+use Phil\LtiBundle\Application\PendingScore;
 
 /**
- * The seven tables of the bundle under one prefix: the nonces used once, the login states of the tool, the access
- * tokens of the platform, the keys, the line items and the scores of the platform, and the scores the tool still has
- * to send.
+ * The eight tables of the bundle under one prefix: the nonces used once, the login states of the tool, the access
+ * tokens of the platform, the keys, the line items and the scores of the platform, the scores the tool still has to
+ * send, and the deep linking responses the platform verified.
  *
  * Identifiers compare byte by byte: `utf8mb4_bin` on MySQL and MariaDB, `C` on PostgreSQL; SQLite compares bytes
- * already. Moments are integers of seconds since the epoch, in UTC.
+ * already. Moments are integers of seconds since the epoch, in UTC, but the moment of a score, in microseconds.
  */
 final readonly class LtiTables
 {
@@ -50,6 +51,9 @@ final readonly class LtiTables
     /** @var non-empty-string */
     public string $pendingScores;
 
+    /** @var non-empty-string */
+    public string $deepLinkingReturns;
+
     public function __construct(
         public string $prefix = self::DEFAULT_PREFIX,
     ) {
@@ -64,6 +68,7 @@ final readonly class LtiTables
         $this->lineItems = $prefix.'line_item';
         $this->scores = $prefix.'score';
         $this->pendingScores = $prefix.'pending_score';
+        $this->deepLinkingReturns = $prefix.'deep_linking';
     }
 
     /**
@@ -71,7 +76,7 @@ final readonly class LtiTables
      */
     public function names(): array
     {
-        return [$this->nonces, $this->loginStates, $this->accessTokens, $this->keys, $this->lineItems, $this->scores, $this->pendingScores];
+        return [$this->nonces, $this->loginStates, $this->accessTokens, $this->keys, $this->lineItems, $this->scores, $this->pendingScores, $this->deepLinkingReturns];
     }
 
     /**
@@ -138,8 +143,32 @@ final readonly class LtiTables
                 ->setPrimaryKeyConstraint($this->primaryKey('line_item_id', 'user_id'))
                 ->create(),
             Table::editor()->setUnquotedName($this->pendingScores)
-                ->setColumns($this->id($platform, 'id', 64), $this->text('issuer', 1024), $this->text('client_id', 255), $this->text('line_item', 2048), Column::editor()->setUnquotedName('payload')->setTypeName(Types::TEXT)->create(), $this->moment('created_at'))
+                ->setColumns(
+                    $this->id($platform, 'id', 64),
+                    $this->text('issuer', 1024),
+                    $this->text('client_id', 255),
+                    $this->text('line_item', 2048),
+                    Column::editor()->setUnquotedName('payload')->setTypeName(Types::TEXT)->create(),
+                    $this->moment('created_at'),
+                    $this->moment('dispatched_at', true),
+                    $this->moment('claimed_at', true),
+                    $this->moment('refused_at', true),
+                    $this->text('refusal', PendingScore::MAX_REFUSAL, true),
+                )
                 ->setPrimaryKeyConstraint($this->primaryKey('id'))
+                ->setIndexes($this->index($this->pendingScores.'_created', 'created_at'), $this->index($this->pendingScores.'_refused', 'refused_at'))
+                ->create(),
+            Table::editor()->setUnquotedName($this->deepLinkingReturns)
+                ->setColumns(
+                    $this->id($platform, 'id', 64),
+                    $this->text('client_id', 255),
+                    Column::editor()->setUnquotedName('payload')->setTypeName(Types::TEXT)->create(),
+                    $this->moment('received_at'),
+                    $this->moment('expires_at'),
+                    $this->moment('handled_at', true),
+                )
+                ->setPrimaryKeyConstraint($this->primaryKey('id'))
+                ->setIndexes($this->index($this->deepLinkingReturns.'_expiry', 'expires_at'), $this->index($this->deepLinkingReturns.'_received', 'received_at'))
                 ->create(),
         ];
     }

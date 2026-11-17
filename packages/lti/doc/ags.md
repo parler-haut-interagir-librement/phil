@@ -80,3 +80,20 @@ SHA-256, for an hour by default. A refusal is a `TokenRequestRefused` with the e
 line item is the tool's. A method that finds no context or line item of the tool answers null or false, so that the
 application answers 404. A score older than the learner's latest on the line item is not kept; results scale the latest
 score to the line item's maximum. The application gives the addresses of the line items and of the results.
+
+`ScoreStore::record()` compares and writes in one atomic step and says whether it kept the score: of two scores of one
+learner written at once, the more recent stays, whatever order they arrive in, and `score()` answers false for the
+other, which the application answers with 409. A score of the same moment as the one kept replaces it, so that a tool
+that sends a score again is not refused.
+
+`lineItems()` answers a page, as `NrpsService::page()` does:
+
+```php
+$page = $ags->lineItems($token, $contextId, limit: $limit, offset: $offset);
+// ['lineItems' => list<StoredLineItem>, 'limit' => 100, 'nextOffset' => 100]
+```
+
+The page holds `limit` line items at most — 100 when the tool asks for none, 1,000 at most whatever it asks —, and
+`limit` is that size, the one the page was cut at. The store is asked for one line item more than the page, so that
+`nextOffset` is where the next page starts, or null on the last, at every size: the application writes the `next` link
+from `limit` and `nextOffset`, also when the tool asked for no limit, or for more than 1,000.

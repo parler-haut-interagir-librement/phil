@@ -43,8 +43,8 @@ return [
             'DecrementInteger' => [
                 'ignore' => [
                     // The offset is brought back to 0 at the first line of each of these methods.
-                    AgsService::class.'::lineItems::44',
-                    AgsService::class.'::results::148',
+                    AgsService::class.'::lineItems::49',
+                    AgsService::class.'::results::151',
                     NrpsService::class.'::page::36',
                 ],
             ],

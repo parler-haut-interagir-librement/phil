@@ -8,8 +8,15 @@ service Phil\LtiBundle\Application\ScorePublisher [public] class=Phil\LtiBundle\
     arg 5 = @event_dispatcher (behavior 2)
 service Phil\LtiBundle\Infrastructure\Console\PurgeCommand [private] class=Phil\LtiBundle\Infrastructure\Console\PurgeCommand
     arg 0 = @Phil\LtiBundle\Infrastructure\Dbal\DbalNonces (behavior 1)
-    arg 1 = @Phil\LtiBundle\Infrastructure\Dbal\DbalLoginStates (behavior 2)
-    arg 2 = @Phil\LtiBundle\Infrastructure\Dbal\DbalAccessTokens (behavior 2)
+    arg 1 = @clock (behavior 1)
+    arg 2 = @Phil\LtiBundle\Infrastructure\Dbal\DbalLoginStates (behavior 2)
+    arg 3 = @Phil\LtiBundle\Infrastructure\Dbal\DbalAccessTokens (behavior 2)
+    arg 4 = @Phil\LtiBundle\Application\Contract\PendingScores (behavior 2)
+    arg 5 = @Phil\LtiBundle\Application\Contract\DeepLinkingReturns (behavior 2)
+    arg 6 = 2592000
+    tag console.command [[]]
+service Phil\LtiBundle\Infrastructure\Console\RecoverScoresCommand [private] class=Phil\LtiBundle\Infrastructure\Console\RecoverScoresCommand
+    arg 0 = @Phil\LtiBundle\Application\ScorePublisher (behavior 1)
     tag console.command [[]]
 service Phil\LtiBundle\Infrastructure\Console\RotateKeysCommand [private] class=Phil\LtiBundle\Infrastructure\Console\RotateKeysCommand
     arg 0 = @Phil\LtiBundle\Infrastructure\Dbal\DbalKeyStore (behavior 1)

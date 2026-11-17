@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3dc950afbdf41a9f9f428fb7439d4b35d756b75088767b045dcd55a5fb6ee1e3 -->
+<!-- phil-dev source-sha256=9854695f4ed8b80482b3af01be05c00868a173e41db0edc7261539fd0f810192 -->
 # L'outil
 
 ## Un lancement, étape par étape
@@ -107,7 +107,7 @@ item, garde la note comme en attente, et l'envoie : par le bus nommé par `messa
 portant que l'identifiant de la note, ou tout de suite sans bus. Une fois que la plateforme la prend, la note en
 attente est retirée et `ScorePublished` est répartie. `PublishScoreHandler` laisse Messenger reprendre un échec du
 réseau ou de la plateforme, et s'arrête pour un refus que la plateforme répétera — une plateforme qui n'est plus
-enregistrée, un statut de 400 à 499 autre que 408 et 429.
+enregistrée, un statut de 400 à 499 autre que 408 et 429, une requête qui ne peut pas être envoyée.
 
 ```yaml
 # config/packages/messenger.yaml
@@ -116,6 +116,40 @@ framework:
         routing:
             Phil\LtiBundle\Application\Message\PublishScore: async
 ```
+
+### La reprise
+
+Le message ne porte que l'identifiant de la note ; la note elle-même attend dans le magasin, qui enregistre si le bus a
+pris le message. Une note dont le message n'a jamais été pris — le processus s'est arrêté entre l'enregistrement et
+l'envoi, le transport l'a refusé ou, sans bus, la plateforme était inaccessible — est renvoyée par
+`phil:lti:recover-scores`, exécutée toutes les quelques minutes :
+
+```bash
+bin/console phil:lti:recover-scores --delay=300 --limit=100
+```
+
+La commande réclame chaque note enregistrée, ou réclamée en dernier, il y a `--delay` secondes ou plus, en une seule
+étape atomique par note, puis envoie de nouveau son message, ou l'envoie sans bus : deux exécutions simultanées ne
+prennent jamais la même note dans le délai, et une exécution après une autre n'envoie rien de nouveau. Quand le
+transport refuse le message dans `publish()`, la note est tout de même gardée et son identifiant renvoyé ; la reprise
+l'envoie. Envoyer une note deux fois est sans conséquence : la plateforme garde la dernière par son horodatage. Un
+message que le bus a pris mais qui a échoué pour de bon reste dans le transport des échecs de Messenger, où
+`messenger:failed:retry` l'envoie de nouveau.
+
+### Les notes refusées
+
+Un refus que la plateforme répétera marque la note refusée, avec le moment et la raison, et répartit `ScoreRefused` :
+une note refusée n'est jamais renvoyée, ni reprise. Elle reste comme trace pendant `tool.refused_score_retention`
+secondes — trente jours par défaut —, puis `phil:lti:purge` la retire et écrit son identifiant, sa plateforme, son
+client, son moment et sa raison, jamais la note elle-même. Une application qui garde sa propre trace écoute
+`ScoreRefused`.
+
+### Une boîte d'envoi
+
+`PendingScores` a la forme d'une boîte d'envoi transactionnelle (*transactional outbox*) : `save()` écrit l'entrée,
+`markDispatched()` est l'acquittement du relais, `claim()` son interrogation, `refused()` et `delete()` les lettres
+mortes et leur purge. Une application qui a sa propre boîte d'envoi implémente le port par-dessus, et une version
+ultérieure du bundle pourra confier le relais à un paquet de boîte d'envoi partagé sans changer le port.
 
 ## Les autres services
 

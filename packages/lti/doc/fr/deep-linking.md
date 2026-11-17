@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9b174895bb8d08b408a6f8d309c130eb390749cfb9985ac2c9949a0e1040e574 -->
+<!-- phil-dev source-sha256=73a0b4bf15aa577c67e39b3d9d763c5fcf5ed07c84b26fcfa53a5c52e75e573b -->
 # Deep Linking
 
 Deep Linking 2.0 permet à une personne instructrice de choisir du contenu dans l'outil — un quiz, un chapitre, une
@@ -67,3 +67,21 @@ déploiement est celui de l'outil, et qu'elle est un `LtiDeepLinkingResponse` de
 client, le déploiement, les éléments, le `data` que la plateforme a mis dans la requête — pour retrouver le placement
 auquel elle était destinée — et les messages. Un élément d'un type que le paquet ne connaît pas est ignoré ; la
 plateforme assainit le HTML d'un `HtmlItem` avant de l'afficher.
+
+Le `nonce` est pris une seule fois : un jeton lu n'est jamais relu, même quand l'application a échoué à traiter ce qu'il
+contenait. `DeepLinkingResult::$key` nomme la réponse pour de bon — un SHA-256 de son client et de son `nonce`, 64
+chiffres hexadécimaux —, et `DeepLinkingResult::$claims` contient les revendications avec lesquelles elle a été
+vérifiée. Une application qui garde les revendications avant de traiter la réponse les relit avec
+`DeepLinkingResult::fromClaims()`, qui ne vérifie rien une seconde fois, et traite de nouveau la réponse sous la même
+clé :
+
+```php
+$result = $return->read($_POST['JWT']);
+$store->keep($result->key, $result->claims);   // before any effect
+
+// later, after a failure
+$again = DeepLinkingResult::fromClaims($store->claims($key));
+```
+
+Un *handler* qui peut voir une réponse deux fois est idempotent par sa clé : il place les éléments d'une clé une seule
+fois. `phil/lti-bundle` garde ainsi chaque réponse avant d'en informer l'application.

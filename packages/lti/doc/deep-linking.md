@@ -64,3 +64,20 @@ a key of the tool's key set, that its times hold, that its `nonce` is used once,
 that it is an `LtiDeepLinkingResponse` of LTI 1.3. `DeepLinkingResult` gives the client, the deployment, the items, the
 `data` the platform put in the request — to find the placement it was for —, and the messages. An item of a type the
 package does not know is skipped; the platform sanitises the HTML of an `HtmlItem` before it shows it.
+
+The `nonce` is taken once: a token read is never read again, even when the application failed to handle what it held.
+`DeepLinkingResult::$key` names the response for good — a SHA-256 of its client and of its nonce, 64 hexadecimal
+digits —, and `DeepLinkingResult::$claims` holds the claims it was verified with. An application that keeps the claims
+before it handles the response reads them again with `DeepLinkingResult::fromClaims()`, which checks nothing a second
+time, and handles the response again under the same key:
+
+```php
+$result = $return->read($_POST['JWT']);
+$store->keep($result->key, $result->claims);   // before any effect
+
+// later, after a failure
+$again = DeepLinkingResult::fromClaims($store->claims($key));
+```
+
+A handler that may see a response twice is idempotent by its key: it places the items of a key once. `phil/lti-bundle`
+keeps every response this way before it tells the application.

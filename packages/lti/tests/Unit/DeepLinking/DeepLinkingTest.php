@@ -72,6 +72,39 @@ final class DeepLinkingTest extends TestCase
         self::assertSame(Lti::DEPLOYMENT, $result->deploymentId);
         self::assertEquals($items, $result->items);
         self::assertSame(['opaque', 'Done', 'logged', 'oops', 'error logged'], [$result->data, $result->message, $result->log, $result->errorMessage, $result->errorLog]);
+
+        $claims = Jwt::parse($post->fields['JWT'])->claims;
+        self::assertSame($claims, $result->claims);
+        self::assertIsString($claims['nonce']);
+        self::assertSame(hash('sha256', \strlen(Lti::CLIENT).':'.Lti::CLIENT."\n".$claims['nonce']), $result->key);
+        self::assertSame($result->key, DeepLinkingResult::key(Lti::CLIENT, $claims['nonce']));
+        self::assertMatchesRegularExpression('/^[0-9a-f]{64}$/D', $result->key);
+        self::assertEquals($result, DeepLinkingResult::fromClaims($result->claims));
+    }
+
+    public function testTheClaimsOfAResponseAreReadAgainWithoutItsToken(): void
+    {
+        $claims = ['iss' => 'client', 'nonce' => 'n', Claim::DEPLOYMENT_ID => 'd', Claim::CONTENT_ITEMS => [['type' => 'link', 'url' => 'http://localhost/a']]];
+        $result = DeepLinkingResult::fromClaims($claims, true);
+
+        self::assertSame([DeepLinkingResult::key('client', 'n'), 'client', 'd', 1, null, null, null, null, null, $claims], [$result->key, $result->clientId, $result->deploymentId, \count($result->items), $result->data, $result->message, $result->log, $result->errorMessage, $result->errorLog, $result->claims]);
+        self::assertNotSame(DeepLinkingResult::key("a\nb", 'c'), DeepLinkingResult::key('a', "b\nc"));
+
+        foreach (['iss', 'nonce', Claim::DEPLOYMENT_ID] as $claim) {
+            try {
+                DeepLinkingResult::fromClaims(array_diff_key($claims, [$claim => true]), true);
+                self::fail($claim);
+            } catch (InvalidToken $invalidToken) {
+                self::assertStringContainsString('"'.$claim.'"', $invalidToken->getMessage());
+            }
+        }
+
+        try {
+            DeepLinkingResult::fromClaims($claims);
+            self::fail('A local address was read.');
+        } catch (InvalidToken) {
+            self::addToAssertionCount(1);
+        }
     }
 
     public function testTheResponseClaims(): void
@@ -165,6 +198,36 @@ final class DeepLinkingTest extends TestCase
 
                 self::assertSame($size > $max, $thrown instanceof Throwable && str_contains($thrown->getMessage(), 'at most'), $claim.' of '.$size.' bytes');
             }
+        }
+    }
+
+    public function testTheMembersOfAStoredResponseHaveTheirLimits(): void
+    {
+        $claims = ['iss' => 'c', 'nonce' => 'n', Claim::DEPLOYMENT_ID => 'd', Claim::CONTENT_ITEMS => []];
+
+        foreach (['iss', 'nonce', Claim::DEPLOYMENT_ID] as $claim) {
+            self::assertSame(str_repeat('x', 255), DeepLinkingResult::fromClaims([$claim => str_repeat('x', 255)] + $claims)->claims[$claim]);
+
+            try {
+                DeepLinkingResult::fromClaims([$claim => str_repeat('x', 256)] + $claims);
+                self::fail($claim.' of 256 bytes was read.');
+            } catch (InvalidToken $invalidToken) {
+                self::assertStringContainsString('at most', $invalidToken->getMessage());
+            }
+        }
+    }
+
+    public function testTheNonceOfAResponseIsNotUsedWhenItIsTooLong(): void
+    {
+        $now = $this->lti->clock->now()->getTimestamp();
+        $base = ['iss' => Lti::CLIENT, 'aud' => Lti::ISSUER, 'iat' => $now, 'exp' => $now + 60, Claim::MESSAGE_TYPE => 'LtiDeepLinkingResponse', Claim::VERSION => '1.3.0', Claim::DEPLOYMENT_ID => Lti::DEPLOYMENT];
+        $nonces = new RecordingNonces($this->lti->nonces);
+
+        try {
+            new DeepLinkingReturn(Lti::ISSUER, $this->lti->tools, $nonces, $this->lti->verifier)->read(JwtSigner::sign(['nonce' => str_repeat('x', 256)] + $base, Keys::tool()));
+            self::fail('A nonce of 256 bytes was read.');
+        } catch (InvalidToken) {
+            self::assertSame([], $nonces->used);
         }
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\Lti\Tests\Unit\Platform;
 
 use DateTimeImmutable;
+use Phil\Lti\Contract\LineItemStore;
 use Phil\Lti\Contract\Roster;
 use Phil\Lti\Exception\AccessDenied;
 use Phil\Lti\Message\Context;
@@ -64,11 +65,11 @@ final class PlatformServicesTest extends TestCase
         self::assertSame(32, \strlen($created->id));
         self::assertNull($created->lineItem->id);
         self::assertSame(['tool', 'course-1', 'Quiz'], [$created->clientId, $created->contextId, $created->lineItem->label]);
-        self::assertSame([$created], $ags->lineItems($token, 'course-1'));
-        self::assertSame([$created], $ags->lineItems($token, 'course-1', 'link-1', 'quiz-1', 'graded'));
-        self::assertSame([], $ags->lineItems($token, 'course-1', 'link-2'));
-        self::assertSame([], $ags->lineItems($token, 'course-1', resourceId: 'quiz-2'));
-        self::assertSame([], $ags->lineItems($token, 'course-1', tag: 'other'));
+        self::assertSame(['lineItems' => [$created], 'limit' => 100, 'nextOffset' => null], $ags->lineItems($token, 'course-1'));
+        self::assertSame([$created], $this->items($ags->lineItems($token, 'course-1', 'link-1', 'quiz-1', 'graded')));
+        self::assertSame([], $this->items($ags->lineItems($token, 'course-1', 'link-2')));
+        self::assertSame([], $this->items($ags->lineItems($token, 'course-1', resourceId: 'quiz-2')));
+        self::assertSame([], $this->items($ags->lineItems($token, 'course-1', tag: 'other')));
         self::assertSame($created, $ags->lineItem($token, 'course-1', $created->id));
 
         self::assertTrue($ags->score($token, 'course-1', $created->id, self::score('u1', 4.0, 5.0, '12:00')));
@@ -113,7 +114,7 @@ final class PlatformServicesTest extends TestCase
         self::assertNull($ags->score($token, 'course-2', 'foreign', self::score('u1', 1.0, 1.0, '12:00')));
         self::assertNull($ags->results($token, 'course-1', 'foreign'));
         self::assertNull($ags->results($token, 'course-2', 'foreign'));
-        self::assertSame([], $ags->lineItems($token, 'course-1'));
+        self::assertSame([], $this->items($ags->lineItems($token, 'course-1')));
         self::assertNull($this->scores->latest('foreign', 'u1'));
     }
 
@@ -154,12 +155,84 @@ final class PlatformServicesTest extends TestCase
             $ags->create($token, 'course-1', new LineItem(1.0, 'L'.$i));
         }
 
-        self::assertCount(1, $ags->lineItems($token, 'course-1', limit: 0) ?? []);
-        self::assertCount(2, $ags->lineItems($token, 'course-1', limit: 2) ?? []);
-        self::assertCount(1, $ags->lineItems($token, 'course-1', limit: 2, offset: 2) ?? []);
-        self::assertCount(3, $ags->lineItems($token, 'course-1', offset: -5) ?? []);
-        self::assertCount(3, $ags->lineItems($token, 'course-1', limit: 5000) ?? []);
+        $page = static fn (?array $page): array => [\count($page['lineItems'] ?? []), $page['limit'] ?? null, $page['nextOffset'] ?? null];
+
+        self::assertSame([1, 1, 1], $page($ags->lineItems($token, 'course-1', limit: 0)));
+        self::assertSame([1, 1, 1], $page($ags->lineItems($token, 'course-1', limit: -3)));
+        self::assertSame([2, 2, 2], $page($ags->lineItems($token, 'course-1', limit: 2)));
+        self::assertSame([1, 2, null], $page($ags->lineItems($token, 'course-1', limit: 2, offset: 2)));
+        self::assertSame([3, 100, null], $page($ags->lineItems($token, 'course-1', offset: -5)));
+        self::assertSame([3, 3, null], $page($ags->lineItems($token, 'course-1', limit: 3)));
+        self::assertSame([3, 1000, null], $page($ags->lineItems($token, 'course-1', limit: 5000)));
         self::assertSame([100, 1000], [AgsService::DEFAULT_LIMIT, AgsService::MAX_LIMIT]);
+    }
+
+    public function testTheLineItemsArePagedByDefaultAndAtTheMaximum(): void
+    {
+        $ags = $this->ags();
+        $token = self::token(Scope::ALL);
+
+        for ($i = 0; $i <= AgsService::MAX_LIMIT; ++$i) {
+            $this->lineItems->save(new StoredLineItem(\sprintf('item-%04d', $i), 'tool', 'course-1', new LineItem(1.0, 'L')));
+        }
+
+        $first = $ags->lineItems($token, 'course-1');
+        self::assertSame([100, 100, 'item-0000', 'item-0099'], [\count($first['lineItems'] ?? []), $first['nextOffset'] ?? null, ($first['lineItems'] ?? [])[0]->id ?? null, ($first['lineItems'] ?? [])[99]->id ?? null]);
+
+        $widest = $ags->lineItems($token, 'course-1', limit: AgsService::MAX_LIMIT);
+        self::assertSame([1000, 1000, 1000], [\count($widest['lineItems'] ?? []), $widest['limit'] ?? null, $widest['nextOffset'] ?? null]);
+
+        $over = $ags->lineItems($token, 'course-1', limit: 5000);
+        self::assertSame([1000, 1000, 1000], [\count($over['lineItems'] ?? []), $over['limit'] ?? null, $over['nextOffset'] ?? null]);
+
+        $last = $ags->lineItems($token, 'course-1', limit: 5000, offset: 1000);
+        self::assertSame([1, null, 'item-1000'], [\count($last['lineItems'] ?? []), $last['nextOffset'] ?? null, ($last['lineItems'] ?? [])[0]->id ?? null]);
+    }
+
+    public function testTheStoreIsAskedForOneLineItemMoreThanThePage(): void
+    {
+        $store = new class implements LineItemStore {
+            /** @var list<array{int, int}> */
+            public array $asked = [];
+
+            public function list(string $clientId, string $contextId, ?string $resourceLinkId, ?string $resourceId, ?string $tag, int $limit, int $offset): array
+            {
+                $this->asked[] = [$limit, $offset];
+
+                return [];
+            }
+
+            public function find(string $clientId, string $contextId, string $id): ?StoredLineItem
+            {
+                return null;
+            }
+
+            public function save(StoredLineItem $lineItem): void
+            {
+            }
+
+            public function delete(StoredLineItem $lineItem): void
+            {
+            }
+        };
+        $ags = new AgsService($this->roster, $store, $this->scores);
+        $token = self::token(Scope::ALL);
+        $ags->lineItems($token, 'course-1');
+        $ags->lineItems($token, 'course-1', limit: 7, offset: 3);
+        $ags->lineItems($token, 'course-1', limit: 5000, offset: -2);
+
+        self::assertSame([[101, 0], [8, 3], [1001, 0]], $store->asked);
+    }
+
+    public function testTheMemoryStoreKeepsTheMostRecentScore(): void
+    {
+        self::assertTrue($this->scores->record('line', self::score('u1', 2.0, 5.0, '12:01')));
+        self::assertFalse($this->scores->record('line', self::score('u1', 1.0, 5.0, '12:00')));
+        self::assertSame(2.0, $this->scores->latest('line', 'u1')?->scoreGiven);
+        self::assertTrue($this->scores->record('line', self::score('u1', 3.0, 5.0, '12:01')));
+        self::assertSame(3.0, $this->scores->latest('line', 'u1')?->scoreGiven);
+        self::assertTrue($this->scores->record('line', self::score('u2', 1.0, 5.0, '11:00')));
+        self::assertTrue($this->scores->record('other', self::score('u1', 1.0, 5.0, '11:00')));
     }
 
     public function testTheMembersArePaged(): void
@@ -264,6 +337,18 @@ final class PlatformServicesTest extends TestCase
         self::assertNull($this->lineItems->find('tool', 'course-1', 'a'));
         self::assertNull($this->scores->latest('a', 'u'));
         self::assertSame([], $this->scores->scores('a', null, 10, 0));
+    }
+
+    /**
+     * @param array{lineItems: list<StoredLineItem>, limit: int, nextOffset: int|null}|null $page
+     *
+     * @return list<StoredLineItem>
+     */
+    private function items(?array $page): array
+    {
+        self::assertNotNull($page);
+
+        return $page['lineItems'];
     }
 
     /**

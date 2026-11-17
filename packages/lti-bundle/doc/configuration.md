@@ -28,6 +28,7 @@ phil_lti:
     tool:
         enabled: true
         state_lifetime: 600
+        refused_score_retention: 2592000
         platforms:
             - issuer: 'https://lms.example.org'
               client_id: '%env(LTI_CLIENT_ID)%'
@@ -42,6 +43,7 @@ phil_lti:
         issuer: 'https://courses.example.com'
         token_url: 'https://courses.example.com/lti/platform/token'
         token_lifetime: 3600
+        deep_linking_retention: 86400
         tools:
             - client_id: 'client-42'
               name: 'The quiz tool'
@@ -61,7 +63,7 @@ phil_lti:
 |---|---|---|
 | `store` | `dbal` | `dbal`: tables of a DBAL connection; `memory`: one process, for tests. |
 | `connection` | `default` | The DBAL connection of DoctrineBundle the tables are in. |
-| `table_prefix` | `phil_lti_` | The prefix of the seven tables: 1 to 40 lowercase letters, digits or `_`. |
+| `table_prefix` | `phil_lti_` | The prefix of the eight tables: 1 to 40 lowercase letters, digits or `_`. |
 | `clock` | `clock` | The service of the PSR-20 clock. |
 | `cache` | `cache.app` | The service of the cache of the key sets and the access tokens. |
 | `http_client` | null | The service of the Symfony HTTP client under the two `phil/safe-http` clients of the bundle — `phil_lti.service_http_client` for the token endpoint and the services, `phil_lti.key_set_http_client` for the key sets — which refuse private networks, keep the headers on the origin of the address and bound the time and the bytes of an answer. |
@@ -92,6 +94,7 @@ With the store `memory`, the keys come from the configuration whatever the sourc
 |---|---|---|
 | `tool.enabled` | `false` | Whether the application is a tool. |
 | `tool.state_lifetime` | `600` | The seconds between the login initiation and the launch, 60 to 3,600. |
+| `tool.refused_score_retention` | `2592000` | The seconds a score the platform refused for good is kept, as a trace, before `phil:lti:purge` removes it; a day at least. |
 | `tool.platforms` | `[]` | The platforms the tool is registered with: issuer, client, authorization, token and key set addresses, token audience, deployments. |
 
 ## The platform
@@ -102,6 +105,7 @@ With the store `memory`, the keys come from the configuration whatever the sourc
 | `platform.issuer` | null | The issuer the tools register the platform by; required. |
 | `platform.token_url` | null | The address of the token endpoint, as the tools register it: the audience of their assertions; required. |
 | `platform.token_lifetime` | `3600` | The seconds an access token lives, 60 to 86,400. |
+| `platform.deep_linking_retention` | `86400` | The seconds a verified deep linking response is kept, to be handled again when its handling failed, 600 to 2,592,000. |
 | `platform.tools` | `[]` | The tools registered: client, name, login address, redirect addresses, key set, deep linking address, scopes of LTI Advantage, deployments. |
 
 The platform side needs the application's `LaunchMessages`; the container stops with a message saying so when it is

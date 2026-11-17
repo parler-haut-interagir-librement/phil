@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=cc62a8a2a40b06875e4a7de6cb3047ee104b17e0106e7c6e98659ecd329a1965 -->
+<!-- phil-dev source-sha256=c00094a0e72f72c59eb1b05373d93d8bcd7b73ec063b328f0e7d9cfe9f4815b2 -->
 # Configuration
 
 ```yaml
@@ -29,6 +29,7 @@ phil_lti:
     tool:
         enabled: true
         state_lifetime: 600
+        refused_score_retention: 2592000
         platforms:
             - issuer: 'https://lms.example.org'
               client_id: '%env(LTI_CLIENT_ID)%'
@@ -43,6 +44,7 @@ phil_lti:
         issuer: 'https://courses.example.com'
         token_url: 'https://courses.example.com/lti/platform/token'
         token_lifetime: 3600
+        deep_linking_retention: 86400
         tools:
             - client_id: 'client-42'
               name: 'The quiz tool'
@@ -62,7 +64,7 @@ phil_lti:
 |---|---|---|
 | `store` | `dbal` | `dbal` : les tables d'une connexion DBAL ; `memory` : un seul processus, pour les tests. |
 | `connection` | `default` | La connexion DBAL de DoctrineBundle où se trouvent les tables. |
-| `table_prefix` | `phil_lti_` | Le préfixe des sept tables : de 1 à 40 lettres minuscules, chiffres ou `_`. |
+| `table_prefix` | `phil_lti_` | Le préfixe des huit tables : de 1 à 40 lettres minuscules, chiffres ou `_`. |
 | `clock` | `clock` | Le service de l'horloge PSR-20. |
 | `cache` | `cache.app` | Le service du cache des jeux de clés et des jetons d'accès. |
 | `http_client` | null | Le service du client HTTP de Symfony sous les deux clients de `phil/safe-http` du bundle — `phil_lti.service_http_client` pour le point de terminaison des jetons et les services, `phil_lti.key_set_http_client` pour les jeux de clés — qui refusent les réseaux privés, gardent les en-têtes sur l'origine de l'adresse et bornent le temps et les octets d'une réponse. |
@@ -93,6 +95,7 @@ Avec le magasin `memory`, les clés viennent de la configuration, quelle que soi
 |---|---|---|
 | `tool.enabled` | `false` | Si l'application est un outil. |
 | `tool.state_lifetime` | `600` | Les secondes entre l'initiation de connexion et le lancement, de 60 à 3 600. |
+| `tool.refused_score_retention` | `2592000` | Les secondes pendant lesquelles une note que la plateforme a refusée pour de bon est gardée, comme trace, avant que `phil:lti:purge` la retire ; un jour au moins. |
 | `tool.platforms` | `[]` | Les plateformes auprès desquelles l'outil est enregistré : émetteur, client, adresses d'autorisation, des jetons et du jeu de clés, audience des jetons, déploiements. |
 
 ## La plateforme
@@ -103,6 +106,7 @@ Avec le magasin `memory`, les clés viennent de la configuration, quelle que soi
 | `platform.issuer` | null | L'émetteur par lequel les outils enregistrent la plateforme ; exigé. |
 | `platform.token_url` | null | L'adresse du point de terminaison des jetons, telle que les outils l'enregistrent : l'audience de leurs assertions ; exigée. |
 | `platform.token_lifetime` | `3600` | Les secondes de vie d'un jeton d'accès, de 60 à 86 400. |
+| `platform.deep_linking_retention` | `86400` | Les secondes pendant lesquelles une réponse de Deep Linking vérifiée est gardée, pour être traitée de nouveau quand son traitement a échoué, de 600 à 2 592 000. |
 | `platform.tools` | `[]` | Les outils enregistrés : client, nom, adresse de connexion, adresses de redirection, jeu de clés, adresse de Deep Linking, portées de LTI Advantage, déploiements. |
 
 Le côté plateforme a besoin des `LaunchMessages` de l'application ; le conteneur s'arrête avec un message qui le dit

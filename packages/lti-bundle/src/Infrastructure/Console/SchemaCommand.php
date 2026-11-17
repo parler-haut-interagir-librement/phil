@@ -6,6 +6,8 @@ namespace Phil\LtiBundle\Infrastructure\Console;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Table;
 use Phil\LtiBundle\Infrastructure\Dbal\LtiTables;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -14,10 +16,11 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
- * Shows the SQL that creates the bundle's tables missing from its connection, and runs it with `--force`: for an
- * application without the ORM, or before its first migration. A table that is there is left as it is.
+ * Shows the SQL that brings the bundle's tables of its connection to this version, and runs it with `--force`: for an
+ * application without the ORM, or before its first migration. A table missing is created; a table there gets the
+ * columns and indexes it lacks, and nothing else — no column is changed or dropped.
  */
-#[AsCommand(name: 'phil:lti:schema', description: 'Shows, or creates with --force, the LTI tables missing from their connection')]
+#[AsCommand(name: 'phil:lti:schema', description: 'Shows, or runs with --force, the SQL that creates the LTI tables missing and adds the columns they lack')]
 final readonly class SchemaCommand
 {
     public function __construct(
@@ -33,22 +36,61 @@ final readonly class SchemaCommand
     {
         $platform = $this->connection->getDatabasePlatform();
         $manager = $this->connection->createSchemaManager();
-        $missing = array_values(array_filter($this->tables->names(), static fn (string $name): bool => !$manager->tablesExist([$name])));
+        $missing = [];
+        $changed = [];
+        $sql = [];
 
-        if ([] === $missing) {
-            $io->success('The LTI tables are there.');
+        $names = $this->tables->names();
+        $comparator = $manager->createComparator();
+
+        foreach ($this->tables->definitions($platform) as $position => $table) {
+            $name = $names[$position];
+
+            if (!$manager->tablesExist([$name])) {
+                $missing[] = $table;
+
+                continue;
+            }
+
+            $current = $manager->introspectTableByUnquotedName($name);
+            $columns = array_map($this->identifier(...), $current->getColumns());
+            $indexes = array_map($this->identifier(...), $current->getIndexes());
+            $editor = $current->edit();
+            $lacking = false;
+
+            foreach ($table->getColumns() as $column) {
+                if (!\in_array($this->identifier($column), $columns, true)) {
+                    $editor->addColumn($column);
+                    $lacking = true;
+                }
+            }
+
+            foreach ($table->getIndexes() as $index) {
+                // The secondary indexes are named after their table; the primary key is a constraint the table has.
+                if (str_starts_with($this->identifier($index), $name.'_') && !\in_array($this->identifier($index), $indexes, true)) {
+                    $editor->addIndex($index);
+                    $lacking = true;
+                }
+            }
+
+            if ($lacking) {
+                $changed[] = $name;
+                array_push($sql, ...$platform->getAlterTableSQL($comparator->compareTables($current, $editor->create())));
+            }
+        }
+
+        if ([] === $missing && [] === $changed) {
+            $io->success('The LTI tables are up to date.');
 
             return Command::SUCCESS;
         }
 
-        $sql = $platform->getCreateTablesSQL(array_filter(
-            $this->tables->definitions($platform),
-            static fn (Table $table): bool => \in_array($table->getObjectName()->toString(), $missing, true),
-        ));
+        $sql = [...$platform->getCreateTablesSQL($missing), ...$sql];
+        $created = array_map(static fn (Table $table): string => $table->getObjectName()->toString(), $missing);
 
         if (!$force) {
             $io->writeln(array_map(static fn (string $statement): string => $statement.';', $sql));
-            $io->note(\sprintf('%d tables missing: run again with --force to create them.', \count($missing)));
+            $io->note(\sprintf('%d tables missing, %d tables to change: run again with --force.', \count($missing), \count($changed)));
 
             return Command::SUCCESS;
         }
@@ -57,8 +99,13 @@ final readonly class SchemaCommand
             $this->connection->executeStatement($statement);
         }
 
-        $io->success(\sprintf('Created: %s.', implode(', ', $missing)));
+        $io->success(\sprintf('Created: %s. Changed: %s.', [] === $created ? 'none' : implode(', ', $created), [] === $changed ? 'none' : implode(', ', $changed)));
 
         return Command::SUCCESS;
+    }
+
+    private function identifier(Column|Index $object): string
+    {
+        return strtolower($object->getObjectName()->getIdentifier()->getValue());
     }
 }

@@ -11,9 +11,8 @@ use Phil\Lti\Platform\AuthenticationRequest;
 use Phil\Lti\Platform\DeepLinkingReturn;
 use Phil\Lti\Platform\LaunchIssuer;
 use Phil\LtiBundle\Application\Contract\LaunchMessages;
-use Phil\LtiBundle\Application\Event\DeepLinkingReturned;
+use Phil\LtiBundle\Application\DeepLinkingHandler;
 use Phil\LtiBundle\Infrastructure\Http\FormPostResponder;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -22,7 +21,8 @@ use Twig\Environment;
 
 /**
  * The browser routes of the platform: the authorization endpoint, which answers the tool's authentication request with
- * the signed launch for the person signed in, and the return of a deep linking response.
+ * the signed launch for the person signed in, and the return of a deep linking response, kept before the application
+ * handles it so that a handling that fails can be resumed.
  *
  * An authentication request whose client or redirect address is not registered answers 400; once the redirect address
  * is known, a refusal is posted back to it as OpenID Connect writes errors, with the `state`.
@@ -39,7 +39,7 @@ final readonly class PlatformLaunchController
         private DeepLinkingReturn $deepLinking,
         private TokenStorageInterface $tokens,
         private FormPostResponder $responder,
-        private EventDispatcherInterface $events,
+        private DeepLinkingHandler $handler,
         private Environment $twig,
     ) {
     }
@@ -88,8 +88,7 @@ final readonly class PlatformLaunchController
             return $this->text('The deep linking response is refused: '.$ltiException->getMessage(), Response::HTTP_BAD_REQUEST);
         }
 
-        $event = new DeepLinkingReturned($result);
-        $this->events->dispatch($event);
+        $event = $this->handler->handle($result);
 
         return $event->response() ?? new Response($this->twig->render('@PhilLti/deep_linking_returned.html.twig', ['result' => $result]), Response::HTTP_OK, ['Cache-Control' => 'no-store']);
     }

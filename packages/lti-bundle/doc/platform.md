@@ -73,9 +73,38 @@ the `state`. A request without a member signed in answers 401.
 
 The application launches a deep linking request with a message of type `MessageType::DeepLinking` and its
 `DeepLinkingSettings`, the return address being `phil_lti_platform_deep_linking` and `data` naming the placement. The
-tool posts its response there; the bundle verifies it with `DeepLinkingReturn` and dispatches `DeepLinkingReturned`. A
-listener places the items and answers the browser; without an answer, the bundle shows a short page with the count of
-the items and the tool's message.
+tool posts its response there; the bundle verifies it with `DeepLinkingReturn`, keeps it, and dispatches
+`DeepLinkingReturned`. A listener places the items and answers the browser; without an answer, the bundle shows a short
+page with the count of the items and the tool's message.
+
+### Resuming a response
+
+The `nonce` of a response is taken once: the token the browser posted is never accepted again. So that a listener that
+fails does not lose the response, `DeepLinkingHandler` keeps it before it tells the application — its key, its client and
+the claims it was verified with, in the table `deep_linking` or in memory, for `platform.deep_linking_retention` seconds,
+a day by default — and marks it handled once every listener returned. The claims are those the tool picked for the
+platform — content items, the `data` the platform put in its request, messages —: no credential and no claim about a
+person, so they are kept as they are, 64 KiB of JSON at most.
+
+`DeepLinkingReturned::$key` names the response for good: a hash of its client and of its nonce, the same when the
+response is told again. A listener is idempotent by this key — it places the items of a key once, and finds what it
+placed the first time when it sees the key again. When a listener throws, the browser gets the error and the response
+stays kept, not handled. The application tells it again, from the claims kept and without the token:
+
+```php
+use Phil\LtiBundle\Application\DeepLinkingHandler;
+
+$event = $handler->resume($key);                 // null when nothing is kept under the key, or it expired
+foreach ($handler->unhandled(300) as $key) { … }  // the responses not handled after five minutes
+```
+
+```bash
+bin/console phil:lti:resume-deep-linking <key>       # one response, handled or not
+bin/console phil:lti:resume-deep-linking --delay=300 # every response not handled after five minutes
+```
+
+`DeepLinkingReturned::$resumed` is true for a response told again; a listener has no browser to answer then, and its
+response is not used. `phil:lti:purge` removes the responses expired.
 
 ## The token endpoint
 
@@ -97,7 +126,15 @@ Each call carries a bearer token: without one, 401 with `WWW-Authenticate: Beare
 scope, 403 with `error="insufficient_scope"`. A context where the tool is not placed, or a line item that is not the
 tool's, answers 404. The lists take `limit` and `offset`, and give the next page in a `Link` header; the line items take
 `resource_link_id`, `resource_id` and `tag`, the results `user_id`, the memberships `role`. A body is JSON of 64 KiB at
-most. A score older than the learner's latest answers 409.
+most.
+
+A page of line items or of members holds 100 entries when the tool asks for no `limit`, and 1,000 at most whatever it
+asks. Its `Link: <…>; rel="next"` carries the filters, the `limit` the page was cut at and the `offset` of the next
+page, and is there whenever a next page is: also without a `limit`, and with a `limit` beyond 1,000.
+
+A score older than the learner's latest answers 409. The comparison and the write are one atomic step of the store: of
+two scores of one learner sent at once, the more recent stays, whatever order they arrive in, and the other answers 409.
+A score of the same moment as the one kept replaces it.
 
 ## The roster and the gradebook
 
@@ -110,4 +147,4 @@ and the latest scores are kept in the bundle's tables; the gradebook stays the a
 | `LineItemSaved` | A tool created (`created` true) or changed a line item. |
 | `LineItemDeleted` | A tool deleted a line item, with its scores. |
 | `ScoreReceived` | A score was kept as the learner's latest on a line item. |
-| `DeepLinkingReturned` | A deep linking response was verified. |
+| `DeepLinkingReturned` | A deep linking response was verified and kept, or is told again (`resumed` true), under its `key`. |

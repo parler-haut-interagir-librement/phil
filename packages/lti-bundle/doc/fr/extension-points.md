@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=50fd66092c84339204d02e86530b09beaef906520858ebae82a6b7c4cde06acb -->
+<!-- phil-dev source-sha256=d01c7c4b951d9b3cd8480be8e55e30c2477fd7a1cfa6eda217e88468374fdcc3 -->
 # Points d'extension
 
 Le paquet est en `0.x` : ses points d'extension ne sont stables qu'à partir de sa version 1.0. D'ici là, une version
@@ -27,8 +27,24 @@ propre service pour garder une partie de l'état ailleurs :
 | `Phil\Lti\Contract\ScoreStore` | `DbalScoreStore` | `InMemoryScoreStore` |
 | `Phil\Lti\Contract\KeyStore` | `DbalKeyStore` (clés `dbal`) | `InMemoryKeyStore` |
 | `Phil\LtiBundle\Application\Contract\PendingScores` | `DbalPendingScores` | `InMemoryPendingScores` |
+| `Phil\LtiBundle\Application\Contract\DeepLinkingReturns` | `DbalDeepLinkingReturns` | `InMemoryDeepLinkingReturns` |
 | `Phil\Lti\Contract\PlatformRegistrations` | depuis `tool.platforms` | le même |
 | `Phil\Lti\Contract\ToolRegistrations` | depuis `platform.tools` | le même |
+
+Un adaptateur respecte le contrat de son port :
+
+- `ScoreStore::record()` compare et écrit en une seule étape atomique, et répond s'il a gardé la note (voir les points
+  d'extension de `phil/lti`) ;
+- `PendingScores::claim()` prend chaque note en une seule étape atomique — une mise à jour gardée, ou un verrou — et la
+  marque réclamée au moment donné, pour que de deux reprises simultanées chaque note aille à une seule ;
+  `markDispatched()` et `markRefused()` ne font rien pour une note qui n'existe plus ; une note refusée ou envoyée par
+  le bus n'est jamais réclamée ;
+- `DeepLinkingReturns::save()` garde la première réponse enregistrée sous une clé ; `find()` et `unhandled()` ne
+  répondent jamais une réponse expirée.
+
+`PendingScores` a la forme d'une boîte d'envoi (*outbox*) — `save()` écrit l'entrée, `markDispatched()` l'acquitte,
+`claim()` l'interroge, `refused()` et `delete()` gardent et purgent les lettres mortes — : une application qui a sa
+propre boîte d'envoi implémente le port par-dessus.
 
 ## Les événements
 
@@ -36,14 +52,15 @@ propre service pour garder une partie de l'état ailleurs :
 |---|---|---|
 | `LaunchReceived` | Outil | Répond à un lancement vérifié avec `setResponse()`. |
 | `ScorePublished` | Outil | Apprend qu'une note a été prise par la plateforme. |
-| `DeepLinkingReturned` | Plateforme | Place les éléments choisis et répond avec `setResponse()`. |
+| `ScoreRefused` | Outil | Garde sa propre trace d'une note que la plateforme a refusée pour de bon. |
+| `DeepLinkingReturned` | Plateforme | Place les éléments choisis, une fois par `key`, et répond avec `setResponse()` ; idempotent, car une réponse dont le traitement a échoué est annoncée de nouveau avec `resumed` à true. |
 | `LineItemSaved`, `LineItemDeleted` | Plateforme | Tient les colonnes du carnet de notes. |
 | `ScoreReceived` | Plateforme | Tient les notes du carnet de notes. |
 
 ## Les services à employer
 
-`ScorePublisher`, `DeepLinkingResponder`, `FormPostResponder`, `AgsClient`, `NrpsClient`, `LaunchStarter`,
-`PlatformUrls` et `KeyStore` sont des services publics.
+`ScorePublisher`, `DeepLinkingResponder`, `DeepLinkingHandler`, `FormPostResponder`, `AgsClient`, `NrpsClient`,
+`LaunchStarter`, `PlatformUrls` et `KeyStore` sont des services publics.
 
 ## Ce qui reste fermé
 

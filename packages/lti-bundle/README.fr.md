@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=34d4aa5d2100104842a51fc1ac5b41eea29ce3c24491c36403767c16c4f1db36 -->
+<!-- phil-dev source-sha256=cbb650e1297abbd741693caa096108e062f211679eff06e5b25413ccd8a1b013 -->
 # phil/lti-bundle
 
 **`phil/lti` dans Symfony : un outil LTI 1.3, une plateforme, ou les deux, à partir d'une seule configuration — les
@@ -10,10 +10,12 @@ phil/lti-bundle amène `phil/lti` dans une application Symfony :
 - **comme outil** : les routes de l'initiation de connexion et du lancement, un authentificateur qui transforme un
   lancement vérifié en un `LtiToken` qui le porte, un événement pour répondre au lancement, la réponse de Deep Linking
   signée et renvoyée par POST, et les notes envoyées à la plateforme par Messenger, le message ne portant qu'un
-  identifiant ;
+  identifiant, celles qui n'ont jamais été envoyées par le bus renvoyées par une commande et celles qui sont refusées
+  pour de bon gardées comme trace ;
 - **comme plateforme** : le point de terminaison d'autorisation qui signe un lancement pour le membre connecté, le
-  retour de Deep Linking, le point de terminaison des jetons, les Assignment and Grade Services et le Names and Role
-  Provisioning Service par HTTP, et des événements pour le carnet de notes de l'application ;
+  retour de Deep Linking, gardé avant que l'application le traite pour qu'un traitement qui échoue reprenne, le point de
+  terminaison des jetons, les Assignment and Grade Services et le Names and Role Provisioning Service par HTTP, la
+  dernière note gardée par une seule écriture atomique, et des événements pour le carnet de notes de l'application ;
 - **pour les deux** : la route du jeu de clés, les nonces, les états de connexion, les jetons d'accès, les line items,
   les notes et les notes en attente dans des tables d'une connexion Doctrine DBAL, testées sur SQLite, MySQL 8.4 et
   PostgreSQL 17 ; les clés fabriquées, scellées par le KeyManagement de Symfony et renouvelées par une commande, ou lues
@@ -35,8 +37,8 @@ son script.
 |---|---|
 | Configuration `phil_lti` : outil, plateforme ou les deux, enregistrements, clés, magasins | Implémenté et testé |
 | Outil : initiation de connexion, lancement, authentificateur et `LtiToken`, `LaunchReceived` | Implémenté et testé |
-| Outil : réponse de Deep Linking renvoyée par POST, notes envoyées par Messenger ou tout de suite | Implémenté et testé |
-| Plateforme : point de terminaison d'autorisation, retour de Deep Linking, point de terminaison des jetons | Implémenté et testé |
+| Outil : réponse de Deep Linking renvoyée par POST, notes envoyées par Messenger ou tout de suite, `phil:lti:recover-scores` | Implémenté et testé |
+| Plateforme : point de terminaison d'autorisation, retour de Deep Linking gardé et repris par `phil:lti:resume-deep-linking`, point de terminaison des jetons | Implémenté et testé |
 | Plateforme : Assignment and Grade Services, Names and Role Provisioning Service, événements | Implémenté et testé |
 | Magasins sur Doctrine DBAL, l'écouteur de schéma, `phil:lti:schema` et `phil:lti:purge` | Implémenté et testé sur SQLite, MySQL 8.4 et PostgreSQL 17 |
 | Clés scellées par le KeyManagement de Symfony, renouvelées par `phil:lti:rotate-keys` ; clés de l'environnement | Implémenté et testé |
@@ -53,7 +55,7 @@ son script.
 | [L'outil](doc/fr/tool.md) | Les lancements, le jeton et l'utilisateur, répondre à un lancement, Deep Linking, envoyer des notes. |
 | [La plateforme](doc/fr/platform.md) | Les lancements, les `LaunchMessages` de l'application, les retours de Deep Linking, les services et leurs événements. |
 | [Clés](doc/fr/keys.md) | Les clés dans la table scellées par le KMS, leur rotation, les clés de l'environnement. |
-| [Stockage](doc/fr/storage.md) | Les sept tables, leurs colonnes et la purge. |
+| [Stockage](doc/fr/storage.md) | Les huit tables, leurs colonnes, la mise à niveau depuis 0.1 et la purge. |
 | [Sécurité](doc/fr/security.md) | Les pare-feu, les témoins dans les cadres, les vérifications du bundle, et ce qui reste à l'application. |
 | [Points d'extension](doc/fr/extension-points.md) | Les ports, les événements, les services à employer, et ce qui reste fermé. |
 | [Tests](doc/fr/testing.md) | Les tests du bundle, les serveurs que lisent ses tests d'intégration, et tester une application. |
@@ -63,7 +65,7 @@ son script.
 
 ```sh
 composer require phil/lti-bundle
-bin/console doctrine:migrations:diff     # the seven tables
+bin/console doctrine:migrations:diff     # the eight tables
 bin/console doctrine:migrations:migrate
 ```
 

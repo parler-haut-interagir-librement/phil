@@ -1,8 +1,21 @@
 parameter phil_lti.platform = true
+service Phil\LtiBundle\Application\DeepLinkingHandler [public] class=Phil\LtiBundle\Application\DeepLinkingHandler
+    arg 0 = @Phil\LtiBundle\Application\Contract\DeepLinkingReturns (behavior 1)
+    arg 1 = @event_dispatcher (behavior 1)
+    arg 2 = @clock (behavior 1)
+    arg 3 = 86400
+    arg 4 = false
 service Phil\LtiBundle\Infrastructure\Console\PurgeCommand [private] class=Phil\LtiBundle\Infrastructure\Console\PurgeCommand
     arg 0 = @Phil\LtiBundle\Infrastructure\Dbal\DbalNonces (behavior 1)
-    arg 1 = @Phil\LtiBundle\Infrastructure\Dbal\DbalLoginStates (behavior 2)
-    arg 2 = @Phil\LtiBundle\Infrastructure\Dbal\DbalAccessTokens (behavior 2)
+    arg 1 = @clock (behavior 1)
+    arg 2 = @Phil\LtiBundle\Infrastructure\Dbal\DbalLoginStates (behavior 2)
+    arg 3 = @Phil\LtiBundle\Infrastructure\Dbal\DbalAccessTokens (behavior 2)
+    arg 4 = @Phil\LtiBundle\Application\Contract\PendingScores (behavior 2)
+    arg 5 = @Phil\LtiBundle\Application\Contract\DeepLinkingReturns (behavior 2)
+    arg 6 = 2592000
+    tag console.command [[]]
+service Phil\LtiBundle\Infrastructure\Console\ResumeDeepLinkingCommand [private] class=Phil\LtiBundle\Infrastructure\Console\ResumeDeepLinkingCommand
+    arg 0 = @Phil\LtiBundle\Application\DeepLinkingHandler (behavior 1)
     tag console.command [[]]
 service Phil\LtiBundle\Infrastructure\Console\SchemaCommand [private] class=Phil\LtiBundle\Infrastructure\Console\SchemaCommand
     arg 0 = @doctrine.dbal.default_connection (behavior 1)
@@ -28,7 +41,7 @@ service Phil\LtiBundle\Infrastructure\Controller\PlatformLaunchController [publi
     arg 2 = @Phil\Lti\Platform\DeepLinkingReturn (behavior 1)
     arg 3 = @security.token_storage (behavior 1)
     arg 4 = @Phil\LtiBundle\Infrastructure\Http\FormPostResponder (behavior 1)
-    arg 5 = @event_dispatcher (behavior 1)
+    arg 5 = @Phil\LtiBundle\Application\DeepLinkingHandler (behavior 1)
     arg 6 = @twig (behavior 1)
     tag controller.service_arguments [[]]
 service Phil\LtiBundle\Infrastructure\Controller\TokenController [public] class=Phil\LtiBundle\Infrastructure\Controller\TokenController
@@ -38,6 +51,9 @@ service Phil\LtiBundle\Infrastructure\Dbal\DbalAccessTokens [private] class=Phil
     arg 0 = @doctrine.dbal.default_connection (behavior 1)
     arg 1 = @Phil\LtiBundle\Infrastructure\Dbal\LtiTables (behavior 1)
     arg 2 = @clock (behavior 1)
+service Phil\LtiBundle\Infrastructure\Dbal\DbalDeepLinkingReturns [private] class=Phil\LtiBundle\Infrastructure\Dbal\DbalDeepLinkingReturns
+    arg 0 = @doctrine.dbal.default_connection (behavior 1)
+    arg 1 = @Phil\LtiBundle\Infrastructure\Dbal\LtiTables (behavior 1)
 service Phil\LtiBundle\Infrastructure\Dbal\DbalLineItemStore [private] class=Phil\LtiBundle\Infrastructure\Dbal\DbalLineItemStore
     arg 0 = @doctrine.dbal.default_connection (behavior 1)
     arg 1 = @Phil\LtiBundle\Infrastructure\Dbal\LtiTables (behavior 1)
@@ -126,6 +142,7 @@ service phil_lti.key_set_http_client [private] class=Phil\SafeHttp\SafeHttpClien
 service phil_lti.service_http_client [private] class=Phil\SafeHttp\SafeHttpClient
     arg 0 = null
     arg 1 = definition Phil\SafeHttp\Limits
+alias Phil\LtiBundle\Application\Contract\DeepLinkingReturns -> Phil\LtiBundle\Infrastructure\Dbal\DbalDeepLinkingReturns [public]
 alias Phil\Lti\Contract\AccessTokens -> Phil\LtiBundle\Infrastructure\Dbal\DbalAccessTokens [public]
 alias Phil\Lti\Contract\KeySetSource -> Phil\Lti\Key\CachedKeySetSource [private]
 alias Phil\Lti\Contract\KeyStore -> Phil\Lti\Key\InMemoryKeyStore [public]

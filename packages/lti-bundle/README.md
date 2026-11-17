@@ -7,9 +7,11 @@ phil/lti-bundle brings `phil/lti` into a Symfony application:
 
 - **as a tool**: the routes of the login initiation and of the launch, an authenticator that turns a verified launch into
   an `LtiToken` carrying it, an event to answer the launch, the Deep Linking response signed and posted back, and the
-  scores sent to the platform through Messenger, the message carrying an identifier only;
+  scores sent to the platform through Messenger, the message carrying an identifier only, those never dispatched sent
+  again by a command and those refused for good kept as a trace;
 - **as a platform**: the authorization endpoint that signs a launch for the member signed in, the return of Deep
-  Linking, the token endpoint, the Assignment and Grade Services and the Names and Role Provisioning Service over HTTP,
+  Linking, kept before the application handles it so that a failed handling resumes, the token endpoint, the Assignment
+  and Grade Services and the Names and Role Provisioning Service over HTTP, the latest score kept by one atomic write,
   and events for the application's gradebook;
 - **for both**: the key set route, the nonces, login states, access tokens, line items, scores and pending scores in
   tables of a Doctrine DBAL connection, tested on SQLite, MySQL 8.4 and PostgreSQL 17; the keys made, sealed by Symfony's
@@ -29,8 +31,8 @@ for the scores, Twig and the UX Toolkit recipes for the form, AssetMapper and St
 |---|---|
 | Configuration `phil_lti`: tool, platform or both, registrations, keys, stores | Implemented and tested |
 | Tool: login initiation, launch, authenticator and `LtiToken`, `LaunchReceived` | Implemented and tested |
-| Tool: Deep Linking response posted back, scores sent through Messenger or at once | Implemented and tested |
-| Platform: authorization endpoint, Deep Linking return, token endpoint | Implemented and tested |
+| Tool: Deep Linking response posted back, scores sent through Messenger or at once, `phil:lti:recover-scores` | Implemented and tested |
+| Platform: authorization endpoint, Deep Linking return kept and resumed by `phil:lti:resume-deep-linking`, token endpoint | Implemented and tested |
 | Platform: Assignment and Grade Services, Names and Role Provisioning Service, events | Implemented and tested |
 | Stores on Doctrine DBAL, the schema listener, `phil:lti:schema` and `phil:lti:purge` | Implemented and tested on SQLite, MySQL 8.4 and PostgreSQL 17 |
 | Keys sealed by Symfony KeyManagement, rotated by `phil:lti:rotate-keys`; keys from the environment | Implemented and tested |
@@ -47,7 +49,7 @@ for the scores, Twig and the UX Toolkit recipes for the form, AssetMapper and St
 | [The tool](doc/tool.md) | Launches, the token and the user, answering a launch, Deep Linking, sending scores. |
 | [The platform](doc/platform.md) | Launches, the application's `LaunchMessages`, Deep Linking returns, the services and their events. |
 | [Keys](doc/keys.md) | Keys in the table sealed by the KMS, their rotation, keys from the environment. |
-| [Storage](doc/storage.md) | The seven tables, their columns and the purge. |
+| [Storage](doc/storage.md) | The eight tables, their columns, the upgrade from 0.1 and the purge. |
 | [Security](doc/security.md) | Firewalls, cookies in frames, the checks of the bundle, and what stays with the application. |
 | [Extension points](doc/extension-points.md) | The ports, the events, the services to use, and what stays closed. |
 | [Testing](doc/testing.md) | The bundle's tests, the servers its integration tests read, and testing an application. |
@@ -57,7 +59,7 @@ for the scores, Twig and the UX Toolkit recipes for the form, AssetMapper and St
 
 ```sh
 composer require phil/lti-bundle
-bin/console doctrine:migrations:diff     # the seven tables
+bin/console doctrine:migrations:diff     # the eight tables
 bin/console doctrine:migrations:migrate
 ```
 

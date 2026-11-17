@@ -44,8 +44,8 @@ final class ServicesSnapshotTest extends TestCase
         yield 'tables, both sides' => ['tables-both', [
             'connection' => 'other', 'table_prefix' => 'x_', 'clock' => 'my.clock', 'cache' => 'my.cache', 'http_client' => 'my.http', 'message_bus' => 'my.bus', 'allow_localhost' => true, 'kit_subdirectory' => 'kit',
             'keys' => ['kms' => 'my.kms', 'master_key' => 'm', 'lifetime' => 100_000, 'overlap' => 4_000, 'bits' => 3072],
-            'tool' => ['state_lifetime' => 120, 'platforms' => $platforms],
-            'platform' => ['issuer' => 'https://courses.example.com', 'token_url' => 'https://courses.example.com/token', 'token_lifetime' => 120, 'tools' => $tools],
+            'tool' => ['state_lifetime' => 120, 'refused_score_retention' => 100_000, 'platforms' => $platforms],
+            'platform' => ['issuer' => 'https://courses.example.com', 'token_url' => 'https://courses.example.com/token', 'token_lifetime' => 120, 'deep_linking_retention' => 3_600, 'tools' => $tools],
         ]];
         yield 'tables, tool only' => ['tables-tool', ['keys' => ['master_key' => 'm'], 'tool' => ['platforms' => $platforms]]];
         yield 'tables, platform only, keys of the configuration' => ['tables-platform', [
@@ -86,7 +86,7 @@ final class ServicesSnapshotTest extends TestCase
     {
         $tables = new LtiTables('x_');
 
-        self::assertSame(['x_nonce', 'x_login_state', 'x_access_token', 'x_key', 'x_line_item', 'x_score', 'x_pending_score'], [$tables->nonces, $tables->loginStates, $tables->accessTokens, $tables->keys, $tables->lineItems, $tables->scores, $tables->pendingScores]);
+        self::assertSame(['x_nonce', 'x_login_state', 'x_access_token', 'x_key', 'x_line_item', 'x_score', 'x_pending_score', 'x_deep_linking'], [$tables->nonces, $tables->loginStates, $tables->accessTokens, $tables->keys, $tables->lineItems, $tables->scores, $tables->pendingScores, $tables->deepLinkingReturns]);
     }
 
     /**
@@ -128,9 +128,9 @@ final class ServicesSnapshotTest extends TestCase
         self::assertStringEqualsFile($file, $actual);
     }
 
-    public function testTheNamesAreTheSevenTables(): void
+    public function testTheNamesAreTheEightTables(): void
     {
-        self::assertSame(['x_nonce', 'x_login_state', 'x_access_token', 'x_key', 'x_line_item', 'x_score', 'x_pending_score'], new LtiTables('x_')->names());
+        self::assertSame(['x_nonce', 'x_login_state', 'x_access_token', 'x_key', 'x_line_item', 'x_score', 'x_pending_score', 'x_deep_linking'], new LtiTables('x_')->names());
     }
 
     public function testASchemaGetsOnlyTheTablesItLacks(): void
@@ -138,11 +138,24 @@ final class ServicesSnapshotTest extends TestCase
         $platform = new SQLitePlatform();
         $tables = new LtiTables('x_');
         $schema = $tables->configureSchema(Schema::editor()->create(), $platform);
-        self::assertCount(7, $schema->getTables());
+        self::assertCount(8, $schema->getTables());
 
         $again = $tables->configureSchema($schema, $platform);
-        self::assertCount(7, $again->getTables());
+        self::assertCount(8, $again->getTables());
         self::assertTrue($again->hasTable('x_scores') || $again->hasTable('x_score'));
+    }
+
+    public function testTheLongestPrefixKeepsEveryNameWithinTheLimitOfPostgreSql(): void
+    {
+        foreach ([new SQLitePlatform(), new MySQLPlatform(), new PostgreSQLPlatform()] as $platform) {
+            foreach (new LtiTables(str_repeat('p', 40))->definitions($platform) as $table) {
+                self::assertLessThanOrEqual(63, \strlen($table->getObjectName()->toString()));
+
+                foreach ($table->getIndexes() as $index) {
+                    self::assertLessThanOrEqual(63, \strlen($index->getObjectName()->toString()), $index->getObjectName()->toString());
+                }
+            }
+        }
     }
 
     public function testAPrefixThatIsRefusedIsCutInTheMessage(): void
