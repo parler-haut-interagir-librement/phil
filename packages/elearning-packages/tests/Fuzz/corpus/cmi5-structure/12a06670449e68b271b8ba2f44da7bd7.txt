@@ -1,0 +1,1 @@
+<courseStructure><course id="c"/>L<au id="ow"><url>h</url></au><au id="a"><url>ttex</url></au><au id="a"></au>`</courseStructure>

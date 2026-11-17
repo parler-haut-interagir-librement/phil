@@ -1,0 +1,1 @@
+<manifest identifier="m"><metadata><schemaversion>1.2</schemaversion></metadata><organizations default="o"><organization identifier="o"><title>T</title><item identifier="i" identifierref="r"><title>I</title></item></organization></organizations><resources xml:base="c/"><resource identifier="r" href="a.html?x=1" scormtype="sco"/></resources></manifest>

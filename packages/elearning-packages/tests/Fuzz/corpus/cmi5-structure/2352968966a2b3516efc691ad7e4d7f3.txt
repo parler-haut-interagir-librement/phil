@@ -1,0 +1,1 @@
+<courseStructure><course id="c">le></course><block id="b"><au id="a" mn="Q" ma="Qassed" me="6.5"><url>al</url></au></block></courseStructure>

@@ -1,0 +1,1 @@
+<manifest identifier="m"><metadata><schemaversion>1.2</schemaversion></metadata><organizations default="o">io><metadata></metadata><organizations default="">></organizations>n></organizations><resources :jase="c/"><rr ie="sco"/></resources></manifest>

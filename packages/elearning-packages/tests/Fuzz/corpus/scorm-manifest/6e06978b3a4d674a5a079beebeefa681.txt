@@ -1,0 +1,1 @@
+<manifest identifier="m"><metadata><schemaversion>2004 4thEdion</schemaversion></metadata><organizations><organization identifier="o"><item identifier="m1"><item identifier="i" ><scing/></item></item></organization></organizations><resources><resource identifier="r" href="..//////////////////////////////l"/></resources></manifest>

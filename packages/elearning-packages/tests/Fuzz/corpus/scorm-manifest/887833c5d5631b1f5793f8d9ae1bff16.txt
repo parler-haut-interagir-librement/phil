@@ -1,0 +1,1 @@
+<manifest identifier="m"><metadata><schemaversion>2.2</schemaversion></metadata><organizations default="o"><organization idener="o"></organization></organizations><resources xml:base="c/"><urc/></resources></manifest>

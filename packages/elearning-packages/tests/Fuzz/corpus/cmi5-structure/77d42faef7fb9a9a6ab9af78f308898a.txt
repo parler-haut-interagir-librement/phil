@@ -1,0 +1,1 @@
+<courseStructure><course id="c"><title></title></course><block id="b"><au id="a" yScore="0.5"><url>a.hl</url></au></block>dddddddddd</courseStructure>

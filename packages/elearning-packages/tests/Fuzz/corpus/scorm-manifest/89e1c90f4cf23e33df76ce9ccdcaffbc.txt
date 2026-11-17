@@ -1,0 +1,1 @@
+<manifest identifier="m"><metadata><schemaversion>2004 i</schemaversion></metadata><organizations><organization identifier="o"><item identifier="m1"><item identifier="i" idKef="r" paras="p"><g/></item></item></organization></organizations><resources><resource id="r" h="../azl"/></resources></manifest>

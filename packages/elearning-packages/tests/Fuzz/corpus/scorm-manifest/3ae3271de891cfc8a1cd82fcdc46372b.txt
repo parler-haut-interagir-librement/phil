@@ -1,0 +1,1 @@
+<manifest infer="m"><metadata><schemaversion>1.2</schemaversion></metadata><organizations delt="o"><organization identifier="o"><title>T</title><item identifier="i" ied="r"><title>I</title></item></organization></organizations><resources xml:base="c/"><resource ident="co"/></resources></manifest>

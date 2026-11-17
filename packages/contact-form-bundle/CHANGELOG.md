@@ -4,6 +4,14 @@ All notable changes to `phil/contact-form-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Changed
+
+- It accepts `phil/spam-protection-bundle` 0.2 beside 0.1.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

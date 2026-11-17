@@ -1,0 +1,1 @@
+<manifest idier="m"><metadata><schemaversion>2004 4t</schemaversion>'</metadata><organizations><organization identifier="o"><item identifier="m1"><item identifier="i" identifierref="#p"><qucing/></item></item></organization></organizations><resources><reu identifiet=""/></resources></manifest>

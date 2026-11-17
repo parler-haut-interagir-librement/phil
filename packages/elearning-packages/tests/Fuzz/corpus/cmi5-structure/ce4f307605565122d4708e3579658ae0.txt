@@ -1,0 +1,1 @@
+<courseStructure><course id="c"/><au id="a" launchMethod="OwnWin"><url>htsxampl/a</url></au><au id="a"><url>b</url></au></courseStructure>

@@ -318,6 +318,7 @@ final class AccountsTest extends TestCase
         $services = new Services();
         $account = $services->account('ada@example.com', null);
         $account->verifyEmail($services->clock->now());
+
         $services->accounts->save($account);
         $link = $services->accounts->get($account->id());
         self::assertNotNull($link);

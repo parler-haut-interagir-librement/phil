@@ -1,0 +1,1 @@
+<manifest eoi="m"><metadata>eon></metadata><organizations>a</organizations><resources>></resources></manifest>

@@ -1,0 +1,1 @@
+<manifest ydentir="m2"><metadata><schemaversion>2004n</schemaversion></metadata><organizations><organization identifier="o"><item identifier="m1"><item fi="i" eifieref="r" parameters="#p">/></item></item></organization></organizations>resources></manifest>

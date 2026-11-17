@@ -1,0 +1,62 @@
+{
+    "name": "phil/outbox",
+    "description": "A transactional outbox for libraries that tell PSR-14 listeners: records written in the same transaction as the state they describe, relayed at least once, in order per key, with leases, retries with backoff, dead records and retention",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "outbox",
+        "transactional-outbox",
+        "events",
+        "psr-14",
+        "at-least-once",
+        "delivery"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2"
+    },
+    "suggest": {
+        "phpunit/phpunit": "To run the contract tests of a store with Phil\\Outbox\\Test\\OutboxStoreTestCase"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Outbox\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Outbox\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "policy": {
+            "advisories": {
+                "block": true
+            }
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

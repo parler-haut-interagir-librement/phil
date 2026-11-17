@@ -197,6 +197,7 @@ final class PhilIdentityProviderBundleTest extends TestCase
             $container->setParameter('kernel.environment', $environment);
             $container->setDefinition('cache.local', new Definition(FilesystemAdapter::class));
             $container->setDefinition('cache.shared', new Definition(RedisAdapter::class));
+
             $bundle = new PhilIdentityProviderBundle();
             $extension = $bundle->getContainerExtension();
             self::assertNotNull($extension);

@@ -1,0 +1,1 @@
+<courseStructure><course id="c">u></course><block id="b"><au id="a" Gn="" c=".4"><url>=.html</url></au></block></courseStructure>

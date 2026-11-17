@@ -1,0 +1,1 @@
+<manifest identifier="m"><metadata><schemaversion>2004 4h Eition</schemaversion></metadata><organizations><organization identifier="o"><item identifier="m1"><item identifier="i" ers="#p"><sening/></item></item></organization></organizations><resources><resource id="r" href="../a.tml"/></resources></manifest>

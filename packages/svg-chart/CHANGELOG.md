@@ -5,7 +5,7 @@ All notable changes to `phil/svg-chart` will be documented in this file.
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles, and versions follow
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 0.1.1-alpha - 2026-11-15
 
 ### Added
 

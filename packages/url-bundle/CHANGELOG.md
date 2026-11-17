@@ -4,7 +4,7 @@ All notable changes to `phil/url-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.2-alpha - 2026-11-15
 
 ### Fixed
 

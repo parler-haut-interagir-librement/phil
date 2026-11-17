@@ -70,8 +70,8 @@ final readonly class JwtVerifier
             throw InvalidCredential::because('The signature of the credential does not verify.');
         }
 
-        $notBefore = self::numericDate($claims, 'nbf');
-        $expires = self::numericDate($claims, 'exp');
+        $notBefore = $this->numericDate($claims, 'nbf');
+        $expires = $this->numericDate($claims, 'exp');
         // A numeric string against a number compares as numbers: to the microsecond.
         $now = $at?->format('U.u');
 
@@ -129,7 +129,7 @@ final readonly class JwtVerifier
      *
      * @throws InvalidCredential when it is not a number
      */
-    private static function numericDate(array $claims, string $name): int|float|null
+    private function numericDate(array $claims, string $name): int|float|null
     {
         $value = $claims[$name] ?? null;
 

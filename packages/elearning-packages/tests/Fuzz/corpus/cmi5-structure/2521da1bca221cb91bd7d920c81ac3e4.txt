@@ -1,0 +1,1 @@
+<courseStructure><course id="c">e></course><block id="b"><au or=""></au></block></courseStructure>

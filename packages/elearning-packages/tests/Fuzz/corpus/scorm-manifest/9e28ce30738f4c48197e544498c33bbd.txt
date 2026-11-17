@@ -1,0 +1,1 @@
+<manifest><metadata><schemaversion>1.2</schemaversion></metadata><organizations default="o"></organizations>s></manifest>

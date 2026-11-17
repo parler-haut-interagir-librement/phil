@@ -1,0 +1,13 @@
+# The outbox shares the DBAL connection of the packages that record in it, so that a record joins their transaction.
+# Create its table with a migration (doctrine:migrations:diff) or with phil:outbox:schema --force, then run
+# phil:outbox:relay under a process manager, or enable the scheduler below. See the configuration guide of
+# phil/outbox-bundle for the codecs, the Messenger bridge and the retention.
+phil_outbox:
+    connection: default
+    relay:
+        batch_size: 100
+        lease: 60
+    retention: 604800
+    # scheduler:
+    #     enabled: true
+    #     frequency: 60

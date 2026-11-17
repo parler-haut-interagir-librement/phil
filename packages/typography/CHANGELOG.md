@@ -4,6 +4,17 @@ All notable changes to `phil/typography` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: documentation only.
+
+### Changed
+
+- The description of `composer.json`, shown on Packagist, says what the package does.
+- The README, in English and in French, says what the package does, without the wording of its first drafts.
+- `CONTRIBUTING.md` says what the package does and how to work on it, without the wording of its first drafts.
+- `data/LICENSES` and the page on hyphenation describe the patterns written for this library without that wording.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

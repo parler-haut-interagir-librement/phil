@@ -1,0 +1,1 @@
+<courseStructure><course id="c"/><au id="a~" launchMethod="OwnWindow"><url>httg/a</url></au><au id="a"><url>b</url></au></courseStructure>

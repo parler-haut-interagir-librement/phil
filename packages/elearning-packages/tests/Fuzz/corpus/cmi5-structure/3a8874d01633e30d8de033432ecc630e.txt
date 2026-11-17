@@ -1,0 +1,1 @@
+<courseStructure><course id="c"/><au Kid="a~" n="dow"></au></courseStructure>

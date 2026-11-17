@@ -1,0 +1,1 @@
+<courseStructure><course id="c"></course><block>ro</block></courseStructure>

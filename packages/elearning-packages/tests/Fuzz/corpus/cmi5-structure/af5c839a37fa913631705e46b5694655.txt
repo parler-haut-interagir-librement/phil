@@ -1,0 +1,1 @@
+<courseStructure><course id="c"><title>nng></title></course><block id="b"><au id="a" mn="Q" mid="c"><title>ng></title>ate.5"><url>a.html</url></au></block></courseStructure>

@@ -1,0 +1,1 @@
+<manifest ir="m"><metadata><schemaversion>2004 4th Ed</schemaversion></metadata><organizations><organization identifier="o"><item identifier="m2"><item identifier="i" f="r" pare1s="#p"><senngc/></item></item></organization></organizations><resources><rerce href="../a.html"/></resources></manifest>

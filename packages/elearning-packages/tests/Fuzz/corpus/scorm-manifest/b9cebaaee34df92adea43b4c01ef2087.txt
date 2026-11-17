@@ -1,0 +1,1 @@
+<manifest identifier="m"><metadata><schemaversion>2004on</schemaversion></metadata><organizations><organization identifier="o"><item identifier="m1"><item identifier="i" identifierref="r" pers="#p"><sequeing/></item></item></organization></organizations><resources><resource identifier="r" href="..///1//////?/////ml"/></resources></manifest>

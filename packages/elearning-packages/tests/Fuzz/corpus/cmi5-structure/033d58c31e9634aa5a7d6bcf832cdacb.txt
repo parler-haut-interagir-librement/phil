@@ -1,0 +1,1 @@
+<courseStructure><course id="c"><title>aSGn="Qassed" mce=5g></title></course><block id="b"><au id="a" moercore="6.5"><url>a.html</url></au></block></courseStructure>

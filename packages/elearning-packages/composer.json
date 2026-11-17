@@ -1,0 +1,50 @@
+{
+    "name": "phil/elearning-packages",
+    "description": "SCORM 1.2, SCORM 2004 and cmi5 packages read safely without a learning platform: the ZIP archive checked before any file is read, the manifest or course structure parsed without entities into immutable values, the launch files checked, every reading bounded by limits",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "e-learning",
+        "scorm",
+        "cmi5",
+        "ims-content-packaging",
+        "zip",
+        "lms"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-zip": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ElearningPackages\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ElearningPackages\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

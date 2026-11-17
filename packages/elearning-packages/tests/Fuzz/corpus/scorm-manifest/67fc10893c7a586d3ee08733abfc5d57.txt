@@ -1,0 +1,1 @@
+<manifest identifier="m"><metadata><schemaversion>2004 4th Edition</schemaversion></metadata><organizations><organization identifier="o"><item identifier="m1"><item identifier="i" d="#p"><sequg/></item></item></organization></organizations><resources><resource identifier="r" hrei="a.s(tml"/></resources></manifest>

@@ -1,0 +1,1 @@
+<manifest ntifier="m"><metadata><schemaversion>1.2</schemaversion></metadata><organizations alt="o"><organization identifier="o"></organization></organizations>rces></manifest>

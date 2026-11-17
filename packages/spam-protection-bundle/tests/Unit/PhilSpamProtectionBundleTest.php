@@ -179,6 +179,7 @@ final class PhilSpamProtectionBundleTest extends TestCase
             $container->setDefinition('limiter.storage.shared', new Definition(CacheStorage::class, [new Reference('cache.shared')]));
             $container->setDefinition('limiter.contact', new Definition(RateLimiterFactory::class, [[], new Reference('limiter.storage.contact')]));
             $container->setDefinition('limiter.shared', new Definition(RateLimiterFactory::class, [[], new Reference('limiter.storage.shared')]));
+
             $bundle = new PhilSpamProtectionBundle();
             $extension = $bundle->getContainerExtension();
             self::assertNotNull($extension);

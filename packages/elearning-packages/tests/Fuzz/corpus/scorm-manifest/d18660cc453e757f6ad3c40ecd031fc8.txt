@@ -1,0 +1,1 @@
+<manifest idr="m"><metadata><schemaversion>2004</schemaversion></metadata><organizations><organization identifier="o"><item identifier="m1"></item></organization></organizations></manifest>

@@ -1,0 +1,1 @@
+<courseStructure><course id="c"/><au id="a"><url>/e</url>"><url>b</url></au></courseStructure>

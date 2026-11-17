@@ -1,0 +1,1 @@
+<manifest identifier="m"><metadata><schemaversion>2004ion</schemaversion></metadata><organizations><organization identifier="o"><item identifier="m2"><item identifier="i#p"><ing/></item></item></organization></organizations><resources><resource identifier="r" href="..tml"/></resources></manifest>

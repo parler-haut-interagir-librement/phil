@@ -69,12 +69,12 @@ final class LoginRateLimiter extends AbstractRequestRateLimiter
 
     private function networkLimiter(Request $request): LimiterInterface
     {
-        return $this->network->create($this->key(self::network($request)));
+        return $this->network->create($this->key($this->network($request)));
     }
 
     private function localLimiter(Request $request, string $identifier): LimiterInterface
     {
-        return $this->local->create($this->key($identifier, self::network($request)));
+        return $this->local->create($this->key($identifier, $this->network($request)));
     }
 
     private function accountLimiter(string $identifier): LimiterInterface
@@ -93,7 +93,7 @@ final class LoginRateLimiter extends AbstractRequestRateLimiter
         return mb_strtolower($identifier);
     }
 
-    private static function network(Request $request): string
+    private function network(Request $request): string
     {
         $address = $request->getClientIp() ?? '';
 

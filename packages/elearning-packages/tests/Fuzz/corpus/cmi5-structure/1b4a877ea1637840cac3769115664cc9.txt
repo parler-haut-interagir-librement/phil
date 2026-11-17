@@ -1,0 +1,1 @@
+<courseStructure><course id="c"><title><langstring l="en">C</langstring></title></course><block id="b"><au id="a" movn="Passed" masteryScore="0.5"><url>a.</url></au></block></courseStructure>

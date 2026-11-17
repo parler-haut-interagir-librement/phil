@@ -1,0 +1,78 @@
+{
+    "name": "phil/outbox-bundle",
+    "description": "phil/outbox in Symfony: the outbox in a table of the application's Doctrine DBAL connection, so a record joins the caller's transaction, codecs registered by tag, a relay command safe in worker mode, a Scheduler trigger, commands for dead records and retention, and an optional bridge to a Messenger bus",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "outbox",
+        "transactional-outbox",
+        "events",
+        "doctrine",
+        "worker",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "phil/outbox": "^0.1@dev",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/clock": "^8.2",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2"
+    },
+    "require-dev": {
+        "ext-pdo": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/lock": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/scheduler": "^8.2"
+    },
+    "suggest": {
+        "doctrine/orm": "To add the outbox table to the schema the ORM generates",
+        "symfony/console": "For phil:outbox:relay, phil:outbox:schema, phil:outbox:purge and the commands of the dead records",
+        "symfony/lock": "For one run of the relay at a time",
+        "symfony/messenger": "To relay the events to a Messenger bus, and for the scheduled trigger",
+        "symfony/scheduler": "For the scheduled trigger of the relay"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\OutboxBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\OutboxBundle\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "policy": {
+            "advisories": {
+                "block": true
+            }
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

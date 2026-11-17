@@ -1,0 +1,1 @@
+<courseStructure>rse><block id="b">au></block>e><course id="z"><title><langstring >C</langstring></title></course>ck</courseStructure>

@@ -1,0 +1,1 @@
+<manifest fier="m"><metadata><schemaversion>2004n</schemaversion></metadata><organizations><organization i="o">m></organization></organizations><resources>ier="></resources></manifest>

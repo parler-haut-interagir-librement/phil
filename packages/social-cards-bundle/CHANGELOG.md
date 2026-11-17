@@ -20,6 +20,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - The `link-preview` Stimulus controller enables its `field` target when it connects: rendered `disabled`, the field
   is sent only with the script, so that a form sent without it keeps the preview of the first link.
 - `phil/safe-http` 0.2 accepted as well as 0.1.
+- It requires `phil/social-cards` 0.1.1 or later, whose `ImagickCardRenderer` the renderer `imagick` uses.
 
 ## 0.1.0-alpha - 2026-11-12
 

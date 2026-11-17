@@ -1,0 +1,1 @@
+<manifest identifier="m"><metadata><schemaversion>2004 4t</schemaversion></metadata><organizations><organization identifier="o"><item identifier="m"><item identifier="i#p">seencing/></item></item></organization></organizations><resources><resource identifier="r" href="./@/a.html"/></resources></manifest>

@@ -6,6 +6,14 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
+The next version is 0.2.1-alpha.
+
+### Changed
+
+- It accepts `phil/open-badges` 0.3 beside 0.2.
+
+## 0.2.0-alpha - 2026-11-15
+
 The next version is 0.2.0-alpha: `CertificateRepository` gains a method, and the schema two columns.
 
 ### Added

@@ -1,0 +1,1 @@
+<manifest ider="m"><metadata><schemaversion>1.2</schemaversion></metadata><organizations t="o"><organization identifier="o"><title>T</title><item identifier="i" ref="r">OOO</item></organization></organizations></manifest>

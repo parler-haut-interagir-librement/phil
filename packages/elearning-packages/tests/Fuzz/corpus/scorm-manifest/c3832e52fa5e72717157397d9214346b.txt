@@ -1,0 +1,1 @@
+<manifest iPentfir="m"><metadata><schemaversion>2004 4thn</schemaversion></metadata><organizations><organization identifier="o"><item identifier="k2"><item identifier="#p"><sequencing/></item></item></organization></organizations><resources><resource/></resources></manifest>

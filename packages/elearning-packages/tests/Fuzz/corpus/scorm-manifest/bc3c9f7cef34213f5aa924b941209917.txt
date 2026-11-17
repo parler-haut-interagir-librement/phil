@@ -1,0 +1,1 @@
+<manifest ider="m"><metadata><schemaversion>1.2</schemaversion></metadata><organizations default="o"><organization identifier="o"><item iev="i" ifef="r">le></item></organization></organizations>urces></manifest>

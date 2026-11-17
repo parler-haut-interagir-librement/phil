@@ -30,6 +30,8 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/tenancy-bundle`](https://github.com/parler-haut-interagir-librement/tenancy-bundle) | The active tenant of a multi-tenant application: resolved from the account or the host, kept by a fail-closed Doctrine filter, carried across Messenger, sessions, mail and caches. |
 | [`phil/tenancy-database-bundle`](https://github.com/parler-haut-interagir-librement/tenancy-database-bundle) | A database for each tenant, or the shared one: the connection follows the tenant, migrations run per database, and a tenant moves from one database to another, verified and reversible. |
 | [`phil/settings-bundle`](https://github.com/parler-haut-interagir-librement/settings-bundle) | Settings people change themselves: declared by packages, read typed with their default, a preferences centre and site settings, and display preferences applied to the page. |
+| [`phil/outbox`](https://github.com/parler-haut-interagir-librement/outbox) | A transactional outbox: events recorded with the write they describe, relayed at least once, in order per key, with retries and dead records. |
+| [`phil/outbox-bundle`](https://github.com/parler-haut-interagir-librement/outbox-bundle) | The outbox in Symfony: a table of the Doctrine DBAL connection, a relay command safe in worker mode, a scheduled trigger and an optional bridge to Messenger. |
 
 ### Text and documents
 
@@ -246,6 +248,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/automations`](https://github.com/parler-haut-interagir-librement/automations) | A no-code automation builder for site events: JSON definitions, delays, filters and branches, retries and compensation, run by Messenger. |
 | [`phil/lti`](https://github.com/parler-haut-interagir-librement/lti) | LTI 1.3 on both sides, tool and platform: the OpenID Connect launch, Deep Linking 2.0, typed roles and claims, and the grade and roster services of LTI Advantage. |
 | [`phil/lti-bundle`](https://github.com/parler-haut-interagir-librement/lti-bundle) | LTI 1.3 in Symfony: the routes of the launch, Deep Linking and the key set, an authenticator for verified launches, stores on Doctrine DBAL and scores sent through Messenger. |
+| [`phil/elearning-packages`](https://github.com/parler-haut-interagir-librement/elearning-packages) | SCORM 1.2, SCORM 2004 and cmi5 packages read safely, without a learning platform: the archive checked before any file is read, the manifest read into values. |
 
 ### Operations
 

@@ -1,0 +1,1 @@
+<courseStructure><course id="c"><title><langstring lag="gn">C</langstring></title></course><block id="b"><au id="a" moveOn="Qa" maore=""><url>aml</url></au></block></courseStructure>

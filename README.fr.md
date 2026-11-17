@@ -32,6 +32,8 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/tenancy-bundle`](https://github.com/parler-haut-interagir-librement/tenancy-bundle) | Le locataire actif d'une application multilocataire : résolu par le compte ou l'hôte, gardé par un filtre Doctrine fermé par défaut, porté par Messenger, les sessions, le courriel et les caches. |
 | [`phil/tenancy-database-bundle`](https://github.com/parler-haut-interagir-librement/tenancy-database-bundle) | Une base par locataire, ou la base commune : la connexion suit le locataire, les migrations passent base par base, et un locataire change de base, vérifié et réversible. |
 | [`phil/settings-bundle`](https://github.com/parler-haut-interagir-librement/settings-bundle) | Des réglages que chacun change lui-même : déclarés par les paquets, lus typés avec leur défaut, un centre de préférences, des réglages du site et des préférences d'affichage appliquées à la page. |
+| [`phil/outbox`](https://github.com/parler-haut-interagir-librement/outbox) | Une boîte d'envoi transactionnelle : des événements enregistrés avec l'écriture qu'ils décrivent, relayés au moins une fois, dans l'ordre de leur clé, avec nouveaux essais et enregistrements morts. |
+| [`phil/outbox-bundle`](https://github.com/parler-haut-interagir-librement/outbox-bundle) | La boîte d'envoi dans Symfony : une table de la connexion Doctrine DBAL, une commande de relais sûre en mode worker, un déclencheur planifié et un pont facultatif vers Messenger. |
 
 ### Texte et documents
 
@@ -248,6 +250,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/automations`](https://github.com/parler-haut-interagir-librement/automations) | Un constructeur d'automatisations sans code pour les événements d'un site : définitions JSON, délais, filtres et branches, reprises et compensation, par Messenger. |
 | [`phil/lti`](https://github.com/parler-haut-interagir-librement/lti) | LTI 1.3 des deux côtés, outil et plateforme : le lancement OpenID Connect, Deep Linking 2.0, des rôles et des revendications typés, et les services de notes et de listes de LTI Advantage. |
 | [`phil/lti-bundle`](https://github.com/parler-haut-interagir-librement/lti-bundle) | LTI 1.3 dans Symfony : les routes du lancement, de Deep Linking et du jeu de clés, un authentificateur des lancements vérifiés, des magasins sur Doctrine DBAL et des notes envoyées par Messenger. |
+| [`phil/elearning-packages`](https://github.com/parler-haut-interagir-librement/elearning-packages) | Les paquets SCORM 1.2, SCORM 2004 et cmi5 lus de façon sûre, sans plateforme d'apprentissage : l'archive vérifiée avant toute lecture, le manifeste lu en valeurs. |
 
 ### Exploitation
 

@@ -4,6 +4,16 @@ All notable changes to `phil/bot-detection-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: documentation only.
+
+### Changed
+
+- The README, in English and in French, says what the package does, without the wording of its first drafts.
+- `CONTRIBUTING.md` says what the package does and how to work on it, without the wording of its first drafts.
+- The header of `assets/src/detectors.js` and the page on browser signals describe the detectors without that wording.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added
