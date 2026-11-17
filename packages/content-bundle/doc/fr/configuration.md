@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9fe9ab899a4e522aa40908e555b37aa9cf6b4527f144017f15dd8889831414db -->
+<!-- phil-dev source-sha256=6e8c32ebcd93e48723440658a8cec0a954e579c33c7aa1355a7c974dafe89f0e -->
 # Référence de la configuration
 
 La configuration du bundle se trouve sous `phil_content`. Chaque clé est facultative. Une configuration vide construit
@@ -177,8 +177,9 @@ requête.
 | Valeur par défaut | `secret: '%kernel.secret%'`, `ttl: 604800` (une semaine) |
 | Branche | `Phil\ContentBundle\Infrastructure\Http\PreviewLinks` |
 
-Ce avec quoi les liens d'aperçu sont signés, et combien de secondes ils restent valides
-([sitemap-feeds-previews.md](sitemap-feeds-previews.md)).
+Ce avec quoi les liens d'aperçu sont signés, et combien de secondes ils restent valides. Un lien est lié au locataire
+actif de `phil/tenancy-bundle` quand le bundle est installé et qu'un locataire est actif, à son hôte sinon : le secret
+peut donc être partagé ([sitemap-feeds-previews.md](sitemap-feeds-previews.md#la-portée-dun-lien)).
 
 ### `feed_limit`
 
@@ -219,8 +220,10 @@ copie de travail garde le rôle du rédacteur qui l'a enregistrée, qui que ce s
 Les genres qui n'ont qu'un seul contenu : la page d'accueil, les coordonnées, la page « à propos ».
 `ContentManager::create()` refuse une seconde racine d'un tel genre, `ContentManager::single()` trouve sa racine, et la
 fonction Twig `content_single()` la lit ([content-manager.md](content-manager.md),
-[rendering.md](rendering.md#les-fonctions-twig)). Une clé qui n'est pas une clé de ressource — une lettre minuscule,
-puis jusqu'à 63 lettres minuscules, chiffres ou `_` — est refusée.
+[rendering.md](rendering.md#les-fonctions-twig)). Avec DoctrineBundle, la table `phil_content_single_root` refuse une
+seconde racine que deux créations simultanées écriraient ([storage.md](storage.md#la-racine-dun-genre-unique)). Une clé
+qui n'est pas une clé de ressource — une lettre minuscule, puis jusqu'à 63 lettres minuscules, chiffres ou `_` — est
+refusée.
 
 ### `archives`
 
@@ -280,7 +283,7 @@ Les services sont enregistrés sous leur nom de classe et sont privés, sauf les
 | `TemplateResolver` | toujours | `templates`, `default_template` |
 | `ResourceRoutes` | toujours | `routes` |
 | `ContentRoots`, `DimensionContentMappingListener`, les mappages des capacités | avec DoctrineBundle | `roots` |
-| `DoctrineDimensionContentRepository`, `DoctrineRouteRepository`, `DoctrineContentRootRepository`, `DoctrinePublishedRowRepository`, `DoctrineContentTransaction`, `ConstructorContentRootFactory`, avec des alias vers leurs ports | avec DoctrineBundle | `entity_manager`, `roots` |
+| `DoctrineDimensionContentRepository`, `DoctrineRouteRepository`, `DoctrineContentRootRepository`, `DoctrinePublishedRowRepository`, `DoctrineContentTransaction`, `DoctrineSingleRootRepository`, `ConstructorContentRootFactory`, avec des alias vers leurs ports | avec DoctrineBundle | `entity_manager`, `roots` |
 | les cinq commandes `phil:content:*` | avec DoctrineBundle | — |
 | `ContentController`, `ContentUrlGenerator`, `ContentExtension`, `ContentRuntime` | avec DoctrineBundle et TwigBundle | `routes`, `templates`, `default_template` |
 | `ContentUrlProvider`, `FeedController`, `PreviewController`, `PreviewLinks`, `phil:content:preview-link` | avec DoctrineBundle et TwigBundle | `routes`, `preview`, `feed_limit` |

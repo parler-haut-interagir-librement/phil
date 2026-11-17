@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1e953d2662f00d5d2833337646aa36175e8428de80a1b20409442757cbbf41f9 -->
+<!-- phil-dev source-sha256=d714bf5c8305803558ae2a4b4fec2c614ee299983c954742a0365a88bb6ffbb0 -->
 # Référence de l'API
 
 Chaque classe et interface du bundle, par couche. Tous les espaces de noms sont sous `Phil\ContentBundle`. « Port »
@@ -22,6 +22,7 @@ bundle. Chaque entrée ici est implémentée et testée ; ce qui n'est pas comme
 | `AbstractContentRoot` | implémenté, superclasse mappée | Base des entités racines de l'application : `dimensionContentClass()`, `resourceKey()` |
 | `AbstractDimensionContent` | implémenté, superclasse mappée | Base des entités de ligne de l'application : colonnes d'identifiant et de dimension, constructeur final |
 | `DimensionContentId` | implémenté | Identifiant de substitution UUIDv7 d'une ligne (`Identifier` de `phil/ddd-bundle`) |
+| `SingleRoot` | implémenté, entité | Entité de `phil_content_single_root` : l'unique racine d'un genre unique, sa clé de ressource en clé primaire |
 
 ### `Domain\Dimension`
 
@@ -74,6 +75,7 @@ bundle. Chaque entrée ici est implémentée et testée ; ce qui n'est pas comme
 | Interface | Genre | Rôle |
 |---|---|---|
 | `WorkingCopyRepository` | port | Les enregistrements automatiques par auteur, les brouillons nommés par nom, toutes les copies de travail d'un contenu |
+| `SingleRootRepository` | port | La racine enregistrée de chaque genre unique, une seconde refusée par le magasin |
 
 ### `Domain\Repository`
 
@@ -92,9 +94,9 @@ Chaque classe implémente `Phil\DddBundle\Domain\Exception\DomainError`.
 | Classe | Étend | Quand |
 |---|---|---|
 | `InvalidDimension` | `InvalidArgumentException` | Une locale mal formée ou non servie, l'`InvalidLocaleDimension` de `phil/locale-dimensions` gardée comme précédente ; une ligne fusionnée sur une autre qui n'est pas sa contrepartie |
-| `InvalidContent` | `InvalidArgumentException` | Une valeur de capacité, une référence, un slug, une URL ou un lien refusés |
+| `InvalidContent` | `InvalidArgumentException` | Une valeur de capacité, une référence, un slug, une URL ou un lien refusés ; une seconde racine d'un genre unique (`singleKindTaken()`) |
 | `ContentNotFound` | `RuntimeException` | Aucune ligne, racine, contenu en ligne, enregistrement automatique ou brouillon nommé là où il en faut un |
-| `SlugTaken` | `RuntimeException` | Le slug est l'adresse actuelle d'une autre racine |
+| `SlugTaken` | `RuntimeException` | Le slug est l'adresse actuelle d'une autre racine (`by()`), ou a été pris par une autre publication entre la vérification et l'écriture (`meanwhile()`) |
 | `TransitionRefused` | `RuntimeException` | Le workflow ne permet pas l'opération |
 
 ## Application
@@ -114,6 +116,7 @@ Chaque classe implémente `Phil\DddBundle\Domain\Exception\DomainError`.
 | `Publication\ScheduledPublication` | valeur | Une transition prévue pour un moment |
 | `Content\ContentRootFactory` | port | Construit une nouvelle racine d'un genre |
 | `Persistence\ContentTransaction` | port | L'unité de travail d'une opération |
+| `Exception\WriteConflict` | exception | Un vidage refusé par une clé unique qu'une autre transaction a prise entre-temps |
 | `Pipeline\DataMapper`, `Pipeline\Merger`, `Pipeline\Normalizer` | ports | Les trois étapes du pipeline |
 | `Pipeline\ContentDataMapper` | implémenté | Exécute chaque mappeur de données |
 | `Pipeline\ContentAggregator` | implémenté | Fusionne une ligne localisée par-dessus sa ligne partagée, le long d'une chaîne |
@@ -155,6 +158,7 @@ Chaque classe implémente `Phil\DddBundle\Domain\Exception\DomainError`.
 | `Mapping\CapabilityMapping` | Base abstraite des colonnes d'une capacité (point d'extension) |
 | `Mapping\TemplateCapabilityMapping`, `WorkflowCapabilityMapping`, `SeoCapabilityMapping`, `ExcerptCapabilityMapping`, `LinkCapabilityMapping`, `RoutableCapabilityMapping`, `BodyCapabilityMapping` | Les colonnes de chaque capacité |
 | `DoctrineWorkingCopyRepository` | Adaptateur de `WorkingCopyRepository` |
+| `DoctrineSingleRootRepository` | Adaptateur de `SingleRootRepository`, par des instructions de la connexion |
 | `Type\LocaleType`, `StageType`, `VersionType`, `DimensionContentIdType`, `RouteIdType`, `WorkingCopyIdType` | Les types DBAL |
 
 ### `Infrastructure\Http`
@@ -167,7 +171,7 @@ Chaque classe implémente `Phil\DddBundle\Domain\Exception\DomainError`.
 | `ContentCanonicalAddresses` | Adaptateur de `CanonicalAddresses` sur le routeur |
 | `ArchiveController` | Sert une version datée d'un contenu d'un genre archivé |
 | `ContentAdminController` | L'administration : liste, création, écran de modification, enregistrement automatique |
-| `FeedController`, `PreviewController`, `PreviewLinks` | Les flux Atom, les aperçus de brouillons et leurs liens signés |
+| `FeedController`, `PreviewController`, `PreviewLinks` | Les flux Atom, les aperçus de brouillons et leurs liens signés, liés au locataire ou à l'hôte, avec la version de leur signature |
 
 ### `Infrastructure\EasyAdmin`
 

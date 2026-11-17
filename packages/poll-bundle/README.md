@@ -50,6 +50,7 @@ until the poll next changes, when the application names one.
 | The voting interface: views, templates drawn with the kit's recipes, the reading of a posted form, the errors announced | Implemented and tested, in Chrome with the PHIL UX kit and the Shadcn kit |
 | The DOM event of revealed results, for the kit's celebration | Implemented and tested |
 | Doctrine and in-memory stores, the in-memory ones emptied between requests | Implemented and tested, on SQLite |
+| A ballot racing a closing kept before it or refused, the poll's openness checked in the write that keeps the ballot | Implemented and tested, on SQLite, MySQL 8.4 and PostgreSQL 17 |
 | Events naming the poll: created, ballot cast, changed, withdrawn, closed, deleted | Implemented and tested |
 | Routes and controllers for voting | Not part of the bundle: the bundles built on it and the application keep their own |
 | Grades, majority judgment; word clouds and brainstorms, free text calling for moderation | Not started: built when a site asks for them |

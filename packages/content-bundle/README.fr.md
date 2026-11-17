@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=23472356ea74e8930f0886a53caac0273e90ed35e4f0694e8e526b5eaaa16a9e -->
+<!-- phil-dev source-sha256=fbdc3d366d1243d79f5b7b302346e5a3e09595f73db7d5cf04a3c4f0ccb097b4 -->
 # phil/content-bundle
 
 **Des pages et des articles enregistrés par locale, par étape et par version, et publiés du brouillon à la version en
@@ -63,6 +63,8 @@ simples types du domaine.
 | Écrans d'administration par les services du bundle, reliés à EasyAdmin | Fait, testé dans un noyau |
 | Alimentation de recherche de `phil/search-bundle` (passages UJO par langue) | Fait, testé dans un noyau sur son adaptateur `dbal` |
 | Publication planifiée sur `phil/scheduled-transitions-bundle` | Fait, testé sur son `Scheduler` |
+| Requêtes simultanées : une seconde racine d'un genre unique et un slug pris par une autre publication refusés comme des erreurs du domaine | Fait, testé sur des ports en mémoire, sur SQLite, MySQL 8.4 et PostgreSQL 17, et dans un noyau |
+| Liens d'aperçu liés au locataire ou à l'hôte, avec la version de leur signature | Fait, testé sur des ports en mémoire |
 
 ## Documentation
 
@@ -71,12 +73,12 @@ simples types du domaine.
 | [Installation](doc/fr/installation.md) | Prérequis, les bundles du framework qui activent le stockage Doctrine et la couche de rendu, l'enregistrement du bundle et le schéma à migrer. |
 | [Configuration](doc/fr/configuration.md) | Chaque clé de `phil_content` — `locales`, `roots`, `entity_manager`, `routes`, `templates`, `default_template`, `preview`, `feed_limit`, `raw_html_role`, `singles`, `archives`, `search_index`, `admin` — avec types, valeurs par défaut, contraintes, un exemple annoté, et les services que chacune branche. |
 | [Racines, dimensions et chaînes de repli](doc/fr/dimensions.md) | `DimensionKey` et `Stage`, avec `Locale`, `Version`, `FallbackChain` et `DeclaredLocales` de `phil/locale-dimensions` : le modèle, ses invariants, et la lecture d'une dimension. |
-| [Stockage Doctrine](doc/fr/storage.md) | Les deux entités qu'écrit une application, les classes de base, l'écouteur de mappage, les types DBAL, les dépôts, les références et les identifiants, et le comportement de la transaction en cas d'échec. |
+| [Stockage Doctrine](doc/fr/storage.md) | Les deux entités qu'écrit une application, les classes de base, l'écouteur de mappage, les types DBAL, les dépôts, les références et les identifiants, la racine d'un genre unique, le comportement de la transaction en cas d'échec, et la mise à niveau depuis la version 0.1. |
 | [Capacités](doc/fr/capabilities.md) | Les sept capacités, leurs valeurs, colonnes et règles de validation, le chemin de compilation et de purification du corps, sa conversion en UJO à la publication, le HTML brut pour un rôle de confiance, et les adaptateurs de balisage par défaut. |
 | [Le pipeline](doc/fr/pipeline.md) | Mappeurs de données, fusionneurs et normaliseurs : les clés des données soumises (« Données soumises »), les règles de fusion, et la forme normalisée que reçoivent les gabarits. |
 | [Publication et versions](doc/fr/publication.md) | Les places et transitions du workflow, leur protection, publier et le refus d'une publication qui perd du contenu, les événements de page, dépublier, la planification, l'archive datée, retirer un brouillon, figer et créer des versions, et modifier. |
 | [Routage](doc/fr/routing.md) | La table de routes et ses invariants, le montage de `ContentController`, les routes à adresse fixe, ce que répond le contrôleur, et la génération d'URL. |
-| [Plan du site, flux et aperçus](doc/fr/sitemap-feeds-previews.md) | Les pages que les contenus donnent au plan du site, avec leurs variantes `hreflang`, le flux Atom d'un genre, et les liens signés vers un brouillon. |
+| [Plan du site, flux et aperçus](doc/fr/sitemap-feeds-previews.md) | Les pages que les contenus donnent au plan du site, avec leurs variantes `hreflang`, le flux Atom d'un genre, les liens signés vers un brouillon, leur portée et leur signature, et la mise à niveau depuis la version 0.1. |
 | [Rendu](doc/fr/rendering.md) | La résolution des gabarits, les variables que reçoit un gabarit, les fonctions Twig `content`, `content_single`, `content_archive`, `content_url`, `content_link_url`, `content_seo` et `content_schema`, et la page d'archive. |
 | [Administration et copies de travail](doc/fr/administration.md) | L'activation de l'administration, ses écrans et ses boutons, l'entrée de menu d'EasyAdmin, l'enregistrement automatique de chaque auteur, les brouillons nommés et le contrôleur Stimulus. |
 | [Recherche](doc/fr/search.md) | Les documents que les contenus publiés donnent à `phil/search-bundle` : leur texte par langue, filtres et identifiants. |

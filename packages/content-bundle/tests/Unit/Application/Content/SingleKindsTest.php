@@ -71,6 +71,46 @@ final class SingleKindsTest extends TestCase
         $contents->manager->create('example', 'en', ['slug' => 'home']);
     }
 
+    public function testASingleKindIsRecordedWithItsRootAndFreedWithIt(): void
+    {
+        $contents = new InMemoryContents(singles: ['example']);
+        $home = $contents->manager->create('example', 'fr', ['slug' => 'accueil']);
+
+        self::assertSame(['example' => $home->resourceId], $contents->singleRoots->roots);
+
+        $contents->manager->delete($home);
+        self::assertSame([], $contents->singleRoots->roots);
+        self::assertTrue($contents->manager->create('example', 'en', ['slug' => 'home'])->equals($contents->manager->single('example') ?? self::fail('Created again.')));
+    }
+
+    public function testAKindNotSingleIsNeitherRecordedNorFreed(): void
+    {
+        $contents = new InMemoryContents(singles: ['other']);
+        $news = $contents->manager->create('example', 'fr', ['slug' => 'nouvelle']);
+        self::assertSame([], $contents->singleRoots->roots);
+
+        $contents->singleRoots->roots['example'] = $news->resourceId;
+        $contents->manager->delete($news);
+
+        self::assertSame(['example' => $news->resourceId], $contents->singleRoots->roots);
+    }
+
+    public function testASecondRootRecordedMeanwhileIsRefused(): void
+    {
+        $contents = new InMemoryContents(singles: ['example']);
+        // Another request created the kind's root after this one found none.
+        $contents->singleRoots->roots['example'] = '99';
+
+        try {
+            $contents->manager->create('example', 'fr', ['slug' => 'accueil']);
+            self::fail('A second root was created.');
+        } catch (InvalidContent $invalidContent) {
+            self::assertSame('"example" is a single kind and already has its content: edit it instead.', $invalidContent->getMessage());
+        }
+
+        self::assertSame(['example' => '99'], $contents->singleRoots->roots);
+    }
+
     public function testASingleKindHasNoContentBeforeItIsCreated(): void
     {
         self::assertNull(new InMemoryContents(singles: ['example'])->manager->single('example'));

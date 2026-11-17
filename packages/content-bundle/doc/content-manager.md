@@ -63,10 +63,10 @@ with `InvalidDimension`. The refusals of the domain all implement `Phil\DddBundl
 | Exception | When |
 |---|---|
 | `InvalidDimension` | a locale malformed or not served |
-| `InvalidContent` | a submitted value refused, a malformed reference, a second root of a single kind |
+| `InvalidContent` | a submitted value refused, a malformed reference, a second root of a single kind, found before the creation or refused by the store when another creation recorded it meanwhile |
 | `PublicationLosesContent` | publishing would lose part of the body in UJO, and the losses were not accepted |
 | `ContentNotFound` | no root for the reference; no draft or no live row where one is needed; nothing published along the chain |
-| `SlugTaken` | the slug is the current address of another root of the same kind in the locale |
+| `SlugTaken` | the slug is the current address of another root of the same kind in the locale, found before the route is written or refused by the store when another publication took it meanwhile |
 | `TransitionRefused` | the workflow does not allow the operation from where the row stands, a guard of the application blocked it, or removing the draft would discard another locale's shared changes |
 
 An unknown resource key throws `InvalidContentMapping`, a `LogicException`: it is a mistake of the caller's code
@@ -82,6 +82,13 @@ when the operation is nested in the caller's transaction. A refusal of the domai
 open; a failure of the database during a flush (a unique index refusing a concurrent publication) closes it, as
 `doctrine/orm` closes it whenever a commit fails: a caller that catches the error and writes again resets the
 entity manager first (`ManagerRegistry::resetManager()`). See [storage.md](storage.md#transactions).
+
+Two requests at once end in an error of the domain, not of the database, where the bundle knows the key:
+
+- two creations of one single kind: the second is an `InvalidContent`, the entity manager left open;
+- two publications that take one slug in one locale: the second is a `SlugTaken`, its message naming the slug and
+  the locale; the entity manager is closed by the failed flush, and reading through it still works, which is how
+  the administration shows the refusal as it shows a slug found taken.
 
 ## From a Doctrine migration
 

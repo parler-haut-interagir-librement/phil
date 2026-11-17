@@ -8,16 +8,20 @@ use Override;
 use Phil\ContentBundle\Application\ContentManager;
 use Phil\ContentBundle\Application\ContentStatus;
 use Phil\ContentBundle\Application\Editing\ContentEditor;
+use Phil\ContentBundle\Application\Exception\WriteConflict;
 use Phil\ContentBundle\Application\Publication\ContentPublisher;
 use Phil\ContentBundle\Application\Publication\ContentVersions;
 use Phil\ContentBundle\Domain\Dimension\DimensionKey;
 use Phil\ContentBundle\Domain\Dimension\Stage;
+use Phil\ContentBundle\Domain\Exception\SlugTaken;
 use Phil\ContentBundle\Domain\Exception\TransitionRefused;
 use Phil\ContentBundle\Domain\ValueObject\ContentReference;
 use Phil\ContentBundle\Tests\Unit\Fixture\ExampleDimensionContent;
 use Phil\ContentBundle\Tests\Unit\Fixture\ExampleRoot;
 use Phil\ContentBundle\Tests\Unit\Fixture\InMemoryContents;
+use Phil\LocaleDimensions\Locale;
 use Phil\LocaleDimensions\Version;
+use Phil\Slug\Slug;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -40,6 +44,44 @@ final class ContentPublisherTest extends TestCase
     {
         $this->contents = new InMemoryContents();
         $this->manager = $this->contents->manager;
+    }
+
+    public function testASlugTakenByAnotherPublicationMeanwhileIsRefusedAsTaken(): void
+    {
+        $content = $this->manager->create('example', 'fr', ['slug' => 'course', 'excerptTitle' => 'Course']);
+        $this->contents->routes->takeElsewhere('example', Locale::fromString('fr'), Slug::fromString('course'));
+
+        try {
+            $this->manager->publish($content, 'fr');
+            self::fail('Published on a slug taken meanwhile.');
+        } catch (SlugTaken $slugTaken) {
+            self::assertSame('The slug "course" was just taken by another content in the locale "fr".', $slugTaken->getMessage());
+            self::assertInstanceOf(WriteConflict::class, $slugTaken->getPrevious());
+        }
+    }
+
+    public function testTheRowsAreFlushedApartFromTheRouteSoTheirConflictIsNotASlugTaken(): void
+    {
+        $content = $this->manager->create('example', 'fr', ['slug' => 'course', 'excerptTitle' => 'Course']);
+        // The flushes of a publication: the stale rows, then the live rows before the route, then the route.
+        $this->contents->transaction->conflictOnFlush(2);
+
+        $this->expectException(WriteConflict::class);
+
+        $this->manager->publish($content, 'fr');
+    }
+
+    public function testAConflictOnTheRowsIsNotASlugTaken(): void
+    {
+        $content = $this->manager->create('example', 'fr', ['slug' => 'course', 'excerptTitle' => 'Course']);
+        $this->manager->publish($content, 'fr');
+        $this->manager->edit($content, 'fr', ['excerptTitle' => 'Autre']);
+        // The route is the same: a conflict now comes from another write than the slug's.
+        $this->contents->routes->takeElsewhere('example', Locale::fromString('fr'), Slug::fromString('course'));
+
+        $this->expectException(WriteConflict::class);
+
+        $this->manager->publish($content, 'fr');
     }
 
     /**

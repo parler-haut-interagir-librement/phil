@@ -45,6 +45,7 @@
         "phil/resource": "^0.1@dev",
         "phil/scheduled-transitions-bundle": "^0.1@dev",
         "phil/search-bundle": "^0.1@dev",
+        "phil/tenancy-bundle": "^0.1@dev",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",
         "symfony/browser-kit": "^8.2",
@@ -64,6 +65,7 @@
         "easycorp/easyadmin-bundle": "For the link of the administration in an EasyAdmin back office (ContentAdmin)",
         "phil/scheduled-transitions-bundle": "To publish and take offline at a set moment (PublicationSchedule)",
         "phil/search-bundle": "To feed the published contents to a search index (ContentDocumentProvider)",
+        "phil/tenancy-bundle": "To bind the preview links to the active tenant rather than to the host",
         "symfony/security-core": "To let a trusted role publish raw HTML (raw_html_role), and for the administration (admin.enabled)",
         "symfony/security-csrf": "For the administration (admin.enabled), with symfony/security-core",
         "symfony/translation": "For the administration in English and French"
@@ -82,7 +84,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.1.x-dev"
+            "dev-main": "0.2.x-dev"
         }
     }
 }

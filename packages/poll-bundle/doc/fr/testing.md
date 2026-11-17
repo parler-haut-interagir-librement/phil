@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=833f453522b8e05c01d23bfd0ab749c81ccd8a2dae986a50375225e8e1b42ab9 -->
+<!-- phil-dev source-sha256=62f41cbfe3d56e54b983e41b27ad7998757858dc7ee476f8c686eb7c45445629 -->
 # Tests
 
 ## Les tests du bundle
@@ -20,6 +20,13 @@ TwigComponentBundle, avec les recettes du kit PHIL UX copiées là où le Toolki
 dépouillé par une méthode de l'application et entendu par un écouteur, et dessine les gabarits en anglais et en
 français, leurs blocs remplacés par un gabarit qui les intègre ; puis les dessine de nouveau avec les recettes du kit Shadcn du
 Symfony UX Toolkit.
+
+La suite `tests/Integration` fait tourner un bulletin et une fermeture sur deux connexions à une même base de données :
+la requête du votant lit le sondage ouvert, celle du gestionnaire le ferme et valide, puis celle du votant écrit son
+bulletin. Un bulletin déposé, anonyme ou non, modifié, modifié par reçu et retiré est chacun refusé avec `VoteRefused`,
+et les bulletins gardés sont ceux d'avant la fermeture. Elle tourne sur SQLite, sur un fichier de base de données du
+répertoire temporaire, et sur MySQL 8.4 et PostgreSQL 17 quand `PHIL_TEST_MYSQL_URL` et `PHIL_TEST_POSTGRESQL_URL`
+nomment un serveur ; sans elles, ces tests sont sautés.
 
 La suite `tests/Browser` ouvre les pages de cette application dans Chrome, par Panther et le chromedriver du système,
 avec chaque kit : chaque sorte de bulletin remplie et envoyée au clavier seulement, un bulletin blanc, un bulletin

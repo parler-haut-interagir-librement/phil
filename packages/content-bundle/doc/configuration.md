@@ -175,7 +175,9 @@ that is not `TemplateCapable`. Without it, such a row makes `TemplateResolver::r
 | Default | `secret: '%kernel.secret%'`, `ttl: 604800` (a week) |
 | Wires | `Phil\ContentBundle\Infrastructure\Http\PreviewLinks` |
 
-What preview links are signed with, and how many seconds they stay valid ([sitemap-feeds-previews.md](sitemap-feeds-previews.md)).
+What preview links are signed with, and how many seconds they stay valid. A link is bound to the active tenant of
+`phil/tenancy-bundle` when the bundle is installed and a tenant is active, to its host otherwise, so the secret may be
+shared ([sitemap-feeds-previews.md](sitemap-feeds-previews.md#the-scope-of-a-link)).
 
 ### `feed_limit`
 
@@ -214,8 +216,9 @@ by a publisher who holds it. A working copy keeps the role of the editor who sav
 
 The kinds that have a single content: the home page, the contact details, the « about » page. `ContentManager::create()`
 refuses a second root of such a kind, `ContentManager::single()` finds its root, and the Twig function
-`content_single()` reads it ([content-manager.md](content-manager.md), [rendering.md](rendering.md#twig-functions)). A
-key that is not a resource key — a lower-case letter, then up to 63 lower-case letters, digits or `_` — is refused.
+`content_single()` reads it ([content-manager.md](content-manager.md), [rendering.md](rendering.md#twig-functions)). With
+DoctrineBundle, the table `phil_content_single_root` refuses a second root that two creations at once would write
+([storage.md](storage.md#the-root-of-a-single-kind)). A key that is not a resource key — a lower-case letter, then up to 63 lower-case letters, digits or `_` — is refused.
 
 ### `archives`
 
@@ -276,7 +279,7 @@ them by class.
 | `TemplateResolver` | always | `templates`, `default_template` |
 | `ResourceRoutes` | always | `routes` |
 | `ContentRoots`, `DimensionContentMappingListener`, the capability mappings | with DoctrineBundle | `roots` |
-| `DoctrineDimensionContentRepository`, `DoctrineRouteRepository`, `DoctrineContentRootRepository`, `DoctrinePublishedRowRepository`, `DoctrineContentTransaction`, `ConstructorContentRootFactory`, aliased to their ports | with DoctrineBundle | `entity_manager`, `roots` |
+| `DoctrineDimensionContentRepository`, `DoctrineRouteRepository`, `DoctrineContentRootRepository`, `DoctrinePublishedRowRepository`, `DoctrineContentTransaction`, `DoctrineSingleRootRepository`, `ConstructorContentRootFactory`, aliased to their ports | with DoctrineBundle | `entity_manager`, `roots` |
 | the five `phil:content:*` commands | with DoctrineBundle | — |
 | `ContentController`, `ContentUrlGenerator`, `ContentExtension`, `ContentRuntime` | with DoctrineBundle and TwigBundle | `routes`, `templates`, `default_template` |
 | `ContentUrlProvider`, `FeedController`, `PreviewController`, `PreviewLinks`, `phil:content:preview-link` | with DoctrineBundle and TwigBundle | `routes`, `preview`, `feed_limit` |

@@ -57,6 +57,8 @@ normalizers reads and writes them. The design follows the content storage of [Su
 | Administration pages through the bundle's services, linked from EasyAdmin | Done, tested in a kernel |
 | Search feed of `phil/search-bundle` (UJO passages by language) | Done, tested in a kernel on its `dbal` adapter |
 | Scheduled publication on `phil/scheduled-transitions-bundle` | Done, tested over its `Scheduler` |
+| Requests at once: a second root of a single kind and a slug taken by another publication refused as errors of the domain | Done, tested over in-memory ports, on SQLite, MySQL 8.4 and PostgreSQL 17, and in a kernel |
+| Preview links bound to the tenant or the host, with the version of their signature | Done, tested over in-memory ports |
 
 ## Documentation
 
@@ -65,12 +67,12 @@ normalizers reads and writes them. The design follows the content storage of [Su
 | [Installation](doc/installation.md) | Requirements, the framework bundles that switch on the Doctrine storage and the rendering layer, registering the bundle, and the schema to migrate. |
 | [Configuration](doc/configuration.md) | Every key of `phil_content` — `locales`, `roots`, `entity_manager`, `routes`, `templates`, `default_template`, `preview`, `feed_limit`, `raw_html_role`, `singles`, `archives`, `search_index`, `admin` — with types, defaults, constraints, an annotated example, and the services each one wires. |
 | [Roots, dimensions and fallback chains](doc/dimensions.md) | `DimensionKey` and `Stage`, with `Locale`, `Version`, `FallbackChain` and `DeclaredLocales` of `phil/locale-dimensions`: the model, its invariants, and how one dimension is read. |
-| [Doctrine storage](doc/storage.md) | The two entities an application writes, the base classes, the mapping listener, the DBAL types, the repositories, references and identifiers, and the transaction's behaviour on failure. |
+| [Doctrine storage](doc/storage.md) | The two entities an application writes, the base classes, the mapping listener, the DBAL types, the repositories, references and identifiers, the root of a single kind, the transaction's behaviour on failure, and the upgrade from 0.1. |
 | [Capabilities](doc/capabilities.md) | The seven capabilities, their values, columns and validation rules, the body's compile-and-purify path, its conversion into UJO on publication, raw HTML for a trusted role, and the default markup adapters. |
 | [The pipeline](doc/pipeline.md) | Data mappers, mergers and normalizers: the submitted data keys ("Submitted data"), the merge rules, and the normalized form templates receive. |
 | [Publication and versions](doc/publication.md) | The workflow's places and transitions, guarding them, publishing and the refusal of a publication that loses content, the page events, unpublishing, scheduling, the dated archive, removing a draft, freezing and forking versions, and editing. |
 | [Routing](doc/routing.md) | The route table and its invariants, mounting `ContentController`, routes of a fixed address, what the controller answers, and URL generation. |
-| [Sitemap, feeds and previews](doc/sitemap-feeds-previews.md) | The pages the contents give the sitemap, with `hreflang` alternates, the Atom feed of a kind, and signed links to a draft. |
+| [Sitemap, feeds and previews](doc/sitemap-feeds-previews.md) | The pages the contents give the sitemap, with `hreflang` alternates, the Atom feed of a kind, signed links to a draft, their scope and signature, and the upgrade from 0.1. |
 | [Rendering](doc/rendering.md) | Template resolution, the variables a template receives, the Twig functions `content`, `content_single`, `content_archive`, `content_url`, `content_link_url`, `content_seo` and `content_schema`, and the archive page. |
 | [Administration and working copies](doc/administration.md) | Enabling the administration, its pages and buttons, the EasyAdmin menu item, the autosave of each author, named drafts, and the Stimulus controller. |
 | [Search](doc/search.md) | The documents the published contents give `phil/search-bundle`: their text by language, filters and identifiers. |

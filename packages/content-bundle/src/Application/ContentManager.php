@@ -17,6 +17,7 @@ use Phil\ContentBundle\Application\Publication\PageEvents;
 use Phil\ContentBundle\Domain\Capability\RoutableCapable;
 use Phil\ContentBundle\Domain\Capability\WorkflowCapable;
 use Phil\ContentBundle\Domain\Content\ContentRoot;
+use Phil\ContentBundle\Domain\Contract\SingleRootRepository;
 use Phil\ContentBundle\Domain\Contract\WorkingCopyRepository;
 use Phil\ContentBundle\Domain\Dimension\DimensionKey;
 use Phil\ContentBundle\Domain\Dimension\DimensionLocales;
@@ -69,12 +70,14 @@ final readonly class ContentManager
         private ?PageEvents $pages = null,
         private ?SingleKinds $singles = null,
         private ?WorkingCopyRepository $workingCopies = null,
+        private ?SingleRootRepository $singleRoots = null,
     ) {
     }
 
     /**
      * Creates a root of `$resourceKey` and its first draft in `$locale`, version 1, `unpublished`. A single kind
-     * (`phil_content.singles`) is created once: its second root is refused.
+     * (`phil_content.singles`) is created once: its second root is refused, when it exists already and, through the
+     * `SingleRootRepository`, when another creation records it in the meantime.
      *
      * @param array<string, mixed> $data
      *
@@ -83,17 +86,22 @@ final readonly class ContentManager
     public function create(string $resourceKey, Locale|string $locale, array $data = []): ContentReference
     {
         $locale = $this->served($locale);
+        $single = true === $this->singles?->isSingle($resourceKey);
 
-        if (true === $this->singles?->isSingle($resourceKey) && $this->single($resourceKey) instanceof ContentReference) {
-            throw InvalidContent::because(\sprintf('"%s" is a single kind and already has its content: edit it instead.', $resourceKey));
+        if ($single && $this->single($resourceKey) instanceof ContentReference) {
+            throw InvalidContent::singleKindTaken($resourceKey);
         }
 
-        return $this->transaction->run(function () use ($resourceKey, $locale, $data): ContentReference {
+        return $this->transaction->run(function () use ($resourceKey, $locale, $data, $single): ContentReference {
             $root = $this->factory->create($resourceKey);
             $this->roots->add($root);
             // A root whose identifier the database generates has one once flushed.
             $this->transaction->flush();
             $reference = $this->roots->referenceOf($root);
+
+            if ($single) {
+                $this->singleRoots?->claim($reference);
+            }
 
             $this->editor->edit($root, $reference, $locale, $data);
 
@@ -165,8 +173,8 @@ final readonly class ContentManager
 
     /**
      * Deletes a root, every row of it in both stages and every version, its working copies, and every route of it,
-     * current and history: its addresses are free again, for another root of the same kind. Each locale that was live dispatches
-     * `PageRetired` once the root is gone.
+     * current and history: its addresses are free again, for another root of the same kind. The root of a single kind
+     * frees its kind. Each locale that was live dispatches `PageRetired` once the root is gone.
      *
      * @throws DomainError
      */
@@ -189,6 +197,10 @@ final readonly class ContentManager
 
             foreach ($this->routes->findAllOf($reference) as $route) {
                 $this->routes->remove($route);
+            }
+
+            if (true === $this->singles?->isSingle($reference->resourceKey)) {
+                $this->singleRoots?->release($reference);
             }
 
             if ($this->workingCopies instanceof WorkingCopyRepository) {

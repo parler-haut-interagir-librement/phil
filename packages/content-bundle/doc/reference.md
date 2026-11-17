@@ -21,6 +21,7 @@ here is implemented and tested; what is not started is listed at the end.
 | `AbstractContentRoot` | implemented, mapped superclass | Base of the application's root entities: `dimensionContentClass()`, `resourceKey()` |
 | `AbstractDimensionContent` | implemented, mapped superclass | Base of the application's row entities: identifier and dimension columns, final constructor |
 | `DimensionContentId` | implemented | UUIDv7 surrogate identifier of a row (`Identifier` of `phil/ddd-bundle`) |
+| `SingleRoot` | implemented, entity | Entity of `phil_content_single_root`: the one root of a single kind, its resource key the primary key |
 
 ### `Domain\Dimension`
 
@@ -73,6 +74,7 @@ here is implemented and tested; what is not started is listed at the end.
 | Interface | Kind | Role |
 |---|---|---|
 | `WorkingCopyRepository` | port | Autosaves by author, named drafts by name, every working copy of a content |
+| `SingleRootRepository` | port | The recorded root of each single kind, a second one refused by the store |
 
 ### `Domain\Repository`
 
@@ -91,9 +93,9 @@ Every class implements `Phil\DddBundle\Domain\Exception\DomainError`.
 | Class | Extends | When |
 |---|---|---|
 | `InvalidDimension` | `InvalidArgumentException` | A malformed locale or one not served, the `InvalidLocaleDimension` of `phil/locale-dimensions` kept as previous; a row merged over one that is not its counterpart |
-| `InvalidContent` | `InvalidArgumentException` | A capability value, reference, slug, URL or link refused |
+| `InvalidContent` | `InvalidArgumentException` | A capability value, reference, slug, URL or link refused; a second root of a single kind (`singleKindTaken()`) |
 | `ContentNotFound` | `RuntimeException` | No row, root, live content, autosave or named draft where one is needed |
-| `SlugTaken` | `RuntimeException` | The slug is another root's current address |
+| `SlugTaken` | `RuntimeException` | The slug is another root's current address (`by()`), or was taken by another publication between the check and the write (`meanwhile()`) |
 | `TransitionRefused` | `RuntimeException` | The workflow does not allow the operation |
 
 ## Application
@@ -113,6 +115,7 @@ Every class implements `Phil\DddBundle\Domain\Exception\DomainError`.
 | `Publication\ScheduledPublication` | value | A transition planned for a moment |
 | `Content\ContentRootFactory` | port | Builds a new root of a kind |
 | `Persistence\ContentTransaction` | port | The unit of work of an operation |
+| `Exception\WriteConflict` | exception | A flush refused by a unique key another transaction took meanwhile |
 | `Pipeline\DataMapper`, `Pipeline\Merger`, `Pipeline\Normalizer` | ports | The three pipeline stages |
 | `Pipeline\ContentDataMapper` | implemented | Runs every data mapper |
 | `Pipeline\ContentAggregator` | implemented | Merges a localized row over its shared row, along a chain |
@@ -154,6 +157,7 @@ Every class implements `Phil\DddBundle\Domain\Exception\DomainError`.
 | `Mapping\CapabilityMapping` | Abstract base of the columns of one capability (extension point) |
 | `Mapping\TemplateCapabilityMapping`, `WorkflowCapabilityMapping`, `SeoCapabilityMapping`, `ExcerptCapabilityMapping`, `LinkCapabilityMapping`, `RoutableCapabilityMapping`, `BodyCapabilityMapping` | The columns of each capability |
 | `DoctrineWorkingCopyRepository` | Adapter of `WorkingCopyRepository` |
+| `DoctrineSingleRootRepository` | Adapter of `SingleRootRepository`, by statements of the connection |
 | `Type\LocaleType`, `StageType`, `VersionType`, `DimensionContentIdType`, `RouteIdType`, `WorkingCopyIdType` | The DBAL types |
 
 ### `Infrastructure\Http`
@@ -166,7 +170,7 @@ Every class implements `Phil\DddBundle\Domain\Exception\DomainError`.
 | `ContentCanonicalAddresses` | Adapter of `CanonicalAddresses` over the router |
 | `ArchiveController` | Serves one dated version of a content of an archived kind |
 | `ContentAdminController` | The administration: list, creation, editing page, autosave |
-| `FeedController`, `PreviewController`, `PreviewLinks` | Atom feeds, previews of drafts and their signed links |
+| `FeedController`, `PreviewController`, `PreviewLinks` | Atom feeds, previews of drafts and their signed links, bound to the tenant or the host, with the version of their signature |
 
 ### `Infrastructure\EasyAdmin`
 

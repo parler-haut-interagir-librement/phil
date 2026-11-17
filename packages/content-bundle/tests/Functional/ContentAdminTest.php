@@ -12,6 +12,7 @@ use Phil\ContentBundle\Application\Editing\WorkingCopies;
 use Phil\ContentBundle\Domain\ValueObject\ContentReference;
 use Phil\ContentBundle\Infrastructure\EasyAdmin\ContentAdmin;
 use Phil\ContentBundle\Infrastructure\Http\ContentAdminController;
+use Phil\ContentBundle\Tests\Functional\App\SlugTakenMeanwhile;
 use Phil\ContentBundle\Tests\Functional\App\TestKernel;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -134,6 +135,24 @@ final class ContentAdminTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(422);
         self::assertCount(1, $crawler->filter('[role=alert]'));
+        self::assertSame('Gardé', $crawler->filter('#phil-content-excerptTitle')->attr('value'));
+    }
+
+    public function testASlugTakenByAnotherPublicationMeanwhileIsShownAsTaken(): void
+    {
+        $news = $this->contents()->create('news', 'fr', ['slug' => 'course', 'excerptTitle' => 'Course']);
+        $this->signIn('alice');
+        $crawler = $this->client->request('GET', $this->page($news));
+        // The listener set here is the one the next request runs.
+        $this->client->disableReboot();
+        $taken = $this->client->getContainer()->get(SlugTakenMeanwhile::class);
+        self::assertInstanceOf(SlugTakenMeanwhile::class, $taken);
+        $taken->slug = 'course';
+
+        $crawler = $this->client->submit($crawler->selectButton('Publish')->form(['content[excerptTitle]' => 'Gardé']));
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSame('The slug "course" was just taken by another content in the locale "fr".', $crawler->filter('[role=alert]')->text());
         self::assertSame('Gardé', $crawler->filter('#phil-content-excerptTitle')->attr('value'));
     }
 

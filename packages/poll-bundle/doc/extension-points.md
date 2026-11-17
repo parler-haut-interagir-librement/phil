@@ -72,6 +72,18 @@ ballots live; the bundle ships Doctrine and in-memory stores. Another store keep
 together or not at all, refuses a second ballot of a voter with `AlreadyVoted`, and streams the ballots of a count
 rather than loading them at once.
 
+Another store of polls implements `raiseRevisionWhileOpen($id, $at, $write)` as one atomic step: it checks that the
+poll is open at `$at` on the poll as it is now in the store — not on an object read earlier —, runs `$write`, and
+raises the revision, all or nothing, and keeps a closing from committing between the check and the write. A
+conditional `UPDATE` whose affected rows are counted, or a lock on the poll's row, does it; returning `false` without
+calling `$write` is the refusal.
+
+### Upgrading a store from 0.2
+
+`raiseRevisionWhileOpen()` is new in `PollRepository` in 0.3: a store of polls written for 0.2 implements it before it
+runs with 0.3. `Polls` no longer calls `raiseRevision()` for a ballot, only for a closing and a new schedule. The
+bundle's own stores need nothing: the Doctrine store uses the columns the table already has, without a migration.
+
 ## The templates
 
 `@PhilPoll/ballot.html.twig` and `@PhilPoll/results.html.twig` have blocks an embedding page replaces: `choices`,

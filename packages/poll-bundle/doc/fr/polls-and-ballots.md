@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=893827bc446f53fc90a9bc12fff6f41c8797bf526c33d164533821af2b14c0d7 -->
+<!-- phil-dev source-sha256=70525d6f7cf6314236b2ccf7d7add3c043f475eaaa34246229f343fd3572543c -->
 # Sondages et bulletins
 
 ## Créer un sondage
@@ -83,6 +83,24 @@ formulaire ou une requête, un tableau de n'importe quoi ; les vérifications so
 
 Un votant a un bulletin par sondage : un deuxième `cast()` lève `AlreadyVoted`. Les contraintes uniques des tables
 arrêtent deux requêtes qui se disputent le dépôt du bulletin d'un même votant.
+
+## Un bulletin et une fermeture en même temps
+
+Un bulletin n'est écrit que tant que le sondage est ouvert, et le stockage le vérifie dans la même écriture. `Polls`
+lit le sondage et refuse un bulletin quand il n'est pas ouvert ; puis `PollRepository::raiseRevisionWhileOpen()` garde
+le bulletin dans une transaction qui augmente d'abord la révision du sondage par un `UPDATE` dont le `WHERE` contient
+l'ouverture, la fermeture et la fermeture à la main, et n'écrit le bulletin que si cette instruction a changé la ligne.
+Un bulletin déposé, modifié, modifié par reçu ou retiré pendant qu'un gestionnaire ferme le sondage est donc l'une de
+deux choses :
+
+- gardé avant la fermeture : l'`UPDATE` verrouille la ligne du sondage jusqu'à la validation du bulletin, et la
+  fermeture l'attend ;
+- refusé avec `VoteRefused` (`This poll is not open.`), quand la fermeture a validé la première : rien du bulletin n'est
+  écrit, sa participation comprise, et un bulletin modifié garde ses choix précédents.
+
+Il en va de même d'un nouvel horaire et d'une suppression validés entre-temps. Un refus est l'erreur du domaine, jamais
+une exception de la base de données. L'instant comparé est celui de l'horloge donnée au bundle, en UTC à la seconde,
+comme le sondage garde ses dates.
 
 ## Gérer un sondage
 

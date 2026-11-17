@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Phil\ContentBundle\Tests\Unit\Fixture;
 
+use Phil\ContentBundle\Application\Exception\WriteConflict;
 use Phil\ContentBundle\Domain\Repository\RouteRepository;
 use Phil\ContentBundle\Domain\Routing\Route;
 use Phil\ContentBundle\Domain\ValueObject\ContentReference;
 use Phil\LocaleDimensions\Locale;
 use Phil\Slug\Slug;
+use RuntimeException;
 
 final class InMemoryRouteRepository implements RouteRepository
 {
@@ -16,6 +18,35 @@ final class InMemoryRouteRepository implements RouteRepository
      * @var list<Route>
      */
     private array $routes = [];
+
+    /**
+     * The slugs another request is writing, by `resource key, locale, slug`: not found by a lookup, refused at the flush.
+     *
+     * @var list<string>
+     */
+    private array $elsewhere = [];
+
+    /**
+     * Another request takes the slug, as a transaction that commits after this one looked it up.
+     */
+    public function takeElsewhere(string $resourceKey, Locale $locale, Slug $slug): void
+    {
+        $this->elsewhere[] = $this->key($resourceKey, $locale, $slug);
+    }
+
+    /**
+     * Refuses a route whose slug another request took, as the unique index does.
+     *
+     * @throws WriteConflict
+     */
+    public function flush(): void
+    {
+        foreach ($this->routes as $route) {
+            if (\in_array($this->key($route->content()->resourceKey, $route->locale(), $route->slug()), $this->elsewhere, true)) {
+                throw WriteConflict::onFlush(new RuntimeException('The unique index refused the route.'));
+            }
+        }
+    }
 
     public function findBySlug(string $resourceKey, Locale $locale, Slug $slug): ?Route
     {
@@ -76,5 +107,10 @@ final class InMemoryRouteRepository implements RouteRepository
         sort($lines);
 
         return $lines;
+    }
+
+    private function key(string $resourceKey, Locale $locale, Slug $slug): string
+    {
+        return $resourceKey.' '.$locale->value.' '.$slug->value;
     }
 }

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=25843744bc4d74e6f4493554d5d6c7be059f1ead4d84ff3c7bf7266368e35cda -->
+<!-- phil-dev source-sha256=27dfeccdbfb01b7e7be8e542898d51248c3a1fa8b48782aa83f4445663b0ef0e -->
 # Stockage Doctrine
 
 Avec DoctrineBundle, le bundle enregistre les racines, les lignes et les routes par l'ORM. L'application écrit **deux
@@ -219,6 +219,36 @@ locale ([administration.md](administration.md#copies-de-travail)).
 `DoctrineWorkingCopyRepository` implémente son port, `Domain\Contract\WorkingCopyRepository` ; il n'écrit rien
 lui-même, dans la transaction de l'appelant.
 
+## La racine d'un genre unique
+
+`SingleRoot` est une entité du bundle, associée avec les racines de contenu, sur sa propre table :
+
+| Colonne | Type | Contient |
+|---|---|---|
+| `resource_key` | chaîne de 64, clé primaire | le genre unique (`phil_content.singles`) |
+| `resource_id` | chaîne de 64 | l'identifiant de sa racine |
+
+`ContentManager::create()` écrit la ligne d'un genre unique dans la transaction qui crée sa racine, une fois que la
+racine a son identifiant, et `ContentManager::delete()` la retire avec la racine. Deux créations du genre simultanées
+ne trouvent toutes deux aucune racine et en créent chacune une ; **la clé primaire refuse la seconde ligne**, et
+`DoctrineSingleRootRepository`, l'adaptateur de `Domain\Contract\SingleRootRepository`, transforme le refus en la même
+`InvalidContent` qu'une création qui trouve déjà la racine. La ligne est écrite par une instruction de la connexion,
+aussitôt, non par l'unité de travail : le refus laisse le gestionnaire d'entités ouvert, et la transaction de la
+création est annulée, racine comprise. Les racines des autres genres n'ont aucune ligne.
+
+### Mise à niveau depuis la version 0.1
+
+La table est nouvelle. Migrez le schéma :
+
+```bash
+bin/console doctrine:migrations:diff
+bin/console doctrine:migrations:migrate
+```
+
+Les genres uniques créés avec la version 0.1 n'ont besoin d'aucune ligne : `ContentManager::create()` cherche encore
+d'abord une racine existante et en refuse une seconde, et la ligne est écrite à la prochaine création du genre. Un genre
+qui contient déjà deux racines les garde ; supprimez celle dont vous ne voulez pas avec `ContentManager::delete()`.
+
 ## Construire des racines
 
 `ContentManager::create()` construit une nouvelle racine par le port `ContentRootFactory`. L'adaptateur Doctrine,
@@ -235,7 +265,10 @@ public, est refusée par `InvalidContentMapping` ; faites de `ContentRootFactory
   la base et valide. **Dans une transaction déjà ouverte** — celle d'une migration Doctrine, celle de l'appelant —,
   DBAL l'imbrique dans un point de sauvegarde ;
 - `flush()` écrit ce qui est en attente dans la transaction en cours : une ligne retirée et une ligne de la même
-  dimension ajoutée doivent atteindre la base de données dans cet ordre, ce qu'un seul vidage ne promet pas.
+  dimension ajoutée doivent atteindre la base de données dans cet ordre, ce qu'un seul vidage ne promet pas. Un index
+  unique qui la refuse devient une `WriteConflict` (`Application\Exception`), dont l'exception précédente est celle de
+  Doctrine : l'opération qui a vidé nomme la clé dans les mots du domaine. `ContentPublisher` écrit la route d'une
+  publication par un vidage à elle, et une `WriteConflict` à cet endroit est une `SlugTaken`.
 
 En cas d'échec, elle annule, **vide l'unité de travail** et relance l'exception :
 
