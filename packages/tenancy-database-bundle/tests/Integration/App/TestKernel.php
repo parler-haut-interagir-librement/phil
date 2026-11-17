@@ -156,6 +156,7 @@ final class TestKernel extends Kernel
         }
 
         $services->set(TenantsController::class)->tag('controller.service_arguments')->public();
+        $services->set(ClearRecorder::class)->tag('doctrine.event_listener', ['event' => 'onClear'])->public();
 
         $container->extension('phil_tenancy', [
             'hosts' => ['retail.test' => 'retail', 'wholesale.test' => 'wholesale', 'newcomer.test' => 'newcomer'],
@@ -177,5 +178,7 @@ final class TestKernel extends Kernel
     {
         $routes->add('invoices', '/invoices')->controller([TenantsController::class, 'invoices']);
         $routes->add('both', '/both')->controller([TenantsController::class, 'both']);
+        $routes->add('worker', '/worker')->controller([TenantsController::class, 'worker']);
+        $routes->add('fail', '/fail')->controller([TenantsController::class, 'fail']);
     }
 }

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7c8a2115cd88127c861b685536b58fd51fce68a2d355888a491186dcc068f835 -->
+<!-- phil-dev source-sha256=20bc8158c6a91e61a6da827bf6cea683e8fa5aacdab9df5343d7de37e40946fd -->
 # Configuration
 
 ```yaml
@@ -45,6 +45,7 @@ phil_tenancy_database:
 | `TenantDatabaseRouter` | toujours ; réinitialisé avec le noyau |
 | `TenantDatabaseMiddleware` | toujours, étiqueté `doctrine.middleware` pour `connection` |
 | `TenantConnectionSwitch` | toujours, étiqueté `phil_tenancy.activation` et réinitialisé avec le noyau |
+| `RollBackOpenTransactions` | toujours, à l'écoute de `kernel.terminate` ; de `console.terminate` avec le composant Console, et de `WorkerMessageHandledEvent` et `WorkerMessageFailedEvent` avec Messenger. Voir [Les *workers*](connection.md#les-workers) |
 | `ConfiguredPlacements`, avec l'alias `TenantPlacement` | quand `placement` vaut `null` |
 | `DbalPlacementStore`, avec l'alias `TenantPlacement` | avec `placement: dbal` ; pour un identifiant de service, `TenantPlacement` est un alias de ce service |
 | `DbalTenantDatabaseAvailability`, avec l'alias `TenantDatabaseAvailability` | avec `availability: dbal`, la valeur par défaut |

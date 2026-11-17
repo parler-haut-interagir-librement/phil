@@ -9,6 +9,7 @@ use Override;
 use Phil\DddBundle\Domain\Exception\InvalidValue;
 use Phil\TenancyBundle\Application\Contract\TenantPlacement;
 use Phil\TenancyBundle\Application\TenantContext;
+use Phil\TenancyBundle\Infrastructure\Console\TenantOption;
 use Phil\TenancyBundle\Infrastructure\Http\ResolveActiveTenant;
 use Phil\TenancyBundle\Infrastructure\Http\ResolveHostTenant;
 use Phil\TenancyBundle\PhilTenancyBundle;
@@ -22,6 +23,7 @@ use Phil\TenancyDatabaseBundle\Infrastructure\Console\MigrationTargets;
 use Phil\TenancyDatabaseBundle\Infrastructure\Console\MoveTenantCommand;
 use Phil\TenancyDatabaseBundle\Infrastructure\Database\TenantDatabaseCreator;
 use Phil\TenancyDatabaseBundle\Infrastructure\Doctrine\PinnedConnection;
+use Phil\TenancyDatabaseBundle\Infrastructure\Doctrine\RollBackOpenTransactions;
 use Phil\TenancyDatabaseBundle\Infrastructure\Doctrine\StoreSchemaListener;
 use Phil\TenancyDatabaseBundle\Infrastructure\Doctrine\TenantConnectionSwitch;
 use Phil\TenancyDatabaseBundle\Infrastructure\Doctrine\TenantDatabaseMiddleware;
@@ -38,11 +40,15 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Alias;
+use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 
 #[CoversClass(PhilTenancyDatabaseBundle::class)]
 final class PhilTenancyDatabaseBundleTest extends TestCase
@@ -125,6 +131,31 @@ final class PhilTenancyDatabaseBundleTest extends TestCase
         self::assertSame(['doctrine.dbal.default_connection', TenantDatabaseRouter::class, $placement, 'doctrine', 'logger'], $this->arguments($container, TenantConnectionSwitch::class));
         self::assertSame([TenantContext::class, TenantAvailabilityGuard::class, 120], $this->arguments($container, RefuseUnavailableTenant::class));
         self::assertSame([['%kernel.project_dir%/bin/console', 'doctrine:migrations:migrate', '--no-interaction', '--allow-no-migration'], $availability, 4, 3600.0, null, 10.0], $this->arguments($container, MigrationRunner::class));
+    }
+
+    public function testTheOpenTransactionsAreRolledBackAtTheEndOfEachUnitOfWork(): void
+    {
+        $container = $this->load([]);
+        $rollback = $container->getDefinition(RollBackOpenTransactions::class);
+
+        self::assertSame([
+            ['event' => 'kernel.terminate', 'method' => 'endUnitOfWork', 'priority' => -2048],
+            ['event' => 'console.terminate', 'method' => 'endUnitOfWork', 'before' => [TenantOption::class]],
+            ['event' => WorkerMessageHandledEvent::class, 'method' => 'endUnitOfWork', 'priority' => -2048],
+            ['event' => WorkerMessageFailedEvent::class, 'method' => 'endUnitOfWork', 'priority' => -2048],
+        ], $rollback->getTag('kernel.event_listener'));
+        self::assertSame(-2048, PhilTenancyDatabaseBundle::ROLLBACK_PRIORITY);
+        self::assertSame([['doctrine.dbal.default_connection', PhilTenancyDatabaseBundle::STORE_CONNECTION], TenantContext::class, 'logger'], $this->rollbackArguments($container));
+        $logger = $rollback->getArgument(2);
+        self::assertInstanceOf(Reference::class, $logger);
+        self::assertSame(ContainerInterface::NULL_ON_INVALID_REFERENCE, $logger->getInvalidBehavior());
+    }
+
+    public function testTheRollbackSkipsTheStoreConnectionOfTheApplication(): void
+    {
+        self::assertSame([['doctrine.dbal.tenants_connection'], TenantContext::class, 'logger'], $this->rollbackArguments($this->load([['connection' => 'tenants', 'store_connection' => 'shared']])));
+        self::assertSame([['doctrine.dbal.default_connection'], TenantContext::class, 'logger'], $this->rollbackArguments($this->load([['availability' => 'cache']])));
+        self::assertSame([['doctrine.dbal.default_connection', PhilTenancyDatabaseBundle::STORE_CONNECTION], TenantContext::class, 'logger'], $this->rollbackArguments($this->load([['placement' => 'dbal', 'availability' => 'cache']])));
     }
 
     public function testTheNamesOfTheDedicatedTenantsAreKeptAsTheyAreWritten(): void
@@ -363,6 +394,26 @@ final class PhilTenancyDatabaseBundleTest extends TestCase
     private function arguments(ContainerBuilder $container, string $id): array
     {
         return array_map(static fn (mixed $argument): mixed => $argument instanceof Reference ? (string) $argument : $argument, array_values($container->getDefinition($id)->getArguments()));
+    }
+
+    /**
+     * The arguments of the rollback, the connections as the ids they name, each checked to be skipped until created.
+     *
+     * @return list<mixed>
+     */
+    private function rollbackArguments(ContainerBuilder $container): array
+    {
+        $arguments = array_values($container->getDefinition(RollBackOpenTransactions::class)->getArguments());
+        $connections = $arguments[0];
+        self::assertInstanceOf(IteratorArgument::class, $connections);
+        $arguments[0] = array_map(static function (mixed $reference): string {
+            self::assertInstanceOf(Reference::class, $reference);
+            self::assertSame(ContainerInterface::IGNORE_ON_UNINITIALIZED_REFERENCE, $reference->getInvalidBehavior());
+
+            return (string) $reference;
+        }, array_values($connections->getValues()));
+
+        return array_map(static fn (mixed $argument): mixed => $argument instanceof Reference ? (string) $argument : $argument, $arguments);
     }
 
     private function id(mixed $reference): string

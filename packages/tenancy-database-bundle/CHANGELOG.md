@@ -4,6 +4,28 @@ All notable changes to `phil/tenancy-database-bundle` will be documented in this
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: the transactions left open at the end of a unit of work are rolled back, and the
+tenant is left then, in a worker as in any other process.
+
+### Added
+
+- `RollBackOpenTransactions`, listening to `kernel.terminate`, `console.terminate`, `WorkerMessageHandledEvent` and
+  `WorkerMessageFailedEvent`: a transaction still open on the connection that follows the tenant, or on
+  `phil_tenancy_database.store_connection`, is rolled back at every level, with a warning that names the tenant only;
+  a connection that cannot roll back is closed; a connection never opened is not created. The tenant is then left, and
+  the connection returns to the shared database. `PhilTenancyDatabaseBundle::ROLLBACK_PRIORITY`.
+- The integration test of two tenants taking turns in one worker, on MySQL and PostgreSQL: one kernel serving requests
+  for the shared tenant, the dedicated one and the shared one again, then requests that throw in the middle of a
+  transaction, each checked for its database, its identity map, its transactions and its cache.
+- The documentation of what happens at the end of a unit of work and at the reset of a worker.
+
+### Changed
+
+- At `kernel.terminate`, after the application's listeners, the tenant of the request is left, rather than at the
+  next request's reset: a listener of `kernel.terminate` with a priority below `-2048` runs outside the tenant.
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

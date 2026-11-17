@@ -10,6 +10,7 @@ use Phil\TenancyDatabaseBundle\Infrastructure\Console\MigrateTenantDatabasesComm
 use Phil\TenancyDatabaseBundle\Infrastructure\Console\MigrationTargets;
 use Phil\TenancyDatabaseBundle\Infrastructure\Console\MoveTenantCommand;
 use Phil\TenancyDatabaseBundle\Infrastructure\Database\TenantDatabaseCreator;
+use Phil\TenancyDatabaseBundle\Infrastructure\Doctrine\RollBackOpenTransactions;
 use Phil\TenancyDatabaseBundle\Infrastructure\Doctrine\TenantConnectionSwitch;
 use Phil\TenancyDatabaseBundle\Infrastructure\Doctrine\TenantDatabaseDriver;
 use Phil\TenancyDatabaseBundle\Infrastructure\Doctrine\TenantDatabaseMiddleware;
@@ -28,6 +29,7 @@ use PHPUnit\Framework\Attributes\Group;
  * allowed to create databases, as the server's own user is.
  */
 #[CoversClass(TenantConnectionSwitch::class)]
+#[CoversClass(RollBackOpenTransactions::class)]
 #[CoversClass(TenantDatabaseRouter::class)]
 #[CoversClass(TenantDatabaseMiddleware::class)]
 #[CoversClass(TenantDatabaseDriver::class)]

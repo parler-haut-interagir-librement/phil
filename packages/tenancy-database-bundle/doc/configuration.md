@@ -44,6 +44,7 @@ phil_tenancy_database:
 | `TenantDatabaseRouter` | always; reset with the kernel |
 | `TenantDatabaseMiddleware` | always, tagged `doctrine.middleware` for `connection` |
 | `TenantConnectionSwitch` | always, tagged `phil_tenancy.activation` and reset with the kernel |
+| `RollBackOpenTransactions` | always, listening to `kernel.terminate`; to `console.terminate` with the Console component, and to `WorkerMessageHandledEvent` and `WorkerMessageFailedEvent` with Messenger. See [Workers](connection.md#workers) |
 | `ConfiguredPlacements`, aliased as `TenantPlacement` | when `placement` is `null` |
 | `DbalPlacementStore`, aliased as `TenantPlacement` | with `placement: dbal`; for a service id, `TenantPlacement` is an alias of that service |
 | `DbalTenantDatabaseAvailability`, aliased as `TenantDatabaseAvailability` | with `availability: dbal`, the default |

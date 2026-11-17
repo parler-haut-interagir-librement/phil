@@ -28,6 +28,7 @@ Every public type of the package, by layer.
 | `Doctrine\TenantDatabaseRouter` | `final class`, `ResetInterface` | The database the managed connection opens on; `parameters()`, `pinned()`, `route()`, `current()` |
 | `Doctrine\TenantDatabaseMiddleware`, `TenantDatabaseDriver` | DBAL middleware and driver | Open each connection with the router's parameters |
 | `Doctrine\TenantConnectionSwitch` | `final class`, `TenantActivation`, `ResetInterface` | Moves the connection with the tenant; refuses inside a transaction; clears the entity managers |
+| `Doctrine\RollBackOpenTransactions` | `final readonly class`, event listener | Rolls back the transactions left open at the end of a request, a command or a message, then leaves the tenant |
 | `Doctrine\PinnedConnection` | `final class`, static | `open()` and `shared()`: a connection of its own, with the parameters and configuration of the managed one, pinned to one database |
 | `Doctrine\StoreTables` | `final class`, static | The tables `phil_tenancy_placement` and `phil_tenancy_suspension`: `configure()`, and `upsert()` for MySQL, MariaDB, PostgreSQL and SQLite |
 | `Doctrine\StoreSchemaListener` | `final readonly class`, `postGenerateSchema` listener | Adds the tables of the `dbal` stores to the schema of their connection |
@@ -55,7 +56,7 @@ Every public type of the package, by layer.
 
 | Type | Role |
 |---|---|
-| `PhilTenancyDatabaseBundle` | The configuration `phil_tenancy_database`, the services above, and, with `availability: cache`, the pool `phil_tenancy_database.availability`; the constants `DBAL`, `CACHE`, `STORE_CONNECTION` and `AVAILABILITY_POOL` |
+| `PhilTenancyDatabaseBundle` | The configuration `phil_tenancy_database`, the services above, and, with `availability: cache`, the pool `phil_tenancy_database.availability`; the constants `DBAL`, `CACHE`, `STORE_CONNECTION`, `AVAILABILITY_POOL` and `ROLLBACK_PRIORITY` |
 
 | Service id | Class |
 |---|---|

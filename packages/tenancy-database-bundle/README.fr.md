@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a43789dcbdb06f6a7ead41543795444ebcb0bcbad66890bcf3a3e9cf0acec181 -->
+<!-- phil-dev source-sha256=2ddc0147e3279cae26f0175b98325b49dc32ffb96f1a6a5025f5a0818dd67667 -->
 # phil/tenancy-database-bundle
 
 **Une base de données pour chaque locataire, ou la base partagée, choisie à chaque requête sur une seule connexion Doctrine.**
@@ -12,10 +12,11 @@ aucune connexion n'est déclarée par locataire, et un nouveau locataire n'exige
 Les emplacements et les suspensions vivent dans deux petites tables de la base partagée, ou dans le stockage propre à
 l'application. Le bundle refuse de changer de base dans une transaction ouverte. Il vide les gestionnaires d'entités de la connexion à
 chaque changement de locataire, pour qu'une entité chargée pour un locataire ne soit jamais remise à un autre. Dans un
-*worker* de longue durée, la fin de chaque unité de travail ramène la connexion à la base partagée. Le bundle lance les
-migrations de chaque base en nombre borné à la fois : une base qui échoue est suspendue, ses locataires reçoivent un
-`503` et leurs messages attendent, pendant que les autres locataires sont servis. Il crée la base d'un nouveau
-locataire, et déplace un locataire d'une base à une autre : copié, vérifié, et annulé au moindre échec.
+*worker* de longue durée, la fin de chaque unité de travail annule une transaction restée ouverte et ramène la
+connexion à la base partagée. Le bundle lance les migrations de chaque base en nombre borné à la fois : une base qui
+échoue est suspendue, ses locataires reçoivent un `503` et leurs messages attendent, pendant que les autres locataires
+sont servis. Il crée la base d'un nouveau locataire, et déplace un locataire d'une base à une autre : copié, vérifié,
+et annulé au moindre échec.
 
 C'est un bundle Symfony sur Doctrine DBAL et ORM et sur `phil/tenancy-bundle`, dont il répond au port
 `TenantPlacement` à partir de sa configuration, de sa table ou du stockage propre à l'application. Le composant Console,
@@ -28,6 +29,7 @@ MariaDB et PostgreSQL.
 |---|---|
 | `TenantDatabaseRouter`, `TenantDatabaseMiddleware`, `TenantDatabaseDriver` | Implémenté et testé sur MySQL et PostgreSQL |
 | `TenantConnectionSwitch` | Implémenté et testé sur MySQL et PostgreSQL ; une activation de locataire, réinitialisée avec le noyau |
+| `RollBackOpenTransactions` | Implémenté et testé sur MySQL et PostgreSQL ; à `kernel.terminate`, à `console.terminate` et à la fin de chaque message de Messenger |
 | `ConfiguredPlacements`, `PlacedTenants`, `PlacementStore` | Implémenté et testé |
 | `DbalPlacementStore`, `DbalTenantDatabaseAvailability`, `StoreTables`, `StoreSchemaListener`, `PinnedConnection` | Implémenté et testé sur MySQL et PostgreSQL ; la disponibilité par défaut |
 | `TenantDatabaseAvailability`, `CacheTenantDatabaseAvailability`, `TenantAvailabilityGuard` | Implémenté et testé ; le pool de cache avec `availability: cache`, non durable |
