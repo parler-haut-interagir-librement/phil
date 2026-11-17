@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9da543a8ba1e7e021e457347424482144720d28d77ab896a904aefd4e377bb85 -->
+<!-- phil-dev source-sha256=5c1223ca8f593b392efe41476c4eb60b312e73c2d385e1780836c2fd7abe1ba4 -->
 # phil/access-bundle
 
 **Qui voit et qui peut modifier chaque élément d'un site : visibilité, niveaux de partage, groupes d'accès, accès qui se
@@ -11,8 +11,10 @@ défaut. Il est **partagé** avec des membres ou des groupes d'accès à un **ni
 `comment`, `view` par défaut, chacun incluant le suivant —, jusqu'à une date quand on en donne une : le partage se
 termine alors de lui-même à cette seconde. Les **groupes d'accès** déclarent leurs **points d'entrée** — un achat, une
 invitation, une action en lot d'un administrateur, une automatisation, ou chaque nouveau membre — et la durée d'une
-adhésion. Un administrateur de l'espace peut **voir le site comme un membre**, en lecture seule, sans prendre sa
-session : chaque début et chaque fin sont journalisés et envoyés comme événements.
+adhésion. Un administrateur de l'espace peut **voir le site comme un membre** de cet espace, en lecture seule, sans prendre sa
+session : chaque début et chaque fin sont journalisés et envoyés comme événements, et un garde répond 403 à toute
+requête qui changerait quelque chose pendant ce temps. Dans une application multilocataire, les droits de chaque
+locataire forment une partition à part : rien de ce qui est accordé dans un locataire n'atteint un autre.
 
 Chaque droit et chaque niveau de partage est une relation déclarée de `phil/resource-permissions` : le `view` d'un
 élément inclut son `comment`, qui inclut son `edit`, puis son `manage`, que détient son propriétaire ; une visibilité
@@ -35,7 +37,9 @@ recettes du kit PHIL UX.
 | Visibilité par élément — tout le monde, membres, administrateurs, propriétaire — privée par défaut, et la plus étroite de deux pour un lien | Implémenté et testé |
 | Niveaux de partage, partages avec des membres et des groupes d'accès, partages qui se terminent d'eux-mêmes | Implémenté et testé |
 | Groupes d'accès, leurs points d'entrée et leurs adhésions qui se terminent d'elles-mêmes ; groupes comme membres ou administrateurs d'un espace | Implémenté et testé |
-| « Voir comme ce membre » : administrateurs seulement, lecture seule, journalisé et envoyé comme événement, démarré et arrêté par de simples formulaires avec un jeton CSRF | Implémenté et testé |
+| « Voir comme ce membre » : administrateurs seulement, membres de leur espace seulement, lecture seule, journalisé et envoyé comme événement, démarré et arrêté par de simples formulaires avec un jeton CSRF, terminé et oublié quand l'administrateur ou le membre ne remplit plus les conditions | Implémenté et testé |
+| Le garde de « voir comme ce membre » pour toute l'application : requêtes non sûres refusées, `#[AllowedDuringViewAs]`, `#[RefusedDuringViewAs]`, `ViewAs::refuseWhileViewing()` | Implémenté et testé |
+| Tuples partitionnés par le locataire actif de `phil/tenancy-bundle`, avec un échec par fermeture hors d'un locataire | Implémenté et testé |
 | `AccessVoter` et `EasyAdminAccessVoter`, avec les raisons de chaque vote | Implémenté et testé |
 | Les fonctions Twig `access_can`, `access_visibility`, `access_viewing_as` ; les composants `PhilAccess:ViewAsBanner` et `PhilAccess:AccessSummary` sur les recettes du kit | Implémenté et testé |
 | Magasin Doctrine DBAL et écouteur de schéma, magasin en mémoire, `phil:access:purge` | Implémenté et testé |
@@ -50,7 +54,8 @@ recettes du kit PHIL UX.
 | [Le modèle d'accès](doc/fr/model.md) | Les types et les relations que le bundle déclare, et comment y ajouter. |
 | [Éléments, visibilité et partage](doc/fr/items-and-sharing.md) | Propriétaires, espaces, visibilités, niveaux de partage et partages qui se terminent d'eux-mêmes. |
 | [Groupes d'accès](doc/fr/access-groups.md) | Groupes, points d'entrée, adhésions, groupes par défaut. |
-| [Voir comme ce membre](doc/fr/view-as.md) | Qui peut, ce que cela montre, le journal et les événements, la bannière. |
+| [Voir comme ce membre](doc/fr/view-as.md) | Qui peut, ce que cela montre, la limite et son garde, la fin d'une vue, le journal et les événements, la bannière. |
+| [Locataires](doc/fr/tenants.md) | Les tuples de chaque locataire dans une partition à part, l'échec par fermeture, la mise à niveau depuis 0.1. |
 | [Vérifier l'accès](doc/fr/checking.md) | Les voters, les fonctions Twig, lister ce qu'un membre voit, et pourquoi. |
 | [EasyAdmin](doc/fr/easyadmin.md) | Le voter sur les permissions d'EasyAdmin, le contrôleur CRUD à portée déclarée, le filtre de locataire. |
 | [Rendu](doc/fr/rendering.md) | La bannière et le résumé, dessinés avec les recettes du kit. |

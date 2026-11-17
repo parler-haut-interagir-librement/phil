@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c6a1d046ba0083dea1d6471d370d244d2452c9dfd967e80e8224ad5569829c4e -->
+<!-- phil-dev source-sha256=0377eecf705ae098085c665f172394b3d189b68ac90e8bcb5248f27c7ed848ba -->
 # Référence
 
 Chaque type public du paquet, avec son rôle.
@@ -11,6 +11,7 @@ Chaque type public du paquet, avec son rôle.
 | `Phil\AccessBundle\Domain\ValueObject\AccessGroup` | Un groupe d'accès déclaré : points d'entrée et durée. |
 | `Phil\AccessBundle\Domain\Status\Visibility` | Tout le monde, membres, administrateurs, propriétaire ; la plus étroite de deux. |
 | `Phil\AccessBundle\Domain\Status\EntryPoint` | Achat, invitation, lot, automatisation, défaut. |
+| `Phil\AccessBundle\Domain\Status\ViewAsEnd` | Pourquoi une vue a pris fin : arrêtée, droit d'administrateur perdu, membre sorti de l'espace. |
 | `Phil\AccessBundle\Domain\Exception\AccessException` | Chaque exception du bundle. |
 | `Phil\AccessBundle\Domain\Exception\InvalidAccess` | Une valeur ou une configuration contraire aux règles. |
 | `Phil\AccessBundle\Application\AccessModel` | Construit le modèle d'accès à partir de la configuration et des contributeurs. |
@@ -38,6 +39,10 @@ Chaque type public du paquet, avec son rôle.
 | `Phil\AccessBundle\Infrastructure\EasyAdmin\EasyAdminAccessVoter` | `EA_ACCESS_ENTITY` et `EA_EXECUTE_ACTION`. |
 | `Phil\AccessBundle\Infrastructure\Session\SessionViewAsStore` | Le membre dont on voit le site, dans la session. |
 | `Phil\AccessBundle\Infrastructure\Http\ViewAsController` | Les formulaires de « voir comme ce membre ». |
+| `Phil\AccessBundle\Infrastructure\Http\ViewAsGuard` | Répond 403 à un changement pendant une vue. |
+| `Phil\AccessBundle\Infrastructure\Http\Attribute\AllowedDuringViewAs` | Un contrôleur que le garde laisse passer. |
+| `Phil\AccessBundle\Infrastructure\Http\Attribute\RefusedDuringViewAs` | Un contrôleur que le garde refuse quelle que soit la méthode. |
+| `Phil\AccessBundle\Infrastructure\Tenancy\TenancyTupleScope` | Le locataire actif de `phil/tenancy-bundle` comme partition des tuples. |
 | `Phil\AccessBundle\Infrastructure\Twig\AccessExtension` | `access_can`, `access_visibility`, `access_viewing_as`. |
 | `Phil\AccessBundle\Infrastructure\Twig\Components\ViewAsBannerComponent` | `PhilAccess:ViewAsBanner`. |
 | `Phil\AccessBundle\Infrastructure\Twig\Components\AccessSummaryComponent` | `PhilAccess:AccessSummary`. |

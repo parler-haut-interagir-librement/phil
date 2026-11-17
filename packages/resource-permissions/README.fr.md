@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=20d160e18a13737800bf7876f18b3002a79d4f475f330b5bc6f2b27fdc885e49 -->
+<!-- phil-dev source-sha256=af686f8d5a5fcd421e1e0f6c10080752d55778daff074577f2e70c784e45a9d5 -->
 # phil/resource-permissions
 
 **Qui peut faire quoi sur chaque ressource : des relations entre des sujets et des objets, héritées par les arbres et
@@ -28,7 +28,8 @@ C'est une bibliothèque PHP simple, qui repose sur `phil/resource` et `psr/clock
 en mémoire pour les tests et les exécutions uniques, ou dans une table d'une connexion Doctrine DBAL sur PostgreSQL,
 MySQL, MariaDB ou SQLite, indexée dans les deux sens pour qu'une vérification et une longue liste ne coûtent chacune
 que quelques lectures indexées. Un tuple peut porter une expiration : à partir de cette seconde, aucun magasin ne le
-lit.
+lit. Une application multilocataire donne une portée à son magasin : les tuples de chaque locataire forment alors une
+partition à part, et un appel fait hors de tout locataire échoue au lieu de les lire tous.
 
 ## État
 
@@ -40,6 +41,7 @@ lit.
 | `RelationWriter` : tuples vérifiés par rapport au modèle, écrits ou supprimés d'un seul coup | Implémenté et testé |
 | `TreePermissions` : entrées par nœud et par action pour un rôle ou pour tous les autres, la plus précise l'emporte | Implémenté et testé |
 | Magasin en mémoire ; magasin Doctrine DBAL avec collation octet par octet, schéma et écouteur de l'ORM, purge, testé sur MySQL 8.4 et PostgreSQL 17 | Implémenté et testé |
+| Partitions : chaque appel du magasin dans la partition d'une `TupleScope`, avec un échec par fermeture hors de tout locataire ; la mise à niveau d'une table de 0.1 | Implémenté et testé |
 | Une cible de fuzzing du vérificateur ; un banc d'essai d'une vérification et d'une liste | Implémenté |
 | Voters Symfony, visibilité, niveaux de partage, groupes d'accès et « voir comme » sur ce modèle | Implémenté dans `phil/access-bundle` |
 
@@ -52,7 +54,8 @@ lit.
 | [Vérifier et lister](doc/fr/checking.md) | `check()`, `explain()`, `objects()`, le budget, les cycles et l'expiration. |
 | [Permissions dans un arbre](doc/fr/tree.md) | `TreePermissions` : entrées, héritage, entrée la plus précise, déplacement de nœuds. |
 | [Stockage](doc/fr/storage.md) | Les magasins, la table et ses index, la collation, l'écouteur de schéma, la purge. |
-| [Exceptions](doc/fr/exceptions.md) | `ResourcePermissionsException` et ses quatre exceptions. |
+| [Partitions](doc/fr/partitions.md) | Des locataires qui partagent une table sans jamais se rencontrer, l'échec par fermeture, la mise à niveau depuis 0.1. |
+| [Exceptions](doc/fr/exceptions.md) | `ResourcePermissionsException` et ses cinq exceptions. |
 | [Points d'extension](doc/fr/extension-points.md) | Les ports et les arguments qu'une application choisit ou remplace. |
 | [Tests](doc/fr/testing.md) | Les tests de la bibliothèque, sa cible de fuzzing et son banc d'essai, et comment tester du code qui vérifie l'accès. |
 | [Référence](doc/fr/reference.md) | Chaque type public, avec son rôle. |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d2346fe6d49ec1b5f22057b38373ed4cb7e0968d8509cb9c1bca46269f7b6fb4 -->
+<!-- phil-dev source-sha256=fee83edc0daeb5c79f6afb3e66a7adb78111e859ed9bb4d1a99f3bcefd9185f5 -->
 # Référence
 
 Chaque type public du paquet, avec son rôle.
@@ -14,7 +14,11 @@ Chaque type public du paquet, avec son rôle.
 | `Phil\ResourcePermissions\Explanation` | Les tuples qui donnent une relation à un sujet. |
 | `Phil\ResourcePermissions\ObjectList` | Les objets sur lesquels un sujet détient une relation, et si la liste est complète. |
 | `Phil\ResourcePermissions\InMemoryTupleStore` | Les tuples dans un tableau. |
+| `Phil\ResourcePermissions\Partition` | La règle du nom d'une partition, et la partition par défaut. |
+| `Phil\ResourcePermissions\SinglePartition` | Chaque tuple dans la partition par défaut. |
+| `Phil\ResourcePermissions\FixedPartition` | Chaque tuple dans une seule partition nommée. |
 | `Phil\ResourcePermissions\Contract\TupleStore` | L'endroit où les tuples sont conservés. |
+| `Phil\ResourcePermissions\Contract\TupleScope` | La partition que l'unité de travail en cours lit et écrit. |
 | `Phil\ResourcePermissions\Contract\RelationCheck` | Les questions auxquelles le modèle répond. |
 | `Phil\ResourcePermissions\Model\Model` | Les types d'objets et leurs relations, vérifiés à la construction. |
 | `Phil\ResourcePermissions\Model\TypeDefinition` | Un type et ses relations. |
@@ -33,3 +37,4 @@ Chaque type public du paquet, avec son rôle.
 | `Phil\ResourcePermissions\Exception\UnknownRelation` | Un type ou une relation que le modèle ne déclare pas. |
 | `Phil\ResourcePermissions\Exception\TraversalBudgetExceeded` | Un parcours qui dépasse son budget. |
 | `Phil\ResourcePermissions\Exception\InvalidTree` | Un nœud à deux parents, ou son propre ancêtre. |
+| `Phil\ResourcePermissions\Exception\UnscopedTuples` | Un magasin appelé hors de toute partition alors qu'une est exigée. |
