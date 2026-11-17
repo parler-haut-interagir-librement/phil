@@ -11,6 +11,7 @@ use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\CacheStorage;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 
@@ -20,7 +21,9 @@ use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
  *
  * A pool is local when it ends on the filesystem, APCu, array or system adapter of `symfony/cache`, by its parent or
  * its class, the first being that of `cache.app` by default. A storage is local when it is the `InMemoryStorage` of
- * `symfony/rate-limiter`, and a `CacheStorage` is as local as the pool it is given. Any other service is taken as
+ * `symfony/rate-limiter`, and a `CacheStorage` is as local as the pool it is given. A rate limiter factory is as local
+ * as its storage: a `RateLimiterFactory` defined by hand, or a limiter of the framework's configuration, `limiter.<name>`,
+ * a child of the abstract `limiter` given its storage. Any other service is taken as
  * shared. Aliases are followed; a chain of more than 32 services, or one that loops, is taken as shared and left to
  * the container.
  *
@@ -33,6 +36,9 @@ final readonly class StoreLocality
 
     /** The classes of the pools and storages that stay on the server. */
     public const array LOCAL_CLASSES = [ApcuAdapter::class, ArrayAdapter::class, FilesystemAdapter::class, PhpFilesAdapter::class, InMemoryStorage::class];
+
+    /** The abstract service of the framework whose children are the limiters of its configuration. */
+    public const string LIMITER = 'limiter';
 
     /** The most services followed from the one asked about. */
     public const int MAX_DEPTH = 32;
@@ -53,11 +59,25 @@ final readonly class StoreLocality
             $definition = $container->findDefinition($id);
 
             if ($definition instanceof ChildDefinition) {
-                if (\in_array($definition->getParent(), self::LOCAL_ADAPTERS, true)) {
+                $parent = $definition->getParent();
+
+                if (\in_array($parent, self::LOCAL_ADAPTERS, true)) {
                     return true;
                 }
 
-                $id = $definition->getParent();
+                if (self::LIMITER !== $parent) {
+                    $id = $parent;
+
+                    continue;
+                }
+
+                $storage = $definition->getArguments()['index_1'] ?? null;
+
+                if (!$storage instanceof Reference) {
+                    return false;
+                }
+
+                $id = (string) $storage;
 
                 continue;
             }
@@ -74,7 +94,11 @@ final readonly class StoreLocality
                 return true;
             }
 
-            $pool = CacheStorage::class === $class ? $this->poolOf($definition->getArguments()) : null;
+            $pool = match ($class) {
+                CacheStorage::class => $this->poolOf($definition->getArguments()),
+                RateLimiterFactory::class => $this->storageOf($definition->getArguments()),
+                default => null,
+            };
 
             if (null === $pool) {
                 return false;
@@ -96,5 +120,17 @@ final readonly class StoreLocality
         $pool = $arguments[0] ?? $arguments['$pool'] ?? null;
 
         return $pool instanceof Reference ? (string) $pool : null;
+    }
+
+    /**
+     * The storage a `RateLimiterFactory` is given, by position or by name.
+     *
+     * @param array<array-key, mixed> $arguments
+     */
+    private function storageOf(array $arguments): ?string
+    {
+        $storage = $arguments[1] ?? $arguments['$storage'] ?? null;
+
+        return $storage instanceof Reference ? (string) $storage : null;
     }
 }
