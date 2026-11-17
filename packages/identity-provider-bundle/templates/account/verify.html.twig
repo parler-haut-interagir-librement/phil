@@ -1,0 +1,16 @@
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.verify'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.verify'|trans({}, d) }}</h1>
+    <p>{{ 'verify.confirm'|trans({}, d) }}</p>
+    <form method="post" action="{{ path('phil_identity_provider_verify_email') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('phil_identity_provider') }}">
+        {% for name, value in link %}
+            <input type="hidden" name="{{ name }}" value="{{ value }}">
+        {% endfor %}
+        {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.verify'|trans({}, d)}) }}
+    </form>
+{% endblock %}

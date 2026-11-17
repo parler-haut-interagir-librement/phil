@@ -50,10 +50,23 @@ final class AccountFlowTest extends FunctionalTestCase
         preg_match('#href="([^"]+)"#', (string) $email->getHtmlBody(), $link);
         self::assertStringStartsWith('http://localhost/verify-email?account=', html_entity_decode($link[1] ?? ''));
 
-        $this->client->request('GET', html_entity_decode($link[1] ?? ''));
+        $crawler = $this->client->request('GET', html_entity_decode($link[1] ?? ''));
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('h1', 'Verify your address');
+        self::assertFalse($this->accounts()->findByEmail('ada@example.com')?->isEmailVerified(), 'Opening the link, as a mail scanner does, verifies nothing.');
+        $form = $crawler->selectButton('Verify')->form();
+
+        $this->client->request('POST', '/verify-email', ['_token' => 'forged'] + array_diff_key($form->getValues(), ['_token' => true]));
+        self::assertResponseStatusCodeSame(403);
+        self::assertFalse($this->accounts()->findByEmail('ada@example.com')?->isEmailVerified());
+
+        $this->client->submit($form);
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('h1', 'Address verified');
+        self::assertTrue($this->accounts()->findByEmail('ada@example.com')?->isEmailVerified());
         $this->client->request('GET', html_entity_decode($link[1] ?? ''));
+        self::assertResponseStatusCodeSame(410);
+        $this->client->submit($form);
         self::assertResponseStatusCodeSame(410);
 
         $crawler = $this->client->request('GET', '/register');

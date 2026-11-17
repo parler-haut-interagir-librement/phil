@@ -63,7 +63,7 @@ final class RouteLoader extends Loader
 
         if ($this->modules->has(Modules::ACCOUNTS)) {
             $add(AccountController::REGISTER, '/register', [AccountController::class, 'register'], ['GET', 'POST']);
-            $add('phil_identity_provider_verify_email', '/verify-email', [AccountController::class, 'verifyEmail'], ['GET']);
+            $add('phil_identity_provider_verify_email', '/verify-email', [AccountController::class, 'verifyEmail'], ['GET', 'POST']);
             $add('phil_identity_provider_resend_verification', '/account/verification', [AccountController::class, 'resendVerification'], ['POST']);
             $add(AccountController::ACCOUNT, '/account', [AccountController::class, 'account'], ['GET']);
             $add('phil_identity_provider_account_profile', '/account/profile', [AccountController::class, 'updateProfile'], ['POST']);
