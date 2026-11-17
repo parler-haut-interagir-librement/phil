@@ -7,6 +7,7 @@ namespace Phil\ResourcePermissions\Tests\Unit\Dbal;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\DriverException;
+use Doctrine\DBAL\Schema\Index\IndexedColumn;
 use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 use Override;
 use Phil\Resource\ResourceReference;
@@ -15,6 +16,7 @@ use Phil\ResourcePermissions\Dbal\DbalTupleStore;
 use Phil\ResourcePermissions\Exception\InvalidRelation;
 use Phil\ResourcePermissions\RelationTuple;
 use Phil\ResourcePermissions\Subject;
+use Phil\ResourcePermissions\Tests\Fixtures\LegacyTupleTable;
 use Phil\ResourcePermissions\Tests\Unit\TupleStoreTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -40,14 +42,49 @@ final class DbalTupleStoreTest extends TupleStoreTestCase
 
         $key = $table->getPrimaryKeyConstraint();
         self::assertNotNull($key);
-        self::assertSame(['object_kind', 'object_id', 'relation', 'subject_kind', 'subject_id', 'subject_relation'], array_map(static fn (UnqualifiedName $name): string => $name->toString(), $key->getColumnNames()));
-        self::assertTrue($table->hasIndex('acl_subject'));
-        self::assertTrue($table->hasIndex('acl_expires_at'));
+        self::assertSame(['scope', 'object_kind', 'object_id', 'relation', 'subject_kind', 'subject_id', 'subject_relation'], $this->names($key->getColumnNames()));
+        self::assertSame(['scope', 'subject_kind', 'subject_id', 'subject_relation', 'object_kind', 'relation'], $this->names($table->getIndex('acl_subject')->getIndexedColumns()));
+        self::assertSame(['scope', 'expires_at'], $this->names($table->getIndex('acl_expires_at')->getIndexedColumns()));
         self::assertFalse($table->getColumn('expires_at')->getNotnull());
         self::assertTrue($table->getColumn('subject_id')->getNotnull());
         self::assertSame(255, $table->getColumn('object_id')->getLength());
         self::assertSame(64, $table->getColumn('relation')->getLength());
         self::assertSame($schema, $store->configureSchema($schema));
+    }
+
+    public function testTheSchemaUpdateCreatesAMissingTable(): void
+    {
+        $connection = $this->connection();
+        $store = new DbalTupleStore($connection, $this->clock, 'acl');
+
+        foreach ($store->schemaUpdate() as $statement) {
+            $connection->executeStatement($statement);
+        }
+
+        self::assertSame([], $store->schemaUpdate());
+        $store->update([], [$this->tuple('doc:1', 'viewer', 'member:ann')]);
+        self::assertCount(1, $store->subjects(self::ref('doc:1'), 'viewer', 10));
+    }
+
+    public function testTheSchemaUpdateMovesTheRowsOfAnOlderTableToTheDefaultPartition(): void
+    {
+        $connection = $this->connection();
+        LegacyTupleTable::create($connection);
+        $store = new DbalTupleStore($connection, $this->clock, scope: $this->scope);
+        $statements = $store->schemaUpdate();
+
+        self::assertNotSame([], $statements);
+
+        foreach ($statements as $statement) {
+            $connection->executeStatement($statement);
+        }
+
+        self::assertSame([], $store->schemaUpdate());
+        self::assertSame(['doc:Ann-é#viewer@member:ann'], self::keys($store->subjects(self::ref('doc:Ann-é'), 'viewer', 10)));
+
+        $this->scope->partition = 'tenant-a';
+
+        self::assertSame([], $store->subjects(self::ref('doc:Ann-é'), 'viewer', 10));
     }
 
     public function testATableNameAgainstTheRulesIsRefused(): void
@@ -113,12 +150,22 @@ final class DbalTupleStoreTest extends TupleStoreTestCase
     protected function store(): TupleStore
     {
         $connection = $this->connection();
-        $store = new DbalTupleStore($connection, $this->clock);
+        $store = new DbalTupleStore($connection, $this->clock, scope: $this->scope);
         $connection->executeStatement('DROP TABLE IF EXISTS '.DbalTupleStore::TABLE);
         $manager = $connection->createSchemaManager();
         $manager->migrateSchema($store->configureSchema($manager->introspectSchema()));
 
         return $store;
+    }
+
+    /**
+     * @param list<IndexedColumn|UnqualifiedName> $columns
+     *
+     * @return list<string>
+     */
+    private function names(array $columns): array
+    {
+        return array_map(static fn (IndexedColumn|UnqualifiedName $column): string => ($column instanceof IndexedColumn ? $column->getColumnName() : $column)->toString(), $columns);
     }
 
     private function connection(): Connection

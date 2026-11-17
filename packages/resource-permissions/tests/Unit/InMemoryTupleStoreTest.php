@@ -15,6 +15,6 @@ final class InMemoryTupleStoreTest extends TupleStoreTestCase
     #[Override]
     protected function store(): TupleStore
     {
-        return new InMemoryTupleStore($this->clock);
+        return new InMemoryTupleStore($this->clock, $this->scope);
     }
 }

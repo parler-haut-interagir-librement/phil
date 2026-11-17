@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6308dc7cd68aa1b3e51c0dc87ea4de3bd2d9a119dea2283e86633203945b4af3 -->
+<!-- phil-dev source-sha256=096d802ef22f024b19ce61edb31d22dca4e3474315d8a9449a8c305cde115d46 -->
 # Installation
 
 ```sh
@@ -36,7 +36,7 @@ return static function (ContainerConfigurator $container): void {
     $services = $container->services();
 
     $services->set(Model::class)->factory([App\Access\AppModel::class, 'create']);
-    $services->set(DbalTupleStore::class)->args([service('doctrine.dbal.default_connection'), service('clock')]);
+    $services->set(DbalTupleStore::class)->args([service('doctrine.dbal.default_connection'), service('clock'), 'phil_relation_tuple', service(App\Access\TenantScope::class)]);
     $services->alias(TupleStore::class, DbalTupleStore::class);
     $services->set(Budget::class);
     $services->set(RelationChecker::class)->args([service(Model::class), service(TupleStore::class), service(Budget::class)]);
@@ -48,6 +48,9 @@ return static function (ContainerConfigurator $container): void {
         ->tag('doctrine.event_listener', ['event' => 'postGenerateSchema']);
 };
 ```
+
+Le quatrième argument du magasin, sa `TupleScope`, partitionne les tuples par locataire ; sans lui, chaque tuple est
+dans la partition par défaut. Voir [Partitions](partitions.md).
 
 Aucun service ne garde d'état entre les requêtes : une vérification construit son propre état et l'abandonne, donc les
 services sont sûrs dans un *worker* de longue durée.

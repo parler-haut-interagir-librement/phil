@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\AccessBundle\Tests\Fixtures;
 
 use DateInterval;
+use Override;
 use Phil\AccessBundle\Application\AccessGroups;
 use Phil\AccessBundle\Application\AccessModel;
 use Phil\AccessBundle\Application\AccessSubject;
@@ -17,10 +18,12 @@ use Phil\AccessBundle\Domain\Status\EntryPoint;
 use Phil\AccessBundle\Domain\ValueObject\AccessGroup;
 use Phil\AccessBundle\Domain\ValueObject\SharingLevels;
 use Phil\ResourcePermissions\Budget;
+use Phil\ResourcePermissions\Contract\TupleScope;
 use Phil\ResourcePermissions\InMemoryTupleStore;
 use Phil\ResourcePermissions\Model\Model;
 use Phil\ResourcePermissions\RelationChecker;
 use Phil\ResourcePermissions\RelationWriter;
+use Phil\ResourcePermissions\SinglePartition;
 use Psr\Log\AbstractLogger;
 use Stringable;
 use Symfony\Component\Clock\MockClock;
@@ -28,7 +31,8 @@ use Symfony\Component\Clock\MockClock;
 /**
  * The bundle's application services on an in-memory store, a mock clock, a member a test signs in and a log kept in
  * memory: pages and documents, the default sharing levels, the space `main`, and two access groups — `supporters`, by
- * purchase or invitation for a month, and `newcomers`, by default.
+ * purchase or invitation for a month, and `newcomers`, by default. The tuples are in the partition of the scope given,
+ * the default one otherwise.
  */
 final class Stage extends AbstractLogger
 {
@@ -67,10 +71,10 @@ final class Stage extends AbstractLogger
     /** @var list<array{string, string}> */
     public array $logs = [];
 
-    public function __construct(?Budget $budget = null)
+    public function __construct(?Budget $budget = null, TupleScope $scope = new SinglePartition())
     {
         $this->clock = new MockClock('2026-11-13 10:00:00 UTC');
-        $this->store = new InMemoryTupleStore($this->clock);
+        $this->store = new InMemoryTupleStore($this->clock, $scope);
         $this->levels = SharingLevels::of(SharingLevels::DEFAULT);
         $this->model = AccessModel::create(['page', 'document'], $this->levels);
         $this->checker = new RelationChecker($this->model, $this->store, $budget ?? new Budget());
@@ -93,7 +97,7 @@ final class Stage extends AbstractLogger
     /**
      * @param array<array-key, mixed> $context
      */
-    #[\Override]
+    #[Override]
     public function log(mixed $level, string|Stringable $message, array $context = []): void
     {
         $replace = [];

@@ -33,7 +33,7 @@ return static function (ContainerConfigurator $container): void {
     $services = $container->services();
 
     $services->set(Model::class)->factory([App\Access\AppModel::class, 'create']);
-    $services->set(DbalTupleStore::class)->args([service('doctrine.dbal.default_connection'), service('clock')]);
+    $services->set(DbalTupleStore::class)->args([service('doctrine.dbal.default_connection'), service('clock'), 'phil_relation_tuple', service(App\Access\TenantScope::class)]);
     $services->alias(TupleStore::class, DbalTupleStore::class);
     $services->set(Budget::class);
     $services->set(RelationChecker::class)->args([service(Model::class), service(TupleStore::class), service(Budget::class)]);
@@ -45,6 +45,9 @@ return static function (ContainerConfigurator $container): void {
         ->tag('doctrine.event_listener', ['event' => 'postGenerateSchema']);
 };
 ```
+
+The fourth argument of the store, its `TupleScope`, partitions the tuples by tenant; without it, every tuple is in the
+default partition. See [Partitions](partitions.md).
 
 Every service keeps nothing between requests: a check builds its own state and drops it, so the services are safe in a
 long-running worker.

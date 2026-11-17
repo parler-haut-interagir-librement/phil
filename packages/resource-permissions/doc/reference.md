@@ -13,7 +13,11 @@ Every public type of the package, with its role.
 | `Phil\ResourcePermissions\Explanation` | The tuples that give a subject a relation. |
 | `Phil\ResourcePermissions\ObjectList` | The objects a subject holds a relation on, and whether the list is complete. |
 | `Phil\ResourcePermissions\InMemoryTupleStore` | The tuples in an array. |
+| `Phil\ResourcePermissions\Partition` | The rule of a partition's name, and the default partition. |
+| `Phil\ResourcePermissions\SinglePartition` | Every tuple in the default partition. |
+| `Phil\ResourcePermissions\FixedPartition` | Every tuple in one named partition. |
 | `Phil\ResourcePermissions\Contract\TupleStore` | Where the tuples are kept. |
+| `Phil\ResourcePermissions\Contract\TupleScope` | The partition the current unit of work reads and writes. |
 | `Phil\ResourcePermissions\Contract\RelationCheck` | The questions the model answers. |
 | `Phil\ResourcePermissions\Model\Model` | The kinds of objects and their relations, checked when built. |
 | `Phil\ResourcePermissions\Model\TypeDefinition` | A kind and its relations. |
@@ -32,3 +36,4 @@ Every public type of the package, with its role.
 | `Phil\ResourcePermissions\Exception\UnknownRelation` | A kind or relation the model does not declare. |
 | `Phil\ResourcePermissions\Exception\TraversalBudgetExceeded` | A walk past its budget. |
 | `Phil\ResourcePermissions\Exception\InvalidTree` | A node with two parents, or its own ancestor. |
+| `Phil\ResourcePermissions\Exception\UnscopedTuples` | A store called outside any partition while one is required. |

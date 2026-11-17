@@ -10,6 +10,9 @@ change them, and its CHANGELOG says how.
 | Add kinds or relations to the model | Implement `Application\Contract\ModelContributor`; autoconfiguration tags it `phil_access.model_contributor` |
 | Let an entity be checked | Implement `Application\Contract\AccessibleItem` |
 | Keep the tuples elsewhere | Alias `Phil\ResourcePermissions\Contract\TupleStore` to your store |
+| Partition the tuples by a tenancy layer of your own | Alias `Phil\ResourcePermissions\Contract\TupleScope` to your scope |
+| Let a controller change something during a view, or refuse one that reads | Mark it `#[AllowedDuringViewAs]` or `#[RefusedDuringViewAs]` |
+| Refuse a change outside a controller during a view | Call `ViewAs::refuseWhileViewing()` |
 | React to a membership or to "view as this member" | Listen to `MemberJoinedGroup`, `MemberLeftGroup`, `ViewAsStarted`, `ViewAsStopped` |
 | Change the banner or the summary | Override their templates under `templates/bundles/PhilAccessBundle/components/` |
 | Change the levels, groups, visibility by default, budget | The [configuration](configuration.md) |

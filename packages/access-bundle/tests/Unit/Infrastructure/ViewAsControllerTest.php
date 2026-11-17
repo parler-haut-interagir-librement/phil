@@ -31,6 +31,7 @@ final class ViewAsControllerTest extends TestCase
     {
         $this->stage = new Stage();
         $this->stage->spaces->addAdmin(MemberId::of('ada'));
+        $this->stage->spaces->addMember(MemberId::of('ann'));
         $this->stage->member->signIn('ada');
 
         $this->tokens = new CsrfTokenManager(new UriSafeTokenGenerator(), new class implements TokenStorageInterface {

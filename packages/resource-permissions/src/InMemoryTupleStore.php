@@ -6,43 +6,52 @@ namespace Phil\ResourcePermissions;
 
 use Override;
 use Phil\Resource\ResourceReference;
+use Phil\ResourcePermissions\Contract\TupleScope;
 use Phil\ResourcePermissions\Contract\TupleStore;
 use Psr\Clock\ClockInterface;
 
 /**
- * The tuples in an array, for tests and a single process; lost with the object. Reads are ordered by subject — kind,
- * identifier, then relation — or by object identifier, byte by byte.
+ * The tuples in an array, for tests and a single process; lost with the object. Each partition of the scope keeps its
+ * own tuples, as in the database store. Reads are ordered by subject — kind, identifier, then relation — or by object
+ * identifier, byte by byte.
  */
 final class InMemoryTupleStore implements TupleStore
 {
-    /** @var array<string, RelationTuple> */
-    private array $tuples = [];
+    /** @var array<string, array<string, RelationTuple>> the tuples of each partition, by key */
+    private array $partitions = [];
 
     public function __construct(
         private readonly ClockInterface $clock,
+        private readonly TupleScope $scope = new SinglePartition(),
     ) {
     }
 
     #[Override]
     public function update(array $delete, array $write): void
     {
+        $partition = $this->partition();
+        $tuples = $this->partitions[$partition] ?? [];
+
         foreach ($delete as $tuple) {
-            unset($this->tuples[$tuple->key()]);
+            unset($tuples[$tuple->key()]);
         }
 
         foreach ($write as $tuple) {
-            $this->tuples[$tuple->key()] = $tuple;
+            $tuples[$tuple->key()] = $tuple;
         }
+
+        $this->partitions[$partition] = $tuples;
     }
 
     #[Override]
     public function matching(ResourceReference $object, array $relations, array $subjects): array
     {
         $found = [];
+        $tuples = $this->partitions[$this->partition()] ?? [];
 
         foreach ($relations as $relation) {
             foreach ($subjects as $subject) {
-                $tuple = $this->tuples[new RelationTuple($object, $relation, $subject)->key()] ?? null;
+                $tuple = $tuples[new RelationTuple($object, $relation, $subject)->key()] ?? null;
 
                 if (null !== $tuple && !$tuple->hasExpiredAt($this->clock->now())) {
                     $found[] = $tuple;
@@ -86,22 +95,26 @@ final class InMemoryTupleStore implements TupleStore
     #[Override]
     public function forget(ResourceReference $object): int
     {
-        $before = \count($this->tuples);
-        $this->tuples = array_filter(
-            $this->tuples,
+        $partition = $this->partition();
+        $tuples = $this->partitions[$partition] ?? [];
+        $kept = array_filter(
+            $tuples,
             static fn (RelationTuple $tuple): bool => !$tuple->object->equals($object) && !$tuple->subject->reference->equals($object),
         );
+        $this->partitions[$partition] = $kept;
 
-        return $before - \count($this->tuples);
+        return \count($tuples) - \count($kept);
     }
 
     #[Override]
     public function purgeExpired(): int
     {
-        $before = \count($this->tuples);
-        $this->tuples = $this->live();
+        $partition = $this->partition();
+        $before = \count($this->partitions[$partition] ?? []);
+        $live = $this->live();
+        $this->partitions[$partition] = $live;
 
-        return $before - \count($this->tuples);
+        return $before - \count($live);
     }
 
     /**
@@ -113,12 +126,22 @@ final class InMemoryTupleStore implements TupleStore
     }
 
     /**
+     * The partition of this call, by the rule of `Partition`.
+     */
+    private function partition(): string
+    {
+        return Partition::check($this->scope->partition());
+    }
+
+    /**
+     * The tuples of the call's partition that have not expired.
+     *
      * @return array<string, RelationTuple>
      */
     private function live(): array
     {
         $now = $this->clock->now();
 
-        return array_filter($this->tuples, static fn (RelationTuple $tuple): bool => !$tuple->hasExpiredAt($now));
+        return array_filter($this->partitions[$this->partition()] ?? [], static fn (RelationTuple $tuple): bool => !$tuple->hasExpiredAt($now));
     }
 }

@@ -28,6 +28,7 @@ use Phil\AccessBundle\Infrastructure\Twig\KitComponents;
 use Phil\AccessBundle\PhilAccessBundle;
 use Phil\ResourcePermissions\Budget;
 use Phil\ResourcePermissions\Contract\RelationCheck;
+use Phil\ResourcePermissions\Contract\TupleScope;
 use Phil\ResourcePermissions\Contract\TupleStore;
 use Phil\ResourcePermissions\Dbal\DbalTupleStore;
 use Phil\ResourcePermissions\Dbal\TupleSchemaListener;
@@ -99,7 +100,7 @@ final class AccessServicesWiringTest extends TestCase
 
         $store = $container->getDefinition(TupleStore::class);
         self::assertSame(InMemoryTupleStore::class, $store->getClass());
-        self::assertEquals([new Reference('clock')], $store->getArguments());
+        self::assertEquals([new Reference('clock'), new Reference(TupleScope::class)], $store->getArguments());
         self::assertTrue($store->isPublic());
         $this->assertModelServices($container);
     }

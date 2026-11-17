@@ -24,7 +24,8 @@ budget throws rather than answer, so a deep or hostile graph never turns into a 
 It is a plain PHP library on `phil/resource` and `psr/clock`. The tuples live in a store: in memory for tests and
 single runs, or in one table of a Doctrine DBAL connection on PostgreSQL, MySQL, MariaDB or SQLite, indexed both ways
 so that a check and a long listing each stay a few indexed reads. A tuple may carry an expiry: from that second on,
-no store reads it.
+no store reads it. A multi-tenant application gives its store a scope: each tenant's tuples are then a partition of
+their own, and a call made outside any tenant fails instead of reading them all.
 
 ## Status
 
@@ -36,6 +37,7 @@ no store reads it.
 | `RelationWriter`: tuples checked against the model, written or deleted at once | Implemented and tested |
 | `TreePermissions`: entries per node and action for a role or everyone else, the most specific wins | Implemented and tested |
 | In-memory store; Doctrine DBAL store with byte-by-byte collation, schema and ORM listener, purge, tested on MySQL 8.4 and PostgreSQL 17 | Implemented and tested |
+| Partitions: every store call in the partition of a `TupleScope`, failing closed outside any tenant; the upgrade of a table of 0.1 | Implemented and tested |
 | A fuzz target of the checker; a benchmark of a check and a listing | Implemented |
 | Symfony voters, visibility, sharing levels, access groups and "view as" on this model | Implemented in `phil/access-bundle` |
 
@@ -48,7 +50,8 @@ no store reads it.
 | [Checking and listing](doc/checking.md) | `check()`, `explain()`, `objects()`, the budget, cycles and expiry. |
 | [Permissions in a tree](doc/tree.md) | `TreePermissions`: entries, inheritance, the most specific entry, moving nodes. |
 | [Storage](doc/storage.md) | The stores, the table and its indexes, collation, the schema listener, the purge. |
-| [Exceptions](doc/exceptions.md) | `ResourcePermissionsException` and its four exceptions. |
+| [Partitions](doc/partitions.md) | Tenants that share a table and never meet, failing closed, upgrading from 0.1. |
+| [Exceptions](doc/exceptions.md) | `ResourcePermissionsException` and its five exceptions. |
 | [Extension points](doc/extension-points.md) | The ports and arguments an application chooses or replaces. |
 | [Testing](doc/testing.md) | The library's tests, fuzz target and benchmark, and how to test code that checks access. |
 | [Reference](doc/reference.md) | Every public type, with its role. |

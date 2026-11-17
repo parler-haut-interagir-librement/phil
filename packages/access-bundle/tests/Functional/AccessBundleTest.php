@@ -14,6 +14,7 @@ use Phil\AccessBundle\Domain\Status\EntryPoint;
 use Phil\AccessBundle\Domain\Status\Visibility;
 use Phil\AccessBundle\Domain\ValueObject\AccessGroup;
 use Phil\AccessBundle\Domain\ValueObject\MemberId;
+use Phil\AccessBundle\Infrastructure\Http\ViewAsGuard;
 use Phil\AccessBundle\Infrastructure\Twig\AccessExtension;
 use Phil\AccessBundle\Infrastructure\Twig\Components\AccessSummaryComponent;
 use Phil\AccessBundle\Infrastructure\Twig\Components\ViewAsBannerComponent;
@@ -34,6 +35,7 @@ use Symfony\Component\Security\Core\User\InMemoryUser;
 #[CoversClass(AccessExtension::class)]
 #[CoversClass(AccessSummaryComponent::class)]
 #[CoversClass(ViewAsBannerComponent::class)]
+#[CoversClass(ViewAsGuard::class)]
 final class AccessBundleTest extends WebTestCase
 {
     private KernelBrowser $client;
@@ -148,6 +150,22 @@ final class AccessBundleTest extends WebTestCase
 
         self::assertSame('nobody', $page->filter('#viewing-as')->text());
         self::assertCount(0, $page->filter('.phil-access-view-as'));
+    }
+
+    public function testTheGuardRefusesAChangeOnlyDuringAView(): void
+    {
+        $this->client->loginUser($this->member('ada'));
+        $this->client->request('POST', '/change');
+        self::assertResponseStatusCodeSame(204);
+
+        $this->client->submit($this->page()->filter('#view-as')->form());
+        $this->client->request('POST', '/change');
+        self::assertResponseStatusCodeSame(403);
+
+        $this->client->submit($this->page()->filter('.phil-access-view-as form')->form());
+        self::assertResponseRedirects('/page', 303);
+        $this->client->request('POST', '/change');
+        self::assertResponseStatusCodeSame(204);
     }
 
     public function testAMemberMayNotViewAsAnother(): void

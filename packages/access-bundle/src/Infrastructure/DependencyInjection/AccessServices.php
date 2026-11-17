@@ -24,15 +24,18 @@ use Phil\AccessBundle\Domain\ValueObject\SharingLevels;
 use Phil\AccessBundle\Infrastructure\Console\PurgeCommand;
 use Phil\AccessBundle\Infrastructure\EasyAdmin\EasyAdminAccessVoter;
 use Phil\AccessBundle\Infrastructure\Http\ViewAsController;
+use Phil\AccessBundle\Infrastructure\Http\ViewAsGuard;
 use Phil\AccessBundle\Infrastructure\Security\AccessVoter;
 use Phil\AccessBundle\Infrastructure\Security\TokenCurrentMember;
 use Phil\AccessBundle\Infrastructure\Session\SessionViewAsStore;
+use Phil\AccessBundle\Infrastructure\Tenancy\TenancyTupleScope;
 use Phil\AccessBundle\Infrastructure\Twig\AccessExtension;
 use Phil\AccessBundle\Infrastructure\Twig\Components\AccessSummaryComponent;
 use Phil\AccessBundle\Infrastructure\Twig\Components\ViewAsBannerComponent;
 use Phil\AccessBundle\Infrastructure\Twig\KitComponents;
 use Phil\ResourcePermissions\Budget;
 use Phil\ResourcePermissions\Contract\RelationCheck;
+use Phil\ResourcePermissions\Contract\TupleScope;
 use Phil\ResourcePermissions\Contract\TupleStore;
 use Phil\ResourcePermissions\Dbal\DbalTupleStore;
 use Phil\ResourcePermissions\Dbal\TupleSchemaListener;
@@ -40,7 +43,10 @@ use Phil\ResourcePermissions\InMemoryTupleStore;
 use Phil\ResourcePermissions\Model\Model;
 use Phil\ResourcePermissions\RelationChecker;
 use Phil\ResourcePermissions\RelationWriter;
+use Phil\ResourcePermissions\SinglePartition;
 use Phil\ResourcePermissions\Tree\TreePermissions;
+use Phil\TenancyBundle\Application\TenantContext;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -48,14 +54,15 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
- * The bundle's services: the store, the model and its checker and writer, the tree permissions, the spaces, items,
- * sharing, access groups and "view as", the voters, the controller, the Twig functions and components, and the purge
- * command — each integration only when its bundle is enabled.
+ * The bundle's services: the partition of the tuples, the store, the model and its checker and writer, the tree
+ * permissions, the spaces, items, sharing, access groups and "view as" with its guard, the voters, the controller, the
+ * Twig functions and components, and the purge command — each integration only when its bundle is enabled.
  *
  * @phpstan-type Config array{
  *     store: string,
  *     connection: string,
  *     table: string,
+ *     partition: string,
  *     space: string,
  *     item_kinds: list<string>,
  *     sharing_levels: list<string>,
@@ -63,7 +70,7 @@ use Symfony\Component\DependencyInjection\Reference;
  *     groups: array<string, array{entry_points: list<string>, duration: ?string}>,
  *     budget: array{max_depth: int, max_reads: int, max_fan_out: int, max_candidates: int},
  *     current_member: ?string,
- *     view_as: array{redirect: string},
+ *     view_as: array{redirect: string, read_only: bool},
  *     easyadmin: array{actions: ?array<string, string>},
  *     kit_subdirectory: ?string,
  * }
@@ -113,6 +120,13 @@ final class AccessServices
                 ->setAutoconfigured(true);
         }
 
+        if ($config['view_as']['read_only']) {
+            $container->register(ViewAsGuard::class, ViewAsGuard::class)
+                ->setArguments([new Reference(ViewAs::class), new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE)])
+                ->addTag('kernel.event_listener', ['event' => 'kernel.controller', 'method' => 'onController'])
+                ->addTag('monolog.logger', ['channel' => self::CHANNEL]);
+        }
+
         $container->register(ViewAsController::class, ViewAsController::class)
             ->setArguments([new Reference(ViewAs::class), new Reference('security.csrf.token_manager'), $config['view_as']['redirect']])
             ->addTag('controller.service_arguments')
@@ -137,15 +151,42 @@ final class AccessServices
     }
 
     /**
+     * The partition of the tuples: the active tenant of `phil/tenancy-bundle` for "tenant", and for "auto" when the
+     * bundle is enabled; one partition otherwise. An application replaces it by aliasing `TupleScope` to its own.
+     *
+     * @param Config $config
+     */
+    private static function registerScope(ContainerBuilder $container, array $config): void
+    {
+        $tenancy = self::isEnabled($container, 'PhilTenancyBundle');
+
+        if ('tenant' === $config['partition'] && !$tenancy) {
+            throw new InvalidConfigurationException('phil_access.partition "tenant" reads the active tenant of phil/tenancy-bundle: enable PhilTenancyBundle, or choose "single".');
+        }
+
+        if ('single' === $config['partition'] || !$tenancy) {
+            $container->register(SinglePartition::class, SinglePartition::class);
+            $container->setAlias(TupleScope::class, SinglePartition::class);
+
+            return;
+        }
+
+        $container->register(TenancyTupleScope::class, TenancyTupleScope::class)->setArguments([new Reference(TenantContext::class)]);
+        $container->setAlias(TupleScope::class, TenancyTupleScope::class);
+    }
+
+    /**
      * @param Config $config
      */
     private static function registerModel(ContainerBuilder $container, array $config): void
     {
+        self::registerScope($container, $config);
+
         if ('memory' === $config['store']) {
-            $container->register(TupleStore::class, InMemoryTupleStore::class)->setArguments([new Reference('clock')])->setPublic(true);
+            $container->register(TupleStore::class, InMemoryTupleStore::class)->setArguments([new Reference('clock'), new Reference(TupleScope::class)])->setPublic(true);
         } else {
             $connection = new Reference('doctrine.dbal.'.$config['connection'].'_connection');
-            $container->register(DbalTupleStore::class, DbalTupleStore::class)->setArguments([$connection, new Reference('clock'), $config['table']]);
+            $container->register(DbalTupleStore::class, DbalTupleStore::class)->setArguments([$connection, new Reference('clock'), $config['table'], new Reference(TupleScope::class)]);
             $container->setAlias(TupleStore::class, DbalTupleStore::class)->setPublic(true);
             $container->register(TupleSchemaListener::class, TupleSchemaListener::class)
                 ->setArguments([$connection, new Reference(DbalTupleStore::class)])
