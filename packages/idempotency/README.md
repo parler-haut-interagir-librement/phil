@@ -12,10 +12,10 @@ Each record is in one of three states: in progress, completed or failed. The in-
 so that a process killed in the middle of a run never keeps its key. Only the SHA-256 fingerprint of the payload is
 kept, never the payload.
 
-It is a plain PHP library. The stores are a port, with an adapter for Doctrine DBAL — one table, an atomic insert —
-and one for any PSR-6 cache pool, made atomic by the Symfony Lock component. A Messenger middleware handles a
-received message once per key. In a Symfony application, `phil/api-contract-bundle` brings `#[Idempotent]`
-controllers on top of it.
+It is a plain PHP library. The stores are a port, with an adapter for Doctrine DBAL — one table, an atomic insert — and
+one for any PSR-6 cache pool, made atomic by the Symfony Lock component. A Messenger middleware handles a received
+message once per key, and refuses a key reused with another message content. In a Symfony application,
+`phil/api-contract-bundle` brings `#[Idempotent]` controllers on top of it.
 
 ## Documentation
 
@@ -25,7 +25,7 @@ controllers on top of it.
 | [The rule](doc/rule.md) | Keys, scopes, fingerprints, the three states and the four outcomes. |
 | [The guard](doc/guard.md) | `IdempotencyGuard`: `run()`, `begin()`, `complete()`, `fail()`, and how to use them for an API, a webhook and a form. |
 | [Stores](doc/stores.md) | The DBAL table and the cache pool under a lock: atomicity, expiry, purge. |
-| [Messenger](doc/messenger.md) | The middleware, its keys, and what it does with a duplicate. |
+| [Messenger](doc/messenger.md) | The middleware, its keys, the fingerprint of a message, and what it does with a duplicate. |
 | [Exceptions](doc/exceptions.md) | What the library throws, and the HTTP answer of each. |
 | [Extension points](doc/extension-points.md) | A store of your own, and the contract test it can extend. |
 | [Testing](doc/testing.md) | What the suite pins, the concurrency test and the fuzz target. |

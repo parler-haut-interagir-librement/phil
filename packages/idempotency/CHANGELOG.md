@@ -4,6 +4,28 @@ All notable changes to `phil/idempotency` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.0-alpha: the Messenger middleware compares the content of a message, and refuses a key reused
+with another content. See [Upgrading from 0.2](doc/messenger.md#upgrading-from-02).
+
+### Added
+
+- `Contract\FingerprintedMessage`: a message names the fields of its intention with `idempotencyFingerprint()`.
+- `Messenger\IdempotencyStamp::$fingerprint`, given to the constructor as a `PayloadFingerprint`: the producer's
+  fingerprint of the intention, which the middleware compares in place of the message.
+- `Messenger\IdempotencyMiddleware`'s second argument, `$compareContent`, true by default; false compares the message
+  class only. `IdempotencyMiddleware::MAX_DEPTH`, how deep the content of a message is read.
+
+### Changed
+
+- `Messenger\IdempotencyMiddleware` fingerprints the message class and its content — the stamp's fingerprint, else the
+  message's `idempotencyFingerprint()`, else every property of the message, read down to 32 levels — instead of the
+  class only. A key reused with another content is refused with `UnrecoverableMessageHandlingException`, as an HTTP
+  request that reuses a key with another body; before, the second message was acknowledged without its handlers. A
+  message whose content cannot be read — a closure, a resource, bytes that are not UTF-8 — and that gives no fingerprint
+  is refused the same way.
+
 ## 0.2.0-alpha - 2026-11-14
 
 ### Fixed

@@ -56,7 +56,8 @@ for instance. `complete()` and `fail()` write only while the key is still held u
 expired and another run reserved the key since, they throw `ReservationLost` and leave the other run's record alone.
 
 When another run takes the key between the read and the reservation, `begin()` reads again and decides on what took
-it — a replay, a reuse, a run in progress. After three lost reservations it answers `InProgress`. `inProgress($decision)` builds the exception with the seconds left on the record.
+it — a replay, a reuse, a run in progress. After three lost reservations it answers `InProgress`.
+`inProgress($decision)` builds the exception with the seconds left on the record.
 
 ## An API
 
