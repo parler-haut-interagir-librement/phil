@@ -70,13 +70,15 @@ final readonly class JwtVerifier
             throw InvalidCredential::because('The signature of the credential does not verify.');
         }
 
-        $now = $at?->getTimestamp();
+        $notBefore = self::numericDate($claims, 'nbf');
+        $expires = self::numericDate($claims, 'exp');
+        $now = null === $at ? null : (float) $at->format('U.u');
 
-        if (null !== $now && \is_int($claims['nbf'] ?? null) && $now < $claims['nbf']) {
+        if (null !== $now && null !== $notBefore && $now < $notBefore) {
             throw InvalidCredential::because('The credential is not valid yet.');
         }
 
-        if (null !== $now && \is_int($claims['exp'] ?? null) && $now >= $claims['exp']) {
+        if (null !== $now && null !== $expires && $now >= $expires) {
             throw InvalidCredential::because('The credential has expired.');
         }
 
@@ -114,6 +116,24 @@ final readonly class JwtVerifier
 
         if (!\is_array($value)) {
             throw InvalidCredential::because('A part of the credential token is not a JSON object.');
+        }
+
+        return $value;
+    }
+
+    /**
+     * A NumericDate claim, a number of seconds that may carry a fraction (RFC 7519, section 2); null when absent.
+     *
+     * @param array<array-key, mixed> $claims
+     *
+     * @throws InvalidCredential when it is not a number
+     */
+    private static function numericDate(array $claims, string $name): int|float|null
+    {
+        $value = $claims[$name] ?? null;
+
+        if (null !== $value && !\is_int($value) && !\is_float($value)) {
+            throw InvalidCredential::because('The "nbf" and "exp" of a credential are numbers of seconds.');
         }
 
         return $value;

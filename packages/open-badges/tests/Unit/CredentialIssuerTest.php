@@ -280,6 +280,39 @@ final class CredentialIssuerTest extends TestCase
         self::assertSame(0, new JwtVerifier($signer->verificationKey())->verify($token)['exp'] ?? null);
     }
 
+    /**
+     * @return iterable<string, array{string, string, ?string}>
+     */
+    public static function numericDates(): iterable
+    {
+        yield 'a fractional start not reached' => ['{"nbf":1800000000.5}', '@1800000000', 'The credential is not valid yet.'];
+        yield 'a fractional start reached' => ['{"nbf":1800000000.5}', '@1800000001', null];
+        yield 'a fractional expiry passed' => ['{"exp":1800000000.5}', '@1800000001', 'The credential has expired.'];
+        yield 'a fractional expiry to come' => ['{"exp":1800000000.5}', '@1800000000', null];
+        yield 'a start given as text' => ['{"nbf":"1800000000"}', '@1900000000', 'The "nbf" and "exp" of a credential are numbers of seconds.'];
+        yield 'an expiry given as text' => ['{"exp":"1800000000"}', '@1700000000', 'The "nbf" and "exp" of a credential are numbers of seconds.'];
+        yield 'a start given as text, read without a moment' => ['{"nbf":"soon"}', '', 'The "nbf" and "exp" of a credential are numbers of seconds.'];
+    }
+
+    /**
+     * A NumericDate may carry a fraction of a second (RFC 7519, section 2): it is compared as the number it is, and a
+     * value of another type is refused rather than skipped.
+     */
+    #[DataProvider('numericDates')]
+    public function testTheStartAndTheExpiryAreNumbersOfSecondsWithOrWithoutAFraction(string $claims, string $at, ?string $refusal): void
+    {
+        $signer = Ed25519Signer::fromSeed(str_repeat("\1", 32));
+        $header = Base64Url::encode('{"alg":"EdDSA"}');
+        $payload = Base64Url::encode($claims);
+        $token = $header.'.'.$payload.'.'.Base64Url::encode(Signatures::sign($signer, $header.'.'.$payload));
+
+        if (null !== $refusal) {
+            $this->expectExceptionObject(InvalidCredential::because($refusal));
+        }
+
+        self::assertNotSame([], new JwtVerifier($signer->verificationKey())->verify($token, '' === $at ? null : new DateTimeImmutable($at)));
+    }
+
     public function testATokenHasThreeParts(): void
     {
         $this->expectExceptionObject(InvalidCredential::because('A credential token has three parts separated by dots.'));
