@@ -139,6 +139,7 @@ final class DeepLinkingHandlerTest extends TestCase
         [$status, $display] = $this->execute($command, 'nope', 300, 100);
         self::assertSame(Command::FAILURE, $status);
         self::assertStringContainsString('No response is kept under "nope".', $display);
+        self::assertStringContainsString('Handled 0 responses again; 1 failed.', $display);
 
         foreach ([[59, 1], [60, 0], [60, 1001]] as [$delay, $limit]) {
             [$status, $display] = $this->execute($command, null, $delay, $limit);
@@ -186,13 +187,64 @@ final class DeepLinkingHandlerTest extends TestCase
         $this->handler()->resume($stored->key);
     }
 
+    public function testTheDefaultsOfTheHandlerAndTheCommandAreTheDocumentedOnes(): void
+    {
+        $now = $this->clock->now();
+
+        foreach (range(1, 101) as $number) {
+            $this->keep('d'.$number, $now->modify('-1 hour'));
+        }
+
+        self::assertCount(100, $this->handler()->unhandled(60));
+        self::assertStringContainsString('Handled 100 responses again; 0 failed.', $this->execute(new ResumeDeepLinkingCommand($this->handler()), null)[1]);
+        self::assertStringContainsString('Handled 1 responses again; 0 failed.', $this->execute(new ResumeDeepLinkingCommand($this->handler()), null)[1]);
+    }
+
+    public function testTheCommandHandlesAfterFiveMinutesByDefault(): void
+    {
+        $now = $this->clock->now();
+        $this->keep('young', $now->modify('-299 seconds'));
+        $this->keep('exact', $now->modify('-300 seconds'));
+
+        self::assertStringContainsString('Handled 1 responses again; 0 failed.', $this->execute(new ResumeDeepLinkingCommand($this->handler()), null)[1]);
+        self::assertNotNull($this->returns->find($this->keyOf('exact'), $now)?->handledAt);
+        self::assertNull($this->returns->find($this->keyOf('young'), $now)?->handledAt);
+    }
+
+    public function testAStoredResponseRefusesALocalAddressAndIsNotResumedByDefault(): void
+    {
+        $now = $this->clock->now();
+        $stored = new StoredDeepLinkingReturn('k', 'client', ['iss' => 'client', 'nonce' => 'n', Claim::DEPLOYMENT_ID => 'd', Claim::CONTENT_ITEMS => [['type' => 'link', 'url' => 'https://localhost/a']]], $now, $now->modify('+1 hour'));
+
+        try {
+            $stored->result();
+            self::fail('A local address was read.');
+        } catch (InvalidToken) {
+            self::addToAssertionCount(1);
+        }
+
+        self::assertFalse(new DeepLinkingReturned($this->verified('x'))->resumed);
+    }
+
+    private function keyOf(string $nonce): string
+    {
+        return DeepLinkingResult::key('client', $nonce);
+    }
+
+    private function keep(string $key, DateTimeImmutable $receivedAt): void
+    {
+        $result = DeepLinkingResult::fromClaims(['iss' => 'client', 'nonce' => $key, Claim::DEPLOYMENT_ID => 'd', Claim::CONTENT_ITEMS => []]);
+        $this->returns->save(new StoredDeepLinkingReturn($result->key, 'client', $result->claims, $receivedAt, $receivedAt->modify('+1 day')));
+    }
+
     /**
      * @return array{int, string}
      */
-    private function execute(ResumeDeepLinkingCommand $command, ?string $key, int $delay, int $limit): array
+    private function execute(ResumeDeepLinkingCommand $command, ?string $key, ?int $delay = null, ?int $limit = null): array
     {
         $output = new BufferedOutput();
-        $status = $command(new SymfonyStyle(new ArrayInput([]), $output), $key, $delay, $limit);
+        $io = new SymfonyStyle(new ArrayInput([]), $output);
+        $status = null === $delay || null === $limit ? $command($io, $key) : $command($io, $key, $delay, $limit);
 
         return [$status, (string) preg_replace('/\s+/', ' ', $output->fetch())];
     }

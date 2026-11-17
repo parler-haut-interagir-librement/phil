@@ -76,7 +76,7 @@ final readonly class DbalPendingScores implements PendingScores
             ->select('id')
             ->from($this->tables->pendingScores)
             ->where($condition)
-            ->setParameter(0, $before->getTimestamp(), ParameterType::INTEGER)
+            ->setParameters([$before->getTimestamp()], [ParameterType::INTEGER])
             ->orderBy('created_at')
             ->addOrderBy('id')
             ->setMaxResults($limit)

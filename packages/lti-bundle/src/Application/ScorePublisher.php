@@ -70,10 +70,10 @@ final readonly class ScorePublisher
         $pending = new PendingScore(sodium_bin2hex(random_bytes(16)), $launch->issuer, $launch->clientId, $target, $score, $this->clock->now());
         $this->pending->save($pending);
 
-        if (!$this->bus instanceof MessageBusInterface) {
-            $this->send($pending->id);
+        if ($this->bus instanceof MessageBusInterface) {
+            $this->dispatch($this->bus, $pending->id);
         } else {
-            $this->dispatch($pending->id);
+            $this->send($pending->id);
         }
 
         return $pending->id;
@@ -138,7 +138,7 @@ final readonly class ScorePublisher
         foreach ($this->pending->claim($now->sub(new DateInterval('PT'.$delay.'S')), $now, $limit) as $pending) {
             try {
                 if ($this->bus instanceof MessageBusInterface) {
-                    $this->dispatch($pending->id, false);
+                    $this->dispatch($this->bus, $pending->id, false);
                 } else {
                     $this->send($pending->id);
                 }
@@ -169,10 +169,10 @@ final readonly class ScorePublisher
     /**
      * @throws TransportException when `$tolerant` is false and the transport refuses the message
      */
-    private function dispatch(string $id, bool $tolerant = true): void
+    private function dispatch(MessageBusInterface $bus, string $id, bool $tolerant = true): void
     {
         try {
-            $this->bus?->dispatch(new PublishScore($id));
+            $bus->dispatch(new PublishScore($id));
         } catch (TransportException $transportException) {
             if ($tolerant) {
                 return;

@@ -201,6 +201,36 @@ final class DeepLinkingTest extends TestCase
         }
     }
 
+    public function testTheMembersOfAStoredResponseHaveTheirLimits(): void
+    {
+        $claims = ['iss' => 'c', 'nonce' => 'n', Claim::DEPLOYMENT_ID => 'd', Claim::CONTENT_ITEMS => []];
+
+        foreach (['iss', 'nonce', Claim::DEPLOYMENT_ID] as $claim) {
+            self::assertSame(str_repeat('x', 255), DeepLinkingResult::fromClaims([$claim => str_repeat('x', 255)] + $claims)->claims[$claim]);
+
+            try {
+                DeepLinkingResult::fromClaims([$claim => str_repeat('x', 256)] + $claims);
+                self::fail($claim.' of 256 bytes was read.');
+            } catch (InvalidToken $invalidToken) {
+                self::assertStringContainsString('at most', $invalidToken->getMessage());
+            }
+        }
+    }
+
+    public function testTheNonceOfAResponseIsNotUsedWhenItIsTooLong(): void
+    {
+        $now = $this->lti->clock->now()->getTimestamp();
+        $base = ['iss' => Lti::CLIENT, 'aud' => Lti::ISSUER, 'iat' => $now, 'exp' => $now + 60, Claim::MESSAGE_TYPE => 'LtiDeepLinkingResponse', Claim::VERSION => '1.3.0', Claim::DEPLOYMENT_ID => Lti::DEPLOYMENT];
+        $nonces = new RecordingNonces($this->lti->nonces);
+
+        try {
+            new DeepLinkingReturn(Lti::ISSUER, $this->lti->tools, $nonces, $this->lti->verifier)->read(JwtSigner::sign(['nonce' => str_repeat('x', 256)] + $base, Keys::tool()));
+            self::fail('A nonce of 256 bytes was read.');
+        } catch (InvalidToken) {
+            self::assertSame([], $nonces->used);
+        }
+    }
+
     public function testTheNonceOfAResponseIsKeptPerTool(): void
     {
         $nonces = new RecordingNonces($this->lti->nonces);

@@ -96,7 +96,7 @@ final readonly class DbalDeepLinkingReturns implements DeepLinkingReturns
     #[Override]
     public function purge(DateTimeImmutable $now): int
     {
-        return (int) $this->connection->executeStatement(\sprintf('DELETE FROM %s WHERE expires_at <= ?', $this->tables->deepLinkingReturns), [$now->getTimestamp()], [ParameterType::INTEGER]);
+        return (int) $this->connection->executeStatement(\sprintf('DELETE FROM %s WHERE expires_at <= ?', $this->tables->deepLinkingReturns), [$now->getTimestamp()]);
     }
 
     /**

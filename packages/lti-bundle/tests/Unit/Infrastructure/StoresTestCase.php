@@ -310,6 +310,64 @@ abstract class StoresTestCase extends TestCase
         self::checkPendingScores(new DbalPendingScores($connection, $this->tables));
     }
 
+    public function testTheSchemaCommandSeesEveryLackAndSaysSoBeforeDoingIt(): void
+    {
+        $connection = $this->connection();
+        $manager = $connection->createSchemaManager();
+        $platform = $connection->getDatabasePlatform();
+        $definitions = $this->tables->definitions($platform);
+
+        // The first table is gone, the second lacks a column only, and the pending scores lack an index only.
+        $connection->executeStatement('DROP TABLE '.$this->tables->nonces);
+        $connection->executeStatement('DROP TABLE '.$this->tables->loginStates);
+
+        foreach ($platform->getCreateTablesSQL([$definitions[1]->edit()->dropColumnByUnquotedName('nonce')->create()]) as $statement) {
+            $connection->executeStatement($statement);
+        }
+
+        $manager->dropIndex($this->tables->pendingScores.'_refused', $this->tables->pendingScores);
+
+        $command = new SchemaCommand($connection, $this->tables);
+        $run = static function (?bool $force) use ($command): string {
+            $output = new BufferedOutput();
+            $io = new SymfonyStyle(new ArrayInput([]), $output);
+            self::assertSame(0, null === $force ? $command($io) : $command($io, $force));
+
+            return $output->fetch();
+        };
+
+        $shown = $run(null);
+        $statements = array_values(array_filter(array_map(trim(...), explode("\n", $shown)), static fn (string $line): bool => '' !== $line && !str_contains($line, '[NOTE]')));
+        self::assertStringContainsString('1 tables missing, 2 tables to change: run again with --force.', (string) preg_replace('/\s+/', ' ', $shown));
+        self::assertTrue($manager->tablesExist([$this->tables->pendingScores]));
+        self::assertFalse($manager->tablesExist([$this->tables->nonces]), 'Without --force, nothing is run.');
+        self::assertMatchesRegularExpression('/^CREATE TABLE \S*nonce\S* \(.*;$/m', $shown);
+        self::assertMatchesRegularExpression('/^CREATE INDEX \S*pending_score_refused\S* ON .*;$/m', $shown);
+        self::assertNotSame([], $statements);
+
+        foreach ($statements as $statement) {
+            if (str_starts_with($statement, '!')) {
+                continue;
+            }
+
+            self::assertMatchesRegularExpression('/^[A-Z].*;$/', $statement);
+        }
+
+        self::assertStringContainsString('Created: '.$this->tables->nonces.'. Changed: '.$this->tables->loginStates.', '.$this->tables->pendingScores.'.', (string) preg_replace('/\s+/', ' ', $run(true)));
+        self::assertTrue($manager->tablesExist([$this->tables->nonces]));
+        self::assertTrue($manager->introspectTableByUnquotedName($this->tables->loginStates)->hasColumn('nonce'));
+        self::assertTrue($manager->introspectTableByUnquotedName($this->tables->pendingScores)->hasIndex($this->tables->pendingScores.'_refused'));
+        self::assertSame(' [OK] The LTI tables are up to date. ', (string) preg_replace('/\s+/', ' ', $run(false)));
+
+        $manager->dropIndex($this->tables->pendingScores.'_refused', $this->tables->pendingScores);
+        self::assertStringContainsString('0 tables missing, 1 tables to change', (string) preg_replace('/\s+/', ' ', $run(false)), 'A table to change is told even when none is missing.');
+        $run(true);
+        $connection->executeStatement('DROP TABLE '.$this->tables->deepLinkingReturns);
+        self::assertStringContainsString('1 tables missing, 0 tables to change', (string) preg_replace('/\s+/', ' ', $run(false)), 'A table missing is told even when none is to change.');
+        $run(true);
+        self::assertSame(' [OK] The LTI tables are up to date. ', (string) preg_replace('/\s+/', ' ', $run(false)));
+    }
+
     public function testTheClaimsOfADeepLinkingReturnAreBounded(): void
     {
         $returns = new DbalDeepLinkingReturns($this->connection(), $this->tables);

@@ -184,6 +184,8 @@ final class PhilLtiBundleTest extends TestCase
             'bits' => [static fn (int $value): array => ['keys' => $keys + ['bits' => $value]], 2_048, 4_096],
             'state lifetime' => [static fn (int $value): array => ['keys' => $keys, 'tool' => ['state_lifetime' => $value]], 60, 3_600],
             'token lifetime' => [static fn (int $value): array => ['keys' => $keys, 'platform' => $platform + ['token_lifetime' => $value]], 60, 86_400],
+            'refused score retention' => [static fn (int $value): array => ['keys' => $keys, 'tool' => ['refused_score_retention' => $value]], 86_400, null],
+            'deep linking retention' => [static fn (int $value): array => ['keys' => $keys, 'platform' => $platform + ['deep_linking_retention' => $value]], 600, 2_592_000],
         ];
 
         foreach ($cases as $name => [$config, $min, $max]) {
@@ -209,6 +211,7 @@ final class PhilLtiBundleTest extends TestCase
         }
 
         $this->assertRefused(['store' => 'neither', 'keys' => $keys], 'store');
+        $this->load([['store' => 'dbal', 'keys' => $keys]]);
         $this->assertRefused(['keys' => ['source' => 'neither', 'master_key' => 'k']], 'source');
         $this->load([['store' => 'memory', 'keys' => ['source' => 'config', 'private_key' => 'pem']]]);
         $this->load([['keys' => ['source' => 'dbal', 'master_key' => 'k']]]);

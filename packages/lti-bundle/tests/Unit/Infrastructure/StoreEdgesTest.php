@@ -5,8 +5,13 @@ declare(strict_types=1);
 namespace Phil\LtiBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
+use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver\Connection as DriverConnection;
+use Doctrine\DBAL\Driver\Middleware;
+use Doctrine\DBAL\DriverManager;
 use JsonException;
+use PDO;
 use Phil\Lti\Key\KeySet;
 use Phil\Lti\Key\RsaPrivateKey;
 use Phil\Lti\Key\RsaPublicKey;
@@ -18,6 +23,7 @@ use Phil\Lti\Service\Ags\GradingProgress;
 use Phil\Lti\Service\Ags\LineItem;
 use Phil\Lti\Service\Ags\Score;
 use Phil\Lti\Service\Scope;
+use Phil\LtiBundle\Application\Contract\PendingScores;
 use Phil\LtiBundle\Application\PendingScore;
 use Phil\LtiBundle\Application\StoredDeepLinkingReturn;
 use Phil\LtiBundle\Infrastructure\Console\PurgeCommand;
@@ -32,7 +38,10 @@ use Phil\LtiBundle\Infrastructure\Dbal\DbalScoreStore;
 use Phil\LtiBundle\Infrastructure\Dbal\LtiTables;
 use Phil\LtiBundle\Infrastructure\Dbal\Row;
 use Phil\LtiBundle\Infrastructure\KeyManagement\KeyManagementSealer;
+use Phil\LtiBundle\Tests\Unit\Fixture\Interleaving;
+use Phil\LtiBundle\Tests\Unit\Fixture\MysqlRowCounts;
 use Phil\LtiBundle\Tests\Unit\Fixture\PlainSealer;
+use Phil\LtiBundle\Tests\Unit\Fixture\StatementLog;
 use Phil\LtiBundle\Tests\Unit\Fixture\Stores;
 use Phil\LtiBundle\Tests\Unit\Fixture\TestKeys;
 use Phil\Url\Exception\InvalidUrl;
@@ -187,6 +196,160 @@ final class StoreEdgesTest extends TestCase
                 }
             }
         }
+    }
+
+    public function testTheClaimsOfADeepLinkingReturnAreWrittenAsReadableJson(): void
+    {
+        $returns = new DbalDeepLinkingReturns($this->connection, $this->tables);
+        $now = new DateTimeImmutable('2026-11-14 12:00:00 UTC');
+        $returns->save(new StoredDeepLinkingReturn('k', 'client', ['url' => 'https://tool.example.com/é'], $now, $now->modify('+1 hour')));
+
+        self::assertStringContainsString('"url":"https://tool.example.com/é"', $this->payload($this->tables->deepLinkingReturns));
+    }
+
+    public function testTheClaimsOfADeepLinkingReturnAreReadAtSixtyFourLevels(): void
+    {
+        $returns = new DbalDeepLinkingReturns($this->connection, $this->tables);
+        $now = new DateTimeImmutable('2026-11-14 12:00:00 UTC');
+
+        // The innermost empty array counts for a level of its own: 63 brackets are 64 levels.
+        foreach ([63 => true, 64 => false] as $levels => $accepted) {
+            $this->connection->delete($this->tables->deepLinkingReturns, ['id' => 'deep']);
+            $this->connection->insert($this->tables->deepLinkingReturns, ['id' => 'deep', 'client_id' => 'c', 'payload' => str_repeat('[', $levels).str_repeat(']', $levels), 'received_at' => 1, 'expires_at' => $now->getTimestamp() + 3600]);
+
+            if ($accepted) {
+                self::assertNotNull($returns->find('deep', $now));
+
+                continue;
+            }
+
+            try {
+                $returns->find('deep', $now);
+                self::fail('Claims of 64 levels were read.');
+            } catch (JsonException) {
+                self::addToAssertionCount(1);
+            }
+        }
+    }
+
+    public function testTheRefusedScoresAreKeptThirtyDaysByDefault(): void
+    {
+        $pending = new DbalPendingScores($this->connection, $this->tables);
+        $score = new Score('learner', ActivityProgress::Completed, GradingProgress::FullyGraded, new DateTimeImmutable('2026-11-14T12:00:00+00:00'), 1.0, 1.0);
+        $now = $this->clock->now();
+
+        foreach (['exact' => 2_592_000, 'recent' => 2_591_999] as $id => $age) {
+            $pending->save(new PendingScore($id, 'https://lms.example.org', 'client', Url::fromString('https://lms.example.org/items/1'), $score, $now));
+            $pending->markRefused($id, 'Refused', $now->modify('-'.$age.' seconds'));
+        }
+
+        $output = new BufferedOutput();
+        new PurgeCommand(new DbalNonces($this->connection, $this->tables, $this->clock), $this->clock, pending: $pending)(new SymfonyStyle(new ArrayInput([]), $output));
+
+        self::assertNull($pending->find('exact'));
+        self::assertNotNull($pending->find('recent'));
+        self::assertStringContainsString('1 refused scores.', (string) preg_replace('/\s+/', ' ', $output->fetch()));
+    }
+
+    public function testAScoreListedWithoutTheMomentItWasRefusedIsShownWithoutIt(): void
+    {
+        $score = new PendingScore('odd', 'https://lms.example.org', 'client', Url::fromString('https://lms.example.org/items/1'), $this->score('learner'), $this->clock->now());
+        $pending = new class($score) implements PendingScores {
+            private bool $listed = false;
+
+            public function __construct(
+                private readonly PendingScore $score,
+            ) {
+            }
+
+            public function save(PendingScore $score): void
+            {
+            }
+
+            public function find(string $id): ?PendingScore
+            {
+                return null;
+            }
+
+            public function markDispatched(string $id, DateTimeImmutable $at): void
+            {
+            }
+
+            public function markRefused(string $id, string $reason, DateTimeImmutable $at): void
+            {
+            }
+
+            public function claim(DateTimeImmutable $before, DateTimeImmutable $now, int $limit): array
+            {
+                return [];
+            }
+
+            public function refused(DateTimeImmutable $before, int $limit): array
+            {
+                if ($this->listed) {
+                    return [];
+                }
+
+                $this->listed = true;
+
+                return [$this->score];
+            }
+
+            public function delete(string $id): void
+            {
+            }
+        };
+
+        $output = new BufferedOutput();
+        new PurgeCommand(new DbalNonces($this->connection, $this->tables, $this->clock), $this->clock, pending: $pending)(new SymfonyStyle(new ArrayInput([]), $output));
+
+        self::assertStringContainsString('Refused score odd of https://lms.example.org, client client, refused at : ', (string) preg_replace('/\s+/', ' ', $output->fetch()));
+    }
+
+    public function testAScoreIsWrittenInTheFewestStatements(): void
+    {
+        $log = new StatementLog();
+        $interleaving = new Interleaving();
+        $connection = $this->logged([$interleaving, $log->middleware()]);
+        $scores = new DbalScoreStore($connection, $this->tables);
+        $at = static fn (string $time, float $given): Score => new Score('u', ActivityProgress::Completed, GradingProgress::FullyGraded, new DateTimeImmutable('2026-11-14T'.$time.'+00:00'), $given, 10.0);
+        $count = static fn (string $prefix): int => $log->count($prefix);
+
+        self::assertTrue($scores->record('item', $at('12:00:00', 1.0)));
+        self::assertSame([1, 1], [$count('UPDATE'), $count('INSERT')], 'A new score is tried as an update, then inserted, and nothing more.');
+
+        self::assertTrue($scores->record('item', $at('12:00:01', 2.0)));
+        self::assertSame([2, 1], [$count('UPDATE'), $count('INSERT')], 'A score that replaces another is not inserted.');
+
+        $connection->executeStatement('DELETE FROM '.$this->tables->scores);
+        $log->statements = [];
+        $table = $this->tables->scores;
+        $interleaving->before('BEGIN', static function (DriverConnection $driver) use ($table): void {
+            $driver->exec(\sprintf("INSERT INTO %s (line_item_id, user_id, payload, scored_at) VALUES ('item', 'u', '{}', 1)", $table));
+        });
+
+        self::assertTrue($scores->record('item', $at('12:00:00', 3.0)));
+        self::assertSame(0, $count('SELECT scored_at'), 'A score that replaces the one written meanwhile asks nothing more.');
+    }
+
+    public function testAScoreWrittenAgainAsItIsIsKeptWhateverTheDatabaseCounts(): void
+    {
+        $connection = $this->logged([new MysqlRowCounts()], [PDO::ATTR_STRINGIFY_FETCHES => true]);
+        $scores = new DbalScoreStore($connection, $this->tables);
+        $score = $this->score('u', 1.0);
+
+        self::assertTrue($scores->record('item', $score));
+        self::assertTrue($scores->record('item', $score), 'The moment kept is the moment of the score, however the database counts and gives it.');
+        self::assertFalse($scores->record('item', new Score('u', ActivityProgress::Completed, GradingProgress::FullyGraded, new DateTimeImmutable('2026-11-14T11:59:59+00:00'), 1.0, 1.0)));
+    }
+
+    /**
+     * @param list<Middleware>  $middlewares
+     * @param array<int, mixed> $options
+     */
+    private function logged(array $middlewares, array $options = []): Connection
+    {
+        return Stores::prepare(DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true, 'driverOptions' => $options], new Configuration()->setMiddlewares($middlewares)), $this->tables);
     }
 
     public function testAPendingScoreOfALocalAddressIsReadOnlyWhenLocalhostIsAllowed(): void

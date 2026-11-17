@@ -364,6 +364,43 @@ final class ScorePublisherTest extends TestCase
         self::assertCount(2, $bus->messages);
     }
 
+    public function testTheDefaultsOfARecoveryAndOfItsCommandAreTheDocumentedOnes(): void
+    {
+        $publisher = $this->publisher();
+
+        foreach (range(1, 101) as $number) {
+            $this->pending->save(new PendingScore('s'.$number, 'https://lms.example.org', 'client', Url::fromString(self::ITEM), $this->score(), $this->clock->now()));
+        }
+
+        $this->clock->sleep(3600);
+        self::assertSame(100, $publisher->recover(60));
+
+        foreach (range(1, 101) as $number) {
+            $this->pending->save(new PendingScore('t'.$number, 'https://lms.example.org', 'client', Url::fromString(self::ITEM), $this->score(), $this->clock->now()));
+        }
+
+        $this->clock->sleep(3600);
+        $output = new BufferedOutput();
+        new RecoverScoresCommand($publisher)(new SymfonyStyle(new ArrayInput([]), $output));
+        self::assertStringContainsString('Sent again 100 scores.', $output->fetch());
+    }
+
+    public function testTheCommandSendsAgainAfterFiveMinutesByDefault(): void
+    {
+        $publisher = $this->publisher();
+        $this->pending->save(new PendingScore('exact', 'https://lms.example.org', 'client', Url::fromString(self::ITEM), $this->score(), $this->clock->now()));
+        $this->clock->sleep(1);
+        $this->pending->save(new PendingScore('young', 'https://lms.example.org', 'client', Url::fromString(self::ITEM), $this->score(), $this->clock->now()));
+        $this->clock->sleep(299);
+
+        $output = new BufferedOutput();
+        new RecoverScoresCommand($publisher)(new SymfonyStyle(new ArrayInput([]), $output));
+
+        self::assertStringContainsString('Sent again 1 scores.', $output->fetch());
+        self::assertNotNull($this->pending->find('young'));
+        self::assertNull($this->pending->find('exact'));
+    }
+
     public function testARecoveryWaitsASecondAtLeast(): void
     {
         try {
@@ -399,6 +436,7 @@ final class ScorePublisherTest extends TestCase
         } catch (UnrecoverableMessageHandlingException $unrecoverableMessageHandlingException) {
             self::assertInstanceOf(InvalidRequest::class, $unrecoverableMessageHandlingException->getPrevious());
             self::assertSame(0, $unrecoverableMessageHandlingException->getCode());
+            self::assertEquals($this->clock->now(), $this->pending->find($id)?->refusedAt, 'A request that cannot be sent is kept as refused.');
         }
     }
 

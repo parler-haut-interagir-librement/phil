@@ -104,7 +104,7 @@ final class InMemoryPendingScores implements PendingScores, ResetInterface
      */
     private function sorted(): array
     {
-        $scores = array_values($this->scores);
+        $scores = $this->scores;
         usort($scores, static fn (PendingScore $a, PendingScore $b): int => [$a->createdAt, $a->id] <=> [$b->createdAt, $b->id]);
 
         return $scores;
