@@ -4,6 +4,30 @@ All notable changes to `phil/lti` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: `ScoreStore::record()` answers whether it kept the score, `AgsService::lineItems()`
+answers a page, and `DeepLinkingResult` gains its key and its claims.
+
+### Added
+
+- `DeepLinkingResult::$key`, the name of a deep linking response for good — a SHA-256 of its client and of its nonce —,
+  `DeepLinkingResult::key()`, which gives it, `DeepLinkingResult::$claims`, the verified claims of the response, and
+  `DeepLinkingResult::fromClaims()`, which reads them again without the token, so that an application that kept them
+  handles a response again after a failure.
+
+### Changed
+
+- `ScoreStore::record()` compares the moment of the score with the one kept and writes in one atomic step, and answers
+  whether it kept the score; `AgsService::score()` answers its result instead of reading the latest score first, so
+  that of two scores of one learner written at once the more recent stays. `InMemoryScoreStore` keeps the more recent
+  score; a store of the application's own implements the new contract.
+- `AgsService::lineItems()` answers a page — `lineItems`, `limit` and `nextOffset` — as `NrpsService::page()` does:
+  the store is asked for one line item more than the limit, 100 by default and 1,000 at most, so that the next page is
+  known at every size, also without a limit and beyond 1,000.
+- `DeepLinkingReturn::read()` builds its result by `DeepLinkingResult::fromClaims()`; the constructor of
+  `DeepLinkingResult` takes the key first and the claims last.
+
 ## 0.1.0-alpha - 2026-11-15
 
 ### Added

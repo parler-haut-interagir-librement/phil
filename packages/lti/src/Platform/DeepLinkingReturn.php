@@ -6,7 +6,6 @@ namespace Phil\Lti\Platform;
 
 use Phil\Lti\Contract\Nonces;
 use Phil\Lti\Contract\ToolRegistrations;
-use Phil\Lti\DeepLinking\ContentItems;
 use Phil\Lti\Exception\InvalidToken;
 use Phil\Lti\Exception\UnknownRegistration;
 use Phil\Lti\Jwt\Jwt;
@@ -18,7 +17,9 @@ use Phil\Lti\Support\Fields;
 /**
  * Reads the deep linking response a tool posts back to the platform, in its `JWT` field: `iss` a registered client,
  * `aud` the platform, signed by the tool's key, `exp` and `iat` holding, the `nonce` used once, the deployment the tool's,
- * the message type and version those of a response; then the content items.
+ * the message type and version those of a response; then the content items. The nonce is taken once: a response read
+ * is never read again from its token, and an application that has to handle it again keeps its `DeepLinkingResult`
+ * claims and reads them with `DeepLinkingResult::fromClaims()`.
  */
 final readonly class DeepLinkingReturn
 {
@@ -71,15 +72,6 @@ final readonly class DeepLinkingReturn
             throw UnknownRegistration::deployment($deploymentId);
         }
 
-        return new DeepLinkingResult(
-            $clientId,
-            $deploymentId,
-            ContentItems::fromClaims($jwt->claims, Claim::CONTENT_ITEMS, $this->allowLocalhost),
-            $fields->optionalString(Claim::DATA),
-            $fields->optionalString(Claim::MESSAGE),
-            $fields->optionalString(Claim::LOG),
-            $fields->optionalString(Claim::ERROR_MESSAGE),
-            $fields->optionalString(Claim::ERROR_LOG),
-        );
+        return DeepLinkingResult::fromClaims($jwt->claims, $this->allowLocalhost);
     }
 }

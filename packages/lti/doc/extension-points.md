@@ -25,6 +25,9 @@ An adapter keeps the contract of its port:
 - `LoginStates::take()` removes the state in the step that reads it: of two launches with one state, one only finds it;
 - `Nonces::use()` checks and writes in one step: of two requests with one value, one only succeeds;
 - `AccessTokens::find()` answers null for an expired token;
+- `ScoreStore::record()` compares the moment of the score with the one kept and writes in one atomic step — a
+  conditional write, or a lock that also covers two first scores at once —, and answers whether it kept the score:
+  never does a score replace a more recent one, whatever two writes do at once;
 - `LineItemStore::list()` and `ScoreStore::scores()` answer in a stable order, so that pages do not overlap;
   `LineItemStore::delete()` removes the scores of the line item too.
 

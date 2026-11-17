@@ -22,6 +22,7 @@ use Phil\Lti\Service\Scope;
  * on the line item is not kept, as the specification asks; results scale the latest score to the line item's maximum.
  *
  * A method that finds no context, or no line item, of the tool answers null or false: the application answers 404.
+ * The list of line items is paged as Names and Role Provisioning pages its members, with the offset of the next page.
  */
 final readonly class AgsService
 {
@@ -37,7 +38,11 @@ final readonly class AgsService
     }
 
     /**
-     * @return list<StoredLineItem>|null
+     * A page of the line items of a context: `limit` items at most, 100 by default and 1,000 at most — the limit the
+     * page was cut at, whatever was asked —; `nextOffset` is where the next page starts, null on the last.
+     *
+     * @return array{lineItems: list<StoredLineItem>, limit: int<1, 1000>, nextOffset: ?int}|null null when the context
+     *                                                                                            is not one of the tool
      *
      * @throws AccessDenied
      */
@@ -49,7 +54,12 @@ final readonly class AgsService
             return null;
         }
 
-        return $this->lineItems->list($token->clientId, $contextId, $resourceLinkId, $resourceId, $tag, $this->limit($limit), max(0, $offset));
+        $limit = $this->limit($limit);
+        $offset = max(0, $offset);
+        $lineItems = $this->lineItems->list($token->clientId, $contextId, $resourceLinkId, $resourceId, $tag, $limit + 1, $offset);
+        $more = \count($lineItems) > $limit;
+
+        return ['lineItems' => \array_slice($lineItems, 0, $limit), 'limit' => $limit, 'nextOffset' => $more ? $offset + $limit : null];
     }
 
     /**
@@ -116,6 +126,7 @@ final readonly class AgsService
 
     /**
      * Keeps a score; null when the line item is not the tool's, false when the score is older than the latest kept.
+     * The store compares and writes in one atomic step: of two scores sent at once, the more recent stays.
      *
      * @throws AccessDenied
      */
@@ -129,15 +140,7 @@ final readonly class AgsService
             return null;
         }
 
-        $latest = $this->scores->latest($lineItemId, $score->userId);
-
-        if ($latest instanceof Score && $score->timestamp < $latest->timestamp) {
-            return false;
-        }
-
-        $this->scores->record($lineItemId, $score);
-
-        return true;
+        return $this->scores->record($lineItemId, $score);
     }
 
     /**
@@ -180,6 +183,9 @@ final readonly class AgsService
         throw AccessDenied::insufficientScope($scopes[0]);
     }
 
+    /**
+     * @return int<1, 1000>
+     */
     private function limit(?int $limit): int
     {
         return max(1, min(self::MAX_LIMIT, $limit ?? self::DEFAULT_LIMIT));
