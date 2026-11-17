@@ -8,16 +8,21 @@
 | `Infrastructure\Http\ProblemDetailsResponse` | response | A problem, `application/problem+json` |
 | `Infrastructure\Http\ProblemDetailsListener` | `kernel.exception` listener | Exceptions as problems |
 | `Infrastructure\Http\Idempotent` | attribute | A controller that requires an `Idempotency-Key` |
-| `Infrastructure\Http\IdempotencyListener` | listener | The guard of `phil/idempotency` around such a controller |
+| `Infrastructure\Http\IdempotencyListener` | listener | The guard of `phil/idempotency` around such a controller, after its access checks; constants `REPLAYED_HEADER`, `RESERVED`, `PRIORITY`, `RESERVATION_LOST`, `KEY_FORMAT` |
 | `Infrastructure\Http\IdempotencyReservation` | value | The reservation a request took, from `phil/idempotency`, and the retention of its answer |
 | `Infrastructure\Http\IdempotencyScopeResolver` | interface | Who sent a request |
-| `Infrastructure\Http\CallerScopeResolver` | resolver | The user, or else the address |
+| `Infrastructure\Http\CallerScopeResolver` | resolver | The tenant, the client and the user, hashed; anonymous callers refused or scoped by address; constant `ANONYMOUS` |
+| `Infrastructure\Http\IdempotencyTenantResolver` | interface | The tenant a request acts in |
+| `Infrastructure\Http\ActiveTenantResolver` | resolver | The active tenant of `phil/tenancy-bundle` |
+| `Infrastructure\Http\IdempotencyClientResolver` | interface | The client that sent a request |
+| `Infrastructure\Http\TokenAttributeClientResolver` | resolver | The client named by an attribute of the security token; constant `DEFAULT_ATTRIBUTE` |
+| `Infrastructure\Http\AnonymousCallers` | string enum | `Refuse` (`refuse`), `ByIp` (`ip`) |
 | `Infrastructure\Http\DeprecatedEndpoint` | attribute | A deprecated controller and its dates |
 | `Infrastructure\Http\DeprecationListener` | listener | Its headers on each response, its `Link` beside the response's own |
 | `Infrastructure\DependencyInjection\CheckDeprecatedEndpoints` | compiler pass | Every `#[DeprecatedEndpoint]` of the controller services, built when the container is |
 | `Infrastructure\HttpClient\DeprecationObservingHttpClient` | HTTP client decorator | The signals of the APIs called |
 | `Infrastructure\Deprecation\CacheObservedDeprecations` | `ObservedDeprecations` | The signals, an item per endpoint in a cache pool, kept a week past their last write |
-| `Infrastructure\Doctrine\IdempotencySchemaListener` | Doctrine listener | The table `phil_idempotency` of `phil/idempotency` in the ORM's schema |
+| `Infrastructure\Doctrine\IdempotencySchemaListener` | Doctrine listener | The table `phil_idempotency` of `phil/idempotency` in the ORM's schema, built for the connection's platform |
 | `Infrastructure\Console\DeprecationsCommand` | console command | `phil:api-contract:deprecations` |
 | `Infrastructure\Console\VerifyCommand` | console command | `phil:api-contract:verify` |
 | `Infrastructure\OpenApi\ContractVerifierFactory` | factory | The verifier from the library's rules, the tagged ones and `verification.skip` |

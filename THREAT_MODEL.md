@@ -22,7 +22,7 @@ The packages that receive untrusted input, and what each one promises:
 | `safe-http` | URLs to fetch, remote responses | No request reaches a private, loopback, link-local or reserved network, before or after a redirect or DNS change; time, size and redirect count bounded. |
 | `spam-protection` | Form submissions, tokens | Submission tokens cannot be forged, replayed past their window or moved to another form; proof of work cannot be skipped. |
 | `rate-limit` | Requests | Limits cannot be bypassed by spreading requests across servers when the guard accepts the configuration. |
-| `idempotency` | Idempotency keys, request bodies | A key is scoped to its caller: one caller can never read or replay another caller's stored response; a different request under the same key is refused. |
+| `idempotency` | Idempotency keys, request bodies | A key is scoped to its caller — in `api-contract-bundle`, its tenant, API client and user —: one caller can never read or replay another caller's stored response; a different request or message under the same key is refused; a replay runs the controller's access checks first. |
 | `passwords` | Passwords | Strength estimation in bounded time; only a 5-character hash prefix leaves the server. |
 | `content-bundle` | Page bodies written by editors | A body is purified on every read; raw HTML is rendered only when its author holds the configured `raw_html_role`, and shown as text otherwise. |
 

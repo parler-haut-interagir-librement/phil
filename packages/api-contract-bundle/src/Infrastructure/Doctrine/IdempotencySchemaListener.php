@@ -10,7 +10,9 @@ use Phil\Idempotency\Store\IdempotencyTable;
 
 /**
  * Adds the table of idempotency keys to the schema the ORM generates for its connection, as Symfony's own stores
- * do: `doctrine:migrations:diff` writes the migration that creates it, `doctrine:schema:validate` keeps it.
+ * do: `doctrine:migrations:diff` writes the migration that creates it, `doctrine:schema:validate` keeps it. The table
+ * is built for the platform of the connection, so that MySQL and MariaDB compare scopes and keys byte for byte, in
+ * `utf8mb4_bin`.
  */
 final readonly class IdempotencySchemaListener
 {
@@ -25,6 +27,6 @@ final readonly class IdempotencySchemaListener
             return;
         }
 
-        $event->setSchema(IdempotencyTable::configure($event->getSchema()));
+        $event->setSchema(IdempotencyTable::configure($event->getSchema(), $this->connection->getDatabasePlatform()));
     }
 }

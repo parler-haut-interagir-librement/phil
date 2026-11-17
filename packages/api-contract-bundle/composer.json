@@ -24,7 +24,7 @@
         "php": ">=8.5",
         "ext-uri": "*",
         "phil/api-contract": "^0.1@dev",
-        "phil/idempotency": "^0.2@dev",
+        "phil/idempotency": "^0.3@dev",
         "psr/clock": "^1.0",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",
@@ -35,6 +35,7 @@
         "doctrine/dbal": "^4.5",
         "doctrine/doctrine-bundle": "^3.3",
         "doctrine/orm": "^3.7",
+        "phil/tenancy-bundle": "^0.1@dev",
         "phpunit/phpunit": "^13.4",
         "psr/cache": "^3.0",
         "psr/log": "^3.0",
@@ -47,15 +48,18 @@
         "symfony/http-client-contracts": "^3.6",
         "symfony/lock": "^8.2",
         "symfony/routing": "^8.2",
+        "symfony/security-bundle": "^8.2",
         "symfony/security-core": "^8.2",
+        "symfony/security-http": "^8.2",
         "symfony/yaml": "^8.2"
     },
     "suggest": {
         "doctrine/dbal": "To keep the idempotency keys in a table",
+        "phil/tenancy-bundle": "To scope idempotency keys by the active tenant",
         "symfony/console": "For phil:api-contract:deprecations and phil:api-contract:verify",
         "symfony/http-client": "To record the deprecations of the APIs this application calls",
         "symfony/lock": "To keep the idempotency keys in a cache pool",
-        "symfony/security-core": "To scope idempotency keys by user",
+        "symfony/security-core": "To scope idempotency keys by user and API client",
         "symfony/yaml": "To verify an OpenAPI document written in YAML"
     },
     "minimum-stability": "dev",
@@ -72,7 +76,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.2.x-dev"
+            "dev-main": "0.3.x-dev"
         }
     }
 }

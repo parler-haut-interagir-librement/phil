@@ -4,6 +4,49 @@ All notable changes to `phil/api-contract-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.0-alpha: idempotency keys are scoped by tenant, API client and user, anonymous callers are
+refused, and a replay runs the controller's access checks first. See
+[Upgrading from 0.2](doc/idempotency.md#upgrading-from-02).
+
+### Added
+
+- `IdempotencyTenantResolver`, the tenant a request acts in, and `ActiveTenantResolver`, its default, on the active
+  tenant of `phil/tenancy-bundle` when it is installed.
+- `IdempotencyClientResolver`, the API client that sent a request, and `TokenAttributeClientResolver`, its default, on
+  an attribute of the security token.
+- `AnonymousCallers` and the options `idempotency.anonymous` (`refuse` by default, or `ip`) and
+  `idempotency.client_attribute` (`client_id` by default).
+- `CallerScopeResolver::ANONYMOUS` and `IdempotencyListener::PRIORITY`.
+- The documentation of the access checks before a replay, of the scope of a key in a multi-tenant application, of the
+  threat model, and of the upgrade from 0.2.
+
+### Changed
+
+- `CallerScopeResolver` scopes a key by the verified tenant, the API client and the user, each when there is one, as
+  `caller:` and the SHA-256 of these parts, instead of `user:…` or `ip:…`: two tenants or two clients sharing a store
+  never share a key, and the table holds no user identifier. Its constructor takes the token storage, the two ports and
+  `AnonymousCallers`.
+- A caller that is neither a user nor a client is answered with a `403` problem, unless `idempotency.anonymous: ip`
+  scopes it by its address; before, every anonymous caller behind one address shared its keys without a word.
+- `IdempotencyListener::onController(ControllerEvent)` is now `onControllerArguments(ControllerArgumentsEvent)`, on
+  `kernel.controller_arguments` after the listeners of the controller's attributes. A request refused by an access
+  check no longer reserves its key.
+- The bundle requires `phil/idempotency` `^0.3@dev`.
+
+### Security
+
+- A replay no longer skips the access checks of the controller: the replayed response took the controller's place
+  with no attributes, so that `#[IsGranted]` and its kin never ran, and a caller who lost a permission while the key
+  was kept could read the stored body again. The access checks of the controller and of its arguments now run before
+  every replay, and the replay keeps the controller's attributes.
+- The keys of two tenants sharing a store are kept apart: the same user, key, path and body in another tenant was
+  answered with the first tenant's response.
+- `IdempotencySchemaListener` builds the table for the platform of its connection: on MySQL and MariaDB, `scope` and
+  `idempotency_key` take `utf8mb4_bin`, where they had the connection's default collation, which folds case and
+  accents, so that two scopes or keys differing only by case named one row.
+
 ## 0.2.0-alpha - 2026-11-14
 
 ### Fixed

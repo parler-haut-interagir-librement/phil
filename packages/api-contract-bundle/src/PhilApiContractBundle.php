@@ -11,15 +11,21 @@ use Phil\ApiContractBundle\Infrastructure\Console\VerifyCommand;
 use Phil\ApiContractBundle\Infrastructure\DependencyInjection\CheckDeprecatedEndpoints;
 use Phil\ApiContractBundle\Infrastructure\Deprecation\CacheObservedDeprecations;
 use Phil\ApiContractBundle\Infrastructure\Doctrine\IdempotencySchemaListener;
+use Phil\ApiContractBundle\Infrastructure\Http\ActiveTenantResolver;
+use Phil\ApiContractBundle\Infrastructure\Http\AnonymousCallers;
 use Phil\ApiContractBundle\Infrastructure\Http\CallerScopeResolver;
 use Phil\ApiContractBundle\Infrastructure\Http\DeprecationListener;
+use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyClientResolver;
 use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyListener;
 use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyScopeResolver;
+use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyTenantResolver;
 use Phil\ApiContractBundle\Infrastructure\Http\ProblemDetailsListener;
+use Phil\ApiContractBundle\Infrastructure\Http\TokenAttributeClientResolver;
 use Phil\ApiContractBundle\Infrastructure\HttpClient\DeprecationObservingHttpClient;
 use Phil\ApiContractBundle\Infrastructure\OpenApi\ContractVerifierFactory;
 use Phil\Idempotency\Store\CacheIdempotencyStore;
 use Phil\Idempotency\Store\DbalIdempotencyStore;
+use Phil\TenancyBundle\Application\TenantContext;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
@@ -82,6 +88,15 @@ final class PhilApiContractBundle extends AbstractBundle
                             ->info('How many seconds a key stays reserved before its answer: the wait after a crash. Longer than the slowest request.')
                             ->min(1)
                             ->defaultValue(300)
+                        ->end()
+                        ->enumNode('anonymous')
+                            ->info('What an #[Idempotent] endpoint does with a caller that is neither a user nor a client: "refuse" answers a 403; "ip" scopes it by its address, shared by everyone behind that address.')
+                            ->values(array_map(static fn (AnonymousCallers $case): string => $case->value, AnonymousCallers::cases()))
+                            ->defaultValue(AnonymousCallers::Refuse->value)
+                        ->end()
+                        ->scalarNode('client_attribute')
+                            ->info('The attribute of the security token that names the API client, part of the scope of a key; null reads none.')
+                            ->defaultValue(TokenAttributeClientResolver::DEFAULT_ATTRIBUTE)
                         ->end()
                         ->arrayNode('replayed_headers')
                             ->info('The response headers kept and replayed with the body.')
@@ -146,7 +161,7 @@ final class PhilApiContractBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{problem_details: array{paths: list<string>}, idempotency: array{ttl: int, reservation_ttl: int, replayed_headers: list<string>, connection: ?string, cache_pool: ?string, lock_factory: string}, verification: array{document: ?string, level: string, fail_on: string, skip: list<string>}} $config */
+        /** @var array{problem_details: array{paths: list<string>}, idempotency: array{ttl: int, reservation_ttl: int, anonymous: string, client_attribute: ?string, replayed_headers: list<string>, connection: ?string, cache_pool: ?string, lock_factory: string}, verification: array{document: ?string, level: string, fail_on: string, skip: list<string>}} $config */
         $services = $container->services();
         $clock = new Reference('clock');
 
@@ -154,15 +169,19 @@ final class PhilApiContractBundle extends AbstractBundle
             ->args([$config['problem_details']['paths'], '%kernel.debug%'])
             ->tag('kernel.event_listener', ['event' => 'kernel.exception']);
 
+        $tokens = new Reference('security.token_storage', ContainerInterface::NULL_ON_INVALID_REFERENCE);
+        $services->set(ActiveTenantResolver::class)
+            ->args([new Reference(TenantContext::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)]);
+        $services->alias(IdempotencyTenantResolver::class, ActiveTenantResolver::class);
+        $services->set(TokenAttributeClientResolver::class)
+            ->args([$tokens, $config['idempotency']['client_attribute']]);
+        $services->alias(IdempotencyClientResolver::class, TokenAttributeClientResolver::class);
         $services->set(CallerScopeResolver::class)
-            ->args([new Reference('security.token_storage', ContainerInterface::NULL_ON_INVALID_REFERENCE)]);
+            ->args([$tokens, new Reference(IdempotencyTenantResolver::class), new Reference(IdempotencyClientResolver::class), AnonymousCallers::from($config['idempotency']['anonymous'])]);
         $services->alias(IdempotencyScopeResolver::class, CallerScopeResolver::class);
-        // A replay replaces the controller: the listeners that read the route's controller — the deprecation marker,
-        // the profiler's request collector — see it first, so that a replayed response still announces its
-        // deprecation and the profiler names the real controller.
         $services->set(IdempotencyListener::class)
             ->args([new Reference(Library::IDEMPOTENCY_STORE, ContainerInterface::NULL_ON_INVALID_REFERENCE), new Reference(IdempotencyScopeResolver::class), $config['idempotency']['ttl'], $clock, $config['idempotency']['replayed_headers'], $config['idempotency']['reservation_ttl']])
-            ->tag('kernel.event_listener', ['event' => 'kernel.controller', 'method' => 'onController', 'after' => [DeprecationListener::class, 'data_collector.request']])
+            ->tag('kernel.event_listener', ['event' => 'kernel.controller_arguments', 'method' => 'onControllerArguments', 'priority' => IdempotencyListener::PRIORITY])
             ->tag('kernel.event_listener', ['event' => 'kernel.response', 'method' => 'onResponse']);
 
         $services->set(DeprecationListener::class)

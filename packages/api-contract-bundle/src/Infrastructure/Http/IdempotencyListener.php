@@ -18,16 +18,21 @@ use Phil\Idempotency\PayloadFingerprint;
 use Phil\Idempotency\StoredResponse;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\ControllerEvent;
+use Symfony\Component\HttpKernel\Event\ControllerArgumentsEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
 /**
- * Runs the idempotency guard of `phil/idempotency` around a controller marked `#[Idempotent]`: no key is a `400`; a
- * key used with another request a `422`, as the IETF draft of the header answers; a key whose first request is still
- * running a `409` with `Retry-After`, the seconds left on its reservation; a key already answered gets its response
- * again, marked `Idempotent-Replayed: true`. Every refusal is an RFC 9457 problem. A new key is reserved before the
- * controller, and its response kept after it — or the key marked failed, when the response is a `5xx` or cannot be
- * kept, so that the client may retry.
+ * Runs the idempotency guard of `phil/idempotency` around a controller marked `#[Idempotent]`, once its arguments are
+ * resolved and the listeners of its attributes have run: `#[IsGranted]`, `#[IsCsrfTokenValid]`, `#[IsSignatureValid]`
+ * and the value resolvers of its arguments decide on every request, a replay included, before any key is read. A
+ * caller who lost access since the first request is refused, never answered with the stored response.
+ *
+ * No key is a `400`; a key used with another request a `422`, as the IETF draft of the header answers; a key whose
+ * first request is still running a `409` with `Retry-After`, the seconds left on its reservation; a key already
+ * answered gets its response again, marked `Idempotent-Replayed: true`, by a controller that takes the original's
+ * place and keeps its attributes, so that the listeners of the response — `#[Cache]` — still read them. Every refusal
+ * is an RFC 9457 problem. A new key is reserved before the controller, and its response kept after it — or the key
+ * marked failed, when the response is a `5xx` or cannot be kept, so that the client may retry.
  *
  * A controller that outlived its reservation, after which another request reserved the key, never overwrites that
  * request's outcome: its answer is replaced by a `409` problem, since the key now answers for the other request, and a
@@ -42,6 +47,12 @@ final readonly class IdempotencyListener
     public const string REPLAYED_HEADER = 'Idempotent-Replayed';
 
     public const string RESERVED = '_phil_api_contract_idempotency';
+
+    /**
+     * The priority on `kernel.controller_arguments`: after Symfony's dispatcher of controller attributes, at -10000,
+     * which runs the access checks the attributes declare.
+     */
+    public const int PRIORITY = -10_100;
 
     /** The title of the `409` of a request that ended after another request took its key. */
     public const string RESERVATION_LOST = 'Another request with this Idempotency-Key took over: this response was not kept.';
@@ -65,7 +76,7 @@ final readonly class IdempotencyListener
         $this->guard = $store instanceof IdempotencyStore ? new IdempotencyGuard($store, $clock, $ttl, $reservationTtl) : null;
     }
 
-    public function onController(ControllerEvent $event): void
+    public function onControllerArguments(ControllerArgumentsEvent $event): void
     {
         $attributes = $event->getAttributes(Idempotent::class);
 
@@ -104,7 +115,8 @@ final readonly class IdempotencyListener
 
         if (IdempotencyOutcome::Replay === $decision->outcome) {
             $replay = $decision->replay();
-            $event->setController(static fn (): Response => self::replay($replay));
+            $event->setController(static fn (): Response => self::replay($replay), $event->getAttributes('*'));
+            $event->setArguments([]);
         } elseif ($decision->reservation instanceof Reservation) {
             // A new key, or a failed one run again: the reservation waits on the request for its response.
             $request->attributes->set(self::RESERVED, new IdempotencyReservation($decision->reservation, $ttl));
