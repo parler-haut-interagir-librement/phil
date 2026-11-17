@@ -183,11 +183,34 @@ final class IdempotencyMiddlewareTest extends TestCase
             self::fail('A message without a fingerprint was handled.');
         } catch (UnrecoverableMessageHandlingException $unrecoverableMessageHandlingException) {
             self::assertSame('The content of the message stdClass cannot be read for its idempotency fingerprint: implement Phil\Idempotency\Contract\FingerprintedMessage, or give the IdempotencyStamp a fingerprint.', $unrecoverableMessageHandlingException->getMessage());
-            self::assertNotNull($unrecoverableMessageHandlingException->getPrevious());
+            $previous = $unrecoverableMessageHandlingException->getPrevious();
+            self::assertInstanceOf(InvalidIdempotencyValue::class, $previous);
+            self::assertSame('A closure or a resource has no content to compare.', $previous->getMessage());
         }
 
         self::assertSame(0, $this->handled);
         self::assertSame([], $this->store->calls);
+    }
+
+    public function testAMessageWithAResourceNeedsAFingerprint(): void
+    {
+        $stream = fopen('php://memory', 'r');
+        self::assertIsResource($stream);
+        $message = new stdClass();
+        $message->stream = $stream;
+
+        try {
+            $this->middleware()->handle(new Envelope($message, [new IdempotencyStamp('k'), new ReceivedStamp('async')]), $this->stack());
+            self::fail('A message without a fingerprint was handled.');
+        } catch (UnrecoverableMessageHandlingException $unrecoverableMessageHandlingException) {
+            $previous = $unrecoverableMessageHandlingException->getPrevious();
+            self::assertInstanceOf(InvalidIdempotencyValue::class, $previous);
+            self::assertSame('A closure or a resource has no content to compare.', $previous->getMessage());
+        } finally {
+            fclose($stream);
+        }
+
+        self::assertSame(0, $this->handled);
     }
 
     public function testTheContentCoversPrivatePropertiesNestedObjectsAndFloats(): void
