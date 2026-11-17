@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=03bc4b498adc3009971d242b07819d6585433035b137239398f8fd1a511c5156 -->
+<!-- phil-dev source-sha256=84864d73d26fc90e3dc4c4f76b0d514ef900d4f75dd6fc3c856ab5660950519c -->
 # phil/api-contract-bundle
 
 **Des détails de problème, des requêtes idempotentes rejouées, des avis d'obsolescence et la vérification OpenAPI,
@@ -19,16 +19,17 @@ décisions sans le branchement.
 
 Le bundle se branche au noyau HTTP par des écouteurs sur ses événements de contrôleur, de réponse et d'exception, et
 enveloppe le client HTTP de Symfony. Doctrine DBAL, ou un pool de cache sous un verrou Symfony, conserve les clés
-d'idempotence, Symfony Security les rattache à l'utilisateur, le composant Console exécute les deux commandes et le
-composant Yaml lit un document YAML ; chacun de ces éléments est facultatif. La conception implémente les ports de la
-bibliothèque avec des adaptateurs pour chacun de ces composants.
+d'idempotence, Symfony Security et `phil/tenancy-bundle` les rattachent à l'utilisateur, au client d'API et au
+locataire, le composant Console exécute les deux commandes et le composant Yaml lit un document YAML ; chacun de ces
+éléments est facultatif. La conception implémente les ports de la bibliothèque avec des adaptateurs pour chacun de ces
+composants.
 
 ## État
 
 | Partie | État |
 |---|---|
 | `ProblemDetailsListener`, `ProblemException`, `ProblemDetailsResponse` | Implémenté et testé |
-| `#[Idempotent]`, `IdempotencyListener`, `CallerScopeResolver` | Implémenté et testé |
+| `#[Idempotent]`, `IdempotencyListener`, `CallerScopeResolver` et ses ports de locataire et de client | Implémenté et testé |
 | Le stockage d'idempotence de `phil/idempotency` sur une connexion Doctrine ou un pool de cache, l'écouteur de schéma | Implémenté et testé |
 | `#[DeprecatedEndpoint]`, `DeprecationListener` | Implémenté et testé |
 | `DeprecationObservingHttpClient`, `CacheObservedDeprecations`, `phil:api-contract:deprecations` | Implémenté et testé |
@@ -41,7 +42,7 @@ bibliothèque avec des adaptateurs pour chacun de ces composants.
 | [Installation](doc/fr/installation.md) | Prérequis, enregistrement, la table. |
 | [Configuration](doc/fr/configuration.md) | Chaque clé, les services, le remplacement d'un port. |
 | [Problèmes](doc/fr/problems.md) | Les exceptions sous forme de détails de problème. |
-| [Idempotence](doc/fr/idempotency.md) | `#[Idempotent]`, les réponses et leurs problèmes, la portée, le stockage. |
+| [Idempotence](doc/fr/idempotency.md) | `#[Idempotent]`, les réponses et leurs problèmes, les contrôles d'accès avant un rejeu, la portée avec son locataire et son client, le modèle de menace, le stockage, la mise à niveau depuis la 0.2. |
 | [Obsolescences](doc/fr/deprecations.md) | `#[DeprecatedEndpoint]` côté serveur ; le client HTTP, le registre et la commande côté client. |
 | [Vérification](doc/fr/verification.md) | `phil:api-contract:verify`, ses options et ses codes de sortie, les règles propres à l'application, l'intégration continue. |
 | [Points d'extension](doc/fr/extension-points.md) | Ce qu'une application implémente, configure, remplace ou utilise. |
