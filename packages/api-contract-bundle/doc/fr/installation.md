@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=afeb055290f915551277cec040e099c9e603c36350a9ae66ff1750d0b114f320 -->
+<!-- phil-dev source-sha256=9dfdad10ae763cc8afe4c4b3aeb7b97a118f515dec7d7bb44aa7f924f1198ce1 -->
 # Installation
 
 | Prérequis | Contrainte | Pourquoi |
 |---|---|---|
 | PHP | `>=8.5` | Le minimum déclaré |
 | `phil/api-contract` | `^0.1@dev` | Le contrat : problèmes et signaux |
-| `phil/idempotency` | `^0.2@dev` | Les clés, les empreintes, la garde et ses stockages |
+| `phil/idempotency` | `^0.3@dev` | Les clés, les empreintes, la garde et ses stockages |
 | `symfony/dependency-injection`, `symfony/config` | `^8.2` | La classe du bundle et sa configuration |
 | `symfony/http-foundation`, `symfony/http-kernel` | `^8.2` | Les écouteurs et les attributs |
 | `psr/clock` | `^1.0` | Le moment où une clé expire, où un signal est vu ; le service `clock` du conteneur, que FrameworkBundle enregistre dès que `symfony/clock` est installé |
@@ -16,10 +16,11 @@
 | `ext-uri` | `*` | Le chemin d'une URL qu'appelle le client HTTP, lu par l'analyseur d'URL WHATWG de PHP |
 | `symfony/console` | facultatif | `phil:api-contract:deprecations` et `phil:api-contract:verify` |
 | `symfony/yaml` | facultatif | Un document OpenAPI écrit en YAML |
-| `symfony/security-core` | facultatif | Les clés d'idempotence rattachées à l'utilisateur |
+| `symfony/security-core` | facultatif | Les clés d'idempotence rattachées à l'utilisateur et au client d'API ; sans lui, tout appelant est anonyme |
+| `phil/tenancy-bundle` | facultatif | Les clés d'idempotence rattachées au locataire actif |
 
 ```bash
-composer require phil/api-contract-bundle:^0.1@dev
+composer require phil/api-contract-bundle:^0.3@dev
 ```
 
 ```php

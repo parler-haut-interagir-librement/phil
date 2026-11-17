@@ -57,8 +57,11 @@ return [
             // à corriger : déplacer les interfaces dans un espace de noms Contract (rupture de l’API publique).
             [
                 'identifier' => 'symplify.requiredInterfaceContractNamespace',
-                'path' => 'src/Infrastructure/Http/IdempotencyScopeResolver.php',
-                'count' => 1,
+                'paths' => [
+                    'src/Infrastructure/Http/IdempotencyClientResolver.php',
+                    'src/Infrastructure/Http/IdempotencyScopeResolver.php',
+                    'src/Infrastructure/Http/IdempotencyTenantResolver.php',
+                ],
             ],
         ],
     ],

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=02066f1551d7aaf14fec6a9756784bf815c58b0f955a85a63ef84049b510bb8e -->
+<!-- phil-dev source-sha256=fe7061d6dd1931011a551f79b170af380dfbebd425a7d904ba132cb00e58c0ba -->
 # Configuration
 
 ```yaml
@@ -15,6 +15,12 @@ phil_api_contract:
         # How many seconds a key stays reserved while its first request runs: the longest a retry is answered 409
         # after a process died before its response. Longer than the slowest request. 300 by default.
         reservation_ttl: 300
+        # What an #[Idempotent] endpoint does with a caller that is neither a user nor a client: "refuse" answers a
+        # 403 problem; "ip" scopes it by its address, shared by every caller behind that address. "refuse" by default.
+        anonymous: refuse
+        # The attribute of the security token that names the API client, part of the scope of a key; null reads
+        # none. "client_id" by default.
+        client_attribute: client_id
         # The response headers kept and replayed with the body.
         replayed_headers: [Content-Type, Location]
         # The Doctrine connection that keeps the keys; null keeps them elsewhere. "default" when left out, null
@@ -36,9 +42,9 @@ phil_api_contract:
 ```
 
 `idempotency.ttl: 0` et `idempotency.reservation_ttl: 0` sont refusés à la construction du conteneur, tout comme une clé
-que le bundle ne connaît pas, et un `verification.level` ou un `verification.fail_on` hors de ses valeurs ;
-`#[Idempotent(ttl: 0)]`, ou un `ttl` négatif, l'est aussi à la lecture de l'attribut. Un identifiant de
-`verification.skip` qu'aucune règle ne porte fait échouer la construction du vérificateur.
+que le bundle ne connaît pas, un `idempotency.anonymous` autre que `refuse` ou `ip`, et un `verification.level` ou un
+`verification.fail_on` hors de ses valeurs ; `#[Idempotent(ttl: 0)]`, ou un `ttl` négatif, l'est aussi à la lecture de
+l'attribut. Un identifiant de `verification.skip` qu'aucune règle ne porte fait échouer la construction du vérificateur.
 
 ## Les services
 
@@ -46,7 +52,10 @@ que le bundle ne connaît pas, et un `verification.level` ou un `verification.fa
 |---|---|
 | `Phil\Idempotency\Contract\IdempotencyStore` | Public ; un alias du `DbalIdempotencyStore` de `phil/idempotency` avec une connexion, ou de son `CacheIdempotencyStore` avec un pool de cache |
 | `Phil\ApiContract\Deprecation\ObservedDeprecations` | Public ; un alias de `CacheObservedDeprecations`, sur `cache.app` |
-| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyScopeResolver` | Un alias de `CallerScopeResolver` |
+| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyScopeResolver` | Un alias de `CallerScopeResolver`, sur les deux ports ci-dessous, le jeton de sécurité et `idempotency.anonymous` |
+| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyTenantResolver` | Un alias de `ActiveTenantResolver`, sur le `TenantContext` de `phil/tenancy-bundle` quand il est installé |
+| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyClientResolver` | Un alias de `TokenAttributeClientResolver`, sur le jeton de sécurité et `idempotency.client_attribute` |
+| `IdempotencyListener` | Sur `kernel.controller_arguments` à -10100, après les écouteurs des attributs du contrôleur, et sur `kernel.response` |
 | `DeprecationObservingHttpClient` | Décore `http_client`, s'il existe |
 | `Phil\ApiContract\OpenApi\ContractVerifier` | Public ; construit par `ContractVerifierFactory` à partir des règles de la bibliothèque, des services étiquetés `phil_api_contract.openapi_rule` et de `verification.skip` |
 | `DeprecationsCommand`, `VerifyCommand` | `phil:api-contract:deprecations` et `phil:api-contract:verify`, quand Symfony Console est installé |
@@ -65,8 +74,9 @@ Faites pointer l'alias du port vers un service propre à l'application :
 ```yaml
 # config/services.yaml
 services:
-    App\Api\ClientScopeResolver: ~
-    Phil\ApiContractBundle\Infrastructure\Http\IdempotencyScopeResolver: '@App\Api\ClientScopeResolver'
+    App\Tenancy\TenantResolver: ~
+    Phil\ApiContractBundle\Infrastructure\Http\IdempotencyTenantResolver: '@App\Tenancy\TenantResolver'
 ```
 
-Il en va de même pour `IdempotencyStore` et pour `ObservedDeprecations`.
+Il en va de même pour `IdempotencyClientResolver`, `IdempotencyScopeResolver`, `IdempotencyStore` et
+`ObservedDeprecations`.

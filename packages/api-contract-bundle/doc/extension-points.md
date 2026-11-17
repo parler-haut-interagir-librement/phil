@@ -12,13 +12,27 @@ Each port is an alias that the application points at a service of its own — se
 |---|---|---|
 | `Phil\Idempotency\Contract\IdempotencyStore` | `DbalIdempotencyStore` on `idempotency.connection`, or `CacheIdempotencyStore` on `idempotency.cache_pool` | Keeps keys elsewhere under the library's invariants |
 | `Phil\ApiContract\Deprecation\ObservedDeprecations` | `CacheObservedDeprecations`, on `cache.app` | Keeps the deprecations the application's clients observe elsewhere |
-| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyScopeResolver` | `CallerScopeResolver`: the user's identifier, or the client's address | Names the caller another way: an API client's own identifier |
+| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyTenantResolver` | `ActiveTenantResolver`: the active tenant of `phil/tenancy-bundle`, or none | Returns the tenant the application verified, by its own means |
+| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyClientResolver` | `TokenAttributeClientResolver`: the token attribute `idempotency.client_attribute` | Returns the API or OAuth client the application authenticated |
+| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyScopeResolver` | `CallerScopeResolver`: the tenant, the client and the user; anonymous callers refused or scoped by address | Names the caller another way altogether |
+
+### `IdempotencyTenantResolver`
+
+| Method | Contract |
+|---|---|
+| `tenant(Request $request): ?string` | The stable reference of the tenant the request acts in, once verified; never a host or a header the client chose. Null outside any tenant |
+
+### `IdempotencyClientResolver`
+
+| Method | Contract |
+|---|---|
+| `client(Request $request): ?string` | The authenticated client that sent the request; null when it names none |
 
 ### `IdempotencyScopeResolver`
 
 | Method | Contract |
 |---|---|
-| `scope(Request $request): IdempotencyScope` | Whose keys these are: two callers never share a scope, so one cannot replay another's answer |
+| `scope(Request $request): IdempotencyScope` | Whose keys these are: two callers never share a scope, so one cannot replay another's answer. Two tenants, two clients or two users are two callers. It may throw a `ProblemException` to refuse a caller |
 
 ## Attributes
 
@@ -46,6 +60,8 @@ given. `ProblemDetailsResponse` writes one from a controller. See [Problems](pro
 | `problem_details.paths` | Where every exception is answered as a problem |
 | `idempotency.ttl`, `reservation_ttl` | How long a key is remembered, and reserved |
 | `idempotency.replayed_headers` | The headers replayed with a body |
+| `idempotency.anonymous` | Anonymous callers refused, or scoped by address |
+| `idempotency.client_attribute` | The token attribute that names the API client |
 | `idempotency.connection` | Where the keys are kept; `null` for a store of the application's own |
 | `idempotency.cache_pool`, `lock_factory` | The keys in a cache pool instead, each reservation under a lock |
 | `verification.document`, `level`, `fail_on` | What `phil:api-contract:verify` verifies, and how strictly, when its arguments leave it out |

@@ -14,6 +14,12 @@ phil_api_contract:
         # How many seconds a key stays reserved while its first request runs: the longest a retry is answered 409
         # after a process died before its response. Longer than the slowest request. 300 by default.
         reservation_ttl: 300
+        # What an #[Idempotent] endpoint does with a caller that is neither a user nor a client: "refuse" answers a
+        # 403 problem; "ip" scopes it by its address, shared by every caller behind that address. "refuse" by default.
+        anonymous: refuse
+        # The attribute of the security token that names the API client, part of the scope of a key; null reads
+        # none. "client_id" by default.
+        client_attribute: client_id
         # The response headers kept and replayed with the body.
         replayed_headers: [Content-Type, Location]
         # The Doctrine connection that keeps the keys; null keeps them elsewhere. "default" when left out, null
@@ -35,9 +41,9 @@ phil_api_contract:
 ```
 
 `idempotency.ttl: 0` and `idempotency.reservation_ttl: 0` are refused when the container is built, as is a key the
-bundle does not know, and a `verification.level` or `verification.fail_on` outside its values; so is
-`#[Idempotent(ttl: 0)]` or a negative one, when the attribute is read. A `verification.skip` id that no rule has fails
-when the verifier is built.
+bundle does not know, an `idempotency.anonymous` other than `refuse` or `ip`, and a `verification.level` or
+`verification.fail_on` outside its values; so is `#[Idempotent(ttl: 0)]` or a negative one, when the attribute is read.
+A `verification.skip` id that no rule has fails when the verifier is built.
 
 ## The services
 
@@ -45,7 +51,10 @@ when the verifier is built.
 |---|---|
 | `Phil\Idempotency\Contract\IdempotencyStore` | Public; an alias of the `DbalIdempotencyStore` of `phil/idempotency` with a connection, or of its `CacheIdempotencyStore` with a cache pool |
 | `Phil\ApiContract\Deprecation\ObservedDeprecations` | Public; an alias of `CacheObservedDeprecations`, on `cache.app` |
-| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyScopeResolver` | An alias of `CallerScopeResolver` |
+| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyScopeResolver` | An alias of `CallerScopeResolver`, on the two ports below, the security token and `idempotency.anonymous` |
+| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyTenantResolver` | An alias of `ActiveTenantResolver`, on the `TenantContext` of `phil/tenancy-bundle` when it is installed |
+| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyClientResolver` | An alias of `TokenAttributeClientResolver`, on the security token and `idempotency.client_attribute` |
+| `IdempotencyListener` | On `kernel.controller_arguments` at -10100, after the listeners of the controller's attributes, and on `kernel.response` |
 | `DeprecationObservingHttpClient` | Decorates `http_client`, when there is one |
 | `Phil\ApiContract\OpenApi\ContractVerifier` | Public; built by `ContractVerifierFactory` from the library's rules, the services tagged `phil_api_contract.openapi_rule`, and `verification.skip` |
 | `DeprecationsCommand`, `VerifyCommand` | `phil:api-contract:deprecations` and `phil:api-contract:verify`, when Symfony Console is installed |
@@ -63,8 +72,9 @@ Alias the port to a service of the application's own:
 ```yaml
 # config/services.yaml
 services:
-    App\Api\ClientScopeResolver: ~
-    Phil\ApiContractBundle\Infrastructure\Http\IdempotencyScopeResolver: '@App\Api\ClientScopeResolver'
+    App\Tenancy\TenantResolver: ~
+    Phil\ApiContractBundle\Infrastructure\Http\IdempotencyTenantResolver: '@App\Tenancy\TenantResolver'
 ```
 
-The same holds for `IdempotencyStore` and `ObservedDeprecations`.
+The same holds for `IdempotencyClientResolver`, `IdempotencyScopeResolver`, `IdempotencyStore` and
+`ObservedDeprecations`.

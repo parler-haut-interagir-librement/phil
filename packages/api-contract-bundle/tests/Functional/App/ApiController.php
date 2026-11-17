@@ -11,10 +11,11 @@ use Phil\ApiContractBundle\Infrastructure\Http\ProblemException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * The endpoints of the tests: an order created once per key, a request that fails, a missing resource, an old one,
- * and an old one that takes an idempotency key.
+ * The endpoints of the tests: an order created once per key, one that needs a permission, a request that fails, a
+ * missing resource, an old one, and an old one that takes an idempotency key.
  */
 final class ApiController
 {
@@ -26,6 +27,15 @@ final class ApiController
         ++$this->orders;
 
         return new JsonResponse(['order' => $this->orders], Response::HTTP_CREATED, ['Location' => '/api/orders/'.$this->orders, 'X-Trace' => 'abc']);
+    }
+
+    #[Idempotent]
+    #[IsGranted(OrderVoter::CREATE)]
+    public function createGuardedOrder(): JsonResponse
+    {
+        ++$this->orders;
+
+        return new JsonResponse(['order' => $this->orders, 'secret' => 'only for the permitted'], Response::HTTP_CREATED);
     }
 
     #[Idempotent(ttl: 60)]

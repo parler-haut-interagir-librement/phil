@@ -13,17 +13,23 @@ use Phil\ApiContractBundle\Infrastructure\Console\VerifyCommand;
 use Phil\ApiContractBundle\Infrastructure\DependencyInjection\CheckDeprecatedEndpoints;
 use Phil\ApiContractBundle\Infrastructure\Deprecation\CacheObservedDeprecations;
 use Phil\ApiContractBundle\Infrastructure\Doctrine\IdempotencySchemaListener;
+use Phil\ApiContractBundle\Infrastructure\Http\ActiveTenantResolver;
+use Phil\ApiContractBundle\Infrastructure\Http\AnonymousCallers;
 use Phil\ApiContractBundle\Infrastructure\Http\CallerScopeResolver;
 use Phil\ApiContractBundle\Infrastructure\Http\DeprecationListener;
+use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyClientResolver;
 use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyListener;
 use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyScopeResolver;
+use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyTenantResolver;
 use Phil\ApiContractBundle\Infrastructure\Http\ProblemDetailsListener;
+use Phil\ApiContractBundle\Infrastructure\Http\TokenAttributeClientResolver;
 use Phil\ApiContractBundle\Infrastructure\HttpClient\DeprecationObservingHttpClient;
 use Phil\ApiContractBundle\Infrastructure\OpenApi\ContractVerifierFactory;
 use Phil\ApiContractBundle\PhilApiContractBundle;
 use Phil\Idempotency\Contract\IdempotencyStore;
 use Phil\Idempotency\Store\CacheIdempotencyStore;
 use Phil\Idempotency\Store\DbalIdempotencyStore;
+use Phil\TenancyBundle\Application\TenantContext;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -39,17 +45,22 @@ final class PhilApiContractBundleTest extends TestCase
 {
     public function testTheServicesFollowTheConfiguration(): void
     {
-        $container = $this->load([['problem_details' => ['paths' => ['^/api/']], 'idempotency' => ['ttl' => 60, 'reservation_ttl' => 20, 'replayed_headers' => ['Location'], 'connection' => 'api']]]);
+        $container = $this->load([['problem_details' => ['paths' => ['^/api/']], 'idempotency' => ['ttl' => 60, 'reservation_ttl' => 20, 'anonymous' => 'ip', 'client_attribute' => 'azp', 'replayed_headers' => ['Location'], 'connection' => 'api']]]);
         $clock = new Reference('clock');
 
         self::assertSame('phil_api_contract', $this->extension()->getAlias());
-        self::assertSame(['service_container', ProblemDetailsListener::class, CallerScopeResolver::class, IdempotencyListener::class, DeprecationListener::class, CacheObservedDeprecations::class, DeprecationObservingHttpClient::class, ContractVerifier::class, DeprecationsCommand::class, VerifyCommand::class, DbalIdempotencyStore::class, IdempotencySchemaListener::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', ProblemDetailsListener::class, ActiveTenantResolver::class, TokenAttributeClientResolver::class, CallerScopeResolver::class, IdempotencyListener::class, DeprecationListener::class, CacheObservedDeprecations::class, DeprecationObservingHttpClient::class, ContractVerifier::class, DeprecationsCommand::class, VerifyCommand::class, DbalIdempotencyStore::class, IdempotencySchemaListener::class], array_keys($container->getDefinitions()));
         self::assertSame([['^/api/'], '%kernel.debug%'], $container->getDefinition(ProblemDetailsListener::class)->getArguments());
         self::assertSame([['event' => 'kernel.exception']], $container->getDefinition(ProblemDetailsListener::class)->getTag('kernel.event_listener'));
-        self::assertEquals([new Reference('security.token_storage', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(CallerScopeResolver::class)->getArguments());
+        $tokens = new Reference('security.token_storage', ContainerInterface::NULL_ON_INVALID_REFERENCE);
+        self::assertEquals([new Reference(TenantContext::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(ActiveTenantResolver::class)->getArguments());
+        self::assertSame(ActiveTenantResolver::class, (string) $container->getAlias(IdempotencyTenantResolver::class));
+        self::assertEquals([$tokens, 'azp'], $container->getDefinition(TokenAttributeClientResolver::class)->getArguments());
+        self::assertSame(TokenAttributeClientResolver::class, (string) $container->getAlias(IdempotencyClientResolver::class));
+        self::assertEquals([$tokens, new Reference(IdempotencyTenantResolver::class), new Reference(IdempotencyClientResolver::class), AnonymousCallers::ByIp], $container->getDefinition(CallerScopeResolver::class)->getArguments());
         self::assertSame(CallerScopeResolver::class, (string) $container->getAlias(IdempotencyScopeResolver::class));
         self::assertEquals([new Reference(IdempotencyStore::class, ContainerInterface::NULL_ON_INVALID_REFERENCE), new Reference(IdempotencyScopeResolver::class), 60, $clock, ['Location'], 20], $container->getDefinition(IdempotencyListener::class)->getArguments());
-        self::assertSame([['event' => 'kernel.controller', 'method' => 'onController', 'after' => [DeprecationListener::class, 'data_collector.request']], ['event' => 'kernel.response', 'method' => 'onResponse']], $container->getDefinition(IdempotencyListener::class)->getTag('kernel.event_listener'));
+        self::assertSame([['event' => 'kernel.controller_arguments', 'method' => 'onControllerArguments', 'priority' => -10_100], ['event' => 'kernel.response', 'method' => 'onResponse']], $container->getDefinition(IdempotencyListener::class)->getTag('kernel.event_listener'));
         self::assertSame([['event' => 'kernel.controller', 'method' => 'onController'], ['event' => 'kernel.response', 'method' => 'onResponse']], $container->getDefinition(DeprecationListener::class)->getTag('kernel.event_listener'));
         self::assertEquals([new Reference('cache.app', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(CacheObservedDeprecations::class)->getArguments());
         self::assertSame(CacheObservedDeprecations::class, (string) $container->getAlias(ObservedDeprecations::class));
@@ -76,6 +87,9 @@ final class PhilApiContractBundleTest extends TestCase
         self::assertSame([[], '%kernel.debug%'], $container->getDefinition(ProblemDetailsListener::class)->getArguments());
         $listener = $container->getDefinition(IdempotencyListener::class);
         self::assertSame([86_400, ['Content-Type', 'Location'], 300], [$listener->getArgument(2), $listener->getArgument(4), $listener->getArgument(5)]);
+        self::assertSame(AnonymousCallers::Refuse, $container->getDefinition(CallerScopeResolver::class)->getArgument(3));
+        self::assertSame('client_id', $container->getDefinition(TokenAttributeClientResolver::class)->getArgument(1));
+        self::assertNull($this->load([['idempotency' => ['client_attribute' => null]]])->getDefinition(TokenAttributeClientResolver::class)->getArgument(1));
         self::assertEquals([new Reference('doctrine.dbal.default_connection'), new Reference('clock')], $container->getDefinition(DbalIdempotencyStore::class)->getArguments());
 
         $without = $this->load([['idempotency' => ['connection' => null]]]);
@@ -121,6 +135,14 @@ final class PhilApiContractBundleTest extends TestCase
                 self::assertStringContainsString('is not allowed', $invalidConfigurationException->getMessage());
             }
         }
+    }
+
+    public function testAnUnknownAnonymousPolicyIsRefused(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageIsOrContains('The value "shared" is not allowed for path "phil_api_contract.idempotency.anonymous". Permissible values: "refuse", "ip"');
+
+        $this->load([['idempotency' => ['anonymous' => 'shared']]]);
     }
 
     public function testACachePoolKeepsTheKeysInsteadOfTheConnection(): void

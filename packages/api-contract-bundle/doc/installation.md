@@ -4,7 +4,7 @@
 |---|---|---|
 | PHP | `>=8.5` | The declared minimum |
 | `phil/api-contract` | `^0.1@dev` | The contract: problems and signals |
-| `phil/idempotency` | `^0.2@dev` | Keys, fingerprints, the guard and its stores |
+| `phil/idempotency` | `^0.3@dev` | Keys, fingerprints, the guard and its stores |
 | `symfony/dependency-injection`, `symfony/config` | `^8.2` | The bundle class and its configuration |
 | `symfony/http-foundation`, `symfony/http-kernel` | `^8.2` | The listeners and the attributes |
 | `psr/clock` | `^1.0` | When a key expires, when a signal is seen; the container's `clock` service, which FrameworkBundle registers once `symfony/clock` is installed |
@@ -15,10 +15,11 @@
 | `ext-uri` | `*` | The path of a URL the HTTP client calls, read by PHP's WHATWG URL parser |
 | `symfony/console` | optional | `phil:api-contract:deprecations` and `phil:api-contract:verify` |
 | `symfony/yaml` | optional | An OpenAPI document written in YAML |
-| `symfony/security-core` | optional | Idempotency keys scoped by user |
+| `symfony/security-core` | optional | Idempotency keys scoped by user and API client; without it, every caller is anonymous |
+| `phil/tenancy-bundle` | optional | Idempotency keys scoped by the active tenant |
 
 ```bash
-composer require phil/api-contract-bundle:^0.1@dev
+composer require phil/api-contract-bundle:^0.3@dev
 ```
 
 ```php

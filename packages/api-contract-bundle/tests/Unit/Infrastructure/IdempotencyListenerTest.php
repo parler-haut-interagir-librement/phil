@@ -8,7 +8,6 @@ use Closure;
 use DateTimeImmutable;
 use LogicException;
 use Phil\ApiContract\Exception\InvalidContractValue;
-use Phil\ApiContractBundle\Infrastructure\Http\CallerScopeResolver;
 use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyListener;
 use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyReservation;
 use Phil\ApiContractBundle\Infrastructure\Http\Idempotent;
@@ -30,6 +29,8 @@ use Symfony\Component\Clock\NativeClock;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpKernel\Attribute\Cache;
+use Symfony\Component\HttpKernel\Event\ControllerArgumentsEvent;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -47,7 +48,7 @@ final class IdempotencyListenerTest extends TestCase
         $request = self::request('k1');
         $event = self::controller($request, new Idempotent());
 
-        $listener->onController($event);
+        $listener->onControllerArguments($event);
         self::assertSame(['reserve ip:10.0.0.1|k1'], $store->calls);
         self::assertSame('2026-11-03T12:01:40+00:00', $store->expiresAt?->format('c'));
 
@@ -68,7 +69,7 @@ final class IdempotencyListenerTest extends TestCase
         $listener = self::listener($store, reservationTtl: 30);
         $request = self::request('k1');
 
-        $listener->onController(self::controller($request, new Idempotent()));
+        $listener->onControllerArguments(self::controller($request, new Idempotent()));
         self::assertSame('2026-11-03T12:00:30+00:00', $store->expiresAt?->format('c'), 'A process that dies now blocks the key for 30 seconds, not for its retention.');
 
         $listener->onResponse($this->response($request, new Response('{}', Response::HTTP_CREATED)));
@@ -80,7 +81,7 @@ final class IdempotencyListenerTest extends TestCase
         $store = new InMemoryIdempotencyStore();
         $listener = self::listener($store);
         $request = self::request('k1');
-        $listener->onController(self::controller($request, new Idempotent(ttl: 5)));
+        $listener->onControllerArguments(self::controller($request, new Idempotent(ttl: 5)));
         self::assertSame('2026-11-03T12:00:05+00:00', $store->expiresAt?->format('c'), 'A retention shorter than the reservation bounds it too.');
 
         $listener->onResponse($this->response($request, new Response('{}')));
@@ -89,7 +90,7 @@ final class IdempotencyListenerTest extends TestCase
         $long = new InMemoryIdempotencyStore();
         $listener = self::listener($long);
         $request = self::request('k2');
-        $listener->onController(self::controller($request, new Idempotent(ttl: 7 * 86_400)));
+        $listener->onControllerArguments(self::controller($request, new Idempotent(ttl: 7 * 86_400)));
         $listener->onResponse($this->response($request, new Response('{}')));
         self::assertSame(['2026-11-03T12:05:00+00:00', '2026-11-10T12:00:00+00:00'], [$long->expiresAt?->format('c'), $long->completedUntil?->format('c')]);
     }
@@ -113,10 +114,14 @@ final class IdempotencyListenerTest extends TestCase
         $store = new InMemoryIdempotencyStore();
         $request = self::request('k1');
         $store->records['ip:10.0.0.1|k1'] = IdempotencyRecord::completed($this->fingerprint(), StoredResponse::of(201, ['Location' => ['/orders/1']], '{"id":1}'), new DateTimeImmutable('2026-11-04 UTC'));
-        $event = self::controller($request, new Idempotent());
+        $cache = new Cache(maxage: 60);
+        $event = self::controller($request, new Idempotent(), $cache);
 
-        self::listener($store)->onController($event);
-        $response = ($event->getController())();
+        self::listener($store)->onControllerArguments($event);
+        $response = ($event->getController())(...$event->getArguments());
+        self::assertSame([], $event->getArguments(), 'The replay takes no argument of the original.');
+        self::assertSame([$cache], $event->getAttributes(Cache::class), 'The replay keeps the attributes of the original, for the listeners of the response.');
+        self::assertCount(1, $event->getAttributes(Idempotent::class));
 
         self::assertInstanceOf(Response::class, $response);
         self::assertSame([201, '{"id":1}', '/orders/1', 'true'], [$response->getStatusCode(), $response->getContent(), $response->headers->get('Location'), $response->headers->get(IdempotencyListener::REPLAYED_HEADER)]);
@@ -130,18 +135,18 @@ final class IdempotencyListenerTest extends TestCase
         $store = new InMemoryIdempotencyStore();
         $request = self::request('k1');
         $store->records['ip:10.0.0.1|k1'] = IdempotencyRecord::inProgress(PayloadFingerprint::ofRequest('POST', '/other', ''), new DateTimeImmutable('2026-11-03 12:04:00 UTC'));
-        $this->assertProblem(422, 'This Idempotency-Key was used with another request.', static fn () => self::listener($store)->onController(self::controller($request, new Idempotent())));
+        $this->assertProblem(422, 'This Idempotency-Key was used with another request.', static fn () => self::listener($store)->onControllerArguments(self::controller($request, new Idempotent())));
 
         $store->records['ip:10.0.0.1|k1'] = IdempotencyRecord::completed(PayloadFingerprint::ofRequest('POST', '/orders', '{"item":"b"}'), StoredResponse::of(201, [], '{"id":1}'), new DateTimeImmutable('2026-11-04 UTC'));
-        $this->assertProblem(422, 'This Idempotency-Key was used with another request.', static fn () => self::listener($store)->onController(self::controller($request, new Idempotent())));
+        $this->assertProblem(422, 'This Idempotency-Key was used with another request.', static fn () => self::listener($store)->onControllerArguments(self::controller($request, new Idempotent())));
 
         $store->records['ip:10.0.0.1|k1'] = IdempotencyRecord::failed(PayloadFingerprint::ofRequest('PUT', '/orders', ''), new DateTimeImmutable('2026-11-04 UTC'));
-        $this->assertProblem(422, 'This Idempotency-Key was used with another request.', static fn () => self::listener($store)->onController(self::controller($request, new Idempotent())));
+        $this->assertProblem(422, 'This Idempotency-Key was used with another request.', static fn () => self::listener($store)->onControllerArguments(self::controller($request, new Idempotent())));
 
         $store->records['ip:10.0.0.1|k1'] = IdempotencyRecord::inProgress($this->fingerprint(), new DateTimeImmutable('2026-11-03 12:00:42 UTC'));
 
         try {
-            self::listener($store)->onController(self::controller($request, new Idempotent()));
+            self::listener($store)->onControllerArguments(self::controller($request, new Idempotent()));
             self::fail('A request in progress was let through.');
         } catch (ProblemException $problemException) {
             self::assertSame([409, 'A request with this Idempotency-Key is in progress.'], [$problemException->problem->status, $problemException->problem->title]);
@@ -151,7 +156,7 @@ final class IdempotencyListenerTest extends TestCase
 
         $racing = new InMemoryIdempotencyStore();
         $racing->reserves = false;
-        $this->assertProblem(409, 'A request with this Idempotency-Key is in progress.', static fn () => self::listener($racing)->onController(self::controller(self::request('k2'), new Idempotent())));
+        $this->assertProblem(409, 'A request with this Idempotency-Key is in progress.', static fn () => self::listener($racing)->onControllerArguments(self::controller(self::request('k2'), new Idempotent())));
         self::assertFalse(self::request('k2')->attributes->has('_phil_api_contract_idempotency'));
     }
 
@@ -161,7 +166,7 @@ final class IdempotencyListenerTest extends TestCase
         $store->records['ip:10.0.0.1|k1'] = IdempotencyRecord::failed($this->fingerprint(), new DateTimeImmutable('2026-11-04 UTC'));
         $request = self::request('k1');
 
-        self::listener($store)->onController(self::controller($request, new Idempotent()));
+        self::listener($store)->onControllerArguments(self::controller($request, new Idempotent()));
 
         self::assertSame(['reserve ip:10.0.0.1|k1'], $store->calls);
         self::assertInstanceOf(IdempotencyReservation::class, $request->attributes->get(IdempotencyListener::RESERVED));
@@ -170,10 +175,10 @@ final class IdempotencyListenerTest extends TestCase
     public function testAMissingOrBadKeyIsABadRequest(): void
     {
         $store = new InMemoryIdempotencyStore();
-        $this->assertProblem(400, 'An Idempotency-Key header is required.', static fn () => self::listener($store)->onController(self::controller(self::request(null), new Idempotent())));
+        $this->assertProblem(400, 'An Idempotency-Key header is required.', static fn () => self::listener($store)->onControllerArguments(self::controller(self::request(null), new Idempotent())));
 
         try {
-            self::listener($store)->onController(self::controller(self::request("bad\x01"), new Idempotent()));
+            self::listener($store)->onControllerArguments(self::controller(self::request("bad\x01"), new Idempotent()));
             self::fail('A bad key was read.');
         } catch (ProblemException $problemException) {
             self::assertSame([400, 'The Idempotency-Key header cannot be read.'], [$problemException->problem->status, $problemException->problem->title]);
@@ -189,7 +194,7 @@ final class IdempotencyListenerTest extends TestCase
             $store = new InMemoryIdempotencyStore();
             $listener = self::listener($store);
             $request = self::request('k1');
-            $listener->onController(self::controller($request, new Idempotent()));
+            $listener->onControllerArguments(self::controller($request, new Idempotent()));
             $listener->onResponse($this->response($request, $response));
 
             self::assertSame(['reserve ip:10.0.0.1|k1', 'fail ip:10.0.0.1|k1'], $store->calls);
@@ -200,7 +205,7 @@ final class IdempotencyListenerTest extends TestCase
         $store = new InMemoryIdempotencyStore();
         $listener = self::listener($store);
         $request = self::request('k1');
-        $listener->onController(self::controller($request, new Idempotent()));
+        $listener->onControllerArguments(self::controller($request, new Idempotent()));
         $listener->onResponse($this->response($request, new Response('', 499)));
         self::assertSame('complete ip:10.0.0.1|k1', $store->calls[1]);
     }
@@ -209,13 +214,13 @@ final class IdempotencyListenerTest extends TestCase
     {
         $store = new InMemoryIdempotencyStore();
         $request = self::request(null);
-        self::listener($store)->onController(self::controller($request, null));
+        self::listener($store)->onControllerArguments(self::controller($request, null));
         self::listener($store)->onResponse($this->response($request, new Response()));
         self::assertSame([], $store->calls);
         self::assertSame('_phil_api_contract_idempotency', IdempotencyListener::RESERVED);
 
         $request->attributes->set(IdempotencyListener::RESERVED, new IdempotencyReservation(Reservation::create(IdempotencyScope::of('ip:10.0.0.1'), IdempotencyKey::fromString('k1')), 100));
-        new IdempotencyListener(null, new CallerScopeResolver(), 100, new NativeClock())->onResponse($this->response($request, new Response()));
+        new IdempotencyListener(null, new FixedScopeResolver(), 100, new NativeClock())->onResponse($this->response($request, new Response()));
         self::assertTrue($request->attributes->has(IdempotencyListener::RESERVED));
     }
 
@@ -223,7 +228,7 @@ final class IdempotencyListenerTest extends TestCase
     {
         $store = new InMemoryIdempotencyStore();
         $request = self::request('k1');
-        self::listener($store)->onController(self::controller($request, new Idempotent(ttl: 60)));
+        self::listener($store)->onControllerArguments(self::controller($request, new Idempotent(ttl: 60)));
 
         $reserved = $request->attributes->get(IdempotencyListener::RESERVED);
         self::assertInstanceOf(IdempotencyReservation::class, $reserved);
@@ -239,7 +244,7 @@ final class IdempotencyListenerTest extends TestCase
         $store = new InMemoryIdempotencyStore();
         $listener = self::listener($store);
         $request = self::request('k1');
-        $listener->onController(self::controller($request, new Idempotent()));
+        $listener->onControllerArguments(self::controller($request, new Idempotent()));
         $store->tokens['ip:10.0.0.1|k1'] = 'another request';
 
         try {
@@ -260,7 +265,7 @@ final class IdempotencyListenerTest extends TestCase
         $store = new InMemoryIdempotencyStore();
         $listener = self::listener($store);
         $request = self::request('k1');
-        $listener->onController(self::controller($request, new Idempotent()));
+        $listener->onControllerArguments(self::controller($request, new Idempotent()));
         $store->tokens['ip:10.0.0.1|k1'] = 'another request';
         $event = $this->response($request, new Response('', Response::HTTP_BAD_GATEWAY));
 
@@ -274,9 +279,9 @@ final class IdempotencyListenerTest extends TestCase
     public function testTheDefaultHeadersAreReplayed(): void
     {
         $store = new InMemoryIdempotencyStore();
-        $listener = new IdempotencyListener($store, new CallerScopeResolver(), 100, new NativeClock());
+        $listener = new IdempotencyListener($store, new FixedScopeResolver(), 100, new NativeClock());
         $request = self::request('k1');
-        $listener->onController(self::controller($request, new Idempotent()));
+        $listener->onControllerArguments(self::controller($request, new Idempotent()));
         $listener->onResponse($this->response($request, new Response('', Response::HTTP_CREATED, ['Location' => '/o/1', 'Content-Type' => 'text/plain', 'X-Trace' => 'a'])));
 
         self::assertSame(['Content-Type' => ['text/plain'], 'Location' => ['/o/1']], $store->records['ip:10.0.0.1|k1']->response?->headers);
@@ -291,7 +296,7 @@ final class IdempotencyListenerTest extends TestCase
                 return new DateTimeImmutable('2026-11-03 12:00:00 UTC');
             }
         };
-        new IdempotencyListener($store, new CallerScopeResolver(), 3_600, $clock)->onController(self::controller(self::request('k1'), new Idempotent()));
+        new IdempotencyListener($store, new FixedScopeResolver(), 3_600, $clock)->onControllerArguments(self::controller(self::request('k1'), new Idempotent()));
 
         self::assertSame('2026-11-03T12:05:00+00:00', $store->expiresAt?->format('c'));
     }
@@ -301,15 +306,31 @@ final class IdempotencyListenerTest extends TestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIsOrContains('An #[Idempotent] controller needs an IdempotencyStore');
 
-        new IdempotencyListener(null, new CallerScopeResolver(), 100, new NativeClock())->onController(self::controller(self::request('k1'), new Idempotent()));
+        new IdempotencyListener(null, new FixedScopeResolver(), 100, new NativeClock())->onControllerArguments(self::controller(self::request('k1'), new Idempotent()));
     }
 
     public function testWithoutAClockItIsNow(): void
     {
         $store = new InMemoryIdempotencyStore();
-        new IdempotencyListener($store, new CallerScopeResolver(), 100, new NativeClock())->onController(self::controller(self::request('k1'), new Idempotent()));
+        new IdempotencyListener($store, new FixedScopeResolver(), 100, new NativeClock())->onControllerArguments(self::controller(self::request('k1'), new Idempotent()));
 
         self::assertEqualsWithDelta(time() + 100, $store->expiresAt?->getTimestamp(), 5);
+    }
+
+    public function testANewKeyLeavesTheControllerAndItsArguments(): void
+    {
+        $event = self::controller(self::request('k1'), new Idempotent());
+        $controller = $event->getController();
+
+        self::listener(new InMemoryIdempotencyStore())->onControllerArguments($event);
+
+        self::assertSame($controller, $event->getController());
+        self::assertSame(['order-1'], $event->getArguments());
+    }
+
+    public function testItRunsAfterTheListenersOfTheControllerAttributes(): void
+    {
+        self::assertSame(-10_100, IdempotencyListener::PRIORITY);
     }
 
     private function assertProblem(int $status, string $title, Closure $call): void
@@ -331,7 +352,7 @@ final class IdempotencyListenerTest extends TestCase
             }
         };
 
-        return new IdempotencyListener($store, new CallerScopeResolver(), 100, $clock, ['Location', 'Content-Type'], $reservationTtl);
+        return new IdempotencyListener($store, new FixedScopeResolver(), 100, $clock, ['Location', 'Content-Type'], $reservationTtl);
     }
 
     private static function request(?string $key): Request
@@ -350,13 +371,13 @@ final class IdempotencyListenerTest extends TestCase
         return PayloadFingerprint::ofRequest('POST', '/orders?x=1', '{"item":"a"}');
     }
 
-    private static function controller(Request $request, ?Idempotent $attribute): ControllerEvent
+    private static function controller(Request $request, ?Idempotent $attribute, object ...$others): ControllerArgumentsEvent
     {
         $kernel = self::createStub(HttpKernelInterface::class);
-        $event = new ControllerEvent($kernel, static fn (): Response => new Response(), $request, HttpKernelInterface::MAIN_REQUEST);
-        $event->setController($event->getController(), $attribute instanceof Idempotent ? [$attribute] : []);
+        $event = new ControllerEvent($kernel, static fn (string $id): Response => new Response($id), $request, HttpKernelInterface::MAIN_REQUEST);
+        $event->setController($event->getController(), array_values($attribute instanceof Idempotent ? [$attribute, ...$others] : $others));
 
-        return $event;
+        return new ControllerArgumentsEvent($kernel, $event, ['order-1'], $request, HttpKernelInterface::MAIN_REQUEST);
     }
 
     private function response(Request $request, Response $response): ResponseEvent

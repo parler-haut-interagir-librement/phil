@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=43e5b94e8784f61445c6124a5ea999c0e1d9ec7cf352aed508a7b1ba23731d41 -->
+<!-- phil-dev source-sha256=f49bc34c8a6cfe88bb22957ef3a70c7ee828304db3ae82c075c02404784627f2 -->
 # phil/idempotency
 
 **Chaque opération exécutée une fois par clé d'idempotence, quelles que soient les nouvelles tentatives.**
@@ -16,8 +16,8 @@ conservée, jamais la charge.
 
 C'est une bibliothèque PHP simple. Les stockages sont un port, avec un adaptateur pour Doctrine DBAL — une table, une
 insertion atomique — et un pour tout pool de cache PSR-6, rendu atomique par le composant Lock de Symfony. Un
-intergiciel Messenger traite un message reçu une fois par clé. Dans une application Symfony, `phil/api-contract-bundle`
-y ajoute les contrôleurs `#[Idempotent]`.
+middleware Messenger traite un message reçu une fois par clé, et refuse une clé réutilisée avec un autre contenu de
+message. Dans une application Symfony, `phil/api-contract-bundle` y ajoute les contrôleurs `#[Idempotent]`.
 
 ## Documentation
 
@@ -27,7 +27,7 @@ y ajoute les contrôleurs `#[Idempotent]`.
 | [La règle](doc/fr/rule.md) | Les clés, les portées, les empreintes, les trois états et les quatre issues. |
 | [La garde](doc/fr/guard.md) | `IdempotencyGuard` : `run()`, `begin()`, `complete()`, `fail()`, et leur usage pour une API, un webhook et un formulaire. |
 | [Stockages](doc/fr/stores.md) | La table DBAL et le pool de cache sous verrou : atomicité, expiration, purge. |
-| [Messenger](doc/fr/messenger.md) | L'intergiciel, ses clés, et ce qu'il fait d'un doublon. |
+| [Messenger](doc/fr/messenger.md) | Le middleware, ses clés, l'empreinte d'un message, et ce qu'il fait d'un doublon. |
 | [Exceptions](doc/fr/exceptions.md) | Ce que lève la bibliothèque, et la réponse HTTP de chacune. |
 | [Points d'extension](doc/fr/extension-points.md) | Un stockage à soi, et le test de contrat qu'il peut étendre. |
 | [Tests](doc/fr/testing.md) | Ce que fixe la suite, le test de concurrence et la cible de fuzzing. |
@@ -53,7 +53,7 @@ $run = $guard->run(
 ## Prérequis
 
 PHP 8.5 ou plus récent, `psr/clock` 1 et `symfony/uid` 8.2. Le stockage DBAL demande `doctrine/dbal` 4.5 ; le
-stockage en cache `psr/cache` 3 et `symfony/lock` 8.2 ; l'intergiciel `symfony/messenger` 8.2.
+stockage en cache `psr/cache` 3 et `symfony/lock` 8.2 ; le middleware `symfony/messenger` 8.2.
 
 ## Contribuer
 

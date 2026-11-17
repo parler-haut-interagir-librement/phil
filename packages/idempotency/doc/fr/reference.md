@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d5f5991424215d675acc784815efb7698f3b8593ede908cb985f6a1508ad64ee -->
+<!-- phil-dev source-sha256=76fb2d72d1248c3414abec18a2b26220d290f61a030346989d8fc3f72f384b8a -->
 # Référence
 
 Tous les types vivent sous `Phil\Idempotency`.
@@ -20,8 +20,9 @@ Tous les types vivent sous `Phil\Idempotency`.
 | `Store\DbalIdempotencyStore` | final readonly class | Le stockage sur une connexion Doctrine DBAL ; `purge()`, `reservation()`. |
 | `Store\IdempotencyTable` | final class | `NAME`, `configure()`. |
 | `Store\CacheIdempotencyStore` | final readonly class | Le stockage sur un pool PSR-6 sous un verrou Symfony. |
-| `Messenger\IdempotencyMiddleware` | final readonly class | Traite un message reçu une fois par clé. |
-| `Messenger\IdempotencyStamp` | final readonly class | `DEFAULT_SCOPE`, `$key`, `$scope`. |
+| `Messenger\IdempotencyMiddleware` | final readonly class | Traite un message reçu une fois par clé, et refuse une clé réutilisée avec un autre contenu sauf si `$compareContent` est faux ; `MAX_DEPTH`. |
+| `Messenger\IdempotencyStamp` | final readonly class | `DEFAULT_SCOPE`, `$key`, `$scope`, `$fingerprint`. |
+| `Contract\FingerprintedMessage` | interface | `idempotencyFingerprint()` : l'empreinte des champs de l'intention d'un message. |
 | `Exception\IdempotencyException` | interface | Ce que lève la bibliothèque. |
 | `Exception\InvalidIdempotencyValue` | final class | Une valeur qui enfreint sa règle ; `because()`. |
 | `Exception\MissingIdempotencyKey` | final class | Aucune clé sur une requête qui en demande une ; `onRequest()`. |

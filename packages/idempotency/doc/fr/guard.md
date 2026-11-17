@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9d38ba57cf51562c02b4c1821bbd914ce1d131cf82a24377f7198ae845f295ac -->
+<!-- phil-dev source-sha256=ecf7218b10dd60c750ccf9ff4ed27bf0a44de6e972cfefb2c295d393e6c27116 -->
 # La garde
 
 `IdempotencyGuard` exécute la séquence du stockage : trouver, décider, réserver, puis terminer ou échouer. Elle ne
@@ -126,6 +126,6 @@ Le jeton CSRF du formulaire n'est pas une clé : il est partagé par chaque form
 
 ## Messenger
 
-Voir [Messenger](messenger.md) : un intergiciel exécute la garde autour des gestionnaires d'un message reçu.
+Voir [Messenger](messenger.md) : un middleware exécute la garde autour des gestionnaires d'un message reçu.
 
 Ensuite : [stockages](stores.md).

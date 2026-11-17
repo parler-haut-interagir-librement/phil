@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=23a217ee02b64a86c8f2f3b60f39580ee2411575f833c10b7b5ccde5036aef18 -->
+<!-- phil-dev source-sha256=9c46365bac9f22c82cd1e9beee28d80ec3418011a77053f7f9fde602b3a68bfa -->
 # Points d'extension
 
 ## `Contract\IdempotencyStore`
@@ -27,6 +27,11 @@ depuis `createStore(MockClock $clock)`.
 `PayloadFingerprint::ofParts()` prend les parties que vous choisissez. Pour une opération dont la charge porte un champ
 qui change à chaque tentative, laissez ce champ de côté ; pour une opération dont le sens tient en quelques champs,
 prenez l'empreinte de ceux-là.
+
+## L'empreinte d'un message
+
+Un message implémente `Contract\FingerprintedMessage` pour nommer les champs de son intention, ou son producteur donne
+une empreinte à l'`IdempotencyStamp` ; voir [Messenger](messenger.md#lempreinte).
 
 ## La garde
 

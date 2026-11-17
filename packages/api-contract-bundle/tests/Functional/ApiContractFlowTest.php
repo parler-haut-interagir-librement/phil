@@ -9,13 +9,15 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Phil\ApiContractBundle\PhilApiContractBundle;
 use Phil\ApiContractBundle\Tests\Functional\App\ApiController;
+use Phil\ApiContractBundle\Tests\Functional\App\OrderVoter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Requests through the kernel: problems under `/api/`, an order created once per key and replayed, a conflict, a
- * failure forgotten, and the deprecation headers.
+ * failure forgotten, the deprecation headers, keys of their own for each tenant and each user, the access checks of a
+ * controller run again before a replay, and anonymous callers refused.
  */
 #[CoversClass(PhilApiContractBundle::class)]
 final class ApiContractFlowTest extends FunctionalTestCase
@@ -86,9 +88,84 @@ final class ApiContractFlowTest extends FunctionalTestCase
         self::assertSame(1, $this->controller()->orders);
     }
 
-    private function post(string $path, string $body, ?string $key): Response
+    /**
+     * Two tenants share one store: the same user, key, path and body in the second tenant runs its own request,
+     * instead of being answered with the first tenant's response.
+     */
+    public function testTwoTenantsOnOneStoreNeverShareAKey(): void
     {
-        $request = Request::create($path, 'POST', content: $body);
+        $acme = $this->post('/api/orders', '{"item":"a"}', 'key-5', host: 'acme.test');
+        $globex = $this->post('/api/orders', '{"item":"a"}', 'key-5', host: 'globex.test');
+        $acmeAgain = $this->post('/api/orders', '{"item":"a"}', 'key-5', host: 'acme.test');
+
+        self::assertSame([201, '{"order":1}', null], [$acme->getStatusCode(), $acme->getContent(), $acme->headers->get('Idempotent-Replayed')]);
+        self::assertSame([201, '{"order":2}', null], [$globex->getStatusCode(), $globex->getContent(), $globex->headers->get('Idempotent-Replayed')]);
+        self::assertSame([201, '{"order":1}', 'true'], [$acmeAgain->getStatusCode(), $acmeAgain->getContent(), $acmeAgain->headers->get('Idempotent-Replayed')]);
+        self::assertSame(2, $this->controller()->orders);
+        self::assertSame(2, $this->keys());
+    }
+
+    public function testTwoUsersNeverShareAKey(): void
+    {
+        $ada = $this->post('/api/orders', '{"item":"a"}', 'key-6');
+        $grace = $this->post('/api/orders', '{"item":"a"}', 'key-6', user: 'grace');
+
+        self::assertSame(['{"order":1}', '{"order":2}', null], [$ada->getContent(), $grace->getContent(), $grace->headers->get('Idempotent-Replayed')]);
+    }
+
+    /**
+     * The permission was revoked while the key was kept: the replay runs `#[IsGranted]` again and is refused, without
+     * the body the first request was answered with.
+     */
+    public function testARevokedPermissionIsNotAnsweredWithTheStoredResponse(): void
+    {
+        $first = $this->post('/api/guarded-orders', '{"item":"a"}', 'key-7');
+        self::assertSame([201, null], [$first->getStatusCode(), $first->headers->get('Idempotent-Replayed')]);
+        self::assertStringContainsString('only for the permitted', (string) $first->getContent());
+
+        $again = $this->post('/api/guarded-orders', '{"item":"a"}', 'key-7');
+        self::assertSame([201, 'true', $first->getContent()], [$again->getStatusCode(), $again->headers->get('Idempotent-Replayed'), $again->getContent()]);
+
+        $this->service(OrderVoter::class, OrderVoter::class)->revoked = ['ada'];
+        $revoked = $this->post('/api/guarded-orders', '{"item":"a"}', 'key-7');
+
+        self::assertSame(403, $revoked->getStatusCode());
+        self::assertNull($revoked->headers->get('Idempotent-Replayed'));
+        self::assertStringNotContainsString('only for the permitted', (string) $revoked->getContent());
+        self::assertSame(1, $this->controller()->orders);
+    }
+
+    /**
+     * A request refused by an access check holds no key: once granted, the same key runs the controller.
+     */
+    public function testARefusedRequestTakesNoKey(): void
+    {
+        $this->service(OrderVoter::class, OrderVoter::class)->revoked = ['ada'];
+        self::assertSame(403, $this->post('/api/guarded-orders', '{}', 'key-8')->getStatusCode());
+        self::assertSame(0, $this->keys());
+
+        $this->service(OrderVoter::class, OrderVoter::class)->revoked = [];
+        $granted = $this->post('/api/guarded-orders', '{}', 'key-8');
+        self::assertSame([201, null], [$granted->getStatusCode(), $granted->headers->get('Idempotent-Replayed')]);
+    }
+
+    public function testAnAnonymousCallerIsRefused(): void
+    {
+        $anonymous = $this->post('/api/orders', '{"item":"a"}', 'key-9', user: null);
+
+        self::assertSame([403, 'An Idempotency-Key is accepted from an authenticated caller only.'], [$anonymous->getStatusCode(), $this->title($anonymous)]);
+        self::assertSame(0, $this->controller()->orders);
+    }
+
+    private function post(string $path, string $body, ?string $key, ?string $user = 'ada', string $host = 'localhost'): Response
+    {
+        $server = ['HTTP_HOST' => $host];
+
+        if (null !== $user) {
+            $server += ['PHP_AUTH_USER' => $user, 'PHP_AUTH_PW' => $user];
+        }
+
+        $request = Request::create($path, 'POST', server: $server, content: $body);
 
         if (null !== $key) {
             $request->headers->set('Idempotency-Key', '"'.$key.'"');
@@ -110,6 +187,14 @@ final class ApiContractFlowTest extends FunctionalTestCase
         self::assertIsArray($problem);
 
         return $problem['title'] ?? null;
+    }
+
+    private function keys(): int
+    {
+        $count = $this->service('doctrine.dbal.default_connection', Connection::class)->fetchOne('SELECT COUNT(*) FROM phil_idempotency');
+        self::assertIsNumeric($count);
+
+        return (int) $count;
     }
 
     private function controller(): ApiController

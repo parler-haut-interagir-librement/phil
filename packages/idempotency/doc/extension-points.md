@@ -25,6 +25,11 @@ from the package's tests and return your store from `createStore(MockClock $cloc
 `PayloadFingerprint::ofParts()` takes the parts you choose. For an operation whose payload carries a field that
 changes on each attempt, leave that field out; for one whose meaning is in a few fields, fingerprint those.
 
+## The fingerprint of a message
+
+A message implements `Contract\FingerprintedMessage` to name the fields of its intention, or its producer gives the
+`IdempotencyStamp` a fingerprint; see [Messenger](messenger.md#the-fingerprint).
+
 ## The guard
 
 `IdempotencyGuard` is final. To change how an operation is answered, wrap it: the guard's methods are the steps,

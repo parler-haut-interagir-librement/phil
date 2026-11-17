@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a7e1bee634a8677ac6082246aa563ad0a3bdbbcaf6964028ead513fa897a21e1 -->
+<!-- phil-dev source-sha256=5a9d0382e9262f2f8ae2b87e1a6ada8660abdfdbeff5c90cf44b3e630bec8d20 -->
 # Points d'extension
 
 Ce qu'une application implémente, remplace, configure ou utilise. Le port `IdempotencyStore` est celui de
@@ -13,13 +13,27 @@ Chaque port est un alias que l'application fait pointer vers un service qui lui 
 |---|---|---|
 | `Phil\Idempotency\Contract\IdempotencyStore` | `DbalIdempotencyStore` sur `idempotency.connection`, ou `CacheIdempotencyStore` sur `idempotency.cache_pool` | Conserve les clés ailleurs selon les invariants de la bibliothèque |
 | `Phil\ApiContract\Deprecation\ObservedDeprecations` | `CacheObservedDeprecations`, sur `cache.app` | Conserve ailleurs les obsolescences qu'observent les clients de l'application |
-| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyScopeResolver` | `CallerScopeResolver` : l'identifiant de l'utilisateur, ou l'adresse du client | Nomme l'appelant autrement : l'identifiant propre d'un client d'API |
+| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyTenantResolver` | `ActiveTenantResolver` : le locataire actif de `phil/tenancy-bundle`, ou aucun | Retourne le locataire que l'application a vérifié, par ses propres moyens |
+| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyClientResolver` | `TokenAttributeClientResolver` : l'attribut du jeton `idempotency.client_attribute` | Retourne le client d'API ou OAuth que l'application a authentifié |
+| `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyScopeResolver` | `CallerScopeResolver` : le locataire, le client et l'utilisateur ; les appelants anonymes refusés ou rattachés à leur adresse | Nomme l'appelant tout autrement |
+
+### `IdempotencyTenantResolver`
+
+| Méthode | Contrat |
+|---|---|
+| `tenant(Request $request): ?string` | La référence stable du locataire dans lequel la requête agit, une fois vérifié ; jamais un hôte ni un en-tête que le client a choisi. Nulle hors de tout locataire |
+
+### `IdempotencyClientResolver`
+
+| Méthode | Contrat |
+|---|---|
+| `client(Request $request): ?string` | Le client authentifié qui a envoyé la requête ; nulle quand elle n'en nomme aucun |
 
 ### `IdempotencyScopeResolver`
 
 | Méthode | Contrat |
 |---|---|
-| `scope(Request $request): IdempotencyScope` | À qui appartiennent ces clés : deux appelants ne partagent jamais une portée, et l'un ne peut donc pas rejouer la réponse d'un autre |
+| `scope(Request $request): IdempotencyScope` | À qui appartiennent ces clés : deux appelants ne partagent jamais une portée, et l'un ne peut donc pas rejouer la réponse d'un autre. Deux locataires, deux clients ou deux utilisateurs sont deux appelants. Elle peut lever une `ProblemException` pour refuser un appelant |
 
 ## Attributs
 
@@ -48,6 +62,8 @@ toute exception sous les chemins donnés. `ProblemDetailsResponse` en écrit un 
 | `problem_details.paths` | Où chaque exception reçoit une réponse sous forme de problème |
 | `idempotency.ttl`, `reservation_ttl` | Combien de temps une clé est retenue, et réservée |
 | `idempotency.replayed_headers` | Les en-têtes rejoués avec un corps |
+| `idempotency.anonymous` | Les appelants anonymes refusés, ou rattachés à leur adresse |
+| `idempotency.client_attribute` | L'attribut du jeton qui nomme le client d'API |
 | `idempotency.connection` | Où les clés sont conservées ; `null` pour un stockage propre à l'application |
 | `idempotency.cache_pool`, `lock_factory` | Les clés plutôt dans un pool de cache, chaque réservation sous un verrou |
 | `verification.document`, `level`, `fail_on` | Ce que vérifie `phil:api-contract:verify`, et avec quelle rigueur, quand ses arguments l'omettent |
