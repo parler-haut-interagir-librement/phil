@@ -1,0 +1,105 @@
+#!/usr/bin/env php
+<?php
+
+/*
+ * Lance PHP-CS-Fixer ou PHPStan sur les fichiers PHP indexés, pour le crochet de commit, en attendant
+ * `phil-dev staged` (phil/dev-tools 0.1.5).
+ *
+ * Les noms sont lus de git séparés par des octets nuls et passés à l'outil en arguments distincts, après `--`, sans
+ * shell : un nom de fichier avec des espaces, des guillemets, un point-virgule ou un tiret initial reste un seul
+ * chemin. CaptainHook, avec `{$STAGED_FILES}`, les joignait sans guillemets dans une commande de shell.
+ *
+ * PHPStan qui ne reçoit que des fichiers exclus de son analyse (« No files found to analyse. ») sort en succès.
+ *
+ *     bin/staged php-cs-fixer
+ *     bin/staged phpstan --in-dir=packages/
+ */
+
+declare(strict_types=1);
+
+$tools = [
+    'php-cs-fixer' => ['vendor-bin/php-cs-fixer/vendor/bin/php-cs-fixer', 'check', '--config=.php-cs-fixer.dist.php', '--diff', '--path-mode=intersection'],
+    'phpstan' => ['vendor-bin/phpstan/vendor/bin/phpstan', 'analyse', '--no-progress', '--no-ansi'],
+];
+
+$tool = $argv[1] ?? '';
+
+if (!isset($tools[$tool])) {
+    fwrite(\STDERR, "Usage: bin/staged php-cs-fixer|phpstan [--in-dir=DIR…]\n");
+
+    exit(2);
+}
+
+$prefixes = [];
+
+foreach (array_slice($argv, 2) as $argument) {
+    if (!str_starts_with($argument, '--in-dir=')) {
+        fwrite(\STDERR, "Unknown argument: {$argument}\n");
+
+        exit(2);
+    }
+
+    $prefixes[] = rtrim(substr($argument, strlen('--in-dir=')), '/').'/';
+}
+
+$root = dirname(__DIR__);
+
+/**
+ * @param non-empty-list<string> $command
+ *
+ * @return array{int, string}
+ */
+$run = static function (array $command, bool $withErrors) use ($root): array {
+    $output = tmpfile();
+
+    if (false === $output) {
+        fwrite(\STDERR, "Cannot capture the output of {$command[0]}.\n");
+
+        exit(2);
+    }
+
+    $process = proc_open($command, [1 => $output, 2 => $withErrors ? $output : \STDERR], $pipes, $root);
+
+    if (false === $process) {
+        fwrite(\STDERR, "Cannot run {$command[0]}.\n");
+
+        exit(2);
+    }
+
+    $exitCode = proc_close($process);
+    rewind($output);
+    $text = (string) stream_get_contents($output);
+    fclose($output);
+
+    return [$exitCode, $text];
+};
+
+[$listed, $names] = $run(['git', 'diff', '--cached', '--name-only', '-z', '--diff-filter=ACMR'], false);
+
+if (0 !== $listed) {
+    exit($listed);
+}
+
+$files = array_values(array_filter(
+    explode("\0", $names),
+    static fn (string $file): bool => str_ends_with($file, '.php')
+        && ([] === $prefixes || array_any($prefixes, static fn (string $prefix): bool => str_starts_with($file, $prefix))),
+));
+
+if ([] === $files) {
+    echo "No staged .php file: nothing to check.\n";
+
+    exit(0);
+}
+
+[$exitCode, $output] = $run([...$tools[$tool], '--', ...$files], true);
+
+if ('phpstan' === $tool && 0 !== $exitCode && str_contains($output, 'No files found to analyse.')) {
+    echo "PHPStan excludes every staged PHP file: nothing to analyse.\n";
+
+    exit(0);
+}
+
+echo $output;
+
+exit($exitCode);
