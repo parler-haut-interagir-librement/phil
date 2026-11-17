@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fa76e723dd00448ccba50f4514e74457e9a44c8ed490fca519345e6467afa302 -->
+<!-- phil-dev source-sha256=5c3222a1c52dca95a3d196b80f3be76c5b6134f6262efa435eccd2a31b1ef423 -->
 # La plateforme
 
 ## Démarrer un lancement
@@ -77,9 +77,40 @@ connecté répond 401.
 
 L'application lance une requête de Deep Linking avec un message de type `MessageType::DeepLinking` et ses
 `DeepLinkingSettings`, l'adresse de retour étant `phil_lti_platform_deep_linking` et `data` nommant le placement.
-L'outil y envoie sa réponse par POST ; le bundle la vérifie avec `DeepLinkingReturn` et répartit `DeepLinkingReturned`.
-Un écouteur place les éléments et répond au navigateur ; sans réponse, le bundle affiche une courte page avec le nombre
-d'éléments et le message de l'outil.
+L'outil y envoie sa réponse par POST ; le bundle la vérifie avec `DeepLinkingReturn`, la garde, et répartit
+`DeepLinkingReturned`. Un écouteur place les éléments et répond au navigateur ; sans réponse, le bundle affiche une
+courte page avec le nombre d'éléments et le message de l'outil.
+
+### Reprendre une réponse
+
+Le `nonce` d'une réponse est pris une seule fois : le jeton que le navigateur a envoyé n'est jamais accepté de nouveau.
+Pour qu'un écouteur qui échoue ne fasse pas perdre la réponse, `DeepLinkingHandler` la garde avant d'en informer
+l'application — sa clé, son client et les revendications avec lesquelles elle a été vérifiée, dans la table
+`deep_linking` ou en mémoire, pendant `platform.deep_linking_retention` secondes, un jour par défaut — et la marque
+traitée une fois que chaque écouteur est revenu. Les revendications sont celles que l'outil a choisies pour la
+plateforme — éléments de contenu, le `data` que la plateforme a mis dans sa requête, messages — : aucun identifiant de
+connexion et aucune revendication sur une personne, donc elles sont gardées telles quelles, 64 Kio de JSON au plus.
+
+`DeepLinkingReturned::$key` nomme la réponse pour de bon : un hachage de son client et de son `nonce`, le même quand la
+réponse est annoncée de nouveau. Un écouteur est idempotent par cette clé — il place les éléments d'une clé une seule
+fois, et retrouve ce qu'il a placé la première fois quand il revoit la clé. Quand un écouteur lève une exception, le
+navigateur reçoit l'erreur et la réponse reste gardée, non traitée. L'application l'annonce de nouveau, à partir des
+revendications gardées et sans le jeton :
+
+```php
+use Phil\LtiBundle\Application\DeepLinkingHandler;
+
+$event = $handler->resume($key);                 // null when nothing is kept under the key, or it expired
+foreach ($handler->unhandled(300) as $key) { … }  // the responses not handled after five minutes
+```
+
+```bash
+bin/console phil:lti:resume-deep-linking <key>       # one response, handled or not
+bin/console phil:lti:resume-deep-linking --delay=300 # every response not handled after five minutes
+```
+
+`DeepLinkingReturned::$resumed` est à true pour une réponse annoncée de nouveau ; un écouteur n'a alors aucun navigateur
+à qui répondre, et sa réponse n'est pas employée. `phil:lti:purge` retire les réponses expirées.
 
 ## Le point de terminaison des jetons
 
@@ -101,7 +132,16 @@ Chaque appel porte un jeton porteur : sans jeton, 401 avec `WWW-Authenticate: Be
 portée, 403 avec `error="insufficient_scope"`. Un contexte où l'outil n'est pas placé, ou un line item qui n'est pas
 celui de l'outil, répond 404. Les listes prennent `limit` et `offset`, et donnent la page suivante dans un en-tête
 `Link` ; les line items prennent `resource_link_id`, `resource_id` et `tag`, les résultats `user_id`, les adhésions
-`role`. Un corps est du JSON de 64 Kio au plus. Une note plus ancienne que la dernière de l'apprenant répond 409.
+`role`. Un corps est du JSON de 64 Kio au plus.
+
+Une page de line items ou de membres contient 100 entrées quand l'outil ne demande aucun `limit`, et 1 000 au plus quoi
+qu'il demande. Son `Link: <…>; rel="next"` porte les filtres, le `limit` auquel la page a été coupée et l'`offset` de la
+page suivante, et il est présent chaque fois qu'une page suivante existe : aussi sans `limit`, et avec un `limit` au-delà
+de 1 000.
+
+Une note plus ancienne que la dernière de l'apprenant répond 409. La comparaison et l'écriture sont une seule étape
+atomique du magasin : de deux notes d'un même apprenant envoyées en même temps, la plus récente reste, quel que soit
+l'ordre d'arrivée, et l'autre répond 409. Une note du même moment que celle qui est gardée la remplace.
 
 ## La liste de membres et le carnet de notes
 
@@ -115,4 +155,4 @@ celui de l'application, qui écoute :
 | `LineItemSaved` | Un outil a créé (`created` vrai) ou modifié un line item. |
 | `LineItemDeleted` | Un outil a supprimé un line item, avec ses notes. |
 | `ScoreReceived` | Une note a été gardée comme la dernière de l'apprenant sur un line item. |
-| `DeepLinkingReturned` | Une réponse de Deep Linking a été vérifiée. |
+| `DeepLinkingReturned` | Une réponse de Deep Linking a été vérifiée et gardée, ou est annoncée de nouveau (`resumed` à true), sous sa `key`. |

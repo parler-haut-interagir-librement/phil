@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d264dba70376a7f42763c90e269c9bead34b8ba69530278c96cd15dd146ce1ac -->
+<!-- phil-dev source-sha256=ba5923a4c6cd57b482f7f045d96e50f76445559a529b54e87ba1a2211f858673 -->
 # Assignment and Grade Services
 
 Les Assignment and Grade Services permettent à l'outil de tenir des colonnes — les line items — dans le carnet de notes
@@ -85,3 +85,21 @@ le line item est celui de l'outil. Une méthode qui ne trouve aucun contexte ou 
 false, de sorte que l'application répond 404. Une note plus ancienne que la dernière de l'apprenant sur le line item
 n'est pas gardée ; les résultats ramènent la dernière note à l'échelle du maximum du line item. L'application donne les
 adresses des line items et des résultats.
+
+`ScoreStore::record()` compare et écrit en une seule étape atomique et dit s'il a gardé la note : de deux notes d'un même
+apprenant écrites en même temps, la plus récente reste, quel que soit l'ordre d'arrivée, et `score()` répond false pour
+l'autre, que l'application répond par 409. Une note du même moment que celle qui est gardée la remplace, pour qu'un
+outil qui envoie de nouveau une note ne soit pas refusé.
+
+`lineItems()` répond une page, comme `NrpsService::page()` :
+
+```php
+$page = $ags->lineItems($token, $contextId, limit: $limit, offset: $offset);
+// ['lineItems' => list<StoredLineItem>, 'limit' => 100, 'nextOffset' => 100]
+```
+
+La page contient `limit` line items au plus — 100 quand l'outil n'en demande aucun, 1 000 au plus quoi qu'il demande —,
+et `limit` est cette taille, celle à laquelle la page a été coupée. On demande au magasin un line item de plus que la
+page, pour que `nextOffset` soit le début de la page suivante, ou null sur la dernière, à toute taille : l'application
+écrit le lien `next` à partir de `limit` et de `nextOffset`, aussi quand l'outil n'a demandé aucune limite, ou plus de
+1 000.

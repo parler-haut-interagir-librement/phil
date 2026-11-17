@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ed41c2cbe2f84eeb199274e0022a98cf122f66e2c8a25caade0f7b1fd30f3dd9 -->
+<!-- phil-dev source-sha256=668a9ade291a8b00586f2566eea30b5a3aeca21557fb14b21f5e2aee8e6d9dcd -->
 # Installation
 
 ## Prérequis
@@ -70,14 +70,15 @@ plutôt le fournisseur de l'application, ou une chaîne des deux.
 
 ## Les tables
 
-Avec l'ORM, le bundle ajoute ses sept tables au schéma que l'ORM génère pour la connexion :
+Avec l'ORM, le bundle ajoute ses huit tables au schéma que l'ORM génère pour la connexion :
 
 ```sh
 bin/console doctrine:migrations:diff
 bin/console doctrine:migrations:migrate
 ```
 
-Sans l'ORM, `bin/console phil:lti:schema` affiche le SQL des tables manquantes et `--force` l'exécute. Voir le
+Sans l'ORM, `bin/console phil:lti:schema` affiche le SQL des tables manquantes et des colonnes qui manquent aux tables
+qui s'y trouvent, et `--force` l'exécute. Une application qui vient de 0.1 suit la mise à niveau du
 [stockage](storage.md).
 
 ## Le kit et les ressources
@@ -108,6 +109,7 @@ Avec AssetMapper, le bundle sert son contrôleur Stimulus sous le nom `@phil/lti
 
 ## Tâches planifiées
 
-Exécutez `phil:lti:purge` chaque jour, pour retirer les nonces, les états de connexion et les jetons d'accès expirés, et
-`phil:lti:rotate-keys --if-due` chaque jour, pour renouveler la clé de signature une fois qu'elle atteint sa durée de
-vie.
+Exécutez `phil:lti:purge` chaque jour, pour retirer les nonces, les états de connexion, les jetons d'accès et les
+réponses de Deep Linking expirés et les notes refusées au-delà de leur conservation, et `phil:lti:rotate-keys --if-due`
+chaque jour, pour renouveler la clé de signature une fois qu'elle atteint sa durée de vie. Un outil exécute aussi
+`phil:lti:recover-scores` toutes les quelques minutes, pour renvoyer les notes dont le message n'a jamais été envoyé.

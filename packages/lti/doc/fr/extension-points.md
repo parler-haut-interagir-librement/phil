@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f25abb74f85128317bf4cfa8e6be86ea0f6b9a21e2ce3ebb4523ea3cc13185b3 -->
+<!-- phil-dev source-sha256=5d6dd41f8e06e77252b9c1d6919744542ee026f1bb28397f3135c7344dcd5481 -->
 # Points d'extension
 
 Le paquet est en `0.x` : ses points d'extension ne sont stables qu'à partir de sa version 1.0. D'ici là, une version
@@ -27,6 +27,9 @@ Un adaptateur respecte le contrat de son port :
   trouve ;
 - `Nonces::use()` vérifie et écrit en une seule étape : de deux requêtes avec une même valeur, une seule réussit ;
 - `AccessTokens::find()` répond null pour un jeton expiré ;
+- `ScoreStore::record()` compare le moment de la note à celui de la note gardée et écrit en une seule étape atomique —
+  une écriture conditionnelle, ou un verrou qui couvre aussi deux premières notes en même temps —, et répond s'il a
+  gardé la note : jamais une note ne remplace une note plus récente, quoi que fassent deux écritures simultanées ;
 - `LineItemStore::list()` et `ScoreStore::scores()` répondent dans un ordre stable, pour que les pages ne se
   chevauchent pas ; `LineItemStore::delete()` retire aussi les notes du line item.
 
