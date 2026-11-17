@@ -16,14 +16,23 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 /**
  * The second step of a sign-in: an account with a confirmed authenticator application, signed in by a method that is
  * not a second factor — a password, a sign-in link, an external identity —, is sent to the challenge page on every
- * request until the token holds a strong proof (`otp`, `hwk`, `mfa`). The routes of the challenge, of passkeys and of
- * signing out stay open, and so do those the configuration lists.
+ * request until the token holds a strong proof (`otp`, `hwk`, `mfa`). Only routes named exactly stay open: the
+ * challenge, the code it posts, the sign-in with a passkey, and those the configuration lists — the logout route, and in
+ * development the profiler's `_wdt` and `_profiler` if wanted. No prefix opens a route.
  */
 final readonly class SecondFactorListener
 {
     public const string CHALLENGE_ROUTE = 'phil_identity_provider_challenge';
 
     public const string TARGET = '_phil_identity_provider.target';
+
+    /** The routes of the bundle reachable before the second step, by their exact names. */
+    public const array OPEN_ROUTES = [
+        self::CHALLENGE_ROUTE,
+        OneTimeCodeAuthenticator::ROUTE,
+        'phil_identity_provider_passkey_login_options',
+        'phil_identity_provider_passkey_login',
+    ];
 
     /**
      * @param list<string> $openRoutes the routes reachable before the second step, such as the logout route
@@ -67,10 +76,6 @@ final readonly class SecondFactorListener
 
     private function isOpen(string $route): bool
     {
-        return str_starts_with($route, 'phil_identity_provider_challenge')
-            || str_starts_with($route, 'phil_identity_provider_code')
-            || str_starts_with($route, 'phil_identity_provider_passkey_login')
-            || str_starts_with($route, '_')
-            || \in_array($route, $this->openRoutes, true);
+        return \in_array($route, self::OPEN_ROUTES, true) || \in_array($route, $this->openRoutes, true);
     }
 }
