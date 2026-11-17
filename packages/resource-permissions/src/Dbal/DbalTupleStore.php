@@ -11,6 +11,7 @@ use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\ColumnEditor;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
@@ -18,21 +19,27 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Types;
 use Override;
 use Phil\Resource\ResourceReference;
+use Phil\ResourcePermissions\Contract\TupleScope;
 use Phil\ResourcePermissions\Contract\TupleStore;
 use Phil\ResourcePermissions\Exception\InvalidRelation;
+use Phil\ResourcePermissions\Exception\UnscopedTuples;
+use Phil\ResourcePermissions\Partition;
 use Phil\ResourcePermissions\RelationTuple;
+use Phil\ResourcePermissions\SinglePartition;
 use Phil\ResourcePermissions\Subject;
 use Psr\Clock\ClockInterface;
 use UnexpectedValueException;
 
 /**
- * The tuples in one table of a Doctrine DBAL connection, on PostgreSQL, MySQL, MariaDB or SQLite: one row per object,
- * relation and subject, with its expiry as a Unix timestamp or null.
+ * The tuples in one table of a Doctrine DBAL connection, on PostgreSQL, MySQL, MariaDB or SQLite: one row per
+ * partition, object, relation and subject, with its expiry as a Unix timestamp or null.
  *
- * The primary key reads the tuples of an object — a check —, a second index the tuples of a subject — a listing, or
- * forgetting a member —, a third the expired tuples. Identifiers compare byte by byte: the columns take the binary
- * collation of MySQL and MariaDB and the `C` collation of PostgreSQL, so that `member:Ann` is never `member:ann`.
- * Every read leaves out the tuples that have expired by the clock; `purgeExpired()` deletes them.
+ * Every statement names the partition of the scope, asked for on each call: a tuple of one partition never matches,
+ * lists, forgets or purges in another, and a scope without a partition fails the call before any statement. The
+ * primary key, partition first, reads the tuples of an object — a check —, a second index the tuples of a subject — a
+ * listing, or forgetting a member —, a third the expired tuples. Identifiers compare byte by byte: the columns take the
+ * binary collation of MySQL and MariaDB and the `C` collation of PostgreSQL, so that `member:Ann` is never
+ * `member:ann`. Every read leaves out the tuples that have expired by the clock; `purgeExpired()` deletes them.
  */
 final readonly class DbalTupleStore implements TupleStore
 {
@@ -49,6 +56,7 @@ final readonly class DbalTupleStore implements TupleStore
         private Connection $connection,
         private ClockInterface $clock,
         string $table = self::TABLE,
+        private TupleScope $scope = new SinglePartition(),
     ) {
         if (1 !== preg_match('/^[a-z_][a-z0-9_]{0,62}$/D', $table, $matches)) {
             throw InvalidRelation::because(\sprintf('"%s" is not a table name: up to 63 lowercase letters, digits or "_", not starting with a digit.', $table));
@@ -70,22 +78,45 @@ final readonly class DbalTupleStore implements TupleStore
         return $schema->edit()->addTable($this->tableDefinition())->create();
     }
 
+    /**
+     * The statements that bring the connection's table to this version's definition: the table when it is missing,
+     * the changes when it is older — the `scope` column, whose default puts every row already there in the default
+     * partition, and the key and indexes that start with it —, nothing when it is current. A migration runs them.
+     *
+     * @return list<string>
+     */
+    public function schemaUpdate(): array
+    {
+        $manager = $this->connection->createSchemaManager();
+        $platform = $this->connection->getDatabasePlatform();
+
+        if (!$manager->tableExists($this->table)) {
+            return $platform->getCreateTableSQL($this->tableDefinition());
+        }
+
+        $diff = $manager->createComparator()->compareTables($manager->introspectTableByUnquotedName($this->table), $this->tableDefinition());
+
+        return $diff->isEmpty() ? [] : $platform->getAlterTableSQL($diff);
+    }
+
     #[Override]
     public function update(array $delete, array $write): void
     {
-        $this->connection->transactional(function (Connection $connection) use ($delete, $write): void {
+        $partition = $this->partition();
+
+        $this->connection->transactional(function (Connection $connection) use ($partition, $delete, $write): void {
             foreach ([...$delete, ...$write] as $tuple) {
                 $connection->executeStatement(
-                    \sprintf('DELETE FROM %s WHERE object_kind = ? AND object_id = ? AND relation = ? AND subject_kind = ? AND subject_id = ? AND subject_relation = ?', $this->table),
-                    $this->key($tuple),
+                    \sprintf('DELETE FROM %s WHERE scope = ? AND object_kind = ? AND object_id = ? AND relation = ? AND subject_kind = ? AND subject_id = ? AND subject_relation = ?', $this->table),
+                    [$partition, ...$this->key($tuple)],
                 );
             }
 
             foreach ($write as $tuple) {
                 $connection->executeStatement(
-                    \sprintf('INSERT INTO %s (%s) VALUES (?, ?, ?, ?, ?, ?, ?)', $this->table, self::COLUMNS),
-                    [...$this->key($tuple), $tuple->expiresAt?->getTimestamp()],
-                    [...array_pad([], 6, ParameterType::STRING), null === $tuple->expiresAt ? ParameterType::NULL : ParameterType::INTEGER],
+                    \sprintf('INSERT INTO %s (scope, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', $this->table, self::COLUMNS),
+                    [$partition, ...$this->key($tuple), $tuple->expiresAt?->getTimestamp()],
+                    [...array_pad([], 7, ParameterType::STRING), null === $tuple->expiresAt ? ParameterType::NULL : ParameterType::INTEGER],
                 );
             }
         });
@@ -99,8 +130,8 @@ final readonly class DbalTupleStore implements TupleStore
         }
 
         $conditions = [];
-        $parameters = [$object->key, $object->id, $relations, $this->now()];
-        $types = [ParameterType::STRING, ParameterType::STRING, ArrayParameterType::STRING, ParameterType::INTEGER];
+        $parameters = [$this->partition(), $object->key, $object->id, $relations, $this->now()];
+        $types = [ParameterType::STRING, ParameterType::STRING, ParameterType::STRING, ArrayParameterType::STRING, ParameterType::INTEGER];
 
         foreach ($subjects as $subject) {
             $conditions[] = '(subject_kind = ? AND subject_id = ? AND subject_relation = ?)';
@@ -113,7 +144,7 @@ final readonly class DbalTupleStore implements TupleStore
         }
 
         return $this->tuples(
-            \sprintf('SELECT %s FROM %s WHERE object_kind = ? AND object_id = ? AND relation IN (?) AND (expires_at IS NULL OR expires_at > ?) AND (%s) ORDER BY relation, subject_kind, subject_id, subject_relation', self::COLUMNS, $this->table, implode(' OR ', $conditions)),
+            \sprintf('SELECT %s FROM %s WHERE scope = ? AND object_kind = ? AND object_id = ? AND relation IN (?) AND (expires_at IS NULL OR expires_at > ?) AND (%s) ORDER BY relation, subject_kind, subject_id, subject_relation', self::COLUMNS, $this->table, implode(' OR ', $conditions)),
             $parameters,
             $types,
         );
@@ -124,13 +155,13 @@ final readonly class DbalTupleStore implements TupleStore
     {
         return $this->tuples(
             \sprintf(
-                'SELECT %s FROM %s WHERE object_kind = ? AND object_id = ? AND relation = ? AND (expires_at IS NULL OR expires_at > ?)%s ORDER BY subject_kind, subject_id, subject_relation',
+                'SELECT %s FROM %s WHERE scope = ? AND object_kind = ? AND object_id = ? AND relation = ? AND (expires_at IS NULL OR expires_at > ?)%s ORDER BY subject_kind, subject_id, subject_relation',
                 self::COLUMNS,
                 $this->table,
                 $setsOnly ? " AND subject_relation <> ''" : '',
             ),
-            [$object->key, $object->id, $relation, $this->now()],
-            [ParameterType::STRING, ParameterType::STRING, ParameterType::STRING, ParameterType::INTEGER],
+            [$this->partition(), $object->key, $object->id, $relation, $this->now()],
+            [ParameterType::STRING, ParameterType::STRING, ParameterType::STRING, ParameterType::STRING, ParameterType::INTEGER],
             $limit,
         );
     }
@@ -139,9 +170,9 @@ final readonly class DbalTupleStore implements TupleStore
     public function objects(string $kind, string $relation, Subject $subject, int $limit): array
     {
         return $this->tuples(
-            \sprintf('SELECT %s FROM %s WHERE subject_kind = ? AND subject_id = ? AND subject_relation = ? AND object_kind = ? AND relation = ? AND (expires_at IS NULL OR expires_at > ?) ORDER BY object_id', self::COLUMNS, $this->table),
-            [$subject->reference->key, $subject->reference->id, $subject->relation ?? '', $kind, $relation, $this->now()],
-            [ParameterType::STRING, ParameterType::STRING, ParameterType::STRING, ParameterType::STRING, ParameterType::STRING, ParameterType::INTEGER],
+            \sprintf('SELECT %s FROM %s WHERE scope = ? AND subject_kind = ? AND subject_id = ? AND subject_relation = ? AND object_kind = ? AND relation = ? AND (expires_at IS NULL OR expires_at > ?) ORDER BY object_id', self::COLUMNS, $this->table),
+            [$this->partition(), $subject->reference->key, $subject->reference->id, $subject->relation ?? '', $kind, $relation, $this->now()],
+            [ParameterType::STRING, ParameterType::STRING, ParameterType::STRING, ParameterType::STRING, ParameterType::STRING, ParameterType::STRING, ParameterType::INTEGER],
             $limit,
         );
     }
@@ -149,12 +180,14 @@ final readonly class DbalTupleStore implements TupleStore
     #[Override]
     public function forget(ResourceReference $object): int
     {
+        $partition = $this->partition();
+
         return $this->connection->transactional(fn (Connection $connection): int => $this->count($connection->executeStatement(
-            \sprintf('DELETE FROM %s WHERE object_kind = ? AND object_id = ?', $this->table),
-            [$object->key, $object->id],
+            \sprintf('DELETE FROM %s WHERE scope = ? AND object_kind = ? AND object_id = ?', $this->table),
+            [$partition, $object->key, $object->id],
         )) + $this->count($connection->executeStatement(
-            \sprintf('DELETE FROM %s WHERE subject_kind = ? AND subject_id = ?', $this->table),
-            [$object->key, $object->id],
+            \sprintf('DELETE FROM %s WHERE scope = ? AND subject_kind = ? AND subject_id = ?', $this->table),
+            [$partition, $object->key, $object->id],
         )));
     }
 
@@ -162,9 +195,9 @@ final readonly class DbalTupleStore implements TupleStore
     public function purgeExpired(): int
     {
         return $this->count($this->connection->executeStatement(
-            \sprintf('DELETE FROM %s WHERE expires_at <= ?', $this->table),
-            [$this->now()],
-            [ParameterType::INTEGER],
+            \sprintf('DELETE FROM %s WHERE scope = ? AND expires_at <= ?', $this->table),
+            [$this->partition(), $this->now()],
+            [ParameterType::STRING, ParameterType::INTEGER],
         ));
     }
 
@@ -174,6 +207,16 @@ final readonly class DbalTupleStore implements TupleStore
     private function key(RelationTuple $tuple): array
     {
         return [$tuple->object->key, $tuple->object->id, $tuple->relation, $tuple->subject->reference->key, $tuple->subject->reference->id, $tuple->subject->relation ?? ''];
+    }
+
+    /**
+     * The partition of this call, by the rule of `Partition`.
+     *
+     * @throws UnscopedTuples when the scope has none
+     */
+    private function partition(): string
+    {
+        return Partition::check($this->scope->partition());
     }
 
     private function count(int|string $rows): int
@@ -230,35 +273,24 @@ final readonly class DbalTupleStore implements TupleStore
     }
 
     /**
-     * The collation that compares identifiers byte by byte on the connection's platform.
-     */
-    /**
-     * @return non-empty-string|null
-     */
-    private function collation(): ?string
-    {
-        $platform = $this->connection->getDatabasePlatform();
-
-        return match (true) {
-            $platform instanceof AbstractMySQLPlatform => 'utf8mb4_bin',
-            $platform instanceof PostgreSQLPlatform => 'C',
-            default => null,
-        };
-    }
-
-    /**
+     * A text column that compares byte by byte on the connection's platform. On MySQL and MariaDB, a column of names —
+     * kinds and relations, lowercase ASCII by their rule — takes the ASCII character set, a byte per character, so that
+     * the primary key stays within the 3,072 bytes an index key may hold; any other takes `utf8mb4`.
+     *
      * @param non-empty-string $name
      */
-    private function textColumn(string $name, int $length): Column
+    private function textColumn(string $name, int $length, bool $ascii = false): ColumnEditor
     {
         $column = Column::editor()->setUnquotedName($name)->setTypeName(Types::STRING)->setLength($length);
-        $collation = $this->collation();
+        $platform = $this->connection->getDatabasePlatform();
 
-        if (null !== $collation) {
-            $column->setCollation($collation);
+        if ($platform instanceof AbstractMySQLPlatform) {
+            $column->setCharset($ascii ? 'ascii' : 'utf8mb4')->setCollation($ascii ? 'ascii_bin' : 'utf8mb4_bin');
+        } elseif ($platform instanceof PostgreSQLPlatform) {
+            $column->setCollation('C');
         }
 
-        return $column->create();
+        return $column;
     }
 
     private function tableDefinition(): Table
@@ -266,18 +298,19 @@ final readonly class DbalTupleStore implements TupleStore
         return Table::editor()
             ->setUnquotedName($this->table)
             ->setColumns(
-                $this->textColumn('object_kind', 64),
-                $this->textColumn('object_id', 255),
-                $this->textColumn('relation', 64),
-                $this->textColumn('subject_kind', 64),
-                $this->textColumn('subject_id', 255),
-                $this->textColumn('subject_relation', 64),
+                $this->textColumn('scope', Partition::MAX_LENGTH)->setDefaultValue(Partition::DEFAULT)->create(),
+                $this->textColumn('object_kind', 64, true)->create(),
+                $this->textColumn('object_id', 255)->create(),
+                $this->textColumn('relation', 64, true)->create(),
+                $this->textColumn('subject_kind', 64, true)->create(),
+                $this->textColumn('subject_id', 255)->create(),
+                $this->textColumn('subject_relation', 64, true)->create(),
                 Column::editor()->setUnquotedName('expires_at')->setTypeName(Types::BIGINT)->setNotNull(false)->create(),
             )
-            ->setPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('object_kind', 'object_id', 'relation', 'subject_kind', 'subject_id', 'subject_relation')->create())
+            ->setPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('scope', 'object_kind', 'object_id', 'relation', 'subject_kind', 'subject_id', 'subject_relation')->create())
             ->setIndexes(
-                Index::editor()->setUnquotedName($this->table.'_subject')->setUnquotedColumnNames('subject_kind', 'subject_id', 'subject_relation', 'object_kind', 'relation')->create(),
-                Index::editor()->setUnquotedName($this->table.'_expires_at')->setUnquotedColumnNames('expires_at')->create(),
+                Index::editor()->setUnquotedName($this->table.'_subject')->setUnquotedColumnNames('scope', 'subject_kind', 'subject_id', 'subject_relation', 'object_kind', 'relation')->create(),
+                Index::editor()->setUnquotedName($this->table.'_expires_at')->setUnquotedColumnNames('scope', 'expires_at')->create(),
             )
             ->create();
     }

@@ -9,8 +9,10 @@ its admins, or the owner alone, private by default. It is **shared** with member
 level** — `manage`, `edit`, `comment`, `view` by default, each including the next —, until a date when one is given:
 the share then ends on its own at that second. **Access groups** declare their **entry points** — a purchase, an
 invitation, an administrator's bulk action, an automation, or every new member — and how long a membership lasts. An
-admin of the space may **view the site as a member**, read-only, without taking their session: every start and stop
-is logged and dispatched.
+admin of the space may **view the site as a member** of that space, read-only, without taking their session: every
+start and stop is logged and dispatched, and a guard answers 403 to any request that would change something meanwhile.
+In a multi-tenant application, each tenant's rights are a partition of their own, so nothing granted in one tenant
+reaches another.
 
 Every right and every sharing level is a declared relation of `phil/resource-permissions`: an item's `view` includes
 its `comment`, which includes its `edit`, then its `manage`, which its owner holds; a visibility is a tuple on `view`
@@ -31,7 +33,9 @@ this member" and the summary of who has access are Twig components drawn with th
 | Visibility per item — everyone, members, admins, owner — private by default, and the narrowest of two for a link | Implemented and tested |
 | Sharing levels, shares with members and access groups, shares that end on their own | Implemented and tested |
 | Access groups, their entry points and memberships that end on their own; groups as members or admins of a space | Implemented and tested |
-| "View as this member": admins only, read-only, logged and dispatched, started and stopped by plain forms with a CSRF token | Implemented and tested |
+| "View as this member": admins only, of members of their space only, read-only, logged and dispatched, started and stopped by plain forms with a CSRF token, ended and forgotten when the admin or the member no longer qualifies | Implemented and tested |
+| The guard of "view as this member" for the whole application: unsafe requests refused, `#[AllowedDuringViewAs]`, `#[RefusedDuringViewAs]`, `ViewAs::refuseWhileViewing()` | Implemented and tested |
+| Tuples partitioned by the active tenant of `phil/tenancy-bundle`, failing closed outside a tenant | Implemented and tested |
 | `AccessVoter` and `EasyAdminAccessVoter`, with the reasons of each vote | Implemented and tested |
 | The Twig functions `access_can`, `access_visibility`, `access_viewing_as`; the components `PhilAccess:ViewAsBanner` and `PhilAccess:AccessSummary` on the recipes of the kit | Implemented and tested |
 | Doctrine DBAL store and schema listener, in-memory store, `phil:access:purge` | Implemented and tested |
@@ -46,7 +50,8 @@ this member" and the summary of who has access are Twig components drawn with th
 | [The access model](doc/model.md) | The kinds and relations the bundle declares, and how to add to them. |
 | [Items, visibility and sharing](doc/items-and-sharing.md) | Owners, spaces, visibilities, sharing levels and shares that end on their own. |
 | [Access groups](doc/access-groups.md) | Groups, entry points, memberships, default groups. |
-| [View as this member](doc/view-as.md) | Who may, what it shows, the log and events, the banner. |
+| [View as this member](doc/view-as.md) | Who may, what it shows, the boundary and its guard, the end of a view, the log and events, the banner. |
+| [Tenants](doc/tenants.md) | The tuples of each tenant in a partition of their own, failing closed, upgrading from 0.1. |
 | [Checking access](doc/checking.md) | The voters, the Twig functions, listing what a member sees, why. |
 | [EasyAdmin](doc/easyadmin.md) | The voter on EasyAdmin's permissions, the scoped CRUD controller, the tenant filter. |
 | [Rendering](doc/rendering.md) | The banner and the summary, drawn with the recipes of the kit. |

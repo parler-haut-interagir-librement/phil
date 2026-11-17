@@ -10,6 +10,7 @@ Every public type of the package, with its role.
 | `Phil\AccessBundle\Domain\ValueObject\AccessGroup` | A declared access group: entry points and duration. |
 | `Phil\AccessBundle\Domain\Status\Visibility` | Everyone, members, admins, owner; the narrowest of two. |
 | `Phil\AccessBundle\Domain\Status\EntryPoint` | Purchase, invitation, bulk, automation, default. |
+| `Phil\AccessBundle\Domain\Status\ViewAsEnd` | Why a view ended: stopped, admin right lost, member left the space. |
 | `Phil\AccessBundle\Domain\Exception\AccessException` | Every exception of the bundle. |
 | `Phil\AccessBundle\Domain\Exception\InvalidAccess` | A value or a configuration against the rules. |
 | `Phil\AccessBundle\Application\AccessModel` | Builds the access model from the configuration and the contributors. |
@@ -37,6 +38,10 @@ Every public type of the package, with its role.
 | `Phil\AccessBundle\Infrastructure\EasyAdmin\EasyAdminAccessVoter` | `EA_ACCESS_ENTITY` and `EA_EXECUTE_ACTION`. |
 | `Phil\AccessBundle\Infrastructure\Session\SessionViewAsStore` | The member viewed, in the session. |
 | `Phil\AccessBundle\Infrastructure\Http\ViewAsController` | The forms of "view as this member". |
+| `Phil\AccessBundle\Infrastructure\Http\ViewAsGuard` | Answers 403 to a change during a view. |
+| `Phil\AccessBundle\Infrastructure\Http\Attribute\AllowedDuringViewAs` | A controller the guard lets through. |
+| `Phil\AccessBundle\Infrastructure\Http\Attribute\RefusedDuringViewAs` | A controller the guard refuses whatever the method. |
+| `Phil\AccessBundle\Infrastructure\Tenancy\TenancyTupleScope` | The active tenant of `phil/tenancy-bundle` as the partition of the tuples. |
 | `Phil\AccessBundle\Infrastructure\Twig\AccessExtension` | `access_can`, `access_visibility`, `access_viewing_as`. |
 | `Phil\AccessBundle\Infrastructure\Twig\Components\ViewAsBannerComponent` | `PhilAccess:ViewAsBanner`. |
 | `Phil\AccessBundle\Infrastructure\Twig\Components\AccessSummaryComponent` | `PhilAccess:AccessSummary`. |

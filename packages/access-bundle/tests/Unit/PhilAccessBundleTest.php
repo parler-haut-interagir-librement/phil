@@ -12,6 +12,7 @@ use Phil\AccessBundle\Application\Contract\ModelContributor;
 use Phil\AccessBundle\Application\Items;
 use Phil\AccessBundle\Application\NoCurrentMember;
 use Phil\AccessBundle\Application\Spaces;
+use Phil\AccessBundle\Application\ViewAs;
 use Phil\AccessBundle\Domain\Exception\InvalidAccess;
 use Phil\AccessBundle\Domain\Status\EntryPoint;
 use Phil\AccessBundle\Domain\Status\Visibility;
@@ -23,14 +24,17 @@ use Phil\AccessBundle\Infrastructure\DependencyInjection\CsrfProtectionPass;
 use Phil\AccessBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\AccessBundle\Infrastructure\EasyAdmin\EasyAdminAccessVoter;
 use Phil\AccessBundle\Infrastructure\Http\ViewAsController;
+use Phil\AccessBundle\Infrastructure\Http\ViewAsGuard;
 use Phil\AccessBundle\Infrastructure\Security\AccessVoter;
 use Phil\AccessBundle\Infrastructure\Security\TokenCurrentMember;
+use Phil\AccessBundle\Infrastructure\Tenancy\TenancyTupleScope;
 use Phil\AccessBundle\Infrastructure\Twig\AccessExtension;
 use Phil\AccessBundle\Infrastructure\Twig\Components\AccessSummaryComponent;
 use Phil\AccessBundle\Infrastructure\Twig\Components\ViewAsBannerComponent;
 use Phil\AccessBundle\Infrastructure\Twig\KitComponents;
 use Phil\AccessBundle\PhilAccessBundle;
 use Phil\ResourcePermissions\Budget;
+use Phil\ResourcePermissions\Contract\TupleScope;
 use Phil\ResourcePermissions\Contract\TupleStore;
 use Phil\ResourcePermissions\Dbal\DbalTupleStore;
 use Phil\ResourcePermissions\Dbal\TupleSchemaListener;
@@ -38,6 +42,8 @@ use Phil\ResourcePermissions\InMemoryTupleStore;
 use Phil\ResourcePermissions\Model\Model;
 use Phil\ResourcePermissions\Model\Rewrite;
 use Phil\ResourcePermissions\Model\TypeDefinition;
+use Phil\ResourcePermissions\SinglePartition;
+use Phil\TenancyBundle\Application\TenantContext;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\FrameworkBundle\DependencyInjection\FrameworkExtension;
@@ -45,6 +51,7 @@ use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
@@ -66,7 +73,12 @@ final class PhilAccessBundleTest extends TestCase
         self::assertSame('phil_access', $this->extension()->getAlias());
         self::assertSame(DbalTupleStore::class, (string) $container->getAlias(TupleStore::class));
         $store = $container->getDefinition(DbalTupleStore::class);
-        self::assertEquals([new Reference('doctrine.dbal.default_connection'), new Reference('clock'), 'phil_relation_tuple'], $store->getArguments());
+        self::assertEquals([new Reference('doctrine.dbal.default_connection'), new Reference('clock'), 'phil_relation_tuple', new Reference(TupleScope::class)], $store->getArguments());
+        self::assertSame(SinglePartition::class, (string) $container->getAlias(TupleScope::class));
+        self::assertFalse($container->hasDefinition(TenancyTupleScope::class));
+        self::assertEquals([new Reference(ViewAs::class), new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(ViewAsGuard::class)->getArguments());
+        self::assertSame([['event' => 'kernel.controller', 'method' => 'onController']], $container->getDefinition(ViewAsGuard::class)->getTag('kernel.event_listener'));
+        self::assertSame([['channel' => 'phil_access']], $container->getDefinition(ViewAsGuard::class)->getTag('monolog.logger'));
         self::assertSame([['event' => 'postGenerateSchema']], $container->getDefinition(TupleSchemaListener::class)->getTag('doctrine.event_listener'));
         self::assertSame([32, 500, 200, 1000], $container->getDefinition(Budget::class)->getArguments());
         self::assertEquals([[], new Reference(SharingLevels::class)], \array_slice($container->getDefinition(Model::class)->getArguments(), 0, 2));
@@ -100,7 +112,8 @@ final class PhilAccessBundleTest extends TestCase
             'groups' => ['supporters' => ['entry_points' => ['purchase', 'invitation'], 'duration' => 'P1M'], 'all' => ['entry_points' => ['default']]],
             'budget' => ['max_depth' => 5, 'max_reads' => 6, 'max_fan_out' => 7, 'max_candidates' => 8],
             'current_member' => 'app.member',
-            'view_as' => ['redirect' => '/admin'],
+            'view_as' => ['redirect' => '/admin', 'read_only' => false],
+            'partition' => 'single',
             'easyadmin' => ['actions' => ['edit' => 'edit']],
             'kit_subdirectory' => 'kit',
         ]], ['SecurityBundle' => true, 'EasyAdminBundle' => true, 'TwigBundle' => true, 'TwigComponentBundle' => true]);
@@ -111,6 +124,9 @@ final class PhilAccessBundleTest extends TestCase
         self::assertSame(Visibility::Members, $container->getDefinition(Items::class)->getArgument(4));
         self::assertSame('app.member', (string) $container->getAlias(CurrentMember::class));
         self::assertSame('/admin', $container->getDefinition(ViewAsController::class)->getArgument(2));
+        self::assertFalse($container->hasDefinition(ViewAsGuard::class));
+        self::assertEquals([new Reference('clock'), new Reference(TupleScope::class)], $container->getDefinition(TupleStore::class)->getArguments());
+        self::assertSame(SinglePartition::class, (string) $container->getAlias(TupleScope::class));
         self::assertSame(['edit' => 'edit'], $container->getDefinition(EasyAdminAccessVoter::class)->getArgument(2));
         self::assertTrue($container->getDefinition(EasyAdminAccessVoter::class)->hasTag('security.voter'));
         self::assertTrue($container->getDefinition(AccessVoter::class)->hasTag('security.voter'));
@@ -129,6 +145,30 @@ final class PhilAccessBundleTest extends TestCase
         self::assertEquals(new Definition(DateInterval::class, ['P1M']), $groups[0]->getArgument(2));
         self::assertInstanceOf(Definition::class, $groups[1]);
         self::assertNull($groups[1]->getArgument(2));
+    }
+
+    public function testTheTuplesArePartitionedByTenantWhenTheTenancyBundleIsEnabled(): void
+    {
+        foreach ([[], [['partition' => 'auto']], [['partition' => 'tenant']]] as $config) {
+            $container = $this->load($config, ['PhilTenancyBundle' => true]);
+
+            self::assertSame(TenancyTupleScope::class, (string) $container->getAlias(TupleScope::class));
+            self::assertEquals([new Reference(TenantContext::class)], $container->getDefinition(TenancyTupleScope::class)->getArguments());
+            self::assertFalse($container->hasDefinition(SinglePartition::class));
+        }
+
+        $container = $this->load([['partition' => 'single']], ['PhilTenancyBundle' => true]);
+
+        self::assertSame(SinglePartition::class, (string) $container->getAlias(TupleScope::class));
+        self::assertFalse($container->hasDefinition(TenancyTupleScope::class));
+    }
+
+    public function testATenantPartitionWithoutTheTenancyBundleIsRefused(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageIs('phil_access.partition "tenant" reads the active tenant of phil/tenancy-bundle: enable PhilTenancyBundle, or choose "single".');
+
+        $this->load([['partition' => 'tenant']]);
     }
 
     public function testTheMemberOfTheTokenWithSecurity(): void
@@ -156,6 +196,8 @@ final class PhilAccessBundleTest extends TestCase
             [['groups' => ['g' => ['entry_points' => []]]]],
             [['budget' => ['max_depth' => 0]]],
             [['connection' => '']],
+            [['partition' => 'host']],
+            [['view_as' => ['read_only' => 'sometimes']]],
         ] as $config) {
             try {
                 $this->load($config);

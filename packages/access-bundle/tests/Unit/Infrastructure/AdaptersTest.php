@@ -10,9 +10,13 @@ use Phil\AccessBundle\Domain\ValueObject\MemberId;
 use Phil\AccessBundle\Infrastructure\Console\PurgeCommand;
 use Phil\AccessBundle\Infrastructure\Security\TokenCurrentMember;
 use Phil\AccessBundle\Infrastructure\Session\SessionViewAsStore;
+use Phil\AccessBundle\Infrastructure\Tenancy\TenancyTupleScope;
 use Phil\AccessBundle\Infrastructure\Twig\KitComponents;
 use Phil\AccessBundle\Tests\Fixtures\Stage;
 use Phil\Resource\ResourceReference;
+use Phil\ResourcePermissions\Exception\UnscopedTuples;
+use Phil\TenancyBundle\Application\TenantContext;
+use Phil\TenancyBundle\Domain\ValueObject\TenantId;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
@@ -32,6 +36,7 @@ use Symfony\Component\Security\Core\User\InMemoryUser;
 #[CoversClass(PurgeCommand::class)]
 #[CoversClass(KitComponents::class)]
 #[CoversClass(NoCurrentMember::class)]
+#[CoversClass(TenancyTupleScope::class)]
 final class AdaptersTest extends TestCase
 {
     public function testTheMemberOfTheToken(): void
@@ -96,6 +101,41 @@ final class AdaptersTest extends TestCase
 
         self::assertSame(Command::SUCCESS, new PurgeCommand($stage->store)(new SymfonyStyle(new ArrayInput([]), $output)));
         self::assertStringContainsString('1 expired tuples deleted.', $output->fetch());
+    }
+
+    public function testThePurgeOutsideAnyTenantFailsAndDeletesNothing(): void
+    {
+        $tenants = new TenantContext();
+        $stage = new Stage(scope: new TenancyTupleScope($tenants));
+        $tenants->enter(TenantId::fromString('a'));
+        $stage->writer->grant(ResourceReference::of('group', 'supporters'), 'member', ResourceReference::of('member', 'a'), $stage->clock->now()->modify('+1 hour'));
+        $stage->clock->modify('+1 hour');
+
+        $tenants->leave();
+        $output = new BufferedOutput();
+
+        self::assertSame(Command::FAILURE, new PurgeCommand($stage->store)(new SymfonyStyle(new ArrayInput([]), $output)));
+        self::assertStringContainsString('no tenant is active', $output->fetch());
+
+        $tenants->enter(TenantId::fromString('a'));
+
+        self::assertSame(1, $stage->store->purgeExpired());
+    }
+
+    public function testTheTenantOfTheContextIsThePartition(): void
+    {
+        $tenants = new TenantContext();
+        $scope = new TenancyTupleScope($tenants);
+        $tenants->enter(TenantId::fromString('Retail'));
+
+        self::assertSame('Retail', $scope->partition());
+
+        $tenants->leave();
+
+        $this->expectException(UnscopedTuples::class);
+        $this->expectExceptionMessageIs('The access tuples are partitioned by tenant, and no tenant is active: enter one, or give a command its --tenant.');
+
+        $scope->partition();
     }
 
     public function testKitNames(): void

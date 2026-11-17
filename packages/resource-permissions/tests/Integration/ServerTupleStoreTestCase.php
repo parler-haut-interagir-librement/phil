@@ -17,6 +17,7 @@ use Phil\ResourcePermissions\Model\TypeDefinition;
 use Phil\ResourcePermissions\RelationChecker;
 use Phil\ResourcePermissions\RelationTuple;
 use Phil\ResourcePermissions\Subject;
+use Phil\ResourcePermissions\Tests\Fixtures\LegacyTupleTable;
 use Phil\ResourcePermissions\Tests\Unit\TupleStoreTestCase;
 
 /**
@@ -41,6 +42,37 @@ abstract class ServerTupleStoreTestCase extends TupleStoreTestCase
     public function testTheLongestIdentifiersAreKept(): void
     {
         $store = $this->store();
+        $kind = 'k'.str_repeat('a', 63);
+        $id = str_repeat('é', 127).'a';
+        $tuple = new RelationTuple(ResourceReference::of($kind, $id), 'r'.str_repeat('b', 63), Subject::set(ResourceReference::of($kind, $id), 'r'.str_repeat('c', 63)));
+        $store->update([], [$tuple]);
+
+        self::assertSame([$tuple->key()], self::keys($store->subjects($tuple->object, $tuple->relation, 10)));
+    }
+
+    public function testTheSchemaUpdateMovesTheRowsOfAnOlderTableToTheDefaultPartition(): void
+    {
+        $connection = $this->connection ??= $this->connect();
+        LegacyTupleTable::create($connection);
+        $store = new DbalTupleStore($connection, $this->clock, scope: $this->scope);
+
+        foreach ($store->schemaUpdate() as $statement) {
+            $connection->executeStatement($statement);
+        }
+
+        self::assertSame([], $store->schemaUpdate());
+        self::assertSame(['doc:Ann-é#viewer@member:ann'], self::keys($store->subjects(ResourceReference::of('doc', 'Ann-é'), 'viewer', 10)));
+        self::assertSame([], $store->subjects(ResourceReference::of('doc', 'ann-é'), 'viewer', 10));
+
+        $this->scope->partition = 'tenant-a';
+
+        self::assertSame([], $store->subjects(ResourceReference::of('doc', 'Ann-é'), 'viewer', 10));
+    }
+
+    public function testTheLongestPartitionAndIdentifiersFitTheKey(): void
+    {
+        $store = $this->store();
+        $this->scope->partition = str_repeat('é', 64);
         $kind = 'k'.str_repeat('a', 63);
         $id = str_repeat('é', 127).'a';
         $tuple = new RelationTuple(ResourceReference::of($kind, $id), 'r'.str_repeat('b', 63), Subject::set(ResourceReference::of($kind, $id), 'r'.str_repeat('c', 63)));
@@ -84,7 +116,7 @@ abstract class ServerTupleStoreTestCase extends TupleStoreTestCase
     protected function store(): TupleStore
     {
         $connection = $this->connection ??= $this->connect();
-        $store = new DbalTupleStore($connection, $this->clock);
+        $store = new DbalTupleStore($connection, $this->clock, scope: $this->scope);
         $connection->executeStatement('DROP TABLE IF EXISTS '.DbalTupleStore::TABLE);
         $manager = $connection->createSchemaManager();
         $manager->migrateSchema($store->configureSchema($manager->introspectSchema()));

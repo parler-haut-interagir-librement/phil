@@ -8,6 +8,7 @@ phil_access:
     store: dbal
     connection: default
     table: phil_relation_tuple
+    partition: auto
     space: main
     item_kinds: [page, document]
     sharing_levels: [manage, edit, comment, view]
@@ -26,6 +27,7 @@ phil_access:
     current_member: ~
     view_as:
         redirect: /
+        read_only: true
     easyadmin:
         actions: { detail: view, edit: edit, delete: manage }
     kit_subdirectory: ~
@@ -36,6 +38,7 @@ phil_access:
 | `store` | `dbal` | Where the tuples are kept: `dbal`, or `memory` for tests. |
 | `connection` | `default` | The Doctrine DBAL connection of the tuple table. |
 | `table` | `phil_relation_tuple` | The name of the tuple table. |
+| `partition` | `auto` | How the tuples are partitioned: `tenant`, by the active tenant of `phil/tenancy-bundle`, failing outside a tenant; `single`, one partition; `auto`, by tenant when `PhilTenancyBundle` is enabled. See [Tenants](tenants.md). |
 | `space` | `main` | The identifier of the site's space, whose members and admins the visibilities name. |
 | `item_kinds` | none | The kinds of items whose access the bundle decides. `member`, `visitor`, `visibility`, `space` and `group` are reserved. |
 | `sharing_levels` | `[manage, edit, comment, view]` | The levels, the widest first; each includes those after it, and the last is what a visibility opens. 1 to 16 names of 1 to 32 lowercase letters, digits or `_`; `owner`, `space` and `visibility` are reserved. |
@@ -44,5 +47,6 @@ phil_access:
 | `budget` | as shown | The limits of one check or listing: depth, reads of the store, sets behind one relation, candidates of a listing; 1 to 100,000 each. |
 | `current_member` | none | The service that names the member making the request; the user identifier of the security token with SecurityBundle, nobody without it. |
 | `view_as.redirect` | `/` | The path of the site the forms of "view as this member" go back to; a path, never an address. |
+| `view_as.read_only` | `true` | Whether the guard answers 403, during a view, to a request that is not safe or whose controller carries `#[RefusedDuringViewAs]`. See [the boundary](view-as.md#the-boundary). |
 | `easyadmin.actions` | as shown | Each EasyAdmin action and the level it needs. Without it, the default levels map `detail`, `edit` and `delete`; other levels map `detail` to the narrowest. |
 | `kit_subdirectory` | none | Where the recipes of the kit are, under the components directory; the subdirectory of `ux_toolkit` when null. |

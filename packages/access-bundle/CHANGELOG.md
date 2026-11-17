@@ -4,6 +4,39 @@ All notable changes to `phil/access-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: "view as this member" stays within the admin's space and is read-only for the whole
+application, and the tuples are partitioned by tenant. See [Upgrading from 0.1](doc/tenants.md#upgrading-from-01).
+
+### Added
+
+- The option `partition` — `auto`, `tenant` or `single` — and `Infrastructure\Tenancy\TenancyTupleScope`, the active
+  tenant of `phil/tenancy-bundle` as the partition of the tuples, failing closed outside a tenant.
+- `Infrastructure\Http\ViewAsGuard`, on `kernel.controller`: during a view, a request whose method is not safe is
+  answered with 403 and logged; the attributes `#[AllowedDuringViewAs]` and `#[RefusedDuringViewAs]`; the option
+  `view_as.read_only`, true by default.
+- `ViewAs::refuseWhileViewing()`, for a change outside a controller.
+- `ViewAsRefused::notAMemberOfTheSpace()` and `ViewAsRefused::readOnly()`.
+- `Domain\Status\ViewAsEnd`, and `ViewAsStopped::$reason`.
+- The documentation of tenants, of the boundary of "view as this member" and of the upgrade from 0.1.
+
+### Changed
+
+- `ViewAs::start()` refuses a member who is not a member of the space the admin administers, and logs the refusal by
+  identifiers.
+- `ViewAs::member()` ends a view whose admin is no longer an admin of the space or no longer signed in, or whose member
+  left the space: it removes the member from the session, logs the end and dispatches `ViewAsStopped` with its reason.
+- `phil:access:purge` purges the tuples of the command's tenant, and fails without one when the tuples are partitioned.
+- The bundle requires `phil/resource-permissions` `^0.2@dev`.
+
+### Security
+
+- An admin of one space, or of one tenant, can no longer view the site as a member of another.
+- A view masked after the admin lost the right is no longer brought back when the right comes back.
+- During a view, the admin's own roles and the voters of the application no longer let a change through unnoticed:
+  the guard refuses it.
+
 ## 0.1.0-alpha - 2026-11-13
 
 ### Added

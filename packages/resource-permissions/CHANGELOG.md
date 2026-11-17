@@ -4,6 +4,36 @@ All notable changes to `phil/resource-permissions` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the tuples are partitioned, and the table changes. See
+[Upgrading from 0.1](doc/partitions.md#upgrading-from-01).
+
+### Added
+
+- `Contract\TupleScope`, the partition the current unit of work reads and writes; `SinglePartition`, every tuple in the
+  default partition, and `FixedPartition`, every tuple in one named partition; `Partition`, the rule of a name — empty
+  for the default partition, or 1 to 128 bytes of UTF-8 without control characters.
+- `Exception\UnscopedTuples`: a scope without a partition while one is required fails the call before any read or
+  write.
+- `DbalTupleStore::schemaUpdate()`: the statements that create the table, bring an older one to this version, or
+  nothing when it is current.
+- The documentation of partitions, failing closed and the upgrade from 0.1; tests of two tenants with the same
+  identifiers, and of the upgrade, on SQLite, MySQL 8.4 and PostgreSQL 17.
+
+### Changed
+
+- `DbalTupleStore` and `InMemoryTupleStore` take a `TupleScope`, `SinglePartition` by default, and every call reads,
+  writes, forgets and purges in its partition alone. `purgeExpired()` purges the partition of the call.
+- The table of `DbalTupleStore` has a `scope` column, `VARCHAR(128)` whose default is the default partition, first in
+  the primary key and in the indexes `<table>_subject` and `<table>_expires_at`; on MySQL and MariaDB the names of
+  kinds and relations take the `ascii` character set and `ascii_bin`, so that the key stays within 3,072 bytes.
+
+### Security
+
+- A tuple no longer authorises another tenant's resource of the same name: with identifiers local to a tenant, the
+  tuples of every tenant shared one table and one key, and a check of one tenant read the tuples of all.
+
 ## 0.1.0-alpha - 2026-11-13
 
 ### Added

@@ -8,6 +8,7 @@ use Phil\AccessBundle\Application\Exception\ViewAsRefused;
 use Phil\AccessBundle\Application\ViewAs;
 use Phil\AccessBundle\Domain\Exception\InvalidAccess;
 use Phil\AccessBundle\Domain\ValueObject\MemberId;
+use Phil\AccessBundle\Infrastructure\Http\Attribute\AllowedDuringViewAs;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -17,8 +18,10 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 /**
  * Starts and stops "view as this member" from a plain form posted with the token `phil_access_view_as`, then goes back
- * to the path of the configuration: a path of the site, never an address the request gives.
+ * to the path of the configuration: a path of the site, never an address the request gives. The guard lets both forms
+ * through during a view.
  */
+#[AllowedDuringViewAs]
 final readonly class ViewAsController
 {
     public const string TOKEN_ID = 'phil_access_view_as';

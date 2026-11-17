@@ -11,9 +11,12 @@ The unit suite, under `tests/Unit`, runs without a network: the store's promises
 `TupleStoreTestCase`, run on the in-memory store and on the DBAL store over SQLite in memory. In the monorepo,
 Infection holds the package at 100 % of covered mutants.
 
+The store's promises include partitions: two tenants with the same identifiers never meet, a scope without a
+partition fails every call, and a check of one tenant never sees the tuples of another.
+
 The integration suite, under `tests/Integration`, runs the same promises on real servers, with the byte-by-byte
-collation, the longest identifiers and a listing over a long list. It reads `PHIL_TEST_MYSQL_URL` and
-`PHIL_TEST_POSTGRESQL_URL`, and is skipped without them.
+collation, the longest identifiers and partition, a listing over a long list, and the upgrade of a table of 0.1. It
+reads `PHIL_TEST_MYSQL_URL` and `PHIL_TEST_POSTGRESQL_URL`, and is skipped without them.
 
 ## Fuzzing and benchmarks
 
@@ -27,4 +30,5 @@ when it says it is complete. `composer fuzz -- relation-checker` runs it in the 
 ## Testing code that checks access
 
 Build the application's model with an `InMemoryTupleStore` on a `MockClock`, write the tuples of the case with
-`RelationWriter`, and check. Moving the clock past an expiry tests access that ends on its own.
+`RelationWriter`, and check. Moving the clock past an expiry tests access that ends on its own; a `FixedPartition`, or
+a scope the test switches, tests code that serves several tenants.

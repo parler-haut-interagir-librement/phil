@@ -23,7 +23,7 @@
         "php": ">=8.5",
         "doctrine/dbal": "^4.5",
         "phil/resource": "^0.1@dev",
-        "phil/resource-permissions": "^0.1@dev",
+        "phil/resource-permissions": "^0.2@dev",
         "psr/clock": "^1.0",
         "psr/event-dispatcher": "^1.0",
         "psr/log": "^3.0",
@@ -41,6 +41,7 @@
     "require-dev": {
         "doctrine/orm": "^3.7",
         "easycorp/easyadmin-bundle": "^5.8",
+        "phil/tenancy-bundle": "^0.1@dev",
         "phil/ux-kit": ">=0.1.0-alpha <1.0",
         "phpunit/phpunit": "^13.4",
         "symfony/browser-kit": "^8.2",
@@ -56,6 +57,7 @@
     "suggest": {
         "doctrine/orm": "To add the tuple table to the schema the ORM generates",
         "easycorp/easyadmin-bundle": "For the voter on EA_ACCESS_ENTITY and EA_EXECUTE_ACTION",
+        "phil/tenancy-bundle": "To partition the access tuples by the active tenant",
         "phil/ux-kit": "For the recipes the banner and the summary draw — Alert, Badge, Button, Table —, through the Symfony UX Toolkit",
         "symfony/security-bundle": "For the voters and the member of the security token"
     },
@@ -73,7 +75,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.1.x-dev"
+            "dev-main": "0.2.x-dev"
         }
     }
 }

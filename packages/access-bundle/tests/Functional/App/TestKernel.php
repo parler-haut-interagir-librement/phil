@@ -61,6 +61,14 @@ final class TestKernel extends Kernel
         return new Response($twig->render('page.html.twig', ['page' => new Page('1')]));
     }
 
+    /**
+     * A change the application makes on a form of its own, which no check of the bundle covers.
+     */
+    public function change(): Response
+    {
+        return new Response(null, Response::HTTP_NO_CONTENT);
+    }
+
     private function root(): string
     {
         return sys_get_temp_dir().'/phil-access-bundle-test/'.hash('xxh128', __DIR__);
@@ -133,5 +141,6 @@ final class TestKernel extends Kernel
     {
         $routes->import(\dirname(__DIR__, 3).'/config/routes.php')->prefix('/_access');
         $routes->add('page', '/page')->controller($this->page(...))->methods(['GET']);
+        $routes->add('change', '/change')->controller($this->change(...))->methods(['POST']);
     }
 }

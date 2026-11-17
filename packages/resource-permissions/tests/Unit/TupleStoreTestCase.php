@@ -7,23 +7,162 @@ namespace Phil\ResourcePermissions\Tests\Unit;
 use Override;
 use Phil\Resource\ResourceReference;
 use Phil\ResourcePermissions\Contract\TupleStore;
+use Phil\ResourcePermissions\Exception\InvalidRelation;
+use Phil\ResourcePermissions\Exception\UnscopedTuples;
+use Phil\ResourcePermissions\Model\Model;
+use Phil\ResourcePermissions\Model\Rewrite;
+use Phil\ResourcePermissions\Model\TypeDefinition;
+use Phil\ResourcePermissions\RelationChecker;
 use Phil\ResourcePermissions\RelationTuple;
+use Phil\ResourcePermissions\RelationWriter;
 use Phil\ResourcePermissions\Subject;
+use Phil\ResourcePermissions\Tests\Fixtures\SwitchableScope;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
 
 /**
  * The promises of every store: exact matches, bounded and ordered reads, expiry by the store's clock, all-or-nothing
- * updates, forgetting an object, and purging what expired.
+ * updates, forgetting an object, purging what expired, and partitions that never meet. A store under test reads its
+ * partition from `$scope`.
  */
 abstract class TupleStoreTestCase extends TestCase
 {
     protected MockClock $clock;
 
+    protected SwitchableScope $scope;
+
     #[Override]
     protected function setUp(): void
     {
         $this->clock = new MockClock('2026-11-13 10:00:00 UTC');
+        $this->scope = new SwitchableScope();
+    }
+
+    public function testTwoPartitionsWithTheSameIdentifiersNeverMeet(): void
+    {
+        $store = $this->store();
+        $this->scope->partition = 'tenant-a';
+        $store->update([], [$this->tuple('doc:1', 'viewer', 'member:ann'), $this->tuple('doc:1', 'viewer', 'group:g#member', '+60 seconds')]);
+        $this->scope->partition = 'tenant-b';
+
+        self::assertSame([], $store->matching(self::ref('doc:1'), ['viewer'], [Subject::fromString('member:ann')]));
+        self::assertSame([], $store->subjects(self::ref('doc:1'), 'viewer', 10));
+        self::assertSame([], $store->objects('doc', 'viewer', Subject::fromString('member:ann'), 10));
+
+        $store->update([$this->tuple('doc:1', 'viewer', 'member:ann')], [$this->tuple('doc:1', 'viewer', 'member:bob'), $this->tuple('doc:2', 'viewer', 'member:ann', '+60 seconds')]);
+        $this->clock->sleep(60);
+
+        self::assertSame(1, $store->purgeExpired());
+        self::assertSame(1, $store->forget(self::ref('doc:1')));
+        self::assertSame(0, $store->forget(self::ref('member:ann')));
+
+        $this->scope->partition = 'tenant-a';
+
+        self::assertSame(['doc:1#viewer@member:ann'], self::keys($store->matching(self::ref('doc:1'), ['viewer'], [Subject::fromString('member:ann')])));
+        self::assertSame(['doc:1#viewer@member:ann'], self::keys($store->objects('doc', 'viewer', Subject::fromString('member:ann'), 10)));
+        self::assertSame(1, $store->purgeExpired());
+        self::assertSame(['doc:1#viewer@member:ann'], self::keys($store->subjects(self::ref('doc:1'), 'viewer', 10)));
+
+        $this->scope->partition = 'Tenant-A';
+
+        self::assertSame([], $store->subjects(self::ref('doc:1'), 'viewer', 10));
+    }
+
+    public function testATupleOfOneTenantNeverAuthorisesTheSameNamesInAnother(): void
+    {
+        $store = $this->store();
+        $model = new Model(
+            TypeDefinition::of('member'),
+            TypeDefinition::of('space', ['admin' => Rewrite::direct('member')]),
+            TypeDefinition::of('doc', ['space' => Rewrite::direct('space'), 'viewer' => Rewrite::union(Rewrite::direct('member'), Rewrite::fromRelated('space', 'admin'))]),
+        );
+        $writer = new RelationWriter($model, $store);
+        $checker = new RelationChecker($model, $store);
+        $ann = self::ref('member:ann');
+
+        $this->scope->partition = 'tenant-a';
+        $writer->grant(self::ref('space:main'), 'admin', Subject::of($ann));
+        $writer->grant(self::ref('doc:1'), 'space', Subject::of(self::ref('space:main')));
+        $writer->grant(self::ref('doc:2'), 'viewer', Subject::of($ann));
+
+        $this->scope->partition = 'tenant-b';
+        $writer->grant(self::ref('doc:1'), 'space', Subject::of(self::ref('space:main')));
+
+        self::assertFalse($checker->check($ann, 'viewer', self::ref('doc:1')));
+        self::assertFalse($checker->check($ann, 'viewer', self::ref('doc:2')));
+        self::assertSame([], $checker->objects($ann, 'viewer', 'doc', 10)->objects);
+
+        $this->scope->partition = 'tenant-a';
+
+        self::assertTrue($checker->check($ann, 'viewer', self::ref('doc:1')));
+        self::assertCount(2, $checker->objects($ann, 'viewer', 'doc', 20)->objects);
+    }
+
+    public function testTheDefaultPartitionIsAPartitionOfItsOwn(): void
+    {
+        $store = $this->store();
+        $store->update([], [$this->tuple('doc:1', 'viewer', 'member:ann')]);
+
+        $this->scope->partition = 'main';
+
+        self::assertSame([], $store->subjects(self::ref('doc:1'), 'viewer', 10));
+    }
+
+    public function testAScopeWithoutAPartitionFailsEveryCallClosed(): void
+    {
+        $store = $this->store();
+        $store->update([], [$this->tuple('doc:1', 'viewer', 'member:ann', '+60 seconds')]);
+
+        $this->clock->sleep(60);
+        $this->scope->partition = null;
+        $calls = [
+            static function () use ($store): void {
+                $store->update([], [new RelationTuple(self::ref('doc:2'), 'viewer', Subject::fromString('member:ann'))]);
+            },
+            static fn (): mixed => $store->matching(self::ref('doc:1'), ['viewer'], [Subject::fromString('member:ann')]),
+            static fn (): mixed => $store->subjects(self::ref('doc:1'), 'viewer', 10),
+            static fn (): mixed => $store->objects('doc', 'viewer', Subject::fromString('member:ann'), 10),
+            static fn (): mixed => $store->forget(self::ref('doc:1')),
+            $store->purgeExpired(...),
+        ];
+
+        foreach ($calls as $i => $call) {
+            try {
+                $call();
+                self::fail(\sprintf('Call %d should have failed.', $i));
+            } catch (UnscopedTuples $unscoped) {
+                self::assertSame('No tenant is active.', $unscoped->getMessage());
+            }
+        }
+
+        $this->scope->partition = '';
+        $this->clock->modify('-1 hour');
+
+        self::assertSame(['doc:1#viewer@member:ann'], self::keys($store->subjects(self::ref('doc:1'), 'viewer', 10)));
+        self::assertSame([], $store->subjects(self::ref('doc:2'), 'viewer', 10));
+    }
+
+    public function testAPartitionAgainstTheRuleIsRefused(): void
+    {
+        $store = $this->store();
+        $this->scope->partition = "tenant\n";
+
+        $this->expectException(InvalidRelation::class);
+
+        $store->subjects(self::ref('doc:1'), 'viewer', 10);
+    }
+
+    public function testTheLongestPartitionIsKept(): void
+    {
+        $store = $this->store();
+        $this->scope->partition = str_repeat('é', 63).'ab';
+        $store->update([], [$this->tuple('doc:1', 'viewer', 'member:ann')]);
+
+        self::assertSame(['doc:1#viewer@member:ann'], self::keys($store->subjects(self::ref('doc:1'), 'viewer', 10)));
+
+        $this->scope->partition = str_repeat('é', 63).'a';
+
+        self::assertSame([], $store->subjects(self::ref('doc:1'), 'viewer', 10));
     }
 
     public function testAWrittenTupleIsMatchedExactly(): void

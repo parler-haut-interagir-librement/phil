@@ -55,6 +55,11 @@ final class PhilAccessBundle extends AbstractBundle
                     ->cannotBeEmpty()
                     ->defaultValue(DbalTupleStore::TABLE)
                 ->end()
+                ->enumNode('partition')
+                    ->info('How the tuples are partitioned: "tenant", by the active tenant of phil/tenancy-bundle, failing outside a tenant; "single", one partition; "auto", by tenant when PhilTenancyBundle is enabled.')
+                    ->values(['auto', 'tenant', 'single'])
+                    ->defaultValue('auto')
+                ->end()
                 ->scalarNode('space')
                     ->info("The identifier of the site's space, whose members and admins the visibilities name.")
                     ->cannotBeEmpty()
@@ -114,6 +119,10 @@ final class PhilAccessBundle extends AbstractBundle
                             ->cannotBeEmpty()
                             ->defaultValue('/')
                         ->end()
+                        ->booleanNode('read_only')
+                            ->info('Whether the guard answers 403 to a request that is not safe, or whose controller carries #[RefusedDuringViewAs], while an admin views the site as a member.')
+                            ->defaultTrue()
+                        ->end()
                     ->end()
                 ->end()
                 ->arrayNode('easyadmin')
@@ -148,7 +157,7 @@ final class PhilAccessBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{store: string, connection: string, table: string, space: string, item_kinds: list<string>, sharing_levels: list<string>, default_visibility: string, groups: array<string, array{entry_points: list<string>, duration: ?string}>, budget: array{max_depth: int, max_reads: int, max_fan_out: int, max_candidates: int}, current_member: ?string, view_as: array{redirect: string}, easyadmin: array{actions: ?array<string, string>}, kit_subdirectory: ?string} $config */
+        /** @var array{store: string, connection: string, table: string, partition: string, space: string, item_kinds: list<string>, sharing_levels: list<string>, default_visibility: string, groups: array<string, array{entry_points: list<string>, duration: ?string}>, budget: array{max_depth: int, max_reads: int, max_fan_out: int, max_candidates: int}, current_member: ?string, view_as: array{redirect: string, read_only: bool}, easyadmin: array{actions: ?array<string, string>}, kit_subdirectory: ?string} $config */
         AccessServices::register($builder, $config);
     }
 
