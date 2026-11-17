@@ -26,6 +26,7 @@ service Phil\LtiBundle\Infrastructure\Controller\AgsController [public] class=Ph
     arg 1 = @Phil\Lti\Platform\Ags\AgsService (behavior 1)
     arg 2 = @Phil\LtiBundle\Infrastructure\Routing\PlatformUrls (behavior 1)
     arg 3 = @event_dispatcher (behavior 1)
+    arg 4 = @Phil\Lti\Contract\LineItemStore (behavior 1)
     tag controller.service_arguments [[]]
 service Phil\LtiBundle\Infrastructure\Controller\JwksController [public] class=Phil\LtiBundle\Infrastructure\Controller\JwksController
     arg 0 = @Phil\Lti\Contract\KeyStore (behavior 1)

@@ -42,6 +42,18 @@ table and four columns, and it requires `phil/lti` 0.2.
 - `phil:lti:schema` adds to the tables there the columns and indexes they lack, besides creating the tables missing;
   `phil:lti:purge` also removes the deep linking responses expired and the scores refused beyond the retention.
 - It requires `phil/lti` 0.2.
+- `FormPostResponder` draws a nonce for each response, allows it alone in the `script-src` of the page's policy, and
+  gives it to the template as `csp_nonce`; `@PhilLti/form_post.html.twig` posts its form by an inline script of its
+  new block `auto_submit` under that nonce, without the application's importmap. The Stimulus controller `auto-submit`
+  leaves alone a form already sent, marked `data-phil-lti-submitted`.
+
+### Fixed
+
+- A score sent with a token of the `score` scope alone, as `AgsClient::publishScore()` asks for, is answered 204: the
+  line item of `ScoreReceived` is read from the store, where `AgsController::scores()` asked for the line item scopes,
+  answered with an error once the score was kept, and left the tool to keep the score as pending.
+- The page that posts a launch or a deep linking response submits itself without the application's scripts: its
+  Stimulus controller never started, since the template loads no importmap, and the page stayed on its message.
 
 ## 0.1.0-alpha - 2026-11-15
 

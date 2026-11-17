@@ -13,6 +13,7 @@ use Phil\Lti\Contract\KeyStore;
 use Phil\Lti\Contract\LineItemStore;
 use Phil\Lti\Contract\ServiceClient;
 use Phil\Lti\DeepLinking\LinkItem;
+use Phil\Lti\Http\FormPost;
 use Phil\Lti\Http\SafeHttpServiceClient;
 use Phil\Lti\Jwt\Jwt;
 use Phil\Lti\Jwt\JwtSigner;
@@ -344,6 +345,28 @@ final class LtiBundleTest extends WebTestCase
         self::assertSame([LineItemSaved::class, LineItemSaved::class, LineItemSaved::class, ScoreReceived::class, LineItemDeleted::class], $events);
     }
 
+    public function testAScoreIsKeptAndToldWithATokenOfTheScoreScopeAlone(): void
+    {
+        $base = 'https://localhost/lti/platform/contexts/course-1';
+        $this->client->request('POST', $base.'/lineitems', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$this->token(Scope::LINE_ITEM)], content: '{"scoreMaximum":10,"label":"Quiz"}');
+        $url = $this->json((string) $this->client->getResponse()->getContent())['id'] ?? null;
+        self::assertIsString($url);
+
+        $score = '{"userId":"sub-ada","scoreGiven":7,"scoreMaximum":10,"activityProgress":"Completed","gradingProgress":"FullyGraded","timestamp":"2026-11-14T12:00:00.000Z"}';
+        $this->client->request('POST', $url.'/scores', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$this->token(Scope::SCORE)], content: $score);
+
+        self::assertSame(204, $this->client->getResponse()->getStatusCode(), (string) $this->client->getResponse()->getContent());
+        $received = array_values(array_filter($this->service(RecordingListener::class)->events, static fn (object $event): bool => $event instanceof ScoreReceived));
+        self::assertCount(1, $received);
+        self::assertSame('Quiz', $received[0]->lineItem->lineItem->label);
+        self::assertSame(7.0, $received[0]->score->scoreGiven);
+
+        $this->client->request('GET', $url.'/results', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$this->token(Scope::RESULT_READ_ONLY)]);
+        $results = $this->json((string) $this->client->getResponse()->getContent());
+        self::assertIsArray($results[0] ?? null);
+        self::assertSame(7.0, $results[0]['resultScore'] ?? null);
+    }
+
     public function testTheServicesRefuseWhatTheTokenDoesNotAllow(): void
     {
         $base = 'https://localhost/lti/platform/contexts/course-1';
@@ -397,6 +420,28 @@ final class LtiBundleTest extends WebTestCase
 
         $this->client->request('POST', 'https://localhost/lti/platform/token', ['grant_type' => 'client_credentials', 'client_assertion_type' => AccessTokenProvider::ASSERTION_TYPE, 'client_assertion' => 'a.b.c']);
         self::assertSame(401, $this->client->getResponse()->getStatusCode());
+    }
+
+    public function testThePageThatPostsALaunchSubmitsItselfByAScriptOfItsOwnNonce(): void
+    {
+        $post = new FormPost(Url::fromString('https://tool.example.com:8443/launch'), ['id_token' => 'a.b.c', 'state' => 's"<']);
+        $responder = $this->service(FormPostResponder::class);
+        $page = $responder->respond($post);
+        $other = $responder->respond($post);
+
+        $policy = (string) $page->headers->get('Content-Security-Policy');
+        self::assertSame(1, preg_match("#^script-src 'nonce-([A-Za-z0-9+/]{24})'; form-action https://tool\\.example\\.com:8443; frame-ancestors 'self' https://tool\\.example\\.com:8443$#", $policy, $match), $policy);
+        $content = (string) $page->getContent();
+        self::assertSame(1, substr_count($content, '<script nonce="'.$match[1].'">'));
+        self::assertStringContainsString('form.submit();', $content);
+        self::assertStringContainsString('})(document.currentScript.previousElementSibling);', $content);
+        self::assertMatchesRegularExpression('#</form>\s*<script nonce=#', $content);
+        self::assertStringContainsString('<input type="hidden" name="state" value="s&quot;&lt;">', $content);
+        self::assertStringContainsString('type="submit"', $content);
+        self::assertStringNotContainsString($match[1], (string) $other->getContent());
+        self::assertStringNotContainsString($match[1], (string) $other->headers->get('Content-Security-Policy'));
+        self::assertSame(200, $page->getStatusCode());
+        self::assertSame(422, $responder->respond($post, 422)->getStatusCode());
     }
 
     public function testTheToolAnswersADeepLinkingRequest(): void

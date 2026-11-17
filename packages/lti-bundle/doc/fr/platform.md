@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5c3222a1c52dca95a3d196b80f3be76c5b6134f6262efa435eccd2a31b1ef423 -->
+<!-- phil-dev source-sha256=e5292f43df11b0c4a762d964ca3f60cbf8273bda9b49e130183ea0b289973062 -->
 # La plateforme
 
 ## Démarrer un lancement
@@ -142,6 +142,10 @@ de 1 000.
 Une note plus ancienne que la dernière de l'apprenant répond 409. La comparaison et l'écriture sont une seule étape
 atomique du magasin : de deux notes d'un même apprenant envoyées en même temps, la plus récente reste, quel que soit
 l'ordre d'arrivée, et l'autre répond 409. Une note du même moment que celle qui est gardée la remplace.
+
+Une note demande un jeton de la portée `score` et rien de plus, comme celui que demande `AgsClient::publishScore()` côté
+outil : le line item que porte `ScoreReceived` est lu dans le magasin une fois la note gardée, sans les portées des line
+items.
 
 ## La liste de membres et le carnet de notes
 

@@ -10,7 +10,7 @@ use Phil\LtiBundle\Infrastructure\Dbal\DbalNonces;
  */
 return [
     'paths' => ['src', 'tests'],
-    'docs' => ['public' => true],
+    'docs' => ['public' => true, 'words' => ['gradebook', 'importmap']],
     'infection' => [
         'mutators' => [
             // The databases read a number given as text: the cast only serves the signature of the column.

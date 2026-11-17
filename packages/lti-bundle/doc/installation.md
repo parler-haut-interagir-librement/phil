@@ -7,8 +7,8 @@
 - Doctrine DBAL 4 with DoctrineBundle, for the store `dbal`;
 - Symfony KeyManagement with a KMS client, for keys kept in the table;
 - optional: the ORM, for the migrations; Console, for the commands; Messenger, to send scores through a bus;
-  AssetMapper and StimulusBundle, for the controller of the form; the UX Twig components and the recipe `Button` of
-  the kit, for its button.
+  AssetMapper and StimulusBundle, for the controller of the form on a page of the application's own; the UX Twig
+  components and the recipe `Button` of the kit, for its button.
 
 ## Installing
 
@@ -90,7 +90,9 @@ php bin/console ux:install button --kit=github.com/parler-haut-interagir-libreme
 The Shadcn kit's `Button` takes the same props. The recipe is found under the components subdirectory of the
 `ux_toolkit` configuration; where the Toolkit is not enabled, as in production, repeat it in `kit_subdirectory`.
 
-With AssetMapper, the bundle serves its Stimulus controller as `@phil/lti-bundle`. Enable it in
+The bundle's page posts its form by an inline script under the nonce of its policy, without the application's scripts
+(see the security page). With AssetMapper, the bundle also serves a Stimulus controller as `@phil/lti-bundle`, for a
+template of the application that loads its own importmap; a form already sent is left alone. Enable it in
 `assets/controllers.json`:
 
 ```json

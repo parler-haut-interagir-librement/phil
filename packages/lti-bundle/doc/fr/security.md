@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=68df5706d3410d143bce4fe14f1a729ca10e41be4183ba8dca59eb91e03bb28d -->
+<!-- phil-dev source-sha256=448286c363142aff10961ea453b9781dfb0b0e80f6dc244d1180c22df9f5f4e7 -->
 # Sécurité
 
 Les vérifications de `phil/lti` — signatures par `RS256` seulement, émetteurs et audiences, heures, nonces et états
@@ -18,9 +18,25 @@ employés une seule fois, déploiement, portées — s'appliquent comme le décr
 ## La page qui envoie un lancement par POST
 
 `FormPostResponder` répond avec `Cache-Control: no-store`, `Referrer-Policy: no-referrer`, et un
-`Content-Security-Policy` dont le `form-action` est l'origine où elle envoie le formulaire et dont les `frame-ancestors`
-sont l'application et cette origine. Elle n'exécute aucun script en ligne : le contrôleur Stimulus envoie le
-formulaire, et son bouton reste pour une personne qui lit sans scripts.
+`Content-Security-Policy` dont le `form-action` est l'origine où elle envoie le formulaire, dont les `frame-ancestors`
+sont l'application et cette origine, et dont le `script-src` est un nonce tiré pour chaque réponse.
+
+Le formulaire s'envoie de lui-même par un court script en ligne du gabarit, le seul script que ce nonce autorise. La
+page n'a donc besoin de rien de l'application : ni de son importmap, ni de son application Stimulus, qu'une surcharge du
+bloc `head` devrait sinon charger. Le bouton reste pour une personne qui lit sans scripts. Trois voies ont été pesées :
+
+- un script en ligne sous un nonce, retenu : la page fonctionne dès l'installation du bundle, et la politique refuse
+  toujours tout autre script, injecté ou non ;
+- l'importmap de l'application chargée par le gabarit : elle lie la page au nom d'un point d'entrée et aux scripts de
+  l'application, que la politique devrait autoriser ;
+- le contrôleur Stimulus seul, comme en 0.1 : la page reste sur son message tant que l'application ne charge pas son
+  importmap, ce que rien ne lui disait de faire.
+
+Le gabarit reçoit le nonce sous le nom `csp_nonce`. Un gabarit de l'application qui l'étend et ajoute des scripts leur
+donne le nonce, par exemple `{{ importmap('app', {nonce: csp_nonce}) }}`. Le contrôleur Stimulus `auto-submit` trouve
+alors le formulaire déjà envoyé, par son `data-phil-lti-submitted`, et ne l'envoie pas deux fois. Une politique que
+l'application ajoute à la réponse, par un écouteur ou un mandataire inverse, s'applique aussi : elle doit autoriser le
+nonce, sinon le bouton prend le relais.
 
 ## Témoins dans un cadre
 

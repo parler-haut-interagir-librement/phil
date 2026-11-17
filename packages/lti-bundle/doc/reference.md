@@ -49,7 +49,7 @@ Every public type of the bundle, with its role. A type marked internal is not pa
 | `Phil\LtiBundle\Infrastructure\Dbal\Row` | `final class`, internal | Typed reads of a row, whatever type the driver gives: an integer may come as text, a float as text. |
 | `Phil\LtiBundle\Infrastructure\DependencyInjection\DefaultsPass` | `final readonly class` | What the application gives the bundle, or its default: an empty roster when it has none, so that the services of the platform answer 404 for every context; a stop with a message when the platform side is enabled without `LaunchMessages`; and the recipes of the kit named after the components subdirectory of the Symfony UX Toolkit, unless the configuration names one. |
 | `Phil\LtiBundle\Infrastructure\DependencyInjection\LtiServices` | `final class` | The services of the configuration: what both sides share — the stores of the nonces and the keys, the key sets of the other side, the verifier, the key set route, the form post page —, then the tool's and the platform's when enabled. |
-| `Phil\LtiBundle\Infrastructure\Http\FormPostResponder` | `final readonly class` | Answers with a page whose form the browser posts to the other side — an `id_token`, a deep linking response —: the form submits itself through the bundle's Stimulus controller, and shows its button when scripts do not run. The page is never cached, never framed by another origin than the one it posts to, and sends no referrer. |
+| `Phil\LtiBundle\Infrastructure\Http\FormPostResponder` | `final readonly class` | Answers with a page whose form the browser posts to the other side — an `id_token`, a deep linking response —: the form submits itself through a short inline script, allowed by the nonce of the page's own content security policy and needing nothing of the application, and shows its button when scripts do not run. The page is never cached, never framed by another origin than the one it posts to, and sends no referrer. The template receives the nonce as `csp_nonce`. |
 | `Phil\LtiBundle\Infrastructure\KeyManagement\KeyManagementSealer` | `final readonly class` | Seals the private keys by envelope encryption through Symfony's KeyManagement component, under a master key of the application's KMS — a fresh data key per private key, AES-256-GCM, the key identifier as additional data — and stores the envelope in base 64. The component is experimental in Symfony 8.2: this adapter is the only class that calls it. |
 | `Phil\LtiBundle\Infrastructure\Memory\InMemoryDeepLinkingReturns` | `final class` | Deep linking responses held in one process, for tests. |
 | `Phil\LtiBundle\Infrastructure\Memory\InMemoryPendingScores` | `final class` | Pending scores held in one process, for tests: a process runs one claim at a time. |
@@ -93,11 +93,11 @@ Every public type of the bundle, with its role. A type marked internal is not pa
 
 | Name | What it is |
 |---|---|
-| `@PhilLti/form_post.html.twig` | The page whose form posts a launch or a Deep Linking response; `action` and `fields`. |
+| `@PhilLti/form_post.html.twig` | The page whose form posts a launch or a Deep Linking response, by the inline script of its block `auto_submit`; `action`, `fields` and `csp_nonce`. |
 | `@PhilLti/deep_linking_returned.html.twig` | The page a Deep Linking return ends on without a listener's answer; `result`. |
 | `phil_lti` | The translation domain of both, in English and French. |
 | `phil_lti_kit()` | The Twig function that names a recipe of the kit. |
-| `@phil/lti-bundle` | The AssetMapper namespace of the Stimulus controller `auto-submit`. |
+| `@phil/lti-bundle` | The AssetMapper namespace of the Stimulus controller `auto-submit`, for a template of the application that loads its own importmap. |
 
 ## Constants
 

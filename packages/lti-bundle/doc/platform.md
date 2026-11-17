@@ -136,6 +136,9 @@ A score older than the learner's latest answers 409. The comparison and the writ
 two scores of one learner sent at once, the more recent stays, whatever order they arrive in, and the other answers 409.
 A score of the same moment as the one kept replaces it.
 
+A score needs a token of the `score` scope and nothing more, as the tool's `AgsClient::publishScore()` asks for: the
+line item that `ScoreReceived` carries is read from the store once the score is kept, without the line item scopes.
+
 ## The roster and the gradebook
 
 The services read the application's `Roster` — its contexts, the tools placed in each, their members —; until the

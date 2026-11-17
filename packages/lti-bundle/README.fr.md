@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=cbb650e1297abbd741693caa096108e062f211679eff06e5b25413ccd8a1b013 -->
+<!-- phil-dev source-sha256=95f87763e1f1c7d48cb08c6adc10c855de82cef68db4a59e9c78a9fb0e125749 -->
 # phil/lti-bundle
 
 **`phil/lti` dans Symfony : un outil LTI 1.3, une plateforme, ou les deux, à partir d'une seule configuration — les
@@ -20,7 +20,7 @@ phil/lti-bundle amène `phil/lti` dans une application Symfony :
   les notes et les notes en attente dans des tables d'une connexion Doctrine DBAL, testées sur SQLite, MySQL 8.4 et
   PostgreSQL 17 ; les clés fabriquées, scellées par le KeyManagement de Symfony et renouvelées par une commande, ou lues
   dans l'environnement ; le formulaire qui envoie un lancement par POST, dessiné avec la recette `Button` du kit et
-  envoyé par un contrôleur Stimulus.
+  envoyé par un script en ligne sous le nonce de sa politique de sécurité du contenu.
 
 Il s'adresse aux applications Symfony qui ouvrent d'autres outils à leurs apprenants, ou que des plateformes
 d'apprentissage ouvrent : un site de cours, un système de gestion de l'apprentissage, un quiz, un laboratoire, un outil
@@ -29,7 +29,7 @@ de lecture.
 Il est bâti sur ce que Symfony fournit : Config et DependencyInjection pour la configuration, Routing et HttpFoundation
 pour les routes, Security pour l'authentificateur, Doctrine DBAL pour les magasins, KeyManagement pour les clés
 scellées, Messenger pour les notes, Twig et les recettes du UX Toolkit pour le formulaire, AssetMapper et Stimulus pour
-son script.
+le contrôleur d'une page propre à l'application.
 
 ## État
 
@@ -42,7 +42,7 @@ son script.
 | Plateforme : Assignment and Grade Services, Names and Role Provisioning Service, événements | Implémenté et testé |
 | Magasins sur Doctrine DBAL, l'écouteur de schéma, `phil:lti:schema` et `phil:lti:purge` | Implémenté et testé sur SQLite, MySQL 8.4 et PostgreSQL 17 |
 | Clés scellées par le KeyManagement de Symfony, renouvelées par `phil:lti:rotate-keys` ; clés de l'environnement | Implémenté et testé |
-| Le formulaire d'un lancement avec la recette `Button` du kit, et son contrôleur Stimulus | Implémenté et testé |
+| Le formulaire d'un lancement avec la recette `Button` du kit, son script en ligne sous un nonce, et son contrôleur Stimulus | Implémenté et testé |
 | Enregistrements gardés dans la base de données, LTI Dynamic Registration | Prévu |
 | Un carnet de notes de la plateforme | Laissé à l'application, qui écoute les événements |
 

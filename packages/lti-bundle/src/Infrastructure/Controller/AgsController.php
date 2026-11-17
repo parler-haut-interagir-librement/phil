@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\LtiBundle\Infrastructure\Controller;
 
+use Phil\Lti\Contract\LineItemStore;
 use Phil\Lti\Exception\AccessDenied;
 use Phil\Lti\Exception\InvalidData;
 use Phil\Lti\Platform\Ags\AgsService;
@@ -29,6 +30,9 @@ use Symfony\Component\HttpFoundation\Response;
  * deleted —, the scores sent to a line item, and its results. Each call carries a
  * bearer token of the scope it needs; a context or a line item that is not the tool's answers 404. Every change is
  * told to the application by an event.
+ *
+ * A score needs the `score` scope alone: the line item its event carries is read from the store, once the service has
+ * found it the tool's, not through the line item service, whose scopes the token of a score does not have to grant.
  */
 final readonly class AgsController
 {
@@ -45,6 +49,7 @@ final readonly class AgsController
         private AgsService $ags,
         private PlatformUrls $urls,
         private EventDispatcherInterface $events,
+        private LineItemStore $lineItems,
     ) {
     }
 
@@ -146,7 +151,7 @@ final readonly class AgsController
             return ServiceResponses::error('The score is older than the latest kept for the learner.', Response::HTTP_CONFLICT);
         }
 
-        $item = $this->ags->lineItem($token, $context, $id);
+        $item = $this->lineItems->find($token->clientId, $context, $id);
 
         if ($item instanceof StoredLineItem) {
             $this->events->dispatch(new ScoreReceived($item, $score));

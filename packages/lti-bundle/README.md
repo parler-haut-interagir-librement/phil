@@ -16,14 +16,14 @@ phil/lti-bundle brings `phil/lti` into a Symfony application:
 - **for both**: the key set route, the nonces, login states, access tokens, line items, scores and pending scores in
   tables of a Doctrine DBAL connection, tested on SQLite, MySQL 8.4 and PostgreSQL 17; the keys made, sealed by Symfony's
   KeyManagement and rotated by a command, or read from the environment; the form that posts a launch, drawn with the
-  recipe `Button` of the kit and posted by a Stimulus controller.
+  recipe `Button` of the kit and posted by an inline script under the nonce of its content security policy.
 
 It is for Symfony applications that open other tools to their learners, or that learning platforms open: a course site,
 a learning management system, a quiz, a lab, a reading tool.
 
 It is built on what Symfony ships: Config and DependencyInjection for the configuration, Routing and HttpFoundation for
 the routes, Security for the authenticator, Doctrine DBAL for the stores, KeyManagement for the sealed keys, Messenger
-for the scores, Twig and the UX Toolkit recipes for the form, AssetMapper and Stimulus for its script.
+for the scores, Twig and the UX Toolkit recipes for the form, AssetMapper and Stimulus for the controller of a page of the application's own.
 
 ## Status
 
@@ -36,7 +36,7 @@ for the scores, Twig and the UX Toolkit recipes for the form, AssetMapper and St
 | Platform: Assignment and Grade Services, Names and Role Provisioning Service, events | Implemented and tested |
 | Stores on Doctrine DBAL, the schema listener, `phil:lti:schema` and `phil:lti:purge` | Implemented and tested on SQLite, MySQL 8.4 and PostgreSQL 17 |
 | Keys sealed by Symfony KeyManagement, rotated by `phil:lti:rotate-keys`; keys from the environment | Implemented and tested |
-| The form of a launch with the recipe `Button` of the kit, and its Stimulus controller | Implemented and tested |
+| The form of a launch with the recipe `Button` of the kit, its inline script under a nonce, and its Stimulus controller | Implemented and tested |
 | Registrations kept in the database, LTI Dynamic Registration | Planned |
 | A gradebook of the platform | Left to the application, which listens to the events |
 

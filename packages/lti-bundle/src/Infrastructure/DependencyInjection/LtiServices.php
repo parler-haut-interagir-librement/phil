@@ -318,7 +318,7 @@ final class LtiServices
             ->addTag('controller.service_arguments');
         $container->register(TokenController::class, TokenController::class)->setArguments([new Reference(TokenEndpoint::class)])->setPublic(true)->addTag('controller.service_arguments');
         $container->register(AgsController::class, AgsController::class)
-            ->setArguments([new Reference(ServiceGuard::class), new Reference(AgsService::class), new Reference(PlatformUrls::class), new Reference('event_dispatcher')])
+            ->setArguments([new Reference(ServiceGuard::class), new Reference(AgsService::class), new Reference(PlatformUrls::class), new Reference('event_dispatcher'), new Reference(LineItemStore::class)])
             ->setPublic(true)
             ->addTag('controller.service_arguments');
         $container->register(NrpsController::class, NrpsController::class)

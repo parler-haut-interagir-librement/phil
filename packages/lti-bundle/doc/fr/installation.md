@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=668a9ade291a8b00586f2566eea30b5a3aeca21557fb14b21f5e2aee8e6d9dcd -->
+<!-- phil-dev source-sha256=19288f1137adae1766e1352d8c4cb9b1ff23628f5abdb8f98e24e92d5c916999 -->
 # Installation
 
 ## Prérequis
@@ -8,8 +8,8 @@
 - Doctrine DBAL 4 avec DoctrineBundle, pour le magasin `dbal` ;
 - le KeyManagement de Symfony avec un client KMS, pour les clés gardées dans la table ;
 - facultatif : l'ORM, pour les migrations ; Console, pour les commandes ; Messenger, pour envoyer les notes par un
-  bus ; AssetMapper et StimulusBundle, pour le contrôleur du formulaire ; les composants Twig de UX et la recette
-  `Button` du kit, pour son bouton.
+  bus ; AssetMapper et StimulusBundle, pour le contrôleur du formulaire sur une page propre à l'application ; les
+  composants Twig de UX et la recette `Button` du kit, pour son bouton.
 
 ## Installation
 
@@ -94,8 +94,10 @@ Le `Button` du kit Shadcn prend les mêmes propriétés. La recette se trouve so
 configuration `ux_toolkit` ; là où le Toolkit n'est pas activé, comme en production, répétez-le dans
 `kit_subdirectory`.
 
-Avec AssetMapper, le bundle sert son contrôleur Stimulus sous le nom `@phil/lti-bundle`. Activez-le dans
-`assets/controllers.json` :
+La page du bundle envoie son formulaire par un script en ligne sous le nonce de sa politique, sans les scripts de
+l'application (voir la page de sécurité). Avec AssetMapper, le bundle sert aussi un contrôleur Stimulus sous le nom
+`@phil/lti-bundle`, pour un gabarit de l'application qui charge sa propre importmap ; un formulaire déjà envoyé est
+laissé tel quel. Activez-le dans `assets/controllers.json` :
 
 ```json
 {

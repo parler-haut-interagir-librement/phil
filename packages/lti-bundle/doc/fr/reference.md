@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7f49ec0b36366696c8e3232b1570b3cc76fdb0e838d591c4830372402d7e7f5c -->
+<!-- phil-dev source-sha256=28c8e2fec5deed188ab560c57a6c26e47c0667e3a447a1ab4c23bee492bb7e65 -->
 # Référence
 
 Chaque type public du bundle, avec son rôle. Un type marqué interne ne fait pas partie de l'API publique.
@@ -50,7 +50,7 @@ Chaque type public du bundle, avec son rôle. Un type marqué interne ne fait pa
 | `Phil\LtiBundle\Infrastructure\Dbal\Row` | `final class`, interne | Des lectures typées d'une ligne, quel que soit le type que le pilote donne : un entier peut venir en texte, un nombre à virgule en texte. |
 | `Phil\LtiBundle\Infrastructure\DependencyInjection\DefaultsPass` | `final readonly class` | Ce que l'application donne au bundle, ou sa valeur par défaut : une liste de membres vide lorsqu'elle n'en a pas, de sorte que les services de la plateforme répondent 404 pour chaque contexte ; un arrêt avec un message lorsque le côté plateforme est activé sans `LaunchMessages` ; et les recettes du kit nommées d'après le sous-répertoire des composants du Symfony UX Toolkit, à moins que la configuration n'en nomme un. |
 | `Phil\LtiBundle\Infrastructure\DependencyInjection\LtiServices` | `final class` | Les services de la configuration : ce que les deux côtés partagent — les magasins des nonces et des clés, les jeux de clés de l'autre côté, le vérificateur, la route du jeu de clés, la page d'envoi du formulaire —, puis ceux de l'outil et de la plateforme lorsqu'ils sont activés. |
-| `Phil\LtiBundle\Infrastructure\Http\FormPostResponder` | `final readonly class` | Répond avec une page dont le formulaire est envoyé par le navigateur à l'autre côté — un `id_token`, une réponse de Deep Linking — : le formulaire se soumet de lui-même par le contrôleur Stimulus du bundle, et affiche son bouton lorsque les scripts ne s'exécutent pas. La page n'est jamais mise en cache, jamais mise en cadre par une autre origine que celle où elle envoie le formulaire, et n'envoie aucun référent. |
+| `Phil\LtiBundle\Infrastructure\Http\FormPostResponder` | `final readonly class` | Répond avec une page dont le formulaire est envoyé par le navigateur à l'autre côté — un `id_token`, une réponse de Deep Linking — : le formulaire se soumet de lui-même par un court script en ligne, autorisé par le nonce de la politique de sécurité du contenu de la page et sans rien demander à l'application, et affiche son bouton lorsque les scripts ne s'exécutent pas. La page n'est jamais mise en cache, jamais mise en cadre par une autre origine que celle où elle envoie le formulaire, et n'envoie aucun référent. Le gabarit reçoit le nonce sous le nom `csp_nonce`. |
 | `Phil\LtiBundle\Infrastructure\KeyManagement\KeyManagementSealer` | `final readonly class` | Scelle les clés privées par chiffrement à enveloppe par le composant KeyManagement de Symfony, sous une clé maîtresse du KMS de l'application — une clé de données neuve par clé privée, AES-256-GCM, l'identifiant de clé comme données additionnelles — et garde l'enveloppe en base 64. Le composant est expérimental dans Symfony 8.2 : cet adaptateur est la seule classe qui l'appelle. |
 | `Phil\LtiBundle\Infrastructure\Memory\InMemoryDeepLinkingReturns` | `final class` | Des réponses de Deep Linking gardées dans un seul processus, pour les tests. |
 | `Phil\LtiBundle\Infrastructure\Memory\InMemoryPendingScores` | `final class` | Des notes en attente gardées dans un seul processus, pour les tests : un processus exécute une réclamation à la fois. |
@@ -94,11 +94,11 @@ Chaque type public du bundle, avec son rôle. Un type marqué interne ne fait pa
 
 | Nom | Ce que c'est |
 |---|---|
-| `@PhilLti/form_post.html.twig` | La page dont le formulaire envoie un lancement ou une réponse de Deep Linking par POST ; `action` et `fields`. |
+| `@PhilLti/form_post.html.twig` | La page dont le formulaire envoie un lancement ou une réponse de Deep Linking par POST, par le script en ligne de son bloc `auto_submit` ; `action`, `fields` et `csp_nonce`. |
 | `@PhilLti/deep_linking_returned.html.twig` | La page où un retour de Deep Linking aboutit sans réponse d'un écouteur ; `result`. |
 | `phil_lti` | Le domaine de traduction des deux, en anglais et en français. |
 | `phil_lti_kit()` | La fonction Twig qui nomme une recette du kit. |
-| `@phil/lti-bundle` | L'espace de noms AssetMapper du contrôleur Stimulus `auto-submit`. |
+| `@phil/lti-bundle` | L'espace de noms AssetMapper du contrôleur Stimulus `auto-submit`, pour un gabarit de l'application qui charge sa propre importmap. |
 
 ## Constantes
 
