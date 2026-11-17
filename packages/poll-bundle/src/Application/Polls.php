@@ -41,6 +41,9 @@ use Symfony\Contracts\Cache\ItemInterface;
  * What the application does with polls: create them, cast, change and withdraw ballots, close, reschedule and delete
  * them, and count their ballots. Every action asks the policy first, and dispatches an event naming the poll once done.
  *
+ * A ballot is written while the poll is open, checked twice: on the poll as read, then by the store in the write that
+ * keeps the ballot, so that a ballot racing a closing is either kept before the closing or refused.
+ *
  * With a cache, a count is kept until the poll next changes: the key names the revision of the poll, which every
  * ballot cast, changed or withdrawn, every closing and every new schedule raises in the store, so that a count running
  * while a ballot arrives is kept under a revision nobody asks for any more; a deleted poll's counts are removed with
@@ -130,13 +133,15 @@ final readonly class Polls
 
         if ($poll->isAnonymous()) {
             $receipt = sodium_bin2base64(random_bytes(32), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
-            $this->votes->add(Vote::anonymous($id, $poll->id, $this->hash($receipt), $ballot), Participation::of($poll->id, $voter));
+            $vote = Vote::anonymous($id, $poll->id, $this->hash($receipt), $ballot);
+            $participation = Participation::of($poll->id, $voter);
         } else {
             $receipt = null;
-            $this->votes->add(Vote::named($id, $poll->id, $voter, $ballot, $this->now()));
+            $vote = Vote::named($id, $poll->id, $voter, $ballot, $this->now());
+            $participation = null;
         }
 
-        $this->polls->raiseRevision($poll->id);
+        $this->whileOpen($poll, fn () => $this->votes->add($vote, $participation));
         $this->events?->dispatch(new VoteCast($poll->id));
 
         return new CastVote($id, $receipt);
@@ -195,8 +200,7 @@ final readonly class Polls
         $this->named($poll);
         $vote = $this->votes->ofVoter($poll->id, $voter) ?? throw NotFound::ballot($poll->id);
 
-        $this->votes->remove($vote);
-        $this->polls->raiseRevision($poll->id);
+        $this->whileOpen($poll, fn () => $this->votes->remove($vote));
         $this->events?->dispatch(new VoteWithdrawn($poll->id));
     }
 
@@ -470,10 +474,29 @@ final readonly class Polls
      */
     private function replace(Poll $poll, Vote $vote, array $choices): void
     {
-        $vote->change($poll->rules()->ballot($choices), $this->now());
-        $this->votes->save($vote);
-        $this->polls->raiseRevision($poll->id);
+        $ballot = $poll->rules()->ballot($choices);
+        $now = $this->now();
+
+        $this->whileOpen($poll, function () use ($vote, $ballot, $now): void {
+            $vote->change($ballot, $now);
+            $this->votes->save($vote);
+        });
         $this->events?->dispatch(new VoteChanged($poll->id));
+    }
+
+    /**
+     * Writes a ballot while the poll is open, the condition checked by the store in the same write: a ballot never
+     * lands after a closing committed meanwhile.
+     *
+     * @param callable(): void $write
+     *
+     * @throws VoteRefused when the poll closed, or was deleted, since it was read
+     */
+    private function whileOpen(Poll $poll, callable $write): void
+    {
+        if (!$this->polls->raiseRevisionWhileOpen($poll->id, $this->now(), $write)) {
+            throw VoteRefused::because('This poll is not open.');
+        }
     }
 
     /**

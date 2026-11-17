@@ -18,12 +18,13 @@ return new Configuration()
     ->addPathToScan(__DIR__.'/tests', isDev: true)
     // Used by the production code but only required in development and suggested: the bundle registers the raw HTML
     // role, the administration and its menu, the schedule of publications and the search feed only when their packages
-    // are there.
+    // are there, and bind the preview links to the active tenant only with the tenancy bundle.
     ->ignoreErrorsOnPackages([
         'easycorp/easyadmin-bundle',
         'phil/resource',
         'phil/scheduled-transitions-bundle',
         'phil/search-bundle',
+        'phil/tenancy-bundle',
         'symfony/security-core',
         'symfony/security-csrf',
         'symfony/translation',

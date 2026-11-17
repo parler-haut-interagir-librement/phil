@@ -6,10 +6,40 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
+The next version is 0.2.0-alpha: a new table, `phil_content_single_root`, to migrate, and preview links signed over
+their tenant or host, which refuses the links made before. See [Upgrading from 0.1](doc/storage.md#upgrading-from-01)
+and the [preview links](doc/sitemap-feeds-previews.md#upgrading-from-01).
+
+### Added
+
+- `SingleRoot`, the entity of `phil_content_single_root`, whose primary key over the resource key refuses a second
+  root of a single kind; the port `Domain\Contract\SingleRootRepository` and its adapter
+  `DoctrineSingleRootRepository`; `InvalidContent::singleKindTaken()`.
+- `Application\Exception\WriteConflict`, raised by `ContentTransaction::flush()` when a unique key it writes was
+  taken by another transaction meanwhile, and `SlugTaken::meanwhile()`.
+- `PreviewLinks::VERSION`, the version written before each signature.
+
 ### Changed
 
+- `ContentManager::create()` records the root of a single kind in the transaction that creates it, and
+  `ContentManager::delete()` frees the kind with its root; `ContentManager` takes the `SingleRootRepository` as its
+  last, optional argument.
+- A preview link is signed over its scope too — the active tenant of `phil/tenancy-bundle` when there is one, its host
+  otherwise — and its signature starts with `v2.`: a link opened in another tenant or on another host is a `404`, and
+  so are the links made by 0.1. `PreviewLinks` takes the `TenantContext` as its last, optional argument, and
+  `PreviewLinks::verify()` the host the link was opened on as its last argument. `phil/tenancy-bundle` is suggested.
+- `ContentPublisher` flushes the route of a publication apart from its rows.
 - `phil/markup` 0.2.1 and `phil/ujo` 0.1.2 are required: bold and italic written in Markdown and the wikis reach the
   published HTML as `<strong>` and `<em>`, and the items of a checklist as disabled checkboxes in their labels.
+
+### Fixed
+
+- Two creations of one single kind at once no longer both create a root: the second is refused with `InvalidContent`,
+  as a creation that finds the root already there.
+- Two publications that take one slug in one locale at once end in `SlugTaken` for the second, instead of an
+  exception of the database; the administration shows it as it shows a slug found taken.
+- A preview link replayed on another tenant's host, with a shared secret, no longer shows that tenant's draft of the
+  content of the same name.
 
 ## 0.1.1-alpha - 2026-11-14
 

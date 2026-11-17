@@ -80,6 +80,22 @@ anything; the checks are the library's.
 A voter has one ballot per poll: a second `cast()` throws `AlreadyVoted`. Two requests that race to cast the same
 voter's ballot are stopped by the unique constraints of the tables.
 
+## A ballot and a closing at once
+
+A ballot is written only while the poll is open, and the store checks it in the same write. `Polls` reads the poll and
+refuses a ballot when it is not open; then `PollRepository::raiseRevisionWhileOpen()` keeps the ballot in a
+transaction that first raises the poll's revision with an `UPDATE` whose `WHERE` holds the opening, the closing and
+the closing by hand, and writes the ballot only when that statement changed the row. A ballot cast, changed, changed
+by receipt or withdrawn while a manager closes the poll is therefore one of two things:
+
+- kept before the closing: the `UPDATE` locks the poll's row until the ballot's commit, and the closing waits for it;
+- refused with `VoteRefused` (`This poll is not open.`), when the closing committed first: nothing of the ballot is
+  written, its participation included, and a changed ballot keeps its earlier choices.
+
+The same holds for a new schedule and for a deletion committed meanwhile. A refusal is the domain error, never an
+exception of the database. The instant compared is the one of the clock the bundle is given, in UTC to the second, as
+the poll keeps its dates.
+
 ## Managing a poll
 
 `close()`, `reschedule()` and `delete()` ask the policy's `mayManage()`. Closing a poll already over changes nothing;

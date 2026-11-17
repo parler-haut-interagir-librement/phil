@@ -6,7 +6,15 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
+The next version is 0.3.0-alpha: `PollRepository` gains `raiseRevisionWhileOpen()`, which a store of polls of the
+application implements. See [Upgrading a store from 0.2](doc/extension-points.md#upgrading-a-store-from-02).
+
 ### Added
+
+- `PollRepository::raiseRevisionWhileOpen()`: runs the write of a ballot and raises the poll's revision in one
+  transaction, only while the poll is open at the given instant, as the store reads it now; `false`, with nothing
+  written, otherwise. `DoctrinePollRepository` checks the openness in the `WHERE` of the `UPDATE` that raises the
+  revision and counts the row it changed; `InMemoryPollRepository` asks the poll it holds.
 
 - Scales and Net Promoter Scores: `PollDraft::marks()`, the options of a scale with their labels; the counting methods
   `scale` and `nps` of `phil/poll` registered beside the others; the kind `scale` of `BallotView`, drawn by
@@ -29,6 +37,11 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - `phil/poll: ^0.1.1` is required, for its scales.
 
 ### Fixed
+
+- A ballot cast, changed, changed by receipt or withdrawn while the poll is being closed is either kept before the
+  closing or refused with `VoteRefused` (`This poll is not open.`): it no longer commits after the closing and changes
+  the result. The same holds for a new schedule and a deletion committed meanwhile. A changed ballot refused this way
+  keeps its earlier choices, and an anonymous ballot refused leaves no participation.
 
 - With the recipes of the Shadcn kit, `@PhilPoll/ballot.html.twig` renders: each radio button is given its name, its
   checked state and whether it is required, which the Shadcn group does not pass to its buttons; each bar of the

@@ -22,8 +22,8 @@ use Twig\Environment;
 
 /**
  * The draft of a content in one locale at a signed link, rendered through the template of its template key as its
- * page will be, with `preview` set: neither indexed nor cached. A link not signed, expired, or for a content without
- * a draft in the locale is a `404`.
+ * page will be, with `preview` set: neither indexed nor cached. A link not signed, signed for another tenant or host,
+ * signed in an earlier version, expired, or for a content without a draft in the locale is a `404`.
  */
 final readonly class PreviewController
 {
@@ -39,7 +39,7 @@ final readonly class PreviewController
 
     public function __invoke(Request $request, string $reference, string $locale): Response
     {
-        if (!$this->links->verify($reference, $locale, $request->query->getInt('expires'), $request->query->getString('signature'))) {
+        if (!$this->links->verify($reference, $locale, $request->query->getInt('expires'), $request->query->getString('signature'), $request->getHost())) {
             throw new NotFoundHttpException('This preview link is not signed, or expired.');
         }
 

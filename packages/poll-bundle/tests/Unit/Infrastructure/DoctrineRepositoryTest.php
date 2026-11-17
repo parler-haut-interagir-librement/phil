@@ -12,6 +12,7 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Override;
 use Phil\Poll\Ballot;
 use Phil\Poll\PollRules;
+use Phil\PollBundle\Domain\Exception\AlreadyVoted;
 use Phil\PollBundle\Domain\Model\Participation;
 use Phil\PollBundle\Domain\Model\Poll;
 use Phil\PollBundle\Domain\Model\Vote;
@@ -72,6 +73,44 @@ final class DoctrineRepositoryTest extends RepositoryTestCase
                 self::assertSame('A ballot of the poll is not kept as a list of options.', $unexpectedValueException->getMessage());
             }
         }
+    }
+
+    public function testTheOpennessIsReadFromTheTableNotFromThePollLoaded(): void
+    {
+        $entityManager = $this->entityManager();
+        $polls = new DoctrinePollRepository($entityManager);
+        $polls->save($this->poll('p1', '2026-11-08 08:00:00', null));
+
+        $loaded = $polls->get('p1');
+        $entityManager->getConnection()->executeStatement('UPDATE '.Poll::TABLE." SET closed_at = '2026-11-08 09:00:00' WHERE id = 'p1'");
+
+        self::assertTrue($loaded?->isOpenAt(new DateTimeImmutable('2026-11-08 10:00:00 UTC')));
+        self::assertFalse($polls->raiseRevisionWhileOpen('p1', new DateTimeImmutable('2026-11-08 10:00:00 UTC'), static fn (): null => null));
+        self::assertSame(0, $polls->revision('p1'));
+    }
+
+    public function testABallotAlreadyCastRollsTheWriteBackAndLeavesTheEntityManagerOpen(): void
+    {
+        $entityManager = $this->entityManager();
+        $polls = new DoctrinePollRepository($entityManager);
+        $votes = new DoctrineVoteRepository($entityManager);
+        $ada = ResourceReference::of('user', 'ada');
+        $polls->save($this->poll('p1', '2026-11-08 08:00:00', null));
+
+        try {
+            $polls->raiseRevisionWhileOpen('p1', new DateTimeImmutable('2026-11-08 10:00:00 UTC'), static function () use ($votes, $ada): void {
+                $votes->add(Vote::named('v1', 'p1', $ada, Ballot::of(['a']), new DateTimeImmutable()));
+                $votes->add(Vote::named('v2', 'p1', $ada, Ballot::of(['b']), new DateTimeImmutable()));
+            });
+            self::fail('Accepted.');
+        } catch (AlreadyVoted $alreadyVoted) {
+            self::assertSame('A ballot was already cast by this voter in the poll "p1".', $alreadyVoted->getMessage());
+        }
+
+        self::assertTrue($entityManager->isOpen());
+        self::assertFalse($entityManager->getConnection()->isTransactionActive());
+        self::assertSame(0, $polls->revision('p1'));
+        self::assertEquals(0, $entityManager->getConnection()->fetchOne('SELECT COUNT(*) FROM '.Vote::TABLE));
     }
 
     public function testTheEntitiesOfADeletedPollAreDetached(): void

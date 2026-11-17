@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Phil\ContentBundle\Application\Contract\ConversionLosses;
 use Phil\ContentBundle\Application\Exception\PublicationLosesContent;
+use Phil\ContentBundle\Application\Exception\WriteConflict;
 use Phil\ContentBundle\Application\Persistence\ContentTransaction;
 use Phil\ContentBundle\Application\Pipeline\ContentNormalizer;
 use Phil\ContentBundle\Application\Routing\RouteUpdater;
@@ -130,7 +131,25 @@ final readonly class ContentPublisher
         $slug = $live instanceof RoutableCapable ? $live->getSlug() : null;
 
         if ($slug instanceof Slug) {
-            $this->routes->assign($this->roots->referenceOf($root), $locale, $slug);
+            $this->assignRoute($root, $locale, $slug);
+        }
+    }
+
+    /**
+     * Writes the route at once, apart from the rows flushed before it: a unique key refused by that flush is the slug
+     * taken by another publication since `assertAvailable()` found it free.
+     *
+     * @throws SlugTaken
+     */
+    private function assignRoute(ContentRoot $root, Locale $locale, Slug $slug): void
+    {
+        $this->transaction->flush();
+        $this->routes->assign($this->roots->referenceOf($root), $locale, $slug);
+
+        try {
+            $this->transaction->flush();
+        } catch (WriteConflict $writeConflict) {
+            throw SlugTaken::meanwhile($locale, $slug, $writeConflict);
         }
     }
 

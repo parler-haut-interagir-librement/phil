@@ -89,9 +89,23 @@ correlated `MAX` over the `(root_id, stage)` prefix of the unique index), then t
 | Method | Contract |
 |---|---|
 | `run(callable $operation): mixed` | runs the operation in a transaction, flushes and commits, and returns its result; rolls back and rethrows on failure. Nested in a transaction already open, it nests (a savepoint) |
-| `flush(): void` | writes what is pending now, inside the running transaction |
+| `flush(): void` | writes what is pending now, inside the running transaction; throws `WriteConflict` when a unique key it writes was taken by another transaction meanwhile |
 
-Invariant: **all of an operation or nothing is kept**.
+Invariant: **all of an operation or nothing is kept**. An adapter of another store raises `WriteConflict` from
+`flush()` for a unique key refused, so that a publication racing another on one slug is a `SlugTaken`.
+
+### `SingleRootRepository`
+
+`Phil\ContentBundle\Domain\Contract\SingleRootRepository` — Doctrine adapter: `DoctrineSingleRootRepository`.
+
+| Method | Contract |
+|---|---|
+| `claim(ContentReference $root): void` | records the root of its single kind at once, in the caller's transaction; throws `InvalidContent` when the kind already has its root, recorded by another transaction meanwhile |
+| `release(ContentReference $root): void` | frees the kind when `$root` is its recorded root |
+
+Invariant: **the store refuses a second root of a kind by itself**, a unique key rather than a lookup, so that two
+creations at once cannot both pass. Without the port (`null`), `ContentManager` keeps only the lookup before the
+creation.
 
 ### `ContentRootFactory`
 
@@ -366,7 +380,7 @@ When the container has an `event_dispatcher`, the workflow named `phil_content` 
 | Tag of normalizers | `phil_content.normalizer` (`PhilContentBundle::NORMALIZER_TAG`) |
 | Tag of capability mappings | `phil_content.capability_mapping` (`PhilContentBundle::CAPABILITY_MAPPING_TAG`), with DoctrineBundle |
 | Workflow names | `phil_content` (`ContentWorkflow::NAME`), the draft row's; `phil_content_publication` (`PublicationWorkflow::NAME`), a content in one locale's, service `phil_content.publication_workflow`, added to `workflow.registry` when there is one |
-| Services | every service under its class name ([configuration.md](configuration.md#services-and-conditions)); the ports `MarkupCompiler`, `HtmlPurifier`, `BodyConverter`, `ConversionLosses`, `CanonicalAddresses`, `PublicationSchedule`, `DimensionContentRepository`, `RouteRepository`, `ContentRootRepository`, `PublishedRowRepository`, `WorkingCopyRepository`, `ContentTransaction` and `ContentRootFactory` are aliases |
+| Services | every service under its class name ([configuration.md](configuration.md#services-and-conditions)); the ports `MarkupCompiler`, `HtmlPurifier`, `BodyConverter`, `ConversionLosses`, `CanonicalAddresses`, `PublicationSchedule`, `DimensionContentRepository`, `RouteRepository`, `ContentRootRepository`, `PublishedRowRepository`, `WorkingCopyRepository`, `SingleRootRepository`, `ContentTransaction` and `ContentRootFactory` are aliases |
 | Tags of other bundles | `phil_sitemap.url_provider` on `ContentUrlProvider`; `phil_scheduled_transitions.subject_resolver` on `PublicationSubjects`; `phil_search.provider` on `ContentDocumentProvider` — named by their strings, without depending on those bundles |
 | Container services used | `clock`; when present, `event_dispatcher`; with TwigBundle, `twig`, `router`, `request_stack`; with the administration, `security.token_storage`, `security.authorization_checker`, `security.csrf.token_manager` |
 | DBAL types | `phil_content_locale`, `phil_content_stage`, `phil_content_version`, `phil_content_dimension_content_id`, `phil_content_route_id`, `phil_content_working_copy_id` |

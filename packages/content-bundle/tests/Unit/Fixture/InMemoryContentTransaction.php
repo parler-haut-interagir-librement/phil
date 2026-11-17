@@ -17,6 +17,7 @@ final class InMemoryContentTransaction implements ContentTransaction
     public function __construct(
         private readonly InMemoryDimensionContentRepository $rows,
         private readonly InMemoryContentRootRepository $roots,
+        private readonly ?InMemoryRouteRepository $routes = null,
     ) {
     }
 
@@ -33,5 +34,6 @@ final class InMemoryContentTransaction implements ContentTransaction
     {
         $this->roots->flush();
         $this->rows->flush();
+        $this->routes?->flush();
     }
 }

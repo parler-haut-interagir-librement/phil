@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Phil\ContentBundle\Infrastructure\Doctrine;
 
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
+use Phil\ContentBundle\Application\Exception\WriteConflict;
 use Phil\ContentBundle\Application\Persistence\ContentTransaction;
 use Throwable;
 
@@ -51,9 +53,17 @@ final readonly class DoctrineContentTransaction implements ContentTransaction
         }
     }
 
+    /**
+     * A unique index refusing the flush becomes a `WriteConflict`, which the operation names in the words of the
+     * domain; the entity manager is closed all the same.
+     */
     #[Override]
     public function flush(): void
     {
-        $this->entityManager->flush();
+        try {
+            $this->entityManager->flush();
+        } catch (UniqueConstraintViolationException $uniqueConstraintViolationException) {
+            throw WriteConflict::onFlush($uniqueConstraintViolationException);
+        }
     }
 }

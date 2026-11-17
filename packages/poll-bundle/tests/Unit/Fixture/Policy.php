@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace Phil\PollBundle\Tests\Unit\Fixture;
 
+use Closure;
 use Override;
 use Phil\PollBundle\Application\Contract\PollPolicy;
 use Phil\PollBundle\Domain\Model\Poll;
 use Phil\Resource\ResourceReference;
 
 /**
- * A policy whose answers the test sets: who may create, who may vote, who manages.
+ * A policy whose answers the test sets: who may create, who may vote, who manages. `$whileVoting`, when set, runs
+ * once as the policy is asked about a voter, after the poll was read and before the ballot is written.
  */
 final class Policy implements PollPolicy
 {
@@ -22,6 +24,7 @@ final class Policy implements PollPolicy
         public bool $creates = true,
         public array $refusedVoters = [],
         public array $managers = ['user:boss'],
+        public ?Closure $whileVoting = null,
     ) {
     }
 
@@ -34,6 +37,12 @@ final class Policy implements PollPolicy
     #[Override]
     public function mayVote(Poll $poll, ResourceReference $voter): bool
     {
+        if ($this->whileVoting instanceof Closure) {
+            $whileVoting = $this->whileVoting;
+            $this->whileVoting = null;
+            $whileVoting();
+        }
+
         return !\in_array($voter->toString(), $this->refusedVoters, true);
     }
 

@@ -74,7 +74,9 @@ localized draft row.
 5. removes the live shared row of the version the locale was previously published from, when no live localized
    row reads it any more;
 6. makes the slug of the published row the locale's **current route** (`SlugTaken` when it became another
-   root's current address meanwhile; [routing.md](routing.md)).
+   root's current address meanwhile; [routing.md](routing.md)). The route is flushed apart from the rows, so that
+   a unique index refusing it, when another publication took the slug between the check and the write, is a
+   `SlugTaken` too, not an error of the database.
 
 - **Locales are published one at a time.** The live stage holds, for each locale, the rows of the version it was
   last published from, so the live rows of two locales may belong to two versions.

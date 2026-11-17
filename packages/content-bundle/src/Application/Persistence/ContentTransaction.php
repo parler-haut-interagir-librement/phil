@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\ContentBundle\Application\Persistence;
 
+use Phil\ContentBundle\Application\Exception\WriteConflict;
 use Throwable;
 
 /**
@@ -31,6 +32,8 @@ interface ContentTransaction
     /**
      * Writes what is pending now, inside the running transaction: a row removed and a row of the same
      * dimension added must reach the database in that order, which a single flush does not promise.
+     *
+     * @throws WriteConflict when a unique key it writes was taken by another transaction meanwhile
      */
     public function flush(): void;
 }

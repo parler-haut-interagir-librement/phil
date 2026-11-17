@@ -23,6 +23,8 @@ use Phil\ContentBundle\Tests\Unit\Fixture\InMemoryContents;
 use Phil\LocaleDimensions\Locale;
 use Phil\Sitemap\Sitemap;
 use Phil\Sitemap\XmlWriter;
+use Phil\TenancyBundle\Application\TenantContext;
+use Phil\TenancyBundle\Domain\ValueObject\TenantId;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
@@ -259,7 +261,7 @@ final class PublicationEndpointsTest extends TestCase
         $url = $this->links(new MockClock('2026-11-04 12:00 UTC'))->url($reference, Locale::fromString('fr'));
         $expires = 1_793_793_600 + 3600;
 
-        self::assertSame(\sprintf('https://example.com/preview/example:1/fr?expires=%d&signature=%s', $expires, hash_hmac('sha256', 'example:1|fr|'.$expires, 'secret')), $url);
+        self::assertSame(\sprintf('https://example.com/preview/example:1/fr?expires=%d&signature=v2.%s', $expires, hash_hmac('sha256', 'v2|16:host:example.com|9:example:1|2:fr|'.$expires, 'secret')), $url);
 
         $response = $this->preview(new MockClock('2026-11-04 12:30 UTC'))(Request::create($url), 'example:1', 'fr');
         self::assertSame('news|Bientôt|example:1|fr|preview|stayed', $response->getContent());
@@ -275,7 +277,8 @@ final class PublicationEndpointsTest extends TestCase
         $url = $this->links(new MockClock('2026-11-04 12:00 UTC'))->url($reference, Locale::fromString('fr'));
         $request = Request::create($url);
         $signature = $request->query->getString('signature');
-        $sign = static fn (string $reference, string $locale): string => hash_hmac('sha256', $reference.'|'.$locale.'|'.(1_793_793_600 + 3600), 'secret');
+        $sign = static fn (string $reference, string $locale): string => 'v2.'.hash_hmac('sha256', \sprintf('v2|16:host:example.com|%d:%s|%d:%s|%d', \strlen($reference), $reference, \strlen($locale), $locale, 1_793_793_600 + 3600), 'secret');
+        $before = 'https://example.com/p?expires='.(1_793_793_600 + 3600).'&signature='.hash_hmac('sha256', 'example:1|fr|'.(1_793_793_600 + 3600), 'secret');
         $now = new MockClock('2026-11-04 12:00 UTC');
 
         foreach ([
@@ -283,6 +286,9 @@ final class PublicationEndpointsTest extends TestCase
             'another content' => [$now, $request, 'example:2', 'fr', 'This preview link is not signed, or expired.'],
             'another locale' => [$now, $request, 'example:1', 'en', 'This preview link is not signed, or expired.'],
             'not signed' => [$now, Request::create('https://example.com/p'), 'example:1', 'fr', 'This preview link is not signed, or expired.'],
+            'another host' => [$now, Request::create(str_replace('https://example.com/', 'https://other.example/', $url)), 'example:1', 'fr', 'This preview link is not signed, or expired.'],
+            'signed before the scope' => [$now, Request::create($before), 'example:1', 'fr', 'This preview link is not signed, or expired.'],
+            'without its version' => [$now, Request::create(str_replace('signature=v2.', 'signature=', $url)), 'example:1', 'fr', 'This preview link is not signed, or expired.'],
             'no draft' => [$now, Request::create('https://example.com/p?expires='.(1_793_793_600 + 3600).'&signature='.$sign('example:1', 'en')), 'example:1', 'en', '"example:1" has no draft in "en".'],
             'no content' => [$now, Request::create('https://example.com/p?expires='.(1_793_793_600 + 3600).'&signature='.$sign('example:9', 'fr')), 'example:9', 'fr', '"example:9" has no draft in "fr".'],
             'no reference' => [$now, Request::create('https://example.com/p?expires='.(1_793_793_600 + 3600).'&signature='.$sign('example', 'fr')), 'example', 'fr', '"example" is not a content reference'],
@@ -296,7 +302,30 @@ final class PublicationEndpointsTest extends TestCase
             }
         }
 
-        self::assertSame(64, \strlen($signature));
+        self::assertSame(67, \strlen($signature));
+        self::assertTrue($this->links($now)->verify('example:1', 'fr', 1_793_793_600 + 3600, $signature, 'Example.COM'), 'A host is compared without its case.');
+    }
+
+    public function testAPreviewLinkIsBoundToTheActiveTenantRatherThanToTheHost(): void
+    {
+        $reference = ContentReference::of('example', '1');
+        $now = new MockClock('2026-11-04 12:00 UTC');
+        $tenants = new TenantContext();
+        $links = new PreviewLinks($this->router, 'secret', $now, 3600, $tenants);
+        $expires = 1_793_793_600 + 3600;
+
+        $tenants->enter(TenantId::fromString('acme'));
+        $signature = Request::create($links->url($reference, Locale::fromString('fr')))->query->getString('signature');
+
+        self::assertSame('v2.'.hash_hmac('sha256', 'v2|11:tenant:acme|9:example:1|2:fr|'.$expires, 'secret'), $signature);
+        self::assertTrue($links->verify('example:1', 'fr', $expires, $signature, 'another.example'), 'Any host of the tenant.');
+
+        $tenants->enter(TenantId::fromString('globex'));
+        self::assertFalse($links->verify('example:1', 'fr', $expires, $signature, 'example.com'), 'Another tenant.');
+
+        $tenants->leave();
+        self::assertFalse($links->verify('example:1', 'fr', $expires, $signature, 'example.com'), 'Outside the tenant, the host is signed.');
+        self::assertFalse(new PreviewLinks($this->router, 'secret', $now, 3600)->verify('example:1', 'fr', $expires, $signature, 'example.com'), 'Without tenancy.');
     }
 
     public function testTheCommandPrintsAPreviewLink(): void

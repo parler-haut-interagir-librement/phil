@@ -66,6 +66,8 @@ final readonly class InMemoryContents
 
     public InMemoryContentTransaction $transaction;
 
+    public InMemorySingleRoots $singleRoots;
+
     public MockClock $clock;
 
     public DeclaredLocales $locales;
@@ -118,7 +120,8 @@ final readonly class InMemoryContents
         $this->rows = new InMemoryDimensionContentRepository();
         $this->routes = new InMemoryRouteRepository();
         $this->roots = new InMemoryContentRootRepository();
-        $this->transaction = new InMemoryContentTransaction($this->rows, $this->roots);
+        $this->transaction = new InMemoryContentTransaction($this->rows, $this->roots, $this->routes);
+        $this->singleRoots = new InMemorySingleRoots();
         $this->clock = new MockClock(new DateTimeImmutable('2026-10-31 12:00:00', new DateTimeZone('America/Montreal')));
         $this->locales = DeclaredLocales::fromArray($locales);
         $this->workflow = ContentWorkflow::create();
@@ -172,6 +175,8 @@ final readonly class InMemoryContents
             $this->routes,
             $this->pages,
             SingleKinds::fromArray($singles),
+            null,
+            $this->singleRoots,
         );
     }
 

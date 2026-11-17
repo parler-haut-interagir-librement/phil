@@ -18,6 +18,13 @@ runs an anonymous ranked poll counted by a method of the application, heard by a
 English and in French, their blocks replaced by an embedding template; then draws them again with the recipes of the
 Shadcn kit of the Symfony UX Toolkit.
 
+The suite `tests/Integration` runs a ballot and a closing on two connections to one database: the voter's request reads
+the poll open, the manager's request closes it and commits, then the voter's request writes its ballot. A ballot cast,
+anonymous or not, changed, changed by receipt and withdrawn is each refused with `VoteRefused`, and the ballots kept are
+those before the closing. It runs on SQLite, on a database file in the temporary directory, and on MySQL 8.4 and
+PostgreSQL 17 when `PHIL_TEST_MYSQL_URL` and `PHIL_TEST_POSTGRESQL_URL` name a server; without them, those tests are
+skipped.
+
 The suite `tests/Browser` opens the pages of that application in Chrome, through Panther and the chromedriver of the
 system, with each kit: every kind of ballot filled and sent with the keyboard alone, a blank ballot, a ballot refused
 and its alert, the form disabled for someone signed out and once the poll is closed, and the names and roles Chrome

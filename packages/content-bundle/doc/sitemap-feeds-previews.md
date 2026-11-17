@@ -73,11 +73,38 @@ $url = $links->url($reference, Locale::fromString('fr'));   // PreviewLinks
 bin/console phil:content:preview-link news:0192f3c4-… fr
 ```
 
-A link carries when it expires — `preview.ttl` seconds later — and an HMAC-SHA256 of the reference, the locale and
-that moment, signed with `preview.secret`. `PreviewController` renders the latest draft of the content in the locale
-through the template of its key, with the variables of a live page and `preview` set to `true`, sent with
-`X-Robots-Tag: noindex, nofollow` and `Cache-Control: no-store, private`. A link not signed, expired, for another
-content or locale, or for a content without a draft there is a `404`.
+A link carries when it expires — `preview.ttl` seconds later — and a signature made with `preview.secret`.
+`PreviewController` renders the latest draft of the content in the locale through the template of its key, with the
+variables of a live page and `preview` set to `true`, sent with `X-Robots-Tag: noindex, nofollow` and
+`Cache-Control: no-store, private`. A link not signed, expired, for another content or locale, for another scope, of
+another version of the signature, or for a content without a draft there is a `404`.
+
+### The scope of a link
+
+The signature covers the reference, the locale, the expiry and **the scope** the link was made in:
+
+| The application | Scope signed | A link opened… |
+|---|---|---|
+| with `phil/tenancy-bundle` and a tenant active | the tenant | in any other tenant is refused; on any host of the same tenant, it works |
+| without a tenant active | the host of the link, without its case | on any other host is refused |
+
+So a secret shared by several tenants or several sites does not let a link made for one show the draft of the content
+of the same name in another. The link is made on the host of the router's request context: the request's in a page,
+and in the console the host of `framework.router.default_uri`, which should be the host the link is read on. The
+console's tenant is the one `phil/tenancy-bundle` reads from its command option.
+
+### The signature
+
+The signature is `v2.` followed by the HMAC-SHA256, in hexadecimal, of the version, the scope, the reference and the
+locale, each written after its length, then the expiry. The version comes first so that a new format can be told from
+an old one and refused cleanly; a signature that does not start with the current version is refused.
+
+### Upgrading from 0.1
+
+Links made by 0.1 sign neither a version nor a scope: they are refused, as an unsigned link is, with a `404`. Send the
+link again from the administration or with `phil:content:preview-link`. `PreviewLinks::verify()` takes the host the
+link was opened on as its last argument, which a controller of the application calling it passes
+(`$request->getHost()`).
 
 ## Not here
 

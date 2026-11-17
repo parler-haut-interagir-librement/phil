@@ -11,18 +11,23 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Index\IndexedColumn;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Tools\SchemaTool;
 use Override;
+use Phil\ContentBundle\Application\Exception\WriteConflict;
 use Phil\ContentBundle\Application\Merger\TemplateMerger;
 use Phil\ContentBundle\Application\Merger\WorkflowMerger;
 use Phil\ContentBundle\Application\Pipeline\ContentAggregator;
 use Phil\ContentBundle\Domain\Content\DimensionContent;
 use Phil\ContentBundle\Domain\Content\PublishedOrder;
+use Phil\ContentBundle\Domain\Content\SingleRoot;
 use Phil\ContentBundle\Domain\Dimension\DimensionKey;
 use Phil\ContentBundle\Domain\Dimension\Stage;
+use Phil\ContentBundle\Domain\Exception\InvalidContent;
 use Phil\ContentBundle\Domain\Routing\Route;
+use Phil\ContentBundle\Domain\Routing\RouteId;
 use Phil\ContentBundle\Domain\ValueObject\Body;
 use Phil\ContentBundle\Domain\ValueObject\ContentReference;
 use Phil\ContentBundle\Domain\ValueObject\Link;
@@ -34,7 +39,10 @@ use Phil\ContentBundle\Infrastructure\Doctrine\DoctrineContentTransaction;
 use Phil\ContentBundle\Infrastructure\Doctrine\DoctrineDimensionContentRepository;
 use Phil\ContentBundle\Infrastructure\Doctrine\DoctrinePublishedRowRepository;
 use Phil\ContentBundle\Infrastructure\Doctrine\DoctrineRouteRepository;
+use Phil\ContentBundle\Infrastructure\Doctrine\DoctrineSingleRootRepository;
 use Phil\ContentBundle\Infrastructure\Doctrine\InvalidContentMapping;
+use Phil\ContentBundle\Infrastructure\Doctrine\Type\LocaleType;
+use Phil\ContentBundle\Infrastructure\Doctrine\Type\RouteIdType;
 use Phil\ContentBundle\Tests\Unit\Infrastructure\Doctrine\Fixture\Article;
 use Phil\ContentBundle\Tests\Unit\Infrastructure\Doctrine\Fixture\ArticleDimension;
 use Phil\ContentBundle\Tests\Unit\Infrastructure\Doctrine\Fixture\ArticleId;
@@ -91,7 +99,7 @@ abstract class ContentStorageTestCase extends TestCase
         $this->repository = new DoctrineDimensionContentRepository($this->entityManager);
         $this->classes = array_map(
             $this->entityManager->getClassMetadata(...),
-            [Article::class, ArticleDimension::class, Page::class, PageDimension::class, Route::class],
+            [Article::class, ArticleDimension::class, Page::class, PageDimension::class, Route::class, SingleRoot::class],
         );
 
         $this->dropTables();
@@ -572,6 +580,58 @@ abstract class ContentStorageTestCase extends TestCase
         $this->expectException(UniqueConstraintViolationException::class);
 
         $this->entityManager->flush();
+    }
+
+    public function testASlugTakenMeanwhileIsAWriteConflictOfTheFlush(): void
+    {
+        $routes = new DoctrineRouteRepository($this->entityManager);
+        $transaction = new DoctrineContentTransaction($this->entityManager);
+        $failure = null;
+
+        try {
+            $transaction->run(function () use ($routes, $transaction): void {
+                // Another publication commits the slug after this one found it free.
+                $this->connection->insert('phil_content_route', ['id' => RouteId::generate(), 'resource_key' => 'article', 'resource_id' => '2', 'slug' => 'ouverture', 'history' => false, 'locale' => Locale::fromString('fr')], ['id' => RouteIdType::NAME, 'history' => Types::BOOLEAN, 'locale' => LocaleType::NAME]);
+                $routes->add(Route::current(ContentReference::of('article', '1'), Locale::fromString('fr'), Slug::fromString('ouverture')));
+                $transaction->flush();
+            });
+        } catch (WriteConflict $writeConflict) {
+            $failure = $writeConflict;
+        }
+
+        self::assertInstanceOf(WriteConflict::class, $failure);
+        self::assertInstanceOf(UniqueConstraintViolationException::class, $failure->getPrevious());
+        self::assertSame('A unique key written by this operation was taken by another one meanwhile.', $failure->getMessage());
+        self::assertSame(0, $this->connection->getTransactionNestingLevel());
+        self::assertSame(0, $this->rowCount('phil_content_route'), 'The transaction rolled back.');
+    }
+
+    public function testASingleKindHasOneRecordedRoot(): void
+    {
+        $singles = new DoctrineSingleRootRepository($this->entityManager);
+        $singles->claim(ContentReference::of('home_page', '1'));
+        $singles->claim(ContentReference::of('contact', '1'));
+
+        try {
+            $singles->claim(ContentReference::of('home_page', '2'));
+            self::fail('A second root was recorded.');
+        } catch (InvalidContent $invalidContent) {
+            self::assertSame('"home_page" is a single kind and already has its content: edit it instead.', $invalidContent->getMessage());
+            self::assertInstanceOf(UniqueConstraintViolationException::class, $invalidContent->getPrevious());
+        }
+
+        self::assertTrue($this->entityManager->isOpen(), 'The refusal leaves the entity manager open.');
+
+        $singles->release(ContentReference::of('home_page', '2'));
+        self::assertSame(2, $this->rowCount(SingleRoot::TABLE), 'Another root does not free the kind.');
+
+        $singles->release(ContentReference::of('home_page', '1'));
+        $singles->claim(ContentReference::of('home_page', '2'));
+
+        $kept = $this->entityManager->find(SingleRoot::class, 'home_page');
+        self::assertInstanceOf(SingleRoot::class, $kept);
+        self::assertTrue($kept->root()->equals(ContentReference::of('home_page', '2')));
+        self::assertSame(2, $this->rowCount(SingleRoot::TABLE));
     }
 
     public function testARootIsFoundBackByItsReference(): void

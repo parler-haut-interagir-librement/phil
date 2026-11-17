@@ -213,6 +213,36 @@ reference to an unknown kind is a mistake of the caller's code or configuration,
 `DoctrineWorkingCopyRepository` implements its port, `Domain\Contract\WorkingCopyRepository`; it writes nothing
 itself, inside the caller's transaction.
 
+## The root of a single kind
+
+`SingleRoot` is an entity of the bundle, mapped with the content roots, on its own table:
+
+| Column | Type | Holds |
+|---|---|---|
+| `resource_key` | string 64, primary key | the single kind (`phil_content.singles`) |
+| `resource_id` | string 64 | the identifier of its root |
+
+`ContentManager::create()` writes the row of a single kind in the transaction that creates its root, once the root has
+its identifier, and `ContentManager::delete()` removes it with the root. Two creations of the kind at once both find no
+root and both create one; **the primary key refuses the second row**, and `DoctrineSingleRootRepository`, the adapter
+of `Domain\Contract\SingleRootRepository`, turns the refusal into the same `InvalidContent` as a creation that finds
+the root already there. The row is written by a statement of the connection, at once, not by the unit of work: the
+refusal leaves the entity manager open, and the creation's transaction rolls back, root included. The roots of the
+other kinds have no row.
+
+### Upgrading from 0.1
+
+The table is new. Migrate the schema:
+
+```bash
+bin/console doctrine:migrations:diff
+bin/console doctrine:migrations:migrate
+```
+
+The single kinds created with 0.1 need no row: `ContentManager::create()` still looks for an existing root first and
+refuses a second one, and the row is written when the kind is next created. A kind that already holds two roots keeps
+them; delete the one that is not wanted with `ContentManager::delete()`.
+
 ## Building roots
 
 `ContentManager::create()` builds a new root through the `ContentRootFactory` port. The Doctrine adapter,
@@ -229,7 +259,10 @@ refused with `InvalidContentMapping`; alias `ContentRootFactory` to a factory of
   commits. **Inside a transaction already open** — a Doctrine migration's, the caller's — DBAL nests it in a
   savepoint;
 - `flush()` writes what is pending inside the running transaction: a row removed and a row of the same
-  dimension added must reach the database in that order, which a single flush does not promise.
+  dimension added must reach the database in that order, which a single flush does not promise. A unique index
+  refusing it becomes a `WriteConflict` (`Application\Exception`), whose previous exception is the one of
+  Doctrine: the operation that flushed names the key in the words of the domain. `ContentPublisher` writes the
+  route of a publication by a flush of its own, and a `WriteConflict` there is a `SlugTaken`.
 
 On failure, it rolls back, **clears the unit of work**, and rethrows:
 

@@ -67,6 +67,7 @@ use Phil\ContentBundle\Infrastructure\Doctrine\DoctrineContentTransaction;
 use Phil\ContentBundle\Infrastructure\Doctrine\DoctrineDimensionContentRepository;
 use Phil\ContentBundle\Infrastructure\Doctrine\DoctrinePublishedRowRepository;
 use Phil\ContentBundle\Infrastructure\Doctrine\DoctrineRouteRepository;
+use Phil\ContentBundle\Infrastructure\Doctrine\DoctrineSingleRootRepository;
 use Phil\ContentBundle\Infrastructure\Doctrine\DoctrineWorkingCopyRepository;
 use Phil\ContentBundle\Infrastructure\Doctrine\Mapping\BodyCapabilityMapping;
 use Phil\ContentBundle\Infrastructure\Doctrine\Mapping\CapabilityMapping;
@@ -102,6 +103,7 @@ use Phil\ContentBundle\Infrastructure\Twig\ContentExtension;
 use Phil\ContentBundle\Infrastructure\Twig\ContentRuntime;
 use Phil\ContentBundle\Infrastructure\Workflow\PublicationWorkflowPass;
 use Phil\LocaleDimensions\DeclaredLocales;
+use Phil\TenancyBundle\Application\TenantContext;
 use ReflectionClass;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -530,9 +532,10 @@ final class PhilContentBundle extends AbstractBundle
         $services->set(DoctrinePublishedRowRepository::class)->args([$entityManager, service(ContentRoots::class)]);
         $services->set(DoctrineContentTransaction::class)->args([$entityManager]);
         $services->set(DoctrineWorkingCopyRepository::class)->args([$entityManager]);
+        $services->set(DoctrineSingleRootRepository::class)->args([$entityManager]);
         $services->set(ConstructorContentRootFactory::class)->args([service(ContentRoots::class)]);
 
-        foreach ([DoctrineRouteRepository::class, DoctrineContentRootRepository::class, DoctrinePublishedRowRepository::class, DoctrineContentTransaction::class, DoctrineWorkingCopyRepository::class, ConstructorContentRootFactory::class] as $adapter) {
+        foreach ([DoctrineRouteRepository::class, DoctrineContentRootRepository::class, DoctrinePublishedRowRepository::class, DoctrineContentTransaction::class, DoctrineWorkingCopyRepository::class, DoctrineSingleRootRepository::class, ConstructorContentRootFactory::class] as $adapter) {
             foreach (new ReflectionClass($adapter)->getInterfaceNames() as $port) {
                 $services->alias($port, $adapter);
             }
@@ -577,7 +580,7 @@ final class PhilContentBundle extends AbstractBundle
         $services = $container->services();
 
         $services->set(PreviewLinks::class)
-            ->args([service('router'), $config['preview']['secret'], service('clock'), $config['preview']['ttl']]);
+            ->args([service('router'), $config['preview']['secret'], service('clock'), $config['preview']['ttl'], service(TenantContext::class)->nullOnInvalid()]);
         $services->set(PreviewLinkCommand::class)->autowire()->tag('console.command');
 
         // After the pages of the routes, as the sitemap bundle places every provider; its route provider is named by

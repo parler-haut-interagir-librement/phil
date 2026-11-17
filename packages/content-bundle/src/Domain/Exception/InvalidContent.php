@@ -6,6 +6,7 @@ namespace Phil\ContentBundle\Domain\Exception;
 
 use InvalidArgumentException;
 use Phil\DddBundle\Domain\Exception\DomainError;
+use Throwable;
 
 /**
  * A capability value refused its own construction: a blank title, a URL that is not absolute, a malformed
@@ -20,5 +21,13 @@ final class InvalidContent extends InvalidArgumentException implements DomainErr
     public static function because(string $reason): self
     {
         return new self($reason);
+    }
+
+    /**
+     * A second root of a single kind, refused before it is written or by the store.
+     */
+    public static function singleKindTaken(string $resourceKey, ?Throwable $previous = null): self
+    {
+        return new self(\sprintf('"%s" is a single kind and already has its content: edit it instead.', $resourceKey), 0, $previous);
     }
 }

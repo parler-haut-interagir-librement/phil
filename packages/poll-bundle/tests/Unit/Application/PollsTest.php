@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\PollBundle\Tests\Unit\Application;
 
+use Closure;
 use DateTimeImmutable;
 use Phil\Poll\BallotKind;
 use Phil\Poll\Contract\CountingMethod;
@@ -516,6 +517,51 @@ final class PollsTest extends TestCase
         self::assertTrue($polls->get($poll->id)->isClosedAt($this->clock->now()));
         $polls->delete($poll->id, $this->ref('user:ada'));
         self::assertNull($this->pollStore->get($poll->id));
+    }
+
+    public function testABallotRacingAClosingIsRefusedAndWritesNothing(): void
+    {
+        $boss = $this->ref('user:boss');
+        $bob = $this->ref('user:bob');
+        $named = $this->polls->create(new PollDraft('Q', $this->options('a', 'b')), $boss);
+        $anonymous = $this->polls->create(new PollDraft('Q', $this->options('a', 'b'), anonymous: true), $boss);
+        $fresh = $this->polls->create(new PollDraft('Q', $this->options('a', 'b')), $boss);
+        $this->polls->cast($named->id, $bob, ['a']);
+        $receipt = (string) $this->polls->cast($anonymous->id, $bob, ['a'])->receipt;
+        $revisions = [$this->pollStore->revision($named->id), $this->pollStore->revision($anonymous->id)];
+        $this->events->events = [];
+        $closing = fn (string $poll): Closure => fn () => $this->polls->close($poll, $boss);
+
+        $this->policy->whileVoting = $closing($named->id);
+        $this->assertRefused(fn () => $this->polls->change($named->id, $bob, ['b']), 'This poll is not open.');
+        self::assertSame(['a'], $this->polls->ballotOf($named->id, $bob)?->choices);
+        self::assertSame('10:00', $this->voteStore->ofVoter($named->id, $bob)?->castAt()?->format('H:i'));
+
+        $this->clock->modify('+1 minute');
+        $this->policy->whileVoting = $closing($anonymous->id);
+        $this->assertRefused(fn () => $this->polls->changeWithReceipt($anonymous->id, $bob, $receipt, ['b']), 'This poll is not open.');
+        self::assertSame(['a'], $this->polls->ballotOfReceipt($anonymous->id, $receipt)?->choices);
+
+        $this->policy->whileVoting = $closing($fresh->id);
+        $this->assertRefused(fn (): CastVote => $this->polls->cast($fresh->id, $bob, ['a']), 'This poll is not open.');
+        self::assertSame(0, $this->polls->turnout($fresh->id));
+
+        // Each closing raised the revision once; the ballots refused raised nothing.
+        self::assertSame([$revisions[0] + 1, $revisions[1] + 1, 1], [$this->pollStore->revision($named->id), $this->pollStore->revision($anonymous->id), $this->pollStore->revision($fresh->id)]);
+        self::assertEquals([new PollClosed($named->id), new PollClosed($anonymous->id), new PollClosed($fresh->id)], $this->events->events);
+    }
+
+    public function testAWithdrawalRacingAClosingKeepsTheBallot(): void
+    {
+        $boss = $this->ref('user:boss');
+        $bob = $this->ref('user:bob');
+        $poll = $this->polls->create(new PollDraft('Q', $this->options('a', 'b')), $boss);
+        $this->polls->cast($poll->id, $bob, ['a']);
+        $this->policy->whileVoting = fn () => $this->polls->close($poll->id, $boss);
+
+        $this->assertRefused(fn () => $this->polls->withdraw($poll->id, $bob), 'This poll is not open.');
+
+        self::assertSame(1, $this->polls->turnout($poll->id));
     }
 
     /**

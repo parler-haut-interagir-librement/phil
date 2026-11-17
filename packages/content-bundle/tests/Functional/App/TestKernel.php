@@ -85,6 +85,7 @@ final class TestKernel extends Kernel
         // The 404 responses the tests ask for are logged as warnings; the default logger would print them.
         $container->services()->set('logger', NullLogger::class);
         $container->services()->set(PageEventRecorder::class)->autoconfigure()->public();
+        $container->services()->set(SlugTakenMeanwhile::class)->public()->tag('doctrine.event_listener', ['event' => 'onFlush']);
         $container->extension('doctrine', [
             'dbal' => [
                 'url' => self::databaseUrl(),

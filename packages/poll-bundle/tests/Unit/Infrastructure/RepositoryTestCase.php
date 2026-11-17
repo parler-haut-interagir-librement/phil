@@ -17,6 +17,7 @@ use Phil\PollBundle\Domain\Status\ResultsVisibility;
 use Phil\PollBundle\Domain\ValueObject\PollOption;
 use Phil\Resource\ResourceReference;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 /**
  * What every store of polls and ballots does, whatever keeps them.
@@ -93,6 +94,59 @@ abstract class RepositoryTestCase extends TestCase
         self::assertSame(1, $this->reread($polls, 'p1')->seats());
 
         $polls->remove($this->reread($polls, 'p1'));
+        self::assertSame(0, $polls->revision('p1'));
+    }
+
+    public function testABallotIsWrittenOnlyWhileThePollIsOpen(): void
+    {
+        [$polls] = $this->stores();
+        $poll = $this->poll('p1', '2026-11-08 08:00:00', null);
+        $poll->reschedule(new DateTimeImmutable('2026-11-08 09:00:00 UTC'), new DateTimeImmutable('2026-11-08 12:00:00 UTC'));
+
+        $polls->save($poll);
+        $polls->save($this->poll('p2', '2026-11-08 08:00:00', null));
+
+        $written = [];
+        $write = static function () use (&$written): void {
+            $written[] = true;
+        };
+
+        self::assertFalse($polls->raiseRevisionWhileOpen('p1', new DateTimeImmutable('2026-11-08 08:59:59 UTC'), $write));
+        self::assertSame([[], 0], [$written, $polls->revision('p1')]);
+        self::assertTrue($polls->raiseRevisionWhileOpen('p1', new DateTimeImmutable('2026-11-08 09:00:00 UTC'), $write));
+        self::assertTrue($polls->raiseRevisionWhileOpen('p1', new DateTimeImmutable('2026-11-08 11:59:59 UTC'), $write));
+        // 06:30 in Toronto is 11:30 in UTC, the time zone of the columns.
+        self::assertTrue($polls->raiseRevisionWhileOpen('p1', new DateTimeImmutable('2026-11-08 06:30:00 America/Toronto'), $write));
+        self::assertSame([3, 0], [\count($written), $polls->revision('p2')]);
+        self::assertSame(3, $polls->revision('p1'));
+        self::assertFalse($polls->raiseRevisionWhileOpen('p1', new DateTimeImmutable('2026-11-08 12:00:00 UTC'), $write));
+        self::assertFalse($polls->raiseRevisionWhileOpen('p1', new DateTimeImmutable('2026-11-08 07:00:00 America/Toronto'), $write));
+        self::assertFalse($polls->raiseRevisionWhileOpen('nope', new DateTimeImmutable('2026-11-08 10:00:00 UTC'), $write));
+        self::assertSame([3, 3], [\count($written), $polls->revision('p1')]);
+
+        $closed = $this->reread($polls, 'p2');
+        $closed->close(new DateTimeImmutable('2026-11-08 10:00:00 UTC'));
+
+        $polls->save($closed);
+
+        self::assertFalse($polls->raiseRevisionWhileOpen('p2', new DateTimeImmutable('2026-11-08 09:00:00 UTC'), $write));
+        self::assertSame([3, 0], [\count($written), $polls->revision('p2')]);
+    }
+
+    public function testAWriteThatFailsRaisesNoRevision(): void
+    {
+        [$polls] = $this->stores();
+        $polls->save($this->poll('p1', '2026-11-08 08:00:00', null));
+
+        try {
+            $polls->raiseRevisionWhileOpen('p1', new DateTimeImmutable('2026-11-08 10:00:00 UTC'), static function (): void {
+                throw new RuntimeException('Refused.');
+            });
+            self::fail('Not rethrown.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame('Refused.', $runtimeException->getMessage());
+        }
+
         self::assertSame(0, $polls->revision('p1'));
     }
 

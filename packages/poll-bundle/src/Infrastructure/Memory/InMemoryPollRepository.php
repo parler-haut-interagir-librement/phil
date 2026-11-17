@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\PollBundle\Infrastructure\Memory;
 
+use DateTimeImmutable;
 use Override;
 use Phil\PollBundle\Domain\Model\Poll;
 use Phil\PollBundle\Domain\Repository\PollRepository;
@@ -62,6 +63,22 @@ final class InMemoryPollRepository implements PollRepository, ResetInterface
         if (isset($this->polls[$id])) {
             $this->revisions[$id] = ($this->revisions[$id] ?? 0) + 1;
         }
+    }
+
+    /**
+     * Asks the poll it holds, which is the one every caller shares: a closing is seen at once.
+     */
+    #[Override]
+    public function raiseRevisionWhileOpen(string $id, DateTimeImmutable $at, callable $write): bool
+    {
+        if (!isset($this->polls[$id]) || !$this->polls[$id]->isOpenAt($at)) {
+            return false;
+        }
+
+        $write();
+        $this->revisions[$id] = ($this->revisions[$id] ?? 0) + 1;
+
+        return true;
     }
 
     #[Override]
