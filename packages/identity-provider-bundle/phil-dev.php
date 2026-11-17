@@ -34,6 +34,11 @@ return [
             'PregMatchRemoveFlags' => [
                 'ignoreSourceCodeByRegex' => ['if \\(\'\' === \\$email \\|\\| mb_strlen.*'],
             ],
+            // The lock of the signing keys is released in `finally`: releasing it again when its object is destroyed
+            // changes nothing, and turning that off lets the tests see a release left out.
+            'FalseValue' => [
+                'ignoreSourceCodeByRegex' => ['\\$lock = \\$this->locks->createLock\\(self::LOCK, autoRelease: false\\);'],
+            ],
             // What the callee does anyway: the estimator slices its inputs, a variadic parameter is a list, the
             // identifiers of a scope are distinct once split, and the diff of two lists is spread by position.
             // Doctrine reads the refresh hint with isset(): false refreshes the row as true does.

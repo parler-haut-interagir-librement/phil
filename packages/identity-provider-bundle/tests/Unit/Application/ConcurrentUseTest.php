@@ -228,6 +228,20 @@ final class ConcurrentUseTest extends TestCase
         self::assertSame([IdentityEventType::SigningKeyRotated->value, null, ['retired' => 'a z', 'removed' => 1]], array_last($this->services->audit->records));
     }
 
+    public function testOfTwoPendingKeysBesideOneActiveTheOldestStays(): void
+    {
+        $at = $this->services->clock->now();
+        $this->keyStore->inner->save(
+            $this->key('a', $at, $at),
+            $this->key('p1', $at->modify('+3 seconds')),
+            $this->key('p2', $at->modify('+4 seconds')),
+        );
+
+        self::assertSame('a', $this->keys()->active()->kid);
+        self::assertSame(['p1'], $this->kids(static fn (SigningKey $key): bool => $key->isPending()));
+        self::assertSame([IdentityEventType::SigningKeyRotated->value, null, ['retired' => '', 'removed' => 1]], array_last($this->services->audit->records));
+    }
+
     public function testKeysAreSettledWithoutAJournalToo(): void
     {
         $at = $this->services->clock->now();

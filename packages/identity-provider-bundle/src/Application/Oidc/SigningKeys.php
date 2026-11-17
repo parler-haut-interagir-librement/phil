@@ -148,7 +148,8 @@ final readonly class SigningKeys
     }
 
     /**
-     * Runs the work under the lock of the keys, waiting for another instance to release it.
+     * Runs the work under the lock of the keys, waiting for another instance to release it; the lock is released by the
+     * work's end, not left to the destruction of its object.
      *
      * @template T
      *
@@ -158,7 +159,7 @@ final readonly class SigningKeys
      */
     private function exclusively(Closure $work): mixed
     {
-        $lock = $this->locks->createLock(self::LOCK);
+        $lock = $this->locks->createLock(self::LOCK, autoRelease: false);
         $lock->acquire(true);
 
         try {
