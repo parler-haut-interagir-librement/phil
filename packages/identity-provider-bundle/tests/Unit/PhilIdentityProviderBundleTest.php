@@ -219,6 +219,16 @@ final class PhilIdentityProviderBundleTest extends TestCase
         $build(['login_limiter' => ['enabled' => true, 'cache_pool' => 'cache.local']], 'prod');
     }
 
+    public function testTheBundleAddsItsCompilerPasses(): void
+    {
+        $container = new ContainerBuilder();
+        new PhilIdentityProviderBundle()->build($container);
+        $passes = array_map(static fn (object $pass): string => $pass::class, $container->getCompilerPassConfig()->getBeforeOptimizationPasses());
+
+        self::assertContains(KitSubdirectoryPass::class, $passes);
+        self::assertContains(RateLimitGuard::class, $passes);
+    }
+
     public function testTheLimitsOfTheSignInLimiterAreOneOrMore(): void
     {
         foreach (['max_attempts', 'network_max_attempts', 'account_max_attempts'] as $option) {
