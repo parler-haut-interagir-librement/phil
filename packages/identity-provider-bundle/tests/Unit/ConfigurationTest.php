@@ -105,6 +105,7 @@ final class ConfigurationTest extends TestCase
         ],
         'secrets' => [
             'kms_key' => null,
+            'allow_plaintext_secrets' => false,
             'encrypter' => 'key_management.encrypter',
             'decrypter' => 'key_management.decrypter',
         ],

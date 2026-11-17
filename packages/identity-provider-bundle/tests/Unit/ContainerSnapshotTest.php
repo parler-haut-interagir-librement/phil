@@ -98,6 +98,7 @@ final class ContainerSnapshotTest extends TestCase
             'store' => 'memory',
             'modules' => ['password' => false, 'sessions' => false, 'step_up' => false, 'totp' => true, 'recovery_codes' => true, 'external' => true, 'oidc' => true],
             'oidc' => ['issuer' => 'https://example.com'],
+            'secrets' => ['allow_plaintext_secrets' => true],
             'audit' => 'none',
         ], false];
 

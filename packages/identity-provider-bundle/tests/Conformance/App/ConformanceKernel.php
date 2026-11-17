@@ -173,6 +173,7 @@ final class ConformanceKernel extends Kernel
             'default_target' => '/home',
             'open_routes' => ['app_logout'],
             'oidc' => ['issuer' => $this->issuer],
+            'secrets' => ['allow_plaintext_secrets' => true],
             'audit' => 'none',
         ]);
     }

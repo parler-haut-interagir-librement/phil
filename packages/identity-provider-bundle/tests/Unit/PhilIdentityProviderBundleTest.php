@@ -110,6 +110,8 @@ final class PhilIdentityProviderBundleTest extends TestCase
             [['modules' => ['passkeys' => true], 'passkeys' => ['origins' => ['https://example.com']]], 'passkeys.rp_id'],
             [['modules' => ['oidc' => true]], 'oidc.issuer'],
             [['modules' => ['recovery_codes' => true]], 'turn on "totp"'],
+            [['modules' => ['totp' => true]], 'secrets.allow_plaintext_secrets'],
+            [['modules' => ['oidc' => true], 'oidc' => ['issuer' => 'https://example.com']], 'secrets.kms_key'],
         ] as [$config, $message]) {
             try {
                 $this->load([$config]);
@@ -118,6 +120,22 @@ final class PhilIdentityProviderBundleTest extends TestCase
                 self::assertStringContainsString($message, $invalidConfigurationException->getMessage());
             }
         }
+    }
+
+    public function testSecretsInClearOnlyWhenTheConfigurationSaysSo(): void
+    {
+        $container = $this->load([['modules' => ['totp' => true], 'secrets' => ['allow_plaintext_secrets' => true]]]);
+        self::assertSame(PlainSecretCipher::class, $container->getDefinition(SecretCipher::class)->getClass());
+
+        $container = $this->load([['modules' => ['totp' => true], 'secrets' => ['kms_key' => 'identity', 'allow_plaintext_secrets' => true]]]);
+        self::assertSame(KeyManagementSecretCipher::class, $container->getDefinition(SecretCipher::class)->getClass());
+
+        IdentityProviderServices::assertSecrets([Modules::ACCOUNTS], ['kms_key' => null, 'allow_plaintext_secrets' => false], false);
+        IdentityProviderServices::assertSecrets([Modules::TOTP], ['kms_key' => 'identity', 'allow_plaintext_secrets' => false], true);
+        IdentityProviderServices::assertSecrets([Modules::OIDC], ['kms_key' => null, 'allow_plaintext_secrets' => true], false);
+
+        $this->expectExceptionObject(new InvalidConfigurationException('"secrets.kms_key" needs symfony/key-management: install it, the secrets are never kept in clear in its place.'));
+        IdentityProviderServices::assertSecrets([Modules::TOTP], ['kms_key' => 'identity', 'allow_plaintext_secrets' => true], false);
     }
 
     public function testThePrependedConfiguration(): void

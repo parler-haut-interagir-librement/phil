@@ -144,7 +144,7 @@ use Symfony\Component\Security\Http\LoginLink\LoginLinkHandlerInterface;
  *     sessions: array{touch_interval: non-negative-int},
  *     external: array{link_verified_email: bool, register: bool},
  *     oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string},
- *     secrets: array{kms_key: ?string, encrypter: string, decrypter: string},
+ *     secrets: array{kms_key: ?string, allow_plaintext_secrets: bool, encrypter: string, decrypter: string},
  *     audit: string,
  * }
  */
@@ -195,6 +195,7 @@ final class IdentityProviderServices
     {
         $modules = array_keys(array_filter($config['modules']));
         self::assertModules($modules, $config);
+        self::assertSecrets($modules, $config['secrets'], interface_exists(EncrypterInterface::class));
         $clock = new Reference($config['clock']);
 
         $container->register(Modules::class, Modules::class)->setArguments([$modules]);
@@ -208,6 +209,28 @@ final class IdentityProviderServices
         }
 
         self::pages($container, $config, $modules);
+    }
+
+    /**
+     * The modules "totp" and "oidc" keep secrets — the TOTP secrets, the private signing keys —: they are encrypted under
+     * `secrets.kms_key`, and kept in clear only when `secrets.allow_plaintext_secrets` says so. A key without the
+     * KeyManagement component is refused rather than ignored.
+     *
+     * @param list<string>                                                $modules
+     * @param array{kms_key: ?string, allow_plaintext_secrets: bool, ...} $secrets
+     * @param bool                                                        $keyManagement whether `symfony/key-management` is installed
+     *
+     * @throws InvalidConfigurationException
+     */
+    public static function assertSecrets(array $modules, array $secrets, bool $keyManagement): void
+    {
+        if (null !== $secrets['kms_key'] && !$keyManagement) {
+            throw new InvalidConfigurationException('"secrets.kms_key" needs symfony/key-management: install it, the secrets are never kept in clear in its place.');
+        }
+
+        if (null === $secrets['kms_key'] && !$secrets['allow_plaintext_secrets'] && [] !== array_intersect([Modules::TOTP, Modules::OIDC], $modules)) {
+            throw new InvalidConfigurationException('The modules "totp" and "oidc" keep secrets: set "secrets.kms_key" to encrypt them, or "secrets.allow_plaintext_secrets" to true to keep them in clear.');
+        }
     }
 
     /**
@@ -275,7 +298,7 @@ final class IdentityProviderServices
         $container->register(Journal::class, Journal::class)
             ->setArguments([new Reference(AuditRecorder::class), new Reference('event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE)]);
 
-        if (null !== $config['secrets']['kms_key'] && interface_exists(EncrypterInterface::class)) {
+        if (null !== $config['secrets']['kms_key']) {
             $container->register(SecretCipher::class, KeyManagementSecretCipher::class)
                 ->setArguments([new Reference($config['secrets']['encrypter']), new Reference($config['secrets']['decrypter']), $config['secrets']['kms_key']]);
         } else {

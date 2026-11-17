@@ -170,6 +170,7 @@ final class TestKernel extends Kernel
             'passkeys' => ['rp_id' => 'localhost', 'origins' => ['http://localhost']],
             'sms' => ['sender' => 'test.sms'],
             'oidc' => ['issuer' => 'http://localhost', 'allow_localhost' => true],
+            'secrets' => ['allow_plaintext_secrets' => true],
             'audit' => 'none',
         ], $this->identity));
     }

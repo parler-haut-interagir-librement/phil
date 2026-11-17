@@ -16,7 +16,10 @@ phil_identity_provider:
         oidc: false
     # passkeys: { rp_id: example.com, origins: ['https://example.com'] }
     # oidc: { issuer: 'https://id.example.com', algorithm: ES256 }
+    # The modules totp and oidc keep secrets: encrypt them with symfony/key-management.
+    # secrets: { kms_key: identity }
 
 when@test:
     phil_identity_provider:
         store: memory
+        secrets: { allow_plaintext_secrets: true }
