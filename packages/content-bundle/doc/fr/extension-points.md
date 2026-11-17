@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8131ec03947918256ee41706490b46b7d12395efa2c702b77a11bb79c757d0c6 -->
+<!-- phil-dev source-sha256=c77001b55e004c616ba757022bf1802d49f6a0f8abe75ca6e462c905331f09b9 -->
 # Points d'extension
 
 Ce qu'une application implémente, remplace ou utilise. Chaque port a un adaptateur Doctrine enregistré quand le noyau a
@@ -91,9 +91,24 @@ une seule liste `IN`, les identifiants des racines liés comme leur propre type 
 | Méthode | Contrat |
 |---|---|
 | `run(callable $operation): mixed` | exécute l'opération dans une transaction, vide vers la base et valide, puis renvoie son résultat ; annule et relance l'exception en cas d'échec. Dans une transaction déjà ouverte, elle s'imbrique (un point de sauvegarde) |
-| `flush(): void` | écrit ce qui est en attente maintenant, dans la transaction en cours |
+| `flush(): void` | écrit ce qui est en attente maintenant, dans la transaction en cours ; lance `WriteConflict` quand une clé unique qu'il écrit a été prise entre-temps par une autre transaction |
 
-Invariant : **une opération est gardée en entier, ou pas du tout**.
+Invariant : **une opération est gardée en entier, ou pas du tout**. Un adaptateur d'un autre magasin lance
+`WriteConflict` depuis `flush()` pour une clé unique refusée, afin qu'une publication en concurrence avec une autre sur
+un même slug soit une `SlugTaken`.
+
+### `SingleRootRepository`
+
+`Phil\ContentBundle\Domain\Contract\SingleRootRepository` : adaptateur Doctrine `DoctrineSingleRootRepository`.
+
+| Méthode | Contrat |
+|---|---|
+| `claim(ContentReference $root): void` | enregistre aussitôt la racine de son genre unique, dans la transaction de l'appelant ; lance `InvalidContent` quand le genre a déjà sa racine, enregistrée entre-temps par une autre transaction |
+| `release(ContentReference $root): void` | libère le genre quand `$root` en est la racine enregistrée |
+
+Invariant : **le magasin refuse de lui-même une seconde racine d'un genre**, par une clé unique plutôt que par une
+recherche, afin que deux créations simultanées ne passent pas toutes deux. Sans le port (`null`), `ContentManager`
+ne garde que la recherche avant la création.
 
 ### `ContentRootFactory`
 
@@ -373,7 +388,7 @@ la ligne de brouillon localisée comme sujet. Une protection qui bloque fait lev
 | Étiquette des normaliseurs | `phil_content.normalizer` (`PhilContentBundle::NORMALIZER_TAG`) |
 | Étiquette des mappages de capacités | `phil_content.capability_mapping` (`PhilContentBundle::CAPABILITY_MAPPING_TAG`), avec DoctrineBundle |
 | Noms des workflows | `phil_content` (`ContentWorkflow::NAME`), celui de la ligne de brouillon ; `phil_content_publication` (`PublicationWorkflow::NAME`), celui d'un contenu dans une locale, service `phil_content.publication_workflow`, ajouté à `workflow.registry` quand il existe |
-| Services | chaque service sous son nom de classe ([configuration.md](configuration.md#services-et-conditions)) ; les ports `MarkupCompiler`, `HtmlPurifier`, `BodyConverter`, `ConversionLosses`, `CanonicalAddresses`, `PublicationSchedule`, `DimensionContentRepository`, `RouteRepository`, `ContentRootRepository`, `PublishedRowRepository`, `WorkingCopyRepository`, `ContentTransaction` et `ContentRootFactory` sont des alias |
+| Services | chaque service sous son nom de classe ([configuration.md](configuration.md#services-et-conditions)) ; les ports `MarkupCompiler`, `HtmlPurifier`, `BodyConverter`, `ConversionLosses`, `CanonicalAddresses`, `PublicationSchedule`, `DimensionContentRepository`, `RouteRepository`, `ContentRootRepository`, `PublishedRowRepository`, `WorkingCopyRepository`, `SingleRootRepository`, `ContentTransaction` et `ContentRootFactory` sont des alias |
 | Étiquettes d'autres bundles | `phil_sitemap.url_provider` sur `ContentUrlProvider` ; `phil_scheduled_transitions.subject_resolver` sur `PublicationSubjects` ; `phil_search.provider` sur `ContentDocumentProvider` — nommées par leurs chaînes, sans dépendre de ces bundles |
 | Services du conteneur utilisés | `clock` ; s'il existe, `event_dispatcher` ; avec TwigBundle, `twig`, `router`, `request_stack` ; avec l'administration, `security.token_storage`, `security.authorization_checker`, `security.csrf.token_manager` |
 | Types DBAL | `phil_content_locale`, `phil_content_stage`, `phil_content_version`, `phil_content_dimension_content_id`, `phil_content_route_id`, `phil_content_working_copy_id` |

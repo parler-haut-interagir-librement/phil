@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e5f9f194db489e7e76075b506004e79a1634b70b8400c06f1dee39915e4c816a -->
+<!-- phil-dev source-sha256=a0d1ff9a70cc3b09050a4777ade21bc9dd5a76867c1316189d9f2d5365ceb221 -->
 # phil/poll-bundle
 
 **Des sondages et leurs bulletins pour les applications Symfony : à choix unique, multiple, classé ou une note sur une
@@ -56,6 +56,7 @@ l'application en nomme un.
 | L'interface de vote : les vues, les gabarits dessinés avec les recettes du kit, la lecture d'un formulaire soumis, les erreurs annoncées | Implémenté et testé, dans Chrome avec le kit PHIL UX et le kit Shadcn |
 | L'événement du DOM des résultats révélés, pour la célébration du kit | Implémenté et testé |
 | Stockages Doctrine et en mémoire, ceux en mémoire vidés entre deux requêtes | Implémenté et testé, sur SQLite |
+| Un bulletin en concurrence avec une fermeture gardé avant elle ou refusé, l'ouverture du sondage vérifiée dans l'écriture qui garde le bulletin | Implémenté et testé, sur SQLite, MySQL 8.4 et PostgreSQL 17 |
 | Les événements qui nomment le sondage : créé, bulletin déposé, modifié, retiré, fermé, supprimé | Implémenté et testé |
 | Les routes et les contrôleurs pour voter | Hors du bundle : les bundles qui reposent sur lui et l'application gardent les leurs |
 | Les notes, le jugement majoritaire ; les nuages de mots et les remue-méninges, des textes libres qui appellent la modération | Pas commencé : construits quand un site les demande |

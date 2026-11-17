@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=65851e70699512fdf03616a9fd3aaefbce1279a101c655e681b3df81b000643c -->
+<!-- phil-dev source-sha256=3a20309a7c3bdddc0e421ebc11f673ea230d3ac6bbb982158ca1b9ad9f1e0bf2 -->
 # Écrire du contenu depuis PHP et depuis les migrations
 
 `Phil\ContentBundle\Application\ContentManager` est l'interface PHP du bundle : ce qu'appellent les commandes de
@@ -65,10 +65,10 @@ ou qui est mal formée. Les refus du domaine implémentent tous `Phil\DddBundle\
 | Exception | Quand |
 |---|---|
 | `InvalidDimension` | une locale mal formée ou non servie |
-| `InvalidContent` | une valeur soumise refusée, une référence mal formée, une seconde racine d'un genre unique |
+| `InvalidContent` | une valeur soumise refusée, une référence mal formée, une seconde racine d'un genre unique, trouvée avant la création ou refusée par le magasin quand une autre création l'a enregistrée entre-temps |
 | `PublicationLosesContent` | la publication ferait perdre une partie du corps en UJO, et les pertes n'ont pas été acceptées |
 | `ContentNotFound` | aucune racine pour la référence ; aucun brouillon ou aucune ligne en ligne là où il en faut une ; rien de publié le long de la chaîne |
-| `SlugTaken` | le slug est l'adresse actuelle d'une autre racine du même genre dans la locale |
+| `SlugTaken` | le slug est l'adresse actuelle d'une autre racine du même genre dans la locale, trouvée avant l'écriture de la route ou refusée par le magasin quand une autre publication l'a pris entre-temps |
 | `TransitionRefused` | le workflow ne permet pas l'opération depuis l'endroit où se trouve la ligne, une protection de l'application l'a bloquée, ou retirer le brouillon écarterait les changements partagés d'une autre locale |
 
 Une clé de ressource inconnue lève `InvalidContentMapping`, une `LogicException` : c'est une erreur du code ou de la
@@ -85,6 +85,14 @@ ouvert. Un échec de la base de données pendant un vidage (un index unique qui 
 ferme, comme `doctrine/orm` le ferme chaque fois qu'un commit échoue : un appelant qui attrape l'erreur et écrit de
 nouveau réinitialise d'abord le gestionnaire d'entités (`ManagerRegistry::resetManager()`). Voir
 [storage.md](storage.md#transactions).
+
+Deux requêtes simultanées finissent par une erreur du domaine, non de la base de données, là où le bundle connaît la
+clé :
+
+- deux créations d'un même genre unique : la seconde est une `InvalidContent`, le gestionnaire d'entités reste ouvert ;
+- deux publications qui prennent un même slug dans une même locale : la seconde est une `SlugTaken`, dont le message
+  nomme le slug et la locale ; le gestionnaire d'entités est fermé par le vidage qui a échoué, et la lecture par lui
+  fonctionne encore, ce qui permet à l'administration d'afficher le refus comme elle affiche un slug trouvé pris.
 
 ## Depuis une migration Doctrine
 

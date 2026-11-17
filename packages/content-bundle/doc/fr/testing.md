@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f568bbb6acd0f2ce85921bfbe1e0002515f9ac54ad1478e37ed47f47fb39852c -->
+<!-- phil-dev source-sha256=70d297a930b849c9366571837e708e1f4ceeefd7f095e212ed8672eb215e52f4 -->
 # Tests
 
 ## Comment le bundle est testé
@@ -6,8 +6,8 @@
 | Suite | Dossier | A besoin de | Couvre |
 |---|---|---|---|
 | Unitaire | `tests/Unit` | rien hors du processus ; `pdo_sqlite` | le domaine, chaque mappeur de données, fusionneur et normaliseur, le cycle de publication sur des ports en mémoire (une locale et plusieurs), un corps de chaque format publié en UJO avec son HTML, le branchement du conteneur du bundle avec et sans DoctrineBundle et TwigBundle, les adaptateurs de balisage, et le stockage Doctrine sur SQLite en mémoire |
-| Fonctionnelle | `tests/Functional` | `pdo_sqlite`, ou un serveur nommé par `PHIL_CONTENT_TEST_DATABASE_URL` | un noyau propre (FrameworkBundle, DoctrineBundle, TwigBundle, SecurityBundle, `phil/search-bundle`) : le cycle de publication par Doctrine, un corps BBCode enregistré en UJO sur la ligne en ligne, le contrôleur (200, 301, 404), l'archive, les fonctions Twig, les commandes de console, les événements de page, l'alimentation de recherche, les copies de travail et l'administration |
-| Intégration | `tests/Integration` | un serveur MySQL 8 et un serveur PostgreSQL | le stockage Doctrine — mappage, types DBAL, contrainte d'unicité sur la sentinelle `locale_key` — sur de vrais serveurs ; sautée sans leurs URL |
+| Fonctionnelle | `tests/Functional` | `pdo_sqlite`, ou un serveur nommé par `PHIL_CONTENT_TEST_DATABASE_URL` | un noyau propre (FrameworkBundle, DoctrineBundle, TwigBundle, SecurityBundle, `phil/search-bundle`) : le cycle de publication par Doctrine, un corps BBCode enregistré en UJO sur la ligne en ligne, le contrôleur (200, 301, 404), l'archive, les fonctions Twig, les commandes de console, les événements de page, l'alimentation de recherche, les copies de travail et l'administration, un slug pris par une autre publication entre la vérification et l'écriture montré comme pris |
+| Intégration | `tests/Integration` | un serveur MySQL 8 et un serveur PostgreSQL | le stockage Doctrine — mappage, types DBAL, contrainte d'unicité sur la sentinelle `locale_key`, la racine d'un genre unique refusée deux fois, un slug pris par une autre transaction avant le vidage levé comme `WriteConflict` — sur de vrais serveurs ; sautée sans leurs URL |
 
 Les tests du stockage partagent un cas abstrait, `tests/Unit/Infrastructure/Doctrine/ContentStorageTestCase.php`,
 exécuté sur SQLite dans la suite unitaire et sur MySQL et PostgreSQL dans la suite d'intégration.

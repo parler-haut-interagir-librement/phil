@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8c0241d67ca23492d6f8ec6a2ddfd7f6b1dfa048bdcbf1dc38ab47b5092fd4b4 -->
+<!-- phil-dev source-sha256=0d8f3ec586a69b72814d6f27a724c4b82aa02563fccdc42c887deaff68fca731 -->
 # Plan du site, flux et aperçus
 
 Deux points de terminaison lisent ce qui est publié, un autre ce qui ne l'est pas encore, et un fournisseur donne ses
@@ -76,11 +76,38 @@ $url = $links->url($reference, Locale::fromString('fr'));   // PreviewLinks
 bin/console phil:content:preview-link news:0192f3c4-… fr
 ```
 
-Un lien porte son moment d'expiration — `preview.ttl` secondes plus tard — et un HMAC-SHA256 de la référence, de la
-locale et de ce moment, signé avec `preview.secret`. `PreviewController` produit le rendu du dernier brouillon du
-contenu dans la locale par le gabarit de sa clé, avec les variables d'une page en ligne et `preview` à `true`, envoyé
-avec `X-Robots-Tag: noindex, nofollow` et `Cache-Control: no-store, private`. Un lien non signé, expiré, pour un autre
-contenu ou une autre locale, ou pour un contenu sans brouillon à cet endroit, donne un `404`.
+Un lien porte son moment d'expiration — `preview.ttl` secondes plus tard — et une signature faite avec
+`preview.secret`. `PreviewController` produit le rendu du dernier brouillon du contenu dans la locale par le gabarit de
+sa clé, avec les variables d'une page en ligne et `preview` à `true`, envoyé avec `X-Robots-Tag: noindex, nofollow` et
+`Cache-Control: no-store, private`. Un lien non signé, expiré, pour un autre contenu ou une autre locale, pour une autre
+portée, d'une autre version de la signature, ou pour un contenu sans brouillon à cet endroit, donne un `404`.
+
+### La portée d'un lien
+
+La signature couvre la référence, la locale, l'expiration et **la portée** dans laquelle le lien a été fait :
+
+| L'application | Portée signée | Un lien ouvert… |
+|---|---|---|
+| avec `phil/tenancy-bundle` et un locataire actif | le locataire | dans tout autre locataire est refusé ; sur tout hôte du même locataire, il fonctionne |
+| sans locataire actif | l'hôte du lien, sans sa casse | sur tout autre hôte est refusé |
+
+Un secret partagé par plusieurs locataires ou plusieurs sites ne laisse donc pas un lien fait pour l'un montrer le
+brouillon du contenu de même nom dans un autre. Le lien est fait sur l'hôte du contexte de requête du routeur : celui de
+la requête dans une page, et dans la console l'hôte de `framework.router.default_uri`, qui devrait être l'hôte sur
+lequel le lien est lu. Le locataire de la console est celui que `phil/tenancy-bundle` lit de l'option de sa commande.
+
+### La signature
+
+La signature est `v2.` suivi du HMAC-SHA256, en hexadécimal, de la version, de la portée, de la référence et de la
+locale, chacune écrite après sa longueur, puis de l'expiration. La version vient en premier afin qu'un nouveau format se
+distingue d'un ancien et soit refusé proprement ; une signature qui ne commence pas par la version actuelle est refusée.
+
+### Mise à niveau depuis la version 0.1
+
+Les liens faits par la version 0.1 ne signent ni version ni portée : ils sont refusés, comme un lien non signé, par un
+`404`. Envoyez de nouveau le lien depuis l'administration ou avec `phil:content:preview-link`. `PreviewLinks::verify()`
+prend en dernier argument l'hôte sur lequel le lien a été ouvert, que passe un contrôleur de l'application qui l'appelle
+(`$request->getHost()`).
 
 ## Ce qui n'est pas ici
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8dd7af1f4198b25d793ed47d0e7d7e6e74a27c7c6cbbf94929a82de3eec9e50b -->
+<!-- phil-dev source-sha256=26a69b6a510aa781ff5cbfe19c65f71866313fc6e8fe77a53e5ed850db20ef95 -->
 # Publication et versions
 
 Les brouillons atteignent les lecteurs en étant **copiés** vers l'étape en ligne. Le workflow éditorial de chaque
@@ -78,7 +78,9 @@ ligne de brouillon localisée.
 5. retire la ligne partagée en ligne de la version à partir de laquelle la locale était publiée auparavant, quand
    aucune ligne localisée en ligne ne la lit plus ;
 6. fait du slug de la ligne publiée la **route actuelle** de la locale (`SlugTaken` quand il est devenu entre-temps
-   l'adresse actuelle d'une autre racine ; [routing.md](routing.md)).
+   l'adresse actuelle d'une autre racine ; [routing.md](routing.md)). La route est vidée à part des lignes, de sorte
+   qu'un index unique qui la refuse, quand une autre publication a pris le slug entre la vérification et l'écriture,
+   soit aussi une `SlugTaken`, non une erreur de la base de données.
 
 - **Les locales sont publiées une à la fois.** L'étape en ligne contient, pour chaque locale, les lignes de la
   version à partir de laquelle elle a été publiée en dernier : les lignes en ligne de deux locales peuvent donc

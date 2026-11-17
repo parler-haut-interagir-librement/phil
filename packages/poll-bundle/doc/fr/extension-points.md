@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a80900df1b15a580f6c13f8cb2249271087dea951b36f6d025035ca89a9be8ec -->
+<!-- phil-dev source-sha256=87a89a173708f96bf9d914d31e28d3d7f83c54e8cef70507439d7e6708575682 -->
 # Points d'extension
 
 ## `PollPolicy`
@@ -76,6 +76,19 @@ son résultat par `results()`. Les scores d'une élection sont des milliardième
 les sondages et les bulletins ; le bundle est fourni avec des stockages Doctrine et en mémoire. Un autre stockage
 conserve un nouveau bulletin et sa participation ensemble ou pas du tout, refuse un deuxième bulletin d'un votant avec
 `AlreadyVoted`, et lit les bulletins d'un dépouillement au fil de l'eau plutôt que de les charger d'un coup.
+
+Un autre stockage de sondages implémente `raiseRevisionWhileOpen($id, $at, $write)` comme une seule étape atomique : il
+vérifie que le sondage est ouvert à `$at` sur le sondage tel qu'il est maintenant dans le stockage — non sur un objet
+lu plus tôt —, exécute `$write`, puis augmente la révision, le tout ou rien, et empêche une fermeture de valider entre
+la vérification et l'écriture. Un `UPDATE` conditionnel dont on compte les lignes touchées, ou un verrou sur la ligne du
+sondage, y arrive ; renvoyer `false` sans appeler `$write` est le refus.
+
+### Mise à niveau d'un stockage depuis la version 0.2
+
+`raiseRevisionWhileOpen()` est nouvelle dans `PollRepository` en 0.3 : un stockage de sondages écrit pour la version 0.2
+l'implémente avant de tourner avec la version 0.3. `Polls` n'appelle plus `raiseRevision()` pour un bulletin, seulement
+pour une fermeture et un nouvel horaire. Les stockages du bundle n'ont besoin de rien : le stockage Doctrine utilise les
+colonnes que la table a déjà, sans migration.
 
 ## Les gabarits
 
