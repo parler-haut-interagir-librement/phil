@@ -411,6 +411,24 @@ final class ProviderTest extends TestCase
         $this->assertOAuthError('invalid_token', static fn (): array => $tokens->bearer((string) $response['access_token']));
     }
 
+    public function testUserinfoRefusesTheTokensOfADisabledClient(): void
+    {
+        $account = $this->account();
+        $this->registry()->register('app', 'App', ['https://app.example/cb'], [], ['email']);
+        $response = $this->flow($account, 'openid email');
+        $tokens = $this->tokens();
+        self::assertSame($account->id(), $tokens->bearer((string) $response['access_token'])[0]->id());
+
+        $client = $this->registry()->get('app');
+        self::assertNotNull($client);
+        $this->registry()->disable($client);
+
+        $this->assertOAuthError('invalid_token', static fn (): array => $tokens->bearer((string) $response['access_token']));
+
+        $this->clients->remove($client);
+        $this->assertOAuthError('invalid_token', static fn (): array => $tokens->bearer((string) $response['access_token']));
+    }
+
     public function testConsentWithdrawalRevokesTheClientsTokens(): void
     {
         $account = $this->account();

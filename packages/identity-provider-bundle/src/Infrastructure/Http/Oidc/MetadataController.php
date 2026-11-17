@@ -6,6 +6,7 @@ namespace Phil\IdentityProviderBundle\Infrastructure\Http\Oidc;
 
 use Phil\IdentityProviderBundle\Application\Oidc\ProviderSettings;
 use Phil\IdentityProviderBundle\Application\Oidc\SigningKeys;
+use Phil\IdentityProviderBundle\Domain\Oidc\AuthorizationRequestParser;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -51,7 +52,7 @@ final readonly class MetadataController
             'introspection_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post'],
             'code_challenge_methods_supported' => ['S256'],
             'claims_supported' => ['sub', 'iss', 'aud', 'exp', 'iat', 'auth_time', 'nonce', 'amr', 'sid', 'email', 'email_verified', 'name', 'phone_number', 'phone_number_verified'],
-            'prompt_values_supported' => ['none', 'login', 'consent', 'select_account'],
+            'prompt_values_supported' => AuthorizationRequestParser::PROMPTS,
             'authorization_response_iss_parameter_supported' => true,
             'request_parameter_supported' => false,
             'request_uri_parameter_supported' => false,

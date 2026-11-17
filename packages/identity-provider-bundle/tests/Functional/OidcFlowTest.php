@@ -42,6 +42,7 @@ final class OidcFlowTest extends FunctionalTestCase
         self::assertSame('http://localhost/oidc/jwks', $metadata['jwks_uri']);
         self::assertSame(['code'], $metadata['response_types_supported']);
         self::assertSame(['S256'], $metadata['code_challenge_methods_supported']);
+        self::assertSame(['none', 'login', 'consent'], $metadata['prompt_values_supported'], 'The provider shows no account chooser: select_account is not offered.');
         self::assertTrue($metadata['authorization_response_iss_parameter_supported']);
         self::assertStringContainsString('max-age=300', (string) $this->client->getResponse()->headers->get('Cache-Control'));
         self::assertSame('*', $this->client->getResponse()->headers->get('Access-Control-Allow-Origin'));

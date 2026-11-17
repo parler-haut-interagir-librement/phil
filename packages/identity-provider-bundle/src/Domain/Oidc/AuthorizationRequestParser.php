@@ -25,7 +25,8 @@ final readonly class AuthorizationRequestParser
 {
     public const int MAX_PARAMETER = 2048;
 
-    private const array PROMPTS = ['none', 'login', 'consent', 'select_account'];
+    /** The prompts the provider honours; it shows no account chooser, so `select_account` is refused, not ignored. */
+    public const array PROMPTS = ['none', 'login', 'consent'];
 
     /**
      * @param list<string> $supportedScopes the scopes the provider knows

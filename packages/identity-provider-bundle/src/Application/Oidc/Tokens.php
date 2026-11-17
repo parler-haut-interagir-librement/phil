@@ -202,7 +202,7 @@ final readonly class Tokens
     }
 
     /**
-     * The account and scopes of a bearer access token, for userinfo.
+     * The account and scopes of a bearer access token, for userinfo; refused once its account or its client is disabled.
      *
      * @return array{Account, list<string>}
      *
@@ -211,9 +211,10 @@ final readonly class Tokens
     public function bearer(#[SensitiveParameter] string $accessToken): array
     {
         $issued = $this->accessToken($accessToken);
+        $client = $this->clients->get($issued->clientId());
         $account = $this->accounts->get($issued->accountId());
 
-        if (!$account instanceof Account || $account->isDisabled()) {
+        if (!$client instanceof Client || $client->isDisabled() || !$account instanceof Account || $account->isDisabled()) {
             throw OAuthError::invalidToken();
         }
 

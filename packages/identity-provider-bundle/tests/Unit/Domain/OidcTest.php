@@ -176,6 +176,7 @@ final class OidcTest extends TestCase
         yield 'short challenge' => [['code_challenge' => 'abc'], 'invalid_request'];
         yield 'short challenge, optional' => [['client_id' => 'server', 'code_challenge' => 'abc'], 'invalid_request'];
         yield 'unknown prompt' => [['prompt' => 'login other'], 'invalid_request'];
+        yield 'account chooser, which the provider does not show' => [['prompt' => 'select_account'], 'invalid_request'];
         yield 'none with another' => [['prompt' => 'none login'], 'invalid_request'];
         yield 'negative age' => [['max_age' => '-1'], 'invalid_request'];
         yield 'long age' => [['max_age' => '1234567890'], 'invalid_request'];
