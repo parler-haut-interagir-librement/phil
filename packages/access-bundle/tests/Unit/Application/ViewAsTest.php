@@ -168,8 +168,7 @@ final class ViewAsTest extends TestCase
         } catch (ViewAsRefused) {
         }
 
-        self::assertStringStartsWith('The members of the space could not be read within the budget: ', $stage->logs[0][1]);
-        self::assertSame('warning', $stage->logs[0][0]);
+        self::assertSame([['warning', 'The members of the space could not be read within the budget: The traversal read the store more than 2 times.'], ['warning', 'ada was refused viewing the site as ann, who is no member of the space.']], $stage->logs);
     }
 
     public function testAChangeIsRefusedOnlyDuringAView(): void
@@ -279,5 +278,38 @@ final class ViewAsTest extends TestCase
         $viewAs->stop();
 
         self::assertNull($viewAs->member());
+    }
+
+    public function testEveryRefusalAndEndWorksWithoutALogger(): void
+    {
+        $viewAs = new ViewAs($this->stage->viewAsStore, $this->stage->member, $this->stage->spaces);
+        $this->stage->member->signIn('ada');
+
+        try {
+            $viewAs->start(MemberId::of('olga'));
+            self::fail('The view should be refused.');
+        } catch (ViewAsRefused $viewAsRefused) {
+            self::assertSame('An admin views the site only as a member of the space they administer.', $viewAsRefused->getMessage());
+        }
+
+        $viewAs->start(MemberId::of('ann'));
+        $this->stage->spaces->removeMember(MemberId::of('ann'));
+
+        self::assertNull($viewAs->member());
+        self::assertNull($this->stage->viewAsStore->member);
+    }
+
+    public function testBudgetOverrunsWorkWithoutALogger(): void
+    {
+        $stage = new Stage(new Budget(maxReads: 2));
+        $stage->spaces->addAdmin(MemberId::of('ada'));
+        $stage->spaces->addMember(AccessGroup::of('supporters', [EntryPoint::Purchase]));
+        $stage->groups->join('supporters', MemberId::of('ann'), EntryPoint::Purchase);
+        $stage->member->signIn('ada');
+        $viewAs = new ViewAs($stage->viewAsStore, $stage->member, $stage->spaces);
+
+        $this->expectException(ViewAsRefused::class);
+
+        $viewAs->start(MemberId::of('ann'));
     }
 }

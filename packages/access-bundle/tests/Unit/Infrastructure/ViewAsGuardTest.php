@@ -110,6 +110,15 @@ final class ViewAsGuardTest extends TestCase
         self::assertNull($this->stage->viewAsStore->member);
     }
 
+    public function testARefusalWorksWithoutALogger(): void
+    {
+        $this->stage->viewAs->start(MemberId::of('ann'));
+
+        $this->expectException(AccessDeniedHttpException::class);
+
+        new ViewAsGuard($this->stage->viewAs)->onController($this->event('POST', 'plain'));
+    }
+
     public function testASafeRequestDoesNotReadTheView(): void
     {
         $this->stage->viewAs->start(MemberId::of('ann'));
