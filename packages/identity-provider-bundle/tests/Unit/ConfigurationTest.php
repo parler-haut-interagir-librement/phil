@@ -59,6 +59,15 @@ final class ConfigurationTest extends TestCase
             'base' => 60,
             'max' => 3600,
         ],
+        'login_limiter' => [
+            'enabled' => false,
+            'max_attempts' => 5,
+            'network_max_attempts' => 25,
+            'account_max_attempts' => 50,
+            'interval' => '15 minutes',
+            'cache_pool' => 'cache.rate_limiter',
+            'lock_factory' => null,
+        ],
         'links' => [
             'verify_lifetime' => 86400,
             'reset_lifetime' => 3600,

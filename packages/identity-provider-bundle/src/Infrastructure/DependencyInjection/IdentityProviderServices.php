@@ -88,6 +88,7 @@ use Phil\IdentityProviderBundle\Infrastructure\Secret\PlainSecretCipher;
 use Phil\IdentityProviderBundle\Infrastructure\Security\AccountUserChecker;
 use Phil\IdentityProviderBundle\Infrastructure\Security\AccountUserProvider;
 use Phil\IdentityProviderBundle\Infrastructure\Security\ExternalAuthenticator;
+use Phil\IdentityProviderBundle\Infrastructure\Security\LoginRateLimiter;
 use Phil\IdentityProviderBundle\Infrastructure\Security\OneTimeCodeAuthenticator;
 use Phil\IdentityProviderBundle\Infrastructure\Security\PasskeyAuthenticator;
 use Phil\IdentityProviderBundle\Infrastructure\Security\PasswordSignInListener;
@@ -113,6 +114,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\KeyManagement\EncrypterInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Notifier\TexterInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\Storage\CacheStorage;
 use Symfony\Component\Security\Http\Event\CheckPassportEvent;
 use Symfony\Component\Security\Http\Event\LoginFailureEvent;
 use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
@@ -139,6 +142,7 @@ use Symfony\Component\Security\Http\LoginLink\LoginLinkHandlerInterface;
  *     mailer: array{from: ?string},
  *     password: array{min_score: int<0, 4>, breach_check: bool, http_client: string},
  *     lockout: array{threshold: positive-int, base: positive-int, max: positive-int},
+ *     login_limiter: array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string},
  *     links: array{verify_lifetime: positive-int, reset_lifetime: positive-int},
  *     passkeys: array{rp_id: ?string, rp_name: ?string, origins: list<string>, require_user_verification: bool},
  *     totp: array{issuer: ?string, window: int<0, 10>},
@@ -158,6 +162,9 @@ final class IdentityProviderServices
     public const string STORE_MEMORY = 'memory';
 
     public const string USER_PROVIDER = 'phil_identity_provider.user_provider';
+
+    /** The limiter that the firewall's `login_throttling` names with its option `limiter`. */
+    public const string LOGIN_LIMITER = 'phil_identity_provider.login_limiter';
 
     public const string USER_CHECKER = 'phil_identity_provider.user_checker';
 
@@ -334,6 +341,7 @@ final class IdentityProviderServices
             ->setArguments([new Reference(StrengthEstimator::class.' $phil_identity_provider'), Score::from($config['password']['min_score']), $breaches]);
         $container->register(LockoutPolicy::class, LockoutPolicy::class)
             ->setArguments([$config['lockout']['threshold'], $config['lockout']['base'], $config['lockout']['max']]);
+        self::loginLimiter($container, $config['login_limiter'], $config['secret'], class_exists(RateLimiterFactory::class));
         $container->register(Accounts::class, Accounts::class)
             ->setArguments([new Reference(AccountRepository::class), new Reference('security.user_password_hasher'), new Reference(PasswordRules::class), new Reference(Journal::class), $clock, new Reference(LockoutPolicy::class), new Reference(Sessions::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)])
             ->setPublic(true);
@@ -342,6 +350,42 @@ final class IdentityProviderServices
         $container->register(AccountLinks::class, AccountLinks::class)
             ->setArguments([new Reference(SignedLinks::class), new Reference('router'), new Reference(AccountRepository::class), new Reference(Journal::class), $mailer])
             ->setPublic(true);
+    }
+
+    /**
+     * The limiter of the firewall's `login_throttling`, when `login_limiter` is enabled: three counts of the Rate Limiter
+     * component in the cache pool named, under the lock factory named.
+     *
+     * @param array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string} $limiter
+     * @param bool                                                                                                                                                                                  $installed whether `symfony/rate-limiter` is there
+     *
+     * @throws InvalidConfigurationException when it is enabled without the component
+     */
+    public static function loginLimiter(ContainerBuilder $container, array $limiter, string $secret, bool $installed): void
+    {
+        if (!$limiter['enabled']) {
+            return;
+        }
+
+        if (!$installed) {
+            throw new InvalidConfigurationException('"login_limiter" needs symfony/rate-limiter: install it, or turn the limiter off.');
+        }
+
+        $storage = new Definition(CacheStorage::class, [new Reference($limiter['cache_pool'])]);
+        $lock = null === $limiter['lock_factory'] ? null : new Reference($limiter['lock_factory']);
+        $factory = static fn (string $count, int $limit): Definition => new Definition(RateLimiterFactory::class, [
+            ['id' => 'phil_identity_provider.login.'.$count, 'policy' => 'sliding_window', 'limit' => $limit, 'interval' => $limiter['interval']],
+            $storage,
+            $lock,
+        ]);
+
+        $container->register(self::LOGIN_LIMITER, LoginRateLimiter::class)->setArguments([
+            $factory('network', $limiter['network_max_attempts']),
+            $factory('local', $limiter['max_attempts']),
+            $factory('account', $limiter['account_max_attempts']),
+            $secret,
+        ]);
+        $container->setAlias(LoginRateLimiter::class, self::LOGIN_LIMITER);
     }
 
     /**
