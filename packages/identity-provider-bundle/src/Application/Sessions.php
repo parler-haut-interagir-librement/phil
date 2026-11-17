@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\IdentityProviderBundle\Application;
 
 use Phil\IdentityProviderBundle\Application\Contract\AccountMailer;
+use Phil\IdentityProviderBundle\Application\Contract\Transactions;
 use Phil\IdentityProviderBundle\Application\Event\IdentityEventType;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountSessionRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
@@ -15,7 +16,9 @@ use Psr\Clock\ClockInterface;
 
 /**
  * The signed-in sessions of an account: opened at each sign-in, seen at most once every `touchInterval` seconds,
- * closed one by one or all at once from another device, and closed with the provider's tokens issued in them.
+ * closed one by one or all at once from another device, and closed with the provider's tokens issued in them: the
+ * tokens are revoked, then the session closed, in one transaction. A failure undoes both, or, without a transaction,
+ * leaves the session open, so that closing it again finishes the work.
  *
  * A sign-in from a device the account never used, when it has signed in before, is risky: the session is marked, the
  * event is written, and the account is warned by email.
@@ -29,6 +32,7 @@ final readonly class Sessions
         private ?AccountMailer $mailer = null,
         private ?GrantRepository $grants = null,
         private int $touchInterval = 300,
+        private ?Transactions $transactions = null,
     ) {
     }
 
@@ -127,12 +131,20 @@ final readonly class Sessions
     private function closeSession(AccountSession $session): void
     {
         $now = $this->clock->now();
-        $session->close($now);
-        $this->sessions->save($session);
+        $close = function () use ($session, $now): void {
+            foreach ($this->grants?->forSession($session->id()) ?? [] as $token) {
+                $token->revoke($now);
+                $this->grants?->saveToken($token);
+            }
 
-        foreach ($this->grants?->forSession($session->id()) ?? [] as $token) {
-            $token->revoke($now);
-            $this->grants?->saveToken($token);
+            $session->close($now);
+            $this->sessions->save($session);
+        };
+
+        if ($this->transactions instanceof Transactions) {
+            $this->transactions->run($close);
+        } else {
+            $close();
         }
 
         $this->journal->record(IdentityEventType::SessionClosed, $session->accountId(), ['session' => $session->id()]);

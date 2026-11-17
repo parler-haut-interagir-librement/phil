@@ -15,8 +15,9 @@ use Symfony\Component\Security\Core\User\UserInterface;
  * The account as Symfony Security sees it: identified by its account identifier — never its address, which may
  * change and should not travel in links —, with its roles and its password hash.
  *
- * Two users are the same while their identifier, roles and state are: a password change does not end the session it
- * was made in. Other sessions are closed by their rows, which `Sessions` closes on a password change.
+ * Two users are the same while their identifier, roles, state and password hash are: a session signed in before the
+ * password changed or was removed is signed out at its next request. The session the change was made in holds the
+ * new hash and stays; `Accounts` also closes the rows of the other sessions and their tokens.
  */
 final readonly class AccountUser implements UserInterface, PasswordAuthenticatedUserInterface, EquatableInterface
 {
@@ -73,6 +74,7 @@ final readonly class AccountUser implements UserInterface, PasswordAuthenticated
         return $user instanceof self
             && $user->account->id() === $this->account->id()
             && $user->getRoles() === $this->getRoles()
-            && $user->account->isDisabled() === $this->account->isDisabled();
+            && $user->account->isDisabled() === $this->account->isDisabled()
+            && hash_equals($this->account->passwordHash() ?? '', $user->account->passwordHash() ?? '');
     }
 }

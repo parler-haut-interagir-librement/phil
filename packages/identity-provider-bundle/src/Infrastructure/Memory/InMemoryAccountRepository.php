@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Infrastructure\Memory;
 
+use Closure;
 use Override;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
@@ -39,6 +40,23 @@ final class InMemoryAccountRepository implements AccountRepository, ResetInterfa
         foreach ($accounts as $account) {
             $this->accounts[$account->id()] = clone $account;
         }
+    }
+
+    /**
+     * @param Closure(Account): bool $change
+     */
+    #[Override]
+    public function apply(Account $account, Closure $change): bool
+    {
+        $stored = $this->get($account->id());
+
+        if (!$stored instanceof Account || !$change($stored)) {
+            return false;
+        }
+
+        $this->save($stored);
+
+        return true;
     }
 
     #[Override]

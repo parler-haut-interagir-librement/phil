@@ -10,10 +10,13 @@ use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
 use Phil\IdentityProviderBundle\Domain\Oidc\TokenKind;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountSessionRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryGrantRepository;
+use Phil\IdentityProviderBundle\Tests\Unit\Fixture\FailingSessions;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\RecordingMailer;
+use Phil\IdentityProviderBundle\Tests\Unit\Fixture\RecordingTransactions;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Services;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 #[CoversClass(Sessions::class)]
 final class SessionsTest extends TestCase
@@ -74,6 +77,36 @@ final class SessionsTest extends TestCase
         self::assertEquals([$risky], $sessions->openFor($account));
         self::assertSame(1, $sessions->closeAll($account));
         self::assertSame([], $sessions->openFor($account));
+    }
+
+    public function testTheTokensAreRevokedThenTheSessionClosedInOneTransaction(): void
+    {
+        $services = new Services();
+        $store = new FailingSessions();
+        $grants = new InMemoryGrantRepository();
+        $transactions = new RecordingTransactions();
+        $sessions = new Sessions($store, $services->journal, $services->clock, null, $grants, 300, $transactions);
+        $account = $services->account();
+        $session = $sessions->open($account, 'Firefox on Linux', ['pwd']);
+        $grants->saveToken(IssuedToken::issue('jti', TokenKind::Access, 'f', 'app', $account->id(), [], $session->id(), $services->clock->now(), [], $services->clock->now(), $services->clock->now()->modify('+1 hour')));
+
+        $store->failNext = true;
+
+        try {
+            $sessions->close($account, $session->id());
+            self::fail('The failure of the store was swallowed.');
+        } catch (RuntimeException) {
+        }
+
+        self::assertSame(['begin'], $transactions->runs);
+        self::assertFalse($store->get($session->id())?->isClosed(), 'A close cut short leaves the session open, to be closed again.');
+        self::assertTrue($grants->token('jti')?->isRevoked());
+        self::assertNotSame(IdentityEventType::SessionClosed->value, array_last($services->audit->actions()));
+
+        self::assertTrue($sessions->close($account, $session->id()));
+        self::assertSame(['begin', 'begin', 'commit'], $transactions->runs);
+        self::assertTrue($store->get($session->id())->isClosed());
+        self::assertSame(IdentityEventType::SessionClosed->value, array_last($services->audit->actions()));
     }
 
     public function testWithoutMailerNorProvider(): void

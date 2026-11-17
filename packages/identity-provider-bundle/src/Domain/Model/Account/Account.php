@@ -41,8 +41,9 @@ final class Account
         private readonly string $id,
         #[ORM\Column(name: 'email', length: self::EMAIL_MAX_LENGTH)]
         private string $email,
+        // Not read-only: the store reads the row again over the object when it applies a change under a lock.
         #[ORM\Column(name: 'created_at')]
-        private readonly DateTimeImmutable $createdAt,
+        private DateTimeImmutable $createdAt,
         #[ORM\Column(name: 'display_name', length: self::NAME_MAX_LENGTH, nullable: true)]
         private ?string $displayName = null,
         #[ORM\Column(name: 'email_verified_at', nullable: true)]

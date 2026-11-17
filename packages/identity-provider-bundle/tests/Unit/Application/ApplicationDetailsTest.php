@@ -125,6 +125,8 @@ final class ApplicationDetailsTest extends TestCase
         self::assertSame([IdentityEventType::SignInFailed->value, $account->id(), ['failures' => 1]], $services->audit->last());
         self::assertNotContains(IdentityEventType::AccountLocked->value, $services->audit->actions());
 
+        $account = $store->get($account->id());
+        self::assertNotNull($account);
         $accounts->recordSignIn($account);
         self::assertSame($saves + 2, $store->saves);
         self::assertSame(0, $store->get($account->id())?->failedSignIns());

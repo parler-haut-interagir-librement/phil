@@ -9,6 +9,8 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Name\OptionallyQualifiedName;
 use Override;
+use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
+use Phil\IdentityProviderBundle\Domain\Model\Session\AccountSession;
 use Phil\IdentityProviderBundle\Domain\Model\Totp\TotpCredential;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountSessionRepository;
@@ -18,7 +20,9 @@ use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineLinkedIdentityRe
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrinePasskeyRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineSecondFactorRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineSigningKeyRepository;
+use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineTransactions;
 use PHPUnit\Framework\Attributes\CoversClass;
+use RuntimeException;
 
 /**
  * The Doctrine stores on SQLite in memory: the eleven tables of the six modules.
@@ -31,6 +35,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(DoctrineClientRepository::class)]
 #[CoversClass(DoctrineGrantRepository::class)]
 #[CoversClass(DoctrineSigningKeyRepository::class)]
+#[CoversClass(DoctrineTransactions::class)]
 final class DoctrineRepositoryTest extends DoctrineRepositoryTestCase
 {
     #[Override]
@@ -54,6 +59,24 @@ final class DoctrineRepositoryTest extends DoctrineRepositoryTestCase
             return false;
         }));
         self::assertSame(99, $seen);
+    }
+
+    public function testATransactionUndoesTheWritesOfEveryStoreWhenItsWorkThrows(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $this->accounts()->save(Account::register(self::ADA, 'ada@example.com', $now));
+
+        try {
+            $this->transactions()->run(function () use ($now): never {
+                $this->sessions()->save(AccountSession::open(str_repeat('a', 43), self::ADA, 'A', [], false, $now));
+
+                throw new RuntimeException('failed');
+            });
+        } catch (RuntimeException) {
+        }
+
+        $this->clear();
+        self::assertNull($this->sessions()->get(str_repeat('a', 43)));
     }
 
     public function testTheTables(): void

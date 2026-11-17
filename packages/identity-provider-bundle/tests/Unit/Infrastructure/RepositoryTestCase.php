@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\IdentityProviderBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
+use Phil\IdentityProviderBundle\Application\Contract\Transactions;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountSessionRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\ClientRepository;
@@ -28,6 +29,7 @@ use Phil\IdentityProviderBundle\Domain\Model\Totp\TotpCredential;
 use Phil\IdentityProviderBundle\Domain\Oidc\TokenKind;
 use Phil\IdentityProviderBundle\Domain\WebAuthn\RegisteredCredential;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 /**
  * What every store keeps and reads back, the same in memory and in each database: the rows written, read again once
@@ -54,6 +56,8 @@ abstract class RepositoryTestCase extends TestCase
     abstract protected function grants(): GrantRepository;
 
     abstract protected function keys(): SigningKeyRepository;
+
+    abstract protected function transactions(): Transactions;
 
     /**
      * Forgets what the store holds in memory, so that the next read comes from its storage.
@@ -347,6 +351,56 @@ abstract class RepositoryTestCase extends TestCase
         }));
         $this->clear();
         self::assertSame(['a', null], $this->factors()->recoveryCodes(self::ADA)?->hashes());
+    }
+
+    public function testAChangeToAnAccountAppliesToItsStoredRow(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $this->accounts()->save(Account::register(self::ADA, 'ada@example.com', $now));
+        $this->clear();
+        $held = $this->accounts()->get(self::ADA);
+        self::assertNotNull($held);
+        $other = $this->accounts()->get(self::ADA);
+        self::assertNotNull($other);
+        $other->rename('Ada');
+        $this->accounts()->save($other);
+
+        $seen = null;
+        self::assertTrue($this->accounts()->apply($held, static function (Account $current) use (&$seen, $now): bool {
+            $seen = $current->displayName();
+            $current->changePassword('$argon2id$hash', $now);
+
+            return true;
+        }));
+        self::assertSame('Ada', $seen);
+        self::assertFalse($this->accounts()->apply($held, static function (Account $current) use ($now): bool {
+            $current->changePassword('$argon2id$other', $now);
+
+            return false;
+        }));
+        $this->clear();
+        $stored = $this->accounts()->get(self::ADA);
+        self::assertSame(['Ada', '$argon2id$hash'], [$stored?->displayName(), $stored?->passwordHash()]);
+        self::assertSame($now->getTimestamp(), $stored?->createdAt()->getTimestamp());
+
+        self::assertNotNull($stored);
+        $this->accounts()->remove($stored);
+        $this->clear();
+        self::assertFalse($this->accounts()->apply($held, static fn (Account $current): bool => true));
+    }
+
+    public function testATransactionHandsBackWhatItsWorkReturns(): void
+    {
+        self::assertSame(42, $this->transactions()->run(static fn (): int => 42));
+    }
+
+    public function testATransactionLetsTheExceptionOfItsWorkThrough(): void
+    {
+        $this->expectExceptionObject(new RuntimeException('failed'));
+
+        $this->transactions()->run(static function (): never {
+            throw new RuntimeException('failed');
+        });
     }
 
     public function testSigningKeys(): void

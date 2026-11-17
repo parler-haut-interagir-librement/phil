@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Tests\Unit\Fixture;
 
+use Closure;
 use Override;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
@@ -37,6 +38,21 @@ final class CountingAccounts implements AccountRepository
     {
         ++$this->saves;
         $this->inner->save(...$accounts);
+    }
+
+    /**
+     * @param Closure(Account): bool $change
+     */
+    #[Override]
+    public function apply(Account $account, Closure $change): bool
+    {
+        $applied = $this->inner->apply($account, $change);
+
+        if ($applied) {
+            ++$this->saves;
+        }
+
+        return $applied;
     }
 
     #[Override]

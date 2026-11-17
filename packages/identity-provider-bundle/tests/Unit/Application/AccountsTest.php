@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Tests\Unit\Application;
 
+use LogicException;
 use Phil\IdentityProviderBundle\Application\Accounts;
 use Phil\IdentityProviderBundle\Application\AccountUser;
 use Phil\IdentityProviderBundle\Application\Event\IdentityEvent;
@@ -11,7 +12,9 @@ use Phil\IdentityProviderBundle\Application\Event\IdentityEventType;
 use Phil\IdentityProviderBundle\Application\Exception\Refused;
 use Phil\IdentityProviderBundle\Application\Journal;
 use Phil\IdentityProviderBundle\Application\PasswordRules;
+use Phil\IdentityProviderBundle\Application\Sessions;
 use Phil\IdentityProviderBundle\Domain\Security\LockoutPolicy;
+use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountSessionRepository;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Services;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -183,10 +186,12 @@ final class AccountsTest extends TestCase
         $account = $services->account();
 
         $accounts->recordFailedSignIn($account);
-        self::assertFalse($account->isLocked($services->clock->now()));
+        self::assertFalse($services->accounts->get($account->id())?->isLocked($services->clock->now()));
         $accounts->recordFailedSignIn($account);
-        self::assertTrue($account->isLocked($services->clock->now()));
+        self::assertTrue($services->accounts->get($account->id())?->isLocked($services->clock->now()));
         $accounts->recordFailedSignIn($account);
+        $account = $services->accounts->get($account->id());
+        self::assertNotNull($account);
 
         $locks = array_values(array_filter($services->audit->records, static fn (array $record): bool => IdentityEventType::AccountLocked->value === $record[0]));
         self::assertCount(1, $locks);
@@ -201,6 +206,111 @@ final class AccountsTest extends TestCase
         $accounts->recordSignIn($account);
         self::assertEquals($saved, $account);
         $accounts->save($account);
+    }
+
+    public function testTwoFailedSignInsAtOnceCountTwice(): void
+    {
+        $services = new Services();
+        $accounts = $services->accounts(new LockoutPolicy(2, 60, 60));
+        $id = $services->account()->id();
+        $first = $services->accounts->get($id);
+        $second = $services->accounts->get($id);
+        self::assertNotNull($first);
+        self::assertNotNull($second);
+
+        $accounts->recordFailedSignIn($first);
+        $accounts->recordFailedSignIn($second);
+
+        self::assertSame(2, $services->accounts->get($id)?->failedSignIns());
+        self::assertTrue($services->accounts->get($id)->isLocked($services->clock->now()));
+        self::assertSame([IdentityEventType::SignInFailed->value, $id, ['failures' => 2]], array_values(array_filter($services->audit->records, static fn (array $record): bool => IdentityEventType::SignInFailed->value === $record[0]))[1]);
+    }
+
+    public function testAFailedSignInOfAnAccountNoLongerStoredIsNotCounted(): void
+    {
+        $services = new Services();
+        $account = $services->account();
+        $services->accounts->remove($account);
+        $before = \count($services->audit->records);
+
+        $services->accounts()->recordFailedSignIn($account);
+
+        self::assertCount($before, $services->audit->records);
+    }
+
+    public function testANewPasswordClosesTheOtherSessions(): void
+    {
+        $services = new Services();
+        $store = new InMemoryAccountSessionRepository();
+        $sessions = new Sessions($store, $services->journal, $services->clock);
+        $accounts = $services->accounts(sessions: $sessions);
+        $account = $services->account();
+        $current = $sessions->open($account, 'Firefox on Linux', ['pwd']);
+        $other = $sessions->open($account, 'Safari on iOS', ['pwd']);
+
+        $accounts->changePassword($account, 'violet staple horse battery correct', keepSession: $current->id());
+
+        self::assertFalse($store->get($current->id())?->isClosed());
+        self::assertTrue($store->get($other->id())?->isClosed());
+
+        $accounts->changePassword($account, Services::STRONG);
+        self::assertTrue($store->get($current->id())->isClosed());
+    }
+
+    public function testAResetLinkSetsItsPasswordOnce(): void
+    {
+        $services = new Services();
+        $store = new InMemoryAccountSessionRepository();
+        $sessions = new Sessions($store, $services->journal, $services->clock);
+        $accounts = $services->accounts(sessions: $sessions);
+        $id = $services->account()->id();
+        $session = $sessions->open($services->accounts->get($id) ?? throw new LogicException(), 'Firefox on Linux', ['pwd']);
+        $first = $services->accounts->get($id);
+        $second = $services->accounts->get($id);
+        self::assertNotNull($first);
+        self::assertNotNull($second);
+        $services->clock->modify('+1 minute');
+
+        self::assertTrue($accounts->resetPassword($first, 'violet staple horse battery correct'));
+        self::assertFalse($accounts->resetPassword($second, 'zebra crossing violin quartz lamp'));
+
+        $stored = $services->accounts->get($id);
+        self::assertNotNull($stored);
+        self::assertSame('violet staple horse battery correct', $stored->passwordHash());
+        self::assertSame($services->clock->now()->getTimestamp(), $stored->passwordChangedAt()?->getTimestamp());
+        self::assertTrue($stored->isEmailVerified());
+        self::assertTrue($store->get($session->id())?->isClosed());
+        self::assertSame([IdentityEventType::PasswordChanged->value, IdentityEventType::EmailVerified->value, IdentityEventType::SessionClosed->value], \array_slice($services->audit->actions(), -3));
+        self::assertSame([IdentityEventType::PasswordChanged->value, $id, ['reset' => true]], $services->audit->records[\count($services->audit->records) - 3]);
+
+        $third = $services->accounts->get($id);
+        self::assertNotNull($third);
+        self::assertTrue($accounts->resetPassword($third, Services::STRONG));
+        self::assertSame(IdentityEventType::PasswordChanged->value, array_last($services->audit->actions()));
+    }
+
+    public function testAResetLinkStopsOnceThePasswordWasSetAgainEvenToTheSameHash(): void
+    {
+        $services = new Services();
+        $accounts = $services->accounts();
+        $id = $services->account()->id();
+        $link = $services->accounts->get($id);
+        self::assertNotNull($link);
+        $services->clock->modify('+1 minute');
+        $stored = $services->accounts->get($id);
+        self::assertNotNull($stored);
+        $stored->changePassword($stored->passwordHash(), $services->clock->now());
+        $services->accounts->save($stored);
+
+        self::assertFalse($accounts->resetPassword($link, 'violet staple horse battery correct'));
+        self::assertSame(Services::STRONG, $services->accounts->get($id)?->passwordHash());
+
+        try {
+            $accounts->resetPassword($stored, 'short');
+            self::fail('Reset to a short password.');
+        } catch (Refused $refused) {
+            self::assertSame(['password.too_short'], $refused->reasons);
+        }
     }
 
     public function testTheUserOfSymfonySecurity(): void
@@ -227,6 +337,13 @@ final class AccountsTest extends TestCase
         self::assertFalse($user->isEqualTo(new AccountUser($copy)));
         $copy = clone $account;
         $copy->changePassword('other', $services->clock->now());
+        self::assertFalse($user->isEqualTo(new AccountUser($copy)), 'A session signed in before the password changed ends.');
+        $copy = clone $account;
+        $copy->changePassword(null, $services->clock->now());
+        self::assertFalse($user->isEqualTo(new AccountUser($copy)), 'A session signed in before the password was removed ends.');
+        self::assertFalse(new AccountUser($copy)->isEqualTo($user));
+        $copy = clone $account;
+        $copy->changePassword(Services::STRONG, $services->clock->now()->modify('+1 hour'));
         self::assertTrue($user->isEqualTo(new AccountUser($copy)));
     }
 

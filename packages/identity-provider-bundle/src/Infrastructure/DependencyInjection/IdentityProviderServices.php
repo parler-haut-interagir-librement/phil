@@ -12,6 +12,7 @@ use Phil\IdentityProviderBundle\Application\Contract\AuditRecorder;
 use Phil\IdentityProviderBundle\Application\Contract\ChallengeStore;
 use Phil\IdentityProviderBundle\Application\Contract\SecretCipher;
 use Phil\IdentityProviderBundle\Application\Contract\SmsSender;
+use Phil\IdentityProviderBundle\Application\Contract\Transactions;
 use Phil\IdentityProviderBundle\Application\ExternalIdentities;
 use Phil\IdentityProviderBundle\Application\Journal;
 use Phil\IdentityProviderBundle\Application\Modules;
@@ -53,6 +54,7 @@ use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineLinkedIdentityRe
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrinePasskeyRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineSecondFactorRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineSigningKeyRepository;
+use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineTransactions;
 use Phil\IdentityProviderBundle\Infrastructure\Federation\ExternalProviders;
 use Phil\IdentityProviderBundle\Infrastructure\Http\AccountController;
 use Phil\IdentityProviderBundle\Infrastructure\Http\AuthenticatorRouteController;
@@ -70,6 +72,7 @@ use Phil\IdentityProviderBundle\Infrastructure\Http\SessionController;
 use Phil\IdentityProviderBundle\Infrastructure\Http\StepUpController;
 use Phil\IdentityProviderBundle\Infrastructure\Http\TotpController;
 use Phil\IdentityProviderBundle\Infrastructure\Mailer\MailerAccountMailer;
+use Phil\IdentityProviderBundle\Infrastructure\Memory\ImmediateTransactions;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountSessionRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryClientRepository;
@@ -262,6 +265,13 @@ final class IdentityProviderServices
      */
     private static function stores(ContainerBuilder $container, array $config, array $modules): void
     {
+        if (self::STORE_DOCTRINE === $config['store']) {
+            $container->register(Transactions::class, DoctrineTransactions::class)
+                ->setArguments([new Reference(\sprintf('doctrine.orm.%s_entity_manager', $config['entity_manager']))]);
+        } else {
+            $container->register(Transactions::class, ImmediateTransactions::class);
+        }
+
         foreach (self::REPOSITORIES as $module => $repositories) {
             if (!\in_array($module, $modules, true)) {
                 continue;
@@ -325,7 +335,7 @@ final class IdentityProviderServices
         $container->register(LockoutPolicy::class, LockoutPolicy::class)
             ->setArguments([$config['lockout']['threshold'], $config['lockout']['base'], $config['lockout']['max']]);
         $container->register(Accounts::class, Accounts::class)
-            ->setArguments([new Reference(AccountRepository::class), new Reference('security.user_password_hasher'), new Reference(PasswordRules::class), new Reference(Journal::class), $clock, new Reference(LockoutPolicy::class)])
+            ->setArguments([new Reference(AccountRepository::class), new Reference('security.user_password_hasher'), new Reference(PasswordRules::class), new Reference(Journal::class), $clock, new Reference(LockoutPolicy::class), new Reference(Sessions::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)])
             ->setPublic(true);
         $container->register(SignedLinks::class, SignedLinks::class)
             ->setArguments([$config['secret'], $clock, $config['links']['verify_lifetime'], $config['links']['reset_lifetime']]);
@@ -359,6 +369,7 @@ final class IdentityProviderServices
                     new Reference(AccountMailer::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     \in_array(Modules::OIDC, $modules, true) ? new Reference(GrantRepository::class) : null,
                     $config['sessions']['touch_interval'],
+                    new Reference(Transactions::class),
                 ])
                 ->setPublic(true);
             $container->register(SessionListener::class, SessionListener::class)

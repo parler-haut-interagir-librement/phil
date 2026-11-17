@@ -6,6 +6,7 @@ namespace Phil\IdentityProviderBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
 use Override;
+use Phil\IdentityProviderBundle\Application\Contract\Transactions;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountSessionRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\ClientRepository;
@@ -28,6 +29,7 @@ use Phil\IdentityProviderBundle\Domain\Model\Totp\RecoveryCodeSet;
 use Phil\IdentityProviderBundle\Domain\Model\Totp\TotpCredential;
 use Phil\IdentityProviderBundle\Domain\Oidc\TokenKind;
 use Phil\IdentityProviderBundle\Domain\WebAuthn\RegisteredCredential;
+use Phil\IdentityProviderBundle\Infrastructure\Memory\ImmediateTransactions;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountSessionRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryClientRepository;
@@ -40,6 +42,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Contracts\Service\ResetInterface;
 
 #[CoversClass(InMemoryAccountRepository::class)]
+#[CoversClass(ImmediateTransactions::class)]
 #[CoversClass(InMemoryPasskeyRepository::class)]
 #[CoversClass(InMemorySecondFactorRepository::class)]
 #[CoversClass(InMemoryAccountSessionRepository::class)]
@@ -187,6 +190,12 @@ final class MemoryRepositoryTest extends RepositoryTestCase
     protected function accounts(): AccountRepository
     {
         return $this->store(InMemoryAccountRepository::class);
+    }
+
+    #[Override]
+    protected function transactions(): Transactions
+    {
+        return new ImmediateTransactions();
     }
 
     #[Override]

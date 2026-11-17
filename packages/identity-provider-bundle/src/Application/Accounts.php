@@ -22,6 +22,10 @@ use Symfony\Component\Uid\Ulid;
  *
  * Registration with an address already known creates nothing and says nothing different: the page answers the same,
  * and an event lets the application warn the owner of the address, so that the form does not tell who has an account.
+ *
+ * A new password closes the account's other sessions and the tokens issued in them; a reset closes them all. A reset
+ * link is used once: its password is set only while the account still has the password the link was signed over,
+ * read again under a lock of its row. Failed sign-ins are counted the same way, so that two at once count twice.
  */
 final readonly class Accounts
 {
@@ -32,6 +36,7 @@ final readonly class Accounts
         private Journal $journal,
         private ClockInterface $clock,
         private LockoutPolicy $lockout = new LockoutPolicy(),
+        private ?Sessions $sessions = null,
     ) {
     }
 
@@ -138,11 +143,12 @@ final readonly class Accounts
     }
 
     /**
-     * Sets a new password; the current one is checked when the account has one and it is given.
+     * Sets a new password; the current one is checked when the account has one and it is given. Every session of the
+     * account is closed but the one kept, the one the change is made in.
      *
      * @throws Refused when the current password does not match or the new one breaks a rule
      */
-    public function changePassword(Account $account, #[SensitiveParameter] string $new, #[SensitiveParameter] ?string $current = null): void
+    public function changePassword(Account $account, #[SensitiveParameter] string $new, #[SensitiveParameter] ?string $current = null, ?string $keepSession = null): void
     {
         if (null !== $current && $account->hasPassword() && !$this->hasher->isPasswordValid(new AccountUser($account), $current)) {
             throw Refused::because('password.current_invalid');
@@ -155,6 +161,57 @@ final readonly class Accounts
         $account->changePassword($this->hasher->hashPassword(new AccountUser($account), $new), $this->clock->now());
         $this->accounts->save($account);
         $this->journal->record(IdentityEventType::PasswordChanged, $account->id());
+        $this->sessions?->closeAll($account, $keepSession);
+    }
+
+    /**
+     * Sets the password a reset link asked for, and verifies the address the link reached, once: only while the stored
+     * account still has the password the link was signed over — the one of the account given. Every session of the
+     * account is closed.
+     *
+     * @return bool false when another use of the link, or another change of the password, came first
+     *
+     * @throws Refused when the new password breaks a rule
+     */
+    public function resetPassword(Account $account, #[SensitiveParameter] string $new): bool
+    {
+        if ([] !== $problems = $this->rules->problems($new, $account)) {
+            throw Refused::because(...$problems);
+        }
+
+        $signedHash = $account->passwordHash();
+        $signedAt = $account->passwordChangedAt()?->format('U.u');
+        $hash = $this->hasher->hashPassword(new AccountUser($account), $new);
+        $now = $this->clock->now();
+        $verified = false;
+        $applied = $this->accounts->apply($account, static function (Account $stored) use ($signedHash, $signedAt, $hash, $now, &$verified): bool {
+            if ($stored->passwordHash() !== $signedHash || $stored->passwordChangedAt()?->format('U.u') !== $signedAt) {
+                return false;
+            }
+
+            $stored->changePassword($hash, $now);
+            $verified = !$stored->isEmailVerified();
+
+            if ($verified) {
+                $stored->verifyEmail($now);
+            }
+
+            return true;
+        });
+
+        if (!$applied) {
+            return false;
+        }
+
+        $this->journal->record(IdentityEventType::PasswordChanged, $account->id(), ['reset' => true]);
+
+        if ($verified) {
+            $this->journal->record(IdentityEventType::EmailVerified, $account->id());
+        }
+
+        $this->sessions?->closeAll($account);
+
+        return true;
     }
 
     public function removePassword(Account $account): void
@@ -169,13 +226,27 @@ final readonly class Accounts
      */
     public function recordFailedSignIn(Account $account): void
     {
-        $wasLocked = $account->isLocked($now = $this->clock->now());
-        $account->recordFailedSignIn($now, $this->lockout);
-        $this->accounts->save($account);
-        $this->journal->record(IdentityEventType::SignInFailed, $account->id(), ['failures' => $account->failedSignIns()]);
+        $now = $this->clock->now();
+        $failures = 0;
+        $lockedUntil = null;
+        $lockout = $this->lockout;
+        $applied = $this->accounts->apply($account, static function (Account $stored) use ($now, $lockout, &$failures, &$lockedUntil): bool {
+            $wasLocked = $stored->isLocked($now);
+            $stored->recordFailedSignIn($now, $lockout);
+            $failures = $stored->failedSignIns();
+            $lockedUntil = !$wasLocked && $stored->isLocked($now) ? $stored->lockedUntil() : null;
 
-        if (!$wasLocked && $account->isLocked($now)) {
-            $this->journal->record(IdentityEventType::AccountLocked, $account->id(), ['until' => $account->lockedUntil()?->getTimestamp()]);
+            return true;
+        });
+
+        if (!$applied) {
+            return;
+        }
+
+        $this->journal->record(IdentityEventType::SignInFailed, $account->id(), ['failures' => $failures]);
+
+        if ($lockedUntil instanceof DateTimeImmutable) {
+            $this->journal->record(IdentityEventType::AccountLocked, $account->id(), ['until' => $lockedUntil->getTimestamp()]);
         }
     }
 

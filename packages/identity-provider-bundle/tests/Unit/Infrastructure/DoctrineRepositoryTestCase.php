@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use Override;
+use Phil\IdentityProviderBundle\Application\Contract\Transactions;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountSessionRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\ClientRepository;
@@ -25,6 +26,7 @@ use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineLinkedIdentityRe
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrinePasskeyRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineSecondFactorRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineSigningKeyRepository;
+use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineTransactions;
 
 /**
  * The Doctrine stores on a connection, their tables dropped and created from the mapping.
@@ -55,6 +57,12 @@ abstract class DoctrineRepositoryTestCase extends RepositoryTestCase
         }
 
         return $this->entityManager;
+    }
+
+    #[Override]
+    protected function transactions(): Transactions
+    {
+        return new DoctrineTransactions($this->entityManager());
     }
 
     #[Override]

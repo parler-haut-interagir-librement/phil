@@ -10,6 +10,7 @@ use Phil\IdentityProviderBundle\Application\Exception\Refused;
 use Phil\IdentityProviderBundle\Application\Modules;
 use Phil\IdentityProviderBundle\Application\SignedLinks;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
+use Phil\IdentityProviderBundle\Infrastructure\Security\SessionListener;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -115,8 +116,9 @@ final readonly class AccountController
             $this->pages->checkCsrf($request);
 
             try {
-                $this->accounts->changePassword($account, $request->request->getString('password'));
-                $this->accounts->verifyEmail($account);
+                if (!$this->accounts->resetPassword($account, $request->request->getString('password'))) {
+                    return $this->pages->render('account/link_invalid', [], Response::HTTP_GONE);
+                }
 
                 return $this->pages->render('account/reset_done');
             } catch (Refused $refused) {
@@ -174,7 +176,7 @@ final readonly class AccountController
         $this->pages->checkCsrf($request);
 
         try {
-            $this->accounts->changePassword($account, $request->request->getString('password'));
+            $this->accounts->changePassword($account, $request->request->getString('password'), keepSession: SessionListener::id($request));
         } catch (Refused $refused) {
             return $this->pages->render('account/account', ['modules' => $this->modules->enabled(), 'sent' => false, 'saved' => false, 'errors' => $refused->reasons], Response::HTTP_UNPROCESSABLE_ENTITY);
         }

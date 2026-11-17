@@ -8,6 +8,7 @@ use Phil\IdentityProviderBundle\Application\Accounts;
 use Phil\IdentityProviderBundle\Application\AccountUser;
 use Phil\IdentityProviderBundle\Application\Journal;
 use Phil\IdentityProviderBundle\Application\PasswordRules;
+use Phil\IdentityProviderBundle\Application\Sessions;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
 use Phil\IdentityProviderBundle\Domain\Security\LockoutPolicy;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountRepository;
@@ -54,9 +55,9 @@ final class Services
         $this->rules = new PasswordRules(self::$estimator ??= new StrengthEstimator(), breaches: $breaches ? new BreachChecker(InMemoryBreachSource::fromPasswords(['zebra crossing violin quartz' => 5])) : null);
     }
 
-    public function accounts(?LockoutPolicy $policy = null): Accounts
+    public function accounts(?LockoutPolicy $policy = null, ?Sessions $sessions = null): Accounts
     {
-        return new Accounts($this->accounts, $this->hasher, $this->rules, $this->journal, $this->clock, $policy ?? new LockoutPolicy());
+        return new Accounts($this->accounts, $this->hasher, $this->rules, $this->journal, $this->clock, $policy ?? new LockoutPolicy(), $sessions);
     }
 
     public function account(string $email = 'ada@example.com', ?string $password = self::STRONG): Account
