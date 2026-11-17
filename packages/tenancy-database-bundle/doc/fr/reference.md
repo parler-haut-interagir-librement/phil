@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bd3dda486210fa5cceff305e80efbdf498392494b556f2bcbf2b970350c2de86 -->
+<!-- phil-dev source-sha256=043d779ad69f34ce3c41bccfae9668df14c47fcc5c2e8025f3fe1e88d9e416c9 -->
 # Référence
 
 Chaque type public du paquet, par couche.
@@ -29,6 +29,7 @@ Chaque type public du paquet, par couche.
 | `Doctrine\TenantDatabaseRouter` | `final class`, `ResetInterface` | La base sur laquelle la connexion gérée s'ouvre ; `parameters()`, `pinned()`, `route()`, `current()` |
 | `Doctrine\TenantDatabaseMiddleware`, `TenantDatabaseDriver` | middleware et pilote DBAL | Ouvrent chaque connexion avec les paramètres du routeur |
 | `Doctrine\TenantConnectionSwitch` | `final class`, `TenantActivation`, `ResetInterface` | Déplace la connexion avec le locataire ; refuse dans une transaction ; vide les gestionnaires d'entités |
+| `Doctrine\RollBackOpenTransactions` | `final readonly class`, écouteur d'événements | Annule les transactions restées ouvertes à la fin d'une requête, d'une commande ou d'un message, puis quitte le locataire |
 | `Doctrine\PinnedConnection` | `final class`, statique | `open()` et `shared()` : une connexion à elle, avec les paramètres et la configuration de la connexion gérée, fixée sur une base |
 | `Doctrine\StoreTables` | `final class`, statique | Les tables `phil_tenancy_placement` et `phil_tenancy_suspension` : `configure()`, et `upsert()` pour MySQL, MariaDB, PostgreSQL et SQLite |
 | `Doctrine\StoreSchemaListener` | `final readonly class`, écouteur de `postGenerateSchema` | Ajoute les tables des stockages `dbal` au schéma de leur connexion |
@@ -56,7 +57,7 @@ Chaque type public du paquet, par couche.
 
 | Type | Rôle |
 |---|---|
-| `PhilTenancyDatabaseBundle` | La configuration `phil_tenancy_database`, les services ci-dessus, et, avec `availability: cache`, le pool `phil_tenancy_database.availability` ; les constantes `DBAL`, `CACHE`, `STORE_CONNECTION` et `AVAILABILITY_POOL` |
+| `PhilTenancyDatabaseBundle` | La configuration `phil_tenancy_database`, les services ci-dessus, et, avec `availability: cache`, le pool `phil_tenancy_database.availability` ; les constantes `DBAL`, `CACHE`, `STORE_CONNECTION`, `AVAILABILITY_POOL` et `ROLLBACK_PRIORITY` |
 
 | Identifiant de service | Classe |
 |---|---|

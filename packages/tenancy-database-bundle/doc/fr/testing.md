@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c1e4bcc773701ab092acc9614a65a828377aba8bd79a83b1ba3ee0780a8c6ed9 -->
+<!-- phil-dev source-sha256=47e5841342865e471d70ec1b99cdb3f3a6f2921c882619d997d5715df62bd1d1 -->
 # Tests
 
 ## Les tests du paquet
@@ -54,18 +54,31 @@ lui-même, qui peut créer des bases.
 Chaque serveur exécute deux suites. `MySqlTenantDatabasesTest` et `PostgreSqlTenantDatabasesTest` gardent les
 emplacements en mémoire ; ils couvrent deux locataires de chaque sorte lus l'un après l'autre dans une requête, sans
 qu'aucune ligne de l'un soit vue par l'autre — par le gestionnaire d'entités, le SQL natif et `find()` sur la même
-clé —, le refus dans une transaction, la réinitialisation d'un *worker*, la création d'une base, une migration qui
-échoue pour une base pendant que les autres réussissent et sont servies, et des déplacements qui réussissent, entrent
-en collision sur une clé ou perdent leur stockage d'emplacements, chacun annulé jusqu'à la source.
+clé —, le refus dans une transaction, la réinitialisation d'un *worker*, deux locataires qui se relaient dans un *worker*, la création d'une base, une
+migration qui échoue pour une base pendant que les autres réussissent et sont servies, et des déplacements qui
+réussissent, entrent en collision sur une clé ou perdent leur stockage d'emplacements, chacun annulé jusqu'à la
+source.
 `MySqlStoredPlacementsTest` et `PostgreSqlStoredPlacementsTest` gardent les emplacements et les suspensions dans les
 tables de la base partagée : les tables créées avec le schéma, les emplacements lus dans la base partagée pendant qu'un
 locataire dédié est entré, un déplacement enregistré dans la table puis annulé, et des suspensions qui survivent à un
 cache vidé et à la fin de l'unité de travail, qui ferme la connexion du stockage.
 
+`testTwoTenantsTakeTurnsInOneWorker` sert des requêtes avec un seul noyau, comme le fait un *worker* FrankenPHP —
+chaque requête est traitée puis terminée, et les services sont réinitialisés quand la suivante commence — pour le
+locataire partagé, le dédié, le partagé de nouveau, puis une requête de chacun qui lance une exception au milieu d'une
+transaction, et une de chacun ensuite. Chaque requête trouve la base de son locataire sélectionnée, une table
+d'identité vide, aucune transaction ouverte, la première facture de son propre locataire sur une clé que les deux
+locataires utilisent, et seulement les éléments de cache de son propre locataire ; le gestionnaire d'entités est vidé
+quand le locataire est entré et quand il est quitté à `kernel.terminate` ; les écritures des requêtes qui ont lancé
+une exception sont annulées.
+
 ## Tester une application
 
 - **Isolement** : semez deux locataires, un partagé et un dédié, avec des lignes sur les mêmes clés ; entrez dans l'un,
   puis dans l'autre, dans un seul test, et lisez par le dépôt, le SQL natif et `find()`.
+- **Workers** : servez plusieurs requêtes avec un seul noyau, en appelant `handle()` puis `terminate()` pour chacune
+  sans jamais le redémarrer, pour des locataires de bases différentes tour à tour, y compris une requête qui échoue
+  dans une transaction.
 - **Déplacements** : lancez `phil:tenancy:database:move` sur une copie des données de production avant un vrai
   déplacement ; la commande vérifie chaque table, et annule à la moindre différence.
 - **Migrations** : lancez `phil:tenancy:database:migrate --concurrency=1` dans le pipeline, sur des bases créées par
