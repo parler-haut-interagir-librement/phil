@@ -25,6 +25,7 @@
         "ext-filter": "*",
         "ext-sodium": "*",
         "phil/bot-detection-bundle": "^0.1@dev",
+        "phil/rate-limit": "^0.1.1@dev",
         "phil/spam-protection": "^0.1@dev",
         "psr/cache": "^3.0",
         "psr/clock": "^1.0",
