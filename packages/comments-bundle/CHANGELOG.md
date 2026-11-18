@@ -4,6 +4,28 @@ All notable changes to `phil/comments-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.0-alpha: the subjects, authors and identifiers of the threads and comments compare byte by
+byte on MySQL and MariaDB. See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
+
+### Added
+
+- `Infrastructure\Doctrine\BinaryKeysListener`, on the ORM's `loadClassMetadata` event, and its `FIELDS`: the fields of
+  the bundle's entities that compare byte by byte on MySQL and MariaDB.
+
+### Changed
+
+- On MySQL and MariaDB, `id`, `subject`, `author` and `resolved_by` of `phil_comment_thread` and `id`, `thread` and
+  `author` of `phil_comment` take the `utf8mb4` character set and the `utf8mb4_bin` collation in the schema the ORM
+  generates, through `Infrastructure\Doctrine\BinaryKeysListener`, registered with the Doctrine store. PostgreSQL and
+  SQLite keep their default, which compares bytes already.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, the threads and comments of the subject
+  `post:Abc` were shown under `post:abc`, whose readers may not be allowed to read the first.
+
 ## 0.2.1-alpha - 2026-11-15
 
 ### Added

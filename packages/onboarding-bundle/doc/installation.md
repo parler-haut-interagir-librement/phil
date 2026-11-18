@@ -59,6 +59,29 @@ bin/console doctrine:migrations:migrate
 | `started_at`, `updated_at` | datetime | When the flow was started, or started again, and last changed. |
 | `finished_at`, `dismissed_at` | datetime, nullable | When every step was first done; when the user put the flow away. |
 
+### Collation of the keys
+
+**Keys compare byte by byte**, as PHP compares them. The progress of a user in a flow is read by the user's
+identifier: that of `Ann` is never read, resumed or dismissed for `ann` or `ánn`. `BinaryKeysListener` gives these
+fields the binary collation when the ORM loads their metadata on MySQL or MariaDB; the mapping itself stays the same
+on every platform.
+
+| Table | Columns in `utf8mb4_bin` on MySQL and MariaDB |
+|---|---|
+| `phil_onboarding_progress` | `user_identifier`, `flow` |
+
+On MySQL and MariaDB, these columns take the `utf8mb4` character set and the `utf8mb4_bin` collation, given the
+connection's platform: the default collation of MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's
+default collations are deterministic, equal only when the bytes are, and SQLite compares bytes: their columns keep the
+default.
+
+#### Upgrading from 0.1
+
+The tables of a 0.1 install on MySQL or MariaDB kept the connection's collation. `doctrine:migrations:diff` writes the
+migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. The change only
+makes values more distinct, so no existing row breaks a key. Rows that a case-insensitive collation had already merged
+stay merged; values written from the migration on are kept apart. On PostgreSQL and SQLite the diff is empty.
+
 ## The routes
 
 ```yaml

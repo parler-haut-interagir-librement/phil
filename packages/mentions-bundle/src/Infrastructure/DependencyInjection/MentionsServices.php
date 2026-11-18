@@ -21,6 +21,7 @@ use Phil\MentionsBundle\Infrastructure\BlockEditor\MemberReferenceSearch;
 use Phil\MentionsBundle\Infrastructure\Comments\CommentMentions;
 use Phil\MentionsBundle\Infrastructure\Comments\MemberAuthorDirectory;
 use Phil\MentionsBundle\Infrastructure\Comments\RecordCommentMentions;
+use Phil\MentionsBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\MentionsBundle\Infrastructure\Doctrine\DoctrineMentionRepository;
 use Phil\MentionsBundle\Infrastructure\Memory\InMemoryMentionRepository;
 use Phil\MentionsBundle\Infrastructure\Notifications\NotifyMentionedMember;
@@ -50,6 +51,8 @@ final class MentionsServices
             $container->register(DoctrineMentionRepository::class, DoctrineMentionRepository::class)
                 ->setArguments([new Reference('doctrine.orm.'.$config['entity_manager'].'_entity_manager')]);
             $container->setAlias(MentionRepository::class, DoctrineMentionRepository::class)->setPublic(true);
+            $container->register(BinaryKeysListener::class, BinaryKeysListener::class)
+                ->addTag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
         }
 
         $container->setAlias(MemberDirectory::class, $config['member_directory']);

@@ -35,6 +35,7 @@
 | Class | Role |
 |---|---|
 | `Infrastructure\Doctrine\DoctrineThreadRepository`, `DoctrineCommentRepository` | The stores on the entity manager |
+| `Infrastructure\Doctrine\BinaryKeysListener` | The identifiers in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata` |
 | `Infrastructure\Memory\InMemoryThreadRepository`, `InMemoryCommentRepository` | The stores in memory, for tests, emptied between requests (`kernel.reset`) |
 | `Infrastructure\Http\CommentsController` | The endpoints |
 | `Infrastructure\Http\CommentsRequest` | Whether a request comes from the controller of this site: its header, the browser's `Sec-Fetch-Site` and the stateless CSRF token `phil_comments` unless the method is safe; the name of the token's cookie |

@@ -9,6 +9,7 @@ use Phil\CommentsBundle\Application\Comments;
 use Phil\CommentsBundle\Application\DefaultCommentPolicy;
 use Phil\CommentsBundle\Domain\Repository\CommentRepository;
 use Phil\CommentsBundle\Domain\Repository\ThreadRepository;
+use Phil\CommentsBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\CommentsBundle\Infrastructure\Doctrine\DoctrineCommentRepository;
 use Phil\CommentsBundle\Infrastructure\Doctrine\DoctrineThreadRepository;
 use Phil\CommentsBundle\Infrastructure\Http\ClientConfig;
@@ -55,6 +56,8 @@ final class CommentsServices
             $container->register(DoctrineCommentRepository::class, DoctrineCommentRepository::class)->setArguments([$entityManager]);
             $container->setAlias(ThreadRepository::class, DoctrineThreadRepository::class)->setPublic(true);
             $container->setAlias(CommentRepository::class, DoctrineCommentRepository::class)->setPublic(true);
+            $container->register(BinaryKeysListener::class, BinaryKeysListener::class)
+                ->addTag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
         }
 
         if (null === $config['policy']) {

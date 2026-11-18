@@ -23,6 +23,7 @@ use Phil\MentionsBundle\Infrastructure\Comments\MemberAuthorDirectory;
 use Phil\MentionsBundle\Infrastructure\Comments\RecordCommentMentions;
 use Phil\MentionsBundle\Infrastructure\DependencyInjection\MentionsPass;
 use Phil\MentionsBundle\Infrastructure\DependencyInjection\MentionsServices;
+use Phil\MentionsBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\MentionsBundle\Infrastructure\Doctrine\DoctrineMentionRepository;
 use Phil\MentionsBundle\Infrastructure\Memory\InMemoryMentionRepository;
 use Phil\MentionsBundle\Infrastructure\Notifications\NotifyMentionedMember;
@@ -50,8 +51,9 @@ final class PhilMentionsBundleTest extends TestCase
         $container = $this->load(['member_directory' => 'app.members']);
 
         self::assertSame('phil_mentions', $this->extension()->getAlias());
-        self::assertSame(['service_container', DoctrineMentionRepository::class, MentionPattern::class, MentionLimits::class, TextMentions::class, MentionRecorder::class, Mentions::class, MentionLinker::class, NotifyMentionedMember::class, MentionsExtension::class, MemberReferenceSearch::class, MemberAuthorDirectory::class, CommentMentions::class, RecordCommentMentions::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', DoctrineMentionRepository::class, BinaryKeysListener::class, MentionPattern::class, MentionLimits::class, TextMentions::class, MentionRecorder::class, Mentions::class, MentionLinker::class, NotifyMentionedMember::class, MentionsExtension::class, MemberReferenceSearch::class, MemberAuthorDirectory::class, CommentMentions::class, RecordCommentMentions::class], array_keys($container->getDefinitions()));
         self::assertEquals([new Reference('doctrine.orm.default_entity_manager')], $container->getDefinition(DoctrineMentionRepository::class)->getArguments());
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertSame([DoctrineMentionRepository::class, true], [(string) $container->getAlias(MentionRepository::class), $container->getAlias(MentionRepository::class)->isPublic()]);
         self::assertSame('app.members', (string) $container->getAlias(MemberDirectory::class));
         self::assertSame([[MentionPattern::class, 'of'], [MentionPattern::DEFAULT]], [$container->getDefinition(MentionPattern::class)->getFactory(), $container->getDefinition(MentionPattern::class)->getArguments()]);

@@ -4,6 +4,28 @@ All notable changes to `phil/mentions-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: subjects, members and authors of the mentions compare byte by byte on MySQL and
+MariaDB. See [Upgrading from 0.1](doc/installation.md#upgrading-from-01).
+
+### Added
+
+- `Infrastructure\Doctrine\BinaryKeysListener`, on the ORM's `loadClassMetadata` event, and its `FIELDS`: the fields of
+  the bundle's entities that compare byte by byte on MySQL and MariaDB.
+
+### Changed
+
+- On MySQL and MariaDB, `id`, `subject`, `member` and `author` of `phil_mention` take the `utf8mb4` character set and
+  the `utf8mb4_bin` collation in the schema the ORM generates, through `Infrastructure\Doctrine\BinaryKeysListener`,
+  registered with the Doctrine store. PostgreSQL and SQLite keep their default, which compares bytes already.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, the mentions of `member:Ann` were listed for
+  `member:ann`, and the unique key of the subject and the member refused to record the mention of one once the other
+  was mentioned in the same subject.
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

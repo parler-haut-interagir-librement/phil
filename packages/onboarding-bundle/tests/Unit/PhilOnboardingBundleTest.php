@@ -19,6 +19,7 @@ use Phil\OnboardingBundle\Domain\Repository\ProgressRepository;
 use Phil\OnboardingBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\OnboardingBundle\Infrastructure\DependencyInjection\OnboardingPass;
 use Phil\OnboardingBundle\Infrastructure\DependencyInjection\OnboardingServices;
+use Phil\OnboardingBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\OnboardingBundle\Infrastructure\Doctrine\DoctrineProgressRepository;
 use Phil\OnboardingBundle\Infrastructure\Http\OnboardingController;
 use Phil\OnboardingBundle\Infrastructure\Http\OnboardingRequest;
@@ -67,6 +68,7 @@ final class PhilOnboardingBundleTest extends TestCase
 
         self::assertSame('phil_onboarding', $this->extension()->getAlias());
         self::assertEquals([new Reference('doctrine.orm.default_entity_manager')], $container->getDefinition(DoctrineProgressRepository::class)->getArguments());
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertSame([DoctrineProgressRepository::class, true], [(string) $container->getAlias(ProgressRepository::class), $container->getAlias(ProgressRepository::class)->isPublic()]);
         self::assertEquals([new Reference('security.token_storage', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(SecurityCurrentUser::class)->getArguments());
         self::assertSame(SecurityCurrentUser::class, (string) $container->getAlias(CurrentUser::class));
@@ -140,6 +142,7 @@ final class PhilOnboardingBundleTest extends TestCase
 
         self::assertSame([InMemoryProgressRepository::class, true], [(string) $container->getAlias(ProgressRepository::class), $container->getAlias(ProgressRepository::class)->isPublic()]);
         self::assertFalse($container->hasDefinition(DoctrineProgressRepository::class));
+        self::assertFalse($container->hasDefinition(BinaryKeysListener::class));
         self::assertTrue($container->hasDefinition(InMemoryProgressRepository::class));
         self::assertFalse($container->hasDefinition(SecurityCurrentUser::class));
         self::assertSame('app.user', (string) $container->getAlias(CurrentUser::class));

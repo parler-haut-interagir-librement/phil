@@ -13,6 +13,7 @@ use Phil\CommentsBundle\Domain\Repository\ThreadRepository;
 use Phil\CommentsBundle\Infrastructure\DependencyInjection\CommentsServices;
 use Phil\CommentsBundle\Infrastructure\DependencyInjection\CsrfProtectionPass;
 use Phil\CommentsBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
+use Phil\CommentsBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\CommentsBundle\Infrastructure\Doctrine\DoctrineCommentRepository;
 use Phil\CommentsBundle\Infrastructure\Doctrine\DoctrineThreadRepository;
 use Phil\CommentsBundle\Infrastructure\Http\ClientConfig;
@@ -47,9 +48,10 @@ final class PhilCommentsBundleTest extends TestCase
         $container = $this->load([]);
 
         self::assertSame('phil_comments', $this->extension()->getAlias());
-        self::assertSame(['service_container', DoctrineThreadRepository::class, DoctrineCommentRepository::class, DefaultCommentPolicy::class, Comments::class, DiscussionJson::class, CommentsRequest::class, CommentsController::class, ClientConfig::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', DoctrineThreadRepository::class, DoctrineCommentRepository::class, BinaryKeysListener::class, DefaultCommentPolicy::class, Comments::class, DiscussionJson::class, CommentsRequest::class, CommentsController::class, ClientConfig::class], array_keys($container->getDefinitions()));
         self::assertEquals([new Reference('doctrine.orm.default_entity_manager')], $container->getDefinition(DoctrineThreadRepository::class)->getArguments());
         self::assertEquals([new Reference('doctrine.orm.default_entity_manager')], $container->getDefinition(DoctrineCommentRepository::class)->getArguments());
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertSame([DoctrineThreadRepository::class, true], [(string) $container->getAlias(ThreadRepository::class), $container->getAlias(ThreadRepository::class)->isPublic()]);
         self::assertSame([DoctrineCommentRepository::class, true], [(string) $container->getAlias(CommentRepository::class), $container->getAlias(CommentRepository::class)->isPublic()]);
         self::assertSame(DefaultCommentPolicy::class, (string) $container->getAlias(CommentPolicy::class));
