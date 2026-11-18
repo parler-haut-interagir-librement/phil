@@ -20,6 +20,7 @@ phil_upload_scan:
     rescan:
         transport: null                 # the Messenger transport RescanFile is routed to, such as async
     admin:
+        enabled: true                   # false leaves the quarantine's page, and its CSRF check, out
         role: ROLE_ADMIN                # the role, or a voter's attribute, that opens the quarantine's page
         layout: '@PhilUploadScan/admin/layout.html.twig'
         page_size: 50                   # 1 to 500 files a page
@@ -82,6 +83,11 @@ routed is handled as it is dispatched. See [Rescans](rescans.md).
 The administration page of the quarantine, wired with Twig and `symfony/security-csrf` once its routes are imported:
 `role` opens it, `layout` is the template it extends, and `page_size` the files listed a page. See
 [Quarantine and events](quarantine-and-events.md#the-administration-page).
+
+Its deletions require the stateless CSRF token `phil_upload_scan_quarantine`, by default and with nothing to turn on;
+FrameworkBundle's `csrf_protection` must then stay on, or the container does not build. `enabled: false` leaves the
+page, its controller and its check out, for an application that installed the CSRF component for its own forms and
+turns the protection off. See [CSRF](csrf.md).
 
 ## `integrations`
 

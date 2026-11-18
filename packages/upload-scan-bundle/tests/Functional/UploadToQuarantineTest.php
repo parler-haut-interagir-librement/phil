@@ -100,6 +100,11 @@ final class UploadToQuarantineTest extends WebTestCase
         self::assertResponseStatusCodeSame(400);
         self::assertCount(1, $this->inventory()->files(10));
 
+        // The token is stateless: the form's value is checked against the origin of the request, which another site cannot give.
+        $this->browser->request('POST', '/admin/quarantine/'.$file->id.'/delete', ['_token' => 'csrf-token'], server: ['PHP_AUTH_USER' => 'admin', 'PHP_AUTH_PW' => 'admin', 'HTTP_ORIGIN' => 'https://elsewhere.example', 'HTTP_REFERER' => 'https://elsewhere.example/']);
+        self::assertResponseStatusCodeSame(400);
+        self::assertCount(1, $this->inventory()->files(10));
+
         $this->browser->submit($crawler->selectButton('Delete for good')->form(), [], ['PHP_AUTH_USER' => 'admin', 'PHP_AUTH_PW' => 'admin']);
         self::assertResponseRedirects('/admin/quarantine/?done=deleted', 303);
         self::assertSame([], $this->inventory()->files(10));

@@ -14,9 +14,17 @@ they exist, and an open quarantine directory is narrowed to its owner. See
 
 - `FilesystemQuarantine`'s argument `tightenOpenDirectory`, and the option `quarantine.tighten_open_directory`, true by
   default: false refuses a directory open to its group or to other users instead of narrowing it.
+- The option `admin.enabled`, true by default: false leaves the administration page of the quarantine, its controller
+  and its CSRF check out, for an application that installed `symfony/security-csrf` for its own forms.
+- `CsrfProtectionPass`: with the administration page registered and `framework.csrf_protection` off, the container
+  build stops with a message that names both ways out.
+- The documentation page [CSRF](doc/csrf.md): what carries a token, why it is required by default, sending it from a
+  form or with `fetch`, and an application that installed the component for another reason.
 
 ### Changed
 
+- The bundle adds the CSRF token `phil_upload_scan_quarantine` to FrameworkBundle's stateless ones: the deletions of
+  the administration page are checked by the request's origin, without a session.
 - `FilesystemQuarantine::isolate()` narrows an existing directory open to its group or to other users to `0700`
   before it keeps a file, and fails with `QuarantineFailed`, naming the directory and its mode, when it cannot.
 - The copy and the record are written as temporary files of the directory created `0600`, then given their names in

@@ -24,6 +24,7 @@
 | `Phil\UploadScanBundle\Infrastructure\Admin\QuarantineAdminController` | controller | The quarantine's page: `LIST_ROUTE`, `DELETE_ROUTE`, `CSRF_TOKEN_ID` |
 | `Phil\UploadScanBundle\Infrastructure\EasyAdmin\QuarantineAdmin` | `final class` | The link of an EasyAdmin menu to the quarantine's page |
 | `Phil\UploadScanBundle\Infrastructure\DependencyInjection\QuarantineInventoryPass` | compiler pass | `QuarantineInventory` given the quarantine when it can be listed; the page and the purge removed without an inventory |
+| `Phil\UploadScanBundle\Infrastructure\DependencyInjection\CsrfProtectionPass` | compiler pass | Stops the build, naming `framework.csrf_protection` and `admin.enabled`, when the page is registered without Symfony's CSRF token manager |
 | `Phil\UploadScanBundle\Infrastructure\Validator\CleanFile` | constraint | A file free of known threats: `INFECTED_ERROR`, `NOT_SCANNED_ERROR` |
 | `Phil\UploadScanBundle\Infrastructure\Validator\CleanFileValidator` | validator | Checks `CleanFile` |
 | `Phil\UploadScanBundle\Infrastructure\Media\ScanningMediaStorage` | `final readonly class` | The media storage behind the antivirus |
@@ -38,7 +39,7 @@
 | `Phil\UploadScan\ScanPolicy` | Always, with `on_error`. |
 | `Phil\UploadScanBundle\Application\Contract\Quarantine` | Unless the quarantine is disabled: an alias of `FilesystemQuarantine` or of `quarantine.service`. |
 | `Phil\UploadScanBundle\Application\Contract\QuarantineInventory` | When the quarantine implements it, unless the application aliases it. |
-| `Phil\UploadScanBundle\Infrastructure\Admin\QuarantineAdminController` | With a quarantine, Twig and `symfony/security-csrf`, and an inventory; public, tagged `controller.service_arguments`. |
+| `Phil\UploadScanBundle\Infrastructure\Admin\QuarantineAdminController` | With a quarantine, Twig and `symfony/security-csrf`, `admin.enabled` true, and an inventory; public, tagged `controller.service_arguments`. |
 | `Phil\UploadScanBundle\Application\QuarantinePurger`, `Phil\UploadScanBundle\Infrastructure\Console\PurgeQuarantineCommand` | With a quarantine, the Console component and an inventory; the command tagged `console.command`. |
 | `Phil\UploadScanBundle\Application\UploadScanner` | Always. |
 | `Phil\UploadScanBundle\Infrastructure\Validator\CleanFileValidator` | Always, tagged `validator.constraint_validator`. |
