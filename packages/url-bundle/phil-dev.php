@@ -24,6 +24,17 @@ return [
             ],
         ],
     ],
+    'infection' => [
+        'mutators' => [
+            // doctrine/dbal is installed wherever the tests run, so the arm that names it as missing is never reached;
+            // the test without Doctrine runs on the arm of DoctrineBundle, whose message it checks.
+            'MatchArmRemoval' => [
+                'ignoreSourceCodeByRegex' => [
+                    '.*!\\$this->dbalIsInstalled\\(\\) => \'doctrine/dbal\',.*',
+                ],
+            ],
+        ],
+    ],
     // The package is released from its own repository: its CHANGELOG uses every section.
     'docs' => ['public' => true],
 ];
