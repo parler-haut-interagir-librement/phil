@@ -4,6 +4,23 @@ All notable changes to `phil/search-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the index and the identifier of a document compare byte by byte on MySQL and MariaDB.
+See [Upgrading from 0.1](doc/installation.md#upgrading-from-01).
+
+### Changed
+
+- `SearchTable::configure()` takes the platform of the connection as its second argument, and the schema listener
+  gives it: on MySQL and MariaDB, `index_name` and `document_id` of `phil_search_document` take the `utf8mb4`
+  character set and the `utf8mb4_bin` collation. PostgreSQL and SQLite keep their default, which compares bytes
+  already.
+
+### Fixed
+
+- Under the default case-insensitive collation of MySQL and MariaDB, indexing the document `post-a` replaced the
+  document `Post-A` of the same index, and removing one removed the other.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

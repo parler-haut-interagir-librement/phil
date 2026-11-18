@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Phil\ReferencesBundle\Infrastructure\Doctrine;
 
+use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\ColumnEditor;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
@@ -15,6 +18,10 @@ use Doctrine\DBAL\Types\Types;
  * The table of usages: one row per source, field and target, indexed by target for "where is it used" and by source
  * for its refresh. The row's key is a SHA-256 of the five columns: a primary key over the columns themselves, 893
  * characters, would pass MySQL's 3072 bytes in utf8mb4, while each index here stays within it.
+ *
+ * Kinds, identifiers and fields compare byte by byte: given the platform, MySQL and MariaDB store them in `utf8mb4` with
+ * the `utf8mb4_bin` collation, so that the usages of the source `Doc-A` are never read, nor forgotten, for `doc-a`.
+ * PostgreSQL's default collations are deterministic and SQLite compares bytes: their columns keep the default.
  */
 final class UsageTable
 {
@@ -28,7 +35,11 @@ final class UsageTable
         return hash('sha256', json_encode([$sourceKind, $sourceId, $field, $targetKind, $targetId], \JSON_THROW_ON_ERROR));
     }
 
-    public static function configure(Schema $schema): Schema
+    /**
+     * Adds the table when the schema lacks it. Without a platform, the columns keep the connection's default collation:
+     * the schema listener always gives the platform of its connection.
+     */
+    public static function configure(Schema $schema, ?AbstractPlatform $platform = null): Schema
     {
         if ($schema->hasTable(self::NAME)) {
             return $schema;
@@ -37,12 +48,12 @@ final class UsageTable
         return $schema->edit()->addTable(Table::editor()
             ->setUnquotedName(self::NAME)
             ->setColumns(
-                Column::editor()->setUnquotedName('usage_key')->setTypeName(Types::STRING)->setLength(64)->setFixed(true)->create(),
-                Column::editor()->setUnquotedName('source_kind')->setTypeName(Types::STRING)->setLength(64)->create(),
-                Column::editor()->setUnquotedName('source_id')->setTypeName(Types::STRING)->setLength(255)->create(),
-                Column::editor()->setUnquotedName('field')->setTypeName(Types::STRING)->setLength(255)->create(),
-                Column::editor()->setUnquotedName('target_kind')->setTypeName(Types::STRING)->setLength(64)->create(),
-                Column::editor()->setUnquotedName('target_id')->setTypeName(Types::STRING)->setLength(255)->create(),
+                self::key('usage_key', 64, $platform)->setFixed(true)->create(),
+                self::key('source_kind', 64, $platform)->create(),
+                self::key('source_id', 255, $platform)->create(),
+                self::key('field', 255, $platform)->create(),
+                self::key('target_kind', 64, $platform)->create(),
+                self::key('target_id', 255, $platform)->create(),
             )
             ->setPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('usage_key')->create())
             ->setIndexes(
@@ -50,5 +61,19 @@ final class UsageTable
                 Index::editor()->setUnquotedName(self::NAME.'_source')->setUnquotedColumnNames('source_kind', 'source_id')->create(),
             )
             ->create())->create();
+    }
+
+    /**
+     * @param non-empty-string $name
+     */
+    private static function key(string $name, int $length, ?AbstractPlatform $platform): ColumnEditor
+    {
+        $column = Column::editor()->setUnquotedName($name)->setTypeName(Types::STRING)->setLength($length);
+
+        if ($platform instanceof AbstractMySQLPlatform) {
+            $column->setCharset('utf8mb4')->setCollation('utf8mb4_bin');
+        }
+
+        return $column;
     }
 }

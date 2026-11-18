@@ -4,6 +4,23 @@ All notable changes to `phil/settings-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the scopes, subjects, keys and versions of the two tables compare byte by byte on
+MySQL and MariaDB. See [Upgrading from 0.1](doc/storage.md#upgrading-from-01).
+
+### Changed
+
+- `SettingTables::configure()` takes the platform of the connection as its second argument, and the schema listener
+  gives it: on MySQL and MariaDB, `scope`, `subject` and `setting_key` of `phil_settings` and `version` of
+  `phil_settings_migrations` take the `utf8mb4` character set and the `utf8mb4_bin` collation. PostgreSQL and SQLite
+  keep their default, which compares bytes already.
+
+### Fixed
+
+- Under the default case-insensitive collation of MySQL and MariaDB, the users `Ann` and `ann` shared one row per key:
+  each read and overwrote the other's settings.
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

@@ -4,6 +4,23 @@ All notable changes to `phil/references-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: kinds, identifiers and fields of the usage table compare byte by byte on MySQL and
+MariaDB. See [Upgrading from 0.1](doc/installation.md#upgrading-from-01).
+
+### Changed
+
+- `UsageTable::configure()` takes the platform of the connection as its second argument, and the schema listener gives
+  it: on MySQL and MariaDB, `usage_key`, `source_kind`, `source_id`, `field`, `target_kind` and `target_id` of
+  `phil_reference_usage` take the `utf8mb4` character set and the `utf8mb4_bin` collation. PostgreSQL and SQLite keep
+  their default, which compares bytes already.
+
+### Fixed
+
+- Under the default case-insensitive collation of MySQL and MariaDB, refreshing the usages of the source `Doc-A` read
+  those of `doc-a` and deleted them, and the usages of the target `doc-a` were listed for `Doc-A`.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

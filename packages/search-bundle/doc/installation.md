@@ -58,6 +58,28 @@ application's own, aliased, replaces the configured one.
 | `meilisearch` | Meilisearch, by its HTTP API with Symfony's HTTP client, no SDK: documents, filterable attributes added to those the index has, search, facets, synonyms | Anything larger, typo tolerance |
 | `loupe` | Loupe, SQLite files under `loupe.directory`, through `phil/search-loupe` | Typo tolerance and relevance without a server to run |
 
+### Collation of the keys
+
+**Keys compare byte by byte**, as PHP compares them. A document is replaced by its index and identifier: the documents
+`Post-A` and `post-a` are two rows, and indexing one never replaces the other. The words keep the connection's
+collation, which the search reads them under.
+
+| Table | Columns in `utf8mb4_bin` on MySQL and MariaDB |
+|---|---|
+| `phil_search_document` | `index_name`, `document_id` |
+
+On MySQL and MariaDB, these columns take the `utf8mb4` character set and the `utf8mb4_bin` collation, given the
+connection's platform: the default collation of MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's
+default collations are deterministic, equal only when the bytes are, and SQLite compares bytes: their columns keep the
+default.
+
+#### Upgrading from 0.1
+
+The tables of a 0.1 install on MySQL or MariaDB kept the connection's collation. `doctrine:migrations:diff` writes the
+migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. The change only
+makes values more distinct, so no existing row breaks a key. Rows that a case-insensitive collation had already merged
+stay merged; values written from the migration on are kept apart. On PostgreSQL and SQLite the diff is empty.
+
 ## The filters
 
 With Symfony UX Twig Component installed, the bundle registers `PhilSearchFilters`; with AssetMapper, it maps the

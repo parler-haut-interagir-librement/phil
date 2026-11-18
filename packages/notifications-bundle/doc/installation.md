@@ -38,6 +38,30 @@ when `preferences: dbal`, `phil_notification_push_subscriptions` the browsers su
 instants — created, changed, read, digested, subscribed — are `datetime_utc_immutable` columns: written and read in UTC whatever
 the timezone of the PHP process or of the database server.
 
+### Collation of the keys
+
+**Keys compare byte by byte**, as PHP compares them. The recipient decides whose notifications, preferences and
+subscriptions a query reads: those of `member:Ann` are never read for `member:ann` or `member:ánn`, and a group never
+gathers the notifications of two subjects whose identifiers differ only by case.
+
+| Table | Columns in `utf8mb4_bin` on MySQL and MariaDB |
+|---|---|
+| `phil_notifications` | `id`, `recipient`, `type`, `actor`, `subject_type`, `subject_id`, `group_key` |
+| `phil_notification_preferences` | `recipient` |
+| `phil_notification_push_subscriptions` | `id`, `recipient` |
+
+On MySQL and MariaDB, these columns take the `utf8mb4` character set and the `utf8mb4_bin` collation, given the
+connection's platform: the default collation of MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's
+default collations are deterministic, equal only when the bytes are, and SQLite compares bytes: their columns keep the
+default.
+
+#### Upgrading from 0.1
+
+The tables of a 0.1 install on MySQL or MariaDB kept the connection's collation. `doctrine:migrations:diff` writes the
+migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. The change only
+makes values more distinct, so no existing row breaks a key. Rows that a case-insensitive collation had already merged
+stay merged; values written from the migration on are kept apart. On PostgreSQL and SQLite the diff is empty.
+
 ## The routes
 
 The centre's endpoints, behind the application's firewall:

@@ -24,6 +24,6 @@ final readonly class UsageSchemaListener
             return;
         }
 
-        $event->setSchema(UsageTable::configure($event->getSchema()));
+        $event->setSchema(UsageTable::configure($event->getSchema(), $this->connection->getDatabasePlatform()));
     }
 }

@@ -1,0 +1,83 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Phil\SettingsBundle\Tests\Integration;
+
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Tools\DsnParser;
+use Override;
+use Phil\SettingsBundle\Infrastructure\Doctrine\SettingTables;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * The tables on a real server read from the environment: the values of the users `Ann`, `ann`, `ANN` and `ánn` are four rows.
+ */
+abstract class ServerSettingTablesCollationTestCase extends TestCase
+{
+    private ?Connection $connection = null;
+
+    /**
+     * The variable of the server's URL.
+     */
+    abstract protected function variable(): string;
+
+    public function testKeysThatDifferByCaseOrAccentAreKeptApart(): void
+    {
+        $connection = $this->connection();
+
+        foreach ([
+            ['scope' => 'user', 'setting_key' => 'theme', 'value' => '"dark"', 'updated_at' => '2026-11-17 10:00:00', 'subject' => 'Ann'],
+            ['scope' => 'user', 'setting_key' => 'theme', 'value' => '"dark"', 'updated_at' => '2026-11-17 10:00:00', 'subject' => 'ann'],
+            ['scope' => 'user', 'setting_key' => 'theme', 'value' => '"dark"', 'updated_at' => '2026-11-17 10:00:00', 'subject' => 'ANN'],
+            ['scope' => 'user', 'setting_key' => 'theme', 'value' => '"dark"', 'updated_at' => '2026-11-17 10:00:00', 'subject' => 'ánn'],
+        ] as $row) {
+            $connection->insert(SettingTables::SETTINGS, $row);
+        }
+
+        foreach (['Ann', 'ann', 'ANN', 'ánn'] as $value) {
+            self::assertSame([$value], $connection->fetchFirstColumn('SELECT subject FROM '.SettingTables::SETTINGS.' WHERE subject = ?', [$value]), $value);
+        }
+    }
+
+    #[Override]
+    protected function tearDown(): void
+    {
+        $this->connection?->close();
+        $this->connection = null;
+    }
+
+    /**
+     * The package's tables, created afresh: only those, since the server is shared with the tests of other packages.
+     */
+    protected function connection(): Connection
+    {
+        if ($this->connection instanceof Connection) {
+            return $this->connection;
+        }
+
+        $url = getenv($this->variable());
+
+        if (!\is_string($url) || '' === $url) {
+            self::markTestSkipped(\sprintf('Set %s to run this test against a real server.', $this->variable()));
+        }
+
+        $connection = DriverManager::getConnection(new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql', 'postgres' => 'pdo_pgsql'])->parse($url));
+        $this->connection = $connection;
+        $schema = SettingTables::configure(Schema::editor()->create(), $connection->getDatabasePlatform());
+
+        foreach ($schema->getTables() as $table) {
+            $connection->executeStatement('DROP TABLE IF EXISTS '.$table->getObjectName()->toString());
+        }
+
+        $manager = $connection->createSchemaManager();
+
+        foreach ($schema->getTables() as $table) {
+            $manager->createTable($table);
+        }
+
+        return $connection;
+    }
+}

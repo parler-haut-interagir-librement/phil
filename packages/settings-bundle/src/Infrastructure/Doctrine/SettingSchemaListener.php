@@ -9,7 +9,8 @@ use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
 
 /**
  * Adds the bundle's table to the schema the ORM generates for its connection, as Symfony's own stores do:
- * `doctrine:migrations:diff` writes the migration that creates it, `doctrine:schema:validate` keeps it.
+ * `doctrine:migrations:diff` writes the migration that creates it, `doctrine:schema:validate` keeps it. The tables are
+ * built for the platform of the connection: on MySQL and MariaDB, their keys in `utf8mb4_bin`.
  */
 final readonly class SettingSchemaListener
 {
@@ -24,6 +25,6 @@ final readonly class SettingSchemaListener
             return;
         }
 
-        $event->setSchema(SettingTables::configure($event->getSchema()));
+        $event->setSchema(SettingTables::configure($event->getSchema(), $this->connection->getDatabasePlatform()));
     }
 }
