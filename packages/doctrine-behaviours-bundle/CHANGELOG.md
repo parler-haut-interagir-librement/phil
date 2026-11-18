@@ -21,8 +21,8 @@ The next version is 0.2.0-alpha: the keys the behaviours write compare byte by b
   `subject_id` of `phil_record_version` take the `utf8mb4` character set and the `utf8mb4_bin` collation in the schema
   the ORM generates, where the class maps them as a string or a GUID, through
   `Infrastructure\Doctrine\BinaryKeysListener`. PostgreSQL and SQLite keep their default, which compares bytes already.
-- `doctrine/dbal` is required, already required by `doctrine/orm`: `BinaryKeysListener` reads the platform of the
-  connection.
+- `doctrine/dbal` and `doctrine/orm` are required, already required by `phil/doctrine-behaviours`: `BinaryKeysListener`
+  listens to the ORM and reads the platform of the connection.
 
 ### Security
 

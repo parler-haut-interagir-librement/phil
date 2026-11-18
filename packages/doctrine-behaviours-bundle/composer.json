@@ -27,13 +27,13 @@
         "php": ">=8.5",
         "doctrine/dbal": "^4.5",
         "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
         "phil/doctrine-behaviours": "^0.2@dev",
         "symfony/clock": "^8.2",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2"
     },
     "require-dev": {
-        "doctrine/orm": "^3.7",
         "phil/locale-dimensions": "^0.1@dev",
         "phil/privacy-bundle": "^0.1@dev",
         "phil/slug": "^0.1@dev",
