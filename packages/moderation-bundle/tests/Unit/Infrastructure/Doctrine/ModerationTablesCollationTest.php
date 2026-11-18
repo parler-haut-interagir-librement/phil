@@ -48,6 +48,17 @@ final class ModerationTablesCollationTest extends TestCase
         }
     }
 
+    public function testTheColumnsOfThePrimaryKeysHoldAValue(): void
+    {
+        foreach ([new MySQLPlatform(), new SQLitePlatform(), null] as $platform) {
+            foreach (ModerationTables::configure(Schema::editor()->create(), $platform)->getTables() as $table) {
+                foreach ($table->getPrimaryKeyConstraint()?->getColumnNames() ?? [] as $name) {
+                    self::assertTrue($table->getColumn($name->toString())->getNotnull(), $table->getObjectName()->toString().'.'.$name->toString());
+                }
+            }
+        }
+    }
+
     /**
      * @return array<string, list<string>>
      */

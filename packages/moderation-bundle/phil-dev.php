@@ -42,8 +42,8 @@ return [
             // The column of a primary key is not null whatever it is declared, and the identifier columns are all keys.
             'TrueValue' => [
                 'ignoreSourceCodeByRegex' => [
-                    '->addColumn\\(self::column\\(.member., Types::STRING, MemberId::MAX_LENGTH, true\\)\\)',
-                    'private static function id\\(string \\$name, bool \\$required = true\\): Column',
+                    'return self::column\\(\\$name, Types::STRING, MemberId::MAX_LENGTH, true, \\$binary\\);',
+                    'private static function id\\(string \\$name, bool \\$binary, bool \\$required = true\\): Column',
                 ],
             ],
         ],

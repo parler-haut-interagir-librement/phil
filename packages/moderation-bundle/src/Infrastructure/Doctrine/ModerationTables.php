@@ -77,7 +77,7 @@ final class ModerationTables
         return [
             Table::editor()
                 ->setUnquotedName(self::REPORTS)
-                ->addColumn(self::id('id', binary: $binary))
+                ->addColumn(self::id('id', $binary))
                 ->addColumn(self::column('target_type', Types::STRING, 64, true, $binary))
                 ->addColumn(self::column('target_id', Types::STRING, TargetReference::MAX_ID_LENGTH, true, $binary))
                 ->addColumn(self::column('source', Types::STRING, 16, true))
@@ -85,7 +85,7 @@ final class ModerationTables
                 ->addColumn(self::column('reporter', Types::STRING, MemberId::MAX_LENGTH, false, $binary))
                 ->addColumn(self::column('comment', Types::TEXT, null, false))
                 ->addColumn(self::column('reported_at', Types::DATETIME_UTC_IMMUTABLE, null, true))
-                ->addColumn(self::id('decision_id', false, $binary))
+                ->addColumn(self::id('decision_id', $binary, false))
                 ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('id')->create())
                 ->addIndex(self::index('idx_phil_moderation_report_open', 'decision_id', 'reported_at'))
                 ->addIndex(self::index('idx_phil_moderation_report_target', 'target_type', 'target_id'))
@@ -94,7 +94,7 @@ final class ModerationTables
                 ->create(),
             Table::editor()
                 ->setUnquotedName(self::DECISIONS)
-                ->addColumn(self::id('id', binary: $binary))
+                ->addColumn(self::id('id', $binary))
                 ->addColumn(self::column('target_type', Types::STRING, 64, true, $binary))
                 ->addColumn(self::column('target_id', Types::STRING, TargetReference::MAX_ID_LENGTH, true, $binary))
                 ->addColumn(self::column('action', Types::STRING, 16, true))
@@ -113,7 +113,7 @@ final class ModerationTables
                 ->create(),
             Table::editor()
                 ->setUnquotedName(self::NOTES)
-                ->addColumn(self::id('id', binary: $binary))
+                ->addColumn(self::id('id', $binary))
                 ->addColumn(self::column('member', Types::STRING, MemberId::MAX_LENGTH, true, $binary))
                 ->addColumn(self::column('author', Types::STRING, MemberId::MAX_LENGTH, false, $binary))
                 ->addColumn(self::column('body', Types::TEXT, null, true))
@@ -124,14 +124,14 @@ final class ModerationTables
                 ->create(),
             Table::editor()
                 ->setUnquotedName(self::SANDBOX)
-                ->addColumn(self::column('member', Types::STRING, MemberId::MAX_LENGTH, true, $binary))
+                ->addColumn(self::key('member', $binary))
                 ->addColumn(self::column('cleared_at', Types::DATETIME_UTC_IMMUTABLE, null, true))
                 ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('member')->create())
                 ->create(),
             Table::editor()
                 ->setUnquotedName(self::STATEMENTS)
-                ->addColumn(self::id('id', binary: $binary))
-                ->addColumn(self::id('decision_id', binary: $binary))
+                ->addColumn(self::id('id', $binary))
+                ->addColumn(self::id('decision_id', $binary))
                 ->addColumn(self::column('recipient', Types::STRING, MemberId::MAX_LENGTH, true, $binary))
                 ->addColumn(self::column('target_type', Types::STRING, 64, true, $binary))
                 ->addColumn(self::column('target_id', Types::STRING, TargetReference::MAX_ID_LENGTH, true, $binary))
@@ -151,9 +151,19 @@ final class ModerationTables
     }
 
     /**
+     * The member of a primary key, which no platform lets hold a null.
+     *
      * @param non-empty-string $name
      */
-    private static function id(string $name, bool $required = true, bool $binary = false): Column
+    private static function key(string $name, bool $binary): Column
+    {
+        return self::column($name, Types::STRING, MemberId::MAX_LENGTH, true, $binary);
+    }
+
+    /**
+     * @param non-empty-string $name
+     */
+    private static function id(string $name, bool $binary, bool $required = true): Column
     {
         return self::column($name, Types::STRING, Identifiers::LENGTH, $required, $binary)->edit()->setFixed(true)->create();
     }

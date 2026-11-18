@@ -80,43 +80,43 @@ final class NewsletterSchema
     {
         return [
             self::table(self::LISTS, [
-                self::string('id', 36, false, $binary), self::string('site', 64, false, $binary), self::string('list_key', 64, false, $binary), self::string('name', 120, false, $binary),
+                self::key('id', 36, $binary), self::string('site', 64, false, $binary), self::string('list_key', 64, false, $binary), self::string('name', 120, false, $binary),
                 self::column('double_opt_in', Types::SMALLINT), self::string('sender_profile', 64, false, $binary), self::column('created_at', Types::BIGINT),
             ], ['id'], unique: [['site', 'list_key']]),
             self::table(self::SUBSCRIBERS, [
-                self::string('id', 36, false, $binary), self::string('site', 64, false, $binary), self::string('email', 254, false, $binary), self::string('email_key', 254, false, $binary),
+                self::key('id', 36, $binary), self::string('site', 64, false, $binary), self::string('email', 254, false, $binary), self::string('email_key', 254, false, $binary),
                 self::string('external_id', 191, true, $binary), self::string('status', 16, false, $binary), self::column('created_at', Types::BIGINT),
                 self::column('confirmed_at', Types::BIGINT, true), self::column('paused_until', Types::BIGINT, true), self::column('soft_bounces', Types::INTEGER),
             ], ['id'], [['external_id']], [['site', 'email_key']]),
             self::table(self::MEMBERSHIPS, [
-                self::string('subscriber_id', 36, false, $binary), self::string('list_id', 36, false, $binary), self::string('status', 16, false, $binary), self::column('changed_at', Types::BIGINT),
+                self::key('subscriber_id', 36, $binary), self::key('list_id', 36, $binary), self::string('status', 16, false, $binary), self::column('changed_at', Types::BIGINT),
             ], ['subscriber_id', 'list_id'], [['list_id', 'status', 'subscriber_id']]),
             self::table(self::CAMPAIGNS, [
-                self::string('id', 36, false, $binary), self::string('site', 64, false, $binary), self::string('list_id', 36, false, $binary), self::string('subject', 200, false, $binary), self::column('body', Types::TEXT),
+                self::key('id', 36, $binary), self::string('site', 64, false, $binary), self::string('list_id', 36, false, $binary), self::string('subject', 200, false, $binary), self::column('body', Types::TEXT),
                 self::string('preheader', 255, false, $binary), self::string('segment', 64, true, $binary), self::string('template', 64, true, $binary), self::string('sender_profile', 64, true, $binary),
                 self::string('click_tracking', 16, false, $binary), self::string('status', 16, false, $binary), self::column('scheduled_at', Types::BIGINT, true), self::column('sent_at', Types::BIGINT, true),
             ], ['id'], [['status', 'scheduled_at']]),
             self::table(self::LINKS, [
-                self::string('campaign_id', 36, false, $binary), self::column('link_index', Types::INTEGER), self::string('url_hash', 64, false, $binary), self::column('url', Types::TEXT),
+                self::key('campaign_id', 36, $binary), self::column('link_index', Types::INTEGER), self::string('url_hash', 64, false, $binary), self::column('url', Types::TEXT),
             ], ['campaign_id', 'link_index'], unique: [['campaign_id', 'url_hash']]),
             self::table(self::DELIVERIES, [
-                self::string('id', 32, false, $binary), self::string('subscriber_id', 36, false, $binary), self::string('campaign_id', 36, true, $binary), self::string('template', 64, true, $binary),
+                self::key('id', 32, $binary), self::string('subscriber_id', 36, false, $binary), self::string('campaign_id', 36, true, $binary), self::string('template', 64, true, $binary),
                 self::string('status', 16, false, $binary), self::column('attempts', Types::INTEGER), self::column('created_at', Types::BIGINT), self::column('sent_at', Types::BIGINT, true),
             ], ['id'], [['campaign_id', 'status'], ['subscriber_id']]),
             self::table(self::TEMPLATES, [
-                self::string('site', 64, false, $binary), self::string('template_key', 64, false, $binary), self::string('subject', 200, false, $binary), self::column('source', Types::TEXT), self::column('updated_at', Types::BIGINT),
+                self::key('site', 64, $binary), self::key('template_key', 64, $binary), self::string('subject', 200, false, $binary), self::column('source', Types::TEXT), self::column('updated_at', Types::BIGINT),
             ], ['site', 'template_key']),
             self::table(self::CLICKS, [
-                self::string('campaign_id', 36, false, $binary), self::column('link_index', Types::INTEGER), self::column('clicks', Types::BIGINT),
+                self::key('campaign_id', 36, $binary), self::column('link_index', Types::INTEGER), self::column('clicks', Types::BIGINT),
             ], ['campaign_id', 'link_index']),
             self::table(self::RECIPIENT_CLICKS, [
-                self::string('subscriber_id', 36, false, $binary), self::string('campaign_id', 36, false, $binary), self::column('link_index', Types::INTEGER), self::column('clicked_at', Types::BIGINT),
+                self::key('subscriber_id', 36, $binary), self::key('campaign_id', 36, $binary), self::column('link_index', Types::INTEGER), self::column('clicked_at', Types::BIGINT),
             ], ['subscriber_id', 'campaign_id', 'link_index', 'clicked_at']),
             self::table(self::REASONS, [
-                self::string('site', 64, false, $binary), self::string('list_id', 36, false, $binary), self::string('reason', 32, false, $binary), self::column('day', Types::BIGINT), self::column('total', Types::BIGINT),
+                self::key('site', 64, $binary), self::key('list_id', 36, $binary), self::key('reason', 32, $binary), self::column('day', Types::BIGINT), self::column('total', Types::BIGINT),
             ], ['site', 'list_id', 'reason', 'day']),
             self::table(self::SUPPRESSIONS, [
-                self::string('site', 64, false, $binary), self::string('email_hash', 64, false, $binary), self::string('reason', 16, false, $binary), self::column('created_at', Types::BIGINT),
+                self::key('site', 64, $binary), self::key('email_hash', 64, $binary), self::string('reason', 16, false, $binary), self::column('created_at', Types::BIGINT),
             ], ['site', 'email_hash']),
         ];
     }
@@ -144,6 +144,16 @@ final class NewsletterSchema
         }
 
         return $editor->create();
+    }
+
+    /**
+     * A column of a primary key, which no platform lets hold a null.
+     *
+     * @param non-empty-string $name
+     */
+    private static function key(string $name, int $length, bool $binary): Column
+    {
+        return self::string($name, $length, false, $binary);
     }
 
     /**
