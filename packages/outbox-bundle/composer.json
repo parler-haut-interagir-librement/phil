@@ -1,6 +1,6 @@
 {
     "name": "phil/outbox-bundle",
-    "description": "phil/outbox in Symfony: the outbox in a table of the application's Doctrine DBAL connection, so a record joins the caller's transaction, codecs registered by tag, a relay command safe in worker mode, a Scheduler trigger, commands for dead records and retention, and an optional bridge to a Messenger bus",
+    "description": "phil/outbox in Symfony: events saved in a table of your Doctrine connection, delivered by a console command or the Scheduler, with retries and an optional Messenger bridge.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

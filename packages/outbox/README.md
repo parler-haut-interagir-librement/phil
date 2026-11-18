@@ -2,8 +2,8 @@
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/parler-haut-interagir-librement/outbox/badge)](https://scorecard.dev/viewer/?uri=github.com/parler-haut-interagir-librement/outbox)
 
-**A transactional outbox for libraries that tell PSR-14 listeners: events recorded with the write they describe,
-relayed at least once, in order per key.**
+**Never lose an event after a database write: the event is saved in the same transaction as the data, then delivered
+to its listeners, with retries until they accept it.**
 
 A library that writes its state and then dispatches an event loses the event when the listener, the dispatcher or the
 process fails between the two: nothing tells the listeners again. With phil/outbox, the library records the event in

@@ -2,8 +2,8 @@
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/parler-haut-interagir-librement/outbox-bundle/badge)](https://scorecard.dev/viewer/?uri=github.com/parler-haut-interagir-librement/outbox-bundle)
 
-**The outbox of `phil/outbox` in Symfony: a table of the application's Doctrine DBAL connection, a relay command safe in
-worker mode, a scheduled trigger, the dead records and an optional bridge to a Messenger bus.**
+**phil/outbox in Symfony: events saved in a table of your Doctrine connection, delivered by a console command or the
+Scheduler, with retries and an optional Messenger bridge.**
 
 phil/outbox-bundle integrates [phil/outbox](https://github.com/parler-haut-interagir-librement/outbox) with Symfony.
 The libraries that record events through the outbox stay free of Symfony and of Messenger; the bundle keeps their

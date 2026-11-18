@@ -1,9 +1,10 @@
-<!-- phil-dev source-sha256=d8ee6d60758c64e989df56623b0cd3c537e04056071b223a9ceb151e6ef47bed -->
+<!-- phil-dev source-sha256=56b638e303f74881a99f372f4e37d48969e5f5ec750e9ec9b153bc02306b0e0b -->
 # phil/outbox-bundle
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/parler-haut-interagir-librement/outbox-bundle/badge)](https://scorecard.dev/viewer/?uri=github.com/parler-haut-interagir-librement/outbox-bundle)
 
-**L'outbox de `phil/outbox` dans Symfony : une table de la connexion Doctrine DBAL de l'application, une commande de relais sûre en mode *worker*, un déclencheur planifié, les enregistrements morts et un pont facultatif vers un bus de Messenger.**
+**phil/outbox dans Symfony : les événements enregistrés dans une table de votre connexion Doctrine, livrés par une
+commande ou par le Scheduler, avec de nouveaux essais et un pont facultatif vers Messenger.**
 
 phil/outbox-bundle intègre [phil/outbox](https://github.com/parler-haut-interagir-librement/outbox) à Symfony. Les
 bibliothèques qui enregistrent des événements par l'outbox restent libres de Symfony et de Messenger ; le bundle

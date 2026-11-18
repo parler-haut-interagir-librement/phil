@@ -1,9 +1,10 @@
-<!-- phil-dev source-sha256=f49e6c5fe12241274af7ab73cb310a73508215e565500e4e346f9ba0d07a910b -->
+<!-- phil-dev source-sha256=54d9ca45fd4676a43828732e71a3b7d6660ae2a59d900f2b7c358f25dc54b445 -->
 # phil/outbox
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/parler-haut-interagir-librement/outbox/badge)](https://scorecard.dev/viewer/?uri=github.com/parler-haut-interagir-librement/outbox)
 
-**Un outbox transactionnel pour les bibliothèques qui informent des écouteurs PSR-14 : des événements enregistrés avec l'écriture qu'ils décrivent, relayés au moins une fois, dans l'ordre pour chaque clé.**
+**Ne perdez plus un événement après une écriture en base : l'événement est enregistré dans la même transaction que la
+donnée, puis livré à ses écouteurs, avec de nouveaux essais jusqu'à ce qu'ils l'acceptent.**
 
 Une bibliothèque qui écrit son état puis répartit un événement perd l'événement quand l'écouteur, le répartiteur ou le
 processus échoue entre les deux : rien n'informe de nouveau les écouteurs. Avec phil/outbox, la bibliothèque enregistre

@@ -1,6 +1,6 @@
 {
     "name": "phil/outbox",
-    "description": "A transactional outbox for libraries that tell PSR-14 listeners: records written in the same transaction as the state they describe, relayed at least once, in order per key, with leases, retries with backoff, dead records and retention",
+    "description": "Never lose an event after a database write: the event is saved in the same transaction as the data, then delivered to its listeners, with retries until they accept it.",
     "license": "MIT",
     "type": "library",
     "keywords": [
