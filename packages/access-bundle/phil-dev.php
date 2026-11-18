@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Phil\AccessBundle\Infrastructure\Console\PurgeCommand;
 use Phil\AccessBundle\Infrastructure\Security\AccessVoter;
 
 /*
@@ -30,6 +31,11 @@ return [
             // tells PHPStan.
             'CastInt' => [
                 'ignoreSourceCodeByRegex' => ['.*\\(int\\) \\$index - 1.*'],
+            ],
+            // The tenant is left in a `finally`, for an exception that escapes the `catch (Throwable)`: that `catch` only
+            // appends a row, so without the `finally` the tenant is left all the same.
+            'UnwrapFinally' => [
+                'ignore' => [PurgeCommand::class.'::purgeEveryTenant'],
             ],
             // An `assert()` is a statement for static analysis, removed in production.
             'LogicalOrAllSubExprNegation' => [

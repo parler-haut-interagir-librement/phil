@@ -92,7 +92,7 @@ final readonly class PurgeCommand
                 $tenant = TenantId::fromString($partition);
                 // Entered within the try: an activation that fails on entering still leaves the tenant below.
                 $this->tenants->enter($tenant);
-                $rows[] = [OutputFormatter::escape($partition), (string) $this->store->purgeExpired(), 'purged'];
+                $rows[] = [OutputFormatter::escape($partition), $this->store->purgeExpired(), 'purged'];
             } catch (Throwable $throwable) {
                 ++$failed;
                 $rows[] = [OutputFormatter::escape($partition), '0', OutputFormatter::escape('failed: '.$throwable->getMessage())];

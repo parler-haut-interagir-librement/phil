@@ -39,6 +39,7 @@ final class PurgeEveryTenantTest extends TestCase
         $display = $tester->getDisplay();
         self::assertMatchesRegularExpression('/acme\s+2\s+purged/', $display);
         self::assertMatchesRegularExpression('/globex\s+1\s+purged/', $display);
+        self::assertMatchesRegularExpression('/Tenant\s+Expired tuples deleted\s+Outcome/', $display);
         self::assertStringContainsString('2 tenants purged.', $display);
         self::assertSame(['enter acme', 'leave', 'enter globex', 'leave'], $this->activation->calls);
         self::assertNull($this->tenants->current());

@@ -63,7 +63,7 @@ final readonly class TenantIdempotencyScopeMiddleware implements MiddlewareInter
     /**
      * The stamp of the same key and fingerprint, in the scope of the tenant.
      */
-    public static function scoped(IdempotencyStamp $stamp, string $tenant): IdempotencyStamp
+    private static function scoped(IdempotencyStamp $stamp, string $tenant): IdempotencyStamp
     {
         return new IdempotencyStamp(
             $stamp->key,
