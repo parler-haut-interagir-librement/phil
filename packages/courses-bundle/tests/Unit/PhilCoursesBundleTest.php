@@ -28,6 +28,8 @@ use Phil\CoursesBundle\Application\Enrollments;
 use Phil\CoursesBundle\Application\Import\CourseImporter;
 use Phil\CoursesBundle\Application\Import\ResultImporter;
 use Phil\CoursesBundle\Application\Learning;
+use Phil\CoursesBundle\Application\Scorm\ScormRuntime;
+use Phil\CoursesBundle\Application\Scorm\ScormTokens;
 use Phil\CoursesBundle\Application\SecondChances;
 use Phil\CoursesBundle\Domain\Contract\CourseRepository;
 use Phil\CoursesBundle\Domain\Contract\EnrollmentRepository;
@@ -50,12 +52,16 @@ use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEnrollmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLaunchSessionRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLearningRecordStore;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalRetryRequestRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalScormAttemptRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\SchemaListener;
 use Phil\CoursesBundle\Infrastructure\Http\Cmi5Controller;
 use Phil\CoursesBundle\Infrastructure\Http\ContentController;
 use Phil\CoursesBundle\Infrastructure\Http\CourseController;
 use Phil\CoursesBundle\Infrastructure\Http\CourseRequest;
+use Phil\CoursesBundle\Infrastructure\Http\ScormController;
+use Phil\CoursesBundle\Infrastructure\Http\ScormFrameController;
 use Phil\CoursesBundle\Infrastructure\Http\SecondChancesController;
+use Phil\CoursesBundle\Infrastructure\Privacy\ScormPrivacy;
 use Phil\CoursesBundle\Infrastructure\Routing\RoutedCmi5Endpoints;
 use Phil\CoursesBundle\Infrastructure\Security\SecurityCurrentLearner;
 use Phil\CoursesBundle\Infrastructure\Storage\FilesystemContentStorage;
@@ -259,6 +265,7 @@ final class PhilCoursesBundleTest extends TestCase
             ActivityTypes::class, Availabilities::class, Cmi5Controller::class, Cmi5Launcher::class, Cmi5Statements::class, Cmi5Tokens::class,
             Completions::class, ContentController::class, CourseController::class, CourseImporter::class, Courses::class, Enrollments::class,
             Learning::class, ResultImporter::class, SecondChances::class, SecondChancesController::class,
+            ScormRuntime::class, ScormTokens::class, ScormController::class, ScormFrameController::class,
         ];
         $private = [
             AuditSecondChances::class, CertificatesCourseCompletions::class, Cmi5Activity::class, Cmi5Settings::class, ContentUrls::class, CourseRequest::class, CoursesExtension::class,
@@ -266,7 +273,7 @@ final class PhilCoursesBundleTest extends TestCase
             DbalRetryRequestRepository::class, FilesystemContentStorage::class, ImportCommand::class, ImportResultsCommand::class,
             IssueWaivedStatement::class, KitComponents::class, LinkActivity::class, PackageLimits::class, PackageReader::class, PageActivity::class,
             RetriesCommand::class, RoutedCmi5Endpoints::class, SchemaListener::class, ScormActivity::class, SecurityCurrentLearner::class,
-            ZipPackageOpener::class, 'phil_courses.site_zone',
+            ZipPackageOpener::class, 'phil_courses.site_zone', DbalScormAttemptRepository::class, ScormPrivacy::class,
         ];
         $expected = [...array_fill_keys($public, true), ...array_fill_keys($private, false)];
 

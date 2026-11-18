@@ -24,6 +24,8 @@ use Phil\CoursesBundle\Application\Enrollments;
 use Phil\CoursesBundle\Application\Import\CourseImporter;
 use Phil\CoursesBundle\Application\Import\ResultImporter;
 use Phil\CoursesBundle\Application\Learning;
+use Phil\CoursesBundle\Application\Scorm\ScormRuntime;
+use Phil\CoursesBundle\Application\Scorm\ScormTokens;
 use Phil\CoursesBundle\Application\SecondChances;
 use Phil\CoursesBundle\Infrastructure\Doctrine\CourseTables;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalCourseRepository;
@@ -31,6 +33,7 @@ use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEnrollmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLaunchSessionRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLearningRecordStore;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalRetryRequestRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalScormAttemptRepository;
 use Phil\ElearningPackages\Archive\ZipPackageOpener;
 use Phil\ElearningPackages\PackageLimits;
 use Symfony\Component\Clock\MockClock;
@@ -92,6 +95,12 @@ final readonly class Store
 
     public ResultImporter $results;
 
+    public DbalScormAttemptRepository $attemptStore;
+
+    public ScormTokens $scormTokens;
+
+    public ScormRuntime $scorm;
+
     public function __construct(?Connection $connection = null, PackageLimits $limits = new PackageLimits())
     {
         $this->connection = $connection ?? self::sqlite();
@@ -116,6 +125,9 @@ final readonly class Store
         $this->secondChances = new SecondChances($this->retryStore, $this->courses, $this->enrollments, $this->availabilities, $this->clock, $this->events);
         $this->importer = new CourseImporter(new ZipPackageOpener(), $this->courses, $this->storage, $limits, $this->events, 'fr');
         $this->results = new ResultImporter($this->courses, $this->enrollments);
+        $this->attemptStore = new DbalScormAttemptRepository($this->connection);
+        $this->scormTokens = new ScormTokens($this->clock, self::SECRET);
+        $this->scorm = new ScormRuntime($this->attemptStore, $this->courseStore, $this->enrollmentStore, $this->enrollments, $this->scormTokens, $this->clock, $this->events);
     }
 
     public static function sqlite(): Connection
@@ -128,18 +140,20 @@ final readonly class Store
 
     public static function create(Connection $connection): void
     {
-        foreach (CourseTables::configure(Schema::editor()->create())->toSql($connection->getDatabasePlatform()) as $sql) {
+        foreach (CourseTables::configure(Schema::editor()->create(), $connection->getDatabasePlatform())->toSql($connection->getDatabasePlatform()) as $sql) {
             $connection->executeStatement($sql);
         }
     }
 
     /**
-     * The tables as the schema had them before the blocks, the satisfied blocks and the notes of the decisions.
+     * The tables as the schema had them before the blocks, the satisfied blocks, the notes of the decisions and the SCORM
+     * attempts.
      */
     public static function createEarlier(Connection $connection): void
     {
         $schema = CourseTables::configure(Schema::editor()->create());
-        $editor = $schema->edit()->dropTableByUnquotedName(CourseTables::BLOCK)->dropTableByUnquotedName(CourseTables::SATISFACTION);
+        $editor = $schema->edit()->dropTableByUnquotedName(CourseTables::BLOCK)->dropTableByUnquotedName(CourseTables::SATISFACTION)
+            ->dropTableByUnquotedName(CourseTables::SCORM_ATTEMPT)->dropTableByUnquotedName(CourseTables::SCORM_DATA);
 
         foreach ([CourseTables::ACTIVITY => 'block_id', CourseTables::RETRY => 'note'] as $table => $column) {
             $editor->dropTableByUnquotedName($table)->addTable($schema->getTable($table)->edit()->dropColumnByUnquotedName($column)->create());

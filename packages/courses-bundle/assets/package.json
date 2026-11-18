@@ -1,0 +1,24 @@
+{
+    "name": "@phil/courses-bundle",
+    "description": "The SCORM run time of the courses: the run-time API of SCORM 1.2 and 2004 in a frame on the content origin, its commits sent to the server",
+    "version": "0.2.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/scorm_runtime_controller.js",
+    "symfony": {
+        "controllers": {
+            "scorm-runtime": {
+                "main": "src/scorm_runtime_controller.js",
+                "webpackMode": "lazy",
+                "fetch": "lazy",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

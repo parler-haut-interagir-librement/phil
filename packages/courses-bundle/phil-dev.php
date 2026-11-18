@@ -42,14 +42,16 @@ return [
         ],
     ],
     'fuzz' => [
-        // The checks of the cmi5 statements on bytes nobody wrote, from the seeds of tests/Fuzz/corpus/<target>.
+        // The checks of the cmi5 statements and the body of a SCORM commit on bytes nobody wrote, from the seeds of
+        // tests/Fuzz/corpus/<target>.
         'targets' => [
             'cmi5-statement' => 'tests/Fuzz/cmi5-statement.php',
+            'scorm-commit' => 'tests/Fuzz/scorm-commit.php',
         ],
     ],
     'docs' => [
         'public' => true,
         // The terms of SCORM, IMS Content Packaging, cmi5 and xAPI.
-        'words' => ['cmi5', 'SCORM', 'SCO', 'SCOs', 'xAPI', 'imsmanifest', 'moveOn', 'masteryScore', 'launchMethod', 'LRS', 'HMAC', 'elearning'],
+        'words' => ['cmi5', 'SCORM', 'SCO', 'SCOs', 'xAPI', 'imsmanifest', 'moveOn', 'masteryScore', 'launchMethod', 'LRS', 'HMAC', 'elearning', 'cmi', 'LMSCommit', 'LMSFinish', 'LMSInitialize', 'LMS', 'ADL', 'HHHH', 'sendBeacon', 'postMessage', 'AssetMapper', 'Webpack', 'MEDIUMTEXT', 'utf8mb4', 'MariaDB'],
     ],
 ];

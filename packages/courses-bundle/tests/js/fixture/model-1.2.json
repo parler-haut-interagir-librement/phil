@@ -1,0 +1,245 @@
+{
+    "version": "1.2",
+    "dataModelVersion": "3.4",
+    "elements": {
+        "cmi.core.student_id": {
+            "access": "ro",
+            "pattern": "^[!-~]+$",
+            "maxChars": 255,
+            "default": ""
+        },
+        "cmi.core.student_name": {
+            "access": "ro",
+            "maxChars": 255,
+            "default": ""
+        },
+        "cmi.core.lesson_location": {
+            "access": "rw",
+            "maxChars": 255,
+            "default": ""
+        },
+        "cmi.core.credit": {
+            "access": "ro",
+            "pattern": "^(?:credit|no-credit)$",
+            "default": "credit"
+        },
+        "cmi.core.lesson_status": {
+            "access": "rw",
+            "pattern": "^(?:passed|completed|failed|incomplete|browsed)$",
+            "default": "not attempted"
+        },
+        "cmi.core.entry": {
+            "access": "ro",
+            "pattern": "^(?:ab-initio|resume|)$",
+            "default": ""
+        },
+        "cmi.core.score.raw": {
+            "access": "rw",
+            "pattern": "^(?:-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15}))?$",
+            "maxChars": 40,
+            "min": 0,
+            "max": 100,
+            "default": ""
+        },
+        "cmi.core.score.min": {
+            "access": "rw",
+            "pattern": "^(?:-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15}))?$",
+            "maxChars": 40,
+            "min": 0,
+            "max": 100,
+            "default": ""
+        },
+        "cmi.core.score.max": {
+            "access": "rw",
+            "pattern": "^(?:-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15}))?$",
+            "maxChars": 40,
+            "min": 0,
+            "max": 100,
+            "default": ""
+        },
+        "cmi.core.total_time": {
+            "access": "ro",
+            "pattern": "^\\d{2,4}:[0-5]\\d:[0-5]\\d(?:\\.\\d{1,2})?$",
+            "default": "0000:00:00.00"
+        },
+        "cmi.core.lesson_mode": {
+            "access": "ro",
+            "pattern": "^(?:normal|review|browse)$",
+            "default": "normal"
+        },
+        "cmi.core.exit": {
+            "access": "wo",
+            "pattern": "^(?:time-out|suspend|logout|)$"
+        },
+        "cmi.core.session_time": {
+            "access": "wo",
+            "pattern": "^\\d{2,4}:[0-5]\\d:[0-5]\\d(?:\\.\\d{1,2})?$"
+        },
+        "cmi.suspend_data": {
+            "access": "rw",
+            "maxChars": 4096,
+            "default": ""
+        },
+        "cmi.launch_data": {
+            "access": "ro",
+            "maxChars": 4096,
+            "default": ""
+        },
+        "cmi.comments": {
+            "access": "rw",
+            "maxChars": 4096,
+            "default": ""
+        },
+        "cmi.comments_from_lms": {
+            "access": "ro",
+            "maxChars": 4096,
+            "default": ""
+        },
+        "cmi.objectives.n.id": {
+            "access": "rw",
+            "pattern": "^[!-~]+$",
+            "maxChars": 255,
+            "default": ""
+        },
+        "cmi.objectives.n.score.raw": {
+            "access": "rw",
+            "pattern": "^(?:-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15}))?$",
+            "maxChars": 40,
+            "min": 0,
+            "max": 100,
+            "default": ""
+        },
+        "cmi.objectives.n.score.min": {
+            "access": "rw",
+            "pattern": "^(?:-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15}))?$",
+            "maxChars": 40,
+            "min": 0,
+            "max": 100,
+            "default": ""
+        },
+        "cmi.objectives.n.score.max": {
+            "access": "rw",
+            "pattern": "^(?:-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15}))?$",
+            "maxChars": 40,
+            "min": 0,
+            "max": 100,
+            "default": ""
+        },
+        "cmi.objectives.n.status": {
+            "access": "rw",
+            "pattern": "^(?:passed|completed|failed|incomplete|browsed|not attempted)$",
+            "default": "not attempted"
+        },
+        "cmi.student_data.mastery_score": {
+            "access": "ro",
+            "pattern": "^(?:-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15}))?$",
+            "default": ""
+        },
+        "cmi.student_data.max_time_allowed": {
+            "access": "ro",
+            "pattern": "^(?:\\d{2,4}:[0-5]\\d:[0-5]\\d(?:\\.\\d{1,2})?)?$",
+            "default": ""
+        },
+        "cmi.student_data.time_limit_action": {
+            "access": "ro",
+            "pattern": "^(?:exit,message|exit,no message|continue,message|continue,no message|)$",
+            "default": ""
+        },
+        "cmi.student_preference.audio": {
+            "access": "rw",
+            "pattern": "^-?\\d{1,5}$",
+            "min": -1,
+            "max": 100,
+            "default": "0"
+        },
+        "cmi.student_preference.language": {
+            "access": "rw",
+            "maxChars": 255,
+            "default": ""
+        },
+        "cmi.student_preference.speed": {
+            "access": "rw",
+            "pattern": "^-?\\d{1,5}$",
+            "min": -100,
+            "max": 100,
+            "default": "0"
+        },
+        "cmi.student_preference.text": {
+            "access": "rw",
+            "pattern": "^-?\\d{1,5}$",
+            "min": -1,
+            "max": 1,
+            "default": "0"
+        },
+        "cmi.interactions.n.id": {
+            "access": "wo",
+            "pattern": "^[!-~]+$",
+            "maxChars": 255
+        },
+        "cmi.interactions.n.objectives.n.id": {
+            "access": "wo",
+            "pattern": "^[!-~]+$",
+            "maxChars": 255
+        },
+        "cmi.interactions.n.time": {
+            "access": "wo",
+            "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d{1,2})?$"
+        },
+        "cmi.interactions.n.type": {
+            "access": "wo",
+            "pattern": "^(?:true-false|choice|fill-in|matching|performance|sequencing|likert|numeric)$"
+        },
+        "cmi.interactions.n.correct_responses.n.pattern": {
+            "access": "wo",
+            "maxChars": 255
+        },
+        "cmi.interactions.n.weighting": {
+            "access": "wo",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40
+        },
+        "cmi.interactions.n.student_response": {
+            "access": "wo",
+            "maxChars": 255
+        },
+        "cmi.interactions.n.result": {
+            "access": "wo",
+            "pattern": "^(?:correct|wrong|unanticipated|neutral|-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15}))$",
+            "maxChars": 40
+        },
+        "cmi.interactions.n.latency": {
+            "access": "wo",
+            "pattern": "^\\d{2,4}:[0-5]\\d:[0-5]\\d(?:\\.\\d{1,2})?$"
+        }
+    },
+    "collections": {
+        "cmi.objectives": 100,
+        "cmi.interactions": 250,
+        "cmi.interactions.n.objectives": 10,
+        "cmi.interactions.n.correct_responses": 10
+    },
+    "parents": [
+        "cmi.core",
+        "cmi.core.score",
+        "cmi.objectives",
+        "cmi.objectives.n.score",
+        "cmi.student_data",
+        "cmi.student_preference",
+        "cmi.interactions"
+    ],
+    "correctResponses": [],
+    "responses": [],
+    "errors": {
+        "0": "No error",
+        "101": "General exception",
+        "201": "Invalid argument error",
+        "202": "Element cannot have children",
+        "203": "Element cannot have count",
+        "301": "Not initialized",
+        "401": "Not implemented error",
+        "402": "Invalid set value, element is a keyword",
+        "403": "Element is read only",
+        "404": "Element is write only",
+        "405": "Incorrect data type"
+    }
+}

@@ -7,6 +7,7 @@ namespace Phil\CoursesBundle\Application\Import;
 use Phil\CoursesBundle\Application\ActivityType\LinkActivity;
 use Phil\CoursesBundle\Application\ActivityType\ScormActivity;
 use Phil\CoursesBundle\Domain\Progress\CompletionRequirement;
+use Phil\ElearningPackages\PackageFormat;
 use Phil\ElearningPackages\PackagePath;
 use Phil\ElearningPackages\Scorm\ScormItem;
 use Phil\ElearningPackages\Scorm\ScormManifest;
@@ -18,7 +19,9 @@ use Phil\ElearningPackages\Warnings;
  * that has children becomes a module, whose leaves become its activities, the titles of the items between them
  * prefixed; the leaves of the first level gather in a module named after the organization. A leaf whose resource is in
  * the package becomes a SCORM activity, one whose resource is an absolute URL a link. Hidden items and items that
- * launch nothing are left out, and the report says so, after the notes of the reading of the package.
+ * launch nothing are left out, and the report says so, after the notes of the reading of the package. A SCORM
+ * activity is satisfied once passed when its item has a mastery score (SCORM 1.2) or a scaled passing score (SCORM
+ * 2004), once completed or passed otherwise.
  */
 final readonly class ScormPlanner
 {
@@ -154,10 +157,6 @@ final readonly class ScormPlanner
 
         [$file, $query] = $this->split($resource->href, $item->parameters);
 
-        if (null !== $item->masteryScore || null !== $item->completionThreshold) {
-            $warnings->add('Mastery scores and completion thresholds are kept for information: without a SCORM runtime the content reports no score, and the learner marks it done.');
-        }
-
         if (null !== $item->prerequisites) {
             $warnings->add('The prerequisites of SCORM 1.2 are kept for information: impose the order of the course to enforce one.');
         }
@@ -166,16 +165,22 @@ final readonly class ScormPlanner
             $warnings->add('The sequencing and navigation rules of SCORM 2004 are kept for information: the course does not enforce them.');
         }
 
+        $passing = PackageFormat::Scorm12 === $manifest->format ? $item->masteryScore : $item->scaledPassingScore;
+
         return new PlannedActivity($title, ScormActivity::NAME, array_filter([
             'path' => $file,
             'query' => $query,
             'scorm_type' => $resource->scormType,
             'scorm_version' => $manifest->format->value,
             'mastery_score' => $item->masteryScore,
+            'scaled_passing_score' => $item->scaledPassingScore,
             'completion_threshold' => $item->completionThreshold,
+            'launch_data' => $item->dataFromLms,
+            'max_time_allowed' => $item->maxTimeAllowed,
+            'time_limit_action' => $item->timeLimitAction,
             'prerequisites' => null === $item->prerequisites ? null : mb_substr($item->prerequisites, 0, 1000),
             'sequencing' => null !== $item->sequencing && \strlen($item->sequencing) <= self::SEQUENCING_BYTES ? $item->sequencing : null,
-        ], static fn (float|string|null $value): bool => null !== $value), CompletionRequirement::Completed, $item->identifier);
+        ], static fn (float|string|null $value): bool => null !== $value), null === $passing ? CompletionRequirement::CompletedOrPassed : CompletionRequirement::Passed, $item->identifier);
     }
 
     /**

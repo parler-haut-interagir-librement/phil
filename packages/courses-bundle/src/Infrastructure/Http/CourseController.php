@@ -10,13 +10,16 @@ use Phil\CoursesBundle\Application\ContentUrls;
 use Phil\CoursesBundle\Application\Contract\CurrentLearner;
 use Phil\CoursesBundle\Application\Courses;
 use Phil\CoursesBundle\Application\Enrollments;
+use Phil\CoursesBundle\Application\Launch;
 use Phil\CoursesBundle\Application\LaunchWindow;
 use Phil\CoursesBundle\Application\Learning;
+use Phil\CoursesBundle\Application\Scorm\ScormLaunch;
 use Phil\CoursesBundle\Application\SecondChances;
 use Phil\CoursesBundle\Domain\Exception\ActivityUnavailable;
 use Phil\CoursesBundle\Domain\Exception\CoursesException;
 use Phil\CoursesBundle\Domain\Exception\InvalidCourse;
 use Phil\CoursesBundle\Domain\Exception\RecordStoreUnavailable;
+use Phil\CoursesBundle\Domain\Model\Activity;
 use Phil\CoursesBundle\Domain\Model\Course;
 use Phil\CoursesBundle\Domain\Model\Enrollment;
 use Phil\CoursesBundle\Domain\ValueObject\ActivityId;
@@ -126,7 +129,36 @@ final readonly class CourseController
             'launch' => $launch,
             'error' => null,
             'manual' => $this->types->get($taken->type)->completesManually(),
+            'scorm' => $this->scorm($launch, $found, $taken),
         ]);
+    }
+
+    /**
+     * What the page hands the Stimulus controller of a SCORM session: the frame of the run time on the content origin,
+     * the state of the session, and the addresses of the commits, of the launch of another activity and of the outline.
+     *
+     * @return ?array{frame: string, origin: string, state: string, commit: string, launch: string, outline: string, number: int, resumed: bool}
+     */
+    private function scorm(Launch $launch, Course $course, Activity $activity): ?array
+    {
+        $origin = $this->content->origin();
+
+        if (!$launch->scorm instanceof ScormLaunch || null === $origin || null === $launch->url || !str_starts_with($launch->url, $origin.'/')) {
+            return null;
+        }
+
+        $state = $launch->scorm->state(substr($launch->url, \strlen($origin))) + ['title' => $activity->title];
+
+        return [
+            'frame' => $this->content->runtime('frame.html'),
+            'origin' => $origin,
+            'state' => json_encode($state, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE),
+            'commit' => $this->urls->generate(ScormController::COMMIT_ROUTE),
+            'launch' => $this->urls->generate(self::LAUNCH_ROUTE, ['course' => $course->id->value, 'activity' => '00000000-0000-0000-0000-000000000000']),
+            'outline' => $this->urls->generate(self::OUTLINE_ROUTE, ['course' => $course->id->value]),
+            'number' => $launch->scorm->number,
+            'resumed' => $launch->scorm->resumed,
+        ];
     }
 
     public function complete(Request $request, string $course, string $activity): RedirectResponse
@@ -211,6 +243,7 @@ final readonly class CourseController
             'layout' => $this->layout,
             'token' => $this->request->token(),
             'manual' => false,
+            'scorm' => null,
         ]), $status, ['Cache-Control' => 'no-store']);
     }
 }

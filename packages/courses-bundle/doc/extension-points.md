@@ -97,17 +97,26 @@ statements an enrollment has with `satisfactions()`, `claimSatisfaction()` — w
 was noted already, so that two requests at once issue one statement — and `releaseSatisfaction()`. An application that
 replaces a store implements them.
 
+## `ScormAttemptRepository`
+
+Where the SCORM attempts and their tracking data are kept: `save()`, `find()`, `latest()` — the learner's last attempt at
+an activity —, `ofEnrollments()` and `removeOfEnrollments()`, which the privacy module reads and erases through.
+`DbalScormAttemptRepository` keeps them through DBAL; an application that keeps them elsewhere aliases the port to its
+own service.
+
 ## Events
 
 The events of [the course model](course-model.md#events) are dispatched through the PSR-14 dispatcher, and carry
 identifiers only: a listener reads the rest from the stores. A listener sends the reminder of a release, awards a
 certificate on `CourseCompleted`, tells a teacher of a `RetryRequested`, or follows a learner's path through the
-blocks of a cmi5 course on `BlockSatisfied`.
+blocks of a cmi5 course on `BlockSatisfied`. `ScormSessionEnded` is dispatched at the end of each session of a SCORM
+activity, with whether its attempt ended.
 
 ## Services
 
 Every entry point is a public service named by its class: `Courses`, `Enrollments`, `Availabilities`, `Learning`,
 `Completions`, `SecondChances`, `CourseImporter`, `ResultImporter`, `Cmi5Statements`, `Cmi5Tokens`, `Cmi5Launcher`,
-`ActivityTypes`, and the controllers of the pages, `SecondChancesController` among them.
+`ActivityTypes`, `ScormRuntime`, `ScormTokens`, and the controllers of the pages, `SecondChancesController`,
+`ScormController` and `ScormFrameController` among them.
 The stores are aliased by their ports: `CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`,
-`LaunchSessionRepository`.
+`LaunchSessionRepository`, `ScormAttemptRepository`.

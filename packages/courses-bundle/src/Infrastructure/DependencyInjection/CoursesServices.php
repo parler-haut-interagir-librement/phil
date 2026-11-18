@@ -32,11 +32,14 @@ use Phil\CoursesBundle\Application\Enrollments;
 use Phil\CoursesBundle\Application\Import\CourseImporter;
 use Phil\CoursesBundle\Application\Import\ResultImporter;
 use Phil\CoursesBundle\Application\Learning;
+use Phil\CoursesBundle\Application\Scorm\ScormRuntime;
+use Phil\CoursesBundle\Application\Scorm\ScormTokens;
 use Phil\CoursesBundle\Application\SecondChances;
 use Phil\CoursesBundle\Domain\Contract\CourseRepository;
 use Phil\CoursesBundle\Domain\Contract\EnrollmentRepository;
 use Phil\CoursesBundle\Domain\Contract\LaunchSessionRepository;
 use Phil\CoursesBundle\Domain\Contract\RetryRequestRepository;
+use Phil\CoursesBundle\Domain\Contract\ScormAttemptRepository;
 use Phil\CoursesBundle\Domain\Event\ActivitySatisfied;
 use Phil\CoursesBundle\Domain\Event\RetryGranted;
 use Phil\CoursesBundle\Domain\Event\RetryRefused;
@@ -52,12 +55,16 @@ use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEnrollmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLaunchSessionRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLearningRecordStore;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalRetryRequestRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalScormAttemptRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\SchemaListener;
 use Phil\CoursesBundle\Infrastructure\Http\Cmi5Controller;
 use Phil\CoursesBundle\Infrastructure\Http\ContentController;
 use Phil\CoursesBundle\Infrastructure\Http\CourseController;
 use Phil\CoursesBundle\Infrastructure\Http\CourseRequest;
+use Phil\CoursesBundle\Infrastructure\Http\ScormController;
+use Phil\CoursesBundle\Infrastructure\Http\ScormFrameController;
 use Phil\CoursesBundle\Infrastructure\Http\SecondChancesController;
+use Phil\CoursesBundle\Infrastructure\Privacy\ScormPrivacy;
 use Phil\CoursesBundle\Infrastructure\Routing\RoutedCmi5Endpoints;
 use Phil\CoursesBundle\Infrastructure\Security\SecurityCurrentLearner;
 use Phil\CoursesBundle\Infrastructure\Storage\FilesystemContentStorage;
@@ -68,6 +75,8 @@ use Phil\ElearningPackages\Archive\ZipPackageOpener;
 use Phil\ElearningPackages\Contract\PackageOpener;
 use Phil\ElearningPackages\PackageLimits;
 use Phil\ElearningPackages\PackageReader;
+use Phil\PrivacyBundle\Application\Contract\PersonalDataEraser;
+use Phil\PrivacyBundle\PhilPrivacyBundle;
 use Phil\SafeHttp\Limits;
 use Phil\SafeHttp\SafeHttpClient;
 use Symfony\Component\Console\Command\Command;
@@ -83,8 +92,9 @@ use Twig\Environment;
 /**
  * The bundle's services: the DBAL stores, the activity types, the entry points, the import, cmi5 and its learning
  * record store — inside the bundle, the application's, or a remote one through phil/safe-http —, the console commands,
- * the pages, the administration page of the second chances with Symfony Security, and their Twig function; the schema
- * listener with the ORM, and the trail of the second chances with phil/audit-bundle.
+ * the pages, the administration page of the second chances with Symfony Security, and their Twig function; the SCORM
+ * run time, its commit endpoint and the frame of its API; the schema listener with the ORM, the trail of the second
+ * chances with phil/audit-bundle, and the SCORM attempts in the access and erasure requests of phil/privacy-bundle.
  *
  * @phpstan-type Config array{
  *     connection: string,
@@ -95,9 +105,10 @@ use Twig\Environment;
  *     self_enrollment: bool,
  *     locked_activities: 'show'|'hide',
  *     storage: array{directory: string, service: ?string},
- *     content: array{base_url: ?string, allow_localhost: bool},
+ *     content: array{base_url: ?string, application_origin: ?string, allow_localhost: bool},
  *     import: array{language: ?string, limits: array{archive_bytes: int, entries: int, entry_bytes: int, total_bytes: int, ratio: int, manifest_bytes: int, depth: int, items: int}},
  *     cmi5: array{actor_home_page: ?string, session_ttl: int, secret: string, allowed_origins: list<string>, lrs: ?string, remote_lrs: array{enabled: bool, endpoint: ?string, username: ?string, password: ?string, version: string, timeout: float, max_duration: float}},
+ *     scorm: array{enabled: bool, token_ttl: int, secret: string},
  *     admin: array{role: string},
  *     audit: array{enabled: bool, segment: string}
  * }
@@ -121,7 +132,9 @@ final class CoursesServices
         $container->register(ContentUrls::class, ContentUrls::class)->setArguments([$config['content']['base_url'], $config['content']['allow_localhost']]);
         $container->register(Cmi5Settings::class, Cmi5Settings::class)->setArguments([$config['cmi5']['actor_home_page'], $config['cmi5']['session_ttl'], $config['content']['allow_localhost']]);
 
-        foreach ([PageActivity::class => [], LinkActivity::class => [], ScormActivity::class => [new Reference(ContentUrls::class)], Cmi5Activity::class => [new Reference(Cmi5Launcher::class)]] as $type => $arguments) {
+        self::scorm($container, $clock, $events, $config);
+
+        foreach ([PageActivity::class => [], LinkActivity::class => [], ScormActivity::class => [new Reference(ContentUrls::class), $config['scorm']['enabled'] ? new Reference(ScormRuntime::class) : null], Cmi5Activity::class => [new Reference(Cmi5Launcher::class)]] as $type => $arguments) {
             $container->register($type, $type)->setArguments($arguments)->addTag(ActivityType::TAG);
         }
 
@@ -185,6 +198,7 @@ final class CoursesServices
             EnrollmentRepository::class => DbalEnrollmentRepository::class,
             RetryRequestRepository::class => DbalRetryRequestRepository::class,
             LaunchSessionRepository::class => DbalLaunchSessionRepository::class,
+            ScormAttemptRepository::class => DbalScormAttemptRepository::class,
         ] as $port => $store) {
             $container->register($store, $store)->setArguments([$connection]);
             $container->setAlias($port, $store)->setPublic(true);
@@ -286,6 +300,44 @@ final class CoursesServices
     }
 
     /**
+     * The SCORM run time, its tokens and its privacy module when phil/privacy-bundle is installed.
+     *
+     * @param Config $config
+     */
+    private static function scorm(ContainerBuilder $container, Reference $clock, Reference $events, array $config): void
+    {
+        self::service($container, ScormTokens::class, [$clock, $config['scorm']['secret'], $config['scorm']['token_ttl']]);
+        self::service($container, ScormRuntime::class, [
+            new Reference(ScormAttemptRepository::class),
+            new Reference(CourseRepository::class),
+            new Reference(EnrollmentRepository::class),
+            new Reference(Enrollments::class),
+            new Reference(ScormTokens::class),
+            $clock,
+            $events,
+        ]);
+
+        if (interface_exists(PersonalDataEraser::class)) {
+            $container->register(ScormPrivacy::class, ScormPrivacy::class)
+                ->setArguments([new Reference(EnrollmentRepository::class), new Reference(ScormAttemptRepository::class)])
+                ->addTag(PhilPrivacyBundle::EXPORTER_TAG)
+                ->addTag(PhilPrivacyBundle::ERASER_TAG);
+        }
+    }
+
+    /**
+     * The origin of the site that frames the content.
+     *
+     * @param Config $config
+     */
+    private static function application(array $config): ?string
+    {
+        $origin = $config['content']['application_origin'] ?? $config['cmi5']['actor_home_page'];
+
+        return null === $origin ? null : self::origin($origin);
+    }
+
+    /**
      * @param Config $config
      */
     private static function pages(ContainerBuilder $container, array $config): void
@@ -294,9 +346,13 @@ final class CoursesServices
             ->setArguments([
                 new Reference(ContentStorage::class),
                 new Reference(ContentUrls::class),
-                null === $config['cmi5']['actor_home_page'] ? null : self::origin($config['cmi5']['actor_home_page']),
+                self::application($config),
                 null === $config['cmi5']['actor_home_page'] ? null : self::origin($config['cmi5']['actor_home_page']),
             ])
+            ->addTag('controller.service_arguments')
+            ->setPublic(true);
+        $container->register(ScormFrameController::class, ScormFrameController::class)
+            ->setArguments([new Reference(ContentUrls::class), self::application($config), null])
             ->addTag('controller.service_arguments')
             ->setPublic(true);
 
@@ -343,6 +399,10 @@ final class CoursesServices
                 $config['self_enrollment'],
                 'show' === $config['locked_activities'],
             ])
+            ->addTag('controller.service_arguments')
+            ->setPublic(true);
+        $container->register(ScormController::class, ScormController::class)
+            ->setArguments([new Reference(ScormRuntime::class), new Reference(CourseRequest::class), new Reference(CurrentLearner::class)])
             ->addTag('controller.service_arguments')
             ->setPublic(true);
     }

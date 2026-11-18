@@ -17,7 +17,9 @@ use Phil\CoursesBundle\Tests\Unit\Fixture\Store;
 
 /**
  * What the platform pays on its hot paths: checking a statement an assignable unit sends against the rules of cmi5,
- * and placing every activity of a course of ten modules of ten activities for a learner half-way through it.
+ * placing every activity of a course of ten modules of ten activities for a learner half-way through it, and the
+ * commit of a SCORM session — the token checked, the attempt read, the values checked and kept — whose attempt holds
+ * fifty interactions already.
  */
 final readonly class CoursesBench
 {
@@ -29,6 +31,11 @@ final readonly class CoursesBench
     private Store $store;
 
     private Enrollment $enrollment;
+
+    private string $token;
+
+    /** @var array<string, string> */
+    private array $commit;
 
     public function __construct()
     {
@@ -50,6 +57,22 @@ final readonly class CoursesBench
         foreach (\array_slice($this->store->courses->outline($course->id)->activities(), 0, 50) as $activity) {
             $this->store->enrollments->record($this->enrollment, $activity, Outcome::completed());
         }
+
+        $scorm = $this->store->courses->addActivity($this->store->courses->addModule($course->id, 'SCORM')->id, 'SCO', 'scorm', ['path' => 'a.html', 'scorm_version' => 'scorm2004']);
+        $launch = $this->store->scorm->launch($scorm, $this->enrollment);
+        $interactions = [];
+
+        for ($i = 0; $i < 50; ++$i) {
+            $interactions += ['cmi.interactions.'.$i.'.id' => 'q'.$i, 'cmi.interactions.'.$i.'.type' => 'choice', 'cmi.interactions.'.$i.'.learner_response' => 'a[,]b', 'cmi.interactions.'.$i.'.result' => 'correct'];
+        }
+
+        $this->token = (string) $this->store->scorm->commit($launch->token, $interactions, false)->token;
+        $this->commit = ['cmi.location' => 'page-12', 'cmi.suspend_data' => str_repeat('s', 4_000), 'cmi.progress_measure' => '0.4', 'cmi.score.scaled' => '0.5', 'cmi.session_time' => 'PT10M'];
+    }
+
+    public function benchCommitAScormSession(): void
+    {
+        $this->store->scorm->commit($this->token, $this->commit, false);
     }
 
     public function benchCheckAStatement(): void

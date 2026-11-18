@@ -1,8 +1,9 @@
 # SCORM import
 
-The bundle imports SCORM 1.2 and SCORM 2004 packages to migrate courses from another platform. It reads the package and
-its manifest, creates the course, and stores the files; it runs no SCORM runtime. A SCO is shown to the learner,
-framed from the content origin, and the learner marks it done.
+The bundle imports SCORM 1.2 and SCORM 2004 packages, to run them or to migrate courses from another platform. It reads
+the package and its manifest, creates the course, and stores the files. A SCO runs framed from the content origin,
+under the run-time API of its version, as [SCORM run time](scorm-runtime.md) explains; with the run time disabled, the
+learner marks it done.
 
 ```sh
 php bin/console phil:courses:import var/import/safety-course.zip
@@ -36,9 +37,13 @@ The version comes from `<schemaversion>`: `1.2` is SCORM 1.2; `CAM 1.3`, `1.3…
 | The manifest's identifier, and each item's | The source of the course, and of each activity |
 | Every file of the archive | Stored under the course's directory |
 
-Each activity is required, satisfied once the learner marks it done. The settings of a `scorm` activity keep, for
-information, the SCORM type of its resource, the version, the mastery score of SCORM 1.2 as a scaled score, the
-prerequisites of SCORM 1.2, and the completion threshold and sequencing of SCORM 2004.
+Each activity is required. It is satisfied once passed when its item has a mastery score (SCORM 1.2) or a scaled passing
+score (SCORM 2004: the `minNormalizedMeasure` of a primary objective satisfied by measure), once completed or passed
+otherwise. The settings of a `scorm` activity keep the version, and what the run time hands the SCO: the mastery score
+of SCORM 1.2 as a scaled score, the scaled passing score and the completion threshold of SCORM 2004, the launch data
+(`adlcp:datafromlms`), the time allowed (`adlcp:maxtimeallowed`, or the `attemptAbsoluteDurationLimit` of SCORM 2004)
+and its action (`adlcp:timelimitaction`). They keep for information the SCORM type of the resource, the prerequisites
+of SCORM 1.2 and the sequencing of SCORM 2004.
 
 ## What is not imported
 
@@ -47,10 +52,9 @@ prerequisites of SCORM 1.2, and the completion threshold and sequencing of SCORM
 | The other organizations | A course has one outline |
 | Hidden items, and items that launch nothing | Nothing to show; the report names each |
 | Launch files and declared files missing from the package | The activity is created; the report names each file, before the other notes |
-| Sequencing and navigation rules of SCORM 2004, the sequencing collection | Kept with the activities, not enforced: impose the order of the course instead |
+| Sequencing and navigation rules of SCORM 2004, the sequencing collection | Kept with the activities, not enforced: impose the order of the course instead; the navigation requests a SCO makes are followed, as [SCORM run time](scorm-runtime.md#packages-of-several-scos) explains |
 | Prerequisites of SCORM 1.2 | Kept, not enforced: impose the order of the course instead |
-| Mastery scores and completion thresholds | Kept: without a runtime, the content reports no score |
-| Objectives, the runtime data model, suspend data | They live in a runtime the bundle does not run |
+| Objectives of the sequencing other than the primary one | Left out: each SCO keeps its own `cmi.objectives` in its attempt |
 | Learner results | A package carries none; see below |
 
 ## Importing results

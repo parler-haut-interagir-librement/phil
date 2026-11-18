@@ -10,6 +10,7 @@
         "scorm",
         "cmi5",
         "xapi",
+        "stimulus",
         "symfony-bundle"
     ],
     "authors": [
@@ -45,6 +46,7 @@
         "doctrine/orm": "^3.7",
         "phil/audit-bundle": "^0.1@dev",
         "phil/certificates-bundle": "^0.2@dev",
+        "phil/privacy-bundle": "^0.1@dev",
         "phil/safe-http": "^0.1@dev || ^0.2@dev",
         "phil/ux-kit": "^0.5@dev",
         "phpunit/phpunit": "^13.4",
@@ -70,11 +72,14 @@
         "doctrine/orm": "For the tables added to the schema the ORM generates",
         "phil/audit-bundle": "To write the second chances asked for, granted, refused and waived to the audit trail",
         "phil/certificates-bundle": "To issue certificates on the completion of a course, answered through its CourseCompletions port",
+        "phil/privacy-bundle": "To give the SCORM attempts and their tracking data in the access and erasure requests of a learner",
         "phil/safe-http": "To send the statements to a remote xAPI learning record store",
         "phil/ux-kit": "For the recipes Button, Badge, Progress and Textarea the pages draw, through the Symfony UX Toolkit",
+        "symfony/asset-mapper": "To serve the Stimulus controller of the SCORM run time without a build step",
         "symfony/console": "For phil:courses:import, phil:courses:import-results and phil:courses:retries",
         "symfony/security-core": "To name the current learner from the authenticated user, and for the administration page of the second chances",
         "symfony/security-csrf": "For the forms of the pages",
+        "symfony/stimulus-bundle": "For the Stimulus controller of the SCORM run time, through AssetMapper",
         "symfony/twig-bundle": "For the pages of the courses",
         "symfony/ux-twig-component": "For the recipes of the kit the pages draw"
     },

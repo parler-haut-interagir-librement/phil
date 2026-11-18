@@ -21,7 +21,7 @@ final readonly class SchemaListener
     public function postGenerateSchema(GenerateSchemaEventArgs $event): void
     {
         if ($event->getEntityManager()->getConnection() === $this->connection) {
-            $event->setSchema(CourseTables::configure($event->getSchema()));
+            $event->setSchema(CourseTables::configure($event->getSchema(), $this->connection->getDatabasePlatform()));
         }
     }
 }

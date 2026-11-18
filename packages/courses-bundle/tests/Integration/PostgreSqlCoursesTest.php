@@ -11,6 +11,7 @@ use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEnrollmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLaunchSessionRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLearningRecordStore;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalRetryRequestRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalScormAttemptRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\Rows;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -24,6 +25,7 @@ use PHPUnit\Framework\Attributes\Group;
 #[CoversClass(DbalRetryRequestRepository::class)]
 #[CoversClass(DbalLaunchSessionRepository::class)]
 #[CoversClass(DbalLearningRecordStore::class)]
+#[CoversClass(DbalScormAttemptRepository::class)]
 #[CoversClass(Rows::class)]
 #[Group('postgresql')]
 final class PostgreSqlCoursesTest extends ServerTestCase

@@ -66,6 +66,23 @@ The activity page frames content with `sandbox="allow-scripts allow-same-origin 
 allow-downloads"`. The content keeps its own origin — the content origin, never the application's — which its calls to
 the xAPI endpoint need, and it cannot reach the page that frames it.
 
+## The SCORM run time
+
+The frame of the run time, `_phil/scorm/frame.html` and its scripts, is served on the content origin only, with
+`default-src 'none'`, scripts of its own origin only, `frame-src 'self'` and `frame-ancestors` the application's origin:
+only the application frames it, and it frames only the content origin. The SCOs it frames are served with
+`frame-ancestors 'self'` and the application's origin, so that the frame on the content origin can hold them.
+
+The frame and the activity page talk by `postMessage()`, each to the other's origin alone: the frame accepts the
+state of a session from its parent window and the application's origin only, the activity page accepts writes from its
+own frame and the content origin only. The state holds the learner's identifier, never a name or an e-mail address.
+
+A commit carries an attempt token — the attempt, the session and an expiry, signed by an HMAC under
+`phil_courses.scorm.secret`, nothing secret kept in the database — and the stateless CSRF token of the forms: the
+browser's `Sec-Fetch-Site`, `Origin` or `Referer` must say it comes from the site. A token of another learner signed in,
+of an earlier session, or expired is refused. The body is bounded at 2 MiB, a commit at 4 000 values, the data of an
+attempt at 1 MiB, each value by the data model of its element.
+
 ## The cmi5 endpoint
 
 The xAPI endpoint answers a request carrying the token of an open session only, and only for that session's actor,

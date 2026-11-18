@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\CoursesBundle\Tests\Functional;
 
 use Doctrine\DBAL\Connection;
+use LogicException;
 use Override;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Statements;
 use Phil\CoursesBundle\Application\Courses;
@@ -81,15 +82,48 @@ final class CoursesBundleTest extends WebTestCase
         $saws = $this->activity($course->id, 'saws');
         $this->client->submit($crawler->filter('form[action$="/'.$saws->id->value.'/launch"]')->form(), [], self::ADA);
         self::assertResponseIsSuccessful();
-        $frame = $this->client->getCrawler()->filter('iframe.phil-courses__frame');
-        self::assertSame('http://content.localhost/content/'.$course->id->value.'/content/tools/saws.html?lang=en&page=2', $frame->attr('src'));
-        self::assertSame('allow-scripts allow-same-origin allow-forms allow-popups allow-downloads', $frame->attr('sandbox'));
+        $session = $this->session();
+        self::assertSame('http://content.localhost/content/_phil/scorm/frame.html', $session['frame']);
+        self::assertSame('http://content.localhost', $session['origin']);
+        self::assertSame('/courses/scorm/commit', $session['commit']);
+        self::assertSame(['1.2', 'API', '/content/'.$course->id->value.'/content/tools/saws.html?lang=en&page=2', 'Saws'], [$session['state']['version'], $session['state']['api'], $session['state']['sco'], $session['state']['title']]);
+        self::assertSame(['ada', 'ab-initio', 'not attempted', '80'], [$session['state']['values']['cmi.core.student_id'], $session['state']['values']['cmi.core.entry'], $session['state']['values']['cmi.core.lesson_status'], $session['state']['values']['cmi.student_data.mastery_score']]);
+        self::assertSame('allow-scripts allow-same-origin allow-forms allow-popups allow-downloads', $this->client->getCrawler()->filter('iframe.phil-courses__frame')->attr('sandbox'));
+        self::assertSelectorTextContains('.phil-courses__scorm [data-slot="badge"]', 'Attempt 1');
+        self::assertSelectorNotExists('form[action$="/complete"]');
 
-        $this->client->submit($this->client->getCrawler()->filter('form[action$="/complete"]')->form(), [], self::ADA);
-        self::assertResponseRedirects('/courses/'.$course->id->value, 303);
+        $first = $this->commit($session['token'], ['cmi.core.lesson_status' => 'incomplete', 'cmi.core.score.raw' => 85, 'cmi.core.student_id' => 'eve', 'cmi.suspend_data' => 'page=2'], false);
+        self::assertResponseIsSuccessful();
+        self::assertSame(['cmi.core.student_id' => 403], $first['errors']);
+        self::assertFalse($first['ended']);
+        self::assertIsString($first['token']);
+
+        $this->commit($first['token'], [], false, ['HTTP_ORIGIN' => 'https://evil.example.net', 'HTTP_SEC_FETCH_SITE' => 'cross-site']);
+        self::assertResponseStatusCodeSame(403);
+        $this->commit($first['token'], [], false, ['HTTP_X_USER' => 'eve']);
+        self::assertResponseStatusCodeSame(403);
+        $this->client->request('POST', '/courses/scorm/commit', server: self::ADA + ['HTTP_ORIGIN' => 'http://localhost'], content: '[1');
+        self::assertResponseStatusCodeSame(400);
+
+        $last = $this->commit($first['token'], ['cmi.core.session_time' => '0000:12:30', 'cmi.core.exit' => ''], true);
+        self::assertSame([[], null, true], [$last['errors'], $last['token'], $last['ended']]);
+        $this->commit($first['token'], [], false);
+        self::assertResponseStatusCodeSame(409);
+
         $this->client->request('GET', '/courses/'.$course->id->value, server: self::ADA);
         self::assertSelectorTextContains('.phil-courses__activity.is-satisfied [data-slot="badge"]', 'Done');
         self::assertSelectorExists('progress[value="25"]');
+        $progress = $this->enrollments()->progresses($this->enrollments()->of($course->id, LearnerId::of('ada')) ?? throw new LogicException('Not enrolled.'))[$saws->id->value];
+        self::assertSame([true, true, 0.85], [$progress->completed, $progress->success, $progress->score?->scaled]);
+
+        $this->client->request('GET', 'http://content.localhost/content/_phil/scorm/frame.html');
+        self::assertResponseIsSuccessful();
+        self::assertStringContainsString('data-parent="http://localhost"', (string) $this->client->getResponse()->getContent());
+        self::assertStringContainsString('frame-ancestors http://localhost', (string) $this->client->getResponse()->headers->get('Content-Security-Policy'));
+        $this->client->request('GET', 'http://content.localhost/content/_phil/scorm/lib/cmi.js');
+        self::assertSame('text/javascript; charset=UTF-8', $this->client->getResponse()->headers->get('Content-Type'));
+        $this->client->request('GET', 'http://localhost/content/_phil/scorm/frame.html');
+        self::assertResponseStatusCodeSame(404);
 
         $this->client->request('GET', 'http://content.localhost/content/'.$course->id->value.'/content/tools/saws.html');
         self::assertResponseIsSuccessful();
@@ -98,7 +132,7 @@ final class CoursesBundleTest extends WebTestCase
         self::assertSame('text/html; charset=UTF-8', $headers->get('Content-Type'));
         self::assertSame('nosniff', $headers->get('X-Content-Type-Options'));
         self::assertSame('no-referrer', $headers->get('Referrer-Policy'));
-        self::assertStringContainsString('frame-ancestors http://localhost; ', $headers->get('Content-Security-Policy').'; ');
+        self::assertStringContainsString("frame-ancestors 'self' http://localhost; ", $headers->get('Content-Security-Policy').'; ');
         self::assertStringContainsString("connect-src 'self' http://localhost", (string) $headers->get('Content-Security-Policy'));
         self::assertStringContainsString("object-src 'none'", (string) $headers->get('Content-Security-Policy'));
 
@@ -113,6 +147,64 @@ final class CoursesBundleTest extends WebTestCase
             $this->client->request('GET', $url);
             self::assertResponseStatusCodeSame(404, $url);
         }
+    }
+
+    public function testAScorm2004CourseIsSuspendedResumedAndAttemptedAgain(): void
+    {
+        self::assertSame(0, $this->console()->run(['command' => 'phil:courses:import', 'path' => Packages::zip(Packages::scorm2004Files())]));
+        $course = $this->courses()->all()[0];
+        $activity = $this->activity($course->id, 'a1');
+        $enrollment = $this->enrollments()->enroll($course->id, LearnerId::of('ada'));
+
+        $session = $this->launch($course->id->value, $activity->id->value);
+        self::assertSame(['2004', 'API_1484_11', '0.75', 'ab-initio', 'false'], [$session['state']['version'], $session['state']['api'], $session['state']['values']['cmi.completion_threshold'], $session['state']['values']['cmi.entry'], $session['state']['values']['adl.nav.request_valid.continue']]);
+
+        $suspended = $this->commit($session['token'], ['cmi.progress_measure' => '0.5', 'cmi.location' => 'step-2', 'cmi.interactions.0.id' => 'q1', 'cmi.interactions.0.type' => 'choice', 'cmi.interactions.0.learner_response' => 'a[,]b', 'cmi.session_time' => 'PT5M', 'cmi.exit' => 'suspend'], true);
+        self::assertSame([[], true], [$suspended['errors'], $suspended['ended']]);
+        self::assertFalse($this->enrollments()->progresses($enrollment)[$activity->id->value]->completed);
+
+        $resumed = $this->launch($course->id->value, $activity->id->value);
+        self::assertSelectorTextContains('.phil-courses__scorm', 'Attempt 1');
+        self::assertSelectorTextContains('.phil-courses__scorm', 'Resumed where you left off');
+        self::assertSame(['resume', 'step-2', 'PT0H5M0S', 'a[,]b'], [$resumed['state']['values']['cmi.entry'], $resumed['state']['values']['cmi.location'], $resumed['state']['values']['cmi.total_time'], $resumed['state']['values']['cmi.interactions.0.learner_response']]);
+        self::assertArrayNotHasKey('cmi.exit', $resumed['state']['values']);
+        $this->commit($session['token'], [], false);
+        self::assertResponseStatusCodeSame(409);
+
+        $committed = $this->commit($resumed['token'], ['cmi.progress_measure' => '0.8'], false);
+        self::assertSame([], $committed['errors']);
+        self::assertTrue($this->enrollments()->progresses($enrollment)[$activity->id->value]->isSatisfied());
+
+        $ended = $this->commit((string) $committed['token'], ['cmi.score.scaled' => '0.9', 'cmi.session_time' => 'PT1M', 'adl.nav.request' => 'continue'], true);
+        self::assertSame([true, null, true], [$ended['ended'], $ended['next'], $ended['exit']]);
+
+        $again = $this->launch($course->id->value, $activity->id->value);
+        self::assertSelectorTextContains('.phil-courses__scorm', 'Attempt 2');
+        self::assertSame('ab-initio', $again['state']['values']['cmi.entry']);
+        self::assertArrayNotHasKey('cmi.location', $again['state']['values']);
+    }
+
+    public function testANavigationRequestLaunchesTheNextSco(): void
+    {
+        $manifest = '<manifest identifier="m"><metadata><schemaversion>2004 4th Edition</schemaversion></metadata><organizations><organization identifier="o"><title>Flow</title>'
+            .'<item identifier="one" identifierref="r1"><title>One</title></item><item identifier="two" identifierref="r2"><title>Two</title></item></organization></organizations>'
+            .'<resources><resource identifier="r1" adlcp:scormType="sco" href="one.html" xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_v1p3"/><resource identifier="r2" href="two.html"/></resources></manifest>';
+        self::assertSame(0, $this->console()->run(['command' => 'phil:courses:import', 'path' => Packages::zip(['imsmanifest.xml' => $manifest, 'one.html' => '1', 'two.html' => '2'])]));
+        $course = $this->courses()->all()[0];
+        [$one, $two] = [$this->activity($course->id, 'one'), $this->activity($course->id, 'two')];
+        $this->enrollments()->enroll($course->id, LearnerId::of('ada'));
+
+        $first = $this->launch($course->id->value, $one->id->value);
+        self::assertSame(['true', 'false'], [$first['state']['values']['adl.nav.request_valid.continue'], $first['state']['values']['adl.nav.request_valid.previous']]);
+        self::assertStringEndsWith('/activities/00000000-0000-0000-0000-000000000000/launch', $first['launch']);
+        self::assertSame([$two->id->value, false], array_values(array_intersect_key($this->commit($first['token'], ['cmi.completion_status' => 'completed', 'adl.nav.request' => 'continue'], true), ['next' => 0, 'exit' => 0])));
+
+        $second = $this->launch($course->id->value, $two->id->value);
+        self::assertSame([$one->id->value, false], array_values(array_intersect_key($this->commit($second['token'], ['adl.nav.request' => '{target=one}choice'], true), ['next' => 0, 'exit' => 0])));
+        $third = $this->launch($course->id->value, $two->id->value);
+        self::assertSame([null, true], array_values(array_intersect_key($this->commit($third['token'], ['adl.nav.request' => '{target=nowhere}choice'], true), ['next' => 0, 'exit' => 0])));
+        $fourth = $this->launch($course->id->value, $two->id->value);
+        self::assertSame([null, true], array_values(array_intersect_key($this->commit($fourth['token'], ['adl.nav.request' => 'exitAll'], true), ['next' => 0, 'exit' => 0])));
     }
 
     public function testAFormWithoutItsTokenOrForAnotherCourseIsRefused(): void
@@ -268,7 +360,7 @@ final class CoursesBundleTest extends WebTestCase
     public function testAUnitOfTheContentOriginIsNotFramedOnTheSiteItself(): void
     {
         $course = $this->courses()->create('C');
-        $activity = $this->courses()->addActivity($this->courses()->addModule($course->id, 'M')->id, 'A', 'scorm', ['path' => 'a.html']);
+        $activity = $this->courses()->addActivity($this->courses()->addModule($course->id, 'M')->id, 'A', 'scorm', ['path' => 'a.html', 'scorm_version' => 'scorm12']);
         $this->enrollments()->enroll($course->id, LearnerId::of('ada'));
         $crawler = $this->client->request('GET', 'http://content.localhost/courses/'.$course->id->value, server: self::ADA);
 
@@ -400,6 +492,59 @@ final class CoursesBundleTest extends WebTestCase
         self::assertStringContainsString('The file cannot be read', $console->getDisplay(true));
         self::assertSame(1, $console->run(['command' => 'phil:courses:import', 'path' => $csv]));
         self::assertStringContainsString('not a ZIP archive', $console->getDisplay(true));
+    }
+
+    /**
+     * Launches an activity from the outline, and gives its session.
+     *
+     * @return array{frame: string, origin: string, commit: string, launch: string, token: string, state: array{version: string, api: string, sco: string, title: string, values: array<string, string>}}
+     */
+    private function launch(string $course, string $activity): array
+    {
+        $crawler = $this->client->request('GET', '/courses/'.$course, server: self::ADA);
+        $this->client->submit($crawler->filter('form[action$="/'.$activity.'/launch"]')->form(), [], self::ADA);
+        self::assertResponseIsSuccessful();
+
+        return $this->session();
+    }
+
+    /**
+     * The session the activity page hands its Stimulus controller.
+     *
+     * @return array{frame: string, origin: string, commit: string, launch: string, token: string, state: array{version: string, api: string, sco: string, title: string, values: array<string, string>}}
+     */
+    private function session(): array
+    {
+        $controller = 'data-phil--courses-bundle--scorm-runtime-';
+        $node = $this->client->getCrawler()->filter('[data-controller="phil--courses-bundle--scorm-runtime"]');
+        /** @var array{version: string, api: string, sco: string, title: string, values: array<string, string>} $state */
+        $state = json_decode((string) $node->attr($controller.'state-value'), true, 16, \JSON_THROW_ON_ERROR);
+
+        return [
+            'frame' => (string) $node->attr($controller.'frame-url-value'),
+            'origin' => (string) $node->attr($controller.'content-origin-value'),
+            'commit' => (string) $node->attr($controller.'commit-url-value'),
+            'launch' => (string) $node->attr($controller.'launch-url-value'),
+            'token' => (string) $node->attr($controller.'token-value'),
+            'state' => $state,
+        ];
+    }
+
+    /**
+     * Posts a commit as the Stimulus controller does, and gives the answer.
+     *
+     * @param array<string, string|int> $values
+     * @param array<string, string>     $server
+     *
+     * @return array{errors: array<string, int>, token: ?string, ended: bool, next: ?string, exit: bool}
+     */
+    private function commit(string $token, array $values, bool $finish, array $server = []): array
+    {
+        $this->client->request('POST', '/courses/scorm/commit', server: $server + self::ADA + ['HTTP_ORIGIN' => 'http://localhost', 'CONTENT_TYPE' => 'text/plain;charset=UTF-8'], content: json_encode(['token' => $token, 'csrf' => 'csrf-token', 'values' => (object) $values, 'finish' => $finish], \JSON_THROW_ON_ERROR));
+        /** @var array{errors: array<string, int>, token: ?string, ended: bool, next: ?string, exit: bool} $answer */
+        $answer = json_decode((string) $this->client->getResponse()->getContent(), true, 8, \JSON_THROW_ON_ERROR);
+
+        return $answer;
     }
 
     private function console(): ApplicationTester

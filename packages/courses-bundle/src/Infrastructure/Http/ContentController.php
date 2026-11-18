@@ -17,7 +17,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  * so that a package's scripts never run on the application's origin, with its cookies. Each file goes out with the
  * media type of its extension — an unknown one as a download —, `nosniff`, no referrer, and a content security policy
  * that lets the content run its own scripts and talk to the application's xAPI endpoint, and be framed by the
- * application only.
+ * application, or by the frame of the SCORM run time on the content origin itself.
  */
 final readonly class ContentController
 {
@@ -91,7 +91,7 @@ final readonly class ContentController
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self'",
-            'frame-ancestors '.($this->frameAncestors ?? "'none'"),
+            'frame-ancestors '.(null === $this->frameAncestors ? "'none'" : "'self' ".$this->frameAncestors),
         ]);
     }
 }

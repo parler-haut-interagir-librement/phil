@@ -154,6 +154,17 @@ final class Packages
     /**
      * @return array<string, string>
      */
+    public static function scorm2004Files(): array
+    {
+        return [
+            'imsmanifest.xml' => self::SCORM2004,
+            'sco/start.html' => '<h1>Call for help</h1>',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
     public static function cmi5Files(): array
     {
         return [

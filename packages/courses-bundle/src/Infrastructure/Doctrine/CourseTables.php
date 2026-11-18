@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phil\CoursesBundle\Infrastructure\Doctrine;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
@@ -20,7 +22,12 @@ use Phil\CoursesBundle\Domain\ValueObject\LearnerId;
  * outline; `phil_course_block`, the blocks of a cmi5 course structure; `phil_course_enrollment` and
  * `phil_course_progress`, the learners and where they stand; `phil_course_satisfaction`, the blocks and courses whose
  * `satisfied` statement an enrollment has; `phil_course_retry`, the requests for a second chance; `phil_course_cmi5_session`, the cmi5 launches; `phil_course_statement` and
- * `phil_course_state`, the statements and state documents of the store inside the bundle. Moments are kept in UTC.
+ * `phil_course_state`, the statements and state documents of the store inside the bundle; `phil_course_scorm_attempt`
+ * and `phil_course_scorm_data`, the SCORM attempts and their tracking data. Moments are kept in UTC.
+ *
+ * The keys of the SCORM tables compare byte by byte: on MySQL and MariaDB they are stored in `utf8mb4` with the
+ * `utf8mb4_bin` collation, where a server's default would read two identifiers differing by case as one; PostgreSQL
+ * and SQLite compare bytes already, and their columns keep the default.
  */
 final class CourseTables
 {
@@ -46,21 +53,29 @@ final class CourseTables
 
     public const string STATE = 'phil_course_state';
 
+    public const string SCORM_ATTEMPT = 'phil_course_scorm_attempt';
+
+    public const string SCORM_DATA = 'phil_course_scorm_data';
+
+    /** The size of the tracking data of an attempt, as JSON: MEDIUMTEXT on MySQL. */
+    public const int SCORM_DATA_BYTES = 16_777_215;
+
     /** Every table, the ones that point to others first. */
-    public const array ALL = [self::STATE, self::STATEMENT, self::SESSION, self::RETRY, self::SATISFACTION, self::PROGRESS, self::ENROLLMENT, self::ACTIVITY, self::BLOCK, self::MODULE, self::COURSE];
+    public const array ALL = [self::SCORM_DATA, self::SCORM_ATTEMPT, self::STATE, self::STATEMENT, self::SESSION, self::RETRY, self::SATISFACTION, self::PROGRESS, self::ENROLLMENT, self::ACTIVITY, self::BLOCK, self::MODULE, self::COURSE];
 
     private function __construct()
     {
     }
 
     /**
-     * The schema with the tables added, each left as it is when the schema already has it.
+     * The schema with the tables added, each left as it is when the schema already has it. Without a platform, the
+     * keys keep the connection's default collation: the schema listener always gives the platform of its connection.
      */
-    public static function configure(Schema $schema): Schema
+    public static function configure(Schema $schema, ?AbstractPlatform $platform = null): Schema
     {
         $editor = $schema->edit();
 
-        foreach (self::tables() as $name => $table) {
+        foreach (self::tables($platform instanceof AbstractMySQLPlatform) as $name => $table) {
             if (!$schema->hasTable($name)) {
                 $editor->addTable($table);
             }
@@ -82,7 +97,7 @@ final class CourseTables
         $current = [];
         $target = [];
 
-        foreach (self::tables() as $name => $table) {
+        foreach (self::tables($connection->getDatabasePlatform() instanceof AbstractMySQLPlatform) as $name => $table) {
             if (!$manager->tablesExist([$name])) {
                 $target[] = $table;
 
@@ -118,7 +133,7 @@ final class CourseTables
     /**
      * @return array<non-empty-string, Table>
      */
-    private static function tables(): array
+    private static function tables(bool $binary = false): array
     {
         return [
             self::COURSE => Table::editor()->setUnquotedName(self::COURSE)
@@ -245,7 +260,47 @@ final class CourseTables
                 ->addColumn(self::column('updated_at', Types::DATETIME_UTC_IMMUTABLE, true))
                 ->addPrimaryKeyConstraint(self::primary('activity_hash', 'registration', 'state_id'))
                 ->create(),
+            self::SCORM_ATTEMPT => Table::editor()->setUnquotedName(self::SCORM_ATTEMPT)
+                ->addColumn(self::key('id', $binary))
+                ->addColumn(self::key('enrollment_id', $binary))
+                ->addColumn(self::key('activity_id', $binary))
+                ->addColumn(self::column('number', Types::INTEGER, true))
+                ->addColumn(self::column('version', Types::STRING, true, 8))
+                ->addColumn(self::column('state', Types::STRING, true, 16))
+                ->addColumn(self::column('session', Types::INTEGER, true))
+                ->addColumn(self::column('completion', Types::STRING, true, 16))
+                ->addColumn(self::column('success', Types::STRING, true, 16))
+                ->addColumn(self::column('score', Types::FLOAT, false))
+                ->addColumn(self::column('total_time', Types::BIGINT, true))
+                ->addColumn(self::column('started_at', Types::DATETIME_UTC_IMMUTABLE, true))
+                ->addColumn(self::column('updated_at', Types::DATETIME_UTC_IMMUTABLE, true))
+                ->addColumn(self::column('ended_at', Types::DATETIME_UTC_IMMUTABLE, false))
+                ->addPrimaryKeyConstraint(self::primary('id'))
+                ->addUniqueConstraint(self::unique('uniq_phil_course_scorm_attempt', 'enrollment_id', 'activity_id', 'number'))
+                ->create(),
+            self::SCORM_DATA => Table::editor()->setUnquotedName(self::SCORM_DATA)
+                ->addColumn(self::key('attempt_id', $binary))
+                ->addColumn(self::column('data', Types::TEXT, true, self::SCORM_DATA_BYTES))
+                ->addColumn(self::column('updated_at', Types::DATETIME_UTC_IMMUTABLE, true))
+                ->addPrimaryKeyConstraint(self::primary('attempt_id'))
+                ->create(),
         ];
+    }
+
+    /**
+     * An identifier of 36 characters that compares byte by byte.
+     *
+     * @param non-empty-string $name
+     */
+    private static function key(string $name, bool $binary): Column
+    {
+        $column = Column::editor()->setUnquotedName($name)->setTypeName(Types::STRING)->setLength(36)->setNotNull(true);
+
+        if ($binary) {
+            $column->setCharset('utf8mb4')->setCollation('utf8mb4_bin');
+        }
+
+        return $column->create();
     }
 
     /**

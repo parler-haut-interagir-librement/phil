@@ -23,6 +23,7 @@ use Phil\CoursesBundle\Domain\ValueObject\Outcome;
 use Phil\CoursesBundle\Domain\ValueObject\Release;
 use Phil\CoursesBundle\Domain\ValueObject\RetryRequestId;
 use Phil\CoursesBundle\Domain\ValueObject\Score;
+use Phil\CoursesBundle\Domain\ValueObject\ScormAttemptId;
 use Phil\CoursesBundle\Infrastructure\Doctrine\CourseTables;
 use Phil\CoursesBundle\Tests\Unit\Fixture\Packages;
 use Phil\CoursesBundle\Tests\Unit\Fixture\Statements;
@@ -145,6 +146,28 @@ abstract class ServerTestCase extends TestCase
         self::assertNull($store->lrs->state($context->activityIri, $enrollment->registration, 'suspend'));
     }
 
+    public function testAScormAttemptKeepsItsTrackingData(): void
+    {
+        $store = new Store($this->connection);
+        $course = $store->courses->create('C');
+        $activity = $store->courses->addActivity($store->courses->addModule($course->id, 'M')->id, 'SCO', 'scorm', ['path' => 'a.html', 'scorm_version' => 'scorm2004']);
+        $enrollment = $store->enrollments->enroll($course->id, LearnerId::of('ada'));
+        $launch = $store->scorm->launch($activity, $enrollment);
+        $suspend = str_repeat('é', 64_000);
+        $answer = $store->scorm->commit($launch->token, ['cmi.suspend_data' => $suspend, 'cmi.location' => 'Étape 2', 'cmi.score.scaled' => '0.25'], false);
+        $store->scorm->commit((string) $answer->token, ['cmi.session_time' => 'PT1H', 'cmi.exit' => 'suspend'], true);
+
+        $attempt = $store->attemptStore->latest($enrollment->id, $activity->id);
+        self::assertNotNull($attempt);
+        self::assertSame([$suspend, 'Étape 2', 'PT1H0M0S'], [$attempt->data['cmi.suspend_data'], $attempt->data['cmi.location'], $attempt->data['cmi.total_time']]);
+        self::assertSame(['suspended', 0.25, 360_000], [$attempt->state->value, $attempt->status->score, $attempt->totalTime->centiseconds]);
+        self::assertCount(1, $store->attemptStore->ofEnrollments($enrollment->id));
+        self::assertNull($store->attemptStore->find(ScormAttemptId::of(strtoupper($launch->attempt->value))));
+
+        $store->attemptStore->removeOfEnrollments($enrollment->id);
+        self::assertSame([], $store->attemptStore->ofEnrollments($enrollment->id));
+    }
+
     public function testTheTablesOfAnEarlierSchemaAreBroughtUpToDate(): void
     {
         Store::drop($this->connection);
@@ -168,5 +191,6 @@ abstract class ServerTestCase extends TestCase
         self::assertTrue($store->enrollmentStore->claimSatisfaction($enrollment->id, $block->id->value, 's1', $store->clock->now()));
         self::assertFalse($store->enrollmentStore->claimSatisfaction($enrollment->id, $block->id->value, 's2', $store->clock->now()));
         self::assertSame([$block->id->value], $store->enrollmentStore->satisfactions($enrollment->id));
+        self::assertTrue($this->connection->createSchemaManager()->tablesExist([CourseTables::SCORM_ATTEMPT, CourseTables::SCORM_DATA]));
     }
 }

@@ -9,9 +9,22 @@ vendor/bin/phpunit --no-configuration tests
 
 | Suite | What it covers |
 |---|---|
-| `tests/Unit` | The domain, the entry points, the import and its blocks, the completions, the rules of cmi5, the `satisfied` statements, the stores, the upgrade of the tables, on SQLite in memory, and the remote learning record store on a simulated client |
-| `tests/Functional` | The bundle in a small application: the pages, the administration page, the content origin, the fetch URL, the xAPI endpoint and the commands |
-| `tests/Integration` | The tables, their upgrade and the queries on MySQL 8.4 and PostgreSQL 17, and a statement sent to a real learning record store |
+| `tests/Unit` | The domain, the entry points, the import and its blocks, the completions, the rules of cmi5, the `satisfied` statements, the SCORM run time, its attempts, tokens, endpoint, frame and privacy module, the stores, the upgrade of the tables, on SQLite in memory, and the remote learning record store on a simulated client |
+| `tests/Functional` | The bundle in a small application: the pages, the administration page, the content origin, the fetch URL, the xAPI endpoint, the commands, and a SCORM 1.2 and a SCORM 2004 package imported, launched and committed to, suspended, resumed and attempted again |
+| `tests/Integration` | The tables, their upgrade and the queries on MySQL 8.4 and PostgreSQL 17 — the SCORM attempts and their keys compared byte by byte among them —, and a statement sent to a real learning record store |
+
+## The scripts
+
+The scripts of the SCORM run time are tested with Node.js's own test runner, Stimulus replaced by a stub:
+
+```sh
+node --import ./tests/js/register.mjs --test 'tests/js/*.test.mjs'
+```
+
+`cmi.test.mjs` runs the calls of `tests/js/fixture/vectors.json` against the API in the browser's code, and
+`BrowserParityTest` runs the same calls against the data model of phil/elearning-packages, with the descriptions of
+`tests/js/fixture/model-*.json` held to what the server hands the browser: both answer each call alike. The fixture is
+written from the server's answers.
 
 The packages the tests import — a SCORM 1.2 manifest, a SCORM 2004 manifest with sequencing, a cmi5 course structure —
 are written for the tests, in `tests/Unit/Fixture/Packages.php`, and zipped in the temporary directory. In the
@@ -39,16 +52,19 @@ of reach would.
 
 The fuzz target `cmi5-statement` feeds statements nobody wrote to the checks of the xAPI endpoint, from the seeds of
 `tests/Fuzz/corpus/cmi5-statement`: a statement is accepted only for the actor, registration and session of its launch,
-or refused. The readers of the packages are fuzzed in phil/elearning-packages.
+or refused. The fuzz target `scorm-commit` feeds bodies nobody wrote to the reading of a commit and to the data model of
+each version: a body is read or refused, and what is kept stays within its bound. The readers of the packages and the
+data model are fuzzed in phil/elearning-packages.
 
 ```sh
-composer fuzz -- cmi5-statement
+composer fuzz -- cmi5-statement scorm-commit
 ```
 
 ## Benchmarks
 
-`tests/Benchmark/CoursesBench.php` measures checking a statement and placing the activities of a course of a hundred
-activities for a learner. The readers of the packages are measured in phil/elearning-packages.
+`tests/Benchmark/CoursesBench.php` measures checking a statement, placing the activities of a course of a hundred
+activities for a learner, and the commit of a SCORM session whose attempt holds fifty interactions. The readers of the
+packages are measured in phil/elearning-packages.
 
 ## Testing code that uses the bundle
 
