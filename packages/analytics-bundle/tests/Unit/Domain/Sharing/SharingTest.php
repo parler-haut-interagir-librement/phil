@@ -129,4 +129,16 @@ final class SharingTest extends TestCase
         self::assertFalse($view->mayShow(MeasureNames::OUTBOUND_LINK));
         self::assertFalse($view->mayShow(MeasureNames::SEARCH));
     }
+
+    public function testASharedViewRefusesAVariantOfAPrivateMetricAndAnyNameTheBundleDoesNotWrite(): void
+    {
+        $view = SharedView::publicBoard($this->site, $this->now);
+
+        self::assertTrue($view->mayShow('goals.signup'));
+        self::assertFalse($view->mayShow('OUTBOUND_LINK'));
+        self::assertFalse($view->mayShow('Outbound_link'));
+        self::assertFalse($view->mayShow('SEARCH'));
+        self::assertFalse($view->mayShow('Pageviews'));
+        self::assertFalse($view->mayShow('sessions'));
+    }
 }

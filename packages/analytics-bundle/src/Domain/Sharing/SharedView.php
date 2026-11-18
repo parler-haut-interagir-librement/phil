@@ -14,7 +14,7 @@ use Phil\DddBundle\Domain\Exception\InvalidValue;
  * Revoking closes it for good.
  *
  * What it shows goes through the small-number rule like any other read, and it never holds the metrics of
- * {@see MeasureNames::PRIVATE_METRICS}.
+ * {@see MeasureNames::PRIVATE_METRICS}, nor a metric outside the canonical names of {@see MeasureNames::isMetric()}.
  */
 final readonly class SharedView
 {
@@ -53,8 +53,13 @@ final readonly class SharedView
         return !$this->revokedAt instanceof DateTimeImmutable && (!$this->expiresAt instanceof DateTimeImmutable || $now < $this->expiresAt);
     }
 
+    /**
+     * Whether the view may show a metric: one the bundle writes, in its canonical form ({@see MeasureNames::isMetric()}),
+     * and not one of {@see MeasureNames::PRIVATE_METRICS}. A metric as a visitor typed it, `OUTBOUND_LINK` say, is
+     * refused rather than handed to a store whose collation might read it as `outbound_link`.
+     */
     public function mayShow(string $metric): bool
     {
-        return !\in_array($metric, MeasureNames::PRIVATE_METRICS, true);
+        return MeasureNames::isMetric($metric) && !\in_array($metric, MeasureNames::PRIVATE_METRICS, true);
     }
 }

@@ -9,7 +9,9 @@ use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\ParameterType;
+use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\ColumnEditor;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Index\IndexType;
 use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
@@ -33,6 +35,12 @@ use UnexpectedValueException;
  * and not closed at that moment; a reminder is claimed only where the count of reminders sent is still the one read,
  * so that of two workers one wins; a link is added only where the invitation has fewer links than allowed. The
  * uniqueness of a recipient per campaign is the table's.
+ *
+ * **Identifiers compare byte by byte**, as the library compares them: `Spring-Gala` and `spring-gala` are two
+ * campaigns, `Member-7` and `member-7` two recipients. On MySQL and MariaDB, whose default collations fold case and
+ * accents, the identifier columns take `utf8mb4` and `utf8mb4_bin`; PostgreSQL's default collations are deterministic
+ * and SQLite compares bytes, so their columns keep the default. An application whose identifiers are case-insensitive
+ * normalizes them before they reach the library.
  */
 final readonly class DbalInvitationStore implements InvitationStore
 {
@@ -298,6 +306,22 @@ final readonly class DbalInvitationStore implements InvitationStore
     }
 
     /**
+     * A text column of identifiers, compared byte by byte on the connection's platform.
+     *
+     * @param non-empty-string $name
+     */
+    private function identifier(string $name, int $length): ColumnEditor
+    {
+        $column = Column::editor()->setUnquotedName($name)->setTypeName(Types::STRING)->setLength($length);
+
+        if ($this->connection->getDatabasePlatform() instanceof AbstractMySQLPlatform) {
+            $column->setCharset('utf8mb4')->setCollation('utf8mb4_bin');
+        }
+
+        return $column;
+    }
+
+    /**
      * One row per invitation: its campaign and recipient, unique together, its moments, its answer, its reminders, the
      * next one indexed for the dispatcher, its revocation and how many links it has.
      */
@@ -306,9 +330,9 @@ final readonly class DbalInvitationStore implements InvitationStore
         return Table::editor()
             ->setUnquotedName($this->invitationTable)
             ->setColumns(
-                Column::editor()->setUnquotedName('id')->setTypeName(Types::STRING)->setLength(32)->create(),
-                Column::editor()->setUnquotedName('campaign')->setTypeName(Types::STRING)->setLength(100)->create(),
-                Column::editor()->setUnquotedName('recipient')->setTypeName(Types::STRING)->setLength(Invitation::MAX_RECIPIENT_LENGTH)->create(),
+                $this->identifier('id', 32)->create(),
+                $this->identifier('campaign', 100)->create(),
+                $this->identifier('recipient', Invitation::MAX_RECIPIENT_LENGTH)->create(),
                 Column::editor()->setUnquotedName('created_at')->setTypeName(Types::BIGINT)->create(),
                 Column::editor()->setUnquotedName('valid_from')->setTypeName(Types::BIGINT)->create(),
                 Column::editor()->setUnquotedName('closes_at')->setTypeName(Types::BIGINT)->create(),
@@ -337,8 +361,8 @@ final readonly class DbalInvitationStore implements InvitationStore
         return Table::editor()
             ->setUnquotedName($this->linkTable)
             ->setColumns(
-                Column::editor()->setUnquotedName('hash')->setTypeName(Types::STRING)->setLength(TokenHasher::LENGTH)->create(),
-                Column::editor()->setUnquotedName('invitation_id')->setTypeName(Types::STRING)->setLength(32)->create(),
+                $this->identifier('hash', TokenHasher::LENGTH)->create(),
+                $this->identifier('invitation_id', 32)->create(),
             )
             ->setPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('hash')->create())
             ->setIndexes(Index::editor()->setUnquotedName($this->linkTable.'_invitation_id')->setUnquotedColumnNames('invitation_id')->create())

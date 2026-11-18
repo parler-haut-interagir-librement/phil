@@ -119,3 +119,36 @@ can name its own:
 | `deleteSite(SiteId $site): void` | Deletes every counter of a site, when the site is retired |
 
 See [extension-points.md](extension-points.md#counterstore) for another adapter.
+
+### The tables and their collation
+
+`DbalCounterStore` and `DbalCounterRollup` keep the counters in two tables, `phil_analytics_counter` (one row per site,
+UTC day, metric, dimension and value) and `phil_analytics_monthly_counter` (the same per month). The schema listener
+adds them to the schema the ORM generates for the connection, so that `doctrine:migrations:diff` writes the migration
+that creates or changes them.
+
+**The key of a counter compares byte by byte.** The site, the metric, the dimension and its value are what tells one
+counter from another, and the metric decides who may read a counter. On MySQL and MariaDB, the four columns are
+`utf8mb4` with the `utf8mb4_bin` collation: a server's default collation, `utf8mb4_0900_ai_ci` on MySQL 8, folds case
+and accents, and would read `OUTBOUND_LINK` as `outbound_link`, `Acme` as `acme` and `rosé` as `rose`. PostgreSQL's
+default collations are deterministic and SQLite compares bytes: both already tell those apart, and their columns keep
+the default.
+
+The reading side never relies on the collation alone: `CounterReader` and `SharedView::mayShow()` accept a metric only
+in its canonical form, `MeasureNames::isMetric()`, and a dimension only as a name of `CounterKey::NAME_PATTERN`
+([sharing-reports-alerts.md](sharing-reports-alerts.md#dashboards-and-several-sites)).
+
+### Upgrading from 0.1
+
+The tables of a 0.1 install on MySQL or MariaDB kept the connection's collation. Generate the migration and run it:
+
+```bash
+bin/console doctrine:migrations:diff
+bin/console doctrine:migrations:migrate
+```
+
+The migration changes `site`, `metric`, `dimension` and `dimension_value` of both tables to
+`CHARACTER SET utf8mb4 COLLATE utf8mb4_bin`. The bundle has always written metrics and dimensions in lowercase, so
+their rows are unchanged. Counters that a case-insensitive collation had merged — the page views of the sites `Acme`
+and `acme`, say, or the search terms `Rose` and `rose` — stay merged under the value written first: the past cannot be
+split again, and new counts are kept apart from the migration on. On PostgreSQL and SQLite the diff is empty.

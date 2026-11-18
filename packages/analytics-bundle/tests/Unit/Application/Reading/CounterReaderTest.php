@@ -17,6 +17,7 @@ use Phil\AnalyticsBundle\Domain\ValueObject\UtcDay;
 use Phil\AnalyticsBundle\Tests\Unit\Fixture\InMemoryCounters;
 use Phil\DddBundle\Domain\Exception\InvalidValue;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(CounterReader::class)]
@@ -117,6 +118,71 @@ final class CounterReaderTest extends TestCase
         $this->expectException(InvalidValue::class);
 
         $this->reader->readAcross(ReaderScope::everySite(), [], MeasureNames::OUTBOUND_LINK, 'link', $this->day('2026-11-10'), $this->day('2026-11-10'));
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function caseVariants(): iterable
+    {
+        yield 'in capitals' => ['OUTBOUND_LINK'];
+        yield 'with one capital' => ['Outbound_link'];
+        yield 'the searches in capitals' => ['SEARCH'];
+        yield 'with a trailing space' => ['outbound_link '];
+    }
+
+    #[DataProvider('caseVariants')]
+    public function testAVariantOfAPrivateMetricIsRefusedBeforeTheStoreIsAsked(string $metric): void
+    {
+        $this->store->increment(CounterKey::of($this->site('spring-con'), $this->day('2026-11-10'), MeasureNames::OUTBOUND_LINK, 'link', 'ticket-page'));
+
+        try {
+            $this->reader->read(ReaderScope::everySite(), $this->site('spring-con'), $metric, 'link', $this->day('2026-11-10'), $this->day('2026-11-10'));
+            self::fail('The variant was read.');
+        } catch (InvalidValue $invalidValue) {
+            self::assertSame(\sprintf('"%s" is not a metric the bundle writes.', $metric), $invalidValue->getMessage());
+        }
+
+        $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessageIsOrContains(\sprintf('"%s" is not a metric the bundle writes.', $metric));
+
+        $this->reader->readAcross(ReaderScope::everySite(), [$this->site('spring-con')], $metric, 'link', $this->day('2026-11-10'), $this->day('2026-11-10'));
+    }
+
+    public function testTheMetricOfAGoalIsRead(): void
+    {
+        for ($i = 0; $i < 5; ++$i) {
+            $this->store->increment(CounterKey::of($this->site('spring-con'), $this->day('2026-11-10'), MeasureNames::GOALS.'.signup', 'source', 'direct'));
+        }
+
+        self::assertSame(['direct' => 5], $this->reader->read(ReaderScope::everySite(), $this->site('spring-con'), 'goals.signup', 'source', $this->day('2026-11-10'), $this->day('2026-11-10'))?->shown);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function notDimensions(): iterable
+    {
+        yield 'in capitals' => ['ROUTE'];
+        yield 'with one capital' => ['Route'];
+        yield 'empty' => [''];
+        yield 'with a space' => ['route '];
+    }
+
+    #[DataProvider('notDimensions')]
+    public function testADimensionThatIsNotANameIsRefused(string $dimension): void
+    {
+        try {
+            $this->reader->readAcross(ReaderScope::everySite(), [$this->site('spring-con')], MeasureNames::PAGEVIEWS, $dimension, $this->day('2026-11-10'), $this->day('2026-11-10'));
+            self::fail('The dimension was read.');
+        } catch (InvalidValue $invalidValue) {
+            self::assertSame(\sprintf('"%s" is not a dimension name.', $dimension), $invalidValue->getMessage());
+        }
+
+        $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessageIsOrContains(\sprintf('"%s" is not a dimension name.', $dimension));
+
+        $this->reader->read(ReaderScope::everySite(), $this->site('spring-con'), MeasureNames::PAGEVIEWS, $dimension, $this->day('2026-11-10'), $this->day('2026-11-10'));
     }
 
     public function testAReversedRangeIsRefused(): void

@@ -8,7 +8,8 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
 
 /**
- * Adds the counter tables to the schema Doctrine compares with the database, so that migrations create them.
+ * Adds the counter tables to the schema Doctrine compares with the database, so that migrations create them, built
+ * for the platform of the connection: on MySQL and MariaDB, their keys in `utf8mb4_bin`.
  */
 final readonly class CounterSchemaListener
 {
@@ -23,6 +24,6 @@ final readonly class CounterSchemaListener
             return;
         }
 
-        $event->setSchema(CounterTables::configure($event->getSchema()));
+        $event->setSchema(CounterTables::configure($event->getSchema(), $this->connection->getDatabasePlatform()));
     }
 }

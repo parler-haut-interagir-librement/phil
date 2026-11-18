@@ -12,6 +12,7 @@ use Doctrine\DBAL\Logging\Middleware as LoggingMiddleware;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Schema\Index\IndexType;
 use Doctrine\DBAL\Schema\Name\UnqualifiedName;
+use Doctrine\DBAL\Schema\Schema;
 use Override;
 use Phil\AccessLinks\Contract\InvitationStore;
 use Phil\AccessLinks\Dbal\DbalInvitationStore;
@@ -43,6 +44,43 @@ final class DbalInvitationStoreTest extends InvitationStoreTestCase
         self::assertTrue($schema->getTable('acme_link')->hasIndex('acme_link_invitation_id'));
         self::assertFalse($schema->getTable('acme_invitation')->getColumn('answer')->getNotnull());
         self::assertCount(2, $store->configureSchema($schema)->getTables());
+    }
+
+    public function testTheIdentifiersAreBinaryOnMySqlAndMariaDb(): void
+    {
+        foreach (['8.4.0', '11.4.0-MariaDB'] as $version) {
+            $connection = DriverManager::getConnection(['driver' => 'pdo_mysql', 'serverVersion' => $version]);
+            $schema = new DbalInvitationStore($connection)->configureSchema(Schema::editor()->create());
+            $collations = [];
+
+            foreach ($schema->getTables() as $table) {
+                foreach ($table->getColumns() as $column) {
+                    if (null !== $column->getCollation()) {
+                        $collations[$column->getObjectName()->toString()] = $column->getCharset().' '.$column->getCollation();
+                    }
+                }
+            }
+
+            self::assertSame([
+                'id' => 'utf8mb4 utf8mb4_bin',
+                'campaign' => 'utf8mb4 utf8mb4_bin',
+                'recipient' => 'utf8mb4 utf8mb4_bin',
+                'hash' => 'utf8mb4 utf8mb4_bin',
+                'invitation_id' => 'utf8mb4 utf8mb4_bin',
+            ], $collations, $version);
+        }
+    }
+
+    public function testTheIdentifiersKeepTheDefaultCollationElsewhere(): void
+    {
+        foreach ([$this->connection(), DriverManager::getConnection(['driver' => 'pdo_pgsql', 'serverVersion' => '17'])] as $connection) {
+            foreach (new DbalInvitationStore($connection)->configureSchema(Schema::editor()->create())->getTables() as $table) {
+                foreach ($table->getColumns() as $column) {
+                    self::assertNull($column->getCollation());
+                    self::assertNull($column->getCharset());
+                }
+            }
+        }
     }
 
     public function testATableNameIsCheckedBeforeAnySql(): void

@@ -53,7 +53,7 @@ All implemented and tested ([measures.md](measures.md)).
 |---|---|
 | `MeasurePlan` | What a site measures beyond page views, its server events included; `of()`; `MAX_SERVER_EVENT_LENGTH` = 50 |
 | `MeasureEvent` | The closed list of events; `isClick()` |
-| `MeasureNames` | The metrics the bundle writes (`SERVER_EVENTS` among them), `OPEN_DIMENSIONS`, `PRIVATE_METRICS` |
+| `MeasureNames` | The metrics the bundle writes (`SERVER_EVENTS` among them), `METRICS`, `NAMED_METRICS`, `OPEN_DIMENSIONS`, `PRIVATE_METRICS`; `isMetric()`, whether a metric is one the bundle writes, in its canonical form |
 | `ClickTracking` | `Off`, `Aggregate`; `counts()` |
 | `ClosedList` | Declared values; `of()`, `empty()`, `downloads()`, `has()`, `toArray()` |
 | `DeclaredDimension` | A dimension of the site and its values; `of()` |
