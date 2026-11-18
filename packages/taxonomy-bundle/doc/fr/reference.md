@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=64caf9a8266502ce5015fbfc0615bf1ca081793c6fc628d523736285a0482371 -->
+<!-- phil-dev source-sha256=9d0f0d98ae421d0ec2afda93c5a190532f7a3713f44683efa41cfd3fc24a02ee -->
 # Référence
 
 | Type | Genre | Rôle |
@@ -14,4 +14,5 @@
 | `Application\Taxonomy` | `final readonly class` | Étiquettes, catégories, attributions |
 | `Application\CategoryNode` | `final readonly class` | Une catégorie dans un arbre |
 | `Infrastructure\Doctrine\DoctrineTaxonomyRepository` | dépôt | Le port sur Doctrine ORM |
+| `Infrastructure\Doctrine\BinaryKeysListener` | écouteur | Les clés des tables en `utf8mb4_bin` sur MySQL et MariaDB, au `loadClassMetadata` de l'ORM ([installation.md](installation.md#collation-des-clés)) |
 | `Infrastructure\Form\TagsType`, `TagsTransformer`, `CategoryType` | types de formulaire | Les étiquettes en texte ; une catégorie tirée de l'arbre |

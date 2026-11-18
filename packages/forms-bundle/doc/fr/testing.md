@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a57f9e897c641099e253a4c4e5f35349a86a5d3a05bf5127a1e0aad7dff30701 -->
+<!-- phil-dev source-sha256=9bdc8a61e950ebd3919e4122aa6de16ff8be0583546f96801cb05c0c89655eb5 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -13,6 +13,18 @@
 | `PurgeEntriesCommand`, `PhilFormsBundle` | Les lots ; les services, les valeurs par défaut, la protection contre le pourriel exigée, le mappage, l'utilisateur connecté comme sujet, le scelleur câblé depuis `sealing`, nul ou refusé quand il est vide, refusé sans le composant ou son client, `allow_unsealed_sensitive` |
 | La recette Flex | Le bundle enregistré, sa configuration lue comme les valeurs par défaut du bundle, les routes sous `/forms` |
 | `FormEntriesPrivacy`, `TokenCurrentSubject` | L'exportation et l'effacement par identifiant et par adresse, un effacement exécuté deux fois, les valeurs scellées ouvertes ou listées comme illisibles ; l'utilisateur connecté |
+| `BinaryKeysListener` | Les clés en `utf8mb4_bin` dans le schéma généré pour MySQL et MariaDB, la collation par défaut sur SQLite, les options qu'un champ a déjà conservées |
+
+La suite `tests/Integration` exécute `BinaryKeysListener` sur un vrai MySQL 8.4 et un vrai PostgreSQL 17 : quatre clés de
+formulaire qui ne diffèrent que par la casse ou l'accent sont quatre formulaires, chacun trouvé par sa seule clé, et sur
+MySQL les clés sont en `utf8mb4_bin` et les tables de la version précédente y arrivent par le diff du schéma. Le test
+de chaque serveur lit son URL dans `PHIL_TEST_MYSQL_URL` ou `PHIL_TEST_POSTGRESQL_URL` et est sauté sans elle :
+
+```sh
+PHIL_TEST_MYSQL_URL='mysql://phil:phil@127.0.0.1:13306/phil_test?serverVersion=8.4' \
+PHIL_TEST_POSTGRESQL_URL='postgresql://phil:phil@127.0.0.1:15432/phil_test?serverVersion=17' \
+vendor/bin/phpunit packages/forms-bundle/tests/Integration
+```
 
 Une suite fonctionnelle démarre un noyau avec FrameworkBundle, DoctrineBundle sur SQLite, TwigBundle et la protection
 contre le pourriel, le bundle étant configuré en YAML comme le fait une application : une page est produite en français,

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3eebb3bf8b862920644f2ed0b4ae064db9816b400c5a4cf5249e47f72b97c09c -->
+<!-- phil-dev source-sha256=7ec5690f9055b833ed3afc38dee862329e874cc65e5d8087640ba02fc0dd3350 -->
 # Installation
 
 | Prérequis | Version | Raison |
@@ -75,6 +75,65 @@ Avec DoctrineBundle, le bundle mappe lui-même ses entités. Les migrations de l
 | `phil_form` | Un formulaire : sa clé, son titre, ses champs (JSON), ses destinataires (JSON), ses autres notifications (`notifications`, JSON), son webhook, sa conservation, s'il est ouvert, le champ de courriel qui nomme la personne (`subject_field`) |
 | `phil_form_entry` | Une entrée : son formulaire, ses valeurs (JSON), sa date d'arrivée et sa date de suppression, sa langue, l'identifiant de la personne (`subject`) et l'empreinte de son adresse (`email_digest`), chacun indexé, et les champs dont les valeurs sont scellées (`sealed_fields`, JSON) |
 | `phil_form_choice_count` | Les places occupées dans un choix : son formulaire, son champ (`field_name`) et son choix, la clé, et le décompte (`taken`) |
+
+### Collation des clés
+
+**Les clés se comparent octet par octet**, comme PHP les compare. Un formulaire se trouve par sa clé, une entrée par
+l'identifiant de sa personne, un compte de places par son choix, chacun tel qu'il a été écrit : le formulaire `Contact`
+n'est jamais trouvé pour `contact`, les entrées de `Ann` ne sont jamais listées ni effacées pour `ann`, et les places
+du choix `Yes` ne sont jamais comptées pour `yes`.
+`BinaryKeysListener` donne à ces champs la collation binaire quand l'ORM charge leurs métadonnées sur MySQL ou
+MariaDB ; l'association elle-même reste la même sur toutes les plateformes.
+
+| Table | Colonnes en `utf8mb4_bin` sur MySQL et MariaDB |
+|---|---|
+| `phil_form` | `id`, `form_key` |
+| `phil_form_entry` | `id`, `form`, `locale`, `subject`, `email_digest` |
+| `phil_form_choice_count` | `form`, `field_name`, `choice` |
+
+Sur MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la
+plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ne distingue ni la casse ni les
+accents. Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et
+SQLite compare les octets : leurs colonnes gardent la valeur par défaut.
+
+#### Mise à niveau depuis 0.1
+
+Les tables d'une installation 0.1 sur MySQL ou MariaDB gardaient la collation de la connexion.
+`doctrine:migrations:diff` écrit la migration qui amène les colonnes ci-dessus à `utf8mb4_bin` ; exécutez-la avec
+`doctrine:migrations:migrate`. Sur PostgreSQL et SQLite, le diff ne contient que le changement ci-dessous.
+
+Le diff retire aussi la valeur par défaut `'[]'` de `phil_form.notifications` et de `phil_form_entry.sealed_fields`,
+sur toutes les plateformes : MySQL refuse une valeur par défaut littérale sur une colonne JSON, et le bundle écrit les
+deux colonnes sur chaque ligne qu'il crée.
+
+Les colonnes de jointure `form` sont converties avec les identifiants qu'elles référencent, et MySQL refuse de
+changer un côté d'une clé étrangère avant l'autre. Mettez `SET FOREIGN_KEY_CHECKS = 0` au début du `up()` de la
+migration et `SET FOREIGN_KEY_CHECKS = 1` à sa fin ; les clés étrangères restent, et sont vérifiées de nouveau une fois
+les deux côtés convertis :
+
+```php
+public function up(Schema $schema): void
+{
+    $this->addSql('SET FOREIGN_KEY_CHECKS = 0');
+    // The statements doctrine:migrations:diff wrote.
+    $this->addSql('SET FOREIGN_KEY_CHECKS = 1');
+}
+```
+
+Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne brise donc une clé unique.
+Il sépare ce que la collation insensible à la casse réunissait : les lignes dont les clés ne diffèrent que par la
+casse, qu'une recherche par l'une ou l'autre graphie retournait ensemble, se trouvent chacune par leur propre graphie
+dès la migration, et une clé que l'application cherche dans une autre casse que celle où elle l'a écrite cesse de
+correspondre. Avant de migrer, listez les clés écrites en plus d'une casse :
+
+```sql
+SELECT subject, COUNT(*) AS row_count FROM phil_form_entry
+GROUP BY subject HAVING COUNT(DISTINCT CAST(subject AS BINARY)) > 1;
+```
+
+Chaque ligne est une clé sous plusieurs graphies. Gardez-les distinctes, ou ramenez les lignes à la graphie
+qu'utilise l'application avec un `UPDATE` avant la migration. Une clé unique ne peut contenir deux telles graphies sous
+l'ancienne collation, donc les colonnes d'une clé unique n'ont pas besoin de vérification.
 
 ## Configuration
 

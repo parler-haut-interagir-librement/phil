@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=70d297a930b849c9366571837e708e1f4ceeefd7f095e212ed8672eb215e52f4 -->
+<!-- phil-dev source-sha256=307726fd2e77116dae047464a03d30a2754abe055436b6779bba090c57b1fce9 -->
 # Tests
 
 ## Comment le bundle est testé
@@ -11,6 +11,12 @@
 
 Les tests du stockage partagent un cas abstrait, `tests/Unit/Infrastructure/Doctrine/ContentStorageTestCase.php`,
 exécuté sur SQLite dans la suite unitaire et sur MySQL et PostgreSQL dans la suite d'intégration.
+
+Le cas couvre aussi les clés : des contenus dont les identifiants ne diffèrent que par la casse gardent chacun leurs
+routes, et libérer la racine unique de l'un ne libère jamais celle de l'autre. `BinaryKeysListenerTest` lit le schéma
+généré pour MySQL et MariaDB, avec les clés du bundle et celles des lignes en `utf8mb4_bin`, et pour SQLite, avec la
+collation par défaut ; `tests/Integration/Infrastructure/Doctrine/MySqlBinaryKeysTest.php` lit les collations sur le
+serveur et y amène les tables de la version précédente par le diff du schéma.
 
 Le noyau fonctionnel est `tests/Functional/App/TestKernel.php` : deux genres de contenu, `news` (un identifiant
 UUIDv7 qu'il génère) et `static_page` (un entier généré par la base de données), montés sous

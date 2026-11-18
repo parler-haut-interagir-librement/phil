@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=688ebc8146d3cbe9e1be70ef3ffd1033602e4a1fe2a1b305c9088203b16279a5 -->
+<!-- phil-dev source-sha256=b78cb05cd6dab7f4f55e0ab6db18f2ad9bdc61760d2d5863924ea912a9bb8f69 -->
 # Référence
 
 | Type | Nature | Rôle |
@@ -14,4 +14,5 @@
 | `Application\Captured` | `final readonly class` | Ce que garde un gestionnaire |
 | `Application\Event\ResourceTrashed`, `ResourceRestored`, `TrashItemPurged` | événements | Chaque étape |
 | `Infrastructure\Doctrine\DoctrineTrashItemRepository` | dépôt | Le port sur Doctrine ORM |
+| `Infrastructure\Doctrine\BinaryKeysListener` | écouteur | Les clés de `phil_trash_item` en `utf8mb4_bin` sur MySQL et MariaDB, au `loadClassMetadata` de l'ORM ([installation.md](installation.md#collation-des-clés)) |
 | `Infrastructure\Console\PurgeTrashCommand` | commande console | `phil:trash:purge` |

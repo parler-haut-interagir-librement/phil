@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e6a9be4aef51a98501f54daddee6c3889382978a6f58e84eefd4f2c26d72c0a4 -->
+<!-- phil-dev source-sha256=8c839dc086230d643a18c04437caf4070b3538f292e8270a246e4dcef43d9356 -->
 # Tests
 
 ## Les tests du bundle
@@ -15,6 +15,13 @@ téléversements) ; les crédits en Twig et les liens EasyAdmin ; et la configur
 `tests/Functional` démarre une petite application avec FrameworkBundle, DoctrineBundle sur SQLite et TwigBundle,
 traduit une page par les routes, refusée sans jeton, acceptée avec un jeton et son témoin, modifie un glossaire et
 commente un segment. `tests/js` exécute le module du jeton à double soumission sous l'exécuteur de tests de Node.
+
+`BinaryKeysListener` est testé sur le schéma généré pour MySQL et MariaDB, avec les clés en `utf8mb4_bin`, et pour
+SQLite, avec la collation par défaut. La suite `tests/Integration` l'exécute sur un vrai MySQL 8.4 et un vrai
+PostgreSQL 17 : quatre termes de glossaire qui ne diffèrent que par la casse ou l'accent sont quatre termes, chacun
+trouvé par sa seule graphie, et sur MySQL les clés sont en `utf8mb4_bin` et les tables de la version précédente y
+arrivent par le diff du schéma. Le test de chaque serveur lit son URL dans `PHIL_TEST_MYSQL_URL` ou
+`PHIL_TEST_POSTGRESQL_URL` et est sauté sans elle.
 
 À partir de la racine du monodépôt, puis du bundle :
 

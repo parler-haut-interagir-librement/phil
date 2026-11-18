@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c256371e13c6d6b14eb9444217b90a25b9f55ea28ccb77a9cd1e3a9726e64d4d -->
+<!-- phil-dev source-sha256=917635a6ed9ab2f41a271bb1bd40155ae8088c2b5f2a85b80e4b40e10ec0c3fc -->
 # Configuration
 
 ```yaml
@@ -310,6 +310,57 @@ services:
 ```
 
 La table `phil_record_version` est créée par une migration de l'application, comme celle de toute entité associée.
+
+## Collation des clés
+
+**Les clés qu'écrivent les comportements se comparent octet par octet**, comme PHP les compare, quels que soient les
+comportements activés : le slug `Doc-A` n'est jamais trouvé pour `doc-a`, et les deux peuvent être pris ; la
+traduction `fr-CA` n'est jamais lue pour `fr-ca` ; les enregistrements du propriétaire `Ann` ne sont jamais listés ni
+effacés pour `ann`. `BinaryKeysListener` donne à ces champs la collation binaire quand l'ORM charge les métadonnées
+d'une classe qui les prend, sur MySQL ou MariaDB ; l'association elle-même reste la même sur toutes les plateformes.
+
+| Une classe qui implémente, ou est | Champs en `utf8mb4_bin` sur MySQL et MariaDB |
+|---|---|
+| `Sluggable` | `slug` |
+| `Translation` | `locale` |
+| `Ownable` | `ownerId` (`owner_id`) |
+| `Blameable` | `createdBy`, `updatedBy` (`created_by`, `updated_by`) |
+| `TreeNode` | `treePath` (`tree_path`) |
+| `DatedIdentifiable` | `id` |
+| `RecordVersion`, la table `phil_record_version` | `subjectTable`, `subjectId` (`subject_table`, `subject_id`), et le blâme de `Blameable` |
+
+Un champ n'est changé que là où la classe l'associe comme chaîne ou comme GUID, comme le font les traits de
+`phil/doctrine-behaviours` ; un champ que la classe associe sous un autre type, ou n'associe pas, garde son association.
+Sur MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la
+plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ne distingue ni la casse ni les
+accents. Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et
+SQLite compare les octets : leurs colonnes gardent la valeur par défaut.
+
+### Mise à niveau depuis 0.1
+
+Les tables d'une installation 0.1 sur MySQL ou MariaDB gardaient la collation de la connexion.
+`doctrine:migrations:diff` écrit la migration qui amène les colonnes ci-dessus à `utf8mb4_bin`, dans les tables de
+l'application et dans `phil_record_version` ; exécutez-la avec `doctrine:migrations:migrate`. Sur PostgreSQL et SQLite,
+le diff est vide. Les colonnes de jointure vers un identifiant daté prennent sa collation dans le schéma et sont
+converties avec lui, et MySQL refuse de changer un côté d'une clé étrangère avant l'autre : mettez
+`SET FOREIGN_KEY_CHECKS = 0` au début du `up()` de la migration et `SET FOREIGN_KEY_CHECKS = 1` à sa fin ; les clés
+étrangères restent, et sont vérifiées de nouveau une fois les deux côtés convertis.
+
+Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne brise donc une clé unique. Il
+sépare ce que la collation insensible à la casse réunissait : les lignes dont les clés ne diffèrent que par la casse,
+qu'une recherche par l'une ou l'autre graphie retournait ensemble, se trouvent chacune par leur propre graphie dès la
+migration, et une clé que l'application cherche dans une autre casse que celle où elle l'a écrite cesse de
+correspondre. Avant de migrer, listez les propriétaires et les auteurs écrits en plus d'une casse, pour chaque table
+qui les prend :
+
+```sql
+SELECT owner_id, COUNT(*) AS row_count FROM notice
+GROUP BY owner_id HAVING COUNT(DISTINCT CAST(owner_id AS BINARY)) > 1;
+```
+
+Chaque ligne est une clé sous plusieurs graphies. Gardez-les distinctes, ou ramenez les lignes à la graphie
+qu'utilise l'application avec un `UPDATE` avant la migration. Une clé unique ne peut contenir deux telles graphies sous
+l'ancienne collation : un slug unique n'a pas besoin de vérification.
 
 ## Les workers de longue durée
 

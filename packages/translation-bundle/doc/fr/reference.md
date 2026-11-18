@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=dadcb5cad11579ca8faaef2516ce4781c29086baae06cdf99177f456a49fe644 -->
+<!-- phil-dev source-sha256=1982d7dc02022c207f5c40a951519c2b8f39debae5ae6a8d962cb7c04622307c -->
 # Référence
 
 | Type | Sorte | Rôle |
@@ -28,6 +28,7 @@
 | `Phil\TranslationBundle\Infrastructure\Doctrine\DoctrineSegmentRepository` | `final readonly class` | Les segments dans Doctrine |
 | `Phil\TranslationBundle\Infrastructure\Doctrine\DoctrineTermRepository` | `final readonly class` | Les termes dans Doctrine |
 | `Phil\TranslationBundle\Infrastructure\Doctrine\DoctrineMemoryStore` | `final readonly class` | La mémoire dans Doctrine |
+| `Phil\TranslationBundle\Infrastructure\Doctrine\BinaryKeysListener` | `final readonly class` | Les clés des tables en `utf8mb4_bin` sur MySQL et MariaDB, au `loadClassMetadata` de l'ORM ([storage.md](storage.md#collation-des-clés)) |
 | `Phil\TranslationBundle\Infrastructure\Doctrine\DoctrineCommentRepository` | `final readonly class` | Les commentaires dans Doctrine |
 | `Phil\TranslationBundle\Infrastructure\Memory\InMemoryCommentRepository` | `final class` | Les commentaires dans un tableau |
 | `Phil\TranslationBundle\Infrastructure\Memory\InMemorySegmentRepository` | `final class` | Les segments dans un tableau |

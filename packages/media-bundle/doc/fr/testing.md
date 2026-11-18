@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=73b7664f324acabc15d595402868a94088451c7a1abdbf25829a4937acd17a95 -->
+<!-- phil-dev source-sha256=244a23fee3dbf3f9bda0dbd72d8b42c5a08073594cca2d9b7b40ccd02c577e74 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -24,6 +24,18 @@
 | La politique « contenu d'usager » | Les en-têtes de l'original et d'un format, ce qui est affiché sous la politique par défaut et sous une politique propre |
 | `getMany()` | L'ordre demandé, les doublons et les identifiants inconnus, une requête par 500 |
 | Comment un média a été fait | La divulgation de l'IA selon chaque sorte de type de source numérique, les types retirés, schema.org |
+| `BinaryKeysListener` | Les clés en `utf8mb4_bin` dans le schéma généré pour MySQL et MariaDB, la collation par défaut sur SQLite, les options qu'un champ a déjà conservées |
+
+La suite `tests/Integration` exécute `BinaryKeysListener` sur un vrai MySQL 8.4 et un vrai PostgreSQL 17 : quatre clés de
+collection qui ne diffèrent que par la casse ou l'accent sont quatre collections, chacune trouvée par sa seule clé, et
+sur MySQL les clés sont en `utf8mb4_bin` et les tables de la version précédente y arrivent par le diff du schéma. Le
+test de chaque serveur lit son URL dans `PHIL_TEST_MYSQL_URL` ou `PHIL_TEST_POSTGRESQL_URL` et est sauté sans elle :
+
+```sh
+PHIL_TEST_MYSQL_URL='mysql://phil:phil@127.0.0.1:13306/phil_test?serverVersion=8.4' \
+PHIL_TEST_POSTGRESQL_URL='postgresql://phil:phil@127.0.0.1:15432/phil_test?serverVersion=17' \
+vendor/bin/phpunit packages/media-bundle/tests/Integration
+```
 
 Une suite fonctionnelle démarre un noyau avec FrameworkBundle, DoctrineBundle sur SQLite, Twig et les composants Twig :
 une image est téléversée, ses `media_url()` sont rendus par Twig et demandés par le noyau, les composants `Img` et
