@@ -9,6 +9,7 @@ use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\ParameterType;
+use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Index\IndexType;
@@ -33,6 +34,11 @@ use Phil\Checkin\ScanOutcome;
  *
  * The attendance of a credential is folded from its admissions and check-outs: the highest sequence is the version,
  * the admissions are the entries, the direction of the last one says whether the holder is inside.
+ *
+ * **Identifiers compare byte by byte.** On MySQL and MariaDB, whose default collations fold case and accents, the scan,
+ * the credential, the checkpoint and the device take `utf8mb4` and `utf8mb4_bin`, so that the attendance of the
+ * credential `Badge-7` is never folded with that of `badge-7`; PostgreSQL's default collations are deterministic and
+ * SQLite compares bytes, so their columns keep the default.
  */
 final readonly class DoctrineCheckInLedger implements CheckInLedger
 {
@@ -144,19 +150,29 @@ final readonly class DoctrineCheckInLedger implements CheckInLedger
 
     private function tableDefinition(): Table
     {
+        $binary = $this->connection->getDatabasePlatform() instanceof AbstractMySQLPlatform;
         $string = static fn (string $name, int $length, bool $notNull = true): Column => Column::editor()->setUnquotedName($name)->setTypeName(Types::STRING)->setLength($length)->setNotNull($notNull)->create();
+        $key = static function (string $name, int $length) use ($binary): Column {
+            $column = Column::editor()->setUnquotedName($name)->setTypeName(Types::STRING)->setLength($length);
+
+            if ($binary) {
+                $column->setCharset('utf8mb4')->setCollation('utf8mb4_bin');
+            }
+
+            return $column->create();
+        };
 
         return Table::editor()
             ->setUnquotedName(self::TABLE)
             ->setColumns(
-                $string('id', 64),
-                $string('credential_id', 128),
+                $key('id', 64),
+                $key('credential_id', 128),
                 Column::editor()->setUnquotedName('sequence')->setTypeName(Types::INTEGER)->setNotNull(false)->create(),
-                $string('checkpoint', 64),
+                $key('checkpoint', 64),
                 $string('direction', 3),
                 $string('outcome', 32),
                 $string('conflict', 32, false),
-                $string('device', 64),
+                $key('device', 64),
                 Column::editor()->setUnquotedName('offline')->setTypeName(Types::BOOLEAN)->create(),
                 Column::editor()->setUnquotedName('scanned_at')->setTypeName(Types::BIGINT)->create(),
                 Column::editor()->setUnquotedName('recorded_at')->setTypeName(Types::BIGINT)->create(),

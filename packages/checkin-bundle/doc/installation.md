@@ -43,6 +43,28 @@ Put the prefix behind the firewall that signs the staff in. The endpoints answer
 With the ORM, `doctrine:migrations:diff` writes the migration of the table `phil_checkin_scan`. Without it,
 `DoctrineCheckInLedger::configureSchema()` adds the table to a DBAL schema the application migrates itself.
 
+### Collation of the keys
+
+**Keys compare byte by byte**, as PHP compares them. The attendance of a credential is folded from its rows: that of
+the credential `Badge-7` is never folded with the rows of `badge-7`, a scan identifier sent in another case is another
+scan, and two credentials that differ only by case each take their own sequence.
+
+| Table | Columns in `utf8mb4_bin` on MySQL and MariaDB |
+|---|---|
+| `phil_checkin_scan` | `id`, `credential_id`, `checkpoint`, `device` |
+
+On MySQL and MariaDB, these columns take the `utf8mb4` character set and the `utf8mb4_bin` collation, given the
+connection's platform: the default collation of MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's
+default collations are deterministic, equal only when the bytes are, and SQLite compares bytes: their columns keep the
+default.
+
+#### Upgrading from 0.1
+
+The tables of a 0.1 install on MySQL or MariaDB kept the connection's collation. `doctrine:migrations:diff` writes the
+migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. The change only
+makes values more distinct, so no existing row breaks a key. Rows that a case-insensitive collation had already merged
+stay merged; values written from the migration on are kept apart. On PostgreSQL and SQLite the diff is empty.
+
 ## The security
 
 The endpoints ask the application's security whether the user may check in at a checkpoint, with the attribute

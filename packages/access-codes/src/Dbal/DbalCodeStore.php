@@ -9,7 +9,9 @@ use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\ParameterType;
+use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\ColumnEditor;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
@@ -33,6 +35,11 @@ use UnexpectedValueException;
  * `UPDATE` of the code's row — redeemed only where it is neither redeemed, revoked nor expired —, the atomic step:
  * the database locks the row, so that of two redemptions at the same instant one changes it and the other changes
  * nothing. A revocation marks the batch and its unredeemed codes in one transaction.
+ *
+ * **Identifiers compare byte by byte**, as the library compares them: `Spring` and `spring` are two batches, and
+ * revoking one never revokes the codes of the other. On MySQL and MariaDB, whose default collations fold case and
+ * accents, the batch identifiers and the hashes take `utf8mb4` and `utf8mb4_bin`; PostgreSQL's default collations are
+ * deterministic and SQLite compares bytes, so their columns keep the default.
  */
 final readonly class DbalCodeStore implements CodeStore
 {
@@ -273,6 +280,22 @@ final readonly class DbalCodeStore implements CodeStore
     }
 
     /**
+     * A text column of identifiers, compared byte by byte on the connection's platform.
+     *
+     * @param non-empty-string $name
+     */
+    private function identifier(string $name, int $length): ColumnEditor
+    {
+        $column = Column::editor()->setUnquotedName($name)->setTypeName(Types::STRING)->setLength($length);
+
+        if ($this->connection->getDatabasePlatform() instanceof AbstractMySQLPlatform) {
+            $column->setCharset('utf8mb4')->setCollation('utf8mb4_bin');
+        }
+
+        return $column;
+    }
+
+    /**
      * One row per batch: its identifier, name, size, creation, expiry and revocation.
      */
     private function batchTableDefinition(): Table
@@ -280,7 +303,7 @@ final readonly class DbalCodeStore implements CodeStore
         return Table::editor()
             ->setUnquotedName($this->batchTable)
             ->setColumns(
-                Column::editor()->setUnquotedName('id')->setTypeName(Types::STRING)->setLength(64)->create(),
+                $this->identifier('id', 64)->create(),
                 Column::editor()->setUnquotedName('name')->setTypeName(Types::STRING)->setLength(Batch::MAX_NAME_LENGTH)->create(),
                 Column::editor()->setUnquotedName('size')->setTypeName(Types::INTEGER)->create(),
                 Column::editor()->setUnquotedName('created_at')->setTypeName(Types::BIGINT)->create(),
@@ -300,8 +323,8 @@ final readonly class DbalCodeStore implements CodeStore
         return Table::editor()
             ->setUnquotedName($this->codeTable)
             ->setColumns(
-                Column::editor()->setUnquotedName('hash')->setTypeName(Types::STRING)->setLength(CodeHasher::LENGTH)->create(),
-                Column::editor()->setUnquotedName('batch_id')->setTypeName(Types::STRING)->setLength(64)->create(),
+                $this->identifier('hash', CodeHasher::LENGTH)->create(),
+                $this->identifier('batch_id', 64)->create(),
                 Column::editor()->setUnquotedName('expires_at')->setTypeName(Types::BIGINT)->setNotNull(false)->create(),
                 Column::editor()->setUnquotedName('redeemed_at')->setTypeName(Types::BIGINT)->setNotNull(false)->create(),
                 Column::editor()->setUnquotedName('redeemed_by')->setTypeName(Types::STRING)->setLength(191)->setNotNull(false)->create(),

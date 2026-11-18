@@ -24,6 +24,29 @@ phil_slug:
 the migration that creates it and `doctrine:schema:validate` does not ask to drop it. Without the ORM, create it from
 `SlugHistoryTable::configure()`.
 
+### Collation of the keys
+
+**Keys compare byte by byte**, as PHP compares them. A scope may mix cases and a subject is any identifier: a change
+of the subject `Post-7` never rewrites the history of `post-7`, and a former slug of the scope `Blog` never leads to a
+subject of `blog`. Slugs are lowercase by their rule; the former slug takes the binary collation with the scope it is
+keyed with.
+
+| Table | Columns in `utf8mb4_bin` on MySQL and MariaDB |
+|---|---|
+| `phil_slug_history` | `scope`, `former_slug`, `subject` |
+
+On MySQL and MariaDB, these columns take the `utf8mb4` character set and the `utf8mb4_bin` collation, given the
+connection's platform: the default collation of MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's
+default collations are deterministic, equal only when the bytes are, and SQLite compares bytes: their columns keep the
+default.
+
+#### Upgrading from 0.1
+
+The tables of a 0.1 install on MySQL or MariaDB kept the connection's collation. `doctrine:migrations:diff` writes the
+migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. The change only
+makes values more distinct, so no existing row breaks a key. Rows that a case-insensitive collation had already merged
+stay merged; values written from the migration on are kept apart. On PostgreSQL and SQLite the diff is empty.
+
 The history is the service `phil_slug.history`, autowired as `Phil\SlugBundle\Application\Contract\SlugHistory`.
 
 ## Scopes and subjects

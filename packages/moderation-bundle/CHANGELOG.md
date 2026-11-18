@@ -4,6 +4,25 @@ All notable changes to `phil/moderation-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: members, targets and the identifiers of the five tables compare byte by byte on MySQL
+and MariaDB. See [Upgrading from 0.1](doc/installation.md#upgrading-from-01).
+
+### Changed
+
+- `ModerationTables::configure()` and `ModerationTables::tables()` take the platform of the connection, and the schema
+  listener gives it: on MySQL and MariaDB, the identifiers of the rows and decisions, `target_type` and `target_id`,
+  and the members — `reporter`, `moderator`, `author`, `member`, `recipient` — take the `utf8mb4` character set and
+  the `utf8mb4_bin` collation. PostgreSQL and SQLite keep their default, which compares bytes already.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, a member whose identifier differed from another's
+  only by case read the statements of reasons addressed to the other, the moderation read their notes together, a
+  member left the sandbox for both, and deciding on a target closed the open reports of a target that differed from it
+  only by case: the stores select by member and target in SQL.
+
 ## 0.1.0-alpha - 2026-11-15
 
 ### Added
