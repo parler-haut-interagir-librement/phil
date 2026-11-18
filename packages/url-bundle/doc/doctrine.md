@@ -1,6 +1,6 @@
 # Doctrine
 
-With DoctrineBundle, the column type `phil_url` keeps a `Url` normalised in a `VARCHAR(2048)`:
+With `doctrine/dbal` and DoctrineBundle, the column type `phil_url` keeps a `Url` normalised in a `VARCHAR(2048)`:
 
 ```php
 #[ORM\Column(type: 'phil_url')]
@@ -21,3 +21,7 @@ public function link(): TypedUrl
     return TypedUrl::of($this->kind, $this->url);
 }
 ```
+
+The column type is the only part of the bundle that needs `doctrine/dbal`. Without it the bundle boots and leaves the
+type out; `column_type: true` turns that absence into a refusal at container build, and `column_type: false` leaves the
+type out even with Doctrine installed (see [installation](installation.md#column_type)).

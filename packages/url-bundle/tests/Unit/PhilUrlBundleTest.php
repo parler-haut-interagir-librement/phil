@@ -14,6 +14,8 @@ use Phil\UrlBundle\Infrastructure\Validator\UrlOfTypeValidator;
 use Phil\UrlBundle\PhilUrlBundle;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\Config\Definition\Exception\InvalidTypeException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
@@ -128,6 +130,44 @@ final class PhilUrlBundleTest extends TestCase
         $extension->prepend($container);
 
         self::assertFalse($container->hasExtension('doctrine'));
+    }
+
+    public function testAColumnTypeSetToTrueIsPrependedLikeTheDefault(): void
+    {
+        self::assertSame([
+            ['dbal' => ['types' => [UrlColumnType::NAME => UrlColumnType::class]]],
+        ], $this->prepend([['column_type' => true]], [])->getExtensionConfig('doctrine'));
+    }
+
+    public function testAColumnTypeSetToFalseIsNeverPrepended(): void
+    {
+        self::assertSame([['dbal' => []]], $this->prepend([['column_type' => true], ['column_type' => false]], [['dbal' => []]])->getExtensionConfig('doctrine'));
+    }
+
+    public function testAColumnTypeSetToNullFollowsWhatIsInstalled(): void
+    {
+        self::assertCount(1, $this->prepend([['column_type' => false], ['column_type' => null]], [])->getExtensionConfig('doctrine'));
+    }
+
+    public function testAColumnTypeRequiredWithoutDoctrineBundleIsRefusedAtBuild(): void
+    {
+        $container = new ContainerBuilder();
+        $extension = $this->extension();
+        $container->registerExtension($extension);
+        $container->loadFromExtension('phil_url', ['column_type' => true]);
+
+        self::assertInstanceOf(PrependExtensionInterface::class, $extension);
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageIsOrContains('The column type phil_url needs the package "doctrine/doctrine-bundle": run "composer require doctrine/doctrine-bundle" and register DoctrineBundle, or set "phil_url.column_type" to null or false.');
+
+        $extension->prepend($container);
+    }
+
+    public function testAnInvalidColumnTypeIsRefusedAtBuild(): void
+    {
+        $this->expectException(InvalidTypeException::class);
+
+        $this->prepend([['column_type' => 'yes']], []);
     }
 
     /**

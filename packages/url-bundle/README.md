@@ -4,7 +4,7 @@
 
 `phil/url-bundle` brings `phil/url` into a Symfony application. `TypedUrlType` is one text field that reads an
 address, `https` by default, and detects its kind among the enum sets it accepts, giving a `TypedUrl`. The constraint
-`UrlOfType` checks that a text, a `Url` or a `TypedUrl` is of an accepted kind. With DoctrineBundle, the column type
+`UrlOfType` checks that a text, a `Url` or a `TypedUrl` is of an accepted kind. With Doctrine DBAL, the column type
 `phil_url` keeps a normalised `Url` in a `VARCHAR(2048)`. Twig gets `url_display`, `url_type()` and `url_type_label`.
 Messages come in English and French.
 
@@ -57,7 +57,8 @@ public ?string $social = null;
 ## Requirements
 
 PHP 8.5 or later; `phil/url` 0.1.3 and `phil/enums` 0.3; `symfony/config`, `symfony/dependency-injection`,
-`symfony/form`, `symfony/options-resolver` and `symfony/validator` 8.2 or later. Doctrine DBAL and Twig are optional.
+`symfony/form`, `symfony/options-resolver` and `symfony/validator` 8.2 or later. Doctrine DBAL and Twig are optional:
+without DBAL the bundle boots and leaves out the column type, its only feature that needs a database.
 
 ## Contributing
 

@@ -21,4 +21,5 @@ An enum of the application's implementing `Phil\Url\UrlType` is accepted whereve
 | Point | How |
 |---|---|
 | Where an address is kept | The `phil_url` column type, and the kind in a column of the application's — see [Doctrine](doctrine.md) |
+| Whether the column type is registered | The key `column_type`: `null` when DBAL is installed, `true` required, `false` never — see [Installation](installation.md#column_type) |
 | How an address is shown | `url_display`, `url_type()` and `url_type_label` — see [Twig](twig.md) |
