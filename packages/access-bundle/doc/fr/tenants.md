@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d073f9f0fb3afc7a222dbf1bef3db914e9334a7909e4da3407b1ad66456fae98 -->
+<!-- phil-dev source-sha256=988ee6118626720a7fbe98524478ae731fe1e38dd3847b499580f469301b2715 -->
 # Locataires
 
 Dans une application multilocataire, chaque locataire a son propre espace `main`, ses propres membres et ses propres
@@ -33,8 +33,42 @@ qui la rencontre laisse la requête échouer. Donnez son locataire à chaque com
 bin/console phil:access:purge --tenant=retail
 ```
 
-`phil:access:purge` sans locataire le dit et échoue, sans rien supprimer. Une purge planifiée s'exécute une fois par
-locataire.
+`phil:access:purge` sans locataire le dit et échoue, sans rien supprimer.
+
+## Purger tous les locataires
+
+`--all-tenants` purge en une seule exécution les tuples expirés de chaque locataire, la forme que prend une purge
+planifiée :
+
+```sh
+bin/console phil:access:purge --all-tenants
+```
+
+La commande lit les partitions qui contiennent des tuples depuis `Application\Contract\TuplePartitions`, puis, pour
+chacune à tour de rôle, entre dans le locataire de ce nom par le `TenantContext` de `phil/tenancy-bundle`, purge sa
+partition et en sort. Chaque instruction nomme toujours une seule partition : aucune purge ne s'exécute hors d'un
+locataire ni sur plusieurs locataires. On sort du locataire après sa purge, qu'elle ait réussi ou échoué, y compris
+quand l'activation échoue à l'entrée, afin qu'un échec n'emporte jamais le filtre Doctrine, la connexion ou l'espace de
+noms de cache d'un locataire dans le suivant.
+
+Un tableau rend compte de chaque locataire : les tuples expirés supprimés, et `purged`, ou `failed:` suivi du message de
+l'erreur, imprimé comme du texte. Un locataire qui échoue n'arrête pas les autres ; la commande se termine alors avec
+`1`, après avoir purgé tous les locataires qu'elle a pu. Une partition dont le nom n'est pas une référence de locataire
+valide est signalée comme un échec et jamais ouverte. Sans aucune partition qui contienne des tuples, la commande le dit
+et réussit.
+
+| La commande | Réponse |
+|---|---|
+| Les tuples ne sont pas partitionnés par locataire : `phil/tenancy-bundle` désactivé, ou `partition: single` | Refusée, sortie `1` : l'option exige les partitions des locataires |
+| `--all-tenants` avec `--tenant` | Refusée, sortie `1` : donnez l'un ou l'autre |
+| Aucun service `TuplePartitions` : les tuples en mémoire, ou dans un magasin propre à l'application | Refusée, sortie `1` : créez un alias du port vers un service qui liste les partitions |
+
+Avec le magasin DBAL, `Infrastructure\Dbal\DbalTuplePartitions` les liste : un seul `SELECT DISTINCT` sur la colonne
+`scope` de la table des tuples, qui ouvre sa clé primaire, sans la partition par défaut. Il ne lit que les noms, jamais
+un tuple. Sur une grande table, PostgreSQL peut lire tout l'index de cette clé pour cela, là où MySQL le parcourt par
+sauts ; à une exécution par jour, c'est la partie peu coûteuse de la purge. Une application dont les locataires sont
+connus ailleurs — un registre de locataires — crée un alias du port vers un service à elle qui retourne les partitions,
+par nom, chacune une fois.
 
 ## Mise à niveau depuis 0.1
 

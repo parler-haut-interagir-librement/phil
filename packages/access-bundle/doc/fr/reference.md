@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0377eecf705ae098085c665f172394b3d189b68ac90e8bcb5248f27c7ed848ba -->
+<!-- phil-dev source-sha256=dd34630dd3ee8b4d5e78983bb91491a3584b11df9948d43e2e3f8123933d2b0c -->
 # Référence
 
 Chaque type public du paquet, avec son rôle.
@@ -27,6 +27,7 @@ Chaque type public du paquet, avec son rôle.
 | `Phil\AccessBundle\Application\Contract\ViewAsStore` | L'endroit où le membre dont on voit le site est conservé. |
 | `Phil\AccessBundle\Application\Contract\AccessibleItem` | Un objet vérifié par la référence de ses tuples. |
 | `Phil\AccessBundle\Application\Contract\ModelContributor` | Ajoute des types et des relations au modèle. |
+| `Phil\AccessBundle\Application\Contract\TuplePartitions` | Les partitions qui contiennent des tuples, pour `phil:access:purge --all-tenants`. |
 | `Phil\AccessBundle\Application\View\Share` | Un partage : niveau, membre ou groupe, fin. |
 | `Phil\AccessBundle\Application\View\Membership` | Un membre d'un groupe et la fin de l'adhésion. |
 | `Phil\AccessBundle\Application\Event\MemberJoinedGroup` | Un membre est entré dans un groupe. |
@@ -47,7 +48,8 @@ Chaque type public du paquet, avec son rôle.
 | `Phil\AccessBundle\Infrastructure\Twig\Components\ViewAsBannerComponent` | `PhilAccess:ViewAsBanner`. |
 | `Phil\AccessBundle\Infrastructure\Twig\Components\AccessSummaryComponent` | `PhilAccess:AccessSummary`. |
 | `Phil\AccessBundle\Infrastructure\Twig\KitComponents` | Les noms des recettes du kit. |
-| `Phil\AccessBundle\Infrastructure\Console\PurgeCommand` | `phil:access:purge`. |
+| `Phil\AccessBundle\Infrastructure\Console\PurgeCommand` | `phil:access:purge`, dans le locataire de la commande ou, avec `--all-tenants`, dans chaque locataire à tour de rôle. |
+| `Phil\AccessBundle\Infrastructure\Dbal\DbalTuplePartitions` | Les partitions de la table DBAL des tuples. |
 | `Phil\AccessBundle\Infrastructure\DependencyInjection\AccessServices` | Enregistre les services. |
 | `Phil\AccessBundle\Infrastructure\DependencyInjection\CsrfProtectionPass` | Arrête un conteneur sans protection CSRF. |
 | `Phil\AccessBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass` | Nomme les recettes d'après le sous-répertoire du Toolkit. |

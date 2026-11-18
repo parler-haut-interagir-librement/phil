@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fe7061d6dd1931011a551f79b170af380dfbebd425a7d904ba132cb00e58c0ba -->
+<!-- phil-dev source-sha256=7c66aeaf4696da80fcb9771adb5a0d508e6dbc4461cc2717333381c474484861 -->
 # Configuration
 
 ```yaml
@@ -16,7 +16,8 @@ phil_api_contract:
         # after a process died before its response. Longer than the slowest request. 300 by default.
         reservation_ttl: 300
         # What an #[Idempotent] endpoint does with a caller that is neither a user nor a client: "refuse" answers a
-        # 403 problem; "ip" scopes it by its address, shared by every caller behind that address. "refuse" by default.
+        # 403 problem; "ip" scopes it by its address, shared by every caller behind that address. "refuse" by default;
+        # a controller's #[Idempotent(anonymous: …)] replaces it.
         anonymous: refuse
         # The attribute of the security token that names the API client, part of the scope of a key; null reads
         # none. "client_id" by default.
@@ -30,6 +31,11 @@ phil_api_contract:
         cache_pool: ~
         # The lock factory that makes a reservation in the cache pool atomic, on a store shared by every server.
         lock_factory: lock.factory
+        messenger:
+            # Registers TenantIdempotencyScopeMiddleware, which puts the tenant of a received message into the scope
+            # of its IdempotencyStamp; the bus names it before the idempotency middleware. Needs PhilTenancyBundle.
+            # False by default.
+            tenant_scope: false
     verification:
         # The OpenAPI document phil:api-contract:verify reads when none is named. Null by default.
         document: '%kernel.project_dir%/openapi.yaml'
@@ -42,9 +48,10 @@ phil_api_contract:
 ```
 
 `idempotency.ttl: 0` et `idempotency.reservation_ttl: 0` sont refusés à la construction du conteneur, tout comme une clé
-que le bundle ne connaît pas, un `idempotency.anonymous` autre que `refuse` ou `ip`, et un `verification.level` ou un
-`verification.fail_on` hors de ses valeurs ; `#[Idempotent(ttl: 0)]`, ou un `ttl` négatif, l'est aussi à la lecture de
-l'attribut. Un identifiant de `verification.skip` qu'aucune règle ne porte fait échouer la construction du vérificateur.
+que le bundle ne connaît pas, un `idempotency.anonymous` autre que `refuse` ou `ip`, un `verification.level` ou un
+`verification.fail_on` hors de ses valeurs, et `idempotency.messenger.tenant_scope: true` sans `PhilTenancyBundle` ;
+`#[Idempotent(ttl: 0)]`, un `ttl` négatif, ou un `#[Idempotent(anonymous: …)]` autre que `refuse` ou `ip`, l'est aussi à
+la lecture de l'attribut. Un identifiant de `verification.skip` qu'aucune règle ne porte fait échouer la construction du vérificateur.
 
 ## Les services
 
@@ -56,6 +63,7 @@ l'attribut. Un identifiant de `verification.skip` qu'aucune règle ne porte fait
 | `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyTenantResolver` | Un alias de `ActiveTenantResolver`, sur le `TenantContext` de `phil/tenancy-bundle` quand il est installé |
 | `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyClientResolver` | Un alias de `TokenAttributeClientResolver`, sur le jeton de sécurité et `idempotency.client_attribute` |
 | `IdempotencyListener` | Sur `kernel.controller_arguments` à -10100, après les écouteurs des attributs du contrôleur, et sur `kernel.response` |
+| `TenantIdempotencyScopeMiddleware` | Un middleware de Messenger pour le bus de l'application, quand `idempotency.messenger.tenant_scope` est vrai |
 | `DeprecationObservingHttpClient` | Décore `http_client`, s'il existe |
 | `Phil\ApiContract\OpenApi\ContractVerifier` | Public ; construit par `ContractVerifierFactory` à partir des règles de la bibliothèque, des services étiquetés `phil_api_contract.openapi_rule` et de `verification.skip` |
 | `DeprecationsCommand`, `VerifyCommand` | `phil:api-contract:deprecations` et `phil:api-contract:verify`, quand Symfony Console est installé |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5c1223ca8f593b392efe41476c4eb60b312e73c2d385e1780836c2fd7abe1ba4 -->
+<!-- phil-dev source-sha256=a6b56386cbc43641a7d9c1e2de0ff3791eedbb103292a118c2c0177a0c42d4d4 -->
 # phil/access-bundle
 
 **Qui voit et qui peut modifier chaque élément d'un site : visibilité, niveaux de partage, groupes d'accès, accès qui se
@@ -42,7 +42,7 @@ recettes du kit PHIL UX.
 | Tuples partitionnés par le locataire actif de `phil/tenancy-bundle`, avec un échec par fermeture hors d'un locataire | Implémenté et testé |
 | `AccessVoter` et `EasyAdminAccessVoter`, avec les raisons de chaque vote | Implémenté et testé |
 | Les fonctions Twig `access_can`, `access_visibility`, `access_viewing_as` ; les composants `PhilAccess:ViewAsBanner` et `PhilAccess:AccessSummary` sur les recettes du kit | Implémenté et testé |
-| Magasin Doctrine DBAL et écouteur de schéma, magasin en mémoire, `phil:access:purge` | Implémenté et testé |
+| Magasin Doctrine DBAL et écouteur de schéma, magasin en mémoire, `phil:access:purge` et son `--all-tenants` | Implémenté et testé |
 | Organisations et leurs rôles, depuis `phil/organizations-bundle` | Prévu, une fois ce bundle publié |
 
 ## Documentation
@@ -55,7 +55,7 @@ recettes du kit PHIL UX.
 | [Éléments, visibilité et partage](doc/fr/items-and-sharing.md) | Propriétaires, espaces, visibilités, niveaux de partage et partages qui se terminent d'eux-mêmes. |
 | [Groupes d'accès](doc/fr/access-groups.md) | Groupes, points d'entrée, adhésions, groupes par défaut. |
 | [Voir comme ce membre](doc/fr/view-as.md) | Qui peut, ce que cela montre, la limite et son garde, la fin d'une vue, le journal et les événements, la bannière. |
-| [Locataires](doc/fr/tenants.md) | Les tuples de chaque locataire dans une partition à part, l'échec par fermeture, la mise à niveau depuis 0.1. |
+| [Locataires](doc/fr/tenants.md) | Les tuples de chaque locataire dans une partition à part, l'échec par fermeture, la purge de tous les locataires, la mise à niveau depuis 0.1. |
 | [Vérifier l'accès](doc/fr/checking.md) | Les voters, les fonctions Twig, lister ce qu'un membre voit, et pourquoi. |
 | [EasyAdmin](doc/fr/easyadmin.md) | Le voter sur les permissions d'EasyAdmin, le contrôleur CRUD à portée déclarée, le filtre de locataire. |
 | [Rendu](doc/fr/rendering.md) | La bannière et le résumé, dessinés avec les recettes du kit. |

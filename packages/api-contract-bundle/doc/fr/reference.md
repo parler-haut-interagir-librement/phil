@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fdce7ac77693f176217df4c0f67ebdc9b730087c6ace555fbb372259e4df2415 -->
+<!-- phil-dev source-sha256=7beaa5385ccdebbc2fdddc9fab0640294c45c57ef51630057a29cbdb76bfcbc3 -->
 # Référence
 
 | Type | Nature | Rôle |
@@ -8,11 +8,13 @@
 | `Infrastructure\Http\ProblemException` | exception | Un problème à retourner en réponse, et ses en-têtes |
 | `Infrastructure\Http\ProblemDetailsResponse` | réponse | Un problème, `application/problem+json` |
 | `Infrastructure\Http\ProblemDetailsListener` | écouteur de `kernel.exception` | Les exceptions sous forme de problèmes |
-| `Infrastructure\Http\Idempotent` | attribut | Un contrôleur qui exige un `Idempotency-Key` |
-| `Infrastructure\Http\IdempotencyListener` | écouteur | La garde de `phil/idempotency` autour d'un tel contrôleur, après ses contrôles d'accès ; constantes `REPLAYED_HEADER`, `RESERVED`, `PRIORITY`, `RESERVATION_LOST`, `KEY_FORMAT` |
+| `Infrastructure\Http\Idempotent` | attribut | Un contrôleur qui exige un `Idempotency-Key` ; sa rétention, `ttl`, et sa politique pour les appelants anonymes, `anonymous` |
+| `Infrastructure\Http\IdempotencyListener` | écouteur | La garde de `phil/idempotency` autour d'un tel contrôleur, après ses contrôles d'accès ; constantes `REPLAYED_HEADER`, `RESERVED`, `ANONYMOUS_CALLERS`, `PRIORITY`, `RESERVATION_LOST`, `KEY_FORMAT` |
 | `Infrastructure\Http\IdempotencyReservation` | valeur | La réservation qu'une requête a prise, venue de `phil/idempotency`, et la rétention de sa réponse |
 | `Infrastructure\Http\IdempotencyScopeResolver` | interface | Qui a envoyé une requête |
-| `Infrastructure\Http\CallerScopeResolver` | résolveur | Le locataire, le client et l'utilisateur, hachés ; les appelants anonymes refusés ou rattachés à leur adresse ; constante `ANONYMOUS` |
+| `Infrastructure\Http\CallerScopeResolver` | résolveur | Le locataire, le client et l'utilisateur, hachés ; les appelants anonymes refusés ou rattachés à leur adresse, selon la politique du point de terminaison ou celle de la configuration ; constante `ANONYMOUS` |
+| `Infrastructure\Messenger\TenantIdempotencyScopeMiddleware` | middleware de Messenger | Le locataire du `TenantStamp` d'un message reçu dans la portée de son `IdempotencyStamp` ; constante `SCOPE_PREFIX` |
+| `Infrastructure\Messenger\TenantScopedIdempotencyStamp` | estampille de Messenger | Le locataire pour lequel la portée d'idempotence d'une enveloppe a été rattachée, afin qu'une nouvelle tentative ne la rattache pas deux fois |
 | `Infrastructure\Http\IdempotencyTenantResolver` | interface | Le locataire dans lequel une requête agit |
 | `Infrastructure\Http\ActiveTenantResolver` | résolveur | Le locataire actif de `phil/tenancy-bundle` |
 | `Infrastructure\Http\IdempotencyClientResolver` | interface | Le client qui a envoyé une requête |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fd2138de86dbce910a8118a3520d55b5a0b8adbcab9dc9d81bf69b666f4791f4 -->
+<!-- phil-dev source-sha256=dbf9529a625e980de6779f339e98f273eda1e54a5a0257ca6c523183dfba82ab -->
 # Installation
 
 ```sh
@@ -42,7 +42,8 @@ php bin/console doctrine:migrations:migrate
 ```
 
 Planifiez `phil:access:purge` — une fois par jour suffit — pour supprimer les tuples dont l'expiration est passée ; ils
-ne comptent déjà plus pour rien.
+ne comptent déjà plus pour rien. Avec les tuples partitionnés par locataire, planifiez `phil:access:purge --all-tenants`,
+qui purge chaque locataire à tour de rôle ; voir [Locataires](tenants.md#purger-tous-les-locataires).
 
 ## Les recettes du kit
 
