@@ -7,6 +7,7 @@ namespace Phil\Ujo\Text;
 use Closure;
 use Phil\Ujo\Block;
 use Phil\Ujo\Document;
+use Phil\Ujo\Exception\InputTooLarge;
 use Phil\Ujo\Html\InlineSanitizer;
 use Phil\Ujo\Html\Rendering;
 
@@ -17,7 +18,8 @@ use Phil\Ujo\Html\Rendering;
  * without one its alternative text —, links their title and address. Page markers, decorations, charts and QR codes give nothing.
  *
  * `with()` replaces the conversion of one type, or adds one for a new type; a type with none gives nothing.
- * `passages()` gives the text by language, as the `language` tunes of the blocks say.
+ * `passages()` gives the text by language, as the `language` tunes of the blocks say. The text of each inline HTML
+ * field is read by an `InlineSanitizer`, which refuses a field longer than its ceiling.
  */
 final readonly class PlainText
 {
@@ -25,10 +27,11 @@ final readonly class PlainText
 
     /**
      * @param array<string, Closure(Block, PlainText): string> $converters each type, to the conversion that replaces its default one
+     * @param InlineSanitizer|null                             $sanitizer  what reads the text of inline HTML, and refuses a fragment above its ceiling
      */
-    public function __construct(private array $converters = [])
+    public function __construct(private array $converters = [], ?InlineSanitizer $sanitizer = null)
     {
-        $this->sanitizer = new InlineSanitizer();
+        $this->sanitizer = $sanitizer ?? new InlineSanitizer();
     }
 
     /**
@@ -36,9 +39,12 @@ final readonly class PlainText
      */
     public function with(string $type, Closure $converter): self
     {
-        return new self([...$this->converters, $type => $converter]);
+        return new self([...$this->converters, $type => $converter], $this->sanitizer);
     }
 
+    /**
+     * @throws InputTooLarge when an inline HTML field is longer than the sanitizer's ceiling
+     */
     public function convert(Document $document): string
     {
         return $this->blocks($document->blocks);

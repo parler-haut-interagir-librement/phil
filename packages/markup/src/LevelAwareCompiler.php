@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\Markup;
 
+use Phil\Markup\Exception\InputTooLarge;
 use Phil\Markup\Exception\UnknownFormat;
 
 /**
@@ -14,6 +15,7 @@ use Phil\Markup\Exception\UnknownFormat;
 interface LevelAwareCompiler extends MarkupCompiler
 {
     /**
+     * @throws InputTooLarge when the source is longer than the compiler's ceiling
      * @throws UnknownFormat when the compiler knows no format of that name
      */
     public function compileFor(string $source, MarkupFormat|string $format, Level $level): string;

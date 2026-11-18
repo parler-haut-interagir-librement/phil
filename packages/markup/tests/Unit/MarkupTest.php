@@ -122,7 +122,7 @@ final class MarkupTest extends TestCase
         self::assertSame('<p class="ujo-paragraph"><strong>a</strong></p>', $compiler->compile('**a**', 'shout'));
         self::assertSame('<div class="ujo-raw"><div>x</div></div>', $compiler->compileFor('<div>x</div>', 'shout', Level::All));
         self::assertSame('<p class="ujo-paragraph">&lt;div&gt;x&lt;/div&gt;</p>', $compiler->compileFor('<div>x</div>', 'shout', Level::Forum));
-        self::assertInstanceOf(MarkdownReader::class, $compiler->reader('shout'));
+        self::assertSame('paragraph', $compiler->reader('shout')->read('a')->document->blocks[0]->type);
 
         $markup = new Markup($compiler, SanitizerPurifier::defaultPolicies());
         self::assertSame('shout', $markup->text('a', 'shout')->format);

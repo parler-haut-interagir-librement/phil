@@ -1,7 +1,9 @@
 # Plain text
 
 `PlainText::convert($document)` gives the text of a document — for a search index, an excerpt, an e-mail, a summary
-read aloud —: each block's text without HTML, decoded, blocks separated by a blank line, empty ones left out.
+read aloud —: each block's text without HTML, decoded, blocks separated by a blank line, empty ones left out. The text
+of each HTML field is read by an `InlineSanitizer`, the second argument of the constructor, which refuses a field
+longer than its ceiling by `InputTooLarge`: see [The ceiling of a fragment](inline-html.md#the-ceiling-of-a-fragment).
 
 | Type | Text |
 |---|---|

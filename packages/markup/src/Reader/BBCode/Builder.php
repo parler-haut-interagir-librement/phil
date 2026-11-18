@@ -252,7 +252,7 @@ final readonly class Builder
 
         foreach ($this->blocks($node, self::FLAT) as $block) {
             if ('list' === $block->type) {
-                $children = [...$children, ...BlockParser::items($block)];
+                array_push($children, ...BlockParser::items($block));
             } else {
                 $content[] = $block;
             }

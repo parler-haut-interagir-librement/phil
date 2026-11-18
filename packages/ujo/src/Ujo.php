@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\Ujo;
 
+use Phil\Ujo\Exception\InputTooLarge;
 use Phil\Ujo\Exception\InvalidDocument;
 use Phil\Ujo\Exception\InvalidJson;
 use Phil\Ujo\Exception\UnknownBlockType;
@@ -47,6 +48,7 @@ final readonly class Ujo
      * @throws InvalidJson
      * @throws InvalidDocument
      * @throws UnknownBlockType
+     * @throws InputTooLarge    when an inline HTML field is longer than the sanitizer's ceiling
      */
     public function decode(string $json, Validation $level = Validation::Shape): Document
     {
@@ -58,6 +60,7 @@ final readonly class Ujo
      *
      * @throws InvalidDocument
      * @throws UnknownBlockType
+     * @throws InputTooLarge    when an inline HTML field is longer than the sanitizer's ceiling
      */
     public function normalize(Document $document, Validation $level = Validation::Shape): Document
     {
@@ -69,6 +72,7 @@ final readonly class Ujo
      *
      * @throws InvalidDocument
      * @throws UnknownBlockType
+     * @throws InputTooLarge    when an inline HTML field is longer than the sanitizer's ceiling
      */
     public function encode(Document $document, bool $pretty = false): string
     {
@@ -81,6 +85,7 @@ final readonly class Ujo
      * @throws InvalidJson
      * @throws InvalidDocument
      * @throws UnknownBlockType
+     * @throws InputTooLarge    when an inline HTML field is longer than the sanitizer's ceiling
      */
     public function toHtml(Document|string $document): string
     {
@@ -93,6 +98,7 @@ final readonly class Ujo
      * @throws InvalidJson
      * @throws InvalidDocument
      * @throws UnknownBlockType
+     * @throws InputTooLarge    when an inline HTML field is longer than the sanitizer's ceiling
      */
     public function toText(Document|string $document): string
     {

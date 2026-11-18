@@ -2,8 +2,8 @@
 
 | Type | Kind | Role |
 |---|---|---|
-| `Phil\Typography\Typographer` | `final readonly class` | Fixes HTML fragments, documents and plain text with its fixers; `for()` builds the preset of a locale |
-| `Phil\Typography\Typographers` | `final class` | One typographer per locale, built on first use, configurable by fixer names |
+| `Phil\Typography\Typographer` | `final readonly class` | Fixes HTML fragments, documents and plain text with its fixers, up to `maxBytes`; `for()` builds the preset of a locale; `DEFAULT_MAX_BYTES`, the ceiling of a text unless configured, 1 MiB |
+| `Phil\Typography\Typographers` | `final class` | One typographer per locale, built on first use, configurable by fixer names, each with the ceiling `maxBytes` |
 | `Phil\Typography\Preset` | `final class` | The fixers of a locale, by name and in order |
 | `Phil\Typography\Locale` | `final readonly class` | A language, script and region, and its candidates |
 | `Phil\Typography\Text\Run` | `final readonly class` | The text nodes of one block, in parts; `map()`, `replace()`, `characters()` |
@@ -32,5 +32,6 @@
 | `Phil\Typography\Exception\InvalidLocale` | `final class` | A string that is not a locale |
 | `Phil\Typography\Exception\UnsupportedLanguage` | `final class` | No hyphenation patterns for a language |
 | `Phil\Typography\Exception\UnknownFixer` | `final class` | A fixer name the presets do not know |
+| `Phil\Typography\Exception\InputTooLarge` | `final class` | A text longer than the ceiling of the typographer |
 
 `Phil\Typography\Html\Blocks`, `Phil\Typography\Html\Collector` and `Phil\Typography\Text\Characters` are internal.

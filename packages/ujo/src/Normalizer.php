@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\Ujo;
 
 use Closure;
+use Phil\Ujo\Exception\InputTooLarge;
 use Phil\Ujo\Exception\InvalidDocument;
 use Phil\Ujo\Exception\UnknownBlockType;
 use Phil\Ujo\Html\InlineSanitizer;
@@ -66,6 +67,7 @@ final readonly class Normalizer
     /**
      * @throws InvalidDocument  when a block's structure or data breaks its type, or the document a limit
      * @throws UnknownBlockType when a block or a tune is of no registered type
+     * @throws InputTooLarge    when an inline HTML field is longer than the ceiling of the sanitizer
      */
     public function normalize(Document $document, Validation $level = Validation::Shape): Document
     {

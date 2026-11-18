@@ -1,0 +1,1 @@
+<b>bold <i>both</b> italic</i> <a href="https://e.x/">link <a href="/n">nested</a></a> &amp; &lt;x&gt; <!-- c --> <script>alert(1)</script> <br>

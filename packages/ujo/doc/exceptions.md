@@ -8,6 +8,7 @@ Every exception implements `Phil\Ujo\Exception\UjoException`.
 | `InvalidDocument` | `InvalidArgumentException` | The structure of a document or block, or the data of a block, breaks the model; a text that cannot be written as JSON. Its `path` names where, as `blocks[2].data.level` |
 | `UnknownBlockType` | `InvalidArgumentException` | A block or tune of no registered type, or a block with no renderer. Its `type` names it |
 | `InvalidConfiguration` | `LogicException` | An inline profile that is not registered |
+| `InputTooLarge` | `InvalidArgumentException` | An HTML fragment given to the inline sanitizer — to be sanitized, rendered or converted to text — is longer than its ceiling, `maxBytes`, 4 MiB by default; `$bytes` and `$limit` say both lengths |
 
 Messages say where and why, for example:
 
@@ -16,6 +17,7 @@ Messages say where and why, for example:
 - `The UJO document is invalid at blocks[3].id: the identifier "a1" is already used by the block at blocks[0].`
 - `The block type "raw" at blocks[1] is not registered.`
 - `No HTML renderer is registered for the block type "callout".`
+- `The input is 4194305 bytes long, above the limit of 4194304 bytes.`
 
 An application that receives documents from writers catches `UjoException` and shows the message: it names the block
 and the value at fault.

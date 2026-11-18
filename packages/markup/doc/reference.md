@@ -9,12 +9,12 @@
 | `MarkupCompiler` | interface | `compile(string $source, MarkupFormat\|string $format): string`, HTML **not safe to show**; a string names a format of an add-on |
 | `LevelAwareCompiler` | interface | A `MarkupCompiler` with `compileFor($source, $format, $level)`: told the level the HTML will be purified at |
 | `HtmlPurifier` | interface | `purify(string $html, Level $level): string` |
-| `Exception\MarkupException`, `Exception\InvalidSource`, `Exception\UnknownFormat` | exceptions | See [Exceptions](exceptions.md) |
+| `Exception\MarkupException`, `Exception\InputTooLarge`, `Exception\InvalidSource`, `Exception\MissingExtension`, `Exception\UnknownFormat` | exceptions | See [Exceptions](exceptions.md) |
 | `Markup` | `final readonly class` | `toHtml()` and `text()`: compile — at the level, for a `LevelAwareCompiler` —, then purify; `Level::All` unless told |
 | `MarkedUpText` | embeddable | `source` (text), `format` (the name of the format, 16 characters), `html` (text) |
 | `Lexer\Cursor` | `final class` | The cursor of the analyser: see [The analyser](analyser.md) |
 | `Lexer\Slugger` | `final class` | The anchors of one document, unique |
-| `Reader\MarkupReader` | interface | `read(string $source): Reading` |
+| `Reader\MarkupReader` | interface | `read(string $source): Reading`; `DEFAULT_MAX_BYTES`, the ceiling of a source unless configured, 1 MiB |
 | `Reader\Reading` | `final readonly class` | `document`, a UJO `Document`, `metadata` and `losses` |
 | `Reader\Loss`, `Reader\LossReason` | `final readonly class`, enum | What a reader did not keep: element, path, reason |
 | `Contract\ExtractedElementStore` | interface | `store(string $content, string $mediaType, string $name): ?string`: where extracted elements are stored as files |
@@ -30,7 +30,7 @@
 | `Reader\Html\HtmlReader` | `MarkupReader` | HTML into UJO: see [HTML](html.md) |
 | `Reader\UjoReader` | `MarkupReader` | UJO JSON, through `phil/ujo` |
 | `Reader\Text\TextReader` | `MarkupReader` | Plain text: a `paragraph` for each run of lines, line breaks kept, addresses made links |
-| `Adapter\DefaultCompiler` | `LevelAwareCompiler` | Every format, the add-ons' given by name; `reader($format, $level)` gives the reader of a format into UJO — HTML's and plain text's too, though both are compiled without it —; `formats()` the name of each |
+| `Adapter\DefaultCompiler` | `LevelAwareCompiler` | Every format, the add-ons' given by name, a source longer than `maxBytes` refused; `reader($format, $level)` gives the reader of a format into UJO — HTML's and plain text's too, though both are compiled without it —; `formats()` the name of each |
 | `Adapter\SanitizerPurifier` | `HtmlPurifier` | `defaultPolicies()`, one sanitizer per level; `configurations()`, the configuration of each level |
 | `Adapter\AmmoniaPurifier` | `HtmlPurifier` | `defaultPolicies()` on the `ammonia` extension, the same policies; `isAvailable()`: see [Accelerators](accelerators.md) |
 | `Adapter\Purifiers` | `final readonly class` | `defaultPolicies($mediaHosts, $extension)`: `AmmoniaPurifier` where the extension is loaded, `SanitizerPurifier` otherwise |

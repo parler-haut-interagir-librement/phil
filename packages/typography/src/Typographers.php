@@ -6,6 +6,7 @@ namespace Phil\Typography;
 
 use Closure;
 use Dom\HTMLDocument;
+use Phil\Typography\Exception\InputTooLarge;
 use Phil\Typography\Exception\InvalidLocale;
 use Phil\Typography\Exception\TypographyException;
 use Phil\Typography\Exception\UnknownFixer;
@@ -20,7 +21,8 @@ use Phil\Typography\Text\Run;
  * One typographer per locale, built on first use and kept: the preset of the locale, or the fixers configured for it
  * by name. The fixers of a locale are found by its candidates, so those configured for `fr` serve `fr_BE` too. The
  * typographers of 64 locales are kept at most: past them, they are built again, so that locales taken from requests
- * cannot grow the memory of a long-running process without end.
+ * cannot grow the memory of a long-running process without end. A text longer than `maxBytes` is refused before it is
+ * parsed, by `fixHtml()` and by each typographer.
  */
 final class Typographers
 {
@@ -40,6 +42,7 @@ final class Typographers
      * @param array<string, list<string>> $fixers      fixer names by locale, in place of its preset
      * @param list<string>                $protected   the names of the elements whose text is never changed
      * @param bool                        $hyphenation whether presets hyphenate the languages the library has patterns for
+     * @param int<1, max>                 $maxBytes    the longest text fixed, in bytes, by `fixHtml()` and each typographer
      *
      * @throws InvalidLocale
      */
@@ -49,6 +52,7 @@ final class Typographers
         private readonly array $protected = Typographer::PROTECTED_TAGS,
         private readonly bool $hyphenation = true,
         ?Dictionary $dictionary = null,
+        private readonly int $maxBytes = Typographer::DEFAULT_MAX_BYTES,
     ) {
         $this->default = Locale::parse($default);
         $this->dictionary = $dictionary ?? new Dictionary();
@@ -82,6 +86,7 @@ final class Typographers
         return $this->typographers[$key] = new Typographer(
             array_map(fn (string $name): Fixer => Preset::fixer($name, $locale, $this->dictionary), $this->names($locale)),
             $this->protected,
+            $this->maxBytes,
         );
     }
 
@@ -90,12 +95,14 @@ final class Typographers
      * names another language fixed by the typographer of that language: its quotes, its spaces, its hyphenation. A
      * passage in a language no typographer serves is fixed as the text around it.
      *
+     * @throws InputTooLarge       when the fragment is longer than the ceiling
      * @throws InvalidLocale
      * @throws UnknownFixer
      * @throws UnsupportedLanguage
      */
     public function fixHtml(string $html, Locale|string|null $locale = null): string
     {
+        InputTooLarge::check($html, $this->maxBytes);
         $typographer = $this->for($locale);
         $document = HTMLDocument::createEmpty();
         $body = $document->createElement('body');

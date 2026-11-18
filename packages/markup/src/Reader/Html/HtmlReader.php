@@ -8,6 +8,7 @@ use Dom\HTMLDocument;
 use Dom\HTMLElement;
 use Override;
 use Phil\Markup\Contract\ExtractedElementStore;
+use Phil\Markup\Exception\InputTooLarge;
 use Phil\Markup\Reader\Markdown\Context;
 use Phil\Markup\Reader\Markdown\InlineParser;
 use Phil\Markup\Reader\Markdown\Resolver;
@@ -36,21 +37,27 @@ use Phil\Ujo\Type\EmbedServices;
  * an anchor the page lacks, a drawing without a store — is listed in the reading's losses.
  *
  * The source is parsed by the HTML5 parser of PHP, as a browser parses it, so that any text is a document: the reader
- * never throws. The document is normalized by `phil/ujo` before it is returned.
+ * never throws, except `InputTooLarge` for a source longer than its `maxBytes`, refused before it is parsed. The
+ * document is normalized by `phil/ujo` before it is returned.
  */
 final readonly class HtmlReader implements MarkupReader
 {
+    /**
+     * @param int<1, max> $maxBytes the longest source read, in bytes; a longer one is refused
+     */
     public function __construct(
         private ?Normalizer $normalizer = null,
         private EmbedServices $services = new EmbedServices(),
         private ?ExtractedElementStore $store = null,
         private SvgSanitizer $sanitizer = new SvgSanitizer(),
+        private int $maxBytes = self::DEFAULT_MAX_BYTES,
     ) {
     }
 
     #[Override]
     public function read(string $source): Reading
     {
+        InputTooLarge::check($source, $this->maxBytes);
         $document = HTMLDocument::createFromString(str_replace("\0", "\u{FFFD}", $source), \LIBXML_NOERROR, 'UTF-8');
         $context = new Context(false);
         $inline = new InlineParser($context);

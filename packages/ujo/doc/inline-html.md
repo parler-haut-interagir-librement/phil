@@ -24,6 +24,28 @@ attributes, end tags, comments — and writes back only what the profile allows,
 
 `InlineSanitizer::toText($html)` gives the decoded text without elements, a `<br>` as a new line.
 
+## The ceiling of a fragment
+
+`sanitize()` and `toText()` refuse a fragment longer than the sanitizer's ceiling before they read it: they throw
+`Exception\InputTooLarge`, which says the length of the fragment and the ceiling in `$bytes` and `$limit`, and never cut
+the fragment to fit. The ceiling is counted in bytes. It is the `maxBytes` argument of the constructor, kept by
+`withProfile()`, `InlineSanitizer::DEFAULT_MAX_BYTES` by default: 4 MiB, the ceiling of `JsonDecoder`, so that no
+field of a document the decoder reads is refused.
+
+Every path that reads inline HTML reads it through a sanitizer, and its ceiling: the `Normalizer`, the `HtmlRenderer`
+and `PlainText`, each given the sanitizer it uses — a document built in PHP, never decoded, is bounded as one read from
+JSON is:
+
+```php
+$sanitizer = new InlineSanitizer(maxBytes: 262_144);   // 256 KiB
+$normalizer = new Normalizer(sanitizer: $sanitizer);
+$renderer = HtmlRenderer::default($sanitizer);
+$text = new PlainText(sanitizer: $sanitizer);
+```
+
+The normalizer also holds each HTML field to `maxHtmlLength` characters, 100,000 by default, checked before the
+sanitizer reads it.
+
 ## Profiles
 
 | Profile | Keeps |

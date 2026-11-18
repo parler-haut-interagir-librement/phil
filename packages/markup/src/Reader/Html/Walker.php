@@ -29,6 +29,7 @@ use Phil\Ujo\Html\LanguageTag;
 use Phil\Ujo\Html\SafeUrl;
 use Phil\Ujo\Type\EmbedServices;
 use Phil\Ujo\Type\MediaTypes;
+use SplObjectStorage;
 
 /**
  * The tree of an HTML document walked into UJO blocks, whose inline content is HTML already. Inline content between
@@ -108,6 +109,14 @@ final class Walker
 
     private int $drawings = 0;
 
+    /**
+     * The position of each element among its siblings of its name, from 1. The storage holds the elements, so that the
+     * DOM extension gives the same object for an element each time it is reached.
+     *
+     * @var SplObjectStorage<Element, int>
+     */
+    private SplObjectStorage $positions;
+
     public function __construct(
         private readonly Context $context,
         private readonly HTMLDocument $document,
@@ -115,6 +124,7 @@ final class Walker
         private readonly ?ExtractedElementStore $store = null,
         private readonly SvgSanitizer $sanitizer = new SvgSanitizer(),
     ) {
+        $this->positions = new SplObjectStorage();
     }
 
     /**
@@ -206,16 +216,34 @@ final class Walker
         $parts = [];
 
         for ($element = $node instanceof Element ? $node : $node->parentElement; $element instanceof Element && 'html' !== $element->localName; $element = $element->parentElement) {
-            $position = 1;
-
-            for ($sibling = $element->previousElementSibling; $sibling instanceof Element; $sibling = $sibling->previousElementSibling) {
-                $position += $sibling->localName === $element->localName ? 1 : 0;
-            }
-
-            $parts[] = 'body' === $element->localName ? 'body' : $element->localName.'['.$position.']';
+            $parts[] = 'body' === $element->localName ? 'body' : $element->localName.'['.$this->position($element).']';
         }
 
         return implode(' > ', array_reverse($parts));
+    }
+
+    /**
+     * The position of an element among its siblings of its name, from 1. The children of a parent are counted once,
+     * when the path of one of them is first asked, so that the losses of many siblings cost a time that grows with
+     * their number, not with its square.
+     */
+    private function position(Element $element): int
+    {
+        if (!isset($this->positions[$element])) {
+            $counts = [];
+            $first = $element;
+
+            while ($first->previousElementSibling instanceof Element) {
+                $first = $first->previousElementSibling;
+            }
+
+            for ($sibling = $first; $sibling instanceof Element; $sibling = $sibling->nextElementSibling) {
+                $counts[$sibling->localName] = ($counts[$sibling->localName] ?? 0) + 1;
+                $this->positions[$sibling] = $counts[$sibling->localName];
+            }
+        }
+
+        return $this->positions[$element];
     }
 
     /**
@@ -875,7 +903,7 @@ final class Walker
             if ($this->level > self::MAX_LEVEL) {
                 $content->inline($this->text($child));
             } elseif ($child instanceof Element && \in_array($child->localName, ['ul', 'ol'], true)) {
-                $children = [...$children, ...BlockParser::items($this->listing($child)[0] ?? $this->context->block('list', []))];
+                array_push($children, ...BlockParser::items($this->listing($child)[0] ?? $this->context->block('list', [])));
             } elseif ($child instanceof Element && $this->isBlock($child)) {
                 $content->block(...$this->block($child, self::FLAT));
             } else {

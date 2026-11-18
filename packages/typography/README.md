@@ -32,6 +32,7 @@ and runs its fixers in order; `Preset` chooses them for a `Locale`; `Hyphenator`
 | Part | State |
 |---|---|
 | `Typographer`: HTML fragments, whole documents and plain text; protected elements, configurable | Implemented and tested |
+| A ceiling on every text, `maxBytes`, refused by `InputTooLarge` before it is parsed | Implemented and tested |
 | Fixers: Unicode normalization, ellipsis, dimension, dash, smart quotes, apostrophe, comma, French spacing, legal signs, units, hyphenation, Thai word breaks | Implemented and tested |
 | Quotation marks of 66 languages and regions, after the Unicode CLDR | Implemented and tested |
 | French spacing by the rules of France and of Canada | Implemented and tested |
@@ -47,11 +48,11 @@ and runs its fixers in order; `Preset` chooses them for a `Locale`; `Hyphenator`
 | Document | What it covers |
 |---|---|
 | [Installation](doc/installation.md) | Requirements and installing. |
-| [HTML and text](doc/html.md) | How HTML is read and written back, runs of text, protected elements, emoji. |
+| [HTML and text](doc/html.md) | How HTML is read and written back, the ceiling of a text, runs of text, protected elements, emoji. |
 | [Fixers](doc/fixers.md) | Every fixer, what it changes and what it leaves alone. |
 | [Locales](doc/locales.md) | Presets, quotation marks, dash styles and French spacing by locale. |
 | [Hyphenation](doc/hyphenation.md) | Liang's algorithm, the languages and their licences, and patterns of your own. |
-| [Exceptions](doc/exceptions.md) | `TypographyException` and its three exceptions. |
+| [Exceptions](doc/exceptions.md) | `TypographyException` and its four exceptions. |
 | [Extension points](doc/extension-points.md) | The ports, arguments and data an application chooses or replaces. |
 | [Testing](doc/testing.md) | The library's tests and mutation bar, and how to test code that fixes text. |
 | [Reference](doc/reference.md) | Every type of the library, with its role. |

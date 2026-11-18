@@ -28,6 +28,12 @@ final readonly class BlockParser
     /** The elements whose HTML block ends at their closing tag, blank lines included. */
     private const array HTML_VERBATIM = ['script', 'pre', 'style', 'textarea'];
 
+    /** The type of what an HTML block of comments alone gives `parse()`: its text, the note of the next block. */
+    private const string COMMENT = '#comment';
+
+    /** The longest note the comments of a block make, in characters. */
+    private const int MAX_NOTE = 10_000;
+
     public function __construct(
         private Context $context,
         private InlineParser $inline,
@@ -35,6 +41,9 @@ final readonly class BlockParser
     }
 
     /**
+     * The blocks of lines, each appended in place, so that the time grows with the number of blocks. An HTML block of
+     * comments alone is the `note` tune of the block that follows it, or of the last block when none follows.
+     *
      * @param list<string> $lines
      *
      * @return list<Block>
@@ -43,6 +52,7 @@ final readonly class BlockParser
     {
         $blocks = [];
         $paragraph = [];
+        $notes = [];
         $count = \count($lines);
 
         for ($at = 0; $at < $count;) {
@@ -54,7 +64,7 @@ final readonly class BlockParser
             } elseif ($this->blank($line)) {
                 $made = [[], $at + 1];
             } elseif ($this->isInjection($line) && !$this->blank($lines[$at - 1] ?? '')) {
-                $blocks = $this->paragraph($blocks, $paragraph);
+                $this->paragraph($blocks, $paragraph, $notes);
                 $paragraph = [];
                 $last = array_pop($blocks);
                 $made = [null === $last ? [] : [Layout::apply($last, Attributes::parse(substr(trim($line), 1, -1)), $this->context)], $at + 1];
@@ -69,13 +79,61 @@ final readonly class BlockParser
                 continue;
             }
 
-            $blocks = $this->paragraph($blocks, $paragraph);
+            $this->paragraph($blocks, $paragraph, $notes);
             $paragraph = [];
             [$new, $at] = $made;
-            $blocks = [...$blocks, ...$new];
+
+            foreach ($new as $block) {
+                $this->append($blocks, $block, $notes);
+            }
         }
 
-        return $this->definitions($this->paragraph($blocks, $paragraph));
+        $this->paragraph($blocks, $paragraph, $notes);
+        $last = array_key_last($blocks);
+
+        if (null !== $last && [] !== $notes) {
+            $blocks[$last] = $this->noted($blocks[$last], $notes);
+        }
+
+        return $this->definitions($blocks);
+    }
+
+    /**
+     * Appends a block, which takes the comments met before it as its note; the text of comments is kept for the next
+     * block.
+     *
+     * @param list<Block>  $blocks
+     * @param list<string> $notes
+     */
+    private function append(array &$blocks, Block $block, array &$notes): void
+    {
+        if (self::COMMENT === $block->type) {
+            $notes[] = \is_string($block->data['text'] ?? null) ? $block->data['text'] : '';
+
+            return;
+        }
+
+        $blocks[] = [] === $notes ? $block : $this->noted($block, $notes);
+        $notes = [];
+    }
+
+    /**
+     * A block with the comments as its `note` tune, after the note it has; the comments without text left out.
+     *
+     * @param non-empty-list<string> $notes
+     */
+    private function noted(Block $block, array $notes): Block
+    {
+        $text = implode("\n", array_filter($notes, static fn (string $note): bool => '' !== $note));
+
+        if ('' === $text) {
+            return $block;
+        }
+
+        $note = $block->tunes['note'] ?? null;
+        $earlier = \is_array($note) && \is_string($note['text'] ?? null) ? $note['text']."\n" : '';
+
+        return $block->withTunes([...$block->tunes, 'note' => ['text' => mb_substr($earlier.$text, 0, self::MAX_NOTE)]]);
     }
 
     /**
@@ -401,7 +459,7 @@ final readonly class BlockParser
 
         foreach ($this->parse($lines, $depth + 1) as $block) {
             if ('list' === $block->type) {
-                $children = [...$children, ...self::items($block)];
+                array_push($children, ...self::items($block));
             } else {
                 $content[] = $block;
             }
@@ -478,12 +536,25 @@ final readonly class BlockParser
         }
 
         $html = implode("\n", $html);
+        $comments = '-->' === $end ? $this->comments($html) : null;
 
         return match (true) {
+            null !== $comments => [[new Block(self::COMMENT, self::COMMENT, ['text' => $comments])], $next],
             !$this->context->rawHtml => [[$this->context->block('paragraph', ['text' => Inline::html(InlineParser::escape($html))])], $next],
             '-->' === $end => [[], $next],
             default => [[$this->context->block('raw', ['html' => $html])], $next],
         };
+    }
+
+    /**
+     * The text of an HTML block made of comments alone, each without the white space at its ends and on a line of its
+     * own; `null` when the block holds anything else.
+     */
+    private function comments(string $html): ?string
+    {
+        preg_match_all('/<!--(.*?)-->/s', $html, $matches);
+
+        return '' === trim(str_replace($matches[0], '', $html)) ? implode("\n", array_map(trim(...), $matches[1])) : null;
     }
 
     /**
@@ -827,15 +898,30 @@ final readonly class BlockParser
     private function definitions(array $blocks): array
     {
         $merged = [];
+        /** @var array<int, list<mixed>> $items the items of each list that others joined, by its index in `$merged` */
+        $items = [];
+        $open = null;
 
         foreach ($blocks as $block) {
-            $last = array_pop($merged);
-            $merged = null !== $last && 'definitionList' === $block->type && 'definitionList' === $last->type
-                ? [...$merged, $last->withData(['items' => [...self::items($last), ...self::items($block)]])]
-                : [...$merged, ...null === $last ? [] : [$last], $block];
+            if ('definitionList' !== $block->type) {
+                $open = null;
+                $merged[] = $block;
+            } elseif (null === $open) {
+                $open = \count($merged);
+                $merged[] = $block;
+            } else {
+                $items[$open] ??= self::items($merged[$open]);
+                array_push($items[$open], ...self::items($block));
+            }
         }
 
-        return $merged;
+        $joined = [];
+
+        foreach ($merged as $index => $block) {
+            $joined[] = isset($items[$index]) ? $block->withData(['items' => $items[$index]]) : $block;
+        }
+
+        return $joined;
     }
 
     /**
@@ -844,19 +930,17 @@ final readonly class BlockParser
      *
      * @param list<Block>  $blocks
      * @param list<string> $lines
-     *
-     * @return list<Block>
+     * @param list<string> $notes
      */
-    private function paragraph(array $blocks, array $lines): array
+    private function paragraph(array &$blocks, array $lines, array &$notes): void
     {
         if ([] === $lines) {
-            return $blocks;
+            return;
         }
 
         $text = rtrim(implode("\n", array_map(static fn (string $line): string => ltrim($line, " \t"), $lines)));
         [$text, $tunes] = $this->context->dialect?->paragraph($text) ?? [$text, []];
-
-        return [...$blocks, $this->context->block('paragraph', ['text' => Inline::markdown(ltrim($text, ' '))], $tunes)];
+        $this->append($blocks, $this->context->block('paragraph', ['text' => Inline::markdown(ltrim($text, ' '))], $tunes), $notes);
     }
 
     private function blank(string $line): bool

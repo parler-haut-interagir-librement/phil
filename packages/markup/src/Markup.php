@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\Markup;
 
+use Phil\Markup\Exception\InputTooLarge;
 use Phil\Markup\Exception\UnknownFormat;
 
 /**
@@ -19,6 +20,7 @@ final readonly class Markup
     }
 
     /**
+     * @throws InputTooLarge when the source is longer than the compiler's ceiling
      * @throws UnknownFormat when the compiler knows no format of that name
      */
     public function toHtml(string $source, MarkupFormat|string $format, Level $level = Level::All): string
@@ -29,6 +31,7 @@ final readonly class Markup
     }
 
     /**
+     * @throws InputTooLarge when the source is longer than the compiler's ceiling
      * @throws UnknownFormat when the compiler knows no format of that name
      */
     public function text(string $source, MarkupFormat|string $format, Level $level = Level::All): MarkedUpText

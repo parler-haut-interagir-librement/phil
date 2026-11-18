@@ -10,6 +10,7 @@ use Phil\Markup\Reader\BBCode\BBCodeReader;
 use Phil\Markup\Reader\Creole\CreoleReader;
 use Phil\Markup\Reader\DokuWiki\DokuWikiReader;
 use Phil\Markup\Reader\Html\HtmlReader;
+use Phil\Markup\Reader\Markdown\MarkdownReader;
 use Phil\Markup\Reader\MediaWiki\MediaWikiReader;
 use Phil\Ujo\Normalizer;
 use Phil\Ujo\Type\BlockTypeRegistry;
@@ -18,7 +19,7 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 
 /**
- * How the time the readers of BBCode, of the wikis and of HTML take grows on sources written to be slow. These tests
+ * How the time the readers of Markdown, of BBCode, of the wikis and of HTML take grows on sources written to be slow. These tests
  * attribute no coverage: they take seconds, and a mutant they would kill makes a reading slower, not wrong, which the
  * tests of each reader do not see — those mutants are named in the package's `phil-dev.php`.
  *
@@ -164,7 +165,25 @@ final class WikiLinearityTest extends TestCase
             'images' => [$this->repeat('<p>a<img src="/a.png">b</p>'), 4_000],
             'lists' => [$this->repeat('<ul><li>a'), 11_000],
             'cells' => [$this->repeat('<tr>'.str_repeat('<td>x</td>', 50), '<table>', '</table>'), 220],
+            'lost siblings' => [$this->repeat('<object></object>', '<p>'), 6_000],
+            'siblings with data' => [$this->repeat('<span data-x="1">a</span>', '<p>'), 4_000],
         ], static fn (string $source): mixed => HTMLDocument::createFromString($source, \LIBXML_NOERROR, 'UTF-8'));
+    }
+
+    /**
+     * Paragraphs, headings, definition lists, the lists of one item, the blocks of a stat block and the comments that
+     * are notes, by the thousand, take a time that grows with their length: each block is appended in place.
+     */
+    public function testMarkdownIsReadInLinearTime(): void
+    {
+        $this->assertGrowsLinearly(static fn (string $source): mixed => new MarkdownReader(normalizer: self::normalizer())->read($source), [
+            'paragraphs' => [$this->repeat("a\n\n"), 33_000],
+            'headings' => [$this->repeat("# a\n"), 25_000],
+            'definition lists' => [$this->repeat("t\n: d\n\n"), 15_000],
+            'lists of one item' => [$this->repeat("  - b\n  * c\n", "- a\n"), 8_000],
+            'a stat block' => [$this->repeat("a\n\n", "{{monster\n# N\n\n", '}}'), 33_000],
+            'comments' => [$this->repeat("<!-- n -->\na\n\n"), 7_000],
+        ]);
     }
 
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\Markup\Reader\MediaWiki;
 
 use Override;
+use Phil\Markup\Exception\InputTooLarge;
 use Phil\Markup\Reader\MarkupReader;
 use Phil\Markup\Reader\Reading;
 use Phil\Markup\Reader\Wiki\Pipeline;
@@ -18,21 +19,27 @@ use Phil\Ujo\Normalizer;
  * `{{Footnote|…}}`, `{{TOC}}`, `{{Page break}}`, tags such as `<note title="…">`, `<columns>`, `<statblock>` — that
  * give it every feature of the Markdown reader. Raw HTML, `<html>`, is kept as a `raw` block or escaped as text.
  *
- * Any text is a document, read in linear time: the reader never throws. The document is normalized by `phil/ujo`
- * before it is returned.
+ * Any text is a document, read in linear time: the reader never throws, except `InputTooLarge` for a source longer than
+ * its `maxBytes`, refused before it is parsed. The document is normalized by `phil/ujo` before it is returned.
  */
 final readonly class MediaWikiReader implements MarkupReader
 {
+    /**
+     * @param int<1, max> $maxBytes the longest source read, in bytes; a longer one is refused
+     */
     public function __construct(
         private bool $rawHtml = false,
         private ?Normalizer $normalizer = null,
         private WikiLinks $links = new WikiLinks(),
+        private int $maxBytes = self::DEFAULT_MAX_BYTES,
     ) {
     }
 
     #[Override]
     public function read(string $source): Reading
     {
+        InputTooLarge::check($source, $this->maxBytes);
+
         return Pipeline::read(new MediaWikiSyntax(), $source, $this->rawHtml, $this->normalizer, $this->links);
     }
 }

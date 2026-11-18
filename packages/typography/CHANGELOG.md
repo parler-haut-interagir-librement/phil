@@ -6,9 +6,20 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.1.1-alpha: documentation only.
+The next version is 0.2.0-alpha: a text longer than 1 MiB, fixed before, is refused by default.
+
+### Added
+
+- `Exception\InputTooLarge`, thrown by `Typographer::fix()`, `fixDocument()`, `fixText()` and `Typographers::fixHtml()`
+  for a text longer than the ceiling, before it is parsed; `$bytes` and `$limit` say both lengths, and `check()`
+  refuses an input above a ceiling.
+- `maxBytes`, the ceiling of a text in bytes, on `Typographer`, `Typographer::for()` and `Typographers`, which gives it
+  to each typographer it builds; `Typographer::DEFAULT_MAX_BYTES`, 1 MiB.
+- The section [The ceiling of a text](doc/html.md#the-ceiling-of-a-text).
 
 ### Changed
+
+- Every entry point refuses a text longer than 1 MiB unless configured.
 
 - The description of `composer.json`, shown on Packagist, says what the package does.
 - The README, in English and in French, says what the package does, without the wording of its first drafts.

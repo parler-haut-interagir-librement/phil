@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\Markup\Reader\BBCode;
 
 use Override;
+use Phil\Markup\Exception\InputTooLarge;
 use Phil\Markup\Reader\Markdown\Context;
 use Phil\Markup\Reader\Markdown\InlineParser;
 use Phil\Markup\Reader\Markdown\Resolver;
@@ -21,20 +22,25 @@ use Phil\Ujo\Normalizer;
  * a table of contents, attributes, notes and boxes, columns, breaks, stat blocks and the other blocks of printed pages,
  * metadata and raw HTML, kept as `raw` blocks or escaped as text.
  *
- * Any text is a document, read in linear time: the reader never throws. The document is normalized by `phil/ujo`
- * before it is returned.
+ * Any text is a document, read in linear time: the reader never throws, except `InputTooLarge` for a source longer than
+ * its `maxBytes`, refused before it is parsed. The document is normalized by `phil/ujo` before it is returned.
  */
 final readonly class BBCodeReader implements MarkupReader
 {
+    /**
+     * @param int<1, max> $maxBytes the longest source read, in bytes; a longer one is refused
+     */
     public function __construct(
         private bool $rawHtml = false,
         private ?Normalizer $normalizer = null,
+        private int $maxBytes = self::DEFAULT_MAX_BYTES,
     ) {
     }
 
     #[Override]
     public function read(string $source): Reading
     {
+        InputTooLarge::check($source, $this->maxBytes);
         $parser = new Parser();
         $root = $parser->parse(str_replace(["\r\n", "\r", "\0"], ["\n", "\n", "\u{FFFD}"], $source));
         $context = new Context($this->rawHtml);
