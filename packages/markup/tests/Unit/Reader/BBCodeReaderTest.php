@@ -208,6 +208,20 @@ final class BBCodeReaderTest extends TestCase
         self::assertSame([], new BBCodeReader()->read('[metadata]a: [b[/metadata]')->metadata);
     }
 
+    /**
+     * A tag that is not one of pages gives no blocks of pages, for the builder to read it otherwise.
+     */
+    public function testATagThatIsNotOneOfPagesGivesNoBlocks(): void
+    {
+        $context = new Context(false);
+        $inline = new InlineParser($context);
+        $pages = new Pages(new Builder($context, $inline, []), $context, $inline);
+
+        self::assertNull($pages->block(new Node('column'), 0));
+        self::assertNull($pages->block(new Node('quote'), 0));
+        self::assertCount(1, $pages->block(new Node('columnbreak'), 0) ?? []);
+    }
+
     public function testTheNormalizerCanBeReplaced(): void
     {
         self::assertSame('raw', new BBCodeReader(true)->read('[html]<b>x</b>[/html]')->document->blocks[0]->type);
