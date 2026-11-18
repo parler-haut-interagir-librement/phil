@@ -55,7 +55,7 @@ final readonly class TenantIdempotencyScopeMiddleware implements MiddlewareInter
 
         $envelope = $envelope
             ->withoutAll(IdempotencyStamp::class)
-            ->with(self::scoped($idempotency, $tenant->tenant), new TenantScopedIdempotencyStamp($tenant->tenant));
+            ->with($this->scoped($idempotency, $tenant->tenant), new TenantScopedIdempotencyStamp($tenant->tenant));
 
         return $stack->next()->handle($envelope, $stack);
     }
@@ -63,7 +63,7 @@ final readonly class TenantIdempotencyScopeMiddleware implements MiddlewareInter
     /**
      * The stamp of the same key and fingerprint, in the scope of the tenant.
      */
-    private static function scoped(IdempotencyStamp $stamp, string $tenant): IdempotencyStamp
+    private function scoped(IdempotencyStamp $stamp, string $tenant): IdempotencyStamp
     {
         return new IdempotencyStamp(
             $stamp->key,
