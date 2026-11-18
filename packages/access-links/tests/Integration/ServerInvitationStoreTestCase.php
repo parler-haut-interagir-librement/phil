@@ -64,7 +64,7 @@ abstract class ServerInvitationStoreTestCase extends InvitationStoreTestCase
     #[Override]
     protected function store(): InvitationStore
     {
-        $connection = $this->connection ??= $this->connect();
+        $connection = $this->connection();
         $store = new DbalInvitationStore($connection);
 
         foreach ([DbalInvitationStore::LINK_TABLE, DbalInvitationStore::INVITATION_TABLE] as $table) {
@@ -75,6 +75,14 @@ abstract class ServerInvitationStoreTestCase extends InvitationStoreTestCase
         $manager->migrateSchema($store->configureSchema($manager->introspectSchema()));
 
         return $store;
+    }
+
+    /**
+     * The connection the store of the test uses.
+     */
+    protected function connection(): Connection
+    {
+        return $this->connection ??= $this->connect();
     }
 
     private function connect(): Connection

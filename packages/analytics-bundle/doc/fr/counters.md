@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8c2aed8943e1b878d6f5cdf84e1156439aaea5e286c487590ef7634a404d8ac3 -->
+<!-- phil-dev source-sha256=687a1c6d24f0eea370fab4435520cba7fbcfa96e60b65fffdc2d8fbd240392b0 -->
 # Compteurs
 
 **Un compteur est la seule chose que la conception du bundle stocke.** Un compteur est un nombre dont la clé est un
@@ -122,3 +122,38 @@ l'application peut nommer le sien :
 | `deleteSite(SiteId $site): void` | Supprime tous les compteurs d'un site, quand le site est retiré |
 
 Voir [extension-points.md](extension-points.md#counterstore) pour un autre adaptateur.
+
+### Les tables et leur collation
+
+`DbalCounterStore` et `DbalCounterRollup` gardent les compteurs dans deux tables, `phil_analytics_counter` (une ligne
+par site, jour UTC, métrique, dimension et valeur) et `phil_analytics_monthly_counter` (la même par mois). L'écouteur de
+schéma les ajoute au schéma que l'ORM génère pour la connexion, pour que `doctrine:migrations:diff` écrive la migration
+qui les crée ou les change.
+
+**La clé d'un compteur se compare octet par octet.** Le site, la métrique, la dimension et sa valeur distinguent un
+compteur d'un autre, et la métrique décide qui peut lire un compteur. Sur MySQL et MariaDB, les quatre colonnes sont en
+`utf8mb4` avec la collation `utf8mb4_bin` : la collation par défaut d'un serveur, `utf8mb4_0900_ai_ci` sur MySQL 8,
+ignore la casse et les accents, et lirait `OUTBOUND_LINK` comme `outbound_link`, `Acme` comme `acme` et `rosé` comme
+`rose`. Les collations par défaut de PostgreSQL sont déterministes et SQLite compare les octets : les deux distinguent
+déjà ces valeurs, et leurs colonnes gardent la valeur par défaut.
+
+Le côté lecture ne se fie jamais à la seule collation : `CounterReader` et `SharedView::mayShow()` n'acceptent une
+métrique que sous sa forme canonique, `MeasureNames::isMetric()`, et une dimension que sous un nom de
+`CounterKey::NAME_PATTERN` ([sharing-reports-alerts.md](sharing-reports-alerts.md#tableaux-de-bord-et-plusieurs-sites)).
+
+### Mise à niveau depuis 0.1
+
+Les tables d'une installation 0.1 sur MySQL ou MariaDB gardaient la collation de la connexion. Générez la migration et
+exécutez-la :
+
+```bash
+bin/console doctrine:migrations:diff
+bin/console doctrine:migrations:migrate
+```
+
+La migration change `site`, `metric`, `dimension` et `dimension_value` des deux tables en `CHARACTER SET utf8mb4 COLLATE
+utf8mb4_bin`. Le bundle a toujours écrit les métriques et les dimensions en minuscules : leurs lignes ne changent donc
+pas. Les compteurs qu'une collation insensible à la casse avait fusionnés — les pages vues des sites `Acme` et `acme`,
+par exemple, ou les termes de recherche `Rose` et `rose` — restent fusionnés sous la valeur écrite en premier : le passé
+ne peut plus être scindé, et les nouveaux comptes sont gardés distincts à partir de la migration. Sur PostgreSQL et
+SQLite, le diff est vide.

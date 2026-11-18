@@ -51,6 +51,7 @@ use Phil\CommerceBundle\Domain\Channel\Visibility;
 use Phil\CommerceBundle\Domain\Contract\OrderJournal;
 use Phil\CommerceBundle\Domain\Event\OrderPurchased;
 use Phil\CommerceBundle\Domain\Order\OrderState;
+use Phil\CommerceBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineChannelRepository;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineDeferredSaleRepository;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineDocumentNumbering;
@@ -469,6 +470,7 @@ final class PhilCommerceBundle extends AbstractBundle
         $services->set(DoctrineOrderChangeRepository::class)->args([service('doctrine.orm.entity_manager')]);
         $services->set(DoctrineOrderJournal::class)->args([service('doctrine.orm.entity_manager')]);
         $services->set(DoctrineRefundRepository::class)->args([service('doctrine.orm.entity_manager')]);
+        $services->set(BinaryKeysListener::class)->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
         // The ports by reflection: the bundle class wires adapters, and names no class of the domain.
         foreach ([DoctrineChannelRepository::class, DoctrineOrderRepository::class, DoctrinePaymentRepository::class, DoctrineReceiptRepository::class, DoctrineQuoteRepository::class, DoctrineDeferredSaleRepository::class, DoctrineWishListRepository::class, DoctrinePaymentLinkRepository::class, DoctrineOrderChangeRepository::class, DoctrineOrderJournal::class, DoctrineRefundRepository::class] as $adapter) {

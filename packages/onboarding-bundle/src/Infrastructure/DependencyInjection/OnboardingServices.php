@@ -15,6 +15,7 @@ use Phil\OnboardingBundle\Application\Onboarding;
 use Phil\OnboardingBundle\Domain\Attribute\AsOnboardingFlow;
 use Phil\OnboardingBundle\Domain\Attribute\AsOnboardingStep;
 use Phil\OnboardingBundle\Domain\Repository\ProgressRepository;
+use Phil\OnboardingBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\OnboardingBundle\Infrastructure\Doctrine\DoctrineProgressRepository;
 use Phil\OnboardingBundle\Infrastructure\Http\OnboardingController;
 use Phil\OnboardingBundle\Infrastructure\Http\OnboardingRequest;
@@ -159,6 +160,8 @@ final class OnboardingServices
         $container->register(DoctrineProgressRepository::class, DoctrineProgressRepository::class)
             ->setArguments([new Reference('doctrine.orm.'.$config['entity_manager'].'_entity_manager')]);
         $container->setAlias(ProgressRepository::class, DoctrineProgressRepository::class)->setPublic(true);
+        $container->register(BinaryKeysListener::class, BinaryKeysListener::class)
+            ->addTag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
     }
 
     private static function twig(ContainerBuilder $container, ?string $kitSubdirectory): void

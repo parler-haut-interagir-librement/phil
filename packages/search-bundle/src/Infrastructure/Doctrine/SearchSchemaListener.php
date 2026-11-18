@@ -24,6 +24,6 @@ final readonly class SearchSchemaListener
             return;
         }
 
-        $event->setSchema(SearchTable::configure($event->getSchema()));
+        $event->setSchema(SearchTable::configure($event->getSchema(), $this->connection->getDatabasePlatform()));
     }
 }

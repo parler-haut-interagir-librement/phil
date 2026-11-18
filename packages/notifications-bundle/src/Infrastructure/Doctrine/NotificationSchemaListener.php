@@ -26,6 +26,6 @@ final readonly class NotificationSchemaListener
             return;
         }
 
-        $event->setSchema(NotificationTables::configure($event->getSchema(), $this->preferences, $this->pushSubscriptions));
+        $event->setSchema(NotificationTables::configure($event->getSchema(), $this->preferences, $this->pushSubscriptions, $this->connection->getDatabasePlatform()));
     }
 }

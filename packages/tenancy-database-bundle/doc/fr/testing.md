@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=47e5841342865e471d70ec1b99cdb3f3a6f2921c882619d997d5715df62bd1d1 -->
+<!-- phil-dev source-sha256=7246d4d3e013f5edc90edf34621d4fb7543120d7046b176b5a2b858dfc807756 -->
 # Tests
 
 ## Les tests du paquet
@@ -62,6 +62,12 @@ source.
 tables de la base partagée : les tables créées avec le schéma, les emplacements lus dans la base partagée pendant qu'un
 locataire dédié est entré, un déplacement enregistré dans la table puis annulé, et des suspensions qui survivent à un
 cache vidé et à la fin de l'unité de travail, qui ferme la connexion du stockage.
+
+`MySqlPlacementKeysTest` et `PostgreSqlPlacementKeysTest` ne créent aucune base de données : dans la base de données
+d'essai de `PHIL_TEST_MYSQL_URL` et de `PHIL_TEST_POSTGRESQL_URL`, ils placent les locataires `Rose`, `rose`, `ROSE` et
+`rosé` dans quatre bases de données et relisent chaque placement. Une ligne se retrouve par le SHA-256 de la référence
+du locataire, pour que la collation par défaut de MySQL, qui ignore la casse et les accents, ne fasse jamais de deux
+locataires un seul.
 
 `testTwoTenantsTakeTurnsInOneWorker` sert des requêtes avec un seul noyau, comme le fait un *worker* FrankenPHP —
 chaque requête est traitée puis terminée, et les services sont réinitialisés quand la suivante commence — pour le

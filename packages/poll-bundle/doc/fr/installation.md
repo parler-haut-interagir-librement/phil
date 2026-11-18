@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8a273cbbd631c9a972179c4ba14401c424f7aab5c67cbc067c26f63cb26fd445 -->
+<!-- phil-dev source-sha256=266f3dc558875b62b664ee3cbb016ff5f13d9a16d7610a297f645c54b11f4570 -->
 # Installation
 
 ## Prérequis
@@ -60,6 +60,33 @@ Générez la migration comme pour les entités de l'application :
 bin/console doctrine:migrations:diff
 bin/console doctrine:migrations:migrate
 ```
+
+### Collation des clés
+
+**Les clés se comparent octet par octet**, comme PHP les compare. Un votant dépose un bulletin par sondage et est
+retrouvé par sa référence : un bulletin de `user:Ann` n'est jamais un bulletin de `user:ann`, de sorte qu'aucun n'est
+refusé comme ayant déjà voté ni ne voit le bulletin de l'autre ; et les sondages du sujet `post:Abc` ne sont jamais
+listés pour `post:abc`. `BinaryKeysListener` donne à ces champs la collation binaire quand l'ORM charge leurs
+métadonnées sur MySQL ou MariaDB ; le mappage lui-même reste le même sur toutes les plateformes.
+
+| Table | Colonnes en `utf8mb4_bin` sur MySQL et MariaDB |
+|---|---|
+| `phil_poll` | `id`, `subject` |
+| `phil_poll_vote` | `id`, `poll`, `voter`, `receipt` |
+| `phil_poll_participation` | `poll`, `voter` |
+
+Sur MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la
+plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ignore la casse et les accents.
+Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et SQLite compare
+les octets : leurs colonnes gardent la valeur par défaut.
+
+#### Mise à niveau depuis 0.3
+
+Les tables d'une installation 0.3 sur MySQL ou MariaDB gardaient la collation de la connexion.
+`doctrine:migrations:diff` écrit la migration qui amène les colonnes ci-dessus à `utf8mb4_bin` ; exécutez-la avec
+`doctrine:migrations:migrate`. Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne
+brise une clé. Les lignes qu'une collation insensible à la casse avait déjà fusionnées restent fusionnées ; les valeurs
+écrites à partir de la migration sont gardées distinctes. Sur PostgreSQL et SQLite, le diff est vide.
 
 ## Un premier sondage
 

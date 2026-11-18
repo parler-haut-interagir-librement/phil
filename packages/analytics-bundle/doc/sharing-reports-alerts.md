@@ -41,6 +41,12 @@ A range is at most 400 days, the 13 months of daily counters and a little more; 
 monthly totals of `CounterRollup::monthlyCounts()`. The exact count of each outbound link is refused here: it is read
 through `LinkCountReader`, by its author and the administrators only.
 
+**Only canonical names are read.** The metric must be one the bundle writes, in its exact form
+(`MeasureNames::isMetric()`: one of `MeasureNames::METRICS`, or `goals.<goal>` and `server_events.<event>`), and the
+dimension a name of `CounterKey::NAME_PATTERN`; anything else throws `InvalidValue` before any store is asked. A metric
+taken from a request as typed, `OUTBOUND_LINK` say, never reaches a store whose collation might read it as
+`outbound_link`.
+
 ## Share links and the public board
 
 ```php
@@ -62,7 +68,9 @@ $views->save($view->revoked($now));                        // closed for good
 anything that has the wrong shape before any lookup.
 
 **What a view shows** goes through `SmallNumberSuppression`, and `SharedView::mayShow()` refuses the metrics of
-`MeasureNames::PRIVATE_METRICS`: the exact count of each author's links, and what people search for.
+`MeasureNames::PRIVATE_METRICS`: the exact count of each author's links, and what people search for. It also refuses
+any metric that is not in its canonical form (`MeasureNames::isMetric()`), so that a controller handing it the metric
+of a request as typed cannot open `OUTBOUND_LINK` or `Search`.
 
 ## Reports
 

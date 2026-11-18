@@ -4,6 +4,24 @@ All notable changes to `phil/terms-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: members and policies compare byte by byte on MySQL and MariaDB. See [Upgrading from
+0.1](doc/installation.md#upgrading-from-01).
+
+### Changed
+
+- `TermsTables::configure()` takes the platform of the connection as its second argument, and the schema listener
+  gives it: on MySQL and MariaDB, `policy` of `phil_terms_version` and `member` and `policy` of
+  `phil_terms_acceptance` take the `utf8mb4` character set and the `utf8mb4_bin` collation. PostgreSQL and SQLite keep
+  their default, which compares bytes already.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, an acceptance by the member `Ann` let `ann`
+  through the acceptance gate without accepting the policy, and the export of a member's data held the acceptances of
+  a member whose identifier differed only by case.
+
 ## 0.1.0-alpha - 2026-11-15
 
 ### Added

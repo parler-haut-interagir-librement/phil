@@ -4,6 +4,23 @@ All notable changes to `phil/access-codes` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: batch identifiers and code hashes compare byte by byte on MySQL and MariaDB. See
+[Upgrading from 0.1](doc/storage.md#upgrading-from-01).
+
+### Changed
+
+- On MySQL and MariaDB, `DbalCodeStore::configureSchema()` gives `id` of the batches and `hash` and `batch_id` of the
+  codes the `utf8mb4` character set and the `utf8mb4_bin` collation, given the connection's platform. PostgreSQL and
+  SQLite keep their default, which compares bytes already.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, revoking the batch `Spring` also revoked the
+  unredeemed codes of the batch `spring`, its counters added up both, and adding `spring` after `Spring` failed on the
+  primary key.
+
 ## 0.1.0-alpha - 2026-11-13
 
 ### Added

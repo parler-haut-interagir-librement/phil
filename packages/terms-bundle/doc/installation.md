@@ -64,6 +64,29 @@ bin/console doctrine:migrations:migrate
 Without the ORM, create them in a migration of the application with `Infrastructure\Doctrine\TermsTables::configure()`,
 which adds both tables to a DBAL `Schema`.
 
+### Collation of the keys
+
+**Keys compare byte by byte**, as PHP compares them. The gate asks on every request whether a member accepted a
+policy's version: an acceptance by the member `Ann` never lets `ann` or `ánn` through, and the export of a member's
+data never holds another's acceptances.
+
+| Table | Columns in `utf8mb4_bin` on MySQL and MariaDB |
+|---|---|
+| `phil_terms_version` | `policy` |
+| `phil_terms_acceptance` | `member`, `policy` |
+
+On MySQL and MariaDB, these columns take the `utf8mb4` character set and the `utf8mb4_bin` collation, given the
+connection's platform: the default collation of MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's
+default collations are deterministic, equal only when the bytes are, and SQLite compares bytes: their columns keep the
+default.
+
+#### Upgrading from 0.1
+
+The tables of a 0.1 install on MySQL or MariaDB kept the connection's collation. `doctrine:migrations:diff` writes the
+migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. The change only
+makes values more distinct, so no existing row breaks a key. Rows that a case-insensitive collation had already merged
+stay merged; values written from the migration on are kept apart. On PostgreSQL and SQLite the diff is empty.
+
 ## Install the recipe
 
 The Flex recipe of the bundle registers it, writes `config/packages/phil_terms.yaml` with the policies `terms` and

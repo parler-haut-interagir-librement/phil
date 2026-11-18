@@ -134,6 +134,7 @@ are the types of `phil/tax` ([taxes.md](taxes.md)).
 | `Doctrine\DoctrineDocumentNumbering` | `final readonly class`, `DocumentNumbering` | A row per series, locked until the transaction ends | Implemented and tested |
 | `Doctrine\Entity\DocumentSequence` | `final class`, Doctrine entity | The last number of a series | Implemented and tested |
 | `Doctrine\DoctrineWishListRepository`, `DoctrinePaymentLinkRepository`, `DoctrineOrderChangeRepository`, `DoctrineOrderJournal`, `DoctrineRefundRepository` | `final readonly class` | The new records through the entity manager | Implemented and tested |
+| `Doctrine\BinaryKeysListener` | `final readonly class` | The payments' references and the wish lists' owners in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata` | Implemented and tested |
 | `Workflow\OrderWorkflowPass` | compiler pass | Adds the order workflow to `workflow.registry` | Implemented and tested |
 | `Http\PaymentWebhookController` | `final readonly class`, controller | The processors' notifications, answered 204, 400 or 404 | Implemented and tested |
 

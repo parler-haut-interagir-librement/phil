@@ -30,6 +30,7 @@
 | `Phil\PollBundle\Domain\Exception\PollBundleException` | interface | Every exception of the bundle |
 | `Phil\PollBundle\Domain\Exception\InvalidPollDefinition`, `AlreadyVoted` | `final class` | A poll that cannot be kept; a second ballot |
 | `Phil\PollBundle\Infrastructure\Doctrine\DoctrinePollRepository`, `DoctrineVoteRepository` | `final readonly class` | The Doctrine stores |
+| `Phil\PollBundle\Infrastructure\Doctrine\BinaryKeysListener` | `final readonly class` | The identifiers in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata` |
 | `Phil\PollBundle\Infrastructure\Memory\InMemoryPollRepository`, `InMemoryVoteRepository` | `final class` | The in-memory stores, emptied between requests |
 | `Phil\PollBundle\Infrastructure\Twig\PollTwig` | `final readonly class` | The functions `phil_poll_ballot()`, `phil_poll_results()` and `phil_poll_kit()` |
 | `Phil\PollBundle\Infrastructure\DependencyInjection\PollServices` | `final class` | The services, and the tag `phil_poll.counting_method` |

@@ -4,6 +4,34 @@ All notable changes to `phil/analytics-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: a metric is read only in its canonical form, and the keys of the counter tables
+compare byte by byte on MySQL and MariaDB. See [Upgrading from 0.1](doc/counters.md#upgrading-from-01).
+
+### Added
+
+- `MeasureNames::METRICS`, `MeasureNames::NAMED_METRICS` and `MeasureNames::isMetric()`: whether a metric is one the
+  bundle writes, in its exact form, one of `METRICS` or `goals.<goal>` and `server_events.<event>`.
+- `CounterTables::configure()` takes the platform of the connection as its second argument.
+
+### Changed
+
+- `CounterReader::read()` and `readAcross()` throw `InvalidValue` for a metric that `MeasureNames::isMetric()` refuses
+  and for a dimension that is not a name of `CounterKey::NAME_PATTERN`, before any store is asked.
+- `SharedView::mayShow()` refuses a metric that `MeasureNames::isMetric()` refuses.
+- On MySQL and MariaDB, the columns `site`, `metric`, `dimension` and `dimension_value` of `phil_analytics_counter`
+  and `phil_analytics_monthly_counter` are `utf8mb4` with the `utf8mb4_bin` collation; `doctrine:migrations:diff`
+  writes the migration of an existing install.
+
+### Security
+
+- A reader allowed to read a site but not the count of each outbound link could read it under a case variant of its
+  metric: `CounterReader` refused `outbound_link` by an exact comparison, then handed `OUTBOUND_LINK` to the store,
+  whose `WHERE metric = ?` matched the private rows under the default case-insensitive collation of MySQL and MariaDB.
+  The reader and `SharedView::mayShow()` now refuse any metric outside the canonical names, and the keys of the
+  counters compare byte by byte.
+
 ## 0.1.1-alpha - 2026-11-14
 
 ### Security

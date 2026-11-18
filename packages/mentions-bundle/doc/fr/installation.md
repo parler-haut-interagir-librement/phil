@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a7f753245facadcab717723f0ffc6b74aa525e9ae7507865950cd6c11a73b505 -->
+<!-- phil-dev source-sha256=5f7f4e80f0ae3e7429c6a5a63ad3ab7e77e9b29dd40a5fb78a3dcfcd6820ef0a -->
 # Installation
 
 ## Prérequis
@@ -50,6 +50,30 @@ bin/console doctrine:migrations:migrate
 
 Un sujet mentionne un membre une seule fois, puisque `(subject, member)` est unique ; `member` est indexé pour trouver
 les mentions d'un membre.
+
+### Collation des clés
+
+**Les clés se comparent octet par octet**, comme PHP les compare. Un membre est mentionné une fois par sujet et retrouve
+les mentions qui le concernent : celles de `member:Ann` ne sont jamais listées pour `member:ann`, ni refusées comme déjà
+enregistrées. `BinaryKeysListener` donne à ces champs la collation binaire quand l'ORM charge leurs métadonnées sur
+MySQL ou MariaDB ; le mappage lui-même reste le même sur toutes les plateformes.
+
+| Table | Colonnes en `utf8mb4_bin` sur MySQL et MariaDB |
+|---|---|
+| `phil_mention` | `id`, `subject`, `member`, `author` |
+
+Sur MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la
+plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ignore la casse et les accents.
+Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et SQLite compare
+les octets : leurs colonnes gardent la valeur par défaut.
+
+#### Mise à niveau depuis 0.1
+
+Les tables d'une installation 0.1 sur MySQL ou MariaDB gardaient la collation de la connexion.
+`doctrine:migrations:diff` écrit la migration qui amène les colonnes ci-dessus à `utf8mb4_bin` ; exécutez-la avec
+`doctrine:migrations:migrate`. Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne
+brise une clé. Les lignes qu'une collation insensible à la casse avait déjà fusionnées restent fusionnées ; les valeurs
+écrites à partir de la migration sont gardées distinctes. Sur PostgreSQL et SQLite, le diff est vide.
 
 ## L'annuaire
 

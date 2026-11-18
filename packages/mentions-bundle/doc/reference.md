@@ -35,6 +35,7 @@
 | Class | Role |
 |---|---|
 | `Infrastructure\Doctrine\DoctrineMentionRepository` | The table, through the entity manager, each change in one transaction |
+| `Infrastructure\Doctrine\BinaryKeysListener` | The identifiers in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata` |
 | `Infrastructure\Doctrine\MentionInsert` | The upsert of a row for each platform |
 | `Infrastructure\Memory\InMemoryMentionRepository` | Mentions in memory, emptied between requests (`kernel.reset`) |
 | `Infrastructure\Notifications\NotifyMentionedMember` | The notification of a new mention |

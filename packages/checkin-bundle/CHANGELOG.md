@@ -4,6 +4,23 @@ All notable changes to `phil/checkin-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the identifiers of the check-in table compare byte by byte on MySQL and MariaDB. See
+[Upgrading from 0.1](doc/installation.md#upgrading-from-01).
+
+### Changed
+
+- On MySQL and MariaDB, `DoctrineCheckInLedger::configureSchema()` gives `id`, `credential_id`, `checkpoint` and
+  `device` of `phil_checkin_scan` the `utf8mb4` character set and the `utf8mb4_bin` collation, given the connection's
+  platform. PostgreSQL and SQLite keep their default, which compares bytes already.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, the attendance of a credential was folded with
+  the rows of a credential that differed from it only by case: one holder's entries and last direction decided the
+  other's admission, and the unique key of the credential and sequence refused the other's first scan.
+
 ## 0.1.1-alpha - 2026-11-14
 
 ### Added

@@ -56,6 +56,25 @@ abstract class InvitationStoreTestCase extends TestCase
         self::assertTrue($store->add(self::invitation('d', 'member-2'), self::hash(4)));
     }
 
+    public function testIdentifiersThatDifferByCaseOrAccentAreDistinct(): void
+    {
+        $store = $this->store();
+
+        self::assertTrue($store->add(self::invitation('a', 'member-1'), self::hash(1)));
+        self::assertTrue($store->add(self::invitation('b', 'Member-1'), self::hash(2)));
+        self::assertTrue($store->add(self::invitation('c', 'MEMBER-1'), self::hash(3)));
+        self::assertTrue($store->add(self::invitation('d', 'membér-1'), self::hash(4)));
+        self::assertTrue($store->add(self::invitation('e', 'member-1', 'Poll-1'), self::hash(5)));
+        self::assertFalse($store->add(self::invitation('f', 'Member-1'), self::hash(6)));
+
+        self::assertSame('Member-1', $store->get(self::id('b'))?->recipient);
+        self::assertSame('Poll-1', $store->findByToken([self::hash(5)])?->campaign);
+        self::assertSame(4, $store->counts('poll-1')->invited);
+        self::assertSame(1, $store->counts('Poll-1')->invited);
+        self::assertSame(0, $store->counts('POLL-1')->invited);
+        self::assertNull($store->get(strtoupper(self::id('a'))));
+    }
+
     public function testLinksAreAddedUpToTheMost(): void
     {
         $store = $this->store();

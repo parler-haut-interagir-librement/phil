@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fe87b8645b6237db5c153daaf2a3247e20aab6959b2a12e3727a132e2f851480 -->
+<!-- phil-dev source-sha256=63c9dc47864043685e376d1f1db30656ead962b62f622ceae3f24baa2207c0e1 -->
 # Référence
 
 | Classe ou fichier | Nature | Rôle |
@@ -26,6 +26,7 @@
 | `Phil\OnboardingBundle\Domain\Exception\OnboardingException` | interface | Toutes les exceptions du bundle |
 | `Phil\OnboardingBundle\Domain\Exception\InvalidFlow`, `InvalidProgress`, `InvalidAnswer`, `ProgressNotSaved` | `final class` | Une déclaration refusée ; un identifiant d'utilisateur refusé ; une réponse refusée ; une progression gardée en premier par une autre requête |
 | `Phil\OnboardingBundle\Infrastructure\Doctrine\DoctrineProgressRepository` | `final readonly class` | La progression avec Doctrine |
+| `Phil\OnboardingBundle\Infrastructure\Doctrine\BinaryKeysListener` | `final readonly class` | Les identifiants en `utf8mb4_bin` sur MySQL et MariaDB, à l'événement `loadClassMetadata` de l'ORM |
 | `Phil\OnboardingBundle\Infrastructure\Memory\InMemoryProgressRepository` | `final class` | La progression en mémoire |
 | `Phil\OnboardingBundle\Infrastructure\Http\OnboardingController`, `OnboardingRequest`, `Routes` | `final class` | Les points de terminaison, leur vérification CSRF et leurs noms |
 | `Phil\OnboardingBundle\Infrastructure\Privacy\OnboardingPrivacy` | `final readonly class` | La progression d'un utilisateur dans l'exportation et l'effacement de `phil/privacy-bundle` |

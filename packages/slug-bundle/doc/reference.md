@@ -9,7 +9,7 @@
 | `Phil\SlugBundle\Domain\SlugHistoryKeys` | `final class` | The rules of a scope and a subject: `scope()`, `subject()` |
 | `Phil\SlugBundle\Domain\Exception\InvalidSlugHistory` | exception | A scope or a subject the history cannot hold; an `InvalidArgumentException` |
 | `Phil\SlugBundle\Infrastructure\Doctrine\DoctrineSlugHistory` | `final readonly class` | The history on a DBAL connection |
-| `Phil\SlugBundle\Infrastructure\Doctrine\SlugHistoryTable` | `final class` | The table `phil_slug_history`: `configure(Schema)` |
+| `Phil\SlugBundle\Infrastructure\Doctrine\SlugHistoryTable` | `final class` | The table `phil_slug_history`: `configure(Schema, ?AbstractPlatform)` |
 | `Phil\SlugBundle\Infrastructure\Doctrine\SlugHistorySchemaListener` | listener | Adds the table to the schema the ORM generates |
 
 ## `SluggerServices`

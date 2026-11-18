@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8791fa674557ec682c7ef0efc633229efe5089b8274181687170be4e1081cf99 -->
+<!-- phil-dev source-sha256=83e75c01265b6eebeece094ddd48c340b42f4069132e40387786378141085a8c -->
 # Référence de l'API
 
 Chaque type public du bundle, par couche, avec son rôle et son état. Les espaces de noms sont relatifs à
@@ -54,7 +54,7 @@ Tous implémentés et testés ([measures.md](measures.md)).
 |---|---|
 | `MeasurePlan` | Ce qu'un site mesure au-delà des pages vues, ses événements du serveur compris ; `of()` ; `MAX_SERVER_EVENT_LENGTH` = 50 |
 | `MeasureEvent` | La liste fermée des événements ; `isClick()` |
-| `MeasureNames` | Les métriques qu'écrit le bundle (dont `SERVER_EVENTS`), `OPEN_DIMENSIONS`, `PRIVATE_METRICS` |
+| `MeasureNames` | Les métriques qu'écrit le bundle (dont `SERVER_EVENTS`), `METRICS`, `NAMED_METRICS`, `OPEN_DIMENSIONS`, `PRIVATE_METRICS` ; `isMetric()`, si une métrique est une de celles qu'écrit le bundle, sous sa forme canonique |
 | `ClickTracking` | `Off`, `Aggregate` ; `counts()` |
 | `ClosedList` | Des valeurs déclarées ; `of()`, `empty()`, `downloads()`, `has()`, `toArray()` |
 | `DeclaredDimension` | Une dimension du site et ses valeurs ; `of()` |

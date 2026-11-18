@@ -56,3 +56,27 @@ unredeemed codes in one transaction. A table name is checked before any SQL: up 
 
 `redeemed_by` holds the redeemer's stable identifier, never an address. Deleting a member's data is deleting or
 blanking their rows by that identifier.
+
+### Collation of the keys
+
+**Keys compare byte by byte**, as PHP compares them. A batch identifier may mix cases: `Spring` and `spring` are two
+batches, and revoking or counting one never touches the codes of the other. The hashes are lowercase hexadecimal,
+which compares the same under any collation; they take the binary collation all the same, so that the key of the table
+never depends on the server.
+
+| Table | Columns in `utf8mb4_bin` on MySQL and MariaDB |
+|---|---|
+| `phil_access_code_batch` | `id` |
+| `phil_access_code` | `hash`, `batch_id` |
+
+On MySQL and MariaDB, these columns take the `utf8mb4` character set and the `utf8mb4_bin` collation, given the
+connection's platform: the default collation of MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's
+default collations are deterministic, equal only when the bytes are, and SQLite compares bytes: their columns keep the
+default.
+
+#### Upgrading from 0.1
+
+The tables of a 0.1 install on MySQL or MariaDB kept the connection's collation. `doctrine:migrations:diff` writes the
+migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. The change only
+makes values more distinct, so no existing row breaks a key. Rows that a case-insensitive collation had already merged
+stay merged; values written from the migration on are kept apart. On PostgreSQL and SQLite the diff is empty.

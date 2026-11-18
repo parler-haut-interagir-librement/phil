@@ -4,6 +4,24 @@ All notable changes to `phil/slug-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the scope, the former slug and the subject of the history compare byte by byte on
+MySQL and MariaDB. See [Upgrading from 0.1](doc/history.md#upgrading-from-01).
+
+### Changed
+
+- `SlugHistoryTable::configure()` takes the platform of the connection as its second argument, and the schema listener
+  gives it: on MySQL and MariaDB, `scope`, `former_slug` and `subject` of `phil_slug_history` take the `utf8mb4`
+  character set and the `utf8mb4_bin` collation. PostgreSQL and SQLite keep their default, which compares bytes
+  already.
+
+### Fixed
+
+- Under the default case-insensitive collation of MySQL and MariaDB, recording a change of the subject `Post-7`
+  rewrote the current slug of `post-7` and `forget()` removed its history, and a former slug of the scope `Blog`
+  redirected to the subject of `blog`.
+
 ## 0.1.1-alpha - 2026-11-17
 
 The next version is 0.1.1-alpha: documentation only.

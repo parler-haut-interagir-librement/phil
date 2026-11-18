@@ -4,6 +4,25 @@ All notable changes to `phil/notifications-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: recipients, identifiers and keys of the three tables compare byte by byte on MySQL
+and MariaDB. See [Upgrading from 0.1](doc/installation.md#upgrading-from-01).
+
+### Changed
+
+- `NotificationTables::configure()` takes the platform of the connection as its fourth argument, and the schema
+  listener gives it: on MySQL and MariaDB, `id`, `recipient`, `type`, `actor`, `subject_type`, `subject_id` and
+  `group_key` of `phil_notifications`, `recipient` of `phil_notification_preferences` and `id` and `recipient` of
+  `phil_notification_push_subscriptions` take the `utf8mb4` character set and the `utf8mb4_bin` collation. PostgreSQL
+  and SQLite keep their default, which compares bytes already.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, the recipient `member:ann` read, marked as read
+  and deleted the notifications of `member:Ann`, shared their preferences and was sent to their push subscriptions:
+  the store selects by recipient in SQL.
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

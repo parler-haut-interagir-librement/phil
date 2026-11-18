@@ -33,6 +33,27 @@ use PHPUnit\Framework\Attributes\Group;
 #[Group('mysql')]
 final class MySqlStoresTest extends ServerStoresTestCase
 {
+    public function testEveryIdentifierIsBinaryOnTheServer(): void
+    {
+        $connection = $this->connection();
+        $declared = [];
+
+        foreach ($this->tables->definitions($connection->getDatabasePlatform()) as $table) {
+            foreach ($table->getColumns() as $column) {
+                if ('utf8mb4_bin' === $column->getCollation()) {
+                    $declared[] = $table->getObjectName()->toString().'.'.$column->getObjectName()->toString();
+                }
+            }
+        }
+
+        sort($declared);
+
+        self::assertNotSame([], $declared);
+        self::assertSame($declared, $connection->fetchFirstColumn(
+            "SELECT CONCAT(TABLE_NAME, '.', COLUMN_NAME) AS name FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME LIKE 'phil\\_lti\\_test\\_%' AND COLLATION_NAME = 'utf8mb4_bin' ORDER BY name",
+        ));
+    }
+
     #[Override]
     protected function variables(): array
     {

@@ -5,7 +5,12 @@ declare(strict_types=1);
 namespace Phil\AnalyticsBundle\Tests\Unit\Infrastructure\Doctrine;
 
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Platforms\MariaDBPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\Schema;
 use Phil\AnalyticsBundle\Domain\ValueObject\CounterKey;
 use Phil\AnalyticsBundle\Domain\ValueObject\SiteId;
 use Phil\AnalyticsBundle\Domain\ValueObject\SmallNumberThreshold;
@@ -65,6 +70,35 @@ final class DbalCountersTest extends TestCase
         }
     }
 
+    public function testTheKeysCompareByteByByteOnMySqlAndMariaDb(): void
+    {
+        foreach ([new MySQLPlatform(), new MariaDBPlatform()] as $platform) {
+            foreach ([CounterTables::DAILY => 'day', CounterTables::MONTHLY => 'month'] as $name => $period) {
+                self::assertSame([
+                    'site' => 'utf8mb4 utf8mb4_bin',
+                    $period => ' ',
+                    'metric' => 'utf8mb4 utf8mb4_bin',
+                    'dimension' => 'utf8mb4 utf8mb4_bin',
+                    'dimension_value' => 'utf8mb4 utf8mb4_bin',
+                    'n' => ' ',
+                ], $this->collations(CounterTables::configure(Schema::editor()->create(), $platform), $name), $name);
+            }
+        }
+
+        self::assertStringContainsString('metric VARCHAR(64) CHARACTER SET utf8mb4 NOT NULL COLLATE `utf8mb4_bin`', implode(';', CounterTables::configure(Schema::editor()->create(), new MySQLPlatform())->toSql(new MySQLPlatform())));
+    }
+
+    public function testTheKeysKeepTheDefaultCollationWhereItComparesBytesAlready(): void
+    {
+        foreach ([new PostgreSQLPlatform(), new SQLitePlatform(), null] as $platform) {
+            self::assertSame(
+                ['site' => ' ', 'day' => ' ', 'metric' => ' ', 'dimension' => ' ', 'dimension_value' => ' ', 'n' => ' '],
+                $this->collations(CounterTables::configure(Schema::editor()->create(), $platform), CounterTables::DAILY),
+                null === $platform ? 'no platform' : $platform::class,
+            );
+        }
+    }
+
     public function testAnExistingDailyTableStillGetsItsMonthlyTable(): void
     {
         $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
@@ -74,6 +108,20 @@ final class DbalCountersTest extends TestCase
 
         self::assertTrue($schema->hasTable(CounterTables::MONTHLY));
         self::assertCount(1, $schema->getTable(CounterTables::DAILY)->getColumns());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function collations(Schema $schema, string $table): array
+    {
+        $collations = [];
+
+        foreach ($schema->getTable($table)->getColumns() as $column) {
+            $collations[$column->getObjectName()->toString()] = $column->getCharset().' '.$column->getCollation();
+        }
+
+        return $collations;
     }
 
     public function testTheCountsReadAreIntegersByValue(): void

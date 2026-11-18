@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=231930885c24da2c747698aa3516a62de585cb1d10dc74bec00548d8b1546f66 -->
+<!-- phil-dev source-sha256=3ee6cb653c1497be5f538d321b363bb1510d843e6f5b38f208cff0249f35eb4d -->
 # Référence
 
 ## Domaine
@@ -36,6 +36,7 @@
 | Classe | Rôle |
 |---|---|
 | `Infrastructure\Doctrine\DoctrineThreadRepository`, `DoctrineCommentRepository` | Les stockages sur le gestionnaire d'entités |
+| `Infrastructure\Doctrine\BinaryKeysListener` | Les identifiants en `utf8mb4_bin` sur MySQL et MariaDB, à l'événement `loadClassMetadata` de l'ORM |
 | `Infrastructure\Memory\InMemoryThreadRepository`, `InMemoryCommentRepository` | Les stockages en mémoire, pour les tests, vidés entre deux requêtes (`kernel.reset`) |
 | `Infrastructure\Http\CommentsController` | Les points de terminaison |
 | `Infrastructure\Http\CommentsRequest` | Si une requête vient du contrôleur de ce site : son en-tête, le `Sec-Fetch-Site` du navigateur et le jeton CSRF sans état `phil_comments` sauf pour une méthode sûre ; le nom du témoin du jeton |

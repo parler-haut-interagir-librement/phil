@@ -49,6 +49,29 @@ bin/console doctrine:migrations:migrate
 
 A subject mentions a member once, `(subject, member)` being unique; `member` is indexed for the mentions of a member.
 
+### Collation of the keys
+
+**Keys compare byte by byte**, as PHP compares them. A member is mentioned once per subject and finds the mentions of
+their own: those of `member:Ann` are never listed for `member:ann`, nor refused as already recorded.
+`BinaryKeysListener` gives these fields the binary collation when the ORM loads their metadata on MySQL or MariaDB;
+the mapping itself stays the same on every platform.
+
+| Table | Columns in `utf8mb4_bin` on MySQL and MariaDB |
+|---|---|
+| `phil_mention` | `id`, `subject`, `member`, `author` |
+
+On MySQL and MariaDB, these columns take the `utf8mb4` character set and the `utf8mb4_bin` collation, given the
+connection's platform: the default collation of MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's
+default collations are deterministic, equal only when the bytes are, and SQLite compares bytes: their columns keep the
+default.
+
+#### Upgrading from 0.1
+
+The tables of a 0.1 install on MySQL or MariaDB kept the connection's collation. `doctrine:migrations:diff` writes the
+migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. The change only
+makes values more distinct, so no existing row breaks a key. Rows that a case-insensitive collation had already merged
+stay merged; values written from the migration on are kept apart. On PostgreSQL and SQLite the diff is empty.
+
 ## The directory
 
 The application writes one service, a `MemberDirectory`, and names it:

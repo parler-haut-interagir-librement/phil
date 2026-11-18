@@ -29,6 +29,32 @@ The bundle adds its five tables to the schema the ORM generates for its connecti
 php bin/console doctrine:migrations:diff
 ```
 
+### Collation of the keys
+
+**Keys compare byte by byte**, as PHP compares them. Members and targets decide what a query reads: the notes on the
+member `Ann` are never read for `ann`, the statements of reasons addressed to `Ann` never listed for `ann`, and a
+report of the target `post:Abc` never closed with the reports of `post:abc`.
+
+| Table | Columns in `utf8mb4_bin` on MySQL and MariaDB |
+|---|---|
+| `phil_moderation_report` | `id`, `target_type`, `target_id`, `reporter`, `decision_id` |
+| `phil_moderation_decision` | `id`, `target_type`, `target_id`, `moderator`, `author` |
+| `phil_moderation_note` | `id`, `member`, `author` |
+| `phil_moderation_sandbox` | `member` |
+| `phil_moderation_statement` | `id`, `decision_id`, `recipient`, `target_type`, `target_id` |
+
+On MySQL and MariaDB, these columns take the `utf8mb4` character set and the `utf8mb4_bin` collation, given the
+connection's platform: the default collation of MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's
+default collations are deterministic, equal only when the bytes are, and SQLite compares bytes: their columns keep the
+default.
+
+#### Upgrading from 0.1
+
+The tables of a 0.1 install on MySQL or MariaDB kept the connection's collation. `doctrine:migrations:diff` writes the
+migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. The change only
+makes values more distinct, so no existing row breaks a key. Rows that a case-insensitive collation had already merged
+stay merged; values written from the migration on are kept apart. On PostgreSQL and SQLite the diff is empty.
+
 ## The routes
 
 ```yaml

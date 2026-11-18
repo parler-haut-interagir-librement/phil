@@ -126,6 +126,12 @@ return [
                 ],
             ],
             // The column read gives strings already: the mapping only checks and types them.
+            // The column of a primary key is not null whatever it is declared: the table makes it so.
+            'FalseValue' => [
+                'ignoreSourceCodeByRegex' => [
+                    'return self::string\\(\\$name, \\$length, false, \\$binary\\);',
+                ],
+            ],
             'UnwrapArrayMap' => [
                 'ignoreSourceCodeByRegex' => [
                     'return array_map\\(Sql::string\\(\\.\\.\\.\\), \\$query->executeQuery\\(\\)->fetchFirstColumn\\(\\)\\);',

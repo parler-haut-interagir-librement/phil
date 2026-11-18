@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phil\NewsletterBundle\Infrastructure\Dbal;
 
+use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
@@ -15,6 +17,13 @@ use Doctrine\DBAL\Types\Types;
 /**
  * The tables of the newsletter, added to a schema that lacks them: the one a migration builds, or the one the ORM
  * generates, through `NewsletterSchemaListener`. Instants are Unix timestamps.
+ *
+ * **Keys compare byte by byte.** The identifiers, sites, list and template keys, address keys and hashes take, given
+ * the platform, the `utf8mb4` character set and the `utf8mb4_bin` collation on MySQL and MariaDB, whose default
+ * collations fold case and accents. An address is case-insensitive by its key, `Subscriber::keyOf()`, which lowercases
+ * it before it is stored or looked up; the binary collation keeps `muller@example.com` and `müller@example.com` two
+ * subscribers, and the site `Acme` apart from `acme`. PostgreSQL's default collations are deterministic and SQLite
+ * compares bytes: their columns keep the default.
  */
 final class NewsletterSchema
 {
@@ -40,13 +49,22 @@ final class NewsletterSchema
 
     public const string SUPPRESSIONS = 'phil_newsletter_suppression';
 
+    /**
+     * The columns that compare byte by byte on MySQL and MariaDB.
+     */
+    public const array BINARY_COLUMNS = ['id', 'site', 'list_key', 'email_key', 'external_id', 'subscriber_id', 'list_id', 'campaign_id', 'url_hash', 'template_key', 'email_hash'];
+
     public const array TABLES = [self::LISTS, self::SUBSCRIBERS, self::MEMBERSHIPS, self::CAMPAIGNS, self::LINKS, self::DELIVERIES, self::TEMPLATES, self::CLICKS, self::RECIPIENT_CLICKS, self::REASONS, self::SUPPRESSIONS];
 
-    public static function configure(Schema $schema): Schema
+    /**
+     * Adds the tables the schema lacks. Without a platform, the columns keep the connection's default collation: the
+     * schema listener always gives the platform of its connection.
+     */
+    public static function configure(Schema $schema, ?AbstractPlatform $platform = null): Schema
     {
         $editor = $schema->edit();
 
-        foreach (self::tables() as $table) {
+        foreach (self::tables($platform instanceof AbstractMySQLPlatform) as $table) {
             if (!$schema->hasTable($table->getObjectName()->toString())) {
                 $editor->addTable($table);
             }
@@ -58,47 +76,47 @@ final class NewsletterSchema
     /**
      * @return list<Table>
      */
-    private static function tables(): array
+    private static function tables(bool $binary): array
     {
         return [
             self::table(self::LISTS, [
-                self::string('id', 36), self::string('site', 64), self::string('list_key', 64), self::string('name', 120),
-                self::column('double_opt_in', Types::SMALLINT), self::string('sender_profile', 64), self::column('created_at', Types::BIGINT),
+                self::key('id', 36, $binary), self::string('site', 64, false, $binary), self::string('list_key', 64, false, $binary), self::string('name', 120, false, $binary),
+                self::column('double_opt_in', Types::SMALLINT), self::string('sender_profile', 64, false, $binary), self::column('created_at', Types::BIGINT),
             ], ['id'], unique: [['site', 'list_key']]),
             self::table(self::SUBSCRIBERS, [
-                self::string('id', 36), self::string('site', 64), self::string('email', 254), self::string('email_key', 254),
-                self::string('external_id', 191, true), self::string('status', 16), self::column('created_at', Types::BIGINT),
+                self::key('id', 36, $binary), self::string('site', 64, false, $binary), self::string('email', 254, false, $binary), self::string('email_key', 254, false, $binary),
+                self::string('external_id', 191, true, $binary), self::string('status', 16, false, $binary), self::column('created_at', Types::BIGINT),
                 self::column('confirmed_at', Types::BIGINT, true), self::column('paused_until', Types::BIGINT, true), self::column('soft_bounces', Types::INTEGER),
             ], ['id'], [['external_id']], [['site', 'email_key']]),
             self::table(self::MEMBERSHIPS, [
-                self::string('subscriber_id', 36), self::string('list_id', 36), self::string('status', 16), self::column('changed_at', Types::BIGINT),
+                self::key('subscriber_id', 36, $binary), self::key('list_id', 36, $binary), self::string('status', 16, false, $binary), self::column('changed_at', Types::BIGINT),
             ], ['subscriber_id', 'list_id'], [['list_id', 'status', 'subscriber_id']]),
             self::table(self::CAMPAIGNS, [
-                self::string('id', 36), self::string('site', 64), self::string('list_id', 36), self::string('subject', 200), self::column('body', Types::TEXT),
-                self::string('preheader', 255), self::string('segment', 64, true), self::string('template', 64, true), self::string('sender_profile', 64, true),
-                self::string('click_tracking', 16), self::string('status', 16), self::column('scheduled_at', Types::BIGINT, true), self::column('sent_at', Types::BIGINT, true),
+                self::key('id', 36, $binary), self::string('site', 64, false, $binary), self::string('list_id', 36, false, $binary), self::string('subject', 200, false, $binary), self::column('body', Types::TEXT),
+                self::string('preheader', 255, false, $binary), self::string('segment', 64, true, $binary), self::string('template', 64, true, $binary), self::string('sender_profile', 64, true, $binary),
+                self::string('click_tracking', 16, false, $binary), self::string('status', 16, false, $binary), self::column('scheduled_at', Types::BIGINT, true), self::column('sent_at', Types::BIGINT, true),
             ], ['id'], [['status', 'scheduled_at']]),
             self::table(self::LINKS, [
-                self::string('campaign_id', 36), self::column('link_index', Types::INTEGER), self::string('url_hash', 64), self::column('url', Types::TEXT),
+                self::key('campaign_id', 36, $binary), self::column('link_index', Types::INTEGER), self::string('url_hash', 64, false, $binary), self::column('url', Types::TEXT),
             ], ['campaign_id', 'link_index'], unique: [['campaign_id', 'url_hash']]),
             self::table(self::DELIVERIES, [
-                self::string('id', 32), self::string('subscriber_id', 36), self::string('campaign_id', 36, true), self::string('template', 64, true),
-                self::string('status', 16), self::column('attempts', Types::INTEGER), self::column('created_at', Types::BIGINT), self::column('sent_at', Types::BIGINT, true),
+                self::key('id', 32, $binary), self::string('subscriber_id', 36, false, $binary), self::string('campaign_id', 36, true, $binary), self::string('template', 64, true, $binary),
+                self::string('status', 16, false, $binary), self::column('attempts', Types::INTEGER), self::column('created_at', Types::BIGINT), self::column('sent_at', Types::BIGINT, true),
             ], ['id'], [['campaign_id', 'status'], ['subscriber_id']]),
             self::table(self::TEMPLATES, [
-                self::string('site', 64), self::string('template_key', 64), self::string('subject', 200), self::column('source', Types::TEXT), self::column('updated_at', Types::BIGINT),
+                self::key('site', 64, $binary), self::key('template_key', 64, $binary), self::string('subject', 200, false, $binary), self::column('source', Types::TEXT), self::column('updated_at', Types::BIGINT),
             ], ['site', 'template_key']),
             self::table(self::CLICKS, [
-                self::string('campaign_id', 36), self::column('link_index', Types::INTEGER), self::column('clicks', Types::BIGINT),
+                self::key('campaign_id', 36, $binary), self::column('link_index', Types::INTEGER), self::column('clicks', Types::BIGINT),
             ], ['campaign_id', 'link_index']),
             self::table(self::RECIPIENT_CLICKS, [
-                self::string('subscriber_id', 36), self::string('campaign_id', 36), self::column('link_index', Types::INTEGER), self::column('clicked_at', Types::BIGINT),
+                self::key('subscriber_id', 36, $binary), self::key('campaign_id', 36, $binary), self::column('link_index', Types::INTEGER), self::column('clicked_at', Types::BIGINT),
             ], ['subscriber_id', 'campaign_id', 'link_index', 'clicked_at']),
             self::table(self::REASONS, [
-                self::string('site', 64), self::string('list_id', 36), self::string('reason', 32), self::column('day', Types::BIGINT), self::column('total', Types::BIGINT),
+                self::key('site', 64, $binary), self::key('list_id', 36, $binary), self::key('reason', 32, $binary), self::column('day', Types::BIGINT), self::column('total', Types::BIGINT),
             ], ['site', 'list_id', 'reason', 'day']),
             self::table(self::SUPPRESSIONS, [
-                self::string('site', 64), self::string('email_hash', 64), self::string('reason', 16), self::column('created_at', Types::BIGINT),
+                self::key('site', 64, $binary), self::key('email_hash', 64, $binary), self::string('reason', 16, false, $binary), self::column('created_at', Types::BIGINT),
             ], ['site', 'email_hash']),
         ];
     }
@@ -129,11 +147,27 @@ final class NewsletterSchema
     }
 
     /**
+     * A column of a primary key, which no platform lets hold a null.
+     *
      * @param non-empty-string $name
      */
-    private static function string(string $name, int $length, bool $nullable = false): Column
+    private static function key(string $name, int $length, bool $binary): Column
     {
-        return Column::editor()->setUnquotedName($name)->setTypeName(Types::STRING)->setLength($length)->setNotNull(!$nullable)->create();
+        return self::string($name, $length, false, $binary);
+    }
+
+    /**
+     * @param non-empty-string $name
+     */
+    private static function string(string $name, int $length, bool $nullable, bool $binary): Column
+    {
+        $column = Column::editor()->setUnquotedName($name)->setTypeName(Types::STRING)->setLength($length)->setNotNull(!$nullable);
+
+        if ($binary && \in_array($name, self::BINARY_COLUMNS, true)) {
+            $column->setCharset('utf8mb4')->setCollation('utf8mb4_bin');
+        }
+
+        return $column->create();
     }
 
     /**

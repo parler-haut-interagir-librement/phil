@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e18d11d501a0906425732b8bef244d383a24eac262e451d9f224475ea87522f5 -->
+<!-- phil-dev source-sha256=ee0d2a733030d8f314093161791ef0d149989e0ee851b4f88177797dfe73a9bc -->
 # Points d'extension
 
 Quinze ports. Les modules et l'application se branchent aux neuf que l'autoconfiguration étiquette, que lisent

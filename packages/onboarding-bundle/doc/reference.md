@@ -25,6 +25,7 @@
 | `Phil\OnboardingBundle\Domain\Exception\OnboardingException` | interface | Every exception of the bundle |
 | `Phil\OnboardingBundle\Domain\Exception\InvalidFlow`, `InvalidProgress`, `InvalidAnswer`, `ProgressNotSaved` | `final class` | A declaration refused; a user identifier refused; an answer refused; a progress kept first by another request |
 | `Phil\OnboardingBundle\Infrastructure\Doctrine\DoctrineProgressRepository` | `final readonly class` | The progress with Doctrine |
+| `Phil\OnboardingBundle\Infrastructure\Doctrine\BinaryKeysListener` | `final readonly class` | The identifiers in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata` |
 | `Phil\OnboardingBundle\Infrastructure\Memory\InMemoryProgressRepository` | `final class` | The progress in memory |
 | `Phil\OnboardingBundle\Infrastructure\Http\OnboardingController`, `OnboardingRequest`, `Routes` | `final class` | The endpoints, their CSRF check and their names |
 | `Phil\OnboardingBundle\Infrastructure\Privacy\OnboardingPrivacy` | `final readonly class` | A user's progress in the export and the erasure of `phil/privacy-bundle` |

@@ -4,6 +4,23 @@ All notable changes to `phil/access-links` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: campaigns, recipients and the other identifiers of the DBAL store compare byte by
+byte on MySQL and MariaDB. See [Upgrading from 0.1](doc/storage.md#upgrading-from-01).
+
+### Changed
+
+- On MySQL and MariaDB, `DbalInvitationStore::configureSchema()` gives `id`, `campaign` and `recipient` of the
+  invitations and `hash` and `invitation_id` of the links the `utf8mb4` character set and the `utf8mb4_bin`
+  collation, given the connection's platform. PostgreSQL and SQLite keep their default, which compares bytes already.
+
+### Fixed
+
+- A recipient was refused as already invited when a recipient of the same campaign differed from it only by case or
+  accents, `Member-7` after `member-7`, under the default case-insensitive collation of MySQL and MariaDB; and
+  `counts()` added up campaigns that differed only by case.
+
 ## 0.1.0-alpha - 2026-11-13
 
 ### Added

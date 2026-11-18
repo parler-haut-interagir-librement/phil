@@ -4,6 +4,28 @@ All notable changes to `phil/newsletter-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: identifiers, sites, keys, address keys and hashes compare byte by byte on MySQL and
+MariaDB. See [Upgrading from 0.1](doc/storage.md#upgrading-from-01).
+
+### Added
+
+- `NewsletterSchema::BINARY_COLUMNS`, the columns that compare byte by byte on MySQL and MariaDB.
+
+### Changed
+
+- `NewsletterSchema::configure()` takes the platform of the connection as its second argument, and the schema listener
+  gives it: on MySQL and MariaDB, the columns of `NewsletterSchema::BINARY_COLUMNS` — identifiers, sites, list and
+  template keys, `email_key`, `external_id` and the hashes — take the `utf8mb4` character set and the `utf8mb4_bin`
+  collation. PostgreSQL and SQLite keep their default, which compares bytes already.
+
+### Fixed
+
+- Under the default collation of MySQL and MariaDB, which folds accents, the address `müller@example.com` was refused
+  as already subscribed once `muller@example.com` was, and read as that subscriber; the lists, templates and
+  subscribers of the site `Acme` were those of `acme`.
+
 ## 0.1.0-alpha - 2026-11-15
 
 ### Added

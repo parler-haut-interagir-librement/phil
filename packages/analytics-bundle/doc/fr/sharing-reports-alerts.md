@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=baa825a094c49921f246f57da4a19b4a34afb88a30b00cd4658b4a0ceeb062d5 -->
+<!-- phil-dev source-sha256=49286c333475645f287acccc2f1dbd7901a0dcff154d2cfb39d79a2d98881611 -->
 # Tableaux de bord, vues partagées, rapports et alertes
 
 Les mesures d'un site, lues par ceux qui le font tourner, ouvertes à des personnes sans compte, envoyées selon un
@@ -43,6 +43,12 @@ Une plage compte au plus 400 jours, les 13 mois de compteurs quotidiens et un pe
 dans les cumuls mensuels de `CounterRollup::monthlyCounts()`. Le compte exact de chaque lien sortant est refusé ici :
 il se lit par `LinkCountReader`, par son auteur et les administrateurs seulement.
 
+**Seuls les noms canoniques sont lus.** La métrique doit être une de celles qu'écrit le bundle, sous sa forme exacte
+(`MeasureNames::isMetric()` : une de `MeasureNames::METRICS`, ou `goals.<goal>` et `server_events.<event>`), et la
+dimension un nom de `CounterKey::NAME_PATTERN` ; tout le reste lance `InvalidValue` avant qu'un stockage soit interrogé.
+Une métrique prise telle quelle dans une requête, `OUTBOUND_LINK` par exemple, n'atteint jamais un stockage dont la
+collation pourrait la lire comme `outbound_link`.
+
 ## Liens de partage et tableau public
 
 ```php
@@ -64,7 +70,9 @@ $views->save($view->revoked($now));                        // closed for good
 `fromString()` refuse tout ce qui n'a pas la bonne forme avant toute recherche.
 
 **Ce que montre une vue** passe par `SmallNumberSuppression`, et `SharedView::mayShow()` refuse les métriques de
-`MeasureNames::PRIVATE_METRICS` : le compte exact des liens de chaque auteur, et ce que les gens cherchent.
+`MeasureNames::PRIVATE_METRICS` : le compte exact des liens de chaque auteur, et ce que les gens cherchent. Elle refuse
+aussi toute métrique qui n'est pas sous sa forme canonique (`MeasureNames::isMetric()`), pour qu'un contrôleur à qui
+l'on passe la métrique d'une requête telle quelle ne puisse pas ouvrir `OUTBOUND_LINK` ni `Search`.
 
 ## Rapports
 
