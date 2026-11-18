@@ -2,7 +2,7 @@
 
 | Name | Kind | Gives |
 |---|---|---|
-| `address(locale = null)` | filter | The address on its lines, joined by line breaks — `|nl2br` shows them —; empty for `null` |
+| `address(locale = null)` | filter | The address on its lines, joined by line breaks — `\|nl2br` shows them —; empty for `null` |
 | `address_lines(locale = null)` | filter | The lines |
 | `address_label(origin, locale = null)` | filter | The address for a postal label sent from a country |
 | `country_name(code, locale = null)` | function | The country's name |

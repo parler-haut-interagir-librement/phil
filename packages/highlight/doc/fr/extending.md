@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e42a2a9fa91bacaece95f64bc5685516fa2ec62c1cf22b7567fa3ac0f9038c11 -->
+<!-- phil-dev source-sha256=0f304b48a266ffe8c8b7bf3f0aa8a334cefa8b536702387dccf35e7167501b2c -->
 # Ajouter un langage
 
 `Highlighter::with()` ajoute un langage sous son nom et ses alias, ou remplace le langage qui les avait. Les noms sont
@@ -48,7 +48,7 @@ $highlighter = Highlighter::default()->with($lua);
 | `commentAfterSpace` | Si un commentaire de ligne ne s'ouvre qu'au début d'un mot, comme `#` en shell |
 | `symbols` | Si `:` devant un mot forme un symbole |
 | `macros` | Si un mot suivi de `!` est un appel de macro |
-| `callAfter` | Les signes après lesquels un mot est un appel : `|` devant un filtre Twig |
+| `callAfter` | Les signes après lesquels un mot est un appel : `\|` devant un filtre Twig |
 | `wordChars`, `wordSuffixes` | Les caractères qu'un mot peut contenir (`$` en JavaScript), et ceux qui peuvent le terminer (`?` et `!` en Ruby) |
 | `operators`, `punctuation` | Les caractères de chacun |
 

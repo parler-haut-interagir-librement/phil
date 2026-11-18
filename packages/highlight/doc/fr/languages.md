@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b3d818c0c0ab832710811eb49eed519b3298f90a81cb866f267ee408a52df95c -->
+<!-- phil-dev source-sha256=d189c2fc3ade019294e62db1b7ca74e955903312930eecb3c1fe990a158c075b -->
 # Langages
 
 Chaque langage est demandé par son nom ou l'un de ses alias, dans n'importe quelle casse :
@@ -43,7 +43,7 @@ les nombres, les mots, les expressions régulières, les opérateurs et la ponct
 | Noms de types, et noms qui commencent par une majuscule | `type` | Tous ceux qui ont une liste ; les majuscules en PHP, JavaScript, TypeScript, Python, Ruby, Rust, Java, C# |
 | `true`, `null`, `None`, `nil`… | `constant` | Tous |
 | Fonctions que fournit le langage et qu'on appelle souvent sans parenthèses | `builtin` | Shell (`echo`, `cd`…), Python, Ruby, Go, SQL, JavaScript (`console`) |
-| Un nom suivi de `(`, une macro Rust (`vec!`), un filtre Twig (`|upper`) | `function` | Tous |
+| Un nom suivi de `(`, une macro Rust (`vec!`), un filtre Twig (`\|upper`) | `function` | Tous |
 | `$var`, `${var}`, `$?`, `@var`, `@@var` | `variable` | PHP, shell, Ruby, SQL |
 | Textes entre guillemets, avec leurs préfixes (`f"…"`, `b"…"`, `u8"…"`, `$"…"`, `@"…"`) et littéraux de caractères | `string` | Tous ; une durée de vie Rust (`'a`) n'est pas un caractère |
 | Clés JSON | `property` | JSON |
@@ -77,7 +77,7 @@ une `string`. Le SCSS ajoute les `$variables`, les interpolations `#{…}` et le
 
 | Langage | Ce qu'il colore |
 |---|---|
-| YAML | Commentaires, `---` et `...`, tirets de séquence, clés simples ou entre guillemets, scalaires entre guillemets et simples (une constante comme `true`, `yes`, `on`, `null`, `~`…, un nombre ou une chaîne), ancres et alias, étiquettes, collections en flux, et les lignes des scalaires de bloc (`|`, `>`) |
+| YAML | Commentaires, `---` et `...`, tirets de séquence, clés simples ou entre guillemets, scalaires entre guillemets et simples (une constante comme `true`, `yes`, `on`, `null`, `~`…, un nombre ou une chaîne), ancres et alias, étiquettes, collections en flux, et les lignes des scalaires de bloc (`\|`, `>`) |
 | INI | Commentaires ouverts par `;` ou `#`, `[sections]`, clés, `=` et `:`, valeurs (entre guillemets, nombres, constantes ou chaînes), et un commentaire après une valeur et une espace |
 | Dockerfile | Commentaires, l'instruction qui ouvre une ligne dans n'importe quelle casse, et ses arguments, prolongés par une barre oblique inverse, lus comme du shell |
 | Diff | En-têtes de fichier (`diff`, `index`, `---`, `+++`), en-têtes de blocs (`@@`), lignes ajoutées (`+`, `>`) et retirées (`-`, `<`), et notes `\ No newline` |

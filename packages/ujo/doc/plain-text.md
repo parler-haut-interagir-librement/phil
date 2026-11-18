@@ -12,7 +12,7 @@ read aloud —: each block's text without HTML, decoded, blocks separated by a b
 | `delimiter` | `***` |
 | `list` | one item per line, `-`, `1.` or `[x]`/`[ ]`, two spaces per level |
 | `definitionList` | each term, then its definitions indented |
-| `table` | one row per line, cells separated by ` | ` |
+| `table` | one row per line, cells separated by ` \| ` |
 | `index` | the title, then `term, pages`, two spaces per level |
 | `image`, `embed`, `gallery` | the captions; an image without one, its `alt` |
 | `linkTool` | the title and the address |

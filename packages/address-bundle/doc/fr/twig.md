@@ -1,9 +1,9 @@
-<!-- phil-dev source-sha256=a05a60ad3a06b2e2c9d86a8a0a32d0efdcb017a250c02cdbcb9ebc5db18438cb -->
+<!-- phil-dev source-sha256=5ab55ca5079a60827f5b869ac3f8df337a472f08489c96509dbf7ceed01bdc03 -->
 # Twig
 
 | Nom | Nature | Donne |
 |---|---|---|
-| `address(locale = null)` | filtre | L'adresse sur ses lignes, jointes par des sauts de ligne — `|nl2br` les affiche — ; vide pour `null` |
+| `address(locale = null)` | filtre | L'adresse sur ses lignes, jointes par des sauts de ligne — `\|nl2br` les affiche — ; vide pour `null` |
 | `address_lines(locale = null)` | filtre | Les lignes |
 | `address_label(origin, locale = null)` | filtre | L'adresse pour une étiquette postale envoyée depuis un pays |
 | `country_name(code, locale = null)` | fonction | Le nom du pays |

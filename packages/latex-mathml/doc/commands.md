@@ -45,7 +45,7 @@ relations (`\leq`, `\geq`, `\neq`, `\approx`, `\equiv`, `\sim`, `\cong`, `\propt
 | `\overset{a}{b}`, `\stackrel`, `\underset{a}{b}` | `a` over or under `b` |
 | `\mathbf`, `\boldsymbol`, `\mathbb`, `\mathcal`, `\mathscr`, `\mathfrak`, `\mathsf`, `\mathtt`, `\mathit`, `\mathrm` | letters of that alphabet |
 | `\text`, `\textrm`, `\mbox`, `\textnormal`, `\textbf`, `\textit` | text, its spaces kept |
-| `\left(` … `\middle|` … `\right)` | delimiters stretched over the content; `.` for none |
+| `\left(` … `\middle\|` … `\right)` | delimiters stretched over the content; `.` for none |
 | `\big`, `\Big`, `\bigg`, `\Bigg`, with `l`, `r` or `m` | a delimiter of a fixed size |
 | `\,`, `\:`, `\;`, `\!`, `\quad`, `\qquad` and their named forms | spaces |
 | `\displaystyle`, `\textstyle`, `\scriptstyle`, `\scriptscriptstyle` | the rest of the group in that style |

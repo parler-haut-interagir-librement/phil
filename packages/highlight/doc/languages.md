@@ -41,7 +41,7 @@ quoted texts, variables, annotations, symbols, numbers, words, regular expressio
 | Type names, and names that start with a capital | `type` | All with a list; capitals in PHP, JavaScript, TypeScript, Python, Ruby, Rust, Java, C# |
 | `true`, `null`, `None`, `nil`… | `constant` | All |
 | Functions the language provides that are often called without parentheses | `builtin` | Shell (`echo`, `cd`…), Python, Ruby, Go, SQL, JavaScript (`console`) |
-| A name followed by `(`, a Rust macro (`vec!`), a Twig filter (`|upper`) | `function` | All |
+| A name followed by `(`, a Rust macro (`vec!`), a Twig filter (`\|upper`) | `function` | All |
 | `$var`, `${var}`, `$?`, `@var`, `@@var` | `variable` | PHP, shell, Ruby, SQL |
 | Quoted texts, with their prefixes (`f"…"`, `b"…"`, `u8"…"`, `$"…"`, `@"…"`) and character literals | `string` | All; a Rust lifetime (`'a`) is not a character |
 | JSON keys | `property` | JSON |
@@ -73,7 +73,7 @@ their units and colours (`#fff`) are `number`, functions `function`, `!important
 
 | Language | What it colours |
 |---|---|
-| YAML | Comments, `---` and `...`, sequence dashes, keys plain or quoted, quoted and plain scalars — a constant (`true`, `yes`, `on`, `null`, `~`…), a number or a string —, anchors and aliases, tags, flow collections, and the lines of block scalars (`|`, `>`) |
+| YAML | Comments, `---` and `...`, sequence dashes, keys plain or quoted, quoted and plain scalars — a constant (`true`, `yes`, `on`, `null`, `~`…), a number or a string —, anchors and aliases, tags, flow collections, and the lines of block scalars (`\|`, `>`) |
 | INI | Comments opened by `;` or `#`, `[sections]`, keys, `=` and `:`, values — quoted, numbers, constants or strings —, and a comment after a value and a space |
 | Dockerfile | Comments, the instruction that opens a line in any case, and its arguments, continued by a backslash, read as shell |
 | Diff | File headers (`diff`, `index`, `---`, `+++`), hunk headers (`@@`), lines added (`+`, `>`) and removed (`-`, `<`), and `\ No newline` notes |

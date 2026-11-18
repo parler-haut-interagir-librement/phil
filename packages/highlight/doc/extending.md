@@ -47,7 +47,7 @@ $highlighter = Highlighter::default()->with($lua);
 | `commentAfterSpace` | Whether a line comment opens only at the start of a word, as `#` in shell |
 | `symbols` | Whether `:` before a word makes a symbol |
 | `macros` | Whether a word followed by `!` is a macro call |
-| `callAfter` | Signs after which a word is a call: `|` before a Twig filter |
+| `callAfter` | Signs after which a word is a call: `\|` before a Twig filter |
 | `wordChars`, `wordSuffixes` | Characters a word may hold (`$` in JavaScript), and that may end it (`?` and `!` in Ruby) |
 | `operators`, `punctuation` | The characters of each |
 

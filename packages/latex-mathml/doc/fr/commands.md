@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=19618df8cacd30a5fa0887e3a86852fea3f06cfe8c91e4b2266bf279a99f3fab -->
+<!-- phil-dev source-sha256=616c65ebaf3cf50bb9f2556c641e2a5e55e109a6502d9b170bc2a70c0b2c0990 -->
 # Commandes
 
 ## Caractères
@@ -47,7 +47,7 @@ binaires (`\times`, `\cdot`, `\div`, `\pm`, `\mp`, `\circ`, `\oplus`, `\otimes`,
 | `\overset{a}{b}`, `\stackrel`, `\underset{a}{b}` | `a` au-dessus ou au-dessous de `b` |
 | `\mathbf`, `\boldsymbol`, `\mathbb`, `\mathcal`, `\mathscr`, `\mathfrak`, `\mathsf`, `\mathtt`, `\mathit`, `\mathrm` | des lettres de cet alphabet |
 | `\text`, `\textrm`, `\mbox`, `\textnormal`, `\textbf`, `\textit` | du texte, ses espaces gardées |
-| `\left(` … `\middle|` … `\right)` | des délimiteurs étirés sur le contenu ; `.` pour aucun |
+| `\left(` … `\middle\|` … `\right)` | des délimiteurs étirés sur le contenu ; `.` pour aucun |
 | `\big`, `\Big`, `\bigg`, `\Bigg`, avec `l`, `r` ou `m` | un délimiteur de taille fixe |
 | `\,`, `\:`, `\;`, `\!`, `\quad`, `\qquad` et leurs formes nommées | des espaces |
 | `\displaystyle`, `\textstyle`, `\scriptstyle`, `\scriptscriptstyle` | le reste du groupe dans ce style |
