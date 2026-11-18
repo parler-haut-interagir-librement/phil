@@ -9,6 +9,7 @@ use Phil\ScheduledTransitionsBundle\Application\Scheduler;
 use Phil\ScheduledTransitionsBundle\Application\TransitionHandler;
 use Phil\ScheduledTransitionsBundle\Domain\Repository\ScheduledTransitionRepository;
 use Phil\ScheduledTransitionsBundle\Infrastructure\Console\RunTransitionsCommand;
+use Phil\ScheduledTransitionsBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\ScheduledTransitionsBundle\Infrastructure\Doctrine\DoctrineScheduledTransitionRepository;
 use Phil\ScheduledTransitionsBundle\Infrastructure\Scheduler\RunDueTransitions;
 use Phil\ScheduledTransitionsBundle\Infrastructure\Scheduler\RunDueTransitionsHandler;
@@ -34,7 +35,8 @@ final class PhilScheduledTransitionsBundleTest extends TestCase
         $container = $this->load([['frequency' => '5 minutes', 'batch' => 20, 'max_attempts' => 5, 'claim_for' => 120]]);
 
         self::assertSame('phil_scheduled_transitions', $this->extension()->getAlias());
-        self::assertSame(['service_container', DoctrineScheduledTransitionRepository::class, Scheduler::class, WorkflowTransitionHandler::class, TransitionsSchedule::class, RunDueTransitionsHandler::class, RunTransitionsCommand::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', DoctrineScheduledTransitionRepository::class, BinaryKeysListener::class, Scheduler::class, WorkflowTransitionHandler::class, TransitionsSchedule::class, RunDueTransitionsHandler::class, RunTransitionsCommand::class], array_keys($container->getDefinitions()));
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertEquals([new Reference('doctrine.orm.entity_manager')], $container->getDefinition(DoctrineScheduledTransitionRepository::class)->getArguments());
         self::assertSame(DoctrineScheduledTransitionRepository::class, (string) $container->getAlias(ScheduledTransitionRepository::class));
         self::assertTrue($container->getAlias(ScheduledTransitionRepository::class)->isPublic());

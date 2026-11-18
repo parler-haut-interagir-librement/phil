@@ -13,4 +13,5 @@
 | `Application\Taxonomy` | `final readonly class` | Tags, categories, assignments |
 | `Application\CategoryNode` | `final readonly class` | A category in a tree |
 | `Infrastructure\Doctrine\DoctrineTaxonomyRepository` | repository | The port on Doctrine ORM |
+| `Infrastructure\Doctrine\BinaryKeysListener` | listener | The keys of the tables in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata` ([installation.md](installation.md#collation-of-the-keys)) |
 | `Infrastructure\Form\TagsType`, `TagsTransformer`, `CategoryType` | form types | Tags as text; a category from the tree |

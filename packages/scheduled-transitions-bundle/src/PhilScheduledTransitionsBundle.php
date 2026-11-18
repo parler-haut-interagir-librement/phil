@@ -8,6 +8,7 @@ use Override;
 use Phil\ScheduledTransitionsBundle\Application\Scheduler;
 use Phil\ScheduledTransitionsBundle\Application\TransitionHandler;
 use Phil\ScheduledTransitionsBundle\Infrastructure\Console\RunTransitionsCommand;
+use Phil\ScheduledTransitionsBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\ScheduledTransitionsBundle\Infrastructure\Doctrine\DoctrineScheduledTransitionRepository;
 use Phil\ScheduledTransitionsBundle\Infrastructure\Scheduler\RunDueTransitions;
 use Phil\ScheduledTransitionsBundle\Infrastructure\Scheduler\RunDueTransitionsHandler;
@@ -92,6 +93,7 @@ final class PhilScheduledTransitionsBundle extends AbstractBundle
 
         // The port by reflection: the bundle class wires the adapter, and names no class of the domain.
         $services->set(DoctrineScheduledTransitionRepository::class)->args([new Reference('doctrine.orm.entity_manager')]);
+        $services->set(BinaryKeysListener::class)->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
         $port = new ReflectionClass(DoctrineScheduledTransitionRepository::class)->getInterfaceNames()[0];
         $services->alias($port, DoctrineScheduledTransitionRepository::class)->public();
 

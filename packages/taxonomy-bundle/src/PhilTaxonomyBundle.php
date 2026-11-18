@@ -6,6 +6,7 @@ namespace Phil\TaxonomyBundle;
 
 use Override;
 use Phil\TaxonomyBundle\Application\Taxonomy;
+use Phil\TaxonomyBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\TaxonomyBundle\Infrastructure\Doctrine\DoctrineTaxonomyRepository;
 use Phil\TaxonomyBundle\Infrastructure\Form\CategoryType;
 use Phil\TaxonomyBundle\Infrastructure\Form\TagsType;
@@ -64,6 +65,7 @@ final class PhilTaxonomyBundle extends AbstractBundle
 
         // The port by reflection: the bundle class wires the adapter, and names no class of the domain.
         $services->set(DoctrineTaxonomyRepository::class)->args([new Reference('doctrine.orm.entity_manager')]);
+        $services->set(BinaryKeysListener::class)->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
         $port = new ReflectionClass(DoctrineTaxonomyRepository::class)->getInterfaceNames()[0];
         $services->alias($port, DoctrineTaxonomyRepository::class)->public();
 

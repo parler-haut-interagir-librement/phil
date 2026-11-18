@@ -7,6 +7,7 @@ namespace Phil\TaxonomyBundle\Tests\Unit;
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\DoctrineExtension;
 use Phil\TaxonomyBundle\Application\Taxonomy;
 use Phil\TaxonomyBundle\Domain\Repository\TaxonomyRepository;
+use Phil\TaxonomyBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\TaxonomyBundle\Infrastructure\Doctrine\DoctrineTaxonomyRepository;
 use Phil\TaxonomyBundle\Infrastructure\Form\CategoryType;
 use Phil\TaxonomyBundle\Infrastructure\Form\TagsType;
@@ -27,7 +28,8 @@ final class PhilTaxonomyBundleTest extends TestCase
         $this->extension()->load([['fallback_locale' => 'fr']], $container);
 
         self::assertSame('phil_taxonomy', $this->extension()->getAlias());
-        self::assertSame(['service_container', DoctrineTaxonomyRepository::class, Taxonomy::class, TagsType::class, CategoryType::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', DoctrineTaxonomyRepository::class, BinaryKeysListener::class, Taxonomy::class, TagsType::class, CategoryType::class], array_keys($container->getDefinitions()));
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertEquals([new Reference('doctrine.orm.entity_manager')], $container->getDefinition(DoctrineTaxonomyRepository::class)->getArguments());
         self::assertSame(DoctrineTaxonomyRepository::class, (string) $container->getAlias(TaxonomyRepository::class));
         self::assertTrue($container->getAlias(TaxonomyRepository::class)->isPublic());

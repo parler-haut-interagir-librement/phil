@@ -8,6 +8,7 @@ use Override;
 use Phil\TrashBundle\Application\Trash;
 use Phil\TrashBundle\Application\TrashHandler;
 use Phil\TrashBundle\Infrastructure\Console\PurgeTrashCommand;
+use Phil\TrashBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\TrashBundle\Infrastructure\Doctrine\DoctrineTrashItemRepository;
 use ReflectionClass;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -73,6 +74,7 @@ final class PhilTrashBundle extends AbstractBundle
 
         // The port by reflection: the bundle class wires the adapter, and names no class of the domain.
         $services->set(DoctrineTrashItemRepository::class)->args([new Reference('doctrine.orm.entity_manager')]);
+        $services->set(BinaryKeysListener::class)->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
         foreach (new ReflectionClass(DoctrineTrashItemRepository::class)->getInterfaceNames() as $port) {
             $services->alias($port, DoctrineTrashItemRepository::class)->public();

@@ -12,6 +12,7 @@
 | `Application\TransitionHandler` | interface | Applies transitions |
 | `Application\RunReport` | `final readonly class` | What a run did |
 | `Infrastructure\Doctrine\DoctrineScheduledTransitionRepository` | repository | The port on Doctrine ORM |
+| `Infrastructure\Doctrine\BinaryKeysListener` | listener | The keys of `phil_scheduled_transition` in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata` ([installation.md](installation.md#collation-of-the-keys)) |
 | `Infrastructure\Workflow\WorkflowTransitionHandler`, `SubjectResolver`, `Subject` | handler | Through `symfony/workflow` |
 | `Infrastructure\Scheduler\TransitionsSchedule`, `RunDueTransitions`, `RunDueTransitionsHandler` | schedule, message | Symfony Scheduler |
 | `Infrastructure\Console\RunTransitionsCommand` | console command | `phil:scheduled-transitions:run` |
