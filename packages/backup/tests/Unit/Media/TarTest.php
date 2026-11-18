@@ -236,7 +236,7 @@ final class TarTest extends TestCase
 
     public function testAnArchiveIsNeverWrittenOutsideItsDirectory(): void
     {
-        if ('Windows' === \PHP_OS_FAMILY || 0 === posix_geteuid()) {
+        if ('Windows' === \PHP_OS_FAMILY || 0 === fileowner($this->directory)) {
             self::markTestSkipped('The directory is not locked against this user.');
         }
 

@@ -242,7 +242,7 @@ final class MediaArchiveTest extends TestCase
             self::assertSame(\sprintf('The media directory %s/file/sub cannot be created.', $this->directory), $backupFailed->getMessage());
         }
 
-        if (0 === posix_geteuid()) {
+        if (0 === fileowner($this->directory)) {
             self::markTestSkipped('root reads every directory.');
         }
 
