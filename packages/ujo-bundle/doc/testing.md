@@ -2,7 +2,8 @@
 
 ## The bundle's tests
 
-`tests/Unit` loads the bundle's extension and checks every service and option, and tests the transformer, the
+`tests/Unit` loads the bundle's extension and checks every service and option — `max_bytes` reaching the decoder
+and the inline sanitizer of a compiled container —, and tests the transformer, the
 validator — on Symfony's `ConstraintValidatorTestCase` — and the Twig extension directly. `tests/Functional` boots a
 small kernel with FrameworkBundle and TwigBundle, renders a template with the filters and functions, submits the
 field and validates in French.

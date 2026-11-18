@@ -20,7 +20,8 @@ $purifier = Purifiers::defaultPolicies(extension: false);    // always Sanitizer
 ```
 
 `AmmoniaPurifier::isAvailable()` tells whether the extension is loaded; `AmmoniaPurifier::defaultPolicies()` throws
-`MissingExtension` when it is not.
+`MissingExtension` when it is not. Its `maxBytes`, 4 MiB by default, refuses a longer HTML before either purifier sees
+it, as `SanitizerPurifier` does: see [The ceiling of an HTML purified](reference.md#the-ceiling-of-an-html-purified).
 
 ### What the two keep
 

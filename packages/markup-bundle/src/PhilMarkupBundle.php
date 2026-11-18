@@ -6,7 +6,11 @@ namespace Phil\MarkupBundle;
 
 use Override;
 use Phil\Markup\Adapter\AmmoniaPurifier;
+use Phil\Markup\HtmlPurifier;
+use Phil\Markup\Reader\MarkupReader;
+use Phil\Markup\Reader\UjoReader;
 use Phil\MarkupBundle\Infrastructure\DependencyInjection\MarkupServices;
+use Phil\MarkupBundle\Infrastructure\DependencyInjection\MaxBytesPass;
 use Phil\MarkupBundle\Infrastructure\DependencyInjection\MediaHostsPass;
 use Phil\MarkupBundle\Infrastructure\DependencyInjection\SmartPunctuationPass;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -16,7 +20,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 
 /**
  * `phil/markup` in a Symfony application: the enabled formats and their levels, the formats add-ons bring, `Markup`, its compiler and purifier to
- * replace by alias, smart punctuation in every format when `phil/typography` is installed, the converter of every
+ * replace by alias, the ceilings of a source and of an HTML purified, smart punctuation in every format when `phil/typography` is installed, the converter of every
  * format into UJO, the `MarkupFormatType` form field, and the `markup_html`, `markup_purify` and `markup_ujo` filters in
  * Twig.
  */
@@ -92,6 +96,21 @@ final class PhilMarkupBundle extends AbstractBundle
                         ->thenInvalid('The media hosts are null or a list of host names, as cdn.example.com; %s is not.')
                     ->end()
                 ->end()
+                ->integerNode('max_bytes')
+                    ->info('The longest source compiled or read in a written format, HTML and plain text included, in bytes; a longer one is refused whole.')
+                    ->defaultValue(MarkupReader::DEFAULT_MAX_BYTES)
+                    ->min(1)
+                ->end()
+                ->integerNode('ujo_max_bytes')
+                    ->info('The longest UJO source compiled or read, in bytes; a longer one is refused whole.')
+                    ->defaultValue(UjoReader::DEFAULT_MAX_BYTES)
+                    ->min(1)
+                ->end()
+                ->integerNode('purifier_max_bytes')
+                    ->info('The longest HTML purified, in bytes; a longer one is refused whole, never cut.')
+                    ->defaultValue(HtmlPurifier::DEFAULT_MAX_BYTES)
+                    ->min(1)
+                ->end()
             ->end();
     }
 
@@ -99,6 +118,7 @@ final class PhilMarkupBundle extends AbstractBundle
     public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new MediaHostsPass());
+        $container->addCompilerPass(new MaxBytesPass());
         $container->addCompilerPass(new SmartPunctuationPass());
     }
 
@@ -108,8 +128,8 @@ final class PhilMarkupBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{formats: list<string>, default_format: string|null, levels: array<string, string>, added_formats: array<string, array{label: string, reader: string}>, default_level: string, smart_punctuation: array{enabled: bool, locale: string|null}, media_hosts: list<string>|null, purifier: string} $config */
-        MarkupServices::register($builder, $config['default_level'], $config['media_hosts'], $config['formats'], $config['default_format'], $config['levels'], $config['smart_punctuation']['enabled'] ? $config['smart_punctuation']['locale'] : false, $config['added_formats'], $config['purifier']);
+        /** @var array{formats: list<string>, default_format: string|null, levels: array<string, string>, added_formats: array<string, array{label: string, reader: string}>, default_level: string, smart_punctuation: array{enabled: bool, locale: string|null}, media_hosts: list<string>|null, purifier: string, max_bytes: int<1, max>, ujo_max_bytes: int<1, max>, purifier_max_bytes: int<1, max>} $config */
+        MarkupServices::register($builder, $config['default_level'], $config['media_hosts'], $config['formats'], $config['default_format'], $config['levels'], $config['smart_punctuation']['enabled'] ? $config['smart_punctuation']['locale'] : false, $config['added_formats'], $config['purifier'], $config['max_bytes'], $config['ujo_max_bytes'], $config['purifier_max_bytes']);
     }
 
     /**

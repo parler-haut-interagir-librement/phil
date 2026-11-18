@@ -4,7 +4,7 @@
 # config/packages/phil_ujo.yaml
 phil_ujo:
     allow_raw: false        # whether documents may hold raw HTML blocks
-    max_bytes: 4194304      # the largest UJO JSON read, in bytes
+    max_bytes: 4194304      # the largest UJO JSON, and inline HTML fragment, read, in bytes
     max_depth: 8            # the deepest nesting of blocks inside blocks
     max_blocks: 10000       # the most blocks a document may hold, nested ones included
     max_html_length: 100000 # the longest HTML field, in characters
@@ -14,7 +14,7 @@ phil_ujo:
 | Option | Default | Effect |
 |---|---|---|
 | `allow_raw` | `false` | `true` adds the `raw` type to the registry: its HTML is sanitized with the `raw` profile. Accept it only from writers you trust with page structure |
-| `max_bytes` | `4194304` | A larger JSON is refused before parsing. At least 1 |
+| `max_bytes` | `4194304` | A larger JSON is refused before parsing, and so is a longer inline HTML fragment before it is sanitized — a document built in PHP, which no decoder sees, included. At least 1 |
 | `max_depth` | `8` | Blocks nested deeper are refused. At least 1 |
 | `max_blocks` | `10000` | A document of more blocks, nested ones included, is refused. At least 1 |
 | `max_html_length` | `100000` | An HTML field longer, in characters, is refused before it is sanitized. At least 1 |
@@ -28,9 +28,10 @@ The block and length limits bound what showing a document costs: its HTML is san
 | Service | Built as |
 |---|---|
 | `Phil\Ujo\Type\BlockTypeRegistry` | `BlockTypeRegistry::default()`, with `StandardTypes::raw()` when `allow_raw` |
-| `Phil\Ujo\Normalizer` | on that registry, the default tunes and sanitizer, `max_depth`, `max_blocks`, `max_html_length` and `max_raw_length` |
-| `Phil\Ujo\Html\HtmlRenderer` | `HtmlRenderer::default()` |
-| `Phil\Ujo\Text\PlainText` | with the default conversions |
+| `Phil\Ujo\Html\InlineSanitizer` | the default profiles, with `max_bytes` |
+| `Phil\Ujo\Normalizer` | on that registry, the default tunes, that sanitizer, `max_depth`, `max_blocks`, `max_html_length` and `max_raw_length` |
+| `Phil\Ujo\Html\HtmlRenderer` | `HtmlRenderer::default()`, on that sanitizer |
+| `Phil\Ujo\Text\PlainText` | with the default conversions, on that sanitizer |
 | `Phil\Ujo\Json\JsonDecoder` | with `max_bytes` |
 | `Phil\Ujo\Ujo` | on the four above; public |
 

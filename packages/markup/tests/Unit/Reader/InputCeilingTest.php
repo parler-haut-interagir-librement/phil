@@ -24,6 +24,7 @@ use Phil\Markup\Reader\MarkupReader;
 use Phil\Markup\Reader\MediaWiki\MediaWikiReader;
 use Phil\Markup\Reader\Text\TextReader;
 use Phil\Markup\Reader\UjoReader;
+use Phil\Ujo\Json\JsonDecoder;
 use Phil\Ujo\Normalizer;
 use Phil\Ujo\Ujo;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -78,18 +79,70 @@ final class InputCeilingTest extends TestCase
     }
 
     /**
+     * The reader of each written format, with its ceiling by default: 1 MiB.
+     *
+     * @return iterable<string, array{Closure(int<1, max>|null): MarkupReader}>
+     */
+    public static function writtenReaders(): iterable
+    {
+        foreach (self::readers() as $name => $reader) {
+            if ('ujo' !== $name) {
+                yield $name => $reader;
+            }
+        }
+    }
+
+    /**
      * @param Closure(int<1, max>|null): MarkupReader $reader
      */
-    #[DataProvider('readers')]
-    public function testEachReaderRefusesASourceAboveOneMebibyteByDefault(Closure $reader): void
+    #[DataProvider('writtenReaders')]
+    public function testEachReaderOfAWrittenFormatRefusesASourceAboveOneMebibyteByDefault(Closure $reader): void
     {
         $this->assertRefused(1_048_577, 1_048_576, static fn (): mixed => $reader(null)->read(str_repeat(' ', 1_048_577)));
     }
 
-    public function testTheDefaultCeilingIsOneMebibyteAndAUjoSourceOfThatLengthIsRead(): void
+    public function testTheDefaultCeilingIsOneMebibyte(): void
     {
         self::assertSame(1_048_576, MarkupReader::DEFAULT_MAX_BYTES);
-        self::assertSame([], new UjoReader()->read(str_pad('{"blocks":[]}', 1_048_576, ' '))->document->blocks);
+    }
+
+    /**
+     * The reader of UJO takes the ceiling of the decoder of `phil/ujo`, 4 MiB: a source of that length is read, one
+     * byte more refused before it is decoded.
+     */
+    public function testTheUjoReaderTakesTheCeilingOfTheDecoder(): void
+    {
+        self::assertSame(4_194_304, UjoReader::DEFAULT_MAX_BYTES);
+        self::assertSame(JsonDecoder::DEFAULT_MAX_BYTES, UjoReader::DEFAULT_MAX_BYTES);
+        self::assertSame([], new UjoReader()->read(str_pad('{"blocks":[]}', 4_194_304, ' '))->document->blocks);
+        $this->assertRefused(4_194_305, 4_194_304, static fn (): mixed => new UjoReader()->read(str_pad('{"blocks":[]}', 4_194_305, ' ')));
+    }
+
+    /**
+     * The compiler gives UJO its own ceiling, 4 MiB by default, and the other formats theirs; its reader of UJO and the
+     * decoder behind it share the UJO ceiling, whichever is the larger.
+     */
+    public function testTheCompilerHasACeilingOfItsOwnForUjo(): void
+    {
+        $ujo = str_pad('{"blocks":[]}', 4_194_304, ' ');
+        self::assertSame('', new DefaultCompiler()->compile($ujo, MarkupFormat::Ujo));
+        self::assertSame([], new DefaultCompiler()->reader(MarkupFormat::Ujo)->read($ujo)->document->blocks);
+        $this->assertRefused(4_194_305, 4_194_304, static fn (): mixed => new DefaultCompiler()->compile($ujo.' ', 'ujo'));
+        $this->assertRefused(4_194_305, 4_194_304, static fn (): mixed => new DefaultCompiler()->reader('ujo')->read($ujo.' '));
+        $this->assertRefused(1_048_577, 1_048_576, static fn (): mixed => new DefaultCompiler()->compile(str_repeat(' ', 1_048_577), 'markdown'));
+
+        $compiler = new DefaultCompiler(maxBytes: 8, ujoMaxBytes: 16);
+        $source = str_pad('{"blocks":[]}', 16, ' ');
+        self::assertSame('', $compiler->compile($source, 'ujo'));
+        self::assertSame('', $compiler->compileFor($source, MarkupFormat::Ujo, Level::Basic));
+        self::assertSame([], $compiler->reader('ujo')->read($source)->document->blocks);
+        $this->assertRefused(17, 16, static fn (): mixed => $compiler->compile($source.' ', 'ujo'));
+        $this->assertRefused(17, 16, static fn (): mixed => $compiler->reader(MarkupFormat::Ujo)->read($source.' '));
+        $this->assertRefused(9, 8, static fn (): mixed => $compiler->compile('123456789', 'html'));
+
+        // Above the decoder's own 4 MiB, the decoder the compiler builds takes the UJO ceiling as well.
+        $large = str_pad('{"blocks":[]}', 4_194_305, ' ');
+        self::assertSame([], new DefaultCompiler(ujoMaxBytes: 4_194_305)->reader('ujo')->read($large)->document->blocks);
     }
 
     /**
@@ -124,7 +177,7 @@ final class InputCeilingTest extends TestCase
      */
     public function testTheCompilerRefusesASourceAboveItsCeilingInEveryFormat(): void
     {
-        $compiler = new DefaultCompiler(maxBytes: 8);
+        $compiler = new DefaultCompiler(maxBytes: 8, ujoMaxBytes: 8);
 
         self::assertSame('<b>1</b>', $compiler->compile('<b>1</b>', 'html'));
         self::assertSame('<p>12345678</p>', $compiler->compile('12345678', 'text'));

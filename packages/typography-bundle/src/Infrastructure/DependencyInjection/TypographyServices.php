@@ -17,7 +17,8 @@ use Symfony\Component\DependencyInjection\Reference;
 use Twig\Attribute\AsTwigFilter;
 
 /**
- * The typographers of the configuration, each a service: `Typographers`, which builds one per locale; `Typographer`,
+ * The typographers of the configuration, each a service: `Typographers`, which builds one per locale with the ceiling
+ * of a text; `Typographer`,
  * the one of the default locale; one service per configured locale, `phil_typography.typographer.<locale>`, also
  * injected into an argument named after it (`Typographer $frCATypographer`); the Twig filters; and the filter of UJO
  * HTML. The filters follow Symfony's `LocaleSwitcher` when the translator registers it.
@@ -29,6 +30,9 @@ final class TypographyServices
     public const array FIXERS = Preset::FIXERS;
 
     public const array EXPERIMENTAL = Dictionary::EXPERIMENTAL;
+
+    /** The ceiling of a text, in bytes, unless configured: that of `Typographer`, 1 MiB. */
+    public const int MAX_BYTES = Typographer::DEFAULT_MAX_BYTES;
 
     public const string TYPOGRAPHER = 'phil_typography.typographer.';
 
@@ -44,8 +48,9 @@ final class TypographyServices
      * @param array<string, list<string>> $locales      fixer names by locale; an empty list keeps the preset
      * @param string|null                 $ujo          the locale of the UJO filter, `''` for the default one; none when null
      * @param list<string>                $experimental the experimental hyphenation patterns served
+     * @param int<1, max>                 $maxBytes     the longest text fixed, in bytes
      */
-    public static function register(ContainerBuilder $container, ?string $defaultLocale, bool $hyphenation, array $protected, array $locales, ?string $ujo, array $experimental): void
+    public static function register(ContainerBuilder $container, ?string $defaultLocale, bool $hyphenation, array $protected, array $locales, ?string $ujo, array $experimental, int $maxBytes = self::MAX_BYTES): void
     {
         $typographers = new Reference(Typographers::class);
         $current = new Reference(self::LOCALE_SWITCHER, ContainerInterface::IGNORE_ON_INVALID_REFERENCE);
@@ -53,7 +58,7 @@ final class TypographyServices
         $container->register(Dictionary::class, Dictionary::class)
             ->setArguments([null, $experimental]);
         $container->register(Typographers::class, Typographers::class)
-            ->setArguments([$defaultLocale ?? '%kernel.default_locale%', array_filter($locales), $protected, $hyphenation, new Reference(Dictionary::class)])
+            ->setArguments([$defaultLocale ?? '%kernel.default_locale%', array_filter($locales), $protected, $hyphenation, new Reference(Dictionary::class), $maxBytes])
             ->setPublic(true);
         $container->register(Typographer::class, Typographer::class)
             ->setFactory([$typographers, 'for'])

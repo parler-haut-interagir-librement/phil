@@ -4,6 +4,20 @@ All notable changes to `phil/typography-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha: an optional key, on `phil/typography` 0.2.
+
+### Added
+
+- The `max_bytes` configuration: the longest text the typographers and the filters fix, in bytes, 1 MiB by default —
+  the default of `phil/typography` —, a positive integer checked when the container is built, given to `Typographers`.
+- The section [Ceiling of a text](doc/configuration.md#ceiling-of-a-text) of the configuration page.
+
+### Changed
+
+- `phil/typography` 0.2 is accepted: a text longer than its ceiling is refused by `InputTooLarge`.
+
 ## 0.1.1-alpha - 2026-11-17
 
 The next version is 0.1.1-alpha: documentation only.

@@ -14,7 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
  * Gives every purifier built by `defaultPolicies()` — of `SanitizerPurifier`, `AmmoniaPurifier` or `Purifiers` — the
- * media hosts of the configuration, once every bundle is loaded: another bundle that registers the same adapter under
+ * media hosts of the configuration, and its `purifier_max_bytes` when it is set, once every bundle is loaded: another bundle that registers the same adapter under
  * the same identifier, as `phil/content-bundle` does, may load after this one and replace its definition. A purifier
  * the application built otherwise — another factory, another class — is left alone.
  *
@@ -24,6 +24,9 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 final readonly class MediaHostsPass implements CompilerPassInterface
 {
     public const string PARAMETER = 'phil_markup.media_hosts';
+
+    /** The ceiling of an HTML purified, in bytes, from `purifier_max_bytes`. */
+    public const string MAX_BYTES_PARAMETER = 'phil_markup.purifier_max_bytes';
 
     /** The factories of the purifiers, each with the class of the service it builds. */
     private const array PURIFIERS = [
@@ -42,9 +45,15 @@ final readonly class MediaHostsPass implements CompilerPassInterface
             return;
         }
 
+        $arguments = [$parameters[self::PARAMETER]];
+
+        if (\array_key_exists(self::MAX_BYTES_PARAMETER, $parameters)) {
+            $arguments['$maxBytes'] = $parameters[self::MAX_BYTES_PARAMETER];
+        }
+
         foreach ($container->getDefinitions() as $definition) {
             if (\in_array([$definition->getFactory(), $definition->getClass()], self::PURIFIERS, true)) {
-                $definition->setArguments([$parameters[self::PARAMETER]]);
+                $definition->setArguments($arguments);
             }
         }
 

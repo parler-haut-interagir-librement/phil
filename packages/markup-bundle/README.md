@@ -41,7 +41,7 @@ forms and to Twig.
 | Document | What it covers |
 |---|---|
 | [Installation](doc/installation.md) | Requirements and registering. |
-| [Configuration](doc/configuration.md) | The formats, the levels, smart punctuation, the image hosts, replacing the compiler or the purifier. |
+| [Configuration](doc/configuration.md) | The formats, the levels, smart punctuation, the image hosts, the purifier, the ceilings, replacing the compiler or the purifier. |
 | [Conversion into UJO](doc/conversion.md) | `UjoConverter`: the readers, the document, the JSON. |
 | [Forms](doc/forms.md) | `MarkupFormatType`. |
 | [Twig](doc/twig.md) | The three filters, and what a render costs. |

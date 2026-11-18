@@ -23,7 +23,7 @@ The design is small: `PhilTypographyBundle` reads the configuration, `Typography
 
 | Part | State |
 |---|---|
-| Configuration: default locale, hyphenation and its experimental languages, protected elements, fixers by locale | Implemented and tested |
+| Configuration: default locale, hyphenation and its experimental languages, protected elements, fixers by locale, the ceiling of a text | Implemented and tested |
 | `Typographers`, `Typographer` and one service per configured locale, injectable by argument name | Implemented and tested |
 | Twig: `typography` for HTML, escaping what is not marked safe; `typography_text` for plain text | Implemented and tested |
 | The locale of the request, through Symfony's `LocaleSwitcher`, for the filters and the UJO pass | Implemented and tested |

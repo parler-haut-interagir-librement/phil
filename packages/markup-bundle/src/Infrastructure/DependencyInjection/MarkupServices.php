@@ -14,6 +14,8 @@ use Phil\Markup\Level;
 use Phil\Markup\Markup;
 use Phil\Markup\MarkupCompiler;
 use Phil\Markup\MarkupFormat;
+use Phil\Markup\Reader\MarkupReader;
+use Phil\Markup\Reader\UjoReader;
 use Phil\MarkupBundle\Infrastructure\Conversion\UjoConverter;
 use Phil\MarkupBundle\Infrastructure\Form\MarkupFormatType;
 use Phil\MarkupBundle\Infrastructure\Format\MarkupFormats;
@@ -28,8 +30,8 @@ use Symfony\Component\Form\AbstractType;
 use Twig\Attribute\AsTwigFilter;
 
 /**
- * The UJO renderer, the compiler and the purifier of `phil/markup`, aliased by their interfaces so an application can
- * replace either, the readers of the formats add-ons bring, `Markup`, the enabled formats and their levels, the converter into UJO, the smart punctuation when
+ * The UJO renderer, the compiler and the purifier of `phil/markup` with their ceilings, aliased by their interfaces so
+ * an application can replace either, the readers of the formats add-ons bring, `Markup`, the enabled formats and their levels, the converter into UJO, the smart punctuation when
  * `phil/typography` is installed, and the form type and the Twig filters when Symfony Form and Twig are installed.
  */
 final class MarkupServices
@@ -84,34 +86,54 @@ final class MarkupServices
     }
 
     /**
-     * @param list<string>|null                                   $mediaHosts the hosts images may come from, `null` for any
-     * @param list<string>                                        $formats    the enabled formats, in the order a form offers them; every one when empty
-     * @param string|null                                         $default    the format taken when none is named; the first enabled when `null`
-     * @param array<string, string>                               $levels     the highest level of a format, by format
-     * @param string|false|null                                   $smart      the locale of the smart punctuation, `null` for the current one; none when `false`
-     * @param array<string, array{label: string, reader: string}> $added      the formats add-ons bring, by name: their label, and the service of their `ReaderProvider`
-     * @param string                                              $purifier   `auto` for the ammonia extension where it is loaded, `sanitizer` or `ammonia` for one of them
+     * @param list<string>|null                                   $mediaHosts       the hosts images may come from, `null` for any
+     * @param list<string>                                        $formats          the enabled formats, in the order a form offers them; every one when empty
+     * @param string|null                                         $default          the format taken when none is named; the first enabled when `null`
+     * @param array<string, string>                               $levels           the highest level of a format, by format
+     * @param string|false|null                                   $smart            the locale of the smart punctuation, `null` for the current one; none when `false`
+     * @param array<string, array{label: string, reader: string}> $added            the formats add-ons bring, by name: their label, and the service of their `ReaderProvider`
+     * @param string                                              $purifier         `auto` for the ammonia extension where it is loaded, `sanitizer` or `ammonia` for one of them
+     * @param int<1, max>                                         $maxBytes         the longest source compiled or read in a written format, in bytes
+     * @param int<1, max>                                         $ujoMaxBytes      the longest UJO source compiled or read, in bytes
+     * @param int<1, max>                                         $purifierMaxBytes the longest HTML purified, in bytes
      */
-    public static function register(ContainerBuilder $container, string $level, ?array $mediaHosts = null, array $formats = [], ?string $default = null, array $levels = [], string|false|null $smart = false, array $added = [], string $purifier = 'auto'): void
-    {
+    public static function register(
+        ContainerBuilder $container,
+        string $level,
+        ?array $mediaHosts = null,
+        array $formats = [],
+        ?string $default = null,
+        array $levels = [],
+        string|false|null $smart = false,
+        array $added = [],
+        string $purifier = 'auto',
+        int $maxBytes = MarkupReader::DEFAULT_MAX_BYTES,
+        int $ujoMaxBytes = UjoReader::DEFAULT_MAX_BYTES,
+        int $purifierMaxBytes = HtmlPurifier::DEFAULT_MAX_BYTES,
+    ): void {
         $enabled = [] === $formats ? [...MarkupFormat::values(), ...array_keys($added)] : $formats;
 
         $container->register(HtmlRenderer::class, HtmlRenderer::class)->setFactory([HtmlRenderer::class, 'default']);
         $container->register(DefaultCompiler::class, DefaultCompiler::class)->setArguments([
             new Reference(HtmlRenderer::class),
             array_map(static fn (array $format): Reference => new Reference($format['reader']), $added),
+            '$maxBytes' => $maxBytes,
+            '$ujoMaxBytes' => $ujoMaxBytes,
         ]);
+        $container->setParameter(MaxBytesPass::PARAMETER, $maxBytes);
+        $container->setParameter(MaxBytesPass::UJO_PARAMETER, $ujoMaxBytes);
         $container->setAlias(MarkupCompiler::class, DefaultCompiler::class);
         $container->register(SanitizerPurifier::class, SanitizerPurifier::class)
             ->setFactory([SanitizerPurifier::class, 'defaultPolicies'])
-            ->setArguments([$mediaHosts]);
+            ->setArguments([$mediaHosts, '$maxBytes' => $purifierMaxBytes]);
         $container->setParameter(MediaHostsPass::PARAMETER, $mediaHosts);
+        $container->setParameter(MediaHostsPass::MAX_BYTES_PARAMETER, $purifierMaxBytes);
         $container->setAlias(HtmlPurifier::class, SanitizerPurifier::class);
 
         if ('sanitizer' !== $purifier) {
             $container->register(self::PURIFIER, HtmlPurifier::class)
                 ->setFactory(['ammonia' === $purifier ? AmmoniaPurifier::class : Purifiers::class, 'defaultPolicies'])
-                ->setArguments([$mediaHosts]);
+                ->setArguments([$mediaHosts, '$maxBytes' => $purifierMaxBytes]);
             $container->setAlias(HtmlPurifier::class, self::PURIFIER);
         }
 

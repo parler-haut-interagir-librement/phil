@@ -14,6 +14,9 @@ phil_markup:
         locale: ~                     # the locale of the request by default
     media_hosts: [cdn.example.com]    # null by default: any host
     purifier: auto                    # auto, sanitizer or ammonia
+    max_bytes: 1048576                # the longest source in a written format, in bytes
+    ujo_max_bytes: 4194304            # the longest UJO source, in bytes
+    purifier_max_bytes: 4194304       # the longest HTML purified, in bytes
 ```
 
 ## Formats
@@ -107,6 +110,30 @@ fast. The [Accelerators](https://github.com/parler-haut-interagir-librement/mark
 of `phil/markup` says what differs, and how to install the extension. A bundle that points `HtmlPurifier` at
 `SanitizerPurifier` after this one, as `phil/content-bundle` does, gives it back to the purifier chosen; `sanitizer`
 keeps the sanitizer.
+
+## Ceilings
+
+Three keys bound what the bundle reads and purifies, each counted in bytes and refused whole, by `phil/markup`'s
+`InputTooLarge`, before a byte is parsed: a source or an HTML is never cut to fit.
+
+| Option | Default | Bounds |
+|---|---|---|
+| `max_bytes` | `1048576` (1 MiB) | A source compiled or read in a written format — Markdown, BBCode, the wikis, HTML, plain text and the formats of add-ons —, by `DefaultCompiler`, `Markup`, the filters and the converter |
+| `ujo_max_bytes` | `4194304` (4 MiB) | A UJO source compiled or read; the decoder of `phil/ujo` behind the reader takes the same ceiling |
+| `purifier_max_bytes` | `4194304` (4 MiB) | An HTML purified, by `markup_purify`, `Markup` and every purifier `purifier` may choose |
+
+The defaults are those of `phil/markup`: `MarkupReader::DEFAULT_MAX_BYTES`, `UjoReader::DEFAULT_MAX_BYTES` and
+`HtmlPurifier::DEFAULT_MAX_BYTES`. Each value is a positive integer; any other — `0`, a negative number, a string, a
+float — is refused when the container is built.
+
+The keys are three because the library keeps three ceilings: the JSON of a UJO document weighs more than the text it
+holds, and the HTML a compiler writes is longer than its source, so a single value would refuse documents the written
+formats accept or let longer written sources through. `ujo_max_bytes` bounds the UJO the bundle reads through
+`phil/markup`; `phil_ujo.max_bytes`, when `phil/ujo-bundle` is installed, bounds the `Ujo` service of that bundle.
+
+The ceilings reach the compiler and the purifiers whichever bundle registers them, `phil/content-bundle` included,
+through compiler passes; a compiler the application gives its ceilings by position, or builds by a factory, and a
+purifier it builds itself, are left alone.
 
 ## Replacing the compiler or the purifier
 

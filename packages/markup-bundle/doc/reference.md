@@ -4,7 +4,8 @@
 |---|---|---|
 | `Phil\MarkupBundle\PhilMarkupBundle` | `AbstractBundle` | The `phil_markup` configuration and the services |
 | `…\Infrastructure\DependencyInjection\MarkupServices` | `final class` | Registers the services; `formats()`, `isEnabledDefault()` for the configuration |
-| `…\Infrastructure\DependencyInjection\MediaHostsPass` | compiler pass | Gives `SanitizerPurifier`, `AmmoniaPurifier` and `Purifiers` the `media_hosts`, whichever bundle registered them; keeps `HtmlPurifier` on the purifier chosen |
+| `…\Infrastructure\DependencyInjection\MediaHostsPass` | compiler pass | Gives `SanitizerPurifier`, `AmmoniaPurifier` and `Purifiers` the `media_hosts` and the `purifier_max_bytes`, whichever bundle registered them; keeps `HtmlPurifier` on the purifier chosen |
+| `…\Infrastructure\DependencyInjection\MaxBytesPass` | compiler pass | Gives every `DefaultCompiler` the `max_bytes` and `ujo_max_bytes`, whichever bundle registered it; one given its ceilings by position, or built by a factory, left alone |
 | `…\Infrastructure\DependencyInjection\SmartPunctuationPass` | compiler pass | Gives the smart punctuation the typographers of `phil/typography-bundle`, or its own, and its formats |
 | `…\Infrastructure\Typography\SmartPunctuationCompiler` | `final readonly class` | A `LevelAwareCompiler` decorating `MarkupCompiler`: its HTML through a typographer |
 | `…\Infrastructure\Format\MarkupFormats` | `final readonly class` | `enabled()`, `isEnabled()`, `format()`, `label()`, `level()`, `ceiling()`; formats by name |

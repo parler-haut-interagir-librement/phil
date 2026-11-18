@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\UjoBundle\Infrastructure\DependencyInjection;
 
 use Phil\Ujo\Html\HtmlRenderer;
+use Phil\Ujo\Html\InlineSanitizer;
 use Phil\Ujo\Json\JsonDecoder;
 use Phil\Ujo\Normalizer;
 use Phil\Ujo\Text\PlainText;
@@ -22,10 +23,13 @@ use Twig\Attribute\AsTwigFilter;
 
 /**
  * The parts of `phil/ujo`, each a service an application can replace, `Ujo` built from them, and the form field, the
- * validator and the Twig extension on it.
+ * validator and the Twig extension on it. The ceiling `max_bytes` bounds both the JSON the decoder reads and each
+ * inline HTML fragment the `InlineSanitizer` reads, which the normalizer, the renderer and the conversion to plain text
+ * share.
  */
 final class UjoServices
 {
+    /** The ceiling of a UJO JSON and of an inline fragment, in bytes, unless configured: that of `JsonDecoder`, 4 MiB. */
     public const int MAX_BYTES = JsonDecoder::DEFAULT_MAX_BYTES;
 
     public const int MAX_DEPTH = Normalizer::DEFAULT_MAX_DEPTH;
@@ -54,10 +58,12 @@ final class UjoServices
         }
 
         $container->setDefinition(BlockTypeRegistry::class, $registry);
+        $container->register(InlineSanitizer::class, InlineSanitizer::class)->setArguments([[], $maxBytes]);
+        $sanitizer = new Reference(InlineSanitizer::class);
         $container->register(Normalizer::class, Normalizer::class)
-            ->setArguments([new Reference(BlockTypeRegistry::class), null, null, $maxDepth, $maxBlocks, $maxHtmlLength, $maxRawLength]);
-        $container->register(HtmlRenderer::class, HtmlRenderer::class)->setFactory([HtmlRenderer::class, 'default']);
-        $container->register(PlainText::class, PlainText::class);
+            ->setArguments([new Reference(BlockTypeRegistry::class), null, $sanitizer, $maxDepth, $maxBlocks, $maxHtmlLength, $maxRawLength]);
+        $container->register(HtmlRenderer::class, HtmlRenderer::class)->setFactory([HtmlRenderer::class, 'default'])->setArguments([$sanitizer]);
+        $container->register(PlainText::class, PlainText::class)->setArguments([[], $sanitizer]);
         $container->register(JsonDecoder::class, JsonDecoder::class)->setArguments([$maxBytes, JsonDecoder::DEFAULT_MAX_DEPTH]);
         $container->register(Ujo::class, Ujo::class)
             ->setArguments([new Reference(Normalizer::class), new Reference(HtmlRenderer::class), new Reference(PlainText::class), new Reference(JsonDecoder::class)])

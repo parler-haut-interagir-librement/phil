@@ -79,19 +79,25 @@ so that the losses of many siblings take a time that grows with their number too
 Each reader, and `Adapter\DefaultCompiler`, refuses a source longer than its ceiling before it reads it: it throws
 `Exception\InputTooLarge`, which says the length of the source and the ceiling in `$bytes` and `$limit`, and never cuts
 the source to fit. The ceiling is counted in bytes, a character of UTF-8 counting each of its bytes. It is the
-`maxBytes` argument of each constructor, `MarkupReader::DEFAULT_MAX_BYTES` — 1 MiB — by default:
+`maxBytes` argument of each constructor, `MarkupReader::DEFAULT_MAX_BYTES` — 1 MiB — by default, but for UJO:
+`UjoReader::DEFAULT_MAX_BYTES` is the ceiling of the decoder of `phil/ujo`, 4 MiB, since the JSON of a document weighs
+more than the text it holds.
 
 ```php
-$reader = new MarkdownReader(maxBytes: 262_144);           // 256 KiB
-$compiler = new DefaultCompiler(maxBytes: 4 * 1_048_576);  // 4 MiB, in every format
+$reader = new MarkdownReader(maxBytes: 262_144);                             // 256 KiB
+$compiler = new DefaultCompiler(maxBytes: 2 * 1_048_576);                   // 2 MiB, in every format but UJO
+$compiler = new DefaultCompiler(maxBytes: 262_144, ujoMaxBytes: 1_048_576); // 256 KiB, and 1 MiB for UJO
 ```
 
 `DefaultCompiler` checks the source before it compiles it, in every format — HTML and plain text, which it compiles
 without a reader, included —, gives its ceiling to the readers `reader()` returns, and puts the reader of an add-on's
-format behind it. `Markup` refuses what its compiler refuses. A UJO source is refused by the ceiling of `UjoReader`
-before the decoder of `phil/ujo` sees it.
+format behind it. A UJO source has a ceiling of its own, `ujoMaxBytes`, which the compiler gives its reader of UJO and
+the decoder of `phil/ujo` behind it, so that both refuse at the same length. `Markup` refuses what its compiler refuses.
+A UJO source is refused by the ceiling of `UjoReader` before the decoder of `phil/ujo` sees it.
+
+The purifiers have a ceiling too, 4 MiB by default: see [The ceiling of an HTML purified](reference.md#the-ceiling-of-an-html-purified).
 
 The ceiling bounds the time and the memory a reading takes whatever its source, before the limits of the document the
 normalizer of `phil/ujo` checks afterwards — the number of blocks, the length of an HTML field. 1 MiB holds a long
 chapter written by hand many times over; an application that takes longer texts raises it, one that takes comments
-lowers it.
+lowers it. A UJO document of the same chapter, with its block identifiers and its markup, needs more.

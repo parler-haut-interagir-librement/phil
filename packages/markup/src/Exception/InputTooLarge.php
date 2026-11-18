@@ -7,9 +7,10 @@ namespace Phil\Markup\Exception;
 use InvalidArgumentException;
 
 /**
- * A source longer than the ceiling of the reader or compiler it was given to, refused whole before it is parsed: a
- * source is never cut to fit. The ceiling is the `maxBytes` of each reader and of `Adapter\DefaultCompiler`,
- * `MarkupReader::DEFAULT_MAX_BYTES` unless configured.
+ * A source longer than the ceiling of the reader, compiler or purifier it was given to, refused whole before it is
+ * parsed: a source is never cut to fit. The ceiling is the `maxBytes` of each reader and of `Adapter\DefaultCompiler`,
+ * `MarkupReader::DEFAULT_MAX_BYTES` unless configured, `UjoReader::DEFAULT_MAX_BYTES` for UJO, and the `maxBytes` of
+ * each purifier, `HtmlPurifier::DEFAULT_MAX_BYTES` unless configured.
  */
 final class InputTooLarge extends InvalidArgumentException implements MarkupException
 {
