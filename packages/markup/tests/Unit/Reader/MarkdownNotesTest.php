@@ -107,20 +107,20 @@ final class MarkdownNotesTest extends TestCase
     }
 
     /**
-     * The note joins the one a dialect gives the block, after it, and is cut to 10,000 characters.
+     * The note joins the one a dialect gives the block, after it, the block's other tunes kept, and is cut to 10,000 characters.
      */
     public function testANoteJoinsTheNoteOfTheBlockAndIsCut(): void
     {
         $dialect = new class extends BaseDialect {
             public function paragraph(string $text): array
             {
-                return str_starts_with($text, '!') ? [substr($text, 1), ['note' => ['text' => 'given']]] : [$text, []];
+                return str_starts_with($text, '!') ? [substr($text, 1), ['note' => ['text' => 'given'], 'alignment' => ['alignment' => 'center']]] : [$text, []];
             }
         };
         $reader = new MarkdownReader(dialect: $dialect);
 
-        self::assertSame(['note' => ['text' => "given\nn"]], $reader->read("<!-- n -->\n!a")->document->blocks[0]->tunes);
-        self::assertSame(['note' => ['text' => "given\nn"]], $reader->read("!a\n\n<!-- n -->")->document->blocks[0]->tunes);
+        self::assertSame(['note' => ['text' => "given\nn"], 'alignment' => ['alignment' => 'center']], $reader->read("<!-- n -->\n!a")->document->blocks[0]->tunes);
+        self::assertSame(['note' => ['text' => "given\nn"], 'alignment' => ['alignment' => 'center']], $reader->read("!a\n\n<!-- n -->")->document->blocks[0]->tunes);
 
         $note = new MarkdownReader()->read('<!--'.str_repeat('é', 10_001)."-->\n\na")->document->blocks[0]->tunes['note'] ?? null;
         self::assertSame(['text' => str_repeat('é', 10_000)], $note);

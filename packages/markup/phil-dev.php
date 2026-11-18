@@ -223,10 +223,13 @@ return [
                     '\\$around = \\$element->parentElement\\?->closest\\(\'\\[lang\\]\'\\)\\?->getAttribute\\(\'lang\'\\);',
                 ],
             ],
-            // The caption of a wiki table, in `Structures::table()`: the inline reader trims the text it reads.
+            // The caption of a wiki table, in `Structures::table()`: the inline reader trims the text it reads. A
+            // paragraph of spaces only, in `Resolver::paragraph()`: the normalizer every reader ends with drops a
+            // paragraph whose text is blank, so keeping it there or not gives the same document.
             'UnwrapTrim' => [
                 'ignoreSourceCodeByRegex' => [
                     '.*\'\' === trim\\(\\$caption\\) \\? null : \\$engine->inline\\(trim\\(\\$caption\\)\\).*',
+                    'return \'\' === trim\\(\\$pieces\\[0\\]\\) \\? \\[\\] : \\[\\$block->withData\\(\\[\'text\' => \\$pieces\\[0\\]\\]\\)\\];',
                 ],
             ],
             // The note a comment adds to a block, in `Walker::noted()`: only the walker writes the `note` tune, always
