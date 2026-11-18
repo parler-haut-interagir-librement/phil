@@ -29,6 +29,16 @@ return [
             // The copy inside the first `try` cannot throw: the stream was checked before, and the warnings are silenced.
             // In the others, a stream is closed by PHP as soon as its last reference goes: an exception that skips the
             // `fclose()` leaves nothing open, so closing in `finally` or after it cannot be told apart.
+            // The stat cache of PHP goes stale only when another process changes the directory: the functions of PHP
+            // that change a file clear it themselves, so no test of one process sees the difference. A long-running
+            // worker does. A plain file's stream writes through without a buffer: a test cannot see the copy's stream
+            // left open one moment more.
+            'FunctionCallRemoval' => [
+                'ignoreSourceCodeByRegex' => [
+                    'clearstatcache\\(true, \\$this->directory\\);',
+                    'fclose\\(\\$target\\);',
+                ],
+            ],
             'UnwrapFinally' => [
                 'ignore' => [
                     FilesystemQuarantine::class.'::isolate',

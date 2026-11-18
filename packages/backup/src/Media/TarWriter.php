@@ -13,10 +13,15 @@ use Phil\Backup\Exception\BackupFailed;
  *
  * A path longer than 100 bytes is split at a slash into the 155-byte prefix and the name; one that cannot be split,
  * or a file of 8 GiB or more, which the header's octal size cannot hold, is refused.
+ *
+ * The archive is written as a temporary file beside its path, readable by its owner alone from the moment it exists,
+ * and takes its path in one step when it is closed. An archive discarded, or never closed, leaves nothing behind.
  */
 final class TarWriter
 {
     private const int LARGEST = 0o77777777777;
+
+    private bool $done = false;
 
     /**
      * @param resource $stream
@@ -24,23 +29,35 @@ final class TarWriter
     private function __construct(
         private $stream,
         private readonly string $file,
+        private readonly string $temporary,
     ) {
     }
 
+    public function __destruct()
+    {
+        $this->discard();
+    }
+
     /**
-     * A new archive in the file, readable by its owner alone.
+     * A new archive for the file, readable by its owner alone; an existing file is replaced when it is closed.
      */
     public static function create(string $file): self
     {
-        $stream = @fopen($file, 'w');
+        $directory = realpath(\dirname($file));
+        $temporary = false === $directory ? false : @tempnam($directory, '.phil-tar-');
 
-        if (false === $stream) {
+        if (false === $temporary || \dirname($temporary) !== $directory) {
+            if (\is_string($temporary)) {
+                unlink($temporary);
+            }
+
             throw BackupFailed::because(\sprintf('The archive %s cannot be written.', $file));
         }
 
-        chmod($file, 0o600);
+        // tempnam() creates the file readable and writable by its owner alone; opening it keeps that mode.
+        $stream = fopen($temporary, 'w');
 
-        return new self($stream, $file);
+        return new self(false === $stream ? throw BackupFailed::because(\sprintf('The archive %s cannot be written.', $file)) : $stream, $file, $temporary);
     }
 
     public function addDirectory(string $name, int $mode, int $modified): void
@@ -77,12 +94,34 @@ final class TarWriter
     }
 
     /**
-     * Ends the archive with its two empty blocks and closes it.
+     * Ends the archive with its two empty blocks, closes it and gives it its path.
      */
     public function close(): void
     {
         $this->write(str_repeat("\0", 1024));
         fclose($this->stream);
+        $this->done = true;
+
+        if (!@rename($this->temporary, $this->file)) {
+            unlink($this->temporary);
+
+            throw BackupFailed::because(\sprintf('The archive %s cannot be written.', $this->file));
+        }
+    }
+
+    /**
+     * Gives the archive up: its temporary file is removed and its path left as it was. Nothing happens once it is
+     * closed.
+     */
+    public function discard(): void
+    {
+        if ($this->done) {
+            return;
+        }
+
+        $this->done = true;
+        fclose($this->stream);
+        unlink($this->temporary);
     }
 
     private function write(string $data): void

@@ -4,12 +4,13 @@
 
 The suite `tests/Unit` tests the domain — the bounds of a period, its buckets, the limits of a metric and of a set of
 series —; the presets in a time zone and the periods before them; the sources, dashboards and schedules of the
-configuration; the SVG images and the bars; metrics and their changes in several locales; requests and jobs written
-and read back, and every shape refused; the reports bounded and checked row by row; the runner with its deliveries
-and failures; the formats, formula cells included; the directory and memory stores against one contract, identifiers
-out of shape included; the queue, the handlers and the schedule; the deliveries; the components and the access to a
-restricted dashboard; the downloads, the command and the EasyAdmin link; the configuration, the services and the keys
-of the tagged services.
+configuration; the SVG images and the bars; metrics and their changes in several locales; requests and jobs written and
+read back, and every shape refused; the reports bounded and checked row by row; the runner with its deliveries and
+failures; the formats, formula cells included; the directory and memory stores against one contract, identifiers out of
+shape included, files private while they are written (fixture `WatchedStream`), an open directory narrowed or refused,
+two files kept at the same moment and a failure that leaves nothing; the queue, the handlers and the schedule; the
+deliveries; the components and the access to a restricted dashboard; the downloads, the command and the EasyAdmin link;
+the configuration, the services and the keys of the tagged services.
 
 The suite `tests/Functional` boots a kernel with TwigComponent, LiveComponent, Messenger on its synchronous transport
 and Mailer on its null transport, renders a dashboard, a live dashboard, a metric and a chart, and runs a scheduled

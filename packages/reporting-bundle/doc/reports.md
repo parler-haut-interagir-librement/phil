@@ -116,7 +116,10 @@ leaves its file in the export store, for the application to hand out by its iden
 | An export that cannot be written: the file not created, or its stream not flushed and closed, as on a full disk | `ExportFailed`, retried by Messenger; the file cut short is removed, the job stays. |
 
 The `directory` store keeps each job as a JSON file and each export as a file, named by 32 random hexadecimal digits,
-in a directory readable by its owner only; an identifier of another shape never reaches the disk. Nothing is
+in a directory readable by its owner only; an identifier of another shape never reaches the disk. Each file is
+written as a temporary file of the directory, `.phil-` followed by random characters, created `0600` by `tempnam()`,
+then given its name in one step once it is whole: no other user reads a job or an export at any moment, and a file
+cut short is never one of the store. Nothing is
 unserialized: a file `ReportJob::toArray()` did not write is refused. The `memory` store serves the tests and the
 `sync://` transport, and is emptied when the container is reset.
 

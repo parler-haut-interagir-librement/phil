@@ -159,7 +159,9 @@ final class PhilUploadScanBundleTest extends TestCase
     {
         $default = $this->load([]);
         self::assertSame(FilesystemQuarantine::class, (string) $default->getAlias(Quarantine::class));
-        self::assertEquals(['%kernel.project_dir%/var/quarantine', new Reference('clock', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $default->getDefinition(FilesystemQuarantine::class)->getArguments());
+        self::assertEquals(['%kernel.project_dir%/var/quarantine', new Reference('clock', ContainerInterface::NULL_ON_INVALID_REFERENCE), true], $default->getDefinition(FilesystemQuarantine::class)->getArguments());
+
+        self::assertFalse($this->load(['quarantine' => ['tighten_open_directory' => false]])->getDefinition(FilesystemQuarantine::class)->getArgument(2));
 
         $service = $this->load(['quarantine' => ['service' => 'app.quarantine']]);
         self::assertSame('app.quarantine', (string) $service->getAlias(Quarantine::class));

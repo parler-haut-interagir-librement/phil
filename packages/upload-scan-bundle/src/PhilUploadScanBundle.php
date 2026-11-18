@@ -57,6 +57,7 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_it
  *     on_error: reject                # or accept_and_flag
  *     quarantine:
  *         directory: '%kernel.project_dir%/var/quarantine'
+ *         tighten_open_directory: true  # false refuses a directory open to other users
  *         retention_days: 30          # read by phil:upload-scan:purge-quarantine
  *     rescan:
  *         transport: async            # RescanFile routed to this Messenger transport
@@ -138,6 +139,10 @@ final class PhilUploadScanBundle extends AbstractBundle
                             ->defaultValue('%kernel.project_dir%/var/quarantine')
                             ->cannotBeEmpty()
                         ->end()
+                        ->booleanNode('tighten_open_directory')
+                            ->info('Whether a directory open to its group or to other users is narrowed to its owner; false refuses it.')
+                            ->defaultTrue()
+                        ->end()
                         ->scalarNode('service')
                             ->info('The id of a Quarantine service, instead of the directory.')
                             ->defaultNull()
@@ -197,7 +202,7 @@ final class PhilUploadScanBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{scanner: string, clamd: array{address: string, timeout: float, connect_timeout: float, chunk_bytes: int}, max_bytes: int, on_error: string, quarantine: array{enabled: bool, directory: string, service: ?string, retention_days: int<1, max>}, rescan: array{transport: ?string}, admin: array{role: string, layout: string, page_size: int<1, 500>}, integrations: array{media: string, monitoring: string}} $config */
+        /** @var array{scanner: string, clamd: array{address: string, timeout: float, connect_timeout: float, chunk_bytes: int}, max_bytes: int, on_error: string, quarantine: array{enabled: bool, directory: string, tighten_open_directory: bool, service: ?string, retention_days: int<1, max>}, rescan: array{transport: ?string}, admin: array{role: string, layout: string, page_size: int<1, 500>}, integrations: array{media: string, monitoring: string}} $config */
         $services = $container->services();
         $adapter = \in_array($config['scanner'], self::ADAPTERS, true) ? $config['scanner'] : null;
 
@@ -236,7 +241,7 @@ final class PhilUploadScanBundle extends AbstractBundle
         $quarantine = $this->quarantine($config['quarantine'], $builder);
 
         if (FilesystemQuarantine::class === $quarantine) {
-            $services->set(FilesystemQuarantine::class)->args([$config['quarantine']['directory'], service('clock')->nullOnInvalid()]);
+            $services->set(FilesystemQuarantine::class)->args([$config['quarantine']['directory'], service('clock')->nullOnInvalid(), $config['quarantine']['tighten_open_directory']]);
         }
 
         if (null !== $quarantine) {
@@ -343,7 +348,7 @@ final class PhilUploadScanBundle extends AbstractBundle
      * The id of the quarantine service, or `null` without one. The default directory is refused under `public/`: a
      * quarantined file is never served.
      *
-     * @param array{enabled: bool, directory: string, service: ?string, retention_days: int<1, max>} $config
+     * @param array{enabled: bool, directory: string, tighten_open_directory: bool, service: ?string, retention_days: int<1, max>} $config
      */
     private function quarantine(array $config, ContainerBuilder $builder): ?string
     {

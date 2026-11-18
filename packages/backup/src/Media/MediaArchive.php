@@ -9,6 +9,7 @@ use Generator;
 use Phil\Backup\Exception\BackupFailed;
 use Phil\Backup\Exception\InvalidBackupValue;
 use SplFileInfo;
+use Throwable;
 
 /**
  * The media files of an application — uploads, generated images, documents — kept beside its database backup as
@@ -43,11 +44,26 @@ final readonly class MediaArchive
     /**
      * Writes every directory to the archive, each directory followed by its entries sorted by name, so that the same
      * files give the same archive, and gives the number of files back. The tree is walked one directory at a time, as
-     * it is written: only the names of the directories being walked are held in memory, never the whole tree.
+     * it is written: only the names of the directories being walked are held in memory, never the whole tree. The
+     * archive is readable by its owner alone from the moment it exists, and a failure leaves nothing behind.
      */
     public function write(string $file): int
     {
         $writer = TarWriter::create($file);
+
+        try {
+            $files = $this->archive($writer);
+        } catch (Throwable $throwable) {
+            $writer->discard();
+
+            throw $throwable;
+        }
+
+        return $files;
+    }
+
+    private function archive(TarWriter $writer): int
+    {
         $files = 0;
 
         foreach ($this->directories as $name => $directory) {

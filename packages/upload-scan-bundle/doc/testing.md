@@ -4,13 +4,15 @@
 
 The suite `tests/Unit` tests the `UploadScanner` — every decision, the scan and the quarantine of the whole stream
 wherever it stands, a stream that cannot be read again, a quarantine that fails, the events —; the rescan handler and
-its message; the filesystem quarantine, its permissions, its record and its failures; its inventory — the order of the
-records, their pages, a record that cannot be read, identifiers that are not the quarantine's, a deletion with or
-without its file —; the administration page rendered through Twig, its pages, its escaping, its CSRF token, its role
-and its log, and the EasyAdmin menu link; the constraint through Symfony's validator; the media, document and
-monitoring adapters; the retention, its pages, its bound, its dry run and its command; `FileRescanned`; and the
-wiring of the bundle, on the `ContainerBuilder` and on a compiled container, the inventory given or the page and the
-purge removed by its compiler pass, and the route of `RescanFile` added to Messenger's.
+its message; the filesystem quarantine, its permissions while a file is copied (fixture `WatchedStream`) and once it is
+kept, an open directory narrowed or refused, two files kept at the same moment, its record and its failures, none
+leaving a file; its inventory — the order of the records, their pages, a record that cannot be read, identifiers that
+are not the quarantine's, a deletion with or without its file —; the administration page rendered through Twig, its
+pages, its escaping, its CSRF token, its role and its log, and the EasyAdmin menu link; the constraint through Symfony's
+validator; the media, document and monitoring adapters; the retention, its pages, its bound, its dry run and its
+command; `FileRescanned`; and the wiring of the bundle, on the `ContainerBuilder` and on a compiled container, the
+inventory given or the page and the purge removed by its compiler pass, and the route of `RescanFile` added to
+Messenger's.
 
 The suite `tests/Functional` boots a small application — FrameworkBundle, TwigBundle, Symfony Security with HTTP
 Basic — and follows a file the whole way: sent to an upload page that validates it with `#[CleanFile]`, refused and

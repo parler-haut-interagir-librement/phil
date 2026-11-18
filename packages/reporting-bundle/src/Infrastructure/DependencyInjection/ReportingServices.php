@@ -63,7 +63,7 @@ use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
  * the deliveries, the command and the downloads when their Symfony packages are there; the PNG charts when the resvg
  * extension is loaded and fonts are listed.
  *
- * @phpstan-type Config array{timezone: string, chart: array{width: int, height: int}, png: array{fonts: list<string>, scale: int<1, 4>, max_pixels: int}, max_rows: int, store: string, directory: string, keep_delivered: bool, mail: array{enabled: bool, from: string}, notification: array{enabled: bool, channels: list<string>}, dashboards: array<string, mixed>, schedules: array<string, mixed>}
+ * @phpstan-type Config array{timezone: string, chart: array{width: int, height: int}, png: array{fonts: list<string>, scale: int<1, 4>, max_pixels: int}, max_rows: int, store: string, directory: string, tighten_open_directory: bool, keep_delivered: bool, mail: array{enabled: bool, from: string}, notification: array{enabled: bool, channels: list<string>}, dashboards: array<string, mixed>, schedules: array<string, mixed>}
  */
 final class ReportingServices
 {
@@ -124,7 +124,7 @@ final class ReportingServices
             ->setArguments([$config['schedules'], new Reference(Periods::class)])
             ->setPublic(true);
 
-        self::stores($container, $config['store'], $config['directory']);
+        self::stores($container, $config['store'], $config['directory'], $config['tighten_open_directory']);
 
         $container->register(ReportRunner::class, ReportRunner::class)
             ->setArguments([
@@ -179,7 +179,7 @@ final class ReportingServices
         return new ServiceLocatorArgument(new TaggedIteratorArgument($tag, 'key', true));
     }
 
-    private static function stores(ContainerBuilder $container, string $store, string $directory): void
+    private static function stores(ContainerBuilder $container, string $store, string $directory, bool $tighten): void
     {
         if ('memory' === $store) {
             $container->register(InMemoryJobStore::class, InMemoryJobStore::class)->addTag('kernel.reset', ['method' => 'reset']);
@@ -190,8 +190,8 @@ final class ReportingServices
             return;
         }
 
-        $container->register(DirectoryJobStore::class, DirectoryJobStore::class)->setArguments([$directory.'/jobs']);
-        $container->register(DirectoryExportStore::class, DirectoryExportStore::class)->setArguments([$directory.'/exports']);
+        $container->register(DirectoryJobStore::class, DirectoryJobStore::class)->setArguments([$directory.'/jobs', $tighten]);
+        $container->register(DirectoryExportStore::class, DirectoryExportStore::class)->setArguments([$directory.'/exports', $tighten]);
         $container->setAlias(JobStore::class, DirectoryJobStore::class)->setPublic(true);
         $container->setAlias(ExportStore::class, DirectoryExportStore::class)->setPublic(true);
     }

@@ -27,6 +27,18 @@ final class Files
         return false === $files ? [] : $files;
     }
 
+    /**
+     * The names in the directory, hidden ones too, sorted.
+     *
+     * @return list<string>
+     */
+    public static function entries(string $directory): array
+    {
+        $entries = scandir($directory);
+
+        return array_values(array_diff(false === $entries ? [] : $entries, ['.', '..']));
+    }
+
     public static function remove(string $path): void
     {
         if (is_dir($path) && !is_link($path)) {

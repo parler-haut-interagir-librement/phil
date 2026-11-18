@@ -12,6 +12,7 @@ phil_reporting:
     max_rows: 100000                 # the most rows a report exports, 1 to 10 000 000
     store: directory                 # or memory, for the tests and the sync transport
     directory: '%kernel.project_dir%/var/phil_reporting'
+    tighten_open_directory: true     # false refuses a directory open to other users instead of narrowing it
     keep_delivered: false            # whether a delivered export stays in the export store
     mail:
         enabled: true

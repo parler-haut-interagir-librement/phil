@@ -22,6 +22,7 @@ use Phil\Backup\Storage\BackupSet;
 use Phil\Backup\Tests\Unit\Fixture\Files;
 use Phil\Backup\Tests\Unit\Fixture\ProcessRunner;
 use Phil\Backup\Tests\Unit\Fixture\RecordingRunner;
+use Phil\Backup\Tests\Unit\Fixture\WatchingClient;
 use Phil\Backup\Verification;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -176,6 +177,69 @@ final class BackupsTest extends TestCase
         }
     }
 
+    public function testEveryFileOfASetIsPrivateWhileItIsWrittenAndAppearsWhole(): void
+    {
+        foreach ([null, new BackupCipher(BackupKey::generate())] as $cipher) {
+            $seen = [];
+            $client = new WatchingClient($this->client, function (string $file) use (&$seen): void {
+                $seen[] = [\dirname($file), str_starts_with(basename($file), '.phil-backup-'), fileperms($file) & 0o777, Files::glob($this->directory.'/backup/*')];
+            });
+
+            $set = new Backups($client, $this->backups, $cipher, $this->media)->create(new DateTimeImmutable($cipher instanceof BackupCipher ? '2026-11-08 03:15:00 UTC' : '2026-11-07 03:15:00 UTC'));
+
+            self::assertSame([[$this->directory.'/backup', true, 0o600, $seen[0][3]]], $seen);
+            self::assertNotContains($set->database, $seen[0][3], 'The set has no file while its database is written.');
+            self::assertSame(0o600, fileperms($set->database) & 0o777);
+            self::assertSame(0o600, fileperms((string) $set->media) & 0o777);
+            self::assertSame([], Files::glob($this->directory.'/backup/.phil-*'));
+        }
+    }
+
+    public function testAnOpenBackupDirectoryIsNarrowedBeforeTheSetIsWritten(): void
+    {
+        mkdir($this->directory.'/backup', 0o755);
+        chmod($this->directory.'/backup', 0o755);
+        $set = new Backups($this->client, $this->backups, null, $this->media)->create(new DateTimeImmutable('2026-11-07 03:15:00 UTC'));
+
+        self::assertSame(0o700, fileperms($this->directory.'/backup') & 0o777);
+        self::assertFileExists($set->database);
+    }
+
+    public function testAnotherBackupOfTheSameNameIsNeverReplacedNorRemoved(): void
+    {
+        $at = new DateTimeImmutable('2026-11-07 03:15:00 UTC');
+        $database = $this->directory.'/backup/app-20261107-031500.sqlite';
+        $client = new WatchingClient($this->client, static function () use ($database): void {
+            file_put_contents($database, 'the other backup');
+        });
+
+        try {
+            new Backups($client, $this->backups, null, $this->media)->create($at);
+            self::fail('The name was taken while the backup was written.');
+        } catch (BackupFailed $backupFailed) {
+            self::assertSame(\sprintf('The backup %s already exists: it is never replaced.', $database), $backupFailed->getMessage());
+        }
+
+        self::assertSame('the other backup', file_get_contents($database));
+        self::assertSame([basename($database)], Files::entries($this->directory.'/backup'));
+
+        unlink($database);
+        $media = $this->directory.'/backup/app-20261107-031500.media.tar';
+        $client = new WatchingClient($this->client, static function () use ($media): void {
+            file_put_contents($media, 'the other archive');
+        });
+
+        try {
+            new Backups($client, $this->backups, null, $this->media)->create($at);
+            self::fail('The name of the archive was taken while the backup was written.');
+        } catch (BackupFailed $backupFailed) {
+            self::assertSame(\sprintf('The backup %s already exists: it is never replaced.', $media), $backupFailed->getMessage());
+        }
+
+        self::assertSame('the other archive', file_get_contents($media));
+        self::assertSame([basename($media)], Files::entries($this->directory.'/backup'), 'The database file of the failed set is removed, the other archive kept.');
+    }
+
     public function testAFailedMediaArchiveRemovesTheDatabaseFileToo(): void
     {
         if (0 === posix_geteuid()) {
@@ -190,6 +254,7 @@ final class BackupsTest extends TestCase
             self::fail('The media directory cannot be read.');
         } catch (BackupFailed $backupFailed) {
             self::assertStringStartsWith('The media file ', $backupFailed->getMessage());
+            self::assertSame([], Files::glob($this->directory.'/backup/.phil-*'), 'The temporary files are removed before the failure is known.');
         }
 
         self::assertSame([], Files::glob($this->directory.'/backup/*'));

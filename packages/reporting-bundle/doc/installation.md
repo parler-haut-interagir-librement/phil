@@ -61,6 +61,9 @@ bars' table is hidden by the stylesheet, `phil-reporting-bars__caption`, for scr
 ## The directory of the claim check
 
 The `directory` store keeps the jobs and the exports under `%kernel.project_dir%/var/phil_reporting`, created
-readable by its owner only. The worker that runs the reports and the code that queues them must share it: on several
+readable by its owner only (`0700`). A directory that already exists and is open to its group or to other users is
+narrowed to `0700` before a file is kept in it; with `tighten_open_directory: false`, or when it cannot be narrowed
+because another user owns it, keeping a job or an export fails with an exception that names the directory and its
+mode. The worker that runs the reports and the code that queues them must share it: on several
 machines, alias `JobStore` and `ExportStore` to services of the application, as [Extension points](extension-points.md)
 shows.

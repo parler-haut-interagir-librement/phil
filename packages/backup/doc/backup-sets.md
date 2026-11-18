@@ -25,16 +25,28 @@ new Backups(
 | `verify($set, $scratch = null)` | The restore test; see [restore-tests.md](restore-tests.md) |
 
 A set that fails half way — the database written, the media archive not — is removed whole: no file of a failed
-backup is left to be mistaken for a good one.
+backup is left to be mistaken for a good one, and no temporary file either.
 
 ## The directory
 
-`BackupDirectory($path)` is created on first use, readable by its owner alone (`0700`). Every file of a set is
-narrowed to `0600` wherever it is written. **A backup holds every person's data**: keep the directory out of version
-control and out of web roots, and copy the sets off the machine with tools that keep them private.
+`BackupDirectory($path, $tightenOpenDirectory = true)` is created on first use, readable by its owner alone
+(`0700`). **A backup holds every person's data**: keep the directory out of version control and out of web roots, and
+copy the sets off the machine with tools that keep them private.
 
-A copy in clear exists only while a file is encrypted, decrypted or tested, as a temporary file of the directory,
-`.phil-backup-` followed by random characters, created `0600` by `tempnam()` and removed whatever happens.
+A directory that already exists and is open to its group or to other users — a mode such as `0755` — is narrowed to
+`0700` before anything is written in it. When it cannot be narrowed, because another user owns it, or when
+`tightenOpenDirectory` is false, the backup fails with a `BackupFailed` that names the directory and its mode, and
+nothing is written. Finding, listing and reading sets never change the directory's mode.
+
+Every file is written as a temporary file of the directory, `.phil-backup-` followed by random characters, created
+`0600` by `tempnam()`: no other user can read a byte of it at any moment. The temporary file of a set's file is
+then given its name in one step, with a hard link, so the file appears whole and never replaces an existing file:
+two backups that pick the same name at the same moment fail rather than overwrite each other, and the one that fails
+removes only its own files. On a file system without hard links, the temporary file is renamed instead. A copy in
+clear exists only while a file is encrypted, decrypted or tested, as another temporary file of the directory. Every
+temporary file is removed whatever happens.
+
+A directory reached through a symbolic link is used where the link points: its temporary files are created there.
 
 ## Names
 

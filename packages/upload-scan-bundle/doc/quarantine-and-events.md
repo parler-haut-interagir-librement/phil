@@ -22,7 +22,14 @@ var/quarantine/                              drwx------
 
 - The identifier is 32 random hexadecimal digits. Nothing the sender chose becomes a path: the name they gave is only
   a field of the record, its control characters removed, cut to 255 bytes.
-- The directory is created readable by its owner only, each file read and written by its owner only.
+- The directory is created readable by its owner only (`0700`), each file read and written by its owner only
+  (`0600`) from the moment it exists: the copy and the record are written as temporary files of the directory,
+  `.phil-quarantine-` followed by random characters, created `0600` by `tempnam()`, then given their names in one
+  step, the record last. A copy that fails leaves neither file, nor a temporary one.
+- A directory that already exists and is open to its group or to other users — created by hand with `0755`, or
+  mounted so — is narrowed to `0700` before a file is kept in it. When it cannot be narrowed, because another user
+  owns it, or when `tighten_open_directory` is false, `QuarantineFailed` names the directory and its mode, and nothing
+  is written. A directory reached through a symbolic link is used where the link points.
 - A directory under `public/` is refused when the container is built, and no route of the bundle serves what the
   quarantine holds: an infected file is never downloaded from the site. Keep the directory out of backups that are
   restored to places the web server serves.

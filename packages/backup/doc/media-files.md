@@ -17,7 +17,11 @@ machine restores on another whose directories are elsewhere, provided the names 
 
 ## What is archived
 
-`write($file)` writes one POSIX ustar archive, readable by its owner alone, and gives the number of files back:
+`write($file)` writes one POSIX ustar archive, readable by its owner alone from its first byte, and gives the number
+of files back. The archive is written as a temporary file beside `$file`, `.phil-tar-` followed by random characters,
+created `0600`, and takes its path in one step once it is complete; a failure removes the temporary file and leaves
+`$file` as it was. `TarWriter` does the same on its own: `close()` gives the archive its path, `discard()` gives it up,
+and a writer neither closed nor discarded removes its temporary file when it is destroyed. The archive holds:
 
 - every directory and regular file under each directory, each directory followed by its entries sorted by name, in
   byte order, so that the same files give the same archive, with their permission bits and modification times;

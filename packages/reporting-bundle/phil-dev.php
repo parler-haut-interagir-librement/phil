@@ -26,11 +26,18 @@ return [
                     '\\$stream->close\\(\\);',
                     '\\$content->close\\(\\);',
                     '\\$target->close\\(\\);',
+                    '\\$closed = fclose\\(\\$handle\\);',
                 ],
             ],
             // A stream its opener closes as soon as it is done with it — a file just written, the file an export command
             // wrote: a stream left open is closed when it is collected, so no test sees the difference, but a worker
             // that runs for days would hold one descriptor per report until then.
+            // The stat cache of PHP goes stale only when another process changes the directory: the functions of PHP
+            // that change a file clear it themselves, so no test of one process sees the difference. A long-running
+            // worker does.
+            'FunctionCallRemoval' => [
+                'ignoreSourceCodeByRegex' => ['clearstatcache\\(true, \\$this->path\\);'],
+            ],
             'MethodCallRemoval' => [
                 'ignoreSourceCodeByRegex' => [
                     '\\$target->close\\(\\);',

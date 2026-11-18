@@ -23,6 +23,11 @@ use UnexpectedValueException;
  * and written by its owner only, beside `<id>.json`, which holds the name it was sent under, the signature found and
  * when it was kept. The identifier is 32 random hexadecimal digits; nothing the sender chose ever becomes a path.
  *
+ * A directory that already exists and is open to its group or to other users is narrowed to 0700 before a file is
+ * kept in it, or refused when it cannot be narrowed or when `tightenOpenDirectory` is false. Both files are written
+ * as temporary files of the directory, readable by their owner from the moment they exist, then given their names
+ * in one step, the record last; a failure leaves neither behind.
+ *
  * Its inventory lists the records, the most recently kept first by the time of their file, reads one by its
  * identifier — anything else than 32 hexadecimal digits names nothing — and deletes a file with its record. A record
  * that cannot be read is still listed, under an empty name and the time of its file, so that it can be deleted.
@@ -39,40 +44,52 @@ final readonly class FilesystemQuarantine implements Quarantine, QuarantineInven
     public function __construct(
         private string $directory,
         private ?ClockInterface $clock = null,
+        private bool $tightenOpenDirectory = true,
     ) {
     }
 
     #[Override]
     public function isolate(mixed $stream, string $name, ScanResult $result): string
     {
-        if (!is_dir($this->directory) && !$this->quietly(fn (): bool => mkdir($this->directory, 0o700, true))) {
-            throw QuarantineFailed::because(\sprintf('The quarantine directory %s cannot be created.', $this->directory));
-        }
-
+        $this->prepare();
         $id = sodium_bin2hex(random_bytes(16));
-        $file = $this->directory.'/'.$id.'.quarantine';
-        $target = $this->quietly(static fn (): mixed => fopen($file, 'x'));
-
-        if (!\is_resource($target)) {
-            throw QuarantineFailed::because(\sprintf('The quarantine directory %s does not accept files.', $this->directory));
-        }
-
-        chmod($file, 0o600);
+        $content = $this->temporary();
+        $record = null;
 
         try {
-            $copied = \is_resource($stream) && false !== $this->quietly(static fn (): int|false => stream_copy_to_stream($stream, $target));
+            $target = $this->quietly(static fn (): mixed => fopen($content, 'w'));
+
+            if (!\is_resource($target)) {
+                throw QuarantineFailed::because(\sprintf('The quarantine directory %s does not accept files.', $this->directory));
+            }
+
+            try {
+                $copied = \is_resource($stream) && false !== $this->quietly(static fn (): int|false => stream_copy_to_stream($stream, $target));
+            } finally {
+                fclose($target);
+            }
+
+            $record = $this->temporary();
+            $json = json_encode([
+                'name' => substr((string) preg_replace('/[\x00-\x1F\x7F]/', '', $name), 0, self::NAME_BYTES),
+                'signature' => $result->signature,
+                'quarantined_at' => ($this->clock?->now() ?? new DateTimeImmutable())->format(DateTimeInterface::ATOM),
+            ], \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_THROW_ON_ERROR);
+
+            if (!$copied || false === $this->quietly(static fn (): int|false => file_put_contents($record, $json."\n"))) {
+                throw QuarantineFailed::because(\sprintf('The file %s could not be written whole to the quarantine.', $id));
+            }
+
+            if (!$this->publish($content, $id.'.quarantine') || !$this->publish($record, $id.'.json')) {
+                $this->quietly(fn (): bool => unlink($this->directory.'/'.$id.'.quarantine'));
+                throw QuarantineFailed::because(\sprintf('The file %s could not be written whole to the quarantine.', $id));
+            }
         } finally {
-            fclose($target);
-        }
-
-        $record = json_encode([
-            'name' => substr((string) preg_replace('/[\x00-\x1F\x7F]/', '', $name), 0, self::NAME_BYTES),
-            'signature' => $result->signature,
-            'quarantined_at' => ($this->clock?->now() ?? new DateTimeImmutable())->format(DateTimeInterface::ATOM),
-        ], \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_THROW_ON_ERROR);
-
-        if (!$copied || false === file_put_contents($this->directory.'/'.$id.'.json', $record."\n")) {
-            throw QuarantineFailed::because(\sprintf('The file %s could not be written whole to the quarantine.', $id));
+            foreach ([$content, $record] as $temporary) {
+                if (null !== $temporary && is_file($temporary)) {
+                    unlink($temporary);
+                }
+            }
         }
 
         return $id;
@@ -146,6 +163,65 @@ final readonly class FilesystemQuarantine implements Quarantine, QuarantineInven
         }
 
         return $deleted;
+    }
+
+    /**
+     * Creates the directory readable by its owner only, or narrows it to its owner when it is open to others.
+     */
+    private function prepare(): void
+    {
+        if (!is_dir($this->directory) && !$this->quietly(fn (): bool => mkdir($this->directory, 0o700, true))) {
+            throw QuarantineFailed::because(\sprintf('The quarantine directory %s cannot be created.', $this->directory));
+        }
+
+        // Windows has no group or other users' bits to narrow.
+        if ('Windows' === \PHP_OS_FAMILY) {
+            return;
+        }
+
+        clearstatcache(true, $this->directory);
+        $mode = fileperms($this->directory) & 0o777;
+
+        if (0 === ($mode & 0o077)) {
+            return;
+        }
+
+        if (!$this->tightenOpenDirectory) {
+            throw QuarantineFailed::because(\sprintf('The quarantine directory %s is open to other users (mode %04o): narrow it to its owner, with mode 0700.', $this->directory, $mode));
+        }
+
+        if (!$this->quietly(fn (): bool => chmod($this->directory, 0o700))) {
+            throw QuarantineFailed::because(\sprintf('The quarantine directory %s is open to other users (mode %04o) and cannot be narrowed to its owner: give it to the user that runs the application, with mode 0700.', $this->directory, $mode));
+        }
+    }
+
+    /**
+     * A new empty file of the directory, readable and writable by its owner only from the moment it exists:
+     * tempnam() creates it so. It gives the directory without its symbolic links, and falls back to the system's
+     * when it cannot write in it: a file elsewhere is removed and refused.
+     */
+    private function temporary(): string
+    {
+        $directory = (string) realpath($this->directory);
+        $file = $this->quietly(static fn (): string|false => tempnam($directory, '.phil-quarantine-'));
+
+        if (false === $file || \dirname($file) !== $directory) {
+            if (\is_string($file)) {
+                unlink($file);
+            }
+
+            throw QuarantineFailed::because(\sprintf('The quarantine directory %s does not accept files.', $this->directory));
+        }
+
+        return $file;
+    }
+
+    /**
+     * Gives a temporary file its name in the directory, in one step.
+     */
+    private function publish(string $temporary, string $name): bool
+    {
+        return $this->quietly(fn (): bool => rename($temporary, $this->directory.'/'.$name));
     }
 
     /**
