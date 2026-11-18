@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=52ed3533446127b106a55285363639065bf00d1da647b683d0dcb7778d70e3c2 -->
+<!-- phil-dev source-sha256=97da72fe6fd9df0bffa6a87e47e7f3dd9f4b0c8f77408c58f9a35c87a322ee16 -->
 # Formations et attribution
 
 ## Formations
@@ -121,6 +121,14 @@ un échec d'écriture, de sorte que la tentative suivante s'exécute sur un gest
 l'application avait chargées de ce gestionnaire avant l'attribution sont détachées et relues. Un dépôt propre à
 l'application lève `StatusIndexTaken` quand son stockage refuse un certificat pour un indice ou un code qu'un autre
 détient, une fois prêt pour une autre tentative.
+
+Le verrou dure 30 secondes, pour lire l'indice suivant, signer l'attestation et stocker le certificat. Signer avec une
+clé locale prend des millisecondes; un signataire qui appelle un service de clés distant peut dépasser le verrou. Une
+attribution dont le verrou a expiré reste sûre : les index uniques du stockage sur l'indice d'état, le code et
+l'achèvement de la formation sont la revendication qui tranche, de sorte qu'une seconde attribution qui a pris le même
+indice entre-temps est refusée avec `StatusIndexTaken` et retentée, et qu'une seconde attribution sur le même
+achèvement trouve la première. Gardez le délai d'attente d'un signataire distant bien en dessous de 30 secondes, pour
+que les attributions empruntent rarement ce chemin.
 
 ## Après une attribution ou une révocation
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c8b9b95c74fca58b735b85fd0bc0b9499eb33cafa54b3bbde0bc7e670c92688c -->
+<!-- phil-dev source-sha256=6a2727f9abeb7364ca9460f4431f7fcfa4dfb9ae53d2c8f915745a9b6fcf34fa -->
 # Renouvellement des jetons
 
 `refresh.enabled` renouvelle le jeton d'accès avant son expiration, pour une application qui appelle une API au nom de
@@ -45,3 +45,18 @@ Gardez `lock_ttl` au-dessus du délai d'expiration du client HTTP, pour qu'un ve
 appel au fournisseur. Gardez `outcome_ttl` au-dessus de la plus longue requête que sert l'application : une requête
 commencée avant le remplacement, qui écrit sa session après, laisse l'ancien jeton derrière elle, et la requête suivante
 doit encore trouver le résultat.
+
+## Durée de vie des verrous
+
+Le verrou de renouvellement est tenu pendant l'appel au fournisseur, la seule étape qui peut durer : `lock_ttl`, 30
+secondes par défaut, est dimensionné au-dessus du délai d'expiration du client HTTP pour cette raison. Si un appel le
+dépasse malgré tout, le résultat en attente publié avant l'appel empêche que le jeton de renouvellement soit présenté
+deux fois : la requête qui prend le verrou expiré trouve le résultat en attente, laisse ses jetons tels quels et
+n'appelle pas le fournisseur. Le résultat en attente dure `outcome_ttl` secondes : gardez donc aussi `outcome_ttl`
+au-dessus de `lock_ttl`, ce que font les valeurs par défaut, 120 et 30.
+
+La garde contre la rediffusion des jetons de déconnexion tient son verrou, cinq secondes, pour une lecture et une
+écriture de la réserve. Elle renouvelle le verrou et vérifie qu'il est toujours le sien avant l'écriture : une lecture
+qui a dépassé le verrou, ou un stockage de verrous qui ne peut pas le confirmer, fait refuser la revendication, de sorte
+qu'un jeton de déconnexion est refusé plutôt qu'accepté deux fois, et que le fournisseur le livre de nouveau plus tard.
+Donnez à la réserve un délai d'expiration bien en dessous de cinq secondes.

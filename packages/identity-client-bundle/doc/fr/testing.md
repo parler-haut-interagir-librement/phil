@@ -1,12 +1,12 @@
-<!-- phil-dev source-sha256=42b833d7a9f244d963fbd16b0dd187fe1396eba54ad32a0227134f5052d5a146 -->
+<!-- phil-dev source-sha256=be1e97212ad8878314ff0313d81dd8573b376c2ae7c3d2d4609eb9447fe36165 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
 |---|---|
 | `VerifiedIdentity`, `AssuranceLevels` | Revendications gardées, adresses non vérifiées, l'échelle |
 | `DeclaredOriginsReturnToPolicy` | Cibles acceptées et chaque forme refusée, origines qu'une application peut déclarer |
-| `CacheReplayStore`, `EncryptedRefreshOutcomes` | Revendications, durées de vie, rien de lisible dans la réserve, entrées altérées |
-| `SerializedTokenRefreshListener` | La marge, une requête périmée, une attente, un délai dépassé, une révocation, un fournisseur injoignable |
+| `CacheReplayStore`, `EncryptedRefreshOutcomes` | Revendications, durées de vie, un verrou expiré pendant la lecture ou que son stockage ne peut pas confirmer, rien de lisible dans la réserve, entrées altérées |
+| `SerializedTokenRefreshListener` | La marge, une requête périmée, une attente, un délai dépassé, une révocation, un fournisseur injoignable, un verrou qui expire pendant l'appel au fournisseur |
 | `ReplayGuardedBackChannelLogout` | Jetons acceptés, réutilisation, échecs de signature et de revendication |
 | Les écouteurs et le voter | Chaque branche, le début de session, une élévation refusée |
 | `ClientConfiguration`, `FirewallComposer` | Valeurs par défaut fixées, configurations refusées, le bloc ajouté en tête |

@@ -1,17 +1,22 @@
-<!-- phil-dev source-sha256=2e5ffde0a2bbaa668445cbbb247bdda5de93830d450174659eaa485428191fcc -->
+<!-- phil-dev source-sha256=9c60e81eb7d99f47f639ae7f85010afe49426604b66a433d8649d748037cb7f6 -->
 # Tests
 
 ## Les tests du bundle
 
 `tests/Unit` couvre les clés, les détenteurs et les baux ainsi que leur association ; `EditLocks` — prise,
 renouvellement, attente, expiration, l'ensemble et ses parties, pulsations, reprise, politique, départ, purge, courses,
-et revendications abandonnées par le magasin, réessayées puis abandonnées — ; `BlockSaves` ; le même contrat sur les
-deux dépôts (celui de Doctrine sur SQLite en mémoire, ses tables créées à partir de l'association) ; les revendications
-Doctrine dans leur transaction, annulées lorsqu'elles échouent ; deux revendications concurrentes sur un fichier SQLite
-ouvert deux fois — l'ensemble et une partie revendiqués pendant que l'autre est au milieu de sa revendication, qui
-attend, abandonne, puis trouve le premier bail — ; les Turbo Streams et le diffuseur sur un hub d'enregistrement et sur
-un hub injoignable ; chaque réponse des points de terminaison et les jetons CSRF qu'ils acceptent et refusent ;
-`ClientConfig` ; ainsi que la configuration, les services et les réglages ajoutés au préalable du bundle.
+et revendications abandonnées par le magasin, réessayées puis abandonnées — ; `BlockSaves` — le bail vérifié et le bloc
+écrit dans une seule revendication, un bail repris avant la revendication et une revendication abandonnée qui n'écrit
+rien, une clôture plus récente pour chaque écriture — ; `Fence` ; les clés associées en `utf8mb4_bin` sur MySQL et
+MariaDB seulement ; le même contrat sur les deux dépôts, clôtures comprises (celui de Doctrine sur SQLite en mémoire,
+ses tables créées à partir de l'association) ; les revendications Doctrine dans leur transaction, annulées lorsqu'elles
+échouent ; deux revendications concurrentes sur un fichier SQLite ouvert deux fois — l'ensemble et une partie
+revendiqués pendant que l'autre est au milieu de sa revendication, qui attend, abandonne, puis trouve le premier bail ;
+une reprise demandée pendant qu'un enregistrement écrit son bloc sur la même connexion, qui attend le bloc, puis prend
+le bail, après quoi l'enregistrement suivant est refusé ; des clés qui ne diffèrent que par leur casse, louées
+séparément — ; les Turbo Streams et le diffuseur sur un hub d'enregistrement et sur un hub injoignable ; chaque réponse
+des points de terminaison et les jetons CSRF qu'ils acceptent et refusent ; `ClientConfig` ; ainsi que la configuration,
+les services et les réglages ajoutés au préalable du bundle.
 
 `tests/Integration` rejoue les mêmes revendications concurrentes sur MySQL et PostgreSQL, chacune ignorée sauf si
 `PHIL_TEST_MYSQL_URL` ou `PHIL_TEST_POSTGRESQL_URL` pointe vers un serveur ; `php vendor/bin/phil-dev services up`

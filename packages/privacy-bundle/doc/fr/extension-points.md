@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3a504b80b17583ae6d3c02c7f1333631a4d49733453516fc3ce36995907d8c02 -->
+<!-- phil-dev source-sha256=f85dae0e2c2e3d27faf1bec59c0ff62d19e234fc9028a558d4de8a090d639aa5 -->
 # Points d'extension
 
 Toute interface du bundle est un contrat, sous `Phil\PrivacyBundle\Application\Contract`, ou sous
@@ -24,7 +24,10 @@ Les invariants que garde un adaptateur :
 - construit à partir des modèles de lecture qu'interroge déjà le module, et non d'une vue parallèle ;
 - ne rend que des données sur `$subject` ;
 - rend des valeurs encodables en JSON (scalaires, tableaux, `null` ; formatez vous-même les dates) ;
-- en lecture seule : un export ne change rien.
+- en lecture seule : un export ne change rien ;
+- finit dans la durée de vie du verrou sous lequel il s'exécute, cinq minutes pour une demande sans compte ou un
+  téléchargement, quinze pour une suppression de compte : le verrou est renouvelé entre les modules, pas pendant l'un
+  d'eux ([Verrous et longs travaux](export-and-erasure.md#verrous-et-longs-travaux)).
 
 ```php
 use Phil\PrivacyBundle\Application\Contract\PersonalDataExporter;
@@ -70,7 +73,10 @@ Les invariants que garde un adaptateur :
 - le rapport nomme **chaque** stockage que détient le module, avec `Survives` ou `AwaitsExpiry` là où rien n'est retiré
   ;
 - lève en cas d'échec plutôt que de rendre un rapport partiel : `SubjectErasure` note l'exception et continue avec les
-  autres modules.
+  autres modules ;
+- finit dans la durée de vie du verrou sous lequel il s'exécute, cinq minutes pour une demande sans compte, quinze pour
+  une suppression de compte : un *worker* qui reprend un verrou perdu réexécute chaque effaceur, ce que l'idempotence
+  rend sûr ([Verrous et longs travaux](export-and-erasure.md#verrous-et-longs-travaux)).
 
 ```php
 use Phil\PrivacyBundle\Application\Contract\PersonalDataEraser;
@@ -160,8 +166,9 @@ Purge un stockage de ce qui a dépassé sa durée. Consommé par `RetentionRun`.
 
 Invariants : comparer strictement à la date limite (« plus ancien que »), en UTC ; ne purger que ce que couvre la règle
 quand plusieurs règles partagent un stockage ; pouvoir être relancé sans risque (une seconde exécution sur la même date
-limite ne purge rien de plus). Que la purge soit un `DELETE`, la suppression d'une partition ou celle d'un objet est le
-choix de l'adaptateur.
+limite ne purge rien de plus) ; finir dans l'heure du verrou de la tâche, qui est renouvelé entre les ordres et non
+pendant l'un d'eux, en purgeant un grand stockage par lots. Que la purge soit un `DELETE`, la suppression d'une
+partition ou celle d'un objet est le choix de l'adaptateur.
 
 ```php
 use Phil\PrivacyBundle\Application\Contract\RetentionPurger;

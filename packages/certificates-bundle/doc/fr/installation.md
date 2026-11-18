@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6ee874315c2a51264f941ac8e7b3a1834a21408d2fee1bb3b253d6af99fd613f -->
+<!-- phil-dev source-sha256=f59e10c95433ff0dd942369f1090e98b9d9e9a13aff74b8ccfaceff31229b697 -->
 # Installation
 
 ## Prérequis
@@ -46,6 +46,13 @@ l'application :
 bin/console doctrine:migrations:diff
 bin/console doctrine:migrations:migrate
 ```
+
+Sur MySQL et MariaDB, dont les collations par défaut ignorent la casse et les accents, `BinaryKeysListener` associe en
+`utf8mb4_bin` les clés que le registre consulte — le code, le titulaire et l'achèvement d'un certificat, le slug et la
+source d'achèvement d'une formation, le membre et la source d'une activité d'apprentissage —, de sorte que les membres
+`Alice` et `alice` ne lisent jamais les certificats l'un de l'autre. Les identifiants, que les clés étrangères
+référencent, gardent la collation de la table. L'écouteur est enregistré avec DoctrineBundle; la migration que
+`doctrine:migrations:diff` écrit modifie les colonnes d'un schéma existant.
 
 ## Les routes
 

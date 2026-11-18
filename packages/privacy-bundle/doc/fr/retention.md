@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=90a9349ade562f766b6ece0af162491b46c4d5e89282620b516029bada029f5e -->
+<!-- phil-dev source-sha256=6a78c5ecd3d6e6fe3d2a0a0fa8260bd2fc8cf3f7f2b6c4469b3fad067aa680ed -->
 # Calendrier de conservation et purges
 
 Le calendrier vient de la configuration ou d'une `RetentionScheduleSource` de l'application. Les adaptateurs
@@ -157,11 +157,13 @@ $purged = $run->run(new DateTimeImmutable());   // ['R-1' => 5, 'R-2' => 0]
 - `__construct(RetentionScheduleSource $schedule, iterable<RetentionPurger> $purgers)` — lève
   `MisconfiguredPrivacy::duplicatePurger()` quand deux purgeurs répondent d'un même stockage.
 - `orders(DateTimeImmutable $now): list<PurgeOrder>` — ce que purgerait une exécution, ou le refus ci-dessous.
-- `run(DateTimeImmutable $now): array<string, int>` — charge le calendrier, calcule les ordres de purge, puis :
+- `run(DateTimeImmutable $now, ?HeldLock $lock = null): array<string, int>` — charge le calendrier, calcule les ordres de
+  purge, puis :
   1. **vérifie que chaque ordre a un purgeur avant de purger quoi que ce soit**, et lève sinon
      `MisconfiguredPrivacy::missingPurger($store, $ruleIds)`. Une ligne de tâche sans rien derrière elle est une durée
      annoncée et non respectée ; purger d'abord les autres stockages la rapporterait comme un succès partiel ;
-  2. remet chaque ordre au purgeur de son stockage, dans l'ordre du calendrier ;
+  2. remet chaque ordre au purgeur de son stockage, dans l'ordre du calendrier, en renouvelant le verrou détenu avant
+     chacun et en levant `LockLost` avant l'ordre suivant dès qu'il est perdu ;
   3. rend les enregistrements purgés, par identifiant de règle.
 - Les lignes qui ne donnent aucune date limite ne sont pas vérifiées et ne reçoivent aucun ordre ; listez-les avec
   `jobsWithoutCutoff()` et exécutez-les ou rapportez-les à votre façon.
@@ -172,6 +174,11 @@ $purged = $run->run(new DateTimeImmutable());   // ['R-1' => 5, 'R-2' => 0]
 `RetentionJob` est l'exécution comme tâche : à l'instant présent, une à la fois sous un verrou, avec une ligne de
 journal par règle qui donne la règle et le compte, jamais ce qui a été purgé. Une seconde exécution pendant qu'une autre
 est en cours ne fait rien.
+
+Le verrou dure une heure et est renouvelé avant chaque ordre de purge : une exécution peut donc durer plus longtemps,
+pourvu que chaque ordre finisse dans l'heure. Une exécution dont le verrou a expiré et a été pris par une autre s'arrête
+avant son ordre suivant, journalise un avertissement et répond `null`, comme une exécution qui a trouvé le verrou pris
+([Verrous et longs travaux](export-and-erasure.md#verrous-et-longs-travaux)).
 
 - `bin/console phil:privacy:retention` liste ce que purgerait une exécution, et nomme les lignes de tâche sans date
   limite ; `--confirm` purge. Une ligne de tâche sans purgeur arrête la commande avant que quoi que ce soit soit purgé.

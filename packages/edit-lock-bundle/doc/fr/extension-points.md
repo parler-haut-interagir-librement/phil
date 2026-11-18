@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=df2fe87e01758079e193f5104150ab307a3c29158ed19a38aa89306b63c89367 -->
+<!-- phil-dev source-sha256=5bdb2ef7740eb3f9a3151cd62715b882f6aa38e7d41b70c80faec702f2228a8a -->
 # Points d'extension
 
 Ce qu'une application implémente, configure ou utilise. Les blocs sont lus dans des documents UJO (Universal JSON
@@ -35,8 +35,13 @@ magasin, les enregistrements sont seulement communiqués aux autres rédacteurs.
 
 | Méthode | Contrat |
 |---|---|
-| `save(string $resource, Block $block, string $list, ?string $after, Holder $holder): void` | Place le bloc dans le brouillon de la ressource, à la place de sa copie ou après `$after` dans `$list` ; appelée avant que l'enregistrement soit communiqué aux autres |
-| `remove(string $resource, string $blockId, Holder $holder): void` | Retire le bloc du brouillon |
+| `save(string $resource, Block $block, string $list, ?string $after, Holder $holder, Fence $fence): void` | Place le bloc dans le brouillon de la ressource, à la place de sa copie ou après `$after` dans `$list` ; appelée dans la revendication qui a vérifié le bail, avant que l'enregistrement soit communiqué aux autres |
+| `remove(string $resource, string $blockId, Holder $holder, Fence $fence): void` | Retire le bloc du brouillon, dans la revendication qui a vérifié le bail |
+
+Un magasin qui écrit sur la connexion des baux Doctrine écrit dans la transaction de la revendication. Un magasin qui
+peut appliquer une écriture plus tard conserve `$fence->number` avec le bloc et refuse une écriture dont le numéro n'est
+pas plus grand, par une écriture conditionnelle dont il vérifie le nombre de lignes ; `Fence::isNewerThan()` compare
+deux clôtures ([Les écritures sous un bail](blocks.md#les-écritures-sous-un-bail)).
 
 ## Ports avec des adaptateurs fournis
 
@@ -56,7 +61,8 @@ poussée.
 
 `Phil\EditLockBundle\Domain\Repository\LeaseRepository` — les baux ; Doctrine ou mémoire, selon `store`. Un magasin
 propre à l'application conserve les garanties de chaque méthode : `exclusively()` exécute une revendication pendant
-qu'aucune autre revendication sur la ressource ne s'exécute, `insert()` conserve un bail seulement si aucun n'est sur sa
+qu'aucune autre revendication sur la ressource ne s'exécute, `fence()` répond dans celle-ci un numéro plus grand que
+celui de toute revendication antérieure sur la ressource, `insert()` conserve un bail seulement si aucun n'est sur sa
 clé, `replace()` seulement si la version lue est encore celle qui est conservée, `delete()` seulement pour le détenteur
 qui le détient.
 
