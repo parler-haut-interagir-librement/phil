@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Phil\EditLockBundle\Tests\Unit\Infrastructure;
 
+use Closure;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\ORMSetup;
 use Phil\EditLockBundle\Domain\Model\Lease;
@@ -32,6 +34,20 @@ final class BinaryKeysListenerTest extends TestCase
         }
     }
 
+    public function testTheOptionsAFieldAlreadyHasAreKept(): void
+    {
+        $manager = $this->manager(['driver' => 'pdo_mysql', 'serverVersion' => '8.4.0'], static function (LoadClassMetadataEventArgs $event): void {
+            if (Lease::class === $event->getClassMetadata()->getName()) {
+                $event->getClassMetadata()->getFieldMapping('resource')->options = ['comment' => 'The leased resource.', 'collation' => 'utf8mb4_general_ci'];
+            }
+        });
+
+        self::assertSame(
+            ['charset' => 'utf8mb4', 'collation' => 'utf8mb4_bin', 'comment' => 'The leased resource.'],
+            $manager->getClassMetadata(Lease::class)->getFieldMapping('resource')->options,
+        );
+    }
+
     public function testTheOtherPlatformsKeepTheirMapping(): void
     {
         foreach ([['driver' => 'pdo_pgsql', 'serverVersion' => '17'], ['driver' => 'pdo_sqlite', 'memory' => true]] as $params) {
@@ -44,13 +60,28 @@ final class BinaryKeysListenerTest extends TestCase
 
     /**
      * @param array{driver: 'pdo_mysql'|'pdo_pgsql'|'pdo_sqlite', serverVersion?: string, memory?: bool} $params
+     * @param (Closure(LoadClassMetadataEventArgs): void)|null                                           $before a listener that runs before the one under test
      */
-    private function manager(array $params): EntityManager
+    private function manager(array $params, ?Closure $before = null): EntityManager
     {
         $config = ORMSetup::createAttributeMetadataConfig([\dirname(__DIR__, 3).'/src/Domain/Model', __DIR__], true);
         $config->enableNativeLazyObjects(true);
 
         $manager = new EntityManager(DriverManager::getConnection($params), $config);
+        if ($before instanceof Closure) {
+            $manager->getEventManager()->addEventListener(Events::loadClassMetadata, new class($before) {
+                public function __construct(
+                    private readonly Closure $before,
+                ) {
+                }
+
+                public function loadClassMetadata(LoadClassMetadataEventArgs $event): void
+                {
+                    ($this->before)($event);
+                }
+            });
+        }
+
         $manager->getEventManager()->addEventListener(Events::loadClassMetadata, new BinaryKeysListener());
 
         return $manager;

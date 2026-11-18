@@ -22,6 +22,7 @@ use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\FixedScheduleSource;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\InterruptingModule;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\RecordingLockStore;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\RecordingPurger;
+use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\ScriptedLockStore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
@@ -83,6 +84,16 @@ final class RetentionJobTest extends TestCase
         $held->release();
         self::assertNotNull($job->run());
         self::assertTrue($locks->createLock(RetentionJob::LOCK)->acquire());
+    }
+
+    public function testARunThatCannotTakeTheLockPurgesNothing(): void
+    {
+        $locks = new ScriptedLockStore();
+        $locks->grants = false;
+        $purger = new RecordingPurger('trash');
+
+        self::assertNull(new RetentionJob($this->retentionRun([$purger]), new LockFactory($locks), new MockClock())->run());
+        self::assertSame([], $purger->orders);
     }
 
     public function testTheLockIsReleasedWhenAPurgerFails(): void

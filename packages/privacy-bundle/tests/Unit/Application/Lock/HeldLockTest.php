@@ -10,6 +10,7 @@ use Phil\PrivacyBundle\Application\Lock\HeldLock;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\ExpiringLockStore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\LockInterface;
@@ -106,6 +107,28 @@ final class HeldLockTest extends TestCase
         }
 
         $held->release();
+    }
+
+    public function testALockTheStoreFailedToConfirmStaysLostAndIsNeitherRenewedNorReleased(): void
+    {
+        $lock = $this->createMock(LockInterface::class);
+        $lock->expects(self::once())->method('refresh')->willThrowException(new RuntimeException('The store is out of reach.'));
+        $lock->expects(self::never())->method('release');
+        $held = new HeldLock($lock);
+
+        try {
+            $held->renew();
+            self::fail('A lock the store cannot confirm is lost.');
+        } catch (LockLost) {
+        }
+
+        $this->expectException(LockLost::class);
+
+        try {
+            $held->renew();
+        } finally {
+            $held->release();
+        }
     }
 
     public function testALostLockStaysLostAndIsNeitherRenewedNorReleased(): void

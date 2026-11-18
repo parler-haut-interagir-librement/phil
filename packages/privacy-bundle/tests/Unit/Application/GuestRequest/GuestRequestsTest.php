@@ -31,6 +31,7 @@ use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\MessageLogger;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\RecordingEraser;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\RecordingLinkSender;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\RecordingLockStore;
+use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\ScriptedLockStore;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\SubjectRecordingEraser;
 use Phil\PrivacyBundle\Tests\Unit\Fixture\Unzip;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -178,6 +179,22 @@ final class GuestRequestsTest extends TestCase
         self::assertSame([300.0, 300.0, 300.0], $locks->lifetimes);
     }
 
+    public function testARequestWhoseLockCannotBeTakenIsNotRun(): void
+    {
+        $locks = new ScriptedLockStore();
+        $locks->grants = false;
+        $this->locks = new LockFactory($locks);
+        $exporter = new InterruptingModule('members', static function (): void {
+        });
+        $guests = $this->guests(exporters: [$exporter]);
+        $guests->submit(GuestRequestKind::Access, 'a@example.org', 'client');
+        [$request, $token] = $this->sender->sent[0];
+
+        self::assertNull($guests->access($request->id, $token));
+        self::assertSame(0, $exporter->calls);
+        self::assertNotNull($this->store->find($request->id));
+    }
+
     public function testAnAccessWhoseLockWasTakenOverStopsAndKeepsTheRequest(): void
     {
         $this->locks = new LockFactory(new ExpiringLockStore($this->clock));
@@ -198,6 +215,7 @@ final class GuestRequestsTest extends TestCase
         self::assertSame(0, $after->calls);
         self::assertNotNull($this->store->find($request->id), 'The request stays for the execution that holds the lock.');
         self::assertContains('Request without an account {id}: its lock was lost; the request is kept.', $this->logger->messages);
+        self::assertContains(['id' => $request->id], $this->logger->contexts);
     }
 
     public function testAnErasureWhoseLockWasTakenOverAfterItsLastModuleKeepsTheRequest(): void

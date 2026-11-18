@@ -18,6 +18,7 @@ use Phil\MonitoringBundle\Tests\Unit\Support\HookedHeartbeats;
 use Phil\MonitoringBundle\Tests\Unit\Support\InMemoryHeartbeats;
 use Phil\MonitoringBundle\Tests\Unit\Support\RecordingAdminNotifier;
 use Phil\MonitoringBundle\Tests\Unit\Support\RecordingNotifier;
+use Phil\MonitoringBundle\Tests\Unit\Support\ScriptedLockStore;
 use Phil\MonitoringBundle\Tests\Unit\Support\SlowNotifier;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -413,6 +414,33 @@ final class HeartbeatsTest extends TestCase
         self::assertTrue($locks->createLock(DeadManSwitch::LOCK_PREFIX.'report')->acquire());
     }
 
+    public function testARoundThatFindsTheLockTakenAlertsNothing(): void
+    {
+        $locks = new ScriptedLockStore();
+        $locks->grants = false;
+        $notifier = new RecordingNotifier();
+        $this->heartbeats->beat('report');
+        $this->clock->modify('+2 minutes');
+
+        self::assertSame([], new DeadManSwitch($this->heartbeats, $this->store, new LockFactory($locks), $notifier)->watch());
+        self::assertSame(0, $notifier->count());
+        self::assertFalse($this->store->isAlerted('report'));
+    }
+
+    public function testAnAlertThatOutlastedItsLockIsMarkedWithoutALogger(): void
+    {
+        $locks = new LockFactory(new ExpiringLockStore($this->clock));
+        $notifier = new SlowNotifier(function () use ($locks): void {
+            $this->clock->sleep(31);
+            self::assertTrue($locks->createLock(DeadManSwitch::LOCK_PREFIX.'report', 30.0, false)->acquire());
+        });
+        $this->heartbeats->beat('report');
+        $this->clock->modify('+2 minutes');
+
+        self::assertSame(['report'], new DeadManSwitch(new Heartbeats([new ExpectedTask('report', 60, 30)], $this->store, $this->clock), $this->store, $locks, $notifier)->watch());
+        self::assertTrue($this->store->isAlerted('report'));
+    }
+
     public function testALockStoreThatFailsIsLogged(): void
     {
         $failing = new class implements PersistingStoreInterface {
@@ -467,6 +495,9 @@ final class HeartbeatsTest extends TestCase
         self::assertSame([['error', 'The lock of the scheduled task {task} could not be taken.', 'report']], $logger->logs);
         self::assertSame(1, $notifier->count());
         self::assertFalse($this->store->isAlerted('report'));
+
+        self::assertSame([], new DeadManSwitch($this->heartbeats, $this->store, new LockFactory($failing), $notifier)->watch(), 'Without a logger, the round still goes on.');
+        self::assertSame(1, $notifier->count());
     }
 
     public function testTheCheckIsDegradedWhileATaskIsLate(): void

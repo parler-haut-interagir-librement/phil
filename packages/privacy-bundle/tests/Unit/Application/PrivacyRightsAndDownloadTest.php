@@ -20,6 +20,7 @@ use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\FixedExporter;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\InterruptingModule;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\RecordingConsentProofs;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\RecordingLockStore;
+use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\ScriptedLockStore;
 use Phil\PrivacyBundle\Tests\Unit\Fixture\Unzip;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -75,6 +76,17 @@ final class PrivacyRightsAndDownloadTest extends TestCase
         $held->release();
         self::assertNotNull($download->of(DataSubject::fromString('m1')));
         self::assertTrue($locks->createLock('phil_privacy.export.'.hash('xxh128', 'm1'))->acquire());
+    }
+
+    public function testAnExportThatCannotTakeTheLockExportsNothing(): void
+    {
+        $locks = new ScriptedLockStore();
+        $locks->grants = false;
+        $exporter = new InterruptingModule('members', static function (): void {
+        });
+
+        self::assertNull(new PersonalDataDownload(new SubjectExport([$exporter]), new LockFactory($locks), $this->package())->of(DataSubject::fromString('m1')));
+        self::assertSame(0, $exporter->calls);
     }
 
     public function testTheLockIsReleasedWhenTheDocumentCannotBeWritten(): void

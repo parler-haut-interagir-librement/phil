@@ -27,6 +27,7 @@ use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\MemoryAccountDeletions;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\MemoryExportArchive;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\RecordingEraser;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\RecordingLockStore;
+use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\ScriptedLockStore;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\StaleFirstRead;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -352,6 +353,21 @@ final class AccountDeletionsTest extends TestCase
         self::assertSame(DeletionPlace::Erased, $service->advance($deletion->id));
     }
 
+    public function testAStageWhoseLockCannotBeTakenDoesNothing(): void
+    {
+        $locks = new ScriptedLockStore();
+        $service = $this->service();
+        $deletion = $service->request($this->subject);
+        $this->clock->modify('+30 days');
+        $locks->grants = false;
+        $this->locks = new LockFactory($locks);
+
+        self::assertSame(DeletionPlace::Requested, $this->service()->advance($deletion->id));
+        self::assertSame(0, $this->eraser->calls);
+        self::assertSame([], $this->archive->files);
+        self::assertSame(DeletionPlace::Requested, $this->store->rows[$deletion->id]->getPlace());
+    }
+
     public function testTheRequestIsReadAgainOnceTheLockIsHeld(): void
     {
         $service = $this->service();
@@ -440,6 +456,22 @@ final class AccountDeletionsTest extends TestCase
         self::assertSame([], $this->archive->files);
         self::assertTrue($this->log->hasWarning('Account deletion {id}: its lock was lost; the stage stopped.'));
         self::assertSame(['id' => $deletion->id], $this->log->getRecords()[1]->context);
+    }
+
+    public function testARequestRemovedWhileItsLockWasLostAdvancesNowhere(): void
+    {
+        $this->locks = new LockFactory(new ExpiringLockStore($this->clock));
+        $id = '';
+        $removing = new InterruptingModule('members', function () use (&$id): void {
+            $this->takeOver();
+            unset($this->store->rows[$id]);
+        });
+        $service = $this->leasedService([$removing, new InterruptingModule('posts', static function (): void {
+        })], []);
+        $id = $service->request($this->subject)->id;
+        $this->clock->modify('+30 days');
+
+        self::assertNull($service->advance($id));
     }
 
     public function testAnExportWhoseLockWasTakenOverWhileItsArchiveWasWrittenIsNotMarkedExported(): void
