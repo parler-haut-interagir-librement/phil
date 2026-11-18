@@ -22,11 +22,13 @@ use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyTenantResolver;
 use Phil\ApiContractBundle\Infrastructure\Http\ProblemDetailsListener;
 use Phil\ApiContractBundle\Infrastructure\Http\TokenAttributeClientResolver;
 use Phil\ApiContractBundle\Infrastructure\HttpClient\DeprecationObservingHttpClient;
+use Phil\ApiContractBundle\Infrastructure\Messenger\TenantIdempotencyScopeMiddleware;
 use Phil\ApiContractBundle\Infrastructure\OpenApi\ContractVerifierFactory;
 use Phil\Idempotency\Store\CacheIdempotencyStore;
 use Phil\Idempotency\Store\DbalIdempotencyStore;
 use Phil\TenancyBundle\Application\TenantContext;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -115,6 +117,15 @@ final class PhilApiContractBundle extends AbstractBundle
                             ->info('The lock factory that makes a reservation in the cache pool atomic, on a store shared by every server.')
                             ->defaultValue('lock.factory')
                         ->end()
+                        ->arrayNode('messenger')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->booleanNode('tenant_scope')
+                                    ->info('Registers the Messenger middleware that puts the tenant of a received message into the scope of its IdempotencyStamp; needs PhilTenancyBundle.')
+                                    ->defaultFalse()
+                                ->end()
+                            ->end()
+                        ->end()
                     ->end()
                 ->end()
                 ->arrayNode('verification')
@@ -161,7 +172,7 @@ final class PhilApiContractBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{problem_details: array{paths: list<string>}, idempotency: array{ttl: int, reservation_ttl: int, anonymous: string, client_attribute: ?string, replayed_headers: list<string>, connection: ?string, cache_pool: ?string, lock_factory: string}, verification: array{document: ?string, level: string, fail_on: string, skip: list<string>}} $config */
+        /** @var array{problem_details: array{paths: list<string>}, idempotency: array{ttl: int, reservation_ttl: int, anonymous: string, client_attribute: ?string, replayed_headers: list<string>, connection: ?string, cache_pool: ?string, lock_factory: string, messenger: array{tenant_scope: bool}}, verification: array{document: ?string, level: string, fail_on: string, skip: list<string>}} $config */
         $services = $container->services();
         $clock = new Reference('clock');
 
@@ -183,6 +194,16 @@ final class PhilApiContractBundle extends AbstractBundle
             ->args([new Reference(Library::IDEMPOTENCY_STORE, ContainerInterface::NULL_ON_INVALID_REFERENCE), new Reference(IdempotencyScopeResolver::class), $config['idempotency']['ttl'], $clock, $config['idempotency']['replayed_headers'], $config['idempotency']['reservation_ttl']])
             ->tag('kernel.event_listener', ['event' => 'kernel.controller_arguments', 'method' => 'onControllerArguments', 'priority' => IdempotencyListener::PRIORITY])
             ->tag('kernel.event_listener', ['event' => 'kernel.response', 'method' => 'onResponse']);
+
+        if ($config['idempotency']['messenger']['tenant_scope']) {
+            $bundles = $builder->getParameterBag()->all()['kernel.bundles'] ?? null;
+
+            if (!\is_array($bundles) || !isset($bundles['PhilTenancyBundle'])) {
+                throw new InvalidConfigurationException('phil_api_contract.idempotency.messenger.tenant_scope reads the TenantStamp of phil/tenancy-bundle: enable PhilTenancyBundle, or turn the option off.');
+            }
+
+            $services->set(TenantIdempotencyScopeMiddleware::class);
+        }
 
         $services->set(DeprecationListener::class)
             ->tag('kernel.event_listener', ['event' => 'kernel.controller', 'method' => 'onController'])

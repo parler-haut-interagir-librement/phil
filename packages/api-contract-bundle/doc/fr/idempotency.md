@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d8792870def94d4f1c4dd2d3439b49deeef356421223e9b4c7a8062df4f00feb -->
+<!-- phil-dev source-sha256=11688da658870cd4431cbfbd24bb90be5667258cad23668c5ce1db2dfe4dba6a -->
 # Idempotence
 
 Un contrôleur marqué `#[Idempotent]` exige un en-tête `Idempotency-Key` et s'exécute une fois par clé : une nouvelle
@@ -9,7 +9,7 @@ contrôleur ; ses clés, ses empreintes, ses états et ses stockages y sont docu
 use Phil\ApiContractBundle\Infrastructure\Http\Idempotent;
 
 #[Route('/api/orders', methods: ['POST'])]
-#[Idempotent]                 // or #[Idempotent(ttl: 3600)], at least 1
+#[Idempotent]                 // or #[Idempotent(ttl: 3600)], at least 1, or #[Idempotent(anonymous: 'ip')]
 public function create(Request $request): Response
 ```
 
@@ -81,6 +81,41 @@ Un appelant qui n'est ni un utilisateur ni un client ne se distingue pas d'un au
   terminaison dont la réponse ne contient rien sur l'appelant, et réglez `trusted_proxies` de Symfony, sinon chaque
   appelant derrière le mandataire a son adresse.
 
+L'adresse, comme toute autre partie, entre dans la portée sous la forme de son SHA-256 : la table ne la contient jamais
+en clair. L'empreinte d'une adresse IPv4 peut encore être inversée en essayant chaque adresse ; la portée empêche donc de
+lire une adresse d'un coup d'œil, pas un lecteur déterminé de la table. Gardez une rétention courte sur de tels points
+de terminaison.
+
+### Appelants anonymes sur un point de terminaison
+
+`#[Idempotent(anonymous: …)]` remplace `idempotency.anonymous` pour son seul point de terminaison : `'ip'` ou `'refuse'`,
+ou un cas de `AnonymousCallers`. Toute autre chaîne est refusée à la lecture de l'attribut. Sans lui, le point de
+terminaison suit l'option : les appelants anonymes restent donc refusés partout, sauf si la configuration ou le point de
+terminaison en décide autrement.
+
+```php
+#[Route('/api/newsletter/subscriptions', methods: ['POST'])]
+#[Idempotent(anonymous: 'ip')]        // a guest form; the rest of the API keeps refusing guests
+public function subscribe(Request $request): Response
+```
+
+```php
+#[Idempotent(anonymous: AnonymousCallers::Refuse)]   // refused here even when the option says "ip"
+```
+
+L'écouteur met le choix du point de terminaison dans l'attribut de requête `IdempotencyListener::ANONYMOUS_CALLERS`
+avant de demander la portée, et seulement quand le point de terminaison en fait un ; `CallerScopeResolver` le lit à la
+place de l'option. Un résolveur de portée propre à l'application le lit de la même façon. Une valeur qui n'est pas un cas
+de `AnonymousCallers` y est ignorée : une valeur par défaut de route écrite comme une chaîne ne lève donc jamais le refus.
+
+Les compromis de `'ip'` sont ceux de l'option, pour ce seul point de terminaison :
+
+| Choisissez `'ip'` quand | Gardez le refus quand |
+|---|---|
+| Le point de terminaison accepte des invités par conception : un formulaire de contact, un abonnement, une commande publique avec sa propre confirmation | La réponse contient quoi que ce soit sur l'appelant : un compte, le détail d'une commande, un jeton |
+| La réponse conservée est la même pour quiconque envoie la même clé et le même corps | Des appelants arrivent derrière des adresses partagées — un mandataire d'entreprise, le NAT d'un opérateur, une école ou un café — et ne doivent pas voir les réponses des autres |
+| Une soumission en double est le tort à éviter, plus qu'une réponse partagée | `trusted_proxies` de Symfony n'est pas réglé, si bien que chaque appelant a l'adresse du mandataire |
+
 ### Plusieurs locataires
 
 Une application qui sert plusieurs locataires depuis un même stockage doit mettre le locataire dans la portée. Avec
@@ -108,6 +143,47 @@ services:
 Un locataire qui a son propre stockage — une base de données par locataire — est déjà à part ; le locataire dans la
 portée ne nuit pas.
 
+### Messages de plusieurs locataires
+
+`phil/idempotency` traite un message reçu une fois par clé, par son `IdempotencyMiddleware` et l'`IdempotencyStamp` de
+l'enveloppe. La portée de l'estampille est le choix du producteur, `messenger` par défaut : deux locataires qui
+envoient un message sous la même clé la partagent, et le second est pris pour un rejeu du premier et jamais traité.
+
+Avec `phil/tenancy-bundle`, dont le `TenantMiddleware` estampille chaque message du locataire dans lequel il a été
+envoyé, `idempotency.messenger.tenant_scope: true` enregistre `Infrastructure\Messenger\TenantIdempotencyScopeMiddleware`.
+Il met le locataire du `TenantStamp` d'une enveloppe reçue dans la portée de son `IdempotencyStamp`, si bien que chaque
+locataire a ses propres clés et qu'un message rejoué dans un locataire n'est toujours traité qu'une fois. L'option exige
+que `PhilTenancyBundle` soit activé : sans lui, le conteneur n'est pas construit.
+
+Le bundle enregistre le service ; le bus le nomme, avant le middleware d'idempotence :
+
+```yaml
+# config/packages/messenger.yaml
+framework:
+    messenger:
+        buses:
+            messenger.bus.default:
+                middleware:
+                    - Phil\TenancyBundle\Infrastructure\Messenger\TenantMiddleware
+                    - Phil\ApiContractBundle\Infrastructure\Messenger\TenantIdempotencyScopeMiddleware
+                    - Phil\Idempotency\Messenger\IdempotencyMiddleware
+```
+
+| L'enveloppe reçue | Ce que fait le middleware |
+|---|---|
+| Une `IdempotencyStamp` et un `TenantStamp` | Remplace l'estampille par une autre de même clé et de même empreinte, de portée `tenant:` et du SHA-256 de la référence du locataire et de la portée du producteur, et marque l'enveloppe d'une `TenantScopedIdempotencyStamp` |
+| Déjà marquée pour le locataire de son `TenantStamp` — une nouvelle tentative, une relivraison | La laisse passer telle quelle : la portée n'est pas hachée deux fois, une nouvelle tentative est donc la même clé |
+| Marquée pour un autre locataire que celui que nomme son `TenantStamp` | La refuse avec `UnrecoverableMessageHandlingException`, sans nouvelle tentative |
+| Sans l'une ou l'autre estampille, ou non reçue — en cours d'envoi | La laisse passer telle quelle |
+
+Les estampilles ne portent que des identifiants : la clé, la portée, le SHA-256 de l'empreinte et la référence du
+locataire. Le middleware ne conserve rien entre deux messages : un *worker* qui traite les messages de plusieurs
+locataires rattache donc chacun par sa propre estampille. Un message clé par son seul `MessageIdStamp` est déjà unique
+et est laissé tel quel.
+
+Activer l'option change la portée des messages déjà dans un transport : un doublon d'un message traité avant le
+changement, livré après, s'exécute de nouveau. Activez-la quand les files sont vides, ou acceptez cette fenêtre.
+
 ### Clients d'API
 
 Un authentificateur de jetons d'accès qui connaît le client le pose sur le jeton, `$token->setAttribute('client_id', …)`,
@@ -124,7 +200,8 @@ l'alias à `IdempotencyClientResolver` ; celle qui nomme ses appelants tout autr
 | Un utilisateur qui a perdu une permission lit le corps conservé en rejouant la clé | Les contrôles d'accès du contrôleur et de ses arguments s'exécutent avant chaque rejeu |
 | Une requête refusée bloque la clé pour la nouvelle tentative autorisée | Une requête refusée ne réserve aucune clé |
 | Deux clés qui ne diffèrent que par la casse ou l'accent nomment une seule ligne sur MySQL ou MariaDB | L'écouteur de schéma construit la table pour la plateforme de la connexion : `scope` et `idempotency_key` en `utf8mb4_bin` |
-| Des appelants anonymes derrière une même adresse partagent leurs clés | Refusés par défaut ; `anonymous: ip` est un choix explicite |
+| Des appelants anonymes derrière une même adresse partagent leurs clés | Refusés par défaut ; `anonymous: ip`, dans la configuration ou sur un point de terminaison, est un choix explicite |
+| Deux locataires envoient un message sous la même clé, et le second n'est jamais traité | `idempotency.messenger.tenant_scope` met le locataire du message dans la portée de sa clé |
 | La table révèle qui a appelé | La portée est un SHA-256 ; seule l'empreinte de la requête est conservée, avec la réponse |
 
 Ce qui reste à l'application : la réponse conservée est rejouée telle qu'elle était, si bien qu'un point de terminaison

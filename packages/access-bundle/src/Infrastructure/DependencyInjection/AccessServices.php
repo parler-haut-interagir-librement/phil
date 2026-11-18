@@ -10,6 +10,7 @@ use Phil\AccessBundle\Application\AccessModel;
 use Phil\AccessBundle\Application\AccessSubject;
 use Phil\AccessBundle\Application\Contract\CurrentMember;
 use Phil\AccessBundle\Application\Contract\ModelContributor;
+use Phil\AccessBundle\Application\Contract\TuplePartitions;
 use Phil\AccessBundle\Application\Contract\ViewAsStore;
 use Phil\AccessBundle\Application\ItemAccess;
 use Phil\AccessBundle\Application\Items;
@@ -22,6 +23,7 @@ use Phil\AccessBundle\Domain\Status\Visibility;
 use Phil\AccessBundle\Domain\ValueObject\AccessGroup;
 use Phil\AccessBundle\Domain\ValueObject\SharingLevels;
 use Phil\AccessBundle\Infrastructure\Console\PurgeCommand;
+use Phil\AccessBundle\Infrastructure\Dbal\DbalTuplePartitions;
 use Phil\AccessBundle\Infrastructure\EasyAdmin\EasyAdminAccessVoter;
 use Phil\AccessBundle\Infrastructure\Http\ViewAsController;
 use Phil\AccessBundle\Infrastructure\Http\ViewAsGuard;
@@ -131,8 +133,9 @@ final class AccessServices
             ->setArguments([new Reference(ViewAs::class), new Reference('security.csrf.token_manager'), $config['view_as']['redirect']])
             ->addTag('controller.service_arguments')
             ->setPublic(true);
+        $tenancy = TenancyTupleScope::class === (string) $container->getAlias(TupleScope::class);
         $container->register(PurgeCommand::class, PurgeCommand::class)
-            ->setArguments([new Reference(TupleStore::class)])
+            ->setArguments([new Reference(TupleStore::class), $tenancy ? new Reference(TenantContext::class) : null, new Reference(TuplePartitions::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)])
             ->setAutoconfigured(true);
     }
 
@@ -188,6 +191,8 @@ final class AccessServices
             $connection = new Reference('doctrine.dbal.'.$config['connection'].'_connection');
             $container->register(DbalTupleStore::class, DbalTupleStore::class)->setArguments([$connection, new Reference('clock'), $config['table'], new Reference(TupleScope::class)]);
             $container->setAlias(TupleStore::class, DbalTupleStore::class)->setPublic(true);
+            $container->register(DbalTuplePartitions::class, DbalTuplePartitions::class)->setArguments([$connection, $config['table']]);
+            $container->setAlias(TuplePartitions::class, DbalTuplePartitions::class);
             $container->register(TupleSchemaListener::class, TupleSchemaListener::class)
                 ->setArguments([$connection, new Reference(DbalTupleStore::class)])
                 ->addTag('doctrine.event_listener', ['event' => 'postGenerateSchema']);

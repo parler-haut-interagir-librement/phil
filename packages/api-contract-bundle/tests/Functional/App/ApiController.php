@@ -14,8 +14,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * The endpoints of the tests: an order created once per key, one that needs a permission, a request that fails, a
- * missing resource, an old one, and an old one that takes an idempotency key.
+ * The endpoints of the tests: an order created once per key, one that needs a permission, one a guest may send, scoped
+ * by address, a request that fails, a missing resource, an old one, and an old one that takes an idempotency key.
  */
 final class ApiController
 {
@@ -36,6 +36,14 @@ final class ApiController
         ++$this->orders;
 
         return new JsonResponse(['order' => $this->orders, 'secret' => 'only for the permitted'], Response::HTTP_CREATED);
+    }
+
+    #[Idempotent(anonymous: 'ip')]
+    public function createGuestOrder(): JsonResponse
+    {
+        ++$this->orders;
+
+        return new JsonResponse(['order' => $this->orders], Response::HTTP_CREATED);
     }
 
     #[Idempotent(ttl: 60)]

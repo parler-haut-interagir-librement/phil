@@ -15,7 +15,8 @@ phil_api_contract:
         # after a process died before its response. Longer than the slowest request. 300 by default.
         reservation_ttl: 300
         # What an #[Idempotent] endpoint does with a caller that is neither a user nor a client: "refuse" answers a
-        # 403 problem; "ip" scopes it by its address, shared by every caller behind that address. "refuse" by default.
+        # 403 problem; "ip" scopes it by its address, shared by every caller behind that address. "refuse" by default;
+        # a controller's #[Idempotent(anonymous: …)] replaces it.
         anonymous: refuse
         # The attribute of the security token that names the API client, part of the scope of a key; null reads
         # none. "client_id" by default.
@@ -29,6 +30,11 @@ phil_api_contract:
         cache_pool: ~
         # The lock factory that makes a reservation in the cache pool atomic, on a store shared by every server.
         lock_factory: lock.factory
+        messenger:
+            # Registers TenantIdempotencyScopeMiddleware, which puts the tenant of a received message into the scope
+            # of its IdempotencyStamp; the bus names it before the idempotency middleware. Needs PhilTenancyBundle.
+            # False by default.
+            tenant_scope: false
     verification:
         # The OpenAPI document phil:api-contract:verify reads when none is named. Null by default.
         document: '%kernel.project_dir%/openapi.yaml'
@@ -42,7 +48,9 @@ phil_api_contract:
 
 `idempotency.ttl: 0` and `idempotency.reservation_ttl: 0` are refused when the container is built, as is a key the
 bundle does not know, an `idempotency.anonymous` other than `refuse` or `ip`, and a `verification.level` or
-`verification.fail_on` outside its values; so is `#[Idempotent(ttl: 0)]` or a negative one, when the attribute is read.
+`verification.fail_on` outside its values, and `idempotency.messenger.tenant_scope: true` without `PhilTenancyBundle`;
+so is `#[Idempotent(ttl: 0)]` or a negative one, or an `#[Idempotent(anonymous: …)]` other than `refuse` or `ip`, when
+the attribute is read.
 A `verification.skip` id that no rule has fails when the verifier is built.
 
 ## The services
@@ -55,6 +63,7 @@ A `verification.skip` id that no rule has fails when the verifier is built.
 | `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyTenantResolver` | An alias of `ActiveTenantResolver`, on the `TenantContext` of `phil/tenancy-bundle` when it is installed |
 | `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyClientResolver` | An alias of `TokenAttributeClientResolver`, on the security token and `idempotency.client_attribute` |
 | `IdempotencyListener` | On `kernel.controller_arguments` at -10100, after the listeners of the controller's attributes, and on `kernel.response` |
+| `TenantIdempotencyScopeMiddleware` | A Messenger middleware for the application's bus, when `idempotency.messenger.tenant_scope` is true |
 | `DeprecationObservingHttpClient` | Decorates `http_client`, when there is one |
 | `Phil\ApiContract\OpenApi\ContractVerifier` | Public; built by `ContractVerifierFactory` from the library's rules, the services tagged `phil_api_contract.openapi_rule`, and `verification.skip` |
 | `DeprecationsCommand`, `VerifyCommand` | `phil:api-contract:deprecations` and `phil:api-contract:verify`, when Symfony Console is installed |

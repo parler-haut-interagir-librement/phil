@@ -49,6 +49,12 @@ final readonly class IdempotencyListener
     public const string RESERVED = '_phil_api_contract_idempotency';
 
     /**
+     * The request attribute that holds the endpoint's `#[Idempotent(anonymous: …)]`, set before the scope is resolved
+     * and only when the endpoint gives one: a scope resolver reads it in place of the configured policy.
+     */
+    public const string ANONYMOUS_CALLERS = '_phil_api_contract_idempotency_anonymous';
+
+    /**
      * The priority on `kernel.controller_arguments`: after Symfony's dispatcher of controller attributes, at -10000,
      * which runs the access checks the attributes declare.
      */
@@ -96,6 +102,10 @@ final readonly class IdempotencyListener
             throw ProblemException::of(Response::HTTP_BAD_REQUEST, 'An Idempotency-Key header is required.', previous: $missingIdempotencyKey);
         } catch (InvalidIdempotencyValue $invalidIdempotencyValue) {
             throw ProblemException::of(Response::HTTP_BAD_REQUEST, 'The Idempotency-Key header cannot be read.', self::KEY_FORMAT, $invalidIdempotencyValue);
+        }
+
+        if ($attributes[0]->anonymous instanceof AnonymousCallers) {
+            $request->attributes->set(self::ANONYMOUS_CALLERS, $attributes[0]->anonymous);
         }
 
         $scope = $this->scopes->scope($request);

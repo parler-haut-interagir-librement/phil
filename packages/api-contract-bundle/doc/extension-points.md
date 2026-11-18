@@ -32,13 +32,13 @@ Each port is an alias that the application points at a service of its own — se
 
 | Method | Contract |
 |---|---|
-| `scope(Request $request): IdempotencyScope` | Whose keys these are: two callers never share a scope, so one cannot replay another's answer. Two tenants, two clients or two users are two callers. It may throw a `ProblemException` to refuse a caller |
+| `scope(Request $request): IdempotencyScope` | Whose keys these are: two callers never share a scope, so one cannot replay another's answer. Two tenants, two clients or two users are two callers. It may throw a `ProblemException` to refuse a caller. The endpoint's `#[Idempotent(anonymous: …)]`, when it gives one, is the `AnonymousCallers` case in the request attribute `IdempotencyListener::ANONYMOUS_CALLERS` |
 
 ## Attributes
 
 | Attribute | What it extends |
 |---|---|
-| `#[Idempotent]` | A controller that requires an `Idempotency-Key`; its `ttl` replaces `idempotency.ttl` — see [Idempotency](idempotency.md) |
+| `#[Idempotent]` | A controller that requires an `Idempotency-Key`; its `ttl` replaces `idempotency.ttl`, and its `anonymous` replaces `idempotency.anonymous` — see [Idempotency](idempotency.md) |
 | `#[DeprecatedEndpoint]` | A deprecated controller, its dates and link, checked when the container is built — see [Deprecations](deprecations.md) |
 
 ## Rules of verification
@@ -60,7 +60,8 @@ given. `ProblemDetailsResponse` writes one from a controller. See [Problems](pro
 | `problem_details.paths` | Where every exception is answered as a problem |
 | `idempotency.ttl`, `reservation_ttl` | How long a key is remembered, and reserved |
 | `idempotency.replayed_headers` | The headers replayed with a body |
-| `idempotency.anonymous` | Anonymous callers refused, or scoped by address |
+| `idempotency.anonymous` | Anonymous callers refused, or scoped by address; `#[Idempotent(anonymous: …)]` decides for one endpoint |
+| `idempotency.messenger.tenant_scope` | The keys of messages scoped by their tenant, through `TenantIdempotencyScopeMiddleware` on the application's bus |
 | `idempotency.client_attribute` | The token attribute that names the API client |
 | `idempotency.connection` | Where the keys are kept; `null` for a store of the application's own |
 | `idempotency.cache_pool`, `lock_factory` | The keys in a cache pool instead, each reservation under a lock |

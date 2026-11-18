@@ -9,6 +9,7 @@ use Phil\ApiContractBundle\Infrastructure\Http\ActiveTenantResolver;
 use Phil\ApiContractBundle\Infrastructure\Http\AnonymousCallers;
 use Phil\ApiContractBundle\Infrastructure\Http\CallerScopeResolver;
 use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyClientResolver;
+use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyListener;
 use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyTenantResolver;
 use Phil\ApiContractBundle\Infrastructure\Http\ProblemException;
 use Phil\ApiContractBundle\Infrastructure\Http\TokenAttributeClientResolver;
@@ -111,6 +112,38 @@ final class CallerScopeResolverTest extends TestCase
         $signedIn = new CallerScopeResolver($this->signedIn('ada'), anonymous: AnonymousCallers::ByIp);
         self::assertSame('caller:'.PayloadFingerprint::ofParts('user', 'ada')->hex, $signedIn->scope($this->request())->value, 'A user is never scoped by address.');
         self::assertSame(['refuse', 'ip'], array_map(static fn (AnonymousCallers $case): string => $case->value, AnonymousCallers::cases()));
+    }
+
+    public function testTheEndpointsPolicyReplacesTheConfiguredOne(): void
+    {
+        $byIp = $this->request();
+        $byIp->attributes->set(IdempotencyListener::ANONYMOUS_CALLERS, AnonymousCallers::ByIp);
+        self::assertSame('caller:'.PayloadFingerprint::ofParts('ip', '10.0.0.1')->hex, new CallerScopeResolver()->scope($byIp)->value);
+
+        $refused = $this->request();
+        $refused->attributes->set(IdempotencyListener::ANONYMOUS_CALLERS, AnonymousCallers::Refuse);
+
+        try {
+            new CallerScopeResolver(anonymous: AnonymousCallers::ByIp)->scope($refused);
+            self::fail('The endpoint refuses anonymous callers, whatever the option says.');
+        } catch (ProblemException $problemException) {
+            self::assertSame(403, $problemException->problem->status);
+        }
+
+        $notAPolicy = $this->request();
+        $notAPolicy->attributes->set(IdempotencyListener::ANONYMOUS_CALLERS, 'ip');
+        self::assertSame('caller:'.PayloadFingerprint::ofParts('ip', '10.0.0.1')->hex, new CallerScopeResolver(anonymous: AnonymousCallers::ByIp)->scope($notAPolicy)->value, 'A value that is not a case leaves the option in charge.');
+
+        try {
+            new CallerScopeResolver()->scope($notAPolicy);
+            self::fail('A string in the attribute turned the refusal off.');
+        } catch (ProblemException $problemException) {
+            self::assertSame(403, $problemException->problem->status);
+        }
+
+        $signedIn = $this->request();
+        $signedIn->attributes->set(IdempotencyListener::ANONYMOUS_CALLERS, AnonymousCallers::ByIp);
+        self::assertSame('caller:'.PayloadFingerprint::ofParts('user', 'ada')->hex, new CallerScopeResolver($this->signedIn('ada'))->scope($signedIn)->value);
     }
 
     public function testTheClientIsAnAttributeOfTheToken(): void

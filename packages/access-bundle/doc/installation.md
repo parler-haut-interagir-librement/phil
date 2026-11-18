@@ -39,7 +39,8 @@ php bin/console doctrine:migrations:migrate
 ```
 
 Schedule `phil:access:purge` — daily is enough — to delete the tuples whose expiry has passed; they already count for
-nothing.
+nothing. With the tuples partitioned by tenant, schedule `phil:access:purge --all-tenants`, which purges each tenant in
+turn; see [Tenants](tenants.md#purging-every-tenant).
 
 ## The recipes of the kit
 

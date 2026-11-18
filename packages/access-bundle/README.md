@@ -38,7 +38,7 @@ this member" and the summary of who has access are Twig components drawn with th
 | Tuples partitioned by the active tenant of `phil/tenancy-bundle`, failing closed outside a tenant | Implemented and tested |
 | `AccessVoter` and `EasyAdminAccessVoter`, with the reasons of each vote | Implemented and tested |
 | The Twig functions `access_can`, `access_visibility`, `access_viewing_as`; the components `PhilAccess:ViewAsBanner` and `PhilAccess:AccessSummary` on the recipes of the kit | Implemented and tested |
-| Doctrine DBAL store and schema listener, in-memory store, `phil:access:purge` | Implemented and tested |
+| Doctrine DBAL store and schema listener, in-memory store, `phil:access:purge` and its `--all-tenants` | Implemented and tested |
 | Organizations and their roles, from `phil/organizations-bundle` | Planned, once that bundle exists |
 
 ## Documentation
@@ -51,7 +51,7 @@ this member" and the summary of who has access are Twig components drawn with th
 | [Items, visibility and sharing](doc/items-and-sharing.md) | Owners, spaces, visibilities, sharing levels and shares that end on their own. |
 | [Access groups](doc/access-groups.md) | Groups, entry points, memberships, default groups. |
 | [View as this member](doc/view-as.md) | Who may, what it shows, the boundary and its guard, the end of a view, the log and events, the banner. |
-| [Tenants](doc/tenants.md) | The tuples of each tenant in a partition of their own, failing closed, upgrading from 0.1. |
+| [Tenants](doc/tenants.md) | The tuples of each tenant in a partition of their own, failing closed, purging every tenant, upgrading from 0.1. |
 | [Checking access](doc/checking.md) | The voters, the Twig functions, listing what a member sees, why. |
 | [EasyAdmin](doc/easyadmin.md) | The voter on EasyAdmin's permissions, the scoped CRUD controller, the tenant filter. |
 | [Rendering](doc/rendering.md) | The banner and the summary, drawn with the recipes of the kit. |

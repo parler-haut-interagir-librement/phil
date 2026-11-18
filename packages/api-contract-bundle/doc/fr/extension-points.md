@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5a9d0382e9262f2f8ae2b87e1a6ada8660abdfdbeff5c90cf44b3e630bec8d20 -->
+<!-- phil-dev source-sha256=3b3a81bb19d1e4f3e084eb718aa92554033e4cd3c5c1771bff61664b167d5a97 -->
 # Points d'extension
 
 Ce qu'une application implémente, remplace, configure ou utilise. Le port `IdempotencyStore` est celui de
@@ -33,13 +33,13 @@ Chaque port est un alias que l'application fait pointer vers un service qui lui 
 
 | Méthode | Contrat |
 |---|---|
-| `scope(Request $request): IdempotencyScope` | À qui appartiennent ces clés : deux appelants ne partagent jamais une portée, et l'un ne peut donc pas rejouer la réponse d'un autre. Deux locataires, deux clients ou deux utilisateurs sont deux appelants. Elle peut lever une `ProblemException` pour refuser un appelant |
+| `scope(Request $request): IdempotencyScope` | À qui appartiennent ces clés : deux appelants ne partagent jamais une portée, et l'un ne peut donc pas rejouer la réponse d'un autre. Deux locataires, deux clients ou deux utilisateurs sont deux appelants. Elle peut lever une `ProblemException` pour refuser un appelant. Le `#[Idempotent(anonymous: …)]` du point de terminaison, quand il en donne un, est le cas `AnonymousCallers` de l'attribut de requête `IdempotencyListener::ANONYMOUS_CALLERS` |
 
 ## Attributs
 
 | Attribut | Ce qu'il étend |
 |---|---|
-| `#[Idempotent]` | Un contrôleur qui exige un `Idempotency-Key` ; son `ttl` remplace `idempotency.ttl` — voir [Idempotence](idempotency.md) |
+| `#[Idempotent]` | Un contrôleur qui exige un `Idempotency-Key` ; son `ttl` remplace `idempotency.ttl`, et son `anonymous` remplace `idempotency.anonymous` — voir [Idempotence](idempotency.md) |
 | `#[DeprecatedEndpoint]` | Un contrôleur obsolète, ses dates et son lien, vérifiés à la construction du conteneur — voir [Obsolescences](deprecations.md) |
 
 ## Règles de vérification
@@ -62,7 +62,8 @@ toute exception sous les chemins donnés. `ProblemDetailsResponse` en écrit un 
 | `problem_details.paths` | Où chaque exception reçoit une réponse sous forme de problème |
 | `idempotency.ttl`, `reservation_ttl` | Combien de temps une clé est retenue, et réservée |
 | `idempotency.replayed_headers` | Les en-têtes rejoués avec un corps |
-| `idempotency.anonymous` | Les appelants anonymes refusés, ou rattachés à leur adresse |
+| `idempotency.anonymous` | Les appelants anonymes refusés, ou rattachés à leur adresse ; `#[Idempotent(anonymous: …)]` en décide pour un point de terminaison |
+| `idempotency.messenger.tenant_scope` | Les clés des messages rattachées à leur locataire, par `TenantIdempotencyScopeMiddleware` sur le bus de l'application |
 | `idempotency.client_attribute` | L'attribut du jeton qui nomme le client d'API |
 | `idempotency.connection` | Où les clés sont conservées ; `null` pour un stockage propre à l'application |
 | `idempotency.cache_pool`, `lock_factory` | Les clés plutôt dans un pool de cache, chaque réservation sous un verrou |

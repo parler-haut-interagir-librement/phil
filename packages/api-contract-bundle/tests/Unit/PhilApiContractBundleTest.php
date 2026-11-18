@@ -24,6 +24,7 @@ use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyTenantResolver;
 use Phil\ApiContractBundle\Infrastructure\Http\ProblemDetailsListener;
 use Phil\ApiContractBundle\Infrastructure\Http\TokenAttributeClientResolver;
 use Phil\ApiContractBundle\Infrastructure\HttpClient\DeprecationObservingHttpClient;
+use Phil\ApiContractBundle\Infrastructure\Messenger\TenantIdempotencyScopeMiddleware;
 use Phil\ApiContractBundle\Infrastructure\OpenApi\ContractVerifierFactory;
 use Phil\ApiContractBundle\PhilApiContractBundle;
 use Phil\Idempotency\Contract\IdempotencyStore;
@@ -145,6 +146,24 @@ final class PhilApiContractBundleTest extends TestCase
         $this->load([['idempotency' => ['anonymous' => 'shared']]]);
     }
 
+    public function testTheTenantScopeOfMessagesIsRegisteredOnlyWhenAskedForWithTheTenancyBundle(): void
+    {
+        self::assertFalse($this->load([[]])->hasDefinition(TenantIdempotencyScopeMiddleware::class));
+        self::assertFalse($this->load([[]], ['PhilTenancyBundle' => 'x'])->hasDefinition(TenantIdempotencyScopeMiddleware::class), 'The tenancy bundle alone does not turn it on.');
+
+        $container = $this->load([['idempotency' => ['messenger' => ['tenant_scope' => true]]]], ['PhilTenancyBundle' => 'x']);
+        self::assertSame([], $container->getDefinition(TenantIdempotencyScopeMiddleware::class)->getArguments());
+
+        foreach ([null, ['FrameworkBundle' => 'x']] as $bundles) {
+            try {
+                $this->load([['idempotency' => ['messenger' => ['tenant_scope' => true]]]], $bundles);
+                self::fail('The tenant scope of messages was accepted without the tenancy bundle.');
+            } catch (InvalidConfigurationException $invalidConfigurationException) {
+                self::assertSame('phil_api_contract.idempotency.messenger.tenant_scope reads the TenantStamp of phil/tenancy-bundle: enable PhilTenancyBundle, or turn the option off.', $invalidConfigurationException->getMessage());
+            }
+        }
+    }
+
     public function testACachePoolKeepsTheKeysInsteadOfTheConnection(): void
     {
         $container = $this->load([['idempotency' => ['cache_pool' => 'cache.idempotency']]]);
@@ -205,10 +224,16 @@ final class PhilApiContractBundleTest extends TestCase
 
     /**
      * @param list<array<string, mixed>> $configs
+     * @param ?array<string, string>     $bundles
      */
-    private function load(array $configs): ContainerBuilder
+    private function load(array $configs, ?array $bundles = null): ContainerBuilder
     {
         $container = new ContainerBuilder();
+
+        if (null !== $bundles) {
+            $container->setParameter('kernel.bundles', $bundles);
+        }
+
         $this->extension()->load($configs, $container);
 
         return $container;
