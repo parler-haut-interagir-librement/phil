@@ -23,7 +23,7 @@
         "php": ">=8.5",
         "doctrine/doctrine-migrations-bundle": "^4.0",
         "doctrine/migrations": "^3.9",
-        "phil/migration": "^0.1@dev",
+        "phil/migration": "^0.1.1@dev",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",
         "symfony/notifier": "^8.2"

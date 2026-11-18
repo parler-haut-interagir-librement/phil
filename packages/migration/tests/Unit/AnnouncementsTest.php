@@ -42,6 +42,46 @@ final class AnnouncementsTest extends TestCase
         self::assertTrue($announcements->release(['First', 'Second', 'Skipped'])->isEmpty());
     }
 
+    public function testANoteBroughtTwiceIsToldOnceWhereItFirstComes(): void
+    {
+        $announcements = new Announcements();
+        $announcements->note('First', ['fr' => '* Mise à jour des librairies.', 'en' => '* Libraries updated.']);
+        $announcements->note('First', ['fr' => '* Passage à PHP 8.5.']);
+        $announcements->note('Second', ['fr' => "  * Mise à jour des librairies.\t", 'en' => '* Mise à jour des librairies.']);
+        $announcements->note('Second', ['fr' => '* Passage aux paquets ouverts.', 'en' => ' * Libraries updated. ']);
+        $announcements->note('Third', ['fr' => '* Mise à jour des librairies', 'en' => '* Passage à PHP 8.5.']);
+
+        $release = $announcements->release(['First', 'Second', 'Third']);
+
+        self::assertSame(['* Mise à jour des librairies.', '* Passage à PHP 8.5.', '* Passage aux paquets ouverts.', '* Mise à jour des librairies'], $release->notesIn('fr'));
+        self::assertSame(['* Libraries updated.', '* Mise à jour des librairies.', '* Passage à PHP 8.5.'], $release->notesIn('en'));
+        self::assertCount(5, $release->notes);
+        self::assertSame(['1', '* Un.'], new Release([['fr' => '1'], ['fr' => ' 1 '], ['fr' => '* Un.']])->notesIn('fr'));
+    }
+
+    public function testAPieceOfNewsBroughtTwiceIsToldOnceWhereItFirstComes(): void
+    {
+        $calendar = new News('Le calendrier', ['Tous les événements.'], 'https://example.com');
+        $directory = new News('L’annuaire');
+        $release = new Release(news: [
+            ['fr' => $calendar, 'en' => new News('The calendar')],
+            ['fr' => $directory],
+            ['fr' => new News(' Le calendrier ', [' Tous les événements. '], 'https://example.com'), 'en' => new News('The calendar')],
+            ['fr' => new News('Le calendrier', ['Tous les événements.'], 'https://example.com/autre')],
+            ['fr' => new News('Le calendrier', ['Tous les événements.', 'Encore.'], 'https://example.com')],
+            ['fr' => new News('Le calendrier', ['Tous', 'les événements.'], 'https://example.com')],
+            ['fr' => new News('L’annuaire', ['Tous.'])],
+            ['fr' => new News('L’agenda', ['Tous les événements.'], 'https://example.com')],
+        ]);
+
+        $fr = $release->newsIn('fr');
+
+        self::assertCount(7, $fr);
+        self::assertSame([$calendar, $directory], [$fr[0], $fr[1]]);
+        self::assertSame(['https://example.com/autre', ['Tous les événements.', 'Encore.'], ['Tous', 'les événements.'], ['Tous.'], 'L’agenda'], [$fr[2]->url, $fr[3]->lines, $fr[4]->lines, $fr[5]->lines, $fr[6]->title]);
+        self::assertCount(1, $release->newsIn('en'));
+    }
+
     public function testAReleaseIsEmptyWithoutNotesAndNews(): void
     {
         $announcements = new Announcements();

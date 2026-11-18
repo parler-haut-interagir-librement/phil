@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=39a876e0c1785cd06a6c3107d25337c58d28627eebebce32154a19048ab20bf4 -->
+<!-- phil-dev source-sha256=3d092444d5af75b3d02d3e0156251c65ac9e8e4d65da99d2c2e6bdbaa9174e4f -->
 # Migrations
 
 ## Une migration qui annonce
@@ -21,7 +21,9 @@ final class Version20261104120000 extends AnnouncingMigration
 
 Les notes et les nouvelles de chaque migration d'une exécution sont envoyées ensemble une fois l'exécution terminée :
 rien avec `--dry-run`, rien quand échoue une exécution en tout ou rien, et seulement les migrations qui restent quand
-échoue une exécution qui ne l'était pas. Une migration sautée n'annonce rien.
+échoue une exécution qui ne l'était pas. Une migration sautée n'annonce rien. Une note qu'apportent deux migrations de l'exécution, comme celle qu'un outil de
+l'application ajoute chaque fois que les librairies sont mises à jour, n'est annoncée qu'une fois sur chaque canal, à sa
+première place.
 
 Une migration qui annonce depuis un outil qui lui est propre, avec un traducteur ou le routeur, le fait comme la
 fabrique de l'application les lui donne ; le bundle ne fait qu'ajouter les annonces.

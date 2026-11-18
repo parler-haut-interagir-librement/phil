@@ -30,6 +30,7 @@ use Phil\Migration\Tests\Unit\Fixtures\Migrations\Version1Calendar;
 use Phil\Migration\Tests\Unit\Fixtures\Migrations\Version2Plain;
 use Phil\Migration\Tests\Unit\Fixtures\Migrations\Version3Skipped;
 use Phil\Migration\Tests\Unit\Fixtures\Migrations\Version4Libraries;
+use Phil\Migration\Tests\Unit\Fixtures\Migrations\Version5LibrariesAgain;
 use Phil\Migration\Tests\Unit\Fixtures\RecordingPublisher;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversTrait;
@@ -59,11 +60,11 @@ final class MigrationsTest extends TestCase
     {
         $sql = $this->migrate('Migrations', leftOver: ['fr' => '* Laissée par un essai.']);
 
-        self::assertSame([Version1Calendar::class, Version2Plain::class, Version3Skipped::class, Version4Libraries::class], array_keys($sql));
+        self::assertSame([Version1Calendar::class, Version2Plain::class, Version3Skipped::class, Version4Libraries::class, Version5LibrariesAgain::class], array_keys($sql));
 
         self::assertSame([
-            ['alice', "# New release\n\n* Nouveau calendrier.\n* Mise à jour des librairies."],
-            ['bob', '* A new calendar.'],
+            ['alice', "# New release\n\n* Nouveau calendrier.\n* Mise à jour des librairies.\n* Passage à PHP 8.5."],
+            ['bob', "* A new calendar.\n* Mise à jour des librairies."],
             ['news', "# Le calendrier\nTous les événements.\nhttps://example.com/calendrier"],
         ], $this->publisher->published);
     }

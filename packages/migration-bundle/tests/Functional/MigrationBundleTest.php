@@ -28,7 +28,7 @@ final class MigrationBundleTest extends KernelTestCase
         self::assertSame([], $this->migrate(['--dry-run' => true]));
     }
 
-    public function testOneRunIsAnnouncedOnce(): void
+    public function testOneRunIsAnnouncedOnceAndEachNoteOnce(): void
     {
         self::assertSame([
             ['discord_alice', "# Nouvelle version\n\n* Nouveau calendrier.\n* Mise à jour des librairies.\n* Migrations en service."],

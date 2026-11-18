@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1212ef33812ecec27214a78b8bf545fec433609e2d1659814c456e0af55c2c73 -->
+<!-- phil-dev source-sha256=d680eb34b9871a33e2f717221451186a05f2fa09ae0bd8dc6cb576e3b6d5de03 -->
 # Référence
 
 ## Annoncer depuis une migration
@@ -42,6 +42,13 @@ nouvelles des migrations qui sont allées jusqu'au bout, ni sautées ni en éche
 | `--dry-run` | rien |
 | échouée, en tout ou rien | rien : tout a été annulé |
 | échouée, pas en tout ou rien | les migrations exécutées avant l'échec, qui restent |
+
+Une note qu'apportent plusieurs migrations de l'exécution n'est annoncée qu'une fois dans chaque locale, à sa première
+place ; les autres notes gardent leur ordre. Deux notes sont les mêmes quand elles ne diffèrent que par les espaces qui
+les entourent : `'* Libraries updated. '` et `'* Libraries updated.'` ne sont annoncées qu'une fois. Une note écrite en
+français et en anglais par une migration, et seulement en français par une autre, est annoncée une fois en français et
+une fois en anglais. Une nouvelle n'est annoncée qu'une fois de la même façon, quand son titre, ses lignes, chacune
+sans les espaces qui l'entourent, et son adresse sont les mêmes.
 
 L'annonce vient après que Doctrine a validé, de sorte qu'une migration annoncée est une migration conservée.
 

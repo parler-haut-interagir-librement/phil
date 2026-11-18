@@ -20,7 +20,8 @@ final class Version20261104120000 extends AnnouncingMigration
 
 The notes and news of every migration of a run are sent together once the run is over: nothing on `--dry-run`,
 nothing when a run that was all or nothing fails, and only the migrations that stay when a run that was not fails.
-A skipped migration announces nothing.
+A skipped migration announces nothing. A note that two migrations of the run bring, such as the one a helper of the
+application adds whenever the libraries are updated, is told once on each channel, where it first comes.
 
 A migration that announces from a helper of its own, with a translator or the router, does so as the factory of the
 application gives them; the bundle only adds the announcements.

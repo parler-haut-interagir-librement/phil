@@ -42,6 +42,12 @@ migrations that ran to the end — neither skipped nor failed — in the order o
 | failed, all or nothing | nothing: everything was rolled back |
 | failed, not all or nothing | the migrations that ran before the failure, which stay |
 
+A note that several migrations of the run bring is told once in each locale, where it first comes; the other notes
+keep their order. Two notes are the same when they only differ by the spaces around them, so
+`'* Libraries updated. '` and `'* Libraries updated.'` are told once. A note told in French and English by one
+migration, and only in French by another, is told once in French and once in English. A piece of news is told once
+the same way, when its title, its lines, each without the spaces around it, and its address are the same.
+
 Announcing comes after Doctrine committed, so a migration announced is a migration kept.
 
 ## Channels

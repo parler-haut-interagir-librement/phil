@@ -4,6 +4,17 @@ All notable changes to `phil/migration-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha: a note that several migrations of a run bring is announced once on each channel.
+See [A migration that announces](doc/migrations.md#a-migration-that-announces).
+
+### Fixed
+
+- A note that two migrations of one `doctrine:migrations:migrate` bring, such as `* Libraries updated.` added by a
+  helper of the application, is announced once on each channel, where it first comes, instead of twice. It requires
+  `phil/migration` `^0.1.1@dev`, which gives each note, and each piece of news, of a run once.
+
 ## 0.1.1-alpha - 2026-11-14
 
 ### Fixed

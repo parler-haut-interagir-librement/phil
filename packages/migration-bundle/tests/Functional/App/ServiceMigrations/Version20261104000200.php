@@ -9,13 +9,14 @@ use Phil\Migration\AnnouncingMigration;
 
 /**
  * A migration DoctrineMigrationsBundle gets from the container, through `enable_service_migrations`, rather than
- * from a directory.
+ * from a directory. It brings again a note an earlier migration of the same run brought.
  */
 final class Version20261104000200 extends AnnouncingMigration
 {
     public function up(Schema $schema): void
     {
         $this->note(['fr' => '* Migrations en service.']);
+        $this->note(['fr' => '* Mise à jour des librairies. ']);
         $this->addSql('CREATE TABLE services (id INTEGER)');
     }
 }

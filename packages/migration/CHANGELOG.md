@@ -4,6 +4,19 @@ All notable changes to `phil/migration` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: a note that several migrations of a run bring is announced once. See
+[What a run announces](doc/reference.md#what-a-run-announces).
+
+### Fixed
+
+- `Release::notesIn()` gives each note once, where it first comes: a note two migrations of the run bring, such as
+  `* Libraries updated.` added by a helper of the application, is no longer announced twice. Notes are compared
+  without the spaces around them, locale by locale; the other notes keep their order.
+- `Release::newsIn()` gives each piece of news once the same way, when its title, its lines, each without the spaces
+  around it, and its address are the same.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added
