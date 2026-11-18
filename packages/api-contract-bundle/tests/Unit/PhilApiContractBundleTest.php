@@ -10,6 +10,7 @@ use Phil\ApiContract\Deprecation\ObservedDeprecations;
 use Phil\ApiContract\OpenApi\ContractVerifier;
 use Phil\ApiContractBundle\Infrastructure\Console\DeprecationsCommand;
 use Phil\ApiContractBundle\Infrastructure\Console\VerifyCommand;
+use Phil\ApiContractBundle\Infrastructure\DependencyInjection\AddTenantIdempotencyScopeMiddleware;
 use Phil\ApiContractBundle\Infrastructure\DependencyInjection\CheckDeprecatedEndpoints;
 use Phil\ApiContractBundle\Infrastructure\Deprecation\CacheObservedDeprecations;
 use Phil\ApiContractBundle\Infrastructure\Doctrine\IdempotencySchemaListener;
@@ -40,6 +41,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
+use Symfony\Component\Messenger\MessengerBundle;
 
 #[CoversClass(PhilApiContractBundle::class)]
 final class PhilApiContractBundleTest extends TestCase
@@ -151,8 +154,21 @@ final class PhilApiContractBundleTest extends TestCase
         self::assertFalse($this->load([[]])->hasDefinition(TenantIdempotencyScopeMiddleware::class));
         self::assertFalse($this->load([[]], ['PhilTenancyBundle' => 'x'])->hasDefinition(TenantIdempotencyScopeMiddleware::class), 'The tenancy bundle alone does not turn it on.');
 
+        self::assertFalse($this->load([['idempotency' => ['messenger' => ['buses' => ['event.bus']]]]], ['PhilTenancyBundle' => 'x'])->hasParameter(AddTenantIdempotencyScopeMiddleware::BUSES), 'The buses alone do not turn it on.');
+
         $container = $this->load([['idempotency' => ['messenger' => ['tenant_scope' => true]]]], ['PhilTenancyBundle' => 'x']);
         self::assertSame([], $container->getDefinition(TenantIdempotencyScopeMiddleware::class)->getArguments());
+        self::assertSame([], $container->getParameter(AddTenantIdempotencyScopeMiddleware::BUSES), 'Every bus of the idempotency middleware by default.');
+
+        $container = $this->load([['idempotency' => ['messenger' => ['tenant_scope' => true, 'buses' => ['messenger.bus.default', 'event.bus']]]]], ['PhilTenancyBundle' => 'x']);
+        self::assertSame(['messenger.bus.default', 'event.bus'], $container->getParameter(AddTenantIdempotencyScopeMiddleware::BUSES));
+
+        try {
+            $this->load([['idempotency' => ['messenger' => ['tenant_scope' => true, 'buses' => ['']]]]], ['PhilTenancyBundle' => 'x']);
+            self::fail('An empty bus name was accepted.');
+        } catch (InvalidConfigurationException $invalidConfigurationException) {
+            self::assertStringContainsString('buses', $invalidConfigurationException->getMessage());
+        }
 
         foreach ([null, ['FrameworkBundle' => 'x']] as $bundles) {
             try {
@@ -185,6 +201,21 @@ final class PhilApiContractBundleTest extends TestCase
 
         $passes = array_filter($container->getCompilerPassConfig()->getBeforeOptimizationPasses(), static fn (object $pass): bool => $pass instanceof CheckDeprecatedEndpoints);
         self::assertCount(1, $passes);
+    }
+
+    public function testTheTenantScopeIsAddedToTheBusesBeforeMessengerReadsTheirMiddleware(): void
+    {
+        $container = new ContainerBuilder();
+        new MessengerBundle()->build($container);
+        new PhilApiContractBundle()->build($container);
+
+        $passes = array_map(static fn (object $pass): string => $pass::class, $container->getCompilerPassConfig()->getBeforeOptimizationPasses());
+        $scope = array_search(AddTenantIdempotencyScopeMiddleware::class, $passes, true);
+        $messenger = array_search(MessengerPass::class, $passes, true);
+
+        self::assertIsInt($scope);
+        self::assertIsInt($messenger);
+        self::assertLessThan($messenger, $scope);
     }
 
     public function testWithoutDoctrineTheKeysAreKeptElsewhere(): void
