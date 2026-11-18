@@ -242,7 +242,7 @@ final class BackupsTest extends TestCase
 
     public function testAFailedMediaArchiveRemovesTheDatabaseFileToo(): void
     {
-        if (0 === posix_geteuid()) {
+        if (0 === fileowner($this->directory)) {
             self::markTestSkipped('root reads every file.');
         }
 

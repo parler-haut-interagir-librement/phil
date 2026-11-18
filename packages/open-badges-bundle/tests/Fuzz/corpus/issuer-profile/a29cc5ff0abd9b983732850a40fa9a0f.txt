@@ -1,1 +1,0 @@
-{"@conttikuyEEt":["htp/org'seuri"],"id":"https://partner.example/issuer","type":[{"id":"httissue"}],"assertionMethod":["h.example/1","ssuer#key-1"]}

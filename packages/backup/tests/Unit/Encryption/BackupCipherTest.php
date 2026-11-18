@@ -109,9 +109,16 @@ final class BackupCipherTest extends TestCase
     {
         file_put_contents($this->directory.'/clear', 'x');
 
+        mkdir($this->directory.'/locked', 0o500);
+        $strayBefore = glob(sys_get_temp_dir().'/.phil-backup-*');
+
+        // A directory the tests created belongs to the user they run as.
+        $cases = 0 === fileowner($this->directory) ? [] : [[$this->directory.'/clear', $this->directory.'/locked/sealed', 'The file '.$this->directory.'/locked/sealed cannot be written.']];
+
         foreach ([
             [$this->directory.'/missing', $this->directory.'/sealed', 'The file '.$this->directory.'/missing cannot be read.'],
-            [$this->directory.'/clear', $this->directory.'/no/sealed', 'The file '.$this->directory.'/no/sealed cannot be written.'],
+            [$this->directory.'/clear', $this->directory.'/clear/sealed', 'The directory '.$this->directory.'/clear cannot be created.'],
+            ...$cases,
         ] as [$source, $target, $message]) {
             foreach (['encrypt' => $this->cipher->encrypt(...), 'decrypt' => $this->cipher->decrypt(...)] as $method => $call) {
                 try {
@@ -122,6 +129,107 @@ final class BackupCipherTest extends TestCase
                 }
             }
         }
+
+        self::assertSame([], Files::entries($this->directory.'/locked'), 'Nothing is left in a directory that cannot be written.');
+        self::assertSame($strayBefore, glob(sys_get_temp_dir().'/.phil-backup-*'), 'The file the system gives elsewhere is removed.');
+        self::assertSame(['clear', 'locked'], Files::entries($this->directory), 'No temporary file is left behind.');
+    }
+
+    public function testATargetIsReplacedWholeAndAFailureLeavesItAsItWas(): void
+    {
+        file_put_contents($this->directory.'/clear', 'first');
+        file_put_contents($this->directory.'/sealed', 'an older file');
+        chmod($this->directory.'/sealed', 0o644);
+        $this->cipher->encrypt($this->directory.'/clear', $this->directory.'/sealed');
+        self::assertSame(0o600, fileperms($this->directory.'/sealed') & 0o777, 'The target takes the mode of the temporary file.');
+
+        file_put_contents($this->directory.'/opened', 'kept');
+        $sealed = (string) file_get_contents($this->directory.'/sealed');
+        file_put_contents($this->directory.'/altered', substr($sealed, 0, -1));
+
+        try {
+            $this->cipher->decrypt($this->directory.'/altered', $this->directory.'/opened');
+            self::fail('A damaged file is refused.');
+        } catch (BackupFailed) {
+            self::assertSame('kept', file_get_contents($this->directory.'/opened'), 'A file that fails never reaches the target.');
+        }
+
+        $this->cipher->decrypt($this->directory.'/sealed', $this->directory.'/opened');
+        self::assertSame('first', file_get_contents($this->directory.'/opened'));
+        self::assertSame(['altered', 'clear', 'opened', 'sealed'], Files::entries($this->directory), 'No temporary file is left behind.');
+    }
+
+    public function testTheTargetDirectoryIsCreatedOrNarrowedToItsOwner(): void
+    {
+        file_put_contents($this->directory.'/clear', 'x');
+        $this->cipher->encrypt($this->directory.'/clear', $this->directory.'/fresh/backup/sealed');
+        self::assertSame(0o700, fileperms($this->directory.'/fresh/backup') & 0o777, 'A directory it creates is private.');
+
+        mkdir($this->directory.'/open', 0o700);
+        chmod($this->directory.'/open', 0o755);
+        $this->cipher->decrypt($this->directory.'/fresh/backup/sealed', $this->directory.'/open/opened');
+        clearstatcache();
+        self::assertSame(0o700, fileperms($this->directory.'/open') & 0o777, 'An open directory is narrowed.');
+        self::assertSame('x', file_get_contents($this->directory.'/open/opened'));
+    }
+
+    public function testADirectoryOpenToOneOtherUserBitAloneIsNarrowed(): void
+    {
+        file_put_contents($this->directory.'/clear', 'x');
+        mkdir($this->directory.'/ajar', 0o700);
+        chmod($this->directory.'/ajar', 0o701);
+
+        $this->cipher->encrypt($this->directory.'/clear', $this->directory.'/ajar/sealed');
+
+        clearstatcache();
+        self::assertSame(0o700, fileperms($this->directory.'/ajar') & 0o777);
+    }
+
+    public function testAnOpenDirectoryIsRefusedWhenItIsNotToBeNarrowed(): void
+    {
+        file_put_contents($this->directory.'/clear', 'x');
+        $cipher = new BackupCipher(BackupKey::fromBase64(str_repeat('A', 43).'='), tightenOpenDirectory: false);
+        $cipher->encrypt($this->directory.'/clear', $this->directory.'/private/sealed');
+        self::assertFileExists($this->directory.'/private/sealed', 'A private directory is used as it is.');
+        chmod($this->directory.'/private', 0o750);
+
+        foreach (['encrypt' => [$cipher->encrypt(...), $this->directory.'/clear'], 'decrypt' => [$cipher->decrypt(...), $this->directory.'/private/sealed']] as $method => [$call, $source]) {
+            try {
+                $call($source, $this->directory.'/private/again');
+                self::fail($method);
+            } catch (BackupFailed $backupFailed) {
+                self::assertSame('The directory '.$this->directory.'/private is open to other users (mode 0750): narrow it to its owner, with mode 0700.', $backupFailed->getMessage());
+            }
+        }
+
+        clearstatcache();
+        self::assertSame(0o750, fileperms($this->directory.'/private') & 0o777, 'A refused directory keeps its mode.');
+        self::assertSame(['sealed'], Files::entries($this->directory.'/private'), 'Nothing is written in a refused directory.');
+    }
+
+    public function testAnOpenDirectoryThatCannotBeNarrowedIsRefused(): void
+    {
+        if (0 === fileowner($this->directory)) {
+            self::markTestSkipped('root narrows every directory.');
+        }
+
+        file_put_contents($this->directory.'/clear', 'x');
+
+        // The system's shared temporary directory belongs to root and is open to everyone.
+        $this->expectException(BackupFailed::class);
+        $this->expectExceptionMessageIsOrContains('The directory /tmp is open to other users (mode 0777) and cannot be narrowed to its owner: give it to the user that writes the backups, with mode 0700.');
+        $this->cipher->encrypt($this->directory.'/clear', '/tmp/phil-backup-'.bin2hex(random_bytes(6)));
+    }
+
+    public function testADirectoryReachedThroughASymbolicLinkReceivesTheTarget(): void
+    {
+        file_put_contents($this->directory.'/clear', 'x');
+        mkdir($this->directory.'/real', 0o700);
+        symlink($this->directory.'/real', $this->directory.'/link');
+
+        $this->cipher->encrypt($this->directory.'/clear', $this->directory.'/link/sealed');
+
+        self::assertSame(['sealed'], Files::entries($this->directory.'/real'));
     }
 
     public function testAKeyIsThirtyTwoBytesInBase64(): void

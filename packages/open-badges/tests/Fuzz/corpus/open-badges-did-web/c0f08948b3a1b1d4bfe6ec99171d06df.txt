@@ -1,1 +1,0 @@
-{"@c":["h1.orgv"],"id":"did:web:issuer.example.org","v":[{"id":"aaaa"}],"assertionMethod":["g","ves","ve"]}

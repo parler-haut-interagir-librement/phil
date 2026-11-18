@@ -75,7 +75,23 @@ return [
             'FunctionCallRemoval' => [
                 'ignoreSourceCodeByRegex' => [
                     'clearstatcache\\(true, \\$this->path\\);',
+                    'clearstatcache\\(true, \\$directory\\);',
                     'fclose\\(\\$this->stream\\);',
+                ],
+            ],
+            // The directory of a target was checked to exist just before and has just been resolved: `realpath()` gives
+            // `false` only if it vanished in between, and `tempnam()` then refuses the empty path all the same.
+            'CastString' => [
+                'ignoreSourceCodeByRegex' => [
+                    '\\$real = \\(string\\) realpath\\(\\$directory\\);',
+                ],
+            ],
+            // The stream of the target is closed in a `finally` so that a failing writer does not keep it open one
+            // moment more: PHP frees a local resource when the method exits, and the temporary file is removed by the
+            // outer `finally` either way.
+            'UnwrapFinally' => [
+                'ignoreSourceCodeByRegex' => [
+                    '\\$writer\\(\\$out, \\$target\\);',
                 ],
             ],
             // A chunk length past the largest chunk is refused so that nothing that large is read into memory; read,

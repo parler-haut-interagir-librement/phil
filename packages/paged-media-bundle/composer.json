@@ -27,7 +27,6 @@
         "symfony/dependency-injection": "^8.2"
     },
     "require-dev": {
-        "ext-posix": "*",
         "ext-zlib": "*",
         "phil/footnotes-sidenotes": "^0.1@dev",
         "phil/ujo": "^0.1@dev",

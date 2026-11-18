@@ -1,4 +1,0 @@
-<?ml versi"?>
-<svg xmlns="http://www.w3.org/2000/svg"><?ml versio.0"?>
-<svg ><openbadges:credential xmlns:openbadges="https://purl.imsglobal.org/ob/v3p0">></openbadges:credential>/></svg>
-<openbadges:credential xmlns:openbadges="https://purl.imsglobal.org/ob/v3p0">></openbadges:credential>/></svg>

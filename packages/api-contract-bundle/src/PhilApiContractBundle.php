@@ -8,6 +8,7 @@ use Override;
 use Phil\ApiContractBundle\Application\Library;
 use Phil\ApiContractBundle\Infrastructure\Console\DeprecationsCommand;
 use Phil\ApiContractBundle\Infrastructure\Console\VerifyCommand;
+use Phil\ApiContractBundle\Infrastructure\DependencyInjection\AddTenantIdempotencyScopeMiddleware;
 use Phil\ApiContractBundle\Infrastructure\DependencyInjection\CheckDeprecatedEndpoints;
 use Phil\ApiContractBundle\Infrastructure\Deprecation\CacheObservedDeprecations;
 use Phil\ApiContractBundle\Infrastructure\Doctrine\IdempotencySchemaListener;
@@ -61,6 +62,8 @@ final class PhilApiContractBundle extends AbstractBundle
     public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new CheckDeprecatedEndpoints());
+        // Runs before the pass of Messenger, which reads the middleware of each bus.
+        $container->addCompilerPass(new AddTenantIdempotencyScopeMiddleware());
     }
 
     #[Override]
@@ -121,8 +124,13 @@ final class PhilApiContractBundle extends AbstractBundle
                             ->addDefaultsIfNotSet()
                             ->children()
                                 ->booleanNode('tenant_scope')
-                                    ->info('Registers the Messenger middleware that puts the tenant of a received message into the scope of its IdempotencyStamp; needs PhilTenancyBundle.')
+                                    ->info('Adds the Messenger middleware that puts the tenant of a received message into the scope of its IdempotencyStamp to the buses, before the idempotency middleware; needs PhilTenancyBundle.')
                                     ->defaultFalse()
+                                ->end()
+                                ->arrayNode('buses')
+                                    ->info('The buses the tenant scope is added to: "messenger.bus.default". None by default: every bus whose middleware holds the IdempotencyMiddleware of phil/idempotency.')
+                                    ->scalarPrototype()->cannotBeEmpty()->end()
+                                    ->defaultValue([])
                                 ->end()
                             ->end()
                         ->end()
@@ -172,7 +180,7 @@ final class PhilApiContractBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{problem_details: array{paths: list<string>}, idempotency: array{ttl: int, reservation_ttl: int, anonymous: string, client_attribute: ?string, replayed_headers: list<string>, connection: ?string, cache_pool: ?string, lock_factory: string, messenger: array{tenant_scope: bool}}, verification: array{document: ?string, level: string, fail_on: string, skip: list<string>}} $config */
+        /** @var array{problem_details: array{paths: list<string>}, idempotency: array{ttl: int, reservation_ttl: int, anonymous: string, client_attribute: ?string, replayed_headers: list<string>, connection: ?string, cache_pool: ?string, lock_factory: string, messenger: array{tenant_scope: bool, buses: list<string>}}, verification: array{document: ?string, level: string, fail_on: string, skip: list<string>}} $config */
         $services = $container->services();
         $clock = new Reference('clock');
 
@@ -203,6 +211,7 @@ final class PhilApiContractBundle extends AbstractBundle
             }
 
             $services->set(TenantIdempotencyScopeMiddleware::class);
+            $builder->setParameter(AddTenantIdempotencyScopeMiddleware::BUSES, $config['idempotency']['messenger']['buses']);
         }
 
         $services->set(DeprecationListener::class)

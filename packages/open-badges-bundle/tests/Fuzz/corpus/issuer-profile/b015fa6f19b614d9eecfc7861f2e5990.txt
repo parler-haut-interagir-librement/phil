@@ -1,1 +1,0 @@
-{"id":"https://partner.example/issuer","verificationMethod":[{"id":"https://partner.example/issuer#key-2","type":"JsonWebKey","publicKeyJwk":{"kty":"OKP","crv":"Ed25519","x":"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"}}]}

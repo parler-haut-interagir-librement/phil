@@ -18,6 +18,11 @@ be scoped to their tenant.
   `idempotency.messenger.tenant_scope`, false by default and refused without `PhilTenancyBundle`: the tenant of a
   received message's `TenantStamp` in the scope of its `IdempotencyStamp`, so that two tenants sending the same key
   are both handled and a replay once. `symfony/messenger` is suggested.
+- `idempotency.messenger.buses` and the compiler pass `AddTenantIdempotencyScopeMiddleware`: with
+  `tenant_scope`, the bundle tags `TenantIdempotencyScopeMiddleware` `messenger.middleware` for every bus whose
+  middleware holds the `IdempotencyMiddleware` of `phil/idempotency`, or for the buses named, before that middleware
+  and after the `TenantMiddleware` of `phil/tenancy-bundle`; a bus that lists it already keeps it once, where its
+  configuration puts it, and a bus named that does not exist fails the build.
 - The documentation of anonymous callers per endpoint and their trade-offs, and of the keys of messages per tenant.
 
 ## 0.3.0-alpha - 2026-11-17

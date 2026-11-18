@@ -13,6 +13,8 @@ an open backup directory is narrowed to its owner. See [The directory](doc/backu
 
 - `BackupDirectory`'s argument `tightenOpenDirectory`, true by default: false refuses a directory open to its group or
   to other users instead of narrowing it.
+- `BackupCipher`'s argument `tightenOpenDirectory`, true by default: false refuses a target directory open to its group
+  or to other users instead of narrowing it.
 - `BackupDirectory::publish()`: a temporary file of the directory takes its final name in one step, by a hard link,
   never over an existing file, or by a rename on a file system without hard links.
 - `TarWriter::discard()`: the archive given up, its temporary file removed; a writer neither closed nor discarded
@@ -28,6 +30,10 @@ an open backup directory is narrowed to its owner. See [The directory](doc/backu
   same name.
 - `TarWriter::create()` and `MediaArchive::write()` write the archive as a temporary file beside its path, created
   `0600`, which takes the path when the archive is closed; a failure leaves the path as it was.
+- `BackupCipher::encrypt()` and `decrypt()` write the target as a temporary file of its directory, created `0600`,
+  then rename it to the target, replacing a file of that name; a failure leaves the target as it was and removes the
+  temporary file. A missing directory is created `0700`; an existing one open to its group or to other users is
+  narrowed to `0700`, or refused with a `BackupFailed` naming it and its mode when it cannot be.
 - `BackupDirectory::temporary()` creates its file in the directory a symbolic link points to, and removes the file
   `tempnam()` creates in the system's temporary directory when it cannot write in the backup directory.
 
@@ -36,6 +42,10 @@ an open backup directory is narrowed to its owner. See [The directory](doc/backu
 - A backup in clear, or a media archive, was written at its final path with the default mode, then narrowed to
   `0600`: another user of the machine could read it while it was written, from a directory open to them. No byte of
   a backup is readable by another user at any moment.
+- `BackupCipher` opened its target with the default mode, then narrowed it to `0600`, and a decryption that failed
+  left the authenticated beginning of the file at the target: a copy in clear or encrypted written outside a backup
+  directory could be read by another user while it was written. The target is now readable by its owner alone from
+  the moment it exists, and receives the copy whole or not at all.
 
 ## 0.1.1-alpha - 2026-11-14
 

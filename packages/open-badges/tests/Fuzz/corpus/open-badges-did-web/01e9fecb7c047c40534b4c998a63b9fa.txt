@@ -1,1 +1,0 @@
-{"@context":["httpw3.1"],"id":"did:web:issuer.example.org","verificationMethod":[{"id":"#key-1","pe":"Multikey","controller":"did:web:issuer.example.org","publicKeultibase":"z6MkvDg","publicKeyMultibase":"z6Z"}],"assertionMethod":["#key-1"]}

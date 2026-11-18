@@ -141,12 +141,28 @@ A tenant with a store of its own — a database per tenant — is already apart;
 message under the same key share it, and the second one is taken for a replay of the first and never handled.
 
 With `phil/tenancy-bundle`, whose `TenantMiddleware` stamps each message with the tenant it was dispatched in,
-`idempotency.messenger.tenant_scope: true` registers `Infrastructure\Messenger\TenantIdempotencyScopeMiddleware`. It
-puts the tenant of a received envelope's `TenantStamp` into the scope of its `IdempotencyStamp`, so that each tenant
-has keys of its own and a message replayed in one tenant is still handled once. The option needs `PhilTenancyBundle`
-enabled: without it the container is not built.
+`idempotency.messenger.tenant_scope: true` adds `Infrastructure\Messenger\TenantIdempotencyScopeMiddleware` to the
+buses. It puts the tenant of a received envelope's `TenantStamp` into the scope of its `IdempotencyStamp`, so that
+each tenant has keys of its own and a message replayed in one tenant is still handled once. The option needs
+`PhilTenancyBundle` enabled: without it the container is not built.
 
-The bundle registers the service; the bus names it, before the idempotency middleware:
+```yaml
+# config/packages/phil_api_contract.yaml
+phil_api_contract:
+    idempotency:
+        messenger:
+            tenant_scope: true
+            # buses: [messenger.bus.default]   # every bus of the idempotency middleware when left out
+```
+
+The middleware goes on the buses `idempotency.messenger.buses` names, or, when it names none, on every bus whose
+middleware holds the `IdempotencyMiddleware` of `phil/idempotency`. The bundle tags it `messenger.middleware` for
+each of them, before `IdempotencyMiddleware` and after the `TenantMiddleware` of `phil/tenancy-bundle`, and
+Messenger places it among the middleware of the bus, in front of the ones that send and handle the message. A bus
+named that the application does not have fails the build, naming the buses it has.
+
+A bus whose configuration lists the middleware already keeps it where the configuration puts it, and it is never
+added twice: the manual way remains, for a bus whose order the application writes out:
 
 ```yaml
 # config/packages/messenger.yaml

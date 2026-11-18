@@ -16,3 +16,6 @@
 
 # Fixtures ZIP des tests, que le .gitignore global de la machine (*.zip) ferait oublier
 !packages/*/tests/**/*.zip
+
+# Inputs the fuzzer adds to a corpus, named by their MD5: only named seeds are committed (CONTRIBUTING.md, Fuzzing).
+/packages/*/tests/Fuzz/corpus/**/[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].txt

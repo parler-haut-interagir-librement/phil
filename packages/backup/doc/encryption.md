@@ -39,8 +39,23 @@ final tag; an empty file is one empty final chunk. A file of any size passes thr
   then missing —, or bytes after the final chunk: `… cannot be decrypted: the key is not the one it was encrypted
   with, or the file is damaged.`
 
-The target receives the chunks as they are authenticated: on a failure, it holds a beginning that must not be used.
 `Backups` decrypts into a temporary file it removes whatever happens, and restores nothing from a file that failed.
+
+## The target
+
+`encrypt()` and `decrypt()` write the target as a temporary file of its directory, created readable by its owner
+alone, then rename it to the target in one step, replacing a file of that name. No other user of the machine can read
+a byte of the copy at any moment, the target never holds a part of it, and a file that fails to decrypt, or a copy
+that cannot be written whole, leaves the target as it was and no temporary file behind.
+
+The directory is created with mode `0700` when it is missing. One that exists and is open to its group or to other
+users is narrowed to `0700` before anything is written in it; when it cannot be narrowed, such as the system's shared
+temporary directory, the call is refused with a `BackupFailed` naming the directory and its mode. The second argument
+of `BackupCipher`, `$tightenOpenDirectory`, true by default, refuses an open directory instead of narrowing it:
+
+```php
+$cipher = new BackupCipher(BackupKey::fromBase64($key), tightenOpenDirectory: false);
+```
 
 ## Encrypted sets
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7beaa5385ccdebbc2fdddc9fab0640294c45c57ef51630057a29cbdb76bfcbc3 -->
+<!-- phil-dev source-sha256=0f5cb0fcac7fb4b8280b66ebad4a0ffa5295258186d04b8ff67a26c49118ebd7 -->
 # Référence
 
 | Type | Nature | Rôle |
@@ -23,6 +23,7 @@
 | `Infrastructure\Http\DeprecatedEndpoint` | attribut | Un contrôleur obsolète et ses dates |
 | `Infrastructure\Http\DeprecationListener` | écouteur | Ses en-têtes sur chaque réponse, son `Link` à côté de ceux de la réponse |
 | `Infrastructure\DependencyInjection\CheckDeprecatedEndpoints` | passe de compilation | Chaque `#[DeprecatedEndpoint]` des services de contrôleur, construit en même temps que le conteneur |
+| `Infrastructure\DependencyInjection\AddTenantIdempotencyScopeMiddleware` | passe de compilation, interne | `TenantIdempotencyScopeMiddleware` étiqueté `messenger.middleware` pour chaque bus où il va, sauf si le bus le liste déjà ; constantes `BUSES`, `MIDDLEWARE_TAG` |
 | `Infrastructure\HttpClient\DeprecationObservingHttpClient` | décorateur du client HTTP | Les signaux des API appelées |
 | `Infrastructure\Deprecation\CacheObservedDeprecations` | `ObservedDeprecations` | Les signaux, un élément par point de terminaison dans un *pool* de cache, conservés une semaine après leur dernière écriture |
 | `Infrastructure\Doctrine\IdempotencySchemaListener` | écouteur Doctrine | La table `phil_idempotency` de `phil/idempotency` dans le schéma de l'ORM, construite pour la plateforme de la connexion |

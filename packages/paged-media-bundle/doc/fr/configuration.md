@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ce0b1edf88fc8807250760ab2d496bfdc8d29432e1722e477d646875f716d4b2 -->
+<!-- phil-dev source-sha256=96dcebd0e5f91ac753a2543e7fb09bfde65e2e0aa60a26210e8b8e877991183c -->
 # Configuration
 
 ```yaml
@@ -31,6 +31,7 @@ phil_paged_media:
         directory: '%kernel.project_dir%/var/paged-media'
     jobs:
         directory: '%kernel.project_dir%/var/paged-media-jobs'   # readable by its owner only
+        tighten_open_directory: true                             # false refuses a directory open to other users
         remove_failed: true                                      # forget the job of a message failed for good
         cache_pool: ~                                            # a PSR-6 pool service instead of the directory
         lifetime: ~                                              # seconds a job is kept in the pool

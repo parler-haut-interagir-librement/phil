@@ -1,1 +1,0 @@
-{"@context":["v1"],"id":"did:web:issuer.example.org","assertionMethod":[{"id":"did:web:issuer.example.org#key-1"}]}

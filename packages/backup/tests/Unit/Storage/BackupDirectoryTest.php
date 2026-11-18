@@ -156,7 +156,7 @@ final class BackupDirectoryTest extends TestCase
         self::assertSame($this->directory, \dirname(new BackupDirectory($this->directory, tightenOpenDirectory: false)->temporary()), 'A private directory is used as it is.');
         self::assertSame($this->directory.'/fresh/backup', \dirname(new BackupDirectory($this->directory.'/fresh/backup', tightenOpenDirectory: false)->temporary()), 'A directory it creates is private.');
 
-        if (0 === posix_geteuid()) {
+        if (0 === fileowner($this->directory)) {
             self::markTestSkipped('root narrows every directory.');
         }
 
@@ -226,7 +226,7 @@ final class BackupDirectoryTest extends TestCase
             }
         }
 
-        if (0 === posix_geteuid()) {
+        if (0 === fileowner($this->directory)) {
             self::markTestSkipped('root writes in every directory.');
         }
 

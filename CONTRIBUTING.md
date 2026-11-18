@@ -40,6 +40,22 @@ composer install
 vendor/bin/phpunit --no-configuration tests
 ```
 
+## Fuzzing
+
+A package whose code reads input nobody wrote — a parser, a decoder, a reader of files or tokens — declares fuzz
+targets in `tests/Fuzz/<target>.php`, run by `composer fuzz` from the root of the monorepo, each for its time budget.
+A target starts from the seeds of `tests/Fuzz/corpus/<target>/`.
+
+**Only named seeds are committed.** A seed is a small input written on purpose and named for what it holds, such as
+`seed-1.json`, `seed-empty.json` or `two-records-seed.txt`; an input that once failed a target is kept as a
+regression seed, `regression-<hash>.txt`. Every target keeps at least one seed, so that it starts from a valid
+input. The fuzzer adds the inputs it finds to the corpus under their MD5, such as
+`0f3a…9c.txt`: those files are local to the run, ignored by the `.gitignore` of the monorepo, and never committed. To
+keep one, rename it after what it shows. The fuzzer also shortens the inputs of the corpus as it goes, a named seed
+among them, and saves the shorter input under its MD5: a seed a run shows as deleted is restored with
+`git restore packages/<name>/tests/Fuzz/corpus`, and the generated files are removed with
+`git clean -X packages/<name>/tests/Fuzz/corpus`.
+
 ## Licence
 
 By contributing, you agree to license your contribution under the MIT licence of the package, whose holder its

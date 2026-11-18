@@ -22,6 +22,7 @@
 | `Infrastructure\Http\DeprecatedEndpoint` | attribute | A deprecated controller and its dates |
 | `Infrastructure\Http\DeprecationListener` | listener | Its headers on each response, its `Link` beside the response's own |
 | `Infrastructure\DependencyInjection\CheckDeprecatedEndpoints` | compiler pass | Every `#[DeprecatedEndpoint]` of the controller services, built when the container is |
+| `Infrastructure\DependencyInjection\AddTenantIdempotencyScopeMiddleware` | compiler pass, internal | `TenantIdempotencyScopeMiddleware` tagged `messenger.middleware` for each bus it goes on, unless the bus lists it already; constants `BUSES`, `MIDDLEWARE_TAG` |
 | `Infrastructure\HttpClient\DeprecationObservingHttpClient` | HTTP client decorator | The signals of the APIs called |
 | `Infrastructure\Deprecation\CacheObservedDeprecations` | `ObservedDeprecations` | The signals, an item per endpoint in a cache pool, kept a week past their last write |
 | `Infrastructure\Doctrine\IdempotencySchemaListener` | Doctrine listener | The table `phil_idempotency` of `phil/idempotency` in the ORM's schema, built for the connection's platform |

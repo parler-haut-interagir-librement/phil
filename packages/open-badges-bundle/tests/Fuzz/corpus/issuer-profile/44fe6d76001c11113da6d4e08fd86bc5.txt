@@ -1,1 +1,0 @@
-{"@context":["http/v2","https://w3i/v1"],"id":"https://partner.example/issuer","type":["Profile"],"ntionMethod":[{"id":"https-1xample/swbTQ1"}],"assertionMethod":["h.example/issuerey-1","ssuer#k#reky-1","ssuer#keyy-1"]}

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=11688da658870cd4431cbfbd24bb90be5667258cad23668c5ce1db2dfe4dba6a -->
+<!-- phil-dev source-sha256=6c5fec9d404a041765f51efd44fa50a2d07a610c33c08cabfcfb1338c65e64ed -->
 # Idempotence
 
 Un contrôleur marqué `#[Idempotent]` exige un en-tête `Idempotency-Key` et s'exécute une fois par clé : une nouvelle
@@ -150,12 +150,28 @@ l'enveloppe. La portée de l'estampille est le choix du producteur, `messenger` 
 envoient un message sous la même clé la partagent, et le second est pris pour un rejeu du premier et jamais traité.
 
 Avec `phil/tenancy-bundle`, dont le `TenantMiddleware` estampille chaque message du locataire dans lequel il a été
-envoyé, `idempotency.messenger.tenant_scope: true` enregistre `Infrastructure\Messenger\TenantIdempotencyScopeMiddleware`.
-Il met le locataire du `TenantStamp` d'une enveloppe reçue dans la portée de son `IdempotencyStamp`, si bien que chaque
-locataire a ses propres clés et qu'un message rejoué dans un locataire n'est toujours traité qu'une fois. L'option exige
-que `PhilTenancyBundle` soit activé : sans lui, le conteneur n'est pas construit.
+envoyé, `idempotency.messenger.tenant_scope: true` ajoute `Infrastructure\Messenger\TenantIdempotencyScopeMiddleware`
+aux bus. Il met le locataire du `TenantStamp` d'une enveloppe reçue dans la portée de son `IdempotencyStamp`, si bien
+que chaque locataire a ses propres clés et qu'un message rejoué dans un locataire n'est toujours traité qu'une fois.
+L'option exige que `PhilTenancyBundle` soit activé : sans lui, le conteneur n'est pas construit.
 
-Le bundle enregistre le service ; le bus le nomme, avant le middleware d'idempotence :
+```yaml
+# config/packages/phil_api_contract.yaml
+phil_api_contract:
+    idempotency:
+        messenger:
+            tenant_scope: true
+            # buses: [messenger.bus.default]   # every bus of the idempotency middleware when left out
+```
+
+Le middleware va sur les bus que nomme `idempotency.messenger.buses` ou, si elle n'en nomme aucun, sur chaque bus dont
+le middleware contient l'`IdempotencyMiddleware` de `phil/idempotency`. Le bundle l'étiquette `messenger.middleware`
+pour chacun d'eux, avant `IdempotencyMiddleware` et après le `TenantMiddleware` de `phil/tenancy-bundle`, et Messenger
+le place parmi les middleware du bus, devant ceux qui envoient et traitent le message. Un bus nommé que l'application
+n'a pas fait échouer la construction, en nommant les bus qu'elle a.
+
+Un bus dont la configuration liste déjà le middleware le garde là où la configuration le met, et il n'est jamais
+ajouté deux fois : la voie manuelle reste, pour un bus dont l'application écrit l'ordre en entier :
 
 ```yaml
 # config/packages/messenger.yaml

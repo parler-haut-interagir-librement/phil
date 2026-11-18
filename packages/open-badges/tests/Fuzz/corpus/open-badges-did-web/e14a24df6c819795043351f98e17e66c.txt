@@ -1,1 +1,0 @@
-{";ext":["https://"],"id":"did:web:issuer.example.org","verificationMethod":[{"id":"#key-1","type":"Mulikey","controller":"did:web:issuer.example.org","publicKeyMultibase":"z11Mk"}],"assertionMethod":["#key-1"]}
