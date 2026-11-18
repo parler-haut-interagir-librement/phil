@@ -32,11 +32,12 @@ return [
             'scorm-manifest' => 'tests/Fuzz/scorm-manifest.php',
             'cmi5-structure' => 'tests/Fuzz/cmi5-structure.php',
             'zip-package' => 'tests/Fuzz/zip-package.php',
+            'cmi-commit' => 'tests/Fuzz/cmi-commit.php',
         ],
     ],
     'docs' => [
         'public' => true,
         // The terms of SCORM, IMS Content Packaging and cmi5.
-        'words' => ['cmi5', 'SCORM', 'SCO', 'SCOs', 'xAPI', 'imsmanifest', 'moveOn', 'masteryScore', 'launchMethod', 'langstring', 'mebibyte', 'XXE', 'elearning', 'unserializes'],
+        'words' => ['cmi5', 'SCORM', 'SCO', 'SCOs', 'xAPI', 'imsmanifest', 'moveOn', 'masteryScore', 'launchMethod', 'langstring', 'mebibyte', 'XXE', 'elearning', 'unserializes', 'cmi', 'LMS', 'LMSCommit', 'LMSFinish', 'LMSInitialize', 'ADL', 'HHHH', 'centiseconds', 'hundredths'],
     ],
 ];

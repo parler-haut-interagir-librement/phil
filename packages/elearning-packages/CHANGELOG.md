@@ -8,6 +8,18 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
+### Added
+
+- The SCORM run-time data model in `Runtime\`: `DataModel`, the elements of SCORM 1.2 and SCORM 2004 4th edition with
+  their types, vocabularies, ranges, read and write rules and the bounds of their collections, and `describe()`, the
+  data model as a browser reads it; `CmiData`, which reads and writes the tracking data of an attempt as `GetValue()`
+  and `SetValue()` answer, with the dependencies and unique identifiers of SCORM 2004 (`CmiRules`) and its evaluated
+  statuses; `CmiCommit`, which applies a commit; `ScormSession`, the run-time API with its states; `CmiAttempt`,
+  `LaunchSettings`, `Entry` and `SessionEnd`, a session's beginning and end; `RuntimeStatus`, `Score` and `Duration`;
+  `ScormError` and `Mistake`, the error codes of each version and their messages; `RuntimeRefused`.
+- `ScormItem::$dataFromLms`, `$maxTimeAllowed`, `$timeLimitAction` and `$scaledPassingScore`, read from the manifest.
+- The fuzz target `cmi-commit`, and the benchmarks of a commit and of the end of a session.
+
 ### Fixed
 
 - The package ships `tests/Fixture/truncated.zip`, the truncated archive a test of `ZipPackage` reads: it was left out

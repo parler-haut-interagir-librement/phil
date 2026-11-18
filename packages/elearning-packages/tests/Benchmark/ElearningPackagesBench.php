@@ -8,13 +8,19 @@ use Phil\ElearningPackages\Archive\ZipPackage;
 use Phil\ElearningPackages\Cmi5\Cmi5CourseReader;
 use Phil\ElearningPackages\PackageLimits;
 use Phil\ElearningPackages\PackageReader;
+use Phil\ElearningPackages\Runtime\CmiAttempt;
+use Phil\ElearningPackages\Runtime\CmiCommit;
+use Phil\ElearningPackages\Runtime\CmiData;
+use Phil\ElearningPackages\Runtime\ScormVersion;
 use Phil\ElearningPackages\Scorm\ScormManifestReader;
 use Phil\ElearningPackages\Tests\Fixture\Packages;
 
 /**
  * What a platform pays to check a package at upload: reading a SCORM manifest and a cmi5 course structure, a manifest
  * of a thousand items, an archive of a thousand entries checked before any file is read, and a whole package read with
- * its launch files checked. Each must grow with the size of the package, never with its square.
+ * its launch files checked. Each must grow with the size of the package, never with its square. And what a commit of
+ * the run time costs: a typical commit of SCORM 2004, and the data of an attempt of 250 interactions loaded, given one
+ * more interaction and ended.
  */
 final readonly class ElearningPackagesBench
 {
@@ -23,6 +29,12 @@ final readonly class ElearningPackagesBench
     private string $archive;
 
     private string $package;
+
+    /** @var array<string, string|int> */
+    private array $commit;
+
+    /** @var array<string, string> */
+    private array $attempt;
 
     public function __construct()
     {
@@ -35,6 +47,34 @@ final readonly class ElearningPackagesBench
             array_fill(0, 1_000, '<h1>Page</h1>'),
         ), 'phil-elearning-packages-bench-entries.zip');
         $this->package = Packages::zip(Packages::scorm12Files(), 'phil-elearning-packages-bench-package.zip');
+        $this->commit = [
+            'cmi.location' => 'page-12', 'cmi.suspend_data' => str_repeat('s', 4_000), 'cmi.completion_status' => 'incomplete',
+            'cmi.progress_measure' => '0.4', 'cmi.score.raw' => 8, 'cmi.score.max' => 10, 'cmi.score.min' => 0, 'cmi.score.scaled' => '0.8',
+            'cmi.interactions.0.id' => 'urn:example:q1', 'cmi.interactions.0.type' => 'choice', 'cmi.interactions.0.learner_response' => 'a[,]c',
+            'cmi.interactions.0.result' => 'correct', 'cmi.interactions.0.latency' => 'PT12S', 'cmi.session_time' => 'PT10M5S', 'cmi.exit' => 'suspend',
+        ];
+        $attempt = [];
+
+        for ($i = 0; $i < 250; ++$i) {
+            $attempt['cmi.interactions.'.$i.'.id'] = 'urn:example:q'.$i;
+            $attempt['cmi.interactions.'.$i.'.type'] = 'choice';
+            $attempt['cmi.interactions.'.$i.'.learner_response'] = 'a[,]b';
+            $attempt['cmi.interactions.'.$i.'.result'] = 'correct';
+        }
+
+        $this->attempt = $attempt;
+    }
+
+    public function benchApplyACommitOfScorm2004(): void
+    {
+        CmiCommit::apply(new CmiData(ScormVersion::Scorm2004), $this->commit);
+    }
+
+    public function benchEndASessionOfAThousandValues(): void
+    {
+        $data = new CmiData(ScormVersion::Scorm2004, $this->attempt);
+        $data->set('cmi.objectives.0.id', 'o1');
+        CmiAttempt::end($data);
     }
 
     public function benchReadAScormManifest(): void
