@@ -77,6 +77,25 @@ final class DirectoryJobStoreTest extends TestCase
         self::assertSame(0o600, fileperms($this->directory.'/'.$id.'.json') & 0o777);
     }
 
+    public function testADirectoryOpenToOneOtherUserBitAloneIsNarrowed(): void
+    {
+        mkdir($this->directory, 0o700);
+        chmod($this->directory, 0o701);
+
+        new DirectoryJobStore($this->directory)->keep(new RenderJob('badge', [], 'a.pdf'));
+
+        clearstatcache();
+        self::assertSame(0o700, fileperms($this->directory) & 0o777);
+    }
+
+    public function testADirectoryItMakesIsPrivateAndNeedsNoNarrowing(): void
+    {
+        $id = new DirectoryJobStore($this->directory.'/fresh', tightenOpenDirectory: false)->keep(new RenderJob('badge', [], 'a.pdf'));
+
+        self::assertSame([$id.'.json'], $this->entries('/fresh'));
+        self::assertSame(0o700, fileperms($this->directory.'/fresh') & 0o777);
+    }
+
     public function testAnOpenDirectoryIsRefusedWhenItIsNotToBeNarrowed(): void
     {
         mkdir($this->directory, 0o700);
@@ -196,10 +215,16 @@ final class DirectoryJobStoreTest extends TestCase
             self::markTestSkipped('The superuser writes in a read-only directory.');
         }
 
-        $this->expectException(StorageFailed::class);
-        $this->expectExceptionMessageMatches('/\AThe job ".+\/[0-9a-f]{32}\.json" cannot be written\.\z/');
+        $strayBefore = glob(sys_get_temp_dir().'/.job-*');
 
-        new DirectoryJobStore($this->directory)->keep(new RenderJob('badge', [], 'a.pdf'));
+        try {
+            new DirectoryJobStore($this->directory)->keep(new RenderJob('badge', [], 'a.pdf'));
+            self::fail('A directory that cannot be written is refused.');
+        } catch (StorageFailed $storageFailed) {
+            self::assertMatchesRegularExpression('/\AThe job ".+\/[0-9a-f]{32}\.json" cannot be written\.\z/', $storageFailed->getMessage());
+        }
+
+        self::assertSame($strayBefore, glob(sys_get_temp_dir().'/.job-*'), 'The file the system gives elsewhere is removed.');
     }
 
     public function testAJobThatCannotBeRemovedIsReported(): void

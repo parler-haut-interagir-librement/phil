@@ -110,6 +110,7 @@ final class BackupCipherTest extends TestCase
         file_put_contents($this->directory.'/clear', 'x');
 
         mkdir($this->directory.'/locked', 0o500);
+        $strayBefore = glob(sys_get_temp_dir().'/.phil-backup-*');
 
         // A directory the tests created belongs to the user they run as.
         $cases = 0 === fileowner($this->directory) ? [] : [[$this->directory.'/clear', $this->directory.'/locked/sealed', 'The file '.$this->directory.'/locked/sealed cannot be written.']];
@@ -130,6 +131,7 @@ final class BackupCipherTest extends TestCase
         }
 
         self::assertSame([], Files::entries($this->directory.'/locked'), 'Nothing is left in a directory that cannot be written.');
+        self::assertSame($strayBefore, glob(sys_get_temp_dir().'/.phil-backup-*'), 'The file the system gives elsewhere is removed.');
         self::assertSame(['clear', 'locked'], Files::entries($this->directory), 'No temporary file is left behind.');
     }
 
@@ -169,6 +171,18 @@ final class BackupCipherTest extends TestCase
         clearstatcache();
         self::assertSame(0o700, fileperms($this->directory.'/open') & 0o777, 'An open directory is narrowed.');
         self::assertSame('x', file_get_contents($this->directory.'/open/opened'));
+    }
+
+    public function testADirectoryOpenToOneOtherUserBitAloneIsNarrowed(): void
+    {
+        file_put_contents($this->directory.'/clear', 'x');
+        mkdir($this->directory.'/ajar', 0o700);
+        chmod($this->directory.'/ajar', 0o701);
+
+        $this->cipher->encrypt($this->directory.'/clear', $this->directory.'/ajar/sealed');
+
+        clearstatcache();
+        self::assertSame(0o700, fileperms($this->directory.'/ajar') & 0o777);
     }
 
     public function testAnOpenDirectoryIsRefusedWhenItIsNotToBeNarrowed(): void

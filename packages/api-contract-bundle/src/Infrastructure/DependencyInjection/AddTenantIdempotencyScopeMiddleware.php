@@ -42,7 +42,7 @@ final readonly class AddTenantIdempotencyScopeMiddleware implements CompilerPass
         }
 
         $named = $container->hasParameter(self::BUSES) ? $container->getParameter(self::BUSES) : [];
-        $named = \is_array($named) ? array_values(array_filter($named, \is_string(...))) : [];
+        $named = \is_array($named) ? array_filter($named, \is_string(...)) : [];
 
         $middleware = $this->middleware($container);
 

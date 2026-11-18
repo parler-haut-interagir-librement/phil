@@ -45,7 +45,7 @@ final readonly class DirectoryJobStore implements JobStore
                 throw StorageFailed::because(\sprintf('The job "%s" cannot be written.', $file));
             }
         } finally {
-            if (is_file($temporary)) {
+            if (file_exists($temporary)) {
                 unlink($temporary);
             }
         }
