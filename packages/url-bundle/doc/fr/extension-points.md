@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=dcfc67f9062d784b494d7b8f3f613a51fb4478011f21d0da5f3e4dba264639bb -->
+<!-- phil-dev source-sha256=c9f0060c73d8805a10cbd2d050d71c6bb7f6a4a99561579b1304cc7e2cda6f0e -->
 # Points d'extension
 
 Ce qu'une application ajoute ou étend. Les adresses et les genres sont ceux de `phil/url`.
@@ -23,4 +23,5 @@ Une enum de l'application qui implémente `Phil\Url\UrlType` est acceptée parto
 | Point | Comment |
 |---|---|
 | Où une adresse est gardée | Le type de colonne `phil_url`, et le genre dans une colonne de l'application ; voir [Doctrine](doctrine.md) |
+| Si le type de colonne est enregistré | La clé `column_type` : `null` quand DBAL est installé, `true` l'exige, `false` jamais ; voir [Installation](installation.md#column_type) |
 | Comment une adresse est affichée | `url_display`, `url_type()` et `url_type_label` ; voir [Twig](twig.md) |

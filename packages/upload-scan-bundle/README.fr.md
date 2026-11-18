@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5705016b9b588352654d368bd912de304c61541b4a97dcfec2bea33688d1c8e0 -->
+<!-- phil-dev source-sha256=bff11109115412c1009a4c94315072e495d46a5234c31e14db604db5f8e57f02 -->
 # phil/upload-scan-bundle
 
 **Des téléversements analysés par ClamAV avant d'être conservés, et des fichiers infectés mis en quarantaine là où
@@ -45,6 +45,7 @@ Il est publié sous licence MIT.
 | [ClamAV](doc/fr/clamav.md) | Un service clamd à côté de l'application dans Docker Compose. |
 | [Validation](doc/fr/validation.md) | La contrainte `#[CleanFile]` et le `UploadScanner`. |
 | [Quarantaine et événements](doc/fr/quarantine-and-events.md) | Où vont les fichiers infectés, la page d'administration, la rétention, `FileInfected` et `FileFlagged`. |
+| [CSRF](doc/fr/csrf.md) | Le jeton que la page d'administration exige, son envoi, et `admin.enabled`. |
 | [Nouvelles analyses](doc/fr/rescans.md) | `RescanFile`, `RescanTarget`, le *worker* et `FileRescanned`. |
 | [Intégrations](doc/fr/integrations.md) | La médiathèque, l'importateur de documents, le contrôle de santé. |
 | [Points d'extension](doc/fr/extension-points.md) | L'analyseur, la quarantaine et les cibles de nouvelle analyse de l'application. |

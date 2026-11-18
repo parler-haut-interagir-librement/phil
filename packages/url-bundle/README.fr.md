@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f35bdec1e203cf496587262727a132767ef9220df566ae53cde5ec572739fa54 -->
+<!-- phil-dev source-sha256=298d6968ca507967724f07bd2b8124c9601f462c676235654238ef7ab0eea2c2 -->
 # phil/url-bundle
 
 **Des champs de lien qui détectent leur genre, une contrainte de validation, un type de colonne et des filtres Twig.**
@@ -6,7 +6,7 @@
 `phil/url-bundle` intègre `phil/url` à une application Symfony. `TypedUrlType` est un seul champ texte qui lit une
 adresse, en `https` par défaut, et détecte son genre parmi les ensembles d'enums qu'il accepte, ce qui donne un
 `TypedUrl`. La contrainte `UrlOfType` vérifie qu'un texte, un `Url` ou un `TypedUrl` est d'un genre accepté. Avec
-DoctrineBundle, le type de colonne `phil_url` garde un `Url` normalisé dans un `VARCHAR(2048)`. Twig reçoit
+Doctrine DBAL, le type de colonne `phil_url` garde un `Url` normalisé dans un `VARCHAR(2048)`. Twig reçoit
 `url_display`, `url_type()` et `url_type_label`. Les messages sont fournis en anglais et en français.
 
 Il s'adresse aux applications Symfony dont les formulaires recueillent des liens : un profil social, le site Web d'une
@@ -60,7 +60,8 @@ public ?string $social = null;
 
 PHP 8.5 ou plus récent ; `phil/url` 0.1.3 et `phil/enums` 0.3 ; `symfony/config`, `symfony/dependency-injection`,
 `symfony/form`, `symfony/options-resolver` et `symfony/validator` 8.2 ou plus récent. Doctrine DBAL et Twig sont
-facultatifs.
+facultatifs : sans DBAL, le bundle démarre et laisse de côté le type de colonne, sa seule fonctionnalité qui a besoin d'une
+base de données.
 
 ## Contribuer
 

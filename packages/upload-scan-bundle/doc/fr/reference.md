@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=92681836b1b9fc114c5287477d0fbe79433179f0b45258fbb213cb05fa92ba9d -->
+<!-- phil-dev source-sha256=cc24bfa771ede9ad7ac23aef401e65b324155d4eac9a17c07f886dc2dca2f547 -->
 # Référence
 
 ## Types
@@ -24,6 +24,7 @@
 | `Phil\UploadScanBundle\Infrastructure\Quarantine\FilesystemQuarantine` | `final readonly class` | La quarantaine dans un répertoire local, et son inventaire |
 | `Phil\UploadScanBundle\Infrastructure\Admin\QuarantineAdminController` | contrôleur | La page de la quarantaine : `LIST_ROUTE`, `DELETE_ROUTE`, `CSRF_TOKEN_ID` |
 | `Phil\UploadScanBundle\Infrastructure\EasyAdmin\QuarantineAdmin` | `final class` | Le lien d'un menu EasyAdmin vers la page de la quarantaine |
+| `Phil\UploadScanBundle\Infrastructure\DependencyInjection\CsrfProtectionPass` | passe du compilateur | Arrête la construction, en nommant `framework.csrf_protection` et `admin.enabled`, quand la page est enregistrée sans le gestionnaire de jetons CSRF de Symfony |
 | `Phil\UploadScanBundle\Infrastructure\DependencyInjection\QuarantineInventoryPass` | passe du compilateur | `QuarantineInventory` donné à la quarantaine quand elle peut être listée ; la page et la purge retirées sans inventaire |
 | `Phil\UploadScanBundle\Infrastructure\Validator\CleanFile` | contrainte | Un fichier exempt de menaces connues : `INFECTED_ERROR`, `NOT_SCANNED_ERROR` |
 | `Phil\UploadScanBundle\Infrastructure\Validator\CleanFileValidator` | validateur | Vérifie `CleanFile` |
@@ -39,7 +40,7 @@
 | `Phil\UploadScan\ScanPolicy` | Toujours, avec `on_error`. |
 | `Phil\UploadScanBundle\Application\Contract\Quarantine` | Sauf si la quarantaine est désactivée : un alias de `FilesystemQuarantine` ou de `quarantine.service`. |
 | `Phil\UploadScanBundle\Application\Contract\QuarantineInventory` | Quand la quarantaine l'implémente, sauf si l'application en fait un alias. |
-| `Phil\UploadScanBundle\Infrastructure\Admin\QuarantineAdminController` | Avec une quarantaine, Twig et `symfony/security-csrf`, et un inventaire ; public, avec l'étiquette `controller.service_arguments`. |
+| `Phil\UploadScanBundle\Infrastructure\Admin\QuarantineAdminController` | Avec une quarantaine, Twig et `symfony/security-csrf`, `admin.enabled` à true, et un inventaire ; public, avec l'étiquette `controller.service_arguments`. |
 | `Phil\UploadScanBundle\Application\QuarantinePurger`, `Phil\UploadScanBundle\Infrastructure\Console\PurgeQuarantineCommand` | Avec une quarantaine, le composant Console et un inventaire ; la commande avec l'étiquette `console.command`. |
 | `Phil\UploadScanBundle\Application\UploadScanner` | Toujours. |
 | `Phil\UploadScanBundle\Infrastructure\Validator\CleanFileValidator` | Toujours, avec l'étiquette `validator.constraint_validator`. |
