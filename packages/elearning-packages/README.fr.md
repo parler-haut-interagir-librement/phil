@@ -1,7 +1,7 @@
-<!-- phil-dev source-sha256=f32843f5e94c09ef162faa4567e75eb8bfa0d23d6e404a4eb7c70d09317a5b0d -->
+<!-- phil-dev source-sha256=64089dca3cd10af639285aa7923b36f7d59af385b8fdd2b7b61e88bfabe03027 -->
 # phil/elearning-packages
 
-**Paquets SCORM 1.2, SCORM 2004 et cmi5 lus en toute sécurité, sans plateforme d'apprentissage.**
+**Paquets SCORM 1.2, SCORM 2004 et cmi5 lus en toute sécurité, et le modèle de données d'exécution SCORM, sans plateforme d'apprentissage.**
 
 phil/elearning-packages lit les paquets de cours qu'exportent les outils de formation en ligne : une archive ZIP qui
 contient à sa racine `imsmanifest.xml` (SCORM 1.2 ou SCORM 2004, selon IMS Content Packaging) ou `cmi5.xml` (une
@@ -16,8 +16,14 @@ Chaque fichier est ensuite lu par un flux qui s'arrête un octet après ce que s
 CRC-32. Le manifeste est analysé sans type de document ni entité, sans accès au réseau, et dans des limites sur sa
 taille, sa profondeur et le nombre d'éléments qu'il décrit. Rien n'est extrait sur le disque et rien n'est exécuté.
 
-Elle sert une plateforme qui importe des cours, un formulaire de téléversement qui refuse un paquet brisé avant qu'il
-soit stocké, ou un outil de migration qui énumère le contenu d'un ensemble de paquets. C'est une bibliothèque PHP
+Elle contient aussi le modèle de données d'exécution de SCORM 1.2 et de SCORM 2004 4e édition : chaque élément, son type,
+son vocabulaire et son intervalle, qui peut le lire et l'écrire, les codes d'erreur de chaque version, l'API d'exécution
+avec ses états, les règles d'une validation, les statuts et les notes, et le temps de session ajouté au temps total. Une
+plateforme qui exécute du contenu SCORM y vérifie les appels du contenu, dans le navigateur par la description qu'elle
+donne, puis de nouveau sur le serveur.
+
+Elle sert une plateforme qui importe et exécute des cours, un formulaire de téléversement qui refuse un paquet brisé
+avant qu'il soit stocké, ou un outil de migration qui énumère le contenu d'un ensemble de paquets. C'est une bibliothèque PHP
 simple, sans dépendance au-delà des extensions `dom`, `libxml`, `mbstring` et `zip`.
 
 ## État
@@ -30,7 +36,9 @@ simple, sans dépendance au-delà des extensions `dom`, `libxml`, `mbstring` et 
 | Les manifestes SCORM 1.2 et SCORM 2004 : version, organisations, éléments, ressources, séquencement conservé en XML | Implémenté, testé et soumis au fuzzing |
 | Les structures de cours cmi5 : cours, blocs, unités assignables, dans la langue demandée | Implémenté, testé et soumis au fuzzing |
 | Le format reconnu, les fichiers de lancement et les fichiers déclarés vérifiés | Implémenté et testé |
-| Un environnement d'exécution SCORM, un client xAPI, l'import dans un modèle de cours | Pas dans cette bibliothèque : une plateforme les construit dessus |
+| Ce qu'un environnement d'exécution remet à un SCO, lu dans le manifeste : données de lancement, note de maîtrise, note de passage normalisée, seuil d'achèvement, temps alloué et son action | Implémenté et testé |
+| Le modèle de données d'exécution SCORM : les éléments de SCORM 1.2 et 2004, leurs règles de lecture et d'écriture et leurs codes d'erreur, les validations, statuts, notes, temps, l'API et ses états | Implémenté, testé et soumis au fuzzing |
+| L'environnement d'exécution lui-même — une page, un point de terminaison, les tentatives conservées —, un client xAPI, l'import dans un modèle de cours | Pas dans cette bibliothèque : une plateforme les construit dessus |
 
 ## Documentation
 
@@ -39,6 +47,7 @@ simple, sans dépendance au-delà des extensions `dom`, `libxml`, `mbstring` et 
 | [Installation](doc/fr/installation.md) | Les prérequis et l'installation. |
 | [Lire SCORM](doc/fr/reading-scorm.md) | Le manifeste SCORM, sa version, ses organisations, ses éléments et ses ressources. |
 | [Lire cmi5](doc/fr/reading-cmi5.md) | La structure de cours cmi5, ses blocs et ses unités assignables, une structure seule. |
+| [Le modèle de données d'exécution SCORM](doc/fr/scorm-runtime.md) | Les éléments, la lecture et l'écriture, les codes d'erreur, l'API, le début et la fin d'une session, ce qui est laissé à la plateforme. |
 | [Limites et sécurité](doc/fr/limits-and-security.md) | Les limites, ce que l'on vérifie dans l'archive et le manifeste, ce que la bibliothèque ne fait jamais. |
 | [Exceptions](doc/fr/exceptions.md) | Ce que la bibliothèque lève, et quand. |
 | [Points d'extension](doc/fr/extension-points.md) | Ce qu'une application configure, remplace ou sur quoi elle s'appuie. |

@@ -1,0 +1,1 @@
+{"token":"t","csrf":"csrf-token","values":{"cmi.interactions.0.id":"q1","cmi.interactions.0.type":"numeric","cmi.interactions.0.learner_response":"3.5","cmi.exit":"suspend","adl.nav.request":"{target=a}choice"},"finish":false}

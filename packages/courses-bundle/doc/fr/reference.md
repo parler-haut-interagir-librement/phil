@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=af72d98dd7d32874ea6b89fd1fa57d9a5db14f1a3f9ae1f9c8b729ccbadb7068 -->
+<!-- phil-dev source-sha256=7a8532d14c2bf1efa406177a3ea4e6138aa033b63a7af7ba74cd7988cbfa7018 -->
 # Référence
 
 ## Bundle
@@ -8,10 +8,12 @@
 | `PhilCoursesBundle` | Le bundle : sa configuration `phil_courses` et le jeton CSRF sans état `phil_courses` |
 | `config/routes.php` | Les routes des pages |
 | `config/cmi5_routes.php` | L'URL de récupération et le point de terminaison xAPI |
-| `config/content_routes.php` | Les fichiers des paquets importés, sur l'origine du contenu |
+| `config/content_routes.php` | Les fichiers des paquets importés et le cadre de l'environnement d'exécution SCORM, sur l'origine du contenu |
 | `config/admin_routes.php` | La page d'administration des secondes chances |
 | `templates/` | `layout`, `outline`, `activity` et `second_chances`, dessinés avec les recettes du kit |
 | `translations/` | Les mots des pages, en anglais et en français |
+| `assets/src/scorm_runtime_controller.js` | Le contrôleur Stimulus de la page d'activité d'une session SCORM : encadre le cadre, envoie les validations |
+| `assets/src/scorm_frame.js`, `assets/src/lib/api.js`, `assets/src/lib/cmi.js` | Le cadre de l'environnement d'exécution sur l'origine du contenu, l'API d'exécution, et le modèle de données dans le navigateur |
 | `recipe/0.1` | La recette Flex : le bundle, sa configuration et ses routes |
 
 ## Domaine
@@ -26,6 +28,9 @@
 | `Domain\Model\Progress` | La progression d'un apprenant dans une activité |
 | `Domain\Model\RetryRequest` | Une demande de seconde chance, sa décision et la note de l'enseignant |
 | `Domain\Model\LaunchSession` | Un lancement cmi5 : récupéré ou non, expiration, état |
+| `Domain\Model\ScormAttempt` | Une tentative SCORM : numéro, version, état, session, données de suivi, statut, temps total |
+| `Domain\Scorm\AttemptState` | `running`, `paused`, `suspended`, `ended` |
+| `Domain\ValueObject\ScormAttemptId` | L'identifiant d'une tentative SCORM |
 | `Domain\ValueObject\CourseId`, `ModuleId`, `BlockId`, `ActivityId`, `EnrollmentId`, `RetryRequestId`, `LaunchSessionId` | Des identifiants, UUID version 7 quand le bundle les tire |
 | `Domain\ValueObject\LearnerId` | L'identifiant stable d'un apprenant, jamais une adresse courriel |
 | `Domain\ValueObject\Release` | Tout de suite, à un moment, ou un nombre de jours après l'inscription |
@@ -37,7 +42,9 @@
 | `Domain\Progress\RetryDecision` | `pending`, `granted`, `refused`, `waived` |
 | `Domain\Course\CourseOrigin` | `native`, `scorm12`, `scorm2004`, `cmi5` ; `of()` le format d'un paquet |
 | `Domain\Cmi5\Cmi5Verb`, `Cmi5Iri`, `SessionState` | Les verbes, les IRI et les états de session de cmi5 ; les modes de lancement sont le `LaunchMethod` de phil/elearning-packages |
-| `Domain\Contract\CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`, `LaunchSessionRepository` | Les entrepôts |
+| `Domain\Contract\CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`, `LaunchSessionRepository`, `ScormAttemptRepository` | Les entrepôts |
+| `Domain\Event\ScormSessionEnded` | Une session d'une activité SCORM a pris fin, et si sa tentative aussi |
+| `Domain\Exception\AttemptRefused` | Une validation refusée : son jeton, son apprenant ou sa session n'est pas celui de la tentative |
 | `Domain\Event\*` | `LearnerEnrolled`, `ActivityProgressed`, `ActivitySatisfied`, `CourseCompleted`, `RetryRequested`, `RetryGranted`, `RetryRefused`, `RetryWaived`, `BlockSatisfied`, `CourseImported`, `StatementRecorded` |
 | `Domain\Exception\CoursesException` | Ce qu'est chaque échec du bundle |
 | `Domain\Exception\InvalidCourse`, `UnknownRecord`, `ActivityUnavailable`, `PackageRefused`, `StatementRefused`, `RecordStoreUnavailable` | Une valeur refusée, un enregistrement manquant, une activité non ouverte, un paquet refusé, un énoncé refusé, un énoncé que l'entrepôt de traces d'apprentissage n'a pas conservé |
@@ -63,6 +70,9 @@
 | `Application\Import\ScormPlanner`, `Cmi5Planner`, `ImportPlan`, `PlannedModule`, `PlannedBlock`, `PlannedActivity` | Transforment un manifeste en cours à créer |
 | `Application\Import\ImportReport` | Ce qu'un import a créé et laissé de côté |
 | `Application\Import\ResultImporter`, `ScormStatus` | Les résultats importés |
+| `Application\Scorm\ScormRuntime` | Ouvre les sessions des tentatives SCORM, conserve leurs validations, y met fin et enregistre leur résultat |
+| `Application\Scorm\ScormTokens` | Les jetons de tentative |
+| `Application\Scorm\ScormLaunch`, `CommitAnswer` | Ce qu'un lancement remet au navigateur, et ce qu'une validation répond |
 | `Application\Cmi5\Cmi5Launcher` | Lance une unité |
 | `Application\Cmi5\Cmi5Tokens` | La réponse de l'URL de récupération, et les jetons |
 | `Application\Cmi5\Cmi5Statements` | Reçoit et émet des énoncés |
@@ -83,6 +93,10 @@
 | `Infrastructure\Http\CourseController`, `CourseRequest` | Les pages et leur vérification CSRF |
 | `Infrastructure\Http\Cmi5Controller` | L'URL de récupération et le point de terminaison xAPI |
 | `Infrastructure\Http\ContentController` | Les fichiers sur l'origine du contenu |
+| `Infrastructure\Http\ScormController`, `ScormCommitPayload` | Le point de terminaison de validation des sessions SCORM, et le corps qu'il lit |
+| `Infrastructure\Http\ScormFrameController` | Le cadre de l'environnement d'exécution SCORM, sur l'origine du contenu |
+| `Infrastructure\Doctrine\DbalScormAttemptRepository` | Les tentatives SCORM par DBAL |
+| `Infrastructure\Privacy\ScormPrivacy` | Les tentatives SCORM dans les demandes d'accès et d'effacement de phil/privacy-bundle |
 | `Infrastructure\Http\SecondChancesController` | La page d'administration des secondes chances |
 | `Infrastructure\Routing\RoutedCmi5Endpoints` | Les URL du point de terminaison et de l'URL de récupération |
 | `Infrastructure\Console\ImportCommand`, `ImportResultsCommand`, `RetriesCommand` | Les commandes |

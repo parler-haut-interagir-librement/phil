@@ -62,13 +62,34 @@ phil_courses_admin:
 
 | File | Routes | Firewall |
 |---|---|---|
-| `config/routes.php` | The pages of a course: the outline, the enrollment, the launch, the completion, the second chance | Behind the application's firewall: the pages need a learner |
+| `config/routes.php` | The pages of a course: the outline, the enrollment, the launch, the completion, the second chance, and the commit endpoint of the SCORM sessions | Behind the application's firewall: the pages need a learner, and a commit names its attempt by its token |
 | `config/cmi5_routes.php` | The fetch URL and the xAPI endpoint the cmi5 units talk to | Outside it: each request carries the token of its session, not the learner's cookies |
-| `config/content_routes.php` | The files of the imported packages | Outside it, and answered on the content origin only |
+| `config/content_routes.php` | The files of the imported packages, and the frame of the SCORM run time under `_phil/scorm/` | Outside it, and answered on the content origin only |
 | `config/admin_routes.php` | The administration page of the second chances | Behind the application's firewall: the page asks for the role `phil_courses.admin.role` |
 
 An application whose web server serves the storage directory on the content origin does not import the content routes;
+it routes `<content base URL>/_phil/scorm/` to the application, for the frame of the SCORM run time, and
 [Security](security.md) gives the headers to send.
+
+## The Stimulus controller
+
+The SCORM run time draws the Stimulus controller `phil--courses-bundle--scorm-runtime`, with AssetMapper and
+symfony/stimulus-bundle: nothing is built. The bundle maps its controller under `@phil/courses-bundle`; enable it in
+`assets/controllers.json`, fetched lazily, only on the pages of SCORM activities:
+
+```json
+{
+    "controllers": {
+        "@phil/courses-bundle": {
+            "scorm-runtime": { "enabled": true, "fetch": "lazy" }
+        }
+    }
+}
+```
+
+```sh
+composer require symfony/asset-mapper symfony/stimulus-bundle
+```
 
 ## The content origin
 
@@ -77,6 +98,13 @@ another host than the application's, best on another registrable domain — so t
 application's cookies. Point a host of the content origin at the application, or at a web server that serves the
 storage directory, and name it in `phil_courses.content.base_url`. Without it, the bundle imports packages but does not
 launch their content.
+
+## The tables of the SCORM attempts
+
+`phil_course_scorm_attempt` and `phil_course_scorm_data` keep the attempts and their tracking data. They come with the
+other tables, from the schema listener or `CourseTables::configure()`, and `CourseTables::upgrade()` adds them to the
+tables of 0.1. Their keys use the binary collation `utf8mb4_bin` on MySQL and MariaDB when the schema is given the
+platform — the schema listener and `upgrade()` always give it —; the tracking data is a `MEDIUMTEXT` there.
 
 ## The pages
 

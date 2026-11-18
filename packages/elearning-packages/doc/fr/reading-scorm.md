@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fd27968a6b2ea7dec30d35d646fb191dd78e0d06cd7c4e7d87df10a9f3c49b24 -->
+<!-- phil-dev source-sha256=d12e6d6054fd2d3f1b59d40e1d0ab85da40beff1d296e663a34d52d0321d9666 -->
 # Lire SCORM
 
 Un paquet SCORM est une archive IMS Content Packaging : `imsmanifest.xml`, à sa racine, décrit des organisations — des
@@ -75,6 +75,10 @@ la même façon.
 | `ScormItem::$masteryScore` | Le `<masteryscore>` de SCORM 1.2 sur cent, en score normalisé de 0 à 1 |
 | `ScormItem::$prerequisites` | Les `<prerequisites>` de SCORM 1.2 |
 | `ScormItem::$completionThreshold` | Le `<completionThreshold>` de SCORM 2004, son `minProgressMeasure` ou son texte, de 0 à 1 |
+| `ScormItem::$dataFromLms` | `<adlcp:datafromlms>` de SCORM 1.2 ou `<adlcp:dataFromLMS>` de SCORM 2004, 4 096 caractères au plus |
+| `ScormItem::$maxTimeAllowed` | `<adlcp:maxtimeallowed>` de SCORM 1.2, `HHHH:MM:SS`, ou le `attemptAbsoluteDurationLimit` des conditions limites de SCORM 2004, une durée de l'ISO 8601 ; null quand ce n'est pas une durée |
+| `ScormItem::$timeLimitAction` | `<adlcp:timelimitaction>`, l'un de `exit,message`, `exit,no message`, `continue,message`, `continue,no message` |
+| `ScormItem::$scaledPassingScore` | Le `minNormalizedMeasure` d'un objectif principal satisfait par une mesure de SCORM 2004, 1 en son absence, de -1 à 1 |
 | `ScormOrganization::$sequencing`, `ScormItem::$sequencing` | `<sequencing>` en XML, quand il fait 64 Kio ou moins |
 | `ScormResource::$scormType` | `adlcp:scormtype` ou `adlcp:scormType`, en minuscules ; `asset` par défaut |
 | `ScormResource::$href`, `$files` | Le fichier de lancement et les éléments `<file>`, résolus selon chaque `xml:base` |

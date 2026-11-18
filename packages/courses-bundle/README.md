@@ -1,6 +1,6 @@
 # phil/courses-bundle
 
-**Online courses for Symfony: modules, activities, progress and completion, and the migration of SCORM and cmi5 courses.**
+**Online courses for Symfony: modules, activities, progress and completion, with SCORM and cmi5 courses run inside the platform.**
 
 phil/courses-bundle gives an application online courses. A course holds modules in order, and each module holds
 activities: a page of text, a link, the content of an imported SCORM package, or a cmi5 assignable unit. Activity types
@@ -14,12 +14,15 @@ who failed every try of an activity asks for a second chance, which a teacher gr
 the activity, with a note, on an administration page or from the console; with phil/audit-bundle, each step is
 written to the audit trail.
 
-The bundle imports SCORM 1.2, SCORM 2004 and cmi5 packages to migrate courses from another platform, read by
-phil/elearning-packages. The ZIP archive is read within bounds — its size, its number of entries, the size of each file
-uncompressed, its compression ratio —, and an entry that would leave the package, a symbolic link or a corrupt entry is
-refused. The manifest is parsed without any document type or entity. The files are stored apart, and served from a
-content origin that is not the application's, with a content security policy. SCORM content is shown and marked done
-by the learner: the bundle runs no SCORM runtime.
+The bundle imports SCORM 1.2, SCORM 2004 and cmi5 packages, to run them or to migrate courses from another platform,
+read by phil/elearning-packages. The ZIP archive is read within bounds — its size, its number of entries, the size of
+each file uncompressed, its compression ratio —, and an entry that would leave the package, a symbolic link or a corrupt
+entry is refused. The manifest is parsed without any document type or entity. The files are stored apart, and served
+from a content origin that is not the application's, with a content security policy.
+SCORM content runs inside the platform: a Stimulus controller frames it under the run-time API of SCORM 1.2 (`API`) or
+SCORM 2004 (`API_1484_11`), which answers each call at once by the data model of phil/elearning-packages and sends the
+commits to an endpoint that checks them again. Attempts are kept with their tracking data — suspended and resumed,
+attempted again —, and feed the learner's progress, the mastery score of the manifest included.
 The tree of the blocks of a cmi5 course structure is kept: nested blocks, their order and their identifiers.
 cmi5 units are launched with the parameters of cmi5, fetch their token once, and send their statements to an xAPI
 endpoint of the bundle, which checks them against the rules of cmi5 before a learning record store keeps them. The
@@ -45,6 +48,9 @@ on SQLite, MySQL 8.4 and PostgreSQL 17.
 | Second chances asked for, granted, refused or answered by a waiver with a note, the trail of phil/audit-bundle | Implemented and tested |
 | The administration page of the second chances, behind a configurable role, with the recipes of the kit, English and French | Implemented and tested |
 | The import of SCORM 1.2 and 2004 packages through phil/elearning-packages, sequencing kept for information, results imported from a CSV export | Implemented and tested |
+| The SCORM run time: the API of SCORM 1.2 and 2004 in the browser, every element of their data models checked in the browser and on the server, attempts suspended, resumed and attempted again, tracking data kept, progress recorded, navigation requests followed | Implemented, tested on SQLite, MySQL and PostgreSQL, and fuzzed |
+| The tracking data of the SCORM attempts in the access and erasure requests of phil/privacy-bundle | Implemented and tested |
+| The sequencing and navigation of SCORM 2004 beyond the flow and the choice of the outline: rules, rollup, shared objectives | Not yet: see [SCORM run time](doc/scorm-runtime.md#what-the-bundle-does-not-do-yet) |
 | The import of cmi5 packages and course structures, through phil/elearning-packages, the tree of the blocks kept, a unit whose `moveOn` is `NotApplicable` not required | Implemented and tested |
 | cmi5 launches, the fetch URL, the xAPI endpoint with the rules of cmi5, the learning record store as a port | Implemented and tested |
 | The `satisfied` statements of the blocks, innermost first, and of the course, once for each enrollment, named by the course structure, with the `BlockSatisfied` event | Implemented and tested |
@@ -56,7 +62,6 @@ on SQLite, MySQL 8.4 and PostgreSQL 17.
 | `phil:courses:import`, `phil:courses:import-results`, `phil:courses:retries` | Implemented and tested |
 | The pages — outline, activity, enrollment, second chance — with the recipes of the kit, English and French | Implemented and tested |
 | The Flex recipe: the bundle, its configuration and its routes | Written in `recipe/0.1`, for the recipes repository of PHIL |
-| A SCORM runtime that runs SCOs and reads their reports | Not planned: SCORM is imported to migrate courses |
 | Branching lessons through phil/story-graph, quizzes through phil/assessment, access through phil/content-access | Planned, as activity types and an access port, once those libraries are written |
 | LTI 1.3 activities, hosted video with consented watch tracking | Planned, as activity types the LTI and video bundles add |
 | Cohorts with live meetings, courses sold through the catalogue, dependencies between courses, learning paths | Planned |
@@ -69,8 +74,9 @@ on SQLite, MySQL 8.4 and PostgreSQL 17.
 | [Configuration](doc/configuration.md) | Every option, with an example. |
 | [The course model](doc/course-model.md) | Courses, modules, blocks, activities, enrollments, progress, releases, order and second chances, with their administration page. |
 | [SCORM import](doc/scorm-import.md) | What a SCORM package becomes, what is kept for information, what is left out, and imported results. |
+| [SCORM run time](doc/scorm-runtime.md) | How a SCO runs: the API in the browser, the commit endpoint, attempts, progress, packages of several SCOs, what is supported and what is not yet, privacy. |
 | [cmi5](doc/cmi5.md) | The import of cmi5 packages and their blocks, the launch, the fetch URL, the xAPI endpoint, the `satisfied` statements and the learning record stores, inside the bundle or remote. |
-| [Security](doc/security.md) | The bounds of the archive and the manifest, the content origin and its headers, the remote store, the administration page. |
+| [Security](doc/security.md) | The bounds of the archive and the manifest, the content origin and its headers, the SCORM run time, the remote store, the administration page. |
 | [Extension points](doc/extension-points.md) | The ports, the events, the services to replace, and when they are stable. |
 | [Testing](doc/testing.md) | The bundle's tests, the servers and the learning record store its integration tests read, and the fuzz target. |
 | [Reference](doc/reference.md) | Every class and file of the bundle. |
@@ -88,6 +94,7 @@ phil_courses:
     timezone: America/Toronto
     content:
         base_url: 'https://content.example.org'
+        application_origin: 'https://www.example.org'
     cmi5:
         actor_home_page: 'https://www.example.org'
 ```
@@ -100,7 +107,8 @@ php bin/console phil:courses:import var/import/safety-course.zip
 
 PHP 8.5 or later with the `mbstring` and `sodium` extensions, and those phil/elearning-packages reads packages with —
 `dom`, `libxml` and `zip` —, Symfony 8.2 or later, and Doctrine DBAL 4.5. The remote learning record store needs
-phil/safe-http, and the administration page Symfony Security.
+phil/safe-http, the administration page Symfony Security, and the SCORM run time symfony/stimulus-bundle with
+AssetMapper.
 
 ## Contributing
 

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Phil\CoursesBundle\Tests\Unit\Infrastructure;
 
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Index\IndexedColumn;
@@ -52,6 +55,8 @@ final class SchemaTest extends TestCase
             'phil_course_cmi5_session' => ['id:string:1:36:0', 'enrollment_id:string:1:36:0', 'activity_id:string:1:36:0', 'fetched:boolean:1::0', 'state:string:1:16:0', 'launched_at:datetime_utc_immutable:1::0', 'expires_at:datetime_utc_immutable:1::0', 'ended_at:datetime_utc_immutable:0::0'],
             'phil_course_statement' => ['id:string:1:36:0', 'registration:string:1:36:0', 'body:text:1::0', 'stored_at:datetime_utc_immutable:1::0'],
             'phil_course_state' => ['activity_hash:string:1:64:1', 'registration:string:1:36:0', 'state_id:string:1:190:0', 'document:text:1::0', 'updated_at:datetime_utc_immutable:1::0'],
+            'phil_course_scorm_attempt' => ['id:string:1:36:0', 'enrollment_id:string:1:36:0', 'activity_id:string:1:36:0', 'number:integer:1::0', 'version:string:1:8:0', 'state:string:1:16:0', 'session:integer:1::0', 'completion:string:1:16:0', 'success:string:1:16:0', 'score:float:0::0', 'total_time:bigint:1::0', 'started_at:datetime_utc_immutable:1::0', 'updated_at:datetime_utc_immutable:1::0', 'ended_at:datetime_utc_immutable:0::0'],
+            'phil_course_scorm_data' => ['attempt_id:string:1:36:0', 'data:text:1:16777215:0', 'updated_at:datetime_utc_immutable:1::0'],
         ], $tables);
         self::assertSame(array_reverse(array_keys($tables)), CourseTables::ALL);
     }
@@ -73,6 +78,23 @@ final class SchemaTest extends TestCase
         self::assertSame(['enrollment_id', 'activity_id'], array_map(static fn (UnqualifiedName $column): string => $column->toString(), $schema->getTable(CourseTables::PROGRESS)->getPrimaryKeyConstraint()?->getColumnNames() ?? []));
         self::assertSame(['enrollment_id', 'subject_id'], array_map(static fn (UnqualifiedName $column): string => $column->toString(), $schema->getTable(CourseTables::SATISFACTION)->getPrimaryKeyConstraint()?->getColumnNames() ?? []));
         self::assertSame(['activity_hash', 'registration', 'state_id'], array_map(static fn (UnqualifiedName $column): string => $column->toString(), $schema->getTable(CourseTables::STATE)->getPrimaryKeyConstraint()?->getColumnNames() ?? []));
+        self::assertSame([], $indexes($schema->getTable(CourseTables::SCORM_ATTEMPT)));
+        self::assertSame(['enrollment_id', 'activity_id', 'number'], array_map(static fn (UnqualifiedName $column): string => $column->toString(), array_first($schema->getTable(CourseTables::SCORM_ATTEMPT)->getUniqueConstraints())?->getColumnNames() ?? []));
+        self::assertSame(['attempt_id'], array_map(static fn (UnqualifiedName $column): string => $column->toString(), $schema->getTable(CourseTables::SCORM_DATA)->getPrimaryKeyConstraint()?->getColumnNames() ?? []));
+    }
+
+    public function testTheKeysOfTheScormTablesCompareBytesOnMySql(): void
+    {
+        $collations = static fn (?AbstractPlatform $platform): array => array_map(
+            static fn (Column $column): ?string => $column->getCollation(),
+            array_filter(CourseTables::configure(Schema::editor()->create(), $platform)->getTable(CourseTables::SCORM_ATTEMPT)->getColumns(), static fn (Column $column): bool => str_ends_with($column->getObjectName()->toString(), 'id')),
+        );
+
+        self::assertSame(['utf8mb4_bin', 'utf8mb4_bin', 'utf8mb4_bin'], array_values($collations(new MySQLPlatform())));
+        self::assertSame('utf8mb4', CourseTables::configure(Schema::editor()->create(), new MySQLPlatform())->getTable(CourseTables::SCORM_DATA)->getColumn('attempt_id')->getCharset());
+        self::assertSame([null, null, null], array_values($collations(new PostgreSQLPlatform())));
+        self::assertSame([null, null, null], array_values($collations(null)));
+        self::assertNull(CourseTables::configure(Schema::editor()->create(), new MySQLPlatform())->getTable(CourseTables::ENROLLMENT)->getColumn('id')->getCollation());
     }
 
     public function testATableTheSchemaHasIsLeftAsItIs(): void
@@ -80,7 +102,7 @@ final class SchemaTest extends TestCase
         $schema = Schema::editor()->addTable(Table::editor()->setUnquotedName(CourseTables::COURSE)->addColumn(Column::editor()->setUnquotedName('own')->setTypeName('integer')->create())->create())->create();
 
         self::assertSame(['own'], array_map(static fn (Column $column): string => $column->getObjectName()->toString(), CourseTables::configure($schema)->getTable(CourseTables::COURSE)->getColumns()));
-        self::assertCount(11, CourseTables::configure($schema)->getTables());
+        self::assertCount(13, CourseTables::configure($schema)->getTables());
     }
 
     public function testTheListenerAddsTheTablesToItsConnectionOnly(): void
@@ -89,7 +111,7 @@ final class SchemaTest extends TestCase
         $other = Store::sqlite();
         $listener = new SchemaListener($connection);
 
-        foreach ([[$connection, 11], [$other, 0]] as [$used, $count]) {
+        foreach ([[$connection, 13], [$other, 0]] as [$used, $count]) {
             $manager = self::createStub(EntityManagerInterface::class);
             $manager->method('getConnection')->willReturn($used);
             $event = new GenerateSchemaEventArgs($manager, Schema::editor()->create());
@@ -115,7 +137,7 @@ final class SchemaTest extends TestCase
 
         self::assertSame([], CourseTables::upgrade($connection));
         $manager = $connection->createSchemaManager();
-        self::assertTrue($manager->tablesExist([CourseTables::BLOCK, CourseTables::SATISFACTION]));
+        self::assertTrue($manager->tablesExist([CourseTables::BLOCK, CourseTables::SATISFACTION, CourseTables::SCORM_ATTEMPT, CourseTables::SCORM_DATA]));
         self::assertTrue($manager->introspectTableByUnquotedName(CourseTables::ACTIVITY)->hasColumn('block_id'));
         self::assertTrue($manager->introspectTableByUnquotedName(CourseTables::RETRY)->hasColumn('note'));
         self::assertTrue($manager->introspectTableByUnquotedName(CourseTables::RETRY)->hasIndex('idx_phil_course_retry_pending'));

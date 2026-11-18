@@ -77,6 +77,16 @@ fragment set apart, its escapes decoded — so that `%2e%2e/` is `../` —, its 
 - an identifier is bounded to 255 bytes, a cmi5 URL to 2 048, a text to 4 096 characters, and a sequencing element
   larger than 64 KiB is not kept.
 
+## The tracking data of the run time
+
+The values a SCORM commit carries come from content the platform did not write, through the learner's browser:
+
+- an element name is 255 bytes at most, of lowercase letters, digits, `_` and `.`, with indexes of four digits at most
+  and no leading zero; a collection index past the next free one, or past the collection's bound, is refused;
+- a value is checked against the pattern, the length in characters and the range of its element, and must be UTF-8;
+- the data of an attempt is bounded at 1 MiB in all, a commit at 4 000 values;
+- a time is bounded at 9 999 hours, however many digits it writes.
+
 ## What the library never does
 
 - It never writes a file of the package to the disk, nor names one after the package: the caller stores the strings
@@ -84,7 +94,8 @@ fragment set apart, its escapes decoded — so that `%2e%2e/` is `../` —, its 
 - It never fetches a URL a manifest names, nor resolves an external entity.
 - It never runs, evaluates or unserializes anything a package holds.
 - It keeps no state between two readings: `PackageReader` and the readers are immutable, and a `ZipPackage` belongs to
-  one reading.
+  one reading. A `CmiData` belongs to one attempt; the definitions of the data model are built once per process, the
+  same for every request.
 
 ## Time and memory
 

@@ -30,7 +30,15 @@ final readonly class CourseRequest
 
     public function isTrusted(Request $request): bool
     {
+        return $this->isTrustedToken($request, $request->request->getString(self::FIELD));
+    }
+
+    /**
+     * The same check, for a token a script sent in its body rather than in a form field.
+     */
+    public function isTrustedToken(Request $request, string $token): bool
+    {
         return 'cross-site' !== $request->headers->get('Sec-Fetch-Site')
-            && $this->tokens->isTokenValid(new CsrfToken(self::TOKEN_ID, $request->request->getString(self::FIELD)));
+            && $this->tokens->isTokenValid(new CsrfToken(self::TOKEN_ID, $token));
     }
 }

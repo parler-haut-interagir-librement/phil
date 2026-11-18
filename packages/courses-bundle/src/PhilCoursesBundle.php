@@ -6,6 +6,7 @@ namespace Phil\CoursesBundle;
 
 use Override;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Settings;
+use Phil\CoursesBundle\Application\Scorm\ScormTokens;
 use Phil\CoursesBundle\Infrastructure\DependencyInjection\CoursesServices;
 use Phil\CoursesBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\CoursesBundle\Infrastructure\Http\CourseRequest;
@@ -21,7 +22,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
  * Online courses: courses, modules and activities kept through DBAL, enrollments, progress and completion by activity
  * and by course, release by date or by days after the enrollment in the site's time zone, an imposed order without a
  * dead end — second chances asked for, granted and written to phil/audit-bundle when it is installed —; the import of
- * SCORM 1.2, SCORM 2004 and cmi5 packages to migrate courses; and cmi5 launches, with their fetch URL and a learning
+ * SCORM 1.2, SCORM 2004 and cmi5 packages; the SCORM run time, with its attempts and tracking data; and cmi5 launches, with their fetch URL and a learning
  * record store inside the bundle that checks the statements against the rules of cmi5, the tree of the blocks kept and
  * their `satisfied` statements issued, or a remote xAPI store; and an administration page of the second chances. The
  * pages draw the recipes of the kit.
@@ -30,6 +31,9 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
  */
 final class PhilCoursesBundle extends AbstractBundle
 {
+    /** The Stimulus controller of the SCORM run time, under the name Symfony UX gives the controllers of a package. */
+    public const string CONTROLLERS_DIR = __DIR__.'/../assets/src';
+
     #[Override]
     protected string $extensionAlias = 'phil_courses';
 
@@ -52,6 +56,7 @@ final class PhilCoursesBundle extends AbstractBundle
         $this->content($children);
         $this->import($children);
         $this->cmi5($children);
+        $this->scorm($children);
 
         $children
             ->arrayNode('admin')
@@ -76,6 +81,10 @@ final class PhilCoursesBundle extends AbstractBundle
     {
         if ($builder->hasExtension('framework')) {
             $container->extension('framework', ['csrf_protection' => ['stateless_token_ids' => [CourseRequest::TOKEN_ID]]]);
+        }
+
+        if ($builder->hasExtension('asset_mapper')) {
+            $container->extension('asset_mapper', ['paths' => [self::CONTROLLERS_DIR => '@phil/courses-bundle']]);
         }
     }
 
@@ -118,6 +127,7 @@ final class PhilCoursesBundle extends AbstractBundle
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->scalarNode('base_url')->info('The base URL of the content origin, such as "https://content.example.org"; null leaves the imported content without a place to launch from.')->defaultNull()->end()
+                    ->scalarNode('application_origin')->info('The origin of the site that frames the content, such as "https://www.example.org"; the origin of "cmi5.actor_home_page" when null.')->defaultNull()->end()
                     ->booleanNode('allow_localhost')->info('Whether the content origin and the home page of the accounts may be on localhost, in development.')->defaultFalse()->end()
                 ->end()
             ->end();
@@ -145,6 +155,20 @@ final class PhilCoursesBundle extends AbstractBundle
                             ->integerNode('items')->info('How many items, resources, blocks or units a manifest describes.')->min(1)->defaultValue(PackageLimits::ITEMS)->end()
                         ->end()
                     ->end()
+                ->end()
+            ->end();
+    }
+
+    private function scorm(NodeBuilder $children): void
+    {
+        $children
+            ->arrayNode('scorm')
+                ->info('The SCORM run time: the content of a SCORM activity reports its own progress through the run-time API; when disabled, the learner marks it done.')
+                ->addDefaultsIfNotSet()
+                ->canBeDisabled()
+                ->children()
+                    ->integerNode('token_ttl')->info('How many seconds an attempt token holds after the last commit.')->min(300)->max(86_400)->defaultValue(ScormTokens::TTL)->end()
+                    ->scalarNode('secret')->info('The secret the attempt tokens are signed with.')->cannotBeEmpty()->defaultValue('%kernel.secret%')->end()
                 ->end()
             ->end();
     }

@@ -77,12 +77,10 @@ final class ImportSurvivorsTest extends TestCase
         self::assertSame(['X', 'B / C / D', 'B / C / E'], $this->titles($plan->modules[0]));
     }
 
-    public function testOnlyAnItemWithAScoreOrThresholdIsNoted(): void
+    public function testAnItemWithAPassingScoreIsSatisfiedOncePassed(): void
     {
-        $note = 'Mastery scores and completion thresholds are kept for information: without a SCORM runtime the content reports no score, and the learner marks it done.';
-
-        self::assertNotContains($note, $this->scorm($this->manifest('<item identifier="a" identifierref="r"/>'))->warnings);
-        self::assertContains($note, $this->scorm($this->manifest('<item identifier="a" identifierref="r"><completionThreshold>0.5</completionThreshold></item>'))->warnings);
+        self::assertSame(CompletionRequirement::CompletedOrPassed, $this->scorm($this->manifest('<item identifier="a" identifierref="r"><completionThreshold>0.5</completionThreshold></item>'))->modules[0]->activities[0]->requirement);
+        self::assertSame(CompletionRequirement::Passed, $this->scorm($this->manifest('<item identifier="a" identifierref="r"><sequencing><objectives><primaryObjective satisfiedByMeasure="true"><minNormalizedMeasure>0.7</minNormalizedMeasure></primaryObjective></objectives></sequencing></item>'))->modules[0]->activities[0]->requirement);
     }
 
     public function testTheSettingsOfAScormActivityAreBounded(): void

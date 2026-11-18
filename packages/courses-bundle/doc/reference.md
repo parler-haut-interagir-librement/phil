@@ -7,10 +7,12 @@
 | `PhilCoursesBundle` | The bundle: its configuration `phil_courses` and the stateless CSRF token `phil_courses` |
 | `config/routes.php` | The routes of the pages |
 | `config/cmi5_routes.php` | The fetch URL and the xAPI endpoint |
-| `config/content_routes.php` | The files of the imported packages, on the content origin |
+| `config/content_routes.php` | The files of the imported packages and the frame of the SCORM run time, on the content origin |
 | `config/admin_routes.php` | The administration page of the second chances |
 | `templates/` | `layout`, `outline`, `activity` and `second_chances`, drawn with the recipes of the kit |
 | `translations/` | The words of the pages, in English and French |
+| `assets/src/scorm_runtime_controller.js` | The Stimulus controller of the activity page of a SCORM session: frames the frame, sends the commits |
+| `assets/src/scorm_frame.js`, `assets/src/lib/api.js`, `assets/src/lib/cmi.js` | The frame of the run time on the content origin, the run-time API, and the data model in the browser |
 | `recipe/0.1` | The Flex recipe: the bundle, its configuration and its routes |
 
 ## Domain
@@ -25,6 +27,9 @@
 | `Domain\Model\Progress` | A learner's progress in an activity |
 | `Domain\Model\RetryRequest` | A request for a second chance, its decision and the teacher's note |
 | `Domain\Model\LaunchSession` | A cmi5 launch: fetched or not, expiry, state |
+| `Domain\Model\ScormAttempt` | A SCORM attempt: number, version, state, session, tracking data, status, total time |
+| `Domain\Scorm\AttemptState` | `running`, `paused`, `suspended`, `ended` |
+| `Domain\ValueObject\ScormAttemptId` | The identifier of a SCORM attempt |
 | `Domain\ValueObject\CourseId`, `ModuleId`, `BlockId`, `ActivityId`, `EnrollmentId`, `RetryRequestId`, `LaunchSessionId` | Identifiers, UUID version 7 when the bundle draws them |
 | `Domain\ValueObject\LearnerId` | A learner's stable identifier, never an e-mail address |
 | `Domain\ValueObject\Release` | At once, on a moment, or days after the enrollment |
@@ -36,7 +41,9 @@
 | `Domain\Progress\RetryDecision` | `pending`, `granted`, `refused`, `waived` |
 | `Domain\Course\CourseOrigin` | `native`, `scorm12`, `scorm2004`, `cmi5`; `of()` the format of a package |
 | `Domain\Cmi5\Cmi5Verb`, `Cmi5Iri`, `SessionState` | The verbs, IRIs and session states of cmi5; the launch methods are phil/elearning-packages' `LaunchMethod` |
-| `Domain\Contract\CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`, `LaunchSessionRepository` | The stores |
+| `Domain\Contract\CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`, `LaunchSessionRepository`, `ScormAttemptRepository` | The stores |
+| `Domain\Event\ScormSessionEnded` | A session of a SCORM activity ended, and whether its attempt did |
+| `Domain\Exception\AttemptRefused` | A commit refused: its token, its learner or its session is not the attempt's |
 | `Domain\Event\*` | `LearnerEnrolled`, `ActivityProgressed`, `ActivitySatisfied`, `CourseCompleted`, `RetryRequested`, `RetryGranted`, `RetryRefused`, `RetryWaived`, `BlockSatisfied`, `CourseImported`, `StatementRecorded` |
 | `Domain\Exception\CoursesException` | What every failure of the bundle is |
 | `Domain\Exception\InvalidCourse`, `UnknownRecord`, `ActivityUnavailable`, `PackageRefused`, `StatementRefused`, `RecordStoreUnavailable` | A value refused, a record missing, an activity not open, a package refused, a statement refused, a statement the learning record store did not keep |
@@ -62,6 +69,9 @@
 | `Application\Import\ScormPlanner`, `Cmi5Planner`, `ImportPlan`, `PlannedModule`, `PlannedBlock`, `PlannedActivity` | Turn a manifest into a course to create |
 | `Application\Import\ImportReport` | What an import created and left out |
 | `Application\Import\ResultImporter`, `ScormStatus` | Imported results |
+| `Application\Scorm\ScormRuntime` | Opens the sessions of SCORM attempts, keeps their commits, ends them and records their outcome |
+| `Application\Scorm\ScormTokens` | The attempt tokens |
+| `Application\Scorm\ScormLaunch`, `CommitAnswer` | What a launch hands the browser, and what a commit answers |
 | `Application\Cmi5\Cmi5Launcher` | Launches a unit |
 | `Application\Cmi5\Cmi5Tokens` | The fetch URL's answer, and the tokens |
 | `Application\Cmi5\Cmi5Statements` | Receives and issues statements |
@@ -82,6 +92,10 @@
 | `Infrastructure\Http\CourseController`, `CourseRequest` | The pages and their CSRF check |
 | `Infrastructure\Http\Cmi5Controller` | The fetch URL and the xAPI endpoint |
 | `Infrastructure\Http\ContentController` | The files on the content origin |
+| `Infrastructure\Http\ScormController`, `ScormCommitPayload` | The commit endpoint of the SCORM sessions, and the body it reads |
+| `Infrastructure\Http\ScormFrameController` | The frame of the SCORM run time, on the content origin |
+| `Infrastructure\Doctrine\DbalScormAttemptRepository` | The SCORM attempts through DBAL |
+| `Infrastructure\Privacy\ScormPrivacy` | The SCORM attempts in the access and erasure requests of phil/privacy-bundle |
 | `Infrastructure\Http\SecondChancesController` | The administration page of the second chances |
 | `Infrastructure\Routing\RoutedCmi5Endpoints` | The URLs of the endpoint and the fetch URL |
 | `Infrastructure\Console\ImportCommand`, `ImportResultsCommand`, `RetriesCommand` | The commands |

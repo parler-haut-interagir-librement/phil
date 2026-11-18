@@ -6,8 +6,10 @@ namespace Phil\ElearningPackages\Scorm;
 
 /**
  * An item of a SCORM organization: a title, the resource it launches, with the parameters appended to its launch
- * file, and its children. What a runtime would enforce — the mastery score and the prerequisites of SCORM 1.2, the
- * completion threshold and the sequencing of SCORM 2004 — is read and kept for information.
+ * file, and its children. What a run time hands the SCO — its launch data, the mastery score of SCORM 1.2 or the scaled
+ * passing score of SCORM 2004's primary objective, the completion threshold of SCORM 2004, the time allowed and what
+ * happens once it is spent — is read; the prerequisites of SCORM 1.2 and the sequencing of SCORM 2004 are kept as
+ * read.
  */
 final readonly class ScormItem
 {
@@ -25,6 +27,10 @@ final readonly class ScormItem
         public ?string $prerequisites = null,
         public ?float $completionThreshold = null,
         public ?string $sequencing = null,
+        public ?string $dataFromLms = null,
+        public ?string $maxTimeAllowed = null,
+        public ?string $timeLimitAction = null,
+        public ?float $scaledPassingScore = null,
     ) {
     }
 

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Phil\CoursesBundle\Infrastructure\Http\CourseController;
+use Phil\CoursesBundle\Infrastructure\Http\ScormController;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 /*
@@ -16,6 +17,9 @@ return static function (RoutingConfigurator $routes): void {
     $course = ['course' => CourseController::UUID];
     $activity = $course + ['activity' => CourseController::UUID];
 
+    $routes->add(ScormController::COMMIT_ROUTE, '/scorm/commit')
+        ->controller([ScormController::class, 'commit'])
+        ->methods(['POST']);
     $routes->add(CourseController::OUTLINE_ROUTE, '/{course}')
         ->controller([CourseController::class, 'outline'])
         ->requirements($course)

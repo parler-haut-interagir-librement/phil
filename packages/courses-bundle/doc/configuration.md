@@ -18,6 +18,7 @@ phil_courses:
         service: null
     content:
         base_url: 'https://content.example.org'
+        application_origin: null
         allow_localhost: false
     import:
         language: null
@@ -44,6 +45,10 @@ phil_courses:
             version: 1.0.3
             timeout: 5.0
             max_duration: 10.0
+    scorm:
+        enabled: true
+        token_ttl: 14400
+        secret: '%kernel.secret%'
     admin:
         role: ROLE_COURSES_TEACHER
     audit:
@@ -63,6 +68,7 @@ phil_courses:
 | `storage.directory` | `%kernel.project_dir%/var/phil_courses/content` | The directory of the imported files, outside the public directory. |
 | `storage.service` | `null` | A `ContentStorage` service of the application, instead of the directory. |
 | `content.base_url` | `null` | The base URL of the content origin; null leaves the imported content without a place to launch from. |
+| `content.application_origin` | `null` | The origin of the site that frames the content, such as `https://www.example.org`: the only origin that may frame the content and the frame of the SCORM run time, and the only one the frame talks to. The origin of `cmi5.actor_home_page` when null; with neither, the content may be framed by nobody. |
 | `content.allow_localhost` | `false` | Whether the content origin and the home page may be on `localhost`, in development. |
 | `import.language` | `null` | The language of the titles read from a cmi5 course structure, such as `fr`; its first title when null. |
 | `import.limits.archive_bytes` | 512 MiB | The size of the archive. |
@@ -85,9 +91,12 @@ phil_courses:
 | `cmi5.remote_lrs.version` | `1.0.3` | The xAPI version the store speaks, `1.0.3` or `2.0.0`, sent as `X-Experience-API-Version`. |
 | `cmi5.remote_lrs.timeout` | 5.0 | How many seconds the store may stay silent, from 0.1 to 60. |
 | `cmi5.remote_lrs.max_duration` | 10.0 | How many seconds one statement may take to send, in all, from 0.1 to 120. |
+| `scorm.enabled` | `true` | Runs SCORM content with the run-time API, its attempts and tracking data, as [SCORM run time](scorm-runtime.md) explains; when false, the learner marks a SCORM activity done. |
+| `scorm.token_ttl` | 14 400 | How many seconds an attempt token holds after the last commit, from 300 to 86 400. |
+| `scorm.secret` | `%kernel.secret%` | The secret the attempt tokens are signed with. |
 | `admin.role` | `ROLE_COURSES_TEACHER` | The role a teacher holds to see and decide the second chances on the administration page. |
 | `audit.enabled` | `true` | Writes the second chances — asked for, granted, refused, waived — to the trail of phil/audit-bundle, when that bundle is registered. |
 | `audit.segment` | `courses` | The segment of the trail. |
 
-The bundle declares the CSRF token `phil_courses` stateless to FrameworkBundle: the forms of the pages work without a
-session.
+The bundle declares the CSRF token `phil_courses` stateless to FrameworkBundle: the forms of the pages and the commits
+of the SCORM sessions work without a session.

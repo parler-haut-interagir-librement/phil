@@ -58,6 +58,20 @@ final readonly class ContentUrls
     }
 
     /**
+     * The address of a file of the frame of the SCORM run time, served under the base URL of the content origin.
+     *
+     * @throws ActivityUnavailable when no content origin is configured
+     */
+    public function runtime(string $file): string
+    {
+        if (null === $this->base) {
+            throw ActivityUnavailable::because('The SCORM run time is served from the content origin, which "phil_courses.content.base_url" does not name.');
+        }
+
+        return $this->base.'/_phil/scorm/'.$file;
+    }
+
+    /**
      * @param string  $path  the file's path inside the course's directory
      * @param ?string $query what follows the path: the parameters of a SCORM item, with their `?` or `#`
      *

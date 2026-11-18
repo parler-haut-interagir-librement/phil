@@ -25,6 +25,10 @@ final readonly class ScormManifestReader
 
     private const int IDENTIFIER_LENGTH = 255;
 
+    private const int LAUNCH_DATA_LENGTH = 4096;
+
+    private const array TIME_LIMIT_ACTIONS = ['exit,message', 'exit,no message', 'continue,message', 'continue,no message'];
+
     public function __construct(
         private PackageLimits $limits = new PackageLimits(),
     ) {
@@ -147,6 +151,10 @@ final readonly class ScormManifestReader
             XmlDocument::childText($element, 'prerequisites'),
             $this->completionThreshold($element),
             $sequencing instanceof DOMElement ? XmlDocument::markup($sequencing, self::SEQUENCING_BYTES) : null,
+            $this->bounded(XmlDocument::childText($element, 'datafromlms') ?? XmlDocument::childText($element, 'dataFromLMS'), self::LAUNCH_DATA_LENGTH),
+            $this->maxTimeAllowed($element, $sequencing),
+            $this->timeLimitAction(XmlDocument::childText($element, 'timelimitaction') ?? XmlDocument::childText($element, 'timeLimitAction')),
+            $sequencing instanceof DOMElement ? $this->scaledPassingScore($sequencing) : null,
         );
     }
 
@@ -251,5 +259,61 @@ final readonly class ScormManifestReader
         $threshold = (float) $value;
 
         return $threshold >= 0.0 && $threshold <= 1.0 ? $threshold : null;
+    }
+
+    private function bounded(?string $value, int $length): ?string
+    {
+        return null === $value || '' === $value ? null : mb_substr($value, 0, $length);
+    }
+
+    /**
+     * The time allowed: `adlcp:maxtimeallowed` of SCORM 1.2, `HHHH:MM:SS`, or the `attemptAbsoluteDurationLimit` of the
+     * limit conditions of SCORM 2004, a duration of ISO 8601; null when absent or not a span of time.
+     */
+    private function maxTimeAllowed(DOMElement $item, ?DOMElement $sequencing): ?string
+    {
+        $value = XmlDocument::childText($item, 'maxtimeallowed');
+
+        if (null === $value && $sequencing instanceof DOMElement) {
+            $limits = XmlDocument::child($sequencing, 'limitConditions');
+            $value = $limits instanceof DOMElement ? XmlDocument::attribute($limits, 'attemptAbsoluteDurationLimit') : null;
+        }
+
+        if (null === $value) {
+            return null;
+        }
+
+        return 1 === preg_match('/^(?:\d{2,4}:[0-5]\d:[0-5]\d(?:\.\d{1,2})?|P(?=\d|T\d)(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?=\d)(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d{1,2})?S)?)?)$/D', $value) ? $value : null;
+    }
+
+    private function timeLimitAction(?string $value): ?string
+    {
+        $value = null === $value ? null : strtolower($value);
+
+        return \in_array($value, self::TIME_LIMIT_ACTIONS, true) ? $value : null;
+    }
+
+    /**
+     * The `minNormalizedMeasure` of the primary objective of SCORM 2004, when the objective is satisfied by it: the
+     * scaled passing score of the SCO.
+     */
+    private function scaledPassingScore(DOMElement $sequencing): ?float
+    {
+        $objectives = XmlDocument::child($sequencing, 'objectives');
+        $primary = $objectives instanceof DOMElement ? XmlDocument::child($objectives, 'primaryObjective') : null;
+
+        if (!$primary instanceof DOMElement || 'true' !== strtolower(XmlDocument::attribute($primary, 'satisfiedByMeasure') ?? 'false')) {
+            return null;
+        }
+
+        $value = XmlDocument::childText($primary, 'minNormalizedMeasure') ?? '1.0';
+
+        if (!is_numeric($value)) {
+            return null;
+        }
+
+        $score = (float) $value;
+
+        return $score >= -1.0 && $score <= 1.0 ? $score : null;
     }
 }

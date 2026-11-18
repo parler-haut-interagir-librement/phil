@@ -1,0 +1,396 @@
+{
+    "version": "2004",
+    "dataModelVersion": "1.0",
+    "elements": {
+        "cmi.comments_from_learner.n.comment": {
+            "access": "rw",
+            "pattern": "^(?:(?!\\{lang=)[\\s\\S]*|\\{lang=[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*\\}[\\s\\S]*)$",
+            "maxChars": 4000
+        },
+        "cmi.comments_from_learner.n.location": {
+            "access": "rw",
+            "maxChars": 250
+        },
+        "cmi.comments_from_learner.n.timestamp": {
+            "access": "rw",
+            "pattern": "^(?:19[7-9]\\d|20[0-2]\\d|203[0-8])(?:-(?:0[1-9]|1[0-2])(?:-(?:0[1-9]|[12]\\d|3[01])(?:T(?:[01]\\d|2[0-3])(?::[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,2})?)?)?(?:Z|[+-](?:[01]\\d|2[0-3])(?::?[0-5]\\d)?)?)?)?)?$"
+        },
+        "cmi.comments_from_lms.n.comment": {
+            "access": "ro",
+            "pattern": "^(?:(?!\\{lang=)[\\s\\S]*|\\{lang=[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*\\}[\\s\\S]*)$",
+            "maxChars": 4000
+        },
+        "cmi.comments_from_lms.n.location": {
+            "access": "ro",
+            "maxChars": 250
+        },
+        "cmi.comments_from_lms.n.timestamp": {
+            "access": "ro",
+            "pattern": "^(?:19[7-9]\\d|20[0-2]\\d|203[0-8])(?:-(?:0[1-9]|1[0-2])(?:-(?:0[1-9]|[12]\\d|3[01])(?:T(?:[01]\\d|2[0-3])(?::[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,2})?)?)?(?:Z|[+-](?:[01]\\d|2[0-3])(?::?[0-5]\\d)?)?)?)?)?$"
+        },
+        "cmi.completion_status": {
+            "access": "rw",
+            "pattern": "^(?:completed|incomplete|not attempted|unknown)$",
+            "default": "unknown"
+        },
+        "cmi.completion_threshold": {
+            "access": "ro",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40,
+            "min": 0.0,
+            "max": 1.0
+        },
+        "cmi.credit": {
+            "access": "ro",
+            "pattern": "^(?:credit|no-credit)$",
+            "default": "credit"
+        },
+        "cmi.entry": {
+            "access": "ro",
+            "pattern": "^(?:ab-initio|resume|)$",
+            "default": ""
+        },
+        "cmi.exit": {
+            "access": "wo",
+            "pattern": "^(?:time-out|suspend|logout|normal|)$"
+        },
+        "cmi.interactions.n.id": {
+            "access": "rw",
+            "pattern": "^(?:(?![Uu][Rr][Nn]:)\\S+|[Uu][Rr][Nn]:[A-Za-z0-9][A-Za-z0-9-]{0,31}:\\S+)$",
+            "maxChars": 4000
+        },
+        "cmi.interactions.n.type": {
+            "access": "rw",
+            "pattern": "^(?:true-false|choice|fill-in|long-fill-in|likert|matching|performance|sequencing|numeric|other)$"
+        },
+        "cmi.interactions.n.objectives.n.id": {
+            "access": "rw",
+            "pattern": "^(?:(?![Uu][Rr][Nn]:)\\S+|[Uu][Rr][Nn]:[A-Za-z0-9][A-Za-z0-9-]{0,31}:\\S+)$",
+            "maxChars": 4000
+        },
+        "cmi.interactions.n.timestamp": {
+            "access": "rw",
+            "pattern": "^(?:19[7-9]\\d|20[0-2]\\d|203[0-8])(?:-(?:0[1-9]|1[0-2])(?:-(?:0[1-9]|[12]\\d|3[01])(?:T(?:[01]\\d|2[0-3])(?::[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,2})?)?)?(?:Z|[+-](?:[01]\\d|2[0-3])(?::?[0-5]\\d)?)?)?)?)?$"
+        },
+        "cmi.interactions.n.correct_responses.n.pattern": {
+            "access": "rw",
+            "maxChars": 4000,
+            "check": "interaction-pattern"
+        },
+        "cmi.interactions.n.weighting": {
+            "access": "rw",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40
+        },
+        "cmi.interactions.n.learner_response": {
+            "access": "rw",
+            "maxChars": 4000,
+            "check": "interaction-response"
+        },
+        "cmi.interactions.n.result": {
+            "access": "rw",
+            "pattern": "^(?:correct|incorrect|unanticipated|neutral|-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15}))$",
+            "maxChars": 40
+        },
+        "cmi.interactions.n.latency": {
+            "access": "rw",
+            "pattern": "^P(?=\\d|T\\d)(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?=\\d)(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d{1,2})?S)?)?$",
+            "maxChars": 64
+        },
+        "cmi.interactions.n.description": {
+            "access": "rw",
+            "pattern": "^(?:(?!\\{lang=)[\\s\\S]*|\\{lang=[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*\\}[\\s\\S]*)$",
+            "maxChars": 250
+        },
+        "cmi.launch_data": {
+            "access": "ro",
+            "maxChars": 4000
+        },
+        "cmi.learner_id": {
+            "access": "ro",
+            "pattern": "^(?:(?![Uu][Rr][Nn]:)\\S+|[Uu][Rr][Nn]:[A-Za-z0-9][A-Za-z0-9-]{0,31}:\\S+)$",
+            "maxChars": 4000,
+            "default": ""
+        },
+        "cmi.learner_name": {
+            "access": "ro",
+            "pattern": "^(?:(?!\\{lang=)[\\s\\S]*|\\{lang=[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*\\}[\\s\\S]*)$",
+            "maxChars": 250,
+            "default": ""
+        },
+        "cmi.learner_preference.audio_level": {
+            "access": "rw",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40,
+            "min": 0.0,
+            "default": "1"
+        },
+        "cmi.learner_preference.language": {
+            "access": "rw",
+            "pattern": "^(?:[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*)?$",
+            "maxChars": 250,
+            "default": ""
+        },
+        "cmi.learner_preference.delivery_speed": {
+            "access": "rw",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40,
+            "min": 0.0,
+            "default": "1"
+        },
+        "cmi.learner_preference.audio_captioning": {
+            "access": "rw",
+            "pattern": "^(?:-1|0|1)$",
+            "default": "0"
+        },
+        "cmi.location": {
+            "access": "rw",
+            "maxChars": 1000
+        },
+        "cmi.max_time_allowed": {
+            "access": "ro",
+            "pattern": "^P(?=\\d|T\\d)(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?=\\d)(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d{1,2})?S)?)?$",
+            "maxChars": 64
+        },
+        "cmi.mode": {
+            "access": "ro",
+            "pattern": "^(?:browse|normal|review)$",
+            "default": "normal"
+        },
+        "cmi.objectives.n.id": {
+            "access": "rw",
+            "pattern": "^(?:(?![Uu][Rr][Nn]:)\\S+|[Uu][Rr][Nn]:[A-Za-z0-9][A-Za-z0-9-]{0,31}:\\S+)$",
+            "maxChars": 4000
+        },
+        "cmi.objectives.n.score.scaled": {
+            "access": "rw",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40,
+            "min": -1.0,
+            "max": 1.0
+        },
+        "cmi.objectives.n.score.raw": {
+            "access": "rw",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40
+        },
+        "cmi.objectives.n.score.min": {
+            "access": "rw",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40
+        },
+        "cmi.objectives.n.score.max": {
+            "access": "rw",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40
+        },
+        "cmi.objectives.n.success_status": {
+            "access": "rw",
+            "pattern": "^(?:passed|failed|unknown)$",
+            "default": "unknown"
+        },
+        "cmi.objectives.n.completion_status": {
+            "access": "rw",
+            "pattern": "^(?:completed|incomplete|not attempted|unknown)$",
+            "default": "unknown"
+        },
+        "cmi.objectives.n.progress_measure": {
+            "access": "rw",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40,
+            "min": 0.0,
+            "max": 1.0
+        },
+        "cmi.objectives.n.description": {
+            "access": "rw",
+            "pattern": "^(?:(?!\\{lang=)[\\s\\S]*|\\{lang=[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*\\}[\\s\\S]*)$",
+            "maxChars": 250
+        },
+        "cmi.progress_measure": {
+            "access": "rw",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40,
+            "min": 0.0,
+            "max": 1.0
+        },
+        "cmi.scaled_passing_score": {
+            "access": "ro",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40,
+            "min": -1.0,
+            "max": 1.0
+        },
+        "cmi.score.scaled": {
+            "access": "rw",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40,
+            "min": -1.0,
+            "max": 1.0
+        },
+        "cmi.score.raw": {
+            "access": "rw",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40
+        },
+        "cmi.score.min": {
+            "access": "rw",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40
+        },
+        "cmi.score.max": {
+            "access": "rw",
+            "pattern": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$",
+            "maxChars": 40
+        },
+        "cmi.session_time": {
+            "access": "wo",
+            "pattern": "^P(?=\\d|T\\d)(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?=\\d)(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d{1,2})?S)?)?$",
+            "maxChars": 64
+        },
+        "cmi.success_status": {
+            "access": "rw",
+            "pattern": "^(?:passed|failed|unknown)$",
+            "default": "unknown"
+        },
+        "cmi.suspend_data": {
+            "access": "rw",
+            "maxChars": 64000
+        },
+        "cmi.time_limit_action": {
+            "access": "ro",
+            "pattern": "^(?:exit,message|continue,message|exit,no message|continue,no message)$",
+            "default": "continue,no message"
+        },
+        "cmi.total_time": {
+            "access": "ro",
+            "pattern": "^P(?=\\d|T\\d)(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?=\\d)(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d{1,2})?S)?)?$",
+            "maxChars": 64,
+            "default": "PT0H0M0S"
+        },
+        "adl.nav.request": {
+            "access": "rw",
+            "pattern": "^(?:continue|previous|exit|exitAll|abandon|abandonAll|suspendAll|_none_|\\{target=[^\\s{}]{1,4000}\\}(?:choice|jump))$",
+            "maxChars": 4100,
+            "default": "_none_"
+        },
+        "adl.nav.request_valid.continue": {
+            "access": "ro",
+            "pattern": "^(?:true|false|unknown)$",
+            "default": "unknown"
+        },
+        "adl.nav.request_valid.previous": {
+            "access": "ro",
+            "pattern": "^(?:true|false|unknown)$",
+            "default": "unknown"
+        },
+        "adl.nav.request_valid.choice": {
+            "access": "ro",
+            "pattern": "^(?:true|false|unknown)$",
+            "default": "unknown"
+        },
+        "adl.nav.request_valid.jump": {
+            "access": "ro",
+            "pattern": "^(?:true|false|unknown)$",
+            "default": "unknown"
+        }
+    },
+    "collections": {
+        "cmi.comments_from_learner": 250,
+        "cmi.comments_from_lms": 100,
+        "cmi.interactions": 250,
+        "cmi.interactions.n.objectives": 10,
+        "cmi.interactions.n.correct_responses": 10,
+        "cmi.objectives": 100
+    },
+    "parents": [
+        "cmi.comments_from_learner",
+        "cmi.comments_from_lms",
+        "cmi.interactions",
+        "cmi.learner_preference",
+        "cmi.objectives",
+        "cmi.objectives.n.score",
+        "cmi.score"
+    ],
+    "correctResponses": {
+        "true-false": 1,
+        "choice": 10,
+        "fill-in": 5,
+        "long-fill-in": 5,
+        "likert": 1,
+        "matching": 5,
+        "performance": 5,
+        "sequencing": 10,
+        "numeric": 1,
+        "other": 1
+    },
+    "responses": {
+        "true-false": {
+            "pattern": "^(?:true|false)$",
+            "response": "^(?:true|false)$"
+        },
+        "choice": {
+            "pattern": "^(?:(?:(?!\\[[,.:]\\])\\S)+(?:\\[,\\](?:(?!\\[[,.:]\\])\\S)+)*)?$",
+            "response": "^(?:(?:(?!\\[[,.:]\\])\\S)+(?:\\[,\\](?:(?!\\[[,.:]\\])\\S)+)*)?$"
+        },
+        "fill-in": {
+            "pattern": null,
+            "response": null
+        },
+        "long-fill-in": {
+            "pattern": null,
+            "response": null
+        },
+        "likert": {
+            "pattern": "^(?:(?!\\[[,.:]\\])\\S)+$",
+            "response": "^(?:(?!\\[[,.:]\\])\\S)+$"
+        },
+        "matching": {
+            "pattern": "^(?:(?!\\[[,.:]\\])\\S)+\\[\\.\\](?:(?!\\[[,.:]\\])\\S)+(?:\\[,\\](?:(?!\\[[,.:]\\])\\S)+\\[\\.\\](?:(?!\\[[,.:]\\])\\S)+)*$",
+            "response": "^(?:(?!\\[[,.:]\\])\\S)+\\[\\.\\](?:(?!\\[[,.:]\\])\\S)+(?:\\[,\\](?:(?!\\[[,.:]\\])\\S)+\\[\\.\\](?:(?!\\[[,.:]\\])\\S)+)*$"
+        },
+        "performance": {
+            "pattern": null,
+            "response": null
+        },
+        "sequencing": {
+            "pattern": "^(?:(?!\\[[,.:]\\])\\S)+(?:\\[,\\](?:(?!\\[[,.:]\\])\\S)+)*$",
+            "response": "^(?:(?!\\[[,.:]\\])\\S)+(?:\\[,\\](?:(?!\\[[,.:]\\])\\S)+)*$"
+        },
+        "numeric": {
+            "pattern": "^(?:-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15}))?\\[:\\](?:-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15}))?$",
+            "response": "^-?(?:\\d{1,15}(?:\\.\\d{0,15})?|\\.\\d{1,15})$"
+        },
+        "other": {
+            "pattern": null,
+            "response": null
+        }
+    },
+    "errors": {
+        "0": "No Error",
+        "101": "General Exception",
+        "102": "General Initialization Failure",
+        "103": "Already Initialized",
+        "104": "Content Instance Terminated",
+        "111": "General Termination Failure",
+        "112": "Termination Before Initialization",
+        "113": "Termination After Termination",
+        "122": "Retrieve Data Before Initialization",
+        "123": "Retrieve Data After Termination",
+        "132": "Store Data Before Initialization",
+        "133": "Store Data After Termination",
+        "142": "Commit Before Initialization",
+        "143": "Commit After Termination",
+        "201": "General Argument Error",
+        "301": "General Get Failure",
+        "351": "General Set Failure",
+        "391": "General Commit Failure",
+        "401": "Undefined Data Model Element",
+        "402": "Unimplemented Data Model Element",
+        "403": "Data Model Element Value Not Initialized",
+        "404": "Data Model Element Is Read Only",
+        "405": "Data Model Element Is Write Only",
+        "406": "Data Model Element Type Mismatch",
+        "407": "Data Model Element Value Out Of Range",
+        "408": "Data Model Dependency Not Established"
+    }
+}

@@ -72,6 +72,10 @@ Elements are matched by their local names, so that a manifest with or without th
 | `ScormItem::$masteryScore` | SCORM 1.2's `<masteryscore>` out of a hundred, as a scaled score from 0 to 1 |
 | `ScormItem::$prerequisites` | SCORM 1.2's `<prerequisites>` |
 | `ScormItem::$completionThreshold` | SCORM 2004's `<completionThreshold>`, its `minProgressMeasure` or its text, from 0 to 1 |
+| `ScormItem::$dataFromLms` | `<adlcp:datafromlms>` of SCORM 1.2 or `<adlcp:dataFromLMS>` of SCORM 2004, 4 096 characters at most |
+| `ScormItem::$maxTimeAllowed` | `<adlcp:maxtimeallowed>` of SCORM 1.2, `HHHH:MM:SS`, or the `attemptAbsoluteDurationLimit` of SCORM 2004's limit conditions, a duration of ISO 8601; null when not a span of time |
+| `ScormItem::$timeLimitAction` | `<adlcp:timelimitaction>`, one of `exit,message`, `exit,no message`, `continue,message`, `continue,no message` |
+| `ScormItem::$scaledPassingScore` | SCORM 2004's `minNormalizedMeasure` of a primary objective satisfied by measure, 1 when absent, from -1 to 1 |
 | `ScormOrganization::$sequencing`, `ScormItem::$sequencing` | `<sequencing>` as XML, when 64 KiB or less |
 | `ScormResource::$scormType` | `adlcp:scormtype` or `adlcp:scormType`, lower case; `asset` by default |
 | `ScormResource::$href`, `$files` | The launch file and the `<file>` elements, resolved against every `xml:base` |

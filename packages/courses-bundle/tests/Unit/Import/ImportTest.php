@@ -63,7 +63,7 @@ final class ImportTest extends TestCase
         self::assertSame('scorm', $welcome->type);
         self::assertSame(['path' => 'content/intro/index.html', 'scorm_type' => 'sco', 'scorm_version' => 'scorm12'], $welcome->settings);
         self::assertSame('intro', $welcome->source);
-        self::assertSame(CompletionRequirement::Completed, $welcome->requirement);
+        self::assertSame(CompletionRequirement::CompletedOrPassed, $welcome->requirement);
         self::assertSame('link', $reading->type);
         self::assertSame(['url' => 'https://example.org/reading'], $reading->settings);
 
@@ -73,7 +73,6 @@ final class ImportTest extends TestCase
         self::assertSame('asset', $plan->modules[1]->activities[1]->settings['scorm_type']);
 
         self::assertSame([
-            'Mastery scores and completion thresholds are kept for information: without a SCORM runtime the content reports no score, and the learner marks it done.',
             'The prerequisites of SCORM 1.2 are kept for information: impose the order of the course to enforce one.',
             'The hidden item "hidden" is left out.',
             'The item "empty" launches no resource with a file: it is left out.',
@@ -95,7 +94,6 @@ final class ImportTest extends TestCase
             'The launch file "sco/start.html" of the item "u1" is not in the package.',
             'The launch file "sco/start.html" of the item "a1" is not in the package.',
             'The manifest has 2 organizations: the import reads "second" and leaves the others out.',
-            'Mastery scores and completion thresholds are kept for information: without a SCORM runtime the content reports no score, and the learner marks it done.',
             'The sequencing and navigation rules of SCORM 2004 are kept for information: the course does not enforce them.',
             'A SCORM package carries no learner results: results exported from the previous platform are imported with "phil:courses:import-results".',
         ], $plan->warnings);
@@ -191,7 +189,7 @@ final class ImportTest extends TestCase
 
         self::assertSame(PackageFormat::Scorm12, $report->format);
         self::assertSame([2, 4, 5], [$report->modules, $report->activities, $report->files]);
-        self::assertCount(5, $report->warnings);
+        self::assertCount(4, $report->warnings);
         self::assertSame([CourseImported::class], array_map(static fn (object $event): string => $event::class, $store->events->events));
         self::assertSame([$report->course->value, 'scorm12'], [$store->events->of(CourseImported::class)[0]->course, $store->events->of(CourseImported::class)[0]->format]);
 

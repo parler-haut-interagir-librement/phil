@@ -3,7 +3,10 @@
  # that opens it in its own window; the button that marks it done when its type lets the learner; or why it cannot be
  # taken now. The frame is sandboxed: the content keeps its own origin, which is never the application's.
  #
- # course: Course. activity: Activity. launch: ?Launch. error: ?string. manual: bool.
+ # A SCORM activity run by the platform frames the frame of the run time from the content origin, under the Stimulus
+ # controller that sends its commits, with the attempt's number and where its progress stands.
+ #
+ # course: Course. activity: Activity. launch: ?Launch. error: ?string. manual: bool. scorm: ?array, the session.
  #}
 {% extends layout %}
 
@@ -16,6 +19,26 @@
 <p class="phil-courses__error" role="alert">{{ error }}</p>
 {%- elseif launch.window.value == 'page' %}
 <div class="phil-courses__page">{{ activity.setting('body')|default('')|nl2br }}</div>
+{%- elseif scorm is not null %}
+{%- set c = 'phil--courses-bundle--scorm-runtime' %}
+<div class="phil-courses__scorm" data-controller="{{ c }}"
+    data-{{ c }}-frame-url-value="{{ scorm.frame }}"
+    data-{{ c }}-content-origin-value="{{ scorm.origin }}"
+    data-{{ c }}-commit-url-value="{{ scorm.commit }}"
+    data-{{ c }}-launch-url-value="{{ scorm.launch }}"
+    data-{{ c }}-outline-url-value="{{ scorm.outline }}"
+    data-{{ c }}-token-value="{{ launch.scorm.token }}"
+    data-{{ c }}-csrf-value="{{ token }}"
+    data-{{ c }}-state-value="{{ scorm.state }}"
+    data-{{ c }}-messages-value="{{ {saved: 'scorm.saved'|trans({}, 'phil_courses'), refused: 'scorm.refused'|trans({}, 'phil_courses'), error: 'scorm.error'|trans({}, 'phil_courses'), expired: 'scorm.expired'|trans({}, 'phil_courses'), ended: 'scorm.ended'|trans({}, 'phil_courses')}|json_encode }}">
+    <p>
+        {% component (phil_courses_kit('Badge')) with {variant: 'secondary'} %}{% block content %}{{ 'scorm.attempt'|trans({'%number%': scorm.number}, 'phil_courses') }}{% endblock %}{% endcomponent %}
+        {%- if scorm.resumed %} {% component (phil_courses_kit('Badge')) with {variant: 'outline'} %}{% block content %}{{ 'scorm.resumed'|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}{% endif %}
+    </p>
+    <iframe class="phil-courses__frame" data-{{ c }}-target="frame" title="{{ activity.title }}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads" allow="fullscreen; autoplay" referrerpolicy="no-referrer" loading="eager"></iframe>
+    <p class="phil-courses__status" role="status" aria-live="polite" data-{{ c }}-target="status"></p>
+    <p>{% component (phil_courses_kit('Button')) with {as: 'a', href: scorm.outline, variant: 'outline'} %}{% block content %}{{ 'scorm.back'|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}</p>
+</div>
 {%- elseif launch.window.value == 'embedded' %}
 <iframe class="phil-courses__frame" src="{{ launch.url }}" title="{{ activity.title }}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads" allow="fullscreen; autoplay" referrerpolicy="no-referrer" loading="eager"></iframe>
 {%- else %}

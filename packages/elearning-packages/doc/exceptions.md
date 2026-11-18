@@ -7,6 +7,7 @@ a caller catches that interface to handle them all.
 |---|---|---|
 | `PackageRefused` | `RuntimeException` | A package, a path or a manifest cannot be read safely: see below |
 | `InvalidLimits` | `InvalidArgumentException` | A bound given to `PackageLimits` is not a positive number |
+| `RuntimeRefused` | `InvalidArgumentException` | Tracking data given to `CmiData` holds a value that is not text or an element the version does not define; `CmiData::put()` names no element; `LaunchSettings` holds a learner, a mode, a score, a threshold or a time limit action out of its bounds; `ScormVersion::of()` is given cmi5 |
 
 ## `PackageRefused`
 
