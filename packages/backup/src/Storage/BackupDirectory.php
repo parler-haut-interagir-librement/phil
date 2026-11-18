@@ -15,6 +15,11 @@ use Phil\Backup\Exception\InvalidBackupValue;
  * database, the time in UTC and an optional label, such as `app-20261107-031500.sql` and
  * `app-20261107-031500.media.tar`. A stem already taken in the directory gets a copy number, `_2` and up, so that two
  * backups of the same label within the same second never overwrite each other.
+ *
+ * The directory is created with mode 0700. One that already exists and is open to its group or to other users is
+ * narrowed to 0700 before anything is written in it, or refused when it cannot be narrowed or when
+ * `tightenOpenDirectory` is false. A file of a set is written as a temporary file of the directory, readable by its
+ * owner from the moment it exists, then given its name in one step, never over an existing file.
  */
 final readonly class BackupDirectory
 {
@@ -29,6 +34,7 @@ final readonly class BackupDirectory
 
     public function __construct(
         private string $path,
+        private bool $tightenOpenDirectory = true,
     ) {
     }
 
@@ -78,13 +84,42 @@ final readonly class BackupDirectory
     public function temporary(): string
     {
         $this->create();
-        $file = @tempnam($this->path, '.phil-backup-');
+        // tempnam() gives the directory without its symbolic links, and falls back to the system's when it cannot
+        // write in it: a file elsewhere is removed and refused.
+        $directory = (string) realpath($this->path);
+        $file = @tempnam($directory, '.phil-backup-');
 
-        if (false === $file || \dirname($file) !== $this->path) {
+        if (false === $file || \dirname($file) !== $directory) {
+            if (\is_string($file)) {
+                unlink($file);
+            }
+
             throw BackupFailed::because(\sprintf('No temporary file can be created in the backup directory %s.', $this->path));
         }
 
         return $file;
+    }
+
+    /**
+     * Gives a temporary file of the directory the path of a file of the directory, in one step: the file appears
+     * whole, with the temporary file's mode, and an existing file is never replaced.
+     */
+    public function publish(string $temporary, string $file): void
+    {
+        if (@link($temporary, $file)) {
+            unlink($temporary);
+
+            return;
+        }
+
+        if (file_exists($file)) {
+            throw BackupFailed::because(\sprintf('The backup %s already exists: it is never replaced.', $file));
+        }
+
+        // A file system without hard links: the name was free a moment ago.
+        if (!@rename($temporary, $file)) {
+            throw BackupFailed::because(\sprintf('The backup %s cannot be written.', $file));
+        }
     }
 
     /**
@@ -193,6 +228,26 @@ final readonly class BackupDirectory
     {
         if (!is_dir($this->path) && !@mkdir($this->path, 0o700, true)) {
             throw BackupFailed::because(\sprintf('The backup directory %s cannot be created.', $this->path));
+        }
+
+        // Windows has no group or other users' bits to narrow.
+        if ('Windows' === \PHP_OS_FAMILY) {
+            return;
+        }
+
+        clearstatcache(true, $this->path);
+        $mode = fileperms($this->path) & 0o777;
+
+        if (0 === ($mode & 0o077)) {
+            return;
+        }
+
+        if (!$this->tightenOpenDirectory) {
+            throw BackupFailed::because(\sprintf('The backup directory %s is open to other users (mode %04o): narrow it to its owner, with mode 0700.', $this->path, $mode));
+        }
+
+        if (!@chmod($this->path, 0o700)) {
+            throw BackupFailed::because(\sprintf('The backup directory %s is open to other users (mode %04o) and cannot be narrowed to its owner: give it to the user that writes the backups, with mode 0700.', $this->path, $mode));
         }
     }
 }

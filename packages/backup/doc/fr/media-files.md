@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b700a5399663cd69819d299f0ac476d8d4e6a0b16ec8a094d218c6555dafcf4d -->
+<!-- phil-dev source-sha256=107b46059439a73855d67385ce19b77c6210499784075f02e463abcaeca8e3be -->
 # Fichiers médias
 
 ## Répertoires nommés
@@ -19,7 +19,12 @@ que les noms soient les mêmes.
 
 ## Ce qui est archivé
 
-`write($file)` écrit une archive POSIX ustar, lisible par son seul propriétaire, et retourne le nombre de fichiers :
+`write($file)` écrit une archive POSIX ustar, lisible par son seul propriétaire dès son premier octet, et retourne le
+nombre de fichiers. L'archive est écrite sous forme de fichier temporaire à côté de `$file`, `.phil-tar-` suivi de
+caractères aléatoires, créé en `0600`, et prend son chemin en une seule étape une fois complète ; un échec supprime le
+fichier temporaire et laisse `$file` tel qu'il était. `TarWriter` fait de même seul : `close()` donne son chemin à
+l'archive, `discard()` y renonce, et un écrivain ni fermé ni abandonné supprime son fichier temporaire quand il est
+détruit. L'archive contient :
 
 - chaque répertoire et chaque fichier ordinaire sous chaque répertoire, chaque répertoire suivi de ses entrées triées
   par nom, dans l'ordre des octets, pour que les mêmes fichiers donnent la même archive, avec leurs bits de permission

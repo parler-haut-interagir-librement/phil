@@ -4,6 +4,32 @@ All notable changes to `phil/reporting-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.3-alpha: the jobs and exports of the `directory` store are readable by their owner alone from
+the moment they exist, and an open store directory is narrowed to its owner. See
+[The directory of the claim check](doc/installation.md#the-directory-of-the-claim-check).
+
+### Added
+
+- `DirectoryJobStore`'s and `DirectoryExportStore`'s argument `tightenOpenDirectory`, and the option
+  `tighten_open_directory`, true by default: false refuses a directory open to its group or to other users instead of
+  narrowing it.
+
+### Changed
+
+- The `directory` store narrows an existing directory open to its group or to other users to `0700` before it keeps a
+  file, and fails, naming the directory and its mode, when it cannot.
+- A job and an export are written as temporary files of the directory created `0600`, then given their names in one
+  step once they are whole; a failure leaves no file, nor a temporary one. A directory reached through a symbolic link
+  is used where the link points.
+
+### Security
+
+- A job, which holds its recipients and parameters, was written with the default mode before it was narrowed to
+  `0600`, and so was an export: in a directory open to them, other users of the machine could read them while they
+  were written. Neither is readable by another user at any moment.
+
 ## 0.1.2-alpha - 2026-11-15
 
 ### Added

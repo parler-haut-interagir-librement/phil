@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ee2bdeb455d78d17e61d0dd065ba055abd814ac4e2642195be9c0009f1d66946 -->
+<!-- phil-dev source-sha256=6b9dba88373a7c9efd705d347557fca925b70f1716e1479f5c109addcfdb80ce -->
 # Configuration
 
 ```yaml
@@ -13,6 +13,7 @@ phil_reporting:
     max_rows: 100000                 # the most rows a report exports, 1 to 10 000 000
     store: directory                 # or memory, for the tests and the sync transport
     directory: '%kernel.project_dir%/var/phil_reporting'
+    tighten_open_directory: true     # false refuses a directory open to other users instead of narrowing it
     keep_delivered: false            # whether a delivered export stays in the export store
     mail:
         enabled: true

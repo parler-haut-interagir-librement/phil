@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b710cda65b8c6a5d39beb5cb040a6aed158670b66382e109886e97c5b0976b98 -->
+<!-- phil-dev source-sha256=9a227af877ee7c9a05e2b7ed30fcc0af90324c25073c59ad2d4bd9ea384bceed -->
 # Tests
 
 ## Les tests du bundle
@@ -9,7 +9,8 @@ les tableaux de bord et les calendriers de la configuration ; les images SVG et 
 variations dans plusieurs locales ; les requêtes et les tâches écrites puis relues, et chaque forme refusée ; les
 rapports bornés et vérifiés ligne par ligne ; l'exécuteur avec ses livraisons et ses échecs ; les formats, cellules de
 formule comprises ; les magasins en répertoire et en mémoire par rapport à un même contrat, identifiants mal formés
-compris ; la file d'attente, les *handlers* et le calendrier ; les livraisons ; les composants et l'accès à un tableau
+compris, des fichiers privés pendant qu'ils sont écrits (jeu de données d'essai `WatchedStream`), un répertoire ouvert
+restreint ou refusé, deux fichiers conservés au même moment et un échec qui ne laisse rien ; la file d'attente, les *handlers* et le calendrier ; les livraisons ; les composants et l'accès à un tableau
 de bord réservé ; les téléchargements, la commande et le lien EasyAdmin ; la configuration, les services et les clés
 des services étiquetés.
 

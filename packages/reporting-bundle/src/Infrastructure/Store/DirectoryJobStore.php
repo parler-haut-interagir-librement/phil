@@ -14,26 +14,24 @@ use RuntimeException;
 /**
  * The jobs as JSON files of their own in a directory readable by its owner only, since a job holds its recipients and
  * parameters. Nothing is unserialized: a file `ReportJob::toArray()` did not write is refused.
+ *
+ * A job's file is readable by its owner from the moment it exists and appears whole. A directory open to other users
+ * is narrowed to its owner, or refused when `tightenOpenDirectory` is false.
  */
 final readonly class DirectoryJobStore implements JobStore
 {
     private PrivateDirectory $directory;
 
-    public function __construct(string $directory)
+    public function __construct(string $directory, bool $tightenOpenDirectory = true)
     {
-        $this->directory = new PrivateDirectory($directory, '.json');
+        $this->directory = new PrivateDirectory($directory, '.json', $tightenOpenDirectory);
     }
 
     #[Override]
     public function keep(ReportJob $job): string
     {
-        [$id, $file] = $this->directory->create();
-
-        if (false === @file_put_contents($file, json_encode($job->toArray(), \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_PRESERVE_ZERO_FRACTION), \LOCK_EX)) {
-            throw new RuntimeException(\sprintf('The report job cannot be written to "%s".', $file));
-        }
-
-        chmod($file, 0o600);
+        $json = json_encode($job->toArray(), \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_PRESERVE_ZERO_FRACTION);
+        [$id] = $this->directory->keep($json, static fn (string $file): RuntimeException => new RuntimeException(\sprintf('The report job cannot be written to "%s".', $file)));
 
         return $id;
     }

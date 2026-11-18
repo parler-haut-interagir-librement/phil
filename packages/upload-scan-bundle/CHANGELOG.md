@@ -4,6 +4,31 @@ All notable changes to `phil/upload-scan-bundle` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: a quarantined file and its record are readable by their owner alone from the moment
+they exist, and an open quarantine directory is narrowed to its owner. See
+[Quarantine and events](doc/quarantine-and-events.md).
+
+### Added
+
+- `FilesystemQuarantine`'s argument `tightenOpenDirectory`, and the option `quarantine.tighten_open_directory`, true by
+  default: false refuses a directory open to its group or to other users instead of narrowing it.
+
+### Changed
+
+- `FilesystemQuarantine::isolate()` narrows an existing directory open to its group or to other users to `0700`
+  before it keeps a file, and fails with `QuarantineFailed`, naming the directory and its mode, when it cannot.
+- The copy and the record are written as temporary files of the directory created `0600`, then given their names in
+  one step, the record last; a failure leaves neither of them, nor a temporary file. A directory reached through a
+  symbolic link is used where the link points.
+
+### Security
+
+- The record of a quarantined file, which holds the name it was sent under and the signature found, was created with
+  the default mode, and the copy was narrowed to `0600` only after it was created: in a directory open to them,
+  other users of the machine could read both. Neither is readable by another user at any moment.
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

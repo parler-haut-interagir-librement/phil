@@ -114,6 +114,105 @@ final class BackupDirectoryTest extends TestCase
         self::assertSame(0, filesize($file));
     }
 
+    public function testAnOpenDirectoryIsNarrowedBeforeAnythingIsWrittenInIt(): void
+    {
+        if ('Windows' === \PHP_OS_FAMILY) {
+            self::markTestSkipped("Windows has no group or other users' bits.");
+        }
+
+        foreach (['stem' => static fn (BackupDirectory $backups): string => $backups->newStem('app', new DateTimeImmutable()), 'temporary' => static fn (BackupDirectory $backups): string => $backups->temporary()] as $case => $call) {
+            foreach ([0o755, 0o750, 0o705, 0o710, 0o701] as $mode) {
+                chmod($this->directory, $mode);
+                $backups = new BackupDirectory($this->directory);
+                $backups->sets('sql');
+                self::assertSame($mode, fileperms($this->directory) & 0o777, 'Reading the sets changes nothing.');
+
+                $call($backups);
+                clearstatcache();
+                self::assertSame(0o700, fileperms($this->directory) & 0o777, $case);
+            }
+        }
+    }
+
+    public function testAnOpenDirectoryIsRefusedWhenItMayNotOrCannotBeNarrowed(): void
+    {
+        if ('Windows' === \PHP_OS_FAMILY) {
+            self::markTestSkipped("Windows has no group or other users' bits.");
+        }
+
+        chmod($this->directory, 0o751);
+
+        try {
+            new BackupDirectory($this->directory, tightenOpenDirectory: false)->temporary();
+            self::fail('The directory is open.');
+        } catch (BackupFailed $backupFailed) {
+            self::assertSame(\sprintf('The backup directory %s is open to other users (mode 0751): narrow it to its owner, with mode 0700.', $this->directory), $backupFailed->getMessage());
+        }
+
+        clearstatcache();
+        self::assertSame(0o751, fileperms($this->directory) & 0o777);
+        self::assertSame([], Files::entries($this->directory));
+        chmod($this->directory, 0o700);
+        self::assertSame($this->directory, \dirname(new BackupDirectory($this->directory, tightenOpenDirectory: false)->temporary()), 'A private directory is used as it is.');
+        self::assertSame($this->directory.'/fresh/backup', \dirname(new BackupDirectory($this->directory.'/fresh/backup', tightenOpenDirectory: false)->temporary()), 'A directory it creates is private.');
+
+        if (0 === posix_geteuid()) {
+            self::markTestSkipped('root narrows every directory.');
+        }
+
+        // The system's shared temporary directory belongs to root and is open to everyone.
+        try {
+            new BackupDirectory('/tmp')->newStem('app', new DateTimeImmutable());
+            self::fail("Another user's directory is narrowed.");
+        } catch (BackupFailed $backupFailed) {
+            self::assertSame('The backup directory /tmp is open to other users (mode 0777) and cannot be narrowed to its owner: give it to the user that writes the backups, with mode 0700.', $backupFailed->getMessage());
+        }
+    }
+
+    public function testADirectoryReachedThroughASymbolicLinkHoldsItsTemporaryFiles(): void
+    {
+        mkdir($this->directory.'/real', 0o700);
+        symlink($this->directory.'/real', $this->directory.'/link');
+        $backups = new BackupDirectory($this->directory.'/link');
+        $file = $backups->temporary();
+
+        self::assertSame($this->directory.'/real', \dirname($file));
+        $backups->publish($file, $backups->file('app.sql'));
+        self::assertFileExists($this->directory.'/real/app.sql');
+    }
+
+    public function testATemporaryFileTakesItsNameWholeAndNeverOverAnotherFile(): void
+    {
+        $backups = new BackupDirectory($this->directory);
+        $first = $backups->temporary();
+        $second = $backups->temporary();
+        file_put_contents($first, 'first');
+        file_put_contents($second, 'second');
+
+        self::assertNotSame($first, $second, 'Two writers never share a temporary file.');
+
+        $backups->publish($first, $this->directory.'/app.sql');
+
+        try {
+            $backups->publish($second, $this->directory.'/app.sql');
+            self::fail('The name is taken.');
+        } catch (BackupFailed $backupFailed) {
+            self::assertSame(\sprintf('The backup %s/app.sql already exists: it is never replaced.', $this->directory), $backupFailed->getMessage());
+        }
+
+        self::assertSame('first', file_get_contents($this->directory.'/app.sql'));
+        self::assertSame(0o600, fileperms($this->directory.'/app.sql') & 0o777);
+        self::assertFileDoesNotExist($first);
+        self::assertSame('second', file_get_contents($second), 'The caller removes a temporary file that cannot take its name.');
+
+        try {
+            $backups->publish($this->directory.'/.phil-backup-missing', $this->directory.'/other.sql');
+            self::fail('There is no temporary file.');
+        } catch (BackupFailed $backupFailed) {
+            self::assertSame(\sprintf('The backup %s/other.sql cannot be written.', $this->directory), $backupFailed->getMessage());
+        }
+    }
+
     public function testADirectoryThatCannotBeUsedIsNamed(): void
     {
         file_put_contents($this->directory.'/file', '');
@@ -132,9 +231,17 @@ final class BackupDirectoryTest extends TestCase
         }
 
         mkdir($this->directory.'/locked', 0o500);
-        $this->expectException(BackupFailed::class);
-        $this->expectExceptionMessageIsOrContains(\sprintf('No temporary file can be created in the backup directory %s/locked.', $this->directory));
-        new BackupDirectory($this->directory.'/locked')->temporary();
+        $fallback = (string) realpath(sys_get_temp_dir());
+        $before = Files::glob($fallback.'/.phil-backup-*');
+
+        try {
+            new BackupDirectory($this->directory.'/locked')->temporary();
+            self::fail('The directory is locked.');
+        } catch (BackupFailed $backupFailed) {
+            self::assertSame(\sprintf('No temporary file can be created in the backup directory %s/locked.', $this->directory), $backupFailed->getMessage());
+        }
+
+        self::assertSame($before, Files::glob($fallback.'/.phil-backup-*'), 'The file tempnam() falls back to elsewhere is removed.');
     }
 
     public function testSetsAreReadFromTheirNamesOldestFirst(): void

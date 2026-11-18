@@ -86,6 +86,10 @@ final class PhilReportingBundle extends AbstractBundle
                 ->cannotBeEmpty()
                 ->defaultValue('%kernel.project_dir%/var/phil_reporting')
             ->end()
+            ->booleanNode('tighten_open_directory')
+                ->info('Whether a directory of the "directory" store open to its group or to other users is narrowed to its owner; false refuses it.')
+                ->defaultTrue()
+            ->end()
             ->booleanNode('keep_delivered')
                 ->info('Whether a delivered export stays in the export store.')
                 ->defaultFalse()
@@ -128,7 +132,7 @@ final class PhilReportingBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{timezone: string, chart: array{width: int, height: int}, png: array{fonts: list<string>, scale: int<1, 4>, max_pixels: int}, max_rows: int, store: string, directory: string, keep_delivered: bool, mail: array{enabled: bool, from: string}, notification: array{enabled: bool, channels: list<string>}, dashboards: array<string, mixed>, schedules: array<string, mixed>} $config */
+        /** @var array{timezone: string, chart: array{width: int, height: int}, png: array{fonts: list<string>, scale: int<1, 4>, max_pixels: int}, max_rows: int, store: string, directory: string, tighten_open_directory: bool, keep_delivered: bool, mail: array{enabled: bool, from: string}, notification: array{enabled: bool, channels: list<string>}, dashboards: array<string, mixed>, schedules: array<string, mixed>} $config */
         ReportingServices::register($builder, $config);
     }
 

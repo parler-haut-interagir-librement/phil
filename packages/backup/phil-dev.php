@@ -68,6 +68,16 @@ return [
                     '\$size = \(int\) hexdec\(sodium_bin2hex\(\$this->read\(\$in, 4\)\)\);',
                 ],
             ],
+            // The stat cache of PHP goes stale only when another process changes the directory: the functions of PHP
+            // that change a file clear it themselves, so no test of one process sees the difference. A long-running
+            // worker does. A plain file's stream writes through without a buffer, and its descriptor is freed with
+            // the writer: a test cannot see the archive's stream left open one moment more.
+            'FunctionCallRemoval' => [
+                'ignoreSourceCodeByRegex' => [
+                    'clearstatcache\\(true, \\$this->path\\);',
+                    'fclose\\(\\$this->stream\\);',
+                ],
+            ],
             // A chunk length past the largest chunk is refused so that nothing that large is read into memory; read,
             // it would fail to authenticate all the same, so what stands for the refusal is not observable.
             'FalseValue' => [

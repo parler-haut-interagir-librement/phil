@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bc496bf17eeaf2c2a9df04430e14b8b202338889e25f2fe25368e2055b9f77fd -->
+<!-- phil-dev source-sha256=d32b49c90c2c0d9fcc81d445b0ffaa262ac70f06d6e740deeb3e3267788dc63b -->
 # Installation
 
 ## Prérequis
@@ -63,6 +63,9 @@ PHIL UX ou de Tailwind, et la légende du tableau des barres est masquée par la
 ## Le répertoire du *claim check*
 
 Le magasin `directory` garde les tâches et les exports sous `%kernel.project_dir%/var/phil_reporting`, créé lisible par
-son seul propriétaire. Le *worker* qui exécute les rapports et le code qui les met en file d'attente doivent le
+son seul propriétaire (`0700`). Un répertoire qui existe déjà et qui est ouvert à son groupe ou à d'autres utilisateurs
+est restreint à `0700` avant qu'un fichier y soit conservé ; avec `tighten_open_directory: false`, ou quand il ne peut
+pas l'être parce qu'un autre utilisateur en est le propriétaire, la conservation d'une tâche ou d'un export échoue avec
+une exception qui nomme le répertoire et son mode. Le *worker* qui exécute les rapports et le code qui les met en file d'attente doivent le
 partager : sur plusieurs machines, faites de `JobStore` et `ExportStore` des alias vers des services de l'application,
 comme le montrent les [Points d'extension](extension-points.md).

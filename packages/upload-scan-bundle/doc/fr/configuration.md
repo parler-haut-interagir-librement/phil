@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=07426d359f9e1f566bef5c6f0e651eb572f205247bf0dfb05a029c3268cdd422 -->
+<!-- phil-dev source-sha256=5153524371247a6134b73821f073fa4df7b8ef1324d7a7299b3c39d9980dadac -->
 # Configuration
 
 ```yaml
@@ -15,6 +15,7 @@ phil_upload_scan:
     quarantine:
         enabled: true
         directory: '%kernel.project_dir%/var/quarantine'
+        tighten_open_directory: true    # false refuses a directory open to other users instead of narrowing it
         service: null                   # the id of a Quarantine service, instead of the directory
         retention_days: 30              # how long phil:upload-scan:purge-quarantine keeps a file
     rescan:
@@ -63,8 +64,10 @@ Un fichier infecté est refusé dans les deux cas.
 
 ## `quarantine`
 
-Les fichiers infectés sont copiés dans `directory`, créé lisible par son propriétaire seulement. Un répertoire sous le
-`public/` du projet est refusé à la construction du conteneur : le serveur Web servirait ce qu'il contient. `service`
+Les fichiers infectés sont copiés dans `directory`, créé lisible par son propriétaire seulement. Un répertoire qui existe déjà et qui est
+ouvert à son groupe ou à d'autres utilisateurs est restreint à `0700` avant qu'un fichier y soit conservé ; avec
+`tighten_open_directory: false`, ou quand il ne peut pas l'être, le fichier est refusé et non conservé. Un répertoire
+sous le `public/` du projet est refusé à la construction du conteneur : le serveur Web servirait ce qu'il contient. `service`
 nomme plutôt une `Quarantine` de l'application. `enabled: false`, ou `quarantine: false`, refuse les fichiers infectés
 sans les conserver. `retention_days`, 30 par défaut et au moins 1, est la durée pendant laquelle la commande de purge
 conserve un fichier. Voir [Quarantaine et événements](quarantine-and-events.md).

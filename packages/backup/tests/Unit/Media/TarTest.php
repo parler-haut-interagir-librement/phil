@@ -126,7 +126,7 @@ final class TarTest extends TestCase
         $writer = TarWriter::create($this->directory.'/other.tar');
         $this->expectException(BackupFailed::class);
         $this->expectExceptionMessageIsOrContains('is too long for a tar archive.');
-        $writer->addFile(str_repeat('p', 10).'/'.str_repeat('n', 100)."\n", $this->directory.'/other.tar', 0o644, 0);
+        $writer->addFile(str_repeat('p', 10).'/'.str_repeat('n', 100)."\n", $this->directory.'/archive.tar', 0o644, 0);
     }
 
     public function testAPathThatCannotBeSplitIsRefused(): void
@@ -174,7 +174,84 @@ final class TarTest extends TestCase
             self::assertSame('The media file lying://8589934591/ changed while it was archived.', $backupFailed->getMessage());
         }
 
+        $writer->close();
         self::assertSame("77777777777\0", substr((string) file_get_contents($this->directory.'/largest.tar'), 124, 12));
+    }
+
+    public function testAnArchiveIsPrivateFromItsFirstByteAndAppearsWholeWhenClosed(): void
+    {
+        file_put_contents($this->directory.'/archive.tar', 'an archive of yesterday');
+        $writer = TarWriter::create($this->directory.'/archive.tar');
+        $writer->addDirectory('uploads/', 0o755, 0);
+
+        $temporaries = Files::glob($this->directory.'/.phil-tar-*');
+
+        self::assertCount(1, $temporaries);
+        self::assertSame('an archive of yesterday', file_get_contents($this->directory.'/archive.tar'), 'The path keeps its file until the archive is closed.');
+
+        if ('Windows' !== \PHP_OS_FAMILY) {
+            self::assertSame(0o600, fileperms($temporaries[0]) & 0o777);
+        }
+
+        $writer->close();
+        $writer->discard();
+
+        self::assertSame([], Files::glob($this->directory.'/.phil-tar-*'));
+        self::assertSame(512 * 3, filesize($this->directory.'/archive.tar'));
+    }
+
+    public function testAnArchiveGivenUpOrNeverClosedLeavesNothing(): void
+    {
+        $writer = TarWriter::create($this->directory.'/discarded.tar');
+        $writer->addDirectory('uploads/', 0o755, 0);
+        $writer->discard();
+        $writer->discard();
+
+        self::assertSame([], Files::entries($this->directory));
+
+        $writer = TarWriter::create($this->directory.'/forgotten.tar');
+        $writer->addDirectory('uploads/', 0o755, 0);
+        self::assertCount(1, Files::glob($this->directory.'/.phil-tar-*'));
+        unset($writer);
+
+        self::assertSame([], Files::entries($this->directory));
+    }
+
+    public function testAnArchiveThatCannotTakeItsPathIsRemoved(): void
+    {
+        mkdir($this->directory.'/taken.tar');
+        touch($this->directory.'/taken.tar/inside');
+        $writer = TarWriter::create($this->directory.'/taken.tar');
+
+        try {
+            $writer->close();
+            self::fail('A directory holds the path.');
+        } catch (BackupFailed $backupFailed) {
+            self::assertSame(\sprintf('The archive %s/taken.tar cannot be written.', $this->directory), $backupFailed->getMessage());
+        }
+
+        self::assertSame([], Files::glob($this->directory.'/.phil-tar-*'));
+        self::assertDirectoryExists($this->directory.'/taken.tar');
+    }
+
+    public function testAnArchiveIsNeverWrittenOutsideItsDirectory(): void
+    {
+        if ('Windows' === \PHP_OS_FAMILY || 0 === posix_geteuid()) {
+            self::markTestSkipped('The directory is not locked against this user.');
+        }
+
+        $fallback = (string) realpath(sys_get_temp_dir());
+        $before = Files::glob($fallback.'/.phil-tar-*');
+        mkdir($this->directory.'/locked', 0o500);
+
+        try {
+            TarWriter::create($this->directory.'/locked/archive.tar');
+            self::fail('The directory is locked.');
+        } catch (BackupFailed $backupFailed) {
+            self::assertSame(\sprintf('The archive %s/locked/archive.tar cannot be written.', $this->directory), $backupFailed->getMessage());
+        }
+
+        self::assertSame($before, Files::glob($fallback.'/.phil-tar-*'), 'The file tempnam() falls back to elsewhere is removed.');
     }
 
     public function testAnArchiveThatCannotBeWrittenOrReadIsNamed(): void

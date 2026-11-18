@@ -25,8 +25,9 @@ use Throwable;
  * written before the key was given.
  *
  * A copy in clear exists only while it is encrypted, decrypted or tested, as a temporary file of the backup
- * directory readable by its owner alone, removed whatever happens. Every file of a set is narrowed to its owner: a
- * backup holds every person's data.
+ * directory readable by its owner alone, removed whatever happens. Every file of a set is readable by its owner alone
+ * from the moment it exists, since a backup holds every person's data: it is written as a temporary file of the
+ * directory, then given its name in one step.
  */
 final readonly class Backups
 {
@@ -72,7 +73,7 @@ final readonly class Backups
 
     /**
      * Backs the database up, and the media directories unless told not to, into a new set; a set left half written
-     * by a failure is removed.
+     * by a failure is removed, never a file another backup gave the same name in the meantime.
      */
     public function create(DateTimeImmutable $at, string $label = '', bool $media = true): BackupSet
     {
@@ -81,14 +82,14 @@ final readonly class Backups
         $archive = $media && !$this->media->isEmpty() ? $this->directory->file($stem.'.'.BackupDirectory::MEDIA.$suffix) : null;
         $set = new BackupSet($stem, $at, $label, $this->directory->file($stem.'.'.$this->client->extension().$suffix), $archive);
 
-        try {
-            $this->seal($set->database, $this->client->backup(...));
+        $this->seal($set->database, $this->client->backup(...));
 
+        try {
             if (null !== $archive) {
                 $this->seal($archive, $this->media->write(...));
             }
         } catch (Throwable $throwable) {
-            $this->directory->remove($set);
+            unlink($set->database);
 
             throw $throwable;
         }
@@ -199,26 +200,34 @@ final readonly class Backups
     }
 
     /**
-     * Writes the file through the writer, encrypting it on the way when there is a key, and narrows it to its owner.
+     * Writes the file through the writer into a temporary file of the directory, readable by its owner alone,
+     * encrypting it on the way when there is a key, then gives it its name; the temporary files never outlive it.
      *
      * @param callable(string): mixed $writer
      */
     private function seal(string $file, callable $writer): void
     {
-        if (!$this->cipher instanceof BackupCipher) {
-            $writer($file);
-            chmod($file, 0o600);
-
-            return;
-        }
-
-        $clear = $this->directory->temporary();
+        $sealed = $this->directory->temporary();
 
         try {
-            $writer($clear);
-            $this->cipher->encrypt($clear, $file);
+            if ($this->cipher instanceof BackupCipher) {
+                $clear = $this->directory->temporary();
+
+                try {
+                    $writer($clear);
+                    $this->cipher->encrypt($clear, $sealed);
+                } finally {
+                    unlink($clear);
+                }
+            } else {
+                $writer($sealed);
+            }
+
+            $this->directory->publish($sealed, $file);
         } finally {
-            unlink($clear);
+            if (is_file($sealed)) {
+                unlink($sealed);
+            }
         }
     }
 

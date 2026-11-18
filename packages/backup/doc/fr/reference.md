@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9360769a4f11d2a75092069d014f9db820eb8998518b22c816bf748ced65f5f3 -->
+<!-- phil-dev source-sha256=1c22030570dc27e6f1572ce04c336c7ca740df72e681f5bc28d91f4c3362f051 -->
 # Référence de l'API
 
 Chaque type sous `Phil\Backup\`. « Implémenté » signifie implémenté et couvert par des tests unitaires.
@@ -15,10 +15,10 @@ Chaque type sous `Phil\Backup\`. « Implémenté » signifie implémenté et cou
 | `Encryption\BackupKey` | `fromBase64()`, `generate()`, `toBase64()`, `$bytes` | Implémenté |
 | `Encryption\BackupCipher` | `encrypt($source, $target)`, `decrypt($source, $target)` ; `EXTENSION` | Implémenté |
 | `Media\MediaArchive` | `isEmpty()`, `write()`, `verify()`, `extract()`, `prune()` | Implémenté |
-| `Media\TarWriter` | `create()`, `addDirectory()`, `addFile()`, `close()` | Implémenté |
+| `Media\TarWriter` | `create()`, `addDirectory()`, `addFile()`, `close()`, `discard()` | Implémenté |
 | `Media\TarReader` | `read($visitor)` | Implémenté |
 | `Media\TarEntry` | `$name`, `$directory`, `$mode`, `$size`, `$modified` | Implémenté |
-| `Storage\BackupDirectory` | `path()`, `newStem()`, `file()`, `temporary()`, `sets()`, `labelled()`, `latest()`, `set()`, `remove()` ; `MEDIA`, `COPIES` | Implémenté |
+| `Storage\BackupDirectory` | `path()`, `newStem()`, `file()`, `temporary()`, `publish()`, `sets()`, `labelled()`, `latest()`, `set()`, `remove()` ; `MEDIA`, `COPIES` | Implémenté |
 | `Storage\BackupSet` | `$stem`, `$time`, `$label`, `$database`, `$media`, `$copy` ; `isLabelled()`, `files()`, `isEncrypted($file)`, `compare()` | Implémenté |
 | `Rotation\RotationPolicy` | `$last`, `$daily`, `$weekly`, `$monthly` ; `expired($sets)` | Implémenté |
 | `Restore\RestoreGuard` | `checkEnvironment()`, `check()` ; `VARIABLE` | Implémenté |

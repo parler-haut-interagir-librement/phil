@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=13474bc485795bbd4e2b0f3eb99bec6a3663ca158e3481289128779b251c7c6e -->
+<!-- phil-dev source-sha256=d3435fcc0a2ba1d74e02abc4cecaacf662b85703e1ee7f26651cbf71e74a2240 -->
 # Tests
 
 ## Les tests du bundle
 
 La suite `tests/Unit` teste le `UploadScanner` — chaque décision, l'analyse et la quarantaine du flux entier, où qu'il
 soit positionné, un flux qui ne peut pas être relu, une quarantaine qui échoue, les événements —, le *handler* de
-nouvelle analyse et son message, la quarantaine sur le système de fichiers, ses permissions, sa fiche et ses échecs,
+nouvelle analyse et son message, la quarantaine sur le système de fichiers, ses permissions pendant qu'un fichier est copié (jeu de données d'essai `WatchedStream`) et une fois conservé, un répertoire ouvert restreint ou refusé, deux fichiers conservés au même moment, sa fiche et ses échecs, aucun ne laissant de fichier,
 son inventaire (l'ordre des fiches, leurs pages, une fiche illisible, des identifiants qui ne sont pas ceux de la
 quarantaine, une suppression avec ou sans son fichier), la page d'administration rendue par Twig, ses pages, son
 échappement, son jeton CSRF, son rôle et son journal, et le lien du menu EasyAdmin, la contrainte par le validateur de

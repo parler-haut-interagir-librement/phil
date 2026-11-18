@@ -104,8 +104,8 @@ final class PhilReportingBundleTest extends TestCase
         self::assertFalse($container->hasAlias(Rasterizer::class));
         self::assertEquals([$this->locator('phil_reporting.report'), $this->locator('phil_reporting.format'), 100_000], $container->getDefinition(Reports::class)->getArguments());
         self::assertEquals([[Schedules::class, 'fromConfig'], [[], new Reference(Periods::class)]], [$container->getDefinition(Schedules::class)->getFactory(), $container->getDefinition(Schedules::class)->getArguments()]);
-        self::assertSame(['%kernel.project_dir%/var/phil_reporting/jobs'], $container->getDefinition(DirectoryJobStore::class)->getArguments());
-        self::assertSame(['%kernel.project_dir%/var/phil_reporting/exports'], $container->getDefinition(DirectoryExportStore::class)->getArguments());
+        self::assertSame(['%kernel.project_dir%/var/phil_reporting/jobs', true], $container->getDefinition(DirectoryJobStore::class)->getArguments());
+        self::assertSame(['%kernel.project_dir%/var/phil_reporting/exports', true], $container->getDefinition(DirectoryExportStore::class)->getArguments());
         self::assertSame([DirectoryJobStore::class, true], [(string) $container->getAlias(JobStore::class), $container->getAlias(JobStore::class)->isPublic()]);
         self::assertSame([DirectoryExportStore::class, true], [(string) $container->getAlias(ExportStore::class), $container->getAlias(ExportStore::class)->isPublic()]);
         self::assertEquals([
@@ -251,6 +251,9 @@ final class PhilReportingBundleTest extends TestCase
         self::assertSame(1, $this->load(['max_rows' => 1])->getDefinition(Reports::class)->getArgument(2));
         self::assertSame(10_000_000, $this->load(['max_rows' => 10_000_000])->getDefinition(Reports::class)->getArgument(2));
         self::assertTrue($this->load(['store' => 'directory'])->hasDefinition(DirectoryJobStore::class));
+        $open = $this->load(['tighten_open_directory' => false]);
+        self::assertFalse($open->getDefinition(DirectoryJobStore::class)->getArgument(1));
+        self::assertFalse($open->getDefinition(DirectoryExportStore::class)->getArgument(1));
         self::assertSame('Europe/Kiev', $this->load(['timezone' => 'Europe/Kiev'])->getDefinition(Periods::class)->getArgument(1));
         $name = 'd-1.x_'.str_repeat('a', 58);
         self::assertEquals([$name => ['title' => 'D', 'role' => null, 'period' => 'last_30_days', 'periods' => ['last_30_days'], 'widgets' => []]], $this->load(['dashboards' => [$name => ['title' => 'D']]])->getDefinition(Dashboards::class)->getArgument(0));
