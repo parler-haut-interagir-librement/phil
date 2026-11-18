@@ -59,6 +59,11 @@ of the shared database: the tables created with the schema, the placements read 
 dedicated tenant is entered, a move recorded in the table and back, and suspensions that survive a cleared cache and the
 end of the unit of work, which closes the store connection.
 
+`MySqlPlacementKeysTest` and `PostgreSqlPlacementKeysTest` create no database: in the test database of
+`PHIL_TEST_MYSQL_URL` and `PHIL_TEST_POSTGRESQL_URL`, they place the tenants `Rose`, `rose`, `ROSE` and `rosé` in four
+databases and read each placement back. A row is found by the SHA-256 of the tenant reference, so that the default
+collation of MySQL, which folds case and accents, never makes two tenants one.
+
 `testTwoTenantsTakeTurnsInOneWorker` serves requests with one kernel as a FrankenPHP worker does — each request
 handled, then terminated, and the services reset as the next one starts — for the shared tenant, the dedicated one,
 the shared one again, then a request of each that throws in the middle of a transaction, and one of each after that.

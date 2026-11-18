@@ -26,6 +26,29 @@ use PHPUnit\Framework\Attributes\Group;
 #[Group('mysql')]
 final class MySqlStoresTest extends ServerStoresTestCase
 {
+    public function testEveryIdentifierIsBinaryOnTheServer(): void
+    {
+        $stores = $this->stores();
+        $connection = $stores->connection;
+        self::assertNotNull($connection);
+        $declared = [];
+
+        foreach ($stores->tables->definitions($connection->getDatabasePlatform()) as $table) {
+            foreach ($table->getColumns() as $column) {
+                if ('ascii_bin' === $column->getCollation()) {
+                    $declared[] = $table->getObjectName()->toString().'.'.$column->getObjectName()->toString();
+                }
+            }
+        }
+
+        sort($declared);
+
+        self::assertNotSame([], $declared);
+        self::assertSame($declared, $connection->fetchFirstColumn(
+            "SELECT CONCAT(TABLE_NAME, '.', COLUMN_NAME) AS name FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME LIKE 'phil\\_stockroom\\_test\\_%' AND COLLATION_NAME = 'ascii_bin' ORDER BY name",
+        ));
+    }
+
     #[Override]
     protected function variable(): string
     {
