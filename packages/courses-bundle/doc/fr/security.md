@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=13f4154ce74e165a205cd957dfa5e809fb900db9336145b47fab4cddfdabd16a -->
+<!-- phil-dev source-sha256=b6cb7c85f33381bb9a1805c7e4efc13014d71822d9c1c12e76fbdb5ea5656e1c -->
 # Sécurité
 
 Un paquet vient d'une autre plateforme, et ses fichiers contiennent des scripts que personne sur ce site n'a écrits.
@@ -70,6 +70,25 @@ d'autre.
 La page de l'activité encadre le contenu avec `sandbox="allow-scripts allow-same-origin allow-forms allow-popups
 allow-downloads"`. Le contenu garde sa propre origine — l'origine du contenu, jamais celle de l'application —, dont ses
 appels au point de terminaison xAPI ont besoin, et il ne peut pas atteindre la page qui l'encadre.
+
+## L'environnement d'exécution SCORM
+
+Le cadre de l'environnement d'exécution, `_phil/scorm/frame.html` et ses scripts, est servi sur l'origine du contenu
+seulement, avec `default-src 'none'`, des scripts de sa propre origine seulement, `frame-src 'self'` et `frame-ancestors`
+l'origine de l'application : seule l'application l'encadre, et il n'encadre que l'origine du contenu. Les SCO qu'il
+encadre sont servis avec `frame-ancestors 'self'` et l'origine de l'application, afin que le cadre de l'origine du contenu
+puisse les contenir.
+
+Le cadre et la page de l'activité se parlent par `postMessage()`, chacun à l'origine de l'autre seulement : le cadre
+n'accepte l'état d'une session que de sa fenêtre parente et de l'origine de l'application, la page de l'activité
+n'accepte les écritures que de son propre cadre et de l'origine du contenu. L'état contient l'identifiant de l'apprenant,
+jamais un nom ni une adresse courriel.
+
+Une validation porte un jeton de tentative — la tentative, la session et une expiration, signées par un HMAC sous
+`phil_courses.scorm.secret`, rien de secret conservé dans la base de données — et le jeton CSRF sans état des formulaires :
+le `Sec-Fetch-Site`, l'`Origin` ou le `Referer` du navigateur doit dire qu'elle vient du site. Un jeton d'un autre
+apprenant connecté, d'une session antérieure, ou expiré est refusé. Le corps est borné à 2 Mio, une validation à 4 000
+valeurs, les données d'une tentative à 1 Mio, chaque valeur par le modèle de données de son élément.
 
 ## Le point de terminaison cmi5
 

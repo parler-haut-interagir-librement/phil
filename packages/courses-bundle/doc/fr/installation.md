@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=303c0de85345aa605864302f9ec9eef38e7e8305a07cf5e1a0fa4ab2ab6a7214 -->
+<!-- phil-dev source-sha256=a23e6cf04dae3d0b3cb141e8b7d886c309bee21b7c001c4362644e958f61ff35 -->
 # Installation
 
 ```sh
@@ -64,13 +64,34 @@ phil_courses_admin:
 
 | Fichier | Routes | Pare-feu |
 |---|---|---|
-| `config/routes.php` | Les pages d'un cours : le plan, l'inscription, le lancement, l'achèvement, la seconde chance | Derrière le pare-feu de l'application : les pages exigent un apprenant |
+| `config/routes.php` | Les pages d'un cours : le plan, l'inscription, le lancement, l'achèvement, la seconde chance, et le point de terminaison de validation des sessions SCORM | Derrière le pare-feu de l'application : les pages exigent un apprenant, et une validation nomme sa tentative par son jeton |
 | `config/cmi5_routes.php` | L'URL de récupération et le point de terminaison xAPI auxquels parlent les unités cmi5 | En dehors : chaque requête porte le jeton de sa session, non les témoins de connexion de l'apprenant |
-| `config/content_routes.php` | Les fichiers des paquets importés | En dehors, et servis sur l'origine du contenu seulement |
+| `config/content_routes.php` | Les fichiers des paquets importés, et le cadre de l'environnement d'exécution SCORM sous `_phil/scorm/` | En dehors, et servis sur l'origine du contenu seulement |
 | `config/admin_routes.php` | La page d'administration des secondes chances | Derrière le pare-feu de l'application : la page demande le rôle `phil_courses.admin.role` |
 
 Une application dont le serveur Web sert le répertoire de stockage sur l'origine du contenu n'importe pas les routes du
-contenu ; [Sécurité](security.md) donne les en-têtes à envoyer.
+contenu ; il achemine `<content base URL>/_phil/scorm/` vers l'application, pour le cadre de l'environnement d'exécution
+SCORM, et [Sécurité](security.md) donne les en-têtes à envoyer.
+
+## Le contrôleur Stimulus
+
+L'environnement d'exécution SCORM fait appel au contrôleur Stimulus `phil--courses-bundle--scorm-runtime`, avec
+AssetMapper et symfony/stimulus-bundle : rien n'est compilé. Le bundle associe son contrôleur sous `@phil/courses-bundle` ;
+activez-le dans `assets/controllers.json`, chargé paresseusement, sur les seules pages des activités SCORM :
+
+```json
+{
+    "controllers": {
+        "@phil/courses-bundle": {
+            "scorm-runtime": { "enabled": true, "fetch": "lazy" }
+        }
+    }
+}
+```
+
+```sh
+composer require symfony/asset-mapper symfony/stimulus-bundle
+```
 
 ## L'origine du contenu
 
@@ -79,6 +100,14 @@ origine de contenu — un autre hôte que celui de l'application, idéalement su
 ces scripts ne s'exécutent jamais avec les témoins de connexion de l'application. Faites pointer un hôte de l'origine du
 contenu vers l'application, ou vers un serveur Web qui sert le répertoire de stockage, et nommez-le dans
 `phil_courses.content.base_url`. Sans lui, le bundle importe les paquets mais ne lance pas leur contenu.
+
+## Les tables des tentatives SCORM
+
+`phil_course_scorm_attempt` et `phil_course_scorm_data` conservent les tentatives et leurs données de suivi. Elles
+viennent avec les autres tables, par l'écouteur de schéma ou `CourseTables::configure()`, et `CourseTables::upgrade()` les
+ajoute aux tables de 0.1. Leurs clés utilisent la collation binaire `utf8mb4_bin` sur MySQL et MariaDB quand le schéma
+reçoit la plateforme — l'écouteur de schéma et `upgrade()` la donnent toujours — ; les données de suivi y sont un
+`MEDIUMTEXT`.
 
 ## Les pages
 

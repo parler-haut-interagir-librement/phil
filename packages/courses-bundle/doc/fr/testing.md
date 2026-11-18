@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=89f05604af0142473a7bc74fae646e9b143548dbf85fd7a34b1c38d65cf4c55a -->
+<!-- phil-dev source-sha256=76cbcc6196d0389364cb9c060a451992e683c47bb488bc74509172d723b4900e -->
 # Tests
 
 ## Les tests du paquet
@@ -10,9 +10,22 @@ vendor/bin/phpunit --no-configuration tests
 
 | Suite | Ce qu'elle couvre |
 |---|---|
-| `tests/Unit` | Le domaine, les points d'entrée, l'import et ses blocs, les achèvements, les règles de cmi5, les énoncés `satisfied`, les entrepôts, la mise à niveau des tables, sur SQLite en mémoire, et l'entrepôt de traces d'apprentissage distant sur un client simulé |
-| `tests/Functional` | Le bundle dans une petite application : les pages, la page d'administration, l'origine du contenu, l'URL de récupération, le point de terminaison xAPI et les commandes |
-| `tests/Integration` | Les tables, leur mise à niveau et les requêtes sur MySQL 8.4 et PostgreSQL 17, et un énoncé envoyé à un vrai entrepôt de traces d'apprentissage |
+| `tests/Unit` | Le domaine, les points d'entrée, l'import et ses blocs, les achèvements, les règles de cmi5, les énoncés `satisfied`, l'environnement d'exécution SCORM, ses tentatives, jetons, point de terminaison, cadre et module de vie privée, les entrepôts, la mise à niveau des tables, sur SQLite en mémoire, et l'entrepôt de traces d'apprentissage distant sur un client simulé |
+| `tests/Functional` | Le bundle dans une petite application : les pages, la page d'administration, l'origine du contenu, l'URL de récupération, le point de terminaison xAPI, les commandes, et un paquet SCORM 1.2 et un paquet SCORM 2004 importés, lancés et validés, suspendus, repris et recommencés |
+| `tests/Integration` | Les tables, leur mise à niveau et les requêtes sur MySQL 8.4 et PostgreSQL 17 — les tentatives SCORM et leurs clés comparées octet par octet, entre autres —, et un énoncé envoyé à un vrai entrepôt de traces d'apprentissage |
+
+## Les scripts
+
+Les scripts de l'environnement d'exécution SCORM sont testés avec le lanceur de tests propre à Node.js, Stimulus remplacé par une doublure :
+
+```sh
+node --import ./tests/js/register.mjs --test 'tests/js/*.test.mjs'
+```
+
+`cmi.test.mjs` exécute les appels de `tests/js/fixture/vectors.json` contre l'API dans le code du navigateur, et
+`BrowserParityTest` exécute les mêmes appels contre le modèle de données de phil/elearning-packages, avec les descriptions
+de `tests/js/fixture/model-*.json` tenues pour ce que le serveur remet au navigateur : les deux répondent de la même façon à
+chaque appel. La fixture est écrite à partir des réponses du serveur.
 
 Les paquets que les tests importent — un manifeste SCORM 1.2, un manifeste SCORM 2004 avec séquencement, une structure de
 cours cmi5 — sont écrits pour les tests, dans `tests/Unit/Fixture/Packages.php`, et compressés dans le répertoire
@@ -40,17 +53,19 @@ ferait un entrepôt distant hors d'atteinte.
 
 La cible de fuzzing `cmi5-statement` donne aux vérifications du point de terminaison xAPI des énoncés que personne n'a
 écrits, à partir des germes de `tests/Fuzz/corpus/cmi5-statement` : un énoncé est accepté seulement pour l'acteur,
-l'enregistrement et la session de son lancement, ou refusé. Les lecteurs des paquets sont soumis au fuzzing dans
+l'enregistrement et la session de son lancement, ou refusé. La cible de fuzzing `scorm-commit` donne à la lecture d'une
+validation et au modèle de données de chaque version des corps que personne n'a écrits : un corps est lu ou refusé, et ce
+qui est conservé reste dans sa limite. Les lecteurs des paquets et le modèle de données sont soumis au fuzzing dans
 phil/elearning-packages.
 
 ```sh
-composer fuzz -- cmi5-statement
+composer fuzz -- cmi5-statement scorm-commit
 ```
 
 ## Bancs d'essai
 
-`tests/Benchmark/CoursesBench.php` mesure la vérification d'un énoncé et le placement des activités d'un cours de cent
-activités pour un apprenant. Les lecteurs des paquets sont mesurés dans phil/elearning-packages.
+`tests/Benchmark/CoursesBench.php` mesure la vérification d'un énoncé, le placement des activités d'un cours de cent
+activités pour un apprenant, et la validation d'une session SCORM dont la tentative contient cinquante interactions. Les lecteurs des paquets sont mesurés dans phil/elearning-packages.
 
 ## Tester le code qui utilise le bundle
 

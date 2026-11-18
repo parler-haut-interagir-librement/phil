@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=86cdfaf62bb0bc9cb165bfbf6d7b8e364e460b24cab2bf18ed755573484f8e83 -->
+<!-- phil-dev source-sha256=b3ed97bf1e3524e2d2706037a0199a6d446a10413e263d8a766e4c3dd5d714c8 -->
 # Points d'extension
 
 Le bundle est en versions `0.x` : les ports, les événements et les services ci-dessous peuvent changer dans une version
@@ -100,16 +100,26 @@ inscription a avec `satisfactions()`, `claimSatisfaction()` — qui répond fals
 de sorte que deux requêtes simultanées émettent un seul énoncé — et `releaseSatisfaction()`. Une application qui
 remplace un entrepôt les implémente.
 
+## `ScormAttemptRepository`
+
+L'endroit où sont conservées les tentatives SCORM et leurs données de suivi : `save()`, `find()`, `latest()` — la dernière
+tentative de l'apprenant à une activité —, `ofEnrollments()` et `removeOfEnrollments()`, par lesquels le module de vie
+privée lit et efface. `DbalScormAttemptRepository` les conserve par DBAL ; une application qui les conserve ailleurs fait
+de l'alias du port son propre service.
+
 ## Événements
 
 Les événements du [modèle de cours](course-model.md#événements) sont envoyés par le répartiteur PSR-14, et ne portent que
 des identifiants : un écouteur lit le reste dans les entrepôts. Un écouteur envoie le rappel d'une ouverture, décerne un
 certificat à `CourseCompleted`, prévient un enseignant d'un `RetryRequested`, ou suit le parcours d'un apprenant dans les
-blocs d'un cours cmi5 à `BlockSatisfied`.
+blocs d'un cours cmi5 à `BlockSatisfied`. `ScormSessionEnded` est envoyé à la fin de chaque session d'une activité SCORM,
+avec l'indication que sa tentative a pris fin ou non.
 
 ## Services
 
 Chaque point d'entrée est un service public nommé par sa classe : `Courses`, `Enrollments`, `Availabilities`,
 `Learning`, `Completions`, `SecondChances`, `CourseImporter`, `ResultImporter`, `Cmi5Statements`, `Cmi5Tokens`,
-`Cmi5Launcher`, `ActivityTypes`, et les contrôleurs des pages, dont `SecondChancesController`. Les entrepôts sont des alias de leurs ports : `CourseRepository`, `EnrollmentRepository`,
-`RetryRequestRepository`, `LaunchSessionRepository`.
+`Cmi5Launcher`, `ActivityTypes`, `ScormRuntime`, `ScormTokens`, et les contrôleurs des pages, dont
+`SecondChancesController`, `ScormController` et `ScormFrameController`.
+Les entrepôts sont des alias de leurs ports : `CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`,
+`LaunchSessionRepository`, `ScormAttemptRepository`.

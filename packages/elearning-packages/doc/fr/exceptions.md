@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d4fb268cf4319a0963c958e35246f0d56bba25f751e480b3463ba64216aba9c8 -->
+<!-- phil-dev source-sha256=26409d9f2e8bd2e61efd256aa55da1366862f7fb4397a4d26e54451ca0909f18 -->
 # Exceptions
 
 Chaque exception que la bibliothèque lève volontairement implémente
@@ -8,6 +8,7 @@ traiter.
 | Exception | Étend | Levée quand |
 |---|---|---|
 | `PackageRefused` | `RuntimeException` | Un paquet, un chemin ou un manifeste ne peut pas être lu en toute sécurité : voir ci-dessous |
+| `RuntimeRefused` | `InvalidArgumentException` | Des données de suivi données à `CmiData` contiennent une valeur qui n'est pas du texte ou un élément que la version ne définit pas ; `CmiData::put()` ne nomme aucun élément ; `LaunchSettings` contient un apprenant, un mode, une note, un seuil ou une action de limite de temps hors de ses bornes ; `ScormVersion::of()` reçoit cmi5 |
 | `InvalidLimits` | `InvalidArgumentException` | Une borne donnée à `PackageLimits` n'est pas un nombre positif |
 
 ## `PackageRefused`

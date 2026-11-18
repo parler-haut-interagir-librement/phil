@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ebc2221757715ef5440ad4374f6797b6b3276665f7948c7899883d462a40c146 -->
+<!-- phil-dev source-sha256=c78d8d580c281a965f99ae1cc8291d3a67e682c391e49b0739be7e51eef6f92f -->
 # Limites et sécurité
 
 Un paquet est écrit par quelqu'un d'autre, sur une autre plateforme, et peut être fabriqué pour nuire au serveur qui le
@@ -85,6 +85,19 @@ puis vérifiée.
 - un identifiant est borné à 255 octets, une URL cmi5 à 2 048, un texte à 4 096 caractères, et un élément de séquencement
   de plus de 64 Kio n'est pas conservé.
 
+## Les données de suivi de l'environnement d'exécution
+
+Les valeurs que porte une validation SCORM viennent d'un contenu que la plateforme n'a pas écrit, par le navigateur de
+l'apprenant :
+
+- un nom d'élément fait 255 octets au plus, de lettres minuscules, de chiffres, de `_` et de `.`, avec des index de
+  quatre chiffres au plus et sans zéro initial ; un index de collection au-delà du prochain libre, ou au-delà de la borne
+  de la collection, est refusé ;
+- une valeur est vérifiée selon le motif, la longueur en caractères et l'intervalle de son élément, et doit être en
+  UTF-8 ;
+- les données d'une tentative sont bornées à 1 Mio en tout, une validation à 4 000 valeurs ;
+- un temps est borné à 9 999 heures, quel que soit le nombre de chiffres qu'il écrit.
+
 ## Ce que la bibliothèque ne fait jamais
 
 - Elle n'écrit jamais un fichier du paquet sur le disque, ni n'en nomme un d'après le paquet : l'appelant stocke où il
@@ -92,7 +105,8 @@ puis vérifiée.
 - Elle ne récupère jamais une URL qu'un manifeste nomme, ni ne résout une entité externe.
 - Elle n'exécute, n'évalue ni ne désérialise jamais rien de ce que contient un paquet.
 - Elle ne garde aucun état entre deux lectures : `PackageReader` et les lecteurs sont immuables, et un `ZipPackage`
-  appartient à une seule lecture.
+  appartient à une seule lecture. Un `CmiData` appartient à une seule tentative ; les définitions du modèle de données
+  sont construites une fois par processus, les mêmes pour chaque requête.
 
 ## Temps et mémoire
 

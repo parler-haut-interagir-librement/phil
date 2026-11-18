@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=74b21be67d8f2986bf5fa72c87c0f2e9ef5e11dfbf661db0685f8d8b18ce7c3f -->
+<!-- phil-dev source-sha256=f13cb9506fb600deb7b87fa4b9e8a723641075414f93a2d6d2b06c77f9661d56 -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_courses`. Chaque option a une valeur par défaut ; une application nomme
@@ -19,6 +19,7 @@ phil_courses:
         service: null
     content:
         base_url: 'https://content.example.org'
+        application_origin: null
         allow_localhost: false
     import:
         language: null
@@ -45,6 +46,10 @@ phil_courses:
             version: 1.0.3
             timeout: 5.0
             max_duration: 10.0
+    scorm:
+        enabled: true
+        token_ttl: 14400
+        secret: '%kernel.secret%'
     admin:
         role: ROLE_COURSES_TEACHER
     audit:
@@ -64,6 +69,7 @@ phil_courses:
 | `storage.directory` | `%kernel.project_dir%/var/phil_courses/content` | Le répertoire des fichiers importés, hors du répertoire public. |
 | `storage.service` | `null` | Un service `ContentStorage` de l'application, au lieu du répertoire. |
 | `content.base_url` | `null` | L'URL de base de l'origine du contenu ; si null, le contenu importé n'a aucun endroit d'où se lancer. |
+| `content.application_origin` | `null` | L'origine du site qui encadre le contenu, comme `https://www.example.org` : la seule origine qui peut encadrer le contenu et le cadre de l'environnement d'exécution SCORM, et la seule à laquelle le cadre parle. L'origine de `cmi5.actor_home_page` quand elle est null ; avec ni l'une ni l'autre, personne ne peut encadrer le contenu. |
 | `content.allow_localhost` | `false` | Si l'origine du contenu et la page d'accueil peuvent être sur `localhost`, en développement. |
 | `import.language` | `null` | La langue des titres lus dans une structure de cours cmi5, comme `fr` ; son premier titre si null. |
 | `import.limits.archive_bytes` | 512 Mio | La taille de l'archive. |
@@ -86,9 +92,12 @@ phil_courses:
 | `cmi5.remote_lrs.version` | `1.0.3` | La version de xAPI que parle l'entrepôt, `1.0.3` ou `2.0.0`, envoyée dans `X-Experience-API-Version`. |
 | `cmi5.remote_lrs.timeout` | 5.0 | Pendant combien de secondes l'entrepôt peut rester silencieux, de 0,1 à 60. |
 | `cmi5.remote_lrs.max_duration` | 10.0 | Combien de secondes l'envoi d'un énoncé peut prendre, en tout, de 0,1 à 120. |
+| `scorm.enabled` | `true` | Exécute le contenu SCORM avec l'API d'exécution, ses tentatives et ses données de suivi, comme l'explique [Environnement d'exécution SCORM](scorm-runtime.md) ; quand c'est false, l'apprenant marque une activité SCORM terminée. |
+| `scorm.token_ttl` | 14 400 | Combien de secondes un jeton de tentative tient après la dernière validation, de 300 à 86 400. |
+| `scorm.secret` | `%kernel.secret%` | Le secret qui signe les jetons de tentative. |
 | `admin.role` | `ROLE_COURSES_TEACHER` | Le rôle qu'un enseignant détient pour voir et trancher les secondes chances sur la page d'administration. |
 | `audit.enabled` | `true` | Écrit les secondes chances — demandées, accordées, refusées, dispensées — dans la piste de phil/audit-bundle, quand ce bundle est enregistré. |
 | `audit.segment` | `courses` | Le segment de la piste. |
 
-Le bundle déclare le jeton CSRF `phil_courses` sans état à FrameworkBundle : les formulaires des pages fonctionnent sans
-session.
+Le bundle déclare le jeton CSRF `phil_courses` sans état à FrameworkBundle : les formulaires des pages et les validations
+des sessions SCORM fonctionnent sans session.

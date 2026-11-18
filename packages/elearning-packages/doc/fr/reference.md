@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=49efa3c1a6f0da463cfdd0522a33fb691973172275e0d158cce8030a9679339e -->
+<!-- phil-dev source-sha256=0395f976d470ccaa4f6da9af5488c9f8bdc55d92e56d0d8abc16f8d8617ddd37 -->
 # Référence
 
 Chaque classe de la bibliothèque, par espace de noms sous `Phil\ElearningPackages`.
@@ -30,8 +30,24 @@ Chaque classe de la bibliothèque, par espace de noms sous `Phil\ElearningPackag
 | `Scorm\ScormManifestReader` | Lit `imsmanifest.xml` de SCORM 1.2 ou de SCORM 2004 ; `FILE` le nomme |
 | `Scorm\ScormManifest` | L'identifiant, le format, la version du schéma, les organisations, les ressources par identifiant, l'organisation par défaut et la collection de séquencement ; `organization()` |
 | `Scorm\ScormOrganization` | Une organisation : identifiant, titre, éléments, séquencement |
-| `Scorm\ScormItem` | Un élément : identifiant, titre, ressource, paramètres, visibilité, enfants, score de maîtrise, prérequis, seuil d'achèvement, séquencement ; `isLeaf()` |
+| `Scorm\ScormItem` | Un élément : identifiant, titre, ressource, paramètres, visibilité, enfants, score de maîtrise, prérequis, seuil d'achèvement, séquencement, données de lancement, temps alloué et son action, note de passage normalisée ; `isLeaf()` |
 | `Scorm\ScormResource` | Une ressource : identifiant, type SCORM, fichier de lancement, fichiers, dépendances ; `isSco()` |
+
+## L'environnement d'exécution SCORM
+
+| Classe | Rôle |
+|---|---|
+| `Runtime\ScormVersion` | `Scorm12`, `Scorm2004` ; `of()` un format de paquet, `apiName()`, `dataModelVersion()`, `statusElement()`, `core()` |
+| `Runtime\DataModel` | Les éléments d'une version, ses collections et leurs bornes, `children()`, `responsePattern()`, `describe()` pour le navigateur |
+| `Runtime\ElementDefinition`, `Access`, `ValueCheck` | Un élément : qui le lit et l'écrit, son motif, sa longueur, son intervalle et sa valeur par défaut |
+| `Runtime\ElementName` | Un nom lu selon son motif, ses index et son mot-clé |
+| `Runtime\CmiData` | Les données de suivi d'une tentative : `get()`, `set()`, `put()`, `forget()`, `values()`, `count()`, `status()`, `scaledScore()` |
+| `Runtime\CmiRules` | Les règles de SCORM 2004 qui lient un élément à d'autres : dépendances, identifiants uniques, statuts évalués |
+| `Runtime\CmiCommit` | Applique une validation, et donne les éléments laissés de côté avec leurs codes d'erreur |
+| `Runtime\ScormSession`, `SessionState` | L'API d'exécution d'une session et ses états |
+| `Runtime\CmiAttempt`, `LaunchSettings`, `Entry`, `SessionEnd` | Ce que la plateforme fixe au début d'une session, et décide à sa fin |
+| `Runtime\RuntimeStatus`, `Score`, `Duration` | Achèvement, réussite et note normalisée ; les temps de chaque version |
+| `Runtime\RuntimeResult`, `ScormError`, `Mistake` | Ce qu'un appel répond ; les codes de chaque version et leurs messages |
 
 ## cmi5
 
@@ -51,6 +67,7 @@ Chaque classe de la bibliothèque, par espace de noms sous `Phil\ElearningPackag
 | `Exception\ElearningPackagesException` | L'interface de chaque exception que la bibliothèque lève volontairement |
 | `Exception\PackageRefused` | Un paquet, un chemin ou un manifeste qui ne peut pas être lu en toute sécurité |
 | `Exception\InvalidLimits` | Une borne de `PackageLimits` qui n'est pas positive |
+| `Exception\RuntimeRefused` | Des données de suivi ou des paramètres de lancement inutilisables |
 
 ## Interne
 
@@ -65,4 +82,4 @@ Chaque classe de la bibliothèque, par espace de noms sous `Phil\ElearningPackag
 | `phil-dev.php` | Les chemins, les cibles de fuzzing et les mots de la documentation, pour l'outillage du monodépôt |
 | `composer-dependency-analyser.php` | Les dépendances déclarées, vérifiées contre le paquet installé seul |
 | `tests/Fuzz/` | Les cibles de fuzzing et leur corpus |
-| `tests/Benchmark/` | Les bancs d'essai des lecteurs |
+| `tests/Benchmark/` | Les bancs d'essai des lecteurs et des validations |
