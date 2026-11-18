@@ -4,7 +4,7 @@ All notable changes to `phil/lti` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-17
 
 The next version is 0.2.0-alpha: `ScoreStore::record()` answers whether it kept the score, `AgsService::lineItems()`
 answers a page, and `DeepLinkingResult` gains its key and its claims.

@@ -4,7 +4,7 @@ All notable changes to `phil/bot-detection-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.1-alpha - 2026-11-17
 
 The next version is 0.1.1-alpha: documentation only.
 

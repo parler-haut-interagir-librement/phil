@@ -4,7 +4,7 @@ All notable changes to `phil/api-contract-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.0-alpha - 2026-11-17
 
 The next version is 0.3.0-alpha: idempotency keys are scoped by tenant, API client and user, anonymous callers are
 refused, and a replay runs the controller's access checks first. See

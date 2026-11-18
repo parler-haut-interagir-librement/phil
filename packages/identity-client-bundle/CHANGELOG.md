@@ -4,7 +4,7 @@ All notable changes to `phil/identity-client-bundle` will be documented in this 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-17
 
 The next version is 0.2.0-alpha: a logout token whose claim the pool did not keep is refused, and
 `RefreshOutcomes::publish()` returns whether the store kept the outcome.

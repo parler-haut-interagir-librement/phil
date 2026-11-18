@@ -4,7 +4,7 @@ All notable changes to `phil/enums` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.1 - 2026-11-17
 
 The next version is 0.3.1: documentation only.
 

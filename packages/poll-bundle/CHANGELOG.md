@@ -4,7 +4,7 @@ All notable changes to `phil/poll-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.0-alpha - 2026-11-17
 
 The next version is 0.3.0-alpha: `PollRepository` gains `raiseRevisionWhileOpen()`, which a store of polls of the
 application implements. See [Upgrading a store from 0.2](doc/extension-points.md#upgrading-a-store-from-02).

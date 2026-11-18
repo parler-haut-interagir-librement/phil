@@ -4,7 +4,7 @@ All notable changes to `phil/identity-provider-bundle` will be documented in thi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-17
 
 The next version is 0.2.0-alpha: introspection, userinfo and the authorization endpoint refuse what they accepted,
 the modules that keep secrets need a key or an explicit option, the address is verified by a form, and three

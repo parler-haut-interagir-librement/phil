@@ -4,7 +4,7 @@ All notable changes to `phil/content-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-17
 
 The next version is 0.2.0-alpha: a new table, `phil_content_single_root`, to migrate, and preview links signed over
 their tenant or host, which refuses the links made before. See [Upgrading from 0.1](doc/storage.md#upgrading-from-01)
