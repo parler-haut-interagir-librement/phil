@@ -60,6 +60,32 @@ bin/console doctrine:migrations:diff
 bin/console doctrine:migrations:migrate
 ```
 
+### Collation of the keys
+
+**Keys compare byte by byte**, as PHP compares them. A voter casts one ballot per poll and is found again by their
+reference: a ballot of `user:Ann` is never one of `user:ann`, so that neither is refused as having voted already, nor
+shown the other's ballot; and the polls of the subject `post:Abc` are never listed for `post:abc`.
+`BinaryKeysListener` gives these fields the binary collation when the ORM loads their metadata on MySQL or MariaDB;
+the mapping itself stays the same on every platform.
+
+| Table | Columns in `utf8mb4_bin` on MySQL and MariaDB |
+|---|---|
+| `phil_poll` | `id`, `subject` |
+| `phil_poll_vote` | `id`, `poll`, `voter`, `receipt` |
+| `phil_poll_participation` | `poll`, `voter` |
+
+On MySQL and MariaDB, these columns take the `utf8mb4` character set and the `utf8mb4_bin` collation, given the
+connection's platform: the default collation of MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's
+default collations are deterministic, equal only when the bytes are, and SQLite compares bytes: their columns keep the
+default.
+
+#### Upgrading from 0.3
+
+The tables of a 0.3 install on MySQL or MariaDB kept the connection's collation. `doctrine:migrations:diff` writes the
+migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. The change only
+makes values more distinct, so no existing row breaks a key. Rows that a case-insensitive collation had already merged
+stay merged; values written from the migration on are kept apart. On PostgreSQL and SQLite the diff is empty.
+
 ## A first poll
 
 ```php

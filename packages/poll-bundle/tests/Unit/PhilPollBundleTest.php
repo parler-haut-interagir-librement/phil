@@ -21,6 +21,7 @@ use Phil\PollBundle\Domain\Repository\PollRepository;
 use Phil\PollBundle\Domain\Repository\VoteRepository;
 use Phil\PollBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\PollBundle\Infrastructure\DependencyInjection\PollServices;
+use Phil\PollBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\PollBundle\Infrastructure\Doctrine\DoctrinePollRepository;
 use Phil\PollBundle\Infrastructure\Doctrine\DoctrineVoteRepository;
 use Phil\PollBundle\Infrastructure\Memory\InMemoryPollRepository;
@@ -48,9 +49,10 @@ final class PhilPollBundleTest extends TestCase
         $container = $this->load([]);
 
         self::assertSame('phil_poll', $this->extension()->getAlias());
-        self::assertSame(['service_container', DoctrinePollRepository::class, DoctrineVoteRepository::class, DefaultPollPolicy::class, ChoiceCount::class, InstantRunoff::class, Borda::class, Schulze::class, ScaleCount::class, NetPromoterScore::class, MeekStv::class, CountingMethods::class, Polls::class, PollViews::class, PollTwig::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', DoctrinePollRepository::class, DoctrineVoteRepository::class, BinaryKeysListener::class, DefaultPollPolicy::class, ChoiceCount::class, InstantRunoff::class, Borda::class, Schulze::class, ScaleCount::class, NetPromoterScore::class, MeekStv::class, CountingMethods::class, Polls::class, PollViews::class, PollTwig::class], array_keys($container->getDefinitions()));
         self::assertEquals([new Reference('doctrine.orm.default_entity_manager')], $container->getDefinition(DoctrinePollRepository::class)->getArguments());
         self::assertEquals([new Reference('doctrine.orm.default_entity_manager')], $container->getDefinition(DoctrineVoteRepository::class)->getArguments());
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertSame([DoctrinePollRepository::class, true], [(string) $container->getAlias(PollRepository::class), $container->getAlias(PollRepository::class)->isPublic()]);
         self::assertSame([DoctrineVoteRepository::class, true], [(string) $container->getAlias(VoteRepository::class), $container->getAlias(VoteRepository::class)->isPublic()]);
         self::assertSame(DefaultPollPolicy::class, (string) $container->getAlias(PollPolicy::class));

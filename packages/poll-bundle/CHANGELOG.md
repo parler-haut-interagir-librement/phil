@@ -4,6 +4,29 @@ All notable changes to `phil/poll-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.4.0-alpha: the identifiers, voters, receipts and subjects of the three tables compare byte by
+byte on MySQL and MariaDB. See [Upgrading from 0.3](doc/installation.md#upgrading-from-03).
+
+### Added
+
+- `Infrastructure\Doctrine\BinaryKeysListener`, on the ORM's `loadClassMetadata` event, and its `FIELDS`: the fields of
+  the bundle's entities that compare byte by byte on MySQL and MariaDB.
+
+### Changed
+
+- On MySQL and MariaDB, `id` and `subject` of `phil_poll`, `id`, `poll`, `voter` and `receipt` of `phil_poll_vote` and
+  `poll` and `voter` of `phil_poll_participation` take the `utf8mb4` character set and the `utf8mb4_bin` collation in
+  the schema the ORM generates, through `Infrastructure\Doctrine\BinaryKeysListener`, registered with the Doctrine
+  store. PostgreSQL and SQLite keep their default, which compares bytes already.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, the voter `user:ann` was refused as having voted
+  once `user:Ann` had, read the other's ballot as their own, and the polls of a subject were listed for another that
+  differed from it only by case: the stores look voters and subjects up in SQL.
+
 ## 0.3.0-alpha - 2026-11-17
 
 The next version is 0.3.0-alpha: `PollRepository` gains `raiseRevisionWhileOpen()`, which a store of polls of the

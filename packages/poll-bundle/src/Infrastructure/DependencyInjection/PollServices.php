@@ -19,6 +19,7 @@ use Phil\PollBundle\Application\PollViews;
 use Phil\PollBundle\Domain\Counting\MeekStv;
 use Phil\PollBundle\Domain\Repository\PollRepository;
 use Phil\PollBundle\Domain\Repository\VoteRepository;
+use Phil\PollBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\PollBundle\Infrastructure\Doctrine\DoctrinePollRepository;
 use Phil\PollBundle\Infrastructure\Doctrine\DoctrineVoteRepository;
 use Phil\PollBundle\Infrastructure\Memory\InMemoryPollRepository;
@@ -56,6 +57,8 @@ final class PollServices
             $container->register(DoctrineVoteRepository::class, DoctrineVoteRepository::class)->setArguments([$entityManager]);
             $container->setAlias(PollRepository::class, DoctrinePollRepository::class)->setPublic(true);
             $container->setAlias(VoteRepository::class, DoctrineVoteRepository::class)->setPublic(true);
+            $container->register(BinaryKeysListener::class, BinaryKeysListener::class)
+                ->addTag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
         }
 
         if (null === $config['policy']) {
