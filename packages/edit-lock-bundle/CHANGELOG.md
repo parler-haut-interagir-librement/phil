@@ -4,6 +4,35 @@ All notable changes to `phil/edit-lock-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: `BlockStore`'s methods take a `Fence`, and `LeaseRepository` gains `fence()`. See
+[Writes under a lease](doc/blocks.md#writes-under-a-lease).
+
+### Added
+
+- `Fence`, the fencing token of a write made under a lease: the key, the holder and the number of the claim it ran in,
+  greater than that of every claim on the resource before it.
+- `EditLocks::whileHolding()`: a write of the holder on a key, run within the claim on the resource that checks the
+  lease, and given its fence.
+- `LeaseRepository::fence()`, the number of the claim that runs on a resource: the counter of
+  `phil_edit_lease_resource` for `DoctrineLeaseRepository`, a counter per resource for `InMemoryLeaseRepository`.
+- `BinaryKeysListener`, registered with the Doctrine store.
+
+### Changed
+
+- `BlockStore::save()` and `BlockStore::remove()` take the `Fence` of the write as their last argument, for a store
+  that keeps the number of the last write of a block and refuses an older one by a conditional write.
+
+### Fixed
+
+- `BlockSaves` checks the lease and calls the block store within one claim on the resource: a lease that expired or
+  was taken over between the check and the write let a save or a removal through after the lease was lost. A claim
+  the store gave up waiting for throws `LeaseHeld`, and nothing is written or told.
+- On MySQL and MariaDB, the resource, the part and the holder's identifier of the lease tables take `utf8mb4_bin`: the
+  default collation, which folds case and accents, leased the blocks `aB3` and `ab3` as one. An existing schema needs
+  the migration that `doctrine:migrations:diff` writes.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

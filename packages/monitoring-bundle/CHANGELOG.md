@@ -4,6 +4,17 @@ All notable changes to `phil/monitoring-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: the lock of an alert is renewed and checked before the notification and before the
+mark. See [Heartbeats](doc/heartbeats.md#lock-lifetime).
+
+### Fixed
+
+- `DeadManSwitch` renews the lock of a task and checks it is still its own before notifying: a round whose lock expired
+  while it read the alert mark could notify the lateness another round was alerting. A notification that outlasted the
+  lock is logged as one that may have been sent twice, and the task is marked all the same.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

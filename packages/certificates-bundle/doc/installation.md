@@ -45,6 +45,13 @@ bin/console doctrine:migrations:diff
 bin/console doctrine:migrations:migrate
 ```
 
+On MySQL and MariaDB, whose default collations fold case and accents, `BinaryKeysListener` maps the keys the register
+looks up — the code, the holder and the completion of a certificate, the slug and the completion source of a course,
+the member and the source of a learning activity — in `utf8mb4_bin`, so that the members `Alice` and `alice` never read
+each other's certificates. The identifiers, which foreign keys reference, keep the table's collation. The listener is
+registered with DoctrineBundle; the migration that `doctrine:migrations:diff` writes changes the columns of an existing
+schema.
+
 ## The routes
 
 ```yaml

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\EditLockBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
+use Phil\EditLockBundle\Domain\Exception\InvalidLease;
 use Phil\EditLockBundle\Domain\Model\Lease;
 use Phil\EditLockBundle\Domain\Repository\LeaseRepository;
 use Phil\EditLockBundle\Domain\ValueObject\Holder;
@@ -17,6 +18,22 @@ use PHPUnit\Framework\TestCase;
 abstract class LeaseRepositoryTestCase extends TestCase
 {
     abstract protected function store(): LeaseRepository;
+
+    public function testEachClaimOnAResourceHasAGreaterFenceThanTheOnesBefore(): void
+    {
+        $store = $this->store();
+
+        self::assertSame([1, 2], [$store->exclusively('page', static fn (): int => $store->fence('page')), $store->exclusively('page', static fn (): int => $store->fence('page'))]);
+        self::assertSame(1, $store->exclusively('other', static fn (): int => $store->fence('other')), 'Each resource counts its own claims.');
+        self::assertSame(3, $store->exclusively('page', static fn (): int => $store->fence('page')));
+    }
+
+    public function testAFenceIsAskedWithinAClaimOnItsResource(): void
+    {
+        $this->expectExceptionObject(InvalidLease::because('A fence is asked within a claim on its resource.'));
+
+        $this->store()->fence('never claimed');
+    }
 
     public function testALeaseIsInsertedOnce(): void
     {

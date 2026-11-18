@@ -83,6 +83,15 @@ PostgreSQL's `lock_timeout` or SQLite's busy timeout, undoes the claim; `EditLoc
 race. When the application's own transaction is open on the connection, the claim runs in a savepoint and the row
 stays locked until the application commits.
 
+A save or a removal of a block is a claim too: the lease is checked and the block written within it, so that no
+takeover and no next holder of an expired lease comes between them
+([Writes under a lease](blocks.md#writes-under-a-lease)).
+
+On MySQL and MariaDB, whose default collations fold case and accents, `BinaryKeysListener` maps the resource, the part
+and the holder's identifier in `utf8mb4_bin`, so that the blocks `aB3x` and `ab3x`, or the resources `Page` and
+`page`, are leased apart. It is registered with the Doctrine store; an existing schema needs the migration that
+`doctrine:migrations:diff` writes.
+
 ## Presence
 
 `presence('article:42')` gives the active leases of the resource and its parts, the whole first, then by part:

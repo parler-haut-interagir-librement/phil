@@ -20,7 +20,10 @@ Invariants an adapter keeps:
 - built from the read models the module already queries, not from a parallel view;
 - returns only data about `$subject`;
 - returns JSON-encodable values (scalars, arrays, `null`; format dates yourself);
-- read-only: an export changes nothing.
+- read-only: an export changes nothing;
+- ends within the lifetime of the lock it runs under, five minutes for a request without an account or a download,
+  fifteen for an account deletion: the lock is renewed between modules, not during one
+  ([Locks and long work](export-and-erasure.md#locks-and-long-work)).
 
 ```php
 use Phil\PrivacyBundle\Application\Contract\PersonalDataExporter;
@@ -65,7 +68,10 @@ Invariants an adapter keeps:
   name is recorded as a failure;
 - the report names **every** store the module holds, with `Survives` or `AwaitsExpiry` where nothing is removed;
 - throws on failure rather than returning a partial report: `SubjectErasure` records the throwable and carries on
-  with the other modules.
+  with the other modules;
+- ends within the lifetime of the lock it runs under, five minutes for a request without an account, fifteen for an
+  account deletion: a worker that takes over a lost lock runs every eraser again, which idempotence makes safe
+  ([Locks and long work](export-and-erasure.md#locks-and-long-work)).
 
 ```php
 use Phil\PrivacyBundle\Application\Contract\PersonalDataEraser;
@@ -153,8 +159,9 @@ Purges one store of what has outlived its period. Consumed by `RetentionRun`.
 | `purge(PurgeOrder $order): int` | Removes the records of `$order->store` older than `$order->cutoff` that `$order->ruleId` covers; returns how many. |
 
 Invariants: compare against the cutoff strictly ("older than"), in UTC; purge only what the rule covers when
-several rules share a store; be safe to re-run (a second run on the same cutoff purges nothing more). Whether the
-purge is a `DELETE`, a partition drop or an object deletion is the adapter's choice.
+several rules share a store; be safe to re-run (a second run on the same cutoff purges nothing more); end within the
+hour of the job's lock, which is renewed between orders and not during one, purging a large store in batches. Whether
+the purge is a `DELETE`, a partition drop or an object deletion is the adapter's choice.
 
 ```php
 use Phil\PrivacyBundle\Application\Contract\RetentionPurger;

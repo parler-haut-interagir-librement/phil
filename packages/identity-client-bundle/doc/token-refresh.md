@@ -43,3 +43,16 @@ answer. The pool alone reveals nothing, and there is no key to manage.
 Keep `lock_ttl` above the timeout of the HTTP client, so that a lock cannot expire during a call to the provider. Keep
 `outcome_ttl` above the longest request the application serves: a request that started before the rotation and writes its
 session afterwards leaves the old token behind, and the next request must still find the outcome.
+
+## Lock lifetimes
+
+The refresh lock is held across the call to the provider, the one step that can last: `lock_ttl`, 30 seconds by
+default, is sized above the HTTP client's timeout for that reason. Should a call outlast it anyway, the pending outcome
+published before the call is what keeps the refresh token from being presented twice: the request that takes the
+expired lock finds the pending outcome, leaves its tokens as they are, and does not call the provider. The pending
+outcome lasts `outcome_ttl` seconds, so keep `outcome_ttl` above `lock_ttl` too: the defaults, 120 and 30, do.
+
+The replay guard of the logout tokens holds its lock, five seconds, for one read and one write of the pool. It renews
+the lock and checks it is still its own before the write; a read that outlasted the lock, or a lock store that cannot
+confirm it, refuses the claim, so a logout token is refused rather than accepted twice, and the provider delivers it
+again later. Give the pool a timeout well under five seconds.

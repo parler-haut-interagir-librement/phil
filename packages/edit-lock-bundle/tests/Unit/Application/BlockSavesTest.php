@@ -8,14 +8,17 @@ use Phil\EditLockBundle\Application\BlockSaves;
 use Phil\EditLockBundle\Application\EditLocks;
 use Phil\EditLockBundle\Application\Exception\EditRefused;
 use Phil\EditLockBundle\Application\Exception\InvalidBlock;
+use Phil\EditLockBundle\Application\Exception\LeaseHeld;
 use Phil\EditLockBundle\Application\Exception\LeaseLost;
 use Phil\EditLockBundle\Domain\Exception\InvalidLease;
 use Phil\EditLockBundle\Domain\ValueObject\Holder;
 use Phil\EditLockBundle\Domain\ValueObject\LeaseKey;
 use Phil\EditLockBundle\Infrastructure\Memory\InMemoryLeaseRepository;
 use Phil\EditLockBundle\Tests\Unit\Fixture\Policy;
+use Phil\EditLockBundle\Tests\Unit\Fixture\RacingRepository;
 use Phil\EditLockBundle\Tests\Unit\Fixture\RecordingBlockStore;
 use Phil\EditLockBundle\Tests\Unit\Fixture\RecordingBroadcaster;
+use Phil\Ujo\Block;
 use Phil\Ujo\Exception\UjoException;
 use Phil\Ujo\Normalizer;
 use Phil\Ujo\Type\BlockTypeRegistry;
@@ -26,6 +29,7 @@ use Symfony\Component\Clock\MockClock;
 
 #[CoversClass(BlockSaves::class)]
 #[CoversClass(InvalidBlock::class)]
+#[CoversClass(EditLocks::class)]
 final class BlockSavesTest extends TestCase
 {
     private InMemoryLeaseRepository $leases;
@@ -56,7 +60,7 @@ final class BlockSavesTest extends TestCase
         $block = $this->blocks->save('page', $this->bob, ['id' => 'b1', 'type' => 'paragraph', 'data' => ['text' => '<strong>Hi</strong>']], 'root', 'b0');
 
         self::assertSame(['b1', 'paragraph', ['text' => '<strong>Hi</strong>']], [$block->id, $block->type, $block->data]);
-        self::assertSame(['save page b1 paragraph root b0 bob'], $this->kept->kept);
+        self::assertSame(['save page b1 paragraph root b0 bob #2'], $this->kept->kept, 'The acquisition was the first claim on the page, the save the second.');
         $first = $this->told->told;
 
         $this->blocks->save('page', $this->bob, ['id' => 'b1', 'type' => 'header', 'data' => ['text' => 'T', 'level' => 2]]);
@@ -65,11 +69,11 @@ final class BlockSavesTest extends TestCase
         $this->blocks->remove('page', $this->bob, 'b1');
 
         self::assertSame([
-            'save page b1 paragraph root b0 bob',
-            'save page b1 header root - bob',
-            'save page b1 paragraph t9:12 - bob',
-            'save page b1 paragraph t9 - bob',
-            'remove page b1 bob',
+            'save page b1 paragraph root b0 bob #2',
+            'save page b1 header root - bob #3',
+            'save page b1 paragraph t9:12 - bob #4',
+            'save page b1 paragraph t9 - bob #5',
+            'remove page b1 bob #6',
         ], $this->kept->kept);
         self::assertSame(['saved page by bob in root after b0 {"blocks":[{"id":"b1","type":"paragraph","data":{"text":"<strong>Hi</strong>"}}]}'], $first);
         self::assertSame([
@@ -143,6 +147,91 @@ final class BlockSavesTest extends TestCase
         }
 
         self::assertSame([[], []], [$this->kept->kept, $this->told->told]);
+    }
+
+    public function testALeaseTakenOverBeforeTheClaimOfASaveOrARemovalWritesNothing(): void
+    {
+        $clock = new MockClock('2026-11-06 10:00:00 UTC');
+        $locks = new EditLocks($this->leases, $clock, 30, new Policy());
+        $blocks = new BlockSaves($locks, $this->told, new Ujo(), $this->kept);
+        $locks->acquire(LeaseKey::of('page', 'b1'), $this->bob);
+        $clock->sleep(31);
+        $locks->acquire(LeaseKey::of('page', 'b1'), Holder::of('cy', 'Cy'));
+        $told = \count($this->told->told);
+
+        foreach ([
+            static fn (): Block => $blocks->save('page', Holder::of('bob', 'Bob'), ['id' => 'b1', 'type' => 'paragraph', 'data' => ['text' => 'late']]),
+            static fn () => $blocks->remove('page', Holder::of('bob', 'Bob'), 'b1'),
+        ] as $write) {
+            try {
+                $write();
+                self::fail('A lease taken over let a late write through.');
+            } catch (LeaseLost $leaseLost) {
+                self::assertSame('"page#b1" is no longer held.', $leaseLost->getMessage());
+            }
+        }
+
+        self::assertSame([], $this->kept->kept);
+        self::assertCount($told, $this->told->told);
+    }
+
+    public function testTheLeaseIsCheckedAndTheBlockWrittenWithinOneClaim(): void
+    {
+        $racing = new RacingRepository(0, $this->leases);
+        $locks = new EditLocks($racing, new MockClock('2026-11-06 10:00:00 UTC'), 30, new Policy());
+        $locks->acquire(LeaseKey::of('page', 'b1'), $this->bob);
+
+        $claims = $racing->claims;
+        $this->kept->during = static function () use ($racing, $claims): void {
+            self::assertSame($claims + 1, $racing->claims, 'The write runs in the claim that checked the lease.');
+        };
+
+        new BlockSaves($locks, $this->told, new Ujo(), $this->kept)->save('page', $this->bob, ['id' => 'b1', 'type' => 'paragraph', 'data' => ['text' => 'x']]);
+
+        self::assertSame($claims + 1, $racing->claims);
+        self::assertSame(['page#b1', 'bob'], [$this->kept->fences[0]->key->toString(), $this->kept->fences[0]->holder->id]);
+    }
+
+    public function testASaveOrARemovalTheStoreCouldNotClaimWritesNothing(): void
+    {
+        $racing = new RacingRepository(0, $this->leases);
+        $locks = new EditLocks($racing, new MockClock('2026-11-06 10:00:00 UTC'), 30, new Policy());
+        $locks->acquire(LeaseKey::of('page', 'b1'), $this->bob);
+
+        $blocks = new BlockSaves($locks, $this->told, new Ujo(), $this->kept);
+        $told = \count($this->told->told);
+
+        foreach ([
+            static fn (): Block => $blocks->save('page', Holder::of('bob', 'Bob'), ['id' => 'b1', 'type' => 'paragraph', 'data' => ['text' => 'x']]),
+            static fn () => $blocks->remove('page', Holder::of('bob', 'Bob'), 'b1'),
+        ] as $write) {
+            $racing->timeouts = 1;
+
+            try {
+                $write();
+                self::fail('A write the store gave up was told.');
+            } catch (LeaseHeld $leaseHeld) {
+                self::assertNull($leaseHeld->lease);
+                self::assertSame('"page#b1" kept changing hands; try again.', $leaseHeld->getMessage());
+            }
+        }
+
+        self::assertSame([], $this->kept->kept);
+        self::assertCount($told, $this->told->told);
+    }
+
+    public function testEachWriteHasANewerFenceThanTheOneBefore(): void
+    {
+        $this->locks->acquire(LeaseKey::of('page'), $this->bob);
+        $this->blocks->save('page', $this->bob, ['id' => 'b1', 'type' => 'paragraph', 'data' => ['text' => 'x']]);
+        $this->locks->heartbeat(LeaseKey::of('page'), $this->bob);
+        $this->blocks->remove('page', $this->bob, 'b2');
+
+        [$first, $second] = $this->kept->fences;
+        self::assertTrue($second->isNewerThan($first));
+        self::assertFalse($first->isNewerThan($second));
+        self::assertFalse($first->isNewerThan($first));
+        self::assertSame([2, 4], [$first->number, $second->number]);
     }
 
     public function testABadBlockIsRefused(): void

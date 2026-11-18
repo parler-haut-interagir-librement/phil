@@ -8,6 +8,9 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Platforms\MariaDBPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
@@ -55,6 +58,38 @@ final class PrivacyDatabaseTest extends TestCase
         $schema = PrivacyTables::configure(Schema::editor()->create());
 
         self::assertCount(5, PrivacyTables::configure($schema)->getTables());
+    }
+
+    public function testIdentifiersPeopleAndHashesCompareByteForByteOnMySqlAndMariaDb(): void
+    {
+        $binary = [
+            PrivacyTables::DELETIONS => ['id', 'subject', 'export_reference'],
+            PrivacyTables::PROOFS => ['id'],
+            PrivacyTables::GUEST_REQUESTS => ['id', 'token_hash'],
+            PrivacyTables::INCIDENTS => ['id'],
+            PrivacyTables::EMAIL_TRACKING => ['subject'],
+        ];
+
+        foreach ([new MySQLPlatform(), new MariaDBPlatform()] as $platform) {
+            $schema = PrivacyTables::configure(Schema::editor()->create(), $platform);
+
+            foreach ($schema->getTables() as $table) {
+                $name = $table->getObjectName()->toString();
+
+                foreach ($table->getColumns() as $column) {
+                    $expected = \in_array($column->getObjectName()->toString(), $binary[$name], true) ? ['utf8mb4', 'utf8mb4_bin'] : [null, null];
+                    self::assertSame($expected, [$column->getCharset(), $column->getCollation()], $name.'.'.$column->getObjectName()->toString());
+                }
+            }
+        }
+
+        foreach ([null, new PostgreSQLPlatform()] as $platform) {
+            foreach (PrivacyTables::configure(Schema::editor()->create(), $platform)->getTables() as $table) {
+                foreach ($table->getColumns() as $column) {
+                    self::assertSame([null, null], [$column->getCharset(), $column->getCollation()]);
+                }
+            }
+        }
     }
 
     public function testTheColumnsHoldWhatTheBundleWritesAndRefuseNothingMissing(): void
@@ -278,6 +313,18 @@ final class PrivacyDatabaseTest extends TestCase
         $other = new GenerateSchemaEventArgs($manager, Schema::editor()->create());
         new PrivacySchemaListener(DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]))->postGenerateSchema($other);
         self::assertFalse($other->getSchema()->hasTable(PrivacyTables::PROOFS));
+    }
+
+    public function testTheListenerBuildsTheTablesForThePlatformOfItsConnection(): void
+    {
+        $mysql = DriverManager::getConnection(['driver' => 'pdo_mysql', 'serverVersion' => '8.4.0']);
+        $manager = self::createStub(EntityManagerInterface::class);
+        $manager->method('getConnection')->willReturn($mysql);
+
+        $event = new GenerateSchemaEventArgs($manager, Schema::editor()->create());
+        new PrivacySchemaListener($mysql)->postGenerateSchema($event);
+
+        self::assertSame('utf8mb4_bin', $event->getSchema()->getTable(PrivacyTables::DELETIONS)->getColumn('subject')->getCollation());
     }
 
     private function seed(string $id, DeletionPlace $place, string $effective): void

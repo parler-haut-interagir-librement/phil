@@ -9,19 +9,23 @@ use Override;
 use Phil\EmailAddress\Exception\InvalidEmailAddress;
 use Phil\PrivacyBundle\Application\Contract\GuestRequestStore;
 use Phil\PrivacyBundle\Application\Contract\PersonalDataEraser;
+use Phil\PrivacyBundle\Application\Contract\PersonalDataExporter;
 use Phil\PrivacyBundle\Application\Exception\ErasureIncomplete;
 use Phil\PrivacyBundle\Application\Exception\TooManyGuestRequests;
 use Phil\PrivacyBundle\Application\Export\ExportPackage;
 use Phil\PrivacyBundle\Application\Export\PlainExportReadme;
 use Phil\PrivacyBundle\Application\GuestRequest\EmailGuestSubjects;
 use Phil\PrivacyBundle\Application\GuestRequest\GuestRequests;
+use Phil\PrivacyBundle\Application\Lock\HeldLock;
 use Phil\PrivacyBundle\Application\SubjectErasure;
 use Phil\PrivacyBundle\Application\SubjectExport;
 use Phil\PrivacyBundle\Domain\GuestRequest\GuestRequest;
 use Phil\PrivacyBundle\Domain\GuestRequest\GuestRequestKind;
 use Phil\PrivacyBundle\Domain\Subject\ErasureReport;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\ContextLogger;
+use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\ExpiringLockStore;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\FixedExporter;
+use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\InterruptingModule;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\MemoryGuestRequests;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\MessageLogger;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\RecordingEraser;
@@ -39,6 +43,7 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 
 #[CoversClass(GuestRequests::class)]
+#[CoversClass(HeldLock::class)]
 #[CoversClass(EmailGuestSubjects::class)]
 #[CoversClass(TooManyGuestRequests::class)]
 final class GuestRequestsTest extends TestCase
@@ -160,7 +165,7 @@ final class GuestRequestsTest extends TestCase
         self::assertNotNull($this->store->find($request->id));
     }
 
-    public function testTheLockLastsFiveMinutes(): void
+    public function testTheLockLastsFiveMinutesAndIsRenewedBeforeEachModuleAndTheRemoval(): void
     {
         $locks = new RecordingLockStore();
         $this->locks = new LockFactory($locks);
@@ -169,7 +174,48 @@ final class GuestRequestsTest extends TestCase
         [$request, $token] = $this->sender->sent[0];
         $guests->access($request->id, $token);
 
-        self::assertSame([300.0], $locks->lifetimes);
+        // Taken, renewed before the one module, then before the request is removed.
+        self::assertSame([300.0, 300.0, 300.0], $locks->lifetimes);
+    }
+
+    public function testAnAccessWhoseLockWasTakenOverStopsAndKeepsTheRequest(): void
+    {
+        $this->locks = new LockFactory(new ExpiringLockStore($this->clock));
+        $after = new InterruptingModule('posts', static function (): void {
+        });
+        $id = null;
+        $taken = new InterruptingModule('members', function () use (&$id): void {
+            $this->clock->sleep(GuestRequests::LOCK_TTL + 1);
+            self::assertTrue($this->locks->createLock('phil_privacy.guest.'.$id, GuestRequests::LOCK_TTL, false)->acquire());
+        });
+        $guests = $this->guests(exporters: [$taken, $after]);
+        $guests->submit(GuestRequestKind::Access, 'a@example.org', 'client');
+        [$request, $token] = $this->sender->sent[0];
+        $id = $request->id;
+        $this->clock->sleep(-GuestRequests::LOCK_TTL - 1);
+
+        self::assertNull($guests->access($request->id, $token));
+        self::assertSame(0, $after->calls);
+        self::assertNotNull($this->store->find($request->id), 'The request stays for the execution that holds the lock.');
+        self::assertContains('Request without an account {id}: its lock was lost; the request is kept.', $this->logger->messages);
+    }
+
+    public function testAnErasureWhoseLockWasTakenOverAfterItsLastModuleKeepsTheRequest(): void
+    {
+        $this->locks = new LockFactory(new ExpiringLockStore($this->clock));
+        $id = null;
+        $taken = new InterruptingModule('members', function () use (&$id): void {
+            $this->clock->sleep(GuestRequests::LOCK_TTL + 1);
+            self::assertTrue($this->locks->createLock('phil_privacy.guest.'.$id, GuestRequests::LOCK_TTL, false)->acquire());
+        });
+        $guests = $this->guests(erasers: [$taken]);
+        $guests->submit(GuestRequestKind::Erasure, 'a@example.org', 'client');
+        [$request, $token] = $this->sender->sent[0];
+        $id = $request->id;
+
+        self::assertNull($guests->erase($request->id, $token));
+        self::assertSame(1, $taken->calls);
+        self::assertNotNull($this->store->find($request->id), 'The erasure is run again by the execution that holds the lock.');
     }
 
     public function testAClientOverItsLimitIsRefusedWithTheTimeToWait(): void
@@ -337,15 +383,16 @@ final class GuestRequestsTest extends TestCase
     }
 
     /**
-     * @param list<PersonalDataEraser>|null $erasers
+     * @param list<PersonalDataEraser>|null   $erasers
+     * @param list<PersonalDataExporter>|null $exporters
      */
-    private function guests(int $perClient = 5, int $perAddress = 3, ?LoggerInterface $logger = null, ?GuestRequestStore $store = null, ?array $erasers = null): GuestRequests
+    private function guests(int $perClient = 5, int $perAddress = 3, ?LoggerInterface $logger = null, ?GuestRequestStore $store = null, ?array $erasers = null, ?array $exporters = null): GuestRequests
     {
         return new GuestRequests(
             $store ?? $this->store,
             $this->sender,
             new EmailGuestSubjects(),
-            new SubjectExport([new FixedExporter('newsletter', ['list' => 'news'])]),
+            new SubjectExport($exporters ?? [new FixedExporter('newsletter', ['list' => 'news'])]),
             new SubjectErasure($erasers ?? [$this->eraser]),
             new ExportPackage(new PlainExportReadme(), $this->clock),
             $this->locks,

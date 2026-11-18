@@ -10,14 +10,19 @@ use Monolog\LogRecord;
 use Override;
 use Phil\PrivacyBundle\Application\AccountDeletion\AccountDeletions;
 use Phil\PrivacyBundle\Application\AccountDeletion\DeletionWorkflow;
+use Phil\PrivacyBundle\Application\Contract\PersonalDataEraser;
+use Phil\PrivacyBundle\Application\Contract\PersonalDataExporter;
 use Phil\PrivacyBundle\Application\Exception\AccountDeletionBusy;
 use Phil\PrivacyBundle\Application\Exception\ErasureIncomplete;
+use Phil\PrivacyBundle\Application\Lock\HeldLock;
 use Phil\PrivacyBundle\Application\SubjectErasure;
 use Phil\PrivacyBundle\Application\SubjectExport;
 use Phil\PrivacyBundle\Domain\AccountDeletion\AccountDeletion;
 use Phil\PrivacyBundle\Domain\AccountDeletion\DeletionPlace;
 use Phil\PrivacyBundle\Domain\Subject\DataSubject;
+use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\ExpiringLockStore;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\FixedExporter;
+use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\InterruptingModule;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\MemoryAccountDeletions;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\MemoryExportArchive;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\RecordingEraser;
@@ -35,6 +40,7 @@ use Symfony\Component\Lock\Store\InMemoryStore;
 #[CoversClass(AccountDeletions::class)]
 #[CoversClass(DeletionWorkflow::class)]
 #[CoversClass(AccountDeletionBusy::class)]
+#[CoversClass(HeldLock::class)]
 final class AccountDeletionsTest extends TestCase
 {
     private MemoryAccountDeletions $store;
@@ -358,7 +364,7 @@ final class AccountDeletionsTest extends TestCase
         self::assertSame(0, $this->eraser->calls);
     }
 
-    public function testTheLockIsLongEnoughAndRefreshedBetweenStages(): void
+    public function testTheLockIsLongEnoughAndRenewedBeforeEachWrite(): void
     {
         $store = new RecordingLockStore();
         $service = new AccountDeletions($this->store, DeletionWorkflow::create(), new LockFactory($store), new SubjectExport([]), new SubjectErasure([]), $this->archive, $this->clock, 'P30D', 'P7D');
@@ -366,7 +372,8 @@ final class AccountDeletionsTest extends TestCase
         $this->clock->modify('+30 days');
         $service->advance($deletion->id);
 
-        self::assertSame([900.0, 900.0, 900.0], $store->lifetimes);
+        // The request, then the stages: taken, renewed before the archive, the exported place and the erased place.
+        self::assertSame([900.0, 900.0, 900.0, 900.0, 900.0], $store->lifetimes);
     }
 
     public function testExpiredExportsArePurged(): void
@@ -399,6 +406,105 @@ final class AccountDeletionsTest extends TestCase
 
         self::assertInstanceOf(AccountDeletion::class, $service->openFor($this->subject));
         self::assertSame($deletion->id, $service->openFor($this->subject)->id);
+    }
+
+    public function testAStageLongerThanTheLockLastsKeepsItByRenewingItBeforeEachModule(): void
+    {
+        $this->locks = new LockFactory(new ExpiringLockStore($this->clock));
+        $slow = fn (string $module): InterruptingModule => new InterruptingModule($module, function (): void {
+            $this->clock->sleep(AccountDeletions::LOCK_TTL - 1);
+            self::assertFalse($this->otherWorker(), 'The lock is held during each module.');
+        });
+        $service = $this->leasedService([$slow('members'), $slow('posts')], [$slow('members'), $slow('posts')]);
+        $deletion = $service->request($this->subject);
+        $this->clock->modify('+30 days');
+
+        self::assertSame(DeletionPlace::Erased, $service->advance($deletion->id));
+        self::assertTrue($this->otherWorker(), 'The lock is released at the end.');
+    }
+
+    public function testAnExportWhoseLockWasTakenOverStopsBeforeTheNextModuleAndKeepsTheRequest(): void
+    {
+        $this->locks = new LockFactory(new ExpiringLockStore($this->clock));
+        $after = new InterruptingModule('posts', static function (): void {
+        });
+        $eraser = new InterruptingModule('members', static function (): void {
+        });
+        $service = $this->leasedService([$this->takenOverDuring('members'), $after], [$eraser]);
+        $deletion = $service->request($this->subject);
+        $this->clock->modify('+30 days');
+
+        self::assertSame(DeletionPlace::Requested, $service->advance($deletion->id));
+        self::assertSame(0, $after->calls);
+        self::assertSame(0, $eraser->calls);
+        self::assertSame([], $this->archive->files);
+        self::assertTrue($this->log->hasWarning('Account deletion {id}: its lock was lost; the stage stopped.'));
+        self::assertSame(['id' => $deletion->id], $this->log->getRecords()[1]->context);
+    }
+
+    public function testAnExportWhoseLockWasTakenOverWhileItsArchiveWasWrittenIsNotMarkedExported(): void
+    {
+        $this->locks = new LockFactory(new ExpiringLockStore($this->clock));
+        $eraser = new InterruptingModule('members', static function (): void {
+        });
+        $service = $this->leasedService([new FixedExporter('members', [])], [$eraser]);
+        $deletion = $service->request($this->subject);
+        $this->clock->modify('+30 days');
+        $this->archive->onPut = $this->takeOver(...);
+
+        self::assertSame(DeletionPlace::Requested, $service->advance($deletion->id));
+        self::assertSame(DeletionPlace::Requested, $this->store->rows[$deletion->id]->getPlace());
+        self::assertSame(0, $eraser->calls);
+    }
+
+    public function testAnErasureWhoseLockWasTakenOverStopsBeforeTheNextModuleAndStaysExported(): void
+    {
+        $this->locks = new LockFactory(new ExpiringLockStore($this->clock));
+        $after = new InterruptingModule('posts', static function (): void {
+        });
+        $service = $this->leasedService([new FixedExporter('members', [])], [$this->takenOverDuring('members'), $after]);
+        $deletion = $service->request($this->subject);
+        $this->clock->modify('+30 days');
+
+        self::assertSame(DeletionPlace::Exported, $service->advance($deletion->id));
+        self::assertSame(0, $after->calls);
+        self::assertTrue($this->store->rows[$deletion->id]->isOpen());
+    }
+
+    public function testAnErasureWhoseLockWasTakenOverAfterItsLastModuleIsNotMarkedErased(): void
+    {
+        $this->locks = new LockFactory(new ExpiringLockStore($this->clock));
+        $service = $this->leasedService([new FixedExporter('members', [])], [$this->takenOverDuring('members')]);
+        $deletion = $service->request($this->subject);
+        $this->clock->modify('+30 days');
+
+        self::assertSame(DeletionPlace::Exported, $service->advance($deletion->id));
+        self::assertSame(DeletionPlace::Exported, $this->store->rows[$deletion->id]->getPlace());
+    }
+
+    /**
+     * @param list<PersonalDataExporter> $exporters
+     * @param list<PersonalDataEraser>   $erasers
+     */
+    private function leasedService(array $exporters, array $erasers): AccountDeletions
+    {
+        return new AccountDeletions($this->store, DeletionWorkflow::create(), $this->locks, new SubjectExport($exporters), new SubjectErasure($erasers), $this->archive, $this->clock, 'P30D', 'P7D', new Logger('privacy', [$this->log]));
+    }
+
+    private function takenOverDuring(string $module): InterruptingModule
+    {
+        return new InterruptingModule($module, $this->takeOver(...));
+    }
+
+    private function takeOver(): void
+    {
+        $this->clock->sleep(AccountDeletions::LOCK_TTL + 1);
+        self::assertTrue($this->otherWorker(), 'Expired, the lock goes to another worker.');
+    }
+
+    private function otherWorker(): bool
+    {
+        return $this->locks->createLock('phil_privacy.account_deletion.'.hash('xxh128', $this->subject->value), AccountDeletions::LOCK_TTL, false)->acquire();
     }
 
     /**

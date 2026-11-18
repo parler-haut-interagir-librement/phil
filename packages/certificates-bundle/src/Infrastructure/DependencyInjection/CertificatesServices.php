@@ -26,6 +26,7 @@ use Phil\CertificatesBundle\Infrastructure\Console\RecertifyCommand;
 use Phil\CertificatesBundle\Infrastructure\Console\RemindCommand;
 use Phil\CertificatesBundle\Infrastructure\Console\RevokeCommand;
 use Phil\CertificatesBundle\Infrastructure\Console\StatusCommand;
+use Phil\CertificatesBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\CertificatesBundle\Infrastructure\Doctrine\DoctrineCertificateRepository;
 use Phil\CertificatesBundle\Infrastructure\Doctrine\DoctrineCourseRepository;
 use Phil\CertificatesBundle\Infrastructure\Doctrine\DoctrineLearningActivityRepository;
@@ -78,6 +79,8 @@ final class CertificatesServices
             $container->setAlias(CertificateRepository::class, DoctrineCertificateRepository::class);
             $container->register(DoctrineLearningActivityRepository::class, DoctrineLearningActivityRepository::class)->setArguments([new Reference('doctrine.orm.entity_manager')]);
             $container->setAlias(LearningActivityRepository::class, DoctrineLearningActivityRepository::class);
+            $container->register(BinaryKeysListener::class, BinaryKeysListener::class)
+                ->addTag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
         }
 
         $container->register(StatusListLayout::class, StatusListLayout::class)

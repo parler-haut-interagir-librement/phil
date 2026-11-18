@@ -38,6 +38,12 @@ final class RacingRepository implements LeaseRepository
     }
 
     #[Override]
+    public function fence(string $resource): int
+    {
+        return $this->inner->fence($resource);
+    }
+
+    #[Override]
     public function insert(Lease $lease): bool
     {
         return $this->lose() && $this->inner->insert($lease);

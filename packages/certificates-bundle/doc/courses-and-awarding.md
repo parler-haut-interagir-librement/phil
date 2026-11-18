@@ -115,6 +115,13 @@ failed flush, so that the next attempt runs on an open one; entities the applica
 the award are detached and read again. A repository of the application's own throws `StatusIndexTaken` when its
 storage refuses a certificate for an index or a code another holds, once it is ready for another attempt.
 
+The lock lives 30 seconds, for reading the next index, signing the credential and storing the certificate. Signing
+with a local key takes milliseconds; a signer that calls a remote key service is what can outlast the lock. An award
+whose lock expired is still safe: the storage's unique indexes on the status index, the code and the completion of the
+course are the claim that decides, so a second award that took the same index meanwhile is refused with
+`StatusIndexTaken` and tried again, and a second award on the same completion finds the first. Keep a remote signer's
+timeout well under 30 seconds, so that awards rarely take that path.
+
 ## After an award or a revocation
 
 With an event dispatcher, `Awarding` dispatches `Phil\CertificatesBundle\Domain\Event\CertificateAwarded` once the

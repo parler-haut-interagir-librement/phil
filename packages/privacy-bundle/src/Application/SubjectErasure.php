@@ -6,7 +6,9 @@ namespace Phil\PrivacyBundle\Application;
 
 use Phil\PrivacyBundle\Application\Contract\PersonalDataEraser;
 use Phil\PrivacyBundle\Application\Exception\ErasureIncomplete;
+use Phil\PrivacyBundle\Application\Exception\LockLost;
 use Phil\PrivacyBundle\Application\Exception\MisconfiguredPrivacy;
+use Phil\PrivacyBundle\Application\Lock\HeldLock;
 use Phil\PrivacyBundle\Domain\Subject\DataSubject;
 use Phil\PrivacyBundle\Domain\Subject\ErasureReport;
 use Throwable;
@@ -19,6 +21,10 @@ use UnexpectedValueException;
  * the reports of those that succeeded and the failure of each that did not. Stopping at the first failure would
  * leave the later modules untouched for no reason, and a retry runs them all again anyway, which is why erasers
  * are idempotent.
+ *
+ * **A lost lock stops the erasure.** Under a held lock, the lock is renewed before each module, outside the failures
+ * of the modules: an erasure that lost it throws `LockLost` before the next eraser, and the process that holds the lock
+ * now runs them all again.
  */
 final readonly class SubjectErasure
 {
@@ -52,13 +58,16 @@ final readonly class SubjectErasure
      * @return list<ErasureReport> one per module, sorted by module name
      *
      * @throws ErasureIncomplete
+     * @throws LockLost          when the held lock is lost before a module
      */
-    public function erase(DataSubject $subject): array
+    public function erase(DataSubject $subject, ?HeldLock $lock = null): array
     {
         $reports = [];
         $failures = [];
 
         foreach ($this->erasers as $module => $eraser) {
+            $lock?->renew();
+
             try {
                 $report = $eraser->erase($subject);
 

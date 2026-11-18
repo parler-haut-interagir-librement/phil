@@ -6,11 +6,13 @@ namespace Phil\MonitoringBundle\Application;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use Exception;
 use Phil\MonitoringBundle\Domain\Contract\HeartbeatStore;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Lock\Exception\LockAcquiringException;
 use Symfony\Component\Lock\Exception\LockReleasingException;
 use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\LockInterface;
 use Symfony\Component\Notifier\AdminRecipientsProviderInterface;
 use Symfony\Component\Notifier\Notification\Notification;
 use Symfony\Component\Notifier\NotifierInterface;
@@ -24,8 +26,12 @@ use Throwable;
  *
  * Each task is alerted under a lock named after it, taken without waiting and held at most `$lockTtl` seconds: two
  * workers, or two servers sharing the lock store, never alert the same lateness twice. The round that finds the lock
- * taken skips the task; the one that holds it reads the alert mark again before notifying. A lock store that fails
- * is logged: the task waits for the next round, and a lock that cannot be released expires on its own.
+ * taken skips the task; the one that holds it reads the alert mark again, then renews the lock and checks it is still
+ * its own before notifying: a round whose lock expired meanwhile leaves the task to the round that holds it now. The
+ * lock is renewed again before the mark is written; a notifier that outlasted the lock is logged as an alert that may
+ * have been sent twice, and the task is marked all the same. `$lockTtl` must exceed the longest send of the notifier,
+ * its transport's timeout when it sends at once. A lock store that fails is logged: the task waits for the next round,
+ * and a lock that cannot be released expires on its own.
  */
 final readonly class DeadManSwitch
 {
@@ -93,7 +99,7 @@ final readonly class DeadManSwitch
         }
 
         try {
-            if ($this->store->isAlerted($task)) {
+            if ($this->store->isAlerted($task) || !$this->stillHeld($lock)) {
                 return false;
             }
 
@@ -105,6 +111,10 @@ final readonly class DeadManSwitch
                 return false;
             }
 
+            if (!$this->stillHeld($lock)) {
+                $this->logger?->warning('The alert of the scheduled task {task} outlasted its lock: another round may have sent it too.', ['task' => $task]);
+            }
+
             $this->store->markAlerted($task);
 
             return true;
@@ -114,6 +124,20 @@ final readonly class DeadManSwitch
             } catch (LockReleasingException $exception) {
                 $this->logger?->warning('The lock of the scheduled task {task} could not be released; it expires on its own.', ['task' => $task, 'exception' => $exception]);
             }
+        }
+    }
+
+    /**
+     * Whether the lock is still this round's once renewed for another `$lockTtl` seconds.
+     */
+    private function stillHeld(LockInterface $lock): bool
+    {
+        try {
+            $lock->refresh();
+
+            return $lock->isAcquired();
+        } catch (Exception) {
+            return false;
         }
     }
 

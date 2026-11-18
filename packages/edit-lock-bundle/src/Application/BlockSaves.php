@@ -6,8 +6,10 @@ namespace Phil\EditLockBundle\Application;
 
 use Phil\EditLockBundle\Application\Exception\EditRefused;
 use Phil\EditLockBundle\Application\Exception\InvalidBlock;
+use Phil\EditLockBundle\Application\Exception\LeaseHeld;
 use Phil\EditLockBundle\Application\Exception\LeaseLost;
 use Phil\EditLockBundle\Domain\Exception\InvalidLease;
+use Phil\EditLockBundle\Domain\ValueObject\Fence;
 use Phil\EditLockBundle\Domain\ValueObject\Holder;
 use Phil\EditLockBundle\Domain\ValueObject\LeaseKey;
 use Phil\Ujo\Block;
@@ -18,6 +20,10 @@ use Phil\Ujo\Ujo;
 /**
  * The blocks a holder saves while they edit: each is checked by `phil/ujo`, written only by the holder of its lease
  * or of the whole resource whom the policy still lets edit it, handed to the application's block store when there is one, and told to the other writers.
+ *
+ * The lease is checked and the block store called within one claim on the resource, by `EditLocks::whileHolding()`:
+ * a lease that expires or is taken over can no longer let a save or a removal through between the check and the
+ * write. The block store receives the fence of that claim.
  */
 final readonly class BlockSaves
 {
@@ -41,6 +47,7 @@ final readonly class BlockSaves
      * @throws InvalidBlock when `phil/ujo` refuses the block, or the list or the block before it is not one
      * @throws EditRefused  when the policy no longer lets the holder edit the resource
      * @throws LeaseLost    when the holder does not hold the block or the whole resource
+     * @throws LeaseHeld    when another claim on the resource kept the store waiting; nothing was saved
      */
     public function save(string $resource, Holder $holder, mixed $block, string $list = 'root', ?string $after = null): Block
     {
@@ -59,8 +66,9 @@ final readonly class BlockSaves
         }
 
         $saved = $document->blocks[0];
-        $this->hold($resource, $holder, $saved->id);
-        $this->store?->save($resource, $saved, $list, $after, $holder);
+        $this->locks->whileHolding(LeaseKey::of($resource, $saved->id), $holder, function (Fence $fence) use ($resource, $saved, $list, $after, $holder): void {
+            $this->store?->save($resource, $saved, $list, $after, $holder, $fence);
+        });
         $this->broadcaster->saved($resource, $holder, $document, $list, $after);
 
         return $saved;
@@ -72,24 +80,13 @@ final readonly class BlockSaves
      * @throws InvalidLease when the identifier is not that of a block
      * @throws EditRefused  when the policy no longer lets the holder edit the resource
      * @throws LeaseLost    when the holder does not hold the block or the whole resource
+     * @throws LeaseHeld    when another claim on the resource kept the store waiting; nothing was removed
      */
     public function remove(string $resource, Holder $holder, string $blockId): void
     {
-        $this->hold($resource, $holder, $blockId);
-        $this->store?->remove($resource, $blockId, $holder);
+        $this->locks->whileHolding(LeaseKey::of($resource, $blockId), $holder, function (Fence $fence) use ($resource, $blockId, $holder): void {
+            $this->store?->remove($resource, $blockId, $holder, $fence);
+        });
         $this->broadcaster->removed($resource, $holder, $blockId);
-    }
-
-    private function hold(string $resource, Holder $holder, string $blockId): void
-    {
-        $key = LeaseKey::of($resource, $blockId);
-
-        if (!$this->locks->mayEdit($holder, $resource)) {
-            throw EditRefused::edit($key);
-        }
-
-        if (!$this->locks->holds($key, $holder)) {
-            throw LeaseLost::of($key);
-        }
     }
 }

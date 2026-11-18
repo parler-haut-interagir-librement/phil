@@ -58,6 +58,21 @@ final readonly class DoctrineLeaseRepository implements LeaseRepository
         return $result;
     }
 
+    /**
+     * The counter of claims of the resource's row, which the claim running now increased and still locks.
+     */
+    #[Override]
+    public function fence(string $resource): int
+    {
+        $claims = filter_var($this->connection->fetchOne('SELECT claims FROM '.LeasedResource::TABLE.' WHERE resource = ?', [$resource]), \FILTER_VALIDATE_INT);
+
+        if (false === $claims) {
+            throw InvalidLease::because('A fence is asked within a claim on its resource.');
+        }
+
+        return $claims;
+    }
+
     #[Override]
     public function insert(Lease $lease): bool
     {

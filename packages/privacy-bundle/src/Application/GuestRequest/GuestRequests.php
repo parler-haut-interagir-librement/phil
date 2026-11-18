@@ -11,8 +11,10 @@ use Phil\PrivacyBundle\Application\Contract\GuestLinkSender;
 use Phil\PrivacyBundle\Application\Contract\GuestRequestStore;
 use Phil\PrivacyBundle\Application\Contract\GuestSubjects;
 use Phil\PrivacyBundle\Application\Exception\ErasureIncomplete;
+use Phil\PrivacyBundle\Application\Exception\LockLost;
 use Phil\PrivacyBundle\Application\Exception\TooManyGuestRequests;
 use Phil\PrivacyBundle\Application\Export\ExportPackage;
+use Phil\PrivacyBundle\Application\Lock\HeldLock;
 use Phil\PrivacyBundle\Application\SubjectErasure;
 use Phil\PrivacyBundle\Application\SubjectExport;
 use Phil\PrivacyBundle\Domain\GuestRequest\GuestRequest;
@@ -39,7 +41,9 @@ use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
  *   compared in constant time. Opening it shows a page; only the form of that page acts, so that a mail scanner that
  *   follows links does nothing.
  * - **One execution at a time.** An export or an erasure runs under a lock named after the request, which is read
- *   again once the lock is held and removed when it is done.
+ *   again once the lock is held and removed when it is done. The lock lives `LOCK_TTL` seconds and is renewed before
+ *   each module and before the request is removed: an execution whose lock expired and was taken by another stops
+ *   there, keeps the request, and answers as a link that no longer opens it.
  */
 final readonly class GuestRequests
 {
@@ -136,8 +140,9 @@ final readonly class GuestRequests
      */
     public function access(string $id, string $token): ?string
     {
-        return $this->locked($id, $token, GuestRequestKind::Access, function (GuestRequest $request): string {
-            $zip = $this->package->zip($this->export->export($this->subjects->subjectOf($request->email)));
+        return $this->locked($id, $token, GuestRequestKind::Access, function (GuestRequest $request, HeldLock $lock): string {
+            $zip = $this->package->zip($this->export->export($this->subjects->subjectOf($request->email), $lock));
+            $lock->renew();
             $this->store->delete($request->id);
             $this->logger->info('Request without an account {id} answered.', ['id' => $request->id]);
 
@@ -154,8 +159,9 @@ final readonly class GuestRequests
      */
     public function erase(string $id, string $token): ?array
     {
-        return $this->locked($id, $token, GuestRequestKind::Erasure, function (GuestRequest $request): array {
-            $reports = $this->erasure->erase($this->subjects->subjectOf($request->email));
+        return $this->locked($id, $token, GuestRequestKind::Erasure, function (GuestRequest $request, HeldLock $lock): array {
+            $reports = $this->erasure->erase($this->subjects->subjectOf($request->email), $lock);
+            $lock->renew();
             $this->store->delete($request->id);
             $this->logger->info('Request without an account {id} answered.', ['id' => $request->id]);
 
@@ -166,7 +172,7 @@ final readonly class GuestRequests
     /**
      * @template T
      *
-     * @param callable(GuestRequest): T $work
+     * @param callable(GuestRequest, HeldLock): T $work
      *
      * @return T|null
      */
@@ -182,13 +188,19 @@ final readonly class GuestRequests
             return null;
         }
 
+        $held = new HeldLock($lock);
+
         try {
             // Read again under the lock: a request answered by another process is gone.
             $request = $this->open($id, $token);
 
-            return $request instanceof GuestRequest && $request->kind === $kind ? $work($request) : null;
+            return $request instanceof GuestRequest && $request->kind === $kind ? $work($request, $held) : null;
+        } catch (LockLost) {
+            $this->logger->warning('Request without an account {id}: its lock was lost; the request is kept.', ['id' => $id]);
+
+            return null;
         } finally {
-            $lock->release();
+            $held->release();
         }
     }
 

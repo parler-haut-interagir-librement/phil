@@ -12,7 +12,10 @@ or attainment and its refusals, and the sums of credits over periods are tested 
 The exported credentials are checked offline for the shape Open Badges 3.0 describes, by
 `tests/Unit/Support/Ob3Shape.php` ([Validation](validation.md#what-is-checked-offline)). The console commands are tested
 with `CommandTester`, the lock with an in-memory store that tells whether it was held while the index was taken and the
-certificate stored, each attempt of an award whose index was taken included. The awards on completion are tested with a
+certificate stored, each attempt of an award whose index was taken included. `BinaryKeysListener` is tested on the
+mappings of each platform, and `tests/Integration/BinaryKeysTest.php` creates the schema on MySQL and PostgreSQL,
+when `PHIL_TEST_MYSQL_URL` or `PHIL_TEST_POSTGRESQL_URL` names a server, and keeps two members differing by their case
+apart. The awards on completion are tested with a
 source of completions that answers from a list and notes what it is asked.
 
 `tests/Functional` boots a small application with FrameworkBundle, TwigBundle and DoctrineBundle on SQLite, awards

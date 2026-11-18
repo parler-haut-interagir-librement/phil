@@ -32,6 +32,12 @@ interface LeaseRepository
     public function exclusively(string $resource, Closure $claim): mixed;
 
     /**
+     * The number of the claim on a resource that runs now, asked within `exclusively()`: every claim on the resource
+     * gets a greater number than the claims that ran before it.
+     */
+    public function fence(string $resource): int;
+
+    /**
      * Keeps a new lease, unless one is already kept on its key.
      *
      * @return bool whether it was kept

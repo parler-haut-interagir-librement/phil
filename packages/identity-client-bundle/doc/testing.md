@@ -4,8 +4,8 @@
 |---|---|
 | `VerifiedIdentity`, `AssuranceLevels` | Kept claims, unverified addresses, the scale |
 | `DeclaredOriginsReturnToPolicy` | Accepted targets and every refused form, origins an application may declare |
-| `CacheReplayStore`, `EncryptedRefreshOutcomes` | Claims, lifetimes, nothing readable in the pool, tampered entries |
-| `SerializedTokenRefreshListener` | The leeway, a stale request, a wait, a timeout, a revocation, an unreachable provider |
+| `CacheReplayStore`, `EncryptedRefreshOutcomes` | Claims, lifetimes, a lock that expired during the read or that its store cannot confirm, nothing readable in the pool, tampered entries |
+| `SerializedTokenRefreshListener` | The leeway, a stale request, a wait, a timeout, a revocation, an unreachable provider, a lock that expires during the call to the provider |
 | `ReplayGuardedBackChannelLogout` | Accepted tokens, replay, signature and claim failures |
 | The listeners and the voter | Each branch, the session start, an elevation that is declined |
 | `ClientConfiguration`, `FirewallComposer` | Pinned defaults, refused configurations, the prepended block |

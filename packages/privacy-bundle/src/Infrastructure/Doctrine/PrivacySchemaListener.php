@@ -25,6 +25,6 @@ final readonly class PrivacySchemaListener
             return;
         }
 
-        $event->setSchema(PrivacyTables::configure($event->getSchema()));
+        $event->setSchema(PrivacyTables::configure($event->getSchema(), $this->connection->getDatabasePlatform()));
     }
 }

@@ -7,7 +7,9 @@ namespace Phil\PrivacyBundle\Application;
 use DateTimeImmutable;
 use Phil\PrivacyBundle\Application\Contract\RetentionPurger;
 use Phil\PrivacyBundle\Application\Contract\RetentionScheduleSource;
+use Phil\PrivacyBundle\Application\Exception\LockLost;
 use Phil\PrivacyBundle\Application\Exception\MisconfiguredPrivacy;
+use Phil\PrivacyBundle\Application\Lock\HeldLock;
 use Phil\PrivacyBundle\Domain\Retention\PurgeOrder;
 use Phil\PrivacyBundle\Domain\Retention\RetentionRule;
 
@@ -52,13 +54,18 @@ final readonly class RetentionRun
     }
 
     /**
+     * Under a held lock, the lock is renewed before each purge order: a run that lost it stops before the next one.
+     *
      * @return array<string, int> records purged, by rule identifier, in schedule order
+     *
+     * @throws LockLost when the held lock is lost before a purge order
      */
-    public function run(DateTimeImmutable $now): array
+    public function run(DateTimeImmutable $now, ?HeldLock $lock = null): array
     {
         $purged = [];
 
         foreach ($this->orders($now) as $order) {
+            $lock?->renew();
             $purged[$order->ruleId] = $this->purgers[$order->store]->purge($order);
         }
 

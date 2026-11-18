@@ -7,17 +7,24 @@ namespace Phil\EditLockBundle\Tests\Unit\Infrastructure;
 use Closure;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Events;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
+use Phil\EditLockBundle\Application\BlockSaves;
 use Phil\EditLockBundle\Application\EditLocks;
 use Phil\EditLockBundle\Application\Exception\LeaseHeld;
+use Phil\EditLockBundle\Application\Exception\LeaseLost;
+use Phil\EditLockBundle\Application\NullBroadcaster;
 use Phil\EditLockBundle\Domain\Model\Lease;
 use Phil\EditLockBundle\Domain\Model\LeasedResource;
 use Phil\EditLockBundle\Domain\ValueObject\Holder;
 use Phil\EditLockBundle\Domain\ValueObject\LeaseKey;
+use Phil\EditLockBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\EditLockBundle\Infrastructure\Doctrine\DoctrineLeaseRepository;
+use Phil\EditLockBundle\Tests\Unit\Fixture\DbalBlockStore;
 use Phil\EditLockBundle\Tests\Unit\Fixture\PausingRepository;
 use Phil\EditLockBundle\Tests\Unit\Fixture\Policy;
+use Phil\EditLockBundle\Tests\Unit\Fixture\RecordingBlockStore;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
 
@@ -40,6 +47,7 @@ abstract class ConcurrentClaimsTestCase extends TestCase
         $config->enableNativeLazyObjects(true);
 
         $entityManager = new EntityManager($connection, $config);
+        $entityManager->getEventManager()->addEventListener(Events::loadClassMetadata, new BinaryKeysListener());
         $classes = [$entityManager->getClassMetadata(Lease::class), $entityManager->getClassMetadata(LeasedResource::class)];
         $schema = new SchemaTool($entityManager);
         $schema->dropSchema($classes);
@@ -88,6 +96,61 @@ abstract class ConcurrentClaimsTestCase extends TestCase
 
         self::assertInstanceOf($this->locksTheWholeDatabase() ? LeaseHeld::class : Lease::class, $meanwhile);
         self::assertSame('page', $ada->presence('page')[0]->key()->toString());
+    }
+
+    public function testKeysThatDifferByTheirCaseAreLeasedApart(): void
+    {
+        $locks = $this->locks($this->connect());
+
+        $locks->acquire(LeaseKey::of('page', 'aB3'), Holder::of('bob', 'Bob'));
+        $locks->acquire(LeaseKey::of('page', 'ab3'), Holder::of('cy', 'Cy'));
+        $locks->acquire(LeaseKey::of('Page', 'aB3'), Holder::of('cy', 'Cy'));
+        $locks->acquire(LeaseKey::of('page', 'Ab3'), Holder::of('ada', 'Ada'));
+
+        self::assertSame(['page#Ab3 ada', 'page#aB3 bob', 'page#ab3 cy'], array_map(static fn (Lease $lease): string => $lease->key()->toString().' '.$lease->holder()->id, $locks->presence('page')));
+        self::assertSame(['Page#aB3 cy'], array_map(static fn (Lease $lease): string => $lease->key()->toString().' '.$lease->holder()->id, $locks->presence('Page')));
+    }
+
+    /**
+     * A save holds the claim of its lease until its block is written on its connection: a takeover asked meanwhile
+     * waits and gives up, and once the save has committed it takes the lease; a save after it is refused.
+     */
+    public function testATakeoverAskedDuringASaveWaitsForTheBlockToBeWritten(): void
+    {
+        $bobConnection = $this->connect();
+        $bobConnection->executeStatement('CREATE TABLE edit_lock_test_block (id VARCHAR(64) NOT NULL PRIMARY KEY, body VARCHAR(255) NOT NULL, fence INTEGER NOT NULL)');
+
+        $bob = $this->locks($bobConnection);
+        $bob->acquire(LeaseKey::of('page', 'b1'), Holder::of('bob', 'Bob'));
+
+        $ada = $this->locks($this->connect());
+        $meanwhile = null;
+        $store = new RecordingBlockStore(static function () use ($ada, &$meanwhile): void {
+            try {
+                $meanwhile = $ada->takeOver(LeaseKey::of('page', 'b1'), Holder::of('ada', 'Ada'));
+            } catch (LeaseHeld $leaseHeld) {
+                $meanwhile = $leaseHeld;
+            }
+        });
+        $writes = new BlockSaves($bob, new NullBroadcaster(), null, new DbalBlockStore($bobConnection, $store));
+
+        $writes->save('page', Holder::of('bob', 'Bob'), ['id' => 'b1', 'type' => 'paragraph', 'data' => ['text' => 'kept']]);
+
+        self::assertInstanceOf(LeaseHeld::class, $meanwhile, 'The takeover ran between the check of the lease and the write.');
+        self::assertNull($meanwhile->lease, 'The takeover gave up waiting for the save.');
+        self::assertSame('kept', $bobConnection->fetchOne('SELECT body FROM edit_lock_test_block WHERE id = ?', ['b1']));
+        self::assertSame('ada', $ada->takeOver(LeaseKey::of('page', 'b1'), Holder::of('ada', 'Ada'))->holder()->id);
+
+        $store->during = null;
+
+        try {
+            $writes->save('page', Holder::of('bob', 'Bob'), ['id' => 'b1', 'type' => 'paragraph', 'data' => ['text' => 'late']]);
+            self::fail('A save after the takeover was written.');
+        } catch (LeaseLost) {
+            self::assertSame('kept', $bobConnection->fetchOne('SELECT body FROM edit_lock_test_block WHERE id = ?', ['b1']));
+        } finally {
+            $bobConnection->executeStatement('DROP TABLE edit_lock_test_block');
+        }
     }
 
     /**

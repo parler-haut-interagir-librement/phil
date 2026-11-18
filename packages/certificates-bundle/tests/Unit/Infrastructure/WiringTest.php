@@ -29,6 +29,7 @@ use Phil\CertificatesBundle\Infrastructure\Console\RemindCommand;
 use Phil\CertificatesBundle\Infrastructure\Console\RevokeCommand;
 use Phil\CertificatesBundle\Infrastructure\Console\StatusCommand;
 use Phil\CertificatesBundle\Infrastructure\DependencyInjection\CertificatesServices;
+use Phil\CertificatesBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\CertificatesBundle\Infrastructure\Doctrine\DoctrineCertificateRepository;
 use Phil\CertificatesBundle\Infrastructure\Doctrine\DoctrineCourseRepository;
 use Phil\CertificatesBundle\Infrastructure\Doctrine\DoctrineLearningActivityRepository;
@@ -80,6 +81,7 @@ final class WiringTest extends TestCase
         self::assertSame(DoctrineCourseRepository::class, (string) $container->getAlias(CourseRepository::class));
         self::assertEquals([new Reference('doctrine.orm.entity_manager'), new Reference('doctrine')], $container->getDefinition(DoctrineCertificateRepository::class)->getArguments());
         self::assertSame(DoctrineCertificateRepository::class, (string) $container->getAlias(CertificateRepository::class));
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
 
         self::assertSame(['certificates', 131_072], $container->getDefinition(StatusListLayout::class)->getArguments());
         self::assertEquals([$certificates, $layout, null], $container->getDefinition(CertificateStatusLists::class)->getArguments());
@@ -158,6 +160,7 @@ final class WiringTest extends TestCase
         $container = $this->load([], []);
 
         self::assertFalse($container->hasDefinition(DoctrineCourseRepository::class));
+        self::assertFalse($container->hasDefinition(BinaryKeysListener::class));
         self::assertFalse($container->hasAlias(CourseRepository::class));
         self::assertFalse($container->hasDefinition(RegisterController::class));
         self::assertTrue($container->hasDefinition(Awarding::class));
