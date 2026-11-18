@@ -1,8 +1,8 @@
-<!-- phil-dev source-sha256=b7651d9573cd7281a10c18a3362fa2030c5d79e1447ac89cef5752816103ddd4 -->
+<!-- phil-dev source-sha256=ec6f9ec6cb20d784b2b74c23df13f16d87ae972f6069a527e6ee26e9863ede0f -->
 # Markdown
 
-`Reader\Markdown\MarkdownReader` lit du Markdown et en fait un document UJO. Il ne lance jamais d'exception : une
-construction mal formée reste du texte. Le document est normalisé par `phil/ujo` avant d'être retourné ; son HTML en
+`Reader\Markdown\MarkdownReader` lit du Markdown et en fait un document UJO. Il ne lance jamais d'exception à cause de ce
+que dit une source : une construction mal formée reste du texte. Le document est normalisé par `phil/ujo` avant d'être retourné ; son HTML en
 ligne est donc dans la forme canonique des outils en ligne : `<strong>`, `<em>`, `<s class="cdx-strikethrough">`,
 `<code class="inline-code">`.
 
@@ -14,7 +14,9 @@ $reading = $reader->read($source);               // Reading: document and metada
 
 Un deuxième argument remplace le `Normalizer` ; celui par défaut enregistre chaque type de `phil/ujo` et `raw`. Un
 troisième donne un `MarkdownDialect`, la syntaxe qu'un dialecte ajoute ou lit autrement : voir
-[Points d'extension](extension-points.md#dialectes-de-markdown).
+[Points d'extension](extension-points.md#dialectes-de-markdown). Une source plus longue que son plafond (`maxBytes`,
+1 Mio par défaut) est refusée par `InputTooLarge` avant d'être lue : voir
+[Le plafond d'une source](analyser.md#le-plafond-dune-source).
 
 ## Blocs
 
@@ -83,8 +85,32 @@ Des accolades juste après une image, `![a](a.png){width:200px,wrapLeft}`, s'app
 Le HTML brut est gardé ou échappé, selon la construction du lecteur. `DefaultCompiler` le garde pour le niveau `all`,
 où écrit un rédacteur et où l'assainisseur garde les éléments sûrs, et l'échappe en dessous, où il ne serait que
 retiré : le `<script>` d'un membre se lit comme du texte au lieu de disparaître. Un bloc HTML gardé est un bloc `raw`,
-assaini par `phil/ujo` puis assaini au niveau voulu ; un commentaire HTML seul est retiré. Le HTML en ligne est assaini
-avec les outils en ligne de `phil/ujo`.
+assaini par `phil/ujo` puis assaini au niveau voulu. Le HTML en ligne est assaini avec les outils en
+ligne de `phil/ujo`.
+
+## Commentaires
+
+Un bloc HTML fait de commentaires seuls est la modulation `note` du bloc qui le suit, ou du dernier bloc du document
+(ou du conteneur où il se trouve) quand aucun ne suit, comme le lecteur HTML garde les commentaires d'une page. Les
+commentaires qui se suivent se joignent, une ligne chacun, après la note que le bloc a déjà ; une note garde
+10 000 caractères. Les notes d'orateur d'un diaporama Marp se lisent telles qu'elles sont écrites :
+
+```markdown
+# The plan
+
+Three steps.
+
+<!-- Say why there are three. -->
+
+---
+
+# The first step
+```
+
+Le `delimiter` de `---` prend la note `Say why there are three.`. Un commentaire qui n'est pas seul dans son bloc (du
+texte après lui sur sa ligne, ou un commentaire jamais fermé) est du HTML brut, échappé ou gardé selon le niveau ; un
+commentaire dans un paragraphe y reste. Les blocs d'une citation, d'un élément de liste et d'une note de bas de page
+sont joints en leur texte, qui ne garde aucune note.
 
 ## Blocs `:::`
 

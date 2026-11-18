@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=302338394758d2efb03dd7011b3babc2bf5148c6a1f418c76b3da17e93c735a0 -->
+<!-- phil-dev source-sha256=4e267bc602e0360572be4e556ed0ddb4d515bcb3e3d53fb633a5dd33c708bc40 -->
 # Points d'extension
 
 La bibliothèque est en `0.x` : ses points d'extension ne sont stables qu'à partir de sa version 1.0. D'ici là, une
@@ -16,3 +16,4 @@ version mineure peut les changer, et son CHANGELOG dit comment.
 | Repasser sur le HTML produit | Implémentez `Html\HtmlFilter` et passez-le à `HtmlRenderer::withFilter()` |
 | Convertir un type en texte autrement | Remplacez sa conversion dans `PlainText` ; voir [Texte brut](plain-text.md) |
 | Assainir le HTML en ligne avec d'autres règles | Construisez un `InlineSanitizer` avec vos propres profils, par nom, et donnez-le à `HtmlRenderer::default()` |
+| Borner le HTML en ligne lu | Le `maxBytes` de `InlineSanitizer`, 4 Mio par défaut ; donnez l'assainisseur au `Normalizer`, à `HtmlRenderer::default()` et à `PlainText` |

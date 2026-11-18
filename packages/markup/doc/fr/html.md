@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1aa7b8a601abd026ff67b5bb1c4aabeeb97030de21ae23c1fcaa1fd3ba28dd69 -->
+<!-- phil-dev source-sha256=3d4baa9376a38304494a465ce237925688eaa7843226922a02796ac6bb2921cf -->
 # HTML
 
 `Reader\Html\HtmlReader` lit du HTML et en fait un document UJO : le HTML que produit un éditeur par blocs (celui de
@@ -16,9 +16,11 @@ $reading->document->blocks[1];   // a `paragraph` block, `Roll <strong>two</stro
 
 La source est analysée par l'analyseur HTML5 de PHP, `Dom\HTMLDocument`, comme un navigateur l'analyse : les balises
 laissées ouvertes sont fermées, celles qui sont mal placées sont déplacées, les entités sont lues. Tout texte est un
-document ; le lecteur ne lance jamais d'exception. Le constructeur prend, dans l'ordre, le normaliseur de `phil/ujo` qui
-vérifie le document, les `EmbedServices` auxquels un cadre est comparé, l'`ExtractedElementStore` qui stocke les
-dessins en ligne, et le `SvgSanitizer` qui les assainit.
+document ; le lecteur ne lance jamais d'exception à cause de ce que dit une source. Le constructeur prend, dans l'ordre, le
+normaliseur de `phil/ujo` qui vérifie le document, les `EmbedServices` auxquels un cadre est comparé,
+l'`ExtractedElementStore` qui stocke les dessins en ligne, le `SvgSanitizer` qui les assainit, et `maxBytes`, le
+plafond d'une source. Une source plus longue que son plafond (`maxBytes`, 1 Mio par défaut) est refusée par
+`InputTooLarge` avant d'être lue : voir [Le plafond d'une source](analyser.md#le-plafond-dune-source).
 
 ## Blocs
 
@@ -146,4 +148,7 @@ $reading = new HtmlReader(store: new MediaStore($library))->read($html);
 
 Les conteneurs s'imbriquent aussi profondément que le permet UJO, et ceux qui sont plus profonds sont laissés de côté,
 leurs blocs gardés. Les éléments imbriqués sur plus de 128 niveaux sont lus comme leur texte, pour qu'un document
-imbriqué sur des milliers de niveaux se lise en temps linéaire sans épuiser la pile.
+imbriqué sur des milliers de niveaux se lise en temps linéaire sans épuiser la pile. Les enfants d'un élément sont comptés une seule fois, la première fois que le chemin de l'un
+d'eux est écrit dans une perte, pour qu'une page de milliers d'éléments frères laissés de côté se lise en temps
+linéaire ; 1 000 pertes sont consignées au plus. Une source plus longue que `maxBytes`, 1 Mio par défaut, est refusée
+avant d'être analysée.

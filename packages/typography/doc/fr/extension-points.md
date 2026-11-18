@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=73544956d906a525b69d184eccaf6e4cd61bdc72a4bb5370545df39c31883270 -->
+<!-- phil-dev source-sha256=44614f5798f0bffbd7579d60aed501987a9e2e50e9bcc9e93d5881dd90b19dfc -->
 # Points d'extension
 
 La bibliothèque est en PHP simple et ne déclare aucun service. Ce qu'une application ajoute, ce sont des correcteurs
@@ -21,6 +21,7 @@ tels quels.
 | Les correcteurs d'une locale | `Typographer::for($locale)` donne le préréglage de `Preset` ; `new Typographer($fixers)` accepte n'importe quelle liste, les correcteurs de l'application parmi ceux fournis, dans l'ordre où ils s'exécutent |
 | Un typographe par locale | `Typographers` : une locale par défaut, et des noms de correcteurs par locale à la place de leurs préréglages |
 | Les éléments laissés tels quels | Les balises `$protected` de `Typographer::for()`, des constructeurs et de `Typographers` : `Typographer::PROTECTED_TAGS` par défaut, soit `pre`, `code`, `kbd`, `script`, `style`, `textarea` |
+| Le plafond d'un texte | Le `$maxBytes` de `Typographer::for()`, du constructeur et de `Typographers` : `Typographer::DEFAULT_MAX_BYTES` par défaut, 1 Mio ; un texte plus long est refusé par `InputTooLarge` |
 | La césure | L'indicateur `$hyphenation` de `Typographer::for()`, et le `Dictionary` dans lequel il lit les motifs |
 | Les motifs que la bibliothèque ne fournit pas | `new Dictionary($directory)` sur des fichiers `<tag>.pat.txt` et `<tag>.hyp.txt`, ou `Patterns::parse()` et `new Hyphenator($patterns)` ; voir [Césure](hyphenation.md#vos-propres-motifs) |
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c259d935a674ee1ee1975ef05513f2747175127f6a63a0bf3a1dbf0dfd886a03 -->
+<!-- phil-dev source-sha256=3f535d0b9cf127b0b9a1b5c9a707084e253f066bc4c2748241673c8cc211313b -->
 # HTML en ligne
 
 UJO (Universal JSON Output) garde la mise en forme en ligne de ses textes en HTML : `Hello <b>world</b>`.
@@ -25,6 +25,28 @@ attributs, balises fermantes, commentaires) et ne réécrit que ce que le profil
   et un lien n'est jamais imbriqué dans un lien.
 
 `InlineSanitizer::toText($html)` donne le texte décodé sans éléments, un `<br>` devenant un saut de ligne.
+
+## Le plafond d'un fragment
+
+`sanitize()` et `toText()` refusent un fragment plus long que le plafond de l'assainisseur avant de le lire : ils
+lancent `Exception\InputTooLarge`, qui donne la longueur du fragment et le plafond dans `$bytes` et `$limit`, et ne
+coupent jamais le fragment pour qu'il y tienne. Le plafond se compte en octets. C'est l'argument `maxBytes` du
+constructeur, conservé par `withProfile()`, `InlineSanitizer::DEFAULT_MAX_BYTES` par défaut : 4 Mio, le plafond de
+`JsonDecoder`, pour qu'aucun champ d'un document que le décodeur lit ne soit refusé.
+
+Tout chemin qui lit du HTML en ligne le lit par un assainisseur, et son plafond : le `Normalizer`, le `HtmlRenderer` et
+`PlainText`, chacun avec l'assainisseur qu'on lui donne (un document construit en PHP, jamais décodé, est borné comme
+un document lu depuis du JSON) :
+
+```php
+$sanitizer = new InlineSanitizer(maxBytes: 262_144);   // 256 KiB
+$normalizer = new Normalizer(sanitizer: $sanitizer);
+$renderer = HtmlRenderer::default($sanitizer);
+$text = new PlainText(sanitizer: $sanitizer);
+```
+
+Le normaliseur borne aussi chaque champ HTML à `maxHtmlLength` caractères, 100 000 par défaut, vérifié avant que
+l'assainisseur le lise.
 
 ## Profils
 
