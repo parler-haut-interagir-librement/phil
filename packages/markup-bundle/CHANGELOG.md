@@ -20,7 +20,7 @@ The next version is 0.1.3-alpha: three optional keys, on `phil/markup` 0.3.
 
 ### Changed
 
-- `phil/markup` 0.3 is accepted: its readers, its compiler and its purifiers refuse what is longer than their ceiling.
+- `phil/markup` 0.3 is required: its readers, its compiler and its purifiers refuse what is longer than their ceiling.
 
 ## 0.1.2-alpha - 2026-11-15
 

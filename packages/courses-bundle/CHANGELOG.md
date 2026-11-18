@@ -4,46 +4,6 @@ All notable changes to `phil/courses-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
-
-The next version is 0.2.0-alpha: the schema gains two tables, which `CourseTables::upgrade()` adds.
-
-### Added
-
-- The SCORM run time: the Stimulus controller `scorm-runtime`, served by AssetMapper, frames the frame of the run time
-  on the content origin, which holds the run-time API of SCORM 1.2 (`API`) or SCORM 2004 (`API_1484_11`), checks each
-  call by the data model of phil/elearning-packages and frames the SCO; the commits go to `POST /courses/scorm/commit`,
-  with `navigator.sendBeacon()` when the learner leaves, authenticated by a signed, short-lived attempt token and the
-  stateless CSRF token of the courses, and checked again on the server.
-- `ScormRuntime`, `ScormTokens`, `ScormLaunch` and `CommitAnswer`: SCORM attempts resumed after a suspension, attempted
-  again after an ended one, each launch opening the next session; progress recorded once the content reports a
-  completion or a pass, the whole outcome at the end of a session, a failure counted once the attempt ends; the mastery
-  score, scaled passing score, completion threshold, launch data and time allowed of the manifest handed to the
-  content; the navigation requests of SCORM 2004 followed to the next, previous or chosen activity, or the outline.
-- `ScormAttempt`, `AttemptState`, `ScormAttemptId`, the `ScormAttemptRepository` port and `DbalScormAttemptRepository`,
-  with the tables `phil_course_scorm_attempt` and `phil_course_scorm_data`, their keys in `utf8mb4_bin` on MySQL and
-  MariaDB.
-- `ScormController`, `ScormCommitPayload` and `ScormFrameController`, the routes of the commit endpoint and of the frame,
-  the `ScormSessionEnded` event and the `AttemptRefused` exception.
-- `ScormPrivacy`: the SCORM attempts and their tracking data in the access and erasure requests of
-  phil/privacy-bundle, when it is installed.
-- The configuration `phil_courses.scorm` — `enabled`, `token_ttl`, `secret` — and `phil_courses.content.application_origin`.
-- `ContentUrls::runtime()` and `CourseRequest::isTrustedToken()`.
-- The activity page of a SCORM session with the recipes `Badge` and `Button` of the kit, in English and French.
-- The fuzz target `scorm-commit`, the benchmark of a commit, the tests of the scripts, and the documentation
-  [SCORM run time](doc/scorm-runtime.md).
-
-### Changed
-
-- A SCORM activity reports its own progress through the run time: the learner no longer marks it done, unless
-  `phil_courses.scorm.enabled` is false.
-- An imported SCORM activity is satisfied once passed when its item has a mastery score or a scaled passing score, once
-  completed or passed otherwise; it was satisfied once marked done.
-- `CourseTables::configure()` takes the platform, which the schema listener gives.
-- The content is framed by the application's origin and by the content origin itself, which frames the SCOs under the
-  run-time API; `phil_courses.content.application_origin`, else the origin of `cmi5.actor_home_page`, names the
-  application's origin.
-
 ## 0.1.0-alpha - 2026-11-18
 
 ### Added
@@ -89,3 +49,33 @@ The next version is 0.2.0-alpha: the schema gains two tables, which `CourseTable
   paths.
 - The documentation in `doc/`, one file per topic, indexed by the README.
 - `CONTRIBUTING.md`, `SECURITY.md` and `CODE_OF_CONDUCT.md`.
+- The SCORM run time: the Stimulus controller `scorm-runtime`, served by AssetMapper, frames the frame of the run time
+  on the content origin, which holds the run-time API of SCORM 1.2 (`API`) or SCORM 2004 (`API_1484_11`), checks each
+  call by the data model of phil/elearning-packages and frames the SCO; the commits go to `POST /courses/scorm/commit`,
+  with `navigator.sendBeacon()` when the learner leaves, authenticated by a signed, short-lived attempt token and the
+  stateless CSRF token of the courses, and checked again on the server.
+- `ScormRuntime`, `ScormTokens`, `ScormLaunch` and `CommitAnswer`: SCORM attempts resumed after a suspension, attempted
+  again after an ended one, each launch opening the next session; progress recorded once the content reports a
+  completion or a pass, the whole outcome at the end of a session, a failure counted once the attempt ends; the mastery
+  score, scaled passing score, completion threshold, launch data and time allowed of the manifest handed to the
+  content; the navigation requests of SCORM 2004 followed to the next, previous or chosen activity, or the outline.
+- `ScormAttempt`, `AttemptState`, `ScormAttemptId`, the `ScormAttemptRepository` port and `DbalScormAttemptRepository`,
+  with the tables `phil_course_scorm_attempt` and `phil_course_scorm_data`, their keys in `utf8mb4_bin` on MySQL and
+  MariaDB.
+- `ScormController`, `ScormCommitPayload` and `ScormFrameController`, the routes of the commit endpoint and of the frame,
+  the `ScormSessionEnded` event and the `AttemptRefused` exception.
+- `ScormPrivacy`: the SCORM attempts and their tracking data in the access and erasure requests of
+  phil/privacy-bundle, when it is installed.
+- The configuration `phil_courses.scorm` — `enabled`, `token_ttl`, `secret` — and `phil_courses.content.application_origin`.
+- `ContentUrls::runtime()` and `CourseRequest::isTrustedToken()`.
+- The activity page of a SCORM session with the recipes `Badge` and `Button` of the kit, in English and French.
+- The fuzz target `scorm-commit`, the benchmark of a commit, the tests of the scripts, and the documentation
+  [SCORM run time](doc/scorm-runtime.md).
+- A SCORM activity reports its own progress through the run time; the learner marks it done only when
+  `phil_courses.scorm.enabled` is false.
+- An imported SCORM activity is satisfied once passed when its item has a mastery score or a scaled passing score, once
+  completed or passed otherwise.
+- `CourseTables::configure()` takes the platform, which the schema listener gives.
+- The content is framed by the application's origin and by the content origin itself, which frames the SCOs under the
+  run-time API; `phil_courses.content.application_origin`, else the origin of `cmi5.actor_home_page`, names the
+  application's origin.

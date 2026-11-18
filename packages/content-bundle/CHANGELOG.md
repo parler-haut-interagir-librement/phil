@@ -17,6 +17,7 @@ MySQL and MariaDB. See [Upgrading from 0.2](doc/storage.md#upgrading-from-02).
 
 ### Changed
 
+- `phil/markup` 0.3 is accepted beside 0.2.1.
 - On MySQL and MariaDB, `resource_key`, `resource_id`, `slug` and `locale` of `phil_content_route`, `resource_key` and
   `resource_id` of `phil_content_single_root`, `resource_key`, `resource_id`, `locale` and `author` of
   `phil_content_working_copy`, and `locale`, `locale_key` and `stage` of the table of each row class take the `utf8mb4`

@@ -16,7 +16,7 @@ The next version is 0.1.2-alpha: an optional key, on `phil/typography` 0.2.
 
 ### Changed
 
-- `phil/typography` 0.2 is accepted: a text longer than its ceiling is refused by `InputTooLarge`.
+- `phil/typography` 0.2 is required: a text longer than its ceiling is refused by `InputTooLarge`.
 
 ## 0.1.1-alpha - 2026-11-17
 

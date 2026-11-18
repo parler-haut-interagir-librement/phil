@@ -6,6 +6,8 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
+The next version is 0.1.2-alpha.
+
 ### Changed
 
 - `phil/content-bundle` 0.3 is accepted beside 0.1 and 0.2.
