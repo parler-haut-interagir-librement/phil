@@ -21,6 +21,8 @@ MariaDB. See [Upgrading from 0.1](doc/installation.md#upgrading-from-01).
   `term_type`, `term_id`, `resource_kind` and `resource_id` of `phil_taxonomy_assignment` take the `utf8mb4` character
   set and the `utf8mb4_bin` collation in the schema the ORM generates, through
   `Infrastructure\Doctrine\BinaryKeysListener`. PostgreSQL and SQLite keep their default, which compares bytes already.
+- `doctrine/dbal` is required, already required by `doctrine/orm`: `BinaryKeysListener` reads the platform of the
+  connection.
 
 ### Security
 

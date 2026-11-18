@@ -18,6 +18,8 @@ The next version is 0.2.0-alpha: the keys of the trashed items compare byte by b
 - On MySQL and MariaDB, `id`, `resource_key`, `resource_id`, `parent` and `trashed_by` of `phil_trash_item` take the
   `utf8mb4` character set and the `utf8mb4_bin` collation in the schema the ORM generates, through
   `Infrastructure\Doctrine\BinaryKeysListener`. PostgreSQL and SQLite keep their default, which compares bytes already.
+- `doctrine/dbal` is required, already required by `doctrine/orm`: `BinaryKeysListener` reads the platform of the
+  connection.
 
 ### Security
 
