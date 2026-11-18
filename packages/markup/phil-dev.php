@@ -71,7 +71,7 @@ return [
             ],
             'TrueValue' => [
                 'ignoreSourceCodeByRegex' => [
-                    'public static function defaultPolicies\\(\\?array \\$mediaHosts = null, bool \\$extension = true\\).*',
+                    'public static function defaultPolicies\\(\\?array \\$mediaHosts = null, bool \\$extension = true, int \\$maxBytes = .*',
                 ],
             ],
             // The HTML reader reads no Markdown: whether its context keeps raw HTML changes nothing, the HTML it gives
