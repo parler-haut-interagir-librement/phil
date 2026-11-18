@@ -1,0 +1,9 @@
+# The administration of the incident mode, behind the application's firewall, and the public page that says what is
+# suspended and until when.
+phil_incident_mode_admin:
+    resource: '@PhilIncidentModeBundle/config/routes/admin.php'
+    prefix: /admin/incidents
+
+phil_incident_mode_status:
+    resource: '@PhilIncidentModeBundle/config/routes/status.php'
+    prefix: /status

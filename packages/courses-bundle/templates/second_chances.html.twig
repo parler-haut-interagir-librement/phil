@@ -1,0 +1,52 @@
+{#
+ # The second chances waiting for a decision, for a teacher: each request with the learner, the course, the activity,
+ # the tries failed — the recipe `Progress` of the kit —, the reason the learner gave, and the form that grants it,
+ # refuses it or waives the activity, with a note — the recipes `Badge`, `Textarea` and `Button`.
+ #
+ # reviews: list of RetryReview. decisions: list of string. token: string.
+ #}
+{% extends layout %}
+
+{% block title %}{{ 'admin.title'|trans({}, 'phil_courses') }}{% endblock %}
+
+{% block main %}
+<h1>{{ 'admin.title'|trans({}, 'phil_courses') }}</h1>
+{%- if reviews is empty %}
+<p class="phil-courses__none">{{ 'admin.none'|trans({}, 'phil_courses') }}</p>
+{%- else %}
+<ul class="phil-courses__retries">
+    {%- for review in reviews %}
+    {%- set id = review.request.id.value %}
+    <li class="phil-courses__retry">
+        <h2>{{ review.course.title }} — {{ review.activity.title }}</h2>
+        {% component (phil_courses_kit('Badge')) with {variant: 'outline'} %}{% block content %}{{ 'admin.pending'|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}
+        <dl>
+            <dt>{{ 'admin.learner'|trans({}, 'phil_courses') }}</dt>
+            <dd>{{ review.enrollment.learner.value }}</dd>
+            <dt>{{ 'admin.asked_at'|trans({}, 'phil_courses') }}</dt>
+            <dd><time datetime="{{ review.request.requestedAt|date('c') }}">{{ review.request.requestedAt|date('Y-m-d H:i', false) }} UTC</time></dd>
+            <dt>{{ 'admin.tries'|trans({}, 'phil_courses') }}</dt>
+            <dd>
+                {%- if review.tries is null %}
+                {{ 'admin.failures'|trans({'%failures%': review.failures}, 'phil_courses') }}
+                {%- else %}
+                <label for="phil-courses-tries-{{ id }}">{{ 'admin.failures_of'|trans({'%failures%': review.failures, '%tries%': review.tries}, 'phil_courses') }}</label>
+                {% component (phil_courses_kit('Progress')) with {id: 'phil-courses-tries-' ~ id, value: review.failures, max: review.tries} %}{% endcomponent %}
+                {%- endif %}
+            </dd>
+            <dt>{{ 'admin.reason'|trans({}, 'phil_courses') }}</dt>
+            <dd>{{ review.request.reason is empty ? 'admin.no_reason'|trans({}, 'phil_courses') : review.request.reason }}</dd>
+        </dl>
+        <form method="post" action="{{ path('phil_courses_admin_retry_decide', {retry: id}) }}">
+            <input type="hidden" name="_token" value="{{ token }}">
+            <label for="phil-courses-note-{{ id }}">{{ 'admin.note'|trans({}, 'phil_courses') }}</label>
+            {% component (phil_courses_kit('Textarea')) with {id: 'phil-courses-note-' ~ id, name: 'note', rows: 3, maxlength: 2000} %}{% block content %}{% endblock %}{% endcomponent %}
+            {%- for decision in decisions %}
+            {% component (phil_courses_kit('Button')) with {type: 'submit', name: 'decision', value: decision, variant: decision == 'grant' ? 'default' : (decision == 'refuse' ? 'destructive' : 'secondary'), size: 'sm'} %}{% block content %}{{ ('admin.' ~ decision)|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}
+            {%- endfor %}
+        </form>
+    </li>
+    {%- endfor %}
+</ul>
+{%- endif %}
+{% endblock %}

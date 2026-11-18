@@ -45,7 +45,7 @@
         "phil/ip-anonymizer": "^0.1@dev",
         "phil/legal-notices": "^0.1@dev",
         "phil/legal-notices-bundle": "^0.1@dev",
-        "phil/notifications-bundle": "^0.1@dev",
+        "phil/notifications-bundle": "^0.1@dev || ^0.2@dev",
         "phil/privacy-bundle": "^0.1@dev",
         "phil/text-diff": "^0.1@dev",
         "phil/ujo": "^0.1@dev",
@@ -98,7 +98,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.1.x-dev"
+            "dev-main": "0.2.x-dev"
         }
     }
 }

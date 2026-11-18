@@ -1,0 +1,113 @@
+# phil/courses-bundle
+
+**Online courses for Symfony: modules, activities, progress and completion, and the migration of SCORM and cmi5 courses.**
+
+phil/courses-bundle gives an application online courses. A course holds modules in order, and each module holds
+activities: a page of text, a link, the content of an imported SCORM package, or a cmi5 assignable unit. Activity types
+are a port with a few adapters, so that an application adds its own. A learner enrolls once in a course; each activity
+records what they did — completed, passed, failed, waived, the best score — and is satisfied by the requirement it
+carries, the values of cmi5's `moveOn`. The course is completed when every required activity is satisfied.
+
+A module or an activity opens at once, on a date, or a number of days after the learner enrolled, counted from
+midnight in the site's time zone. A course may impose the order of its activities. No state is a dead end: a learner
+who failed every try of an activity asks for a second chance, which a teacher grants, refuses, or answers by waiving
+the activity, with a note, on an administration page or from the console; with phil/audit-bundle, each step is
+written to the audit trail.
+
+The bundle imports SCORM 1.2, SCORM 2004 and cmi5 packages to migrate courses from another platform, read by
+phil/elearning-packages. The ZIP archive is read within bounds — its size, its number of entries, the size of each file
+uncompressed, its compression ratio —, and an entry that would leave the package, a symbolic link or a corrupt entry is
+refused. The manifest is parsed without any document type or entity. The files are stored apart, and served from a
+content origin that is not the application's, with a content security policy. SCORM content is shown and marked done
+by the learner: the bundle runs no SCORM runtime.
+The tree of the blocks of a cmi5 course structure is kept: nested blocks, their order and their identifiers.
+cmi5 units are launched with the parameters of cmi5, fetch their token once, and send their statements to an xAPI
+endpoint of the bundle, which checks them against the rules of cmi5 before a learning record store keeps them. The
+platform issues the `satisfied` statement of each block once its required units are satisfied, then of the course,
+once for each enrollment. The store inside the bundle keeps the statements through DBAL; the bundle also sends them to
+a remote xAPI learning record store through the guarded client of phil/safe-http, the state documents of the units
+staying in the application's database, and an application's own store plugs into the same port.
+
+Another part of the application — certificates, badges, a report — asks `Completions` whether a learner completed a
+course, and keeps its own model; with phil/certificates-bundle, the bundle answers its `CourseCompletions` port.
+
+The services keep no state between requests and are safe in a long-running worker. The stores use DBAL, and are tested
+on SQLite, MySQL 8.4 and PostgreSQL 17.
+
+## Status
+
+| Part | State |
+|---|---|
+| Courses, modules and activities through DBAL; activity types as a port with the page, link, SCORM and cmi5 adapters | Implemented and tested |
+| Enrollment, progress by activity, the requirement of each activity, completion by course, events of PSR-14 | Implemented and tested |
+| `Completions`, and the adapter of the `CourseCompletions` port of phil/certificates-bundle 0.2 | Implemented and tested |
+| Release on a date or days after the enrollment in the site's time zone; imposed order | Implemented and tested |
+| Second chances asked for, granted, refused or answered by a waiver with a note, the trail of phil/audit-bundle | Implemented and tested |
+| The administration page of the second chances, behind a configurable role, with the recipes of the kit, English and French | Implemented and tested |
+| The import of SCORM 1.2 and 2004 packages through phil/elearning-packages, sequencing kept for information, results imported from a CSV export | Implemented and tested |
+| The import of cmi5 packages and course structures, through phil/elearning-packages, the tree of the blocks kept, a unit whose `moveOn` is `NotApplicable` not required | Implemented and tested |
+| cmi5 launches, the fetch URL, the xAPI endpoint with the rules of cmi5, the learning record store as a port | Implemented and tested |
+| The `satisfied` statements of the blocks, innermost first, and of the course, once for each enrollment, named by the course structure, with the `BlockSatisfied` event | Implemented and tested |
+| The remote xAPI learning record store through phil/safe-http, for the statements | Implemented and tested; its integration test runs against a store the environment names |
+| The state documents of the units with a remote store | Kept in the store inside the bundle, never sent: the port names no agent, which the State resource of xAPI asks for |
+| A remote store on a private network | Refused by phil/safe-http: an application's own adapter of the port reaches it |
+| The upgrade of the tables of an earlier schema, on SQLite, MySQL and PostgreSQL | Implemented and tested |
+| The content served from its own origin, with its content security policy | Implemented and tested |
+| `phil:courses:import`, `phil:courses:import-results`, `phil:courses:retries` | Implemented and tested |
+| The pages — outline, activity, enrollment, second chance — with the recipes of the kit, English and French | Implemented and tested |
+| The Flex recipe: the bundle, its configuration and its routes | Written in `recipe/0.1`, for the recipes repository of PHIL |
+| A SCORM runtime that runs SCOs and reads their reports | Not planned: SCORM is imported to migrate courses |
+| Branching lessons through phil/story-graph, quizzes through phil/assessment, access through phil/content-access | Planned, as activity types and an access port, once those libraries are written |
+| LTI 1.3 activities, hosted video with consented watch tracking | Planned, as activity types the LTI and video bundles add |
+| Cohorts with live meetings, courses sold through the catalogue, dependencies between courses, learning paths | Planned |
+
+## Documentation
+
+| Document | What it covers |
+|---|---|
+| [Installation](doc/installation.md) | Requirements, the tables and their upgrade, the routes, the content origin, the recipes of the kit, the recipe. |
+| [Configuration](doc/configuration.md) | Every option, with an example. |
+| [The course model](doc/course-model.md) | Courses, modules, blocks, activities, enrollments, progress, releases, order and second chances, with their administration page. |
+| [SCORM import](doc/scorm-import.md) | What a SCORM package becomes, what is kept for information, what is left out, and imported results. |
+| [cmi5](doc/cmi5.md) | The import of cmi5 packages and their blocks, the launch, the fetch URL, the xAPI endpoint, the `satisfied` statements and the learning record stores, inside the bundle or remote. |
+| [Security](doc/security.md) | The bounds of the archive and the manifest, the content origin and its headers, the remote store, the administration page. |
+| [Extension points](doc/extension-points.md) | The ports, the events, the services to replace, and when they are stable. |
+| [Testing](doc/testing.md) | The bundle's tests, the servers and the learning record store its integration tests read, and the fuzz target. |
+| [Reference](doc/reference.md) | Every class and file of the bundle. |
+
+## Quick start
+
+```sh
+composer require phil/courses-bundle
+php bin/console ux:install button badge progress textarea --kit=github.com/parler-haut-interagir-librement/ux-kit
+```
+
+```yaml
+# config/packages/phil_courses.yaml
+phil_courses:
+    timezone: America/Toronto
+    content:
+        base_url: 'https://content.example.org'
+    cmi5:
+        actor_home_page: 'https://www.example.org'
+```
+
+```sh
+php bin/console phil:courses:import var/import/safety-course.zip
+```
+
+## Requirements
+
+PHP 8.5 or later with the `mbstring` and `sodium` extensions, and those phil/elearning-packages reads packages with —
+`dom`, `libxml` and `zip` —, Symfony 8.2 or later, and Doctrine DBAL 4.5. The remote learning record store needs
+phil/safe-http, and the administration page Symfony Security.
+
+## Contributing
+
+Contributions are welcome on the PHIL monorepo: read the [contribution guide](CONTRIBUTING.md) and the
+[code of conduct](CODE_OF_CONDUCT.md). Report a vulnerability privately, as the [security policy](SECURITY.md)
+explains, never in a public issue.
+
+## License
+
+MIT, © Philippe Gamache, doing business as Le Gnome Archiviste; a Parler Haut Interagir Librement project. See [LICENSE](LICENSE).

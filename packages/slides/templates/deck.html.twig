@@ -1,0 +1,43 @@
+{#
+    A deck for its audience:
+
+        {{ include('@PhilSlides/deck.html.twig', {deck: slides_deck(talk.body), presenter_url: path('talk_presenter', {id: talk.id})}) }}
+
+    Without script, the slides follow one another, to be read in order. The Stimulus controller phil--slides--deck
+    shows one at a time, reveals the fragments one by one, answers the keyboard, goes full screen and follows the
+    presenter view through a BroadcastChannel named after the deck. The speaker's notes are never in this page.
+
+    `presenter_url` links to the presenter view, opened in a window of its own; `id` names the element, `phil-slides`
+    by default; `keyboard` set to `page` lets the keys drive the deck wherever the focus is on the page, for a page that
+    holds nothing else. The buttons and the link are the recipe `Button` of the kit the application installed, PHIL UX
+    or Shadcn.
+#}
+{%- set domain = 'phil_slides' -%}
+{%- set controller = 'phil--slides--deck' -%}
+<section id="{{ id ?? 'phil-slides' }}" class="phil-slides" aria-roledescription="{{ 'deck.roledescription'|trans({}, domain) }}" aria-label="{{ deck.settings.title ?? 'deck.label'|trans({}, domain) }}"{% if deck.settings.language is not null %} lang="{{ deck.settings.language }}"{% endif %} data-ratio="{{ deck.settings.aspectRatio.value }}"
+    data-controller="{{ controller }}"
+    data-{{ controller }}-channel-value="{{ deck.id }}"
+    data-{{ controller }}-fragment-class-value="{{ slides_fragment_class() }}"
+    data-{{ controller }}-page-keys-value="{{ (keyboard ?? null) == 'page' ? 'true' : 'false' }}"
+    data-{{ controller }}-status-value="{{ 'status'|trans({}, domain) }}"
+    data-{{ controller }}-titled-status-value="{{ 'status.titled'|trans({}, domain) }}"
+    data-{{ controller }}-counter-value="{{ 'slide.number'|trans({}, domain) }}"
+    data-action="keydown@window->{{ controller }}#key fullscreenchange@document->{{ controller }}#fullscreenChanged hashchange@window->{{ controller }}#hashChanged">
+    {%- if presenter_url ?? null %}
+        <p class="phil-slides__presenter">
+            {%- component (slides_kit('Button')) with {as: 'a', variant: 'outline', size: 'sm', href: presenter_url, target: 'phil-slides-presenter', 'data-action': controller ~ '#openPresenter'} %}{% block content %}{{ 'controls.presenter'|trans({}, domain) }}{% endblock %}{% endcomponent -%}
+        </p>
+    {%- endif %}
+    <p class="phil-slides__status" role="status" aria-live="polite" aria-atomic="true" data-{{ controller }}-target="status"></p>
+    <div class="phil-slides__stage" tabindex="0" data-{{ controller }}-target="stage">
+        {%- for slide in deck.slides %}
+            {{ include('@PhilSlides/_slide.html.twig', {deck: deck, slide: slide, target: controller}, with_context: false) }}
+        {%- endfor %}
+    </div>
+    <nav class="phil-slides__controls" aria-label="{{ 'controls.label'|trans({}, domain) }}" hidden data-{{ controller }}-target="controls">
+        {%- component (slides_kit('Button')) with {variant: 'secondary', 'data-action': controller ~ '#previous'} %}{% block content %}{{ 'controls.previous'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        <span class="phil-slides__counter" data-{{ controller }}-target="counter">{{ 'slide.number'|trans({'%number%': 1, '%count%': deck.count}, domain) }}</span>
+        {%- component (slides_kit('Button')) with {variant: 'secondary', 'data-action': controller ~ '#next'} %}{% block content %}{{ 'controls.next'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        {%- component (slides_kit('Button')) with {variant: 'outline', 'aria-pressed': 'false', ('data-' ~ controller ~ '-target'): 'fullscreen', 'data-action': controller ~ '#toggleFullscreen'} %}{% block content %}{{ 'controls.fullscreen'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+    </nav>
+</section>

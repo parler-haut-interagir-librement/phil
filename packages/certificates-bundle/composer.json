@@ -27,7 +27,7 @@
         "doctrine/dbal": "^4.5",
         "doctrine/orm": "^3.7",
         "doctrine/persistence": "^4.1",
-        "phil/open-badges": "^0.2@dev || ^0.3@dev",
+        "phil/open-badges": "^0.2@dev || ^0.3@dev || ^0.4@dev",
         "phil/open-badges-bundle": "^0.1.1@dev",
         "phil/paged-media": "^0.1@dev",
         "phil/paged-media-bundle": "^0.1@dev",

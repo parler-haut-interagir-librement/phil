@@ -1,0 +1,11 @@
+# The incident mode: presets that suspend sign-ups, invitations, new messages or everything but reading, for a duration
+# always set. Generate the migration of its table with doctrine:migrations:diff, route
+# Phil\IncidentMode\Messenger\LiftIncident to a transport that supports delays, and consume the transport
+# scheduler_incident_mode. See the configuration guide of phil/incident-mode-bundle.
+phil_incident_mode:
+    connection: default
+    # The restrictions established members are spared from; the application says who is established by its own
+    # EstablishedMembers service.
+    spare_established: []
+    admin:
+        role: ROLE_ADMIN

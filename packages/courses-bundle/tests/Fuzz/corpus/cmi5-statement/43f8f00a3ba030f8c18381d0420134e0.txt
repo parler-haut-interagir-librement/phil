@@ -1,0 +1,1 @@
+{"actor":{"oe":"Agent","account":{"homePage":"https://learn.example.org/","name":"ada"}},"vevb":{"p":"2sed"},"object":{"id":"-"},"context":{"registration":"r-1","":{"or":[{"id":""}]},"extensions":{"https://w3id.org/xapi/cmi5/context/extensions/sessionid":"s-1"}}}

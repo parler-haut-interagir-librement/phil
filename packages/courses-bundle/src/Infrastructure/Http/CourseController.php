@@ -1,0 +1,216 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Phil\CoursesBundle\Infrastructure\Http;
+
+use Phil\CoursesBundle\Application\ActivityTypes;
+use Phil\CoursesBundle\Application\Availabilities;
+use Phil\CoursesBundle\Application\ContentUrls;
+use Phil\CoursesBundle\Application\Contract\CurrentLearner;
+use Phil\CoursesBundle\Application\Courses;
+use Phil\CoursesBundle\Application\Enrollments;
+use Phil\CoursesBundle\Application\LaunchWindow;
+use Phil\CoursesBundle\Application\Learning;
+use Phil\CoursesBundle\Application\SecondChances;
+use Phil\CoursesBundle\Domain\Exception\ActivityUnavailable;
+use Phil\CoursesBundle\Domain\Exception\CoursesException;
+use Phil\CoursesBundle\Domain\Exception\InvalidCourse;
+use Phil\CoursesBundle\Domain\Exception\RecordStoreUnavailable;
+use Phil\CoursesBundle\Domain\Model\Course;
+use Phil\CoursesBundle\Domain\Model\Enrollment;
+use Phil\CoursesBundle\Domain\ValueObject\ActivityId;
+use Phil\CoursesBundle\Domain\ValueObject\CourseId;
+use Phil\CoursesBundle\Domain\ValueObject\LearnerId;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Twig\Environment;
+
+/**
+ * The pages of a course, for the learner signed in: the outline with where each activity stands, the enrollment when
+ * the site lets learners enroll themselves, the activity page that frames or opens an activity, and the forms that
+ * mark an activity done and ask for a second chance. Every change is posted with a CSRF token. Content of the
+ * packages is framed only from the content origin, never from the application's own.
+ */
+final readonly class CourseController
+{
+    public const string OUTLINE_ROUTE = 'phil_courses_outline';
+
+    public const string ENROLL_ROUTE = 'phil_courses_enroll';
+
+    public const string LAUNCH_ROUTE = 'phil_courses_launch';
+
+    public const string COMPLETE_ROUTE = 'phil_courses_complete';
+
+    public const string RETRY_ROUTE = 'phil_courses_retry';
+
+    public const string UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
+
+    public function __construct(
+        private Courses $courses,
+        private Enrollments $enrollments,
+        private Availabilities $availabilities,
+        private Learning $learning,
+        private SecondChances $secondChances,
+        private ActivityTypes $types,
+        private CurrentLearner $current,
+        private CourseRequest $request,
+        private ContentUrls $content,
+        private Environment $twig,
+        private UrlGeneratorInterface $urls,
+        private string $layout,
+        private bool $selfEnrollment = false,
+        private bool $showLocked = true,
+    ) {
+    }
+
+    public function outline(string $course): Response
+    {
+        $learner = $this->learner();
+        $found = $this->course($course);
+        $enrollment = $this->enrollments->of($found->id, $learner);
+
+        return $this->render('@PhilCourses/outline.html.twig', [
+            'course' => $found,
+            'enrollment' => $enrollment,
+            'statuses' => $enrollment instanceof Enrollment ? $this->availabilities->outline($enrollment) : [],
+            'outline' => $this->courses->outline($found->id),
+            'percent' => $enrollment instanceof Enrollment ? $this->enrollments->percent($enrollment) : 0,
+            'self_enrollment' => $this->selfEnrollment,
+            'show_locked' => $this->showLocked,
+        ]);
+    }
+
+    public function enroll(Request $request, string $course): RedirectResponse
+    {
+        $this->trust($request);
+        $learner = $this->learner();
+        $found = $this->course($course);
+
+        if (!$this->selfEnrollment) {
+            throw new AccessDeniedException('Learners do not enroll themselves on this site.');
+        }
+
+        $this->enrollments->enroll($found->id, $learner);
+
+        return $this->back($found->id);
+    }
+
+    public function launch(Request $request, string $course, string $activity): Response
+    {
+        $this->trust($request);
+        [$found, $enrollment, $activityId] = $this->enrolled($course, $activity);
+
+        try {
+            $launch = $this->learning->launch($enrollment, $activityId);
+        } catch (ActivityUnavailable $activityUnavailable) {
+            return $this->render('@PhilCourses/activity.html.twig', ['course' => $found, 'activity' => $this->courses->activity($activityId), 'launch' => null, 'error' => $activityUnavailable->getMessage()], Response::HTTP_CONFLICT);
+        } catch (RecordStoreUnavailable) {
+            return $this->render('@PhilCourses/activity.html.twig', ['course' => $found, 'activity' => $this->courses->activity($activityId), 'launch' => null, 'error' => 'The launch could not be recorded: try again later.'], Response::HTTP_SERVICE_UNAVAILABLE);
+        }
+
+        if (LaunchWindow::Embedded === $launch->window && $this->content->origin() === $request->getSchemeAndHttpHost()) {
+            return $this->render('@PhilCourses/activity.html.twig', ['course' => $found, 'activity' => $this->courses->activity($activityId), 'launch' => null, 'error' => 'The content origin is the site itself: the content is not framed.'], Response::HTTP_CONFLICT);
+        }
+
+        $taken = $this->courses->activity($activityId);
+
+        return $this->render('@PhilCourses/activity.html.twig', [
+            'course' => $found,
+            'activity' => $taken,
+            'launch' => $launch,
+            'error' => null,
+            'manual' => $this->types->get($taken->type)->completesManually(),
+        ]);
+    }
+
+    public function complete(Request $request, string $course, string $activity): RedirectResponse
+    {
+        $this->trust($request);
+        [$found, $enrollment, $activityId] = $this->enrolled($course, $activity);
+
+        try {
+            $this->learning->complete($enrollment, $activityId);
+        } catch (ActivityUnavailable $activityUnavailable) {
+            throw new BadRequestHttpException($activityUnavailable->getMessage(), $activityUnavailable);
+        }
+
+        return $this->back($found->id);
+    }
+
+    public function retry(Request $request, string $course, string $activity): RedirectResponse
+    {
+        $this->trust($request);
+        [$found, $enrollment, $activityId] = $this->enrolled($course, $activity);
+
+        try {
+            $this->secondChances->request($enrollment, $activityId, $request->request->getString('reason'));
+        } catch (ActivityUnavailable|InvalidCourse $exception) {
+            throw new BadRequestHttpException($exception->getMessage(), $exception);
+        }
+
+        return $this->back($found->id);
+    }
+
+    /**
+     * @return array{0: Course, 1: Enrollment, 2: ActivityId}
+     */
+    private function enrolled(string $course, string $activity): array
+    {
+        $learner = $this->learner();
+        $found = $this->course($course);
+        $enrollment = $this->enrollments->of($found->id, $learner) ?? throw new AccessDeniedException('Enroll in the course to take its activities.');
+
+        try {
+            $id = ActivityId::of($activity);
+            $this->availabilities->of($enrollment, $id);
+        } catch (CoursesException $coursesException) {
+            throw new NotFoundHttpException('No such activity in this course.', $coursesException);
+        }
+
+        return [$found, $enrollment, $id];
+    }
+
+    private function course(string $course): Course
+    {
+        try {
+            return $this->courses->get(CourseId::of($course));
+        } catch (CoursesException $coursesException) {
+            throw new NotFoundHttpException('No such course.', $coursesException);
+        }
+    }
+
+    private function learner(): LearnerId
+    {
+        return $this->current->current() ?? throw new AccessDeniedException('Sign in to take the courses.');
+    }
+
+    private function trust(Request $request): void
+    {
+        if (!$this->request->isTrusted($request)) {
+            throw new BadRequestHttpException('The form expired: load the page again.');
+        }
+    }
+
+    private function back(CourseId $course): RedirectResponse
+    {
+        return new RedirectResponse($this->urls->generate(self::OUTLINE_ROUTE, ['course' => $course->value]), Response::HTTP_SEE_OTHER);
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     */
+    private function render(string $template, array $context, int $status = Response::HTTP_OK): Response
+    {
+        return new Response($this->twig->render($template, $context + [
+            'layout' => $this->layout,
+            'token' => $this->request->token(),
+            'manual' => false,
+        ]), $status, ['Cache-Control' => 'no-store']);
+    }
+}

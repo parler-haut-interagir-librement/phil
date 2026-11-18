@@ -1,0 +1,23 @@
+{#
+    The page of a refusal: what the incident suspends and until when, with the status and the Retry-After header of the
+    refusal.
+#}
+{% extends layout %}
+
+{% set domain = 'phil_incident_mode' %}
+
+{% block title %}{{ 'suspended.title'|trans({}, domain) }}{% endblock %}
+
+{% block main %}
+    <h1>{{ 'suspended.title'|trans({}, domain) }}</h1>
+    {% component (phil_incident_kit('Alert')) with {variant: 'destructive'} %}
+        {% block content %}
+            {% component (phil_incident_kit('Alert:Description')) %}
+                {% block content %}
+                    <p data-restriction="{{ suspension.restriction }}" data-until="{{ suspension.until|date('c', 'UTC') }}">{{ phil_incident_sentence(suspension) }}</p>
+                {% endblock %}
+            {% endcomponent %}
+        {% endblock %}
+    {% endcomponent %}
+    <p>{{ 'suspended.later'|trans({}, domain) }}</p>
+{% endblock %}

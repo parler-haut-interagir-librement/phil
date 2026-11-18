@@ -1,0 +1,74 @@
+{
+    "name": "phil/organizations-bundle",
+    "description": "Organizations in a Symfony application: members, roles, teams and invitations, and acting on behalf of an organization with the real author recorded.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "organizations",
+        "teams",
+        "roles",
+        "permissions",
+        "invitations",
+        "multi-tenant",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-filter": "*",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "phil/access-links": "^0.1@dev || ^0.2@dev",
+        "phil/slug": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/service-contracts": "^3.6",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/orm": "^3.7",
+        "phil/access-bundle": "^0.2@dev",
+        "phil/privacy-bundle": "^0.1@dev",
+        "phil/resource": "^0.1@dev",
+        "phil/resource-permissions": "^0.2@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/security-core": "^8.2"
+    },
+    "suggest": {
+        "doctrine/orm": "To add the tables to the schema the ORM generates, for doctrine:migrations:diff",
+        "phil/access-bundle": "To publish memberships and roles as relations and tuples, partitioned by tenant",
+        "phil/privacy-bundle": "For the exporter and eraser of a member's personal data",
+        "symfony/console": "For phil:organizations:list, show, check-owners and purge-invitations",
+        "symfony/security-core": "For the voter of the organization permissions and roles"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\OrganizationsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\OrganizationsBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,3 @@
+class: 'dark'
+paginate: true
+theme: gaia

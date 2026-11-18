@@ -4,7 +4,7 @@ All notable changes to `phil/typography` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## 0.1.1-alpha - 2026-11-17
+## Unreleased
 
 The next version is 0.2.0-alpha: a text longer than 1 MiB, fixed before, is refused by default.
 
@@ -20,6 +20,12 @@ The next version is 0.2.0-alpha: a text longer than 1 MiB, fixed before, is refu
 ### Changed
 
 - Every entry point refuses a text longer than 1 MiB unless configured.
+
+## 0.1.1-alpha - 2026-11-17
+
+The next version is 0.1.1-alpha: documentation only.
+
+### Changed
 
 - The description of `composer.json`, shown on Packagist, says what the package does.
 - The README, in English and in French, says what the package does, without the wording of its first drafts.

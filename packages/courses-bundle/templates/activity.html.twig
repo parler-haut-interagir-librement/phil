@@ -1,0 +1,30 @@
+{#
+ # An activity being taken: the text of a page, the content of a package framed from the content origin, or the link
+ # that opens it in its own window; the button that marks it done when its type lets the learner; or why it cannot be
+ # taken now. The frame is sandboxed: the content keeps its own origin, which is never the application's.
+ #
+ # course: Course. activity: Activity. launch: ?Launch. error: ?string. manual: bool.
+ #}
+{% extends layout %}
+
+{% block title %}{{ activity.title }}{% endblock %}
+
+{% block main %}
+<p><a href="{{ path('phil_courses_outline', {course: course.id.value}) }}">{{ course.title }}</a></p>
+<h1>{{ activity.title }}</h1>
+{%- if error is not null %}
+<p class="phil-courses__error" role="alert">{{ error }}</p>
+{%- elseif launch.window.value == 'page' %}
+<div class="phil-courses__page">{{ activity.setting('body')|default('')|nl2br }}</div>
+{%- elseif launch.window.value == 'embedded' %}
+<iframe class="phil-courses__frame" src="{{ launch.url }}" title="{{ activity.title }}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads" allow="fullscreen; autoplay" referrerpolicy="no-referrer" loading="eager"></iframe>
+{%- else %}
+<p>{% component (phil_courses_kit('Button')) with {as: 'a', href: launch.url, target: '_blank', rel: 'noopener noreferrer'} %}{% block content %}{{ 'activity.open'|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}</p>
+{%- endif %}
+{%- if error is null and manual %}
+<form method="post" action="{{ path('phil_courses_complete', {course: course.id.value, activity: activity.id.value}) }}">
+    <input type="hidden" name="_token" value="{{ token }}">
+    {% component (phil_courses_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'activity.done'|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}
+</form>
+{%- endif %}
+{% endblock %}

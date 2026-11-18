@@ -1,0 +1,12 @@
+{
+    "bundles": {
+        "Phil\\OrganizationsBundle\\PhilOrganizationsBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "#1": "The key of the invitation tokens, at least 32 bytes: set it with bin/console secrets:set ORGANIZATIONS_INVITATION_KEY",
+        "ORGANIZATIONS_INVITATION_KEY": ""
+    }
+}

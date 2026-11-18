@@ -1,0 +1,10 @@
+# The slides of phil/slides: see vendor/phil/slides/doc/configuration.md for every option.
+phil_slides:
+    # Where a document is cut: auto (its separators when it has one, its headings otherwise), separators, headings or both.
+    split: auto
+    # The deepest heading that starts a slide.
+    heading_level: 2
+    # The shape of a slide when the source does not say it: '16:9' or '4:3'.
+    aspect_ratio: '16:9'
+    # The role the presenter routes ask for, when config/routes/phil_slides.yaml imports them; everyone else gets 403.
+    presenter_role: ROLE_SLIDES_PRESENTER

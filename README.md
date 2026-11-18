@@ -67,6 +67,8 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/svg-blocks`](https://github.com/parler-haut-interagir-librement/svg-blocks) | The math, mermaid, chart and QR code blocks of UJO documents drawn once when saved, as signed SVG or MathML. |
 | [`phil/number-words`](https://github.com/parler-haut-interagir-librement/number-words) | Numbers spelled out in words over ICU: cardinals, ordinals, gender and amounts of money, corrected for six languages. |
 | [`phil/citations`](https://github.com/parler-haut-interagir-librement/citations) | References kept as CSL-JSON, BibTeX and RIS import, and author-date, notes and numeric styles in English and French. |
+| [`phil/slides`](https://github.com/parler-haut-interagir-librement/slides) | Slides in Symfony from a UJO document or Markdown: speaker notes kept from the audience, fragments, a presenter view behind an optional protected route, and PDF export. |
+| [`phil/profile-editorial`](https://github.com/parler-haut-interagir-librement/profile-editorial) | One require for the packages that publish editorial content: safe markup, citations, footnotes and sidenotes, content warnings and schema.org data. |
 
 ### Forms and protection
 
@@ -82,6 +84,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/form-logic`](https://github.com/parler-haut-interagir-librement/form-logic) | Typed conditional logic for forms, evaluated alike in PHP and in a Stimulus controller with the server as judge, as a strict JsonLogic subset. |
 | [`phil/forms-bundle`](https://github.com/parler-haut-interagir-librement/forms-bundle) | Forms defined in the database: a page for each, protected against spam, questions asked under conditions, entries kept no longer than needed, sent by email or to a signed webhook. |
 | [`phil/upload-scan-bundle`](https://github.com/parler-haut-interagir-librement/upload-scan-bundle) | Uploads through the antivirus in Symfony: a constraint, a quarantine outside the web root, an admin page, rescans on a worker and a health check. |
+| [`phil/profile-secure-input`](https://github.com/parler-haut-interagir-librement/profile-secure-input) | One require for the packages that guard what users send: addresses, outgoing fetches, request rates, form spam and uploaded files. |
 
 ### Money, phone numbers and dates
 
@@ -218,6 +221,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/accessibility-statement-bundle`](https://github.com/parler-haut-interagir-librement/accessibility-statement-bundle) | The accessibility statement of an application: versioned, published at /accessibility in English and French with the wording of WCAG, EN 301 549 or the Accessible Canada Act. |
 | [`phil/resource-permissions`](https://github.com/parler-haut-interagir-librement/resource-permissions) | Permissions per resource on one subject-relation-object model: declared relations, rights inherited through a tree, bounded checks and listings. |
 | [`phil/access-bundle`](https://github.com/parler-haut-interagir-librement/access-bundle) | Per-item visibility, sharing levels that expire on their own, access groups and a logged "view as this member", decided by Symfony voters. |
+| [`phil/organizations-bundle`](https://github.com/parler-haut-interagir-librement/organizations-bundle) | Organizations in Symfony: members identified by an opaque subject, roles and teams, invitations limited in time and uses, joining by a verified email domain, and acting on behalf of an organization with the real author recorded. |
 | [`phil/access-codes`](https://github.com/parler-haut-interagir-librement/access-codes) | Single-use codes in named batches, given once and stored as keyed hashes, redeemed atomically with attempts bounded by a rate limiter. |
 | [`phil/access-links`](https://github.com/parler-haut-interagir-librement/access-links) | Invitations by personal link: a token stored as a keyed hash, an answer editable until closure, and reminders to non-respondents only. |
 | [`phil/privacy-bundle`](https://github.com/parler-haut-interagir-librement/privacy-bundle) | Privacy law in code: personal fields declared, logs redacted, export and erasure, retention purges, cookie consent refused by default, requests by verified link and anonymized database copies. |
@@ -249,6 +253,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/lti`](https://github.com/parler-haut-interagir-librement/lti) | LTI 1.3 on both sides, tool and platform: the OpenID Connect launch, Deep Linking 2.0, typed roles and claims, and the grade and roster services of LTI Advantage. |
 | [`phil/lti-bundle`](https://github.com/parler-haut-interagir-librement/lti-bundle) | LTI 1.3 in Symfony: the routes of the launch, Deep Linking and the key set, an authenticator for verified launches, stores on Doctrine DBAL and scores sent through Messenger. |
 | [`phil/elearning-packages`](https://github.com/parler-haut-interagir-librement/elearning-packages) | SCORM 1.2, SCORM 2004 and cmi5 packages read safely, without a learning platform: the archive checked before any file is read, the manifest read into values. |
+| [`phil/courses-bundle`](https://github.com/parler-haut-interagir-librement/courses-bundle) | Online courses in Symfony: modules and activities, enrollments, progress and completion, release by date, SCORM and cmi5 packages imported, cmi5 launches checked, a local or remote xAPI store. |
 
 ### Operations
 
@@ -266,6 +271,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/route-access-check-bundle`](https://github.com/parler-haut-interagir-librement/route-access-check-bundle) | `bin/console phil:route-access:check`: every route of the application has an access rule, or the CI step fails. |
 | [`phil/data-table-export`](https://github.com/parler-haut-interagir-librement/data-table-export) | Tables exported as CSV guarded against formula injection, or as XLSX written in blocks, the same bytes for the same sheet. |
 | [`phil/incident-mode`](https://github.com/parler-haut-interagir-librement/incident-mode) | An incident mode: presets that suspend sign-ups, invitations or messages for a required duration, lifted automatically. |
+| [`phil/incident-mode-bundle`](https://github.com/parler-haut-interagir-librement/incident-mode-bundle) | The incident mode in Symfony: sign-ups, invitations or forms paused during an attack, an honest public notice, lifting on a schedule, a log and an administration page. |
 | [`phil/status-page-bundle`](https://github.com/parler-haut-interagir-librement/status-page-bundle) | A service status page served as HTML, JSON and Atom without any script, and a static snapshot pushed off the monitored infrastructure. |
 | [`phil/error-tracking`](https://github.com/parler-haut-interagir-librement/error-tracking) | Error tracking kept at home: events grouped by a stable fingerprint, scrubbed of personal data and secrets before anything is written. |
 | [`phil/data-table-bundle`](https://github.com/parler-haut-interagir-librement/data-table-bundle) | Data tables as a Live Component: sorting, filters, pagination, row and bulk actions, inline editing, and the same state in the address without JavaScript. |
@@ -280,6 +286,9 @@ Require the package you need; a bundle brings its library along:
 ```sh
 composer require phil/money-bundle
 ```
+
+A profile installs a family of packages in one require: `phil/profile-secure-input` for what users send,
+`phil/profile-editorial` for editorial content.
 
 Each package's README and `doc/` say what it requires, how to configure it and what it leaves to the application.
 

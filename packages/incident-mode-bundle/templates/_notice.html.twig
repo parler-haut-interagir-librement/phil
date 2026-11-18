@@ -1,0 +1,26 @@
+{#
+    What is suspended now for the member of the request, and until when, in their language: a sentence per restriction,
+    or a sentence that says nothing is. The status page includes it; a page includes it too, or loads it from the route
+    phil_incident_mode_notice.
+#}
+{% set domain = 'phil_incident_mode' %}
+<div class="phil-incident-notice">
+    {% if suspensions is empty %}
+        <p role="status">{{ 'status.none'|trans({}, domain) }}</p>
+    {% else %}
+        {% component (phil_incident_kit('Alert')) with {variant: 'destructive', role: 'status'} %}
+            {% block content %}
+                {% component (phil_incident_kit('Alert:Title')) %}{% block content %}{{ 'status.suspended'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% component (phil_incident_kit('Alert:Description')) %}
+                    {% block content %}
+                        <ul>
+                            {% for suspension in suspensions %}
+                                <li data-restriction="{{ suspension.restriction }}" data-until="{{ suspension.until|date('c', 'UTC') }}">{{ phil_incident_sentence(suspension) }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endblock %}
+                {% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+    {% endif %}
+</div>

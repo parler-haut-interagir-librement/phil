@@ -226,6 +226,8 @@
             "vendor-bin/phpstan/vendor/bin/phpstan analyse --no-progress",
             "@php vendor/bin/phil-dev witnesses"
         ],
+        "profiles": "@php tests/profile-install.php",
+        "profiles:next": "@php vendor/bin/phil-dev php next -- php tests/profile-install.php",
         "rector": "vendor-bin/rector/vendor/bin/rector process --dry-run",
         "rector:fix": "vendor-bin/rector/vendor/bin/rector process",
         "sbom": "@php vendor/bin/phil-dev sbom",
@@ -275,6 +277,8 @@
         "packages": "Each package installed on its own, with its dependency analysis and its tests.",
         "packages:next": "The same, on the next PHP of the matrix.",
         "phpstan": "PHPStan at the maximum level, then the witnesses that prove each forbidden call is still reported.",
+        "profiles": "Each profile, a metapackage, installed on its own in a new project from Packagist, its members booted in a kernel.",
+        "profiles:next": "The same, on the next PHP of the matrix.",
         "sbom": "The CycloneDX bill of materials of each package, under var/phil-dev/sbom/.",
         "split": "The finished packages split to their public repositories; dry run unless --push is given.",
         "taint": "The taint analysis of Psalm on the production code; a script of its own.",

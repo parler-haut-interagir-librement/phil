@@ -1,0 +1,150 @@
+{#
+    The administration of the incident mode: the incidents in force, each with the form that extends it within its
+    preset and the one that lifts it; the presets, each with the form that starts an incident for its proposed duration
+    or another within its longest; and the journal, a page at a time. Its parts are recipes of the kit — Alert, Badge,
+    Button, Field, Input, NativeSelect, Table, Textarea —, which the PHIL UX kit and the Shadcn kit both have.
+#}
+{% extends layout %}
+
+{% import _self as incident %}
+
+{% set domain = 'phil_incident_mode' %}
+
+{% macro duration_fields(prefix, amount, unit, units, domain) %}
+    {% component (phil_incident_kit('Field')) %}
+        {% block content %}
+            {% component (phil_incident_kit('Field:Label')) with {for: prefix ~ '-amount'} %}{% block content %}{{ 'admin.amount'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% component (phil_incident_kit('Input')) with {id: prefix ~ '-amount', name: 'amount', type: 'number', min: 1, required: true, value: amount} %}{% endcomponent %}
+        {% endblock %}
+    {% endcomponent %}
+    {% component (phil_incident_kit('Field')) %}
+        {% block content %}
+            {% component (phil_incident_kit('Field:Label')) with {for: prefix ~ '-unit'} %}{% block content %}{{ 'admin.unit'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% component (phil_incident_kit('NativeSelect')) with {id: prefix ~ '-unit', name: 'unit', required: true} %}
+                {% block content %}
+                    {% for choice in units %}
+                        {% component (phil_incident_kit('NativeSelect:Option')) with {value: choice, selected: choice is same as(unit)} %}{% block content %}{{ ('unit.' ~ choice)|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% endfor %}
+                {% endblock %}
+            {% endcomponent %}
+        {% endblock %}
+    {% endcomponent %}
+{% endmacro %}
+
+{% block title %}{{ 'admin.title'|trans({}, domain) }}{% endblock %}
+
+{% block main %}
+    <h1>{{ 'admin.title'|trans({}, domain) }}</h1>
+
+    {% if error is not null %}
+        {% component (phil_incident_kit('Alert')) with {variant: 'destructive'} %}
+            {% block content %}
+                {% component (phil_incident_kit('Alert:Title')) %}{% block content %}{{ error|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+    {% endif %}
+
+    <section aria-labelledby="phil-incident-in-force">
+        <h2 id="phil-incident-in-force">{{ 'admin.in_force'|trans({}, domain) }}</h2>
+        {% for item in in_force %}
+            {% set activation = item.activation %}
+            <article class="phil-incident" aria-labelledby="phil-incident-{{ activation.id }}">
+                <h3 id="phil-incident-{{ activation.id }}">{{ phil_incident_preset(activation.preset) }}</h3>
+                <p>
+                    {% for name in activation.restrictionNames() %}
+                        {% component (phil_incident_kit('Badge')) with {variant: 'destructive'} %}{% block content %}{{ phil_incident_restriction(name) }}{% endblock %}{% endcomponent %}
+                    {% endfor %}
+                </p>
+                <p>{{ 'admin.until'|trans({'%until%': phil_incident_moment(activation.endsAt)}, domain) }}</p>
+                {% if activation.reason is not null %}<p>{{ activation.reason }}</p>{% endif %}
+                {% if item.extensible is not null %}
+                    <form method="post" action="{{ path('phil_incident_mode_admin_extend', {id: activation.id}) }}">
+                        <input type="hidden" name="_token" value="{{ token }}">
+                        <p>{{ 'admin.extensible'|trans({'%duration%': phil_incident_duration(item.extensible)}, domain) }}</p>
+                        {{ incident.duration_fields('phil-incident-extend-' ~ activation.id, 1, 'hours', units, domain) }}
+                        {% component (phil_incident_kit('Button')) with {type: 'submit', variant: 'outline'} %}{% block content %}{{ 'admin.extend'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    </form>
+                {% else %}
+                    <p>{{ 'admin.not_extensible'|trans({}, domain) }}</p>
+                {% endif %}
+                <form method="post" action="{{ path('phil_incident_mode_admin_lift', {id: activation.id}) }}">
+                    <input type="hidden" name="_token" value="{{ token }}">
+                    {% component (phil_incident_kit('Button')) with {type: 'submit', variant: 'destructive'} %}{% block content %}{{ 'admin.lift'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                </form>
+            </article>
+        {% else %}
+            <p>{{ 'admin.none'|trans({}, domain) }}</p>
+        {% endfor %}
+    </section>
+
+    <section aria-labelledby="phil-incident-presets">
+        <h2 id="phil-incident-presets">{{ 'admin.start'|trans({}, domain) }}</h2>
+        {% for item in presets %}
+            {% set preset = item.preset %}
+            <form method="post" action="{{ path('phil_incident_mode_admin_start') }}" class="phil-incident-preset" aria-labelledby="phil-incident-preset-{{ preset.name }}">
+                <input type="hidden" name="_token" value="{{ token }}">
+                <input type="hidden" name="preset" value="{{ preset.name }}">
+                <h3 id="phil-incident-preset-{{ preset.name }}">{{ phil_incident_preset(preset) }}</h3>
+                <p>
+                    {% for name in preset.restrictionNames() %}
+                        {% component (phil_incident_kit('Badge')) with {variant: 'secondary'} %}{% block content %}{{ phil_incident_restriction(name) }}{% endblock %}{% endcomponent %}
+                    {% endfor %}
+                </p>
+                <p>{{ 'admin.durations'|trans({'%proposed%': phil_incident_duration(preset.defaultDuration), '%longest%': phil_incident_duration(preset.maximumDuration)}, domain) }}</p>
+                {{ incident.duration_fields('phil-incident-start-' ~ preset.name, item.proposed.amount, item.proposed.unit, units, domain) }}
+                {% component (phil_incident_kit('Field')) %}
+                    {% block content %}
+                        {% component (phil_incident_kit('Field:Label')) with {for: 'phil-incident-start-' ~ preset.name ~ '-reason'} %}{% block content %}{{ 'admin.reason'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                        {% component (phil_incident_kit('Textarea')) with {id: 'phil-incident-start-' ~ preset.name ~ '-reason', name: 'reason', rows: 2, maxlength: 500, 'aria-describedby': 'phil-incident-start-' ~ preset.name ~ '-reason-help'} %}{% block content %}{% endblock %}{% endcomponent %}
+                        {% component (phil_incident_kit('Field:Description')) with {id: 'phil-incident-start-' ~ preset.name ~ '-reason-help'} %}{% block content %}{{ 'admin.reason_help'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% endblock %}
+                {% endcomponent %}
+                {% component (phil_incident_kit('Button')) with {type: 'submit', variant: 'destructive'} %}{% block content %}{{ 'admin.submit'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            </form>
+        {% endfor %}
+    </section>
+
+    <section aria-labelledby="phil-incident-journal">
+        <h2 id="phil-incident-journal">{{ 'admin.journal'|trans({}, domain) }}</h2>
+        {% if journal is empty %}
+            <p>{{ 'admin.never'|trans({}, domain) }}</p>
+        {% else %}
+            {% component (phil_incident_kit('Table')) %}
+                {% block content %}
+                    {% component (phil_incident_kit('Table:Header')) %}
+                        {% block content %}
+                            {% component (phil_incident_kit('Table:Row')) %}
+                                {% block content %}
+                                    {% for column in ['preset', 'started', 'ended', 'how', 'started_by', 'lifted_by', 'reason'] %}
+                                        {% component (phil_incident_kit('Table:Head')) with {scope: 'col'} %}{% block content %}{{ ('journal.' ~ column)|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                    {% endfor %}
+                                {% endblock %}
+                            {% endcomponent %}
+                        {% endblock %}
+                    {% endcomponent %}
+                    {% component (phil_incident_kit('Table:Body')) %}
+                        {% block content %}
+                            {% for activation in journal %}
+                                {% component (phil_incident_kit('Table:Row')) %}
+                                    {% block content %}
+                                        {% component (phil_incident_kit('Table:Cell')) %}{% block content %}{{ phil_incident_preset(activation.preset) }}{% endblock %}{% endcomponent %}
+                                        {% component (phil_incident_kit('Table:Cell')) %}{% block content %}<time datetime="{{ activation.startedAt|date('c', 'UTC') }}">{{ phil_incident_moment(activation.startedAt) }}</time>{% endblock %}{% endcomponent %}
+                                        {% component (phil_incident_kit('Table:Cell')) %}{% block content %}<time datetime="{{ (activation.liftedAt ?? activation.endsAt)|date('c', 'UTC') }}">{{ phil_incident_moment(activation.liftedAt ?? activation.endsAt) }}</time>{% endblock %}{% endcomponent %}
+                                        {% component (phil_incident_kit('Table:Cell')) %}{% block content %}{{ (activation.liftReason is null ? 'journal.open' : 'journal.' ~ activation.liftReason.value)|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                        {% component (phil_incident_kit('Table:Cell')) %}{% block content %}{{ activation.startedBy.id ?? '—' }}{% endblock %}{% endcomponent %}
+                                        {% component (phil_incident_kit('Table:Cell')) %}{% block content %}{{ activation.liftedBy.id ?? '—' }}{% endblock %}{% endcomponent %}
+                                        {% component (phil_incident_kit('Table:Cell')) %}{% block content %}{{ activation.reason ?? '' }}{% endblock %}{% endcomponent %}
+                                    {% endblock %}
+                                {% endcomponent %}
+                            {% endfor %}
+                        {% endblock %}
+                    {% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
+            <nav aria-label="{{ 'admin.pages'|trans({}, domain) }}">
+                {% if page > 1 %}<a href="{{ path('phil_incident_mode_admin', {page: page - 1}) }}" rel="prev">{{ 'admin.previous'|trans({}, domain) }}</a>{% endif %}
+                {% if has_next %}<a href="{{ path('phil_incident_mode_admin', {page: page + 1}) }}" rel="next">{{ 'admin.next'|trans({}, domain) }}</a>{% endif %}
+            </nav>
+        {% endif %}
+    </section>
+{% endblock %}

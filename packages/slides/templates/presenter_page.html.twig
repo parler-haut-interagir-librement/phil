@@ -1,0 +1,12 @@
+{#
+    The page of the presenter route: the presenter view of a deck in the layout of `phil_slides.layout`.
+
+    layout: string. deck: Deck. audience_url: ?string. duration: int, in minutes. notes_pdf_url: ?string.
+#}
+{% extends layout %}
+
+{% block title %}{{ 'presenter.title'|trans({}, 'phil_slides') }}{% if deck.settings.title is not null %} – {{ deck.settings.title }}{% endif %}{% endblock %}
+
+{% block main %}
+{{ include('@PhilSlides/presenter.html.twig', {deck: deck, audience_url: audience_url, duration: duration, notes_pdf_url: notes_pdf_url}, with_context: false) }}
+{% endblock %}

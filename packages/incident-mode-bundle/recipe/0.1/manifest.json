@@ -1,0 +1,8 @@
+{
+    "bundles": {
+        "Phil\\IncidentModeBundle\\PhilIncidentModeBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    }
+}

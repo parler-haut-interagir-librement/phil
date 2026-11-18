@@ -1,0 +1,18 @@
+{#
+ # The page around the courses when the application names no layout of its own: the application's layout fills the
+ # same two blocks, "title" and "main".
+ #}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{% block title %}{% endblock %}</title>
+</head>
+<body>
+    <main class="phil-courses">
+        {% block main %}{% endblock %}
+    </main>
+</body>
+</html>

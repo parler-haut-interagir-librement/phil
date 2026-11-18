@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a6b56386cbc43641a7d9c1e2de0ff3791eedbb103292a118c2c0177a0c42d4d4 -->
+<!-- phil-dev source-sha256=2a1dd568ba32103f24036814872039711beac40b89bfd49711fa26b42d757f00 -->
 # phil/access-bundle
 
 **Qui voit et qui peut modifier chaque élément d'un site : visibilité, niveaux de partage, groupes d'accès, accès qui se
@@ -43,7 +43,7 @@ recettes du kit PHIL UX.
 | `AccessVoter` et `EasyAdminAccessVoter`, avec les raisons de chaque vote | Implémenté et testé |
 | Les fonctions Twig `access_can`, `access_visibility`, `access_viewing_as` ; les composants `PhilAccess:ViewAsBanner` et `PhilAccess:AccessSummary` sur les recettes du kit | Implémenté et testé |
 | Magasin Doctrine DBAL et écouteur de schéma, magasin en mémoire, `phil:access:purge` et son `--all-tenants` | Implémenté et testé |
-| Organisations et leurs rôles, depuis `phil/organizations-bundle` | Prévu, une fois ce bundle publié |
+| Organisations et leurs rôles, depuis `phil/organizations-bundle` | Dans ce bundle : une fois installé, ses organisations, équipes et rôles sont des types, des relations et des tuples de ce modèle |
 
 ## Documentation
 

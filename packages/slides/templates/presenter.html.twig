@@ -1,0 +1,78 @@
+{#
+    The presenter view of a deck, for the speaker's own window:
+
+        {{ include('@PhilSlides/presenter.html.twig', {deck: slides_deck(talk.body), audience_url: path('talk_show', {id: talk.id}), duration: 20}) }}
+
+    Each slide comes with its notes. Without script, they follow one another, a script to read from. The Stimulus
+    controller phil--slides--presenter shows the current slide and its notes, the next slide beside them, a timer, and
+    drives every window of the same deck through a BroadcastChannel, with no server. This page holds the notes: it is
+    served to the speaker only, by the presenter route of the bundle or behind the application's own access control.
+
+    `audience_url` links to the audience page, opened in a window of its own; `notes_pdf_url` links to the PDF with the
+    notes; `duration`, in minutes, adds the time left to the timer; `id` names the element, `phil-slides-presenter` by
+    default. The buttons and the links are the recipe `Button` of the kit the application installed.
+#}
+{%- set domain = 'phil_slides' -%}
+{%- set controller = 'phil--slides--presenter' -%}
+<section id="{{ id ?? 'phil-slides-presenter' }}" class="phil-slides-presenter" aria-labelledby="{{ id ?? 'phil-slides-presenter' }}-title"{% if deck.settings.language is not null %} lang="{{ deck.settings.language }}"{% endif %} data-ratio="{{ deck.settings.aspectRatio.value }}"
+    data-controller="{{ controller }}"
+    data-{{ controller }}-channel-value="{{ deck.id }}"
+    data-{{ controller }}-fragment-class-value="{{ slides_fragment_class() }}"
+    data-{{ controller }}-duration-value="{{ ((duration ?? 0) * 60)|round }}"
+    data-{{ controller }}-status-value="{{ 'status'|trans({}, domain) }}"
+    data-{{ controller }}-titled-status-value="{{ 'status.titled'|trans({}, domain) }}"
+    data-{{ controller }}-counter-value="{{ 'slide.number'|trans({}, domain) }}"
+    data-action="keydown@window->{{ controller }}#key">
+    <h1 id="{{ id ?? 'phil-slides-presenter' }}-title" class="phil-slides-presenter__title">{{ 'presenter.title'|trans({}, domain) }}{% if deck.settings.title is not null %} – {{ deck.settings.title }}{% endif %}</h1>
+    {%- if audience_url ?? null %}
+        <p class="phil-slides-presenter__audience">
+            {%- component (slides_kit('Button')) with {as: 'a', variant: 'outline', size: 'sm', href: audience_url, target: 'phil-slides-audience', 'data-action': controller ~ '#openAudience'} %}{% block content %}{{ 'presenter.audience'|trans({}, domain) }}{% endblock %}{% endcomponent -%}
+        </p>
+    {%- endif %}
+    {%- if notes_pdf_url ?? null %}
+        <p class="phil-slides-presenter__pdf">
+            {%- component (slides_kit('Button')) with {as: 'a', variant: 'outline', size: 'sm', href: notes_pdf_url, download: true} %}{% block content %}{{ 'presenter.notes_pdf'|trans({}, domain) }}{% endblock %}{% endcomponent -%}
+        </p>
+    {%- endif %}
+    <p class="phil-slides__status" role="status" aria-live="polite" aria-atomic="true" data-{{ controller }}-target="status"></p>
+    <div class="phil-slides-presenter__pairs">
+        {%- for slide in deck.slides %}
+            <article class="phil-slides-presenter__pair" aria-label="{{ 'slide.label'|trans({'%number%': slide.number, '%count%': deck.count}, domain) }}" data-{{ controller }}-target="pair">
+                <div class="phil-slides phil-slides-presenter__current" data-ratio="{{ deck.settings.aspectRatio.value }}">
+                    {{ include('@PhilSlides/_slide.html.twig', {deck: deck, slide: slide, target: controller}, with_context: false) }}
+                </div>
+                <section class="phil-slides-presenter__notes" aria-label="{{ 'presenter.notes_for'|trans({'%number%': slide.number}, domain) }}">
+                    <h2>{{ 'presenter.notes'|trans({}, domain) }}</h2>
+                    {%- if slide.hasNotes %}
+                        {{ slides_notes(slide) }}
+                    {%- else %}
+                        <p class="isMuted">{{ 'presenter.no_notes'|trans({}, domain) }}</p>
+                    {%- endif %}
+                </section>
+            </article>
+        {%- endfor %}
+    </div>
+    <aside class="phil-slides-presenter__side" hidden data-{{ controller }}-target="side">
+        <section class="phil-slides-presenter__next" aria-labelledby="{{ id ?? 'phil-slides-presenter' }}-next">
+            <h2 id="{{ id ?? 'phil-slides-presenter' }}-next">{{ 'presenter.next'|trans({}, domain) }}</h2>
+            <div class="phil-slides" data-ratio="{{ deck.settings.aspectRatio.value }}" aria-hidden="true" data-{{ controller }}-target="next"></div>
+            <p class="phil-slides-presenter__end" hidden data-{{ controller }}-target="end">{{ 'presenter.end'|trans({}, domain) }}</p>
+        </section>
+        <section class="phil-slides-presenter__timer" aria-labelledby="{{ id ?? 'phil-slides-presenter' }}-timer">
+            <h2 id="{{ id ?? 'phil-slides-presenter' }}-timer">{{ 'presenter.timer'|trans({}, domain) }}</h2>
+            <p>{{ 'presenter.elapsed'|trans({}, domain) }} <time class="phil-slides-presenter__clock" data-{{ controller }}-target="elapsed">0:00</time></p>
+            {%- if (duration ?? 0) > 0 %}
+                <p>{{ 'presenter.remaining'|trans({}, domain) }} <time class="phil-slides-presenter__clock" data-{{ controller }}-target="remaining"></time></p>
+            {%- endif %}
+            <p>
+                {%- component (slides_kit('Button')) with {'aria-pressed': 'false', ('data-' ~ controller ~ '-target'): 'toggle', 'data-action': controller ~ '#toggleTimer', 'data-start-label': 'presenter.start'|trans({}, domain), 'data-pause-label': 'presenter.pause'|trans({}, domain)} %}{% block content %}{{ 'presenter.start'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {%- component (slides_kit('Button')) with {variant: 'outline', 'data-action': controller ~ '#resetTimer'} %}{% block content %}{{ 'presenter.reset'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            </p>
+        </section>
+        <nav class="phil-slides__controls" aria-label="{{ 'controls.label'|trans({}, domain) }}">
+            {%- component (slides_kit('Button')) with {variant: 'secondary', 'data-action': controller ~ '#previous'} %}{% block content %}{{ 'controls.previous'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            <span class="phil-slides__counter" data-{{ controller }}-target="counter">{{ 'slide.number'|trans({'%number%': 1, '%count%': deck.count}, domain) }}</span>
+            {%- component (slides_kit('Button')) with {variant: 'secondary', 'data-action': controller ~ '#next'} %}{% block content %}{{ 'controls.next'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        </nav>
+    </aside>
+</section>

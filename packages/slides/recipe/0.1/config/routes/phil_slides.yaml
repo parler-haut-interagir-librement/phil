@@ -1,0 +1,7 @@
+# The presenter view of a deck and the PDF of the deck with its notes, for the role phil_slides.presenter_role only.
+# Uncomment to serve them, behind the firewall, once a service implements Phil\Slides\Application\Contract\PresentedDecks
+# (see vendor/phil/slides/doc/presenter.md). The audience page stays a route of the application's own.
+#
+#phil_slides_presenter:
+#    resource: '@PhilSlidesBundle/config/routes.php'
+#    prefix: /presenter

@@ -6,7 +6,9 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.2.0-alpha: an inline HTML fragment longer than 4 MiB, read before, is refused by default.
+The next version is 0.1.3-alpha: an inline HTML fragment longer than 4 MiB, read before, is refused by default. A
+patch version and not a minor one: only a document built in PHP can carry such a fragment, since `JsonDecoder` already
+refuses a JSON document longer than 4 MiB.
 
 ### Added
 

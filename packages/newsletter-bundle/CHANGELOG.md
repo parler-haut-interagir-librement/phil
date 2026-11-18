@@ -19,6 +19,7 @@ MariaDB. See [Upgrading from 0.1](doc/storage.md#upgrading-from-01).
   gives it: on MySQL and MariaDB, the columns of `NewsletterSchema::BINARY_COLUMNS` — identifiers, sites, list and
   template keys, `email_key`, `external_id` and the hashes — take the `utf8mb4` character set and the `utf8mb4_bin`
   collation. PostgreSQL and SQLite keep their default, which compares bytes already.
+- It accepts `phil/markup` 0.3 beside 0.2.
 
 ### Fixed
 

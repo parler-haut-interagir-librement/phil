@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'outline.not_enrolled' => 'Vous n’êtes pas inscrit à ce cours.',
+    'outline.enroll' => 'S’inscrire',
+    'outline.progress' => '%percent% % fait',
+    'outline.completed' => 'Vous avez terminé ce cours.',
+    'outline.waiting' => 'S’ouvre une fois l’activité précédente faite.',
+    'outline.start' => 'Commencer',
+    'outline.revisit' => 'Revoir',
+    'outline.reason' => 'Pourquoi vous demandez un nouvel essai',
+    'outline.ask_retry' => 'Demander un nouvel essai',
+    'state.open' => 'À faire',
+    'state.satisfied' => 'Fait',
+    'state.scheduled' => 'S’ouvre plus tard',
+    'state.locked' => 'Verrouillé',
+    'state.retry_needed' => 'Essais épuisés',
+    'state.retry_requested' => 'Nouvel essai demandé',
+    'activity.open' => 'Ouvrir l’activité',
+    'activity.done' => 'Marquer comme fait',
+    'admin.title' => 'Nouvelles chances en attente d’une décision',
+    'admin.none' => 'Aucune demande n’attend de décision.',
+    'admin.pending' => 'En attente',
+    'admin.learner' => 'Apprenant',
+    'admin.asked_at' => 'Demandée le',
+    'admin.tries' => 'Essais',
+    'admin.failures' => '%failures% échoués, sans limite',
+    'admin.failures_of' => '%failures% échoués sur %tries%',
+    'admin.reason' => 'Motif',
+    'admin.no_reason' => 'Aucun motif donné.',
+    'admin.note' => 'Note sur la décision',
+    'admin.grant' => 'Accorder un autre essai',
+    'admin.refuse' => 'Refuser',
+    'admin.waive' => 'Dispenser de l’activité',
+];

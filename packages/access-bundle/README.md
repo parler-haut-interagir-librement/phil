@@ -39,7 +39,7 @@ this member" and the summary of who has access are Twig components drawn with th
 | `AccessVoter` and `EasyAdminAccessVoter`, with the reasons of each vote | Implemented and tested |
 | The Twig functions `access_can`, `access_visibility`, `access_viewing_as`; the components `PhilAccess:ViewAsBanner` and `PhilAccess:AccessSummary` on the recipes of the kit | Implemented and tested |
 | Doctrine DBAL store and schema listener, in-memory store, `phil:access:purge` and its `--all-tenants` | Implemented and tested |
-| Organizations and their roles, from `phil/organizations-bundle` | Planned, once that bundle exists |
+| Organizations and their roles, from `phil/organizations-bundle` | In that bundle: with it installed, its organizations, teams and roles are kinds, relations and tuples of this model |
 
 ## Documentation
 

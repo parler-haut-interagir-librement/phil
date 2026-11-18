@@ -1,0 +1,13 @@
+{#
+    The public page of the incident mode: what is suspended now for the member of the request, and until when.
+#}
+{% extends layout %}
+
+{% set domain = 'phil_incident_mode' %}
+
+{% block title %}{{ 'status.title'|trans({}, domain) }}{% endblock %}
+
+{% block main %}
+    <h1>{{ 'status.title'|trans({}, domain) }}</h1>
+    {{ include('@PhilIncidentMode/_notice.html.twig') }}
+{% endblock %}

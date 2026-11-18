@@ -1,0 +1,87 @@
+{
+    "name": "phil/slides",
+    "description": "Slides in Symfony from a UJO document or Markdown: speaker notes kept from the audience, a presenter view, keyboard navigation and PDF export.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "slides",
+        "presentation",
+        "ujo",
+        "markdown",
+        "stimulus",
+        "pdf",
+        "symfony-ux",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "phil/markup": "^0.2@dev || ^0.3@dev",
+        "phil/paged-media": "^0.1@dev",
+        "phil/ujo": "^0.1@dev",
+        "phil/ujo-bundle": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "phil/paged-media-bundle": "^0.1@dev",
+        "phil/ux-kit": ">=0.5.0-alpha <1.0",
+        "phil/ux-kit-shadcn": ">=0.1.0-alpha <1.0",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/browser-kit": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-toolkit": "^3.7.1",
+        "symfony/yaml": "^8.2",
+        "twig/html-extra": "^3.24"
+    },
+    "suggest": {
+        "phil/paged-media-bundle": "For DeckPdf, the PDF of a deck through the configured print engine",
+        "phil/ux-kit": "For the recipe Button the templates draw their buttons and links with, through the Symfony UX Toolkit; or the Button of the Shadcn kit, with phil/ux-kit-shadcn",
+        "symfony/asset-mapper": "For the Stimulus controllers and the stylesheet, served without a build step",
+        "symfony/security-bundle": "For the role the presenter routes ask for; without an authorization checker they are refused to everyone",
+        "symfony/stimulus-bundle": "For the controllers registered from assets/controllers.json",
+        "symfony/translation": "For the labels of the templates in English and French",
+        "symfony/twig-bundle": "For the templates, the Twig functions and DeckPrint"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Slides\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Slides\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

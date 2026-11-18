@@ -1,0 +1,36 @@
+{
+    "name": "@phil/slides",
+    "description": "The Stimulus controllers and the stylesheet of phil/slides: one slide at a time with its fragments, the keyboard, full screen, and a presenter view with the next slide, the notes and a timer, kept in step through a BroadcastChannel",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/deck_controller.js",
+    "symfony": {
+        "controllers": {
+            "deck": {
+                "main": "src/deck_controller.js",
+                "webpackMode": "lazy",
+                "fetch": "lazy",
+                "enabled": true,
+                "autoimport": {
+                    "@phil/slides/styles/slides.css": true
+                }
+            },
+            "presenter": {
+                "main": "src/presenter_controller.js",
+                "webpackMode": "lazy",
+                "fetch": "lazy",
+                "enabled": true,
+                "autoimport": {
+                    "@phil/slides/styles/slides.css": true
+                }
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

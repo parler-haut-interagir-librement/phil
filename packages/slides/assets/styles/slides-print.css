@@ -1,0 +1,68 @@
+/*
+ * The layout of a deck printed by a paged-media engine, after the @page rule of DeckPrint: each slide fills its page,
+ * or, with the notes, the upper part of an upright page whose lower part holds them. Every fragment shows.
+ */
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.phil-slides-print {
+    --phil-slides-ratio: 16 / 9;
+    font-family: system-ui, sans-serif;
+}
+
+.phil-slides-print[data-ratio="4:3"] {
+    --phil-slides-ratio: 4 / 3;
+}
+
+.phil-slides-print__page {
+    break-after: page;
+    break-inside: avoid;
+}
+
+.phil-slides-print__page:last-child {
+    break-after: auto;
+}
+
+.phil-slides-print .phil-slide {
+    aspect-ratio: var(--phil-slides-ratio);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: hidden;
+    padding: 4% 5%;
+    font-size: 24pt;
+}
+
+.phil-slides-print:not(.hasNotes) .phil-slide {
+    height: 100vh;
+}
+
+.phil-slides-print.hasNotes .phil-slide {
+    border: 0.75pt solid #999;
+    font-size: 11pt;
+}
+
+.phil-slide__content {
+    flex: 1;
+}
+
+.phil-slide__header,
+.phil-slide__footer {
+    display: flex;
+    justify-content: space-between;
+    color: #555;
+    font-size: 0.6em;
+}
+
+.phil-slide__number {
+    margin-inline-start: auto;
+}
+
+.phil-slides-print__notes {
+    margin-block-start: 18pt;
+    font-size: 11pt;
+}

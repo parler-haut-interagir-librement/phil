@@ -69,6 +69,8 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/svg-blocks`](https://github.com/parler-haut-interagir-librement/svg-blocks) | Les blocs math, mermaid, chart et code QR des documents UJO dessinés une fois à l'enregistrement, en SVG ou MathML signés. |
 | [`phil/number-words`](https://github.com/parler-haut-interagir-librement/number-words) | Nombres en toutes lettres sur ICU : cardinaux, ordinaux, genre et montants d'argent, corrigés pour six langues. |
 | [`phil/citations`](https://github.com/parler-haut-interagir-librement/citations) | Références gardées en CSL-JSON, import BibTeX et RIS, et styles auteur-date, notes et numérique en anglais et en français. |
+| [`phil/slides`](https://github.com/parler-haut-interagir-librement/slides) | Des diapositives dans Symfony à partir d'un document UJO ou de Markdown : notes de l'orateur cachées au public, fragments, vue du présentateur derrière une route protégée facultative, et export PDF. |
+| [`phil/profile-editorial`](https://github.com/parler-haut-interagir-librement/profile-editorial) | Un seul require pour les paquets qui publient du contenu éditorial : balisage sûr, citations, notes de bas de page et notes en marge, avertissements de contenu et données schema.org. |
 
 ### Formulaires et protection
 
@@ -84,6 +86,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/form-logic`](https://github.com/parler-haut-interagir-librement/form-logic) | Une logique conditionnelle typée pour les formulaires, évaluée pareil en PHP et dans un contrôleur Stimulus, le serveur ayant le dernier mot, en sous-ensemble strict de JsonLogic. |
 | [`phil/forms-bundle`](https://github.com/parler-haut-interagir-librement/forms-bundle) | Des formulaires définis en base : une page pour chacun, protégée du pourriel, des questions posées sous condition, des réponses gardées le temps nécessaire, envoyées par courriel ou à un webhook signé. |
 | [`phil/upload-scan-bundle`](https://github.com/parler-haut-interagir-librement/upload-scan-bundle) | Les téléversements passés à l'antivirus dans Symfony : une contrainte, une quarantaine hors de la racine web, une page d'administration, des analyses sur un worker et un contrôle de santé. |
+| [`phil/profile-secure-input`](https://github.com/parler-haut-interagir-librement/profile-secure-input) | Un seul require pour les paquets qui gardent ce que les usagers envoient : adresses, requêtes sortantes, débit des requêtes, pourriel des formulaires et fichiers téléversés. |
 
 ### Argent, téléphones et dates
 
@@ -220,6 +223,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/accessibility-statement-bundle`](https://github.com/parler-haut-interagir-librement/accessibility-statement-bundle) | La déclaration d'accessibilité d'une application : versionnée, publiée à /accessibilite en français et en anglais avec le libellé des WCAG, d'EN 301 549 ou de la Loi canadienne sur l'accessibilité. |
 | [`phil/resource-permissions`](https://github.com/parler-haut-interagir-librement/resource-permissions) | Permissions par ressource sur un seul modèle sujet-relation-objet : relations déclarées, droits hérités dans un arbre, vérifications et listes bornées. |
 | [`phil/access-bundle`](https://github.com/parler-haut-interagir-librement/access-bundle) | Visibilité par élément, niveaux de partage qui expirent seuls, groupes d'accès et « voir comme ce membre » journalisé, décidés par des voteurs Symfony. |
+| [`phil/organizations-bundle`](https://github.com/parler-haut-interagir-librement/organizations-bundle) | Les organisations dans Symfony : des membres désignés par un sujet opaque, des rôles et des équipes, des invitations limitées dans le temps et en usages, l'adhésion par un domaine de courriel vérifié, et l'action au nom d'une organisation avec l'auteur réel consigné. |
 | [`phil/access-codes`](https://github.com/parler-haut-interagir-librement/access-codes) | Codes à usage unique par lots nommés, remis une seule fois et gardés en empreintes à clé, rachetés de façon atomique, essais bornés par un limiteur. |
 | [`phil/access-links`](https://github.com/parler-haut-interagir-librement/access-links) | Invitations par lien personnel : jeton gardé en empreinte à clé, réponse modifiable jusqu'à la clôture, rappels aux seuls non-répondants. |
 | [`phil/privacy-bundle`](https://github.com/parler-haut-interagir-librement/privacy-bundle) | Les lois sur la vie privée en code : champs personnels déclarés, journaux expurgés, export et effacement, purges de conservation, consentement aux témoins refusé par défaut, demandes par lien vérifié et copies de base anonymisées. |
@@ -251,6 +255,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/lti`](https://github.com/parler-haut-interagir-librement/lti) | LTI 1.3 des deux côtés, outil et plateforme : le lancement OpenID Connect, Deep Linking 2.0, des rôles et des revendications typés, et les services de notes et de listes de LTI Advantage. |
 | [`phil/lti-bundle`](https://github.com/parler-haut-interagir-librement/lti-bundle) | LTI 1.3 dans Symfony : les routes du lancement, de Deep Linking et du jeu de clés, un authentificateur des lancements vérifiés, des magasins sur Doctrine DBAL et des notes envoyées par Messenger. |
 | [`phil/elearning-packages`](https://github.com/parler-haut-interagir-librement/elearning-packages) | Les paquets SCORM 1.2, SCORM 2004 et cmi5 lus de façon sûre, sans plateforme d'apprentissage : l'archive vérifiée avant toute lecture, le manifeste lu en valeurs. |
+| [`phil/courses-bundle`](https://github.com/parler-haut-interagir-librement/courses-bundle) | Des cours en ligne dans Symfony : modules et activités, inscriptions, progression et achèvement, ouverture par date, import des paquets SCORM et cmi5, lancements cmi5 vérifiés, un magasin xAPI local ou distant. |
 
 ### Exploitation
 
@@ -268,6 +273,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/route-access-check-bundle`](https://github.com/parler-haut-interagir-librement/route-access-check-bundle) | `bin/console phil:route-access:check` : chaque route de l'application a une règle d'accès, sinon l'étape d'intégration continue échoue. |
 | [`phil/data-table-export`](https://github.com/parler-haut-interagir-librement/data-table-export) | Des tableaux exportés en CSV gardé contre l'injection de formules, ou en XLSX écrit par blocs, les mêmes octets pour la même feuille. |
 | [`phil/incident-mode`](https://github.com/parler-haut-interagir-librement/incident-mode) | Un mode incident : des préréglages qui suspendent inscriptions, invitations ou messages pour une durée obligatoire, levés automatiquement. |
+| [`phil/incident-mode-bundle`](https://github.com/parler-haut-interagir-librement/incident-mode-bundle) | Le mode incident dans Symfony : inscriptions, invitations ou formulaires suspendus pendant une attaque, un avis public honnête, une levée programmée, un journal et une page d'administration. |
 | [`phil/status-page-bundle`](https://github.com/parler-haut-interagir-librement/status-page-bundle) | Une page d'état des services en HTML, JSON et Atom sans script, et un instantané statique poussé hors de l'infrastructure surveillée. |
 | [`phil/error-tracking`](https://github.com/parler-haut-interagir-librement/error-tracking) | Le suivi des erreurs gardé chez soi : événements groupés par empreinte stable, purgés des données personnelles et des secrets avant toute écriture. |
 | [`phil/data-table-bundle`](https://github.com/parler-haut-interagir-librement/data-table-bundle) | Des tableaux de données en Live Component : tri, filtres, pagination, actions par ligne et en lot, édition sur place, et le même état dans l'adresse sans JavaScript. |
@@ -282,6 +288,9 @@ Demandez le paquet voulu ; un bundle amène sa bibliothèque avec lui :
 ```sh
 composer require phil/money-bundle
 ```
+
+Un profil installe une famille de paquets en un seul require : `phil/profile-secure-input` pour ce que les usagers
+envoient, `phil/profile-editorial` pour le contenu éditorial.
 
 Le README et le dossier `doc/` de chaque paquet disent ce qu'il exige, comment le configurer et ce qu'il laisse à
 l'application.

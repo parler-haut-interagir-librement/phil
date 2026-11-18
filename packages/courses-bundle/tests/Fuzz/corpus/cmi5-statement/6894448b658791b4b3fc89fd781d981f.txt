@@ -1,0 +1,1 @@
+{"actor":{"o":"t","account":{"homePage":"https://learn.example.org/","name":"ada"}},"verb":{"id":"http://adlnet.gov/expapi/verbs/initialized"},"object":{"id":"'ses"},"context":{"registration":"r-1","co":{"":[{"d":"h/"}]},"extensions":{"https://w3id.org/xapi/cmi5/context/extensions/sessionid":"s-1"}}}

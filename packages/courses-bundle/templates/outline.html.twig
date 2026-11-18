@@ -1,0 +1,79 @@
+{#
+ # The outline of a course for the learner: their progress, then each module and its activities with where each
+ # stands — open, satisfied, opening on a date, waiting for an earlier activity, or out of tries with the form that asks
+ # for a second chance. The progress is the recipe `Progress` of the kit, the states `Badge`, the forms `Button` and
+ # `Textarea`.
+ #
+ # course: Course. enrollment: ?Enrollment. statuses: list of ActivityStatus. outline: CourseOutline. percent: int.
+ # self_enrollment: bool. show_locked: bool.
+ #}
+{% extends layout %}
+
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block main %}
+<h1>{{ course.title }}</h1>
+{%- if course.description is not empty %}
+<p class="phil-courses__description">{{ course.description }}</p>
+{%- endif %}
+{%- if enrollment is null %}
+<p class="phil-courses__not-enrolled">{{ 'outline.not_enrolled'|trans({}, 'phil_courses') }}</p>
+{%- if self_enrollment %}
+<form method="post" action="{{ path('phil_courses_enroll', {course: course.id.value}) }}">
+    <input type="hidden" name="_token" value="{{ token }}">
+    {% component (phil_courses_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'outline.enroll'|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}
+</form>
+{%- endif %}
+{%- for module in outline.modules %}
+<h2>{{ module.module.title }}</h2>
+<ul class="phil-courses__activities">
+    {%- for activity in module.activities %}
+    <li>{{ activity.title }}</li>
+    {%- endfor %}
+</ul>
+{%- endfor %}
+{%- else %}
+<p class="phil-courses__progress">
+    <label for="phil-courses-progress">{{ 'outline.progress'|trans({'%percent%': percent}, 'phil_courses') }}</label>
+    {% component (phil_courses_kit('Progress')) with {id: 'phil-courses-progress', value: percent, max: 100} %}{% endcomponent %}
+</p>
+{%- if enrollment.completed %}
+<p class="phil-courses__completed">{{ 'outline.completed'|trans({}, 'phil_courses') }}</p>
+{%- endif %}
+{%- set current = null %}
+{%- for status in statuses %}
+{%- set state = status.availability.status.value %}
+{%- if show_locked or state in ['open', 'satisfied'] %}
+{%- if current is not same as(status.module.id.value) %}
+{%- if current is not null %}</ul>{% endif %}
+<h2>{{ status.module.title }}</h2>
+<ul class="phil-courses__activities">
+{%- set current = status.module.id.value %}
+{%- endif %}
+    <li class="phil-courses__activity is-{{ state|replace({_: '-'}) }}">
+        <span class="phil-courses__title">{{ status.activity.title }}</span>
+        {% component (phil_courses_kit('Badge')) with {variant: state == 'satisfied' ? 'default' : 'outline'} %}{% block content %}{{ ('state.' ~ state)|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}
+        {%- if state == 'scheduled' %}
+        <time datetime="{{ status.availability.opensAt|date('c') }}">{{ status.availability.opensAt|date('Y-m-d H:i', false) }} UTC</time>
+        {%- elseif state == 'locked' %}
+        <span class="phil-courses__waiting">{{ 'outline.waiting'|trans({}, 'phil_courses') }}</span>
+        {%- endif %}
+        {%- if state in ['open', 'satisfied'] %}
+        <form method="post" action="{{ path('phil_courses_launch', {course: course.id.value, activity: status.activity.id.value}) }}">
+            <input type="hidden" name="_token" value="{{ token }}">
+            {% component (phil_courses_kit('Button')) with {type: 'submit', variant: state == 'satisfied' ? 'outline' : 'default', size: 'sm'} %}{% block content %}{{ (state == 'satisfied' ? 'outline.revisit' : 'outline.start')|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}
+        </form>
+        {%- elseif state == 'retry_needed' %}
+        <form method="post" class="phil-courses__retry" action="{{ path('phil_courses_retry', {course: course.id.value, activity: status.activity.id.value}) }}">
+            <input type="hidden" name="_token" value="{{ token }}">
+            <label for="phil-courses-reason-{{ status.activity.id.value }}">{{ 'outline.reason'|trans({}, 'phil_courses') }}</label>
+            {% component (phil_courses_kit('Textarea')) with {id: 'phil-courses-reason-' ~ status.activity.id.value, name: 'reason', rows: 3, maxlength: 2000} %}{% block content %}{% endblock %}{% endcomponent %}
+            {% component (phil_courses_kit('Button')) with {type: 'submit', variant: 'secondary', size: 'sm'} %}{% block content %}{{ 'outline.ask_retry'|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}
+        </form>
+        {%- endif %}
+    </li>
+{%- endif %}
+{%- endfor %}
+{%- if current is not null %}</ul>{% endif %}
+{%- endif %}
+{% endblock %}

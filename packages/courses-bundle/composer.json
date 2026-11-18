@@ -1,0 +1,98 @@
+{
+    "name": "phil/courses-bundle",
+    "description": "Online courses in a Symfony application: modules, enrollments, progress and completion, with SCORM and cmi5 packages and an xAPI record store.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "courses",
+        "e-learning",
+        "lms",
+        "scorm",
+        "cmi5",
+        "xapi",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.5",
+        "phil/elearning-packages": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/filesystem": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "ext-pdo": "*",
+        "ext-zip": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "phil/audit-bundle": "^0.1@dev",
+        "phil/certificates-bundle": "^0.2@dev",
+        "phil/safe-http": "^0.1@dev || ^0.2@dev",
+        "phil/ux-kit": "^0.5@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/orm": "For the tables added to the schema the ORM generates",
+        "phil/audit-bundle": "To write the second chances asked for, granted, refused and waived to the audit trail",
+        "phil/certificates-bundle": "To issue certificates on the completion of a course, answered through its CourseCompletions port",
+        "phil/safe-http": "To send the statements to a remote xAPI learning record store",
+        "phil/ux-kit": "For the recipes Button, Badge, Progress and Textarea the pages draw, through the Symfony UX Toolkit",
+        "symfony/console": "For phil:courses:import, phil:courses:import-results and phil:courses:retries",
+        "symfony/security-core": "To name the current learner from the authenticated user, and for the administration page of the second chances",
+        "symfony/security-csrf": "For the forms of the pages",
+        "symfony/twig-bundle": "For the pages of the courses",
+        "symfony/ux-twig-component": "For the recipes of the kit the pages draw"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\CoursesBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\CoursesBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

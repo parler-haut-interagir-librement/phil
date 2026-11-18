@@ -1,0 +1,1 @@
+{"actor":{"account":{"homePage":"https://learn.example.org/","name":"ada"}},"verb":{"il":"hd"},"object":{"i":""},"context":{"registration":"r-1","coex":{},"extensions":{"https://w3id.org/xapi/cmi5/context/extensions/sessionid":"s-1"}}}

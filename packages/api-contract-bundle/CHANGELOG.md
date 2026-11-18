@@ -4,6 +4,22 @@ All notable changes to `phil/api-contract-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.1-alpha: anonymous callers can be accepted per endpoint, and the keys of Messenger messages can
+be scoped to their tenant.
+
+### Added
+
+- `Idempotent::$anonymous`: `#[Idempotent(anonymous: 'ip')]`, or `'refuse'`, or a case of `AnonymousCallers`,
+  replaces `idempotency.anonymous` for one endpoint; another string is refused. The listener hands it to the scope
+  resolver in the request attribute `IdempotencyListener::ANONYMOUS_CALLERS`.
+- `Infrastructure\Messenger\TenantIdempotencyScopeMiddleware` and `TenantScopedIdempotencyStamp`, and the option
+  `idempotency.messenger.tenant_scope`, false by default and refused without `PhilTenancyBundle`: the tenant of a
+  received message's `TenantStamp` in the scope of its `IdempotencyStamp`, so that two tenants sending the same key
+  are both handled and a replay once. `symfony/messenger` is suggested.
+- The documentation of anonymous callers per endpoint and their trade-offs, and of the keys of messages per tenant.
+
 ## 0.3.0-alpha - 2026-11-17
 
 The next version is 0.3.0-alpha: idempotency keys are scoped by tenant, API client and user, anonymous callers are
@@ -19,16 +35,8 @@ refused, and a replay runs the controller's access checks first. See
 - `AnonymousCallers` and the options `idempotency.anonymous` (`refuse` by default, or `ip`) and
   `idempotency.client_attribute` (`client_id` by default).
 - `CallerScopeResolver::ANONYMOUS` and `IdempotencyListener::PRIORITY`.
-- `Idempotent::$anonymous`: `#[Idempotent(anonymous: 'ip')]`, or `'refuse'`, or a case of `AnonymousCallers`,
-  replaces `idempotency.anonymous` for one endpoint; another string is refused. The listener hands it to the scope
-  resolver in the request attribute `IdempotencyListener::ANONYMOUS_CALLERS`.
-- `Infrastructure\Messenger\TenantIdempotencyScopeMiddleware` and `TenantScopedIdempotencyStamp`, and the option
-  `idempotency.messenger.tenant_scope`, false by default and refused without `PhilTenancyBundle`: the tenant of a
-  received message's `TenantStamp` in the scope of its `IdempotencyStamp`, so that two tenants sending the same key
-  are both handled and a replay once. `symfony/messenger` is suggested.
-- The documentation of the access checks before a replay, of the scope of a key in a multi-tenant application, of
-  anonymous callers per endpoint and their trade-offs, of the keys of messages per tenant, of the threat model, and of
-  the upgrade from 0.2.
+- The documentation of the access checks before a replay, of the scope of a key in a multi-tenant application, of the
+  threat model, and of the upgrade from 0.2.
 
 ### Changed
 

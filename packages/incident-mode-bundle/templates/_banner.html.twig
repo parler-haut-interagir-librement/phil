@@ -1,0 +1,12 @@
+{#
+    The banner of a site's layout: nothing while no incident restricts the member of the request, otherwise what is
+    suspended and until when, in their language.
+
+        {{ include('@PhilIncidentMode/_banner.html.twig') }}
+#}
+{% set suspensions = phil_incident_suspensions() %}
+{% if suspensions is not empty %}
+    <aside class="phil-incident-banner" aria-label="{{ 'banner.label'|trans({}, 'phil_incident_mode') }}">
+        {{ include('@PhilIncidentMode/_notice.html.twig', {suspensions: suspensions}) }}
+    </aside>
+{% endif %}

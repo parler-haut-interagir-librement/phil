@@ -4,11 +4,11 @@ All notable changes to `phil/open-badges` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## 0.3.0-alpha - 2026-11-17
+## Unreleased
 
-The next version is 0.3.0-alpha: `JwtVerifier` refuses a token whose `nbf` or `exp` is not a number, the verifier
-refuses tokens whose registered claims contradict their credential and contexts that redefine protected terms,
-`JwtSigner` refuses a credential carrying its own registered claims, and `PngBaker` refuses bytes after `IEND`.
+The next version is 0.4.0-alpha: the verifier refuses tokens whose registered claims contradict their credential and
+contexts that redefine protected terms, `JwtSigner` refuses a credential carrying its own registered claims, and
+`PngBaker` refuses bytes after `IEND`.
 
 ### Added
 
@@ -27,8 +27,6 @@ refuses tokens whose registered claims contradict their credential and contexts 
 
 ### Security
 
-- `JwtVerifier` reads `nbf` and `exp` as NumericDates, with or without a fraction of a second, and refuses a value of
-  another type: a fractional value was skipped, so a signed credential passed before its start or after its expiry.
 - `CredentialVerifier` refuses a token whose `jti`, `sub`, `nbf` or `exp` contradicts the credential's `id`, subject,
   `validFrom` or `validUntil`, or whose `iss` is not a string: a token could expose a period other than the one checked.
 - The JSON-LD processor enforces `@protected`: a protected term is defined again only the same, except by a context
@@ -37,6 +35,15 @@ refuses tokens whose registered claims contradict their credential and contexts 
 - `CredentialVerifier` refuses an input over 1 MiB before it trims or decodes it.
 - `PngBaker` checks the structure of the image on reading and on baking: a single `IHDR` of 13 bytes first, at most one
   `PLTE` before the image data, `IDAT` chunks that follow each other, an empty `IEND` after them and nothing after it.
+
+## 0.3.0-alpha - 2026-11-17
+
+The next version is 0.3.0-alpha: `JwtVerifier` refuses a token whose `nbf` or `exp` is not a number, which it accepted.
+
+### Security
+
+- `JwtVerifier` reads `nbf` and `exp` as NumericDates, with or without a fraction of a second, and refuses a value of
+  another type: a fractional value was skipped, so a signed credential passed before its start or after its expiry.
 
 ## 0.2.0-alpha - 2026-11-15
 

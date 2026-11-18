@@ -1,0 +1,1 @@
+{"actor":{"o":"","account":{"homePage":"https://learn.example.org/","name":"ada"}},"context":{"registration":"r-1","extensions":{"h":"s"}}}

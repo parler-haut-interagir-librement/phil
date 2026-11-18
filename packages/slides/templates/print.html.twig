@@ -1,0 +1,18 @@
+{#
+    The body of a deck printed: one page per slide, every fragment shown. With `with_notes`, each page holds the slide,
+    then its notes; without, no note is written. The page size comes from the @page rule of DeckPrint.
+#}
+{%- set domain = 'phil_slides' -%}
+<div class="phil-slides phil-slides-print{% if with_notes %} hasNotes{% endif %}" data-ratio="{{ deck.settings.aspectRatio.value }}">
+    {%- for slide in deck.slides %}
+        <article class="phil-slides-print__page">
+            {{ include('@PhilSlides/_slide.html.twig', {deck: deck, slide: slide, target: null}, with_context: false) }}
+            {%- if with_notes and slide.hasNotes %}
+                <section class="phil-slides-print__notes">
+                    <h2>{{ 'print.notes'|trans({}, domain) }}</h2>
+                    {{ slides_notes(slide) }}
+                </section>
+            {%- endif %}
+        </article>
+    {%- endfor %}
+</div>

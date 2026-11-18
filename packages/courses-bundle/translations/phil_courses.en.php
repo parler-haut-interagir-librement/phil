@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'outline.not_enrolled' => 'You are not enrolled in this course.',
+    'outline.enroll' => 'Enroll',
+    'outline.progress' => '%percent% % done',
+    'outline.completed' => 'You completed this course.',
+    'outline.waiting' => 'Opens once the activity before it is done.',
+    'outline.start' => 'Start',
+    'outline.revisit' => 'Revisit',
+    'outline.reason' => 'Why you ask for another try',
+    'outline.ask_retry' => 'Ask for another try',
+    'state.open' => 'To do',
+    'state.satisfied' => 'Done',
+    'state.scheduled' => 'Opens later',
+    'state.locked' => 'Locked',
+    'state.retry_needed' => 'Out of tries',
+    'state.retry_requested' => 'Another try asked for',
+    'activity.open' => 'Open the activity',
+    'activity.done' => 'Mark as done',
+    'admin.title' => 'Second chances waiting for a decision',
+    'admin.none' => 'No request is waiting for a decision.',
+    'admin.pending' => 'Waiting',
+    'admin.learner' => 'Learner',
+    'admin.asked_at' => 'Asked at',
+    'admin.tries' => 'Tries',
+    'admin.failures' => '%failures% failed, no limit',
+    'admin.failures_of' => '%failures% failed of %tries%',
+    'admin.reason' => 'Reason',
+    'admin.no_reason' => 'No reason given.',
+    'admin.note' => 'Note on the decision',
+    'admin.grant' => 'Grant another try',
+    'admin.refuse' => 'Refuse',
+    'admin.waive' => 'Waive the activity',
+];

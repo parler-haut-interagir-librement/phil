@@ -4,6 +4,19 @@ All notable changes to `phil/open-badges-bundle` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.3-alpha.
+
+### Changed
+
+- It accepts `phil/open-badges` 0.4 beside 0.2 and 0.3.
+
+### Security
+
+- `RemoteVerificationMethods` reads an issuer's profile only when the address it ends at, after its redirects, is still
+  HTTPS: a redirect to plain HTTP let anyone on the network substitute the profile and its keys.
+
 ## 0.1.2-alpha - 2026-11-17
 
 The next version is 0.1.2-alpha.
@@ -11,11 +24,6 @@ The next version is 0.1.2-alpha.
 ### Changed
 
 - It accepts `phil/open-badges` 0.3 beside 0.2.
-
-### Security
-
-- `RemoteVerificationMethods` reads an issuer's profile only when the address it ends at, after its redirects, is still
-  HTTPS: a redirect to plain HTTP let anyone on the network substitute the profile and its keys.
 
 ## 0.1.1-alpha - 2026-11-15
 

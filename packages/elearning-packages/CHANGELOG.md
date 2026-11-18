@@ -4,6 +4,15 @@ All notable changes to `phil/elearning-packages` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Fixed
+
+- The package ships `tests/Fixture/truncated.zip`, the truncated archive a test of `ZipPackage` reads: it was left out
+  of 0.1.0-alpha, and that test failed in a copy of the package.
+
 ## 0.1.0-alpha - 2026-11-17
 
 ### Added

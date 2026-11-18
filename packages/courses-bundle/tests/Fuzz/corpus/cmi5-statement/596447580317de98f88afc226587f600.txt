@@ -1,0 +1,1 @@
+{"actor":{"te":"Agent","account":{"homePage":"https://learn.example.org/","name":"ada"}},"verb":{"id":"http://adlnet.gov/expapi/verbs/passed"},"object":{"id":"M","re":{"":9}},"context":{"registration":"r-1","extensions":{"https://w3id.org/xapi/cmi5/context/extensions/sessionid":"s-1"}}}

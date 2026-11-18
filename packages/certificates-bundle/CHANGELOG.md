@@ -9,6 +9,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 The next version is 0.2.2-alpha: the keys of the register compare byte for byte on MySQL and MariaDB. See
 [Two awards at once](doc/courses-and-awarding.md#two-awards-at-once).
 
+### Changed
+
+- It accepts `phil/open-badges` 0.4 beside 0.2 and 0.3.
+
 ### Security
 
 - On MySQL and MariaDB, the code, the holder and the completion of a certificate, the slug and the completion source of

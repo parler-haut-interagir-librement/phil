@@ -1,0 +1,220 @@
+/*
+ * The look of phil/slides on screen, over the classless elements of phil-ux and its --phil-* tokens, else the tokens of
+ * the Shadcn kit, else system colours. Its buttons are the recipe Button of the kit; the states are classes in the
+ * isX/hasX form of PHIL UX, and every colour mixed here is mixed in OKLCH.
+ * Without script, slides follow one another, each a box of the deck's shape. Presenting (`isPresenting`), only the
+ * current slide (`isCurrent`) shows, and the fragments still to come (`isPending`) are hidden from the audience and
+ * faded for the speaker. Movement only for readers who did not ask for reduced motion. Printed from the browser, one
+ * slide per page, notes never.
+ */
+.phil-slides {
+    --phil-slides-ratio: 16 / 9;
+}
+
+.phil-slides[data-ratio="4:3"],
+.phil-slides-presenter[data-ratio="4:3"] {
+    --phil-slides-ratio: 4 / 3;
+}
+
+.phil-slides__stage {
+    display: grid;
+    gap: var(--phil-space-lg, 1.5rem);
+}
+
+.phil-slides__stage:focus-visible {
+    outline: var(--phil-focus-width, 0.125rem) solid var(--phil-color-focus, var(--ring, currentcolor));
+    outline-offset: var(--phil-space-2xs, 0.25rem);
+}
+
+.phil-slide {
+    aspect-ratio: var(--phil-slides-ratio, 16 / 9);
+    box-sizing: border-box;
+    container-type: inline-size;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 4cqi 5cqi;
+    border: var(--phil-border-sm, 1px) solid
+        var(--phil-color-border, var(--border, color-mix(in oklch, currentcolor 25%, transparent)));
+    border-radius: var(--phil-radius-md, 0.5rem);
+    background: var(--phil-color-surface, var(--background, Canvas));
+    color: var(--phil-color-text, var(--foreground, CanvasText));
+    font-size: clamp(0.75rem, 3cqi, 3rem);
+}
+
+.phil-slide:focus {
+    outline: none;
+}
+
+.phil-slide__content {
+    flex: 1;
+    min-height: 0;
+}
+
+.phil-slide__header,
+.phil-slide__footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 1em;
+    color: var(--phil-color-text-muted, var(--muted-foreground, GrayText));
+    font-size: 0.6em;
+}
+
+.phil-slide__number {
+    margin-inline-start: auto;
+}
+
+.phil-slides__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--phil-space-sm, 0.5rem);
+    margin-block-start: var(--phil-space-sm, 0.5rem);
+}
+
+.phil-slides__controls[hidden] {
+    display: none;
+}
+
+.phil-slides-presenter__audience,
+.phil-slides-presenter__pdf,
+.phil-slides__presenter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--phil-space-sm, 0.5rem);
+}
+
+.phil-slides__status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.phil-slides.isPresenting .phil-slide:not(.isCurrent) {
+    display: none;
+}
+
+.phil-slides.isPresenting .isPending {
+    visibility: hidden;
+}
+
+.phil-slides.isFullscreen {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    align-items: center;
+    padding: var(--phil-space-md, 1rem);
+    background: var(--phil-color-surface, var(--background, Canvas));
+}
+
+.phil-slides.isFullscreen .phil-slide {
+    width: min(100%, calc((100vh - 5rem) * var(--phil-slides-ratio, 16 / 9)));
+    margin-inline: auto;
+    border: 0;
+}
+
+.phil-slides-presenter {
+    display: grid;
+    gap: var(--phil-space-md, 1rem);
+}
+
+.phil-slides-presenter.isPresenting {
+    grid-template-columns: minmax(0, 3fr) minmax(16rem, 2fr);
+}
+
+.phil-slides-presenter.isPresenting > .phil-slides-presenter__title,
+.phil-slides-presenter.isPresenting > .phil-slides-presenter__audience,
+.phil-slides-presenter.isPresenting > .phil-slides-presenter__pdf,
+.phil-slides-presenter.isPresenting > .phil-slides__status {
+    grid-column: 1 / -1;
+}
+
+.phil-slides-presenter__pair {
+    display: grid;
+    gap: var(--phil-space-sm, 0.5rem);
+    margin-block-end: var(--phil-space-lg, 1.5rem);
+}
+
+.phil-slides-presenter.isPresenting .phil-slides-presenter__pair:not(.isCurrent) {
+    display: none;
+}
+
+.phil-slides-presenter.isPresenting .isPending {
+    opacity: 0.35;
+}
+
+.phil-slides-presenter__notes {
+    font-size: var(--phil-text-lg, 1.25rem);
+}
+
+.phil-slides-presenter__clock {
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--phil-weight-medium, 500);
+}
+
+.phil-slides-presenter__clock.isOvertime {
+    color: var(--phil-color-danger-on-quiet, var(--destructive, oklch(0.5 0.19 27)));
+}
+
+.phil-slides-presenter__side[hidden] {
+    display: none;
+}
+
+.phil-slides-presenter__side {
+    display: grid;
+    align-content: start;
+    gap: var(--phil-space-md, 1rem);
+}
+
+@media (max-width: 48rem) {
+    .phil-slides-presenter.isPresenting {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .phil-slides.isPresenting .phil-slide.isCurrent {
+        animation: phil-slides-enter var(--phil-duration-sm, 160ms) var(--phil-ease-out, ease-out);
+    }
+}
+
+@keyframes phil-slides-enter {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@media print {
+    .phil-slides__controls,
+    .phil-slides__presenter,
+    .phil-slides-presenter__audience,
+    .phil-slides-presenter__pdf,
+    .phil-slides__status,
+    .phil-slides-presenter__side,
+    .phil-slides-presenter__notes {
+        display: none;
+    }
+
+    .phil-slides.isPresenting .phil-slide:not(.isCurrent),
+    .phil-slides-presenter.isPresenting .phil-slides-presenter__pair:not(.isCurrent) {
+        display: flex;
+    }
+
+    .phil-slides .isPending {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .phil-slide {
+        break-inside: avoid;
+        break-after: page;
+        border: 0;
+    }
+}

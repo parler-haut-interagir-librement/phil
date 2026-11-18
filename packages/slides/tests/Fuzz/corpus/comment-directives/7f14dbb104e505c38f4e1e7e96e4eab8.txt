@@ -1,0 +1,2 @@
+_class: lead
+_paginate: false

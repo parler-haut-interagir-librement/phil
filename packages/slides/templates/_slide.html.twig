@@ -1,0 +1,21 @@
+{#
+    One slide of a deck, as the audience sees it: its header and footer from the global directives, its content
+    rendered by phil/ujo-bundle without any note, and its number when the deck, or the directives of its notes, number
+    it. `target` names the Stimulus controller whose target the slide is, `null` for none.
+#}
+{%- set domain = 'phil_slides' -%}
+{%- set classes = ['phil-slide']|merge(deck.settings.classes)|merge(slide.classes) -%}
+{%- set label = 'slide.label'|trans({'%number%': slide.number, '%count%': deck.count}, domain) -%}
+<section id="{{ slide.anchor }}" class="{{ classes|join(' ') }}" aria-roledescription="{{ 'slide.roledescription'|trans({}, domain) }}" aria-label="{{ slide.title is null ? label : label ~ ' – ' ~ slide.title }}" tabindex="-1"{% if target %} {{ ('data-' ~ target ~ '-target')|e('html_attr') }}="slide"{% endif %}>
+    {%- if deck.settings.header is not null %}
+        <header class="phil-slide__header">{{ deck.settings.header }}</header>
+    {%- endif %}
+    <div class="phil-slide__content">{{ slides_content(slide) }}</div>
+    {%- set numbered = slide.showsNumber(deck.settings.paginate) %}
+    {%- if deck.settings.footer is not null or numbered %}
+        <footer class="phil-slide__footer">
+            {%- if deck.settings.footer is not null %}<span class="phil-slide__footer-text">{{ deck.settings.footer }}</span>{% endif -%}
+            {%- if numbered %}<span class="phil-slide__number">{{ 'slide.number'|trans({'%number%': slide.number, '%count%': deck.count}, domain) }}</span>{% endif -%}
+        </footer>
+    {%- endif %}
+</section>
