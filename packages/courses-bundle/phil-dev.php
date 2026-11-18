@@ -31,11 +31,37 @@ return [
             // The driver gives text for a text column: the cast is for the types only.
             'UnwrapArrayMap' => ['ignoreSourceCodeByRegex' => ['.*array_map\\(Rows::text\\(\\.\\.\\.\\), \\$this->connection->fetchFirstColumn\\(\'SELECT subject_id.*']],
             // The store never reads the body of an answer: the media types bound what the client buffers, not what it returns.
-            'ArrayItemRemoval' => ['ignoreSourceCodeByRegex' => ['.*new ReadRule\\(\'application/json\', \\[\'application/json\'\\]\\).*']],
+            'ArrayItemRemoval' => ['ignoreSourceCodeByRegex' => [
+                '.*new ReadRule\\(\'application/json\', \\[\'application/json\'\\]\\).*',
+                // The number of an attempt is bound as text and stored as an integer by the column.
+                '.*.number. => Types::INTEGER,.*',
+            ]],
             // An offset below zero reads as zero, the default included.
-            'DecrementInteger' => ['ignoreSourceCodeByRegex' => ['.*public function all\\(int \\$limit = 50, int \\$offset = 0\\).*']],
+            'DecrementInteger' => ['ignoreSourceCodeByRegex' => [
+                '.*public function all\\(int \\$limit = 50, int \\$offset = 0\\).*',
+                // A commit holds a body of three levels at most: a deeper limit only decides which of two refusals comes first.
+                '.*json_decode\\(\\$json, true, 4, .*',
+            ]],
+            'IncrementInteger' => ['ignoreSourceCodeByRegex' => ['.*json_decode\\(\\$json, true, 4, .*']],
             // A score equal to the best kept is the same score.
-            'GreaterThan' => ['ignoreSourceCodeByRegex' => ['.*\\$outcome->score->scaled > \\$this->score->scaled.*']],
+            'GreaterThan' => ['ignoreSourceCodeByRegex' => [
+                '.*\\$outcome->score->scaled > \\$this->score->scaled.*',
+                // A token is 103 characters at most whatever its length is checked at: its pattern is the bound.
+                '.*strlen\\(\\$token\\) > self::MAX_LENGTH.*',
+            ]],
+            // The digits of a token's expiry, and of the length a header states, compare as the integers they cast to.
+            'CastInt' => ['ignoreSourceCodeByRegex' => [
+                '.*\\(int\\) \\$match\\[3\\] < .*',
+                '.*\\(int\\) \\$length > self::MAX_BYTES.*',
+            ]],
+            // `finish` is a boolean whichever default stands in for its absence: both are checked as booleans.
+            'FalseValue' => ['ignoreSourceCodeByRegex' => ['.*is_bool\\(\\$body\\[.finish.\\] \\?\\? false\\).*']],
+            // No enrollment asks for no row, and the query of an empty list reads none either.
+            'ReturnRemoval' => ['ignore' => [
+                'Phil\\CoursesBundle\\Infrastructure\\Doctrine\\DbalScormAttemptRepository::ofEnrollments::90',
+                // A target no activity has leaves for the outline, as the line after the branch does.
+                'Phil\\CoursesBundle\\Application\\Scorm\\ScormRuntime::navigation::192',
+            ]],
             // The modules are appended, or replaced at their place: their keys follow each other already. The list is
             // kept for the types.
             'UnwrapArrayValues' => ['ignoreSourceCodeByRegex' => ['.*array_values\\(\\$modules\\).*']],

@@ -201,6 +201,28 @@ final class PhilCoursesBundleTest extends TestCase
         self::assertTrue($this->load([['locked_activities' => 'show']])->getDefinition(CourseController::class)->getArgument(13));
     }
 
+    public function testTheScormRunTimeIsWiredWhenEnabledAndItsTokensHoldWithinBounds(): void
+    {
+        self::assertEquals([new Reference(ContentUrls::class), new Reference(ScormRuntime::class)], $this->load([])->getDefinition(ScormActivity::class)->getArguments());
+        self::assertEquals([new Reference(ContentUrls::class), null], $this->load([['scorm' => ['enabled' => false]]])->getDefinition(ScormActivity::class)->getArguments());
+
+        foreach ([300 => true, 86_400 => true, 299 => false, 86_401 => false] as $ttl => $accepted) {
+            try {
+                self::assertSame($ttl, $this->load([['scorm' => ['token_ttl' => $ttl]]])->getDefinition(ScormTokens::class)->getArgument(2));
+                self::assertTrue($accepted, 'The time to live is accepted: '.$ttl);
+            } catch (InvalidConfigurationException) {
+                self::assertFalse($accepted, 'The time to live is refused: '.$ttl);
+            }
+        }
+    }
+
+    public function testTheOriginOfTheApplicationIsPreferredToTheHomePageOfTheActors(): void
+    {
+        $container = $this->load([['content' => ['application_origin' => 'https://app.example.net/start'], 'cmi5' => ['actor_home_page' => 'https://learn.example.org/']]]);
+
+        self::assertSame(['https://app.example.net', 'https://learn.example.org'], \array_slice($container->getDefinition(ContentController::class)->getArguments(), 2));
+    }
+
     public function testAWrongOptionIsRefused(): void
     {
         foreach ([['timezone' => 'Mars/Olympus'], ['locked_activities' => 'blur'], ['cmi5' => ['session_ttl' => 30]], ['import' => ['limits' => ['depth' => 65]]], ['import' => ['limits' => ['items' => 0]]]] as $config) {

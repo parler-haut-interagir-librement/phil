@@ -59,4 +59,22 @@ final class RuntimeManifestTest extends TestCase
         self::assertNull($h->scaledPassingScore);
         self::assertNull($i->scaledPassingScore);
     }
+
+    public function testTheFirstSpellingOfAnElementWinsAndTheLimitsAreInCharacters(): void
+    {
+        $manifest = new ScormManifestReader()->read(<<<'XML'
+            <manifest identifier="m" xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_v1p3" xmlns:imsss="http://www.imsglobal.org/xsd/imsss"><metadata><schemaversion>2004 4th Edition</schemaversion></metadata><organizations><organization identifier="o">
+              <item identifier="a" identifierref="r"><adlcp:datafromlms>lower</adlcp:datafromlms><adlcp:dataFromLMS>camel</adlcp:dataFromLMS><adlcp:timelimitaction>exit,message</adlcp:timelimitaction><adlcp:timeLimitAction>continue,message</adlcp:timeLimitAction></item>
+              <item identifier="b" identifierref="r"><adlcp:datafromlms>LONG</adlcp:datafromlms></item>
+              <item identifier="c" identifierref="r"><imsss:sequencing><imsss:limitConditions attemptAbsoluteDurationLimit="xPT1H"/></imsss:sequencing></item>
+              <item identifier="d" identifierref="r"><imsss:sequencing><imsss:limitConditions attemptAbsoluteDurationLimit="PT1Hx"/></imsss:sequencing></item>
+            </organization></organizations><resources><resource identifier="r" href="a.html"/></resources></manifest>
+            XML
+            |> (static fn (string $xml): string => str_replace('LONG', str_repeat('é', 5000), $xml)));
+        [$a, $b, $c, $d] = $manifest->organization()->items;
+
+        self::assertSame(['lower', 'exit,message'], [$a->dataFromLms, $a->timeLimitAction]);
+        self::assertSame(str_repeat('é', 4096), $b->dataFromLms);
+        self::assertSame([null, null], [$c->maxTimeAllowed, $d->maxTimeAllowed]);
+    }
 }

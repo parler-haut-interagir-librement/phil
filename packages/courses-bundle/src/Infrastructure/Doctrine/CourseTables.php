@@ -133,7 +133,7 @@ final class CourseTables
     /**
      * @return array<non-empty-string, Table>
      */
-    private static function tables(bool $binary = false): array
+    private static function tables(bool $binary): array
     {
         return [
             self::COURSE => Table::editor()->setUnquotedName(self::COURSE)
