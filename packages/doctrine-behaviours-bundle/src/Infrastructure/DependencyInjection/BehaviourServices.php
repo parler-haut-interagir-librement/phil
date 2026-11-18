@@ -35,6 +35,7 @@ use Phil\DoctrineBehaviours\TreeListener;
 use Phil\DoctrineBehaviours\Version\RecordVersion;
 use Phil\DoctrineBehaviours\VersionListener;
 use Phil\DoctrineBehaviours\Versions;
+use Phil\DoctrineBehavioursBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\BlamePrivacy;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\OwnerPrivacy;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Security\SecurityBlameResolver;
@@ -75,6 +76,8 @@ final class BehaviourServices
      */
     public static function register(ContainerBuilder $container, array $config): void
     {
+        self::listen($container->register(BinaryKeysListener::class, BinaryKeysListener::class), ['loadClassMetadata']);
+
         if ($config['timestamps']) {
             self::listen($container->register(TimestampListener::class, TimestampListener::class)->setArguments([new Reference('clock')]), ['prePersist', 'onFlush']);
         }

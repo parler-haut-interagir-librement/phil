@@ -304,6 +304,54 @@ services:
 
 The table `phil_record_version` is created by a migration of the application, as any mapped entity's.
 
+## Collation of the keys
+
+**The keys the behaviours write compare byte by byte**, as PHP compares them, whichever behaviours are switched on: the
+slug `Doc-A` is never found for `doc-a`, and both can be taken; the translation `fr-CA` is never read for `fr-ca`; the
+records of the owner `Ann` are never listed or erased for `ann`. `BinaryKeysListener` gives these fields the binary
+collation when the ORM loads the metadata of a class that takes them, on MySQL or MariaDB; the mapping itself stays
+the same on every platform.
+
+| A class that implements, or is | Fields in `utf8mb4_bin` on MySQL and MariaDB |
+|---|---|
+| `Sluggable` | `slug` |
+| `Translation` | `locale` |
+| `Ownable` | `ownerId` (`owner_id`) |
+| `Blameable` | `createdBy`, `updatedBy` (`created_by`, `updated_by`) |
+| `TreeNode` | `treePath` (`tree_path`) |
+| `DatedIdentifiable` | `id` |
+| `RecordVersion`, the table `phil_record_version` | `subjectTable`, `subjectId` (`subject_table`, `subject_id`), and the blame of `Blameable` |
+
+A field is changed only where the class maps it as a string or a GUID, as the traits of `phil/doctrine-behaviours` do;
+a field the class maps under another type, or does not map, keeps its mapping. On MySQL and MariaDB, these columns take
+the `utf8mb4` character set and the `utf8mb4_bin` collation, given the connection's platform: the default collation of
+MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's default collations are deterministic, equal only
+when the bytes are, and SQLite compares bytes: their columns keep the default.
+
+### Upgrading from 0.1
+
+The tables of a 0.1 install on MySQL or MariaDB kept the connection's collation. `doctrine:migrations:diff` writes the
+migration that brings the columns above to `utf8mb4_bin`, in the application's tables and in `phil_record_version`;
+run it with `doctrine:migrations:migrate`. On PostgreSQL and SQLite the diff is empty. The join columns towards a dated
+identifier take its collation in the schema and are converted with it, and MySQL refuses to change one side of a
+foreign key before the other: put `SET FOREIGN_KEY_CHECKS = 0` at the start of the migration's `up()` and
+`SET FOREIGN_KEY_CHECKS = 1` at its end; the foreign keys stay, and are checked again once both sides are converted.
+
+The change only makes values more distinct, so no existing row breaks a unique key. It parts what the
+case-insensitive collation joined: rows whose keys differ only by case, which a lookup by either spelling returned
+together, are each found by their own spelling from the migration on, and a key the application looks up in another
+case than it wrote stops matching. Before migrating, list the owners and authors written in more than one case, for
+each table that takes them:
+
+```sql
+SELECT owner_id, COUNT(*) AS row_count FROM notice
+GROUP BY owner_id HAVING COUNT(DISTINCT CAST(owner_id AS BINARY)) > 1;
+```
+
+Each line is one key under several spellings. Keep them apart, or bring the rows to the spelling the application
+uses with an `UPDATE` before the migration. A unique key cannot hold two such spellings under the old collation: a
+unique slug needs no check.
+
 ## Long-running workers
 
 Nothing a listener or resolver holds lasts beyond a call: `TreeListener` alone keeps something during a flush, and it is

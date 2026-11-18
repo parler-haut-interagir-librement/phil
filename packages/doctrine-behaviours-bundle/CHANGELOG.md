@@ -4,6 +4,30 @@ All notable changes to `phil/doctrine-behaviours-bundle` will be documented in t
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the keys the behaviours write compare byte by byte on MySQL and MariaDB. See [Collation of the keys](doc/configuration.md#collation-of-the-keys).
+
+### Added
+
+- `Infrastructure\Doctrine\BinaryKeysListener`, on the ORM's `loadClassMetadata` event, registered whichever
+  behaviours are on, and its `FIELDS`: the fields that compare byte by byte on MySQL and MariaDB, by interface of the
+  behaviours.
+
+### Changed
+
+- On MySQL and MariaDB, the slug of a `Sluggable`, the locale of a `Translation`, the owner of an `Ownable`, the blame
+  of a `Blameable`, the path of a `TreeNode`, the identifier of a `DatedIdentifiable`, and `subject_table` and
+  `subject_id` of `phil_record_version` take the `utf8mb4` character set and the `utf8mb4_bin` collation in the schema
+  the ORM generates, where the class maps them as a string or a GUID, through
+  `Infrastructure\Doctrine\BinaryKeysListener`. PostgreSQL and SQLite keep their default, which compares bytes already.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, the slug `Doc-A` was found for `doc-a` and the
+  unique slug refused the second, the translation `fr-CA` was read for `fr-ca`, and the records of the owner `Ann`
+  were listed and erased for `ann`.
+
 ## 0.1.0-alpha - 2026-11-15
 
 ### Added

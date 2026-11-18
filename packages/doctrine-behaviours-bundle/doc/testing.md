@@ -9,6 +9,8 @@
 | `BlamePrivacy`, `OwnerPrivacy` | The rows of a person counted by table, the erasure by a pseudonym or by nobody, the report of every table, a subject with an `@` owning nothing |
 | A whole application | FrameworkBundle, DoctrineBundle and `phil/slug-bundle` on SQLite in memory, the bundle configured in YAML: an entity stamped, placed in its tree, soft deleted and hidden by the filter, and the tree read; a record with a dated identifier and a unique slug, published through `workflow.registry` as a scheduler would, frozen, forked, deactivated, and refused going back; steps ordered within their checklist and moved; a slug unique within its locale; a translation written, read back along a fallback chain, with its unique index |
 | Instants | Every instant column the library maps written in UTC from a clock in another time zone, read back as the type the library declares says: the expectations follow that type, never one written in the test |
+| `BinaryKeysListener` | The keys of the test application's entities and of the versions in `utf8mb4_bin` in the schema generated for MySQL and MariaDB, the default collation on SQLite, a field mapped under another type or not mapped left alone, the options a field already has kept |
+| On real servers | `tests/Integration` on MySQL 8.4 and PostgreSQL 17, from `PHIL_TEST_MYSQL_URL` and `PHIL_TEST_POSTGRESQL_URL`, skipped without them: four slugs of one locale that differ only by case or accent are each found by their own spelling only; on MySQL the keys are in `utf8mb4_bin`, and the tables of the previous version reach it through the schema diff |
 | The test application | `lint:container`, `lint:expressions` and `lint:yaml` through `phil-dev lint-apps` |
 
 ```sh

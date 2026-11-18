@@ -9,11 +9,13 @@
 | `…\Infrastructure\Privacy\BlamePrivacy` | `PersonalDataExporter`, `PersonalDataEraser` | The blame in the access and erasure requests of `phil/privacy-bundle` |
 | `…\Infrastructure\Privacy\OwnerPrivacy` | `PersonalDataExporter`, `PersonalDataEraser` | The owner in the access and erasure requests of `phil/privacy-bundle` |
 | `…\Infrastructure\Security\SecurityVersionRestoreGuard` | `VersionRestoreGuard` | The right to go back to a past version, asked of Symfony Security with the record as subject |
+| `…\Infrastructure\Doctrine\BinaryKeysListener` | `final readonly class`, listener of `loadClassMetadata` | The keys the behaviours write in `utf8mb4_bin` on MySQL and MariaDB ([configuration.md](configuration.md#collation-of-the-keys)) |
 
 ## Services
 
 | Id | When |
 |---|---|
+| `…\Infrastructure\Doctrine\BinaryKeysListener` | always |
 | `Phil\DoctrineBehaviours\TimestampListener` | `timestamps` |
 | `Phil\DoctrineBehaviours\Contract\BlameResolver`, `Phil\DoctrineBehaviours\BlameListener`, `Phil\DoctrineBehaviours\BlameEraser` (public) | `blame` |
 | `Phil\DoctrineBehaviours\SoftDeleteListener` | `soft_delete` |
