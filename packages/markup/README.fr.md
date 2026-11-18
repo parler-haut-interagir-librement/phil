@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=55a1097839c69d2c6ffd04b535f41f7cf2b6a56d254bb6bd79e795c6eb06873a -->
+<!-- phil-dev source-sha256=d812ab50abc4db4cc010182e9b97d37ad1e7c4361b7b88b32cc6fd14a10a3a65 -->
 # phil/markup
 
 **Du Markdown, du BBCode, du MediaWiki, du DokuWiki, du Creole, de l'UJO, du HTML ou du texte brut, changés en HTML
@@ -23,8 +23,8 @@ Markdown et des wikis sont l'importance forte `<strong>` et l'emphase d'insistan
 les citations et les images, pour un message de forum ; `all` garde chaque élément que l'assainisseur considère comme
 sûr, pour un article qu'écrit un rédacteur. Une liste de contrôle garde ses cases à cocher accessibles à `all` et dit
 l'état de chaque élément en texte en dessous. `MarkedUpText` garde ensemble la source, son format et le HTML assaini, sous forme d'objet
-intégrable (*embeddable*) Doctrine, pour qu'une page ne soit pas compilée à chaque lecture. Il ne plafonne pas la
-longueur de l'entrée. Un module complémentaire apporte un dialecte de Markdown (ses règles en ligne et de bloc, la
+intégrable (*embeddable*) Doctrine, pour qu'une page ne soit pas compilée à chaque lecture. Chaque lecteur, et le
+compilateur, refuse une source plus longue que son plafond, 1 Mio par défaut, avant de la lire. Un module complémentaire apporte un dialecte de Markdown (ses règles en ligne et de bloc, la
 syntaxe qu'il lit autrement) ou un format entier, lu par un lecteur à lui sous un nom à lui.
 
 Il s'adresse à toute application PHP qui affiche du texte qu'écrivent ses visiteurs, ses membres ou ses rédacteurs
@@ -51,7 +51,7 @@ assainisseur.
 | `MarkupFormat`, `Level`, `MarkupCompiler`, `LevelAwareCompiler`, `HtmlPurifier`, `InvalidSource` | Implémentés et testés |
 | `Markup`, `MarkedUpText` (un objet intégrable Doctrine) | Implémentés et testés |
 | `Lexer\Cursor`, `Lexer\Slugger` : l'analyseur partagé | Implémentés et testés |
-| `Reader\Markdown\MarkdownReader` : CommonMark, GitHub, notes de bas de page, attributs, listes de définitions, ancres, `[TOC]`, préambule, blocs `:::`, HTML brut selon le niveau | Implémenté et testé |
+| `Reader\Markdown\MarkdownReader` : CommonMark, GitHub, notes de bas de page, attributs, listes de définitions, ancres, `[TOC]`, préambule, blocs `:::`, HTML brut selon le niveau, commentaires en notes | Implémenté et testé |
 | Blocs `{{ }}` et segments qui sont des blocs, blocs de statistiques, pages et colonnes | Implémentés et testés |
 | `MarkdownDialect`, `BaseDialect`, `BlockRule`, `InlineRule`, `ReaderProvider` : les dialectes et les formats des modules complémentaires | Implémentés et testés |
 | `Reader\BBCode\BBCodeReader` : les balises des forums et les extensions de chaque fonctionnalité de Markdown, HTML brut selon le niveau, temps linéaire | Implémenté et testé |
@@ -61,6 +61,7 @@ assainisseur.
 | `Adapter\DefaultCompiler` : Markdown, BBCode, MediaWiki, DokuWiki, Creole, UJO et les formats des modules complémentaires par UJO ; HTML et texte brut tels qu'écrits, leurs lecteurs sur demande | Implémenté et testé |
 | `Adapter\SanitizerPurifier` : une politique par niveau | Implémenté et testé |
 | `Adapter\AmmoniaPurifier`, `Adapter\Purifiers` : les mêmes politiques sur l'extension `ammonia`, là où elle est chargée | Implémentés et testés |
+| Un plafond sur chaque source, `maxBytes`, refusé par `InputTooLarge` avant qu'elle soit lue | Implémenté et testé |
 | Mentions, contenus intégrés, liens externes, ponctuation typographique, dans chaque format | Pas commencé |
 
 ## Documentation
@@ -70,12 +71,12 @@ assainisseur.
 | [Installation](doc/fr/installation.md) | Prérequis et installation. |
 | [Formats](doc/fr/formats.md) | Chaque format, quelle fonctionnalité chacun écrit et comment : la table de correspondance. |
 | [Markdown](doc/fr/markdown.md) | Ce que lit le lecteur Markdown, et le bloc UJO que devient chaque construction. |
-| [L'analyseur](doc/fr/analyser.md) | Le curseur, les règles, les deux passes, et les limites qui gardent la lecture linéaire. |
+| [L'analyseur](doc/fr/analyser.md) | Le curseur, les règles, les deux passes, les limites qui gardent la lecture linéaire, et le plafond d'une source. |
 | [BBCode](doc/fr/bbcode.md) | Les balises et les extensions, leurs types UJO, comment se lit une source mal formée, et pourquoi la lecture est linéaire. |
 | [Les wikis](doc/fr/wikis.md) | MediaWiki, DokuWiki et Creole : leur syntaxe, les balises d'extension qu'ils partagent, où se trouvent les pages et les fichiers, et pourquoi la lecture est linéaire. |
 | [HTML](doc/fr/html.md) | Ce que lit le lecteur HTML, les classes de `phil/ujo` qu'il relit, et ce qu'il laisse de côté. |
 | [Accélérateurs](doc/fr/accelerators.md) | L'extension `ammonia` : ce que garde `AmmoniaPurifier`, les mesures, l'installation par PIE. |
-| [Exceptions](doc/fr/exceptions.md) | `MarkupException`, `InvalidSource`, `MissingExtension` et `UnknownFormat`. |
+| [Exceptions](doc/fr/exceptions.md) | `MarkupException`, `InputTooLarge`, `InvalidSource`, `MissingExtension` et `UnknownFormat`. |
 | [Points d'extension](doc/fr/extension-points.md) | Les ports, arguments et données qu'une application choisit ou remplace, les dialectes de Markdown et les formats des modules complémentaires. |
 | [Tests](doc/fr/testing.md) | Comment la bibliothèque est testée. |
 | [Référence](doc/fr/reference.md) | Les types, les formats, les niveaux et ce que garde chacun, et comment chaque niveau produit le rendu d'une liste de contrôle. |

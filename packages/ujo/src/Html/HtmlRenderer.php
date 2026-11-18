@@ -7,6 +7,7 @@ namespace Phil\Ujo\Html;
 use Closure;
 use Phil\Ujo\Block;
 use Phil\Ujo\Document;
+use Phil\Ujo\Exception\InputTooLarge;
 use Phil\Ujo\Exception\UnknownBlockType;
 use Phil\Ujo\Html\Renderer\CodeRenderer;
 use Phil\Ujo\Html\Renderer\LayoutRenderer;
@@ -121,6 +122,7 @@ final readonly class HtmlRenderer
      * The HTML of the document, one line per top-level block, passed through each filter.
      *
      * @throws UnknownBlockType
+     * @throws InputTooLarge    when an inline HTML field is longer than the ceiling of the sanitizer
      */
     public function render(Document $document): string
     {

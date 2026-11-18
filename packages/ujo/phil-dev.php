@@ -65,6 +65,7 @@ return [
         // Each parser on inputs nobody wrote, from the seeds of tests/Fuzz/corpus/<target>.
         'targets' => [
             'ujo' => 'tests/Fuzz/ujo.php',
+            'ujo-inline' => 'tests/Fuzz/ujo-inline.php',
         ],
     ],
     // The package is released from its own repository: its CHANGELOG uses every section.

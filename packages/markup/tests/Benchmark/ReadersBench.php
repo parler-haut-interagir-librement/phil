@@ -12,11 +12,17 @@ use Phil\Markup\Reader\Markdown\MarkdownReader;
 use Phil\Markup\Reader\MarkupReader;
 use Phil\Markup\Reader\MediaWiki\MediaWikiReader;
 use Phil\Markup\Reader\Text\TextReader;
+use Phil\Ujo\Normalizer;
+use Phil\Ujo\Type\BlockTypeRegistry;
+use Phil\Ujo\Type\StandardTypes;
 
 /**
  * Every format is read into UJO each time a draft is published, from a source an author wrote. Each reader takes a
  * small document, the same document repeated to 100 KB, and 100 KB of delimiters left open: a time that grows ten
- * times from 10 to 100 KB is linear.
+ * times from 10 to 100 KB is linear. The Markdown reader also takes 100 KB of short paragraphs, each a block appended
+ * to the document, and the HTML reader 100 KB of sibling elements it drops, each a loss whose path counts its
+ * siblings. The sources written to be slow, and those of many blocks, are read without the limits a stored document
+ * is held to, which a paragraph of 100 KB passes.
  *
  * @BeforeMethods("setUp")
  */
@@ -40,6 +46,12 @@ final class ReadersBench
         'text' => 'https://e.x/a ',
     ];
 
+    /** The units repeated into many blocks, or many losses, by format. */
+    private const array MANY = [
+        'markdown' => "a\n\n",
+        'html' => '<object></object>',
+    ];
+
     private MarkupReader $reader;
 
     private string $source = '';
@@ -54,15 +66,20 @@ final class ReadersBench
      */
     public function setUp(array $params): void
     {
+        $normalizer = 'document' !== $params['shape'] ? new Normalizer(BlockTypeRegistry::default()->with(StandardTypes::raw()), maxBlocks: \PHP_INT_MAX, maxHtmlLength: \PHP_INT_MAX, maxRawLength: \PHP_INT_MAX) : null;
         $this->reader = match ($params['format']) {
-            'markdown' => new MarkdownReader(),
-            'mediawiki' => new MediaWikiReader(),
-            'dokuwiki' => new DokuWikiReader(),
-            'creole' => new CreoleReader(),
-            'html' => new HtmlReader(),
-            default => new TextReader(),
+            'markdown' => new MarkdownReader(normalizer: $normalizer),
+            'mediawiki' => new MediaWikiReader(normalizer: $normalizer),
+            'dokuwiki' => new DokuWikiReader(normalizer: $normalizer),
+            'creole' => new CreoleReader(normalizer: $normalizer),
+            'html' => new HtmlReader($normalizer),
+            default => new TextReader($normalizer ?? new Normalizer()),
         };
-        $unit = 'hostile' === $params['shape'] ? self::HOSTILE[$params['format']] : self::DOCUMENTS[$params['format']];
+        $unit = match ($params['shape']) {
+            'hostile' => self::HOSTILE[$params['format']],
+            'many' => self::MANY[$params['format']],
+            default => self::DOCUMENTS[$params['format']],
+        };
         $this->source = str_repeat($unit, max(1, intdiv($params['bytes'], \strlen($unit))));
     }
 
@@ -106,7 +123,7 @@ final class ReadersBench
     public function large(): Generator
     {
         foreach (array_keys(self::DOCUMENTS) as $format) {
-            foreach (['document', 'hostile'] as $shape) {
+            foreach (isset(self::MANY[$format]) ? ['document', 'hostile', 'many'] : ['document', 'hostile'] as $shape) {
                 foreach ([10_000, 100_000] as $bytes) {
                     yield \sprintf('%s, %s, %d KB', $format, $shape, intdiv($bytes, 1000)) => ['format' => $format, 'shape' => $shape, 'bytes' => $bytes];
                 }

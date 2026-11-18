@@ -19,7 +19,7 @@ CommonMark writes them. `basic` keeps inline emphasis, for a name or a comment; 
 quotes and images, for a forum message; `all` keeps every element the sanitizer counts as safe, for an article an
 editor writes. A checklist keeps its accessible checkboxes at `all` and says the state of each item in text below. `MarkedUpText`
 keeps the source, its format and the purified HTML together as a Doctrine embeddable, so a page is not compiled on every
-read. It does not cap the length of the input. An add-on brings a dialect of Markdown — its inline and block rules,
+read. Every reader, and the compiler, refuses a source longer than its ceiling, 1 MiB by default, before reading it. An add-on brings a dialect of Markdown — its inline and block rules,
 the syntax it reads differently — or a whole format, read by a reader of its own under a name of its own.
 
 It is for any PHP application that shows text its visitors, members or editors write — comments, forum messages,
@@ -45,7 +45,7 @@ two: source, reader, UJO, renderer, HTML, purifier.
 | `MarkupFormat`, `Level`, `MarkupCompiler`, `LevelAwareCompiler`, `HtmlPurifier`, `InvalidSource` | Implemented and tested |
 | `Markup`, `MarkedUpText` (a Doctrine embeddable) | Implemented and tested |
 | `Lexer\Cursor`, `Lexer\Slugger`: the shared analyser | Implemented and tested |
-| `Reader\Markdown\MarkdownReader`: CommonMark, GitHub, footnotes, attributes, definition lists, anchors, `[TOC]`, front matter, `:::` blocks, raw HTML per level | Implemented and tested |
+| `Reader\Markdown\MarkdownReader`: CommonMark, GitHub, footnotes, attributes, definition lists, anchors, `[TOC]`, front matter, `:::` blocks, raw HTML per level, comments as notes | Implemented and tested |
 | `{{ }}` blocks and the spans that are blocks, stat blocks, pages and columns | Implemented and tested |
 | `MarkdownDialect`, `BaseDialect`, `BlockRule`, `InlineRule`, `ReaderProvider`: the dialects and formats of add-ons | Implemented and tested |
 | `Reader\BBCode\BBCodeReader`: the tags of forums and the extensions of every Markdown feature, raw HTML per level, linear time | Implemented and tested |
@@ -55,6 +55,7 @@ two: source, reader, UJO, renderer, HTML, purifier.
 | `Adapter\DefaultCompiler`: Markdown, BBCode, MediaWiki, DokuWiki, Creole, UJO and the add-ons' formats through UJO; HTML and plain text as written, their readers on demand | Implemented and tested |
 | `Adapter\SanitizerPurifier`: one policy per level | Implemented and tested |
 | `Adapter\AmmoniaPurifier`, `Adapter\Purifiers`: the same policies on the `ammonia` extension, where it is loaded | Implemented and tested |
+| A ceiling on every source, `maxBytes`, refused by `InputTooLarge` before it is read | Implemented and tested |
 | Mentions, embeds, external links, smart punctuation, in every format | Not started |
 
 ## Documentation
@@ -64,12 +65,12 @@ two: source, reader, UJO, renderer, HTML, purifier.
 | [Installation](doc/installation.md) | Requirements and installing. |
 | [Formats](doc/formats.md) | Every format, and which feature each writes and how: the correspondence table. |
 | [Markdown](doc/markdown.md) | What the Markdown reader reads, and the UJO block each construct becomes. |
-| [The analyser](doc/analyser.md) | The cursor, the rules, the two passes, and the limits that keep reading linear. |
+| [The analyser](doc/analyser.md) | The cursor, the rules, the two passes, the limits that keep reading linear, and the ceiling of a source. |
 | [BBCode](doc/bbcode.md) | The tags and the extensions, their UJO types, how a source that is not well formed is read, and why reading is linear. |
 | [The wikis](doc/wikis.md) | MediaWiki, DokuWiki and Creole: their syntax, the extension tags they share, where pages and files are found, and why reading is linear. |
 | [HTML](doc/html.md) | What the HTML reader reads, the classes of `phil/ujo` it reads back, and what it leaves out. |
 | [Accelerators](doc/accelerators.md) | The `ammonia` extension: what `AmmoniaPurifier` keeps, the measures, installing it by PIE. |
-| [Exceptions](doc/exceptions.md) | `MarkupException`, `InvalidSource`, `MissingExtension` and `UnknownFormat`. |
+| [Exceptions](doc/exceptions.md) | `MarkupException`, `InputTooLarge`, `InvalidSource`, `MissingExtension` and `UnknownFormat`. |
 | [Extension points](doc/extension-points.md) | The ports, arguments and data an application chooses or replaces, the dialects of Markdown and the formats of add-ons. |
 | [Testing](doc/testing.md) | How the library is tested. |
 | [Reference](doc/reference.md) | The types, the formats, the levels and what each keeps, and how each level renders a checklist. |

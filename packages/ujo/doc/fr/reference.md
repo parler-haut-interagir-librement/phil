@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4ec862bd831b6cf281903e8c9330568f0804b2e092ab0a39ce331d1ea3ba87ba -->
+<!-- phil-dev source-sha256=62834d0a6dcafb67a6420c431b109bc2d9c357a76d36d09e7db1a9e9555289db -->
 # Référence
 
 Chaque type de la bibliothèque, avec son rôle.
@@ -31,7 +31,7 @@ Chaque type de la bibliothèque, avec son rôle.
 | `Phil\Ujo\Type\TuneType` | `final readonly class` | Un réglage : nom, alias, valeur |
 | `Phil\Ujo\Type\TuneRegistry` | `final readonly class` | Les réglages par nom ou alias |
 | `Phil\Ujo\Type\Tunes` | `final class` | Les réglages par défaut |
-| `Phil\Ujo\Html\InlineSanitizer` | `final readonly class` | Le HTML en ligne gardé comme un profil le permet ; le texte d'un fragment ; l'échappement |
+| `Phil\Ujo\Html\InlineSanitizer` | `final readonly class` | Le HTML en ligne gardé comme un profil le permet ; le texte d'un fragment ; l'échappement ; un fragment plus long que `maxBytes` refusé, `DEFAULT_MAX_BYTES` (4 Mio) sauf configuration |
 | `Phil\Ujo\Html\InlineProfile` | `final readonly class` | Une liste ordonnée d'outils en ligne : `rich()`, `plain()`, `mathMl()`, `raw()` |
 | `Phil\Ujo\Html\InlineTool` | `final readonly class` | Un élément gardé : motifs lus, balise et classe écrites, attributs |
 | `Phil\Ujo\Html\AttributeValue` | enum | Ce qu'un attribut peut contenir, et son nettoyage |
@@ -44,12 +44,13 @@ Chaque type de la bibliothèque, avec son rôle.
 | `Phil\Ujo\Html\Renderer\TextRenderer`, `ListRenderer`, `MediaRenderer`, `LayoutRenderer` | `final readonly class` | Les moteurs de rendu par défaut |
 | `Phil\Ujo\Html\Renderer\CodeRenderer` | `final readonly class` | Le moteur de rendu des blocs de code, avec un surligneur facultatif dont il vérifie le HTML |
 | `Phil\Ujo\Html\Renderer\StoredMarkupRenderer` | `final readonly class` | Écrit le dessin stocké et approuvé d'un bloc, ou se rabat sur un autre moteur de rendu |
-| `Phil\Ujo\Text\PlainText` | `final readonly class` | Un document en texte brut, une conversion par type |
+| `Phil\Ujo\Text\PlainText` | `final readonly class` | Un document en texte brut, une conversion par type, lue par un `InlineSanitizer` |
 | `Phil\Ujo\Exception\UjoException` | interface, étend `Throwable` | Chaque exception de la bibliothèque |
 | `Phil\Ujo\Exception\InvalidJson` | `final class`, `InvalidArgumentException` | Un texte qui n'est pas du JSON UJO |
 | `Phil\Ujo\Exception\InvalidDocument` | `final class`, `InvalidArgumentException` | Une structure ou des données qui enfreignent le modèle, avec leur chemin |
 | `Phil\Ujo\Exception\UnknownBlockType` | `final class`, `InvalidArgumentException` | Un type, un réglage ou un moteur de rendu non enregistré |
 | `Phil\Ujo\Exception\InvalidConfiguration` | `final class`, `LogicException` | Un profil en ligne non enregistré |
+| `Phil\Ujo\Exception\InputTooLarge` | `final class`, `InvalidArgumentException` | Un fragment HTML plus long que le plafond de l'assainisseur |
 
 Voir [documents.md](documents.md), [block-types.md](block-types.md), [normalization.md](normalization.md),
 [inline-html.md](inline-html.md), [html-rendering.md](html-rendering.md), [plain-text.md](plain-text.md) et

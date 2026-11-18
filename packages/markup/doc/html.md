@@ -14,9 +14,11 @@ $reading->document->blocks[1];   // a `paragraph` block, `Roll <strong>two</stro
 ```
 
 The source is parsed by the HTML5 parser of PHP, `Dom\HTMLDocument`, as a browser parses it: tags left open are
-closed, misplaced ones moved, entities read. Any text is a document; the reader never throws. The constructor takes,
-in order, the `phil/ujo` normalizer the document is checked by, the `EmbedServices` a frame is matched against, the
-`ExtractedElementStore` inline drawings are stored by, and the `SvgSanitizer` that purifies them.
+closed, misplaced ones moved, entities read. Any text is a document; the reader never throws on what a source says. The
+constructor takes, in order, the `phil/ujo` normalizer the document is checked by, the `EmbedServices` a frame is
+matched against, the `ExtractedElementStore` inline drawings are stored by, the `SvgSanitizer` that purifies them, and
+`maxBytes`, the ceiling of a source. A source longer than its ceiling — `maxBytes`, 1 MiB by default — is refused by `InputTooLarge` before it is read: see
+[The ceiling of a source](analyser.md#the-ceiling-of-a-source).
 
 ## Blocks
 
@@ -142,4 +144,6 @@ $reading = new HtmlReader(store: new MediaStore($library))->read($html);
 
 Containers nest as deep as UJO allows, and those deeper are left out, their blocks kept. Elements nested more than
 128 deep are read as their text, so that a document nested thousands deep is read in linear time without exhausting
-the stack.
+the stack. The children of an element are counted once, the first time the path of one of them is written in a loss,
+so that a page of thousands of sibling elements left out is read in linear time; 1,000 losses are recorded at most.
+A source longer than `maxBytes`, 1 MiB by default, is refused before it is parsed.

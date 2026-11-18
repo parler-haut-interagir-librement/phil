@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e51a0a86757b07ca933701fb38b96bac4067218551fee80c3e9eef1e8bfc2d2d -->
+<!-- phil-dev source-sha256=989feec6559bd3ec4d853e45479526ed3f3c1a10c5b87b1aecca05a1921f3441 -->
 # Référence
 
 ## Types
@@ -10,12 +10,12 @@
 | `MarkupCompiler` | interface | `compile(string $source, MarkupFormat\|string $format): string`, du HTML **qu'on ne peut pas afficher sans risque** ; une chaîne nomme un format d'un module complémentaire |
 | `LevelAwareCompiler` | interface | Un `MarkupCompiler` avec `compileFor($source, $format, $level)` : on lui indique le niveau auquel le HTML sera assaini |
 | `HtmlPurifier` | interface | `purify(string $html, Level $level): string` |
-| `Exception\MarkupException`, `Exception\InvalidSource`, `Exception\UnknownFormat` | exceptions | Voir [Exceptions](exceptions.md) |
+| `Exception\MarkupException`, `Exception\InputTooLarge`, `Exception\InvalidSource`, `Exception\MissingExtension`, `Exception\UnknownFormat` | exceptions | Voir [Exceptions](exceptions.md) |
 | `Markup` | `final readonly class` | `toHtml()` et `text()` : compiler (au niveau voulu, pour un `LevelAwareCompiler`), puis assainir ; `Level::All` sauf indication contraire |
 | `MarkedUpText` | objet intégrable | `source` (texte), `format` (le nom du format, 16 caractères), `html` (texte) |
 | `Lexer\Cursor` | `final class` | Le curseur de l'analyseur : voir [L'analyseur](analyser.md) |
 | `Lexer\Slugger` | `final class` | Les ancres d'un document, uniques |
-| `Reader\MarkupReader` | interface | `read(string $source): Reading` |
+| `Reader\MarkupReader` | interface | `read(string $source): Reading` ; `DEFAULT_MAX_BYTES`, le plafond d'une source sauf configuration, 1 Mio |
 | `Reader\Reading` | `final readonly class` | `document`, un `Document` UJO, `metadata` et `losses` |
 | `Reader\Loss`, `Reader\LossReason` | `final readonly class`, enum | Ce qu'un lecteur n'a pas gardé : élément, chemin, raison |
 | `Contract\ExtractedElementStore` | interface | `store(string $content, string $mediaType, string $name): ?string` : où les éléments extraits sont stockés sous forme de fichiers |
@@ -31,7 +31,7 @@
 | `Reader\Html\HtmlReader` | `MarkupReader` | HTML vers UJO : voir [HTML](html.md) |
 | `Reader\UjoReader` | `MarkupReader` | Le JSON UJO, par `phil/ujo` |
 | `Reader\Text\TextReader` | `MarkupReader` | Le texte brut : un `paragraph` pour chaque suite de lignes, sauts de ligne gardés, adresses changées en liens |
-| `Adapter\DefaultCompiler` | `LevelAwareCompiler` | Chaque format, ceux des modules complémentaires donnés par nom ; `reader($format, $level)` donne le lecteur d'un format vers UJO, y compris ceux du HTML et du texte brut, même si les deux se compilent sans lui ; `formats()`, le nom de chacun |
+| `Adapter\DefaultCompiler` | `LevelAwareCompiler` | Chaque format, ceux des modules complémentaires donnés par nom, une source plus longue que `maxBytes` refusée ; `reader($format, $level)` donne le lecteur d'un format vers UJO, y compris ceux du HTML et du texte brut, même si les deux se compilent sans lui ; `formats()`, le nom de chacun |
 | `Adapter\SanitizerPurifier` | `HtmlPurifier` | `defaultPolicies()`, un assainisseur par niveau ; `configurations()`, la configuration de chaque niveau |
 | `Adapter\AmmoniaPurifier` | `HtmlPurifier` | `defaultPolicies()` sur l'extension `ammonia`, les mêmes politiques ; `isAvailable()` : voir [Accélérateurs](accelerators.md) |
 | `Adapter\Purifiers` | `final readonly class` | `defaultPolicies($mediaHosts, $extension)` : `AmmoniaPurifier` là où l'extension est chargée, `SanitizerPurifier` sinon |

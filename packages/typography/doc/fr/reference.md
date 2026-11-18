@@ -1,10 +1,10 @@
-<!-- phil-dev source-sha256=7a6fcc62edb7499c5788d9ff33038ffefbb72af7e54251beb10adf1f78a21269 -->
+<!-- phil-dev source-sha256=f983484ba4caabcb88558aaba6566a33572c0d11d158841e92a75894aa2cd287 -->
 # Référence
 
 | Type | Sorte | Rôle |
 |---|---|---|
-| `Phil\Typography\Typographer` | `final readonly class` | Corrige des fragments HTML, des documents et du texte brut avec ses correcteurs ; `for()` construit le préréglage d'une locale |
-| `Phil\Typography\Typographers` | `final class` | Un typographe par locale, construit à la première utilisation, configurable par noms de correcteurs |
+| `Phil\Typography\Typographer` | `final readonly class` | Corrige des fragments HTML, des documents et du texte brut avec ses correcteurs, jusqu'à `maxBytes` ; `for()` construit le préréglage d'une locale ; `DEFAULT_MAX_BYTES`, le plafond d'un texte sauf configuration, 1 Mio |
+| `Phil\Typography\Typographers` | `final class` | Un typographe par locale, construit à la première utilisation, configurable par noms de correcteurs, chacun avec le plafond `maxBytes` |
 | `Phil\Typography\Preset` | `final class` | Les correcteurs d'une locale, par nom et dans l'ordre |
 | `Phil\Typography\Locale` | `final readonly class` | Une langue, une écriture et une région, et ses candidates |
 | `Phil\Typography\Text\Run` | `final readonly class` | Les nœuds texte d'un bloc, en parties ; `map()`, `replace()`, `characters()` |
@@ -33,5 +33,6 @@
 | `Phil\Typography\Exception\InvalidLocale` | `final class` | Une chaîne qui n'est pas une locale |
 | `Phil\Typography\Exception\UnsupportedLanguage` | `final class` | Aucun motif de césure pour une langue |
 | `Phil\Typography\Exception\UnknownFixer` | `final class` | Un nom de correcteur que les préréglages ne connaissent pas |
+| `Phil\Typography\Exception\InputTooLarge` | `final class` | Un texte plus long que le plafond du typographe |
 
 `Phil\Typography\Html\Blocks`, `Phil\Typography\Html\Collector` et `Phil\Typography\Text\Characters` sont internes.

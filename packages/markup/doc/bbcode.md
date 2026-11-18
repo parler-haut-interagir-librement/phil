@@ -98,7 +98,8 @@ a `container` where nesting allows it, as the attributes of the Markdown reader 
 
 ## A source that is not well formed
 
-Any text is a document: the reader never throws.
+Any text is a document: the reader never throws on what a source says. A source longer than its ceiling, `maxBytes`,
+is refused before it is read: see [The ceiling of a source](analyser.md#the-ceiling-of-a-source).
 
 - A tag the reader does not know, or written over two lines, stays as written.
 - A tag left open is closed at the end of the source. A closing tag closes the nearest open tag of its name and the

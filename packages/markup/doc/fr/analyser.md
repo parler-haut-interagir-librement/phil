@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f66f03851337d724d8641ea491092f96b8b2fa5ed641daba8b79ab386316c24e -->
+<!-- phil-dev source-sha256=9358782c0d907843ed0ab7ffc64662b3a63bc1154872acc8d8240fbe96365f71 -->
 # L'analyseur
 
 Les lecteurs sont écrits sur un seul analyseur, à la manière d'un analyseur lexical écrit à la main : un curseur qui
@@ -75,3 +75,31 @@ profond, les marqueurs sont du texte. Comme dans CommonMark, la recherche d'un o
 sous le fermant pour lequel elle a échoué. La deuxième passe remplace les marques d'images en coupant le HTML une seule
 fois, et ajoute les notes de bas de page en une seule passe sur elles. Les balises BBCode s'imbriquent sur 32 niveaux ;
 ses limites sont dans [BBCode](bbcode.md).
+
+Les blocs d'un document sont ajoutés sur place, pour qu'un texte de nombreux paragraphes, titres, listes de définitions
+ou listes prenne un temps qui croît avec leur nombre ; les listes de définitions qui se suivent sont jointes en une
+seule passe. Le lecteur HTML compte une seule fois les enfants d'un élément, la première fois que le chemin de l'un
+d'eux est écrit dans une perte, pour que les pertes de nombreux frères prennent aussi un temps qui croît avec leur
+nombre.
+
+## Le plafond d'une source
+
+Chaque lecteur, et `Adapter\DefaultCompiler`, refuse une source plus longue que son plafond avant de la lire : il lance
+`Exception\InputTooLarge`, qui donne la longueur de la source et le plafond dans `$bytes` et `$limit`, et ne coupe
+jamais la source pour qu'elle y tienne. Le plafond se compte en octets, chaque caractère UTF-8 comptant chacun de ses
+octets. C'est l'argument `maxBytes` de chaque constructeur, `MarkupReader::DEFAULT_MAX_BYTES` (1 Mio) par défaut :
+
+```php
+$reader = new MarkdownReader(maxBytes: 262_144);           // 256 KiB
+$compiler = new DefaultCompiler(maxBytes: 4 * 1_048_576);  // 4 MiB, in every format
+```
+
+`DefaultCompiler` vérifie la source avant de la compiler, dans tous les formats (y compris le HTML et le texte brut,
+qu'il compile sans lecteur), donne son plafond aux lecteurs que retourne `reader()`, et place derrière lui le lecteur
+du format d'un module complémentaire. `Markup` refuse ce que refuse son compilateur. Une source UJO est refusée par le
+plafond de `UjoReader` avant que le décodeur de `phil/ujo` la voie.
+
+Le plafond borne le temps et la mémoire que prend une lecture, quelle que soit sa source, avant les limites du document
+que le normaliseur de `phil/ujo` vérifie ensuite : le nombre de blocs, la longueur d'un champ HTML. 1 Mio contient bien
+des fois un long chapitre écrit à la main ; une application qui reçoit des textes plus longs le relève, celle qui
+reçoit des commentaires l'abaisse.

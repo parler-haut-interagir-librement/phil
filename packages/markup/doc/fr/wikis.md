@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=263317a031b1068687d61f6859e02eca454fb06b7f2e3637fdf7d45e5217223d -->
+<!-- phil-dev source-sha256=e8f464565fe93ddb2fd8b32e409d5fcf853cc117811e5c37fdaec3cc3e1765d9 -->
 # Les wikis
 
 `Reader\MediaWiki\MediaWikiReader`, `Reader\DokuWiki\DokuWikiReader` et `Reader\Creole\CreoleReader` lisent la syntaxe
@@ -168,7 +168,9 @@ Un modèle se nomme en majuscules ou en minuscules, ses espaces et ses traits de
 
 ## Texte mal formé
 
-Tout texte est un document, et les lecteurs ne lancent jamais d'exception. Une marque d'emphase ferme l'élément de son
+Tout texte est un document, et les lecteurs ne lancent jamais d'exception à cause de ce que dit une source ; une source plus longue que leur
+plafond, `maxBytes`, est refusée avant d'être lue (voir [Le plafond d'une source](analyser.md#le-plafond-dune-source)).
+Une marque d'emphase ferme l'élément de son
 genre encore ouvert, et ceux ouverts à l'intérieur et laissés ouverts sont du texte, pour que le HTML soit toujours bien
 imbriqué ; une marque jamais fermée est du texte. Un lien, une image ou un modèle se lit dans les 4 Ko et sur une
 seule ligne ; s'il n'y est pas fermé, c'est du texte. Un conteneur jamais fermé contient le reste du texte.

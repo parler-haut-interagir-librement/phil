@@ -45,7 +45,11 @@ chooses it where the extension is loaded: see [Accelerators](accelerators.md).
 
 | Method | Contract |
 |---|---|
-| `read(string $source): Reading` | The `Document` and the metadata the source declares; `InvalidSource` only for a format with rules a source can break, as UJO JSON — a reader of a written format never throws, and reads what it can in linear time |
+| `read(string $source): Reading` | The `Document` and the metadata the source declares; `InvalidSource` only for a format with rules a source can break, as UJO JSON — a reader of a written format never throws on what a source says, and reads what it can in linear time; `InputTooLarge` for a source longer than the reader's ceiling |
+
+Each reader of the library takes `maxBytes`, the ceiling of a source, `MarkupReader::DEFAULT_MAX_BYTES` — 1 MiB — by
+default; `DefaultCompiler` takes its own, which it gives the readers it builds. See
+[The ceiling of a source](analyser.md#the-ceiling-of-a-source).
 
 `Reading` also lists what the reader did not keep, `$losses`, each a `Loss` with its element, path and `LossReason`.
 
@@ -82,7 +86,8 @@ The rules of the wiki syntaxes are internal.
 letters, digits and hyphens, starts with a letter, and is not a case of `MarkupFormat`; any other throws
 `UnknownFormat`. The compiler then compiles, and `reader()` reads, that format as a built-in one, by its name:
 `compile($source, 'name')`; `formats()` lists it after the built-in ones. A `MarkedUpText` stores the name, which fits
-its 16 characters.
+its 16 characters. The reader of an add-on is put behind the compiler's ceiling, `maxBytes`: a source longer than it is
+refused before the add-on's reader sees it.
 
 ```php
 final readonly class ShoutReaders implements ReaderProvider

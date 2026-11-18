@@ -6,6 +6,7 @@ namespace Phil\Markup\Reader\Text;
 
 use Override;
 use Phil\Markup\Adapter\Autolink;
+use Phil\Markup\Exception\InputTooLarge;
 use Phil\Markup\Reader\MarkupReader;
 use Phil\Markup\Reader\Reading;
 use Phil\Ujo\Block;
@@ -18,14 +19,19 @@ use Phil\Ujo\Normalizer;
  */
 final readonly class TextReader implements MarkupReader
 {
+    /**
+     * @param int<1, max> $maxBytes the longest source read, in bytes; a longer one is refused
+     */
     public function __construct(
         private Normalizer $normalizer = new Normalizer(),
+        private int $maxBytes = self::DEFAULT_MAX_BYTES,
     ) {
     }
 
     #[Override]
     public function read(string $source): Reading
     {
+        InputTooLarge::check($source, $this->maxBytes);
         $paragraphs = [[]];
 
         foreach (explode("\n", str_replace(["\r\n", "\r", "\0"], ["\n", "\n", "\u{FFFD}"], $source)) as $line) {

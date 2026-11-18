@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f9128daf210d31225eb149b073c1f0a6625792c955d73f5e311fc2060afc4014 -->
+<!-- phil-dev source-sha256=5b2c196c185f01b9dc4e569ba15d5a08258bf4faa9b1b1bb06be2ec1b4965896 -->
 # phil/typography
 
 **De vrais guillemets, des tirets, les espaces du français et des traits d'union conditionnels dans votre HTML, dans
@@ -36,6 +36,7 @@ avec les `Patterns` que charge un `Dictionary`.
 | Partie | État |
 |---|---|
 | `Typographer` : fragments HTML, documents entiers et texte brut ; éléments protégés, configurables | Implémenté et testé |
+| Un plafond sur chaque texte, `maxBytes`, refusé par `InputTooLarge` avant d'être analysé | Implémenté et testé |
 | Correcteurs : normalisation Unicode, points de suspension, dimension, tiret, guillemets typographiques, apostrophe, virgule, espacement du français, signes juridiques, unités, césure, coupures de mots du thaï | Implémenté et testé |
 | Guillemets de 66 langues et régions, d'après le CLDR d'Unicode | Implémenté et testé |
 | Espacement du français selon les règles de la France et du Canada | Implémenté et testé |
@@ -51,11 +52,11 @@ avec les `Patterns` que charge un `Dictionary`.
 | Document | Ce qu'il couvre |
 |---|---|
 | [Installation](doc/fr/installation.md) | Les prérequis et l'installation. |
-| [HTML et texte](doc/fr/html.md) | Comment le HTML est lu et réécrit, les suites de texte, les éléments protégés, les émojis. |
+| [HTML et texte](doc/fr/html.md) | Comment le HTML est lu et réécrit, le plafond d'un texte, les suites de texte, les éléments protégés, les émojis. |
 | [Correcteurs](doc/fr/fixers.md) | Chaque correcteur, ce qu'il change et ce qu'il laisse tel quel. |
 | [Locales](doc/fr/locales.md) | Les préréglages, les guillemets, les styles de tiret et l'espacement du français par locale. |
 | [Césure](doc/fr/hyphenation.md) | L'algorithme de Liang, les langues et leurs licences, et vos propres motifs. |
-| [Exceptions](doc/fr/exceptions.md) | `TypographyException` et ses trois exceptions. |
+| [Exceptions](doc/fr/exceptions.md) | `TypographyException` et ses quatre exceptions. |
 | [Points d'extension](doc/fr/extension-points.md) | Les ports, les arguments et les données qu'une application choisit ou remplace. |
 | [Tests](doc/fr/testing.md) | Les tests de la bibliothèque et son seuil de mutation, et comment tester du code qui corrige du texte. |
 | [Référence](doc/fr/reference.md) | Chaque type de la bibliothèque, avec son rôle. |

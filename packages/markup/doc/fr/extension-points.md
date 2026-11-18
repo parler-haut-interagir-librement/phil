@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=df1e50fc480bc59a8096972b962c731e28dd739c9f39c504faa06bfe60e4f7e4 -->
+<!-- phil-dev source-sha256=cedd05dd1b0ac5c4ddc7cf161d19c163fd0dfded7b1ea324d972dc34a669f67b -->
 # Points d'extension
 
 La bibliothèque est du PHP simple et ne déclare aucun service. `Markup` se compose de deux ports, un compilateur et un
@@ -47,7 +47,11 @@ et `Adapter\Purifiers` la choisit là où l'extension est chargée : voir [Accé
 
 | Méthode | Contrat |
 |---|---|
-| `read(string $source): Reading` | Le `Document` et les métadonnées que déclare la source ; `InvalidSource` seulement pour un format dont une source peut enfreindre les règles, comme le JSON UJO ; le lecteur d'un format écrit ne lance jamais d'exception, et lit ce qu'il peut en temps linéaire |
+| `read(string $source): Reading` | Le `Document` et les métadonnées que déclare la source ; `InvalidSource` seulement pour un format dont une source peut enfreindre les règles, comme le JSON UJO ; le lecteur d'un format écrit ne lance jamais d'exception à cause de ce que dit une source, et lit ce qu'il peut en temps linéaire ; `InputTooLarge` pour une source plus longue que le plafond du lecteur |
+
+Chaque lecteur de la bibliothèque prend `maxBytes`, le plafond d'une source, `MarkupReader::DEFAULT_MAX_BYTES` (1 Mio)
+par défaut ; `DefaultCompiler` prend le sien, qu'il donne aux lecteurs qu'il construit. Voir
+[Le plafond d'une source](analyser.md#le-plafond-dune-source).
 
 `Reading` liste aussi ce que le lecteur n'a pas gardé, `$losses`, chacun un `Loss` avec son élément, son chemin et sa
 `LossReason`.
@@ -85,7 +89,8 @@ Les règles des syntaxes de wikis sont internes.
 minuscules, chiffres et traits d'union, commence par une lettre, et n'est pas un cas de `MarkupFormat` ; tout autre nom
 lance `UnknownFormat`. Le compilateur compile alors ce format, et `reader()` le lit, comme un format intégré, par son
 nom : `compile($source, 'name')` ; `formats()` le liste après les formats intégrés. Un `MarkedUpText` stocke le nom, qui
-tient dans ses 16 caractères.
+tient dans ses 16 caractères. Le lecteur d'un module complémentaire est placé derrière le plafond du compilateur,
+`maxBytes` : une source plus longue est refusée avant que le lecteur du module la voie.
 
 ```php
 final readonly class ShoutReaders implements ReaderProvider

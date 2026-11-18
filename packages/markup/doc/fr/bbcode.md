@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=aa731b1d108116436fb347df8d42a139ff2ef8c804513f050f0a6d2984af3eb1 -->
+<!-- phil-dev source-sha256=e46284b09af8e473f6453408adff9914dadabe5b5c799400f8d5ddba25da818f -->
 # BBCode
 
 `Reader\BBCode\BBCodeReader` lit du BBCode et en fait un document UJO, dont `phil/ujo` produit le rendu HTML. Il lit
@@ -102,7 +102,9 @@ bloc dans un `container` là où l'imbrication le permet, comme le font les attr
 
 ## Une source mal formée
 
-Tout texte est un document : le lecteur ne lance jamais d'exception.
+Tout texte est un document : le lecteur ne lance jamais d'exception à cause de ce que dit une source. Une source plus
+longue que son plafond, `maxBytes`, est refusée avant d'être lue : voir
+[Le plafond d'une source](analyser.md#le-plafond-dune-source).
 
 - Une balise que le lecteur ne connaît pas, ou écrite sur deux lignes, reste telle qu'écrite.
 - Une balise laissée ouverte est fermée à la fin de la source. Une balise fermante ferme la balise ouverte la plus

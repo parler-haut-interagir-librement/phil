@@ -4,6 +4,26 @@ All notable changes to `phil/ujo` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: an inline HTML fragment longer than 4 MiB, read before, is refused by default.
+
+### Added
+
+- `Exception\InputTooLarge`, thrown by `InlineSanitizer::sanitize()` and `toText()` for a fragment longer than the
+  sanitizer's ceiling, before it is read — and so by the `Normalizer`, the `HtmlRenderer` and `PlainText`, which read
+  inline HTML through it —; `$bytes` and `$limit` say both lengths, and `check()` refuses an input above a ceiling.
+- `maxBytes`, the ceiling of a fragment in bytes, on `InlineSanitizer`, kept by `withProfile()`;
+  `InlineSanitizer::DEFAULT_MAX_BYTES`, 4 MiB, the ceiling of `JsonDecoder`.
+- The second argument of `PlainText`, the `InlineSanitizer` it reads the text of HTML with, kept by `with()`.
+- The fuzz target `ujo-inline`: the sanitizer on inputs nobody wrote, under a ceiling of 1 KiB.
+- The section [The ceiling of a fragment](doc/inline-html.md#the-ceiling-of-a-fragment).
+
+### Changed
+
+- The inline sanitizer, and every path that reads inline HTML through it — a document built in PHP and converted to
+  text or rendered without being decoded included —, refuses a fragment longer than 4 MiB unless configured.
+
 ## 0.1.2-alpha - 2026-11-15
 
 ### Changed

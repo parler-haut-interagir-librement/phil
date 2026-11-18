@@ -15,3 +15,4 @@ change them, and its CHANGELOG says how.
 | Pass over the rendered HTML | Implement `Html\HtmlFilter` and pass it to `HtmlRenderer::withFilter()` |
 | Convert a type to text differently | Replace its conversion in `PlainText`; see [Plain text](plain-text.md) |
 | Sanitize inline HTML with other rules | Build an `InlineSanitizer` with profiles of your own, by name, and give it to `HtmlRenderer::default()` |
+| Bound the inline HTML read | The `maxBytes` of `InlineSanitizer`, 4 MiB by default; give the sanitizer to the `Normalizer`, `HtmlRenderer::default()` and `PlainText` |

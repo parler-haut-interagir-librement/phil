@@ -25,6 +25,7 @@ final class Statblock
         $name = '';
         $subtitle = Inline::html('');
         $sections = [];
+        /** @var array{title?: string, properties?: list<array{label: string, value: Inline}>, abilities?: list<array{label: string, score: int, modifier?: string}>, blocks?: list<Block>} $section */
         $section = [];
 
         foreach ($blocks as $index => $block) {
@@ -38,10 +39,13 @@ final class Statblock
             } elseif (1 === $index && '' !== $name && 'paragraph' === $block->type && $italic) {
                 $subtitle = Inline::markdown(substr($source, 1, -1));
             } elseif ('delimiter' === $block->type || 'header' === $block->type) {
-                $sections = [...$sections, ...[] === $section ? [] : [$section]];
+                if ([] !== $section) {
+                    $sections[] = $section;
+                }
+
                 $section = 'header' === $block->type ? ['title' => $inline->cut($text, 200)] : [];
             } else {
-                $section = self::add($section, $block, $inline);
+                self::add($section, $block, $inline);
             }
         }
 
@@ -51,27 +55,31 @@ final class Statblock
             'subtitle' => $subtitle,
             'frame' => $attributes->has('frame'),
             'wide' => $attributes->has('wide'),
-            'sections' => [...$sections, ...[] === $section ? [] : [$section]],
+            'sections' => [] === $section ? $sections : [...$sections, $section],
         ]);
     }
 
     /**
-     * A block added to a section: definitions to its properties, a table of scores to its abilities, any other to its
-     * blocks.
+     * A block added to a section in place: definitions to its properties, a table of scores to its abilities, any other
+     * to its blocks.
      *
-     * @param array<string, mixed> $section
-     *
-     * @return array<string, mixed>
+     * @param array{title?: string, properties?: list<array{label: string, value: Inline}>, abilities?: list<array{label: string, score: int, modifier?: string}>, blocks?: list<Block>} $section
      */
-    private static function add(array $section, Block $block, InlineParser $inline): array
+    private static function add(array &$section, Block $block, InlineParser $inline): void
     {
         $abilities = 'table' === $block->type ? self::abilities($block, $inline) : null;
 
-        return match (true) {
-            'definitionList' === $block->type => [...$section, 'properties' => [...self::list($section['properties'] ?? null), ...self::properties($block, $inline)]],
-            null !== $abilities => [...$section, 'abilities' => $abilities],
-            default => [...$section, 'blocks' => [...self::list($section['blocks'] ?? null), $block]],
-        };
+        if ('definitionList' === $block->type) {
+            $section['properties'] ??= [];
+
+            foreach (self::properties($block, $inline) as $property) {
+                $section['properties'][] = $property;
+            }
+        } elseif (null !== $abilities) {
+            $section['abilities'] = $abilities;
+        } else {
+            $section['blocks'][] = $block;
+        }
     }
 
     /**

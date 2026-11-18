@@ -163,7 +163,8 @@ template not known is text.
 
 ## Text that is not well formed
 
-Any text is a document, and the readers never throw. A mark of emphasis closes the element of its kind still open,
+Any text is a document, and the readers never throw on what a source says; a source longer than their ceiling,
+`maxBytes`, is refused before it is read (see [The ceiling of a source](analyser.md#the-ceiling-of-a-source)). A mark of emphasis closes the element of its kind still open,
 and those opened inside it and left open are text, so that the HTML is always well nested; a mark never closed is
 text. A link, an image or a template is read within 4 KB and on one line; one not closed there is text. A container
 never closed holds the rest of the text.

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c1fedb5516f2ebb8de85757308d6900672baae6fd91076dec4e4abcfa0d3c29b -->
+<!-- phil-dev source-sha256=93bb0db4b32d72d9ec625463d3963975b8f2cda357c6e39dde3caac5b6c43d5d -->
 # phil/ujo
 
 **Des documents UJO (Universal JSON Output) comme des valeurs fiables : lus strictement, vérifiés bloc par bloc, rendus
@@ -39,6 +39,7 @@ un `BlockRenderer` par type ; `PlainText` convertit ; `Ujo` assemble le tout.
 | Deux niveaux de validation : la forme à chaque enregistrement, les valeurs exigées remplies et les bornes pour la publication | Implémenté et testé |
 | Réglages : alignement, ancre, variante de texte, avis, retrait, mise en page, masque, table des matières, variante | Implémenté et testé |
 | `InlineSanitizer` : profils `rich`, `plain` et `raw` des outils en ligne | Implémenté et testé |
+| Un plafond sur chaque fragment de HTML en ligne lu, `maxBytes`, refusé par `InputTooLarge` | Implémenté et testé |
 | `HtmlRenderer` : un moteur de rendu par type, remplaçable ; réglages en classes, identifiants et styles ; listes de contrôle à cases à cocher accessibles | Implémenté et testé |
 | `PlainText` : une conversion par type, remplaçable | Implémenté et testé |
 | L'outil communautaire `layout` (mises en page CSS libres) | Non lu, par choix |
@@ -51,11 +52,11 @@ un `BlockRenderer` par type ; `PlainText` convertit ; `Ujo` assemble le tout.
 | [Documents](doc/fr/documents.md) | `Document` et `Block`, la forme JSON, la lecture et l'écriture strictes, les blocs imbriqués. |
 | [Types de blocs](doc/fr/block-types.md) | Chaque type, ses données, les formes qu'il lit aussi, et les réglages. |
 | [Normalisation](doc/fr/normalization.md) | Ce que `Normalizer` vérifie et change, les registres, et l'ajout d'un type. |
-| [HTML en ligne](doc/fr/inline-html.md) | L'assainisseur, ses profils et ses outils en ligne, et pourquoi il est propre à la bibliothèque. |
+| [HTML en ligne](doc/fr/inline-html.md) | L'assainisseur, le plafond d'un fragment, ses profils et ses outils en ligne, et pourquoi il est propre à la bibliothèque. |
 | [Rendu HTML](doc/fr/html-rendering.md) | Le HTML de chaque type, les listes de contrôle et leurs cases à cocher accessibles, les réglages, le remplacement d'un moteur de rendu, et la purification. |
 | [Texte brut](doc/fr/plain-text.md) | Le texte de chaque type, et le remplacement d'une conversion. |
 | [Points d'extension](doc/fr/extension-points.md) | Ce qu'une application peut remplacer ou ajouter, et quand c'est stable. |
-| [Exceptions](doc/fr/exceptions.md) | `UjoException` et ses quatre exceptions, avec leurs messages. |
+| [Exceptions](doc/fr/exceptions.md) | `UjoException` et ses cinq exceptions, avec leurs messages. |
 | [Tests](doc/fr/testing.md) | Les tests de la bibliothèque et son seuil de mutation, et comment tester du code qui stocke des documents. |
 | [Référence](doc/fr/reference.md) | Chaque type de la bibliothèque, avec son rôle. |
 

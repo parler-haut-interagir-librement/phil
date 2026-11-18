@@ -14,6 +14,25 @@ with the typographer of that language: its quotation marks, its spaces before pu
 in a language no typographer serves is fixed as the text around it; a passage is its own run, so a pair of quotation
 marks is never split across two languages.
 
+## The ceiling of a text
+
+Each entry point refuses a text longer than the ceiling of the typographer before it parses it: it throws
+`Exception\InputTooLarge`, which says the length of the text and the ceiling in `$bytes` and `$limit`, and never cuts
+the text to fit. The ceiling is counted in bytes, a character of UTF-8 counting each of its bytes. It is the `maxBytes`
+argument of the constructor, of `Typographer::for()` and of `Typographers` — which gives it to each typographer it
+builds and checks it in `fixHtml()` —, `Typographer::DEFAULT_MAX_BYTES`, 1 MiB, by default:
+
+```php
+$typographer = Typographer::for('fr_CA', maxBytes: 262_144);   // 256 KiB
+$typographers = new Typographers('fr_CA', maxBytes: 262_144);
+```
+
+The ceiling bounds the time and the memory a call takes, whatever it is given: an HTML document is parsed whole, and
+each fixer reads every run of its text. 1 MiB holds a long chapter many times over; an application that fixes longer
+texts raises it.
+
+## Parsing and serializing
+
 A fragment is parsed in the context of `<body>`, as `innerHTML` would parse it: a `<td>` outside a table is dropped,
 as a browser drops it. The output is serialized by PHP's HTML5 serializer: a no-break space is written `&nbsp;`, the
 other characters as they are, attributes with double quotes. A `<` or a `>` in an attribute value is then written

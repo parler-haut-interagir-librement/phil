@@ -1,7 +1,7 @@
 # Markdown
 
-`Reader\Markdown\MarkdownReader` reads Markdown into a UJO document. It never throws: a construct that is not well
-formed stays text. The document is normalized by `phil/ujo` before it is returned, so its inline HTML is in the
+`Reader\Markdown\MarkdownReader` reads Markdown into a UJO document. It never throws on what a source says: a construct
+that is not well formed stays text. The document is normalized by `phil/ujo` before it is returned, so its inline HTML is in the
 canonical form of the inline tools — `<strong>`, `<em>`, `<s class="cdx-strikethrough">`, `<code class="inline-code">`.
 
 ```php
@@ -12,7 +12,8 @@ $reading = $reader->read($source);               // Reading: document and metada
 
 A second argument replaces the `Normalizer`; the default one registers every type of `phil/ujo` and `raw`. A third
 gives a `MarkdownDialect`, the syntax a dialect adds or reads differently: see
-[Extension points](extension-points.md#dialects-of-markdown).
+[Extension points](extension-points.md#dialects-of-markdown). A source longer than its ceiling — `maxBytes`, 1 MiB by default — is refused by `InputTooLarge` before it is read: see
+[The ceiling of a source](analyser.md#the-ceiling-of-a-source).
 
 ## Blocks
 
@@ -81,7 +82,31 @@ Braces right after an image, `![a](a.png){width:200px,wrapLeft}`, apply to the i
 Raw HTML is kept or escaped, as the reader is built. `DefaultCompiler` keeps it for the level `all`, where an editor
 writes and the purifier keeps safe elements, and escapes it below, where it would only be removed: a member's
 `<script>` reads as text instead of vanishing. A kept HTML block is a `raw` block, sanitized by `phil/ujo` then purified
-at the level; an HTML comment alone is dropped. Inline HTML is sanitized with the inline tools of `phil/ujo`.
+at the level. Inline HTML is sanitized with the inline tools of `phil/ujo`.
+
+## Comments
+
+An HTML block of comments alone is the `note` tune of the block that follows it, or of the last block of the document
+— or of the container it is in — when none follows, as the HTML reader keeps the comments of a page. Comments that
+follow each other join, a line each, after the note the block has; a note keeps 10,000 characters. The speaker notes
+of a Marp deck are read as they are written:
+
+```markdown
+# The plan
+
+Three steps.
+
+<!-- Say why there are three. -->
+
+---
+
+# The first step
+```
+
+The `delimiter` of `---` takes the note `Say why there are three.`. A comment that is not alone in its block — text
+after it on its line, or a comment never closed — is raw HTML, escaped or kept as the level says; a comment inside a
+paragraph stays in it. The blocks of a quote, of a list item and of a footnote are joined into their text, which keeps
+no note.
 
 ## `:::` blocks
 

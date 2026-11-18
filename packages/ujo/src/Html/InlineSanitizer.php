@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Phil\Ujo\Html;
 
 use Generator;
+use Phil\Ujo\Exception\InputTooLarge;
 use Phil\Ujo\Exception\InvalidConfiguration;
+use Phil\Ujo\Json\JsonDecoder;
 
 /**
  * Keeps of an HTML fragment the elements a profile allows, written back in one canonical form, and nothing else.
@@ -16,6 +18,9 @@ use Phil\Ujo\Exception\InvalidConfiguration;
  * reads `math`. A tool kept only within another is unwrapped elsewhere: a ruby's reading outside a ruby. Attributes a tool does not name are
  * dropped, and those it names are cleaned. Elements are closed in order: a stray end tag is ignored, and what is still
  * open at the end is closed. A link is never nested in a link.
+ *
+ * A fragment longer than `maxBytes` is refused before it is read, by `sanitize()` and by `toText()`: the normalizer,
+ * the renderer and the conversion to plain text all read inline HTML through them.
  */
 final readonly class InlineSanitizer
 {
@@ -28,20 +33,24 @@ final readonly class InlineSanitizer
 
     private const string ATTRIBUTE = '~([^\s"\'>/=]+)(?:\s*=\s*("[^"]*"|\'[^\']*\'|[^\s"\'=<>`]+))?~';
 
+    /** The ceiling of a fragment, in bytes, unless configured: that of `JsonDecoder`, 4 MiB. */
+    public const int DEFAULT_MAX_BYTES = JsonDecoder::DEFAULT_MAX_BYTES;
+
     /** @var array<string, InlineProfile> */
     private array $profiles;
 
     /**
      * @param array<string, InlineProfile> $profiles profiles added to, or replacing, `rich`, `plain`, `mathml` and `raw`
+     * @param int<1, max>                  $maxBytes the longest fragment read, in bytes; a longer one is refused
      */
-    public function __construct(array $profiles = [])
+    public function __construct(array $profiles = [], private int $maxBytes = self::DEFAULT_MAX_BYTES)
     {
         $this->profiles = [...['rich' => InlineProfile::rich(), 'plain' => InlineProfile::plain(), 'mathml' => InlineProfile::mathMl(), 'raw' => InlineProfile::raw()], ...$profiles];
     }
 
     public function withProfile(string $name, InlineProfile $profile): self
     {
-        return new self([...$this->profiles, $name => $profile]);
+        return new self([...$this->profiles, $name => $profile], $this->maxBytes);
     }
 
     public function profile(string $name): InlineProfile
@@ -51,9 +60,12 @@ final readonly class InlineSanitizer
 
     /**
      * The fragment with only what the profile allows, in canonical form.
+     *
+     * @throws InputTooLarge when the fragment is longer than the ceiling
      */
     public function sanitize(string $html, string $profile = 'rich'): string
     {
+        InputTooLarge::check($html, $this->maxBytes);
         $tools = $this->profile($profile);
         $clean = '';
         /** @var array<int, array{string, string}> $open the tag each open element was read as, and written as ('' when unwrapped), up to `$depth` */
@@ -109,9 +121,12 @@ final readonly class InlineSanitizer
 
     /**
      * The text of the fragment, decoded, without its elements; a line break becomes a new line.
+     *
+     * @throws InputTooLarge when the fragment is longer than the ceiling
      */
     public function toText(string $html): string
     {
+        InputTooLarge::check($html, $this->maxBytes);
         $text = '';
 
         foreach ($this->tokens($html, $this->profiles['rich']) as [$kind, $name]) {

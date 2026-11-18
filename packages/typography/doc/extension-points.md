@@ -19,6 +19,7 @@ what it chooses is which fixers run for a locale and which elements are left alo
 | One typographer per locale | `Typographers`: a default locale, and fixer names by locale in place of their presets |
 | Elements left alone | The `$protected` tags of `Typographer::for()`, the constructors and `Typographers`: `Typographer::PROTECTED_TAGS` by default — `pre`, `code`, `kbd`, `script`, `style`, `textarea` |
 | Hyphenation | The `$hyphenation` flag of `Typographer::for()`, and the `Dictionary` it reads patterns from |
+| The ceiling of a text | The `$maxBytes` of `Typographer::for()`, the constructor and `Typographers`: `Typographer::DEFAULT_MAX_BYTES` by default, 1 MiB; a longer text is refused by `InputTooLarge` |
 | Patterns the library does not ship | `new Dictionary($directory)` over `<tag>.pat.txt` and `<tag>.hyp.txt` files, or `Patterns::parse()` and `new Hyphenator($patterns)` — see [Hyphenation](hyphenation.md#patterns-of-your-own) |
 
 The library never fetches patterns: patterns under a licence it does not ship are the application's to provide, under

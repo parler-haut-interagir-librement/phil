@@ -30,7 +30,7 @@ Every type of the library, with its role.
 | `Phil\Ujo\Type\TuneType` | `final readonly class` | A tune: name, aliases, value |
 | `Phil\Ujo\Type\TuneRegistry` | `final readonly class` | Tunes by name or alias |
 | `Phil\Ujo\Type\Tunes` | `final class` | The default tunes |
-| `Phil\Ujo\Html\InlineSanitizer` | `final readonly class` | Inline HTML kept as a profile allows; text of a fragment; escaping |
+| `Phil\Ujo\Html\InlineSanitizer` | `final readonly class` | Inline HTML kept as a profile allows; text of a fragment; escaping; a fragment longer than `maxBytes` refused, `DEFAULT_MAX_BYTES` (4 MiB) unless configured |
 | `Phil\Ujo\Html\InlineProfile` | `final readonly class` | An ordered list of inline tools: `rich()`, `plain()`, `mathMl()`, `raw()` |
 | `Phil\Ujo\Html\InlineTool` | `final readonly class` | An element kept: patterns read, tag and class written, attributes |
 | `Phil\Ujo\Html\AttributeValue` | enum | What an attribute may hold, and its cleaning |
@@ -43,12 +43,13 @@ Every type of the library, with its role.
 | `Phil\Ujo\Html\Renderer\TextRenderer`, `ListRenderer`, `MediaRenderer`, `LayoutRenderer` | `final readonly class` | The default renderers |
 | `Phil\Ujo\Html\Renderer\CodeRenderer` | `final readonly class` | The renderer of code blocks, with an optional highlighter whose HTML it checks |
 | `Phil\Ujo\Html\Renderer\StoredMarkupRenderer` | `final readonly class` | Writes a block's trusted stored drawing, or falls back to another renderer |
-| `Phil\Ujo\Text\PlainText` | `final readonly class` | A document as plain text, a conversion per type |
+| `Phil\Ujo\Text\PlainText` | `final readonly class` | A document as plain text, a conversion per type, read through an `InlineSanitizer` |
 | `Phil\Ujo\Exception\UjoException` | interface, extends `Throwable` | Every exception of the library |
 | `Phil\Ujo\Exception\InvalidJson` | `final class`, `InvalidArgumentException` | A text that is not UJO JSON |
 | `Phil\Ujo\Exception\InvalidDocument` | `final class`, `InvalidArgumentException` | A structure or data that breaks the model, with its path |
 | `Phil\Ujo\Exception\UnknownBlockType` | `final class`, `InvalidArgumentException` | A type, tune or renderer not registered |
 | `Phil\Ujo\Exception\InvalidConfiguration` | `final class`, `LogicException` | An inline profile not registered |
+| `Phil\Ujo\Exception\InputTooLarge` | `final class`, `InvalidArgumentException` | An HTML fragment longer than the sanitizer's ceiling |
 
 See [documents.md](documents.md), [block-types.md](block-types.md), [normalization.md](normalization.md),
 [inline-html.md](inline-html.md), [html-rendering.md](html-rendering.md), [plain-text.md](plain-text.md) and

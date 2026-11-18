@@ -68,3 +68,30 @@ parentheses of an address 32 deep and `{{ }}` spans 8 deep; deeper, the markers 
 search for an opener that failed is not made again below the closer it failed for. The second pass replaces image
 marks by splitting the HTML once, and adds the footnotes in one pass over them. BBCode tags nest 32 deep; its limits
 are in [BBCode](bbcode.md).
+
+The blocks of a document are appended in place, so that a text of many paragraphs, headings, definition lists or
+lists takes a time that grows with their number; the definition lists that follow each other are joined in one pass.
+The HTML reader counts the children of an element once, the first time the path of one of them is written in a loss,
+so that the losses of many siblings take a time that grows with their number too.
+
+## The ceiling of a source
+
+Each reader, and `Adapter\DefaultCompiler`, refuses a source longer than its ceiling before it reads it: it throws
+`Exception\InputTooLarge`, which says the length of the source and the ceiling in `$bytes` and `$limit`, and never cuts
+the source to fit. The ceiling is counted in bytes, a character of UTF-8 counting each of its bytes. It is the
+`maxBytes` argument of each constructor, `MarkupReader::DEFAULT_MAX_BYTES` — 1 MiB — by default:
+
+```php
+$reader = new MarkdownReader(maxBytes: 262_144);           // 256 KiB
+$compiler = new DefaultCompiler(maxBytes: 4 * 1_048_576);  // 4 MiB, in every format
+```
+
+`DefaultCompiler` checks the source before it compiles it, in every format — HTML and plain text, which it compiles
+without a reader, included —, gives its ceiling to the readers `reader()` returns, and puts the reader of an add-on's
+format behind it. `Markup` refuses what its compiler refuses. A UJO source is refused by the ceiling of `UjoReader`
+before the decoder of `phil/ujo` sees it.
+
+The ceiling bounds the time and the memory a reading takes whatever its source, before the limits of the document the
+normalizer of `phil/ujo` checks afterwards — the number of blocks, the length of an HTML field. 1 MiB holds a long
+chapter written by hand many times over; an application that takes longer texts raises it, one that takes comments
+lowers it.
