@@ -1,6 +1,6 @@
 {
     "name": "phil/commerce-bundle",
-    "description": "The core of commerce for Symfony, on which the module bundles plug: orders and adjustments, channels, ports for what is sold and its price, order processors, taxes per line, payments through gateways with verified notifications, gapless receipts and credit notes with their PDF invoice, and a payment attempt limiter",
+    "description": "The core of a Symfony store: orders, prices, taxes, payments and receipts with their PDF invoices, on which separate modules plug to sell more kinds of things.",
     "license": "MIT",
     "type": "symfony-bundle",
     "authors": [

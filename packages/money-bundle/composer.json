@@ -1,6 +1,6 @@
 {
     "name": "phil/money-bundle",
-    "description": "Symfony integration of phil/money: the accepted currencies by configuration, a MoneyType form type read in the request's locale without floats, AcceptedCurrency and MoneyRange constraints, a format_money Twig filter, a phil_currency Doctrine column type and Money as an ORM embeddable",
+    "description": "phil/money in Symfony: money amounts in forms, validation, Twig templates and Doctrine entities, in the accepted currencies, never through floats.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

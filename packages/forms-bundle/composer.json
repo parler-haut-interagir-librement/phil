@@ -1,6 +1,6 @@
 {
     "name": "phil/forms-bundle",
-    "description": "Forms defined in the database for Symfony: a page for each, protected against spam, questions asked under conditions or for some tiers, choices with places, entries kept no longer than needed, sensitive values sealed, sent by email or to a signed webhook",
+    "description": "Contact and registration forms defined in the database of a Symfony site, spam-protected, with entries kept only as long as needed and sent by email or webhook.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

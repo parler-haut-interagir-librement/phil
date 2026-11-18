@@ -1,6 +1,6 @@
 {
     "name": "phil/certificates-bundle",
-    "description": "Certificates of completion for Symfony on Open Badges: courses and their pass criteria, certificates awarded to those who meet them, a PDF certificate with a verification QR code and the signed credential embedded, a public register, and revocation through status lists",
+    "description": "Award certificates of completion from Symfony: courses with pass criteria, a PDF with a QR code that anyone can verify, a public register, and revocation.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

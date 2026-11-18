@@ -1,6 +1,6 @@
 {
     "name": "phil/ddd-bundle",
-    "description": "DDD/CQRS core for Symfony: command and query bus ports, Messenger adapters, UUIDv7 identifiers and their optional Doctrine DBAL type, domain event and domain errors",
+    "description": "The few types every bounded context of a Symfony application shares: identifiers, domain events, domain errors, and command and query buses on Messenger.",
     "license": "MIT",
     "type": "symfony-bundle",
     "authors": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/spam-protection-bundle",
-    "description": "Spam protection for Symfony forms without captcha, third party or identifier: honeypot, signed single-use token, filling time, browser proof of work, text rules and rate limit, whose outcome is a phil/bot-detection-bundle verdict",
+    "description": "phil/spam-protection in Symfony: keep spam out of your forms without a captcha, a third party or tracking, through checks a person never sees.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

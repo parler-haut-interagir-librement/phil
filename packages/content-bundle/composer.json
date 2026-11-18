@@ -1,6 +1,6 @@
 {
     "name": "phil/content-bundle",
-    "description": "Dimensioned content for Symfony and Doctrine: a root and its rows by locale, stage and version, a data mapper pipeline, draft-to-live publication on symfony/workflow with frozen versions and page events, bodies published as UJO, routes with redirects of old slugs, an administration with autosaved drafts, a search feed and scheduled publication",
+    "description": "Pages and articles for Symfony, stored by language and version and published from draft to live, with redirects of old addresses and scheduled publication.",
     "license": "MIT",
     "type": "symfony-bundle",
     "authors": [

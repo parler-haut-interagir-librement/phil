@@ -1,6 +1,6 @@
 {
     "name": "phil/resource",
-    "description": "A reference to any resource of an application, by its kind and identifier: what a trash, a usage index, a taxonomy or a schedule points at without knowing the resource",
+    "description": "Point at any record of your application by its kind and identifier, such as page:42, so a trash, a tag or a schedule can refer to it without knowing its class.",
     "license": "MIT",
     "type": "library",
     "keywords": [

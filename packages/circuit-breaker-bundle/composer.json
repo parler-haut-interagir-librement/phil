@@ -1,6 +1,6 @@
 {
     "name": "phil/circuit-breaker-bundle",
-    "description": "phil/circuit-breaker in Symfony: circuits declared in configuration, their states in a PSR-6 cache pool shared by the workers, an HTTP client put behind its circuit per client or destination, overrides that force a circuit open, and a profiler panel",
+    "description": "phil/circuit-breaker in Symfony: circuits declared in configuration, their states shared by all workers, and HTTP clients that stop calling a failing service.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

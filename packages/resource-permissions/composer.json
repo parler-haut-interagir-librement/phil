@@ -1,6 +1,6 @@
 {
     "name": "phil/resource-permissions",
-    "description": "Per-resource permissions inherited through a tree (a role, 'everyone else', most specific wins), as a shared subject-relation-object access model: declared relations, inheritance and rewrites, bounded checks and listings, in-memory and Doctrine DBAL stores.",
+    "description": "Answer who may do what on each resource: relations between subjects and objects, inherited through trees and groups, checked and listed within a budget.",
     "license": "MIT",
     "type": "library",
     "keywords": [

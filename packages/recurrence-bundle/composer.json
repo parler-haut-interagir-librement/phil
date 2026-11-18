@@ -1,6 +1,6 @@
 {
     "name": "phil/recurrence-bundle",
-    "description": "phil/recurrence in Symfony: a form for common recurrence rules with a Stimulus controller, the column type phil_rrule, and rules written in words and their occurrences in Twig",
+    "description": "phil/recurrence in Symfony: a form for repeating events, a Doctrine column to store the rule, and the rule and its dates shown in words in Twig.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

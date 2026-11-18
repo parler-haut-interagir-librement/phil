@@ -1,6 +1,6 @@
 {
     "name": "phil/identity-provider-bundle",
-    "description": "An open identity brick for Symfony, one module per method: verified accounts, Argon2id passwords checked against breaches, passkeys, TOTP and recovery codes, sign-in links, SMS verification, step-up, remote sign-out of devices, linked federated identities, and an OpenID Connect provider with PKCE, rotating keys, revocation and logout",
+    "description": "Run your own sign-in for Symfony: accounts, passwords checked against breaches, passkeys, two-factor codes, sign-in links, and an OpenID Connect provider.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

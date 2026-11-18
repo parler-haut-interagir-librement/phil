@@ -1,6 +1,6 @@
 {
     "name": "phil/open-badges",
-    "description": "Open Badges 3.0 and CLR 2.0 credentials: issued as Verifiable Credentials 2.0, signed as JSON Web Tokens (EdDSA, RS256) or with an eddsa-rdfc-2022 Data Integrity proof, verified offline, baked into PNG and SVG images, revoked through a Bitstring Status List, endorsed by third parties and gathered in learner records",
+    "description": "Issue Open Badges 3.0 that anyone can verify: signed, baked into the image, revoked, endorsed and gathered in a learner record (CLR 2.0).",
     "license": "MIT",
     "type": "library",
     "keywords": [

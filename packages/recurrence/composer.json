@@ -1,6 +1,6 @@
 {
     "name": "phil/recurrence",
-    "description": "Recurrence rules for PHP: RFC 5545 RRULEs — yearly, monthly, weekly and daily, by day, month day, month and set position — read, written, and expanded into occurrences in their time zone, with exceptions",
+    "description": "Repeating dates from an iCalendar (RFC 5545) rule: read it, check it, write it, and list its occurrences in their time zone, with exceptions.",
     "license": "MIT",
     "type": "library",
     "keywords": [

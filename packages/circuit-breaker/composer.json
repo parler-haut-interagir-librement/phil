@@ -1,6 +1,6 @@
 {
     "name": "phil/circuit-breaker",
-    "description": "Circuit breakers for calls to third parties: a closed/open/half-open state machine per key, failure-rate thresholds over a minimum of calls in a fixed window, timing on a PSR-20 clock, a port for the store of states shared by the processes, and a port for the operator who forces a circuit open",
+    "description": "Stop calling a third party that keeps failing, and resume when it recovers: one circuit per service, with failure thresholds and states shared by processes.",
     "license": "MIT",
     "type": "library",
     "keywords": [

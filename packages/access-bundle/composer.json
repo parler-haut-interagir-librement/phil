@@ -1,6 +1,6 @@
 {
     "name": "phil/access-bundle",
-    "description": "Per-item visibility, sharing levels, access groups and their entry points, self-expiring access and 'view as this member', declared as relations on the shared resource permission model and decided by Symfony Security voters, EasyAdmin's included.",
+    "description": "Decide who sees and who may change each item of a Symfony site: visibility, sharing, access groups, access that ends on its own, and 'view as this member'.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/api-contract-bundle",
-    "description": "Both sides of an unversioned HTTP API contract for Symfony, on phil/api-contract and phil/idempotency: exceptions as problem details, #[Idempotent] controllers with keys in Doctrine or a cache pool, #[DeprecatedEndpoint] controllers, the deprecations of called APIs recorded and checked in CI, and its OpenAPI document checked by level",
+    "description": "phil/api-contract in Symfony: errors as problem details, idempotent requests replayed safely, deprecated endpoints announced, and the OpenAPI document checked.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

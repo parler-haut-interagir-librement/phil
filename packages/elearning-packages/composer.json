@@ -1,6 +1,6 @@
 {
     "name": "phil/elearning-packages",
-    "description": "SCORM 1.2, SCORM 2004 and cmi5 packages read safely without a learning platform: the ZIP archive checked before any file is read, the manifest or course structure parsed without entities into immutable values, the launch files checked, every reading bounded by limits",
+    "description": "Read SCORM 1.2, SCORM 2004 and cmi5 course packages safely, without a learning platform: the archive and manifest are checked and parsed within strict limits.",
     "license": "MIT",
     "type": "library",
     "keywords": [

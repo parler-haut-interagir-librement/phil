@@ -1,6 +1,6 @@
 {
     "name": "phil/open-badges-bundle",
-    "description": "phil/open-badges in Symfony: the issuer and its key from configuration, credentials secured as JSON Web Tokens or Data Integrity proofs, the issuer's profile and keys served, Bitstring Status Lists served, a verification page for tokens, documents and baked images, and the keys of other issuers read from their profiles",
+    "description": "phil/open-badges in Symfony: the issuer configured once, its profile and keys published, revocations served, and a page where anyone verifies a badge.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

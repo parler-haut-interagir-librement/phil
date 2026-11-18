@@ -1,6 +1,6 @@
 {
     "name": "phil/idempotency",
-    "description": "Each operation run once per idempotency key: keys scoped to their caller, request fingerprints, the response kept and replayed, three states with an expiring in-progress one, and stores on a port, with adapters for Doctrine DBAL and the Symfony cache under a Symfony lock, for HTTP APIs, Messenger handlers, payment webhooks and forms sent twice",
+    "description": "Run each operation once, whatever the retries: the result is kept by idempotency key and replayed, for APIs, message handlers, webhooks and forms sent twice.",
     "license": "MIT",
     "type": "library",
     "keywords": [

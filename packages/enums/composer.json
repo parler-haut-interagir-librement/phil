@@ -1,6 +1,6 @@
 {
     "name": "phil/enums",
-    "description": "Zero-dependency helper traits and attributes for PHP enums: case names and values, comparisons, from()/tryFrom() on pure enums and fromName(), static case access, and metadata attached to cases by attributes, with PHPStan extensions that type them",
+    "description": "Make PHP enums easier to list, compare, describe and group: traits and attributes with no dependency, and PHPStan extensions that understand them.",
     "license": "MIT",
     "type": "library",
     "keywords": [

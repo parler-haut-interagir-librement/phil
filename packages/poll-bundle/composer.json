@@ -1,6 +1,6 @@
 {
     "name": "phil/poll-bundle",
-    "description": "phil/poll in Symfony: polls and ballots kept with Doctrine, anonymous ballots changed by receipt, an application policy asked first, the single transferable vote by Meek's method in exact rationals with its rounds published, counts kept until the next ballot, and events naming the poll",
+    "description": "phil/poll in Symfony: polls and ballots stored with Doctrine, anonymous or not, counted on demand, with the single transferable vote and its rounds published.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

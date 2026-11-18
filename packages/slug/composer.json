@@ -1,6 +1,6 @@
 {
     "name": "phil/slug",
-    "description": "Slugs as a value type, and sluggers that make them: transliterated to ASCII, cut at a word, named per use, and changed by decoration",
+    "description": "Turn titles and names into clean URL slugs, kept in a type that accepts nothing else, with a slugger per use that you can adjust.",
     "license": "MIT",
     "type": "library",
     "keywords": [

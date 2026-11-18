@@ -1,6 +1,6 @@
 {
     "name": "phil/rate-limit",
-    "description": "The production guard of rate limits over symfony/rate-limiter: a compiler pass that fails the container build on a limiter counting in a cache pool or a storage each server keeps for itself, and on a rate limit enabled without the component",
+    "description": "Make sure your Symfony rate limits really limit in production: the container fails to build when a limiter counts in a store that each server keeps for itself.",
     "license": "MIT",
     "type": "library",
     "keywords": [

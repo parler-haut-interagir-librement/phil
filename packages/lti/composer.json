@@ -1,6 +1,6 @@
 {
     "name": "phil/lti",
-    "description": "LTI 1.3 for PHP, on both sides: the tool and the platform, the OpenID Connect launch with its id_token verified by key set, resource link and Deep Linking 2.0 messages, typed roles and claims, and the LTI Advantage services, Assignment and Grade Services and Names and Role Provisioning, with client_credentials access tokens by JWT assertion",
+    "description": "LTI 1.3 for PHP, on both sides: a tool that learning platforms launch, and a platform that launches tools, with Deep Linking and the LTI Advantage services.",
     "license": "MIT",
     "type": "library",
     "keywords": [

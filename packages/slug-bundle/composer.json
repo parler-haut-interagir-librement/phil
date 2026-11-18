@@ -1,6 +1,6 @@
 {
     "name": "phil/slug-bundle",
-    "description": "phil/slug in Symfony: named sluggers from the configuration, each a service to decorate, autowired by name, the phil_slug filter in Twig, and an optional Doctrine history of former slugs",
+    "description": "phil/slug in Symfony: named sluggers declared in configuration, autowired by name, usable in Twig, with an optional history of former slugs.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

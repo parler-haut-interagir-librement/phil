@@ -1,6 +1,6 @@
 {
     "name": "phil/outbox-bundle",
-    "description": "phil/outbox in Symfony: events saved in a table of your Doctrine connection, delivered by a console command or the Scheduler, with retries and an optional Messenger bridge.",
+    "description": "phil/outbox in Symfony: events saved in a table of your Doctrine connection, delivered by a command or the Scheduler, with retries and a Messenger bridge.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

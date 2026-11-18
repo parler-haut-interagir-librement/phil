@@ -1,6 +1,6 @@
 {
     "name": "phil/typography-bundle",
-    "description": "phil/typography in Symfony: one typographer per locale from configuration, the typography and typography_text Twig filters, and typographic fixes on the HTML that phil/ujo renders",
+    "description": "phil/typography in Symfony: proper quotes, dashes, French spaces and hyphenation wherever the application prints text, one setting per language.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

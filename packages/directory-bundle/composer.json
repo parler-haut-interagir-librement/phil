@@ -1,6 +1,6 @@
 {
     "name": "phil/directory-bundle",
-    "description": "A directory for Symfony: listings in genres, each a content of phil/content-bundle whose versions keep its history, written by their author and the editors the author names, and related across genres as the configuration says, each found as its author decides: listed, kept out of search engines, or unlisted",
+    "description": "A directory of listings, such as podcasts or shops, for Symfony: members write and keep their history, editors publish, and authors choose who can find them.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

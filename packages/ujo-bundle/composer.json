@@ -1,6 +1,6 @@
 {
     "name": "phil/ujo-bundle",
-    "description": "phil/ujo in Symfony: the Ujo service from configuration, the ujo_html and ujo_text Twig filters and functions, a form field holding UJO JSON, and the ValidUjo constraint",
+    "description": "phil/ujo in Symfony: UJO (Universal JSON Output) documents checked in a form field and a constraint, and rendered as safe HTML or text in Twig.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

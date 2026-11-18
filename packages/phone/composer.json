@@ -1,6 +1,6 @@
 {
     "name": "phil/phone",
-    "description": "Phone numbers for PHP: parsed from what people type, validated and typed by country, formatted in E.164, international, national and tel: forms, on libphonenumber's metadata imported as PHP data",
+    "description": "Read phone numbers as people type them, check them against their country's numbering plan, and format them for display, storage or a tel: link.",
     "license": "(MIT AND Apache-2.0)",
     "type": "library",
     "keywords": [

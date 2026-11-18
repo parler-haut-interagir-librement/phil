@@ -1,6 +1,6 @@
 {
     "name": "phil/phone-bundle",
-    "description": "phil/phone in Symfony: a phone number field read in a default country, the constraint ValidPhoneNumber with accepted types and countries, the column type phil_phone, and numbers in Twig",
+    "description": "phil/phone in Symfony: a phone number field read in a default country, a validation constraint, a Doctrine column type and formatting in Twig.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/lti-bundle",
-    "description": "phil/lti in Symfony: an LTI 1.3 tool, platform or both, with the routes of the launch, Deep Linking and the key set, an authenticator for verified launches, the platform services, Doctrine DBAL stores, keys sealed by Symfony KeyManagement and rotated, scores sent through Messenger, and events for the gradebook",
+    "description": "phil/lti in Symfony: an LTI 1.3 tool, platform or both from one configuration, with launch routes, verified sign-in, LTI Advantage services and rotating keys.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

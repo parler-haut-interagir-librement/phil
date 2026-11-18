@@ -1,6 +1,6 @@
 {
     "name": "phil/money",
-    "description": "Money as a value object: an amount in the smallest unit of an ISO 4217 currency validated against the Unicode CLDR data, integer arithmetic only, decimal parsing and printing to the currency's own precision, and allocation that never loses a cent",
+    "description": "Handle money without rounding errors: exact integer amounts in a known currency, parsed and printed to its precision, split without ever losing a cent.",
     "license": "MIT",
     "type": "library",
     "keywords": [

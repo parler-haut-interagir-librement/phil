@@ -1,6 +1,6 @@
 {
     "name": "phil/bot-detection-bundle",
-    "description": "Bot detection for Symfony whose only output is a robot or human verdict: in-browser automation detectors in a Stimulus controller, a strict verdict, a verdict-to-friction policy and an aggregate robot verdict counter",
+    "description": "Tell a robot from a human in a Symfony site: detectors run in the browser and give one verdict, which decides how much friction the visitor meets.",
     "license": "MIT",
     "type": "symfony-bundle",
     "authors": [

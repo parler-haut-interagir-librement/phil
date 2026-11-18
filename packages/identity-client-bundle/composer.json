@@ -1,6 +1,6 @@
 {
     "name": "phil/identity-client-bundle",
-    "description": "OpenID Connect sign-in for Symfony on the native oidc_login authenticator: one semantic configuration, sub-indexed provisioning, validated return_to, replay-guarded back-channel logout, a session cap, step-up by acr_values and max_age, and serialized token refresh",
+    "description": "Sign the users of a Symfony application in through any OpenID Connect provider, hardened: one configuration, safe redirects, back-channel logout and step-up.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

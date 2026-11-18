@@ -1,6 +1,6 @@
 {
     "name": "phil/tenancy-database-bundle",
-    "description": "A database for each tenant, or the shared one: the Doctrine connection follows the placement of the active tenant at each request, with migrations run per database at bounded concurrency, the database of a new tenant created, and a tenant moved from one database to another, verified and reversible",
+    "description": "Give each tenant of a Symfony application its own database, or the shared one, chosen at each request, with migrations per database and tenants moved safely.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [
