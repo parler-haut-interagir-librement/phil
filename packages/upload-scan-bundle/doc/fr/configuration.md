@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5153524371247a6134b73821f073fa4df7b8ef1324d7a7299b3c39d9980dadac -->
+<!-- phil-dev source-sha256=dd8c5686e5f5d6e79446a49f610b2f789f1da776781d455990013868b1836a08 -->
 # Configuration
 
 ```yaml
@@ -21,6 +21,7 @@ phil_upload_scan:
     rescan:
         transport: null                 # the Messenger transport RescanFile is routed to, such as async
     admin:
+        enabled: true                   # false leaves the quarantine's page, and its CSRF check, out
         role: ROLE_ADMIN                # the role, or a voter's attribute, that opens the quarantine's page
         layout: '@PhilUploadScan/admin/layout.html.twig'
         page_size: 50                   # 1 to 500 files a page
@@ -85,6 +86,11 @@ l'acheminement à l'application, et un message non acheminé est traité au mome
 La page d'administration de la quarantaine, branchée avec Twig et `symfony/security-csrf` une fois ses routes importées :
 `role` l'ouvre, `layout` est le gabarit qu'elle étend, et `page_size` le nombre de fichiers listés par page. Voir
 [Quarantaine et événements](quarantine-and-events.md#la-page-dadministration).
+
+Ses suppressions exigent le jeton CSRF sans état `phil_upload_scan_quarantine`, par défaut et sans rien à activer :
+`csrf_protection` de FrameworkBundle doit alors rester activé, sinon le conteneur ne se construit pas. `enabled: false`
+laisse de côté la page, son contrôleur et sa vérification, pour une application qui a installé le composant CSRF pour
+ses propres formulaires et désactive la protection. Voir [CSRF](csrf.md).
 
 ## `integrations`
 

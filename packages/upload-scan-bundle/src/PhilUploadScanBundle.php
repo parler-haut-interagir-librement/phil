@@ -24,6 +24,7 @@ use Phil\UploadScanBundle\Application\RescanFileHandler;
 use Phil\UploadScanBundle\Application\UploadScanner;
 use Phil\UploadScanBundle\Infrastructure\Admin\QuarantineAdminController;
 use Phil\UploadScanBundle\Infrastructure\Console\PurgeQuarantineCommand;
+use Phil\UploadScanBundle\Infrastructure\DependencyInjection\CsrfProtectionPass;
 use Phil\UploadScanBundle\Infrastructure\DependencyInjection\QuarantineInventoryPass;
 use Phil\UploadScanBundle\Infrastructure\Media\ScanningMediaStorage;
 use Phil\UploadScanBundle\Infrastructure\Monitoring\ScannerHealthCheck;
@@ -62,6 +63,7 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_it
  *     rescan:
  *         transport: async            # RescanFile routed to this Messenger transport
  *     admin:
+ *         enabled: true               # false leaves the administration, and its CSRF check, out
  *         role: ROLE_ADMIN
  * ```
  *
@@ -169,8 +171,9 @@ final class PhilUploadScanBundle extends AbstractBundle
                     ->end()
                 ->end()
                 ->arrayNode('admin')
-                    ->info('The administration of the quarantine, once its routes are imported.')
+                    ->info('The administration of the quarantine, once its routes are imported; registered with Twig and symfony/security-csrf unless disabled.')
                     ->addDefaultsIfNotSet()
+                    ->canBeDisabled()
                     ->children()
                         ->scalarNode('role')
                             ->info('The role, or the attribute of a voter, that opens it.')
@@ -202,7 +205,7 @@ final class PhilUploadScanBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{scanner: string, clamd: array{address: string, timeout: float, connect_timeout: float, chunk_bytes: int}, max_bytes: int, on_error: string, quarantine: array{enabled: bool, directory: string, tighten_open_directory: bool, service: ?string, retention_days: int<1, max>}, rescan: array{transport: ?string}, admin: array{role: string, layout: string, page_size: int<1, 500>}, integrations: array{media: string, monitoring: string}} $config */
+        /** @var array{scanner: string, clamd: array{address: string, timeout: float, connect_timeout: float, chunk_bytes: int}, max_bytes: int, on_error: string, quarantine: array{enabled: bool, directory: string, tighten_open_directory: bool, service: ?string, retention_days: int<1, max>}, rescan: array{transport: ?string}, admin: array{enabled: bool, role: string, layout: string, page_size: int<1, 500>}, integrations: array{media: string, monitoring: string}} $config */
         $services = $container->services();
         $adapter = \in_array($config['scanner'], self::ADAPTERS, true) ? $config['scanner'] : null;
 
@@ -260,7 +263,7 @@ final class PhilUploadScanBundle extends AbstractBundle
                 ->tag('console.command', ['command' => PurgeQuarantineCommand::NAME, 'description' => 'Deletes the quarantined files kept longer than the retention.']);
         }
 
-        if (null !== $quarantine && class_exists(Environment::class) && interface_exists(CsrfTokenManagerInterface::class)) {
+        if (null !== $quarantine && $config['admin']['enabled'] && $this->adminCanBeRegistered()) {
             // Removed by QuarantineInventoryPass when the quarantine cannot be listed.
             $services->set(QuarantineAdminController::class)
                 ->args([
@@ -310,12 +313,18 @@ final class PhilUploadScanBundle extends AbstractBundle
     }
 
     /**
-     * Routes `RescanFile` to the transport `rescan.transport` names, before FrameworkBundle reads its routing: the
-     * application's own routing of the message, given after, still wins.
+     * Lists the administration's CSRF token among FrameworkBundle's stateless ones, and routes `RescanFile` to the
+     * transport `rescan.transport` names, before FrameworkBundle reads its configuration: the application's own routing
+     * of the message, given after, still wins.
      */
     #[Override]
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
+        if ($builder->hasExtension('framework') && $this->adminCanBeRegistered()) {
+            // The administration's token is checked by the request's origin, without a session.
+            $builder->prependExtensionConfig('framework', ['csrf_protection' => ['stateless_token_ids' => [QuarantineAdminController::CSRF_TOKEN_ID]]]);
+        }
+
         if (!$builder->hasExtension('framework') || !interface_exists(MessageBusInterface::class)) {
             return;
         }
@@ -342,6 +351,7 @@ final class PhilUploadScanBundle extends AbstractBundle
     public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new QuarantineInventoryPass());
+        $container->addCompilerPass(new CsrfProtectionPass());
     }
 
     /**
@@ -373,6 +383,14 @@ final class PhilUploadScanBundle extends AbstractBundle
         }
 
         return FilesystemQuarantine::class;
+    }
+
+    /**
+     * The administration renders its page with Twig and checks its deletions with the CSRF component.
+     */
+    private function adminCanBeRegistered(): bool
+    {
+        return class_exists(Environment::class) && interface_exists(CsrfTokenManagerInterface::class);
     }
 
     private function integrates(ContainerBuilder $builder, string $mode, string $extension, string $name): bool

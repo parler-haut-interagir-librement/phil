@@ -42,6 +42,7 @@ It is released under the MIT licence.
 | [ClamAV](doc/clamav.md) | A clamd service beside the application in Docker Compose. |
 | [Validation](doc/validation.md) | The `#[CleanFile]` constraint and the `UploadScanner`. |
 | [Quarantine and events](doc/quarantine-and-events.md) | Where infected files go, the administration page, the retention, `FileInfected` and `FileFlagged`. |
+| [CSRF](doc/csrf.md) | The token the administration page requires, sending it, and `admin.enabled`. |
 | [Rescans](doc/rescans.md) | `RescanFile`, `RescanTarget`, the worker and `FileRescanned`. |
 | [Integrations](doc/integrations.md) | The media library, the document importer, the health check. |
 | [Extension points](doc/extension-points.md) | The scanner, the quarantine and the rescan targets of the application. |

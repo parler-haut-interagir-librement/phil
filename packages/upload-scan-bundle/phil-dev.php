@@ -26,6 +26,13 @@ return [
     ],
     'infection' => [
         'mutators' => [
+            // Twig and the CSRF component are both installed wherever the tests run: `||` differs from `&&` only when
+            // exactly one of the two packages is missing, a state no test of this package can build.
+            'LogicalAnd' => [
+                'ignoreSourceCodeByRegex' => [
+                    '.*class_exists\\(Environment::class\\) && interface_exists\\(CsrfTokenManagerInterface::class\\).*',
+                ],
+            ],
             // The copy inside the first `try` cannot throw: the stream was checked before, and the warnings are silenced.
             // In the others, a stream is closed by PHP as soon as its last reference goes: an exception that skips the
             // `fclose()` leaves nothing open, so closing in `finally` or after it cannot be told apart.

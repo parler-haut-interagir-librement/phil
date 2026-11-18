@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9a08738df1ece6db11c182771c6775e4358bc6ce7d81be92525385445951155d -->
+<!-- phil-dev source-sha256=593df5c12941366f01fac0e1ade4dc52962538b0c7bc676b7e014cbf666ec6ca -->
 # Quarantaine et événements
 
 ## La quarantaine
@@ -44,8 +44,9 @@ journalisé comme une erreur, `quarantineId` vaut `null`, et le fichier est tout
 
 ## La page d'administration
 
-Avec Twig et `symfony/security-csrf`, le bundle enregistre `QuarantineAdminController`, la page où un opérateur lit la
-quarantaine et supprime les fichiers traités. Importez ses routes derrière le pare-feu de l'application :
+Avec Twig et `symfony/security-csrf`, et sauf si `admin.enabled` vaut `false`, le bundle enregistre
+`QuarantineAdminController`, la page où un opérateur lit la quarantaine et supprime les fichiers traités. Importez ses
+routes derrière le pare-feu de l'application :
 
 ```yaml
 # config/routes/phil_upload_scan_admin.yaml
@@ -61,8 +62,8 @@ phil_upload_scan_admin:
 
 Chaque fichier montre le nom sous lequel il a été envoyé, la signature qui l'a condamné, le moment où il a été conservé,
 sa taille et son identifiant, celui que `FileInfected` portait. Ce qu'un fichier contient n'est jamais montré ni servi :
-un opérateur qui doit en regarder un le lit sur le serveur. Une suppression sans jeton CSRF valide répond `400`, celle
-d'un identifiant que la quarantaine ne détient pas `404` ; une suppression qui aboutit est journalisée au niveau
+un opérateur qui doit en regarder un le lit sur le serveur. Une suppression sans jeton CSRF valide répond `400` (voir
+[CSRF](csrf.md)), celle d'un identifiant que la quarantaine ne détient pas `404` ; une suppression qui aboutit est journalisée au niveau
 `notice` avec son identifiant et renvoie le navigateur à la liste par un `303`.
 
 Chaque page demande à la sécurité de l'application `admin.role`, `ROLE_ADMIN` par défaut (un rôle, ou l'attribut d'un

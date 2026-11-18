@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b8e96b975601fe3e25bf76cbed4ebbeae0fd932bf37aed0edf9365781efc3e91 -->
+<!-- phil-dev source-sha256=c22b2dfc675d2f7b958320d1f640fcd6fae7b6d27beb04bdbc075a6cdf58987e -->
 # Installation
 
 ## Prérequis
@@ -19,7 +19,7 @@ Facultatifs :
 | `phil/media-bundle` | Les originaux de la médiathèque, analysés avant d'être stockés. |
 | `phil/document-import-bundle` | Les documents, analysés avant d'être importés, par sa propre option `scan`. |
 | `phil/monitoring-bundle` | Le contrôle de santé de l'antivirus. |
-| `twig/twig` et `symfony/security-csrf` | La page d'administration de la quarantaine. |
+| `twig/twig` et `symfony/security-csrf` | La page d'administration de la quarantaine, dont les suppressions exigent un jeton CSRF : voir [CSRF](csrf.md). |
 | `easycorp/easyadmin-bundle` | `QuarantineAdmin`, le lien d'un menu EasyAdmin vers cette page. |
 
 ## Enregistrer le bundle
@@ -35,6 +35,11 @@ return [
     Phil\UploadScanBundle\PhilUploadScanBundle::class => ['all' => true],
 ];
 ```
+
+Dès que Twig et `symfony/security-csrf` sont tous deux installés, pour quelque raison que ce soit, le bundle enregistre la
+page d'administration de la quarantaine et vérifie un jeton CSRF sans état sur ses suppressions. `csrf_protection` de
+FrameworkBundle doit alors rester activé ; une application qui le désactive règle `phil_upload_scan.admin.enabled` à
+`false`. Voir [CSRF](csrf.md).
 
 ## Une première analyse
 

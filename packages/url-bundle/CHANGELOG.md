@@ -4,6 +4,21 @@ All notable changes to `phil/url-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.3-alpha.
+
+### Added
+
+- The configuration key `phil_url.column_type`, `null` by default: `null` registers the column type `phil_url` when
+  `doctrine/dbal` and DoctrineBundle are installed, `true` requires them and refuses to build the container, naming the
+  missing package, when one is absent, `false` never registers it.
+
+### Fixed
+
+- The bundle boots without `doctrine/dbal`: `PhilUrlBundle::boot()` and `shutdown()` touch `UrlColumnType` only when
+  that package is installed, and the column type is registered only then. `doctrine/dbal` stays a suggestion.
+
 ## 0.1.2-alpha - 2026-11-15
 
 ### Fixed

@@ -18,7 +18,7 @@ Optional:
 | `phil/media-bundle` | The originals of the media library scanned before they are stored. |
 | `phil/document-import-bundle` | Documents scanned before they are imported, by its own `scan` option. |
 | `phil/monitoring-bundle` | The health check of the antivirus. |
-| `twig/twig` and `symfony/security-csrf` | The administration page of the quarantine. |
+| `twig/twig` and `symfony/security-csrf` | The administration page of the quarantine, whose deletions require a CSRF token: see [CSRF](csrf.md). |
 | `easycorp/easyadmin-bundle` | `QuarantineAdmin`, the link of an EasyAdmin menu to that page. |
 
 ## Registering the bundle
@@ -34,6 +34,11 @@ return [
     Phil\UploadScanBundle\PhilUploadScanBundle::class => ['all' => true],
 ];
 ```
+
+Once Twig and `symfony/security-csrf` are both installed, for whatever reason, the bundle registers the
+administration page of the quarantine and checks a stateless CSRF token on its deletions. FrameworkBundle's
+`csrf_protection` must then stay on; an application that turns it off sets `phil_upload_scan.admin.enabled` to
+`false`. See [CSRF](csrf.md).
 
 ## A first scan
 

@@ -41,8 +41,9 @@ When the quarantine cannot keep a file — the disk full, the directory not writ
 
 ## The administration page
 
-With Twig and `symfony/security-csrf`, the bundle registers `QuarantineAdminController`, the page where an operator
-reads the quarantine and deletes the files dealt with. Import its routes behind the application's firewall:
+With Twig and `symfony/security-csrf`, and unless `admin.enabled` is `false`, the bundle registers
+`QuarantineAdminController`, the page where an operator reads the quarantine and deletes the files dealt with. Import
+its routes behind the application's firewall:
 
 ```yaml
 # config/routes/phil_upload_scan_admin.yaml
@@ -58,9 +59,9 @@ phil_upload_scan_admin:
 
 Each file shows the name it was sent under, the signature that condemned it, when it was kept, its size and its
 identifier — the one `FileInfected` carried. What a file holds is never shown and never served: an operator who must
-look at one reads it on the server. A deletion without a valid CSRF token answers `400`, one of an identifier the
-quarantine does not hold `404`; a deletion that goes through is logged at the `notice` level with its identifier and
-sends the browser back to the list with a `303`.
+look at one reads it on the server. A deletion without a valid CSRF token answers `400` (see [CSRF](csrf.md)), one
+of an identifier the quarantine does not hold `404`; a deletion that goes through is logged at the `notice` level with
+its identifier and sends the browser back to the list with a `303`.
 
 Every page asks the application's security for `admin.role`, `ROLE_ADMIN` by default — a role, or the attribute of a
 voter —; anything else answers `403`, and so does every page when Symfony's security is not installed. The page
