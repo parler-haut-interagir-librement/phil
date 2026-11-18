@@ -4,6 +4,12 @@ All notable changes to `phil/form-logic` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Changed
+
+- `phil/forms-bundle` 0.2 is accepted beside 0.1.
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added
