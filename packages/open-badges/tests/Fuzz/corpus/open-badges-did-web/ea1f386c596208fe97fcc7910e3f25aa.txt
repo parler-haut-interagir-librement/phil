@@ -1,1 +1,0 @@
-{";;;;;ex:":["htt/div"],"id":"did:web:issuer.example.org","verificationMethod":[{"id":"#key-1","type":"Mkey","controller":"did:web:issuer.example.org","publicKeyMultibase":"z7T3Z"}],"assertionMethod":["#key-1"]}

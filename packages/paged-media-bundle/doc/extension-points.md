@@ -63,7 +63,7 @@ store of its own — a table, a Flysystem storage —, `JobCodec` giving it the 
 | `gotenberg` | Where Gotenberg is, its credentials, timeout and HTTP client |
 | `signing.certificate` | Where the signing certificate comes from: a file, inline, or a vault |
 | `signing.timestamp_url`, the PAdES options | The timestamp authority and what a signature says |
-| `storage.directory`, `jobs.directory`, `jobs.remove_failed` | Where files and jobs are kept, and whether failed jobs are forgotten |
+| `storage.directory`, `jobs.directory`, `jobs.tighten_open_directory`, `jobs.remove_failed` | Where files and jobs are kept, whether an open jobs directory is narrowed or refused, and whether failed jobs are forgotten |
 
 See [Configuration](configuration.md). A `CertificateSource` or `TimestampAuthority` of the application's own,
 registered under the interface, replaces the configured one.

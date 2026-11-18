@@ -44,6 +44,10 @@ final class PhilPagedMediaBundle extends AbstractBundle
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->scalarNode('directory')->defaultValue('%kernel.project_dir%/var/paged-media-jobs')->cannotBeEmpty()->end()
+                    ->booleanNode('tighten_open_directory')
+                        ->info('Whether a jobs directory open to its group or to other users is narrowed to its owner; false refuses it.')
+                        ->defaultTrue()
+                    ->end()
                     ->booleanNode('remove_failed')
                         ->info('Whether the job of a message that failed for good is forgotten; false keeps it, for a message retried from a failure transport.')
                         ->defaultTrue()
@@ -77,7 +81,7 @@ final class PhilPagedMediaBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{gotenberg: array{url: ?string, username: ?string, password: ?string, timeout: ?float, http_client: string}, signing: array{certificate: array{type: string, path: ?string, key_path: ?string, password: ?string, certificate: ?string, key: ?string, vault_address: ?string, vault_token: ?string, vault_path: ?string, vault_mount: string}, timestamp_url: ?string, reason: ?string, location: ?string, contact_info: ?string, name: ?string, pades: bool}, storage: array{directory: string}, jobs: array{directory: string, remove_failed: bool, cache_pool: ?string, lifetime: ?int}, templates: array{enabled: bool, font: ?string, bold_font: ?string}} $config */
+        /** @var array{gotenberg: array{url: ?string, username: ?string, password: ?string, timeout: ?float, http_client: string}, signing: array{certificate: array{type: string, path: ?string, key_path: ?string, password: ?string, certificate: ?string, key: ?string, vault_address: ?string, vault_token: ?string, vault_path: ?string, vault_mount: string}, timestamp_url: ?string, reason: ?string, location: ?string, contact_info: ?string, name: ?string, pades: bool}, storage: array{directory: string}, jobs: array{directory: string, tighten_open_directory: bool, remove_failed: bool, cache_pool: ?string, lifetime: ?int}, templates: array{enabled: bool, font: ?string, bold_font: ?string}} $config */
         PagedMediaServices::register($builder, $config['gotenberg'], $config['signing'], $config['storage'], $config['jobs'], $config['templates']);
     }
 

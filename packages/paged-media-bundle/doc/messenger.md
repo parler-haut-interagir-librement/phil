@@ -39,6 +39,13 @@ and `remove()` forgets it once its file is kept. `DirectoryJobStore` writes each
 `jobs.directory`, named after 32 random hexadecimal digits; the directory and the files are readable by their owner
 only, since a job holds the documents and the parameters of a file to come.
 
+The directory is created with mode `0700`. One that already exists and is open to its group or to other users is
+narrowed to `0700` before a job is kept in it; when it cannot be narrowed, or when `jobs.tighten_open_directory` is
+false, the job is refused with a `StorageFailed` that names the directory and its mode. A job is written as a
+temporary file of the directory, created readable by its owner alone, then renamed to its identifier's name in one
+step: no other user can read it at any moment, a worker never reads a job half written, and a failure leaves no file
+behind. The third argument of `DirectoryJobStore`, `$tightenOpenDirectory`, is the same choice outside the bundle.
+
 `JobCodec` writes a job as JSON and reads it back; nothing is unserialized, and a JSON it did not write is refused.
 
 | Part of a job | Kept as |

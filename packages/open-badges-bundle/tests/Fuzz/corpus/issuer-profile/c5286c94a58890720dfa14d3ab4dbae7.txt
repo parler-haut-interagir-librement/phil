@@ -1,1 +1,0 @@
-{"id":"https://partner.example/issuer","verificationMethod":[{"id":"https://partner.example/issuer#key-1","publicKeyMultibase":"z11Mk"}],"assertonMethod":[{"id":"https://partner.example/issuer#key-1"}]}

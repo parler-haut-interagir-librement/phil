@@ -1,1 +1,0 @@
-{"@context":["http/1"],"id":"https://partner.example/issuer","type":["Prile"],"name":"rtger","verificationMethod":["h.examxampuer#key-0"]}

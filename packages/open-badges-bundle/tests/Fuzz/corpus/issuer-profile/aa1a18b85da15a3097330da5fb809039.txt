@@ -1,1 +1,0 @@
-{"t":["http/v2","https://w3id.org/security/mt"],"id":"https://partner.example/issuer","ame":"Partger","verificationMethod":[{"id":"httpsample/swbTQ4"}],"assertionMethod":["h.exakple/issuer#key-1","spissuer#key-1","ssu/issuerartger","v#key-1","ssuer"]}

@@ -1,1 +1,0 @@
-{"@cx":["htps://1"],"id":"did:web:issuer.example.org","verificationMethod":[{"id":"#key-1","te":"Px6Thv5T3Z"}],"assertionMethod":["#key-1"]}

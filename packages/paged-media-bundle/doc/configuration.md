@@ -30,6 +30,7 @@ phil_paged_media:
         directory: '%kernel.project_dir%/var/paged-media'
     jobs:
         directory: '%kernel.project_dir%/var/paged-media-jobs'   # readable by its owner only
+        tighten_open_directory: true                             # false refuses a directory open to other users
         remove_failed: true                                      # forget the job of a message failed for good
         cache_pool: ~                                            # a PSR-6 pool service instead of the directory
         lifetime: ~                                              # seconds a job is kept in the pool

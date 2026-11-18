@@ -15,6 +15,7 @@ use Phil\PagedMedia\Gotenberg\Stage\Optimize;
 use Phil\PagedMediaBundle\Application\DocumentTemplates;
 use Phil\PagedMediaBundle\Application\Event\PdfStored;
 use Phil\PagedMediaBundle\Application\Exception\NotConfigured;
+use Phil\PagedMediaBundle\Application\Exception\StorageFailed;
 use Phil\PagedMediaBundle\Application\Job\RenderJob;
 use Phil\PagedMediaBundle\Application\Message\RenderPdf;
 use Phil\PagedMediaBundle\Application\PagedMedia;
@@ -177,6 +178,27 @@ final class PagedMediaBundleTest extends TestCase
 
         self::assertFalse($container->has(FailedJobPurger::class));
         self::assertSame([$this->jobs.'/'.$job.'.json'], glob($this->jobs.'/*.json'), 'Kept, for a retry from a failure transport.');
+    }
+
+    public function testAnOpenJobsDirectoryIsNarrowedUnlessTheConfigurationRefusesIt(): void
+    {
+        mkdir($this->jobs, 0o755, true);
+        chmod($this->jobs, 0o755);
+        $container = $this->boot(['jobs' => ['directory' => $this->jobs, 'tighten_open_directory' => false]]);
+
+        try {
+            $this->service($container, JobStore::class, JobStore::class)->keep(new RenderJob('ticket', [], 'a.pdf'));
+            self::fail('An open directory is refused.');
+        } catch (StorageFailed $storageFailed) {
+            self::assertStringContainsString('is open to other users (mode 0755): narrow it to its owner', $storageFailed->getMessage());
+        }
+
+        $this->kernel?->shutdown();
+        $container = $this->boot(['jobs' => ['directory' => $this->jobs]]);
+        $this->service($container, JobStore::class, JobStore::class)->keep(new RenderJob('ticket', [], 'a.pdf'));
+
+        clearstatcache();
+        self::assertSame(0o700, fileperms($this->jobs) & 0o777, 'Narrowed by default.');
     }
 
     public function testACertificateOnDiskAndATimestampAuthorityAreWired(): void

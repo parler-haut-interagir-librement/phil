@@ -57,7 +57,7 @@ final class PagedMediaServices
      * @param array{url: ?string, username: ?string, password: ?string, timeout: ?float, http_client: string}                                                                                                                                                                                                                                         $gotenberg
      * @param array{certificate: array{type: string, path: ?string, key_path: ?string, password: ?string, certificate: ?string, key: ?string, vault_address: ?string, vault_token: ?string, vault_path: ?string, vault_mount: string}, timestamp_url: ?string, reason: ?string, location: ?string, contact_info: ?string, name: ?string, pades: bool} $signing
      * @param array{directory: string}                                                                                                                                                                                                                                                                                                                $storage
-     * @param array{directory: string, remove_failed: bool, cache_pool: ?string, lifetime: ?int}                                                                                                                                                                                                                                                      $jobs
+     * @param array{directory: string, tighten_open_directory: bool, remove_failed: bool, cache_pool: ?string, lifetime: ?int}                                                                                                                                                                                                                        $jobs
      * @param array{enabled: bool, font: ?string, bold_font: ?string}                                                                                                                                                                                                                                                                                 $templates
      */
     public static function register(ContainerBuilder $container, array $gotenberg, array $signing, array $storage, array $jobs, array $templates = ['enabled' => true, 'font' => null, 'bold_font' => null]): void
@@ -111,7 +111,7 @@ final class PagedMediaServices
         $container->register(DirectoryStorage::class, DirectoryStorage::class)->setArguments([$storage['directory']]);
         $container->setAlias(PdfStorage::class, DirectoryStorage::class)->setPublic(true);
         $container->register(JobCodec::class, JobCodec::class);
-        $container->register(DirectoryJobStore::class, DirectoryJobStore::class)->setArguments([$jobs['directory'], new Reference(JobCodec::class)]);
+        $container->register(DirectoryJobStore::class, DirectoryJobStore::class)->setArguments([$jobs['directory'], new Reference(JobCodec::class), $jobs['tighten_open_directory']]);
 
         if (null === $jobs['cache_pool']) {
             $container->setAlias(JobStore::class, DirectoryJobStore::class)->setPublic(true);

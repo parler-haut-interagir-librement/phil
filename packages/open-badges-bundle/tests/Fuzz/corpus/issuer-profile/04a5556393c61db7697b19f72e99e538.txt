@@ -1,1 +1,0 @@
-{"t":["hrg/security/mt"],"id":"https://partner.example/issuer","type":["Profile"],"name":"Partger","verificationMethod":[{"id":"httpsample/swbTQ2"}],"assertionMethod":["h.exakple/issuer#key-1","ssu/issuerartger","v#key-1","ssuer"]}

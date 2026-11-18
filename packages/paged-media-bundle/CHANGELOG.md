@@ -4,6 +4,29 @@ All notable changes to `phil/paged-media-bundle` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: a kept job is readable by its owner alone from the moment it exists, and an open
+jobs directory is narrowed to its owner. See [The job store](doc/messenger.md#the-job-store).
+
+### Added
+
+- `jobs.tighten_open_directory`, true by default, and the matching argument of `DirectoryJobStore`: false refuses a
+  jobs directory open to its group or to other users instead of narrowing it.
+
+### Changed
+
+- `DirectoryJobStore` narrows an existing directory open to its group or to other users to `0700` before a job is
+  kept in it, and refuses it, with a `StorageFailed` naming the directory and its mode, when it cannot be narrowed.
+- `DirectoryJobStore::keep()` writes the job as a temporary file of the directory, created `0600`, then renames it to
+  its identifier's name; a failure removes the temporary file.
+
+### Security
+
+- A job was written at its final path with the default mode, then narrowed to `0600`: another user of the machine
+  could read its documents and parameters while it was written, from a directory open to them. No byte of a job is
+  readable by another user at any moment.
+
 ## 0.1.0-alpha - 2026-11-13
 
 ### Added
