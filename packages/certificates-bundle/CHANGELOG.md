@@ -4,6 +4,19 @@ All notable changes to `phil/certificates-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.2-alpha: the keys of the register compare byte for byte on MySQL and MariaDB. See
+[Two awards at once](doc/courses-and-awarding.md#two-awards-at-once).
+
+### Security
+
+- On MySQL and MariaDB, the code, the holder and the completion of a certificate, the slug and the completion source of
+  a course, and the member and the source of a learning activity take `utf8mb4_bin`, by `BinaryKeysListener`: the
+  default collation, which folds case and accents, let the member `Alice` read the certificates and the activities of
+  `alice`, and refused a second completion that differed from the first by its case. An existing schema needs the
+  migration that `doctrine:migrations:diff` writes.
+
 ## 0.2.1-alpha - 2026-11-17
 
 The next version is 0.2.1-alpha.

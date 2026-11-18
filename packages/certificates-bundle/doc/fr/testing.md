@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=38532501422db5f6607b8c2303b628745b03128f3b3eaba2b1f261b6d5d39858 -->
+<!-- phil-dev source-sha256=72daa6593aaa6c8132842949d03f6cd156e9b3630583a15d1975da717713faf8 -->
 # Tests
 
 ## Les tests du bundle
@@ -14,8 +14,10 @@ périodes sont testés en mémoire et sur Doctrine avec SQLite. Les attestations
 forme que décrit Open Badges 3.0, par `tests/Unit/Support/Ob3Shape.php`
 ([Validation](validation.md#ce-qui-est-vérifié-hors-ligne)). Les commandes de console sont testées avec
 `CommandTester`, le verrou avec un stockage en mémoire qui dit s'il était tenu pendant que l'indice était pris et le
-certificat stocké, chaque tentative d'une attribution dont l'indice était pris comprise. Les attributions sur achèvement sont testées avec
-une source d'achèvements qui répond à partir d'une liste et note ce qu'on lui demande.
+certificat stocké, chaque tentative d'une attribution dont l'indice était pris comprise. `BinaryKeysListener` est testé sur les
+associations de chaque plateforme, et `tests/Integration/BinaryKeysTest.php` crée le schéma sur MySQL et PostgreSQL,
+quand `PHIL_TEST_MYSQL_URL` ou `PHIL_TEST_POSTGRESQL_URL` nomme un serveur, et garde séparés deux membres qui ne
+diffèrent que par leur casse. Les attributions sur achèvement sont testées avec une source d'achèvements qui répond à partir d'une liste et note ce qu'on lui demande.
 
 `tests/Functional` démarre une petite application avec FrameworkBundle, TwigBundle et DoctrineBundle sur SQLite. Il
 décerne des certificats, demande les pages et les téléchargements du registre, révoque, lit les dépôts Doctrine, et

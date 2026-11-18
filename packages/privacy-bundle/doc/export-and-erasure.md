@@ -55,6 +55,8 @@ $sections = $export->export(DataSubject::fromString($userId));
   module name** (`ksort`, string order), so two exports of the same data are the same document. A module that
   holds nothing still has its section, empty: the answer shows the module was asked. With no exporter the
   result is `[]`.
+- `export(DataSubject $subject, HeldLock $lock)` renews the lock before each module, and throws `LockLost` before the
+  next module once it is lost ([Locks and long work](#locks-and-long-work)).
 
 Encoding (JSON, CSV, archive), delivery, identity verification and deadlines are the application's.
 
@@ -107,8 +109,48 @@ try {
 - **A report filed under another module's name is a failure** of the eraser that returned it
   (`UnexpectedValueException` in `$failures`): it would otherwise mark a module done that never ran.
 - Any `Throwable` from an eraser is caught and recorded, errors included.
+- `erase(DataSubject $subject, HeldLock $lock)` renews the lock before each eraser. A lost lock throws `LockLost` before
+  the next eraser; it is never recorded as the failure of a module ([Locks and long work](#locks-and-long-work)).
 
 `ErasureIncomplete` message: `Erasure failed in module(s) <names>; retry it, erasers are idempotent.`
+
+## Locks and long work
+
+The work the bundle runs one at a time — an export, an erasure, a retention run — holds a lock of `symfony/lock` whose
+lease expires: if the process stalls or dies, the next one is not blocked forever. A work that lasted longer than the
+lease would let a second worker take the expired lock and run the same export, erasure or purge at the same time, so
+the lock is renewed between the steps instead of being sized for the whole work.
+
+`HeldLock` wraps the lock. `renew()` puts its expiry off by its lifetime, then asks the store whether it is still this
+process's; when the store says no — the lease expired, another process took it, or the store cannot answer — it throws
+`LockLost`. `release()` gives it up once, and does nothing once it was lost.
+
+| Work | Lock | Lifetime | Renewed before |
+|---|---|---|---|
+| `GuestRequests::access()`, `erase()` | `phil_privacy.guest.<request>` | `GuestRequests::LOCK_TTL`, 300 s | each module, the removal of the request |
+| `AccountDeletions::advance()` | `phil_privacy.account_deletion.<hash>` | `AccountDeletions::LOCK_TTL`, 900 s | each module, the archive, each saved place |
+| `PersonalDataDownload::of()` | `phil_privacy.export.<hash>` | `PersonalDataDownload::LOCK_TTL`, 300 s | each module |
+| `RetentionJob::run()` | `phil_privacy.retention` | `RetentionJob::LOCK_TTL`, 3 600 s | each purge order |
+
+A work whose lock was lost stops before its next step, logs a warning that names the request and never the person, and
+keeps what it saved: a request without an account stays and its link runs it again, an account deletion stays at its
+last place, a download answers as when another export of the person is running, a retention run answers as when
+another run holds the lock. The worker that holds the lock now does the rest; every step runs again safely because
+exporters read, and erasers and purgers are idempotent.
+
+### Operations
+
+- **Each step must end within the lifetime.** The whole work may last longer, a step may not: one exporter or eraser
+  of a person, one purge order, or the write of the export to its archive. A purger that removes a large table purges
+  in batches within the order, so that the order ends well within the hour; a module whose export or erasure of one
+  person can take minutes is measured, and splits its work if it nears five minutes.
+- **The store must expire leases.** A shared store — Redis, PDO, PostgreSQL — lets the next worker take an expired
+  lock; the default `flock` store serves one server only. A store that fails is treated as a lost lock: the work stops
+  and the next run does it.
+- **A stop is a warning, not an error.** `Request without an account {id}: its lock was lost; the request is kept.`,
+  `Account deletion {id}: its lock was lost; the stage stopped.` and `The retention run lost its lock and stopped
+  before its next rule.` mean a step outlasted the lifetime or the store stalled; frequent ones call for a measure of
+  the slow step.
 
 ## Wiring in Symfony
 

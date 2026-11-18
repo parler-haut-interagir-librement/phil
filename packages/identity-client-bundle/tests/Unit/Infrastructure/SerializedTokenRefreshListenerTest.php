@@ -143,6 +143,31 @@ final class SerializedTokenRefreshListenerTest extends TestCase
         self::assertCount(1, $this->dispatcher->events);
     }
 
+    /**
+     * A call to the provider that outlasts the lock lets another request take it: the pending outcome published before
+     * the call stops that request from presenting the same refresh token again.
+     */
+    public function testARequestThatTakesAnExpiredLockDuringARefreshDoesNotPresentTheTokenAgain(): void
+    {
+        $locks = new LockFactory(new ExpiringLockStore($this->clock));
+        $first = $this->expiring(self::NOW);
+        $stale = $this->expiring(self::NOW);
+        $this->client->during = function () use ($locks, $stale, $first): void {
+            $this->clock->sleep(31);
+            $this->storage->setToken($stale);
+            $this->listener(lockFactory: $locks)->authenticate($this->event());
+            $this->storage->setToken($first);
+        };
+        $this->storage->setToken($first);
+
+        $this->listener(lockFactory: $locks)->authenticate($this->event());
+
+        self::assertSame(['rt1'], $this->client->presented);
+        self::assertSame(['at1', 'rt1'], [$stale->getAttribute(TokenAttribute::ACCESS_TOKEN), $stale->getAttribute(TokenAttribute::REFRESH_TOKEN)], 'The request that found the refresh pending left its tokens as they were.');
+        self::assertSame(['at2', 'rt2'], [$first->getAttribute(TokenAttribute::ACCESS_TOKEN), $first->getAttribute(TokenAttribute::REFRESH_TOKEN)]);
+        self::assertSame(RefreshStatus::Refreshed, $this->outcomes->find('rt1')?->status);
+    }
+
     public function testWithoutAPoolToShareTheOutcomeTheProviderIsNotCalled(): void
     {
         $this->outcomes = new EncryptedRefreshOutcomes(new RefusingPool(), 120);

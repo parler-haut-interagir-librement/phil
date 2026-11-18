@@ -33,6 +33,12 @@ final class PausingRepository implements LeaseRepository
     }
 
     #[Override]
+    public function fence(string $resource): int
+    {
+        return $this->inner->fence($resource);
+    }
+
+    #[Override]
     public function insert(Lease $lease): bool
     {
         return $this->inner->insert($lease);

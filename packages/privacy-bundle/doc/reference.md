@@ -139,10 +139,11 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 
 | Type | Role | State |
 |---|---|---|
-| `SubjectExport` | Assembles one sorted section per exporter; `export($subject)` | Implemented; wired over `phil_privacy.exporter` |
-| `SubjectErasure` | Runs every eraser, isolates failures; `erase($subject)` | Implemented; wired over `phil_privacy.eraser` |
-| `RetentionRun` | Checks every purge order has a purger, then purges; `orders($now)`, `run($now)`, `jobsWithoutCutoff()` | Implemented; wired with a schedule |
-| `RetentionJob` | The run at the present instant, one at a time; `plan()`, `run()` | Implemented; wired with a schedule |
+| `SubjectExport` | Assembles one sorted section per exporter; `export($subject, ?$lock)`, the lock renewed before each module | Implemented; wired over `phil_privacy.exporter` |
+| `SubjectErasure` | Runs every eraser, isolates failures; `erase($subject, ?$lock)`, the lock renewed before each eraser | Implemented; wired over `phil_privacy.eraser` |
+| `RetentionRun` | Checks every purge order has a purger, then purges; `orders($now)`, `run($now, ?$lock)`, `jobsWithoutCutoff()` | Implemented; wired with a schedule |
+| `RetentionJob` | The run at the present instant, one at a time, its lock renewed before each purge order; `plan()`, `run()`, `LOCK`, `LOCK_TTL` | Implemented; wired with a schedule |
+| `Lock\HeldLock` | A lock renewed between the steps of a work; `renew()`, `release()` | Implemented |
 | `ConfiguredRetentionSchedule` | The `RetentionScheduleSource` of `retention.rules` | Implemented; wired |
 | `AccountDeletion\AccountDeletions` | The stages of a deletion; `request()`, `cancel()`, `openFor()`, `dueIdentifiers()`, `advance()`, `purgeExpiredExports()` | Implemented; wired |
 | `AccountDeletion\DeletionWorkflow` | The state machine on `symfony/workflow`; `create()`, `definition()` | Implemented; wired |
@@ -190,6 +191,7 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `ErasureIncomplete` | `RuntimeException`; `$completed` reports, `$failures` by module; `after($completed, $failures)` | Implemented |
 | `MisconfiguredPrivacy` | `LogicException`; `duplicateModule()`, `duplicatePurger()`, `missingPurger()`, `userWithoutSubject()` | Implemented |
 | `AccountDeletionBusy` | `RuntimeException`; another process holds the lock of this person | Implemented |
+| `LockLost` | `RuntimeException`; the lock of a work in steps expired, was taken, or could not be confirmed; `create()` | Implemented |
 | `AnonymizationRefused` | `RuntimeException`; `inEnvironment()`, `protectedDatabase()`, `withoutKey()`, `keyColumn()` | Implemented |
 | `TooManyGuestRequests` | `RuntimeException`; a client over its limit; `retryIn()`, `retryAfter()` | Implemented |
 
@@ -214,7 +216,7 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `Infrastructure\DependencyInjection\PrivacyServicesPass` | Removes what the application cannot run | Implemented |
 | `Infrastructure\Console\RunRetentionCommand`, `ProcessDeletionsCommand` | `phil:privacy:retention`, `phil:privacy:deletions` | Implemented; wired with Symfony Console |
 | `Infrastructure\Console\DisabledRightsWarning` | The warning before every command when a right is off | Implemented |
-| `Infrastructure\Database\PrivacyTables`, `DbalAccountDeletions`, `DbalConsentProofs` | The tables, the store, the proofs; the last two also purge | Implemented |
+| `Infrastructure\Database\PrivacyTables`, `DbalAccountDeletions`, `DbalConsentProofs` | The tables, their keys in `utf8mb4_bin` on MySQL and MariaDB when the platform is given; the store, the proofs; the last two also purge | Implemented |
 | `Infrastructure\Database\DbalGuestRequests` | The requests without an account, the address sealed | Implemented |
 | `Infrastructure\Database\DbalIncidentRegister` | The register of incidents; also purges | Implemented |
 | `Infrastructure\Database\DbalEmailTrackingConsents` | The members' choices about tracked emails, one row each | Implemented |

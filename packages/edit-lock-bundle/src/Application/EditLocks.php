@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\EditLockBundle\Application;
 
+use Closure;
 use DateTimeImmutable;
 use Phil\EditLockBundle\Application\Exception\EditRefused;
 use Phil\EditLockBundle\Application\Exception\LeaseHeld;
@@ -11,6 +12,7 @@ use Phil\EditLockBundle\Application\Exception\LeaseLost;
 use Phil\EditLockBundle\Domain\Exception\InvalidLease;
 use Phil\EditLockBundle\Domain\Model\Lease;
 use Phil\EditLockBundle\Domain\Repository\LeaseRepository;
+use Phil\EditLockBundle\Domain\ValueObject\Fence;
 use Phil\EditLockBundle\Domain\ValueObject\Holder;
 use Phil\EditLockBundle\Domain\ValueObject\LeaseKey;
 use Psr\Clock\ClockInterface;
@@ -161,6 +163,45 @@ final readonly class EditLocks
         $now = $this->clock->now();
 
         return array_any($this->store->ofResource($key->resource), static fn (Lease $lease): bool => $lease->isHeldBy($holder) && $lease->isActiveAt($now) && $lease->key()->covers($key));
+    }
+
+    /**
+     * Runs a write of the holder on a key while they hold it: the lease is checked, and the write runs, within one
+     * claim on the resource, so that no other claim — a takeover, or the next holder of an expired lease — runs between
+     * the check and the write. With the Doctrine store, that claim is a transaction that locks the resource's row: a
+     * write on the same connection is kept or undone with it, and a write elsewhere ends before another claim starts.
+     * The write receives the fence of the claim, for a store that also refuses, by a conditional write, a write older
+     * than the last one it accepted.
+     *
+     * @template T
+     *
+     * @param Closure(Fence): T $write
+     *
+     * @return T what the write returned
+     *
+     * @throws EditRefused when the policy does not let the holder edit the resource
+     * @throws LeaseLost   when the holder does not hold the key, or the whole resource, at the moment of the write
+     * @throws LeaseHeld   when the store gave up waiting for another claim on the resource; nothing was written
+     */
+    public function whileHolding(LeaseKey $key, Holder $holder, Closure $write): mixed
+    {
+        if (!$this->policy->mayEdit($holder, $key->resource)) {
+            throw EditRefused::edit($key);
+        }
+
+        $done = $this->store->exclusively($key->resource, function () use ($key, $holder, $write): array {
+            if (!$this->holds($key, $holder)) {
+                throw LeaseLost::of($key);
+            }
+
+            return [$write(Fence::of($key, $holder, $this->store->fence($key->resource)))];
+        });
+
+        if (null === $done) {
+            throw LeaseHeld::contended($key);
+        }
+
+        return $done[0];
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityClientBundle\Tests\Unit\Infrastructure;
 
+use Closure;
 use Override;
 use SensitiveParameter;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -20,6 +21,13 @@ final class FakeOidcClient implements OidcClientInterface
     public array $presented = [];
 
     public ?Throwable $failure = null;
+
+    /**
+     * Runs once, during the next refresh: a call to the provider that lasts.
+     *
+     * @var (Closure(): void)|null
+     */
+    public ?Closure $during = null;
 
     private int $serial = 1;
 
@@ -39,6 +47,12 @@ final class FakeOidcClient implements OidcClientInterface
     public function refreshToken(#[SensitiveParameter] string $refreshToken, array $scopes = []): array
     {
         $this->presented[] = $refreshToken;
+        $during = $this->during;
+        $this->during = null;
+        if ($during instanceof Closure) {
+            $during();
+        }
+
         if ($this->failure instanceof Throwable) {
             throw $this->failure;
         }

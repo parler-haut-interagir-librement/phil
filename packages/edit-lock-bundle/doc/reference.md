@@ -7,18 +7,20 @@
 | `PhilEditLockBundle` | The bundle: its configuration, the tables mapped for Doctrine, its CSRF token among the stateless ones, the assets mapped for AssetMapper, Mercure turned on with MercureBundle |
 | `Domain\ValueObject\LeaseKey` | A resource, and optionally one of its blocks; `overlaps()`, `covers()`, `equals()` |
 | `Domain\ValueObject\Holder` | Who holds a lease: an identifier and a name |
+| `Domain\ValueObject\Fence` | The fencing token of a write: its key, its holder and the number of its claim; `isNewerThan()` |
 | `Domain\Model\Lease` | One holder's right to write a key until a moment; `grant()`, `restore()`, `renewed()`, `passedTo()`, the table `phil_edit_lease` |
 | `Domain\Model\LeasedResource` | A resource leased, the row of `phil_edit_lease_resource` each claim on it locks |
-| `Domain\Repository\LeaseRepository` | Where leases are kept, by compare-and-set, claims on one resource run one at a time by `exclusively()` |
+| `Domain\Repository\LeaseRepository` | Where leases are kept, by compare-and-set, claims on one resource run one at a time by `exclusively()` and numbered by `fence()` |
 | `Domain\Exception\EditLockException`, `InvalidLease` | The bundle's exceptions, and a lease that cannot be made |
-| `Application\EditLocks` | Acquire, heartbeat, release, leave, take over, holds, presence, purge |
+| `Application\EditLocks` | Acquire, heartbeat, release, leave, take over, holds, a write while holding, presence, purge |
 | `Application\EditPolicy`, `DefaultEditPolicy` | Who may edit and take over; the default for the application's own code |
-| `Application\BlockSaves` | Blocks checked, written by their holder, kept and told |
-| `Application\BlockStore` | Where the application keeps saved blocks |
+| `Application\BlockSaves` | Blocks checked, written by their holder within the claim that checks the lease, kept and told |
+| `Application\BlockStore` | Where the application keeps saved blocks, each write with its fence |
 | `Application\Broadcaster`, `NullBroadcaster` | Telling the other writers; telling nobody |
 | `Application\HolderProvider` | Who the current request writes as |
 | `Application\Exception\LeaseHeld`, `LeaseLost`, `EditRefused`, `InvalidBlock` | What goes wrong with leases and blocks |
 | `Infrastructure\Doctrine\DoctrineLeaseRepository` | The leases in `phil_edit_lease`, by plain queries, each claim in a transaction that locks the resource's row |
+| `Infrastructure\Doctrine\BinaryKeysListener` | The keys of the lease tables in `utf8mb4_bin` on MySQL and MariaDB |
 | `Infrastructure\Memory\InMemoryLeaseRepository` | The leases in memory, for tests |
 | `Infrastructure\Mercure\MercureBroadcaster` | Presence and blocks published to a Mercure hub |
 | `Infrastructure\Mercure\TurboStreams` | The Turbo Streams of presence, saved and removed blocks |

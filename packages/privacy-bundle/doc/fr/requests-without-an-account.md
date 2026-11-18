@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=89120f32f138341b5f2d980a3d901dd05b8fc49519f302d9394f5f59f7b99869 -->
+<!-- phil-dev source-sha256=73a2276fdaa07371d7472dee75441cd90b3c4a2836f7df596d1fec7e88d57501 -->
 # Demandes sans compte
 
 Une personne qui n'a pas de compte — abonnée à une infolettre, quelqu'un qui a écrit par un formulaire, l'acheteuse d'un
@@ -48,7 +48,9 @@ lien, jusqu'à son expiration ; les effaceurs sont idempotents.
 - **L'adresse est scellée au repos.** La table `phil_privacy_guest_request` la garde chiffrée par libsodium sous une clé
   dérivée du secret de l'application, seulement aussi longtemps que la demande.
 - **Une seule exécution à la fois.** Un export ou un effacement s'exécute sous un verrou nommé d'après la demande,
-  relue une fois le verrou obtenu.
+  relue une fois le verrou obtenu. Le verrou dure 300 secondes et est renouvelé avant chaque module et avant le retrait de
+  la demande : une exécution dont le verrou a été pris par une autre s'arrête, garde la demande, et répond comme à un lien
+  qui ne l'ouvre plus ([Verrous et longs travaux](export-and-erasure.md#verrous-et-longs-travaux)).
 - **Aucun secret dans un référent ou une file.** Les pages du lien envoient `Referrer-Policy: no-referrer` et ne sont
   jamais gardées par un cache ; l'expéditeur par courriel envoie tout de suite par les transports du service de
   courriel, jamais par une file de messages où le lien serait écrit.

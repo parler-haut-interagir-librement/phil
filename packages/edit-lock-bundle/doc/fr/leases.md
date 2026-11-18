@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a874a150b1fac5c25b70f7e7d30b2b55f3ff8aa5837a33835fdcb3f57e5bb953 -->
+<!-- phil-dev source-sha256=013506a29ac94c684995f3d1223b78ac0f7e51614a8780fc10fb6995c54340df -->
 # Baux
 
 ## Clés et détenteurs
@@ -86,6 +86,15 @@ d'intervalle peuvent ordonner. Un interblocage, ou une attente interrompue par `
 `lock_timeout` de PostgreSQL ou le délai d'occupation de SQLite, annule la revendication ; `EditLocks` réessaie, comme
 après une course perdue. Lorsque la propre transaction de l'application est ouverte sur la connexion, la revendication
 s'exécute dans un point de sauvegarde, et la ligne reste verrouillée jusqu'à ce que l'application valide.
+
+Un enregistrement ou un retrait de bloc est aussi une revendication : le bail est vérifié et le bloc écrit dans celle-ci,
+de sorte qu'aucune reprise et aucun détenteur suivant d'un bail expiré ne s'intercale entre les deux
+([Les écritures sous un bail](blocks.md#les-écritures-sous-un-bail)).
+
+Sur MySQL et MariaDB, dont les collations par défaut ignorent la casse et les accents, `BinaryKeysListener` associe la
+ressource, la partie et l'identifiant du détenteur en `utf8mb4_bin`, de sorte que les blocs `aB3x` et `ab3x`, ou les
+ressources `Page` et `page`, ont des baux distincts. Il est enregistré avec le magasin Doctrine ; un schéma existant
+demande la migration qu'écrit `doctrine:migrations:diff`.
 
 ## Présence
 

@@ -4,7 +4,8 @@
 
 `tests/Unit` checks the value objects and their refusals; the checker, its timing on a mock clock and its handling of a
 check that throws; the heartbeats, the dead-man switch, its alerts once per lateness, to the admin recipients, its
-retries when an alert fails, and its lock between two concurrent rounds; the maintenance service and the read model; the
+retries when an alert fails, its lock between two concurrent rounds, and a lock that expires before the alert, during
+it, or that its store cannot renew, on a mock clock; the maintenance service and the read model; the
 queues over transports in memory; each check of the bundle against SQLite, array pools, a temporary directory and an
 in-memory storage; the stores and the records of another shape they read; the endpoints, the maintenance listener and
 its allow-lists, the page of the queues and its actions; the commands; the Scheduler listener and the watch handler; and

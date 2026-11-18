@@ -13,9 +13,13 @@ use Phil\MonitoringBundle\Domain\Status\HealthStatus;
 use Phil\MonitoringBundle\Domain\Status\HeartbeatState;
 use Phil\MonitoringBundle\Domain\ValueObject\ExpectedTask;
 use Phil\MonitoringBundle\Domain\ValueObject\HeartbeatStatus;
+use Phil\MonitoringBundle\Tests\Unit\Support\ExpiringLockStore;
+use Phil\MonitoringBundle\Tests\Unit\Support\HookedHeartbeats;
 use Phil\MonitoringBundle\Tests\Unit\Support\InMemoryHeartbeats;
 use Phil\MonitoringBundle\Tests\Unit\Support\RecordingAdminNotifier;
 use Phil\MonitoringBundle\Tests\Unit\Support\RecordingNotifier;
+use Phil\MonitoringBundle\Tests\Unit\Support\ScriptedLockStore;
+use Phil\MonitoringBundle\Tests\Unit\Support\SlowNotifier;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
@@ -295,8 +299,10 @@ final class HeartbeatsTest extends TestCase
         self::assertSame([
             ['save', 'phil_monitoring.heartbeat.report', null],
             ['ttl', 'phil_monitoring.heartbeat.report', 30.0],
+            ['ttl', 'phil_monitoring.heartbeat.report', 30.0],
+            ['ttl', 'phil_monitoring.heartbeat.report', 30.0],
             ['delete', 'phil_monitoring.heartbeat.report', null],
-        ], $store->calls);
+        ], $store->calls, 'Taken, renewed before the alert, renewed before the mark, released.');
 
         $this->heartbeats->beat('report');
         $this->clock->modify('+2 minutes');
@@ -305,8 +311,91 @@ final class HeartbeatsTest extends TestCase
         self::assertSame([
             ['save', 'phil_monitoring.heartbeat.report', null],
             ['ttl', 'phil_monitoring.heartbeat.report', 5.0],
+            ['ttl', 'phil_monitoring.heartbeat.report', 5.0],
+            ['ttl', 'phil_monitoring.heartbeat.report', 5.0],
             ['delete', 'phil_monitoring.heartbeat.report', null],
         ], $store->calls);
+    }
+
+    public function testARoundWhoseLockExpiredBeforeTheAlertLeavesTheTaskToTheRoundThatHoldsIt(): void
+    {
+        $locks = new LockFactory(new ExpiringLockStore($this->clock));
+        $slow = new HookedHeartbeats($this->store, function (int $read) use ($locks): void {
+            if (2 === $read) {
+                $this->clock->sleep(31);
+                self::assertTrue($locks->createLock(DeadManSwitch::LOCK_PREFIX.'report', 30.0, false)->acquire());
+            }
+        });
+        $notifier = new SlowNotifier();
+        $this->heartbeats->beat('report');
+        $this->clock->modify('+2 minutes');
+
+        self::assertSame([], new DeadManSwitch(new Heartbeats([new ExpectedTask('report', 60, 30)], $slow, $this->clock), $slow, $locks, $notifier)->watch());
+        self::assertSame(0, $notifier->calls);
+        self::assertFalse($this->store->isAlerted('report'));
+    }
+
+    public function testAnAlertThatOutlastedItsLockIsLoggedAndMarked(): void
+    {
+        $locks = new LockFactory(new ExpiringLockStore($this->clock));
+        $notifier = new SlowNotifier(function () use ($locks): void {
+            $this->clock->sleep(31);
+            self::assertTrue($locks->createLock(DeadManSwitch::LOCK_PREFIX.'report', 30.0, false)->acquire());
+        });
+        $logger = new class extends AbstractLogger {
+            /**
+             * @var list<array{mixed, string, array<array-key, mixed>}>
+             */
+            public array $logs = [];
+
+            public function log($level, string|Stringable $message, array $context = []): void
+            {
+                $this->logs[] = [$level, (string) $message, $context];
+            }
+        };
+        $this->heartbeats->beat('report');
+        $this->clock->modify('+2 minutes');
+
+        self::assertSame(['report'], new DeadManSwitch(new Heartbeats([new ExpectedTask('report', 60, 30)], $this->store, $this->clock), $this->store, $locks, $notifier, logger: $logger)->watch());
+        self::assertSame(1, $notifier->calls);
+        self::assertTrue($this->store->isAlerted('report'));
+        self::assertSame([['warning', 'The alert of the scheduled task {task} outlasted its lock: another round may have sent it too.', ['task' => 'report']]], $logger->logs);
+    }
+
+    public function testAnAlertWithinItsLockIsMarkedWithoutAWarning(): void
+    {
+        $locks = new LockFactory(new ExpiringLockStore($this->clock));
+        $notifier = new SlowNotifier(function (): void {
+            $this->clock->sleep(29);
+        });
+        $logger = new class extends AbstractLogger {
+            public int $lines = 0;
+
+            public function log($level, string|Stringable $message, array $context = []): void
+            {
+                ++$this->lines;
+            }
+        };
+        $this->heartbeats->beat('report');
+        $this->clock->modify('+2 minutes');
+
+        self::assertSame(['report'], new DeadManSwitch(new Heartbeats([new ExpectedTask('report', 60, 30)], $this->store, $this->clock), $this->store, $locks, $notifier, logger: $logger)->watch());
+        self::assertSame(0, $logger->lines);
+    }
+
+    public function testALockTheStoreCannotRenewLeavesTheTaskUnalerted(): void
+    {
+        $store = new ExpiringLockStore($this->clock);
+        $failing = new HookedHeartbeats($this->store, static function (int $read) use ($store): void {
+            $store->failing = 2 === $read;
+        });
+        $notifier = new SlowNotifier();
+        $this->heartbeats->beat('report');
+        $this->clock->modify('+2 minutes');
+
+        self::assertSame([], new DeadManSwitch(new Heartbeats([new ExpectedTask('report', 60, 30)], $failing, $this->clock), $failing, new LockFactory($store), $notifier)->watch());
+        self::assertSame(0, $notifier->calls);
+        self::assertFalse($this->store->isAlerted('report'));
     }
 
     public function testTheLockIsReleasedWhenTheAlertFails(): void
@@ -323,6 +412,33 @@ final class HeartbeatsTest extends TestCase
 
         self::assertSame([], new DeadManSwitch($this->heartbeats, $this->store, $locks, $notifier)->watch());
         self::assertTrue($locks->createLock(DeadManSwitch::LOCK_PREFIX.'report')->acquire());
+    }
+
+    public function testARoundThatFindsTheLockTakenAlertsNothing(): void
+    {
+        $locks = new ScriptedLockStore();
+        $locks->grants = false;
+        $notifier = new RecordingNotifier();
+        $this->heartbeats->beat('report');
+        $this->clock->modify('+2 minutes');
+
+        self::assertSame([], new DeadManSwitch($this->heartbeats, $this->store, new LockFactory($locks), $notifier)->watch());
+        self::assertSame(0, $notifier->count());
+        self::assertFalse($this->store->isAlerted('report'));
+    }
+
+    public function testAnAlertThatOutlastedItsLockIsMarkedWithoutALogger(): void
+    {
+        $locks = new LockFactory(new ExpiringLockStore($this->clock));
+        $notifier = new SlowNotifier(function () use ($locks): void {
+            $this->clock->sleep(31);
+            self::assertTrue($locks->createLock(DeadManSwitch::LOCK_PREFIX.'report', 30.0, false)->acquire());
+        });
+        $this->heartbeats->beat('report');
+        $this->clock->modify('+2 minutes');
+
+        self::assertSame(['report'], new DeadManSwitch(new Heartbeats([new ExpectedTask('report', 60, 30)], $this->store, $this->clock), $this->store, $locks, $notifier)->watch());
+        self::assertTrue($this->store->isAlerted('report'));
     }
 
     public function testALockStoreThatFailsIsLogged(): void
@@ -379,6 +495,9 @@ final class HeartbeatsTest extends TestCase
         self::assertSame([['error', 'The lock of the scheduled task {task} could not be taken.', 'report']], $logger->logs);
         self::assertSame(1, $notifier->count());
         self::assertFalse($this->store->isAlerted('report'));
+
+        self::assertSame([], new DeadManSwitch($this->heartbeats, $this->store, new LockFactory($failing), $notifier)->watch(), 'Without a logger, the round still goes on.');
+        self::assertSame(1, $notifier->count());
     }
 
     public function testTheCheckIsDegradedWhileATaskIsLate(): void

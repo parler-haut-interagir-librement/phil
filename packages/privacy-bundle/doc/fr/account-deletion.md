@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=acbf0e7e3fc52e48b3b3fca2e3b34fe62d8fda130180034839ed9258740d9805 -->
+<!-- phil-dev source-sha256=4b030442beaa5017b42556a3ecba6117b8d1b910da8f2725aed9bb9b78dff31f -->
 # Supprimer un compte
 
 `AccountDeletions` supprime un compte par étapes, sur `symfony/workflow` : une demande, un délai pendant lequel la
@@ -35,6 +35,10 @@ l'application dit quel identifiant la désigne, en implémentant `DataSubjectUse
 - **Une seule exécution par personne.** Chaque étape s'exécute sous un verrou de `symfony/lock`, nommé d'après une
   empreinte de l'identifiant, et la demande est relue une fois le verrou obtenu. Une annulation qui gagne la course est
   vue.
+- **Une étape s'arrête quand son verrou est perdu.** Le verrou dure 900 secondes et est renouvelé avant chaque module de
+  l'export et de l'effacement, avant l'écriture de l'archive et avant chaque enregistrement d'une place. Une étape dont
+  le verrou a expiré et a été pris par un autre *worker* s'arrête là et laisse la demande à sa dernière place enregistrée
+  ([Verrous et longs travaux](export-and-erasure.md#verrous-et-longs-travaux)).
 - **Un échec est repris, pas recommencé.** La place est enregistrée après chaque étape. Un export est écrit une fois. Un
   effacement qui échoue par `ErasureIncomplete` laisse la demande à `exported`, pour être relancé ; les effaceurs sont
   idempotents.
@@ -73,6 +77,12 @@ du secret de l'application, pendant `account_deletion.export_retention`. Chaque 
 consentement, des demandes sans compte et des incidents, au schéma que génère l'ORM : `doctrine:migrations:diff` écrit
 donc la migration. Une application sans Doctrine les crée à partir de `PrivacyTables::configure()`, ou nomme son propre
 `account_deletion.store`.
+
+Les identifiants, les personnes, les références d'export et les empreintes de jeton se comparent octet par octet. Sur
+MySQL et MariaDB, dont les collations par défaut ignorent la casse et les accents, ces colonnes prennent `utf8mb4_bin` :
+`PrivacySchemaListener` donne à `PrivacyTables::configure()` la plateforme de sa connexion, et une application qui
+l'appelle elle-même passe la plateforme comme second argument. Sans elle, les personnes `Alice` et `alice` partageraient
+une demande de suppression.
 
 Une demande fermée est gardée jusqu'à ce qu'une règle de conservation sur le stockage `phil_privacy_account_deletion` la
 retire : son identifiant est ce à partir de quoi un effacement est rejoué après une restauration.

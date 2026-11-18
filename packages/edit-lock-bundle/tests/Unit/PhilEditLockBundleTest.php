@@ -11,6 +11,7 @@ use Phil\EditLockBundle\Application\EditLocks;
 use Phil\EditLockBundle\Application\NullBroadcaster;
 use Phil\EditLockBundle\Domain\Repository\LeaseRepository;
 use Phil\EditLockBundle\Infrastructure\DependencyInjection\EditLockServices;
+use Phil\EditLockBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\EditLockBundle\Infrastructure\Doctrine\DoctrineLeaseRepository;
 use Phil\EditLockBundle\Infrastructure\Http\ClientConfig;
 use Phil\EditLockBundle\Infrastructure\Http\EditLockController;
@@ -41,9 +42,10 @@ final class PhilEditLockBundleTest extends TestCase
         $container = $this->load([]);
 
         self::assertSame('phil_edit_lock', $this->extension()->getAlias());
-        self::assertSame(['service_container', DoctrineLeaseRepository::class, NullBroadcaster::class, TurboStreams::class, EditLocks::class, BlockSaves::class, EditLockRequest::class, EditLockController::class, ClientConfig::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', DoctrineLeaseRepository::class, BinaryKeysListener::class, NullBroadcaster::class, TurboStreams::class, EditLocks::class, BlockSaves::class, EditLockRequest::class, EditLockController::class, ClientConfig::class], array_keys($container->getDefinitions()));
         self::assertEquals([new Reference('doctrine.dbal.default_connection')], $container->getDefinition(DoctrineLeaseRepository::class)->getArguments());
         self::assertSame([DoctrineLeaseRepository::class, true], [(string) $container->getAlias(LeaseRepository::class), $container->getAlias(LeaseRepository::class)->isPublic()]);
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertSame(NullBroadcaster::class, (string) $container->getAlias(Broadcaster::class));
         self::assertEquals([new Reference(LeaseRepository::class), new Reference('clock'), 30, null, new Reference(Broadcaster::class)], $container->getDefinition(EditLocks::class)->getArguments());
         self::assertEquals([

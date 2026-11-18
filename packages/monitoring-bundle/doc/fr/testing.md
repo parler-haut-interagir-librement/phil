@@ -1,12 +1,13 @@
-<!-- phil-dev source-sha256=d5e204652183bd95bfe53664d4210bb431c6c84d6cf7405f552c684298e3c7cf -->
+<!-- phil-dev source-sha256=25082c3a065f6a0b506d5adcd51854b47dc2bb435d676b2882fc45af0b04a499 -->
 # Tests
 
 ## Les tests du bundle
 
 `tests/Unit` vérifie les objets-valeurs et leurs refus ; le vérificateur, son chronométrage sur une horloge simulée et
 sa façon de traiter une vérification qui lance une exception ; les battements, l'interrupteur d'homme mort, ses alertes
-une fois par retard, aux destinataires administrateurs, ses nouvelles tentatives quand une alerte échoue et son verrou
-entre deux rondes concurrentes ; le service de maintenance et le modèle de lecture ; les files d'attente sur des
+une fois par retard, aux destinataires administrateurs, ses nouvelles tentatives quand une alerte échoue, son verrou
+entre deux rondes concurrentes, et un verrou qui expire avant l'alerte, pendant celle-ci, ou que son stockage ne peut
+pas renouveler, sur une horloge simulée ; le service de maintenance et le modèle de lecture ; les files d'attente sur des
 transports en mémoire ; chaque vérification du bundle contre SQLite, des pools en tableau, un répertoire temporaire et
 un stockage en mémoire ; les stockages et les enregistrements d'une autre forme qu'ils lisent ; les points de
 terminaison, l'écouteur de la maintenance et ses listes d'autorisation, la page des files d'attente et ses actions ; les

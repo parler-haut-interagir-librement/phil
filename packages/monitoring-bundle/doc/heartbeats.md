@@ -82,6 +82,21 @@ The guarantee holds across servers only when the store of the lock factory is sh
 FrameworkBundle covers the workers of one server. A lock store that fails is logged at the error level and the task
 waits for the next round; a lock that cannot be released is logged as a warning and expires on its own.
 
+### Lock lifetime
+
+The lock's lease expires after `heartbeats.lock.ttl` seconds, so that a round that dies does not keep the task from
+being alerted. A round renews it, and checks it is still its own, twice: after it reads the alert mark again, before
+notifying — a round whose lock expired meanwhile leaves the task to the round that holds it now —, and after the
+notification, before marking the task. A notification that outlasted the lock is logged as a warning, `The alert of
+the scheduled task {task} outlasted its lock: another round may have sent it too.`, and the task is marked all the
+same.
+
+The notification is the one step that can outlast the lock. Keep `ttl` above the longest send of the notifier: the
+timeout of its transport when it sends at once — an HTTP chat transport waits up to the HTTP client's timeout, 60
+seconds by default, above the default `ttl` of 30 —, or a few seconds when the notifier sends through Messenger and
+the round only dispatches a message. A warning in the log means a send took longer than `ttl`: raise `ttl`, lower the
+transport's timeout, or send through Messenger.
+
 ## The alerts
 
 Each alert is a `Notification` of Symfony Notifier, on the channels and with the importance of `heartbeats.alerts`:

@@ -18,9 +18,15 @@ final class MessageLogger extends AbstractLogger
      */
     public array $messages = [];
 
+    /**
+     * @var list<array<mixed>>
+     */
+    public array $contexts = [];
+
     #[Override]
     public function log($level, string|Stringable $message, array $context = []): void
     {
         $this->messages[] = (string) $message;
+        $this->contexts[] = $context;
     }
 }

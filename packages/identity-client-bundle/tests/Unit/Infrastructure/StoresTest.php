@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phil\IdentityClientBundle\Tests\Unit\Infrastructure;
 
+use Closure;
+use Override;
 use Phil\IdentityClientBundle\Application\Refresh\RefreshOutcome;
 use Phil\IdentityClientBundle\Application\Refresh\RefreshStatus;
 use Phil\IdentityClientBundle\Infrastructure\Store\CacheReplayStore;
@@ -13,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemPoolInterface;
 use RuntimeException;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\Store\InMemoryStore;
@@ -67,6 +70,43 @@ final class StoresTest extends TestCase
         self::assertTrue($store->claim('jti', 60));
     }
 
+    public function testAClaimIsRefusedBeforeTheCacheIsReadWhenTheLockIsTaken(): void
+    {
+        $locks = new ScriptedLockStore();
+        $locks->grants = false;
+        $pool = self::createMock(CacheItemPoolInterface::class);
+        $pool->expects(self::never())->method('getItem');
+
+        self::assertFalse(new CacheReplayStore($pool, new LockFactory($locks))->claim('jti', 60));
+    }
+
+    public function testAClaimWhoseLockCannotBePutOffIsRefused(): void
+    {
+        $locks = new ScriptedLockStore();
+        $inner = new ArrayAdapter();
+        $pool = new class($inner, static function () use ($locks): void {
+            $locks->renews = false;
+        }) extends ArrayAdapter {
+            public function __construct(
+                private readonly ArrayAdapter $inner,
+                private readonly Closure $during,
+            ) {
+                parent::__construct();
+            }
+
+            #[Override]
+            public function getItem(mixed $key): CacheItem
+            {
+                ($this->during)();
+
+                return $this->inner->getItem($key);
+            }
+        };
+
+        self::assertFalse(new CacheReplayStore($pool, new LockFactory($locks))->claim('jti', 60));
+        self::assertFalse($inner->hasItem('phil_identity_client.jti.'.hash('sha256', 'jti')));
+    }
+
     public function testTheLockIsReleasedAfterAClaim(): void
     {
         $locks = new LockFactory(new InMemoryStore());
@@ -87,6 +127,63 @@ final class StoresTest extends TestCase
         } catch (RuntimeException) {
             self::assertTrue($locks->createLock('phil_identity_client.jti.'.hash('sha256', 'jti'))->acquire(false));
         }
+    }
+
+    public function testAClaimWhoseLockExpiredDuringTheReadIsRefusedAndNotWritten(): void
+    {
+        $clock = new MockClock('2026-11-17 00:00:00 UTC');
+        $locks = new LockFactory(new ExpiringLockStore($clock));
+        $inner = new ArrayAdapter();
+        $pool = new class($inner, static function () use ($clock, $locks): void {
+            $clock->sleep(6);
+            self::assertTrue($locks->createLock('phil_identity_client.jti.'.hash('sha256', 'jti'), 5.0, false)->acquire());
+        }) extends ArrayAdapter {
+            public function __construct(
+                private readonly ArrayAdapter $inner,
+                private readonly Closure $during,
+            ) {
+                parent::__construct();
+            }
+
+            #[Override]
+            public function getItem(mixed $key): CacheItem
+            {
+                ($this->during)();
+
+                return $this->inner->getItem($key);
+            }
+        };
+
+        self::assertFalse(new CacheReplayStore($pool, $locks)->claim('jti', 60));
+        self::assertFalse($inner->hasItem('phil_identity_client.jti.'.hash('sha256', 'jti')));
+    }
+
+    public function testAClaimWhoseLockTheStoreCannotConfirmIsRefused(): void
+    {
+        $clock = new MockClock('2026-11-17 00:00:00 UTC');
+        $store = new ExpiringLockStore($clock);
+        $inner = new ArrayAdapter();
+        $pool = new class($inner, static function () use ($store): void {
+            $store->failing = true;
+        }) extends ArrayAdapter {
+            public function __construct(
+                private readonly ArrayAdapter $inner,
+                private readonly Closure $during,
+            ) {
+                parent::__construct();
+            }
+
+            #[Override]
+            public function getItem(mixed $key): CacheItem
+            {
+                ($this->during)();
+
+                return $this->inner->getItem($key);
+            }
+        };
+
+        self::assertFalse(new CacheReplayStore($pool, new LockFactory($store))->claim('jti', 60));
+        self::assertFalse($inner->hasItem('phil_identity_client.jti.'.hash('sha256', 'jti')));
     }
 
     public function testAnIdentifierIsNeverStoredInClear(): void

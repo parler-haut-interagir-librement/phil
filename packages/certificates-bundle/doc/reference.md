@@ -46,6 +46,7 @@
 | Class | Role |
 |---|---|
 | `Infrastructure\Doctrine\DoctrineCourseRepository`, `DoctrineCertificateRepository`, `DoctrineLearningActivityRepository` | The repositories through Doctrine. |
+| `Infrastructure\Doctrine\BinaryKeysListener` | The keys of the register in `utf8mb4_bin` on MySQL and MariaDB. |
 | `Infrastructure\Routing\RoutedCertificateUrls` | The URLs from the register's routes. |
 | `Infrastructure\Http\RegisterController` | The register's pages and downloads. |
 | `Infrastructure\Console\CourseCommand` | `phil:certificates:course`. |

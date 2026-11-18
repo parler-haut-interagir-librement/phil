@@ -47,7 +47,9 @@ link, until it expires; erasers are idempotent.
 - **The address is sealed at rest.** The table `phil_privacy_guest_request` keeps it encrypted with libsodium under a
   key derived from the application secret, only as long as the request.
 - **One execution at a time.** An export or an erasure runs under a lock named after the request, read again once the
-  lock is held.
+  lock is held. The lock lives 300 seconds and is renewed before each module and before the request is removed: an
+  execution whose lock was taken by another stops, keeps the request, and answers as a link that no longer opens it
+  ([Locks and long work](export-and-erasure.md#locks-and-long-work)).
 - **No secret in a referrer or a queue.** The pages of the link send `Referrer-Policy: no-referrer` and are never kept by
   a cache; the mailer sender sends at once through the mailer's transports, never through a message queue where the
   link would be written down.

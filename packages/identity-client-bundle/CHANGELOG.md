@@ -4,6 +4,18 @@ All notable changes to `phil/identity-client-bundle` will be documented in this 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha: the replay guard renews its lock before it writes a claim. See
+[Token refresh](doc/token-refresh.md#lock-lifetimes).
+
+### Security
+
+- `CacheReplayStore::claim()` renews its lock and checks it is still its own before it writes the claim, and refuses
+  the claim otherwise: a pool read that outlasted the lock's five seconds let another request take the lock and claim
+  the same identifier, so that one logout token could be accepted twice. A lock that cannot be released is left to
+  expire.
+
 ## 0.2.0-alpha - 2026-11-17
 
 The next version is 0.2.0-alpha: a logout token whose claim the pool did not keep is refused, and

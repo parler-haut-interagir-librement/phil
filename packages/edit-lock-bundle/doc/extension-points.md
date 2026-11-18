@@ -33,8 +33,13 @@ only told to the other writers. See [Blocks](blocks.md).
 
 | Method | Contract |
 |---|---|
-| `save(string $resource, Block $block, string $list, ?string $after, Holder $holder): void` | Puts the block in the resource's draft, in place of its copy or after `$after` in `$list`; called before the save is told to the others |
-| `remove(string $resource, string $blockId, Holder $holder): void` | Takes the block out of the draft |
+| `save(string $resource, Block $block, string $list, ?string $after, Holder $holder, Fence $fence): void` | Puts the block in the resource's draft, in place of its copy or after `$after` in `$list`; called within the claim that checked the lease, before the save is told to the others |
+| `remove(string $resource, string $blockId, Holder $holder, Fence $fence): void` | Takes the block out of the draft, within the claim that checked the lease |
+
+A store that writes on the connection of the Doctrine leases writes inside the claim's transaction. A store that may
+apply a write later keeps `$fence->number` with the block and refuses a write whose number is not greater, by a
+conditional write whose row count it checks; `Fence::isNewerThan()` compares two fences
+([Writes under a lease](blocks.md#writes-under-a-lease)).
 
 ## Ports with shipped adapters
 
@@ -53,8 +58,9 @@ MercureBundle, `NullBroadcaster` without it; an application points the alias at 
 
 `Phil\EditLockBundle\Domain\Repository\LeaseRepository` — the leases; Doctrine or memory, by `store`. A store of the
 application's own keeps the guarantees of each method: `exclusively()` runs a claim while no other claim on the
-resource runs, `insert()` keeps a lease only when none is on its key, `replace()` only when the version read is still
-the one kept, `delete()` only for the holder who holds it.
+resource runs, `fence()` answers within it a number greater than that of every claim on the resource before,
+`insert()` keeps a lease only when none is on its key, `replace()` only when the version read is still the one kept,
+`delete()` only for the holder who holds it.
 
 ## Configuration
 

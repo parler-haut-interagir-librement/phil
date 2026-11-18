@@ -12,7 +12,8 @@ session is refused rather than ending every session of that user.
 Each `jti` is then accepted once. `CacheReplayStore` keeps it for `replay_ttl` seconds, or until the token can no longer
 pass its `exp` check when that is later. A repeated token gets a `400` and ends nothing. A claim the pool did not keep —
 its `save()` answers `false` — is refused the same way, so that the same token cannot be accepted twice; the provider
-delivers it again later.
+delivers it again later. A claim whose lock expired while the pool was read is refused too
+([Lock lifetimes](token-refresh.md#lock-lifetimes)).
 
 The request comes from the provider, so it cannot touch the browser's session. The ended `sid` is recorded, and the next
 request of that session is deauthenticated by the native listener. `EndedSessionListener` then invalidates the whole

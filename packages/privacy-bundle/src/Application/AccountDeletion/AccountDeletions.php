@@ -10,7 +10,9 @@ use Phil\PrivacyBundle\Application\Contract\AccountDeletionStore;
 use Phil\PrivacyBundle\Application\Contract\ExportArchive;
 use Phil\PrivacyBundle\Application\Exception\AccountDeletionBusy;
 use Phil\PrivacyBundle\Application\Exception\ErasureIncomplete;
+use Phil\PrivacyBundle\Application\Exception\LockLost;
 use Phil\PrivacyBundle\Application\Export\ExportPackage;
+use Phil\PrivacyBundle\Application\Lock\HeldLock;
 use Phil\PrivacyBundle\Application\SubjectErasure;
 use Phil\PrivacyBundle\Application\SubjectExport;
 use Phil\PrivacyBundle\Domain\AccountDeletion\AccountDeletion;
@@ -34,6 +36,11 @@ use Symfony\Component\Workflow\WorkflowInterface;
  * **A stage that fails is resumed, not restarted.** The place is saved after each stage: an export is written once,
  * and an incomplete erasure stays at `exported`, to be run again; erasers are idempotent. Log lines carry the identifier
  * of the request and the names of the modules, never the person or the text of an exception.
+ *
+ * **A stage stops when its lock is lost.** The lock lives `LOCK_TTL` seconds and is renewed before each module of the
+ * export and of the erasure, and before each place is saved: a stage whose lock expired and was taken by another
+ * worker stops there, logs a warning, and leaves the request at its last saved place, for the worker that holds the
+ * lock now.
  */
 final readonly class AccountDeletions
 {
@@ -161,10 +168,16 @@ final readonly class AccountDeletions
             return $found->getPlace();
         }
 
+        $held = new HeldLock($lock);
+
         try {
-            return $this->advanceLocked($id, $lock);
+            return $this->advanceLocked($id, $held);
+        } catch (LockLost) {
+            $this->logger->warning('Account deletion {id}: its lock was lost; the stage stopped.', ['id' => $id]);
+
+            return $this->store->find($id)?->getPlace();
         } finally {
-            $lock->release();
+            $held->release();
         }
     }
 
@@ -173,7 +186,7 @@ final readonly class AccountDeletions
         return $this->archive->purgeExpired($this->clock->now());
     }
 
-    private function advanceLocked(string $id, LockInterface $lock): ?DeletionPlace
+    private function advanceLocked(string $id, HeldLock $lock): ?DeletionPlace
     {
         $deletion = $this->store->find($id);
         $now = $this->clock->now();
@@ -183,32 +196,33 @@ final readonly class AccountDeletions
         }
 
         if (DeletionPlace::Requested === $deletion->getPlace()) {
-            $this->exportFor($deletion, $now);
-            $lock->refresh();
+            $this->exportFor($deletion, $now, $lock);
         }
 
-        $this->eraseFor($deletion, $now);
+        $this->eraseFor($deletion, $now, $lock);
 
         return $deletion->getPlace();
     }
 
-    private function exportFor(AccountDeletion $deletion, DateTimeImmutable $now): void
+    private function exportFor(AccountDeletion $deletion, DateTimeImmutable $now, HeldLock $lock): void
     {
-        $sections = $this->export->export($deletion->subject);
+        $sections = $this->export->export($deletion->subject, $lock);
         $content = $this->package instanceof ExportPackage
             ? $this->package->zip($sections)
             : json_encode($sections, \JSON_THROW_ON_ERROR | \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES);
+        $lock->renew();
         $this->archive->put($deletion->id, $content, $now->add($this->exportRetention));
         $deletion->exportedTo($deletion->id);
         $this->workflow->apply($deletion, DeletionWorkflow::EXPORT);
+        $lock->renew();
         $this->store->save($deletion);
         $this->logger->info('Account deletion {id} exported.', ['id' => $deletion->id]);
     }
 
-    private function eraseFor(AccountDeletion $deletion, DateTimeImmutable $now): void
+    private function eraseFor(AccountDeletion $deletion, DateTimeImmutable $now, HeldLock $lock): void
     {
         try {
-            $this->erasure->erase($deletion->subject);
+            $this->erasure->erase($deletion->subject, $lock);
         } catch (ErasureIncomplete $erasureIncomplete) {
             $this->logger->warning('Account deletion {id}: the erasure failed in {modules}.', ['id' => $deletion->id, 'modules' => array_keys($erasureIncomplete->failures)]);
 
@@ -217,6 +231,7 @@ final readonly class AccountDeletions
 
         $deletion->closeAt($now);
         $this->workflow->apply($deletion, DeletionWorkflow::ERASE);
+        $lock->renew();
         $this->store->save($deletion);
         $this->logger->info('Account deletion {id} erased.', ['id' => $deletion->id]);
     }

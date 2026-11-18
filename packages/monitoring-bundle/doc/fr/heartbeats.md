@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=669eeb55121b220d1f7b09d6ddcdccad04495153b40e7b60c9cd9d42021c6ee9 -->
+<!-- phil-dev source-sha256=5b9150b67754dd2e401ed317b5e67340143a65b40bc54967b4013eb8dd1555ad -->
 # Battements de cœur
 
 ## Déclarer les tâches
@@ -86,6 +86,22 @@ La garantie vaut entre serveurs seulement si le stockage de la fabrique de verro
 par défaut de FrameworkBundle couvre les *workers* d'un seul serveur. Un stockage de verrous en échec est journalisé au
 niveau erreur, et la tâche attend la ronde suivante. Un verrou qui ne peut pas être libéré est journalisé comme
 avertissement et expire de lui-même.
+
+### Durée de vie du verrou
+
+Le bail du verrou expire après `heartbeats.lock.ttl` secondes, pour qu'une ronde qui meurt n'empêche pas la tâche d'être
+signalée. Une ronde le renouvelle, et vérifie qu'il est toujours le sien, deux fois : après avoir relu la marque
+d'alerte, avant de notifier — une ronde dont le verrou a expiré entre-temps laisse la tâche à la ronde qui le détient
+maintenant —, et après la notification, avant de marquer la tâche. Une notification qui a dépassé le verrou est
+journalisée comme avertissement, « The alert of the scheduled task {task} outlasted its lock: another round may have
+sent it too. », et la tâche est quand même marquée.
+
+La notification est la seule étape qui peut dépasser le verrou. Gardez `ttl` au-dessus de l'envoi le plus long du
+notificateur : le délai d'expiration de son transport quand il envoie sur-le-champ — un transport de clavardage HTTP
+attend jusqu'au délai d'expiration du client HTTP, 60 secondes par défaut, au-dessus du `ttl` par défaut de 30 —, ou
+quelques secondes quand le notificateur envoie par Messenger et que la ronde ne fait que répartir un message. Un
+avertissement dans le journal signifie qu'un envoi a duré plus longtemps que `ttl` : augmentez `ttl`, réduisez le délai
+d'expiration du transport, ou envoyez par Messenger.
 
 ## Les alertes
 

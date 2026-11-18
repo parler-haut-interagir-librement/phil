@@ -149,11 +149,13 @@ $purged = $run->run(new DateTimeImmutable());   // ['R-1' => 5, 'R-2' => 0]
 - `__construct(RetentionScheduleSource $schedule, iterable<RetentionPurger> $purgers)` — throws
   `MisconfiguredPrivacy::duplicatePurger()` when two purgers answer for one store.
 - `orders(DateTimeImmutable $now): list<PurgeOrder>` — what a run would purge, or the refusal below.
-- `run(DateTimeImmutable $now): array<string, int>` — loads the schedule, computes the purge orders, then:
+- `run(DateTimeImmutable $now, ?HeldLock $lock = null): array<string, int>` — loads the schedule, computes the purge
+  orders, then:
   1. **checks that every order has a purger before purging anything**, and throws
      `MisconfiguredPrivacy::missingPurger($store, $ruleIds)` otherwise. A job line with nothing behind it is a
      period stated and not enforced; purging the other stores first would report it as a partial success;
-  2. hands each order to its store's purger, in schedule order;
+  2. hands each order to its store's purger, in schedule order, renewing the held lock before each one and throwing
+     `LockLost` before the next order once it is lost;
   3. returns the records purged, by rule identifier.
 - Lines that yield no cutoff are not checked and get no order; list them with `jobsWithoutCutoff()` and run or
   report them on your own terms.
@@ -163,6 +165,10 @@ $purged = $run->run(new DateTimeImmutable());   // ['R-1' => 5, 'R-2' => 0]
 
 `RetentionJob` is the run as a job: at the present instant, one at a time under a lock, with a log line per rule that
 gives the rule and the count, never what was purged. A second run while one is in progress does nothing.
+
+The lock lives an hour and is renewed before each purge order, so a run may last longer as long as each order ends
+within the hour. A run whose lock expired and was taken by another stops before its next order, logs a warning, and
+answers `null`, as a run that found the lock taken ([Locks and long work](export-and-erasure.md#locks-and-long-work)).
 
 - `bin/console phil:privacy:retention` lists what a run would purge, and names the job lines without a cutoff;
   `--confirm` purges. A job line without a purger stops the command before anything is purged.

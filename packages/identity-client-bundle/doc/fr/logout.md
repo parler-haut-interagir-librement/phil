@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2cbb73d032f1c8dbfc79b13400d175babd00dbadc4047cf303839ffc9fb6ba84 -->
+<!-- phil-dev source-sha256=ebadd9fcf09a40e59dc9d13272cd7ee1520f495684563fce6e913aeac8c15907 -->
 # Déconnexion
 
 ## Déconnexion par canal arrière
@@ -15,7 +15,8 @@ Chaque `jti` n'est ensuite accepté qu'une fois. `CacheReplayStore` le garde pen
 que le jeton ne puisse plus passer sa vérification de `exp` si ce moment est plus tardif. Un jeton répété reçoit un
 `400` et ne met fin à rien. Une revendication que la réserve n'a pas gardée — son `save()` répond `false` — est refusée
 de la même façon, de sorte que le même jeton ne puisse pas être accepté deux fois ; le fournisseur le livre de nouveau
-plus tard.
+plus tard. Une revendication dont le verrou a expiré pendant la lecture de la réserve est refusée aussi
+([Durée de vie des verrous](token-refresh.md#durée-de-vie-des-verrous)).
 
 La requête vient du fournisseur : elle ne peut donc pas toucher la session du navigateur. Le `sid` terminé est
 enregistré, et l'écouteur natif désauthentifie la requête suivante de cette session. `EndedSessionListener` invalide

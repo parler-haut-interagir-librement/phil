@@ -7,6 +7,7 @@ namespace Phil\EditLockBundle\Infrastructure\Memory;
 use Closure;
 use DateTimeImmutable;
 use Override;
+use Phil\EditLockBundle\Domain\Exception\InvalidLease;
 use Phil\EditLockBundle\Domain\Model\Lease;
 use Phil\EditLockBundle\Domain\Repository\LeaseRepository;
 use Phil\EditLockBundle\Domain\ValueObject\LeaseKey;
@@ -20,10 +21,21 @@ final class InMemoryLeaseRepository implements LeaseRepository
     /** @var array<string, Lease> */
     private array $leases = [];
 
+    /** @var array<string, int> the claims that ran, by resource */
+    private array $claims = [];
+
     #[Override]
     public function exclusively(string $resource, Closure $claim): mixed
     {
+        $this->claims[$resource] = ($this->claims[$resource] ?? 0) + 1;
+
         return $claim();
+    }
+
+    #[Override]
+    public function fence(string $resource): int
+    {
+        return $this->claims[$resource] ?? throw InvalidLease::because('A fence is asked within a claim on its resource.');
     }
 
     #[Override]

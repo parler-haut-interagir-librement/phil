@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=34dcaf0873b465da75e65fb5d6744319d821f3a92c8e61d650739789fa3ae785 -->
+<!-- phil-dev source-sha256=0055cb310ab20ce3edf04be68d2cb47b17113ba38e7c36273307e7859ba90997 -->
 # Référence de l'API
 
 Chaque type sous `Phil\PrivacyBundle\`, par couche. « Implémenté » veut dire implémenté et couvert par des tests
@@ -141,10 +141,11 @@ unitaires.
 
 | Type | Rôle | État |
 |---|---|---|
-| `SubjectExport` | Assemble une section triée par exportateur ; `export($subject)` | Implémenté ; branché sur `phil_privacy.exporter` |
-| `SubjectErasure` | Exécute chaque effaceur, isole les échecs ; `erase($subject)` | Implémenté ; branché sur `phil_privacy.eraser` |
-| `RetentionRun` | Vérifie que chaque ordre de purge a un purgeur, puis purge ; `orders($now)`, `run($now)`, `jobsWithoutCutoff()` | Implémenté ; branché avec un calendrier |
-| `RetentionJob` | L'exécution à l'instant présent, une à la fois ; `plan()`, `run()` | Implémenté ; branché avec un calendrier |
+| `SubjectExport` | Assemble une section triée par exportateur ; `export($subject, ?$lock)`, le verrou renouvelé avant chaque module | Implémenté ; branché sur `phil_privacy.exporter` |
+| `SubjectErasure` | Exécute chaque effaceur, isole les échecs ; `erase($subject, ?$lock)`, le verrou renouvelé avant chaque effaceur | Implémenté ; branché sur `phil_privacy.eraser` |
+| `RetentionRun` | Vérifie que chaque ordre de purge a un purgeur, puis purge ; `orders($now)`, `run($now, ?$lock)`, `jobsWithoutCutoff()` | Implémenté ; branché avec un calendrier |
+| `RetentionJob` | L'exécution à l'instant présent, une à la fois, son verrou renouvelé avant chaque ordre de purge ; `plan()`, `run()`, `LOCK`, `LOCK_TTL` | Implémenté ; branché avec un calendrier |
+| `Lock\HeldLock` | Un verrou renouvelé entre les étapes d'un travail ; `renew()`, `release()` | Implémenté |
 | `ConfiguredRetentionSchedule` | La `RetentionScheduleSource` de `retention.rules` | Implémenté ; branché |
 | `AccountDeletion\AccountDeletions` | Les étapes d'une suppression ; `request()`, `cancel()`, `openFor()`, `dueIdentifiers()`, `advance()`, `purgeExpiredExports()` | Implémenté ; branché |
 | `AccountDeletion\DeletionWorkflow` | La machine à états sur `symfony/workflow` ; `create()`, `definition()` | Implémenté ; branché |
@@ -192,6 +193,7 @@ unitaires.
 | `ErasureIncomplete` | `RuntimeException` ; les rapports `$completed`, les `$failures` par module ; `after($completed, $failures)` | Implémenté |
 | `MisconfiguredPrivacy` | `LogicException` ; `duplicateModule()`, `duplicatePurger()`, `missingPurger()`, `userWithoutSubject()` | Implémenté |
 | `AccountDeletionBusy` | `RuntimeException` ; un autre processus détient le verrou de cette personne | Implémenté |
+| `LockLost` | `RuntimeException` ; le verrou d'un travail par étapes a expiré, a été pris, ou n'a pas pu être confirmé ; `create()` | Implémenté |
 | `AnonymizationRefused` | `RuntimeException` ; `inEnvironment()`, `protectedDatabase()`, `withoutKey()`, `keyColumn()` | Implémenté |
 | `TooManyGuestRequests` | `RuntimeException` ; un client au-delà de sa limite ; `retryIn()`, `retryAfter()` | Implémenté |
 
@@ -216,7 +218,7 @@ unitaires.
 | `Infrastructure\DependencyInjection\PrivacyServicesPass` | Retire ce que l'application ne peut pas faire tourner | Implémenté |
 | `Infrastructure\Console\RunRetentionCommand`, `ProcessDeletionsCommand` | `phil:privacy:retention`, `phil:privacy:deletions` | Implémenté ; branché avec Symfony Console |
 | `Infrastructure\Console\DisabledRightsWarning` | L'avertissement avant chaque commande quand un droit est désactivé | Implémenté |
-| `Infrastructure\Database\PrivacyTables`, `DbalAccountDeletions`, `DbalConsentProofs` | Les tables, le stockage, les preuves ; les deux derniers purgent aussi | Implémenté |
+| `Infrastructure\Database\PrivacyTables`, `DbalAccountDeletions`, `DbalConsentProofs` | Les tables, leurs clés en `utf8mb4_bin` sur MySQL et MariaDB quand la plateforme est donnée ; le stockage, les preuves ; les deux derniers purgent aussi | Implémenté |
 | `Infrastructure\Database\DbalGuestRequests` | Les demandes sans compte, l'adresse scellée | Implémenté |
 | `Infrastructure\Database\DbalIncidentRegister` | Le registre des incidents ; purge aussi | Implémenté |
 | `Infrastructure\Database\DbalEmailTrackingConsents` | Les choix des membres sur les courriels suivis, une ligne chacun | Implémenté |

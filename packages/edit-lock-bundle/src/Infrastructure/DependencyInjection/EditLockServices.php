@@ -9,6 +9,7 @@ use Phil\EditLockBundle\Application\Broadcaster;
 use Phil\EditLockBundle\Application\EditLocks;
 use Phil\EditLockBundle\Application\NullBroadcaster;
 use Phil\EditLockBundle\Domain\Repository\LeaseRepository;
+use Phil\EditLockBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\EditLockBundle\Infrastructure\Doctrine\DoctrineLeaseRepository;
 use Phil\EditLockBundle\Infrastructure\Http\ClientConfig;
 use Phil\EditLockBundle\Infrastructure\Http\EditLockController;
@@ -40,6 +41,8 @@ final class EditLockServices
             $container->register(DoctrineLeaseRepository::class, DoctrineLeaseRepository::class)
                 ->setArguments([new Reference('doctrine.dbal.'.$config['connection'].'_connection')]);
             $container->setAlias(LeaseRepository::class, DoctrineLeaseRepository::class)->setPublic(true);
+            $container->register(BinaryKeysListener::class, BinaryKeysListener::class)
+                ->addTag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
         }
 
         $hub = null;

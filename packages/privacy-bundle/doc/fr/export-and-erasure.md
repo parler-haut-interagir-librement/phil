@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=82f57a566986912a19d8c8a088d1a201b76a34bf1c81726c663213b7b3fb315c -->
+<!-- phil-dev source-sha256=4276ef31f3a835aa13aedc5a9a6130b12c9b4798823470b775005f70152ecfcc -->
 # Export et effacement d'une personne
 
 **État :** `SubjectExport`, `SubjectErasure`, les objets valeur et les exceptions sont implémentés et testés.
@@ -57,6 +57,8 @@ $sections = $export->export(DataSubject::fromString($userId));
   module** (`ksort`, ordre des chaînes), pour que deux exports des mêmes données soient le même document. Un module qui
   ne détient rien a tout de même sa section, vide : la réponse montre que le module a été interrogé. Sans exportateur,
   le résultat est `[]`.
+- `export(DataSubject $subject, HeldLock $lock)` renouvelle le verrou avant chaque module, et lève `LockLost` avant le
+  module suivant dès qu'il est perdu ([Verrous et longs travaux](#verrous-et-longs-travaux)).
 
 L'encodage (JSON, CSV, archive), la livraison, la vérification de l'identité et les délais reviennent à l'application.
 
@@ -110,8 +112,53 @@ try {
 - **Un rapport classé sous le nom d'un autre module est un échec** de l'effaceur qui l'a rendu
   (`UnexpectedValueException` dans `$failures`) : sinon, il marquerait comme fait un module qui ne s'est jamais exécuté.
 - Tout `Throwable` venu d'un effaceur est attrapé et noté, erreurs comprises.
+- `erase(DataSubject $subject, HeldLock $lock)` renouvelle le verrou avant chaque effaceur. Un verrou perdu lève
+  `LockLost` avant l'effaceur suivant ; il n'est jamais noté comme l'échec d'un module
+  ([Verrous et longs travaux](#verrous-et-longs-travaux)).
 
 Message de `ErasureIncomplete` : `Erasure failed in module(s) <names>; retry it, erasers are idempotent.`
+
+## Verrous et longs travaux
+
+Le travail que le bundle exécute un à la fois — un export, un effacement, une exécution de conservation — tient un
+verrou de `symfony/lock` dont le bail expire : si le processus se fige ou meurt, le suivant n'est pas bloqué pour
+toujours. Un travail plus long que le bail laisserait un second *worker* prendre le verrou expiré et exécuter en même
+temps le même export, le même effacement ou la même purge ; le verrou est donc renouvelé entre les étapes, plutôt que
+dimensionné pour le travail entier.
+
+`HeldLock` enveloppe le verrou. `renew()` repousse son expiration de sa durée de vie, puis demande au stockage s'il est
+toujours celui de ce processus ; quand le stockage dit non — le bail a expiré, un autre processus l'a pris, ou le
+stockage ne peut pas répondre —, il lève `LockLost`. `release()` l'abandonne une fois, et ne fait rien une fois qu'il
+est perdu.
+
+| Travail | Verrou | Durée de vie | Renouvelé avant |
+|---|---|---|---|
+| `GuestRequests::access()`, `erase()` | `phil_privacy.guest.<request>` | `GuestRequests::LOCK_TTL`, 300 s | chaque module, le retrait de la demande |
+| `AccountDeletions::advance()` | `phil_privacy.account_deletion.<hash>` | `AccountDeletions::LOCK_TTL`, 900 s | chaque module, l'archive, chaque place enregistrée |
+| `PersonalDataDownload::of()` | `phil_privacy.export.<hash>` | `PersonalDataDownload::LOCK_TTL`, 300 s | chaque module |
+| `RetentionJob::run()` | `phil_privacy.retention` | `RetentionJob::LOCK_TTL`, 3 600 s | chaque ordre de purge |
+
+Un travail dont le verrou a été perdu s'arrête avant son étape suivante, journalise un avertissement qui nomme la
+demande et jamais la personne, et garde ce qu'il a enregistré : une demande sans compte reste et son lien la relance, une
+suppression de compte reste à sa dernière place, un téléchargement répond comme quand un autre export de la personne
+s'exécute, une exécution de conservation répond comme quand une autre exécution tient le verrou. Le *worker* qui tient le
+verrou maintenant fait le reste ; chaque étape se rejoue sans risque, parce que les exportateurs lisent, et que les
+effaceurs et les purgeurs sont idempotents.
+
+### Exploitation
+
+- **Chaque étape doit finir dans la durée de vie.** Le travail entier peut durer plus longtemps, une étape non : un
+  exportateur ou un effaceur d'une personne, un ordre de purge, ou l'écriture de l'export dans son archive. Un purgeur
+  qui retire une grande table purge par lots dans l'ordre, pour que l'ordre finisse bien en dessous de l'heure ; un
+  module dont l'export ou l'effacement d'une personne peut prendre des minutes est mesuré, et scinde son travail s'il
+  approche cinq minutes.
+- **Le stockage doit faire expirer les baux.** Un stockage partagé — Redis, PDO, PostgreSQL — laisse le *worker* suivant
+  prendre un verrou expiré ; le stockage `flock` par défaut ne sert qu'un seul serveur. Un stockage qui échoue est
+  traité comme un verrou perdu : le travail s'arrête et l'exécution suivante le fait.
+- **Un arrêt est un avertissement, pas une erreur.** `Request without an account {id}: its lock was lost; the request is
+  kept.`, `Account deletion {id}: its lock was lost; the stage stopped.` et `The retention run lost its lock and stopped
+  before its next rule.` signifient qu'une étape a dépassé la durée de vie ou que le stockage s'est figé ; des messages
+  fréquents appellent une mesure de l'étape lente.
 
 ## Le branchement dans Symfony
 

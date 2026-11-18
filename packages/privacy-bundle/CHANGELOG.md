@@ -4,6 +4,34 @@ All notable changes to `phil/privacy-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: the locks of the export, the erasure and the retention run are renewed between their
+steps, and the keys of the tables compare byte for byte on MySQL and MariaDB. See
+[Locks and long work](doc/export-and-erasure.md#locks-and-long-work).
+
+### Added
+
+- `HeldLock`, a lock of `symfony/lock` renewed between the steps of a work, and `LockLost`, thrown when a renewal
+  finds the lease expired, taken by another process, or unconfirmed by its store.
+- An optional `HeldLock` argument for `SubjectExport::export()`, `SubjectErasure::erase()` and `RetentionRun::run()`,
+  renewed before each module or purge order; under it, a lost lock stops the work before the next step, and is never
+  counted as the failure of a module.
+- An optional platform argument for `PrivacyTables::configure()`, given by `PrivacySchemaListener`.
+
+### Fixed
+
+- `GuestRequests`, `AccountDeletions`, `PersonalDataDownload` and `RetentionJob` renew their lock before each module of
+  an export or an erasure, before each purge order, and before each write of a request or a place: a work that lasted
+  longer than the lock's lifetime let a second worker take the expired lock and run the same export, erasure or purge
+  at the same time. A work whose lock was lost stops before its next step, logs a warning without naming the person,
+  and keeps the request at its last saved place for the worker that holds the lock now: `access()`, `erase()` and
+  `of()` answer `null`, `advance()` the place read again, and `RetentionJob::run()` `null`.
+- On MySQL and MariaDB, the identifiers, the people, the export references and the token hashes of the tables take
+  `utf8mb4_bin`: the default collation, which folds case and accents, let the people `Alice` and `alice` share a
+  deletion request and a choice about tracked emails. An existing schema needs the migration that
+  `doctrine:migrations:diff` writes.
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

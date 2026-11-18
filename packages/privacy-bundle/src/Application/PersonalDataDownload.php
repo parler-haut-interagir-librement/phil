@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace Phil\PrivacyBundle\Application;
 
+use Phil\PrivacyBundle\Application\Exception\LockLost;
 use Phil\PrivacyBundle\Application\Export\ExportPackage;
+use Phil\PrivacyBundle\Application\Lock\HeldLock;
 use Phil\PrivacyBundle\Domain\Subject\DataSubject;
 use Symfony\Component\Lock\LockFactory;
 
 /**
  * A person's own export, as a ZIP archive with a readable `README.txt` and one JSON file per module, one at a time per
  * person: an export reads every module, and a page reloaded in a loop must not run a hundred of them.
+ *
+ * The lock lives `LOCK_TTL` seconds and is renewed before each module: an export that lost it to another one stops and
+ * answers as when an export of this person is already running.
  */
 final readonly class PersonalDataDownload
 {
@@ -24,7 +29,8 @@ final readonly class PersonalDataDownload
     }
 
     /**
-     * @return string|null the archive, or null when an export of this person is already running
+     * @return string|null the archive, or null when an export of this person is already running, or took this one's
+     *                     lock over
      */
     public function of(DataSubject $subject): ?string
     {
@@ -34,10 +40,14 @@ final readonly class PersonalDataDownload
             return null;
         }
 
+        $held = new HeldLock($lock);
+
         try {
-            return $this->package->zip($this->export->export($subject));
+            return $this->package->zip($this->export->export($subject, $held));
+        } catch (LockLost) {
+            return null;
         } finally {
-            $lock->release();
+            $held->release();
         }
     }
 }

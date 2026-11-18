@@ -15,9 +15,12 @@ use Phil\PrivacyBundle\Application\SubjectExport;
 use Phil\PrivacyBundle\Domain\Consent\ConsentCategory;
 use Phil\PrivacyBundle\Domain\Consent\ConsentPolicy;
 use Phil\PrivacyBundle\Domain\Subject\DataSubject;
+use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\ExpiringLockStore;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\FixedExporter;
+use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\InterruptingModule;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\RecordingConsentProofs;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\RecordingLockStore;
+use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\ScriptedLockStore;
 use Phil\PrivacyBundle\Tests\Unit\Fixture\Unzip;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -75,6 +78,17 @@ final class PrivacyRightsAndDownloadTest extends TestCase
         self::assertTrue($locks->createLock('phil_privacy.export.'.hash('xxh128', 'm1'))->acquire());
     }
 
+    public function testAnExportThatCannotTakeTheLockExportsNothing(): void
+    {
+        $locks = new ScriptedLockStore();
+        $locks->grants = false;
+        $exporter = new InterruptingModule('members', static function (): void {
+        });
+
+        self::assertNull(new PersonalDataDownload(new SubjectExport([$exporter]), new LockFactory($locks), $this->package())->of(DataSubject::fromString('m1')));
+        self::assertSame(0, $exporter->calls);
+    }
+
     public function testTheLockIsReleasedWhenTheDocumentCannotBeWritten(): void
     {
         $locks = new LockFactory(new InMemoryStore());
@@ -89,12 +103,12 @@ final class PrivacyRightsAndDownloadTest extends TestCase
         }
     }
 
-    public function testTheExportLockLastsFiveMinutes(): void
+    public function testTheExportLockLastsFiveMinutesAndIsRenewedBeforeEachModule(): void
     {
         $store = new RecordingLockStore();
         $this->download(new LockFactory($store))->of(DataSubject::fromString('m1'));
 
-        self::assertSame([300.0], $store->lifetimes);
+        self::assertSame([300.0, 300.0], $store->lifetimes);
     }
 
     public function testADecisionIsDatedOnTheCurrentVersionAndRecorded(): void
@@ -116,6 +130,22 @@ final class PrivacyRightsAndDownloadTest extends TestCase
 
         self::assertSame([], $choice->granted);
         self::assertTrue($choice->globalPrivacyControl);
+    }
+
+    public function testAnExportWhoseLockWasTakenOverAnswersAsOneAlreadyRunning(): void
+    {
+        $clock = new MockClock('2026-11-17T00:00:00Z');
+        $locks = new LockFactory(new ExpiringLockStore($clock));
+        $name = 'phil_privacy.export.'.hash('xxh128', 'm1');
+        $after = new InterruptingModule('posts', static function (): void {
+        });
+        $taken = new InterruptingModule('members', static function () use ($clock, $locks, $name): void {
+            $clock->sleep(PersonalDataDownload::LOCK_TTL + 1);
+            self::assertTrue($locks->createLock($name, PersonalDataDownload::LOCK_TTL, false)->acquire());
+        });
+
+        self::assertNull(new PersonalDataDownload(new SubjectExport([$taken, $after]), $locks, $this->package())->of(DataSubject::fromString('m1')));
+        self::assertSame(0, $after->calls);
     }
 
     private function download(LockFactory $locks): PersonalDataDownload

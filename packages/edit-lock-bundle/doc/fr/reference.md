@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=76c5b909025693cab36d9a92515b75808cde71077846e24d8061884a382e22c2 -->
+<!-- phil-dev source-sha256=e94fc2e3ed1f1f44db28fb089c5414a686fffa69a25a5d260cb9b0ddf4ebda61 -->
 # Référence
 
 ## PHP
@@ -8,18 +8,20 @@
 | `PhilEditLockBundle` | Le bundle : sa configuration, les tables associées pour Doctrine, son jeton CSRF parmi les jetons sans état, les ressources associées pour AssetMapper, Mercure activé avec MercureBundle |
 | `Domain\ValueObject\LeaseKey` | Une ressource, et au besoin l'un de ses blocs ; `overlaps()`, `covers()`, `equals()` |
 | `Domain\ValueObject\Holder` | Qui détient un bail : un identifiant et un nom |
+| `Domain\ValueObject\Fence` | La clôture d'une écriture : sa clé, son détenteur et le numéro de sa revendication ; `isNewerThan()` |
 | `Domain\Model\Lease` | Le droit d'un détenteur d'écrire une clé jusqu'à un moment ; `grant()`, `restore()`, `renewed()`, `passedTo()`, la table `phil_edit_lease` |
 | `Domain\Model\LeasedResource` | Une ressource ayant fait l'objet d'un bail, la ligne de `phil_edit_lease_resource` que verrouille chaque revendication sur elle |
-| `Domain\Repository\LeaseRepository` | L'endroit où les baux sont conservés, par comparaison et échange, les revendications sur une ressource exécutées une à la fois par `exclusively()` |
+| `Domain\Repository\LeaseRepository` | L'endroit où les baux sont conservés, par comparaison et échange, les revendications sur une ressource exécutées une à la fois par `exclusively()` et numérotées par `fence()` |
 | `Domain\Exception\EditLockException`, `InvalidLease` | Les exceptions du bundle, et un bail impossible à créer |
-| `Application\EditLocks` | Prendre, pulser, libérer, quitter, reprendre, détenir, présence, purge |
+| `Application\EditLocks` | Prendre, pulser, libérer, quitter, reprendre, détenir, une écriture pendant la détention, présence, purge |
 | `Application\EditPolicy`, `DefaultEditPolicy` | Qui peut modifier et reprendre ; la valeur par défaut pour le propre code de l'application |
-| `Application\BlockSaves` | Des blocs vérifiés, écrits par leur détenteur, conservés et communiqués |
-| `Application\BlockStore` | L'endroit où l'application conserve les blocs enregistrés |
+| `Application\BlockSaves` | Des blocs vérifiés, écrits par leur détenteur dans la revendication qui vérifie le bail, conservés et communiqués |
+| `Application\BlockStore` | L'endroit où l'application conserve les blocs enregistrés, chaque écriture avec sa clôture |
 | `Application\Broadcaster`, `NullBroadcaster` | Prévenir les autres rédacteurs ; ne prévenir personne |
 | `Application\HolderProvider` | Au nom de qui la requête courante écrit |
 | `Application\Exception\LeaseHeld`, `LeaseLost`, `EditRefused`, `InvalidBlock` | Ce qui tourne mal avec les baux et les blocs |
 | `Infrastructure\Doctrine\DoctrineLeaseRepository` | Les baux dans `phil_edit_lease`, par des requêtes simples, chaque revendication dans une transaction qui verrouille la ligne de la ressource |
+| `Infrastructure\Doctrine\BinaryKeysListener` | Les clés des tables de baux en `utf8mb4_bin` sur MySQL et MariaDB |
 | `Infrastructure\Memory\InMemoryLeaseRepository` | Les baux en mémoire, pour les tests |
 | `Infrastructure\Mercure\MercureBroadcaster` | La présence et les blocs publiés vers un hub Mercure |
 | `Infrastructure\Mercure\TurboStreams` | Les Turbo Streams de la présence, des blocs enregistrés et retirés |

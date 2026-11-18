@@ -2,14 +2,18 @@
 
 ## The bundle's tests
 
-`tests/Unit` covers the keys, holders and leases and their mapping, `EditLocks` — acquiring, renewing, waiting,
-expiry, the whole and its parts, heartbeats, takeover, the policy, leaving, purging, races and claims the store gave
-up tried again then given up —, `BlockSaves`, the same contract on both repositories (the Doctrine one on SQLite in
-memory, its tables created from the mapping), the Doctrine claims in their transaction, undone when they fail, two
-concurrent claims on a SQLite file opened twice — the whole and a part claimed while the other is in the middle of
-its claim, which waits, gives up, then finds the first lease —, the Turbo Streams and the broadcaster on a recording
-hub and an unreachable one, every answer of the endpoints and the CSRF tokens they accept and refuse, `ClientConfig`,
-and the bundle's configuration, services and prepended settings.
+`tests/Unit` covers the keys, holders and leases and their mapping, `EditLocks` — acquiring, renewing, waiting, expiry,
+the whole and its parts, heartbeats, takeover, the policy, leaving, purging, races and claims the store gave up tried
+again then given up —, `BlockSaves` — the lease checked and the block written within one claim, a lease taken over
+before the claim and a claim given up writing nothing, a newer fence for each write —, `Fence`, the keys mapped in
+`utf8mb4_bin` on MySQL and MariaDB only, the same contract on both repositories, their fences included (the Doctrine one
+on SQLite in memory, its tables created from the mapping), the Doctrine claims in their transaction, undone when they
+fail, two concurrent claims on a SQLite file opened twice — the whole and a part claimed while the other is in the
+middle of its claim, which waits, gives up, then finds the first lease; a takeover asked while a save writes its block
+on the same connection, which waits for the block, then takes the lease, after which the next save is refused; keys that
+differ by their case leased apart —, the Turbo Streams and the broadcaster on a recording hub and an unreachable one,
+every answer of the endpoints and the CSRF tokens they accept and refuse, `ClientConfig`, and the bundle's
+configuration, services and prepended settings.
 
 `tests/Integration` plays the same concurrent claims on MySQL and PostgreSQL, each skipped unless
 `PHIL_TEST_MYSQL_URL` or `PHIL_TEST_POSTGRESQL_URL` points at a server; `php vendor/bin/phil-dev services up` starts

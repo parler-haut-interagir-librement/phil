@@ -33,6 +33,10 @@ replayed after a backup restore. The application's user class says which identif
 
 - **One execution per person.** Every stage runs under a lock of `symfony/lock`, named after a hash of the identifier,
   and the request is read again once the lock is held. A cancellation that wins the race is seen.
+- **A stage stops when its lock is lost.** The lock lives 900 seconds and is renewed before each module of the export
+  and of the erasure, before the archive is written and before each place is saved. A stage whose lock expired and was
+  taken by another worker stops there and leaves the request at its last saved place
+  ([Locks and long work](export-and-erasure.md#locks-and-long-work)).
 - **A failure is resumed, not restarted.** The place is saved after each stage. An export is written once. An erasure
   that fails with `ErasureIncomplete` leaves the request at `exported`, to be run again; erasers are idempotent.
 - **Messages carry identifiers.** `AdvanceAccountDeletion` carries the identifier of the request,
@@ -70,6 +74,11 @@ the application secret, for `account_deletion.export_retention`. Each sweep remo
 proofs, of the requests without an account and of the incidents, to the schema the ORM generates, so
 `doctrine:migrations:diff` writes the migration. An application without Doctrine creates them from
 `PrivacyTables::configure()`, or names its own `account_deletion.store`.
+
+Identifiers, people, export references and token hashes compare byte for byte. On MySQL and MariaDB, whose default
+collations fold case and accents, those columns take `utf8mb4_bin`: `PrivacySchemaListener` gives
+`PrivacyTables::configure()` the platform of its connection, and an application that calls it itself passes the
+platform as its second argument. Without it, the people `Alice` and `alice` would share a deletion request.
 
 A closed request is kept until a retention rule on the store `phil_privacy_account_deletion` removes it: its identifier
 is what an erasure is replayed from after a restore.

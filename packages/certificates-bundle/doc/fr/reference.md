@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=39a3b807e37883c4f049ed2dceb7c242b0a174ff15af10b2a0a5c69e9f861817 -->
+<!-- phil-dev source-sha256=3a005f3f068d089464aad0880c29abc91407952986d07c2ff598913479d49049 -->
 # Référence
 
 ## Domain
@@ -47,6 +47,7 @@
 | Classe | Rôle |
 |---|---|
 | `Infrastructure\Doctrine\DoctrineCourseRepository`, `DoctrineCertificateRepository`, `DoctrineLearningActivityRepository` | Les dépôts par Doctrine. |
+| `Infrastructure\Doctrine\BinaryKeysListener` | Les clés du registre en `utf8mb4_bin` sur MySQL et MariaDB. |
 | `Infrastructure\Routing\RoutedCertificateUrls` | Les URL tirées des routes du registre. |
 | `Infrastructure\Http\RegisterController` | Les pages et les téléchargements du registre. |
 | `Infrastructure\Console\CourseCommand` | `phil:certificates:course`. |
