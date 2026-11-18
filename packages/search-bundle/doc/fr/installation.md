@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=10e9281abddff8b9e8333da1963b60246a8b738c7005bed02a402aa5bcaf18fe -->
+<!-- phil-dev source-sha256=bca838145104647bacd52a95afe0ed90def8a70b2202d91737995452030ed0a3 -->
 # Installation
 
 | Prérequis | Version | Raison |
@@ -58,6 +58,29 @@ sous forme d'alias, remplace celui qui est configuré.
 | `dbal` | `phil_search_document` : `index_name`, `document_id`, `content` (les mots, en minuscules), `filters` (JSON) ; ajoutée au schéma de l'ORM | Un site de quelques milliers de documents : une recherche avec des mots ou des filtres lit chaque ligne candidate |
 | `meilisearch` | Meilisearch, par son API HTTP avec le client HTTP de Symfony, sans SDK : documents, attributs filtrables ajoutés à ceux que l'index possède, recherche, facettes, synonymes | Tout ce qui est plus grand, la tolérance aux fautes de frappe |
 | `loupe` | Loupe, des fichiers SQLite sous `loupe.directory`, par `phil/search-loupe` | La tolérance aux fautes de frappe et la pertinence sans serveur à faire tourner |
+
+### Collation des clés
+
+**Les clés se comparent octet par octet**, comme PHP les compare. Un document est remplacé par son index et son
+identifiant : les documents `Post-A` et `post-a` sont deux lignes, et indexer l'un ne remplace jamais l'autre. Les mots
+gardent la collation de la connexion, sous laquelle la recherche les lit.
+
+| Table | Colonnes en `utf8mb4_bin` sur MySQL et MariaDB |
+|---|---|
+| `phil_search_document` | `index_name`, `document_id` |
+
+Sur MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la
+plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ignore la casse et les accents.
+Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et SQLite compare
+les octets : leurs colonnes gardent la valeur par défaut.
+
+#### Mise à niveau depuis 0.1
+
+Les tables d'une installation 0.1 sur MySQL ou MariaDB gardaient la collation de la connexion.
+`doctrine:migrations:diff` écrit la migration qui amène les colonnes ci-dessus à `utf8mb4_bin` ; exécutez-la avec
+`doctrine:migrations:migrate`. Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne
+brise une clé. Les lignes qu'une collation insensible à la casse avait déjà fusionnées restent fusionnées ; les valeurs
+écrites à partir de la migration sont gardées distinctes. Sur PostgreSQL et SQLite, le diff est vide.
 
 ## Les filtres
 

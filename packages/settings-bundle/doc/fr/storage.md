@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e5a05acdec856daa0626ec0cbab58337a2ce89f8b90596598d7af412117abdc3 -->
+<!-- phil-dev source-sha256=ec3a22e7170c13b7ec115060087b35cca36aeb85e452c1d3da5776dfa03eba50 -->
 # Stockage
 
 ## La table
@@ -31,6 +31,30 @@ sujet à l'autre, sans index propre : elle s'exécute à un déploiement, non su
 
 `Infrastructure\Doctrine\SettingTables::configure()` ajoute les tables qui manquent à un schéma DBAL, et le bundle les
 ajoute au schéma que l'ORM produit pour la connexion configurée.
+
+## Collation des clés
+
+**Les clés se comparent octet par octet**, comme PHP les compare. Le sujet est l'identifiant de l'utilisateur, et un
+réglage se lit par sa portée, son sujet et sa clé : les valeurs de l'utilisateur `Ann` ne sont jamais lues pour `ann` ni
+`ánn`.
+
+| Table | Colonnes en `utf8mb4_bin` sur MySQL et MariaDB |
+|---|---|
+| `phil_settings` | `scope`, `subject`, `setting_key` |
+| `phil_settings_migrations` | `version` |
+
+Sur MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la
+plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ignore la casse et les accents.
+Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et SQLite compare
+les octets : leurs colonnes gardent la valeur par défaut.
+
+### Mise à niveau depuis 0.1
+
+Les tables d'une installation 0.1 sur MySQL ou MariaDB gardaient la collation de la connexion.
+`doctrine:migrations:diff` écrit la migration qui amène les colonnes ci-dessus à `utf8mb4_bin` ; exécutez-la avec
+`doctrine:migrations:migrate`. Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne
+brise une clé. Les lignes qu'une collation insensible à la casse avait déjà fusionnées restent fusionnées ; les valeurs
+écrites à partir de la migration sont gardées distinctes. Sur PostgreSQL et SQLite, le diff est vide.
 
 ## Une lecture par requête
 

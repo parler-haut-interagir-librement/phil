@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b18aa7a2157b05c8a28133f09f03123c6e748d92ca9138f3f4f820f41498c342 -->
+<!-- phil-dev source-sha256=933a08b12316f9b1742b8ea8f82397f567903c194967fe672c69ef819b94d8c1 -->
 # Les remboursements en deux temps
 
 Un remboursement est accordé, puis exécuté, chacun par une personne que l'application autorise : deux droits, pour que

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d4df36bd086451953964cfd6ae79771d7a086e183af3745d0475c3f4c2ab57ed -->
+<!-- phil-dev source-sha256=72c7c7d8acb9831d10e65e52b28d07416e7bb42b26048d1c87f608110b299a8f -->
 # Référence
 
 Chaque type public du bundle, par couche, et les parties de la conception qui ne sont pas encore commencées. Les
@@ -135,6 +135,7 @@ lignes, les ventilations et leur calculateur sont les types de `phil/tax` ([taxe
 | `Doctrine\DoctrineDocumentNumbering` | `final readonly class`, `DocumentNumbering` | Une rangée par série, verrouillée jusqu'à la fin de la transaction | Implémenté et testé |
 | `Doctrine\Entity\DocumentSequence` | `final class`, entité Doctrine | Le dernier numéro d'une série | Implémenté et testé |
 | `Doctrine\DoctrineWishListRepository`, `DoctrinePaymentLinkRepository`, `DoctrineOrderChangeRepository`, `DoctrineOrderJournal`, `DoctrineRefundRepository` | `final readonly class` | Les nouveaux enregistrements par le gestionnaire d'entités | Implémenté et testé |
+| `Doctrine\BinaryKeysListener` | `final readonly class` | Les références des paiements et les propriétaires des listes de souhaits en `utf8mb4_bin` sur MySQL et MariaDB, à l'événement `loadClassMetadata` de l'ORM | Implémenté et testé |
 | `Workflow\OrderWorkflowPass` | passe de compilation | Ajoute le workflow des commandes à `workflow.registry` | Implémenté et testé |
 | `Http\PaymentWebhookController` | `final readonly class`, contrôleur | Les notifications des processeurs, répondues par 204, 400 ou 404 | Implémenté et testé |
 

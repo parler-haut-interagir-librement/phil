@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=758c8b102fba1f6870c6a642a959c36986cef991f8eaa935a49bd685495eeff9 -->
+<!-- phil-dev source-sha256=1981b346443fa14a0b0425a2feb4e5cd38ec43f58a19f1ac13976616fc49ab6f -->
 # Historique des anciens slugs
 
 Quand un titre change, son slug change souvent avec lui, et chaque lien vers l'ancienne adresse se brise. L'historique
@@ -28,6 +28,30 @@ partir de `SlugHistoryTable::configure()`.
 
 L'historique est le service `phil_slug.history`, autoconnecté comme
 `Phil\SlugBundle\Application\Contract\SlugHistory`.
+
+### Collation des clés
+
+**Les clés se comparent octet par octet**, comme PHP les compare. Une portée peut mêler les casses et un sujet est un
+identifiant quelconque : un changement du sujet `Post-7` ne réécrit jamais l'historique de `post-7`, et un ancien slug
+de la portée `Blog` ne mène jamais à un sujet de `blog`. Les slugs sont en minuscules par leur règle ; l'ancien slug
+prend la collation binaire avec la portée sous laquelle il est classé.
+
+| Table | Colonnes en `utf8mb4_bin` sur MySQL et MariaDB |
+|---|---|
+| `phil_slug_history` | `scope`, `former_slug`, `subject` |
+
+Sur MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la
+plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ignore la casse et les accents.
+Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et SQLite compare
+les octets : leurs colonnes gardent la valeur par défaut.
+
+#### Mise à niveau depuis 0.1
+
+Les tables d'une installation 0.1 sur MySQL ou MariaDB gardaient la collation de la connexion.
+`doctrine:migrations:diff` écrit la migration qui amène les colonnes ci-dessus à `utf8mb4_bin` ; exécutez-la avec
+`doctrine:migrations:migrate`. Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne
+brise une clé. Les lignes qu'une collation insensible à la casse avait déjà fusionnées restent fusionnées ; les valeurs
+écrites à partir de la migration sont gardées distinctes. Sur PostgreSQL et SQLite, le diff est vide.
 
 ## Portées et sujets
 

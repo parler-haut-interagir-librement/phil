@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=16bdbfad651830a183f75153d59252bf4c53a7ac1f9dcc1ef8760db365f9bb6c -->
+<!-- phil-dev source-sha256=4a40d3282dc958dfa80343584e2bfda4e09c81d05a2b68a9a26d48d1cf046539 -->
 # Référence
 
 | Classe | Nature | Rôle |
@@ -31,6 +31,7 @@
 | `Phil\PollBundle\Domain\Exception\PollBundleException` | interface | Toutes les exceptions du bundle |
 | `Phil\PollBundle\Domain\Exception\InvalidPollDefinition`, `AlreadyVoted` | `final class` | Un sondage qui ne peut pas être conservé ; un deuxième bulletin |
 | `Phil\PollBundle\Infrastructure\Doctrine\DoctrinePollRepository`, `DoctrineVoteRepository` | `final readonly class` | Les stockages Doctrine |
+| `Phil\PollBundle\Infrastructure\Doctrine\BinaryKeysListener` | `final readonly class` | Les identifiants en `utf8mb4_bin` sur MySQL et MariaDB, à l'événement `loadClassMetadata` de l'ORM |
 | `Phil\PollBundle\Infrastructure\Memory\InMemoryPollRepository`, `InMemoryVoteRepository` | `final class` | Les stockages en mémoire, vidés entre deux requêtes |
 | `Phil\PollBundle\Infrastructure\Twig\PollTwig` | `final readonly class` | Les fonctions `phil_poll_ballot()`, `phil_poll_results()` et `phil_poll_kit()` |
 | `Phil\PollBundle\Infrastructure\DependencyInjection\PollServices` | `final class` | Les services, et l'étiquette `phil_poll.counting_method` |

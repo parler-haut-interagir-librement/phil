@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1f1c9fc16da68630e25dd82220024c15ab07275be670c0df17b10eb44ce15777 -->
+<!-- phil-dev source-sha256=1f08748d387108b5541ed84bc7cb93fac6409211c43b9f11f8fe1f98e1028e23 -->
 # Installation
 
 ## Prérequis
@@ -59,6 +59,30 @@ bin/console doctrine:migrations:migrate
 | `steps` | JSON | Les étapes accomplies ou passées, chacune avec son état et son heure. |
 | `started_at`, `updated_at` | datetime | Quand le parcours a été commencé, ou recommencé, et modifié pour la dernière fois. |
 | `finished_at`, `dismissed_at` | datetime, nullable | Quand toutes les étapes ont été faites pour la première fois ; quand l'utilisateur a rangé le parcours. |
+
+### Collation des clés
+
+**Les clés se comparent octet par octet**, comme PHP les compare. La progression d'un utilisateur dans un parcours se
+lit par l'identifiant de l'utilisateur : celle de `Ann` n'est jamais lue, reprise ni écartée pour `ann` ni `ánn`.
+`BinaryKeysListener` donne à ces champs la collation binaire quand l'ORM charge leurs métadonnées sur MySQL ou MariaDB ;
+le mappage lui-même reste le même sur toutes les plateformes.
+
+| Table | Colonnes en `utf8mb4_bin` sur MySQL et MariaDB |
+|---|---|
+| `phil_onboarding_progress` | `user_identifier`, `flow` |
+
+Sur MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la
+plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ignore la casse et les accents.
+Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et SQLite compare
+les octets : leurs colonnes gardent la valeur par défaut.
+
+#### Mise à niveau depuis 0.1
+
+Les tables d'une installation 0.1 sur MySQL ou MariaDB gardaient la collation de la connexion.
+`doctrine:migrations:diff` écrit la migration qui amène les colonnes ci-dessus à `utf8mb4_bin` ; exécutez-la avec
+`doctrine:migrations:migrate`. Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne
+brise une clé. Les lignes qu'une collation insensible à la casse avait déjà fusionnées restent fusionnées ; les valeurs
+écrites à partir de la migration sont gardées distinctes. Sur PostgreSQL et SQLite, le diff est vide.
 
 ## Les routes
 

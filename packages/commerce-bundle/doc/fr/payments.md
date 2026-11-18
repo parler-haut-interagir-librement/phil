@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f22dd20a4dde637996070fa433f870695b4a6239059dd5f2f4bedd5f83f32d79 -->
+<!-- phil-dev source-sha256=e7649ea5699fd226e992dec4df3ec2aeb0a75b98cad45ffa2caa97f169734f06 -->
 # Paiements
 
 Une commande passée est payée par un ou plusieurs paiements, chacun par un mode dont la passerelle parle à un
@@ -194,6 +194,33 @@ Avec DoctrineBundle, un paiement est une rangée de `phil_commerce_payment`, ave
 | `offline` | `BOOLEAN`, `false` par défaut | Si le paiement se fait hors ligne |
 | `created_at` | `DATETIME` | Quand le paiement a été créé |
 | `version` | `INTEGER` | Avancée par chaque écriture ; deux notifications appliquées en même temps ne peuvent pas l'emporter toutes les deux |
+
+### Collation des clés
+
+**Les clés se comparent octet par octet**, comme PHP les compare. Une notification d'un fournisseur retrouve son
+paiement par la méthode et la référence du fournisseur, qui mêle les casses : une notification à propos de `pi_3AbC` ne
+s'applique jamais au paiement `pi_3abc`. Les listes de souhaits d'un propriétaire sont listées par l'identifiant du
+propriétaire : celles de `Ann` ne sont jamais listées pour `ann`. `BinaryKeysListener` donne à ces champs la collation
+binaire quand l'ORM charge leurs métadonnées sur MySQL ou MariaDB ; le mappage lui-même reste le même sur toutes les
+plateformes.
+
+| Table | Colonnes en `utf8mb4_bin` sur MySQL et MariaDB |
+|---|---|
+| `phil_commerce_payment` | `method`, `external_reference` |
+| `phil_commerce_wish_list` | `id`, `owner` |
+
+Sur MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la
+plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ignore la casse et les accents.
+Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et SQLite compare
+les octets : leurs colonnes gardent la valeur par défaut.
+
+#### Mise à niveau depuis 0.2
+
+Les tables d'une installation 0.2 sur MySQL ou MariaDB gardaient la collation de la connexion.
+`doctrine:migrations:diff` écrit la migration qui amène les colonnes ci-dessus à `utf8mb4_bin` ; exécutez-la avec
+`doctrine:migrations:migrate`. Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne
+brise une clé. Les lignes qu'une collation insensible à la casse avait déjà fusionnées restent fusionnées ; les valeurs
+écrites à partir de la migration sont gardées distinctes. Sur PostgreSQL et SQLite, le diff est vide.
 
 ## Le limiteur des tentatives de paiement
 

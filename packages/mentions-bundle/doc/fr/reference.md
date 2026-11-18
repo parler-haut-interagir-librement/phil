@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4dbdbc750e98fd9b6168dec97b2d26498a1444f89a5634103bb6fb4bbb8e5425 -->
+<!-- phil-dev source-sha256=79dcd4802454fed5db5f816a0dd103db92f3f59ff29a67a4d68d8d88a602e6ec -->
 # Référence
 
 ## Domaine
@@ -36,6 +36,7 @@
 | Classe | Rôle |
 |---|---|
 | `Infrastructure\Doctrine\DoctrineMentionRepository` | La table, par le gestionnaire d'entités, chaque changement dans une transaction |
+| `Infrastructure\Doctrine\BinaryKeysListener` | Les identifiants en `utf8mb4_bin` sur MySQL et MariaDB, à l'événement `loadClassMetadata` de l'ORM |
 | `Infrastructure\Doctrine\MentionInsert` | L'upsert d'une ligne pour chaque plateforme |
 | `Infrastructure\Memory\InMemoryMentionRepository` | Les mentions en mémoire, vidées entre deux requêtes (`kernel.reset`) |
 | `Infrastructure\Notifications\NotifyMentionedMember` | La notification d'une nouvelle mention |

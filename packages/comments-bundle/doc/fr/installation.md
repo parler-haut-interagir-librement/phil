@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=94f5e004e30fb2a32395f7f8eac497bcafc0b1d7184df21855db07a43ea3f7de -->
+<!-- phil-dev source-sha256=607b51854efea4ade79a252aae3f26c1550ac0b66bbe1b8b0fcdd3b7c22681bb -->
 # Installation
 
 ## Prérequis
@@ -52,6 +52,30 @@ bin/console doctrine:migrations:migrate
 | | `thread` | `VARCHAR(36)`, indexé | L'identifiant du fil |
 | | `author`, `body` | `VARCHAR(320)`, `TEXT` | Qui l'a écrit, et son texte simple |
 | | `created_at`, `edited_at` | `DATETIME` UTC | Quand il a été écrit et modifié la dernière fois |
+
+### Collation des clés
+
+**Les clés se comparent octet par octet**, comme PHP les compare. Les fils d'un sujet se lisent par sa référence : ceux
+de `post:Abc` ne sont jamais montrés sous `post:abc`. `BinaryKeysListener` donne à ces champs la collation binaire quand
+l'ORM charge leurs métadonnées sur MySQL ou MariaDB ; le mappage lui-même reste le même sur toutes les plateformes.
+
+| Table | Colonnes en `utf8mb4_bin` sur MySQL et MariaDB |
+|---|---|
+| `phil_comment_thread` | `id`, `subject`, `author`, `resolved_by` |
+| `phil_comment` | `id`, `thread`, `author` |
+
+Sur MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la
+plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ignore la casse et les accents.
+Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et SQLite compare
+les octets : leurs colonnes gardent la valeur par défaut.
+
+#### Mise à niveau depuis 0.2
+
+Les tables d'une installation 0.2 sur MySQL ou MariaDB gardaient la collation de la connexion.
+`doctrine:migrations:diff` écrit la migration qui amène les colonnes ci-dessus à `utf8mb4_bin` ; exécutez-la avec
+`doctrine:migrations:migrate`. Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne
+brise une clé. Les lignes qu'une collation insensible à la casse avait déjà fusionnées restent fusionnées ; les valeurs
+écrites à partir de la migration sont gardées distinctes. Sur PostgreSQL et SQLite, le diff est vide.
 
 ## Les services de l'application
 

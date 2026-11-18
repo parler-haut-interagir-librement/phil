@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0398625018bd4c9efbbae4db501a43024da6f91853668d3695767f99cf252916 -->
+<!-- phil-dev source-sha256=e4ed35fde8554e8353b990ab038213e8a14f7640204799631f6075a949e78c86 -->
 # Installation
 
 ## Prérequis
@@ -39,6 +39,32 @@ destinataires quand `preferences: dbal`, `phil_notification_push_subscriptions` 
 activé. Sans l'ORM, l'application les crée à partir de `NotificationTables::configure()`. Ses instants — création,
 modification, lecture, résumé, abonnement — sont des colonnes `datetime_utc_immutable` : écrites et lues en UTC,
 quel que soit le fuseau horaire du processus PHP ou du serveur de base de données.
+
+### Collation des clés
+
+**Les clés se comparent octet par octet**, comme PHP les compare. Le destinataire décide de quelles notifications,
+préférences et inscriptions une requête lit : celles de `member:Ann` ne sont jamais lues pour `member:ann` ni
+`member:ánn`, et un groupe ne rassemble jamais les notifications de deux sujets dont les identifiants ne diffèrent que
+par la casse.
+
+| Table | Colonnes en `utf8mb4_bin` sur MySQL et MariaDB |
+|---|---|
+| `phil_notifications` | `id`, `recipient`, `type`, `actor`, `subject_type`, `subject_id`, `group_key` |
+| `phil_notification_preferences` | `recipient` |
+| `phil_notification_push_subscriptions` | `id`, `recipient` |
+
+Sur MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la
+plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ignore la casse et les accents.
+Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et SQLite compare
+les octets : leurs colonnes gardent la valeur par défaut.
+
+#### Mise à niveau depuis 0.1
+
+Les tables d'une installation 0.1 sur MySQL ou MariaDB gardaient la collation de la connexion.
+`doctrine:migrations:diff` écrit la migration qui amène les colonnes ci-dessus à `utf8mb4_bin` ; exécutez-la avec
+`doctrine:migrations:migrate`. Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne
+brise une clé. Les lignes qu'une collation insensible à la casse avait déjà fusionnées restent fusionnées ; les valeurs
+écrites à partir de la migration sont gardées distinctes. Sur PostgreSQL et SQLite, le diff est vide.
 
 ## Les routes
 
