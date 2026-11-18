@@ -1,6 +1,6 @@
 {
     "name": "phil/ux-kit-shadcn",
-    "description": "Tailwind versions, in the style of the Shadcn kit of the Symfony UX Toolkit, of the extra PHIL UX recipes, under the same names and props, installed with ux:install --kit",
+    "description": "The extra PHIL UX recipes in Tailwind, in the style of the Shadcn kit of the Symfony UX Toolkit, with the same names and props, for ux:install --kit.",
     "license": "MIT",
     "type": "library",
     "keywords": [

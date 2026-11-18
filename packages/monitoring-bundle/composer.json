@@ -1,6 +1,6 @@
 {
     "name": "phil/monitoring-bundle",
-    "description": "The surveillance of a Symfony site: health checks for the database, cache pools, Messenger transports and storage, endpoints for uptime monitors, a maintenance mode, heartbeats and a dead-man switch for scheduled tasks, and a page of the Messenger queues",
+    "description": "Watch a Symfony site: health checks, endpoints for uptime monitors, a maintenance mode, heartbeats for scheduled tasks, and a page of Messenger queues.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

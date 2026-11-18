@@ -1,6 +1,6 @@
 {
     "name": "phil/settings-bundle",
-    "description": "Settings people change themselves, for Symfony: declared by packages and the application, read typed with their default, stored per person and key, a preferences centre and site settings in Twig forms with migrations and a preview before saving, and display preferences applied as data attributes on the page",
+    "description": "Settings people change themselves in Symfony: typed preferences per person, site settings for admins, generated forms, and display preferences.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

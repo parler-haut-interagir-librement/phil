@@ -1,6 +1,6 @@
 {
     "name": "phil/structured-data-bundle",
-    "description": "phil/structured-data in Symfony: the schema.org graph of each request, fed by configuration, providers, an event, templates and other packages, the breadcrumb of a phil/menu-bundle menu, printed as one JSON-LD script element, never for a record withdrawn from search engines, and a command that checks the structured data of a page",
+    "description": "phil/structured-data in Symfony: one schema.org graph per page, fed by the configuration, packages and templates, printed as JSON-LD, with a checking command.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

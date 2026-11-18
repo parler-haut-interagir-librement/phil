@@ -1,6 +1,6 @@
 {
     "name": "phil/accessibility-check",
-    "description": "Accessibility of content checked before it is published: HTML and UJO documents, rules registered by class with their WCAG 2.2 success criterion, severity and translated message — text alternatives, headings, link names, contrast, table headers, languages and more —, a JSON report, a validator constraint, a workflow guard and a console command",
+    "description": "Catch what keeps readers out before content is published: missing text alternatives, broken headings, empty links, faint text, checked against WCAG 2.2.",
     "license": "MIT",
     "type": "library",
     "keywords": [

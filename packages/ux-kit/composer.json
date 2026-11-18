@@ -1,6 +1,6 @@
 {
     "name": "phil/ux-kit",
-    "description": "PHIL UX kit for the Symfony UX Toolkit: the same recipes as the Shadcn kit, styled with phil-ux, installed with ux:install --kit; with the Twig functions its image recipes call, image_origin(), image_sources(), image_filters(), picture_props() and image_json_ld()",
+    "description": "PHIL UX kit for the Symfony UX Toolkit: the same recipes as the Shadcn kit, styled with phil-ux, plus responsive image recipes, installed with ux:install --kit.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

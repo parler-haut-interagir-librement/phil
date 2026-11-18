@@ -1,6 +1,6 @@
 {
     "name": "phil/geo",
-    "description": "Geographic value types for PHP: coordinates in decimal degrees, great-circle distances, bounding boxes, and coordinates blurred to publish a place without its exact position",
+    "description": "Geographic values for PHP: coordinates, great-circle distances, bounding boxes, and blurred coordinates to show a place without its exact position.",
     "license": "MIT",
     "type": "library",
     "keywords": [

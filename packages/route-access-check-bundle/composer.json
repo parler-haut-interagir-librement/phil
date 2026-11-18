@@ -1,6 +1,6 @@
 {
     "name": "phil/route-access-check-bundle",
-    "description": "phil/route-access-check in Symfony: the console command phil:route-access:check over the router and the firewalls and access_control entries SecurityBundle builds, registered in the dev and test environments only, with detectors and formats of the application's own autoconfigured",
+    "description": "phil/route-access-check in Symfony: a console command that fails the CI step when a route of the application has no access rule.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

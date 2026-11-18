@@ -1,6 +1,6 @@
 {
     "name": "phil/scheduled-transitions-bundle",
-    "description": "Transitions planned for a moment in a Symfony application — publish on, unpublish on —, applied by their handlers or by symfony/workflow, from Symfony Scheduler or a command, with retries",
+    "description": "Publish a page on Monday at nine and unpublish it a month later, with no one online: transitions planned for a moment in Symfony, applied on time, with retries.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

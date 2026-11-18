@@ -1,6 +1,6 @@
 {
     "name": "phil/analytics-bundle",
-    "description": "Privacy-first analytics for Symfony: aggregate counters per UTC day and declared dimension, no visitor identifier, small-number suppression, Do Not Track and Global Privacy Control respected, goals, events, outbound links, shared views, reports and alerts; a collection endpoint, counters in Doctrine DBAL, a daily salt, a rate limit and retention",
+    "description": "Privacy-first analytics for Symfony: visits counted in daily aggregates, never tied to a person, with goals, events, reports and alerts.",
     "license": "MIT",
     "type": "symfony-bundle",
     "authors": [

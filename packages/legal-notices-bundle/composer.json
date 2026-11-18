@@ -1,6 +1,6 @@
 {
     "name": "phil/legal-notices-bundle",
-    "description": "phil/legal-notices in Symfony: the legal notice and privacy policy at /legal and /privacy in each locale, every version at its own address, written in configuration or read from a source, rendered by phil/markup, with retention periods, consent categories, footer links, a check of what a document lacks and an event per version",
+    "description": "phil/legal-notices in Symfony: the legal notice and privacy policy at /legal and /privacy in each locale, every version at its own address, with footer links.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

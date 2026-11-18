@@ -1,6 +1,6 @@
 {
     "name": "phil/trash-bundle",
-    "description": "A trash for a Symfony application's resources: typed restoration by handler, a parent that is gone, retention and purge, and events for an audit trail",
+    "description": "A trash for a Symfony application: deleted pages and other resources restored on request, or purged for good once their retention is over.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

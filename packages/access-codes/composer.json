@@ -1,6 +1,6 @@
 {
     "name": "phil/access-codes",
-    "description": "Single-use codes in named batches: an alphabet without lookalike symbols, a check symbol, chosen length and entropy; codes given once at creation, as CSV with prefilled redemption links, stored as keyed hashes under an ordered list of keys; atomic redemption, expiry, batch revocation, counters, rate-limited attempts, memory and DBAL stores",
+    "description": "Single-use codes in named batches, for download cards, vouchers or keys: shown once at creation, stored only as keyed hashes, and redeemed exactly once.",
     "license": "MIT",
     "type": "library",
     "keywords": [

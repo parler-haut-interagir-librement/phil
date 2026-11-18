@@ -1,6 +1,6 @@
 {
     "name": "phil/audio",
-    "description": "Audio for PHP: transcoding behind a port with an ffmpeg adapter, metadata, waveform peaks computed on the server, excerpts, the creator's listening policy, and chapters and transcripts in the model of phil/timed-text.",
+    "description": "Audio for PHP: transcoding, metadata, waveforms computed once on the server, excerpts, the creator's listening policy, and chapters and transcripts.",
     "license": "MIT",
     "type": "library",
     "keywords": [

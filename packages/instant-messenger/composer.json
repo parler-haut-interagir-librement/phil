@@ -1,6 +1,6 @@
 {
     "name": "phil/instant-messenger",
-    "description": "Instant messaging handles for PHP: messaging services as enums whose cases read, display and link their handles, the international services included, and the service of a handle detected among enum sets",
+    "description": "Read, show and link messaging handles per service, WhatsApp, Telegram, Signal, Matrix and more, and detect which service a handle belongs to.",
     "license": "MIT",
     "type": "library",
     "keywords": [

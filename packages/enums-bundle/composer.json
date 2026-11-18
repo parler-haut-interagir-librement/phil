@@ -1,6 +1,6 @@
 {
     "name": "phil/enums-bundle",
-    "description": "Symfony integration of phil/enums: cases translated by their Label and Description, form choices narrowed to a group, a list or a meta value, an EnumSet form type, a validator constraint, Twig functions and filters, a translation extractor, debug and TypeScript commands, JSON Schema, a serializer normalizer and Doctrine types for enum sets",
+    "description": "phil/enums in Symfony: your PHP enums in forms, translations, Twig, validation, Doctrine, serialization and TypeScript.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

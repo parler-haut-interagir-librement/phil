@@ -1,6 +1,6 @@
 {
     "name": "phil/address",
-    "description": "Postal addresses for PHP: the address format of each country, its subdivisions to three levels, addresses checked and written as each country writes them, on commerceguys/addressing's data imported as PHP data and symfony/intl's country names",
+    "description": "Postal addresses for PHP, checked and written the way each country writes them, with each country's format and its subdivisions.",
     "license": "MIT",
     "type": "library",
     "keywords": [

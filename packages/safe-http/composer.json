@@ -1,6 +1,6 @@
 {
     "name": "phil/safe-http",
-    "description": "Reading other sites safely: an HTTP client on Symfony HttpClient that refuses private networks, follows redirects it checks itself, and bounds the time, the size and the redirects of what it reads.",
+    "description": "Fetch addresses given by users or other sites safely: an HTTP client that refuses private networks, checks each redirect, and bounds time and size.",
     "license": "MIT",
     "type": "library",
     "keywords": [

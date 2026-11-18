@@ -1,6 +1,6 @@
 {
     "name": "phil/pwa-bundle",
-    "description": "An installable, offline-readable Symfony site without Workbox: a web application manifest from the configuration, a service worker served through AssetMapper with network-first and cache-first strategies, an offline page, a versioned precache list, and Stimulus controllers to install, update and present",
+    "description": "Make a Symfony site installable and readable offline: a manifest from the configuration, a small service worker and an offline page, with no Workbox.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/translation-memory",
-    "description": "Translation by segments: UJO documents cut by block or sentence, segments with source fingerprints and states, regional variants that inherit from their parent language, a memory with exact and fuzzy matches, a glossary with inflected forms, quality checks of punctuation, tags, plurals and rendered size, and XLIFF, TMX and TBX exchange",
+    "description": "Translate documents segment by segment, reuse past translations, and keep terms consistent: a translation memory and glossary with XLIFF, TMX and TBX exchange.",
     "license": "MIT",
     "type": "library",
     "keywords": [

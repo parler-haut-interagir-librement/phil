@@ -1,6 +1,6 @@
 {
     "name": "phil/translation-bundle",
-    "description": "Translation by segments for Symfony: UJO documents cut into segments kept in Doctrine with their states, regional variants read through their parent, a translation memory and glossaries, quality checks, comments, machine translation behind a port, public credits, XLIFF and TBX exchange, and translation and glossary pages in Twig",
+    "description": "A translation screen for Symfony: UJO (Universal JSON Output) documents translated segment by segment, with a translation memory, glossaries and quality checks.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

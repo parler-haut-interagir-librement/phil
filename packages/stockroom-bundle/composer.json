@@ -1,6 +1,6 @@
 {
     "name": "phil/stockroom-bundle",
-    "description": "phil/stockroom in Symfony: the containers, items, balances, journal of movements and load lists in tables of a Doctrine DBAL connection that join the schema the ORM generates, a transaction that locks the items it moves, a console command for the schema, and the stockroom services configured",
+    "description": "phil/stockroom in Symfony: containers, items, balances, movements and load lists kept in your database through Doctrine DBAL, each movement locking its items.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

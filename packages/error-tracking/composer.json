@@ -1,6 +1,6 @@
 {
     "name": "phil/error-tracking",
-    "description": "Error tracking kept at home: error events with their chained exceptions, frames, context, release, environment and reduced request, grouped by a stable fingerprint, scrubbed of personal data and secrets before anything is written, sampled and throttled, with the statuses of a group and a storage port",
+    "description": "Keep your application's errors at home: grouped by fingerprint, scrubbed of personal data and secrets, and told apart as new, repeated or back again.",
     "license": "MIT",
     "type": "library",
     "keywords": [

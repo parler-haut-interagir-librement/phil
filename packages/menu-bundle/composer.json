@@ -1,6 +1,6 @@
 {
     "name": "phil/menu-bundle",
-    "description": "Menus for Symfony: trees of items built in code, decorated by the application — counts, classes, badges —, their current item and ancestors marked from the request, a breadcrumb, and lists or cards in Twig",
+    "description": "Navigation menus and breadcrumbs for Symfony, built in code, decorated by the application, with the visitor's current page and its ancestors marked.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

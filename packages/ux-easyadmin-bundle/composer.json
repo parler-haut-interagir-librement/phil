@@ -1,6 +1,6 @@
 {
     "name": "phil/ux-easyadmin-bundle",
-    "description": "PHIL UX in the EasyAdmin back-office: EasyAdmin's colours, corners and fonts taken from the tokens of phil/ux-css, light and dark, in EasyAdmin's cascade layers, linked on every page of every dashboard",
+    "description": "The EasyAdmin back-office in the colours, corners and fonts of PHIL UX, light and dark, without restyling EasyAdmin itself.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

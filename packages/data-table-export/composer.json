@@ -1,6 +1,6 @@
 {
     "name": "phil/data-table-export",
-    "description": "Writes rows to CSV and XLSX files as they are read, in bounded memory: CSV after RFC 4180 with its cells kept from running as formulas, XLSX written with ext-zip and XML, without knowing where the rows come from",
+    "description": "Write rows to CSV and XLSX files as they are read, in bounded memory, with CSV cells kept from running as spreadsheet formulas.",
     "license": "MIT",
     "type": "library",
     "keywords": [

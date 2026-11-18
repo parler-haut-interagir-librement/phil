@@ -1,6 +1,6 @@
 {
     "name": "phil/almanac",
-    "description": "Computed dates for PHP: Easter, the phases of the Moon, the equinoxes and solstices, eclipses, sunrise, sunset and twilights by Meeus's algorithms, the Chinese New Year, and rules written in words — 2nd monday of october, easter - 47 days — for an almanac of a period",
+    "description": "Easter, Moon phases, seasons, eclipses, sunrise and sunset, and dates written in words such as \"2nd monday of october\", computed for any year.",
     "license": "MIT",
     "type": "library",
     "keywords": [

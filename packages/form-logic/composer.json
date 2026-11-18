@@ -1,6 +1,6 @@
 {
     "name": "phil/form-logic",
-    "description": "Typed conditional logic for forms, evaluated alike in PHP and in a Stimulus controller with the server as judge: field conditions and computed variables, serialized as a strict JsonLogic subset with bounded size",
+    "description": "Show a form's questions and compute its values from earlier answers, with the same typed logic run in the browser and on the server, which has the last word.",
     "license": "MIT",
     "type": "library",
     "keywords": [

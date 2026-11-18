@@ -1,6 +1,6 @@
 {
     "name": "phil/listings",
-    "description": "The core of listings — classified ads, job offers, searches for partners: bounded kinds, typed criteria that meet a search, an area shown to all and an exact place shown to accepted respondents, expiry with reminders and extensions, moderation before or after publication, and responses that put two consenting members in touch",
+    "description": "The core of listings, from classified ads to job offers: typed criteria, a public area and a private exact place, expiry, moderation, and responses by consent.",
     "license": "MIT",
     "type": "library",
     "keywords": [

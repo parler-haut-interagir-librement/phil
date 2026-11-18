@@ -1,6 +1,6 @@
 {
     "name": "phil/rate-limit-bundle",
-    "description": "Rate limits declared on Symfony controllers, routes and forms: an attribute, a route default and a form option naming limiters over symfony/rate-limiter, keys hashed from the client's address or the user, 429 answers with Retry-After and the IETF RateLimit headers, JSON problems for APIs, a Twig page for the others, and an event on each refusal",
+    "description": "Slow down abusive clients on Symfony controllers, routes and forms: declare a limit, and refused requests get a 429 answer with the standard RateLimit headers.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

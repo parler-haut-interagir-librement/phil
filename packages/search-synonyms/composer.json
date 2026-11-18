@@ -1,6 +1,6 @@
 {
     "name": "phil/search-synonyms",
-    "description": "Search synonyms per language: equivalent and one-way rules, validated, read and written in the Solr synonyms format or JSON, kept in files or the application's own store",
+    "description": "Search synonyms per language: equivalent and one-way rules, validated, read and written in the Solr format or JSON, kept in files or your own store.",
     "license": "MIT",
     "type": "library",
     "keywords": [

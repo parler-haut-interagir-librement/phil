@@ -1,6 +1,6 @@
 {
     "name": "phil/commerce-product-template",
-    "description": "Product templates for PHP: axes with ordered values, swatches and supplier names, prices per value with supplements, faces and print zones in millimetres, combinations excluded, a SKU pattern checked for collisions, and designs planned on templates as one product per language and combination",
+    "description": "One template and one design give every product of a catalogue: each variant's SKU, its price, its print zones and its artwork.",
     "license": "MIT",
     "type": "library",
     "keywords": [

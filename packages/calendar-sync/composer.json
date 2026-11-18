@@ -1,6 +1,6 @@
 {
     "name": "phil/calendar-sync",
-    "description": "External calendar synchronization: busy times read from iCalendar feeds, CalDAV, Google Calendar and Microsoft Graph, and the site's events written to them, each service an adapter behind a port.",
+    "description": "Sync with external calendars: busy times read from iCalendar feeds, CalDAV, Google Calendar and Microsoft Graph, and your events written back to them.",
     "license": "MIT",
     "type": "library",
     "keywords": [

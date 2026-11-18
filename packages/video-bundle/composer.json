@@ -1,6 +1,6 @@
 {
     "name": "phil/video-bundle",
-    "description": "Videos in Symfony: hosted files or HLS played by the browser's video element, YouTube and Vimeo behind a facade without tracking, WebVTT captions, chapters and a transcript from phil/timed-text, and viewing progress and an aggregate heat map counted only with consent.",
+    "description": "Videos in Symfony: hosted files or HLS streams, YouTube and Vimeo without tracking, captions, chapters, transcripts, and viewing statistics only with consent.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/qr-code-bundle",
-    "description": "phil/qr-code in Symfony: configured defaults, qr_code() in Twig as inline SVG or a data URI, an accessible Twig component, a signed route that serves SVG or PNG with an HTTP cache, the qrCode block of UJO documents and QR codes drawn in PDF documents",
+    "description": "phil/qr-code in Symfony: QR codes in Twig, in an accessible component, at a cached signed address, in UJO (Universal JSON Output) documents and in PDFs.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

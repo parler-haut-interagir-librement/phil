@@ -1,6 +1,6 @@
 {
     "name": "phil/tenancy-bundle",
-    "description": "Active tenant for multi-tenant Symfony applications: resolved from the tenants an account can reach or from the host, switched without a round trip to the identity provider, a fail-closed Doctrine filter, the tenant carried across Messenger, sessions, mail and cache pools, shops by domain, and PostgreSQL row-level security as a second barrier",
+    "description": "Multi-tenant Symfony applications: know which tenant an account acts in, switch instantly, and keep every query, message, session and cache inside that tenant.",
     "license": "MIT",
     "type": "symfony-bundle",
     "authors": [

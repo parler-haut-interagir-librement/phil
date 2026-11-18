@@ -1,6 +1,6 @@
 {
     "name": "phil/latex-mathml",
-    "description": "LaTeX formulas converted to MathML Core in PHP: scripts and limits, fractions, roots, accents, fonts, stretched delimiters, matrices and aligned equations, macros, colours, links, boxes, equation numbers and chemical notation, the formula kept as an annotation, any other command refused with its position, length, depth and expansion bounded",
+    "description": "Turn LaTeX formulas into MathML Core that browsers draw, on the server with nothing to install, refusing unknown commands and bounding work on hostile input.",
     "license": "MIT",
     "type": "library",
     "keywords": [

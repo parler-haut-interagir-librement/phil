@@ -1,6 +1,6 @@
 {
     "name": "phil/url-bundle",
-    "description": "phil/url in Symfony: a form field that detects the kind of a web address among accepted enum sets, the constraint UrlOfType, the column type phil_url, and addresses in Twig",
+    "description": "phil/url in Symfony: a link field that detects the kind of address, a validation constraint, a Doctrine column type and addresses in Twig.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

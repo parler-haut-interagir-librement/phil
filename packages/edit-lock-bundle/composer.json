@@ -1,6 +1,6 @@
 {
     "name": "phil/edit-lock-bundle",
-    "description": "Edit leases for Symfony applications: one writer per resource or per block of a UJO (Universal JSON Output) document, with heartbeats, expiry, takeover and release, kept by Doctrine, and presence and block saves pushed to the other writers through Mercure as Turbo Streams, applied in the browser by a Stimulus controller",
+    "description": "Let several people edit the same document in Symfony without overwriting each other: one writer per block, with live presence and saves through Mercure.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/legal-notices",
-    "description": "The legal notice and the privacy policy of a site as versioned, localized documents: versions with an effective date and a publication state, the identity of the publisher, the host and the privacy officer each document requires, and placeholders filled from that identity, the retention periods and the consent categories",
+    "description": "Publish a site's legal notice and privacy policy as versioned, localized documents, with effective dates and the publisher, host and privacy officer required.",
     "license": "MIT",
     "type": "library",
     "keywords": [

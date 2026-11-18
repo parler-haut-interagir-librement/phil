@@ -1,6 +1,6 @@
 {
     "name": "phil/ujo",
-    "description": "UJO (Universal JSON Output), a block document format, as immutable values: every official and community tool and the page and game block types validated, sanitized inline HTML, strict JSON, purified HTML rendering and plain text",
+    "description": "UJO (Universal JSON Output) documents you can trust: block documents read strictly, checked block by block, and rendered as safe HTML or plain text.",
     "license": "MIT",
     "type": "library",
     "keywords": [

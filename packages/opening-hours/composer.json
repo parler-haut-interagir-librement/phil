@@ -1,6 +1,6 @@
 {
     "name": "phil/opening-hours",
-    "description": "Opening hours for PHP: weekly hours with ranges past midnight, special days and periods, whether a place is open and when it next opens in its time zone, a text form people type, and schema.org OpeningHoursSpecification",
+    "description": "A place's opening hours in PHP and whether it is open right now in its time zone, with special days, ranges past midnight and schema.org output.",
     "license": "MIT",
     "type": "library",
     "keywords": [

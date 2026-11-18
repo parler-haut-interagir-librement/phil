@@ -1,6 +1,6 @@
 {
     "name": "phil/incident-mode",
-    "description": "A standalone incident mode: named presets that suspend sign-ups, invitations, new messages or everything but reading, a duration required on every activation, automatic lifting at the end, manual lifting and a journal; moderation offers it when both are installed.",
+    "description": "A switch for a bad day: suspend sign-ups, invitations, new messages or all but reading, for a set duration, lifted by hand or on its own, with a journal.",
     "license": "MIT",
     "type": "library",
     "keywords": [

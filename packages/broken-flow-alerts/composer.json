@@ -1,6 +1,6 @@
 {
     "name": "phil/broken-flow-alerts",
-    "description": "An alert when a path visitors finish (a purchase, a registration, a form) stops completing: daily completions compared with the rhythm of the weeks before as a Poisson count, weekday by weekday, read from counters the application already keeps, without a synthetic request, and sent through Symfony Notifier",
+    "description": "A warning on the day a path your visitors finish (a purchase, a registration, a form) stops being completed, compared with the weeks before.",
     "license": "MIT",
     "type": "library",
     "keywords": [

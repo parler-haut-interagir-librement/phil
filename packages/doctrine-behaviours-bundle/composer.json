@@ -1,6 +1,6 @@
 {
     "name": "phil/doctrine-behaviours-bundle",
-    "description": "phil/doctrine-behaviours in Symfony: the listeners switched on by configuration, blame and owner from the authenticated user, the tree reader, the positions, the translations, the versions and their guarded restore, the filters, and the blame and owner in privacy requests",
+    "description": "phil/doctrine-behaviours in Symfony: timestamps, blame, soft delete, trees, translations, versions and more, switched on by configuration.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/forms-autosave",
-    "description": "A form's input kept while it is filled, for Symfony: a form option and a Stimulus controller that keep the draft in the browser, restore it with a notice and forget it once the form is sent, and an optional store of drafts on the server, per user, encrypted, with conflicts between devices told",
+    "description": "Never lose a long form's input in Symfony: drafts kept in the browser while typing, restored with a notice, and optionally stored encrypted on the server.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

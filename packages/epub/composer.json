@@ -1,6 +1,6 @@
 {
     "name": "phil/epub",
-    "description": "EPUB 3 in PHP: package document with accessibility metadata, navigation with table of contents, landmarks and page list, EPUB 2 toc.ncx, well-formed XHTML from purified HTML, stylesheets, images, obfuscated fonts and cover, audio and video with fallbacks, media overlays, fixed layout, and UJO documents through phil/ujo",
+    "description": "Write EPUB 3 books from the HTML you already have, valid for EPUBCheck and readable by assistive technologies, with UJO (Universal JSON Output) documents too.",
     "license": "MIT",
     "type": "library",
     "keywords": [

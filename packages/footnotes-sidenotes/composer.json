@@ -1,6 +1,6 @@
 {
     "name": "phil/footnotes-sidenotes",
-    "description": "Footnotes and margin notes for UJO (Universal JSON Output) documents: references and notes resolved in reading order, numbered and checked, written as accessible endnotes, as sidenotes with CSS only, or at the foot of the printed page in CSS GCPM",
+    "description": "Footnotes and margin notes for UJO (Universal JSON Output) documents, numbered and checked, as accessible endnotes, sidenotes, or at the foot of printed pages.",
     "license": "MIT",
     "type": "library",
     "keywords": [

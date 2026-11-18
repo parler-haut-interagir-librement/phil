@@ -1,6 +1,6 @@
 {
     "name": "phil/markup",
-    "description": "Texts in Markdown, BBCode, MediaWiki, DokuWiki, Creole, UJO, HTML or plain text, read by its own analyser into UJO documents, compiled to HTML and purified at a level: basic, forum or all, with the list of what each reading did not keep; add-ons bring dialects and formats",
+    "description": "Show text written in Markdown, BBCode, wiki syntaxes, UJO (Universal JSON Output) or HTML as safe HTML, purified at the level you choose: basic, forum or all.",
     "license": "MIT",
     "type": "library",
     "keywords": [

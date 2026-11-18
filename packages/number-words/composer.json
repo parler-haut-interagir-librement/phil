@@ -1,6 +1,6 @@
 {
     "name": "phil/number-words",
-    "description": "Numbers spelled out in words: a typed facade over ICU for cardinals, ordinals, gender and amounts of money in words, with corrections for French, English, Spanish, German, Italian and Portuguese.",
+    "description": "Spell numbers out in words with ICU: cardinals, ordinals, gender and amounts of money, corrected where ICU differs from usage in six languages.",
     "license": "MIT",
     "type": "library",
     "keywords": [

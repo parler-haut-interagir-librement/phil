@@ -1,6 +1,6 @@
 {
     "name": "phil/contact",
-    "description": "Contact cards for PHP: a person or an organisation with a structured name ordered and sorted by its culture, emails, typed phone lines, web addresses and messaging handles, written as vCard 4.0, schema.org JSON-LD and JSContact, read from JSContact, and kept as an array for one JSON column",
+    "description": "Contact cards for a person or an organisation, with names ordered by culture, ready to save as vCard, JSContact or schema.org JSON-LD.",
     "license": "MIT",
     "type": "library",
     "keywords": [

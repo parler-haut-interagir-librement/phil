@@ -1,6 +1,6 @@
 {
     "name": "phil/feature-flags-bundle",
-    "description": "Feature flags and A/B tests for Symfony: flags evaluated once per request from ordered providers (configuration, database), targeting by tenant, project or subject, stable rollouts and experiments, expiry dates, audited changes with a reason, admin screens, a controller attribute, a route condition, Twig functions, and circuit-breaker flags",
+    "description": "Turn a feature off without a deploy, roll it out gradually or run an A/B test in Symfony, with audited changes, admin screens and Twig functions.",
     "license": "MIT",
     "type": "symfony-bundle",
     "authors": [

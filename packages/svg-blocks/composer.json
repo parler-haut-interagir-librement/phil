@@ -1,6 +1,6 @@
 {
     "name": "phil/svg-blocks",
-    "description": "The math, mermaid, chart and qrCode blocks of UJO documents drawn once, when they are saved, as SVG or MathML kept and signed with the block: QR codes, charts and formulas in PHP, diagrams through a Mermaid service whose answer is sanitized",
+    "description": "Draw the formulas, diagrams, charts and QR codes of UJO (Universal JSON Output) documents once on the server, when saved, and keep the signed result.",
     "license": "MIT",
     "type": "library",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/tax",
-    "description": "Multi-rate taxation on a shared base: rates in parts per million, each tax rounded half away from zero on its own line in integer arithmetic, itemised breakdowns that a credit note reverses exactly",
+    "description": "Several taxes on one sale, such as federal and provincial, each computed on the same base and itemised to the cent, then reversed exactly by a credit note.",
     "license": "MIT",
     "type": "library",
     "keywords": [

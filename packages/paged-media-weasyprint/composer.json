@@ -1,6 +1,6 @@
 {
     "name": "phil/paged-media-weasyprint",
-    "description": "The WeasyPrint engine of phil/paged-media-bundle: HTML and CSS laid out as a PDF by the weasyprint command, with no access to the network and files taken from one directory only",
+    "description": "Print HTML and CSS as PDF with WeasyPrint for phil/paged-media-bundle, the network and the disk kept out of its reach.",
     "license": "MIT",
     "type": "library",
     "keywords": [

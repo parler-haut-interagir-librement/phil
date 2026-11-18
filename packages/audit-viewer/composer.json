@@ -1,6 +1,6 @@
 {
     "name": "phil/audit-viewer",
-    "description": "The audit log of phil/audit-bundle read in an EasyAdmin back office: filters, record history with a History action on audited entities, hash-chain status by site and an audited CSV export",
+    "description": "Read the audit log of phil/audit-bundle in an EasyAdmin back office: filters, the history of each record, the integrity of the chain, and CSV export.",
     "license": "MIT",
     "type": "symfony-bundle",
     "authors": [

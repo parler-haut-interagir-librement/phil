@@ -1,6 +1,6 @@
 {
     "name": "phil/privacy-bundle",
-    "description": "Privacy law in code for Symfony: personal fields declared by attribute, logs redacted, export and erasure, delayed account deletion, scheduled retention purges with the register of processing, cookie consent refused by default, third-party frames held until consent, requests by verified link, an incident register and anonymized copies of databases",
+    "description": "Privacy law in a Symfony application: personal fields declared, logs redacted, data export and erasure, retention purges, cookie consent and anonymized copies.",
     "license": "MIT",
     "type": "symfony-bundle",
     "authors": [

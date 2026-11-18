@@ -1,6 +1,6 @@
 {
     "name": "phil/product-feeds",
-    "description": "Product feeds for comparison sites and marketplaces: a catalogue written, in constant memory, to an RSS 2.0 file in the g: namespace of product data or a TSV file, and swapped into place whole",
+    "description": "Product feeds for comparison sites and marketplaces: a catalogue written as an RSS or TSV feed file in constant memory, and swapped into place whole.",
     "license": "MIT",
     "type": "library",
     "keywords": [

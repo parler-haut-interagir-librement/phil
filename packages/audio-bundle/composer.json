@@ -1,6 +1,6 @@
 {
     "name": "phil/audio-bundle",
-    "description": "phil/audio in Symfony: ffmpeg or no audio tool from the configuration, renditions and waveforms produced by Messenger jobs that carry identifiers only, uploads through phil/media-bundle, the creator's default listening policy, and an accessible player Twig component with a light Stimulus controller.",
+    "description": "phil/audio in Symfony: audio renditions and waveforms produced in the background, uploads, the creator's listening policy, and an accessible audio player.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

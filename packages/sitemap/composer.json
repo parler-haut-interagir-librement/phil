@@ -1,6 +1,6 @@
 {
     "name": "phil/sitemap",
-    "description": "Sitemaps as values: pages with their alternates and images, sections cut into files, and the XML of the sitemap protocol",
+    "description": "Sitemap XML for search engines: pages with their translations and images, checked and cut into files at the protocol's limits.",
     "license": "MIT",
     "type": "library",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/url",
-    "description": "Web addresses for PHP: absolute http and https addresses normalised, kinds of address as enums that each carry their rule, international kinds included, and the kind of an address detected among enum sets",
+    "description": "Web addresses as clean, normalised values, with their kind detected: a Facebook page, a YouTube channel, a Mastodon account or a plain website.",
     "license": "MIT",
     "type": "library",
     "keywords": [

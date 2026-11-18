@@ -1,6 +1,6 @@
 {
     "name": "phil/contact-bundle",
-    "description": "phil/contact in Symfony: a contact card form with its emails, phone lines, web addresses, handles and structured person name, the JSON column type phil_contact, vCard and JSContact downloads, the JSContact reader as a service, and person names and schema.org JSON-LD in Twig",
+    "description": "phil/contact in Symfony: a contact card form, a JSON column for Doctrine, vCard and JSContact downloads, and names and JSON-LD in Twig.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

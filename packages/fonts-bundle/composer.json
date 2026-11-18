@@ -1,6 +1,6 @@
 {
     "name": "phil/fonts-bundle",
-    "description": "phil/fonts in Symfony: a directory of font files read into a catalogue, WOFF2 read when ext-brotli is loaded, @font-face CSS for the directory, a licence register checked by a command, and the fonts handed to phil/paged-media and read from phil/media-bundle",
+    "description": "phil/fonts in Symfony: a directory of font files read once, served by @font-face rules, licences checked by a command, and the fonts given to the PDF writer.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

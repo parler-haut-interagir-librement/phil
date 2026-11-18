@@ -1,6 +1,6 @@
 {
     "name": "phil/access-links",
-    "description": "Invitations by personal link: an opaque 256-bit token stored as a keyed hash under an ordered list of keys, a recipient named by a stable identifier, validity and closure on a PSR-20 clock, an answer editable until closure, reminders to non-respondents through Messenger with identifier-only messages, links on phil/url, memory and DBAL stores",
+    "description": "Invite people by personal link: one secret link per recipient, an answer they can change until the closing date, and reminders to those who have not answered.",
     "license": "MIT",
     "type": "library",
     "keywords": [

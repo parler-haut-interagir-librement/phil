@@ -1,6 +1,6 @@
 {
     "name": "phil/highlight-bundle",
-    "description": "phil/highlight in Symfony: the highlighter with the application's languages and aliases, the code blocks of UJO documents coloured on the server, the highlight Twig filter, and a theme stylesheet",
+    "description": "phil/highlight in Symfony: source code coloured on the server in templates and in UJO (Universal JSON Output) documents, with a theme stylesheet ready to link.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

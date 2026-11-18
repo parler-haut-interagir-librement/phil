@@ -1,6 +1,6 @@
 {
     "name": "phil/status-page-bundle",
-    "description": "A service status page for Symfony: components, incidents, planned maintenances and history, served as HTML, JSON and Atom without any script, the states read from phil/monitoring-bundle or declared, and a static snapshot pushed outside the monitored infrastructure by a console command or the Scheduler",
+    "description": "A status page for your service in Symfony: components, incidents and maintenances in HTML, JSON and Atom, with a static copy pushed elsewhere in case of outage.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

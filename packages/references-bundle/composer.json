@@ -1,6 +1,6 @@
 {
     "name": "phil/references-bundle",
-    "description": "Where a Symfony application's resources are used: links collected from JSON or polymorphic sources, kept up to date at each Doctrine flush, deletion of a resource still used refused, broken links listed",
+    "description": "Know where each resource of a Symfony application is used, refuse to delete one that something still needs, and list the broken links.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

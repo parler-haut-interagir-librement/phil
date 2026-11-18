@@ -1,6 +1,6 @@
 {
     "name": "phil/accessibility-statement-bundle",
-    "description": "The accessibility statement of a Symfony application: versioned, from configuration or a table, at /accessibility and /accessibilite in English and French with the wording of WCAG, EN 301 549 or the Accessible Canada Act, drawn with the PHIL UX kit, a footer link, an admin page that publishes, and a command fed by phil/accessibility-check",
+    "description": "phil/accessibility-statement in Symfony: an accessibility statement page in English and French, its versions, an admin page, and a command fed by audits.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

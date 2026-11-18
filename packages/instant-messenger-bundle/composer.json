@@ -1,6 +1,6 @@
 {
     "name": "phil/instant-messenger-bundle",
-    "description": "phil/instant-messenger in Symfony: a form field that takes a messaging handle with its service among accepted enum sets, the constraint HandleOfType, and handles in Twig",
+    "description": "phil/instant-messenger in Symfony: a form field for a messaging handle and its service, a validation constraint, and handles shown and linked in Twig.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

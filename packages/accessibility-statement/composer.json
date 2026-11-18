@@ -1,6 +1,6 @@
 {
     "name": "phil/accessibility-statement",
-    "description": "Versioned accessibility statements: the conformance target and status claimed against WCAG 2.0, 2.1 or 2.2, unmet criteria with their reason, alternative and fix date, the alternatives offered, the feedback contact, the enforcement procedure and the last evaluation, as plain data, and the next version generated from phil/accessibility-check reports",
+    "description": "Say how accessible a site is, what still keeps readers out and how to reach you, one dated version at a time, as WCAG accessibility statements.",
     "license": "MIT",
     "type": "library",
     "keywords": [

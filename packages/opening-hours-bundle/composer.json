@@ -1,6 +1,6 @@
 {
     "name": "phil/opening-hours-bundle",
-    "description": "phil/opening-hours in Symfony: an opening hours form with a field a day and special hours, the JSON column type phil_opening_hours, and hours in Twig — open now, next opening, a localised table, schema.org",
+    "description": "phil/opening-hours in Symfony: an opening hours form, a JSON column type, and hours in Twig: open now, next opening, a localised table and schema.org.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

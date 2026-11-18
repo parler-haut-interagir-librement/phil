@@ -1,6 +1,6 @@
 {
     "name": "phil/embed-bundle",
-    "description": "Features of a Symfony site that other sites embed: a token signed for one origin by an ordered list of keys, the page framed by that origin alone through frame-ancestors, and a <phil-embed> element sized by a small postMessage protocol, origin checked on both sides, with a plain link without JavaScript",
+    "description": "Let other sites embed parts of your Symfony site, such as a calendar or a form, framed only by the origins you allow, with a plain link without JavaScript.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

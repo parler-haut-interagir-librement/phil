@@ -1,6 +1,6 @@
 {
     "name": "phil/data-table-bundle",
-    "description": "Data tables for Symfony as a Live Component: sorting, filters, pagination, row and bulk actions, inline editing, a stacked list on narrow screens, and the same state in the address for a link, a reload or a browser without JavaScript",
+    "description": "Data tables for Symfony that sort, filter, paginate, act on rows and edit in place, with the state kept in the address, with or without JavaScript.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

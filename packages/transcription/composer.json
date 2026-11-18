@@ -1,6 +1,6 @@
 {
     "name": "phil/transcription",
-    "description": "Transcription of recordings behind one port: a whisper.cpp server run by the site, OpenAI and Deepgram adapters refused without the consent of the people heard, timestamped segments turned into phil/timed-text tracks, a declared language, and a review before publication.",
+    "description": "Turn recordings into reviewed captions and transcripts: a self-hosted whisper.cpp server, or a cloud service only with the consent of the people heard.",
     "license": "MIT",
     "type": "library",
     "keywords": [

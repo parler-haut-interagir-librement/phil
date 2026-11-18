@@ -1,6 +1,6 @@
 {
     "name": "phil/social-cards-bundle",
-    "description": "phil/social-cards in Symfony: social_meta() for each page, its share card drawn by a worker and served with a long cache, safe previews of linked and pasted links and a tag check command",
+    "description": "phil/social-cards in Symfony: share tags for every page, a share image drawn in the background and cached, safe link previews, and a command to check the tags.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

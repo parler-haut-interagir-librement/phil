@@ -1,6 +1,6 @@
 {
     "name": "phil/publishing",
-    "description": "The PagePublished and PageRetired events and their contract: a page's canonical address, language, indexable flag and owner identifier, for the listeners that follow what goes online and offline",
+    "description": "Tell the rest of the application when a page goes online or offline, with its canonical address, its language and whether search engines may index it.",
     "license": "MIT",
     "type": "library",
     "authors": [

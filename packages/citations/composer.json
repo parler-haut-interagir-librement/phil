@@ -1,6 +1,6 @@
 {
     "name": "phil/citations",
-    "description": "Citations and bibliographies: references kept as CSL-JSON, BibTeX and RIS import, and author-date, notes and numeric styles written in PHP, in English and French, as text or escaped HTML.",
+    "description": "Citations and bibliographies: references kept as CSL-JSON, imported from BibTeX and RIS, written in author-date, notes or numeric styles, in English or French.",
     "license": "MIT",
     "type": "library",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/ip-anonymizer",
-    "description": "IP addresses anonymized before they are kept: IPv4 and IPv6 parsed strictly with IPv4-mapped addresses unmapped, truncation to a prefix of each family, keyed BLAKE2b digests with a random salt forgotten each day, and generalisation to a network, a special-purpose scope or a label from a table of networks, as strategies that compose",
+    "description": "Anonymize IP addresses before you keep them in logs, counters or rate limiters: truncated, digested with a salt forgotten daily, or generalised to a network.",
     "license": "MIT",
     "type": "library",
     "keywords": [

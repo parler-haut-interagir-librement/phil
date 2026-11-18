@@ -1,6 +1,6 @@
 {
     "name": "phil/doctrine-behaviours",
-    "description": "Doctrine ORM behaviours written as interfaces, traits and listeners: timestamps, blame, soft delete, trees kept as materialized paths, deactivation, owner, publication by workflow, positions within groups, scoped slugs, translations along fallback chains, versions and dated identifiers",
+    "description": "Twelve opt-in behaviours for Doctrine entities, from timestamps, soft delete and trees to positions, slugs, translations and versions.",
     "license": "MIT",
     "type": "library",
     "keywords": [

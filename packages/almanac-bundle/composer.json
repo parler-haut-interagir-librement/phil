@@ -1,6 +1,6 @@
 {
     "name": "phil/almanac-bundle",
-    "description": "phil/almanac in Symfony: computed dates declared in configuration or kept in the database for an administrator, the almanac as a service, its form, its dates, eclipses and the sunrise and sunset of configured places in Twig",
+    "description": "phil/almanac in Symfony: holidays and computed dates declared in configuration or edited by an administrator, shown in forms and Twig.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

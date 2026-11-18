@@ -1,6 +1,6 @@
 {
     "name": "phil/block-editor-bundle",
-    "description": "A block editor for Symfony forms, written in Stimulus controllers without a build step: slash menu, drag handles, inline toolbar, clean paste, nested blocks and columns, mentions and page links, image uploads, a reduced mode, reading and writing UJO (Universal JSON Output) documents checked by phil/ujo",
+    "description": "A block editor for Symfony forms, like Notion's, in Stimulus without a build step, writing UJO (Universal JSON Output) documents checked on the server.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

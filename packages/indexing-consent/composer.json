@@ -1,6 +1,6 @@
 {
     "name": "phil/indexing-consent",
-    "description": "The reach of a public record as the person it is about decides it: listed, kept out of search engines, or unlisted, asked by the sitemap, the structured data and the listings of a site",
+    "description": "Let people decide how far their public record reaches: listed, kept out of search engines, or unlisted, respected by sitemaps, structured data and listings.",
     "license": "MIT",
     "type": "library",
     "keywords": [

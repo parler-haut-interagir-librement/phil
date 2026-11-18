@@ -1,6 +1,6 @@
 {
     "name": "phil/mentions-bundle",
-    "description": "@mentions of members for Symfony: handles found in plain text and Markdown with a configurable pattern and in UJO (Universal JSON Output) documents, members resolved through the application's directory, only newly mentioned members who may see the content notified, a Twig filter linking mentions to profiles and a Stimulus autocomplete",
+    "description": "@mentions of members for Symfony: handles found in what people write, newly mentioned members allowed to see it notified, links to profiles and autocomplete.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

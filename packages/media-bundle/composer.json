@@ -1,6 +1,6 @@
 {
     "name": "phil/media-bundle",
-    "description": "A media library for Symfony: files and versions on any Flysystem storage, collections, images transformed around their focal point to WebP, AVIF, JPEG or PNG with GD or libvips, tiny previews, purified SVG, responsive Img and Picture components, a file explorer with a picker, a Doctrine column type, and signed URLs served as user content",
+    "description": "A media library for Symfony: uploaded files and images described, versioned, resized around their focal point and served at signed URLs in modern formats.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

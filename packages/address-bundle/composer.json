@@ -1,6 +1,6 @@
 {
     "name": "phil/address-bundle",
-    "description": "phil/address in Symfony: an address form whose fields follow the country chosen, live through a Stimulus controller, the constraint ValidAddress, the JSON column type phil_address, and addresses in Twig",
+    "description": "phil/address in Symfony: an address form whose fields follow the country the person picks, an address validator, a Doctrine JSON column, and addresses in Twig.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/email-address",
-    "description": "Email addresses a mail server can deliver to: RFC 5321 mailbox syntax with international domains and the RFC 6531 forms an application allows, MX, null MX and A records through a port, disposable domains and IANA top-level domains imported as data, denied and allowed domains, and suggestions for slips such as gmial.com, with a Symfony constraint",
+    "description": "Accept the email addresses a mail server can deliver to, refuse the rest, and catch typos like gmial.com before they bounce, with a Symfony constraint.",
     "license": "MIT",
     "type": "library",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/markup-bundle",
-    "description": "phil/markup in Symfony: the enabled formats and their levels, Markup with its compiler and purifier to replace by alias, the converter of every format into UJO, smart punctuation through phil/typography, a form field to pick a format, and the markup_html, markup_purify and markup_ujo filters in Twig",
+    "description": "phil/markup in Symfony: Markdown, BBCode, wiki syntaxes, UJO (Universal JSON Output) and user HTML rendered safely in Twig, and a form field to pick the format.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

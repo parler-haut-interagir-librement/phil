@@ -1,6 +1,6 @@
 {
     "name": "phil/moderation-bundle",
-    "description": "A single report queue for posts, comments, reactions, listings, messages and profiles, each package plugging in its own target: roles and decision history, a first-post sandbox, temporary hiding by trusted members, a statement of reasons to authors, member notes, a public journal without names, and the incident mode when installed",
+    "description": "One moderation queue in Symfony for reports on posts, comments, messages, listings and profiles, with decision history, reasons to authors and a public journal.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/reservation",
-    "description": "The core of bookings for PHP: a resource with its capacity, buffers, opening hours and rules; requests checked against the bookings made, with the reasons they are refused; the free slots of a period; and the reminders of a booking",
+    "description": "Decide whether something can be booked, such as a room, a table, a person's time or equipment: capacity, hours, rules, free slots, refusals and reminders.",
     "license": "MIT",
     "type": "library",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/search-bundle",
-    "description": "Search for a Symfony application: resources turned into documents, indexed in a table of the database, in Meilisearch or in Loupe through phil/search-loupe, up to date at each Doctrine flush, searched with facet counts and synonyms per language, rebuilt, and filtered on a results page that works without JavaScript",
+    "description": "Full-text search over your own Symfony resources, kept up to date at each Doctrine flush, in the database or Meilisearch, with facets and synonyms.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

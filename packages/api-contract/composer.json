@@ -1,6 +1,6 @@
 {
     "name": "phil/api-contract",
-    "description": "Both sides of an unversioned HTTP API contract in plain PHP: RFC 9457 problem details, Deprecation and Sunset signals, tolerant reading of enumerations, and the verification of an OpenAPI document against levels of rules",
+    "description": "Keep an HTTP API without version numbers from breaking its clients: problem details (RFC 9457), deprecation signals, tolerant reading and OpenAPI checks.",
     "license": "MIT",
     "type": "library",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/stockroom",
-    "description": "A props stockroom: nested containers, items counted or tracked one by one, a journal of every movement in, out, between containers, lost and back, per-event load lists deployed and checked at the return, and a read port of the stock",
+    "description": "Track what a troupe, convention or school owns and lends: nested containers, items, a journal of every movement, and load lists per event checked at the return.",
     "license": "MIT",
     "type": "library",
     "keywords": [

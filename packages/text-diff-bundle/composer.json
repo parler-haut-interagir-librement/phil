@@ -1,6 +1,6 @@
 {
     "name": "phil/text-diff-bundle",
-    "description": "phil/text-diff in Symfony: the differ with its bound of edits, the text_diff and text_diff_document Twig filters, a Stimulus comparison controller that switches between the inline, old and new views and steps from change to change, and a stylesheet",
+    "description": "phil/text-diff in Symfony: show what changed between two versions of a text or UJO (Universal JSON Output) document in Twig, and step through the changes.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

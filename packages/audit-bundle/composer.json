@@ -1,6 +1,6 @@
 {
     "name": "phil/audit-bundle",
-    "description": "Append-only audit trail for Symfony: hash-chained rows indexed by actor, action and record, read a page at a time, one chain per site, facts fed to dashboards, salted commitments on personal fields, external anchors",
+    "description": "An audit trail for Symfony that shows any tampering and still lets you erase personal information: append-only, hash-chained, read a page at a time.",
     "license": "MIT",
     "type": "symfony-bundle",
     "authors": [

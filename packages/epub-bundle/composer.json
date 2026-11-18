@@ -1,6 +1,6 @@
 {
     "name": "phil/epub-bundle",
-    "description": "phil/epub in Symfony: books built by sources registered by attribute, written now or by a Messenger message, kept in a directory or in phil/media-bundle, with the fonts of phil/fonts-bundle embedded after their licence and the images of the media library as assets",
+    "description": "phil/epub in Symfony: e-books built from the application's records, written now or in a worker, stored with its files, with the fonts it may embed.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

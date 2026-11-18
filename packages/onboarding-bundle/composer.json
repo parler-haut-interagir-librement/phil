@@ -1,6 +1,6 @@
 {
     "name": "phil/onboarding-bundle",
-    "description": "The welcome of a new member, for Symfony: flows of ordered steps completed by hand, by an event, by a checker or by an answer the application turns into roles and subscriptions, each user's progress kept under their identifier, and an accessible checklist and guided tour, in English and French",
+    "description": "Welcome new members in Symfony: ordered onboarding steps completed by hand or by events, each user's progress kept, an accessible checklist and a guided tour.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

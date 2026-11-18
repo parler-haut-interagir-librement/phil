@@ -1,6 +1,6 @@
 {
     "name": "phil/geo-bundle",
-    "description": "phil/geo in Symfony: coordinates as a Doctrine embeddable, a form type, distances in Twig, and a Stimulus controller that sorts places by distance in the browser, the visitor's position never sent",
+    "description": "phil/geo in Symfony: coordinates stored with Doctrine, entered in forms, distances in Twig, and places sorted nearest-first, the visitor's position never sent.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

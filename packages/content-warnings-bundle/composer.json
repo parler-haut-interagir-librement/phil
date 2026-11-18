@@ -1,6 +1,6 @@
 {
     "name": "phil/content-warnings-bundle",
-    "description": "phil/content-warnings in Symfony: the catalogue of warning themes from configuration, the JSON column type phil_content_warnings, fields for warnings and preferences, a folded display in Twig with a Stimulus controller, and a store of each member's preferences",
+    "description": "phil/content-warnings in Symfony: a catalogue of warnings from configuration, warnings on any entity, and content folded or hidden as each reader chooses.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

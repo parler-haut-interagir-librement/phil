@@ -1,6 +1,6 @@
 {
     "name": "phil/paged-media",
-    "description": "PDF documents behind one API: a native writer with embedded and subset TrueType fonts, images, lines and rectangles and compressed streams, with no dependency, fillable form fields and printed templates, and a Gotenberg 9 client for PDF stages, PDF/A and PDF/UA, signatures and LibreOffice conversions",
+    "description": "Create PDF documents from PHP with real embedded fonts and nothing to install, plus a Gotenberg client for PDF/A, PDF/UA, signatures and office conversions.",
     "license": "MIT",
     "type": "library",
     "keywords": [

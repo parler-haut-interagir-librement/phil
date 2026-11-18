@@ -1,6 +1,6 @@
 {
     "name": "phil/search-loupe",
-    "description": "The Loupe adapter of phil/search-bundle: indexes in SQLite files, with typo tolerance and relevance, and no server to run. Loupe requires joomla/string, under GPL-2.0-or-later",
+    "description": "Typo-tolerant search in SQLite files for phil/search-bundle, with no server to run. Its Loupe dependency brings in joomla/string, under GPL-2.0-or-later.",
     "license": "MIT",
     "type": "library",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/paged-media-bundle",
-    "description": "phil/paged-media in Symfony: the native PDF writer and Gotenberg behind one service, Gotenberg's URL, credentials, signing certificate and timestamp authority from the configuration, templates by attribute or by name, and Messenger messages that render, run PDF stages or convert office documents",
+    "description": "phil/paged-media in Symfony: PDFs drawn by the native writer or worked on by Gotenberg through one service, rendered now or in a Messenger worker.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

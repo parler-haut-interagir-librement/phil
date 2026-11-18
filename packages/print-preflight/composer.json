@@ -1,6 +1,6 @@
 {
     "name": "phil/print-preflight",
-    "description": "A preflight report before printing: image resolution at placed size, font embedding permissions, bleed and safety margin, page size and count rules of a printer, colour spaces, as blocking errors, warnings and notices",
+    "description": "Find what a printer would refuse before sending the file: low-resolution images, fonts that cannot be embedded, missing bleed, wrong page sizes or counts.",
     "license": "MIT",
     "type": "library",
     "keywords": [

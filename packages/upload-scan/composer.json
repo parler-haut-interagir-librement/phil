@@ -1,6 +1,6 @@
 {
     "name": "phil/upload-scan",
-    "description": "Antivirus scanning of uploaded files behind a port: clean, infected with a signature, or not scanned with a reason; a clamd adapter that speaks the protocol itself over a Unix or TCP socket, in chunks, with a size limit and timeouts; null and EICAR fake scanners for tests; and a policy that rejects, or accepts and flags, what was not scanned",
+    "description": "Pass every uploaded file through an antivirus before anyone opens it: clean, infected or not scanned, with ClamAV built in and a policy for files not scanned.",
     "license": "MIT",
     "type": "library",
     "keywords": [

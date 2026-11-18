@@ -1,6 +1,6 @@
 {
     "name": "phil/browser-security-bundle",
-    "description": "The protections a Symfony application asks of the browser, adjustable page by page: Content Security Policy with nonces, report-only and a bounded report endpoint, the neighbouring headers, HSTS and an HTTPS redirect, X-Frame-Options by path, signed cookies, external redirects refused, and Clear-Site-Data at logout",
+    "description": "The protections a Symfony application asks of the browser, in one bundle: Content Security Policy, HSTS, framing and cookie rules, adjustable page by page.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

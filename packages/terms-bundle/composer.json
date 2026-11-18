@@ -1,6 +1,6 @@
 {
     "name": "phil/terms-bundle",
-    "description": "Versioned terms of use for Symfony: versions published once and never changed, an append-only record of each acceptance, a gate to accept a new material version, a signup checkbox, renewal and reminders, public versioned pages with their changes, an administration to publish, and who has not accepted",
+    "description": "Versioned terms of use in Symfony: each version published once and never changed, each acceptance recorded, and members asked again when the terms change.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

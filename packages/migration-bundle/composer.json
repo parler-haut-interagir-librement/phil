@@ -1,6 +1,6 @@
 {
     "name": "phil/migration-bundle",
-    "description": "phil/migration in Symfony: the migrations of DoctrineMigrationsBundle announce what they bring, and each run is announced once on the chat channels of the configuration",
+    "description": "phil/migration in Symfony: Doctrine migrations announce what they bring, and each migration run is announced once on your chat channels.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/automations",
-    "description": "A no-code automation builder for site events: definitions as JSON, triggers and actions registered by packages, delay, filter and branch steps, retries and per-step compensation, runs advanced by Messenger and Scheduler, idempotent and safe on several workers, a signed webhook action, Doctrine DBAL storage",
+    "description": "Automations a site's editors build without code: when an event happens, run steps, wait, check, branch, and undo what was done if a later step fails.",
     "license": "MIT",
     "type": "library",
     "keywords": [

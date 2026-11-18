@@ -1,6 +1,6 @@
 {
     "name": "phil/notifications-bundle",
-    "description": "Notifications for Symfony on Symfony Notifier: declared types delivered to each recipient's chosen channels — a notification centre with toasts, email and its daily or weekly digest, Web Push, Slack or Discord —, messages of identifiers only written out when shown, and notifications received signed from the other sites of a network",
+    "description": "Notifications for Symfony: each member gets them on the channels they chose, a notification centre, email digests, Web Push or chat, built on Symfony Notifier.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

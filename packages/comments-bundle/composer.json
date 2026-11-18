@@ -1,6 +1,6 @@
 {
     "name": "phil/comments-bundle",
-    "description": "Comments for Symfony on a whole page or on a passage of a text, with suggested replacements: in a UJO (Universal JSON Output) document, anchors that follow edits and mark a vanished passage orphaned; threads, authors as resource references, Doctrine storage, JSON endpoints and a Stimulus controller",
+    "description": "Comments for Symfony on a page or on a passage of a text, anchored so they follow the text as it changes, with suggested replacements.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

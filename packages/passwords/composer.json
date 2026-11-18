@@ -1,6 +1,6 @@
 {
     "name": "phil/passwords",
-    "description": "Passwords in PHP: a strength estimator that finds the patterns people use — common passwords, words, names, keyboard patterns, sequences, repeats, dates, substitutions — and scores them from 0 to 4 with feedback in English and French, k-anonymity checks against Pwned Passwords, password and passphrase generation, and validator constraints",
+    "description": "Tell people how guessable their password is, refuse the ones already leaked through Pwned Passwords, and generate strong passwords and passphrases.",
     "license": "MIT",
     "type": "library",
     "keywords": [

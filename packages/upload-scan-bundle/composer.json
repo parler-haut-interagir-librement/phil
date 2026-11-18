@@ -1,6 +1,6 @@
 {
     "name": "phil/upload-scan-bundle",
-    "description": "phil/upload-scan in Symfony: the scanner and its policy from configuration, a #[CleanFile] constraint for uploads, infected files quarantined outside the web root, listed on an admin page and purged after their retention, rescans on a worker, and the uploads of phil/media-bundle and the health checks of phil/monitoring-bundle behind the antivirus",
+    "description": "phil/upload-scan in Symfony: uploads checked by the antivirus as forms are validated, infected files quarantined out of reach, listed for admins and purged.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/newsletter-bundle",
-    "description": "A site's newsletter for Symfony: lists, double opt-in, campaigns in Markdown in a house layout or sandboxed templates, sending through Symfony Mailer at the pace of sender profiles, one-click unsubscription, a preference center with pause, bounces from IMAP and webhooks, aggregate click counts, multi-site, and automation actions",
+    "description": "A site's newsletter in Symfony: double opt-in, lists people choose, pause or leave, campaigns in Markdown sent by Symfony Mailer at a pace providers accept.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "phil/creation-disclosure",
-    "description": "How a work was made, declared part by part in the IPTC Digital Source Type vocabulary: captured, made by people, edited or created with generative AI, or undeclared, with the AI-free view and the requirement a contest or a shop sets",
+    "description": "Declare how a work was made, part by part: captured, made by people, edited or created with generative AI, in the IPTC Digital Source Type vocabulary.",
     "license": "MIT",
     "type": "library",
     "keywords": [

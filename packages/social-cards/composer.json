@@ -1,6 +1,6 @@
 {
     "name": "phil/social-cards",
-    "description": "Share metadata as values: Open Graph, X and fediverse tags, 1200×630 share cards drawn from a declarative template, and the tags of linked pages read and checked",
+    "description": "Control how a page looks when shared: Open Graph, X and fediverse tags, a 1200x630 share image drawn from a template, and the tags of linked pages checked.",
     "license": "MIT",
     "type": "library",
     "keywords": [

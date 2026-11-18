@@ -1,6 +1,6 @@
 {
     "name": "phil/print-preflight-bundle",
-    "description": "phil/print-preflight in Symfony: printer profiles from the configuration, checks added by attribute, documents measured in a browser read from JSON, a console check, and layouts recorded while phil/paged-media draws, with fonts from phil/fonts-bundle and images from phil/media-bundle",
+    "description": "phil/print-preflight in Symfony: your printers' rules as named profiles, your own checks beside the library's, and a console command to check a document.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

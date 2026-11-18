@@ -1,6 +1,6 @@
 {
     "name": "phil/backup-bundle",
-    "description": "phil/backup in Symfony: database and media backups from configuration, encrypted with a key from the environment, rotated, restored behind a guard that asks for confirmation, the database name typed again and an automatic backup first, and tested by restoring into a copy",
+    "description": "phil/backup in Symfony: database and media backups from configuration, encrypted and rotated, restored behind a confirmation guard, and tested by restoring.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [
