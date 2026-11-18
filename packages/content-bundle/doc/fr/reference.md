@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d714bf5c8305803558ae2a4b4fec2c614ee299983c954742a0365a88bb6ffbb0 -->
+<!-- phil-dev source-sha256=df32c98aa60dc45ce7585cdb96ecbe69a4a67f6d1b1c3ab5a503828dc232c587 -->
 # Référence de l'API
 
 Chaque classe et interface du bundle, par couche. Tous les espaces de noms sont sous `Phil\ContentBundle`. « Port »
@@ -147,6 +147,7 @@ Chaque classe implémente `Phil\DddBundle\Domain\Exception\DomainError`.
 |---|---|
 | `DoctrineDimensionContentRepository` | Adaptateur de `DimensionContentRepository` |
 | `DoctrineRouteRepository` | Adaptateur de `RouteRepository` |
+| `BinaryKeysListener` | Les clés des routes, des racines uniques, des copies de travail et des lignes en `utf8mb4_bin` sur MySQL et MariaDB, au `loadClassMetadata` de l'ORM ([storage.md](storage.md#collation-des-clés)) |
 | `DoctrineContentRootRepository` | Adaptateur de `ContentRootRepository` |
 | `DoctrinePublishedRowRepository` | Adaptateur de `PublishedRowRepository` |
 | `RootIdentifiers` | L'identifiant d'une racine tiré de sa chaîne, et lié dans une liste `IN` comme son type DBAL l'enregistre |

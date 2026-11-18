@@ -146,6 +146,7 @@ Every class implements `Phil\DddBundle\Domain\Exception\DomainError`.
 |---|---|
 | `DoctrineDimensionContentRepository` | Adapter of `DimensionContentRepository` |
 | `DoctrineRouteRepository` | Adapter of `RouteRepository` |
+| `BinaryKeysListener` | The keys of the routes, single roots, working copies and rows in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata` ([storage.md](storage.md#collation-of-the-keys)) |
 | `DoctrineContentRootRepository` | Adapter of `ContentRootRepository` |
 | `DoctrinePublishedRowRepository` | Adapter of `PublishedRowRepository` |
 | `RootIdentifiers` | A root's identifier from its string, and bound in an `IN` list as its DBAL type stores it |

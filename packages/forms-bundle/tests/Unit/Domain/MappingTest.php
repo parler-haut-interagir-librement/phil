@@ -44,7 +44,7 @@ final class MappingTest extends TestCase
             'subjectField' => ['subject_field', 'string', 64, true, null],
             'notifications' => ['notifications', 'json', null, false, null],
         ]], [$form->getTableName(), $this->columns($form)]);
-        self::assertSame('[]', $form->fieldMappings['notifications']->options['default'] ?? null);
+        self::assertArrayNotHasKey('default', $form->fieldMappings['notifications']->options ?? [], 'MySQL refuses a literal default on a JSON column.');
         self::assertSame([['columns' => ['form_key']]], array_values($form->table['uniqueConstraints'] ?? []));
 
         self::assertSame(['phil_form_entry', [
@@ -57,7 +57,7 @@ final class MappingTest extends TestCase
             'emailDigest' => ['email_digest', 'string', 64, true, null],
             'sealed' => ['sealed_fields', 'json', null, false, null],
         ]], [$entry->getTableName(), $this->columns($entry)]);
-        self::assertSame('[]', $entry->fieldMappings['sealed']->options['default'] ?? null);
+        self::assertArrayNotHasKey('default', $entry->fieldMappings['sealed']->options ?? [], 'MySQL refuses a literal default on a JSON column.');
 
         $count = $this->metadata(ChoiceCount::class);
         self::assertSame(['phil_form_choice_count', [

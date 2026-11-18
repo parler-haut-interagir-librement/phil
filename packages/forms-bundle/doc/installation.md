@@ -74,6 +74,63 @@ With DoctrineBundle, the bundle maps its entities itself. The application's migr
 | `phil_form_entry` | An entry: its form, values (JSON), when it came and when it is deleted, its language, the identifier of the person (`subject`) and the digest of their address (`email_digest`), each indexed, and the fields whose values are sealed (`sealed_fields`, JSON) |
 | `phil_form_choice_count` | The places taken in a choice: its form, field (`field_name`) and choice, the key, and the count (`taken`) |
 
+### Collation of the keys
+
+**Keys compare byte by byte**, as PHP compares them. A form is found by its key, an entry by the
+identifier of its person, a count of places by its choice, each as it was written: the form `Contact` is never found
+for `contact`, the entries of `Ann` are never listed or erased for `ann`, and the places of the choice `Yes` are never
+counted for `yes`.
+`BinaryKeysListener` gives these fields the binary collation when the ORM loads their metadata on MySQL or MariaDB;
+the mapping itself stays the same on every platform.
+
+| Table | Columns in `utf8mb4_bin` on MySQL and MariaDB |
+|---|---|
+| `phil_form` | `id`, `form_key` |
+| `phil_form_entry` | `id`, `form`, `locale`, `subject`, `email_digest` |
+| `phil_form_choice_count` | `form`, `field_name`, `choice` |
+
+On MySQL and MariaDB, these columns take the `utf8mb4` character set and the `utf8mb4_bin` collation, given the
+connection's platform: the default collation of MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's
+default collations are deterministic, equal only when the bytes are, and SQLite compares bytes: their columns keep the
+default.
+
+#### Upgrading from 0.1
+
+The tables of a 0.1 install on MySQL or MariaDB kept the connection's collation. `doctrine:migrations:diff` writes
+the migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. On PostgreSQL
+and SQLite the diff holds only the change below.
+
+The diff also drops the default `'[]'` of `phil_form.notifications` and `phil_form_entry.sealed_fields`, on every
+platform: MySQL refuses a literal default on a JSON column, and the bundle writes both columns on every row it
+creates.
+
+The join columns `form` are converted with the identifiers they reference, and MySQL refuses to change one side of
+a foreign key before the other. Put `SET FOREIGN_KEY_CHECKS = 0` at the start of the migration's `up()` and
+`SET FOREIGN_KEY_CHECKS = 1` at its end; the foreign keys stay, and are checked again once both sides are converted:
+
+```php
+public function up(Schema $schema): void
+{
+    $this->addSql('SET FOREIGN_KEY_CHECKS = 0');
+    // The statements doctrine:migrations:diff wrote.
+    $this->addSql('SET FOREIGN_KEY_CHECKS = 1');
+}
+```
+
+The change only makes values more distinct, so no existing row breaks a unique key. It parts what the
+case-insensitive collation joined: rows whose keys differ only by case, which a lookup by either spelling returned
+together, are each found by their own spelling from the migration on, and a key the application looks up in
+another case than it wrote stops matching. Before migrating, list the keys written in more than one case:
+
+```sql
+SELECT subject, COUNT(*) AS row_count FROM phil_form_entry
+GROUP BY subject HAVING COUNT(DISTINCT CAST(subject AS BINARY)) > 1;
+```
+
+Each line is one key under several spellings. Keep them apart, or bring the rows to the spelling the application
+uses with an `UPDATE` before the migration. A unique key cannot hold two such spellings under the old collation, so
+the columns of a unique key need no check.
+
 ## Configuration
 
 | Key | Default | Role |

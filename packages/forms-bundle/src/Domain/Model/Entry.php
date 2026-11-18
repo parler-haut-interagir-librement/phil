@@ -48,7 +48,7 @@ final class Entry
         public readonly ?string $subject,
         #[ORM\Column(name: 'email_digest', length: 64, nullable: true)]
         public readonly ?string $emailDigest,
-        #[ORM\Column(name: 'sealed_fields', type: 'json', options: ['default' => '[]'])]
+        #[ORM\Column(name: 'sealed_fields', type: 'json')]
         public readonly array $sealed = [],
     ) {
     }

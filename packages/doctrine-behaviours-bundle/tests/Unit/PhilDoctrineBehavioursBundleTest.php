@@ -34,6 +34,7 @@ use Phil\DoctrineBehaviours\Version\RecordVersion;
 use Phil\DoctrineBehaviours\VersionListener;
 use Phil\DoctrineBehaviours\Versions;
 use Phil\DoctrineBehavioursBundle\Infrastructure\DependencyInjection\BehaviourServices;
+use Phil\DoctrineBehavioursBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\BlamePrivacy;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\OwnerPrivacy;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Security\SecurityBlameResolver;
@@ -66,6 +67,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 #[CoversClass(PhilDoctrineBehavioursBundle::class)]
 #[CoversClass(BehaviourServices::class)]
+#[CoversClass(BinaryKeysListener::class)]
 #[CoversClass(SecurityBlameResolver::class)]
 #[CoversClass(SecurityOwnerResolver::class)]
 #[CoversClass(SecurityVersionRestoreGuard::class)]
@@ -77,7 +79,8 @@ final class PhilDoctrineBehavioursBundleTest extends TestCase
         $container = $this->load([]);
 
         self::assertSame('phil_doctrine_behaviours', $this->extension()->getAlias());
-        self::assertSame(['service_container', TimestampListener::class, BlameResolver::class, BlameListener::class, BlameEraser::class, SoftDeleteListener::class, TreeListener::class, Tree::class, DeactivationListener::class, PositionListener::class, Positions::class, TranslationListener::class, Translations::class, BlamePrivacy::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', BinaryKeysListener::class, TimestampListener::class, BlameResolver::class, BlameListener::class, BlameEraser::class, SoftDeleteListener::class, TreeListener::class, Tree::class, DeactivationListener::class, PositionListener::class, Positions::class, TranslationListener::class, Translations::class, BlamePrivacy::class], array_keys($container->getDefinitions()));
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertSame([['event' => 'prePersist'], ['event' => 'onFlush']], $container->getDefinition(TimestampListener::class)->getTag('doctrine.event_listener'));
         self::assertEquals([new Reference('clock')], $container->getDefinition(TimestampListener::class)->getArguments());
         self::assertSame([['event' => 'prePersist'], ['event' => 'onFlush']], $container->getDefinition(BlameListener::class)->getTag('doctrine.event_listener'));
@@ -109,7 +112,7 @@ final class PhilDoctrineBehavioursBundleTest extends TestCase
 
     public function testEveryBehaviourCanBeOff(): void
     {
-        self::assertSame(['service_container'], array_keys($this->load(['timestamps' => false, 'blame' => false, 'soft_delete' => false, 'tree' => false, 'deactivation' => false, 'position' => false, 'translation' => false])->getDefinitions()));
+        self::assertSame(['service_container', BinaryKeysListener::class], array_keys($this->load(['timestamps' => false, 'blame' => false, 'soft_delete' => false, 'tree' => false, 'deactivation' => false, 'position' => false, 'translation' => false])->getDefinitions()));
         self::assertFalse($this->load(['soft_delete' => ['enabled' => false]])->hasDefinition(SoftDeleteListener::class));
         self::assertSame([false, false], [$this->load(['blame' => ['enabled' => false]])->hasDefinition(BlameListener::class), $this->load(['blame' => false])->hasDefinition(BlameEraser::class)]);
         self::assertSame('uuid', $this->load(['blame' => ['user_method' => 'uuid']])->getDefinition(BlameResolver::class)->getArgument(1));

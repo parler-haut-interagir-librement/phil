@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9d4b6c18faa2a45837d5c3a755728ff686d167f7ce023569a5d8a8f9e8108e55 -->
+<!-- phil-dev source-sha256=73d25bc4451be4d3372cb64c56165d3f044a5764033a31c2bf71d08da73d050a -->
 # Référence
 
 | Type | Sorte | Rôle |
@@ -13,6 +13,7 @@
 | `Application\TransitionHandler` | interface | Applique les transitions |
 | `Application\RunReport` | `final readonly class` | Ce qu'a fait une exécution |
 | `Infrastructure\Doctrine\DoctrineScheduledTransitionRepository` | dépôt | Le port sur Doctrine ORM |
+| `Infrastructure\Doctrine\BinaryKeysListener` | écouteur | Les clés de `phil_scheduled_transition` en `utf8mb4_bin` sur MySQL et MariaDB, au `loadClassMetadata` de l'ORM ([installation.md](installation.md#collation-des-clés)) |
 | `Infrastructure\Workflow\WorkflowTransitionHandler`, `SubjectResolver`, `Subject` | gestionnaire | Par `symfony/workflow` |
 | `Infrastructure\Scheduler\TransitionsSchedule`, `RunDueTransitions`, `RunDueTransitionsHandler` | calendrier, message | Symfony Scheduler |
 | `Infrastructure\Console\RunTransitionsCommand` | commande de console | `phil:scheduled-transitions:run` |

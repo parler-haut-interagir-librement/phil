@@ -14,6 +14,12 @@ on SQLite and TwigBundle, translates a page through the routes, refused without 
 cookie, edits a glossary and comments a segment. `tests/js`
 runs the module of the double-submitted token under Node's test runner.
 
+`BinaryKeysListener` is tested on the schema generated for MySQL and MariaDB, with the keys in `utf8mb4_bin`, and for
+SQLite, with the default collation. The suite `tests/Integration` runs it on a real MySQL 8.4 and PostgreSQL 17: four
+glossary terms that differ only by case or accent are four terms, each found by its own spelling only, and on MySQL the
+keys are in `utf8mb4_bin` and the tables of the previous version reach it through the schema diff. Each server's test
+reads its URL from `PHIL_TEST_MYSQL_URL` or `PHIL_TEST_POSTGRESQL_URL` and is skipped without it.
+
 From the monorepo root, then from the bundle:
 
 ```sh

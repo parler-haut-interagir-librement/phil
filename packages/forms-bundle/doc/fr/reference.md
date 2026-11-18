@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=12516d6749389fbe0a9665daea15703e12d5f0e12c9fb37b51aac3e06729cd2e -->
+<!-- phil-dev source-sha256=da1f5d3478a745414be80f886e9e03ecc83b8d9040a5fce72617b374f5b4ff44 -->
 # Référence
 
 | Type | Genre | Rôle |
@@ -21,6 +21,7 @@
 | `Application\CurrentSubject` | interface | L'identifiant de la personne qui envoie un formulaire |
 | `Application\EntryNotifier`, `NotificationFailed` | interface, exception | Avertir quelqu'un d'une entrée |
 | `Infrastructure\Doctrine\DoctrineFormRepository` | adaptateur | Doctrine ORM ; les places dans les choix |
+| `Infrastructure\Doctrine\BinaryKeysListener` | écouteur | Les clés des tables en `utf8mb4_bin` sur MySQL et MariaDB, au `loadClassMetadata` de l'ORM ([installation.md](installation.md#collation-des-clés)) |
 | `Infrastructure\KeyManagement\KeyManagementFieldSealer` | adaptateur | Le scellement par le chiffrement d'enveloppe du composant KeyManagement de Symfony |
 | `Infrastructure\DependencyInjection\FormsServices`, `FieldSealerPass` | câblage | Les services de la configuration ; le scelleur quand `sealing.key` nomme une clé maîtresse |
 | `Infrastructure\Form\EntryType` | type de formulaire | Le formulaire Symfony d'une définition ; avec `phil/form-logic`, ses rangées conditionnelles nommées et le `phil_form_logic_steps` de sa vue |

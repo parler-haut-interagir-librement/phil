@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f6ba047ea9f04eb7f0f9da24f92ff84eb9669655146f320cc7d0cc4423bcfad5 -->
+<!-- phil-dev source-sha256=11a57f6e62a617a07f800dd03ea4e55d211aa96ca658761ff07ade97febaca81 -->
 # Installation
 
 | Prérequis | Version | Pourquoi |
@@ -109,5 +109,59 @@ Avec DoctrineBundle, le bundle mappe lui-même ses entités. Les migrations de l
 | `phil_media` | Un média : son fichier actuel, sa description, sa licence, sa divulgation de l'IA et son point focal |
 | `phil_media_version` | Les fichiers qu'un média a eus avant, une ligne par remplacement, supprimées avec lui |
 | `phil_media_collection` | Les collections, par une clé unique |
+
+## Collation des clés
+
+**Les clés se comparent octet par octet**, comme PHP les compare. Une collection se trouve par sa clé et un fichier par
+sa clé de stockage, chacun tel qu'il a été écrit : la collection `Press` n'est jamais trouvée pour `press`, et le
+fichier stocké sous `2026/Photo.jpg` n'est jamais pris pour `2026/photo.jpg`.
+`BinaryKeysListener` donne à ces champs la collation binaire quand l'ORM charge leurs métadonnées sur MySQL ou
+MariaDB ; l'association elle-même reste la même sur toutes les plateformes.
+
+| Table | Colonnes en `utf8mb4_bin` sur MySQL et MariaDB |
+|---|---|
+| `phil_media` | `id`, `collection`, `storage_key` |
+| `phil_media_version` | `id`, `media`, `storage_key` |
+| `phil_media_collection` | `id`, `collection_key` |
+
+Sur MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la
+plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ne distingue ni la casse ni les
+accents. Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et
+SQLite compare les octets : leurs colonnes gardent la valeur par défaut.
+
+### Mise à niveau depuis 0.1
+
+Les tables d'une installation 0.1 sur MySQL ou MariaDB gardaient la collation de la connexion.
+`doctrine:migrations:diff` écrit la migration qui amène les colonnes ci-dessus à `utf8mb4_bin` ; exécutez-la avec
+`doctrine:migrations:migrate`. Sur PostgreSQL et SQLite, le diff est vide.
+
+Les colonnes de jointure `collection` et `media` sont converties avec les identifiants qu'elles référencent, et MySQL refuse de
+changer un côté d'une clé étrangère avant l'autre. Mettez `SET FOREIGN_KEY_CHECKS = 0` au début du `up()` de la
+migration et `SET FOREIGN_KEY_CHECKS = 1` à sa fin ; les clés étrangères restent, et sont vérifiées de nouveau une fois
+les deux côtés convertis :
+
+```php
+public function up(Schema $schema): void
+{
+    $this->addSql('SET FOREIGN_KEY_CHECKS = 0');
+    // The statements doctrine:migrations:diff wrote.
+    $this->addSql('SET FOREIGN_KEY_CHECKS = 1');
+}
+```
+
+Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne brise donc une clé unique.
+Il sépare ce que la collation insensible à la casse réunissait : les lignes dont les clés ne diffèrent que par la
+casse, qu'une recherche par l'une ou l'autre graphie retournait ensemble, se trouvent chacune par leur propre graphie
+dès la migration, et une clé que l'application cherche dans une autre casse que celle où elle l'a écrite cesse de
+correspondre. Avant de migrer, listez les clés écrites en plus d'une casse :
+
+```sql
+SELECT storage_key, COUNT(*) AS row_count FROM phil_media
+GROUP BY storage_key HAVING COUNT(DISTINCT CAST(storage_key AS BINARY)) > 1;
+```
+
+Chaque ligne est une clé sous plusieurs graphies. Gardez-les distinctes, ou ramenez les lignes à la graphie
+qu'utilise l'application avec un `UPDATE` avant la migration. Une clé unique ne peut contenir deux telles graphies sous
+l'ancienne collation, donc les colonnes d'une clé unique n'ont pas besoin de vérification.
 
 Un service `MediaStorage` ou `ImageProcessor` propre à l'application, aliasé, remplace le répertoire ou GD.

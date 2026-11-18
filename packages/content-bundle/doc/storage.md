@@ -273,3 +273,43 @@ On failure, it rolls back, **clears the unit of work**, and rethrows:
   publication, the same slug taken twice at once — closes it, as `doctrine/orm` closes it whenever its commit
   fails. A caller that catches such an error and writes again resets the entity manager first
   (`ManagerRegistry::resetManager()`).
+
+## Collation of the keys
+
+**Keys compare byte by byte**, as PHP compares them. A route, a root, a working copy and a row are
+found by their keys as they were written: the content `news:Doc-A` is never `news:doc-a`, its routes are never listed
+for the other, and the autosave of the author `Ann` is never given to `ann`.
+`BinaryKeysListener` gives these fields the binary collation when the ORM loads their metadata on MySQL or MariaDB;
+the mapping itself stays the same on every platform.
+
+| Table | Columns in `utf8mb4_bin` on MySQL and MariaDB |
+|---|---|
+| `phil_content_route` | `resource_key`, `resource_id`, `slug`, `locale` |
+| `phil_content_single_root` | `resource_key`, `resource_id` |
+| `phil_content_working_copy` | `resource_key`, `resource_id`, `locale`, `author` |
+| `the table of each row class` | `locale`, `locale_key`, `stage` |
+
+On MySQL and MariaDB, these columns take the `utf8mb4` character set and the `utf8mb4_bin` collation, given the
+connection's platform: the default collation of MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's
+default collations are deterministic, equal only when the bytes are, and SQLite compares bytes: their columns keep the
+default.
+
+### Upgrading from 0.2
+
+The tables of a 0.2 install on MySQL or MariaDB kept the connection's collation. `doctrine:migrations:diff` writes
+the migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. On
+PostgreSQL and SQLite the diff is empty.
+
+The change only makes values more distinct, so no existing row breaks a unique key. It parts what the
+case-insensitive collation joined: rows whose keys differ only by case, which a lookup by either spelling returned
+together, are each found by their own spelling from the migration on, and a key the application looks up in
+another case than it wrote stops matching. Before migrating, list the keys written in more than one case:
+
+```sql
+SELECT resource_key, resource_id, COUNT(*) AS row_count FROM phil_content_route
+GROUP BY resource_key, resource_id HAVING COUNT(DISTINCT CAST(resource_id AS BINARY)) > 1;
+```
+
+Each line is one key under several spellings. Keep them apart, or bring the rows to the spelling the application
+uses with an `UPDATE` before the migration. A unique key cannot hold two such spellings under the old collation, so
+the columns of a unique key need no check.

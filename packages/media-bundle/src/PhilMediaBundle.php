@@ -22,6 +22,7 @@ use Phil\MediaBundle\Infrastructure\Admin\ExplorerAccess;
 use Phil\MediaBundle\Infrastructure\Admin\MediaAdminController;
 use Phil\MediaBundle\Infrastructure\Console\PlaceholdersCommand;
 use Phil\MediaBundle\Infrastructure\DependencyInjection\CsrfProtectionPass;
+use Phil\MediaBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\MediaBundle\Infrastructure\Doctrine\DoctrineMediaReferences;
 use Phil\MediaBundle\Infrastructure\Doctrine\DoctrineMediaRepository;
 use Phil\MediaBundle\Infrastructure\Doctrine\MediaType;
@@ -257,6 +258,7 @@ final class PhilMediaBundle extends AbstractBundle
         // The ports by reflection: the bundle class wires the adapter, and names no class of the domain. The repository
         // and the one that reads several media at once are both the Doctrine adapter.
         $services->set(DoctrineMediaRepository::class)->args([new Reference('doctrine.orm.entity_manager')]);
+        $services->set(BinaryKeysListener::class)->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
         $port = '';
 
         foreach (new ReflectionClass(DoctrineMediaRepository::class)->getInterfaces() as $interface) {

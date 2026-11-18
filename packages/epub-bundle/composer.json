@@ -32,7 +32,7 @@
         "ext-zlib": "*",
         "phil/fonts": "^0.1@dev",
         "phil/fonts-bundle": "^0.1@dev",
-        "phil/media-bundle": "^0.1@dev",
+        "phil/media-bundle": "^0.1@dev || ^0.2@dev",
         "phpunit/phpunit": "^13.4",
         "psr/clock": "^1.0",
         "psr/event-dispatcher": "^1.0",

@@ -4,6 +4,27 @@ All notable changes to `phil/media-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the keys of the media, versions and collections compare byte by byte on MySQL and
+MariaDB. See [Upgrading from 0.1](doc/installation.md#upgrading-from-01).
+
+### Added
+
+- `Infrastructure\Doctrine\BinaryKeysListener`, on the ORM's `loadClassMetadata` event, and its `FIELDS`: the fields of
+  the bundle's entities that compare byte by byte on MySQL and MariaDB.
+
+### Changed
+
+- On MySQL and MariaDB, `id`, `collection` and `storage_key` of `phil_media`, `id`, `media` and `storage_key` of
+  `phil_media_version`, and `id` and `collection_key` of `phil_media_collection` take the `utf8mb4` character set and
+  the `utf8mb4_bin` collation in the schema the ORM generates, through `Infrastructure\Doctrine\BinaryKeysListener`.
+  PostgreSQL and SQLite keep their default, which compares bytes already.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, the collection `Press` was found for `press`.
+
 ## 0.1.1-alpha - 2026-11-15
 
 ### Added

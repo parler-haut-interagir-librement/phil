@@ -30,6 +30,7 @@
 | `Infrastructure\Svg\SanitizingSvgPurifier` | adapter | `phil/svg-sanitizer`, then `SvgMinifier` |
 | `Infrastructure\Svg\SvgMinifier` | `final readonly class` | Comments, `metadata` and whitespace dropped, coordinates rounded |
 | `Infrastructure\Doctrine\DoctrineMediaRepository` | adapter | Doctrine ORM |
+| `Infrastructure\Doctrine\BinaryKeysListener` | listener | The keys of the tables in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata` ([installation.md](installation.md#collation-of-the-keys)) |
 | `Infrastructure\Doctrine\MediaType` | DBAL type | The column type `phil_media` |
 | `Infrastructure\Doctrine\DoctrineMediaReferences` | adapter | The `phil_media` columns of the mapped entities |
 | `Infrastructure\Validator\MediaFile`, `MediaFileValidator` | constraint | Existence, collections and media types |

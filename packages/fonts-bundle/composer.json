@@ -29,7 +29,7 @@
     },
     "require-dev": {
         "ext-mbstring": "*",
-        "phil/media-bundle": "^0.1@dev",
+        "phil/media-bundle": "^0.1@dev || ^0.2@dev",
         "phil/paged-media": "^0.1@dev",
         "phpunit/phpunit": "^13.4",
         "psr/clock": "^1.0",

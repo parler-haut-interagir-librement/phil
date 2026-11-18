@@ -9,6 +9,7 @@ use Phil\TrashBundle\Application\Trash;
 use Phil\TrashBundle\Application\TrashHandler;
 use Phil\TrashBundle\Domain\Repository\TrashItemRepository;
 use Phil\TrashBundle\Infrastructure\Console\PurgeTrashCommand;
+use Phil\TrashBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\TrashBundle\Infrastructure\Doctrine\DoctrineTrashItemRepository;
 use Phil\TrashBundle\PhilTrashBundle;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -29,7 +30,8 @@ final class PhilTrashBundleTest extends TestCase
         $container = $this->load([['retention' => 14, 'retention_by_kind' => ['page' => 90]]]);
 
         self::assertSame('phil_trash', $this->extension()->getAlias());
-        self::assertSame(['service_container', DoctrineTrashItemRepository::class, Trash::class, PurgeTrashCommand::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', DoctrineTrashItemRepository::class, BinaryKeysListener::class, Trash::class, PurgeTrashCommand::class], array_keys($container->getDefinitions()));
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertEquals([new Reference('doctrine.orm.entity_manager')], $container->getDefinition(DoctrineTrashItemRepository::class)->getArguments());
         self::assertSame(DoctrineTrashItemRepository::class, (string) $container->getAlias(TrashItemRepository::class));
         self::assertTrue($container->getAlias(TrashItemRepository::class)->isPublic());

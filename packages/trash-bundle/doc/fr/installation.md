@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9aef2e295f1f71a6ce908488cd4c302c1c60a40398645ff624c094c094505639 -->
+<!-- phil-dev source-sha256=7ef43f018041aab4c4c801709ee65fd549c814d368c869360becd147995160b9 -->
 # Installation
 
 | Prérequis | Version | Pourquoi |
@@ -34,3 +34,41 @@ phil_trash:
 Avec DoctrineBundle, le bundle mappe lui-même son entité ; les migrations de l'application créent `phil_trash_item` :
 `id`, `resource_key` (64), `resource_id` (255), `title` (255), `payload` (JSON), `parent` (`kind:id`, nullable),
 `trashed_at`, `trashed_by` (nullable), `purge_after`, avec des index sur la ressource et sur `purge_after`.
+
+## Collation des clés
+
+**Les clés se comparent octet par octet**, comme PHP les compare. Une ressource mise à la corbeille se trouve, se
+restaure et se purge par sa clé telle qu'elle a été écrite : la ressource `Doc-A` n'est jamais restaurée ni purgée pour
+`doc-a`.
+`BinaryKeysListener` donne à ces champs la collation binaire quand l'ORM charge leurs métadonnées sur MySQL ou
+MariaDB ; l'association elle-même reste la même sur toutes les plateformes.
+
+| Table | Colonnes en `utf8mb4_bin` sur MySQL et MariaDB |
+|---|---|
+| `phil_trash_item` | `id`, `resource_key`, `resource_id`, `parent`, `trashed_by` |
+
+Sur MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la
+plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ne distingue ni la casse ni les
+accents. Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et
+SQLite compare les octets : leurs colonnes gardent la valeur par défaut.
+
+### Mise à niveau depuis 0.1
+
+Les tables d'une installation 0.1 sur MySQL ou MariaDB gardaient la collation de la connexion.
+`doctrine:migrations:diff` écrit la migration qui amène les colonnes ci-dessus à `utf8mb4_bin` ; exécutez-la avec
+`doctrine:migrations:migrate`. Sur PostgreSQL et SQLite, le diff est vide.
+
+Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne brise donc une clé unique.
+Il sépare ce que la collation insensible à la casse réunissait : les lignes dont les clés ne diffèrent que par la
+casse, qu'une recherche par l'une ou l'autre graphie retournait ensemble, se trouvent chacune par leur propre graphie
+dès la migration, et une clé que l'application cherche dans une autre casse que celle où elle l'a écrite cesse de
+correspondre. Avant de migrer, listez les clés écrites en plus d'une casse :
+
+```sql
+SELECT resource_key, resource_id, COUNT(*) AS row_count FROM phil_trash_item
+GROUP BY resource_key, resource_id HAVING COUNT(DISTINCT CAST(resource_id AS BINARY)) > 1;
+```
+
+Chaque ligne est une clé sous plusieurs graphies. Gardez-les distinctes, ou ramenez les lignes à la graphie
+qu'utilise l'application avec un `UPDATE` avant la migration. Une clé unique ne peut contenir deux telles graphies sous
+l'ancienne collation, donc les colonnes d'une clé unique n'ont pas besoin de vérification.

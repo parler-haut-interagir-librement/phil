@@ -571,6 +571,29 @@ abstract class ContentStorageTestCase extends TestCase
         self::assertNull($routes->findBySlug('article', Locale::fromString('fr'), Slug::fromString('ouverture')));
     }
 
+    public function testContentsWhoseIdentifiersDifferByCaseKeepTheirOwnRoutesAndRoots(): void
+    {
+        $routes = new DoctrineRouteRepository($this->entityManager);
+        $identifiers = ['Doc-A', 'doc-a', 'DOC-A'];
+
+        foreach ($identifiers as $i => $identifier) {
+            $routes->add(Route::current(ContentReference::of('article', $identifier), Locale::fromString('fr'), Slug::fromString('page-'.$i)));
+        }
+
+        $this->flushAndClear();
+
+        foreach ($identifiers as $i => $identifier) {
+            self::assertSame('page-'.$i, $routes->findCurrent(ContentReference::of('article', $identifier), Locale::fromString('fr'))?->slug()->value, $identifier);
+            self::assertSame([$identifier], array_map(static fn (Route $route): string => $route->content()->resourceId, $routes->findAllOf(ContentReference::of('article', $identifier))), $identifier);
+        }
+
+        $singles = new DoctrineSingleRootRepository($this->entityManager);
+        $singles->claim(ContentReference::of('home', 'Doc-A'));
+        $singles->release(ContentReference::of('home', 'doc-a'));
+
+        self::assertSame(1, $this->rowCount(SingleRoot::TABLE), 'The root of another identifier does not free the kind.');
+    }
+
     public function testOneKindCannotHoldOneSlugTwiceInALocale(): void
     {
         $routes = new DoctrineRouteRepository($this->entityManager);

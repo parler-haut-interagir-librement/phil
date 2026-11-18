@@ -68,7 +68,7 @@ final class Form
         private bool $open,
         #[ORM\Column(name: 'subject_field', length: 64, nullable: true)]
         private ?string $subjectField = null,
-        #[ORM\Column(name: 'notifications', type: 'json', options: ['default' => '[]'])]
+        #[ORM\Column(name: 'notifications', type: 'json')]
         private array $notifications = [],
     ) {
     }

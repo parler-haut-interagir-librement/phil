@@ -17,6 +17,7 @@ they exist, and an open quarantine directory is narrowed to its owner. See
 
 ### Changed
 
+- `phil/media-bundle` 0.2 is accepted beside 0.1.
 - `FilesystemQuarantine::isolate()` narrows an existing directory open to its group or to other users to `0700`
   before it keeps a file, and fails with `QuarantineFailed`, naming the directory and its mode, when it cannot.
 - The copy and the record are written as temporary files of the directory created `0600`, then given their names in

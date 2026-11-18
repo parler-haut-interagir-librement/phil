@@ -4,6 +4,28 @@ All notable changes to `phil/scheduled-transitions-bundle` will be documented in
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the keys of the scheduled transitions compare byte by byte on MySQL and MariaDB. See [Upgrading from 0.1](doc/installation.md#upgrading-from-01).
+
+### Added
+
+- `Infrastructure\Doctrine\BinaryKeysListener`, on the ORM's `loadClassMetadata` event, and its `FIELDS`: the fields of
+  the bundle's entities that compare byte by byte on MySQL and MariaDB.
+
+### Changed
+
+- On MySQL and MariaDB, `id`, `resource_kind`, `resource_id` and `transition` of `phil_scheduled_transition` take the
+  `utf8mb4` character set and the `utf8mb4_bin` collation in the schema the ORM generates, through
+  `Infrastructure\Doctrine\BinaryKeysListener`. PostgreSQL and SQLite keep their default, which compares bytes already.
+- `doctrine/dbal` is required, already required by `doctrine/orm`: `BinaryKeysListener` reads the platform of the
+  connection.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, the transitions scheduled for the resource `Doc-A`
+  were listed and cancelled for `doc-a`.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

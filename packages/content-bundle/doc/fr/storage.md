@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=27dfeccdbfb01b7e7be8e542898d51248c3a1fa8b48782aa83f4445663b0ef0e -->
+<!-- phil-dev source-sha256=b28790b2d41a7ee67d293233c7fbd5df1944088586291adca8079382b4a8306c -->
 # Stockage Doctrine
 
 Avec DoctrineBundle, le bundle enregistre les racines, les lignes et les routes par l'ORM. L'application écrit **deux
@@ -279,3 +279,45 @@ En cas d'échec, elle annule, **vide l'unité de travail** et relance l'exceptio
   refuse une publication concurrente, le même slug pris deux fois au même moment — le ferme, comme `doctrine/orm` le
   ferme chaque fois que son commit échoue. Un appelant qui attrape une telle erreur et écrit de nouveau réinitialise
   d'abord le gestionnaire d'entités (`ManagerRegistry::resetManager()`).
+
+## Collation des clés
+
+**Les clés se comparent octet par octet**, comme PHP les compare. Une route, une racine, une copie de travail et une
+ligne se trouvent par leurs clés telles qu'elles ont été écrites : le contenu `news:Doc-A` n'est jamais `news:doc-a`,
+ses routes ne sont jamais listées pour l'autre, et la sauvegarde automatique de l'auteur `Ann` n'est jamais donnée à
+`ann`.
+`BinaryKeysListener` donne à ces champs la collation binaire quand l'ORM charge leurs métadonnées sur MySQL ou
+MariaDB ; l'association elle-même reste la même sur toutes les plateformes.
+
+| Table | Colonnes en `utf8mb4_bin` sur MySQL et MariaDB |
+|---|---|
+| `phil_content_route` | `resource_key`, `resource_id`, `slug`, `locale` |
+| `phil_content_single_root` | `resource_key`, `resource_id` |
+| `phil_content_working_copy` | `resource_key`, `resource_id`, `locale`, `author` |
+| `la table de chaque classe de ligne` | `locale`, `locale_key`, `stage` |
+
+Sur MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la
+plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ne distingue ni la casse ni les
+accents. Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et
+SQLite compare les octets : leurs colonnes gardent la valeur par défaut.
+
+### Mise à niveau depuis 0.2
+
+Les tables d'une installation 0.2 sur MySQL ou MariaDB gardaient la collation de la connexion.
+`doctrine:migrations:diff` écrit la migration qui amène les colonnes ci-dessus à `utf8mb4_bin` ; exécutez-la avec
+`doctrine:migrations:migrate`. Sur PostgreSQL et SQLite, le diff est vide.
+
+Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne brise donc une clé unique.
+Il sépare ce que la collation insensible à la casse réunissait : les lignes dont les clés ne diffèrent que par la
+casse, qu'une recherche par l'une ou l'autre graphie retournait ensemble, se trouvent chacune par leur propre graphie
+dès la migration, et une clé que l'application cherche dans une autre casse que celle où elle l'a écrite cesse de
+correspondre. Avant de migrer, listez les clés écrites en plus d'une casse :
+
+```sql
+SELECT resource_key, resource_id, COUNT(*) AS row_count FROM phil_content_route
+GROUP BY resource_key, resource_id HAVING COUNT(DISTINCT CAST(resource_id AS BINARY)) > 1;
+```
+
+Chaque ligne est une clé sous plusieurs graphies. Gardez-les distinctes, ou ramenez les lignes à la graphie
+qu'utilise l'application avec un `UPDATE` avant la migration. Une clé unique ne peut contenir deux telles graphies sous
+l'ancienne collation, donc les colonnes d'une clé unique n'ont pas besoin de vérification.

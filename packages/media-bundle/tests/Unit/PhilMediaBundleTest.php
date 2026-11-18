@@ -19,6 +19,7 @@ use Phil\MediaBundle\Domain\Repository\MediaRepository;
 use Phil\MediaBundle\Infrastructure\Admin\ExplorerAccess;
 use Phil\MediaBundle\Infrastructure\Admin\MediaAdminController;
 use Phil\MediaBundle\Infrastructure\Console\PlaceholdersCommand;
+use Phil\MediaBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\MediaBundle\Infrastructure\Doctrine\DoctrineMediaReferences;
 use Phil\MediaBundle\Infrastructure\Doctrine\DoctrineMediaRepository;
 use Phil\MediaBundle\Infrastructure\Doctrine\MediaType;
@@ -64,7 +65,8 @@ final class PhilMediaBundleTest extends TestCase
         $repository = new Reference(MediaRepository::class);
 
         self::assertSame('phil_media', $this->extension()->getAlias());
-        self::assertSame(['service_container', DoctrineMediaRepository::class, FilesystemStorage::class, GdImageProcessor::class, UrlSigner::class, DoctrineMediaReferences::class, SvgMinifier::class, SanitizingSvgPurifier::class, MediaLibrary::class, MediaController::class, PlaceholdersCommand::class, MediaFileValidator::class, MediaPickerType::class, MediaExtension::class, ExplorerAccess::class, MediaAdminController::class, ResponsiveImages::class, MediaFieldConfigurator::class, Img::class, Picture::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', DoctrineMediaRepository::class, BinaryKeysListener::class, FilesystemStorage::class, GdImageProcessor::class, UrlSigner::class, DoctrineMediaReferences::class, SvgMinifier::class, SanitizingSvgPurifier::class, MediaLibrary::class, MediaController::class, PlaceholdersCommand::class, MediaFileValidator::class, MediaPickerType::class, MediaExtension::class, ExplorerAccess::class, MediaAdminController::class, ResponsiveImages::class, MediaFieldConfigurator::class, Img::class, Picture::class], array_keys($container->getDefinitions()));
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertEquals([new Reference('doctrine.orm.entity_manager')], $container->getDefinition(DoctrineMediaRepository::class)->getArguments());
         self::assertSame(DoctrineMediaRepository::class, (string) $container->getAlias(MediaRepository::class));
         self::assertTrue($container->getAlias(MediaRepository::class)->isPublic());

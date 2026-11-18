@@ -12,6 +12,17 @@
 | `PurgeEntriesCommand`, `PhilFormsBundle` | Batches; services, defaults, the spam protection required, the mapping, the signed-in user as the subject, the sealer wired from `sealing`, null or refused when empty, refused without the component or its client, `allow_unsealed_sensitive` |
 | The Flex recipe | The bundle registered, its configuration read as the bundle's defaults, the routes under `/forms` |
 | `FormEntriesPrivacy`, `TokenCurrentSubject` | Export and erasure by identifier and by address, an erasure run twice, sealed values opened or listed as unreadable; the user signed in |
+| `BinaryKeysListener` | The keys in `utf8mb4_bin` in the schema generated for MySQL and MariaDB, the default collation on SQLite, the options a field already has kept |
+
+The suite `tests/Integration` runs `BinaryKeysListener` on a real MySQL 8.4 and PostgreSQL 17: four form keys that differ only by case or accent are four forms, each found by its own key only, and on
+MySQL the keys are in `utf8mb4_bin` and the tables of the previous version reach it through the schema diff. Each
+server's test reads its URL from `PHIL_TEST_MYSQL_URL` or `PHIL_TEST_POSTGRESQL_URL` and is skipped without it:
+
+```sh
+PHIL_TEST_MYSQL_URL='mysql://phil:phil@127.0.0.1:13306/phil_test?serverVersion=8.4' \
+PHIL_TEST_POSTGRESQL_URL='postgresql://phil:phil@127.0.0.1:15432/phil_test?serverVersion=17' \
+vendor/bin/phpunit packages/forms-bundle/tests/Integration
+```
 
 A functional suite boots a kernel with FrameworkBundle, DoctrineBundle on SQLite, TwigBundle and the spam protection,
 the bundle configured in YAML as an application does: a page is rendered in French, an entry submitted as a browser

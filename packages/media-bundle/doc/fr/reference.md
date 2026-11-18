@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0be78f4c81c81772ee2ec0f5d982f2076de49811bf916a40597d0a7dace29138 -->
+<!-- phil-dev source-sha256=f0cd80e2f62a9f1c0e9b76b2d292a18124ee6e739d61d8f4a765b5e26aedddd0 -->
 # Référence
 
 | Type | Nature | Rôle |
@@ -31,6 +31,7 @@
 | `Infrastructure\Svg\SanitizingSvgPurifier` | adaptateur | `phil/svg-sanitizer`, puis `SvgMinifier` |
 | `Infrastructure\Svg\SvgMinifier` | `final readonly class` | Commentaires, `metadata` et blancs retirés, coordonnées arrondies |
 | `Infrastructure\Doctrine\DoctrineMediaRepository` | adaptateur | Doctrine ORM |
+| `Infrastructure\Doctrine\BinaryKeysListener` | écouteur | Les clés des tables en `utf8mb4_bin` sur MySQL et MariaDB, au `loadClassMetadata` de l'ORM ([installation.md](installation.md#collation-des-clés)) |
 | `Infrastructure\Doctrine\MediaType` | type DBAL | Le type de colonne `phil_media` |
 | `Infrastructure\Doctrine\DoctrineMediaReferences` | adaptateur | Les colonnes `phil_media` des entités mappées |
 | `Infrastructure\Validator\MediaFile`, `MediaFileValidator` | contrainte | Existence, collections et types de médias |

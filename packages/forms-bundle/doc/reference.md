@@ -20,6 +20,7 @@
 | `Application\CurrentSubject` | interface | The identifier of the person sending a form |
 | `Application\EntryNotifier`, `NotificationFailed` | interface, exception | Telling someone of an entry |
 | `Infrastructure\Doctrine\DoctrineFormRepository` | adapter | Doctrine ORM; the places in choices |
+| `Infrastructure\Doctrine\BinaryKeysListener` | listener | The keys of the tables in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata` ([installation.md](installation.md#collation-of-the-keys)) |
 | `Infrastructure\KeyManagement\KeyManagementFieldSealer` | adapter | Sealing by the envelope encryption of Symfony's KeyManagement component |
 | `Infrastructure\DependencyInjection\FormsServices`, `FieldSealerPass` | wiring | The services of the configuration; the sealer when `sealing.key` names a master key |
 | `Infrastructure\Form\EntryType` | form type | The Symfony form of a definition; with `phil/form-logic`, its conditional rows named and its view's `phil_form_logic_steps` |

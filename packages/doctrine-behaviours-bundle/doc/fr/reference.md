@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5a1df1e11515daf5f492a2ce3f0c9e5d6dea11836f5c8f4f89ed4bf2751596aa -->
+<!-- phil-dev source-sha256=0ce7301911b971a6274b19e7b89a68c158cd877a6ca1c76ed91004a3bb2b0775 -->
 # Référence
 
 | Type | Sorte | Rôle |
@@ -10,11 +10,13 @@
 | `…\Infrastructure\Privacy\BlamePrivacy` | `PersonalDataExporter`, `PersonalDataEraser` | L'auteur dans les demandes d'accès et d'effacement de `phil/privacy-bundle` |
 | `…\Infrastructure\Privacy\OwnerPrivacy` | `PersonalDataExporter`, `PersonalDataEraser` | Le propriétaire dans les demandes d'accès et d'effacement de `phil/privacy-bundle` |
 | `…\Infrastructure\Security\SecurityVersionRestoreGuard` | `VersionRestoreGuard` | Le droit de revenir à une version passée, demandé à Symfony Security avec l'enregistrement comme sujet |
+| `…\Infrastructure\Doctrine\BinaryKeysListener` | `final readonly class`, écouteur de `loadClassMetadata` | Les clés qu'écrivent les comportements en `utf8mb4_bin` sur MySQL et MariaDB ([configuration.md](configuration.md#collation-des-clés)) |
 
 ## Services
 
 | Identifiant | Quand |
 |---|---|
+| `…\Infrastructure\Doctrine\BinaryKeysListener` | toujours |
 | `Phil\DoctrineBehaviours\TimestampListener` | `timestamps` |
 | `Phil\DoctrineBehaviours\Contract\BlameResolver`, `Phil\DoctrineBehaviours\BlameListener`, `Phil\DoctrineBehaviours\BlameEraser` (public) | `blame` |
 | `Phil\DoctrineBehaviours\SoftDeleteListener` | `soft_delete` |

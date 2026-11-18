@@ -13,4 +13,5 @@
 | `Application\Captured` | `final readonly class` | What a handler keeps |
 | `Application\Event\ResourceTrashed`, `ResourceRestored`, `TrashItemPurged` | events | Each step |
 | `Infrastructure\Doctrine\DoctrineTrashItemRepository` | repository | The port on Doctrine ORM |
+| `Infrastructure\Doctrine\BinaryKeysListener` | listener | The keys of `phil_trash_item` in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata` ([installation.md](installation.md#collation-of-the-keys)) |
 | `Infrastructure\Console\PurgeTrashCommand` | console command | `phil:trash:purge` |
