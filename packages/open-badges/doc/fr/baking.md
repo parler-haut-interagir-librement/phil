@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f824188d395e1532fc6842673091998b6f5290513c84d12ee72694caf9c025af -->
+<!-- phil-dev source-sha256=ea25b6e52ea38d2873e605bb64968b4e3367883f2d9c14dd94e749a00944014c -->
 # Intégrer à l'image
 
 Une image intégrée porte son propre titre : le badge qu'un destinataire partage est la preuve.
@@ -22,9 +22,11 @@ la forme de ce qu'elle trouve ; passez-le ensuite [au vérificateur](verifying.m
 ## PNG
 
 Le titre est le texte d'un bloc `iTXt` dont le mot-clé est `openbadgecredential`, non compressé, sans étiquette de
-langue, écrit juste avant le bloc `IEND`. Les autres blocs sont gardés tels quels, et les octets après `IEND` sont
-abandonnés. Chaque bloc est vérifié — sa longueur, son type, son CRC — et l'image commence par `IHDR`. Un bloc de
-titre compressé est refusé. Une image de plus de 16 Mio est refusée avant d'être lue.
+langue, écrit juste avant le bloc `IEND`. Les autres blocs sont gardés tels quels. Chaque
+bloc est vérifié — sa longueur, son type, son CRC —, de même que la structure de l'image, à la lecture comme à
+l'intégration : un seul `IHDR` de 13 octets en premier, au plus un `PLTE` avant les données de l'image, des blocs
+`IDAT` qui se suivent, un `IEND` vide après eux et rien après lui. Un bloc de titre compressé est refusé. Une image de
+plus de 16 Mio est refusée avant d'être lue.
 
 ## SVG
 

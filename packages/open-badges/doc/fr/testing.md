@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=91ba65aa4a9bbfe34e88deff1371799c62c23caa623dea74edea30f5491609ed -->
+<!-- phil-dev source-sha256=b5db8be904ce2b7c0340b37f0c1481765f00629a4b8a1b827898600adbbea5ae -->
 # Tests
 
 ## Les tests de la bibliothèque
@@ -18,6 +18,19 @@ RDFC-1.0 du W3C.
 Deux jetons émis par la version 0.1, dans `tests/Fixtures`, gardent les jetons stables d'une version à la suivante :
 un jeton `EdDSA` signé avec cette paire de clés, qui se vérifie encore et est signé de nouveau avec les mêmes octets,
 et un jeton `RS256`, qui se vérifie avec sa clé publique.
+
+## Clés de test
+
+Le dépôt ne contient aucune clé privée que les tests pourraient fabriquer. Les clés RSA sont fabriquées par OpenSSL
+pendant l'exécution des tests, une fois par taille pour l'exécution ; une clé de 8192 bits prend des secondes à
+fabriquer : elle est donc gardée dans le répertoire temporaire, lisible par son propriétaire seulement, pour les autres
+processus de l'exécution.
+
+Les clés qui doivent rester les mêmes sont écrites dans les tests, chacune marquée « test key, public, never trust it » :
+la paire de clés Ed25519 des vecteurs de test du W3C, qui signe le jeton `EdDSA` de la version 0.1, les germes fixes de
+32 octets qui font que les titres émis sont les mêmes octets à chaque exécution, et la clé publique du jeton `RS256` de
+la version 0.1. Les fichiers de `tests/Fixtures` commencent par une ligne qui le dit. Un titre signé par l'une de ces
+clés ne prouve rien : ne vous y fiez jamais hors des tests.
 
 Depuis la racine du monodépôt :
 

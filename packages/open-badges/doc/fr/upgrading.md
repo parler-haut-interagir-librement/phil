@@ -1,5 +1,24 @@
-<!-- phil-dev source-sha256=1145ae1e9b66ae110b98f6085e5d9843683ac59a9aa4f4dea6c233ed84fe3a7a -->
+<!-- phil-dev source-sha256=63e0c2551fe236f7b86518ae000adf548c6ac0abf36383e5bb78301079ba7764 -->
 # Mise à niveau
+
+## De 0.2 à 0.3
+
+L'API est la même ; ce que la bibliothèque accepte est plus strict. Un titre que la bibliothèque a émis avec la 0.2 se
+vérifie avec la 0.3.
+
+- `validFrom` et `validUntil` sont lus comme des moments stricts de la RFC 3339, par les émetteurs comme par le
+  vérificateur : un `T` majuscule, des secondes, `Z` ou un décalage, chaque partie dans sa plage. Un titre construit à
+  la main avec `2026-02-30T00:00:00Z`, une seconde intercalaire ou un `t` minuscule est refusé, là où il était reporté à
+  une autre date.
+- `JwtSigner::sign()` refuse un titre qui porte `iss`, `jti`, `sub`, `nbf` ou `exp`, et des identifiants qui ne sont
+  pas des chaînes : retirez les revendications, qu'il écrit à partir des champs du titre.
+- `CredentialVerifier` refuse un jeton dont les revendications enregistrées contredisent son titre, et vérifie
+  `validFrom` et `validUntil` d'un jeton comme ceux d'un document. Un jeton d'un autre émetteur dont l'`exp` diffère de
+  son `validUntil` ne se vérifie plus.
+- Un contexte qui redéfinit un terme protégé — `id`, `type`, `name` du contexte des Verifiable Credentials, et les
+  termes d'un titre par un second type — est refusé avec `InvalidCredential`.
+- `PngBaker` refuse une image avec des octets après `IEND`, qu'il abandonnait, et une image dont les blocs sont dans le
+  désordre : un `IEND` vide après les données de l'image, un seul `IHDR` de 13 octets en premier.
 
 ## De 0.1 à 0.2
 

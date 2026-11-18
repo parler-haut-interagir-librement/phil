@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c1bdfee76ea73df3b2bec4d8de915935020cb766b7c6fb5514f516c4bef03f83 -->
+<!-- phil-dev source-sha256=6fab2677414db66d0f985c06da7ab7a08f717966574ad9a3f95f7eda296df7d5 -->
 # Sécuriser
 
 Un titre est sécurisé de l'une des deux façons que reconnaît Open Badges 3.0. Les deux se vérifient hors ligne avec
@@ -21,8 +21,10 @@ $token = new JwtSigner($signer, 'https://example.org/issuer#key-1')->sign($crede
 
 L'en-tête nomme l'algorithme, le type `vc+jwt`, l'identifiant de la clé (`kid`) quand il est donné, et la clé publique
 sous forme de JSON Web Key. Les revendications sont celles du titre, avec `iss`, `jti`, `sub`, `nbf` et `exp` qui
-reprennent son émetteur, son identifiant, l'identifiant de son sujet et sa période de validité.
-`CredentialIssuer::issue()` le fait pour un `OpenBadgeCredential` ; `JwtSigner` sécurise tout titre que construit la
+reprennent son émetteur, son identifiant, l'identifiant de son sujet et sa période de validité : les identifiants sont des chaînes, et les secondes viennent de
+`validFrom` et de `validUntil`, lus comme des moments stricts de la RFC 3339, par le même lecteur que le vérificateur.
+Un titre qui porte lui-même une de ces revendications est refusé avec `InvalidBadge` : elles reprennent ses champs, sans
+jamais les contredire. `CredentialIssuer::issue()` le fait pour un `OpenBadgeCredential` ; `JwtSigner` sécurise tout titre que construit la
 bibliothèque : un appui, un relevé d'apprentissage, une liste d'état.
 
 ## Data Integrity

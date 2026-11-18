@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=85b5de4da7d0a02fe572498c79bb0b2961b5a79368a63dcad08a3a50782fd0b8 -->
+<!-- phil-dev source-sha256=90f8244e2dcf52b9643d29241858f02ab61fefcd50b20e480f0a6b7f49dd678d -->
 # Vérifier
 
 ## Un titre
@@ -27,17 +27,26 @@ $verified->status();     // its StatusListEntry, or null
    `JwtVerifier::MAX_LENGTH` octets (1 Mio), trois parties, un en-tête et des revendications imbriqués sur
    `JwtVerifier::MAX_DEPTH` niveaux (64) au plus. Ensuite `nbf` et `exp` sont vérifiés au moment donné : le jeton est
    valide de `nbf` inclus à `exp` exclu. Les deux sont des nombres de secondes, avec ou sans fraction, comparés à la
-   microseconde ; une valeur d'un autre type est refusée.
+   microseconde ; une valeur d'un autre type est refusée. Les revendications enregistrées doivent s'accorder avec les champs qu'elles
+   reprennent : `iss` est l'émetteur et, quand elles sont présentes, `jti` est l'`id` du titre, `sub` l'`id` de son
+   `credentialSubject`, `nbf` et `exp` la même seconde que son `validFrom` et son `validUntil` ; une revendication sans
+   son champ est refusée aussi.
 2. Un document : la preuve est une `DataIntegrityProof` de `eddsa-rdfc-2022` pour `assertionMethod`. Sa méthode de
-   vérification est trouvée, sa signature est vérifiée sur les formes canoniques, puis `validFrom` et `validUntil` au
-   moment donné.
+   vérification est trouvée, et sa signature est vérifiée sur les formes canoniques.
 3. Dans les deux cas, la clé doit être une de celles de l'émetteur du titre : la méthode de vérification est
    l'identifiant de l'émetteur, un fragment de celui-ci (`https://example.org/issuer#key-1` pour l'émetteur
    `https://example.org/issuer`), ou une méthode que le vérificateur liste pour cet émetteur. La revendication `iss`
    d'un jeton doit aussi être l'émetteur.
+4. Dans les deux cas encore, une seule règle de validité : le titre est valide de son `validFrom` inclus à son
+   `validUntil` exclu, comparés à la microseconde au moment donné.
+
+Les moments de `validFrom` et de `validUntil` sont lus strictement, par le même lecteur que celui des émetteurs : la
+RFC 3339 telle que l'écrit un `dateTimeStamp` de XML Schema — `2026-11-07T10:00:00Z`, `2026-11-07T10:00:00.250-05:00` —,
+chaque partie dans sa plage. Une date que PHP reporterait à une autre (le 30 février, l'heure 24, une seconde
+intercalaire, un décalage au-delà de 23:59) est refusée, tout comme un `t` ou un `z` minuscule.
 
 Sans moment, la période est vérifiée à l'heure actuelle. Un titre qui ne se vérifie pas lance `InvalidCredential`,
-avec la raison. Un jeton ou un document de plus de 1 Mio est refusé avant d'être lu.
+avec la raison. Quoi qu'elle contienne, une entrée de plus de 1 Mio est refusée avant que rien la rogne ou l'analyse.
 
 `JwtVerifier` et `EddsaRdfc2022::verify()` sont publics, pour une application qui sait comment ses titres sont
 sécurisés.
@@ -128,7 +137,13 @@ les contextes intégrés, `@vocab`, `@propagate`, les termes avec `@id`, `@type`
 `@graph`), `@context` et `@prefix`, les contextes limités à un type ou à une propriété, les alias de mots-clés et les
 IRI compacts, les objets-valeurs avec un type ou une langue. Il refuse plutôt que de lire autrement : `@import`,
 `@base`, un `@language` ou un `@direction` par défaut, les propriétés inverses, l'imbrication, les tables d'index et de
-langue, les littéraux JSON, les listes de listes. `@protected` est accepté sans être appliqué.
+langue, les littéraux JSON, les listes de listes.
+
+Les termes protégés sont appliqués comme le fait JSON-LD 1.1 : un terme qu'un contexte protège — ceux des contextes
+Verifiable Credentials 2.0 et Open Badges 3.0 le sont — ne peut être défini de nouveau par un contexte suivant que
+tout à fait pareil, et un contexte `null` ne l'efface pas ; un contexte limité à une propriété peut le redéfinir. Un
+titre dont les contextes redéfinissent `id`, `type` ou `name`, ou dont le second type redéfinirait `issuer` ou
+`credentialSubject`, est refusé plutôt que lu avec un autre sens que celui que l'émetteur a signé.
 
 Les contextes viennent d'un `ContextLoader`. `BundledContexts` sert Verifiable Credentials 2.0, Open Badges 3.0.3 et
 CLR 2.0.1, ainsi que ceux que l'application ajoute, et refuse toute autre URL.
