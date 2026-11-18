@@ -8,13 +8,14 @@
 | `Level` | enum | `Basic`, `Forum`, `All` |
 | `MarkupCompiler` | interface | `compile(string $source, MarkupFormat\|string $format): string`, HTML **not safe to show**; a string names a format of an add-on |
 | `LevelAwareCompiler` | interface | A `MarkupCompiler` with `compileFor($source, $format, $level)`: told the level the HTML will be purified at |
-| `HtmlPurifier` | interface | `purify(string $html, Level $level): string` |
+| `HtmlPurifier` | interface | `purify(string $html, Level $level): string`; `DEFAULT_MAX_BYTES`, the ceiling of an HTML unless configured, 4 MiB |
 | `Exception\MarkupException`, `Exception\InputTooLarge`, `Exception\InvalidSource`, `Exception\MissingExtension`, `Exception\UnknownFormat` | exceptions | See [Exceptions](exceptions.md) |
 | `Markup` | `final readonly class` | `toHtml()` and `text()`: compile — at the level, for a `LevelAwareCompiler` —, then purify; `Level::All` unless told |
 | `MarkedUpText` | embeddable | `source` (text), `format` (the name of the format, 16 characters), `html` (text) |
 | `Lexer\Cursor` | `final class` | The cursor of the analyser: see [The analyser](analyser.md) |
 | `Lexer\Slugger` | `final class` | The anchors of one document, unique |
 | `Reader\MarkupReader` | interface | `read(string $source): Reading`; `DEFAULT_MAX_BYTES`, the ceiling of a source unless configured, 1 MiB |
+| `Reader\UjoReader` | `MarkupReader` | UJO read by `phil/ujo`; `DEFAULT_MAX_BYTES`, its own ceiling, that of `JsonDecoder`, 4 MiB |
 | `Reader\Reading` | `final readonly class` | `document`, a UJO `Document`, `metadata` and `losses` |
 | `Reader\Loss`, `Reader\LossReason` | `final readonly class`, enum | What a reader did not keep: element, path, reason |
 | `Contract\ExtractedElementStore` | interface | `store(string $content, string $mediaType, string $name): ?string`: where extracted elements are stored as files |
@@ -30,10 +31,10 @@
 | `Reader\Html\HtmlReader` | `MarkupReader` | HTML into UJO: see [HTML](html.md) |
 | `Reader\UjoReader` | `MarkupReader` | UJO JSON, through `phil/ujo` |
 | `Reader\Text\TextReader` | `MarkupReader` | Plain text: a `paragraph` for each run of lines, line breaks kept, addresses made links |
-| `Adapter\DefaultCompiler` | `LevelAwareCompiler` | Every format, the add-ons' given by name, a source longer than `maxBytes` refused; `reader($format, $level)` gives the reader of a format into UJO — HTML's and plain text's too, though both are compiled without it —; `formats()` the name of each |
-| `Adapter\SanitizerPurifier` | `HtmlPurifier` | `defaultPolicies()`, one sanitizer per level; `configurations()`, the configuration of each level |
-| `Adapter\AmmoniaPurifier` | `HtmlPurifier` | `defaultPolicies()` on the `ammonia` extension, the same policies; `isAvailable()`: see [Accelerators](accelerators.md) |
-| `Adapter\Purifiers` | `final readonly class` | `defaultPolicies($mediaHosts, $extension)`: `AmmoniaPurifier` where the extension is loaded, `SanitizerPurifier` otherwise |
+| `Adapter\DefaultCompiler` | `LevelAwareCompiler` | Every format, the add-ons' given by name, a source longer than `maxBytes` refused, a UJO source longer than `ujoMaxBytes`; `reader($format, $level)` gives the reader of a format into UJO — HTML's and plain text's too, though both are compiled without it —; `formats()` the name of each |
+| `Adapter\SanitizerPurifier` | `HtmlPurifier` | `defaultPolicies($mediaHosts, $maxBytes)`, one sanitizer per level; `configurations()`, the configuration of each level |
+| `Adapter\AmmoniaPurifier` | `HtmlPurifier` | `defaultPolicies($mediaHosts, $minimumBytes, $maxBytes)` on the `ammonia` extension, the same policies; `isAvailable()`: see [Accelerators](accelerators.md) |
+| `Adapter\Purifiers` | `final readonly class` | `defaultPolicies($mediaHosts, $extension, $maxBytes)`: `AmmoniaPurifier` where the extension is loaded, `SanitizerPurifier` otherwise |
 | `Adapter\CodeClasses` | `final readonly class` | The classes kept on `code` (`language-…`) and `span` (`hl-…`), an attribute sanitizer of `symfony/html-sanitizer`; `keep()`, the classes it keeps of a value |
 | `Adapter\PlainText`, `Adapter\Autolink` | compilers | Plain text, links in text |
 
@@ -91,6 +92,24 @@ members write texts at `forum` gives the hosts it serves images from, or `[]`.
 Purify again what was stored when it is shown: a policy that tightens then applies to texts written before.
 `Purifiers::defaultPolicies()` takes the same hosts, and purifies with the `ammonia` extension where it is loaded:
 see [Accelerators](accelerators.md).
+
+### The ceiling of an HTML purified
+
+Every purifier of the library refuses an HTML longer than its ceiling before it purifies it: it throws
+`Exception\InputTooLarge`, which says both lengths in `$bytes` and `$limit`, and never cuts the HTML to fit — the cap of
+`symfony/html-sanitizer`, which truncates silently, stays off. The ceiling is counted in bytes, `maxBytes`,
+`HtmlPurifier::DEFAULT_MAX_BYTES` — 4 MiB — by default:
+
+```php
+SanitizerPurifier::defaultPolicies(['cdn.example.com'], maxBytes: 1_048_576); // 1 MiB
+AmmoniaPurifier::defaultPolicies(maxBytes: 1_048_576);                         // the sanitizer it hands HTML to too
+Purifiers::defaultPolicies(maxBytes: 1_048_576);                               // whichever is chosen
+new SanitizerPurifier($sanitizers, 1_048_576);
+```
+
+The ceiling bounds the time and the memory a purification takes, whatever the HTML: the sanitizer parses the whole
+input into a tree. 4 MiB is above the ceiling of every reader, so that the HTML a compiler writes from a source it
+accepted, longer than the source, is purified; an application that purifies the HTML of members only lowers it.
 
 ## Checklists
 

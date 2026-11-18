@@ -4,6 +4,24 @@ All notable changes to `phil/markup-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.3-alpha: three optional keys, on `phil/markup` 0.3.
+
+### Added
+
+- The `max_bytes`, `ujo_max_bytes` and `purifier_max_bytes` configuration: the ceiling of a source compiled or read in
+  a written format, 1 MiB by default, of a UJO source, 4 MiB, and of an HTML purified, 4 MiB — the defaults of
+  `phil/markup` —, each a positive integer checked when the container is built. They reach `DefaultCompiler` and every
+  purifier built by `defaultPolicies()`, also when another bundle registers the same service after this one: the
+  compiler pass `MaxBytesPass` gives the compiler its ceilings back, and `MediaHostsPass` the purifier its ceiling with
+  its hosts.
+- The section [Ceilings](doc/configuration.md#ceilings) of the configuration page.
+
+### Changed
+
+- `phil/markup` 0.3 is accepted: its readers, its compiler and its purifiers refuse what is longer than their ceiling.
+
 ## 0.1.2-alpha - 2026-11-15
 
 ### Added

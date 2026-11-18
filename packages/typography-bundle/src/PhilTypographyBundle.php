@@ -51,6 +51,11 @@ final class PhilTypographyBundle extends AbstractBundle
                         ->enumPrototype()->values(TypographyServices::FIXERS)->end()
                     ->end()
                 ->end()
+                ->integerNode('max_bytes')
+                    ->info('The longest text fixed, in bytes, by the typographers and the filters; a longer one is refused whole.')
+                    ->defaultValue(TypographyServices::MAX_BYTES)
+                    ->min(1)
+                ->end()
                 ->arrayNode('ujo')
                     ->info('The typographic fixes applied to the HTML of UJO documents, when phil/ujo-bundle is installed.')
                     ->canBeDisabled()
@@ -70,7 +75,7 @@ final class PhilTypographyBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{default_locale: ?string, hyphenation: bool, experimental_hyphenation: list<string>, protected_tags: list<string>, locales: array<string, list<string>>, ujo: array{enabled: bool, locale: ?string}} $config */
+        /** @var array{default_locale: ?string, hyphenation: bool, experimental_hyphenation: list<string>, protected_tags: list<string>, locales: array<string, list<string>>, max_bytes: int<1, max>, ujo: array{enabled: bool, locale: ?string}} $config */
         TypographyServices::register(
             $builder,
             $config['default_locale'],
@@ -79,6 +84,7 @@ final class PhilTypographyBundle extends AbstractBundle
             $config['locales'],
             $config['ujo']['enabled'] ? $config['ujo']['locale'] ?? '' : null,
             $config['experimental_hyphenation'],
+            $config['max_bytes'],
         );
     }
 

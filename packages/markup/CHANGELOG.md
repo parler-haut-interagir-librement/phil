@@ -6,8 +6,9 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.3.0-alpha: a source longer than 1 MiB, read before, is refused by default, and an HTML comment
-alone in Markdown is a note instead of text.
+The next version is 0.3.0-alpha: a source longer than 1 MiB, or a UJO source longer than 4 MiB, read before, is
+refused by default, so is an HTML longer than 4 MiB given to a purifier, and an HTML comment alone in Markdown is a
+note instead of text.
 
 ### Added
 
@@ -18,19 +19,29 @@ alone in Markdown is a note instead of text.
   `DokuWikiReader`, `CreoleReader`, `HtmlReader`, `TextReader`, `UjoReader` and `DefaultCompiler`, which gives it to
   the readers `reader()` returns and puts the reader of an add-on's format behind it; `MarkupReader::DEFAULT_MAX_BYTES`,
   1 MiB.
+- `UjoReader::DEFAULT_MAX_BYTES`, the ceiling of a UJO source, that of `phil/ujo`'s `JsonDecoder`: 4 MiB.
+  `ujoMaxBytes` on `DefaultCompiler`, the ceiling of a UJO source compiled or read, given to its reader of UJO and to
+  the decoder behind it.
+- `maxBytes`, the ceiling of an HTML purified in bytes, on `SanitizerPurifier` and its `defaultPolicies()`,
+  `AmmoniaPurifier::defaultPolicies()` and `Purifiers::defaultPolicies()`: a longer HTML is refused whole by
+  `InputTooLarge` before a sanitizer sees it; `HtmlPurifier::DEFAULT_MAX_BYTES`, 4 MiB. The fuzz target
+  `markup-purifier` purifies under a ceiling of 2 KiB and checks that a longer input is refused.
 - The Markdown reader keeps an HTML block of comments alone as the `note` tune of the block that follows it, or of the
   last block when none follows, as the HTML reader keeps the comments of a page: the speaker notes of a Marp deck are
   read as they are written.
 - `testMarkdownIsReadInLinearTime()`, and the shapes of sibling HTML elements left out or whose `data-*` is not kept,
   in `WikiLinearityTest`; 100 KB of short Markdown paragraphs and of sibling HTML elements left out in
   `ReadersBench`; fuzz seeds of a Marp deck and of sibling losses.
-- The section [The ceiling of a source](doc/analyser.md#the-ceiling-of-a-source) and the section
+- The section [The ceiling of a source](doc/analyser.md#the-ceiling-of-a-source), the section
+  [The ceiling of an HTML purified](doc/reference.md#the-ceiling-of-an-html-purified) and the section
   [Comments](doc/markdown.md#comments) of the Markdown page.
 
 ### Changed
 
 - Every reader, `DefaultCompiler` in every format — HTML and plain text included —, and so `Markup`, refuse a source
-  longer than 1 MiB unless configured.
+  longer than 1 MiB unless configured; a UJO source, longer than 4 MiB.
+- `SanitizerPurifier`, `AmmoniaPurifier`, and so `Markup`, refuse an HTML longer than 4 MiB unless configured, where
+  they purified any length before.
 - An HTML comment alone in Markdown is no longer escaped as text below the level `all`, nor dropped at `all`: it is
   the note of a block.
 

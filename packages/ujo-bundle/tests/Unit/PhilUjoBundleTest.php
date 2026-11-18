@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace Phil\UjoBundle\Tests\Unit;
 
+use Phil\Ujo\Block;
+use Phil\Ujo\Document;
+use Phil\Ujo\Exception\InputTooLarge;
+use Phil\Ujo\Exception\InvalidJson;
 use Phil\Ujo\Html\HtmlRenderer;
+use Phil\Ujo\Html\InlineSanitizer;
 use Phil\Ujo\Json\JsonDecoder;
 use Phil\Ujo\Normalizer;
 use Phil\Ujo\Text\PlainText;
@@ -34,9 +39,12 @@ final class PhilUjoBundleTest extends TestCase
         $container = $this->load([]);
 
         self::assertSame('phil_ujo', $this->extension()->getAlias());
-        self::assertSame(['service_container', BlockTypeRegistry::class, Normalizer::class, HtmlRenderer::class, PlainText::class, JsonDecoder::class, Ujo::class, UjoType::class, ValidUjoValidator::class, UjoExtension::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', BlockTypeRegistry::class, InlineSanitizer::class, Normalizer::class, HtmlRenderer::class, PlainText::class, JsonDecoder::class, Ujo::class, UjoType::class, ValidUjoValidator::class, UjoExtension::class], array_keys($container->getDefinitions()));
         self::assertSame([BlockTypeRegistry::class, 'default'], $container->getDefinition(BlockTypeRegistry::class)->getFactory());
-        self::assertEquals([new Reference(BlockTypeRegistry::class), null, null, 8, 10_000, 100_000, 50_000], $container->getDefinition(Normalizer::class)->getArguments());
+        self::assertEquals([new Reference(BlockTypeRegistry::class), null, new Reference(InlineSanitizer::class), 8, 10_000, 100_000, 50_000], $container->getDefinition(Normalizer::class)->getArguments());
+        self::assertSame([[], 4_194_304], $container->getDefinition(InlineSanitizer::class)->getArguments());
+        self::assertEquals([new Reference(InlineSanitizer::class)], $container->getDefinition(HtmlRenderer::class)->getArguments());
+        self::assertEquals([[], new Reference(InlineSanitizer::class)], $container->getDefinition(PlainText::class)->getArguments());
         self::assertSame([4_194_304, 64], $container->getDefinition(JsonDecoder::class)->getArguments());
         self::assertTrue($container->getDefinition(Ujo::class)->isPublic());
         self::assertSame([HtmlRenderer::class, 'default'], $container->getDefinition(HtmlRenderer::class)->getFactory());
@@ -62,6 +70,7 @@ final class PhilUjoBundleTest extends TestCase
         $factory = $registry->getFactory();
 
         self::assertSame([1, 64], $container->getDefinition(JsonDecoder::class)->getArguments());
+        self::assertSame([[], 1], $container->getDefinition(InlineSanitizer::class)->getArguments());
         self::assertSame([1, 2, 3, 4], \array_slice($container->getDefinition(Normalizer::class)->getArguments(), 3));
         self::assertIsArray($factory);
         self::assertSame('with', $factory[1]);
@@ -85,6 +94,42 @@ final class PhilUjoBundleTest extends TestCase
                 self::assertStringContainsString($limit, $invalidConfigurationException->getMessage());
             }
         }
+    }
+
+    /**
+     * `max_bytes` bounds both the JSON the decoder reads and each inline fragment the sanitizer reads: a document built
+     * in PHP, which no decoder sees, is refused all the same when its text is converted.
+     */
+    public function testTheCeilingReachesTheDecoderAndTheSanitizer(): void
+    {
+        $container = $this->load(['max_bytes' => 8]);
+        $container->getDefinition(InlineSanitizer::class)->setPublic(true);
+        $container->compile(true);
+        $ujo = $container->get(Ujo::class);
+        $sanitizer = $container->get(InlineSanitizer::class);
+        self::assertInstanceOf(Ujo::class, $ujo);
+        self::assertInstanceOf(InlineSanitizer::class, $sanitizer);
+
+        self::assertSame('12345678', $sanitizer->sanitize('12345678'));
+        self::assertSame('12345678', $ujo->toText(new Document([new Block('a', 'paragraph', ['text' => '12345678'])])));
+
+        foreach ([
+            static fn (): mixed => $sanitizer->sanitize('123456789'),
+            static fn (): mixed => $ujo->toText(new Document([new Block('a', 'paragraph', ['text' => '123456789'])])),
+            static fn (): mixed => $ujo->toHtml(new Document([new Block('a', 'paragraph', ['text' => '123456789'])])),
+        ] as $refused) {
+            try {
+                $refused();
+                self::fail('Above the ceiling, the input should be refused.');
+            } catch (InputTooLarge $inputTooLarge) {
+                self::assertSame(8, $inputTooLarge->limit);
+            }
+        }
+
+        // The decoder refuses a longer JSON as JSON it cannot read, by the same ceiling.
+        $this->expectException(InvalidJson::class);
+        $this->expectExceptionMessageIsOrContains('The UJO JSON is 13 bytes long, above the limit of 8 bytes.');
+        $ujo->decode('{"blocks":[]}');
     }
 
     /**

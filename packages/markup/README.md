@@ -19,7 +19,7 @@ CommonMark writes them. `basic` keeps inline emphasis, for a name or a comment; 
 quotes and images, for a forum message; `all` keeps every element the sanitizer counts as safe, for an article an
 editor writes. A checklist keeps its accessible checkboxes at `all` and says the state of each item in text below. `MarkedUpText`
 keeps the source, its format and the purified HTML together as a Doctrine embeddable, so a page is not compiled on every
-read. Every reader, and the compiler, refuses a source longer than its ceiling, 1 MiB by default, before reading it. An add-on brings a dialect of Markdown — its inline and block rules,
+read. Every reader, and the compiler, refuses a source longer than its ceiling, 1 MiB by default and 4 MiB for UJO, before reading it; every purifier refuses an HTML longer than 4 MiB by default. An add-on brings a dialect of Markdown — its inline and block rules,
 the syntax it reads differently — or a whole format, read by a reader of its own under a name of its own.
 
 It is for any PHP application that shows text its visitors, members or editors write — comments, forum messages,
@@ -56,6 +56,7 @@ two: source, reader, UJO, renderer, HTML, purifier.
 | `Adapter\SanitizerPurifier`: one policy per level | Implemented and tested |
 | `Adapter\AmmoniaPurifier`, `Adapter\Purifiers`: the same policies on the `ammonia` extension, where it is loaded | Implemented and tested |
 | A ceiling on every source, `maxBytes`, refused by `InputTooLarge` before it is read | Implemented and tested |
+| A ceiling on every HTML purified, `maxBytes`, refused by `InputTooLarge` before it is purified | Implemented and tested |
 | Mentions, embeds, external links, smart punctuation, in every format | Not started |
 
 ## Documentation

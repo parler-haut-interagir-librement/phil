@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\TypographyBundle\Tests\Unit;
 
+use Phil\Typography\Exception\InputTooLarge;
 use Phil\Typography\Hyphenation\Dictionary;
 use Phil\Typography\Typographer;
 use Phil\Typography\Typographers;
@@ -32,7 +33,7 @@ final class PhilTypographyBundleTest extends TestCase
 
         self::assertSame('phil_typography', $this->extension()->getAlias());
         self::assertSame(['service_container', Dictionary::class, Typographers::class, Typographer::class, TypographyExtension::class, TypographyServices::UJO_FILTER], array_keys($container->getDefinitions()));
-        self::assertEquals(['%kernel.default_locale%', [], ['pre', 'code', 'kbd', 'script', 'style', 'textarea'], true, new Reference(Dictionary::class)], $container->getDefinition(Typographers::class)->getArguments());
+        self::assertEquals(['%kernel.default_locale%', [], ['pre', 'code', 'kbd', 'script', 'style', 'textarea'], true, new Reference(Dictionary::class), 1_048_576], $container->getDefinition(Typographers::class)->getArguments());
         self::assertTrue($container->getDefinition(Typographers::class)->isPublic());
         self::assertSame([null, []], $container->getDefinition(Dictionary::class)->getArguments());
         self::assertEquals([$typographers, 'for'], $container->getDefinition(Typographer::class)->getFactory());
@@ -58,11 +59,12 @@ final class PhilTypographyBundleTest extends TestCase
             'protected_tags' => ['samp'],
             'locales' => ['de_CH' => ['smart_quotes', 'ellipsis'], 'en_GB' => []],
             'ujo' => ['locale' => 'en_GB'],
+            'max_bytes' => 2048,
         ]);
         $typographers = new Reference(Typographers::class);
         $current = new Reference('translation.locale_switcher', ContainerInterface::IGNORE_ON_INVALID_REFERENCE);
 
-        self::assertEquals(['fr_CA', ['de_CH' => ['smart_quotes', 'ellipsis']], ['samp'], false, new Reference(Dictionary::class)], $container->getDefinition(Typographers::class)->getArguments());
+        self::assertEquals(['fr_CA', ['de_CH' => ['smart_quotes', 'ellipsis']], ['samp'], false, new Reference(Dictionary::class), 2048], $container->getDefinition(Typographers::class)->getArguments());
         self::assertSame([null, ['mk']], $container->getDefinition(Dictionary::class)->getArguments());
         self::assertSame(['hy', 'mk'], TypographyServices::EXPERIMENTAL);
 
@@ -99,6 +101,40 @@ final class PhilTypographyBundleTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
 
         $this->load(['experimental_hyphenation' => ['fr']]);
+    }
+
+    /**
+     * The ceiling of a text is a positive integer, refused otherwise when the container is built.
+     */
+    public function testTheCeilingIsAPositiveInteger(): void
+    {
+        self::assertSame(1_048_576, TypographyServices::MAX_BYTES);
+        self::assertSame(1, $this->load(['max_bytes' => 1])->getDefinition(Typographers::class)->getArgument(5));
+
+        foreach ([0, -1, '1024', 1.5, null] as $invalid) {
+            try {
+                $this->load(['max_bytes' => $invalid]);
+                self::fail(\sprintf('The ceiling %s should be refused.', var_export($invalid, true)));
+            } catch (InvalidConfigurationException $invalidConfigurationException) {
+                self::assertStringContainsString('phil_typography.max_bytes', $invalidConfigurationException->getMessage());
+            }
+        }
+    }
+
+    /**
+     * The ceiling configured reaches the typographers the container builds, and through them the filters.
+     */
+    public function testTheCeilingReachesTheTypographers(): void
+    {
+        $container = $this->load(['max_bytes' => 8, 'default_locale' => 'en', 'ujo' => false]);
+        $container->compile(true);
+
+        $typographers = $container->get(Typographers::class);
+        self::assertInstanceOf(Typographers::class, $typographers);
+
+        self::assertSame('12345678', $typographers->for('en')->fixText('12345678'));
+        $this->expectException(InputTooLarge::class);
+        $typographers->for('en')->fixText('123456789');
     }
 
     public function testTheBundleAddsItsPass(): void

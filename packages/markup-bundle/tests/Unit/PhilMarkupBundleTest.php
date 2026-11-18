@@ -15,6 +15,7 @@ use Phil\Markup\MarkupCompiler;
 use Phil\Markup\MarkupFormat;
 use Phil\MarkupBundle\Infrastructure\Conversion\UjoConverter;
 use Phil\MarkupBundle\Infrastructure\DependencyInjection\MarkupServices;
+use Phil\MarkupBundle\Infrastructure\DependencyInjection\MaxBytesPass;
 use Phil\MarkupBundle\Infrastructure\DependencyInjection\MediaHostsPass;
 use Phil\MarkupBundle\Infrastructure\DependencyInjection\SmartPunctuationPass;
 use Phil\MarkupBundle\Infrastructure\Form\MarkupFormatType;
@@ -44,12 +45,12 @@ final class PhilMarkupBundleTest extends TestCase
         self::assertSame('phil_markup', $this->extension()->getAlias());
         self::assertSame(['service_container', HtmlRenderer::class, DefaultCompiler::class, SanitizerPurifier::class, MarkupServices::PURIFIER, Markup::class, MarkupFormats::class, UjoConverter::class, MarkupServices::SMART_PUNCTUATION, MarkupFormatType::class, MarkupExtension::class], array_keys($container->getDefinitions()));
         self::assertSame([HtmlRenderer::class, 'default'], $container->getDefinition(HtmlRenderer::class)->getFactory());
-        self::assertEquals([new Reference(HtmlRenderer::class), []], $container->getDefinition(DefaultCompiler::class)->getArguments());
+        self::assertEquals([new Reference(HtmlRenderer::class), [], '$maxBytes' => 1_048_576, '$ujoMaxBytes' => 4_194_304], $container->getDefinition(DefaultCompiler::class)->getArguments());
         self::assertSame(DefaultCompiler::class, (string) $container->getAlias(MarkupCompiler::class));
         self::assertSame(MarkupServices::PURIFIER, (string) $container->getAlias(HtmlPurifier::class));
         self::assertSame([Purifiers::class, 'defaultPolicies'], $container->getDefinition(MarkupServices::PURIFIER)->getFactory());
         self::assertSame(HtmlPurifier::class, $container->getDefinition(MarkupServices::PURIFIER)->getClass());
-        self::assertSame([null], $container->getDefinition(MarkupServices::PURIFIER)->getArguments());
+        self::assertSame([null, '$maxBytes' => 4_194_304], $container->getDefinition(MarkupServices::PURIFIER)->getArguments());
         self::assertSame([SanitizerPurifier::class, 'defaultPolicies'], $container->getDefinition(SanitizerPurifier::class)->getFactory());
         self::assertEquals([new Reference(MarkupCompiler::class), new Reference(HtmlPurifier::class)], $container->getDefinition(Markup::class)->getArguments());
         self::assertTrue($container->getDefinition(Markup::class)->isPublic());
@@ -69,11 +70,11 @@ final class PhilMarkupBundleTest extends TestCase
             [new Reference('phil_markup.smart_punctuation.inner'), new Reference(Typographers::class), MarkupFormat::values(), null, new Reference('translation.locale_switcher', ContainerInterface::IGNORE_ON_INVALID_REFERENCE)],
             $container->getDefinition(MarkupServices::SMART_PUNCTUATION)->getArguments(),
         );
-        self::assertSame([null], $container->getDefinition(SanitizerPurifier::class)->getArguments());
+        self::assertSame([null, '$maxBytes' => 4_194_304], $container->getDefinition(SanitizerPurifier::class)->getArguments());
         self::assertNull($container->getParameter(MediaHostsPass::PARAMETER));
-        self::assertSame([['cdn.example.com', 'img.example.org']], $this->load(['media_hosts' => ['cdn.example.com', 'img.example.org']])->getDefinition(SanitizerPurifier::class)->getArguments());
-        self::assertSame([[]], $this->load(['media_hosts' => []])->getDefinition(SanitizerPurifier::class)->getArguments());
-        self::assertSame([[]], $this->load(['media_hosts' => []])->getDefinition(MarkupServices::PURIFIER)->getArguments());
+        self::assertSame([['cdn.example.com', 'img.example.org'], '$maxBytes' => 4_194_304], $this->load(['media_hosts' => ['cdn.example.com', 'img.example.org']])->getDefinition(SanitizerPurifier::class)->getArguments());
+        self::assertSame([[], '$maxBytes' => 4_194_304], $this->load(['media_hosts' => []])->getDefinition(SanitizerPurifier::class)->getArguments());
+        self::assertSame([[], '$maxBytes' => 4_194_304], $this->load(['media_hosts' => []])->getDefinition(MarkupServices::PURIFIER)->getArguments());
     }
 
     /**
@@ -91,7 +92,7 @@ final class PhilMarkupBundleTest extends TestCase
         if (AmmoniaPurifier::isAvailable()) {
             $ammonia = $this->load(['purifier' => 'ammonia', 'media_hosts' => ['cdn.example.com']]);
             self::assertSame([AmmoniaPurifier::class, 'defaultPolicies'], $ammonia->getDefinition(MarkupServices::PURIFIER)->getFactory());
-            self::assertSame([['cdn.example.com']], $ammonia->getDefinition(MarkupServices::PURIFIER)->getArguments());
+            self::assertSame([['cdn.example.com'], '$maxBytes' => 4_194_304], $ammonia->getDefinition(MarkupServices::PURIFIER)->getArguments());
 
             return;
         }
@@ -101,6 +102,48 @@ final class PhilMarkupBundleTest extends TestCase
             self::fail('The ammonia purifier needs its extension.');
         } catch (InvalidConfigurationException $invalidConfigurationException) {
             self::assertStringContainsString('The "ammonia" purifier needs the ammonia extension of PHP, which is not loaded.', $invalidConfigurationException->getMessage());
+        }
+    }
+
+    /**
+     * The ceilings of a written source, of a UJO source and of an HTML purified reach the compiler and every purifier,
+     * the library's by default; the parameters let `MaxBytesPass` and `MediaHostsPass` give them back to a definition
+     * another bundle replaced.
+     */
+    public function testTheCeilingsReachTheCompilerAndThePurifiers(): void
+    {
+        $default = $this->load([]);
+        self::assertSame([1_048_576, 4_194_304, 4_194_304], [$default->getParameter(MaxBytesPass::PARAMETER), $default->getParameter(MaxBytesPass::UJO_PARAMETER), $default->getParameter(MediaHostsPass::MAX_BYTES_PARAMETER)]);
+
+        $container = $this->load(['max_bytes' => 10, 'ujo_max_bytes' => 20, 'purifier_max_bytes' => 30]);
+
+        self::assertSame([10, 20], [$container->getDefinition(DefaultCompiler::class)->getArgument('$maxBytes'), $container->getDefinition(DefaultCompiler::class)->getArgument('$ujoMaxBytes')]);
+        self::assertSame(30, $container->getDefinition(SanitizerPurifier::class)->getArgument('$maxBytes'));
+        self::assertSame(30, $container->getDefinition(MarkupServices::PURIFIER)->getArgument('$maxBytes'));
+        self::assertSame([10, 20, 30], [$container->getParameter(MaxBytesPass::PARAMETER), $container->getParameter(MaxBytesPass::UJO_PARAMETER), $container->getParameter(MediaHostsPass::MAX_BYTES_PARAMETER)]);
+        self::assertSame(30, $this->load(['purifier' => 'sanitizer', 'purifier_max_bytes' => 30])->getDefinition(SanitizerPurifier::class)->getArgument('$maxBytes'));
+    }
+
+    /**
+     * Each ceiling is a positive integer, refused otherwise when the container is built.
+     */
+    public function testTheCeilingsArePositiveIntegers(): void
+    {
+        foreach (['max_bytes', 'ujo_max_bytes', 'purifier_max_bytes'] as $key) {
+            self::assertSame(1, $this->load([$key => 1])->getParameterBag()->all()[match ($key) {
+                'max_bytes' => MaxBytesPass::PARAMETER,
+                'ujo_max_bytes' => MaxBytesPass::UJO_PARAMETER,
+                default => MediaHostsPass::MAX_BYTES_PARAMETER,
+            }]);
+
+            foreach ([0, -1, '1024', 1.5, null] as $invalid) {
+                try {
+                    $this->load([$key => $invalid]);
+                    self::fail(\sprintf('The ceiling %s of %s should be refused.', var_export($invalid, true), $key));
+                } catch (InvalidConfigurationException $invalidConfigurationException) {
+                    self::assertStringContainsString('phil_markup.'.$key, $invalidConfigurationException->getMessage());
+                }
+            }
         }
     }
 
@@ -136,6 +179,7 @@ final class PhilMarkupBundleTest extends TestCase
 
         self::assertCount(1, array_filter($passes, static fn (object $pass): bool => $pass instanceof MediaHostsPass));
         self::assertCount(1, array_filter($passes, static fn (object $pass): bool => $pass instanceof SmartPunctuationPass));
+        self::assertCount(1, array_filter($passes, static fn (object $pass): bool => $pass instanceof MaxBytesPass));
     }
 
     public function testTheFormatsOfALaterFileReplaceThoseOfAnEarlierOne(): void
@@ -155,7 +199,7 @@ final class PhilMarkupBundleTest extends TestCase
         $added = ['added_formats' => ['shout' => ['label' => 'Shout', 'reader' => 'app.shout_reader'], 'whisper' => ['label' => 'Whisper', 'reader' => 'app.whisper_reader']]];
         $container = $this->load($added);
 
-        self::assertEquals([new Reference(HtmlRenderer::class), ['shout' => new Reference('app.shout_reader'), 'whisper' => new Reference('app.whisper_reader')]], $container->getDefinition(DefaultCompiler::class)->getArguments());
+        self::assertEquals([new Reference(HtmlRenderer::class), ['shout' => new Reference('app.shout_reader'), 'whisper' => new Reference('app.whisper_reader')], '$maxBytes' => 1_048_576, '$ujoMaxBytes' => 4_194_304], $container->getDefinition(DefaultCompiler::class)->getArguments());
         self::assertSame([[...MarkupFormat::values(), 'shout', 'whisper'], 'markdown', Level::All, [], ['shout' => 'Shout', 'whisper' => 'Whisper']], $container->getDefinition(MarkupFormats::class)->getArguments());
         self::assertSame([...MarkupFormat::values(), 'shout', 'whisper'], $container->getDefinition(MarkupServices::SMART_PUNCTUATION)->getArgument(2));
         self::assertSame(

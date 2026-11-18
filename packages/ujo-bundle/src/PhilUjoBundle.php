@@ -30,7 +30,7 @@ final class PhilUjoBundle extends AbstractBundle
                     ->defaultFalse()
                 ->end()
                 ->integerNode('max_bytes')
-                    ->info('The largest UJO JSON read, in bytes.')
+                    ->info('The largest UJO JSON read, and the longest inline HTML fragment read, in bytes; a longer one is refused whole.')
                     ->defaultValue(UjoServices::MAX_BYTES)
                     ->min(1)
                 ->end()

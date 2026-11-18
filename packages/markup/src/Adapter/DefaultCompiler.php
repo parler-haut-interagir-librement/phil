@@ -24,6 +24,7 @@ use Phil\Markup\Reader\RawNormalizer;
 use Phil\Markup\Reader\Text\TextReader;
 use Phil\Markup\Reader\UjoReader;
 use Phil\Ujo\Html\HtmlRenderer;
+use Phil\Ujo\Json\JsonDecoder;
 use Phil\Ujo\Normalizer;
 use Phil\Ujo\Ujo;
 
@@ -35,7 +36,8 @@ use Phil\Ujo\Ujo;
  * add-ons are read by the readers their `ReaderProvider` gives, by name, then rendered the same way.
  *
  * A source longer than `maxBytes` is refused before it is read, whatever its format, HTML and plain text included: the
- * readers the compiler gives have the same ceiling, those of the add-ons behind it.
+ * readers the compiler gives have the same ceiling, those of the add-ons behind it. A UJO source has its own ceiling,
+ * `ujoMaxBytes`, which its reader and the decoder of `phil/ujo` behind it share.
  */
 final readonly class DefaultCompiler implements LevelAwareCompiler
 {
@@ -53,13 +55,20 @@ final readonly class DefaultCompiler implements LevelAwareCompiler
     private array $readers;
 
     /**
-     * @param iterable<string, ReaderProvider> $readers  the readers of the add-ons' formats, by format name
-     * @param int<1, max>                      $maxBytes the longest source compiled or read, in bytes; a longer one is refused
+     * @param iterable<string, ReaderProvider> $readers     the readers of the add-ons' formats, by format name
+     * @param int<1, max>                      $maxBytes    the longest source compiled or read, in bytes, but in UJO; a longer
+     *                                                      one is refused
+     * @param int<1, max>                      $ujoMaxBytes the longest UJO source compiled or read, in bytes; a longer one is
+     *                                                      refused
      *
      * @throws UnknownFormat when a name is already a format, or not a name
      */
-    public function __construct(?HtmlRenderer $renderer = null, iterable $readers = [], private int $maxBytes = MarkupReader::DEFAULT_MAX_BYTES)
-    {
+    public function __construct(
+        ?HtmlRenderer $renderer = null,
+        iterable $readers = [],
+        private int $maxBytes = MarkupReader::DEFAULT_MAX_BYTES,
+        private int $ujoMaxBytes = UjoReader::DEFAULT_MAX_BYTES,
+    ) {
         $this->renderer = $renderer ?? HtmlRenderer::default();
         $this->textRenderer = $this->renderer->withFilter(new CheckboxText());
         $this->normalizer = RawNormalizer::get();
@@ -103,9 +112,10 @@ final readonly class DefaultCompiler implements LevelAwareCompiler
     #[Override]
     public function compileFor(string $source, MarkupFormat|string $format, Level $level): string
     {
-        InputTooLarge::check($source, $this->maxBytes);
+        $known = MarkupFormat::tryFrom(MarkupFormat::nameOf($format));
+        InputTooLarge::check($source, MarkupFormat::Ujo === $known ? $this->ujoMaxBytes : $this->maxBytes);
 
-        return match (MarkupFormat::tryFrom(MarkupFormat::nameOf($format))) {
+        return match ($known) {
             MarkupFormat::Html => $source,
             MarkupFormat::Text => PlainText::compile($source),
             default => (Level::All === $level ? $this->renderer : $this->textRenderer)->render($this->reader($format, $level)->read($source)->document),
@@ -115,7 +125,7 @@ final readonly class DefaultCompiler implements LevelAwareCompiler
     /**
      * The reader of a format into UJO, for a source read at a level. HTML, compiled as written, and plain text, compiled
      * by `PlainText`, have a reader all the same, to convert them into UJO. Each refuses a source longer than the
-     * compiler's ceiling.
+     * compiler's ceiling, the reader of UJO longer than its UJO ceiling.
      *
      * @throws UnknownFormat when no format has that name
      */
@@ -130,7 +140,7 @@ final readonly class DefaultCompiler implements LevelAwareCompiler
             MarkupFormat::DokuWiki => new DokuWikiReader(Level::All === $level, $this->normalizer, maxBytes: $this->maxBytes),
             MarkupFormat::Creole => new CreoleReader(Level::All === $level, $this->normalizer, maxBytes: $this->maxBytes),
             MarkupFormat::Html => new HtmlReader($this->normalizer, maxBytes: $this->maxBytes),
-            MarkupFormat::Ujo => new UjoReader(new Ujo($this->normalizer), $this->maxBytes),
+            MarkupFormat::Ujo => new UjoReader(new Ujo($this->normalizer, decoder: new JsonDecoder($this->ujoMaxBytes)), $this->ujoMaxBytes),
             MarkupFormat::Text => new TextReader($this->normalizer, $this->maxBytes),
             null => new BoundedReader(($this->readers[$name] ?? throw UnknownFormat::named($name, $this->formats()))->reader($level, $this->normalizer), $this->maxBytes),
         };

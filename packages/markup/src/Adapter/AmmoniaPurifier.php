@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\Markup\Adapter;
 
+use Phil\Markup\Exception\InputTooLarge;
 use Phil\Markup\Exception\MissingExtension;
 use Phil\Markup\HtmlPurifier;
 use Phil\Markup\Level;
@@ -24,6 +25,8 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
  *   MathML; the text of an element no standard defines is kept, escaped;
  * - at `all`, the safe attributes every HTML element keeps are kept on the elements of MathML too;
  * - classes are filtered after the extension, as `CodeClasses` filters them.
+ *
+ * An HTML longer than `maxBytes` is refused whole, by an `InputTooLarge`, before either purifies it.
  *
  * Six kinds of HTML are given to `SanitizerPurifier` instead, which purifies them faster or checks what the extension
  * cannot:
@@ -83,6 +86,7 @@ final readonly class AmmoniaPurifier implements HtmlPurifier
      * @param array{basic: bool, forum: bool, all: bool}          $media        whether a level keeps an element with `src`
      * @param list<string>|null                                   $hosts        the hosts images may come from
      * @param int<0, max>                                         $minimumBytes the length from which the extension purifies
+     * @param int<1, max>                                         $maxBytes     the longest HTML purified, in bytes
      */
     private function __construct(
         private array $builders,
@@ -90,6 +94,7 @@ final readonly class AmmoniaPurifier implements HtmlPurifier
         private ?array $hosts,
         private SanitizerPurifier $sanitizer,
         private int $minimumBytes,
+        private int $maxBytes,
     ) {
     }
 
@@ -108,10 +113,11 @@ final readonly class AmmoniaPurifier implements HtmlPurifier
      *                                        `[]` for none
      * @param int<0, max>       $minimumBytes the length from which the extension purifies, a shorter HTML going to the
      *                                        sanitizer
+     * @param int<1, max>       $maxBytes     the longest HTML purified, in bytes; a longer one is refused
      *
      * @throws MissingExtension when the extension is not loaded
      */
-    public static function defaultPolicies(?array $mediaHosts = null, int $minimumBytes = self::MINIMUM_BYTES): self
+    public static function defaultPolicies(?array $mediaHosts = null, int $minimumBytes = self::MINIMUM_BYTES, int $maxBytes = self::DEFAULT_MAX_BYTES): self
     {
         if (!self::isAvailable()) {
             throw MissingExtension::named('ammonia', self::class);
@@ -126,11 +132,16 @@ final readonly class AmmoniaPurifier implements HtmlPurifier
             $media[$level] = array_any($configuration->getAllowedElements(), static fn (array $attributes): bool => isset($attributes['src']));
         }
 
-        return new self($builders, $media, $mediaHosts, SanitizerPurifier::defaultPolicies($mediaHosts), $minimumBytes);
+        return new self($builders, $media, $mediaHosts, SanitizerPurifier::defaultPolicies($mediaHosts, $maxBytes), $minimumBytes, $maxBytes);
     }
 
+    /**
+     * @throws InputTooLarge when the HTML is longer than the purifier's ceiling
+     */
     public function purify(string $html, Level $level): string
     {
+        InputTooLarge::check($html, $this->maxBytes);
+
         if (\strlen($html) < $this->minimumBytes
             || substr_count($html, '<') > self::MAXIMUM_TAGS
             || false !== stripos($html, '<noscript')

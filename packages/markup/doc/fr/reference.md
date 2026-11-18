@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=989feec6559bd3ec4d853e45479526ed3f3c1a10c5b87b1aecca05a1921f3441 -->
+<!-- phil-dev source-sha256=72e26ce4bd322956546496ef85d95bceb71ad49dadd37b47279bb6538e9daa2a -->
 # Référence
 
 ## Types
@@ -9,13 +9,14 @@
 | `Level` | enum | `Basic`, `Forum`, `All` |
 | `MarkupCompiler` | interface | `compile(string $source, MarkupFormat\|string $format): string`, du HTML **qu'on ne peut pas afficher sans risque** ; une chaîne nomme un format d'un module complémentaire |
 | `LevelAwareCompiler` | interface | Un `MarkupCompiler` avec `compileFor($source, $format, $level)` : on lui indique le niveau auquel le HTML sera assaini |
-| `HtmlPurifier` | interface | `purify(string $html, Level $level): string` |
+| `HtmlPurifier` | interface | `purify(string $html, Level $level): string` ; `DEFAULT_MAX_BYTES`, le plafond d'un HTML sauf configuration, 4 Mio |
 | `Exception\MarkupException`, `Exception\InputTooLarge`, `Exception\InvalidSource`, `Exception\MissingExtension`, `Exception\UnknownFormat` | exceptions | Voir [Exceptions](exceptions.md) |
 | `Markup` | `final readonly class` | `toHtml()` et `text()` : compiler (au niveau voulu, pour un `LevelAwareCompiler`), puis assainir ; `Level::All` sauf indication contraire |
 | `MarkedUpText` | objet intégrable | `source` (texte), `format` (le nom du format, 16 caractères), `html` (texte) |
 | `Lexer\Cursor` | `final class` | Le curseur de l'analyseur : voir [L'analyseur](analyser.md) |
 | `Lexer\Slugger` | `final class` | Les ancres d'un document, uniques |
 | `Reader\MarkupReader` | interface | `read(string $source): Reading` ; `DEFAULT_MAX_BYTES`, le plafond d'une source sauf configuration, 1 Mio |
+| `Reader\UjoReader` | `MarkupReader` | L'UJO lu par `phil/ujo` ; `DEFAULT_MAX_BYTES`, son propre plafond, celui de `JsonDecoder`, 4 Mio |
 | `Reader\Reading` | `final readonly class` | `document`, un `Document` UJO, `metadata` et `losses` |
 | `Reader\Loss`, `Reader\LossReason` | `final readonly class`, enum | Ce qu'un lecteur n'a pas gardé : élément, chemin, raison |
 | `Contract\ExtractedElementStore` | interface | `store(string $content, string $mediaType, string $name): ?string` : où les éléments extraits sont stockés sous forme de fichiers |
@@ -31,10 +32,10 @@
 | `Reader\Html\HtmlReader` | `MarkupReader` | HTML vers UJO : voir [HTML](html.md) |
 | `Reader\UjoReader` | `MarkupReader` | Le JSON UJO, par `phil/ujo` |
 | `Reader\Text\TextReader` | `MarkupReader` | Le texte brut : un `paragraph` pour chaque suite de lignes, sauts de ligne gardés, adresses changées en liens |
-| `Adapter\DefaultCompiler` | `LevelAwareCompiler` | Chaque format, ceux des modules complémentaires donnés par nom, une source plus longue que `maxBytes` refusée ; `reader($format, $level)` donne le lecteur d'un format vers UJO, y compris ceux du HTML et du texte brut, même si les deux se compilent sans lui ; `formats()`, le nom de chacun |
-| `Adapter\SanitizerPurifier` | `HtmlPurifier` | `defaultPolicies()`, un assainisseur par niveau ; `configurations()`, la configuration de chaque niveau |
-| `Adapter\AmmoniaPurifier` | `HtmlPurifier` | `defaultPolicies()` sur l'extension `ammonia`, les mêmes politiques ; `isAvailable()` : voir [Accélérateurs](accelerators.md) |
-| `Adapter\Purifiers` | `final readonly class` | `defaultPolicies($mediaHosts, $extension)` : `AmmoniaPurifier` là où l'extension est chargée, `SanitizerPurifier` sinon |
+| `Adapter\DefaultCompiler` | `LevelAwareCompiler` | Chaque format, ceux des modules complémentaires donnés par nom, une source plus longue que `maxBytes` refusée, une source UJO plus longue que `ujoMaxBytes` ; `reader($format, $level)` donne le lecteur d'un format vers UJO, y compris ceux du HTML et du texte brut, même si les deux se compilent sans lui ; `formats()`, le nom de chacun |
+| `Adapter\SanitizerPurifier` | `HtmlPurifier` | `defaultPolicies($mediaHosts, $maxBytes)`, un assainisseur par niveau ; `configurations()`, la configuration de chaque niveau |
+| `Adapter\AmmoniaPurifier` | `HtmlPurifier` | `defaultPolicies($mediaHosts, $minimumBytes, $maxBytes)` sur l'extension `ammonia`, les mêmes politiques ; `isAvailable()` : voir [Accélérateurs](accelerators.md) |
+| `Adapter\Purifiers` | `final readonly class` | `defaultPolicies($mediaHosts, $extension, $maxBytes)` : `AmmoniaPurifier` là où l'extension est chargée, `SanitizerPurifier` sinon |
 | `Adapter\CodeClasses` | `final readonly class` | Les classes gardées sur `code` (`language-…`) et `span` (`hl-…`), un assainisseur d'attributs de `symfony/html-sanitizer` ; `keep()`, les classes qu'il garde d'une valeur |
 | `Adapter\PlainText`, `Adapter\Autolink` | compilateurs | Le texte brut, les liens dans le texte |
 
@@ -94,6 +95,25 @@ dont les membres écrivent des textes à `forum` donne les hôtes depuis lesquel
 Assainissez de nouveau ce qui a été stocké au moment de l'afficher : une politique resserrée s'applique alors aux textes
 écrits avant. `Purifiers::defaultPolicies()` prend les mêmes hôtes, et assainit avec l'extension `ammonia` là où elle est
 chargée : voir [Accélérateurs](accelerators.md).
+
+### Le plafond d'un HTML purifié
+
+Chaque purificateur de la bibliothèque refuse un HTML plus long que son plafond avant de le purifier : il lance
+`Exception\InputTooLarge`, qui donne les deux longueurs dans `$bytes` et `$limit`, et ne coupe jamais le HTML pour qu'il
+tienne (le plafond de `symfony/html-sanitizer`, qui tronque en silence, reste désactivé). Le plafond se compte en octets,
+`maxBytes`, `HtmlPurifier::DEFAULT_MAX_BYTES` (4 Mio) par défaut :
+
+```php
+SanitizerPurifier::defaultPolicies(['cdn.example.com'], maxBytes: 1_048_576); // 1 MiB
+AmmoniaPurifier::defaultPolicies(maxBytes: 1_048_576);                         // the sanitizer it hands HTML to too
+Purifiers::defaultPolicies(maxBytes: 1_048_576);                               // whichever is chosen
+new SanitizerPurifier($sanitizers, 1_048_576);
+```
+
+Le plafond borne le temps et la mémoire que prend une purification, quel que soit le HTML : l'assainisseur analyse toute
+l'entrée en un arbre. 4 Mio dépasse le plafond de chaque lecteur, de sorte que le HTML qu'un compilateur écrit à partir
+d'une source qu'il a acceptée, plus long que la source, est purifié ; une application qui ne purifie que le HTML de
+membres l'abaisse.
 
 ## Listes de contrôle
 

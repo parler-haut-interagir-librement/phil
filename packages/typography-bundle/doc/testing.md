@@ -2,7 +2,8 @@
 
 ## The bundle's tests
 
-`tests/Unit` checks the configuration and the services it gives, the decoration of the UJO renderer, the filters and
+`tests/Unit` checks the configuration and the services it gives, the ceiling of a text refused when it is not a
+positive integer and reaching the typographers, the decoration of the UJO renderer, the filters and
 the UJO filter, in a given locale and in the current one. `tests/Functional` boots a small application —
 FrameworkBundle in French with its translator, TwigBundle, `phil/ujo-bundle` and this bundle — and renders a template
 with both filters and a UJO document, in the default locale and in another one set by `LocaleSwitcher`.

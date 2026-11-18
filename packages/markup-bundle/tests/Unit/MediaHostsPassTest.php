@@ -7,7 +7,9 @@ namespace Phil\MarkupBundle\Tests\Unit;
 use Phil\Markup\Adapter\AmmoniaPurifier;
 use Phil\Markup\Adapter\Purifiers;
 use Phil\Markup\Adapter\SanitizerPurifier;
+use Phil\Markup\Exception\InputTooLarge;
 use Phil\Markup\HtmlPurifier;
+use Phil\Markup\Level;
 use Phil\MarkupBundle\Infrastructure\DependencyInjection\MarkupServices;
 use Phil\MarkupBundle\Infrastructure\DependencyInjection\MediaHostsPass;
 use Phil\MarkupBundle\PhilMarkupBundle;
@@ -32,6 +34,31 @@ final class MediaHostsPassTest extends TestCase
         new MediaHostsPass()->process($container);
 
         self::assertSame([['cdn.example.com']], $container->getDefinition(SanitizerPurifier::class)->getArguments());
+    }
+
+    /**
+     * The ceiling of an HTML purified comes back with the hosts, when the configuration gave one.
+     */
+    public function testTheCeilingReachesAnAdapterAnotherBundleRegistered(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter(MediaHostsPass::PARAMETER, ['cdn.example.com']);
+        $container->setParameter(MediaHostsPass::MAX_BYTES_PARAMETER, 30);
+        $container->register(SanitizerPurifier::class, SanitizerPurifier::class)->setFactory([SanitizerPurifier::class, 'defaultPolicies']);
+        $container->register('b', HtmlPurifier::class)->setFactory([Purifiers::class, 'defaultPolicies']);
+
+        new MediaHostsPass()->process($container);
+
+        self::assertSame([['cdn.example.com'], '$maxBytes' => 30], $container->getDefinition(SanitizerPurifier::class)->getArguments());
+        self::assertSame([['cdn.example.com'], '$maxBytes' => 30], $container->getDefinition('b')->getArguments());
+        self::assertSame('phil_markup.purifier_max_bytes', MediaHostsPass::MAX_BYTES_PARAMETER);
+
+        $container->getDefinition(SanitizerPurifier::class)->setPublic(true);
+        $container->compile(true);
+        $purifier = $container->get(SanitizerPurifier::class);
+        self::assertInstanceOf(SanitizerPurifier::class, $purifier);
+        $this->expectException(InputTooLarge::class);
+        $purifier->purify(str_repeat('a', 31), Level::All);
     }
 
     public function testTheHostsReachEveryPurifierOfTheDefaultPolicies(): void

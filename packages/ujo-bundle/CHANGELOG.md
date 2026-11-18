@@ -4,6 +4,21 @@ All notable changes to `phil/ujo-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha: `max_bytes` bounds inline HTML too, on `phil/ujo` 0.1.3.
+
+### Added
+
+- The service `Phil\Ujo\Html\InlineSanitizer`, built with `max_bytes`, which the `Normalizer`, the `HtmlRenderer` and
+  `PlainText` read inline HTML through.
+
+### Changed
+
+- `max_bytes` bounds each inline HTML fragment as well as the JSON the decoder reads: a document built in PHP, which no
+  decoder sees, is refused all the same when it is rendered or converted to text. `phil/ujo` 0.1.3 or later is
+  required.
+
 ## 0.1.1-alpha - 2026-11-17
 
 The next version is 0.1.1-alpha: documentation only.

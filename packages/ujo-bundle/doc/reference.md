@@ -5,7 +5,7 @@ Every class of the bundle, with its role.
 | Class | Kind | Role |
 |---|---|---|
 | `Phil\UjoBundle\PhilUjoBundle` | `final class`, `AbstractBundle` | The bundle: the `phil_ujo` configuration |
-| `Phil\UjoBundle\Infrastructure\DependencyInjection\UjoServices` | `final class` | Declares the services of `phil/ujo`, the field, the validator and the Twig extension |
+| `Phil\UjoBundle\Infrastructure\DependencyInjection\UjoServices` | `final class` | Declares the services of `phil/ujo` — the `InlineSanitizer` with `max_bytes` among them —, the field, the validator and the Twig extension |
 | `Phil\UjoBundle\Infrastructure\Twig\UjoExtension` | `final readonly class` | The `ujo_html` and `ujo_text` filters and functions |
 | `Phil\UjoBundle\Infrastructure\Form\UjoType` | `final class`, `AbstractType` | A field holding UJO JSON |
 | `Phil\UjoBundle\Infrastructure\Form\UjoTransformer` | `final readonly class`, `DataTransformerInterface` | JSON to canonical JSON or `Document`, and back |

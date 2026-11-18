@@ -15,7 +15,10 @@ use Phil\Markup\Exception\InvalidSource;
  */
 interface MarkupReader
 {
-    /** The ceiling of a source, in bytes, of each reader and of `Adapter\DefaultCompiler` unless configured: 1 MiB. */
+    /**
+     * The ceiling of a source, in bytes, of each reader and of `Adapter\DefaultCompiler` unless configured: 1 MiB.
+     * `UjoReader` has its own, 4 MiB.
+     */
     public const int DEFAULT_MAX_BYTES = 1_048_576;
 
     /**

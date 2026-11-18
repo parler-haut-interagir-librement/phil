@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\Markup\Adapter;
 
+use Phil\Markup\Exception\InputTooLarge;
 use Phil\Markup\HtmlPurifier;
 use Phil\Markup\Level;
 use Phil\Ujo\Html\InlineProfile;
@@ -17,7 +18,8 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
  * paragraph, a list, a heading, a table — is removed and its text kept; any other element is removed with its content.
  * Links may use the schemes `phil/ujo` allows — the web, `mailto`, `tel`, `sms`, `geo` and the messengers —, or be
  * relative; images `http` and `https`, or be relative. At `all`, formulas in MathML Core are kept as `phil/ujo`'s
- * `mathml` profile keeps them. **The input length is not capped**: the sanitizer's default cap truncates silently.
+ * `mathml` profile keeps them. **An HTML longer than `maxBytes` is refused whole**, by an `InputTooLarge`, before it is
+ * purified: the sanitizer's own cap, which truncates silently, is turned off.
  *
  * **An image is a request to its host.** At the levels that keep images, `forum` and `all`, an image of another site
  * makes every reader's browser call that site, which learns their address: tracking without their consent when a
@@ -45,19 +47,22 @@ final readonly class SanitizerPurifier implements HtmlPurifier
 
     /**
      * @param array{basic: HtmlSanitizerInterface, forum: HtmlSanitizerInterface, all: HtmlSanitizerInterface} $sanitizers
+     * @param int<1, max>                                                                                      $maxBytes   the longest HTML purified, in bytes; a longer one is refused
      */
     public function __construct(
         private array $sanitizers,
+        private int $maxBytes = self::DEFAULT_MAX_BYTES,
     ) {
     }
 
     /**
      * @param list<string>|null $mediaHosts the hosts images may come from, besides the site itself — `cdn.example.com`,
      *                                      a subdomain included —; `null` for any host, `[]` for none
+     * @param int<1, max>       $maxBytes   the longest HTML purified, in bytes; a longer one is refused
      */
-    public static function defaultPolicies(?array $mediaHosts = null): self
+    public static function defaultPolicies(?array $mediaHosts = null, int $maxBytes = self::DEFAULT_MAX_BYTES): self
     {
-        return new self(array_map(static fn (HtmlSanitizerConfig $config): HtmlSanitizer => new HtmlSanitizer($config), self::configurations($mediaHosts)));
+        return new self(array_map(static fn (HtmlSanitizerConfig $config): HtmlSanitizer => new HtmlSanitizer($config), self::configurations($mediaHosts)), $maxBytes);
     }
 
     /**
@@ -97,8 +102,12 @@ final readonly class SanitizerPurifier implements HtmlPurifier
         return ['basic' => $basic, 'forum' => $forum, 'all' => $all->allowElement('input', ['type', 'checked', 'disabled'])];
     }
 
+    /**
+     * @throws InputTooLarge when the HTML is longer than the purifier's ceiling
+     */
     public function purify(string $html, Level $level): string
     {
+        InputTooLarge::check($html, $this->maxBytes);
         $clean = $this->sanitizers[$level->value]->sanitize($html);
 
         return str_contains($clean, '<input') ? $this->checkboxes($clean) : $clean;
