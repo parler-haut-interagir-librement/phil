@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=85f2718a2e70ae9aaa064f5755d1c2e4d50cb405a6673d8d92a1f0678e8d9109 -->
+<!-- phil-dev source-sha256=c2c5474fa99152c2a114aecd3637bb9f93ed6a8e2b192b0903f8e20ce3289ca6 -->
 # phil/typography-bundle
 
 **Des guillemets typographiques, des tirets, des espaces françaises et des césures conditionnelles partout où une
@@ -25,7 +25,7 @@ La conception est réduite : `PhilTypographyBundle` lit la configuration, `Typog
 
 | Partie | État |
 |---|---|
-| Configuration : locale par défaut, césure et ses langues expérimentales, éléments protégés, correcteurs par locale | Implémenté et testé |
+| Configuration : locale par défaut, césure et ses langues expérimentales, éléments protégés, correcteurs par locale, plafond d'un texte | Implémenté et testé |
 | `Typographers`, `Typographer` et un service par locale configurée, injectable par nom d'argument | Implémenté et testé |
 | Twig : `typography` pour le HTML, qui échappe ce qui n'est pas marqué sûr ; `typography_text` pour le texte brut | Implémenté et testé |
 | La locale de la requête, par le `LocaleSwitcher` de Symfony, pour les filtres et la passe UJO | Implémenté et testé |

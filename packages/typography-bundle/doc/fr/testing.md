@@ -1,9 +1,10 @@
-<!-- phil-dev source-sha256=e2d72c0bf15126b6fc4e208e9cccae3f22140f36023c4718ea1837204b78e2f2 -->
+<!-- phil-dev source-sha256=ca053676e20612dc48acd12976ffc5f03c3c159312e33bd92f67ab8060a22923 -->
 # Tests
 
 ## Les tests du bundle
 
-`tests/Unit` vérifie la configuration et les services qu'elle donne, la décoration du moteur de rendu UJO, les filtres
+`tests/Unit` vérifie la configuration et les services qu'elle donne, le plafond d'un texte refusé quand ce n'est pas un
+entier positif et qui atteint les typographes, la décoration du moteur de rendu UJO, les filtres
 et le filtre UJO, dans une locale donnée et dans la locale courante. `tests/Functional` démarre une petite application
 (FrameworkBundle en français avec son traducteur, TwigBundle, `phil/ujo-bundle` et ce bundle). Elle produit le rendu
 d'un gabarit avec les deux filtres et d'un document UJO, dans la locale par défaut et dans une autre fixée par

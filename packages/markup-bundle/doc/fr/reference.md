@@ -1,11 +1,12 @@
-<!-- phil-dev source-sha256=08d9fe565c68147a0f80fb15d81bb73883b78cdc86a4804d0e39f8d0a530bdb9 -->
+<!-- phil-dev source-sha256=9d9d01dfdb8a98c23d40c4bc2ebd7b2ea88db9119abf9f31ef9b720804f63817 -->
 # Référence
 
 | Type | Nature | Rôle |
 |---|---|---|
 | `Phil\MarkupBundle\PhilMarkupBundle` | `AbstractBundle` | La configuration `phil_markup` et les services |
 | `…\Infrastructure\DependencyInjection\MarkupServices` | `final class` | Enregistre les services ; `formats()`, `isEnabledDefault()` pour la configuration |
-| `…\Infrastructure\DependencyInjection\MediaHostsPass` | passe de compilation | Donne les `media_hosts` à `SanitizerPurifier`, `AmmoniaPurifier` et `Purifiers`, quel que soit le bundle qui les a enregistrés ; garde `HtmlPurifier` sur le purificateur choisi |
+| `…\Infrastructure\DependencyInjection\MediaHostsPass` | passe de compilation | Donne les `media_hosts` et les `purifier_max_bytes` à `SanitizerPurifier`, `AmmoniaPurifier` et `Purifiers`, quel que soit le bundle qui les a enregistrés ; garde `HtmlPurifier` sur le purificateur choisi |
+| `…\Infrastructure\DependencyInjection\MaxBytesPass` | passe de compilation | Donne à chaque `DefaultCompiler` les `max_bytes` et `ujo_max_bytes`, quel que soit le bundle qui l'a enregistré ; un compilateur à qui l'on donne ses plafonds par position, ou construit par une fabrique, est laissé intact |
 | `…\Infrastructure\DependencyInjection\SmartPunctuationPass` | passe de compilation | Donne à la ponctuation soignée les typographes de `phil/typography-bundle`, ou les siens, et ses formats |
 | `…\Infrastructure\Typography\SmartPunctuationCompiler` | `final readonly class` | Un `LevelAwareCompiler` qui décore `MarkupCompiler` : son HTML passe par un typographe |
 | `…\Infrastructure\Format\MarkupFormats` | `final readonly class` | `enabled()`, `isEnabled()`, `format()`, `label()`, `level()`, `ceiling()` ; les formats par nom |

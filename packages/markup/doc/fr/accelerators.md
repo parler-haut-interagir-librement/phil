@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=37dec2ac541412fa25a34b1b1369fbd0f14290e82eb7a28f89858a314468a882 -->
+<!-- phil-dev source-sha256=e60152e4e873860f7a1d3f0502cd1faa876b6e1efb3b6add7248c7c2c4170cfe -->
 # Accélérateurs
 
 La bibliothèque fonctionne en PHP simple. Une extension de PHP, quand elle est chargée, assainit plus vite : `ammonia`,
@@ -22,7 +22,9 @@ $purifier = Purifiers::defaultPolicies(extension: false);    // always Sanitizer
 ```
 
 `AmmoniaPurifier::isAvailable()` dit si l'extension est chargée ; `AmmoniaPurifier::defaultPolicies()` lance
-`MissingExtension` quand elle ne l'est pas.
+`MissingExtension` quand elle ne l'est pas. Son `maxBytes`, 4 Mio par défaut, refuse un HTML plus long avant que l'un ou
+l'autre purificateur le voie, comme le fait `SanitizerPurifier` : voir
+[Le plafond d'un HTML purifié](reference.md#le-plafond-dun-html-purifie).
 
 ### Ce que gardent les deux
 

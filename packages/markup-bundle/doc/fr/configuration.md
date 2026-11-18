@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=17c84fa0ba3747e7f71d41e70bee6ceee7852bbae0b7970a678f830aa344ebd1 -->
+<!-- phil-dev source-sha256=222daaa2c12cbec92bc93418d243e03469c3beb37b10cf02aeda2c5897a09c9a -->
 # Configuration
 
 ```yaml
@@ -15,6 +15,9 @@ phil_markup:
         locale: ~                     # the locale of the request by default
     media_hosts: [cdn.example.com]    # null by default: any host
     purifier: auto                    # auto, sanitizer or ammonia
+    max_bytes: 1048576                # the longest source in a written format, in bytes
+    ujo_max_bytes: 4194304            # the longest UJO source, in bytes
+    purifier_max_bytes: 4194304       # the longest HTML purified, in bytes
 ```
 
 ## Formats
@@ -112,6 +115,31 @@ textes environ deux fois plus vite. La page [Accélérateurs](https://github.com
 de `phil/markup` dit ce qui diffère, et comment installer l'extension. Un bundle qui pointe `HtmlPurifier` vers
 `SanitizerPurifier` après celui-ci, comme le fait `phil/content-bundle`, le rend au purificateur choisi ; `sanitizer`
 garde l'assainisseur.
+
+## Plafonds
+
+Trois clés bornent ce que le bundle lit et purifie. Chacune se compte en octets et refuse le texte en entier, par
+`InputTooLarge` de `phil/markup`, avant qu'un octet soit analysé : une source ou un HTML n'est jamais coupé pour tenir.
+
+| Option | Valeur par défaut | Borne |
+|---|---|---|
+| `max_bytes` | `1048576` (1 Mio) | Une source compilée ou lue dans un format écrit (Markdown, BBCode, les wikis, HTML, texte brut et les formats des modules complémentaires), par `DefaultCompiler`, `Markup`, les filtres et le convertisseur |
+| `ujo_max_bytes` | `4194304` (4 Mio) | Une source UJO compilée ou lue ; le décodeur de `phil/ujo` derrière le lecteur prend le même plafond |
+| `purifier_max_bytes` | `4194304` (4 Mio) | Un HTML purifié, par `markup_purify`, `Markup` et chaque purificateur que `purifier` peut choisir |
+
+Les valeurs par défaut sont celles de `phil/markup` : `MarkupReader::DEFAULT_MAX_BYTES`, `UjoReader::DEFAULT_MAX_BYTES`
+et `HtmlPurifier::DEFAULT_MAX_BYTES`. Chaque valeur est un entier positif ; toute autre (`0`, un nombre négatif, une
+chaîne, un nombre à virgule) est refusée à la construction du conteneur.
+
+Il y a trois clés parce que la bibliothèque garde trois plafonds : le JSON d'un document UJO pèse plus que le texte qu'il
+contient, et le HTML qu'écrit un compilateur est plus long que sa source. Une valeur unique refuserait des documents que
+les formats écrits acceptent, ou laisserait passer des sources écrites plus longues. `ujo_max_bytes` borne l'UJO que le
+bundle lit par `phil/markup` ; `phil_ujo.max_bytes`, quand `phil/ujo-bundle` est installé, borne le service `Ujo` de ce
+bundle.
+
+Les plafonds atteignent le compilateur et les purificateurs, quel que soit le bundle qui les enregistre, y compris
+`phil/content-bundle`, par des passes de compilation. Un compilateur à qui l'application donne ses plafonds par position,
+ou qu'elle construit par une fabrique, et un purificateur qu'elle construit elle-même, sont laissés intacts.
 
 ## Remplacer le compilateur ou le purificateur
 

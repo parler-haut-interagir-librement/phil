@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9463afcb69b8da30ecbed875c893914a1c42c8c4079f8c8a2368fca137518f07 -->
+<!-- phil-dev source-sha256=59d8c55a455780ae6847a187047511b68888665a182d37d7eaeafa3c6d23182b -->
 # phil/markup-bundle
 
 **Le Markdown, le BBCode, les wikis, UJO et le HTML des utilisateurs rendus de façon sûre dans Twig, convertis en UJO,
@@ -45,7 +45,7 @@ niveaux de la configuration, et les expose aux formulaires et à Twig.
 | Document | Contenu |
 |---|---|
 | [Installation](doc/fr/installation.md) | Les prérequis et l'enregistrement. |
-| [Configuration](doc/fr/configuration.md) | Les formats, les niveaux, la ponctuation soignée, les hôtes d'images, le remplacement du compilateur ou du purificateur. |
+| [Configuration](doc/fr/configuration.md) | Les formats, les niveaux, la ponctuation soignée, les hôtes d'images, le purificateur, les plafonds, le remplacement du compilateur ou du purificateur. |
 | [Conversion en UJO](doc/fr/conversion.md) | `UjoConverter` : les analyseurs, le document, le JSON. |
 | [Formulaires](doc/fr/forms.md) | `MarkupFormatType`. |
 | [Twig](doc/fr/twig.md) | Les trois filtres, et ce que coûte un rendu. |

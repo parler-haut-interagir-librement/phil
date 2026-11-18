@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=a5557b9ac6e8b6343df28c6f6d1d7f4338004dc6e39704ecdb05b47b6471b727 -->
+<!-- phil-dev source-sha256=0159949b9e802392370f4b09a75ca1231439e549d2b5dd0c5a213270c8d72a83 -->
 # Exceptions
 
 Chaque exception de la bibliothèque implémente `Phil\Markup\Exception\MarkupException`.
 
 | Exception | Étend | Lancée quand |
 |---|---|---|
-| `InputTooLarge` | `InvalidArgumentException` | Une source est plus longue que le plafond du lecteur ou de `DefaultCompiler` à qui on la donne (`maxBytes`, 1 Mio par défaut) ; `$bytes` et `$limit` donnent les deux longueurs |
+| `InputTooLarge` | `InvalidArgumentException` | Une source est plus longue que le plafond du lecteur ou de `DefaultCompiler` à qui on la donne (`maxBytes`, 1 Mio par défaut, 4 Mio pour UJO), ou un HTML plus long que le plafond du purificateur (`maxBytes`, 4 Mio par défaut) ; `$bytes` et `$limit` donnent les deux longueurs |
 | `InvalidSource` | `InvalidArgumentException` | Une source UJO n'est pas du JSON, enfreint la structure d'un document, ou contient un bloc d'un type inconnu ou dont les données enfreignent son type |
 | `MissingExtension` | `LogicException` | `AmmoniaPurifier::defaultPolicies()` est appelé là où l'extension `ammonia` de PHP n'est pas chargée ; `$extension` la nomme |
 | `UnknownFormat` | `InvalidArgumentException` | On demande à un compilateur un format qu'aucun lecteur ne connaît ; ou un module complémentaire donne à `DefaultCompiler` un nom qui est déjà un format, ou qui n'est pas fait de 1 à 16 lettres minuscules, chiffres et traits d'union commençant par une lettre |
@@ -21,4 +21,6 @@ brut n'en lancent jamais non plus.
 
 Chaque lecteur, et `DefaultCompiler` dans tous les formats, refuse par `InputTooLarge` une source plus longue que son
 plafond, `The input is 1048577 bytes long, above the limit of 1048576 bytes.`, avant d'en lire un octet : une source
-n'est jamais coupée pour y tenir. Voir [Le plafond d'une source](analyser.md#le-plafond-dune-source).
+n'est jamais coupée pour y tenir. Voir [Le plafond d'une source](analyser.md#le-plafond-dune-source). Chaque purificateur refuse de la même façon un HTML plus
+long que son plafond, avant qu'un assainisseur le voie : voir
+[Le plafond d'un HTML purifié](reference.md#le-plafond-dun-html-purifie).

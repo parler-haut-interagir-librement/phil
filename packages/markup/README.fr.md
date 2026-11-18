@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d812ab50abc4db4cc010182e9b97d37ad1e7c4361b7b88b32cc6fd14a10a3a65 -->
+<!-- phil-dev source-sha256=da736580229a240581fc12ac56f29bde521619be0029397e8e40ae6cfb2ca054 -->
 # phil/markup
 
 **Du Markdown, du BBCode, du MediaWiki, du DokuWiki, du Creole, de l'UJO, du HTML ou du texte brut, changés en HTML
@@ -24,7 +24,7 @@ les citations et les images, pour un message de forum ; `all` garde chaque élé
 sûr, pour un article qu'écrit un rédacteur. Une liste de contrôle garde ses cases à cocher accessibles à `all` et dit
 l'état de chaque élément en texte en dessous. `MarkedUpText` garde ensemble la source, son format et le HTML assaini, sous forme d'objet
 intégrable (*embeddable*) Doctrine, pour qu'une page ne soit pas compilée à chaque lecture. Chaque lecteur, et le
-compilateur, refuse une source plus longue que son plafond, 1 Mio par défaut, avant de la lire. Un module complémentaire apporte un dialecte de Markdown (ses règles en ligne et de bloc, la
+compilateur, refuse une source plus longue que son plafond, 1 Mio par défaut et 4 Mio pour UJO, avant de la lire ; chaque purificateur refuse un HTML plus long que 4 Mio par défaut. Un module complémentaire apporte un dialecte de Markdown (ses règles en ligne et de bloc, la
 syntaxe qu'il lit autrement) ou un format entier, lu par un lecteur à lui sous un nom à lui.
 
 Il s'adresse à toute application PHP qui affiche du texte qu'écrivent ses visiteurs, ses membres ou ses rédacteurs
@@ -62,6 +62,7 @@ assainisseur.
 | `Adapter\SanitizerPurifier` : une politique par niveau | Implémenté et testé |
 | `Adapter\AmmoniaPurifier`, `Adapter\Purifiers` : les mêmes politiques sur l'extension `ammonia`, là où elle est chargée | Implémentés et testés |
 | Un plafond sur chaque source, `maxBytes`, refusé par `InputTooLarge` avant qu'elle soit lue | Implémenté et testé |
+| Un plafond sur chaque HTML purifié, `maxBytes`, refusé par `InputTooLarge` avant qu'il soit purifié | Implémenté et testé |
 | Mentions, contenus intégrés, liens externes, ponctuation typographique, dans chaque format | Pas commencé |
 
 ## Documentation

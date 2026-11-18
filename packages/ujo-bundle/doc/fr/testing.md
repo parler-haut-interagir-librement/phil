@@ -1,9 +1,9 @@
-<!-- phil-dev source-sha256=e75dde0bed2322669e7fb76f8775cec90546e6ae00b5c6de2ec31bc2c4853de7 -->
+<!-- phil-dev source-sha256=596bf5db4c89fe84cd90f41577f63bd713a27a92e40f97873c725fc87650e633 -->
 # Tests
 
 ## Les tests du bundle
 
-`tests/Unit` charge l'extension du bundle et vérifie chaque service et chaque option. Il teste aussi directement le
+`tests/Unit` charge l'extension du bundle et vérifie chaque service et chaque option (`max_bytes` qui atteint le décodeur et l'assainisseur en ligne d'un conteneur compilé). Il teste aussi directement le
 transformateur, le validateur (sur le `ConstraintValidatorTestCase` de Symfony) et l'extension Twig.
 `tests/Functional` démarre un petit noyau avec FrameworkBundle et TwigBundle, produit le rendu d'un gabarit avec les
 filtres et les fonctions, envoie le champ et valide en français.
