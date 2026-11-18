@@ -8,6 +8,8 @@ use Closure;
 use DateTimeImmutable;
 use LogicException;
 use Phil\ApiContract\Exception\InvalidContractValue;
+use Phil\ApiContractBundle\Infrastructure\Http\AnonymousCallers;
+use Phil\ApiContractBundle\Infrastructure\Http\CallerScopeResolver;
 use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyListener;
 use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyReservation;
 use Phil\ApiContractBundle\Infrastructure\Http\Idempotent;
@@ -25,6 +27,7 @@ use Phil\Idempotency\StoredResponse;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Clock\ClockInterface;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Clock\NativeClock;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -107,6 +110,45 @@ final class IdempotencyListenerTest extends TestCase
         }
 
         self::assertSame(1, new Idempotent(ttl: 1)->ttl);
+    }
+
+    public function testTheAttributeNamesThePolicyForAnonymousCallers(): void
+    {
+        self::assertNull(new Idempotent()->anonymous);
+        self::assertSame(AnonymousCallers::ByIp, new Idempotent(anonymous: 'ip')->anonymous);
+        self::assertSame(AnonymousCallers::Refuse, new Idempotent(anonymous: 'refuse')->anonymous);
+        self::assertSame(AnonymousCallers::ByIp, new Idempotent(anonymous: AnonymousCallers::ByIp)->anonymous);
+
+        foreach (['shared', 'IP', ''] as $policy) {
+            try {
+                new Idempotent(anonymous: $policy);
+                self::fail(\sprintf('The policy "%s" was accepted.', $policy));
+            } catch (InvalidContractValue $invalidContractValue) {
+                self::assertSame(\sprintf('The anonymous of #[Idempotent] is "refuse" or "ip"; "%s" is not.', $policy), $invalidContractValue->getMessage());
+            }
+        }
+    }
+
+    public function testTheEndpointsPolicyIsGivenToTheScopeResolver(): void
+    {
+        $anonymous = self::request('k1');
+        $anonymous->server->set('REMOTE_ADDR', '192.0.2.7');
+
+        $store = new InMemoryIdempotencyStore();
+        $listener = new IdempotencyListener($store, new CallerScopeResolver(), 100, new MockClock('2026-11-03 12:00:00 UTC'));
+
+        $listener->onControllerArguments(self::controller($anonymous, new Idempotent(anonymous: 'ip')));
+        self::assertSame(AnonymousCallers::ByIp, $anonymous->attributes->get(IdempotencyListener::ANONYMOUS_CALLERS));
+        self::assertSame(['caller:'.PayloadFingerprint::ofParts('ip', '192.0.2.7')->hex.'|k1'], array_keys($store->records), 'The address is in the scope as its hash only.');
+        self::assertStringNotContainsString('192.0.2.7', implode('', array_keys($store->records)));
+
+        $refused = self::request('k2');
+        $listener = new IdempotencyListener(new InMemoryIdempotencyStore(), new CallerScopeResolver(anonymous: AnonymousCallers::ByIp), 100, new MockClock('2026-11-03 12:00:00 UTC'));
+        $this->assertProblem(403, CallerScopeResolver::ANONYMOUS, static fn () => $listener->onControllerArguments(self::controller($refused, new Idempotent(anonymous: AnonymousCallers::Refuse))));
+
+        $unset = self::request('k3');
+        new IdempotencyListener(new InMemoryIdempotencyStore(), new CallerScopeResolver(anonymous: AnonymousCallers::ByIp), 100, new MockClock('2026-11-03 12:00:00 UTC'))->onControllerArguments(self::controller($unset, new Idempotent()));
+        self::assertFalse($unset->attributes->has(IdempotencyListener::ANONYMOUS_CALLERS), 'Without a policy of its own, the endpoint follows the option.');
     }
 
     public function testAKnownKeyIsReplayed(): void

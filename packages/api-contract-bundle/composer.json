@@ -47,6 +47,7 @@
         "symfony/http-client": "^8.2",
         "symfony/http-client-contracts": "^3.6",
         "symfony/lock": "^8.2",
+        "symfony/messenger": "^8.2",
         "symfony/routing": "^8.2",
         "symfony/security-bundle": "^8.2",
         "symfony/security-core": "^8.2",
@@ -55,10 +56,11 @@
     },
     "suggest": {
         "doctrine/dbal": "To keep the idempotency keys in a table",
-        "phil/tenancy-bundle": "To scope idempotency keys by the active tenant",
+        "phil/tenancy-bundle": "To scope idempotency keys, of requests and of messages, by the tenant",
         "symfony/console": "For phil:api-contract:deprecations and phil:api-contract:verify",
         "symfony/http-client": "To record the deprecations of the APIs this application calls",
         "symfony/lock": "To keep the idempotency keys in a cache pool",
+        "symfony/messenger": "To scope the idempotency keys of messages by their tenant",
         "symfony/security-core": "To scope idempotency keys by user and API client",
         "symfony/yaml": "To verify an OpenAPI document written in YAML"
     },

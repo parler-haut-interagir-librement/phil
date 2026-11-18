@@ -16,9 +16,9 @@ Use those libraries alone outside Symfony, or when you want the values and decis
 
 The bundle plugs into the HTTP kernel through listeners on its controller, response and exception events, and wraps
 Symfony's HTTP client. Doctrine DBAL, or a cache pool under a Symfony lock, keeps the idempotency keys, Symfony Security
-and `phil/tenancy-bundle` scope them by user, API client and tenant, the Console component runs the two commands, and
-the Yaml component reads a YAML document; each of these is optional. The design implements the library's ports with
-adapters for each of these components.
+and `phil/tenancy-bundle` scope them by user, API client and tenant, Symfony Messenger carries the tenant into the keys
+of messages, the Console component runs the two commands, and the Yaml component reads a YAML document; each of these
+is optional. The design implements the library's ports with adapters for each of these components.
 
 ## Status
 
@@ -26,6 +26,7 @@ adapters for each of these components.
 |---|---|
 | `ProblemDetailsListener`, `ProblemException`, `ProblemDetailsResponse` | Implemented and tested |
 | `#[Idempotent]`, `IdempotencyListener`, `CallerScopeResolver` and its tenant and client ports | Implemented and tested |
+| `TenantIdempotencyScopeMiddleware`, the keys of messages scoped by their tenant | Implemented and tested |
 | The idempotency store of `phil/idempotency` on a Doctrine connection or a cache pool, the schema listener | Implemented and tested |
 | `#[DeprecatedEndpoint]`, `DeprecationListener` | Implemented and tested |
 | `DeprecationObservingHttpClient`, `CacheObservedDeprecations`, `phil:api-contract:deprecations` | Implemented and tested |
@@ -38,7 +39,7 @@ adapters for each of these components.
 | [Installation](doc/installation.md) | Requirements, registering, the table. |
 | [Configuration](doc/configuration.md) | Every key, the services, replacing a port. |
 | [Problems](doc/problems.md) | Exceptions as problem details. |
-| [Idempotency](doc/idempotency.md) | `#[Idempotent]`, the answers and their problems, the access checks before a replay, the scope with its tenant and client, the threat model, the store, upgrading from 0.2. |
+| [Idempotency](doc/idempotency.md) | `#[Idempotent]`, the answers and their problems, the access checks before a replay, the scope with its tenant and client, anonymous callers per endpoint, the keys of messages per tenant, the threat model, the store, upgrading from 0.2. |
 | [Deprecations](doc/deprecations.md) | `#[DeprecatedEndpoint]` as a server; the HTTP client, the record and the command as a client. |
 | [Verification](doc/verification.md) | `phil:api-contract:verify`, its options and exit codes, the application's own rules, CI. |
 | [Extension points](doc/extension-points.md) | What an application implements, configures, replaces or relies on. |

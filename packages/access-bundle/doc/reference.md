@@ -26,6 +26,7 @@ Every public type of the package, with its role.
 | `Phil\AccessBundle\Application\Contract\ViewAsStore` | Where the member viewed is kept. |
 | `Phil\AccessBundle\Application\Contract\AccessibleItem` | An object checked by the reference of its tuples. |
 | `Phil\AccessBundle\Application\Contract\ModelContributor` | Adds kinds and relations to the model. |
+| `Phil\AccessBundle\Application\Contract\TuplePartitions` | The partitions that hold tuples, for `phil:access:purge --all-tenants`. |
 | `Phil\AccessBundle\Application\View\Share` | A share: level, member or group, end. |
 | `Phil\AccessBundle\Application\View\Membership` | A member of a group and the end of the membership. |
 | `Phil\AccessBundle\Application\Event\MemberJoinedGroup` | A member came into a group. |
@@ -46,7 +47,8 @@ Every public type of the package, with its role.
 | `Phil\AccessBundle\Infrastructure\Twig\Components\ViewAsBannerComponent` | `PhilAccess:ViewAsBanner`. |
 | `Phil\AccessBundle\Infrastructure\Twig\Components\AccessSummaryComponent` | `PhilAccess:AccessSummary`. |
 | `Phil\AccessBundle\Infrastructure\Twig\KitComponents` | The names of the kit's recipes. |
-| `Phil\AccessBundle\Infrastructure\Console\PurgeCommand` | `phil:access:purge`. |
+| `Phil\AccessBundle\Infrastructure\Console\PurgeCommand` | `phil:access:purge`, in the command's tenant or, with `--all-tenants`, in each tenant in turn. |
+| `Phil\AccessBundle\Infrastructure\Dbal\DbalTuplePartitions` | The partitions of the DBAL tuple table. |
 | `Phil\AccessBundle\Infrastructure\DependencyInjection\AccessServices` | Registers the services. |
 | `Phil\AccessBundle\Infrastructure\DependencyInjection\CsrfProtectionPass` | Stops a container without CSRF protection. |
 | `Phil\AccessBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass` | Names the recipes after the Toolkit's subdirectory. |

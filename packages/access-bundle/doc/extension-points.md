@@ -11,6 +11,7 @@ change them, and its CHANGELOG says how.
 | Let an entity be checked | Implement `Application\Contract\AccessibleItem` |
 | Keep the tuples elsewhere | Alias `Phil\ResourcePermissions\Contract\TupleStore` to your store |
 | Partition the tuples by a tenancy layer of your own | Alias `Phil\ResourcePermissions\Contract\TupleScope` to your scope |
+| List the tenants `phil:access:purge --all-tenants` visits another way, or for a store of your own | Alias `Application\Contract\TuplePartitions` to your service |
 | Let a controller change something during a view, or refuse one that reads | Mark it `#[AllowedDuringViewAs]` or `#[RefusedDuringViewAs]` |
 | Refuse a change outside a controller during a view | Call `ViewAs::refuseWhileViewing()` |
 | React to a membership or to "view as this member" | Listen to `MemberJoinedGroup`, `MemberLeftGroup`, `ViewAsStarted`, `ViewAsStopped` |

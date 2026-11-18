@@ -7,11 +7,13 @@
 | `Infrastructure\Http\ProblemException` | exception | A problem to answer with, and its headers |
 | `Infrastructure\Http\ProblemDetailsResponse` | response | A problem, `application/problem+json` |
 | `Infrastructure\Http\ProblemDetailsListener` | `kernel.exception` listener | Exceptions as problems |
-| `Infrastructure\Http\Idempotent` | attribute | A controller that requires an `Idempotency-Key` |
-| `Infrastructure\Http\IdempotencyListener` | listener | The guard of `phil/idempotency` around such a controller, after its access checks; constants `REPLAYED_HEADER`, `RESERVED`, `PRIORITY`, `RESERVATION_LOST`, `KEY_FORMAT` |
+| `Infrastructure\Http\Idempotent` | attribute | A controller that requires an `Idempotency-Key`; its retention, `ttl`, and its policy for anonymous callers, `anonymous` |
+| `Infrastructure\Http\IdempotencyListener` | listener | The guard of `phil/idempotency` around such a controller, after its access checks; constants `REPLAYED_HEADER`, `RESERVED`, `ANONYMOUS_CALLERS`, `PRIORITY`, `RESERVATION_LOST`, `KEY_FORMAT` |
 | `Infrastructure\Http\IdempotencyReservation` | value | The reservation a request took, from `phil/idempotency`, and the retention of its answer |
 | `Infrastructure\Http\IdempotencyScopeResolver` | interface | Who sent a request |
-| `Infrastructure\Http\CallerScopeResolver` | resolver | The tenant, the client and the user, hashed; anonymous callers refused or scoped by address; constant `ANONYMOUS` |
+| `Infrastructure\Http\CallerScopeResolver` | resolver | The tenant, the client and the user, hashed; anonymous callers refused or scoped by address, by the endpoint's policy or the configured one; constant `ANONYMOUS` |
+| `Infrastructure\Messenger\TenantIdempotencyScopeMiddleware` | Messenger middleware | The tenant of a received message's `TenantStamp` in the scope of its `IdempotencyStamp`; constant `SCOPE_PREFIX` |
+| `Infrastructure\Messenger\TenantScopedIdempotencyStamp` | Messenger stamp | The tenant an envelope's idempotency scope was scoped for, so that a retry is not scoped twice |
 | `Infrastructure\Http\IdempotencyTenantResolver` | interface | The tenant a request acts in |
 | `Infrastructure\Http\ActiveTenantResolver` | resolver | The active tenant of `phil/tenancy-bundle` |
 | `Infrastructure\Http\IdempotencyClientResolver` | interface | The client that sent a request |

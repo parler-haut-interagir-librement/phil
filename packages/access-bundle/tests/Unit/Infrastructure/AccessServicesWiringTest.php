@@ -7,6 +7,7 @@ namespace Phil\AccessBundle\Tests\Unit\Infrastructure;
 use Phil\AccessBundle\Application\AccessGroups;
 use Phil\AccessBundle\Application\AccessSubject;
 use Phil\AccessBundle\Application\Contract\CurrentMember;
+use Phil\AccessBundle\Application\Contract\TuplePartitions;
 use Phil\AccessBundle\Application\Contract\ViewAsStore;
 use Phil\AccessBundle\Application\ItemAccess;
 use Phil\AccessBundle\Application\Items;
@@ -15,6 +16,7 @@ use Phil\AccessBundle\Application\Spaces;
 use Phil\AccessBundle\Application\ViewAs;
 use Phil\AccessBundle\Domain\ValueObject\SharingLevels;
 use Phil\AccessBundle\Infrastructure\Console\PurgeCommand;
+use Phil\AccessBundle\Infrastructure\Dbal\DbalTuplePartitions;
 use Phil\AccessBundle\Infrastructure\DependencyInjection\AccessServices;
 use Phil\AccessBundle\Infrastructure\DependencyInjection\CsrfProtectionPass;
 use Phil\AccessBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
@@ -37,6 +39,7 @@ use Phil\ResourcePermissions\Model\Model;
 use Phil\ResourcePermissions\RelationChecker;
 use Phil\ResourcePermissions\RelationWriter;
 use Phil\ResourcePermissions\Tree\TreePermissions;
+use Phil\TenancyBundle\Application\TenantContext;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -91,6 +94,10 @@ final class AccessServicesWiringTest extends TestCase
 
         self::assertTrue($container->getAlias(TupleStore::class)->isPublic());
         self::assertEquals([new Reference('doctrine.dbal.default_connection'), new Reference(DbalTupleStore::class)], $container->getDefinition(TupleSchemaListener::class)->getArguments());
+        self::assertSame(DbalTuplePartitions::class, (string) $container->getAlias(TuplePartitions::class));
+        self::assertFalse($container->getAlias(TuplePartitions::class)->isPublic());
+        self::assertEquals([new Reference('doctrine.dbal.default_connection'), 'phil_relation_tuple'], $container->getDefinition(DbalTuplePartitions::class)->getArguments());
+        self::assertEquals([new Reference('doctrine.dbal.access_connection'), 'access_tuple'], $this->load([['item_kinds' => ['page'], 'connection' => 'access', 'table' => 'access_tuple']])->getDefinition(DbalTuplePartitions::class)->getArguments());
         $this->assertModelServices($container);
     }
 
@@ -102,7 +109,20 @@ final class AccessServicesWiringTest extends TestCase
         self::assertSame(InMemoryTupleStore::class, $store->getClass());
         self::assertEquals([new Reference('clock'), new Reference(TupleScope::class)], $store->getArguments());
         self::assertTrue($store->isPublic());
+        self::assertFalse($container->hasAlias(TuplePartitions::class), 'Tuples in memory have no list of partitions of their own.');
+        self::assertFalse($container->hasDefinition(DbalTuplePartitions::class));
         $this->assertModelServices($container);
+    }
+
+    public function testThePurgeEntersTenantsOnlyWhenTheTuplesArePartitionedByTenant(): void
+    {
+        $partitions = new Reference(TuplePartitions::class, ContainerInterface::NULL_ON_INVALID_REFERENCE);
+
+        foreach ([[[]], [['partition' => 'tenant']]] as $config) {
+            self::assertEquals([new Reference(TupleStore::class), new Reference(TenantContext::class), $partitions], $this->load($config, ['PhilTenancyBundle' => true])->getDefinition(PurgeCommand::class)->getArguments());
+        }
+
+        self::assertEquals([new Reference(TupleStore::class), null, $partitions], $this->load([['partition' => 'single']], ['PhilTenancyBundle' => true])->getDefinition(PurgeCommand::class)->getArguments());
     }
 
     public function testTheIntegrations(): void
@@ -114,7 +134,7 @@ final class AccessServicesWiringTest extends TestCase
         self::assertEquals([new Reference(ViewAs::class), new Reference(KitComponents::class), new Reference('router'), new Reference('security.csrf.token_manager')], $container->getDefinition(ViewAsBannerComponent::class)->getArguments());
         self::assertEquals([new Reference(ItemAccess::class), new Reference(Items::class), new Reference(Sharing::class), new Reference(SharingLevels::class), new Reference(KitComponents::class)], $container->getDefinition(AccessSummaryComponent::class)->getArguments());
         self::assertTrue($container->getDefinition(ViewAsController::class)->isPublic());
-        self::assertEquals([new Reference(TupleStore::class)], $container->getDefinition(PurgeCommand::class)->getArguments());
+        self::assertEquals([new Reference(TupleStore::class), null, new Reference(TuplePartitions::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(PurgeCommand::class)->getArguments());
     }
 
     public function testTheBundleAddsItsCompilerPasses(): void

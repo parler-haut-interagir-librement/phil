@@ -17,7 +17,8 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  * keys of their own in each.
  *
  * A caller that is neither a user nor a client is refused with a `403` problem, unless `AnonymousCallers::ByIp` scopes
- * it by its address, within its tenant.
+ * it by its address, within its tenant. The endpoint's own `#[Idempotent(anonymous: …)]`, which the listener puts in
+ * the request attribute {@see IdempotencyListener::ANONYMOUS_CALLERS}, replaces the configured policy.
  *
  * The scope is `caller:` and the SHA-256 of these parts, each named and length-prefixed: it holds no identifier of
  * a user, and no choice of identifiers collides with another.
@@ -57,7 +58,9 @@ final readonly class CallerScopeResolver implements IdempotencyScopeResolver
             $parts[] = 'user';
             $parts[] = $user;
         } elseif (null === $client) {
-            if (AnonymousCallers::Refuse === $this->anonymous) {
+            $anonymous = $request->attributes->get(IdempotencyListener::ANONYMOUS_CALLERS);
+
+            if (AnonymousCallers::Refuse === ($anonymous instanceof AnonymousCallers ? $anonymous : $this->anonymous)) {
                 throw ProblemException::of(Response::HTTP_FORBIDDEN, self::ANONYMOUS);
             }
 

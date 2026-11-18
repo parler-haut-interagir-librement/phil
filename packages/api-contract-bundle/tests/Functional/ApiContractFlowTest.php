@@ -157,9 +157,27 @@ final class ApiContractFlowTest extends FunctionalTestCase
         self::assertSame(0, $this->controller()->orders);
     }
 
-    private function post(string $path, string $body, ?string $key, ?string $user = 'ada', string $host = 'localhost'): Response
+    public function testAnEndpointThatAcceptsGuestsScopesThemByAddress(): void
     {
-        $server = ['HTTP_HOST' => $host];
+        $first = $this->post('/api/guest-orders', '{"item":"a"}', 'key-10', user: null, address: '192.0.2.7');
+        $replay = $this->post('/api/guest-orders', '{"item":"a"}', 'key-10', user: null, address: '192.0.2.7');
+        $elsewhere = $this->post('/api/guest-orders', '{"item":"a"}', 'key-10', user: null, address: '198.51.100.4');
+
+        self::assertSame([201, null], [$first->getStatusCode(), $first->headers->get('Idempotent-Replayed')]);
+        self::assertSame([201, 'true'], [$replay->getStatusCode(), $replay->headers->get('Idempotent-Replayed')]);
+        self::assertSame([201, null], [$elsewhere->getStatusCode(), $elsewhere->headers->get('Idempotent-Replayed')], 'Another address has keys of its own.');
+        self::assertSame(2, $this->controller()->orders);
+
+        $scopes = $this->service('doctrine.dbal.default_connection', Connection::class)->fetchFirstColumn('SELECT scope FROM phil_idempotency');
+        self::assertCount(2, $scopes);
+        self::assertStringNotContainsString('192.0.2.7', var_export($scopes, true), 'The address is kept as part of a hash only.');
+
+        self::assertSame(403, $this->post('/api/orders', '{"item":"a"}', 'key-11', user: null, address: '192.0.2.7')->getStatusCode(), 'The other endpoints still refuse guests.');
+    }
+
+    private function post(string $path, string $body, ?string $key, ?string $user = 'ada', string $host = 'localhost', string $address = '127.0.0.1'): Response
+    {
+        $server = ['HTTP_HOST' => $host, 'REMOTE_ADDR' => $address];
 
         if (null !== $user) {
             $server += ['PHP_AUTH_USER' => $user, 'PHP_AUTH_PW' => $user];

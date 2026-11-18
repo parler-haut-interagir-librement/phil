@@ -84,6 +84,7 @@ final class TestKernel extends Kernel
     {
         $routes->add('orders', '/api/orders')->controller([ApiController::class, 'createOrder'])->methods(['POST']);
         $routes->add('guarded_orders', '/api/guarded-orders')->controller([ApiController::class, 'createGuardedOrder'])->methods(['POST']);
+        $routes->add('guest_orders', '/api/guest-orders')->controller([ApiController::class, 'createGuestOrder'])->methods(['POST']);
         $routes->add('failing', '/api/failing')->controller([ApiController::class, 'failing'])->methods(['POST']);
         $routes->add('missing', '/api/missing')->controller([ApiController::class, 'missing']);
         $routes->add('old', '/api/old')->controller([ApiController::class, 'old']);

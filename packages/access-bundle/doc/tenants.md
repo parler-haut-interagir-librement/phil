@@ -31,7 +31,38 @@ Give each command and each message handler its tenant:
 bin/console phil:access:purge --tenant=retail
 ```
 
-`phil:access:purge` without a tenant says so and fails, deleting nothing. A scheduled purge runs once per tenant.
+`phil:access:purge` without a tenant says so and fails, deleting nothing.
+
+## Purging every tenant
+
+`--all-tenants` purges the expired tuples of every tenant in one run, the form a scheduled purge takes:
+
+```sh
+bin/console phil:access:purge --all-tenants
+```
+
+The command reads the partitions that hold tuples from `Application\Contract\TuplePartitions`, then, for each one in
+turn, enters the tenant of that name through the `TenantContext` of `phil/tenancy-bundle`, purges its partition, and
+leaves it. Every statement still names one partition: no purge runs outside a tenant or across tenants. The tenant is
+left after its purge whether the purge succeeded or failed, an activation that fails on entering included, so that a
+failure never carries one tenant's Doctrine filter, connection or cache namespace into the next.
+
+A table reports each tenant: the expired tuples deleted, and `purged`, or `failed:` with the error's message, printed as
+text. A tenant that fails does not stop the others; the command then exits with `1`, after purging every tenant it
+could. A partition whose name is no valid tenant reference is reported as a failure and never entered. Without any
+partition holding tuples, the command says so and succeeds.
+
+| The command | Answer |
+|---|---|
+| The tuples are not partitioned by tenant: `phil/tenancy-bundle` disabled, or `partition: single` | Refused, exit `1`: the option needs the partitions of tenants |
+| `--all-tenants` with `--tenant` | Refused, exit `1`: give one or the other |
+| No `TuplePartitions` service: the tuples in memory, or in a store of the application's own | Refused, exit `1`: alias the port to a service that lists the partitions |
+
+With the DBAL store, `Infrastructure\Dbal\DbalTuplePartitions` lists them: one `SELECT DISTINCT` on the `scope` column
+of the tuple table, which leads its primary key, without the default partition. It reads the names only, never a
+tuple. On a large table, PostgreSQL may read the whole index of that key for it, where MySQL skips through it; at one
+run a day this is the cheap part of the purge. An application whose tenants are known elsewhere — a tenant registry —
+aliases the port to a service of its own that returns the partitions, by name, each once.
 
 ## Upgrading from 0.1
 
