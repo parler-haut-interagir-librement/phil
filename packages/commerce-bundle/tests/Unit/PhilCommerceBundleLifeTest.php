@@ -28,6 +28,7 @@ use Phil\CommerceBundle\Application\TaxOrderProcessor;
 use Phil\CommerceBundle\Application\WishLists;
 use Phil\CommerceBundle\Domain\Contract\OrderJournal;
 use Phil\CommerceBundle\Domain\Event\OrderPurchased;
+use Phil\CommerceBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineDocumentNumbering;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineOrderChangeRepository;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineOrderJournal;
@@ -227,6 +228,8 @@ final class PhilCommerceBundleLifeTest extends TestCase
         foreach ([DoctrineWishListRepository::class, DoctrinePaymentLinkRepository::class, DoctrineOrderChangeRepository::class, DoctrineOrderJournal::class, DoctrineRefundRepository::class] as $repository) {
             self::assertSame(['doctrine.orm.entity_manager'], $this->references($container->getDefinition($repository)), $repository);
         }
+
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
     }
 
     public function testTheSettingsDefaultToADayAndAMonth(): void

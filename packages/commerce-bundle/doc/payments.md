@@ -190,6 +190,31 @@ With DoctrineBundle, a payment is one row of `phil_commerce_payment`, aliased th
 | `created_at` | `DATETIME` | When the payment was created |
 | `version` | `INTEGER` | Moved on by each write; two notifications applied at once cannot both win |
 
+### Collation of the keys
+
+**Keys compare byte by byte**, as PHP compares them. A notification of a provider finds its payment by the method and
+the provider's reference, which mixes cases: a notification about `pi_3AbC` never applies to the payment `pi_3abc`.
+The wish lists of an owner are listed by the owner's identifier: those of `Ann` are never listed for `ann`.
+`BinaryKeysListener` gives these fields the binary collation when the ORM loads their metadata on MySQL or MariaDB;
+the mapping itself stays the same on every platform.
+
+| Table | Columns in `utf8mb4_bin` on MySQL and MariaDB |
+|---|---|
+| `phil_commerce_payment` | `method`, `external_reference` |
+| `phil_commerce_wish_list` | `id`, `owner` |
+
+On MySQL and MariaDB, these columns take the `utf8mb4` character set and the `utf8mb4_bin` collation, given the
+connection's platform: the default collation of MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's
+default collations are deterministic, equal only when the bytes are, and SQLite compares bytes: their columns keep the
+default.
+
+#### Upgrading from 0.2
+
+The tables of a 0.2 install on MySQL or MariaDB kept the connection's collation. `doctrine:migrations:diff` writes the
+migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. The change only
+makes values more distinct, so no existing row breaks a key. Rows that a case-insensitive collation had already merged
+stay merged; values written from the migration on are kept apart. On PostgreSQL and SQLite the diff is empty.
+
 ## The payment attempt limiter
 
 `Payments::start()` does not call the limiter: the application decides the attempt with `PaymentAttemptLimiter`

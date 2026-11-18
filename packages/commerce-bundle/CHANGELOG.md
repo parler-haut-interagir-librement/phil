@@ -4,6 +4,29 @@ All notable changes to `phil/commerce-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.0-alpha: the methods and provider references of the payments and the owners of the wish lists
+compare byte by byte on MySQL and MariaDB. See [Upgrading from 0.2](doc/payments.md#upgrading-from-02).
+
+### Added
+
+- `Infrastructure\Doctrine\BinaryKeysListener`, on the ORM's `loadClassMetadata` event, and its `FIELDS`: the fields of
+  the bundle's entities that compare byte by byte on MySQL and MariaDB.
+
+### Changed
+
+- On MySQL and MariaDB, `method` and `external_reference` of `phil_commerce_payment` and `id` and `owner` of
+  `phil_commerce_wish_list` take the `utf8mb4` character set and the `utf8mb4_bin` collation in the schema the ORM
+  generates, through `Infrastructure\Doctrine\BinaryKeysListener`. PostgreSQL and SQLite keep their default, which
+  compares bytes already.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, a notification of a provider about a payment was
+  applied to another payment of the same method whose reference differed only by case, and the unique key of the
+  method and the reference refused the second; the wish lists of the owner `Ann` were listed for `ann`.
+
 ## 0.2.0-alpha - 2026-11-17
 
 The next version is 0.2.0-alpha: a refund is refused that was granted before, and `PaymentGateway::refund()` and
