@@ -11,6 +11,7 @@ use Phil\OpenBadges\Jwt\JwtSigner;
 use Phil\OpenBadges\Jwt\JwtVerifier;
 use Phil\OpenBadges\Key\Ed25519Signer;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(JwtSigner::class)]
@@ -42,14 +43,73 @@ final class JwtTest extends TestCase
         self::assertSame(1794045600, $claims['nbf'] ?? null);
         self::assertSame(1825599600, $claims['exp'] ?? null);
 
-        [, $bare] = JwtVerifier::peek(new JwtSigner(Ed25519Signer::fromSeed(str_repeat("\1", 32)))->sign(['issuer' => ['name' => 'x'], 'credentialSubject' => ['name' => 'y'], 'validFrom' => 3]));
-        self::assertSame(['issuer' => ['name' => 'x'], 'credentialSubject' => ['name' => 'y'], 'validFrom' => 3], $bare);
+        [, $bare] = JwtVerifier::peek(new JwtSigner(Ed25519Signer::fromSeed(str_repeat("\1", 32)))->sign(['issuer' => ['name' => 'x'], 'credentialSubject' => ['name' => 'y']]));
+        self::assertSame(['issuer' => ['name' => 'x'], 'credentialSubject' => ['name' => 'y']], $bare);
+
+        [, $subject] = JwtVerifier::peek(new JwtSigner(Ed25519Signer::fromSeed(str_repeat("\1", 32)))->sign(['issuer' => ['id' => 'https://example.org/issuer'], 'credentialSubject' => ['id' => 'did:example:ada']]));
+        self::assertSame(['https://example.org/issuer', 'did:example:ada'], [$subject['iss'] ?? null, $subject['sub'] ?? null]);
     }
 
-    public function testAMomentIsOfRfc3339(): void
+    /**
+     * @return iterable<string, array{mixed, string}>
+     */
+    public static function momentsRefused(): iterable
     {
-        $this->expectExceptionObject(InvalidBadge::because('"2026-11-07" is not a moment of RFC 3339.'));
-        new JwtSigner(Ed25519Signer::fromSeed(str_repeat("\1", 32)))->sign(['validFrom' => '2026-11-07']);
+        yield 'a date' => ['2026-11-07', '"2026-11-07" is not a moment of RFC 3339.'];
+        yield 'a number' => [3, 'int is not a moment of RFC 3339.'];
+        yield '30 February' => ['2026-02-30T00:00:00Z', '"2026-02-30T00:00:00Z" is not a moment of RFC 3339.'];
+        yield 'a leap second' => ['2026-12-31T23:59:60Z', '"2026-12-31T23:59:60Z" is not a moment of RFC 3339.'];
+        yield 'a lower-case separator' => ['2026-11-07t00:00:00Z', '"2026-11-07t00:00:00Z" is not a moment of RFC 3339.'];
+    }
+
+    #[DataProvider('momentsRefused')]
+    public function testAMomentIsOfRfc3339(mixed $moment, string $reason): void
+    {
+        $this->expectExceptionObject(InvalidBadge::because($reason));
+        new JwtSigner(Ed25519Signer::fromSeed(str_repeat("\1", 32)))->sign(['validFrom' => $moment]);
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>, string}>
+     */
+    public static function identifiersRefused(): iterable
+    {
+        yield 'the issuer' => [['issuer' => 3], 'The identifier of the issuer is a string.'];
+        yield 'the issuer of an object' => [['issuer' => ['id' => ['x']]], 'The identifier of the issuer is a string.'];
+        yield 'the credential' => [['id' => 3], 'The identifier of a credential is a string.'];
+        yield 'the subject' => [['credentialSubject' => ['id' => false]], 'The identifier of the subject is a string.'];
+    }
+
+    /**
+     * @param array<string, mixed> $credential
+     */
+    #[DataProvider('identifiersRefused')]
+    public function testTheIdentifiersMirroredAreStrings(array $credential, string $reason): void
+    {
+        $this->expectExceptionObject(InvalidBadge::because($reason));
+        new JwtSigner(Ed25519Signer::fromSeed(str_repeat("\1", 32)))->sign($credential);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function registeredClaims(): iterable
+    {
+        foreach (JwtSigner::CLAIMS as $claim) {
+            yield $claim => [$claim];
+        }
+    }
+
+    #[DataProvider('registeredClaims')]
+    public function testACredentialCarriesNoRegisteredClaimOfItsOwn(string $claim): void
+    {
+        $this->expectExceptionObject(InvalidBadge::because('A credential secured as a JSON Web Token carries no "iss", "jti", "sub", "nbf" or "exp" of its own: they mirror its fields.'));
+        new JwtSigner(Ed25519Signer::fromSeed(str_repeat("\1", 32)))->sign(['issuer' => 'https://example.org/issuer', $claim => 1]);
+    }
+
+    public function testTheRegisteredClaims(): void
+    {
+        self::assertSame(['iss', 'jti', 'sub', 'nbf', 'exp'], JwtSigner::CLAIMS);
     }
 
     public function testATokenHasNoEmbeddedProof(): void

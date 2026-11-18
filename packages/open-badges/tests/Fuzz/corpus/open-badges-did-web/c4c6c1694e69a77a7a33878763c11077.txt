@@ -1,0 +1,1 @@
+{"id":"did:web:issuer.example.org","verificationMethod":[{"id":"#2Z"}],"assertionMethod":["#key-1"]}

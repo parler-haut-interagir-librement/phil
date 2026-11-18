@@ -95,6 +95,9 @@ final class PublishedTokensTest extends TestCase
         $contents = file_get_contents(self::FIXTURES.$name);
         self::assertIsString($contents);
 
-        return $contents;
+        // Each file starts with a line of comment, which says what key it holds or signed it.
+        $contents = preg_replace('/^#.*\n/', '', $contents) ?? '';
+
+        return str_ends_with($name, '.jwt') ? trim($contents) : $contents;
     }
 }

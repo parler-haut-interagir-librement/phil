@@ -1,0 +1,1 @@
+{"@contet":["hthv1"],"id":"https://partner.example/issuer","type":"Partger","verificationMethod":["i#key-2","s1"]}

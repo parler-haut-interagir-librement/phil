@@ -1,0 +1,1 @@
+{"@context":["hthv1"],"id":"https://partner.example/issuer","LLLLLLLL":"rtger","verificationMethod":["bbtp/v2","httkey-2","vsuet#p/v2","httkey-2://partner.y-{"]}

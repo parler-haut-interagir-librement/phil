@@ -10,8 +10,9 @@ use Phil\OpenBadges\Exception\InvalidCredential;
 /**
  * The context processing of JSON-LD 1.1, for the subset verifiable credentials use: contexts by URL through the
  * loader, embedded contexts, `@vocab`, `@propagate`, terms with `@id`, `@var`, `@container` (`@set`, `@list`,
- * `@graph`), `@context` and `@prefix`, keyword aliases and compact IRIs. `@protected` is accepted and not enforced.
- * Anything else — `@import`, `@base`, a default `@language` or `@direction`, reverse properties, nesting, indexes —
+ * `@graph`), `@context`, `@prefix` and `@protected`, keyword aliases and compact IRIs. A protected term is redefined
+ * only the same, or by a property-scoped context, and a context that clears the terms does not clear protected ones,
+ * as JSON-LD 1.1 processes them. Anything else — `@import`, `@base`, a default `@language` or `@direction`, reverse properties, nesting, indexes —
  * is refused rather than read differently than a full processor would.
  *
  * @internal
@@ -32,7 +33,10 @@ final readonly class ContextProcessor
     ) {
     }
 
-    public function process(ActiveContext $active, mixed $local, bool $propagate = true, int $depth = 0): ActiveContext
+    /**
+     * @param bool $overrideProtected whether the context may redefine protected terms: a property-scoped context may
+     */
+    public function process(ActiveContext $active, mixed $local, bool $propagate = true, int $depth = 0, bool $overrideProtected = false): ActiveContext
     {
         if ($depth > self::MAX_DEPTH) {
             throw InvalidCredential::because('The JSON-LD contexts load each other too deeply.');
@@ -44,6 +48,10 @@ final readonly class ContextProcessor
 
         foreach (\is_array($local) && array_is_list($local) ? $local : [$local] as $context) {
             if (null === $context) {
+                if (!$overrideProtected && [] !== array_filter($terms, static fn (?TermDefinition $term): bool => true === $term?->protected)) {
+                    throw InvalidCredential::because('A JSON-LD context does not clear protected terms.');
+                }
+
                 [$terms, $vocab] = [[], null];
             } elseif (\is_string($context)) {
                 $loaded = $this->process(new ActiveContext($terms, $vocab), $this->loader->load($context)['@context'] ?? null, depth: $depth + 1);
@@ -53,7 +61,7 @@ final readonly class ContextProcessor
                     $previous = $active;
                 }
 
-                [$terms, $vocab] = $this->local($context, $terms, $vocab);
+                [$terms, $vocab] = $this->local($context, $terms, $vocab, $overrideProtected);
             } else {
                 throw InvalidCredential::because('A JSON-LD context is a URL, an object, null or a list of them.');
             }
@@ -68,7 +76,7 @@ final readonly class ContextProcessor
      *
      * @return array{array<string, TermDefinition|null>, ?string}
      */
-    private function local(array $context, array $terms, ?string $vocab): array
+    private function local(array $context, array $terms, ?string $vocab, bool $overrideProtected): array
     {
         foreach (['@import', '@base', '@language', '@direction'] as $unsupported) {
             if (\array_key_exists($unsupported, $context)) {
@@ -86,7 +94,13 @@ final readonly class ContextProcessor
             $vocab = null === $mapping ? null : new ActiveContext($terms, $vocab)->expandIri($mapping, true);
         }
 
-        $defining = new TermDefining($context, $terms, $vocab);
+        $protected = $context['@protected'] ?? false;
+
+        if (!\is_bool($protected)) {
+            throw InvalidCredential::because('The "@protected" of a JSON-LD context is true or false.');
+        }
+
+        $defining = new TermDefining($context, $terms, $vocab, $protected, $overrideProtected);
 
         foreach (array_keys($context) as $term) {
             if (!\in_array($term, ['@version', '@vocab', '@protected', '@propagate'], true)) {
@@ -116,18 +130,11 @@ final readonly class ContextProcessor
             throw InvalidCredential::because(\sprintf('A JSON-LD context does not redefine the keyword "%s".', $term));
         }
 
+        $previous = $defining->terms[$term] ?? null;
         $defining->defined[$term] = false;
         $value = $defining->context[$term];
-
-        if (null === $value || (\is_array($value) && \array_key_exists('@id', $value) && null === $value['@id'])) {
-            $defining->terms[$term] = null;
-            $defining->defined[$term] = true;
-
-            return;
-        }
-
         $simple = \is_string($value);
-        $value = $simple ? ['@id' => $value] : $value;
+        $value = null === $value ? ['@id' => null] : ($simple ? ['@id' => $value] : $value);
 
         if (!\is_array($value)) {
             throw InvalidCredential::because(\sprintf('The JSON-LD term "%s" is defined by an IRI or an object.', $term));
@@ -139,17 +146,48 @@ final readonly class ContextProcessor
             }
         }
 
+        $protected = $value['@protected'] ?? $defining->protected;
+
+        if (!\is_bool($protected)) {
+            throw InvalidCredential::because(\sprintf('The "@protected" of the JSON-LD term "%s" is true or false.', $term));
+        }
+
+        $definition = $this->definition($defining, $term, $value, $simple, $protected);
+
+        // A protected term keeps its definition: defined again the same, it stays protected; otherwise it is refused.
+        if (!$defining->overrideProtected && $previous instanceof TermDefinition && $previous->protected) {
+            if (!$definition->sameAs($previous)) {
+                throw InvalidCredential::because(\sprintf('The JSON-LD term "%s" is protected: a context does not redefine it.', $term));
+            }
+
+            $definition = $previous;
+        }
+
+        $defining->terms[$term] = $definition;
+        $defining->defined[$term] = true;
+    }
+
+    /**
+     * @param array<array-key, mixed> $value
+     */
+    private function definition(TermDefining $defining, string $term, array $value, bool $simple, bool $protected): TermDefinition
+    {
+        // A term mapped to nothing expands to nothing, and is kept to protect it.
+        if (\array_key_exists('@id', $value) && null === $value['@id']) {
+            return new TermDefinition(null, null, null, false, null, false, $protected);
+        }
+
         $iri = $this->iri($defining, $term, $value['@id'] ?? null);
 
-        $defining->terms[$term] = new TermDefinition(
+        return new TermDefinition(
             $iri,
             $this->type($defining, $term, $value['@type'] ?? null),
             $this->container($term, $value['@container'] ?? null),
             \array_key_exists('@context', $value),
             $value['@context'] ?? null,
             \is_bool($value['@prefix'] ?? null) ? $value['@prefix'] : $simple && !str_contains($term, ':') && !str_contains($term, '/') && \in_array(substr($iri, -1), self::GEN_DELIMS, true),
+            $protected,
         );
-        $defining->defined[$term] = true;
     }
 
     private function iri(TermDefining $defining, string $term, mixed $id): string

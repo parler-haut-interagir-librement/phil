@@ -1,0 +1,1 @@
+{"@context":["hthv1"],"id":"https://partner.example/issuer","type":["Profile"],"name":"rtger","verificationMethod":["abbtp/v2","httkey-2","ssuet#key-1"]}

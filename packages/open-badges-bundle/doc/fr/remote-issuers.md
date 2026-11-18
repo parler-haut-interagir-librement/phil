@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c1199362291c208a65aa19b2ca645a76b05815431238fa695634f2589fdfc174 -->
+<!-- phil-dev source-sha256=b185c2904bf50e173fe7bf8d22090290708d3f64073c4c5964991366ca3e1aed -->
 <!-- phil-dev source-sha256=x -->
 # Autres émetteurs
 
@@ -43,7 +43,7 @@ garantit donc jamais que ses propres attestations.
 |---|---|
 | L'adresse | Une adresse HTTPS lue par `phil/url` : sans nom d'utilisateur ni mot de passe, sans adresse IP, sans `localhost` à moins que `allow_localhost` soit vrai. Un `did:web` donne son adresse telle que `DidWeb` de `phil/open-badges` la construit d'après la spécification de la méthode did:web, refusée plutôt que réparée : un nom d'hôte, jamais une adresse IP ni `localhost`, quoi que dise `allow_localhost`; un port facultatif écrit `%3A`; des segments de chemin faits de caractères non réservés ou d'octets codés en pourcentage, aucun n'étant `.` ni `..` ni ne contenant de barre oblique; ni requête ni fragment. Tout autre `did:`, un `urn` ou du HTTP simple n'est pas lu, et reste inconnu. |
 | Les émetteurs de confiance | Quand `trusted` liste des identifiants, tout autre émetteur est refusé avant que rien soit lu. |
-| La lecture | `phil/safe-http` : un hôte qui est une adresse privée, de bouclage, de lien local ou réservée, ou qui s'y résout, n'est jamais joint, les redirections sont vérifiées une à une, trois au plus, et le silence, la durée et les octets sont bornés. `Accept: application/ld+json, application/json`; un autre type de média n'est pas lu. |
+| La lecture | `phil/safe-http` : un hôte qui est une adresse privée, de bouclage, de lien local ou réservée, ou qui s'y résout, n'est jamais joint, les redirections sont vérifiées une à une, trois au plus, et la dernière adresse lue est encore en HTTPS, et le silence, la durée et les octets sont bornés. `Accept: application/ld+json, application/json`; un autre type de média n'est pas lu. |
 | Le document | Un objet JSON, de 32 niveaux de profondeur au plus, dont l'`id` est l'identifiant de l'émetteur : l'adresse lue pour un profil, le `did:web` lui-même pour un document DID. |
 | Les clés | Les 20 premières entrées de `verificationMethod`; chacune dont l'`id` est un fragment de l'identifiant, écrit en entier ou comme le seul fragment, `#key-1`, dont le `controller`, quand il est donné, est l'identifiant, et, quand le document liste un `assertionMethod`, qu'il liste; une clé Ed25519 sous forme de `Multikey` avec son `publicKeyMultibase`, ou de `JsonWebKey` avec son `publicKeyJwk` (`OKP`, `Ed25519`); une clé RSA sous forme de `JsonWebKey` avec son `publicKeyJwk` (`RSA`, ses `n` et `e`, aucun membre privé, un `alg` qui, quand il est donné, est `RS256`), lue par `RsaKey::fromJwk()` de `phil/open-badges` : son module de 2048 à 8192 bits, son exposant impair, d'au moins 3 et d'au plus 64 bits. Toute autre entrée est laissée de côté. |
 
@@ -55,13 +55,14 @@ en temps, peu importe combien d'attestations il contrôle. Un document qui ne ti
 ## Les refus
 
 Une attestation dont la clé est introuvable ne se vérifie pas, avec une raison que montre la page. Les raisons disent
-« profile » aussi pour un document DID; les trois premières nomment l'émetteur par son identifiant, le `did:web`
-lui-même, et la quatrième nomme l'adresse lue :
+« profile » aussi pour un document DID; les quatre premières nomment l'émetteur par son identifiant, le `did:web`
+lui-même, et la cinquième nomme l'adresse lue :
 
 | Raison | Quand |
 |---|---|
 | `The issuer "…" is not one the verifier trusts.` | `trusted` ne le liste pas. |
 | `The profile of the issuer "…" could not be read: …` | L'adresse est refusée, l'hôte ne répond pas à temps, les redirections sont trop nombreuses, ou la réponse n'est pas un `2xx`. |
+| `The profile of the issuer "…" was redirected away from HTTPS.` | Une redirection a mené à une adresse HTTP simple : le profil n'est pas lu, quoi qu'il contienne. |
 | `The profile of the issuer "…" is not JSON within the bytes the verifier reads.` | Un autre type de média, un corps coupé à `max_bytes`, du JSON qui ne s'analyse pas ou qui n'est pas un objet. |
 | `The profile read at "…" is not the profile of that issuer: its "id" differs.` | Le document lu à cette adresse nomme un autre identifiant, ou aucun. |
 | `The profile of the issuer "…" publishes no key "…".` | La méthode n'est pas parmi les clés gardées. |

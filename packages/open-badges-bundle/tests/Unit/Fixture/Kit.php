@@ -32,6 +32,9 @@ final class Kit
     {
     }
 
+    /**
+     * The issuer's fixed key, so that a credential is the same bytes on every run: test key, public, never trust it.
+     */
     public static function signer(): Ed25519Signer
     {
         return Ed25519Signer::fromSeed(str_repeat("\1", 32));

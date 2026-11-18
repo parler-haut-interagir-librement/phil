@@ -1,0 +1,6 @@
+<?ml versi0"?>
+<svg xmlns="http://www.w3.org/2000/svg"><?ml v"?>
+<svg xmlns="hsg"><openbadges:credential xmlns:openbadges="https://purl.imsglobal.org/ob/v3p0">></openbadges:credential>/></svg>
+<openbadges:credential xmlns:openbadges="https://purl.imsglobal.org/ob/v3p0">></openbadges:credential>/>ersio.0"?>
+<svg xmlns="hsvg"><openbadges:credential xmlns:openbadges="https://purl.imsglobal.org/ob/v3p0">></openbadges:credential>/></svg>
+<openbadges:credential xmlns:openbadges="https://purl.imsglobal.org/ob/v3p0">></openbadges:credential>/></svg>

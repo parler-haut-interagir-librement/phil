@@ -25,15 +25,25 @@ $verified->status();     // its StatusListEntry, or null
    bounded: `JwtVerifier::MAX_LENGTH` bytes (1 MiB), three parts, a header and claims nested `JwtVerifier::MAX_DEPTH`
    levels (64) at most. Then `nbf` and `exp` are checked at the moment given: the token is valid from `nbf` included
    to `exp` excluded. Both are numbers of seconds, with or without a fraction, compared to the microsecond; a value of
-   another type is refused.
+   another type is refused. The registered claims must agree with the fields they mirror: `iss` is the issuer, and,
+   when present, `jti` is the credential's `id`, `sub` the `id` of its `credentialSubject`, `nbf` and `exp` the same
+   second as its `validFrom` and `validUntil`; a claim without its field is refused too.
 2. A document: the proof is a `DataIntegrityProof` of `eddsa-rdfc-2022` for `assertionMethod`, its verification method
-   is found, its signature is checked over the canonical forms, then `validFrom` and `validUntil` at the moment given.
+   is found, and its signature is checked over the canonical forms.
 3. Either way, the key must be one of the credential's issuer: the verification method is the issuer's identifier, a
    fragment of it (`https://example.org/issuer#key-1` for the issuer `https://example.org/issuer`), or a method the
    verifier lists for that issuer. A token's `iss` claim must be the issuer too.
+4. Either way again, one rule of validity: the credential is valid from its `validFrom` included to its `validUntil`
+   excluded, compared to the microsecond at the moment given.
+
+The moments of `validFrom` and `validUntil` are read strictly, by the same reader as the issuers use: RFC 3339 as an
+XML Schema `dateTimeStamp` writes it — `2026-11-07T10:00:00Z`, `2026-11-07T10:00:00.250-05:00` —, each part within its
+range. A date PHP would carry over to another one (30 February, hour 24, a leap second, an offset beyond 23:59) is
+refused, as is a lower-case `t` or `z`.
 
 Without a moment, the period is checked at the current time. A credential that does not verify raises
-`InvalidCredential`, with the reason. A token or a document longer than 1 MiB is refused before it is read.
+`InvalidCredential`, with the reason. Whatever it holds, an input longer than 1 MiB is refused before anything trims
+or parses it.
 
 `JwtVerifier` and `EddsaRdfc2022::verify()` are public for an application that knows how its credentials are secured.
 
@@ -122,8 +132,13 @@ The processor reads the JSON-LD 1.1 that verifiable credentials use: contexts by
 contexts, `@vocab`, `@propagate`, terms with `@id`, `@type`, `@container` (`@set`, `@list`, `@graph`), `@context` and
 `@prefix`, type-scoped and property-scoped contexts, keyword aliases and compact IRIs, value objects with a type or a
 language. It refuses rather than reads differently: `@import`, `@base`, a default `@language` or `@direction`,
-reverse properties, nesting, index and language maps, JSON literals, lists of lists. `@protected` is accepted and not
-enforced.
+reverse properties, nesting, index and language maps, JSON literals, lists of lists.
+
+Protected terms are enforced as JSON-LD 1.1 does: a term a context protects — the terms of the Verifiable Credentials
+2.0 and Open Badges 3.0 contexts are — may be defined again by a later context only exactly the same, and a context `null`
+does not clear it; a context scoped to a property may redefine it. A credential whose contexts redefine `id`, `type`
+or `name`, or whose second type would redefine `issuer` or `credentialSubject`, is refused rather than read with
+another meaning than the issuer signed.
 
 The contexts come from a `ContextLoader`; `BundledContexts` serves Verifiable Credentials 2.0, Open Badges 3.0.3 and
 CLR 2.0.1, and those the application adds, and refuses every other URL.

@@ -9,6 +9,7 @@ use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Phil\OpenBadges\Contract\Signer;
+use Phil\OpenBadges\Credentials;
 use Phil\OpenBadges\Exception\InvalidBadge;
 use Throwable;
 
@@ -19,7 +20,8 @@ use Throwable;
  *
  * The token's header names the algorithm, the type `vc+jwt`, the key's identifier when one is given and the public key
  * as a JSON Web Key; its claims are the credential's, with `iss`, `jti`, `sub`, `nbf` and `exp` mirroring the issuer,
- * the identifier, the subject's identifier and the period of validity.
+ * the identifier, the subject's identifier and the period of validity — strings, and seconds read from the moments of
+ * RFC 3339 by the reader the verifier uses. A credential that carries one of those claims itself is refused.
  */
 final readonly class JwtSigner
 {
@@ -30,12 +32,21 @@ final readonly class JwtSigner
     }
 
     /**
+     * The registered claims that mirror the credential's fields.
+     */
+    public const array CLAIMS = ['iss', 'jti', 'sub', 'nbf', 'exp'];
+
+    /**
      * @param array<string, mixed> $credential an unsecured credential
      */
     public function sign(array $credential): string
     {
         if (\array_key_exists('proof', $credential)) {
             throw InvalidBadge::because('A credential secured as a JSON Web Token has no embedded proof.');
+        }
+
+        if ([] !== array_intersect_key($credential, array_flip(self::CLAIMS))) {
+            throw InvalidBadge::because('A credential secured as a JSON Web Token carries no "iss", "jti", "sub", "nbf" or "exp" of its own: they mirror its fields.');
         }
 
         $algorithm = $this->signer->signatureAlgorithm();
@@ -64,25 +75,33 @@ final readonly class JwtSigner
         $subject = $credential['credentialSubject'] ?? null;
 
         return array_filter([
-            'iss' => \is_array($issuer) ? $issuer['id'] ?? null : $issuer,
-            'jti' => $credential['id'] ?? null,
-            'sub' => \is_array($subject) ? $subject['id'] ?? null : null,
+            'iss' => $this->identifier(\is_array($issuer) ? $issuer['id'] ?? null : $issuer, 'The identifier of the issuer'),
+            'jti' => $this->identifier($credential['id'] ?? null, 'The identifier of a credential'),
+            'sub' => $this->identifier(\is_array($subject) ? $subject['id'] ?? null : null, 'The identifier of the subject'),
             'nbf' => $this->timestamp($credential['validFrom'] ?? null),
             'exp' => $this->timestamp($credential['validUntil'] ?? null),
-        ], static fn (mixed $claim): bool => \is_int($claim) || \is_string($claim));
+        ], static fn (int|string|null $claim): bool => null !== $claim);
+    }
+
+    private function identifier(mixed $id, string $what): ?string
+    {
+        if (null !== $id && !\is_string($id)) {
+            throw InvalidBadge::because(\sprintf('%s is a string.', $what));
+        }
+
+        return $id;
     }
 
     private function timestamp(mixed $moment): ?int
     {
-        if (!\is_string($moment)) {
+        if (null === $moment) {
             return null;
         }
 
-        $parsed = DateTimeImmutable::createFromFormat(\DATE_RFC3339, $moment);
-        $parsed = false === $parsed ? DateTimeImmutable::createFromFormat(\DATE_RFC3339_EXTENDED, $moment) : $parsed;
+        $parsed = \is_string($moment) ? Credentials::parseMoment($moment) : null;
 
-        if (false === $parsed) {
-            throw InvalidBadge::because(\sprintf('"%s" is not a moment of RFC 3339.', $moment));
+        if (!$parsed instanceof DateTimeImmutable) {
+            throw InvalidBadge::because(\sprintf('%s is not a moment of RFC 3339.', \is_string($moment) ? '"'.$moment.'"' : get_debug_type($moment)));
         }
 
         return $parsed->getTimestamp();

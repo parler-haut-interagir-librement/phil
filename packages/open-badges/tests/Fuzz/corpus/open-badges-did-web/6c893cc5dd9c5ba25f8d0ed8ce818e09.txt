@@ -1,0 +1,1 @@
+{"@;;;ext":["httwd/v1"],"id":"did:web:issuer.example.org","verificationMethod":[{"id":"#key-1","pe":"Multikey","controller":"did:web:issuer.example.org","publicKeyMultibase":"z6MkvDqGT54cXe2YvAB"}],"assertionMethod":["#key-1"]}

@@ -1,0 +1,1 @@
+{"@context":["htg/ns/di"],"id":"did:web:issuer.example.org","verificationMethod":[{"id":"#key-1","type":"Multikey","controller":"did:web:issuer.example.org","publicKeyMultibase":"z6MkvDqGT54cXesYGvABpF1UapVNwjCqRcafi4Px6Thv5T3Z"}],"assertionMethod":["#key-1"]}

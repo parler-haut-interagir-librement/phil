@@ -21,9 +21,10 @@ pass it to [the verifier](verifying.md).
 ## PNG
 
 The credential is the text of an `iTXt` chunk whose keyword is `openbadgecredential`, uncompressed, with no language
-tag, written just before the `IEND` chunk. The other chunks are kept as they are, and bytes after `IEND` dropped.
-Every chunk is checked — its length, its type, its CRC — and the image starts with `IHDR`; a compressed credential
-chunk is refused. An image of more than 16 MiB is refused before it is read.
+tag, written just before the `IEND` chunk. The other chunks are kept as they are. Every chunk is checked — its length,
+its type, its CRC — and so is the structure of the image, on reading as on baking: a single `IHDR` of 13 bytes first,
+at most one `PLTE` before the image data, `IDAT` chunks that follow each other, an empty `IEND` after them and nothing
+after it. A compressed credential chunk is refused. An image of more than 16 MiB is refused before it is read.
 
 ## SVG
 

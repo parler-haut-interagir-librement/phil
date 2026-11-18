@@ -28,8 +28,8 @@ use Symfony\Contracts\Cache\ItemInterface;
  * up in the document of the identifier before its fragment, which is the issuer's: the profile published at that
  * HTTPS address, or the DID document of that `did:web`, read where {@see DidWeb} places it.
  *
- * The document is read by `phil/safe-http`: an HTTPS address of a public host, its redirects checked, within a time
- * and a number of bytes. It holds when its `id` is the issuer's identifier, and gives the keys of its
+ * The document is read by `phil/safe-http`: an HTTPS address of a public host, its redirects checked and its final
+ * address still HTTPS, within a time and a number of bytes. It holds when its `id` is the issuer's identifier, and gives the keys of its
  * `verificationMethod` that are fragments of that identifier and controlled by it — an Ed25519 `Multikey` with its
  * `publicKeyMultibase`, or a `JsonWebKey` whose `publicKeyJwk` is an Ed25519 key or a public RSA key
  * {@see RsaKey::fromJwk()} reads —, and, when it lists an `assertionMethod`, only those it lists. The keys found, or the reason the document does not hold,
@@ -146,6 +146,10 @@ final readonly class RemoteVerificationMethods implements VerificationMethods
 
         if (!$response->complete) {
             return \sprintf('The profile of the issuer "%s" is not JSON within the bytes the verifier reads.', $issuer);
+        }
+
+        if ('https' !== $response->url->scheme) {
+            return \sprintf('The profile of the issuer "%s" was redirected away from HTTPS.', $issuer);
         }
 
         try {

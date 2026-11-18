@@ -59,10 +59,28 @@ final class BakingTest extends TestCase
         self::assertNull(PngBaker::extract($withText));
     }
 
-    public function testTrailingBytesAreDropped(): void
+    public function testBytesAfterTheEndAreRefusedOnBaking(): void
     {
-        self::assertSame(PngBaker::bake($this->png(), self::JWT), PngBaker::bake($this->png().'garbage', self::JWT));
-        self::assertNull(PngBaker::extract($this->png().'garbage'));
+        $this->expectExceptionObject(InvalidImage::because('The PNG image holds bytes after its IEND chunk.'));
+        PngBaker::bake($this->png().'garbage', self::JWT);
+    }
+
+    public function testAMalformedStructureIsRefusedOnBaking(): void
+    {
+        $this->expectExceptionObject(InvalidImage::because('A PNG image ends with an empty IEND chunk after its image data.'));
+        PngBaker::bake(substr($this->png(), 0, 33).substr($this->png(), 58), self::JWT);
+    }
+
+    public function testAPaletteAndImageDataInSeveralChunksAreRead(): void
+    {
+        $png = $this->png();
+        $palette = self::chunkOf('PLTE', "\0\0\0");
+        $withPalette = substr($png, 0, 33).$palette.substr($png, 33, 25).substr($png, 33, 25).self::chunkOf('tEXt', "Comment\0x").substr($png, 58);
+        $baked = PngBaker::bake($withPalette, self::JWT);
+
+        self::assertSame(self::JWT, PngBaker::extract($baked));
+        self::assertSame(substr($withPalette, 0, -12), substr($baked, 0, \strlen($withPalette) - 12));
+        self::assertNull(PngBaker::extract($withPalette));
     }
 
     /**
@@ -77,7 +95,17 @@ final class BakingTest extends TestCase
         yield 'a bad type' => [static fn (string $png): string => substr($png, 0, 12).'IH1R'.substr($png, 16), 'The PNG image has a malformed chunk at byte 8.'];
         yield 'a length past the end' => [static fn (string $png): string => substr($png, 0, 8)."\0\0\xff\xff".substr($png, 12), 'The PNG image has a malformed chunk at byte 8.'];
         yield 'a missing CRC' => [static fn (string $png): string => substr($png, 0, -4).'AB', 'The PNG image has a malformed chunk at byte 58.'];
-        yield 'no header first' => [static fn (string $png): string => substr($png, 0, 8).substr($png, 33), 'A PNG image starts with its IHDR chunk.'];
+        yield 'no header first' => [static fn (string $png): string => substr($png, 0, 8).substr($png, 33), 'A PNG image starts with its IHDR chunk of 13 bytes, and holds no other.'];
+        yield 'a header of 12 bytes' => [static fn (string $png): string => substr($png, 0, 8).self::chunkOf('IHDR', substr($png, 16, 12)).substr($png, 33), 'A PNG image starts with its IHDR chunk of 13 bytes, and holds no other.'];
+        yield 'a header of 14 bytes' => [static fn (string $png): string => substr($png, 0, 8).self::chunkOf('IHDR', substr($png, 16, 13)."\0").substr($png, 33), 'A PNG image starts with its IHDR chunk of 13 bytes, and holds no other.'];
+        yield 'two headers' => [static fn (string $png): string => substr($png, 0, 33).substr($png, 8, 25).substr($png, 33), 'A PNG image starts with its IHDR chunk of 13 bytes, and holds no other.'];
+        yield 'a palette after the image data' => [static fn (string $png): string => substr($png, 0, 58).self::chunkOf('PLTE', "\0\0\0").substr($png, 58), 'A PNG image holds at most one PLTE chunk, before its image data.'];
+        yield 'two palettes' => [static fn (string $png): string => substr($png, 0, 33).self::chunkOf('PLTE', "\0\0\0").self::chunkOf('PLTE', "\0\0\0").substr($png, 33), 'A PNG image holds at most one PLTE chunk, before its image data.'];
+        yield 'image data split' => [static fn (string $png): string => substr($png, 0, 58).self::chunkOf('tEXt', "Comment\0x").substr($png, 33, 25).substr($png, 58), 'The IDAT chunks of a PNG image follow each other.'];
+        yield 'no image data' => [static fn (string $png): string => substr($png, 0, 33).substr($png, 58), 'A PNG image ends with an empty IEND chunk after its image data.'];
+        yield 'an end that is not empty' => [static fn (string $png): string => substr($png, 0, 58).self::chunkOf('IEND', 'x'), 'A PNG image ends with an empty IEND chunk after its image data.'];
+        yield 'bytes after the end' => [static fn (string $png): string => $png.'garbage', 'The PNG image holds bytes after its IEND chunk.'];
+        yield 'a chunk after the end' => [static fn (string $png): string => $png.self::chunkOf('tEXt', "Comment\0x"), 'The PNG image holds bytes after its IEND chunk.'];
     }
 
     /**
@@ -166,8 +194,10 @@ final class BakingTest extends TestCase
     public function testAPngOfTheLargestSizeIsRead(): void
     {
         $png = $this->png();
+        $largest = substr($png, 0, 58).self::chunkOf('tEXt', "Comment\0".str_repeat('x', PngBaker::MAX_BYTES - \strlen($png) - 20)).substr($png, 58);
 
-        self::assertNull(PngBaker::extract($png.str_repeat("\0", PngBaker::MAX_BYTES - \strlen($png))));
+        self::assertSame(PngBaker::MAX_BYTES, \strlen($largest));
+        self::assertNull(PngBaker::extract($largest));
     }
 
     public function testALargeChunkIsRead(): void
@@ -296,6 +326,11 @@ final class BakingTest extends TestCase
     }
 
     private function chunk(string $type, string $data): string
+    {
+        return self::chunkOf($type, $data);
+    }
+
+    private static function chunkOf(string $type, string $data): string
     {
         return pack('N', \strlen($data)).$type.$data.pack('N', crc32($type.$data));
     }

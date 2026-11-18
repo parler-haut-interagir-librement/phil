@@ -29,6 +29,7 @@ final class TestKernel extends Kernel
 {
     use MicroKernelTrait;
 
+    /** The issuer's fixed seed: test key, public, never trust it. */
     public const string SEED = "\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1";
 
     /**

@@ -40,7 +40,7 @@ document only ever vouches for its own credentials.
 |---|---|
 | The address | An HTTPS address read by `phil/url`: no user name nor password, no IP address, no `localhost` unless `allow_localhost` is true. A `did:web` gives its address as `DidWeb` of `phil/open-badges` builds it from the did:web method specification, refused rather than repaired: a host name, never an IP address nor `localhost` — whatever `allow_localhost` says —, an optional port written `%3A`, path segments of unreserved characters or percent-encoded bytes, none of them `.` nor `..` nor holding a slash, no query nor fragment. Any other `did:`, a `urn` or plain HTTP is not read, and stays unknown. |
 | The trusted issuers | When `trusted` lists identifiers, any other issuer is refused before anything is read. |
-| The read | `phil/safe-http`: a host that is or resolves to a private, loopback, link-local or reserved address is never reached, redirects are checked one by one, three at most, and the silence, the duration and the bytes are bounded. `Accept: application/ld+json, application/json`; another media type is not read. |
+| The read | `phil/safe-http`: a host that is or resolves to a private, loopback, link-local or reserved address is never reached, redirects are checked one by one, three at most, and the last address read is still HTTPS, and the silence, the duration and the bytes are bounded. `Accept: application/ld+json, application/json`; another media type is not read. |
 | The document | A JSON object, 32 levels deep at most, whose `id` is the issuer's identifier: the address read for a profile, the `did:web` itself for a DID document. |
 | The keys | The first 20 entries of `verificationMethod`; each whose `id` is a fragment of the identifier — written whole, or as the fragment alone, `#key-1` —, whose `controller`, when given, is the identifier, and, when the document lists an `assertionMethod`, which it lists; an Ed25519 key as a `Multikey` with its `publicKeyMultibase` or as a `JsonWebKey` with its `publicKeyJwk` (`OKP`, `Ed25519`); an RSA key as a `JsonWebKey` with its `publicKeyJwk` (`RSA`, its `n` and `e`, no private member, an `alg` when given `RS256`), read by `RsaKey::fromJwk()` of `phil/open-badges`: its modulus of 2048 to 8192 bits, its exponent odd, at least 3 and of at most 64 bits. Any other entry is left aside. |
 
@@ -52,13 +52,14 @@ answer is not asked again at each check.
 ## The refusals
 
 A credential whose key cannot be found does not verify, with a reason the page shows. The reasons say "profile" for
-a DID document too; the first three name the issuer by its identifier, the `did:web` itself, and the fourth names the
+a DID document too; the first four name the issuer by its identifier, the `did:web` itself, and the fifth names the
 address read:
 
 | Reason | When |
 |---|---|
 | `The issuer "…" is not one the verifier trusts.` | `trusted` does not list it. |
 | `The profile of the issuer "…" could not be read: …` | The address is refused, the host does not answer in time, the redirects are too many, or the answer is not a `2xx`. |
+| `The profile of the issuer "…" was redirected away from HTTPS.` | A redirect led to a plain HTTP address: the profile is not read, whatever it holds. |
 | `The profile of the issuer "…" is not JSON within the bytes the verifier reads.` | Another media type, a body cut at `max_bytes`, JSON that does not parse or is not an object. |
 | `The profile read at "…" is not the profile of that issuer: its "id" differs.` | The document read at that address names another identifier, or none. |
 | `The profile of the issuer "…" publishes no key "…".` | The method is not among the keys kept. |

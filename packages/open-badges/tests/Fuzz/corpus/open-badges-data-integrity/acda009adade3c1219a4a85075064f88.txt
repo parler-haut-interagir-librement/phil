@@ -1,0 +1,1 @@
+{"proof":{"type":"DataIntegrityProof","cryptosuite":"eddsa-rdfc-2022","proofPurpose":"assertionMethod"}}

@@ -1,0 +1,1 @@
+{"@coext":["https.d/v1"],"id":"did:web:issuer.example.org","verificationMethod":[{"id":"#key-1","type":"Multey","controller":"did:web:issuer.example.org","publicKeyMultibase":"z60Ua4Px6T"}],"assertionMethod":["#key-1"]}
