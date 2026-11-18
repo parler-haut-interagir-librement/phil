@@ -168,6 +168,22 @@ final class RemoteVerificationTest extends TestCase
         self::assertSame([self::PARTNER], $this->requested);
     }
 
+    public function testAProfileRedirectedAwayFromHttpsIsRefused(): void
+    {
+        $methods = $this->methods([new MockResponse('', ['http_code' => 302, 'response_headers' => ['Location' => 'http://partner.example/issuer']]), $this->profile()]);
+
+        $this->expectExceptionObject(InvalidCredential::because('The profile of the issuer "https://partner.example/issuer" was redirected away from HTTPS.'));
+        $methods->key(self::METHOD);
+    }
+
+    public function testAProfileRedirectedOverHttpsIsRead(): void
+    {
+        $methods = $this->methods([new MockResponse('', ['http_code' => 301, 'response_headers' => ['Location' => 'https://other.example/issuer']]), $this->profile()]);
+
+        self::assertSame($this->partner()->publicJwk(), $methods->key(self::METHOD)->jwk()->all());
+        self::assertSame([self::PARTNER, 'https://other.example/issuer'], $this->requested);
+    }
+
     public function testAnIssuerThatDoesNotAnswerIsRefusedClearly(): void
     {
         $methods = $this->methods(static fn (): MockResponse => throw new TransportException('Connection refused.'));

@@ -1,0 +1,1 @@
+{"id":"https://partner.example/issuer","verificationMethod":[{"id":"https://partner.example/issuer#keyyer","publicKeyJwk":{"kty":"RSA","n":"w-mkMT0iR8QV44Xz1"}}]}

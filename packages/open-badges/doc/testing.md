@@ -17,6 +17,18 @@ Two tokens issued by version 0.1, in `tests/Fixtures`, keep the tokens stable fr
 `EdDSA` token signed with that key pair, which still verifies and is signed again to the same bytes, and an `RS256`
 token, which verifies with its public key.
 
+## Test keys
+
+The repository holds no private key that the tests could make. The RSA keys are made by OpenSSL while the tests run,
+once per size for the run; one of 8192 bits takes seconds to make, so it is kept in the temporary directory, readable
+by its owner only, for the other processes of the run.
+
+The keys that must stay the same are written in the tests, each marked « test key, public, never trust it »: the
+Ed25519 key pair of the W3C test vectors, which signs the `EdDSA` token of version 0.1, the fixed seeds of 32 bytes
+that make issued credentials the same bytes on every run, and the public key of the `RS256` token of version 0.1. The
+files of `tests/Fixtures` start with a line saying so. A credential signed by one of these keys proves nothing: never
+trust them outside the tests.
+
 From the monorepo root:
 
 ```sh

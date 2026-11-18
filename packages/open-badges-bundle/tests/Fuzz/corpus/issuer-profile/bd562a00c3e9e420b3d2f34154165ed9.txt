@@ -1,0 +1,1 @@
+{"t":["hrg/secuty/mt"],"id":"https://partner.example/issuer","ypve(rifMethod":[{"d":"httpsample/swbTQ2"}],"assertionMethod":["hkey-1","suera","v#key-0","s"]}

@@ -18,7 +18,8 @@ use PHPUnit\Framework\TestCase;
 final class Ed25519KeyTest extends TestCase
 {
     /**
-     * The key pair of the test vectors of the Data Integrity EdDSA cryptosuites.
+     * The key pair of the test vectors of the Data Integrity EdDSA cryptosuites, published with them: test key, public,
+     * never trust it. The tokens of `tests/Fixtures` are signed with it, so it stays the same.
      */
     public const string PUBLIC = 'z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2';
 

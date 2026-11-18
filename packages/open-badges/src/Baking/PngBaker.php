@@ -11,8 +11,10 @@ use Phil\OpenBadges\Exception\InvalidImage;
  * Data Integrity proof, or a compact JSON Web Token — is the text of an uncompressed `iTXt` chunk whose keyword is
  * `openbadgecredential`, written before the image's end. The image keeps a single one: baking again replaces it.
  *
- * Each chunk is checked — its length, its type, its CRC — so that a malformed file is refused rather than misread,
- * and an image larger than `MAX_BYTES` is refused before it is read.
+ * Each chunk is checked — its length, its type, its CRC — and so is the structure of the image: a single `IHDR` of 13
+ * bytes first, at most one `PLTE` before the image data, `IDAT` chunks that follow each other, an empty `IEND` last and
+ * nothing after it. A malformed file is refused rather than misread, on reading as on baking, and an image larger than
+ * `MAX_BYTES` is refused before it is read.
  */
 final class PngBaker
 {
@@ -105,7 +107,7 @@ final class PngBaker
     }
 
     /**
-     * The chunks of the image, up to its end, each checked.
+     * The chunks of the image, up to its end, each checked, and their order.
      *
      * @return list<array{string, string}> the type and the data of each chunk
      */
@@ -117,6 +119,8 @@ final class PngBaker
 
         $chunks = [];
         $offset = 8;
+        // Where the image data stands: not yet, under way, or over.
+        $data = 'before';
 
         do {
             $header = substr($png, $offset, 8);
@@ -128,22 +132,56 @@ final class PngBaker
             // A chunk of 16 MiB or more cannot fit in an image of at most 16 MiB: its first byte of length is zero.
             $length = (\ord($header[1]) << 16) | (\ord($header[2]) << 8) | \ord($header[3]);
             $type = substr($header, 4);
-            $data = substr($png, $offset + 8, $length);
+            $content = substr($png, $offset + 8, $length);
 
             // A chunk cut short has no CRC of its data after it.
-            if ("\0" !== $header[0] || 4 !== strspn($type, self::LETTERS) || pack('N', crc32($type.$data)) !== substr($png, $offset + 8 + $length, 4)) {
+            if ("\0" !== $header[0] || 4 !== strspn($type, self::LETTERS) || pack('N', crc32($type.$content)) !== substr($png, $offset + 8 + $length, 4)) {
                 throw InvalidImage::because(\sprintf('The PNG image has a malformed chunk at byte %d.', $offset));
             }
 
-            if ([] === $chunks && 'IHDR' !== $type) {
-                throw InvalidImage::because('A PNG image starts with its IHDR chunk.');
-            }
-
-            $chunks[] = [$type, $data];
+            $data = self::order($chunks, $type, $length, $data);
+            $chunks[] = [$type, $content];
             $offset += 12 + $length;
         } while ('IEND' !== $type);
 
+        if (\strlen($png) !== $offset) {
+            throw InvalidImage::because('The PNG image holds bytes after its IEND chunk.');
+        }
+
         return $chunks;
+    }
+
+    /**
+     * Checks that a chunk stands where a PNG image allows it, and returns where the image data stands after it.
+     *
+     * @param list<array{string, string}> $before the chunks before it
+     * @param 'before'|'within'|'after'   $data   where the image data stands before it
+     *
+     * @return 'before'|'within'|'after'
+     */
+    private static function order(array $before, string $type, int $length, string $data): string
+    {
+        if (([] === $before) !== ('IHDR' === $type) || ('IHDR' === $type && 13 !== $length)) {
+            throw InvalidImage::because('A PNG image starts with its IHDR chunk of 13 bytes, and holds no other.');
+        }
+
+        if ('PLTE' === $type && ('before' !== $data || \in_array('PLTE', array_column($before, 0), true))) {
+            throw InvalidImage::because('A PNG image holds at most one PLTE chunk, before its image data.');
+        }
+
+        if ('IDAT' === $type) {
+            if ('after' === $data) {
+                throw InvalidImage::because('The IDAT chunks of a PNG image follow each other.');
+            }
+
+            return 'within';
+        }
+
+        if ('IEND' === $type && ('before' === $data || 0 !== $length)) {
+            throw InvalidImage::because('A PNG image ends with an empty IEND chunk after its image data.');
+        }
+
+        return 'before' === $data ? 'before' : 'after';
     }
 
     private static function chunk(string $type, string $data): string

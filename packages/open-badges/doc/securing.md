@@ -20,9 +20,11 @@ $token = new JwtSigner($signer, 'https://example.org/issuer#key-1')->sign($crede
 
 The header names the algorithm, the type `vc+jwt`, the key's identifier (`kid`) when one is given, and the public key
 as a JSON Web Key. The claims are the credential's, with `iss`, `jti`, `sub`, `nbf` and `exp` mirroring its issuer,
-identifier, subject's identifier and period of validity. `CredentialIssuer::issue()` does this for an
-`OpenBadgeCredential`; `JwtSigner` secures any credential the library builds — an endorsement, a learner record, a
-status list.
+identifier, subject's identifier and period of validity: the identifiers are strings, and the seconds come from
+`validFrom` and `validUntil` read as strict moments of RFC 3339, by the same reader as the verifier. A credential that
+carries one of those claims itself is refused with `InvalidBadge`: they mirror its fields, never contradict them.
+`CredentialIssuer::issue()` does this for an `OpenBadgeCredential`; `JwtSigner` secures any credential the library
+builds — an endorsement, a learner record, a status list.
 
 ## Data Integrity
 

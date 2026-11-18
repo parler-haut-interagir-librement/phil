@@ -1,0 +1,1 @@
+{"@ct":["hi1"],"id":"did:web:issuer.example.org","assertionMethod":[{"id":"did:web:issuer.example.org#key-1","type":"CsonWebKey","controller":"did:web:issuer.example.org","publicKeyJwk":{"kty":"RSA","n":"sysRwpjWeiQ","e":"AQAB"}}]}

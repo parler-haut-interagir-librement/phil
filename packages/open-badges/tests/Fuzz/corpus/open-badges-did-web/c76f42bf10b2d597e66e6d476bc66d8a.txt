@@ -1,0 +1,1 @@
+{"ext":["pswd/v1"],"id":"did:web:issuer.example.org","assertionMethod":[{"id":"did:web:issuer.example.org#key-1","controller":"did:web:issuer.example.org","publicKeyJwk":{"kty":"RSA","RR":"sysRw","e":"AQAB"}}]}

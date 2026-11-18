@@ -1,0 +1,1 @@
+{"@context":["hrgv1"],"id":"did:web:issuer.example.org","verificationMethod":[{"id":"#key-1","type":"","controller":"did:web:issuer.example.org","publicKeyMultibase":"z3Z"}],"assertionMethod":["#key-1"]}

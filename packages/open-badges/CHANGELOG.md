@@ -6,12 +6,37 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.3.0-alpha: `JwtVerifier` refuses a token whose `nbf` or `exp` is not a number, which it accepted.
+The next version is 0.3.0-alpha: `JwtVerifier` refuses a token whose `nbf` or `exp` is not a number, the verifier
+refuses tokens whose registered claims contradict their credential and contexts that redefine protected terms,
+`JwtSigner` refuses a credential carrying its own registered claims, and `PngBaker` refuses bytes after `IEND`.
+
+### Added
+
+- `JwtSigner::CLAIMS`, the registered claims that mirror a credential's fields.
+
+### Changed
+
+- One strict reader of the moments of `validFrom` and `validUntil`, shared by `JwtSigner` and `CredentialVerifier`:
+  RFC 3339 as an XML Schema `dateTimeStamp` writes it, each part within its range. A date PHP carried over to another
+  one — 30 February, hour 24, a leap second, an offset beyond 23:59 — or a lower-case `t` or `z` is refused.
+- `JwtSigner` writes `iss`, `jti` and `sub` only from string identifiers, refuses a period that is not made of moments,
+  and refuses a credential that carries `iss`, `jti`, `sub`, `nbf` or `exp` of its own.
+- `CredentialVerifier` applies one rule of validity to both forms: a token is valid from its credential's `validFrom`
+  to its `validUntil`, as a document is, compared to the microsecond.
+- The tests make their RSA keys while they run; the keys that must stay the same are marked as public test keys.
 
 ### Security
 
 - `JwtVerifier` reads `nbf` and `exp` as NumericDates, with or without a fraction of a second, and refuses a value of
   another type: a fractional value was skipped, so a signed credential passed before its start or after its expiry.
+- `CredentialVerifier` refuses a token whose `jti`, `sub`, `nbf` or `exp` contradicts the credential's `id`, subject,
+  `validFrom` or `validUntil`, or whose `iss` is not a string: a token could expose a period other than the one checked.
+- The JSON-LD processor enforces `@protected`: a protected term is defined again only the same, except by a context
+  scoped to a property, and a `null` context does not clear protected terms. A credential could give `id`, `type`,
+  `name`, or through a second type `issuer` and `credentialSubject`, another meaning than its issuer signed.
+- `CredentialVerifier` refuses an input over 1 MiB before it trims or decodes it.
+- `PngBaker` checks the structure of the image on reading and on baking: a single `IHDR` of 13 bytes first, at most one
+  `PLTE` before the image data, `IDAT` chunks that follow each other, an empty `IEND` after them and nothing after it.
 
 ## 0.2.0-alpha - 2026-11-15
 

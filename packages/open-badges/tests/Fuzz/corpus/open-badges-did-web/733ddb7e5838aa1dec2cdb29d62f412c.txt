@@ -1,0 +1,1 @@
+{"id":"did:web:issuer.example.org","veri":[],"assertionMethod":["g","ve"]}

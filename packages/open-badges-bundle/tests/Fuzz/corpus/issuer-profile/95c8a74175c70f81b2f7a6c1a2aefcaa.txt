@@ -1,0 +1,1 @@
+{"@context":["http/v2","https://w3id.org/secy/v1"],"id":"https://partner.example/issuer","typname":"Partger","verificationMethod":[{"id":"https://partner.example/issuer#ktikeypartner.example/issuer","publicKeyMultibase":"z6MkrJVnaZkeFzkrJVnaZkeFz2"}],"asserAionMod":["lttpsample/iss+ue/#key-1"]}

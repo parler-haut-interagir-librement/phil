@@ -65,7 +65,7 @@ final class Conversion
         $context = $active->previous instanceof ActiveContext && !$this->isReference($element, $active) ? $active->previous : $active;
 
         if ($property instanceof TermDefinition && $property->hasContext) {
-            $context = $this->contexts->process($context, $property->context);
+            $context = $this->contexts->process($context, $property->context, overrideProtected: true);
         }
 
         if (\array_key_exists('@context', $element)) {
@@ -197,7 +197,7 @@ final class Conversion
                 throw InvalidCredential::because('A JSON-LD document holds only JSON values.');
             }
 
-            $scoped = $definition instanceof TermDefinition && $definition->hasContext ? $this->contexts->process($context, $definition->context) : $context;
+            $scoped = $definition instanceof TermDefinition && $definition->hasContext ? $this->contexts->process($context, $definition->context, overrideProtected: true) : $context;
 
             return $this->scalar($value, $definition, $scoped);
         }

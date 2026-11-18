@@ -21,6 +21,7 @@ use Phil\OpenBadges\Verification\CredentialVerifier;
 use Phil\OpenBadges\Verification\IssuerMethods;
 use Phil\OpenBadges\Verification\VerifiedCredential;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(CredentialVerifier::class)]
@@ -141,8 +142,77 @@ final class CredentialVerifierTest extends TestCase
 
     public function testADocumentIsReadWithinItsLength(): void
     {
-        $this->expectExceptionObject(InvalidCredential::because('A credential is a compact JSON Web Token or the JSON of a document with its proof.'));
+        $this->expectExceptionObject(InvalidCredential::because('A credential is at most 1048576 bytes.'));
         $this->verifier()->verify('{"a":"'.str_repeat('a', 1_048_576).'"}');
+    }
+
+    public function testTheLengthIsCheckedBeforeTheBlanksAreTrimmed(): void
+    {
+        $this->assertRefused('A document secured with Data Integrity has one proof, an object.', '{"a":"'.str_repeat('a', 1_048_576 - 8).'"}');
+        $this->assertRefused('A credential is at most 1048576 bytes.', ' {"a":"'.str_repeat('a', 1_048_576 - 8).'"}');
+        $this->assertRefused('A credential is at most 1048576 bytes.', str_repeat(' ', 1_048_577));
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>, string}>
+     */
+    public static function claimsThatDisagree(): iterable
+    {
+        $base = ['id' => self::ID, 'issuer' => 'https://example.org/issuer', 'iss' => 'https://example.org/issuer', 'credentialSubject' => ['id' => 'did:example:ada'], 'validFrom' => '2026-11-07T00:00:00Z', 'validUntil' => '2027-11-07T00:00:00Z'];
+
+        yield 'an iss that is no string' => [[...$base, 'issuer' => ['id' => 'https://example.org/issuer'], 'iss' => ['https://example.org/issuer']], 'The "iss" claim of the token is not the issuer of the credential.'];
+        yield 'a jti of another credential' => [[...$base, 'jti' => 'urn:uuid:00000000-0000-0000-0000-000000000000'], 'The "jti" claim of the token is not the id of the credential.'];
+        yield 'a jti without identifier' => [[...array_diff_key($base, ['id' => true]), 'jti' => self::ID], 'The "jti" claim of the token is not the id of the credential.'];
+        yield 'a jti that is no string' => [[...$base, 'jti' => 3], 'The "jti" claim of the token is not the id of the credential.'];
+        yield 'a sub of another subject' => [[...$base, 'sub' => 'did:example:bob'], 'The "sub" claim of the token is not the id of the subject of the credential.'];
+        yield 'a sub of a subject without identifier' => [[...$base, 'credentialSubject' => ['name' => 'Ada'], 'sub' => 'did:example:ada'], 'The "sub" claim of the token is not the id of the subject of the credential.'];
+        yield 'a sub of a subject that is a string' => [[...$base, 'credentialSubject' => 'did:example:ada', 'sub' => 'did:example:ada'], 'The "sub" claim of the token is not the id of the subject of the credential.'];
+        yield 'an nbf of another second' => [[...$base, 'nbf' => 1794009601], 'The "nbf" claim of the token is not the validFrom of the credential.'];
+        yield 'an nbf without validFrom' => [[...array_diff_key($base, ['validFrom' => true]), 'nbf' => 1794009600], 'The "nbf" claim of the token is not the validFrom of the credential.'];
+        yield 'an exp later than validUntil' => [[...$base, 'exp' => 1825545601], 'The "exp" claim of the token is not the validUntil of the credential.'];
+        yield 'an exp earlier than validUntil' => [[...$base, 'exp' => 1825545599.5], 'The "exp" claim of the token is not the validUntil of the credential.'];
+        yield 'an exp without validUntil' => [[...array_diff_key($base, ['validUntil' => true]), 'exp' => 1825545600], 'The "exp" claim of the token is not the validUntil of the credential.'];
+        yield 'a validUntil that is no moment' => [[...$base, 'validUntil' => '2027-02-30T00:00:00Z', 'exp' => 1825545600], 'The period of validity of the credential is made of RFC 3339 moments.'];
+    }
+
+    /**
+     * @param array<string, mixed> $claims
+     */
+    #[DataProvider('claimsThatDisagree')]
+    public function testTheClaimsOfATokenAgreeWithItsCredential(array $claims, string $reason): void
+    {
+        $this->assertRefused($reason, $this->token($claims));
+    }
+
+    public function testClaimsThatAgreeAreRemovedFromTheCredential(): void
+    {
+        $claims = ['id' => self::ID, 'issuer' => 'https://example.org/issuer', 'credentialSubject' => ['id' => 'did:example:ada'], 'validFrom' => '2026-11-07T00:00:00.750Z', 'validUntil' => '2027-11-07T00:00:00Z'];
+        $verified = $this->verifier()->verify($this->token([...$claims, 'iss' => 'https://example.org/issuer', 'jti' => self::ID, 'sub' => 'did:example:ada', 'nbf' => 1794009600.75, 'exp' => 1825545600]), new DateTimeImmutable('2026-11-08 UTC'));
+
+        self::assertSame($claims, $verified->credential);
+        self::assertSame($claims, $this->verifier()->verify($this->token([...$claims, 'iss' => 'https://example.org/issuer', 'nbf' => 1794009600]), new DateTimeImmutable('2026-11-08 UTC'))->credential);
+    }
+
+    /**
+     * A token without `nbf` nor `exp` follows the period of its credential, as a document does.
+     */
+    public function testATokenFollowsThePeriodOfItsCredential(): void
+    {
+        $claims = ['issuer' => 'https://example.org/issuer', 'iss' => 'https://example.org/issuer', 'validFrom' => '2026-11-07T00:00:00.500Z', 'validUntil' => '2027-11-07T00:00:00Z'];
+
+        self::assertSame('jwt', $this->verifier()->verify($this->token($claims), new DateTimeImmutable('2026-11-07T00:00:00.500Z'))->securedAs);
+        self::assertSame('jwt', $this->verifier()->verify($this->token($claims), new DateTimeImmutable('2027-11-06T23:59:59.999999Z'))->securedAs);
+
+        foreach (['2026-11-07T00:00:00.499999Z' => 'The credential is not valid yet.', '2027-11-07T00:00:00Z' => 'The credential has expired.'] as $at => $reason) {
+            try {
+                $this->verifier()->verify($this->token($claims), new DateTimeImmutable($at));
+                self::fail(\sprintf('The token was expected to be refused at %s.', $at));
+            } catch (InvalidCredential $refused) {
+                self::assertSame($reason, $refused->getMessage());
+            }
+        }
+
+        $this->assertRefused('The period of validity of the credential is made of RFC 3339 moments.', $this->token([...$claims, 'validFrom' => '2026-02-30T00:00:00Z']));
     }
 
     public function testAVerifiedCredential(): void

@@ -27,6 +27,7 @@ use Phil\OpenBadges\Key\RsaKey;
 use Phil\OpenBadges\Key\RsaSigner;
 use Phil\OpenBadges\Recipient;
 use Phil\OpenBadges\Tests\Unit\Support\Signatures;
+use Phil\OpenBadges\Tests\Unit\Support\TestKeys;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -514,7 +515,7 @@ final class CredentialIssuerTest extends TestCase
         self::assertSame(self::ID, new JwtVerifier(RsaKey::fromPem($public))->verify($token)['jti'] ?? null);
         self::assertSame(self::ID, new JwtVerifier($signer->verificationKey())->verify($token)['jti'] ?? null);
 
-        [$other] = $this->rsa(2048);
+        [$other] = TestKeys::rsa(2048, 'second');
         $this->expectExceptionObject(InvalidCredential::because('The signature of the credential does not verify.'));
         new JwtVerifier(RsaSigner::fromPem($other)->verificationKey())->verify($token);
     }
@@ -540,8 +541,7 @@ final class CredentialIssuerTest extends TestCase
 
     public function testAnRsaKeyOf8192BitsIsTheLargestRead(): void
     {
-        $pem = file_get_contents(__DIR__.'/../Fixtures/rsa-8192.pem');
-        self::assertIsString($pem);
+        [$pem] = TestKeys::rsa(8192);
 
         self::assertSame(8192, RsaKey::bits(Base64Url::decode(RsaSigner::fromPem($pem)->publicJwk()['n'])));
     }
@@ -597,15 +597,7 @@ final class CredentialIssuerTest extends TestCase
      */
     private function rsa(int $bits): array
     {
-        $key = openssl_pkey_new(['private_key_bits' => $bits, 'private_key_type' => \OPENSSL_KEYTYPE_RSA]);
-        self::assertNotFalse($key);
-        openssl_pkey_export($key, $private);
-        $details = openssl_pkey_get_details($key);
-        self::assertIsArray($details);
-        self::assertIsString($private);
-        self::assertIsString($details['key']);
-
-        return [$private, $details['key']];
+        return TestKeys::rsa($bits);
     }
 
     /**

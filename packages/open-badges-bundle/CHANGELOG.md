@@ -12,6 +12,11 @@ The next version is 0.1.2-alpha.
 
 - It accepts `phil/open-badges` 0.3 beside 0.2.
 
+### Security
+
+- `RemoteVerificationMethods` reads an issuer's profile only when the address it ends at, after its redirects, is still
+  HTTPS: a redirect to plain HTTP let anyone on the network substitute the profile and its keys.
+
 ## 0.1.1-alpha - 2026-11-15
 
 The next version is 0.1.1-alpha.
