@@ -183,6 +183,7 @@ final class GuestRequestsTest extends TestCase
     {
         $locks = new ScriptedLockStore();
         $locks->grants = false;
+
         $this->locks = new LockFactory($locks);
         $exporter = new InterruptingModule('members', static function (): void {
         });

@@ -418,6 +418,7 @@ final class HeartbeatsTest extends TestCase
     {
         $locks = new ScriptedLockStore();
         $locks->grants = false;
+
         $notifier = new RecordingNotifier();
         $this->heartbeats->beat('report');
         $this->clock->modify('+2 minutes');

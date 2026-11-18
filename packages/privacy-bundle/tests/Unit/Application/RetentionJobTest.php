@@ -90,6 +90,7 @@ final class RetentionJobTest extends TestCase
     {
         $locks = new ScriptedLockStore();
         $locks->grants = false;
+
         $purger = new RecordingPurger('trash');
 
         self::assertNull(new RetentionJob($this->retentionRun([$purger]), new LockFactory($locks), new MockClock())->run());

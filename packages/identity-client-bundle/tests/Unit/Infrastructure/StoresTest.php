@@ -74,6 +74,7 @@ final class StoresTest extends TestCase
     {
         $locks = new ScriptedLockStore();
         $locks->grants = false;
+
         $pool = self::createMock(CacheItemPoolInterface::class);
         $pool->expects(self::never())->method('getItem');
 

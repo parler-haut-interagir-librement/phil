@@ -63,6 +63,7 @@ abstract class ServerCheckInLedgerCollationTestCase extends TestCase
         if (!\is_string($url) || '' === $url) {
             self::markTestSkipped(\sprintf('Set %s to run this test against a real server.', $this->variable()));
         }
+
         $connection = DriverManager::getConnection(new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql', 'postgres' => 'pdo_pgsql'])->parse($url));
         $this->connection = $connection;
         $schema = new DoctrineCheckInLedger($connection)->configureSchema(Schema::editor()->create());

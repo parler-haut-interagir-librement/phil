@@ -82,6 +82,7 @@ final class PrivacyRightsAndDownloadTest extends TestCase
     {
         $locks = new ScriptedLockStore();
         $locks->grants = false;
+
         $exporter = new InterruptingModule('members', static function (): void {
         });
 

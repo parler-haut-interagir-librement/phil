@@ -69,9 +69,9 @@ final class BinaryKeysListenerTest extends TestCase
 
         $manager = new EntityManager(DriverManager::getConnection($params), $config);
         if ($before instanceof Closure) {
-            $manager->getEventManager()->addEventListener(Events::loadClassMetadata, new class($before) {
+            $manager->getEventManager()->addEventListener(Events::loadClassMetadata, new readonly class($before) {
                 public function __construct(
-                    private readonly Closure $before,
+                    private Closure $before,
                 ) {
                 }
 
