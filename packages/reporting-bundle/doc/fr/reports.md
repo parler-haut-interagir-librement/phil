@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f6ab0b4e39d1c568719633e50916565bada62a4b42876f1c72d6de13fb21a8bd -->
+<!-- phil-dev source-sha256=62d649147ce5d8ad8d8c3e5045d85c75062c51b8f7cf15defc06d9c60ba649c4 -->
 # Rapports
 
 ## Une définition
@@ -120,7 +120,10 @@ son identifiant.
 
 Le magasin `directory` garde chaque tâche sous forme de fichier JSON et chaque export sous forme de fichier, nommés par
 32 chiffres hexadécimaux aléatoires, dans un répertoire lisible par son seul propriétaire ; un identifiant d'une autre
-forme n'atteint jamais le disque. Rien n'est désérialisé : un fichier que `ReportJob::toArray()` n'a pas écrit est
+forme n'atteint jamais le disque. Chaque fichier est écrit sous forme de fichier temporaire du répertoire, `.phil-`
+suivi de caractères aléatoires, créé en `0600` par `tempnam()`, puis reçoit son nom en une seule étape une fois entier :
+aucun autre utilisateur ne lit une tâche ou un export à aucun moment, et un fichier tronqué n'est jamais un fichier du
+magasin. Rien n'est désérialisé : un fichier que `ReportJob::toArray()` n'a pas écrit est
 refusé. Le magasin `memory` sert aux tests et au transport `sync://`, et il est vidé quand le conteneur est
 réinitialisé.
 

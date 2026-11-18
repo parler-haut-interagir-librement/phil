@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=38b25d50b656309a4ebfbf9c5174a9d477644b313077db61502b051ce4ffb8ee -->
+<!-- phil-dev source-sha256=4a541664230c8b2867b37c782793d025007830d6f275fe07eb967f85336eedd7 -->
 # Jeux de sauvegarde
 
 ## `Backups`
@@ -26,18 +26,31 @@ new Backups(
 | `verify($set, $scratch = null)` | Le test de restauration ; voir [restore-tests.md](restore-tests.md) |
 
 Un jeu qui échoue à mi-chemin — la base de données écrite, l'archive des médias non — est supprimé en entier : aucun
-fichier d'une sauvegarde ratée ne reste pour être pris pour un bon.
+fichier d'une sauvegarde ratée ne reste pour être pris pour un bon, ni aucun fichier temporaire.
 
 ## Le répertoire
 
-`BackupDirectory($path)` est créé à la première utilisation, lisible par son seul propriétaire (`0700`). Chaque fichier
-d'un jeu est restreint à `0600`, où qu'il soit écrit. **Une sauvegarde contient les données de chaque personne** :
-gardez le répertoire hors du contrôle de version et hors des racines Web, et copiez les jeux hors de la machine avec des
-outils qui les gardent privés.
+`BackupDirectory($path, $tightenOpenDirectory = true)` est créé à la première utilisation, lisible par son seul
+propriétaire (`0700`). **Une sauvegarde contient les données de chaque personne** : gardez le répertoire hors du
+contrôle de version et hors des racines Web, et copiez les jeux hors de la machine avec des outils qui les gardent
+privés.
 
-Une copie en clair n'existe que pendant qu'un fichier est chiffré, déchiffré ou testé, sous forme de fichier temporaire
-du répertoire, `.phil-backup-` suivi de caractères aléatoires, créé en `0600` par `tempnam()` et supprimé quoi qu'il
-arrive.
+Un répertoire qui existe déjà et qui est ouvert à son groupe ou à d'autres utilisateurs — un mode tel que `0755` — est
+restreint à `0700` avant que quoi que ce soit y soit écrit. Quand il ne peut pas l'être, parce qu'un autre utilisateur
+en est le propriétaire, ou quand `tightenOpenDirectory` est faux, la sauvegarde échoue avec un `BackupFailed` qui nomme
+le répertoire et son mode, et rien n'est écrit. Chercher, lister et lire des jeux ne change jamais le mode du
+répertoire.
+
+Chaque fichier est écrit sous forme de fichier temporaire du répertoire, `.phil-backup-` suivi de caractères
+aléatoires, créé en `0600` par `tempnam()` : aucun autre utilisateur ne peut lire un seul octet de ce fichier, à aucun
+moment. Le fichier temporaire d'un fichier du jeu reçoit ensuite son nom en une seule étape, par un lien physique, si
+bien que le fichier apparaît entier et ne remplace jamais un fichier existant : deux sauvegardes qui choisissent le même
+nom au même moment échouent au lieu de s'écraser, et celle qui échoue ne supprime que ses propres fichiers. Sur un
+système de fichiers sans liens physiques, le fichier temporaire est plutôt renommé. Une copie en clair n'existe que
+pendant qu'un fichier est chiffré, déchiffré ou testé, sous forme d'un autre fichier temporaire du répertoire. Chaque
+fichier temporaire est supprimé quoi qu'il arrive.
+
+Un répertoire atteint par un lien symbolique est utilisé là où le lien pointe : ses fichiers temporaires y sont créés.
 
 ## Noms
 
