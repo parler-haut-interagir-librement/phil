@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=114ded1a96339a2585747ac16d6b71fc3c6b5b615c3f4321d7a20815be790786 -->
+<!-- phil-dev source-sha256=86c125c5eb2aab26c3341983a93a3befe7c20ea0c4cab21b54bac8306228b991 -->
 # Messenger
 
 `PagedMediaQueue` fait dans un *worker* ce que `PagedMedia` fait tout de suite, puis garde le fichier et l'annonce.
@@ -40,6 +40,14 @@ contiendrait le certificat et le mot de passe.
 et `remove()` l'oublie une fois son fichier gardé. `DirectoryJobStore` écrit chaque tâche dans son propre fichier JSON
 sous `jobs.directory`, nommé d'après 32 chiffres hexadécimaux aléatoires. Le répertoire et les fichiers ne sont
 lisibles que par leur propriétaire, puisqu'une tâche contient les documents et les paramètres d'un fichier à venir.
+
+Le répertoire est créé avec le mode `0700`. Un répertoire qui existe déjà et qui est ouvert à son groupe ou aux autres
+utilisateurs est resserré à `0700` avant qu'une tâche y soit gardée ; quand il ne peut pas l'être, ou quand
+`jobs.tighten_open_directory` vaut false, la tâche est refusée par une `StorageFailed` qui nomme le répertoire et son
+mode. Une tâche est écrite dans un fichier temporaire du répertoire, créé lisible par son seul propriétaire, puis
+renommé au nom de son identifiant en une seule étape : aucun autre utilisateur ne peut la lire à aucun moment, un
+*worker* ne lit jamais une tâche à moitié écrite, et un échec ne laisse aucun fichier derrière. Le troisième argument de
+`DirectoryJobStore`, `$tightenOpenDirectory`, est le même choix hors du bundle.
 
 `JobCodec` écrit une tâche en JSON et la relit. Rien n'est désérialisé, et un JSON qu'il n'a pas écrit est refusé.
 

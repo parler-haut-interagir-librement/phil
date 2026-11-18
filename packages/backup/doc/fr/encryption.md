@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c52ecd470c02679b62839ed3019eff617b95cafd0769cb76c90f2f4118d766cc -->
+<!-- phil-dev source-sha256=f812ed165cde21eb6df8278a2dca27a174ac6635f6f2ed115548a142d2a0c321 -->
 # Chiffrement
 
 ## Clés
@@ -42,9 +42,26 @@ quantité fixe de mémoire.
   l'étiquette finale manque alors —, ou des octets après le bloc final :
   `… cannot be decrypted: the key is not the one it was encrypted with, or the file is damaged.`
 
-La cible reçoit les blocs à mesure qu'ils sont authentifiés : en cas d'échec, elle contient un début qui ne doit pas
-servir. `Backups` déchiffre dans un fichier temporaire qu'il supprime quoi qu'il arrive, et ne restaure rien à partir
+`Backups` déchiffre dans un fichier temporaire qu'il supprime quoi qu'il arrive, et ne restaure rien à partir
 d'un fichier en échec.
+
+## La cible
+
+`encrypt()` et `decrypt()` écrivent la cible dans un fichier temporaire de son répertoire, créé lisible par son seul
+propriétaire, puis le renomment en cible en une seule étape, en remplaçant un fichier de ce nom. Aucun autre utilisateur
+de la machine ne peut lire un seul octet de la copie à aucun moment, la cible ne contient jamais une partie de la copie,
+et un fichier qui échoue au déchiffrement, ou une copie qui ne peut pas être écrite en entier, laisse la cible telle
+qu'elle était et aucun fichier temporaire derrière.
+
+Le répertoire est créé avec le mode `0700` quand il manque. Un répertoire qui existe et qui est ouvert à son groupe ou
+aux autres utilisateurs est resserré à `0700` avant que quoi que ce soit y soit écrit ; quand il ne peut pas l'être,
+comme le répertoire temporaire partagé du système, l'appel est refusé par une `BackupFailed` qui nomme le répertoire et
+son mode. Le deuxième argument de `BackupCipher`, `$tightenOpenDirectory`, vrai par défaut, refuse un répertoire ouvert
+au lieu de le resserrer :
+
+```php
+$cipher = new BackupCipher(BackupKey::fromBase64($key), tightenOpenDirectory: false);
+```
 
 ## Jeux chiffrés
 

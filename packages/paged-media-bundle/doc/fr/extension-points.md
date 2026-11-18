@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d335bc31647f1fa6bb9ab391bd4af2f808a05627cfe294d46a43de76786c9a43 -->
+<!-- phil-dev source-sha256=3bbc293301a95c9aa5f6b26a533ad5d4eeed7bd097f3a86e978b25b7bba3663d -->
 # Points d'extension
 
 Ce qu'une application implémente, remplace, écoute ou configure. Les documents, les étapes et la signature sont ceux
@@ -66,7 +66,7 @@ l'alias de son propre stockage, par exemple une médiathèque.
 | `gotenberg` | Où se trouve Gotenberg, ses identifiants de connexion, son délai et son client HTTP |
 | `signing.certificate` | D'où vient le certificat de signature : un fichier, en ligne ou un coffre |
 | `signing.timestamp_url`, les options PAdES | L'autorité d'horodatage et ce que dit une signature |
-| `storage.directory`, `jobs.directory`, `jobs.remove_failed` | Où les fichiers et les tâches sont gardés, et si les tâches en échec sont oubliées |
+| `storage.directory`, `jobs.directory`, `jobs.tighten_open_directory`, `jobs.remove_failed` | Où les fichiers et les tâches sont gardés, si un répertoire de tâches ouvert est resserré ou refusé, et si les tâches en échec sont oubliées |
 
 Voyez [Configuration](configuration.md). Un `CertificateSource` ou un `TimestampAuthority` propre à l'application,
 enregistré sous l'interface, remplace celui qui est configuré.
