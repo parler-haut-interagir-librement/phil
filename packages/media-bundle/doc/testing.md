@@ -23,6 +23,17 @@
 | The policy of user content | The headers of the original and of a format, what is shown inline under the default and a custom policy |
 | `getMany()` | The order asked, duplicates and unknown identifiers, one query per 500 |
 | How a medium was made | The AI disclosure from each kind of digital source type, retired types, schema.org |
+| `BinaryKeysListener` | The keys in `utf8mb4_bin` in the schema generated for MySQL and MariaDB, the default collation on SQLite, the options a field already has kept |
+
+The suite `tests/Integration` runs `BinaryKeysListener` on a real MySQL 8.4 and PostgreSQL 17: four collection keys that differ only by case or accent are four collections, each found by its own key only, and on
+MySQL the keys are in `utf8mb4_bin` and the tables of the previous version reach it through the schema diff. Each
+server's test reads its URL from `PHIL_TEST_MYSQL_URL` or `PHIL_TEST_POSTGRESQL_URL` and is skipped without it:
+
+```sh
+PHIL_TEST_MYSQL_URL='mysql://phil:phil@127.0.0.1:13306/phil_test?serverVersion=8.4' \
+PHIL_TEST_POSTGRESQL_URL='postgresql://phil:phil@127.0.0.1:15432/phil_test?serverVersion=17' \
+vendor/bin/phpunit packages/media-bundle/tests/Integration
+```
 
 A functional suite boots a kernel with FrameworkBundle, DoctrineBundle on SQLite, Twig and Twig components: an image is
 uploaded, its `media_url()`s are rendered by Twig and requested through the kernel, the `Img` and `Picture`

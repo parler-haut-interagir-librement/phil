@@ -4,6 +4,34 @@ All notable changes to `phil/forms-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the keys of the forms, entries and counts of places compare byte by byte on MySQL and
+MariaDB, and the tables can be created on MySQL. See [Upgrading from 0.1](doc/installation.md#upgrading-from-01).
+
+### Added
+
+- `Infrastructure\Doctrine\BinaryKeysListener`, on the ORM's `loadClassMetadata` event, and its `FIELDS`: the fields of
+  the bundle's entities that compare byte by byte on MySQL and MariaDB.
+
+### Changed
+
+- On MySQL and MariaDB, `id` and `form_key` of `phil_form`, `id`, `form`, `locale`, `subject` and `email_digest` of
+  `phil_form_entry`, and `form`, `field_name` and `choice` of `phil_form_choice_count` take the `utf8mb4` character set
+  and the `utf8mb4_bin` collation in the schema the ORM generates, through `Infrastructure\Doctrine\BinaryKeysListener`.
+  PostgreSQL and SQLite keep their default, which compares bytes already.
+- `phil_form.notifications` and `phil_form_entry.sealed_fields` have no default: the bundle writes both on every row.
+
+### Fixed
+
+- MySQL refused to create `phil_form` and `phil_form_entry`: their JSON columns carried the literal default `'[]'`.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, the form `Contact` was found for `contact`, the
+  entries of the person `Ann` were listed and erased for `ann`, and the places taken by the choice `Yes` were counted
+  for `yes`.
+
 ## 0.1.1-alpha - 2026-11-17
 
 The next version is 0.1.1-alpha.

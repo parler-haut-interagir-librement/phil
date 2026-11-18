@@ -17,6 +17,7 @@ use Phil\FormsBundle\Domain\Contract\FieldSealer;
 use Phil\FormsBundle\Domain\Logic\BasicConditions;
 use Phil\FormsBundle\Domain\Repository\FormRepository;
 use Phil\FormsBundle\Infrastructure\Console\PurgeEntriesCommand;
+use Phil\FormsBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\FormsBundle\Infrastructure\Doctrine\DoctrineFormRepository;
 use Phil\FormsBundle\Infrastructure\Form\EntryType;
 use Phil\FormsBundle\Infrastructure\Http\FormController;
@@ -70,6 +71,7 @@ final class FormsServices
         $container->setParameter(self::SEALING_KMS, $config['sealing']['kms']);
 
         $container->register(DoctrineFormRepository::class, DoctrineFormRepository::class)->setArguments([new Reference('doctrine.orm.entity_manager')]);
+        $container->register(BinaryKeysListener::class, BinaryKeysListener::class)->addTag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
         $container->setAlias(FormRepository::class, DoctrineFormRepository::class)->setPublic(true);
         $container->setAlias(ChoicePlaces::class, DoctrineFormRepository::class)->setPublic(true);
         $container->register(BasicConditions::class, BasicConditions::class);

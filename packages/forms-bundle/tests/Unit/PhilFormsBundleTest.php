@@ -19,6 +19,7 @@ use Phil\FormsBundle\Domain\Repository\FormRepository;
 use Phil\FormsBundle\Infrastructure\Console\PurgeEntriesCommand;
 use Phil\FormsBundle\Infrastructure\DependencyInjection\FieldSealerPass;
 use Phil\FormsBundle\Infrastructure\DependencyInjection\FormsServices;
+use Phil\FormsBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\FormsBundle\Infrastructure\Doctrine\DoctrineFormRepository;
 use Phil\FormsBundle\Infrastructure\Form\EntryType;
 use Phil\FormsBundle\Infrastructure\Http\FormController;
@@ -55,7 +56,8 @@ final class PhilFormsBundleTest extends TestCase
         $repository = new Reference(FormRepository::class);
 
         self::assertSame('phil_forms', $this->extension()->getAlias());
-        self::assertSame(['service_container', DoctrineFormRepository::class, BasicConditions::class, HmacEmailDigester::class, SealedValues::class, Submissions::class, Retention::class, EntryType::class, FormController::class, EmailNotifier::class, PhilFormsBundle::WEBHOOK_CLIENT, WebhookNotifier::class, FormEntriesPrivacy::class, PurgeEntriesCommand::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', DoctrineFormRepository::class, BinaryKeysListener::class, BasicConditions::class, HmacEmailDigester::class, SealedValues::class, Submissions::class, Retention::class, EntryType::class, FormController::class, EmailNotifier::class, PhilFormsBundle::WEBHOOK_CLIENT, WebhookNotifier::class, FormEntriesPrivacy::class, PurgeEntriesCommand::class], array_keys($container->getDefinitions()));
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertSame(['%kernel.secret%'], $container->getDefinition(HmacEmailDigester::class)->getArguments());
         $digester = new Reference(HmacEmailDigester::class);
         self::assertEquals([new Reference('doctrine.orm.entity_manager')], $container->getDefinition(DoctrineFormRepository::class)->getArguments());
