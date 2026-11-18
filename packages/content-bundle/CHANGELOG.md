@@ -4,6 +4,32 @@ All notable changes to `phil/content-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.0-alpha: the keys of the routes, single roots, working copies and rows compare byte by byte on
+MySQL and MariaDB. See [Upgrading from 0.2](doc/storage.md#upgrading-from-02).
+
+### Added
+
+- `Infrastructure\Doctrine\BinaryKeysListener`, on the ORM's `loadClassMetadata` event, its `FIELDS`, the fields of
+  the bundle's entities, and its `DIMENSION_FIELDS`, the fields of every subclass of `AbstractDimensionContent`, that
+  compare byte by byte on MySQL and MariaDB.
+
+### Changed
+
+- On MySQL and MariaDB, `resource_key`, `resource_id`, `slug` and `locale` of `phil_content_route`, `resource_key` and
+  `resource_id` of `phil_content_single_root`, `resource_key`, `resource_id`, `locale` and `author` of
+  `phil_content_working_copy`, and `locale`, `locale_key` and `stage` of the table of each row class take the `utf8mb4`
+  character set and the `utf8mb4_bin` collation in the schema the ORM generates, through
+  `Infrastructure\Doctrine\BinaryKeysListener`. PostgreSQL and SQLite keep their default, which compares bytes already.
+- `phil/scheduled-transitions-bundle` 0.2 is accepted beside 0.1.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, the routes of the content `news:Doc-A` were found
+  for `news:doc-a`, releasing the single root of one identifier freed the kind held under another case, and the
+  autosave of the author `Ann` was given to `ann`.
+
 ## 0.2.0-alpha - 2026-11-17
 
 The next version is 0.2.0-alpha: a new table, `phil_content_single_root`, to migrate, and preview links signed over

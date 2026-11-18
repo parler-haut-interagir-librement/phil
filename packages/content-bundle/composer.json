@@ -43,7 +43,7 @@
         "doctrine/doctrine-bundle": "^3.3",
         "easycorp/easyadmin-bundle": "^5.8",
         "phil/resource": "^0.1@dev",
-        "phil/scheduled-transitions-bundle": "^0.1@dev",
+        "phil/scheduled-transitions-bundle": "^0.1@dev || ^0.2@dev",
         "phil/search-bundle": "^0.1@dev",
         "phil/tenancy-bundle": "^0.1@dev",
         "phpunit/phpunit": "^13.4",
@@ -84,7 +84,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.2.x-dev"
+            "dev-main": "0.3.x-dev"
         }
     }
 }

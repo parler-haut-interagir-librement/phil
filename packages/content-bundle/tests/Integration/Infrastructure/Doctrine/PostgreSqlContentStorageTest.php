@@ -6,6 +6,7 @@ namespace Phil\ContentBundle\Tests\Integration\Infrastructure\Doctrine;
 
 use Doctrine\DBAL\Tools\DsnParser;
 use Override;
+use Phil\ContentBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\ContentBundle\Infrastructure\Doctrine\DimensionContentMappingListener;
 use Phil\ContentBundle\Infrastructure\Doctrine\DoctrineDimensionContentRepository;
 use Phil\ContentBundle\Infrastructure\Doctrine\Type\LocaleType;
@@ -21,6 +22,7 @@ use PHPUnit\Framework\Attributes\Group;
  *     PHIL_CONTENT_TEST_POSTGRESQL_URL='postgresql://user:password@127.0.0.1:5432/probe' vendor/bin/phpunit tests/Integration
  */
 #[CoversClass(DoctrineDimensionContentRepository::class)]
+#[CoversClass(BinaryKeysListener::class)]
 #[CoversClass(DimensionContentMappingListener::class)]
 #[CoversClass(LocaleType::class)]
 #[CoversClass(StageType::class)]

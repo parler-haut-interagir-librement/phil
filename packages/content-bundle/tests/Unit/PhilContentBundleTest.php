@@ -66,6 +66,7 @@ use Phil\ContentBundle\Infrastructure\Console\ListContentCommand;
 use Phil\ContentBundle\Infrastructure\Console\PreviewLinkCommand;
 use Phil\ContentBundle\Infrastructure\Console\PublishContentCommand;
 use Phil\ContentBundle\Infrastructure\Console\UnpublishContentCommand;
+use Phil\ContentBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\ContentBundle\Infrastructure\Doctrine\ConstructorContentRootFactory;
 use Phil\ContentBundle\Infrastructure\Doctrine\ContentRoots;
 use Phil\ContentBundle\Infrastructure\Doctrine\DimensionContentMappingListener;
@@ -301,6 +302,7 @@ final class PhilContentBundleTest extends TestCase
         self::assertFalse($container->hasDefinition(DoctrineDimensionContentRepository::class));
         self::assertFalse($container->hasAlias(DimensionContentRepository::class));
         self::assertFalse($container->hasDefinition(DimensionContentMappingListener::class));
+        self::assertFalse($container->hasDefinition(BinaryKeysListener::class));
         self::assertArrayNotHasKey(CapabilityMapping::class, $container->getAutoconfiguredInstanceof());
     }
 
@@ -383,6 +385,7 @@ final class PhilContentBundleTest extends TestCase
         $this->assertTaggedIterator('phil_content.capability_mapping', $listener->getArgument(1));
         self::assertSame([ContentRoots::class, 'fromClassNames'], $roots->getFactory());
         self::assertSame([[Article::class, Page::class]], $roots->getArguments());
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
     }
 
     public function testTheCapabilityMappingsAreTaggedTheBundlesAndTheApplications(): void

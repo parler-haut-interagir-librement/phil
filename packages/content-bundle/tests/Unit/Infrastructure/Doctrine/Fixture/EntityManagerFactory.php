@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\Mapping\Driver\AttributeDriver;
 use Doctrine\ORM\Mapping\NamingStrategy;
+use Phil\ContentBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\ContentBundle\Infrastructure\Doctrine\ContentRoots;
 use Phil\ContentBundle\Infrastructure\Doctrine\DimensionContentMappingListener;
 use Phil\ContentBundle\Infrastructure\Doctrine\Mapping\BodyCapabilityMapping;
@@ -26,10 +27,12 @@ use Phil\ContentBundle\Infrastructure\Doctrine\Type\LocaleType;
 use Phil\ContentBundle\Infrastructure\Doctrine\Type\RouteIdType;
 use Phil\ContentBundle\Infrastructure\Doctrine\Type\StageType;
 use Phil\ContentBundle\Infrastructure\Doctrine\Type\VersionType;
+use Phil\ContentBundle\Infrastructure\Doctrine\Type\WorkingCopyIdType;
 
 /**
  * An entity manager wired the way the bundle wires one under DoctrineBundle: its DBAL types, the attribute
- * mapping of its base classes and of the fixtures, and the mapping listener.
+ * mapping of its base classes, of its working copies and of the fixtures, the mapping listener and the listener of
+ * the binary keys.
  *
  * Reading metadata opens no connection, so the metadata tests use it with SQLite parameters and never query.
  *
@@ -55,6 +58,7 @@ final class EntityManagerFactory
             __DIR__,
             \dirname(__DIR__, 5).'/src/Domain/Content',
             \dirname(__DIR__, 5).'/src/Domain/Routing',
+            \dirname(__DIR__, 5).'/src/Domain/Draft',
         ]));
         $config->enableNativeLazyObjects(true);
 
@@ -70,6 +74,7 @@ final class EntityManagerFactory
                 $capabilities ?? self::capabilityMappings(),
             ),
         );
+        $entityManager->getEventManager()->addEventListener(Events::loadClassMetadata, new BinaryKeysListener());
 
         return $entityManager;
     }
@@ -99,6 +104,7 @@ final class EntityManagerFactory
             RouteIdType::NAME => RouteIdType::class,
             StageType::NAME => StageType::class,
             VersionType::NAME => VersionType::class,
+            WorkingCopyIdType::NAME => WorkingCopyIdType::class,
         ];
 
         foreach ($types as $name => $class) {

@@ -59,6 +59,7 @@ use Phil\ContentBundle\Infrastructure\Console\ListContentCommand;
 use Phil\ContentBundle\Infrastructure\Console\PreviewLinkCommand;
 use Phil\ContentBundle\Infrastructure\Console\PublishContentCommand;
 use Phil\ContentBundle\Infrastructure\Console\UnpublishContentCommand;
+use Phil\ContentBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\ContentBundle\Infrastructure\Doctrine\ConstructorContentRootFactory;
 use Phil\ContentBundle\Infrastructure\Doctrine\ContentRoots;
 use Phil\ContentBundle\Infrastructure\Doctrine\DimensionContentMappingListener;
@@ -448,6 +449,7 @@ final class PhilContentBundle extends AbstractBundle
         $services->set(DimensionContentMappingListener::class)
             ->args([service(ContentRoots::class), tagged_iterator(self::CAPABILITY_MAPPING_TAG)])
             ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
+        $services->set(BinaryKeysListener::class)->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
         $this->loadDoctrinePersistence($config, $container);
 
