@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phil\CommentsBundle\Tests\Integration;
 
-use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
@@ -74,10 +73,8 @@ abstract class ServerBinaryKeysTestCase extends TestCase
         $config = ORMSetup::createAttributeMetadataConfig([\dirname(__DIR__, 3).'/src/Domain/Model'], true);
         $config->enableNativeLazyObjects(true);
 
-        $events = new EventManager();
-        $events->addEventListener(Events::loadClassMetadata, new BinaryKeysListener());
-
-        $entityManager = new EntityManager($connection, $config, $events);
+        $entityManager = new EntityManager($connection, $config);
+        $entityManager->getEventManager()->addEventListener(Events::loadClassMetadata, new BinaryKeysListener());
         $schema = new SchemaTool($entityManager)->getSchemaFromMetadata(array_map($entityManager->getClassMetadata(...), array_keys(BinaryKeysListener::FIELDS)));
         $manager = $connection->createSchemaManager();
 

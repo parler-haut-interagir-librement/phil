@@ -24,6 +24,7 @@
     "require": {
         "php": ">=8.5",
         "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
         "doctrine/orm": "^3.7",
         "phil/resource": "^0.1@dev",
         "phil/ujo": "^0.1@dev",
@@ -37,7 +38,6 @@
         "symfony/uid": "^8.2"
     },
     "require-dev": {
-        "doctrine/dbal": "^4.5",
         "doctrine/doctrine-bundle": "^3.3",
         "phil/ux-kit": ">=0.1.0-alpha <1.0",
         "phpunit/phpunit": "^13.4",
