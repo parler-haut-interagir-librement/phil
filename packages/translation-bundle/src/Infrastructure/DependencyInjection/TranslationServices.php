@@ -10,6 +10,7 @@ use Phil\TranslationBundle\Application\Translations;
 use Phil\TranslationBundle\Domain\Repository\Contract\CommentRepository;
 use Phil\TranslationBundle\Domain\Repository\SegmentRepository;
 use Phil\TranslationBundle\Domain\Repository\TermRepository;
+use Phil\TranslationBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\TranslationBundle\Infrastructure\Doctrine\DoctrineCommentRepository;
 use Phil\TranslationBundle\Infrastructure\Doctrine\DoctrineMemoryStore;
 use Phil\TranslationBundle\Infrastructure\Doctrine\DoctrineSegmentRepository;
@@ -62,6 +63,7 @@ final class TranslationServices
             $container->register(DoctrineTermRepository::class, DoctrineTermRepository::class)->setArguments([$entityManager]);
             $container->register(DoctrineMemoryStore::class, DoctrineMemoryStore::class)->setArguments([$entityManager, new Reference('clock')]);
             $container->register(DoctrineCommentRepository::class, DoctrineCommentRepository::class)->setArguments([$entityManager]);
+            $container->register(BinaryKeysListener::class, BinaryKeysListener::class)->addTag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
             $container->setAlias(CommentRepository::class, DoctrineCommentRepository::class)->setPublic(true);
             $container->setAlias(SegmentRepository::class, DoctrineSegmentRepository::class)->setPublic(true);
             $container->setAlias(TermRepository::class, DoctrineTermRepository::class)->setPublic(true);

@@ -4,6 +4,30 @@ All notable changes to `phil/translation-bundle` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the keys of the segments, memory, terms and comments compare byte by byte on MySQL and
+MariaDB. See [Upgrading from 0.1](doc/storage.md#upgrading-from-01).
+
+### Added
+
+- `Infrastructure\Doctrine\BinaryKeysListener`, on the ORM's `loadClassMetadata` event, and its `FIELDS`: the fields of
+  the bundle's entities that compare byte by byte on MySQL and MariaDB.
+
+### Changed
+
+- On MySQL and MariaDB, the keys of `phil_translation_segment`, `phil_translation_memory`, `phil_translation_term` and
+  `phil_translation_comment` — documents, languages, segment keys, fingerprints, terms and the identifiers of the
+  translators, reviewers and authors — take the `utf8mb4` character set and the `utf8mb4_bin` collation in the schema
+  the ORM generates, through `Infrastructure\Doctrine\BinaryKeysListener`. PostgreSQL and SQLite keep their default,
+  which compares bytes already.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, the segment `Title` of a document was the segment
+  `title`, the glossary could not hold `Apple` and `apple` as two terms, saving one replaced the other, and the work
+  of the translator `Ann` was listed for `ann`.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

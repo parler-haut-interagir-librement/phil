@@ -27,6 +27,7 @@
 | `Phil\TranslationBundle\Infrastructure\Doctrine\DoctrineSegmentRepository` | `final readonly class` | The segments in Doctrine |
 | `Phil\TranslationBundle\Infrastructure\Doctrine\DoctrineTermRepository` | `final readonly class` | The terms in Doctrine |
 | `Phil\TranslationBundle\Infrastructure\Doctrine\DoctrineMemoryStore` | `final readonly class` | The memory in Doctrine |
+| `Phil\TranslationBundle\Infrastructure\Doctrine\BinaryKeysListener` | `final readonly class` | The keys of the tables in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata` ([storage.md](storage.md#collation-of-the-keys)) |
 | `Phil\TranslationBundle\Infrastructure\Doctrine\DoctrineCommentRepository` | `final readonly class` | The comments in Doctrine |
 | `Phil\TranslationBundle\Infrastructure\Memory\InMemoryCommentRepository` | `final class` | The comments in an array |
 | `Phil\TranslationBundle\Infrastructure\Memory\InMemorySegmentRepository` | `final class` | The segments in an array |

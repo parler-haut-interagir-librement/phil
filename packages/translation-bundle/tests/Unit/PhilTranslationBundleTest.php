@@ -12,6 +12,7 @@ use Phil\TranslationBundle\Domain\Repository\Contract\CommentRepository;
 use Phil\TranslationBundle\Domain\Repository\SegmentRepository;
 use Phil\TranslationBundle\Domain\Repository\TermRepository;
 use Phil\TranslationBundle\Infrastructure\DependencyInjection\TranslationServices;
+use Phil\TranslationBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\TranslationBundle\Infrastructure\Doctrine\DoctrineCommentRepository;
 use Phil\TranslationBundle\Infrastructure\Doctrine\DoctrineMemoryStore;
 use Phil\TranslationBundle\Infrastructure\Doctrine\DoctrineSegmentRepository;
@@ -50,7 +51,8 @@ final class PhilTranslationBundleTest extends TestCase
         $entityManager = new Reference('doctrine.orm.default_entity_manager');
 
         self::assertSame('phil_translation', $this->extension()->getAlias());
-        self::assertSame(['service_container', DoctrineSegmentRepository::class, DoctrineTermRepository::class, DoctrineMemoryStore::class, DoctrineCommentRepository::class, UjoSegmenter::class, Variants::class, RegularPlurals::class, TranslationMemory::class, Glossaries::class, Comments::class, Translations::class, SameOriginGuard::class, TranslationController::class, GlossaryController::class, CreditsExtension::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', DoctrineSegmentRepository::class, DoctrineTermRepository::class, DoctrineMemoryStore::class, DoctrineCommentRepository::class, BinaryKeysListener::class, UjoSegmenter::class, Variants::class, RegularPlurals::class, TranslationMemory::class, Glossaries::class, Comments::class, Translations::class, SameOriginGuard::class, TranslationController::class, GlossaryController::class, CreditsExtension::class], array_keys($container->getDefinitions()));
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertEquals([$entityManager], $container->getDefinition(DoctrineCommentRepository::class)->getArguments());
         self::assertEquals([$entityManager], $container->getDefinition(DoctrineSegmentRepository::class)->getArguments());
         self::assertEquals([$entityManager], $container->getDefinition(DoctrineTermRepository::class)->getArguments());
