@@ -138,7 +138,7 @@ final readonly class VersionEraser
      */
     public function tables(): array
     {
-        $tables = array_values(array_unique(array_map(static fn (array $store): string => $store['table'], $this->stores())));
+        $tables = array_unique(array_map(static fn (array $store): string => $store['table'], $this->stores()));
         sort($tables);
 
         return $tables;
@@ -322,7 +322,7 @@ final readonly class VersionEraser
 
             $root = $manager->getClassMetadata($metadata->rootEntityName);
             $table = $root->getTableName();
-            $personal[$table] = array_values(array_unique([...$personal[$table] ?? [], ...$fields]));
+            $personal[$table] = [...$personal[$table] ?? [], ...$fields];
 
             if ($root->isIdentifierComposite) {
                 continue;
@@ -340,8 +340,6 @@ final readonly class VersionEraser
                 $links[$table][$sql] = [$sql, 2];
             }
         }
-
-        ksort($personal);
 
         return ['personal' => $personal, 'links' => array_map(array_values(...), $links)];
     }

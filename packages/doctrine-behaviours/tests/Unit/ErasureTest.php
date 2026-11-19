@@ -6,18 +6,26 @@ namespace Phil\DoctrineBehaviours\Tests\Unit;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use Doctrine\ORM\Cache;
 use Doctrine\ORM\Decorator\EntityManagerDecorator;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
+use Doctrine\ORM\Events;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
+use JsonException;
 use LogicException;
 use Override;
 use Phil\DoctrineBehaviours\AllowVersionRestore;
 use Phil\DoctrineBehaviours\BlameEraser;
 use Phil\DoctrineBehaviours\BlameListener;
 use Phil\DoctrineBehaviours\BlameSuspension;
+use Phil\DoctrineBehaviours\Contract\Blameable;
+use Phil\DoctrineBehaviours\Contract\Ownable;
+use Phil\DoctrineBehaviours\Contract\PersonalFields;
 use Phil\DoctrineBehaviours\Contract\Versionable;
 use Phil\DoctrineBehaviours\Exception\InvalidVersionedState;
 use Phil\DoctrineBehaviours\Exception\VersionErased;
@@ -32,11 +40,19 @@ use Phil\DoctrineBehaviours\OwnerId;
 use Phil\DoctrineBehaviours\PersonalFieldPolicy;
 use Phil\DoctrineBehaviours\SoftDeletedFilter;
 use Phil\DoctrineBehaviours\SoftDeletes;
+use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\CountingMiddleware;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Database;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Article;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Bike;
+use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Contact;
+use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Document;
+use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Ledger;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Manual;
+use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Post;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Profile;
+use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Report;
+use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Skate;
+use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Tracked;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\MutableBlame;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Registry;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\ReversingCipher;
@@ -416,11 +432,12 @@ final class ErasureTest extends TestCase
         $owned->bio = 'Deux';
         $versions->freeze($owned);
         $this->blame->who = 'grace';
-        $this->manager->persist($blamedOnly = new Profile('blamed', 'Grace', 'grace@example.org', 'Autre'));
+        $blamedOnly = new Profile('blamed', 'Grace', 'grace@example.org', 'Autre');
+        $blamedOnly->claimOwner(new OwnerId('grace'));
+        $this->manager->persist($blamedOnly);
         $this->manager->flush();
 
-        $blamedOnly->blameUpdated('ada');
-        $this->manager->flush();
+        $this->manager->getConnection()->executeStatement("UPDATE profile SET updated_by = 'ada' WHERE id = 'blamed'");
         $versions->freeze($blamedOnly);
         $frozenByAda = new Profile('frozen', 'Eve', 'eve@example.org', 'Encore');
         $frozenByAda->claimOwner(new OwnerId('eve'));
@@ -568,6 +585,347 @@ final class ErasureTest extends TestCase
         self::assertSame(['phil_record_version'], $eraser->tables());
         self::assertSame(0, new VersionEraser($this->manager, new NoPersonalFields(), $this->clock)->find('ada'));
         self::assertSame(0, new VersionEraser($this->manager, new NoPersonalFields(), $this->clock)->stripPersonalFields());
+    }
+
+    // Orders, shapes and links the erasers keep
+
+    public function testASuspensionStaysWhileAnOuterOneRunsAndResetEndsEvery(): void
+    {
+        $suspension = new BlameSuspension();
+        $inside = $suspension->during(static function () use ($suspension): bool {
+            $suspension->during(static fn (): null => null);
+
+            return $suspension->isSuspended();
+        });
+        self::assertTrue($inside, 'the inner span ended, the outer one did not');
+        self::assertFalse($suspension->isSuspended());
+
+        $suspension->reset();
+        self::assertTrue($suspension->during(static fn (): bool => $suspension->isSuspended()), 'a span begun after a reset suspends');
+    }
+
+    public function testListedPersonalFieldsAreAListWhateverTheRepeats(): void
+    {
+        $fields = new ListedPersonalFields([Profile::class => ['email', 'name'], Versionable::class => ['email', 'bio']]);
+
+        self::assertSame(['email', 'name', 'bio'], $fields->of(Profile::class));
+    }
+
+    public function testTheManagersAreTheEntityManagersOfTheRegistryAsAList(): void
+    {
+        $sharing = new EntityManager($this->manager->getConnection(), $this->manager->getConfiguration());
+        $registry = new Registry(['plain' => self::createStub(ObjectManager::class), 'default' => $this->manager, 'sharing' => $sharing]);
+
+        self::assertSame([$this->manager, $sharing], Managers::all($registry));
+        self::assertSame([$this->manager], Managers::all($this->manager));
+    }
+
+    public function testTheTablesOfTwoManagersOnOneConnectionKeepTheClassesOfBoth(): void
+    {
+        $sharing = new EntityManager($this->manager->getConnection(), $this->manager->getConfiguration());
+        $other = Database::entityManager($this->clock, $this->blame);
+        $groups = Managers::tables(new Registry(['default' => $this->manager, 'sharing' => $sharing, 'other' => $other]), Blameable::class, ['createdBy', 'updatedBy']);
+
+        self::assertSame([0, 1], array_keys($groups), 'one group per connection, as a list');
+        self::assertSame([[$this->manager, Article::class], [$sharing, Article::class]], $groups[0]['tables']['article']['classes']);
+        self::assertSame([[$other, Article::class]], $groups[1]['tables']['article']['classes']);
+
+        $ofArticle = array_values(array_filter(Managers::classes($groups[0]), static fn (array $mapped): bool => Article::class === $mapped[1]));
+        self::assertSame([[$this->manager, Article::class], [$sharing, Article::class]], $ofArticle, 'every class of a table, not the first');
+    }
+
+    public function testTheTableNamesAreSortedAndEachOnce(): void
+    {
+        $connection = $this->manager->getConnection();
+        $first = ['connection' => $connection, 'managers' => [], 'tables' => ['b' => ['columns' => [], 'classes' => []], 'a' => ['columns' => [], 'classes' => []]]];
+        $second = ['connection' => $connection, 'managers' => [], 'tables' => ['a' => ['columns' => [], 'classes' => []], 'c' => ['columns' => [], 'classes' => []]]];
+
+        self::assertSame(['a', 'b', 'c'], Managers::tableNames([$first, $second]));
+    }
+
+    public function testTheFindsAreSortedByTableAcrossConnections(): void
+    {
+        $other = Database::entityManager($this->clock, $this->blame, false, new FixedOwner(new OwnerId('ada')));
+        $this->manager->persist(new Post('p'));
+        $this->manager->persist(new Skate('s'));
+        $this->manager->persist(new Profile('q', 'Q', 'q@example.org', 'Q'));
+        $this->manager->flush();
+        $other->persist(new Article('a', 'Titre'));
+        $other->persist(new Bike('k'));
+        $other->flush();
+        $registry = new Registry(['default' => $this->manager, 'other' => $other]);
+
+        self::assertSame(['article' => 1, 'post' => 1, 'profile' => 1], new BlameEraser($registry)->find('ada'));
+        self::assertSame(['bike' => 1, 'profile' => 1], new OwnerEraser($registry)->find(new OwnerId('ada')));
+    }
+
+    public function testTheMappedTablesAreSortedWhateverTheOrderOfTheClasses(): void
+    {
+        $tables = array_keys(MappedColumns::of($this->manager, Ownable::class, [Ownable::OWNER_FIELD]));
+        $sorted = $tables;
+        sort($sorted);
+
+        self::assertContains('zz_aircraft', $tables);
+        self::assertSame($sorted, $tables);
+    }
+
+    public function testTheVersionsOfEveryConnectionAreFoundAndRedacted(): void
+    {
+        $sharing = new EntityManager($this->manager->getConnection(), $this->manager->getConfiguration());
+        $other = Database::entityManager($this->clock, $this->blame, false, new FixedOwner(new OwnerId('ada')));
+        $keeping = $this->keepingVersions();
+        $keeping->freeze(new Profile('p1', 'Ada', 'ada@example.org', 'Un'));
+        $keeping->freeze(new Profile('p2', 'Ada', 'ada@example.org', 'Deux'));
+        new Versions($other, $this->clock, new AllowVersionRestore(), new ListedPersonalFields(self::PERSONAL), PersonalFieldPolicy::Keep)->freeze(new Profile('p3', 'Ada', 'ada@example.org', 'Trois'));
+
+        $eraser = new VersionEraser(new Registry(['default' => $this->manager, 'sharing' => $sharing, 'other' => $other]), new ListedPersonalFields(self::PERSONAL), $this->clock);
+
+        self::assertSame(3, $eraser->find('ada'), 'the shared connection once, then the other');
+        self::assertSame(3, $eraser->redact('ada'));
+        self::assertSame(0, $eraser->find('ada'));
+        self::assertSame('{"bio":"Trois"}', $other->getConnection()->fetchOne('SELECT state FROM phil_record_version'));
+    }
+
+    public function testTheTablesOfTheVersionsAreSortedEachOnceWhateverTheConnection(): void
+    {
+        $events = new EventManager();
+        $events->addEventListener([Events::loadClassMetadata], new class {
+            public function loadClassMetadata(LoadClassMetadataEventArgs $event): void
+            {
+                if (RecordVersion::class === $event->getClassMetadata()->getName()) {
+                    $event->getClassMetadata()->setPrimaryTable(['name' => 'aaa_phil_record_version']);
+                }
+            }
+        });
+        $prefixed = new EntityManager($this->manager->getConnection(), $this->manager->getConfiguration(), $events);
+        $other = Database::entityManager($this->clock, $this->blame);
+
+        $eraser = new VersionEraser(new Registry(['default' => $this->manager, 'prefixed' => $prefixed, 'other' => $other]), new ListedPersonalFields(self::PERSONAL), $this->clock);
+
+        self::assertSame(['aaa_phil_record_version', 'phil_record_version'], $eraser->tables(), 'one store per connection and table, in order');
+    }
+
+    public function testAStoreWithNothingPersonalIsNotReadAndTheNextOneStillRuns(): void
+    {
+        $queries = new CountingMiddleware();
+        $versionsOnly = Database::versionsOnly($queries);
+        $this->keepingVersions()->freeze(new Profile('p', 'Ada', 'ada@example.org', 'Bio'));
+        $eraser = new VersionEraser(new Registry(['versions' => $versionsOnly, 'default' => $this->manager]), new ListedPersonalFields(self::PERSONAL), $this->clock);
+
+        self::assertSame(1, $eraser->find('ada'));
+        self::assertSame([], $queries->selects(), 'a store with no personal field is not read');
+        self::assertSame(1, $eraser->stripPersonalFields());
+        self::assertSame([], $queries->selects());
+        self::assertSame(['bio' => 'Bio'], $this->rawState('p', 1));
+    }
+
+    public function testTheVersionsOfTheRecordsABlameNamesAreFoundByEitherColumn(): void
+    {
+        $versions = $this->keepingVersions();
+        $this->blame->who = 'ada';
+        $created = new Profile('created', 'A', 'a@example.org', 'Un');
+        $created->claimOwner(new OwnerId('x'));
+        $this->manager->persist($created);
+        $this->manager->flush();
+        $this->blame->who = 'grace';
+        $updated = new Profile('updated', 'B', 'b@example.org', 'Deux');
+        $updated->claimOwner(new OwnerId('x'));
+        $this->manager->persist($updated);
+        $this->manager->flush();
+        $this->manager->getConnection()->executeStatement("UPDATE profile SET updated_by = 'ada' WHERE id = 'updated'");
+        $untouched = new Profile('untouched', 'C', 'c@example.org', 'Trois');
+        $untouched->claimOwner(new OwnerId('x'));
+        $this->manager->persist($untouched);
+        $this->manager->flush();
+
+        foreach ([$created, $updated, $untouched] as $profile) {
+            $versions->freeze($profile);
+        }
+
+        self::assertSame(2, $this->eraser()->find('ada'));
+    }
+
+    public function testTheVersionsOfEveryLinkAreFoundTogether(): void
+    {
+        $versions = $this->keepingVersions();
+        $this->blame->who = 'ada';
+        $frozenByAda = new Profile('by-ada', 'A', 'a@example.org', 'Un');
+        $frozenByAda->claimOwner(new OwnerId('x'));
+        $this->manager->persist($frozenByAda);
+        $this->manager->flush();
+        $this->blame->who = 'grace';
+        $owned = new Profile('owned', 'B', 'b@example.org', 'Deux');
+        $blamed = new Profile('blamed', 'C', 'c@example.org', 'Trois');
+        $blamed->claimOwner(new OwnerId('x'));
+        $this->manager->persist($owned);
+        $this->manager->persist($blamed);
+        $this->manager->flush();
+        $this->manager->getConnection()->executeStatement("UPDATE profile SET created_by = 'grace', updated_by = 'grace' WHERE id = 'by-ada'");
+        $this->manager->getConnection()->executeStatement("UPDATE profile SET updated_by = 'ada' WHERE id = 'blamed'");
+        $this->blame->who = 'ada';
+        $versions->freeze($frozenByAda);
+        $this->blame->who = 'grace';
+        $versions->freeze($owned);
+        $versions->freeze($blamed);
+
+        self::assertSame(3, $this->eraser()->find('ada'), 'frozen by the person, owned by them, blamed to them');
+        self::assertSame(3, $this->eraser()->redact('ada'));
+    }
+
+    public function testNoLinkIsMadeToAnOwnerOrABlameTheMappingDoesNotHold(): void
+    {
+        $this->blame->who = 'grace';
+        $this->keepingVersions()->freeze(new Ledger('l', 'Note'));
+        $this->manager->getConnection()->insert('phil_record_version', ['subject_table' => 'article', 'subject_id' => 'a', 'version_number' => 1, 'state' => '{"title":"Titre"}', 'frozen_at' => '2026-11-19 13:00:00', 'created_by' => 'ada']);
+        $eraser = new VersionEraser($this->manager, new ListedPersonalFields([Versionable::class => ['note'], Blameable::class => ['title']]), $this->clock);
+
+        self::assertSame(0, $eraser->find('ada'), 'a class owned and blamed by hand has no field to follow, and a class that is not versionable has no versions');
+    }
+
+    public function testTheFieldsOfTheClassesOfOneTableAreMergedAndAMappedSuperclassHasNoTable(): void
+    {
+        $this->blame->who = 'ada';
+        $this->keepingVersions()->freeze(new Report('r'));
+        $personal = new class implements PersonalFields {
+            public function of(string $class): array
+            {
+                return match ($class) {
+                    Document::class => ['id'],
+                    Report::class => ['x'],
+                    Tracked::class => ['note'],
+                    default => [],
+                };
+            }
+        };
+        $eraser = new VersionEraser($this->manager, $personal, $this->clock);
+
+        self::assertSame(1, $eraser->find('ada'));
+        self::assertSame(1, $eraser->redact('ada'));
+        self::assertSame([], $this->rawState('r', 1), 'the fields of the parent and of the child are taken out');
+    }
+
+    public function testTheLinksFindTheVersionsOfRecordsWhoseIdentifierIsANumber(): void
+    {
+        $this->manager->persist($contact = new Contact('514'));
+        $this->manager->flush();
+        $this->blame->who = 'grace';
+        $this->keepingVersions()->freeze($contact);
+        $eraser = new VersionEraser($this->manager, new ListedPersonalFields([Contact::class => ['phone']]), $this->clock);
+
+        self::assertSame(1, $eraser->find('ada'), 'the owner of a numbered contact');
+        self::assertSame(1, $eraser->redact('ada'));
+        self::assertSame(0, $eraser->find('ada'));
+        self::assertSame('[]', $this->manager->getConnection()->fetchOne("SELECT state FROM phil_record_version WHERE subject_table = 'contact'"));
+    }
+
+    public function testRedactingTakesTheSealedFieldsAndStrippingKeepsThem(): void
+    {
+        $cipher = new ReversingCipher();
+        $sealing = new Versions($this->manager, $this->clock, new AllowVersionRestore(), new ListedPersonalFields(self::PERSONAL), PersonalFieldPolicy::Encrypt, $cipher);
+        $sealing->freeze(new Profile('s', 'Eve', 'eve@example.org', 'Scellé'));
+        $sealing->freeze(new Profile('t', 'Bob', 'bob@example.org', 'Scellé'));
+        $connection = $this->manager->getConnection();
+        $state = $this->rawState('s', 1);
+        $state['email'] = 'eve@example.org';
+        $connection->update('phil_record_version', ['state' => json_encode($state, \JSON_THROW_ON_ERROR)], ['subject_id' => 's']);
+        $name = $state['name'];
+
+        self::assertSame(1, $this->eraser()->stripPersonalFields());
+        self::assertSame(['name' => $name, 'bio' => 'Scellé'], $this->rawState('s', 1), 'the plain field goes, the sealed one stays');
+        self::assertSame(2, $this->eraser()->redact('ada'));
+        self::assertSame(['bio' => 'Scellé'], $this->rawState('s', 1), 'a redaction takes the sealed one too');
+        self::assertSame(['bio' => 'Scellé'], $this->rawState('t', 1));
+    }
+
+    public function testASingleRecordIsRedactedOfItsPersonalFieldsToo(): void
+    {
+        $versions = $this->keepingVersions();
+        $profile = new Profile('p', 'Ada', 'ada@example.org', 'Bio');
+        $versions->freeze($profile);
+
+        self::assertSame(1, $this->eraser()->redactRecord($profile));
+        self::assertSame(['bio' => 'Bio'], $this->rawState('p', 1));
+    }
+
+    // Versions: sealing and opening
+
+    public function testACipherSealsOnlyWhenTheSealingPolicyAsksForIt(): void
+    {
+        $excluding = new Versions($this->manager, $this->clock, new AllowVersionRestore(), new ListedPersonalFields(self::PERSONAL), PersonalFieldPolicy::Exclude, new ReversingCipher());
+        $excluding->freeze(new Profile('p', 'Ada', 'ada@example.org', 'Bio'));
+
+        self::assertSame(['bio' => 'Bio'], $this->rawState('p', 1));
+    }
+
+    public function testASealedValueKeepsItsDecimalPointAndOpensWhateverFollowsAPlainField(): void
+    {
+        $cipher = new ReversingCipher();
+        $versions = new Versions($this->manager, $this->clock, new AllowVersionRestore(), new ListedPersonalFields([Ledger::class => ['score']]), PersonalFieldPolicy::Encrypt, $cipher);
+        $ledger = new Ledger('l', 'Note', 1.0);
+        $versions->freeze($ledger);
+
+        self::assertSame(['note' => 'Note', 'score' => [Versions::SEALED => $cipher->seal('1.0', 'phil_record_version|ledger|l|1|score')], 'data' => null], $this->rawState('l', 1));
+
+        $profiles = new Versions($this->manager, $this->clock, new AllowVersionRestore(), new ListedPersonalFields(self::PERSONAL), PersonalFieldPolicy::Encrypt, $cipher);
+        $profile = new Profile('p', 'Ada', 'ada@example.org', 'Bio');
+        $profiles->freeze($profile);
+        $state = $this->rawState('p', 1);
+        $state['name'] = 'Ada';
+        $this->manager->getConnection()->update('phil_record_version', ['state' => json_encode($state, \JSON_THROW_ON_ERROR)], ['subject_id' => 'p']);
+        $this->manager->clear();
+        $profile = $this->manager->find(Profile::class, 'p');
+        self::assertInstanceOf(Profile::class, $profile);
+        $profile->email = 'changed@example.org';
+        $profiles->restore($profile, 1);
+
+        self::assertSame('ada@example.org', $profile->email, 'the sealed field after a plain one is opened');
+        self::assertSame('Ada', $profile->name);
+    }
+
+    public function testTheStateOfTheRecordIsReadOnceWhateverTheFieldsAVersionLeftOut(): void
+    {
+        $reads = [];
+
+        foreach ([['name'], ['name', 'email']] as $fields) {
+            $versions = new Versions($this->manager, $this->clock, new AllowVersionRestore(), new ListedPersonalFields([Profile::class => $fields]), PersonalFieldPolicy::Exclude);
+            $profile = new Profile('p'.\count($fields), 'Ada', 'ada@example.org', 'Bio');
+            $versions->freeze($profile);
+            $profile->bio = 'Deux';
+            $profile->reads = 0;
+            $versions->restore($profile, 1);
+            $reads[] = $profile->reads;
+            self::assertSame('Ada', $profile->name);
+        }
+
+        self::assertSame($reads[0], $reads[1], 'a second field left out reads nothing more');
+    }
+
+    public function testASealedValueOpensToTheDepthOfJsonDecodeAndNoFurther(): void
+    {
+        $cipher = new ReversingCipher();
+        $versions = new Versions($this->manager, $this->clock, new AllowVersionRestore(), new ListedPersonalFields([Ledger::class => ['data']]), PersonalFieldPolicy::Encrypt, $cipher);
+        $ledger = new Ledger('l', 'Note');
+        $versions->freeze($ledger);
+        $context = 'phil_record_version|ledger|l|1|data';
+
+        foreach ([[511, true], [512, false]] as [$depth, $opens]) {
+            $json = str_repeat('[', $depth).str_repeat(']', $depth);
+            $this->manager->getConnection()->update('phil_record_version', ['state' => json_encode(['note' => 'Note', 'score' => 0.0, 'data' => [Versions::SEALED => $cipher->seal($json, $context)]], \JSON_THROW_ON_ERROR | \JSON_PRESERVE_ZERO_FRACTION)], ['subject_id' => 'l']);
+
+            $this->manager->clear();
+            $ledger = $this->manager->find(Ledger::class, 'l');
+            self::assertInstanceOf(Ledger::class, $ledger);
+
+            if ($opens) {
+                $versions->restore($ledger, 1);
+                self::assertIsArray($ledger->data);
+
+                continue;
+            }
+
+            $this->expectException(JsonException::class);
+            $versions->restore($ledger, 1);
+        }
     }
 
     private function eraser(): VersionEraser

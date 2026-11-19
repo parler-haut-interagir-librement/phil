@@ -94,7 +94,7 @@ final class Managers
             }
         }
 
-        $tables = array_values(array_unique($tables));
+        $tables = array_unique($tables);
         sort($tables);
 
         return $tables;

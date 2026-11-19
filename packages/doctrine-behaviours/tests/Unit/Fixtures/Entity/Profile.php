@@ -24,6 +24,11 @@ class Profile implements Versionable, Ownable, Blameable
     use OwnableEntity;
     use VersionableEntity;
 
+    /**
+     * How many times the state was asked for.
+     */
+    public int $reads = 0;
+
     public function __construct(
         #[ORM\Id]
         #[ORM\Column(length: 36)]
@@ -47,6 +52,8 @@ class Profile implements Versionable, Ownable, Blameable
      */
     public function versionedState(): array
     {
+        ++$this->reads;
+
         return ['name' => $this->name, 'email' => $this->email, 'bio' => $this->bio];
     }
 

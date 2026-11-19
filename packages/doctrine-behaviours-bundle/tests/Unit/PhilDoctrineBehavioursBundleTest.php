@@ -457,6 +457,7 @@ final class PhilDoctrineBehavioursBundleTest extends TestCase
         $container = $this->load(['versions' => true]);
         $container->register('app.eraser', '%app.eraser.class%')->addTag(BehaviourServices::ERASER_TAG);
         $container->setParameter('app.eraser.class', SuspendBlame::class);
+        $container->register('app.exporter', SuspendBlameWithExport::class)->addTag(BehaviourServices::ERASER_TAG);
         new SuspendBlameDuringErasurePass()->process($container);
 
         self::assertSame(SuspendBlameWithExport::class, $container->getDefinition(BlamePrivacy::class.SuspendBlameDuringErasurePass::SUFFIX)->getClass());
@@ -464,6 +465,7 @@ final class PhilDoctrineBehavioursBundleTest extends TestCase
         self::assertEquals([new Reference(BlamePrivacy::class.'.phil_suspend_blame.inner'), new Reference(BlameSuspension::class)], $container->getDefinition(BlamePrivacy::class.SuspendBlameDuringErasurePass::SUFFIX)->getArguments());
         self::assertSame(SuspendBlameWithExport::class, $container->getDefinition(VersionsPrivacy::class.SuspendBlameDuringErasurePass::SUFFIX)->getClass());
         self::assertSame(SuspendBlame::class, $container->getDefinition('app.eraser'.SuspendBlameDuringErasurePass::SUFFIX)->getClass(), 'an eraser that does not export, its class a parameter');
+        self::assertSame(SuspendBlameWithExport::class, $container->getDefinition('app.exporter'.SuspendBlameDuringErasurePass::SUFFIX)->getClass(), 'an eraser that exports, by the class of its definition and not by its name');
 
         $off = $this->load(['blame' => ['suspend_during_erasure' => false]]);
         new SuspendBlameDuringErasurePass()->process($off);

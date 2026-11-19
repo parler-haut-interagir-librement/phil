@@ -45,6 +45,25 @@ final class Database
     }
 
     /**
+     * An entity manager that maps the versions and nothing else: no record has a personal field in it.
+     */
+    public static function versionsOnly(?Middleware $middleware = null): EntityManager
+    {
+        $config = new Configuration();
+        $config->setMetadataDriverImpl(new AttributeDriver([\dirname(__DIR__, 3).'/src/Version']));
+        $config->enableNativeLazyObjects(true);
+
+        if ($middleware instanceof Middleware) {
+            $config->setMiddlewares([$middleware]);
+        }
+
+        $manager = new EntityManager(DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $config), $config);
+        new SchemaTool($manager)->createSchema($manager->getMetadataFactory()->getAllMetadata());
+
+        return $manager;
+    }
+
+    /**
      * @param array<string, mixed> $parameters what `DriverManager` takes
      */
     public static function onConnection(ClockInterface $clock, BlameResolver $blame, ?OwnerResolver $owner, array $parameters, ?Middleware $middleware = null): EntityManager
