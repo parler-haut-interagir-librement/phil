@@ -18,8 +18,11 @@ has a file (1,024), a line, a function (255) and whether it is the application's
 before it is cut.
 
 A `RequestSummary` has the method, the address (2,048), the route, at most 50 headers by lower-case name (1,024 each)
-and the client's address as an anonymizer left it. It never holds the body. `RequestSummary::anonymized()` takes the
-raw address and an `IpAnonymizer` of `phil/ip-anonymizer`, and keeps only what the strategy returns:
+and the client's address as an anonymizer left it. It never holds the body, nor the headers of
+`RequestSummary::CLIENT_ADDRESS_HEADERS` — `Forwarded`, `X-Forwarded-For`, `X-Real-IP`, `CF-Connecting-IP`,
+`True-Client-IP`, `X-Client-IP` and the others through which proxies pass on the raw address.
+`RequestSummary::anonymized()` takes the raw address and an `IpAnonymizer` of `phil/ip-anonymizer`, and keeps only what
+the strategy returns:
 
 ```php
 use Phil\ErrorTracking\RequestSummary;

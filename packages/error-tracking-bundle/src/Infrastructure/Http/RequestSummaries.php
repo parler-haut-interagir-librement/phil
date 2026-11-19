@@ -10,7 +10,8 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * The summary of a Symfony request: its method, its address, its route, its headers each joined on one line, and the
- * client's address through the anonymizer. The body is never read.
+ * client's address through the anonymizer. The body is never read; the headers that carry the client's raw address
+ * through proxies, `X-Forwarded-For`, `Forwarded`, `X-Real-IP` and the others, are dropped by the summary.
  */
 final readonly class RequestSummaries
 {

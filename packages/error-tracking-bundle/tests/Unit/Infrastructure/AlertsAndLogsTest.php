@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Phil\ErrorTrackingBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
+use LogicException;
 use Monolog\Level;
 use Monolog\LogRecord;
+use Phil\ErrorTracking\ErrorEvent;
 use Phil\ErrorTracking\ErrorGroup;
+use Phil\ErrorTracking\EventFactory;
 use Phil\ErrorTracking\GroupStatus;
 use Phil\ErrorTracking\Occurrence;
 use Phil\ErrorTracking\Severity;
@@ -17,6 +20,7 @@ use Phil\ErrorTrackingBundle\Infrastructure\Notifier\ChatterAlerter;
 use Phil\ErrorTrackingBundle\Tests\Unit\Fixture\RecordingChatter;
 use Phil\ErrorTrackingBundle\Tests\Unit\Fixture\Tracking;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -93,6 +97,95 @@ final class AlertsAndLogsTest extends TestCase
         if ($severity instanceof Severity) {
             self::assertSame($severity, $tracking->store->onlyEvent()->severity);
         }
+    }
+
+    public function testAnExceptionARedactingProcessorTurnedIntoAnArrayKeepsItsClassAndPlace(): void
+    {
+        $tracking = new Tracking();
+        $handler = new ErrorTrackingHandler($tracking->capture, $tracking->factory);
+        $exception = [
+            'class' => RuntimeException::class,
+            'message' => 'Export of /reset?[redacted] failed',
+            'code' => 0,
+            'file' => '/srv/project-under-test/src/Export.php',
+            'line' => 12,
+            'previous' => ['class' => LogicException::class, 'message' => 'Inner', 'code' => 0, 'file' => '/srv/project-under-test/vendor/lib/Client.php', 'line' => 40, 'previous' => null],
+        ];
+        $handler->handle($this->record(Level::Critical, 'Uncaught', ['exception' => $exception]));
+
+        $event = $tracking->store->onlyEvent();
+        self::assertSame('RuntimeException: Export of /reset?[redacted] failed', $event->title());
+        self::assertSame(Severity::Fatal, $event->severity);
+        self::assertSame(Source::Log, $event->source);
+        self::assertSame(['channel' => 'app'], $event->context);
+        self::assertCount(2, $event->exceptions);
+        self::assertSame([LogicException::class, 'Inner'], [$event->exceptions[1]->type, $event->exceptions[1]->message]);
+        self::assertSame('src/Export.php:12', $event->exceptions[0]->frames[0]->label());
+        self::assertTrue($event->exceptions[0]->frames[0]->inApp);
+        self::assertSame('vendor/lib/Client.php:40', $event->exceptions[1]->frames[0]->label());
+        self::assertSame('src/Export.php:12', $event->culprit()?->label());
+
+        $handler->handle($this->record(Level::Error, 'Elsewhere', ['exception' => ['line' => 13] + $exception]));
+        $handler->handle($this->record(Level::Error, 'Other file', ['exception' => ['file' => '/srv/project-under-test/src/Import.php'] + $exception]));
+        self::assertCount(2, $tracking->store->groups);
+        self::assertSame([2, 1], array_map(\count(...), array_values($tracking->store->events)));
+    }
+
+    /**
+     * @return iterable<string, array{mixed}>
+     */
+    public static function notDescriptions(): iterable
+    {
+        $exception = ['class' => RuntimeException::class, 'message' => 'm', 'file' => '/srv/a.php', 'line' => 1];
+
+        yield 'without class' => [array_diff_key($exception, ['class' => true])];
+        yield 'a class of another type' => [['class' => 1] + $exception];
+        yield 'without file' => [array_diff_key($exception, ['file' => true])];
+        yield 'a file of another type' => [['file' => 1] + $exception];
+        yield 'without line' => [array_diff_key($exception, ['line' => true])];
+        yield 'a line of another type' => [['line' => '1'] + $exception];
+    }
+
+    #[DataProvider('notDescriptions')]
+    public function testAnArrayThatDescribesNoExceptionLeavesTheMessage(mixed $exception): void
+    {
+        $tracking = new Tracking();
+        new ErrorTrackingHandler($tracking->capture, $tracking->factory)->handle($this->record(Level::Error, 'Order {id} failed', ['exception' => $exception]));
+
+        self::assertSame('Log record: Order {id} failed', $tracking->store->onlyEvent()->title());
+    }
+
+    public function testTheChainOfAnArrayIsReadAsFarAsItDescribesExceptionsAndBounded(): void
+    {
+        $tracking = new Tracking();
+        $handler = new ErrorTrackingHandler($tracking->capture, $tracking->factory);
+        $handler->handle($this->record(Level::Error, 'm', ['exception' => ['class' => 'A', 'message' => ['not text'], 'file' => '/a.php', 'line' => 1, 'previous' => ['class' => 'B', 'line' => 2]]]));
+
+        $event = $tracking->store->onlyEvent();
+        self::assertCount(1, $event->exceptions);
+        self::assertSame('A', $event->title());
+        self::assertSame('/a.php:1', $event->exceptions[0]->frames[0]->label());
+
+        $deep = null;
+
+        for ($index = 0; $index < 15; ++$index) {
+            $deep = ['class' => 'E'.$index, 'file' => '/b.php', 'line' => $index, 'previous' => $deep];
+        }
+
+        $handler->handle($this->record(Level::Error, 'm', ['exception' => $deep]));
+        $events = array_merge(...array_values($tracking->store->events));
+        $chain = array_last($events);
+        self::assertInstanceOf(ErrorEvent::class, $chain);
+        self::assertCount(EventFactory::DEFAULT_MAX_CHAIN, $chain->exceptions);
+        self::assertSame(['E14', 'E5'], [$chain->exceptions[0]->type, $chain->exceptions[9]->type]);
+    }
+
+    public function testAnArrayOfAnIgnoredClassIsLeftOut(): void
+    {
+        $tracking = new Tracking([LogicException::class]);
+        new ErrorTrackingHandler($tracking->capture, $tracking->factory)->handle($this->record(Level::Error, 'm', ['exception' => ['class' => LogicException::class, 'file' => '/a.php', 'line' => 1]]));
+
+        self::assertSame([], $tracking->store->events);
     }
 
     public function testTheDefaultLevelIsError(): void

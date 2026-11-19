@@ -4,15 +4,17 @@
 
 The suite `tests/Unit` tests the guard — once per throwable, ignored classes, a failed capture logged once and never
 looping —; the parser of the browsers' reports on both stack formats, its bounds and what it refuses; the receiver and
-each of its checks; the summary of a request and the listener of requests; the listeners of workers and commands, the
-queued alert and its handler; the chat message; the Monolog handler and its levels; the DBAL store on SQLite, with the
+each of its checks; the summary of a request, behind a proxy too, and the listener of requests; the listeners of workers and commands, the
+queued alert and its handler; the chat message; the Monolog handler, its levels and the array a redacting processor
+leaves in place of an exception; the DBAL store on SQLite, with the
 race of two first events, the cap and the purge; the administration pages rendered with their real templates; the
 throttle; the health check, the notified alert and its subject, the named limiter; the guard of the rate limits and the
 pass of the alerts; and every definition the configuration wires.
 
 The suite `tests/Functional` boots a kernel with FrameworkBundle and DoctrineBundle on SQLite and serves requests as a
-worker would: a failing page grouped, scrubbed and notified, a 404 left out, a browser's report kept, the purge command,
-the health check and the named limiter.
+worker would: a failing page grouped, scrubbed and notified, the token of its path and the addresses of the proxies
+never kept, a 404 left out, a browser's report kept, the records of the log redaction of `phil/privacy-bundle` grouped
+by their exception, the purge command, the health check and the named limiter.
 
 The tests of the Stimulus controller and its helpers, in `tests/js`, run under Node's own test runner, Stimulus
 resolved to a stub by `register.mjs`. `tests/Functional/JavaScriptTest.php` runs them with the other suites, so that

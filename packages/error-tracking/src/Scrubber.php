@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace Phil\ErrorTracking;
 
+use Phil\ErrorTracking\Exception\InvalidOption;
+
 /**
  * Removes personal data and secrets from an event before it is written anywhere:
  *
  * - a header or a tag whose name looks sensitive — `Authorization`, `Cookie`, `X-Api-Key`, `password`, `token`… — keeps
  *   its name and loses its value;
  * - every value of the query of the request's address is filtered, whatever its name: a query carries search terms,
- *   reset links and invitations;
+ *   reset links and invitations; the `Referer` and `Origin` headers are addresses and are filtered the same way;
+ * - the path segment that follows a declared token path prefix — `/reset-password/reset/` for
+ *   `/reset-password/reset/{token}` — is filtered in the request's address, in `Referer` and in `Origin`: a token in the
+ *   path survives the filtering of the query, so the routes that carry one are declared rather than guessed;
  * - in every text — messages, other headers, other tags, the path of the address — e-mail addresses, credentials of an
  *   address, `Bearer` and `Basic` tokens and `name=value` pairs with a sensitive name are filtered.
  *
@@ -32,13 +37,29 @@ final readonly class Scrubber
         'xsrf', 'private-key', 'private_key', 'signature', 'card', 'cvv', 'iban', 'ssn',
     ];
 
+    /**
+     * The headers, by lower-case name, that hold an address.
+     */
+    public const array ADDRESS_HEADERS = ['referer', 'origin'];
+
     private string $pattern;
 
     /**
-     * @param list<string> $fields parts of a name that make it sensitive, beside the defaults
+     * @param list<string> $fields            parts of a name that make it sensitive, beside the defaults
+     * @param list<string> $tokenPathPrefixes path prefixes such as `/reset-password/reset/`, each followed by a token
+     *
+     * @throws InvalidOption when a prefix is not one or more path segments between slashes
      */
-    public function __construct(array $fields = [])
-    {
+    public function __construct(
+        array $fields = [],
+        private array $tokenPathPrefixes = [],
+    ) {
+        foreach ($tokenPathPrefixes as $prefix) {
+            if (1 !== preg_match('~^/(?:[^/\s?#]+/)+$~D', $prefix)) {
+                throw InvalidOption::because(\sprintf('"%s" is not a token path prefix: expected one or more path segments between slashes, such as "/reset-password/reset/".', $prefix));
+            }
+        }
+
         $this->pattern = '/'.implode('|', array_map(static fn (string $field): string => preg_quote($field, '/'), [...self::DEFAULT_FIELDS, ...$fields])).'/i';
     }
 
@@ -54,7 +75,11 @@ final readonly class Scrubber
         }
 
         foreach ($request->headers ?? [] as $name => $value) {
-            $headers[$name] = $this->isSensitive($name) ? self::FILTERED : $this->text($value);
+            $headers[$name] = match (true) {
+                $this->isSensitive($name) => self::FILTERED,
+                \in_array($name, self::ADDRESS_HEADERS, true) => $this->url($value),
+                default => $this->text($value),
+            };
         }
 
         return $event->with($exceptions, $request instanceof RequestSummary ? new RequestSummary($request->method, $this->url($request->url), $request->route, $headers, $request->clientAddress) : null, $context);
@@ -84,7 +109,8 @@ final readonly class Scrubber
     }
 
     /**
-     * An address with every value of its query filtered and its fragment dropped.
+     * An address with every value of its query filtered, the segment after each declared token path prefix filtered and
+     * its fragment dropped.
      */
     public function url(string $url): string
     {
@@ -92,7 +118,7 @@ final readonly class Scrubber
         $mark = strpos($address, '?');
 
         if (false === $mark) {
-            return $this->text($address);
+            return $this->text($this->path($address));
         }
 
         $names = [];
@@ -105,6 +131,26 @@ final readonly class Scrubber
             }
         }
 
-        return $this->text(substr($address, 0, $mark).'?'.implode('&', $names));
+        return $this->text($this->path(substr($address, 0, $mark)).'?'.implode('&', $names));
+    }
+
+    /**
+     * An address without its query, the segment after each declared prefix its path starts with filtered. A prefix
+     * matches where the path starts only, after the scheme and the host: `/shop/p/x` is not under `/p/`. Where one
+     * declared prefix starts another (`/p/` and `/p/x/`), the segment after each is filtered.
+     */
+    private function path(string $address): string
+    {
+        $start = 1 === preg_match('~^[a-z][a-z0-9+.-]*://[^/]*~i', $address, $origin) ? \strlen($origin[0]) : 0;
+        $path = substr($address, $start);
+        $segments = explode('/', $path);
+
+        foreach ($this->tokenPathPrefixes as $prefix) {
+            if (0 === strncasecmp($path, $prefix, \strlen($prefix))) {
+                $segments[substr_count($prefix, '/')] = self::FILTERED;
+            }
+        }
+
+        return substr($address, 0, $start).implode('/', $segments);
     }
 }

@@ -10,6 +10,7 @@ use LogicException;
 use Phil\ErrorTracking\Contract\ErrorStore;
 use Phil\ErrorTracking\ErrorTracker;
 use Phil\ErrorTracking\EventFactory;
+use Phil\ErrorTracking\Exception\InvalidOption;
 use Phil\ErrorTracking\Fingerprinter;
 use Phil\ErrorTracking\Sampler;
 use Phil\ErrorTracking\Scrubber;
@@ -82,7 +83,7 @@ final class PhilErrorTrackingBundleTest extends TestCase
         self::assertSame(Truncation::class, $container->getDefinition('phil_error_tracking.ip_anonymizer')->getClass());
         self::assertEquals(['%kernel.project_dir%', new Reference('clock'), null, '%kernel.environment%', 50, 10], $container->getDefinition(EventFactory::class)->getArguments());
         self::assertTrue($container->getDefinition(EventFactory::class)->isPublic());
-        self::assertSame([[]], $container->getDefinition(Scrubber::class)->getArguments());
+        self::assertSame([[], []], $container->getDefinition(Scrubber::class)->getArguments());
         self::assertTrue($container->hasDefinition(Fingerprinter::class));
         self::assertSame([1.0], $container->getDefinition(Sampler::class)->getArguments());
         self::assertEquals([new Reference('doctrine.dbal.default_connection'), 50], $container->getDefinition(DbalErrorStore::class)->getArguments());
@@ -190,6 +191,7 @@ final class PhilErrorTrackingBundleTest extends TestCase
             'max_frames' => 20,
             'max_chain' => 3,
             'scrub_fields' => ['birth_date'],
+            'token_path_prefixes' => ['/reset-password/reset/'],
             'ignored_exceptions' => [LogicException::class],
             'client_address' => ['ipv4_prefix' => 16, 'ipv6_prefix' => 32],
             'rate_limit' => ['limit' => 5, 'interval' => '10 seconds', 'cache_pool' => 'cache.errors'],
@@ -201,7 +203,7 @@ final class PhilErrorTrackingBundleTest extends TestCase
 
         self::assertSame([16, 32], $container->getDefinition('phil_error_tracking.ip_anonymizer')->getArguments());
         self::assertEquals(['/srv/app', new Reference('app.clock'), '1.4.0', 'staging', 20, 3], $container->getDefinition(EventFactory::class)->getArguments());
-        self::assertSame([['birth_date']], $container->getDefinition(Scrubber::class)->getArguments());
+        self::assertSame([['birth_date'], ['/reset-password/reset/']], $container->getDefinition(Scrubber::class)->getArguments());
         self::assertSame([0.5], $container->getDefinition(Sampler::class)->getArguments());
         self::assertEquals([new Reference('doctrine.dbal.logs_connection'), 7], $container->getDefinition(DbalErrorStore::class)->getArguments());
         self::assertSame(['doctrine.event_listener' => [['event' => 'postGenerateSchema', 'connection' => 'logs']]], $container->getDefinition(SchemaListener::class)->getTags());
@@ -483,6 +485,7 @@ final class PhilErrorTrackingBundleTest extends TestCase
         yield 'a project directory of another type' => [['project_dir' => true], 'phil_error_tracking: project_dir must be a string.'];
         yield 'an empty project directory' => [['project_dir' => ''], 'phil_error_tracking: project_dir must be a string.'];
         yield 'a sample rate above one' => [['sample_rate' => 1.5], 'sample_rate'];
+        yield 'a token path prefix without its slashes' => [['token_path_prefixes' => ['reset']], 'phil_error_tracking.token_path_prefixes: "reset" is not a token path prefix: expected one or more path segments between slashes, such as "/reset-password/reset/".'];
     }
 
     /**
@@ -553,11 +556,21 @@ final class PhilErrorTrackingBundleTest extends TestCase
         $this->load($outside);
     }
 
+    public function testAMalformedTokenPathPrefixKeepsItsCause(): void
+    {
+        try {
+            $this->load(['token_path_prefixes' => ['/p']]);
+            self::fail('The build accepted a malformed prefix.');
+        } catch (InvalidConfigurationException $invalidConfigurationException) {
+            self::assertInstanceOf(InvalidOption::class, $invalidConfigurationException->getPrevious());
+        }
+    }
+
     public function testOnlyTextsAreKeptOfAList(): void
     {
-        $container = $this->load(['scrub_fields' => ['a', 3, 'b'], 'browser' => ['origins' => [8, 'https://a.example']]]);
+        $container = $this->load(['scrub_fields' => ['a', 3, 'b'], 'token_path_prefixes' => [4, '/p/'], 'browser' => ['origins' => [8, 'https://a.example']]]);
 
-        self::assertSame([['a', 'b']], $container->getDefinition(Scrubber::class)->getArguments());
+        self::assertSame([['a', 'b'], ['/p/']], $container->getDefinition(Scrubber::class)->getArguments());
         self::assertSame(['https://a.example'], $container->getDefinition(BrowserErrorReceiver::class)->getArgument(6));
     }
 

@@ -11,6 +11,7 @@ use Override;
 use Phil\ErrorTracking\Contract\ErrorStore;
 use Phil\ErrorTracking\ErrorTracker;
 use Phil\ErrorTracking\EventFactory;
+use Phil\ErrorTracking\Exception\InvalidOption;
 use Phil\ErrorTracking\Fingerprinter;
 use Phil\ErrorTracking\Sampler;
 use Phil\ErrorTracking\Scrubber;
@@ -135,6 +136,10 @@ final class PhilErrorTrackingBundle extends AbstractBundle
                 ->integerNode('max_chain')->min(1)->max(50)->defaultValue(EventFactory::DEFAULT_MAX_CHAIN)->end()
                 ->arrayNode('scrub_fields')
                     ->info('Parts of a name that make a header or a tag sensitive, beside the defaults of the scrubber.')
+                    ->scalarPrototype()->end()
+                ->end()
+                ->arrayNode('token_path_prefixes')
+                    ->info('Path prefixes, such as "/reset-password/reset/", whose next segment is a token, filtered in the address, the Referer and the Origin.')
                     ->scalarPrototype()->end()
                 ->end()
                 ->arrayNode('ignored_exceptions')
@@ -266,7 +271,17 @@ final class PhilErrorTrackingBundle extends AbstractBundle
             $config['max_frames'],
             $config['max_chain'],
         ])->public();
-        $services->set(Scrubber::class)->args([$this->strings($config, 'scrub_fields')]);
+        $fields = $this->strings($config, 'scrub_fields');
+        $prefixes = $this->strings($config, 'token_path_prefixes');
+
+        // Built once here so that a malformed prefix fails the container build rather than the first capture.
+        try {
+            new Scrubber($fields, $prefixes);
+        } catch (InvalidOption $invalidOption) {
+            throw new InvalidConfigurationException('phil_error_tracking.token_path_prefixes: '.$invalidOption->getMessage(), 0, $invalidOption);
+        }
+
+        $services->set(Scrubber::class)->args([$fields, $prefixes]);
         $services->set(Fingerprinter::class);
         $services->set(Sampler::class)->args([$config['sample_rate']]);
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4251d16d0c527fc89dbb6474d923de79a5bd3336bc6434351980daa0e36df270 -->
+<!-- phil-dev source-sha256=2ea26ce4483c117875e09e99040e6b304f7e60bb42d34d41687f9c3bd6abd693 -->
 # phil/error-tracking
 
 **Les erreurs d'une application, gardées chez elle : groupées, débarrassées des renseignements personnels, et
@@ -12,8 +12,9 @@ l'application, sans leurs lignes. Un groupe est ouvert, résolu, ignoré, ou en 
 autre version après avoir été résolu.
 
 Rien n'est écrit avant le passage de l'assainisseur : les en-têtes `Authorization` et `Cookie`, les champs nommés
-comme des mots de passe et des jetons, chaque valeur de la chaîne de requête et les adresses courriel de tout texte
-sont filtrés, et l'adresse du client n'est jamais gardée qu'au point où `phil/ip-anonymizer` l'a laissée. Un
+comme des mots de passe et des jetons, chaque valeur de la chaîne de requête, les jetons des chemins déclarés et les
+adresses courriel de tout texte sont filtrés, et l'adresse du client n'est jamais gardée qu'au point où
+`phil/ip-anonymizer` l'a laissée, les en-têtes de transfert qui la portent brute retirés. Un
 échantillonneur garde une part des événements et un limiteur borne les événements d'un groupe, pour qu'une erreur levée
 dans une boucle coûte un nombre borné d'écritures.
 

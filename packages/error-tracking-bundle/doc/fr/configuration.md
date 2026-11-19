@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=98d7658e711b0cf3adbc5584b93b76915b1c8f0711e0515084f12ae5b253a7f6 -->
+<!-- phil-dev source-sha256=a0519553b6eb957a280d55b96d00402bd626fe31babc1be142796d8e922249bc -->
 # Configuration
 
 Chaque clé de `phil_error_tracking`, avec sa valeur par défaut.
@@ -12,6 +12,7 @@ phil_error_tracking:
     max_frames: 50                     # frames per exception, 1 to 500
     max_chain: 10                      # exceptions per chain, 1 to 50
     scrub_fields: []                   # parts of a name that make a header or a tag sensitive
+    token_path_prefixes: []            # /reset-password/reset/: the next segment is a token, filtered
     ignored_exceptions: []             # classes never captured, with their subclasses
     client_address:
         ipv4_prefix: 24
@@ -66,6 +67,7 @@ phil_error_tracking:
 |---|---|
 | une origine qui n'est pas `scheme://host[:port]` | `phil_error_tracking.browser.origins: "…" is not an origin such as https://example.com.` |
 | une classe ignorée qui n'est pas un throwable | `phil_error_tracking.ignored_exceptions: "…" is not a throwable class.` |
+| un préfixe de chemin à jeton qui n'est pas un ou plusieurs segments de chemin entre barres obliques | `phil_error_tracking.token_path_prefixes: "…" is not a token path prefix: …` |
 | une horloge ou un répertoire de projet vide ou qui n'est pas un texte | `phil_error_tracking: clock must be a string.` |
 | un taux d'échantillonnage, une borne ou un préfixe hors de son intervalle | le message du composant Config |
 | une limite de débit activée sans `symfony/rate-limiter` | `… needs symfony/rate-limiter: install it, or set "enabled" to false.` |

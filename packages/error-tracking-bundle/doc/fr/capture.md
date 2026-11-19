@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ab72621f33073037533e62d2ad7ec3d8820eae52edad96234d57024bc12c890e -->
+<!-- phil-dev source-sha256=b8cddb12c9471cb9ac3fc72e5922fb664289abc38665d8a8c9e3c58e7497f59b -->
 # Capture
 
 Les points de capture ci-dessous sont l'interface du bundle : une application y déclare ses erreurs, et par
@@ -29,6 +29,14 @@ lui-même, comme un événement de type `Log record` dont le message est celui d
 réservés quand aucun processeur ne les a remplacés : `Order {id} failed` se groupe ainsi en un seul groupe.
 `critical` et au-dessus sont fatals, `error` est une erreur, et ce qui est en dessous est un avertissement.
 
+Un processeur qui s'exécute avant les gestionnaires peut avoir remplacé l'exception par un tableau de sa `class`, de
+son `message`, de son `file`, de sa `line` et de son exception `previous`, comme le fait le caviardage des journaux de
+`phil/privacy-bundle`. Le gestionnaire lit ce tableau comme la chaîne qu'il décrit, chaque exception avec le seul cadre
+de son fichier et de sa ligne, pour que l'événement garde sa classe et son emplacement et se groupe par eux plutôt que
+comme un `Log record`. L'enregistrement d'une exception que l'écouteur de requête a déjà capturée reste laissé de
+côté : la classe, le fichier et la ligne de chaque throwable capturé sont retenus jusqu'à la réinitialisation des
+services, et le premier tableau qui correspond à l'un d'eux est pris pour lui.
+
 ## Les arguments dans les messages
 
 Un cadre garde son fichier, sa ligne et sa fonction, jamais les valeurs de ses arguments. PHP 8.6 ajoute
@@ -48,7 +56,8 @@ l'assainisseur lui barrent la route. Gardez `error_include_args` désactivé en 
   atteint le gestionnaire Monolog, qui demande une capture, laquelle est refusée, et la boucle ne commence jamais ;
 - l'échec est journalisé une fois, comme un avertissement qui ne nomme que sa classe ;
 - un throwable déjà capturé n'est pas capturé de nouveau avant la réinitialisation des services, à la fin de chaque
-  requête d'un *worker* (`kernel.reset`) ;
+  requête d'un *worker* (`kernel.reset`), ni la première exception qu'un processeur de journal a transformée en
+  tableau avec sa classe, son fichier et sa ligne ;
 - les classes de `ignored_exceptions` et leurs sous-classes ne sont jamais capturées.
 
 ## Vos propres captures

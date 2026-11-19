@@ -51,13 +51,46 @@ final class HttpCaptureTest extends TestCase
     public function testHeadersOfSeveralValuesAreJoined(): void
     {
         $request = Request::create('/a');
-        $request->headers->set('X-Forwarded-For', ['198.51.100.1', '198.51.100.2']);
+        $request->headers->set('Accept-Language', ['fr-CA', 'en']);
         $request->headers->add(['X-Partial' => ['a', null]]);
 
         $headers = new RequestSummaries(new Truncation())->summarize($request)->headers;
 
-        self::assertSame('198.51.100.1, 198.51.100.2', $headers['x-forwarded-for']);
+        self::assertSame('fr-CA, en', $headers['accept-language']);
         self::assertSame('a', $headers['x-partial']);
+    }
+
+    public function testBehindAProxyTheRawClientAddressIsNeverKept(): void
+    {
+        Request::setTrustedProxies(['10.0.0.1'], Request::HEADER_X_FORWARDED_FOR | Request::HEADER_FORWARDED);
+
+        try {
+            $request = Request::create('https://example.com/a', 'GET', [], [], [], [
+                'REMOTE_ADDR' => '10.0.0.1',
+                'HTTP_X_FORWARDED_FOR' => '203.0.113.9, 10.0.0.1',
+                'HTTP_FORWARDED' => 'for=203.0.113.9;proto=https',
+                'HTTP_X_REAL_IP' => '203.0.113.9',
+                'HTTP_CF_CONNECTING_IP' => '203.0.113.9',
+                'HTTP_TRUE_CLIENT_IP' => '203.0.113.9',
+                'HTTP_X_CLIENT_IP' => '203.0.113.9',
+                'HTTP_ACCEPT' => 'text/html',
+            ]);
+
+            $summary = new RequestSummaries(new Truncation())->summarize($request);
+        } finally {
+            Request::setTrustedProxies([], Request::HEADER_X_FORWARDED_FOR);
+        }
+
+        self::assertSame('203.0.113.0', $summary->clientAddress);
+        self::assertSame('text/html', $summary->headers['accept']);
+
+        foreach (['x-forwarded-for', 'forwarded', 'x-real-ip', 'cf-connecting-ip', 'true-client-ip', 'x-client-ip'] as $name) {
+            self::assertArrayNotHasKey($name, $summary->headers);
+        }
+
+        foreach ($summary->headers as $value) {
+            self::assertStringNotContainsString('203.0.113.9', $value);
+        }
     }
 
     public function testTheExceptionOfARequestIsCapturedWithTheRequest(): void

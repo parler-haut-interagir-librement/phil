@@ -11,6 +11,7 @@ phil_error_tracking:
     max_frames: 50                     # frames per exception, 1 to 500
     max_chain: 10                      # exceptions per chain, 1 to 50
     scrub_fields: []                   # parts of a name that make a header or a tag sensitive
+    token_path_prefixes: []            # /reset-password/reset/: the next segment is a token, filtered
     ignored_exceptions: []             # classes never captured, with their subclasses
     client_address:
         ipv4_prefix: 24
@@ -65,6 +66,7 @@ phil_error_tracking:
 |---|---|
 | an origin that is not `scheme://host[:port]` | `phil_error_tracking.browser.origins: "…" is not an origin such as https://example.com.` |
 | an ignored class that is not a throwable | `phil_error_tracking.ignored_exceptions: "…" is not a throwable class.` |
+| a token path prefix that is not one or more path segments between slashes | `phil_error_tracking.token_path_prefixes: "…" is not a token path prefix: …` |
 | an empty or non-text clock or project directory | `phil_error_tracking: clock must be a string.` |
 | a sample rate, a bound or a prefix outside its range | the message of the Config component |
 | a rate limit enabled without `symfony/rate-limiter` | `… needs symfony/rate-limiter: install it, or set "enabled" to false.` |

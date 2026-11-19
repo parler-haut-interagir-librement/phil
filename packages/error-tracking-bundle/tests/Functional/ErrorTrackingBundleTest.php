@@ -8,12 +8,16 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
 use LogicException;
 use Monolog\Handler\HandlerInterface;
+use Monolog\Logger;
 use Override;
+use Phil\ErrorTracking\CaptureContext;
 use Phil\ErrorTracking\ErrorTracker;
+use Phil\ErrorTracking\ExceptionRecord;
 use Phil\ErrorTracking\GroupStatus;
 use Phil\ErrorTracking\Source;
 use Phil\ErrorTrackingBundle\Application\AlertDestination;
 use Phil\ErrorTrackingBundle\Application\Contract\ErrorGroupReader;
+use Phil\ErrorTrackingBundle\Application\SafeCapture;
 use Phil\ErrorTrackingBundle\Infrastructure\Doctrine\ErrorTables;
 use Phil\ErrorTrackingBundle\Infrastructure\Monitoring\ErrorStoreCheck;
 use Phil\ErrorTrackingBundle\Infrastructure\Notifications\NotificationAlerter;
@@ -23,9 +27,11 @@ use Phil\MonitoringBundle\Application\HealthChecker;
 use Phil\MonitoringBundle\Domain\Status\HealthStatus;
 use Phil\MonitoringBundle\Domain\ValueObject\CheckResult;
 use Phil\NotificationsBundle\Domain\Contract\NotificationRepository;
+use Phil\PrivacyBundle\Infrastructure\Monolog\RedactingProcessor;
 use Phil\RateLimitBundle\Application\Limiters;
 use Phil\RateLimitBundle\Infrastructure\RateLimiter\SymfonyLimiter;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -89,6 +95,65 @@ final class ErrorTrackingBundleTest extends KernelTestCase
         self::assertSame('127.0.0.0', $events[1]->request->clientAddress);
         self::assertSame('TestKernel.php', $events[1]->exceptions[0]->frames[0]->file);
         self::assertTrue($events[1]->exceptions[0]->frames[0]->inApp);
+    }
+
+    public function testATokenInThePathAndTheAddressesOfTheProxiesAreNeverKept(): void
+    {
+        Request::setTrustedProxies(['127.0.0.1'], Request::HEADER_X_FORWARDED_FOR);
+
+        try {
+            $response = $this->serve(Request::create('https://example.com/reset/abc123?lang=fr', 'GET', [], [], [], [
+                'HTTP_X_FORWARDED_FOR' => '203.0.113.9',
+                'HTTP_X_REAL_IP' => '203.0.113.9',
+                'HTTP_REFERER' => 'https://example.com/reset/abc123?step=2',
+                'HTTP_ORIGIN' => 'https://example.com',
+            ]));
+        } finally {
+            Request::setTrustedProxies([], Request::HEADER_X_FORWARDED_FOR);
+        }
+
+        self::assertSame(500, $response->getStatusCode());
+        $reader = $this->reader();
+        $event = $reader->events($reader->groups(null, 10)[0]->fingerprint, 10)[0];
+        self::assertSame('https://example.com/reset/[Filtered]?lang=[Filtered]', $event->request?->url);
+        self::assertSame('https://example.com/reset/[Filtered]?step=[Filtered]', $event->request->headers['referer']);
+        self::assertSame('https://example.com', $event->request->headers['origin']);
+        self::assertSame('203.0.113.0', $event->request->clientAddress);
+        self::assertArrayNotHasKey('x-forwarded-for', $event->request->headers);
+        self::assertArrayNotHasKey('x-real-ip', $event->request->headers);
+        self::assertStringNotContainsString('abc123', (string) json_encode($event->toArray()));
+        self::assertStringNotContainsString('203.0.113.9', (string) json_encode($event->toArray()));
+    }
+
+    public function testAnExceptionTheRedactionOfThePrivacyBundleTurnedIntoAnArrayKeepsItsGroup(): void
+    {
+        $handler = self::getContainer()->get(PhilErrorTrackingBundle::MONOLOG_HANDLER);
+        self::assertInstanceOf(HandlerInterface::class, $handler);
+        $logger = new Logger('app', [$handler], [RedactingProcessor::fromConfiguration(['password'], ['/reset/'])]);
+
+        $exception = $this->failure('https://example.com/reset/abc123?password=hunter2');
+        $logger->error('Export failed', ['exception' => $exception]);
+        $logger->error('Export failed again', ['exception' => $this->failure('https://example.com/reset/def456')]);
+
+        $reader = $this->reader();
+        $groups = $reader->groups(null, 10);
+        self::assertCount(1, $groups);
+        self::assertSame(2, $groups[0]->timesSeen);
+        self::assertStringStartsWith('RuntimeException: Could not reach https://example.com/reset/', $groups[0]->title);
+
+        $event = $reader->events($groups[0]->fingerprint, 10)[1];
+        self::assertSame(__FILE__.':'.$exception->getLine(), $event->exceptions[0]->frames[0]->label());
+        self::assertSame(Source::Log, $event->source);
+        self::assertSame([RuntimeException::class, LogicException::class], array_map(static fn (ExceptionRecord $record): string => $record->type, $event->exceptions));
+        self::assertStringNotContainsString('hunter2', (string) json_encode($event->toArray()));
+        self::assertStringNotContainsString('abc123', (string) json_encode($event->toArray()));
+
+        $safeCapture = self::getContainer()->get(SafeCapture::class);
+        self::assertInstanceOf(SafeCapture::class, $safeCapture);
+        $captured = $this->failure('https://example.com/other');
+        $safeCapture->throwable($captured, new CaptureContext(Source::Http));
+        $logger->critical('Uncaught', ['exception' => $captured]);
+        self::assertSame(3, $reader->groups(null, 10)[0]->timesSeen);
     }
 
     public function testABrowserReportIsKept(): void
@@ -200,6 +265,11 @@ final class ErrorTrackingBundleTest extends KernelTestCase
         $tester = new CommandTester($application->find('phil:error-tracking:purge'));
         self::assertSame(0, $tester->execute([]));
         self::assertStringContainsString('0 event(s) and group(s) removed.', $tester->getDisplay());
+    }
+
+    private function failure(string $url): RuntimeException
+    {
+        return new RuntimeException('Could not reach '.$url, 0, new LogicException('Refused'));
     }
 
     private function serve(Request $request): Response

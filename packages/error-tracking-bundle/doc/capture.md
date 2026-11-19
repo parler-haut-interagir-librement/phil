@@ -27,6 +27,13 @@ The Monolog handler captures the exception of the record's `exception` key, or e
 type `Log record` whose message is the record's — with its placeholders when no processor replaced them, so that
 `Order {id} failed` groups as one. `critical` and above are fatal, `error` is an error, below is a warning.
 
+A processor that runs before the handlers may have replaced the exception by an array of its `class`, `message`,
+`file`, `line` and `previous` exception, as the log redaction of `phil/privacy-bundle` does. The handler reads that
+array as the chain it describes, each exception with the one frame of its file and line, so that the event keeps its
+class and its place and groups by them rather than as a `Log record`. The record of an exception the request listener
+already captured is still left out: the class, file and line of each throwable captured are remembered until the
+services are reset, and the first array that matches one is taken for it.
+
 ## Arguments in messages
 
 A frame keeps its file, line and function, never the values of its arguments. PHP 8.6 adds `error_include_args`, off by
@@ -45,7 +52,8 @@ its value.
   handler, which asks for a capture, which is refused, and the loop never starts;
 - the failure is logged once, as a warning that names its class only;
 - a throwable already captured is not captured again until the services are reset, at the end of each request of a
-  worker (`kernel.reset`);
+  worker (`kernel.reset`); nor is the first exception a log processor turned into an array with its class, file and
+  line;
 - the classes of `ignored_exceptions` and their subclasses are never captured.
 
 ## Your own captures

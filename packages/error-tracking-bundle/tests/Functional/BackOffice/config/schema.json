@@ -4865,6 +4865,13 @@
                         },
                         "description": "Parts of a name that make a header or a tag sensitive, beside the defaults of the scrubber."
                     },
+                    "token_path_prefixes": {
+                        "$ref": "#/$defs/types/array_null",
+                        "items": {
+                            "$ref": "#/$defs/types/scalar"
+                        },
+                        "description": "Path prefixes, such as \"/reset-password/reset/\", whose next segment is a token, filtered in the address, the Referer and the Origin."
+                    },
                     "ignored_exceptions": {
                         "$ref": "#/$defs/types/array_null",
                         "items": {

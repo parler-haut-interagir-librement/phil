@@ -4,6 +4,21 @@ All notable changes to `phil/error-tracking` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Fixed
+
+- `RequestSummary` drops the headers through which proxies pass on the client's raw address — `Forwarded`,
+  `X-Forwarded-For`, `X-Real-IP`, `CF-Connecting-IP`, `True-Client-IP`, `X-Client-IP` and the others of
+  `CLIENT_ADDRESS_HEADERS` —, which kept the address that `anonymized()` truncates.
+- `Scrubber` filters the `Referer` and `Origin` headers as addresses, every value of their query filtered and their
+  fragment dropped, where it filtered their sensitive pairs only.
+- `Scrubber` takes token path prefixes, such as `/reset-password/reset/`, and filters the segment that follows each in
+  the request's address, in `Referer` and in `Origin`; a token in the path survived the filtering of the query.
+  A malformed prefix throws `InvalidOption`.
+
 ## 0.1.0-alpha - 2026-11-13
 
 ### Added

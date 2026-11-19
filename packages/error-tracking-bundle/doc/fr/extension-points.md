@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b61e4da13165e6693ae27892551d060daede8a4fde4f8b4186ec56e40ae0ca68 -->
+<!-- phil-dev source-sha256=15cd15758af5e89cdaf774428b6f05404f5106308db5b89a3c7aafca047877fe -->
 # Points d'extension
 
 ## Le magasin
@@ -51,6 +51,22 @@ exprès et traite ailleurs, un délai d'attente dépassé attendu.
 
 `scrub_fields` ajoute des parties de nom aux parties sensibles ; voir le document sur l'assainissement de
 `phil/error-tracking`. Un assainisseur propre à l'application remplace le service `Phil\ErrorTracking\Scrubber`.
+
+`token_path_prefixes` déclare les routes qui portent un jeton dans leur chemin, par le préfixe que le jeton suit :
+avec `/reset-password/reset/` déclaré, `/reset-password/reset/a1b2c3` est gardé comme
+`/reset-password/reset/[Filtered]`, dans l'adresse de la requête, dans `Referer` et dans `Origin`. Un préfixe n'est
+reconnu qu'au début du chemin. Un jeton dans le chemin survit au filtrage de la chaîne de requête : chaque route de
+l'application qui en porte un, comme une réinitialisation de mot de passe, une invitation ou un lien partagé par son
+jeton, a sa place dans la liste :
+
+```yaml
+phil_error_tracking:
+    token_path_prefixes: ['/reset-password/reset/', '/invitation/']
+```
+
+Les en-têtes par lesquels les mandataires transmettent l'adresse brute du client, soit `X-Forwarded-For`,
+`Forwarded`, `X-Real-IP`, `CF-Connecting-IP`, `True-Client-IP`, `X-Client-IP` et les autres, ne sont jamais gardés ;
+l'adresse du client est gardée telle que `client_address` la tronque.
 
 ## La mise en page et les gabarits
 

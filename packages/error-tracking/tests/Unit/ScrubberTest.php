@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\ErrorTracking\Tests\Unit;
 
+use Phil\ErrorTracking\Exception\InvalidOption;
 use Phil\ErrorTracking\RequestSummary;
 use Phil\ErrorTracking\Scrubber;
 use Phil\ErrorTracking\Tests\Unit\Fixture\Events;
@@ -88,7 +89,8 @@ final class ScrubberTest extends TestCase
         $request = new RequestSummary('POST', 'https://example.com/login?next=/me', 'login', [
             'Authorization' => 'Bearer abc',
             'Cookie' => 'PHPSESSID=1',
-            'Referer' => 'https://example.com/?from=jane@example.com',
+            'Referer' => 'https://example.com/reset/abc?from=jane@example.com#top',
+            'Origin' => 'https://example.com',
             'Accept' => 'text/html',
         ], '192.0.2.0');
         $event = Events::one('No user jane@example.com', request: $request, context: ['password' => 'hunter2', 'note' => 'from jane@example.com', 'retries' => 2]);
@@ -102,12 +104,51 @@ final class ScrubberTest extends TestCase
         self::assertSame([
             'authorization' => '[Filtered]',
             'cookie' => '[Filtered]',
-            'referer' => 'https://example.com/?from=[email]',
+            'referer' => 'https://example.com/reset/abc?from=[Filtered]',
+            'origin' => 'https://example.com',
             'accept' => 'text/html',
         ], $scrubbed->request->headers);
         self::assertSame(['POST', 'login', '192.0.2.0'], [$scrubbed->request->method, $scrubbed->request->route, $scrubbed->request->clientAddress]);
         self::assertSame($event->id, $scrubbed->id);
+        self::assertSame('https://example.com/reset/[Filtered]?from=[Filtered]', new Scrubber([], ['/reset/'])->scrub($event)->request?->headers['referer']);
         self::assertNull(new Scrubber()->scrub(Events::one())->request);
         self::assertSame(['[Filtered]', '[email]'], [Scrubber::FILTERED, Scrubber::EMAIL]);
+    }
+
+    #[TestWith(['https://example.com/reset-password/reset/abc123', 'https://example.com/reset-password/reset/[Filtered]'])]
+    #[TestWith(['HTTPS://example.com/Reset-Password/RESET/abc123/next?x=1#top', 'HTTPS://example.com/Reset-Password/RESET/[Filtered]/next?x=[Filtered]'])]
+    #[TestWith(['/reset-password/reset/abc123?lang=fr', '/reset-password/reset/[Filtered]?lang=[Filtered]'])]
+    #[TestWith(['/p/abc', '/p/[Filtered]'])]
+    #[TestWith(['/p/x/abc', '/p/[Filtered]/[Filtered]'])]
+    #[TestWith(['/p/', '/p/[Filtered]'])]
+    #[TestWith(['/shop/p/abc', '/shop/p/abc'])]
+    #[TestWith(['https://example.com/shop/p/abc', 'https://example.com/shop/p/abc'])]
+    #[TestWith(['https://example.com', 'https://example.com'])]
+    #[TestWith(['mysql://app:s3cret@db/p/abc', 'mysql://[Filtered]@db/p/[Filtered]'])]
+    public function testATokenInThePathIsFiltered(string $url, string $scrubbed): void
+    {
+        self::assertSame($scrubbed, new Scrubber([], ['/reset-password/reset/', '/p/x/', '/p/'])->url($url));
+    }
+
+    public function testWithoutPrefixesThePathIsKept(): void
+    {
+        self::assertSame('https://example.com/reset-password/reset/abc123', new Scrubber()->url('https://example.com/reset-password/reset/abc123'));
+    }
+
+    #[TestWith(['p/'])]
+    #[TestWith(['/p'])]
+    #[TestWith(['shop/p/'])]
+    #[TestWith(['/p/x'])]
+    #[TestWith(["/p/\n"])]
+    #[TestWith(['//'])]
+    #[TestWith(['/a b/'])]
+    #[TestWith(['/a?/'])]
+    #[TestWith(['/a#/'])]
+    public function testAMalformedPrefixIsRefused(string $prefix): void
+    {
+        $this->expectException(InvalidOption::class);
+        $this->expectExceptionMessageIsOrContains(\sprintf('"%s" is not a token path prefix: expected one or more path segments between slashes, such as "/reset-password/reset/".', $prefix));
+
+        new Scrubber([], [$prefix]);
     }
 }

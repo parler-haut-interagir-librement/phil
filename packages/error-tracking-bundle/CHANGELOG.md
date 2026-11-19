@@ -9,16 +9,21 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 ### Added
 
 - `PhilErrorTrackingBundle` and the `phil_error_tracking` configuration: release, environment, project directory,
-  sample rate, bounds, scrubbed fields, ignored exceptions, truncated client address, throttle per group, capture
+  sample rate, bounds, scrubbed fields, token path prefixes filtered in the address, the `Referer` and the `Origin`,
+  ignored exceptions, truncated client address, throttle per group, capture
   points, storage, alerts, health check, administration pages off unless enabled, browser endpoint and clock.
 - `SafeCapture`: the guard every capture point goes through, which never throws, refuses a capture while another
-  runs, logs a failed capture once by its class, and takes a throwable once until the services are reset.
+  runs, logs a failed capture once by its class, and takes a throwable once until the services are reset, the log
+  record of its class, file and line included.
 - `ExceptionListener` and `RequestSummaries`: the exception of a request captured with its reduced request, before the
-  kernel logs it, client errors left out unless asked.
+  kernel logs it, client errors left out unless asked; the headers that carry the client's raw address through proxies
+  never kept.
 - `WorkerFailureListener`: a failed message captured once it will not be retried, unwrapped from Messenger's
   wrapper, tagged with its class and transport; the bundle's own alerts never captured.
 - `ConsoleErrorListener`: the error of a command, tagged with its name and exit code.
-- `ErrorTrackingHandler`: a Monolog handler for the records of a level and above, by their exception or their message.
+- `ErrorTrackingHandler`: a Monolog handler for the records of a level and above, by their exception or their message;
+  an exception a redacting processor such as phil/privacy-bundle's turned into an array keeps its class, its file and
+  line, and its group.
 - `DbalErrorStore`, `ErrorTables` and `SchemaListener`: the groups and the capped events in `phil_error_group` and
   `phil_error_event`, their instants in `datetime_utc_immutable`; `ErrorGroupReader`, the reads of the pages and the
   purge.

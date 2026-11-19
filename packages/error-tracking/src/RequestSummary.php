@@ -11,8 +11,10 @@ use SensitiveParameter;
 
 /**
  * The request an event happened in, reduced: its method, its address, its route, its headers by lower-case name and
- * the client's address as an anonymizer left it — never the body, never the raw address. The scrubber still filters
- * the query, the secrets and the e-mail addresses before the summary is written anywhere.
+ * the client's address as an anonymizer left it — never the body, never the raw address. The headers that carry a
+ * client's address on its way through proxies, {@see self::CLIENT_ADDRESS_HEADERS}, are dropped: the address they
+ * hold is the raw one. The scrubber still filters the query, the secrets and the e-mail addresses before the summary
+ * is written anywhere.
  */
 final readonly class RequestSummary
 {
@@ -21,6 +23,16 @@ final readonly class RequestSummary
     public const int MAX_HEADERS = 50;
 
     public const int MAX_HEADER_LENGTH = 1024;
+
+    /**
+     * The headers, by lower-case name, through which proxies, load balancers and content delivery networks pass on the
+     * client's raw address; never kept.
+     */
+    public const array CLIENT_ADDRESS_HEADERS = [
+        'forwarded', 'x-forwarded-for', 'x-original-forwarded-for', 'x-forwarded', 'forwarded-for', 'x-real-ip',
+        'cf-connecting-ip', 'cf-connecting-ipv6', 'true-client-ip', 'x-client-ip', 'client-ip', 'x-cluster-client-ip',
+        'fastly-client-ip', 'x-originating-ip', 'x-remote-ip', 'x-remote-addr', 'x-envoy-external-address',
+    ];
 
     public string $method;
 
@@ -36,7 +48,7 @@ final readonly class RequestSummary
     public ?string $clientAddress;
 
     /**
-     * @param array<array-key, string> $headers
+     * @param array<array-key, string> $headers       the headers, those of {@see self::CLIENT_ADDRESS_HEADERS} dropped
      * @param ?string                  $clientAddress the address an anonymizer made, see anonymized()
      */
     public function __construct(
@@ -53,7 +65,11 @@ final readonly class RequestSummary
         $kept = [];
 
         foreach (\array_slice($headers, 0, self::MAX_HEADERS, true) as $name => $value) {
-            $kept[strtolower(Text::clip((string) $name, 64))] = Text::clip($value, self::MAX_HEADER_LENGTH);
+            $name = strtolower(Text::clip((string) $name, 64));
+
+            if (!\in_array($name, self::CLIENT_ADDRESS_HEADERS, true)) {
+                $kept[$name] = Text::clip($value, self::MAX_HEADER_LENGTH);
+            }
         }
 
         $this->headers = $kept;

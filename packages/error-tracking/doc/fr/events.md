@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=31a3116fe1597a177e5de235164dce797fd4a76a4d36aa73ab9a5e542699dd3b -->
+<!-- phil-dev source-sha256=18ccbc9eb5263b0241317db3439fc88b02dccf3274a3d845fc55559363426498 -->
 # Événements
 
 ## Ce que contient un événement
@@ -19,7 +19,9 @@ Un `ExceptionRecord` a un type (255 caractères), un message (2 048) et ses cadr
 est rendu en UTF-8 valide avant d'être coupé.
 
 Un `RequestSummary` a la méthode, l'adresse (2 048), la route, au plus 50 en-têtes par nom en minuscules (1 024
-chacun) et l'adresse du client telle qu'un anonymiseur l'a laissée. Il ne contient jamais le corps.
+chacun) et l'adresse du client telle qu'un anonymiseur l'a laissée. Il ne contient jamais le corps, ni les en-têtes
+de `RequestSummary::CLIENT_ADDRESS_HEADERS`, soit `Forwarded`, `X-Forwarded-For`, `X-Real-IP`, `CF-Connecting-IP`,
+`True-Client-IP`, `X-Client-IP` et les autres par lesquels les mandataires transmettent l'adresse brute.
 `RequestSummary::anonymized()` prend l'adresse brute et un `IpAnonymizer` de `phil/ip-anonymizer`, et ne garde que ce
 que retourne la stratégie :
 

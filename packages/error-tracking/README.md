@@ -11,8 +11,9 @@ without their lines. A group is open, resolved, ignored, or regressed when it co
 was resolved.
 
 Nothing is written before the scrubber has run: the `Authorization` and `Cookie` headers, the fields named like
-passwords and tokens, every value of the query and the e-mail addresses in any text are filtered, and the client's
-address is only ever kept as `phil/ip-anonymizer` left it. A sampler keeps a share of the events and a throttle bounds
+passwords and tokens, every value of the query, the tokens of the paths declared and the e-mail addresses in any text
+are filtered, and the client's address is only ever kept as `phil/ip-anonymizer` left it, the forwarding headers that
+carry it raw dropped. A sampler keeps a share of the events and a throttle bounds
 the events of one group, so that an error thrown in a loop costs a bounded number of writes.
 
 It is for any PHP application that wants its errors where its data already lives, without sending them to a third

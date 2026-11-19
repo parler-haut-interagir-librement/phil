@@ -56,4 +56,24 @@ final class RequestSummaryTest extends TestCase
         self::assertNull(RequestSummary::anonymized('GET', '/a', null, [], 'not an address', new Truncation())->clientAddress);
         self::assertNull(RequestSummary::anonymized('GET', '/a', null, [], null, new Truncation())->clientAddress);
     }
+
+    public function testTheHeadersThatCarryTheClientsAddressAreDropped(): void
+    {
+        $headers = ['Accept' => 'text/html'];
+
+        foreach (RequestSummary::CLIENT_ADDRESS_HEADERS as $name) {
+            $headers[strtoupper($name)] = '203.0.113.9';
+        }
+
+        $summary = RequestSummary::anonymized('GET', '/a', null, $headers + ['X-Forwarded-Proto' => 'https'], '203.0.113.9', new Truncation());
+
+        self::assertSame(['accept' => 'text/html', 'x-forwarded-proto' => 'https'], $summary->headers);
+        self::assertSame('203.0.113.0', $summary->clientAddress);
+        self::assertContains('x-forwarded-for', RequestSummary::CLIENT_ADDRESS_HEADERS);
+        self::assertContains('forwarded', RequestSummary::CLIENT_ADDRESS_HEADERS);
+        self::assertContains('x-real-ip', RequestSummary::CLIENT_ADDRESS_HEADERS);
+        self::assertContains('cf-connecting-ip', RequestSummary::CLIENT_ADDRESS_HEADERS);
+        self::assertContains('true-client-ip', RequestSummary::CLIENT_ADDRESS_HEADERS);
+        self::assertContains('x-client-ip', RequestSummary::CLIENT_ADDRESS_HEADERS);
+    }
 }

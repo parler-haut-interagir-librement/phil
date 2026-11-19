@@ -1573,6 +1573,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     max_frames?: int|Param, // Default: 50
  *     max_chain?: int|Param, // Default: 10
  *     scrub_fields?: list<scalar|Param|null>,
+ *     token_path_prefixes?: list<scalar|Param|null>,
  *     ignored_exceptions?: list<scalar|Param|null>,
  *     client_address?: array{ // The client's address truncated by phil/ip-anonymizer; never kept raw.
  *         ipv4_prefix?: int|Param, // Default: 24

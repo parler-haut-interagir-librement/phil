@@ -19,7 +19,8 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * An application as small as the bundle needs: FrameworkBundle and DoctrineBundle on SQLite for the store, the bundles
- * it bridges to, a page that fails, a page that is not found, and the endpoint of the browsers.
+ * it bridges to, a page that fails, the same behind a token in its path, a page that is not found, and the endpoint of
+ * the browsers.
  */
 final class TestKernel extends Kernel
 {
@@ -83,6 +84,7 @@ final class TestKernel extends Kernel
         $container->extension('phil_notifications', ['store' => 'memory', 'message_bus' => null]);
         $container->extension('phil_error_tracking', [
             'release' => '1.0.0',
+            'token_path_prefixes' => ['/reset/'],
             'alerts' => match ($this->environment) {
                 'chatless' => [],
                 'quiet' => false,
@@ -98,6 +100,7 @@ final class TestKernel extends Kernel
     {
         $routes->import('@PhilErrorTrackingBundle/config/routes_browser.php');
         $routes->add('failing', '/failing')->controller($this->failing(...));
+        $routes->add('reset', '/reset/{token}')->controller($this->failing(...));
         $routes->add('missing', '/missing')->controller($this->missing(...));
     }
 }
