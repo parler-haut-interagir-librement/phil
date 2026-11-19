@@ -63,10 +63,10 @@ final class CreatedBatch
     public function writeCsv(SplFileObject $file, ?RedemptionLinks $links = null): int
     {
         $codes = $this->takeCodes(display: false);
-        $file->fwrite(self::csvLine($links instanceof RedemptionLinks ? ['code', 'link'] : ['code']));
+        $file->fwrite($this->csvLine($links instanceof RedemptionLinks ? ['code', 'link'] : ['code']));
 
         foreach ($codes as $code) {
-            $file->fwrite(self::csvLine($links instanceof RedemptionLinks ? [$this->format->display($code), $links->for($code)->toString()] : [$this->format->display($code)]));
+            $file->fwrite($this->csvLine($links instanceof RedemptionLinks ? [$this->format->display($code), $links->for($code)->toString()] : [$this->format->display($code)]));
         }
 
         return \count($codes);
@@ -78,7 +78,7 @@ final class CreatedBatch
      *
      * @param list<string> $fields
      */
-    private static function csvLine(array $fields): string
+    private function csvLine(array $fields): string
     {
         return implode(',', array_map(
             static fn (string $field): string => false === strpbrk($field, ",\"\n\r\t ") ? $field : '"'.str_replace('"', '""', $field).'"',
