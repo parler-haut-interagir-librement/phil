@@ -21,6 +21,7 @@
 | `Infrastructure\Http\DraftController`, `DraftRequest`, `Routes` | The endpoints, the check of their requests, the route names |
 | `Infrastructure\Http\SubmittedDraft`, `DoneCookie` | Submitted forms kept until the response; their drafts forgotten |
 | `Infrastructure\Doctrine\DoctrineDraftStore` | The store in `phil_form_draft` |
+| `Infrastructure\Doctrine\BinaryKeysListener` | `owner` and `draft_key` in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata` ([server-store.md](server-store.md#collation-of-the-key)) |
 | `Infrastructure\Memory\InMemoryDraftStore` | The store in memory, for tests |
 | `Infrastructure\KeyManagement\KeyManagementSealer` | Contents sealed through Symfony's KeyManagement component |
 | `Infrastructure\Security\TokenDraftOwner` | The user of Symfony Security |

@@ -15,6 +15,7 @@ use Phil\AlmanacBundle\Application\Definitions;
 use Phil\AlmanacBundle\Application\Places;
 use Phil\AlmanacBundle\Domain\Model\StoredDate;
 use Phil\AlmanacBundle\Domain\Repository\StoredDateRepository;
+use Phil\AlmanacBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\AlmanacBundle\Infrastructure\Doctrine\DoctrineStoredDateRepository;
 use Phil\AlmanacBundle\Infrastructure\Form\StoredDateType;
 use Phil\AlmanacBundle\Infrastructure\Twig\AlmanacExtension;
@@ -127,7 +128,9 @@ final class PhilAlmanacBundleTest extends TestCase
         self::assertSame(DoctrineStoredDateRepository::class, (string) $container->getAlias(StoredDateRepository::class));
         self::assertTrue($container->getAlias(StoredDateRepository::class)->isPublic());
         self::assertEquals([[], new Reference(DoctrineStoredDateRepository::class)], $container->getDefinition(Definitions::class)->getArguments());
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertFalse($this->load([], doctrine: true)->hasDefinition(DoctrineStoredDateRepository::class));
+        self::assertFalse($this->load([], doctrine: true)->hasDefinition(BinaryKeysListener::class));
     }
 
     /**

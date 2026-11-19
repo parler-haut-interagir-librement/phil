@@ -4,6 +4,40 @@ All notable changes to `phil/directory-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the genre and the author of a listing compare byte by byte on MySQL and MariaDB. See
+[Upgrading from 0.1](doc/installation.md#upgrading-from-01).
+
+### Added
+
+- `Infrastructure\Doctrine\BinaryKeysListener`, on the ORM's `loadClassMetadata` event, and its `FIELDS`: the fields
+  that compare byte by byte on MySQL and MariaDB.
+
+### Changed
+
+- On MySQL and MariaDB, `genre` and `author` of `phil_directory_listing` take the `utf8mb4` character set and the
+  `utf8mb4_bin` collation in the schema the ORM generates, through `Infrastructure\Doctrine\BinaryKeysListener`.
+  PostgreSQL and SQLite keep their default, which compares bytes already. The migration, which
+  `doctrine:migrations:diff` writes:
+
+  ```sql
+  -- MySQL and MariaDB
+  ALTER TABLE phil_directory_listing
+      MODIFY genre VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+      MODIFY author VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL;
+  -- PostgreSQL and SQLite: nothing to run.
+  ```
+
+- `doctrine/dbal` is required, already required by `doctrine/orm`: `BinaryKeysListener` reads the platform of the
+  connection.
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, a query on `author` for the user `Ann` — an
+  application's list of a user's listings — also matched the listings of `ann`, and a row written in the genre
+  `Podcast` outside the bundle was listed under `podcast`.
+
 ## 0.1.2-alpha - 2026-11-18
 
 ### Changed

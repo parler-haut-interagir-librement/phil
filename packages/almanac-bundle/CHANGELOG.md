@@ -4,6 +4,33 @@ All notable changes to `phil/almanac-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the key of a stored date compares byte by byte on MySQL and MariaDB. See
+[Upgrading from 0.1](doc/stored-dates.md#upgrading-from-01).
+
+### Added
+
+- `Infrastructure\Doctrine\BinaryKeysListener`, on the ORM's `loadClassMetadata` event and registered with
+  `database: true`, and its `FIELDS`: the fields that compare byte by byte on MySQL and MariaDB.
+
+### Changed
+
+- On MySQL and MariaDB, `date_key` of `phil_almanac_date` takes the `utf8mb4` character set and the `utf8mb4_bin`
+  collation in the schema the ORM generates, through `Infrastructure\Doctrine\BinaryKeysListener`. PostgreSQL and
+  SQLite keep their default, which compares bytes already. The migration, which `doctrine:migrations:diff` writes:
+
+  ```sql
+  -- MySQL and MariaDB
+  ALTER TABLE phil_almanac_date MODIFY date_key VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL;
+  -- PostgreSQL and SQLite: nothing to run.
+  ```
+
+### Security
+
+- Under the default case-insensitive collation of MySQL and MariaDB, a row written `Harvest` or `harvést` outside the
+  bundle was found for the date `harvest`, which then took its rules, and stopped `harvest` from being saved.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

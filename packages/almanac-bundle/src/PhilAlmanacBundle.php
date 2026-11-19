@@ -10,6 +10,7 @@ use Phil\AlmanacBundle\Application\AlmanacFactory;
 use Phil\AlmanacBundle\Application\ConfiguredDates;
 use Phil\AlmanacBundle\Application\Definitions;
 use Phil\AlmanacBundle\Application\Places;
+use Phil\AlmanacBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\AlmanacBundle\Infrastructure\Doctrine\DoctrineStoredDateRepository;
 use Phil\AlmanacBundle\Infrastructure\Form\StoredDateType;
 use Phil\AlmanacBundle\Infrastructure\Twig\AlmanacExtension;
@@ -145,6 +146,7 @@ final class PhilAlmanacBundle extends AbstractBundle
             }
 
             $services->set(DoctrineStoredDateRepository::class)->args([new Reference('doctrine.orm.entity_manager')])->tag('kernel.reset', ['method' => 'reset']);
+            $services->set(BinaryKeysListener::class)->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
             foreach (new ReflectionClass(DoctrineStoredDateRepository::class)->getInterfaceNames() as $port) {
                 $services->alias($port, DoctrineStoredDateRepository::class)->public();

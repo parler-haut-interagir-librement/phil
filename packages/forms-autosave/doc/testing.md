@@ -8,7 +8,15 @@ Doctrine one on SQLite in memory, its table created from the mapping, and rows t
 sealer over the component's local KMS, the owner of Symfony Security, the form type extension — the tag's values, keys
 by subject and user, the fields marked, invalid submissions, the endpoint's URL, submitted forms kept until the response
 —, the structure version, the labels, the cookie of sent forms, every answer of the endpoints and the CSRF tokens they
-accept and refuse, the purge command, and the bundle's configuration, services, prepended settings and compiler pass.
+accept and refuse, the purge command, `BinaryKeysListener` — the primary key in `utf8mb4_bin` in the schema generated
+for MySQL and MariaDB, the default collation on SQLite, where keys that differ only by case or accent are four drafts,
+the options a field already has kept —, and the bundle's configuration, services, prepended settings and compiler pass.
+
+`tests/Integration` runs `BinaryKeysListener` on a real MySQL 8.4 and PostgreSQL 17: drafts whose keys differ only by
+case are saved, read and deleted apart by `DoctrineDraftStore`, the same key saved twice is still refused, a key that
+differs by an accent is another row, and on MySQL the primary key is in `utf8mb4_bin` and the table of the previous
+version reaches it through the schema diff. Each server's test reads its URL from `PHIL_TEST_MYSQL_URL` or
+`PHIL_TEST_POSTGRESQL_URL` and is skipped without it.
 
 `tests/Functional` boots a kernel with FrameworkBundle in French, DoctrineBundle on SQLite, TwigBundle,
 KeyManagementBundle with a local `sodium://` client and the bundle with its server store, and plays a form from its page
@@ -27,6 +35,9 @@ From the monorepo root, then from the bundle:
 
 ```sh
 vendor/bin/phpunit packages/forms-autosave/tests
+PHIL_TEST_MYSQL_URL='mysql://phil:phil@127.0.0.1:13306/phil_test?serverVersion=8.4' \
+PHIL_TEST_POSTGRESQL_URL='postgresql://phil:phil@127.0.0.1:15432/phil_test?serverVersion=17' \
+vendor/bin/phpunit packages/forms-autosave/tests/Integration
 composer fuzz -- draft
 node --import ./tests/js/register.mjs --test tests/js     # from packages/forms-autosave
 ```

@@ -14,6 +14,7 @@ use Phil\FormsAutosave\Application\PlainSealer;
 use Phil\FormsAutosave\Infrastructure\Console\PurgeCommand;
 use Phil\FormsAutosave\Infrastructure\DependencyInjection\AutosaveServices;
 use Phil\FormsAutosave\Infrastructure\DependencyInjection\ServerStorePass;
+use Phil\FormsAutosave\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\FormsAutosave\Infrastructure\Doctrine\DoctrineDraftStore;
 use Phil\FormsAutosave\Infrastructure\Form\AutosaveLabels;
 use Phil\FormsAutosave\Infrastructure\Form\AutosaveTypeExtension;
@@ -74,10 +75,11 @@ final class PhilFormsAutosaveBundleTest extends TestCase
     {
         $container = $this->load(['secret' => 's', 'ttl' => 60, 'debounce' => 100, 'max_bytes' => 1024, 'server' => ['enabled' => true, 'max_bytes' => 2048, 'owner' => 'app.owner']]);
 
-        self::assertSame(['service_container', DraftKeys::class, AutosaveLabels::class, DoneCookie::class, DoctrineDraftStore::class, Drafts::class, DraftRequest::class, DraftController::class, PurgeCommand::class, AutosaveTypeExtension::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', DraftKeys::class, AutosaveLabels::class, DoneCookie::class, DoctrineDraftStore::class, BinaryKeysListener::class, Drafts::class, DraftRequest::class, DraftController::class, PurgeCommand::class, AutosaveTypeExtension::class], array_keys($container->getDefinitions()));
         self::assertSame('app.owner', (string) $container->getAlias(DraftOwner::class));
         self::assertEquals([new Reference('doctrine.dbal.default_connection')], $container->getDefinition(DoctrineDraftStore::class)->getArguments());
         self::assertSame([DoctrineDraftStore::class, true], [(string) $container->getAlias(DraftStore::class), $container->getAlias(DraftStore::class)->isPublic()]);
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertFalse($container->has(DraftSealer::class), 'the encrypting sealer is completed by the pass');
         self::assertEquals([new Reference(DraftStore::class), new Reference(DraftSealer::class), new Reference(DraftKeys::class), new Reference('clock'), 60, 2048], $container->getDefinition(Drafts::class)->getArguments());
         self::assertTrue($container->getDefinition(Drafts::class)->isPublic());
@@ -93,6 +95,7 @@ final class PhilFormsAutosaveBundleTest extends TestCase
         $memory = $this->load(['server' => ['enabled' => true, 'store' => 'memory', 'encrypt' => false]]);
         self::assertSame([InMemoryDraftStore::class, true], [(string) $memory->getAlias(DraftStore::class), $memory->getAlias(DraftStore::class)->isPublic()]);
         self::assertSame([['method' => 'reset']], $memory->getDefinition(InMemoryDraftStore::class)->getTag('kernel.reset'));
+        self::assertFalse($memory->hasDefinition(BinaryKeysListener::class));
         self::assertSame(PlainSealer::class, (string) $memory->getAlias(DraftSealer::class));
         self::assertTrue($memory->hasDefinition(PlainSealer::class));
         self::assertSame(DoctrineDraftStore::class, (string) $this->load(['server' => ['enabled' => true, 'store' => 'doctrine']])->getAlias(DraftStore::class));

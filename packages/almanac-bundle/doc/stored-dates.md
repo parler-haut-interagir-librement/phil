@@ -17,6 +17,39 @@ a column changed by hand — is left out of the almanac, for one row not to stop
 | `all_day` | boolean | |
 | `tags` | JSON | |
 
+### Collation of the key
+
+**The key compares byte by byte**, as PHP compares it. The bundle writes keys in lowercase ASCII; a row written
+outside it — by hand, by another tool — keeps its spelling: a row `Harvest` or `harvést` is never found for `harvest`,
+and never stops `harvest` from being saved under the unique key. `BinaryKeysListener`, registered with
+`database: true`, gives `date_key` the binary collation when the ORM loads its metadata on MySQL or MariaDB; the
+mapping itself stays the same on every platform.
+
+On MySQL and MariaDB, `date_key` takes the `utf8mb4` character set and the `utf8mb4_bin` collation, given the
+connection's platform: the default collation of MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's
+default collations are deterministic, equal only when the bytes are, and SQLite compares bytes: the column keeps the
+default.
+
+#### Upgrading from 0.1
+
+The table of a 0.1 install on MySQL or MariaDB kept the connection's collation. `doctrine:migrations:diff` writes the
+migration that brings `date_key` to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. By hand, per platform:
+
+```sql
+-- MySQL and MariaDB
+ALTER TABLE phil_almanac_date MODIFY date_key VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL;
+-- PostgreSQL: nothing to run, the default collation is deterministic.
+-- SQLite: nothing to run, the column compares bytes.
+```
+
+The change only makes values more distinct, so no existing row breaks the unique key. A key the application looks up
+in another case than the row holds stops matching from the migration on; the keys the bundle writes are lowercase, so
+only rows written outside it can be concerned. Before migrating on MySQL or MariaDB, list them:
+
+```sql
+SELECT date_key FROM phil_almanac_date WHERE CAST(date_key AS BINARY) <> CAST(LOWER(date_key) AS BINARY);
+```
+
 `StoredDate` is built from a `Definition` and gives it back, `definition()`; `change()` takes another's title, rules,
 length and tags, the key staying. The port `StoredDateRepository` — `all()`, by key, `ofKey()`, `save()`, `remove()` —
 is `DoctrineStoredDateRepository`, which flushes at each save and removal. The almanac is built from the definitions
