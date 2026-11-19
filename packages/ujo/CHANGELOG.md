@@ -4,6 +4,28 @@ All notable changes to `phil/ujo` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.4-alpha: an inline HTML fragment that holds too many tags, or nests them too deep, is refused
+as soon as its budget is spent. A patch version and not a minor one, as for 0.1.3-alpha: no field the normalizer
+accepts, at most 100,000 characters, holds more tags than the default budget.
+
+### Added
+
+- `Exception\InputTooComplex`, thrown by `InlineSanitizer::sanitize()` and `toText()` for a fragment holding more tags
+  and comments than `maxTokens`, and by `sanitize()` for one nesting its elements deeper than `maxDepth` — and so by the
+  `Normalizer`, the `HtmlRenderer` and `PlainText` —; `$budget` names the budget, `tokens` or `depth`, and `$limit` its
+  value.
+- `maxTokens` and `maxDepth` on `InlineSanitizer`, kept by `withProfile()`; `InlineSanitizer::DEFAULT_MAX_TOKENS`,
+  100,000, and `InlineSanitizer::DEFAULT_MAX_DEPTH`, 512.
+- The section [The budgets of a fragment](doc/inline-html.md#the-budgets-of-a-fragment).
+
+### Changed
+
+- The inline sanitizer finds the tags of a fragment one at a time instead of all at once: it holds only the elements
+  still open, and stops at the first tag past its budget.
+- The benchmark reads hostile paragraphs within the default budgets: inline tags 512 deep, and 5,000 in a row.
+
 ## 0.1.3-alpha - 2026-11-18
 
 An inline HTML fragment longer than 4 MiB, read before, is refused by default. A

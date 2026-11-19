@@ -8,6 +8,7 @@ Every exception implements `Phil\Ujo\Exception\UjoException`.
 | `InvalidDocument` | `InvalidArgumentException` | The structure of a document or block, or the data of a block, breaks the model; a text that cannot be written as JSON. Its `path` names where, as `blocks[2].data.level` |
 | `UnknownBlockType` | `InvalidArgumentException` | A block or tune of no registered type, or a block with no renderer. Its `type` names it |
 | `InvalidConfiguration` | `LogicException` | An inline profile that is not registered |
+| `InputTooComplex` | `InvalidArgumentException` | An HTML fragment given to the inline sanitizer holds more tags and comments than `maxTokens`, 100,000 by default, or nests its elements deeper than `maxDepth`, 512 by default; `$budget` names the budget, `tokens` or `depth`, and `$limit` its value |
 | `InputTooLarge` | `InvalidArgumentException` | An HTML fragment given to the inline sanitizer — to be sanitized, rendered or converted to text — is longer than its ceiling, `maxBytes`, 4 MiB by default; `$bytes` and `$limit` say both lengths |
 
 Messages say where and why, for example:
