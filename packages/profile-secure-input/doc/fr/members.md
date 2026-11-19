@@ -1,12 +1,12 @@
-<!-- phil-dev source-sha256=ad4c346d281cf8adc0a6f232f8bed972a74c35d7e85dce0641c751f1c6f1de38 -->
+<!-- phil-dev source-sha256=fdac862c95dace15a6a1114a4e6e9fe48cae5396bbc3de6d7c362536f1ad5b2f -->
 # Membres
 
 Chaque membre est un paquet indépendant, publié sur Packagist et versionné séparément. Le profil l'exige à sa dernière
-version mineure publiée.
+version mineure publiée, à partir de la version dont il a besoin pour les correctifs.
 
 ## `phil/url-bundle` — les adresses que les gens saisissent
 
-- **Contrainte :** `^0.1`. **Apporte :** `phil/url`, `phil/enums`.
+- **Contrainte :** `^0.1.3`, qui démarre sans `doctrine/dbal`. **Apporte :** `phil/url`, `phil/enums`.
 - **Rôle :** une adresse donnée dans un formulaire est lue comme le fait un navigateur — par l'analyseur WHATWG de
   PHP 8.5 —, normalisée, et son genre est détecté : un site Web ordinaire, une chaîne vidéo, un compte de réseau
   social.
@@ -14,7 +14,7 @@ version mineure publiée.
   adresses dans Twig.
 - **Pourquoi dans ce profil :** une adresse est la première donnée que reçoivent la plupart des formulaires publics, et
   celle que lisent les autres protections.
-- **Exige :** `ext-intl` et `ext-mbstring` ; `doctrine/dbal` installé pour que la 0.1.2-alpha démarre.
+- **Exige :** `ext-intl` et `ext-mbstring` ; `doctrine/dbal` et DoctrineBundle pour le seul type de colonne.
 
 ## `phil/safe-http` — les adresses que l'application va chercher
 
@@ -51,7 +51,7 @@ version mineure publiée.
 
 ## `phil/upload-scan-bundle` — les fichiers que les gens téléversent
 
-- **Contrainte :** `^0.1`. **Apporte :** `phil/upload-scan`.
+- **Contrainte :** `^0.1.1`, dont la page de quarantaine vérifie son jeton sans session. **Apporte :** `phil/upload-scan`.
 - **Rôle :** chaque fichier téléversé passe par un antivirus pendant la validation du formulaire : sain, infecté ou non
   analysé, avec une politique pour les fichiers non analysés ; les fichiers infectés sont mis en quarantaine, listés
   pour les administrateurs et purgés.

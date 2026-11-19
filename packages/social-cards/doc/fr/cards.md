@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=960e881d84ba8783b563e6a738b19c84946f12db8c58cd58d90a1ca55d85d2f9 -->
+<!-- phil-dev source-sha256=81dcd2e0c67082a9c4ddd3d3611fc1a8aeb65a12d091fbad8b805b9edbb9d164 -->
 # Cartes
 
 Une carte est l'image de 1200×630 avec laquelle une page est partagée quand elle n'en a pas de propre. Elle est dessinée
@@ -111,7 +111,8 @@ installer libraqm, dessine de nouvelles cartes.
 
 Le moteur de rendu est facultatif : `ext-imagick` est suggérée, non exigée. Ses polices sont celles du gabarit ; libraqm
 ne met en forme que ce que la police contient, et une carte en arabe a donc besoin d'une police qui a les glyphes
-arabes et leurs formes liées.
+arabes et leurs formes liées. Un caractère que la police n'a pas est omis du dessin par ImageMagick, là où GD dessine la
+boîte du glyphe manquant, mais sa largeur est tout de même mesurée : le texte garde un espace à sa place.
 
 ## Empreintes et stockages
 
