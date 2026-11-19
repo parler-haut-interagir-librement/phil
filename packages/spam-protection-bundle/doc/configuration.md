@@ -24,7 +24,7 @@ phil_spam_protection:
 | `content.forbidden_terms` | `[]` | Whole words, or sequences of words, a text may not hold, compared without case, accents or the punctuation between words. |
 | `content.detect_gibberish` | `true` | Whether a text of random characters is held. |
 | `cache_pool` | `cache.app` | The PSR-6 pool of used tokens. Give one that every web server shares. |
-| `used_tokens.connection` | `null` | The Doctrine connection whose table keeps the used tokens, in place of the pool: `default`. Each claim is one atomic insert. |
+| `used_tokens.connection` | `null` | The Doctrine connection whose table keeps the used tokens, in place of the pool: `default`. Each claim is one atomic insert. In the `prod` environment, this or `lock_factory` is required. |
 | `used_tokens.lock_factory` | `null` | The service id of a Symfony lock factory under which the pool claims each token: `lock.factory`. Its store must be shared by every web server. Not with `connection`. |
 | `rate_limiter` | `null` | The service id of a Symfony rate limiter factory — `limiter.contact` for `framework.rate_limiter.contact` —; none by default. In the `prod` environment, its storage must be shared by every web server, or the container build fails. |
 | `single_server` | `false` | Accepts in the `prod` environment a limiter whose storage is local to the server, for an application on one server. |
@@ -43,7 +43,18 @@ phil_spam_protection:
 
 Without `used_tokens`, the pool claims a token by reading, writing and reading back: two submissions of one token at
 the same moment can both pass. In a burst of eight simultaneous submissions of one token on a filesystem pool, one
-to four got through. **In production, choose an atomic store**:
+to four got through. **In the `prod` environment, an atomic store is required**: without `used_tokens.connection` or
+`used_tokens.lock_factory`, the container build fails, and the application does not boot, with this message:
+
+```
+phil_spam_protection.used_tokens: in the prod environment, the used tokens need a store that is safe under
+concurrent submissions. Set "used_tokens.connection" to a Doctrine connection, such as "default", or
+"used_tokens.lock_factory" to a lock factory on a store every web server shares, such as "lock.factory". The cache
+pool alone, in memory or in files, lets two submissions of one token both pass: it is accepted outside production only.
+```
+
+`single_server` does not lift it: one server takes two submissions at the same moment as well. In `dev` and `test`, the
+pool alone, such as an array or a filesystem pool, keeps working. Choose one of:
 
 ```yaml
 # a table of the Doctrine connection, created by the next migration
