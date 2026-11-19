@@ -51,8 +51,8 @@ the value the library gives and its reason, and both suites check that value: a 
 notation only, two lists never equal, a non-finite result as `null`, a variable at `null` that takes its default, and
 `!=` true for a field without a value, as the basic conditions of `phil/forms-bundle` give it too.
 
-`.gitattributes` leaves `tests/` out of the archive Composer installs, so the file and its notice stay in the
-repository.
+The archive Composer installs holds `tests/`, the file and its notice with it, so the suites run from an installed
+copy of the package.
 
 ## The browser suite
 
