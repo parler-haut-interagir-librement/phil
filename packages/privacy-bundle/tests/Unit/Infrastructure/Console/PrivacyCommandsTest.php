@@ -35,6 +35,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 
 #[CoversClass(ExportSubjectCommand::class)]
@@ -170,7 +171,18 @@ final class PrivacyCommandsTest extends TestCase
         $tester = new CommandTester(new EraseSubjectCommand(new SubjectErasure([new RecordingEraser('billing', fails: true), new RecordingEraser('identity')])));
 
         self::assertSame(Command::FAILURE, $tester->execute(['subject' => 's-1', '--confirm' => true]));
-        self::assertSame("identity: records, deleted\nbilling: failed, billing is down\nErasure failed in module(s) billing; retry it, erasers are idempotent.\n", $tester->getDisplay());
+        self::assertSame("identity: records, deleted\nbilling: failed, RuntimeException\nErasure failed in module(s) billing; retry it, erasers are idempotent.\n", $tester->getDisplay());
+    }
+
+    /**
+     * The message of a failure can quote the person's data: it is shown only to whoever asks for it.
+     */
+    public function testTheMessageOfAFailureIsShownOnlyWhenVerbose(): void
+    {
+        $tester = new CommandTester(new EraseSubjectCommand(new SubjectErasure([new RecordingEraser('billing', fails: true)])));
+
+        self::assertSame(Command::FAILURE, $tester->execute(['subject' => 's-1', '--confirm' => true], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]));
+        self::assertSame("billing: failed, RuntimeException\nbilling: billing is down\nErasure failed in module(s) billing; retry it, erasers are idempotent.\n", $tester->getDisplay());
     }
 
     public function testTheRegisterIsATableOrJson(): void

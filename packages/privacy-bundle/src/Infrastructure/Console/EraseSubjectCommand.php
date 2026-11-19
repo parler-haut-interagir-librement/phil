@@ -22,6 +22,8 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  * Erases a person from every module, and says what each store did — erased, anonymised, kept until it expires. A
  * module that fails is named and the others still run; running the command again retries, erasers being idempotent.
+ *
+ * A failure is shown by its class; its message, which can quote the person's data, only with `-v`.
  */
 #[AsCommand(name: 'phil:privacy:erase', description: 'Erases a data subject from every module')]
 final class EraseSubjectCommand extends Command
@@ -63,7 +65,11 @@ final class EraseSubjectCommand extends Command
             $this->report($output, $erasureIncomplete->completed);
 
             foreach ($erasureIncomplete->failures as $module => $failure) {
-                $output->writeln(\sprintf('%s: failed, %s', $module, $failure->getMessage()));
+                $output->writeln(\sprintf('%s: failed, %s', $module, $failure::class));
+
+                if ($output->isVerbose()) {
+                    $output->writeln(\sprintf('%s: %s', $module, $failure->getMessage()));
+                }
             }
 
             $output->writeln($erasureIncomplete->getMessage());

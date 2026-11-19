@@ -188,7 +188,8 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 
 | Type | Role | State |
 |---|---|---|
-| `ErasureIncomplete` | `RuntimeException`; `$completed` reports, `$failures` by module; `after($completed, $failures)` | Implemented |
+| `ErasureIncomplete` | `RuntimeException`; `$completed` reports, `$failures` by module, none chained as the previous exception; `after($completed, $failures)` | Implemented |
+| `AccountErasureIncomplete` | `RuntimeException`, thrown to Messenger by `AdvanceAccountDeletionHandler`; `$deletionId`, `$modules`, no previous exception; `of($deletionId, $erasure)` | Implemented |
 | `MisconfiguredPrivacy` | `LogicException`; `duplicateModule()`, `duplicatePurger()`, `missingPurger()`, `userWithoutSubject()` | Implemented |
 | `AccountDeletionBusy` | `RuntimeException`; another process holds the lock of this person | Implemented |
 | `LockLost` | `RuntimeException`; the lock of a work in steps expired, was taken, or could not be confirmed; `create()` | Implemented |

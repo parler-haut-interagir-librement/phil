@@ -49,7 +49,8 @@ final class SubjectErasureTest extends TestCase
             self::assertSame(1, $after->calls);
             self::assertSame(['billing'], array_keys($erasureIncomplete->failures));
             self::assertSame(['identity'], array_map(static fn (ErasureReport $report): string => $report->module->value, $erasureIncomplete->completed));
-            self::assertInstanceOf(RuntimeException::class, $erasureIncomplete->getPrevious());
+            self::assertInstanceOf(RuntimeException::class, $erasureIncomplete->failures['billing']);
+            self::assertNull($erasureIncomplete->getPrevious(), 'A chained failure follows the exception into logs and transports.');
             self::assertSame('Erasure failed in module(s) billing; retry it, erasers are idempotent.', $erasureIncomplete->getMessage());
             self::assertSame(0, $erasureIncomplete->getCode());
         }

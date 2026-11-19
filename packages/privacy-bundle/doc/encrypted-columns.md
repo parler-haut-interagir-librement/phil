@@ -92,11 +92,27 @@ listener writes the tag through the ORM only: a row inserted through DBAL or a b
 
 ## Rotation
 
-The master keys rotate in the KMS and the component, not in this bundle. With a data key store, the column values
-refer to stored data keys, and `key-management:rewrap-data-keys` wraps those keys again under another client or master
-key without rewriting a row. Without a store, each value carries its wrapped data key: keep the old master key in the
-KMS while values sealed under it remain, and rewrite them by loading and saving the entities under the new key. The
-data key of a blind index never rotates: every tag already written was derived under it.
+The keys rotate in the KMS and in `symfony/key-management`, not in this bundle, and no command of this bundle
+encrypts again the values already written.
+
+With a data key store, the column values refer to stored data keys:
+
+- `rotate($scope)` of the store, `RewrappableDataKeyStoreInterface`, retires the current data key of a scope and
+  creates a fresh one: the values written from then on are sealed under it, and those already written keep referring
+  to the retired key, which stays in the store and must not be deleted while they remain.
+- `key-management:rewrap-data-keys` wraps the stored data keys again under another client or master key, without
+  reading or rewriting a column value. The old master key can leave the KMS once every stored key is wrapped again.
+
+Without a store, each value carries its wrapped data key: keep the old master key in the KMS while values sealed under
+it remain. Loading and saving the entities encrypts nothing again: Doctrine's unit of work compares the decrypted
+values, finds them equal and writes no row, so a master key removed after it destroys every value still sealed under
+it.
+
+Rotation limits what one leaked data key reads, not what access to the KMS reads: whoever can call the KMS with the
+application's credentials unwraps every data key, retired or current, and so decrypts every column. Restrict that
+access to the application, and audit its calls in the KMS.
+
+The data key of a blind index never rotates: every tag already written was derived under it.
 
 ## Erasure and anonymization
 
