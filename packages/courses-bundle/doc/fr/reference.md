@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7a8532d14c2bf1efa406177a3ea4e6138aa033b63a7af7ba74cd7988cbfa7018 -->
+<!-- phil-dev source-sha256=369544d6c65ca920b47e9ac266c7dfc3081362cb34de9f68ba75895712cb35e1 -->
 # Référence
 
 ## Bundle
@@ -70,9 +70,10 @@
 | `Application\Import\ScormPlanner`, `Cmi5Planner`, `ImportPlan`, `PlannedModule`, `PlannedBlock`, `PlannedActivity` | Transforment un manifeste en cours à créer |
 | `Application\Import\ImportReport` | Ce qu'un import a créé et laissé de côté |
 | `Application\Import\ResultImporter`, `ScormStatus` | Les résultats importés |
-| `Application\Scorm\ScormRuntime` | Ouvre les sessions des tentatives SCORM, conserve leurs validations, y met fin et enregistre leur résultat |
+| `Application\Scorm\ScormRuntime` | Ouvre les sessions des tentatives SCORM, conserve leurs validations, y met fin — à leur échéance aussi — et enregistre leur résultat ; ouvre une tentative terminée en révision |
 | `Application\Scorm\ScormTokens` | Les jetons de tentative |
-| `Application\Scorm\ScormLaunch`, `CommitAnswer` | Ce qu'un lancement remet au navigateur, et ce qu'une validation répond |
+| `Application\Scorm\ScormLaunch`, `CommitAnswer` | Ce qu'un lancement ou une révision remet au navigateur, et ce qu'une validation répond |
+| `Application\Scorm\TimeLimit` | Le temps alloué à une tentative : celui du manifeste, le `time_limit` propre à l'activité, ou le plus court, et son échéance |
 | `Application\Cmi5\Cmi5Launcher` | Lance une unité |
 | `Application\Cmi5\Cmi5Tokens` | La réponse de l'URL de récupération, et les jetons |
 | `Application\Cmi5\Cmi5Statements` | Reçoit et émet des énoncés |
@@ -97,6 +98,7 @@
 | `Infrastructure\Http\ScormFrameController` | Le cadre de l'environnement d'exécution SCORM, sur l'origine du contenu |
 | `Infrastructure\Doctrine\DbalScormAttemptRepository` | Les tentatives SCORM par DBAL |
 | `Infrastructure\Privacy\ScormPrivacy` | Les tentatives SCORM dans les demandes d'accès et d'effacement de phil/privacy-bundle |
+| `Infrastructure\Privacy\Cmi5Privacy` | Les sessions de lancement cmi5, énoncés, documents d'état et notes des énoncés `satisfied` dans les demandes d'accès et d'effacement de phil/privacy-bundle, et ce que conserve un entrepôt extérieur au bundle |
 | `Infrastructure\Http\SecondChancesController` | La page d'administration des secondes chances |
 | `Infrastructure\Routing\RoutedCmi5Endpoints` | Les URL du point de terminaison et de l'URL de récupération |
 | `Infrastructure\Console\ImportCommand`, `ImportResultsCommand`, `RetriesCommand` | Les commandes |

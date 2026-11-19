@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b6cb7c85f33381bb9a1805c7e4efc13014d71822d9c1c12e76fbdb5ea5656e1c -->
+<!-- phil-dev source-sha256=17763e63e4519dac90029e88e562f5a9b01b8220e62dfaacc1428f6162333c95 -->
 # Sécurité
 
 Un paquet vient d'une autre plateforme, et ses fichiers contiennent des scripts que personne sur ce site n'a écrits.
@@ -87,8 +87,14 @@ jamais un nom ni une adresse courriel.
 Une validation porte un jeton de tentative — la tentative, la session et une expiration, signées par un HMAC sous
 `phil_courses.scorm.secret`, rien de secret conservé dans la base de données — et le jeton CSRF sans état des formulaires :
 le `Sec-Fetch-Site`, l'`Origin` ou le `Referer` du navigateur doit dire qu'elle vient du site. Un jeton d'un autre
-apprenant connecté, d'une session antérieure, ou expiré est refusé. Le corps est borné à 2 Mio, une validation à 4 000
-valeurs, les données d'une tentative à 1 Mio, chaque valeur par le modèle de données de son élément.
+apprenant connecté, d'une session antérieure, ou expiré est refusé, tout comme toute validation d'une tentative terminée : une tentative
+ouverte en révision ne reçoit aucun jeton, et ce que son contenu écrit n'est jamais envoyé. Le corps est borné à 2 Mio,
+une validation à 4 000 valeurs, les données d'une tentative à 1 Mio, chaque valeur par le modèle de données de son
+élément.
+
+Une limite de temps est tenue par l'horloge du serveur, jamais par celle du navigateur ni par le temps de session que le
+contenu rapporte : une page qui arrête son minuteur, ou un contenu qui ment sur son temps, voit tout de même sa
+tentative prendre fin à l'échéance, et une validation postérieure de plus de 30 secondes n'est pas conservée.
 
 ## Le point de terminaison cmi5
 
