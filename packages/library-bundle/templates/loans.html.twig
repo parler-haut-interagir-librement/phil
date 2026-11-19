@@ -1,0 +1,17 @@
+{#
+ # The member's loans in a Table of the kit, the latest first, where each stands as a Badge — overdue in red.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_library' %}
+
+{% block title %}{{ 'loans.title'|trans({}, domain) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'loans.title'|trans({}, domain) }}</h1>
+    {% if loans is empty %}
+        <p>{{ 'loans.none'|trans({}, domain) }}</p>
+    {% else %}
+        {{ include('@PhilLibrary/_loans.html.twig', {loans: loans, now: now, member: false}) }}
+    {% endif %}
+{% endblock %}

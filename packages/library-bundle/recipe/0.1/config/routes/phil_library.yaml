@@ -1,0 +1,5 @@
+# The catalogue, the member's loans, the desk and the administration; the staff pages ask for the roles of
+# phil_library.roles.
+phil_library:
+    resource: '@PhilLibraryBundle/config/routes.php'
+    prefix: /library

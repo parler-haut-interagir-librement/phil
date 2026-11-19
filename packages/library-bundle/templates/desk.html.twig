@@ -1,0 +1,36 @@
+{#
+ # The desk: what was just done, in an Alert of the kit, then the form to lend a copy and the form to take one back,
+ # each sent by a Button of the kit.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_library' %}
+
+{% block title %}{{ 'desk.title'|trans({}, domain) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'desk.title'|trans({}, domain) }}</h1>
+    {% if done is not null %}
+        {% component (phil_library_kit('Alert')) %}{% block content %}
+            {% component (phil_library_kit('Alert:Description')) %}{% block content %}
+                {{ (done.status.value == 'returned' ? 'desk.returned' : 'desk.lent')|trans({'%title%': done.copy.title.name, '%barcode%': done.copy.barcode, '%date%': done.dueAt|date('Y-m-d', phil_library_timezone())}, domain) }}
+            {% endblock %}{% endcomponent %}
+        {% endblock %}{% endcomponent %}
+    {% endif %}
+
+    <section>
+        <h2>{{ 'desk.lend'|trans({}, domain) }}</h2>
+        {{ form_start(lend) }}
+            {{ form_widget(lend) }}
+            {% component (phil_library_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'desk.lend_submit'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        {{ form_end(lend) }}
+    </section>
+
+    <section>
+        <h2>{{ 'desk.return'|trans({}, domain) }}</h2>
+        {{ form_start(return) }}
+            {{ form_widget(return) }}
+            {% component (phil_library_kit('Button')) with {type: 'submit', variant: 'secondary'} %}{% block content %}{{ 'desk.return_submit'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        {{ form_end(return) }}
+    </section>
+{% endblock %}

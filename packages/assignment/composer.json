@@ -1,0 +1,46 @@
+{
+    "name": "phil/assignment",
+    "description": "Places people by ranked preferences (game tables, workshops, rooms, roles): ranked rounds or a min-cost optimum, seeded, reproducible, each placement explained.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "assignment",
+        "ranked-choice",
+        "matching",
+        "min-cost-flow",
+        "serial-dictatorship",
+        "convention"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Assignment\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Assignment\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

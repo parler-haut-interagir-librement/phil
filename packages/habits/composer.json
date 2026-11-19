@@ -1,0 +1,55 @@
+{
+    "name": "phil/habits",
+    "description": "Habit tracking that does not punish: schedules in the member's time zone, check-ins done, skipped or partial, forgiving streaks, a strength score, DBAL storage.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "habits",
+        "habit-tracker",
+        "streaks",
+        "gamification"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2"
+    },
+    "suggest": {
+        "doctrine/dbal": "To keep habits and check-ins in a database with DbalHabitStore and DbalCheckInStore",
+        "symfony/clock": "For a clock to give Habits, and a frozen one in tests",
+        "symfony/event-dispatcher": "To listen to the events of the habits"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Habits\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Habits\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

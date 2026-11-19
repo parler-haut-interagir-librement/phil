@@ -1,0 +1,52 @@
+{
+    "name": "phil/event-weather",
+    "description": "The weather forecast of an outdoor event's place and time: Environment Canada with its alerts in Canada, MET Norway elsewhere, each provider credited.",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "phil/geo": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/http-client-contracts": "^3.6"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/http-client": "^8.2"
+    },
+    "suggest": {
+        "symfony/http-client": "Its CachingHttpClient keeps the providers' answers until they expire and revalidates them with If-Modified-Since"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\EventWeather\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\EventWeather\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

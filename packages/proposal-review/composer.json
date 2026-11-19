@@ -1,0 +1,55 @@
+{
+    "name": "phil/proposal-review",
+    "description": "Jury review for calls for papers and contests: dated phases, weighted criteria, blind review with conflicts, batch decisions, pairwise votes, DBAL storage.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "review",
+        "jury",
+        "call-for-papers",
+        "blind-review",
+        "pairwise",
+        "bradley-terry"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/polyfill-php86": "^1.37"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2"
+    },
+    "suggest": {
+        "doctrine/dbal": "To keep campaigns, proposals, reviews, decisions and votes in a database with the stores under Dbal",
+        "symfony/event-dispatcher": "To listen to the phase changes, reviews and decisions"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ProposalReview\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ProposalReview\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

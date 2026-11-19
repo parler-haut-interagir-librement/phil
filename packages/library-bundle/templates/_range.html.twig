@@ -1,0 +1,10 @@
+{#
+ # A range of two numbers that may be missing: `2–4`, `3`, `2+`, `≤ 60`, or nothing. Context: `min`, `max`.
+ #}
+{%- if min is not null and max is not null -%}
+    {{ min == max ? min : min ~ '–' ~ max }}
+{%- elseif min is not null -%}
+    {{ min }}+
+{%- elseif max is not null -%}
+    ≤ {{ max }}
+{%- endif -%}

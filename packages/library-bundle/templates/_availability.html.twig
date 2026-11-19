@@ -1,0 +1,14 @@
+{#
+ # Where a copy stands, as a Badge of the kit: on the shelf, out until its due date — overdue in red —, or withdrawn.
+ # Context: `copy`, `out` (the loan that keeps it now, or null), `now`.
+ #}
+{% set domain = 'phil_library' %}
+{% if not copy.mayLend %}
+    {% component (phil_library_kit('Badge')) with {variant: 'secondary'} %}{% block content %}{{ 'copy.withdrawn'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+{% elseif out is null %}
+    {% component (phil_library_kit('Badge')) %}{% block content %}{{ 'copy.on_shelf'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+{% elseif out.isOverdue(now) %}
+    {% component (phil_library_kit('Badge')) with {variant: 'destructive'} %}{% block content %}{{ 'copy.overdue'|trans({'%date%': out.dueAt|date('Y-m-d', phil_library_timezone())}, domain) }}{% endblock %}{% endcomponent %}
+{% else %}
+    {% component (phil_library_kit('Badge')) with {variant: 'outline'} %}{% block content %}{{ 'copy.out_until'|trans({'%date%': out.dueAt|date('Y-m-d', phil_library_timezone())}, domain) }}{% endblock %}{% endcomponent %}
+{% endif %}

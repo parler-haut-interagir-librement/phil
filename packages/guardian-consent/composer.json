@@ -1,0 +1,55 @@
+{
+    "name": "phil/guardian-consent",
+    "description": "Parental consent for members under the age of consent: age brackets per jurisdiction, consent per feature by signed email link, dated proofs and withdrawal.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "parental-consent",
+        "minors",
+        "age-of-consent",
+        "privacy",
+        "gdpr",
+        "law-25"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-sodium": "*",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/service-contracts": "^3.6"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2"
+    },
+    "suggest": {
+        "symfony/clock": "For a clock to give GuardianConsent, and a frozen one in tests",
+        "symfony/event-dispatcher": "To listen to the events of the consents"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\GuardianConsent\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\GuardianConsent\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}
