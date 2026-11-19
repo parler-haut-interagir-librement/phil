@@ -4,7 +4,7 @@ All notable changes to `phil/open-badges` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.4.0-alpha - 2026-11-18
 
 The next version is 0.4.0-alpha: the verifier refuses tokens whose registered claims contradict their credential and
 contexts that redefine protected terms, `JwtSigner` refuses a credential carrying its own registered claims, and

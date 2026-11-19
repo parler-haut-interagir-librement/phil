@@ -4,7 +4,7 @@ All notable changes to `phil/comments-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.0-alpha - 2026-11-18
 
 The next version is 0.3.0-alpha: the subjects, authors and identifiers of the threads and comments compare byte by
 byte on MySQL and MariaDB. See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).

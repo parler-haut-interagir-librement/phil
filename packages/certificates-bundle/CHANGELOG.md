@@ -4,7 +4,7 @@ All notable changes to `phil/certificates-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.2-alpha - 2026-11-18
 
 The next version is 0.2.2-alpha: the keys of the register compare byte for byte on MySQL and MariaDB. See
 [Two awards at once](doc/courses-and-awarding.md#two-awards-at-once).

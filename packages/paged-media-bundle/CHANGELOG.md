@@ -4,7 +4,7 @@ All notable changes to `phil/paged-media-bundle` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.1-alpha - 2026-11-18
 
 The next version is 0.1.1-alpha: a kept job is readable by its owner alone from the moment it exists, and an open
 jobs directory is narrowed to its owner. See [The job store](doc/messenger.md#the-job-store).

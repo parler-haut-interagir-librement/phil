@@ -4,7 +4,7 @@ All notable changes to `phil/content-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.0-alpha - 2026-11-18
 
 The next version is 0.3.0-alpha: the keys of the routes, single roots, working copies and rows compare byte by byte on
 MySQL and MariaDB. See [Upgrading from 0.2](doc/storage.md#upgrading-from-02).

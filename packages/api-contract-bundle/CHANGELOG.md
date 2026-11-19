@@ -4,7 +4,7 @@ All notable changes to `phil/api-contract-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.1-alpha - 2026-11-18
 
 The next version is 0.3.1-alpha: anonymous callers can be accepted per endpoint, and the keys of Messenger messages can
 be scoped to their tenant.

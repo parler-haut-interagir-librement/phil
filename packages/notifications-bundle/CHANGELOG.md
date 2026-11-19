@@ -4,7 +4,7 @@ All notable changes to `phil/notifications-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-18
 
 The next version is 0.2.0-alpha: recipients, identifiers and keys of the three tables compare byte by byte on MySQL
 and MariaDB. See [Upgrading from 0.1](doc/installation.md#upgrading-from-01).

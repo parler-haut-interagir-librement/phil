@@ -4,7 +4,7 @@ All notable changes to `phil/commerce-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.0-alpha - 2026-11-18
 
 The next version is 0.3.0-alpha: the methods and provider references of the payments and the owners of the wish lists
 compare byte by byte on MySQL and MariaDB. See [Upgrading from 0.2](doc/payments.md#upgrading-from-02).

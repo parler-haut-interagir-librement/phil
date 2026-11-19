@@ -4,7 +4,7 @@ All notable changes to `phil/identity-client-bundle` will be documented in this 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.1-alpha - 2026-11-18
 
 The next version is 0.2.1-alpha: the replay guard renews its lock before it writes a claim. See
 [Token refresh](doc/token-refresh.md#lock-lifetimes).

@@ -4,7 +4,7 @@ All notable changes to `phil/privacy-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.1-alpha - 2026-11-18
 
 The next version is 0.1.1-alpha: the locks of the export, the erasure and the retention run are renewed between their
 steps, and the keys of the tables compare byte for byte on MySQL and MariaDB. See

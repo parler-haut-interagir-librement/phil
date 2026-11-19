@@ -4,7 +4,7 @@ All notable changes to `phil/upload-scan-bundle` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.1-alpha - 2026-11-18
 
 The next version is 0.1.1-alpha: a quarantined file and its record are readable by their owner alone from the moment
 they exist, and an open quarantine directory is narrowed to its owner. See

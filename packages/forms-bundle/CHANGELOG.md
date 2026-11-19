@@ -4,7 +4,7 @@ All notable changes to `phil/forms-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-18
 
 The next version is 0.2.0-alpha: the keys of the forms, entries and counts of places compare byte by byte on MySQL and
 MariaDB, and the tables can be created on MySQL. See [Upgrading from 0.1](doc/installation.md#upgrading-from-01).

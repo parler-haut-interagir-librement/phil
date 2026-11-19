@@ -4,7 +4,7 @@ All notable changes to `phil/settings-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-18
 
 The next version is 0.2.0-alpha: the scopes, subjects, keys and versions of the two tables compare byte by byte on
 MySQL and MariaDB. See [Upgrading from 0.1](doc/storage.md#upgrading-from-01).

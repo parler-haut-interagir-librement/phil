@@ -4,7 +4,7 @@ All notable changes to `phil/backup` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.2-alpha - 2026-11-18
 
 The next version is 0.1.2-alpha: every file of a backup is readable by its owner alone from the moment it exists, and
 an open backup directory is narrowed to its owner. See [The directory](doc/backup-sets.md#the-directory).
