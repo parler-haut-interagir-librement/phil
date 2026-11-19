@@ -6,6 +6,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
+The next version is 0.1.1-alpha: the cards can be drawn by ImageMagick, a message keeps the link preview its author
+chose, and `phil/media-bundle` 0.2 and `phil/safe-http` 0.2 are accepted. A patch version and not a minor one: the
+configuration of 0.1.0 keeps its meaning, and the floor of `phil/social-cards` moves within 0.1.
+
 ### Added
 
 - `cards.renderer`: `gd`, the default, or `imagick`, the cards drawn by `ImagickCardRenderer` of phil/social-cards —
@@ -17,10 +21,9 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ### Changed
 
-- `phil/media-bundle` 0.2 is accepted beside 0.1.
+- `phil/media-bundle` 0.2 and `phil/safe-http` 0.2 are accepted beside 0.1.
 - The `link-preview` Stimulus controller enables its `field` target when it connects: rendered `disabled`, the field
   is sent only with the script, so that a form sent without it keeps the preview of the first link.
-- `phil/safe-http` 0.2 accepted as well as 0.1.
 - It requires `phil/social-cards` 0.1.1 or later, whose `ImagickCardRenderer` the renderer `imagick` uses.
 
 ## 0.1.0-alpha - 2026-11-12
