@@ -85,8 +85,8 @@ final class NewsletterServicesTest extends TestCase
         self::assertSame(SubscriptionRateLimiter::class, $container->getDefinition(NewsletterServices::SUBSCRIPTION_LIMITER)->getClass());
         self::assertSame(NewsletterServices::SUBSCRIPTION_LIMITER, (string) $container->getAlias(ConfirmationThrottle::class));
         self::assertSame(NewsletterServices::SUBSCRIPTION_LIMITER, (string) $container->getAlias(SubscriptionRateLimiter::class));
-        self::assertSame(ConfirmationThrottle::class, self::reference($container->getDefinition(Subscriptions::class)->getArgument(9)), 'An application may alias its own throttle.');
-        self::assertSame(NewsletterServices::SUBSCRIPTION_LIMITER, self::reference($container->getDefinition(SubscriptionController::class)->getArgument(8)));
+        self::assertSame(ConfirmationThrottle::class, $this->reference($container->getDefinition(Subscriptions::class)->getArgument(9)), 'An application may alias its own throttle.');
+        self::assertSame(NewsletterServices::SUBSCRIPTION_LIMITER, $this->reference($container->getDefinition(SubscriptionController::class)->getArgument(8)));
 
         $off = $this->load(['subscription' => ['rate_limit' => false]]);
         self::assertFalse($off->hasDefinition(NewsletterServices::SUBSCRIPTION_LIMITER));
@@ -212,7 +212,7 @@ final class NewsletterServicesTest extends TestCase
         return new Processor()->processConfiguration($configuration, [$config]);
     }
 
-    private static function reference(mixed $argument): string
+    private function reference(mixed $argument): string
     {
         self::assertInstanceOf(Reference::class, $argument);
 

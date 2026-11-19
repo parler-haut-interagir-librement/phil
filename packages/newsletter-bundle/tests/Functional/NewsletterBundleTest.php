@@ -25,9 +25,9 @@ use Phil\NewsletterBundle\Infrastructure\Http\SubscriptionController;
 use Phil\NewsletterBundle\PhilNewsletterBundle;
 use Phil\NewsletterBundle\Tests\Functional\App\TestKernel;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DomCrawler\Field\ChoiceFormField;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Mime\Email;
@@ -62,7 +62,7 @@ final class NewsletterBundleTest extends WebTestCase
         $this->client->disableReboot();
 
         $limits = self::getContainer()->get('cache.rate_limiter');
-        self::assertInstanceOf(CacheItemPoolInterface::class, $limits);
+        self::assertInstanceOf(AdapterInterface::class, $limits);
         $limits->clear();
 
         $connection = self::getContainer()->get('test.connection');

@@ -160,7 +160,7 @@ final class NewsletterServices
         $limiter = self::subscriptionLimiter($services, self::array(self::array($config['subscription'])['rate_limit']), self::string($config['rate_limiter_storage']), $secret);
         $services->set(Subscriptions::class)->args([
             service(MailingListRepository::class), service(SubscriberRepository::class), service(SuppressionRepository::class), service(DeliveryRepository::class),
-            service(EngagementRepository::class), service(EmailValidator::class), service('messenger.default_bus'), service('event_dispatcher'), $clock, null === $limiter ? null : service(ConfirmationThrottle::class),
+            service(EngagementRepository::class), service(EmailValidator::class), service('messenger.default_bus'), service('event_dispatcher'), $clock, $limiter instanceof ReferenceConfigurator ? service(ConfirmationThrottle::class) : null,
         ]);
         $services->set(Campaigns::class)->args([service(CampaignRepository::class), service(DeliveryRepository::class), service(EngagementRepository::class), service('messenger.default_bus'), $clock]);
         $services->set(ClickTracker::class)->args([

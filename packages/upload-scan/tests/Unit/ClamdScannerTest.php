@@ -104,6 +104,23 @@ final class ClamdScannerTest extends TestCase
         self::assertSame("zINSTREAM\0\0\0\0\2he", $clamd->sent, 'The last chunk is never sent, so clamd never scans the start alone.');
     }
 
+    public function testATemporaryStreamWhoseMetadataStatesNoTimeoutIsScannedWhole(): void
+    {
+        $stream = fopen('php://temp', 'w+');
+        self::assertIsResource($stream);
+        fwrite($stream, 'hello');
+        self::assertArrayNotHasKey('timed_out', stream_get_meta_data($stream));
+        $clamd = new ScriptedClamd();
+
+        try {
+            self::assertTrue(new ClamdScanner($clamd)->scanStream($stream)->isClean());
+        } finally {
+            fclose($stream);
+        }
+
+        self::assertSame("zINSTREAM\0\0\0\0\5hello\0\0\0\0", $clamd->sent);
+    }
+
     public function testASourceStreamThatStopsWithoutEndingIsAnError(): void
     {
         $clamd = new ScriptedClamd();

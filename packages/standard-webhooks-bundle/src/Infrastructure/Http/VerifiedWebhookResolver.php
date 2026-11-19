@@ -104,7 +104,7 @@ final readonly class VerifiedWebhookResolver implements ValueResolverInterface
     {
         $length = $request->headers->get('Content-Length');
 
-        if (null !== $length && ctype_digit($length) && (int) $length > $this->maxBodyBytes) {
+        if (null !== $length && 1 === preg_match('/^\d+$/D', $length) && (int) $length > $this->maxBodyBytes) {
             throw $this->tooLarge();
         }
 

@@ -61,8 +61,8 @@ final class ConfigurationTest extends TestCase
 
     public function testTheLimitsOfTheSubscriptionFormAreTurnedOffExplicitly(): void
     {
-        self::assertFalse(self::limitsOf($this->process(['subscription' => ['rate_limit' => false]]))['enabled']);
-        self::assertEquals(['enabled' => true, 'per_ip' => ['limit' => 3, 'interval' => '10 minutes'], 'per_address' => ['limit' => 5, 'interval' => '1 hour'], 'resend_delay' => '1 hour'], self::limitsOf($this->process(['subscription' => ['rate_limit' => ['per_ip' => ['limit' => 3, 'interval' => '10 minutes'], 'resend_delay' => '1 hour']]])));
+        self::assertFalse($this->limitsOf($this->process(['subscription' => ['rate_limit' => false]]))['enabled']);
+        self::assertEquals(['enabled' => true, 'per_ip' => ['limit' => 3, 'interval' => '10 minutes'], 'per_address' => ['limit' => 5, 'interval' => '1 hour'], 'resend_delay' => '1 hour'], $this->limitsOf($this->process(['subscription' => ['rate_limit' => ['per_ip' => ['limit' => 3, 'interval' => '10 minutes'], 'resend_delay' => '1 hour']]])));
 
         foreach ([['per_ip' => ['interval' => '']], ['resend_delay' => '']] as $empty) {
             try {
@@ -79,7 +79,7 @@ final class ConfigurationTest extends TestCase
      *
      * @return array<array-key, mixed>
      */
-    private static function limitsOf(array $config): array
+    private function limitsOf(array $config): array
     {
         $subscription = $config['subscription'] ?? null;
         self::assertIsArray($subscription);

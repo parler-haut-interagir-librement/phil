@@ -25,6 +25,7 @@ be answered `429`, and a confirmation of a double opt-in goes to the same subscr
 ### Changed
 
 - `SubscriptionController` takes the `SubscriptionRateLimiter` as its last argument.
+- `phil/standard-webhooks-bundle` 0.2 is accepted beside 0.1 in `require-dev`.
 
 ### Security
 

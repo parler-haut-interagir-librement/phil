@@ -239,7 +239,7 @@ final readonly class ClamdScanner implements Scanner, ScannerProbe
 
             $bytes = Io::quietly(static fn (): string|false => fread($socket, ClamdResponse::MAX_BYTES - \strlen($answer)));
 
-            if (stream_get_meta_data($socket)['timed_out']) {
+            if (Io::timedOut($socket)) {
                 return ScanResult::error(\sprintf('clamd did not answer within %s seconds.', $this->timeoutSeconds));
             }
 

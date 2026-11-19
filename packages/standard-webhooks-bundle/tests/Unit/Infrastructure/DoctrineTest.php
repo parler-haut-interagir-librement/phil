@@ -59,7 +59,7 @@ final class DoctrineTest extends TestCase
 
         self::assertFalse($processed->claim(WebhookId::fromString('msg_1'), new DateTimeImmutable()));
         self::assertTrue($processed->claim(WebhookId::fromString('msg_2'), new DateTimeImmutable()));
-        self::assertTrue($processed->claim(WebhookId::fromString('msg_3'), new DateTimeImmutable()), 'The id of another receiver is not this one\'s.');
+        self::assertTrue($processed->claim(WebhookId::fromString('msg_3'), new DateTimeImmutable()), "The id of another receiver is not this one's.");
         self::assertFalse($processed->forReceiver('partner')->claim(WebhookId::fromString('msg_3'), new DateTimeImmutable()));
     }
 

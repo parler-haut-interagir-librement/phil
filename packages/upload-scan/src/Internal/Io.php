@@ -39,7 +39,7 @@ final class Io
     {
         $chunk = self::quietly(static fn (): string|false => fread($stream, $bytes));
 
-        if (stream_get_meta_data($stream)['timed_out']) {
+        if (self::timedOut($stream)) {
             return ScanResult::error(self::TIMED_OUT);
         }
 
@@ -82,6 +82,25 @@ final class Io
         }
 
         return 0 === ftell($stream);
+    }
+
+    /**
+     * Whether the last read of the stream waited past its timeout; a stream without a timeout, such as `php://temp`,
+     * states none in its metadata.
+     *
+     * @param resource $stream
+     */
+    public static function timedOut(mixed $stream): bool
+    {
+        return self::flag(stream_get_meta_data($stream), 'timed_out');
+    }
+
+    /**
+     * @param array<string, mixed> $metadata
+     */
+    private static function flag(array $metadata, string $name): bool
+    {
+        return true === ($metadata[$name] ?? false);
     }
 
     /**

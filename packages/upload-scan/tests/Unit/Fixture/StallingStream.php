@@ -36,7 +36,7 @@ final class StallingStream
         return $stream;
     }
 
-    public function stream_open(string $path, string $mode, int $options, ?string &$openedPath): bool
+    public function stream_open(string $path): bool
     {
         $this->bytes = (string) hex2bin(substr($path, \strlen(self::SCHEME.'://')));
 
