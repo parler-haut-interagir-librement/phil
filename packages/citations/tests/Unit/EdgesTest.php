@@ -59,9 +59,13 @@ final class EdgesTest extends TestCase
             self::assertSame('Invalid reference: an item has no id.', $invalidReference->getMessage());
         }
 
-        $this->expectExceptionObject(InvalidReference::because('the CSL-JSON is not JSON: Maximum stack depth exceeded'));
-
-        $json->decode(str_repeat('[', 16).str_repeat(']', 16));
+        try {
+            $json->decode(str_repeat('[', 16).str_repeat(']', 16));
+            self::fail('The JSON was read.');
+        } catch (InvalidReference $invalidReference) {
+            // The reason PHP gives may say where the error is, from PHP 8.6 on.
+            self::assertStringStartsWith('Invalid reference: the CSL-JSON is not JSON: Maximum stack depth exceeded', $invalidReference->getMessage());
+        }
     }
 
     public function testNamesGivenAsAnObjectBecomeAList(): void

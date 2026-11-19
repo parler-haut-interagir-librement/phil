@@ -88,16 +88,28 @@ final class JsonFormatTest extends TestCase
 
     public function testTheDepthOfADocumentIsBounded(): void
     {
-        $this->expectException(InvalidSynonyms::class);
-        $this->expectExceptionMessageIsOrContains('A synonyms document is JSON: Maximum stack depth exceeded.');
-        new JsonSynonyms()->read('{"language": "fr", "rules": [{"synonyms": [["a"]]}]}');
+        try {
+            new JsonSynonyms()->read('{"language": "fr", "rules": [{"synonyms": [["a"]]}]}');
+            self::fail('The document was read.');
+        } catch (InvalidSynonyms $invalidSynonyms) {
+            // The reason PHP gives may say where the error is, from PHP 8.6 on.
+            self::assertStringStartsWith('A synonyms document is JSON: Maximum stack depth exceeded', $invalidSynonyms->getMessage());
+            self::assertStringEndsWith('.', $invalidSynonyms->getMessage());
+            self::assertStringNotContainsString('..', $invalidSynonyms->getMessage());
+        }
     }
 
     public function testASyntaxErrorEndsWithAFullStop(): void
     {
-        $this->expectException(InvalidSynonyms::class);
-        $this->expectExceptionMessageIsOrContains('A synonyms document is JSON: Syntax error.');
-        new JsonSynonyms()->read('{');
+        try {
+            new JsonSynonyms()->read('{');
+            self::fail('The document was read.');
+        } catch (InvalidSynonyms $invalidSynonyms) {
+            // The reason PHP gives may say where the error is, from PHP 8.6 on.
+            self::assertStringStartsWith('A synonyms document is JSON: Syntax error', $invalidSynonyms->getMessage());
+            self::assertStringEndsWith('.', $invalidSynonyms->getMessage());
+            self::assertStringNotContainsString('..', $invalidSynonyms->getMessage());
+        }
     }
 
     public function testADocumentOfExactlyTheLimitOfRulesIsRead(): void
