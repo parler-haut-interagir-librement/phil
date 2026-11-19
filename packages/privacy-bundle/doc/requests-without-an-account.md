@@ -6,6 +6,7 @@ the site, proving with a link sent to their address that the address is theirs.
 
 ```yaml
 phil_privacy:
+    public_origin: '%env(APP_PUBLIC_ORIGIN)%'   # https://example.org
     guest_requests:
         enabled: true
         from: 'Privacy <privacy@example.org>'
@@ -53,6 +54,7 @@ link, until it expires; erasers are idempotent.
 - **No secret in a referrer or a queue.** The pages of the link send `Referrer-Policy: no-referrer` and are never kept by
   a cache; the mailer sender sends at once through the mailer's transports, never through a message queue where the
   link would be written down.
+- **The link points to the site, whatever the request named.** See [Where the link points](#where-the-link-points).
 - The forms carry the stateless CSRF token of the bundle.
 
 ## Who the address is
@@ -88,6 +90,27 @@ the secret out of any log or queue.
 | `cache` | `cache.app` | The cache pool the limits are counted in. |
 | `per_client` | `{ limit: 5, interval: '1 hour' }` | The limit per client. |
 | `per_address` | `{ limit: 3, interval: '1 day' }` | The limit per address. |
+
+## Where the link points
+
+The link is an absolute address, and a request names its own host in its `Host` header. Without care, someone asks a
+link for another person's address while naming their own host: the person receives a genuine link that leads to that
+host, and one click hands over its secret. `MailerGuestLinkSender` therefore builds the link on `public_origin`, the
+canonical address of the site, through `GuestLinkOrigin`: the router's context names that origin — scheme, host and
+port — while the link is generated, and the request's context comes back at once; the base path of the application is
+kept. The origin is read by `phil/url` when the kernel boots: an `http` or `https` address with a host name, no IP
+address, no path, query or fragment; `localhost` only in debug mode.
+
+Without `public_origin`, the link takes the host of the request, which `framework.trusted_hosts` must bound:
+
+```yaml
+framework:
+    trusted_hosts: ['^example\.org$']
+```
+
+A request for another host is then refused with `400`. In the `prod` environment, while the requests are on with the
+mailer sender, the bundle refuses to boot when neither `public_origin` nor `framework.trusted_hosts` is set. A
+`GuestLinkSender` of the application's own builds its link itself, and owes the same care.
 
 The pages and the e-mail are in the `phil_privacy` domain, in English and French; override the templates under
 `templates/bundles/PhilPrivacy/guest/` for your markup.

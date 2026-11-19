@@ -222,6 +222,7 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `Infrastructure\Database\DbalEmailTrackingConsents` | The members' choices about tracked emails, one row each | Implemented |
 | `Infrastructure\Database\UtcMoments` | The instants of the tables, in UTC and the platform's format only; `text()`, `read()` | Implemented |
 | `Infrastructure\Mailer\MailerGuestLinkSender` | The link sent at once through the mailer's transports | Implemented; wired when enabled |
+| `Infrastructure\Routing\GuestLinkOrigin` | The link generated on `public_origin`, and the boot refused in `prod` without it or `framework.trusted_hosts` | Implemented; wired with the mailer sender |
 | `Infrastructure\Doctrine\PrivacySchemaListener` | Adds the tables to the generated schema | Implemented |
 | `Infrastructure\Filesystem\EncryptedExportArchive` | Sealed files, private, removed at expiry | Implemented |
 | `Infrastructure\Log\LoggedConsentProofs` | The proofs as log lines | Implemented |

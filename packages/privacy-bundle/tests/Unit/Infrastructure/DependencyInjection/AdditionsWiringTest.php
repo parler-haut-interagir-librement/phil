@@ -30,6 +30,7 @@ use Phil\PrivacyBundle\Infrastructure\DependencyInjection\RightsServices;
 use Phil\PrivacyBundle\Infrastructure\Http\GuestRequestController;
 use Phil\PrivacyBundle\Infrastructure\Http\UndeclaredCookieListener;
 use Phil\PrivacyBundle\Infrastructure\Mailer\MailerGuestLinkSender;
+use Phil\PrivacyBundle\Infrastructure\Routing\GuestLinkOrigin;
 use Phil\PrivacyBundle\Infrastructure\Twig\EmbedExtension;
 use Phil\PrivacyBundle\Infrastructure\Twig\TwigExportReadme;
 use Phil\PrivacyBundle\PhilPrivacyBundle;
@@ -157,7 +158,10 @@ final class AdditionsWiringTest extends TestCase
         self::assertSame(MailerGuestLinkSender::class, (string) $container->getAlias(GuestLinkSender::class));
         self::assertSame(EmailGuestSubjects::class, (string) $container->getAlias(GuestSubjects::class));
         self::assertSame(DbalGuestRequests::class, (string) $container->getAlias(GuestRequestStore::class));
-        self::assertEquals([new Reference('mailer.transports'), new Reference('twig'), new Reference('router'), 'privacy@example.org'], $container->getDefinition(MailerGuestLinkSender::class)->getArguments());
+        self::assertEquals([new Reference('mailer.transports'), new Reference('twig'), new Reference('router'), 'privacy@example.org', new Reference(GuestLinkOrigin::class)], $container->getDefinition(MailerGuestLinkSender::class)->getArguments());
+        self::assertEquals([new Reference('router'), '%phil_privacy.public_origin%', '%kernel.debug%'], $container->getDefinition(GuestLinkOrigin::class)->getArguments());
+        self::assertTrue($container->getParameter(PhilPrivacyBundle::MAILED_LINKS));
+        self::assertNull($container->getParameter(GuestLinkOrigin::OPTION));
         self::assertSame(['id' => GuestRequestServices::PER_CLIENT, 'policy' => 'sliding_window', 'limit' => 9, 'interval' => '1 hour'], $container->getDefinition(GuestRequestServices::PER_CLIENT)->getArgument(0));
         self::assertSame(['id' => GuestRequestServices::PER_ADDRESS, 'policy' => 'sliding_window', 'limit' => 3, 'interval' => '1 day'], $container->getDefinition(GuestRequestServices::PER_ADDRESS)->getArgument(0));
         self::assertSame(RateLimiterFactory::class, $container->getDefinition(GuestRequestServices::PER_CLIENT)->getClass());
@@ -283,7 +287,7 @@ final class AdditionsWiringTest extends TestCase
 
     public function testEveryNewServiceIsBuiltWithTheArgumentsItNeeds(): void
     {
-        $container = $this->load([...self::GUESTS, 'consent' => ['categories' => ['analytics' => []]], 'cookies' => ['inventory' => __DIR__.'/Fixture/cookies.yaml', 'watch' => true]], ['kernel.secret' => 'secret', 'kernel.project_dir' => sys_get_temp_dir(), 'kernel.environment' => 'test']);
+        $container = $this->load([...self::GUESTS, 'consent' => ['categories' => ['analytics' => []]], 'cookies' => ['inventory' => __DIR__.'/Fixture/cookies.yaml', 'watch' => true]], ['kernel.secret' => 'secret', 'kernel.project_dir' => sys_get_temp_dir(), 'kernel.environment' => 'test', 'kernel.debug' => false]);
         $externals = [
             'database_connection' => DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]),
             'lock.factory' => new LockFactory(new InMemoryStore()),

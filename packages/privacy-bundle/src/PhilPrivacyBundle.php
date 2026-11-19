@@ -22,6 +22,7 @@ use Phil\PrivacyBundle\Infrastructure\DependencyInjection\RightsConfiguration;
 use Phil\PrivacyBundle\Infrastructure\DependencyInjection\RightsServices;
 use Phil\PrivacyBundle\Infrastructure\Http\PrivacyPages;
 use Phil\PrivacyBundle\Infrastructure\Monolog\RedactingProcessor;
+use Phil\PrivacyBundle\Infrastructure\Routing\GuestLinkOrigin;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Console\Command\Command;
@@ -31,6 +32,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Kernel\AbstractBundle;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Privacy law in code. The bundle wires the log redaction from the application's configuration:
@@ -67,6 +69,9 @@ final class PhilPrivacyBundle extends AbstractBundle
     public const string LOCALE_PACK_TAG = AnonymizationServices::LOCALE_PACK_TAG;
 
     public const string DATABASE_IDENTITY = AnonymizationServices::DATABASE_IDENTITY;
+
+    /** Whether the requests without an account send their links through the bundle's mailer sender, read when the kernel boots. */
+    public const string MAILED_LINKS = 'phil_privacy.guest_requests.mailed_links';
 
     /**
      * The Stimulus controllers, which AssetMapper serves under `@phil/privacy-bundle`.
@@ -107,6 +112,10 @@ final class PhilPrivacyBundle extends AbstractBundle
                             ->defaultValue([])
                         ->end()
                     ->end()
+                ->end()
+                ->scalarNode('public_origin')
+                    ->info('The canonical address of the site, such as https://example.com, that the links sent by email point to; null takes the host of the request, which framework.trusted_hosts must then bound. In the prod environment, the bundle refuses to boot when the requests without an account send their links by email and neither is set.')
+                    ->defaultNull()
                 ->end()
                 ->scalarNode('retention_schedule_source')
                     ->info('Service id of the RetentionScheduleSource the register of processing reads; null, the register names the rules without their periods.')
@@ -226,6 +235,10 @@ final class PhilPrivacyBundle extends AbstractBundle
             throw new InvalidConfigurationException('phil_privacy.log_redaction: '.$invalidArgumentException->getMessage(), 0, $invalidArgumentException);
         }
 
+        $guest = \is_array($config['guest_requests'] ?? null) ? $config['guest_requests'] : [];
+        $builder->setParameter(GuestLinkOrigin::OPTION, \is_string($config['public_origin'] ?? null) ? $config['public_origin'] : null);
+        $builder->setParameter(self::MAILED_LINKS, true === ($guest['enabled'] ?? false) && null === ($guest['sender'] ?? null));
+
         $services = $container->services();
         $services
             ->set(RedactingProcessor::class)
@@ -256,6 +269,29 @@ final class PhilPrivacyBundle extends AbstractBundle
         }
 
         AnonymizationServices::load($config, $services, $builder);
+    }
+
+    /**
+     * Refuses to boot, in the `prod` environment, when the requests without an account send their links by email and
+     * those links would take the host of the request: no `public_origin` and no `framework.trusted_hosts`. The origin is
+     * read here, once its environment variable is known.
+     */
+    #[Override]
+    public function boot(): void
+    {
+        // Unset until the kernel gives the container, which it does before booting a bundle.
+        $container = $this->container ?? null;
+
+        if (!$container instanceof ContainerInterface || !$container->hasParameter(self::MAILED_LINKS) || true !== $container->getParameter(self::MAILED_LINKS)) {
+            return;
+        }
+
+        $origin = $container->getParameter(GuestLinkOrigin::OPTION);
+        $origin = \is_string($origin) && '' !== $origin ? $origin : null;
+
+        $environment = $container->getParameter('kernel.environment');
+        GuestLinkOrigin::origin($origin, true === $container->getParameter('kernel.debug'));
+        GuestLinkOrigin::assertBound($origin, \is_string($environment) ? $environment : '', Request::getTrustedHosts());
     }
 
     #[Override]

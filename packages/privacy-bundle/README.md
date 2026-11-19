@@ -162,7 +162,9 @@ A malformed configuration entry fails the container build, not the first log lin
 ## Requirements
 
 PHP 8.5 or later with `ext-sodium` and `ext-intl`, `monolog/monolog` 3, Symfony 8.2 and Twig 3. The requests without an
-account need `symfony/rate-limiter`, and `symfony/mailer` for the bundle's sender. MonologBundle is needed for the
+account need `symfony/rate-limiter`, and `symfony/mailer` for the bundle's sender, whose links point to `public_origin`
+or to a host `framework.trusted_hosts` accepts: in production the bundle refuses to boot without either (see
+[Where the link points](doc/requests-without-an-account.md#where-the-link-points)). MonologBundle is needed for the
 processor to reach your loggers through its tag, a firewall for a member to reach their preferences, and a database for
 the account deletions unless a store is named. See [Installation](doc/installation.md).
 
