@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=71050d4df590c5f2cfde9c388e93ea5c6e62ecb72621552590ae90afe941ea1f -->
+<!-- phil-dev source-sha256=b6a57adfd9d0cbe3831df4d4cd2e8ad8994c01ac48160cbab5ebc109aab6f476 -->
 # Installation
 
 ## Prérequis
@@ -25,6 +25,14 @@ return [
     Phil\ApiKeysBundle\PhilApiKeysBundle::class => ['all' => true],
 ];
 ```
+
+## La recette
+
+Avec Symfony Flex, la recette enregistre le bundle, écrit `config/packages/phil_api_keys.yaml` avec le préfixe `pat` et
+la clé des empreintes lue dans `API_KEYS_HASH_KEY`, et ajoute cette variable, vide, à `.env` : remplissez-la comme
+ci-dessous. La page des membres et ses routes restent désactivées tant que l'application ne les active pas. La recette
+se trouve dans le dépôt de recettes de PHIL, lu dès que l'application nomme ce dépôt dans `extra.symfony.endpoint` ;
+sans lui, enregistrez le bundle et écrivez la configuration à la main.
 
 ## La clé
 

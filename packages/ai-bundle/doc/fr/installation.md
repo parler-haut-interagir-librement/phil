@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8d780a4f1077204e4a2f59cdcb24118fa807a2b3022570ca651a9982f4593b17 -->
+<!-- phil-dev source-sha256=7a0055daee731e5ac6a72f1e3062c41f1584ee669cbf466f74eb4cb290c38423 -->
 # Installation
 
 ## Prérequis
@@ -24,6 +24,11 @@ return [
     Phil\AiBundle\PhilAiBundle::class => ['all' => true],
 ];
 ```
+
+Avec Symfony Flex, la recette enregistre le bundle et écrit `config/packages/phil_ai.yaml` avec la devise des coûts ;
+les plateformes et les tâches sont à l'application de les déclarer, comme ci-dessous. La recette se trouve dans le
+dépôt de recettes de PHIL, lu dès que l'application nomme ce dépôt dans `extra.symfony.endpoint` ; sans lui,
+enregistrez le bundle à la main.
 
 ## Déclarer une plateforme
 

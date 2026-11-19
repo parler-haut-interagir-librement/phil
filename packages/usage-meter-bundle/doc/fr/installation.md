@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8b984076b30e5ad74442c0a2e685f4f6e2759a2aedafd1d012ac56aa87a5eec0 -->
+<!-- phil-dev source-sha256=cb521f18d439aad58b0871b521cea346dca892f3adec101ddeeac12aa6a05449 -->
 # Installation
 
 ## Prérequis
@@ -22,7 +22,10 @@
 composer require phil/usage-meter-bundle
 ```
 
-Symfony Flex active les bundles ; sans Flex, ajoutez-les à `config/bundles.php`, y compris celui de
+Avec Symfony Flex, la recette enregistre le bundle et écrit `config/packages/phil_usage_meter.yaml`, qui garde les
+compteurs sur la connexion DBAL `default` et ne déclare encore aucun compteur ; Flex active aussi
+`phil/rate-limit-bundle`. La recette se trouve dans le dépôt de recettes de PHIL, lu dès que l'application nomme ce
+dépôt dans `extra.symfony.endpoint`. Sans lui, ajoutez les bundles à `config/bundles.php`, y compris celui de
 `phil/rate-limit-bundle` quand des limiteurs de débit sont déclarés :
 
 ```php
