@@ -45,7 +45,7 @@ chooses it where the extension is loaded: see [Accelerators](accelerators.md).
 
 | Method | Contract |
 |---|---|
-| `read(string $source): Reading` | The `Document` and the metadata the source declares; `InvalidSource` only for a format with rules a source can break, as UJO JSON — a reader of a written format never throws on what a source says, and reads what it can in linear time; `InputTooLarge` for a source longer than the reader's ceiling |
+| `read(string $source): Reading` | The `Document` and the metadata the source declares; `InvalidSource` only for a format with rules a source can break, as UJO JSON — a reader of a written format never throws on what a source says, and reads what it can in linear time; `InputTooLarge` for a source longer than the reader's ceiling; `InputTooComplex` for a source past a budget of the reader, as the lines of Markdown |
 
 Each reader of the library takes `maxBytes`, the ceiling of a source, `MarkupReader::DEFAULT_MAX_BYTES` — 1 MiB — by
 default; `DefaultCompiler` takes its own, which it gives the readers it builds. See

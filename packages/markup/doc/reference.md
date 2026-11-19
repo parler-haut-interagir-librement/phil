@@ -9,7 +9,7 @@
 | `MarkupCompiler` | interface | `compile(string $source, MarkupFormat\|string $format): string`, HTML **not safe to show**; a string names a format of an add-on |
 | `LevelAwareCompiler` | interface | A `MarkupCompiler` with `compileFor($source, $format, $level)`: told the level the HTML will be purified at |
 | `HtmlPurifier` | interface | `purify(string $html, Level $level): string`; `DEFAULT_MAX_BYTES`, the ceiling of an HTML unless configured, 4 MiB |
-| `Exception\MarkupException`, `Exception\InputTooLarge`, `Exception\InvalidSource`, `Exception\MissingExtension`, `Exception\UnknownFormat` | exceptions | See [Exceptions](exceptions.md) |
+| `Exception\MarkupException`, `Exception\InputTooLarge`, `Exception\InputTooComplex`, `Exception\InvalidSource`, `Exception\MissingExtension`, `Exception\UnknownFormat` | exceptions | See [Exceptions](exceptions.md) |
 | `Markup` | `final readonly class` | `toHtml()` and `text()`: compile — at the level, for a `LevelAwareCompiler` —, then purify; `Level::All` unless told |
 | `MarkedUpText` | embeddable | `source` (text), `format` (the name of the format, 16 characters), `html` (text) |
 | `Lexer\Cursor` | `final class` | The cursor of the analyser: see [The analyser](analyser.md) |

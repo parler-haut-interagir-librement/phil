@@ -4,6 +4,24 @@ All notable changes to `phil/markup` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.1-alpha: a Markdown source holding more than 100,000 lines, read before, is refused by
+default. A patch version and not a minor one: a source of 1 MiB at most, the default ceiling, holds that many lines
+only when most of them are empty.
+
+### Added
+
+- `Exception\InputTooComplex`, thrown by `MarkdownReader` for a source holding more lines than `maxLines`, counted
+  before a list of its lines is built, whatever ends them; `$budget` names the budget, `lines`, and `$limit` its value.
+- `maxLines` on `MarkdownReader`; `MarkdownReader::DEFAULT_MAX_LINES`, 100,000.
+- The section [The budget of lines of Markdown](doc/analyser.md#the-budget-of-lines-of-markdown).
+
+### Changed
+
+- The fuzz target `markup-markdown` reads under a budget of 64 lines and checks that a source is refused exactly when
+  it holds more; the seed `many-lines.md` mixes the three ends of a line.
+
 ## 0.3.0-alpha - 2026-11-18
 
 A source longer than 1 MiB, or a UJO source longer than 4 MiB, read before, is

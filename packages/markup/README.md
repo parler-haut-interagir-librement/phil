@@ -56,6 +56,7 @@ two: source, reader, UJO, renderer, HTML, purifier.
 | `Adapter\SanitizerPurifier`: one policy per level | Implemented and tested |
 | `Adapter\AmmoniaPurifier`, `Adapter\Purifiers`: the same policies on the `ammonia` extension, where it is loaded | Implemented and tested |
 | A ceiling on every source, `maxBytes`, refused by `InputTooLarge` before it is read | Implemented and tested |
+| A budget of lines on every Markdown source, `maxLines`, refused by `InputTooComplex` before its lines are built | Implemented and tested |
 | A ceiling on every HTML purified, `maxBytes`, refused by `InputTooLarge` before it is purified | Implemented and tested |
 | Mentions, embeds, external links, smart punctuation, in every format | Not started |
 
@@ -71,7 +72,7 @@ two: source, reader, UJO, renderer, HTML, purifier.
 | [The wikis](doc/wikis.md) | MediaWiki, DokuWiki and Creole: their syntax, the extension tags they share, where pages and files are found, and why reading is linear. |
 | [HTML](doc/html.md) | What the HTML reader reads, the classes of `phil/ujo` it reads back, and what it leaves out. |
 | [Accelerators](doc/accelerators.md) | The `ammonia` extension: what `AmmoniaPurifier` keeps, the measures, installing it by PIE. |
-| [Exceptions](doc/exceptions.md) | `MarkupException`, `InputTooLarge`, `InvalidSource`, `MissingExtension` and `UnknownFormat`. |
+| [Exceptions](doc/exceptions.md) | `MarkupException`, `InputTooLarge`, `InputTooComplex`, `InvalidSource`, `MissingExtension` and `UnknownFormat`. |
 | [Extension points](doc/extension-points.md) | The ports, arguments and data an application chooses or replaces, the dialects of Markdown and the formats of add-ons. |
 | [Testing](doc/testing.md) | How the library is tested. |
 | [Reference](doc/reference.md) | The types, the formats, the levels and what each keeps, and how each level renders a checklist. |
