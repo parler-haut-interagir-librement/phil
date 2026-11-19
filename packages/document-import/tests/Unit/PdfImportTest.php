@@ -10,6 +10,8 @@ use Phil\DocumentImport\Exception\LimitExceeded;
 use Phil\DocumentImport\Exception\UnsupportedFormat;
 use Phil\DocumentImport\Format;
 use Phil\DocumentImport\Imported;
+use Phil\DocumentImport\Internal\Builder;
+use Phil\DocumentImport\Internal\Inline;
 use Phil\DocumentImport\Internal\Pdf\PdfContent;
 use Phil\DocumentImport\Internal\Pdf\PdfDocument;
 use Phil\DocumentImport\Internal\Pdf\PdfFont;
@@ -26,6 +28,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(DocumentImporter::class)]
+#[CoversClass(Builder::class)]
+#[CoversClass(Inline::class)]
 #[CoversClass(PdfReader::class)]
 #[CoversClass(PdfDocument::class)]
 #[CoversClass(PdfContent::class)]

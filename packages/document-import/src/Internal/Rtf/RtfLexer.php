@@ -82,7 +82,8 @@ final class RtfLexer
             $parameter = isset($match[2]) ? (int) $match[2] : null;
 
             if ('bin' === $match[1]) {
-                $bytes = max(0, min($parameter ?? 0, $binaryBytes));
+                $length = $parameter ?? 0;
+                $bytes = max(0, min($length, $binaryBytes));
 
                 return [[self::BINARY, substr($rtf, $at, $bytes), null], $at + $bytes];
             }

@@ -29,7 +29,12 @@ return [
             ],
             'TrueValue' => [
                 // PdfFilters: a warning of zlib let through goes to PHP's own handler, never to the application's.
-                'ignoreSourceCodeByRegex' => ['.*set_error_handler\(static fn \(\): bool => true\);.*'],
+                'ignoreSourceCodeByRegex' => [
+                    '.*set_error_handler\(static fn \(\): bool => true\);.*',
+                    // RtfReader::closeNote(): a note is closed after its context was saved, so the stack is never empty
+                    // there and the context made instead is never used.
+                    '.*array_pop\(\$this->contexts\) \?\? new RtfContext\(true\);.*',
+                ],
             ],
             'IncrementInteger' => [
                 'ignoreSourceCodeByRegex' => [
@@ -45,6 +50,8 @@ return [
                     // PdfFont: one width more than the codes of a font can ask for is never read.
                     '.*\\\\array_slice\(\$(widths, 0, 256|next, 0, 65_536|widths, 0, 65_536)\).*',
                     '.*min\(\$last, \$first \+ 65_535\).*',
+                    // RtfReader::format(): no code page 1253 is known, and an unknown one is read as 1252, the default.
+                    '.*\'ansicpg\' === \$word => \$this->codepage = .*',
                     // PdfFilters::inflate(): a stream zlib_decode() refuses for its length is inflated again by
                     // partialInflate(), which gives the same bytes. partialInflate(): chunks of another size give the
                     // same bytes, and a stream one byte past the limit is refused however much more is kept.
@@ -85,6 +92,15 @@ return [
                     // PdfParser::maybeReference(): a number with spaces and an `R` after it is read as the number by
                     // the cast, as the generation alone is.
                     '.*new PdfReference\(\$number, \(int\) \$match\[1\]\).*',
+                    // RtfReader::read(): a negative number of characters to skip skips none, as 0 does. fallback():
+                    // `\uc-1` is read as no fallback, as `\uc0` is.
+                    '.*\$this->toSkip = RtfLexer::WORD === \$type && \'u\' === \$value \? .*',
+                    '.*\$this->state->fallback = max\(0, \$count\);.*',
+                    // RtfLexer::control(): `\bin` with no length has none, whatever negative number stands for it; the
+                    // end of a line after a backslash is skipped again by the loop that reads the text, whether the
+                    // position stays on it or moves past it.
+                    '.*\$length = \$parameter \?\? 0;.*',
+                    '.*"\\\\r", "\\\\n" => \[\[self::WORD, \'par\', null\], \$at \+ 1\],.*',
                 ],
             ],
             'Minus' => [
@@ -126,6 +142,8 @@ return [
                     // PdfDocument::stream(): rows of no byte all say "object 0 at offset 0", which parses as nothing,
                     // and the section's catalog is missing: the file is scanned again from nothing.
                     '.*\$entry < \$count && \$size > 0 &&.*',
+                    // RtfReader::bytes(): with no character left to skip, skipping 0 of them changes nothing.
+                    '.*if \(\$this->toSkip > 0\) \{.*',
                 ],
             ],
             'LessThanOrEqualTo' => [
@@ -175,7 +193,13 @@ return [
             'CastString' => [
                 // preg_replace() answers null only on an error of its pattern, and the subjects are valid UTF-8 —
                 // text of the DOM, or scrubbed first; Blocks::image(): the media type of bytes fetched is known.
-                'ignoreSourceCodeByRegex' => ['.*\(string\) preg_replace.*', '.*\(string\) \$type\).*'],
+                'ignoreSourceCodeByRegex' => [
+                    '.*\(string\) preg_replace.*',
+                    '.*\(string\) \$type\).*',
+                    // RtfReader::picture(): sodium_hex2bin() answers a string for an even number of hexadecimal digits,
+                    // which is what is given to it.
+                    '.*\$bytes = \(string\) \(\$capture->properties\[\'binary\'\] \?\? sodium_hex2bin.*',
+                ],
             ],
             'CastInt' => [
                 'ignoreSourceCodeByRegex' => [
@@ -194,6 +218,10 @@ return [
                     // name two digits, which hexdec() gives as integers; a float it gives beyond 63 bits compares and
                     // indexes as the integer would.
                     '.*\(int\) hexdec\(\$(low|high|hex|match\[1\])\).*',
+                    // RtfStyles::define(): the numbers of a style are integers, as captureWord() reads them.
+                    '.*\? \(int\) \$properties\[\'(sbasedon|outlinelevel)\'\] : null,.*',
+                    // Codepage::decode(): the code pages are numbers in strings, which PHP reads as integer keys.
+                    '.*self::KNOWN\[\(int\) \$codepage\].*',
                 ],
             ],
             'MethodCallRemoval' => [
@@ -206,6 +234,11 @@ return [
                 // is false whether the request for it is negated or not; where it has, the same tests tell the two
                 // apart, and infection:next runs them there.
                 'ignoreSourceCodeByRegex' => ['.*if \(\$inMemory && self::inMemory\(\)\) \{.*'],
+            ],
+            'LogicalAnd' => [
+                // RtfReader::captureWord(): the properties kept for a word of the list outside a style are never read,
+                // so keeping them or not changes nothing.
+                'ignoreSourceCodeByRegex' => ['.*\'style\' === \$capture->name && \\\\in_array\(\$word, \[\'s\', \'cs\'.*'],
             ],
             'Throw_' => [
                 // Archive::xml(): with the flags given no warning of the parser reaches PHP, so the handler that

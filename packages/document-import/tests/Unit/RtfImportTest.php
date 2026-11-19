@@ -9,6 +9,10 @@ use Phil\DocumentImport\Exception\InvalidDocument;
 use Phil\DocumentImport\Exception\LimitExceeded;
 use Phil\DocumentImport\Format;
 use Phil\DocumentImport\Imported;
+use Phil\DocumentImport\Internal\Builder;
+use Phil\DocumentImport\Internal\Codepage;
+use Phil\DocumentImport\Internal\Inline;
+use Phil\DocumentImport\Internal\Role;
 use Phil\DocumentImport\Internal\Rtf\RtfCapture;
 use Phil\DocumentImport\Internal\Rtf\RtfContext;
 use Phil\DocumentImport\Internal\Rtf\RtfField;
@@ -25,6 +29,10 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(DocumentImporter::class)]
+#[CoversClass(Builder::class)]
+#[CoversClass(Codepage::class)]
+#[CoversClass(Inline::class)]
+#[CoversClass(Role::class)]
 #[CoversClass(RtfReader::class)]
 #[CoversClass(RtfLexer::class)]
 #[CoversClass(RtfState::class)]
@@ -175,6 +183,212 @@ final class RtfImportTest extends TestCase
         self::assertSame([[RtfLexer::WORD, 'b', -2], [RtfLexer::SYMBOL, '*', null]], iterator_to_array(RtfLexer::tokens('\b-2 \*\\', 3), false));
     }
 
+    public function testTheHeaderMayFollowABomAndBlanksButNothingElse(): void
+    {
+        self::assertSame([['paragraph', ['text' => 'Hi']]], $this->blocks($this->import("\n\t {\\rtf1 Hi}")));
+        self::assertCount(1, $this->blocks($this->import("\u{FEFF}{\\rtf1 Hi}")));
+
+        $this->expectExceptionObject(InvalidDocument::because('The file is not an RTF document: it does not start with "{\rtf".'));
+        $this->import('x {\rtf1 Hi}');
+    }
+
+    public function testTheFallbackOfAUnicodeCharacterIsSkippedOnlyRightAfterIt(): void
+    {
+        self::assertSame('—<b>?x</b>', $this->blocks($this->unicode('{\rtf1 U+8212\b ?x}'))[0][1]['text']);
+        self::assertSame('—?x', $this->blocks($this->unicode('{\rtf1 U+8212\bin1 u?x}'))[0][1]['text']);
+        self::assertSame('—?x', $this->blocks($this->unicode('{\rtf1 U+8212{?x}}'))[0][1]['text']);
+        self::assertSame('—x', $this->blocks($this->unicode('{\rtf1 \uc U+8212?x}'))[0][1]['text']);
+        self::assertSame('—?x', $this->blocks($this->unicode('{\rtf1 \uc U+8212??x}'))[0][1]['text']);
+        self::assertSame('—?x', $this->blocks($this->unicode('{\rtf1 \uc0 U+8212?x}'))[0][1]['text']);
+        self::assertSame('AB', $this->blocks($this->unicode('{\rtf1 AU+0?B}'))[0][1]['text']);
+        self::assertSame('AB', $this->blocks($this->unicode('{\rtf1 AU+ ?B}'))[0][1]['text']);
+    }
+
+    public function testSurrogatesAreJoinedFromTheFirstToTheLastOfTheirRanges(): void
+    {
+        self::assertSame("\u{10000}", $this->blocks($this->unicode('{\rtf1 U+55296?U+56320?}'))[0][1]['text']);
+        self::assertSame("\u{10FFFF}", $this->blocks($this->unicode('{\rtf1 U+56319?U+57343?}'))[0][1]['text']);
+        self::assertSame("\u{FFFD}", $this->blocks($this->unicode('{\rtf1 U+57343?}'))[0][1]['text']);
+    }
+
+    public function testGroupsLeftOpenAreClosedAtTheEnd(): void
+    {
+        self::assertSame([
+            ['paragraph', ['text' => 'Text<sup data-footnote="fn-1"><a href="#footnote-fn-1">1</a></sup>']],
+            ['footnote', ['id' => 'fn-1', 'text' => 'Note']],
+        ], $this->blocks($this->import('{\rtf1 Text{\footnote Note')));
+    }
+
+    public function testATableStillOpenAtTheEndIsWritten(): void
+    {
+        $table = static fn (array $rows): array => ['table', ['withHeadings' => false, 'stretched' => false, 'content' => $rows]];
+
+        self::assertSame([$table([['A']])], $this->blocks($this->import('{\rtf1 \trowd\intbl A\cell\row\pard}')));
+        self::assertSame([$table([['A']])], $this->blocks($this->import('{\rtf1 \trowd\intbl A\cell\pard}')));
+        self::assertSame([$table([['A']])], $this->blocks($this->import('{\rtf1 \intbl A\par}')));
+        self::assertSame([$table([['A']]), ['pageBreak', []]], $this->blocks($this->import('{\rtf1 \trowd\intbl A\cell\row\pard\page}')));
+        self::assertSame([['paragraph', ['text' => 'A']], ['pageBreak', []], ['paragraph', ['text' => 'B']]], $this->blocks($this->import('{\rtf1 A\page B}')));
+        self::assertSame([$table([['A', 'B']])], $this->blocks($this->import('{\rtf1 \trowd\intbl A\cell B\par\pard}')));
+        self::assertSame(['table', 'image'], array_column($this->blocks($this->import('{\rtf1 \trowd\intbl A\cell\row\pard{\pict\pngblip '.bin2hex(Png::bytes()).'}}')), 0));
+    }
+
+    public function testTablesDoNotShareTheirHeadings(): void
+    {
+        $blocks = $this->blocks($this->import('{\rtf1 \trowd\trhdr\intbl A\cell\row\pard B\par\trowd\intbl C\cell\row\pard D\par\trowd\intbl E\cell\row\pard G\par\trowd\trhdr\intbl F\cell\row\pard}'));
+
+        self::assertSame([true, false, false, true], array_map(static fn (array $block): bool => true === $block[1]['withHeadings'], array_values(array_filter($blocks, static fn (array $block): bool => 'table' === $block[0]))));
+    }
+
+    public function testWhatFollowsTextInAGroupOpensNoDestination(): void
+    {
+        self::assertSame('Hello ZZ done', $this->blocks($this->import('{\rtf1 {Hello \footnote ZZ} done}'))[0][1]['text']);
+        self::assertSame("\u{A0}X", $this->blocks($this->import('{\rtf1 {\~\footnote X}}'))[0][1]['text']);
+        self::assertSame('<b>X</b>', $this->blocks($this->import('{\rtf1 {\b\footnote X}}'))[0][1]['text']);
+    }
+
+    public function testWhatAGroupOutsideTheTextHoldsIsBoundedAsAWhole(): void
+    {
+        $imported = new DocumentImporter(limits: new Limits(entryBytes: 10))->import('{\rtf1 {\info{\title 1234567890}{\author abcdefghij}}}', Format::Rtf);
+        self::assertSame(['title' => '1234567890', 'creator' => 'abcdefghij'], $imported->metadata);
+
+        $this->expectExceptionObject(LimitExceeded::because('The RTF document holds more than 20 bytes outside its text.'));
+        new DocumentImporter(limits: new Limits(entryBytes: 10))->import('{\rtf1 {\info{\title 12345678901}{\author abcdefghijk}}}', Format::Rtf);
+    }
+
+    public function testControlsOutsideAnyDestinationAreHarmless(): void
+    {
+        self::assertSame("\u{FFFD}", $this->blocks($this->import('{\rtf1 {\info{\u55296}}\u56320?}'))[0][1]['text'], 'a group left out leaves no half of a pair');
+        self::assertSame('AB', $this->blocks($this->import('{\rtf1 A\bin3 xyzB}'))[0][1]['text']);
+        self::assertSame('ab', $this->blocks($this->import('{\rtf1 a\|b}'))[0][1]['text']);
+        self::assertSame('x', $this->blocks($this->import('{\rtf1 {\fldrslt x}}'))[0][1]['text']);
+        self::assertSame('x', $this->blocks($this->import('{\rtf1 {\fldinst HYPERLINK "https://a.test/"}x}'))[0][1]['text']);
+        self::assertSame('AB', $this->blocks($this->import('{\rtf1 A{\info{\page}}B}'))[0][1]['text']);
+    }
+
+    public function testAnIgnorableStyleOfTheSheetIsNotAStyle(): void
+    {
+        $map = new StyleMap(['chapter title' => StyleRole::Heading2]);
+        $read = static fn (string $rtf): array => array_map(static fn (Block $block): array => [$block->type, $block->data['text'] ?? null, $block->data['level'] ?? null], new DocumentImporter(styles: $map)->import($rtf, Format::Rtf)->document->blocks);
+
+        self::assertSame([['header', 'X', 2]], $read('{\rtf1 {\stylesheet{\s5 Chapter Title;{\*\ignored zzz}}}\pard\s5 X\par}'));
+        self::assertSame([['paragraph', 'X', null]], $read('{\rtf1 {\stylesheet{\*\s5 Chapter Title;}}\pard\s5 X\par}'));
+        self::assertSame([['paragraph', 'Text', null]], $read('{\rtf1 Text{\*\cs10 gone}\par}'));
+        self::assertSame([['header', 'X', 2]], $read('{\rtf1 {\stylesheet{\s Chapter Title;}}\pard X\par}'));
+        self::assertSame([['header', 'X', 2]], $read('{\rtf1 {\stylesheet{\s0 Title;}{\s5\sbasedon Chapter Title;}}\pard\s5 X\par}'), 'a style based on none is based on the style 0');
+    }
+
+    public function testAnIgnorableDestinationOfAKnownKindIsRead(): void
+    {
+        $ordered = static fn (bool $on): array => [['list', ['style' => $on ? 'ordered' : 'unordered', 'meta' => [], 'items' => [['content' => 'Item', 'meta' => [], 'items' => []]]]]];
+
+        self::assertSame($ordered(true), $this->blocks($this->import('{\rtf1 {\*\listtext 1.\tab}\pard\ls1 Item\par}')));
+        self::assertSame($ordered(true), $this->blocks($this->import('{\rtf1 {\listtext  1.}\pard\ls1 Item\par}')), 'the marker is trimmed');
+        self::assertSame($ordered(false), $this->blocks($this->import('{\rtf1 {\listtext -1.}\pard\ls1 Item\par}')), 'a marker starts with its number');
+        self::assertSame([['image', ['file' => ['url' => 'media/image-1.png'], 'caption' => '', 'withBorder' => false, 'withBackground' => false, 'stretched' => false]]], $this->blocks($this->import('{\rtf1 {\*\shppict{\pict\pngblip '.bin2hex(Png::bytes()).'}}}')));
+    }
+
+    public function testFieldsKeepTheirLinksAndTablesOfContents(): void
+    {
+        $toc = static fn (string $first): array => [['paragraph', ['text' => $first]], ['toc', ['title' => '', 'depth' => 3, 'wide' => false]], ['paragraph', ['text' => 'After']]];
+        $toc = $toc('Before');
+
+        self::assertSame($toc, $this->blocks($this->import('{\rtf1 Before{\field{\*\fldinst TOC \o "1-3"}{\fldrslt old}}\pard After\par}')));
+        self::assertSame([
+            ['table', ['withHeadings' => false, 'stretched' => false, 'content' => [['A']]]],
+            ['toc', ['title' => '', 'depth' => 3, 'wide' => false]],
+        ], $this->blocks($this->import('{\rtf1 \trowd\intbl A\cell\row\pard{\field{\*\fldinst TOC}{\fldrslt old}}}')));
+        self::assertSame('5', $this->blocks($this->import('{\rtf1 {\field{\*\fldinst PAGEREF TOC}{\fldrslt 5}}}'))[0][1]['text']);
+        self::assertSame('<a href="https://b.test/">B</a>', $this->blocks($this->import('{\rtf1 {\field{\*\fldinst HYPERLINK "https://a.test/"}{\fldrslt {\field{\*\fldinst HYPERLINK "https://b.test/"}{\fldrslt B}}}}}'))[0][1]['text']);
+        self::assertSame('<a href="https://a.test/">A</a>', $this->blocks($this->import('{\rtf1 {\field{\*\fldinst HYPERLINK " https://a.test/ "}{\fldrslt A}}}'))[0][1]['text']);
+
+        $imported = $this->import('{\rtf1 {\field{\*\fldinst X HYPERLINK \\\\l a}{\fldrslt t}}}');
+        self::assertSame('t', $this->blocks($imported)[0][1]['text']);
+        self::assertTrue($imported->report->isEmpty());
+    }
+
+    public function testCharacterFormattingCanBeTurnedOff(): void
+    {
+        self::assertSame('<b><i>x</i></b><i>y</i>z', $this->blocks($this->import('{\rtf1 \b\i x\b0 y\i0 z}'))[0][1]['text']);
+        self::assertSame('<u class="cdx-underline">a</u>b', $this->blocks($this->import('{\rtf1 \ul a\ulnone b}'))[0][1]['text']);
+        self::assertSame('<sub>i</sub>x', $this->blocks($this->import('{\rtf1 \sub i\nosupersub x}'))[0][1]['text']);
+        self::assertSame('<mark class="cdx-marker">a</mark>b', $this->blocks($this->import('{\rtf1 \highlight3 a\highlight0 b}'))[0][1]['text']);
+
+        $imported = $this->import('{\rtf1 \cf0 a}');
+        self::assertTrue($imported->report->isEmpty());
+    }
+
+    public function testTheCodePageComesFromTheDocumentOrIsTheDefault(): void
+    {
+        self::assertSame('é', $this->blocks($this->import('{\rtf1\ansicpg\\\'e9\par}'))[0][1]['text']);
+        self::assertSame('é', $this->blocks($this->import('{\rtf1\pca \\\'82\par}'))[0][1]['text']);
+        self::assertSame('é', $this->blocks($this->import('{\rtf1\pc \\\'82\par}'))[0][1]['text']);
+    }
+
+    public function testParagraphsEndAtSectionsAndRawLineEnds(): void
+    {
+        self::assertSame([['paragraph', ['text' => 'A']], ['paragraph', ['text' => 'B']]], $this->blocks($this->import('{\rtf1 A\sect B}')));
+        self::assertSame([['paragraph', ['text' => 'A']], ['paragraph', ['text' => 'B']]], $this->blocks($this->import("{\\rtf1 A\\\rB}")));
+        self::assertSame([['paragraph', ['text' => 'A']], ['paragraph', ['text' => 'BC']]], $this->blocks($this->import("{\\rtf1 A\\\nBC}")));
+        self::assertSame('AB', $this->blocks($this->import("{\\rtf1 A\nB}"))[0][1]['text']);
+        self::assertSame('Xabc', $this->blocks($this->import('{\rtf1 X\bin-1 abc}'))[0][1]['text']);
+        self::assertSame('x', $this->blocks($this->import('{\rtf1 \bin0 x}'))[0][1]['text']);
+        self::assertSame('x', $this->blocks($this->import('{\rtf1 \bin x}'))[0][1]['text']);
+    }
+
+    public function testListLevelsAreKeptBetweenZeroAndEight(): void
+    {
+        $items = '';
+
+        foreach ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as $level) {
+            $items .= '\pard\ls1\ilvl'.$level.' L'.$level.'\par';
+        }
+
+        $blocks = $this->blocks($this->import('{\rtf1 '.$items.'}'));
+        self::assertSame([['L0'], ['L1'], ['L2'], ['L3'], ['L4'], ['L5'], ['L6'], ['L7'], ['L8', 'L9']], $this->levels($blocks[0][1]['items']));
+
+        $flat = $this->blocks($this->import('{\rtf1 \pard\ls1\ilvl0 A\par\pard\ls1\ilvl0 B\par\pard\ls1\ilvl-1 C\par\pard\ls1\ilvl D\par}'));
+        self::assertSame([['A', 'B', 'C', 'D']], $this->levels($flat[0][1]['items']));
+    }
+
+    public function testAMarkerWithoutAListJoinsTheListZero(): void
+    {
+        $blocks = $this->blocks($this->import('{\rtf1 {\listtext \\\'95\tab}A\par\pard\ls0 B\par}'));
+
+        self::assertSame([['list', ['style' => 'unordered', 'meta' => [], 'items' => [['content' => 'A', 'meta' => [], 'items' => []], ['content' => 'B', 'meta' => [], 'items' => []]]]]], $blocks);
+    }
+
+    public function testASectionBreakIsNotAStyleAndTheStyleNumberFallsBackToZero(): void
+    {
+        $map = new StyleMap(['mapped' => StyleRole::Quote]);
+        $imported = new DocumentImporter(styles: $map)->import('{\rtf1 {\stylesheet{\s0 Mapped;}{\s1 Other;}}\pard\s1 A\par\pard B\par\pard\s1\s C\par}', Format::Rtf);
+
+        self::assertSame(['paragraph', 'quote', 'quote'], array_map(static fn (Block $block): string => $block->type, $imported->document->blocks));
+    }
+
+    public function testBlankDestinationsAndInformationAreNotKept(): void
+    {
+        $imported = $this->import('{\rtf1 {\info{\title   }{\author  Ann  }}{\header   }{\footer   }Text\par}');
+
+        self::assertSame(['creator' => 'Ann'], $imported->metadata);
+        self::assertSame([], $this->report($imported));
+    }
+
+    public function testThePictureDescriptionAndHexAreTrimmed(): void
+    {
+        $hex = bin2hex(Png::bytes());
+        $picture = static fn (string $hex, string $description): string => '{\rtf1 {\pict{\*\picprop{\sp{\sn wzDescription }{\sv  '.$description.'  }}}\pngblip '.$hex.'}\par}';
+
+        foreach ([$hex, $hex.'a', $hex.'abc'] as $variant) {
+            self::assertSame(
+                [['image', ['file' => ['url' => 'media/image-1.png'], 'caption' => '', 'alt' => 'A dot', 'withBorder' => false, 'withBackground' => false, 'stretched' => false]]],
+                $this->blocks($this->import($picture($variant, 'A dot'))),
+            );
+        }
+
+        self::assertSame([['paragraph', ['text' => 'x']]], $this->blocks($this->import('{\rtf1 {\picprop{\sp{\sn wzDescription}{\sv alt}}}x}')));
+        self::assertSame([['paragraph', ['text' => 'x']]], $this->blocks($this->import('{\rtf1 {\sv alt}x}')));
+    }
+
     /**
      * An RTF document whose `U+` stand for the backslash and `u` of its Unicode control words.
      */
@@ -186,6 +400,24 @@ final class RtfImportTest extends TestCase
     private function import(string $rtf): Imported
     {
         return new DocumentImporter()->import($rtf, filename: 'letter.rtf');
+    }
+
+    /**
+     * The contents of the first item of each level of a nested list, from the outer level in.
+     *
+     * @return list<list<string>>
+     */
+    private function levels(mixed $items): array
+    {
+        $levels = [];
+
+        while (\is_array($items) && [] !== $items) {
+            $levels[] = array_values(array_map(static fn (mixed $item): string => \is_array($item) && \is_string($item['content'] ?? null) ? $item['content'] : '', $items));
+            $first = $items[0] ?? null;
+            $items = \is_array($first) ? ($first['items'] ?? null) : null;
+        }
+
+        return $levels;
     }
 
     /**

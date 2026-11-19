@@ -8,14 +8,30 @@ use Phil\DocumentImport\DocumentImporter;
 use Phil\DocumentImport\Exception\InvalidDocument;
 use Phil\DocumentImport\Format;
 use Phil\DocumentImport\Imported;
+use Phil\DocumentImport\Internal\Archive;
+use Phil\DocumentImport\Internal\Builder;
+use Phil\DocumentImport\Internal\Inline;
+use Phil\DocumentImport\Internal\Odt\OdtReader;
+use Phil\DocumentImport\Internal\Odt\OdtStyles;
+use Phil\DocumentImport\Internal\Role;
+use Phil\DocumentImport\MediaFolder;
+use Phil\DocumentImport\StyleMap;
+use Phil\DocumentImport\StyleRole;
 use Phil\DocumentImport\Tests\Unit\Fixture\Odt;
 use Phil\DocumentImport\Tests\Unit\Fixture\Png;
 use Phil\DocumentImport\Tests\Unit\Fixture\Zip;
+use Phil\SvgSanitizer\SvgSanitizer;
 use Phil\Ujo\Block;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(DocumentImporter::class)]
+#[CoversClass(Archive::class)]
+#[CoversClass(Builder::class)]
+#[CoversClass(OdtReader::class)]
+#[CoversClass(OdtStyles::class)]
+#[CoversClass(Inline::class)]
+#[CoversClass(Role::class)]
 final class OdtImportTest extends TestCase
 {
     public function testSvgImagesOfTablesAndNotesAreSanitizedOnImport(): void
@@ -366,6 +382,22 @@ final class OdtImportTest extends TestCase
         $this->expectExceptionMessageIsOrContains('The archive has no text in "content.xml"');
 
         new DocumentImporter()->import(Zip::of(['mimetype' => 'application/vnd.oasis.opendocument.text']));
+    }
+
+    public function testAStyleIsMappedByItsDisplayNameBeforeItsName(): void
+    {
+        $imported = new DocumentImporter(styles: new StyleMap(['chapter title' => StyleRole::Heading2, 'chapter' => StyleRole::Quote]))->import(
+            Odt::text('<text:p text:style-name="Chapter">X</text:p>')->styles('<style:style style:name="Chapter" style:display-name="Chapter Title" style:family="paragraph"/>')->bytes(),
+            Format::Odt,
+        );
+
+        self::assertSame([['header', ['text' => 'X', 'level' => 2]]], $this->blocks($imported));
+    }
+
+    public function testAFlatTextWithoutContentIsRefused(): void
+    {
+        $this->expectExceptionObject(InvalidDocument::because('The file is not a flat OpenDocument text: its root is not an office:document of a text.'));
+        new OdtReader(Archive::of([]), new Builder(new MediaFolder(), new SvgSanitizer()))->readFlat();
     }
 
     private function import(Odt $odt): Imported

@@ -8,7 +8,14 @@ use Phil\DocumentImport\DocumentImporter;
 use Phil\DocumentImport\Exception\InvalidDocument;
 use Phil\DocumentImport\Format;
 use Phil\DocumentImport\Imported;
+use Phil\DocumentImport\Internal\Builder;
+use Phil\DocumentImport\Internal\Docx\DocxReader;
+use Phil\DocumentImport\Internal\Docx\DocxStyles;
+use Phil\DocumentImport\Internal\Inline;
+use Phil\DocumentImport\Internal\Role;
 use Phil\DocumentImport\Omitted;
+use Phil\DocumentImport\StyleMap;
+use Phil\DocumentImport\StyleRole;
 use Phil\DocumentImport\Tests\Unit\Fixture\Docx;
 use Phil\DocumentImport\Tests\Unit\Fixture\Png;
 use Phil\DocumentImport\Tests\Unit\Fixture\Zip;
@@ -18,6 +25,11 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(DocumentImporter::class)]
+#[CoversClass(Builder::class)]
+#[CoversClass(DocxReader::class)]
+#[CoversClass(DocxStyles::class)]
+#[CoversClass(Inline::class)]
+#[CoversClass(Role::class)]
 final class DocxImportTest extends TestCase
 {
     public function testParagraphsKeepTheCharacterFormattingUjoHas(): void
@@ -565,6 +577,47 @@ final class DocxImportTest extends TestCase
         )->styles($this->style('A', 'subheading 2').$this->style('B', 'heading 23').$this->style('C', 'heading 2&#10;')));
 
         self::assertSame([['paragraph', ['text' => 'a']], ['paragraph', ['text' => 'b']], ['paragraph', ['text' => 'c']]], $this->blocks($imported));
+    }
+
+    public function testTheTableOfContentsControlIsTitledByItsFirstHeading(): void
+    {
+        $imported = $this->import(Docx::body(
+            '<w:sdt><w:sdtPr><w:docPartObj><w:docPartGallery w:val="Table of Contents"/></w:docPartObj></w:sdtPr><w:sdtContent>'
+            .self::p(self::r('Intro'), '<w:pStyle w:val="Heading1"/>')
+            .self::p(self::r(' Contents & more ', '<w:b/>'), '<w:pStyle w:val="TOCHeading"/>')
+            .self::p(self::r('Second'), '<w:pStyle w:val="TOCHeading"/>')
+            .self::p(self::r('Entry'))
+            .'</w:sdtContent></w:sdt>',
+        )->styles($this->style('Heading1', 'heading 1').$this->style('TOCHeading', 'TOC Heading', '<w:basedOn w:val="Heading1"/>')));
+
+        self::assertSame([['toc', ['title' => 'Contents & more', 'depth' => 3, 'wide' => false]]], $this->blocks($imported));
+    }
+
+    public function testTheFirstNumberOfAListMayBeOverriddenByItsInstance(): void
+    {
+        $imported = $this->import(Docx::body($this->item('One', 1, 0))->numbering(
+            $this->abstract('7', '<w:lvl w:ilvl="0"><w:start w:val="3"/><w:numFmt w:val="decimal"/></w:lvl>')
+            .'<w:num w:numId="1"><w:abstractNumId w:val="7"/><w:lvlOverride w:ilvl="0"><w:startOverride w:val="5"/></w:lvlOverride><w:lvlOverride w:ilvl="1"><w:startOverride w:val="8"/></w:lvlOverride><w:lvlOverride w:ilvl="0"/></w:num>',
+        ));
+
+        self::assertSame([['list', ['style' => 'ordered', 'meta' => ['start' => 5], 'items' => [['content' => 'One', 'meta' => [], 'items' => []]]]]], $this->blocks($imported));
+    }
+
+    public function testAStyleIsMappedByItsNameBeforeItsIdentifier(): void
+    {
+        $imported = new DocumentImporter(styles: new StyleMap(['title text' => StyleRole::Heading2, 'chapter' => StyleRole::Quote]))->import(
+            Docx::body(self::p(self::r('X'), '<w:pStyle w:val="Chapter"/>'))->styles($this->style('Chapter', 'Title Text'))->bytes(),
+            Format::Docx,
+        );
+
+        self::assertSame([['header', ['text' => 'X', 'level' => 2]]], $this->blocks($imported));
+    }
+
+    public function testAStyleWithoutAnIdentifierIsNeverMapped(): void
+    {
+        $imported = new DocumentImporter(styles: new StyleMap(['' => StyleRole::Quote]))->import(Docx::body(self::p(self::r('X')))->bytes(), Format::Docx);
+
+        self::assertSame([['paragraph', ['text' => 'X']]], $this->blocks($imported));
     }
 
     private function import(Docx $docx): Imported

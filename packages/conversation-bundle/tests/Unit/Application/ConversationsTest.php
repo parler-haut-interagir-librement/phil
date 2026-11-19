@@ -25,6 +25,7 @@ use Phil\ConversationBundle\Infrastructure\Doctrine\DbalConversationRepository;
 use Phil\ConversationBundle\Infrastructure\Doctrine\DbalReceptionRepository;
 use Phil\ConversationBundle\Tests\Unit\Fixture\ForgettingConnection;
 use Phil\ConversationBundle\Tests\Unit\Fixture\RacingClock;
+use Phil\ConversationBundle\Tests\Unit\Fixture\SavingRepository;
 use Phil\ConversationBundle\Tests\Unit\Fixture\Store;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -74,6 +75,18 @@ final class ConversationsTest extends TestCase
         self::assertSame(['ada', 'bob'], $this->participants($conversation->id, true), 'the one who left is back');
         self::assertSame(['Hello Bob', 'Back'], $this->bodies($conversation->id, 'ada'));
         self::assertCount(1, $this->store->events->of(ConversationStarted::class));
+    }
+
+    public function testAnExistingDirectConversationIsTakenUpWithoutStartingAnother(): void
+    {
+        $conversation = $this->conversations->startDirect(Store::id('ada'), Store::id('bob'), 'Hello');
+        $repository = new SavingRepository($this->store->repository);
+        $conversations = new Conversations($repository, $this->store->reception, $this->store->clock, $this->store->events);
+
+        $again = $conversations->startDirect(Store::id('bob'), Store::id('ada'), 'Back');
+
+        self::assertTrue($again->id->equals($conversation->id));
+        self::assertSame([$conversation->id->value], array_values(array_unique($repository->saved)), 'no other conversation is even tried');
     }
 
     #[DataProvider('transactions')]

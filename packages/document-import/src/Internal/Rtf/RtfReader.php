@@ -373,11 +373,9 @@ final class RtfReader
             $this->flushTable();
             $this->out->toc('');
             $this->state->skip = true;
-
-            return true;
+        } else {
+            $this->state->link = $field->link ?? $this->state->link;
         }
-
-        $this->state->link = $field->link ?? $this->state->link;
 
         return true;
     }
@@ -448,14 +446,23 @@ final class RtfReader
             's' === $word => $context->style = $parameter ?? 0,
             'outlinelevel' === $word => $context->outline = $parameter,
             'ls' === $word => $context->list = $parameter,
-            'ilvl' === $word => $context->level = max(0, min(8, $parameter ?? 0)),
+            'ilvl' === $word => $context->level = null === $parameter ? 0 : max(0, min(8, $parameter)),
             \array_key_exists($word, self::ALIGNMENTS) => $context->alignment = self::ALIGNMENTS[$word],
             'ftnalt' === $word => $context->endnote = true,
             'u' === $word => $this->unicode($parameter ?? 0),
-            'uc' === $word => $this->state->fallback = max(0, $parameter ?? 1),
+            'uc' === $word => $this->fallback($parameter),
             isset(self::CHARACTERS[$word]) => $this->emit(self::CHARACTERS[$word]),
             default => $this->format($word, $parameter),
         };
+    }
+
+    /**
+     * How many characters follow each `\uN` as its fallback: 1 unless the document says otherwise.
+     */
+    private function fallback(?int $parameter): void
+    {
+        $count = $parameter ?? 1;
+        $this->state->fallback = max(0, $count);
     }
 
     private function format(string $word, ?int $parameter): void
