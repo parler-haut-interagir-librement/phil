@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3f535d0b9cf127b0b9a1b5c9a707084e253f066bc4c2748241673c8cc211313b -->
+<!-- phil-dev source-sha256=b75de8c76b3812ac158cc7c1fcb2a89f9b9a7445594c419e81cd5e4c6802f7ba -->
 # HTML en ligne
 
 UJO (Universal JSON Output) garde la mise en forme en ligne de ses textes en HTML : `Hello <b>world</b>`.
@@ -47,6 +47,26 @@ $text = new PlainText(sanitizer: $sanitizer);
 
 Le normaliseur borne aussi chaque champ HTML à `maxHtmlLength` caractères, 100 000 par défaut, vérifié avant que
 l'assainisseur le lise.
+
+## Les budgets d'un fragment
+
+Dans son plafond, un fragment est aussi borné dans le travail qu'il coûte. L'assainisseur trouve les balises une à la
+fois, à partir de là où la dernière s'est terminée, et ne garde que les éléments encore ouverts :
+
+| Budget | Compte | Défaut | Refusé par |
+|---|---|---|---|
+| `maxTokens` | les balises et les commentaires du fragment, ceux des éléments retirés compris ; le texte ne coûte rien | `InlineSanitizer::DEFAULT_MAX_TOKENS`, 100 000 | `sanitize()` et `toText()` |
+| `maxDepth` | les éléments ouverts en même temps ; un élément vide (`br`, `hr`, `img`, `wbr`) n'ouvre aucun niveau, et un élément fermé rend son niveau | `InlineSanitizer::DEFAULT_MAX_DEPTH`, 512 | `sanitize()` |
+
+Au-delà d'un budget, l'assainisseur lève aussitôt `Exception\InputTooComplex`, sans lire le reste : `$budget` dit
+`tokens` ou `depth`, et `$limit` sa valeur. Un fragment n'est jamais coupé pour qu'il y tienne. Les valeurs par défaut
+ne refusent aucun champ que le normaliseur accepte (100 000 caractères contiennent moins de balises que le budget) ni
+aucun arbre plus profond que celui que construit un navigateur. Les deux sont des arguments du constructeur, conservés
+par `withProfile()` :
+
+```php
+$sanitizer = new InlineSanitizer(maxBytes: 262_144, maxTokens: 10_000, maxDepth: 64);
+```
 
 ## Profils
 

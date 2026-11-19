@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1b711220bf3e45330da919e3c3a4b64ed7957fbd9723d4c138b322c25f7b16dd -->
+<!-- phil-dev source-sha256=a0697590cdae42b2fcf1b06def08a3bf7e7ea3a1a75848245c3eff6e566d6975 -->
 # L'analyseur
 
 Les lecteurs sont écrits sur un seul analyseur, à la manière d'un analyseur lexical écrit à la main : un curseur qui
@@ -101,7 +101,22 @@ $compiler = new DefaultCompiler(maxBytes: 262_144, ujoMaxBytes: 1_048_576); // 2
 qu'il compile sans lecteur), donne son plafond aux lecteurs que retourne `reader()`, et place derrière lui le lecteur
 du format d'un module complémentaire. Une source UJO a un plafond à elle, `ujoMaxBytes`, que le compilateur donne à son
 lecteur UJO et au décodeur de `phil/ujo` qui le suit, de sorte que les deux refusent à la même longueur. `Markup` refuse
-ce que refuse son compilateur. Une source UJO est refusée par le plafond de `UjoReader` avant que le décodeur de
+ce que refuse son compilateur.
+
+## Le budget de lignes de Markdown
+
+Une source qui tient dans son plafond peut n'être faite que de sauts de ligne : un mégaoctet de sauts, c'est un million
+de lignes, chacune une entrée des listes que construit le lecteur Markdown. `MarkdownReader` compte les lignes d'une
+source avant de les construire (`\r\n`, `\r` et `\n` en terminent chacun une) et refuse par `Exception\InputTooComplex`
+une source qui en compte plus que son budget, dont `$budget` est `lines` et `$limit` le budget, sans couper la source
+pour qu'elle y tienne. Le budget est l'argument `maxLines` de son constructeur, `MarkdownReader::DEFAULT_MAX_LINES`
+(100 000) par défaut : un mégaoctet de prose compte quelques dizaines de milliers de lignes. Les lecteurs que construit
+`DefaultCompiler` gardent la valeur par défaut.
+
+```php
+$reader = new MarkdownReader(maxBytes: 4 * 1_048_576, maxLines: 400_000); // 4 MiB, 400,000 lines
+```
+Une source UJO est refusée par le plafond de `UjoReader` avant que le décodeur de
 `phil/ujo` la voie.
 
 Les purificateurs ont aussi un plafond, 4 Mio par défaut : voir

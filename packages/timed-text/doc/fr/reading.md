@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4fa62aabfe7b4cdbdbebde9cb0c44046cd492810ce616eb23e610561715aade2 -->
+<!-- phil-dev source-sha256=f6885e98019c91cc04d037bc0bbf667802715741068d546cfadd257ad2f58cda -->
 # Lecture
 
 ## Stricte et indulgente
@@ -44,5 +44,7 @@ Le JSON n'a pas de lignes : ses problèmes nomment le segment, compté à partir
 
 `Limits` borne le travail sur un document, quel que soit son contenu : `maxBytes` (16 Mio par défaut), `maxCues`
 (100 000 repères, segments, paragraphes ou chapitres), `maxTextBytes` (64 Kio pour le texte d'un repère, d'un titre,
-d'une note ou d'un style) et `maxIssues` (1 000 problèmes listés). Au-delà de l'une d'elles, le lecteur lève
+d'une note ou d'un style) et `maxIssues` (1 000 problèmes listés). Un document WebVTT a aussi `maxNotes` (100 000 blocs `NOTE`), `maxRegions`
+(1 000 régions) et `maxStyles` (1 000 blocs `STYLE`), chacun compté avant que le bloc soit lu. Au-delà de l'une d'elles,
+le lecteur lève
 `Exception\LimitExceeded`, dans `read()` comme dans `inspect()`. Voir [Sécurité](security.md).

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=702b00b4f81adac8b4a02ae8d3c59ea046759c3e9d021a38b451932ce9b52841 -->
+<!-- phil-dev source-sha256=d534419cff43c22ca71d59aac3e0c635c76d2953e5e77fedef4b6df65030e0c8 -->
 # Exceptions
 
 Chaque exception implémente `Phil\Ujo\Exception\UjoException`.
@@ -9,6 +9,7 @@ Chaque exception implémente `Phil\Ujo\Exception\UjoException`.
 | `InvalidDocument` | `InvalidArgumentException` | La structure d'un document ou d'un bloc, ou les données d'un bloc, enfreignent le modèle ; un texte qui ne peut pas s'écrire en JSON. Son `path` dit où, comme `blocks[2].data.level` |
 | `UnknownBlockType` | `InvalidArgumentException` | Un bloc ou un réglage d'aucun type enregistré, ou un bloc sans moteur de rendu. Son `type` le nomme |
 | `InvalidConfiguration` | `LogicException` | Un profil en ligne qui n'est pas enregistré |
+| `InputTooComplex` | `InvalidArgumentException` | Un fragment HTML donné à l'assainisseur en ligne compte plus de balises et de commentaires que `maxTokens`, 100 000 par défaut, ou imbrique ses éléments plus profondément que `maxDepth`, 512 par défaut ; `$budget` nomme le budget, `tokens` ou `depth`, et `$limit` sa valeur |
 | `InputTooLarge` | `InvalidArgumentException` | Un fragment HTML donné à l'assainisseur en ligne (pour être assaini, rendu ou converti en texte) est plus long que son plafond, `maxBytes`, 4 Mio par défaut ; `$bytes` et `$limit` donnent les deux longueurs |
 
 Les messages disent où et pourquoi, par exemple :

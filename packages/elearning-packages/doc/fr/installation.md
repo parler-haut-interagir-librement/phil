@@ -1,10 +1,10 @@
-<!-- phil-dev source-sha256=813f4b7efa0d68d7d6383d6bd0a0f67e31880c71990bf0dc5c21f079b61999ca -->
+<!-- phil-dev source-sha256=ce30fda404aeac935a4df9812beccedf100f9d78612e67ede821666b48b4decd -->
 # Installation
 
 ## Prérequis
 
 - PHP 8.5 ou une version plus récente.
-- Les extensions `dom` et `libxml`, qui analysent les manifestes.
+- Les extensions `dom`, `libxml` et `xmlreader`, qui comptent et analysent les manifestes.
 - L'extension `mbstring`, qui borne les textes et vérifie que les chemins sont en UTF-8.
 - L'extension `zip`, qui lit les archives.
 

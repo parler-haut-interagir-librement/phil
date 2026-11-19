@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=da736580229a240581fc12ac56f29bde521619be0029397e8e40ae6cfb2ca054 -->
+<!-- phil-dev source-sha256=b08d642d7ff6aee3150e6b5d22e2289667e3c39223eef5d9f242e8b8b1efdf54 -->
 # phil/markup
 
 **Du Markdown, du BBCode, du MediaWiki, du DokuWiki, du Creole, de l'UJO, du HTML ou du texte brut, changés en HTML
@@ -62,6 +62,7 @@ assainisseur.
 | `Adapter\SanitizerPurifier` : une politique par niveau | Implémenté et testé |
 | `Adapter\AmmoniaPurifier`, `Adapter\Purifiers` : les mêmes politiques sur l'extension `ammonia`, là où elle est chargée | Implémentés et testés |
 | Un plafond sur chaque source, `maxBytes`, refusé par `InputTooLarge` avant qu'elle soit lue | Implémenté et testé |
+| Un budget de lignes sur chaque source Markdown, `maxLines`, refusé par `InputTooComplex` avant que ses lignes soient construites | Implémenté et testé |
 | Un plafond sur chaque HTML purifié, `maxBytes`, refusé par `InputTooLarge` avant qu'il soit purifié | Implémenté et testé |
 | Mentions, contenus intégrés, liens externes, ponctuation typographique, dans chaque format | Pas commencé |
 
@@ -77,7 +78,7 @@ assainisseur.
 | [Les wikis](doc/fr/wikis.md) | MediaWiki, DokuWiki et Creole : leur syntaxe, les balises d'extension qu'ils partagent, où se trouvent les pages et les fichiers, et pourquoi la lecture est linéaire. |
 | [HTML](doc/fr/html.md) | Ce que lit le lecteur HTML, les classes de `phil/ujo` qu'il relit, et ce qu'il laisse de côté. |
 | [Accélérateurs](doc/fr/accelerators.md) | L'extension `ammonia` : ce que garde `AmmoniaPurifier`, les mesures, l'installation par PIE. |
-| [Exceptions](doc/fr/exceptions.md) | `MarkupException`, `InputTooLarge`, `InvalidSource`, `MissingExtension` et `UnknownFormat`. |
+| [Exceptions](doc/fr/exceptions.md) | `MarkupException`, `InputTooLarge`, `InputTooComplex`, `InvalidSource`, `MissingExtension` et `UnknownFormat`. |
 | [Points d'extension](doc/fr/extension-points.md) | Les ports, arguments et données qu'une application choisit ou remplace, les dialectes de Markdown et les formats des modules complémentaires. |
 | [Tests](doc/fr/testing.md) | Comment la bibliothèque est testée. |
 | [Référence](doc/fr/reference.md) | Les types, les formats, les niveaux et ce que garde chacun, et comment chaque niveau produit le rendu d'une liste de contrôle. |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=64089dca3cd10af639285aa7923b36f7d59af385b8fdd2b7b61e88bfabe03027 -->
+<!-- phil-dev source-sha256=7e543f5a72635d50579f666ae01ac3713e1fcc3b82468f5d460e267bb50b2316 -->
 # phil/elearning-packages
 
 **Paquets SCORM 1.2, SCORM 2004 et cmi5 lus en toute sécurité, et le modèle de données d'exécution SCORM, sans plateforme d'apprentissage.**
@@ -14,7 +14,8 @@ avant qu'un fichier soit lu : sa taille et son nombre d'entrées, le chemin de c
 paquet, les liens symboliques, les entrées chiffrées, la taille que chaque entrée annonce et son taux de compression.
 Chaque fichier est ensuite lu par un flux qui s'arrête un octet après ce que son entrée annonçait, et vérifié selon son
 CRC-32. Le manifeste est analysé sans type de document ni entité, sans accès au réseau, et dans des limites sur sa
-taille, sa profondeur et le nombre d'éléments qu'il décrit. Rien n'est extrait sur le disque et rien n'est exécuté.
+taille, ses nœuds XML et leur profondeur, comptés avant qu'il soit chargé, et la profondeur et le nombre d'éléments
+qu'il décrit. Rien n'est extrait sur le disque et rien n'est exécuté.
 
 Elle contient aussi le modèle de données d'exécution de SCORM 1.2 et de SCORM 2004 4e édition : chaque élément, son type,
 son vocabulaire et son intervalle, qui peut le lire et l'écrire, les codes d'erreur de chaque version, l'API d'exécution
@@ -24,7 +25,7 @@ donne, puis de nouveau sur le serveur.
 
 Elle sert une plateforme qui importe et exécute des cours, un formulaire de téléversement qui refuse un paquet brisé
 avant qu'il soit stocké, ou un outil de migration qui énumère le contenu d'un ensemble de paquets. C'est une bibliothèque PHP
-simple, sans dépendance au-delà des extensions `dom`, `libxml`, `mbstring` et `zip`.
+simple, sans dépendance au-delà des extensions `dom`, `libxml`, `mbstring`, `xmlreader` et `zip`.
 
 ## État
 
@@ -32,7 +33,7 @@ simple, sans dépendance au-delà des extensions `dom`, `libxml`, `mbstring` et 
 |---|---|
 | L'archive ZIP vérifiée avant qu'un fichier soit lu, puis lue dans ses limites | Implémenté, testé et soumis au fuzzing |
 | Les chemins dans un paquet, résolus selon `xml:base` et vérifiés | Implémenté et testé |
-| Le manifeste lu sans type de document ni entité, borné en taille, en profondeur et en éléments | Implémenté, testé et soumis au fuzzing |
+| Le manifeste lu sans type de document ni entité, borné en taille, en nœuds XML, en profondeur et en éléments | Implémenté, testé et soumis au fuzzing |
 | Les manifestes SCORM 1.2 et SCORM 2004 : version, organisations, éléments, ressources, séquencement conservé en XML | Implémenté, testé et soumis au fuzzing |
 | Les structures de cours cmi5 : cours, blocs, unités assignables, dans la langue demandée | Implémenté, testé et soumis au fuzzing |
 | Le format reconnu, les fichiers de lancement et les fichiers déclarés vérifiés | Implémenté et testé |
@@ -79,7 +80,7 @@ $package->warnings;     // ['The launch file "sco/quiz.html" of the item "a2" is
 
 ## Prérequis
 
-PHP 8.5 ou une version plus récente avec les extensions `dom`, `libxml`, `mbstring` et `zip`.
+PHP 8.5 ou une version plus récente avec les extensions `dom`, `libxml`, `mbstring`, `xmlreader` et `zip`.
 
 ## Contribuer
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=61a7124ece2fde7999efc9f636e4702ec66ee60f5fa6f3617e954af2879a09a0 -->
+<!-- phil-dev source-sha256=3a77ae6b61448f9dd0ecc4f3e4411acdc8b9cc1d4cd5827d300bc39c3830ebb4 -->
 # Sécurité
 
 Les fichiers de sous-titres et de transcriptions viennent de membres, d'éditeurs, de services de reconnaissance vocale
@@ -7,7 +7,10 @@ et d'autres sites. La bibliothèque les lit comme hostiles.
 ## Un travail borné
 
 `Limits` plafonne les octets d'un document, ses repères, le texte d'un repère et les problèmes qu'une inspection
-liste ; au-delà d'un plafond, le lecteur lève `Exception\LimitExceeded` avant que cela ne coûte davantage. Le JSON est
+liste, ainsi que les notes, les régions et les blocs de style d'un document WebVTT ; au-delà d'un plafond, le lecteur
+lève `Exception\LimitExceeded` avant que cela ne coûte davantage. Un fichier qui tient dans les octets permis ne peut pas
+devenir plus d'objets que les plafonds : chaque bloc est compté avant d'être lu, et une région est comparée à celles qui
+la précèdent par son identifiant, en temps constant. Le JSON est
 décodé avec une imbrication bornée à huit niveaux et ses grands entiers gardés comme chaînes, qui sont ensuite refusées
 comme secondes. Chaque analyseur s'exécute en temps linéaire de son entrée : aucun motif ne revient en arrière sur une
 ligne entière. Les analyseurs sont soumis au fuzzing — voir [Tests](testing.md).

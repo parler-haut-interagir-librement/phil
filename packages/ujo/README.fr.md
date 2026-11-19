@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=93bb0db4b32d72d9ec625463d3963975b8f2cda357c6e39dde3caac5b6c43d5d -->
+<!-- phil-dev source-sha256=5ee83f02d2c4bd6b24d15d5855acd16d447918b8ffce9f30c3ab0c6b6f5acb56 -->
 # phil/ujo
 
 **Des documents UJO (Universal JSON Output) comme des valeurs fiables : lus strictement, vérifiés bloc par bloc, rendus
@@ -40,6 +40,7 @@ un `BlockRenderer` par type ; `PlainText` convertit ; `Ujo` assemble le tout.
 | Réglages : alignement, ancre, variante de texte, avis, retrait, mise en page, masque, table des matières, variante | Implémenté et testé |
 | `InlineSanitizer` : profils `rich`, `plain` et `raw` des outils en ligne | Implémenté et testé |
 | Un plafond sur chaque fragment de HTML en ligne lu, `maxBytes`, refusé par `InputTooLarge` | Implémenté et testé |
+| Des budgets de balises et de profondeur sur chaque fragment de HTML en ligne lu, `maxTokens` et `maxDepth`, refusés par `InputTooComplex` | Implémenté et testé |
 | `HtmlRenderer` : un moteur de rendu par type, remplaçable ; réglages en classes, identifiants et styles ; listes de contrôle à cases à cocher accessibles | Implémenté et testé |
 | `PlainText` : une conversion par type, remplaçable | Implémenté et testé |
 | L'outil communautaire `layout` (mises en page CSS libres) | Non lu, par choix |

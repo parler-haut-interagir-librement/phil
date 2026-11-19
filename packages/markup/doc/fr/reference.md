@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=72e26ce4bd322956546496ef85d95bceb71ad49dadd37b47279bb6538e9daa2a -->
+<!-- phil-dev source-sha256=b85223fec05130d86d119f1e83eb71e31c7983039c83fb11967fc128834b8327 -->
 # Référence
 
 ## Types
@@ -10,7 +10,7 @@
 | `MarkupCompiler` | interface | `compile(string $source, MarkupFormat\|string $format): string`, du HTML **qu'on ne peut pas afficher sans risque** ; une chaîne nomme un format d'un module complémentaire |
 | `LevelAwareCompiler` | interface | Un `MarkupCompiler` avec `compileFor($source, $format, $level)` : on lui indique le niveau auquel le HTML sera assaini |
 | `HtmlPurifier` | interface | `purify(string $html, Level $level): string` ; `DEFAULT_MAX_BYTES`, le plafond d'un HTML sauf configuration, 4 Mio |
-| `Exception\MarkupException`, `Exception\InputTooLarge`, `Exception\InvalidSource`, `Exception\MissingExtension`, `Exception\UnknownFormat` | exceptions | Voir [Exceptions](exceptions.md) |
+| `Exception\MarkupException`, `Exception\InputTooLarge`, `Exception\InputTooComplex`, `Exception\InvalidSource`, `Exception\MissingExtension`, `Exception\UnknownFormat` | exceptions | Voir [Exceptions](exceptions.md) |
 | `Markup` | `final readonly class` | `toHtml()` et `text()` : compiler (au niveau voulu, pour un `LevelAwareCompiler`), puis assainir ; `Level::All` sauf indication contraire |
 | `MarkedUpText` | objet intégrable | `source` (texte), `format` (le nom du format, 16 caractères), `html` (texte) |
 | `Lexer\Cursor` | `final class` | Le curseur de l'analyseur : voir [L'analyseur](analyser.md) |
