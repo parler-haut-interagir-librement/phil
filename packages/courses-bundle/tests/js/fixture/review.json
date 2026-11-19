@@ -1,0 +1,110 @@
+[
+    {
+        "version": "1.2",
+        "commit": {
+            "cmi.core.lesson_status": "passed",
+            "cmi.core.score.raw": "90",
+            "cmi.suspend_data": "page=7",
+            "cmi.core.lesson_location": "end",
+            "cmi.core.session_time": "00:05:00"
+        },
+        "values": {
+            "cmi.core.credit": "no-credit",
+            "cmi.core.entry": "",
+            "cmi.core.lesson_location": "end",
+            "cmi.core.lesson_mode": "review",
+            "cmi.core.lesson_status": "passed",
+            "cmi.core.score.raw": "90",
+            "cmi.core.student_id": "ada",
+            "cmi.core.student_name": "",
+            "cmi.core.total_time": "0000:05:00.00",
+            "cmi.suspend_data": "page=7"
+        },
+        "calls": [
+            ["initialize", ""],
+            ["getValue", "cmi.core.lesson_mode"],
+            ["getValue", "cmi.core.credit"],
+            ["getValue", "cmi.core.entry"],
+            ["getValue", "cmi.core.lesson_status"],
+            ["getValue", "cmi.suspend_data"],
+            ["getValue", "cmi.core.total_time"],
+            ["setValue", "cmi.core.lesson_mode", "normal"],
+            ["setValue", "cmi.core.lesson_status", "failed"],
+            ["getValue", "cmi.core.lesson_status"],
+            ["commit", ""],
+            ["terminate", ""]
+        ],
+        "expect": [
+            ["true", "0"],
+            ["review", "0"],
+            ["no-credit", "0"],
+            ["", "0"],
+            ["passed", "0"],
+            ["page=7", "0"],
+            ["0000:05:00.00", "0"],
+            ["false", "403"],
+            ["true", "0"],
+            ["failed", "0"],
+            ["true", "0"],
+            ["true", "0"]
+        ]
+    },
+    {
+        "version": "2004",
+        "commit": {
+            "cmi.completion_status": "completed",
+            "cmi.success_status": "passed",
+            "cmi.score.scaled": "0.9",
+            "cmi.location": "end",
+            "cmi.interactions.0.id": "q1",
+            "cmi.interactions.0.type": "true-false",
+            "cmi.interactions.0.learner_response": "true",
+            "cmi.session_time": "PT5M"
+        },
+        "values": {
+            "adl.nav.request_valid.continue": "false",
+            "adl.nav.request_valid.previous": "false",
+            "cmi.completion_status": "completed",
+            "cmi.credit": "no-credit",
+            "cmi.entry": "",
+            "cmi.interactions.0.id": "q1",
+            "cmi.interactions.0.learner_response": "true",
+            "cmi.interactions.0.type": "true-false",
+            "cmi.learner_id": "ada",
+            "cmi.learner_name": "",
+            "cmi.location": "end",
+            "cmi.mode": "review",
+            "cmi.score.scaled": "0.9",
+            "cmi.success_status": "passed",
+            "cmi.total_time": "PT0H5M0S"
+        },
+        "calls": [
+            ["initialize", ""],
+            ["getValue", "cmi.mode"],
+            ["getValue", "cmi.credit"],
+            ["getValue", "cmi.entry"],
+            ["getValue", "cmi.completion_status"],
+            ["getValue", "cmi.interactions.0.learner_response"],
+            ["getValue", "cmi.total_time"],
+            ["setValue", "cmi.mode", "normal"],
+            ["setValue", "cmi.location", "start"],
+            ["getValue", "cmi.location"],
+            ["commit", ""],
+            ["terminate", ""]
+        ],
+        "expect": [
+            ["true", "0"],
+            ["review", "0"],
+            ["no-credit", "0"],
+            ["", "0"],
+            ["completed", "0"],
+            ["true", "0"],
+            ["PT0H5M0S", "0"],
+            ["false", "404"],
+            ["true", "0"],
+            ["start", "0"],
+            ["true", "0"],
+            ["true", "0"]
+        ]
+    }
+]

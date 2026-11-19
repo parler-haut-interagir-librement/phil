@@ -28,6 +28,9 @@ use SensitiveParameter;
  * the remote store: they are the runtime data of the launches, read back by the units through the bundle's own
  * endpoint, and the State resource of xAPI names an agent the `LearningRecordStore` port does not give.
  *
+ * A statement the remote store keeps is out of the platform's reach: xAPI gives no way to erase one. `endpoint` names
+ * the store, without credentials, so that an access request can say where the statements of a learner went.
+ *
  * The log names the statement identifier, the status and the kind of failure, never the statement, the registration,
  * the learner, the credentials nor what the store answered.
  */
@@ -35,6 +38,8 @@ final readonly class HttpLearningRecordStore implements LearningRecordStore
 {
     /** The versions of xAPI the store may speak. */
     public const array VERSIONS = ['1.0.3', '2.0.0'];
+
+    public string $endpoint;
 
     private string $statements;
 
@@ -77,7 +82,8 @@ final readonly class HttpLearningRecordStore implements LearningRecordStore
             throw new InvalidArgumentException('The credentials of the learning record store are a user name without ":" and a password, or neither.');
         }
 
-        $this->statements = rtrim($url->toString(), '/').'/statements';
+        $this->endpoint = rtrim($url->toString(), '/').'/';
+        $this->statements = $this->endpoint.'statements';
         $this->headers = ['X-Experience-API-Version' => $version, 'Content-Type' => 'application/json']
             + (null === $username ? [] : ['Authorization' => 'Basic '.sodium_bin2base64($username.':'.$password, \SODIUM_BASE64_VARIANT_ORIGINAL)]);
     }

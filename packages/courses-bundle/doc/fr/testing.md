@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=76cbcc6196d0389364cb9c060a451992e683c47bb488bc74509172d723b4900e -->
+<!-- phil-dev source-sha256=d4f322c498addb47557dc8429257cce3b846a4a82a8957377b1fbcec795932bd -->
 # Tests
 
 ## Les tests du paquet
@@ -10,9 +10,9 @@ vendor/bin/phpunit --no-configuration tests
 
 | Suite | Ce qu'elle couvre |
 |---|---|
-| `tests/Unit` | Le domaine, les points d'entrée, l'import et ses blocs, les achèvements, les règles de cmi5, les énoncés `satisfied`, l'environnement d'exécution SCORM, ses tentatives, jetons, point de terminaison, cadre et module de vie privée, les entrepôts, la mise à niveau des tables, sur SQLite en mémoire, et l'entrepôt de traces d'apprentissage distant sur un client simulé |
-| `tests/Functional` | Le bundle dans une petite application : les pages, la page d'administration, l'origine du contenu, l'URL de récupération, le point de terminaison xAPI, les commandes, et un paquet SCORM 1.2 et un paquet SCORM 2004 importés, lancés et validés, suspendus, repris et recommencés |
-| `tests/Integration` | Les tables, leur mise à niveau et les requêtes sur MySQL 8.4 et PostgreSQL 17 — les tentatives SCORM et leurs clés comparées octet par octet, entre autres —, et un énoncé envoyé à un vrai entrepôt de traces d'apprentissage |
+| `tests/Unit` | Le domaine, les points d'entrée, l'import et ses blocs, les achèvements, les règles de cmi5, les énoncés `satisfied`, l'environnement d'exécution SCORM, ses tentatives, jetons, point de terminaison, cadre et module de vie privée, la révision d'une tentative terminée, les limites de temps, le module de vie privée de cmi5, les entrepôts, la mise à niveau des tables, sur SQLite en mémoire, et l'entrepôt de traces d'apprentissage distant sur un client simulé |
+| `tests/Functional` | Le bundle dans une petite application : les pages, la page d'administration, l'origine du contenu, l'URL de récupération, le point de terminaison xAPI, les commandes, et un paquet SCORM 1.2 et un paquet SCORM 2004 importés, lancés et validés, suspendus, repris et recommencés, révisés une fois terminés, et une limite de temps appliquée |
+| `tests/Integration` | Les tables, leur mise à niveau et les requêtes sur MySQL 8.4 et PostgreSQL 17 — les tentatives SCORM et leurs clés comparées octet par octet, entre autres, leur temps et leur révision, les enregistrements cmi5 d'un apprenant exportés et effacés —, et un énoncé envoyé à un vrai entrepôt de traces d'apprentissage |
 
 ## Les scripts
 
@@ -25,7 +25,7 @@ node --import ./tests/js/register.mjs --test 'tests/js/*.test.mjs'
 `cmi.test.mjs` exécute les appels de `tests/js/fixture/vectors.json` contre l'API dans le code du navigateur, et
 `BrowserParityTest` exécute les mêmes appels contre le modèle de données de phil/elearning-packages, avec les descriptions
 de `tests/js/fixture/model-*.json` tenues pour ce que le serveur remet au navigateur : les deux répondent de la même façon à
-chaque appel. La fixture est écrite à partir des réponses du serveur.
+chaque appel. La fixture est écrite à partir des réponses du serveur. `tests/js/fixture/review.json` fait de même pour une révision : les valeurs qu'une révision remet au contenu, que `ScormReviewTest` tient pour ce que le serveur donne pour une tentative terminée, et les appels du contenu en mode révision, auxquels le serveur et le navigateur répondent de la même façon.
 
 Les paquets que les tests importent — un manifeste SCORM 1.2, un manifeste SCORM 2004 avec séquencement, une structure de
 cours cmi5 — sont écrits pour les tests, dans `tests/Unit/Fixture/Packages.php`, et compressés dans le répertoire

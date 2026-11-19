@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Phil\CoursesBundle\Application\Scorm\ScormRuntime;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalScormAttemptRepository;
+
 /*
  * What phil/dev-tools reads of this package: its paths and its exceptions to the shared configurations.
  */
@@ -23,9 +26,9 @@ return [
             'TrueValue' => ['ignoreSourceCodeByRegex' => [
                 '.*self::column\\(\'(activity_hash|state_id)\'.*',
                 '.*\\$(seen|holding)\\[\\$block\\] = true;.*',
+                // The activities with an ended attempt are read by their keys: the value only marks them.
+                '.*\\$activities\\[\\$attempt->activity->value\\] = true;.*',
             ]],
-            // Depths counted by two instead of one keep the order of the blocks: only their differences count.
-            'IncrementInteger' => ['ignoreSourceCodeByRegex' => ['.*\\(\\$depths\\[\\$parent\\] \\?\\? 0\\) \\+ 1.*']],
             // The configuration refuses a service and a remote store together: the first one named is the only one.
             'Coalesce' => ['ignoreSourceCodeByRegex' => ['.*\\$config\\[\'cmi5\'\\]\\[\'lrs\'\\] \\?\\? self::remoteStore.*']],
             // The driver gives text for a text column: the cast is for the types only.
@@ -42,7 +45,11 @@ return [
                 // A commit holds a body of three levels at most: a deeper limit only decides which of two refusals comes first.
                 '.*json_decode\\(\\$json, true, 4, .*',
             ]],
-            'IncrementInteger' => ['ignoreSourceCodeByRegex' => ['.*json_decode\\(\\$json, true, 4, .*']],
+            'IncrementInteger' => ['ignoreSourceCodeByRegex' => [
+                '.*json_decode\\(\\$json, true, 4, .*',
+                // Depths counted by two instead of one keep the order of the blocks: only their differences count.
+                '.*\\(\\$depths\\[\\$parent\\] \\?\\? 0\\) \\+ 1.*',
+            ]],
             // A score equal to the best kept is the same score.
             'GreaterThan' => ['ignoreSourceCodeByRegex' => [
                 '.*\\$outcome->score->scaled > \\$this->score->scaled.*',
@@ -58,13 +65,17 @@ return [
             'FalseValue' => ['ignoreSourceCodeByRegex' => ['.*is_bool\\(\\$body\\[.finish.\\] \\?\\? false\\).*']],
             // No enrollment asks for no row, and the query of an empty list reads none either.
             'ReturnRemoval' => ['ignore' => [
-                'Phil\\CoursesBundle\\Infrastructure\\Doctrine\\DbalScormAttemptRepository::ofEnrollments::90',
+                DbalScormAttemptRepository::class.'::ofEnrollments::94',
                 // A target no activity has leaves for the outline, as the line after the branch does.
-                'Phil\\CoursesBundle\\Application\\Scorm\\ScormRuntime::navigation::192',
+                ScormRuntime::class.'::navigation::316',
             ]],
-            // The modules are appended, or replaced at their place: their keys follow each other already. The list is
-            // kept for the types.
-            'UnwrapArrayValues' => ['ignoreSourceCodeByRegex' => ['.*array_values\\(\\$modules\\).*']],
+            'UnwrapArrayValues' => ['ignoreSourceCodeByRegex' => [
+                // The modules are appended, or replaced at their place: their keys follow each other already. The list is
+                // kept for the types.
+                '.*array_values\\(\\$modules\\).*',
+                // The driver expands a list parameter by its values, whatever the keys of the list: the names a variadic call may give.
+                '.*return array_values\\(array_map\\(static fn \\(EnrollmentId \\$id\\): string => \\$id->value, \\$enrollments\\)\\);.*',
+            ]],
         ],
     ],
     'fuzz' => [

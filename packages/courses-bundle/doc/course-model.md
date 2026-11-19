@@ -26,7 +26,7 @@ An activity has a **type**, which names the adapter that checks its settings and
 |---|---|---|---|
 | `page` | `body`, plain text | On the activity page | The learner |
 | `link` | `url`, an absolute address | In its own window | The learner |
-| `scorm` | `path` and `query` of its launch file; the rest kept for information | Framed, from the content origin | The learner |
+| `scorm` | `path` and `query` of its launch file, `scorm_version`, `time_limit` — its own time limit, in seconds —, and what the import read of the manifest | Framed, from the content origin, under the SCORM run time | Its content, through the run time; the learner when the run time is off |
 | `cmi5` | `au_id`, `url` or `path` and `query`, `launch_method`, `mastery_score`, `launch_parameters`, `entitlement_key` | Framed, or in its own window when it asks to | Its own statements only |
 
 An application adds its own types: see [Extension points](extension-points.md).

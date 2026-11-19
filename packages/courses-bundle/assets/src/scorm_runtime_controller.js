@@ -2,6 +2,8 @@
 // state of the session once it says it is ready, and sends the writes it reports to the commit endpoint — in order, on
 // each commit and at the end of the session, with `navigator.sendBeacon()` when the learner leaves the page. Each
 // answer brings the token of the next commit; a quiet session commits nothing now and then, to keep its token alive.
+// Under a time limit, it commits when the deadline comes, so that the server ends the attempt. An ended attempt opened
+// for review sends nothing: the content reads its data, and what it writes stays in the frame.
 
 import { Controller } from '@hotwired/stimulus';
 
@@ -33,8 +35,16 @@ export default class extends Controller {
         this.onMessage = (event) => this.receive(event);
         this.onLeave = () => this.leave();
         window.addEventListener('message', this.onMessage);
-        window.addEventListener('pagehide', this.onLeave);
-        this.timer = setInterval(() => this.flush(false), this.renewValue * 1000);
+        this.ended = true === this.stateValue.review;
+
+        if (this.ended) {
+            this.say('review');
+        } else {
+            window.addEventListener('pagehide', this.onLeave);
+            this.timer = setInterval(() => this.flush(false), this.renewValue * 1000);
+            this.arm(this.stateValue.remaining);
+        }
+
         this.frameTarget.src = this.frameUrlValue;
     }
 
@@ -42,7 +52,21 @@ export default class extends Controller {
         this.leave();
         window.removeEventListener('message', this.onMessage);
         window.removeEventListener('pagehide', this.onLeave);
+        this.stop();
+    }
+
+    /** Commits once the seconds left before the deadline are spent, so that the server ends the attempt. */
+    arm(remaining) {
+        clearTimeout(this.deadline);
+
+        if ('number' === typeof remaining && !this.ended) {
+            this.deadline = setTimeout(() => this.flush(false), (Math.max(0, remaining) + 1) * 1000);
+        }
+    }
+
+    stop() {
         clearInterval(this.timer);
+        clearTimeout(this.deadline);
     }
 
     receive(event) {
@@ -78,7 +102,7 @@ export default class extends Controller {
 
         if (finish) {
             this.ended = true;
-            clearInterval(this.timer);
+            this.stop();
         }
 
         const values = Object.fromEntries(this.pending);
@@ -112,7 +136,7 @@ export default class extends Controller {
         if (200 !== status) {
             if (409 === status || 403 === status) {
                 this.ended = true;
-                clearInterval(this.timer);
+                this.stop();
                 this.say(409 === status ? 'ended' : 'expired');
             } else {
                 this.restore(values);
@@ -127,8 +151,20 @@ export default class extends Controller {
         }
 
         const errors = answer.errors ?? {};
-        this.dispatch('committed', { detail: { errors, ended: true === answer.ended } });
+        this.dispatch('committed', {
+            detail: { errors, ended: true === answer.ended, timeUp: true === answer.time_up },
+        });
+
+        if (true === answer.time_up) {
+            this.ended = true;
+            this.stop();
+            this.say('timeUp');
+
+            return;
+        }
+
         this.say(0 === Object.keys(errors).length ? 'saved' : 'refused');
+        this.arm(answer.remaining);
 
         if ('string' === typeof answer.next) {
             this.go(answer.next);
@@ -164,7 +200,7 @@ export default class extends Controller {
         }
 
         this.ended = true;
-        clearInterval(this.timer);
+        this.stop();
         const body = this.body(Object.fromEntries(this.pending), true);
         this.pending.clear();
         const blob = new Blob([body], { type: 'text/plain;charset=UTF-8' });

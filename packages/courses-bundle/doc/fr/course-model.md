@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ad9ef46eaf53a6c6471aabaf443a37f96767d295f32b51c67bd88315a76e2a3d -->
+<!-- phil-dev source-sha256=6b0572ca4264f9dd72956f046052f1bb55ba800a91c328ec31a680ae6d5cbf66 -->
 # Le modèle de cours
 
 ## Cours, modules et activités
@@ -28,7 +28,7 @@ Une activité a un **type**, qui nomme l'adaptateur qui vérifie ses paramètres
 |---|---|---|---|
 | `page` | `body`, texte brut | Sur la page de l'activité | L'apprenant |
 | `link` | `url`, une adresse absolue | Dans sa propre fenêtre | L'apprenant |
-| `scorm` | `path` et `query` de son fichier de lancement ; le reste conservé à titre d'information | Dans un cadre, depuis l'origine du contenu | L'apprenant |
+| `scorm` | `path` et `query` de son fichier de lancement, `scorm_version`, `time_limit` — sa propre limite de temps, en secondes —, et ce que l'import a lu du manifeste | Dans un cadre, depuis l'origine du contenu, sous l'environnement d'exécution SCORM | Son contenu, par l'environnement d'exécution ; l'apprenant quand il est désactivé |
 | `cmi5` | `au_id`, `url` ou `path` et `query`, `launch_method`, `mastery_score`, `launch_parameters`, `entitlement_key` | Dans un cadre, ou dans sa propre fenêtre quand elle le demande | Ses propres énoncés seulement |
 
 Une application ajoute ses propres types : voir [Points d'extension](extension-points.md).

@@ -1,11 +1,12 @@
 {#
  # The outline of a course for the learner: their progress, then each module and its activities with where each
  # stands — open, satisfied, opening on a date, waiting for an earlier activity, or out of tries with the form that asks
- # for a second chance. The progress is the recipe `Progress` of the kit, the states `Badge`, the forms `Button` and
+ # for a second chance; the form that opens the last ended attempt of a SCORM activity for review. The progress is the recipe `Progress` of the kit, the states `Badge`, the forms `Button` and
  # `Textarea`.
  #
  # course: Course. enrollment: ?Enrollment. statuses: list of ActivityStatus. outline: CourseOutline. percent: int.
- # self_enrollment: bool. show_locked: bool.
+ # self_enrollment: bool. show_locked: bool. reviewable: list of the identifiers of the activities with an ended
+ # SCORM attempt.
  #}
 {% extends layout %}
 
@@ -69,6 +70,12 @@
             <label for="phil-courses-reason-{{ status.activity.id.value }}">{{ 'outline.reason'|trans({}, 'phil_courses') }}</label>
             {% component (phil_courses_kit('Textarea')) with {id: 'phil-courses-reason-' ~ status.activity.id.value, name: 'reason', rows: 3, maxlength: 2000} %}{% block content %}{% endblock %}{% endcomponent %}
             {% component (phil_courses_kit('Button')) with {type: 'submit', variant: 'secondary', size: 'sm'} %}{% block content %}{{ 'outline.ask_retry'|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}
+        </form>
+        {%- endif %}
+        {%- if state in ['open', 'satisfied', 'retry_needed', 'retry_requested'] and status.activity.id.value in reviewable %}
+        <form method="post" action="{{ path('phil_courses_review', {course: course.id.value, activity: status.activity.id.value}) }}">
+            <input type="hidden" name="_token" value="{{ token }}">
+            {% component (phil_courses_kit('Button')) with {type: 'submit', variant: 'outline', size: 'sm'} %}{% block content %}{{ 'outline.review'|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}
         </form>
         {%- endif %}
     </li>

@@ -169,6 +169,19 @@ final readonly class Store
     }
 
     /**
+     * The tables as the schema had them before the time of the SCORM attempts.
+     */
+    public static function createWithoutTime(Connection $connection): void
+    {
+        $schema = CourseTables::configure(Schema::editor()->create(), $connection->getDatabasePlatform());
+        $attempt = $schema->getTable(CourseTables::SCORM_ATTEMPT)->edit()->dropColumnByUnquotedName('elapsed')->dropColumnByUnquotedName('session_opened_at')->create();
+
+        foreach ($schema->edit()->dropTableByUnquotedName(CourseTables::SCORM_ATTEMPT)->addTable($attempt)->create()->toSql($connection->getDatabasePlatform()) as $sql) {
+            $connection->executeStatement($sql);
+        }
+    }
+
+    /**
      * The number the query counts.
      *
      * @param list<mixed> $parameters

@@ -51,6 +51,8 @@ final readonly class DbalScormAttemptRepository implements ScormAttemptRepositor
                 'started_at' => $attempt->startedAt,
                 'updated_at' => $attempt->updatedAt,
                 'ended_at' => $attempt->endedAt,
+                'elapsed' => $attempt->elapsed,
+                'session_opened_at' => $attempt->sessionOpenedAt,
             ], [
                 'number' => Types::INTEGER,
                 'session' => Types::INTEGER,
@@ -59,6 +61,8 @@ final readonly class DbalScormAttemptRepository implements ScormAttemptRepositor
                 'started_at' => Types::DATETIME_UTC_IMMUTABLE,
                 'updated_at' => Types::DATETIME_UTC_IMMUTABLE,
                 'ended_at' => Types::DATETIME_UTC_IMMUTABLE,
+                'elapsed' => Types::INTEGER,
+                'session_opened_at' => Types::DATETIME_UTC_IMMUTABLE,
             ]);
             $this->rows->put(CourseTables::SCORM_DATA, ['attempt_id' => $attempt->id->value], [
                 'data' => json_encode((object) $attempt->data, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE),
@@ -139,6 +143,8 @@ final readonly class DbalScormAttemptRepository implements ScormAttemptRepositor
             Duration::ofCentiseconds(Rows::int($row['total_time'])),
             $this->rows->requiredMoment($row['updated_at']),
             $this->rows->moment($row['ended_at']),
+            max(0, Rows::int($row['elapsed'])),
+            $this->rows->moment($row['session_opened_at']),
         );
     }
 

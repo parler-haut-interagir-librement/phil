@@ -23,7 +23,8 @@ use Phil\CoursesBundle\Domain\ValueObject\LearnerId;
  * `phil_course_progress`, the learners and where they stand; `phil_course_satisfaction`, the blocks and courses whose
  * `satisfied` statement an enrollment has; `phil_course_retry`, the requests for a second chance; `phil_course_cmi5_session`, the cmi5 launches; `phil_course_statement` and
  * `phil_course_state`, the statements and state documents of the store inside the bundle; `phil_course_scorm_attempt`
- * and `phil_course_scorm_data`, the SCORM attempts and their tracking data. Moments are kept in UTC.
+ * and `phil_course_scorm_data`, the SCORM attempts — with the seconds their sessions ran by the server's clock and when
+ * the running one opened — and their tracking data. Moments are kept in UTC.
  *
  * The keys of the SCORM tables compare byte by byte: on MySQL and MariaDB they are stored in `utf8mb4` with the
  * `utf8mb4_bin` collation, where a server's default would read two identifiers differing by case as one; PostgreSQL
@@ -275,6 +276,8 @@ final class CourseTables
                 ->addColumn(self::column('started_at', Types::DATETIME_UTC_IMMUTABLE, true))
                 ->addColumn(self::column('updated_at', Types::DATETIME_UTC_IMMUTABLE, true))
                 ->addColumn(self::column('ended_at', Types::DATETIME_UTC_IMMUTABLE, false))
+                ->addColumn(self::column('elapsed', Types::INTEGER, false))
+                ->addColumn(self::column('session_opened_at', Types::DATETIME_UTC_IMMUTABLE, false))
                 ->addPrimaryKeyConstraint(self::primary('id'))
                 ->addUniqueConstraint(self::unique('uniq_phil_course_scorm_attempt', 'enrollment_id', 'activity_id', 'number'))
                 ->create(),

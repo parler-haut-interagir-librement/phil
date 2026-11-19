@@ -195,3 +195,38 @@ store writes its own adapter of the port, named in `phil_courses.cmi5.lrs`.
   the other. When the store does not keep one, the request ends with `503`, and the statements before it stay kept and
   applied. When the unit sends the whole request again, the rules of cmi5 may refuse it with `403` — an `initialized`
   sent twice, say —: the statements kept are not lost, but the unit has to send the rest alone.
+- **Erasure.** A statement the remote store keeps cannot be erased by the platform: see [Privacy](#privacy).
+
+## Privacy
+
+With phil/privacy-bundle installed, `Cmi5Privacy` gives the cmi5 records of a learner in an access request and erases
+them in an erasure request, under the module `courses_cmi5`. The learner is the stable identifier the courses know them
+by; their records are those of the registrations of their enrollments.
+
+| Record | Access request | Erasure request |
+|---|---|---|
+| The registrations: enrollment, course, registration | Exported | Kept with the enrollment |
+| The launch sessions: activity, state, launch and end | Exported | Deleted |
+| The statements of the store inside the bundle | Exported, each as the JSON it was sent as, with when it was stored | Deleted |
+| The state documents | Exported, by registration, state identifier and the SHA-256 of the activity's IRI, the document as its JSON | Deleted |
+| The notes of the `satisfied` statements issued, by block or course | Exported | Deleted, unless the statements are kept outside the bundle |
+
+The erasure runs again without harm. Its report names each table, and the export is empty for a learner without cmi5
+records.
+
+### What a store outside the bundle keeps
+
+A store outside the bundle keeps what it was sent, and the platform cannot erase it there:
+
+- **A remote xAPI store**, `phil_courses.cmi5.remote_lrs`, keeps the statements. xAPI gives no way to erase a
+  statement: a statement can only be voided by another, which keeps both. The state documents stay in the store
+  inside the bundle, and are erased.
+- **The application's own store**, `phil_courses.cmi5.lrs`, keeps the statements and the state documents, which the
+  bundle neither reads nor erases.
+
+The export then says so under `kept_elsewhere`: the records the store keeps, the store — the endpoint of the remote
+store, without its credentials, or the class of the application's adapter —, the registrations, by which the statements
+are found there, and a note. The erasure report names that store `learning_record_store`, with the effect `survives`.
+The notes of the `satisfied` statements survive as well, since the statements they stand for are still in that store: a
+`satisfied` statement is never sent twice. The person, or the site, asks the operator of that store, with the
+registrations of the export.

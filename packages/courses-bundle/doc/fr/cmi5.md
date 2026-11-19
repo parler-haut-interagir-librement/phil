@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=58ec078e41b881f6640b36a25a06df1e081c81b601068049f1092d36d7a89f11 -->
+<!-- phil-dev source-sha256=9e1dee7e8305ff312f8115665496342c40324823f4cfb4a474331841c1a3a23c -->
 # cmi5
 
 Le bundle importe des cours cmi5, lance leurs unités assignables comme l'exige cmi5, et reçoit leurs énoncés par un point
@@ -202,3 +202,38 @@ d'état dans l'entrepôt distant écrit son propre adaptateur du port, nommé da
   restent conservés et appliqués. Quand l'unité renvoie toute la requête, les règles de cmi5 peuvent la refuser avec
   `403` — un `initialized` envoyé deux fois, par exemple — : les énoncés conservés ne sont pas perdus, mais l'unité doit
   envoyer le reste seul.
+- **Effacement.** Un énoncé que conserve l'entrepôt distant ne peut pas être effacé par la plateforme : voir
+  [Vie privée](#vie-privée).
+
+## Vie privée
+
+Avec phil/privacy-bundle installé, `Cmi5Privacy` donne les enregistrements cmi5 d'un apprenant dans une demande d'accès
+et les efface dans une demande d'effacement, sous le module `courses_cmi5`. L'apprenant est l'identifiant stable sous
+lequel les cours le connaissent ; ses données sont celles des enregistrements (registrations) de ses inscriptions.
+
+| Enregistrement | Demande d'accès | Demande d'effacement |
+|---|---|---|
+| Les enregistrements (registrations) : inscription, cours, enregistrement | Exportés | Conservés avec l'inscription |
+| Les sessions de lancement : activité, état, lancement et fin | Exportées | Supprimées |
+| Les énoncés de l'entrepôt à l'intérieur du bundle | Exportés, chacun sous la forme du JSON envoyé, avec le moment où il a été conservé | Supprimés |
+| Les documents d'état | Exportés, par enregistrement, identifiant d'état et SHA-256 de l'IRI de l'activité, le document sous forme de JSON | Supprimés |
+| Les notes des énoncés `satisfied` émis, par bloc ou par cours | Exportées | Supprimées, sauf si les énoncés sont conservés hors du bundle |
+
+L'effacement peut être relancé sans dommage. Son rapport nomme chaque table, et l'exportation est vide pour un apprenant
+sans enregistrement cmi5.
+
+### Ce que conserve un entrepôt extérieur au bundle
+
+Un entrepôt extérieur au bundle conserve ce qu'on lui a envoyé, et la plateforme ne peut pas l'y effacer :
+
+- **Un entrepôt xAPI distant**, `phil_courses.cmi5.remote_lrs`, conserve les énoncés. xAPI ne donne aucun moyen
+  d'effacer un énoncé : un énoncé ne peut qu'être annulé par un autre, ce qui conserve les deux. Les documents d'état
+  restent dans l'entrepôt à l'intérieur du bundle, et sont effacés.
+- **L'entrepôt propre à l'application**, `phil_courses.cmi5.lrs`, conserve les énoncés et les documents d'état, que le
+  bundle ne lit ni n'efface.
+
+L'exportation le dit alors sous `kept_elsewhere` : les enregistrements que l'entrepôt conserve, l'entrepôt — le point de
+terminaison de l'entrepôt distant, sans ses identifiants, ou la classe de l'adaptateur de l'application —, les enregistrements (registrations), par lesquels les énoncés s'y retrouvent, et une note. Le rapport d'effacement nomme cet entrepôt
+`learning_record_store`, avec l'effet `survives`. Les notes des énoncés `satisfied` survivent aussi, puisque les énoncés
+qu'elles représentent sont encore dans cet entrepôt : un énoncé `satisfied` n'est jamais envoyé deux fois. La personne,
+ou le site, s'adresse à l'exploitant de cet entrepôt, avec les registrations de l'exportation.

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=48c32f1f6b222bd68ae82645fa8c2b921f718833908d62d36efbc773685a7e45 -->
+<!-- phil-dev source-sha256=9e386b5169d1ab412f8150a9ed4c6f43d53a80bf35fcf602b8541852bb8c1798 -->
 # phil/courses-bundle
 
 **Cours en ligne pour Symfony : modules, activités, progression et achèvement, avec des cours SCORM et cmi5 exécutés dans la plateforme.**
@@ -25,8 +25,9 @@ sécurité du contenu.
 Le contenu SCORM s'exécute dans la plateforme : un contrôleur Stimulus l'encadre sous l'API d'exécution de SCORM 1.2
 (`API`) ou de SCORM 2004 (`API_1484_11`), qui répond tout de suite à chaque appel selon le modèle de données de
 phil/elearning-packages et envoie les validations à un point de terminaison qui les vérifie de nouveau. Les tentatives
-sont conservées avec leurs données de suivi — suspendues et reprises, recommencées —, et alimentent la progression de
-l'apprenant, la note de maîtrise du manifeste comprise.
+sont conservées avec leurs données de suivi — suspendues et reprises, recommencées, revues en lecture seule une fois
+terminées —, et alimentent la progression de l'apprenant, la note de maîtrise du manifeste comprise ; le temps alloué,
+celui du manifeste ou celui de l'activité, est appliqué par l'horloge du serveur.
 L'arbre des blocs d'une structure de cours cmi5 est conservé : blocs imbriqués, leur ordre et leurs identifiants.
 Les unités cmi5 sont lancées avec les paramètres de cmi5, récupèrent leur jeton une seule fois et envoient leurs énoncés
 à un point de terminaison xAPI du bundle, qui les vérifie selon les règles de cmi5 avant qu'un entrepôt de traces
@@ -54,7 +55,8 @@ utilisent DBAL, et sont testés sur SQLite, MySQL 8.4 et PostgreSQL 17.
 | La page d'administration des secondes chances, derrière un rôle configurable, avec les recettes du kit, en anglais et en français | Implémenté et testé |
 | Import de paquets SCORM 1.2 et 2004 par phil/elearning-packages, séquencement conservé à titre d'information, résultats importés d'une exportation CSV | Implémenté et testé |
 | L'environnement d'exécution SCORM : l'API de SCORM 1.2 et 2004 dans le navigateur, chaque élément de leurs modèles de données vérifié dans le navigateur et sur le serveur, tentatives suspendues, reprises et recommencées, données de suivi conservées, progression enregistrée, demandes de navigation suivies | Implémenté, testé sur SQLite, MySQL et PostgreSQL, et soumis au fuzzing |
-| Les données de suivi des tentatives SCORM dans les demandes d'accès et d'effacement de phil/privacy-bundle | Implémenté et testé |
+| La révision d'une tentative SCORM terminée, en lecture seule, et les limites de temps du manifeste et de l'activité, appliquées sur le serveur | Implémenté, testé sur SQLite, MySQL et PostgreSQL |
+| Les données de suivi des tentatives SCORM et les enregistrements cmi5 d'un apprenant — sessions de lancement, énoncés, documents d'état — dans les demandes d'accès et d'effacement de phil/privacy-bundle ; ce que conserve un entrepôt de traces d'apprentissage distant est dit dans l'exportation | Implémenté et testé |
 | Le séquencement et la navigation de SCORM 2004 au-delà du flux et du choix du plan : règles, cumul, objectifs partagés | Pas encore : voir [Environnement d'exécution SCORM](doc/fr/scorm-runtime.md#ce-que-le-bundle-ne-fait-pas-encore) |
 | Import de paquets et de structures de cours cmi5, par phil/elearning-packages, l'arbre des blocs conservé, une unité dont le `moveOn` est `NotApplicable` non obligatoire | Implémenté et testé |
 | Lancements cmi5, URL de récupération, point de terminaison xAPI avec les règles de cmi5, entrepôt de traces d'apprentissage en port | Implémenté et testé |

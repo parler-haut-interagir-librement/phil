@@ -63,6 +63,11 @@ already checked against the rules of cmi5, with their `id` set. An adapter that 
 `RecordStoreUnavailable`: the xAPI endpoint answers `503`, and a `satisfied` statement it refused is issued again
 later.
 
+The privacy module reads and erases the statements and state documents of a learner's registrations in
+`DbalLearningRecordStore`, with `statementsOf()`, `statesOf()` and `erase()`. With `HttpLearningRecordStore`, whose
+`endpoint` names the remote store, or an adapter of the application, an access request says that store keeps them, and
+an erasure reports it as surviving: see [cmi5](cmi5.md#privacy).
+
 ## `PackageOpener` and `PackageArchive`
 
 Opening a package for reading: the contracts of phil/elearning-packages. `ZipPackageOpener` reads ZIP archives through
@@ -89,10 +94,12 @@ enrollment that completed it, or null. An identifier this bundle cannot hold nam
 The absolute URLs of the xAPI endpoint and of a session's fetch URL. `RoutedCmi5Endpoints` generates them from the
 routes of `config/cmi5_routes.php`.
 
-## `CourseRepository` and `EnrollmentRepository`
+## `CourseRepository`, `EnrollmentRepository` and `LaunchSessionRepository`
 
 The stores of the courses and of the enrollments, aliased by their ports to the DBAL stores. `CourseRepository` keeps
-the blocks of a cmi5 course with `saveBlock()` and `blocks()`; `EnrollmentRepository` notes the `satisfied`
+the blocks of a cmi5 course with `saveBlock()` and `blocks()`; `LaunchSessionRepository` gives and removes the cmi5
+launch sessions of enrollments with `ofEnrollments()` and `removeOfEnrollments()`, for the privacy module;
+`EnrollmentRepository` notes the `satisfied`
 statements an enrollment has with `satisfactions()`, `claimSatisfaction()` — which says false when the satisfaction
 was noted already, so that two requests at once issue one statement — and `releaseSatisfaction()`. An application that
 replaces a store implements them.
@@ -101,8 +108,9 @@ replaces a store implements them.
 
 Where the SCORM attempts and their tracking data are kept: `save()`, `find()`, `latest()` — the learner's last attempt at
 an activity —, `ofEnrollments()` and `removeOfEnrollments()`, which the privacy module reads and erases through.
-`DbalScormAttemptRepository` keeps them through DBAL; an application that keeps them elsewhere aliases the port to its
-own service.
+`DbalScormAttemptRepository` keeps them through DBAL, with the seconds the sessions of each attempt ran by the server's
+clock; an application that keeps them elsewhere aliases the port to its own service, and keeps `elapsed` and
+`sessionOpenedAt`, which the time limits are counted from.
 
 ## Events
 

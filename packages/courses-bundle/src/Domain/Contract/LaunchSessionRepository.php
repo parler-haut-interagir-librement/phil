@@ -22,4 +22,16 @@ interface LaunchSessionRepository
      * @return list<LaunchSession> the sessions of that enrollment and activity still open
      */
     public function open(EnrollmentId $enrollment, ActivityId $activity): array;
+
+    /**
+     * Every session of the enrollments, by launch.
+     *
+     * @return list<LaunchSession>
+     */
+    public function ofEnrollments(EnrollmentId ...$enrollments): array;
+
+    /**
+     * Removes every session of the enrollments.
+     */
+    public function removeOfEnrollments(EnrollmentId ...$enrollments): void;
 }

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b3ed97bf1e3524e2d2706037a0199a6d446a10413e263d8a766e4c3dd5d714c8 -->
+<!-- phil-dev source-sha256=50657646be1f5e0a6dd144e5c4e0921d57b2c2619f1e84615e1b4ffcddda561a -->
 # Points d'extension
 
 Le bundle est en versions `0.x` : les ports, les événements et les services ci-dessous peuvent changer dans une version
@@ -65,6 +65,11 @@ reçoit des énoncés que le bundle a déjà vérifiés selon les règles de cmi
 pas conserver un énoncé lance `RecordStoreUnavailable` : le point de terminaison xAPI répond `503`, et un énoncé
 `satisfied` qu'il a refusé est émis de nouveau plus tard.
 
+Le module de vie privée lit et efface les énoncés et les documents d'état des inscriptions d'un apprenant dans
+`DbalLearningRecordStore`, avec `statementsOf()`, `statesOf()` et `erase()`. Avec `HttpLearningRecordStore`, dont
+`endpoint` nomme l'entrepôt distant, ou un adaptateur de l'application, une demande d'accès dit que cet entrepôt les
+conserve, et un effacement les signale comme survivants : voir [cmi5](cmi5.md#vie-privée).
+
 ## `PackageOpener` et `PackageArchive`
 
 L'ouverture d'un paquet en lecture : les contrats de phil/elearning-packages. `ZipPackageOpener` lit les archives ZIP par
@@ -92,10 +97,12 @@ l'inscription qui l'a terminé, ou null. Un identifiant que ce bundle ne peut pa
 Les URL absolues du point de terminaison xAPI et de l'URL de récupération d'une session. `RoutedCmi5Endpoints` les génère
 à partir des routes de `config/cmi5_routes.php`.
 
-## `CourseRepository` et `EnrollmentRepository`
+## `CourseRepository`, `EnrollmentRepository` et `LaunchSessionRepository`
 
 Les entrepôts des cours et des inscriptions, des alias de leurs ports vers les entrepôts DBAL. `CourseRepository` conserve
-les blocs d'un cours cmi5 avec `saveBlock()` et `blocks()` ; `EnrollmentRepository` note les énoncés `satisfied` qu'une
+les blocs d'un cours cmi5 avec `saveBlock()` et `blocks()` ; `LaunchSessionRepository` donne et retire les sessions de lancement cmi5 des
+inscriptions avec `ofEnrollments()` et `removeOfEnrollments()`, pour le module de vie privée ;
+`EnrollmentRepository` note les énoncés `satisfied` qu'une
 inscription a avec `satisfactions()`, `claimSatisfaction()` — qui répond false quand la satisfaction était déjà notée,
 de sorte que deux requêtes simultanées émettent un seul énoncé — et `releaseSatisfaction()`. Une application qui
 remplace un entrepôt les implémente.
@@ -104,8 +111,9 @@ remplace un entrepôt les implémente.
 
 L'endroit où sont conservées les tentatives SCORM et leurs données de suivi : `save()`, `find()`, `latest()` — la dernière
 tentative de l'apprenant à une activité —, `ofEnrollments()` et `removeOfEnrollments()`, par lesquels le module de vie
-privée lit et efface. `DbalScormAttemptRepository` les conserve par DBAL ; une application qui les conserve ailleurs fait
-de l'alias du port son propre service.
+privée lit et efface. `DbalScormAttemptRepository` les conserve par DBAL, avec les secondes qu'ont duré les sessions de chaque tentative
+selon l'horloge du serveur ; une application qui les conserve ailleurs fait de l'alias du port son propre service, et
+conserve `elapsed` et `sessionOpenedAt`, d'où sont comptées les limites de temps.
 
 ## Événements
 
