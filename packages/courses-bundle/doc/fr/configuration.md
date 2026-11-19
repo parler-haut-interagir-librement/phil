@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f13cb9506fb600deb7b87fa4b9e8a723641075414f93a2d6d2b06c77f9661d56 -->
+<!-- phil-dev source-sha256=b6cbdec8bce7a1841a278edabe9d9cf3f02eaa36d478cb5f72ae1f277be0cc3c -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_courses`. Chaque option a une valeur par défaut ; une application nomme
