@@ -1,0 +1,1 @@
+{"slots":[{"id":"a","capacity":1},{"id":"b","capacity":1},{"id":"c","capacity":3,"minimum":2}],"applicants":[{"id":"x","choices":["a","b","c"]},{"id":"y","choices":["b","a"]},{"id":"z","choices":["c"]}]}

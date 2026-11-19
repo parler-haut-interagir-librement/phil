@@ -1,0 +1,16 @@
+{#
+ # A new copy of a title, sent by a Button of the kit. Context: `form`, `title`.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_library' %}
+
+{% block title %}{{ 'admin.new_copy_of'|trans({'%title%': title.name}, domain) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'admin.new_copy_of'|trans({'%title%': title.name}, domain) }}</h1>
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+        {% component (phil_library_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'admin.save'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+    {{ form_end(form) }}
+{% endblock %}

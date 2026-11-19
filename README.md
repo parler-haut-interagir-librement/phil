@@ -160,6 +160,12 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/moderation-bundle`](https://github.com/parler-haut-interagir-librement/moderation-bundle) | One report queue for posts, comments, reactions, listings, messages and profiles: roles, decision history, a statement of reasons to authors and a public journal without names. |
 | [`phil/newsletter-bundle`](https://github.com/parler-haut-interagir-librement/newsletter-bundle) | A site's newsletter: lists, double opt-in, campaigns in Markdown, sending at the pace of sender profiles, one-click unsubscription, a preference centre and bounces read back. |
 | [`phil/reactions-bundle`](https://github.com/parler-haut-interagir-librement/reactions-bundle) | Reactions to any content: Unicode emojis and the site's own, an accessible picker, a Live Component that also works as a plain form, and counters as each site sets. |
+| [`phil/avatar`](https://github.com/parler-haut-interagir-librement/avatar) | Avatars for members without a photo: SVG drawn from an opaque seed, never an email, as initials with WCAG AA contrast, shapes or pixel grids, deterministic. |
+| [`phil/habits`](https://github.com/parler-haut-interagir-librement/habits) | Habit tracking that does not punish: schedules in the member's time zone, check-ins done, skipped or partial, forgiving streaks, a strength score, DBAL storage. |
+| [`phil/assignment`](https://github.com/parler-haut-interagir-librement/assignment) | Places people by ranked preferences (game tables, workshops, rooms, roles): ranked rounds or a min-cost optimum, seeded, reproducible, each placement explained. |
+| [`phil/proposal-review`](https://github.com/parler-haut-interagir-librement/proposal-review) | Jury review for calls for papers and contests: dated phases, weighted criteria, blind review with conflicts, batch decisions, pairwise votes, DBAL storage. |
+| [`phil/event-weather`](https://github.com/parler-haut-interagir-librement/event-weather) | The weather forecast of an outdoor event's place and time: Environment Canada with its alerts in Canada, MET Norway elsewhere, each provider credited. |
+| [`phil/library-bundle`](https://github.com/parler-haut-interagir-librement/library-bundle) | Loans of a game or book library in Symfony: a catalogue searched without JavaScript, copies lent, reserved, renewed and returned, overdue notices by Messenger. |
 
 ### Print and products
 
@@ -198,6 +204,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/audio-bundle`](https://github.com/parler-haut-interagir-librement/audio-bundle) | Audio in Symfony: renditions and waveforms made by Messenger jobs, uploads through the media library, and an accessible player component. |
 | [`phil/video-bundle`](https://github.com/parler-haut-interagir-librement/video-bundle) | Videos in Symfony: hosted files or HLS in the browser's video element, YouTube and Vimeo behind a facade without tracking, captions, chapters and transcripts, progress counted only with consent. |
 | [`phil/transcription`](https://github.com/parler-haut-interagir-librement/transcription) | Transcription of recordings behind one port: a whisper.cpp server run by the site, cloud adapters refused without the consent of the people heard, and a review before publication. |
+| [`phil/editorial-calendar`](https://github.com/parler-haut-interagir-librement/editorial-calendar) | Plans publications ahead: items by content, language and author through their workflow, all-or-nothing batches, calendar views, conflicts and gaps, iCalendar. |
 
 ### Privacy, security and accessibility
 
@@ -231,6 +238,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/audit-bundle`](https://github.com/parler-haut-interagir-librement/audit-bundle) | An append-only audit trail: hash-chained rows indexed by actor, action and record, salted commitments on personal fields, and external anchors. |
 | [`phil/audit-viewer`](https://github.com/parler-haut-interagir-librement/audit-viewer) | The audit trail read in EasyAdmin: filters, the history of a record, the state of each hash chain and an audited CSV export. |
 | [`phil/user-secrets-bundle`](https://github.com/parler-haut-interagir-librement/user-secrets-bundle) | The API keys and OAuth tokens people entrust to a site: sealed by envelope encryption with rotating keys, refreshed under a lock, revocable and erased with the account. |
+| [`phil/guardian-consent`](https://github.com/parler-haut-interagir-librement/guardian-consent) | Parental consent for members under the age of consent: age brackets per jurisdiction, consent per feature by signed email link, dated proofs and withdrawal. |
 
 ### PHIL UX
 

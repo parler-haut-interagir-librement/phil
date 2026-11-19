@@ -1,0 +1,53 @@
+{#
+ # A title: its record in a Card of the kit, and its copies in a Table, each with where it stands as a Badge.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_library' %}
+
+{% block title %}{{ record.name }}{% endblock %}
+
+{% block content %}
+    {% component (phil_library_kit('Card')) %}{% block content %}
+        {% component (phil_library_kit('Card:Header')) %}{% block content %}
+            {% component (phil_library_kit('Card:Title')) with {level: 1} %}{% block content %}{{ record.name }}{% endblock %}{% endcomponent %}
+            {% component (phil_library_kit('Card:Description')) %}{% block content %}{{ ('kind.' ~ record.kind.value)|trans({}, domain) }}{% if record.creators is not null %} — {{ record.creators }}{% endif %}{% endblock %}{% endcomponent %}
+        {% endblock %}{% endcomponent %}
+        {% component (phil_library_kit('Card:Content')) %}{% block content %}
+            <dl>
+                {% if record.publisher is not null %}<dt>{{ 'record.publisher'|trans({}, domain) }}</dt><dd>{{ record.publisher }}</dd>{% endif %}
+                {% if record.year is not null %}<dt>{{ 'record.year'|trans({}, domain) }}</dt><dd>{{ record.year }}</dd>{% endif %}
+                {% if record.isbn is not null %}<dt>{{ 'record.isbn'|trans({}, domain) }}</dt><dd>{{ record.isbn }}</dd>{% endif %}
+                {% if record.minPlayers is not null or record.maxPlayers is not null %}<dt>{{ 'record.players'|trans({}, domain) }}</dt><dd>{{ include('@PhilLibrary/_range.html.twig', {min: record.minPlayers, max: record.maxPlayers}) }}</dd>{% endif %}
+                {% if record.minMinutes is not null or record.maxMinutes is not null %}<dt>{{ 'record.minutes'|trans({}, domain) }}</dt><dd>{{ include('@PhilLibrary/_range.html.twig', {min: record.minMinutes, max: record.maxMinutes}) }}</dd>{% endif %}
+                {% if record.minAge is not null %}<dt>{{ 'record.min_age'|trans({}, domain) }}</dt><dd>{{ record.minAge }}+</dd>{% endif %}
+                {% if record.language is not null %}<dt>{{ 'record.language'|trans({}, domain) }}</dt><dd lang="{{ record.language }}">{{ record.language }}</dd>{% endif %}
+            </dl>
+            {% if record.summary is not null %}<p>{{ record.summary|nl2br }}</p>{% endif %}
+        {% endblock %}{% endcomponent %}
+    {% endblock %}{% endcomponent %}
+
+    <h2>{{ 'title.copies'|trans({}, domain) }}</h2>
+    {% if copies is empty %}
+        <p>{{ 'title.no_copy'|trans({}, domain) }}</p>
+    {% else %}
+        {% component (phil_library_kit('Table')) %}{% block content %}
+            {% component (phil_library_kit('Table:Header')) %}{% block content %}
+                {% component (phil_library_kit('Table:Row')) %}{% block content %}
+                    {% component (phil_library_kit('Table:Head')) %}{% block content %}{{ 'copy.barcode'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% component (phil_library_kit('Table:Head')) %}{% block content %}{{ 'copy.condition'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% component (phil_library_kit('Table:Head')) %}{% block content %}{{ 'copy.state'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% endblock %}{% endcomponent %}
+            {% endblock %}{% endcomponent %}
+            {% component (phil_library_kit('Table:Body')) %}{% block content %}
+                {% for line in copies %}
+                    {% component (phil_library_kit('Table:Row')) %}{% block content %}
+                        {% component (phil_library_kit('Table:Cell')) %}{% block content %}{{ line.copy.barcode }}{% endblock %}{% endcomponent %}
+                        {% component (phil_library_kit('Table:Cell')) %}{% block content %}{{ ('condition.' ~ line.copy.condition.value)|trans({}, domain) }}{% if line.copy.note is not null %} — {{ line.copy.note }}{% endif %}{% endblock %}{% endcomponent %}
+                        {% component (phil_library_kit('Table:Cell')) %}{% block content %}{{ include('@PhilLibrary/_availability.html.twig', {copy: line.copy, out: line.out, now: now}) }}{% endblock %}{% endcomponent %}
+                    {% endblock %}{% endcomponent %}
+                {% endfor %}
+            {% endblock %}{% endcomponent %}
+        {% endblock %}{% endcomponent %}
+    {% endif %}
+{% endblock %}

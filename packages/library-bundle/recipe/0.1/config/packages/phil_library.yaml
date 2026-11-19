@@ -1,0 +1,13 @@
+# The library's loans and pages. Name the service that says who the member of a request is — by a card or account
+# number, never an e-mail address — for the member's page of loans. See the configuration guide of
+# phil/library-bundle.
+phil_library:
+    timezone: UTC
+    loans:
+        days: 21
+        max_renewals: 2
+        max_open: 10
+    # member_resolver: App\Library\Members
+    roles:
+        desk: ROLE_LIBRARIAN
+        admin: ROLE_LIBRARIAN

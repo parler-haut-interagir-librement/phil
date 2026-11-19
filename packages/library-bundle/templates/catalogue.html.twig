@@ -1,0 +1,58 @@
+{#
+ # The catalogue: the search form, sent by GET, and a page of titles in a Table of the kit, each with its copies on the
+ # shelf as a Badge; pages are links, so that the list works without JavaScript.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_library' %}
+
+{% block title %}{{ 'catalogue.title'|trans({}, domain) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'catalogue.title'|trans({}, domain) }}</h1>
+    {{ form_start(form, {attr: {role: 'search'}}) }}
+        {{ form_widget(form) }}
+        {% component (phil_library_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'search.submit'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+    {{ form_end(form, {render_rest: false}) }}
+
+    <p>{{ 'catalogue.found'|trans({'%count%': result.total}, domain) }}</p>
+
+    {% if result.rows is not empty %}
+        {% component (phil_library_kit('Table')) %}{% block content %}
+            {% component (phil_library_kit('Table:Header')) %}{% block content %}
+                {% component (phil_library_kit('Table:Row')) %}{% block content %}
+                    {% component (phil_library_kit('Table:Head')) %}{% block content %}{{ 'record.name'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% component (phil_library_kit('Table:Head')) %}{% block content %}{{ 'record.creators'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% component (phil_library_kit('Table:Head')) %}{% block content %}{{ 'record.players'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% component (phil_library_kit('Table:Head')) %}{% block content %}{{ 'record.minutes'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {% component (phil_library_kit('Table:Head')) %}{% block content %}{{ 'catalogue.copies'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% endblock %}{% endcomponent %}
+            {% endblock %}{% endcomponent %}
+            {% component (phil_library_kit('Table:Body')) %}{% block content %}
+                {% for row in result.rows %}
+                    {% component (phil_library_kit('Table:Row')) %}{% block content %}
+                        {% component (phil_library_kit('Table:Cell')) %}{% block content %}<a href="{{ path('phil_library_title', {id: row.id}) }}">{{ row.name }}</a>{% if row.year is not null %} ({{ row.year }}){% endif %}{% endblock %}{% endcomponent %}
+                        {% component (phil_library_kit('Table:Cell')) %}{% block content %}{{ row.creators }}{% endblock %}{% endcomponent %}
+                        {% component (phil_library_kit('Table:Cell')) %}{% block content %}{{ include('@PhilLibrary/_range.html.twig', {min: row.minPlayers, max: row.maxPlayers}) }}{% endblock %}{% endcomponent %}
+                        {% component (phil_library_kit('Table:Cell')) %}{% block content %}{{ include('@PhilLibrary/_range.html.twig', {min: row.minMinutes, max: row.maxMinutes}) }}{% endblock %}{% endcomponent %}
+                        {% component (phil_library_kit('Table:Cell')) %}{% block content %}
+                            {% component (phil_library_kit('Badge')) with {variant: row.available > 0 ? 'default' : 'outline'} %}{% block content %}{{ 'catalogue.available'|trans({'%available%': row.available, '%copies%': row.copies}, domain) }}{% endblock %}{% endcomponent %}
+                        {% endblock %}{% endcomponent %}
+                    {% endblock %}{% endcomponent %}
+                {% endfor %}
+            {% endblock %}{% endcomponent %}
+        {% endblock %}{% endcomponent %}
+    {% endif %}
+
+    {% if result.pages > 1 %}
+        <nav aria-label="{{ 'catalogue.pages'|trans({}, domain) }}">
+            {% if result.hasPrevious %}
+                {% component (phil_library_kit('Button')) with {as: 'a', variant: 'outline', href: path('phil_library_catalogue', query|merge({page: result.page - 1})), rel: 'prev'} %}{% block content %}{{ 'catalogue.previous'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% endif %}
+            <span>{{ 'catalogue.page'|trans({'%page%': result.page, '%pages%': result.pages}, domain) }}</span>
+            {% if result.hasNext %}
+                {% component (phil_library_kit('Button')) with {as: 'a', variant: 'outline', href: path('phil_library_catalogue', query|merge({page: result.page + 1})), rel: 'next'} %}{% block content %}{{ 'catalogue.next'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% endif %}
+        </nav>
+    {% endif %}
+{% endblock %}

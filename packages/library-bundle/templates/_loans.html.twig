@@ -1,0 +1,31 @@
+{#
+ # Loans in a Table of the kit: the title, the copy, the span, and where each stands as a Badge. Context: `loans`, `now`,
+ # and `member`, whether the member's identifier is a column — on the staff's pages only.
+ #}
+{% set domain = 'phil_library' %}
+{% component (phil_library_kit('Table')) %}{% block content %}
+    {% component (phil_library_kit('Table:Header')) %}{% block content %}
+        {% component (phil_library_kit('Table:Row')) %}{% block content %}
+            {% component (phil_library_kit('Table:Head')) %}{% block content %}{{ 'record.name'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% component (phil_library_kit('Table:Head')) %}{% block content %}{{ 'copy.barcode'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% if member %}{% component (phil_library_kit('Table:Head')) %}{% block content %}{{ 'desk.member'|trans({}, domain) }}{% endblock %}{% endcomponent %}{% endif %}
+            {% component (phil_library_kit('Table:Head')) %}{% block content %}{{ 'loans.starts'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% component (phil_library_kit('Table:Head')) %}{% block content %}{{ 'loans.due'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% component (phil_library_kit('Table:Head')) %}{% block content %}{{ 'loans.status'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        {% endblock %}{% endcomponent %}
+    {% endblock %}{% endcomponent %}
+    {% component (phil_library_kit('Table:Body')) %}{% block content %}
+        {% for loan in loans %}
+            {% component (phil_library_kit('Table:Row')) %}{% block content %}
+                {% component (phil_library_kit('Table:Cell')) %}{% block content %}<a href="{{ path('phil_library_title', {id: loan.copy.title.id}) }}">{{ loan.copy.title.name }}</a>{% endblock %}{% endcomponent %}
+                {% component (phil_library_kit('Table:Cell')) %}{% block content %}{{ loan.copy.barcode }}{% endblock %}{% endcomponent %}
+                {% if member %}{% component (phil_library_kit('Table:Cell')) %}{% block content %}{{ loan.member }}{% endblock %}{% endcomponent %}{% endif %}
+                {% component (phil_library_kit('Table:Cell')) %}{% block content %}{{ loan.startsAt|date('Y-m-d', phil_library_timezone()) }}{% endblock %}{% endcomponent %}
+                {% component (phil_library_kit('Table:Cell')) %}{% block content %}{{ loan.dueAt|date('Y-m-d', phil_library_timezone()) }}{% endblock %}{% endcomponent %}
+                {% component (phil_library_kit('Table:Cell')) %}{% block content %}
+                    {% component (phil_library_kit('Badge')) with {variant: loan.isOverdue(now) ? 'destructive' : (loan.status.holdsCopy ? 'default' : 'secondary')} %}{% block content %}{{ (loan.isOverdue(now) ? 'loans.overdue' : 'status.' ~ loan.status.value)|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% endblock %}{% endcomponent %}
+            {% endblock %}{% endcomponent %}
+        {% endfor %}
+    {% endblock %}{% endcomponent %}
+{% endblock %}{% endcomponent %}

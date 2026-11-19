@@ -1,0 +1,47 @@
+{
+    "name": "phil/avatar",
+    "description": "Avatars for members without a photo: SVG drawn from an opaque seed, never an email, as initials with WCAG AA contrast, shapes or pixel grids, deterministic.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "avatar",
+        "svg",
+        "initials",
+        "identicon",
+        "accessibility"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "ext-dom": "*",
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Avatar\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Avatar\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

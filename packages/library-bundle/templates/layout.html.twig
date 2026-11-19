@@ -1,0 +1,17 @@
+{#
+ # The bare page the library's pages extend unless `pages.layout` names the application's own, which defines the blocks
+ # `title` and `content` and loads the stylesheet of phil/ux-css.
+ #}
+<!doctype html>
+<html lang="{{ app.request.locale|default('en')|replace({_: '-'}) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %}</title>
+</head>
+<body>
+<main>
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

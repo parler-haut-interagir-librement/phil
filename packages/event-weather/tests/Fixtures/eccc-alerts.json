@@ -1,0 +1,82 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "id": "2124179763758047202611131005_fea1-0501",
+            "geometry": {"type": "Polygon", "coordinates": [[[-74.0, 45.2], [-73.2, 45.2], [-73.2, 45.8], [-74.0, 45.8], [-74.0, 45.2]]]},
+            "properties": {
+                "alert_code": "FRW",
+                "alert_type": "warning",
+                "alert_name_en": "freezing rain warning",
+                "alert_name_fr": "avertissement de pluie verglaçante",
+                "alert_short_name_en": "Freezing rain",
+                "alert_short_name_fr": "Pluie verglaçante",
+                "publication_datetime": "2026-11-13T10:05:00.000Z",
+                "expiration_datetime": "2026-11-13T11:05:00.000Z",
+                "validity_datetime": "2026-11-13T14:00:00.000Z",
+                "event_end_datetime": "2026-11-13T20:00:00.000Z",
+                "alert_text_en": "Freezing rain is expected this afternoon. Surfaces such as highways, roads, walkways and parking lots may become icy and slippery.",
+                "alert_text_fr": "De la pluie verglaçante est prévue cet après-midi.",
+                "risk_colour_en": "orange",
+                "feature_name_en": "Montréal",
+                "feature_name_fr": "Montréal",
+                "province": "QC",
+                "status_en": "active",
+                "feature_id": "fea1-0501"
+            }
+        },
+        {
+            "type": "Feature",
+            "id": "2124179763758047202611131005_fea1-0502",
+            "geometry": {"type": "MultiPolygon", "coordinates": [[[[-74.5, 45.0], [-73.0, 45.0], [-73.0, 46.0], [-74.5, 46.0], [-74.5, 45.0]], [[-73.6, 45.4], [-73.5, 45.4], [-73.5, 45.6], [-73.6, 45.6], [-73.6, 45.4]]], [[[-73.6, 45.45], [-73.55, 45.45], [-73.55, 45.55], [-73.6, 45.55], [-73.6, 45.45]]]]},
+            "properties": {
+                "alert_code": "FRW",
+                "alert_name_en": "freezing rain warning",
+                "alert_short_name_en": "Freezing rain",
+                "validity_datetime": "2026-11-13T14:00:00.000Z",
+                "event_end_datetime": "2026-11-13T20:00:00.000Z",
+                "alert_text_en": "The same warning, issued for a neighbouring area.",
+                "risk_colour_en": "orange",
+                "feature_name_en": "Laval",
+                "status_en": "active"
+            }
+        },
+        {
+            "type": "Feature",
+            "id": "ended",
+            "geometry": {"type": "Polygon", "coordinates": [[[-74.0, 45.2], [-73.2, 45.2], [-73.2, 45.8], [-74.0, 45.8], [-74.0, 45.2]]]},
+            "properties": {"alert_code": "WSW", "alert_name_en": "winter storm warning", "risk_colour_en": "red", "status_en": "ended"}
+        },
+        {
+            "type": "Feature",
+            "id": "elsewhere",
+            "geometry": {"type": "Polygon", "coordinates": [[[-72.0, 46.2], [-71.2, 46.2], [-71.2, 46.8], [-72.0, 46.8], [-72.0, 46.2]]]},
+            "properties": {"alert_code": "SQW", "alert_name_en": "snow squall warning", "risk_colour_en": "yellow", "status_en": "active"}
+        },
+        {
+            "type": "Feature",
+            "id": "statement-1",
+            "geometry": null,
+            "properties": {"alert_type": "statement", "alert_name_en": "special weather statement", "alert_text_en": "", "risk_colour_en": "grey", "status_en": "active", "expiration_datetime": "2026-11-14T11:00:00Z"}
+        },
+        {
+            "type": "Feature",
+            "id": "nameless",
+            "geometry": null,
+            "properties": {"alert_name_fr": "seulement en français", "status_en": "active"}
+        },
+        {
+            "type": "Feature",
+            "id": "yellow",
+            "geometry": null,
+            "properties": {"alert_code": "RW", "alert_name_en": "rainfall warning", "risk_colour_en": "yellow", "status_en": "active", "validity_datetime": "2026-11-13T15:00:00Z"}
+        },
+        {
+            "type": "Feature",
+            "id": "red",
+            "geometry": null,
+            "properties": {"alert_code": "TOW", "alert_name_en": "tornado warning", "risk_colour_en": "red", "status_en": "active"}
+        }
+    ]
+}

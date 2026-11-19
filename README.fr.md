@@ -162,6 +162,12 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/moderation-bundle`](https://github.com/parler-haut-interagir-librement/moderation-bundle) | Une seule file de signalements pour les messages, commentaires, réactions, annonces, messages privés et profils : rôles, historique des décisions, avis motivé aux auteurs et journal public sans noms. |
 | [`phil/newsletter-bundle`](https://github.com/parler-haut-interagir-librement/newsletter-bundle) | L'infolettre d'un site : listes, double confirmation, campagnes en Markdown, envoi au rythme des profils d'expéditeur, désabonnement en un clic, centre de préférences et retours lus. |
 | [`phil/reactions-bundle`](https://github.com/parler-haut-interagir-librement/reactions-bundle) | Des réactions sur tout contenu : émojis Unicode et ceux du site, un sélecteur accessible, un Live Component qui marche aussi en simple formulaire, et des compteurs réglés par chaque site. |
+| [`phil/avatar`](https://github.com/parler-haut-interagir-librement/avatar) | Des avatars pour les membres sans photo : un SVG tiré d'une graine opaque, jamais d'une adresse courriel, en initiales au contraste WCAG AA, en formes ou en grilles de pixels, déterministe. |
+| [`phil/habits`](https://github.com/parler-haut-interagir-librement/habits) | Le suivi d'habitudes qui ne punit pas : horaires dans le fuseau du membre, pointages faits, sautés ou partiels, séries indulgentes, une force de 0 à 100 %, stockage DBAL. |
+| [`phil/assignment`](https://github.com/parler-haut-interagir-librement/assignment) | Place des personnes selon leurs préférences classées (tables de jeu, ateliers, chambres, rôles) : rondes de choix ou optimum à coût minimal, avec graine, reproductible, chaque placement expliqué. |
+| [`phil/proposal-review`](https://github.com/parler-haut-interagir-librement/proposal-review) | L'évaluation par un jury des appels à propositions et des concours : phases datées, critères pondérés, évaluation à l'aveugle avec conflits d'intérêts, décisions en lot, votes par paires, stockage DBAL. |
+| [`phil/event-weather`](https://github.com/parler-haut-interagir-librement/event-weather) | La météo prévue au lieu et à l'heure d'un événement extérieur : Environnement Canada et ses alertes au Canada, MET Norway ailleurs, chaque fournisseur cité. |
+| [`phil/library-bundle`](https://github.com/parler-haut-interagir-librement/library-bundle) | Les prêts d'une ludothèque ou d'une bibliothèque dans Symfony : un catalogue cherché sans JavaScript, des exemplaires prêtés, réservés, renouvelés et rendus, des rappels de retard par Messenger. |
 
 ### Impression et produits
 
@@ -200,6 +206,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/audio-bundle`](https://github.com/parler-haut-interagir-librement/audio-bundle) | L'audio dans Symfony : versions et formes d'onde produites par des tâches Messenger, téléversements par la médiathèque, et un composant de lecteur accessible. |
 | [`phil/video-bundle`](https://github.com/parler-haut-interagir-librement/video-bundle) | Des vidéos dans Symfony : fichiers hébergés ou HLS dans l'élément vidéo du navigateur, YouTube et Vimeo derrière une façade sans pistage, sous-titres, chapitres et transcriptions, progression comptée seulement avec consentement. |
 | [`phil/transcription`](https://github.com/parler-haut-interagir-librement/transcription) | La transcription des enregistrements derrière un port : un serveur whisper.cpp tenu par le site, des adaptateurs infonuagiques refusés sans le consentement des personnes entendues, et une relecture avant publication. |
+| [`phil/editorial-calendar`](https://github.com/parler-haut-interagir-librement/editorial-calendar) | Planifier les publications : éléments par contenu, langue et auteur dans leur flux de travail, lots tout ou rien, vues de calendrier, conflits et trous, export iCalendar. |
 
 ### Vie privée, sécurité et accessibilité
 
@@ -233,6 +240,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/audit-bundle`](https://github.com/parler-haut-interagir-librement/audit-bundle) | Un journal d'audit en ajout seul : lignes chaînées par empreinte, indexées par acteur, action et enregistrement, engagements salés sur les champs personnels et ancrages externes. |
 | [`phil/audit-viewer`](https://github.com/parler-haut-interagir-librement/audit-viewer) | Le journal d'audit lu dans EasyAdmin : filtres, historique d'un enregistrement, état de chaque chaîne et export CSV journalisé. |
 | [`phil/user-secrets-bundle`](https://github.com/parler-haut-interagir-librement/user-secrets-bundle) | Les clés d'API et jetons OAuth que les gens confient à un site : scellés par chiffrement d'enveloppe à clés tournantes, rafraîchis sous verrou, révocables et effacés avec le compte. |
+| [`phil/guardian-consent`](https://github.com/parler-haut-interagir-librement/guardian-consent) | Le consentement parental des membres sous l'âge du consentement : tranches d'âge par juridiction, consentement par fonction par lien courriel signé, preuves datées et retrait. |
 
 ### PHIL UX
 

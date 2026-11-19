@@ -1,0 +1,1 @@
+{"slots":[{"id":"a","capacity":2,"minimum":2},{"id":"b","capacity":1}],"applicants":[{"id":"x","choices":["a","b"]},{"id":"y","choices":["a"]},{"id":"g","members":["p","q"],"choices":["b","a"]}],"forbidden":[{"applicant":"y","slot":"b"}],"forced":[{"applicant":"x","slot":"a"}]}

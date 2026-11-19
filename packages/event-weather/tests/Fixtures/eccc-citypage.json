@@ -1,0 +1,71 @@
+{
+    "type": "FeatureCollection",
+    "numberMatched": 2,
+    "numberReturned": 2,
+    "timeStamp": "2026-11-13T11:17:53.685650Z",
+    "features": [
+        {
+            "type": "Feature",
+            "id": "qc-126",
+            "geometry": {"type": "Point", "coordinates": [-73.75, 45.47]},
+            "properties": {
+                "identifier": "qc-126",
+                "name": {"en": "Dorval", "fr": "Dorval"},
+                "lastUpdated": "2026-11-13T11:00:00Z",
+                "forecastGroup": {
+                    "hourlyForecastGroup": {
+                        "timestamp": {"en": "2026-11-13T11:00:00Z", "fr": "2026-11-13T11:00:00Z"},
+                        "hourlyForecasts": [
+                            {
+                                "timestamp": "2026-11-13T12:00:00Z",
+                                "condition": {"en": "Cloudy", "fr": "Nuageux"},
+                                "temperature": {"value": {"en": 2, "fr": 2}, "units": {"en": "C", "fr": "C"}},
+                                "lop": {"value": {"en": 10, "fr": 10}, "category": {"en": "Nil", "fr": "Nul"}}
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "type": "Feature",
+            "id": "qc-147",
+            "geometry": {"type": "Point", "coordinates": [-73.58, 45.50]},
+            "properties": {
+                "identifier": "qc-147",
+                "name": {"en": "Montréal", "fr": "Montréal"},
+                "lastUpdated": "2026-11-13T11:05:20Z",
+                "forecastGroup": {
+                    "timestamp": {"en": "2026-11-13T10:33:00Z"},
+                    "hourlyForecastGroup": {
+                        "timestamp": {"en": "2026-11-13T11:00:00Z", "fr": "2026-11-13T11:00:00Z"},
+                        "hourlyForecasts": [
+                            {
+                                "timestamp": "2026-11-13T12:00:00Z",
+                                "condition": {"en": "Chance of showers", "fr": "Possibilité d'averses"},
+                                "temperature": {"value": {"en": 5, "fr": 5}, "units": {"en": "C", "fr": "C"}},
+                                "lop": {"value": {"en": 40, "fr": 40}, "category": {"en": "Medium", "fr": "Moyenne"}},
+                                "wind": {
+                                    "speed": {"value": {"en": 20, "fr": 20}, "units": {"en": "km/h", "fr": "km/h"}},
+                                    "gust": {"value": {"en": 40, "fr": 40}},
+                                    "direction": {"value": {"en": "SW", "fr": "SO"}, "windDirFull": {"en": "Southwest", "fr": "Sud-ouest"}}
+                                },
+                                "iconCode": {"format": "png", "value": 12}
+                            },
+                            {
+                                "timestamp": "2026-11-13T13:00:00Z",
+                                "condition": {"en": "Mainly sunny", "fr": "Généralement ensoleillé"},
+                                "temperature": {"value": {"en": 6, "fr": 6}},
+                                "lop": {"value": {"en": 0, "fr": 0}},
+                                "wind": {"speed": {"value": {"en": "calm", "fr": "calme"}}, "direction": {"value": {"en": "VR", "fr": "VR"}}}
+                            },
+                            {
+                                "condition": {"en": "No time", "fr": "Sans heure"}
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,96 @@
+{
+    "name": "phil/library-bundle",
+    "description": "Loans of a game or book library in Symfony: a catalogue searched without JavaScript, copies lent, reserved, renewed and returned, overdue notices by Messenger.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "library",
+        "game-library",
+        "loans",
+        "catalogue",
+        "isbn",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/reservation": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/polyfill-php86": "^1.37",
+        "symfony/routing": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/uid": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "symfony/validator": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/persistence": "^4.1",
+        "easycorp/easyadmin-bundle": "^5.8",
+        "phil/privacy-bundle": "^0.1@dev",
+        "phil/stockroom": "^0.1@dev",
+        "phil/stockroom-bundle": "^0.1@dev",
+        "phil/ux-kit": ">=0.5.0-alpha <1.0",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/process": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2"
+    },
+    "suggest": {
+        "easycorp/easyadmin-bundle": "For the links of the library in an EasyAdmin back office",
+        "phil/privacy-bundle": "For a member's loans in the export and the erasure of their data",
+        "phil/search-bundle": "To index the titles in the site's search as well",
+        "phil/stockroom": "To move the stockroom item a copy is when it is lent, returned or lost",
+        "phil/stockroom-bundle": "To keep the stockroom in the database, each movement locked to its item and written in the loan's transaction when both share the connection",
+        "phil/ux-kit": "For the recipes the pages draw — Alert, Badge, Button, Card, Table —, through the Symfony UX Toolkit",
+        "symfony/console": "For phil:library:send-reminders and phil:library:forget-history",
+        "symfony/messenger": "To send the reminders as messages the application handles"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\LibraryBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\LibraryBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

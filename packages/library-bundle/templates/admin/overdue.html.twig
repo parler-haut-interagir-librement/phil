@@ -1,0 +1,17 @@
+{#
+ # The loans overdue, the earliest due first, with the member's identifier for the staff.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_library' %}
+
+{% block title %}{{ 'admin.overdue'|trans({}, domain) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'admin.overdue'|trans({}, domain) }}</h1>
+    {% if loans is empty %}
+        <p>{{ 'admin.no_overdue'|trans({}, domain) }}</p>
+    {% else %}
+        {{ include('@PhilLibrary/_loans.html.twig', {loans: loans, now: now, member: true}) }}
+    {% endif %}
+{% endblock %}

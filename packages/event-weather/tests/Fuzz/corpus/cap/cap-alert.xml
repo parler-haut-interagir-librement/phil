@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
+    <identifier>urn:oid:2.49.0.1.124.1234567890.2026</identifier>
+    <sender>cap-pac@canada.ca</sender>
+    <sent>2026-11-13T05:05:00-05:00</sent>
+    <status>Actual</status>
+    <msgType>Alert</msgType>
+    <scope>Public</scope>
+    <info>
+        <language>en-CA</language>
+        <category>Met</category>
+        <event>freezing rain</event>
+        <urgency>Expected</urgency>
+        <severity>Moderate</severity>
+        <certainty>Likely</certainty>
+        <effective>2026-11-13T05:05:00-05:00</effective>
+        <onset>2026-11-13T09:00:00-05:00</onset>
+        <expires>2026-11-13T15:00:00-05:00</expires>
+        <senderName>Environment Canada</senderName>
+        <headline>freezing rain warning in effect</headline>
+        <description>Freezing rain is expected this afternoon &amp; evening.</description>
+        <instruction>Take extra care when walking or driving.</instruction>
+        <web>https://weather.gc.ca/warnings/index_e.html</web>
+        <area><areaDesc>Montréal</areaDesc></area>
+        <area><areaDesc>Laval</areaDesc></area>
+    </info>
+    <info>
+        <language>fr-CA</language>
+        <category>Met</category>
+        <event>pluie verglaçante</event>
+        <urgency>Expected</urgency>
+        <severity>Moderate</severity>
+        <certainty>Likely</certainty>
+        <expires>2026-11-13T15:00:00-05:00</expires>
+        <headline>avertissement de pluie verglaçante en vigueur</headline>
+        <web>javascript:alert(1)</web>
+        <area><areaDesc>Montréal</areaDesc></area>
+    </info>
+</alert>

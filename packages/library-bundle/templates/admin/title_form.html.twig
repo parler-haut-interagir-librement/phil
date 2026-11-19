@@ -1,0 +1,20 @@
+{#
+ # The record of a title, new or edited, sent by a Button of the kit. Context: `form`, `id` (null for a new title).
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_library' %}
+{% set heading = (id is null ? 'admin.new_title' : 'admin.edit_title')|trans({}, domain) %}
+
+{% block title %}{{ heading }}{% endblock %}
+
+{% block content %}
+    <h1>{{ heading }}</h1>
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+        {% component (phil_library_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'admin.save'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+    {{ form_end(form) }}
+    {% if id is not null %}
+        {% component (phil_library_kit('Button')) with {as: 'a', variant: 'outline', href: path('phil_library_admin_copy_new', {id: id})} %}{% block content %}{{ 'admin.new_copy'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+    {% endif %}
+{% endblock %}
