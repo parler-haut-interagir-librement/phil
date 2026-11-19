@@ -9,8 +9,8 @@ use Phil\DirectoryBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
- * The listing table on PostgreSQL 17, read from `PHIL_TEST_POSTGRESQL_URL`, whose default collation is deterministic: the
- * columns keep it and still tell the values apart.
+ * The listing table and the table of its rows on PostgreSQL 17, read from `PHIL_TEST_POSTGRESQL_URL`, whose default
+ * collation is deterministic: the columns keep it and still tell the values apart.
  */
 #[CoversClass(BinaryKeysListener::class)]
 final class PostgreSqlBinaryKeysTest extends ServerBinaryKeysTestCase

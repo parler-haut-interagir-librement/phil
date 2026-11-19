@@ -29,6 +29,9 @@ The next version is 0.3.0-alpha: the key of a draft kept on the server compares 
   -- PostgreSQL and SQLite: nothing to run.
   ```
 
+  Apply it with `doctrine:migrations:migrate`, or run the statement by hand on MySQL and MariaDB; see the
+  [upgrade guide](doc/server-store.md#upgrading-from-02).
+
 ### Fixed
 
 - Under the default case-insensitive collation of MySQL and MariaDB, the draft `AbcdefghijklmnoP` was read, replaced

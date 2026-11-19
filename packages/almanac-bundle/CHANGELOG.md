@@ -26,6 +26,9 @@ The next version is 0.2.0-alpha: the key of a stored date compares byte by byte 
   -- PostgreSQL and SQLite: nothing to run.
   ```
 
+  Apply it with `doctrine:migrations:migrate`, or run the statement by hand on MySQL and MariaDB; see the
+  [upgrade guide](doc/stored-dates.md#upgrading-from-01).
+
 ### Security
 
 - Under the default case-insensitive collation of MySQL and MariaDB, a row written `Harvest` or `harvést` outside the

@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\ORMSetup;
+use Phil\DirectoryBundle\Domain\Model\ListingDimension;
 use Phil\DirectoryBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -17,7 +18,8 @@ use stdClass;
 
 /**
  * The options a field already carries stay, whatever the platform: the collation is added to them, never put in their
- * place; an entity the listener does not know is left as it is.
+ * place; `editedBy` takes it on a class that implements `EditedByCapable` once mapped, and only then; an entity the
+ * listener does not know is left as it is.
  */
 #[CoversClass(BinaryKeysListener::class)]
 final class BinaryKeysListenerOptionsTest extends TestCase
@@ -48,12 +50,37 @@ final class BinaryKeysListenerOptionsTest extends TestCase
         }
     }
 
+    public function testWhoWroteAVersionTakesTheCollationOnMySqlOnly(): void
+    {
+        $metadata = $this->metadata(ListingDimension::class, BinaryKeysListener::EDITED_BY_FIELDS);
+        $metadata->mapField(['fieldName' => 'localeKey', 'type' => 'string']);
+        $this->listen($metadata, DriverManager::getConnection(['driver' => 'pdo_mysql', 'serverVersion' => '8.4.0']));
+
+        self::assertSame(['comment' => 'kept', 'charset' => 'utf8mb4', 'collation' => 'utf8mb4_bin'], $metadata->getFieldMapping('editedBy')->options);
+        self::assertNull($metadata->getFieldMapping('localeKey')->options, 'A key of content-bundle, which collates it.');
+
+        $metadata = $this->metadata(ListingDimension::class, BinaryKeysListener::EDITED_BY_FIELDS);
+        $this->listen($metadata, DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]));
+
+        self::assertSame(['comment' => 'kept'], $metadata->getFieldMapping('editedBy')->options);
+    }
+
+    public function testAClassWhoseWriterIsNotMappedIsLeftAsItIs(): void
+    {
+        $metadata = $this->metadata(ListingDimension::class, ['localeKey']);
+        $this->listen($metadata, DriverManager::getConnection(['driver' => 'pdo_mysql', 'serverVersion' => '8.4.0']));
+
+        self::assertFalse($metadata->hasField('editedBy'));
+        self::assertSame(['comment' => 'kept'], $metadata->getFieldMapping('localeKey')->options);
+    }
+
     public function testAnotherEntityIsLeftAsItIs(): void
     {
-        $metadata = $this->metadata(stdClass::class, ['key']);
+        $metadata = $this->metadata(stdClass::class, ['key', 'editedBy']);
         $this->listen($metadata, DriverManager::getConnection(['driver' => 'pdo_mysql', 'serverVersion' => '8.4.0']));
 
         self::assertSame(['comment' => 'kept'], $metadata->getFieldMapping('key')->options);
+        self::assertNull($metadata->getFieldMapping('editedBy')->options, 'Not a class that implements EditedByCapable.');
     }
 
     /**

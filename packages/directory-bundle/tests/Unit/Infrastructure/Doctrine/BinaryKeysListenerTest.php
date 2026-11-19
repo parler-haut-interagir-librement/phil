@@ -4,41 +4,32 @@ declare(strict_types=1);
 
 namespace Phil\DirectoryBundle\Tests\Unit\Infrastructure\Doctrine;
 
-use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Schema;
-use Doctrine\DBAL\Types\Type;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Events;
-use Doctrine\ORM\ORMSetup;
-use Doctrine\ORM\Tools\SchemaTool;
-use Override;
+use Phil\ContentBundle\Domain\Content\DimensionContentId;
+use Phil\ContentBundle\Infrastructure\Doctrine\Type\DimensionContentIdType;
 use Phil\DirectoryBundle\Domain\ValueObject\ListingId;
 use Phil\DirectoryBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\DirectoryBundle\Infrastructure\Doctrine\ListingIdType;
+use Phil\DirectoryBundle\Tests\Fixture\ListingSchema;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The schema the ORM generates: the genre and the author in `utf8mb4_bin` on MySQL and MariaDB, the default collation
+ * The schema the ORM generates: the genre, the author and who wrote a version in `utf8mb4_bin` on MySQL and MariaDB, the default collation
  * on SQLite, which compares bytes and keeps values that differ only by case or accent apart; PostgreSQL, whose schema
  * tool reads the server, is tested in the Integration suite.
  */
 #[CoversClass(BinaryKeysListener::class)]
 final class BinaryKeysListenerTest extends TestCase
 {
-    #[Override]
-    protected function setUp(): void
-    {
-        if (!Type::hasType(ListingIdType::NAME)) {
-            Type::addType(ListingIdType::NAME, ListingIdType::class);
-        }
-    }
-
-    public function testTheGenreAndTheAuthorAreBinaryOnMySqlAndMariaDb(): void
+    public function testTheGenreTheAuthorAndWhoWroteAVersionAreBinaryOnMySqlAndMariaDb(): void
     {
         foreach (['8.4.0', '11.4.0-MariaDB'] as $version) {
-            self::assertSame(['phil_directory_listing' => ['author', 'genre']], $this->binaryColumns($this->schema(DriverManager::getConnection(['driver' => 'pdo_mysql', 'serverVersion' => $version]))), $version);
+            $connection = DriverManager::getConnection(['driver' => 'pdo_mysql', 'serverVersion' => $version]);
+
+            self::assertSame([ListingSchema::LISTING_TABLE => ['author', 'genre'], ListingSchema::ROW_TABLE => ['edited_by']], $this->binaryColumns(ListingSchema::of($connection, true)), $version);
+            self::assertSame([ListingSchema::LISTING_TABLE => [], ListingSchema::ROW_TABLE => []], $this->binaryColumns(ListingSchema::of($connection, false)), $version);
         }
     }
 
@@ -46,7 +37,7 @@ final class BinaryKeysListenerTest extends TestCase
     {
         $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
 
-        foreach ($this->schema($connection)->getTables() as $table) {
+        foreach (ListingSchema::of($connection, true)->getTables() as $table) {
             foreach ($table->getColumns() as $column) {
                 self::assertNull($column->getCollation(), $column->getObjectName()->toString());
             }
@@ -57,24 +48,16 @@ final class BinaryKeysListenerTest extends TestCase
         $values = ['ann', 'Ann', 'ANN', 'ánn'];
 
         foreach ($values as $value) {
-            $connection->insert('phil_directory_listing', ['id' => ListingId::generate(), 'genre' => $value, 'author' => $value, 'editors' => '[]', 'indexing' => 'listed', 'site_listed' => true], ['id' => ListingIdType::NAME, 'site_listed' => 'boolean']);
+            $listing = ListingId::generate();
+            $connection->insert(ListingSchema::LISTING_TABLE, ['id' => $listing, 'genre' => $value, 'author' => $value, 'editors' => '[]', 'indexing' => 'listed', 'site_listed' => true], ['id' => ListingIdType::NAME, 'site_listed' => 'boolean']);
+            $connection->insert(ListingSchema::ROW_TABLE, ['id' => DimensionContentId::generate(), 'root_id' => $listing, 'locale_key' => '', 'stage' => 'draft', 'version' => 1, 'edited_by' => $value], ['id' => DimensionContentIdType::NAME, 'root_id' => ListingIdType::NAME]);
         }
 
         foreach ($values as $value) {
             self::assertSame([$value], $connection->fetchFirstColumn('SELECT author FROM phil_directory_listing WHERE author = ?', [$value]), $value);
             self::assertSame([$value], $connection->fetchFirstColumn('SELECT genre FROM phil_directory_listing WHERE genre = ?', [$value]), $value);
+            self::assertSame([$value], $connection->fetchFirstColumn('SELECT edited_by FROM phil_directory_listing_dimension WHERE edited_by = ?', [$value]), $value);
         }
-    }
-
-    private function schema(Connection $connection): Schema
-    {
-        $config = ORMSetup::createAttributeMetadataConfig([\dirname(__DIR__, 4).'/src/Domain/Model'], true);
-        $config->enableNativeLazyObjects(true);
-
-        $entityManager = new EntityManager($connection, $config);
-        $entityManager->getEventManager()->addEventListener(Events::loadClassMetadata, new BinaryKeysListener());
-
-        return new SchemaTool($entityManager)->getSchemaFromMetadata(array_map($entityManager->getClassMetadata(...), array_keys(BinaryKeysListener::FIELDS)));
     }
 
     /**

@@ -8,20 +8,18 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Tools\DsnParser;
-use Doctrine\DBAL\Types\Type;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Events;
-use Doctrine\ORM\ORMSetup;
-use Doctrine\ORM\Tools\SchemaTool;
 use Override;
+use Phil\ContentBundle\Domain\Content\DimensionContentId;
+use Phil\ContentBundle\Infrastructure\Doctrine\Type\DimensionContentIdType;
 use Phil\DirectoryBundle\Domain\ValueObject\ListingId;
-use Phil\DirectoryBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\DirectoryBundle\Infrastructure\Doctrine\ListingIdType;
+use Phil\DirectoryBundle\Tests\Fixture\ListingSchema;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The listing table the ORM generates on a real server read from the environment: the listings of the authors `ann`,
- * `Ann`, `ANN` and `ánn`, in the genres of the same names, are each found by their own author and genre only.
+ * The listing table and the table of its rows the ORM generates on a real server read from the environment: the
+ * listings of the authors `ann`, `Ann`, `ANN` and `ánn`, in the genres of the same names, and the versions they wrote,
+ * are each found by their own author, genre and writer only.
  */
 abstract class ServerBinaryKeysTestCase extends TestCase
 {
@@ -43,20 +41,15 @@ abstract class ServerBinaryKeysTestCase extends TestCase
         $this->createTables($this->schema(true));
 
         foreach (self::VALUES as $value) {
-            $connection->insert('phil_directory_listing', ['id' => ListingId::generate(), 'genre' => $value, 'author' => $value, 'editors' => '[]', 'indexing' => 'listed', 'site_listed' => true], ['id' => ListingIdType::NAME, 'site_listed' => 'boolean']);
+            $listing = ListingId::generate();
+            $connection->insert(ListingSchema::LISTING_TABLE, ['id' => $listing, 'genre' => $value, 'author' => $value, 'editors' => '[]', 'indexing' => 'listed', 'site_listed' => true], ['id' => ListingIdType::NAME, 'site_listed' => 'boolean']);
+            $connection->insert(ListingSchema::ROW_TABLE, ['id' => DimensionContentId::generate(), 'root_id' => $listing, 'locale_key' => '', 'stage' => 'draft', 'version' => 1, 'edited_by' => $value], ['id' => DimensionContentIdType::NAME, 'root_id' => ListingIdType::NAME]);
         }
 
         foreach (self::VALUES as $value) {
             self::assertSame([$value], $connection->fetchFirstColumn('SELECT author FROM phil_directory_listing WHERE author = ?', [$value]), $value);
             self::assertSame([$value], $connection->fetchFirstColumn('SELECT genre FROM phil_directory_listing WHERE genre = ?', [$value]), $value);
-        }
-    }
-
-    #[Override]
-    protected function setUp(): void
-    {
-        if (!Type::hasType(ListingIdType::NAME)) {
-            Type::addType(ListingIdType::NAME, ListingIdType::class);
+            self::assertSame([$value], $connection->fetchFirstColumn('SELECT edited_by FROM phil_directory_listing_dimension WHERE edited_by = ?', [$value]), $value);
         }
     }
 
@@ -83,24 +76,16 @@ abstract class ServerBinaryKeysTestCase extends TestCase
     }
 
     /**
-     * The schema of the listing table, with the listener as the bundle registers it, or without it as before.
+     * The schema of the listing table and of its rows, with the listener as the bundle registers it, or without it as
+     * before.
      */
     protected function schema(bool $listening): Schema
     {
-        $config = ORMSetup::createAttributeMetadataConfig([\dirname(__DIR__, 2).'/src/Domain/Model'], true);
-        $config->enableNativeLazyObjects(true);
-
-        $entityManager = new EntityManager($this->connection(), $config);
-
-        if ($listening) {
-            $entityManager->getEventManager()->addEventListener(Events::loadClassMetadata, new BinaryKeysListener());
-        }
-
-        return new SchemaTool($entityManager)->getSchemaFromMetadata(array_map($entityManager->getClassMetadata(...), array_keys(BinaryKeysListener::FIELDS)));
+        return ListingSchema::of($this->connection(), $listening);
     }
 
     /**
-     * The listing table, created afresh: only that one, since the server is shared with the tests of other packages.
+     * The listing table and the table of its rows, created afresh: only those, since the server is shared with the tests of other packages.
      */
     protected function createTables(Schema $schema): void
     {

@@ -10,17 +10,19 @@ use Phil\DirectoryBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
- * The listing table on MySQL 8.4, read from `PHIL_TEST_MYSQL_URL`, whose default collation folds case and accents:
- * the genre and the author take `utf8mb4_bin`, and the table of an earlier version reaches it through the schema diff.
+ * The listing table and the table of its rows on MySQL 8.4, read from `PHIL_TEST_MYSQL_URL`, whose default collation
+ * folds case and accents: the genre, the author and who wrote a version take `utf8mb4_bin`, and the tables of an
+ * earlier version reach it through the schema diff.
  */
 #[CoversClass(BinaryKeysListener::class)]
 final class MySqlBinaryKeysTest extends ServerBinaryKeysTestCase
 {
     private const array BINARY = [
         'phil_directory_listing' => ['author', 'genre'],
+        'phil_directory_listing_dimension' => ['edited_by'],
     ];
 
-    public function testTheGenreAndTheAuthorAreBinaryOnTheServer(): void
+    public function testTheGenreTheAuthorAndWhoWroteAVersionAreBinaryOnTheServer(): void
     {
         $this->createTables($this->schema(true));
 

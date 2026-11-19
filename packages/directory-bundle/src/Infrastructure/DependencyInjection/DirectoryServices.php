@@ -71,7 +71,8 @@ final class DirectoryServices
         }
 
         $container->register(Relations::class, Relations::class)->setArguments([$relations]);
-        $container->register(BinaryKeysListener::class, BinaryKeysListener::class)->addTag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
+        // After the mapping listener of content-bundle, which maps `editedBy` on the same event.
+        $container->register(BinaryKeysListener::class, BinaryKeysListener::class)->addTag('doctrine.event_listener', ['event' => 'loadClassMetadata', 'priority' => -10]);
         $container->register(DoctrineUserErasure::class, DoctrineUserErasure::class)
             ->setArguments([new Reference('doctrine.orm.entity_manager')]);
         $container->setAlias(UserErasure::class, DoctrineUserErasure::class);
