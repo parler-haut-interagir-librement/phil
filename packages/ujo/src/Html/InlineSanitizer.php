@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\Ujo\Html;
 
 use Generator;
+use Phil\Ujo\Exception\InputTooComplex;
 use Phil\Ujo\Exception\InputTooLarge;
 use Phil\Ujo\Exception\InvalidConfiguration;
 use Phil\Ujo\Json\JsonDecoder;
@@ -20,7 +21,9 @@ use Phil\Ujo\Json\JsonDecoder;
  * open at the end is closed. A link is never nested in a link.
  *
  * A fragment longer than `maxBytes` is refused before it is read, by `sanitize()` and by `toText()`: the normalizer,
- * the renderer and the conversion to plain text all read inline HTML through them.
+ * the renderer and the conversion to plain text all read inline HTML through them. The tags are found one at a time,
+ * and a fragment holding more than `maxTokens` tags and comments is refused at the first one past the budget; one
+ * nesting its elements deeper than `maxDepth` is refused by `sanitize()` at the element that goes past it.
  */
 final readonly class InlineSanitizer
 {
@@ -36,21 +39,33 @@ final readonly class InlineSanitizer
     /** The ceiling of a fragment, in bytes, unless configured: that of `JsonDecoder`, 4 MiB. */
     public const int DEFAULT_MAX_BYTES = JsonDecoder::DEFAULT_MAX_BYTES;
 
+    /** The tags and comments read in a fragment, unless configured: more than a field of the normalizer can hold. */
+    public const int DEFAULT_MAX_TOKENS = 100_000;
+
+    /** How deep the elements of a fragment nest, unless configured: the depth of the tree a browser builds. */
+    public const int DEFAULT_MAX_DEPTH = 512;
+
     /** @var array<string, InlineProfile> */
     private array $profiles;
 
     /**
-     * @param array<string, InlineProfile> $profiles profiles added to, or replacing, `rich`, `plain`, `mathml` and `raw`
-     * @param int<1, max>                  $maxBytes the longest fragment read, in bytes; a longer one is refused
+     * @param array<string, InlineProfile> $profiles  profiles added to, or replacing, `rich`, `plain`, `mathml` and `raw`
+     * @param int<1, max>                  $maxBytes  the longest fragment read, in bytes; a longer one is refused
+     * @param int<1, max>                  $maxTokens the most tags and comments read in a fragment; one holding more is refused
+     * @param int<1, max>                  $maxDepth  how deep the elements of a fragment nest; one nesting deeper is refused
      */
-    public function __construct(array $profiles = [], private int $maxBytes = self::DEFAULT_MAX_BYTES)
-    {
+    public function __construct(
+        array $profiles = [],
+        private int $maxBytes = self::DEFAULT_MAX_BYTES,
+        private int $maxTokens = self::DEFAULT_MAX_TOKENS,
+        private int $maxDepth = self::DEFAULT_MAX_DEPTH,
+    ) {
         $this->profiles = [...['rich' => InlineProfile::rich(), 'plain' => InlineProfile::plain(), 'mathml' => InlineProfile::mathMl(), 'raw' => InlineProfile::raw()], ...$profiles];
     }
 
     public function withProfile(string $name, InlineProfile $profile): self
     {
-        return new self([...$this->profiles, $name => $profile], $this->maxBytes);
+        return new self([...$this->profiles, $name => $profile], $this->maxBytes, $this->maxTokens, $this->maxDepth);
     }
 
     public function profile(string $name): InlineProfile
@@ -61,7 +76,8 @@ final readonly class InlineSanitizer
     /**
      * The fragment with only what the profile allows, in canonical form.
      *
-     * @throws InputTooLarge when the fragment is longer than the ceiling
+     * @throws InputTooLarge   when the fragment is longer than the ceiling
+     * @throws InputTooComplex when the fragment holds more tags than the budget, or nests deeper
      */
     public function sanitize(string $html, string $profile = 'rich'): string
     {
@@ -106,6 +122,10 @@ final readonly class InlineSanitizer
             }
 
             if (!\in_array($name, self::VOID, true)) {
+                if ($depth === $this->maxDepth) {
+                    throw InputTooComplex::depth($this->maxDepth);
+                }
+
                 $open[$depth++] = [$name, $tag];
                 $opened[$name] = ($opened[$name] ?? 0) + 1;
                 $inside[$tag] = ($inside[$tag] ?? 0) + 1;
@@ -122,7 +142,8 @@ final readonly class InlineSanitizer
     /**
      * The text of the fragment, decoded, without its elements; a line break becomes a new line.
      *
-     * @throws InputTooLarge when the fragment is longer than the ceiling
+     * @throws InputTooLarge   when the fragment is longer than the ceiling
+     * @throws InputTooComplex when the fragment holds more tags than the budget
      */
     public function toText(string $html): string
     {
@@ -151,17 +172,24 @@ final readonly class InlineSanitizer
     /**
      * The tokens of a fragment: `['text', decoded text, []]`, `['start', tag, attributes]` and `['end', tag, []]`, tag
      * names in lower case; comments and the content of the elements dropped — those of `DROPPED` the profile does not
-     * read — are left out.
+     * read — are left out. The tags are found one at a time from where the last one ended, so that only one is held,
+     * and the fragment is refused at the first tag past the budget.
      *
      * @return Generator<int, array{string, string, array<string, string>}>
+     *
+     * @throws InputTooComplex when the fragment holds more tags and comments than the budget
      */
     private function tokens(string $html, InlineProfile $profile): Generator
     {
-        preg_match_all(self::TOKEN, $html, $matches, \PREG_SET_ORDER | \PREG_OFFSET_CAPTURE);
         $at = 0;
         $dropping = null;
+        $read = 0;
 
-        foreach ($matches as $match) {
+        while (1 === preg_match(self::TOKEN, $html, $match, \PREG_OFFSET_CAPTURE, $at)) {
+            if (++$read > $this->maxTokens) {
+                throw InputTooComplex::tokens($this->maxTokens);
+            }
+
             $text = substr($html, $at, $match[0][1] - $at);
             $at = $match[0][1] + \strlen($match[0][0]);
             $name = strtolower($match[2][0] ?? '');

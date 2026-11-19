@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ec6f9ec6cb20d784b2b74c23df13f16d87ae972f6069a527e6ee26e9863ede0f -->
+<!-- phil-dev source-sha256=8dfaacdb41dede5abbdc5016b4e94120adf209dee84d6462c8926c0430c573c6 -->
 # Markdown
 
 `Reader\Markdown\MarkdownReader` lit du Markdown et en fait un document UJO. Il ne lance jamais d'exception à cause de ce
@@ -16,7 +16,9 @@ Un deuxième argument remplace le `Normalizer` ; celui par défaut enregistre ch
 troisième donne un `MarkdownDialect`, la syntaxe qu'un dialecte ajoute ou lit autrement : voir
 [Points d'extension](extension-points.md#dialectes-de-markdown). Une source plus longue que son plafond (`maxBytes`,
 1 Mio par défaut) est refusée par `InputTooLarge` avant d'être lue : voir
-[Le plafond d'une source](analyser.md#le-plafond-dune-source).
+[Le plafond d'une source](analyser.md#le-plafond-dune-source). Une source qui compte plus de lignes que son budget
+(`maxLines`, 100 000 par défaut) est refusée par `InputTooComplex` avant que ses lignes soient construites : voir
+[Le budget de lignes de Markdown](analyser.md#le-budget-de-lignes-de-markdown).
 
 ## Blocs
 

@@ -31,27 +31,31 @@ final class LimitsTest extends TestCase
         $limits = new Limits();
 
         self::assertSame([16_777_216, 100_000, 65_536, 1_000], [$limits->maxBytes, $limits->maxCues, $limits->maxTextBytes, $limits->maxIssues]);
-        self::assertSame(1, new Limits(1, 1, 1, 1)->maxIssues);
+        self::assertSame([100_000, 1_000, 1_000], [$limits->maxNotes, $limits->maxRegions, $limits->maxStyles]);
+        self::assertSame([1, 1, 1, 1], [new Limits(1, 1, 1, 1, 1, 1, 1)->maxIssues, new Limits(maxNotes: 1)->maxNotes, new Limits(maxRegions: 1)->maxRegions, new Limits(maxStyles: 1)->maxStyles]);
     }
 
     /**
-     * @return iterable<string, array{int, int, int, int}>
+     * @return iterable<string, list<int>>
      */
     public static function belowOne(): iterable
     {
-        yield 'bytes' => [0, 1, 1, 1];
-        yield 'cues' => [1, 0, 1, 1];
-        yield 'text' => [1, 1, 0, 1];
-        yield 'issues' => [1, 1, 1, 0];
+        yield 'bytes' => [0, 1, 1, 1, 1, 1, 1];
+        yield 'cues' => [1, 0, 1, 1, 1, 1, 1];
+        yield 'text' => [1, 1, 0, 1, 1, 1, 1];
+        yield 'issues' => [1, 1, 1, 0, 1, 1, 1];
+        yield 'notes' => [1, 1, 1, 1, 0, 1, 1];
+        yield 'regions' => [1, 1, 1, 1, 1, 0, 1];
+        yield 'styles' => [1, 1, 1, 1, 1, 1, 0];
     }
 
     #[DataProvider('belowOne')]
-    public function testEveryLimitIsAtLeastOne(int $bytes, int $cues, int $text, int $issues): void
+    public function testEveryLimitIsAtLeastOne(int $bytes, int $cues, int $text, int $issues, int $notes, int $regions, int $styles): void
     {
         $this->expectException(InvalidLimits::class);
         $this->expectExceptionMessageIsOrContains('Every limit is at least 1.');
 
-        new Limits($bytes, $cues, $text, $issues);
+        new Limits($bytes, $cues, $text, $issues, $notes, $regions, $styles);
     }
 
     public function testTheInputIsCheckedAndCleaned(): void

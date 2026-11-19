@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c78d8d580c281a965f99ae1cc8291d3a67e682c391e49b0739be7e51eef6f92f -->
+<!-- phil-dev source-sha256=5a9071c064b654c63312b9e07b6749e1f5755fbcd53ca9699698326f6bd3a70c -->
 # Limites et sécurité
 
 Un paquet est écrit par quelqu'un d'autre, sur une autre plateforme, et peut être fabriqué pour nuire au serveur qui le
@@ -20,6 +20,8 @@ cas contraire.
 | `manifestBytes` | 4 Mio | La taille de `imsmanifest.xml` ou de `cmi5.xml` |
 | `depth` | 16 | La profondeur d'imbrication des éléments d'une organisation SCORM ou des blocs d'une structure cmi5 |
 | `items` | 5 000 | Les éléments, les ressources, ou les blocs et les unités qu'un manifeste décrit |
+| `manifestNodes` | 500 000 | Les nœuds XML d'un manifeste — ses éléments, attributs, textes et commentaires —, comptés avant qu'il soit chargé |
+| `manifestDepth` | 64 | La profondeur d'imbrication des éléments XML d'un manifeste, sa racine à 1, vérifiée avant qu'il soit chargé |
 
 ```php
 use Phil\ElearningPackages\PackageLimits;
@@ -75,6 +77,10 @@ puis vérifiée.
 `imsmanifest.xml` et `cmi5.xml` sont analysés par l'extension DOM de PHP :
 
 - un document plus long que `manifestBytes` est refusé avant d'être analysé ;
+- un passage en flux de `XMLReader` compte les nœuds et vérifie la profondeur des éléments un nœud à la fois, sans garder
+  d'arbre, et refuse un document qui dépasse `manifestNodes` ou `manifestDepth` au nœud qui dépasse le budget, avant que
+  le DOM n'en construise quoi que ce soit : un manifeste qui tient dans ses octets ne peut pas devenir plus de nœuds que
+  le budget ;
 - un document qui déclare un type de document ou une entité est refusé, de sorte qu'aucune entité — interne, externe ou
   imbriquée pour s'expanser — n'est jamais résolue : ni une XXE ni une bombe d'expansion d'entités ne peut atteindre
   l'analyseur ;
@@ -111,6 +117,6 @@ l'apprenant :
 ## Temps et mémoire
 
 Le temps d'une lecture croît avec la taille du paquet, jamais avec son carré : l'archive est vérifiée entrée par entrée,
-et le manifeste parcouru une fois. Un manifeste entier est gardé en mémoire pendant sa lecture, ce que borne
-`manifestBytes` ; un fichier est gardé en mémoire une fois lu, ce que borne `entryBytes`. Les bancs d'essai de
+et le manifeste lu deux fois, une fois par le passage en flux qui le compte et une fois dans un arbre. Un manifeste
+entier est gardé en mémoire pendant sa lecture, ce que bornent `manifestBytes` et `manifestNodes` ; un fichier est gardé en mémoire une fois lu, ce que borne `entryBytes`. Les bancs d'essai de
 [Tests](testing.md) mesurent un manifeste de mille éléments et une archive de mille entrées.

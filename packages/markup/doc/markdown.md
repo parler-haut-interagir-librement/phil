@@ -13,7 +13,9 @@ $reading = $reader->read($source);               // Reading: document and metada
 A second argument replaces the `Normalizer`; the default one registers every type of `phil/ujo` and `raw`. A third
 gives a `MarkdownDialect`, the syntax a dialect adds or reads differently: see
 [Extension points](extension-points.md#dialects-of-markdown). A source longer than its ceiling — `maxBytes`, 1 MiB by default — is refused by `InputTooLarge` before it is read: see
-[The ceiling of a source](analyser.md#the-ceiling-of-a-source).
+[The ceiling of a source](analyser.md#the-ceiling-of-a-source). A source holding more lines than its budget —
+`maxLines`, 100,000 by default — is refused by `InputTooComplex` before its lines are built: see
+[The budget of lines of Markdown](analyser.md#the-budget-of-lines-of-markdown).
 
 ## Blocks
 

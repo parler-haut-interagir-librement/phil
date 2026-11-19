@@ -46,6 +46,25 @@ $text = new PlainText(sanitizer: $sanitizer);
 The normalizer also holds each HTML field to `maxHtmlLength` characters, 100,000 by default, checked before the
 sanitizer reads it.
 
+## The budgets of a fragment
+
+Within its ceiling, a fragment is bounded in the work it costs as well. The sanitizer finds the tags one at a time,
+from where the last one ended, and holds only the elements still open:
+
+| Budget | Counts | Default | Refused by |
+|---|---|---|---|
+| `maxTokens` | the tags and comments of the fragment — those of dropped elements included —; text costs nothing | `InlineSanitizer::DEFAULT_MAX_TOKENS`, 100,000 | `sanitize()` and `toText()` |
+| `maxDepth` | the elements open at once; a void element (`br`, `hr`, `img`, `wbr`) opens no level, and an element closed gives its level back | `InlineSanitizer::DEFAULT_MAX_DEPTH`, 512 | `sanitize()` |
+
+Past a budget, the sanitizer throws `Exception\InputTooComplex` at once, without reading the rest: `$budget` says
+`tokens` or `depth`, and `$limit` its value. A fragment is never cut to fit. The defaults refuse no field the normalizer
+accepts — 100,000 characters hold fewer tags than the budget — and no tree deeper than a browser builds. Both are
+arguments of the constructor, kept by `withProfile()`:
+
+```php
+$sanitizer = new InlineSanitizer(maxBytes: 262_144, maxTokens: 10_000, maxDepth: 64);
+```
+
 ## Profiles
 
 | Profile | Keeps |

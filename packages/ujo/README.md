@@ -37,6 +37,7 @@ The design is small: `Document` and `Block` are the values; `BlockTypeRegistry` 
 | Tunes: alignment, anchor, text variant, notice, indent, layout, mask, table of contents, variant | Implemented and tested |
 | `InlineSanitizer`: `rich`, `plain` and `raw` profiles of inline tools | Implemented and tested |
 | A ceiling on every inline HTML fragment read, `maxBytes`, refused by `InputTooLarge` | Implemented and tested |
+| Budgets of tags and depth on every inline HTML fragment read, `maxTokens` and `maxDepth`, refused by `InputTooComplex` | Implemented and tested |
 | `HtmlRenderer`: one renderer per type, replaceable; tunes as classes, identifiers and styles; checklists with accessible checkboxes | Implemented and tested |
 | `PlainText`: one conversion per type, replaceable | Implemented and tested |
 | The `layout` community tool (free CSS layouts) | Not read, by design |

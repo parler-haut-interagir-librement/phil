@@ -255,12 +255,12 @@ final class BoundsTest extends TestCase
     public function testADocumentOfTheLimitIsReadAndTheErrorsOfLibxmlAreCleared(): void
     {
         $xml = '<a>'.str_repeat('a', 93).'</a>';
-        self::assertSame('a', XmlDocument::root($xml, \strlen($xml), 'The test')->localName);
+        self::assertSame('a', XmlDocument::root($xml, new PackageLimits(manifestBytes: \strlen($xml)), 'The test')->localName);
 
         $previous = libxml_use_internal_errors(true);
 
         try {
-            XmlDocument::root('<a>', 100, 'The test');
+            XmlDocument::root('<a>', new PackageLimits(manifestBytes: 100), 'The test');
             self::fail('The document is accepted.');
         } catch (PackageRefused) {
             self::assertSame([], libxml_get_errors());

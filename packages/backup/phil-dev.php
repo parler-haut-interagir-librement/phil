@@ -8,6 +8,8 @@ declare(strict_types=1);
 return [
     'paths' => ['src', 'tests'],
     'phpstan' => [
+        // The fuzz targets run inside nikic/php-fuzzer, which gives them `$config`; PHPStan knows neither.
+        'excludePaths' => ['tests/Fuzz/*'],
         // La dette de phil/dev-tools v2 : ce que ses règles relèvent et qui reste à corriger.
         'ignoreErrors' => [
             // à corriger : API interne de PHPUnit à remplacer par une API publique.
@@ -101,6 +103,12 @@ return [
                     '\$plain = \$size > self::CHUNK .*',
                 ],
             ],
+        ],
+    ],
+    'fuzz' => [
+        // The verification of a media archive on tar files nobody wrote, from the seeds of tests/Fuzz/corpus/<target>.
+        'targets' => [
+            'media-archive' => 'tests/Fuzz/media-archive.php',
         ],
     ],
     // The package is released from its own repository: its CHANGELOG uses every section.

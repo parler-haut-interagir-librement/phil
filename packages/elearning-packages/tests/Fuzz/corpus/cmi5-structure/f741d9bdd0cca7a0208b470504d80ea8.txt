@@ -1,1 +1,0 @@
-<courseStructure><course id="c"/><au id="a~" lh="nd"><url>r</url></au>r</courseStructure>

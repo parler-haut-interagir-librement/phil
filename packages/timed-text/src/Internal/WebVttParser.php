@@ -58,6 +58,15 @@ final class WebVttParser
     private array $pendingNotes = [];
 
     /**
+     * The identifiers of the regions kept, as keys: a region is compared to those before it in constant time.
+     *
+     * @var array<string, true>
+     */
+    private array $regionIds = [];
+
+    private int $styleBlocks = 0;
+
+    /**
      * @throws LimitExceeded when the file is larger than the limits allow
      */
     public function __construct(
@@ -140,8 +149,15 @@ final class WebVttParser
         return \array_slice($this->lines, $from, $to - $from);
     }
 
+    /**
+     * @throws LimitExceeded past the notes the limits allow, before the note is read
+     */
     private function note(): void
     {
+        if (\count($this->notes) + \count($this->pendingNotes) >= $this->limits->maxNotes) {
+            throw LimitExceeded::count('notes', $this->limits->maxNotes);
+        }
+
         $first = $this->index;
         $end = $this->blockEnd($first + 1);
         $lines = $this->body($first + 1, $end);
@@ -190,6 +206,10 @@ final class WebVttParser
      */
     private function style(array $lines, int $line): void
     {
+        if (++$this->styleBlocks > $this->limits->maxStyles) {
+            throw LimitExceeded::count('style blocks', $this->limits->maxStyles);
+        }
+
         $css = Input::checkText(implode("\n", $lines), $line, $this->limits);
 
         if ('' !== $css && StylePolicy::Keep === $this->styling) {
@@ -202,6 +222,10 @@ final class WebVttParser
      */
     private function region(array $lines, int $line): void
     {
+        if (\count($this->regions) >= $this->limits->maxRegions) {
+            throw LimitExceeded::count('regions', $this->limits->maxRegions);
+        }
+
         [$region, $rejected] = Region::parse($lines);
 
         foreach ($rejected as $setting) {
@@ -214,14 +238,13 @@ final class WebVttParser
             return;
         }
 
-        foreach ($this->regions as $known) {
-            if ($known->id === $region->id) {
-                $this->log->report($line, \sprintf('The region "%s" is already defined; this one is ignored.', $region->id));
+        if (isset($this->regionIds[$region->id])) {
+            $this->log->report($line, \sprintf('The region "%s" is already defined; this one is ignored.', $region->id));
 
-                return;
-            }
+            return;
         }
 
+        $this->regionIds[$region->id] = true;
         $this->regions[] = $region;
     }
 

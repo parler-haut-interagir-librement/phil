@@ -30,7 +30,7 @@ Every type of the library, with its role.
 | `Phil\Ujo\Type\TuneType` | `final readonly class` | A tune: name, aliases, value |
 | `Phil\Ujo\Type\TuneRegistry` | `final readonly class` | Tunes by name or alias |
 | `Phil\Ujo\Type\Tunes` | `final class` | The default tunes |
-| `Phil\Ujo\Html\InlineSanitizer` | `final readonly class` | Inline HTML kept as a profile allows; text of a fragment; escaping; a fragment longer than `maxBytes` refused, `DEFAULT_MAX_BYTES` (4 MiB) unless configured |
+| `Phil\Ujo\Html\InlineSanitizer` | `final readonly class` | Inline HTML kept as a profile allows; text of a fragment; escaping; a fragment longer than `maxBytes` refused, `DEFAULT_MAX_BYTES` (4 MiB) unless configured; one holding more tags and comments than `maxTokens`, `DEFAULT_MAX_TOKENS` (100,000), or nesting deeper than `maxDepth`, `DEFAULT_MAX_DEPTH` (512), refused |
 | `Phil\Ujo\Html\InlineProfile` | `final readonly class` | An ordered list of inline tools: `rich()`, `plain()`, `mathMl()`, `raw()` |
 | `Phil\Ujo\Html\InlineTool` | `final readonly class` | An element kept: patterns read, tag and class written, attributes |
 | `Phil\Ujo\Html\AttributeValue` | enum | What an attribute may hold, and its cleaning |
@@ -49,6 +49,7 @@ Every type of the library, with its role.
 | `Phil\Ujo\Exception\InvalidDocument` | `final class`, `InvalidArgumentException` | A structure or data that breaks the model, with its path |
 | `Phil\Ujo\Exception\UnknownBlockType` | `final class`, `InvalidArgumentException` | A type, tune or renderer not registered |
 | `Phil\Ujo\Exception\InvalidConfiguration` | `final class`, `LogicException` | An inline profile not registered |
+| `Phil\Ujo\Exception\InputTooComplex` | `final class`, `InvalidArgumentException` | An HTML fragment holding more tags than the sanitizer's budget, or nesting deeper |
 | `Phil\Ujo\Exception\InputTooLarge` | `final class`, `InvalidArgumentException` | An HTML fragment longer than the sanitizer's ceiling |
 
 See [documents.md](documents.md), [block-types.md](block-types.md), [normalization.md](normalization.md),

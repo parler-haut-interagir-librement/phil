@@ -153,6 +153,8 @@ final class PhilCoursesBundle extends AbstractBundle
                             ->integerNode('manifest_bytes')->info('The size of imsmanifest.xml or cmi5.xml.')->min(1)->defaultValue(PackageLimits::MANIFEST_BYTES)->end()
                             ->integerNode('depth')->info('How deep the items or blocks nest.')->min(1)->max(64)->defaultValue(PackageLimits::DEPTH)->end()
                             ->integerNode('items')->info('How many items, resources, blocks or units a manifest describes.')->min(1)->defaultValue(PackageLimits::ITEMS)->end()
+                            ->integerNode('manifest_nodes')->info('How many XML nodes a manifest holds, counted before it is loaded.')->min(1)->defaultValue(PackageLimits::MANIFEST_NODES)->end()
+                            ->integerNode('manifest_depth')->info('How deep the XML elements of a manifest nest, checked before it is loaded.')->min(1)->defaultValue(PackageLimits::MANIFEST_DEPTH)->end()
                         ->end()
                     ->end()
                 ->end()

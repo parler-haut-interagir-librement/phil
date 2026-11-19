@@ -11,7 +11,8 @@ use Phil\Ujo\Ujo;
 /**
  * A UJO document is decoded and checked each time an author saves, and rendered to HTML each time it is published.
  * Each step must cost time in proportion to the number of blocks: documents of 10, 100 and 1 000 blocks mixing every
- * common type, and a hostile paragraph of inline tags nested deep, are read, checked and rendered. A document is
+ * common type, and hostile paragraphs — inline tags nested as deep as the sanitizer allows, and thousands of them in
+ * a row —, are read, checked and rendered. A document is
  * rendered as the normalizer returned it, which is not checked again.
  *
  * @BeforeMethods("setUp")
@@ -41,7 +42,11 @@ final class UjoBench
         $document = [
             'time' => 1_700_000_000_000,
             'version' => '2.31.0',
-            'blocks' => 'hostile' === $params['shape'] ? $this->hostile($params['blocks']) : $this->blocks($params['blocks']),
+            'blocks' => match ($params['shape']) {
+                'deep' => $this->hostile(str_repeat('<b><i>', $params['blocks']).'x'),
+                'row' => $this->hostile(str_repeat('<b>x</b>', $params['blocks'])),
+                default => $this->blocks($params['blocks']),
+            },
         ];
         $this->json = json_encode($document, \JSON_THROW_ON_ERROR);
         $this->document = $this->ujo->decode($this->json);
@@ -92,8 +97,8 @@ final class UjoBench
         yield '10 blocks' => ['blocks' => 10, 'shape' => 'mixed'];
         yield '100 blocks' => ['blocks' => 100, 'shape' => 'mixed'];
         yield '1 000 blocks' => ['blocks' => 1000, 'shape' => 'mixed'];
-        yield 'inline tags 1 000 deep' => ['blocks' => 1000, 'shape' => 'hostile'];
-        yield 'inline tags 5 000 deep' => ['blocks' => 5000, 'shape' => 'hostile'];
+        yield 'inline tags 512 deep' => ['blocks' => 256, 'shape' => 'deep'];
+        yield 'inline tags 5 000 in a row' => ['blocks' => 5000, 'shape' => 'row'];
     }
 
     /**
@@ -122,8 +127,8 @@ final class UjoBench
     /**
      * @return list<array<string, mixed>>
      */
-    private function hostile(int $depth): array
+    private function hostile(string $text): array
     {
-        return [['id' => 'p', 'type' => 'paragraph', 'data' => ['text' => str_repeat('<b><i>', $depth).'x']]];
+        return [['id' => 'p', 'type' => 'paragraph', 'data' => ['text' => $text]]];
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\Markup\Reader\Markdown;
 
 use Override;
+use Phil\Markup\Exception\InputTooComplex;
 use Phil\Markup\Exception\InputTooLarge;
 use Phil\Markup\Reader\Markdown\Contract\MarkdownDialect;
 use Phil\Markup\Reader\MarkupReader;
@@ -19,26 +20,44 @@ use Phil\Ujo\Normalizer;
  * contents, front matter, `:::` and `{{ }}` blocks, pages and columns. Raw HTML is kept, as `raw` blocks and inline
  * elements for the sanitizer, or escaped as text. A `MarkdownDialect` adds its syntax to it, or reads some differently.
  *
- * Any text is a document: the reader never throws, except `InputTooLarge` for a source longer than its `maxBytes`,
- * refused before it is parsed. The document is normalized by `phil/ujo` before it is returned.
+ * Any text is a document: the reader never throws, except `InputTooLarge` for a source longer than its `maxBytes`, and
+ * `InputTooComplex` for one holding more lines than its `maxLines`, both refused before it is parsed. The document is
+ * normalized by `phil/ujo` before it is returned.
  */
 final readonly class MarkdownReader implements MarkupReader
 {
     /**
+     * The most lines a source holds by default: a megabyte of prose holds a few tens of thousands.
+     */
+    public const int DEFAULT_MAX_LINES = 100_000;
+
+    /**
      * @param int<1, max> $maxBytes the longest source read, in bytes; a longer one is refused
+     * @param int<1, max> $maxLines the most lines a source holds, whatever ends them; one with more is refused
      */
     public function __construct(
         private bool $rawHtml = false,
         private ?Normalizer $normalizer = null,
         private ?MarkdownDialect $dialect = null,
         private int $maxBytes = self::DEFAULT_MAX_BYTES,
+        private int $maxLines = self::DEFAULT_MAX_LINES,
     ) {
     }
 
+    /**
+     * @throws InputTooLarge   when the source is longer than `maxBytes`
+     * @throws InputTooComplex when the source holds more lines than `maxLines`
+     */
     #[Override]
     public function read(string $source): Reading
     {
         InputTooLarge::check($source, $this->maxBytes);
+
+        // The lines are counted before a list of them is built: "\r\n", "\r" and "\n" each end one.
+        if (substr_count($source, "\n") + substr_count($source, "\r") - substr_count($source, "\r\n") >= $this->maxLines) {
+            throw InputTooComplex::lines($this->maxLines);
+        }
+
         $source = str_replace(["\r\n", "\r", "\0"], ["\n", "\n", "\u{FFFD}"], $source);
         $lines = array_map($this->tabs(...), explode("\n", $source));
         [$metadata, $lines] = $this->dialect?->frontMatter($lines) ?? FrontMatter::split($lines);

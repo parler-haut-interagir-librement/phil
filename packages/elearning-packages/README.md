@@ -11,8 +11,8 @@ A package comes from elsewhere, so the library reads it as hostile input. The ar
 file is read: its size and number of entries, each entry's path, which must stay inside the package, symbolic links,
 encrypted entries, the size each entry announces and its compression ratio. Each file is then read through a stream
 that stops one byte past what its entry announced, and checked against its CRC-32. The manifest is parsed without any
-document type or entity, without network access, and within bounds on its size, its depth and the number of items it
-describes. Nothing is extracted to the disk and nothing is run.
+document type or entity, without network access, and within bounds on its size, its XML nodes and their depth, counted
+before it is loaded, and the depth and the number of items it describes. Nothing is extracted to the disk and nothing is run.
 
 It also holds the run-time data model of SCORM 1.2 and SCORM 2004 4th edition: every element, its type, vocabulary and
 range, who may read and write it, the error codes of each version, the run-time API with its states, the rules of a
@@ -21,7 +21,7 @@ checks the content's calls with it, in the browser through the description it gi
 
 It serves a platform that imports and runs courses, an upload form that refuses a broken package before it is stored,
 or a migration tool that lists what a set of packages holds. It is a plain PHP library, with no dependency beyond the `dom`,
-`libxml`, `mbstring` and `zip` extensions.
+`libxml`, `mbstring`, `xmlreader` and `zip` extensions.
 
 ## Status
 
@@ -29,7 +29,7 @@ or a migration tool that lists what a set of packages holds. It is a plain PHP l
 |---|---|
 | The ZIP archive checked before any file is read, then read within its limits | Implemented, tested and fuzzed |
 | Paths inside a package, resolved against `xml:base` and checked | Implemented and tested |
-| The manifest read without document type or entity, bounded in size, depth and items | Implemented, tested and fuzzed |
+| The manifest read without document type or entity, bounded in size, XML nodes, depth and items | Implemented, tested and fuzzed |
 | SCORM 1.2 and SCORM 2004 manifests: version, organizations, items, resources, sequencing kept as XML | Implemented, tested and fuzzed |
 | cmi5 course structures: course, blocks, assignable units, in the language asked for | Implemented, tested and fuzzed |
 | The format told, the launch files and declared files checked | Implemented and tested |
@@ -76,7 +76,7 @@ $package->warnings;     // ['The launch file "sco/quiz.html" of the item "a2" is
 
 ## Requirements
 
-PHP 8.5 or later with the `dom`, `libxml`, `mbstring` and `zip` extensions.
+PHP 8.5 or later with the `dom`, `libxml`, `mbstring`, `xmlreader` and `zip` extensions.
 
 ## Contributing
 

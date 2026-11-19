@@ -18,6 +18,8 @@ extracted, fetched or run.
 | `manifestBytes` | 4 MiB | The size of `imsmanifest.xml` or `cmi5.xml` |
 | `depth` | 16 | How deep the items of a SCORM organization or the blocks of a cmi5 structure nest |
 | `items` | 5 000 | The items, the resources, or the blocks and units a manifest describes |
+| `manifestNodes` | 500 000 | The XML nodes of a manifest — its elements, attributes, text and comments —, counted before it is loaded |
+| `manifestDepth` | 64 | How deep the XML elements of a manifest nest, its root at 1, checked before it is loaded |
 
 ```php
 use Phil\ElearningPackages\PackageLimits;
@@ -69,6 +71,9 @@ fragment set apart, its escapes decoded — so that `%2e%2e/` is `../` —, its 
 `imsmanifest.xml` and `cmi5.xml` are parsed by PHP's DOM extension:
 
 - a document longer than `manifestBytes` is refused before it is parsed;
+- a streaming pass of `XMLReader` counts its nodes and checks the depth of its elements one node at a time, holding no
+  tree, and refuses a document past `manifestNodes` or `manifestDepth` at the node past the budget, before the DOM
+  builds anything of it: a manifest that fits in its bytes cannot grow into more nodes than the budget;
 - a document that declares a document type or an entity is refused, so that no entity — internal, external, or nested
   to expand — is ever resolved: neither XXE nor an entity expansion bomb can reach the parser;
 - the parser runs with `LIBXML_NONET`, never reaching the network, and its errors are collected and cleared, leaving
@@ -100,6 +105,6 @@ The values a SCORM commit carries come from content the platform did not write, 
 ## Time and memory
 
 The time of a reading grows with the size of the package, never with its square: the archive is checked entry by
-entry, and the manifest walked once. A whole manifest is held in memory while it is read, which `manifestBytes`
-bounds; a file is held in memory once read, which `entryBytes` bounds. The benchmarks of [Testing](testing.md) measure
+entry, and the manifest read twice, once by the streaming pass that counts it and once into a tree. A whole manifest
+is held in memory while it is read, which `manifestBytes` and `manifestNodes` bound; a file is held in memory once read, which `entryBytes` bounds. The benchmarks of [Testing](testing.md) measure
 a manifest of a thousand items and an archive of a thousand entries.

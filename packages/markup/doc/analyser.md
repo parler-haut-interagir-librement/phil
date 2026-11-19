@@ -93,6 +93,19 @@ $compiler = new DefaultCompiler(maxBytes: 262_144, ujoMaxBytes: 1_048_576); // 2
 without a reader, included —, gives its ceiling to the readers `reader()` returns, and puts the reader of an add-on's
 format behind it. A UJO source has a ceiling of its own, `ujoMaxBytes`, which the compiler gives its reader of UJO and
 the decoder of `phil/ujo` behind it, so that both refuse at the same length. `Markup` refuses what its compiler refuses.
+
+## The budget of lines of Markdown
+
+A source that fits in its ceiling can still be made of little else than line breaks: a megabyte of them is a million
+lines, each one an entry of the lists the Markdown reader builds. `MarkdownReader` counts the lines of a source before
+it builds them — `\r\n`, `\r` and `\n` each end one — and refuses a source holding more than its budget by
+`Exception\InputTooComplex`, whose `$budget` is `lines` and `$limit` the budget, without cutting the source to fit.
+The budget is the `maxLines` argument of its constructor, `MarkdownReader::DEFAULT_MAX_LINES` — 100,000 — by default:
+a megabyte of prose holds a few tens of thousands of lines. The readers `DefaultCompiler` builds keep the default.
+
+```php
+$reader = new MarkdownReader(maxBytes: 4 * 1_048_576, maxLines: 400_000); // 4 MiB, 400,000 lines
+```
 A UJO source is refused by the ceiling of `UjoReader` before the decoder of `phil/ujo` sees it.
 
 The purifiers have a ceiling too, 4 MiB by default: see [The ceiling of an HTML purified](reference.md#the-ceiling-of-an-html-purified).

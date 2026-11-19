@@ -8,11 +8,14 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use Phil\ElearningPackages\Exception\PackageRefused;
+use Phil\ElearningPackages\PackageLimits;
+use XMLReader;
 
 /**
  * Reads a manifest as XML without trusting it: bounded in size, refused when it declares a document type — no
- * entity, internal or external, can then be expanded —, parsed without network access, and walked by the local
- * names of its elements, so that a manifest with or without the usual namespaces reads the same.
+ * entity, internal or external, can then be expanded —, its nodes counted and its depth checked by a streaming pass
+ * before a tree of it is built, parsed without network access, and walked by the local names of its elements, so that
+ * a manifest with or without the usual namespaces reads the same.
  *
  * @internal the readers of the library read their manifests through it; it is not part of the public API
  */
@@ -25,12 +28,13 @@ final class XmlDocument
     }
 
     /**
-     * @throws PackageRefused when the document is too large, declares a document type, or is not well formed
+     * @throws PackageRefused when the document is too large, declares a document type, holds more nodes or nests its
+     *                        elements deeper than the limits allow, or is not well formed
      */
-    public static function root(string $xml, int $maxBytes, string $what): DOMElement
+    public static function root(string $xml, PackageLimits $limits, string $what): DOMElement
     {
-        if (\strlen($xml) > $maxBytes) {
-            throw PackageRefused::because(\sprintf('%s is larger than %d bytes.', $what, $maxBytes));
+        if (\strlen($xml) > $limits->manifestBytes) {
+            throw PackageRefused::because(\sprintf('%s is larger than %d bytes.', $what, $limits->manifestBytes));
         }
 
         if (1 === preg_match('/<!DOCTYPE|<!ENTITY/i', $xml)) {
@@ -39,17 +43,58 @@ final class XmlDocument
 
         $previous = libxml_use_internal_errors(true);
 
-        // Loading never throws on a text that is not empty: the errors it collects are cleared at once.
-        $document = new DOMDocument();
-        $root = '' !== $xml && $document->loadXML($xml, \LIBXML_NONET) ? $document->documentElement : null;
-        libxml_clear_errors();
-        libxml_use_internal_errors($previous);
+        try {
+            // Loading never throws on a text that is not empty: the errors it collects are cleared at once.
+            $root = null;
+
+            if ('' !== $xml) {
+                self::measure($xml, $limits, $what);
+                $document = new DOMDocument();
+                $root = $document->loadXML($xml, \LIBXML_NONET) ? $document->documentElement : null;
+            }
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous);
+        }
 
         if (!$root instanceof DOMElement) {
             throw PackageRefused::because(\sprintf('%s is not well-formed XML.', $what));
         }
 
         return $root;
+    }
+
+    /**
+     * Counts the nodes of a document and checks the depth of its elements as a stream, one node at a time, holding no
+     * tree: a document is refused at the node past its budget, before anything of it is built. The pass stops at the
+     * first error of a document that is not well formed, where the parser that builds the tree then stops too.
+     *
+     * @throws PackageRefused when the document holds more nodes or nests its elements deeper than the limits allow
+     */
+    private static function measure(string $xml, PackageLimits $limits, string $what): void
+    {
+        $reader = XMLReader::fromString($xml, null, \LIBXML_NONET);
+        $nodes = 0;
+
+        while ($reader->read()) {
+            $type = $reader->nodeType;
+
+            if (XMLReader::END_ELEMENT === $type) {
+                continue;
+            }
+
+            if (XMLReader::ELEMENT === $type) {
+                if ($reader->depth >= $limits->manifestDepth) {
+                    throw PackageRefused::because(\sprintf('%s nests its elements deeper than %d levels.', $what, $limits->manifestDepth));
+                }
+
+                $nodes += $reader->attributeCount;
+            }
+
+            if (++$nodes > $limits->manifestNodes) {
+                throw PackageRefused::because(\sprintf('%s holds more than %d XML nodes.', $what, $limits->manifestNodes));
+            }
+        }
     }
 
     /**

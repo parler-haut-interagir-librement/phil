@@ -3,7 +3,7 @@
 ## Requirements
 
 - PHP 8.5 or later.
-- The `dom` and `libxml` extensions, which parse the manifests.
+- The `dom`, `libxml` and `xmlreader` extensions, which count and parse the manifests.
 - The `mbstring` extension, which bounds texts and checks that paths are UTF-8.
 - The `zip` extension, which reads the archives.
 

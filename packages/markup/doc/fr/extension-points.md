@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=cedd05dd1b0ac5c4ddc7cf161d19c163fd0dfded7b1ea324d972dc34a669f67b -->
+<!-- phil-dev source-sha256=83d0e110383d6901156bb72dac1daf5145e6168355d1f907b66641e7588ba37a -->
 # Points d'extension
 
 La bibliothèque est du PHP simple et ne déclare aucun service. `Markup` se compose de deux ports, un compilateur et un
@@ -47,7 +47,7 @@ et `Adapter\Purifiers` la choisit là où l'extension est chargée : voir [Accé
 
 | Méthode | Contrat |
 |---|---|
-| `read(string $source): Reading` | Le `Document` et les métadonnées que déclare la source ; `InvalidSource` seulement pour un format dont une source peut enfreindre les règles, comme le JSON UJO ; le lecteur d'un format écrit ne lance jamais d'exception à cause de ce que dit une source, et lit ce qu'il peut en temps linéaire ; `InputTooLarge` pour une source plus longue que le plafond du lecteur |
+| `read(string $source): Reading` | Le `Document` et les métadonnées que déclare la source ; `InvalidSource` seulement pour un format dont une source peut enfreindre les règles, comme le JSON UJO ; le lecteur d'un format écrit ne lance jamais d'exception à cause de ce que dit une source, et lit ce qu'il peut en temps linéaire ; `InputTooLarge` pour une source plus longue que le plafond du lecteur ; `InputTooComplex` pour une source qui dépasse un budget du lecteur, comme les lignes de Markdown |
 
 Chaque lecteur de la bibliothèque prend `maxBytes`, le plafond d'une source, `MarkupReader::DEFAULT_MAX_BYTES` (1 Mio)
 par défaut ; `DefaultCompiler` prend le sien, qu'il donne aux lecteurs qu'il construit. Voir

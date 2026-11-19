@@ -4,6 +4,27 @@ All notable changes to `phil/elearning-packages` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha: a manifest holding more than 500,000 XML nodes, or nesting its elements deeper than
+64 levels, is refused before it is loaded. A patch version and not a minor one: no manifest a course tool writes, its
+items bounded to 5,000 and their nesting to 16, comes near either budget.
+
+### Added
+
+- `manifestNodes` and `manifestDepth` on `PackageLimits`, the XML nodes of a manifest — its elements, attributes, text
+  and comments — and the depth of its elements; `PackageLimits::MANIFEST_NODES`, 500,000, and
+  `PackageLimits::MANIFEST_DEPTH`, 64. `Scorm\ScormManifestReader` and `Cmi5\Cmi5CourseReader` throw
+  `PackageRefused` at the first node past a budget.
+- The seeds `many-nodes.xml` and `deep-elements.xml` of the fuzz target `scorm-manifest`, which reads under tight
+  budgets of nodes and depth.
+
+### Changed
+
+- A manifest is counted by a streaming pass of `XMLReader`, one node at a time and holding no tree, before the DOM
+  loads it: a manifest past a budget is refused before anything of it is built. The package requires the `xmlreader`
+  extension, bundled with PHP.
+
 ## 0.1.1-alpha - 2026-11-18
 
 ### Added

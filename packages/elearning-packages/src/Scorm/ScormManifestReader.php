@@ -39,7 +39,7 @@ final readonly class ScormManifestReader
      */
     public function read(string $xml): ScormManifest
     {
-        $root = XmlDocument::root($xml, $this->limits->manifestBytes, 'The SCORM manifest');
+        $root = XmlDocument::root($xml, $this->limits, 'The SCORM manifest');
 
         if ('manifest' !== $root->localName) {
             throw PackageRefused::because('The SCORM manifest has no <manifest> root.');

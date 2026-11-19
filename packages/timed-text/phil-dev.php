@@ -9,6 +9,8 @@ return [
     'paths' => ['src', 'tests'],
     'infection' => [
         'mutators' => [
+            // `isset` is true for a key whose value is `false`: the identifiers of the regions only need to be keys.
+            'TrueValue' => ['ignoreSourceCodeByRegex' => ['.*\\$this->regionIds\\[\\$region->id\\] = true;.*']],
             // The first element of the split is the same whatever the limit: the parameters after the first `;` are
             // not read.
             'IncrementInteger' => [

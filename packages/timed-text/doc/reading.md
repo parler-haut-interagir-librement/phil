@@ -42,5 +42,6 @@ are strict only, and their problems name the chapter.
 
 `Limits` bounds the work on one document, whatever it holds: `maxBytes` (16 MiB by default), `maxCues` (100 000 cues,
 segments, paragraphs or chapters), `maxTextBytes` (64 KiB for the text of one cue, title, note or style) and
-`maxIssues` (1 000 problems listed). Past one of them, the reader throws `Exception\LimitExceeded`, in `read()` and in
-`inspect()` alike. See [Security](security.md).
+`maxIssues` (1 000 problems listed). A WebVTT document also has `maxNotes` (100 000 `NOTE` blocks), `maxRegions`
+(1 000 regions) and `maxStyles` (1 000 `STYLE` blocks), each counted before the block is read. Past one of them, the
+reader throws `Exception\LimitExceeded`, in `read()` and in `inspect()` alike. See [Security](security.md).

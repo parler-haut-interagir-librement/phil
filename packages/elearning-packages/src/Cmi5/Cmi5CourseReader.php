@@ -34,7 +34,7 @@ final readonly class Cmi5CourseReader
      */
     public function read(string $xml): Cmi5Course
     {
-        $root = XmlDocument::root($xml, $this->limits->manifestBytes, 'The cmi5 course structure');
+        $root = XmlDocument::root($xml, $this->limits, 'The cmi5 course structure');
 
         if ('courseStructure' !== $root->localName) {
             throw PackageRefused::because('The cmi5 course structure has no <courseStructure> root.');

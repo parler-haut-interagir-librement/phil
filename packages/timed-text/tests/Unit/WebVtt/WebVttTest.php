@@ -282,4 +282,67 @@ final class WebVttTest extends TestCase
             }
         }
     }
+
+    public function testTheNotesRegionsAndStylesOfAFileAreCountedBeforeTheyAreRead(): void
+    {
+        $notes = "WEBVTT\n\nNOTE one\n\n00:01.000 --> 00:02.000\nA\n\nNOTE two";
+        $regions = "WEBVTT\n\nREGION\nid:a\n\nREGION\nid:b\n\n00:01.000 --> 00:02.000\nA";
+        $styles = "WEBVTT\n\nSTYLE\n::cue {}\n\nSTYLE\n::cue(b) {}";
+
+        self::assertCount(2, new WebVttReader(new Limits(maxNotes: 2))->read($notes)->notes);
+        self::assertCount(2, new WebVttReader(new Limits(maxRegions: 2))->read($regions)->regions);
+        self::assertCount(2, new WebVttReader(new Limits(maxStyles: 2))->read($styles)->styles);
+        self::assertSame([], new WebVttReader(new Limits(maxStyles: 2), StylePolicy::Drop)->read($styles)->styles);
+
+        foreach ([
+            [new Limits(maxNotes: 1), $notes, 'The document holds more than 1 notes.'],
+            [new Limits(maxNotes: 1), "WEBVTT\n\nNOTE one\n\nNOTE two", 'The document holds more than 1 notes.'],
+            [new Limits(maxRegions: 1), $regions, 'The document holds more than 1 regions.'],
+            [new Limits(maxStyles: 1), $styles, 'The document holds more than 1 style blocks.'],
+            [new Limits(maxStyles: 1), $styles, 'The document holds more than 1 style blocks.', StylePolicy::Drop],
+        ] as $case) {
+            [$limits, $text, $message] = $case;
+
+            try {
+                new WebVttReader($limits, $case[3] ?? StylePolicy::Keep)->inspect($text);
+                self::fail('Read past the limits: '.$message);
+            } catch (LimitExceeded $exception) {
+                self::assertSame($message, $exception->getMessage());
+            }
+        }
+    }
+
+    public function testAFileOfNotesUnderTheByteLimitIsRefusedAtItsBudget(): void
+    {
+        $limits = new Limits(maxBytes: 65_536, maxNotes: 1_000);
+        $hostile = 'WEBVTT'.str_repeat("\n\nNOTE", 5_000);
+
+        self::assertLessThan($limits->maxBytes, \strlen($hostile));
+        self::assertCount(1_000, new WebVttReader($limits)->read('WEBVTT'.str_repeat("\n\nNOTE", 1_000))->notes);
+
+        $this->expectException(LimitExceeded::class);
+        $this->expectExceptionMessageIsOrContains('The document holds more than 1000 notes.');
+
+        new WebVttReader($limits)->read($hostile);
+    }
+
+    public function testRegionsAreComparedByIdentifierWithoutReadingThemAll(): void
+    {
+        $hostile = 'WEBVTT';
+
+        for ($i = 0; $i < 999; ++$i) {
+            $hostile .= "\n\nREGION\nid:r".$i;
+        }
+
+        $inspection = new WebVttReader(new Limits(maxBytes: 65_536))->inspect($hostile."\n\nREGION\nid:r5");
+
+        self::assertCount(999, $inspection->track->regions);
+        self::assertSame(['Line 3000: The region "r5" is already defined; this one is ignored.'], array_map(static fn (Issue $issue): string => $issue->toString(), $inspection->issues));
+        self::assertCount(1_000, new WebVttReader()->read($hostile."\n\nREGION\nid:last")->regions);
+
+        $this->expectException(LimitExceeded::class);
+        $this->expectExceptionMessageIsOrContains('The document holds more than 1000 regions.');
+
+        new WebVttReader()->read($hostile."\n\nREGION\nid:last\n\nREGION\nid:extra");
+    }
 }

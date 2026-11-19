@@ -106,7 +106,7 @@ use Twig\Environment;
  *     locked_activities: 'show'|'hide',
  *     storage: array{directory: string, service: ?string},
  *     content: array{base_url: ?string, application_origin: ?string, allow_localhost: bool},
- *     import: array{language: ?string, limits: array{archive_bytes: int, entries: int, entry_bytes: int, total_bytes: int, ratio: int, manifest_bytes: int, depth: int, items: int}},
+ *     import: array{language: ?string, limits: array{archive_bytes: int, entries: int, entry_bytes: int, total_bytes: int, ratio: int, manifest_bytes: int, depth: int, items: int, manifest_nodes: int, manifest_depth: int}},
  *     cmi5: array{actor_home_page: ?string, session_ttl: int, secret: string, allowed_origins: list<string>, lrs: ?string, remote_lrs: array{enabled: bool, endpoint: ?string, username: ?string, password: ?string, version: string, timeout: float, max_duration: float}},
  *     scorm: array{enabled: bool, token_ttl: int, secret: string},
  *     admin: array{role: string},
@@ -155,7 +155,7 @@ final class CoursesServices
         self::service($container, SecondChances::class, [new Reference(RetryRequestRepository::class), new Reference(Courses::class), new Reference(Enrollments::class), new Reference(Availabilities::class), $clock, $events]);
 
         $limits = $config['import']['limits'];
-        $container->register(PackageLimits::class, PackageLimits::class)->setArguments([$limits['archive_bytes'], $limits['entries'], $limits['entry_bytes'], $limits['total_bytes'], $limits['ratio'], $limits['manifest_bytes'], $limits['depth'], $limits['items']]);
+        $container->register(PackageLimits::class, PackageLimits::class)->setArguments([$limits['archive_bytes'], $limits['entries'], $limits['entry_bytes'], $limits['total_bytes'], $limits['ratio'], $limits['manifest_bytes'], $limits['depth'], $limits['items'], $limits['manifest_nodes'], $limits['manifest_depth']]);
         $container->register(ZipPackageOpener::class, ZipPackageOpener::class);
         $container->setAlias(PackageOpener::class, ZipPackageOpener::class);
         $container->register(PackageReader::class, PackageReader::class)->setArguments([new Reference(PackageLimits::class), $config['import']['language'], new Reference(PackageOpener::class)]);

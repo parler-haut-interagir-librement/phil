@@ -1,1 +1,0 @@
-<courseStructure><course id="c"></course><block id="au"></block>x</courseStructure>

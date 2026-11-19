@@ -4,6 +4,24 @@ All notable changes to `phil/timed-text` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: a WebVTT file holding more than 100,000 notes, 1,000 regions or 1,000 style blocks is
+refused as soon as its budget is spent. A patch version and not a minor one: no caption file written for a player
+holds that many.
+
+### Added
+
+- `maxNotes`, `maxRegions` and `maxStyles` on `Limits`, the `NOTE` blocks, regions and `STYLE` blocks of a WebVTT
+  document: 100,000, 1,000 and 1,000 by default. `WebVtt\WebVttReader` throws `Exception\LimitExceeded` at the first
+  block past its budget, before it reads it, in `read()` and in `inspect()` alike.
+- The seeds `many-notes.vtt` and `many-regions.vtt` of the fuzz target `webvtt`, which reads under tight budgets of
+  notes, regions and style blocks.
+
+### Changed
+
+- A region is compared to the regions above it by its identifier in constant time, instead of one by one.
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

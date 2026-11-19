@@ -32,6 +32,8 @@ phil_courses:
             manifest_bytes: 4194304
             depth: 16
             items: 5000
+            manifest_nodes: 500000
+            manifest_depth: 64
     cmi5:
         actor_home_page: 'https://www.example.org'
         session_ttl: 14400
@@ -80,6 +82,8 @@ phil_courses:
 | `import.limits.manifest_bytes` | 4 Mio | La taille de `imsmanifest.xml` ou de `cmi5.xml`. |
 | `import.limits.depth` | 16 | La profondeur d'imbrication des éléments ou des blocs, 64 au plus. |
 | `import.limits.items` | 5 000 | Le nombre d'éléments, de ressources, de blocs ou d'unités que décrit un manifeste. |
+| `import.limits.manifest_nodes` | 500 000 | Le nombre de nœuds XML d'un manifeste, comptés avant son chargement. |
+| `import.limits.manifest_depth` | 64 | La profondeur d'imbrication des éléments XML d'un manifeste, vérifiée avant son chargement. |
 | `cmi5.actor_home_page` | `null` | L'adresse du site : la page d'accueil des comptes qui nomment les apprenants, et la racine des IRI des activités. Si null, les lancements cmi5 sont refusés. |
 | `cmi5.session_ttl` | 14 400 | Pendant combien de secondes le jeton d'une session est valide, de 60 à 86 400. |
 | `cmi5.secret` | `%kernel.secret%` | Le secret dont les jetons sont dérivés. |
