@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 /*
- * The reader on documents nobody wrote: whatever it reads, it returns what it could read, written again, or throws an exception of the library.
+ * The reader on documents nobody wrote, under tight budgets of notes, regions and style blocks: whatever it reads, it
+ * returns what it could read, written again, or throws an exception of the library.
  *
  * Run by `phil-dev fuzz`, which sets PHIL_DEV_AUTOLOAD and gives this file the fuzzer's `$config`.
  */

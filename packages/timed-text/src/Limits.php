@@ -17,6 +17,9 @@ final readonly class Limits
      * @param int $maxCues      the cues, segments or chapters read
      * @param int $maxTextBytes the bytes of the text of one cue, chapter title, note or style
      * @param int $maxIssues    the problems an inspection lists before it gives up
+     * @param int $maxNotes     the `NOTE` blocks of a WebVTT document
+     * @param int $maxRegions   the regions of a WebVTT document
+     * @param int $maxStyles    the `STYLE` blocks of a WebVTT document
      *
      * @throws InvalidLimits when one is below 1
      */
@@ -25,8 +28,11 @@ final readonly class Limits
         public int $maxCues = 100_000,
         public int $maxTextBytes = 65_536,
         public int $maxIssues = 1_000,
+        public int $maxNotes = 100_000,
+        public int $maxRegions = 1_000,
+        public int $maxStyles = 1_000,
     ) {
-        if (min($maxBytes, $maxCues, $maxTextBytes, $maxIssues) < 1) {
+        if (min($maxBytes, $maxCues, $maxTextBytes, $maxIssues, $maxNotes, $maxRegions, $maxStyles) < 1) {
             throw new InvalidLimits('Every limit is at least 1.');
         }
     }

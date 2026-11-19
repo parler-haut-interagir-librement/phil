@@ -5,8 +5,10 @@ them as hostile.
 
 ## Bounded work
 
-`Limits` caps the bytes of a document, its cues, the text of one cue and the problems an inspection lists; past a cap,
-the reader throws `Exception\LimitExceeded` before it costs more. JSON is decoded with its nesting bounded to eight
+`Limits` caps the bytes of a document, its cues, the text of one cue and the problems an inspection lists, and the
+notes, regions and style blocks of a WebVTT document; past a cap, the reader throws `Exception\LimitExceeded` before it
+costs more. A file that fits in the bytes allowed cannot grow into more objects than the caps: each block is counted
+before it is read, and a region is compared to those above it by its identifier, in constant time. JSON is decoded with its nesting bounded to eight
 levels and its big integers kept as strings, which are then refused as seconds. Every parser runs in time linear in
 its input: no pattern backtracks over a whole line. The parsers are fuzzed — see [Testing](testing.md).
 
