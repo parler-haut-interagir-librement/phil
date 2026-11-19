@@ -1,0 +1,12 @@
+{
+    "bundles": {
+        "Phil\\VirtualClassroomBundle\\PhilVirtualClassroomBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "BBB_URL": "https://bbb.example.com/bigbluebutton/api/",
+        "BBB_SECRET": "change-me-to-the-shared-secret-of-the-server"
+    }
+}

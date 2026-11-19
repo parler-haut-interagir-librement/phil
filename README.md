@@ -289,6 +289,8 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/lti-bundle`](https://github.com/parler-haut-interagir-librement/lti-bundle) | LTI 1.3 in Symfony: the routes of the launch, Deep Linking and the key set, an authenticator for verified launches, stores on Doctrine DBAL and scores sent through Messenger. |
 | [`phil/elearning-packages`](https://github.com/parler-haut-interagir-librement/elearning-packages) | SCORM 1.2, SCORM 2004 and cmi5 packages read safely, without a learning platform: the archive checked before any file is read, the manifest read into values. |
 | [`phil/courses-bundle`](https://github.com/parler-haut-interagir-librement/courses-bundle) | Online courses in Symfony: modules and activities, enrollments, progress and completion, release by date, SCORM and cmi5 packages imported, cmi5 launches checked, a local or remote xAPI store. |
+| [`phil/virtual-classroom`](https://github.com/parler-haut-interagir-librement/virtual-classroom) | Live online classes behind one port: BigBlueButton and Jitsi rooms, signed join links per role, attendance with arrival and departure times, recordings. |
+| [`phil/virtual-classroom-bundle`](https://github.com/parler-haut-interagir-librement/virtual-classroom-bundle) | Live classes in Symfony on BigBlueButton or Jitsi: join links by role, attendance and recordings from signed webhooks, attendance counted as course completion. |
 | [`phil/mime-reader`](https://github.com/parler-haut-interagir-librement/mime-reader) | Raw emails read as hostile input: header fields, nested MIME parts and report fields within limits, bodies decoded on demand into UTF-8. |
 
 ### Operations

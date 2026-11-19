@@ -1,0 +1,3 @@
+phil_virtual_classroom:
+    resource: '@PhilVirtualClassroomBundle/config/routes.php'
+    prefix: /virtual-classroom

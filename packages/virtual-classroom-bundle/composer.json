@@ -1,0 +1,89 @@
+{
+    "name": "phil/virtual-classroom-bundle",
+    "description": "Live classes in Symfony on BigBlueButton or Jitsi: join links by role, attendance and recordings from signed webhooks, attendance counted as course completion.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "virtual-classroom",
+        "web-conferencing",
+        "bigbluebutton",
+        "jitsi",
+        "attendance",
+        "e-learning",
+        "lms",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.5",
+        "phil/url": "^0.1.3@dev",
+        "phil/virtual-classroom": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/container": "^2.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/service-contracts": "^3.6"
+    },
+    "require-dev": {
+        "ext-pdo": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "phil/courses-bundle": "^0.1@dev",
+        "phil/privacy-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-http": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/yaml": "^8.2"
+    },
+    "suggest": {
+        "doctrine/orm": "To add the tables to the schema the ORM generates, for doctrine:migrations:diff",
+        "phil/courses-bundle": "To offer a live class as an activity of a course, completed by the share of the session attended",
+        "phil/privacy-bundle": "To give the attendance of a participant in the access and erasure requests",
+        "symfony/console": "For phil:virtual-classroom:sync, which asks the servers who is in the open rooms and what they recorded",
+        "symfony/http-client": "For the HTTP client the BigBlueButton servers are called with, the http_client service of FrameworkBundle",
+        "symfony/messenger": "To sync a room from a message, SyncRoom, which carries its identifier only",
+        "symfony/security-core": "To name the participant from the authenticated user and give the moderator role by a Symfony role"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\VirtualClassroomBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\VirtualClassroomBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

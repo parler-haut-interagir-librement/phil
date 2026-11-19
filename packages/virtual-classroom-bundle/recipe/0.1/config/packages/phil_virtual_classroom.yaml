@@ -1,0 +1,18 @@
+# Live classes on a BigBlueButton or Jitsi server: rooms, join links by role, attendance and recordings. See the
+# configuration guide of phil/virtual-classroom-bundle.
+phil_virtual_classroom:
+    providers:
+        main:
+            type: bigbluebutton
+            url: '%env(BBB_URL)%'
+            secret: '%env(BBB_SECRET)%'
+    # moderator_role: ROLE_VIRTUAL_CLASSROOM_MODERATOR
+    # courses: { threshold: 75 }
+
+when@dev:
+    phil_virtual_classroom:
+        allow_localhost: true
+
+when@test:
+    phil_virtual_classroom:
+        store: memory

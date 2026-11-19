@@ -1,0 +1,59 @@
+{
+    "name": "phil/virtual-classroom",
+    "description": "Live online classes behind one port: BigBlueButton and Jitsi rooms, signed join links per role, attendance with arrival and departure times, recordings.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "virtual-classroom",
+        "web-conferencing",
+        "bigbluebutton",
+        "jitsi",
+        "attendance",
+        "e-learning"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "ext-sodium": "*",
+        "phil/url": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "symfony/http-client-contracts": "^3.6"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2",
+        "symfony/http-client": "^8.2"
+    },
+    "suggest": {
+        "symfony/http-client": "For the HTTP client the BigBlueButton adapter calls its server with"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\VirtualClassroom\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\VirtualClassroom\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}
