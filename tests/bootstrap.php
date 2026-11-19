@@ -38,7 +38,12 @@ require $root.'/vendor/autoload.php';
  * tables in the middle of a test. Each process of each checkout therefore gets a database of its own on the servers
  * whose account may create databases: phil_test_, the hash of the checkout's path, then the TEST_TOKEN of ParaTest.
  * The database is created empty when it is missing; a server whose account may not create one keeps its URL unchanged.
+ * A process started by another that loaded this file, a ParaTest worker or a PHP process a test starts, inherits the URL
+ * already given: the suffix of this checkout is then replaced, never added a second time, and a process with the same
+ * TEST_TOKEN works in the same database.
  */
+$checkout = hash('crc32b', $root);
+
 foreach (['PHIL_TEST_MYSQL_URL', 'PHIL_TEST_POSTGRESQL_URL'] as $variable) {
     $url = getenv($variable);
 
@@ -46,7 +51,7 @@ foreach (['PHIL_TEST_MYSQL_URL', 'PHIL_TEST_POSTGRESQL_URL'] as $variable) {
         continue;
     }
 
-    $database = $parts[2].'_'.hash('crc32b', $root).(is_string($token) && 1 === preg_match('~^\d+$~D', $token) ? '_'.$token : '');
+    $database = preg_replace('~_'.$checkout.'(?:_\d+)?$~D', '', $parts[2]).'_'.$checkout.(is_string($token) && 1 === preg_match('~^\d+$~D', $token) ? '_'.$token : '');
 
     try {
         $server = DriverManager::getConnection(new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql', 'postgres' => 'pdo_pgsql'])->parse($url));

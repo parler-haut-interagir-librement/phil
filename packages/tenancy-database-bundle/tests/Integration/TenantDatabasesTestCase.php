@@ -30,13 +30,25 @@ use Symfony\Component\HttpKernel\KernelInterface;
  * `phil_tdb_newcomer`, the database of `newcomer`, is left for the tests to create.
  *
  * Each database is dropped and created again for each test. The account of the server's URL must be allowed to
- * create databases: the test is skipped otherwise.
+ * create databases: the test is skipped otherwise. The names of these databases are the server's, whatever database the
+ * URL names: each test therefore holds a lock of the server, from its setUp() to its tearDown(), so that the tests of
+ * two processes or two checkouts at once never drop the databases of each other.
  */
 abstract class TenantDatabasesTestCase extends KernelTestCase
 {
     public const string MOVED = 'phil_tdb_moved';
 
     private const array DATABASES = [TestKernel::SHARED, 'phil_tdb_wholesale', 'phil_tdb_newcomer', self::MOVED];
+
+    /**
+     * The key of the advisory lock of PostgreSQL that guards the databases above.
+     */
+    private const int LOCK = 7_406_100;
+
+    /**
+     * How long a test waits on MySQL for the lock that another test holds.
+     */
+    private const int LOCK_SECONDS = 600;
 
     private ?Connection $server = null;
 
@@ -99,6 +111,10 @@ abstract class TenantDatabasesTestCase extends KernelTestCase
         }
 
         $this->server = DriverManager::getConnection($server);
+        // Held by the session of this connection, and released when tearDown() closes it or the process ends.
+        $this->server->executeQuery($this->server->getDatabasePlatform() instanceof PostgreSQLPlatform
+            ? \sprintf('SELECT pg_advisory_lock(%d)', self::LOCK)
+            : \sprintf("SELECT GET_LOCK('phil_tdb', %d)", self::LOCK_SECONDS))->free();
 
         try {
             foreach (self::DATABASES as $database) {
