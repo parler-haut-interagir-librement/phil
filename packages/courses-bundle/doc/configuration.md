@@ -31,6 +31,8 @@ phil_courses:
             manifest_bytes: 4194304
             depth: 16
             items: 5000
+            manifest_nodes: 500000
+            manifest_depth: 64
     cmi5:
         actor_home_page: 'https://www.example.org'
         session_ttl: 14400
@@ -79,6 +81,8 @@ phil_courses:
 | `import.limits.manifest_bytes` | 4 MiB | The size of `imsmanifest.xml` or `cmi5.xml`. |
 | `import.limits.depth` | 16 | How deep the items or blocks nest, 64 at most. |
 | `import.limits.items` | 5 000 | How many items, resources, blocks or units a manifest describes. |
+| `import.limits.manifest_nodes` | 500 000 | How many XML nodes a manifest holds, counted before it is loaded. |
+| `import.limits.manifest_depth` | 64 | How deep the XML elements of a manifest nest, checked before it is loaded. |
 | `cmi5.actor_home_page` | `null` | The site's address: the home page of the accounts that name the learners, and the root of the activities' IRIs. Null leaves cmi5 launches refused. |
 | `cmi5.session_ttl` | 14 400 | How many seconds the token of a session holds, from 60 to 86 400. |
 | `cmi5.secret` | `%kernel.secret%` | The secret the tokens are derived from. |

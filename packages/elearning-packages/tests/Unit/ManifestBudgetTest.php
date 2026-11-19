@@ -126,4 +126,24 @@ final class ManifestBudgetTest extends TestCase
             }
         }
     }
+
+    public function testTheErrorsOfLibxmlAreGivenBackWhetherTheManifestIsRefusedOrNot(): void
+    {
+        $previous = libxml_use_internal_errors(false);
+
+        try {
+            foreach (['<a/>', '<a><b/></a>', '<a>'] as $xml) {
+                try {
+                    XmlDocument::root($xml, new PackageLimits(manifestNodes: 1), 'The test');
+                } catch (PackageRefused) {
+                    // Refused for its budget or for its form: libxml is left as it was found either way.
+                }
+
+                self::assertFalse(libxml_use_internal_errors(false));
+                self::assertSame([], libxml_get_errors());
+            }
+        } finally {
+            libxml_use_internal_errors($previous);
+        }
+    }
 }

@@ -4,6 +4,16 @@ All notable changes to `phil/courses-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: the two new budgets of a manifest are options of the bundle, with the defaults of
+phil/elearning-packages 0.1.2.
+
+### Added
+
+- `phil_courses.import.limits.manifest_nodes` and `phil_courses.import.limits.manifest_depth`, the XML nodes of a
+  manifest and the depth of its elements, passed to `PackageLimits`.
+
 ## 0.1.0-alpha - 2026-11-18
 
 ### Added

@@ -111,7 +111,7 @@ final class PhilCoursesBundleTest extends TestCase
         self::assertSame([null, false], $container->getDefinition(ContentUrls::class)->getArguments());
         self::assertSame([null, 14_400, false], $container->getDefinition(Cmi5Settings::class)->getArguments());
         self::assertSame('%kernel.secret%', $container->getDefinition(Cmi5Tokens::class)->getArgument(2));
-        self::assertSame([PackageLimits::ARCHIVE_BYTES, PackageLimits::ENTRIES, PackageLimits::ENTRY_BYTES, PackageLimits::TOTAL_BYTES, PackageLimits::RATIO, PackageLimits::MANIFEST_BYTES, PackageLimits::DEPTH, PackageLimits::ITEMS], $container->getDefinition(PackageLimits::class)->getArguments());
+        self::assertSame([PackageLimits::ARCHIVE_BYTES, PackageLimits::ENTRIES, PackageLimits::ENTRY_BYTES, PackageLimits::TOTAL_BYTES, PackageLimits::RATIO, PackageLimits::MANIFEST_BYTES, PackageLimits::DEPTH, PackageLimits::ITEMS, PackageLimits::MANIFEST_NODES, PackageLimits::MANIFEST_DEPTH], $container->getDefinition(PackageLimits::class)->getArguments());
         self::assertNull($container->getDefinition(CourseImporter::class)->getArgument(5));
         self::assertTrue($container->getDefinition(PageActivity::class)->hasTag(ActivityType::TAG));
         self::assertTrue($container->getDefinition(Cmi5Activity::class)->hasTag(ActivityType::TAG));
@@ -142,7 +142,7 @@ final class PhilCoursesBundleTest extends TestCase
             'locked_activities' => 'hide',
             'storage' => ['service' => 'app.storage'],
             'content' => ['base_url' => 'https://Content.example.org:8443/files', 'allow_localhost' => true],
-            'import' => ['language' => 'fr', 'limits' => ['archive_bytes' => 10, 'entries' => 2, 'entry_bytes' => 3, 'total_bytes' => 4, 'ratio' => 5, 'manifest_bytes' => 6, 'depth' => 7, 'items' => 8]],
+            'import' => ['language' => 'fr', 'limits' => ['archive_bytes' => 10, 'entries' => 2, 'entry_bytes' => 3, 'total_bytes' => 4, 'ratio' => 5, 'manifest_bytes' => 6, 'depth' => 7, 'items' => 8, 'manifest_nodes' => 9, 'manifest_depth' => 11]],
             'cmi5' => ['actor_home_page' => 'https://learn.example.org/', 'session_ttl' => 600, 'secret' => 'own', 'allowed_origins' => ['https://units.example.net', 'https://content.example.org:8443'], 'lrs' => 'app.lrs'],
             'audit' => ['segment' => 'learning'],
         ]], ['PhilAuditBundle']);
@@ -157,7 +157,7 @@ final class PhilCoursesBundleTest extends TestCase
         self::assertSame(['https://Content.example.org:8443/files', true], $container->getDefinition(ContentUrls::class)->getArguments());
         self::assertSame(['https://learn.example.org/', 600, true], $container->getDefinition(Cmi5Settings::class)->getArguments());
         self::assertSame('own', $container->getDefinition(Cmi5Tokens::class)->getArgument(2));
-        self::assertSame([10, 2, 3, 4, 5, 6, 7, 8], $container->getDefinition(PackageLimits::class)->getArguments());
+        self::assertSame([10, 2, 3, 4, 5, 6, 7, 8, 9, 11], $container->getDefinition(PackageLimits::class)->getArguments());
         self::assertSame('fr', $container->getDefinition(CourseImporter::class)->getArgument(5));
         self::assertSame(['https://content.example.org:8443', 'https://units.example.net'], $container->getDefinition(Cmi5Controller::class)->getArgument(3));
         self::assertSame(['https://learn.example.org', 'https://learn.example.org'], \array_slice($container->getDefinition(ContentController::class)->getArguments(), 2));
@@ -175,9 +175,9 @@ final class PhilCoursesBundleTest extends TestCase
 
     public function testTheBoundsOfTheOptionsAreInclusive(): void
     {
-        $limits = ['archive_bytes', 'entries', 'entry_bytes', 'total_bytes', 'ratio', 'manifest_bytes', 'depth', 'items'];
+        $limits = ['archive_bytes', 'entries', 'entry_bytes', 'total_bytes', 'ratio', 'manifest_bytes', 'depth', 'items', 'manifest_nodes', 'manifest_depth'];
         $ones = $this->load([['import' => ['limits' => array_fill_keys($limits, 1)]]]);
-        self::assertSame(array_fill(0, 8, 1), $ones->getDefinition(PackageLimits::class)->getArguments());
+        self::assertSame(array_fill(0, 10, 1), $ones->getDefinition(PackageLimits::class)->getArguments());
         self::assertSame(64, $this->load([['import' => ['limits' => ['depth' => 64]]]])->getDefinition(PackageLimits::class)->getArgument(6));
 
         foreach ($limits as $limit) {
