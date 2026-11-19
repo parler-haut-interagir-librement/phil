@@ -43,6 +43,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Twig\Extension\ImportMapRuntime;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
@@ -109,6 +110,8 @@ final class PhilBrowserSecurityBundleTest extends TestCase
         $registry = $container->getDefinition(PolicyRegistry::class);
         self::assertSame([PolicyRegistry::class, 'fromConfig'], $registry->getFactory());
         self::assertSame([['default' => ['directives' => PhilBrowserSecurityBundle::DEFAULT_POLICY]]], $registry->getArguments());
+        self::assertSame(["'none'"], PhilBrowserSecurityBundle::DEFAULT_POLICY['base-uri']);
+        self::assertNull($container->getParameter(ReportEndpoint::OPTION));
 
         $builder = $container->getDefinition(HeaderBuilder::class);
         self::assertEquals([new Reference(PolicyRegistry::class), 'default', null, 'csp'], $builder->getArguments());
@@ -122,11 +125,11 @@ final class PhilBrowserSecurityBundleTest extends TestCase
             'Cross-Origin-Resource-Policy' => 'same-site',
             'X-Permitted-Cross-Domain-Policies' => 'none',
             'Origin-Agent-Cluster' => '?1',
-            'Strict-Transport-Security' => 'max-age=31536000',
+            'Strict-Transport-Security' => 'max-age=31536000; includeSubDomains',
         ], [], 'csp'], $container->getDefinition(SecurityHeaders::class)->getArguments());
 
         $listener = $container->getDefinition(ContentSecurityPolicyListener::class);
-        self::assertEquals([new Reference('router', ContainerInterface::NULL_ON_INVALID_REFERENCE), true, null], $container->getDefinition(ReportEndpoint::class)->getArguments());
+        self::assertEquals([new Reference('router', ContainerInterface::NULL_ON_INVALID_REFERENCE), true, null, '%phil_browser_security.public_origin%', '%kernel.debug%'], $container->getDefinition(ReportEndpoint::class)->getArguments());
         self::assertEquals([
             new Reference(HeaderBuilder::class),
             new Reference(ReportEndpoint::class),
@@ -499,12 +502,39 @@ final class PhilBrowserSecurityBundleTest extends TestCase
         self::assertSame('max-age=31536000; includeSubDomains; preload', $this->headerValues($container)['Strict-Transport-Security']);
     }
 
+    public function testThePublicOriginIsReadWhenTheBundleBoots(): void
+    {
+        $boot = static function (?string $origin, bool $debug = false): void {
+            $container = new Container();
+            $container->setParameter(ReportEndpoint::OPTION, $origin);
+            $container->setParameter('kernel.debug', $debug);
+
+            $bundle = new PhilBrowserSecurityBundle();
+            $bundle->setContainer($container);
+            $bundle->boot();
+        };
+        $boot(null);
+        $boot('');
+        $boot('https://example.com');
+        $boot('http://localhost:8000', true);
+        new PhilBrowserSecurityBundle()->boot();
+        $bundle = new PhilBrowserSecurityBundle();
+        $bundle->setContainer(new Container());
+        $bundle->boot();
+
+        self::assertSame('https://example.com', $this->load(['public_origin' => 'https://example.com'])->getParameter(ReportEndpoint::OPTION));
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageIsOrContains('"phil_browser_security.public_origin" is an origin');
+        $boot('https://example.com/app');
+    }
+
     /**
      * @return iterable<string, array{array<string, mixed>}>
      */
     public static function badPreloads(): iterable
     {
-        yield 'without subdomains' => [['preload' => true]];
+        yield 'without subdomains' => [['preload' => true, 'include_subdomains' => false]];
         yield 'too short' => [['preload' => true, 'include_subdomains' => true, 'max_age' => 31_535_999]];
     }
 
@@ -543,7 +573,7 @@ final class PhilBrowserSecurityBundleTest extends TestCase
             'Origin-Agent-Cluster' => '?0',
             'Integrity-Policy' => ['script', 'style'],
             'Integrity-Policy-Report-Only' => ['script'],
-            'Strict-Transport-Security' => 'max-age=31536000',
+            'Strict-Transport-Security' => 'max-age=31536000; includeSubDomains',
         ], $values);
     }
 

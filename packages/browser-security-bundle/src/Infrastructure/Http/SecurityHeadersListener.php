@@ -82,7 +82,7 @@ final readonly class SecurityHeadersListener
             }
         }
 
-        $uri = $resolved->reports ? $this->endpoint->uri($request) : null;
+        $uri = $resolved->reports ? $this->endpoint->uri() : null;
 
         if (null !== $uri && !$headers->has(HeaderBuilder::REPORTING_ENDPOINTS)) {
             $headers->set(HeaderBuilder::REPORTING_ENDPOINTS, $this->group.'="'.$uri.'"');

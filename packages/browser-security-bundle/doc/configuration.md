@@ -88,7 +88,7 @@ phil_browser_security:
         strict_transport_security:
             enabled: ~                # null follows kernel.debug: on when it is off
             max_age: 31536000
-            include_subdomains: false
+            include_subdomains: true  # ASVS asks for the subdomains too
             preload: false            # needs include_subdomains and a year or more
 
     signed_cookies:
@@ -114,6 +114,8 @@ phil_browser_security:
 
     # The service id of the PSR-20 clock.
     clock: clock
+    # The canonical address of the site, such as https://example.com, the reports go to; ~ sends the path alone.
+    public_origin: ~
 ```
 
 ## What is checked when the container is built

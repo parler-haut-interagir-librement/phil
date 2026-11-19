@@ -31,13 +31,15 @@ phil_browser_security:
         strict_transport_security:
             enabled: ~            # null follows kernel.debug: on when it is off
             max_age: 31536000
-            include_subdomains: false
+            include_subdomains: true
             preload: false
 ```
 
 The header goes on responses to HTTPS requests only. `preload` needs `include_subdomains` and a `max_age` of a year or
-more: anything else fails the build. A browser remembers this header for `max_age` seconds, so raise it in steps on a
-site that has never sent it, and turn on `include_subdomains` only when every subdomain answers over HTTPS.
+more: anything else fails the build. The defaults — a year, the subdomains included — are those of the OWASP
+Application Security Verification Standard. A browser remembers this header for `max_age` seconds: on a site that
+has never sent it, start lower and raise it in steps, and set `include_subdomains: false` while a subdomain still
+answers over plain HTTP.
 
 ## One page
 

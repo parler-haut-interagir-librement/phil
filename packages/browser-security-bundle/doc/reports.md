@@ -4,13 +4,33 @@ A browser that meets a violation posts a report to the address the policy names.
 `phil_csp_report`, in both reporting directives and in the `Reporting-Endpoints` header:
 
 ```http
+Content-Security-Policy: default-src 'self'; report-uri /_csp/report; report-to csp
+Reporting-Endpoints: csp="/_csp/report"
+```
+
+`report-uri` serves the browsers that only know it; `report-to` and `Reporting-Endpoints` serve the Reporting API. The
+address is the path of the route, which the browser resolves against the page it loaded; `reporting.uri` names
+another one — a path of the site or an `https` address. A policy with `report: false` carries neither directive.
+
+## Where the reports go
+
+The `Host` header of a request never chooses where its reports go: a forged host sends neither the reports — and the
+addresses of the pages they hold — elsewhere, nor its name into a cached response. With `public_origin`, the
+canonical address of the site, the path is put on it:
+
+```yaml
+phil_browser_security:
+    public_origin: '%env(APP_PUBLIC_ORIGIN)%'   # https://www.example.com
+```
+
+```http
 Content-Security-Policy: default-src 'self'; report-uri https://www.example.com/_csp/report; report-to csp
 Reporting-Endpoints: csp="https://www.example.com/_csp/report"
 ```
 
-`report-uri` serves the browsers that only know it; `report-to` and `Reporting-Endpoints` serve the Reporting API. The
-address is absolute, generated from the route; `reporting.uri` names another one — a path of the site or an `https`
-address. A policy with `report: false` carries neither directive.
+The origin is read by `phil/url` when the kernel boots: an `http` or `https` address with a host name, no IP address,
+no path, query or fragment; `localhost` only in debug mode. Setting `framework.trusted_hosts` beside it refuses forged
+hosts on every page.
 
 ## The two formats
 
