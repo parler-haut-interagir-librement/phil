@@ -4,6 +4,17 @@ All notable changes to `phil/bot-detection-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+Tests only.
+
+### Changed
+
+- The Node tests resolve `@hotwired/stimulus` to their stub with a synchronous hook given to `module.registerHooks()`,
+  on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
+
 ## 0.1.1-alpha - 2026-11-17
 
 Documentation only.

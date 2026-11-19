@@ -4,6 +4,16 @@ All notable changes to `phil/backup-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+Tests only.
+
+### Changed
+
+- The tests check that a stopped process has ended with `kill -0`, without `ps`, which some containers do not install.
+
 ## 0.1.1-alpha - 2026-11-14
 
 ### Added

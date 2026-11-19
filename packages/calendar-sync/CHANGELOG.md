@@ -4,6 +4,17 @@ All notable changes to `phil/calendar-sync` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+Tests only.
+
+### Changed
+
+- The tests of an answer of the largest size allowed and of the most busy periods build their input in a fraction of the
+  time.
+
 ## 0.1.1-alpha - 2026-11-14
 
 ### Changed

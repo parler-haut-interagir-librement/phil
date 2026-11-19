@@ -4,6 +4,17 @@ All notable changes to `phil/geo` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+Tests only.
+
+### Changed
+
+- The test of a database that cannot be read leaves out the file without permissions when the tests run as a user who
+  reads it anyway, such as root in a container.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

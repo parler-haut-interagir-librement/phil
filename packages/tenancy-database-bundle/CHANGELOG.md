@@ -4,6 +4,19 @@ All notable changes to `phil/tenancy-database-bundle` will be documented in this
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+Tests only.
+
+### Changed
+
+- The tests check that a stopped process has ended with `kill -0`, without `ps`, which some containers do not install.
+- The integration tests on a server hold a lock of that server, an advisory lock of PostgreSQL or a named lock of
+  MySQL, from the creation of their databases to their removal: two processes or two checkouts that run them at once
+  never drop the databases of each other.
+
 ## 0.1.1-alpha - 2026-11-17
 
 The transactions left open at the end of a unit of work are rolled back, and the

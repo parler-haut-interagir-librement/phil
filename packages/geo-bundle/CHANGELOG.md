@@ -4,6 +4,19 @@ All notable changes to `phil/geo-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+Tests only.
+
+### Changed
+
+- A test of a directory that cannot be written is skipped when the tests run as a user who writes there anyway, such as
+  root in a container.
+- The Node tests resolve `@hotwired/stimulus` to their stub with a synchronous hook given to `module.registerHooks()`,
+  on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

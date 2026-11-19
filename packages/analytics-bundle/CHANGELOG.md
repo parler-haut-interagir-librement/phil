@@ -4,6 +4,17 @@ All notable changes to `phil/analytics-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+Tests only.
+
+### Changed
+
+- The Node tests resolve `@hotwired/stimulus` to their stub with a synchronous hook given to `module.registerHooks()`,
+  on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
+
 ## 0.2.0-alpha - 2026-11-18
 
 A metric is read only in its canonical form, and the keys of the counter tables

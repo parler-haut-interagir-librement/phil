@@ -19,6 +19,8 @@ The next version is 0.3.0-alpha: in the `prod` environment, the container build 
   and the application does not boot, until `used_tokens.connection` names a Doctrine connection or
   `used_tokens.lock_factory` a lock factory on a store every web server shares. `single_server` does not lift it. The
   pool alone, in memory or in files, is accepted in every other environment.
+- The Node tests resolve `@hotwired/stimulus` to their stub with a synchronous hook given to `module.registerHooks()`,
+  on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
 
 ### Security
 

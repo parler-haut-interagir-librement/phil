@@ -4,6 +4,17 @@ All notable changes to `phil/rate-limit-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+Tests only.
+
+### Changed
+
+- The functional tests keep their compiled container in a directory of their own checkout and environment, and boot the
+  kernels that must fail on an empty cache; `symfony/filesystem` joins the development requirements.
+
 ## 0.1.1-alpha - 2026-11-14
 
 ### Security
