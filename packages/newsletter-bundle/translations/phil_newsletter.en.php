@@ -22,6 +22,7 @@ return [
     'subscribe.sent' => 'Thank you. If a confirmation is needed, you will find it in your inbox.',
     'subscribe.error.address' => 'This address cannot receive our messages.',
     'subscribe.error.expired' => 'The form expired: please send it again.',
+    'subscribe.error.too_many' => 'Too many attempts: please try again later.',
     'subscribe.suggestion' => 'Did you mean %address%?',
     'confirm.title' => 'Confirm your subscription',
     'confirm.button' => 'Confirm',

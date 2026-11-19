@@ -63,7 +63,8 @@ final class TestKernel extends Kernel
             'cache' => ['app' => 'cache.adapter.array'],
         ]);
         $container->services()->set('logger', NullLogger::class);
-        $container->services()->set('cache.rate_limiter')->parent('cache.adapter.array')->tag('cache.pool');
+        // On disk, as a shared pool would be: the kernel resets an array pool between two requests of a test.
+        $container->services()->set('cache.rate_limiter')->parent('cache.adapter.filesystem')->tag('cache.pool')->public();
         $container->extension('doctrine', ['dbal' => ['url' => 'sqlite:///%kernel.cache_dir%/newsletter.sqlite']]);
         $container->extension('twig', ['strict_variables' => true]);
         $container->extension('security', [

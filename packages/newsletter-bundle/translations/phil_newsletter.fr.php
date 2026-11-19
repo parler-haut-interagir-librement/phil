@@ -22,6 +22,7 @@ return [
     'subscribe.sent' => 'Merci. Si une confirmation est nécessaire, vous la trouverez dans votre boîte de réception.',
     'subscribe.error.address' => 'Cette adresse ne peut pas recevoir nos messages.',
     'subscribe.error.expired' => 'Le formulaire a expiré : envoyez-le de nouveau.',
+    'subscribe.error.too_many' => 'Trop de tentatives : réessayez plus tard.',
     'subscribe.suggestion' => 'Vouliez-vous dire %address% ?',
     'confirm.title' => 'Confirmez votre abonnement',
     'confirm.button' => 'Confirmer',

@@ -4,6 +4,34 @@ All notable changes to `phil/newsletter-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.0-alpha: the public subscription form is limited by default, so that a post accepted before may
+be answered `429`, and a confirmation of a double opt-in goes to the same subscriber once in five minutes at most;
+`subscription.rate_limit: false` turns the limits off.
+
+### Added
+
+- `subscription.rate_limit`, on by default: `per_ip` (`limit` 10, `interval` 1 hour), `per_address` (`limit` 5,
+  `interval` 1 hour, on each site) and `resend_delay` (5 minutes), counted by Symfony's Rate Limiter in the pool of
+  `rate_limiter_storage`, under `lock.factory` when it is defined, with `Infrastructure\RateLimiter\SubscriptionRateLimiter`
+  and the service `phil_newsletter.subscription_limiter`. A subscription refused by a count answers `429` with the form
+  and `subscribe.error.too_many`, in English and in French. An interval or a delay that is not a positive duration is
+  refused when the container is built.
+- `Application\Contract\ConfirmationThrottle`, the delay before another confirmation goes to the same subscriber, which
+  `Subscriptions` takes as its last argument, and `SubscribeOutcome::ConfirmationDelayed`: a double opt-in whose
+  confirmation was sent within the delay keeps its place, pending, and sends and announces nothing.
+
+### Changed
+
+- `SubscriptionController` takes the `SubscriptionRateLimiter` as its last argument.
+
+### Security
+
+- The public subscription form had neither a limit nor a delay per address: each post of a double opt-in sent a new
+  confirmation to the same address, so that anyone could flood an address that never asked for it and spend the
+  sender's quota. The counts and the answers are the same whether the address is subscribed or not.
+
 ## 0.2.0-alpha - 2026-11-18
 
 Identifiers, sites, keys, address keys and hashes compare byte by byte on MySQL and

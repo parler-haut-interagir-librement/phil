@@ -190,6 +190,7 @@ Phil\NewsletterBundle\Application\Subscriptions
   argument 6: @messenger.default_bus
   argument 7: @event_dispatcher
   argument 8: @clock
+  argument 9: @Phil\NewsletterBundle\Application\Contract\ConfirmationThrottle
 Phil\NewsletterBundle\Application\Tracking\ClickTracker
   class: (none)
   public: no
@@ -296,6 +297,7 @@ Phil\NewsletterBundle\Infrastructure\Http\SubscriptionController
   argument 5: @security.csrf.token_manager
   argument 6: @twig
   argument 7: @clock
+  argument 8: @phil_newsletter.subscription_limiter
 Phil\NewsletterBundle\Infrastructure\Privacy\NewsletterPrivacy
   class: (none)
   public: no
@@ -342,6 +344,55 @@ phil_newsletter.profile.default
   argument 7: 120
   argument 8: []
   argument 9: NULL
+phil_newsletter.subscription_limiter
+  class: Phil\NewsletterBundle\Infrastructure\RateLimiter\SubscriptionRateLimiter
+  public: no
+  argument 0: inline
+      class: Symfony\Component\RateLimiter\RateLimiterFactory
+      public: no
+      argument 0: [
+          'id' => 'phil_newsletter.subscription.ip'
+          'policy' => 'sliding_window'
+          'limit' => 10
+          'interval' => '1 hour'
+        ]
+      argument 1: inline
+          class: Symfony\Component\RateLimiter\Storage\CacheStorage
+          public: no
+          argument 0: @cache.rate_limiter
+      argument 2: @lock.factory (null on invalid)
+  argument 1: inline
+      class: Symfony\Component\RateLimiter\RateLimiterFactory
+      public: no
+      argument 0: [
+          'id' => 'phil_newsletter.subscription.address'
+          'policy' => 'sliding_window'
+          'limit' => 5
+          'interval' => '1 hour'
+        ]
+      argument 1: inline
+          class: Symfony\Component\RateLimiter\Storage\CacheStorage
+          public: no
+          argument 0: @cache.rate_limiter
+      argument 2: @lock.factory (null on invalid)
+  argument 2: inline
+      class: Symfony\Component\RateLimiter\RateLimiterFactory
+      public: no
+      argument 0: [
+          'id' => 'phil_newsletter.subscription.resend'
+          'policy' => 'token_bucket'
+          'limit' => 1
+          'rate' => [
+            'interval' => '5 minutes'
+            'amount' => 1
+          ]
+        ]
+      argument 1: inline
+          class: Symfony\Component\RateLimiter\Storage\CacheStorage
+          public: no
+          argument 0: @cache.rate_limiter
+      argument 2: @lock.factory (null on invalid)
+  argument 3: '%kernel.secret%'
 phil_newsletter.trigger.confirmed
   class: Phil\NewsletterBundle\Infrastructure\Automations\AudienceTrigger
   public: no

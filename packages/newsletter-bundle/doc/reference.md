@@ -14,6 +14,7 @@ Every class of the bundle, with its role.
 | `Phil\NewsletterBundle\Application\Content\SandboxedTemplates` | `final class` | Renders the templates administrators and members write, never with the application's Twig |
 | `Phil\NewsletterBundle\Application\Contract\AudienceWebhookSender` | interface | Sends one signed webhook of an audience event to a receiver |
 | `Phil\NewsletterBundle\Application\Contract\BounceMailbox` | interface | The mailbox the bounces come back to |
+| `Phil\NewsletterBundle\Application\Contract\ConfirmationThrottle` | interface | The delay before another confirmation of a double opt-in goes to the same subscriber |
 | `Phil\NewsletterBundle\Application\Contract\CurrentSite` | interface | The site a request is for |
 | `Phil\NewsletterBundle\Application\Contract\SegmentResolver` | interface | Chooses the recipients of a campaign |
 | `Phil\NewsletterBundle\Application\Contract\SendThrottle` | interface | The pace of sending |
@@ -97,6 +98,7 @@ Every class of the bundle, with its role.
 | `Phil\NewsletterBundle\Infrastructure\Imap\ImapClient` | `final class` | The few IMAP4rev1 commands a bounce mailbox needs, over a stream the caller opens |
 | `Phil\NewsletterBundle\Infrastructure\Privacy\NewsletterPrivacy` | `final readonly class` | The newsletter's part of an access or erasure request of `phil/privacy-bundle`, the data subject being the external id the application gave its subscribers, on every site |
 | `Phil\NewsletterBundle\Infrastructure\RateLimiter\RateLimiterSendThrottle` | `final readonly class` | The pace of sending on Symfony's rate limiter |
+| `Phil\NewsletterBundle\Infrastructure\RateLimiter\SubscriptionRateLimiter` | `final readonly class` | The limits of the subscription form, per client and per address typed, and the delay between two confirmations, on Symfony's rate limiter |
 | `Phil\NewsletterBundle\Infrastructure\RemoteEvent\MailerEventConsumer` | `final readonly class` | The events a mail provider's webhook sends, as Symfony's Webhook component and the provider's Mailer bridge parse them |
 | `Phil\NewsletterBundle\Infrastructure\Site\ConfiguredSite` | `final readonly class` | The site of the configuration, `default` unless it names another |
 | `Phil\NewsletterBundle\Infrastructure\Webhook\AudienceWebhookListener` | `final readonly class` | Sends each audience event to every configured receiver that asked for its type, through Messenger, so that a slow receiver never holds the request that changed the subscriber |

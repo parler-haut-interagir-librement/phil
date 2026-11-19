@@ -46,7 +46,7 @@ in constant time. The services keep nothing between requests, so the bundle runs
 |---|---|
 | [Installation](doc/installation.md) | Requirements, the recipe, registering, the routes, the tables, the workers. |
 | [Configuration](doc/configuration.md) | Every option, with an example. |
-| [Subscriptions](doc/subscriptions.md) | Lists, the double opt-in, the pages, leaving, pausing, the reasons, sites. |
+| [Subscriptions](doc/subscriptions.md) | Lists, the double opt-in, the limits of the form, the pages, leaving, pausing, the reasons, sites. |
 | [Campaigns](doc/campaigns.md) | Writing, the Markdown editor, the layouts, sandboxed templates, sending, sender profiles. |
 | [Tracking](doc/tracking.md) | Clicks in a total or per recipient, the machines left out, what is never tracked. |
 | [Bounces](doc/bounces.md) | The IMAP mailbox, VERP, provider webhooks, soft and hard bounces, suppression. |

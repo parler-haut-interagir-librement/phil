@@ -18,6 +18,7 @@ use Phil\NewsletterBundle\Domain\Exception\InvalidNewsletterValue;
 use Phil\NewsletterBundle\Domain\Model\MailingList;
 use Phil\NewsletterBundle\Domain\Model\Membership;
 use Phil\NewsletterBundle\Domain\Model\Subscriber;
+use Phil\NewsletterBundle\Infrastructure\RateLimiter\SubscriptionRateLimiter;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -33,7 +34,8 @@ use Twig\Environment;
  * A page reached by a link of a message reads its signed token; a link that is not the newsletter's, or expired, gets a
  * `404`. Following a link never changes anything by itself — mail scanners follow links — : a `POST` from the page, or
  * the mail client's one-click `POST`, does. The subscription form gives the same answer whatever became of the address,
- * so that nobody learns from it who is subscribed.
+ * so that nobody learns from it who is subscribed; with the limiter, a client or an address that posts too often gets a
+ * `429`, counted whether the address is subscribed or not.
  */
 final readonly class SubscriptionController
 {
@@ -53,6 +55,7 @@ final readonly class SubscriptionController
         private CsrfTokenManagerInterface $csrf,
         private Environment $twig,
         private ClockInterface $clock,
+        private ?SubscriptionRateLimiter $limiter = null,
     ) {
     }
 
@@ -76,8 +79,14 @@ final readonly class SubscriptionController
             return $this->page('subscribe', ['list' => $mailingList, 'sent' => true]);
         }
 
+        $email = (string) $request->request->get('email', '');
+
+        if ($this->limiter instanceof SubscriptionRateLimiter && !$this->limiter->allowsSubscription($request, $mailingList->site->key, $email)) {
+            return $this->page('subscribe', ['list' => $mailingList, 'error' => 'too_many'], 429);
+        }
+
         try {
-            $this->subscriptions->subscribe($mailingList, (string) $request->request->get('email', ''));
+            $this->subscriptions->subscribe($mailingList, $email);
         } catch (SubscriptionRefused $subscriptionRefused) {
             return $this->page('subscribe', ['list' => $mailingList, 'error' => 'address', 'suggestion' => $subscriptionRefused->suggestion], 422);
         }

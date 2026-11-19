@@ -7,6 +7,7 @@ namespace Phil\NewsletterBundle\Application;
 use DateTimeImmutable;
 use Phil\EmailAddress\EmailAddress;
 use Phil\EmailAddress\EmailValidator;
+use Phil\NewsletterBundle\Application\Contract\ConfirmationThrottle;
 use Phil\NewsletterBundle\Application\Event\AudienceChanged;
 use Phil\NewsletterBundle\Application\Exception\NotFound;
 use Phil\NewsletterBundle\Application\Exception\SubscriptionRefused;
@@ -48,6 +49,7 @@ final readonly class Subscriptions
         private MessageBusInterface $bus,
         private EventDispatcherInterface $events,
         private ClockInterface $clock,
+        private ?ConfirmationThrottle $confirmations = null,
     ) {
     }
 
@@ -89,6 +91,11 @@ final readonly class Subscriptions
             $subscriber->awaitConfirmation();
             $this->subscribers->save($subscriber);
             $this->subscribers->saveMembership(new Membership($subscriber->id, $list->id, MembershipStatus::Pending, $now));
+
+            if ($this->confirmations instanceof ConfirmationThrottle && !$this->confirmations->allowsConfirmation($subscriber->id)) {
+                return SubscribeOutcome::ConfirmationDelayed;
+            }
+
             $this->bus->dispatch(new SendConfirmation($subscriber->id, $list->id));
             $this->announce(AudienceEventType::Subscribed, $subscriber, $list->id, $now);
 

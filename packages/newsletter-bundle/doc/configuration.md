@@ -31,6 +31,11 @@ phil_newsletter:
         imap: { host: 'imap.example.com', port: 993, user: 'bounces@example.com', password: '%env(BOUNCES_PASSWORD)%', folder: INBOX, delete: false }
         remote_event_consumer: mail_provider
     rate_limiter_storage: cache.rate_limiter
+    subscription:
+        rate_limit:             # "rate_limit: false" turns the limits off
+            per_ip: { limit: 10, interval: '1 hour' }
+            per_address: { limit: 5, interval: '1 hour' }
+            resend_delay: '5 minutes'
     webhooks:
         crm: { url: 'https://crm.example.com/hooks/newsletter', events: [confirmed, unsubscribed] }
     preview_role: ROLE_EDITOR
@@ -51,7 +56,11 @@ phil_newsletter:
 | `bounces.verp` | off | The signed return path of each message, so that a bounce names its delivery. |
 | `bounces.imap` | off | The bounce mailbox, read over implicit TLS (port 993, RFC 8314; no STARTTLS) every five minutes. |
 | `bounces.remote_event_consumer` | `null` | The webhook route name of the mail provider whose events the bundle consumes. |
-| `rate_limiter_storage` | `cache.rate_limiter` | The cache pool the pace is counted in; shared by every worker. |
+| `rate_limiter_storage` | `cache.rate_limiter` | The cache pool the pace and the limits of the subscription form are counted in; shared by every worker and web server. |
+| `subscription.rate_limit.enabled` | `true` | Limits the public subscription form and the confirmations of a double opt-in; `rate_limit: false` turns the limits off. See [The limits of the form](subscriptions.md#the-limits-of-the-form). |
+| `subscription.rate_limit.per_ip.limit`, `.interval` | `10`, `1 hour` | Subscriptions per client address, or IPv6 /64 network, in each interval. |
+| `subscription.rate_limit.per_address.limit`, `.interval` | `5`, `1 hour` | Subscriptions per address typed, on each site, subscribed or not, in each interval. |
+| `subscription.rate_limit.resend_delay` | `5 minutes` | The delay before another confirmation goes to the same subscriber. |
 | `webhooks.<name>` | none | Receivers of the audience events; `events` empty sends all. Needs `phil/standard-webhooks-bundle`. |
 | `preview_role` | `ROLE_ADMIN` | The role the preview of the editor answers. |
 
