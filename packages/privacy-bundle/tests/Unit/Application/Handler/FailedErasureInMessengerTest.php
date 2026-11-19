@@ -136,6 +136,23 @@ final class FailedErasureInMessengerTest extends TestCase
         }
     }
 
+    public function testAModuleNamedWithDigitsOnlyStaysAString(): void
+    {
+        $erasure = ErasureIncomplete::after([], self::failureOf('7'));
+
+        self::assertSame(['7'], AccountErasureIncomplete::of('d-1', $erasure)->modules);
+    }
+
+    /**
+     * @param non-empty-string $module
+     *
+     * @return non-empty-array<string, RuntimeException>
+     */
+    private static function failureOf(string $module): array
+    {
+        return [$module => new RuntimeException('x')];
+    }
+
     private function leakingEraser(string $module = 'members'): PersonalDataEraser
     {
         return new readonly class($module) implements PersonalDataEraser {
