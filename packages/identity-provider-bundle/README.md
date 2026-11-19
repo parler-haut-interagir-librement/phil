@@ -24,7 +24,7 @@ people — no address of their connection, no token of a federated provider — 
 
 | Part | State |
 |---|---|
-| Accounts: registration without telling who has an account, verified addresses by signed links confirmed by a form, the account page | Implemented and tested |
+| Accounts: registration without telling who has an account, limited per client and per address, verified addresses by signed links confirmed by a form, links of the emails on the canonical address of the site, the account page | Implemented and tested |
 | Passwords: Argon2id, strength and breach checks by `phil/passwords`, reset by a link signed over the password and used once, other sessions closed at each change, progressive lock, sign-in limiter per identifier for `login_throttling` | Implemented and tested |
 | Passkeys: registration, sign-in, rename, removal; the last way to sign in kept | Implemented and tested |
 | Authenticator application (TOTP), recovery codes, the second step of a sign-in | Implemented and tested |
@@ -92,7 +92,9 @@ The firewall names the bundle's user provider, user checker and authenticators: 
 ## Requirements
 
 PHP 8.5 or later with the `mbstring`, `openssl` and `sodium` extensions, Symfony 8.2 or later, Doctrine ORM 3.7 or
-later, `web-token/jwt-library` 4.2 or later, `phil/passwords`, `phil/rate-limit` and `phil/url`.
+later, `web-token/jwt-library` 4.2 or later, `phil/passwords`, `phil/rate-limit` and `phil/url`. In production, set
+`public_origin` or `framework.trusted_hosts`: the bundle refuses to boot without either (see
+[Where the links point](doc/accounts.md#where-the-links-point)).
 
 ## Contributing
 

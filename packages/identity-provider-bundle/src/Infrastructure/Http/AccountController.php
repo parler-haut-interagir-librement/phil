@@ -10,6 +10,7 @@ use Phil\IdentityProviderBundle\Application\Exception\Refused;
 use Phil\IdentityProviderBundle\Application\Modules;
 use Phil\IdentityProviderBundle\Application\SignedLinks;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
+use Phil\IdentityProviderBundle\Infrastructure\Security\RegistrationRateLimiter;
 use Phil\IdentityProviderBundle\Infrastructure\Security\SessionListener;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,6 +21,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  * The pages of accounts: registration, the link that verifies an address, the forgotten password and its reset, and
  * the account page with the name, the address and the password. Changing the address or the password needs a recent
  * proof of the account's strongest method.
+ *
+ * With `RegistrationRateLimiter`, registration is counted per client and per address typed, a refusal answering
+ * `429` with the form, and a verification email goes to an address once in each delay: one asked for again too soon is
+ * not sent, and the page answers as if it were.
  */
 final readonly class AccountController
 {
@@ -33,6 +38,7 @@ final readonly class AccountController
         private AccountLinks $links,
         private Modules $modules,
         private bool $registration = true,
+        private ?RegistrationRateLimiter $limiter = null,
     ) {
     }
 
@@ -49,11 +55,15 @@ final readonly class AccountController
             $this->pages->checkCsrf($request);
             $email = $request->request->getString('email');
 
+            if ($this->limiter instanceof RegistrationRateLimiter && !$this->limiter->allowsRegistration($request, $email)) {
+                return $this->pages->render('account/register', ['errors' => ['registration.too_many'], 'email' => $email, 'password' => $this->modules->has(Modules::PASSWORD)], Response::HTTP_TOO_MANY_REQUESTS);
+            }
+
             try {
                 $account = $this->accounts->register($email, $this->modules->has(Modules::PASSWORD) ? $request->request->getString('password') : null, $request->request->getString('name'));
 
                 if ($account instanceof Account) {
-                    $this->links->sendVerification($account);
+                    $this->sendVerification($account);
                 }
 
                 return $this->pages->render('account/registered', ['email' => $email]);
@@ -94,7 +104,7 @@ final readonly class AccountController
     public function resendVerification(Request $request): RedirectResponse
     {
         $this->pages->checkCsrf($request);
-        $this->links->sendVerification($this->pages->requireAccount());
+        $this->sendVerification($this->pages->requireAccount());
 
         return $this->pages->redirect(self::ACCOUNT, ['sent' => 1]);
     }
@@ -175,7 +185,7 @@ final readonly class AccountController
 
         try {
             $this->accounts->changeEmail($account, $request->request->getString('email'));
-            $this->links->sendVerification($account);
+            $this->sendVerification($account);
         } catch (Refused $refused) {
             return $this->pages->render('account/account', ['modules' => $this->modules->enabled(), 'sent' => false, 'saved' => false, 'errors' => $refused->reasons], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
@@ -195,5 +205,19 @@ final readonly class AccountController
         }
 
         return $this->pages->redirect(self::ACCOUNT, ['saved' => 1]);
+    }
+
+    /**
+     * The verification email, unless one went to the address less than `resend_delay` ago.
+     */
+    private function sendVerification(Account $account): void
+    {
+        if ($account->isEmailVerified()) {
+            return;
+        }
+
+        if (!$this->limiter instanceof RegistrationRateLimiter || $this->limiter->allowsVerificationEmail($account->email())) {
+            $this->links->sendVerification($account);
+        }
     }
 }

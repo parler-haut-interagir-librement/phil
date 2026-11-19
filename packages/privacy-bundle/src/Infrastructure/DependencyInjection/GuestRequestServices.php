@@ -14,6 +14,7 @@ use Phil\PrivacyBundle\Application\SubjectErasure;
 use Phil\PrivacyBundle\Application\SubjectExport;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalGuestRequests;
 use Phil\PrivacyBundle\Infrastructure\Mailer\MailerGuestLinkSender;
+use Phil\PrivacyBundle\Infrastructure\Routing\GuestLinkOrigin;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
@@ -67,7 +68,8 @@ final class GuestRequestServices
         }
 
         if (null === $config['sender']) {
-            $services->set(MailerGuestLinkSender::class)->args([new Reference('mailer.transports'), new Reference('twig'), new Reference('router'), $config['from']]);
+            $services->set(GuestLinkOrigin::class)->args([new Reference('router'), '%'.GuestLinkOrigin::OPTION.'%', '%kernel.debug%']);
+            $services->set(MailerGuestLinkSender::class)->args([new Reference('mailer.transports'), new Reference('twig'), new Reference('router'), $config['from'], new Reference(GuestLinkOrigin::class)]);
         }
 
         $services->set(EmailGuestSubjects::class);

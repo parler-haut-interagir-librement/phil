@@ -65,7 +65,7 @@ final readonly class ContentSecurityPolicyListener
 
         if (!$headers->has(HeaderBuilder::ENFORCE) && !$headers->has(HeaderBuilder::REPORT_ONLY)) {
             $state = RequestState::of($request);
-            $state->headers = $this->builder->build($state, $this->endpoint->uri($request));
+            $state->headers = $this->builder->build($state, $this->endpoint->uri());
             $headers->add($state->headers);
         }
 

@@ -4,6 +4,31 @@ All notable changes to `phil/privacy-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the link of a request without an account points to `public_origin`, and the `prod`
+environment refuses to boot, while those requests are on with the mailer sender, without it or
+`framework.trusted_hosts`. See [Where the link points](doc/requests-without-an-account.md#where-the-link-points).
+
+### Added
+
+- `public_origin`: the canonical address of the site, such as `https://example.org`, that the links sent by email
+  point to; `Infrastructure\Routing\GuestLinkOrigin`, which generates a link while the router's context names that
+  origin and gives the request's context back at once, the origin and the links read by `phil/url`.
+- `PhilPrivacyBundle::boot()` and `PhilPrivacyBundle::MAILED_LINKS`.
+
+### Changed
+
+- In the `prod` environment, while `guest_requests` is on with the mailer sender, the bundle refuses to boot when
+  neither `public_origin` nor `framework.trusted_hosts` is set. The origin is read when the kernel boots: one with a
+  path, a query, a fragment or an IP address is refused, and `localhost` is accepted only in debug mode.
+- `MailerGuestLinkSender` takes a `GuestLinkOrigin`, last and optional.
+
+### Security
+
+- The link of a request without an account was built on the `Host` header of the request: a request naming another
+  host sent the person a genuine link to that host, and one click handed its secret over.
+
 ## 0.1.1-alpha - 2026-11-18
 
 The locks of the export, the erasure and the retention run are renewed between their

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=29231157779bf922b451648fc61caa2c4ea21fdae918b7429eb06f5948c9b50f -->
+<!-- phil-dev source-sha256=2f2bf7647ce377c0e132fa09cfc8c106b434a07a3dea8a048fdf8ff5f0f3518f -->
 # Comptes et mots de passe
 
 ## Comptes
@@ -27,7 +27,34 @@ un compte ne crée rien et la page répond la même chose — « vérifiez votre
 dit à personne qui a un compte ; l'événement `identity.account.registration_for_known_email` permet à l'application
 d'avertir le titulaire. Un nouveau compte reçoit un lien qui vérifie son adresse.
 
+### Limiter les inscriptions
+
+Chaque inscription coûte un hachage de mot de passe, une ligne et un courriel : l'inscription est donc limitée par
+défaut, par le composant Rate Limiter :
+
+```yaml
+phil_identity_provider:
+    registration:
+        rate_limit:
+            per_ip: { limit: 10, interval: '1 hour' }
+            per_address: { limit: 5, interval: '1 hour' }
+            resend_delay: '5 minutes'
+```
+
+`RegistrationRateLimiter` compte les inscriptions par adresse de client — un client IPv6 par son réseau /64 — et par
+adresse saisie, connue ou non, de sorte que la réponse ne dit toujours à personne qui a un compte ; un refus répond
+`429` avec le formulaire et `error.registration.too_many`. Un courriel de vérification va à une adresse une fois par
+`resend_delay`, qu'il soit demandé par l'inscription, par la page du compte ou par un changement d'adresse : un courriel
+redemandé trop tôt n'est pas envoyé, et la page répond comme s'il l'était. Les clés sont des empreintes à clé : la
+cache ne contient jamais une adresse.
+
+Les comptes vivent dans `cache.app`, sous `lock.factory` quand il est défini. Sur plusieurs serveurs, pointez `cache.app`
+vers un stockage partagé, sans quoi chaque serveur compte pour lui seul. `registration: { rate_limit: false }` désactive
+les limites, pour une application qui limite elle-même la route ; `registration: false` ferme l'inscription.
+
 ## Adresses vérifiées
+
+Chaque lien envoyé par courriel mène à `public_origin` : voir [Où mènent les liens](#où-mènent-les-liens).
 
 Le lien de `/verify-email` porte l'identifiant du compte, une expiration et une signature calculée par le
 `SignatureHasher` de Symfony Security, celui qu'utilisent ses liens de connexion, sur l'adresse et la date de sa
@@ -121,6 +148,38 @@ un stockage de verrous partagé, fait compter deux tentatives au même moment. L
 `RateLimitGuard` de `phil/rate-limit` : dans l'environnement `prod`, une réserve locale à chaque serveur — le système de
 fichiers, APCu, un tableau — fait échouer la construction du conteneur, sauf si `login_limiter.single_server: true` dit
 que l'application tourne sur un seul serveur.
+
+## Où mènent les liens
+
+Les liens des courriels — vérification, réinitialisation, connexion — sont des adresses absolues, et une requête nomme
+son propre hôte dans son en-tête `Host`. Sans précaution, quelqu'un demande un lien de réinitialisation pour une autre
+personne en nommant son propre hôte : la personne reçoit un vrai lien signé qui mène à cet hôte, et un clic livre le
+jeton. La signature couvre le compte et l'expiration, non la destination du lien.
+
+Le bundle construit donc ces liens sur `public_origin`, l'adresse canonique du site :
+
+```yaml
+phil_identity_provider:
+    public_origin: '%env(APP_PUBLIC_ORIGIN)%'   # https://example.com
+```
+
+Le contexte du routeur nomme cette origine — schéma, hôte et port — pendant la génération du lien, et le contexte de la
+requête revient aussitôt ; le chemin de base de l'application est conservé. `phil/url` lit l'origine au démarrage du
+noyau : une adresse `http` ou `https` avec un nom d'hôte, sans adresse IP, sans chemin, sans requête ni fragment ;
+`localhost` seulement en mode débogage. Une application qui sert un hôte par locataire remplace
+`Application\Contract\LinkOrigin` par la sienne, qui connaît l'hôte du locataire.
+
+Sans `public_origin`, les liens prennent l'hôte de la requête, que `framework.trusted_hosts` doit borner :
+
+```yaml
+framework:
+    trusted_hosts: ['^example\.com$']
+```
+
+Une requête vers un autre hôte est alors refusée avec `400` avant qu'aucun lien soit fait. Dans l'environnement `prod`,
+le bundle refuse de démarrer quand ni `public_origin` ni `framework.trusted_hosts` n'est réglé. Régler les deux est le
+plus sûr : les hôtes de confiance refusent les requêtes falsifiées vers chaque page, l'origine fixe la destination des
+courriels.
 
 ## La page du compte
 

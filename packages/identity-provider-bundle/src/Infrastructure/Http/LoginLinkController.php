@@ -6,6 +6,7 @@ namespace Phil\IdentityProviderBundle\Infrastructure\Http;
 
 use Phil\IdentityProviderBundle\Application\AccountUser;
 use Phil\IdentityProviderBundle\Application\Contract\AccountMailer;
+use Phil\IdentityProviderBundle\Application\Contract\LinkOrigin;
 use Phil\IdentityProviderBundle\Application\Event\IdentityEventType;
 use Phil\IdentityProviderBundle\Application\Journal;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
@@ -18,7 +19,8 @@ use Symfony\Component\Security\Http\LoginLink\LoginLinkHandlerInterface;
 /**
  * The request of a sign-in link: the address typed, a link from the `login_link` authenticator of Symfony Security
  * sent to it, and the same answer whether the address has an account or not. The link itself is checked by that
- * authenticator, on the route `phil_identity_provider_login_link_check`.
+ * authenticator, on the route `phil_identity_provider_login_link_check`. The link is generated on the canonical origin
+ * by `LinkOrigin`, without the request, so that its `Host` header never chooses where the link goes.
  */
 final readonly class LoginLinkController
 {
@@ -30,6 +32,7 @@ final readonly class LoginLinkController
         private LoginLinkHandlerInterface $links,
         private Journal $journal,
         private ?AccountMailer $mailer = null,
+        private ?LinkOrigin $origin = null,
     ) {
     }
 
@@ -48,7 +51,8 @@ final readonly class LoginLinkController
         }
 
         if ($account instanceof Account && !$account->isDisabled()) {
-            $this->mailer?->sendLoginLink($account, $this->links->createLoginLink(new AccountUser($account), $request)->getUrl());
+            $generate = fn (): string => $this->links->createLoginLink(new AccountUser($account))->getUrl();
+            $this->mailer?->sendLoginLink($account, $this->origin?->link($generate) ?? $generate());
             $this->journal->record(IdentityEventType::LoginLinkSent, $account->id());
         }
 

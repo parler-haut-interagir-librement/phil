@@ -41,7 +41,16 @@ final class ConfigurationTest extends TestCase
         'clock' => 'clock',
         'layout' => '@PhilIdentityProvider/layout.html.twig',
         'kit_subdirectory' => null,
-        'registration' => true,
+        'public_origin' => null,
+        'registration' => [
+            'enabled' => true,
+            'rate_limit' => [
+                'enabled' => true,
+                'per_ip' => ['limit' => 10, 'interval' => '1 hour'],
+                'per_address' => ['limit' => 5, 'interval' => '1 hour'],
+                'resend_delay' => '5 minutes',
+            ],
+        ],
         'require_verified_email' => false,
         'login_route' => null,
         'default_target' => '/',
@@ -164,6 +173,18 @@ final class ConfigurationTest extends TestCase
         yield 'oidc.refresh_token_lifetime' => [['oidc', 'refresh_token_lifetime'], 1, null];
         yield 'oidc.key_activation_delay' => [['oidc', 'key_activation_delay'], 0, null];
         yield 'oidc.retired_key_retention' => [['oidc', 'retired_key_retention'], 0, null];
+    }
+
+    public function testARegistrationCountMayBeOne(): void
+    {
+        $registration = $this->process(['registration' => ['rate_limit' => ['per_ip' => ['limit' => 1], 'per_address' => ['limit' => 1]]]])['registration'];
+
+        self::assertIsArray($registration);
+        self::assertIsArray($registration['rate_limit']);
+        self::assertIsArray($registration['rate_limit']['per_ip']);
+        self::assertIsArray($registration['rate_limit']['per_address']);
+        self::assertSame(1, $registration['rate_limit']['per_ip']['limit']);
+        self::assertSame(1, $registration['rate_limit']['per_address']['limit']);
     }
 
     public function testTheChoices(): void

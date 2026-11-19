@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=dfc90a9b4ba3d60b50769ea78fb74c76d94ff62602e338b88b55f5c0c76dbe11 -->
+<!-- phil-dev source-sha256=85ea00814ab60ef28520e534035f7e453fa91c8b407c4e0c72cc45b50b9e0522 -->
 # Politiques
 
 Une politique est une liste de directives, chacune avec ses valeurs, écrites dans l'ordre où elles sont déclarées :
@@ -56,13 +56,14 @@ Sans aucune politique dans la configuration, `default` vaut :
 
 ```text
 default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self';
-connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';
+connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self';
 upgrade-insecure-requests
 ```
 
-Tout vient du site lui-même ; rien n'est intégré comme objet ; `<base>` et les formulaires restent sur le site ; seul le
-site encadre ses pages ; les requêtes passent par HTTPS. Les nonces de chaque page sont ajoutés à `script-src` et à
-`style-src`.
+Tout vient du site lui-même ; rien n'est intégré comme objet ; aucun élément `<base>` ne change la destination des
+adresses relatives d'une page, comme le demande l'OWASP Application Security Verification Standard ; les formulaires
+restent sur le site ; seul le site encadre ses pages ; les requêtes passent par HTTPS. Une page qui a besoin de `<base>`
+déclare `base-uri` dans sa propre politique. Les nonces de chaque page sont ajoutés à `script-src` et à `style-src`.
 
 ## Politiques nommées
 

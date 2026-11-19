@@ -1,17 +1,38 @@
-<!-- phil-dev source-sha256=65f82f3ca8f0af5882347eca9372598bef8bac11e768fe6dfe77400a653a486a -->
+<!-- phil-dev source-sha256=00cd640f6d8b3564de2be7758b31e8edf8706d5c41abe4c02d4fae0fbe00c3c5 -->
 # Rapports
 
 Un navigateur qui rencontre une violation envoie un rapport à l'adresse que nomme la politique. Le bundle nomme son
 propre point d'entrée, `phil_csp_report`, dans les deux directives de rapport et dans l'en-tête `Reporting-Endpoints` :
 
 ```http
+Content-Security-Policy: default-src 'self'; report-uri /_csp/report; report-to csp
+Reporting-Endpoints: csp="/_csp/report"
+```
+
+`report-uri` sert les navigateurs qui ne connaissent qu'elle ; `report-to` et `Reporting-Endpoints` servent la
+Reporting API. L'adresse est le chemin de la route, que le navigateur résout par rapport à la page qu'il a chargée ;
+`reporting.uri` en nomme une autre, un chemin du site ou une adresse `https`. Une politique avec `report: false` ne
+porte aucune des deux directives.
+
+## Où vont les rapports
+
+L'en-tête `Host` d'une requête ne choisit jamais où vont ses rapports : un hôte falsifié n'envoie ni les rapports — ni
+les adresses des pages qu'ils contiennent — ailleurs, ni son nom dans une réponse mise en cache. Avec `public_origin`,
+l'adresse canonique du site, le chemin est posé sur elle :
+
+```yaml
+phil_browser_security:
+    public_origin: '%env(APP_PUBLIC_ORIGIN)%'   # https://www.example.com
+```
+
+```http
 Content-Security-Policy: default-src 'self'; report-uri https://www.example.com/_csp/report; report-to csp
 Reporting-Endpoints: csp="https://www.example.com/_csp/report"
 ```
 
-`report-uri` sert les navigateurs qui ne connaissent qu'elle ; `report-to` et `Reporting-Endpoints` servent la
-Reporting API. L'adresse est absolue, générée à partir de la route ; `reporting.uri` en nomme une autre, un chemin du
-site ou une adresse `https`. Une politique avec `report: false` ne porte aucune des deux directives.
+`phil/url` lit l'origine au démarrage du noyau : une adresse `http` ou `https` avec un nom d'hôte, sans adresse IP, sans
+chemin, sans requête ni fragment ; `localhost` seulement en mode débogage. Régler `framework.trusted_hosts` à côté
+refuse les hôtes falsifiés sur chaque page.
 
 ## Les deux formats
 

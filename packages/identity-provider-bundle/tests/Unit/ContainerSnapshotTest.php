@@ -92,6 +92,8 @@ final class ContainerSnapshotTest extends TestCase
             'layout' => 'base.html.twig',
             'secret' => 'a-secret-of-at-least-32-characters-long',
             'secrets' => ['kms_key' => 'identity', 'encrypter' => 'app.encrypter', 'decrypter' => 'app.decrypter'],
+            'public_origin' => 'https://accounts.example.com',
+            'registration' => ['rate_limit' => ['per_ip' => ['limit' => 3, 'interval' => '10 minutes'], 'per_address' => ['limit' => 2, 'interval' => '1 day'], 'resend_delay' => '2 minutes']],
         ], true];
 
         yield 'second-factors-and-oidc-only' => ['second-factors-and-oidc-only', [
@@ -100,6 +102,7 @@ final class ContainerSnapshotTest extends TestCase
             'oidc' => ['issuer' => 'https://example.com'],
             'secrets' => ['allow_plaintext_secrets' => true],
             'audit' => 'none',
+            'registration' => ['rate_limit' => false],
         ], false];
 
         yield 'audit-auto-with-the-trail' => ['audit-auto-with-the-trail', ['store' => 'memory'], true];

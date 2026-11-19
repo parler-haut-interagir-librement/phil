@@ -53,12 +53,14 @@ Without any policy in the configuration, `default` is:
 
 ```text
 default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self';
-connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';
+connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self';
 upgrade-insecure-requests
 ```
 
-Everything comes from the site itself; nothing is embedded as an object; `<base>` and forms stay on the site; only the
-site frames its pages; requests go over HTTPS. The nonces of each page are added to `script-src` and `style-src`.
+Everything comes from the site itself; nothing is embedded as an object; no `<base>` element changes where the
+relative addresses of a page lead, as the OWASP Application Security Verification Standard asks; forms stay on the
+site; only the site frames its pages; requests go over HTTPS. A page that needs `<base>` declares `base-uri` in its
+own policy. The nonces of each page are added to `script-src` and `style-src`.
 
 ## Named policies
 

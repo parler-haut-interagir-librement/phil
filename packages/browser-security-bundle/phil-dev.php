@@ -7,7 +7,7 @@ declare(strict_types=1);
  */
 return [
     'paths' => ['src', 'tests'],
-    'docs' => ['public' => true, 'translations' => 'blocking', 'words' => ['deduplicator', 'HMAC', 'HSTS']],
+    'docs' => ['public' => true, 'translations' => 'blocking', 'words' => ['ASVS', 'deduplicator', 'HMAC', 'HSTS']],
     'phpstan' => [
         // The fuzz targets run inside nikic/php-fuzzer, which gives them `$config`; PHPStan knows neither.
         'excludePaths' => ['tests/Fuzz/*'],

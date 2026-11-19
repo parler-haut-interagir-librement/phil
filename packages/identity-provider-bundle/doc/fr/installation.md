@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b6b4ca98a7dc507e4e8d0bedd5124c2c8213fb57c5cb303af749f42f3a7f49e1 -->
+<!-- phil-dev source-sha256=707eab8e1f9c357919735201462ace680f6f134fa52af916a7c7e0fc562f2242 -->
 # Installation
 
 ```sh
@@ -13,10 +13,11 @@ pare-feu reste à écrire par l'application.
 
 Le paquet exige PHP 8.5 ou une version plus récente avec les extensions `mbstring`, `openssl` et `sodium`, Symfony 8.2
 ou une version plus récente, Doctrine ORM 3.7 ou une version plus récente et `web-token/jwt-library` 4.2 ou une version
-plus récente. Le composant Mailer envoie ses courriels,
-le composant Notifier ses messages texte, le composant KeyManagement chiffre ses secrets, le composant Rate Limiter
-compte les connexions par identifiant, StimulusBundle sert son contrôleur de clés d'accès, et Symfony UX Twig Component
-avec les recettes du kit dessine ses pages : chacun est facultatif. Les modules `totp` et `oidc` gardent des secrets, et
+plus récente ; le composant Rate Limiter compte les
+inscriptions et, avec `login_limiter`, les connexions par identifiant. Le composant Mailer envoie ses courriels, le
+composant Notifier ses messages texte, le composant KeyManagement chiffre ses secrets, StimulusBundle sert son
+contrôleur de clés d'accès, et Symfony UX Twig Component avec les recettes du kit dessine ses pages : chacun est
+facultatif. Les modules `totp` et `oidc` gardent des secrets, et
 refusent de démarrer sans `secrets.kms_key` sauf si `secrets.allow_plaintext_secrets: true` permet de les garder en
 clair.
 
@@ -29,6 +30,35 @@ Phil\IdentityProviderBundle\PhilIdentityProviderBundle::class => ['all' => true]
 
 Le bundle associe à Doctrine les tables des modules activés et préconfigure le hacheur de mots de passe de ses
 utilisateurs : Argon2id (`sodium`). Générez la migration des tables avec `bin/console doctrine:migrations:diff`.
+
+## Mise à niveau depuis 0.2
+
+- Sur MySQL et MariaDB, les clés des tables prennent la collation binaire : lancez `bin/console doctrine:migrations:diff`,
+  lisez l'`ALTER TABLE … MODIFY … CHARACTER SET utf8mb4 COLLATE utf8mb4_bin` qu'elle écrit pour les colonnes listées dans
+  [Tables](reference.md#tables), puis migrez. Les lignes que l'ancienne collation prenait pour une seule — `App` et
+  `app` — restent deux lignes. PostgreSQL et SQLite n'exigent aucune migration.
+- Réglez `public_origin` ou `framework.trusted_hosts`, comme [ci-dessus](#où-mènent-les-liens) : sans l'un ou l'autre,
+  l'environnement `prod` ne démarre plus.
+- L'inscription est limitée par défaut ; `registration: true` et `registration: false` continuent de fonctionner, et
+  `registration: { rate_limit: false }` désactive les limites.
+
+## Où mènent les liens
+
+Les liens des courriels ne doivent jamais prendre l'hôte qu'une requête nomme. Réglez l'adresse canonique du site, ou
+les hôtes auxquels il répond, ou les deux :
+
+```yaml
+# config/packages/phil_identity_provider.yaml
+phil_identity_provider:
+    public_origin: '%env(APP_PUBLIC_ORIGIN)%'   # https://example.com
+
+# config/packages/framework.yaml
+framework:
+    trusted_hosts: ['^example\.com$']
+```
+
+Dans l'environnement `prod`, le bundle refuse de démarrer quand ni l'un ni l'autre n'est réglé : voir [Où mènent les
+liens](accounts.md#où-mènent-les-liens).
 
 ## Le pare-feu
 

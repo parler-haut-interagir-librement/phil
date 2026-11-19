@@ -40,22 +40,6 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(RelyingParty::class)]
 final class LimitsTest extends TestCase
 {
-    private const string SHORT_X = <<<'PEM'
-        -----BEGIN PRIVATE KEY-----
-        MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgvYj9P1iTuLaWefKG
-        SwXKtvbpgLno8H3nOWWelMagaL2hRANCAAQALNdfCD/IFSR2KuIIMbONtg264UrP
-        ne9OKIfc8mI916fiUv2sJNhffmbS6esY+pt9P3Osb4iWx1rHfhGYjQYC
-        -----END PRIVATE KEY-----
-        PEM;
-
-    private const string SHORT_Y = <<<'PEM'
-        -----BEGIN PRIVATE KEY-----
-        MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQguPdqt0vT5fSer81D
-        FmcIqcHY4anqzdLlsvSGMd74JcKhRANCAASuG5iZMEdxX+j85zSXKlQZAFR5lcH0
-        nXhkxXVeynviAQAgwtm969mxG5yPDy3QW8rymx+Sql0L8/Dc2530qegD
-        -----END PRIVATE KEY-----
-        PEM;
-
     public function testAP256KeyNeedsTwoCoordinatesOf32Bytes(): void
     {
         self::assertStringStartsWith("-----BEGIN PUBLIC KEY-----\n", Der::p256PublicKey(str_repeat("\x01", 32), str_repeat("\x02", 32)));
@@ -165,9 +149,9 @@ final class LimitsTest extends TestCase
 
     public function testACoordinateWithLeadingZerosIsPaddedBack(): void
     {
-        // Two keys of P-256 made once for this test: the first coordinate of the first one, the second of the other, is
-        // 31 bytes long, as one key in 128 has.
-        foreach ([self::SHORT_X, self::SHORT_Y] as $pem) {
+        // Two keys of P-256 made for this run: the first coordinate of the first one, the second of the other, 31 bytes
+        // long, as one key in 256 has each. No private key is kept in the repository.
+        foreach ([$this->shortCoordinateKey('x'), $this->shortCoordinateKey('y')] as $pem) {
             $key = openssl_pkey_get_private($pem);
             self::assertInstanceOf(OpenSSLAsymmetricKey::class, $key);
             $details = openssl_pkey_get_details($key);
@@ -424,6 +408,28 @@ final class LimitsTest extends TestCase
         $options = new RelyingParty('example.com', 'Example', ['https://example.com'])->requestOptions('challenge', ['a', 'b']);
 
         self::assertSame([['type' => 'public-key', 'id' => 'a'], ['type' => 'public-key', 'id' => 'b']], $options['allowCredentials']);
+    }
+
+    /**
+     * A new key of P-256 whose coordinate, as OpenSSL gives it, is 31 bytes long: its first byte is zero.
+     *
+     * @param 'x'|'y' $coordinate
+     */
+    private function shortCoordinateKey(string $coordinate): string
+    {
+        for ($try = 0; $try < 20_000; ++$try) {
+            $key = openssl_pkey_new(['private_key_type' => \OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1']);
+            $details = $key instanceof OpenSSLAsymmetricKey ? openssl_pkey_get_details($key) : false;
+
+            if ($key instanceof OpenSSLAsymmetricKey && \is_array($details) && \is_array($details['ec'] ?? null) && \is_string($details['ec'][$coordinate] ?? null) && 31 === \strlen($details['ec'][$coordinate])) {
+                openssl_pkey_export($key, $pem);
+                \assert(\is_string($pem));
+
+                return $pem;
+            }
+        }
+
+        self::fail('No key with a short coordinate in 20,000.');
     }
 
     private function ecPem(): string

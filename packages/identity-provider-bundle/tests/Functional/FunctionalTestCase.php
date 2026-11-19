@@ -13,6 +13,7 @@ use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
 use Phil\IdentityProviderBundle\Tests\Functional\App\TestKernel;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
@@ -44,6 +45,8 @@ abstract class FunctionalTestCase extends WebTestCase
         $metadata = $entityManager->getMetadataFactory()->getAllMetadata();
         $tool->dropSchema($metadata);
         $tool->createSchema($metadata);
+        // The counts of the limiters start afresh with each test.
+        $this->service(AdapterInterface::class, 'cache.app')->clear();
     }
 
     /**

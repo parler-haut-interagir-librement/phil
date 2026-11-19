@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3fc8102f4f3861b3e6a4065f1288a4e77745552b9170b0b5fd1d36f742c3f5d5 -->
+<!-- phil-dev source-sha256=bb0ab8451b8881327b05722b1207df667904965d363d4d8e3b7a9f8636764e42 -->
 # HTTPS
 
 ## Ce que Symfony fait déjà
@@ -33,14 +33,15 @@ phil_browser_security:
         strict_transport_security:
             enabled: ~            # null follows kernel.debug: on when it is off
             max_age: 31536000
-            include_subdomains: false
+            include_subdomains: true
             preload: false
 ```
 
 L'en-tête ne va que sur les réponses aux requêtes HTTPS. `preload` demande `include_subdomains` et un `max_age` d'un an
-ou plus : toute autre combinaison fait échouer la construction. Un navigateur retient cet en-tête pendant `max_age`
-secondes ; augmentez-le donc par étapes sur un site qui ne l'a jamais envoyé, et n'activez `include_subdomains` que
-quand chaque sous-domaine répond en HTTPS.
+ou plus : toute autre combinaison fait échouer la construction. Les valeurs par défaut — un an, sous-domaines compris —
+sont celles de l'OWASP Application Security Verification Standard. Un navigateur retient cet en-tête pendant `max_age`
+secondes : sur un site qui ne l'a jamais envoyé, commencez plus bas et augmentez par étapes, et réglez
+`include_subdomains: false` tant qu'un sous-domaine répond encore en HTTP simple.
 
 ## Une page
 

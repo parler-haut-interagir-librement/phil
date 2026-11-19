@@ -6,6 +6,7 @@ namespace Phil\IdentityProviderBundle\Tests\Unit\Infrastructure;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Events;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use Override;
@@ -18,6 +19,7 @@ use Phil\IdentityProviderBundle\Domain\Contract\LinkedIdentityRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\PasskeyRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\SecondFactorRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\SigningKeyRepository;
+use Phil\IdentityProviderBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountSessionRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineClientRepository;
@@ -50,6 +52,7 @@ abstract class DoctrineRepositoryTestCase extends RepositoryTestCase
             $configuration = ORMSetup::createAttributeMetadataConfig([\dirname(__DIR__, 3).'/src/Domain/Model'], true);
             $configuration->enableNativeLazyObjects(true);
             $this->entityManager = new EntityManager($this->connection(), $configuration);
+            $this->entityManager->getEventManager()->addEventListener(Events::loadClassMetadata, new BinaryKeysListener());
             $tool = new SchemaTool($this->entityManager);
             $metadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
             $tool->dropSchema($metadata);

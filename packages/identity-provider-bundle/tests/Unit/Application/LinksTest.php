@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\IdentityProviderBundle\Tests\Unit\Application;
 
 use Phil\IdentityProviderBundle\Application\AccountLinks;
+use Phil\IdentityProviderBundle\Application\Contract\LinkOrigin;
 use Phil\IdentityProviderBundle\Application\Event\IdentityEventType;
 use Phil\IdentityProviderBundle\Application\SignedLinks;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Query;
@@ -112,6 +113,27 @@ final class LinksTest extends TestCase
         $links->requestPasswordReset('ada@example.com');
 
         self::assertContains(IdentityEventType::PasswordResetRequested->value, $services->audit->actions());
+    }
+
+    public function testALinkIsGeneratedOnTheOriginWhenThereIsOne(): void
+    {
+        $services = new Services(date('Y-m-d H:i:s'));
+        $origin = new class implements LinkOrigin {
+            public int $generated = 0;
+
+            public function link(callable $generate): string
+            {
+                ++$this->generated;
+
+                $generate();
+
+                return 'https://canonical.example/verify-email';
+            }
+        };
+        $links = new AccountLinks(new SignedLinks(self::SECRET, $services->clock), $this->urls(), $services->accounts, $services->journal, null, $origin);
+
+        self::assertSame('https://canonical.example/verify-email', $links->verificationUrl($services->account()));
+        self::assertSame(1, $origin->generated);
     }
 
     private function urls(): UrlGenerator

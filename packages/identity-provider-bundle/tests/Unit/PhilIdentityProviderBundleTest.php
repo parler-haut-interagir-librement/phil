@@ -20,15 +20,18 @@ use Phil\IdentityProviderBundle\Infrastructure\Audit\NullAuditRecorder;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\IdentityProviderServices;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountRepository;
+use Phil\IdentityProviderBundle\Infrastructure\Http\AccountController;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Notifier\NotifierSmsSender;
 use Phil\IdentityProviderBundle\Infrastructure\Secret\KeyManagementSecretCipher;
 use Phil\IdentityProviderBundle\Infrastructure\Secret\PlainSecretCipher;
 use Phil\IdentityProviderBundle\Infrastructure\Security\LoginRateLimiter;
+use Phil\IdentityProviderBundle\Infrastructure\Security\RegistrationRateLimiter;
 use Phil\IdentityProviderBundle\Infrastructure\Twig\KitComponents;
 use Phil\IdentityProviderBundle\PhilIdentityProviderBundle;
 use Phil\RateLimit\RateLimitGuard;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
@@ -325,6 +328,79 @@ final class PhilIdentityProviderBundleTest extends TestCase
         new KitSubdirectoryPass()->process($container);
         self::assertSame('', $container->getDefinition(KitComponents::class)->getArgument(0));
         new KitSubdirectoryPass()->process(new ContainerBuilder());
+    }
+
+    public function testTheRegistrationLimitsAreOnByDefault(): void
+    {
+        $container = $this->load([]);
+        $arguments = $container->getDefinition(IdentityProviderServices::REGISTRATION_LIMITER)->getArguments();
+        self::assertSame(RegistrationRateLimiter::class, $container->getDefinition(IdentityProviderServices::REGISTRATION_LIMITER)->getClass());
+        self::assertCount(4, $arguments);
+        $configs = array_map(static fn (mixed $factory): mixed => $factory instanceof Definition ? $factory->getArgument(0) : null, \array_slice($arguments, 0, 3));
+        self::assertSame([
+            ['id' => 'phil_identity_provider.registration.ip', 'policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
+            ['id' => 'phil_identity_provider.registration.address', 'policy' => 'sliding_window', 'limit' => 5, 'interval' => '1 hour'],
+            ['id' => 'phil_identity_provider.registration.resend', 'policy' => 'token_bucket', 'limit' => 1, 'rate' => ['interval' => '5 minutes', 'amount' => 1]],
+        ], $configs);
+        self::assertSame('%kernel.secret%', $arguments[3]);
+        self::assertSame(IdentityProviderServices::REGISTRATION_LIMITER, (string) $container->getAlias(RegistrationRateLimiter::class));
+        self::assertTrue($container->getDefinition(AccountController::class)->getArgument(4));
+        self::assertNull($container->getParameter(IdentityProviderServices::PUBLIC_ORIGIN));
+    }
+
+    public function testTheRegistrationLimitsTurnOffExplicitly(): void
+    {
+        self::assertFalse($this->load([['registration' => ['rate_limit' => false]]])->hasDefinition(IdentityProviderServices::REGISTRATION_LIMITER));
+
+        $closed = $this->load([['registration' => false]]);
+        self::assertFalse($closed->hasDefinition(IdentityProviderServices::REGISTRATION_LIMITER));
+        self::assertFalse($closed->getDefinition(AccountController::class)->getArgument(4));
+        self::assertTrue($this->load([['registration' => true]])->hasDefinition(IdentityProviderServices::REGISTRATION_LIMITER));
+    }
+
+    public function testThePublicOriginIsAParameter(): void
+    {
+        self::assertSame('https://example.com', $this->load([['public_origin' => 'https://example.com']])->getParameter(IdentityProviderServices::PUBLIC_ORIGIN));
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>, string}>
+     */
+    public static function badDurations(): iterable
+    {
+        yield 'per ip' => [['per_ip' => ['interval' => 'soon']], '"registration.rate_limit.per_ip.interval" is a duration, such as "15 minutes", not "soon".'];
+        yield 'per address' => [['per_address' => ['interval' => '-1 hour']], '"registration.rate_limit.per_address.interval" is a duration, such as "15 minutes", not "-1 hour".'];
+        yield 'a date' => [['per_ip' => ['interval' => 'tomorrow']], '"registration.rate_limit.per_ip.interval" is a duration, such as "15 minutes", not "tomorrow".'];
+        yield 'resend delay' => [['resend_delay' => '0 seconds'], '"registration.rate_limit.resend_delay" is a duration, such as "15 minutes", not "0 seconds".'];
+    }
+
+    /**
+     * @param array<string, mixed> $limits
+     */
+    #[DataProvider('badDurations')]
+    public function testARegistrationLimitNeedsADuration(array $limits, string $message): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageIsOrContains($message);
+        $this->load([['registration' => ['rate_limit' => $limits]]]);
+    }
+
+    public function testTheRegistrationLimiterIsRegisteredByTheServicesAlone(): void
+    {
+        $container = new ContainerBuilder();
+        $limits = ['enabled' => true, 'per_ip' => ['limit' => 3, 'interval' => '1 hour'], 'per_address' => ['limit' => 2, 'interval' => '1 day'], 'resend_delay' => '5 minutes'];
+
+        IdentityProviderServices::registrationLimiter($container, ['enabled' => false, 'rate_limit' => $limits], 'secret');
+        self::assertFalse($container->hasDefinition(IdentityProviderServices::REGISTRATION_LIMITER));
+
+        IdentityProviderServices::registrationLimiter($container, ['enabled' => true, 'rate_limit' => $limits], 'secret');
+        self::assertTrue($container->hasDefinition(IdentityProviderServices::REGISTRATION_LIMITER));
+    }
+
+    public function testARegistrationLimitIsOneOrMore(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->load([['registration' => ['rate_limit' => ['per_ip' => ['limit' => 0]]]]]);
     }
 
     public function testTheModulesObject(): void

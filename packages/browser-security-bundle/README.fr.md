@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=640f589465bceca6fe0089c224270021624e632965561a72a22040535a423cce -->
+<!-- phil-dev source-sha256=da21d50a141c213c9eb59f8fdf5c1aa1f1a7918633354076b918d9ffb0c54616 -->
 # phil/browser-security-bundle
 
 **Les protections qu'une application Symfony demande au navigateur, en un seul bundle : une configuration, ajustable
@@ -84,7 +84,7 @@ phil_browser_security:
                 default-src: ["'self'"]
                 img-src: ["'self'", 'data:']
                 object-src: ["'none'"]
-                base-uri: ["'self'"]
+                base-uri: ["'none'"]
                 frame-ancestors: ["'self'"]
             strict_dynamic: true
     reporting:
@@ -107,7 +107,7 @@ phil_browser_security:
 
 ## Prérequis
 
-PHP 8.5 ou plus récent avec `ctype`, `mbstring`, `sodium` et `uri`, Symfony 8.2 ou plus récent, et `phil/rate-limit`.
+PHP 8.5 ou plus récent avec `ctype`, `mbstring`, `sodium` et `uri`, Symfony 8.2 ou plus récent, `phil/rate-limit` et `phil/url`.
 Twig, AssetMapper, le rate limiter, un pool PSR-6, Doctrine DBAL, la console, security-http et `phil/ip-anonymizer` sont
 facultatifs, chacun activant une partie.
 

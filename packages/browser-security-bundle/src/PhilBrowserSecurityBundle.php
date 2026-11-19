@@ -87,7 +87,7 @@ final class PhilBrowserSecurityBundle extends AbstractBundle
 {
     /**
      * The policy enforced when the configuration declares none: everything from the site itself, nothing embedded as
-     * an object, no `<base>` elsewhere, forms posted to the site only, pages framed by the site only, requests upgraded
+     * an object, no `<base>` element, forms posted to the site only, pages framed by the site only, requests upgraded
      * to HTTPS.
      */
     public const array DEFAULT_POLICY = [
@@ -98,7 +98,7 @@ final class PhilBrowserSecurityBundle extends AbstractBundle
         'font-src' => ["'self'"],
         'connect-src' => ["'self'"],
         'object-src' => ["'none'"],
-        'base-uri' => ["'self'"],
+        'base-uri' => ["'none'"],
         'form-action' => ["'self'"],
         'frame-ancestors' => ["'self'"],
         'upgrade-insecure-requests' => true,
@@ -127,6 +127,24 @@ final class PhilBrowserSecurityBundle extends AbstractBundle
 
     #[Override]
     protected string $extensionAlias = 'phil_browser_security';
+
+    /**
+     * Reads `public_origin` once its environment variable is known, so that an address that is no origin stops the boot
+     * rather than every response.
+     */
+    #[Override]
+    public function boot(): void
+    {
+        // Unset until the kernel gives the container, which it does before booting a bundle.
+        $container = $this->container ?? null;
+
+        if (!$container instanceof ContainerInterface || !$container->hasParameter(ReportEndpoint::OPTION)) {
+            return;
+        }
+
+        $origin = $container->getParameter(ReportEndpoint::OPTION);
+        ReportEndpoint::origin(\is_string($origin) && '' !== $origin ? $origin : null, true === $container->getParameter('kernel.debug'));
+    }
 
     #[Override]
     public function build(ContainerBuilder $container): void
@@ -288,8 +306,8 @@ final class PhilBrowserSecurityBundle extends AbstractBundle
                             ->addDefaultsIfNotSet()
                             ->children()
                                 ->booleanNode('enabled')->info('Sends Strict-Transport-Security; null follows kernel.debug: on when it is off.')->defaultNull()->end()
-                                ->integerNode('max_age')->min(0)->defaultValue(self::YEAR)->end()
-                                ->booleanNode('include_subdomains')->defaultFalse()->end()
+                                ->integerNode('max_age')->info('The seconds the browser keeps to HTTPS; one year or more, as ASVS asks.')->min(0)->defaultValue(self::YEAR)->end()
+                                ->booleanNode('include_subdomains')->info('Whether the subdomains are HTTPS only too, as ASVS asks.')->defaultTrue()->end()
                                 ->booleanNode('preload')->defaultFalse()->end()
                             ->end()
                         ->end()
@@ -337,6 +355,7 @@ final class PhilBrowserSecurityBundle extends AbstractBundle
                         ->enumNode('cross_origin_resource_policy')->values(UserContentPolicy::RESOURCE_POLICIES)->defaultValue('same-origin')->end()
                     ->end()
                 ->end()
+                ->scalarNode('public_origin')->info('The canonical address of the site, such as https://example.com, that the reports of violations go to; null sends the path alone, which the browser resolves against the page.')->defaultNull()->end()
                 ->scalarNode('clock')->info('Service id of the PSR-20 clock.')->defaultValue('clock')->cannotBeEmpty()->end()
             ->end();
     }
@@ -360,7 +379,8 @@ final class PhilBrowserSecurityBundle extends AbstractBundle
         $services->set(ContentSecurityPolicyContext::class)->args([service('request_stack')])->public();
 
         $services->set(BrowserSecurityContext::class)->args([service('request_stack')])->public();
-        $services->set(ReportEndpoint::class)->args([service('router')->nullOnInvalid(), $this->bool($reporting, 'enabled'), $this->uri($reporting)]);
+        $builder->setParameter(ReportEndpoint::OPTION, \is_string($config['public_origin'] ?? null) ? $config['public_origin'] : null);
+        $services->set(ReportEndpoint::class)->args([service('router')->nullOnInvalid(), $this->bool($reporting, 'enabled'), $this->uri($reporting), '%'.ReportEndpoint::OPTION.'%', '%kernel.debug%']);
 
         $securityHeaders = [$this->headerValues($headers, $this->section($this->section($config, 'https'), 'strict_transport_security'), $builder), $this->framePaths($headers), $this->bool($reporting, 'enabled') ? $group : null];
 

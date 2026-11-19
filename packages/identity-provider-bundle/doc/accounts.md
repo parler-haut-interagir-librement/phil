@@ -24,7 +24,33 @@ has an account creates nothing and the page answers the same — "check your ema
 who has an account; the event `identity.account.registration_for_known_email` lets the application warn the owner.
 A new account receives a link that verifies its address.
 
+### Limiting the registrations
+
+Each registration costs a password hash, a row and an email, so registration is limited by default, through the Rate
+Limiter component:
+
+```yaml
+phil_identity_provider:
+    registration:
+        rate_limit:
+            per_ip: { limit: 10, interval: '1 hour' }
+            per_address: { limit: 5, interval: '1 hour' }
+            resend_delay: '5 minutes'
+```
+
+`RegistrationRateLimiter` counts the registrations per client address — an IPv6 client by its /64 network — and per
+address typed, known or not, so that the answer still tells nobody who has an account; a refusal answers `429` with
+the form and `error.registration.too_many`. A verification email goes to one address once in each `resend_delay`,
+whether it is asked for by registration, by the account page or by a change of address: one asked for again too soon
+is not sent, and the page answers as if it were. The keys are keyed hashes: the cache never holds an address.
+
+The counts live in `cache.app`, under `lock.factory` when it is defined. On several servers, point `cache.app` to a
+shared store, or each server counts on its own. `registration: { rate_limit: false }` turns the limits off, for an
+application that limits the route itself; `registration: false` closes registration.
+
 ## Verified addresses
+
+Every link sent by email points to `public_origin`: see [Where the links point](#where-the-links-point).
 
 The link of `/verify-email` carries the account's identifier, an expiry and a signature computed by the
 `SignatureHasher` of Symfony Security, the one its login links use, over the address and the date it was verified,
@@ -111,6 +137,37 @@ store — Redis, a database — counts for all of them, and `login_limiter.lock_
 attempts at the same moment both count. The bundle hands the pool to the `RateLimitGuard` of `phil/rate-limit`: in the
 `prod` environment, a pool local to each server — the filesystem, APCu, an array — fails the container build, unless
 `login_limiter.single_server: true` says the application runs on one server.
+
+## Where the links point
+
+The links of the emails — verification, reset, sign-in links — are absolute addresses, and a request names its own
+host in its `Host` header. Without care, someone asks a reset link for another person while naming their own host:
+the person receives a genuine, signed link that leads to that host, and one click hands over the token. The signature
+covers the account and the expiry, not where the link points.
+
+The bundle therefore builds those links on `public_origin`, the canonical address of the site:
+
+```yaml
+phil_identity_provider:
+    public_origin: '%env(APP_PUBLIC_ORIGIN)%'   # https://example.com
+```
+
+The router's context names that origin — scheme, host and port — while the link is generated, and the request's
+context comes back at once; the base path of the application is kept. The origin is read by `phil/url` when the
+kernel boots: an `http` or `https` address with a host name, no IP address, no path, query or fragment; `localhost`
+only in debug mode. An application that serves one host per tenant replaces `Application\Contract\LinkOrigin` with
+its own, which knows the tenant's host.
+
+Without `public_origin`, the links take the host of the request, which `framework.trusted_hosts` must bound:
+
+```yaml
+framework:
+    trusted_hosts: ['^example\.com$']
+```
+
+A request for another host is then refused with `400` before any link is made. In the `prod` environment the bundle
+refuses to boot when neither `public_origin` nor `framework.trusted_hosts` is set. Setting both is the safest: the
+trusted hosts refuse forged requests to every page, the origin fixes where the emails point.
 
 ## The account page
 

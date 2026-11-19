@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e352ab4efb53a389da71fd93e1e33c39c0ab245f004e2894d452b69afbf5d9a2 -->
+<!-- phil-dev source-sha256=c2fc1df5234b9dfe74f197e0be8695fdaf48091b39572ee83acef9c6332f3d43 -->
 # phil/privacy-bundle
 
 **Déclarer les champs personnels, caviarder les journaux, respecter les droits des membres et des personnes sans compte,
@@ -170,8 +170,10 @@ Une entrée de configuration mal formée fait échouer la construction du conten
 ## Prérequis
 
 PHP 8.5 ou une version plus récente avec `ext-sodium` et `ext-intl`, `monolog/monolog` 3, Symfony 8.2 et Twig 3. Les
-demandes sans compte demandent `symfony/rate-limiter`, et `symfony/mailer` pour l'expéditeur du bundle. MonologBundle
-est nécessaire pour que le processeur atteigne vos journaux par son étiquette, un pare-feu pour qu'un membre atteigne ses
+demandes sans compte demandent `symfony/rate-limiter`, et `symfony/mailer` pour l'expéditeur du bundle, dont les liens mènent à
+`public_origin` ou à un hôte que `framework.trusted_hosts` accepte : en production, le bundle refuse de démarrer sans
+l'un ou l'autre (voir [Où mène le lien](doc/fr/requests-without-an-account.md#où-mène-le-lien)). MonologBundle est
+nécessaire pour que le processeur atteigne vos journaux par son étiquette, un pare-feu pour qu'un membre atteigne ses
 préférences, et une base de données pour les suppressions de compte, sauf si un stockage est nommé. Voir
 [Installation](doc/fr/installation.md).
 

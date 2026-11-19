@@ -134,7 +134,8 @@ final readonly class Tokens
                 throw OAuthError::invalidScope('A refresh cannot widen the scope.');
             }
 
-            $scopes = array_values(array_unique([...$asked, 'offline_access']));
+            // `openid` stays: a narrowed refresh still issues an ID token, and its access token still reads userinfo.
+            $scopes = array_values(array_unique([...$asked, ...array_intersect($scopes, ['openid']), 'offline_access']));
         }
 
         if (!$this->grants->rotateToken($token, $now)) {

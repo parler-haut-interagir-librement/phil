@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7a19a3131a50b2518368bbef11874d901b8b72c9a92e8a8e6c3796f5a31fb90c -->
+<!-- phil-dev source-sha256=3a79e03465aa1db376ee289378856f5f5331bb30228bb7715bf56c64312c395b -->
 # phil/identity-provider-bundle
 
 **Une brique d'identité ouverte pour Symfony : des comptes, un module par façon de se connecter et un fournisseur OpenID Connect.**
@@ -28,7 +28,7 @@ le minimum sur les personnes — aucune adresse de leur connexion, aucun jeton d
 
 | Partie | État |
 |---|---|
-| Comptes : inscription sans révéler qui a un compte, adresses vérifiées par des liens signés confirmés par un formulaire, page du compte | Implémenté et testé |
+| Comptes : inscription sans révéler qui a un compte, limitée par client et par adresse, adresses vérifiées par des liens signés confirmés par un formulaire, liens des courriels sur l'adresse canonique du site, page du compte | Implémenté et testé |
 | Mots de passe : Argon2id, force et fuites vérifiées par `phil/passwords`, réinitialisation par un lien signé sur le mot de passe et servi une fois, autres sessions fermées à chaque changement, verrou progressif, limiteur de connexion par identifiant pour `login_throttling` | Implémenté et testé |
 | Clés d'accès : enregistrement, connexion, renommage, retrait ; la dernière façon de se connecter est conservée | Implémenté et testé |
 | Application d'authentification (TOTP), codes de récupération, deuxième étape d'une connexion | Implémenté et testé |
@@ -97,7 +97,9 @@ voir [Installation](doc/fr/installation.md).
 ## Prérequis
 
 PHP 8.5 ou une version plus récente avec les extensions `mbstring`, `openssl` et `sodium`, Symfony 8.2 ou une version
-plus récente, Doctrine ORM 3.7 ou une version plus récente, `web-token/jwt-library` 4.2 ou une version plus récente, `phil/passwords`, `phil/rate-limit` et `phil/url`.
+plus récente, Doctrine ORM 3.7 ou une version plus récente, `web-token/jwt-library` 4.2 ou une version plus récente, `phil/passwords`, `phil/rate-limit` et `phil/url`. En production, réglez
+`public_origin` ou `framework.trusted_hosts` : le bundle refuse de démarrer sans l'un ou l'autre (voir
+[Où mènent les liens](doc/fr/accounts.md#où-mènent-les-liens)).
 
 ## Contribuer
 

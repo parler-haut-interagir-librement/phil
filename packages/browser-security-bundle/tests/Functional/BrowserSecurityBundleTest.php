@@ -58,6 +58,14 @@ final class BrowserSecurityBundleTest extends KernelTestCase
         $pool->clear();
     }
 
+    public function testAForgedHostNeverChoosesWhereTheReportsGo(): void
+    {
+        $response = $this->request('GET', 'https://attacker.example/page');
+
+        self::assertStringEndsWith('report-uri /_csp/report; report-to csp', (string) $response->headers->get('Content-Security-Policy'));
+        self::assertSame('csp="/_csp/report"', $response->headers->get('Reporting-Endpoints'));
+    }
+
     public function testAPageGetsItsNoncesInTheHeaderAndTheTags(): void
     {
         $response = $this->request('GET', 'https://example.com/page');
@@ -72,8 +80,8 @@ final class BrowserSecurityBundleTest extends KernelTestCase
         self::assertStringContainsString('<style nonce="'.$style[1].'">', $content);
         self::assertSame($script[1], $style[2]);
         self::assertStringContainsString("object-src 'none'", $header);
-        self::assertStringEndsWith('report-uri https://example.com/_csp/report; report-to csp', $header);
-        self::assertSame('csp="https://example.com/_csp/report"', $response->headers->get('Reporting-Endpoints'));
+        self::assertStringEndsWith('report-uri /_csp/report; report-to csp', $header);
+        self::assertSame('csp="/_csp/report"', $response->headers->get('Reporting-Endpoints'));
         self::assertSame('camera=()', $response->headers->get('Permissions-Policy'));
         self::assertSame('same-origin', $response->headers->get('Cross-Origin-Opener-Policy'));
         self::assertSame('strict-origin-when-cross-origin', $response->headers->get('Referrer-Policy'));
@@ -190,9 +198,9 @@ final class BrowserSecurityBundleTest extends KernelTestCase
         self::assertSame('same-site', $headers->get('Cross-Origin-Resource-Policy'));
         self::assertSame('none', $headers->get('X-Permitted-Cross-Domain-Policies'));
         self::assertSame('?1', $headers->get('Origin-Agent-Cluster'));
-        self::assertSame('max-age=31536000', $headers->get('Strict-Transport-Security'));
+        self::assertSame('max-age=31536000; includeSubDomains', $headers->get('Strict-Transport-Security'));
         self::assertStringStartsWith('same-origin; report-to="csp"', (string) $headers->get('Cross-Origin-Opener-Policy-Report-Only'));
-        self::assertSame('csp="https://localhost/_csp/report"', $headers->get('Reporting-Endpoints'));
+        self::assertSame('csp="/_csp/report"', $headers->get('Reporting-Endpoints'));
     }
 
     public function testAPageAdjustsItsHeaders(): void

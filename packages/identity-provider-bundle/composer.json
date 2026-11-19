@@ -43,6 +43,7 @@
         "symfony/lock": "^8.2",
         "symfony/password-hasher": "^8.1",
         "symfony/property-access": "^8.2",
+        "symfony/rate-limiter": "^8.2",
         "symfony/routing": "^8.2",
         "symfony/security-bundle": "^8.2",
         "symfony/security-core": "^8.2",
@@ -71,7 +72,6 @@
         "symfony/mailer": "^8.2",
         "symfony/mime": "^8.2",
         "symfony/notifier": "^8.2",
-        "symfony/rate-limiter": "^8.2",
         "symfony/translation": "^8.2",
         "symfony/translation-contracts": "^3.6",
         "symfony/twig-bridge": "^8.2",
@@ -85,7 +85,6 @@
         "symfony/key-management": "To encrypt the TOTP secrets and the private signing keys under a key management service",
         "symfony/mailer": "For the emails: address verification, password reset, sign-in links, risky sign-ins",
         "symfony/notifier": "For the SMS codes, through its texter",
-        "symfony/rate-limiter": "For the sign-in limiter per identifier, set as the limiter of the firewall's login_throttling",
         "symfony/stimulus-bundle": "For the Stimulus controller of passkeys",
         "symfony/ux-twig-component": "For the pages, drawn with the recipes of the kit"
     },

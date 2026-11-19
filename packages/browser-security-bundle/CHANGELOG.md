@@ -4,6 +4,34 @@ All notable changes to `phil/browser-security-bundle` will be documented in this
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the reports go to a path, or to `public_origin`, never to the host a request names;
+the default policy refuses `<base>` and Strict-Transport-Security includes the subdomains, as ASVS asks.
+
+### Added
+
+- `public_origin`: the canonical address of the site, such as `https://example.com`, that the reports of violations go
+  to, read by `phil/url` when the kernel boots; `ReportEndpoint::OPTION` and `ReportEndpoint::origin()`.
+- `phil/url` joins `require`.
+
+### Changed
+
+- `report-uri` and `Reporting-Endpoints` name the path of the route, or of a path given in `reporting.uri`, which the
+  browser resolves against the page; with `public_origin`, the path is put on it. An absolute `reporting.uri` is sent
+  as it is.
+- `ReportEndpoint::uri()` takes no request; its constructor takes the origin and whether `localhost` is accepted, last
+  and optional.
+- The default policy declares `base-uri 'none'` instead of `'self'`: a page that needs a `<base>` element declares
+  `base-uri` in its own policy.
+- `https.strict_transport_security.include_subdomains` is true by default: the header says `max-age=31536000;
+  includeSubDomains`. A site whose subdomains are not all served over HTTPS sets it to false.
+
+### Security
+
+- `report-uri` was built on the `Host` header of the request: a request naming another host sent the reports, with the
+  addresses of the pages, to that host, and could leave its name in a cached response.
+
 ## 0.1.1-alpha - 2026-11-14
 
 ### Security

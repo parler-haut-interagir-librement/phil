@@ -29,6 +29,9 @@ use Symfony\Component\Security\Http\Util\TargetPathTrait;
  * someone already signed in: the second step of a sign-in, or a re-authentication. It authenticates the same account
  * again with the proof `otp`, which Symfony Security adds to those the token already holds, and sends the person on to
  * where they were going.
+ *
+ * Five wrong codes in a row sign the session out: the next guesses need the first step again, under its own limits,
+ * rather than trying the million codes of an authenticator application one after the other.
  */
 final class OneTimeCodeAuthenticator extends AbstractAuthenticator implements InteractiveAuthenticatorInterface
 {
@@ -37,6 +40,12 @@ final class OneTimeCodeAuthenticator extends AbstractAuthenticator implements In
     public const string ROUTE = 'phil_identity_provider_code_check';
 
     public const string CSRF_ID = 'phil_identity_provider_code';
+
+    /** The wrong codes in a row a session may post before it is signed out. */
+    public const int MAX_FAILURES = 5;
+
+    /** The attribute of the session that counts the wrong codes in a row. */
+    public const string FAILURES = '_phil_identity_provider.code_failures';
 
     public function __construct(
         private readonly TokenStorageInterface $tokens,
@@ -80,6 +89,8 @@ final class OneTimeCodeAuthenticator extends AbstractAuthenticator implements In
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): RedirectResponse
     {
         $session = $request->getSession();
+        $session->remove(self::FAILURES);
+
         $target = $session->remove(SecondFactorListener::TARGET);
         $target = \is_string($target) ? $target : $this->getTargetPath($session, $firewallName);
         $this->removeTargetPath($session, $firewallName);
@@ -91,7 +102,18 @@ final class OneTimeCodeAuthenticator extends AbstractAuthenticator implements In
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): RedirectResponse
     {
         if ($request->hasSession()) {
-            $request->getSession()->set(SecurityRequestAttributes::AUTHENTICATION_ERROR, $exception);
+            $session = $request->getSession();
+            $failures = $session->get(self::FAILURES);
+            $failures = (\is_int($failures) ? $failures : 0) + 1;
+
+            if ($failures >= self::MAX_FAILURES) {
+                $session->invalidate();
+                $this->tokens->setToken(null);
+            } else {
+                $session->set(self::FAILURES, $failures);
+            }
+
+            $session->set(SecurityRequestAttributes::AUTHENTICATION_ERROR, $exception);
         }
 
         return new RedirectResponse($this->urls->generate(SecondFactorListener::CHALLENGE_ROUTE));

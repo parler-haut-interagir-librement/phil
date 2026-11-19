@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=89d9b004c74c8175522db28a676943ebe7ce4ca386bc4cf65b8ea1461b3e5ee0 -->
+<!-- phil-dev source-sha256=e6d4bac54978afdf43af022b53d08cd3e664f98d82463082a787eea534d2c2e8 -->
 # Points d'extension
 
 Le paquet est en `0.x` : ses points d'extension ne sont stables qu'à partir de sa version 1.0. D'ici là, une version
@@ -8,6 +8,7 @@ mineure peut les changer, et son CHANGELOG dit comment.
 |---|---|
 | Brancher un fournisseur fédéré | Implémentez `Infrastructure\Federation\Contract\ExternalProvider` et étiquetez le service `phil_identity_provider.external_provider` : voir [Fournisseurs fédérés](external-providers.md) |
 | Envoyer des messages texte par une autre passerelle | Implémentez `Application\Contract\SmsSender` et nommez le service dans `sms.sender` |
+| Mener les liens des courriels vers l'hôte de chaque locataire | Donnez à `Application\Contract\LinkOrigin` un alias vers votre propre service : il génère chaque lien sur l'hôte qu'il choisit |
 | Envoyer autrement les courriels | Donnez à `Application\Contract\AccountMailer` un alias vers votre propre service |
 | Écrire les événements ailleurs | Implémentez `Application\Contract\AuditRecorder` et nommez le service dans `audit` |
 | Sceller autrement les secrets | Donnez à `Application\Contract\SecretCipher` un alias vers votre propre service |

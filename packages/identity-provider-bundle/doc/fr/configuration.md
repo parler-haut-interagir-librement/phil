@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=13ca7faecf4a2c1aa17d3e99291299f02247e1bb395cc607e07f70cb1365d6c6 -->
+<!-- phil-dev source-sha256=89ed49dee10863c41c653f8e3cc011d9c9fdd5266b086ae196ded4b27f51ea2f -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_identity_provider`. Chaque option a une valeur par défaut, sauf les
@@ -10,6 +10,7 @@ fournisseur.
 phil_identity_provider:
     secret: '%env(IDENTITY_SECRET)%'
     site_name: Example
+    public_origin: 'https://example.com'
     modules:
         accounts: true          # always on
         password: true
@@ -45,7 +46,12 @@ phil_identity_provider:
 | `clock` | `clock` | Identifiant de service de l'horloge PSR-20. |
 | `layout` | `@PhilIdentityProvider/layout.html.twig` | Le gabarit que les pages étendent. |
 | `kit_subdirectory` | `null` | L'emplacement des recettes du kit ; le sous-répertoire de `ux_toolkit` quand la valeur est nulle. |
-| `registration` | `true` | Si n'importe qui peut s'inscrire. |
+| `public_origin` | `null` | L'adresse canonique du site, comme `https://example.com`, sur laquelle mènent les liens envoyés par courriel. Nulle, elle prend l'hôte de la requête, que `framework.trusted_hosts` doit alors borner : dans l'environnement `prod`, le bundle refuse de démarrer quand ni l'un ni l'autre n'est réglé. Voir [Où mènent les liens](accounts.md#où-mènent-les-liens). |
+| `registration.enabled` | `true` | Si n'importe qui peut s'inscrire ; `registration: false` la ferme. |
+| `registration.rate_limit.enabled` | `true` | Limite l'inscription et les courriels de vérification ; `rate_limit: false` désactive les limites. Voir [Limiter les inscriptions](accounts.md#limiter-les-inscriptions). |
+| `registration.rate_limit.per_ip.limit`, `.interval` | `10`, `1 hour` | Les inscriptions par adresse de client, ou par réseau IPv6 /64, à chaque intervalle. |
+| `registration.rate_limit.per_address.limit`, `.interval` | `5`, `1 hour` | Les inscriptions par adresse saisie, connue ou non, à chaque intervalle. |
+| `registration.rate_limit.resend_delay` | `5 minutes` | Le délai avant qu'un autre courriel de vérification aille à la même adresse. |
 | `require_verified_email` | `false` | Si un compte ne se connecte qu'une fois son adresse vérifiée. |
 | `login_route` | `null` | La route du formulaire de connexion, proposée pour une réauthentification par mot de passe et après l'échec d'une connexion externe. |
 | `default_target` | `/` | Où mène une connexion par les authentificateurs du bundle quand rien n'a demandé de page. |

@@ -1,11 +1,18 @@
 # Configuration reference
 
 The extension alias is `phil_privacy`. The configuration tree is defined in `PhilPrivacyBundle::configure()`
-and has these keys: `log_redaction`, `retention_schedule_source`, `retention`, `account_deletion`, `consent`,
+and has these keys: `log_redaction`, `public_origin`, `retention_schedule_source`, `retention`, `account_deletion`, `consent`,
 `cookies`, `guest_requests`, `incidents`, `email_tracking`, `rights`, `pages`, `register`, `database` and
 `anonymization`.
 
 ## Top-level keys
+
+### `phil_privacy.public_origin`
+
+The canonical address of the site, such as `https://example.org`, that the links sent by email point to, or `null`
+(the default): the host of the request, which `framework.trusted_hosts` must then bound. In the `prod` environment,
+while `guest_requests` is on with the mailer sender, the bundle refuses to boot when neither is set. See
+[Where the link points](requests-without-an-account.md#where-the-link-points).
 
 ### `phil_privacy.retention_schedule_source`
 
@@ -286,6 +293,8 @@ than the first log line. Every error is an
 | The requests without an account turned on without a sender | `phil_privacy.guest_requests.from is the sender of the links …` |
 | The requests without an account turned on without the rate limiter | `phil_privacy.guest_requests needs symfony/rate-limiter …` |
 | A link lifetime that is not a duration | `phil_privacy.guest_requests.link_lifetime: …` |
+| An origin with a path, a query, a fragment or an IP address, or `localhost` outside debug mode, read at boot | `"phil_privacy.public_origin" is an origin …`, `"phil_privacy.public_origin" is the canonical address of the site …` |
+| In `prod`, the requests on with the mailer sender, neither `public_origin` nor `framework.trusted_hosts`, at boot | `The links of the requests without an account would take the host of the request: …` |
 | A malformed version of the text about tracked emails | `phil_privacy.email_tracking.version: letters, digits, ".", "_" and "-", 32 at most, …` |
 | A malformed long option name | `phil_privacy.log_redaction: The short option "p" must map to a long option name without its dashes, such as "password".` |
 
