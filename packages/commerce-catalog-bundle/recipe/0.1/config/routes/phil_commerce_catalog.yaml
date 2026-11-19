@@ -1,0 +1,5 @@
+# The files of the product feeds, served at /product-feeds/{feed} for the feeds declared under
+# phil_commerce_catalog.product_feeds; a feed not declared is not found. See
+# vendor/phil/commerce-catalog-bundle/doc/product-feeds.md.
+phil_commerce_catalog:
+    resource: '@PhilCommerceCatalogBundle/config/routes.php'

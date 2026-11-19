@@ -1,0 +1,78 @@
+{
+    "name": "phil/commerce-returns-bundle",
+    "description": "Returns for a Symfony shop on phil/commerce-bundle: requests authorized, received, inspected, items restocked, refunds, store credit, exchanges, credit notes.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "returns",
+        "rma",
+        "refunds",
+        "exchanges",
+        "commerce",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/commerce-bundle": "^0.2@dev || ^0.3@dev",
+        "phil/ddd-bundle": "^0.1@dev",
+        "phil/money": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "ext-zlib": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/persistence": "^4.1",
+        "phil/commerce-catalog-bundle": "^0.1@dev",
+        "phil/commerce-logistics-bundle": "^0.1@dev",
+        "phil/commerce-promotions-bundle": "^0.1@dev",
+        "phil/commerce-stored-value-bundle": "^0.1@dev",
+        "phil/paged-media": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/rate-limiter": "^8.2"
+    },
+    "suggest": {
+        "phil/commerce-catalog-bundle": "To refuse a part of a set: a composite product comes back whole",
+        "phil/commerce-logistics-bundle": "To count the return window from the order's last shipment",
+        "phil/commerce-promotions-bundle": "To take back the discount of a special when one of its products comes back",
+        "phil/commerce-stored-value-bundle": "To settle a return as store credit",
+        "phil/paged-media": "To print return slips as PDF",
+        "symfony/rate-limiter": "To bound the returns each customer asks for"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\CommerceReturnsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\CommerceReturnsBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

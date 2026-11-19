@@ -1,0 +1,7 @@
+# Catalogue syndication between partners: see vendor/phil/commerce-syndication-bundle/doc/installation.md for every
+# option; the tables join the schema the ORM generates (doctrine:migrations:diff).
+phil_commerce_syndication:
+    # The code partners know this application by: the audience every message sent here must carry.
+    identity: '%env(SYNDICATION_IDENTITY)%'
+    # The secret key every outgoing message is signed with; its public half, whpk_…, goes to the partners.
+    signing_key: '%env(SYNDICATION_SIGNING_KEY)%'

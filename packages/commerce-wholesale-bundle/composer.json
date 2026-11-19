@@ -1,0 +1,62 @@
+{
+    "name": "phil/commerce-wholesale-bundle",
+    "description": "Wholesale for a Symfony shop on phil/commerce-bundle: customer groups with their prices and minimums, quantity rules per SKU, sales on credit with net terms.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "wholesale",
+        "b2b",
+        "price-lists",
+        "commerce",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/orm": "^3.7",
+        "phil/commerce-bundle": "^0.2@dev || ^0.3@dev",
+        "phil/ddd-bundle": "^0.1@dev",
+        "phil/money": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/uid": "^8.2",
+        "symfony/validator": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/persistence": "^4.1",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/translation": "^8.2"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\CommerceWholesaleBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\CommerceWholesaleBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

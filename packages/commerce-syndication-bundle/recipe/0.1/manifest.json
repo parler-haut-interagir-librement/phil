@@ -1,0 +1,14 @@
+{
+    "bundles": {
+        "Phil\\CommerceSyndicationBundle\\PhilCommerceSyndicationBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "#1": "The code partners know this application by, and the whsk_ Ed25519 secret key its messages are signed with:",
+        "#2": "see vendor/phil/commerce-syndication-bundle/doc/installation.md to generate the key pair.",
+        "SYNDICATION_IDENTITY": "shop",
+        "SYNDICATION_SIGNING_KEY": ""
+    }
+}

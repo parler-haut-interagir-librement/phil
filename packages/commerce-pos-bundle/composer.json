@@ -1,0 +1,80 @@
+{
+    "name": "phil/commerce-pos-bundle",
+    "description": "A shop register in Symfony on phil/commerce-bundle: tills, cash sessions and end-of-day reports, connected terminals, layaways, and sales rung up offline.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "point-of-sale",
+        "pos",
+        "register",
+        "cash-drawer",
+        "layaway",
+        "offline",
+        "commerce",
+        "payment-terminal",
+        "indexeddb",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/orm": "^3.7",
+        "phil/commerce-bundle": "^0.2@dev || ^0.3@dev",
+        "phil/ddd-bundle": "^0.1@dev",
+        "phil/money": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/polyfill-php86": "^1.37",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/persistence": "^4.1",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/filesystem": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/password-hasher": "^8.1",
+        "symfony/rate-limiter": "^8.2",
+        "symfony/stimulus-bundle": "^3.7"
+    },
+    "suggest": {
+        "symfony/asset-mapper": "To serve the Stimulus controllers of the offline queue without a build step",
+        "symfony/password-hasher": "For the cashier switch by PIN, which hashes each PIN",
+        "symfony/rate-limiter": "For the cashier switch by PIN, which bounds the attempts",
+        "symfony/stimulus-bundle": "To register the Stimulus controllers of the offline queue"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\CommercePosBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\CommercePosBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

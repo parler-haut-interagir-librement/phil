@@ -1,0 +1,2 @@
+# Reference outputs of the PDF writer, compared byte for byte: the cross-reference table ends its lines with a space.
+*.pdf binary

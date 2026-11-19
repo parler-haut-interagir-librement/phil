@@ -1,0 +1,74 @@
+{
+    "name": "phil/commerce-syndication-bundle",
+    "description": "A supplier's catalogue sold by other shops, in Symfony: signed prices and stock fed to resellers, orders forwarded and shipped, returns credited, one ledger.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "syndication",
+        "dropshipping",
+        "marketplace",
+        "commerce",
+        "standard-webhooks",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/commerce-bundle": "^0.2@dev || ^0.3@dev",
+        "phil/ddd-bundle": "^0.1@dev",
+        "phil/money": "^0.1@dev",
+        "phil/standard-webhooks": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/polyfill-php86": "^1.37",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/persistence": "^4.1",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-kernel": "^8.2",
+        "symfony/yaml": "^8.2"
+    },
+    "suggest": {
+        "symfony/console": "For the phil:commerce-syndication:deliver command",
+        "symfony/http-client": "To deliver the messages over Symfony's HTTP client"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\CommerceSyndicationBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\CommerceSyndicationBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

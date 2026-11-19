@@ -1,0 +1,22 @@
+{
+    "price-quotes": [
+        {
+            "service-code": "DOM.XP",
+            "service-name": "Xpresspost",
+            "service-link": {"rel": "service", "href": "https://api.test.example/services/DOM.XP"},
+            "price-details": {"base": 18.5, "taxes": {"gst": 0.93}, "due": 21.07},
+            "service-standard": {"am-delivery": false, "guaranteed-delivery": true, "expected-transit-time": 1, "expected-delivery-date": "2026-11-12"}
+        },
+        {
+            "service-code": "DOM.RP",
+            "service-name": "Regular Parcel",
+            "price-details": {"base": 11.2, "due": "12.66"},
+            "service-standard": {"expected-transit-time": 3}
+        },
+        {
+            "service-code": "DOM.EP",
+            "service-name": "Expedited Parcel",
+            "price-details": {"due": 14}
+        }
+    ]
+}

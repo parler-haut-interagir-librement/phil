@@ -1,0 +1,65 @@
+# Installation
+
+## Requirements
+
+| Requirement | Version | Why |
+|---|---|---|
+| PHP | 8.5 or later | The floor the module declares and is tested on |
+| `ext-mbstring` | any | Counts the characters of holders and notes |
+| `phil/commerce-bundle` | ^0.2@dev or ^0.3@dev | The core the module plugs into: its orders, payments, `SellableResolver` and `PaymentGateway` |
+| `phil/ddd-bundle` | ^0.1@dev | `InvalidValue` and `DomainError` |
+| `phil/money` | ^0.1@dev | Balances and movements |
+| `phil/paged-media` | ^0.1@dev | The printed gift card |
+| `doctrine/orm` | ^3.7 | The mapping attributes of instruments and movements, and the repository adapter |
+| `psr/clock` | ^1.0 | The moment a refund gives value back |
+| `symfony/uid` | ^8.2 | Instrument and movement identifiers |
+| `symfony/dependency-injection`, `symfony/config` | ^8.2 | The bundle class and its configuration tree |
+
+## Installing
+
+```sh
+composer require phil/commerce-bundle phil/commerce-stored-value-bundle
+```
+
+## Registering
+
+With Symfony Flex, the recipe of each package registers its bundle; the module's defaults need no configuration file.
+Without Flex:
+
+Register the core and the module; the order of the two lines does not matter.
+
+```php
+// config/bundles.php
+return [
+    // ...
+    Phil\CommerceBundle\PhilCommerceBundle::class => ['all' => true],
+    Phil\CommerceStoredValueBundle\PhilCommerceStoredValueBundle::class => ['all' => true],
+];
+```
+
+Registered without the core, the module fails the container build:
+
+```text
+PhilCommerceStoredValueBundle is a module of the core of commerce: register PhilCommerceBundle, from phil/commerce-bundle, too.
+```
+
+## Configuring
+
+Every key is optional.
+
+```yaml
+# config/packages/phil_commerce_stored_value.yaml
+phil_commerce_stored_value:
+    gift_card:
+        label: 'Gift card'        # how a gift card line reads, before its value
+        tax_category: exempt      # selling a gift card is, in most places, not taxed
+        max_value: 100000         # the highest value sold, in minor units
+```
+
+Give the core a tax rate for the category, at zero where the sale of a gift card is not taxed.
+
+## Storage
+
+The services read a repository: with DoctrineBundle, the module registers them with its Doctrine adapter — generate a
+migration for its two tables —; without it, only the gift card sellable is registered, and the application declares
+the rest with its own adapter.
