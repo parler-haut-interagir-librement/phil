@@ -98,7 +98,7 @@ final class ProcessCommandRunnerTest extends TestCase
         self::assertLessThan(5.0, $elapsed, 'SIGKILL follows the grace period, not the default ten seconds.');
         $pid = (int) file_get_contents($pidFile);
         self::assertGreaterThan(0, $pid);
-        self::assertSame(1, new Process(['ps', '-p', (string) $pid])->run(), 'The tool no longer runs.');
+        self::assertSame(1, new Process(['sh', '-c', 'kill -0 "$1" 2>/dev/null', 'sh', (string) $pid])->run(), 'The tool no longer runs.');
     }
 
     public function testAZeroOrMissingTimeoutIsNoLimit(): void

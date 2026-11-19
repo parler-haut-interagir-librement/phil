@@ -390,7 +390,7 @@ final class MigrationRunnerTest extends TestCase
         self::assertCount($count, $pids);
 
         foreach ($pids as $pid) {
-            self::assertSame(1, new Process(['ps', '-p', (string) $pid])->run(), \sprintf('The migration %d no longer runs.', $pid));
+            self::assertSame(1, new Process(['sh', '-c', 'kill -0 "$1" 2>/dev/null', 'sh', (string) $pid])->run(), \sprintf('The migration %d no longer runs.', $pid));
         }
     }
 
