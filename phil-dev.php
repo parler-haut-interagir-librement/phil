@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
+
 /*
  * What phil/dev-tools reads of this monorepo: the globs of its packages, each of which keeps its own paths and
  * exceptions in its own phil-dev.php, and the terms no package names. See vendor/phil/dev-tools/doc/configuration.md
@@ -32,6 +34,17 @@ return [
             '^Symfony\\\\Polyfill\\\\.*',
             '^Psr\\\\.*',
             '^Doctrine\\\\ORM\\\\Mapping\\\\.*',
+        ],
+    ],
+
+    'rector' => [
+        'skip' => [
+            // A test of phil/commerce-bundle names the processor of phil/commerce-promotions-bundle by a string: the
+            // bundle does not depend on that module, which the monorepo alone loads next to it, and `::class` would
+            // make the test require it.
+            StringClassNameToClassConstantRector::class => [
+                'packages/commerce-bundle/tests/Unit/PhilCommerceBundleLifeTest.php',
+            ],
         ],
     ],
 
