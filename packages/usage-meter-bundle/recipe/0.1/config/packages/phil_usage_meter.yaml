@@ -1,0 +1,9 @@
+# The meters of phil/usage-meter-bundle: see vendor/phil/usage-meter-bundle/doc/configuration.md for every option.
+phil_usage_meter:
+    # The counters in two tables of a DBAL connection, which join the schema the ORM generates.
+    store: dbal
+    dbal:
+        connection: default
+    # One entry per meter, with its limit and one period, for example:
+    #     exports: { limit: 3, calendar: month, timezone: UTC }
+    meters: {}

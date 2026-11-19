@@ -1,0 +1,91 @@
+{#
+    An owner's tokens, the token just created, and the form to create one, for a page of the application:
+
+        {% include '@PhilApiKeys/_tokens.html.twig' %}
+
+    Variables: tokens (list of ApiToken), owner (TokenOwner), typed_owner (whether the page is another owner's rather
+    than the member's own), form, issued (IssuedToken or null), revoked, now, scope_labels (label key by scope name)
+    and scope_domain (their translation domain). Classless HTML dressed by phil-ux.
+#}
+{% trans_default_domain 'phil_api_keys' %}
+<div class="isStack">
+    {%- if issued %}
+        <section class="isStack" role="status" aria-labelledby="phil-api-keys-issued">
+            <h2 id="phil-api-keys-issued">{{ 'api_keys.issued.title'|trans }}</h2>
+            <p>{{ 'api_keys.issued.once'|trans }}</p>
+            <p><code>{{ issued.plainText }}</code></p>
+        </section>
+    {%- endif %}
+    {%- if revoked %}
+        <p role="status">{{ 'api_keys.revoked'|trans }}</p>
+    {%- endif %}
+
+    <section class="isStack" aria-labelledby="phil-api-keys-list">
+        <h2 id="phil-api-keys-list">{{ 'api_keys.list.title'|trans }}</h2>
+        {%- if tokens is empty %}
+            <p class="isMuted">{{ 'api_keys.list.empty'|trans }}</p>
+        {%- else %}
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">{{ 'api_keys.list.name'|trans }}</th>
+                        <th scope="col">{{ 'api_keys.list.scopes'|trans }}</th>
+                        <th scope="col">{{ 'api_keys.list.created'|trans }}</th>
+                        <th scope="col">{{ 'api_keys.list.expires'|trans }}</th>
+                        <th scope="col">{{ 'api_keys.list.last_used'|trans }}</th>
+                        <th scope="col">{{ 'api_keys.list.state'|trans }}</th>
+                        <th scope="col"><span class="isVisuallyHidden">{{ 'api_keys.list.actions'|trans }}</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {%- for token in tokens %}
+                        <tr>
+                            <th scope="row">{{ token.name }}</th>
+                            <td>
+                                {%- for scope in token.scopes -%}
+                                    {{ (scope_labels[scope] ?? scope)|trans({}, scope_domain) }}{% if not loop.last %}, {% endif %}
+                                {%- else -%}
+                                    {{ 'api_keys.list.no_scope'|trans }}
+                                {%- endfor -%}
+                            </td>
+                            <td><time datetime="{{ token.createdAt|date('c') }}">{{ token.createdAt|date('Y-m-d') }}</time></td>
+                            <td><time datetime="{{ token.expiresAt|date('c') }}">{{ token.expiresAt|date('Y-m-d') }}</time></td>
+                            <td>
+                                {%- if token.lastUsedAt -%}
+                                    <time datetime="{{ token.lastUsedAt|date('c') }}">{{ token.lastUsedAt|date('Y-m-d H:i') }}</time>
+                                {%- else -%}
+                                    {{ 'api_keys.list.never'|trans }}
+                                {%- endif -%}
+                            </td>
+                            <td>
+                                {%- if token.revoked -%}
+                                    {{ 'api_keys.state.revoked'|trans }}
+                                {%- elseif token.hasExpiredAt(now) -%}
+                                    {{ 'api_keys.state.expired'|trans }}
+                                {%- else -%}
+                                    {{ 'api_keys.state.active'|trans }}
+                                {%- endif -%}
+                            </td>
+                            <td>
+                                {%- if token.isActiveAt(now) %}
+                                    <form method="post" action="{{ typed_owner|default(false) ? path('phil_api_keys_owner_revoke', {ownerType: owner.type, owner: owner.id, id: token.id}) : path('phil_api_keys_revoke', {id: token.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('phil_api_keys_revoke_' ~ token.id) }}">
+                                        <button type="submit">{{ 'api_keys.list.revoke'|trans }}<span class="isVisuallyHidden"> {{ token.name }}</span></button>
+                                    </form>
+                                {%- endif %}
+                            </td>
+                        </tr>
+                    {%- endfor %}
+                </tbody>
+            </table>
+        {%- endif %}
+    </section>
+
+    <section class="isStack" aria-labelledby="phil-api-keys-create">
+        <h2 id="phil-api-keys-create">{{ 'api_keys.form.title'|trans }}</h2>
+        {{ form_start(form, {attr: {class: 'isStack', novalidate: 'novalidate'}}) }}
+            {{ form_widget(form) }}
+            <button type="submit">{{ 'api_keys.form.submit'|trans }}</button>
+        {{ form_end(form) }}
+    </section>
+</div>

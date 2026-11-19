@@ -1,0 +1,19 @@
+{#
+    The page of a member's tokens as the bundle renders it; an application gives its own, extending its layout and
+    including '@PhilApiKeys/_tokens.html.twig', with the key template.
+#}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{{ 'api_keys.title'|trans({}, 'phil_api_keys') }}</title>
+</head>
+<body>
+    <main class="isNarrow isStack">
+        <h1>{{ 'api_keys.title'|trans({}, 'phil_api_keys') }}</h1>
+        {{ include('@PhilApiKeys/_tokens.html.twig') }}
+    </main>
+</body>
+</html>

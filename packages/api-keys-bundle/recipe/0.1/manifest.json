@@ -1,0 +1,12 @@
+{
+    "bundles": {
+        "Phil\\ApiKeysBundle\\PhilApiKeysBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "#1": "At least 32 random bytes, hex-encoded, in .env.local or the secrets vault: php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'",
+        "API_KEYS_HASH_KEY": ""
+    }
+}

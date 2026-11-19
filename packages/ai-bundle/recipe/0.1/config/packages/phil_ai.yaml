@@ -1,0 +1,9 @@
+# The language-model tasks of phil/ai-bundle: see vendor/phil/ai-bundle/doc/configuration.md for every option.
+# Declare each platform, a PlatformInterface service of Symfony AI, then the tasks that call it, for example:
+#     platforms:
+#         main: { platform: 'app.ai_platform' }
+#     tasks:
+#         draft.rewrite: { platform: main, model: 'the-model' }
+phil_ai:
+    # The ISO 4217 currency of the prices and of the costs in the journal.
+    currency: USD

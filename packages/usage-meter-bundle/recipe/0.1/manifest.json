@@ -1,0 +1,8 @@
+{
+    "bundles": {
+        "Phil\\UsageMeterBundle\\PhilUsageMeterBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    }
+}

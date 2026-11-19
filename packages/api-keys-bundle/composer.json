@@ -1,0 +1,106 @@
+{
+    "name": "phil/api-keys-bundle",
+    "description": "Access tokens for a public Symfony API: hashed and shown once, scoped, expiring, revocable and rotated, checked by the access_token authenticator of Security.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "api",
+        "api-key",
+        "personal-access-token",
+        "bearer",
+        "authentication",
+        "scopes",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-filter": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "ext-sodium": "*",
+        "doctrine/orm": "^3.7",
+        "psr/clock": "^1.0",
+        "psr/container": "^2.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-http": "^8.2",
+        "symfony/service-contracts": "^3.6"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/doctrine-bundle": "^3.3",
+        "phil/api-contract": "^0.1@dev",
+        "phil/api-contract-bundle": "^0.3@dev",
+        "phil/ip-anonymizer": "^0.1@dev",
+        "phil/rate-limit-bundle": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "phil/usage-meter-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/cache-contracts": "^3.6",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.1",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/options-resolver": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/validator": "^8.2",
+        "symfony/yaml": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "phil/api-contract-bundle": "To answer authentication failures with RFC 9457 problem details",
+        "phil/ip-anonymizer": "To keep an anonymized form of the address a token was last used from",
+        "phil/rate-limit-bundle": "For rate limits counted by token, with RateLimit headers",
+        "phil/url": "For the endpoint of GitHub's secret scanning, which checks the address of GitHub's keys",
+        "phil/usage-meter-bundle": "For quotas counted by token on meters, through phil/rate-limit-bundle",
+        "symfony/cache": "For the endpoint of GitHub's secret scanning, which keeps GitHub's keys in a cache pool",
+        "symfony/console": "For phil:api-keys:create, list, revoke and purge-expired",
+        "symfony/form": "For the page where members create and revoke their tokens",
+        "symfony/http-client": "For the endpoint of GitHub's secret scanning, which fetches GitHub's keys",
+        "symfony/security-csrf": "For the page where members create and revoke their tokens",
+        "twig/twig": "For the page where members create and revoke their tokens"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ApiKeysBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ApiKeysBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}
