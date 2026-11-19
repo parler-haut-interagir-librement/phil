@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=010715fc94b2897b16138cf7ed5f20d2086ad71bb4045282ed04cba05dd65635 -->
+<!-- phil-dev source-sha256=414267ff6bb70bf228c624f9f00ab32d1c25b5c28a48146009472c35fbc3f836 -->
 # Référence
 
 | Type | Nature | Rôle |
@@ -7,6 +7,7 @@
 | `Domain\Model\StoredDate` | entité | Une date dans `phil_almanac_date` : `definition()`, `change()` |
 | `Domain\Repository\StoredDateRepository` | port | `all()`, `ofKey()`, `save()`, `remove()` |
 | `Infrastructure\Doctrine\DoctrineStoredDateRepository` | `StoredDateRepository` | Sur Doctrine |
+| `Infrastructure\Doctrine\BinaryKeysListener` | écouteur | `date_key` en `utf8mb4_bin` sur MySQL et MariaDB, au `loadClassMetadata` de l'ORM, avec `database: true` ([stored-dates.md](stored-dates.md#collation-de-la-clé)) |
 | `Application\Definitions` | `final readonly class` | Les dates configurées et stockées : `all()`, `isConfigured()`, `stored()` |
 | `Application\ConfiguredDates` | `final class` | Les dates configurées, lues : `check()` à la construction, `definitions()` pour le service, `eclipses()` pour les éclipses déclarées |
 | `Application\AlmanacFactory` | `final readonly class` | `almanac()`, construit à la demande |

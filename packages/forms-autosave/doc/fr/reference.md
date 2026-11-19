@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=27efe997907edd7842a41345a031048d058adb1fc1eef07670c0bd1e2eea0b74 -->
+<!-- phil-dev source-sha256=5384ae8e78a5006266157dce26828a0ad7b95993a4dcfe662b78adfb86b7fe9b -->
 # Référence
 
 ## PHP
@@ -22,6 +22,7 @@
 | `Infrastructure\Http\DraftController`, `DraftRequest`, `Routes` | Les points de terminaison, la vérification de leurs requêtes, les noms des routes |
 | `Infrastructure\Http\SubmittedDraft`, `DoneCookie` | Les formulaires soumis gardés jusqu'à la réponse ; leurs brouillons oubliés |
 | `Infrastructure\Doctrine\DoctrineDraftStore` | Le stockage dans `phil_form_draft` |
+| `Infrastructure\Doctrine\BinaryKeysListener` | `owner` et `draft_key` en `utf8mb4_bin` sur MySQL et MariaDB, au `loadClassMetadata` de l'ORM ([server-store.md](server-store.md#collation-de-la-clé)) |
 | `Infrastructure\Memory\InMemoryDraftStore` | Le stockage en mémoire, pour les tests |
 | `Infrastructure\KeyManagement\KeyManagementSealer` | Des contenus scellés par le composant KeyManagement de Symfony |
 | `Infrastructure\Security\TokenDraftOwner` | L'utilisateur de Symfony Security |

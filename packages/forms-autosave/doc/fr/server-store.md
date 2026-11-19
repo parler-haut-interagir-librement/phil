@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=239ee80072a1def7289e23277bd02fd8b5586049fb7afde2bbc58073b7ebddb1 -->
+<!-- phil-dev source-sha256=c3344e61793dde864ec39bf45230396f2207b75b96ab8c2f4458f232a7cf6434 -->
 # Le stockage serveur
 
 Avec `server.enabled`, les brouillons d'un utilisateur connecté sont aussi conservés sur le serveur, pour qu'ils le
@@ -47,3 +47,38 @@ bin/console phil:forms-autosave:purge
 `expires_at`, en UTC, la seconde étant indexée pour la purge. Elle est mappée pour Doctrine quand le stockage serveur
 est activé. Le stockage l'écrit par de simples requêtes sur sa connexion, qui laissent le gestionnaire d'entités ouvert
 quand une course est perdue.
+
+### Collation de la clé
+
+**La clé se compare octet par octet**, comme PHP la compare. Une clé de brouillon mêle les casses — `DraftKey` accepte
+des lettres des deux casses —, si bien que le brouillon `AbcdefghijklmnoP` et le brouillon `abcdefghijklmnop` sont deux
+brouillons : aucun n'est lu, remplacé ou supprimé pour l'autre, et en enregistrer un n'échoue jamais sur la clé primaire
+de l'autre. Les empreintes des propriétaires sont en hexadécimal minuscule, qui se compare de la même façon sous toute
+collation ; elles prennent tout de même la collation binaire, pour que la clé de la table ne dépende jamais du serveur.
+
+Avec le stockage Doctrine, `BinaryKeysListener` donne à `owner` et `draft_key` la collation binaire lorsque l'ORM charge
+les métadonnées de `Draft` sur MySQL ou MariaDB ; le mappage lui-même reste le même sur toutes les plateformes. Sur
+MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la
+plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ignore la casse et les accents.
+Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et SQLite compare
+les octets : leurs colonnes gardent la valeur par défaut.
+
+#### Mise à niveau depuis 0.2
+
+La table d'une installation 0.2 sur MySQL ou MariaDB gardait la collation de la connexion. `doctrine:migrations:diff`
+écrit la migration qui amène `owner` et `draft_key` à `utf8mb4_bin` ; exécutez-la avec `doctrine:migrations:migrate`. À
+la main, selon la plateforme :
+
+```sql
+-- MySQL and MariaDB
+ALTER TABLE phil_form_draft
+    MODIFY owner VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+    MODIFY draft_key VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL;
+-- PostgreSQL: nothing to run, the default collation is deterministic.
+-- SQLite: nothing to run, the columns compare bytes.
+```
+
+Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne brise la clé primaire. Sous
+l'ancienne collation, deux brouillons dont les clés ne différaient que par la casse ne pouvaient pas être gardés tous
+les deux : le second enregistrement recevait `409` et lisait le premier. Dès la migration, chacun est enregistré sous sa
+propre clé.
