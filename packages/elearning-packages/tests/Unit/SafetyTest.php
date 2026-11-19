@@ -101,7 +101,7 @@ final class SafetyTest extends TestCase
 
     public function testAnXmlDocumentIsReadByLocalNames(): void
     {
-        $root = XmlDocument::root('<?xml version="1.0"?><a:root xmlns:a="urn:a" xmlns:b="urn:b" b:key=" v "><a:item>  one </a:item><item>two</item><other/></a:root>', 1000, 'The test');
+        $root = XmlDocument::root('<?xml version="1.0"?><a:root xmlns:a="urn:a" xmlns:b="urn:b" b:key=" v "><a:item>  one </a:item><item>two</item><other/></a:root>', new PackageLimits(manifestBytes: 1000), 'The test');
 
         self::assertSame('root', $root->localName);
         self::assertCount(2, XmlDocument::children($root, 'item'));
@@ -112,7 +112,7 @@ final class SafetyTest extends TestCase
         self::assertNull(XmlDocument::attribute($root, 'missing'));
         self::assertSame('<other/>', XmlDocument::markup(XmlDocument::children($root, 'other')[0], 8));
         self::assertNull(XmlDocument::markup(XmlDocument::children($root, 'other')[0], 7));
-        self::assertSame(4096, mb_strlen(XmlDocument::text(XmlDocument::root('<a>'.str_repeat('é', 5000).'</a>', 20_000, 'The test'))));
+        self::assertSame(4096, mb_strlen(XmlDocument::text(XmlDocument::root('<a>'.str_repeat('é', 5000).'</a>', new PackageLimits(manifestBytes: 20_000), 'The test'))));
     }
 
     /**
@@ -135,7 +135,7 @@ final class SafetyTest extends TestCase
         $this->expectException(PackageRefused::class);
         $this->expectExceptionMessageIsOrContains($message);
 
-        XmlDocument::root($xml, 100, 'The test');
+        XmlDocument::root($xml, new PackageLimits(manifestBytes: 100), 'The test');
     }
 
     public function testTheErrorsOfLibxmlAreLeftAsTheyWere(): void
@@ -143,7 +143,7 @@ final class SafetyTest extends TestCase
         $previous = libxml_use_internal_errors(false);
 
         try {
-            XmlDocument::root('<a>', 100, 'The test');
+            XmlDocument::root('<a>', new PackageLimits(manifestBytes: 100), 'The test');
         } catch (PackageRefused) {
             self::assertFalse(libxml_use_internal_errors(false));
             self::assertSame([], libxml_get_errors());

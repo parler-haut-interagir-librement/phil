@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 /*
- * The reader of SCORM manifests on documents nobody wrote: each is read into a manifest whose default organization has
- * items and whose launch files stay inside the package, or refused as a package; nothing else is thrown, and nothing
- * warns.
+ * The reader of SCORM manifests on documents nobody wrote, under tight budgets of XML nodes and depth: each is read
+ * into a manifest whose default organization has items and whose launch files stay inside the package, or refused as a
+ * package; nothing else is thrown, and nothing warns.
  *
  * Run by `phil-dev fuzz`, which sets PHIL_DEV_AUTOLOAD and gives this file the fuzzer's `$config`.
  */
@@ -22,7 +22,7 @@ if (!is_string($autoload)) {
 
 require $autoload;
 
-$reader = new ScormManifestReader(new PackageLimits(manifestBytes: 65_536, depth: 8, items: 200));
+$reader = new ScormManifestReader(new PackageLimits(manifestBytes: 65_536, depth: 8, items: 200, manifestNodes: 256, manifestDepth: 32));
 
 /** @var PhpFuzzer\Config $config */
 $config->setTarget(static function (string $input) use ($reader): void {
