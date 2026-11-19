@@ -1,0 +1,11 @@
+{
+    "bundles": {
+        "Phil\\ConversationBundle\\PhilConversationBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "PHIL_CONVERSATION_KEY": "conversations"
+    }
+}

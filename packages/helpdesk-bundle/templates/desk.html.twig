@@ -1,0 +1,58 @@
+{#
+ # The desk of an agent: the requests of the queues they work, latest change first, filtered by queue, status and
+ # assignee, each with its queue, status and assignee.
+ #
+ # tickets: list of Ticket. queues: the queues the agent works. statuses: the cases of Status. filters: the filters
+ # applied. page: the page shown. routes: the routes of the pages.
+ #}
+{% extends layout %}
+
+{% block title %}{{ 'desk.title'|trans({}, 'phil_helpdesk') }}{% endblock %}
+
+{% block main %}
+{%- set labels = {} -%}
+{%- for queue in queues %}{% set labels = labels|merge({(queue.name.value): queue.label|trans({}, 'phil_helpdesk')}) %}{% endfor -%}
+<form method="get" action="{{ path(routes.desk) }}" class="phil-helpdesk__filters">
+    <label for="phil-helpdesk-filter-queue">{{ 'desk.queue'|trans({}, 'phil_helpdesk') }}</label>
+    {% component (phil_helpdesk_kit('NativeSelect')) with {id: 'phil-helpdesk-filter-queue', name: 'queue', size: 'sm'} %}{% block content %}
+        <option value="">{{ 'desk.all'|trans({}, 'phil_helpdesk') }}</option>
+        {%- for queue in queues %}<option value="{{ queue.name.value }}"{% if queue.name.value == filters.queue %} selected{% endif %}>{{ labels[queue.name.value] }}</option>{% endfor -%}
+    {% endblock %}{% endcomponent %}
+    <label for="phil-helpdesk-filter-status">{{ 'desk.status'|trans({}, 'phil_helpdesk') }}</label>
+    {% component (phil_helpdesk_kit('NativeSelect')) with {id: 'phil-helpdesk-filter-status', name: 'status', size: 'sm'} %}{% block content %}
+        <option value="">{{ 'desk.all'|trans({}, 'phil_helpdesk') }}</option>
+        {%- for status in statuses %}<option value="{{ status.value }}"{% if status.value == filters.status %} selected{% endif %}>{{ ('status.' ~ status.value)|trans({}, 'phil_helpdesk') }}</option>{% endfor -%}
+    {% endblock %}{% endcomponent %}
+    <label><input type="checkbox" name="mine" value="1"{% if filters.mine %} checked{% endif %}> {{ 'desk.mine'|trans({}, 'phil_helpdesk') }}</label>
+    {% component (phil_helpdesk_kit('Button')) with {type: 'submit', variant: 'secondary', size: 'sm'} %}{% block content %}{{ 'desk.filter'|trans({}, 'phil_helpdesk') }}{% endblock %}{% endcomponent %}
+</form>
+{%- if tickets is empty %}
+<p class="phil-helpdesk__empty">{{ 'desk.empty'|trans({}, 'phil_helpdesk') }}</p>
+{%- else %}
+<table class="phil-helpdesk__desk">
+    <thead>
+        <tr>
+            <th scope="col">{{ 'desk.request'|trans({}, 'phil_helpdesk') }}</th>
+            <th scope="col">{{ 'desk.queue'|trans({}, 'phil_helpdesk') }}</th>
+            <th scope="col">{{ 'desk.status'|trans({}, 'phil_helpdesk') }}</th>
+            <th scope="col">{{ 'desk.assignee'|trans({}, 'phil_helpdesk') }}</th>
+            <th scope="col">{{ 'desk.updated'|trans({}, 'phil_helpdesk') }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {%- for ticket in tickets %}
+        <tr>
+            <td><a href="{{ path(routes.ticket, {id: ticket.conversation.value}) }}">{{ phil_helpdesk_name(ticket.requester) ?? ('desk.erased'|trans({}, 'phil_helpdesk')) }}</a></td>
+            <td>{{ labels[ticket.queue.value] ?? ticket.queue.value }}</td>
+            <td>{{ include('@PhilHelpdesk/_status.html.twig', {status: ticket.status}) }}</td>
+            <td>{{ phil_helpdesk_name(ticket.assignee) ?? ('desk.nobody'|trans({}, 'phil_helpdesk')) }}</td>
+            <td><time datetime="{{ ticket.updatedAt|date('c') }}">{{ ticket.updatedAt|date('Y-m-d H:i', false) }} UTC</time></td>
+        </tr>
+        {%- endfor %}
+    </tbody>
+</table>
+{%- if tickets|length >= 50 %}
+<p><a href="{{ path(routes.desk, filters|merge({page: page + 1})|filter(v => v)) }}">{{ 'desk.next'|trans({}, 'phil_helpdesk') }}</a></p>
+{%- endif %}
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,49 @@
+{
+    "name": "phil/braille-export",
+    "description": "Documents exported to braille: uncontracted French and English in PHP, contracted braille through a translator, braille page layout, and BRF, PEF and Unicode.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "braille",
+        "brf",
+        "pef",
+        "accessibility",
+        "embosser"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "phil/ujo": "^0.1@dev"
+    },
+    "require-dev": {
+        "ext-ctype": "*",
+        "ext-dom": "*",
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\BrailleExport\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\BrailleExport\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

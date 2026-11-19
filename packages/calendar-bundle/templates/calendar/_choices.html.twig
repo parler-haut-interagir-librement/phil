@@ -1,0 +1,42 @@
+{#
+ # A member's choices: the sources they follow, then those they hide, each a badge. When the page gives `forget_route`,
+ # a route that takes `source` and `value` by POST, each has a button to forget it, with `forget_token` as `_token` when
+ # the page gives one. When the page gives `form`, the view of a `CalendarChoiceType`, the form to add one follows.
+ #}
+{%- set forget_route = forget_route|default(null) -%}
+{%- set forget_token = forget_token|default(null) -%}
+{%- set form = form|default(null) -%}
+{%- component (phil_calendar_kit('Card')) with {class: 'phil-calendar-choices'} %}{% block content %}
+    {%- component (phil_calendar_kit('Card:Header')) %}{% block content %}
+        {%- component (phil_calendar_kit('Card:Title')) with {level: 2} %}{% block content %}{{ 'calendar.choice.title'|trans({}, 'phil_calendar') }}{% endblock %}{% endcomponent %}
+    {%- endblock %}{% endcomponent %}
+    {%- component (phil_calendar_kit('Card:Content')) %}{% block content %}
+        {%- for hidden in [false, true] %}
+        {%- set listed = choices.choices|filter(choice => choice.hidden == hidden) %}
+        <h3 class="phil-calendar-choices__heading">{{ (hidden ? 'calendar.choice.hidden' : 'calendar.choice.followed')|trans({}, 'phil_calendar') }}</h3>
+        {%- if listed is empty %}
+        <p class="phil-calendar-choices__none">{{ 'calendar.choice.none'|trans({}, 'phil_calendar') }}</p>
+        {%- else %}
+        <ul class="phil-calendar-choices__list" role="list">
+            {%- for choice in listed %}
+            {%- set source = ('calendar.choice.source.' ~ choice.source.value)|trans({}, 'phil_calendar') %}
+            <li>
+                {%- component (phil_calendar_kit('Badge')) with {variant: hidden ? 'outline' : 'secondary'} %}{% block content %}{{ source }} · {{ choice.value }}{% endblock %}{% endcomponent %}
+                {%- if forget_route %}
+                <form method="post" action="{{ path(forget_route) }}" class="phil-calendar-choices__forget">
+                    <input type="hidden" name="source" value="{{ choice.source.value }}">
+                    <input type="hidden" name="value" value="{{ choice.value }}">
+                    {%- if forget_token %}<input type="hidden" name="_token" value="{{ forget_token }}">{% endif %}
+                    {%- component (phil_calendar_kit('Button')) with {type: 'submit', variant: 'ghost', size: 'sm', 'aria-label': 'calendar.choice.forget_label'|trans({'%source%': source, '%value%': choice.value}, 'phil_calendar')} %}{% block content %}{{ 'calendar.choice.forget'|trans({}, 'phil_calendar') }}{% endblock %}{% endcomponent %}
+                </form>
+                {%- endif %}
+            </li>
+            {%- endfor %}
+        </ul>
+        {%- endif %}
+        {%- endfor %}
+    {%- endblock %}{% endcomponent %}
+    {%- if form %}
+    {%- component (phil_calendar_kit('Card:Footer')) %}{% block content %}{{ form(form) }}{% endblock %}{% endcomponent %}
+    {%- endif %}
+{%- endblock %}{% endcomponent %}

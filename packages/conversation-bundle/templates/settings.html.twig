@@ -1,0 +1,47 @@
+{#
+ # The reception settings: whom the participant lets start a conversation with them, and whom they blocked, with the
+ # forms that change both.
+ #
+ # settings: ReceptionSettings. choices: the cases of WhoCanWrite. error: why a change was refused, or null. A person
+ # is blocked from the page of a conversation with them.
+ #}
+{% extends layout %}
+
+{% block title %}{{ 'settings.title'|trans({}, 'phil_conversation') }}{% endblock %}
+
+{% block main %}
+<p><a href="{{ path('phil_conversation_inbox') }}">{{ 'inbox.title'|trans({}, 'phil_conversation') }}</a></p>
+<h1>{{ 'settings.title'|trans({}, 'phil_conversation') }}</h1>
+<form method="post" action="{{ path('phil_conversation_settings') }}">
+    <input type="hidden" name="_token" value="{{ token }}">
+    <input type="hidden" name="action" value="allow">
+    <fieldset>
+        <legend>{{ 'settings.who_can_write'|trans({}, 'phil_conversation') }}</legend>
+        {%- for choice in choices %}
+        <label><input type="radio" name="who_can_write" value="{{ choice.value }}"{% if choice == settings.whoCanWrite %} checked{% endif %}> {{ ('settings.' ~ choice.value)|trans({}, 'phil_conversation') }}</label>
+        {%- endfor %}
+    </fieldset>
+    {% component (phil_conversation_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'settings.save'|trans({}, 'phil_conversation') }}{% endblock %}{% endcomponent %}
+</form>
+<h2>{{ 'settings.blocked'|trans({}, 'phil_conversation') }}</h2>
+{%- if error is not null %}
+<p class="phil-conversation__error" role="alert">{{ error }}</p>
+{%- endif %}
+{%- if settings.blocked is empty %}
+<p>{{ 'settings.none_blocked'|trans({}, 'phil_conversation') }}</p>
+{%- else %}
+<ul>
+    {%- for other in settings.blocked %}
+    <li>
+        {{ phil_conversation_name(other) }}
+        <form method="post" action="{{ path('phil_conversation_settings') }}">
+            <input type="hidden" name="_token" value="{{ token }}">
+            <input type="hidden" name="action" value="unblock">
+            <input type="hidden" name="participant" value="{{ other.value }}">
+            {% component (phil_conversation_kit('Button')) with {type: 'submit', variant: 'ghost', size: 'sm'} %}{% block content %}{{ 'settings.unblock'|trans({}, 'phil_conversation') }}{% endblock %}{% endcomponent %}
+        </form>
+    </li>
+    {%- endfor %}
+</ul>
+{%- endif %}
+{% endblock %}

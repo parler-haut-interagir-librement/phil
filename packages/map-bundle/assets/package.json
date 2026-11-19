@@ -1,0 +1,24 @@
+{
+    "name": "@phil/map-bundle",
+    "description": "The map controller: decorates Symfony UX Map's Leaflet map with floor plans, PMTiles archives and the booths' states",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/map_controller.js",
+    "symfony": {
+        "controllers": {
+            "map": {
+                "main": "src/map_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

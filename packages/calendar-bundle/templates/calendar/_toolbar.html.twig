@@ -1,0 +1,26 @@
+{#
+ # The toolbar: the period before, today and the period after; the title; the views. Each is a link to its period, the
+ # Button recipe of the kit drawn as a link, for a browser without JavaScript; the component follows it in place.
+ #}
+{#- The component's own values, read before the recipes, inside which `this` is the recipe. -#}
+{%- set tags = this.tags -%}
+{%- set views = this.views -%}
+<div class="phil-calendar__toolbar">
+    {%- component (phil_calendar_kit('ButtonGroup')) with {'aria-label': 'calendar.toolbar.move'|trans({}, 'phil_calendar')} %}{% block content %}
+        {%- component (phil_calendar_kit('Button')) with {as: 'a', variant: 'secondary', size: 'sm', rel: 'prev', href: calendar_link(view, period.previous.date|date('Y-m-d', false), tags), 'data-phil--calendar-bundle--calendar-target': 'previous', 'data-action': 'live#action:prevent', 'data-live-action-param': 'previous'} %}{% block content %}
+            <span aria-hidden="true">‹</span><span class="phil-calendar__hidden">{{ 'calendar.toolbar.previous'|trans({}, 'phil_calendar') }}</span>
+        {%- endblock %}{% endcomponent %}
+        {%- component (phil_calendar_kit('Button')) with {as: 'a', variant: 'secondary', size: 'sm', href: calendar_link(view, '', tags), 'data-action': 'live#action:prevent', 'data-live-action-param': 'today'} %}{% block content %}{{ 'calendar.toolbar.today'|trans({}, 'phil_calendar') }}{% endblock %}{% endcomponent %}
+        {%- component (phil_calendar_kit('Button')) with {as: 'a', variant: 'secondary', size: 'sm', rel: 'next', href: calendar_link(view, period.next.date|date('Y-m-d', false), tags), 'data-phil--calendar-bundle--calendar-target': 'next', 'data-action': 'live#action:prevent', 'data-live-action-param': 'next'} %}{% block content %}
+            <span aria-hidden="true">›</span><span class="phil-calendar__hidden">{{ 'calendar.toolbar.next'|trans({}, 'phil_calendar') }}</span>
+        {%- endblock %}{% endcomponent %}
+    {%- endblock %}{% endcomponent %}
+    <h2 class="phil-calendar__title" aria-live="polite">{{ period|calendar_title }}</h2>
+    {%- if views|length > 1 %}
+    {%- component (phil_calendar_kit('ButtonGroup')) with {'aria-label': 'calendar.toolbar.views'|trans({}, 'phil_calendar')} %}{% block content %}
+        {%- for one in views %}
+        {%- component (phil_calendar_kit('Button')) with {as: 'a', variant: one == view ? 'default' : 'secondary', size: 'sm', 'aria-current': one == view ? 'true' : false, href: calendar_link(one, period.date|date('Y-m-d', false), tags), 'data-action': 'live#action:prevent', 'data-live-action-param': 'show', 'data-live-view-param': one} %}{% block content %}{{ ('calendar.view.' ~ one)|trans({}, 'phil_calendar') }}{% endblock %}{% endcomponent %}
+        {%- endfor %}
+    {%- endblock %}{% endcomponent %}
+    {%- endif %}
+</div>

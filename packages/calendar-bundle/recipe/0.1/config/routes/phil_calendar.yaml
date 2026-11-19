@@ -1,0 +1,4 @@
+# The pages and the iCalendar feeds of phil/calendar-bundle.
+phil_calendar:
+    resource: '@PhilCalendarBundle/config/routes.php'
+    prefix: /calendar

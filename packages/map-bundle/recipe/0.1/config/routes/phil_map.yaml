@@ -1,0 +1,4 @@
+# The tile proxy of phil/map-bundle: the browser asks the site for each tile.
+phil_map:
+    resource: '@PhilMapBundle/config/routes.php'
+    prefix: /_map

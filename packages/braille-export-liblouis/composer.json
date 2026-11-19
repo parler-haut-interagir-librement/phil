@@ -1,0 +1,48 @@
+{
+    "name": "phil/braille-export-liblouis",
+    "description": "Contracted and uncontracted braille in every language liblouis has tables for, through its lou_translate program, as the translator of phil/braille-export.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "braille",
+        "liblouis",
+        "translation",
+        "accessibility"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "phil/braille-export": "^0.1@dev",
+        "symfony/process": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "symfony/filesystem": "^8.2"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\BrailleExportLiblouis\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\BrailleExportLiblouis\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

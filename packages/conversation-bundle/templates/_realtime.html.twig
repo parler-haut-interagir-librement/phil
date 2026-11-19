@@ -1,0 +1,5 @@
+{#- The attributes of the Stimulus controller of the real time, included only when Mercure is enabled, since the
+ # function `mercure()` of MercureBundle is defined only then: the URL of the hub, which also gives the browser the
+ # cookie that lets it subscribe to the reader's own topic, the conversation, and the page of its latest messages. -#}
+data-controller="phil--conversation-bundle--thread" data-phil--conversation-bundle--thread-hub-value="{{ mercure(topic, {subscribe: topic}) }}" data-phil--conversation-bundle--thread-conversation-value="{{ conversation.id.value }}" data-phil--conversation-bundle--thread-url-value="{{ path('phil_conversation_messages', {id: conversation.id.value}) }}"
+{#--#}

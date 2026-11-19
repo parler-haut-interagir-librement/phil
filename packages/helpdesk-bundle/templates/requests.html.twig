@@ -1,0 +1,28 @@
+{#
+ # The requests of the requester, latest change first, with their status, and the link that opens a new one.
+ #
+ # tickets: list of Ticket. page: the page shown.
+ #}
+{% extends layout %}
+
+{% block title %}{{ 'requests.title'|trans({}, 'phil_helpdesk') }}{% endblock %}
+
+{% block main %}
+<h1>{{ 'requests.title'|trans({}, 'phil_helpdesk') }}</h1>
+<p><a href="{{ path('phil_helpdesk_new') }}">{{ 'requests.new'|trans({}, 'phil_helpdesk') }}</a></p>
+{%- if tickets is empty %}
+<p class="phil-helpdesk__empty">{{ 'requests.empty'|trans({}, 'phil_helpdesk') }}</p>
+{%- else %}
+<ul class="phil-helpdesk__requests">
+    {%- for ticket in tickets %}
+    <li class="phil-helpdesk__request">
+        <a href="{{ path('phil_helpdesk_request', {id: ticket.conversation.value}) }}">{{ 'requests.opened'|trans({'%date%': ticket.openedAt|date('Y-m-d H:i', false) ~ ' UTC'}, 'phil_helpdesk') }}</a>
+        {{ include('@PhilHelpdesk/_status.html.twig', {status: ticket.status}) }}
+    </li>
+    {%- endfor %}
+</ul>
+{%- if tickets|length >= 50 %}
+<p><a href="{{ path('phil_helpdesk_requests', {page: page + 1}) }}">{{ 'requests.older'|trans({}, 'phil_helpdesk') }}</a></p>
+{%- endif %}
+{%- endif %}
+{% endblock %}

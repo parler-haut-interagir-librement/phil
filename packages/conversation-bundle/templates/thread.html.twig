@@ -1,0 +1,57 @@
+{#
+ # A conversation: its subject or its participants, the messages of the page, the link to the older ones, the reply
+ # form, and the forms that mute or leave it and block each of the others. With Mercure, the Stimulus controller of the bundle loads the messages
+ # again when a new one comes. The buttons and the text area are the recipes `Button` and `Textarea` of the kit.
+ #
+ # conversation, messages, participations, me, error: what ConversationController::thread() gives; topic: the
+ # reader's Mercure topic, or null.
+ #}
+{% extends layout %}
+
+{%- set others = participations|filter(p => p.active and not p.participant.equals(me)) -%}
+{%- set mine = participations|filter(p => p.participant.equals(me))|first -%}
+{%- set title = conversation.subject ?? others|map(p => phil_conversation_name(p.participant))|join(', ') -%}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block main %}
+<p><a href="{{ path('phil_conversation_inbox') }}">{{ 'inbox.title'|trans({}, 'phil_conversation') }}</a></p>
+<h1>{{ title }}</h1>
+<section class="phil-conversation__thread"
+    {%- if topic is not null %} {{ include('@PhilConversation/_realtime.html.twig') }}{% endif %}>
+    {%- if messages is not empty and messages|first.sequence > 1 %}
+    <p><a href="{{ path('phil_conversation_thread', {id: conversation.id.value, before: (messages|first).sequence}) }}">{{ 'thread.older'|trans({}, 'phil_conversation') }}</a></p>
+    {%- endif %}
+    <div aria-live="polite"{% if topic is not null %} data-phil--conversation-bundle--thread-target="messages"{% endif %}>
+        {{- include('@PhilConversation/_messages.html.twig', {messages: messages, me: me}) }}
+    </div>
+</section>
+<form method="post" action="{{ path('phil_conversation_reply', {id: conversation.id.value}) }}" class="phil-conversation__reply">
+    <input type="hidden" name="_token" value="{{ token }}">
+    <label for="phil-conversation-body">{{ 'thread.reply'|trans({}, 'phil_conversation') }}</label>
+    {%- if error is not null %}
+    <p id="phil-conversation-error" class="phil-conversation__error" role="alert">{{ error }}</p>
+    {%- endif %}
+    {% component (phil_conversation_kit('Textarea')) with {id: 'phil-conversation-body', name: 'body', rows: 4, required: true, 'aria-describedby': error is not null ? 'phil-conversation-error' : false} %}{% block content %}{% endblock %}{% endcomponent %}
+    {% component (phil_conversation_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'thread.send'|trans({}, 'phil_conversation') }}{% endblock %}{% endcomponent %}
+</form>
+<div class="phil-conversation__actions">
+    <form method="post" action="{{ path('phil_conversation_mute', {id: conversation.id.value}) }}">
+        <input type="hidden" name="_token" value="{{ token }}">
+        <input type="hidden" name="muted" value="{{ mine and mine.muted ? '0' : '1' }}">
+        {% component (phil_conversation_kit('Button')) with {type: 'submit', variant: 'ghost', size: 'sm'} %}{% block content %}{{ (mine and mine.muted ? 'thread.unmute' : 'thread.mute')|trans({}, 'phil_conversation') }}{% endblock %}{% endcomponent %}
+    </form>
+    <form method="post" action="{{ path('phil_conversation_leave', {id: conversation.id.value}) }}">
+        <input type="hidden" name="_token" value="{{ token }}">
+        {% component (phil_conversation_kit('Button')) with {type: 'submit', variant: 'ghost', size: 'sm'} %}{% block content %}{{ 'thread.leave'|trans({}, 'phil_conversation') }}{% endblock %}{% endcomponent %}
+    </form>
+    {%- for other in others %}
+    <form method="post" action="{{ path('phil_conversation_settings') }}">
+        <input type="hidden" name="_token" value="{{ token }}">
+        <input type="hidden" name="action" value="block">
+        <input type="hidden" name="participant" value="{{ other.participant.value }}">
+        {% component (phil_conversation_kit('Button')) with {type: 'submit', variant: 'ghost', size: 'sm'} %}{% block content %}{{ 'thread.block'|trans({'%name%': phil_conversation_name(other.participant)}, 'phil_conversation') }}{% endblock %}{% endcomponent %}
+    </form>
+    {%- endfor %}
+</div>
+{% endblock %}

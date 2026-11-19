@@ -1,0 +1,4 @@
+# The pages of the conversations, behind the application's firewall.
+phil_conversation:
+    resource: '@PhilConversationBundle/config/routes.php'
+    prefix: /messages

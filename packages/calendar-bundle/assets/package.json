@@ -1,0 +1,24 @@
+{
+    "name": "@phil/calendar-bundle",
+    "description": "The Stimulus controller of phil/calendar-bundle: the keyboard in the month's grid",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/calendar_controller.js",
+    "symfony": {
+        "controllers": {
+            "calendar": {
+                "main": "src/calendar_controller.js",
+                "webpackMode": "lazy",
+                "fetch": "lazy",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

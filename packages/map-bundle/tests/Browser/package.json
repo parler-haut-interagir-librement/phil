@@ -1,0 +1,10 @@
+{
+    "name": "@phil/map-bundle-browser-tests",
+    "private": true,
+    "description": "The Stimulus and the Leaflet of the page the browser tests of the bundle open: for these tests alone, outside what the bundle publishes.",
+    "license": "MIT",
+    "devDependencies": {
+        "@hotwired/stimulus": "3.2.2",
+        "leaflet": "1.9.4"
+    }
+}

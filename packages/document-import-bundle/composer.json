@@ -1,0 +1,76 @@
+{
+    "name": "phil/document-import-bundle",
+    "description": "Word, OpenDocument, RTF and PDF files imported into UJO documents in Symfony: scanned first, limits and style map configured, images kept in the media library.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "docx",
+        "odt",
+        "pdf",
+        "rtf",
+        "import",
+        "export",
+        "svg",
+        "ujo",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "phil/document-import": "^0.1@dev",
+        "phil/svg-sanitizer": "^0.1@dev",
+        "phil/ujo": "^0.1@dev",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2"
+    },
+    "require-dev": {
+        "phil/media-bundle": "^0.2@dev",
+        "phil/upload-scan": "^0.1@dev",
+        "phil/upload-scan-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/yaml": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "phil/media-bundle": "For the imported images stored in the media library",
+        "phil/upload-scan-bundle": "For each imported file scanned by an antivirus before it is parsed",
+        "symfony/messenger": "For the imports on a worker",
+        "twig/twig": "For the report of an import rendered as an HTML fragment"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\DocumentImportBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\DocumentImportBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

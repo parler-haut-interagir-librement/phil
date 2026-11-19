@@ -1,0 +1,50 @@
+{#
+ # The month: a row of weekdays, then a row per week — its days, then its bars across them, each in its lane. What
+ # does not fit opens from the day's "more". Each day's link names the whole date and opens the day; the Stimulus
+ # controller moves between the links with the arrows. Dates are read in their own time zone — the calendar's.
+ #}
+{%- set today = this.todayDate|date('Y-m-d', false) -%}
+<div class="phil-calendar__month" data-phil--calendar-bundle--calendar-target="grid">
+    <div class="phil-calendar__weekdays" aria-hidden="true">
+        {%- for day in grid.weeks[0].days %}
+        <div class="phil-calendar__weekday"><abbr title="{{ day|calendar_format('EEEE') }}">{{ day|calendar_format('EEE') }}</abbr></div>
+        {%- endfor %}
+    </div>
+    {%- for week in grid.weeks %}
+    {%- set weekIndex = loop.index0 %}
+    <div class="phil-calendar__week" style="--phil-calendar-lanes: {{ max(week.lanes, 1) }}">
+        {%- for day in week.days %}
+        {%- set hidden = week.hidden[loop.index0] ?? [] %}
+        <div class="phil-calendar__day{% if not period.holds(day) %} is-outside{% endif %}{% if day|date('Y-m-d', false) == today %} is-today{% endif %}" style="grid-column: {{ loop.index }}">
+            <a class="phil-calendar__day-number" data-phil--calendar-bundle--calendar-target="day"
+               {%- if day|date('Y-m-d', false) == period.date|date('Y-m-d', false) %} data-current{% endif %}
+               {%- if day|date('Y-m-d', false) == today %} aria-current="date"{% endif %}
+               href="{{ calendar_link('day', day|date('Y-m-d', false), this.tags) }}"
+               data-action="live#action:prevent" data-live-action-param="show" data-live-view-param="day" data-live-date-param="{{ day|date('Y-m-d', false) }}">
+                <span aria-hidden="true">{{ day|date('j', false) }}</span><span class="phil-calendar__hidden">{{ day|calendar_format('EEEE d MMMM y') }}</span>
+            </a>
+            {%- if hidden is not empty %}
+            {%- set moreId = 'phil-calendar-more-' ~ day|date('Ymd', false) %}
+            {%- component (phil_calendar_kit('Popover')) with {id: moreId, class: 'phil-calendar__popover'} %}{% block content %}
+                {%- component (phil_calendar_kit('Popover:Trigger')) %}{% block content %}
+            <button type="button" class="phil-calendar__more"{% for name, value in popover_trigger_attrs %} {{ name }}="{{ value }}"{% endfor %}>{{ 'calendar.more'|trans({'%count%': hidden|length}, 'phil_calendar') }}</button>
+                {%- endblock %}{% endcomponent %}
+                {%- component (phil_calendar_kit('Popover:Content')) with {class: 'phil-calendar__details', 'aria-label': day|calendar_format('EEEE d MMMM')} %}{% block content %}
+                <ul class="phil-calendar__items">
+                    {%- for item in hidden %}
+                    <li>{{ include('@PhilCalendar/calendar/_item.html.twig', {item: item, key: 'more-' ~ day|date('Ymd', false) ~ '-' ~ loop.index}) }}</li>
+                    {%- endfor %}
+                </ul>
+                {%- endblock %}{% endcomponent %}
+            {%- endblock %}{% endcomponent %}
+            {%- endif %}
+        </div>
+        {%- endfor %}
+        {%- for bar in week.bars %}
+        <div class="phil-calendar__bar" style="grid-column: {{ bar.column + 1 }} / span {{ bar.span }}; grid-row: {{ bar.lane + 2 }}">
+            {{- include('@PhilCalendar/calendar/_item.html.twig', {item: bar.item, key: 'w' ~ weekIndex, continues_before: bar.continuesBefore, continues_after: bar.continuesAfter}) -}}
+        </div>
+        {%- endfor %}
+    </div>
+    {%- endfor %}
+</div>

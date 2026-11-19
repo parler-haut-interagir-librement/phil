@@ -1,0 +1,460 @@
+/*
+ * The calendar's views, on the tokens of PHIL UX — `--phil-*` — with a value of their own when PHIL UX is not loaded.
+ * In the `phil.components` layer, so that an application's styles win without a fight over specificity.
+ *
+ * --phil-calendar-event and --phil-calendar-almanac colour the items by source; --phil-calendar-hour-height is the
+ * height of an hour in the week and the day.
+ */
+@layer phil.components {
+    .phil-calendar {
+        --phil-calendar-line: var(--phil-color-border, #dde1e4);
+        --phil-calendar-muted: var(--phil-color-text-muted, #5b656d);
+        --phil-calendar-surface: var(--phil-color-surface, #fff);
+        --phil-calendar-sunken: var(--phil-color-surface-muted, #f6f7f8);
+        --phil-calendar-event: var(--phil-color-accent, #1f6f78);
+        --phil-calendar-almanac: var(--phil-color-info, #2563a8);
+        --phil-calendar-today: var(--phil-color-accent-soft, #eef8f8);
+        --phil-calendar-hour-height: 3rem;
+        display: flex;
+        flex-direction: column;
+        gap: var(--phil-space-3, 0.75rem);
+    }
+
+    .phil-calendar__toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--phil-space-3, 0.75rem);
+    }
+
+    .phil-calendar__title {
+        flex: 1;
+        margin: 0;
+        font-size: var(--phil-text-xl, 1.375rem);
+    }
+
+    .phil-calendar__title::first-letter {
+        text-transform: uppercase;
+    }
+
+    /* Text for screen readers alone. */
+    .phil-calendar__hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    /* Items: each the trigger of a Popover recipe, whose wrapper leaves the layout to its button. */
+    .phil-calendar__popover {
+        display: contents;
+    }
+
+    .phil-calendar__item {
+        --phil-calendar-color: var(--phil-calendar-event);
+        display: flex;
+        gap: var(--phil-space-1, 0.25rem);
+        align-items: baseline;
+        width: 100%;
+        min-width: 0;
+        padding: 0.0625rem var(--phil-space-2, 0.5rem);
+        border: 0;
+        border-radius: var(--phil-radius-sm, 0.25rem);
+        background: color-mix(in srgb, var(--phil-calendar-color) 14%, var(--phil-calendar-surface));
+        border-inline-start: 3px solid var(--phil-calendar-color);
+        color: inherit;
+        font: inherit;
+        font-size: var(--phil-text-sm, 0.875rem);
+        line-height: var(--phil-leading-tight, 1.25);
+        text-align: start;
+        cursor: pointer;
+    }
+
+    .phil-calendar__item--almanac {
+        --phil-calendar-color: var(--phil-calendar-almanac);
+        font-style: italic;
+    }
+
+    .phil-calendar__item.is-cancelled .phil-calendar__item-title {
+        text-decoration: line-through;
+    }
+
+    .phil-calendar__item.continues-before {
+        border-start-start-radius: 0;
+        border-end-start-radius: 0;
+    }
+
+    .phil-calendar__item.continues-after {
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+    }
+
+    .phil-calendar__item-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .phil-calendar__time {
+        color: var(--phil-calendar-muted);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .phil-calendar__details {
+        max-width: min(22rem, calc(100vw - 2rem));
+    }
+
+    .phil-calendar__details-title {
+        margin: 0 0 var(--phil-space-2, 0.5rem);
+        font-size: var(--phil-text-lg, 1.125rem);
+    }
+
+    .phil-calendar__details p {
+        margin: 0 0 var(--phil-space-2, 0.5rem);
+    }
+
+    .phil-calendar__tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--phil-space-1, 0.25rem);
+    }
+
+    .phil-calendar__items {
+        display: flex;
+        flex-direction: column;
+        gap: var(--phil-space-1, 0.25rem);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    /* The month */
+    .phil-calendar__month {
+        border: 1px solid var(--phil-calendar-line);
+        border-radius: var(--phil-radius-md, 0.5rem);
+        overflow: hidden;
+    }
+
+    .phil-calendar__weekdays,
+    .phil-calendar__week {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    .phil-calendar__weekday {
+        padding: var(--phil-space-2, 0.5rem);
+        border-bottom: 1px solid var(--phil-calendar-line);
+        color: var(--phil-calendar-muted);
+        font-size: var(--phil-text-sm, 0.875rem);
+        text-align: center;
+        text-transform: capitalize;
+    }
+
+    .phil-calendar__weekday abbr {
+        text-decoration: none;
+    }
+
+    .phil-calendar__week {
+        grid-template-rows: auto repeat(var(--phil-calendar-lanes), auto) 1fr;
+        min-height: 7rem;
+        row-gap: 2px;
+        border-bottom: 1px solid var(--phil-calendar-line);
+    }
+
+    .phil-calendar__week:last-child {
+        border-bottom: 0;
+    }
+
+    .phil-calendar__day {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        grid-row: 1 / -1;
+        padding: var(--phil-space-1, 0.25rem);
+        border-inline-end: 1px solid var(--phil-calendar-line);
+    }
+
+    .phil-calendar__day:nth-child(7) {
+        border-inline-end: 0;
+    }
+
+    .phil-calendar__day.is-outside {
+        background: var(--phil-calendar-sunken);
+        color: var(--phil-calendar-muted);
+    }
+
+    .phil-calendar__day.is-today {
+        background: var(--phil-calendar-today);
+    }
+
+    .phil-calendar__day-number:focus-visible {
+        outline: 2px solid var(--phil-calendar-event);
+        outline-offset: 1px;
+    }
+
+    .phil-calendar__day-number {
+        padding: 0 var(--phil-space-1, 0.25rem);
+        border-radius: var(--phil-radius-full, 999px);
+        color: inherit;
+        font-weight: var(--phil-weight-medium, 500);
+        text-decoration: none;
+    }
+
+    .phil-calendar__day.is-today .phil-calendar__day-number {
+        background: var(--phil-calendar-event);
+        color: var(--phil-color-on-accent, #fff);
+    }
+
+    .phil-calendar__more {
+        margin-top: auto;
+        align-self: stretch;
+        padding: 0 var(--phil-space-1, 0.25rem);
+        border: 0;
+        background: none;
+        color: var(--phil-calendar-muted);
+        font: inherit;
+        font-size: var(--phil-text-xs, 0.75rem);
+        text-align: start;
+        cursor: pointer;
+    }
+
+    .phil-calendar__bar {
+        position: relative;
+        min-width: 0;
+        padding-inline: 2px;
+    }
+
+    /* The week and the day */
+    .phil-calendar__timegrid {
+        --phil-calendar-grid: 4rem repeat(var(--phil-calendar-columns), minmax(6rem, 1fr));
+        overflow-x: auto;
+        border: 1px solid var(--phil-calendar-line);
+        border-radius: var(--phil-radius-md, 0.5rem);
+    }
+
+    .phil-calendar__time-head,
+    .phil-calendar__all-day,
+    .phil-calendar__hours {
+        display: grid;
+        grid-template-columns: var(--phil-calendar-grid);
+        min-width: max-content;
+    }
+
+    .phil-calendar__time-head {
+        border-bottom: 1px solid var(--phil-calendar-line);
+    }
+
+    .phil-calendar__column-head {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: var(--phil-space-2, 0.5rem);
+        border-inline-start: 1px solid var(--phil-calendar-line);
+        text-transform: capitalize;
+    }
+
+    .phil-calendar__column-head a {
+        display: flex;
+        gap: var(--phil-space-1, 0.25rem);
+        align-items: baseline;
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .phil-calendar__column-head.is-today .phil-calendar__column-day {
+        color: var(--phil-calendar-event);
+        font-weight: var(--phil-weight-bold, 650);
+    }
+
+    .phil-calendar__resource {
+        color: var(--phil-calendar-muted);
+        font-size: var(--phil-text-sm, 0.875rem);
+        text-transform: none;
+    }
+
+    .phil-calendar__all-day {
+        grid-template-rows: repeat(var(--phil-calendar-lanes), auto);
+        gap: 2px 0;
+        padding-block: var(--phil-space-1, 0.25rem);
+        border-bottom: 1px solid var(--phil-calendar-line);
+    }
+
+    .phil-calendar__all-day > .phil-calendar__corner {
+        grid-row: 1 / -1;
+    }
+
+    .phil-calendar__corner {
+        padding: var(--phil-space-1, 0.25rem);
+        color: var(--phil-calendar-muted);
+        font-size: var(--phil-text-xs, 0.75rem);
+    }
+
+    .phil-calendar__hours {
+        height: calc(var(--phil-calendar-hours) * var(--phil-calendar-hour-height));
+    }
+
+    .phil-calendar__rail {
+        display: grid;
+        grid-template-rows: repeat(var(--phil-calendar-hours), 1fr);
+    }
+
+    .phil-calendar__hour {
+        padding-inline: var(--phil-space-1, 0.25rem);
+        border-top: 1px solid var(--phil-calendar-line);
+        color: var(--phil-calendar-muted);
+        font-size: var(--phil-text-xs, 0.75rem);
+        text-align: end;
+    }
+
+    .phil-calendar__column {
+        position: relative;
+        border-inline-start: 1px solid var(--phil-calendar-line);
+        background: repeating-linear-gradient(
+            to bottom,
+            var(--phil-calendar-line) 0 1px,
+            transparent 1px var(--phil-calendar-hour-height)
+        );
+    }
+
+    .phil-calendar__column.is-today {
+        background-color: var(--phil-calendar-today);
+    }
+
+    .phil-calendar__block {
+        position: absolute;
+        min-height: 1.5rem;
+        padding: 1px;
+    }
+
+    .phil-calendar__block > .phil-calendar__popover > .phil-calendar__item {
+        height: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        overflow: hidden;
+    }
+
+    .phil-calendar__block.is-instant > .phil-calendar__popover > .phil-calendar__item {
+        height: auto;
+    }
+
+    /* The list */
+    .phil-calendar__list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--phil-space-5, 1.5rem);
+    }
+
+    .phil-calendar__group-title {
+        margin: 0 0 var(--phil-space-2, 0.5rem);
+        padding-bottom: var(--phil-space-1, 0.25rem);
+        border-bottom: 1px solid var(--phil-calendar-line);
+        font-size: var(--phil-text-lg, 1.125rem);
+    }
+
+    .phil-calendar__group-title::first-letter {
+        text-transform: uppercase;
+    }
+
+    .phil-calendar__entry {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--phil-space-1, 0.25rem) var(--phil-space-3, 0.75rem);
+        align-items: baseline;
+    }
+
+    .phil-calendar__entry > .phil-calendar__popover > .phil-calendar__item {
+        width: auto;
+        max-width: 100%;
+        background: none;
+        font-size: var(--phil-text-md, 1rem);
+    }
+
+    .phil-calendar__entry-place {
+        color: var(--phil-calendar-muted);
+        font-size: var(--phil-text-sm, 0.875rem);
+    }
+
+    /* The posters */
+    .phil-calendar__posters {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(14rem, 100%), 1fr));
+        gap: var(--phil-space-4, 1rem);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .phil-calendar__poster {
+        --phil-card-media-ratio: 2 / 3;
+    }
+
+    .phil-calendar__posters .is-cancelled {
+        opacity: 0.7;
+    }
+
+    .phil-calendar__when {
+        margin: 0;
+        color: var(--phil-calendar-muted);
+    }
+
+    .phil-calendar__when::first-letter {
+        text-transform: uppercase;
+    }
+
+    /* The note of a period cut short by the budget of the request. */
+    .phil-calendar__cut {
+        margin: var(--phil-space-2, 0.5rem) 0 0;
+        color: var(--phil-calendar-muted);
+        font-size: var(--phil-text-sm, 0.875rem);
+    }
+
+    /* A member's choices: a badge each, its button beside it. */
+    .phil-calendar-choices {
+        --phil-calendar-muted: var(--phil-color-text-muted, #5b656d);
+    }
+
+    .phil-calendar-choices__list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--phil-space-2, 0.5rem);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .phil-calendar-choices__list > li {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--phil-space-1, 0.25rem);
+    }
+
+    .phil-calendar-choices__forget {
+        display: inline;
+        margin: 0;
+    }
+
+    .phil-calendar-choices__heading {
+        margin: var(--phil-space-3, 0.75rem) 0 var(--phil-space-2, 0.5rem);
+        font-size: var(--phil-text-sm, 0.875rem);
+    }
+
+    .phil-calendar-choices__none {
+        margin: 0;
+        color: var(--phil-calendar-muted);
+    }
+
+    /* A narrow screen reads the list better than the grid: the grid keeps its bars, smaller. */
+    @media (max-width: 40rem) {
+        .phil-calendar__week {
+            min-height: 4.5rem;
+        }
+
+        .phil-calendar__item-title,
+        .phil-calendar__time {
+            font-size: var(--phil-text-xs, 0.75rem);
+        }
+    }
+}

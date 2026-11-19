@@ -1,0 +1,55 @@
+{#
+ # A week or a day by the hour: a header per column — its day, and its resource when the day is shared —, the whole
+ # days on top, then the hours, each time placed at its height, side by side where times overlap.
+ #}
+{%- set today = this.todayDate|date('Y-m-d', false) -%}
+{%- set columns = grid.columns -%}
+<div class="phil-calendar__timegrid" style="--phil-calendar-columns: {{ columns|length }}; --phil-calendar-hours: {{ grid.hours|length }}">
+    <div class="phil-calendar__time-head">
+        <div class="phil-calendar__corner"></div>
+        {%- for column in columns %}
+        <div class="phil-calendar__column-head{% if column.day|date('Y-m-d', false) == today %} is-today{% endif %}">
+            <a href="{{ calendar_link('day', column.day|date('Y-m-d', false), this.tags) }}"
+               data-action="live#action:prevent" data-live-action-param="show" data-live-view-param="day" data-live-date-param="{{ column.day|date('Y-m-d', false) }}">
+                <span class="phil-calendar__column-weekday">{{ column.day|calendar_format('EEE') }}</span>
+                <span class="phil-calendar__column-day">{{ column.day|date('j', false) }}</span>
+            </a>
+            {%- if column.resource %}<span class="phil-calendar__resource">{{ column.resource.label }}</span>{% endif %}
+        </div>
+        {%- endfor %}
+    </div>
+    <div class="phil-calendar__all-day" style="--phil-calendar-lanes: {{ max(grid.allDay|map(b => b.lane)|reduce((a, b) => max(a, b), -1) + 1, 1) }}">
+        <div class="phil-calendar__corner">{{ 'calendar.all_day'|trans({}, 'phil_calendar') }}</div>
+        {%- for bar in grid.allDay %}
+        <div class="phil-calendar__bar" style="grid-column: {{ bar.column + 2 }} / span {{ bar.span }}; grid-row: {{ bar.lane + 1 }}">
+            {{- include('@PhilCalendar/calendar/_item.html.twig', {item: bar.item, key: 'all', continues_before: bar.continuesBefore, continues_after: bar.continuesAfter}) -}}
+        </div>
+        {%- endfor %}
+        {%- for column in columns %}
+        {%- set columnIndex = loop.index %}
+        {%- for item in column.allDay %}
+        <div class="phil-calendar__bar" style="grid-column: {{ columnIndex + 1 }}; grid-row: {{ loop.index }}">
+            {{- include('@PhilCalendar/calendar/_item.html.twig', {item: item, key: 'all-' ~ columnIndex}) -}}
+        </div>
+        {%- endfor %}
+        {%- endfor %}
+    </div>
+    <div class="phil-calendar__hours">
+        <div class="phil-calendar__rail">
+            {%- for hour in grid.hours %}
+            <div class="phil-calendar__hour"><time>{{ hour|calendar_hour }}</time></div>
+            {%- endfor %}
+        </div>
+        {%- for column in columns %}
+        {%- set columnIndex = loop.index %}
+        <div class="phil-calendar__column{% if column.day|date('Y-m-d', false) == today %} is-today{% endif %}">
+            {%- for block in column.blocks %}
+            <div class="phil-calendar__block{% if block.height == 0 %} is-instant{% endif %}"
+                 style="top: {{ block.top }}%; height: {{ block.height }}%; left: {{ block.lane / block.lanes * 100 }}%; width: {{ 100 / block.lanes }}%">
+                {{- include('@PhilCalendar/calendar/_item.html.twig', {item: block.item, key: 'c' ~ columnIndex, continues_before: block.continuesBefore, continues_after: block.continuesAfter}) -}}
+            </div>
+            {%- endfor %}
+        </div>
+        {%- endfor %}
+    </div>
+</div>

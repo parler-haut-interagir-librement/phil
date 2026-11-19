@@ -1,0 +1,22 @@
+{#
+ # The calendar: its toolbar, then the period in its view, and a note when the request's budget left events out. Every
+ # button is also a link to the same period, for a browser without JavaScript; the component follows it in place when
+ # it can. With a member, the period is that of their own calendar.
+ #}
+{%- set period = this.period -%}
+{%- set view = period.view.value -%}
+<section{{ attributes.defaults({class: 'phil-calendar phil-calendar--' ~ view, 'data-controller': 'phil--calendar-bundle--calendar', 'aria-label': 'calendar.label'|trans({}, 'phil_calendar')}) }}>
+    {{ include('@PhilCalendar/calendar/_toolbar.html.twig') }}
+    {%- if view == 'month' %}
+        {{ include('@PhilCalendar/calendar/_month.html.twig', {grid: this.month}) }}
+    {%- elseif view == 'week' or view == 'day' %}
+        {{ include('@PhilCalendar/calendar/_time.html.twig', {grid: this.time}) }}
+    {%- elseif view == 'list' %}
+        {{ include('@PhilCalendar/calendar/_list.html.twig', {agenda: this.agenda}) }}
+    {%- else %}
+        {{ include('@PhilCalendar/calendar/_posters.html.twig', {agenda: this.agenda}) }}
+    {%- endif %}
+    {%- if this.cut %}
+    <p class="phil-calendar__cut" role="status">{{ 'calendar.cut'|trans({}, 'phil_calendar') }}</p>
+    {%- endif %}
+</section>

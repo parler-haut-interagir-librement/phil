@@ -1,0 +1,38 @@
+{#
+ # The posters: a card per item of the period, its image on top, its days and its place below; its title leads to its
+ # page when it has one.
+ #}
+{%- set items = agenda.items -%}
+{%- if items is empty %}
+{%- component (phil_calendar_kit('Empty')) %}{% block content %}
+    {%- component (phil_calendar_kit('Empty:Header')) %}{% block content %}
+    {%- component (phil_calendar_kit('Empty:Title')) %}{% block content %}{{ 'calendar.empty.title'|trans({}, 'phil_calendar') }}{% endblock %}{% endcomponent %}
+    {%- component (phil_calendar_kit('Empty:Description')) %}{% block content %}{{ 'calendar.empty.description'|trans({}, 'phil_calendar') }}{% endblock %}{% endcomponent %}
+    {%- endblock %}{% endcomponent %}
+{%- endblock %}{% endcomponent %}
+{%- else %}
+<ul class="phil-calendar__posters" role="list">
+    {%- for item in items %}
+    <li>
+        {%- component (phil_calendar_kit('Card')) with item.cancelled ? {class: 'is-cancelled'} : {} %}{% block content %}
+            {%- if item.image %}
+            <img class="isCardMedia phil-calendar__poster" src="{{ item.image }}" alt="" loading="lazy" decoding="async">
+            {%- endif %}
+            {%- component (phil_calendar_kit('Card:Content')) %}{% block content %}
+                {%- component (phil_calendar_kit('Card:Title')) with {level: 3} %}{% block content %}
+                    {%- if item.url %}<a class="isCardLink" href="{{ item.url }}">{{ item.title }}</a>{% else %}{{ item.title }}{% endif -%}
+                {% endblock %}{% endcomponent %}
+                <p class="phil-calendar__when">
+                    {{- calendar_days(item.firstDay, item.lastDay, period.date|date('Y', false)) -}}
+                    {%- if not item.allDay %}, {{ item.start|calendar_time }}{% endif -%}
+                </p>
+                {%- if item.cancelled %}<p>{% component (phil_calendar_kit('Badge')) with {variant: 'destructive'} %}{% block content %}{{ 'calendar.details.cancelled'|trans({}, 'phil_calendar') }}{% endblock %}{% endcomponent %}</p>{% endif %}
+            {%- endblock %}{% endcomponent %}
+            {%- if item.place %}
+            {%- component (phil_calendar_kit('Card:Footer')) %}{% block content %}{{ item.place }}{% endblock %}{% endcomponent %}
+            {%- endif %}
+        {%- endblock %}{% endcomponent %}
+    </li>
+    {%- endfor %}
+</ul>
+{%- endif %}

@@ -1,0 +1,29 @@
+{#
+ # The form that opens a request: its queue, its subject and what the requester asks. The fields are the recipes
+ # `NativeSelect`, `Input` and `Textarea` of the kit, the button the recipe `Button`.
+ #
+ # queues: list of Queue. error: why the request was refused, or null. values: what was written.
+ #}
+{% extends layout %}
+
+{% block title %}{{ 'new.title'|trans({}, 'phil_helpdesk') }}{% endblock %}
+
+{% block main %}
+<p><a href="{{ path('phil_helpdesk_requests') }}">{{ 'requests.title'|trans({}, 'phil_helpdesk') }}</a></p>
+<h1>{{ 'new.title'|trans({}, 'phil_helpdesk') }}</h1>
+<form method="post" action="{{ path('phil_helpdesk_new') }}" class="phil-helpdesk__new">
+    <input type="hidden" name="_token" value="{{ token }}">
+    {%- if error is not null %}
+    <p class="phil-helpdesk__error" role="alert">{{ error }}</p>
+    {%- endif %}
+    <label for="phil-helpdesk-queue">{{ 'new.queue'|trans({}, 'phil_helpdesk') }}</label>
+    {% component (phil_helpdesk_kit('NativeSelect')) with {id: 'phil-helpdesk-queue', name: 'queue', required: true} %}{% block content %}
+        {%- for queue in queues %}<option value="{{ queue.name.value }}"{% if queue.name.value == values.queue %} selected{% endif %}>{{ queue.label|trans({}, 'phil_helpdesk') }}</option>{% endfor -%}
+    {% endblock %}{% endcomponent %}
+    <label for="phil-helpdesk-subject">{{ 'new.subject'|trans({}, 'phil_helpdesk') }}</label>
+    {{ component(phil_helpdesk_kit('Input'), {id: 'phil-helpdesk-subject', name: 'subject', required: true, value: values.subject}) }}
+    <label for="phil-helpdesk-body">{{ 'new.body'|trans({}, 'phil_helpdesk') }}</label>
+    {% component (phil_helpdesk_kit('Textarea')) with {id: 'phil-helpdesk-body', name: 'body', rows: 8, required: true} %}{% block content %}{{ values.body }}{% endblock %}{% endcomponent %}
+    {% component (phil_helpdesk_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'new.send'|trans({}, 'phil_helpdesk') }}{% endblock %}{% endcomponent %}
+</form>
+{% endblock %}

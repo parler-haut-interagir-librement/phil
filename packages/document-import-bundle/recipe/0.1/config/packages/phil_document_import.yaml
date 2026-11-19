@@ -1,0 +1,8 @@
+# The importer and exporter of phil/document-import-bundle: see vendor/phil/document-import-bundle/doc/configuration.md
+# for every option.
+phil_document_import:
+    media:
+        # "auto": the media library of phil/media-bundle when it is installed, else files under the prefix.
+        store: auto
+    # "auto": every file goes through phil/upload-scan-bundle before it is read, when that bundle is installed.
+    scan: auto

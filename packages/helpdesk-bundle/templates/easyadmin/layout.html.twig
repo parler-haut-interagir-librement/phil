@@ -1,0 +1,7 @@
+{#
+    The pages of the agents inside an EasyAdmin back office: EasyAdmin's content page, whose "main" block the pages
+    fill, with their "title" as the title of the content and of the page.
+#}
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}{{ block('title') }}{% endblock %}

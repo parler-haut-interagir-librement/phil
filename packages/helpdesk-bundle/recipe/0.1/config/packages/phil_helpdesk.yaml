@@ -1,0 +1,6 @@
+# The queues of the help desk and the roles of their agents. See the configuration guide of phil/helpdesk-bundle.
+phil_helpdesk:
+    queues:
+        general:
+            label: General
+            roles: [ROLE_SUPPORT]

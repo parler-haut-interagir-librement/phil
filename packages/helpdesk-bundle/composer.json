@@ -1,0 +1,93 @@
+{
+    "name": "phil/helpdesk-bundle",
+    "description": "A help desk in Symfony where each request is a private conversation: queues worked by role, statuses moved by Symfony Workflow, assignees and canned replies.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "helpdesk",
+        "support",
+        "tickets",
+        "conversations",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "doctrine/dbal": "^4.5",
+        "phil/conversation-bundle": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/workflow": "^8.2"
+    },
+    "require-dev": {
+        "ext-pdo": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "easycorp/easyadmin-bundle": "^5.8",
+        "phil/notifications-bundle": "^0.1@dev || ^0.2@dev",
+        "phil/privacy-bundle": "^0.1@dev",
+        "phil/ux-kit": "^0.5@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/key-management": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/extra-bundle": "^3.24",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/orm": "For the table added to the schema the ORM generates",
+        "easycorp/easyadmin-bundle": "To graft the pages of the agents on the dashboards of an EasyAdmin back office",
+        "phil/notifications-bundle": "To notify an agent a request is assigned to",
+        "phil/privacy-bundle": "For the requests in the export and the erasure of a member's data",
+        "phil/ux-kit": "For the recipes Button, Badge, Input, NativeSelect and Textarea the pages draw, through the Symfony UX Toolkit",
+        "symfony/routing": "For the pages of the requesters and of the agents",
+        "symfony/security-core": "To name the agents of each queue by role",
+        "symfony/security-csrf": "For the forms of the pages",
+        "symfony/twig-bundle": "For the pages and the canned replies",
+        "symfony/ux-twig-component": "For the recipes of the kit the pages draw"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\HelpdeskBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\HelpdeskBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}
