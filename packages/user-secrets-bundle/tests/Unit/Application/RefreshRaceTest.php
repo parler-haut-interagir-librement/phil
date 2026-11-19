@@ -105,7 +105,7 @@ final class RefreshRaceTest extends TestCase
     {
         $rotation = new KeyRotation($this->repository, Keys::envelope('k2'), new AuditTrail($this->clock));
         $refresher = new FixedRefresher('github', OAuthToken::of('new', null, new DateTimeImmutable('@5000')), static function () use ($rotation): void {
-            self::assertSame(1, $rotation->rotate(10));
+            self::assertSame(1, $rotation->rotate(10)->resealed);
         });
 
         $token = $this->process($refresher)->accessToken($this->access('a'), $this->secretName());
@@ -139,9 +139,15 @@ final class RefreshRaceTest extends TestCase
             }
 
             #[Override]
-            public function toReseal(string $keyId, SealedFormat $format, int $limit): array
+            public function toReseal(string $keyId, SealedFormat $format, int $limit, ?StoredSecret $after = null): array
             {
-                return $this->rows->toReseal($keyId, $format, $limit);
+                return $this->rows->toReseal($keyId, $format, $limit, $after);
+            }
+
+            #[Override]
+            public function countToReseal(string $keyId, SealedFormat $format): array
+            {
+                return $this->rows->countToReseal($keyId, $format);
             }
 
             #[Override]

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8fd56a4e17eb2d32693c6864b027143aa4834143c2858ce8a272404ef354a81b -->
+<!-- phil-dev source-sha256=c10655ebc20c5e59f076af2806f7278f4faaeb25755910423a8631298e69f7f0 -->
 # Chiffrement et rotation des clés
 
 ## Ce qui est scellé
@@ -105,14 +105,32 @@ une autre clé maîtresse ou qui repose dans un ancien format.
    bin/console phil:user-secrets:rotate --batch=500
    ```
 
-   La commande scelle de nouveau les secrets lot par lot, enregistre chaque lot et indique combien elle en a traité ;
-   la relancer ne scelle plus rien. Les valeurs de l'ancien format sont scellées de nouveau dans le format
-   courant en chemin, sous la même clé ou non. Les secrets révoqués n'ont pas de valeur et sont sautés. Chaque secret scellé de
-   nouveau produit un événement `rekeyed` pour les auditeurs. Une valeur qui ne s'ouvre pas, qui appartient à une autre
-   ligne ou dont le premier octet ne nomme aucun format connu arrête la rotation avec `UnreadableSecret`.
-4. Retirez l'ancienne clé maîtresse du DSN, ou désactivez-la dans le KMS.
+   La commande lit les secrets lot par lot, en une seule passe par propriétaire et par nom, et écrit chaque valeur par
+   une comparaison avant écriture sur la valeur scellée qu'elle a lue, comme le fait l'actualisation d'un jeton : un
+   secret qu'un autre processus a stocké, actualisé ou révoqué entre la lecture et l'écriture reste tel que ce
+   processus l'a laissé, et il est compté à part. La relancer ne scelle plus rien. Les valeurs de l'ancien format sont
+   scellées de nouveau dans le format courant en chemin, sous la même clé ou non. Les secrets révoqués n'ont pas de
+   valeur et sont sautés. Chaque secret scellé de nouveau produit un événement `rekeyed` pour les auditeurs.
 
-`KeyRotation::rotate($batchSize)` fait la même chose depuis le code.
+   Une valeur qui ne s'ouvre pas — sa clé maîtresse absente du KMS, copiée d'une autre ligne, d'aucun format connu —
+   reste telle quelle et est nommée par propriétaire et par nom ; la rotation continue avec les autres, et la commande
+   se termine en échec. Seul son propriétaire peut stocker de nouveau un tel secret ; sinon, on le révoque.
+4. Comptez ce qui reste :
+
+   ```sh
+   bin/console phil:user-secrets:rotate --dry-run
+   ```
+
+   L'essai à blanc n'écrit rien : il compte les secrets qui ne sont pas encore scellés sous la clé courante, ou pas
+   encore dans le format courant, par clé qui les a scellés.
+5. Retirez l'ancienne clé maîtresse — enlevez-la du DSN, ou désactivez-la dans le KMS — seulement quand l'essai à
+   blanc ne compte plus aucun secret, et une fois réglée la durée de conservation des sauvegardes que l'ancienne clé
+   ouvre encore : une sauvegarde prise avant la rotation contient des valeurs scellées sous l'ancienne clé, et la
+   restaurer demande cette clé.
+
+`KeyRotation::rotate($batchSize)` fait la même chose depuis le code et rend un `RotationReport` — les secrets scellés
+de nouveau, ceux sautés parce qu'un autre processus les a changés, ceux qui ne se sont pas ouverts — ;
+`KeyRotation::remaining()` compte ce qui reste, par clé.
 
 La commande `key-management:rewrap-data-keys` du composant enveloppe de nouveau les clés de données de son magasin de
 clés de données sous un autre client sans toucher aux charges utiles ; les enveloppes du bundle portent leur clé de
@@ -125,3 +143,8 @@ sans les clés. Il ne les protège pas contre l'application elle-même, qui peut
 appeler `UserSecrets` avec un `SecretAccess` peut lire les secrets du propriétaire que celui-ci nomme. Gardez les clés
 hors du dépôt et à l'écart des sauvegardes de la base de données, et ne construisez des accès que là où le
 propriétaire est connu.
+
+Révoquer ou supprimer un secret l'efface de la table, pas des sauvegardes prises avant : il y reste scellé, et lisible
+par quiconque détient ces sauvegardes et la clé maîtresse qui l'a scellé, tant que vit cette clé. Un secret n'a
+disparu de toutes les copies qu'une fois expirées les sauvegardes qui le contiennent, ou détruite la clé maîtresse qui
+l'a scellé.

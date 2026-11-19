@@ -22,7 +22,8 @@ member's calendar at night.
 It is a bundle built on Symfony's KeyManagement component behind a port, `ext-sodium`, Doctrine ORM and PSR-20;
 `phil/privacy-bundle`, `symfony/lock` and `symfony/console` are optional. The KeyManagement component is experimental in
 Symfony 8.2, outside Symfony's backward compatibility promise: one adapter of the bundle calls it. Master keys rotate
-without downtime: add a key, make it current, run `phil:user-secrets:rotate`, then retire the old one.
+without downtime: add a key, make it current, run `phil:user-secrets:rotate`, then retire the old one once
+`phil:user-secrets:rotate --dry-run` counts no secret left.
 
 The design follows the layers of the monorepo: `Domain` holds the row `StoredSecret`, the credentials and value types,
 and the port of the store; `Application` holds `UserSecrets`, `KeyRotation`, the port `EnvelopeCipher`, the envelope, the

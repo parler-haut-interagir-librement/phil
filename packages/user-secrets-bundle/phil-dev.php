@@ -63,6 +63,12 @@ return [
                     'return \\$this->entityManager->getRepository\\(StoredSecret::class\\)->findBy\\(\\[\'owner\' => \\$owner->value\\], \\[\'name\' => \'ASC\'\\]\\);',
                 ],
             ],
+            // The count of the secrets left, by key: SQLite hands it as an integer, other drivers may hand it as a string.
+            'CastInt' => [
+                'ignoreSourceCodeByRegex' => [
+                    '\\$counts\\[\\$row\\[\'keyId\'\\]\\] = \\(int\\) \\$row\\[\'secrets\'\\];',
+                ],
+            ],
             // The erasure in memory of a plaintext or a key by `sodium_memzero()`: the variable is no longer read
             // afterwards; the call shortens the time a copy of the secret stays in the memory of the process, which no
             // PHP test can observe.

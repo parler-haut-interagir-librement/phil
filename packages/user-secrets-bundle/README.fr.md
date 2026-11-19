@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1742386320b64477984f6684a42dfcb9dfe7ab5fd73b73011cb0fad3243f469c -->
+<!-- phil-dev source-sha256=0a872ecb5c931b7894e5f75a519401dcaf3f756ffe06d89a99b27565a3408cdd -->
 # phil/user-secrets-bundle
 
 **Les clés que les gens prêtent à votre application, gardées comme des clés : scellées, à eux seuls, et disparues
@@ -26,7 +26,8 @@ C'est un bundle bâti sur le composant KeyManagement de Symfony derrière un por
 `phil/privacy-bundle`, `symfony/lock` et `symfony/console` sont facultatifs. Le composant KeyManagement est
 expérimental dans Symfony 8.2, hors de la promesse de rétrocompatibilité de Symfony : un adaptateur du bundle l'appelle.
 Les clés maîtresses changent sans interruption de service : ajoutez une clé, faites-en la clé courante, lancez
-`phil:user-secrets:rotate`, puis retirez l'ancienne.
+`phil:user-secrets:rotate`, puis retirez l'ancienne une fois que `phil:user-secrets:rotate --dry-run` ne compte plus
+aucun secret.
 
 La conception suit les couches du monodépôt. `Domain` contient la ligne `StoredSecret`, les identifiants de connexion
 et les types de valeurs, et le port du stockage. `Application` contient `UserSecrets`, `KeyRotation`, le port

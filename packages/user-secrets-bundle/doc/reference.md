@@ -21,6 +21,7 @@
 | `Phil\UserSecretsBundle\Domain\Exception\RevokedSecret` | `final class` | A revoked secret read |
 | `Phil\UserSecretsBundle\Application\UserSecrets` | `final readonly class` | Storing, listing, reading, revoking, removing, erasing |
 | `Phil\UserSecretsBundle\Application\KeyRotation` | `final readonly class` | Sealing again under the current master key |
+| `Phil\UserSecretsBundle\Application\RotationReport` | `final readonly class` | What a key rotation did: re-sealed, skipped, unreadable |
 | `Phil\UserSecretsBundle\Application\SecretAccess` | `final readonly class` | A task run for an owner, with its purpose |
 | `Phil\UserSecretsBundle\Application\SecretSummary` | `final readonly class` | A secret without its value |
 | `Phil\UserSecretsBundle\Application\Contract\EnvelopeCipher` | interface | Envelope encryption under a named master key: the port to the KeyManagement component |

@@ -99,14 +99,31 @@ sealed or that rests in an earlier format.
    bin/console phil:user-secrets:rotate --batch=500
    ```
 
-   The command re-seals the secrets batch by batch, saving each batch, and says how many; running it again re-seals
-   nothing more. Values of the earlier format are sealed again in the current one on the way, under the same key or
-   not. Revoked secrets have no value and are skipped. Each re-sealed secret is a `rekeyed` event for the
-   auditors. A value that does not open, that belongs to another row or whose first byte names no known format stops
-   the rotation with `UnreadableSecret`.
-4. Remove the old master key from the DSN, or disable it in the KMS.
+   The command reads the secrets batch by batch, in one pass by owner and name, and writes each value again by a
+   compare-and-swap on the sealed value it read, as the refresh of a token does: a secret another process stored,
+   refreshed or revoked between the read and the write is left as that process made it, and counted apart. Running
+   it again re-seals nothing more. Values of the earlier format are sealed again in the current one on the way, under
+   the same key or not. Revoked secrets have no value and are skipped. Each re-sealed secret is a `rekeyed` event for
+   the auditors.
 
-`KeyRotation::rotate($batchSize)` does the same from code.
+   A value that does not open — its master key gone from the KMS, copied from another row, of no known format — is
+   left as it is and named by owner and name; the rotation goes on with the others, and the command ends in failure.
+   Such a secret can only be stored again by its owner, or revoked.
+4. Count what is left:
+
+   ```sh
+   bin/console phil:user-secrets:rotate --dry-run
+   ```
+
+   The dry run writes nothing: it counts the secrets not yet sealed under the current key, or not yet in the current
+   format, by the key that sealed them.
+5. Retire the old master key — remove it from the DSN, or disable it in the KMS — only once the dry run counts no
+   secret, and once you have settled how long the backups the old key still opens are kept: a backup taken before the
+   rotation holds values sealed under the old key, and restoring it needs that key.
+
+`KeyRotation::rotate($batchSize)` does the same from code and returns a `RotationReport` — the secrets re-sealed,
+those skipped because another process changed them, those that did not open —; `KeyRotation::remaining()` counts what
+is left, by key.
 
 The component's own `key-management:rewrap-data-keys` rewraps the data keys of its data key store under another
 client without touching the payloads; the bundle's envelopes carry their wrapped data key, so their rotation is the
@@ -118,3 +135,7 @@ The encryption protects the values in the database, its backups and its replicas
 keys. It does not protect them from the application itself, which can use the keys: code that can call `UserSecrets`
 with a `SecretAccess` can read the secrets of the owner it names. Keep the keys out of the repository and apart from
 the database backups, and build accesses only where the owner is known.
+
+Revoking or removing a secret wipes it from the table, not from the backups taken before: there it stays sealed, and
+readable by whoever holds those backups and the master key that sealed it, as long as that key lives. A secret is gone
+from every copy only once the backups that hold it have expired or the master key that sealed it is destroyed.

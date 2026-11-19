@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=85179e93c53df87756c1f4031e61f490461bb60e0859e28186da4f26c12a1f12 -->
+<!-- phil-dev source-sha256=7ac8a0cd956ea97ef3c3eeffa064307a52b7936dfca4a5c7399d0654302c5e41 -->
 # Référence
 
 | Type | Nature | Rôle |
@@ -22,6 +22,7 @@
 | `Phil\UserSecretsBundle\Domain\Exception\RevokedSecret` | `final class` | Un secret révoqué lu |
 | `Phil\UserSecretsBundle\Application\UserSecrets` | `final readonly class` | Stocker, lister, lire, révoquer, supprimer, effacer |
 | `Phil\UserSecretsBundle\Application\KeyRotation` | `final readonly class` | Sceller de nouveau sous la clé maîtresse courante |
+| `Phil\UserSecretsBundle\Application\RotationReport` | `final readonly class` | Ce qu'a fait une rotation des clés : scellés de nouveau, sautés, illisibles |
 | `Phil\UserSecretsBundle\Application\SecretAccess` | `final readonly class` | Une tâche exécutée pour un propriétaire, avec son but |
 | `Phil\UserSecretsBundle\Application\SecretSummary` | `final readonly class` | Un secret sans sa valeur |
 | `Phil\UserSecretsBundle\Application\Contract\EnvelopeCipher` | interface | Le chiffrement par enveloppe sous une clé maîtresse nommée : le port vers le composant KeyManagement |

@@ -13,8 +13,11 @@ use Phil\UserSecretsBundle\Application\Audit\SecretEventKind;
 use Phil\UserSecretsBundle\Application\KeyRotation;
 use Phil\UserSecretsBundle\Application\UserSecrets;
 use Phil\UserSecretsBundle\Domain\Credential\ApiKey;
+use Phil\UserSecretsBundle\Domain\Credential\CredentialKind;
 use Phil\UserSecretsBundle\Domain\Credential\OAuthToken;
+use Phil\UserSecretsBundle\Domain\Model\StoredSecret;
 use Phil\UserSecretsBundle\Domain\ValueObject\Owner;
+use Phil\UserSecretsBundle\Domain\ValueObject\SealedSecret;
 use Phil\UserSecretsBundle\Domain\ValueObject\SecretName;
 use Phil\UserSecretsBundle\Domain\ValueObject\ServiceName;
 use Phil\UserSecretsBundle\Infrastructure\Audit\LoggerAuditor;
@@ -22,7 +25,9 @@ use Phil\UserSecretsBundle\Infrastructure\Console\GenerateKeyCommand;
 use Phil\UserSecretsBundle\Infrastructure\Console\RotateKeysCommand;
 use Phil\UserSecretsBundle\Infrastructure\Memory\InMemoryStoredSecretRepository;
 use Phil\UserSecretsBundle\Infrastructure\Privacy\UserSecretsPrivacy;
+use Phil\UserSecretsBundle\Tests\Unit\Fixture\DetachedRepository;
 use Phil\UserSecretsBundle\Tests\Unit\Fixture\Keys;
+use Phil\UserSecretsBundle\Tests\Unit\Fixture\MeanwhileRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
@@ -121,6 +126,64 @@ final class IntegrationsTest extends TestCase
             self::assertSame(Command::INVALID, $tester->execute(['--batch' => $batch]));
             self::assertSame("The batch is a whole number of at least 1.\n", $tester->getDisplay());
         }
+    }
+
+    public function testTheRotationCommandNamesTheSecretsThatDidNotOpenAndFails(): void
+    {
+        $clock = new MockClock();
+        $repository = new InMemoryStoredSecretRepository();
+        $repository->save(
+            StoredSecret::seal(Owner::fromString('member-1'), SecretName::fromString('a'), ServiceName::fromString('openai'), CredentialKind::ApiKey, new SealedSecret('k1', base64_encode("\1old")), null, new DateTimeImmutable('@1000')),
+            StoredSecret::seal(Owner::fromString('member-2'), SecretName::fromString('b'), ServiceName::fromString('openai'), CredentialKind::ApiKey, new SealedSecret('k1', base64_encode("\1old")), null, new DateTimeImmutable('@1000')),
+        );
+        new UserSecrets($repository, Keys::envelope('k1'), new AuditTrail($clock), $clock)
+            ->store(Owner::fromString('member-1'), SecretName::fromString('c'), ServiceName::fromString('openai'), ApiKey::of('sk-c'));
+
+        $tester = new CommandTester(new RotateKeysCommand(new KeyRotation($repository, Keys::envelope('k2'), new AuditTrail($clock))));
+
+        self::assertSame(Command::FAILURE, $tester->execute([]));
+        self::assertSame("1 secrets re-sealed under the current key.\n2 secrets did not open and stay under their key:\n  member-1 / a\n  member-2 / b\n", $tester->getDisplay());
+    }
+
+    public function testTheRotationCommandSaysHowManySecretsAnotherProcessChangedMeanwhile(): void
+    {
+        $clock = new MockClock();
+        $rows = new DetachedRepository();
+        new UserSecrets($rows, Keys::envelope('k1'), new AuditTrail($clock), $clock)
+            ->store(Owner::fromString('member-1'), SecretName::fromString('a'), ServiceName::fromString('openai'), ApiKey::of('sk-a'));
+        $other = new UserSecrets($rows, Keys::envelope('k2'), new AuditTrail($clock), $clock);
+        $repository = new MeanwhileRepository($rows, static function () use ($other): void {
+            $other->revoke(Owner::fromString('member-1'), SecretName::fromString('a'));
+        });
+
+        $tester = new CommandTester(new RotateKeysCommand(new KeyRotation($repository, Keys::envelope('k2'), new AuditTrail($clock))));
+
+        self::assertSame(Command::SUCCESS, $tester->execute([]));
+        self::assertSame("0 secrets re-sealed under the current key.\n1 secrets changed by another process meanwhile, left as it wrote them.\n", $tester->getDisplay());
+    }
+
+    public function testTheDryRunCountsTheSecretsLeftByKeyWithoutWriting(): void
+    {
+        $clock = new MockClock();
+        $kms = Keys::kms(['k0' => 'c', 'k1' => 'a', 'k2' => 'b']);
+        $repository = new InMemoryStoredSecretRepository();
+        new UserSecrets($repository, Keys::envelope('k1'), new AuditTrail($clock), $clock)
+            ->store(Owner::fromString('member-1'), SecretName::fromString('a'), ServiceName::fromString('openai'), ApiKey::of('sk-a'));
+        $old = new UserSecrets($repository, Keys::envelope('k0', $kms), new AuditTrail($clock), $clock);
+        $old->store(Owner::fromString('member-1'), SecretName::fromString('b'), ServiceName::fromString('openai'), ApiKey::of('sk-b'));
+        $old->store(Owner::fromString('member-2'), SecretName::fromString('c'), ServiceName::fromString('openai'), ApiKey::of('sk-c'));
+        new UserSecrets($repository, Keys::envelope('k2'), new AuditTrail($clock), $clock)
+            ->store(Owner::fromString('member-2'), SecretName::fromString('d'), ServiceName::fromString('openai'), ApiKey::of('sk-d'));
+
+        $tester = new CommandTester(new RotateKeysCommand(new KeyRotation($repository, Keys::envelope('k2', $kms), new AuditTrail($clock))));
+
+        self::assertSame(Command::SUCCESS, $tester->execute(['--dry-run' => true, '--batch' => '0']));
+        self::assertSame("k0: 2 secrets to re-seal\nk1: 1 secrets to re-seal\n3 secrets left to re-seal under the current key.\n", $tester->getDisplay());
+        self::assertSame('k0', $repository->get(Owner::fromString('member-1'), SecretName::fromString('b'))?->sealed()->keyId, 'nothing was written');
+
+        self::assertSame(Command::SUCCESS, $tester->execute([]));
+        self::assertSame(Command::SUCCESS, $tester->execute(['--dry-run' => true]));
+        self::assertSame("0 secrets left to re-seal under the current key.\n", $tester->getDisplay());
     }
 
     private function secrets(MockClock $clock): UserSecrets

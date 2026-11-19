@@ -9,8 +9,9 @@ fails —; `UserSecrets` on a store that keeps copies, as a database does — st
 refreshing, revoking, removing, erasing, the events —; the revocation at the service — after the local change, a
 service that fails, a value that does not open —; the races of a refresh between two processes — with and without the
 lock, a row re-keyed, revoked or removed meanwhile, a row that keeps changing —; the refresh lock over Symfony's Lock
-component; the key rotation — to a new master key, out of the earlier format, a value of no known format, between
-master keys of a KMS —; one contract for both stores, compare-and-swap included, run in memory and on Doctrine with
+component; the key rotation — to a new master key, out of the earlier format, a value that does not open named while the
+others rotate, a row stored, refreshed or revoked during a batch and left as the other process made it, the count of
+what is left, between master keys of a KMS —; one contract for both stores, compare-and-swap included, run in memory and on Doctrine with
 SQLite in memory; the privacy module, the logger auditor and the commands; the generated master key read by a
 `sodium://` DSN; and the configuration, the wiring, the check of the KMS and of the lock factory. The suite
 `tests/Functional` boots a small application with FrameworkBundle and its lock factory, DoctrineBundle on SQLite, the

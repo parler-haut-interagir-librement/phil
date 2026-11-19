@@ -47,25 +47,28 @@ final class InMemoryStoredSecretRepository implements StoredSecretRepository
     }
 
     #[Override]
-    public function toReseal(string $keyId, SealedFormat $format, int $limit): array
+    public function toReseal(string $keyId, SealedFormat $format, int $limit, ?StoredSecret $after = null): array
     {
-        $found = [];
-
-        foreach ($this->secrets as $secrets) {
-            foreach ($secrets as $secret) {
-                if (!$secret->revokedAt() instanceof DateTimeImmutable && ($secret->sealed()->keyId !== $keyId || $secret->sealed()->format() !== $format)) {
-                    $found[] = $secret;
-                }
-            }
-        }
-
-        usort($found, static function (StoredSecret $a, StoredSecret $b): int {
-            $byOwner = strcmp($a->owner()->value, $b->owner()->value);
-
-            return 0 !== $byOwner ? $byOwner : strcmp($a->name()->value, $b->name()->value);
-        });
+        $found = array_filter(
+            $this->allToReseal($keyId, $format),
+            static fn (StoredSecret $secret): bool => !$after instanceof StoredSecret || self::compare($secret, $after) > 0,
+        );
 
         return \array_slice($found, 0, $limit);
+    }
+
+    #[Override]
+    public function countToReseal(string $keyId, SealedFormat $format): array
+    {
+        $counts = [];
+
+        foreach ($this->allToReseal($keyId, $format) as $secret) {
+            $counts[$secret->sealed()->keyId] = ($counts[$secret->sealed()->keyId] ?? 0) + 1;
+        }
+
+        ksort($counts, \SORT_STRING);
+
+        return $counts;
     }
 
     #[Override]
@@ -101,5 +104,33 @@ final class InMemoryStoredSecretRepository implements StoredSecretRepository
         foreach ($secrets as $secret) {
             unset($this->secrets[$secret->owner()->value][$secret->name()->value], $this->saved[$secret->owner()->value][$secret->name()->value]);
         }
+    }
+
+    /**
+     * @return list<StoredSecret> every secret not revoked and sealed under another key or in another format, by owner
+     *                            and name
+     */
+    private function allToReseal(string $keyId, SealedFormat $format): array
+    {
+        $found = [];
+
+        foreach ($this->secrets as $secrets) {
+            foreach ($secrets as $secret) {
+                if (!$secret->revokedAt() instanceof DateTimeImmutable && ($secret->sealed()->keyId !== $keyId || $secret->sealed()->format() !== $format)) {
+                    $found[] = $secret;
+                }
+            }
+        }
+
+        usort($found, self::compare(...));
+
+        return $found;
+    }
+
+    private static function compare(StoredSecret $a, StoredSecret $b): int
+    {
+        $byOwner = strcmp($a->owner()->value, $b->owner()->value);
+
+        return 0 !== $byOwner ? $byOwner : strcmp($a->name()->value, $b->name()->value);
     }
 }

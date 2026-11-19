@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=cd5fa945d108f47720b4de11b5f0640ede393960d3fae6251286f7e29ae41e75 -->
+<!-- phil-dev source-sha256=e8fafafa794ce07877cca6edb3dc2fb70bbe5412c0a2ca1d9f612095e992dc99 -->
 # Tests
 
 ## Les tests du bundle
@@ -12,7 +12,9 @@ révoquer, supprimer, effacer, les événements — ; la révocation auprès du 
 service qui échoue, une valeur qui ne s'ouvre pas — ; les courses d'une actualisation entre deux processus — avec et
 sans le verrou, une ligne scellée de nouveau, révoquée ou supprimée entre-temps, une ligne qui ne cesse de changer — ;
 le verrou d'actualisation sur le composant Lock de Symfony ; la rotation des clés — vers une nouvelle clé maîtresse, hors
-de l'ancien format, une valeur d'aucun format connu, entre clés maîtresses d'un KMS — ; un même contrat pour les deux
+de l'ancien format, une valeur qui ne s'ouvre pas nommée pendant que les autres changent de clé, une ligne stockée,
+actualisée ou révoquée pendant un lot et laissée telle que l'autre processus l'a faite, le compte de ce qui reste, entre
+clés maîtresses d'un KMS — ; un même contrat pour les deux
 stockages, compare-and-swap compris, exécuté en mémoire et sur Doctrine avec SQLite en mémoire ; le module de vie
 privée, l'auditeur journaliseur et les commandes ; la clé maîtresse générée, lue par un DSN `sodium://` ; et la
 configuration, le câblage, la vérification du KMS et de la fabrique de verrous. La suite `tests/Functional` démarre une

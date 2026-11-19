@@ -39,7 +39,7 @@ final readonly class DoctrineStoredSecretRepository implements StoredSecretRepos
     }
 
     #[Override]
-    public function toReseal(string $keyId, SealedFormat $format, int $limit): array
+    public function toReseal(string $keyId, SealedFormat $format, int $limit, ?StoredSecret $after = null): array
     {
         $criteria = Criteria::create()
             ->where(Criteria::expr()->isNull('revokedAt'))
@@ -51,7 +51,42 @@ final readonly class DoctrineStoredSecretRepository implements StoredSecretRepos
             ->orderBy(['owner' => SortDirection::Ascending, 'name' => SortDirection::Ascending])
             ->setMaxResults($limit);
 
+        if ($after instanceof StoredSecret) {
+            $criteria->andWhere(Criteria::expr()->orX(
+                Criteria::expr()->gt('owner', $after->owner()->value),
+                Criteria::expr()->andX(
+                    Criteria::expr()->eq('owner', $after->owner()->value),
+                    Criteria::expr()->gt('name', $after->name()->value),
+                ),
+            ));
+        }
+
         return [...$this->entityManager->getRepository(StoredSecret::class)->matching($criteria)];
+    }
+
+    #[Override]
+    public function countToReseal(string $keyId, SealedFormat $format): array
+    {
+        /** @var list<array{keyId: string, secrets: int|string}> $rows */
+        $rows = $this->entityManager->createQueryBuilder()
+            ->select('s.keyId AS keyId', 'COUNT(s.name) AS secrets')
+            ->from(StoredSecret::class, 's')
+            ->where('s.revokedAt IS NULL')
+            ->andWhere('s.keyId <> :keyId OR s.format IS NULL OR s.format <> :format')
+            ->groupBy('s.keyId')
+            ->orderBy('s.keyId')
+            ->setParameter('keyId', $keyId)
+            ->setParameter('format', $format->value)
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [];
+
+        foreach ($rows as $row) {
+            $counts[$row['keyId']] = (int) $row['secrets'];
+        }
+
+        return $counts;
     }
 
     #[Override]

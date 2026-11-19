@@ -68,7 +68,7 @@ final class UserSecretsBundleTest extends KernelTestCase
         $access = SecretAccess::forTaskOf($owner, 'nightly sync');
         self::assertSame('sk-1', $secrets->apiKey($access, SecretName::fromString('openai'))->key->reveal());
         self::assertSame('fresh-token', $secrets->accessToken($access, SecretName::fromString('github'))->accessToken->reveal());
-        self::assertSame(0, $this->service(KeyRotation::class, KeyRotation::class)->rotate(10));
+        self::assertSame(0, $this->service(KeyRotation::class, KeyRotation::class)->rotate(10)->resealed);
 
         $export = $this->service(SubjectExport::class, SubjectExport::class)->export(DataSubject::fromString('member-1'));
         self::assertStringNotContainsString('sk-1', json_encode($export, \JSON_THROW_ON_ERROR));

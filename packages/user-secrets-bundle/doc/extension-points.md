@@ -49,7 +49,8 @@ it is tagged `phil_user_secrets.auditor` by autoconfiguration; `LoggerAuditor` i
 ### `StoredSecretRepository`
 
 `Phil\UserSecretsBundle\Domain\Contract\StoredSecretRepository` — the sealed secrets, a public alias of the store
-`store` chooses. A store of the application's own keeps `toReseal()` bounded by its limit, for the key rotation;
+`store` chooses. A store of the application's own keeps `toReseal()` bounded by its limit and past the secret `$after`, by
+owner and name, and counts the same secrets by key in `countToReseal()`, for the key rotation;
 reads the row from where it is kept in `fresh()`, past any cache; and saves in `replace()` only when the row still
 holds the previous sealed value and is not revoked — one conditional `UPDATE` —, which the refresh of a token relies
 on.

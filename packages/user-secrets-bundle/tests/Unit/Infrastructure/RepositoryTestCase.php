@@ -82,6 +82,15 @@ abstract class RepositoryTestCase extends TestCase
         self::assertSame(['member-1/c', 'member-2/a'], $this->keys($repository->toReseal('k2', SealedFormat::Algorithm, 2)));
         self::assertSame(['member-1/a', 'member-2/a', 'member-3/legacy', 'member-3/odd', 'member-3/old'], $this->keys($repository->toReseal('k1', SealedFormat::Algorithm, 10)));
         self::assertSame(['member-1/a', 'member-1/c', 'member-2/a', 'member-2/b', 'member-3/odd', 'member-3/old'], $this->keys($repository->toReseal('k2', SealedFormat::KeyManagement, 10)));
+
+        // After a secret, by owner then name: the rest of the owner, then the next owners.
+        self::assertSame(['member-2/a', 'member-2/b'], $this->keys($repository->toReseal('k2', SealedFormat::Algorithm, 2, $this->secret('member-1', 'c', 'k1'))));
+        self::assertSame(['member-2/b', 'member-3/legacy', 'member-3/odd'], $this->keys($repository->toReseal('k2', SealedFormat::Algorithm, 3, $this->secret('member-2', 'a', 'k0'))));
+        self::assertSame(['member-2/a', 'member-2/b'], $this->keys($repository->toReseal('k2', SealedFormat::Algorithm, 2, $this->secret('member-1', 'zzz', 'k1'))));
+        self::assertSame([], $this->keys($repository->toReseal('k2', SealedFormat::Algorithm, 10, $this->secret('member-3', 'old', 'k2'))));
+
+        self::assertSame(['k0' => 1, 'k1' => 2, 'k2' => 3], $repository->countToReseal('k2', SealedFormat::Algorithm));
+        self::assertSame(['k0' => 1, 'k2' => 4], $repository->countToReseal('k1', SealedFormat::Algorithm));
     }
 
     public function testAFreshReadSeesTheRowAsItIsKept(): void

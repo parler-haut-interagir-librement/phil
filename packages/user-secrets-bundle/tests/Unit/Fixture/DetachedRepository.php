@@ -40,9 +40,15 @@ final readonly class DetachedRepository implements StoredSecretRepository
     }
 
     #[Override]
-    public function toReseal(string $keyId, SealedFormat $format, int $limit): array
+    public function toReseal(string $keyId, SealedFormat $format, int $limit, ?StoredSecret $after = null): array
     {
-        return $this->copies($this->rows->toReseal($keyId, $format, $limit));
+        return $this->copies($this->rows->toReseal($keyId, $format, $limit, $after));
+    }
+
+    #[Override]
+    public function countToReseal(string $keyId, SealedFormat $format): array
+    {
+        return $this->rows->countToReseal($keyId, $format);
     }
 
     #[Override]

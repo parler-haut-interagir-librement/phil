@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=55a65f21839f91c6013f3617788d7e62874b0f65c69f5cccafee1a6f397ecd70 -->
+<!-- phil-dev source-sha256=e973fbecc9cbf289ff039aea57813bc285c629f9146b6a8e8673370e720a5e5e -->
 # Points d'extension
 
 Ce qu'une application implémente, configure, remplace ou utilise.
@@ -50,7 +50,8 @@ derrière `log_events`. Voir [Audit et vie privée](audit-and-privacy.md).
 ### `StoredSecretRepository`
 
 `Phil\UserSecretsBundle\Domain\Contract\StoredSecretRepository` contient les secrets scellés ; c'est un alias public
-du stockage que choisit `store`. Un stockage propre à l'application borne `toReseal()` par sa limite, pour la rotation
+du stockage que choisit `store`. Un stockage propre à l'application borne `toReseal()` par sa limite et au-delà du secret
+`$after`, par propriétaire et par nom, et compte ces mêmes secrets par clé dans `countToReseal()`, pour la rotation
 des clés ; lit la ligne là où elle est conservée dans `fresh()`, au-delà de tout cache ; et n'enregistre dans
 `replace()` que si la ligne détient encore la valeur scellée précédente et n'est pas révoquée — un seul `UPDATE`
 conditionnel —, ce sur quoi s'appuie l'actualisation d'un jeton.
