@@ -4,6 +4,25 @@ All notable changes to `phil/outbox-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Added
+
+- `phil:outbox:errors:clear` and `DbalOutboxStore::clearErrorMessages()`: the messages removed from the errors
+  already kept, their class left, the errors of the outbox's own exceptions untouched.
+
+### Changed
+
+- Requires phil/outbox 0.1.1-alpha, for `OutboxRecord::OWN_EXCEPTIONS`.
+
+### Security
+
+- Privacy: the errors written before phil/outbox 0.1.1-alpha keep the message of any exception, such as a mail
+  server's refusal quoting an address, shown by `phil:outbox:dead:show`. Run `phil:outbox:errors:clear` once after
+  the update.
+
 ## 0.1.0-alpha - 2026-11-17
 
 ### Added

@@ -36,7 +36,8 @@ final readonly class SetEventsCodec implements EventCodec
   value throws `InvalidRecord`, and the record is dead at once.
 - It may read the rest of the event again from where its library keeps it.
 - It throws `UndeliverableRecord` when the record can never become an event, such as when the state it names is gone
-  for good: the relay moves the record to the dead records at once.
+  for good: the relay moves the record to the dead records at once. Its reason is kept as the record's last error:
+  identifiers only, never personal data ([The last error](housekeeping.md#the-last-error)).
 - Any other exception is a failed attempt: the relay tries the record again after the delay of its backoff.
 - It never runs PHP's `unserialize()`: a record holds JSON of identifiers, read back under the same bounds as a new
   payload.

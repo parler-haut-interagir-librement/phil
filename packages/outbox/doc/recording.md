@@ -51,6 +51,10 @@ again after a retry. The key is kept with the record, and forgotten when the rec
 
 A key, ordering or idempotency, is 1 to 190 visible ASCII characters, compared byte by byte.
 
+A key is an identifier too, like the payload: build it from identifiers, such as `completion:42:7`, never from an
+address, a name or any other personal data. A key is kept with its record until the record is purged or discarded,
+quoted in the message of an `InvalidRecord`, and shown by the commands of the dead records.
+
 ## The clock
 
 The outbox dates the record by its PSR-20 clock, `SystemClock` in UTC unless the application gives its own. Moments

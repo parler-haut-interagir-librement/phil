@@ -9,6 +9,7 @@ use DateTimeZone;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Logging\Middleware;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\MariaDBPlatform;
@@ -239,6 +240,54 @@ final class DbalOutboxStoreTest extends OutboxStoreTestCase
 
         $this->expectExceptionMessageIsOrContains('A column of the outbox table holds no text.');
         Rows::nullableText(3);
+    }
+
+    /**
+     * The errors written with the message of any exception: a mail server's refusal kept the address it refused.
+     */
+    public function testTheMessagesOfTheErrorsKeptAreClearedAndTheirClassStays(): void
+    {
+        $store = $this->createStore();
+        $errors = [
+            'RuntimeException: 550 5.1.1 <jane.doe@example.org>: Recipient address rejected',
+            'Doctrine\DBAL\Exception\UniqueConstraintViolationException: Duplicate entry \'jane.doe@example.org\'',
+            'Phil\Outbox\Exception\InvalidRecord: The payload has no integer "holder".',
+            'Phil\Outbox\Exception\UnknownEventType (code 0): No codec rebuilds the event type "a.b": register one before recording it.',
+            'RuntimeException (code 550)',
+            null,
+        ];
+        $ids = [];
+
+        foreach ($errors as $error) {
+            $record = self::record(null);
+            $store->add(new OutboxRecord($record->id, $record->type, $record->payloadJson, null, null, $record->occurredAt, $record->availableAt, RecordState::Dead, 3, $error, $record->occurredAt));
+            $ids[] = $record->id;
+        }
+
+        self::assertSame(2, $this->dbal()->clearErrorMessages(1));
+        self::assertSame(
+            ['RuntimeException', UniqueConstraintViolationException::class, $errors[2], $errors[3], $errors[4], null],
+            array_map(static fn (RecordId $id): ?string => $store->find($id)?->lastError, $ids),
+        );
+        self::assertSame(0, $this->dbal()->clearErrorMessages());
+    }
+
+    public function testAFullBatchIsFollowedByTheNext(): void
+    {
+        $store = $this->createStore();
+
+        foreach (range(1, 5) as $n) {
+            $record = self::record(null);
+            $store->add(new OutboxRecord($record->id, $record->type, $record->payloadJson, null, null, $record->occurredAt, $record->availableAt, RecordState::Pending, 1, \sprintf('RuntimeException: attempt %d', $n)));
+        }
+
+        self::assertSame(5, $this->dbal()->clearErrorMessages(2));
+        self::assertSame(['RuntimeException'], array_values(array_unique(array_map(static fn (OutboxRecord $record): ?string => $record->lastError, $store->list(RecordState::Pending, 10)))));
+    }
+
+    private function dbal(): DbalOutboxStore
+    {
+        return new DbalOutboxStore($this->connection());
     }
 
     private function connection(): Connection

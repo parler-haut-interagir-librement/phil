@@ -19,6 +19,7 @@ without Symfony.
 | The codecs by tag, the generic event types, the outbox, the relay and the housekeeping as services | Implemented and tested |
 | `phil:outbox:relay`: bounded batches, `--stop-when-empty`, a time limit, a lock, the signals | Implemented and tested |
 | The commands of the dead records and the purge of the delivered records | Implemented and tested |
+| `phil:outbox:errors:clear`: the messages removed from the errors already kept | Implemented and tested |
 | The scheduled trigger and the bridge to a Messenger bus | Implemented and tested |
 | The Flex recipe | Implemented |
 
@@ -28,7 +29,7 @@ without Symfony.
 |---|---|
 | [Installation](doc/installation.md) | Requirements, installing, and creating the table. |
 | [Configuration](doc/configuration.md) | Every option, with an example. |
-| [Console](doc/console.md) | The relay command and the commands of the dead records, the purge and the schema. |
+| [Console](doc/console.md) | The relay command and the commands of the dead records, the purge, the errors and the schema. |
 | [Workers](doc/workers.md) | Running the relay under a process manager, in worker mode, or on a schedule. |
 | [Messenger](doc/messenger.md) | The bridge to a bus, and when Messenger's own `outbox` and `inbox` fit better. |
 | [Extension points](doc/extension-points.md) | The services to replace, the tags to add to, and when they are stable. |

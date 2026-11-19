@@ -24,7 +24,7 @@
         "php": ">=8.5",
         "ext-mbstring": "*",
         "doctrine/dbal": "^4.5",
-        "phil/outbox": "^0.1@dev",
+        "phil/outbox": "^0.1.1@dev",
         "psr/event-dispatcher": "^1.0",
         "symfony/clock": "^8.2",
         "symfony/config": "^8.2",

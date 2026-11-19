@@ -216,6 +216,41 @@ final readonly class DbalOutboxStore implements OutboxStore
     }
 
     /**
+     * Removes the message from the errors kept with one, keeping the class before it: `RuntimeException: 550 …`
+     * becomes `RuntimeException`. The errors of the outbox's own exceptions, whose text names types and keys only,
+     * are left as they are. The table is read by position, a batch at a time, so each row is seen once.
+     *
+     * @param positive-int $batch
+     *
+     * @return int the errors rewritten
+     *
+     * @throws Exception when the database fails
+     */
+    public function clearErrorMessages(int $batch = 500): int
+    {
+        $table = $this->table->name;
+        $select = $this->connection->getDatabasePlatform()->modifyLimitQuery(\sprintf('SELECT position, last_error FROM %s WHERE position > ? AND last_error LIKE ? ORDER BY position', $table), $batch);
+        $update = \sprintf('UPDATE %s SET last_error = ? WHERE position = ? AND last_error = ?', $table);
+        $cleared = 0;
+        $after = 0;
+
+        do {
+            $rows = $this->connection->fetchAllAssociative($select, [$after, '%: %']);
+
+            foreach ($rows as $row) {
+                $after = Rows::int($row['position'] ?? null);
+                $error = Rows::text($row['last_error'] ?? null);
+
+                if (!str_starts_with($error, OutboxRecord::OWN_EXCEPTIONS)) {
+                    $cleared += Rows::int($this->connection->executeStatement($update, [explode(': ', $error, 2)[0], $after, $error]));
+                }
+            }
+        } while (\count($rows) === $batch);
+
+        return $cleared;
+    }
+
+    /**
      * The insert that adds nothing when a record of the same type and idempotency key is kept.
      */
     public function insertUnlessKept(AbstractPlatform $platform): string

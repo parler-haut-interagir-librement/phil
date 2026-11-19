@@ -93,7 +93,7 @@ final class RelayTest extends TestCase
         $record = $this->store->find($id);
         self::assertSame(RecordState::Pending, $record?->state);
         self::assertSame(1, $record->attempts);
-        self::assertSame('RuntimeException: The listener is down.', $record->lastError);
+        self::assertSame('RuntimeException (code 0)', $record->lastError);
         self::assertSame('2026-11-17 10:00:10', $record->availableAt->format('Y-m-d H:i:s'));
 
         $this->clock->sleep(9);
@@ -124,7 +124,7 @@ final class RelayTest extends TestCase
         $record = $this->store->find($id);
         self::assertSame(RecordState::Dead, $record?->state);
         self::assertSame(2, $record->attempts);
-        self::assertSame('RuntimeException: Still down.', $record->lastError);
+        self::assertSame('RuntimeException (code 0)', $record->lastError);
         self::assertSame('2026-11-17 10:00:10', $record->settledAt?->format('Y-m-d H:i:s'));
     }
 
@@ -135,15 +135,15 @@ final class RelayTest extends TestCase
     {
         yield 'a type no codec rebuilds any more' => [
             static fn (self $test): RecordId => $test->keep('set.forgotten', '{"set":"s1","holder":7}'),
-            'Phil\Outbox\Exception\UnknownEventType: No codec rebuilds the event type "set.forgotten": register one before recording it.',
+            'Phil\Outbox\Exception\UnknownEventType (code 0): No codec rebuilds the event type "set.forgotten": register one before recording it.',
         ];
         yield 'a payload that is not one' => [
             static fn (self $test): RecordId => $test->keep('set.completed', '{"set":[1]}'),
-            'Phil\Outbox\Exception\InvalidRecord: A payload is a JSON object of identifiers, one level deep.',
+            'Phil\Outbox\Exception\InvalidRecord (code 0): A payload is a JSON object of identifiers, one level deep.',
         ];
         yield 'a payload without what the codec reads' => [
             static fn (self $test): RecordId => $test->keep('set.completed', '{"set":"s1"}'),
-            'Phil\Outbox\Exception\InvalidRecord: The payload has no integer "holder".',
+            'Phil\Outbox\Exception\InvalidRecord (code 0): The payload has no integer "holder".',
         ];
         yield 'a record the codec declares undeliverable' => [
             static function (self $test): RecordId {
@@ -153,7 +153,7 @@ final class RelayTest extends TestCase
 
                 return $test->keep('set.completed', '{"set":"s1","holder":7}');
             },
-            'Phil\Outbox\Exception\UndeliverableRecord: The set is gone.',
+            'Phil\Outbox\Exception\UndeliverableRecord (code 0): The set is gone.',
         ];
     }
 
@@ -182,7 +182,7 @@ final class RelayTest extends TestCase
         };
 
         self::assertEquals(new RelayReport(claimed: 1, retried: 1), $this->relay()->relay());
-        self::assertSame('RuntimeException: The database is away.', $this->store->find($id)?->lastError);
+        self::assertSame('RuntimeException (code 0)', $this->store->find($id)?->lastError);
         self::assertSame([], $this->dispatcher->events);
     }
 

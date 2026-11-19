@@ -7,10 +7,12 @@ namespace Phil\Outbox\Tests\Unit;
 use DateTimeImmutable;
 use LogicException;
 use Phil\Outbox\Exception\InvalidRecord;
+use Phil\Outbox\Exception\UnknownEventType;
 use Phil\Outbox\OutboxRecord;
 use Phil\Outbox\Payload;
 use Phil\Outbox\RecordId;
 use Phil\Outbox\RecordState;
+use Phil\Outbox\Tests\Unit\Fixture\Exception\OutboxShaped;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -123,29 +125,60 @@ final class RecordTest extends TestCase
         OutboxRecord::pending(RecordId::generate(), $type, Payload::of([]), $orderingKey, $idempotencyKey, new DateTimeImmutable());
     }
 
-    public function testAnErrorKeepsTheClassAndTheMessageOfTheException(): void
+    /**
+     * A mail server refusing an address, a database quoting a duplicate value: the message of an exception of the
+     * application can quote personal data, and an error is kept until its record is purged.
+     */
+    public function testAnErrorKeepsTheClassAndTheCodeOfAnExceptionOfTheApplication(): void
     {
-        self::assertSame('RuntimeException: The listener failed.', OutboxRecord::error(new RuntimeException('The listener failed.')));
+        self::assertSame('RuntimeException (code 550)', OutboxRecord::error(new RuntimeException('550 5.1.1 <jane.doe@example.org>: Recipient address rejected', 550)));
+        self::assertSame('LogicException (code 0)', OutboxRecord::error(new LogicException('jane.doe@example.org')));
+    }
+
+    public function testAnErrorKeepsACodeThatIsAString(): void
+    {
+        $exception = new class("Duplicate entry 'jane.doe@example.org'") extends RuntimeException {
+            public function __construct(string $message)
+            {
+                parent::__construct($message);
+                $this->code = '23000';
+            }
+        };
+
+        self::assertSame($exception::class.' (code 23000)', OutboxRecord::error($exception));
+    }
+
+    public function testAnErrorKeepsTheMessageOfAnExceptionOfThePackage(): void
+    {
+        self::assertSame('Phil\Outbox\Exception\UnknownEventType (code 0): No codec rebuilds the event type "sets.gone": register one before recording it.', OutboxRecord::error(UnknownEventType::named('sets.gone')));
+        self::assertSame('Phil\Outbox\Exception\InvalidRecord (code 0): The payload has no string "set".', OutboxRecord::error(InvalidRecord::because('The payload has no string "set".', new RuntimeException('jane.doe@example.org'))));
+    }
+
+    public function testAnErrorOfTheApplicationNamedLikeThePackageKeepsNoMessage(): void
+    {
+        self::assertSame(OutboxShaped::class.' (code 0)', OutboxRecord::error(new OutboxShaped('jane.doe@example.org')));
     }
 
     public function testAnErrorIsCutOnACharacterBoundary(): void
     {
-        $error = OutboxRecord::error(new LogicException('a'.str_repeat('é', 300)));
+        $error = OutboxRecord::error(InvalidRecord::because('a'.str_repeat('é', 300)));
+        $prefix = 'Phil\Outbox\Exception\InvalidRecord (code 0): ';
 
         self::assertSame(499, \strlen($error));
-        self::assertSame('LogicException: a'.str_repeat('é', 241), $error);
+        self::assertSame($prefix.'a'.str_repeat('é', intdiv(499 - \strlen($prefix) - 1, 2)), $error);
     }
 
     public function testAnErrorOfInvalidUtf8IsMadeValid(): void
     {
-        self::assertSame('LogicException: a?b', OutboxRecord::error(new LogicException("a\xC3b")));
+        self::assertSame('Phil\Outbox\Exception\InvalidRecord (code 0): a?b', OutboxRecord::error(InvalidRecord::because("a\xC3b")));
     }
 
     public function testAnErrorOfExactly500BytesIsKept(): void
     {
-        $message = str_repeat('a', 500 - \strlen('LogicException: '));
+        $prefix = 'Phil\Outbox\Exception\InvalidRecord (code 0): ';
+        $message = str_repeat('a', 500 - \strlen($prefix));
 
-        self::assertSame('LogicException: '.$message, OutboxRecord::error(new LogicException($message)));
+        self::assertSame($prefix.$message, OutboxRecord::error(InvalidRecord::because($message)));
     }
 
     public function testAKeptPayloadThatIsNotOneIsRefusedWhenRead(): void
