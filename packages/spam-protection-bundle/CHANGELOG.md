@@ -4,6 +4,27 @@ All notable changes to `phil/spam-protection-bundle` will be documented in this 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.0-alpha: in the `prod` environment, the container build fails without
+`used_tokens.connection` or `used_tokens.lock_factory`.
+
+### Added
+
+- `PhilSpamProtectionBundle::assertConcurrencySafeStore()` and `PhilSpamProtectionBundle::UNSAFE_STORE`, its message.
+
+### Changed
+
+- In the `prod` environment, the cache pool alone is refused as the store of used tokens: the container build fails,
+  and the application does not boot, until `used_tokens.connection` names a Doctrine connection or
+  `used_tokens.lock_factory` a lock factory on a store every web server shares. `single_server` does not lift it. The
+  pool alone, in memory or in files, is accepted in every other environment.
+
+### Security
+
+- By default, the used tokens were kept in the cache pool without a lock, even in production: two simultaneous
+  submissions of one token could both pass, such as a form posted twice by a robot that solved one proof of work.
+
 ## 0.2.0-alpha - 2026-11-17
 
 In the `prod` environment, a limiter whose storage is local to each server fails the

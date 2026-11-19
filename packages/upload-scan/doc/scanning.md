@@ -16,6 +16,9 @@ scan — to sniff its type, hash it or measure it — is scanned from its start,
 would send clamd nothing or only a tail and get a clean answer for an infected file. A stream that cannot be rewound,
 such as a pipe or a socket, is scanned as it comes when nothing was read from it, and is an error result once read,
 `The stream was read before the scan and cannot be rewound: give it to the scanner before reading it.`
+The stream is read to its end, and only its end counts as the end of the file: a stream that fails, times out (the
+timeout of a socket or of a remote stream), or gives nothing more without having ended is an error result, never the
+end of a file whose start would then be scanned and found clean. Give the scanner a blocking stream.
 `scanPath()` opens a local file and closes it. A value that is not an open stream is refused with `InvalidArgument`:
 that is a mistake in the calling code. Everything else that keeps a file from being scanned — the engine unreachable or too slow, the file
 unreadable or larger than the limit — is an error result, never an exception, so that the policy decides.

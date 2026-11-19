@@ -53,7 +53,10 @@ phil_upload_scan:
 ```
 
 The user PHP runs as must be allowed to open the socket: add it to the `clamav` group, or set `LocalSocketGroup` in
-`clamd.conf`.
+`clamd.conf`, with `LocalSocketMode 660`, and restart PHP-FPM or the worker so that it takes the group. Never make the
+socket world-writable. The whole configuration — `clamd.conf`, the directory of the socket, systemd's socket unit and a
+socket shared between containers — is in the documentation of `phil/upload-scan`, under "clamd on a local Unix
+socket".
 
 ## Checking it answers
 

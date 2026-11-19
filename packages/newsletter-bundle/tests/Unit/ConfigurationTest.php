@@ -35,6 +35,7 @@ final class ConfigurationTest extends TestCase
                 'remote_event_consumer' => null,
             ],
             'rate_limiter_storage' => 'cache.rate_limiter',
+            'subscription' => ['rate_limit' => ['enabled' => true, 'per_ip' => ['limit' => 10, 'interval' => '1 hour'], 'per_address' => ['limit' => 5, 'interval' => '1 hour'], 'resend_delay' => '5 minutes']],
             'webhooks' => [],
             'preview_role' => 'ROLE_ADMIN',
         ], $this->process([]));
@@ -56,6 +57,35 @@ final class ConfigurationTest extends TestCase
             'rate' => 120,
             'domain_rates' => [],
         ], $profiles['news'] ?? null);
+    }
+
+    public function testTheLimitsOfTheSubscriptionFormAreTurnedOffExplicitly(): void
+    {
+        self::assertFalse($this->limitsOf($this->process(['subscription' => ['rate_limit' => false]]))['enabled']);
+        self::assertEquals(['enabled' => true, 'per_ip' => ['limit' => 3, 'interval' => '10 minutes'], 'per_address' => ['limit' => 5, 'interval' => '1 hour'], 'resend_delay' => '1 hour'], $this->limitsOf($this->process(['subscription' => ['rate_limit' => ['per_ip' => ['limit' => 3, 'interval' => '10 minutes'], 'resend_delay' => '1 hour']]])));
+
+        foreach ([['per_ip' => ['interval' => '']], ['resend_delay' => '']] as $empty) {
+            try {
+                $this->process(['subscription' => ['rate_limit' => $empty]]);
+                self::fail('An empty duration was accepted.');
+            } catch (InvalidConfigurationException $invalidConfigurationException) {
+                self::assertStringContainsString('cannot contain an empty value', $invalidConfigurationException->getMessage());
+            }
+        }
+    }
+
+    /**
+     * @param array<array-key, mixed> $config
+     *
+     * @return array<array-key, mixed>
+     */
+    private function limitsOf(array $config): array
+    {
+        $subscription = $config['subscription'] ?? null;
+        self::assertIsArray($subscription);
+        self::assertIsArray($subscription['rate_limit'] ?? null);
+
+        return $subscription['rate_limit'];
     }
 
     /**
@@ -80,6 +110,8 @@ final class ConfigurationTest extends TestCase
         yield 'a pace' => [['profiles' => ['n' => ['from' => 'a@example.com', 'rate' => 1]]], ['profiles' => ['n' => ['from' => 'a@example.com', 'rate' => 0]]]];
         yield 'a pace of one domain' => [['profiles' => ['n' => ['from' => 'a@example.com', 'domain_rates' => ['gmail.com' => 1]]]], ['profiles' => ['n' => ['from' => 'a@example.com', 'domain_rates' => ['gmail.com' => 0]]]]];
         yield 'the seconds of a click' => [['clicks' => ['minimum_seconds' => 0]], ['clicks' => ['minimum_seconds' => -1]]];
+        yield 'the subscriptions of a client' => [['subscription' => ['rate_limit' => ['per_ip' => ['limit' => 1]]]], ['subscription' => ['rate_limit' => ['per_ip' => ['limit' => 0]]]]];
+        yield 'the subscriptions of an address' => [['subscription' => ['rate_limit' => ['per_address' => ['limit' => 1]]]], ['subscription' => ['rate_limit' => ['per_address' => ['limit' => 0]]]]];
         yield 'the soft bounces' => [['bounces' => ['soft_threshold' => 1]], ['bounces' => ['soft_threshold' => 0]]];
     }
 

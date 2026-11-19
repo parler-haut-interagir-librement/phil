@@ -57,7 +57,7 @@
         "doctrine/orm": "^3.7",
         "phil/automations": "^0.1@dev",
         "phil/privacy-bundle": "^0.1@dev",
-        "phil/standard-webhooks-bundle": "^0.1@dev",
+        "phil/standard-webhooks-bundle": "^0.1@dev || ^0.2@dev",
         "phpunit/phpunit": "^13.4",
         "symfony/browser-kit": "^8.2",
         "symfony/cache": "^8.2",

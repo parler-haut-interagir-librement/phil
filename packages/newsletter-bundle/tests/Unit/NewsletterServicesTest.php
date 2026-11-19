@@ -8,17 +8,22 @@ use Phil\EmailAddress\EmailValidator;
 use Phil\Markup\Markup;
 use Phil\NewsletterBundle\Application\Bounces\BounceHandler;
 use Phil\NewsletterBundle\Application\Contract\BounceMailbox;
+use Phil\NewsletterBundle\Application\Contract\ConfirmationThrottle;
 use Phil\NewsletterBundle\Application\Contract\SendThrottle;
 use Phil\NewsletterBundle\Application\Handler\DeliverAudienceWebhookHandler;
+use Phil\NewsletterBundle\Application\Subscriptions;
 use Phil\NewsletterBundle\Application\Tracking\ClickTracker;
 use Phil\NewsletterBundle\Infrastructure\Dbal\NewsletterSchemaListener;
 use Phil\NewsletterBundle\Infrastructure\DependencyInjection\NewsletterServices;
+use Phil\NewsletterBundle\Infrastructure\Http\SubscriptionController;
+use Phil\NewsletterBundle\Infrastructure\RateLimiter\SubscriptionRateLimiter;
 use Phil\NewsletterBundle\Infrastructure\Webhook\AudienceWebhookListener;
 use Phil\NewsletterBundle\PhilNewsletterBundle;
 use Phil\NewsletterBundle\Tests\Unit\Fixture\DefinitionExporter;
 use Phil\NewsletterBundle\Tests\Unit\Fixture\Snapshot;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -27,6 +32,7 @@ use Symfony\Component\DependencyInjection\Extension\ConfigurationExtensionInterf
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * The services the bundle registers, each with what it is given, written as text.
@@ -54,6 +60,7 @@ final class NewsletterServicesTest extends TestCase
             'remote_event_consumer' => 'provider',
         ],
         'rate_limiter_storage' => 'cache.news_limiter',
+        'subscription' => ['rate_limit' => ['per_ip' => ['limit' => 20, 'interval' => '30 minutes'], 'per_address' => ['limit' => 2, 'interval' => '1 day'], 'resend_delay' => '15 minutes']],
         'webhooks' => ['crm' => ['url' => 'https://crm.example.com/hooks', 'events' => ['subscribed', 'unsubscribed']], 'all' => ['url' => 'https://all.example.com/hooks']],
         'preview_role' => 'ROLE_EDITOR',
     ];
@@ -70,6 +77,36 @@ final class NewsletterServicesTest extends TestCase
         $container = $this->load(self::FULL, ['doctrine']);
 
         Snapshot::assertSame('services-full', DefinitionExporter::export($container));
+    }
+
+    public function testTheLimitsOfTheSubscriptionFormAreOnByDefaultAndTurnedOffExplicitly(): void
+    {
+        $container = $this->load([]);
+        self::assertSame(SubscriptionRateLimiter::class, $container->getDefinition(NewsletterServices::SUBSCRIPTION_LIMITER)->getClass());
+        self::assertSame(NewsletterServices::SUBSCRIPTION_LIMITER, (string) $container->getAlias(ConfirmationThrottle::class));
+        self::assertSame(NewsletterServices::SUBSCRIPTION_LIMITER, (string) $container->getAlias(SubscriptionRateLimiter::class));
+        self::assertSame(ConfirmationThrottle::class, $this->reference($container->getDefinition(Subscriptions::class)->getArgument(9)), 'An application may alias its own throttle.');
+        self::assertSame(NewsletterServices::SUBSCRIPTION_LIMITER, $this->reference($container->getDefinition(SubscriptionController::class)->getArgument(8)));
+
+        $off = $this->load(['subscription' => ['rate_limit' => false]]);
+        self::assertFalse($off->hasDefinition(NewsletterServices::SUBSCRIPTION_LIMITER));
+        self::assertFalse($off->hasAlias(ConfirmationThrottle::class));
+        self::assertNull($off->getDefinition(Subscriptions::class)->getArgument(9));
+        self::assertNull($off->getDefinition(SubscriptionController::class)->getArgument(8));
+    }
+
+    public function testADurationOfTheLimitsIsADuration(): void
+    {
+        foreach ([['per_ip' => ['interval' => 'soon']], ['per_address' => ['interval' => '0 seconds']], ['resend_delay' => '-5 minutes'], ['per_ip' => ['interval' => 'tomorrow']]] as $limits) {
+            try {
+                $this->load(['subscription' => ['rate_limit' => $limits]]);
+                self::fail('A duration that is not one was accepted.');
+            } catch (InvalidConfigurationException $invalidConfigurationException) {
+                self::assertMatchesRegularExpression('/^"subscription\.rate_limit\.(per_ip\.interval|per_address\.interval|resend_delay)" is a duration, such as "15 minutes", not "(soon|0 seconds|-5 minutes|tomorrow)"\.$/', $invalidConfigurationException->getMessage());
+            }
+        }
+
+        self::assertTrue($this->load(['subscription' => ['rate_limit' => ['resend_delay' => '1 second']]])->hasDefinition(NewsletterServices::SUBSCRIPTION_LIMITER));
     }
 
     public function testTheSchemaListenerNeedsTheDoctrineExtension(): void
@@ -173,5 +210,12 @@ final class NewsletterServicesTest extends TestCase
         self::assertNotNull($configuration);
 
         return new Processor()->processConfiguration($configuration, [$config]);
+    }
+
+    private function reference(mixed $argument): string
+    {
+        self::assertInstanceOf(Reference::class, $argument);
+
+        return (string) $argument;
     }
 }

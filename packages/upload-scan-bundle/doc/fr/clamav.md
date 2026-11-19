@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=49cad1fa2e77341c48d8c932c9751ff5786ef004b370591c8a7b52c015944128 -->
+<!-- phil-dev source-sha256=72006adfbe1b44f94f02ae590491ad458b8e0a86d2cf6b7374df12cc8e6f0cea -->
 # ClamAV
 
 Le bundle a besoin d'un clamd qu'il peut joindre. En développement comme en production, le plus simple est un service
@@ -55,7 +55,10 @@ phil_upload_scan:
 ```
 
 L'utilisateur sous lequel tourne PHP doit avoir le droit d'ouvrir le socket : ajoutez-le au groupe `clamav`, ou
-réglez `LocalSocketGroup` dans `clamd.conf`.
+réglez `LocalSocketGroup` dans `clamd.conf`, avec `LocalSocketMode 660`, et redémarrez PHP-FPM ou le *worker* pour qu'il
+prenne le groupe. Ne rendez jamais le socket accessible en écriture à tous. La configuration complète — `clamd.conf`, le
+répertoire du socket, l'unité socket de systemd et un socket partagé entre des conteneurs — se trouve dans la
+documentation de `phil/upload-scan`, sous « clamd on a local Unix socket ».
 
 ## Vérifier qu'il répond
 

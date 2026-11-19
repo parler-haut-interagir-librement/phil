@@ -27,6 +27,7 @@ use Phil\NewsletterBundle\Tests\Functional\App\TestKernel;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DomCrawler\Field\ChoiceFormField;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Mime\Email;
@@ -59,6 +60,10 @@ final class NewsletterBundleTest extends WebTestCase
     {
         $this->client = self::createClient();
         $this->client->disableReboot();
+
+        $limits = self::getContainer()->get('cache.rate_limiter');
+        self::assertInstanceOf(AdapterInterface::class, $limits);
+        $limits->clear();
 
         $connection = self::getContainer()->get('test.connection');
         self::assertInstanceOf(Connection::class, $connection);
@@ -118,6 +123,43 @@ final class NewsletterBundleTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertNull($this->service(SubscriberRepository::class)->byEmail(Site::default(), 'robot@example.com'));
         self::assertEmailCount(0);
+    }
+
+    public function testTheFormIsLimitedByDefaultWithTheSameAnswerForAKnownAddress(): void
+    {
+        $crawler = $this->client->request('GET', '/newsletter/subscribe/news');
+        $form = $crawler->selectButton('Subscribe')->form(['email' => 'ada@example.com']);
+
+        $this->client->submit($form);
+        self::assertResponseIsSuccessful();
+        self::assertEmailCount(1);
+
+        $this->client->submit($form, ['email' => ' ADA@example.com ']);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('[role=status]', 'Thank you.');
+        self::assertEmailCount(1, message: 'No confirmation goes again to the same address within the delay: the count is still that of the first.');
+
+        foreach (['ada@example.com', 'ada@example.com', 'ada@example.com'] as $email) {
+            $this->client->submit($form, ['email' => $email]);
+            self::assertResponseIsSuccessful();
+        }
+
+        $this->client->submit($form, ['email' => 'ada@example.com']);
+        self::assertResponseStatusCodeSame(429);
+        self::assertSelectorTextContains('[role=alert]', 'Too many attempts: please try again later.');
+
+        $this->client->submit($form, ['email' => 'nobody@example.com']);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('[role=status]', 'Thank you.');
+
+        foreach (range(1, 3) as $attempt) {
+            $this->client->submit($form, ['email' => \sprintf('someone-%d@example.com', $attempt)]);
+            self::assertResponseIsSuccessful();
+        }
+
+        $this->client->submit($form, ['email' => 'someone-else@example.com']);
+        self::assertResponseStatusCodeSame(429, 'The client has posted 10 subscriptions in the hour.');
+        self::assertNull($this->service(SubscriberRepository::class)->byEmail(Site::default(), 'someone-else@example.com'));
     }
 
     public function testACampaignIsSentAndItsLinkFollowedThenTheMailClientUnsubscribes(): void

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a34d190ae33ed43e5c892e671b9ee467a9907bc9f3ba87418bd37872f20e25e4 -->
+<!-- phil-dev source-sha256=5f09265ebe5cf031f91d24eb489cb04a60f0abf31d9ab9e3271914ea599e9dbb -->
 # Points d'extension
 
 Le paquet est en `0.x` : ses points d'extension sont stables seulement à partir de sa version 1.0. D'ici là, une
@@ -10,6 +10,7 @@ version mineure peut les changer, et son CHANGELOG dit comment.
 |---|---|---|
 | `Phil\NewsletterBundle\Application\Contract\CurrentSite` | `site(): Site`, le site de la requête | `ConfiguredSite`, le site configuré |
 | `Phil\NewsletterBundle\Application\Contract\SegmentResolver` | `recipients(Campaign, DateTimeImmutable): iterable<string>`, les identifiants des abonnés, chacun une fois | `ListRecipients`, la liste entière |
+| `Phil\NewsletterBundle\Application\Contract\ConfirmationThrottle` | `allowsConfirmation(string $subscriberId): bool`, une place prise pour une confirmation, ou `false` dans le délai | `SubscriptionRateLimiter`, avec `subscription.rate_limit` |
 | `Phil\NewsletterBundle\Application\Contract\SendThrottle` | `wait(SenderProfile, string $domain): int`, 0 et une place prise, ou les secondes à attendre | `RateLimiterSendThrottle` |
 | `Phil\NewsletterBundle\Application\Contract\BounceMailbox` | `unread(int $limit)`, les messages bruts par identifiant ; `acknowledge(string $id)` | `ImapBounceMailbox`, avec `bounces.imap` |
 | `Phil\NewsletterBundle\Application\Contract\AudienceWebhookSender` | `send(string $url, string $body, string $id)`, qui lève `WebhookNotDelivered` | `StandardWebhooksAudienceSender`, avec `webhooks` |

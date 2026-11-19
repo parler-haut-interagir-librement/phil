@@ -7,6 +7,7 @@ namespace Phil\NewsletterBundle;
 use Override;
 use Phil\NewsletterBundle\Domain\ValueObject\Site;
 use Phil\NewsletterBundle\Infrastructure\DependencyInjection\NewsletterServices;
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Kernel\AbstractBundle;
@@ -116,7 +117,21 @@ final class PhilNewsletterBundle extends AbstractBundle
                         ->scalarNode('remote_event_consumer')->info('The name of the webhook route of the mail provider whose events the bundle consumes.')->defaultNull()->end()
                     ->end()
                 ->end()
-                ->scalarNode('rate_limiter_storage')->info('The cache pool the pace of sending is counted in, shared by the workers.')->defaultValue('cache.rate_limiter')->end()
+                ->scalarNode('rate_limiter_storage')->info('The cache pool the pace of sending and the limits of the subscription form are counted in, shared by the workers.')->defaultValue('cache.rate_limiter')->end()
+                ->arrayNode('subscription')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode('rate_limit')
+                            ->info('The limits of the public subscription form, per client and per address typed, and the delay before another confirmation of a double opt-in goes to one subscriber; "rate_limit: false" turns them off.')
+                            ->canBeDisabled()
+                            ->children()
+                                ->append($this->limit('per_ip', 'The subscriptions per client address, or IPv6 /64 network, in each interval.', 10, '1 hour'))
+                                ->append($this->limit('per_address', 'The subscriptions per address typed, on each site, subscribed or not, in each interval.', 5, '1 hour'))
+                                ->scalarNode('resend_delay')->info('The delay before another confirmation goes to the same subscriber, in the format of the Rate Limiter component.')->defaultValue('5 minutes')->cannotBeEmpty()->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
                 ->arrayNode('webhooks')
                     ->info('Receivers of the audience events, signed by phil/standard-webhooks-bundle.')
                     ->useAttributeAsKey('name')
@@ -150,5 +165,19 @@ final class PhilNewsletterBundle extends AbstractBundle
         if (true === $config['enabled']) {
             NewsletterServices::load($config, $container, $builder);
         }
+    }
+
+    /**
+     * A count of the Rate Limiter component: how many in each interval.
+     */
+    private function limit(string $name, string $info, int $limit, string $interval): ArrayNodeDefinition
+    {
+        return new ArrayNodeDefinition($name)
+            ->info($info)
+            ->addDefaultsIfNotSet()
+            ->children()
+                ->integerNode('limit')->defaultValue($limit)->min(1)->end()
+                ->scalarNode('interval')->info('The window of the count, in the format of the Rate Limiter component.')->defaultValue($interval)->cannotBeEmpty()->end()
+            ->end();
     }
 }

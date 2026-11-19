@@ -33,6 +33,39 @@ request that subscribes does not wait on a resolver. An address that bounced or 
 sent nothing. A list with a double opt-in keeps the subscription pending and sends the confirmation through Messenger;
 its signed link is valid seven days. Each change is saved, then announced by an `AudienceChanged` event.
 
+## The limits of the form
+
+The public subscription form is limited by default: each post may send a confirmation to an address whose owner never
+asked for it, and spends the quota and the reputation of the sender. `subscription.rate_limit` counts, with Symfony's
+Rate Limiter, in the pool of `rate_limiter_storage`, under `lock.factory` when the application defines one:
+
+| Count | Default | Refused |
+|---|---|---|
+| Per client address, or IPv6 /64 network | 10 an hour, sliding window | `429`, `Too many attempts: please try again later.` |
+| Per address typed, on each site, subscribed or not | 5 an hour, sliding window | `429`, the same page |
+| The confirmation of a double opt-in, per subscriber | one every 5 minutes, token bucket | No confirmation is sent; the page thanks as it always does |
+
+The address typed is trimmed and lowercased, so that its spellings share their count, and it is counted whether it is
+subscribed or not: the answers tell nobody who is on a list. A refusal by the client's count spends nothing of the
+address's. The keys of the counts are keyed hashes of the secret: the store holds no address, IP address or email
+address. A subscription refused by the delay keeps its place, pending, and announces nothing; `subscribe()` answers
+`SubscribeOutcome::ConfirmationDelayed`. A person who subscribes again after the delay gets a new confirmation.
+
+```yaml
+phil_newsletter:
+    subscription:
+        rate_limit:
+            per_ip: { limit: 20, interval: '30 minutes' }
+            per_address: { limit: 3, interval: '1 day' }
+            resend_delay: '15 minutes'
+```
+
+`rate_limit: false` turns the three off, for an application that limits the form before the bundle, such as at its
+reverse proxy. The client address is read by `Request::getClientIp()`: behind a proxy, set `framework.trusted_proxies`,
+or every client counts as the proxy. Point `rate_limiter_storage` at a pool every web server shares, such as Redis: a
+pool of each server's own counts each server apart. Intervals and the delay take the format of the Rate Limiter
+component, such as `15 minutes`; one that is not a positive duration is refused when the container is built.
+
 ## The domain check in the worker
 
 With `check_mail_domain: true`, the default, the worker that handles `SendConfirmation` asks the DNS whether the
@@ -56,7 +89,7 @@ store when it handles it.
 
 | Page | What it does |
 |---|---|
-| Subscription | A form with the address, a CSRF token and a hidden field robots fill in. It gives the same answer whatever became of the address, so that nobody learns from it who is subscribed. |
+| Subscription | A form with the address, a CSRF token and a hidden field robots fill in, under [the limits of the form](#the-limits-of-the-form). It gives the same answer whatever became of the address, so that nobody learns from it who is subscribed. |
 | Confirmation | A button that confirms; following the link alone confirms nothing, since mail scanners follow links. |
 | Unsubscription | A choice between the list of the message and every list, and an optional reason. |
 | Preference center | The site's lists to tick, a pause of one, four or twelve weeks, coming back, leaving everything. |

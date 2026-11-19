@@ -9,6 +9,7 @@ change them, and its CHANGELOG says how.
 |---|---|---|
 | `Phil\NewsletterBundle\Application\Contract\CurrentSite` | `site(): Site`, the site of the request | `ConfiguredSite`, the configured one |
 | `Phil\NewsletterBundle\Application\Contract\SegmentResolver` | `recipients(Campaign, DateTimeImmutable): iterable<string>`, the subscriber ids, each once | `ListRecipients`, the whole list |
+| `Phil\NewsletterBundle\Application\Contract\ConfirmationThrottle` | `allowsConfirmation(string $subscriberId): bool`, a place taken for one confirmation, or `false` within the delay | `SubscriptionRateLimiter`, with `subscription.rate_limit` |
 | `Phil\NewsletterBundle\Application\Contract\SendThrottle` | `wait(SenderProfile, string $domain): int`, 0 and a place taken, or the seconds to wait | `RateLimiterSendThrottle` |
 | `Phil\NewsletterBundle\Application\Contract\BounceMailbox` | `unread(int $limit)`, raw messages by id; `acknowledge(string $id)` | `ImapBounceMailbox`, with `bounces.imap` |
 | `Phil\NewsletterBundle\Application\Contract\AudienceWebhookSender` | `send(string $url, string $body, string $id)`, throwing `WebhookNotDelivered` | `StandardWebhooksAudienceSender`, with `webhooks` |

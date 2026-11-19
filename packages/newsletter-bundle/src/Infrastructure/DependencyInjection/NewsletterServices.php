@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phil\NewsletterBundle\Infrastructure\DependencyInjection;
 
+use DateMalformedStringException;
+use DateTimeImmutable;
 use Doctrine\ORM\Tools\ToolEvents;
 use LogicException;
 use Phil\Automations\Attribute\AsAutomationAction;
@@ -26,6 +28,7 @@ use Phil\NewsletterBundle\Application\Content\ContentRenderer;
 use Phil\NewsletterBundle\Application\Content\SandboxedTemplates;
 use Phil\NewsletterBundle\Application\Contract\AudienceWebhookSender;
 use Phil\NewsletterBundle\Application\Contract\BounceMailbox;
+use Phil\NewsletterBundle\Application\Contract\ConfirmationThrottle;
 use Phil\NewsletterBundle\Application\Contract\CurrentSite;
 use Phil\NewsletterBundle\Application\Contract\SegmentResolver;
 use Phil\NewsletterBundle\Application\Contract\SendThrottle;
@@ -73,15 +76,20 @@ use Phil\NewsletterBundle\Infrastructure\Http\SubscriptionController;
 use Phil\NewsletterBundle\Infrastructure\Imap\ImapBounceMailbox;
 use Phil\NewsletterBundle\Infrastructure\Privacy\NewsletterPrivacy;
 use Phil\NewsletterBundle\Infrastructure\RateLimiter\RateLimiterSendThrottle;
+use Phil\NewsletterBundle\Infrastructure\RateLimiter\SubscriptionRateLimiter;
 use Phil\NewsletterBundle\Infrastructure\RemoteEvent\MailerEventConsumer;
 use Phil\NewsletterBundle\Infrastructure\Site\ConfiguredSite;
 use Phil\NewsletterBundle\Infrastructure\Webhook\AudienceWebhookListener;
 use Phil\NewsletterBundle\Infrastructure\Webhook\StandardWebhooksAudienceSender;
 use Phil\PrivacyBundle\Application\Contract\PersonalDataExporter;
 use Phil\StandardWebhooksBundle\Infrastructure\Http\WebhookSender;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\DependencyInjection\Loader\Configurator\InlineServiceConfigurator;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ReferenceConfigurator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\CacheStorage;
 use Symfony\Component\RemoteEvent\Consumer\ConsumerInterface;
 
@@ -100,6 +108,9 @@ final class NewsletterServices
 
     /** The resolver of mail domains the confirmation handler asks, when `check_mail_domain` is on. */
     public const string MAIL_DOMAINS = 'phil_newsletter.mail_domains';
+
+    /** The limits of the subscription form, `subscription.rate_limit`. */
+    public const string SUBSCRIPTION_LIMITER = 'phil_newsletter.subscription_limiter';
 
     /**
      * @param array<array-key, mixed> $config
@@ -146,9 +157,10 @@ final class NewsletterServices
         $services->set(SandboxedTemplates::class)->tag('kernel.reset', ['method' => 'reset']);
         $services->set(ContentRenderer::class)->args([service(Markup::class), service('twig'), service(SandboxedTemplates::class)]);
         $services->set(MessageComposer::class)->args([$verpService, $verpKey]);
+        $limiter = self::subscriptionLimiter($services, self::array(self::array($config['subscription'])['rate_limit']), self::string($config['rate_limiter_storage']), $secret);
         $services->set(Subscriptions::class)->args([
             service(MailingListRepository::class), service(SubscriberRepository::class), service(SuppressionRepository::class), service(DeliveryRepository::class),
-            service(EngagementRepository::class), service(EmailValidator::class), service('messenger.default_bus'), service('event_dispatcher'), $clock,
+            service(EngagementRepository::class), service(EmailValidator::class), service('messenger.default_bus'), service('event_dispatcher'), $clock, $limiter instanceof ReferenceConfigurator ? service(ConfirmationThrottle::class) : null,
         ]);
         $services->set(Campaigns::class)->args([service(CampaignRepository::class), service(DeliveryRepository::class), service(EngagementRepository::class), service('messenger.default_bus'), $clock]);
         $services->set(ClickTracker::class)->args([
@@ -165,7 +177,7 @@ final class NewsletterServices
         }
 
         self::handlers($services, $clock, true === $imap['enabled'], true === $config['check_mail_domain']);
-        self::http($services, $clock, self::string($config['preview_role']));
+        self::http($services, $clock, self::string($config['preview_role']), $limiter);
 
         if (true === $imap['enabled']) {
             $services->set(BounceMailbox::class, ImapBounceMailbox::class)
@@ -246,12 +258,12 @@ final class NewsletterServices
         $services->set(NewsletterSchedule::class)->args([$mailbox])->tag('scheduler.schedule_provider', ['name' => 'newsletter']);
     }
 
-    private static function http(ServicesConfigurator $services, mixed $clock, string $role): void
+    private static function http(ServicesConfigurator $services, mixed $clock, string $role, ?ReferenceConfigurator $limiter): void
     {
         $services->set(SubscriptionController::class)
             ->args([
                 service(Subscriptions::class), service(MailingListRepository::class), service(SubscriberRepository::class), service(SignedLinks::class),
-                service(CurrentSite::class), service('security.csrf.token_manager'), service('twig'), $clock,
+                service(CurrentSite::class), service('security.csrf.token_manager'), service('twig'), $clock, $limiter,
             ])
             ->tag('controller.service_arguments')
             ->public();
@@ -310,6 +322,63 @@ final class NewsletterServices
             $services->set(NewsletterSchemaListener::class)
                 ->args([service(self::string($config['connection']))])
                 ->tag('doctrine.event_listener', ['event' => ToolEvents::postGenerateSchema]);
+        }
+    }
+
+    /**
+     * The limits of the subscription form, when `subscription.rate_limit` is on: two sliding windows and a token
+     * bucket of the Rate Limiter component, in the pool of `rate_limiter_storage`, under `lock.factory` when it is
+     * defined; `null` when they are off.
+     *
+     * @param array<array-key, mixed> $limits
+     *
+     * @throws InvalidConfigurationException when an interval or the delay is not a duration
+     */
+    private static function subscriptionLimiter(ServicesConfigurator $services, array $limits, string $storage, string $secret): ?ReferenceConfigurator
+    {
+        if (true !== $limits['enabled']) {
+            return null;
+        }
+
+        $perIp = self::array($limits['per_ip']);
+        $perAddress = self::array($limits['per_address']);
+        $resendDelay = self::string($limits['resend_delay']);
+
+        foreach (['per_ip.interval' => $perIp['interval'], 'per_address.interval' => $perAddress['interval'], 'resend_delay' => $resendDelay] as $option => $duration) {
+            self::duration('subscription.rate_limit.'.$option, self::string($duration));
+        }
+
+        $factory = static fn (string $count, array $config): InlineServiceConfigurator => inline_service(RateLimiterFactory::class)->args([
+            ['id' => 'phil_newsletter.subscription.'.$count] + $config,
+            inline_service(CacheStorage::class)->args([service($storage)]),
+            service('lock.factory')->nullOnInvalid(),
+        ]);
+
+        $services->set(self::SUBSCRIPTION_LIMITER, SubscriptionRateLimiter::class)->args([
+            $factory('ip', ['policy' => 'sliding_window', 'limit' => self::integer($perIp['limit']), 'interval' => self::string($perIp['interval'])]),
+            $factory('address', ['policy' => 'sliding_window', 'limit' => self::integer($perAddress['limit']), 'interval' => self::string($perAddress['interval'])]),
+            $factory('resend', ['policy' => 'token_bucket', 'limit' => 1, 'rate' => ['interval' => $resendDelay, 'amount' => 1]]),
+            $secret,
+        ]);
+        $services->alias(SubscriptionRateLimiter::class, self::SUBSCRIPTION_LIMITER);
+        $services->alias(ConfirmationThrottle::class, self::SUBSCRIPTION_LIMITER);
+
+        return service(self::SUBSCRIPTION_LIMITER);
+    }
+
+    /**
+     * @throws InvalidConfigurationException when the text is not a positive duration of the Rate Limiter component, such as "15 minutes"
+     */
+    private static function duration(string $option, string $duration): void
+    {
+        try {
+            $seconds = new DateTimeImmutable('@0')->modify('+'.$duration)->getTimestamp();
+        } catch (DateMalformedStringException) {
+            $seconds = null;
+        }
+
+        if (null === $seconds || $seconds <= 0) {
+            throw new InvalidConfigurationException(\sprintf('"%s" is a duration, such as "15 minutes", not "%s".', $option, $duration));
         }
     }
 

@@ -133,10 +133,10 @@ final readonly class ClamdScanner implements Scanner, ScannerProbe
         $sent = 0;
 
         while (true) {
-            $chunk = Io::quietly(fn (): string|false => fread($stream, $this->chunkBytes));
+            $chunk = Io::chunk($stream, $this->chunkBytes);
 
-            if (false === $chunk) {
-                return ScanResult::error('The file cannot be read.');
+            if ($chunk instanceof ScanResult) {
+                return $chunk;
             }
 
             if ('' === $chunk) {
@@ -169,9 +169,7 @@ final readonly class ClamdScanner implements Scanner, ScannerProbe
     {
         $answer = $this->read($socket);
 
-        return null === $answer
-            ? ScanResult::error(\sprintf('clamd did not answer within %s seconds.', $this->timeoutSeconds))
-            : ClamdResponse::scan($answer);
+        return $answer instanceof ScanResult ? $answer : ClamdResponse::scan($answer);
     }
 
     /**
@@ -188,7 +186,9 @@ final readonly class ClamdScanner implements Scanner, ScannerProbe
         try {
             $this->limit($socket);
 
-            return $this->write($socket, 'z'.$command."\0") ? $this->read($socket) : null;
+            $answer = $this->write($socket, 'z'.$command."\0") ? $this->read($socket) : null;
+
+            return \is_string($answer) ? $answer : null;
         } finally {
             fclose($socket);
         }
@@ -222,24 +222,29 @@ final readonly class ClamdScanner implements Scanner, ScannerProbe
     }
 
     /**
-     * The answer up to its null byte or the end of the connection, at most `ClamdResponse::MAX_BYTES`, or `null` when
-     * the timeout passed first.
+     * The whole answer, up to and with its null byte, at most `ClamdResponse::MAX_BYTES`; otherwise an error result:
+     * the timeout passed, the connection closed before the null byte, or the answer is longer than the limit. An
+     * answer cut short is never read, so that `stream: OK` without its end is not taken for a clean file.
      *
      * @param resource $socket
      */
-    private function read(mixed $socket): ?string
+    private function read(mixed $socket): string|ScanResult
     {
         $answer = '';
 
-        while (!str_contains($answer, "\0") && \strlen($answer) < ClamdResponse::MAX_BYTES) {
+        while (!str_contains($answer, "\0")) {
+            if (\strlen($answer) >= ClamdResponse::MAX_BYTES) {
+                return ScanResult::error(\sprintf('clamd answered more than %d bytes without ending its answer.', ClamdResponse::MAX_BYTES));
+            }
+
             $bytes = Io::quietly(static fn (): string|false => fread($socket, ClamdResponse::MAX_BYTES - \strlen($answer)));
 
-            if (false === $bytes || '' === $bytes) {
-                if (stream_get_meta_data($socket)['timed_out']) {
-                    return null;
-                }
+            if (Io::timedOut($socket)) {
+                return ScanResult::error(\sprintf('clamd did not answer within %s seconds.', $this->timeoutSeconds));
+            }
 
-                break;
+            if (false === $bytes || '' === $bytes) {
+                return ScanResult::error('' === $answer ? 'clamd closed the connection without an answer.' : 'clamd closed the connection before the end of its answer.');
             }
 
             $answer .= $bytes;

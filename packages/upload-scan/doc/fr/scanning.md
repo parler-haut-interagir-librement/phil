@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=082d09720bfec8276450b1203d7773acb71b049be45c67b71f86a1c491b397d9 -->
+<!-- phil-dev source-sha256=7fef7848d1001e3b7e080c6f2d6ebf31b8284a98d6baeb0e596e4eed2a8100ad -->
 # Analyse
 
 ## Le port
@@ -18,6 +18,9 @@ depuis son début, jamais depuis l'endroit où cette lecture s'est arrêtée, ce
 une fin de fichier et obtiendrait une réponse saine pour un fichier infecté. Un flux qu'on ne peut pas rembobiner, comme
 un tube ou un socket, est analysé tel qu'il arrive si rien n'en a été lu, et donne un résultat d'erreur une fois lu,
 `The stream was read before the scan and cannot be rewound: give it to the scanner before reading it.`
+Le flux est lu jusqu'à sa fin, et seule sa fin compte comme la fin du fichier : un flux qui échoue, dépasse son délai
+d'attente (celui d'un socket ou d'un flux distant) ou ne donne plus rien sans avoir pris fin est un résultat d'erreur,
+jamais la fin d'un fichier dont le début serait alors analysé et jugé sain. Donnez à l'analyseur un flux bloquant.
 `scanPath()` ouvre un fichier local et le ferme. Une valeur qui n'est pas un flux ouvert est refusée avec
 `InvalidArgument` : c'est une erreur dans le code appelant. Tout le reste qui empêche l'analyse d'un fichier (le moteur injoignable ou trop lent, le
 fichier illisible ou plus gros que la limite) est un résultat d'erreur, jamais une exception, pour que la politique

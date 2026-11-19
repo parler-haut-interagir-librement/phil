@@ -195,13 +195,64 @@ final class PhilSpamProtectionBundleTest extends TestCase
             return $container;
         };
 
+        $locked = ['used_tokens' => ['lock_factory' => 'lock.factory']];
         $build(['rate_limiter' => 'limiter.contact'], 'test');
-        $build(['rate_limiter' => 'limiter.shared'], 'prod');
-        $build(['rate_limiter' => 'limiter.contact', 'single_server' => true], 'prod');
-        $build([], 'prod');
+        $build(['rate_limiter' => 'limiter.shared'] + $locked, 'prod');
+        $build(['rate_limiter' => 'limiter.contact', 'single_server' => true] + $locked, 'prod');
+        $build($locked, 'prod');
 
         $this->expectExceptionObject(new InvalidConfigurationException('phil_spam_protection.rate_limiter: the store "limiter.contact" is local to each server, so a client could spend the limit once per server. Name a cache pool on a shared store — Redis, Memcached, a database —, or set "single_server" to true on a single server.'));
-        $build(['rate_limiter' => 'limiter.contact'], 'prod');
+        $build(['rate_limiter' => 'limiter.contact'] + $locked, 'prod');
+    }
+
+    public function testInProductionTheUsedTokensNeedAStoreSafeUnderConcurrency(): void
+    {
+        $load = static function (array $config, ?string $environment): ContainerBuilder {
+            $container = new ContainerBuilder();
+
+            if (null !== $environment) {
+                $container->setParameter('kernel.environment', $environment);
+            }
+
+            $extension = new PhilSpamProtectionBundle()->getContainerExtension();
+            self::assertNotNull($extension);
+            $extension->load([$config], $container);
+
+            return $container;
+        };
+
+        self::assertSame(CacheUsedTokens::class, (string) $load([], 'dev')->getAlias(UsedTokens::class), 'The pool alone outside production.');
+        self::assertSame(CacheUsedTokens::class, (string) $load([], 'test')->getAlias(UsedTokens::class));
+        self::assertSame(CacheUsedTokens::class, (string) $load([], null)->getAlias(UsedTokens::class));
+        self::assertSame(CacheUsedTokens::class, (string) $load(['used_tokens' => ['lock_factory' => 'lock.factory']], 'prod')->getAlias(UsedTokens::class));
+        self::assertSame(DbalUsedTokens::class, (string) $load(['used_tokens' => ['connection' => 'default']], 'prod')->getAlias(UsedTokens::class));
+
+        foreach ([[], ['single_server' => true], ['cache_pool' => 'cache.redis']] as $config) {
+            try {
+                $load($config, 'prod');
+                self::fail('The pool alone was accepted in production.');
+            } catch (InvalidConfigurationException $invalidConfigurationException) {
+                self::assertSame(PhilSpamProtectionBundle::UNSAFE_STORE, $invalidConfigurationException->getMessage());
+            }
+        }
+
+        self::assertStringStartsWith('phil_spam_protection.used_tokens: in the prod environment,', PhilSpamProtectionBundle::UNSAFE_STORE);
+    }
+
+    public function testTheGuardOfTheStoreIsCalledFromOutsideTheBundle(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->setParameter('kernel.environment', 'dev');
+        PhilSpamProtectionBundle::assertConcurrencySafeStore($builder, ['connection' => null, 'lock_factory' => null]);
+        PhilSpamProtectionBundle::assertConcurrencySafeStore($builder, ['connection' => 'default', 'lock_factory' => null]);
+
+        $builder->setParameter('kernel.environment', 'prod');
+        PhilSpamProtectionBundle::assertConcurrencySafeStore($builder, ['connection' => null, 'lock_factory' => 'lock.factory']);
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageIsOrContains(PhilSpamProtectionBundle::UNSAFE_STORE);
+
+        PhilSpamProtectionBundle::assertConcurrencySafeStore($builder, ['connection' => null, 'lock_factory' => null]);
     }
 
     public function testAnEmptySecretIsRefused(): void

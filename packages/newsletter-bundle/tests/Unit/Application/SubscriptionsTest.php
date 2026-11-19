@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Phil\NewsletterBundle\Tests\Unit\Application;
 
+use Phil\EmailAddress\EmailValidator;
 use Phil\EmailAddress\Problem;
+use Phil\NewsletterBundle\Application\Contract\ConfirmationThrottle;
 use Phil\NewsletterBundle\Application\Event\AudienceChanged;
 use Phil\NewsletterBundle\Application\Exception\NotFound;
 use Phil\NewsletterBundle\Application\Exception\SubscriptionRefused;
@@ -65,6 +67,37 @@ final class SubscriptionsTest extends TestCase
 
         self::assertSame(SubscribeOutcome::AlreadySubscribed, $this->newsletter->subscriptions->subscribe($list, 'ada@example.com', 'user-2'));
         self::assertSame('user-1', $this->subscriber('ada@example.com')->externalId);
+    }
+
+    public function testAConfirmationIsNotSentAgainWithinTheDelay(): void
+    {
+        $throttle = new class implements ConfirmationThrottle {
+            /** @var list<string> */
+            public array $asked = [];
+
+            public function allowsConfirmation(string $subscriberId): bool
+            {
+                $this->asked[] = $subscriberId;
+
+                return 1 === \count($this->asked);
+            }
+        };
+        $n = $this->newsletter;
+        $subscriptions = new Subscriptions($n->lists, $n->subscribers, $n->suppressions, $n->deliveries, $n->engagement, new EmailValidator(), $n->bus, $n->events, $n->clock, $throttle);
+        $list = $n->list();
+
+        self::assertSame(SubscribeOutcome::ConfirmationSent, $subscriptions->subscribe($list, 'ada@example.com'));
+        self::assertSame(SubscribeOutcome::ConfirmationDelayed, $subscriptions->subscribe($list, ' ADA@example.com '));
+
+        $subscriber = $this->subscriber('ada@example.com');
+        self::assertSame([$subscriber->id, $subscriber->id], $throttle->asked);
+        self::assertCount(1, $n->bus->messages(SendConfirmation::class));
+        self::assertSame([AudienceEventType::Subscribed], $this->types(), 'A confirmation not sent announces nothing.');
+        self::assertSame(SubscriberStatus::Pending, $subscriber->status);
+        self::assertSame(MembershipStatus::Pending, $n->subscribers->membership($subscriber->id, $list->id)?->status);
+
+        self::assertSame(SubscribeOutcome::Subscribed, $subscriptions->subscribe($n->list('events', false), 'ada@example.com'), 'A single opt-in asks nothing of the throttle.');
+        self::assertCount(2, $throttle->asked);
     }
 
     public function testASingleOptInSubscribesAtOnce(): void

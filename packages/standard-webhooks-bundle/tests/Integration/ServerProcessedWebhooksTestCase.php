@@ -17,7 +17,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * The processed ids on a real server read from the environment: two ids that differ by their case are both claimed,
- * and an id is claimed once.
+ * an id is claimed once, and each receiver claims its ids apart.
  */
 abstract class ServerProcessedWebhooksTestCase extends TestCase
 {
@@ -37,6 +37,17 @@ abstract class ServerProcessedWebhooksTestCase extends TestCase
         self::assertTrue($processed->claim(WebhookId::fromString('msg_a'), $at));
         self::assertFalse($processed->claim(WebhookId::fromString('msg_a'), $at));
         self::assertFalse($processed->claim(WebhookId::fromString('msg_A'), $at));
+    }
+
+    public function testEachReceiverClaimsItsIdsApart(): void
+    {
+        $processed = new DbalProcessedWebhooks($this->connection(), 'shop');
+        $at = new DateTimeImmutable('2026-11-10 12:00 UTC');
+
+        self::assertTrue($processed->forReceiver('partner')->claim(WebhookId::fromString('msg_1'), $at));
+        self::assertTrue($processed->claim(WebhookId::fromString('msg_1'), $at));
+        self::assertFalse($processed->claim(WebhookId::fromString('msg_1'), $at));
+        self::assertTrue($processed->forReceiver('Shop')->claim(WebhookId::fromString('msg_1'), $at), 'Two receivers that differ by their case are two receivers.');
     }
 
     #[Override]

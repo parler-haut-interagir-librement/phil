@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ec71a26b3b85283ff0ec00a97761e540d9ce6a8042952f04bed9a0ff02824367 -->
+<!-- phil-dev source-sha256=e8278f6f02f8181769b4b55d5e817587e5d45f4d391b45c4abc950a3f603f27e -->
 # phil/upload-scan
 
 **Chaque fichier téléversé passe par un antivirus avant que quiconque puisse l'ouvrir.**
@@ -37,7 +37,7 @@ donc chaque requête d'un *worker* de longue durée.
 |---|---|
 | [Installation](doc/fr/installation.md) | Prérequis, installation, construction d'un analyseur. |
 | [Analyse](doc/fr/scanning.md) | Le port, les résultats, la politique et ses décisions. |
-| [clamd](doc/fr/clamd.md) | `ClamdScanner`, le protocole qu'il parle, la limite de taille, les délais d'attente, la sonde. |
+| [clamd](doc/fr/clamd.md) | `ClamdScanner`, le protocole qu'il parle, les réponses tronquées, clamd sur un socket Unix local, la limite de taille, les délais d'attente, la sonde. |
 | [Points d'extension](doc/fr/extension-points.md) | Un autre antivirus derrière `Scanner`, une autre façon de joindre clamd. |
 | [Tests](doc/fr/testing.md) | Les tests, la cible de fuzzing et le banc d'essai de la bibliothèque ; `NullScanner` et `FakeScanner` dans les tests de l'application. |
 | [Référence](doc/fr/reference.md) | Chaque type de la bibliothèque, avec son rôle. |

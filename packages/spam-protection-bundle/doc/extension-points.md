@@ -18,7 +18,7 @@ The bundle ships three, chosen by `used_tokens` ([Configuration](configuration.m
 |---|---|---|
 | `DbalUsedTokens`, with `used_tokens.connection` | Yes | One insert on the primary key of the nonce; a duplicate is refused. |
 | `CacheUsedTokens` under `used_tokens.lock_factory` | Yes, with a shared lock store | The lock of the nonce, then a read and a write under it. |
-| `CacheUsedTokens` alone, the default | No | A read, a marker written, and a read back. |
+| `CacheUsedTokens` alone, the default | No | A read, a marker written, and a read back; refused in the `prod` environment. |
 
 PSR-6 has no atomic "add if absent", so the pool alone reads, writes a marker of its own, and reads back: of two
 submissions that write one after the other, the one whose marker was overwritten is refused. Two that each read

@@ -15,6 +15,7 @@ use Phil\SpamProtectionBundle\Infrastructure\Form\SpamProtectionTypeExtension;
 use Phil\SpamProtectionBundle\Infrastructure\Http\ClientKey;
 use Phil\SpamProtectionBundle\Infrastructure\RateLimit\SymfonySubmissionRateLimiter;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Kernel\AbstractBundle;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -33,12 +34,15 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
  *     proof_of_work: 12
  *     content: { maximum_length: 20000, maximum_links: 3, forbidden_terms: [], detect_gibberish: true }
  *     cache_pool: cache.app
- *     used_tokens: { connection: null, lock_factory: null }   # an atomic store of used tokens, for production
+ *     used_tokens: { connection: null, lock_factory: null }   # an atomic store of used tokens, required in production
  *     rate_limiter: null      # the service id of a Symfony rate limiter factory
  * ```
  */
 final class PhilSpamProtectionBundle extends AbstractBundle
 {
+    /** The refusal of the cache pool alone as the store of used tokens, in the prod environment. */
+    public const string UNSAFE_STORE = 'phil_spam_protection.used_tokens: in the prod environment, the used tokens need a store that is safe under concurrent submissions. Set "used_tokens.connection" to a Doctrine connection, such as "default", or "used_tokens.lock_factory" to a lock factory on a store every web server shares, such as "lock.factory". The cache pool alone, in memory or in files, lets two submissions of one token both pass: it is accepted outside production only.';
+
     #[Override]
     protected string $extensionAlias = 'phil_spam_protection';
 
@@ -93,7 +97,7 @@ final class PhilSpamProtectionBundle extends AbstractBundle
                     ->defaultValue('cache.app')
                 ->end()
                 ->arrayNode('used_tokens')
-                    ->info('How a token is made single-use atomically: a table of a Doctrine connection, or the cache pool under a lock. Without either, two submissions of one token at the same moment can both pass.')
+                    ->info('How a token is made single-use atomically: a table of a Doctrine connection, or the cache pool under a lock; one of them is required in the prod environment. Without either, two submissions of one token at the same moment can both pass.')
                     ->addDefaultsIfNotSet()
                     ->validate()
                         ->ifTrue(static fn (array $tokens): bool => null !== $tokens['connection'] && null !== $tokens['lock_factory'])
@@ -131,6 +135,26 @@ final class PhilSpamProtectionBundle extends AbstractBundle
     }
 
     /**
+     * Refuses, in the `prod` environment, the cache pool alone as the store of used tokens: a read then a write, in
+     * memory or in files, lets two simultaneous submissions of one token both pass. A table of a connection, or the
+     * pool under a lock, is required there; outside production, the pool alone is accepted.
+     *
+     * @param array{connection: ?string, lock_factory: ?string} $usedTokens
+     *
+     * @throws InvalidConfigurationException in the prod environment, when neither a connection nor a lock factory is named
+     */
+    public static function assertConcurrencySafeStore(ContainerBuilder $builder, array $usedTokens): void
+    {
+        $environment = $builder->hasParameter('kernel.environment') ? $builder->getParameter('kernel.environment') : null;
+
+        if ('prod' !== $environment || null !== $usedTokens['connection'] || null !== $usedTokens['lock_factory']) {
+            return;
+        }
+
+        throw new InvalidConfigurationException(self::UNSAFE_STORE);
+    }
+
+    /**
      * @param array<array-key, mixed> $config
      */
     #[Override]
@@ -139,6 +163,7 @@ final class PhilSpamProtectionBundle extends AbstractBundle
         /** @var array{secret: string, timing: array{minimum: int, maximum: int}, proof_of_work: int, content: array{maximum_length: ?int, maximum_links: ?int, forbidden_terms: list<string>, detect_gibberish: bool}, cache_pool: string, used_tokens: array{connection: ?string, lock_factory: ?string}, rate_limiter: ?string, single_server: bool} $config */
         $services = $container->services();
         $connection = $config['used_tokens']['connection'];
+        self::assertConcurrencySafeStore($builder, $config['used_tokens']);
 
         if (null !== $connection) {
             $reference = service(\sprintf('doctrine.dbal.%s_connection', $connection));
