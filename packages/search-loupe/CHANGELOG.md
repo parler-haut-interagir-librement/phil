@@ -4,6 +4,15 @@ All notable changes to `phil/search-loupe` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: it installs with `phil/search-bundle` 0.2 as well as 0.1. A patch version and not
+a minor one: the `SearchIndex` port it implements is the same in both.
+
+### Changed
+
+- `phil/search-bundle` 0.2 is accepted beside 0.1.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added
