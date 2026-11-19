@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6150cf71860430da75a6fe5f89024b71aa25ff40a9749b28d7cfa51f4f5ec4f9 -->
+<!-- phil-dev source-sha256=e25864509bbbbb013f176eff80dc6c35741d75884b541518ab73dc575b59f753 -->
 # Installation
 
 ```sh
@@ -9,8 +9,11 @@ Le paquet exige PHP 8.5 ou une version plus récente avec `mbstring`, `phil/brai
 
 ## Installer liblouis
 
-liblouis est une bibliothèque et un ensemble de programmes sous la LGPL, avec ses tables de traduction ; le paquet
-exécute son programme `lou_translate` et n'en fournit rien. Installez-le sur chaque machine qui traduit.
+liblouis est une bibliothèque sous la LGPL 2.1 ou plus récente ; ses tables de traduction et ses programmes en ligne de
+commande, dont `lou_translate`, sont sous la GPL 3 ou plus récente. Le paquet exécute `lou_translate` comme un programme
+distinct, par Symfony Process : il n'en fournit aucune partie, n'est lié à aucune et n'en charge aucune dans PHP, de
+sorte que sa propre licence MIT reste entière et que les conditions de liblouis ne lient que la machine qui l'installe.
+Installez-le sur chaque machine qui traduit.
 
 | Système | Commande |
 |---|---|

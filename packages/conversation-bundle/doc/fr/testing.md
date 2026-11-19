@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=9aec2fcc678f16e39e9200d5c76b6bd5a08ff7d2ab3b41343b0ffd0bfc661915 -->
+<!-- phil-dev source-sha256=93f5d3d02bb4c5934ac543ff13bfa1790a9e7a92955cafd0674297334fe6e087 -->
 # Tests
 
 ## Les tests du bundle
 
 La suite `tests/Unit` teste les identifiants et les modèles ; `Conversations` et `Reception` sur les dépôts DBAL avec
 SQLite — conversations directes et de groupe, réglages de réception et blocages, vérification du participant, non lu,
-sourdine, départ, boîte de réception et fil par page, événements — ; le sceau, son format et chaque texte altéré qu'il
+sourdine, départ, boîte de réception et fil par page, événements, deux premiers messages au même instant — ; le sceau, son format et chaque texte altéré qu'il
 refuse ; les dépôts, leurs instants en UTC, la conversation directe unique, l'effacement et l'écouteur de schéma ; la
 rotation et sa commande ; les notifications, le sujet d'une notification, les mises à jour Mercure et un hub
 injoignable, l'exportation et l'effacement de phil/privacy-bundle, le participant courant de Symfony Security, les
@@ -19,7 +19,7 @@ pleine.
 
 La suite `tests/Integration` exécute les dépôts sur MySQL 8.4 et PostgreSQL 17, à `PHIL_TEST_MYSQL_URL` et
 `PHIL_TEST_POSTGRESQL_URL`, et est ignorée sans eux : les conversations conservées et lues par page, la conversation
-directe unique, l'effacement et une rotation de la clé maîtresse.
+directe unique et deux premiers messages au même instant dans une transaction ouverte, l'effacement et une rotation de la clé maîtresse.
 
 Les tests du contrôleur Stimulus, dans `tests/js`, s'exécutent avec l'exécuteur de tests propre à Node, Stimulus étant
 remplacé par une doublure par `register.mjs`. `tests/Functional/JavaScriptTest.php` les exécute avec les autres suites ;

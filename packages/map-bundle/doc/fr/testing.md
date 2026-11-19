@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f60b44bb553d73960de140ebe042044f5fa10c76c408abd98d7a81371f55202f -->
+<!-- phil-dev source-sha256=4d733c923f45f1d30ae48dff090d3feac884a70f3838a4579f764d63e84b1d00 -->
 # Tests
 
 ## Les tests du bundle
@@ -35,7 +35,8 @@ Chaque ligne de `src/` est tenue par la barre de mutation du monodépôt : chaqu
 PHP : les quatre cartes dessinées par Leaflet avec le contrôleur du bundle, leurs tuiles demandées au mandataire du site
 sans référent, les zones et les kiosques dans les classes de leurs états, le plan d'étage sur le système de référence
 plat, une archive PMTiles dont le paquet manque et qui se rabat sur les tuiles passées par le mandataire, et les listes.
-Il exige Leaflet et Stimulus depuis npm et le chromedriver du système, et s'exécute à part, comme Infection :
+Il exige Leaflet et Stimulus depuis npm, que `npm ci --ignore-scripts` dans `tests/Browser` installe, et le chromedriver
+du système ; sans Leaflet, il est ignoré. Il s'exécute à part, comme Infection :
 
 ```sh
 composer test:browser

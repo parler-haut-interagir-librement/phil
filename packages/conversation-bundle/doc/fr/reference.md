@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fec186e96a3d7087ec6e88fe568f13caa71a6444cd281b2f8ed6ac9dc0f6c4cb -->
+<!-- phil-dev source-sha256=a049a8f1b331a7cfe3b3369cdef11804e7f539b75d876b80484d43916c9f670c -->
 # Référence
 
 ## Bundle
@@ -27,6 +27,7 @@
 | `Domain\Exception\InvalidParticipant`, `InvalidConversation` | Un identifiant, un texte ou un groupe refusé |
 | `Domain\Exception\NotAParticipant` | Une conversation lue ou écrite par une personne qui n'en fait pas partie, ou qui n'existe pas |
 | `Domain\Exception\WritingRefused` | Un message que les réglages de réception refusent |
+| `Domain\Exception\DirectConversationExists` | Une conversation directe démarrée alors que ses deux participants en partagent déjà une ; `Conversations` l'attrape et écrit dans celle-là |
 | `Domain\Exception\UnreadableMessage` | Un texte scellé qui ne s'ouvre pas |
 
 ## Application

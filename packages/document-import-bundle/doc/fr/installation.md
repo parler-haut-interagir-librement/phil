@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fab761225121a36bf506c199d66e8cac1a5fc14075a9677ddf28f83b65e4accc -->
+<!-- phil-dev source-sha256=fd33b4463fdc0ce51e89d324e63d5710fb62edb092699169f9a996154d6f5721 -->
 # Installation
 
 ## Prérequis
@@ -24,7 +24,8 @@
 composer require phil/document-import-bundle
 ```
 
-Symfony Flex active le bundle ; sans Flex, ajoutez-le à `config/bundles.php` :
+Avec Symfony Flex, la recette active le bundle et écrit `config/packages/phil_document_import.yaml`, le magasin de médias
+et l'analyse laissés à `auto` ; sans Flex, ajoutez-le à `config/bundles.php` :
 
 ```php
 return [

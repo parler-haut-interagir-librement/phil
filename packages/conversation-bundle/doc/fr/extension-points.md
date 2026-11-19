@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d59e1f550b2f4322826fc757a2df655b1b2a540693a7bd4dcb3cfc392276a813 -->
+<!-- phil-dev source-sha256=44c234ca861d13b563bfe524c879853e49a0cfd5ffdf9288c92b2c6e682ceae8 -->
 # Points d'extension
 
 Le bundle est dans ses versions `0.x` : les ports, les événements et les services ci-dessous peuvent changer dans une
@@ -82,7 +82,9 @@ Les conversations lues sans la vérification du participant, pour les paquets b�
 
 Les dépôts, dans `Phil\ConversationBundle\Domain\Repository`, avec leurs implémentations DBAL. Un autre dépôt
 implémente les deux interfaces et en reçoit l'alias ; il scelle les textes au repos, garde les instants en UTC et donne
-à chaque message une séquence qui ordonne les conversations.
+à chaque message une séquence qui ordonne les conversations. Quand `saveParticipation()` achève une nouvelle
+conversation directe dont les deux participants en partagent déjà une, il supprime la nouvelle conversation et lève
+`DirectConversationExists`.
 
 ## Événements
 

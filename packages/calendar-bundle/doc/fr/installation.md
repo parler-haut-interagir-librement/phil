@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=89c40228bee73d6c7e35609cf16d6cf1f248c72c4501e4b085e1da598ba42dee -->
+<!-- phil-dev source-sha256=57d6a7da9cb0dd74fb9116965f406f054b05efed885e79aed4386a557eb1ee04 -->
 # Installation
 
 | Prérequis | Version | Pourquoi |
@@ -34,6 +34,10 @@
 ```sh
 composer require phil/calendar-bundle
 ```
+
+Avec Symfony Flex, la recette enregistre le bundle, écrit `config/packages/phil_calendar.yaml` avec le fuseau horaire et
+le premier jour de la semaine d'un nouveau calendrier, et importe les routes sous `/calendar`. Sans elle, enregistrez
+les deux bundles dans `config/bundles.php` :
 
 ```php
 // config/bundles.php

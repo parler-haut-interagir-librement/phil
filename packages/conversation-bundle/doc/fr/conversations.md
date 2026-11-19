@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=cc57f8a9a6a07538416665f50a53c3708128421b395c19d38b4dbb2599de52c9 -->
+<!-- phil-dev source-sha256=bf57bdba6e36d253cdb91b2d4e4d356a441129b7eacd4b12077bc41befac2eb0 -->
 # Conversations
 
 ## Participants
@@ -27,8 +27,9 @@ $group = $conversations->startGroup($ada, [$bob, ParticipantId::fromString('memb
 ```
 
 Une conversation directe entre deux participants est unique : la personne qui écrit en premier la démarre, et un
-`startDirect()` ultérieur, dans un sens ou dans l'autre, y écrit et ramène un participant qui l'avait quittée. Une
-conversation de groupe contient de 2 à `limits.group_size` participants, son auteur compris ; les autres sont donnés une
+`startDirect()` ultérieur, dans un sens ou dans l'autre, y écrit et ramène un participant qui l'avait quittée. Quand les deux
+écrivent leur premier message au même instant, le dépôt refuse la seconde conversation, la supprime et `startDirect()`
+écrit dans celle que l'autre a démarrée ; un seul `ConversationStarted` est émis. Une conversation de groupe contient de 2 à `limits.group_size` participants, son auteur compris ; les autres sont donnés une
 seule fois chacun, l'auteur omis.
 
 Un corps est rogné, ne peut pas être vide ni plus long que `limits.body_length` caractères ; un sujet est rogné, vide

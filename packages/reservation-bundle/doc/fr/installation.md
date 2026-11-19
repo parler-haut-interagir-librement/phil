@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6015b7e874083cac3e7b89329db462fde78f273c9615b5efd42534b587c0b84e -->
+<!-- phil-dev source-sha256=7fe48f9117b2815834c053df998fbfcade0c95a23fcd362e61eb5880ac4f33dc -->
 # Installation
 
 | Prérequis | Version | Raison |
@@ -16,7 +16,8 @@
 composer require phil/reservation-bundle
 ```
 
-Enregistrez le bundle quand Symfony Flex ne le fait pas :
+Avec Symfony Flex, la recette enregistre le bundle ; ses valeurs par défaut n'exigent aucun fichier de configuration.
+Sans Flex, enregistrez le bundle dans `config/bundles.php` :
 
 ```php
 // config/bundles.php
