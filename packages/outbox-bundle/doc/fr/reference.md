@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=435fd485fcf9ebd3f779db7d7571b18974fa146c9f1516337c0be1a093da4e42 -->
+<!-- phil-dev source-sha256=7671580a0564660efa4c8937cd9ce97ca86fb03fbcdaded8efb7d1951bd26144 -->
 # Référence
 
 ## Le bundle
@@ -12,7 +12,7 @@
 
 | Classe | Rôle |
 |---|---|
-| `Infrastructure\Doctrine\DbalOutboxStore` | Les enregistrements dans une table d'une connexion DBAL, joints à la transaction de l'appelant ; une réservation qui prend ses enregistrements à bail en un seul `UPDATE` |
+| `Infrastructure\Doctrine\DbalOutboxStore` | Les enregistrements dans une table d'une connexion DBAL, joints à la transaction de l'appelant ; une réservation qui prend ses enregistrements à bail en un seul `UPDATE` ; `clearErrorMessages()` retire les messages des erreurs conservées |
 | `Infrastructure\Doctrine\OutboxTable` | Le nom et la définition de la table, les collations d'octets des clés |
 | `Infrastructure\Doctrine\OutboxSchemaListener` | Ajoute la table au schéma que l'ORM génère |
 | `Infrastructure\Doctrine\Rows` | Les colonnes d'une ligne sous forme de types PHP |
@@ -27,6 +27,7 @@
 | `Infrastructure\Console\DeadRemoveCommand` | `phil:outbox:dead:remove` |
 | `Infrastructure\Console\PurgeCommand` | `phil:outbox:purge` |
 | `Infrastructure\Console\SchemaCommand` | `phil:outbox:schema` |
+| `Infrastructure\Console\ClearErrorsCommand` | `phil:outbox:errors:clear` |
 | `Infrastructure\Worker\RelayRunner` | Exécute le relais lot après lot, sous le verrou `phil_outbox.relay` |
 
 ## Le planificateur et Messenger

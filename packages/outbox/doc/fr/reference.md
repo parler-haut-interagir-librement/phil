@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3e72e23fbbf8505cd24d3eeb04c9edcc477a138903ed0e3bc9fbf0fd173ffa06 -->
+<!-- phil-dev source-sha256=34cbd51ee12f2576d81fe72c0d4d70bf5c5705da82e3b482892d3217046a08e3 -->
 # Référence
 
 ## Enregistrement
@@ -15,7 +15,7 @@
 
 | Type | Rôle |
 |---|---|
-| `OutboxRecord` | Un enregistrement tel qu'un entrepôt le conserve : type, JSON de la charge utile, clés, occurrence, disponibilité, état, tentatives, dernière erreur, règlement ; `pending()` en vérifie un nouveau, `payload()` lit sa charge utile, `error()` écrit l'erreur d'une exception |
+| `OutboxRecord` | Un enregistrement tel qu'un entrepôt le conserve : type, JSON de la charge utile, clés, occurrence, disponibilité, état, tentatives, dernière erreur, règlement ; `pending()` en vérifie un nouveau, `payload()` lit sa charge utile, `error()` écrit la classe et le code d'une exception, et le message de celles du paquet seulement ; `OWN_EXCEPTIONS`, l'espace de noms de celles-ci |
 | `RecordState` | `Pending`, `Delivered` ou `Dead` |
 | `Contract\OutboxStore` | Où les enregistrements sont conservés |
 | `Memory\InMemoryOutboxStore` | Les enregistrements dans la mémoire d'un seul processus |

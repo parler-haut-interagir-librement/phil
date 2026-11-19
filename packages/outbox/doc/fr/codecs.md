@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=99890194e134ea6278ee0b3332ff6e85700fe2416c228f50a5121fce9159d809 -->
+<!-- phil-dev source-sha256=41f0dee8775c8347e806baf1fc81c3533ad22201f645fd20de092e08110c2caf -->
 # Codecs
 
 Un codec reconstruit les événements de certains types à partir de leurs enregistrements, pour que le relais les
@@ -37,7 +37,9 @@ final readonly class SetEventsCodec implements EventCodec
   manquante ou d'un mauvais type lance `InvalidRecord`, et l'enregistrement est mort aussitôt.
 - Il peut relire le reste de l'événement là où sa bibliothèque le conserve.
 - Il lance `UndeliverableRecord` quand l'enregistrement ne peut jamais redevenir un événement, par exemple quand l'état
-  qu'il nomme a disparu pour de bon : le relais déplace aussitôt l'enregistrement parmi les enregistrements morts.
+  qu'il nomme a disparu pour de bon : le relais déplace aussitôt l'enregistrement parmi les enregistrements morts. Sa raison est conservée comme
+  dernière erreur de l'enregistrement : des identifiants seulement, jamais de renseignements personnels
+  ([La dernière erreur](housekeeping.md#la-dernière-erreur)).
 - Toute autre exception est une tentative échouée : le relais essaie de nouveau l'enregistrement après le délai de son
   recul.
 - Il n'exécute jamais `unserialize()` de PHP : un enregistrement contient du JSON d'identifiants, relu sous les mêmes

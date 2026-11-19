@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6ae8a3209620e8e1b6c052b56acef6860d93bd371f1dfd4ac923764fe9d10627 -->
+<!-- phil-dev source-sha256=3ff65abe216d2a2a00a793585d92ce059c3c4cd9738de36da86b83600dc1fda6 -->
 # Chiffrer les données personnelles au repos
 
 Le bundle déclare, exporte, efface et anonymise les données personnelles ; il ne les chiffre pas. Les colonnes de
@@ -96,12 +96,28 @@ naissance ni un code postal. L'écouteur n'écrit l'étiquette que par l'ORM : u
 
 ## La rotation
 
-Les clés maîtresses font leur rotation dans le KMS et le composant, pas dans ce bundle. Avec un magasin de clés de
-données, les valeurs des colonnes renvoient à des clés de données enregistrées, et `key-management:rewrap-data-keys`
-enveloppe ces clés de nouveau sous un autre client ou une autre clé maîtresse sans réécrire une ligne. Sans magasin,
-chaque valeur porte sa clé de données enveloppée : gardez l'ancienne clé maîtresse dans le KMS tant que des valeurs
-scellées sous elle demeurent, et réécrivez-les en chargeant et en enregistrant les entités sous la nouvelle clé. La clé
-de données d'un index aveugle ne fait jamais sa rotation : toute étiquette déjà écrite en est dérivée.
+Les clés font leur rotation dans le KMS et dans `symfony/key-management`, pas dans ce bundle, et aucune commande de ce
+bundle ne chiffre de nouveau les valeurs déjà écrites.
+
+Avec un magasin de clés de données, les valeurs des colonnes renvoient à des clés de données enregistrées :
+
+- `rotate($scope)` du magasin, `RewrappableDataKeyStoreInterface`, retire la clé de données courante d'une portée et en
+  crée une neuve : les valeurs écrites dès lors sont scellées sous elle, et celles déjà écrites continuent de renvoyer à
+  la clé retirée, qui reste dans le magasin et ne doit pas être supprimée tant qu'elles demeurent.
+- `key-management:rewrap-data-keys` enveloppe de nouveau les clés de données enregistrées sous un autre client ou une
+  autre clé maîtresse, sans lire ni réécrire une valeur de colonne. L'ancienne clé maîtresse peut quitter le KMS une fois
+  toutes les clés enregistrées enveloppées de nouveau.
+
+Sans magasin, chaque valeur porte sa clé de données enveloppée : gardez l'ancienne clé maîtresse dans le KMS tant que
+des valeurs scellées sous elle demeurent. Charger et enregistrer les entités ne rechiffre rien : l'unité de travail de
+Doctrine compare les valeurs déchiffrées, les trouve égales et n'écrit aucune ligne, de sorte qu'une clé maîtresse
+retirée ensuite détruit chaque valeur encore scellée sous elle.
+
+La rotation limite ce que lit une clé de données divulguée, pas ce que lit l'accès au KMS : quiconque peut appeler le KMS
+avec les identifiants de l'application déballe chaque clé de données, retirée ou courante, et déchiffre donc chaque
+colonne. Restreignez cet accès à l'application, et auditez ses appels dans le KMS.
+
+La clé de données d'un index aveugle ne fait jamais sa rotation : toute étiquette déjà écrite en est dérivée.
 
 ## L'effacement et l'anonymisation
 

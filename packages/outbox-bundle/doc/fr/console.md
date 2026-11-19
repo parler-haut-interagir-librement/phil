@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d628b52feaa303c3c3099e91345beb45e84a8b57526e8c859e1cf6e294f1cc11 -->
+<!-- phil-dev source-sha256=b482369cc5bb7747bbbb5b0636403a9d673c2ff998050478bcea772d777b6d69 -->
 # Console
 
 ## `phil:outbox:relay`
@@ -26,7 +26,7 @@ se termine par la somme :
 
 Liste les enregistrements morts, les plus anciens d'abord, avec le compte des enregistrements par état : `--limit`
 (50) et `--offset` (0). Avec un identifiant, montre cet enregistrement : son type, son état, sa charge utile, ses clés,
-son occurrence, ses tentatives, son règlement et sa dernière erreur.
+son occurrence, ses tentatives, son règlement et sa dernière erreur, la classe et le code de l'exception de sa dernière tentative.
 
 ## `phil:outbox:dead:retry`
 
@@ -43,6 +43,14 @@ laisse passer les enregistrements suivants de leurs clés d'ordre. Rien n'est re
 Retire les enregistrements livrés réglés il y a plus de `retention` secondes, les plus anciens d'abord, jusqu'à
 `--limit` (1 000) ; `--retention` choisit un autre nombre de secondes. Les enregistrements en attente et morts restent.
 Exécutez-la selon un horaire, par exemple une fois l'heure.
+
+## `phil:outbox:errors:clear`
+
+Retire le message des erreurs que la table conserve, et en garde la classe : `RuntimeException: 550 …` devient
+`RuntimeException`. Une erreur garde la classe et le code d'une exception, et le message des exceptions propres à
+l'outbox seulement ; cette commande réécrit les erreurs écrites avec le message de n'importe quelle exception, qui peut
+citer des renseignements personnels, comme une adresse qu'un serveur de courriel a refusée. Les erreurs des exceptions
+propres à l'outbox restent telles quelles, et la relancer ne réécrit rien. Enregistrée avec l'entrepôt `dbal`.
 
 ## `phil:outbox:schema`
 
