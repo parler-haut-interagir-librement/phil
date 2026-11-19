@@ -28,7 +28,10 @@ use Phil\CoursesBundle\Domain\ValueObject\ScormAttemptId;
 use Phil\CoursesBundle\Infrastructure\Doctrine\CourseTables;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalScormAttemptRepository;
 use Phil\CoursesBundle\Tests\Unit\Fixture\Store;
+use Phil\ElearningPackages\Runtime\Duration;
+use Phil\ElearningPackages\Runtime\RuntimeStatus;
 use Phil\ElearningPackages\Runtime\ScormVersion;
+use Phil\ElearningPackages\Runtime\SessionEnd;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -286,6 +289,60 @@ final class ScormTimeLimitTest extends TestCase
 
         $restored = new ScormAttempt(ScormAttemptId::generate(), EnrollmentId::of('e'), ActivityId::of('a'), 1, ScormVersion::Scorm12, $at, elapsed: 30, sessionOpenedAt: $at);
         self::assertSame([45, 'UTC'], [$restored->spent($at->modify('+15 seconds')), $restored->sessionOpenedAt?->getTimezone()->getName()]);
+    }
+
+    public function testTheSessionThatEndsAddsItsSecondsToThoseOfTheEarlierOnes(): void
+    {
+        $at = new DateTimeImmutable('2026-11-13 10:00:00', new DateTimeZone('UTC'));
+        $end = new SessionEnd(new RuntimeStatus(), Duration::zero(), false, false);
+
+        $running = new ScormAttempt(ScormAttemptId::generate(), EnrollmentId::of('e'), ActivityId::of('a'), 1, ScormVersion::Scorm12, $at, AttemptState::Running, 1, elapsed: 30, sessionOpenedAt: $at);
+        $running->end([], $end, $at->modify('+15 seconds'));
+        self::assertSame([AttemptState::Paused, 45], [$running->state, $running->elapsed]);
+
+        $unopened = new ScormAttempt(ScormAttemptId::generate(), EnrollmentId::of('e'), ActivityId::of('a'), 1, ScormVersion::Scorm12, $at, AttemptState::Running, 1, elapsed: 30);
+        self::assertSame(30, $unopened->spent($at->modify('+1 hour')));
+        $unopened->end([], $end, $at->modify('+1 hour'));
+        self::assertSame(30, $unopened->elapsed);
+
+        $paused = new ScormAttempt(ScormAttemptId::generate(), EnrollmentId::of('e'), ActivityId::of('a'), 1, ScormVersion::Scorm12, $at, AttemptState::Paused, 1, elapsed: 30, sessionOpenedAt: $at);
+        $paused->end([], $end, $at->modify('+15 seconds'));
+        self::assertSame(30, $paused->elapsed);
+    }
+
+    public function testASecondsCountBelowZeroInTheStoreReadsAsZero(): void
+    {
+        [$activity, $enrollment] = $this->activity('scorm12', ['time_limit' => 600]);
+        $launch = $this->store->scorm->launch($activity, $enrollment);
+        $this->store->connection->update(CourseTables::SCORM_ATTEMPT, ['elapsed' => -5], ['id' => $launch->attempt->value]);
+
+        self::assertSame(0, $this->store->attemptStore->find($launch->attempt)?->elapsed);
+    }
+
+    public function testTheSessionEndedByTheDeadlineLeavesNoNavigationRequestBehind(): void
+    {
+        [$activity, $enrollment] = $this->activity('scorm2004', ['time_limit' => 600]);
+        $launch = $this->store->scorm->launch($activity, $enrollment);
+        $this->store->clock->modify('+601 seconds');
+        $answer = $this->store->scorm->commit($launch->token, ['adl.nav.request' => 'continue', 'cmi.completion_status' => 'incomplete'], false);
+
+        self::assertTrue($answer->timeUp);
+        $attempt = $this->store->attemptStore->find($launch->attempt);
+        self::assertNotNull($attempt);
+        self::assertArrayNotHasKey('adl.nav.request', $attempt->data);
+        self::assertSame('time-out', $attempt->data['cmi.exit']);
+    }
+
+    public function testAnAttemptThatRanOutOfTimeKeepsWhatTheContentReported(): void
+    {
+        [$passed, $ada] = $this->activity('scorm2004', ['time_limit' => 600], CompletionRequirement::Completed);
+        $launch = $this->store->scorm->launch($passed, $ada);
+        $this->store->connection->update(CourseTables::SCORM_ATTEMPT, ['state' => 'suspended', 'completion' => 'incomplete', 'success' => 'passed', 'elapsed' => 100], ['id' => $launch->attempt->value]);
+        $this->settings($passed, ['time_limit' => 1]);
+        $this->store->clock->modify('+1 day');
+        $this->store->scorm->launch($this->store->courses->activity($passed->id), $ada);
+        $progress = $this->store->enrollments->progresses($ada)[$passed->id->value];
+        self::assertSame([true, 0], [$progress->success, $progress->failures]);
     }
 
     /**

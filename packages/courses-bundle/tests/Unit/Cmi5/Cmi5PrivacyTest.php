@@ -21,6 +21,7 @@ use Phil\PrivacyBundle\Domain\Subject\DataSubject;
 use Phil\SafeHttp\Limits;
 use Phil\SafeHttp\SafeHttpClient;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 
@@ -171,5 +172,60 @@ final class Cmi5PrivacyTest extends TestCase
         $this->store->lrs->erase([]);
         self::assertSame([[], []], [$this->store->lrs->statementsOf([]), $this->store->lrs->statesOf([])]);
         self::assertSame(2, Store::count($this->store->connection, 'SELECT COUNT(*) FROM '.CourseTables::SESSION));
+    }
+
+    /**
+     * @param list<string> $kept the kinds of record the person keeps
+     */
+    #[DataProvider('kinds')]
+    public function testEachKindOfRecordAloneIsExported(array $kept, string $section, int $count): void
+    {
+        $privacy = new Cmi5Privacy($this->store->enrollmentStore, $this->store->sessionStore, $this->store->lrs, $this->store->lrs);
+        $course = $this->store->courses->create('Alone');
+        $unit = $this->store->courses->addActivity($this->store->courses->addModule($course->id, 'M')->id, 'Symbols', 'cmi5', ['au_id' => 'https://example.org/aus/alone', 'url' => 'https://content.example.net/alone/'], CompletionRequirement::Completed);
+        $bob = $this->store->enrollments->enroll($course->id, LearnerId::of('bob'));
+        $this->store->learning->launch($bob, $unit->id);
+        $this->store->lrs->saveState('https://example.org/aus/alone', $bob->registration, 'bookmark', '{}');
+        $this->store->enrollmentStore->claimSatisfaction($bob->id, 'first', 's-1', $this->store->clock->now());
+        $this->store->enrollmentStore->claimSatisfaction($bob->id, 'second', 's-2', $this->store->clock->now());
+        $connection = $this->store->connection;
+
+        foreach (['sessions' => [CourseTables::SESSION, 'enrollment_id', $bob->id->value], 'statements' => [CourseTables::STATEMENT, 'registration', $bob->registration], 'states' => [CourseTables::STATE, 'registration', $bob->registration], 'satisfactions' => [CourseTables::SATISFACTION, 'enrollment_id', $bob->id->value]] as $kind => [$table, $column, $value]) {
+            if (!\in_array($kind, $kept, true)) {
+                $connection->executeStatement('DELETE FROM '.$table.' WHERE '.$column.' = ?', [$value]);
+            }
+        }
+
+        $export = $privacy->export(DataSubject::fromString('bob'));
+        self::assertSame(['registrations', $section], array_keys($export));
+        self::assertIsArray($export[$section]);
+        self::assertCount($count, $export[$section]);
+    }
+
+    /**
+     * @return iterable<string, array{list<string>, string, int}>
+     */
+    public static function kinds(): iterable
+    {
+        yield 'launch sessions' => [['sessions'], 'launch_sessions', 1];
+        yield 'statements' => [['statements'], 'statements', 1];
+        yield 'state documents' => [['states'], 'state_documents', 1];
+        yield 'satisfactions' => [['satisfactions'], 'satisfactions', 2];
+    }
+
+    public function testTheStatementsAndTheDocumentsAreReadDownToTheDepthOfSixtyFour(): void
+    {
+        $privacy = new Cmi5Privacy($this->store->enrollmentStore, $this->store->sessionStore, $this->store->lrs, $this->store->lrs);
+        $deep = str_repeat('[', 63).str_repeat(']', 63);
+        $deeper = str_repeat('[', 64).str_repeat(']', 64);
+        $this->store->lrs->store('b8e2d7c9-1f10-4d4b-8b48-3c9a2e5f6d7b', $deep, $this->eve->registration);
+        $this->store->lrs->store('c9f3e8da-2a21-4e5c-9c59-4dab3f6a7e8c', $deeper, $this->eve->registration);
+
+        $statements = $privacy->export(DataSubject::fromString('eve'))['statements'];
+        self::assertIsArray($statements);
+        $bodies = array_column($statements, 'statement', 'id');
+        self::assertIsArray($bodies['b8e2d7c9-1f10-4d4b-8b48-3c9a2e5f6d7b']);
+        self::assertSame($deep, json_encode($bodies['b8e2d7c9-1f10-4d4b-8b48-3c9a2e5f6d7b'], \JSON_THROW_ON_ERROR));
+        self::assertSame($deeper, $bodies['c9f3e8da-2a21-4e5c-9c59-4dab3f6a7e8c']);
     }
 }

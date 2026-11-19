@@ -26,6 +26,8 @@ return [
             'TrueValue' => ['ignoreSourceCodeByRegex' => [
                 '.*self::column\\(\'(activity_hash|state_id)\'.*',
                 '.*\\$(seen|holding)\\[\\$block\\] = true;.*',
+                // The activities with an ended attempt are read by their keys: the value only marks them.
+                '.*\\$activities\\[\\$attempt->activity->value\\] = true;.*',
             ]],
             // The configuration refuses a service and a remote store together: the first one named is the only one.
             'Coalesce' => ['ignoreSourceCodeByRegex' => ['.*\\$config\\[\'cmi5\'\\]\\[\'lrs\'\\] \\?\\? self::remoteStore.*']],
@@ -67,9 +69,13 @@ return [
                 // A target no activity has leaves for the outline, as the line after the branch does.
                 ScormRuntime::class.'::navigation::316',
             ]],
-            // The modules are appended, or replaced at their place: their keys follow each other already. The list is
-            // kept for the types.
-            'UnwrapArrayValues' => ['ignoreSourceCodeByRegex' => ['.*array_values\\(\\$modules\\).*']],
+            'UnwrapArrayValues' => ['ignoreSourceCodeByRegex' => [
+                // The modules are appended, or replaced at their place: their keys follow each other already. The list is
+                // kept for the types.
+                '.*array_values\\(\\$modules\\).*',
+                // The driver expands a list parameter by its values, whatever the keys of the list: the names a variadic call may give.
+                '.*return array_values\\(array_map\\(static fn \\(EnrollmentId \\$id\\): string => \\$id->value, \\$enrollments\\)\\);.*',
+            ]],
         ],
     ],
     'fuzz' => [

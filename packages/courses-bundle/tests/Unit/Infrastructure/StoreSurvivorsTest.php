@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Phil\CoursesBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
+use Doctrine\DBAL\Configuration;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Logging\Middleware;
 use Phil\CoursesBundle\Domain\Course\CourseOrigin;
 use Phil\CoursesBundle\Domain\Model\Activity;
 use Phil\CoursesBundle\Domain\Model\Course;
@@ -25,10 +28,14 @@ use Phil\CoursesBundle\Infrastructure\Doctrine\CourseTables;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalCourseRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEnrollmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLaunchSessionRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLearningRecordStore;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalRetryRequestRepository;
 use Phil\CoursesBundle\Tests\Unit\Fixture\Store;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\AbstractLogger;
+use Stringable;
+use Symfony\Component\Clock\MockClock;
 
 /**
  * What the stores write and read on their own: the types of the columns, the parameters of each query, the order and
@@ -38,6 +45,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(DbalEnrollmentRepository::class)]
 #[CoversClass(DbalRetryRequestRepository::class)]
 #[CoversClass(DbalLaunchSessionRepository::class)]
+#[CoversClass(DbalLearningRecordStore::class)]
 final class StoreSurvivorsTest extends TestCase
 {
     private const string MOMENT = '2026-11-13 10:00:00 UTC';
@@ -169,6 +177,32 @@ final class StoreSurvivorsTest extends TestCase
         $store->sessionStore->save(new LaunchSession(LaunchSessionId::of('s'), EnrollmentId::of('e'), ActivityId::of('a'), new DateTimeImmutable(self::MOMENT), new DateTimeImmutable(self::MOMENT)));
 
         self::assertSame(['s'], array_map(static fn (LaunchSession $session): string => $session->id->value, $store->sessionStore->open(EnrollmentId::of('e'), ActivityId::of('a'))));
+    }
+
+    public function testAnEmptyListAsksNothingOfTheDatabase(): void
+    {
+        $queries = new class extends AbstractLogger {
+            public int $count = 0;
+
+            /**
+             * @param array<array-key, mixed> $context
+             */
+            public function log(mixed $level, string|Stringable $message, array $context = []): void
+            {
+                ++$this->count;
+            }
+        };
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], new Configuration()->setMiddlewares([new Middleware($queries)]));
+        Store::create($connection);
+        $queries->count = 0;
+        $sessions = new DbalLaunchSessionRepository($connection);
+        $records = new DbalLearningRecordStore($connection, new MockClock(self::MOMENT));
+
+        self::assertSame([[], [], []], [$sessions->ofEnrollments(), $records->statementsOf([]), $records->statesOf([])]);
+        self::assertSame(0, $queries->count);
+
+        self::assertSame([[], [], []], [$sessions->ofEnrollments(EnrollmentId::of('e')), $records->statementsOf(['r']), $records->statesOf(['r'])]);
+        self::assertGreaterThanOrEqual(3, $queries->count);
     }
 
     /**

@@ -85,8 +85,8 @@ final readonly class TimeLimit
     private static function seconds(ScormVersion $version, ?string $value): ?int
     {
         $duration = null === $value ? null : Duration::parse($version, $value);
-        $seconds = $duration instanceof Duration ? intdiv($duration->centiseconds, 100) : 0;
+        $seconds = $duration instanceof Duration ? intdiv($duration->centiseconds, 100) : null;
 
-        return $seconds > 0 ? $seconds : null;
+        return null !== $seconds && $seconds > 0 ? $seconds : null;
     }
 }
