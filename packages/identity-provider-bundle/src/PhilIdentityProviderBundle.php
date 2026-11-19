@@ -10,11 +10,15 @@ use Phil\IdentityProviderBundle\Application\Modules;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\IdentityProviderServices;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
+use Phil\IdentityProviderBundle\Infrastructure\Routing\RouterLinkOrigin;
 use Phil\RateLimit\RateLimitGuard;
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Kernel\AbstractBundle;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * An open identity brick, one module per method, each with its routes, tables and pages:
@@ -67,7 +71,22 @@ final class PhilIdentityProviderBundle extends AbstractBundle
             ->scalarNode('clock')->info('Service id of the PSR-20 clock.')->defaultValue('clock')->cannotBeEmpty()->end()
             ->scalarNode('layout')->info('The template the pages extend.')->defaultValue('@PhilIdentityProvider/layout.html.twig')->cannotBeEmpty()->end()
             ->scalarNode('kit_subdirectory')->info('Where the recipes of the kit are, under the components directory; the subdirectory of ux_toolkit when null.')->defaultNull()->end()
-            ->booleanNode('registration')->info('Whether anyone may register.')->defaultTrue()->end()
+            ->scalarNode('public_origin')->info('The canonical address of the site, such as https://example.com, that the links sent by email point to; null takes the host of the request, which framework.trusted_hosts must then bound. In the prod environment, the bundle refuses to boot when neither is set.')->defaultNull()->end()
+            ->arrayNode('registration')
+                ->info('Whether anyone may register, and how often; "registration: false" closes it.')
+                ->canBeDisabled()
+                ->children()
+                    ->arrayNode('rate_limit')
+                        ->info('The limits of registration, per client and per address typed, and the delay before another verification email goes to one address; "rate_limit: false" turns them off.')
+                        ->canBeDisabled()
+                        ->children()
+                            ->append($this->limit('per_ip', 'The registrations per client address, or IPv6 /64 network, in each interval.', 10, '1 hour'))
+                            ->append($this->limit('per_address', 'The registrations per address typed, known or not, in each interval.', 5, '1 hour'))
+                            ->scalarNode('resend_delay')->info('The delay before another verification email goes to the same address, in the format of the Rate Limiter component.')->defaultValue('5 minutes')->cannotBeEmpty()->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
             ->booleanNode('require_verified_email')->info('Whether an account signs in only once its address is verified.')->defaultFalse()->end()
             ->scalarNode('login_route')->info('The route of the sign-in form of the firewall, offered for a re-authentication by password and after a failed external sign-in.')->defaultNull()->end()
             ->scalarNode('default_target')->info('Where a sign-in by the bundle goes when nothing asked for a page.')->defaultValue('/')->cannotBeEmpty()->end()
@@ -188,6 +207,28 @@ final class PhilIdentityProviderBundle extends AbstractBundle
         ->end();
     }
 
+    /**
+     * Refuses to boot, in the `prod` environment, when the links sent by email would take the host of the request: no
+     * `public_origin` and no `framework.trusted_hosts`. The origin is read here, once its environment variable is known.
+     */
+    #[Override]
+    public function boot(): void
+    {
+        // Unset until the kernel gives the container, which it does before booting a bundle.
+        $container = $this->container ?? null;
+
+        if (!$container instanceof ContainerInterface || true !== $container->getParameter('phil_identity_provider.enabled')) {
+            return;
+        }
+
+        $origin = $container->getParameter(IdentityProviderServices::PUBLIC_ORIGIN);
+        $origin = \is_string($origin) && '' !== $origin ? $origin : null;
+
+        $environment = $container->getParameter('kernel.environment');
+        RouterLinkOrigin::origin($origin, true === $container->getParameter('kernel.debug'));
+        RouterLinkOrigin::assertBound($origin, \is_string($environment) ? $environment : '', Request::getTrustedHosts());
+    }
+
     #[Override]
     public function build(ContainerBuilder $container): void
     {
@@ -240,8 +281,22 @@ final class PhilIdentityProviderBundle extends AbstractBundle
         }
 
         unset($config['enabled']);
-        /** @phpstan-var array{secret: string, site_name: string, modules: array<string, bool>, store: string, entity_manager: string, clock: string, layout: string, kit_subdirectory: ?string, registration: bool, require_verified_email: bool, login_route: ?string, default_target: string, open_routes: list<string>, mailer: array{from: ?string}, password: array{min_score: int<0, 4>, breach_check: bool, http_client: string}, lockout: array{threshold: positive-int, base: positive-int, max: positive-int}, login_limiter: array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string, single_server: bool}, links: array{verify_lifetime: positive-int, reset_lifetime: positive-int}, passkeys: array{rp_id: ?string, rp_name: ?string, origins: list<string>, require_user_verification: bool}, totp: array{issuer: ?string, window: int<0, 10>}, sms: array{sender: ?string, from: string, message: string, lifetime: positive-int, attempts: positive-int}, step_up: array{attribute: string, lifetime: positive-int}, sessions: array{touch_interval: non-negative-int}, external: array{link_verified_email: bool, register: bool}, oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string}, secrets: array{kms_key: ?string, allow_plaintext_secrets: bool, encrypter: string, decrypter: string}, audit: string} $config */
+        /** @phpstan-var array{secret: string, site_name: string, modules: array<string, bool>, store: string, entity_manager: string, clock: string, layout: string, kit_subdirectory: ?string, registration: array{enabled: bool, rate_limit: array{enabled: bool, per_ip: array{limit: positive-int, interval: string}, per_address: array{limit: positive-int, interval: string}, resend_delay: string}}, public_origin: ?string, require_verified_email: bool, login_route: ?string, default_target: string, open_routes: list<string>, mailer: array{from: ?string}, password: array{min_score: int<0, 4>, breach_check: bool, http_client: string}, lockout: array{threshold: positive-int, base: positive-int, max: positive-int}, login_limiter: array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string, single_server: bool}, links: array{verify_lifetime: positive-int, reset_lifetime: positive-int}, passkeys: array{rp_id: ?string, rp_name: ?string, origins: list<string>, require_user_verification: bool}, totp: array{issuer: ?string, window: int<0, 10>}, sms: array{sender: ?string, from: string, message: string, lifetime: positive-int, attempts: positive-int}, step_up: array{attribute: string, lifetime: positive-int}, sessions: array{touch_interval: non-negative-int}, external: array{link_verified_email: bool, register: bool}, oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string}, secrets: array{kms_key: ?string, allow_plaintext_secrets: bool, encrypter: string, decrypter: string}, audit: string} $config */
         IdentityProviderServices::register($builder, $config);
+    }
+
+    /**
+     * A count of the Rate Limiter component: how many in each interval.
+     */
+    private function limit(string $name, string $info, int $limit, string $interval): ArrayNodeDefinition
+    {
+        return new ArrayNodeDefinition($name)
+            ->info($info)
+            ->addDefaultsIfNotSet()
+            ->children()
+                ->integerNode('limit')->defaultValue($limit)->min(1)->end()
+                ->scalarNode('interval')->info('The window of the count, in the format of the Rate Limiter component.')->defaultValue($interval)->cannotBeEmpty()->end()
+            ->end();
     }
 
     /**

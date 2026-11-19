@@ -7,6 +7,7 @@ change them, and its CHANGELOG says how.
 |---|---|
 | Plug a federated provider in | Implement `Infrastructure\Federation\Contract\ExternalProvider` and tag the service `phil_identity_provider.external_provider`: see [Federated providers](external-providers.md) |
 | Send text messages through another gateway | Implement `Application\Contract\SmsSender` and name the service in `sms.sender` |
+| Point the links of the emails to each tenant's host | Alias `Application\Contract\LinkOrigin` to your own service: it generates each link on the host it chooses |
 | Send the emails otherwise | Alias `Application\Contract\AccountMailer` to your own service |
 | Write the events elsewhere | Implement `Application\Contract\AuditRecorder` and name the service in `audit` |
 | Seal the secrets otherwise | Alias `Application\Contract\SecretCipher` to your own service |

@@ -16,6 +16,9 @@ login_link:
     max_uses: 1
 ```
 
+The link is generated on `public_origin`, never on the host the request named: see
+[Where the links point](accounts.md#where-the-links-point).
+
 A sign-in link states no method: it counts for `IS_AUTHENTICATED_RECENTLY`, not for `PHIL_STEP_UP` of an account
 that has a stronger method, and an account with an authenticator application is asked its code next.
 

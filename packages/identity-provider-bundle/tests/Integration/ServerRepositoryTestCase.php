@@ -9,12 +9,14 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Events;
 use Doctrine\ORM\ORMSetup;
 use Override;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
 use Phil\IdentityProviderBundle\Domain\Model\Totp\TotpCredential;
 use Phil\IdentityProviderBundle\Domain\Oidc\TokenKind;
+use Phil\IdentityProviderBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineGrantRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineSecondFactorRepository;
 use Phil\IdentityProviderBundle\Tests\Unit\Infrastructure\DoctrineRepositoryTestCase;
@@ -108,6 +110,7 @@ abstract class ServerRepositoryTestCase extends DoctrineRepositoryTestCase
             $configuration = ORMSetup::createAttributeMetadataConfig([\dirname(__DIR__, 2).'/src/Domain/Model'], true);
             $configuration->enableNativeLazyObjects(true);
             $this->second = new EntityManager($this->connection(), $configuration);
+            $this->second->getEventManager()->addEventListener(Events::loadClassMetadata, new BinaryKeysListener());
         }
 
         return $this->second;

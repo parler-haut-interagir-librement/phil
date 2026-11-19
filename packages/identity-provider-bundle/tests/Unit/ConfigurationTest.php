@@ -41,7 +41,16 @@ final class ConfigurationTest extends TestCase
         'clock' => 'clock',
         'layout' => '@PhilIdentityProvider/layout.html.twig',
         'kit_subdirectory' => null,
-        'registration' => true,
+        'public_origin' => null,
+        'registration' => [
+            'enabled' => true,
+            'rate_limit' => [
+                'enabled' => true,
+                'per_ip' => ['limit' => 10, 'interval' => '1 hour'],
+                'per_address' => ['limit' => 5, 'interval' => '1 hour'],
+                'resend_delay' => '5 minutes',
+            ],
+        ],
         'require_verified_email' => false,
         'login_route' => null,
         'default_target' => '/',

@@ -80,8 +80,10 @@ final readonly class AuthorizeController
         }
 
         $authTime = $this->authTime();
+        // A session that holds no proof, such as one restored by remember_me, cannot tell when its person last signed in.
+        $unproven = [] === Proofs::of($this->tokens->getToken());
 
-        if ($authorization->prompts('login') || (null !== $authorization->maxAge && $authTime->getTimestamp() + $authorization->maxAge < $this->clock->now()->getTimestamp())) {
+        if ($authorization->prompts('login') || (null !== $authorization->maxAge && ($unproven || $authTime->getTimestamp() + $authorization->maxAge < $this->clock->now()->getTimestamp()))) {
             if ($authorization->prompts('none')) {
                 return $this->back($this->authorization->errorRedirect($authorization, 'login_required'));
             }

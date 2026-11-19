@@ -64,6 +64,29 @@ abstract class RepositoryTestCase extends TestCase
      */
     abstract protected function clear(): void;
 
+    /**
+     * The keys compare byte by byte in every store: on MySQL and MariaDB, through the binary collation the bundle gives
+     * them.
+     */
+    public function testTheKeysCompareByteByByte(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $this->accounts()->save(Account::register(self::ADA, 'josé@example.com', $now), Account::register(self::BOB, 'jose@example.com', $now));
+        $this->clients()->save(Client::register('App', 'Upper', null, ['https://a/cb'], [], [], false, $now), Client::register('app', 'Lower', null, ['https://a/cb'], [], [], false, $now));
+        $this->identities()->save(LinkedIdentity::link(self::ADA, 'example', 'AbC', $now), LinkedIdentity::link(self::BOB, 'example', 'abc', $now));
+        $this->clear();
+
+        self::assertSame(self::ADA, $this->accounts()->findByEmail('josé@example.com')?->id());
+        self::assertSame(self::BOB, $this->accounts()->findByEmail('jose@example.com')?->id());
+        self::assertSame('Upper', $this->clients()->get('App')?->name());
+        self::assertSame('Lower', $this->clients()->get('app')?->name());
+        self::assertNull($this->clients()->get('APP'));
+        self::assertSame(self::ADA, $this->identities()->find('example', 'AbC')?->accountId());
+        self::assertSame(self::BOB, $this->identities()->find('example', 'abc')?->accountId());
+        self::assertNull($this->identities()->find('example', 'ABC'));
+        self::assertNull($this->accounts()->get(strtolower(self::ADA)));
+    }
+
     public function testAccounts(): void
     {
         $now = new DateTimeImmutable('2026-11-14 10:00:00');

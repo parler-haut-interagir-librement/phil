@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Tests\Functional;
 
+use Phil\IdentityProviderBundle\Application\SecondFactors;
 use Phil\IdentityProviderBundle\Application\Sessions;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountSessionRepository;
 use Phil\IdentityProviderBundle\Domain\Model\Session\AccountSession;
@@ -83,6 +84,27 @@ final class SecurityFlowTest extends FunctionalTestCase
         $this->client->request('GET', '/account');
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('h1', 'Your account');
+    }
+
+    public function testFiveWrongCodesSignTheSessionOut(): void
+    {
+        $account = $this->account();
+        $factors = $this->service(SecondFactors::class);
+        $factors->confirm($account, Totp::fromBase32($factors->enroll($account)['secret'])->at(time()));
+        $this->signIn();
+
+        for ($try = 1; $try < OneTimeCodeAuthenticator::MAX_FAILURES; ++$try) {
+            $crawler = $this->client->request('GET', '/two-factor');
+            self::assertResponseIsSuccessful();
+            $this->client->submit($crawler->filter('form')->first()->form(['code' => '000000']));
+            self::assertResponseRedirects('/two-factor');
+        }
+
+        $crawler = $this->client->request('GET', '/two-factor');
+        $this->client->submit($crawler->filter('form')->first()->form(['code' => '000000']));
+        self::assertResponseRedirects('/two-factor');
+        $this->client->request('GET', '/account');
+        self::assertResponseRedirects('http://localhost/login', message: 'The session was signed out: the first step comes again.');
     }
 
     public function testASensitiveActionAsksToProveItAgain(): void

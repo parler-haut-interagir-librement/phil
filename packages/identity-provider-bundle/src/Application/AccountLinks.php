@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\IdentityProviderBundle\Application;
 
 use Phil\IdentityProviderBundle\Application\Contract\AccountMailer;
+use Phil\IdentityProviderBundle\Application\Contract\LinkOrigin;
 use Phil\IdentityProviderBundle\Application\Event\IdentityEventType;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Exception\InvalidValue;
@@ -14,7 +15,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 /**
  * The links sent by email to verify an address and to reset a password: signed by `SignedLinks`, absolute, carrying
  * the account identifier, the expiry and the signature, never the address. A reset asked for an unknown address sends
- * nothing and answers the same, so that the form tells nobody who has an account.
+ * nothing and answers the same, so that the form tells nobody who has an account. Each link is put on the canonical
+ * origin by `LinkOrigin`, never on the host the request named.
  */
 final readonly class AccountLinks
 {
@@ -28,12 +30,13 @@ final readonly class AccountLinks
         private AccountRepository $accounts,
         private Journal $journal,
         private ?AccountMailer $mailer = null,
+        private ?LinkOrigin $origin = null,
     ) {
     }
 
     public function verificationUrl(Account $account): string
     {
-        return $this->urls->generate(self::VERIFY_ROUTE, ['account' => $account->id()] + $this->links->sign(SignedLinks::VERIFY, $account), UrlGeneratorInterface::ABSOLUTE_URL);
+        return $this->absolute(self::VERIFY_ROUTE, ['account' => $account->id()] + $this->links->sign(SignedLinks::VERIFY, $account));
     }
 
     public function sendVerification(Account $account): void
@@ -55,7 +58,7 @@ final readonly class AccountLinks
             return;
         }
 
-        $url = $this->urls->generate(self::RESET_ROUTE, ['account' => $account->id()] + $this->links->sign(SignedLinks::RESET, $account), UrlGeneratorInterface::ABSOLUTE_URL);
+        $url = $this->absolute(self::RESET_ROUTE, ['account' => $account->id()] + $this->links->sign(SignedLinks::RESET, $account));
         $this->mailer?->sendPasswordReset($account, $url);
         $this->journal->record(IdentityEventType::PasswordResetRequested, $account->id());
     }
@@ -68,5 +71,15 @@ final readonly class AccountLinks
         $account = $this->accounts->get($accountId);
 
         return $account instanceof Account && !$account->isDisabled() && $this->links->verify($purpose, $account, $expires, $signature) ? $account : null;
+    }
+
+    /**
+     * @param array<string, int|string> $parameters
+     */
+    private function absolute(string $route, array $parameters): string
+    {
+        $generate = fn (): string => $this->urls->generate($route, $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
+
+        return $this->origin?->link($generate) ?? $generate();
     }
 }

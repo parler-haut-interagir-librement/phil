@@ -123,6 +123,11 @@ final class ProviderDetailsTest extends TestCase
         $other = $this->flow('openid email offline_access');
         $same = $tokens->refresh($this->client, (string) $other['refresh_token'], 'openid email');
         self::assertSame('openid email offline_access', $same['scope']);
+
+        $third = $this->flow('openid email offline_access');
+        $withoutOpenid = $tokens->refresh($this->client, (string) $third['refresh_token'], 'email');
+        self::assertSame('email openid offline_access', $withoutOpenid['scope'], 'A narrowed refresh keeps openid.');
+        self::assertArrayHasKey('id_token', $withoutOpenid);
     }
 
     public function testATokenWhoseSignatureIsWrongIsRefusedAsAnyOtherInvalidOne(): void

@@ -119,6 +119,7 @@ return [
     'error.title' => 'Cela n’a pas fonctionné',
     'error.email.invalid' => 'Cette adresse courriel n’est pas valide.',
     'error.email.taken' => 'Un autre compte a déjà cette adresse.',
+    'error.registration.too_many' => 'Trop d’inscriptions d’ici ou pour cette adresse : réessayez plus tard.',
     'error.name.too_long' => 'Le nom compte au plus 100 caractères.',
     'error.password.too_short' => 'Le mot de passe est trop court : au moins 8 caractères.',
     'error.password.too_long' => 'Le mot de passe est trop long.',

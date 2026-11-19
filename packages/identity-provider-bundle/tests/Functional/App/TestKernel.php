@@ -41,12 +41,14 @@ final class TestKernel extends Kernel
     public const array RECIPES = ['alert', 'button', 'card', 'field', 'input'];
 
     /**
-     * @param array<string, mixed> $identity more of the bundle's configuration
+     * @param array<string, mixed> $identity  more of the bundle's configuration
+     * @param array<string, mixed> $framework more of FrameworkBundle's configuration
      */
     public function __construct(
         string $environment = 'test',
         bool $debug = true,
         private readonly array $identity = [],
+        private readonly array $framework = [],
     ) {
         parent::__construct($environment, $debug);
     }
@@ -88,7 +90,7 @@ final class TestKernel extends Kernel
 
     private function root(): string
     {
-        return sys_get_temp_dir().'/phil-identity-provider-bundle-test/'.hash('xxh128', __DIR__.serialize($this->identity));
+        return sys_get_temp_dir().'/phil-identity-provider-bundle-test/'.hash('xxh128', __DIR__.serialize($this->identity).serialize($this->framework));
     }
 
     private function installRecipes(): string
@@ -119,7 +121,7 @@ final class TestKernel extends Kernel
 
     private function configureContainer(ContainerConfigurator $container): void
     {
-        $container->extension('framework', [
+        $container->extension('framework', $this->framework + [
             'secret' => 'a secret of the test application, long enough',
             'test' => true,
             'http_method_override' => false,

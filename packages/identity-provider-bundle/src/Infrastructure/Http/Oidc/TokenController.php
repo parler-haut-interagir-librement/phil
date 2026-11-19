@@ -98,6 +98,10 @@ final readonly class TokenController
     {
         $value = $request->request->all()[$name] ?? null;
 
+        if (\is_string($value) && \strlen($value) > 4096) {
+            throw OAuthError::invalidRequest(\sprintf('The parameter "%s" is too long.', $name));
+        }
+
         return \is_string($value) && '' !== $value ? $value : null;
     }
 }

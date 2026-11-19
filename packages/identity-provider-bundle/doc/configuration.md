@@ -8,6 +8,7 @@ The bundle's configuration lives under `phil_identity_provider`. Every option ha
 phil_identity_provider:
     secret: '%env(IDENTITY_SECRET)%'
     site_name: Example
+    public_origin: 'https://example.com'
     modules:
         accounts: true          # always on
         password: true
@@ -43,7 +44,12 @@ phil_identity_provider:
 | `clock` | `clock` | Service id of the PSR-20 clock. |
 | `layout` | `@PhilIdentityProvider/layout.html.twig` | The template the pages extend. |
 | `kit_subdirectory` | `null` | Where the recipes of the kit are; the subdirectory of `ux_toolkit` when null. |
-| `registration` | `true` | Whether anyone may register. |
+| `public_origin` | `null` | The canonical address of the site, such as `https://example.com`, that the links sent by email point to. Null takes the host of the request, which `framework.trusted_hosts` must then bound: in the `prod` environment the bundle refuses to boot when neither is set. See [Where the links point](accounts.md#where-the-links-point). |
+| `registration.enabled` | `true` | Whether anyone may register; `registration: false` closes it. |
+| `registration.rate_limit.enabled` | `true` | Limits registration and the verification emails; `rate_limit: false` turns the limits off. See [Limiting the registrations](accounts.md#limiting-the-registrations). |
+| `registration.rate_limit.per_ip.limit`, `.interval` | `10`, `1 hour` | Registrations per client address, or IPv6 /64 network, in each interval. |
+| `registration.rate_limit.per_address.limit`, `.interval` | `5`, `1 hour` | Registrations per address typed, known or not, in each interval. |
+| `registration.rate_limit.resend_delay` | `5 minutes` | The delay before another verification email goes to the same address. |
 | `require_verified_email` | `false` | Whether an account signs in only once its address is verified. |
 | `login_route` | `null` | The route of the sign-in form, offered for a re-authentication by password and after a failed external sign-in. |
 | `default_target` | `/` | Where a sign-in by the bundle's authenticators goes when nothing asked for a page. |

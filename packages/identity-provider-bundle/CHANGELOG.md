@@ -4,6 +4,63 @@ All notable changes to `phil/identity-provider-bundle` will be documented in thi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.0-alpha: the links of the emails point to `public_origin`, and the `prod` environment refuses
+to boot without it or `framework.trusted_hosts`; registration is limited by default; the keys of the tables take the
+binary collation on MySQL and MariaDB, to migrate. See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
+
+### Added
+
+- `public_origin`: the canonical address of the site, such as `https://example.com`, that the links sent by email
+  point to. `Application\Contract\LinkOrigin`, the port that puts each link on it, and
+  `Infrastructure\Routing\RouterLinkOrigin`, which generates the link while the router's context names that origin and
+  gives the request's context back at once; the origin and the links are read by `phil/url`.
+- `registration.rate_limit`, on by default: `per_ip` (`limit` 10, `interval` 1 hour), `per_address` (`limit` 5,
+  `interval` 1 hour) and `resend_delay` (5 minutes), with `Infrastructure\Security\RegistrationRateLimiter` and the
+  service `phil_identity_provider.registration_limiter`. A refused registration answers `429` with the form and
+  `error.registration.too_many`, in English and in French.
+- `Infrastructure\Doctrine\BinaryKeysListener`, on the ORM's `loadClassMetadata` event, and its `FIELDS`: the keys
+  that compare byte by byte on MySQL and MariaDB.
+- `OneTimeCodeAuthenticator::MAX_FAILURES` and `FAILURES`: the wrong codes in a row a session may post.
+
+### Changed
+
+- In the `prod` environment, the bundle refuses to boot when neither `public_origin` nor `framework.trusted_hosts` is
+  set. The origin is read when the kernel boots, in every environment: one with a path, a query, a fragment or an IP
+  address is refused, and `localhost` is accepted only in debug mode.
+- `registration` is a section that can be turned off: `registration: true` and `registration: false` keep their
+  meaning, and `registration: { rate_limit: false }` turns the limits off.
+- `symfony/rate-limiter` joins `require`.
+- `AccountLinks` and `LoginLinkController` take a `LinkOrigin`, last and optional; the sign-in link is generated
+  without the request. `AccountController` takes a `RegistrationRateLimiter`, last and optional.
+- On MySQL and MariaDB, the identifiers of every table, `email` of `phil_identity_account`, `client_id`, `account_id`,
+  `session_id` and `family` where they are, and `provider` and `subject` of `phil_identity_linked` take the `utf8mb4`
+  character set and the `utf8mb4_bin` collation in the schema the ORM generates. Migration: run
+  `bin/console doctrine:migrations:diff` and apply the `ALTER TABLE … MODIFY` it writes. PostgreSQL and SQLite keep
+  their default, which compares bytes already.
+- The tests generate the keys of P-256 with a short coordinate when they run: the repository keeps no private key.
+
+### Fixed
+
+- A refresh that narrows the scope keeps `openid`: its answer still carries an ID token, and its access token still
+  reads userinfo.
+- The token endpoint refuses an optional parameter — `code_verifier`, `scope` — longer than 4096 bytes with
+  `invalid_request`, as it does a required one.
+
+### Security
+
+- The links of the reset, verification and sign-in emails were built on the `Host` header of the request: a request
+  naming another host sent the person a genuine signed link to that host, and one click handed its token over. They
+  are built on `public_origin`, or on a host `framework.trusted_hosts` accepted.
+- Registration had no limit: each request cost a password hash, a row and an email.
+- The code of the second step could be guessed without limit within one session: five wrong codes in a row sign the
+  session out.
+- A session that holds no proof, such as one restored by `remember_me`, answered `max_age` as if its person had just
+  signed in: it signs in again.
+- Under the default case-insensitive collation of MySQL and MariaDB, the client `App` was found for `app`, the
+  federated subject `AbC` for `abc`, and an address with an accent for the one without.
+
 ## 0.2.0-alpha - 2026-11-17
 
 Introspection, userinfo and the authorization endpoint refuse what they accepted,

@@ -17,7 +17,10 @@
 | `Application\AccountUser` | The account as Symfony Security sees it. |
 | `Application\Modules` | The modules turned on. |
 | `Application\Journal`, `Application\Event\IdentityEvent`, `Application\Event\IdentityEventType` | The events, written to the audit trail and dispatched. |
-| `Application\Contract\SecretCipher`, `ChallengeStore`, `SmsSender`, `AccountMailer`, `AuditRecorder`, `Transactions` | The ports. |
+| `Application\Contract\SecretCipher`, `ChallengeStore`, `SmsSender`, `AccountMailer`, `AuditRecorder`, `Transactions`, `LinkOrigin` | The ports. |
+| `Infrastructure\Routing\RouterLinkOrigin` | The links of the emails generated on `public_origin`, and the boot refused in `prod` without it or `framework.trusted_hosts`. |
+| `Infrastructure\Security\RegistrationRateLimiter` | The limits of registration and the delay between two verification emails. |
+| `Infrastructure\Doctrine\BinaryKeysListener` | The binary collation of the keys on MySQL and MariaDB. |
 | `Application\Exception\Refused`, `OAuthError`, `DeliveryFailed` | What the services refuse, with translation keys or OAuth errors. |
 | `Domain\Model\*` | The rows of each module. |
 | `Domain\Contract\*Repository` | The stores of each module. |
@@ -40,6 +43,7 @@
 | `Phil\IdentityProviderBundle\Infrastructure\Security\ExternalAuthenticator` | The callback of a federated provider. |
 | `phil_identity_provider.re_authentication_entry_point` | The re-authentication entry point. |
 | `phil_identity_provider.login_limiter` | With `login_limiter.enabled`, the limiter of `login_throttling`: per address, per identifier and address, per identifier. |
+| `phil_identity_provider.registration_limiter` | With `registration.rate_limit.enabled`, the default, the limits of `/register` and of the verification emails. |
 
 ## Routes
 

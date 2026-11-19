@@ -48,7 +48,10 @@ write the code comes before the bundle is used in production, against this page 
 | Replayed TOTP code | The counter accepted is kept, read again and held before it is saved; a code verifies once, even presented by two requests at the same time. |
 | Cloned authenticator | The signature counter must move forward when the authenticator keeps one. |
 | Malformed authenticator answers | Bounded CBOR reader: depth, items and lengths checked before allocation; fuzzed. |
-| Account enumeration | Registration, password reset and sign-in links answer the same for known and unknown addresses. |
+| Account enumeration | Registration, password reset and sign-in links answer the same for known and unknown addresses; the registration limit per address counts known and unknown addresses alike. |
+| A link that points to another host | The links of the emails are built on `public_origin`, never on the `Host` header of the request; without it, `framework.trusted_hosts` refuses a forged host, and in the `prod` environment the bundle refuses to boot when neither is set. |
+| Mass registration | Registration counted per client address and per address typed, and one verification email per address in each `resend_delay`, by default. |
+| Guessing the code of the second step | Five wrong codes in a row sign the session out: the next guesses need the password again, under the firewall's limits and the progressive lock. |
 | Reused links | Links signed over the properties they change — the address and its verification, the password hash and its date —, so each works once with nothing stored; a reset link sets its password under a lock of the account's row, so two requests at once cannot both use it. |
 | A link opened by a mail scanner | `/verify-email` only shows a page that asks to confirm; the address is verified by the form it posts, with a CSRF token. |
 
@@ -60,6 +63,7 @@ write the code comes before the bundle is used in production, against this page 
 | A stolen device | Sessions closed from another device take effect at the next request; tokens issued in them are revoked, then the session closed, in one transaction. |
 | A stolen session after a password change | A new or reset password closes the other sessions and their tokens; `AccountUser::isEqualTo()` compares the password hash, so a session signed in before the change ends at its next request. |
 | A session opened long ago used for a sensitive action | `PHIL_STEP_UP` asks for a recent proof of the strongest method. |
+| A remembered session answering `max_age` | A session that holds no proof, such as one restored by `remember_me`, signs in again when a client asks for `max_age`. |
 | A second factor skipped | The second step is enforced on every request until a strong proof is on the token; only routes named exactly stay open — the challenge, its code, the sign-in with a passkey and `open_routes` —, no prefix. |
 | Cross-site request forgery | Every form and script request carries a CSRF token; logout from a link asks to confirm. |
 
@@ -107,6 +111,9 @@ templates when it replaces the bundle's.
 | The cost of RS256 | The library rebuilds the PEM of an RSA key at each signature: a few milliseconds per RS256 signature, against well under a millisecond for ES256 or EdDSA (`tests/Benchmark/JwsBench.php`). A flood of token requests costs more processor time with RS256. | The firewall's rate limits on the token endpoint; `oidc.algorithm: ES256` or `EdDSA` where the clients support them. |
 | `web-token/jwt-library` itself | A flaw in the library is a flaw in the provider. | One maintained library; its version follows the security advisories (`composer deps:audit`); untrusted input bounded before it. |
 | A code presented by two requests at once | The request that loses the code revokes its family as a reuse; when it does so before the winner has stored its tokens, those tokens stay valid. | Rare: two exchanges of one code within milliseconds; bounded by `oidc.access_token_lifetime` and, for a refresh token, by its next rotation or revocation; the reuse is journaled as `identity.oidc.token_reuse`. |
+| Refresh tokens outlive the session | A refresh token lasts `oidc.refresh_token_lifetime` whatever happens to the session it was issued in, unless the session is closed, signed out or its password changes. | Closing a session revokes its tokens; a shorter `oidc.refresh_token_lifetime`; tokens bound to the session's lifetime are planned. |
+| A new address set before it is proven | A change of address from the account page takes effect at once, unverified, and the former address is not told. | The change needs a recent proof of the strongest method (`PHIL_STEP_UP`); the new address stays unverified until its link is used. A notice to the former address and a change held until the new one is proven are planned. |
+| Telling a known address by the time of registration | A registration for a known address answers without hashing a password, so it answers sooner. | The registration limits per client and per address bound the guesses; the answer and its status are the same. |
 | Certification | The suite runs locally; certification by the OpenID Foundation needs a provider at a public address. | Done before the provider is used in production; see [OpenID conformance](openid-conformance.md). |
 
 ## The review before production

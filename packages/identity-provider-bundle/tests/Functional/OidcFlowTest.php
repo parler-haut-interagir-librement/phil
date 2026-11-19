@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Tests\Functional;
 
+use Phil\IdentityProviderBundle\Application\AccountUser;
 use Phil\IdentityProviderBundle\Application\Oidc\ClientRegistry;
 use Phil\IdentityProviderBundle\Domain\Oidc\Pkce;
 use Phil\IdentityProviderBundle\Infrastructure\Http\Oidc\AuthorizeController;
@@ -142,6 +143,25 @@ final class OidcFlowTest extends FunctionalTestCase
         self::assertResponseRedirects('http://localhost/login');
     }
 
+    public function testASessionWithoutProofSignsInAgainForMaxAge(): void
+    {
+        $account = $this->account();
+        $this->service(ClientRegistry::class)->register('app', 'The App', ['https://app.example/cb'], firstParty: true);
+        $authorize = '/oidc/authorize?'.http_build_query(['response_type' => 'code', 'client_id' => 'app', 'redirect_uri' => 'https://app.example/cb', 'scope' => 'openid', 'state' => 'xyz', 'code_challenge' => Pkce::challengeOf(self::VERIFIER), 'code_challenge_method' => 'S256']);
+        // A token without proofs, as a session restored by remember_me holds.
+        $this->client->loginUser(new AccountUser($account));
+
+        $this->client->request('GET', $authorize.'&max_age=3600');
+        self::assertResponseRedirects();
+        self::assertStringStartsNotWith('https://app.example/cb', $this->location());
+
+        $this->client->request('GET', $authorize.'&max_age=3600&prompt=none');
+        self::assertResponseRedirects('https://app.example/cb?error=login_required&state=xyz&iss=http%3A%2F%2Flocalhost');
+
+        $this->client->request('GET', $authorize);
+        self::assertStringStartsWith('https://app.example/cb?code=', $this->location());
+    }
+
     public function testTheTokenEndpointRefusals(): void
     {
         [, $secret] = $this->service(ClientRegistry::class)->register('app', 'The App', ['https://app.example/cb']);
@@ -151,6 +171,10 @@ final class OidcFlowTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(401);
         self::assertSame('Basic realm="token"', $this->client->getResponse()->headers->get('WWW-Authenticate'));
         self::assertSame('invalid_client', $this->error());
+
+        $this->client->request('POST', '/oidc/token', ['grant_type' => 'authorization_code', 'code' => 'x', 'redirect_uri' => 'https://app.example/cb', 'code_verifier' => str_repeat('a', 4097), 'client_id' => 'app', 'client_secret' => $secret]);
+        self::assertResponseStatusCodeSame(400);
+        self::assertSame('invalid_request', $this->error());
 
         $this->client->request('POST', '/oidc/token', ['grant_type' => 'password', 'client_id' => 'app', 'client_secret' => $secret]);
         self::assertResponseStatusCodeSame(400);

@@ -119,6 +119,7 @@ return [
     'error.title' => 'This did not work',
     'error.email.invalid' => 'This email address is not valid.',
     'error.email.taken' => 'Another account already has this address.',
+    'error.registration.too_many' => 'Too many registrations from here or for this address: try again later.',
     'error.name.too_long' => 'The name holds at most 100 characters.',
     'error.password.too_short' => 'The password is too short: at least 8 characters.',
     'error.password.too_long' => 'The password is too long.',
