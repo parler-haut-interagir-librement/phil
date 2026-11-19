@@ -4,6 +4,17 @@ All notable changes to `phil/profile-secure-input` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: an application installs the profile without `doctrine/dbal` and without sessions. A
+patch version and not a minor one: the members keep their minor versions, only their floors move.
+
+### Changed
+
+- It requires `phil/url-bundle` 0.1.3 or later, which boots without `doctrine/dbal`, and `phil/upload-scan-bundle`
+  0.1.1 or later, whose quarantine page checks its token by the origin of the request, without a session.
+- The documentation no longer asks the application for `doctrine/dbal`, nor for CSRF protection with sessions.
+
 ## 0.1.0-alpha - 2026-11-18
 
 ### Added

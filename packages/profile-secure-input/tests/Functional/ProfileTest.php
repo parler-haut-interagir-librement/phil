@@ -54,6 +54,18 @@ final class ProfileTest extends KernelTestCase
         self::assertTrue(self::getContainer()->has('kernel'));
     }
 
+    public function testTheQuarantinePageChecksItsTokenWithoutASession(): void
+    {
+        self::bootKernel();
+        $container = self::getContainer();
+
+        // With Twig and symfony/security-csrf installed, the page of the quarantine is registered and its token is
+        // stateless: CSRF protection is on by FrameworkBundle's default, and no session is started for it.
+        self::assertTrue($container->has('security.csrf.token_manager'), 'CSRF protection is on.');
+        self::assertTrue($container->has('security.csrf.same_origin_token_manager'), 'The tokens are checked by the origin of the request.');
+        self::assertFalse($container->has('session.factory'), 'No session is configured.');
+    }
+
     public function testEveryBundleRequiredByTheProfileIsRegistered(): void
     {
         foreach ($this->members() as $package) {
@@ -75,9 +87,13 @@ final class ProfileTest extends KernelTestCase
         $members = $this->members();
 
         self::assertSame(['phil/rate-limit-bundle', 'phil/safe-http', 'phil/spam-protection-bundle', 'phil/upload-scan-bundle', 'phil/url-bundle'], $members);
+        // The fixes the application relies on: url-bundle boots without doctrine/dbal, and the page of the quarantine
+        // checks its token without a session.
+        self::assertSame('^0.1.3', $this->constraints()['phil/url-bundle']);
+        self::assertSame('^0.1.1', $this->constraints()['phil/upload-scan-bundle']);
 
         foreach ($this->constraints() as $package => $constraint) {
-            self::assertMatchesRegularExpression('/^\^0\.\d+$/', $constraint, $package.' follows its latest published minor, without a stability flag.');
+            self::assertMatchesRegularExpression('/^\^0\.\d+(\.\d+)?$/', $constraint, $package.' follows its latest published minor, without a stability flag.');
         }
     }
 

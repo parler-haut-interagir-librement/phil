@@ -39,10 +39,14 @@ return [
 
 | Package or service | Why |
 |---|---|
-| `doctrine/dbal` | `phil/url-bundle` 0.1.2-alpha loads its Doctrine column type when the kernel boots, and needs DBAL for it. |
-| CSRF protection and sessions | With Twig and `symfony/security-csrf` installed, `phil/upload-scan-bundle` registers the page of its quarantine, which asks for the CSRF token manager: `framework.csrf_protection` must then be on. |
 | A ClamAV daemon | `phil/upload-scan-bundle` scans through clamd, on `tcp://127.0.0.1:3310` unless configured otherwise. |
 | StimulusBundle with AssetMapper | The browser parts of `phil/spam-protection-bundle` and `phil/bot-detection-bundle` are Stimulus controllers. |
+
+Neither `doctrine/dbal` nor sessions are needed. `phil/url-bundle` registers its Doctrine column type only when
+`doctrine/dbal` and DoctrineBundle are installed. With Twig and `symfony/security-csrf` installed,
+`phil/upload-scan-bundle` registers the page of its quarantine, whose token FrameworkBundle checks by the origin of the
+request: CSRF protection is on by default, and no session is started for it. An application that turned
+`framework.csrf_protection` off sets `phil_upload_scan.admin.enabled` to `false`, or turns it back on.
 
 ## What to configure next
 

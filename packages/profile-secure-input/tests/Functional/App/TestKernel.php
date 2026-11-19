@@ -8,7 +8,6 @@ use Override;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Kernel;
-use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 /**
  * An application that installed the profile and registered every bundle it brings, in config/bundles.php, with no
@@ -38,17 +37,12 @@ final class TestKernel extends Kernel
 
     private function configureContainer(ContainerConfigurator $container): void
     {
-        // The administration page of the quarantine is registered whenever Twig and symfony/security-csrf are installed,
-        // and asks for the token manager: an application with both turns CSRF protection on, with its sessions.
-        $csrf = interface_exists(CsrfTokenManagerInterface::class);
         $container->extension('framework', [
             'secret' => 'test',
             'test' => true,
             'http_method_override' => false,
             'handle_all_throwables' => true,
             'php_errors' => ['log' => true],
-            'csrf_protection' => ['enabled' => $csrf],
-            'session' => ['enabled' => $csrf, 'storage_factory_id' => 'session.storage.factory.mock_file'],
         ]);
     }
 }
