@@ -370,6 +370,7 @@ final class PhilIdentityProviderBundleTest extends TestCase
     {
         yield 'per ip' => [['per_ip' => ['interval' => 'soon']], '"registration.rate_limit.per_ip.interval" is a duration, such as "15 minutes", not "soon".'];
         yield 'per address' => [['per_address' => ['interval' => '-1 hour']], '"registration.rate_limit.per_address.interval" is a duration, such as "15 minutes", not "-1 hour".'];
+        yield 'a date' => [['per_ip' => ['interval' => 'tomorrow']], '"registration.rate_limit.per_ip.interval" is a duration, such as "15 minutes", not "tomorrow".'];
         yield 'resend delay' => [['resend_delay' => '0 seconds'], '"registration.rate_limit.resend_delay" is a duration, such as "15 minutes", not "0 seconds".'];
     }
 
@@ -382,6 +383,18 @@ final class PhilIdentityProviderBundleTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessageIsOrContains($message);
         $this->load([['registration' => ['rate_limit' => $limits]]]);
+    }
+
+    public function testTheRegistrationLimiterIsRegisteredByTheServicesAlone(): void
+    {
+        $container = new ContainerBuilder();
+        $limits = ['enabled' => true, 'per_ip' => ['limit' => 3, 'interval' => '1 hour'], 'per_address' => ['limit' => 2, 'interval' => '1 day'], 'resend_delay' => '5 minutes'];
+
+        IdentityProviderServices::registrationLimiter($container, ['enabled' => false, 'rate_limit' => $limits], 'secret');
+        self::assertFalse($container->hasDefinition(IdentityProviderServices::REGISTRATION_LIMITER));
+
+        IdentityProviderServices::registrationLimiter($container, ['enabled' => true, 'rate_limit' => $limits], 'secret');
+        self::assertTrue($container->hasDefinition(IdentityProviderServices::REGISTRATION_LIMITER));
     }
 
     public function testARegistrationLimitIsOneOrMore(): void

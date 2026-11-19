@@ -175,6 +175,18 @@ final class ConfigurationTest extends TestCase
         yield 'oidc.retired_key_retention' => [['oidc', 'retired_key_retention'], 0, null];
     }
 
+    public function testARegistrationCountMayBeOne(): void
+    {
+        $registration = $this->process(['registration' => ['rate_limit' => ['per_ip' => ['limit' => 1], 'per_address' => ['limit' => 1]]]])['registration'];
+
+        self::assertIsArray($registration);
+        self::assertIsArray($registration['rate_limit']);
+        self::assertIsArray($registration['rate_limit']['per_ip']);
+        self::assertIsArray($registration['rate_limit']['per_address']);
+        self::assertSame(1, $registration['rate_limit']['per_ip']['limit']);
+        self::assertSame(1, $registration['rate_limit']['per_address']['limit']);
+    }
+
     public function testTheChoices(): void
     {
         self::assertSame('memory', $this->process(['store' => 'memory'])['store']);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Tests\Unit\Infrastructure;
 
+use ArrayObject;
 use LogicException;
 use Override;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\IdentityProviderServices;
@@ -58,6 +59,35 @@ final class LinkOriginTest extends TestCase
         self::assertSame('https://example.com:8443/fr/reset?account=a', new RouterLinkOrigin($urls, 'https://example.com:8443')->link(static fn (): string => $urls->generate('reset', ['account' => 'a', '_locale' => 'fr'], UrlGeneratorInterface::ABSOLUTE_URL)));
         self::assertSame('http://example.com:8080/fr/reset?account=a', new RouterLinkOrigin($urls, 'http://example.com:8080')->link(static fn (): string => $urls->generate('reset', ['account' => 'a', '_locale' => 'fr'], UrlGeneratorInterface::ABSOLUTE_URL)));
         self::assertSame('http://example.com/fr/reset?account=a', new RouterLinkOrigin($urls, 'http://example.com')->link(static fn (): string => $urls->generate('reset', ['account' => 'a', '_locale' => 'fr'], UrlGeneratorInterface::ABSOLUTE_URL)));
+    }
+
+    public function testTheContextHoldsBothPortsWhateverTheScheme(): void
+    {
+        $urls = $this->urls(new RequestContext());
+        $seen = new ArrayObject();
+        $generate = static function () use ($urls, $seen): string {
+            $seen[] = $urls->getContext()->getHttpPort().'/'.$urls->getContext()->getHttpsPort();
+
+            return 'https://example.com/';
+        };
+
+        new RouterLinkOrigin($urls, 'https://example.com:8443')->link($generate);
+        new RouterLinkOrigin($urls, 'https://example.com')->link($generate);
+        new RouterLinkOrigin($urls, 'http://example.com:8080')->link($generate);
+        new RouterLinkOrigin($urls, 'http://example.com')->link($generate);
+
+        self::assertSame(['80/8443', '80/443', '8080/443', '80/443'], $seen->getArrayCopy());
+    }
+
+    public function testLocalhostIsRefusedUnlessAllowed(): void
+    {
+        $urls = $this->urls(new RequestContext());
+        $generate = static fn (): string => $urls->generate('reset', ['_locale' => 'fr'], UrlGeneratorInterface::ABSOLUTE_URL);
+
+        self::assertSame('http://localhost:8000/fr/reset', new RouterLinkOrigin($urls, 'http://localhost:8000', true)->link($generate));
+
+        $this->expectException(InvalidConfigurationException::class);
+        new RouterLinkOrigin($urls, 'http://localhost:8000')->link($generate);
     }
 
     public function testTheContextIsGivenBackWhenTheLinkFails(): void

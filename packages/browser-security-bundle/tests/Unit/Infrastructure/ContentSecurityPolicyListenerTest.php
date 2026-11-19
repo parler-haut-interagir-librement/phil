@@ -162,6 +162,9 @@ final class ContentSecurityPolicyListenerTest extends TestCase
         self::assertSame('csp="https://example.com/_csp/report"', $canonical->headers->get(HeaderBuilder::REPORTING_ENDPOINTS));
         self::assertSame('https://example.com:8443/_csp/report', new ReportEndpoint($this->urls(), true, null, 'https://example.com:8443')->uri());
         self::assertSame('http://localhost:8000/_csp/report', new ReportEndpoint($this->urls(), true, null, 'http://localhost:8000', true)->uri());
+
+        $this->expectException(InvalidConfigurationException::class);
+        new ReportEndpoint($this->urls(), true, null, 'http://localhost:8000')->uri();
     }
 
     /**

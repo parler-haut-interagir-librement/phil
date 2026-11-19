@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\PrivacyBundle\Tests\Unit\Infrastructure\Routing;
 
+use ArrayObject;
 use Closure;
 use DateTimeImmutable;
 use LogicException;
@@ -92,6 +93,35 @@ final class GuestLinkOriginTest extends TestCase
         self::assertSame('http://example.org:8080/app/fr/confirm/a', new GuestLinkOrigin($urls, 'http://example.org:8080')->link($generate));
         self::assertSame('http://example.org/app/fr/confirm/a', new GuestLinkOrigin($urls, 'http://example.org')->link($generate));
         self::assertSame('https://example.org/app/fr/confirm/a', new GuestLinkOrigin($urls, 'https://example.org')->link($generate));
+    }
+
+    public function testTheContextHoldsBothPortsWhateverTheScheme(): void
+    {
+        $urls = $this->urls(new RequestContext());
+        $seen = new ArrayObject();
+        $generate = static function () use ($urls, $seen): string {
+            $seen[] = $urls->getContext()->getHttpPort().'/'.$urls->getContext()->getHttpsPort();
+
+            return 'https://example.org/';
+        };
+
+        new GuestLinkOrigin($urls, 'https://example.org:8443')->link($generate);
+        new GuestLinkOrigin($urls, 'https://example.org')->link($generate);
+        new GuestLinkOrigin($urls, 'http://example.org:8080')->link($generate);
+        new GuestLinkOrigin($urls, 'http://example.org')->link($generate);
+
+        self::assertSame(['80/8443', '80/443', '8080/443', '80/443'], $seen->getArrayCopy());
+    }
+
+    public function testLocalhostIsRefusedUnlessAllowed(): void
+    {
+        $urls = $this->urls(new RequestContext());
+        $generate = static fn (): string => $urls->generate(PrivacyRoutes::GUEST_CONFIRM, ['id' => 'a'], UrlGenerator::ABSOLUTE_URL);
+
+        self::assertSame('http://localhost:8000/privacy-choices/request/a', new GuestLinkOrigin($urls, 'http://localhost:8000', true)->link($generate));
+
+        $this->expectException(InvalidConfigurationException::class);
+        new GuestLinkOrigin($urls, 'http://localhost:8000')->link($generate);
     }
 
     public function testTheContextIsGivenBackWhenTheLinkFails(): void

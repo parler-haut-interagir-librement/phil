@@ -66,6 +66,7 @@ use Twig\Environment;
 use Twig\Loader\ArrayLoader;
 
 #[CoversClass(CookieServices::class)]
+#[CoversClass(PhilPrivacyBundle::class)]
 #[CoversClass(GuestRequestServices::class)]
 #[CoversClass(RightsConfiguration::class)]
 #[CoversClass(RightsServices::class)]
@@ -165,6 +166,23 @@ final class AdditionsWiringTest extends TestCase
         self::assertSame(['id' => GuestRequestServices::PER_CLIENT, 'policy' => 'sliding_window', 'limit' => 9, 'interval' => '1 hour'], $container->getDefinition(GuestRequestServices::PER_CLIENT)->getArgument(0));
         self::assertSame(['id' => GuestRequestServices::PER_ADDRESS, 'policy' => 'sliding_window', 'limit' => 3, 'interval' => '1 day'], $container->getDefinition(GuestRequestServices::PER_ADDRESS)->getArgument(0));
         self::assertSame(RateLimiterFactory::class, $container->getDefinition(GuestRequestServices::PER_CLIENT)->getClass());
+    }
+
+    public function testTheMailedLinksAndTheOriginAreParametersOfTheGuestConfiguration(): void
+    {
+        $origin = $this->load(['public_origin' => 'https://example.org', ...self::GUESTS]);
+        self::assertSame('https://example.org', $origin->getParameter(GuestLinkOrigin::OPTION));
+        self::assertTrue($origin->getParameter(PhilPrivacyBundle::MAILED_LINKS));
+
+        $off = $this->load([]);
+        self::assertNull($off->getParameter(GuestLinkOrigin::OPTION));
+        self::assertFalse($off->getParameter(PhilPrivacyBundle::MAILED_LINKS));
+
+        $own = $this->load(['guest_requests' => ['enabled' => true, 'sender' => 'App\\Mailer']]);
+        self::assertFalse($own->getParameter(PhilPrivacyBundle::MAILED_LINKS));
+
+        $disabledWithoutSender = $this->load(['guest_requests' => ['enabled' => false, 'from' => 'privacy@example.org']]);
+        self::assertFalse($disabledWithoutSender->getParameter(PhilPrivacyBundle::MAILED_LINKS));
     }
 
     public function testNamedPartsReplaceTheBundles(): void

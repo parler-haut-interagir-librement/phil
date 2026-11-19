@@ -30,10 +30,19 @@ final class RegistrationRateLimiterTest extends TestCase
 
         self::assertTrue($limiter->allowsRegistration($this->request('2001:db8::1'), 'a@example.com'));
         self::assertTrue($limiter->allowsRegistration($this->request('2001:db8::ffff'), 'b@example.com'));
-        self::assertFalse($limiter->allowsRegistration($this->request('2001:db8:0:0:1::1'), 'c@example.com'));
+        self::assertFalse($limiter->allowsRegistration($this->request('2001:db8:0:0:100::1'), 'c@example.com'));
         self::assertTrue($limiter->allowsRegistration($this->request('2001:db8:0:1::1'), 'c@example.com'));
         self::assertTrue($limiter->allowsRegistration($this->request('192.0.2.1'), 'd@example.com'));
         self::assertTrue($limiter->allowsRegistration($this->request('192.0.2.2'), 'd@example.com'));
+    }
+
+    public function testAnIpv4AddressInIpv6FormKeepsItsOwnCount(): void
+    {
+        $limiter = $this->limiter(perIp: 1);
+
+        self::assertTrue($limiter->allowsRegistration($this->request('::ffff:192.0.2.1'), 'a@example.com'));
+        self::assertTrue($limiter->allowsRegistration($this->request('::ffff:192.0.2.2'), 'b@example.com'));
+        self::assertFalse($limiter->allowsRegistration($this->request('::ffff:192.0.2.2'), 'c@example.com'));
     }
 
     public function testAnAddressCountsWhateverItsCaseAndSpaces(): void
@@ -44,6 +53,14 @@ final class RegistrationRateLimiterTest extends TestCase
         self::assertTrue($limiter->allowsRegistration($this->request('192.0.2.2'), ' ADA@Example.com '));
         self::assertFalse($limiter->allowsRegistration($this->request('192.0.2.3'), 'Ada@example.com'));
         self::assertTrue($limiter->allowsRegistration($this->request('192.0.2.3'), 'grace@example.com'));
+    }
+
+    public function testAnAddressCountsWhateverTheCaseOfItsAccents(): void
+    {
+        $limiter = $this->limiter(perAddress: 1);
+
+        self::assertTrue($limiter->allowsRegistration($this->request('192.0.2.1'), 'ÉLOÏSE@example.com'));
+        self::assertFalse($limiter->allowsRegistration($this->request('192.0.2.2'), 'éloïse@example.com'));
     }
 
     public function testARefusalByTheClientSpendsNothingOfTheAddress(): void

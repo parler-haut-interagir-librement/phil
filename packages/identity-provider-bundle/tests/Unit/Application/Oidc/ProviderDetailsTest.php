@@ -130,6 +130,16 @@ final class ProviderDetailsTest extends TestCase
         self::assertArrayHasKey('id_token', $withoutOpenid);
     }
 
+    public function testARefreshOfATokenWithoutOpenidDoesNotAddIt(): void
+    {
+        $now = $this->services->clock->now();
+        $this->grants->saveToken(IssuedToken::issue(IssuedToken::idOfRefresh('a-refresh-token'), TokenKind::Refresh, 'FAMILY0000000000000000000B', 'app', $this->account->id(), ['email', 'offline_access'], null, $now, [], $now, $now->modify('+1 hour')));
+
+        $narrow = $this->tokens()->refresh($this->client, 'a-refresh-token', 'email');
+
+        self::assertSame('email offline_access', $narrow['scope']);
+    }
+
     public function testATokenWhoseSignatureIsWrongIsRefusedAsAnyOtherInvalidOne(): void
     {
         $response = $this->flow('openid email offline_access');

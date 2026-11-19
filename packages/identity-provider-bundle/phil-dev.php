@@ -81,6 +81,9 @@ return [
                     '\\$values\\[\\$key\\] = \\$this->item\\(\\$depth \\+ 1\\);',
                     // `trim()` takes the space that the shorter prefix leaves.
                     '\\$parts = explode\\(\':\', sodium_base642bin\\(trim\\(substr.*',
+                    // A text that PHP cannot read as a duration counts as zero seconds; -1 is refused as 0 is, with the
+                    // same message.
+                    '\\$seconds = 0;',
                 ],
             ],
             'Plus' => [

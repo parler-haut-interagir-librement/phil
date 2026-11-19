@@ -114,6 +114,13 @@ return [
             'CastInt' => [
                 'ignore' => [ZipFile::class.'::__construct', ZipFile::class.'::dosTime', ZipFile::class.'::dosDate'],
             ],
+            // The configuration tree always gives `guest_requests.enabled`, which GuestRequestServices reads without a
+            // default: the `?? false` that types it for PHPStan is never reached.
+            'FalseValue' => [
+                'ignoreSourceCodeByRegex' => [
+                    '\\$builder->setParameter\\(self::MAILED_LINKS, true === \\(\\$guest\\[\'enabled\'\\] \\?\\? false\\).*',
+                ],
+            ],
             // The names of the archive only answer isset(), which holds for false as for true.
             'TrueValue' => [
                 'ignoreSourceCodeByRegex' => [
