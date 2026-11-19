@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.2.1-alpha - 2026-11-18
 
-The next version is 0.2.1-alpha: the replay guard renews its lock before it writes a claim. See
+The replay guard renews its lock before it writes a claim. See
 [Token refresh](doc/token-refresh.md#lock-lifetimes).
 
 ### Security
@@ -18,7 +18,7 @@ The next version is 0.2.1-alpha: the replay guard renews its lock before it writ
 
 ## 0.2.0-alpha - 2026-11-17
 
-The next version is 0.2.0-alpha: a logout token whose claim the pool did not keep is refused, and
+A logout token whose claim the pool did not keep is refused, and
 `RefreshOutcomes::publish()` returns whether the store kept the outcome.
 
 ### Added

@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.2.0-alpha - 2026-11-18
 
-The next version is 0.2.0-alpha: the keys of the segments, memory, terms and comments compare byte by byte on MySQL and
+The keys of the segments, memory, terms and comments compare byte by byte on MySQL and
 MariaDB. See [Upgrading from 0.1](doc/storage.md#upgrading-from-01).
 
 ### Added

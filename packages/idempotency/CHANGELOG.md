@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.3.0-alpha - 2026-11-17
 
-The next version is 0.3.0-alpha: the Messenger middleware compares the content of a message, and refuses a key reused
+The Messenger middleware compares the content of a message, and refuses a key reused
 with another content. See [Upgrading from 0.2](doc/messenger.md#upgrading-from-02).
 
 ### Added

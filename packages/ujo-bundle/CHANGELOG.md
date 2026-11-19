@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.1.2-alpha - 2026-11-18
 
-The next version is 0.1.2-alpha: `max_bytes` bounds inline HTML too, on `phil/ujo` 0.1.3.
+`max_bytes` bounds inline HTML too, on `phil/ujo` 0.1.3.
 
 ### Added
 
@@ -21,7 +21,7 @@ The next version is 0.1.2-alpha: `max_bytes` bounds inline HTML too, on `phil/uj
 
 ## 0.1.1-alpha - 2026-11-17
 
-The next version is 0.1.1-alpha: documentation only.
+Documentation only.
 
 ### Changed
 

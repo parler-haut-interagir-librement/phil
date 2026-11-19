@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.3.0-alpha - 2026-11-18
 
-The next version is 0.3.0-alpha: the keys of the routes, single roots, working copies and rows compare byte by byte on
+The keys of the routes, single roots, working copies and rows compare byte by byte on
 MySQL and MariaDB. See [Upgrading from 0.2](doc/storage.md#upgrading-from-02).
 
 ### Added
@@ -33,7 +33,7 @@ MySQL and MariaDB. See [Upgrading from 0.2](doc/storage.md#upgrading-from-02).
 
 ## 0.2.0-alpha - 2026-11-17
 
-The next version is 0.2.0-alpha: a new table, `phil_content_single_root`, to migrate, and preview links signed over
+A new table, `phil_content_single_root`, to migrate, and preview links signed over
 their tenant or host, which refuses the links made before. See [Upgrading from 0.1](doc/storage.md#upgrading-from-01)
 and the [preview links](doc/sitemap-feeds-previews.md#upgrading-from-01).
 

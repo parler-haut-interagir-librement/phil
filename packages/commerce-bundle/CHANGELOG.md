@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.3.0-alpha - 2026-11-18
 
-The next version is 0.3.0-alpha: the methods and provider references of the payments and the owners of the wish lists
+The methods and provider references of the payments and the owners of the wish lists
 compare byte by byte on MySQL and MariaDB. See [Upgrading from 0.2](doc/payments.md#upgrading-from-02).
 
 ### Added
@@ -29,7 +29,7 @@ compare byte by byte on MySQL and MariaDB. See [Upgrading from 0.2](doc/payments
 
 ## 0.2.0-alpha - 2026-11-17
 
-The next version is 0.2.0-alpha: a refund is refused that was granted before, and `PaymentGateway::refund()` and
+A refund is refused that was granted before, and `PaymentGateway::refund()` and
 `Payments::refund()` take an idempotency key.
 
 ### Added

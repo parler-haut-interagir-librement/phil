@@ -6,8 +6,6 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.1.1-alpha - 2026-11-18
 
-The next version is 0.1.1-alpha.
-
 ### Added
 
 - The SCORM run-time data model in `Runtime\`: `DataModel`, the elements of SCORM 1.2 and SCORM 2004 4th edition with

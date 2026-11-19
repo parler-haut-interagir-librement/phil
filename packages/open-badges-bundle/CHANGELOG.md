@@ -6,8 +6,6 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.1.3-alpha - 2026-11-18
 
-The next version is 0.1.3-alpha.
-
 ### Changed
 
 - It accepts `phil/open-badges` 0.4 beside 0.2 and 0.3.
@@ -19,15 +17,11 @@ The next version is 0.1.3-alpha.
 
 ## 0.1.2-alpha - 2026-11-17
 
-The next version is 0.1.2-alpha.
-
 ### Changed
 
 - It accepts `phil/open-badges` 0.3 beside 0.2.
 
 ## 0.1.1-alpha - 2026-11-15
-
-The next version is 0.1.1-alpha.
 
 ### Changed
 

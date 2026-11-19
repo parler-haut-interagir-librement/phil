@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.2.2-alpha - 2026-11-18
 
-The next version is 0.2.2-alpha: the keys of the register compare byte for byte on MySQL and MariaDB. See
+The keys of the register compare byte for byte on MySQL and MariaDB. See
 [Two awards at once](doc/courses-and-awarding.md#two-awards-at-once).
 
 ### Changed
@@ -23,15 +23,13 @@ The next version is 0.2.2-alpha: the keys of the register compare byte for byte 
 
 ## 0.2.1-alpha - 2026-11-17
 
-The next version is 0.2.1-alpha.
-
 ### Changed
 
 - It accepts `phil/open-badges` 0.3 beside 0.2.
 
 ## 0.2.0-alpha - 2026-11-15
 
-The next version is 0.2.0-alpha: `CertificateRepository` gains a method, and the schema two columns.
+`CertificateRepository` gains a method, and the schema two columns.
 
 ### Added
 

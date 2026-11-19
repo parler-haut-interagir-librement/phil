@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.2.0-alpha - 2026-11-17
 
-The next version is 0.2.0-alpha: the tuples are partitioned, and the table changes. See
+The tuples are partitioned, and the table changes. See
 [Upgrading from 0.1](doc/partitions.md#upgrading-from-01).
 
 ### Added

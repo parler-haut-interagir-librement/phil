@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.4.0-alpha - 2026-11-18
 
-The next version is 0.4.0-alpha: the verifier refuses tokens whose registered claims contradict their credential and
+The verifier refuses tokens whose registered claims contradict their credential and
 contexts that redefine protected terms, `JwtSigner` refuses a credential carrying its own registered claims, and
 `PngBaker` refuses bytes after `IEND`.
 
@@ -38,7 +38,7 @@ contexts that redefine protected terms, `JwtSigner` refuses a credential carryin
 
 ## 0.3.0-alpha - 2026-11-17
 
-The next version is 0.3.0-alpha: `JwtVerifier` refuses a token whose `nbf` or `exp` is not a number, which it accepted.
+`JwtVerifier` refuses a token whose `nbf` or `exp` is not a number, which it accepted.
 
 ### Security
 
@@ -47,7 +47,7 @@ The next version is 0.3.0-alpha: `JwtVerifier` refuses a token whose `nbf` or `e
 
 ## 0.2.0-alpha - 2026-11-15
 
-The next version is 0.2.0-alpha: the two key contracts change. [Upgrading](doc/upgrading.md) lists what to change.
+The two key contracts change. [Upgrading](doc/upgrading.md) lists what to change.
 
 ### Added
 

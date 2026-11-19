@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.1.1-alpha - 2026-11-18
 
-The next version is 0.1.1-alpha: a kept job is readable by its owner alone from the moment it exists, and an open
+A kept job is readable by its owner alone from the moment it exists, and an open
 jobs directory is narrowed to its owner. See [The job store](doc/messenger.md#the-job-store).
 
 ### Added

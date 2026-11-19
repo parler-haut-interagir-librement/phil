@@ -6,8 +6,6 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.1.1-alpha - 2026-11-17
 
-The next version is 0.1.1-alpha.
-
 ### Changed
 
 - It accepts `phil/spam-protection-bundle` 0.2 beside 0.1.

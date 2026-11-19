@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.2.0-alpha - 2026-11-18
 
-The next version is 0.2.0-alpha: a metric is read only in its canonical form, and the keys of the counter tables
+A metric is read only in its canonical form, and the keys of the counter tables
 compare byte by byte on MySQL and MariaDB. See [Upgrading from 0.1](doc/counters.md#upgrading-from-01).
 
 ### Added

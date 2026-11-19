@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.1.3-alpha - 2026-11-18
 
-The next version is 0.1.3-alpha: the jobs and exports of the `directory` store are readable by their owner alone from
+The jobs and exports of the `directory` store are readable by their owner alone from
 the moment they exist, and an open store directory is narrowed to its owner. See
 [The directory of the claim check](doc/installation.md#the-directory-of-the-claim-check).
 

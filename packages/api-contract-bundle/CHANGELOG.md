@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.3.1-alpha - 2026-11-18
 
-The next version is 0.3.1-alpha: anonymous callers can be accepted per endpoint, and the keys of Messenger messages can
+Anonymous callers can be accepted per endpoint, and the keys of Messenger messages can
 be scoped to their tenant.
 
 ### Added
@@ -27,7 +27,7 @@ be scoped to their tenant.
 
 ## 0.3.0-alpha - 2026-11-17
 
-The next version is 0.3.0-alpha: idempotency keys are scoped by tenant, API client and user, anonymous callers are
+Idempotency keys are scoped by tenant, API client and user, anonymous callers are
 refused, and a replay runs the controller's access checks first. See
 [Upgrading from 0.2](doc/idempotency.md#upgrading-from-02).
 

@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.1.1-alpha - 2026-11-17
 
-The next version is 0.1.1-alpha: the transactions left open at the end of a unit of work are rolled back, and the
+The transactions left open at the end of a unit of work are rolled back, and the
 tenant is left then, in a worker as in any other process.
 
 ### Added

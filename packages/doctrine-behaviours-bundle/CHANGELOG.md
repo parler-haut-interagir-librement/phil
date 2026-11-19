@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.2.0-alpha - 2026-11-18
 
-The next version is 0.2.0-alpha: the keys the behaviours write compare byte by byte on MySQL and MariaDB. See [Collation of the keys](doc/configuration.md#collation-of-the-keys).
+The keys the behaviours write compare byte by byte on MySQL and MariaDB. See [Collation of the keys](doc/configuration.md#collation-of-the-keys).
 
 ### Added
 

@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.3.0-alpha - 2026-11-18
 
-The next version is 0.3.0-alpha: a source longer than 1 MiB, or a UJO source longer than 4 MiB, read before, is
+A source longer than 1 MiB, or a UJO source longer than 4 MiB, read before, is
 refused by default, so is an HTML longer than 4 MiB given to a purifier, and an HTML comment alone in Markdown is a
 note instead of text.
 

@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.2.0-alpha - 2026-11-18
 
-The next version is 0.2.0-alpha: the scope, the former slug and the subject of the history compare byte by byte on
+The scope, the former slug and the subject of the history compare byte by byte on
 MySQL and MariaDB. See [Upgrading from 0.1](doc/history.md#upgrading-from-01).
 
 ### Changed
@@ -24,7 +24,7 @@ MySQL and MariaDB. See [Upgrading from 0.1](doc/history.md#upgrading-from-01).
 
 ## 0.1.1-alpha - 2026-11-17
 
-The next version is 0.1.1-alpha: documentation only.
+Documentation only.
 
 ### Changed
 

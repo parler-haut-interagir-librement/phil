@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.2.0-alpha - 2026-11-18
 
-The next version is 0.2.0-alpha: a text longer than 1 MiB, fixed before, is refused by default.
+A text longer than 1 MiB, fixed before, is refused by default.
 
 ### Added
 
@@ -23,7 +23,7 @@ The next version is 0.2.0-alpha: a text longer than 1 MiB, fixed before, is refu
 
 ## 0.1.1-alpha - 2026-11-17
 
-The next version is 0.1.1-alpha: documentation only.
+Documentation only.
 
 ### Changed
 

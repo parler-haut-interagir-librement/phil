@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.2.0-alpha - 2026-11-18
 
-The next version is 0.2.0-alpha: `BlockStore`'s methods take a `Fence`, and `LeaseRepository` gains `fence()`. See
+`BlockStore`'s methods take a `Fence`, and `LeaseRepository` gains `fence()`. See
 [Writes under a lease](doc/blocks.md#writes-under-a-lease).
 
 ### Added

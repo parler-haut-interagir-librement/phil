@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.1.1-alpha - 2026-11-18
 
-The next version is 0.1.1-alpha: the lock of an alert is renewed and checked before the notification and before the
+The lock of an alert is renewed and checked before the notification and before the
 mark. See [Heartbeats](doc/heartbeats.md#lock-lifetime).
 
 ### Fixed

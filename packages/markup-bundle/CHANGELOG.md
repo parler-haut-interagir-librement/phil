@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.1.3-alpha - 2026-11-18
 
-The next version is 0.1.3-alpha: three optional keys, on `phil/markup` 0.3.
+Three optional keys, on `phil/markup` 0.3.
 
 ### Added
 

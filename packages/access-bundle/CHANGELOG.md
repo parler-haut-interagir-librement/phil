@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.2.1-alpha - 2026-11-18
 
-The next version is 0.2.1-alpha: every tenant can be purged in one run.
+Every tenant can be purged in one run.
 
 ### Added
 
@@ -23,7 +23,7 @@ The next version is 0.2.1-alpha: every tenant can be purged in one run.
 
 ## 0.2.0-alpha - 2026-11-17
 
-The next version is 0.2.0-alpha: "view as this member" stays within the admin's space and is read-only for the whole
+"View as this member" stays within the admin's space and is read-only for the whole
 application, and the tuples are partitioned by tenant. See [Upgrading from 0.1](doc/tenants.md#upgrading-from-01).
 
 ### Added

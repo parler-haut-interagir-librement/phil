@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.1.1-alpha - 2026-11-18
 
-The next version is 0.1.1-alpha: a note that several migrations of a run bring is announced once. See
+A note that several migrations of a run bring is announced once. See
 [What a run announces](doc/reference.md#what-a-run-announces).
 
 ### Fixed

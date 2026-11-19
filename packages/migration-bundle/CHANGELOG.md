@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## 0.1.2-alpha - 2026-11-18
 
-The next version is 0.1.2-alpha: a note that several migrations of a run bring is announced once on each channel.
+A note that several migrations of a run bring is announced once on each channel.
 See [A migration that announces](doc/migrations.md#a-migration-that-announces).
 
 ### Fixed
