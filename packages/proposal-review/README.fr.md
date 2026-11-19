@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c3d2f7199896fcf6cfdeb1b54ed7f1eb0f855a927007f65eda38817d1d6a2a05 -->
+<!-- phil-dev source-sha256=407aa5e27112f0dbc3889d29af878f30c53fcf51747098e912a6392da976b7ac -->
 # phil/proposal-review
 
 **Un seul moteur d'évaluation par jury pour les appels de propositions, les candidatures à un cours et les concours :
@@ -23,7 +23,7 @@ Elle sert à toute application PHP qui demande à un jury de choisir : les conf�
 cours ou à une bourse, les participants à un concours de costumes, d'écriture ou de jeux. Les propositions, les
 évaluateurs et les auteurs sont les identifiants stables de l'application ; leur contenu, leurs commentaires et leurs
 écrans restent dans l'application. C'est une bibliothèque PHP simple qui repose sur `psr/clock` et
-`psr/event-dispatcher`, avec des magasins derrière des ports et des adaptateurs en mémoire ; chaque instant est gardé en
+`psr/event-dispatcher`, avec des magasins derrière des ports, des adaptateurs en mémoire et sur Doctrine DBAL ; chaque instant est gardé en
 UTC.
 
 ## État
@@ -39,7 +39,7 @@ UTC.
 | Vote par paires : paires équilibrées, journal en ajout seul, notes de Bradley–Terry | Implémenté et testé |
 | Événements pour les changements de phase, les évaluations, les décisions et les votes | Implémenté et testé |
 | Magasins en mémoire | Implémenté et testé |
-| Magasins Doctrine DBAL | Pas commencé : une application implémente les quatre ports sur son propre stockage |
+| Magasins Doctrine DBAL : tables tirées de leur propre schéma, identifiants comparés octet par octet, votes numérotés sous concurrence | Implémenté et testé |
 | Enchères d'évaluateurs, fils de discussion, commentaires | Non prévu ici : les commentaires relèvent de l'application ou d'un paquet de commentaires |
 
 ## Documentation
@@ -50,7 +50,7 @@ UTC.
 | [Utilisation](doc/fr/usage.md) | Une campagne du dépôt aux décisions, étape par étape. |
 | [Vote par paires](doc/fr/pairwise-voting.md) | Tirer des paires, voter, lire les notes. |
 | [Algorithmes](doc/fr/algorithms.md) | Les notes et leur agrégation, l'assignation équilibrée, « enregistrer et suivant », le tirage des paires, Bradley–Terry, et leurs garanties. |
-| [Stockage](doc/fr/storage.md) | Les quatre ports, les adaptateurs en mémoire, et ce qu'un adaptateur doit conserver. |
+| [Stockage](doc/fr/storage.md) | Les quatre ports, les adaptateurs en mémoire et sur Doctrine DBAL, et ce qu'un adaptateur doit conserver. |
 | [Événements](doc/fr/events.md) | Ce que le moteur répartit, et quand. |
 | [Sécurité](doc/fr/security.md) | Les phases comme permissions, les conflits, l'aveugle, les identifiants, les bornes. |
 | [Points d'extension](doc/fr/extension-points.md) | Ce qu'une application peut remplacer ou ajouter, et quand c'est stable. |
@@ -100,7 +100,7 @@ $standings = $board->standings('cfp-2027');                         // best firs
 
 PHP 8.5 ou une version plus récente, `psr/clock`, `psr/event-dispatcher` et `symfony/polyfill-php86` pour
 `\SortDirection` avant PHP 8.6. Une horloge comme `symfony/clock`, et un répartiteur d'événements pour écouter les
-événements.
+événements. `doctrine/dbal` 4.5 pour les magasins en base de données.
 
 ## Contribuer
 

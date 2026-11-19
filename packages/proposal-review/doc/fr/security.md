@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1f03f6afbe8727b96b17628a4e2aa8951e5ee9e94de0b85de3e6d764d590aaf2 -->
+<!-- phil-dev source-sha256=b369ca3e0c0318314812089b4aeec0013dad9b6b9b79ca5736b41b32a6f4e3f3 -->
 # Sécurité
 
 Une évaluation par jury décide qui parle, qui est admis, qui gagne. Le moteur fait respecter les règles qui la gardent
@@ -22,6 +22,9 @@ Une évaluation par jury décide qui parle, qui est admis, qui gagne. Le moteur 
 - **Une entrée bornée.** Les identifiants font de 1 à 255 octets sans caractère de contrôle ; une campagne a au plus 50
   critères, une proposition au plus 50 auteurs, une politique au plus 1 000 évaluations ; les poids et les échelles sont
   bornés ; le modèle de Bradley–Terry itère au plus 10 000 fois.
+- **Les lignes stockées.** Les magasins DBAL lient chaque valeur comme paramètre ; le préfixe de table, le seul nom qu'ils
+  mettent dans le SQL, est d'abord vérifié contre un motif strict. Le JSON est relu à une profondeur de 8 au plus, et
+  une ligne qu'ils n'ont pas écrite est refusée, jamais lue comme autre chose.
 
 ## Ce que l'application fait respecter
 

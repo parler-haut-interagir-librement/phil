@@ -1,7 +1,7 @@
-<!-- phil-dev source-sha256=eba55f3b3526e23ce5a483be0e19e0c4e96986e97a4ee5dfdaa5f81950be997a -->
+<!-- phil-dev source-sha256=8e80dda2d97c1df8c63e566b81a4b87e98204b5e4c460f104773fd600286331b -->
 # Référence
 
-Chaque type public du paquet, avec son rôle. Les classes sous `Internal\` ne font pas partie de l'API publique.
+Chaque type public du paquet, avec son rôle. Les classes sous `Internal\`, et `Dbal\Tables`, ne font pas partie de l'API publique.
 
 ## La campagne
 
@@ -49,6 +49,7 @@ Chaque type public du paquet, avec son rôle. Les classes sous `Internal\` ne fo
 | `Contract\ReviewStore` | Où les évaluations et les décisions sont conservées. |
 | `Contract\VoteLog` | Le journal numéroté, en ajout seul, des votes par paires. |
 | `Memory\InMemoryCampaignStore`, `Memory\InMemoryProposalStore`, `Memory\InMemoryReviewStore`, `Memory\InMemoryVoteLog` | Les quatre ports en mémoire. |
+| `Dbal\DbalCampaignStore`, `Dbal\DbalProposalStore`, `Dbal\DbalReviewStore`, `Dbal\DbalVoteLog` | Les quatre ports sur Doctrine DBAL, avec `configureSchema()` ; `DbalVoteLog::MAX_ATTEMPTS`. |
 
 ## Les événements
 

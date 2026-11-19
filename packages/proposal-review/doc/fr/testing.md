@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=dd34ddbe7c2ad3cdda9f99117d96dce1710f6ae5805232118743fcc76d552aa6 -->
+<!-- phil-dev source-sha256=aca6f1d563302add3b1cfcc50d4776c2a7ac9a853c2f7df296722d9e2a626e77 -->
 # Tests
 
 ## Les tests du paquet
@@ -8,14 +8,20 @@ composer install
 vendor/bin/phpunit --no-configuration tests
 ```
 
-La suite unitaire, sous `tests/Unit`, s'exécute sans noyau, sans base de données et sans réseau, sur les magasins en
+La suite unitaire, sous `tests/Unit`, s'exécute sans noyau, sans serveur de base de données et sans réseau, sur les magasins en
 mémoire et le `MockClock` de Symfony. Elle teste les objets-valeurs et leurs refus ; les phases aux bords de leurs
 fenêtres ; chaque action dans sa phase et hors d'elle ; les conflits par proposition et par auteur ; l'assignation
 manuelle et équilibrée ; le maximum d'évaluations et la règle des assignés seulement ; « enregistrer et suivant » ; les
 trois visibilités et l'aveugle ; le classement par moyenne et médiane dans les deux sens ; les décisions consignées,
 remplacées, appliquées ensemble et définitives ; les événements ; les magasins ; le tirage des paires, son équilibre et
 ses conflits ; et l'ajustement de Bradley–Terry — son point fixe, une proposition invaincue, l'ordre du journal, les
-bornes d'itération. Dans le monodépôt, Infection maintient le paquet à 100 % des mutants couverts.
+bornes d'itération. Les magasins DBAL exécutent le même contrat sur SQLite en mémoire, avec leurs tables, leurs
+préfixes, des lignes qu'ils n'ont pas écrites, et une autre requête qui prend d'abord le numéro d'un vote ou une
+assignation.
+
+La suite d'intégration, sous `tests/Integration`, exécute ce contrat sur MySQL et PostgreSQL quand
+`PHIL_TEST_MYSQL_URL` ou `PHIL_TEST_POSTGRESQL_URL` donne un serveur, et elle est ignorée autrement. Dans le monodépôt,
+Infection maintient le paquet à 100 % des mutants couverts.
 
 ## Le banc d'essai
 
