@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8d5898212d07130e603f4869852f35b3a650861ce25ecf7c0ccaa3dce68c01ec -->
+<!-- phil-dev source-sha256=a7e65bbfadf39c4aeb76830e33a8eeb8fe3b4d21ae15aa4b4021a885eca76c03 -->
 # Points d'extension
 
 ## UsedTokens
@@ -20,7 +20,7 @@ Le bundle en fournit trois, choisis par `used_tokens` ([Configuration](configura
 |---|---|---|
 | `DbalUsedTokens`, avec `used_tokens.connection` | Oui | Une insertion sur la clé primaire du nonce ; un doublon est refusé. |
 | `CacheUsedTokens` sous `used_tokens.lock_factory` | Oui, avec un stockage de verrous partagé | Le verrou du nonce, puis une lecture et une écriture sous ce verrou. |
-| `CacheUsedTokens` seul, par défaut | Non | Une lecture, un marqueur écrit, puis une relecture. |
+| `CacheUsedTokens` seul, par défaut | Non | Une lecture, un marqueur écrit, puis une relecture ; refusé dans l'environnement `prod`. |
 
 PSR-6 n'a pas d'« ajout si absent » atomique : le pool seul lit, écrit un marqueur à lui, puis relit. De deux envois
 qui écrivent l'un après l'autre, celui dont le marqueur a été écrasé est refusé. Deux envois qui relisent chacun avant

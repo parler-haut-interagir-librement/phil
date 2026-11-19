@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0c335ee956551a0b806b2c8964edb49a45c04d2042584e3c521d08f769a3bce4 -->
+<!-- phil-dev source-sha256=a74f0e80dd3342d1866d23140e7112b77c6c8b12c8f8da9a2f7f02e8b5aa1888 -->
 # Référence
 
 Chaque classe du bundle, avec son rôle.
@@ -15,6 +15,7 @@ Chaque classe du bundle, avec son rôle.
 | `Phil\NewsletterBundle\Application\Content\SandboxedTemplates` | `final class` | Produit les gabarits qu'écrivent les administrateurs et les membres, jamais avec le Twig de l'application |
 | `Phil\NewsletterBundle\Application\Contract\AudienceWebhookSender` | interface | Envoie un webhook signé d'un événement d'audience à un récepteur |
 | `Phil\NewsletterBundle\Application\Contract\BounceMailbox` | interface | La boîte où reviennent les rebonds |
+| `Phil\NewsletterBundle\Application\Contract\ConfirmationThrottle` | interface | Le délai avant qu'une autre confirmation d'une double confirmation soit envoyée au même abonné |
 | `Phil\NewsletterBundle\Application\Contract\CurrentSite` | interface | Le site auquel une requête s'adresse |
 | `Phil\NewsletterBundle\Application\Contract\SegmentResolver` | interface | Choisit les destinataires d'une campagne |
 | `Phil\NewsletterBundle\Application\Contract\SendThrottle` | interface | Le rythme d'envoi |
@@ -98,6 +99,7 @@ Chaque classe du bundle, avec son rôle.
 | `Phil\NewsletterBundle\Infrastructure\Imap\ImapClient` | `final class` | Les quelques commandes IMAP4rev1 qu'exige une boîte de rebonds, sur un flux que l'appelant ouvre |
 | `Phil\NewsletterBundle\Infrastructure\Privacy\NewsletterPrivacy` | `final readonly class` | La part de l'infolettre dans une demande d'accès ou d'effacement de `phil/privacy-bundle`, la personne concernée étant l'identifiant externe que l'application a donné à ses abonnés, sur chaque site |
 | `Phil\NewsletterBundle\Infrastructure\RateLimiter\RateLimiterSendThrottle` | `final readonly class` | Le rythme d'envoi sur le limiteur de débit de Symfony |
+| `Phil\NewsletterBundle\Infrastructure\RateLimiter\SubscriptionRateLimiter` | `final readonly class` | Les limites du formulaire d'abonnement, par client et par adresse saisie, et le délai entre deux confirmations, sur le limiteur de débit de Symfony |
 | `Phil\NewsletterBundle\Infrastructure\RemoteEvent\MailerEventConsumer` | `final readonly class` | Les événements qu'envoie le webhook d'un fournisseur de courriel, tels que les analysent le composant Webhook de Symfony et le pont Mailer du fournisseur |
 | `Phil\NewsletterBundle\Infrastructure\Site\ConfiguredSite` | `final readonly class` | Le site de la configuration, `default` sauf s'il en nomme un autre |
 | `Phil\NewsletterBundle\Infrastructure\Webhook\AudienceWebhookListener` | `final readonly class` | Envoie chaque événement d'audience à chaque récepteur configuré qui a demandé son type, par Messenger, pour qu'un récepteur lent ne retienne jamais la requête qui a changé l'abonné |

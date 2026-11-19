@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6903121eaaa565ca9fa16cabad163fe5e3b741147cf06bbec8011bda972c1025 -->
+<!-- phil-dev source-sha256=8ad380117a9cb4fbd8cebfe94fa2d99d2e3fa2af995bf2e6b0e65dc62527fded -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_newsletter` :
@@ -32,6 +32,11 @@ phil_newsletter:
         imap: { host: 'imap.example.com', port: 993, user: 'bounces@example.com', password: '%env(BOUNCES_PASSWORD)%', folder: INBOX, delete: false }
         remote_event_consumer: mail_provider
     rate_limiter_storage: cache.rate_limiter
+    subscription:
+        rate_limit:             # "rate_limit: false" turns the limits off
+            per_ip: { limit: 10, interval: '1 hour' }
+            per_address: { limit: 5, interval: '1 hour' }
+            resend_delay: '5 minutes'
     webhooks:
         crm: { url: 'https://crm.example.com/hooks/newsletter', events: [confirmed, unsubscribed] }
     preview_role: ROLE_EDITOR
@@ -52,7 +57,11 @@ phil_newsletter:
 | `bounces.verp` | désactivé | Le chemin de retour signé de chaque message, pour qu'un rebond nomme son envoi. |
 | `bounces.imap` | désactivé | La boîte des rebonds, lue en TLS implicite (port 993, RFC 8314 ; pas de STARTTLS) toutes les cinq minutes. |
 | `bounces.remote_event_consumer` | `null` | Le nom de route du webhook du fournisseur de courriel dont le bundle consomme les événements. |
-| `rate_limiter_storage` | `cache.rate_limiter` | Le groupe de cache où le rythme est compté ; partagé par chaque *worker*. |
+| `rate_limiter_storage` | `cache.rate_limiter` | Le groupe de cache où le rythme et les limites du formulaire d'abonnement sont comptés ; partagé par chaque *worker* et chaque serveur Web. |
+| `subscription.rate_limit.enabled` | `true` | Limite le formulaire d'abonnement public et les confirmations d'une double confirmation ; `rate_limit: false` désactive les limites. Voir [Les limites du formulaire](subscriptions.md#les-limites-du-formulaire). |
+| `subscription.rate_limit.per_ip.limit`, `.interval` | `10`, `1 hour` | Les abonnements par adresse de client, ou par réseau IPv6 /64, dans chaque intervalle. |
+| `subscription.rate_limit.per_address.limit`, `.interval` | `5`, `1 hour` | Les abonnements par adresse saisie, sur chaque site, abonnée ou non, dans chaque intervalle. |
+| `subscription.rate_limit.resend_delay` | `5 minutes` | Le délai avant qu'une autre confirmation soit envoyée au même abonné. |
 | `webhooks.<name>` | aucun | Les récepteurs des événements d'audience ; un `events` vide les envoie tous. Exige `phil/standard-webhooks-bundle`. |
 | `preview_role` | `ROLE_ADMIN` | Le rôle auquel répond l'aperçu de l'éditeur. |
 

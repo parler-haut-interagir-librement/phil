@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=35a278a63a483304808fb27b3f7e1d722fffc39e7dc11a1ec8732514d230dd1a -->
+<!-- phil-dev source-sha256=2c6f484866697732a4b5a63826ebc58d390d350fb299567de266bc57a8438dd1 -->
 # phil/newsletter-bundle
 
 **L'infolettre d'un site dans Symfony : on s'abonne, on confirme, on choisit ses listes, on se met en pause ou on s'en va ; les éditeurs écrivent en Markdown ; les messages partent par Symfony Mailer à un rythme que les fournisseurs de courriel acceptent.**
@@ -48,7 +48,7 @@ le bundle fonctionne sur des *workers* de longue durée.
 |---|---|
 | [Installation](doc/fr/installation.md) | Les prérequis, la recette, l'enregistrement, les routes, les tables, les *workers*. |
 | [Configuration](doc/fr/configuration.md) | Chaque option, avec un exemple. |
-| [Abonnements](doc/fr/subscriptions.md) | Les listes, la double confirmation, les pages, le départ, la pause, les raisons, les sites. |
+| [Abonnements](doc/fr/subscriptions.md) | Les listes, la double confirmation, les limites du formulaire, les pages, le départ, la pause, les raisons, les sites. |
 | [Campagnes](doc/fr/campaigns.md) | L'écriture, l'éditeur Markdown, les mises en page, les gabarits en bac à sable, l'envoi, les profils d'expéditeur. |
 | [Suivi](doc/fr/tracking.md) | Les clics en total ou par destinataire, les machines écartées, ce qui n'est jamais suivi. |
 | [Rebonds](doc/fr/bounces.md) | La boîte IMAP, VERP, les webhooks de fournisseurs, les rebonds souples et durs, la suppression. |

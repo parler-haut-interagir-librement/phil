@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bbfd07441b4332baca7e010f02ac44a99c45b1bad50de89e179a700d6234b3b7 -->
+<!-- phil-dev source-sha256=df4790adbbd38845b45c60a443520eb242f6a0cf2987bbfa1f6d598565c289a1 -->
 # Abonnements
 
 ## Les listes et les abonnés
@@ -35,6 +35,42 @@ n'est abonnée à rien et ne reçoit rien. Une liste à double confirmation gard
 confirmation par Messenger ; son lien signé est valide sept jours. Chaque changement est sauvegardé, puis annoncé par
 un événement `AudienceChanged`.
 
+## Les limites du formulaire
+
+Le formulaire d'abonnement public est limité par défaut : chaque envoi peut faire parvenir une confirmation à une adresse
+dont le titulaire n'a rien demandé, et dépense le quota et la réputation de l'expéditeur. `subscription.rate_limit` compte,
+avec le limiteur de débit de Symfony, dans le groupe de `rate_limiter_storage`, sous `lock.factory` quand l'application en
+définit un :
+
+| Compte | Valeur par défaut | Refusé |
+|---|---|---|
+| Par adresse de client, ou par réseau IPv6 /64 | 10 par heure, fenêtre glissante | `429`, `Too many attempts: please try again later.` |
+| Par adresse saisie, sur chaque site, abonnée ou non | 5 par heure, fenêtre glissante | `429`, la même page |
+| La confirmation d'une double confirmation, par abonné | une toutes les 5 minutes, seau à jetons | Aucune confirmation n'est envoyée ; la page remercie comme toujours |
+
+L'adresse saisie est dépouillée de ses espaces et mise en minuscules, pour que ses graphies partagent leur compte, et
+elle est comptée qu'elle soit abonnée ou non : les réponses n'apprennent à personne qui est sur une liste. Un refus par le
+compte du client ne dépense rien de celui de l'adresse. Les clés des comptes sont des empreintes à clé du secret : le
+stockage ne contient aucune adresse, ni IP ni courriel. Un abonnement refusé par le délai garde sa place, en attente, et
+n'annonce rien ; `subscribe()` répond `SubscribeOutcome::ConfirmationDelayed`. Une personne qui s'abonne de nouveau après
+le délai reçoit une nouvelle confirmation.
+
+```yaml
+phil_newsletter:
+    subscription:
+        rate_limit:
+            per_ip: { limit: 20, interval: '30 minutes' }
+            per_address: { limit: 3, interval: '1 day' }
+            resend_delay: '15 minutes'
+```
+
+`rate_limit: false` désactive les trois limites, pour une application qui limite le formulaire avant le bundle, par
+exemple à son mandataire inverse. L'adresse du client est lue par `Request::getClientIp()` : derrière un mandataire,
+définissez `framework.trusted_proxies`, sinon chaque client compte comme le mandataire. Faites pointer
+`rate_limiter_storage` vers un groupe que chaque serveur Web partage, comme Redis : un groupe propre à chaque serveur
+compte chaque serveur à part. Les intervalles et le délai suivent le format du composant Rate Limiter, comme
+`15 minutes` ; une valeur qui n'est pas une durée positive est refusée à la construction du conteneur.
+
 ## La vérification du domaine dans le worker
 
 Avec `check_mail_domain: true`, la valeur par défaut, le worker qui gère `SendConfirmation` demande au DNS si le domaine
@@ -58,7 +94,7 @@ stockage quand il le gère.
 
 | Page | Ce qu'elle fait |
 |---|---|
-| Abonnement | Un formulaire avec l'adresse, un jeton CSRF et un champ caché que les robots remplissent. Il donne la même réponse quoi qu'il soit advenu de l'adresse, pour que personne n'y apprenne qui est abonné. |
+| Abonnement | Un formulaire avec l'adresse, un jeton CSRF et un champ caché que les robots remplissent, sous [les limites du formulaire](#les-limites-du-formulaire). Il donne la même réponse quoi qu'il soit advenu de l'adresse, pour que personne n'y apprenne qui est abonné. |
 | Confirmation | Un bouton qui confirme ; suivre le lien seul ne confirme rien, puisque les analyseurs de courriel suivent les liens. |
 | Désinscription | Un choix entre la liste du message et toutes les listes, et une raison facultative. |
 | Centre de préférences | Les listes du site à cocher, une pause d'une, de quatre ou de douze semaines, le retour, le départ de tout. |

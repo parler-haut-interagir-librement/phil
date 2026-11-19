@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a7a4648c56a1da080df198c8758999b34e3ca687f0ee3e31e82f14020e9db887 -->
+<!-- phil-dev source-sha256=bc0979368d51230348de1c521c39e8dd13188aa950bc2f2cb5de08b2ac5c01b0 -->
 # Configuration
 
 L'alias est `phil_spam_protection`. Chaque clé est facultative.
@@ -25,7 +25,7 @@ phil_spam_protection:
 | `content.forbidden_terms` | `[]` | Des mots entiers, ou des suites de mots, qu'un texte ne peut pas contenir, comparés sans égard à la casse, aux accents ni à la ponctuation entre les mots. |
 | `content.detect_gibberish` | `true` | Si un texte de caractères aléatoires est retenu. |
 | `cache_pool` | `cache.app` | Le pool PSR-6 des jetons utilisés. Donnez-en un que tous les serveurs Web partagent. |
-| `used_tokens.connection` | `null` | La connexion Doctrine dont une table garde les jetons utilisés, à la place du pool : `default`. Chaque revendication est une insertion atomique. |
+| `used_tokens.connection` | `null` | La connexion Doctrine dont une table garde les jetons utilisés, à la place du pool : `default`. Chaque revendication est une insertion atomique. Dans l'environnement `prod`, celle-ci ou `lock_factory` est exigée. |
 | `used_tokens.lock_factory` | `null` | L'identifiant de service d'une fabrique de verrous Symfony sous laquelle le pool revendique chaque jeton : `lock.factory`. Son stockage doit être partagé par tous les serveurs Web. Pas avec `connection`. |
 | `rate_limiter` | `null` | L'identifiant de service d'une fabrique de limiteurs de débit de Symfony — `limiter.contact` pour `framework.rate_limiter.contact` — ; aucun par défaut. Dans l'environnement `prod`, son stockage doit être partagé par tous les serveurs web, sinon la construction du conteneur échoue. |
 | `single_server` | `false` | Accepte dans l'environnement `prod` un limiteur dont le stockage est local au serveur, pour une application sur un seul serveur. |
@@ -44,7 +44,18 @@ phil_spam_protection:
 
 Sans `used_tokens`, le pool revendique un jeton en lisant, en écrivant puis en relisant : deux envois d'un même jeton
 au même moment peuvent passer tous les deux. Sur une rafale de huit envois simultanés d'un même jeton avec un pool sur
-système de fichiers, de un à quatre sont passés. **En production, choisissez un stockage atomique** :
+système de fichiers, de un à quatre sont passés. **Dans l'environnement `prod`, un stockage atomique est exigé** : sans `used_tokens.connection` ni
+`used_tokens.lock_factory`, la construction du conteneur échoue et l'application ne démarre pas, avec ce message :
+
+```
+phil_spam_protection.used_tokens: in the prod environment, the used tokens need a store that is safe under
+concurrent submissions. Set "used_tokens.connection" to a Doctrine connection, such as "default", or
+"used_tokens.lock_factory" to a lock factory on a store every web server shares, such as "lock.factory". The cache
+pool alone, in memory or in files, lets two submissions of one token both pass: it is accepted outside production only.
+```
+
+`single_server` n'y change rien : un seul serveur accepte aussi deux envois au même moment. En `dev` et en `test`, le pool
+seul, comme un pool en tableau ou sur système de fichiers, continue de fonctionner. Choisissez l'un des deux :
 
 ```yaml
 # a table of the Doctrine connection, created by the next migration
