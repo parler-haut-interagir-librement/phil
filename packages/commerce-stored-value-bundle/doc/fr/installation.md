@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=dd566005ee0b7f4b46cecb8a4794792a13d2f1d978a3b6783cae69c863b82e5a -->
+<!-- phil-dev source-sha256=7a40060ccbc6c98a36aeb72048a4d7dde1a5987646c446346a36ddfc035fd0c2 -->
 # Installation
 
 ## Prérequis
@@ -7,7 +7,7 @@
 |---|---|---|
 | PHP | 8.5 ou plus récent | Le plancher que le module déclare et sur lequel il est testé |
 | `ext-mbstring` | toute | Compte les caractères des détenteurs et des notes |
-| `phil/commerce-bundle` | ^0.1@dev | Le noyau sur lequel le module se branche : ses commandes, ses paiements, `SellableResolver` et `PaymentGateway` |
+| `phil/commerce-bundle` | ^0.2@dev ou ^0.3@dev | Le noyau sur lequel le module se branche : ses commandes, ses paiements, `SellableResolver` et `PaymentGateway` |
 | `phil/ddd-bundle` | ^0.1@dev | `InvalidValue` et `DomainError` |
 | `phil/money` | ^0.1@dev | Les soldes et les mouvements |
 | `phil/paged-media` | ^0.1@dev | La carte-cadeau imprimée |
@@ -22,9 +22,10 @@
 composer require phil/commerce-bundle phil/commerce-stored-value-bundle
 ```
 
-Tant que les paquets ne sont pas publiés, les deux sont résolus depuis le monodépôt PHIL par un dépôt `path` ou `vcs`.
-
 ## Enregistrer
+
+Avec Symfony Flex, la recette de chaque paquet enregistre son bundle ; les valeurs par défaut du module n'exigent aucun fichier de configuration.
+Sans Flex :
 
 Enregistrez le noyau et le module ; l'ordre des deux lignes n'a pas d'importance.
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9f6239c3ef50a3cd81e0307746c8d94078240aaef3240d3dfa791c7580ff13b2 -->
+<!-- phil-dev source-sha256=69427cd5fce83205f4093fbf6c0fecf74b3311f1b8cb23c1d1080a9003a45570 -->
 # Ventes à crédit
 
 Un acheteur — un compte, un locataire — achète à crédit : sur compte, jusqu'à une limite, chaque achat exigible après le

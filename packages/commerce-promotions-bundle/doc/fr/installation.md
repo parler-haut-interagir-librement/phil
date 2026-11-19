@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=545ba77a6b9c444c34e17c11feb21ef438429f78953398b6d512ac66355c707f -->
+<!-- phil-dev source-sha256=b5be7d34a261eb7523803ec4eadf5666c90eb9da0150f888877eefcde82ef465 -->
 # Installation
 
 ## Prérequis
@@ -7,10 +7,10 @@
 |---|---|---|
 | PHP | 8.5 ou plus récent | Le plancher que le module déclare et sur lequel il est testé |
 | `ext-mbstring` | toute version | La longueur des libellés, en caractères |
-| `phil/commerce-bundle` | ^0.1@dev | Le noyau auquel le module se branche : `OrderProcessor`, `Order`, `Adjustment` |
+| `phil/commerce-bundle` | ^0.2@dev ou ^0.3@dev | Le noyau auquel le module se branche : `OrderProcessor`, `Order`, `Adjustment` |
 | `phil/commerce-catalog-bundle` | ^0.1@dev | Les produits que les promotions réduisent, sous le type de référence `product` |
 | `phil/ddd-bundle` | ^0.1@dev | `InvalidValue` et `DomainError` |
-| `phil/doctrine-behaviours` | ^0.1@dev | Les traductions des libellés |
+| `phil/doctrine-behaviours` | ^0.2@dev | Les traductions des libellés |
 | `phil/locale-dimensions` | ^0.1@dev | Les locales servies et leurs chaînes de repli |
 | `phil/money` | ^0.1@dev | Les montants de rabais, les prix de lots et les minimums |
 | `doctrine/orm` | ^3.7 | Les attributs de mappage et l'adaptateur du dépôt |
@@ -27,6 +27,9 @@ composer require phil/commerce-bundle phil/commerce-catalog-bundle phil/commerce
 ```
 
 ## Enregistrer
+
+Avec Symfony Flex, la recette de chaque paquet enregistre son bundle ; les valeurs par défaut du module n'exigent aucun fichier de configuration.
+Sans Flex :
 
 Enregistrez le noyau, le catalogue et le module ; l'ordre des lignes n'a pas d'importance.
 

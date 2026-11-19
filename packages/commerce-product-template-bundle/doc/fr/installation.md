@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=17136caf8e61921a7f66cd6af19f8b146798d9eda42bf7dbd89c5c962ef0a239 -->
+<!-- phil-dev source-sha256=ab2d40361b309c6a50a31d964c8adf58654e5a53b32ab50b86474d38380f56f6 -->
 # Installation
 
 ## Prérequis
@@ -19,6 +19,9 @@
 ```sh
 composer require phil/commerce-bundle phil/commerce-catalog-bundle phil/commerce-product-template-bundle
 ```
+
+Avec Symfony Flex, la recette de chaque paquet enregistre son bundle ; les valeurs par défaut du module n'exigent aucun fichier de configuration.
+Sans Flex :
 
 Enregistrez les trois bundles ; le module refuse de se charger sans le noyau et le catalogue :
 

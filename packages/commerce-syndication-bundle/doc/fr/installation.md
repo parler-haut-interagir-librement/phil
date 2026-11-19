@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c7e57c707b317a1298c3854c40a7b4a99a12f1c9b553d69291e0f77c73e76517 -->
+<!-- phil-dev source-sha256=16d8e2f6195665fe6decd6522f4e273808e23ba34fd2fdf547bfd0f1950f227b -->
 <!-- phil-dev source-sha256=0 -->
 # Installation
 
@@ -7,7 +7,7 @@
 | Prérequis | Version | Pourquoi |
 |---|---|---|
 | PHP | 8.5 ou plus récent | Le plancher que déclare le module |
-| `phil/commerce-bundle` | ^0.1@dev | Le noyau sur lequel le module se branche : ses commandes, `SellableResolver` et `SellableAvailability` |
+| `phil/commerce-bundle` | ^0.2@dev ou ^0.3@dev | Le noyau sur lequel le module se branche : ses commandes, `SellableResolver` et `SellableAvailability` |
 | `phil/standard-webhooks` | ^0.1@dev | La signature et la vérification des messages ; il exige `ext-sodium` |
 | `phil/ddd-bundle` | ^0.1@dev | `InvalidValue` et `DomainError` |
 | `phil/money` | ^0.1@dev | Les prix de détail, les coûts et le registre |
@@ -27,9 +27,12 @@
 composer require phil/commerce-bundle phil/commerce-syndication-bundle symfony/http-client
 ```
 
-Tant que les paquets ne sont pas publiés, ils sont résolus depuis le monodépôt PHIL par un dépôt `path` ou `vcs`.
-
 ## Enregistrer
+
+Avec Symfony Flex, la recette de chaque paquet enregistre son bundle ; celle du module écrit aussi
+`config/packages/phil_commerce_syndication.yaml` sur les variables d'environnement `SYNDICATION_IDENTITY` et
+`SYNDICATION_SIGNING_KEY`, la clé étant laissée vide, et la route des partenaires dans
+`config/routes/phil_commerce_syndication.yaml`. Sans Flex :
 
 Enregistrez le noyau et le module ; l'ordre des deux lignes n'a pas d'importance.
 

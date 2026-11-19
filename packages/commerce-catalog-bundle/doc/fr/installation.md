@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=162ed51ed1926318304f2c65d420ec63fa047026e83d350c56a1e1284ad81973 -->
+<!-- phil-dev source-sha256=38a3fb87b4954179a0386c58d2f066a3836da234be483f8bb3209cd0ab1aa376 -->
 # Installation
 
 ## Prérequis
@@ -7,9 +7,9 @@
 |---|---|---|
 | PHP | 8.5 ou plus récent | Le plancher que le module déclare et sur lequel il est testé |
 | `ext-mbstring` | toute version | La longueur des noms et des valeurs d'attributs, en caractères |
-| `phil/commerce-bundle` | ^0.1@dev | Le noyau auquel le module se branche : `SellableResolver`, `UnitPriceResolver`, `SellableAvailability`, `OrderPurchased` |
+| `phil/commerce-bundle` | ^0.2@dev ou ^0.3@dev | Le noyau auquel le module se branche : `SellableResolver`, `UnitPriceResolver`, `SellableAvailability`, `OrderPurchased` |
 | `phil/ddd-bundle` | ^0.1@dev | `InvalidValue` et `DomainError` |
-| `phil/doctrine-behaviours` | ^0.1@dev | Les traductions des noms des produits |
+| `phil/doctrine-behaviours` | ^0.2@dev | Les traductions des noms des produits |
 | `phil/locale-dimensions` | ^0.1@dev | Les locales servies et leurs chaînes de repli |
 | `phil/money` | ^0.1@dev | Les prix de base, les prix des grilles et les règles de prix |
 | `doctrine/orm` | ^3.7 | Les attributs de mappage des produits, des grilles de prix et des copies communautaires, et les adaptateurs des dépôts |
@@ -32,10 +32,10 @@ contrôleur de la route qui sert leurs fichiers ([Flux de produits](product-feed
 composer require phil/commerce-bundle phil/commerce-catalog-bundle
 ```
 
-Tant que les paquets ne sont pas publiés, les deux sont résolus depuis le monodépôt PHIL par un dépôt `path` ou
-`vcs`.
-
 ## Enregistrer
+
+Avec Symfony Flex, la recette de chaque paquet enregistre son bundle ; celle du module ajoute aussi
+`config/routes/phil_commerce_catalog.yaml`, les routes des flux de produits. Sans Flex :
 
 Enregistrez le noyau et le module ; l'ordre des deux lignes n'a pas d'importance.
 

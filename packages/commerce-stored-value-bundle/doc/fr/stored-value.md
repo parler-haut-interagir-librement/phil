@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=485fcf8f1e1f81c6a774003262c5dcd83ed16b06af96a5b5ccfb330847e9e756 -->
+<!-- phil-dev source-sha256=437c01022504784ec96b4d991abdf3c02fdd7255e95c1725d95e3c7363d9b03d -->
 # Valeur stockée
 
 Deux instruments gardent une valeur dans une devise : une **carte-cadeau**, connue par son code, au bénéfice de qui la

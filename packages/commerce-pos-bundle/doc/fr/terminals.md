@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a92936cad98c10fbf1600643266b6da5d5e2132ed675f3fad56659ea6f04f196 -->
+<!-- phil-dev source-sha256=34ce3df04074033b36f2d8f7e1e507a86784d7e77ba9a1f3a167079b69831d54 -->
 # Terminaux connectés
 
 Un terminal de carte connecté est piloté par le serveur, jamais par la caisse. La caisse demande un débit au serveur ;

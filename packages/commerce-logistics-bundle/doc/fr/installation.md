@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=70625db3deb87e4e87420d716798df9af8b0080df6a3ec5c363ad3f206cd4579 -->
+<!-- phil-dev source-sha256=6e8889fd21fe3ebdeb693e2004d19c78690ae8d198636d50fd7c5c218107596f -->
 <!-- phil-dev source-sha256=0 -->
 # Installation
 
@@ -7,7 +7,7 @@
 | Prérequis | Version | Pourquoi |
 |---|---|---|
 | PHP | 8.5 ou plus récent | Le plancher que le module déclare et sur lequel il est testé |
-| `phil/commerce-bundle` | ^0.1@dev | Le noyau auquel le module se branche : ses commandes, `OrderProcessor`, `StockCommitments` et son registre des types de documents |
+| `phil/commerce-bundle` | ^0.2@dev ou ^0.3@dev | Le noyau auquel le module se branche : ses commandes, `OrderProcessor`, `StockCommitments` et son registre des types de documents |
 | `phil/ddd-bundle` | ^0.1@dev | `InvalidValue` et `DomainError` |
 | `phil/money` | ^0.1@dev | Les prix des modes de livraison et les coûts des expéditions |
 | `phil/url` | ^0.1@dev | Les liens des réponses d'un transporteur, lus comme le fait un navigateur |
@@ -27,10 +27,10 @@
 composer require phil/commerce-bundle phil/commerce-logistics-bundle
 ```
 
-Tant que les paquets ne sont pas publiés, les deux sont résolus depuis le monodépôt PHIL par un dépôt `path` ou
-`vcs`.
-
 ## Enregistrer
+
+Avec Symfony Flex, la recette de chaque paquet enregistre son bundle ; les valeurs par défaut du module n'exigent aucun fichier de configuration.
+Sans Flex :
 
 Enregistrez le noyau et le module ; l'ordre des deux lignes n'a pas d'importance.
 

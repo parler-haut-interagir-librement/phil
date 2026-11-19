@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b7025093fd100c225bc4a7f4a6c31bbe23d05bb5d2bfff00cd87c614ff8f8a93 -->
+<!-- phil-dev source-sha256=b9ce1e384bc1ebbcf64befe088fe7eb2c44bdce2c21b5f152dcc6b62619ddf90 -->
 # Installation
 
 ## Prérequis
@@ -7,7 +7,7 @@
 |---|---|---|
 | PHP | 8.5 ou plus récent | Le plancher que le module déclare et sur lequel il est testé |
 | `ext-mbstring` | toute | Compte les caractères des noms, des libellés et des notes |
-| `phil/commerce-bundle` | ^0.1@dev | Le noyau : ses commandes, `OrderModifier`, ses paiements et `PaymentGateway`, et l'ajustement `Tip` |
+| `phil/commerce-bundle` | ^0.2@dev ou ^0.3@dev | Le noyau : ses commandes, `OrderModifier`, ses paiements et `PaymentGateway`, et l'ajustement `Tip` |
 | `phil/ddd-bundle` | ^0.1@dev | `InvalidValue` et `DomainError` |
 | `phil/money` | ^0.1@dev | L'argent comptant, les paiements, les rapports |
 | `doctrine/orm` | ^3.7 | Les attributs de correspondance des douze entités, et l'adaptateur du dépôt |
@@ -26,9 +26,10 @@
 composer require phil/commerce-bundle phil/commerce-pos-bundle
 ```
 
-Tant que les paquets ne sont pas publiés, les deux sont résolus depuis le monodépôt PHIL par un dépôt `path` ou `vcs`.
-
 ## Enregistrer
+
+Avec Symfony Flex, la recette de chaque paquet enregistre son bundle ; les valeurs par défaut du module n'exigent aucun fichier de configuration.
+Sans Flex :
 
 Enregistrez le noyau et le module ; l'ordre des deux lignes n'a pas d'importance.
 
