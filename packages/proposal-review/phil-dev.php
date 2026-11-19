@@ -11,6 +11,17 @@ return [
     'docs' => ['public' => true],
     'infection' => [
         'mutators' => [
+            // A conflict has a proposal or an author, never both: either order of `??` reads the one there is.
+            'Coalesce' => [
+                'ignoreSourceCodeByRegex' => [
+                    '.*Tables::identifier\\(\\$conflict->proposal \\?\\? .*',
+                    '.*\\(null === \\$conflict->proposal \\? \'b\' : \'a\'\\)\\.\\(\\$conflict->proposal \\?\\? .*',
+                ],
+            ],
+            // Every field the format reads is in the stored text, so that nothing is left for `!` to reset.
+            'ConcatOperandRemoval' => [
+                'ignoreSourceCodeByRegex' => ['.*createFromFormat\\(\'!\'\\.self::INSTANT.*'],
+            ],
             // Maps that only ever answer isset(): the value kept under a key is never read.
             'TrueValue' => [
                 'ignoreSourceCodeByRegex' => ['\\$judged\\[.*\\] = true;'],
