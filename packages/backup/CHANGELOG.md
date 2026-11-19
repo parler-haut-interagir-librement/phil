@@ -4,6 +4,18 @@ All notable changes to `phil/backup` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.3-alpha: restoring a tar archive never creates a directory outside its media directory.
+
+### Changed
+
+- `MediaArchive::verify()`, `extract()` and `prune()` refuse an archive path holding a backslash, or a segment that
+  opens with a drive letter, as one holding a `..` segment: neither names the same place on every system.
+- `MediaArchive::extract()` checks that the nearest directory that exists above a missing one lies inside its media
+  directory, through its links, before creating anything: a link out of the media directory no longer receives the
+  empty directories of the archive before the path is refused.
+
 ## 0.1.2-alpha - 2026-11-18
 
 Every file of a backup is readable by its owner alone from the moment it exists, and

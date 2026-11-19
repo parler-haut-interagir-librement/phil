@@ -164,6 +164,11 @@ final class MediaArchiveTest extends TestCase
             'media/../a' => 'The media path media/../a is not a plain relative path.',
             'media/./a' => 'The media path media/./a is not a plain relative path.',
             'media//a' => 'The media path media//a is not a plain relative path.',
+            'media/..\\..\\a' => 'The media path media/..\\..\\a is not a plain relative path.',
+            'media/sub\\a' => 'The media path media/sub\\a is not a plain relative path.',
+            'media/C:' => 'The media path media/C: is not a plain relative path.',
+            'media/c:/a' => 'The media path media/c:/a is not a plain relative path.',
+            'media/Z:x' => 'The media path media/Z:x is not a plain relative path.',
         ] as $path => $message) {
             $writer = TarWriter::create($this->directory.'/media.tar');
             $writer->addFile('media/first', $this->directory.'/a', 0o644, 0);
@@ -178,6 +183,52 @@ final class MediaArchiveTest extends TestCase
                 self::assertFileDoesNotExist($this->directory.'/target/first', 'Nothing is written before the whole archive is read.');
             }
         }
+    }
+
+    public function testAColonAfterTheFirstLetterIsNotADriveLetter(): void
+    {
+        file_put_contents($this->directory.'/a', 'a');
+        $writer = TarWriter::create($this->directory.'/media.tar');
+        $writer->addFile('media/ab:c', $this->directory.'/a', 0o644, 0);
+        $writer->addFile('media/1:c', $this->directory.'/a', 0o644, 0);
+        $writer->addFile('media/x/ab:', $this->directory.'/a', 0o644, 0);
+        $writer->close();
+
+        self::assertSame(3, new MediaArchive(['media' => $this->directory.'/target'])->extract($this->directory.'/media.tar'));
+        self::assertFileExists($this->directory.'/target/ab:c');
+    }
+
+    public function testNoDirectoryIsCreatedThroughALinkOutOfTheMediaDirectory(): void
+    {
+        file_put_contents($this->directory.'/a', 'a');
+        $writer = TarWriter::create($this->directory.'/media.tar');
+        $writer->addFile('media/out/deep/er/a.txt', $this->directory.'/a', 0o644, 0);
+        $writer->close();
+
+        $target = $this->directory.'/target';
+        mkdir($target);
+        mkdir($this->directory.'/elsewhere');
+        symlink($this->directory.'/elsewhere', $target.'/out');
+
+        try {
+            new MediaArchive(['media' => $target])->extract($this->directory.'/media.tar');
+            self::fail('A linked directory leads out.');
+        } catch (BackupFailed $backupFailed) {
+            self::assertSame('The media path media/out/deep/er/a.txt leads out of its directory through a link.', $backupFailed->getMessage());
+        }
+
+        self::assertDirectoryDoesNotExist($this->directory.'/elsewhere/deep', 'Nothing is created before the path is confined.');
+    }
+
+    public function testAMissingMediaDirectoryIsCreatedWithItsSubdirectories(): void
+    {
+        file_put_contents($this->directory.'/a', 'a');
+        $writer = TarWriter::create($this->directory.'/media.tar');
+        $writer->addFile('media/a/b/c.txt', $this->directory.'/a', 0o644, 0);
+        $writer->close();
+
+        self::assertSame(1, new MediaArchive(['media' => $this->directory.'/new/target'])->extract($this->directory.'/media.tar'));
+        self::assertFileExists($this->directory.'/new/target/a/b/c.txt');
     }
 
     public function testAnArchiveCutAfterItsFirstEmptyBlockIsRefused(): void

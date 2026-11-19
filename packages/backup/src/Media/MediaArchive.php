@@ -114,16 +114,15 @@ final readonly class MediaArchive
             $target = '' === $relative ? $base : $base.'/'.$relative;
             $parent = $entry->directory ? $target : \dirname($target);
 
-            if (!is_dir($parent) && !@mkdir($parent, 0o755, true)) {
-                throw BackupFailed::because(\sprintf('The media directory %s cannot be created.', $parent));
+            if (!is_dir($parent)) {
+                $this->confine($entry->name, $base, $this->existingAncestor($base, $parent));
+
+                if (!@mkdir($parent, 0o755, true)) {
+                    throw BackupFailed::because(\sprintf('The media directory %s cannot be created.', $parent));
+                }
             }
 
-            $real = realpath($parent);
-            $root = realpath($base);
-
-            if (false === $real || false === $root || ($real !== $root && !str_starts_with($real, $root.\DIRECTORY_SEPARATOR))) {
-                throw BackupFailed::because(\sprintf('The media path %s leads out of its directory through a link.', $entry->name));
-            }
+            $this->confine($entry->name, $base, $parent);
 
             if ($entry->directory) {
                 return;
@@ -182,8 +181,40 @@ final readonly class MediaArchive
     }
 
     /**
+     * Refuses the path when the directory, resolved through its links, is not the media directory or inside it. The
+     * media directory itself, not created yet, is its own place.
+     */
+    private function confine(string $path, string $base, string $directory): void
+    {
+        if ($directory === $base && !file_exists($base)) {
+            return;
+        }
+
+        $real = realpath($directory);
+        $root = realpath($base);
+
+        if (false === $real || false === $root || ($real !== $root && !str_starts_with($real, $root.\DIRECTORY_SEPARATOR))) {
+            throw BackupFailed::because(\sprintf('The media path %s leads out of its directory through a link.', $path));
+        }
+    }
+
+    /**
+     * The nearest directory above the parent, or the parent itself, that exists, stopping at the media directory: the
+     * directory a creation would start from.
+     */
+    private function existingAncestor(string $base, string $parent): string
+    {
+        while ($parent !== $base && !file_exists($parent)) {
+            $parent = \dirname($parent);
+        }
+
+        return $parent;
+    }
+
+    /**
      * The directory and the path inside it that an archive path stands for; a path naming no configured directory,
-     * or holding an empty, `.` or `..` segment, is refused.
+     * or holding an empty, `.` or `..` segment, a backslash or a drive letter, is refused: none of them stands for
+     * the same place on every system.
      *
      * @return array{string, string}
      */
@@ -193,7 +224,7 @@ final readonly class MediaArchive
         $name = array_shift($segments);
 
         foreach ($segments as $segment) {
-            if ('' === $segment || '.' === $segment || '..' === $segment) {
+            if ('' === $segment || '.' === $segment || '..' === $segment || str_contains($segment, '\\') || 1 === preg_match('/^[A-Za-z]:/', $segment)) {
                 throw BackupFailed::because(\sprintf('The media path %s is not a plain relative path.', $path));
             }
         }

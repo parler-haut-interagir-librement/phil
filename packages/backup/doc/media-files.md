@@ -39,13 +39,15 @@ on the way, not the number of files in the store.
 ## Writing back
 
 `extract($file)` first reads the whole archive — every header checksum, every path — and refuses it, before writing
-anything, when a path names a directory the archive was not given, or holds an empty, `.` or `..` segment. Then each
-file is written to its directory:
+anything, when a path names a directory the archive was not given, or holds an empty, `.` or `..` segment, a
+backslash, or a segment that opens with a drive letter (`C:`): none of them names the same place on every system. Then
+each file is written to its directory:
 
 - over the file of the same path, with the permission bits and modification time it was archived with;
 - a symbolic link in the way of a file is removed, never written through;
 - a directory that leads out of its media directory through a link is refused;
-- missing directories are created.
+- missing directories are created, once the nearest directory that exists above them is found inside the media
+  directory: nothing is created through a link that leads out of it.
 
 Files the archive does not hold are left: a restore brings back what was backed up, and leaves what was added since.
 
