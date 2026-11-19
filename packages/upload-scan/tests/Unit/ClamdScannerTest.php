@@ -10,9 +10,11 @@ use Phil\UploadScan\Exception\InvalidArgument;
 use Phil\UploadScan\Exception\ScannerUnavailable;
 use Phil\UploadScan\Internal\Io;
 use Phil\UploadScan\ScanResult;
+use Phil\UploadScan\Tests\Unit\Fixture\ClosingClamd;
 use Phil\UploadScan\Tests\Unit\Fixture\Files;
 use Phil\UploadScan\Tests\Unit\Fixture\ScriptedClamd;
 use Phil\UploadScan\Tests\Unit\Fixture\SocketPairClamd;
+use Phil\UploadScan\Tests\Unit\Fixture\StallingStream;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -58,8 +60,62 @@ final class ClamdScannerTest extends TestCase
     public function testTheAnswerIsReadUpToItsNullByteAndNoMore(): void
     {
         self::assertTrue(new ClamdScanner(new ScriptedClamd("stream: OK\0stream: Eicar FOUND\0"))->scanStream(Files::stream('x'))->isClean());
-        self::assertTrue(new ClamdScanner(new ScriptedClamd(str_repeat(' ', 4095)."stream: OK\0"))->scanStream(Files::stream('x'))->isError());
+        self::assertEquals(ScanResult::error('clamd answered more than 4096 bytes without ending its answer.'), new ClamdScanner(new ScriptedClamd(str_repeat(' ', 4095)."stream: OK\0"))->scanStream(Files::stream('x')));
+        self::assertEquals(ScanResult::error('clamd answered more than 4096 bytes without ending its answer.'), new ClamdScanner(new ScriptedClamd(str_repeat(' ', 4096)."stream: OK\0", piece: 1000))->scanStream(Files::stream('x')));
         self::assertTrue(new ClamdScanner(new ScriptedClamd(str_repeat(' ', 4085)."stream: OK\0"))->scanStream(Files::stream('x'))->isClean());
+    }
+
+    public function testAnAnswerWithoutItsNullByteIsAnErrorNeverClean(): void
+    {
+        self::assertEquals(ScanResult::error('clamd closed the connection before the end of its answer.'), new ClamdScanner(new ScriptedClamd('stream: OK'))->scanStream(Files::stream('x')));
+        self::assertEquals(ScanResult::error('clamd closed the connection before the end of its answer.'), new ClamdScanner(new ScriptedClamd('stream: OK', piece: 2))->scanStream(Files::stream('x')));
+        self::assertEquals(ScanResult::error('clamd closed the connection without an answer.'), new ClamdScanner(new ScriptedClamd(''))->scanStream(Files::stream('x')));
+        self::assertFalse(new ClamdScanner(new ScriptedClamd('PONG'))->ping());
+        self::assertNull(new ClamdScanner(new ScriptedClamd('ClamAV 1.4.1/27450/Sun Nov  8 09:30:02 2026'))->version());
+    }
+
+    public function testAClamdThatClosesTheConnectionAfterStreamOkIsAnError(): void
+    {
+        $scanner = new ClamdScanner(new ClosingClamd('stream: OK'), timeoutSeconds: 1.0);
+        $start = hrtime(true);
+
+        self::assertEquals(ScanResult::error('clamd closed the connection before the end of its answer.'), $scanner->scanStream(Files::stream('hello')));
+        self::assertLessThan(0.9, (hrtime(true) - $start) / 1e9, 'A closed connection is not waited for.');
+        self::assertTrue(new ClamdScanner(new ClosingClamd("stream: OK\0"))->scanStream(Files::stream('hello'))->isClean());
+        self::assertFalse(new ClamdScanner(new ClosingClamd('PONG'))->ping());
+    }
+
+    public function testASourceStreamThatTimesOutIsAnErrorNotTheEndOfTheFile(): void
+    {
+        $pair = stream_socket_pair(\STREAM_PF_UNIX, \STREAM_SOCK_STREAM, \STREAM_IPPROTO_IP);
+        self::assertIsArray($pair);
+        [$stream, $writer] = $pair;
+        fwrite($writer, 'he');
+        stream_set_timeout($stream, 0, 100_000);
+        $clamd = new ScriptedClamd();
+
+        try {
+            self::assertEquals(ScanResult::error(Io::TIMED_OUT), new ClamdScanner($clamd)->scanStream($stream));
+        } finally {
+            fclose($stream);
+            fclose($writer);
+        }
+
+        self::assertSame("zINSTREAM\0\0\0\0\2he", $clamd->sent, 'The last chunk is never sent, so clamd never scans the start alone.');
+    }
+
+    public function testASourceStreamThatStopsWithoutEndingIsAnError(): void
+    {
+        $clamd = new ScriptedClamd();
+        $stream = StallingStream::open('hello');
+
+        try {
+            self::assertEquals(ScanResult::error(Io::UNFINISHED), new ClamdScanner($clamd, chunkBytes: 5)->scanStream($stream));
+        } finally {
+            fclose($stream);
+        }
+
+        self::assertSame("zINSTREAM\0\0\0\0\5hello", $clamd->sent);
     }
 
     public function testAnAnswerInPiecesIsReadWhole(): void

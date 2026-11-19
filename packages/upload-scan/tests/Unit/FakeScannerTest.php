@@ -10,6 +10,7 @@ use Phil\UploadScan\FakeScanner;
 use Phil\UploadScan\Internal\Io;
 use Phil\UploadScan\ScanResult;
 use Phil\UploadScan\Tests\Unit\Fixture\Files;
+use Phil\UploadScan\Tests\Unit\Fixture\StallingStream;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -83,6 +84,30 @@ final class FakeScannerTest extends TestCase
         self::assertIsResource($stream);
 
         self::assertEquals(ScanResult::error('The file cannot be read.'), new FakeScanner()->scanStream($stream));
+    }
+
+    public function testASourceStreamThatStopsOrTimesOutIsAnErrorNotACleanStart(): void
+    {
+        $stream = StallingStream::open(FakeScanner::eicar());
+
+        try {
+            self::assertEquals(ScanResult::error(Io::UNFINISHED), new FakeScanner()->scanStream($stream));
+        } finally {
+            fclose($stream);
+        }
+
+        $pair = stream_socket_pair(\STREAM_PF_UNIX, \STREAM_SOCK_STREAM, \STREAM_IPPROTO_IP);
+        self::assertIsArray($pair);
+        [$stream, $writer] = $pair;
+        fwrite($writer, 'he');
+        stream_set_timeout($stream, 0, 50_000);
+
+        try {
+            self::assertEquals(ScanResult::error(Io::TIMED_OUT), new FakeScanner()->scanStream($stream));
+        } finally {
+            fclose($stream);
+            fclose($writer);
+        }
     }
 
     public function testAPathIsScannedAndClosed(): void

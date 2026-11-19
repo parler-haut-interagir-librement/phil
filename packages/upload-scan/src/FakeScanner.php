@@ -68,10 +68,10 @@ final readonly class FakeScanner implements Scanner, ScannerProbe
         $contents = '';
 
         while (\strlen($contents) <= $this->maxBytes) {
-            $chunk = Io::quietly(static fn (): string|false => fread($stream, ClamdScanner::DEFAULT_CHUNK_BYTES));
+            $chunk = Io::chunk($stream, ClamdScanner::DEFAULT_CHUNK_BYTES);
 
-            if (false === $chunk) {
-                return ScanResult::error('The file cannot be read.');
+            if ($chunk instanceof ScanResult) {
+                return $chunk;
             }
 
             if ('' === $chunk) {
