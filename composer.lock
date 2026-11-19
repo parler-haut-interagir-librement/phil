@@ -4512,7 +4512,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/enums",
-                "reference": "733dcfc4090dafad09fc597062480082a20d188d"
+                "reference": "9c4ddbf5aa55d82d53699d4f77f2e9bad8d8f66b"
             },
             "require": {
                 "ext-mbstring": "*",
@@ -4553,7 +4553,7 @@
                     "role": "Developer"
                 }
             ],
-            "description": "Zero-dependency helper traits and attributes for PHP enums: case names and values, comparisons, from()/tryFrom() on pure enums and fromName(), static case access, and metadata attached to cases by attributes, with PHPStan extensions that type them",
+            "description": "Make PHP enums easier to list, compare, describe and group: traits and attributes with no dependency, and PHPStan extensions that understand them.",
             "homepage": "https://ph-il.ca",
             "keywords": [
                 "enum",
@@ -4570,7 +4570,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/url",
-                "reference": "15c226f14159309a9ba93a318752afd7ffd98a85"
+                "reference": "886d5e7ef889aa5ccad40b149c975b0294496358"
             },
             "require": {
                 "ext-intl": "*",
@@ -4609,7 +4609,7 @@
                     "role": "Developer"
                 }
             ],
-            "description": "Web addresses for PHP: absolute http and https addresses normalised, kinds of address as enums that each carry their rule, international kinds included, and the kind of an address detected among enum sets",
+            "description": "Web addresses as clean, normalised values, with their kind detected: a Facebook page, a YouTube channel, a Mastodon account or a plain website.",
             "homepage": "https://ph-il.ca",
             "keywords": [
                 "enum",
@@ -4629,7 +4629,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/ux-css",
-                "reference": "a5b520ebb9e814585857550ae8f7ac3409eb35da"
+                "reference": "272581e23c067e0249e2c4e2e0e58706341fb3bb"
             },
             "require": {
                 "php": ">=8.5"
@@ -4664,7 +4664,7 @@
                     "role": "Developer"
                 }
             ],
-            "description": "phil-ux, the CSS framework of PHIL: real, mostly classless CSS with --phil-* tokens, light and dark, and isX/hasX state classes; with the OKLCH contrast rule its themes are checked against",
+            "description": "phil-ux, the CSS framework of PHIL: real, mostly classless CSS with design tokens, light and dark themes, and a contrast rule its themes are checked against.",
             "homepage": "https://ph-il.ca",
             "keywords": [
                 "accessibility",
@@ -4686,7 +4686,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/ux-kit",
-                "reference": "137a4142be6b297ac15ad810e1d7f392b3533de8"
+                "reference": "224d8315e9edd5798babe9c3f1136a4fa5be9b55"
             },
             "require": {
                 "ext-mbstring": "*",
@@ -4759,7 +4759,7 @@
                     "role": "Developer"
                 }
             ],
-            "description": "PHIL UX kit for the Symfony UX Toolkit: the same recipes as the Shadcn kit, styled with phil-ux, installed with ux:install --kit; with the Twig functions its image recipes call, image_origin(), image_sources(), image_filters(), picture_props() and image_json_ld()",
+            "description": "PHIL UX kit for the Symfony UX Toolkit: the same recipes as the Shadcn kit, styled with phil-ux, plus responsive image recipes, installed with ux:install --kit.",
             "homepage": "https://ph-il.ca",
             "keywords": [
                 "accessibility",
