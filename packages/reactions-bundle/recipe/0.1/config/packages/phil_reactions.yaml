@@ -1,0 +1,5 @@
+# The member who reacts. App\Reactions\CurrentMember names nobody until it reads the application's signed-in account by
+# a stable identifier, never an email address: until then every visitor sees what is counted. See the installation
+# guide of phil/reactions-bundle.
+phil_reactions:
+    current_member: App\Reactions\CurrentMember

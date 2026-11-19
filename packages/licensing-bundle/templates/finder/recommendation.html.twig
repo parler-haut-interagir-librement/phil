@@ -1,0 +1,20 @@
+{#
+ # The license the finder recommends, as a fragment.
+ #
+ # recommendation: the Phil\LicensingBundle\Domain\Finder\Recommendation
+ # license:        its Phil\LicensingBundle\Domain\ValueObject\License, or null when the catalog lacks it
+ # license_name:   its name in the reader's language
+ # terms:          the text of the custom terms, or null
+ # locale:         the locale of the texts, or null for the translator's
+ #}
+<section class="phil-licensing-recommendation">
+    <h2>{{ 'finder.recommendation'|trans({}, 'phil_licensing', locale) }}</h2>
+    <p>
+        {{ (recommendation.imposed ? 'finder.recommendation.imposed' : 'finder.recommendation.license')|trans({'%license%': license_name}, 'phil_licensing', locale) }}
+        {% if license and license.url %}<a href="{{ license.url }}" rel="license">{{ license.url }}</a>{% endif %}
+    </p>
+    {% if terms is not null %}
+        <h3>{{ 'finder.recommendation.terms'|trans({}, 'phil_licensing', locale) }}</h3>
+        <p class="phil-licensing-terms">{{ terms|nl2br }}</p>
+    {% endif %}
+</section>

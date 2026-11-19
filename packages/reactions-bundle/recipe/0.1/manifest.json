@@ -1,0 +1,9 @@
+{
+    "bundles": {
+        "Phil\\ReactionsBundle\\PhilReactionsBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/",
+        "src/": "%SRC_DIR%/"
+    }
+}

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=64a8d80d0d4633e38c3c9213e65cbdbf994216d9eb2b2d09c4763a91a6e56dfb -->
+<!-- phil-dev source-sha256=fdef0d2cad32f551fa621e198b172370e45dd0d6a3c518e247669b8badc38e4f -->
 # PHIL
 
 **Parler Haut, Interagir Librement : des bibliothèques PHP et des bundles Symfony ouverts pour les sites qui publient,
@@ -119,6 +119,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/geo-bundle`](https://github.com/parler-haut-interagir-librement/geo-bundle) | Des coordonnées stockées, des distances dans Twig, des géocodeurs configurés et des listes triées du plus proche au plus loin pour les applications Symfony. |
 | [`phil/contact`](https://github.com/parler-haut-interagir-librement/contact) | Des fiches de contact : noms ordonnés selon leur culture, courriels, lignes téléphoniques et identifiants, écrits en vCard, JSContact et JSON-LD. |
 | [`phil/contact-bundle`](https://github.com/parler-haut-interagir-librement/contact-bundle) | Un formulaire de fiche de contact, une colonne JSON, des téléchargements vCard et JSContact, et les noms de personnes dans Twig, pour Symfony. |
+| [`phil/short-link-bundle`](https://github.com/parler-haut-interagir-librement/short-link-bundle) | Des liens courts sur vos propres domaines, avec codes QR, dates et plafond de visites, et des visites comptées sans aucune donnée du visiteur. |
 
 ### Site et navigation
 
@@ -160,6 +161,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/stockroom-bundle`](https://github.com/parler-haut-interagir-librement/stockroom-bundle) | Le magasin d'accessoires dans Symfony : contenants, objets, journal et listes de chargement dans des tables Doctrine DBAL, mouvements dans une transaction qui verrouille les objets. |
 | [`phil/moderation-bundle`](https://github.com/parler-haut-interagir-librement/moderation-bundle) | Une seule file de signalements pour les messages, commentaires, réactions, annonces, messages privés et profils : rôles, historique des décisions, avis motivé aux auteurs et journal public sans noms. |
 | [`phil/newsletter-bundle`](https://github.com/parler-haut-interagir-librement/newsletter-bundle) | L'infolettre d'un site : listes, double confirmation, campagnes en Markdown, envoi au rythme des profils d'expéditeur, désabonnement en un clic, centre de préférences et retours lus. |
+| [`phil/reactions-bundle`](https://github.com/parler-haut-interagir-librement/reactions-bundle) | Des réactions sur tout contenu : émojis Unicode et ceux du site, un sélecteur accessible, un Live Component qui marche aussi en simple formulaire, et des compteurs réglés par chaque site. |
 
 ### Impression et produits
 
@@ -176,6 +178,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/print-preflight-bundle`](https://github.com/parler-haut-interagir-librement/print-preflight-bundle) | Des profils d'imprimeur tirés de la configuration, des vérifications ajoutées par attribut, et les documents vérifiés avant l'impression. |
 | [`phil/commerce-bundle`](https://github.com/parler-haut-interagir-librement/commerce-bundle) | Le noyau du commerce dans Symfony : commandes et ajustements, canaux, taxes par ligne, paiements aux notifications vérifiées, reçus et notes de crédit numérotés sans trou avec leur facture PDF. |
 | [`phil/product-feeds`](https://github.com/parler-haut-interagir-librement/product-feeds) | Des flux de produits pour les comparateurs et les places de marché, écrits en mémoire constante en RSS avec données de produits ou en TSV, et mis en place d'un seul coup. |
+| [`phil/licensing-bundle`](https://github.com/parler-haut-interagir-librement/licensing-bundle) | Les licences des œuvres et des produits : ce que chacune exige, des pages d'attribution en HTML, UJO ou JSON-LD, et une vérification avant l'export ou l'impression. |
 
 ### Contenu et recherche
 
@@ -229,6 +232,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/privacy-bundle`](https://github.com/parler-haut-interagir-librement/privacy-bundle) | Les lois sur la vie privée en code : champs personnels déclarés, journaux expurgés, export et effacement, purges de conservation, consentement aux témoins refusé par défaut, demandes par lien vérifié et copies de base anonymisées. |
 | [`phil/audit-bundle`](https://github.com/parler-haut-interagir-librement/audit-bundle) | Un journal d'audit en ajout seul : lignes chaînées par empreinte, indexées par acteur, action et enregistrement, engagements salés sur les champs personnels et ancrages externes. |
 | [`phil/audit-viewer`](https://github.com/parler-haut-interagir-librement/audit-viewer) | Le journal d'audit lu dans EasyAdmin : filtres, historique d'un enregistrement, état de chaque chaîne et export CSV journalisé. |
+| [`phil/user-secrets-bundle`](https://github.com/parler-haut-interagir-librement/user-secrets-bundle) | Les clés d'API et jetons OAuth que les gens confient à un site : scellés par chiffrement d'enveloppe à clés tournantes, rafraîchis sous verrou, révocables et effacés avec le compte. |
 
 ### PHIL UX
 
@@ -256,6 +260,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/lti-bundle`](https://github.com/parler-haut-interagir-librement/lti-bundle) | LTI 1.3 dans Symfony : les routes du lancement, de Deep Linking et du jeu de clés, un authentificateur des lancements vérifiés, des magasins sur Doctrine DBAL et des notes envoyées par Messenger. |
 | [`phil/elearning-packages`](https://github.com/parler-haut-interagir-librement/elearning-packages) | Les paquets SCORM 1.2, SCORM 2004 et cmi5 lus de façon sûre, sans plateforme d'apprentissage : l'archive vérifiée avant toute lecture, le manifeste lu en valeurs. |
 | [`phil/courses-bundle`](https://github.com/parler-haut-interagir-librement/courses-bundle) | Des cours en ligne dans Symfony : modules et activités, inscriptions, progression et achèvement, ouverture par date, import des paquets SCORM et cmi5, lancements cmi5 vérifiés, un magasin xAPI local ou distant. |
+| [`phil/mime-reader`](https://github.com/parler-haut-interagir-librement/mime-reader) | Des courriels bruts lus comme des entrées hostiles : champs d'en-tête, parties MIME imbriquées et champs des rapports sous des limites, corps décodés à la demande en UTF-8. |
 
 ### Exploitation
 
@@ -276,6 +281,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 | [`phil/incident-mode-bundle`](https://github.com/parler-haut-interagir-librement/incident-mode-bundle) | Le mode incident dans Symfony : inscriptions, invitations ou formulaires suspendus pendant une attaque, un avis public honnête, une levée programmée, un journal et une page d'administration. |
 | [`phil/status-page-bundle`](https://github.com/parler-haut-interagir-librement/status-page-bundle) | Une page d'état des services en HTML, JSON et Atom sans script, et un instantané statique poussé hors de l'infrastructure surveillée. |
 | [`phil/error-tracking`](https://github.com/parler-haut-interagir-librement/error-tracking) | Le suivi des erreurs gardé chez soi : événements groupés par empreinte stable, purgés des données personnelles et des secrets avant toute écriture. |
+| [`phil/error-tracking-bundle`](https://github.com/parler-haut-interagir-librement/error-tracking-bundle) | phil/error-tracking dans Symfony : requêtes, workers, commandes et navigateurs captés, groupes gardés avec une purge, pages par rôle et alertes de clavardage pour les nouveaux groupes et les régressions. |
 | [`phil/data-table-bundle`](https://github.com/parler-haut-interagir-librement/data-table-bundle) | Des tableaux de données en Live Component : tri, filtres, pagination, actions par ligne et en lot, édition sur place, et le même état dans l'adresse sans JavaScript. |
 
 Tous les paquets sont en `0.x` : leur API peut encore changer d'une version mineure à l'autre, comme le consigne leur

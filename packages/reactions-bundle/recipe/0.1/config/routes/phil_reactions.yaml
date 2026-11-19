@@ -1,0 +1,4 @@
+# The route of the plain form, which the component needs to write its address.
+phil_reactions:
+    resource: '@PhilReactionsBundle/config/routes.php'
+    prefix: /_reactions

@@ -1,0 +1,5 @@
+Subject: =?utf-8?q?a?= =?bogus?b?Zm9v?=
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
+
+0NLJ18XU

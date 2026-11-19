@@ -1,0 +1,30 @@
+{
+    "name": "@phil/reactions-bundle",
+    "description": "The Stimulus controllers of phil/reactions-bundle: the components of a same content kept in step, and the keyboard and the search of the picker",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/reactions_controller.js",
+    "symfony": {
+        "controllers": {
+            "reactions": {
+                "main": "src/reactions_controller.js",
+                "webpackMode": "eager",
+                "fetch": "lazy",
+                "enabled": true
+            },
+            "picker": {
+                "main": "src/picker_controller.js",
+                "webpackMode": "eager",
+                "fetch": "lazy",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

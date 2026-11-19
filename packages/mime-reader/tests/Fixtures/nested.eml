@@ -1,0 +1,51 @@
+From: "Support" <help@example.org>
+To: =?UTF-8?Q?Ren=C3=A9e?= <renee@example.net>
+Subject: =?UTF-8?B?UmFwcG9ydCBkZSBsYQ==?=
+ =?UTF-8?B?IHNlbWFpbmU=?=
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="outer"
+
+This is the preamble.
+--outer
+Content-Type: multipart/alternative; boundary=inner
+
+--inner
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Caf=E9 cr=E8me, =
+soft break.
+--inner
+Content-Type: multipart/related; boundary="rel"
+
+--rel
+Content-Type: text/html; charset=utf-8
+
+<p>Café</p><img src="cid:logo">
+--rel
+Content-Type: image/png
+Content-ID: <logo>
+Content-Disposition: inline; filename="logo.png"
+Content-Transfer-Encoding: base64
+
+iVBORw0K
+Ggo=
+--rel--
+--inner--
+--outer
+Content-Type: application/pdf; name="ignored.pdf"
+Content-Disposition: attachment;
+ filename*0*=UTF-8''r%C3%A9sum;
+ filename*1="e.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQK
+--outer
+Content-Type: message/rfc822
+
+From: someone@example.com
+Subject: Inner
+
+Inner body.
+--outer--
+This is the epilogue.

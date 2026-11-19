@@ -1,0 +1,58 @@
+{#
+    The groups of errors, seen last first, filtered by status. An application gives its own layout through
+    phil_error_tracking.admin.layout; the layout defines the "title" and "main" blocks, the names of EasyAdmin's content page.
+#}
+{% extends layout %}
+
+{% block title %}Errors{% endblock %}
+
+{% block main %}
+    <h1>Errors</h1>
+
+    {{ include('@PhilErrorTracking/_alerts.html.twig') }}
+
+    <nav aria-label="Status">
+        <a href="{{ path(routes.groups) }}"{% if status is null %} aria-current="page"{% endif %}>All</a>
+        {% for case in statuses %}
+            · <a href="{{ path(routes.groups, {status: case.value}) }}"{% if status == case %} aria-current="page"{% endif %}>{{ case.value|capitalize }}</a>
+        {% endfor %}
+    </nav>
+
+    <p>{{ total }} group(s).</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th scope="col">Error</th>
+                <th scope="col">Status</th>
+                <th scope="col">Events</th>
+                <th scope="col">Last seen</th>
+                <th scope="col">Release</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in groups %}
+                <tr>
+                    <td>
+                        <a href="{{ path(routes.group, {fingerprint: group.fingerprint}) }}">{{ group.title|slice(0, 160) }}</a>
+                        {% if group.culprit %}<br><small>{{ group.culprit }}</small>{% endif %}
+                    </td>
+                    <td>{{ group.status.value }}</td>
+                    <td>{{ group.timesSeen }}</td>
+                    <td><time datetime="{{ group.lastSeen|date('c') }}">{{ group.lastSeen|date('Y-m-d H:i') }}</time></td>
+                    <td>{{ group.lastRelease ?? '' }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5">No error.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if pages > 1 %}
+        <nav aria-label="Pages">
+            {% if page > 1 %}<a href="{{ path(routes.groups, {status: status ? status.value : null, page: page - 1}) }}" rel="prev">Previous</a>{% endif %}
+            Page {{ page }} of {{ pages }}
+            {% if page < pages %}<a href="{{ path(routes.groups, {status: status ? status.value : null, page: page + 1}) }}" rel="next">Next</a>{% endif %}
+        </nav>
+    {% endif %}
+{% endblock %}

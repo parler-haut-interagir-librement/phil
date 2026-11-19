@@ -1,0 +1,30 @@
+{% extends layout %}
+
+{% block title %}{{ (link ? 'title.edit' : 'title.new')|trans({}, 'phil_short_link') }}{% endblock %}
+
+{% block content %}
+    <h1>{{ (link ? 'title.edit' : 'title.new')|trans({}, 'phil_short_link') }}</h1>
+    <p><a href="{{ path('phil_short_link_admin_list') }}">{{ 'action.back'|trans({}, 'phil_short_link') }}</a></p>
+
+    {% if link %}
+        <figure>
+            <img src="{{ path('phil_short_link_admin_qr_code', {id: link.id, format: 'svg'}) }}" alt="{{ 'qr_code.alt'|trans({'%url%': url}, 'phil_short_link') }}" width="160" height="160">
+            <figcaption><code>{{ url }}</code> · <a href="{{ path('phil_short_link_admin_qr_code', {id: link.id, format: 'png'}) }}" download>{{ 'action.download_png'|trans({}, 'phil_short_link') }}</a></figcaption>
+        </figure>
+    {% endif %}
+
+    {{ form_start(form, {attr: {class: 'isFieldSet', novalidate: 'novalidate'}}) }}
+        {{ form_errors(form) }}
+        {% for child in form %}
+            {% if child.vars.name != '_token' %}
+                <div class="isField">
+                    {{ form_label(child, null, {label_attr: {class: 'isFieldLabel'}}) }}
+                    {{ form_widget(child) }}
+                    {{ form_help(child) }}
+                    {{ form_errors(child) }}
+                </div>
+            {% endif %}
+        {% endfor %}
+        <button class="isButton" type="submit">{{ 'action.save'|trans({}, 'phil_short_link') }}</button>
+    {{ form_end(form) }}
+{% endblock %}

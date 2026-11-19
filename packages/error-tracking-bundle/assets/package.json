@@ -1,0 +1,24 @@
+{
+    "name": "@phil/error-tracking-bundle",
+    "description": "The Stimulus controller of phil/error-tracking-bundle that reports the browser's uncaught errors",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/capture_controller.js",
+    "symfony": {
+        "controllers": {
+            "capture": {
+                "main": "src/capture_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

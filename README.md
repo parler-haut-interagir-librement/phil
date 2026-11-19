@@ -117,6 +117,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/geo-bundle`](https://github.com/parler-haut-interagir-librement/geo-bundle) | Stored coordinates, distances in Twig, configured geocoders and nearest-first lists for Symfony applications. |
 | [`phil/contact`](https://github.com/parler-haut-interagir-librement/contact) | Contact cards: names ordered by their culture, emails, phone lines and handles, written as vCard, JSContact and JSON-LD. |
 | [`phil/contact-bundle`](https://github.com/parler-haut-interagir-librement/contact-bundle) | A contact card form, a JSON column, vCard and JSContact downloads, and person names in Twig, for Symfony. |
+| [`phil/short-link-bundle`](https://github.com/parler-haut-interagir-librement/short-link-bundle) | Short links on your own domains, with QR codes, dates and visit limits, and visits counted without any visitor data. |
 
 ### Site and navigation
 
@@ -158,6 +159,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/stockroom-bundle`](https://github.com/parler-haut-interagir-librement/stockroom-bundle) | The props stockroom in Symfony: containers, items, journal and load lists in Doctrine DBAL tables, moves in a transaction that locks the items. |
 | [`phil/moderation-bundle`](https://github.com/parler-haut-interagir-librement/moderation-bundle) | One report queue for posts, comments, reactions, listings, messages and profiles: roles, decision history, a statement of reasons to authors and a public journal without names. |
 | [`phil/newsletter-bundle`](https://github.com/parler-haut-interagir-librement/newsletter-bundle) | A site's newsletter: lists, double opt-in, campaigns in Markdown, sending at the pace of sender profiles, one-click unsubscription, a preference centre and bounces read back. |
+| [`phil/reactions-bundle`](https://github.com/parler-haut-interagir-librement/reactions-bundle) | Reactions to any content: Unicode emojis and the site's own, an accessible picker, a Live Component that also works as a plain form, and counters as each site sets. |
 
 ### Print and products
 
@@ -174,6 +176,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/print-preflight-bundle`](https://github.com/parler-haut-interagir-librement/print-preflight-bundle) | Printer profiles from the configuration, checks added by attribute, and documents checked before they are printed. |
 | [`phil/commerce-bundle`](https://github.com/parler-haut-interagir-librement/commerce-bundle) | The core of commerce in Symfony: orders and adjustments, channels, taxes per line, payments with verified notifications, gapless receipts and credit notes with their PDF invoice. |
 | [`phil/product-feeds`](https://github.com/parler-haut-interagir-librement/product-feeds) | Product feeds for comparison sites and marketplaces, written in constant memory as RSS with product data or as TSV, and swapped into place whole. |
+| [`phil/licensing-bundle`](https://github.com/parler-haut-interagir-librement/licensing-bundle) | The licenses of works and products: what each requires, attribution pages in HTML, UJO or JSON-LD, and a compliance check before export or print. |
 
 ### Content and search
 
@@ -227,6 +230,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/privacy-bundle`](https://github.com/parler-haut-interagir-librement/privacy-bundle) | Privacy law in code: personal fields declared, logs redacted, export and erasure, retention purges, cookie consent refused by default, requests by verified link and anonymized database copies. |
 | [`phil/audit-bundle`](https://github.com/parler-haut-interagir-librement/audit-bundle) | An append-only audit trail: hash-chained rows indexed by actor, action and record, salted commitments on personal fields, and external anchors. |
 | [`phil/audit-viewer`](https://github.com/parler-haut-interagir-librement/audit-viewer) | The audit trail read in EasyAdmin: filters, the history of a record, the state of each hash chain and an audited CSV export. |
+| [`phil/user-secrets-bundle`](https://github.com/parler-haut-interagir-librement/user-secrets-bundle) | The API keys and OAuth tokens people entrust to a site: sealed by envelope encryption with rotating keys, refreshed under a lock, revocable and erased with the account. |
 
 ### PHIL UX
 
@@ -254,6 +258,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/lti-bundle`](https://github.com/parler-haut-interagir-librement/lti-bundle) | LTI 1.3 in Symfony: the routes of the launch, Deep Linking and the key set, an authenticator for verified launches, stores on Doctrine DBAL and scores sent through Messenger. |
 | [`phil/elearning-packages`](https://github.com/parler-haut-interagir-librement/elearning-packages) | SCORM 1.2, SCORM 2004 and cmi5 packages read safely, without a learning platform: the archive checked before any file is read, the manifest read into values. |
 | [`phil/courses-bundle`](https://github.com/parler-haut-interagir-librement/courses-bundle) | Online courses in Symfony: modules and activities, enrollments, progress and completion, release by date, SCORM and cmi5 packages imported, cmi5 launches checked, a local or remote xAPI store. |
+| [`phil/mime-reader`](https://github.com/parler-haut-interagir-librement/mime-reader) | Raw emails read as hostile input: header fields, nested MIME parts and report fields within limits, bodies decoded on demand into UTF-8. |
 
 ### Operations
 
@@ -274,6 +279,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/incident-mode-bundle`](https://github.com/parler-haut-interagir-librement/incident-mode-bundle) | The incident mode in Symfony: sign-ups, invitations or forms paused during an attack, an honest public notice, lifting on a schedule, a log and an administration page. |
 | [`phil/status-page-bundle`](https://github.com/parler-haut-interagir-librement/status-page-bundle) | A service status page served as HTML, JSON and Atom without any script, and a static snapshot pushed off the monitored infrastructure. |
 | [`phil/error-tracking`](https://github.com/parler-haut-interagir-librement/error-tracking) | Error tracking kept at home: events grouped by a stable fingerprint, scrubbed of personal data and secrets before anything is written. |
+| [`phil/error-tracking-bundle`](https://github.com/parler-haut-interagir-librement/error-tracking-bundle) | phil/error-tracking in Symfony: requests, workers, commands and browsers captured, groups kept with a purge, pages by role and chat alerts for new groups and regressions. |
 | [`phil/data-table-bundle`](https://github.com/parler-haut-interagir-librement/data-table-bundle) | Data tables as a Live Component: sorting, filters, pagination, row and bulk actions, inline editing, and the same state in the address without JavaScript. |
 
 Every package is at `0.x`: its API may still change between minor versions, as its CHANGELOG records. More packages

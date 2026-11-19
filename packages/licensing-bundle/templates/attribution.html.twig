@@ -1,0 +1,62 @@
+{#
+ # The license and attribution page of a work, as a fragment.
+ #
+ # page:   the Phil\LicensingBundle\Application\AttributionPage
+ # locale: the locale of the texts, or null for the translator's
+ #}
+{% set license_name = page.license ? phil_licensing_license_name(page.license, locale) : page.licenseCode %}
+<section class="phil-licensing">
+    <h2>{{ 'page.license'|trans({}, 'phil_licensing', locale) }}</h2>
+    {% if page.license %}
+        <p class="phil-licensing-license">
+            {{ 'page.licensed_under'|trans({'%license%': license_name}, 'phil_licensing', locale) }}
+            {% if page.license.url %}<a href="{{ page.license.url }}" rel="license">{{ page.license.url }}</a>{% endif %}
+        </p>
+        {% if page.license.reference %}
+            <p class="phil-licensing-reference">{{ 'page.reference'|trans({'%reference%': page.license.reference}, 'phil_licensing', locale) }}</p>
+        {% endif %}
+    {% else %}
+        <p class="phil-licensing-license">{{ 'page.unknown_license'|trans({'%license%': page.licenseCode}, 'phil_licensing', locale) }}</p>
+    {% endif %}
+    {% for heading, text in {
+        'page.designated_content': page.designatedContent,
+        'page.reserved_material': page.reservedMaterial,
+        'page.product_identity': page.productIdentity,
+    } %}
+        {% if text %}
+            <h3>{{ heading|trans({}, 'phil_licensing', locale) }}</h3>
+            <p>{{ text|nl2br }}</p>
+        {% endif %}
+    {% endfor %}
+    {% if page.resources %}
+        <h2>{{ 'page.attributions'|trans({}, 'phil_licensing', locale) }}</h2>
+        {% for kind in enum_cases('Phil\\LicensingBundle\\Domain\\Catalog\\ResourceKind') %}
+            {% set resources = page.resourcesOf(kind) %}
+            {% if resources %}
+                <h3>{{ ('kind.' ~ kind.value)|trans({}, 'phil_licensing', locale) }}</h3>
+                <ul class="phil-licensing-resources">
+                    {% for resource in resources %}
+                        {% set attribution = resource.attribution %}
+                        <li>
+                            {% if attribution.url %}<a href="{{ attribution.url }}">{{ attribution.title }}</a>{% else %}{{ attribution.title }}{% endif %}
+                            {%- if attribution.author %}, {{ 'resource.by'|trans({'%author%': attribution.author}, 'phil_licensing', locale) }}{% endif %}.
+                            {{ 'resource.license'|trans({'%license%': phil_licensing_license_name(attribution.license, locale)}, 'phil_licensing', locale) }}
+                            {%- if resource.license and resource.license.url %} <a href="{{ resource.license.url }}" rel="license">{{ resource.license.url }}</a>{% endif %}
+                            {% if attribution.changes %}<br>{{ 'resource.changes'|trans({'%changes%': attribution.changes}, 'phil_licensing', locale) }}{% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    {% if page.notices %}
+        <h2>{{ 'page.notices'|trans({}, 'phil_licensing', locale) }}</h2>
+        {% for notice in page.notices %}
+            <p class="phil-licensing-copyright">{{ notice|nl2br }}</p>
+        {% endfor %}
+    {% endif %}
+    {% if page.licenseText %}
+        <h2>{{ 'page.license_text'|trans({}, 'phil_licensing', locale) }}</h2>
+        <div class="phil-licensing-text">{{ page.licenseText|nl2br }}</div>
+    {% endif %}
+</section>

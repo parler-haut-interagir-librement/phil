@@ -1,0 +1,73 @@
+{
+    "name": "phil/user-secrets-bundle",
+    "description": "Keep the API keys and OAuth tokens your users entrust to you safe: encrypted at rest, rotating keys, refreshed under a lock, revocable, erased with the account.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "secrets",
+        "credentials",
+        "api-key",
+        "oauth",
+        "encryption",
+        "sodium",
+        "kms",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-filter": "*",
+        "ext-openssl": "*",
+        "ext-sodium": "*",
+        "doctrine/collections": "^3.1",
+        "doctrine/orm": "^3.7",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/key-management": "^8.2",
+        "symfony/polyfill-php86": "^1.37"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/doctrine-bundle": "^3.3",
+        "phil/privacy-bundle": "^0.1.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/lock": "^8.2"
+    },
+    "suggest": {
+        "phil/privacy-bundle": "To erase and export a person's credentials with the rest of their account",
+        "symfony/console": "For phil:user-secrets:generate-key and phil:user-secrets:rotate",
+        "symfony/lock": "So that one process at a time refreshes an OAuth token"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\UserSecretsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\UserSecretsBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

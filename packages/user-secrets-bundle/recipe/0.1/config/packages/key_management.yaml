@@ -1,0 +1,7 @@
+# The local KMS that seals the secrets people entrust to the application. Generate its master key with
+# bin/console phil:user-secrets:generate-key and keep it in .env.local or the secrets vault, never in the repository;
+# losing it loses every secret it sealed. See the installation guide of phil/user-secrets-bundle to seal through the
+# application's own KMS instead.
+key_management:
+    clients:
+        local: 'sodium://?keys[k2026]=%env(USER_SECRETS_KEY_2026)%'

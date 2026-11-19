@@ -1,0 +1,4 @@
+# The administration of the short links, behind the application's firewall.
+phil_short_link_admin:
+    resource: '@PhilShortLinkBundle/config/routes/admin.php'
+    prefix: /admin/short-links

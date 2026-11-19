@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{% block title %}{% endblock %}</title>
+    <style>
+        .phil-errors { font-family: system-ui, sans-serif; max-width: 72rem; margin: 0 auto; padding: 1rem; }
+        .phil-errors table { border-collapse: collapse; width: 100%; }
+        .phil-errors th, .phil-errors td { text-align: left; vertical-align: top; padding: .25rem .5rem; border-bottom: 1px solid #ccc; }
+        .phil-errors form { display: inline; }
+        .phil-errors pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+        .phil-errors .is-vendor { opacity: .6; }
+    </style>
+</head>
+<body>
+    <main class="phil-errors">
+        {% block main %}{% endblock %}
+    </main>
+</body>
+</html>

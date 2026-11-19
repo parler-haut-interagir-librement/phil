@@ -1,0 +1,92 @@
+{
+    "name": "phil/short-link-bundle",
+    "description": "Short links on your own domains: QR codes, start and end dates, visit limits, checked targets, and visits counted without keeping any visitor data.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "qr-code",
+        "redirect",
+        "short-link",
+        "sqids",
+        "symfony-bundle",
+        "url-shortener"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/qr-code": "^0.1.1@dev",
+        "phil/rate-limit": "^0.1.1@dev",
+        "phil/redirects-bundle": "^0.1.1@dev",
+        "phil/url": "^0.1.4@dev",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/polyfill-php86": "^1.37",
+        "symfony/rate-limiter": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "phil/analytics-bundle": "^0.1@dev || ^0.2@dev",
+        "phil/safe-http": "^0.1@dev || ^0.2@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/cache": "^3.0",
+        "roave/security-advisories": "dev-latest",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/process": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "phil/analytics-bundle": "To count each visit as a server event of the analytics",
+        "phil/safe-http": "To read each target before saving it, refusing private networks and targets that do not answer",
+        "symfony/form": "For the form of a short link and the administration",
+        "symfony/security-csrf": "For the CSRF token of the administration's buttons",
+        "symfony/translation": "For the administration in English and French",
+        "twig/twig": "For the administration's pages"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ShortLinkBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ShortLinkBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

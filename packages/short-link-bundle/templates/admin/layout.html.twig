@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{% block title %}{{ 'title.short_links'|trans({}, 'phil_short_link') }}{% endblock %}</title>
+</head>
+<body>
+<main class="isContainer">
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

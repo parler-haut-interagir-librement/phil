@@ -1,0 +1,90 @@
+{#
+ # The reactions of a content: a plain form whose buttons the component takes over when it can, so reacting works the
+ # same without JavaScript. The buttons and the picker are recipes of the kit, installed in the application, under the
+ # names `this.kit` gives; a recipe is called with `component()` because its name is only known once the application's
+ # subdirectory is read.
+ #}
+{%- set panel = this.panel -%}
+{%- set domain = 'phil_reactions' -%}
+{%- set c = 'phil--reactions-bundle--reactions' -%}
+<div{{ attributes.defaults({
+    class: 'phil-reactions',
+    'data-controller': c,
+    'data-action': 'phil-reactions-changed@window->' ~ c ~ '#refresh',
+    ('data-' ~ c ~ '-content-value'): this.content,
+    ('data-' ~ c ~ '-instance-value'): this.instance,
+}) }}>
+    {%- if panel.visible %}
+    <form class="phil-reactions__form" method="post" action="{{ this.formAction }}">
+        <input type="hidden" name="_token" value="{{ this.token }}">
+        <div class="phil-reactions__bar" role="group" aria-label="{{ 'reactions.bar'|trans({}, domain) }}">
+            {%- for item in panel.bar %}
+            {%- set action = item.pressed ? 'withdraw' : 'react' %}
+            {{- component(this.kit('ReactionButton'), {
+                label: item.label,
+                emoji: item.emoji,
+                image: item.image,
+                imageAlt: item.imageAlt,
+                count: item.count,
+                countLabel: item.countLabel,
+                pressed: item.pressed,
+                interactive: item.interactive,
+            }|merge(item.interactive ? {
+                name: action,
+                value: item.code,
+                'data-phil-focus': 'reaction:' ~ item.code,
+                'data-action': 'live#action:prevent',
+                'data-live-action-param': action,
+                'data-live-code-param': item.code,
+                'data-live-token-param': this.token,
+            } : {})) }}
+            {%- endfor %}
+            {%- if panel.picker is not empty %}
+            {%- set groups = [] %}
+            {%- for group in panel.picker %}
+                {%- set options = [] %}
+                {%- for item in group.items %}
+                    {%- set options = options|merge([{
+                        label: item.label,
+                        emoji: item.emoji,
+                        image: item.image,
+                        imageAlt: item.imageAlt,
+                        attributes: {
+                            name: 'react',
+                            value: item.code,
+                            'data-action': 'live#action:prevent',
+                            'data-live-action-param': 'react',
+                            'data-live-code-param': item.code,
+                            'data-live-token-param': this.token,
+                        },
+                    }]) %}
+                {%- endfor %}
+                {%- set groups = groups|merge([{label: group.label, options: options}]) %}
+            {%- endfor %}
+            {{- component(this.kit('ReactionPicker'), {
+                label: 'reactions.picker.open'|trans({}, domain),
+                groups: groups,
+                searchLabel: 'reactions.picker.search'|trans({}, domain),
+                emptyLabel: 'reactions.picker.empty'|trans({}, domain),
+                resultsLabel: 'reactions.picker.results'|trans({}, domain),
+                'data-phil-focus': 'picker',
+            }) }}
+            {%- endif %}
+        </div>
+        {%- if panel.full %}
+        <p class="phil-reactions__full">{{ 'reactions.full'|trans({}, domain) }}</p>
+        {%- endif %}
+    </form>
+    {%- if panel.reactors is not empty %}
+    <details class="phil-reactions__names">
+        <summary>{{ 'reactions.names.title'|trans({}, domain) }}</summary>
+        <ul>
+            {%- for line in panel.reactors %}
+            <li>{{ line.label }}{{ 'reactions.names.separator'|trans({}, domain) }}{{ (line.others > 0 ? line.names|merge(['reactions.names.others'|trans({'%count%': line.others}, domain)]) : line.names)|format_list(locale: this.locale) }}</li>
+            {%- endfor %}
+        </ul>
+    </details>
+    {%- endif %}
+    <p class="phil-reactions__status" role="status" aria-live="polite">{{ this.notice }}</p>
+    {%- endif %}
+</div>

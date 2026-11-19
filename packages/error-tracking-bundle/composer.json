@@ -1,0 +1,106 @@
+{
+    "name": "phil/error-tracking-bundle",
+    "description": "Catch your Symfony errors at home: requests, workers, commands and browsers grouped, kept with a retention purge, shown by role, with chat alerts on new issues.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "error-tracking",
+        "exceptions",
+        "monolog",
+        "messenger",
+        "self-hosted",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "phil/error-tracking": "^0.1@dev",
+        "phil/ip-anonymizer": "^0.1@dev",
+        "phil/rate-limit": "^0.1.1@dev",
+        "phil/url": "^0.1.4@dev",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/notifier": "^8.2",
+        "symfony/service-contracts": "^3.6"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "easycorp/easyadmin-bundle": "^5.8",
+        "monolog/monolog": "^3.0",
+        "phil/monitoring-bundle": "^0.1.1@dev",
+        "phil/notifications-bundle": "^0.1@dev || ^0.2@dev",
+        "phil/rate-limit-bundle": "^0.1.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/process": "^8.2",
+        "symfony/rate-limiter": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/extra-bundle": "^3.24",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/orm": "For the tables added to the schema the ORM generates",
+        "easycorp/easyadmin-bundle": "To graft the administration pages on the dashboards of an EasyAdmin back office",
+        "monolog/monolog": "For the handler that captures the error records",
+        "phil/monitoring-bundle": "For the health check of the store of the errors",
+        "phil/notifications-bundle": "To send the alerts to recipients or an audience as notifications",
+        "phil/rate-limit-bundle": "To count the browsers' reports with a named limiter, beside the others of the application",
+        "symfony/asset-mapper": "For the Stimulus controller without a build step",
+        "symfony/console": "For the capture of the commands' errors and phil:error-tracking:purge",
+        "symfony/messenger": "For the capture of the failed messages and the queued alerts",
+        "symfony/rate-limiter": "For the throttles of the groups and of the browsers' reports, which the bundle refuses to build without unless they are disabled",
+        "symfony/routing": "For the administration pages and the endpoint of the browsers",
+        "symfony/security-core": "For the role of the administration pages",
+        "symfony/security-csrf": "For the actions of the administration pages",
+        "twig/twig": "For the administration pages"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ErrorTrackingBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ErrorTrackingBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

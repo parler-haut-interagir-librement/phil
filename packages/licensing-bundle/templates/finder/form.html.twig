@@ -1,0 +1,16 @@
+{#
+ # The license finder's current step, as a fragment: the steps as a list, then the question and its buttons.
+ #
+ # form: the view of the form flow, LicenseFinderType
+ #}
+<section class="phil-licensing-finder">
+    <h2>{{ 'finder.title'|trans({}, 'phil_licensing') }}</h2>
+    <nav aria-label="{{ 'finder.steps'|trans({}, 'phil_licensing') }}">
+        <ol>
+            {% for step in form.vars.visible_steps %}
+                <li{% if step.is_current_step %} aria-current="step"{% endif %}>{{ ('finder.step.' ~ step.name)|trans({}, 'phil_licensing') }}</li>
+            {% endfor %}
+        </ol>
+    </nav>
+    {{ form(form) }}
+</section>

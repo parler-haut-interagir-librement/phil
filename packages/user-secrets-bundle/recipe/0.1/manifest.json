@@ -1,0 +1,13 @@
+{
+    "bundles": {
+        "Symfony\\Component\\KeyManagement\\KeyManagementBundle": ["all"],
+        "Phil\\UserSecretsBundle\\PhilUserSecretsBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "#1": "Fill with the output of bin/console phil:user-secrets:generate-key, in .env.local or the secrets vault",
+        "USER_SECRETS_KEY_2026": ""
+    }
+}

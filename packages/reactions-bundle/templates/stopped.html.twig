@@ -1,0 +1,19 @@
+{#
+ # What stopped a reaction sent by a plain form, with the way back to the page. An application dresses this page by
+ # overriding the template under `templates/bundles/PhilReactionsBundle/stopped.html.twig`.
+ #}
+<!doctype html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ 'reactions.stopped'|trans({}, 'phil_reactions') }}</title>
+</head>
+<body>
+    <main>
+        <h1>{{ 'reactions.stopped'|trans({}, 'phil_reactions') }}</h1>
+        <p role="alert">{{ message }}</p>
+        <p><a href="{{ back }}">{{ 'reactions.back'|trans({}, 'phil_reactions') }}</a></p>
+    </main>
+</body>
+</html>

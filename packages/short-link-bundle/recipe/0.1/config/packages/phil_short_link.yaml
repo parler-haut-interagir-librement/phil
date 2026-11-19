@@ -1,0 +1,10 @@
+# Short links on a domain of their own, pointed at the application. Name the domain and the hosts a link may send to
+# in .env.local; add a domain per locale when the site needs one. See the configuration guide of
+# phil/short-link-bundle.
+phil_short_link:
+    domains:
+        - { host: '%env(SHORT_LINK_HOST)%' }
+    targets:
+        allowed_hosts: ['%env(SHORT_LINK_TARGET_HOST)%']
+    admin:
+        role: ROLE_ADMIN

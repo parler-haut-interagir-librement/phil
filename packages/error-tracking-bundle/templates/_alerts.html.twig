@@ -1,0 +1,6 @@
+{#
+    The degraded state of the alerts, on every page: they are on, but reach no one.
+#}
+{% if alerts.isDegraded() %}
+    <p role="status"><strong>No alert is sent.</strong> {{ alerts.describe() }}</p>
+{% endif %}

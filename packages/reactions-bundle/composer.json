@@ -1,0 +1,100 @@
+{
+    "name": "phil/reactions-bundle",
+    "description": "Let members react to any content with emojis, the site's own included: an accessible picker, counters shown as you choose, no public count against a content.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "reactions",
+        "emoji",
+        "live-component",
+        "stimulus",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-intl": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/resource": "^0.1.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/rate-limiter": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/service-contracts": "^3.6",
+        "symfony/translation": "^8.2",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/uid": "^8.2",
+        "symfony/ux-live-component": "^3.7",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/intl-extra": "^3.30",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "ext-dom": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "phil/media-bundle": "^0.2@dev",
+        "phil/privacy-bundle": "^0.1.1@dev",
+        "phil/settings-bundle": "^0.1@dev || ^0.2@dev",
+        "phil/ux-kit": ">=0.5.0-alpha <1.0",
+        "phil/ux-kit-shadcn": ">=0.1.0-alpha <1.0",
+        "php-webdriver/webdriver": "^1.16",
+        "phpunit/phpunit": "^13.4",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.1",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/filesystem": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/panther": "^2.4",
+        "symfony/security-core": "^8.2",
+        "symfony/stimulus-bundle": "^3.7",
+        "symfony/twig-bundle": "^8.2",
+        "twig/extra-bundle": "^3.24"
+    },
+    "suggest": {
+        "phil/media-bundle": "For images of the site's emojis kept as media",
+        "phil/privacy-bundle": "For a member's reactions in the export and the erasure of their data",
+        "phil/settings-bundle": "For the visibility chosen among the settings of the site",
+        "phil/ux-kit": "For the recipes ReactionButton and ReactionPicker, through the Symfony UX Toolkit",
+        "phil/ux-kit-shadcn": "For the Tailwind versions of the same recipes, through the Symfony UX Toolkit",
+        "symfony/asset-mapper": "For the Stimulus controllers and the stylesheet without a build step",
+        "symfony/messenger": "For the events also sent on the message bus",
+        "symfony/security-core": "For the voter attribute and the member of the security token",
+        "symfony/stimulus-bundle": "For the Stimulus controllers"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ReactionsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ReactionsBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

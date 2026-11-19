@@ -1,0 +1,1 @@
+{"type":"TypeError","message":"x is undefined","url":"https://example.com/cart","stack":"TypeError: x\n    at Cart.total (https://example.com/app.js?v=1:10:15)\n    at https://example.com/app.js:20:3"}

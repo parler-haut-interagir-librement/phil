@@ -1,0 +1,12 @@
+{
+    "bundles": {
+        "Phil\\ShortLinkBundle\\PhilShortLinkBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "SHORT_LINK_HOST": "go.example.com",
+        "SHORT_LINK_TARGET_HOST": "www.example.com"
+    }
+}

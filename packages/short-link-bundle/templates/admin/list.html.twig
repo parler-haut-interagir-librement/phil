@@ -1,0 +1,73 @@
+{% extends layout %}
+
+{% block title %}{{ 'title.short_links'|trans({}, 'phil_short_link') }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.short_links'|trans({}, 'phil_short_link') }}</h1>
+
+    {% if done %}<div class="isAlert" role="status"><p class="isAlertTitle">{{ ('done.' ~ done)|trans({}, 'phil_short_link') }}</p></div>{% endif %}
+
+    <p><a class="isButton" href="{{ path('phil_short_link_admin_create') }}">{{ 'action.new'|trans({}, 'phil_short_link') }}</a></p>
+
+    <form method="get" role="search" class="isFieldGroup">
+        <label class="isFieldLabel" for="phil-short-link-q">{{ 'action.search'|trans({}, 'phil_short_link') }}</label>
+        <input class="isInput" type="search" id="phil-short-link-q" name="q" value="{{ search }}" maxlength="200">
+        <button class="isButton" type="submit">{{ 'action.search'|trans({}, 'phil_short_link') }}</button>
+    </form>
+
+    <div class="isScrollable"><table class="isTable">
+        <thead class="isTableHeader">
+        <tr class="isTableRow">
+            <th class="isTableHead" scope="col">{{ 'field.code'|trans({}, 'phil_short_link') }}</th>
+            <th class="isTableHead" scope="col">{{ 'field.target'|trans({}, 'phil_short_link') }}</th>
+            <th class="isTableHead" scope="col">{{ 'field.state'|trans({}, 'phil_short_link') }}</th>
+            <th class="isTableHead" scope="col">{{ 'field.visits'|trans({}, 'phil_short_link') }}</th>
+            <th class="isTableHead" scope="col">{{ 'field.robot_visits'|trans({}, 'phil_short_link') }}</th>
+            <th class="isTableHead" scope="col">{{ 'field.actions'|trans({}, 'phil_short_link') }}</th>
+        </tr>
+        </thead>
+        <tbody class="isTableBody">
+        {% for row in links %}
+            {% set link = row.link %}
+            <tr class="isTableRow">
+                <th class="isTableCell" scope="row">
+                    <code>{{ row.url }}</code>
+                    {% if link.label %}<br><small>{{ link.label }}</small>{% endif %}
+                </th>
+                <td class="isTableCell"><code>{{ link.target }}</code></td>
+                <td class="isTableCell">
+                    <span class="isBadge">{{ ('state.' ~ row.state.value)|trans({}, 'phil_short_link') }}</span>
+                    {% if link.validUntil %}<br><small>{{ 'field.valid_until'|trans({}, 'phil_short_link') }} {{ link.validUntil|date('Y-m-d H:i') }}</small>{% endif %}
+                </td>
+                <td class="isTableCell">{{ link.visits }}{% if link.maxVisits %} / {{ link.maxVisits }}{% endif %}</td>
+                <td class="isTableCell">{{ link.robotVisits }}</td>
+                <td class="isTableCell">
+                    <a href="{{ path('phil_short_link_admin_edit', {id: link.id}) }}">{{ 'action.edit'|trans({}, 'phil_short_link') }}</a>
+                    <a href="{{ path('phil_short_link_admin_qr_code', {id: link.id, format: 'svg'}) }}">{{ 'action.qr_code'|trans({}, 'phil_short_link') }}</a>
+                    <form method="post" action="{{ path('phil_short_link_admin_toggle', {id: link.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="enabled" value="{{ link.enabled ? '0' : '1' }}">
+                        <button class="isButton" type="submit">{{ (link.enabled ? 'action.disable' : 'action.enable')|trans({}, 'phil_short_link') }}</button>
+                    </form>
+                    <form method="post" action="{{ path('phil_short_link_admin_delete', {id: link.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token }}">
+                        <button class="isButton" type="submit">{{ 'action.delete'|trans({}, 'phil_short_link') }}</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr class="isTableRow"><td class="isTableCell" colspan="6">{{ 'empty.short_links'|trans({}, 'phil_short_link') }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+
+    {% if pages > 1 %}
+        <nav class="isPagination" aria-label="{{ 'pager.label'|trans({}, 'phil_short_link') }}">
+            <ul class="isPaginationList">
+                {% if page > 1 %}<li class="isPaginationItem"><a href="{{ path('phil_short_link_admin_list', {page: page - 1, q: search}) }}" rel="prev">{{ 'pager.previous'|trans({}, 'phil_short_link') }}</a></li>{% endif %}
+                <li class="isPaginationItem"><span aria-current="page">{{ 'pager.position'|trans({'%page%': page, '%pages%': pages}, 'phil_short_link') }}</span></li>
+                {% if page < pages %}<li class="isPaginationItem"><a href="{{ path('phil_short_link_admin_list', {page: page + 1, q: search}) }}" rel="next">{{ 'pager.next'|trans({}, 'phil_short_link') }}</a></li>{% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% endblock %}
