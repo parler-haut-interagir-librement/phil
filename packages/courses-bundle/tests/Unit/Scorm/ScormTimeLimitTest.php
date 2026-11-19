@@ -341,6 +341,7 @@ final class ScormTimeLimitTest extends TestCase
         $this->settings($passed, ['time_limit' => 1]);
         $this->store->clock->modify('+1 day');
         $this->store->scorm->launch($this->store->courses->activity($passed->id), $ada);
+
         $progress = $this->store->enrollments->progresses($ada)[$passed->id->value];
         self::assertSame([true, 0], [$progress->success, $progress->failures]);
     }

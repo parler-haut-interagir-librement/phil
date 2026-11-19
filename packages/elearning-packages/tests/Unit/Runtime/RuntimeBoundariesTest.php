@@ -73,7 +73,7 @@ final class RuntimeBoundariesTest extends TestCase
         $name = str_repeat('é', 100);
 
         foreach ([
-            static fn () => new CmiData(ScormVersion::Scorm12, [$name => 'x']),
+            static fn (): CmiData => new CmiData(ScormVersion::Scorm12, [$name => 'x']),
             static fn () => new CmiData(ScormVersion::Scorm12)->put($name, 'x'),
         ] as $attempt) {
             try {

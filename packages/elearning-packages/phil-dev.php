@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Phil\ElearningPackages\Runtime\CmiRules;
+use Phil\ElearningPackages\Runtime\ElementName;
+
 /*
  * What phil/dev-tools reads of this package: its paths and its exceptions to the shared configurations.
  */
@@ -71,9 +74,9 @@ return [
                 '.*return null !== \\$value && .*is_numeric.*',
             ]],
             // SCORM 1.2 has none of the values SCORM 2004 evaluates, so the guard of its version is a shortcut.
-            'ReturnRemoval' => ['ignore' => ['Phil\\ElearningPackages\\Runtime\\CmiRules::evaluated::73']],
+            'ReturnRemoval' => ['ignore' => [CmiRules::class.'::evaluated::73']],
             // The keyword ends the name: the segments after it are none.
-            'Continue_' => ['ignore' => ['Phil\\ElearningPackages\\Runtime\\ElementName::parse::84']],
+            'Continue_' => ['ignore' => [ElementName::class.'::parse::84']],
             // SCORM 1.2 and SCORM 2004 give the same code, 201, for an argument where none is expected.
             'Ternary' => ['ignoreSourceCodeByRegex' => ['.*\\$is12 \\? ScormError::INVALID_ARGUMENT_12 : ScormError::GENERAL_ARGUMENT.*']],
             // The text of the time allowed is trimmed by the reader before it is matched: a line break cannot end it.

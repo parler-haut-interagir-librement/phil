@@ -53,7 +53,9 @@ final class ReadsOfUnstorableIdentifiersTest extends TestCase
         $pairs = [['a ', 'b'], ["a\xC3", 'b']];
 
         if (2 === $arity) {
-            array_push($pairs, ['a', 'b '], ['a ', 'b '], ['a', "b\xC3"]);
+            $pairs[] = ['a', 'b '];
+            $pairs[] = ['a ', 'b '];
+            $pairs[] = ['a', "b\xC3"];
         }
 
         foreach ($pairs as [$first, $second]) {

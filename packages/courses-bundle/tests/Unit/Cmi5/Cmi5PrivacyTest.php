@@ -188,6 +188,7 @@ final class Cmi5PrivacyTest extends TestCase
         $this->store->lrs->saveState('https://example.org/aus/alone', $bob->registration, 'bookmark', '{}');
         $this->store->enrollmentStore->claimSatisfaction($bob->id, 'first', 's-1', $this->store->clock->now());
         $this->store->enrollmentStore->claimSatisfaction($bob->id, 'second', 's-2', $this->store->clock->now());
+
         $connection = $this->store->connection;
 
         foreach (['sessions' => [CourseTables::SESSION, 'enrollment_id', $bob->id->value], 'statements' => [CourseTables::STATEMENT, 'registration', $bob->registration], 'states' => [CourseTables::STATE, 'registration', $bob->registration], 'satisfactions' => [CourseTables::SATISFACTION, 'enrollment_id', $bob->id->value]] as $kind => [$table, $column, $value]) {
