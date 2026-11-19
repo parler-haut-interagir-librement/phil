@@ -79,6 +79,16 @@ final class DoctrineTest extends TestCase
         self::assertSame(2, $processed->purge($at->modify('+1 second')), 'The purge forgets the ids of every receiver.');
     }
 
+    public function testTheMessageQuotesAtMostTheFirstHundredBytesOfTheName(): void
+    {
+        try {
+            new DbalProcessedWebhooks($this->connection(false), str_repeat('a', 150));
+            self::fail('A name of 150 bytes was taken for the name of a receiver.');
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            self::assertSame(\sprintf('The name of a receiver holds 1 to 64 letters, digits, "_", "." or "-"; "%s" does not.', str_repeat('a', 100)), $invalidArgumentException->getMessage());
+        }
+    }
+
     public function testTheNameOfAReceiverIsBounded(): void
     {
         $connection = $this->connection(false);

@@ -170,6 +170,37 @@ final class VerifiedWebhookResolverTest extends TestCase
         }
     }
 
+    public function testOnlyADeclaredLengthOfDigitsAloneCountsBeforeTheBodyIsRead(): void
+    {
+        $secret = HmacSecret::generate();
+        $now = new DateTimeImmutable('2026-11-03 12:00');
+        $length = \strlen(self::BODY);
+
+        foreach ([\sprintf('%d abc', $length + 1), \sprintf('%dabc', $length + 1), \sprintf(' %d', $length + 1), \sprintf('%d%s', $length + 1, "\n")] as $header) {
+            $request = $this->request($secret, $now);
+            $this->contentLength($request, $header);
+
+            self::assertCount(1, $this->resolver($secret, $now, $length)->resolve($request, $this->argument(VerifiedWebhook::class)), $header);
+        }
+    }
+
+    public function testNoMoreThanOneBytePastTheLimitIsRead(): void
+    {
+        $secret = HmacSecret::generate();
+        $stream = fopen('php://memory', 'r+');
+        self::assertIsResource($stream);
+        fwrite($stream, str_repeat('a', 50));
+        rewind($stream);
+        $request = new Request(content: $stream);
+
+        try {
+            $this->resolver($secret, new DateTimeImmutable('2026-11-03 12:00'), 10)->resolve($request, $this->argument(VerifiedWebhook::class));
+            self::fail('A body past the limit was verified.');
+        } catch (HttpException) {
+            self::assertSame(11, ftell($stream));
+        }
+    }
+
     public function testTheLimitIsAtLeastOneByte(): void
     {
         $receiver = new WebhookReceiver(new FixedKeys(HmacSecret::generate()), Tolerance::ofSeconds(60));

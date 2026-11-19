@@ -239,6 +239,22 @@ final class PhilSpamProtectionBundleTest extends TestCase
         self::assertStringStartsWith('phil_spam_protection.used_tokens: in the prod environment,', PhilSpamProtectionBundle::UNSAFE_STORE);
     }
 
+    public function testTheGuardOfTheStoreIsCalledFromOutsideTheBundle(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->setParameter('kernel.environment', 'dev');
+        PhilSpamProtectionBundle::assertConcurrencySafeStore($builder, ['connection' => null, 'lock_factory' => null]);
+        PhilSpamProtectionBundle::assertConcurrencySafeStore($builder, ['connection' => 'default', 'lock_factory' => null]);
+
+        $builder->setParameter('kernel.environment', 'prod');
+        PhilSpamProtectionBundle::assertConcurrencySafeStore($builder, ['connection' => null, 'lock_factory' => 'lock.factory']);
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageIsOrContains(PhilSpamProtectionBundle::UNSAFE_STORE);
+
+        PhilSpamProtectionBundle::assertConcurrencySafeStore($builder, ['connection' => null, 'lock_factory' => null]);
+    }
+
     public function testAnEmptySecretIsRefused(): void
     {
         $this->expectException(InvalidConfigurationException::class);

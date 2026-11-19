@@ -374,10 +374,10 @@ final class NewsletterServices
         try {
             $seconds = new DateTimeImmutable('@0')->modify('+'.$duration)->getTimestamp();
         } catch (DateMalformedStringException) {
-            $seconds = 0;
+            $seconds = null;
         }
 
-        if ($seconds <= 0) {
+        if (null === $seconds || $seconds <= 0) {
             throw new InvalidConfigurationException(\sprintf('"%s" is a duration, such as "15 minutes", not "%s".', $option, $duration));
         }
     }

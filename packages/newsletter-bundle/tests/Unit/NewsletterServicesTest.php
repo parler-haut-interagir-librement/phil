@@ -97,12 +97,12 @@ final class NewsletterServicesTest extends TestCase
 
     public function testADurationOfTheLimitsIsADuration(): void
     {
-        foreach ([['per_ip' => ['interval' => 'soon']], ['per_address' => ['interval' => '0 seconds']], ['resend_delay' => '-5 minutes']] as $limits) {
+        foreach ([['per_ip' => ['interval' => 'soon']], ['per_address' => ['interval' => '0 seconds']], ['resend_delay' => '-5 minutes'], ['per_ip' => ['interval' => 'tomorrow']]] as $limits) {
             try {
                 $this->load(['subscription' => ['rate_limit' => $limits]]);
                 self::fail('A duration that is not one was accepted.');
             } catch (InvalidConfigurationException $invalidConfigurationException) {
-                self::assertMatchesRegularExpression('/^"subscription\.rate_limit\.(per_ip\.interval|per_address\.interval|resend_delay)" is a duration, such as "15 minutes", not "(soon|0 seconds|-5 minutes)"\.$/', $invalidConfigurationException->getMessage());
+                self::assertMatchesRegularExpression('/^"subscription\.rate_limit\.(per_ip\.interval|per_address\.interval|resend_delay)" is a duration, such as "15 minutes", not "(soon|0 seconds|-5 minutes|tomorrow)"\.$/', $invalidConfigurationException->getMessage());
             }
         }
 

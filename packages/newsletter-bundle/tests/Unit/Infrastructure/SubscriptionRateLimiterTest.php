@@ -43,6 +43,23 @@ final class SubscriptionRateLimiterTest extends TestCase
         self::assertTrue($limiter->allowsSubscription($this->request('192.0.2.2'), 'default', 'f@example.com'), 'An IPv4 address is not a network.');
     }
 
+    public function testAnIpv4AddressMappedInIpv6IsNotAnonymized(): void
+    {
+        $limiter = $this->limiter(perIp: 1);
+
+        self::assertTrue($limiter->allowsSubscription($this->request('::ffff:192.0.2.1'), 'default', 'a@example.com'));
+        self::assertTrue($limiter->allowsSubscription($this->request('::ffff:192.0.2.2'), 'default', 'b@example.com'), 'A mapped IPv4 address is not a network.');
+        self::assertFalse($limiter->allowsSubscription($this->request('::ffff:192.0.2.1'), 'default', 'c@example.com'));
+    }
+
+    public function testAnAddressIsLowercasedAsUnicode(): void
+    {
+        $limiter = $this->limiter(perAddress: 1);
+
+        self::assertTrue($limiter->allowsSubscription($this->request('192.0.2.1'), 'default', 'ÉLODIE@example.com'));
+        self::assertFalse($limiter->allowsSubscription($this->request('192.0.2.2'), 'default', 'élodie@example.com'));
+    }
+
     public function testAnAddressIsSubscribedAsOftenAsItsLimitWhateverItsSpellingOrClient(): void
     {
         $limiter = $this->limiter(perAddress: 2);
