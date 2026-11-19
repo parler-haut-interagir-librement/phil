@@ -1,0 +1,29 @@
+{#
+ # The list: a heading per span of days — one day, two, from one to another —, the items that cover exactly those days
+ # under it, by time.
+ #}
+{%- if agenda.groups is empty %}
+{%- component (phil_calendar_kit('Empty')) %}{% block content %}
+    {%- component (phil_calendar_kit('Empty:Header')) %}{% block content %}
+    {%- component (phil_calendar_kit('Empty:Title')) %}{% block content %}{{ 'calendar.empty.title'|trans({}, 'phil_calendar') }}{% endblock %}{% endcomponent %}
+    {%- component (phil_calendar_kit('Empty:Description')) %}{% block content %}{{ 'calendar.empty.description'|trans({}, 'phil_calendar') }}{% endblock %}{% endcomponent %}
+    {%- endblock %}{% endcomponent %}
+{%- endblock %}{% endcomponent %}
+{%- else %}
+<div class="phil-calendar__list">
+    {%- for group in agenda.groups %}
+    {%- set groupIndex = loop.index %}
+    <section class="phil-calendar__group" aria-labelledby="phil-calendar-group-{{ groupIndex }}">
+        <h3 class="phil-calendar__group-title" id="phil-calendar-group-{{ groupIndex }}">{{ calendar_days(group.first, group.last, period.date|date('Y', false)) }}</h3>
+        <ul class="phil-calendar__items">
+            {%- for item in group.items %}
+            <li class="phil-calendar__entry">
+                {{- include('@PhilCalendar/calendar/_item.html.twig', {item: item, key: 'g' ~ groupIndex}) -}}
+                {%- if item.place %}<span class="phil-calendar__entry-place">{{ item.place }}</span>{% endif -%}
+            </li>
+            {%- endfor %}
+        </ul>
+    </section>
+    {%- endfor %}
+</div>
+{%- endif %}

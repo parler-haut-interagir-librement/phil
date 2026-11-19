@@ -1,0 +1,76 @@
+{
+    "name": "phil/reservation-bundle",
+    "description": "Bookable resources in Symfony: reservations held, booked, moved and cancelled without double booking, free slots, expiring holds and reminders via Messenger.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "reservation",
+        "booking",
+        "availability",
+        "slots",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/reservation": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/polyfill-php86": "^1.37",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/persistence": "^4.1",
+        "phil/calendar-bundle": "^0.1@dev",
+        "phil/recurrence-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/process": "^8.2",
+        "symfony/translation": "^8.2"
+    },
+    "suggest": {
+        "phil/calendar-bundle": "To show the confirmed reservations in the calendar's views",
+        "symfony/console": "For phil:reservation:expire-holds and phil:reservation:send-reminders",
+        "symfony/messenger": "To send the reminders as messages the application handles"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ReservationBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ReservationBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

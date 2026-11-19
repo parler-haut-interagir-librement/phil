@@ -1,0 +1,6 @@
+# The calendar of phil/calendar-bundle: see vendor/phil/calendar-bundle/doc/installation.md for every option.
+phil_calendar:
+    # A new event's time zone, an IANA identifier.
+    default_timezone: UTC
+    # The day weeks start on in the views, 1 Monday to 7 Sunday.
+    first_weekday: 1

@@ -1,0 +1,8 @@
+# The pages of the requesters and of the agents, behind the application's firewall.
+phil_helpdesk:
+    resource: '@PhilHelpdeskBundle/config/routes.php'
+    prefix: /help
+
+phil_helpdesk_agents:
+    resource: '@PhilHelpdeskBundle/config/routes_agents.php'
+    prefix: /support-desk

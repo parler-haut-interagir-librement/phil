@@ -1,0 +1,104 @@
+{
+    "name": "phil/calendar-bundle",
+    "description": "Events with recurrence, venues and hosts in Symfony: occurrences expanded within a budget, month to poster views in a Live component, iCalendar, private feeds.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "calendar",
+        "events",
+        "icalendar",
+        "recurrence",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-intl": "*",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/doctrine-behaviours": "^0.2@dev",
+        "phil/locale-dimensions": "^0.1@dev",
+        "phil/recurrence": "^0.1@dev",
+        "phil/recurrence-bundle": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/form": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/uid": "^8.2",
+        "symfony/validator": "^8.2",
+        "symfony/workflow": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/persistence": "^4.1",
+        "phil/almanac": "^0.1@dev",
+        "phil/paged-media": "^0.1@dev",
+        "phil/privacy-bundle": "^0.1@dev",
+        "phil/resource": "^0.1@dev",
+        "phil/structured-data": "^0.1@dev",
+        "phil/taxonomy-bundle": "^0.2@dev",
+        "phil/ux-kit": "^0.5@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/service-contracts": "^3.6",
+        "symfony/stimulus-bundle": "^3.7",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-live-component": "^3.7",
+        "symfony/ux-twig-component": "^3.7",
+        "symfony/yaml": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "phil/almanac": "To show computed dates — holidays, phases of the Moon — among the events",
+        "phil/paged-media": "For the calendar printed, a month per page, in PDF",
+        "phil/privacy-bundle": "For a member's choices, feed, attendances and proposals in the export and the erasure of their data",
+        "phil/structured-data-bundle": "For calendar_event_json_ld adding the event to the one graph of the page",
+        "phil/taxonomy-bundle": "For tags shared with the rest of the site, renamed and merged in one place",
+        "phil/ux-kit": "For the Popover, Badge, Card, Button, ButtonGroup and Empty recipes the templates draw, and the tokens the stylesheet reads, through the Symfony UX Toolkit",
+        "symfony/console": "For phil:calendar:import-almanac and phil:calendar:refresh-tags",
+        "symfony/stimulus-bundle": "For the keyboard in the month's grid",
+        "symfony/ux-live-component": "For the calendar on a page, <twig:PhilCalendar:Calendar>, with symfony/ux-twig-component",
+        "twig/twig": "For calendar_occurrences and occurrence_when"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\CalendarBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\CalendarBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

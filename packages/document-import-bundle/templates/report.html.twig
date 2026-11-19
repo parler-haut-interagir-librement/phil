@@ -1,0 +1,20 @@
+{#
+ # What an import left out, one sentence per kind, under the configured title; nothing when nothing was left out.
+ #
+ # report  Phil\DocumentImport\Report, the `report` of an `Imported`
+ # title   the heading, document_import_report_title() by default
+ # level   the level of the heading, from 1 to 6, 2 by default
+ # id      the identifier of the heading, document-import-report-title by default
+ #}
+{%- if not report.isEmpty -%}
+    {%- set level = min(6, max(1, level|default(2) // 1)) -%}
+    {%- set id = id|default('document-import-report-title') -%}
+    <section class="document-import-report" role="status" aria-labelledby="{{ id }}">
+        <h{{ level }} id="{{ id }}">{{ title|default(document_import_report_title()) }}</h{{ level }}>
+        <ul>
+            {%- for line in report.summary %}
+                <li>{{ line }}</li>
+            {%- endfor %}
+        </ul>
+    </section>
+{%- endif -%}

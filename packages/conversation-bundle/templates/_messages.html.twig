@@ -1,0 +1,18 @@
+{#
+ # The messages of a page, in the order they were sent: each author's name, the moment in UTC and the body, a message
+ # whose author's data was erased shown as erased.
+ #
+ # messages: list of Message. me: the reader's ParticipantId.
+ #}
+<ol class="phil-conversation__messages">
+    {%- for message in messages %}
+    <li id="message-{{ message.sequence }}" class="phil-conversation__message{{ message.isBy(me) ? ' is-mine' : '' }}">
+        {%- if message.erased %}
+        <p class="phil-conversation__erased">{{ 'thread.erased'|trans({}, 'phil_conversation') }}</p>
+        {%- else %}
+        <p class="phil-conversation__meta"><strong>{{ phil_conversation_name(message.author) }}</strong> <time datetime="{{ message.sentAt|date('c') }}">{{ message.sentAt|date('Y-m-d H:i', false) }} UTC</time></p>
+        <div class="phil-conversation__body">{{ message.body|nl2br }}</div>
+        {%- endif %}
+    </li>
+    {%- endfor %}
+</ol>

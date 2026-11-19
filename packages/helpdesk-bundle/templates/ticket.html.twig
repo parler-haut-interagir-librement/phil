@@ -1,0 +1,70 @@
+{#
+ # A request, as an agent of its queue sees it: its subject, requester, queue, status and assignee, its conversation,
+ # the form that answers in the agent's words or with a canned reply, and the forms that assign it, change its status
+ # and move it to another queue.
+ #
+ # ticket, conversation, messages, me, queue, queues, canned_replies, transitions, error: what AgentController gives;
+ # routes: the routes of the pages.
+ #}
+{% extends layout %}
+
+{% block title %}{{ conversation.subject ?? ('desk.request'|trans({}, 'phil_helpdesk')) }}{% endblock %}
+
+{% block main %}
+{%- set url = {id: ticket.conversation.value} -%}
+<p><a href="{{ path(routes.desk) }}">{{ 'desk.title'|trans({}, 'phil_helpdesk') }}</a></p>
+<dl class="phil-helpdesk__ticket">
+    <dt>{{ 'ticket.requester'|trans({}, 'phil_helpdesk') }}</dt><dd>{{ phil_helpdesk_name(ticket.requester) ?? ('desk.erased'|trans({}, 'phil_helpdesk')) }}</dd>
+    <dt>{{ 'desk.queue'|trans({}, 'phil_helpdesk') }}</dt><dd>{{ queue.label|trans({}, 'phil_helpdesk') }}</dd>
+    <dt>{{ 'desk.status'|trans({}, 'phil_helpdesk') }}</dt><dd>{{ include('@PhilHelpdesk/_status.html.twig', {status: ticket.status}) }}</dd>
+    <dt>{{ 'desk.assignee'|trans({}, 'phil_helpdesk') }}</dt><dd>{{ phil_helpdesk_name(ticket.assignee) ?? ('desk.nobody'|trans({}, 'phil_helpdesk')) }}</dd>
+</dl>
+<div aria-live="polite">
+    {{- include('@PhilConversation/_messages.html.twig', {messages: messages, me: me}) }}
+</div>
+{%- if error is not null %}
+<p class="phil-helpdesk__error" role="alert">{{ error }}</p>
+{%- endif %}
+{%- if not ticket.status.closed %}
+<form method="post" action="{{ path(routes.reply, url) }}" class="phil-helpdesk__reply">
+    <input type="hidden" name="_token" value="{{ token }}">
+    <label for="phil-helpdesk-body">{{ 'ticket.reply'|trans({}, 'phil_helpdesk') }}</label>
+    {% component (phil_helpdesk_kit('Textarea')) with {id: 'phil-helpdesk-body', name: 'body', rows: 5} %}{% block content %}{% endblock %}{% endcomponent %}
+    {%- if canned_replies is not empty %}
+    <label for="phil-helpdesk-canned">{{ 'ticket.canned'|trans({}, 'phil_helpdesk') }}</label>
+    {% component (phil_helpdesk_kit('NativeSelect')) with {id: 'phil-helpdesk-canned', name: 'canned_reply'} %}{% block content %}
+        <option value="">{{ 'ticket.own_words'|trans({}, 'phil_helpdesk') }}</option>
+        {%- for reply in canned_replies %}<option value="{{ reply.id }}">{{ reply.label|trans({}, 'phil_helpdesk') }}</option>{% endfor -%}
+    {% endblock %}{% endcomponent %}
+    {%- endif %}
+    {% component (phil_helpdesk_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'ticket.send'|trans({}, 'phil_helpdesk') }}{% endblock %}{% endcomponent %}
+</form>
+{%- endif %}
+<div class="phil-helpdesk__actions">
+    <form method="post" action="{{ path(routes.assign, url) }}">
+        <input type="hidden" name="_token" value="{{ token }}">
+        {%- if ticket.assignee is not null and ticket.assignee.equals(me) %}
+        <input type="hidden" name="unassign" value="1">
+        {% component (phil_helpdesk_kit('Button')) with {type: 'submit', variant: 'ghost', size: 'sm'} %}{% block content %}{{ 'ticket.unassign'|trans({}, 'phil_helpdesk') }}{% endblock %}{% endcomponent %}
+        {%- else %}
+        {% component (phil_helpdesk_kit('Button')) with {type: 'submit', variant: 'secondary', size: 'sm'} %}{% block content %}{{ 'ticket.assign_me'|trans({}, 'phil_helpdesk') }}{% endblock %}{% endcomponent %}
+        {%- endif %}
+    </form>
+    {%- for transition in transitions %}
+    <form method="post" action="{{ path(routes.transition, url|merge({transition: transition})) }}">
+        <input type="hidden" name="_token" value="{{ token }}">
+        {% component (phil_helpdesk_kit('Button')) with {type: 'submit', variant: transition == 'close' ? 'destructive' : 'secondary', size: 'sm'} %}{% block content %}{{ ('transition.' ~ transition)|trans({}, 'phil_helpdesk') }}{% endblock %}{% endcomponent %}
+    </form>
+    {%- endfor %}
+    {%- if queues|length > 1 %}
+    <form method="post" action="{{ path(routes.move, url) }}">
+        <input type="hidden" name="_token" value="{{ token }}">
+        <label for="phil-helpdesk-move">{{ 'ticket.move'|trans({}, 'phil_helpdesk') }}</label>
+        {% component (phil_helpdesk_kit('NativeSelect')) with {id: 'phil-helpdesk-move', name: 'queue', size: 'sm'} %}{% block content %}
+            {%- for other in queues|filter(q => q.name.value != ticket.queue.value) %}<option value="{{ other.name.value }}">{{ other.label|trans({}, 'phil_helpdesk') }}</option>{% endfor -%}
+        {% endblock %}{% endcomponent %}
+        {% component (phil_helpdesk_kit('Button')) with {type: 'submit', variant: 'ghost', size: 'sm'} %}{% block content %}{{ 'ticket.move_button'|trans({}, 'phil_helpdesk') }}{% endblock %}{% endcomponent %}
+    </form>
+    {%- endif %}
+</div>
+{% endblock %}

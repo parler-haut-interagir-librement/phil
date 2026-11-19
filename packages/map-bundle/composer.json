@@ -1,0 +1,92 @@
+{
+    "name": "phil/map-bundle",
+    "description": "Maps on Symfony UX Map and Leaflet that no tile server tracks: proxied or self-hosted PMTiles tiles, places as markers, privacy-grid areas, booth floor plans.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "map",
+        "leaflet",
+        "pmtiles",
+        "privacy",
+        "floor-plan",
+        "stimulus",
+        "symfony-ux",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "phil/geo": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "psr/log": "^3.0",
+        "symfony/cache-contracts": "^3.6",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/filesystem": "^8.2",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-foundation": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/translation-contracts": "^3.6",
+        "symfony/ux-leaflet-map": "^3.7",
+        "symfony/ux-map": "^3.7",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "ext-gd": "*",
+        "phil/reservation": "^0.1@dev",
+        "phil/reservation-bundle": "^0.1@dev",
+        "phil/ux-kit": "^0.5@dev",
+        "php-webdriver/webdriver": "^1.16",
+        "phpunit/phpunit": "^13.4",
+        "psr/clock": "^1.0",
+        "symfony/asset-mapper": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/panther": "^2.4",
+        "symfony/stimulus-bundle": "^3.7",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "symfony/yaml": "^8.2"
+    },
+    "suggest": {
+        "ext-gd": "To cut large images into the tiles of a floor plan",
+        "phil/reservation-bundle": "For the states of the booths of a floor plan, from the resources they are booked as",
+        "phil/ux-kit": "For the Item recipe the list under each map is drawn with, through the Symfony UX Toolkit",
+        "symfony/asset-mapper": "To serve the controller and its stylesheet without a build step, and to find whether the PMTiles packages are in the import map",
+        "symfony/ux-twig-component": "For the list under each map, drawn with the Item recipe of the PHIL UX kit"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\MapBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\MapBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

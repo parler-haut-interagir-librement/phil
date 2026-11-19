@@ -1,0 +1,96 @@
+{
+    "name": "phil/conversation-bundle",
+    "description": "Private messages in Symfony, sealed at rest: direct and group conversations, who may write to whom, blocks, read and unread, optional notifications and Mercure.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "messages",
+        "conversations",
+        "private-messages",
+        "encryption",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.5",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/key-management": "^8.2",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "ext-pdo": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "phil/notifications-bundle": "^0.1@dev || ^0.2@dev",
+        "phil/privacy-bundle": "^0.1@dev",
+        "phil/ux-kit": "^0.5@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/mercure": "^0.10",
+        "symfony/messenger": "^8.2",
+        "symfony/process": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/orm": "For the tables added to the schema the ORM generates",
+        "phil/notifications-bundle": "To notify the recipients of each new message",
+        "phil/privacy-bundle": "For the conversations in the export and the erasure of a member's data",
+        "phil/ux-kit": "For the recipes Button, Badge and Textarea the pages draw, through the Symfony UX Toolkit",
+        "symfony/asset-mapper": "To serve the Stimulus controller of the real time without a build step",
+        "symfony/console": "For phil:conversation:rotate-keys",
+        "symfony/mercure-bundle": "To tell the open pages that a message came",
+        "symfony/routing": "For the pages of the conversations",
+        "symfony/security-core": "To name the current participant from the authenticated user",
+        "symfony/security-csrf": "For the forms of the pages",
+        "symfony/twig-bundle": "For the pages of the conversations",
+        "symfony/ux-twig-component": "For the recipes of the kit the pages draw"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ConversationBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ConversationBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

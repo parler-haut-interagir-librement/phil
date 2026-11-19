@@ -1,0 +1,45 @@
+{#-
+ # A map of phil/map-bundle: Symfony UX Map's element, with the bundle's controller beside Leaflet's, named for
+ # assistive technologies by the view's label and described by the list under it, which says in text what the map
+ # shows and stays whether or not JavaScript runs. The list is drawn with the Item recipe of the PHIL UX kit.
+ #}
+<figure id="{{ id }}" class="phil-map is{{ view.kind|capitalize }}">
+    {{ ux_map(view.map, attributes|merge({
+        'data-controller': '@phil/map-bundle/map',
+        class: ('phil-map-canvas ' ~ (attributes.class ?? ''))|trim,
+        role: 'region',
+        'aria-label': view.label,
+        'aria-describedby': id ~ '-list',
+    })) }}
+    <figcaption id="{{ id }}-list" class="phil-map-list">
+        <{{ heading }} class="phil-map-list-title">{{ view.listTitle }}</{{ heading }}>
+        {%- component (phil_map_kit('Item:Group')) -%}
+            {%- block content -%}
+                {%- for place in view.places -%}
+                    {%- component (phil_map_kit('Item')) with {as: 'li', size: 'sm', variant: 'outline'} -%}
+                        {%- block content -%}
+                            {%- component (phil_map_kit('Item:Content')) -%}
+                                {%- block content -%}
+                                    {%- component (phil_map_kit('Item:Title')) -%}
+                                        {%- block content -%}
+                                            {%- if place.href is not null -%}
+                                                <a href="{{ place.href }}">{{ place.name }}</a>
+                                            {%- else -%}
+                                                {{ place.name }}
+                                            {%- endif -%}
+                                        {%- endblock -%}
+                                    {%- endcomponent -%}
+                                    {%- if place.description is not null -%}
+                                        {%- component (phil_map_kit('Item:Description')) -%}
+                                            {%- block content %}{{ place.description }}{% endblock -%}
+                                        {%- endcomponent -%}
+                                    {%- endif -%}
+                                {%- endblock -%}
+                            {%- endcomponent -%}
+                        {%- endblock -%}
+                    {%- endcomponent -%}
+                {%- endfor -%}
+            {%- endblock -%}
+        {%- endcomponent -%}
+    </figcaption>
+</figure>

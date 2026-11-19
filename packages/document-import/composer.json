@@ -1,0 +1,56 @@
+{
+    "name": "phil/document-import",
+    "description": "DOCX, ODT, RTF, PDF text, Markdown and HTML turned into UJO (Universal JSON Output) documents, with a report of what was left out; UJO exported as DOCX and ODT.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "docx",
+        "odt",
+        "rtf",
+        "pdf",
+        "import",
+        "export",
+        "ujo"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "ext-zip": "*",
+        "ext-zlib": "*",
+        "phil/markup": "^0.2@dev || ^0.3@dev",
+        "phil/svg-sanitizer": "^0.1@dev",
+        "phil/ujo": "^0.1@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\DocumentImport\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\DocumentImport\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

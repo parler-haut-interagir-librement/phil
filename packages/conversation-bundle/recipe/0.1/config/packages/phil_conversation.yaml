@@ -1,0 +1,5 @@
+# The master key of the key management service that seals the conversations at rest: the KeyManagement component's
+# default client must hold a key of this name. See the installation guide of phil/conversation-bundle.
+phil_conversation:
+    encryption:
+        key: '%env(PHIL_CONVERSATION_KEY)%'

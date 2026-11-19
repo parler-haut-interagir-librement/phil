@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Maps</title>
+    <link rel="stylesheet" href="/assets/leaflet.css">
+    <link rel="stylesheet" href="/assets/map.css">
+    <script type="importmap">{"imports": {
+        "@hotwired/stimulus": "/assets/stimulus.js",
+        "leaflet": "/assets/leaflet.js",
+        "leaflet/dist/leaflet.min.css": "data:text/javascript,",
+        "@symfony/ux-leaflet-map": "/assets/ux-leaflet-map.js"
+    }}</script>
+    <script type="module">
+        import { Application } from '@hotwired/stimulus';
+        import LeafletMap from '@symfony/ux-leaflet-map';
+        import PhilMap from '/assets/map_controller.js';
+
+        window.application = Application.start();
+        window.application.register('phil--map-bundle--map', PhilMap);
+        window.application.register('symfony--ux-leaflet-map--map', LeafletMap);
+        document.documentElement.dataset.started = 'true';
+    </script>
+</head>
+<body>
+{{ phil_map(places, {id: 'venues'}) }}
+{{ phil_map(neighbourhood, {id: 'members'}) }}
+{{ phil_map(plan, {id: 'plan'}) }}
+{{ phil_map(archive, {id: 'archive'}) }}
+</body>
+</html>

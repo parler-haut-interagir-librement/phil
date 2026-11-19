@@ -1,0 +1,8 @@
+# The maps of phil/map-bundle: see vendor/phil/map-bundle/doc/configuration.md for every option.
+phil_map:
+    tiles:
+        # "proxy": the tiles come through the site, and the tile server never sees the visitor.
+        source: proxy
+        proxy:
+            # Tile policies ask for a user agent that names the site and a way to reach it.
+            user_agent: 'phil/map-bundle tile proxy'

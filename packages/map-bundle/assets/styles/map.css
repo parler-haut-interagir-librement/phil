@@ -1,0 +1,62 @@
+/*
+ * The maps of phil/map-bundle, on the tokens of PHIL UX's stylesheet, with plain values when it is not loaded.
+ * Without JavaScript, the map's element stays hidden: the list under it says what the map shows.
+ */
+.phil-map {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+}
+
+.phil-map-canvas {
+    aspect-ratio: 16 / 10;
+    min-height: 16rem;
+    border: 1px solid var(--phil-color-border, #d4d4d8);
+    border-radius: var(--phil-radius-md, 0.5rem);
+}
+
+.phil-map-canvas:not(.hasScript) {
+    display: none;
+}
+
+.phil-map-canvas:focus-visible {
+    outline: 2px solid var(--phil-color-focus, #2563eb);
+    outline-offset: 2px;
+}
+
+.phil-map-list-title {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+}
+
+.phil-map-area {
+    stroke: var(--phil-color-info-border-loud, #2563eb);
+    fill: var(--phil-color-info-fill-quiet, #dbeafe);
+    fill-opacity: 0.5;
+}
+
+.phil-map-booth {
+    stroke-width: 2;
+    fill-opacity: 0.6;
+}
+
+.phil-map-booth.isFree {
+    stroke: var(--phil-color-success-border-loud, #15803d);
+    fill: var(--phil-color-success-fill-quiet, #dcfce7);
+}
+
+.phil-map-booth.isTaken {
+    stroke: var(--phil-color-danger-border-loud, #b91c1c);
+    fill: var(--phil-color-danger-fill-quiet, #fee2e2);
+}
+
+.phil-map-booth.isClosed {
+    stroke: var(--phil-color-warning-border-loud, #a16207);
+    fill: var(--phil-color-warning-fill-quiet, #fef9c3);
+}
+
+.phil-map-booth.isUnknown {
+    stroke: var(--phil-color-border, #71717a);
+    fill: var(--phil-color-surface-raised, #f4f4f5);
+    stroke-dasharray: 4 3;
+}

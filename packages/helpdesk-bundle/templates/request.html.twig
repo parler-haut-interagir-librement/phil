@@ -1,0 +1,35 @@
+{#
+ # A request, as its requester sees it: its subject, queue and status, its conversation, the form that answers and the
+ # one that closes it.
+ #
+ # ticket, conversation, messages, me, queue, error: what RequesterController gives.
+ #}
+{% extends layout %}
+
+{% block title %}{{ conversation.subject }}{% endblock %}
+
+{% block main %}
+<p><a href="{{ path('phil_helpdesk_requests') }}">{{ 'requests.title'|trans({}, 'phil_helpdesk') }}</a></p>
+<h1>{{ conversation.subject }}</h1>
+<p class="phil-helpdesk__summary">{{ queue.label|trans({}, 'phil_helpdesk') }} {{ include('@PhilHelpdesk/_status.html.twig', {status: ticket.status}) }}</p>
+<div aria-live="polite">
+    {{- include('@PhilConversation/_messages.html.twig', {messages: messages, me: me}) }}
+</div>
+{%- if error is not null %}
+<p class="phil-helpdesk__error" role="alert">{{ error }}</p>
+{%- endif %}
+{%- if not ticket.status.closed %}
+<form method="post" action="{{ path('phil_helpdesk_answer', {id: ticket.conversation.value}) }}" class="phil-helpdesk__answer">
+    <input type="hidden" name="_token" value="{{ token }}">
+    <label for="phil-helpdesk-body">{{ 'request.answer'|trans({}, 'phil_helpdesk') }}</label>
+    {% component (phil_helpdesk_kit('Textarea')) with {id: 'phil-helpdesk-body', name: 'body', rows: 4, required: true} %}{% block content %}{% endblock %}{% endcomponent %}
+    {% component (phil_helpdesk_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'request.send'|trans({}, 'phil_helpdesk') }}{% endblock %}{% endcomponent %}
+</form>
+<form method="post" action="{{ path('phil_helpdesk_withdraw', {id: ticket.conversation.value}) }}">
+    <input type="hidden" name="_token" value="{{ token }}">
+    {% component (phil_helpdesk_kit('Button')) with {type: 'submit', variant: 'ghost', size: 'sm'} %}{% block content %}{{ 'request.close'|trans({}, 'phil_helpdesk') }}{% endblock %}{% endcomponent %}
+</form>
+{%- else %}
+<p class="phil-helpdesk__closed">{{ 'request.closed'|trans({}, 'phil_helpdesk') }}</p>
+{%- endif %}
+{% endblock %}

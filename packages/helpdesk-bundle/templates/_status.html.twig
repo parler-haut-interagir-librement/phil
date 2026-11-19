@@ -1,0 +1,2 @@
+{#- The status of a request, the recipe `Badge` of the kit: status, a Status. -#}
+{% component (phil_helpdesk_kit('Badge')) with {variant: status.value in ['resolved', 'closed'] ? 'secondary' : (status.value == 'waiting' ? 'outline' : 'default'), 'data-status': status.value} %}{% block content %}{{ ('status.' ~ status.value)|trans({}, 'phil_helpdesk') }}{% endblock %}{% endcomponent %}

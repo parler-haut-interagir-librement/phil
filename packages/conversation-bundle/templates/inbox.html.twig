@@ -1,0 +1,37 @@
+{#
+ # The inbox: the participant's active conversations, latest message first, each with its unread count, and the link
+ # to the older ones. The counts are the recipe `Badge` of the kit.
+ #
+ # entries: list of InboxEntry. unread: how many conversations hold unread messages.
+ #}
+{% extends layout %}
+
+{% block title %}{{ 'inbox.title'|trans({}, 'phil_conversation') }}{% endblock %}
+
+{% block main %}
+<h1>{{ 'inbox.title'|trans({}, 'phil_conversation') }}</h1>
+<p class="phil-conversation__summary">{{ 'inbox.unread'|trans({'%count%': unread}, 'phil_conversation') }}</p>
+<p><a href="{{ path('phil_conversation_settings') }}">{{ 'settings.title'|trans({}, 'phil_conversation') }}</a></p>
+{%- if entries is empty %}
+<p class="phil-conversation__empty">{{ 'inbox.empty'|trans({}, 'phil_conversation') }}</p>
+{%- else %}
+<ul class="phil-conversation__inbox">
+    {%- for entry in entries %}
+    {%- set conversation = entry.conversation %}
+    <li class="phil-conversation__entry{{ entry.unread > 0 ? ' is-unread' : '' }}">
+        <a href="{{ path('phil_conversation_thread', {id: conversation.id.value}) }}">{{ conversation.subject ?? ('inbox.untitled'|trans({}, 'phil_conversation')) }}</a>
+        <time datetime="{{ conversation.lastMessageAt|date('c') }}">{{ conversation.lastMessageAt|date('Y-m-d H:i', false) }} UTC</time>
+        {%- if entry.unread > 0 %}
+        {% component (phil_conversation_kit('Badge')) with {variant: 'default'} %}{% block content %}{{ 'inbox.new'|trans({'%count%': entry.unread}, 'phil_conversation') }}{% endblock %}{% endcomponent %}
+        {%- endif %}
+        {%- if entry.participation.muted %}
+        {% component (phil_conversation_kit('Badge')) with {variant: 'outline'} %}{% block content %}{{ 'thread.muted'|trans({}, 'phil_conversation') }}{% endblock %}{% endcomponent %}
+        {%- endif %}
+    </li>
+    {%- endfor %}
+</ul>
+{%- if entries|length > 0 %}
+<p><a href="{{ path('phil_conversation_inbox', {before: (entries|last).conversation.lastSequence}) }}">{{ 'inbox.older'|trans({}, 'phil_conversation') }}</a></p>
+{%- endif %}
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,36 @@
+{#
+ # One item: a button that opens its details in a popover, the Popover recipe of the kit. `key` makes its ids unique
+ # where an item shows twice.
+ #}
+{%- set id = 'phil-calendar-' ~ key ~ '-' ~ item.id|replace({'@': '-', ':': '-', '.': '-'}) -%}
+{%- component (phil_calendar_kit('Popover')) with {id: id, class: 'phil-calendar__popover'} %}{% block content %}
+    {%- component (phil_calendar_kit('Popover:Trigger')) %}{% block content %}
+<button type="button" class="phil-calendar__item phil-calendar__item--{{ item.source }}{% if item.cancelled %} is-cancelled{% endif %}{% if continues_before ?? false %} continues-before{% endif %}{% if continues_after ?? false %} continues-after{% endif %}"{% for name, value in popover_trigger_attrs %} {{ name }}="{{ value }}"{% endfor %}>
+    {%- if not item.allDay %}<time class="phil-calendar__time" datetime="{{ item.start|date('c', false) }}">{{ item.start|calendar_time }}</time> {% endif -%}
+    <span class="phil-calendar__item-title">{{ item.title }}</span>
+    {%- if item.cancelled %}<span class="phil-calendar__hidden"> — {{ 'calendar.details.cancelled'|trans({}, 'phil_calendar') }}</span>{% endif %}
+</button>
+    {%- endblock %}{% endcomponent %}
+    {%- component (phil_calendar_kit('Popover:Content')) with {class: 'phil-calendar__details', 'aria-labelledby': id ~ '-title'} %}{% block content %}
+    <h3 id="{{ id }}-title" class="phil-calendar__details-title">{{ item.title }}</h3>
+    {%- if item.cancelled %}
+    <p>{% component (phil_calendar_kit('Badge')) with {variant: 'destructive'} %}{% block content %}{{ 'calendar.details.cancelled'|trans({}, 'phil_calendar') }}{% endblock %}{% endcomponent %}</p>
+    {%- endif %}
+    <p class="phil-calendar__when">
+        {{- calendar_days(item.firstDay, item.lastDay) -}}
+        {%- if not item.allDay %}, {{ item.start|calendar_time }}{% if item.end > item.start %} – {{ item.end|calendar_time }}{% endif %}{% endif -%}
+    </p>
+    {%- if item.place %}
+    <p class="phil-calendar__place">{{ item.place }}</p>
+    {%- endif %}
+    {%- if item.description %}
+    <p class="phil-calendar__description">{{ item.description|length > 300 ? item.description|slice(0, 300) ~ '…' : item.description }}</p>
+    {%- endif %}
+    {%- if item.tags is not empty %}
+    <p class="phil-calendar__tags">{% for tag in item.tags %}{% component (phil_calendar_kit('Badge')) with {variant: 'secondary'} %}{% block content %}{{ tag }}{% endblock %}{% endcomponent %}{% endfor %}</p>
+    {%- endif %}
+    {%- if item.url %}
+    <p><a href="{{ item.url }}">{{ 'calendar.details.page'|trans({}, 'phil_calendar') }}</a></p>
+    {%- endif %}
+    {%- endblock %}{% endcomponent %}
+{%- endblock %}{% endcomponent -%}

@@ -1,0 +1,24 @@
+{
+    "name": "@phil/conversation-bundle",
+    "description": "The conversation controller of phil/conversation-bundle: the messages of an open conversation loaded again when a Mercure update says a new one came",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/thread_controller.js",
+    "symfony": {
+        "controllers": {
+            "thread": {
+                "main": "src/thread_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}
