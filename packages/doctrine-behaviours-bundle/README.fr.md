@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=055777996863f539120917dfc01ef9b078fc05ab658d618196452dc067a7db20 -->
+<!-- phil-dev source-sha256=c44121cf50d89e8387ddb91682634dfc75be6eaeae45815e3dd9a8b9bde0e0db -->
 # phil/doctrine-behaviours-bundle
 
 **Horodatage, traçabilité de l'auteur, suppression douce, arbres et huit autres comportements, activés par
@@ -11,7 +11,8 @@ par défaut. La traçabilité de l'auteur nomme l'utilisateur qu'a authentifié 
 sécurité est installé. Les positions sont activées, avec le service `Positions`, et les traductions aussi, avec le service
 `Translations`. La propriété, la publication par
 workflow, les *slugs*, les versions et les identifiants datés s'activent un par un. Avec `phil/privacy-bundle` installé,
-l'auteur et le propriétaire répondent à ses demandes d'accès et d'effacement.
+l'auteur, le propriétaire et les versions répondent à ses demandes d'accès et d'effacement, sur chaque gestionnaire
+d'entités, et aucun nom n'est gardé comme auteur pendant que ses outils d'effacement s'exécutent.
 
 Il s'adresse à une application Symfony sur Doctrine ORM qui veut ces comportements sans brancher des écouteurs à la
 main. Un comportement qui n'a besoin de rien de plus est activé, un comportement qui a besoin d'un paquet ou d'un réglage
@@ -39,16 +40,19 @@ adaptateur sur le stockage de jetons de Symfony Security.
 | Les positions dans le groupe que nomme `positionGroup()`, avec le service public `Positions` | Implémenté et testé |
 | Les *slugs* uniques dans leur table, ou dans la portée que nomme `slugScope()` | Implémenté et testé |
 | Les traductions, une ligne par enregistrement et par locale sans source à compiler, l'index unique de chaque table de traduction et le service public `Translations` | Implémenté et testé |
-| L'auteur et le propriétaire dans les demandes d'accès et d'effacement de `phil/privacy-bundle`, seulement quand il est installé | Implémenté et testé |
+| L'auteur, le propriétaire et les versions dans les demandes d'accès et d'effacement de `phil/privacy-bundle`, seulement quand il est installé | Implémenté et testé |
+| Les champs `#[PersonalData]` laissés de côté dans les versions figées, ou scellés, et la commande qui retire ceux des versions déjà écrites | Implémenté et testé |
+| Aucun nom gardé comme auteur pendant que s'exécute un outil d'effacement de `phil/privacy-bundle` | Implémenté et testé |
+| La suppression douce après les autres écouteurs d'`onFlush`, pour qu'un index de recherche voie la suppression | Implémenté et testé |
 | Les instants de l'horloge de Symfony écrits en UTC, dans les types de colonne que déclare la bibliothèque | Implémenté et testé |
-| Les environnements d'exécution en mode *worker* : `TreeListener` réinitialisé avec `kernel.reset`, tout autre service sans état | Implémenté et testé |
+| Les environnements d'exécution en mode *worker* : `TreeListener` et `BlameSuspension` réinitialisés avec `kernel.reset`, tout autre service sans état | Implémenté et testé |
 
 ## Documentation
 
 | Document | Contenu |
 |---|---|
 | [Installation](doc/fr/installation.md) | Les prérequis et l'enregistrement. |
-| [Configuration](doc/fr/configuration.md) | Chaque comportement, le filtre, le résolveur d'auteur, les demandes de vie privée. |
+| [Configuration](doc/fr/configuration.md) | Chaque comportement, le filtre, le résolveur d'auteur, les demandes de vie privée, les champs personnels des versions, l'auteur pendant un effacement. |
 | [Venir des extensions Gedmo](doc/fr/gedmo.md) | Ce que devient chacune de leurs parties. |
 | [Points d'extension](doc/fr/extension-points.md) | Ce qu'une application implémente, configure, remplace ou utilise. |
 | [Tests](doc/fr/testing.md) | Comment le bundle est testé. |

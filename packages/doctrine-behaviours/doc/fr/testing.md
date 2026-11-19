@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b07d8e8a581500820d563c9ca9ed2c104b02bfe6f80032b8a7459fdfbcfb2ca2 -->
+<!-- phil-dev source-sha256=85e79680de024e2c26ade80c81a8c4b4d32743c74ae1a06dc85fa48c379d494f -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -9,7 +9,9 @@
 | Propriétaire | Les identifiants refusés et acceptés, le propriétaire donné à la persistance, gardé à la modification, transféré, personne de connu, l'effaceur sur les tables et les sous-classes |
 | Publication | La machine à états avec ses dates, une transition refusée, une date donnée gardée, d'autres sujets et d'autres places laissés en paix |
 | Slug | Fait une fois, numéroté, des slugs donnés rendus uniques, refait, les lignes cachées par les filtres comptées, coupé à la colonne, les tables héritées, chaque numéro pris, le dernier numéro essayé |
-| Versions | La nouvelle version après un gel, ce qui n'en crée pas, le gel de ce qui est en attente, la liste et sa limite, le retour en arrière, le droit de le faire, un numéro inconnu, un état non mappé |
+| Versions | La nouvelle version après un gel, ce qui n'en crée pas, le gel de ce qui est en attente, la liste et sa limite, le retour en arrière, le droit de le faire, un numéro inconnu, un état non mappé, des champs personnels laissés de côté, scellés sous leur contexte ou gardés, un champ scellé sans chiffrement |
+| Effacement | L'auteur et le propriétaire sur chaque gestionnaire d'entités, une fois par connexion, une transaction par connexion annulée en cas d'échec, les entités périmées détachées et les régions du cache évincées ; les versions d'une personne caviardées dans la ligne brute, par propriétaire, par auteur et par celui qui les a figées, une seconde exécution, le retour en arrière refusé vers une version caviardée ou plus ancienne, un enregistrement caviardé, les versions écrites avant retirées par lots, une valeur scellée gardée ; aucun nom écrit pendant que l'auteur est suspendu, des périodes imbriquées et en échec ; une ligne supprimable en douceur gardée entière par une première suppression, puis purgée |
+| Collation | Les clés de chaque comportement en `utf8mb4_bin` dans le schéma généré pour MySQL et MariaDB, la collation par défaut sur SQLite, un champ mappé sous un autre type ou non mappé laissé en paix, les options qu'un champ a déjà gardées |
 | Identifiant daté | Un UUID v7 de l'heure de l'horloge, un identifiant donné gardé, tout le reste refusé, l'ordre de création |
 | Positions | La fin du groupe pour un enregistrement sans position, des positions données gardées, des groupes de colonnes, d'énumérations et de relations, les déplacements avant, après, en tête et à la fin, les lignes verrouillées avant chaque déplacement, les enregistrements chargés qui suivent, les groupes refusés |
 | Traduction | Des lignes créées vides, jamais recopiées, lues entières le long d'une chaîne, les lignes en attente et retirées, les locales d'un enregistrement, une liste en une requête par classe et par tranche, l'index unique, les slugs et les versions par locale, les mappages et les traductions refusés |
@@ -22,7 +24,7 @@ vendor/bin/phpunit packages/doctrine-behaviours/tests
 ## Vrais serveurs
 
 `tests/Integration` exécute ce qui dépend d'une base de données, la graphie du vrai, un instant écrit et relu en UTC,
-le `IN` des slugs, l'état en JSON, les clés `guid`, l'effaceur, les traductions lues le long d'une chaîne et gardées une
+le `IN` des slugs, l'état en JSON, les clés `guid`, l'effaceur, les versions d'un propriétaire caviardées dans leur colonne JSON, les traductions lues le long d'une chaîne et gardées une
 par locale, et les déplacements qui s'attendent dans un groupe mais pas d'un groupe à l'autre, sur MySQL et PostgreSQL,
 quand `PHIL_TEST_MYSQL_URL` et `PHIL_TEST_POSTGRESQL_URL` sont définies. Sans elles, les tests sont ignorés.
 
