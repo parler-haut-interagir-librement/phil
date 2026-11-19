@@ -88,7 +88,7 @@ final class ScormSurvivorsTest extends TestCase
 
             $answer = $this->store->scorm->commit($this->store->scormTokens->issue($attempt->id, $attempt->session), [], true);
 
-            self::assertSame([$leaves, !$leaves], [$answer->exit, null !== $answer->next], $request);
+            self::assertSame([$leaves, !$leaves], [$answer->exit, $answer->next instanceof ActivityId], $request);
         }
     }
 

@@ -69,9 +69,10 @@
 | `Application\Import\ScormPlanner`, `Cmi5Planner`, `ImportPlan`, `PlannedModule`, `PlannedBlock`, `PlannedActivity` | Turn a manifest into a course to create |
 | `Application\Import\ImportReport` | What an import created and left out |
 | `Application\Import\ResultImporter`, `ScormStatus` | Imported results |
-| `Application\Scorm\ScormRuntime` | Opens the sessions of SCORM attempts, keeps their commits, ends them and records their outcome |
+| `Application\Scorm\ScormRuntime` | Opens the sessions of SCORM attempts, keeps their commits, ends them — at their deadline too — and records their outcome; opens an ended attempt for review |
 | `Application\Scorm\ScormTokens` | The attempt tokens |
-| `Application\Scorm\ScormLaunch`, `CommitAnswer` | What a launch hands the browser, and what a commit answers |
+| `Application\Scorm\ScormLaunch`, `CommitAnswer` | What a launch or a review hands the browser, and what a commit answers |
+| `Application\Scorm\TimeLimit` | The time an attempt is allowed: the manifest's, the activity's own `time_limit`, or the shorter, and its deadline |
 | `Application\Cmi5\Cmi5Launcher` | Launches a unit |
 | `Application\Cmi5\Cmi5Tokens` | The fetch URL's answer, and the tokens |
 | `Application\Cmi5\Cmi5Statements` | Receives and issues statements |
@@ -96,6 +97,7 @@
 | `Infrastructure\Http\ScormFrameController` | The frame of the SCORM run time, on the content origin |
 | `Infrastructure\Doctrine\DbalScormAttemptRepository` | The SCORM attempts through DBAL |
 | `Infrastructure\Privacy\ScormPrivacy` | The SCORM attempts in the access and erasure requests of phil/privacy-bundle |
+| `Infrastructure\Privacy\Cmi5Privacy` | The cmi5 launch sessions, statements, state documents and notes of the `satisfied` statements in the access and erasure requests of phil/privacy-bundle, and what a store outside the bundle keeps |
 | `Infrastructure\Http\SecondChancesController` | The administration page of the second chances |
 | `Infrastructure\Routing\RoutedCmi5Endpoints` | The URLs of the endpoint and the fetch URL |
 | `Infrastructure\Console\ImportCommand`, `ImportResultsCommand`, `RetriesCommand` | The commands |

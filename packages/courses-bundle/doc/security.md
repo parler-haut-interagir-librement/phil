@@ -80,8 +80,13 @@ own frame and the content origin only. The state holds the learner's identifier,
 A commit carries an attempt token — the attempt, the session and an expiry, signed by an HMAC under
 `phil_courses.scorm.secret`, nothing secret kept in the database — and the stateless CSRF token of the forms: the
 browser's `Sec-Fetch-Site`, `Origin` or `Referer` must say it comes from the site. A token of another learner signed in,
-of an earlier session, or expired is refused. The body is bounded at 2 MiB, a commit at 4 000 values, the data of an
-attempt at 1 MiB, each value by the data model of its element.
+of an earlier session, or expired is refused, and so is any commit to an ended attempt: an attempt opened for review
+is given no token, and what its content writes is never sent. The body is bounded at 2 MiB, a commit at 4 000 values,
+the data of an attempt at 1 MiB, each value by the data model of its element.
+
+A time limit is held by the server's clock, never by the browser's nor by the session time the content reports: a page
+that stops its timer, or a content that lies about its time, still sees its attempt end at the deadline, and a commit
+later than 30 seconds past it is not kept.
 
 ## The cmi5 endpoint
 

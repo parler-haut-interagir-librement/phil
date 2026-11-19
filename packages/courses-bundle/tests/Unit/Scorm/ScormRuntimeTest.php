@@ -63,7 +63,7 @@ final class ScormRuntimeTest extends TestCase
             'cmi.core.lesson_status', 'cmi.student_data.mastery_score', 'cmi.student_data.max_time_allowed', 'cmi.student_data.time_limit_action',
         ]))));
         self::assertSame('1.2', $launch->model['version']);
-        self::assertSame(['version' => '1.2', 'api' => 'API', 'sco' => '/x/a.html', 'values' => $launch->values, 'model' => $launch->model], $launch->state('/x/a.html'));
+        self::assertSame(['version' => '1.2', 'api' => 'API', 'sco' => '/x/a.html', 'values' => $launch->values, 'model' => $launch->model, 'review' => false, 'remaining' => null], $launch->state('/x/a.html'));
         self::assertSame([$launch->attempt->value, 1], [$this->store->scormTokens->verify($launch->token)[0]->value, $this->store->scormTokens->verify($launch->token)[1]]);
 
         $attempt = $this->store->attemptStore->find($launch->attempt);
@@ -153,6 +153,19 @@ final class ScormRuntimeTest extends TestCase
         try {
             $this->store->scorm->commit($launch->token, [], false);
             self::fail('A session of an ended attempt commits.');
+        } catch (AttemptRefused $attemptRefused) {
+            self::assertTrue($attemptRefused->closed);
+            self::assertSame('This attempt is over: it opens for review only, and nothing more is kept.', $attemptRefused->getMessage());
+        }
+
+        [$paused, $other] = $this->activity('scorm12', learner: 'eve');
+        $first = $this->store->scorm->launch($paused, $other);
+        $this->store->scorm->commit($first->token, ['cmi.core.lesson_status' => 'incomplete'], true);
+        $this->store->scorm->launch($paused, $other);
+
+        try {
+            $this->store->scorm->commit($first->token, [], false);
+            self::fail('An earlier session of a running attempt commits.');
         } catch (AttemptRefused $attemptRefused) {
             self::assertTrue($attemptRefused->closed);
             self::assertSame('This session of the attempt is over: launch the activity again.', $attemptRefused->getMessage());

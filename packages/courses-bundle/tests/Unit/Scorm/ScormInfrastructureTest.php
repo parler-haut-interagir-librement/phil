@@ -223,7 +223,7 @@ final class ScormInfrastructureTest extends TestCase
         self::assertSame([['cmi.mood' => 401], false, null, false], [$body['errors'], $body['ended'], $body['next'], $body['exit']]);
         $finished = $controller->commit($post((string) json_encode(['token' => $body['token'], 'csrf' => 'csrf-token', 'finish' => true])));
         self::assertSame(200, $finished->getStatusCode());
-        self::assertSame('{"errors":{},"token":null,"ended":true,"next":null,"exit":false}', $finished->getContent());
+        self::assertSame('{"errors":{},"token":null,"ended":true,"next":null,"exit":false,"remaining":null,"time_up":false}', $finished->getContent());
         self::assertSame(409, $controller->commit($post((string) json_encode(['token' => $body['token'], 'csrf' => 'csrf-token'])))->getStatusCode());
     }
 }

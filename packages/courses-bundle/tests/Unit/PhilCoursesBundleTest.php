@@ -61,6 +61,7 @@ use Phil\CoursesBundle\Infrastructure\Http\CourseRequest;
 use Phil\CoursesBundle\Infrastructure\Http\ScormController;
 use Phil\CoursesBundle\Infrastructure\Http\ScormFrameController;
 use Phil\CoursesBundle\Infrastructure\Http\SecondChancesController;
+use Phil\CoursesBundle\Infrastructure\Privacy\Cmi5Privacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\ScormPrivacy;
 use Phil\CoursesBundle\Infrastructure\Routing\RoutedCmi5Endpoints;
 use Phil\CoursesBundle\Infrastructure\Security\SecurityCurrentLearner;
@@ -295,7 +296,7 @@ final class PhilCoursesBundleTest extends TestCase
             DbalRetryRequestRepository::class, FilesystemContentStorage::class, ImportCommand::class, ImportResultsCommand::class,
             IssueWaivedStatement::class, KitComponents::class, LinkActivity::class, PackageLimits::class, PackageReader::class, PageActivity::class,
             RetriesCommand::class, RoutedCmi5Endpoints::class, SchemaListener::class, ScormActivity::class, SecurityCurrentLearner::class,
-            ZipPackageOpener::class, 'phil_courses.site_zone', DbalScormAttemptRepository::class, ScormPrivacy::class,
+            ZipPackageOpener::class, 'phil_courses.site_zone', DbalScormAttemptRepository::class, ScormPrivacy::class, Cmi5Privacy::class,
         ];
         $expected = [...array_fill_keys($public, true), ...array_fill_keys($private, false)];
 

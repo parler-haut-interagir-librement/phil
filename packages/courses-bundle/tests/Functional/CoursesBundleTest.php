@@ -14,6 +14,7 @@ use Phil\CoursesBundle\Application\SecondChances;
 use Phil\CoursesBundle\Domain\Cmi5\Cmi5Iri;
 use Phil\CoursesBundle\Domain\Cmi5\Cmi5Verb;
 use Phil\CoursesBundle\Domain\Contract\LaunchSessionRepository;
+use Phil\CoursesBundle\Domain\Contract\ScormAttemptRepository;
 use Phil\CoursesBundle\Domain\Model\Activity;
 use Phil\CoursesBundle\Domain\Progress\CompletionRequirement;
 use Phil\CoursesBundle\Domain\ValueObject\CourseId;
@@ -29,6 +30,7 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Console\Tester\ApplicationTester;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -182,6 +184,81 @@ final class CoursesBundleTest extends WebTestCase
         self::assertSelectorTextContains('.phil-courses__scorm', 'Attempt 2');
         self::assertSame('ab-initio', $again['state']['values']['cmi.entry']);
         self::assertArrayNotHasKey('cmi.location', $again['state']['values']);
+    }
+
+    public function testAnEndedAttemptOfScorm12IsReviewedAndKeepsNothing(): void
+    {
+        self::assertSame(0, $this->console()->run(['command' => 'phil:courses:import', 'path' => Packages::zip(Packages::scorm12Files())]));
+        $course = $this->courses()->all()[0];
+        $saws = $this->activity($course->id, 'saws');
+        $enrollment = $this->enrollments()->enroll($course->id, LearnerId::of('ada'));
+
+        $session = $this->launch($course->id->value, $saws->id->value);
+        self::assertSame([false, null], [$session['state']['review'], $session['state']['remaining']]);
+        $crawler = $this->client->request('GET', '/courses/'.$course->id->value, server: self::ADA);
+        self::assertCount(0, $crawler->filter('form[action$="/review"]'));
+
+        $ended = $this->commit($session['token'], ['cmi.core.lesson_status' => 'passed', 'cmi.core.score.raw' => 90, 'cmi.suspend_data' => 'page=7', 'cmi.core.session_time' => '0000:05:00'], true);
+        self::assertTrue($ended['ended']);
+        $before = $this->attempts()->latest($enrollment->id, $saws->id);
+        self::assertNotNull($before);
+
+        $review = $this->review($course->id->value, $saws->id->value);
+        self::assertSelectorTextContains('.phil-courses__scorm', 'Attempt 1');
+        self::assertSelectorTextContains('.phil-courses__scorm', 'Review');
+        self::assertSelectorTextContains('.phil-courses__status', 'You are reviewing an ended attempt: nothing you do here is saved.');
+        self::assertSelectorNotExists('form[action$="/complete"]');
+        self::assertSame('', $review['token']);
+        self::assertSame([true, null], [$review['state']['review'], $review['state']['remaining']]);
+        self::assertSame(['review', 'no-credit', '', 'passed', 'page=7', '0000:05:00.00'], [$review['state']['values']['cmi.core.lesson_mode'], $review['state']['values']['cmi.core.credit'], $review['state']['values']['cmi.core.entry'], $review['state']['values']['cmi.core.lesson_status'], $review['state']['values']['cmi.suspend_data'], $review['state']['values']['cmi.core.total_time']]);
+
+        $this->commit($session['token'], ['cmi.core.lesson_status' => 'failed'], true);
+        self::assertResponseStatusCodeSame(409);
+        self::assertSame('This attempt is over: it opens for review only, and nothing more is kept.', $this->error());
+        $this->commit($review['token'], ['cmi.core.lesson_status' => 'failed'], true);
+        self::assertResponseStatusCodeSame(403);
+
+        $after = $this->attempts()->latest($enrollment->id, $saws->id);
+        self::assertSame([1, $before->data, $before->session], [$after?->number, $after?->data, $after?->session]);
+        $progress = $this->enrollments()->progresses($enrollment)[$saws->id->value];
+        self::assertSame([true, true, 0.9], [$progress->completed, $progress->success, $progress->score?->scaled]);
+
+        $again = $this->launch($course->id->value, $saws->id->value);
+        self::assertSame(['ab-initio', 'normal'], [$again['state']['values']['cmi.core.entry'], $again['state']['values']['cmi.core.lesson_mode']]);
+        self::assertSelectorTextContains('.phil-courses__scorm', 'Attempt 2');
+    }
+
+    public function testAnEndedAttemptOfScorm2004IsReviewedAndATimeLimitHeld(): void
+    {
+        self::assertSame(0, $this->console()->run(['command' => 'phil:courses:import', 'path' => Packages::zip(Packages::scorm2004Files())]));
+        $course = $this->courses()->all()[0];
+        $activity = $this->activity($course->id, 'a1');
+        $enrollment = $this->enrollments()->enroll($course->id, LearnerId::of('ada'));
+
+        $session = $this->launch($course->id->value, $activity->id->value);
+        $ended = $this->commit($session['token'], ['cmi.progress_measure' => '1', 'cmi.score.scaled' => '0.9', 'cmi.location' => 'end', 'cmi.interactions.0.id' => 'q1', 'cmi.interactions.0.type' => 'true-false', 'cmi.interactions.0.learner_response' => 'true', 'cmi.session_time' => 'PT5M'], true);
+        self::assertTrue($ended['ended']);
+
+        $review = $this->review($course->id->value, $activity->id->value);
+        self::assertSame(['review', 'no-credit', '', 'end', 'true', 'PT0H5M0S'], [$review['state']['values']['cmi.mode'], $review['state']['values']['cmi.credit'], $review['state']['values']['cmi.entry'], $review['state']['values']['cmi.location'], $review['state']['values']['cmi.interactions.0.learner_response'], $review['state']['values']['cmi.total_time']]);
+        $this->commit($session['token'], ['cmi.location' => 'start'], false);
+        self::assertResponseStatusCodeSame(409);
+        self::assertSame('end', $this->attempts()->latest($enrollment->id, $activity->id)?->data['cmi.location']);
+
+        $timed = $this->courses()->addActivity($activity->module, 'Timed', 'scorm', ['path' => 'a.html', 'scorm_version' => 'scorm2004', 'time_limit' => 120]);
+        $limited = $this->launch($course->id->value, $timed->id->value);
+        self::assertSame([120, 'PT0H2M0S', 'exit,message'], [$limited['state']['remaining'], $limited['state']['values']['cmi.max_time_allowed'], $limited['state']['values']['cmi.time_limit_action']]);
+        $this->clock()->modify('+100 seconds');
+        $kept = $this->commit($limited['token'], ['cmi.location' => 'p1'], false);
+        self::assertSame([20, false, false], [$kept['remaining'], $kept['time_up'], $kept['ended']]);
+        $this->clock()->modify('+20 seconds');
+        $up = $this->commit((string) $kept['token'], ['cmi.location' => 'p2'], false);
+        self::assertSame([0, true, true, null], [$up['remaining'], $up['time_up'], $up['ended'], $up['token']]);
+        self::assertSame(['p2', 'time-out', 'ended'], [$this->attempts()->latest($enrollment->id, $timed->id)?->data['cmi.location'], $this->attempts()->latest($enrollment->id, $timed->id)?->data['cmi.exit'], $this->attempts()->latest($enrollment->id, $timed->id)?->state->value]);
+
+        $crawler = $this->client->request('GET', '/courses/'.$course->id->value, server: self::ADA);
+        self::assertCount(2, $crawler->filter('form[action$="/review"]'));
+        self::assertSelectorTextContains('form[action$="/'.$timed->id->value.'/review"]', 'Review the last attempt');
     }
 
     public function testANavigationRequestLaunchesTheNextSco(): void
@@ -497,7 +574,7 @@ final class CoursesBundleTest extends WebTestCase
     /**
      * Launches an activity from the outline, and gives its session.
      *
-     * @return array{frame: string, origin: string, commit: string, launch: string, token: string, state: array{version: string, api: string, sco: string, title: string, values: array<string, string>}}
+     * @return array{frame: string, origin: string, commit: string, launch: string, token: string, state: array{version: string, api: string, sco: string, title: string, values: array<string, string>, review: bool, remaining: ?int}}
      */
     private function launch(string $course, string $activity): array
     {
@@ -511,13 +588,13 @@ final class CoursesBundleTest extends WebTestCase
     /**
      * The session the activity page hands its Stimulus controller.
      *
-     * @return array{frame: string, origin: string, commit: string, launch: string, token: string, state: array{version: string, api: string, sco: string, title: string, values: array<string, string>}}
+     * @return array{frame: string, origin: string, commit: string, launch: string, token: string, state: array{version: string, api: string, sco: string, title: string, values: array<string, string>, review: bool, remaining: ?int}}
      */
     private function session(): array
     {
         $controller = 'data-phil--courses-bundle--scorm-runtime-';
         $node = $this->client->getCrawler()->filter('[data-controller="phil--courses-bundle--scorm-runtime"]');
-        /** @var array{version: string, api: string, sco: string, title: string, values: array<string, string>} $state */
+        /** @var array{version: string, api: string, sco: string, title: string, values: array<string, string>, review: bool, remaining: ?int} $state */
         $state = json_decode((string) $node->attr($controller.'state-value'), true, 16, \JSON_THROW_ON_ERROR);
 
         return [
@@ -536,15 +613,53 @@ final class CoursesBundleTest extends WebTestCase
      * @param array<string, string|int> $values
      * @param array<string, string>     $server
      *
-     * @return array{errors: array<string, int>, token: ?string, ended: bool, next: ?string, exit: bool}
+     * @return array{errors: array<string, int>, token: ?string, ended: bool, next: ?string, exit: bool, remaining: ?int, time_up: bool}
      */
     private function commit(string $token, array $values, bool $finish, array $server = []): array
     {
         $this->client->request('POST', '/courses/scorm/commit', server: $server + self::ADA + ['HTTP_ORIGIN' => 'http://localhost', 'CONTENT_TYPE' => 'text/plain;charset=UTF-8'], content: json_encode(['token' => $token, 'csrf' => 'csrf-token', 'values' => (object) $values, 'finish' => $finish], \JSON_THROW_ON_ERROR));
-        /** @var array{errors: array<string, int>, token: ?string, ended: bool, next: ?string, exit: bool} $answer */
+        /** @var array{errors: array<string, int>, token: ?string, ended: bool, next: ?string, exit: bool, remaining: ?int, time_up: bool} $answer */
         $answer = json_decode((string) $this->client->getResponse()->getContent(), true, 8, \JSON_THROW_ON_ERROR);
 
         return $answer;
+    }
+
+    /**
+     * Opens the last ended attempt of the activity for review from the outline, and gives the session of the page.
+     *
+     * @return array{frame: string, origin: string, commit: string, launch: string, token: string, state: array{version: string, api: string, sco: string, title: string, values: array<string, string>, review: bool, remaining: ?int}}
+     */
+    private function review(string $course, string $activity): array
+    {
+        $crawler = $this->client->request('GET', '/courses/'.$course, server: self::ADA);
+        $this->client->submit($crawler->filter('form[action$="/'.$activity.'/review"]')->form(), [], self::ADA);
+        self::assertResponseIsSuccessful();
+
+        return $this->session();
+    }
+
+    private function error(): string
+    {
+        /** @var array{error: string} $answer */
+        $answer = json_decode((string) $this->client->getResponse()->getContent(), true, 4, \JSON_THROW_ON_ERROR);
+
+        return $answer['error'];
+    }
+
+    private function attempts(): ScormAttemptRepository
+    {
+        $attempts = self::getContainer()->get(ScormAttemptRepository::class);
+        self::assertInstanceOf(ScormAttemptRepository::class, $attempts);
+
+        return $attempts;
+    }
+
+    private function clock(): MockClock
+    {
+        $clock = self::getContainer()->get('clock');
+        self::assertInstanceOf(MockClock::class, $clock);
+
+        return $clock;
     }
 
     private function console(): ApplicationTester

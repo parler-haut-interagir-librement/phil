@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { beforeEach, test } from 'node:test';
+import { afterEach, beforeEach, mock, test } from 'node:test';
 
 import Controller from '../../assets/src/scorm_runtime_controller.js';
 
@@ -61,7 +61,7 @@ beforeEach(() => {
     };
 });
 
-function controller() {
+function controller(values = {}) {
     const instance = new Controller();
     Object.assign(instance, {
         frameTarget: frame(),
@@ -75,13 +75,26 @@ function controller() {
         tokenValue: 'first',
         csrfValue: 'csrf-token',
         stateValue: { version: '2004' },
-        messagesValue: { saved: 'Saved', refused: 'Refused', error: 'Error', expired: 'Expired', ended: 'Ended' },
+        messagesValue: {
+            saved: 'Saved',
+            refused: 'Refused',
+            error: 'Error',
+            expired: 'Expired',
+            ended: 'Ended',
+            review: 'Reviewing',
+            timeUp: 'Time up',
+        },
         renewValue: 600,
+        ...values,
     });
     instance.connect();
 
     return instance;
 }
+
+afterEach(() => {
+    mock.timers.reset();
+});
 
 function message(instance, data, origin = 'https://content.example.org', source = instance.frameTarget.contentWindow) {
     listeners.message({ origin, source, data: { phil: 'scorm', ...data } });
@@ -126,7 +139,7 @@ test('the writes are committed in order, and the token renewed', async () => {
     });
     assert.equal(instance.tokenValue, 'next');
     assert.equal(instance.statusTarget.textContent, 'Saved');
-    assert.deepEqual(instance.dispatched, [['committed', { errors: {}, ended: false }]]);
+    assert.deepEqual(instance.dispatched, [['committed', { errors: {}, ended: false, timeUp: false }]]);
     instance.disconnect();
 });
 
@@ -219,4 +232,79 @@ test('leaving the page ends the session with a beacon, else with fetch', async (
     assert.equal(requests.length, 1);
     assert.equal(requests[0][1].keepalive, true);
     assert.equal(JSON.parse(requests[0][1].body).finish, true);
+});
+
+test('an attempt open for review sends nothing', async () => {
+    mock.timers.enable({ apis: ['setInterval', 'setTimeout'] });
+    const instance = controller({ tokenValue: '', stateValue: { version: '1.2', review: true, remaining: 5 } });
+    assert.equal(instance.statusTarget.textContent, 'Reviewing');
+    assert.equal(listeners.pagehide, undefined);
+
+    message(instance, { type: 'ready' });
+    assert.equal(posted[0][0].state.review, true);
+    message(instance, { type: 'set', element: 'cmi.core.lesson_status', value: 'failed' });
+    message(instance, { type: 'commit' });
+    message(instance, { type: 'terminate' });
+    mock.timers.tick(3_600_000);
+    await instance.queue;
+    instance.leave();
+    instance.disconnect();
+
+    assert.deepEqual([requests, beacons, instance.dispatched], [[], [], []]);
+    assert.equal(instance.statusTarget.textContent, 'Reviewing');
+});
+
+test('the deadline commits, and the time up ends the session', async () => {
+    mock.timers.enable({ apis: ['setInterval', 'setTimeout'] });
+    const instance = controller({ stateValue: { version: '2004', remaining: 30 }, renewValue: 3600 });
+    answers.push(
+        { status: 200, body: { errors: {}, token: 'second', remaining: 2 } },
+        { status: 200, body: { errors: {}, token: null, ended: true, remaining: -1, time_up: true } },
+    );
+    message(instance, { type: 'set', element: 'cmi.location', value: 'p1' });
+    mock.timers.tick(30_000);
+    assert.equal(requests.length, 0);
+    mock.timers.tick(1_000);
+    await instance.queue;
+    assert.equal(requests.length, 1);
+    assert.deepEqual(JSON.parse(requests[0][1].body), {
+        token: 'first',
+        csrf: 'csrf-token',
+        values: { 'cmi.location': 'p1' },
+        finish: false,
+    });
+    assert.equal(instance.statusTarget.textContent, 'Saved');
+
+    mock.timers.tick(2_999);
+    assert.equal(requests.length, 1);
+    mock.timers.tick(1);
+    await instance.queue;
+    assert.equal(requests.length, 2);
+    assert.equal(JSON.parse(requests[1][1].body).token, 'second');
+    assert.equal(instance.statusTarget.textContent, 'Time up');
+    assert.equal(instance.ended, true);
+    assert.deepEqual(instance.dispatched[1], ['committed', { errors: {}, ended: true, timeUp: true }]);
+
+    mock.timers.tick(7_200_000);
+    instance.leave();
+    await instance.queue;
+    assert.deepEqual([requests.length, beacons.length], [2, 0]);
+});
+
+test('a deadline already passed commits at once, and none is armed without one', async () => {
+    mock.timers.enable({ apis: ['setInterval', 'setTimeout'] });
+    const late = controller({ stateValue: { version: '1.2', remaining: -40 }, renewValue: 3600 });
+    mock.timers.tick(999);
+    assert.equal(requests.length, 0);
+    mock.timers.tick(1);
+    await late.queue;
+    assert.equal(requests.length, 1);
+    late.disconnect();
+
+    const free = controller({ stateValue: { version: '1.2', remaining: null }, renewValue: 3600 });
+    answers.push({ status: 200, body: { errors: {}, token: 'next', remaining: null } });
+    await free.flush(false);
+    mock.timers.tick(3_599_000);
+    assert.equal(requests.length, 2);
+    free.disconnect();
 });

@@ -22,7 +22,8 @@ from a content origin that is not the application's, with a content security pol
 SCORM content runs inside the platform: a Stimulus controller frames it under the run-time API of SCORM 1.2 (`API`) or
 SCORM 2004 (`API_1484_11`), which answers each call at once by the data model of phil/elearning-packages and sends the
 commits to an endpoint that checks them again. Attempts are kept with their tracking data — suspended and resumed,
-attempted again —, and feed the learner's progress, the mastery score of the manifest included.
+attempted again, reviewed read-only once ended —, and feed the learner's progress, the mastery score of the manifest
+included; the time allowed, the manifest's or the activity's own, is enforced by the server's clock.
 The tree of the blocks of a cmi5 course structure is kept: nested blocks, their order and their identifiers.
 cmi5 units are launched with the parameters of cmi5, fetch their token once, and send their statements to an xAPI
 endpoint of the bundle, which checks them against the rules of cmi5 before a learning record store keeps them. The
@@ -49,7 +50,8 @@ on SQLite, MySQL 8.4 and PostgreSQL 17.
 | The administration page of the second chances, behind a configurable role, with the recipes of the kit, English and French | Implemented and tested |
 | The import of SCORM 1.2 and 2004 packages through phil/elearning-packages, sequencing kept for information, results imported from a CSV export | Implemented and tested |
 | The SCORM run time: the API of SCORM 1.2 and 2004 in the browser, every element of their data models checked in the browser and on the server, attempts suspended, resumed and attempted again, tracking data kept, progress recorded, navigation requests followed | Implemented, tested on SQLite, MySQL and PostgreSQL, and fuzzed |
-| The tracking data of the SCORM attempts in the access and erasure requests of phil/privacy-bundle | Implemented and tested |
+| The review of an ended SCORM attempt, read-only, and the time limits of the manifest and of the activity, enforced on the server | Implemented, tested on SQLite, MySQL and PostgreSQL |
+| The tracking data of the SCORM attempts and the cmi5 records of a learner — launch sessions, statements, state documents — in the access and erasure requests of phil/privacy-bundle; what a remote learning record store keeps said in the export | Implemented and tested |
 | The sequencing and navigation of SCORM 2004 beyond the flow and the choice of the outline: rules, rollup, shared objectives | Not yet: see [SCORM run time](doc/scorm-runtime.md#what-the-bundle-does-not-do-yet) |
 | The import of cmi5 packages and course structures, through phil/elearning-packages, the tree of the blocks kept, a unit whose `moveOn` is `NotApplicable` not required | Implemented and tested |
 | cmi5 launches, the fetch URL, the xAPI endpoint with the rules of cmi5, the learning record store as a port | Implemented and tested |

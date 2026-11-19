@@ -65,6 +65,38 @@ final readonly class DbalLaunchSessionRepository implements LaunchSessionReposit
         ));
     }
 
+    #[Override]
+    public function ofEnrollments(EnrollmentId ...$enrollments): array
+    {
+        if ([] === $enrollments) {
+            return [];
+        }
+
+        return array_map($this->session(...), $this->connection->fetchAllAssociative(
+            'SELECT * FROM '.CourseTables::SESSION.' WHERE enrollment_id IN (?) ORDER BY launched_at, id',
+            [$this->ids($enrollments)],
+            [ArrayParameterType::STRING],
+        ));
+    }
+
+    #[Override]
+    public function removeOfEnrollments(EnrollmentId ...$enrollments): void
+    {
+        if ([] !== $enrollments) {
+            $this->connection->executeStatement('DELETE FROM '.CourseTables::SESSION.' WHERE enrollment_id IN (?)', [$this->ids($enrollments)], [ArrayParameterType::STRING]);
+        }
+    }
+
+    /**
+     * @param array<EnrollmentId> $enrollments
+     *
+     * @return list<string>
+     */
+    private function ids(array $enrollments): array
+    {
+        return array_values(array_map(static fn (EnrollmentId $id): string => $id->value, $enrollments));
+    }
+
     /**
      * @param array<string, mixed> $row
      */

@@ -18,6 +18,7 @@ use Phil\CoursesBundle\Domain\Course\CourseOrigin;
 use Phil\CoursesBundle\Domain\Model\Activity;
 use Phil\CoursesBundle\Domain\Progress\AvailabilityStatus;
 use Phil\CoursesBundle\Domain\Progress\CompletionRequirement;
+use Phil\CoursesBundle\Domain\Scorm\AttemptState;
 use Phil\CoursesBundle\Domain\ValueObject\LearnerId;
 use Phil\CoursesBundle\Domain\ValueObject\Outcome;
 use Phil\CoursesBundle\Domain\ValueObject\Release;
@@ -25,16 +26,19 @@ use Phil\CoursesBundle\Domain\ValueObject\RetryRequestId;
 use Phil\CoursesBundle\Domain\ValueObject\Score;
 use Phil\CoursesBundle\Domain\ValueObject\ScormAttemptId;
 use Phil\CoursesBundle\Infrastructure\Doctrine\CourseTables;
+use Phil\CoursesBundle\Infrastructure\Privacy\Cmi5Privacy;
 use Phil\CoursesBundle\Tests\Unit\Fixture\Packages;
 use Phil\CoursesBundle\Tests\Unit\Fixture\Statements;
 use Phil\CoursesBundle\Tests\Unit\Fixture\Store;
+use Phil\PrivacyBundle\Domain\Subject\DataSubject;
 use PHPUnit\Framework\TestCase;
 
 /**
  * The bundle's tables and queries on a real server, read from the environment: the tables created from
  * `CourseTables`, a course imported and taken, the moments in UTC, the booleans, the scores and the order of the
- * outline, the unique enrollment, a cmi5 session and its statements, the state documents, a course removed, and the
- * tables of an earlier schema brought up to date, a satisfied block noted once.
+ * outline, the unique enrollment, a cmi5 session and its statements, the state documents, the cmi5 records of a learner
+ * exported and erased, a SCORM attempt with its time and its review, a course removed, and the tables of an earlier
+ * schema brought up to date, a satisfied block noted once.
  */
 abstract class ServerTestCase extends TestCase
 {
@@ -168,6 +172,61 @@ abstract class ServerTestCase extends TestCase
         self::assertSame([], $store->attemptStore->ofEnrollments($enrollment->id));
     }
 
+    public function testTheCmi5RecordsOfALearnerAreExportedAndErased(): void
+    {
+        $store = new Store($this->connection);
+        $course = $store->courses->create('C');
+        $unit = $store->courses->addActivity($store->courses->addModule($course->id, 'M')->id, 'Unit', 'cmi5', ['au_id' => 'https://example.org/au', 'url' => 'https://example.net/au/'], CompletionRequirement::Completed);
+        $ada = $store->enrollments->enroll($course->id, LearnerId::of('ada'));
+        $eve = $store->enrollments->enroll($course->id, LearnerId::of('eve'));
+
+        foreach ([$ada, $eve] as $enrollment) {
+            $store->learning->launch($enrollment, $unit->id);
+            $store->lrs->saveState('https://example.org/au', $enrollment->registration, 'bookmark', '{"page":"é"}');
+            $store->enrollmentStore->claimSatisfaction($enrollment->id, $course->id->value, 's-'.$enrollment->learner->value, $store->clock->now());
+        }
+
+        $privacy = new Cmi5Privacy($store->enrollmentStore, $store->sessionStore, $store->lrs, $store->lrs);
+        $export = $privacy->export(DataSubject::fromString('ada'));
+        self::assertCount(1, \is_array($export['launch_sessions'] ?? null) ? $export['launch_sessions'] : []);
+        self::assertSame([['registration' => $ada->registration, 'activity_sha256' => hash('sha256', 'https://example.org/au'), 'state_id' => 'bookmark', 'updated_at' => '2026-11-13T10:00:00+00:00', 'document' => ['page' => 'é']]], $export['state_documents'] ?? null);
+        self::assertSame('2026-11-13T10:00:00+00:00', $store->lrs->statementsOf([$ada->registration])[0]['stored_at']->format(\DATE_ATOM));
+
+        $privacy->erase(DataSubject::fromString('ada'));
+        self::assertSame([], $privacy->export(DataSubject::fromString('ada')));
+        self::assertSame([1, 1, 1], [
+            Store::count($this->connection, 'SELECT COUNT(*) FROM '.CourseTables::SESSION),
+            Store::count($this->connection, 'SELECT COUNT(*) FROM '.CourseTables::STATE),
+            Store::count($this->connection, 'SELECT COUNT(*) FROM '.CourseTables::SATISFACTION),
+        ]);
+        self::assertSame(0, Store::count($this->connection, 'SELECT COUNT(*) FROM '.CourseTables::STATEMENT.' WHERE registration = ?', [$ada->registration]));
+        self::assertCount(1, $store->sessionStore->ofEnrollments($eve->id, $ada->id));
+    }
+
+    public function testAScormAttemptKeepsItsTimeAndOpensForReview(): void
+    {
+        $store = new Store($this->connection);
+        $course = $store->courses->create('C');
+        $activity = $store->courses->addActivity($store->courses->addModule($course->id, 'M')->id, 'SCO', 'scorm', ['path' => 'a.html', 'scorm_version' => 'scorm12', 'time_limit' => 600]);
+        $enrollment = $store->enrollments->enroll($course->id, LearnerId::of('ada'));
+        $launch = $store->scorm->launch($activity, $enrollment);
+        $store->clock->modify('+250 seconds');
+        $store->scorm->commit($launch->token, ['cmi.core.lesson_status' => 'incomplete', 'cmi.core.exit' => 'suspend'], true);
+
+        $suspended = $store->attemptStore->latest($enrollment->id, $activity->id);
+        self::assertSame([250, '2026-11-13 10:00:00'], [$suspended?->elapsed, $suspended?->sessionOpenedAt?->format('Y-m-d H:i:s')]);
+
+        $resumed = $store->scorm->launch($activity, $enrollment);
+        self::assertSame(350, $resumed->remaining);
+        $store->clock->modify('+350 seconds');
+        $up = $store->scorm->commit($resumed->token, ['cmi.core.lesson_location' => 'é'], false);
+        self::assertTrue($up->timeUp);
+
+        $review = $store->scorm->review($activity, $enrollment);
+        self::assertSame(['review', 'é', 'time-out'], [$review->values['cmi.core.lesson_mode'], $review->values['cmi.core.lesson_location'], $store->attemptStore->latest($enrollment->id, $activity->id)?->data['cmi.core.exit']]);
+        self::assertSame([$activity->id->value], $store->scorm->reviewable($enrollment));
+    }
+
     public function testTheTablesOfAnEarlierSchemaAreBroughtUpToDate(): void
     {
         Store::drop($this->connection);
@@ -192,5 +251,23 @@ abstract class ServerTestCase extends TestCase
         self::assertFalse($store->enrollmentStore->claimSatisfaction($enrollment->id, $block->id->value, 's2', $store->clock->now()));
         self::assertSame([$block->id->value], $store->enrollmentStore->satisfactions($enrollment->id));
         self::assertTrue($this->connection->createSchemaManager()->tablesExist([CourseTables::SCORM_ATTEMPT, CourseTables::SCORM_DATA]));
+    }
+
+    public function testTheTimeOfTheScormAttemptsIsAddedToTheirTable(): void
+    {
+        Store::drop($this->connection);
+        Store::createWithoutTime($this->connection);
+        $this->connection->insert(CourseTables::SCORM_ATTEMPT, ['id' => '01890000-0000-7000-8000-000000000001', 'enrollment_id' => 'e1', 'activity_id' => 'a1', 'number' => 1, 'version' => '1.2', 'state' => 'suspended', 'session' => 1, 'completion' => 'incomplete', 'success' => 'unknown', 'total_time' => 0, 'started_at' => '2026-11-13 10:00:00', 'updated_at' => '2026-11-13 10:00:00']);
+
+        $upgrade = CourseTables::upgrade($this->connection);
+        self::assertNotSame([], $upgrade);
+
+        foreach ($upgrade as $sql) {
+            $this->connection->executeStatement($sql);
+        }
+
+        self::assertSame([], CourseTables::upgrade($this->connection));
+        $attempt = new Store($this->connection)->attemptStore->find(ScormAttemptId::of('01890000-0000-7000-8000-000000000001'));
+        self::assertSame([0, null, AttemptState::Suspended], [$attempt?->elapsed, $attempt?->sessionOpenedAt, $attempt?->state]);
     }
 }

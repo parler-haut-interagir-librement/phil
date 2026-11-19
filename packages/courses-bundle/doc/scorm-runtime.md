@@ -35,7 +35,8 @@ activity page (application origin)            frame (content origin)            
    to keep its token alive.
 
 The page says, in a live region, whether the progress is saved, whether the content sent values the platform did not
-keep, and when the session expired or is over.
+keep, when the session expired or is over, when the time allowed is spent, and that an attempt opened for review keeps
+nothing.
 
 ## The commit endpoint
 
@@ -50,10 +51,10 @@ keep, and when the session expired or is over.
 
 | Answer | When |
 |---|---|
-| `200` with `errors`, `token`, `ended`, `next`, `exit` | The commit is kept: `errors` names each element left out with its error code; `token` is the token of the next commit, null once the session ended; `next` is the activity a navigation request goes to, `exit` whether it leaves for the outline |
+| `200` with `errors`, `token`, `ended`, `next`, `exit`, `remaining`, `time_up` | The commit is kept: `errors` names each element left out with its error code; `token` is the token of the next commit, null once the session ended; `next` is the activity a navigation request goes to, `exit` whether it leaves for the outline; under a time limit, `remaining` is the seconds left before the deadline, and `time_up` says the time ended the attempt — see [Time limits](#time-limits) |
 | `400` | The body is not such an object |
 | `403` | The CSRF token or the attempt token is refused: unknown, forged, expired, or another learner's |
-| `409` | The session is over: it ended, or a later launch opened a newer one |
+| `409` | The session is over: it ended, or a later launch opened a newer one; or its attempt ended, and opens for review only |
 | `413` | The body is larger than 2 MiB |
 
 The attempt token names the attempt, the session and the moment it expires, signed by an HMAC under
@@ -80,7 +81,8 @@ When a session begins, the platform sets the learner's identifier — never a na
 the mode `normal`, the entry, and what the manifest says of the item: the launch data, the mastery score of SCORM 1.2
 (`cmi.student_data.mastery_score`, out of a hundred) or the scaled passing score of SCORM 2004
 (`cmi.scaled_passing_score`, from the primary objective satisfied by measure), the completion threshold of SCORM 2004,
-the time allowed and what happens once it is spent. The exit and session time of the session before are forgotten.
+the time allowed and what happens once it is spent — the shorter of the manifest's and the activity's own, see
+[Time limits](#time-limits). The exit and session time of the session before are forgotten.
 
 When a session ends, the session time is added to the total time of the attempt — `HHHH:MM:SS.SS` in SCORM 1.2, a
 duration of ISO 8601 in SCORM 2004. In SCORM 1.2, a status the content never set becomes `completed`, and with a
@@ -105,6 +107,56 @@ The requirement of an imported SCORM activity is `Passed` when its item has a ma
 
 `ScormSessionEnded` is dispatched at the end of each session, with the enrollment, the activity and the attempt by
 their identifiers, and whether the attempt ended.
+
+## Review mode
+
+An ended attempt opens again for review. The outline shows **Review the last attempt** beside a SCORM activity whose
+learner has an ended attempt, once the activity is reached — open, done, or out of tries —; the form posts to
+`POST /{course}/activities/{activity}/review`, with the CSRF token of the courses, and the activity page frames the
+content as for a launch, with a badge that says it is a review.
+
+- The content reads the tracking data of the learner's last ended attempt, with the mode `review`
+  (`cmi.core.lesson_mode` in SCORM 1.2, `cmi.mode` in SCORM 2004), the credit `no-credit` and an empty entry; the
+  exit and session time of its last session are forgotten, as at any launch.
+- The content may still call `SetValue()`: the run time answers it as in any session, and keeps the value in the frame
+  for the content to read back, but the page sends nothing — no commit, no beacon at the end — and says so in its live
+  region.
+- No session is opened, the attempt is left as it was, and the page is given an empty token. On the server, a commit to
+  an ended attempt is refused with `409`, whatever token it carries: neither the tracking data nor the progress change.
+- A review records nothing, dispatches no event and uses no try.
+
+`ScormRuntime::review()` opens the review, and `ScormRuntime::reviewable()` gives the activities of an enrollment
+that have an ended attempt. The values the review hands the content, and what the content's calls answer, are held by
+the vectors of `tests/js/fixture/review.json`, which the server and the browser both run.
+
+## Time limits
+
+An attempt is allowed the time of the manifest — `adlcp:maxtimeallowed` in SCORM 1.2, the
+`attemptAbsoluteDurationLimit` of SCORM 2004 — with its action, `time_limit_action`, and the activity's own limit, its
+`time_limit` setting in seconds, from 1 to 35 999 999:
+
+| The limits | The content is handed | The platform ends the attempt |
+|---|---|---|
+| The manifest's only, its action `continue,…` or none | That time and that action | Never: the content applies its action |
+| The manifest's only, its action `exit,…` | That time and that action | At that time |
+| The activity's only, or shorter than the manifest's, or as long | The activity's time, and the manifest's action when it exits, else `exit,message` | At the activity's time |
+| The manifest's shorter than the activity's | The manifest's time and action | At the manifest's time when its action exits, else at the activity's time |
+
+The platform counts the time by its own clock, whatever the content reports in its session time: the seconds each
+session ran, from its launch to its end. The time between two sessions is not counted, and a session closed without
+a word — the page closed before it could say so — counts until its last commit. The page commits when the deadline
+comes, and each answer brings the seconds left.
+
+- A commit that reaches the deadline is kept, then ends the session with the exit `time-out`, and the attempt with
+  it, even when the content asked to suspend: the answer says `time_up`.
+- The commit of a page late by more than 30 seconds, `ScormRuntime::GRACE`, is not kept: the session ends with the data
+  of the commits before, and the answer says `time_up`.
+- A session left running past its deadline is ended at the next launch, with the exit `time-out`; an attempt suspended
+  past it — when the limit was lowered — ends at the next launch too.
+- An attempt ended by its time and neither completed nor passed counts as failed: it uses a try of `max_attempts`.
+
+The time a session ran is kept with its attempt, in the columns `elapsed` and `session_opened_at` of
+`phil_course_scorm_attempt`, which `CourseTables::upgrade()` adds to an earlier table.
 
 ## Packages of several SCOs
 
@@ -132,18 +184,21 @@ before this one; `adl.nav.request_valid.choice` and `adl.nav.request_valid.jump`
 | Session time added to total time; status and score rules of each version | Supported |
 | Attempts: resume after a suspension, a new attempt after an ended one, tries of the activity | Supported |
 | Mastery score, scaled passing score, completion threshold, launch data, time allowed and its action, from the manifest | Handed to the content |
+| Review mode of an ended attempt | Supported: read only, nothing kept, commits refused on the server |
+| The time allowed, from the manifest or the activity | Enforced by the platform, by its own clock |
 | Navigation requests `continue`, `previous`, `choice`, `jump` and the exits | Supported, as above |
 | The tracking data in the access and erasure requests of phil/privacy-bundle | Supported when that bundle is installed |
 
 ## What the bundle does not do yet
+
+The full sequencing and navigation of SCORM 2004 is a feature of its own, planned apart from the run time: until it
+comes, each SCO is an activity of the course.
 
 | Part | What happens instead |
 |---|---|
 | The sequencing and navigation of SCORM 2004 — sequencing rules, rollup, limit conditions, objectives shared between SCOs, the activity tree as one attempt | Kept with the activity for information; each SCO is an activity of the course, and the course's own order and requirements apply |
 | The prerequisites of SCORM 1.2 | Kept for information; impose the order of the course instead |
 | `adl.nav.request_valid.choice` and `.jump` for a target | Answer `unknown` |
-| Review mode of an ended attempt | A launch after an ended attempt begins a new one |
-| The time allowed enforced by the platform | Handed to the content, which applies its action |
 | The formats of `fill-in`, `long-fill-in`, `performance` and `other` responses | Bounded in length, not parsed |
 | Two commits of one session sent at once by two tabs | The last one kept wins |
 
@@ -152,4 +207,6 @@ before this one; `adl.nav.request_valid.choice` and `adl.nav.request_valid.jump`
 The tracking data is the learner's: their answers to the interactions, their comments, what they wrote in a form of
 the content. With phil/privacy-bundle installed, `ScormPrivacy` gives the attempts of a learner — what the platform read
 of each and its tracking data — in an access request, and deletes them in an erasure request; the learner is the
-stable identifier the courses know them by. The `ScormSessionEnded` event carries identifiers only.
+stable identifier the courses know them by. The export holds the time the platform measured and the exit `time-out` of
+an attempt ended by its time. The `ScormSessionEnded` event carries identifiers only. The cmi5 records of a learner
+have their own privacy module: see [cmi5](cmi5.md#privacy).

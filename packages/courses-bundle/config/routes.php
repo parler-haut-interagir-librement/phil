@@ -32,6 +32,10 @@ return static function (RoutingConfigurator $routes): void {
         ->controller([CourseController::class, 'launch'])
         ->requirements($activity)
         ->methods(['POST']);
+    $routes->add(CourseController::REVIEW_ROUTE, '/{course}/activities/{activity}/review')
+        ->controller([CourseController::class, 'review'])
+        ->requirements($activity)
+        ->methods(['POST']);
     $routes->add(CourseController::COMPLETE_ROUTE, '/{course}/activities/{activity}/complete')
         ->controller([CourseController::class, 'complete'])
         ->requirements($activity)

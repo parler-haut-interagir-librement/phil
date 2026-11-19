@@ -64,6 +64,7 @@ use Phil\CoursesBundle\Infrastructure\Http\CourseRequest;
 use Phil\CoursesBundle\Infrastructure\Http\ScormController;
 use Phil\CoursesBundle\Infrastructure\Http\ScormFrameController;
 use Phil\CoursesBundle\Infrastructure\Http\SecondChancesController;
+use Phil\CoursesBundle\Infrastructure\Privacy\Cmi5Privacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\ScormPrivacy;
 use Phil\CoursesBundle\Infrastructure\Routing\RoutedCmi5Endpoints;
 use Phil\CoursesBundle\Infrastructure\Security\SecurityCurrentLearner;
@@ -261,6 +262,8 @@ final class CoursesServices
     }
 
     /**
+     * The cmi5 launches, statements and endpoint, and their privacy module when phil/privacy-bundle is installed.
+     *
      * @param Config $config
      */
     private static function cmi5(ContainerBuilder $container, Reference $clock, Reference $events, array $config): void
@@ -279,6 +282,13 @@ final class CoursesServices
         $container->register(IssueWaivedStatement::class, IssueWaivedStatement::class)
             ->setArguments([new Reference(EnrollmentRepository::class), new Reference(CourseRepository::class), new Reference(Cmi5Statements::class), new Reference(Cmi5Settings::class), $clock])
             ->addTag('kernel.event_listener', ['event' => ActivitySatisfied::class]);
+
+        if (interface_exists(PersonalDataEraser::class)) {
+            $container->register(Cmi5Privacy::class, Cmi5Privacy::class)
+                ->setArguments([new Reference(EnrollmentRepository::class), new Reference(LaunchSessionRepository::class), new Reference(DbalLearningRecordStore::class), new Reference(LearningRecordStore::class)])
+                ->addTag(PhilPrivacyBundle::EXPORTER_TAG)
+                ->addTag(PhilPrivacyBundle::ERASER_TAG);
+        }
 
         $container->register(RoutedCmi5Endpoints::class, RoutedCmi5Endpoints::class)->setArguments([new Reference('router')]);
         $container->setAlias(Cmi5Endpoints::class, RoutedCmi5Endpoints::class);

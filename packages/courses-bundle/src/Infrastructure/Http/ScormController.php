@@ -17,9 +17,10 @@ use Symfony\Component\HttpFoundation\Response;
  * wrote since the last commit, in their order, and whether the session ends. The attempt token authenticates the
  * attempt; when a learner is signed in, it must be theirs.
  *
- * It answers the elements left out with their error codes, the token of the next commit, and after a navigation
- * request the launch of the next activity or the outline; `400` for a body that is not such an object, `403` for a
- * token or a CSRF token refused, `409` for a session that is over, `413` for a body past `MAX_BYTES`.
+ * It answers the elements left out with their error codes, the token of the next commit, after a navigation request
+ * the launch of the next activity or the outline, and under a time limit the seconds left and whether the time is up;
+ * `400` for a body that is not such an object, `403` for a
+ * token or a CSRF token refused, `409` for a session that is over or an attempt ended, open for review only, `413` for a body past `MAX_BYTES`.
  */
 final readonly class ScormController
 {
@@ -70,6 +71,8 @@ final readonly class ScormController
             'ended' => $answer->ended,
             'next' => $answer->next?->value,
             'exit' => $answer->exit,
+            'remaining' => $answer->remaining,
+            'time_up' => $answer->timeUp,
         ], Response::HTTP_OK, ['Cache-Control' => 'no-store']);
     }
 

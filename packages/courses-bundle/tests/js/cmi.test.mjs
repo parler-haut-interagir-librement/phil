@@ -22,6 +22,18 @@ test('the browser answers every call as the server does', () => {
     }
 });
 
+test('the browser answers the calls of a review as the server does', () => {
+    for (const { version, values, calls, expect } of fixture('review.json')) {
+        const session = new ScormSession(new CmiData(models[version], values));
+
+        calls.forEach(([method, argument, written], index) => {
+            const answer = 'setValue' === method ? session.setValue(argument, written) : session[method](argument);
+
+            assert.deepEqual([answer, session.getLastError()], expect[index], `${version} ${method}(${argument})`);
+        });
+    }
+});
+
 test('a name is read into its pattern, indexes and keyword', () => {
     assert.deepEqual(parseName('cmi.interactions.12.objectives.3.id'), {
         name: 'cmi.interactions.12.objectives.3.id',

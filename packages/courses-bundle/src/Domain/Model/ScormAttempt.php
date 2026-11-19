@@ -19,7 +19,9 @@ use Phil\ElearningPackages\Runtime\SessionEnd;
  * An attempt of a learner at a SCORM activity: its number among the learner's attempts at the activity, the version of
  * SCORM, where it stands, the session that may commit to it — each launch opens the next, so that the page of an
  * earlier launch commits no more —, the tracking data the content wrote, by element, and what the platform read of it:
- * the completion, the success, the scaled score and the total time. Moments are kept in UTC.
+ * the completion, the success, the scaled score and the total time. The time the platform measured itself — the seconds
+ * its sessions ran, by the server's clock, whatever the content reports — bounds an attempt under a time limit.
+ * Moments are kept in UTC.
  */
 final class ScormAttempt
 {
@@ -31,10 +33,14 @@ final class ScormAttempt
 
     public private(set) ?DateTimeImmutable $endedAt;
 
+    /** When the running session opened, by the server's clock; null before the first. */
+    public private(set) ?DateTimeImmutable $sessionOpenedAt;
+
     /**
      * @param int<1, max>           $number
      * @param int<0, max>           $session
      * @param array<string, string> $data
+     * @param int<0, max>           $elapsed the seconds the sessions ended so far ran, by the server's clock
      */
     public function __construct(
         public readonly ScormAttemptId $id,
@@ -50,11 +56,14 @@ final class ScormAttempt
         ?Duration $totalTime = null,
         ?DateTimeImmutable $updatedAt = null,
         ?DateTimeImmutable $endedAt = null,
+        public private(set) int $elapsed = 0,
+        ?DateTimeImmutable $sessionOpenedAt = null,
     ) {
         $this->totalTime = $totalTime ?? Duration::zero();
         $this->startedAt = $startedAt->setTimezone(new DateTimeZone('UTC'));
         $this->updatedAt = ($updatedAt ?? $startedAt)->setTimezone(new DateTimeZone('UTC'));
         $this->endedAt = $endedAt?->setTimezone(new DateTimeZone('UTC'));
+        $this->sessionOpenedAt = $sessionOpenedAt?->setTimezone(new DateTimeZone('UTC'));
     }
 
     /**
@@ -67,8 +76,20 @@ final class ScormAttempt
         $this->state = AttemptState::Running;
         $this->data = $data;
         $this->updatedAt = $at->setTimezone(new DateTimeZone('UTC'));
+        $this->sessionOpenedAt = $this->updatedAt;
 
         return ++$this->session;
+    }
+
+    /**
+     * The seconds the attempt ran by the server's clock until that moment: the sessions ended, and the running one
+     * since it opened.
+     *
+     * @return int<0, max>
+     */
+    public function spent(DateTimeImmutable $at): int
+    {
+        return $this->elapsed + (AttemptState::Running === $this->state ? $this->since($at) : 0);
     }
 
     /**
@@ -98,6 +119,10 @@ final class ScormAttempt
      */
     public function end(array $data, SessionEnd $end, DateTimeImmutable $at): void
     {
+        if (AttemptState::Running === $this->state) {
+            $this->elapsed += $this->since($at);
+        }
+
         $this->commit($data, $end->status, $at);
         $this->totalTime = $end->totalTime;
         $this->state = match (true) {
@@ -109,5 +134,23 @@ final class ScormAttempt
         if (AttemptState::Ended === $this->state) {
             $this->endedAt = $at->setTimezone(new DateTimeZone('UTC'));
         }
+    }
+
+    /**
+     * Ends an attempt between two sessions, its data as it is: the time allowed is spent.
+     */
+    public function expire(DateTimeImmutable $at): void
+    {
+        $this->state = AttemptState::Ended;
+        $this->updatedAt = $at->setTimezone(new DateTimeZone('UTC'));
+        $this->endedAt = $this->updatedAt;
+    }
+
+    /**
+     * @return int<0, max>
+     */
+    private function since(DateTimeImmutable $at): int
+    {
+        return $this->sessionOpenedAt instanceof DateTimeImmutable ? max(0, $at->getTimestamp() - $this->sessionOpenedAt->getTimestamp()) : 0;
     }
 }

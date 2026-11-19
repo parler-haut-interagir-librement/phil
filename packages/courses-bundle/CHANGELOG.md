@@ -4,6 +4,55 @@ All notable changes to `phil/courses-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: an ended SCORM attempt opens for review, the time allowed is enforced on the server,
+and the cmi5 records of a learner join the access and erasure requests. A minor version and not a patch: a commit that
+reaches the deadline of an attempt whose time limit exits now ends it, and a later one is no longer kept;
+`LaunchSessionRepository` has two methods more; and `phil_course_scorm_attempt` has two columns more.
+
+### Added
+
+- The review of an ended SCORM attempt: `POST /{course}/activities/{activity}/review`, the route
+  `phil_courses_review`, the form **Review the last attempt** of the outline beside a reached SCORM activity with an
+  ended attempt, `Learning::review()` and `reviewable()`, `ScormActivity::review()` and `reviewable()`,
+  `ScormRuntime::review()` and `reviewable()`. The content reads the data of the learner's last ended attempt in the
+  mode `review`, without credit; no session is opened, the page is given an empty token and sends nothing, the activity
+  page says so with a badge and its live region, and nothing is recorded.
+- `ScormLaunch::$review` and `$remaining`, and the keys `review` and `remaining` of the state handed to the frame.
+- `AttemptRefused::ended()`: a commit to an ended attempt is refused with `409`, whatever its token.
+- The time limits of SCORM attempts: `TimeLimit`, the time of the manifest with its action, the activity's own
+  `time_limit` setting in seconds — from 1 to 35 999 999, checked by `ScormActivity::settings()` —, or the shorter, the
+  content handed that time and its action. The platform counts the seconds the sessions of an attempt run by its own
+  clock, and ends the attempt at the deadline with the exit `time-out`; a commit later than `ScormRuntime::GRACE`
+  seconds past it is not kept; a session left running, or an attempt suspended, past its deadline ends at the next
+  launch; an attempt ended by its time and neither completed nor passed counts as failed.
+- `ScormAttempt::$elapsed`, `$sessionOpenedAt`, `spent()` and `expire()`, kept in the columns `elapsed` and
+  `session_opened_at` of `phil_course_scorm_attempt`.
+- `CommitAnswer::$remaining` and `$timeUp`, and the keys `remaining` and `time_up` of the answers of
+  `POST /courses/scorm/commit`; the Stimulus controller `scorm-runtime` commits at the deadline and stops once the time
+  is up.
+- `Cmi5Privacy`: the cmi5 launch sessions, statements, state documents and notes of the `satisfied` statements of a
+  learner's registrations in the access and erasure requests of phil/privacy-bundle, under the module `courses_cmi5`;
+  with a remote learning record store or the application's own, the export names the store, the records it keeps and
+  the registrations, and the erasure reports it as surviving.
+- `LaunchSessionRepository::ofEnrollments()` and `removeOfEnrollments()`; `DbalLearningRecordStore::statementsOf()`,
+  `statesOf()` and `erase()`; `HttpLearningRecordStore::$endpoint`, without the credentials.
+- The vectors of `tests/js/fixture/review.json`, run by the server and the browser alike, and the translations of the
+  review and of the time up in English and French.
+
+### Changed
+
+- A commit that reaches the deadline of an attempt — its activity's own `time_limit`, or a time of the manifest whose
+  action exits — ends the session and the attempt, and a commit later than 30 seconds past it is not kept.
+- The commit of an ended attempt is refused with the message of `AttemptRefused::ended()`, still `409`.
+- The content is handed the time allowed as the platform reads it: the shorter of the manifest's and the activity's,
+  written as its version writes a time.
+- Upgrade: `CourseTables::upgrade()` adds the nullable columns `elapsed` and `session_opened_at` to
+  `phil_course_scorm_attempt`; with the ORM, `doctrine:migrations:diff` writes the same migration. The attempts kept
+  before count their time from their next session.
+- Upgrade: an application that implements `LaunchSessionRepository` adds `ofEnrollments()` and `removeOfEnrollments()`.
+
 ## 0.1.0-alpha - 2026-11-18
 
 ### Added

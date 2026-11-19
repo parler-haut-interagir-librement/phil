@@ -9,9 +9,9 @@ vendor/bin/phpunit --no-configuration tests
 
 | Suite | What it covers |
 |---|---|
-| `tests/Unit` | The domain, the entry points, the import and its blocks, the completions, the rules of cmi5, the `satisfied` statements, the SCORM run time, its attempts, tokens, endpoint, frame and privacy module, the stores, the upgrade of the tables, on SQLite in memory, and the remote learning record store on a simulated client |
-| `tests/Functional` | The bundle in a small application: the pages, the administration page, the content origin, the fetch URL, the xAPI endpoint, the commands, and a SCORM 1.2 and a SCORM 2004 package imported, launched and committed to, suspended, resumed and attempted again |
-| `tests/Integration` | The tables, their upgrade and the queries on MySQL 8.4 and PostgreSQL 17 — the SCORM attempts and their keys compared byte by byte among them —, and a statement sent to a real learning record store |
+| `tests/Unit` | The domain, the entry points, the import and its blocks, the completions, the rules of cmi5, the `satisfied` statements, the SCORM run time, its attempts, tokens, endpoint, frame and privacy module, the review of an ended attempt, the time limits, the privacy module of cmi5, the stores, the upgrade of the tables, on SQLite in memory, and the remote learning record store on a simulated client |
+| `tests/Functional` | The bundle in a small application: the pages, the administration page, the content origin, the fetch URL, the xAPI endpoint, the commands, and a SCORM 1.2 and a SCORM 2004 package imported, launched and committed to, suspended, resumed and attempted again, reviewed once ended, and a time limit held |
+| `tests/Integration` | The tables, their upgrade and the queries on MySQL 8.4 and PostgreSQL 17 — the SCORM attempts and their keys compared byte by byte among them, their time and their review, the cmi5 records of a learner exported and erased —, and a statement sent to a real learning record store |
 
 ## The scripts
 
@@ -24,7 +24,9 @@ node --import ./tests/js/register.mjs --test 'tests/js/*.test.mjs'
 `cmi.test.mjs` runs the calls of `tests/js/fixture/vectors.json` against the API in the browser's code, and
 `BrowserParityTest` runs the same calls against the data model of phil/elearning-packages, with the descriptions of
 `tests/js/fixture/model-*.json` held to what the server hands the browser: both answer each call alike. The fixture is
-written from the server's answers.
+written from the server's answers. `tests/js/fixture/review.json` does the same for a review: the values a review
+hands the content, which `ScormReviewTest` holds to what the server gives for an ended attempt, and the calls of the
+content in review mode, which the server and the browser answer alike.
 
 The packages the tests import — a SCORM 1.2 manifest, a SCORM 2004 manifest with sequencing, a cmi5 course structure —
 are written for the tests, in `tests/Unit/Fixture/Packages.php`, and zipped in the temporary directory. In the
