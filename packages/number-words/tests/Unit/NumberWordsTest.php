@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\NumberWords\Tests\Unit;
 
+use NumberFormatter;
 use Phil\NumberWords\CurrencyName;
 use Phil\NumberWords\Exception\InvalidAmount;
 use Phil\NumberWords\Exception\MissingRule;
@@ -122,6 +123,10 @@ final class NumberWordsTest extends TestCase
     #[DataProvider('ordinals')]
     public function testOrdinals(string $locale, int $number, ?Gender $gender, bool $plural, string $expected): void
     {
+        if ('de' === $locale && $plural && !str_contains(new NumberFormatter('de', NumberFormatter::SPELLOUT)->getTextAttribute(NumberFormatter::PUBLIC_RULESETS), '%spellout-ordinal-plural;')) {
+            self::markTestSkipped('The ICU data of this PHP has no plural ordinals for German.');
+        }
+
         self::assertSame($expected, new NumberWords($locale)->ordinal($number, $gender, $plural));
     }
 

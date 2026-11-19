@@ -357,8 +357,11 @@ final class MaxMindTest extends TestCase
     {
         file_put_contents($locked = $this->directory.'/locked.mmdb', 'x');
         chmod($locked, 0o000);
+        clearstatcache();
+        // A user who reads even a file without permissions, such as root in a container, reads this one.
+        $paths = is_readable($locked) ? [$this->directory.'/none.mmdb', $this->directory] : [$this->directory.'/none.mmdb', $this->directory, $locked];
 
-        foreach ([$this->directory.'/none.mmdb', $this->directory, $locked] as $path) {
+        foreach ($paths as $path) {
             try {
                 new Database($path)->metadata();
                 self::fail($path);

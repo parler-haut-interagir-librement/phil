@@ -15,7 +15,8 @@ use NumberFormatter;
  * or a space, between groups of the locale's sizes before the decimal point — `1 234,56` in `fr_CA`, `1,234.56` in
  * `en`, `1.234,56` in `de`, `12,34,567.50` in `en_IN`. A separator anywhere else makes the input unreadable rather
  * than silently dropped: `12,50` in `en` and `12.50` in `de` are refused, not read as 1250. The minus sign `−`
- * stands for `-`.
+ * stands for `-`, and the typographic apostrophe `’` for `'`, so that `1'234'567.5` and `1’234’567.5` are both read
+ * in `de_CH` whichever of the two the ICU of the server groups by.
  *
  * Writing only swaps the dot for the locale's separator, without grouping, so that the field reads back what it
  * shows.
@@ -26,6 +27,9 @@ use NumberFormatter;
 final class LocalizedDecimal
 {
     private const array SPACES = [' ', "\u{00A0}", "\u{202F}"];
+
+    /** The typographic apostrophe, read as the plain one. */
+    private const string APOSTROPHE = "\u{2019}";
 
     /** The locales whose symbols are kept at most. */
     private const int KEPT = 64;
@@ -41,7 +45,7 @@ final class LocalizedDecimal
     public static function parse(string $input, ?string $locale = null): ?string
     {
         $symbols = self::symbols($locale ?? Locale::getDefault());
-        $text = str_replace([...self::SPACES, "\u{2212}"], [' ', ' ', ' ', '-'], trim($input));
+        $text = str_replace([...self::SPACES, "\u{2212}", self::APOSTROPHE], [' ', ' ', ' ', '-', "'"], trim($input));
 
         // The input's spaces are all plain by now: a grouping by a no-break space is the plain one, and a separator
         // named twice is only an alternative written twice in the pattern.
@@ -105,7 +109,7 @@ final class LocalizedDecimal
 
             self::$symbols[$locale] = [
                 'separator' => $formatter->getSymbol(NumberFormatter::DECIMAL_SEPARATOR_SYMBOL),
-                'grouping' => $formatter->getSymbol(NumberFormatter::GROUPING_SEPARATOR_SYMBOL),
+                'grouping' => str_replace(self::APOSTROPHE, "'", $formatter->getSymbol(NumberFormatter::GROUPING_SEPARATOR_SYMBOL)),
                 'primary' => $formatter->getAttribute(NumberFormatter::GROUPING_SIZE),
                 'secondary' => $formatter->getAttribute(NumberFormatter::SECONDARY_GROUPING_SIZE),
             ];

@@ -4,6 +4,16 @@ All notable changes to `phil/money-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha: Swiss amounts are read whichever apostrophe groups them.
+
+### Fixed
+
+- `LocalizedDecimal::parse()` reads the typographic apostrophe `’` as the plain one `'`, in the input and in the
+  locale's grouping separator: `1'234'567.5` and `1’234’567.5` are both read in `de_CH`, whether the ICU of the
+  server groups that locale by one or the other.
+
 ## 0.1.1-alpha - 2026-11-17
 
 Documentation only.
