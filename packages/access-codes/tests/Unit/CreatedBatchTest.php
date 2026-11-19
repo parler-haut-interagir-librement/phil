@@ -73,6 +73,14 @@ final class CreatedBatchTest extends TestCase
         self::assertSame("code\n\"A B\"\n", $this->contents($file));
     }
 
+    public function testAQuoteIsDoubledBetweenQuotes(): void
+    {
+        $file = new SplTempFileObject();
+        new CreatedBatch(new Batch('b1', 'Cards', 1, new DateTimeImmutable('2026-11-13')), new CodeFormat(groupSize: 0), ['A"B', "C\tD", 'E,F', "G\nH", "I\rJ"])->writeCsv($file);
+
+        self::assertSame("code\n\"A\"\"B\"\n\"C\tD\"\n\"E,F\"\n\"G\nH\"\n\"I\rJ\"\n", $this->contents($file));
+    }
+
     public function testTheCodesNeverShowInADump(): void
     {
         $created = $this->created();
