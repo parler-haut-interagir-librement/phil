@@ -1,11 +1,18 @@
-<!-- phil-dev source-sha256=872e322fa3073e1247ac53c06386845ac20b332da1dea052aa865460092586c8 -->
+<!-- phil-dev source-sha256=ac8153ea16178e8428d97520285bad4cbc1cb46844aaf0bcf4f9c76d7e143496 -->
 # Référence de la configuration
 
 L'alias de l'extension est `phil_privacy`. L'arbre de configuration est défini dans `PhilPrivacyBundle::configure()` et
-a ces clés : `log_redaction`, `retention_schedule_source`, `retention`, `account_deletion`, `consent`, `cookies`,
-`guest_requests`, `incidents`, `email_tracking`, `rights`, `pages`, `register`, `database` et `anonymization`.
+a ces clés : `log_redaction`, `public_origin`, `retention_schedule_source`, `retention`, `account_deletion`, `consent`,
+`cookies`, `guest_requests`, `incidents`, `email_tracking`, `rights`, `pages`, `register`, `database` et `anonymization`.
 
 ## Les clés de premier niveau
+
+### `phil_privacy.public_origin`
+
+L'adresse canonique du site, comme `https://example.org`, sur laquelle mènent les liens envoyés par courriel, ou `null`
+(par défaut) : l'hôte de la requête, que `framework.trusted_hosts` doit alors borner. Dans l'environnement `prod`, tant
+que `guest_requests` est activé avec l'expéditeur par courriel, le bundle refuse de démarrer quand ni l'un ni l'autre
+n'est réglé. Voir [Où mène le lien](requests-without-an-account.md#où-mène-le-lien).
 
 ### `phil_privacy.retention_schedule_source`
 
@@ -289,6 +296,8 @@ du conteneur plutôt que la première ligne de journal. Chaque erreur est une
 | Les demandes sans compte activées sans expéditeur | `phil_privacy.guest_requests.from is the sender of the links …` |
 | Les demandes sans compte activées sans le limiteur de débit | `phil_privacy.guest_requests needs symfony/rate-limiter …` |
 | Une durée de vie de lien qui n'est pas une durée | `phil_privacy.guest_requests.link_lifetime: …` |
+| Une origine avec un chemin, une requête, un fragment ou une adresse IP, ou `localhost` hors du mode débogage, lue au démarrage | `"phil_privacy.public_origin" is an origin …`, `"phil_privacy.public_origin" is the canonical address of the site …` |
+| En `prod`, les demandes activées avec l'expéditeur par courriel, ni `public_origin` ni `framework.trusted_hosts`, au démarrage | `The links of the requests without an account would take the host of the request: …` |
 | Une version malformée du texte sur les courriels suivis | `phil_privacy.email_tracking.version: letters, digits, ".", "_" and "-", 32 at most, …` |
 | Un nom d'option longue mal formé | `phil_privacy.log_redaction: The short option "p" must map to a long option name without its dashes, such as "password".` |
 

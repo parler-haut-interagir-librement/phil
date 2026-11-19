@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ecac0ff80cc49d7b3af85a49ee1a69f2e52008371ee15f0d2de60af04381ed9d -->
+<!-- phil-dev source-sha256=e3e5eb082716aa661a555051fdb7c77dc6037d15877ddc0be927a665a37c5069 -->
 # Modèle de menaces
 
 Ce dont le bundle se défend, comment, et ce qu'il laisse à l'application. Une revue de sécurité par quelqu'un qui n'a pas
@@ -51,7 +51,10 @@ Ce dont le bundle se défend, comment, et ce qu'il laisse à l'application. Une 
 | Code TOTP rejoué | Le compteur accepté est conservé, relu et retenu avant d'être enregistré ; un code ne se vérifie qu'une fois, même présenté par deux requêtes en même temps. |
 | Authentificateur cloné | Le compteur de signature doit avancer quand l'authentificateur en tient un. |
 | Réponses d'authentificateur malformées | Lecteur CBOR borné : profondeur, éléments et longueurs vérifiés avant l'allocation ; soumis au fuzzing. |
-| Énumération de comptes | L'inscription, la réinitialisation du mot de passe et les liens de connexion répondent la même chose pour les adresses connues et inconnues. |
+| Énumération de comptes | L'inscription, la réinitialisation du mot de passe et les liens de connexion répondent la même chose pour les adresses connues et inconnues ; la limite d'inscription par adresse compte pareillement les adresses connues et inconnues. |
+| Un lien qui mène à un autre hôte | Les liens des courriels sont construits sur `public_origin`, jamais sur l'en-tête `Host` de la requête ; sans lui, `framework.trusted_hosts` refuse un hôte falsifié, et dans l'environnement `prod` le bundle refuse de démarrer quand ni l'un ni l'autre n'est réglé. |
+| Inscription en masse | Par défaut, l'inscription est comptée par adresse de client et par adresse saisie, et un seul courriel de vérification va à une adresse à chaque `resend_delay`. |
+| Deviner le code de la deuxième étape | Cinq codes erronés de suite ferment la session : les essais suivants exigent de nouveau le mot de passe, sous les limites du pare-feu et le verrou progressif. |
 | Liens réutilisés | Liens signés sur les propriétés qu'ils changent — l'adresse et sa vérification, l'empreinte du mot de passe et sa date —, de sorte que chacun ne fonctionne qu'une fois sans rien stocker ; un lien de réinitialisation pose son mot de passe sous un verrou de la ligne du compte, de sorte que deux requêtes au même moment ne peuvent pas toutes deux s'en servir. |
 | Un lien ouvert par un analyseur de courriel | `/verify-email` affiche seulement une page qui demande de confirmer ; l'adresse est vérifiée par le formulaire qu'elle envoie, avec un jeton CSRF. |
 
@@ -63,6 +66,7 @@ Ce dont le bundle se défend, comment, et ce qu'il laisse à l'application. Une 
 | Un appareil volé | Les sessions fermées depuis un autre appareil prennent effet à la requête suivante ; les jetons émis dedans sont révoqués, puis la session fermée, dans une seule transaction. |
 | Une session volée après un changement de mot de passe | Un mot de passe nouveau ou réinitialisé ferme les autres sessions et leurs jetons ; `AccountUser::isEqualTo()` compare l'empreinte du mot de passe, de sorte qu'une session ouverte avant le changement prend fin à sa requête suivante. |
 | Une session ouverte depuis longtemps utilisée pour une action sensible | `PHIL_STEP_UP` demande une preuve récente de la méthode la plus forte. |
+| Une session mémorisée qui répond à `max_age` | Une session qui ne détient aucune preuve, comme celle que restaure `remember_me`, s'ouvre de nouveau quand un client demande `max_age`. |
 | Un deuxième facteur contourné | La deuxième étape est imposée à chaque requête jusqu'à ce qu'une preuve forte soit sur le jeton ; seules les routes nommées exactement restent ouvertes — le défi, son code, la connexion par clé d'accès et `open_routes` —, aucun préfixe. |
 | Falsification de requête inter-sites | Chaque formulaire et chaque requête de script porte un jeton CSRF ; la déconnexion depuis un lien demande de confirmer. |
 
@@ -111,6 +115,9 @@ d'effacement, et la revue de ses propres gabarits quand elle remplace ceux du bu
 | Le coût de RS256 | La bibliothèque reconstruit le PEM d'une clé RSA à chaque signature : quelques millisecondes par signature RS256, contre bien moins d'une milliseconde pour ES256 ou EdDSA (`tests/Benchmark/JwsBench.php`). Un déluge de requêtes de jeton coûte plus de temps de processeur avec RS256. | Les limites de débit du pare-feu sur le point de terminaison de jeton ; `oidc.algorithm: ES256` ou `EdDSA` quand les clients les prennent en charge. |
 | `web-token/jwt-library` elle-même | Une faille de la bibliothèque est une faille du fournisseur. | Une seule bibliothèque maintenue ; sa version suit les avis de sécurité (`composer deps:audit`) ; l'entrée non fiable est bornée avant elle. |
 | Un code présenté par deux requêtes à la fois | La requête qui perd le code révoque sa famille comme une réutilisation ; quand elle le fait avant que la gagnante ait enregistré ses jetons, ces jetons restent valides. | Rare : deux échanges d'un même code à quelques millisecondes d'écart ; borné par `oidc.access_token_lifetime` et, pour un jeton de rafraîchissement, par sa rotation ou sa révocation suivante ; la réutilisation est journalisée comme `identity.oidc.token_reuse`. |
+| Des jetons de rafraîchissement qui survivent à la session | Un jeton de rafraîchissement dure `oidc.refresh_token_lifetime` quoi qu'il advienne de la session où il a été émis, sauf si la session est fermée, déconnectée ou si son mot de passe change. | La fermeture d'une session révoque ses jetons ; un `oidc.refresh_token_lifetime` plus court ; des jetons liés à la durée de la session sont prévus. |
+| Une nouvelle adresse posée avant d'être prouvée | Un changement d'adresse depuis la page du compte prend effet aussitôt, non vérifiée, et l'ancienne adresse n'en est pas avertie. | Le changement exige une preuve récente de la méthode la plus forte (`PHIL_STEP_UP`) ; la nouvelle adresse reste non vérifiée jusqu'à l'usage de son lien. Un avis à l'ancienne adresse et un changement retenu jusqu'à la preuve de la nouvelle sont prévus. |
+| Reconnaître une adresse connue au temps de l'inscription | Une inscription pour une adresse connue répond sans hacher de mot de passe, donc plus tôt. | Les limites d'inscription par client et par adresse bornent les essais ; la réponse et son statut sont les mêmes. |
 | La certification | La suite s'exécute en local ; la certification par l'OpenID Foundation exige un fournisseur à une adresse publique. | Faite avant l'utilisation du fournisseur en production ; voir [Conformité OpenID](openid-conformance.md). |
 
 ## La revue avant la production

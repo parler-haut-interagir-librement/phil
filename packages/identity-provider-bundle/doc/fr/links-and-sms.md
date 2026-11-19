@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9031dad72d6457ae83140c02e20f3eebce6b4b7a577810bcff0a47da3889e613 -->
+<!-- phil-dev source-sha256=50fcf8eb2bf9a14be6612c00e83f2b9552204dc6fab0537204495d152835d617 -->
 # Liens de connexion et numéros de téléphone
 
 ## Liens de connexion
@@ -16,6 +16,9 @@ login_link:
     lifetime: 600
     max_uses: 1
 ```
+
+Le lien est généré sur `public_origin`, jamais sur l'hôte que la requête a nommé : voir
+[Où mènent les liens](accounts.md#où-mènent-les-liens).
 
 Un lien de connexion n'indique aucune méthode : il compte pour `IS_AUTHENTICATED_RECENTLY`, non pour `PHIL_STEP_UP`
 d'un compte qui a une méthode plus forte, et un compte qui a une application d'authentification se voit demander son

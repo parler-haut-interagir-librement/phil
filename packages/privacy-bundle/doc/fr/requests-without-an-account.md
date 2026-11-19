@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=73a2276fdaa07371d7472dee75441cd90b3c4a2836f7df596d1fec7e88d57501 -->
+<!-- phil-dev source-sha256=d13a890b78299dc58b74c18b3eea886df12f918eb1bce0361e9d3d62f1902de4 -->
 # Demandes sans compte
 
 Une personne qui n'a pas de compte — abonnée à une infolettre, quelqu'un qui a écrit par un formulaire, l'acheteuse d'un
@@ -7,6 +7,7 @@ la laisse demander par le site, en prouvant par un lien envoyé à son adresse q
 
 ```yaml
 phil_privacy:
+    public_origin: '%env(APP_PUBLIC_ORIGIN)%'   # https://example.org
     guest_requests:
         enabled: true
         from: 'Privacy <privacy@example.org>'
@@ -54,6 +55,7 @@ lien, jusqu'à son expiration ; les effaceurs sont idempotents.
 - **Aucun secret dans un référent ou une file.** Les pages du lien envoient `Referrer-Policy: no-referrer` et ne sont
   jamais gardées par un cache ; l'expéditeur par courriel envoie tout de suite par les transports du service de
   courriel, jamais par une file de messages où le lien serait écrit.
+- **Le lien mène au site, quoi que la requête ait nommé.** Voir [Où mène le lien](#où-mène-le-lien).
 - Les formulaires portent le jeton CSRF sans état du bundle.
 
 ## Qui est l'adresse
@@ -90,6 +92,28 @@ le secret hors de tout journal et de toute file.
 | `cache` | `cache.app` | Le réservoir de cache où les limites sont comptées. |
 | `per_client` | `{ limit: 5, interval: '1 hour' }` | La limite par client. |
 | `per_address` | `{ limit: 3, interval: '1 day' }` | La limite par adresse. |
+
+## Où mène le lien
+
+Le lien est une adresse absolue, et une requête nomme son propre hôte dans son en-tête `Host`. Sans précaution, quelqu'un
+demande un lien pour l'adresse d'une autre personne en nommant son propre hôte : la personne reçoit un vrai lien qui
+mène à cet hôte, et un clic en livre le secret. `MailerGuestLinkSender` construit donc le lien sur `public_origin`,
+l'adresse canonique du site, par `GuestLinkOrigin` : le contexte du routeur nomme cette origine — schéma, hôte et
+port — pendant la génération du lien, et le contexte de la requête revient aussitôt ; le chemin de base de l'application
+est conservé. `phil/url` lit l'origine au démarrage du noyau : une adresse `http` ou `https` avec un nom d'hôte, sans
+adresse IP, sans chemin, sans requête ni fragment ; `localhost` seulement en mode débogage.
+
+Sans `public_origin`, le lien prend l'hôte de la requête, que `framework.trusted_hosts` doit borner :
+
+```yaml
+framework:
+    trusted_hosts: ['^example\.org$']
+```
+
+Une requête vers un autre hôte est alors refusée avec `400`. Dans l'environnement `prod`, tant que les demandes sont
+activées avec l'expéditeur par courriel, le bundle refuse de démarrer quand ni `public_origin` ni
+`framework.trusted_hosts` n'est réglé. Un `GuestLinkSender` propre à l'application construit lui-même son lien, et doit
+la même précaution.
 
 Les pages et le courriel sont dans le domaine `phil_privacy`, en anglais et en français ; remplacez les gabarits sous
 `templates/bundles/PhilPrivacy/guest/` pour votre balisage.

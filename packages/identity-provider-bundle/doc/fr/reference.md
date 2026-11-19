@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3d34b9548e7777383ea0070e083a542713bdbeb754607c7db19af17aa11fa710 -->
+<!-- phil-dev source-sha256=722198aee23127a0fee6398999b3a1dbb2e7814ae858ab2cbae4b81ba48edd59 -->
 # Référence
 
 ## Types publics
@@ -18,7 +18,10 @@
 | `Application\AccountUser` | Le compte tel que Symfony Security le voit. |
 | `Application\Modules` | Les modules activés. |
 | `Application\Journal`, `Application\Event\IdentityEvent`, `Application\Event\IdentityEventType` | Les événements, écrits dans la piste d'audit et répartis. |
-| `Application\Contract\SecretCipher`, `ChallengeStore`, `SmsSender`, `AccountMailer`, `AuditRecorder`, `Transactions` | Les ports. |
+| `Application\Contract\SecretCipher`, `ChallengeStore`, `SmsSender`, `AccountMailer`, `AuditRecorder`, `Transactions`, `LinkOrigin` | Les ports. |
+| `Infrastructure\Routing\RouterLinkOrigin` | Les liens des courriels générés sur `public_origin`, et le démarrage refusé en `prod` sans lui ni `framework.trusted_hosts`. |
+| `Infrastructure\Security\RegistrationRateLimiter` | Les limites de l'inscription et le délai entre deux courriels de vérification. |
+| `Infrastructure\Doctrine\BinaryKeysListener` | La collation binaire des clés sur MySQL et MariaDB. |
 | `Application\Exception\Refused`, `OAuthError`, `DeliveryFailed` | Ce que les services refusent, avec des clés de traduction ou des erreurs OAuth. |
 | `Domain\Model\*` | Les lignes de chaque module. |
 | `Domain\Contract\*Repository` | Les magasins de chaque module. |
@@ -41,6 +44,7 @@
 | `Phil\IdentityProviderBundle\Infrastructure\Security\ExternalAuthenticator` | Le rappel d'un fournisseur fédéré. |
 | `phil_identity_provider.re_authentication_entry_point` | Le point d'entrée de la réauthentification. |
 | `phil_identity_provider.login_limiter` | Avec `login_limiter.enabled`, le limiteur de `login_throttling` : par adresse, par identifiant et adresse, par identifiant. |
+| `phil_identity_provider.registration_limiter` | Avec `registration.rate_limit.enabled`, par défaut, les limites de `/register` et des courriels de vérification. |
 
 ## Routes
 

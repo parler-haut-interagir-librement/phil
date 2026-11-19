@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fa244f8d8e1d3a8a1ffb5048833ab9963ba4ca4f7d764b7dd595d67d221947a2 -->
+<!-- phil-dev source-sha256=94bb299d3a812c22edf21094e5c71fc518d9d43d3894db4f38662ff274d87af4 -->
 # Configuration
 
 Chaque option de `phil_browser_security`, avec sa valeur par défaut.
@@ -89,7 +89,7 @@ phil_browser_security:
         strict_transport_security:
             enabled: ~                # null follows kernel.debug: on when it is off
             max_age: 31536000
-            include_subdomains: false
+            include_subdomains: true  # ASVS asks for the subdomains too
             preload: false            # needs include_subdomains and a year or more
 
     signed_cookies:
@@ -115,6 +115,8 @@ phil_browser_security:
 
     # The service id of the PSR-20 clock.
     clock: clock
+    # The canonical address of the site, such as https://example.com, the reports go to; ~ sends the path alone.
+    public_origin: ~
 ```
 
 ## Ce qui est vérifié à la construction du conteneur

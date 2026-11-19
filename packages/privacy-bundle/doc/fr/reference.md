@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0055cb310ab20ce3edf04be68d2cb47b17113ba38e7c36273307e7859ba90997 -->
+<!-- phil-dev source-sha256=cdd2a7a638098aba6b0037ace162080da0a5648f7785d4c2cf85a1677a005cd2 -->
 # Référence de l'API
 
 Chaque type sous `Phil\PrivacyBundle\`, par couche. « Implémenté » veut dire implémenté et couvert par des tests
@@ -224,6 +224,7 @@ unitaires.
 | `Infrastructure\Database\DbalEmailTrackingConsents` | Les choix des membres sur les courriels suivis, une ligne chacun | Implémenté |
 | `Infrastructure\Database\UtcMoments` | Les instants des tables, en UTC et au seul format de la plateforme ; `text()`, `read()` | Implémenté |
 | `Infrastructure\Mailer\MailerGuestLinkSender` | Le lien envoyé tout de suite par les transports du service de courriel | Implémenté ; branché une fois activé |
+| `Infrastructure\Routing\GuestLinkOrigin` | Le lien généré sur `public_origin`, et le démarrage refusé en `prod` sans lui ni `framework.trusted_hosts` | Implémenté ; branché avec l'expéditeur par courriel |
 | `Infrastructure\Doctrine\PrivacySchemaListener` | Ajoute les tables au schéma généré | Implémenté |
 | `Infrastructure\Filesystem\EncryptedExportArchive` | Des fichiers scellés, privés, retirés à leur expiration | Implémenté |
 | `Infrastructure\Log\LoggedConsentProofs` | Les preuves en lignes de journal | Implémenté |
