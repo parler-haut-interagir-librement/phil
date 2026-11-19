@@ -16,6 +16,9 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
  * the limiters' state in a filesystem pool, and actions limited by attribute, by route default and by form name, one
  * by a limiter in observation. In the
  * `invalid` environment, one more route names a limiter nothing declares.
+ *
+ * The compiled container is kept between tests in a directory of this checkout and environment: another checkout of
+ * the bundle never hands it a container built from other sources.
  */
 final class TestKernel extends Kernel
 {
@@ -30,19 +33,24 @@ final class TestKernel extends Kernel
     #[Override]
     public function getCacheDir(): string
     {
-        return sys_get_temp_dir().'/phil-rate-limit-bundle-test/'.hash('xxh128', $this->environment).'/cache';
+        return $this->root().'/cache';
     }
 
     #[Override]
     public function getShareDir(): string
     {
-        return sys_get_temp_dir().'/phil-rate-limit-bundle-test/'.hash('xxh128', $this->environment).'/share';
+        return $this->root().'/share';
     }
 
     #[Override]
     public function getLogDir(): string
     {
-        return sys_get_temp_dir().'/phil-rate-limit-bundle-test/'.hash('xxh128', $this->environment).'/log';
+        return $this->root().'/log';
+    }
+
+    private function root(): string
+    {
+        return sys_get_temp_dir().'/phil-rate-limit-bundle-test/'.hash('xxh128', __DIR__."\0".$this->environment);
     }
 
     private function configureContainer(ContainerConfigurator $container): void
