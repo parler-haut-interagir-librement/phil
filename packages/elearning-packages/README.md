@@ -21,7 +21,7 @@ checks the content's calls with it, in the browser through the description it gi
 
 It serves a platform that imports and runs courses, an upload form that refuses a broken package before it is stored,
 or a migration tool that lists what a set of packages holds. It is a plain PHP library, with no dependency beyond the `dom`,
-`libxml`, `mbstring` and `zip` extensions.
+`libxml`, `mbstring`, `xmlreader` and `zip` extensions.
 
 ## Status
 
@@ -76,7 +76,7 @@ $package->warnings;     // ['The launch file "sco/quiz.html" of the item "a2" is
 
 ## Requirements
 
-PHP 8.5 or later with the `dom`, `libxml`, `mbstring` and `zip` extensions.
+PHP 8.5 or later with the `dom`, `libxml`, `mbstring`, `xmlreader` and `zip` extensions.
 
 ## Contributing
 

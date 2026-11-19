@@ -25,6 +25,7 @@
         "ext-dom": "*",
         "ext-libxml": "*",
         "ext-mbstring": "*",
+        "ext-xmlreader": "*",
         "ext-zip": "*"
     },
     "require-dev": {

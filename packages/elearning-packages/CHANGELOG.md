@@ -22,7 +22,8 @@ items bounded to 5,000 and their nesting to 16, comes near either budget.
 ### Changed
 
 - A manifest is counted by a streaming pass of `XMLReader`, one node at a time and holding no tree, before the DOM
-  loads it: a manifest past a budget is refused before anything of it is built.
+  loads it: a manifest past a budget is refused before anything of it is built. The package requires the `xmlreader`
+  extension, bundled with PHP.
 
 ## 0.1.1-alpha - 2026-11-18
 
