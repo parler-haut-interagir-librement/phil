@@ -4,19 +4,25 @@ declare(strict_types=1);
 
 namespace Phil\DoctrineBehaviours;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Phil\DoctrineBehaviours\Contract\Ownable;
 
 /**
  * Finds and replaces an owner in every `Ownable` entity: what an access or erasure request needs, since the column
  * outlives the account. It reads and writes the tables directly: soft-deleted and deactivated rows and rows an SQL
- * filter hides are found too, the listeners do not run, and nothing else of the rows changes. Entities already loaded
- * keep the old owner until they are read again.
+ * filter hides are found too, the listeners do not run, and nothing else of the rows changes.
+ *
+ * Given a `ManagerRegistry`, it reaches the tables of every entity manager, each table once per connection, and writes
+ * the tables of each connection in one transaction of that connection. Once a connection's owners are replaced, it
+ * evicts the second-level cache regions of the classes it changed and detaches the managed entities that still hold
+ * the old owner, so that the next read gets the new one; whatever such an entity had pending is dropped with it.
  */
 final readonly class OwnerEraser
 {
     public function __construct(
-        private EntityManagerInterface $manager,
+        private ManagerRegistry|EntityManagerInterface $managers,
     ) {
     }
 
@@ -29,13 +35,17 @@ final readonly class OwnerEraser
     {
         $found = [];
 
-        foreach ($this->columns() as $table => [$column]) {
-            $count = $this->manager->getConnection()->fetchOne(\sprintf('SELECT COUNT(*) FROM %s WHERE %s = ?', $table, $column), [$owner->value]);
+        foreach ($this->groups() as $group) {
+            foreach ($group['tables'] as $table => ['columns' => [$column]]) {
+                $count = $group['connection']->fetchOne(\sprintf('SELECT COUNT(*) FROM %s WHERE %s = ?', $table, $column), [$owner->value]);
 
-            if (is_numeric($count) && $count > 0) {
-                $found[$table] = (int) $count;
+                if (is_numeric($count) && $count > 0) {
+                    $found[$table] = ($found[$table] ?? 0) + (int) $count;
+                }
             }
         }
+
+        ksort($found);
 
         return $found;
     }
@@ -49,8 +59,18 @@ final readonly class OwnerEraser
     {
         $replaced = 0;
 
-        foreach ($this->columns() as $table => [$column]) {
-            $replaced += (int) $this->manager->getConnection()->executeStatement(\sprintf('UPDATE %1$s SET %2$s = ? WHERE %2$s = ?', $table, $column), [$replacement?->value, $owner->value]);
+        foreach ($this->groups() as $group) {
+            $replaced += $group['connection']->transactional(static function (Connection $connection) use ($group, $owner, $replacement): int {
+                $rows = 0;
+
+                foreach ($group['tables'] as $table => ['columns' => [$column]]) {
+                    $rows += (int) $connection->executeStatement(\sprintf('UPDATE %1$s SET %2$s = ? WHERE %2$s = ?', $table, $column), [$replacement?->value, $owner->value]);
+                }
+
+                return $rows;
+            });
+
+            Forget::after($group['managers'], Managers::classes($group), static fn (object $entity): bool => $entity instanceof Ownable && $owner->value === $entity->ownerId()?->value);
         }
 
         return $replaced;
@@ -63,14 +83,14 @@ final readonly class OwnerEraser
      */
     public function tables(): array
     {
-        return array_keys($this->columns());
+        return Managers::tableNames($this->groups());
     }
 
     /**
-     * @return array<string, list<string>>
+     * @return list<array{connection: Connection, managers: list<EntityManagerInterface>, tables: array<string, array{columns: list<string>, classes: list<array{EntityManagerInterface, class-string}>}>}>
      */
-    private function columns(): array
+    private function groups(): array
     {
-        return MappedColumns::of($this->manager, Ownable::class, [Ownable::OWNER_FIELD]);
+        return Managers::tables($this->managers, Ownable::class, [Ownable::OWNER_FIELD]);
     }
 }

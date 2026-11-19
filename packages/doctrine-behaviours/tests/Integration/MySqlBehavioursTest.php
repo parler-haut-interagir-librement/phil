@@ -12,6 +12,7 @@ use Phil\DoctrineBehaviours\Positions;
 use Phil\DoctrineBehaviours\SlugListener;
 use Phil\DoctrineBehaviours\TranslationListener;
 use Phil\DoctrineBehaviours\Translations;
+use Phil\DoctrineBehaviours\VersionEraser;
 use Phil\DoctrineBehaviours\Versions;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -25,6 +26,7 @@ use PHPUnit\Framework\Attributes\Group;
 #[CoversClass(SlugListener::class)]
 #[CoversClass(Versions::class)]
 #[CoversClass(OwnerEraser::class)]
+#[CoversClass(VersionEraser::class)]
 #[CoversClass(Positions::class)]
 #[CoversClass(PositionListener::class)]
 #[CoversClass(Translations::class)]

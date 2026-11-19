@@ -6,6 +6,7 @@ phil_doctrine_behaviours:
     blame:
         enabled: true
         user_method: null
+        suspend_during_erasure: true
     soft_delete:
         enabled: true
         filter: true
@@ -27,6 +28,8 @@ phil_doctrine_behaviours:
     versions:
         enabled: false
         restore_right: PHIL_VERSION_RESTORE
+        personal_fields: exclude       # exclude, encrypt or keep
+        cipher: null                   # a VersionCipher service, required by encrypt
     dated_identifier:
         enabled: false
     privacy:
@@ -43,7 +46,8 @@ shortcut reads `owner: false`, `publication: true`, and so on.
 | `timestamps` | `true` | `TimestampListener` on `prePersist` and `onFlush` |
 | `blame` | on | `BlameListener` on `prePersist` and `onFlush`, the `BlameResolver` service and the public `BlameEraser`; `false` switches it off |
 | `blame.user_method` | `null` | A public method of the user class that names them in the blame — a UUID getter —; `getUserIdentifier()` when `null` |
-| `soft_delete` | on | `SoftDeleteListener` on `onFlush`; `false` switches it off |
+| `blame.suspend_during_erasure` | `true` | With `privacy` on and `phil/privacy-bundle` installed, no name is blamed while one of its erasers runs: the `BlameSuspension` service, reset with `kernel.reset`, around every eraser |
+| `soft_delete` | on | `SoftDeleteListener` on `onFlush` at the priority `-256`, and the public `SoftDeletes` service; `false` switches them off |
 | `soft_delete.filter` | `true` | Adds `phil_soft_deleted` to the default entity manager, enabled |
 | `tree` | `true` | `TreeListener` on `postPersist`, `onFlush` and `postFlush`, reset with `kernel.reset`, and the public `Tree` service |
 | `deactivation` | on | `DeactivationListener` on `prePersist` and `onFlush` |
@@ -56,10 +60,12 @@ shortcut reads `owner: false`, `publication: true`, and so on.
 | `position` | `true` | `PositionListener` on `onFlush`, and the public `Positions` service |
 | `translation` | `true` | `TranslationListener` on `loadClassMetadata`, which adds the unique index of each translation table, and the public `Translations` service |
 | `slug` | off | `SlugListener` on `onFlush`, with the `Sluggers` of `phil/slug-bundle`, which must be registered |
-| `versions` | off | `VersionListener` on `onFlush`, the public `Versions` service, the `VersionRestoreGuard` and the mapping of `RecordVersion` |
+| `versions` | off | `VersionListener` on `onFlush`, the public `Versions` and `VersionEraser` services, the `VersionRestoreGuard`, the `PersonalFields` service, the command `phil:doctrine-behaviours:strip-versions` with `symfony/console`, and the mapping of `RecordVersion` |
 | `versions.restore_right` | `PHIL_VERSION_RESTORE` | The Symfony Security attribute needed to go back to a past version |
+| `versions.personal_fields` | `exclude` | What a frozen version keeps of the `#[PersonalData]` fields of its record: `exclude` leaves them out, `encrypt` seals them with `versions.cipher`, `keep` keeps them until an erasure redacts them |
+| `versions.cipher` | `null` | The service of a `VersionCipher`, required by `encrypt` |
 | `dated_identifier` | off | `DatedIdentifierListener` on `prePersist`; needs `symfony/uid` |
-| `privacy` | on | `BlamePrivacy` with `blame`, `OwnerPrivacy` with `owner`, tagged for `phil/privacy-bundle` when it is installed; `false` switches them off |
+| `privacy` | on | `BlamePrivacy` with `blame`, `OwnerPrivacy` with `owner`, `VersionsPrivacy` with `versions`, tagged for `phil/privacy-bundle` when it is installed; `false` switches them off |
 | `privacy.blame_replacement` | `null` | The pseudonym that takes an erased name's place in the blame, 1 to 255 bytes; `null` leaves the blame empty |
 | `privacy.owner_replacement` | `null` | The owner identifier that takes an erased owner's place, without an `@`; `null` leaves the records without an owner |
 
@@ -110,16 +116,19 @@ blame names the person acting: a record made on someone's behalf belongs to them
 
 ## Privacy requests
 
-With `phil/privacy-bundle` installed, the blame and the owner take part in its access and erasure requests, each when
-its behaviour is on, under the module names `behaviours.blame` and `behaviours.owner`. Without it, nothing is
-registered.
+With `phil/privacy-bundle` installed, the blame, the owner and the versions take part in its access and erasure
+requests, each when its behaviour is on, under the module names `behaviours.blame`, `behaviours.owner` and
+`behaviours.versions`. Without it, nothing is registered.
 
-| Request | Blame | Owner |
-|---|---|---|
-| access | how many rows name the person, by table, under `rows_by_table` | how many rows the person owns, by table, under `rows_by_table` |
-| erasure | the name replaced by `privacy.blame_replacement`, or by nobody, in every blamed table | the records handed to `privacy.owner_replacement`, or to nobody |
+| Request | Blame | Owner | Versions |
+|---|---|---|---|
+| access | how many rows name the person, by table, under `rows_by_table` | how many rows the person owns, by table, under `rows_by_table` | how many versions still hold the person's personal fields, under `versions_with_personal_fields` |
+| erasure | the name replaced by `privacy.blame_replacement`, or by nobody, in every blamed table | the records handed to `privacy.owner_replacement`, or to nobody | the personal fields taken out of those versions, each dated in `redacted_at` |
 
-The erasure goes through `BlameEraser` and `OwnerEraser`: soft-deleted and filtered rows too, the listeners not run.
+The erasure goes through `BlameEraser`, `OwnerEraser` and `VersionEraser`, over every entity manager of the `doctrine`
+registry: soft-deleted and filtered rows too, the listeners not run. With the versions on, the blame and the owner
+redact the versions of the person first, while the name still finds them: the versions module, which runs after them,
+finds them redacted. The personal fields are the properties declared `#[PersonalData]`, the record's parents included.
 Its report names every table of the behaviour, found or not, as `pseudonymised` with a pseudonym and `redacted`
 without one, so a second run reports the same; the module itself stands for the store when no table has the behaviour.
 
@@ -304,11 +313,44 @@ services:
 
 The table `phil_record_version` is created by a migration of the application, as any mapped entity's.
 
+## The personal fields of the versions
+
+A frozen version leaves out the properties of its record declared `#[PersonalData]` of `phil/privacy-bundle`, by
+default: going back keeps the values the record holds for them. `versions.personal_fields: encrypt` seals them with the
+`VersionCipher` service `versions.cipher` names, bound to the record, the version and the field; `keep` keeps them in
+plain, until an erasure redacts them. Without `phil/privacy-bundle`, no field is personal and every field is kept.
+
+Going back to a version an erasure redacted, or to an older one of the same record, is refused with `VersionErased`.
+
+The versions written before the personal fields were left out still hold them. Take them out once, after the migration
+that adds `redacted_at`:
+
+```sh
+bin/console phil:doctrine-behaviours:strip-versions --dry-run   # how many versions hold some
+bin/console phil:doctrine-behaviours:strip-versions
+```
+
+A sealed value stays, and no version is marked redacted: the record can still go back to them.
+
+## The blame during an erasure
+
+`BlameListener` blames the user of the token on every flush, an erasure's included, and `getUserIdentifier()` is often
+an e-mail address. With `blame.suspend_during_erasure`, every eraser tagged `phil_privacy.eraser`, the application's
+own included, is decorated by `SuspendBlame`: while it runs, no name is written in `created_by` or `updated_by`. An
+erasure run by a worker or a console command, where nobody is authenticated, blames nobody either way.
+
+## The soft delete and the search index
+
+`SoftDeleteListener` listens to `onFlush` at the priority `BehaviourServices::SOFT_DELETE_PRIORITY`, `-256`: the
+listeners of the default priority, such as the index of `phil/search-bundle`, see a removal as a deletion before it
+turns into an update, and drop the record. A first removal keeps the whole row; `SoftDeletes::purge()` deletes it.
+
 ## Collation of the keys
 
 **The keys the behaviours write compare byte by byte**, as PHP compares them, whichever behaviours are switched on: the
 slug `Doc-A` is never found for `doc-a`, and both can be taken; the translation `fr-CA` is never read for `fr-ca`; the
-records of the owner `Ann` are never listed or erased for `ann`. `BinaryKeysListener` gives these fields the binary
+records of the owner `Ann` are never listed or erased for `ann`. `BinaryKeysListener` of `phil/doctrine-behaviours`,
+registered whichever behaviours are on, gives these fields the binary
 collation when the ORM loads the metadata of a class that takes them, on MySQL or MariaDB; the mapping itself stays
 the same on every platform.
 
@@ -354,5 +396,6 @@ unique slug needs no check.
 
 ## Long-running workers
 
-Nothing a listener or resolver holds lasts beyond a call: `TreeListener` alone keeps something during a flush, and it is
-reset with `kernel.reset`. The bundle needs no other care under a worker runtime.
+Nothing a listener or resolver holds lasts beyond a call: `TreeListener` keeps something during a flush, and
+`BlameSuspension` while an eraser runs; both are reset with `kernel.reset`. The bundle needs no other care under a
+worker runtime.

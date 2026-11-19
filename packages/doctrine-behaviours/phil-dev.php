@@ -38,7 +38,7 @@ return [
     ],
     'infection' => [
         'mutators' => [
-            // The number of rows `executeStatement()` returns in `BlameEraser` is an integer or a numeric string that
+            // The number of rows `executeStatement()` returns in `BlameEraser` and `OwnerEraser` is an integer or a numeric string that
             // `+=` converts; the depth of a node of `Tree` is only null when its path is, a case that returns `[]` just
             // before, and `null + 1` is 1 anyway. Both casts only serve PHPStan's strict rules. The count of
             // `OwnerEraser::find()` is an integer on SQLite, where the Unit suite runs, and a numeric string on drivers
@@ -51,8 +51,8 @@ return [
                     '.*\\$next\\[\\$table\\]\\[\\$key\\] = is_numeric\\(\\$last\\) \\? \\(int\\) \\$last \\+ 1 : 1;.*',
                     '.*\\$this->take\\(\\$connection, \\$place, \\(int\\) \\$last \\+ 1, false\\);.*',
                     '.*\\$this->take\\(\\$connection, \\$place, \\(int\\) \\$position \\+ \\$offset, true\\);.*',
-                    '.*\\$found\\[\\$table\\] = \\(int\\) \\$count;.*',
-                    '\\$replaced \\+= \\(int\\) \\$this->manager->getConnection\\(\\)->executeStatement\\(.*',
+                    '.*\\$found\\[\\$table\\] = \\(\\$found\\[\\$table\\] \\?\\? 0\\) \\+ \\(int\\) \\$count;.*',
+                    '.*\\$rows \\+= \\(int\\) \\$connection->executeStatement\\(.*',
                     '.*Criteria::expr\\(\\)->eq\\(TreeNode::DEPTH_FIELD, \\(int\\) \\$node->treeDepth\\(\\) \\+ 1\\).*',
                 ],
             ],

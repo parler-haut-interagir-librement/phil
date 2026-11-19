@@ -7,8 +7,10 @@ namespace Phil\DoctrineBehavioursBundle;
 use LogicException;
 use Override;
 use Phil\DoctrineBehaviours\OwnerId;
+use Phil\DoctrineBehaviours\PersonalFieldPolicy;
 use Phil\DoctrineBehaviours\PublicationWorkflow;
 use Phil\DoctrineBehavioursBundle\Infrastructure\DependencyInjection\BehaviourServices;
+use Phil\DoctrineBehavioursBundle\Infrastructure\DependencyInjection\SuspendBlameDuringErasurePass;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Security\SecurityVersionRestoreGuard;
 use Symfony\Component\Config\Definition\Configuration;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -21,7 +23,8 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 /**
  * `phil/doctrine-behaviours` in a Symfony application: the listeners of the behaviours switched on, the blame of the
  * authenticated user, the tree reader, the positions, the translations, the versions, and the filters, enabled on the default entity
- * manager. With `phil/privacy-bundle` installed, the blame and the owner answer its access and erasure requests.
+ * manager. With `phil/privacy-bundle` installed, the blame, the owner and the versions answer its access and erasure
+ * requests, and no name is blamed while its erasers run.
  *
  * @phpstan-import-type BehavioursConfig from BehaviourServices
  */
@@ -47,6 +50,10 @@ final class PhilDoctrineBehavioursBundle extends AbstractBundle
                                 ->ifTrue($this->isNoMethodName(...))
                                 ->thenInvalid('The user method of the blame is the name of a method, %s is not.')
                             ->end()
+                        ->end()
+                        ->booleanNode('suspend_during_erasure')
+                            ->info('Write no name in the blame while an eraser of phil/privacy-bundle runs, so that its flushes do not put a name back.')
+                            ->defaultTrue()
                         ->end()
                     ->end()
                 ->end()
@@ -108,7 +115,22 @@ final class PhilDoctrineBehavioursBundle extends AbstractBundle
                 ->arrayNode('versions')
                     ->info('Freeze versions of Versionable entities, and fork the next edit.')
                     ->canBeEnabled()
+                    ->validate()
+                        ->ifTrue(static fn (array $versions): bool => true === $versions['enabled'] && PersonalFieldPolicy::Encrypt->value === $versions['personal_fields'] && null === $versions['cipher'])
+                        ->then(static function (): never {
+                            throw new InvalidConfigurationException('phil_doctrine_behaviours.versions.cipher is required when personal_fields is "encrypt": name the service of a VersionCipher that seals the personal fields.');
+                        })
+                    ->end()
                     ->children()
+                        ->enumNode('personal_fields')
+                            ->info('What a frozen version keeps of the #[PersonalData] fields of its record: exclude leaves them out, encrypt seals them with the cipher, keep keeps them until an erasure redacts them.')
+                            ->values(array_map(static fn (PersonalFieldPolicy $policy): string => $policy->value, PersonalFieldPolicy::cases()))
+                            ->defaultValue(PersonalFieldPolicy::Exclude->value)
+                        ->end()
+                        ->scalarNode('cipher')
+                            ->info('The service of a VersionCipher, required when personal_fields is encrypt.')
+                            ->defaultNull()
+                        ->end()
                         ->scalarNode('restore_right')
                             ->info('The Symfony Security attribute needed to go back to a past version, with the record as subject.')
                             ->defaultValue(SecurityVersionRestoreGuard::DEFAULT_RIGHT)
@@ -143,6 +165,12 @@ final class PhilDoctrineBehavioursBundle extends AbstractBundle
                     ->end()
                 ->end()
             ->end();
+    }
+
+    #[Override]
+    public function build(ContainerBuilder $container): void
+    {
+        $container->addCompilerPass(new SuspendBlameDuringErasurePass());
     }
 
     /**

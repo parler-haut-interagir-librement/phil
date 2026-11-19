@@ -9,8 +9,12 @@ use Phil\DoctrineBehaviours\Contract\SoftDeletable;
 use Psr\Clock\ClockInterface;
 
 /**
- * Turns the removal of a `SoftDeletable` entity into its deletion date: the entity stays managed and its row stays,
- * with `deleted_at` set. An entity already deleted is removed for good.
+ * Turns the removal of a `SoftDeletable` entity into its deletion date: the entity stays managed and its whole row
+ * stays, every column as it was, with `deleted_at` set. An entity already deleted is removed for good, and
+ * `SoftDeletes::purge()` deletes one in a single flush.
+ *
+ * Register it after the `onFlush` listeners that must see the removal as a deletion — a search index that drops the
+ * entity, an audit log —: once it has run, the entity is no longer scheduled for deletion but for an update.
  */
 final readonly class SoftDeleteListener
 {

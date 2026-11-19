@@ -11,6 +11,7 @@
 | `Contract\BlameResolver` | interface | `current(): ?string`, who is acting now |
 | `FixedBlame` | `BlameResolver` | Always the same one, or nobody |
 | `BlameEraser` | service | Finds and replaces a user's name in every blamed table |
+| `BlameSuspension` | service | A span of work, an erasure, during which `BlameListener` writes no name |
 
 ## When
 
@@ -39,7 +40,36 @@ soft-deleted rows and rows any SQL filter hides are found too, and no listener s
 lists every blamed table, found or not, for a report that names each store.
 
 ```php
+$eraser = new BlameEraser($registry);             // every entity manager, or one: new BlameEraser($manager)
 $eraser->find('ada@example.com');                 // ['article' => 12, 'page' => 3]
 $eraser->replace('ada@example.com', 'former-member-81');
 $eraser->tables();                                // ['article', 'note', 'page']
 ```
+
+Given a `ManagerRegistry`, it reaches the tables of every entity manager: a table two managers share on one connection
+is counted and written once, and the tables of each connection are written in one transaction of that connection, so
+that a failure leaves that connection as it was. Once a connection is written, the second-level cache region of each
+class it changed is evicted, and the managed entities that still hold the old name are detached, in every manager on
+that connection: the next read gets the pseudonym. Whatever such an entity had pending is dropped with it, so flush
+before an erasure.
+
+## The blame during an erasure
+
+An erasure that loads and flushes entities, an eraser of the application's own for one, runs `BlameListener` like any
+flush: `updated_by` gets the name the resolver gives, and with Symfony Security that is the user of the request, the
+person who asked for the erasure or an operator, often by an e-mail address. Two ways keep it out:
+
+- run the erasure where nobody is authenticated, a worker or a console command: the resolver gives `null`, and nothing
+  is written;
+- give `BlameListener` a `BlameSuspension`, and run the erasure inside `during()`: no name is written, on persist or on
+  update, until the outermost span ends, whether its work returned or threw.
+
+```php
+$suspension = new BlameSuspension();
+$events->addEventListener([Events::prePersist, Events::onFlush], new BlameListener($resolver, $suspension));
+
+$suspension->during(fn () => $erasure->erase($subject));
+```
+
+`BlameSuspension` holds how deep the spans go: a worker calls `reset()` between two messages. `BlameEraser` itself runs
+no listener. See [Bulk writes](bulk-writes.md).

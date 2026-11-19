@@ -25,21 +25,23 @@
     "homepage": "https://ph-il.ca",
     "require": {
         "php": ">=8.5",
-        "doctrine/dbal": "^4.5",
         "doctrine/doctrine-bundle": "^3.3",
-        "doctrine/orm": "^3.7",
-        "phil/doctrine-behaviours": "^0.2@dev",
+        "phil/doctrine-behaviours": "^0.3@dev",
         "symfony/clock": "^8.2",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2"
     },
     "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
         "phil/locale-dimensions": "^0.1@dev",
         "phil/privacy-bundle": "^0.1@dev",
+        "phil/search-bundle": "^0.1@dev",
         "phil/slug": "^0.1@dev",
         "phil/slug-bundle": "^0.1@dev || ^0.2@dev",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",
+        "symfony/console": "^8.2",
         "symfony/event-dispatcher": "^8.2",
         "symfony/framework-bundle": "^8.2",
         "symfony/http-kernel": "^8.2",
@@ -51,6 +53,7 @@
     "suggest": {
         "phil/privacy-bundle": "For the blame and the owner in the access and erasure requests of a person",
         "phil/slug-bundle": "For the sluggable behaviour, its sluggers",
+        "symfony/console": "For phil:doctrine-behaviours:strip-versions, which takes the personal fields out of the versions already written",
         "symfony/security-bundle": "For the blame and owner of the authenticated user, and the right to go back to a past version",
         "symfony/uid": "For the dated identifier, a UUID v7",
         "symfony/workflow": "For the publication state and its dates"
@@ -69,7 +72,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.2.x-dev"
+            "dev-main": "0.3.x-dev"
         }
     }
 }

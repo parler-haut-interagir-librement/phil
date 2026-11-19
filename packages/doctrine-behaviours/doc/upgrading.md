@@ -1,5 +1,55 @@
 # Upgrading
 
+## From 0.2 to 0.3
+
+### The personal fields of the versions
+
+`phil_record_version` has a column `redacted_at`, nullable, of the type `datetime_utc_immutable`: the moment an erasure
+took the personal fields out of a version. `doctrine:migrations:diff` writes the migration that adds it.
+
+`Versions` leaves out the fields `PersonalFields` names by default, `PersonalFieldPolicy::Exclude`; without
+`PersonalFields` it keeps every field, as before. The versions written before still hold those fields in plain: take
+them out once, after the migration, with `VersionEraser::stripPersonalFields()`, or the bundle's command
+`phil:doctrine-behaviours:strip-versions`:
+
+```php
+$eraser = new VersionEraser($registry, $personalFields, $clock);
+$eraser->stripPersonalFields(dryRun: true);   // how many versions hold some
+$eraser->stripPersonalFields();               // taken out; a sealed value stays
+```
+
+The record can still go back to those versions, with its own values for the fields taken out. An application that
+erased people before this version runs `VersionEraser::redact()` for each of them, if their versions are still linked
+to them through `owner_id` or `created_by`; once the blame or the owner is replaced, `stripPersonalFields()` is what
+reaches those versions.
+
+### The erasers
+
+`BlameEraser` and `OwnerEraser` take an entity manager or a `ManagerRegistry`; given the registry, they reach every
+entity manager. They write each connection in one transaction, evict the second-level cache regions of the classes
+they change and detach the managed entities that hold the old value: flush before an erasure, since whatever such an
+entity had pending is dropped.
+
+### Collation of the keys
+
+`BinaryKeysListener` is in the library: an application that uses the library without its bundle registers it on
+`loadClassMetadata`, as [Integration](integration.md#collation-of-the-keys) shows. On MySQL and MariaDB,
+`doctrine:migrations:diff` then writes the migration that brings the keys to `utf8mb4_bin`; on PostgreSQL and SQLite
+the diff is empty. The join columns towards a dated identifier take its collation and are converted with it, and MySQL
+refuses to change one side of a foreign key before the other: put `SET FOREIGN_KEY_CHECKS = 0` at the start of the
+migration's `up()` and `SET FOREIGN_KEY_CHECKS = 1` at its end.
+
+The change only makes values more distinct, so no existing row breaks a unique key, but rows whose keys differ only by
+case, which a lookup by either spelling returned together, are each found by their own spelling from then on. Before
+migrating, list the owners and authors written in more than one case, for each table that takes them:
+
+```sql
+SELECT owner_id, COUNT(*) AS row_count FROM notice
+GROUP BY owner_id HAVING COUNT(DISTINCT CAST(owner_id AS BINARY)) > 1;
+```
+
+Keep them apart, or bring the rows to the spelling the application uses with an `UPDATE` before the migration.
+
 ## From 0.1 to 0.2
 
 ### Moments in UTC

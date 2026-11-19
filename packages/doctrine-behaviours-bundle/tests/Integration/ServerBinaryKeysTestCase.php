@@ -13,8 +13,14 @@ use Doctrine\ORM\Events;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use Override;
-use Phil\DoctrineBehavioursBundle\Infrastructure\Doctrine\BinaryKeysListener;
-use Phil\DoctrineBehavioursBundle\Tests\Unit\Infrastructure\Doctrine\BinaryKeysListenerTest;
+use Phil\DoctrineBehaviours\BinaryKeysListener;
+use Phil\DoctrineBehaviours\Version\RecordVersion;
+use Phil\DoctrineBehavioursBundle\Tests\Functional\App\Entity\Article;
+use Phil\DoctrineBehavioursBundle\Tests\Functional\App\Entity\Faq;
+use Phil\DoctrineBehavioursBundle\Tests\Functional\App\Entity\FaqTranslation;
+use Phil\DoctrineBehavioursBundle\Tests\Functional\App\Entity\Notice;
+use Phil\DoctrineBehavioursBundle\Tests\Functional\App\Entity\Page;
+use Phil\DoctrineBehavioursBundle\Tests\Functional\App\Entity\Step;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -22,6 +28,11 @@ use PHPUnit\Framework\TestCase;
  */
 abstract class ServerBinaryKeysTestCase extends TestCase
 {
+    /**
+     * The entities of the test application, which take every behaviour, and the versions of the library.
+     */
+    public const array CLASSES = [Article::class, Faq::class, FaqTranslation::class, Notice::class, Page::class, Step::class, RecordVersion::class];
+
     /**
      * Keys that differ only by case or by an accent.
      */
@@ -84,7 +95,7 @@ abstract class ServerBinaryKeysTestCase extends TestCase
             $entityManager->getEventManager()->addEventListener(Events::loadClassMetadata, new BinaryKeysListener());
         }
 
-        return new SchemaTool($entityManager)->getSchemaFromMetadata(array_map($entityManager->getClassMetadata(...), BinaryKeysListenerTest::CLASSES));
+        return new SchemaTool($entityManager)->getSchemaFromMetadata(array_map($entityManager->getClassMetadata(...), self::CLASSES));
     }
 
     /**

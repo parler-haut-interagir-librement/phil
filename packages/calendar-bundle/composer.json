@@ -26,7 +26,7 @@
         "ext-sodium": "*",
         "doctrine/dbal": "^4.5",
         "doctrine/orm": "^3.7",
-        "phil/doctrine-behaviours": "^0.2@dev",
+        "phil/doctrine-behaviours": "^0.2@dev || ^0.3@dev",
         "phil/locale-dimensions": "^0.1@dev",
         "phil/recurrence": "^0.1@dev",
         "phil/recurrence-bundle": "^0.1@dev",

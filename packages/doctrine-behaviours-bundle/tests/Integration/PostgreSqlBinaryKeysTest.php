@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phil\DoctrineBehavioursBundle\Tests\Integration;
 
 use Override;
-use Phil\DoctrineBehavioursBundle\Infrastructure\Doctrine\BinaryKeysListener;
+use Phil\DoctrineBehaviours\BinaryKeysListener;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**

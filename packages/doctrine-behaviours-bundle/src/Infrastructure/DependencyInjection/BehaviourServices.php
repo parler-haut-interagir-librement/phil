@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Phil\DoctrineBehavioursBundle\Infrastructure\DependencyInjection;
 
 use LogicException;
+use Phil\DoctrineBehaviours\BinaryKeysListener;
 use Phil\DoctrineBehaviours\BlameEraser;
 use Phil\DoctrineBehaviours\BlameListener;
+use Phil\DoctrineBehaviours\BlameSuspension;
 use Phil\DoctrineBehaviours\Contract\BlameResolver;
 use Phil\DoctrineBehaviours\Contract\OwnerResolver;
+use Phil\DoctrineBehaviours\Contract\PersonalFields;
 use Phil\DoctrineBehaviours\Contract\Publishable;
 use Phil\DoctrineBehaviours\Contract\VersionRestoreGuard;
 use Phil\DoctrineBehaviours\DatedIdentifierListener;
@@ -16,9 +19,11 @@ use Phil\DoctrineBehaviours\DeactivatedFilter;
 use Phil\DoctrineBehaviours\DeactivationListener;
 use Phil\DoctrineBehaviours\FixedBlame;
 use Phil\DoctrineBehaviours\FixedOwner;
+use Phil\DoctrineBehaviours\NoPersonalFields;
 use Phil\DoctrineBehaviours\OwnerEraser;
 use Phil\DoctrineBehaviours\OwnerId;
 use Phil\DoctrineBehaviours\OwnerListener;
+use Phil\DoctrineBehaviours\PersonalFieldPolicy;
 use Phil\DoctrineBehaviours\PositionListener;
 use Phil\DoctrineBehaviours\Positions;
 use Phil\DoctrineBehaviours\PublicationListener;
@@ -27,23 +32,29 @@ use Phil\DoctrineBehaviours\RefuseVersionRestore;
 use Phil\DoctrineBehaviours\SlugListener;
 use Phil\DoctrineBehaviours\SoftDeletedFilter;
 use Phil\DoctrineBehaviours\SoftDeleteListener;
+use Phil\DoctrineBehaviours\SoftDeletes;
 use Phil\DoctrineBehaviours\TimestampListener;
 use Phil\DoctrineBehaviours\TranslationListener;
 use Phil\DoctrineBehaviours\Translations;
 use Phil\DoctrineBehaviours\Tree;
 use Phil\DoctrineBehaviours\TreeListener;
 use Phil\DoctrineBehaviours\Version\RecordVersion;
+use Phil\DoctrineBehaviours\VersionEraser;
 use Phil\DoctrineBehaviours\VersionListener;
 use Phil\DoctrineBehaviours\Versions;
-use Phil\DoctrineBehavioursBundle\Infrastructure\Doctrine\BinaryKeysListener;
+use Phil\DoctrineBehavioursBundle\Infrastructure\Console\StripVersionsCommand;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\BlamePrivacy;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\OwnerPrivacy;
+use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\PersonalDataFields;
+use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\VersionsPrivacy;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Security\SecurityBlameResolver;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Security\SecurityOwnerResolver;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Security\SecurityVersionRestoreGuard;
 use Phil\PrivacyBundle\Application\Contract\PersonalDataEraser;
+use Phil\PrivacyBundle\Domain\Attribute\PersonalData;
 use Phil\Slug\Sluggers;
 use ReflectionClass;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
@@ -56,10 +67,11 @@ use Symfony\Component\Workflow\Workflow;
 /**
  * The listeners of the behaviours switched on, each on the events it needs, the resolvers and erasers, the readers,
  * the answers to phil/privacy-bundle, and what the behaviours add to the configuration of DoctrineBundle and
- * FrameworkBundle. The tree listener, which keeps the moves of a flush until it ends, is reset with the kernel's
- * services; no other service holds anything between requests.
+ * FrameworkBundle. The tree listener, which keeps the moves of a flush until it ends, and the suspension of the blame
+ * during an erasure are reset with the kernel's services; no other service holds anything between requests. The
+ * erasers reach every entity manager of the `doctrine` registry.
  *
- * @phpstan-type BehavioursConfig array{timestamps: bool, blame: array{enabled: bool, user_method: ?string}, soft_delete: array{enabled: bool, filter: bool}, tree: bool, deactivation: array{enabled: bool, filter: bool}, owner: array{enabled: bool, user_method: ?string}, publication: array{enabled: bool, workflow: string, define_workflow: bool}, position: bool, translation: bool, slug: array{enabled: bool}, versions: array{enabled: bool, restore_right: string}, dated_identifier: array{enabled: bool}, privacy: array{enabled: bool, blame_replacement: ?string, owner_replacement: ?string}}
+ * @phpstan-type BehavioursConfig array{timestamps: bool, blame: array{enabled: bool, user_method: ?string, suspend_during_erasure: bool}, soft_delete: array{enabled: bool, filter: bool}, tree: bool, deactivation: array{enabled: bool, filter: bool}, owner: array{enabled: bool, user_method: ?string}, publication: array{enabled: bool, workflow: string, define_workflow: bool}, position: bool, translation: bool, slug: array{enabled: bool}, versions: array{enabled: bool, restore_right: string, personal_fields: string, cipher: ?string}, dated_identifier: array{enabled: bool}, privacy: array{enabled: bool, blame_replacement: ?string, owner_replacement: ?string}}
  */
 final class BehaviourServices
 {
@@ -69,7 +81,16 @@ final class BehaviourServices
 
     private const string EXPORTER_TAG = 'phil_privacy.exporter';
 
-    private const string ERASER_TAG = 'phil_privacy.eraser';
+    public const string ERASER_TAG = 'phil_privacy.eraser';
+
+    /**
+     * The priority of `SoftDeleteListener` on `onFlush`, below every listener of the default priority: those that
+     * must see a removal as a deletion, such as a search index that drops the entity, run before it turns the removal
+     * into an update.
+     */
+    public const int SOFT_DELETE_PRIORITY = -256;
+
+    private const string REGISTRY = 'doctrine';
 
     /**
      * @param BehavioursConfig $config
@@ -85,12 +106,21 @@ final class BehaviourServices
         if ($config['blame']['enabled']) {
             $container->register(BlameResolver::class, interface_exists(TokenStorageInterface::class) ? SecurityBlameResolver::class : FixedBlame::class)
                 ->setArguments(interface_exists(TokenStorageInterface::class) ? [new Reference('security.token_storage', ContainerInterface::NULL_ON_INVALID_REFERENCE), $config['blame']['user_method']] : []);
-            self::listen($container->register(BlameListener::class, BlameListener::class)->setArguments([new Reference(BlameResolver::class)]), ['prePersist', 'onFlush']);
-            $container->register(BlameEraser::class, BlameEraser::class)->setArguments([new Reference('doctrine.orm.entity_manager')])->setPublic(true);
+            $suspend = $config['blame']['suspend_during_erasure'] && $config['privacy']['enabled'] && interface_exists(PersonalDataEraser::class);
+
+            if ($suspend) {
+                $container->register(BlameSuspension::class, BlameSuspension::class)->addTag('kernel.reset', ['method' => 'reset']);
+            }
+
+            self::listen($container->register(BlameListener::class, BlameListener::class)->setArguments([new Reference(BlameResolver::class), $suspend ? new Reference(BlameSuspension::class) : null]), ['prePersist', 'onFlush']);
+            $container->register(BlameEraser::class, BlameEraser::class)->setArguments([new Reference(self::REGISTRY)])->setPublic(true);
         }
 
         if ($config['soft_delete']['enabled']) {
-            self::listen($container->register(SoftDeleteListener::class, SoftDeleteListener::class)->setArguments([new Reference('clock')]), ['onFlush']);
+            $container->register(SoftDeleteListener::class, SoftDeleteListener::class)
+                ->setArguments([new Reference('clock')])
+                ->addTag('doctrine.event_listener', ['event' => 'onFlush', 'priority' => self::SOFT_DELETE_PRIORITY]);
+            $container->register(SoftDeletes::class, SoftDeletes::class)->setArguments([new Reference(self::REGISTRY), new Reference('clock')])->setPublic(true);
         }
 
         if ($config['tree']) {
@@ -125,7 +155,7 @@ final class BehaviourServices
         }
 
         if ($config['versions']['enabled']) {
-            self::registerVersions($container, $config['versions']['restore_right']);
+            self::registerVersions($container, $config['versions']);
         }
 
         if ($config['dated_identifier']['enabled']) {
@@ -138,15 +168,19 @@ final class BehaviourServices
     }
 
     /**
-     * The blame and the owner in the access and erasure requests of phil/privacy-bundle, each when it is on.
+     * The blame, the owner and the versions in the access and erasure requests of phil/privacy-bundle, each when it
+     * is on. The blame and the owner redact the versions of the person before they replace the name the versions are
+     * found by.
      *
      * @param BehavioursConfig $config
      */
     private static function registerPrivacy(ContainerBuilder $container, array $config): void
     {
+        $versions = $config['versions']['enabled'] ? new Reference(VersionEraser::class) : null;
+
         if ($config['blame']['enabled']) {
             $container->register(BlamePrivacy::class, BlamePrivacy::class)
-                ->setArguments([new Reference(BlameEraser::class), $config['privacy']['blame_replacement']])
+                ->setArguments([new Reference(BlameEraser::class), $config['privacy']['blame_replacement'], $versions])
                 ->addTag(self::EXPORTER_TAG)
                 ->addTag(self::ERASER_TAG);
         }
@@ -154,7 +188,14 @@ final class BehaviourServices
         if ($config['owner']['enabled']) {
             $replacement = $config['privacy']['owner_replacement'];
             $container->register(OwnerPrivacy::class, OwnerPrivacy::class)
-                ->setArguments([new Reference(OwnerEraser::class), null === $replacement ? null : new Definition(OwnerId::class, [$replacement])])
+                ->setArguments([new Reference(OwnerEraser::class), null === $replacement ? null : new Definition(OwnerId::class, [$replacement]), $versions])
+                ->addTag(self::EXPORTER_TAG)
+                ->addTag(self::ERASER_TAG);
+        }
+
+        if ($versions instanceof Reference) {
+            $container->register(VersionsPrivacy::class, VersionsPrivacy::class)
+                ->setArguments([$versions])
                 ->addTag(self::EXPORTER_TAG)
                 ->addTag(self::ERASER_TAG);
         }
@@ -166,7 +207,7 @@ final class BehaviourServices
         $container->register(OwnerResolver::class, $security ? SecurityOwnerResolver::class : FixedOwner::class)
             ->setArguments($security ? [new Reference('security.token_storage', ContainerInterface::NULL_ON_INVALID_REFERENCE), $userMethod] : []);
         self::listen($container->register(OwnerListener::class, OwnerListener::class)->setArguments([new Reference(OwnerResolver::class)]), ['prePersist']);
-        $container->register(OwnerEraser::class, OwnerEraser::class)->setArguments([new Reference('doctrine.orm.entity_manager')])->setPublic(true);
+        $container->register(OwnerEraser::class, OwnerEraser::class)->setArguments([new Reference(self::REGISTRY)])->setPublic(true);
     }
 
     private static function registerPublication(ContainerBuilder $container, string $workflow): void
@@ -185,15 +226,36 @@ final class BehaviourServices
         self::listen($container->register(SlugListener::class, SlugListener::class)->setArguments([new Reference(Sluggers::class)]), ['onFlush']);
     }
 
-    private static function registerVersions(ContainerBuilder $container, string $right): void
+    /**
+     * @param array{enabled: bool, restore_right: string, personal_fields: string, cipher: ?string} $versions
+     */
+    private static function registerVersions(ContainerBuilder $container, array $versions): void
     {
         $security = interface_exists(AuthorizationCheckerInterface::class);
         $container->register(VersionRestoreGuard::class, $security ? SecurityVersionRestoreGuard::class : RefuseVersionRestore::class)
-            ->setArguments($security ? [new Reference('security.authorization_checker', ContainerInterface::NULL_ON_INVALID_REFERENCE), $right] : []);
+            ->setArguments($security ? [new Reference('security.authorization_checker', ContainerInterface::NULL_ON_INVALID_REFERENCE), $versions['restore_right']] : []);
         self::listen($container->register(VersionListener::class, VersionListener::class), ['onFlush']);
+        $container->register(PersonalFields::class, class_exists(PersonalData::class) ? PersonalDataFields::class : NoPersonalFields::class);
+        $policy = PersonalFieldPolicy::from($versions['personal_fields']);
         $container->register(Versions::class, Versions::class)
-            ->setArguments([new Reference('doctrine.orm.entity_manager'), new Reference('clock'), new Reference(VersionRestoreGuard::class)])
+            ->setArguments([
+                new Reference('doctrine.orm.entity_manager'),
+                new Reference('clock'),
+                new Reference(VersionRestoreGuard::class),
+                new Reference(PersonalFields::class),
+                $policy,
+                PersonalFieldPolicy::Encrypt === $policy && null !== $versions['cipher'] ? new Reference($versions['cipher']) : null,
+            ])
             ->setPublic(true);
+        $container->register(VersionEraser::class, VersionEraser::class)
+            ->setArguments([new Reference(self::REGISTRY), new Reference(PersonalFields::class), new Reference('clock')])
+            ->setPublic(true);
+
+        if (class_exists(Command::class)) {
+            $container->register(StripVersionsCommand::class, StripVersionsCommand::class)
+                ->setArguments([new Reference(VersionEraser::class)])
+                ->addTag('console.command');
+        }
     }
 
     private static function registerDatedIdentifier(ContainerBuilder $container): void

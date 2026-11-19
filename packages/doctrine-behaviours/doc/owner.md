@@ -35,8 +35,15 @@ so soft-deleted and deactivated rows are found too, and no listener runs. `table
 or not, for a report that names each store.
 
 ```php
+$eraser = new OwnerEraser($registry);              // every entity manager, or one: new OwnerEraser($manager)
 $eraser->find($owner);                             // ['article' => 12, 'page' => 3]
 $eraser->replace($owner, new OwnerId('former-81'));
 $eraser->replace($owner);                          // nobody owns them any more
 $eraser->tables();                                 // ['article', 'page']
 ```
+
+Like `BlameEraser`, it reaches the tables of every entity manager a `ManagerRegistry` gives, each table once per
+connection, writes the tables of each connection in one transaction, then evicts the second-level cache regions of the
+classes it changed and detaches the managed entities that still hold the old owner. The versions of the records the
+person owns hold what `versionedState()` gave: `VersionEraser::redact()` takes their personal fields out, before the
+owner is replaced — see [Versions](versions.md#erasure).

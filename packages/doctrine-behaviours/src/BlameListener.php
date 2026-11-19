@@ -11,19 +11,21 @@ use Phil\DoctrineBehaviours\Contract\BlameResolver;
 
 /**
  * Blames `Blameable` entities on whoever the resolver names: both names as one is persisted, unless it was given
- * them, and `updatedBy` as one is updated, unless the update sets it. When nobody is known, nothing is written.
+ * them, and `updatedBy` as one is updated, unless the update sets it. When nobody is known, nothing is written, and
+ * nothing either while a `BlameSuspension` it was given is suspended: during an erasure.
  */
 final readonly class BlameListener
 {
     public function __construct(
         private BlameResolver $resolver,
+        private ?BlameSuspension $suspension = null,
     ) {
     }
 
     public function prePersist(PrePersistEventArgs $event): void
     {
         $entity = $event->getObject();
-        $who = $this->resolver->current();
+        $who = $this->who();
 
         if ($entity instanceof Blameable && null !== $who) {
             $entity->blameCreated($who);
@@ -32,7 +34,7 @@ final readonly class BlameListener
 
     public function onFlush(OnFlushEventArgs $event): void
     {
-        $who = $this->resolver->current();
+        $who = $this->who();
 
         if (null === $who) {
             return;
@@ -47,5 +49,10 @@ final readonly class BlameListener
                 $work->recomputeSingleEntityChangeSet($manager->getClassMetadata($entity::class), $entity);
             }
         }
+    }
+
+    private function who(): ?string
+    {
+        return true === $this->suspension?->isSuspended() ? null : $this->resolver->current();
     }
 }

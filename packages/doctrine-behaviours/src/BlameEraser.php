@@ -4,20 +4,28 @@ declare(strict_types=1);
 
 namespace Phil\DoctrineBehaviours;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Phil\DoctrineBehaviours\Contract\Blameable;
 
 /**
  * Finds and replaces a user's name in the blame of every `Blameable` entity, `created_by` and `updated_by` alike: what
  * an access or erasure request needs, since the blame outlives the account. It reads and writes the tables directly:
  * soft-deleted rows and rows an SQL filter hides are found too, the listeners do not run — an erasure is no update of
- * the entities —, and nothing else of the rows changes. Entities already loaded keep the old name until they are read
- * again.
+ * the entities —, and nothing else of the rows changes.
+ *
+ * Given a `ManagerRegistry`, it reaches the tables of every entity manager, each table once per connection, and writes
+ * the tables of each connection in one transaction of that connection. Once a connection's names are replaced, it
+ * evicts the second-level cache regions of the classes it changed and detaches the managed entities that still hold
+ * the old name, so that the next read gets the new one; whatever such an entity had pending is dropped with it.
  */
 final readonly class BlameEraser
 {
+    private const array FIELDS = ['createdBy', 'updatedBy'];
+
     public function __construct(
-        private EntityManagerInterface $manager,
+        private ManagerRegistry|EntityManagerInterface $managers,
     ) {
     }
 
@@ -30,13 +38,17 @@ final readonly class BlameEraser
     {
         $found = [];
 
-        foreach ($this->columns() as $table => [$created, $updated]) {
-            $count = $this->manager->getConnection()->fetchOne(\sprintf('SELECT COUNT(*) FROM %s WHERE %s = ? OR %s = ?', $table, $created, $updated), [$who, $who]);
+        foreach ($this->groups() as $group) {
+            foreach ($group['tables'] as $table => ['columns' => [$created, $updated]]) {
+                $count = $group['connection']->fetchOne(\sprintf('SELECT COUNT(*) FROM %s WHERE %s = ? OR %s = ?', $table, $created, $updated), [$who, $who]);
 
-            if (is_numeric($count) && $count > 0) {
-                $found[$table] = (int) $count;
+                if (is_numeric($count) && $count > 0) {
+                    $found[$table] = ($found[$table] ?? 0) + (int) $count;
+                }
             }
         }
+
+        ksort($found);
 
         return $found;
     }
@@ -50,10 +62,20 @@ final readonly class BlameEraser
     {
         $replaced = 0;
 
-        foreach ($this->columns() as $table => $columns) {
-            foreach ($columns as $column) {
-                $replaced += (int) $this->manager->getConnection()->executeStatement(\sprintf('UPDATE %1$s SET %2$s = ? WHERE %2$s = ?', $table, $column), [$replacement, $who]);
-            }
+        foreach ($this->groups() as $group) {
+            $replaced += $group['connection']->transactional(static function (Connection $connection) use ($group, $who, $replacement): int {
+                $rows = 0;
+
+                foreach ($group['tables'] as $table => ['columns' => $columns]) {
+                    foreach ($columns as $column) {
+                        $rows += (int) $connection->executeStatement(\sprintf('UPDATE %1$s SET %2$s = ? WHERE %2$s = ?', $table, $column), [$replacement, $who]);
+                    }
+                }
+
+                return $rows;
+            });
+
+            Forget::after($group['managers'], Managers::classes($group), static fn (object $entity): bool => $entity instanceof Blameable && ($who === $entity->createdBy() || $who === $entity->updatedBy()));
         }
 
         return $replaced;
@@ -66,14 +88,14 @@ final readonly class BlameEraser
      */
     public function tables(): array
     {
-        return array_keys($this->columns());
+        return Managers::tableNames($this->groups());
     }
 
     /**
-     * @return array<string, list<string>>
+     * @return list<array{connection: Connection, managers: list<EntityManagerInterface>, tables: array<string, array{columns: list<string>, classes: list<array{EntityManagerInterface, class-string}>}>}>
      */
-    private function columns(): array
+    private function groups(): array
     {
-        return MappedColumns::of($this->manager, Blameable::class, ['createdBy', 'updatedBy']);
+        return Managers::tables($this->managers, Blameable::class, self::FIELDS);
     }
 }
