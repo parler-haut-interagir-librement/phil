@@ -18,6 +18,7 @@ use Phil\ElearningPackages\Exception\PackageRefused as UnreadablePackage;
 use Phil\ElearningPackages\Package;
 use Phil\ElearningPackages\PackageLimits;
 use Phil\ElearningPackages\PackageReader;
+use Phil\ElearningPackages\Xapi\XapiCourse;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Throwable;
 
@@ -88,6 +89,10 @@ final readonly class CourseImporter
 
     private function plan(Package $package, bool $packaged): ImportPlan
     {
+        if ($package->manifest instanceof XapiCourse) {
+            throw PackageRefused::because('An xAPI package holds no course the import can create: only SCORM and cmi5 packages are imported.');
+        }
+
         return $package->manifest instanceof Cmi5Course
             ? new Cmi5Planner()->plan($package->manifest, $packaged, $package->warnings)
             : new ScormPlanner()->plan($package->manifest, $package->warnings);

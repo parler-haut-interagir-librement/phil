@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5a9071c064b654c63312b9e07b6749e1f5755fbcd53ca9699698326f6bd3a70c -->
+<!-- phil-dev source-sha256=c2884cb7910fa839bfc20d4cd9cd53254d4b10f37bfdda03cf400a3c216eab18 -->
 # Limites et sécurité
 
 Un paquet est écrit par quelqu'un d'autre, sur une autre plateforme, et peut être fabriqué pour nuire au serveur qui le
@@ -17,9 +17,9 @@ cas contraire.
 | `entryBytes` | 256 Mio | La taille d'un fichier une fois décompressé |
 | `totalBytes` | 2 Gio | La taille de tous les fichiers une fois décompressés : annoncée par les entrées, et lue |
 | `ratio` | 200 | Combien de fois un fichier de plus de 1 Mio peut être compressé |
-| `manifestBytes` | 4 Mio | La taille de `imsmanifest.xml` ou de `cmi5.xml` |
+| `manifestBytes` | 4 Mio | La taille de `imsmanifest.xml`, de `cmi5.xml` ou de `tincan.xml` |
 | `depth` | 16 | La profondeur d'imbrication des éléments d'une organisation SCORM ou des blocs d'une structure cmi5 |
-| `items` | 5 000 | Les éléments, les ressources, ou les blocs et les unités qu'un manifeste décrit |
+| `items` | 5 000 | Les éléments, les ressources, les blocs et les unités, ou les activités xAPI qu'un manifeste décrit |
 | `manifestNodes` | 500 000 | Les nœuds XML d'un manifeste — ses éléments, attributs, textes et commentaires —, comptés avant qu'il soit chargé |
 | `manifestDepth` | 64 | La profondeur d'imbrication des éléments XML d'un manifeste, sa racine à 1, vérifiée avant qu'il soit chargé |
 
@@ -74,7 +74,7 @@ puis vérifiée.
 
 ## Les manifestes
 
-`imsmanifest.xml` et `cmi5.xml` sont analysés par l'extension DOM de PHP :
+`imsmanifest.xml`, `cmi5.xml` et `tincan.xml` sont analysés par l'extension DOM de PHP :
 
 - un document plus long que `manifestBytes` est refusé avant d'être analysé ;
 - un passage en flux de `XMLReader` compte les nœuds et vérifie la profondeur des éléments un nœud à la fois, sans garder
@@ -88,8 +88,22 @@ puis vérifiée.
   effacées, ce qui laisse l'état d'erreur de libxml tel qu'il était ;
 - la profondeur des éléments ou des blocs et leur nombre sont bornés par `depth` et `items`, comptés à mesure de la
   lecture ;
-- un identifiant est borné à 255 octets, une URL cmi5 à 2 048, un texte à 4 096 caractères, et un élément de séquencement
-  de plus de 64 Kio n'est pas conservé.
+- un identifiant est borné à 255 octets, une URL cmi5 et une IRI xAPI à 2 048, un texte à 4 096 caractères, les textes
+  d'une activité xAPI à 32 langues, et un élément de séquencement de plus de 64 Kio n'est pas conservé en XML ;
+- un lancement xAPI est un fichier du paquet, vérifié comme tout chemin, ou une adresse absolue `http` ou `https` lue par
+  `phil/url` — jamais `javascript:`, `data:`, une adresse avec un nom d'utilisateur et un mot de passe, ni une adresse
+  IP ;
+- le séquencement qu'une activité déclare est borné à 32 règles d'un même moment, 32 règles de cumul, 16 conditions par
+  règle, 64 objectifs et 16 correspondances par objectif, et une expression de prérequis de SCORM 1.2 à 4 096 octets et
+  32 niveaux d'imbrication.
+
+## L'état de séquencement
+
+Un `SequencingState` revient du stockage de la plateforme, que les requêtes de l'apprenant ont pu atteindre :
+`SequencingState::fromArray()` vérifie sa version, chaque type, chaque identifiant par rapport à l'arbre, des tentatives
+jusqu'à un milliard, des durées jusqu'à 9 999 heures, des mesures de -1 à 1, l'ordre des enfants par rapport aux enfants
+de leur activité, au plus 64 objectifs par activité et 10 000 objectifs globaux. Une demande de navigation est bornée par
+l'arbre : le flux fait au plus deux fois plus de pas que l'arbre n'a d'activités.
 
 ## Les données de suivi de l'environnement d'exécution
 
@@ -111,12 +125,16 @@ l'apprenant :
 - Elle ne récupère jamais une URL qu'un manifeste nomme, ni ne résout une entité externe.
 - Elle n'exécute, n'évalue ni ne désérialise jamais rien de ce que contient un paquet.
 - Elle ne garde aucun état entre deux lectures : `PackageReader` et les lecteurs sont immuables, et un `ZipPackage`
-  appartient à une seule lecture. Un `CmiData` appartient à une seule tentative ; les définitions du modèle de données
-  sont construites une fois par processus, les mêmes pour chaque requête.
+  appartient à une seule lecture. Le `Sequencer` ne garde rien entre deux requêtes : l'état entre et sort avec chacune. Un
+  `CmiData` appartient à une seule tentative ; les définitions du modèle de données sont construites une fois par
+  processus, les mêmes pour chaque requête.
 
 ## Temps et mémoire
 
 Le temps d'une lecture croît avec la taille du paquet, jamais avec son carré : l'archive est vérifiée entrée par entrée,
 et le manifeste lu deux fois, une fois par le passage en flux qui le compte et une fois dans un arbre. Un manifeste
-entier est gardé en mémoire pendant sa lecture, ce que bornent `manifestBytes` et `manifestNodes` ; un fichier est gardé en mémoire une fois lu, ce que borne `entryBytes`. Les bancs d'essai de
-[Tests](testing.md) mesurent un manifeste de mille éléments et une archive de mille entrées.
+entier est gardé en mémoire pendant sa lecture, ce que bornent `manifestBytes` et `manifestNodes` ; un fichier est gardé
+en mémoire une fois lu, ce que borne `entryBytes`. Une demande du séquenceur croît avec la taille de l'arbre : chaque
+cumul lit les enfants de chaque activité sur le chemin jusqu'à la racine. Les bancs d'essai de [Tests](testing.md)
+mesurent un manifeste de mille éléments, une archive de mille entrées, et des demandes du séquenceur sur un arbre de mille
+activités.

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="old" xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2" xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2">
+  <metadata><schema>ADL SCORM</schema><schemaversion>1.2</schemaversion></metadata>
+  <organizations default="org"><organization identifier="org"><title>Course</title><item identifier="a" identifierref="r"><title>A</title></item><item identifier="b" identifierref="r"><title>B</title><adlcp:prerequisites>a | 1*{c}</adlcp:prerequisites></item><item identifier="c" identifierref="r"><title>C</title></item></organization></organizations>
+  <resources><resource identifier="r" type="webcontent" adlcp:scormtype="sco" href="index.html"/></resources>
+</manifest>

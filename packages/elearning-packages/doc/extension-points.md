@@ -10,8 +10,10 @@ to `PackageReader`, to the readers and to `ZipPackage::open()`.
 
 ## The language of the texts
 
-`PackageReader` and `Cmi5CourseReader` take the language in which a cmi5 title or description is chosen, such as `fr`;
-the first text written is chosen when the language is absent or not given. SCORM titles have no language.
+`PackageReader`, `Cmi5CourseReader` and `XapiCourseReader` take the language in which a cmi5 title or description, or
+the title and the launch of an xAPI course, is chosen, such as `fr`; the first text written is chosen when the language
+is absent or not given. SCORM titles have no language. `XapiActivity` keeps every language, for `name()` and
+`description()` to choose from.
 
 ## `PackageOpener` and `PackageArchive`
 
@@ -32,11 +34,19 @@ takes an archive the application opened itself.
 
 ## The values read
 
-`Package`, `ScormManifest`, `ScormOrganization`, `ScormItem`, `ScormResource`, `Cmi5Course`, `Cmi5Block` and `Cmi5Au`
-are immutable, with public properties: an application maps them to its own model. Their constructors are public, so
-that an application builds them in its tests.
+`Package`, `ScormManifest`, `ScormOrganization`, `ScormItem`, `ScormResource`, `Cmi5Course`, `Cmi5Block`, `Cmi5Au`,
+`XapiCourse`, `XapiActivity`, the activity tree and its sequencing values are immutable, with public properties: an
+application maps them to its own model. Their constructors are public, so that an application builds them in its
+tests — an `ActivityTree` built by hand is sequenced as one read from a manifest.
+
+## The sequencing state
+
+`SequencingState` is the one thing a platform stores for sequencing: `toArray()` gives plain values for a JSON column
+or a document, `fromArray()` reads them back against the tree. Where and when it is stored, and how global objectives
+are shared across courses, is the platform's: see [SCORM sequencing](scorm-sequencing.md).
 
 ## Stability
 
-The package is at `0.x`: its API may change between minor versions until its first stable release. `XmlDocument` is
-internal: the readers use it, an application does not.
+The package is at `0.x`: its API may change between minor versions until its first stable release. `XmlDocument`, the
+`SequencingBuilder`, the classes of one request of the sequencer and the parts of a prerequisites expression are
+internal: the readers and the sequencer use them, an application does not.

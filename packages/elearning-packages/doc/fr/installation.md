@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ce30fda404aeac935a4df9812beccedf100f9d78612e67ede821666b48b4decd -->
+<!-- phil-dev source-sha256=15cfc4a61b2f60a639ff9a4d4ae2db56a741e1b29354f3a148823cbd5b94d9bb -->
 # Installation
 
 ## Prérequis
@@ -7,6 +7,8 @@
 - Les extensions `dom`, `libxml` et `xmlreader`, qui comptent et analysent les manifestes.
 - L'extension `mbstring`, qui borne les textes et vérifie que les chemins sont en UTF-8.
 - L'extension `zip`, qui lit les archives.
+- `phil/url`, qui lit l'adresse de lancement absolue d'une activité xAPI, et les extensions `intl` et `uri` dont il a
+  besoin.
 
 La bibliothèque ne dépend d'aucun autre paquet. Elle n'écrit jamais sur le disque : un paquet est lu là où il se trouve,
 et ses fichiers sont remis à l'appelant sous forme de chaînes.
@@ -55,4 +57,6 @@ services:
             $language: 'fr'
 ```
 
-Les deux sont immuables et ne gardent aucun état entre deux lectures : ils sont sûrs dans un *worker* de longue durée.
+Les deux sont immuables et ne gardent aucun état entre deux lectures : ils sont sûrs dans un *worker* de longue durée. Il
+en va de même de `SequencingReader` et de `Sequencer`, qu'une plateforme qui exécute le séquencement SCORM enregistre de
+la même façon.

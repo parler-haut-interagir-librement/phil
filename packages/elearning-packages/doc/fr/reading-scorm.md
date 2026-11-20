@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d12e6d6054fd2d3f1b59d40e1d0ab85da40beff1d296e663a34d52d0321d9666 -->
+<!-- phil-dev source-sha256=724027a5aafcc9aa4abb5391c0fbecb31421c008777f8d8a4c1ab1ecff251990 -->
 # Lire SCORM
 
 Un paquet SCORM est une archive IMS Content Packaging : `imsmanifest.xml`, à sa racine, décrit des organisations — des
@@ -106,6 +106,6 @@ décide comment.
 
 ## Ce que la bibliothèque laisse à son appelant
 
-Elle n'exécute pas les SCO, n'implémente pas l'API d'exécution SCORM, n'applique ni le séquencement ni les prérequis, et
-ne transforme pas le manifeste en cours : cela revient à une plateforme. Elle lit ce dont une telle plateforme a besoin
-pour décider.
+Elle n'exécute pas les SCO et ne transforme pas le manifeste en cours : cela revient à une plateforme. Elle lit ce dont
+une telle plateforme a besoin pour décider. Le séquencement et les prérequis conservés ici tels qu'ils sont écrits sont
+lus et appliqués par `SequencingReader` et `Sequencer` : voir [Séquencement SCORM](scorm-sequencing.md).

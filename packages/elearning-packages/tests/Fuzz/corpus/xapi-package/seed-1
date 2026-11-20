@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tincan xmlns="http://projecttincan.com/tincan.xsd">
+  <activities>
+    <activity id="https://example.org/xapi/quiz-1/q1" type="http://adlnet.gov/expapi/activities/cmi.interaction">
+      <name lang="en-US">First question</name>
+      <description lang="en-US">Which tool?</description>
+      <interactionType>choice</interactionType>
+    </activity>
+    <activity id="https://example.org/xapi/safety" type="http://adlnet.gov/expapi/activities/course">
+      <name lang="en-US">Workshop safety</name>
+      <name lang="fr-CA">Sécurité à l'atelier</name>
+      <name lang="fr-CA">Doublon</name>
+      <name lang="de"></name>
+      <description lang="en-US">Tools and gloves.</description>
+      <launch lang="en-us">content/index.html?lang=en#top</launch>
+      <launch lang="fr">content/index_fr.html</launch>
+    </activity>
+    <activity id="https://example.org/xapi/quiz-1/q2" type="http://adlnet.gov/expapi/activities/cmi.interaction">
+      <name>Second question</name>
+      <interactionType>TRUE-FALSE</interactionType>
+    </activity>
+    <activity id="https://example.org/xapi/video" type="http://adlnet.gov/expapi/activities/media">
+      <name lang="en">Video</name>
+      <launch>https://Video.Example.org:443/watch/../play?v=1</launch>
+    </activity>
+  </activities>
+</tincan>
