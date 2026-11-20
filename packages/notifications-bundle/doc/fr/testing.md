@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4d466c4efac316ee88501c3c9be4661b788c8ef971d731f43920d18efe2749ee -->
+<!-- phil-dev source-sha256=d62e0d496433b13cbd1ec7433d8110437641255409b6a6cc3391861f4d1d9835 -->
 # Tests
 
 ## Les tests du paquet
@@ -17,8 +17,13 @@ accepte, les oublie ou les refuse. La suite fonctionnelle, sous
 envoie une notification, rend la cloche et la liste, et la marque lue par un formulaire vérifié par la véritable
 protection CSRF sans état. Avec Symfony UX Turbo, elle rend la cloche comme un élément permanent, envoie un formulaire
 comme le fait Turbo et lit le nombre de non-lues. Un second noyau publie une diffusion vers Slack et Discord par les
-ponts mêmes de Symfony Notifier, contre un client HTTP d'enregistrement qui répond comme leurs API. Le bouton Web Push est
-rendu avec sa configuration, et l'abonnement d'un navigateur gardé et oublié par ses points de terminaison. Les tests
+ponts mêmes de Symfony Notifier, contre un client HTTP d'enregistrement qui répond comme leurs API. `FallbackTest` exécute le mode `first_success` contre
+de faux transports qui acceptent, refusent ou lancent une exception sur commande, avec une horloge simulée, une fenêtre
+de doublons dans un cache en mémoire et un limiteur en mémoire : le premier canal, le suivant et le dernier, un canal
+sans contact sauté sans être appelé, un circuit qui s'ouvre et laisse passer sa sonde, un doublon dans la fenêtre, un
+échec total puis sa nouvelle tentative avec le centre gardé une seule fois, la limite de débit et le type `urgent` qui la
+contourne, un refus d'un transport et une autre exception qui remonte. Le bouton Web Push est rendu avec sa
+configuration, et l'abonnement d'un navigateur gardé et oublié par ses points de terminaison. Les tests
 Node couvrent les modules des contrôleurs — les mises à jour lues depuis Mercure et les messages éphémères construits à
 partir d'elles, ce que le contrôleur Web Push lit du navigateur et envoie — et le *service worker*, exécuté avec un faux
 `self` : ce qu'il affiche et ce qu'ouvre un clic.

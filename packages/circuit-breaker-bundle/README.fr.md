@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0d3d669dec9b98a8c8126da2059c758a346870c78f5a0b990f49747c991216cd -->
+<!-- phil-dev source-sha256=5255a2526eb6bac95abbf9d81add5de3bfb788e8d58a580c6ec9bad8c2235f8f -->
 # phil/circuit-breaker-bundle
 
 **Des circuits déclarés en configuration, leurs états partagés par les workers, et des clients HTTP derrière leurs
@@ -8,7 +8,8 @@ phil/circuit-breaker-bundle apporte `phil/circuit-breaker` à une application Sy
 configuration `phil_circuit_breaker`, une politique par clé — un client HTTP, ou une destination comme un point de
 terminaison de webhook — et vérifiés à la construction du conteneur. Leurs états vivent dans un pool de cache PSR-6
 partagé par les *workers*, de sorte qu'un circuit ouvert dans l'un l'est dans tous, ou dans un stockage propre à
-l'application. Un circuit doté de `http_client` place ce client derrière lui : tant que le circuit est ouvert, une
+l'application ; en production, un pool qui reste sur chaque serveur est refusé, sauf si l'application dit qu'elle
+tourne sur un seul. Un circuit doté de `http_client` place ce client derrière lui : tant que le circuit est ouvert, une
 requête est refusée avant de partir, et ses réponses sont comptées — une erreur serveur ou une erreur de transport comme
 un échec, tout le reste comme un succès.
 
@@ -26,6 +27,7 @@ Cache pour le stockage, HttpClient pour les clients décorés, HttpKernel pour l
 |---|---|
 | Circuits issus de la configuration, chacun vérifié à la construction | Implémenté et testé |
 | États dans un pool de cache PSR-6, ou dans un stockage propre à l'application | Implémenté et testé |
+| Un pool local à chaque serveur refusé en production, sauf avec `single_server` | Implémenté et testé |
 | Un client HTTP derrière son circuit, par client ou par destination | Implémenté et testé |
 | Forçages étiquetés et interrogés ensemble, autoconfigurés | Implémenté et testé |
 | Un panneau du profileur pour les circuits | Implémenté, son collecteur testé |
@@ -35,7 +37,7 @@ Cache pour le stockage, HttpClient pour les clients décorés, HttpKernel pour l
 
 | Document | Contenu |
 |---|---|
-| [Installation](doc/fr/installation.md) | Les prérequis, l'installation, le pool de cache. |
+| [Installation](doc/fr/installation.md) | Les prérequis, l'installation, le pool de cache, la mise à niveau depuis la 0.1. |
 | [Configuration](doc/fr/configuration.md) | Chaque clé de `phil_circuit_breaker`, et les erreurs d'un circuit mal formé. |
 | [Clients HTTP](doc/fr/http-clients.md) | Un client derrière son circuit : ce qui est refusé, ce qui compte comme un échec. |
 | [Points d'extension](doc/fr/extension-points.md) | Le stockage des états, les forçages, le paramètre des clés de circuit. |
@@ -72,7 +74,7 @@ try {
 
 ## Prérequis
 
-PHP 8.5 ou plus récent, Symfony 8.2 ou plus récent, et `phil/circuit-breaker`. `psr/cache` pour le stockage par défaut,
+PHP 8.5 ou plus récent, Symfony 8.2 ou plus récent, `phil/circuit-breaker` et `phil/rate-limit`. `psr/cache` pour le stockage par défaut,
 `symfony/http-client` pour les clients derrière leurs circuits, `symfony/web-profiler-bundle` pour le panneau — chacun
 seulement s'il est utilisé.
 

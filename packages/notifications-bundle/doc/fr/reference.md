@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2f46830dac1204f3762582b7967ca4a342a999c9aed40c486df998a880bca153 -->
+<!-- phil-dev source-sha256=d3b5efe9cdbfc3d1647caf5f598062f12102829d9497b964a85da5f6931987c1 -->
 # Référence
 
 ## Domaine
@@ -20,7 +20,12 @@
 | `Notifications` | Le point d'entrée |
 | `NotificationType`, `NotificationTypes`, `Channels` | Les types déclarés et les noms des canaux |
 | `Message\SendNotification`, `Handler\SendNotificationHandler` | Le message d'identifiants, séparé par destinataire |
-| `NotificationDispatcher` | La livraison à un destinataire, et la diffusion |
+| `NotificationDispatcher` | La livraison à un destinataire, dans le mode de son type, et la diffusion |
+| `Delivery\DeliveryMode`, `DeliveryStatus`, `SkipReason`, `ChannelOutcome` | Les modes, les statuts d'une livraison, les raisons pour lesquelles un canal est sauté, la réponse d'une tentative |
+| `Delivery\DeliveryResult`, `NotificationDelivered` | Le résultat d'une livraison, et son événement |
+| `Delivery\DeliveryPolicy` | Les expéditeurs de canal, la fenêtre des doublons, la limite de débit et les disjoncteurs d'une livraison |
+| `Delivery\DedupeTicket` | Un doublon, ou la réservation d'une livraison, comme la donne `DeliveryDedupe` |
+| `Delivery\RecipientRateLimit` | La limite de chaque destinataire, sur un limiteur de symfony/rate-limiter |
 | `OutgoingNotification` | Une notification telle que Symfony Notifier l'envoie ; sur un canal de clavardage, le titre, une ligne vide et le corps |
 | `CheckedCurrentRecipient` | Le destinataire courant de l'application, refusé quand il ressemble à une adresse courriel ou n'est pas un identifiant |
 | `NotificationRenderer`, `RenderedNotification`, `ResolvedSubject` | La rédaction d'une notification |
@@ -33,6 +38,7 @@
 | `RemoteNotification`, `ForwardingRemoteReceiver` | Une notification d'un autre site, et son récepteur par défaut |
 | `Contract\*` | Les ports : voir [Points d'extension](extension-points.md) |
 | `Exception\UnknownNotificationType`, `UnknownAudience` | Un type non déclaré, un public inconnu |
+| `Exception\DeliveryFailed` | Aucun canal n'a joint le destinataire, et une tentative ultérieure le peut |
 | `Exception\InvalidPushSubscription` | Un abonnement qui ne peut pas être gardé |
 
 ## Infrastructure
@@ -46,7 +52,11 @@
 | `Twig\CentreView`, `BellComponent`, `ListComponent`, `ToastsComponent`, `WebPushComponent` | Les composants |
 | `Http\PushSubscriptionController` | Les points de terminaison de Web Push |
 | `WebPush\MinishlinkWebPushSender`, `WebPush\VapidKeys` | L'expéditeur Web Push du bundle sur minishlink/web-push, et les clés VAPID dont il signe |
-| `Mailer\MailerDigestSender` | Le résumé par Symfony Mailer |
+| `Mailer\MailerDigestSender` | Le résumé par les transports de Symfony Mailer |
+| `Idempotency\NotificationDedupe` | Le `DeliveryDedupe` sur phil/idempotency : une seule livraison de la même notification par fenêtre |
+| `CircuitBreaker\ChannelBreakers` | Le `ChannelCircuits` sur phil/circuit-breaker : les circuits `notifications.<channel>[.<transport>]` |
+| `Mailer\MailerChannelSender` | Le canal `email` du mode `first_success`, par les transports de Symfony Mailer |
+| `Notifier\NotifierChannelSender` | Les canaux `sms`, `push` et `chat` du mode `first_success`, par le texter et le chatter de Notifier |
 | `Scheduler\NotificationSchedule` | Le calendrier `phil_notifications` |
 | `Console\PurgeCommand` | `phil:notifications:purge` |
 | `Console\VapidKeysCommand` | `phil:notifications:vapid-keys` |

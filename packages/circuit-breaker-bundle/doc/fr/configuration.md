@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9f404f5bfd1e39af2027e45ee9894b7abaf8cfa72c8f6c1de2af9e1898c37081 -->
+<!-- phil-dev source-sha256=1ebda262bda514e672fef1f88aa5d3f271170a9c489d791aff4666f85735e781 -->
 # Configuration
 
 ## Toutes les clés
@@ -11,8 +11,11 @@ phil_circuit_breaker:
     # Service id of a CircuitStateStore shared by every breaker; null (the default) keeps the states in cache_pool.
     state_store: ~
 
-    # The PSR-6 pool of the default store, read when state_store is null.
+    # The PSR-6 pool of the default store, read when state_store is null; shared by every server.
     cache_pool: cache.app
+
+    # true accepts a cache_pool local to the server in the prod environment, for an application on one server.
+    single_server: false
 
     # One circuit breaker per key.
     circuits:
@@ -49,7 +52,15 @@ phil_circuit_breaker:
 |---|---|
 | Type | chaîne (identifiant de service) |
 | Valeur par défaut | `cache.app` |
-| Effet | Le pool PSR-6 de `CacheCircuitStateStore`, quand `state_store` vaut `null`. |
+| Effet | Le pool PSR-6 de `CacheCircuitStateStore`, quand `state_store` vaut `null`. En production, un pool qui reste sur chaque serveur — l'adaptateur de fichiers, APCu, tableau ou système de `symfony/cache`, ce que `cache.app` est par défaut — est refusé, sauf si `single_server` vaut `true`. |
+
+## `single_server`
+
+| | |
+|---|---|
+| Type | booléen |
+| Valeur par défaut | `false` |
+| Effet | Accepte en production un `cache_pool` local au serveur : sur un seul serveur, chaque *worker* le partage. Un `state_store` propre à l'application n'est jamais vérifié. |
 
 ## `circuits`
 
@@ -84,6 +95,7 @@ que le premier appel à son tiers. Le message nomme le circuit :
 | `phil_circuit_breaker.circuits.<key>: A failure rate threshold is between 1 and 100 %; got 0.` | Un taux hors des bornes. |
 | `phil_circuit_breaker.circuits.<key>: The window of a circuit policy is at least 1; got 0.` | Une durée ou un nombre inférieur à 1. |
 | `phil_circuit_breaker.state_store must be a service id.` | Un identifiant de service qui n'est pas une chaîne. |
+| `phil_circuit_breaker.cache_pool: the pool "<id>" is local to each server, …` | En production, un pool sur le système de fichiers, APCu, un tableau ou l'adaptateur système, sans `single_server`. |
 
-Chacune est une `InvalidConfigurationException` dont l'exception précédente est l'`InvalidCircuit` de la bibliothèque.
-Un champ obligatoire manquant ou une valeur qui n'est pas un entier est d'abord refusé par l'arbre de configuration.
+Chacune est une `InvalidConfigurationException` ; celles qui concernent un circuit ont l'`InvalidCircuit` de la
+bibliothèque pour exception précédente. Un champ obligatoire manquant ou une valeur qui n'est pas un entier est d'abord refusé par l'arbre de configuration.
