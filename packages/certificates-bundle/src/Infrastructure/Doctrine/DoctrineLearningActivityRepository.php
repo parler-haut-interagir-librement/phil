@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\CertificatesBundle\Infrastructure\Doctrine;
 
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Phil\CertificatesBundle\Domain\Contract\LearningActivityRepository;
@@ -56,8 +57,8 @@ final readonly class DoctrineLearningActivityRepository implements LearningActiv
         /** @var list<LearningActivity> */
         return $this->entityManager->createQuery('SELECT a FROM '.LearningActivity::class.' a WHERE a.member = :member AND a.completedAt >= :from AND a.completedAt < :until ORDER BY a.completedAt DESC, a.id DESC')
             ->setParameter('member', $member->value)
-            ->setParameter('from', $period->from, 'datetime_immutable')
-            ->setParameter('until', $period->until, 'datetime_immutable')
+            ->setParameter('from', $period->from, Types::DATETIME_UTC_IMMUTABLE)
+            ->setParameter('until', $period->until, Types::DATETIME_UTC_IMMUTABLE)
             ->setFirstResult($offset)
             ->setMaxResults($limit)
             ->getResult();
@@ -68,8 +69,8 @@ final readonly class DoctrineLearningActivityRepository implements LearningActiv
     {
         $query = $this->entityManager->createQuery('SELECT COALESCE(SUM(a.hundredths), 0) FROM '.LearningActivity::class.' a WHERE a.member = :member AND a.completedAt >= :from AND a.completedAt < :until'.($toward instanceof Course ? ' AND (a.course IS NULL OR a.course = :course)' : ''))
             ->setParameter('member', $member->value)
-            ->setParameter('from', $period->from, 'datetime_immutable')
-            ->setParameter('until', $period->until, 'datetime_immutable');
+            ->setParameter('from', $period->from, Types::DATETIME_UTC_IMMUTABLE)
+            ->setParameter('until', $period->until, Types::DATETIME_UTC_IMMUTABLE);
 
         if ($toward instanceof Course) {
             $query->setParameter('course', $toward);

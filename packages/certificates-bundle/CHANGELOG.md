@@ -4,6 +4,24 @@ All notable changes to `phil/certificates-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.0-alpha: instants are written and read in UTC, whatever the time zone of the process.
+
+### Changed
+
+- The PDF prints its dates in PHP's default time zone, as the register's pages do, rather than in the time zone of the
+  instant it was given.
+
+### Security
+
+- The instants of the register — award, end of validity, revocation and reminder of a certificate, end of a course,
+  completion of a learning activity — are written and read in UTC, whatever the time zone of the PHP process, as
+  `datetime_utc_immutable`, and the queries of the reminders and of the credits pass their instants with the same type:
+  a web server, a command and a worker in different time zones read the same instant, and an end of validity can no
+  longer move by a few hours. The SQL type does not change; a database written outside UTC is converted once
+  ([Upgrading from 0.2](doc/installation.md#upgrading-from-02)).
+
 ## 0.2.2-alpha - 2026-11-18
 
 The keys of the register compare byte for byte on MySQL and MariaDB. See

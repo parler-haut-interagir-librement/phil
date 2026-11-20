@@ -57,6 +57,22 @@ final class DoctrineRepositoryTest extends RepositoryTestCase
         self::assertNotNull($found->lastUsedAt());
     }
 
+    public function testTheInstantsAreKeptInUtc(): void
+    {
+        $repository = $this->repository();
+        date_default_timezone_set('America/Toronto');
+        $token = $this->token('AAAAAAAAAAAA', 'alice', '2026-07-01 08:00:00', '2026-12-01 08:00:00');
+        $repository->save($token);
+        $token->recordUse(new DateTimeImmutable('2026-07-01 09:00:00'), null);
+        $repository->recordUse($token);
+        $token->revoke(new DateTimeImmutable('2026-07-01 10:00:00'));
+        $repository->save($token);
+
+        self::assertSame(['2026-07-01 12:00:00', '2026-12-01 13:00:00', '2026-07-01 13:00:00', '2026-07-01 14:00:00'], $this->entityManager?->getConnection()->fetchNumeric('SELECT created_at, expires_at, last_used_at, revoked_at FROM '.ApiToken::TABLE));
+        $this->clear();
+        self::assertSame('UTC', $repository->get('AAAAAAAAAAAA')?->expiresAt()->getTimezone()->getName());
+    }
+
     #[Override]
     protected function repository(): ApiTokenRepository
     {

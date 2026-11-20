@@ -4,6 +4,22 @@ All notable changes to `phil/user-secrets-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: instants are written and read in UTC, whatever the time zone of the process.
+
+### Changed
+
+- `doctrine/dbal` is required, no longer for development only: the Doctrine store names the types of its parameters.
+
+### Security
+
+- The instants of `phil_user_secret` — expiry, creation, change, last use, revocation — are written and read in UTC,
+  whatever the time zone of the PHP process, as `datetime_utc_immutable`, and the compare-and-swap passes its instants
+  with the same type: a web server, a command and a worker in different time zones read the same instant, and an expiry
+  can no longer move by a few hours. The SQL type does not change; a database written outside UTC is converted once
+  ([Upgrading from 0.1](doc/installation.md#upgrading-from-01)).
+
 ## 0.1.0-alpha - 2026-11-19
 
 ### Added

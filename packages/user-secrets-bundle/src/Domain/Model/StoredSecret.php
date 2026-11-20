@@ -47,16 +47,16 @@ final class StoredSecret
         private string $ciphertext,
         #[ORM\Column(name: 'format', type: 'smallint', nullable: true)]
         private ?int $format,
-        #[ORM\Column(name: 'expires_at', nullable: true)]
+        #[ORM\Column(name: 'expires_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $expiresAt,
         // Not readonly, though never changed: Doctrine reads the row again into the entity, after a compare-and-swap.
-        #[ORM\Column(name: 'created_at')]
+        #[ORM\Column(name: 'created_at', type: 'datetime_utc_immutable')]
         private DateTimeImmutable $createdAt,
-        #[ORM\Column(name: 'updated_at')]
+        #[ORM\Column(name: 'updated_at', type: 'datetime_utc_immutable')]
         private DateTimeImmutable $updatedAt,
-        #[ORM\Column(name: 'last_used_at', nullable: true)]
+        #[ORM\Column(name: 'last_used_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $lastUsedAt = null,
-        #[ORM\Column(name: 'revoked_at', nullable: true)]
+        #[ORM\Column(name: 'revoked_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $revokedAt = null,
     ) {
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\UserSecretsBundle\Infrastructure\Doctrine;
 
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
 use Override;
@@ -135,8 +136,8 @@ final readonly class DoctrineStoredSecretRepository implements StoredSecretRepos
             ->setParameter('keyId', $sealed->keyId)
             ->setParameter('ciphertext', $sealed->ciphertext)
             ->setParameter('format', $sealed->format()?->value)
-            ->setParameter('expiresAt', $secret->expiresAt(), 'datetime_immutable')
-            ->setParameter('updatedAt', $secret->updatedAt(), 'datetime_immutable')
+            ->setParameter('expiresAt', $secret->expiresAt(), Types::DATETIME_UTC_IMMUTABLE)
+            ->setParameter('updatedAt', $secret->updatedAt(), Types::DATETIME_UTC_IMMUTABLE)
             ->setParameter('owner', $secret->owner()->value)
             ->setParameter('name', $secret->name()->value)
             ->setParameter('previous', $previous->ciphertext)

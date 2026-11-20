@@ -91,6 +91,21 @@ final class DoctrineRepositoryTest extends RepositoryTestCase
         self::assertNull($this->entityManager?->getConnection()->fetchOne('SELECT format FROM '.StoredSecret::TABLE));
     }
 
+    public function testTheInstantsAreKeptInUtc(): void
+    {
+        $repository = $this->repository();
+        date_default_timezone_set('America/Toronto');
+        $secret = StoredSecret::seal(Owner::fromString('member-1'), SecretName::fromString('openai'), ServiceName::fromString('openai'), CredentialKind::ApiKey, new SealedSecret('k1', base64_encode("\3first")), new DateTimeImmutable('2026-07-01 09:00:00'), new DateTimeImmutable('2026-07-01 08:00:00'));
+        $repository->save($secret);
+
+        $previous = $secret->sealed();
+        $secret->reseal(ServiceName::fromString('openai'), CredentialKind::ApiKey, new SealedSecret('k1', base64_encode("\3second")), new DateTimeImmutable('2026-12-01 09:00:00'), new DateTimeImmutable('2026-12-01 08:00:00'));
+        self::assertTrue($repository->replace($secret, $previous));
+
+        self::assertSame(['2026-12-01 14:00:00', '2026-07-01 12:00:00', '2026-12-01 13:00:00'], $this->entityManager?->getConnection()->fetchNumeric('SELECT expires_at, created_at, updated_at FROM '.StoredSecret::TABLE));
+        self::assertSame('UTC', $repository->fresh(Owner::fromString('member-1'), SecretName::fromString('openai'))?->createdAt()->getTimezone()->getName());
+    }
+
     private function row(string $keyId, string $ciphertext): StoredSecret
     {
         return StoredSecret::seal(Owner::fromString('member-1'), SecretName::fromString('openai'), ServiceName::fromString('openai'), CredentialKind::ApiKey, new SealedSecret($keyId, $ciphertext), null, new DateTimeImmutable('@1000'));

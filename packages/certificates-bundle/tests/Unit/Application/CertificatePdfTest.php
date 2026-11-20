@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\CertificatesBundle\Tests\Unit\Application;
 
 use Closure;
+use DateTimeImmutable;
 use Phil\CertificatesBundle\Application\CertificatePdf;
 use Phil\CertificatesBundle\Domain\Model\Course;
 use Phil\CertificatesBundle\Tests\Unit\Support\FixedUrls;
@@ -80,6 +81,22 @@ final class CertificatePdfTest extends TestCase
         self::assertStringContainsString('(Ce certificat atteste que)', $french);
         self::assertStringContainsString('(Ada Lovelace)', PdfStreams::of($this->pdf(translator: 'fr')->render(Kit::awarded(), 'en')->contents));
         self::assertStringContainsString('(Awarded on November 8, 2026)', PdfStreams::of($this->pdf(translator: 'fr')->render(Kit::awarded(), 'en')->contents));
+    }
+
+    public function testTheDatesArePrintedInTheTimeZoneOfTheProcessWhateverTheTimeZoneTheyWereReadIn(): void
+    {
+        $previous = date_default_timezone_get();
+        date_default_timezone_set('America/Toronto');
+
+        try {
+            // Read back in UTC on the 9th; on the 8th, in the evening, in Toronto.
+            $certificate = Kit::awarded(awardedAt: new DateTimeImmutable('2026-11-09 03:00:00 UTC'));
+            $streams = PdfStreams::of($this->pdf()->render($certificate, 'en')->contents);
+        } finally {
+            date_default_timezone_set($previous);
+        }
+
+        self::assertStringContainsString('(Awarded on November 8, 2026)', $streams);
     }
 
     public function testALongCourseNameTakesTwoLinesAtMostAndAPermanentCertificateNoEnd(): void

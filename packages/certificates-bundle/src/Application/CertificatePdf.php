@@ -174,6 +174,6 @@ final readonly class CertificatePdf
 
     private function date(DateTimeImmutable $date, string $locale): string
     {
-        return (string) new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE, $date->getTimezone())->format($date);
+        return (string) new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE)->format($date);
     }
 }

@@ -7,6 +7,7 @@ namespace Phil\UserSecretsBundle\Tests\Functional;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
+use Doctrine\ORM\Tools\SchemaValidator;
 use Override;
 use Phil\PrivacyBundle\Application\SubjectErasure;
 use Phil\PrivacyBundle\Application\SubjectExport;
@@ -55,6 +56,14 @@ final class UserSecretsBundleTest extends KernelTestCase
         self::bootKernel();
         $entityManager = $this->service('doctrine.orm.entity_manager', EntityManagerInterface::class);
         new SchemaTool($entityManager)->createSchema($entityManager->getMetadataFactory()->getAllMetadata());
+    }
+
+    public function testTheMappingIsValidAndTheSchemaInStepWithIt(): void
+    {
+        $validator = new SchemaValidator($this->service('doctrine.orm.entity_manager', EntityManagerInterface::class));
+
+        self::assertSame([], $validator->validateMapping());
+        self::assertTrue($validator->schemaInSyncWithMetadata());
     }
 
     public function testASecretLivesAndLeavesWithItsOwner(): void

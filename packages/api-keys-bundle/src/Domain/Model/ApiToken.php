@@ -50,15 +50,15 @@ final class ApiToken
         private readonly array $scopes,
         #[ORM\Column(name: 'secret_hash', length: self::SECRET_HASH_MAX_LENGTH)]
         private readonly string $secretHash,
-        #[ORM\Column(name: 'created_at')]
+        #[ORM\Column(name: 'created_at', type: 'datetime_utc_immutable')]
         private readonly DateTimeImmutable $createdAt,
-        #[ORM\Column(name: 'expires_at')]
+        #[ORM\Column(name: 'expires_at', type: 'datetime_utc_immutable')]
         private DateTimeImmutable $expiresAt,
-        #[ORM\Column(name: 'last_used_at', nullable: true)]
+        #[ORM\Column(name: 'last_used_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $lastUsedAt = null,
         #[ORM\Column(name: 'last_used_address', length: self::ADDRESS_MAX_LENGTH, nullable: true)]
         private ?string $lastUsedAddress = null,
-        #[ORM\Column(name: 'revoked_at', nullable: true)]
+        #[ORM\Column(name: 'revoked_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $revokedAt = null,
     ) {
     }

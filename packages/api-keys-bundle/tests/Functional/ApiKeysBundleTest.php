@@ -6,6 +6,7 @@ namespace Phil\ApiKeysBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
+use Doctrine\ORM\Tools\SchemaValidator;
 use LogicException;
 use Override;
 use Phil\ApiKeysBundle\Application\ApiTokens;
@@ -26,7 +27,7 @@ use Symfony\Component\Security\Core\User\InMemoryUser;
 
 /**
  * A token followed from the members' page to the API and back: created, used with its scopes, counted, refused once
- * revoked; a token revoked once GitHub reports it leaked; and the commands.
+ * revoked; a token revoked once GitHub reports it leaked; the commands; and the mapping, valid and in step with the schema.
  */
 #[CoversNothing]
 final class ApiKeysBundleTest extends WebTestCase
@@ -51,6 +52,16 @@ final class ApiKeysBundleTest extends WebTestCase
         $metadata = $entityManager->getMetadataFactory()->getAllMetadata();
         $schema->dropSchema($metadata);
         $schema->createSchema($metadata);
+    }
+
+    public function testTheMappingIsValidAndTheSchemaInStepWithIt(): void
+    {
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        self::assertInstanceOf(EntityManagerInterface::class, $entityManager);
+        $validator = new SchemaValidator($entityManager);
+
+        self::assertSame([], $validator->validateMapping());
+        self::assertTrue($validator->schemaInSyncWithMetadata());
     }
 
     public function testATokenFromTheMembersPageOpensTheApiWithinItsScopes(): void

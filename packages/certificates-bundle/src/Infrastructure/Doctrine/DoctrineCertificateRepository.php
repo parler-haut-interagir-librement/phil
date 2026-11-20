@@ -6,6 +6,7 @@ namespace Phil\CertificatesBundle\Infrastructure\Doctrine;
 
 use DateTimeImmutable;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Override;
@@ -99,8 +100,8 @@ final readonly class DoctrineCertificateRepository implements CertificateReposit
     {
         /** @var list<Certificate> */
         return $this->entityManager->createQuery('SELECT c FROM '.Certificate::class.' c WHERE c.revokedAt IS NULL AND c.validUntil > :after AND c.validUntil <= :until AND NOT EXISTS (SELECT r.id FROM '.Certificate::class.' r WHERE r.renews = c) ORDER BY c.validUntil ASC, c.id ASC')
-            ->setParameter('after', $after, 'datetime_immutable')
-            ->setParameter('until', $until, 'datetime_immutable')
+            ->setParameter('after', $after, Types::DATETIME_UTC_IMMUTABLE)
+            ->setParameter('until', $until, Types::DATETIME_UTC_IMMUTABLE)
             ->setFirstResult($offset)
             ->setMaxResults($limit)
             ->getResult();

@@ -71,7 +71,7 @@ final class Course
     /**
      * The moment the course ends: no certificate is awarded from then on, and none is valid past it.
      */
-    #[ORM\Column(name: 'ends_at', nullable: true)]
+    #[ORM\Column(name: 'ends_at', type: 'datetime_utc_immutable', nullable: true)]
     public private(set) ?DateTimeImmutable $endsAt = null;
 
     /**

@@ -38,7 +38,7 @@ final class LearningActivity
         #[ORM\Column(name: 'title', length: 255)]
         public readonly string $title,
         Credits $credits,
-        #[ORM\Column(name: 'completed_at')]
+        #[ORM\Column(name: 'completed_at', type: 'datetime_utc_immutable')]
         public readonly DateTimeImmutable $completedAt,
         #[ORM\ManyToOne(targetEntity: Course::class)]
         #[ORM\JoinColumn(name: 'course_id', nullable: true)]
