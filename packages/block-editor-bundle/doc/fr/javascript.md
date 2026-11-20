@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d602178df8f2cd71ec03b0f2ef67098622797d5f3f5a2cef3e987e79d352cd1a -->
+<!-- phil-dev source-sha256=432f6bb95f3726b4d624b4f56bca94985691e0dfb0d68f8b0e3ab38b22aaf020 -->
 # JavaScript
 
 ## Le contrôleur
@@ -34,6 +34,7 @@ La valeur `config` est un seul objet :
 | `messages` | `{}` | Libellés remplacés, par clé |
 | `colors` | `[]` | Les jetons de couleur de l'outil de couleur du texte |
 | `uploadUrl`, `mentionsUrl`, `linksUrl` | `null` | Les points de terminaison ; `null` désactive la fonctionnalité |
+| `richEngine` | `"dom"` | `"prosemirror"` place une vue ProseMirror dans chaque champ riche, un essai ([prosemirror-trial.md](prosemirror-trial.md)) |
 | `csrfCookie` | `null` | Le nom du témoin et de l'en-tête du jeton CSRF à double soumission ; `null` n'en envoie aucun, et le téléversement est refusé |
 
 L'éditeur ne refuse jamais de s'ouvrir : un JSON qu'il ne peut pas lire donne un document vide, et le serveur juge ce
@@ -45,6 +46,7 @@ qu'il reçoit.
 |---|---|---|
 | `change` | le champ | — déclenché chaque fois que l'éditeur écrit une nouvelle valeur, pour l'enregistrement automatique ou un avertissement de formulaire modifié |
 | `phil--block-editor-bundle--editor:change` | l'élément de l'éditeur | `{json}`, la valeur écrite |
+| `phil--block-editor-bundle--editor:engine` | l'élément de l'éditeur | `{engine}`, `dom` ou `prosemirror`, une fois les champs riches modifiables |
 | `phil--block-editor-bundle--editor:focus` | l'élément de l'éditeur | `{id}`, le bloc où le rédacteur est entré ; `null` quand le focus quitte l'éditeur, ses menus et sa barre d'outils |
 
 ## Écrire à plusieurs
@@ -85,6 +87,8 @@ navigateur :
 | `lib/csrf.js` | Un nouveau jeton aléatoire pour chaque requête, son témoin, son en-tête et le champ d'un formulaire |
 | `lib/caret.js` | Le curseur et la sélection dans un champ, la scission, l'insertion, les marques ; exige un navigateur |
 | `lib/view.js` | Les blocs dessinés en éléments ; exige un navigateur |
+| `lib/rich-schema.js` | Les spécifications de schéma de l'essai ProseMirror, tirées des outils en ligne ([prosemirror-trial.md](prosemirror-trial.md)) |
+| `lib/prosemirror.js` | La vue de l'essai ProseMirror dans un champ riche, chargée seulement quand `richEngine` le demande ; exige un navigateur |
 
 Tout HTML que dessine l'éditeur passe d'abord par `lib/inline.js`, et les adresses des liens et des images sont
 vérifiées selon les mêmes règles que sur le serveur.
