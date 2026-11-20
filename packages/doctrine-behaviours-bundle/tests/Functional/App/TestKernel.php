@@ -7,6 +7,7 @@ namespace Phil\DoctrineBehavioursBundle\Tests\Functional\App;
 use Override;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\BlamePrivacy;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\OwnerPrivacy;
+use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\VersionsPrivacy;
 use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -58,5 +59,6 @@ final class TestKernel extends Kernel
         $container->services()->alias('test.workflow_registry', 'workflow.registry')->public();
         $container->services()->alias('test.blame_privacy', BlamePrivacy::class)->public();
         $container->services()->alias('test.owner_privacy', OwnerPrivacy::class)->public();
+        $container->services()->alias('test.versions_privacy', VersionsPrivacy::class)->public();
     }
 }

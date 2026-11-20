@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Phil\DoctrineBehaviours;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Phil\DoctrineBehaviours\Contract\PersonalFields;
 use Phil\DoctrineBehaviours\Contract\Versionable;
+use Phil\DoctrineBehaviours\Contract\VersionCipher;
 use Phil\DoctrineBehaviours\Contract\VersionRestoreGuard;
 use Phil\DoctrineBehaviours\Exception\InvalidVersionedState;
 use Phil\DoctrineBehaviours\Exception\UnknownVersion;
+use Phil\DoctrineBehaviours\Exception\VersionErased;
 use Phil\DoctrineBehaviours\Exception\VersionRestoreDenied;
 use Phil\DoctrineBehaviours\Version\RecordVersion;
 use Psr\Clock\ClockInterface;
@@ -19,16 +22,34 @@ use Psr\Clock\ClockInterface;
  *
  * Going back rewrites no history: the version being worked on is frozen first, so nothing is lost, and the state of
  * the past version becomes the next number. It takes the right `VersionRestoreGuard` checks.
+ *
+ * The personal fields `PersonalFields` names follow the `PersonalFieldPolicy`: left out of the version by default,
+ * sealed by a `VersionCipher`, or kept. Going back keeps the values the record holds for a field the version left
+ * out, opens a sealed one, and is refused for a version an erasure redacted, or older than one.
  */
 final readonly class Versions
 {
     public const int DEFAULT_LIST_LIMIT = 50;
 
+    /**
+     * The key of a sealed value in the state of a version.
+     */
+    public const string SEALED = '@sealed';
+
+    /**
+     * @throws InvalidVersionedState when the policy seals and no cipher is given
+     */
     public function __construct(
         private EntityManagerInterface $manager,
         private ClockInterface $clock,
         private VersionRestoreGuard $guard,
+        private PersonalFields $personalFields = new NoPersonalFields(),
+        private PersonalFieldPolicy $policy = PersonalFieldPolicy::Exclude,
+        private ?VersionCipher $cipher = null,
     ) {
+        if (PersonalFieldPolicy::Encrypt === $policy && !$cipher instanceof VersionCipher) {
+            throw InvalidVersionedState::noCipher();
+        }
     }
 
     /**
@@ -74,7 +95,7 @@ final readonly class Versions
             $state = $entity->versionedState();
             $this->assertMapped($entity, $state);
             $subject = $this->subject($entity);
-            $version = new RecordVersion($subject['subjectTable'], $subject['subjectId'], $entity->versionNumber(), $state, $this->clock->now());
+            $version = new RecordVersion($subject['subjectTable'], $subject['subjectId'], $entity->versionNumber(), $this->protect($entity, $subject, $state), $this->clock->now());
             $this->manager->persist($version);
             $entity->markVersionFrozen();
 
@@ -85,17 +106,29 @@ final readonly class Versions
     /**
      * Goes back to a past version: its state becomes the next number, and flushes.
      *
-     * @throws UnknownVersion       when the record has no such frozen version
-     * @throws VersionRestoreDenied when the guard refuses it, or an exception of the guard's own
+     * @throws UnknownVersion        when the record has no such frozen version
+     * @throws VersionErased         when an erasure redacted the version, or a later one of the record
+     * @throws VersionRestoreDenied  when the guard refuses it, or an exception of the guard's own
+     * @throws InvalidVersionedState when the version holds a sealed field and no cipher is given
      */
     public function restore(Versionable $entity, int $number): void
     {
         $this->guard->check($entity, $number);
         $version = $this->get($entity, $number) ?? throw UnknownVersion::of($entity::class, $entity->versionSubjectId(), $number);
 
-        $this->manager->wrapInTransaction(function () use ($entity, $version): void {
+        if ($version->isRedacted()) {
+            throw VersionErased::redacted($entity::class, $entity->versionSubjectId(), $number);
+        }
+
+        if ($this->isErasedAfter($entity, $number)) {
+            throw VersionErased::erasedRecord($entity::class, $entity->versionSubjectId(), $number);
+        }
+
+        $state = $this->reveal($entity, $version);
+
+        $this->manager->wrapInTransaction(function () use ($entity, $state): void {
             $this->freeze($entity);
-            $entity->applyVersionedState($version->state());
+            $entity->applyVersionedState($state);
         });
     }
 
@@ -124,5 +157,95 @@ final readonly class Versions
                 throw InvalidVersionedState::unmapped($entity::class, $field);
             }
         }
+    }
+
+    /**
+     * The state to freeze, its personal fields left out, sealed or kept.
+     *
+     * @param array{subjectTable: string, subjectId: string} $subject
+     * @param array<string, mixed>                           $state
+     *
+     * @return array<string, mixed>
+     */
+    private function protect(Versionable $entity, array $subject, array $state): array
+    {
+        if (PersonalFieldPolicy::Keep === $this->policy) {
+            return $state;
+        }
+
+        foreach ($this->personalFields->of($entity::class) as $field) {
+            if (!\array_key_exists($field, $state)) {
+                continue;
+            }
+
+            if ($this->cipher instanceof VersionCipher && PersonalFieldPolicy::Encrypt === $this->policy) {
+                $state[$field] = [self::SEALED => $this->cipher->seal(json_encode($state[$field], \JSON_THROW_ON_ERROR | \JSON_PRESERVE_ZERO_FRACTION), $this->context($subject, $entity->versionNumber(), $field))];
+            } else {
+                unset($state[$field]);
+            }
+        }
+
+        return $state;
+    }
+
+    /**
+     * The state to go back to: a sealed field opened, a personal field the version left out taken from the record.
+     *
+     * @return array<string, mixed>
+     */
+    private function reveal(Versionable $entity, RecordVersion $version): array
+    {
+        $state = $version->state();
+        $current = null;
+
+        foreach ($this->personalFields->of($entity::class) as $field) {
+            if (!\array_key_exists($field, $state)) {
+                $current ??= $entity->versionedState();
+
+                if (\array_key_exists($field, $current)) {
+                    $state[$field] = $current[$field];
+                }
+
+                continue;
+            }
+
+            $sealed = \is_array($state[$field]) ? ($state[$field][self::SEALED] ?? null) : null;
+
+            if (!\is_string($sealed)) {
+                continue;
+            }
+
+            if (!$this->cipher instanceof VersionCipher) {
+                throw InvalidVersionedState::sealed($entity::class, $field);
+            }
+
+            $state[$field] = json_decode($this->cipher->open($sealed, $this->context(['subjectTable' => $version->subjectTable(), 'subjectId' => $version->subjectId()], $version->number(), $field)), true, 512, \JSON_THROW_ON_ERROR);
+        }
+
+        return $state;
+    }
+
+    private function isErasedAfter(Versionable $entity, int $number): bool
+    {
+        $subject = $this->subject($entity);
+        $later = $this->manager->createQueryBuilder()
+            ->select('COUNT(v.id)')
+            ->from(RecordVersion::class, 'v')
+            ->where('v.subjectTable = :table AND v.subjectId = :id AND v.number > :number AND v.redactedAt IS NOT NULL')
+            ->setParameter('table', $subject['subjectTable'])
+            ->setParameter('id', $subject['subjectId'])
+            ->setParameter('number', $number)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return is_numeric($later) && $later > 0;
+    }
+
+    /**
+     * @param array{subjectTable: string, subjectId: string} $subject
+     */
+    private function context(array $subject, int $number, string $field): string
+    {
+        return \sprintf('phil_record_version|%s|%s|%d|%s', $subject['subjectTable'], $subject['subjectId'], $number, $field);
     }
 }

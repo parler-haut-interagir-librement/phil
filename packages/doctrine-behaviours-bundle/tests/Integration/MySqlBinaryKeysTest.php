@@ -6,7 +6,7 @@ namespace Phil\DoctrineBehavioursBundle\Tests\Integration;
 
 use Doctrine\DBAL\Schema\Table;
 use Override;
-use Phil\DoctrineBehavioursBundle\Infrastructure\Doctrine\BinaryKeysListener;
+use Phil\DoctrineBehaviours\BinaryKeysListener;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**

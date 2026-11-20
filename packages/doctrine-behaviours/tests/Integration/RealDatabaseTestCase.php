@@ -16,8 +16,10 @@ use Override;
 use Phil\DoctrineBehaviours\AllowVersionRestore;
 use Phil\DoctrineBehaviours\DeactivatedFilter;
 use Phil\DoctrineBehaviours\FixedOwner;
+use Phil\DoctrineBehaviours\ListedPersonalFields;
 use Phil\DoctrineBehaviours\OwnerEraser;
 use Phil\DoctrineBehaviours\OwnerId;
+use Phil\DoctrineBehaviours\PersonalFieldPolicy;
 use Phil\DoctrineBehaviours\Positions;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Database;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Article;
@@ -26,12 +28,14 @@ use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Course;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Lamp;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Lesson;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Manual;
+use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Profile;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Recipe;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\RecipeTranslation;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Tag;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\Entity\Ticket;
 use Phil\DoctrineBehaviours\Tests\Unit\Fixtures\MutableBlame;
 use Phil\DoctrineBehaviours\Translations;
+use Phil\DoctrineBehaviours\VersionEraser;
 use Phil\DoctrineBehaviours\Versions;
 use Phil\LocaleDimensions\FallbackChain;
 use Phil\LocaleDimensions\Locale;
@@ -178,6 +182,26 @@ abstract class RealDatabaseTestCase extends TestCase
 
         self::assertSame(['bike' => 1], $eraser->find(new OwnerId('owner-1')));
         self::assertSame(1, $eraser->replace(new OwnerId('owner-1'), new OwnerId('former')));
+    }
+
+    public function testTheVersionsOfAnOwnerAreRedactedInTheirColumn(): void
+    {
+        $manager = $this->manager();
+        $personal = new ListedPersonalFields([Profile::class => ['name', 'email']]);
+        $versions = new Versions($manager, $this->clock, new AllowVersionRestore(), $personal, PersonalFieldPolicy::Keep);
+        $versions->freeze(new Profile('p', 'Ada', 'ada@example.org', 'Bio « accentuée »'));
+
+        $eraser = new VersionEraser($manager, $personal, $this->clock);
+
+        self::assertSame(1, $eraser->find('owner-1'));
+        self::assertSame(1, $eraser->redact('owner-1'));
+
+        $state = $manager->getConnection()->fetchOne("SELECT state FROM phil_record_version WHERE subject_id = 'p'");
+        self::assertIsString($state);
+        self::assertEquals(['bio' => 'Bio « accentuée »'], json_decode($state, true, 512, \JSON_THROW_ON_ERROR));
+        self::assertNotNull($manager->getConnection()->fetchOne("SELECT redacted_at FROM phil_record_version WHERE subject_id = 'p'"));
+        self::assertSame(0, $eraser->find('owner-1'));
+        self::assertSame(0, $eraser->stripPersonalFields());
     }
 
     public function testRecordsAreOrderedAndMovedWithinTheirGroup(): void

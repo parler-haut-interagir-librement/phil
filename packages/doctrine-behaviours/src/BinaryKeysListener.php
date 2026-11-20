@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phil\DoctrineBehavioursBundle\Infrastructure\Doctrine;
+namespace Phil\DoctrineBehaviours;
 
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Types\Types;
@@ -22,7 +22,8 @@ use Phil\DoctrineBehaviours\Version\RecordVersion;
  * never read for `fr-ca`, and the records of the owner `Ann` are never listed or erased for `ann`. A field is changed
  * only where the class maps it as a string or a GUID; a field the class maps under another type keeps its mapping.
  * PostgreSQL's default collations are deterministic and SQLite compares bytes: their columns keep the default, and the
- * mapping stays the same for every platform.
+ * mapping stays the same for every platform. Register it on the `loadClassMetadata` event before the first metadata
+ * is loaded, as `TranslationListener`.
  */
 final readonly class BinaryKeysListener
 {

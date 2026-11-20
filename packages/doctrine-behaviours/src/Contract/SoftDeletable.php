@@ -8,7 +8,8 @@ use DateTimeImmutable;
 
 /**
  * An entity that is marked deleted instead of leaving its table: `SoftDeleteListener` turns its removal into a date,
- * `SoftDeletedFilter` hides it from queries. Removed once more, it is deleted for good.
+ * `SoftDeletedFilter` hides it from queries. Its row stays whole; removed once more, or purged by
+ * `SoftDeletes::purge()`, it is deleted for good.
  */
 interface SoftDeletable
 {

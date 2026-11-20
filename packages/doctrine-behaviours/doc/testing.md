@@ -8,7 +8,9 @@
 | Owner | The identifiers refused and accepted, the owner given on persist, kept on update, transferred, nobody known, the eraser over tables and subclasses |
 | Publication | The state machine with its dates, a transition refused, a date given kept, other subjects and places left alone |
 | Slug | Made once, numbered, given slugs made unique, regenerated, rows hidden from the filters counted, cut to the column, inherited tables, every number taken, the last number tried |
-| Versions | The fork after a freeze, what does not fork, freezing what is pending, the list and its limit, going back, the right to do it, an unknown number, unmapped state |
+| Versions | The fork after a freeze, what does not fork, freezing what is pending, the list and its limit, going back, the right to do it, an unknown number, unmapped state, personal fields left out, sealed under their context or kept, a sealed field without a cipher |
+| Erasure | The blame and the owner over every entity manager, once per connection, one transaction per connection rolled back on failure, stale entities detached and cache regions evicted; the versions of a person redacted in the raw row, by owner, by blame and by who froze them, a second run, going back refused to a redacted or older version, one record redacted, the versions written before stripped by batches, a sealed value kept; no name written while the blame is suspended, nested and failing spans; a soft-deletable row kept whole by a first removal and purged |
+| Collation | The keys of each behaviour in `utf8mb4_bin` in the schema generated for MySQL and MariaDB, the default collation on SQLite, a field mapped under another type or not mapped left alone, the options a field already has kept |
 | Dated identifier | A UUID v7 of the clock's time, a given one kept, anything else refused, creation order |
 | Positions | The end of the group for a record without position, given positions kept, groups of columns, enums and relations, moves before, after, first and last, the rows locked before each move, loaded records following, the groups refused |
 | Translation | Rows created empty, never copied, read along a chain whole, pending and removed rows, the locales of a record, a list in one query per class and per chunk, the unique index, slugs and versions per locale, the mappings and translations refused |
@@ -21,7 +23,7 @@ vendor/bin/phpunit packages/doctrine-behaviours/tests
 ## Real servers
 
 `tests/Integration` runs what depends on a database, the spelling of true, a moment written and read back in UTC,
-the `IN` of the slugs, JSON state, `guid` keys, the eraser, translations read along a chain and kept one per locale,
+the `IN` of the slugs, JSON state, `guid` keys, the eraser, the versions of an owner redacted in their JSON column, translations read along a chain and kept one per locale,
 and moves that wait for each other in one group but not across groups, against MySQL and PostgreSQL, when
 `PHIL_TEST_MYSQL_URL` and `PHIL_TEST_POSTGRESQL_URL` are set. Without them the tests are skipped.
 

@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Tools\SchemaTool;
 use Override;
 use Phil\DoctrineBehaviours\SoftDeletedFilter;
+use Phil\DoctrineBehaviours\VersionEraser;
 use Phil\DoctrineBehaviours\Versions;
 use Phil\DoctrineBehavioursBundle\PhilDoctrineBehavioursBundle;
 use Phil\DoctrineBehavioursBundle\Tests\Functional\App\Entity\Notice;
@@ -99,6 +100,9 @@ final class InstantColumnsTest extends KernelTestCase
         $versions = self::getContainer()->get(Versions::class);
         self::assertInstanceOf(Versions::class, $versions);
         $versions->freeze($notice);
+        $eraser = self::getContainer()->get(VersionEraser::class);
+        self::assertInstanceOf(VersionEraser::class, $eraser);
+        $eraser->redactRecord($notice);
         $manager->remove($page);
         $manager->flush();
 

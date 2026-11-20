@@ -8,6 +8,7 @@ use Override;
 use Phil\DoctrineBehaviours\Exception\InvalidOwner;
 use Phil\DoctrineBehaviours\OwnerEraser;
 use Phil\DoctrineBehaviours\OwnerId;
+use Phil\DoctrineBehaviours\VersionEraser;
 use Phil\PrivacyBundle\Application\Contract\PersonalDataEraser;
 use Phil\PrivacyBundle\Application\Contract\PersonalDataExporter;
 use Phil\PrivacyBundle\Domain\Retention\ErasureEffect;
@@ -19,6 +20,7 @@ use Phil\PrivacyBundle\Domain\Subject\ModuleName;
  * The owner's part of an access or erasure request, the data subject being the owner identifier: the export counts the
  * rows the person owns, by table; the erasure hands them to the configured pseudonym, or to nobody, and reports every
  * owned table. A subject that cannot be an owner — one with an `@` — owns nothing, and is reported all the same.
+ * With the versions on, the versions of the person are redacted first, while the owner still finds them.
  */
 final readonly class OwnerPrivacy implements PersonalDataExporter, PersonalDataEraser
 {
@@ -27,6 +29,7 @@ final readonly class OwnerPrivacy implements PersonalDataExporter, PersonalDataE
     public function __construct(
         private OwnerEraser $eraser,
         private ?OwnerId $replacement = null,
+        private ?VersionEraser $versions = null,
     ) {
     }
 
@@ -51,6 +54,7 @@ final readonly class OwnerPrivacy implements PersonalDataExporter, PersonalDataE
         $owner = $this->owner($subject);
 
         if ($owner instanceof OwnerId) {
+            $this->versions?->redact($owner->value);
             $this->eraser->replace($owner, $this->replacement);
         }
 

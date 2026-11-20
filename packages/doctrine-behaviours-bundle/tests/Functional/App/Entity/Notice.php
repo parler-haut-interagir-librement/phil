@@ -17,6 +17,7 @@ use Phil\DoctrineBehaviours\OwnableEntity;
 use Phil\DoctrineBehaviours\PublishableEntity;
 use Phil\DoctrineBehaviours\SluggableEntity;
 use Phil\DoctrineBehaviours\VersionableEntity;
+use Phil\PrivacyBundle\Domain\Attribute\PersonalData;
 
 /**
  * A notice that has every behaviour added to the first four.
@@ -35,6 +36,9 @@ class Notice implements DatedIdentifiable, Deactivatable, Ownable, Publishable, 
     public function __construct(
         #[ORM\Column]
         public string $title,
+        #[ORM\Column]
+        #[PersonalData('contact')]
+        public string $contact = '',
     ) {
     }
 
@@ -53,7 +57,7 @@ class Notice implements DatedIdentifiable, Deactivatable, Ownable, Publishable, 
      */
     public function versionedState(): array
     {
-        return ['title' => $this->title];
+        return ['title' => $this->title, 'contact' => $this->contact];
     }
 
     /**
@@ -61,7 +65,8 @@ class Notice implements DatedIdentifiable, Deactivatable, Ownable, Publishable, 
      */
     public function applyVersionedState(array $state): void
     {
-        \assert(\is_string($state['title']));
+        \assert(\is_string($state['title']) && \is_string($state['contact']));
         $this->title = $state['title'];
+        $this->contact = $state['contact'];
     }
 }

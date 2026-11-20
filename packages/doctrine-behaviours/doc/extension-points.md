@@ -35,6 +35,32 @@ blamed row — see [Timestamps and blame](timestamps-and-blame.md#privacy).
 
 `AllowVersionRestore` lets everyone, `RefuseVersionRestore` no one. See [Versions](versions.md#going-back).
 
+## `Contract\PersonalFields`
+
+`Phil\DoctrineBehaviours\Contract\PersonalFields`, which fields of a class hold personal information, given to
+`Versions` and `VersionEraser`.
+
+| Method | Contract |
+|---|---|
+| `of(string $class): list<string>` | The names of the fields, as `versionedState()` keys them; `[]` when the class holds none |
+
+`NoPersonalFields` names none, `ListedPersonalFields` those listed by class or interface. The bundle reads the
+`#[PersonalData]` declarations of `phil/privacy-bundle`. See [Versions](versions.md#personal-fields).
+
+## `Contract\VersionCipher`
+
+`Phil\DoctrineBehaviours\Contract\VersionCipher`, which seals the personal fields of a version under
+`PersonalFieldPolicy::Encrypt`, given to `Versions`.
+
+| Method | Contract |
+|---|---|
+| `seal(string $plaintext, string $context): string` | The sealed value, bound to the context as associated data |
+| `open(string $sealed, string $context): string` | The value, or an exception when it does not open under that context |
+
+The plaintext is the JSON of the value; the context names the table, the record, the version and the field. An
+authenticated cipher, such as XChaCha20-Poly1305 with the context as associated data, under a key the application keeps
+out of the database, fits; erasing a version still takes `VersionEraser`, since a key that is kept opens what it sealed.
+
 ## The sluggers
 
 `SlugListener` takes the `Sluggers` of `phil/slug`: a slugger named or decorated there applies here, and
@@ -71,8 +97,12 @@ through the methods only.
 | Which behaviours run | Only the listeners registered: each stands alone |
 | Seeing deleted rows | `SoftDeletedFilter`, under `SoftDeletedFilter::NAME`, disabled for the queries that need them |
 | Seeing deactivated rows | `DeactivatedFilter`, under `DeactivatedFilter::NAME`, disabled for the queries that need them |
-| Erasing a user's name | `BlameEraser::find()` and `replace()`, over every blamed table |
-| Erasing an owner | `OwnerEraser::find()` and `replace()`, over every owned table |
+| Erasing a user's name | `BlameEraser::find()` and `replace()`, over every blamed table of every entity manager a `ManagerRegistry` gives |
+| Erasing an owner | `OwnerEraser::find()` and `replace()`, over every owned table of every entity manager a `ManagerRegistry` gives |
+| Erasing the personal fields of the versions | `VersionEraser::redact()`, `redactRecord()` and `stripPersonalFields()` |
+| No blame during an erasure | A `BlameSuspension` given to `BlameListener`, its `during()` around the erasure |
+| Deleting a soft-deletable row for good | `SoftDeletes::purge()` |
+| The collation of the keys | `BinaryKeysListener`, on `loadClassMetadata`, and its `FIELDS` |
 | The locales served | The `FallbackChain` the application gives `Translations`, from the `DeclaredLocales` of `phil/locale-dimensions` |
 | The publication workflow | `PublicationWorkflow`'s places and transitions, or a workflow of the application's own with those three places |
 

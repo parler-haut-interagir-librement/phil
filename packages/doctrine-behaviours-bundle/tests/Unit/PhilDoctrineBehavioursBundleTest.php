@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Phil\DoctrineBehavioursBundle\Tests\Unit;
 
 use LogicException;
+use Phil\DoctrineBehaviours\BinaryKeysListener;
 use Phil\DoctrineBehaviours\BlameEraser;
 use Phil\DoctrineBehaviours\BlameListener;
+use Phil\DoctrineBehaviours\BlameSuspension;
 use Phil\DoctrineBehaviours\Contract\BlameResolver;
 use Phil\DoctrineBehaviours\Contract\OwnerResolver;
+use Phil\DoctrineBehaviours\Contract\PersonalFields;
 use Phil\DoctrineBehaviours\Contract\Publishable;
 use Phil\DoctrineBehaviours\Contract\Versionable;
 use Phil\DoctrineBehaviours\Contract\VersionRestoreGuard;
@@ -19,24 +22,32 @@ use Phil\DoctrineBehaviours\Exception\InvalidOwner;
 use Phil\DoctrineBehaviours\OwnerEraser;
 use Phil\DoctrineBehaviours\OwnerId;
 use Phil\DoctrineBehaviours\OwnerListener;
+use Phil\DoctrineBehaviours\PersonalFieldPolicy;
 use Phil\DoctrineBehaviours\PositionListener;
 use Phil\DoctrineBehaviours\Positions;
 use Phil\DoctrineBehaviours\PublicationListener;
 use Phil\DoctrineBehaviours\SlugListener;
 use Phil\DoctrineBehaviours\SoftDeletedFilter;
 use Phil\DoctrineBehaviours\SoftDeleteListener;
+use Phil\DoctrineBehaviours\SoftDeletes;
 use Phil\DoctrineBehaviours\TimestampListener;
 use Phil\DoctrineBehaviours\TranslationListener;
 use Phil\DoctrineBehaviours\Translations;
 use Phil\DoctrineBehaviours\Tree;
 use Phil\DoctrineBehaviours\TreeListener;
 use Phil\DoctrineBehaviours\Version\RecordVersion;
+use Phil\DoctrineBehaviours\VersionEraser;
 use Phil\DoctrineBehaviours\VersionListener;
 use Phil\DoctrineBehaviours\Versions;
+use Phil\DoctrineBehavioursBundle\Infrastructure\Console\StripVersionsCommand;
 use Phil\DoctrineBehavioursBundle\Infrastructure\DependencyInjection\BehaviourServices;
-use Phil\DoctrineBehavioursBundle\Infrastructure\Doctrine\BinaryKeysListener;
+use Phil\DoctrineBehavioursBundle\Infrastructure\DependencyInjection\SuspendBlameDuringErasurePass;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\BlamePrivacy;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\OwnerPrivacy;
+use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\PersonalDataFields;
+use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\SuspendBlame;
+use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\SuspendBlameWithExport;
+use Phil\DoctrineBehavioursBundle\Infrastructure\Privacy\VersionsPrivacy;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Security\SecurityBlameResolver;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Security\SecurityOwnerResolver;
 use Phil\DoctrineBehavioursBundle\Infrastructure\Security\SecurityVersionRestoreGuard;
@@ -72,6 +83,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[CoversClass(SecurityOwnerResolver::class)]
 #[CoversClass(SecurityVersionRestoreGuard::class)]
 #[CoversClass(UserMethod::class)]
+#[CoversClass(SuspendBlameDuringErasurePass::class)]
 final class PhilDoctrineBehavioursBundleTest extends TestCase
 {
     public function testEveryBehaviourIsOnByDefault(): void
@@ -79,19 +91,23 @@ final class PhilDoctrineBehavioursBundleTest extends TestCase
         $container = $this->load([]);
 
         self::assertSame('phil_doctrine_behaviours', $this->extension()->getAlias());
-        self::assertSame(['service_container', BinaryKeysListener::class, TimestampListener::class, BlameResolver::class, BlameListener::class, BlameEraser::class, SoftDeleteListener::class, TreeListener::class, Tree::class, DeactivationListener::class, PositionListener::class, Positions::class, TranslationListener::class, Translations::class, BlamePrivacy::class], array_keys($container->getDefinitions()));
+        self::assertSame(['service_container', BinaryKeysListener::class, TimestampListener::class, BlameResolver::class, BlameSuspension::class, BlameListener::class, BlameEraser::class, SoftDeleteListener::class, SoftDeletes::class, TreeListener::class, Tree::class, DeactivationListener::class, PositionListener::class, Positions::class, TranslationListener::class, Translations::class, BlamePrivacy::class], array_keys($container->getDefinitions()));
         self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata']]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertSame([['event' => 'prePersist'], ['event' => 'onFlush']], $container->getDefinition(TimestampListener::class)->getTag('doctrine.event_listener'));
         self::assertEquals([new Reference('clock')], $container->getDefinition(TimestampListener::class)->getArguments());
         self::assertSame([['event' => 'prePersist'], ['event' => 'onFlush']], $container->getDefinition(BlameListener::class)->getTag('doctrine.event_listener'));
-        self::assertEquals([new Reference(BlameResolver::class)], $container->getDefinition(BlameListener::class)->getArguments());
+        self::assertEquals([new Reference(BlameResolver::class), new Reference(BlameSuspension::class)], $container->getDefinition(BlameListener::class)->getArguments());
+        self::assertSame(['kernel.reset' => [['method' => 'reset']]], $container->getDefinition(BlameSuspension::class)->getTags());
         self::assertSame(SecurityBlameResolver::class, $container->getDefinition(BlameResolver::class)->getClass());
         self::assertEquals([new Reference('security.token_storage', ContainerInterface::NULL_ON_INVALID_REFERENCE), null], $container->getDefinition(BlameResolver::class)->getArguments());
-        self::assertEquals([new Reference('doctrine.orm.entity_manager')], $container->getDefinition(BlameEraser::class)->getArguments());
+        self::assertEquals([new Reference('doctrine')], $container->getDefinition(BlameEraser::class)->getArguments());
         self::assertTrue($container->getDefinition(BlameEraser::class)->isPublic());
         self::assertSame([['method' => 'reset']], $container->getDefinition(TreeListener::class)->getTag('kernel.reset'));
-        self::assertSame([['event' => 'onFlush']], $container->getDefinition(SoftDeleteListener::class)->getTag('doctrine.event_listener'));
+        self::assertSame([['event' => 'onFlush', 'priority' => -256]], $container->getDefinition(SoftDeleteListener::class)->getTag('doctrine.event_listener'));
+        self::assertSame(-256, BehaviourServices::SOFT_DELETE_PRIORITY);
         self::assertEquals([new Reference('clock')], $container->getDefinition(SoftDeleteListener::class)->getArguments());
+        self::assertEquals([new Reference('doctrine'), new Reference('clock')], $container->getDefinition(SoftDeletes::class)->getArguments());
+        self::assertTrue($container->getDefinition(SoftDeletes::class)->isPublic());
         self::assertSame([['event' => 'postPersist'], ['event' => 'onFlush'], ['event' => 'postFlush']], $container->getDefinition(TreeListener::class)->getTag('doctrine.event_listener'));
         self::assertEquals([new Reference('doctrine.orm.entity_manager')], $container->getDefinition(Tree::class)->getArguments());
         self::assertTrue($container->getDefinition(Tree::class)->isPublic());
@@ -104,7 +120,7 @@ final class PhilDoctrineBehavioursBundleTest extends TestCase
         self::assertSame([['event' => 'loadClassMetadata']], $container->getDefinition(TranslationListener::class)->getTag('doctrine.event_listener'));
         self::assertEquals([new Reference('doctrine.orm.entity_manager')], $container->getDefinition(Translations::class)->getArguments());
         self::assertTrue($container->getDefinition(Translations::class)->isPublic());
-        self::assertEquals([new Reference(BlameEraser::class), null], $container->getDefinition(BlamePrivacy::class)->getArguments());
+        self::assertEquals([new Reference(BlameEraser::class), null, null], $container->getDefinition(BlamePrivacy::class)->getArguments());
         self::assertSame(['phil_privacy.exporter' => [[]], 'phil_privacy.eraser' => [[]]], $container->getDefinition(BlamePrivacy::class)->getTags());
         self::assertSame('phil_soft_deleted', BehaviourServices::FILTER);
         self::assertSame('phil_deactivated', BehaviourServices::DEACTIVATED_FILTER);
@@ -257,10 +273,10 @@ final class PhilDoctrineBehavioursBundleTest extends TestCase
     {
         $container = $this->load(['owner' => ['user_method' => 'uuid'], 'privacy' => ['blame_replacement' => 'former-member', 'owner_replacement' => 'former']]);
 
-        self::assertEquals([new Reference(BlameEraser::class), 'former-member'], $container->getDefinition(BlamePrivacy::class)->getArguments());
-        self::assertEquals([new Reference(OwnerEraser::class), new Definition(OwnerId::class, ['former'])], $container->getDefinition(OwnerPrivacy::class)->getArguments());
+        self::assertEquals([new Reference(BlameEraser::class), 'former-member', null], $container->getDefinition(BlamePrivacy::class)->getArguments());
+        self::assertEquals([new Reference(OwnerEraser::class), new Definition(OwnerId::class, ['former']), null], $container->getDefinition(OwnerPrivacy::class)->getArguments());
         self::assertSame(['phil_privacy.exporter' => [[]], 'phil_privacy.eraser' => [[]]], $container->getDefinition(OwnerPrivacy::class)->getTags());
-        self::assertEquals([new Reference(OwnerEraser::class), null], $this->load(['owner' => ['user_method' => 'uuid']])->getDefinition(OwnerPrivacy::class)->getArguments());
+        self::assertEquals([new Reference(OwnerEraser::class), null, null], $this->load(['owner' => ['user_method' => 'uuid']])->getDefinition(OwnerPrivacy::class)->getArguments());
 
         $without = $this->load(['blame' => false, 'owner' => ['user_method' => 'uuid'], 'privacy' => false]);
         self::assertSame([false, false], [$without->hasDefinition(BlamePrivacy::class), $without->hasDefinition(OwnerPrivacy::class)]);
@@ -323,7 +339,7 @@ final class PhilDoctrineBehavioursBundleTest extends TestCase
         self::assertEquals([new Reference('security.token_storage', ContainerInterface::NULL_ON_INVALID_REFERENCE), 'uuid'], $container->getDefinition(OwnerResolver::class)->getArguments());
         self::assertEquals([new Reference(OwnerResolver::class)], $container->getDefinition(OwnerListener::class)->getArguments());
         self::assertSame([['event' => 'prePersist']], $container->getDefinition(OwnerListener::class)->getTag('doctrine.event_listener'));
-        self::assertEquals([new Reference('doctrine.orm.entity_manager')], $container->getDefinition(OwnerEraser::class)->getArguments());
+        self::assertEquals([new Reference('doctrine')], $container->getDefinition(OwnerEraser::class)->getArguments());
         self::assertTrue($container->getDefinition(OwnerEraser::class)->isPublic());
     }
 
@@ -391,9 +407,69 @@ final class PhilDoctrineBehavioursBundleTest extends TestCase
         self::assertSame(SecurityVersionRestoreGuard::class, $container->getDefinition(VersionRestoreGuard::class)->getClass());
         self::assertEquals([new Reference('security.authorization_checker', ContainerInterface::NULL_ON_INVALID_REFERENCE), 'ROLE_EDITOR_IN_CHIEF'], $container->getDefinition(VersionRestoreGuard::class)->getArguments());
         self::assertSame([['event' => 'onFlush']], $container->getDefinition(VersionListener::class)->getTag('doctrine.event_listener'));
-        self::assertEquals([new Reference('doctrine.orm.entity_manager'), new Reference('clock'), new Reference(VersionRestoreGuard::class)], $container->getDefinition(Versions::class)->getArguments());
+        self::assertEquals([new Reference('doctrine.orm.entity_manager'), new Reference('clock'), new Reference(VersionRestoreGuard::class), new Reference(PersonalFields::class), PersonalFieldPolicy::Exclude, null], $container->getDefinition(Versions::class)->getArguments());
+        self::assertSame(PersonalDataFields::class, $container->getDefinition(PersonalFields::class)->getClass());
+        self::assertEquals([new Reference('doctrine'), new Reference(PersonalFields::class), new Reference('clock')], $container->getDefinition(VersionEraser::class)->getArguments());
+        self::assertTrue($container->getDefinition(VersionEraser::class)->isPublic());
+        self::assertEquals([new Reference(VersionEraser::class)], $container->getDefinition(StripVersionsCommand::class)->getArguments());
+        self::assertSame(['console.command' => [[]]], $container->getDefinition(StripVersionsCommand::class)->getTags());
+        self::assertEquals([new Reference(VersionEraser::class)], $container->getDefinition(VersionsPrivacy::class)->getArguments());
+        self::assertSame(['phil_privacy.exporter' => [[]], 'phil_privacy.eraser' => [[]]], $container->getDefinition(VersionsPrivacy::class)->getTags());
+        self::assertEquals(new Reference(VersionEraser::class), $container->getDefinition(BlamePrivacy::class)->getArgument(2));
         self::assertTrue($container->getDefinition(Versions::class)->isPublic());
         self::assertSame('PHIL_VERSION_RESTORE', $this->load(['versions' => true])->getDefinition(VersionRestoreGuard::class)->getArgument(1));
+    }
+
+    public function testTheVersionsSealWithTheCipherNamed(): void
+    {
+        $container = $this->load(['versions' => ['personal_fields' => 'encrypt', 'cipher' => 'app.version_cipher']]);
+        self::assertEquals([PersonalFieldPolicy::Encrypt, new Reference('app.version_cipher')], \array_slice($container->getDefinition(Versions::class)->getArguments(), 4));
+
+        $keeping = $this->load(['versions' => ['personal_fields' => 'keep', 'cipher' => 'app.version_cipher']]);
+        self::assertEquals([PersonalFieldPolicy::Keep, null], \array_slice($keeping->getDefinition(Versions::class)->getArguments(), 4), 'the cipher only seals');
+        self::assertFalse($this->load(['versions' => false, 'blame' => true])->hasDefinition(VersionsPrivacy::class));
+    }
+
+    public function testSealingNeedsACipher(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageIsOrContains('phil_doctrine_behaviours.versions.cipher is required when personal_fields is "encrypt"');
+        $this->load(['versions' => ['personal_fields' => 'encrypt']]);
+    }
+
+    public function testAPolicyIsOneOfThree(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->load(['versions' => ['personal_fields' => 'hide']]);
+    }
+
+    public function testTheBlameIsSuspendedDuringAnErasureUnlessAsked(): void
+    {
+        foreach ([['blame' => ['suspend_during_erasure' => false]], ['privacy' => false]] as $config) {
+            $container = $this->load($config);
+            self::assertFalse($container->hasDefinition(BlameSuspension::class));
+            self::assertEquals([new Reference(BlameResolver::class), null], $container->getDefinition(BlameListener::class)->getArguments());
+        }
+    }
+
+    public function testEveryEraserIsDecoratedWithTheSuspension(): void
+    {
+        $container = $this->load(['versions' => true]);
+        $container->register('app.eraser', '%app.eraser.class%')->addTag(BehaviourServices::ERASER_TAG);
+        $container->setParameter('app.eraser.class', SuspendBlame::class);
+        $container->register('app.exporter', SuspendBlameWithExport::class)->addTag(BehaviourServices::ERASER_TAG);
+        new SuspendBlameDuringErasurePass()->process($container);
+
+        self::assertSame(SuspendBlameWithExport::class, $container->getDefinition(BlamePrivacy::class.SuspendBlameDuringErasurePass::SUFFIX)->getClass());
+        self::assertSame([BlamePrivacy::class, null, 0], $container->getDefinition(BlamePrivacy::class.SuspendBlameDuringErasurePass::SUFFIX)->getDecoratedService());
+        self::assertEquals([new Reference(BlamePrivacy::class.'.phil_suspend_blame.inner'), new Reference(BlameSuspension::class)], $container->getDefinition(BlamePrivacy::class.SuspendBlameDuringErasurePass::SUFFIX)->getArguments());
+        self::assertSame(SuspendBlameWithExport::class, $container->getDefinition(VersionsPrivacy::class.SuspendBlameDuringErasurePass::SUFFIX)->getClass());
+        self::assertSame(SuspendBlame::class, $container->getDefinition('app.eraser'.SuspendBlameDuringErasurePass::SUFFIX)->getClass(), 'an eraser that does not export, its class a parameter');
+        self::assertSame(SuspendBlameWithExport::class, $container->getDefinition('app.exporter'.SuspendBlameDuringErasurePass::SUFFIX)->getClass(), 'an eraser that exports, by the class of its definition and not by its name');
+
+        $off = $this->load(['blame' => ['suspend_during_erasure' => false]]);
+        new SuspendBlameDuringErasurePass()->process($off);
+        self::assertFalse($off->hasDefinition(BlamePrivacy::class.SuspendBlameDuringErasurePass::SUFFIX));
     }
 
     public function testARightHasAName(): void

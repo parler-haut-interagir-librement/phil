@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=df8bbcfebb84b6ca412ad9033d4694b3450b15be870b73d7d7bfb303b16fcdc5 -->
+<!-- phil-dev source-sha256=08c794fb745ee98671e3e017640366633af5a5da80947b0fe5f8fd55a6c56856 -->
 # Points d'extension
 
 La librairie ne déclare aucun service : une application enregistre les écouteurs qu'elle veut sur son gestionnaire
@@ -40,6 +40,33 @@ auteur](timestamps-and-blame.md#vie-privée).
 `AllowVersionRestore` laisse tout le monde, `RefuseVersionRestore` personne. Voir
 [Versions](versions.md#revenir-en-arrière).
 
+## `Contract\PersonalFields`
+
+`Phil\DoctrineBehaviours\Contract\PersonalFields`, quels champs d'une classe contiennent des renseignements personnels,
+donné à `Versions` et à `VersionEraser`.
+
+| Méthode | Contrat |
+|---|---|
+| `of(string $class): list<string>` | Les noms des champs, comme `versionedState()` les range en clés ; `[]` quand la classe n'en a aucun |
+
+`NoPersonalFields` n'en nomme aucun, `ListedPersonalFields` ceux listés par classe ou par interface. Le bundle lit les
+déclarations `#[PersonalData]` de `phil/privacy-bundle`. Voir [Versions](versions.md#champs-personnels).
+
+## `Contract\VersionCipher`
+
+`Phil\DoctrineBehaviours\Contract\VersionCipher`, qui scelle les champs personnels d'une version sous
+`PersonalFieldPolicy::Encrypt`, donné à `Versions`.
+
+| Méthode | Contrat |
+|---|---|
+| `seal(string $plaintext, string $context): string` | La valeur scellée, liée au contexte comme donnée associée |
+| `open(string $sealed, string $context): string` | La valeur, ou une exception quand elle ne s'ouvre pas sous ce contexte |
+
+Le texte en clair est le JSON de la valeur ; le contexte nomme la table, l'enregistrement, la version et le champ. Un
+chiffrement authentifié, comme XChaCha20-Poly1305 avec le contexte pour donnée associée, sous une clé que l'application
+garde hors de la base de données, convient ; effacer une version demande toujours `VersionEraser`, puisqu'une clé qui
+est gardée ouvre ce qu'elle a scellé.
+
 ## Les générateurs de slugs
 
 `SlugListener` prend les `Sluggers` de `phil/slug` : un générateur nommé ou décoré là s'applique ici, et
@@ -76,8 +103,12 @@ et écrivent par les méthodes seulement.
 | Quels comportements s'exécutent | Seulement les écouteurs enregistrés : chacun est indépendant |
 | Voir les lignes supprimées | `SoftDeletedFilter`, sous `SoftDeletedFilter::NAME`, désactivé pour les requêtes qui en ont besoin |
 | Voir les lignes désactivées | `DeactivatedFilter`, sous `DeactivatedFilter::NAME`, désactivé pour les requêtes qui en ont besoin |
-| Effacer le nom d'un utilisateur | `BlameEraser::find()` et `replace()`, sur chaque table qui garde l'auteur |
-| Effacer un propriétaire | `OwnerEraser::find()` et `replace()`, sur chaque table qui garde un propriétaire |
+| Effacer le nom d'un utilisateur | `BlameEraser::find()` et `replace()`, sur chaque table qui garde l'auteur, de chaque gestionnaire d'entités que donne un `ManagerRegistry` |
+| Effacer un propriétaire | `OwnerEraser::find()` et `replace()`, sur chaque table qui garde un propriétaire, de chaque gestionnaire d'entités que donne un `ManagerRegistry` |
+| Effacer les champs personnels des versions | `VersionEraser::redact()`, `redactRecord()` et `stripPersonalFields()` |
+| Aucun auteur pendant un effacement | Une `BlameSuspension` donnée à `BlameListener`, son `during()` autour de l'effacement |
+| Supprimer pour de bon une ligne supprimable en douceur | `SoftDeletes::purge()` |
+| La collation des clés | `BinaryKeysListener`, sur `loadClassMetadata`, et son `FIELDS` |
 | Les locales servies | La `FallbackChain` que l'application donne à `Translations`, tirée du `DeclaredLocales` de `phil/locale-dimensions` |
 | Le workflow de publication | Les places et les transitions de `PublicationWorkflow`, ou un workflow propre à l'application avec ces trois places |
 

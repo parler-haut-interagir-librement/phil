@@ -7,8 +7,8 @@ of the behaviours the configuration switches on with DoctrineBundle's event mana
 the `phil_soft_deleted` and `phil_deactivated` filters, enabled on the default entity manager. Blame names the user
 Symfony Security authenticated, when the security bundle is installed. Positions are on, with the `Positions` service,
 and so are translations, with the `Translations` service. Ownership, publication by workflow, slugs, versions and dated
-identifiers are switched on one by one. With `phil/privacy-bundle` installed, the blame and the owner answer its access
-and erasure requests.
+identifiers are switched on one by one. With `phil/privacy-bundle` installed, the blame, the owner and the versions
+answer its access and erasure requests, over every entity manager, and no name is blamed while its erasers run.
 
 It is for a Symfony application on Doctrine ORM that wants these behaviours without wiring listeners by hand. A
 behaviour that needs nothing more is on, one that needs a package or a setting is off until asked for, and each can be
@@ -35,16 +35,19 @@ storage.
 | Positions within the group `positionGroup()` names, with the public `Positions` service | Implemented and tested |
 | Slugs unique in their table, or within the scope `slugScope()` names | Implemented and tested |
 | Translations, one row per record and locale with no source to compile, the unique index of each translation table and the public `Translations` service | Implemented and tested |
-| The blame and the owner in the access and erasure requests of `phil/privacy-bundle`, only when it is installed | Implemented and tested |
+| The blame, the owner and the versions in the access and erasure requests of `phil/privacy-bundle`, only when it is installed | Implemented and tested |
+| The `#[PersonalData]` fields left out of the frozen versions, or sealed, and the command that strips the versions already written | Implemented and tested |
+| No name blamed while an eraser of `phil/privacy-bundle` runs | Implemented and tested |
+| The soft delete after the other `onFlush` listeners, so that a search index sees the deletion | Implemented and tested |
 | Instants from the Symfony clock written in UTC, in the column types the library declares | Implemented and tested |
-| Worker runtimes: `TreeListener` reset with `kernel.reset`, every other service stateless | Implemented and tested |
+| Worker runtimes: `TreeListener` and `BlameSuspension` reset with `kernel.reset`, every other service stateless | Implemented and tested |
 
 ## Documentation
 
 | Document | What it covers |
 |---|---|
 | [Installation](doc/installation.md) | Requirements and registering. |
-| [Configuration](doc/configuration.md) | Each behaviour, the filter, the blame resolver, privacy requests. |
+| [Configuration](doc/configuration.md) | Each behaviour, the filter, the blame resolver, privacy requests, the personal fields of the versions, the blame during an erasure. |
 | [Coming from the Gedmo extensions](doc/gedmo.md) | What each part of them becomes. |
 | [Extension points](doc/extension-points.md) | What an application implements, configures, replaces or relies on. |
 | [Testing](doc/testing.md) | How the bundle is tested. |

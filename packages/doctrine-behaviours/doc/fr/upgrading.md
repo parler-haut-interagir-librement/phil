@@ -1,5 +1,56 @@
-<!-- phil-dev source-sha256=d9a1171098b491e64bdbd34cd12d215616784910f9f97002d400e1e475cbb52a -->
+<!-- phil-dev source-sha256=d3c2358dcd596ee30d61957a38417cb1a99c3d2b089b25a1f58d4986580edc66 -->
 # Mises à niveau
+
+## De 0.2 à 0.3
+
+### Les champs personnels des versions
+
+`phil_record_version` a une colonne `redacted_at`, nullable, de type `datetime_utc_immutable` : l'instant où un
+effacement a retiré les champs personnels d'une version. `doctrine:migrations:diff` écrit la migration qui l'ajoute.
+
+`Versions` laisse de côté par défaut les champs que nomme `PersonalFields`, avec `PersonalFieldPolicy::Exclude` ; sans
+`PersonalFields`, il garde chaque champ, comme avant. Les versions écrites avant contiennent encore ces champs en clair :
+retirez-les une fois, après la migration, avec `VersionEraser::stripPersonalFields()`, ou avec la commande du bundle
+`phil:doctrine-behaviours:strip-versions` :
+
+```php
+$eraser = new VersionEraser($registry, $personalFields, $clock);
+$eraser->stripPersonalFields(dryRun: true);   // how many versions hold some
+$eraser->stripPersonalFields();               // taken out; a sealed value stays
+```
+
+L'enregistrement peut encore revenir à ces versions, avec ses propres valeurs pour les champs retirés. Une application
+qui a effacé des personnes avant cette version exécute `VersionEraser::redact()` pour chacune d'elles, si leurs versions
+leur sont encore liées par `owner_id` ou `created_by` ; une fois l'auteur ou le propriétaire remplacé,
+`stripPersonalFields()` est ce qui atteint ces versions.
+
+### Les outils d'effacement
+
+`BlameEraser` et `OwnerEraser` prennent un gestionnaire d'entités ou un `ManagerRegistry` ; avec le registre, ils
+joignent chaque gestionnaire d'entités. Ils écrivent chaque connexion dans une transaction, évincent les régions du
+cache de second niveau des classes qu'ils changent et détachent les entités gérées qui gardent l'ancienne valeur : faites
+un `flush` avant un effacement, puisque ce qu'une telle entité avait en attente est abandonné.
+
+### Collation des clés
+
+`BinaryKeysListener` est dans la bibliothèque : une application qui l'utilise sans son bundle l'enregistre sur
+`loadClassMetadata`, comme le montre [Intégration](integration.md#collation-des-clés). Sur MySQL et MariaDB,
+`doctrine:migrations:diff` écrit alors la migration qui amène les clés à `utf8mb4_bin` ; sur PostgreSQL et SQLite, le
+diff est vide. Les colonnes de jointure vers un identifiant daté prennent sa collation et sont converties avec lui, et
+MySQL refuse de changer un côté d'une clé étrangère avant l'autre : mettez `SET FOREIGN_KEY_CHECKS = 0` au début du
+`up()` de la migration et `SET FOREIGN_KEY_CHECKS = 1` à sa fin.
+
+Le changement ne fait que rendre les valeurs plus distinctes : aucune ligne existante ne brise donc une clé unique, mais
+les lignes dont les clés ne diffèrent que par la casse, qu'une recherche par l'une ou l'autre graphie rendait ensemble,
+sont dès lors trouvées chacune par sa propre graphie. Avant de migrer, listez les propriétaires et les auteurs écrits
+sous plus d'une casse, pour chaque table qui les prend :
+
+```sql
+SELECT owner_id, COUNT(*) AS row_count FROM notice
+GROUP BY owner_id HAVING COUNT(DISTINCT CAST(owner_id AS BINARY)) > 1;
+```
+
+Gardez-les distincts, ou ramenez les lignes à la graphie qu'emploie l'application avec un `UPDATE` avant la migration.
 
 ## De 0.1 à 0.2
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=917635a6ed9ab2f41a271bb1bd40155ae8088c2b5f2a85b80e4b40e10ec0c3fc -->
+<!-- phil-dev source-sha256=55b683556c42ff191de670f9561eb672ac18e8f9992452e3f420614dc4238556 -->
 # Configuration
 
 ```yaml
@@ -7,6 +7,7 @@ phil_doctrine_behaviours:
     blame:
         enabled: true
         user_method: null
+        suspend_during_erasure: true
     soft_delete:
         enabled: true
         filter: true
@@ -28,6 +29,8 @@ phil_doctrine_behaviours:
     versions:
         enabled: false
         restore_right: PHIL_VERSION_RESTORE
+        personal_fields: exclude       # exclude, encrypt or keep
+        cipher: null                   # a VersionCipher service, required by encrypt
     dated_identifier:
         enabled: false
     privacy:
@@ -44,7 +47,8 @@ est désactivé jusqu'à ce qu'on le demande. Un raccourci s'écrit `owner: fals
 | `timestamps` | `true` | `TimestampListener` sur `prePersist` et `onFlush` |
 | `blame` | activé | `BlameListener` sur `prePersist` et `onFlush`, le service `BlameResolver` et le `BlameEraser` public ; `false` le désactive |
 | `blame.user_method` | `null` | Une méthode publique de la classe d'utilisateur qui le nomme dans l'auteur, un accesseur d'UUID ; `getUserIdentifier()` quand elle vaut `null` |
-| `soft_delete` | activé | `SoftDeleteListener` sur `onFlush` ; `false` le désactive |
+| `blame.suspend_during_erasure` | `true` | Avec `privacy` activé et `phil/privacy-bundle` installé, aucun nom n'est gardé comme auteur pendant que l'un de ses outils d'effacement s'exécute : le service `BlameSuspension`, réinitialisé avec `kernel.reset`, autour de chaque outil d'effacement |
+| `soft_delete` | activé | `SoftDeleteListener` sur `onFlush` à la priorité `-256`, et le service public `SoftDeletes` ; `false` les désactive |
 | `soft_delete.filter` | `true` | Ajoute `phil_soft_deleted` au gestionnaire d'entités par défaut, activé |
 | `tree` | `true` | `TreeListener` sur `postPersist`, `onFlush` et `postFlush`, réinitialisé avec `kernel.reset`, et le service public `Tree` |
 | `deactivation` | activé | `DeactivationListener` sur `prePersist` et `onFlush` |
@@ -57,10 +61,12 @@ est désactivé jusqu'à ce qu'on le demande. Un raccourci s'écrit `owner: fals
 | `position` | `true` | `PositionListener` sur `onFlush`, et le service public `Positions` |
 | `translation` | `true` | `TranslationListener` sur `loadClassMetadata`, qui ajoute l'index unique de chaque table de traduction, et le service public `Translations` |
 | `slug` | désactivé | `SlugListener` sur `onFlush`, avec les `Sluggers` de `phil/slug-bundle`, qui doit être enregistré |
-| `versions` | désactivé | `VersionListener` sur `onFlush`, le service public `Versions`, le `VersionRestoreGuard` et l'association de `RecordVersion` |
+| `versions` | désactivé | `VersionListener` sur `onFlush`, les services publics `Versions` et `VersionEraser`, le `VersionRestoreGuard`, le service `PersonalFields`, la commande `phil:doctrine-behaviours:strip-versions` avec `symfony/console`, et l'association de `RecordVersion` |
 | `versions.restore_right` | `PHIL_VERSION_RESTORE` | L'attribut de Symfony Security nécessaire pour revenir à une version passée |
+| `versions.personal_fields` | `exclude` | Ce qu'une version figée garde des champs `#[PersonalData]` de son enregistrement : `exclude` les laisse de côté, `encrypt` les scelle avec `versions.cipher`, `keep` les garde jusqu'à ce qu'un effacement les caviarde |
+| `versions.cipher` | `null` | Le service d'un `VersionCipher`, requis par `encrypt` |
 | `dated_identifier` | désactivé | `DatedIdentifierListener` sur `prePersist` ; exige `symfony/uid` |
-| `privacy` | activé | `BlamePrivacy` avec `blame`, `OwnerPrivacy` avec `owner`, étiquetés pour `phil/privacy-bundle` quand il est installé ; `false` les désactive |
+| `privacy` | activé | `BlamePrivacy` avec `blame`, `OwnerPrivacy` avec `owner`, `VersionsPrivacy` avec `versions`, étiquetés pour `phil/privacy-bundle` quand il est installé ; `false` les désactive |
 | `privacy.blame_replacement` | `null` | Le pseudonyme qui prend la place d'un nom effacé dans l'auteur, de 1 à 255 octets ; `null` laisse l'auteur vide |
 | `privacy.owner_replacement` | `null` | L'identifiant de propriétaire qui prend la place d'un propriétaire effacé, sans `@` ; `null` laisse les enregistrements sans propriétaire |
 
@@ -112,17 +118,21 @@ quelqu'un lui appartient.
 
 ## Les demandes de vie privée
 
-Avec `phil/privacy-bundle` installé, l'auteur et le propriétaire participent à ses demandes d'accès et d'effacement,
-chacun quand son comportement est activé, sous les noms de module `behaviours.blame` et `behaviours.owner`. Sans lui,
-rien n'est enregistré.
+Avec `phil/privacy-bundle` installé, l'auteur, le propriétaire et les versions participent à ses demandes d'accès et
+d'effacement, chacun quand son comportement est activé, sous les noms de module `behaviours.blame`,
+`behaviours.owner` et `behaviours.versions`. Sans lui, rien n'est enregistré.
 
-| Demande | Auteur | Propriétaire |
-|---|---|---|
-| accès | combien de lignes nomment la personne, par table, sous `rows_by_table` | combien de lignes la personne possède, par table, sous `rows_by_table` |
-| effacement | le nom remplacé par `privacy.blame_replacement`, ou par personne, dans chaque table tracée | les enregistrements remis à `privacy.owner_replacement`, ou à personne |
+| Demande | Auteur | Propriétaire | Versions |
+|---|---|---|---|
+| accès | combien de lignes nomment la personne, par table, sous `rows_by_table` | combien de lignes la personne possède, par table, sous `rows_by_table` | combien de versions contiennent encore les champs personnels de la personne, sous `versions_with_personal_fields` |
+| effacement | le nom remplacé par `privacy.blame_replacement`, ou par personne, dans chaque table tracée | les enregistrements remis à `privacy.owner_replacement`, ou à personne | les champs personnels retirés de ces versions, chacune datée dans `redacted_at` |
 
-L'effacement passe par `BlameEraser` et `OwnerEraser` : les lignes supprimées en douceur et filtrées aussi, sans
-exécuter les écouteurs. Son rapport nomme chaque table du comportement, trouvée ou non, comme `pseudonymised` avec un
+L'effacement passe par `BlameEraser`, `OwnerEraser` et `VersionEraser`, sur chaque gestionnaire d'entités du registre
+`doctrine` : les lignes supprimées en douceur et filtrées aussi, sans exécuter les écouteurs. Avec les versions
+activées, l'auteur et le propriétaire caviardent d'abord les versions de la personne, tant que le nom les trouve encore :
+le module des versions, qui s'exécute après eux, les trouve caviardées. Les champs personnels sont les propriétés
+déclarées `#[PersonalData]`, celles des classes parentes comprises.
+Son rapport nomme chaque table du comportement, trouvée ou non, comme `pseudonymised` avec un
 pseudonyme et `redacted` sans pseudonyme, si bien qu'une deuxième exécution rapporte la même chose ; le module lui-même
 tient lieu de stockage quand aucune table n'a le comportement.
 
@@ -311,13 +321,50 @@ services:
 
 La table `phil_record_version` est créée par une migration de l'application, comme celle de toute entité associée.
 
+## Les champs personnels des versions
+
+Une version figée laisse de côté par défaut les propriétés de son enregistrement déclarées `#[PersonalData]` de
+`phil/privacy-bundle` : revenir en arrière garde les valeurs que l'enregistrement tient pour elles.
+`versions.personal_fields: encrypt` les scelle avec le service `VersionCipher` que nomme `versions.cipher`, lié à
+l'enregistrement, à la version et au champ ; `keep` les garde en clair, jusqu'à ce qu'un effacement les caviarde. Sans
+`phil/privacy-bundle`, aucun champ n'est personnel et chaque champ est gardé.
+
+Revenir à une version qu'un effacement a caviardée, ou à une version plus ancienne du même enregistrement, est refusé
+par `VersionErased`.
+
+Les versions écrites avant que les champs personnels soient laissés de côté les contiennent encore. Retirez-les une
+fois, après la migration qui ajoute `redacted_at` :
+
+```sh
+bin/console phil:doctrine-behaviours:strip-versions --dry-run   # how many versions hold some
+bin/console phil:doctrine-behaviours:strip-versions
+```
+
+Une valeur scellée reste, et aucune version n'est marquée caviardée : l'enregistrement peut encore revenir à elles.
+
+## L'auteur pendant un effacement
+
+`BlameListener` nomme l'utilisateur du jeton à chaque `flush`, celui d'un effacement compris, et `getUserIdentifier()`
+est souvent une adresse courriel. Avec `blame.suspend_during_erasure`, chaque outil d'effacement étiqueté
+`phil_privacy.eraser`, ceux de l'application compris, est décoré par `SuspendBlame` : pendant qu'il s'exécute, aucun nom
+n'est écrit dans `created_by` ni dans `updated_by`. Un effacement exécuté par un *worker* ou une commande de console, où
+personne n'est authentifié, ne nomme personne de toute façon.
+
+## La suppression douce et l'index de recherche
+
+`SoftDeleteListener` écoute `onFlush` à la priorité `BehaviourServices::SOFT_DELETE_PRIORITY`, `-256` : les écouteurs de
+la priorité par défaut, comme l'index de `phil/search-bundle`, voient une suppression comme telle avant qu'elle se
+change en modification, et retirent l'enregistrement. Une première suppression garde toute la ligne ;
+`SoftDeletes::purge()` la supprime.
+
 ## Collation des clés
 
 **Les clés qu'écrivent les comportements se comparent octet par octet**, comme PHP les compare, quels que soient les
 comportements activés : le slug `Doc-A` n'est jamais trouvé pour `doc-a`, et les deux peuvent être pris ; la
 traduction `fr-CA` n'est jamais lue pour `fr-ca` ; les enregistrements du propriétaire `Ann` ne sont jamais listés ni
-effacés pour `ann`. `BinaryKeysListener` donne à ces champs la collation binaire quand l'ORM charge les métadonnées
-d'une classe qui les prend, sur MySQL ou MariaDB ; l'association elle-même reste la même sur toutes les plateformes.
+effacés pour `ann`. `BinaryKeysListener` de `phil/doctrine-behaviours`, enregistré quels que soient les comportements
+activés, donne à ces champs la collation binaire quand l'ORM charge les métadonnées d'une classe qui les prend, sur
+MySQL ou MariaDB ; l'association elle-même reste la même sur toutes les plateformes.
 
 | Une classe qui implémente, ou est | Champs en `utf8mb4_bin` sur MySQL et MariaDB |
 |---|---|
@@ -364,6 +411,6 @@ l'ancienne collation : un slug unique n'a pas besoin de vérification.
 
 ## Les workers de longue durée
 
-Rien de ce que contient un écouteur ou un résolveur ne dure au-delà d'un appel : seul `TreeListener` garde quelque chose
-pendant un *flush*, et il est réinitialisé avec `kernel.reset`. Le bundle n'a besoin d'aucune autre précaution sous un
-environnement d'exécution en mode *worker*.
+Rien de ce que contient un écouteur ou un résolveur ne dure au-delà d'un appel : `TreeListener` garde quelque chose
+pendant un *flush*, et `BlameSuspension` pendant qu'un outil d'effacement s'exécute ; les deux sont réinitialisés avec
+`kernel.reset`. Le bundle n'a besoin d'aucune autre précaution sous un environnement d'exécution en mode *worker*.

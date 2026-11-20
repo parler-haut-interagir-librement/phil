@@ -12,8 +12,9 @@ use Phil\DoctrineBehaviours\Contract\Blameable;
 
 /**
  * A frozen version of a record: its number, what it held, and when it was frozen. Written once by `Versions`, never
- * edited. It is `Blameable`, so `created_by` names who froze it and `BlameEraser` reaches it. A record is designated
- * by its root table and its identifier, which last through a rename of its class.
+ * edited but by an erasure: `VersionEraser` takes the personal fields out of `state` and dates it in `redacted_at`, and
+ * `Versions` refuses to go back to it. It is `Blameable`, so `created_by` names who froze it and `BlameEraser` reaches
+ * it. A record is designated by its root table and its identifier, which last through a rename of its class.
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'phil_record_version')]
@@ -26,6 +27,9 @@ class RecordVersion implements Blameable
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
     protected ?int $id = null;
+
+    #[ORM\Column(name: 'redacted_at', type: Types::DATETIME_UTC_IMMUTABLE, nullable: true)]
+    protected ?DateTimeImmutable $redactedAt = null;
 
     /**
      * @param array<string, mixed> $state
@@ -42,6 +46,11 @@ class RecordVersion implements Blameable
         #[ORM\Column(name: 'frozen_at', type: Types::DATETIME_UTC_IMMUTABLE)]
         protected DateTimeImmutable $frozenAt,
     ) {
+    }
+
+    public function id(): ?int
+    {
+        return $this->id;
     }
 
     public function subjectTable(): string
@@ -70,5 +79,18 @@ class RecordVersion implements Blameable
     public function frozenAt(): DateTimeImmutable
     {
         return $this->frozenAt;
+    }
+
+    /**
+     * When an erasure took the personal fields out of the version, or null.
+     */
+    public function redactedAt(): ?DateTimeImmutable
+    {
+        return $this->redactedAt;
+    }
+
+    public function isRedacted(): bool
+    {
+        return $this->redactedAt instanceof DateTimeImmutable;
     }
 }

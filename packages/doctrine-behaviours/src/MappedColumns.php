@@ -8,9 +8,10 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
 /**
- * The tables of the mapped classes that implement an interface, each once, with the columns of the given fields,
- * quoted as the mapping says. A subclass that inherits the fields from an entity has them in its parent's table,
- * which the parent gives; a class that does not map the first field is left out.
+ * The tables of the mapped classes of one entity manager that implement an interface, each once, with the columns of
+ * the given fields, quoted as the mapping says, and the class that maps them there. A subclass that inherits the fields
+ * from an entity has them in its parent's table, which the parent gives; a class that does not map the first field is
+ * left out.
  *
  * @internal
  */
@@ -20,7 +21,7 @@ final class MappedColumns
      * @param class-string           $interface
      * @param non-empty-list<string> $fields
      *
-     * @return array<string, list<string>>
+     * @return array<string, array{columns: list<string>, classes: list<class-string>}>
      */
     public static function of(EntityManagerInterface $manager, string $interface, array $fields): array
     {
@@ -38,7 +39,9 @@ final class MappedColumns
                 continue;
             }
 
-            $tables[$quotes->getTableName($metadata, $platform)] = array_map(static fn (string $field): string => $quotes->getColumnName($field, $metadata, $platform), $fields);
+            $table = $quotes->getTableName($metadata, $platform);
+            $tables[$table] ??= ['columns' => array_map(static fn (string $field): string => $quotes->getColumnName($field, $metadata, $platform), $fields), 'classes' => []];
+            $tables[$table]['classes'][] = $metadata->getName();
         }
 
         ksort($tables);

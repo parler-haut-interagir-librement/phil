@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a59b82a2d7040574ae00ea3eef543aa4df0714f0ec6b95891fcd0a1d19adcbea -->
+<!-- phil-dev source-sha256=92921217810860e0a70e4097fb6f6009a684409a3b563cf3dcbed3f0be5e43cb -->
 # Propriétaire
 
 | Type | Genre | Rôle |
@@ -38,8 +38,16 @@ lecture.
 chaque table qui garde un propriétaire, trouvée ou non, pour un rapport qui nomme chaque lieu de stockage.
 
 ```php
+$eraser = new OwnerEraser($registry);              // every entity manager, or one: new OwnerEraser($manager)
 $eraser->find($owner);                             // ['article' => 12, 'page' => 3]
 $eraser->replace($owner, new OwnerId('former-81'));
 $eraser->replace($owner);                          // nobody owns them any more
 $eraser->tables();                                 // ['article', 'page']
 ```
+
+Comme `BlameEraser`, il joint les tables de chaque gestionnaire d'entités que donne un `ManagerRegistry`, chaque table
+une seule fois par connexion, écrit les tables de chaque connexion dans une transaction, puis évince les régions du
+cache de second niveau des classes qu'il a changées et détache les entités gérées qui gardent encore l'ancien
+propriétaire. Les versions des enregistrements que possède la personne gardent ce qu'a donné `versionedState()` :
+`VersionEraser::redact()` en retire les champs personnels, avant que le propriétaire soit remplacé — voir
+[Versions](versions.md#effacement).
