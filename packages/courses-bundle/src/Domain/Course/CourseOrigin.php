@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\CoursesBundle\Domain\Course;
 
+use Phil\CoursesBundle\Domain\Exception\PackageRefused;
 use Phil\ElearningPackages\PackageFormat;
 
 /**
@@ -18,6 +19,8 @@ enum CourseOrigin: string
 
     /**
      * The origin of a course imported from a package of that format.
+     *
+     * @throws PackageRefused for an xAPI package, which the import does not turn into a course
      */
     public static function of(PackageFormat $format): self
     {
@@ -25,6 +28,7 @@ enum CourseOrigin: string
             PackageFormat::Scorm12 => self::Scorm12,
             PackageFormat::Scorm2004 => self::Scorm2004,
             PackageFormat::Cmi5 => self::Cmi5,
+            PackageFormat::Xapi => throw PackageRefused::because('An xAPI package is not imported as a course.'),
         };
     }
 }

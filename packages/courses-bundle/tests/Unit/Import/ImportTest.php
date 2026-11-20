@@ -259,7 +259,22 @@ final class ImportTest extends TestCase
             $store->importer->import(Packages::zip(['index.html' => '']));
             self::fail('The archive is accepted.');
         } catch (PackageRefused $packageRefused) {
-            self::assertSame('The package holds neither cmi5.xml nor imsmanifest.xml at its root.', $packageRefused->getMessage());
+            self::assertSame('The package holds none of cmi5.xml, imsmanifest.xml and tincan.xml at its root.', $packageRefused->getMessage());
+        }
+
+        self::assertSame([], $store->courses->all());
+    }
+
+    public function testAnXapiPackageIsRefusedAsItHoldsNoCourseToCreate(): void
+    {
+        $store = new Store();
+        $tincan = '<tincan xmlns="http://projecttincan.com/tincan.xsd"><activities><activity id="urn:x:a"><name>A</name><launch>a.html</launch></activity></activities></tincan>';
+
+        try {
+            $store->importer->import(Packages::zip(['tincan.xml' => $tincan, 'a.html' => '']));
+            self::fail('The archive is accepted.');
+        } catch (PackageRefused $packageRefused) {
+            self::assertSame('An xAPI package holds no course the import can create: only SCORM and cmi5 packages are imported.', $packageRefused->getMessage());
         }
 
         self::assertSame([], $store->courses->all());
