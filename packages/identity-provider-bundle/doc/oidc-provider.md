@@ -213,8 +213,20 @@ Introspection answers `active: false` for a token that is not the asking client'
 every token of an account that was removed or disabled, as userinfo refuses them. Userinfo also refuses the tokens of
 a client that was disabled or removed.
 
-The subject is the account's ULID, the same for every client; a token of the `client_credentials` grant has the client
-as its subject. Userinfo takes the access token in the `Authorization`
+The subject follows `oidc.subject.type`; a token of the `client_credentials` grant has the client as its subject.
+
+| Type | `sub` |
+|---|---|
+| `account`, the default | the account's ULID, the same for every client |
+| `public` | an opaque identifier, the same for every client: the HMAC-SHA256 of the account's ULID under `oidc.subject.salt`, in base64url |
+| `pairwise` | an opaque identifier per sector: the HMAC-SHA256 of the client's sector and the account's ULID under the salt, so that clients of different sectors cannot match their people by it (OpenID Connect Core, section 8.1) |
+
+The sector of a client is the host `--sector-identifier` names — shared by the clients of one owner, which then see the
+same subject —, or the host of its redirect addresses when they all share one, or else its own identifier. The salt,
+32 bytes at least, comes from the secrets vault and never changes once clients have seen subjects: another salt gives
+every account another subject. The ULID stays internal with the opaque types; the ID token, the access token,
+introspection, userinfo, the logout token and the check of an `id_token_hint` all use the subject of the client.
+Changing the type changes every subject the clients know. Userinfo takes the access token in the `Authorization`
 header or, by `POST`, in the `access_token` member of a form body (RFC 6750), never in the query and never both ways.
 
 ## JSON Web Signatures
@@ -323,6 +335,6 @@ The discovery document then announces `backchannel_logout_supported` and `backch
 
 ## Not implemented
 
-Dynamic client registration, request objects, pairwise subjects, the claims parameter, front-channel logout,
+Dynamic client registration, request objects, the claims parameter, front-channel logout,
 token exchange and the `act` claim (RFC 8693), a key set fetched from a client's `jwks_uri`, mutual TLS, and DPoP are
 planned.

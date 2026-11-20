@@ -21,7 +21,8 @@ use Psr\Clock\ClockInterface;
  * form, the form the client must send. A confidential client receives a secret of 256 bits, shown once and kept as
  * its SHA-256 — or registers the public keys it signs client assertions with, and receives no secret. Every client
  * must send a PKCE challenge, unless a confidential one is registered without. A resource it may ask tokens for is an
- * absolute `https` address without a fragment, read and kept like a redirect address.
+ * absolute `https` address without a fragment, read and kept like a redirect address. Its sector, for pairwise
+ * subjects, is the host it names, or the host of its redirect addresses when they share one.
  */
 final readonly class ClientRegistry
 {
@@ -45,7 +46,7 @@ final readonly class ClientRegistry
      *
      * @throws Refused when the identifier is taken or out of shape, or an address, a scope or a key is refused
      */
-    public function register(string $id, string $name, array $redirectUris, array $postLogoutRedirectUris = [], array $scopes = [], bool $public = false, bool $firstParty = false, bool $requirePkce = true, ?array $jwks = null, array $resources = [], ?string $backchannelLogoutUri = null): array
+    public function register(string $id, string $name, array $redirectUris, array $postLogoutRedirectUris = [], array $scopes = [], bool $public = false, bool $firstParty = false, bool $requirePkce = true, ?array $jwks = null, array $resources = [], ?string $backchannelLogoutUri = null, ?string $sectorIdentifier = null): array
     {
         if ($public && null !== $jwks) {
             throw Refused::because('client.invalid', 'A public client registers no keys.');
@@ -61,8 +62,11 @@ final readonly class ClientRegistry
 
         $secret = $public || null !== $jwks ? null : Base64Url::encode(random_bytes(32));
 
+        $redirects = $this->addresses($redirectUris);
+        $hosts = array_values(array_unique(array_map(fn (string $uri): string => Url::fromString($uri, $this->allowLocalhost)->host, $redirects)));
+
         try {
-            $client = Client::register($id, $name, $secret, $this->addresses($redirectUris), $this->addresses($postLogoutRedirectUris), $scopes, $firstParty, $this->clock->now(), $requirePkce, $jwks, $this->addresses($resources, 'client.resource_invalid'), null === $backchannelLogoutUri ? null : $this->addresses([$backchannelLogoutUri], 'client.logout_uri_invalid')[0]);
+            $client = Client::register($id, $name, $secret, $redirects, $this->addresses($postLogoutRedirectUris), $scopes, $firstParty, $this->clock->now(), $requirePkce, $jwks, $this->addresses($resources, 'client.resource_invalid'), null === $backchannelLogoutUri ? null : $this->addresses([$backchannelLogoutUri], 'client.logout_uri_invalid')[0], $sectorIdentifier ?? (1 === \count($hosts) ? $hosts[0] : null));
         } catch (InvalidValue $invalidValue) {
             throw Refused::because('client.invalid', $invalidValue->getMessage());
         }

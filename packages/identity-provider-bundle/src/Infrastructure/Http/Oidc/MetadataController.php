@@ -9,6 +9,7 @@ use Phil\IdentityProviderBundle\Application\Oidc\SigningKeys;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use Phil\IdentityProviderBundle\Domain\Oidc\AuthorizationRequestParser;
 use Phil\IdentityProviderBundle\Domain\Oidc\ClientAuthMethod;
+use Phil\IdentityProviderBundle\Domain\Oidc\SubjectType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -51,7 +52,7 @@ final readonly class MetadataController
             'response_types_supported' => ['code'],
             'response_modes_supported' => ['query'],
             'grant_types_supported' => ['authorization_code', 'refresh_token', 'client_credentials'],
-            'subject_types_supported' => ['public'],
+            'subject_types_supported' => [SubjectType::Pairwise === $this->settings->subjectType ? 'pairwise' : 'public'],
             'id_token_signing_alg_values_supported' => [$this->settings->algorithm->value],
             'token_endpoint_auth_methods_supported' => $methods,
             'token_endpoint_auth_signing_alg_values_supported' => \in_array(ClientAuthMethod::PrivateKeyJwt, $this->settings->authMethods, true) ? array_map(static fn (SigningAlgorithm $algorithm): string => $algorithm->value, SigningAlgorithm::cases()) : null,

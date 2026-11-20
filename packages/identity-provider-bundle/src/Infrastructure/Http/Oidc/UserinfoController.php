@@ -33,7 +33,7 @@ final readonly class UserinfoController
             return OAuthResponses::error($oAuthError, bearerRealm: 'userinfo');
         }
 
-        $response = OAuthResponses::json($this->claims->of($account, $scopes, $clientId));
+        $response = OAuthResponses::json($this->claims->of($account, $scopes, $clientId, $this->tokens->subject($account->id(), $clientId)));
         $response->headers->set('Access-Control-Allow-Origin', '*');
 
         return $response;

@@ -13,7 +13,7 @@ use stdClass;
 /**
  * The logout tokens of OpenID Connect Back-Channel Logout 1.0, section 2.4: a JSON Web Token of type `logout+jwt`,
  * signed by the active key, whose `iss` is the provider, `aud` the client, `iat` now, `exp` LIFETIME seconds later,
- * `jti` new, `sub` the account and `sid` the session, with the event `http://schemas.openid.net/event/backchannel-logout`
+ * `jti` new, `sub` the account as the client knows it and `sid` the session, with the event `http://schemas.openid.net/event/backchannel-logout`
  * and no `nonce`.
  */
 final readonly class LogoutTokens
@@ -35,7 +35,7 @@ final readonly class LogoutTokens
 
         return Jws::encode([
             'iss' => $this->settings->issuer,
-            'sub' => $accountId,
+            'sub' => new Subjects($this->settings)->of($accountId, $client),
             'aud' => $client->id(),
             'iat' => $now,
             'exp' => $now + self::LIFETIME,

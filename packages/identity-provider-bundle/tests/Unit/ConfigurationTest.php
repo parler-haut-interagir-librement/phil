@@ -134,6 +134,10 @@ final class ConfigurationTest extends TestCase
                 'idp' => null,
                 'session_start' => false,
             ],
+            'subject' => [
+                'type' => 'account',
+                'salt' => null,
+            ],
             'backchannel_logout' => [
                 'enabled' => false,
                 'bus' => 'messenger.default_bus',

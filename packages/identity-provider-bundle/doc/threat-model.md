@@ -110,7 +110,9 @@ when the option is on and the account verified it too. Unlinking keeps a way to 
 
 ## Privacy
 
-The bundle keeps no address of a connection, a coarse device name only, no token of a federated provider. Its events and
+The bundle keeps no address of a connection, a coarse device name only, no token of a federated provider. With
+`oidc.subject.type: pairwise`, clients of different sectors receive different subjects for one account and cannot match
+their people by it; with `public`, the internal identifier never leaves the provider. Its events and
 audit rows carry identifiers, never an address, a name, a code or a secret.
 
 ## What the application keeps

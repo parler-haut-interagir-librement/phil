@@ -24,6 +24,7 @@ use Phil\IdentityProviderBundle\Domain\Model\Session\AccountSession;
 use Phil\IdentityProviderBundle\Domain\Oidc\ClientAuthMethod;
 use Phil\IdentityProviderBundle\Domain\Oidc\Pkce;
 use Phil\IdentityProviderBundle\Domain\Oidc\Scopes;
+use Phil\IdentityProviderBundle\Domain\Oidc\SubjectType;
 use Phil\IdentityProviderBundle\Domain\Oidc\TokenKind;
 use Phil\Url\Exception\InvalidUrl;
 use Phil\Url\Url;
@@ -280,7 +281,7 @@ final readonly class Tokens
             'active' => true,
             'scope' => implode(' ', $issued->scopes()),
             'client_id' => $issued->clientId(),
-            'sub' => $accountId ?? $issued->clientId(),
+            'sub' => null === $accountId ? $issued->clientId() : new Subjects($this->settings)->of($accountId, $client),
             'aud' => $issued->audience() ?? $this->settings->issuer,
             'token_type' => TokenKind::Access === $issued->kind() ? 'Bearer' : 'refresh_token',
             'exp' => $issued->expiresAt()->getTimestamp(),
@@ -314,6 +315,21 @@ final readonly class Tokens
         }
 
         return [$account, $issued->scopes(), $issued->clientId()];
+    }
+
+    /**
+     * The `sub` of the account for the client, by the subject type of the provider; null when the client is unknown and
+     * the subject depends on it.
+     */
+    public function subject(string $accountId, ?string $clientId): ?string
+    {
+        $client = null === $clientId ? null : $this->clients->get($clientId);
+
+        return match (true) {
+            $client instanceof Client => new Subjects($this->settings)->of($accountId, $client),
+            SubjectType::Account === $this->settings->subjectType => $accountId,
+            default => null,
+        };
     }
 
     /**
@@ -473,9 +489,10 @@ final readonly class Tokens
         $accessExpires = $now->modify(\sprintf('+%d seconds', $this->settings->accessTokenLifetime));
         $this->grants->saveToken(IssuedToken::issue($jti, TokenKind::Access, $family, $client->id(), $account->id(), $scopes, $sessionId, $authTime, $methods, $now, $accessExpires, $audience));
 
+        $subject = new Subjects($this->settings)->of($account->id(), $client);
         $accessToken = Jws::encode(array_filter([
             'iss' => $this->settings->issuer,
-            'sub' => $account->id(),
+            'sub' => $subject,
             'aud' => $audience ?? $this->settings->issuer,
             'client_id' => $client->id(),
             'scope' => implode(' ', $scopes),
@@ -488,7 +505,7 @@ final readonly class Tokens
         $hash = hash('sha256', $accessToken, true);
         $idToken = Jws::encode(array_filter([
             'iss' => $this->settings->issuer,
-            'sub' => $account->id(),
+            'sub' => $subject,
             'aud' => $client->id(),
             'iat' => $now->getTimestamp(),
             'exp' => $now->getTimestamp() + $this->settings->idTokenLifetime,

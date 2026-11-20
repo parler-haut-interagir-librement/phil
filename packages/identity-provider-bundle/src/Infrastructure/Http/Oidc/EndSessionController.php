@@ -41,6 +41,7 @@ final readonly class EndSessionController
         $hint = $parameters->getString('id_token_hint');
         $claims = '' === $hint ? null : $this->tokens->idTokenHint($hint);
         $audience = \is_array($claims) && \is_string($claims['aud'] ?? null) ? $claims['aud'] : null;
+        $subject = \is_array($claims) && \is_string($claims['sub'] ?? null) ? $claims['sub'] : null;
         $clientId = '' === $parameters->getString('client_id') ? $audience : $parameters->getString('client_id');
         $redirect = $this->redirect($clientId, $audience, $parameters->getString('post_logout_redirect_uri'), $parameters->getString('state'));
         $account = $this->pages->account();
@@ -50,7 +51,7 @@ final readonly class EndSessionController
             $this->pages->checkCsrf($request, self::CSRF_ID);
         }
 
-        if ($account instanceof Account && !$confirmed && ($claims['sub'] ?? null) !== $account->id()) {
+        if ($account instanceof Account && !$confirmed && (null === $subject || $subject !== $this->tokens->subject($account->id(), $audience))) {
             return $this->pages->render('oidc/logout_confirm', ['parameters' => array_filter(['id_token_hint' => $hint, 'client_id' => $clientId ?? '', 'post_logout_redirect_uri' => $parameters->getString('post_logout_redirect_uri'), 'state' => $parameters->getString('state')], static fn (string $value): bool => '' !== $value), 'csrf_id' => self::CSRF_ID]);
         }
 

@@ -121,6 +121,7 @@ final class MappingTest extends TestCase
                 'jwks' => ['jwks', 'json', null, true, [], false],
                 'resources' => ['resources', 'json', null, true, [], false],
                 'backchannelLogoutUri' => ['backchannel_logout_uri', 'text', null, true, [], false],
+                'sectorIdentifier' => ['sector_identifier', 'string', 253, true, [], false],
             ],
             'indexes' => [],
             'unique' => [],

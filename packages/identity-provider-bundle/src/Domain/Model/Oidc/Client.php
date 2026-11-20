@@ -81,6 +81,8 @@ final class Client
         private ?array $resources = null,
         #[ORM\Column(name: 'backchannel_logout_uri', type: 'text', nullable: true)]
         private ?string $backchannelLogoutUri = null,
+        #[ORM\Column(name: 'sector_identifier', length: 253, nullable: true)]
+        private ?string $sectorIdentifier = null,
     ) {
     }
 
@@ -94,8 +96,12 @@ final class Client
      * @param list<string>                    $resources              the audiences it may ask tokens for, already checked
      * @param ?string                         $backchannelLogoutUri   where its logout tokens are posted, already checked
      */
-    public static function register(string $id, string $name, #[SensitiveParameter] ?string $secret, array $redirectUris, array $postLogoutRedirectUris, array $scopes, bool $firstParty, DateTimeImmutable $now, bool $requirePkce = true, ?array $jwks = null, array $resources = [], ?string $backchannelLogoutUri = null): self
+    public static function register(string $id, string $name, #[SensitiveParameter] ?string $secret, array $redirectUris, array $postLogoutRedirectUris, array $scopes, bool $firstParty, DateTimeImmutable $now, bool $requirePkce = true, ?array $jwks = null, array $resources = [], ?string $backchannelLogoutUri = null, ?string $sectorIdentifier = null): self
     {
+        if (null !== $sectorIdentifier && 1 !== preg_match('/^(?=.{1,253}$)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/D', $sectorIdentifier)) {
+            throw InvalidValue::because('A sector identifier is a host name in lower case.');
+        }
+
         if (null !== $secret && null !== $jwks) {
             throw InvalidValue::because('A client proves itself by its secret or by its keys, not both.');
         }
@@ -118,7 +124,7 @@ final class Client
             throw InvalidValue::because('A client registers at least one redirect address, or, confidential, the resources it asks tokens for.');
         }
 
-        $client = new self($id, '', null === $secret ? null : self::hash($secret), array_values(array_unique($redirectUris)), array_values(array_unique($postLogoutRedirectUris)), array_values(array_unique(['openid', ...$scopes])), $firstParty, $now, null, $requirePkce, null === $jwks ? null : self::keySet($jwks), [] === $resources ? null : $resources, $backchannelLogoutUri);
+        $client = new self($id, '', null === $secret ? null : self::hash($secret), array_values(array_unique($redirectUris)), array_values(array_unique($postLogoutRedirectUris)), array_values(array_unique(['openid', ...$scopes])), $firstParty, $now, null, $requirePkce, null === $jwks ? null : self::keySet($jwks), [] === $resources ? null : $resources, $backchannelLogoutUri, $sectorIdentifier);
         $client->rename($name);
 
         return $client;
@@ -294,6 +300,14 @@ final class Client
     public function backchannelLogoutUri(): ?string
     {
         return $this->backchannelLogoutUri;
+    }
+
+    /**
+     * The sector its pairwise subjects are derived for: the host it registered, or its own identifier.
+     */
+    public function sector(): string
+    {
+        return $this->sectorIdentifier ?? $this->id;
     }
 
     public function allowsResource(string $resource): bool

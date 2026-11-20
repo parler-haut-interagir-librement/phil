@@ -63,6 +63,13 @@ and resources, new columns and a table to migrate, and refresh tokens bound to t
   `Sessions` takes the `LogoutNotifier`, last and optional; the discovery document announces
   `backchannel_logout_supported` and `backchannel_logout_session_supported`. `symfony/messenger` and
   `symfony/http-client` are suggested.
+- The subject strategy, `oidc.subject` (`type`, `salt`) and `Domain\Oidc\SubjectType`: the account's internal
+  identifier (`account`, the default), an opaque identifier the same for every client (`public`), or a pairwise one per
+  sector (`pairwise`), derived by `Application\Oidc\Subjects` as an HMAC-SHA256 under the salt. A client's sector is
+  the host it registers (`--sector-identifier`, `Client::sector()`, column `sector_identifier`) or the host its redirect
+  addresses share. The ID token, the access token, introspection, userinfo, the logout token and the check of an
+  `id_token_hint` use it; `Tokens::subject()` gives it, and the discovery document names the type. `Claims::of()` and
+  `UserClaims::of()` take the subject, last and optional.
 - `Jws::unverifiedClaims()`: the claims of a token read under the same bounds, its signature not verified, to learn the
   client a client assertion names.
 - The documentation of client authentication, token families, refresh tokens bound to the session, resources and the

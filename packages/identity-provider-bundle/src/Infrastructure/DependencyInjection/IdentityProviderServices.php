@@ -44,6 +44,7 @@ use Phil\IdentityProviderBundle\Domain\Contract\SecondFactorRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\SigningKeyRepository;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use Phil\IdentityProviderBundle\Domain\Oidc\ClientAuthMethod;
+use Phil\IdentityProviderBundle\Domain\Oidc\SubjectType;
 use Phil\IdentityProviderBundle\Domain\Security\LockoutPolicy;
 use Phil\IdentityProviderBundle\Domain\Security\RecoveryCodes;
 use Phil\IdentityProviderBundle\Domain\WebAuthn\RelyingParty;
@@ -169,7 +170,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  *     step_up: array{attribute: string, lifetime: positive-int},
  *     sessions: array{touch_interval: non-negative-int},
  *     external: array{link_verified_email: bool, register: bool},
- *     oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string, extra_scopes: list<string>, client_authentication: array{methods: non-empty-list<string>, clock_skew: int<0, 300>, assertion_max_lifetime: int<1, 3600>}, refresh_token_bound_to_session: bool, session_max_age: ?positive-int, id_token: array{acr: ?string, idp: ?string, session_start: bool}, backchannel_logout: array{enabled: bool, bus: string, http_client: string, timeout: positive-int}},
+ *     oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string, extra_scopes: list<string>, client_authentication: array{methods: non-empty-list<string>, clock_skew: int<0, 300>, assertion_max_lifetime: int<1, 3600>}, refresh_token_bound_to_session: bool, session_max_age: ?positive-int, id_token: array{acr: ?string, idp: ?string, session_start: bool}, subject: array{type: string, salt: ?string}, backchannel_logout: array{enabled: bool, bus: string, http_client: string, timeout: positive-int}},
  *     secrets: array{kms_key: ?string, allow_plaintext_secrets: bool, encrypter: string, decrypter: string},
  *     audit: string,
  * }
@@ -600,6 +601,8 @@ final class IdentityProviderServices
             $config['oidc']['id_token']['acr'],
             $config['oidc']['id_token']['idp'],
             $config['oidc']['id_token']['session_start'],
+            SubjectType::from($config['oidc']['subject']['type']),
+            $config['oidc']['subject']['salt'],
         ]);
         $container->register(SigningKeys::class, SigningKeys::class)
             ->setArguments([new Reference(SigningKeyRepository::class), new Reference(SecretCipher::class), new Reference(ProviderSettings::class), $clock, new Reference($config['oidc']['lock_factory']), $journal])

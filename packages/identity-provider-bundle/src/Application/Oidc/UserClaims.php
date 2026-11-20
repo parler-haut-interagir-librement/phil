@@ -28,14 +28,15 @@ final readonly class UserClaims
 
     /**
      * @param list<string> $scopes
+     * @param ?string      $subject the `sub` the client knows the account by
      *
      * @return array<string, mixed>
      *
      * @throws LogicException when a provider answers a claim already set or reserved
      */
-    public function of(Account $account, array $scopes, string $clientId): array
+    public function of(Account $account, array $scopes, string $clientId, ?string $subject = null): array
     {
-        $claims = Claims::of($account, $scopes);
+        $claims = Claims::of($account, $scopes, $subject);
 
         foreach ($this->providers as $provider) {
             foreach ($provider->claims($account, $scopes, $clientId) as $name => $value) {

@@ -7,12 +7,15 @@ namespace Phil\IdentityProviderBundle\Application\Oidc;
 use Phil\IdentityProviderBundle\Domain\Exception\InvalidValue;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use Phil\IdentityProviderBundle\Domain\Oidc\ClientAuthMethod;
+use Phil\IdentityProviderBundle\Domain\Oidc\SubjectType;
+use SensitiveParameter;
 
 /**
  * The settings of the provider: its issuer, the algorithm its new keys use, the lifetimes of codes and tokens, the
  * scopes it knows, the rhythm of key rotation, the methods clients may authenticate by, the clock skew and the longest
  * lifetime of a client assertion, whether a refresh token lives no longer than its session — and at most how long
- * after the session opened —, and the optional claims of the ID token: `acr`, `idp` and `session_start`.
+ * after the session opened —, the optional claims of the ID token: `acr`, `idp` and `session_start`, and the subject
+ * type with the salt opaque and pairwise subjects are derived under.
  */
 final readonly class ProviderSettings
 {
@@ -59,6 +62,9 @@ final readonly class ProviderSettings
         public ?string $acr = null,
         public ?string $idp = null,
         public bool $sessionStart = false,
+        public SubjectType $subjectType = SubjectType::Account,
+        #[SensitiveParameter]
+        public ?string $subjectSalt = null,
     ) {
         if ('' === $issuer || str_ends_with($issuer, '/') || str_contains($issuer, '?') || str_contains($issuer, '#')) {
             throw InvalidValue::because('The issuer is an https address without a trailing slash, query or fragment.');
@@ -78,6 +84,10 @@ final readonly class ProviderSettings
 
         if ($clockSkew < 0 || $clockSkew > 300 || $assertionMaxLifetime < 1 || $assertionMaxLifetime > 3600 || null !== $sessionMaxAge && $sessionMaxAge < 1) {
             throw InvalidValue::because('The clock skew is 0 to 300 seconds, a client assertion lives 1 to 3600 seconds, and a session bound is at least one second.');
+        }
+
+        if (SubjectType::Account !== $subjectType && \strlen((string) $subjectSalt) < 32) {
+            throw InvalidValue::because('An opaque or pairwise subject is derived under a salt of at least 32 bytes.');
         }
 
         if ('' === $acr || '' === $idp) {
