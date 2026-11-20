@@ -14,9 +14,9 @@ vendor/bin/phpunit packages/braille-export-liblouis/tests/Unit
 ```
 
 The suite under `tests/Integration`, in the `liblouis` group, runs the real program found on the `PATH`, and is skipped
-without it or with a liblouis older than 3.39.0. It reads the version, translates with each default table, checks that contracted English is shorter than
-uncontracted, keeps the order of a batch with a long text, lays out a French document and writes it as BRF, and
-reports a missing table:
+without it or with a liblouis older than 3.39.0. It reads the version, translates with each default table, checks
+that contracted English is shorter than uncontracted, keeps the order of a batch with a long text, lays out a French
+document and writes it as BRF, and reports a missing table:
 
 ```sh
 vendor/bin/phpunit packages/braille-export-liblouis/tests/Integration
