@@ -281,6 +281,24 @@ final class DispatcherTest extends TestCase
         self::assertSame('2 replies on event 7', $this->notifier->sent[1][0]->getContent());
     }
 
+    public function testTheNotifierChannelsKeepTheirOrderWhenWebPushComesFirst(): void
+    {
+        $result = $this->dispatcher(new NotificationType('comment.replied', ['web_push', 'email', 'sms']))->deliver($this->message(), '42');
+
+        self::assertSame(['web_push', 'email', 'sms'], $result->channels);
+        self::assertSame(['email', 'sms'], $this->notifier->sent[0][0]->getChannels(new NoRecipient()));
+    }
+
+    public function testTheBroadcastWithoutNotifierNorLoggerIsLeftQuietly(): void
+    {
+        $types = new NotificationTypes(new NotificationType('comment.replied', [], ['chat/discord']));
+        $dispatcher = new NotificationDispatcher($types, $this->repository, $this->preferences, new NotificationRenderer(Translator::make(), $types, new Directory()), new Directory(), $this->toasts, $this->clock);
+        $dispatcher->broadcast($this->message());
+
+        self::assertSame([], $this->notifier->sent);
+        self::assertSame([], $this->logs->records);
+    }
+
     public function testWithoutLoggerWhatIsNotSentIsSkippedQuietly(): void
     {
         $types = new NotificationTypes(new NotificationType('comment.replied', ['email', 'web_push']));

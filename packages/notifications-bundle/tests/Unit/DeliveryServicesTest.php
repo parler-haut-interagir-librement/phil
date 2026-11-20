@@ -7,6 +7,7 @@ namespace Phil\NotificationsBundle\Tests\Unit;
 use Phil\CircuitBreaker\CircuitBreakers;
 use Phil\Idempotency\IdempotencyGuard;
 use Phil\Idempotency\Store\CacheIdempotencyStore;
+use Phil\NotificationsBundle\Application\Contract\ChannelSender;
 use Phil\NotificationsBundle\Application\Delivery\DeliveryMode;
 use Phil\NotificationsBundle\Application\Delivery\DeliveryPolicy;
 use Phil\NotificationsBundle\Application\Delivery\RecipientRateLimit;
@@ -105,6 +106,31 @@ final class DeliveryServicesTest extends TestCase
         self::assertEquals(new Reference('app.locks'), $single->getDefinition(CacheIdempotencyStore::class.'.phil_notifications')->getArgument(1));
     }
 
+    public function testTheBoundsOfTheWindows(): void
+    {
+        self::assertSame(1, $this->load([['delivery' => ['dedupe' => ['cache_pool' => 'cache.app', 'ttl' => 1]]]])->getDefinition(NotificationDedupe::class)->getArgument(1));
+
+        foreach ([0, -1] as $ttl) {
+            try {
+                $this->load([['delivery' => ['dedupe' => ['cache_pool' => 'cache.app', 'ttl' => $ttl]]]]);
+                self::fail('A window of less than a second is refused.');
+            } catch (InvalidConfigurationException $invalidConfigurationException) {
+                self::assertStringContainsString('Should be greater than or equal to 1', $invalidConfigurationException->getMessage());
+            }
+        }
+
+        foreach ([0, 1] as $ttl) {
+            $types = $this->load([['types' => ['alert.raised' => ['dedupe_ttl' => $ttl]]]])->getDefinition(NotificationTypes::class)->getArguments();
+
+            self::assertInstanceOf(Definition::class, $types[0]);
+            self::assertSame($ttl, $types[0]->getArgument(10));
+        }
+
+        $this->expectException(InvalidConfigurationException::class);
+
+        $this->load([['types' => ['alert.raised' => ['dedupe_ttl' => -1]]]]);
+    }
+
     public function testTheWindowNeedsAStore(): void
     {
         $this->expectException(InvalidConfigurationException::class);
@@ -133,6 +159,19 @@ final class DeliveryServicesTest extends TestCase
         new NotificationsPass()->process($container);
 
         self::assertEquals(new IteratorArgument([new Reference('app.sms'), new Reference(MailerChannelSender::class), new Reference(NotifierChannelSender::class)]), $container->getDefinition(DeliveryPolicy::class)->getArgument(0));
+    }
+
+    public function testTheSendersAreReferencesAndTheApplicationsAreFoundByAutoconfiguration(): void
+    {
+        $container = $this->load([['store' => 'memory']]);
+        $container->register('app.sms', ScriptedChannels::class)->addTag(NotificationsServices::CHANNEL_SENDER_TAG);
+        $container->register('security.csrf.token_manager', stdClass::class);
+        new NotificationsPass()->process($container);
+        $senders = $container->getDefinition(DeliveryPolicy::class)->getArgument(0);
+
+        self::assertInstanceOf(IteratorArgument::class, $senders);
+        self::assertContainsOnlyInstancesOf(Reference::class, $senders->getValues());
+        self::assertArrayHasKey(NotificationsServices::CHANNEL_SENDER_TAG, $container->getAutoconfiguredInstanceof()[ChannelSender::class]->getTags());
     }
 
     public function testASenderWithNothingToSendThroughIsLeftOut(): void

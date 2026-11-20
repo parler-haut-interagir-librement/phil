@@ -67,6 +67,16 @@ final class MailerChannelSenderTest extends TestCase
         self::assertSame('backup', $email->getHeaders()->get('X-Transport')?->getBodyAsString());
     }
 
+    public function testATransportNameKeepsWhatFollowsItsFirstSlash(): void
+    {
+        $transport = new MailerTransport();
+        new MailerChannelSender($transport)->send('email/backup/eu', $this->rendered(), new NotificationType('comment.replied'), new Recipient('ada@example.test'));
+        $email = $transport->sent[0];
+
+        self::assertInstanceOf(Email::class, $email);
+        self::assertSame('backup/eu', $email->getHeaders()->get('X-Transport')?->getBodyAsString());
+    }
+
     public function testARecipientWithoutAddressIsUnreachable(): void
     {
         $transport = new MailerTransport();

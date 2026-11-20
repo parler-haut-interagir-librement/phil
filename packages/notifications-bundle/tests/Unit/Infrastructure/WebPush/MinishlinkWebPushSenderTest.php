@@ -73,6 +73,14 @@ final class MinishlinkWebPushSenderTest extends TestCase
         self::assertGreaterThan(\strlen(WebPushMessage::of($this->rendered(), $this->type())->payload), \strlen($body));
     }
 
+    public function testARecipientWithoutBrowserDoesNotEvenLookAtTheTypeOfTheNotification(): void
+    {
+        $unknown = new RenderedNotification(new Notification('n1', 'ghost.type', '42', null, new DateTimeImmutable('2026-11-08 10:00 UTC')), 'A title', 'A body');
+
+        self::assertSame(ChannelOutcome::Unreachable, $this->sender([])->send('42', $unknown));
+        self::assertSame([], $this->requests);
+    }
+
     public function testARecipientWithoutBrowserGetsNothing(): void
     {
         self::assertSame(ChannelOutcome::Unreachable, $this->sender([])->send('42', $this->rendered()));

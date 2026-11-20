@@ -148,6 +148,34 @@ final class NotificationDedupeTest extends TestCase
         self::assertTrue($this->dedupe->once($this->message(), $this->type, '42', static function (): void {}));
     }
 
+    public function testTheWindowRunsFromTheCompletionOfTheDelivery(): void
+    {
+        $ticket = $this->reserved($this->message());
+        $this->clock->sleep(200);
+        $this->dedupe->complete($ticket, $this->type);
+        $this->clock->sleep(200);
+
+        self::assertTrue($this->begin($this->message(), $this->type, '42')?->duplicate);
+    }
+
+    public function testTheWindowOfTheCentreRunsFromTheEndOfItsRecording(): void
+    {
+        $this->dedupe->once($this->message(), $this->type, '42', fn () => $this->clock->sleep(200));
+        $this->clock->sleep(200);
+
+        self::assertFalse($this->dedupe->once($this->message(), $this->type, '42', static function (): void {}));
+    }
+
+    public function testTheKeyIsTheHashOfTheTypeTheRecipientAndWhatMakesTheMessage(): void
+    {
+        $hash = static fn (string $source): string => hash('sha256', implode("\0", ['comment.replied', '42', $source]));
+        $content = 'content:'.json_encode(['comment', '9', ['event' => 7], '17', 'events'], \JSON_THROW_ON_ERROR);
+        $keyed = new SendNotification('comment.replied', ['42'], null, 'comment', '9', ['event' => 7], '17', 'events', true, 'k');
+
+        self::assertSame($hash($content), $this->keyOf($this->reserved($this->message())));
+        self::assertSame($hash('key:k'), $this->keyOf($this->reserved($keyed)));
+    }
+
     public function testTheWindowOfTheTypeWins(): void
     {
         $type = new NotificationType('comment.replied', dedupeTtl: 10);
@@ -165,6 +193,13 @@ final class NotificationDedupeTest extends TestCase
     private function begin(SendNotification $message, NotificationType $type, string $recipient): ?DedupeTicket
     {
         return $this->dedupe->begin($message, $type, $recipient);
+    }
+
+    private function keyOf(DedupeTicket $ticket): string
+    {
+        self::assertInstanceOf(IdempotencyReservation::class, $ticket->reservation);
+
+        return $ticket->reservation->key->value;
     }
 
     private function reserved(SendNotification $message): DedupeTicket

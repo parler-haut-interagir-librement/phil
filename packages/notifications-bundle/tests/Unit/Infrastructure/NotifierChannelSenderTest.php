@@ -59,6 +59,17 @@ final class NotifierChannelSenderTest extends TestCase
         self::assertSame('twilio', $message->getTransport());
     }
 
+    public function testTheTransportKeepsWhatFollowsTheFirstSlashAndTheMessageTheChannel(): void
+    {
+        $transport = new NotifierTransport();
+        new NotifierChannelSender(new Texter($transport))->send('sms/twilio/eu', $this->rendered(), new NotificationType('comment.replied'), new Recipient('', '+15550000042'));
+        $message = $transport->sent[0];
+
+        self::assertInstanceOf(SmsMessage::class, $message);
+        self::assertSame('twilio/eu', $message->getTransport());
+        self::assertSame(['sms/twilio/eu'], $message->getNotification()?->getChannels(new NoRecipient()));
+    }
+
     public function testAnSmsWithoutPhoneIsUnreachable(): void
     {
         $transport = new NotifierTransport();

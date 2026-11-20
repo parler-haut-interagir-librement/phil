@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\NotificationsBundle\Tests\Unit\Application;
 
+use ArrayObject;
 use LogicException;
 use Phil\CircuitBreaker\CircuitBreaker;
 use Phil\CircuitBreaker\CircuitBreakers;
@@ -13,6 +14,7 @@ use Phil\CircuitBreaker\CircuitPolicy;
 use Phil\CircuitBreaker\CircuitState;
 use Phil\Idempotency\IdempotencyGuard;
 use Phil\Idempotency\Store\CacheIdempotencyStore;
+use Phil\NotificationsBundle\Application\Contract\RecipientDirectory;
 use Phil\NotificationsBundle\Application\Delivery\ChannelOutcome;
 use Phil\NotificationsBundle\Application\Delivery\DeliveryMode;
 use Phil\NotificationsBundle\Application\Delivery\DeliveryPolicy;
@@ -33,6 +35,7 @@ use Phil\NotificationsBundle\Application\Preferences\RecipientSettings;
 use Phil\NotificationsBundle\Infrastructure\CircuitBreaker\ChannelBreakers;
 use Phil\NotificationsBundle\Infrastructure\Idempotency\NotificationDedupe;
 use Phil\NotificationsBundle\Infrastructure\Memory\InMemoryNotificationRepository;
+use Phil\NotificationsBundle\Tests\Unit\Fixture\CountingDirectory;
 use Phil\NotificationsBundle\Tests\Unit\Fixture\Directory;
 use Phil\NotificationsBundle\Tests\Unit\Fixture\InMemoryCircuits;
 use Phil\NotificationsBundle\Tests\Unit\Fixture\Logs;
@@ -79,7 +82,7 @@ final class FallbackTest extends TestCase
 
     private MockClock $clock;
 
-    private Directory $directory;
+    private RecipientDirectory $directory;
 
     private InMemoryCircuits $circuits;
 
@@ -479,6 +482,49 @@ final class FallbackTest extends TestCase
         self::assertSame($result, $event->result);
         self::assertSame('42', $event->result->recipient);
         self::assertSame(['info: The notification "comment.replied" ended sent (first_success) on site, sms; skipped: none.'], $this->logs->records);
+    }
+
+    public function testTheWindowRunsFromTheEndOfTheDelivery(): void
+    {
+        $this->channels->during = fn () => $this->clock->sleep(200);
+        $dispatcher = $this->dispatcher($this->type(), dedupe: true);
+
+        self::assertSame(DeliveryStatus::Sent, $dispatcher->deliver($this->message(), '42')->status);
+        $this->clock->sleep(200);
+
+        self::assertSame(DeliveryStatus::Duplicate, $dispatcher->deliver($this->message(), '42')->status);
+    }
+
+    public function testWithoutTheCentreTheChannelThatAcceptsIsTheOnlyOneTaken(): void
+    {
+        $types = new NotificationTypes(new NotificationType('comment.replied', ['sms', 'web_push', 'email'], delivery: DeliveryMode::FirstSuccess));
+        $this->channels->answers['sms'] = ChannelOutcome::Refused;
+        $this->channels->answers['email'] = ChannelOutcome::Refused;
+        $dispatcher = new NotificationDispatcher($types, $this->repository, $this->preferences, new NotificationRenderer(Translator::make(), $types, new Directory(), [new Subjects()]), $this->directory, $this->toasts, $this->clock, $this->notifier, $this->webPush, policy: new DeliveryPolicy([$this->channels]));
+
+        $result = $dispatcher->deliver($this->message(), '42');
+
+        self::assertSame(['web_push'], $result->channels);
+        self::assertSame(['sms' => SkipReason::Refused], $result->skipped);
+    }
+
+    public function testTheDirectoryIsAskedOnceForAllTheChannels(): void
+    {
+        $asked = new ArrayObject();
+        $this->directory = new CountingDirectory($asked);
+        $result = $this->dispatcher($this->type(['sms', 'email']))->deliver($this->message(), '42');
+
+        self::assertSame(DeliveryStatus::Failed, $result->status);
+        self::assertSame(['sms' => SkipReason::NoContact, 'email' => SkipReason::NoContact], $result->skipped);
+        self::assertCount(1, $asked);
+    }
+
+    public function testAFailureWithoutLoggerIsReturnedAsItIs(): void
+    {
+        $types = new NotificationTypes($this->type(['sms']));
+        $dispatcher = new NotificationDispatcher($types, $this->repository, $this->preferences, new NotificationRenderer(Translator::make(), $types, new Directory(), [new Subjects()]), $this->directory, $this->toasts, $this->clock);
+
+        self::assertSame(DeliveryStatus::Failed, $dispatcher->deliver($this->message(), '42')->status);
     }
 
     public function testWithoutEventsNorLogsTheResultIsReturned(): void

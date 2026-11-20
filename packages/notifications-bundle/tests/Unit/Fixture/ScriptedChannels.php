@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\NotificationsBundle\Tests\Unit\Fixture;
 
+use Closure;
 use Override;
 use Phil\NotificationsBundle\Application\Contract\ChannelSender;
 use Phil\NotificationsBundle\Application\Delivery\ChannelOutcome;
@@ -24,6 +25,9 @@ final class ScriptedChannels implements ChannelSender
     /** @var list<array{string, RenderedNotification, ?RecipientInterface}> */
     public array $sent = [];
 
+    /** What happens while a call is under way, such as the passing of time. */
+    public ?Closure $during = null;
+
     /**
      * @param array<string, ChannelOutcome|Throwable> $answers by channel
      */
@@ -42,6 +46,11 @@ final class ScriptedChannels implements ChannelSender
     public function send(string $channel, RenderedNotification $notification, NotificationType $type, ?RecipientInterface $contact): ChannelOutcome
     {
         $this->calls[] = $channel;
+
+        if ($this->during instanceof Closure) {
+            ($this->during)();
+        }
+
         $answer = $this->answers[$channel];
 
         if ($answer instanceof Throwable) {
