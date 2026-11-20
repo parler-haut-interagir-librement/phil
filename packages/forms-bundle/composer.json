@@ -57,6 +57,7 @@
         "symfony/http-client-contracts": "^3.6",
         "symfony/key-management": "^8.2",
         "symfony/mailer": "^8.2",
+        "symfony/messenger": "^8.2",
         "symfony/mime": "^8.2",
         "symfony/panther": "^2.4",
         "symfony/routing": "^8.2",

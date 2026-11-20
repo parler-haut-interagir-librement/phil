@@ -19,7 +19,8 @@ and the constructor of `MailerDigestSender` change. See [Upgrading from 0.2](doc
   `SendNotification` message, until one is accepted by its provider; the centre, its toast and the broadcast channels
   stay outside the fallback.
 - `ChannelSender`, the port of a channel sent at once, autoconfigured and asked before the bundle's senders:
-  `NotifierChannelSender` for `sms`, `push` and `chat` through Notifier's texter and chatter, and `MailerChannelSender`
+  `NotifierChannelSender` for `sms`, `push` and `chat` through the transports of Notifier's texter and chatter, the
+  services `texter.transports` and `chatter.transports`, and `MailerChannelSender`
   for `email`, a plain text email through the transports of Symfony Mailer, from `delivery.from`. Only a
   `TransportExceptionInterface` of Notifier or Mailer, or a refusal of the push services, moves on to the next channel;
   any other exception goes up.
@@ -69,6 +70,9 @@ and the constructor of `MailerDigestSender` change. See [Upgrading from 0.2](doc
 - A digest no longer goes through `MailerInterface`, which put a `SendEmailMessage` holding the address and every line
   of the digest on the bus when the application routed it. The documentation says not to route `SendEmailMessage`,
   `SmsMessage` and `ChatMessage`, which hold addresses and text, and a test shows what they carry.
+- The channels of the `first_success` mode never go through `MailerInterface`, the texter or the chatter, which put a
+  message holding the address or phone number and the text on the bus when `framework.notifier.message_bus` is set or
+  the message is routed: they send through the Mailer and Notifier transports, and a provider's refusal is known at once.
 - `InvalidNotification` names a refused identifier, key or value by its length, never by its first characters, which
   could be an address in the logs or in a failed message.
 - The log line of a delivery leaves the recipient out.

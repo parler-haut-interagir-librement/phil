@@ -68,6 +68,19 @@ php bin/console messenger:consume newsletter scheduler_newsletter
 A transport whose delays are short — a message waiting for the next opening of a send window may wait days — is
 fine: the delivery stays queued, and a later message picks it up.
 
+The handlers of `SendDelivery` and `SendConfirmation` send through Symfony Mailer's transports
+(`mailer.transports`), never through `MailerInterface`: they already run in a worker, and with `SendEmailMessage`
+routed to a transport, each email would wait in a second queue with the subscriber's address and its signed
+confirmation or unsubscription link. Through the transports, those messages carry identifiers only, and a refusal of
+the transport fails the handler: Messenger sees it and retries the message, a delivery marked failed in the meantime.
+The sender profile's `X-Transport`, the pace of `SendThrottle`, `List-Unsubscribe` and `List-Unsubscribe-Post` are
+applied as before, and so is the mailer's configuration — `envelope`, `headers`.
+
+Routing `SendEmailMessage` stays the application's choice for its own emails. An application that does keeps
+personal information in its Messenger transport and in its failure transport: it needs a retention rule for the
+failure transport — `messenger:failed:show` to look, `messenger:failed:remove` to purge — and a word in its privacy
+policy.
+
 ## The Markdown editor
 
 With AssetMapper, the bundle adds its Stimulus controller under `@phil/newsletter-bundle`; enable it in

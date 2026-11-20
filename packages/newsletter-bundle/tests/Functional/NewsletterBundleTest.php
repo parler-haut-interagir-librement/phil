@@ -30,6 +30,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DomCrawler\Field\ChoiceFormField;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Symfony\Component\Mime\Email;
 
 /**
@@ -93,6 +94,7 @@ final class NewsletterBundleTest extends WebTestCase
         $email = self::getMailerMessage();
         self::assertInstanceOf(Email::class, $email);
         self::assertSame('Confirm your subscription to News', $email->getSubject());
+        $this->assertNothingQueued();
         self::assertSame(1, preg_match('#https://example\.com(/newsletter/confirm/[A-Za-z0-9_.-]+)#', (string) $email->getHtmlBody(), $link));
 
         $crawler = $this->client->request('GET', $link[1]);
@@ -174,6 +176,7 @@ final class NewsletterBundleTest extends WebTestCase
         $email = self::getMailerMessage();
         self::assertInstanceOf(Email::class, $email);
         self::assertStringStartsWith('bounces+', (string) $email->getReturnPath()?->getAddress());
+        $this->assertNothingQueued();
         self::assertSame(1, preg_match('#https://example\.com(/newsletter/c/[A-Za-z0-9_.-]+)#', (string) $email->getHtmlBody(), $click));
 
         $this->client->request('GET', $click[1]);
@@ -275,5 +278,17 @@ final class NewsletterBundleTest extends WebTestCase
         self::assertInstanceOf($id, $service);
 
         return $service;
+    }
+
+    /**
+     * The handlers send through the Mailer transports: no `SendEmailMessage` holding an address or a signed link waits
+     * in the Messenger queue the application routes it to.
+     */
+    private function assertNothingQueued(): void
+    {
+        self::assertQueuedEmailCount(0);
+        $queue = self::getContainer()->get('messenger.transport.async');
+        self::assertInstanceOf(InMemoryTransport::class, $queue);
+        self::assertSame([], $queue->getSent());
     }
 }

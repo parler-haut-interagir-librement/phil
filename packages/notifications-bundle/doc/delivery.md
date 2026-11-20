@@ -37,18 +37,17 @@ provider's answer is known before the next channel is considered:
 
 | Channel | Sent through |
 |---|---|
-| `sms`, `sms/<transport>`, `push`, `push/<transport>` | Symfony Notifier's `TexterInterface` |
-| `chat`, `chat/<transport>` | Symfony Notifier's `ChatterInterface` |
+| `sms`, `sms/<transport>`, `push`, `push/<transport>` | The transports of Symfony Notifier's texter (`texter.transports`), when a texter transport is configured |
+| `chat`, `chat/<transport>` | The transports of Symfony Notifier's chatter (`chatter.transports`), when a chatter transport is configured |
 | `email`, `email/<transport>` | The transports of Symfony Mailer (`mailer.transports`), the transport picked by the `X-Transport` header: a plain text email, the title as its subject, from `delivery.from` or the address of the mailer's `headers` |
 | `web_push` | The `WebPushSender` |
 
-**Keep `framework.notifier.message_bus` disabled** (`false`) for these channels. With a bus, the texter and the
-chatter put the message on it instead of sending it, its fate is only known later in a worker, and the fallback can no
-longer move on: the attempt counts as accepted. Never route `SendEmailMessage`, `SmsMessage` or `ChatMessage` to a
-transport either: the queued message holds the recipient's address or phone number and the whole text, kept by the
-transport — and by its failure transport — as long as the message is. The bundle's own email channel and digest go
-through the Mailer transports, never `MailerInterface`, so that no `SendEmailMessage` is dispatched. Route
-`SendNotification`, which carries identifiers only, instead:
+Every channel of this mode goes through transports, never through `MailerInterface`, the texter or the chatter, which
+put the message on a bus when `framework.notifier.message_bus` is set or `SendEmailMessage` is routed: no
+`SendEmailMessage`, `SmsMessage` or `ChatMessage` holding the recipient's address or phone number and the whole text
+is queued, and the provider's answer is known before the fallback moves on. The `fan_out` mode goes through Symfony
+Notifier itself, which does follow `framework.notifier.message_bus`: keep it disabled (`false`), and route
+`SendNotification`, which carries identifiers only:
 
 ```yaml
 framework:

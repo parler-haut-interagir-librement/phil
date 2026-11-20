@@ -76,10 +76,18 @@ framework:
 A delivery that reached no channel and may succeed later throws `DeliveryFailed`, and the worker tries the message
 again; see [Delivery](delivery.md#the-result).
 
-Route `SendNotification` only. Routing `SendEmailMessage`, `SmsMessage` or `ChatMessage` to a transport puts the
-recipient's address or phone number and the whole text in the queue, and in its failure transport, for as long as the
-message stays there; it also hides a provider's refusal from the `first_success` mode. In the `fan_out` mode, Symfony
-Notifier sends email through `MailerInterface`, which dispatches a `SendEmailMessage` when one is routed: leave it
-unrouted, and keep `framework.notifier.message_bus` disabled.
+Route `SendNotification` only. The bundle's own senders — the email, SMS, push and chat channels of the
+`first_success` mode and the digest — send through the transports of Symfony Mailer (`mailer.transports`) and of
+Notifier's texter and chatter (`texter.transports`, `chatter.transports`), never through `MailerInterface`, the texter
+or the chatter: whatever the application routes and whatever `framework.notifier.message_bus` says, they put no
+address, phone number or rendered text in a Messenger queue, and a provider's refusal is known when they return.
+
+The `fan_out` mode hands the other channels to Symfony Notifier itself, whose channels follow the application's
+configuration: with `framework.notifier.message_bus` set and `SendEmailMessage`, `SmsMessage` or `ChatMessage` routed
+to a transport, the recipient's address or phone number and the whole text wait in the queue, and in its failure
+transport, for as long as the message stays there. Leave those messages unrouted and keep
+`framework.notifier.message_bus` disabled. An application that routes them anyway for its own messages keeps personal
+information in its Messenger transport and its failure transport: it needs a retention rule for the failure transport
+— `messenger:failed:show` to look, `messenger:failed:remove` to purge — and a word in its privacy policy.
 
 Every service of the delivery holds no state between messages, as a worker needs.

@@ -4,6 +4,22 @@ All notable changes to `phil/forms-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+### Changed
+
+- `EmailNotifier` takes a Mailer `TransportInterface`, the service `mailer.transports`, instead of `MailerInterface`.
+- `symfony/messenger` is in `require-dev`, for the test that routes `SendEmailMessage` to an asynchronous transport.
+
+### Security
+
+- An entry's email no longer goes through `MailerInterface`, which put a `SendEmailMessage` on the bus when the
+  application routed it: the unrendered email, with the entry, its form and every value — a sealed value in clear with
+  `allow_unsealed_sensitive` — in its context, kept by the Messenger transport and its failure transport. The email is
+  rendered and sent in the request, through the Mailer transports.
+
 ## 0.2.0-alpha - 2026-11-18
 
 The keys of the forms, entries and counts of places compare byte by byte on MySQL and

@@ -55,7 +55,7 @@ final class DeliveryServicesTest extends TestCase
         self::assertFalse($container->hasDefinition(RecipientRateLimit::class));
         self::assertFalse($container->hasParameter(NotificationsServices::DEDUPE_POOL_PARAMETER));
         self::assertSame([], RateLimitGuard::watched($container));
-        self::assertEquals([new Reference('texter', ContainerInterface::NULL_ON_INVALID_REFERENCE), new Reference('chatter', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(NotifierChannelSender::class)->getArguments());
+        self::assertEquals([new Reference('texter.transports', ContainerInterface::NULL_ON_INVALID_REFERENCE), new Reference('chatter.transports', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(NotifierChannelSender::class)->getArguments());
         self::assertEquals([new Reference('mailer.transports', ContainerInterface::NULL_ON_INVALID_REFERENCE), null], $container->getDefinition(MailerChannelSender::class)->getArguments());
     }
 
@@ -187,6 +187,31 @@ final class DeliveryServicesTest extends TestCase
             new NotificationsPass()->process($container);
 
             self::assertEquals(new IteratorArgument($senders), $container->getDefinition(DeliveryPolicy::class)->getArgument(0), $service);
+        }
+    }
+
+    public function testTheSenderGetsTheTransportsOfATexterOrAChatterOnlyWhenOneIsConfigured(): void
+    {
+        $transports = [
+            'texter.transports' => new Reference('texter.transports', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            'chatter.transports' => new Reference('chatter.transports', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+        ];
+
+        foreach (['texter' => [$transports['texter.transports'], null], 'chatter' => [null, $transports['chatter.transports']], 'both' => array_values($transports), 'none' => [null, null]] as $configured => $arguments) {
+            $container = $this->load([['store' => 'memory']]);
+            $container->register('security.csrf.token_manager', stdClass::class);
+            $container->register('texter.transports', stdClass::class);
+            $container->register('chatter.transports', stdClass::class);
+
+            foreach (['texter', 'chatter'] as $service) {
+                if (\in_array($configured, [$service, 'both'], true)) {
+                    $container->register($service, stdClass::class);
+                }
+            }
+
+            new NotificationsPass()->process($container);
+
+            self::assertEquals($arguments, $container->getDefinition(NotifierChannelSender::class)->getArguments(), $configured);
         }
     }
 

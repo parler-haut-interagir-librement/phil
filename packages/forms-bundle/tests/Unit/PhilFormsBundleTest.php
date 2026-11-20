@@ -78,7 +78,7 @@ final class PhilFormsBundleTest extends TestCase
         self::assertEquals([$repository, new Reference(Submissions::class), new Reference('form.factory'), new Reference('twig'), 'forms/page.html.twig', new Reference('translator', ContainerInterface::NULL_ON_INVALID_REFERENCE), new Reference(CurrentSubject::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)], $controller->getArguments());
         self::assertTrue($controller->hasTag('controller.service_arguments'));
         self::assertTrue($controller->isPublic());
-        self::assertEquals([new Reference('mailer'), 'site@example.com', '[Site] ', $logic], $container->getDefinition(EmailNotifier::class)->getArguments());
+        self::assertEquals([new Reference('mailer.transports'), 'site@example.com', '[Site] ', $logic], $container->getDefinition(EmailNotifier::class)->getArguments());
         self::assertTrue($container->getDefinition(EmailNotifier::class)->hasTag('phil_forms.notifier'));
         self::assertEquals([new Reference('phil_forms.webhook_client'), 'whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw', $clock], $container->getDefinition(WebhookNotifier::class)->getArguments());
         self::assertSame(NoPrivateNetworkHttpClient::class, $container->getDefinition(PhilFormsBundle::WEBHOOK_CLIENT)->getClass());

@@ -33,7 +33,8 @@ use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\Exception\TransportException;
-use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mailer\SentMessage;
+use Symfony\Component\Mailer\Transport\TransportInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\RawMessage;
 
@@ -93,12 +94,12 @@ final class SensitiveAndConditionalNotificationsTest extends TestCase
 
     public function testEveryEmailIsTriedAndTheFirstFailureThrown(): void
     {
-        $mailer = new class implements MailerInterface {
+        $mailer = new class implements TransportInterface {
             /** @var list<string> */
             public array $tried = [];
 
             #[Override]
-            public function send(RawMessage $message, ?Envelope $envelope = null): void
+            public function send(RawMessage $message, ?Envelope $envelope = null): ?SentMessage
             {
                 Assert::assertInstanceOf(TemplatedEmail::class, $message);
                 $this->tried[] = $message->getTo()[0]->getAddress();
@@ -106,6 +107,14 @@ final class SensitiveAndConditionalNotificationsTest extends TestCase
                 if ('sales@example.com' !== $message->getTo()[0]->getAddress()) {
                     throw new TransportException('Refused for '.$message->getTo()[0]->getAddress().'.');
                 }
+
+                return null;
+            }
+
+            #[Override]
+            public function __toString(): string
+            {
+                return 'test://';
             }
         };
         $form = $this->form();

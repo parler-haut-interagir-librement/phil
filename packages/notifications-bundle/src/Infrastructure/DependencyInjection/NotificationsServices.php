@@ -174,8 +174,8 @@ final class NotificationsServices
     {
         $delivery = $config['delivery'];
         $container->register(NotifierChannelSender::class, NotifierChannelSender::class)->setArguments([
-            new Reference('texter', ContainerInterface::NULL_ON_INVALID_REFERENCE),
-            new Reference('chatter', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            new Reference(NotificationsPass::TEXTER_TRANSPORTS, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            new Reference(NotificationsPass::CHATTER_TRANSPORTS, ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ]);
 
         if (interface_exists(MailerTransport::class)) {

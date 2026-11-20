@@ -48,6 +48,9 @@ final class FormsServices
 
     public const string WEBHOOK_CLIENT = 'phil_forms.webhook_client';
 
+    /** Symfony Mailer's transports, which send at once, never through a Messenger queue. */
+    public const string MAILER_TRANSPORTS = 'mailer.transports';
+
     /** The master key that seals sensitive values, or null; read by `FieldSealerPass`. */
     public const string SEALING_KEY = 'phil_forms.sealing.key';
 
@@ -113,7 +116,7 @@ final class FormsServices
 
         if (null !== $config['sender']) {
             $container->register(EmailNotifier::class, EmailNotifier::class)
-                ->setArguments([new Reference('mailer'), $config['sender'], $config['subject_prefix'], new Reference(ConditionEvaluator::class)])
+                ->setArguments([new Reference(self::MAILER_TRANSPORTS), $config['sender'], $config['subject_prefix'], new Reference(ConditionEvaluator::class)])
                 ->addTag(self::NOTIFIER_TAG);
         }
 

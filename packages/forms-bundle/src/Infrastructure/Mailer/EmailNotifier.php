@@ -13,7 +13,7 @@ use Phil\FormsBundle\Domain\Model\Entry;
 use Phil\FormsBundle\Domain\ValueObject\Field;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
-use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mailer\Transport\TransportInterface;
 
 /**
  * Sends an entry to its form's recipients, then to the addresses of each of its other notifications whose condition
@@ -21,6 +21,11 @@ use Symfony\Component\Mailer\MailerInterface;
  * the domain's SPF and DMARC — with the first email field in `Reply-To`; never to the visitor, which would make the
  * form a relay for spam. The email lists the fields asked, the value of a sensitive field withheld. Every email is
  * tried; when one fails, the first failure is thrown once the others are sent.
+ *
+ * Each email goes through Symfony Mailer's transports, rendered and sent in the current process, never through
+ * `MailerInterface`: an application that routes `SendEmailMessage` to a Messenger transport would otherwise queue the
+ * email unrendered, with the entry, its form and every value in its context, where the transport and its failure
+ * transport keep them.
  */
 final readonly class EmailNotifier implements EntryNotifier
 {
@@ -29,7 +34,7 @@ final readonly class EmailNotifier implements EntryNotifier
     public const string TEXT_TEMPLATE = '@PhilForms/email/entry.txt.twig';
 
     public function __construct(
-        private MailerInterface $mailer,
+        private TransportInterface $transport,
         private string $sender,
         private string $subjectPrefix = '',
         private ?ConditionEvaluator $logic = null,
@@ -52,7 +57,7 @@ final readonly class EmailNotifier implements EntryNotifier
 
         foreach ($emails as [$recipients, $subject]) {
             try {
-                $this->mailer->send($this->email($entry, $recipients, $subject));
+                $this->transport->send($this->email($entry, $recipients, $subject));
             } catch (TransportExceptionInterface $transportException) {
                 $failure ??= $transportException;
             }

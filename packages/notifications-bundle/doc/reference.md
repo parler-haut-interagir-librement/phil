@@ -55,7 +55,7 @@
 | `Idempotency\NotificationDedupe` | The `DeliveryDedupe` on phil/idempotency: one delivery of the same notification per window |
 | `CircuitBreaker\ChannelBreakers` | The `ChannelCircuits` on phil/circuit-breaker: the circuits `notifications.<channel>[.<transport>]` |
 | `Mailer\MailerChannelSender` | The `email` channel of the `first_success` mode, through the transports of Symfony Mailer |
-| `Notifier\NotifierChannelSender` | The `sms`, `push` and `chat` channels of the `first_success` mode, through Notifier's texter and chatter |
+| `Notifier\NotifierChannelSender` | The `sms`, `push` and `chat` channels of the `first_success` mode, through the transports of Notifier's texter and chatter |
 | `Scheduler\NotificationSchedule` | The schedule `phil_notifications` |
 | `Console\PurgeCommand` | `phil:notifications:purge` |
 | `Console\VapidKeysCommand` | `phil:notifications:vapid-keys` |
