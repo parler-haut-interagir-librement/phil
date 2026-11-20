@@ -12,16 +12,16 @@ use Phil\CoursesBundle\Domain\ValueObject\EquivalenceGroupId;
 /**
  * A course in a group of equivalent courses, and the language it is given in, kept as a normalized `LanguageTag`.
  */
-final readonly class EquivalentCourse
+final class EquivalentCourse
 {
-    public string $language;
+    public readonly string $language;
 
     /**
      * @throws InvalidCourse when the language is not a language tag
      */
     public function __construct(
-        public EquivalenceGroupId $group,
-        public CourseId $course,
+        public readonly EquivalenceGroupId $group,
+        public readonly CourseId $course,
         string $language,
     ) {
         $this->language = LanguageTag::normalize($language);

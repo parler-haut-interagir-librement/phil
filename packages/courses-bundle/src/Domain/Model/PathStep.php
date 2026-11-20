@@ -12,7 +12,7 @@ use Phil\CoursesBundle\Domain\ValueObject\LearningPathId;
  * A course at its place in a learning path: whether the path is completed without it, and the courses of the path
  * completed before it opens — always courses placed earlier, so that the prerequisites hold no cycle.
  */
-final readonly class PathStep
+final class PathStep
 {
     public const int MAX_PREREQUISITES = 50;
 
@@ -23,11 +23,11 @@ final readonly class PathStep
      * @throws InvalidCourse when the step waits for itself, for one course twice, or for too many
      */
     public function __construct(
-        public LearningPathId $path,
-        public CourseId $course,
-        public int $position,
-        public bool $required = true,
-        public array $prerequisites = [],
+        public readonly LearningPathId $path,
+        public readonly CourseId $course,
+        public readonly int $position,
+        public readonly bool $required = true,
+        public readonly array $prerequisites = [],
     ) {
         if (\count($prerequisites) > self::MAX_PREREQUISITES) {
             throw InvalidCourse::because(\sprintf('A step of a path waits for %d courses at most.', self::MAX_PREREQUISITES));

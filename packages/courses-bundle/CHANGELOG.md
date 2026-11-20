@@ -153,6 +153,7 @@ of phil/elearning-packages 0.1.2.
   obligation while the transcript holds an equivalent course enters it without credits; `Transcripts` takes
   `Equivalences` as its last argument.
 - Removing a course removes its steps in the learning paths and its place in a group of equivalent courses.
+- The bundle is tested with phil/notifications-bundle 0.2 and 0.3.
 - `CertificatesCourseCompletions` and `CourseController` take `LearningPaths` and `Equivalences` as their last
   argument.
 - Upgrade: `CourseTables::upgrade()` creates the five tables of the learning paths and the equivalent courses; with the
