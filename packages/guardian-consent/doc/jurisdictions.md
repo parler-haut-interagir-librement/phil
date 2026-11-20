@@ -20,7 +20,8 @@ is still a day short of it, a member in France already has it.
 `Jurisdiction::quebec()` — code `CA-QC`, age of consent 14, majority 18, zone `America/Toronto`, birthday of
 29 February on 1 March — is the jurisdiction a `Jurisdictions` holds when it is given none. Quebec's
 [Act respecting the protection of personal information in the private sector](https://www.legisquebec.gouv.qc.ca/en/document/cs/P-39.1)
-asks the consent of the holder of parental authority or the tutor for a minor under 14.
+asks the consent of the holder of parental authority or the tutor for a minor under 14 (sections 4.1 and 14); from 14,
+the minor consents for themselves (section 14).
 
 ## Other jurisdictions
 

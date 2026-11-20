@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a300556a27e9d5106ee916c714ea2f2d94c6a622c98df804ad04767a1a696abc -->
+<!-- phil-dev source-sha256=f08f99aff0752ce6d53c02ea6cdadc287a80dab581dc1efbbc7c803cea88dc03 -->
 # Juridictions
 
 ## Les règles d'une juridiction
@@ -20,8 +20,9 @@ d'un membre, un membre au Québec est encore à un jour de celui-ci, un membre e
 
 `Jurisdiction::quebec()` — code `CA-QC`, âge du consentement 14, majorité 18, fuseau `America/Toronto`, anniversaire du
 29 février le 1er mars — est la juridiction que contient un `Jurisdictions` quand on ne lui en donne aucune. La
-[Loi sur la protection des renseignements personnels dans le secteur privé](https://www.legisquebec.gouv.qc.ca/en/document/cs/P-39.1)
-du Québec exige le consentement du titulaire de l'autorité parentale ou du tuteur pour un mineur de moins de 14 ans.
+[Loi sur la protection des renseignements personnels dans le secteur privé](https://www.legisquebec.gouv.qc.ca/fr/document/lc/P-39.1)
+du Québec exige le consentement du titulaire de l'autorité parentale ou du tuteur pour un mineur de moins de 14 ans
+(articles 4.1 et 14) ; dès 14 ans, le mineur consent lui-même (article 14).
 
 ## Les autres juridictions
 
