@@ -1,0 +1,57 @@
+{
+    "name": "phil/usage-meter",
+    "description": "Quotas that refuse an action before it exceeds its limit: counters per subject over calendar months, billing periods or rolling windows, idempotent increments.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "quota",
+        "metering",
+        "usage",
+        "rate-limit",
+        "subscription",
+        "freemium"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "psr/clock": "^1.0"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/commerce-subscription-bundle": "^0.1@dev",
+        "phil/money": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2"
+    },
+    "suggest": {
+        "doctrine/dbal": "To keep the counters in a database with DbalUsageStore",
+        "doctrine/orm": "To add the counter tables to the schema the ORM generates, with UsageSchemaListener",
+        "phil/commerce-subscription-bundle": "To read limits from the features of a subscriber's offers, with FeatureLimits::fromSubscriptions()"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\UsageMeter\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\UsageMeter\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

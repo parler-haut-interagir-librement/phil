@@ -241,6 +241,8 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/email-address`](https://github.com/parler-haut-interagir-librement/email-address) | Email addresses a mail server can deliver to, with suggestions for slips such as gmial.com. |
 | [`phil/rate-limit`](https://github.com/parler-haut-interagir-librement/rate-limit) | A build-time guard that refuses, in production, a rate limit counted separately on each server. |
 | [`phil/rate-limit-bundle`](https://github.com/parler-haut-interagir-librement/rate-limit-bundle) | Rate limits declared on controllers, routes and forms, answered with 429 and the RateLimit headers. |
+| [`phil/usage-meter`](https://github.com/parler-haut-interagir-librement/usage-meter) | Quotas that refuse an action before it exceeds its limit: counters per subject over calendar months, billing periods or rolling windows. |
+| [`phil/usage-meter-bundle`](https://github.com/parler-haut-interagir-librement/usage-meter-bundle) | Quotas in Symfony: meters declared in configuration, counters in the database, limits from providers or subscriptions, rate limiters on a meter. |
 | [`phil/safe-http`](https://github.com/parler-haut-interagir-librement/safe-http) | Read addresses given by members or other sites without reaching your own network: redirects checked one by one. |
 | [`phil/idempotency`](https://github.com/parler-haut-interagir-librement/idempotency) | Run an operation once per idempotency key, replay its answer, and handle each Messenger message once. |
 | [`phil/browser-security-bundle`](https://github.com/parler-haut-interagir-librement/browser-security-bundle) | Content Security Policy with nonces, HSTS, signed cookies and the other protections a browser enforces, page by page. |
@@ -257,6 +259,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/audit-bundle`](https://github.com/parler-haut-interagir-librement/audit-bundle) | An append-only audit trail: hash-chained rows indexed by actor, action and record, salted commitments on personal fields, and external anchors. |
 | [`phil/audit-viewer`](https://github.com/parler-haut-interagir-librement/audit-viewer) | The audit trail read in EasyAdmin: filters, the history of a record, the state of each hash chain and an audited CSV export. |
 | [`phil/user-secrets-bundle`](https://github.com/parler-haut-interagir-librement/user-secrets-bundle) | The API keys and OAuth tokens people entrust to a site: sealed by envelope encryption with rotating keys, refreshed under a lock, revocable and erased with the account. |
+| [`phil/api-keys-bundle`](https://github.com/parler-haut-interagir-librement/api-keys-bundle) | Access tokens for a public API: hashed and shown once, scoped, expiring, revocable and rotated, checked by Symfony Security. |
 | [`phil/guardian-consent`](https://github.com/parler-haut-interagir-librement/guardian-consent) | Parental consent for members under the age of consent: age brackets per jurisdiction, consent per feature by signed email link, dated proofs and withdrawal. |
 
 ### PHIL UX
@@ -280,6 +283,7 @@ then split into its own **read-only** repository, from which Composer installs i
 | [`phil/bounce-parser`](https://github.com/parler-haut-interagir-librement/bounce-parser) | Know what every message on your bounce mailbox says, and what to do about the address it names. |
 | [`phil/api-contract`](https://github.com/parler-haut-interagir-librement/api-contract) | Both sides of an HTTP API contract: problem details, deprecation signals, and an OpenAPI document checked against levels of rules. |
 | [`phil/api-contract-bundle`](https://github.com/parler-haut-interagir-librement/api-contract-bundle) | Problem details, idempotent and deprecated controllers, and the OpenAPI document checked in CI, for Symfony. |
+| [`phil/ai-bundle`](https://github.com/parler-haut-interagir-librement/ai-bundle) | Language-model tasks on Symfony AI, with quotas, budgets and people's own keys, and a cost journal that never stores a prompt or an answer. |
 | [`phil/automations`](https://github.com/parler-haut-interagir-librement/automations) | A no-code automation builder for site events: JSON definitions, delays, filters and branches, retries and compensation, run by Messenger. |
 | [`phil/lti`](https://github.com/parler-haut-interagir-librement/lti) | LTI 1.3 on both sides, tool and platform: the OpenID Connect launch, Deep Linking 2.0, typed roles and claims, and the grade and roster services of LTI Advantage. |
 | [`phil/lti-bundle`](https://github.com/parler-haut-interagir-librement/lti-bundle) | LTI 1.3 in Symfony: the routes of the launch, Deep Linking and the key set, an authenticator for verified launches, stores on Doctrine DBAL and scores sent through Messenger. |

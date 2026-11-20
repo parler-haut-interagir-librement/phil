@@ -1,0 +1,7 @@
+# The access tokens of phil/api-keys-bundle: see vendor/phil/api-keys-bundle/doc/installation.md for the firewall and
+# vendor/phil/api-keys-bundle/doc/configuration.md for every option.
+phil_api_keys:
+    # What starts every token, so that secret scanners recognise it.
+    prefix: pat
+    # The key of the hashes kept in the table; keep it in .env.local or the secrets vault, never in the repository.
+    hash_key: '%env(API_KEYS_HASH_KEY)%'
