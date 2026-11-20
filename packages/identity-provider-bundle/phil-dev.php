@@ -69,10 +69,12 @@ return [
                     '\\$this->grants\\?->saveToken\\(\\$token\\);',
                 ],
             ],
-            // The three parts of an attested credential are all read or none is.
+            // The three parts of an attested credential are all read or none is. Messenger and the HTTP client are both
+            // installed or both absent in a test run: a test cannot make one of them vanish.
             'LogicalOr' => [
                 'ignoreSourceCodeByRegex' => [
                     'if \\(null === \\$data->credentialId.*',
+                    'if \\(!interface_exists\\(MessageBusInterface::class\\) \\|\\| !interface_exists\\(HttpClientInterface::class\\)\\) \\{',
                 ],
             ],
             // A value is read at the same depth as its key, and the key is checked first.

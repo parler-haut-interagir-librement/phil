@@ -16,6 +16,7 @@ use Phil\IdentityProviderBundle\Application\Oidc\ClientRegistry;
 use Phil\IdentityProviderBundle\Application\Oidc\ProviderSettings;
 use Phil\IdentityProviderBundle\Application\Oidc\SigningKeys;
 use Phil\IdentityProviderBundle\Application\Oidc\Tokens;
+use Phil\IdentityProviderBundle\Domain\Encoding\Base64Url;
 use Phil\IdentityProviderBundle\Domain\Exception\InvalidValue;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
@@ -234,6 +235,14 @@ final class ClientGrantsTest extends TestCase
         $access = Jws::decode((string) $response['access_token'], $this->keys()->publicKey(...));
         self::assertSame(['iss', 'sub', 'aud', 'client_id', 'scope', 'jti', 'iat', 'exp'], array_keys($access));
         self::assertSame(['machine', self::API, 1_794_651_000], [$access['sub'], $access['aud'], $access['exp']]);
+        self::assertIsString($access['jti']);
+        self::assertSame(32, \strlen($access['jti']), 'The identifier is 24 random bytes.');
+        $stored = $this->grants->token($access['jti']);
+        self::assertNotNull($stored);
+        self::assertSame(['events:read', 'events:write'], $stored->scopes(), 'The scopes of the token are a list, without the scope every client holds.');
+        $header = json_decode(Base64Url::decode(explode('.', (string) $response['access_token'])[0]), true);
+        self::assertIsArray($header);
+        self::assertSame('at+jwt', $header['typ']);
 
         $introspection = $tokens->introspect($client, (string) $response['access_token']);
         self::assertSame(['active' => true, 'scope' => 'events:read events:write', 'client_id' => 'machine', 'sub' => 'machine', 'aud' => self::API, 'token_type' => 'Bearer', 'exp' => 1_794_651_000, 'iat' => 1_794_650_400, 'iss' => self::ISSUER], $introspection);
@@ -247,6 +256,44 @@ final class ClientGrantsTest extends TestCase
 
         $tokens->revoke($client, (string) $response['access_token']);
         self::assertSame(['active' => false], $tokens->introspect($client, (string) $response['access_token']));
+    }
+
+    public function testTheClientCredentialsGrantKnowsALocalResourceUnderItsCanonicalForm(): void
+    {
+        $registry = new ClientRegistry($this->clients, $this->services->clock, $this->settings, $this->services->journal, allowLocalhost: true);
+        [$client] = $registry->register('local', 'Local', [], jwks: [$this->clientKey->publicJwk()], resources: ['http://LOCALHOST:8080/api']);
+
+        $response = $this->tokens()->clientCredentials($client, null, 'http://LOCALHOST:8080/api');
+
+        self::assertSame('http://localhost:8080/api', Jws::decode((string) $response['access_token'], $this->keys()->publicKey(...))['aud']);
+    }
+
+    public function testASessionBoundSetAfterTheTokenWasIssuedEndsTheRefreshTokenAtTheBound(): void
+    {
+        $account = $this->services->account();
+        [$client] = $this->registry()->register('app', 'App', ['https://app.example/cb'], [], ['offline_access']);
+        $session = $this->session($account);
+        $tokens = $this->tokens();
+        $early = $tokens->exchangeCode($client, $this->code($account, 'openid offline_access', $session->id()), 'https://app.example/cb', self::VERIFIER);
+        $late = $tokens->exchangeCode($client, $this->code($account, 'openid offline_access', $session->id()), 'https://app.example/cb', self::VERIFIER);
+
+        $this->settings = new ProviderSettings(self::ISSUER, SigningAlgorithm::ES256, sessionMaxAge: 3600);
+        $tokens = $this->tokens();
+        $this->services->clock->modify('+3599 seconds');
+        self::assertArrayHasKey('refresh_token', $tokens->refresh($client, (string) $early['refresh_token'], null));
+
+        $this->services->clock->modify('+1 second');
+        $this->assertOAuthError('invalid_grant', static fn (): array => $tokens->refresh($client, (string) $late['refresh_token'], null));
+    }
+
+    public function testTheClientRegistryWithoutAJournalReplacesKeysAllTheSame(): void
+    {
+        [$client] = $this->registry()->register('machine', 'Machine', [], jwks: [$this->clientKey->publicJwk()], resources: [self::API]);
+        $next = PrivateKey::generate(SigningAlgorithm::ES256, 'next');
+
+        new ClientRegistry($this->clients, $this->services->clock, $this->settings)->replaceJwks($client, [$next->publicJwk()]);
+
+        self::assertSame($next->publicJwk(), $this->clients->get('machine')?->publicKey('next'));
     }
 
     public function testTheClientCredentialsGrantWithoutScopes(): void

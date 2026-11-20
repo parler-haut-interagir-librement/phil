@@ -196,6 +196,25 @@ final class ConfigurationTest extends TestCase
         yield 'oidc.refresh_token_lifetime' => [['oidc', 'refresh_token_lifetime'], 1, null];
         yield 'oidc.key_activation_delay' => [['oidc', 'key_activation_delay'], 0, null];
         yield 'oidc.retired_key_retention' => [['oidc', 'retired_key_retention'], 0, null];
+        yield 'oidc.client_authentication.clock_skew' => [['oidc', 'client_authentication', 'clock_skew'], 0, 300];
+        yield 'oidc.client_authentication.assertion_max_lifetime' => [['oidc', 'client_authentication', 'assertion_max_lifetime'], 1, 3600];
+        yield 'oidc.session_max_age' => [['oidc', 'session_max_age'], 1, null];
+        yield 'oidc.backchannel_logout.timeout' => [['oidc', 'backchannel_logout', 'timeout'], 1, 30];
+    }
+
+    public function testTheExtraScopesAreTokensOfPrintableCharacters(): void
+    {
+        foreach (['read', 'a', str_repeat('a', 64), '!', '~', 'api:read'] as $scope) {
+            $oidc = $this->process(['oidc' => ['extra_scopes' => [$scope]]])['oidc'];
+            self::assertIsArray($oidc);
+            self::assertSame([$scope], $oidc['extra_scopes']);
+        }
+
+        foreach (['', str_repeat('a', 65), 'two words', "read\n", "\nread", 'say"', 'back\\slash', 'openid', 'email', 'café'] as $scope) {
+            $this->assertRefused(['oidc' => ['extra_scopes' => [$scope]]]);
+        }
+
+        $this->assertRefused(['oidc' => ['extra_scopes' => [1]]]);
     }
 
     public function testARegistrationCountMayBeOne(): void
@@ -260,7 +279,9 @@ final class ConfigurationTest extends TestCase
      */
     private function at(array $path, int $value): array
     {
-        return [$path[0] => [$path[1] => $value]];
+        [$key, $rest] = [$path[0], \array_slice($path, 1)];
+
+        return [$key => [] === $rest ? $value : $this->at($rest, $value)];
     }
 
     /**
@@ -269,9 +290,13 @@ final class ConfigurationTest extends TestCase
      */
     private function read(array $config, array $path): mixed
     {
-        $section = $config[$path[0]];
-        self::assertIsArray($section);
+        $value = $config;
 
-        return $section[$path[1]];
+        foreach ($path as $key) {
+            self::assertIsArray($value);
+            $value = $value[$key];
+        }
+
+        return $value;
     }
 }

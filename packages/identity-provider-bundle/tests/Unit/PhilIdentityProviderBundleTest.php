@@ -6,15 +6,19 @@ namespace Phil\IdentityProviderBundle\Tests\Unit;
 
 use Phil\IdentityProviderBundle\Application\AccountUser;
 use Phil\IdentityProviderBundle\Application\Contract\AuditRecorder;
+use Phil\IdentityProviderBundle\Application\Contract\ClaimsProvider;
+use Phil\IdentityProviderBundle\Application\Contract\LogoutNotifier;
 use Phil\IdentityProviderBundle\Application\Contract\SecretCipher;
 use Phil\IdentityProviderBundle\Application\Contract\SmsSender;
 use Phil\IdentityProviderBundle\Application\Modules;
+use Phil\IdentityProviderBundle\Application\Oidc\ProviderSettings;
 use Phil\IdentityProviderBundle\Application\Oidc\Tokens;
 use Phil\IdentityProviderBundle\Application\Passkeys;
 use Phil\IdentityProviderBundle\Application\SecondFactors;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\PasskeyRepository;
+use Phil\IdentityProviderBundle\Domain\Oidc\ClientAuthMethod;
 use Phil\IdentityProviderBundle\Domain\WebAuthn\RelyingParty;
 use Phil\IdentityProviderBundle\Infrastructure\Audit\NullAuditRecorder;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\IdentityProviderServices;
@@ -22,6 +26,7 @@ use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\KitSubdirecto
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Http\AccountController;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountRepository;
+use Phil\IdentityProviderBundle\Infrastructure\Messenger\SendLogoutTokenHandler;
 use Phil\IdentityProviderBundle\Infrastructure\Notifier\NotifierSmsSender;
 use Phil\IdentityProviderBundle\Infrastructure\Secret\KeyManagementSecretCipher;
 use Phil\IdentityProviderBundle\Infrastructure\Secret\PlainSecretCipher;
@@ -93,6 +98,44 @@ final class PhilIdentityProviderBundleTest extends TestCase
         $modules = $container->getDefinition(Modules::class)->getArgument(0);
         self::assertIsArray($modules);
         self::assertCount(11, $modules);
+    }
+
+    public function testTheProviderSettingsReadEachScopeAndMethodOnceAsAList(): void
+    {
+        $container = $this->load([[
+            'store' => 'memory',
+            'modules' => ['oidc' => true],
+            'secrets' => ['allow_plaintext_secrets' => true],
+            'oidc' => ['issuer' => 'https://example.com', 'extra_scopes' => ['a', 'a', 'b'], 'client_authentication' => ['methods' => ['none', 'none', 'private_key_jwt']]],
+        ]]);
+
+        $arguments = $container->getDefinition(ProviderSettings::class)->getArguments();
+        self::assertSame([...ProviderSettings::SCOPES, 'a', 'b'], $arguments[6]);
+        self::assertSame([ClientAuthMethod::None, ClientAuthMethod::PrivateKeyJwt], $arguments[9]);
+    }
+
+    public function testTheBackChannelLogoutNeedsItsServicesOnlyWhenTurnedOn(): void
+    {
+        $base = ['store' => 'memory', 'modules' => ['oidc' => true], 'secrets' => ['allow_plaintext_secrets' => true], 'oidc' => ['issuer' => 'https://example.com']];
+
+        self::assertFalse($this->load([$base])->hasDefinition(LogoutNotifier::class));
+
+        $base['oidc']['backchannel_logout'] = ['enabled' => true, 'bus' => 'app.bus', 'http_client' => 'app.http', 'timeout' => 7];
+        $container = $this->load([$base]);
+
+        $bus = $container->getDefinition(LogoutNotifier::class)->getArgument(0);
+        $handler = $container->getDefinition(SendLogoutTokenHandler::class)->getArguments();
+        self::assertInstanceOf(Reference::class, $bus);
+        self::assertInstanceOf(Reference::class, $handler[2]);
+        self::assertSame(['app.bus', 'app.http', 7.0], [(string) $bus, (string) $handler[2], $handler[3]]);
+    }
+
+    public function testTheClaimsProvidersAreTaggedByAutoconfiguration(): void
+    {
+        $container = $this->load([['store' => 'memory', 'modules' => ['oidc' => true], 'secrets' => ['allow_plaintext_secrets' => true], 'oidc' => ['issuer' => 'https://example.com']]]);
+
+        self::assertArrayHasKey(ClaimsProvider::class, $container->getAutoconfiguredInstanceof());
+        self::assertTrue($container->getAutoconfiguredInstanceof()[ClaimsProvider::class]->hasTag(IdentityProviderServices::CLAIMS_PROVIDER_TAG));
     }
 
     public function testTheRelyingPartyIsGivenTextsAndTheNameOfItsOwn(): void

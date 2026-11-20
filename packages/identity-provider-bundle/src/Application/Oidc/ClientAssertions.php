@@ -49,15 +49,7 @@ final readonly class ClientAssertions
      */
     public function verify(Client $client, #[SensitiveParameter] string $assertion, array $audiences): void
     {
-        try {
-            $claims = Jws::decode($assertion, static function (string $kid) use ($client): ?JWK {
-                $key = $client->publicKey($kid);
-
-                return null === $key ? null : new JWK($key);
-            });
-        } catch (MalformedInput|VerificationFailed) {
-            throw OAuthError::invalidClient();
-        }
+        $claims = $this->verifiedClaims($client, $assertion) ?? throw OAuthError::invalidClient();
 
         $now = $this->clock->now()->getTimestamp();
         $skew = $this->settings->clockSkew;
@@ -76,6 +68,24 @@ final readonly class ClientAssertions
 
         if (!\is_string($jti) || '' === $jti || \strlen($jti) > self::MAX_JTI_LENGTH || !$this->grants->useAssertion(UsedAssertion::record($client->id(), $jti, new DateTimeImmutable()->setTimestamp($expires + $skew)))) {
             throw OAuthError::invalidClient();
+        }
+    }
+
+    /**
+     * The claims of the assertion when it is a signed token of a key of the client; null otherwise.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function verifiedClaims(Client $client, #[SensitiveParameter] string $assertion): ?array
+    {
+        try {
+            return Jws::decode($assertion, static function (string $kid) use ($client): ?JWK {
+                $key = $client->publicKey($kid);
+
+                return null === $key ? null : new JWK($key);
+            });
+        } catch (MalformedInput|VerificationFailed) {
+            return null;
         }
     }
 

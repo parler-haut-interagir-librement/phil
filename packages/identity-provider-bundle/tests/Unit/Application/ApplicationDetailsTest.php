@@ -397,6 +397,8 @@ final class ApplicationDetailsTest extends TestCase
         self::assertSame(400, OAuthError::invalidGrant('no')->status);
         self::assertSame(400, OAuthError::unsupportedGrantType()->status);
         self::assertSame(400, OAuthError::invalidScope('no')->status);
+        self::assertSame([400, 'unauthorized_client'], [OAuthError::unauthorizedClient('no')->status, OAuthError::unauthorizedClient('no')->toArray()['error']]);
+        self::assertSame([400, 'invalid_target'], [OAuthError::invalidTarget('no')->status, OAuthError::invalidTarget('no')->toArray()['error']]);
         self::assertSame(401, OAuthError::invalidToken()->status);
         self::assertSame(['error' => 'invalid_grant', 'error_description' => 'no'], OAuthError::invalidGrant('no')->toArray());
     }

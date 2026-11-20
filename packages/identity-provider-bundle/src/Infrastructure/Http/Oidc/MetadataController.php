@@ -37,7 +37,7 @@ final readonly class MetadataController
         $url = fn (string $route): string => $this->urls->generate($route, [], UrlGeneratorInterface::ABSOLUTE_URL);
         $methods = array_map(static fn (ClientAuthMethod $method): string => $method->value, $this->settings->authMethods);
         $confidential = array_values(array_diff($methods, [ClientAuthMethod::None->value]));
-        $optional = array_keys(array_filter(['acr' => $this->settings->acr, 'idp' => $this->settings->idp, 'session_start' => $this->settings->sessionStart ? true : null], static fn (string|bool|null $value): bool => null !== $value));
+        $optional = array_keys(array_filter(['acr' => null !== $this->settings->acr, 'idp' => null !== $this->settings->idp, 'session_start' => $this->settings->sessionStart]));
 
         return $this->cacheable(new JsonResponse(array_filter([
             'issuer' => $this->settings->issuer,
@@ -55,7 +55,7 @@ final readonly class MetadataController
             'subject_types_supported' => [SubjectType::Pairwise === $this->settings->subjectType ? 'pairwise' : 'public'],
             'id_token_signing_alg_values_supported' => [$this->settings->algorithm->value],
             'token_endpoint_auth_methods_supported' => $methods,
-            'token_endpoint_auth_signing_alg_values_supported' => \in_array(ClientAuthMethod::PrivateKeyJwt, $this->settings->authMethods, true) ? array_map(static fn (SigningAlgorithm $algorithm): string => $algorithm->value, SigningAlgorithm::cases()) : null,
+            'token_endpoint_auth_signing_alg_values_supported' => \in_array(ClientAuthMethod::PrivateKeyJwt, $this->settings->authMethods, true) ? SigningAlgorithm::cases() : null,
             'revocation_endpoint_auth_methods_supported' => $methods,
             'introspection_endpoint_auth_methods_supported' => $confidential,
             'code_challenge_methods_supported' => ['S256'],

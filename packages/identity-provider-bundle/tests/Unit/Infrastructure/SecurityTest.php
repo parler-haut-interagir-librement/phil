@@ -6,8 +6,10 @@ namespace Phil\IdentityProviderBundle\Tests\Unit\Infrastructure;
 
 use Phil\IdentityProviderBundle\Application\AccountUser;
 use Phil\IdentityProviderBundle\Application\Exception\OAuthError;
+use Phil\IdentityProviderBundle\Application\Oidc\ClientAssertions;
 use Phil\IdentityProviderBundle\Application\Passkeys;
 use Phil\IdentityProviderBundle\Application\SecondFactors;
+use Phil\IdentityProviderBundle\Domain\Encoding\Base64Url;
 use Phil\IdentityProviderBundle\Domain\Model\Passkey\Passkey;
 use Phil\IdentityProviderBundle\Domain\Security\RecoveryCodes;
 use Phil\IdentityProviderBundle\Domain\Totp\Totp;
@@ -99,6 +101,45 @@ final class SecurityTest extends TestCase
             'invalid_request' => [new Request(request: ['client_secret' => 'x'], server: ['HTTP_AUTHORIZATION' => 'Basic '.base64_encode('a:b')]), new Request(), new Request(request: ['client_id' => '']), new Request(request: ['client_id' => 'a', 'client_secret' => ['x']])],
             'invalid_client' => [new Request(server: ['HTTP_AUTHORIZATION' => 'Basic !!']), new Request(server: ['HTTP_AUTHORIZATION' => 'Basic '.base64_encode('nocolon')]), new Request(server: ['HTTP_AUTHORIZATION' => 'Basic '.base64_encode(':secret')])],
         ] as $error => $requests) {
+            foreach ($requests as $request) {
+                try {
+                    ClientCredentials::from($request);
+                    self::fail($error);
+                } catch (OAuthError $oauthError) {
+                    self::assertSame($error, $oauthError->error);
+                }
+            }
+        }
+    }
+
+    public function testClientCredentialsOfAnAssertion(): void
+    {
+        $assertion = Base64Url::encode('{"alg":"ES256"}').'.'.Base64Url::encode('{"sub":"machine"}').'.sig';
+
+        $alone = ClientCredentials::from(new Request(request: ['client_assertion_type' => ClientAssertions::TYPE, 'client_assertion' => $assertion]));
+        self::assertSame(['machine', $assertion, false], [$alone->clientId, $alone->secret, $alone->basic]);
+        self::assertSame('machine', ClientCredentials::from(new Request(request: ['client_assertion_type' => ClientAssertions::TYPE, 'client_assertion' => $assertion, 'client_id' => 'machine']))->clientId);
+
+        $refused = [
+            'invalid_request' => [
+                new Request(request: ['client_assertion_type' => ClientAssertions::TYPE, 'client_assertion' => $assertion], server: ['HTTP_AUTHORIZATION' => 'Basic '.base64_encode('a:b')]),
+                new Request(request: ['client_assertion_type' => ClientAssertions::TYPE, 'client_assertion' => $assertion, 'client_secret' => 's']),
+            ],
+            'invalid_client' => [
+                new Request(request: ['client_assertion_type' => ClientAssertions::TYPE]),
+                new Request(request: ['client_assertion' => $assertion]),
+                new Request(request: ['client_assertion_type' => 'other', 'client_assertion' => $assertion]),
+                new Request(request: ['client_assertion_type' => ClientAssertions::TYPE, 'client_assertion' => ['x']]),
+                new Request(request: ['client_assertion_type' => ClientAssertions::TYPE, 'client_assertion' => $assertion, 'client_id' => ['machine']]),
+                new Request(request: ['client_assertion_type' => ClientAssertions::TYPE, 'client_assertion' => $assertion, 'client_id' => 'other']),
+                new Request(request: ['client_assertion_type' => ClientAssertions::TYPE, 'client_assertion' => 'not a token']),
+                new Request(request: ['client_assertion_type' => ClientAssertions::TYPE, 'client_assertion' => Base64Url::encode('{}').'.'.Base64Url::encode('{}').'.sig']),
+                new Request(request: ['client_assertion_type' => ClientAssertions::TYPE, 'client_assertion' => Base64Url::encode('{}').'.'.Base64Url::encode('{"sub":""}').'.sig']),
+                new Request(request: ['client_assertion_type' => ClientAssertions::TYPE, 'client_assertion' => Base64Url::encode('{}').'.'.Base64Url::encode('{"sub":5}').'.sig']),
+            ],
+        ];
+
+        foreach ($refused as $error => $requests) {
             foreach ($requests as $request) {
                 try {
                     ClientCredentials::from($request);

@@ -137,7 +137,7 @@ final readonly class Sessions
         $clients = [];
         $close = function () use ($session, $now, &$clients): void {
             foreach ($this->grants?->forSession($session->id()) ?? [] as $token) {
-                $clients[$token->clientId()] = true;
+                $clients[] = $token->clientId();
                 $token->revoke($now);
                 $this->grants?->saveToken($token);
             }
@@ -155,7 +155,7 @@ final readonly class Sessions
         $this->journal->record(IdentityEventType::SessionClosed, $session->accountId(), ['session' => $session->id()]);
 
         if ([] !== $clients) {
-            $this->logout?->sessionEnded($session->id(), $session->accountId(), array_map(strval(...), array_keys($clients)));
+            $this->logout?->sessionEnded($session->id(), $session->accountId(), array_values(array_unique($clients)));
         }
     }
 }

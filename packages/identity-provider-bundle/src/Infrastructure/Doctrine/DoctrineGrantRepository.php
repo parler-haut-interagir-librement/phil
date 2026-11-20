@@ -115,7 +115,7 @@ final readonly class DoctrineGrantRepository implements GrantRepository
     public function useAssertion(UsedAssertion $assertion): bool
     {
         try {
-            $this->entityManager->getConnection()->insert(UsedAssertion::TABLE, ['id' => $assertion->id(), 'expires_at' => $assertion->expiresAt()], ['id' => Types::STRING, 'expires_at' => Types::DATETIME_IMMUTABLE]);
+            $this->entityManager->getConnection()->insert(UsedAssertion::TABLE, ['id' => $assertion->id(), 'expires_at' => $assertion->expiresAt()], ['expires_at' => Types::DATETIME_IMMUTABLE]);
         } catch (UniqueConstraintViolationException) {
             return false;
         }

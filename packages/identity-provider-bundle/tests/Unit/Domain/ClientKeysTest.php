@@ -69,11 +69,17 @@ final class ClientKeysTest extends TestCase
 
         $this->assertInvalid(static fn (): Client => Client::register('both', 'Both', 'secret', ['https://a/cb'], [], [], false, $now, jwks: [self::EC]));
         $this->assertInvalid(static fn (): Client => Client::register('public', 'Public', null, [], [], [], false, $now, resources: ['https://api/']));
+        $this->assertInvalid(static fn (): Client => Client::register('open', 'Open', null, ['https://a/cb'], [], [], false, $now, false));
+        $this->assertInvalid(static fn (): Client => Client::register('sector', 'Sector', 'secret', ['https://a/cb'], [], [], false, $now, sectorIdentifier: "a.example\n"));
+        $this->assertInvalid(static fn (): Client => Client::register('sector', 'Sector', 'secret', ['https://a/cb'], [], [], false, $now, sectorIdentifier: 'A.example'));
         $this->assertInvalid(static fn (): Client => Client::register('nothing', 'Nothing', 'secret', [], [], [], false, $now));
         $this->assertInvalid(static fn (): Client => Client::register('many', 'Many', 'secret', [], [], [], false, $now, resources: array_map(static fn (int $i): string => 'https://api/'.$i, range(0, Client::MAX_RESOURCES))));
 
         $edge = Client::register('edge', 'Edge', 'secret', [], [], [], false, $now, resources: array_map(static fn (int $i): string => 'https://api/'.$i, range(1, Client::MAX_RESOURCES)));
         self::assertCount(Client::MAX_RESOURCES, $edge->resources());
+        $listed = Client::register('listed', 'Listed', 'secret', [], [], [], false, $now, resources: ['https://a/', 'https://a/', 'https://b/']);
+        self::assertSame(['https://a/', 'https://b/'], $listed->resources());
+        self::assertSame('a.example', Client::register('sector', 'Sector', 'secret', ['https://a/cb'], [], [], false, $now, sectorIdentifier: 'a.example')->sector());
         $keyed = Client::register('keyed', 'Keyed', null, ['https://a/cb'], [], [], false, $now, false, [self::EC]);
         self::assertFalse($keyed->requiresPkce(), 'A client with keys is confidential: it may go without PKCE.');
     }
@@ -95,6 +101,7 @@ final class ClientKeysTest extends TestCase
         yield 'an HMAC algorithm' => [[['alg' => 'HS256', 'kty' => 'oct'] + self::EC]];
         yield 'no identifier' => [[array_diff_key(self::EC, ['kid' => 1])]];
         yield 'an empty identifier' => [[['kid' => ''] + self::EC]];
+        yield 'an identifier with a trailing newline' => [[['kid' => "k1\n"] + self::EC]];
         yield 'an identifier with a space' => [[['kid' => 'k 1'] + self::EC]];
         yield 'an identifier too long' => [[['kid' => str_repeat('k', 129)] + self::EC]];
         yield 'the type of another algorithm' => [[['kty' => 'RSA'] + self::EC]];
@@ -117,6 +124,19 @@ final class ClientKeysTest extends TestCase
         $this->expectException(InvalidValue::class);
 
         Client::keySet($keys);
+    }
+
+    public function testAKeyMemberThatIsNotTextIsRefusedWithTheMembersAllowed(): void
+    {
+        try {
+            Client::keySet([['use' => 5] + self::EC]);
+            self::fail('Accepted.');
+        } catch (InvalidValue $invalidValue) {
+            self::assertSame('A public key of a client holds text members of a public key only: kty, kid, alg, use, n, e, crv, x, y.', $invalidValue->getMessage());
+        }
+
+        $this->expectException(InvalidValue::class);
+        Client::keySet([self::EC + ['x5c' => 'cert']]);
     }
 
     public function testTheKeySetsAccepted(): void

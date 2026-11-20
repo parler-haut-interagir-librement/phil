@@ -466,6 +466,7 @@ final class ProviderTest extends TestCase
     {
         $account = $this->account();
         self::assertSame(['sub' => $account->id()], Claims::of($account, ['openid', 'phone']));
+        self::assertSame(['sub' => 'pairwise-sub'], Claims::of($account, ['openid'], 'pairwise-sub'));
         $account->rename(null);
         self::assertSame(['sub' => $account->id()], Claims::of($account, ['openid', 'profile']));
         $account->rename('Ada');

@@ -130,7 +130,7 @@ final class BackChannelLogoutTest extends TestCase
         $this->registry()->register('app', 'App', ['https://app.example/cb'], backchannelLogoutUri: 'https://app.example/logout?x=1');
         $requests = [];
         $http = new MockHttpClient(static function (string $method, string $url, array $options) use (&$requests): MockResponse {
-            $requests[] = [$method, $url, $options['body'] ?? null, $options['max_redirects'] ?? null, $options['timeout'] ?? null];
+            $requests[] = [$method, $url, $options['body'] ?? null, $options['max_redirects'] ?? null, $options['timeout'] ?? null, $options['max_duration'] ?? null];
 
             return new MockResponse('', ['http_code' => 200]);
         });
@@ -138,8 +138,8 @@ final class BackChannelLogoutTest extends TestCase
         $this->handler($http, 2.5)(new SendLogoutToken('app', 'ACCOUNT', 'SESSION'));
 
         self::assertCount(1, $requests);
-        [$method, $url, $body, $redirects, $timeout] = $requests[0];
-        self::assertSame(['POST', 'https://app.example/logout?x=1', 0, 2.5], [$method, $url, $redirects, $timeout]);
+        [$method, $url, $body, $redirects, $timeout, $duration] = $requests[0];
+        self::assertSame(['POST', 'https://app.example/logout?x=1', 0, 2.5, 2.5], [$method, $url, $redirects, $timeout, $duration]);
         self::assertIsString($body);
         parse_str($body, $form);
         self::assertSame(['logout_token'], array_keys($form));
@@ -172,8 +172,12 @@ final class BackChannelLogoutTest extends TestCase
             }
         }
 
-        $this->expectException(DeliveryFailed::class);
-        $this->handler(new MockHttpClient(static fn (): never => throw new TransportException('down')))(new SendLogoutToken('app', 'ACCOUNT', 'SESSION'));
+        try {
+            $this->handler(new MockHttpClient(static fn (): never => throw new TransportException('down')))(new SendLogoutToken('app', 'ACCOUNT', 'SESSION'));
+            self::fail('Delivered.');
+        } catch (DeliveryFailed $deliveryFailed) {
+            self::assertSame('The back-channel logout of client "app" answered 0.', $deliveryFailed->getMessage());
+        }
     }
 
     public function testTheHandlerSkipsAClientWithoutAddressDisabledOrGone(): void

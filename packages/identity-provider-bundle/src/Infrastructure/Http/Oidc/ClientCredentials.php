@@ -82,7 +82,7 @@ final readonly class ClientCredentials
             throw OAuthError::invalidRequest('The client authenticates by one method only.');
         }
 
-        if (ClientAssertions::TYPE !== $type || !\is_string($assertion) || null !== $bodyId && !\is_string($bodyId)) {
+        if (ClientAssertions::TYPE !== $type || !\is_string($assertion)) {
             throw OAuthError::invalidClient();
         }
 

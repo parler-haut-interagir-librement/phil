@@ -530,8 +530,8 @@ final readonly class Tokens
         $refreshExpires = $now->modify(\sprintf('+%d seconds', $this->settings->refreshTokenLifetime));
         $bound = $this->refreshBound($sessionId);
 
-        if ($bound instanceof DateTimeImmutable && $bound < $refreshExpires) {
-            $refreshExpires = $bound;
+        if ($bound instanceof DateTimeImmutable) {
+            $refreshExpires = min($refreshExpires, $bound);
         }
 
         if (\in_array('offline_access', $scopes, true) && $refreshExpires > $now) {

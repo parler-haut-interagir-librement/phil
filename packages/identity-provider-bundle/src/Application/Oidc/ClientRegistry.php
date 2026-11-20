@@ -63,10 +63,10 @@ final readonly class ClientRegistry
         $secret = $public || null !== $jwks ? null : Base64Url::encode(random_bytes(32));
 
         $redirects = $this->addresses($redirectUris);
-        $hosts = array_values(array_unique(array_map(fn (string $uri): string => Url::fromString($uri, $this->allowLocalhost)->host, $redirects)));
+        $hosts = array_unique(array_map(fn (string $uri): string => Url::fromString($uri, $this->allowLocalhost)->host, $redirects));
 
         try {
-            $client = Client::register($id, $name, $secret, $redirects, $this->addresses($postLogoutRedirectUris), $scopes, $firstParty, $this->clock->now(), $requirePkce, $jwks, $this->addresses($resources, 'client.resource_invalid'), null === $backchannelLogoutUri ? null : $this->addresses([$backchannelLogoutUri], 'client.logout_uri_invalid')[0], $sectorIdentifier ?? (1 === \count($hosts) ? $hosts[0] : null));
+            $client = Client::register($id, $name, $secret, $redirects, $this->addresses($postLogoutRedirectUris), $scopes, $firstParty, $this->clock->now(), $requirePkce, $jwks, $this->addresses($resources, 'client.resource_invalid'), null === $backchannelLogoutUri ? null : $this->addresses([$backchannelLogoutUri], 'client.logout_uri_invalid')[0], $sectorIdentifier ?? (1 === \count($hosts) ? array_first($hosts) : null));
         } catch (InvalidValue $invalidValue) {
             throw Refused::because('client.invalid', $invalidValue->getMessage());
         }
