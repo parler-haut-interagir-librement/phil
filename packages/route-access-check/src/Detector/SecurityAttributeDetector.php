@@ -80,7 +80,7 @@ final readonly class SecurityAttributeDetector implements AccessRuleDetector
             $arguments = $attribute->getArguments();
             $checked = $arguments['attribute'] ?? $arguments[0] ?? null;
             $described = $this->describe($checked);
-            $validated = self::validatedSubject($arguments['subject'] ?? $arguments[1] ?? null, $controller);
+            $validated = $this->validatedSubject($arguments['subject'] ?? $arguments[1] ?? null, $controller);
         } catch (Throwable) {
             $validated = null;
             $arguments = [];
@@ -109,7 +109,7 @@ final readonly class SecurityAttributeDetector implements AccessRuleDetector
     /**
      * The first argument the subject names that Symfony maps from the request, as `$name`; `null` for none.
      */
-    private static function validatedSubject(mixed $subject, Controller $controller): ?string
+    private function validatedSubject(mixed $subject, Controller $controller): ?string
     {
         $method = $controller->method ?? '__invoke';
 

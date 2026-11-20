@@ -31,6 +31,7 @@ final class IdentityMapTest extends FunctionalTestCase
         $retail = $this->invoiceId('R-1');
         $context = $this->context();
         $context->enter(TenantId::fromString('retail'));
+
         $loaded = $this->entityManager()->find(Invoice::class, $retail);
         self::assertInstanceOf(Invoice::class, $loaded);
 
@@ -48,6 +49,7 @@ final class IdentityMapTest extends FunctionalTestCase
         $retail = $this->invoiceId('R-1');
         $context = $this->context();
         $context->enter(TenantId::fromString('retail'));
+
         $loaded = $this->entityManager()->find(Invoice::class, $retail);
 
         $reference = $context->within(TenantId::fromString('wholesale'), fn (): ?Invoice => $this->entityManager()->getReference(Invoice::class, $retail));
@@ -59,6 +61,7 @@ final class IdentityMapTest extends FunctionalTestCase
     {
         $context = $this->context();
         $context->enter(TenantId::fromString('retail'));
+
         $loaded = $this->entityManager()->find(Invoice::class, $this->invoiceId('R-1'));
         self::assertInstanceOf(Invoice::class, $loaded);
 
@@ -71,6 +74,7 @@ final class IdentityMapTest extends FunctionalTestCase
     {
         $context = $this->context();
         $context->enter(TenantId::fromString('retail'));
+
         $currency = $this->entityManager()->find(Currency::class, 'CAD');
         self::assertInstanceOf(Currency::class, $currency);
 
@@ -107,6 +111,7 @@ final class IdentityMapTest extends FunctionalTestCase
         $retail = $this->invoiceId('R-1');
         $context = $this->context();
         $context->enter(TenantId::fromString('retail'));
+
         $loaded = $this->entityManager()->find(Invoice::class, $retail);
         self::assertInstanceOf(Invoice::class, $loaded);
 
@@ -163,6 +168,7 @@ final class IdentityMapTest extends FunctionalTestCase
     {
         $context = $this->context();
         $context->enter(TenantId::fromString('retail'));
+
         $loaded = $this->entityManager()->find(Invoice::class, $this->invoiceId('R-1'));
         self::assertInstanceOf(Invoice::class, $loaded);
         $this->entityManager()->remove($loaded);

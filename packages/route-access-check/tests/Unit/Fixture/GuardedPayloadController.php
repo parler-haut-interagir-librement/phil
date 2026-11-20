@@ -19,6 +19,6 @@ final class GuardedPayloadController
     #[IsGranted('ORDER_EDIT', 'order')]
     public function __invoke(#[MapRequestPayload] array $order): string
     {
-        return 'invoked';
+        return 'invoked '.\count($order);
     }
 }

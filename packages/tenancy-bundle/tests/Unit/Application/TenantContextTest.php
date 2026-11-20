@@ -95,6 +95,7 @@ final class TenantContextTest extends TestCase
         $activation = new RecordingActivation();
         $context = new TenantContext([$activation, new FailingActivation(['wholesale'])]);
         $context->enter(TenantId::fromString('retail'));
+
         $ran = false;
 
         try {

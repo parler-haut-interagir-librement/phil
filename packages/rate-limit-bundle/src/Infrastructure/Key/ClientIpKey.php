@@ -41,7 +41,7 @@ final readonly class ClientIpKey implements KeyResolver
             return null;
         }
 
-        $address = self::unmapped($address);
+        $address = $this->unmapped($address);
         $normalized = $this->normalizer?->normalize($address) ?? IpUtils::anonymize($address, 0, 8);
 
         return 'ip:'.hash_hmac('sha256', $normalized, $this->secret);
@@ -50,7 +50,7 @@ final readonly class ClientIpKey implements KeyResolver
     /**
      * The IPv4 address an IPv4-mapped IPv6 address holds; any other address as it is.
      */
-    private static function unmapped(string $address): string
+    private function unmapped(string $address): string
     {
         $packed = @inet_pton($address);
 

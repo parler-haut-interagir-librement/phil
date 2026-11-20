@@ -38,7 +38,7 @@ final readonly class DoctrineTenantActivation implements TenantActivation
     {
         foreach ($this->filteredManagers() as $manager => $filter) {
             if ($filter->tenant() !== $tenant->value) {
-                self::detachTenantScoped($manager);
+                $this->detachTenantScoped($manager);
             }
 
             $filter->activate($tenant);
@@ -50,7 +50,7 @@ final readonly class DoctrineTenantActivation implements TenantActivation
     {
         foreach ($this->filteredManagers() as $manager => $filter) {
             if (null !== $filter->tenant()) {
-                self::detachTenantScoped($manager);
+                $this->detachTenantScoped($manager);
             }
         }
 
@@ -70,7 +70,7 @@ final readonly class DoctrineTenantActivation implements TenantActivation
     /**
      * Detaches every tenant-scoped entity of the identity map, except those scheduled for insertion or deletion.
      */
-    private static function detachTenantScoped(EntityManagerInterface $manager): void
+    private function detachTenantScoped(EntityManagerInterface $manager): void
     {
         $unitOfWork = $manager->getUnitOfWork();
 

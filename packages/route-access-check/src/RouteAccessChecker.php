@@ -104,7 +104,7 @@ final readonly class RouteAccessChecker
                 ++$protected;
             }
 
-            foreach ([...$this->conflictsOf($covering, $checks), ...self::unauthenticatedVotes($checks)] as $conflict) {
+            foreach ([...$this->conflictsOf($covering, $checks), ...$this->unauthenticatedVotes($checks)] as $conflict) {
                 $conflicts[$conflict] = $conflict;
             }
         }
@@ -155,10 +155,10 @@ final readonly class RouteAccessChecker
      *
      * @return list<string>
      */
-    private static function unauthenticatedVotes(array $checks): array
+    private function unauthenticatedVotes(array $checks): array
     {
         $conflicts = [];
-        $preceded = self::configured($checks);
+        $preceded = $this->configured($checks);
 
         foreach ($checks as $check) {
             if (null === $check->validatedSubject) {
@@ -178,15 +178,9 @@ final readonly class RouteAccessChecker
     /**
      * @param array<int, AccessRule> $checks
      */
-    private static function configured(array $checks): bool
+    private function configured(array $checks): bool
     {
-        foreach ($checks as $check) {
-            if (RuleScope::Configuration === $check->scope) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($checks, static fn (AccessRule $check): bool => RuleScope::Configuration === $check->scope);
     }
 
     /**

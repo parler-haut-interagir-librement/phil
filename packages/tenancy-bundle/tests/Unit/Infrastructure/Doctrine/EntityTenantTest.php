@@ -52,6 +52,7 @@ final class EntityTenantTest extends TestCase
         $metadata = new ClassMetadata(Owned::class);
         $metadata->mapManyToOne(['fieldName' => 'tenant', 'targetEntity' => TenantRecord::class, 'joinColumns' => [['name' => 'tenant_id', 'referencedColumnName' => 'id']]]);
         $metadata->wakeupReflection(new RuntimeReflectionService());
+
         $tenant = new TenantRecord('retail');
         $unitOfWork = $this->createMock(UnitOfWork::class);
         $unitOfWork->expects($this->once())->method('getSingleIdentifierValue')->with($tenant)->willReturn('retail');

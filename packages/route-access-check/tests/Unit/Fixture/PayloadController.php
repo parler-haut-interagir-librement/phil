@@ -21,7 +21,7 @@ final class PayloadController
     #[IsGranted('ORDER_EDIT', 'order')]
     public function update(#[MapRequestPayload] array $order): string
     {
-        return 'update';
+        return 'update '.\count($order);
     }
 
     /**
@@ -31,7 +31,7 @@ final class PayloadController
     #[IsGranted('ORDER_EDIT', subject: 'order')]
     public function guarded(#[MapRequestPayload] array $order): string
     {
-        return 'guarded';
+        return 'guarded '.\count($order);
     }
 
     /**
@@ -41,7 +41,7 @@ final class PayloadController
     #[IsGranted('IS_AUTHENTICATED')]
     public function guardedTooLate(#[MapRequestPayload] array $order): string
     {
-        return 'guarded too late';
+        return 'guarded too late '.\count($order);
     }
 
     /**
@@ -50,24 +50,24 @@ final class PayloadController
     #[IsGranted('SEARCH', ['other', 'query'])]
     public function search(int $other, #[MapQueryString] array $query): string
     {
-        return 'search';
+        return 'search '.$other.' '.\count($query);
     }
 
     #[IsGranted('UPLOAD', 'file')]
     public function upload(#[MapUploadedFile] mixed $file): string
     {
-        return 'upload';
+        return 'upload '.get_debug_type($file);
     }
 
     #[IsGranted('VIEW', 'id')]
     public function show(int $id): string
     {
-        return 'show';
+        return 'show '.$id;
     }
 
     #[IsGranted('VIEW', 'missing')]
     public function unknownSubject(int $id): string
     {
-        return 'unknown subject';
+        return 'unknown subject '.$id;
     }
 }
