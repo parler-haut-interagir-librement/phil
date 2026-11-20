@@ -31,3 +31,7 @@ upgrade to the latest release to get a fix, or apply its `security:` commit your
 
 A vulnerability in a dependency is fixed by raising the dependency's constraint once a fixed release exists. If you
 find a dependency of a package with a known advisory (`composer audit` reports them), you may report it the same way.
+
+The monorepo lock is audited every day by `composer audit` and `osv-scanner`
+([`dependency-audit.yml`](.github/workflows/dependency-audit.yml)); each new advisory opens one issue labelled
+`dependency-audit`.
