@@ -9,6 +9,7 @@ use Phil\CommerceStoredValueBundle\Domain\Instrument\MovementKind;
 use Phil\CommerceStoredValueBundle\Domain\Model\Instrument;
 use Phil\CommerceStoredValueBundle\Domain\Model\Movement;
 use Phil\CommerceStoredValueBundle\Domain\Repository\InstrumentRepository;
+use Phil\DddBundle\Domain\Exception\InvalidValue;
 use Phil\Money\Currency;
 use Phil\Money\Money;
 
@@ -24,16 +25,31 @@ final readonly class StoreCredits
     ) {
     }
 
-    public function grant(string $holder, Money $amount, DateTimeImmutable $at, ?string $note = null, ?string $orderNumber = null): Movement
+    /**
+     * Grants credit to a customer. Under an idempotency key — a message's, a return's —, a grant is made once: asked
+     * again with the same key, it adds nothing and returns the movement first recorded.
+     *
+     * @throws InvalidValue when the key is not one, or was used for another amount
+     */
+    public function grant(string $holder, Money $amount, DateTimeImmutable $at, ?string $note = null, ?string $orderNumber = null, ?string $idempotencyKey = null): Movement
     {
+        Instrument::checkIdempotencyKey($idempotencyKey);
         $credit = $this->instruments->findStoreCredit($holder, $amount->currency->code);
+
+        if ($credit instanceof Instrument && null !== $idempotencyKey) {
+            $recorded = Replays::of($this->instruments->movementUnderKey($credit->id, $idempotencyKey), $amount);
+
+            if ($recorded instanceof Movement) {
+                return $recorded;
+            }
+        }
 
         if (!$credit instanceof Instrument) {
             $credit = Instrument::storeCredit($holder, $amount->currency, $at);
             $this->instruments->addInstrument($credit);
         }
 
-        $movement = $credit->credit(MovementKind::Granted, $amount, $at, $orderNumber, null, $note);
+        $movement = $credit->credit(MovementKind::Granted, $amount, $at, $orderNumber, null, $note, $idempotencyKey);
         $this->instruments->addMovement($movement);
 
         return $movement;

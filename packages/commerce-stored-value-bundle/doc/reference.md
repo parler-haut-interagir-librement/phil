@@ -6,7 +6,7 @@ Every public type of the module.
 |---|---|---|
 | `PhilCommerceStoredValueBundle` | `final class`, `AbstractBundle` | Alias `phil_commerce_stored_value`; refuses to load without `PhilCommerceBundle` |
 | `Domain\Model\Instrument` | `final class`, Doctrine entity | A gift card or a store credit, its balance |
-| `Domain\Model\Movement` | `final class`, Doctrine entity | One change of a balance |
+| `Domain\Model\Movement` | `final class`, Doctrine entity | One change of a balance; the rank of a card its order issued, an idempotency key |
 | `Domain\Instrument\InstrumentKind` | enum | `GiftCard`, `StoreCredit` |
 | `Domain\Instrument\GiftCardOrigin` | enum | `Given`, `Paid`: whether a gift card may expire |
 | `Domain\Instrument\MovementKind` | enum | `Issued`, `Loaded`, `Granted`, `Redeemed`, `Restored`, `Voided` |
@@ -16,6 +16,7 @@ Every public type of the module.
 | `Application\GiftCards` | `final readonly class` | Issuing, loading, voiding, finding a card; voiding a cancelled order's cards |
 | `Application\Port\StoreCreditHolders` | interface | The customer of an order, for a refund a voided or expired card cannot take |
 | `Application\IssuedGiftCard` | `final readonly class` | A card just issued, and its code |
+| `Application\GiftCardIssuance` | `final readonly class`, iterable over the cards issued now | What `GiftCards::issueFor()` did: the cards issued now, with their codes, and every card of the order |
 | `Application\StoreCredits` | `final readonly class` | Granting credit, balances |
 | `Application\StoredValuePayments` | `final readonly class` | Paying with a card or credit |
 | `Application\GiftCardSellables` | `final readonly class`, the core's `SellableResolver` | The sellable type `gift_card` |

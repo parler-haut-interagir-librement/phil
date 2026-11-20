@@ -43,6 +43,51 @@ final class InstrumentTest extends TestCase
         self::assertSame([$card->id, MovementKind::Issued, 5_000, 5_000, 'CAD', $at, 'A-1', null, null], [
             $issued->instrument, $issued->kind, $issued->amount->minorUnits, $issued->balanceAfter->minorUnits, $issued->amount->currency->code, $issued->occurredAt, $issued->orderNumber, $issued->payment, $issued->note,
         ]);
+        self::assertSame([null, null], [$issued->issuedUnit, $issued->idempotencyKey]);
+    }
+
+    public function testAnOrdersCardIsIssuedUnderItsRank(): void
+    {
+        $at = new DateTimeImmutable('2026-11-03 10:00:00');
+        [, $first] = Instrument::giftCard(GiftCardCode::generate(), self::cad(5_000), $at, null, 'A-1', issuedUnit: 0);
+        [, $third] = Instrument::giftCard(GiftCardCode::generate(), self::cad(5_000), $at, null, 'A-1', issuedUnit: 2);
+
+        self::assertSame([0, 2], [$first->issuedUnit, $third->issuedUnit]);
+    }
+
+    /**
+     * @return iterable<string, array{?string, int}>
+     */
+    public static function ranksRefused(): iterable
+    {
+        yield 'no order' => [null, 0];
+        yield 'below zero' => ['A-1', -1];
+    }
+
+    #[DataProvider('ranksRefused')]
+    public function testARankBelongsToAnOrder(?string $orderNumber, int $rank): void
+    {
+        $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessageIsOrContains('A gift card is issued under a rank, from 0, among the cards of its order only.');
+
+        Instrument::giftCard(GiftCardCode::generate(), self::cad(5_000), new DateTimeImmutable(), null, $orderNumber, issuedUnit: $rank);
+    }
+
+    public function testACreditKeepsItsIdempotencyKey(): void
+    {
+        $credit = Instrument::storeCredit('ada', Currency::of('CAD'), new DateTimeImmutable());
+
+        $movement = $credit->credit(MovementKind::Granted, self::cad(100), new DateTimeImmutable(), idempotencyKey: 'return-1');
+
+        self::assertSame(['return-1', null], [$movement->idempotencyKey, $movement->issuedUnit]);
+    }
+
+    public function testAnIssuedCardIsCheckedLikeAnyCredit(): void
+    {
+        $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessageIsOrContains('A stored value moves by a positive amount.');
+
+        Instrument::giftCard(GiftCardCode::generate(), self::cad(0), new DateTimeImmutable(), null, 'A-1', issuedUnit: 0);
     }
 
     public function testAGiftCardMayExpire(): void

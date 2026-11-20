@@ -20,6 +20,20 @@ interface InstrumentRepository
     public function addMovement(Movement $movement): void;
 
     /**
+     * Stores at once, all or none, the gift cards an order issues, each with its `Issued` movement under its rank
+     * among the order's cards — in a transaction of its own, or nested in the caller's. Returns false, storing none,
+     * when a card of the same order and rank was stored first, by another request or another server.
+     *
+     * @param non-empty-list<array{Instrument, Movement}> $cards
+     */
+    public function addIssuedCards(array $cards): bool;
+
+    /**
+     * The movement an instrument recorded under an idempotency key, if any.
+     */
+    public function movementUnderKey(string $instrument, string $idempotencyKey): ?Movement;
+
+    /**
      * The redemption a payment made, if any.
      */
     public function redemptionOf(string $payment): ?Movement;

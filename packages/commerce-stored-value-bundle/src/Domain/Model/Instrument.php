@@ -73,10 +73,17 @@ final class Instrument
      * A new gift card and its first value; the code is shown once, to whoever receives the card. A card is paid for
      * unless said given; a paid card takes an expiry only when it is for a specific service.
      *
+     * @param int|null $issuedUnit the rank of the card among the cards its order issues, from 0: an order issues each
+     *                             rank once
+     *
      * @return array{self, Movement}
      */
-    public static function giftCard(GiftCardCode $code, Money $value, DateTimeImmutable $at, ?DateTimeImmutable $expiresAt = null, ?string $orderNumber = null, GiftCardOrigin $origin = GiftCardOrigin::Paid, bool $specificService = false): array
+    public static function giftCard(GiftCardCode $code, Money $value, DateTimeImmutable $at, ?DateTimeImmutable $expiresAt = null, ?string $orderNumber = null, GiftCardOrigin $origin = GiftCardOrigin::Paid, bool $specificService = false, ?int $issuedUnit = null): array
     {
+        if (null !== $issuedUnit && (null === $orderNumber || $issuedUnit < 0)) {
+            throw InvalidValue::because('A gift card is issued under a rank, from 0, among the cards of its order only.');
+        }
+
         if ($expiresAt instanceof DateTimeImmutable) {
             if ($expiresAt <= $at) {
                 throw InvalidValue::because('A gift card expires after it is issued.');
@@ -89,7 +96,9 @@ final class Instrument
 
         $card = new self(Uuid::v7()->toRfc4122(), InstrumentKind::GiftCard, $code->hash(), $code->lastFour(), null, $value->currency->code, $at, $expiresAt, $origin, $specificService);
 
-        return [$card, $card->credit(MovementKind::Issued, $value, $at, $orderNumber)];
+        $card->add($value, $at);
+
+        return [$card, Movement::record($card, MovementKind::Issued, $value, $at, $orderNumber, null, null, $issuedUnit)];
     }
 
     /**
@@ -121,17 +130,36 @@ final class Instrument
 
     /**
      * Adds value: a gift card loaded, credit granted, a refund restored.
+     *
+     * @param string|null $idempotencyKey what makes the movement recorded once on this instrument: 1 to 128
+     *                                    characters, without surrounding spaces
      */
-    public function credit(MovementKind $kind, Money $amount, DateTimeImmutable $at, ?string $orderNumber = null, ?string $payment = null, ?string $note = null): Movement
+    public function credit(MovementKind $kind, Money $amount, DateTimeImmutable $at, ?string $orderNumber = null, ?string $payment = null, ?string $note = null, ?string $idempotencyKey = null): Movement
     {
         if (!$kind->credits()) {
             throw InvalidValue::because(\sprintf('A "%s" movement takes value away.', $kind->value));
         }
 
-        $this->checkUsable($amount, $at);
-        $this->balanceMinorUnits += $amount->minorUnits;
+        self::checkIdempotencyKey($idempotencyKey);
+        $this->add($amount, $at);
 
-        return Movement::record($this, $kind, $amount, $at, $orderNumber, $payment, $note);
+        return Movement::record($this, $kind, $amount, $at, $orderNumber, $payment, $note, null, $idempotencyKey);
+    }
+
+    /**
+     * Refuses a key a movement cannot keep: empty, padded with spaces, or longer than its column.
+     *
+     * @throws InvalidValue
+     */
+    public static function checkIdempotencyKey(?string $idempotencyKey): void
+    {
+        if (null === $idempotencyKey) {
+            return;
+        }
+
+        if ('' === $idempotencyKey || trim($idempotencyKey) !== $idempotencyKey || mb_strlen($idempotencyKey) > Movement::IDEMPOTENCY_KEY_LENGTH) {
+            throw InvalidValue::because(\sprintf('An idempotency key is 1 to %d characters, without surrounding spaces.', Movement::IDEMPOTENCY_KEY_LENGTH));
+        }
     }
 
     /**
@@ -183,6 +211,12 @@ final class Instrument
         $this->active = false;
 
         return Movement::record($this, MovementKind::Voided, $left->negate(), $at, null, null, $note);
+    }
+
+    private function add(Money $amount, DateTimeImmutable $at): void
+    {
+        $this->checkUsable($amount, $at);
+        $this->balanceMinorUnits += $amount->minorUnits;
     }
 
     /**

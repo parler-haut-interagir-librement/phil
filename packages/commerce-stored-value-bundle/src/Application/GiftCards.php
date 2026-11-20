@@ -12,6 +12,7 @@ use Phil\CommerceStoredValueBundle\Domain\Exception\StoredValueRefused;
 use Phil\CommerceStoredValueBundle\Domain\Instrument\GiftCardOrigin;
 use Phil\CommerceStoredValueBundle\Domain\Instrument\MovementKind;
 use Phil\CommerceStoredValueBundle\Domain\Model\Instrument;
+use Phil\CommerceStoredValueBundle\Domain\Model\Movement;
 use Phil\CommerceStoredValueBundle\Domain\Repository\InstrumentRepository;
 use Phil\CommerceStoredValueBundle\Domain\ValueObject\GiftCardCode;
 use Phil\DddBundle\Domain\Exception\InvalidValue;
@@ -54,14 +55,14 @@ final readonly class GiftCards
 
     /**
      * Issues the gift cards a placed and fully paid order sold, one per unit of each `gift_card` line, at its face
-     * value, as paid cards without expiry. **Issuing twice changes nothing**: an order's cards already issued are not issued again.
-     *
-     * @return list<IssuedGiftCard> the cards issued now
+     * value, as paid cards without expiry, and stores them at once. **Issuing twice changes nothing**, even at the same
+     * moment on two servers: each card is issued under its rank among the order's cards, which the storage keeps unique;
+     * the call that comes second issues none and finds the cards of the first.
      *
      * @throws InvalidValue       when the order is not placed
      * @throws StoredValueRefused when something of the order is still to pay
      */
-    public function issueFor(Order $order, DateTimeImmutable $at): array
+    public function issueFor(Order $order, DateTimeImmutable $at): GiftCardIssuance
     {
         if (OrderState::Placed !== $order->state()) {
             throw InvalidValue::because(\sprintf('The order %s is not placed: its gift cards are not issued.', $order->number));
@@ -85,19 +86,44 @@ final readonly class GiftCards
             }
         }
 
-        $issued = [];
+        $new = [];
 
-        foreach (\array_slice($values, $this->instruments->issuedFor($order->number)) as $value) {
-            $issued[] = $this->issue($value, $at, null, $order->number);
+        foreach (\array_slice($values, $this->instruments->issuedFor($order->number), null, true) as $rank => $value) {
+            $code = GiftCardCode::generate();
+            [$card, $movement] = Instrument::giftCard($code, $value, $at, null, $order->number, GiftCardOrigin::Paid, false, $rank);
+            $new[] = [$card, $movement, $code];
         }
 
-        return $issued;
+        // Stored now, all or none: a request that issued them first leaves this one nothing to issue.
+        $stored = [] !== $new && $this->instruments->addIssuedCards(array_map(static fn (array $card): array => [$card[0], $card[1]], $new));
+        $cards = $this->instruments->cardsIssuedFor($order->number);
+        $issued = [];
+
+        if ($stored) {
+            foreach ($new as [$card, , $code]) {
+                $issued[] = new IssuedGiftCard(array_find($cards, static fn (Instrument $read): bool => $read->id === $card->id) ?? $card, $code);
+            }
+        }
+
+        return new GiftCardIssuance($issued, $cards);
     }
 
-    public function load(string $code, Money $amount, DateTimeImmutable $at, ?string $note = null): Instrument
+    /**
+     * Adds value to a card. Under an idempotency key — a message's, a request's —, a load is made once: asked again
+     * with the same key, it adds nothing and returns the card as it is.
+     *
+     * @throws InvalidValue when the key is not one, or was used for another amount
+     */
+    public function load(string $code, Money $amount, DateTimeImmutable $at, ?string $note = null, ?string $idempotencyKey = null): Instrument
     {
+        Instrument::checkIdempotencyKey($idempotencyKey);
         $card = $this->find($code);
-        $this->instruments->addMovement($card->credit(MovementKind::Loaded, $amount, $at, null, null, $note));
+
+        if (null !== $idempotencyKey && Replays::of($this->instruments->movementUnderKey($card->id, $idempotencyKey), $amount) instanceof Movement) {
+            return $card;
+        }
+
+        $this->instruments->addMovement($card->credit(MovementKind::Loaded, $amount, $at, null, null, $note, $idempotencyKey));
 
         return $card;
     }

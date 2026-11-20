@@ -8,7 +8,8 @@ also be given, loaded or voided. A given card may expire; a paid card never does
 service; each shop checks the law that applies where it sells before it sets an expiry. A store credit is one balance
 per customer and currency, granted on a return or as a gesture. Either pays part or all of an order, beside a card or
 cash for a split payment, and a refund gives the value back to it. Every change of a balance is a movement, kept for
-good.
+good. Value is created once: the cards of an order are issued once even by two servers at the same moment, and a load
+or a grant made under an idempotency key is recorded once, whatever replays it.
 
 It is for a shop that sells gift cards or gives store credit. `phil/commerce-returns-bundle` uses it to settle a
 return as store credit, and `phil/commerce-pos-bundle` counts a gift card taken at the register in its session. The
@@ -30,6 +31,7 @@ and stored only as its hash and its last four characters.
 | Store credit: granted, balance | Implemented and tested |
 | Payment with either, split payments, refunds back to the instrument | Implemented and tested |
 | Movements, the history of every balance | Implemented and tested |
+| Value created once: an order's cards under unique ranks, loads and grants under idempotency keys | Implemented and tested |
 | Physical cards, code delivery, rate limiting | The application's |
 
 ## Documentation
@@ -37,7 +39,7 @@ and stored only as its hash and its last four characters.
 | Document | What it covers |
 |---|---|
 | [Installation](doc/installation.md) | Requirements, installing, registering, configuring. |
-| [Stored value](doc/stored-value.md) | Gift cards, store credit, paying with them, refunds, movements. |
+| [Stored value](doc/stored-value.md) | Gift cards, store credit, paying with them, refunds, value created once, movements. |
 | [Scope](doc/scope.md) | What the module holds, what it does not yet, and the ports of the core it implements. |
 | [Extension points](doc/extension-points.md) | What an application implements, configures, replaces or relies on. |
 | [Testing](doc/testing.md) | How the module is tested, and how to run its tests. |
@@ -61,7 +63,7 @@ return [
 ## Requirements
 
 PHP 8.5 or later with `ext-mbstring`; `phil/commerce-bundle`, `phil/ddd-bundle`, `phil/money` and `phil/paged-media`
-0.1; Doctrine ORM 3.7; `psr/clock` 1.0; `symfony/config`, `symfony/dependency-injection` and `symfony/uid` 8.2 or later.
+0.1; Doctrine ORM 3.7, DBAL 4.5 and Event Manager 2.1; `psr/clock` 1.0; `symfony/config`, `symfony/dependency-injection` and `symfony/uid` 8.2 or later.
 
 ## Contributing
 
