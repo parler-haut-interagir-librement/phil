@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d00cc55f3f36e43252a3fb337f2a0a11905c4498496ce46dba1e6c47e30d758f -->
+<!-- phil-dev source-sha256=ddd334b6771832b32b8a89eef59764c1d3e0cc8f8c4cbdd5be6fc085ade14168 -->
 # Notes de sécurité
 
 ## Ce dont le bundle se défend
@@ -25,10 +25,19 @@
   pour l'application, pas pour le visiteur.
 - **La confusion de casse.** Chaque colonne d'identifiant et de clé se compare octet par octet — `ascii_bin` sur MySQL
   et MariaDB, la collation `C` sur PostgreSQL —, de sorte que `Acme` n'est jamais `acme`.
+- **Les cycles et les arbres démesurés.** Une unité ne se déplace jamais sous elle-même ni sous une unité qui est en
+  dessous d'elle ; les déplacements d'une organisation s'exécutent l'un après l'autre sous le verrou de sa ligne, de
+  sorte que deux déplacements ne peuvent pas faire un cycle ensemble. Un arbre compte seize niveaux de profondeur et dix
+  mille unités de largeur au plus, de sorte que chaque question de l'arbre reste une requête bornée.
+- **Les rôles d'unité qui sortent de leur unité.** Un rôle d'unité vaut dans son unité et en dessous, jamais au-dessus,
+  à côté, ni dans l'organisation ; un gestionnaire d'unité n'accorde que des rôles d'unité dont il détient les
+  permissions à cet endroit, et gère les unités en dessous de la sienne, pas la sienne.
+- **Les formulaires falsifiés.** Les formulaires des pages des unités portent le jeton CSRF sans état de Symfony et sont
+  refusés quand le navigateur dit qu'ils viennent d'un autre site.
 - **Les événements fantômes.** Les événements sont émis une fois la transaction validée, jamais pour un changement
   annulé.
 - **Les renseignements personnels dans les événements.** Les événements ne portent que des identifiants et des noms de
-  rôle ; une adresse vérifiée fournie pour adhérer par un domaine est lue pour son domaine et n'est jamais conservée,
+  rôle — le nom d'une unité n'est pas dans ses événements — ; une adresse vérifiée fournie pour adhérer par un domaine est lue pour son domaine et n'est jamais conservée,
   journalisée ni émise.
 - **Les *workers*.** Aucun service ne garde d'état entre les requêtes ; le contexte d'`OnBehalf` et le magasin en
   mémoire sont réinitialisés entre elles.

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=11068f41744dd3cbd698f3ae75d7ec88d4ab27a0b596b96aeb0f157072948be1 -->
+<!-- phil-dev source-sha256=d49da874bae34424a495b2cc83eff1bb1048262f1bfbe0bd0ae7ccf645d9a84d -->
 # Événements
 
 Chaque changement s'exécute dans une seule transaction du magasin, et ses événements sont émis par le répartiteur PSR-14
@@ -24,6 +24,13 @@ le magasin.
 | `TeamMemberAdded` | Un membre rejoint une équipe | organisation, équipe, membre, rôles d'équipe, acteur |
 | `TeamMemberRolesChanged` | Les rôles d'équipe d'un membre changent | organisation, équipe, membre, rôles précédents, rôles, acteur |
 | `TeamMemberRemoved` | Un membre quitte une équipe, ou quitte l'organisation | organisation, équipe, membre, rôles d'équipe détenus, acteur quand quelqu'un l'a retiré |
+| `UnitCreated` | Une unité est créée | organisation, unité, parent ou `null`, acteur |
+| `UnitRenamed` | Elle est renommée | organisation, unité, acteur |
+| `UnitMoved` | Une unité se déplace, avec les unités qui sont en dessous | organisation, unité, parent précédent, parent, acteur |
+| `UnitArchived`, `UnitRestored` | Une unité est archivée, ou restaurée, avec les unités en dessous | organisation, unité, chaque unité archivée ou restaurée avec elle, acteur |
+| `UnitMemberAdded` | Un membre rejoint une unité | organisation, unité, membre, rôles d'unité, acteur |
+| `UnitMemberRolesChanged` | Les rôles d'unité d'un membre changent | organisation, unité, membre, rôles précédents, rôles, acteur |
+| `UnitMemberRemoved` | Un membre quitte une unité, ou quitte l'organisation | organisation, unité, membre, rôles d'unité détenus, acteur quand quelqu'un l'a retiré |
 | `InvitationCreated` | Une invitation est créée | organisation, invitation, acteur |
 | `InvitationAccepted` | Une invitation est utilisée | organisation, invitation, membre |
 | `InvitationRevoked` | Une invitation est révoquée, ou son créateur est effacé | organisation, invitation, acteur quand quelqu'un l'a révoquée |
