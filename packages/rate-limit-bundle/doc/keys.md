@@ -27,6 +27,13 @@ decomposes its compatibility forms (NFKD), folds its case, removes the combining
 | `ａda` (full-width), `a` + zero-width space + `da` | `ada` |
 | `Straße` | `strasse` |
 
+The decomposition and the folding go through `symfony/string`, so the intl and mbstring extensions are optional: with
+them the work is faster, without them the polyfills of `symfony/string` do it, and every server builds the same key
+for every character Unicode 13.0 assigns. The full case folding of the intl extension (`Normalizer::NFKC_CF`) is not
+used, because its polyfill lacks it, and a final sigma counts as a sigma, because the mbstring extension writes it and
+its polyfill does not. A character assigned after Unicode 13.0 is read as each implementation's Unicode data knows it:
+a server with the extensions and one without may count it apart.
+
 An identifier that is not valid UTF-8 is trimmed and lower-cased byte by byte. A strategy of the application that
 builds its key from such a value calls `IdentifierKey::normalize()` before hashing it; one built from an opaque token,
 whose case matters, keeps it as it is.

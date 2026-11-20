@@ -22,8 +22,6 @@
     "homepage": "https://ph-il.ca",
     "require": {
         "php": ">=8.5",
-        "ext-intl": "*",
-        "ext-mbstring": "*",
         "phil/rate-limit": "^0.1@dev",
         "psr/clock": "^1.0",
         "psr/container": "^2.0",
@@ -33,7 +31,8 @@
         "symfony/http-foundation": "^8.2",
         "symfony/http-kernel": "^8.2",
         "symfony/rate-limiter": "^8.2",
-        "symfony/routing": "^8.2"
+        "symfony/routing": "^8.2",
+        "symfony/string": "^8.2"
     },
     "require-dev": {
         "phil/ip-anonymizer": "^0.1@dev",
@@ -50,6 +49,8 @@
         "symfony/framework-bundle": "^8.2",
         "symfony/lock": "^8.2",
         "symfony/options-resolver": "^8.2",
+        "symfony/polyfill-intl-normalizer": "^1.33",
+        "symfony/polyfill-mbstring": "^1.33",
         "symfony/security-core": "^8.2",
         "symfony/translation": "^8.2",
         "symfony/translation-contracts": "^3.6",
@@ -57,6 +58,8 @@
         "twig/twig": "^3.21"
     },
     "suggest": {
+        "ext-intl": "For the normalization of the identifiers of the user keys at native speed; symfony/string uses its polyfill without it",
+        "ext-mbstring": "For the case folding of the identifiers of the user keys at native speed; symfony/string uses its polyfill without it",
         "phil/ip-anonymizer": "To count the ip keys by network, so that an IPv6 subscriber's /64 shares one key",
         "psr/log": "For the warning logged when a limiter in observation would have refused a request",
         "symfony/form": "To limit the submissions of forms by their name",

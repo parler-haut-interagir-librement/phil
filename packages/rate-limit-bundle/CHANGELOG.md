@@ -13,13 +13,14 @@ their address.
 
 - `IdentifierKey::normalize()`: the form of an identifier a key is built from — compatibility decomposition, case
   folding, combining marks, format and control characters removed, trimmed —, as Symfony's login throttling builds its
-  own.
+  own. It goes through `symfony/string`, now required, and gives the same key with the intl and mbstring extensions or
+  with the polyfills of `symfony/string`, for every character Unicode 13.0 assigns; a test runs it on the polyfills.
 - Tests of limiters that count one request together, on the limiters of `symfony/rate-limiter`: a compound limiter
   whose tighter part refuses, and several rules on one route, in either order.
 
 ### Changed
 
-- The bundle requires the intl and mbstring extensions.
+- The intl and mbstring extensions are suggested, for speed; `symfony/string` joins the requirements.
 - The functional tests keep their compiled container in a directory of their own checkout and environment, and boot the
   kernels that must fail on an empty cache; `symfony/filesystem` joins the development requirements.
 

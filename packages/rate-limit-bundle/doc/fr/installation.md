@@ -1,10 +1,10 @@
-<!-- phil-dev source-sha256=03e211de619304067405b57fec524bfc6fab124894cc964e77f91aa73c386f95 -->
+<!-- phil-dev source-sha256=e426a03200657b97383252fbff01b3dd5e8a030b297c6caf5ddf3e96a4723ec0 -->
 # Installation
 
 ## Prérequis
 
-- PHP 8.5 ou plus récent, avec les extensions intl et mbstring, qui normalisent les identifiants dont une clé est
-  construite ;
+- PHP 8.5 ou plus récent ; les extensions intl et mbstring sont suggérées, pour la vitesse de la normalisation des
+  identifiants dont une clé est construite, que les polyfills de `symfony/string` font de la même façon sans elles ;
 - Symfony 8.2 ou plus récent, avec FrameworkBundle ;
 - au besoin TwigBundle pour la page de refus, le composant de formulaire pour les formulaires, SecurityBundle pour les
   clés `user` et `user_or_ip`, le traducteur pour le français, symfony/lock pour des décomptes exacts sous la

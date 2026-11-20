@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f77133a4735930719fe6ac309ae7ffa49e95ad6bd8711d39dcdb2b4c0d7dd427 -->
+<!-- phil-dev source-sha256=5784e20efc4ad8bebba6f199ef1a958d8fdb162033af933a4270f689658ef8cb -->
 # Clés
 
 Une clé, c'est pour qui compte une requête. Un limiteur nomme sa stratégie par défaut avec `key` ; une règle en nomme
@@ -30,6 +30,14 @@ de direction, traits d'union conditionnels) et les caractères de contrôle, pui
 | `Àda`, `A` suivi d'un accent grave combinant | `ada` |
 | `ａda` (pleine chasse), `a` + espace de largeur nulle + `da` | `ada` |
 | `Straße` | `strasse` |
+
+La décomposition et l'uniformisation de la casse passent par `symfony/string` : les extensions intl et mbstring sont
+donc facultatives. Avec elles le travail est plus rapide, sans elles les polyfills de `symfony/string` le font, et
+chaque serveur construit la même clé pour chaque caractère que Unicode 13.0 attribue. L'uniformisation complète de la
+casse de l'extension intl (`Normalizer::NFKC_CF`) n'est pas employée, parce que son polyfill ne l'a pas, et un sigma
+final compte comme un sigma, parce que l'extension mbstring l'écrit et que son polyfill ne l'écrit pas. Un caractère
+attribué après Unicode 13.0 est lu comme les données Unicode de chaque implémentation le connaissent : un serveur avec
+les extensions et un serveur sans elles peuvent le compter à part.
 
 Un identifiant qui n'est pas de l'UTF-8 valide est rogné et mis en minuscules octet par octet. Une stratégie de
 l'application qui construit sa clé à partir d'une telle valeur appelle `IdentifierKey::normalize()` avant de calculer

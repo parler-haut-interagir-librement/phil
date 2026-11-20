@@ -8,6 +8,20 @@ declare(strict_types=1);
  */
 return [
     'paths' => ['src', 'tests'],
+    'phpstan' => [
+        'ignoreErrors' => [
+            // The polyfills of symfony/string, which the shims of this fixture call, are installed with the bundle on
+            // its own; a monorepo that requires the intl and mbstring extensions replaces them, and its test skips.
+            [
+                'identifier' => 'class.notFound',
+                'path' => 'tests/Unit/Fixture/polyfilled-string.php',
+            ],
+            [
+                'identifier' => 'return.type',
+                'path' => 'tests/Unit/Fixture/polyfilled-string.php',
+            ],
+        ],
+    ],
     // The package is released from its own repository: its CHANGELOG uses every section.
     'docs' => ['public' => true, 'words' => ['HMAC']],
     'infection' => [
