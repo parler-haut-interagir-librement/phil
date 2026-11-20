@@ -87,7 +87,7 @@ final readonly class SignedLinks
         }
 
         if ($this->tokens instanceof LinkTokenRepository) {
-            $token = '' === $signature ? null : $this->tokens->get($this->tokenId($signature));
+            $token = $this->tokens->get($this->tokenId($signature));
 
             if (!$token instanceof LinkToken || $token->accountId() !== $account->id() || $token->purpose() !== $purpose || $token->expiresAt()->getTimestamp() !== $expires) {
                 return false;
@@ -113,7 +113,7 @@ final readonly class SignedLinks
      */
     public function consume(string $signature): bool
     {
-        return !$this->tokens instanceof LinkTokenRepository || ('' !== $signature && $this->tokens->consume($this->tokenId($signature)));
+        return !$this->tokens instanceof LinkTokenRepository || $this->tokens->consume($this->tokenId($signature));
     }
 
     /**

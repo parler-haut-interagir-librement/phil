@@ -35,8 +35,8 @@ use Symfony\Component\Lock\LockFactory;
  * they signed; of several pending keys, all but the oldest are removed, having signed nothing. Every instance settles
  * the same way, so that they all sign with the same key.
  *
- * The key that signs is decrypted and loaded once per process, then kept in `LoadedKeys` under its identifier and a
- * hash of its stored material: a rotation names another key, which is loaded in turn.
+ * The key that signs is decrypted and loaded once per process, then kept in `LoadedKeys` under its identifier, which
+ * names one key for its whole life: a rotation names another key, which is loaded in turn.
  */
 final readonly class SigningKeys implements SigningKeySource
 {
@@ -76,7 +76,7 @@ final readonly class SigningKeys implements SigningKeySource
             return $active;
         });
 
-        return $this->loaded->get($active->kid().' '.hash('sha256', $active->privateMaterial()), fn (): PrivateKey => PrivateKey::fromMaterial($active->algorithm(), $active->kid(), $this->cipher->open($active->privateMaterial(), $this->context($active->kid()))));
+        return $this->loaded->get($active->kid(), fn (): PrivateKey => PrivateKey::fromMaterial($active->algorithm(), $active->kid(), $this->cipher->open($active->privateMaterial(), $this->context($active->kid()))));
     }
 
     /**

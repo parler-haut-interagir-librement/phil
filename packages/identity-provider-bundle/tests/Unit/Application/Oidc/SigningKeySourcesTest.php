@@ -129,6 +129,19 @@ final class SigningKeySourcesTest extends TestCase
         }
     }
 
+    public function testAnRsaKeyWithoutItsChineseRemainderMembersSignsToo(): void
+    {
+        $key = PrivateKey::generate(SigningAlgorithm::RS256, 'k');
+        /** @var array<string, string> $members */
+        $members = json_decode($key->material(), true);
+        $bare = PrivateKey::fromMaterial(SigningAlgorithm::RS256, 'k', json_encode(array_diff_key($members, ['dp' => true, 'dq' => true, 'qi' => true]), \JSON_THROW_ON_ERROR));
+        $public = new JWK($key->publicJwk());
+
+        self::assertSame(['a' => 1], Jws::decode(Jws::encode(['a' => 1], $bare), static fn (): JWK => $public));
+        self::assertSame(['a' => 2], Jws::decode(Jws::encode(['a' => 2], $key), static fn (): JWK => $public));
+        self::assertSame(384, \strlen(Base64Url::decode(explode('.', Jws::encode(['a' => 3], $key))[2])));
+    }
+
     public function testAnEd25519KeyWhosePublicHalfIsNotItsOwnIsRefused(): void
     {
         $key = PrivateKey::generate(SigningAlgorithm::EdDSA, 'k');

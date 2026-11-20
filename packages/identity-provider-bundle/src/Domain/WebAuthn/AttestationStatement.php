@@ -17,7 +17,7 @@ use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
  * - `packed` without certificates is signed by the passkey itself, with the algorithm of its key;
  * - `packed` with certificates (`x5c`, at most MAX_CERTIFICATES) is signed by the first, a certificate of version 3
  *   whose subject's organizational unit is "Authenticator Attestation", that is no authority, and whose AAGUID
- *   extension, when present, names the AAGUID of the passkey. The statement is `trusted` when each certificate is
+ *   extension, when present, is the octet string of the AAGUID of the passkey. The statement is `trusted` when each certificate is
  *   signed by the next, the last by one of the trusted roots, and all are valid at the time given; `unverified`
  *   otherwise.
  *
@@ -64,8 +64,12 @@ final readonly class AttestationStatement
         $signature = $statement['sig'] ?? null;
         $algorithm = \is_int($alg) ? SigningAlgorithm::fromCose($alg) : null;
 
-        if (!$algorithm instanceof SigningAlgorithm || !\is_string($signature) || '' === $signature || null === $data->coseKey || null === $data->aaguid) {
-            throw MalformedInput::because('A packed statement has a known algorithm, a signature, and comes with a credential.');
+        if (!$algorithm instanceof SigningAlgorithm || !\is_string($signature) || '' === $signature) {
+            throw MalformedInput::because('A packed statement has a known algorithm and a signature.');
+        }
+
+        if (null === $data->coseKey || null === $data->aaguid) {
+            throw MalformedInput::because('A packed statement comes with a credential.');
         }
 
         if (!\array_key_exists('x5c', $statement)) {
@@ -125,7 +129,7 @@ final readonly class AttestationStatement
             throw VerificationFailed::because('The attestation certificate is not of version 3, of the unit "Authenticator Attestation", and no authority.');
         }
 
-        if (null !== $named && (!\is_string($named) || \strlen($named) < 16 || !hash_equals(substr($named, -16), $aaguid))) {
+        if (null !== $named && (!\is_string($named) || !hash_equals("\x04\x10".$aaguid, $named))) {
             throw VerificationFailed::because('The attestation certificate names another AAGUID.');
         }
     }

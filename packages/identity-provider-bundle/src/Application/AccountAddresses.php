@@ -51,7 +51,7 @@ final readonly class AccountAddresses
      */
     public function addressFor(Account $account, AddressPurpose $purpose): string
     {
-        $address = AddressPurpose::SignIn === $purpose ? null : $this->get($account, $purpose);
+        $address = $this->get($account, $purpose);
 
         return $address instanceof AccountAddress && $address->isVerified() ? $address->address() : $account->email();
     }

@@ -28,7 +28,7 @@ final class FileSigningKeys implements SigningKeySource
 
     public const int MAX_FILE_SIZE = 65_536;
 
-    /** @var list<PrivateKey>|null */
+    /** @var non-empty-list<PrivateKey>|null */
     private ?array $keys = null;
 
     /**
@@ -71,7 +71,7 @@ final class FileSigningKeys implements SigningKeySource
      */
     private function keys(): array
     {
-        if (null !== $this->keys && [] !== $this->keys) {
+        if (null !== $this->keys) {
             return $this->keys;
         }
 

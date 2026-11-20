@@ -10,6 +10,7 @@ use Phil\IdentityProviderBundle\Domain\Exception\InvalidValue;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
 use Phil\IdentityProviderBundle\Domain\Model\External\LinkedIdentity;
+use Phil\IdentityProviderBundle\Domain\Model\Link\LinkToken;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Client;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Consent;
@@ -26,6 +27,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Account::class)]
+#[CoversClass(LinkToken::class)]
 #[CoversClass(Passkey::class)]
 #[CoversClass(TotpCredential::class)]
 #[CoversClass(RecoveryCodeSet::class)]
@@ -152,6 +154,33 @@ final class ModelsTest extends TestCase
                 self::fail($phone);
             } catch (InvalidValue $refusal) {
                 self::assertNotSame('', $refusal->getMessage());
+            }
+        }
+    }
+
+    public function testALinkTokenRefusesValuesOutOfShape(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $id = str_repeat('a', 64);
+
+        self::assertSame(str_repeat('p', 16), LinkToken::issue($id, 'A', str_repeat('p', 16), str_repeat('f', 128), $now, $now)->purpose());
+        self::assertSame('', LinkToken::issue(str_repeat('0', 64), 'A', 'p', '', $now, $now)->fingerprint());
+
+        foreach ([
+            [str_repeat('a', 63), 'reset', 'f'],
+            [str_repeat('a', 65), 'reset', 'f'],
+            [str_repeat('A', 64), 'reset', 'f'],
+            [str_repeat('g', 64), 'reset', 'f'],
+            [$id."\n", 'reset', 'f'],
+            [$id, '', 'f'],
+            [$id, str_repeat('p', 17), 'f'],
+            [$id, 'reset', str_repeat('f', 129)],
+        ] as [$hash, $purpose, $fingerprint]) {
+            try {
+                LinkToken::issue($hash, 'A', $purpose, $fingerprint, $now, $now);
+                self::fail('Accepted.');
+            } catch (InvalidValue $invalid) {
+                self::assertStringContainsString('64 hexadecimal digits', $invalid->getMessage());
             }
         }
     }

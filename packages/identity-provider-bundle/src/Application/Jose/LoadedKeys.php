@@ -8,9 +8,8 @@ use Closure;
 
 /**
  * The private keys a source has loaded, so that a key is decrypted and loaded once per process, not once per
- * signature: a few at most, the oldest dropped first. A key never changes under its name — the name holds the key
- * identifier and a hash of the stored material —, so that what is kept stays true from one request to the next in a
- * worker.
+ * signature: a few at most, the oldest dropped first. A key never changes under its name — its key identifier, given
+ * once —, so that what is kept stays true from one request to the next in a worker.
  */
 final class LoadedKeys
 {

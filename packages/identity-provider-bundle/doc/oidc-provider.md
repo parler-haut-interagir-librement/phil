@@ -312,8 +312,8 @@ greatest `kid` breaking a tie — are retired, and stay published for the tokens
 all but the oldest are removed, having signed nothing. The settlement is journaled as `identity.oidc.key_rotated`,
 with the keys retired and the count removed.
 
-The key that signs is kept in `LoadedKeys` under its `kid` and a hash of its stored material: a rotation names another
-key, loaded in turn, and at most four keys are kept.
+The key that signs is kept in `LoadedKeys` under its `kid`, which names one key for its whole life: a rotation names
+another key, loaded in turn, and at most four keys are kept.
 
 ### Key files
 

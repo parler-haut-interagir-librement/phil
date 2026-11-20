@@ -115,6 +115,35 @@ final class AttestationTest extends TestCase
         self::assertSame(AttestationType::Unverified, $trusted->verifyRegistration(...$this->register(new Authenticator(), $this->signedBy($under['key'], [AttestationCertificates::der($under['cert']), AttestationCertificates::der($notAuthority['cert'])])))->attestationType);
     }
 
+    public function testTheCertificatesAreValidFromTheirFirstToTheirLastSecond(): void
+    {
+        $leaf = AttestationCertificates::issue(self::LEAF, self::$root, false, days: 10);
+        $statement = self::signedBy($leaf['key'], [AttestationCertificates::der($leaf['cert'])]);
+        $times = openssl_x509_parse($leaf['cert']);
+        $root = openssl_x509_parse(self::$root['cert']);
+        self::assertIsArray($times);
+        self::assertIsArray($root);
+        self::assertIsInt($times['validFrom_time_t']);
+        self::assertIsInt($times['validTo_time_t']);
+        self::assertIsInt($root['validFrom_time_t']);
+        self::assertIsInt($root['validTo_time_t']);
+        $party = $this->party(new AttestationPolicy('direct', [self::$root['cert']]));
+        $at = fn (int $now): AttestationType => $party->verifyRegistration(...[...$this->register(new Authenticator(), $statement), $now])->attestationType;
+
+        self::assertSame(AttestationType::Trusted, $at(max($times['validFrom_time_t'], $root['validFrom_time_t'])));
+        self::assertSame(AttestationType::Trusted, $at($times['validTo_time_t']));
+        self::assertSame(AttestationType::Unverified, $at($times['validTo_time_t'] + 1));
+        self::assertSame(AttestationType::Unverified, $at($times['validFrom_time_t'] - 1));
+
+        $late = AttestationCertificates::issue(self::LEAF, self::$root, false, days: 60);
+        $lateTimes = openssl_x509_parse($late['cert']);
+        self::assertIsArray($lateTimes);
+        self::assertIsInt($lateTimes['validTo_time_t']);
+        $lateStatement = self::signedBy($late['key'], [AttestationCertificates::der($late['cert'])]);
+        self::assertSame(AttestationType::Trusted, $party->verifyRegistration(...[...$this->register(new Authenticator(), $lateStatement), $root['validTo_time_t']])->attestationType);
+        self::assertSame(AttestationType::Unverified, $party->verifyRegistration(...[...$this->register(new Authenticator(), $lateStatement), $root['validTo_time_t'] + 1])->attestationType, 'The root expired before the leaf.');
+    }
+
     public function testAnAttestationCertificateBreakingTheRulesIsRefused(): void
     {
         $party = $this->party(new AttestationPolicy('direct', [self::$root['cert']]));
