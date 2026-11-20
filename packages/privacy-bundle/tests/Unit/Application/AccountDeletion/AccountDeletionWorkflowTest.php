@@ -6,6 +6,7 @@ namespace Phil\PrivacyBundle\Tests\Unit\Application\AccountDeletion;
 
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
+use Monolog\LogRecord;
 use Override;
 use Phil\PrivacyBundle\Application\AccountDeletion\AccountDeletions;
 use Phil\PrivacyBundle\Application\AccountDeletion\DeletionWorkflow;
@@ -66,6 +67,8 @@ final class AccountDeletionWorkflowTest extends TestCase
         self::assertCount(2, $this->bench->pending(), 'The request is opened once, under the identifier of the deletion.');
         self::assertSame(0, $this->members->calls, 'The modules run in the workers, not in the sweep.');
         self::assertTrue($this->log->hasInfo('Account deletion {id}: its erasure request is {state}.'));
+        $contexts = array_map(static fn (LogRecord $record): array => $record->context, array_filter($this->log->getRecords(), static fn (LogRecord $record): bool => str_contains($record->message, 'its erasure request is')));
+        self::assertSame(array_fill(0, 2, ['id' => $deletion->id, 'state' => 'running']), array_values($contexts), 'One line for each of the two sweeps.');
 
         $this->workflow->run($deletion->id, 'members');
         $this->workflow->run($deletion->id, 'forum');

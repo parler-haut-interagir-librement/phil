@@ -105,8 +105,8 @@ final readonly class ErasureRequests
 
         $this->erasers = $byModule;
         $this->inventory = ErasureInventory::of(
-            array_map(static fn (PersonalDataEraser|ExternalPersonalDataEraser $eraser): ModuleName => $eraser->module(), array_values(array_filter($byModule, static fn (PersonalDataEraser|ExternalPersonalDataEraser $eraser): bool => $eraser instanceof PersonalDataEraser))),
-            array_map(static fn (PersonalDataEraser|ExternalPersonalDataEraser $eraser): ModuleName => $eraser->module(), array_values(array_filter($byModule, static fn (PersonalDataEraser|ExternalPersonalDataEraser $eraser): bool => $eraser instanceof ExternalPersonalDataEraser))),
+            array_map(static fn (PersonalDataEraser|ExternalPersonalDataEraser $eraser): ModuleName => $eraser->module(), array_filter($byModule, static fn (PersonalDataEraser|ExternalPersonalDataEraser $eraser): bool => $eraser instanceof PersonalDataEraser)),
+            array_map(static fn (PersonalDataEraser|ExternalPersonalDataEraser $eraser): ModuleName => $eraser->module(), array_filter($byModule, static fn (PersonalDataEraser|ExternalPersonalDataEraser $eraser): bool => $eraser instanceof ExternalPersonalDataEraser)),
         );
         $this->logger = $logger ?? new NullLogger();
     }
@@ -262,9 +262,9 @@ final readonly class ErasureRequests
      */
     public function acknowledge(string $idempotencyKey, ErasureReport $report): bool
     {
-        $parts = explode(':', $idempotencyKey, 2);
+        $id = strstr($idempotencyKey, ':', true);
 
-        if (2 !== \count($parts) || $parts[1] !== $report->module->value || !$this->find($parts[0]) instanceof ErasureRequest) {
+        if (false === $id || $idempotencyKey !== ErasureStep::keyOf($id, $report->module->value) || !$this->find($id) instanceof ErasureRequest) {
             return false;
         }
 
@@ -272,8 +272,8 @@ final readonly class ErasureRequests
             return false;
         }
 
-        $this->logger->info('Erasure request {id}: the module {module} was acknowledged.', ['id' => $parts[0], 'module' => $parts[1]]);
-        $this->refresh($parts[0]);
+        $this->logger->info('Erasure request {id}: the module {module} was acknowledged.', ['id' => $id, 'module' => $report->module->value]);
+        $this->refresh($id);
 
         return true;
     }

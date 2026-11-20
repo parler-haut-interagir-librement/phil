@@ -21,11 +21,13 @@ use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\FixedExporter;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\MemoryGuestRequests;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\MessageLogger;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\RecordingLinkSender;
+use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\RecordingLockStore;
 use Phil\PrivacyBundle\Tests\Unit\Application\Fixture\SubjectRecordingEraser;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\PersistingStoreInterface;
 use Symfony\Component\Lock\Store\InMemoryStore;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
@@ -79,12 +81,26 @@ final class GuestErasureWorkflowTest extends TestCase
         self::assertEquals($this->bench->clock->now()->modify('+90 days'), $this->store->find($guest->id)?->expiresAt);
         self::assertSame('ada@example.org', $this->store->find($guest->id)?->email);
         self::assertContains('Request without an account {id} handed to the erasure request {erasure}.', $this->logger->messages);
+        self::assertContains(['id' => $guest->id, 'erasure' => $erasure->id], $this->logger->contexts);
 
         $workflow->run($erasure->id, 'newsletter');
 
         self::assertSame(['ada@example.org'], $this->eraser->erased);
         self::assertSame(RequestState::Completed, $workflow->find($erasure->id)?->state);
         self::assertNull($this->store->find($guest->id), 'The request and its address are gone once the erasure is closed.');
+    }
+
+    public function testTheLockIsRenewedAfterTheErasureIsOpened(): void
+    {
+        $locks = new RecordingLockStore();
+        $guests = $this->guests($this->workflow(), $locks);
+        $guests->submit(GuestRequestKind::Erasure, 'ada@example.org', '203.0.113.1');
+        [$guest, $token] = $this->sender->sent[0];
+        $before = \count($locks->lifetimes);
+
+        self::assertNotNull($guests->startErasure($guest->id, $token));
+
+        self::assertSame(2, \count($locks->lifetimes) - $before);
     }
 
     public function testAnAccessLinkStartsNoErasure(): void
@@ -132,7 +148,7 @@ final class GuestErasureWorkflowTest extends TestCase
         return new ErasureRequests($this->bench->store, $this->bench->outbox, [$this->eraser], [], $this->bench->clock, $this->store, new EmailGuestSubjects());
     }
 
-    private function guests(?ErasureRequests $workflow): GuestRequests
+    private function guests(?ErasureRequests $workflow, ?PersistingStoreInterface $locks = null): GuestRequests
     {
         $limits = new InMemoryStorage();
 
@@ -143,7 +159,7 @@ final class GuestErasureWorkflowTest extends TestCase
             new SubjectExport([new FixedExporter('newsletter', ['list' => 'news'])]),
             new SubjectErasure([$this->eraser]),
             new ExportPackage(new PlainExportReadme(), $this->bench->clock),
-            new LockFactory(new InMemoryStore()),
+            new LockFactory($locks ?? new InMemoryStore()),
             $this->bench->clock,
             new RateLimiterFactory(['id' => 'client', 'policy' => 'sliding_window', 'limit' => 5, 'interval' => '1 hour'], $limits),
             new RateLimiterFactory(['id' => 'address', 'policy' => 'sliding_window', 'limit' => 3, 'interval' => '1 day'], $limits),

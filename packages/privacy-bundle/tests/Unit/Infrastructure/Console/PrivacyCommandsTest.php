@@ -261,4 +261,18 @@ final class PrivacyCommandsTest extends TestCase
         self::assertIsArray($decoded['gaps']);
         self::assertCount(2, $decoded['gaps']);
     }
+
+    public function testTheRegisterSaysWhetherPersonalDataIsLeft(): void
+    {
+        $schedule = new RetentionSchedule([
+            new RetentionRule('R-002', 'members', [DataCategory::fromString('email')], RetentionPeriod::fixed('P24M'), Mechanism::Job, ErasureEffect::Deleted, AccessResponse::Returned),
+            new RetentionRule('R-009', 'logs', [DataCategory::fromString('ip')], RetentionPeriod::fixed('P30D'), Mechanism::Job, ErasureEffect::Pseudonymised, AccessResponse::Returned),
+        ]);
+        $tester = new CommandTester(new ProcessingRegisterCommand(new ProcessingRegister(new FixedScheduleSource($schedule)), [Member::class, BaseModel::class]));
+
+        $tester->execute([]);
+
+        self::assertStringContainsString('| email | '.Member::class.' | email | R-002 | members | P24M | job | deleted | no |', $tester->getDisplay());
+        self::assertStringContainsString('| ip | '.BaseModel::class.' | createdFrom | R-009 | logs | P30D | job | pseudonymised | yes |', $tester->getDisplay());
+    }
 }

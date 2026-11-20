@@ -102,12 +102,21 @@ final class ErasureWorkflowWiringTest extends TestCase
         self::assertSame([['event' => WorkerMessageFailedEvent::class]], $container->getDefinition(ErasureFailureListener::class)->getTag('kernel.event_listener'));
         self::assertEquals([new Reference(ErasureRequests::class)], $container->getDefinition(ErasureFailureListener::class)->getArguments());
         self::assertTrue($container->getDefinition(ErasureRequestCommand::class)->hasTag('console.command'));
+        self::assertEquals([new Reference(ErasureRequests::class)], $container->getDefinition(EraseModuleHandler::class)->getArguments());
+        self::assertEquals([new Reference(ErasureRequests::class)], $container->getDefinition(ErasureRequestCommand::class)->getArguments());
         self::assertTrue($container->getAutoconfiguredInstanceof()[ExternalPersonalDataEraser::class]->hasTag(ErasureWorkflowServices::EXTERNAL_ERASER_TAG));
     }
 
     public function testTheDefaultsAreAFifteenMinuteLease(): void
     {
         self::assertSame(900, $this->load(['erasure_workflow' => ['enabled' => true]])->getDefinition(ErasureRequests::class)->getArgument(7));
+    }
+
+    public function testTheShortestAndLongestLeasesAreAccepted(): void
+    {
+        foreach ([1, 86_400] as $lease) {
+            self::assertSame($lease, $this->load(['erasure_workflow' => ['enabled' => true, 'lease' => $lease]])->getDefinition(ErasureRequests::class)->getArgument(7));
+        }
     }
 
     public function testAStoreOfTheApplicationCanBeNamed(): void

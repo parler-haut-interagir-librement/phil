@@ -294,7 +294,7 @@ final readonly class DbalErasureRequests implements ErasureRequestStore, Retenti
      */
     private function effects(array $effects): string
     {
-        return json_encode(array_map(static fn (ErasureEffect $effect): string => $effect->value, $effects), \JSON_THROW_ON_ERROR | \JSON_FORCE_OBJECT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE);
+        return json_encode($effects, \JSON_THROW_ON_ERROR | \JSON_FORCE_OBJECT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE);
     }
 
     /**

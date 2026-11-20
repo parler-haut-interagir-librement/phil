@@ -65,9 +65,9 @@ final class ErasureDomainTest extends TestCase
         self::assertSame(['billing', 'forum'], $inventory->select(['forum', 'billing', 'forum']));
 
         $this->expectException(InvalidPrivacyValue::class);
-        $this->expectExceptionMessageIsOrContains('"'.str_repeat('x', 63).'…" is not a module of the erasure inventory.');
+        $this->expectExceptionMessageIsOrContains('"a'.str_repeat('x', 62).'…" is not a module of the erasure inventory.');
 
-        $inventory->select([str_repeat('x', 80)]);
+        $inventory->select(['a'.str_repeat('x', 79)]);
     }
 
     public function testAnEmptySelectionIsRefused(): void
@@ -138,6 +138,7 @@ final class ErasureDomainTest extends TestCase
         yield 'a guest request with a new line' => [str_repeat('a', 32), null, str_repeat('b', 32)."\n", self::VERSION, null, 'A request made without an account is named by 32 lowercase hexadecimal characters.'];
         yield 'a version of another shape' => [str_repeat('a', 32), $subject, null, 'v1', null, 'The version of an erasure inventory is 16 lowercase hexadecimal characters.'];
         yield 'an access hash of another shape' => [str_repeat('a', 32), null, str_repeat('b', 32), self::VERSION, 'secret', 'An erasure request keeps the SHA-256 of the secret of its progress link, in hexadecimal.'];
+        yield 'an access hash with a prefix' => [str_repeat('a', 32), null, str_repeat('b', 32), self::VERSION, 'z'.str_repeat('c', 64), 'An erasure request keeps the SHA-256 of the secret of its progress link, in hexadecimal.'];
         yield 'an access hash with a new line' => [str_repeat('a', 32), null, str_repeat('b', 32), self::VERSION, str_repeat('c', 64)."\n", 'An erasure request keeps the SHA-256 of the secret of its progress link, in hexadecimal.'];
     }
 

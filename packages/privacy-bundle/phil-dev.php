@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Phil\PrivacyBundle\Application\Export\ZipFile;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalAccountDeletions;
+use Phil\PrivacyBundle\Infrastructure\Database\DbalErasureRequests;
 
 /*
  * What phil/dev-tools reads of this package: its paths and its exceptions to the shared configurations.
@@ -30,6 +31,13 @@ return [
         'excludePaths' => ['tests/Fuzz/*'],
         // La dette de phil/dev-tools v2 : ce que ses règles relèvent et qui reste à corriger.
         'ignoreErrors' => [
+            // A store named by a number reaches the effects as an integer key, whatever the type says: the test of the
+            // JSON object of the effects gives one on purpose.
+            [
+                'identifier' => 'argument.type',
+                'path' => 'tests/Unit/Infrastructure/Database/DbalErasureRequestsTest.php',
+                'count' => 2,
+            ],
             // à corriger : API interne de Doctrine, PHPUnit à remplacer par une API publique.
             [
                 'identifier' => 'method.internal',
@@ -61,24 +69,35 @@ return [
     ],
     'infection' => [
         'mutators' => [
-            // The length of the salt drawn for an anonymisation (`random_bytes(32)`): 31 or 33 random bytes give a salt
-            // as unpredictable, never kept, which no test can measure. And the 4 GiB limit of the plain ZIP format in
+            // The length of the salt drawn for an anonymisation (`random_bytes(32)`), and of the secret nobody holds that
+            // retires a request's link: 31 or 33 random bytes give a value as unpredictable, never kept, which no test
+            // can measure. And the 4 GiB limit of the plain ZIP format in
             // ZipFile::add(): a test would need more than 4 GiB in memory to reach it.
             'DecrementInteger' => [
                 'ignoreSourceCodeByRegex' => [
                     '\\$salt \\?\\?= random_bytes\\(32\\);',
+                    '.*\'token_hash\' => hash\\(\'sha256\', random_bytes\\(32\\)\\).*',
                     'if \\(\\$offset \\+ 30 \\+ \\\\strlen\\(\\$name\\) \\+ \\\\strlen\\(\\$compressed\\) > self::MAX_BYTES \\|\\| \\\\strlen\\(\\$content\\) > self::MAX_BYTES\\) \\{',
                 ],
             ],
-            // The salt and the ZIP limit, as for `DecrementInteger`. And the depth of the consent cookie's JSON: its
+            // The salt, the secret and the ZIP limit, as for `DecrementInteger`. And the depth of the consent cookie's JSON: its
             // deepest value, a granted name, sits at depth 3; a fourth level only reads arrays nested in that list,
             // which the shape check refuses right after.
             'IncrementInteger' => [
                 'ignoreSourceCodeByRegex' => [
                     '\\$salt \\?\\?= random_bytes\\(32\\);',
+                    '.*\'token_hash\' => hash\\(\'sha256\', random_bytes\\(32\\)\\).*',
                     '\\$data = json_decode\\(sodium_base642bin\\(\\$payload, .*\\), true, 3, \\\\JSON_THROW_ON_ERROR\\);',
                     'if \\(\\$offset \\+ 30 \\+ \\\\strlen\\(\\$name\\) \\+ \\\\strlen\\(\\$compressed\\) > self::MAX_BYTES \\|\\| \\\\strlen\\(\\$content\\) > self::MAX_BYTES\\) \\{',
                 ],
+            ],
+            // The reindexing of the steps' modules and the casts of the effects' store names, which only give PHPStan its
+            // types: SQLite and PHP's array keys return the same strings and the same keys with or without them.
+            'UnwrapArrayMap' => [
+                'ignore' => [DbalErasureRequests::class.'::reopen'],
+            ],
+            'CastString' => [
+                'ignore' => [DbalErasureRequests::class.'::readEffects'],
             ],
             // The identifiers of the due requests come from a column of strings: the filter and the reindexing only give
             // PHPStan the list of strings the database already returns.

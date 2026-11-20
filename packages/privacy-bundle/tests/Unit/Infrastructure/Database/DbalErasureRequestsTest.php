@@ -110,6 +110,20 @@ final class DbalErasureRequestsTest extends TestCase
         self::assertNull($this->bench->connection->fetchOne("SELECT lease FROM phil_privacy_erasure_step WHERE module = 'forum'"));
     }
 
+    public function testTheEffectsAreKeptAsAReadableObjectWhateverTheNamesOfTheStores(): void
+    {
+        $this->store->lease(self::ID, 'billing', 'worker', $this->at, $this->at->modify('+60 seconds'));
+
+        self::assertTrue($this->store->complete(self::ID, 'billing', 'worker', [0 => ErasureEffect::Deleted, 'cards/é' => ErasureEffect::Anonymised], $this->at));
+
+        self::assertSame('{"0":"deleted","cards/é":"anonymised"}', $this->bench->connection->fetchOne("SELECT effects FROM phil_privacy_erasure_step WHERE module = 'billing'"));
+        self::assertSame(['0' => ErasureEffect::Deleted, 'cards/é' => ErasureEffect::Anonymised], $this->store->step(self::ID, 'billing')?->effects);
+
+        $this->store->lease(self::ID, 'forum', 'worker', $this->at, $this->at->modify('+60 seconds'));
+        self::assertTrue($this->store->complete(self::ID, 'forum', 'worker', [0 => ErasureEffect::Deleted], $this->at));
+        self::assertSame('{"0":"deleted"}', $this->bench->connection->fetchOne("SELECT effects FROM phil_privacy_erasure_step WHERE module = 'forum'"), 'A single store named by a number is still an object.');
+    }
+
     public function testAReleasedStepCountsItsAttemptAndCanBeLeasedAgain(): void
     {
         $this->store->lease(self::ID, 'forum', 'one', $this->at, $this->at->modify('+60 seconds'));

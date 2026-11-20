@@ -606,6 +606,85 @@ final class ErasureRequestsTest extends TestCase
         return array_map(static fn (ErasureStep $step): string => $step->module, $this->bench->store->steps($id));
     }
 
+    public function testALeaseIsThirtyTwoHexadecimalCharacters(): void
+    {
+        $probe = new class implements PersonalDataEraser {
+            public ?string $lease = null;
+
+            public ?Connection $connection = null;
+
+            #[Override]
+            public function module(): ModuleName
+            {
+                return ModuleName::fromString('billing');
+            }
+
+            #[Override]
+            public function erase(DataSubject $subject): ErasureReport
+            {
+                $value = $this->connection?->fetchOne("SELECT lease FROM phil_privacy_erasure_step WHERE module = 'billing' AND state = 'running'");
+                $this->lease = \is_string($value) ? $value : null;
+
+                return ErasureReport::of('billing', ['records' => ErasureEffect::Deleted]);
+            }
+        };
+        $probe->connection = $this->bench->connection;
+        $requests = $this->requestsWith([$probe]);
+
+        $requests->run($requests->open(DataSubject::fromString('member-7'))->id, 'billing');
+
+        self::assertMatchesRegularExpression('/^[0-9a-f]{32}$/D', (string) $probe->lease);
+    }
+
+    public function testAStepThatNeedsAttentionIsRunningAgainAndSoIsItsRequestEvenWhenTheModuleFailsAgain(): void
+    {
+        $failing = new RecordingEraser('forum', true);
+        $requests = $this->requests([$this->billing, $failing], []);
+        $request = $requests->open(DataSubject::fromString('member-7'));
+        $requests->giveUp($request->id, 'forum');
+        self::assertSame(RequestState::NeedsAttention, $requests->find($request->id)?->state);
+
+        try {
+            $requests->run($request->id, 'forum');
+            self::fail('The module was expected to fail.');
+        } catch (ModuleErasureFailed) {
+        }
+
+        self::assertSame(RequestState::Running, $requests->find($request->id)?->state);
+    }
+
+    public function testAReplayAnswersEveryModuleItSent(): void
+    {
+        $requests = $this->requests([$this->billing, $this->forum], []);
+        $request = $requests->open(DataSubject::fromString('member-7'));
+
+        self::assertSame(['billing', 'forum'], $requests->replay($request->id));
+    }
+
+    public function testAnUnknownOrClosedRequestIsLeftAloneWhenAModuleGivesUp(): void
+    {
+        $requests = $this->requests([$this->billing], []);
+        $requests->giveUp(str_repeat('d', 32), 'billing');
+        $request = $requests->open(DataSubject::fromString('member-7'));
+        $requests->run($request->id, 'billing');
+
+        $requests->giveUp($request->id, 'billing');
+
+        self::assertSame(RequestState::Completed, $requests->find($request->id)?->state);
+    }
+
+    public function testWithoutAStoreOfGuestRequestsTheSubjectIsUnavailableAndAClosedRequestRemovesNothing(): void
+    {
+        $requests = new ErasureRequests($this->bench->store, $this->bench->outbox, [$this->billing], [], $this->bench->clock);
+        [$request] = $requests->openForGuest(str_repeat('c', 32));
+
+        $requests->run($request->id, 'billing');
+        self::assertSame(StepState::NeedsAttention, $this->bench->store->step($request->id, 'billing')?->state);
+        self::assertSame(0, $this->billing->calls);
+
+        self::assertTrue($requests->fail($request->id));
+    }
+
     public function testTheDatesAreThoseOfTheClock(): void
     {
         $request = $this->requests()->open(DataSubject::fromString('member-7'));

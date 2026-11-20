@@ -248,7 +248,7 @@ final class ErasureWorkflowPartsTest extends TestCase
         $tester->execute(['id' => $request->id]);
 
         self::assertStringContainsString('- billing: completed, invoices survives (personal data left), cards anonymised', $tester->getDisplay());
-        self::assertStringContainsString('- forum: needs_attention (retries_exhausted)', $tester->getDisplay());
+        self::assertStringContainsString("- forum: needs_attention (retries_exhausted)\n", $tester->getDisplay());
     }
 
     public function testTheCommandFailsOnAnUnknownRequest(): void

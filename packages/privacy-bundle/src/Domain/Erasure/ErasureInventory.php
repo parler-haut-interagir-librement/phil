@@ -88,7 +88,6 @@ final readonly class ErasureInventory
                 $selected[$module] = $module;
             }
 
-            $selected = array_values($selected);
             sort($selected, \SORT_STRING);
         }
 
