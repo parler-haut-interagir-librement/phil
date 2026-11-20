@@ -16,15 +16,15 @@ import {
     atEnd,
     atStart,
     caretRect,
-    deleteBefore,
-    insertHtml,
-    insertLineBreak,
+    deleteBefore as deleteBeforeInDom,
+    insertHtml as insertHtmlInDom,
+    insertLineBreak as insertLineBreakInDom,
     onEdgeLine,
     placeCaret,
     rangeIn,
-    splitAtCaret,
+    splitAtCaret as splitAtCaretInDom,
     textBefore,
-    toggleMark,
+    toggleMark as toggleMarkInDom,
 } from './lib/caret.js';
 import { csrfHeaders } from './lib/csrf.js';
 import { translator } from './lib/i18n.js';
@@ -82,6 +82,36 @@ const TOOLBAR = [
 
 const FIELD = '.pbe-rich[contenteditable], textarea.pbe-code__source';
 
+/** The ProseMirror trial's module, once a controller configured with `richEngine: 'prosemirror'` has loaded it. */
+let engine = null;
+
+/** The ProseMirror views of the rich fields, by field. */
+const views = new WeakMap();
+
+// A field holding a ProseMirror view is changed through the view; any other through the DOM.
+
+function deleteBefore(field, length) {
+    return views.has(field) ? engine.deleteBefore(views.get(field), length) : deleteBeforeInDom(field, length);
+}
+
+function insertHtml(field, html) {
+    return views.has(field) ? engine.insertHtml(views.get(field), html) : insertHtmlInDom(field, html);
+}
+
+function insertLineBreak(field) {
+    return views.has(field) ? engine.insertLineBreak(views.get(field)) : insertLineBreakInDom(field);
+}
+
+function splitAtCaret(field, tools) {
+    return views.has(field) ? engine.splitAtCaret(views.get(field), tools) : splitAtCaretInDom(field);
+}
+
+function toggleMark(field, tool, attributes = {}, options = {}) {
+    return views.has(field)
+        ? engine.toggleMark(views.get(field), tool, attributes, options)
+        : toggleMarkInDom(field, tool, attributes, options);
+}
+
 export default class extends Controller {
     static targets = ['input', 'canvas', 'status'];
 
@@ -100,6 +130,7 @@ export default class extends Controller {
         this.mentionsUrl = this.inlineTools.includes('mention') ? (config.mentionsUrl ?? null) : null;
         this.linksUrl = this.inlineTools.includes('wikiLink') ? (config.linksUrl ?? null) : null;
         this.csrfCookie = config.csrfCookie ?? null;
+        this.richEngine = !this.readOnly && 'prosemirror' === config.richEngine ? 'prosemirror' : 'dom';
         this.apple = isApple(globalThis.navigator?.platform);
         this.document = parseDocument(this.hasInputTarget ? this.inputTarget.value : '');
         this.history = new History();
@@ -154,6 +185,44 @@ export default class extends Controller {
         }
 
         this.render();
+
+        if ('prosemirror' === this.richEngine) {
+            this.loadEngine();
+        } else {
+            this.dispatch('engine', { detail: { engine: this.richEngine } });
+        }
+    }
+
+    /** Loads the ProseMirror trial's module, then puts a view in each rich field. */
+    async loadEngine() {
+        engine ??= await import('./lib/prosemirror.js');
+        this.mountRich();
+        this.dispatch('engine', { detail: { engine: this.richEngine } });
+    }
+
+    /** Puts a ProseMirror view in each rich field that has none, and destroys the views of fields drawn away. */
+    mountRich() {
+        if (null === engine || 'prosemirror' !== this.richEngine) {
+            return;
+        }
+
+        this.views = (this.views ?? []).filter((view) => {
+            if (view.dom.isConnected) {
+                return true;
+            }
+
+            view.destroy();
+
+            return false;
+        });
+
+        this.canvasTarget.querySelectorAll('.pbe-rich[contenteditable]').forEach((field) => {
+            if (!views.has(field)) {
+                const view = engine.mount(field, this.marks, (changed) => this.input({ target: changed, rich: true }));
+                views.set(field, view);
+                this.views.push(view);
+            }
+        });
     }
 
     disconnect() {
@@ -165,6 +234,10 @@ export default class extends Controller {
             target.removeEventListener(type, handler, capture);
         });
         this.listeners = [];
+        (this.views ?? []).forEach((view) => {
+            view.destroy();
+        });
+        this.views = [];
         this.closeMenu();
         this.toolbar?.remove();
         this.toolbar = null;
@@ -208,6 +281,7 @@ export default class extends Controller {
         );
 
         this.applyLocks();
+        this.mountRich();
 
         if (null !== focus) {
             this.focus(focus);
@@ -335,6 +409,10 @@ export default class extends Controller {
 
     /** The inline HTML of a rich field, cleaned. */
     html(field) {
+        if (views.has(field)) {
+            return engine.toHtml(views.get(field).state.doc, this.marks, field.ownerDocument);
+        }
+
         return sanitize(field.innerHTML, this.marks).replace(/(?:<br>)+$/, '');
     }
 
@@ -372,6 +450,11 @@ export default class extends Controller {
             return;
         }
 
+        // A ProseMirror view reports its own changes, once it has read the DOM.
+        if (views.has(at.field) && true !== event.rich) {
+            return;
+        }
+
         if (Date.now() - this.lastInput > 800) {
             this.remember();
         }
@@ -381,6 +464,7 @@ export default class extends Controller {
 
         if (
             field.isContentEditable &&
+            !views.has(field) &&
             isBlank(field.innerHTML) &&
             '' !== field.innerHTML &&
             null === field.querySelector('br + br')
@@ -530,11 +614,13 @@ export default class extends Controller {
         if (where.replaced && null !== old) {
             old.replaceWith(blockElement(this.viewContext(), block));
             this.applyLocks();
+            this.mountRich();
         } else if (!where.replaced && null !== container) {
             container.querySelector(':scope > .pbe-empty')?.remove();
             const next = container.querySelectorAll(':scope > .pbe-block')[where.index] ?? null;
             container.insertBefore(blockElement(this.viewContext(), block), next);
             this.applyLocks();
+            this.mountRich();
         } else {
             this.renderKeepingFocus();
         }
@@ -830,7 +916,7 @@ export default class extends Controller {
         }
 
         this.remember();
-        const after = sanitize(splitAtCaret(field), this.marks).replace(/(?:<br>)+$/, '');
+        const after = sanitize(splitAtCaret(field, this.marks), this.marks).replace(/(?:<br>)+$/, '');
         this.read(block, field);
         const fresh = { id: newId(), type: 'paragraph', data: { text: isBlank(after) ? '' : after } };
 
@@ -888,7 +974,7 @@ export default class extends Controller {
         }
 
         this.remember();
-        const after = sanitize(splitAtCaret(field), this.marks).replace(/(?:<br>)+$/, '');
+        const after = sanitize(splitAtCaret(field, this.marks), this.marks).replace(/(?:<br>)+$/, '');
         this.read(block, field);
         const next = splitItem(data, path, itemAt(data.items, path).content, isBlank(after) ? '' : after);
         this.render({ id: block.id, selector: '[data-item-field="' + next.join('.') + '"]', where: 'start' });
@@ -1810,7 +1896,7 @@ export default class extends Controller {
         }
 
         this.remember();
-        const after = sanitize(splitAtCaret(field), this.marks).replace(/(?:<br>)+$/, '');
+        const after = sanitize(splitAtCaret(field, this.marks), this.marks).replace(/(?:<br>)+$/, '');
         this.read(at.block, field);
         const found = locate(this.document.blocks, at.block.id);
         const replace = 'paragraph' === at.block.type && isBlank(at.block.data.text);
