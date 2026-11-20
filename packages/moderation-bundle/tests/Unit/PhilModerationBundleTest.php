@@ -5,14 +5,7 @@ declare(strict_types=1);
 namespace Phil\ModerationBundle\Tests\Unit;
 
 use EasyCorp\Bundle\EasyAdminBundle\EasyAdminBundle;
-use Phil\IncidentMode\Contract\LiftScheduler;
 use Phil\IncidentMode\IncidentMode;
-use Phil\IncidentMode\Messenger\LiftExpiredIncidentsHandler;
-use Phil\IncidentMode\Messenger\LiftIncidentHandler;
-use Phil\IncidentMode\Messenger\MessengerLiftScheduler;
-use Phil\IncidentMode\NoLiftScheduler;
-use Phil\IncidentMode\Preset;
-use Phil\IncidentMode\Presets;
 use Phil\ModerationBundle\Application\Contract\CurrentMember;
 use Phil\ModerationBundle\Application\Contract\CurrentModerator;
 use Phil\ModerationBundle\Application\Contract\MemberProfiles;
@@ -39,8 +32,7 @@ use Phil\ModerationBundle\Infrastructure\Doctrine\ModerationSchemaListener;
 use Phil\ModerationBundle\Infrastructure\Http\AdminController;
 use Phil\ModerationBundle\Infrastructure\Http\JournalController;
 use Phil\ModerationBundle\Infrastructure\Http\ReportController;
-use Phil\ModerationBundle\Infrastructure\IncidentMode\CurrentMemberRestrictions;
-use Phil\ModerationBundle\Infrastructure\IncidentMode\IncidentPanel;
+use Phil\ModerationBundle\Infrastructure\IncidentMode\IncidentProposal;
 use Phil\ModerationBundle\Infrastructure\Privacy\ModerationPrivacy;
 use Phil\ModerationBundle\Infrastructure\Security\TokenCurrentMember;
 use Phil\ModerationBundle\Infrastructure\Security\TokenCurrentModerator;
@@ -50,10 +42,10 @@ use Phil\ModerationBundle\PhilModerationBundle;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use stdClass;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
@@ -93,21 +85,41 @@ final class PhilModerationBundleTest extends TestCase
         ], $roles);
 
         $admin = $container->getDefinition(AdminController::class);
-        self::assertSame(['@PhilModeration/layout.html.twig', 25, 'ROLE_ADMIN'], \array_slice($admin->getArguments(), 8, 3));
-        self::assertEquals(new Reference(IncidentPanel::class), $admin->getArgument(11));
+        self::assertSame(['@PhilModeration/layout.html.twig', 25], \array_slice($admin->getArguments(), 7, 2));
+        self::assertEquals(new Reference(IncidentProposal::class, ContainerInterface::NULL_ON_INVALID_REFERENCE), $admin->getArgument(9));
+        self::assertTrue($admin->getArgument(10));
         self::assertFalse($admin->hasTag(EasyAdminBundle::TAG_ADMIN_ROUTE_CONTROLLER));
         self::assertTrue($admin->isPublic());
         self::assertSame([null], $container->getDefinition(KitComponents::class)->getArguments());
         self::assertTrue($container->getDefinition(ModerationExtension::class)->hasTag('twig.runtime'));
         self::assertTrue($container->getDefinition(ModerationExtension::class)->hasTag('twig.attribute_extension'));
-        self::assertEquals(new Reference(CurrentMemberRestrictions::class), $container->getDefinition(ModerationExtension::class)->getArgument(3));
+        self::assertEquals(new Reference(KitComponents::class), $container->getDefinition(ModerationExtension::class)->getArgument(3));
         self::assertTrue($container->getDefinition(ModerationPrivacy::class)->hasTag(ModerationServices::EXPORTER_TAG));
         self::assertTrue($container->getDefinition(ModerationPrivacy::class)->hasTag(ModerationServices::ERASER_TAG));
-        self::assertSame(MessengerLiftScheduler::class, (string) $container->getAlias(LiftScheduler::class));
-        self::assertTrue($container->getDefinition(LiftIncidentHandler::class)->hasTag('messenger.message_handler'));
-        self::assertSame('ROLE_ADMIN', $container->getParameter('phil_moderation.incident_role'));
-        self::assertTrue($container->getDefinition(IncidentMode::class)->isPublic());
-        self::assertCount(5, $this->presets($container)->all());
+        self::assertFalse($container->hasDefinition(IncidentProposal::class), 'without phil/incident-mode-bundle, no incident mode');
+        self::assertFalse($container->hasDefinition(IncidentMode::class), "the incident mode is the bundle's own");
+    }
+
+    public function testTheIncidentModeIsThatOfItsBundle(): void
+    {
+        $container = $this->load([], ['SecurityBundle' => self::class, 'PhilIncidentModeBundle' => self::class]);
+
+        self::assertEquals([
+            new Reference(IncidentMode::class), new Reference(ReportSurge::class), new Reference('security.authorization_checker'),
+            '%phil_incident_mode.admin.role%',
+        ], $container->getDefinition(IncidentProposal::class)->getArguments());
+        self::assertFalse($container->hasDefinition(IncidentMode::class), 'the bundle registers its own');
+
+        $container->setParameter(ModerationServices::INCIDENT_ROLE_PARAMETER, 'ROLE_SAFETY');
+        new ModerationPass()->process($container);
+        self::assertTrue($container->hasDefinition(IncidentProposal::class));
+
+        $withoutAdministration = $this->load([], ['SecurityBundle' => self::class, 'PhilIncidentModeBundle' => self::class]);
+        new ModerationPass()->process($withoutAdministration);
+        self::assertFalse($withoutAdministration->hasDefinition(IncidentProposal::class), 'no page of the incidents to offer');
+
+        self::assertFalse($this->load([], ['PhilIncidentModeBundle' => self::class])->hasDefinition(IncidentProposal::class), 'nobody to offer it without security');
+        self::assertSame('phil_incident_mode.admin.role', ModerationServices::INCIDENT_ROLE_PARAMETER);
     }
 
     public function testTheConfiguration(): void
@@ -120,11 +132,6 @@ final class PhilModerationBundleTest extends TestCase
             'journal' => ['page_size' => 20],
             'sandbox' => ['types' => ['forum.post']],
             'surge' => ['reports' => 5, 'within' => 600],
-            'incident' => [
-                'role' => 'ROLE_SUPER',
-                'presets' => [['name' => 'quiet', 'label' => 'Quiet', 'restrictions' => ['new-posts'], 'default_minutes' => 30, 'maximum_minutes' => 120]],
-                'without' => ['read-only', 'suspend-invitations'],
-            ],
             'kit_subdirectory' => 'kit',
         ]], ['EasyAdminBundle' => EasyAdminBundle::class, 'SecurityBundle' => self::class]);
 
@@ -133,18 +140,10 @@ final class PhilModerationBundleTest extends TestCase
         self::assertEquals([new Definition(Role::class, ['keeper', 'ROLE_KEEPER', ['comment']])], $container->getDefinition(Roles::class)->getArgument(0));
         self::assertSame(['forum.post'], $container->getDefinition(FirstPostSandbox::class)->getArgument(1));
         self::assertSame([5, 600], \array_slice($container->getDefinition(ReportSurge::class)->getArguments(), 2));
-        self::assertSame(['admin.html.twig', 10, 'ROLE_SUPER'], \array_slice($container->getDefinition(AdminController::class)->getArguments(), 8, 3));
+        self::assertSame(['admin.html.twig', 10], \array_slice($container->getDefinition(AdminController::class)->getArguments(), 7, 2));
         self::assertTrue($container->getDefinition(AdminController::class)->hasTag(EasyAdminBundle::TAG_ADMIN_ROUTE_CONTROLLER));
         self::assertSame(['admin.html.twig', 20], \array_slice($container->getDefinition(JournalController::class)->getArguments(), 2));
         self::assertSame(['kit'], $container->getDefinition(KitComponents::class)->getArguments());
-        self::assertSame('ROLE_SUPER', $container->getParameter('phil_moderation.incident_role'));
-
-        $presets = $this->presets($container);
-        self::assertSame(['suspend-signups', 'suspend-new-messages', 'suspend-contributions', 'quiet'], array_map(static fn (Preset $preset): string => $preset->name, $presets->all()));
-        self::assertSame(1_800, $presets->get('quiet')->defaultDuration->seconds);
-        self::assertSame(7_200, $presets->get('quiet')->maximumDuration->seconds);
-        self::assertSame(['new-posts'], $presets->get('quiet')->restrictionNames());
-        self::assertSame('Quiet', $presets->get('quiet')->label);
     }
 
     public function testWithoutSecurityNobodyModerates(): void
@@ -180,7 +179,7 @@ final class PhilModerationBundleTest extends TestCase
         yield 'a window too short' => [['surge' => ['within' => 59]]];
         yield 'a window too long' => [['surge' => ['within' => 86_401]]];
         yield 'no surge' => [['surge' => ['reports' => 0]]];
-        yield 'a preset without restriction' => [['incident' => ['presets' => [['name' => 'q', 'label' => 'Q', 'restrictions' => [], 'default_minutes' => 1, 'maximum_minutes' => 1]]]]];
+        yield "the incident mode, which is phil/incident-mode-bundle's" => [['incident' => ['role' => 'ROLE_ADMIN']]];
         yield 'an empty connection' => [['connection' => '']];
     }
 
@@ -206,24 +205,6 @@ final class PhilModerationBundleTest extends TestCase
 
         self::assertTrue($container->getDefinition(ProfileTarget::class)->hasTag(ModerationServices::TARGET_TAG));
         self::assertEquals(new Reference(MemberProfiles::class), $container->getDefinition(ProfileTarget::class)->getArgument(0));
-    }
-
-    public function testTheLiftingFallsBackOnTheSweepWithoutABus(): void
-    {
-        $container = $this->load([]);
-        new ModerationPass()->process($container);
-
-        self::assertSame(NoLiftScheduler::class, (string) $container->getAlias(LiftScheduler::class));
-        self::assertFalse($container->hasDefinition(MessengerLiftScheduler::class));
-        self::assertFalse($container->hasDefinition(LiftIncidentHandler::class));
-        self::assertFalse($container->hasDefinition(LiftExpiredIncidentsHandler::class));
-
-        $withBus = $this->load([]);
-        $withBus->register('messenger.default_bus', stdClass::class);
-        new ModerationPass()->process($withBus);
-
-        self::assertSame(MessengerLiftScheduler::class, (string) $withBus->getAlias(LiftScheduler::class));
-        self::assertTrue($withBus->hasDefinition(LiftIncidentHandler::class));
     }
 
     public function testTheKitIsNamedAfterTheToolkit(): void
@@ -268,17 +249,6 @@ final class PhilModerationBundleTest extends TestCase
         $this->extension()->load($configs, $container);
 
         return $container;
-    }
-
-    private function presets(ContainerBuilder $container): Presets
-    {
-        $fresh = new ContainerBuilder();
-        $fresh->setDefinition(Presets::class, $container->getDefinition(Presets::class))->setPublic(true);
-        $fresh->compile(true);
-        $presets = $fresh->get(Presets::class);
-        self::assertInstanceOf(Presets::class, $presets);
-
-        return $presets;
     }
 
     private function extension(): ExtensionInterface

@@ -32,8 +32,7 @@ Every class and service of the bundle, with its role.
 | `Infrastructure\Security\TokenCurrentMember`, `TokenCurrentModerator` | The member and moderator of the security token |
 | `Infrastructure\Http\AdminController`, `ReportController`, `JournalController`, `StatementController` | The pages |
 | `Infrastructure\EasyAdmin\ModerationAdmin` | The menu items and routes inside EasyAdmin |
-| `Infrastructure\IncidentMode\IncidentPanel` | The incident mode in the back office |
-| `Infrastructure\IncidentMode\CurrentMemberRestrictions` | Whether a restriction of an incident applies to the member of the current request, through `IncidentRestrictions` of `phil/incident-mode` |
+| `Infrastructure\IncidentMode\IncidentProposal` | The incident mode of `phil/incident-mode-bundle` in the queue: `isOffered()` to the role of its administration, `isProposed()` when reports surge and no incident is in force; `ROUTE` |
 | `Infrastructure\Notifications\StatementNotifier`, `StatementSubjects` | The notification of a statement, and what its subject stands for, with `phil/notifications-bundle` |
 | `Infrastructure\Privacy\ModerationPrivacy` | The export and the erasure |
 | `Infrastructure\Twig\ModerationExtension`, `KitComponents` | The Twig functions; the names of the recipes |

@@ -20,10 +20,10 @@ The export holds, for the member the request is about:
 | `statements_addressed_to_me` | The statements of reasons addressed to them: target, action, reason, grounds, provision, facts, whether a report prompted it, whether automated means detected the content, moment |
 | `notes_about_me` | The notes of the moderation on them, without their author |
 | `sandbox_left_at` | When their first post was approved |
-| `incidents` | With `phil/incident-mode`, the incidents they started or lifted |
 
 It never names another member: no moderator, no reporter, no author of a note; the private note of a decision stays out.
 
 The erasure deletes the notes on the member, the statements of reasons addressed to them and the record of the sandbox,
 and takes the member out of the reports they made, of the decisions — as author and as moderator, the role staying —, of
-the notes they wrote and of the incidents. It may be replayed.
+and of the notes they wrote. It may be replayed. The incidents a member started or lifted are answered by
+`phil/incident-mode-bundle`.

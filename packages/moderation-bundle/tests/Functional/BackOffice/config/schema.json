@@ -4968,76 +4968,7 @@
                             "reports": 25,
                             "within": 3600
                         },
-                        "description": "When reports come this fast, the back office proposes the incident mode."
-                    },
-                    "incident": {
-                        "$ref": "#/$defs/types/object_null",
-                        "properties": {
-                            "role": {
-                                "$ref": "#/$defs/types/scalar",
-                                "default": "ROLE_ADMIN",
-                                "description": "The security attribute that may start and lift an incident."
-                            },
-                            "presets": {
-                                "$ref": "#/$defs/types/array_null",
-                                "items": {
-                                    "$ref": "#/$defs/types/object_null",
-                                    "properties": {
-                                        "name": {
-                                            "$ref": "#/$defs/types/scalar"
-                                        },
-                                        "label": {
-                                            "$ref": "#/$defs/types/scalar"
-                                        },
-                                        "restrictions": {
-                                            "$ref": "#/$defs/types/array_null",
-                                            "items": {
-                                                "$ref": "#/$defs/types/scalar"
-                                            },
-                                            "minItems": 1
-                                        },
-                                        "default_minutes": {
-                                            "$ref": "#/$defs/types/integer",
-                                            "minimum": 1
-                                        },
-                                        "maximum_minutes": {
-                                            "$ref": "#/$defs/types/integer",
-                                            "minimum": 1
-                                        }
-                                    },
-                                    "required": [
-                                        "name",
-                                        "label",
-                                        "default_minutes",
-                                        "maximum_minutes"
-                                    ],
-                                    "additionalProperties": false
-                                },
-                                "description": "The application's presets, after the built-in ones; one of the same name replaces it."
-                            },
-                            "without": {
-                                "$ref": "#/$defs/types/array_null",
-                                "items": {
-                                    "$ref": "#/$defs/types/scalar"
-                                },
-                                "description": "The built-in presets to leave out."
-                            },
-                            "spare_established": {
-                                "$ref": "#/$defs/types/array_null",
-                                "items": {
-                                    "$ref": "#/$defs/types/scalar"
-                                },
-                                "description": "The restrictions an incident leaves established members free from, as the port EstablishedMembers of phil/incident-mode names them; none when empty."
-                            }
-                        },
-                        "additionalProperties": false,
-                        "default": {
-                            "role": "ROLE_ADMIN",
-                            "presets": [],
-                            "without": [],
-                            "spare_established": []
-                        },
-                        "description": "The incident mode, when phil/incident-mode is installed."
+                        "description": "When reports come this fast, the queue proposes the incident mode of phil/incident-mode-bundle, when it is registered."
                     },
                     "statements": {
                         "anyOf": [

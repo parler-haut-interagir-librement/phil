@@ -11,7 +11,7 @@ change them, and its CHANGELOG says how.
 | Decide who moderates another way | Alias `Application\Contract\CurrentModerator` to your service |
 | Plug in the watched words | Alias `Application\Contract\WordScreen` to the adapter |
 | Trust members to hide | Alias `Application\Contract\TrustedHiders` to the adapter of the trust levels |
-| Spare established members from an incident | Alias `Phil\IncidentMode\Contract\EstablishedMembers` of `phil/incident-mode` to your service, and list the restrictions in `incident.spare_established` ([Incident mode](incident-mode.md#established-members)) |
+| Offer the incident mode in the queue | Register `phil/incident-mode-bundle` with its administration on ([Incident mode](incident-mode.md)) |
 | Hold content by another rule | Alias `Application\Contract\SandboxPolicy` to your service |
 | React to the moderation | Listen to `ReportFiled`, `DecisionTaken`, `ContentHeld`, `ContentHiddenByMember` and `StatementIssued` |
 | Tell a member of a statement of reasons | Name a type of `phil/notifications-bundle` in `statements.notification_type`, or listen to `StatementIssued` |

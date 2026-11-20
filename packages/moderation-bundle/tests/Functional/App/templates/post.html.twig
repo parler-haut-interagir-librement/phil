@@ -3,5 +3,5 @@
 <body>
 <p>Cheap watches</p>
 {{ include('@PhilModeration/_report_form.html.twig', {type: 'forum.post', id: '1'}) }}
-{% if phil_moderation_suspended('signups') %}<p>Sign-ups are suspended.</p>{% endif %}
+{% if phil_incident_suspended('signups') %}<p>Sign-ups are suspended.</p>{% endif %}
 </body></html>

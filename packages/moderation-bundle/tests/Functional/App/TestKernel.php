@@ -24,7 +24,8 @@ use Symfony\Component\Security\Core\User\InMemoryUser;
  * An application as small as the bundle needs: FrameworkBundle with Messenger on an in-memory transport, DoctrineBundle
  * on SQLite, TwigBundle with the recipes of the kit copied where `ux:install` would put them, Symfony Security with a
  * moderator, an administrator, a moderator of comments, a member and a trusted member signing in by HTTP Basic, the
- * application's own members and trust, a target of forum posts, the incident mode installed, and a page with the
+ * application's own members and trust, a target of forum posts, phil/incident-mode-bundle registered with its
+ * administration and its checkpoints on a sign-up, an invitation and the form of a new post, and a page with the
  * report form.
  */
 final class TestKernel extends Kernel
@@ -104,6 +105,7 @@ final class TestKernel extends Kernel
             'default_locale' => 'en',
             'translator' => ['fallbacks' => ['en']],
             'csrf_protection' => true,
+            'form' => true,
             'session' => ['storage_factory_id' => 'session.storage.factory.mock_file'],
             'messenger' => [
                 'transports' => ['memory' => 'in-memory://'],
@@ -133,14 +135,16 @@ final class TestKernel extends Kernel
             ],
             'surge' => ['reports' => 2, 'within' => 3600],
             'sandbox' => ['types' => ['forum.post']],
-            'incident' => [
-                'presets' => [['name' => 'quiet', 'label' => 'Quiet hours', 'restrictions' => ['new-posts'], 'default_minutes' => 60, 'maximum_minutes' => 240]],
-                'without' => ['read-only'],
-            ],
             'statements' => [
                 'terms_url' => '/terms',
                 'out_of_court' => [['name' => 'A settlement body', 'url' => 'https://settlement.example']],
             ],
+        ]);
+
+        $container->extension('phil_incident_mode', [
+            'without_presets' => ['read-only'],
+            'presets' => ['quiet' => ['label' => 'Quiet hours', 'restrictions' => ['new-posts'], 'proposed' => '1h', 'longest' => '4h']],
+            'lifting' => ['schedule' => false],
         ]);
 
         $services = $container->services();
@@ -150,6 +154,7 @@ final class TestKernel extends Kernel
         $services->alias(TrustedHiders::class, Members::class);
         $services->set(Posts::class)->args(['%kernel.cache_dir%/actions.log'])->autoconfigure();
         $services->set(PostController::class)->args([new Reference('twig')])->tag('controller.service_arguments')->public();
+        $services->set(CommunityController::class)->args([new Reference('form.factory')])->tag('controller.service_arguments')->public();
     }
 
     private function configureRoutes(RoutingConfigurator $routes): void
@@ -158,6 +163,10 @@ final class TestKernel extends Kernel
         $routes->import('@PhilModerationBundle/config/routes/report.php')->prefix('/moderation');
         $routes->import('@PhilModerationBundle/config/routes/journal.php')->prefix('/moderation/journal');
         $routes->import('@PhilModerationBundle/config/routes/statement.php')->prefix('/moderation/statements');
+        $routes->import('@PhilIncidentModeBundle/config/routes/admin.php')->prefix('/admin/incidents');
         $routes->add('post', '/forum/1')->controller(PostController::class);
+        $routes->add('sign_up', '/sign-up')->controller([CommunityController::class, 'signUp'])->methods(['GET', 'POST']);
+        $routes->add('invite', '/invite')->controller([CommunityController::class, 'invite'])->defaults(['_suspended_during' => 'invitations']);
+        $routes->add('new_post', '/forum/new')->controller([CommunityController::class, 'newPost'])->methods(['GET', 'POST']);
     }
 }

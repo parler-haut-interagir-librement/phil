@@ -19,8 +19,8 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
  * A single report queue for every kind of content — forum posts, comments, reactions, listings, messages, profiles —,
  * each package plugging in its own `ModerationTarget`, with the roles of the moderation and the history of their
  * decisions, the hook of the first-post sandbox and of the watched words, temporary hiding by trusted members, notes
- * of the moderation on members, a public journal that shows the role and never the name, and the incident mode when
- * `phil/incident-mode` is installed.
+ * of the moderation on members, a public journal that shows the role and never the name, and the incident mode of
+ * `phil/incident-mode-bundle` offered to the role that runs it when that bundle is registered.
  *
  * ```yaml
  * phil_moderation:
@@ -97,35 +97,11 @@ final class PhilModerationBundle extends AbstractBundle
                     ->end()
                 ->end()
                 ->arrayNode('surge')
-                    ->info('When reports come this fast, the back office proposes the incident mode.')
+                    ->info('When reports come this fast, the queue proposes the incident mode of phil/incident-mode-bundle, when it is registered.')
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->integerNode('reports')->defaultValue(25)->min(1)->end()
                         ->integerNode('within')->info('Seconds.')->defaultValue(3600)->min(60)->max(86400)->end()
-                    ->end()
-                ->end()
-                ->arrayNode('incident')
-                    ->info('The incident mode, when phil/incident-mode is installed.')
-                    ->addDefaultsIfNotSet()
-                    ->children()
-                        ->scalarNode('role')->info('The security attribute that may start and lift an incident.')->defaultValue('ROLE_ADMIN')->cannotBeEmpty()->end()
-                        ->arrayNode('presets')
-                            ->info("The application's presets, after the built-in ones; one of the same name replaces it.")
-                            ->arrayPrototype()
-                                ->children()
-                                    ->scalarNode('name')->isRequired()->end()
-                                    ->scalarNode('label')->isRequired()->end()
-                                    ->arrayNode('restrictions')->scalarPrototype()->end()->requiresAtLeastOneElement()->end()
-                                    ->integerNode('default_minutes')->isRequired()->min(1)->end()
-                                    ->integerNode('maximum_minutes')->isRequired()->min(1)->end()
-                                ->end()
-                            ->end()
-                        ->end()
-                        ->arrayNode('without')->info('The built-in presets to leave out.')->scalarPrototype()->end()->end()
-                        ->arrayNode('spare_established')
-                            ->info('The restrictions an incident leaves established members free from, as the port EstablishedMembers of phil/incident-mode names them; none when empty.')
-                            ->scalarPrototype()->end()
-                        ->end()
                     ->end()
                 ->end()
                 ->arrayNode('statements')

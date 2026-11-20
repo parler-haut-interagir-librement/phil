@@ -18,9 +18,8 @@ The same queue receives what the site holds back on its own: a package calls `Su
 posts, and the watched words block, hold or flag the text, while the sandbox of the first post holds the first
 content of a newcomer until a moderator approves one. Members of a high trust level may hide a content at once, until
 the moderation reviews it. Moderators keep notes on a member, which the member never reads. The public journal lists
-the public decisions with the role they were taken under. When `phil/incident-mode` 0.2 is installed, the back office
-offers the incident mode, and proposes it when reports surge; an incident may spare the members the site holds for
-established.
+the public decisions with the role they were taken under. When `phil/incident-mode-bundle` is registered, the queue
+offers its incident mode to the role that runs it, and proposes an incident when reports surge.
 
 Members are designated by a stable identifier, never an e-mail address. The records live in five tables of a Doctrine
 DBAL connection, their moments in UTC, and join a member's export and erasure through `phil/privacy-bundle`. The
@@ -40,13 +39,12 @@ the PHIL UX kit.
 | Profiles as a target, through the application's `MemberProfiles` | Implemented and tested |
 | Notes of the moderation on a member | Implemented and tested |
 | The public journal: role, never name | Implemented and tested |
-| The incident mode offered, and proposed when reports surge, with `phil/incident-mode` | Implemented and tested |
-| Restrictions of an incident that spare established members | Implemented and tested; who is established comes through the port `EstablishedMembers` of `phil/incident-mode`, which the application implements |
+| The incident mode of `phil/incident-mode-bundle` offered in the queue, and proposed when reports surge | Implemented and tested |
 | The pages, on the bundle's routes and inside EasyAdmin dashboards; the report form; the recipes of the kit | Implemented and tested |
 | Export and erasure through `phil/privacy-bundle` | Implemented and tested |
 | DBAL tables on PostgreSQL, MySQL and SQLite, moments in UTC, ORM schema listener | Implemented and tested |
 | Watched words from `phil/watched-words` | Port only: `WordScreen`; the adapter comes with that package |
-| Trust levels from `phil/trust-levels` | Ports only: `TrustedHiders`, and `EstablishedMembers` of `phil/incident-mode`; the adapters come with that package |
+| Trust levels from `phil/trust-levels` | Port only: `TrustedHiders`; the adapter comes with that package |
 | Reports on Fediverse content and the `Flag` activity | Not started |
 | The appeal of a decision, reviewed inside the bundle by another role than the one that decided | Not started: the statement of reasons links to the complaint page the site configures |
 
@@ -60,7 +58,7 @@ the PHIL UX kit.
 | [Hooks](doc/hooks.md) | The first-post sandbox, the watched words, temporary hiding by trusted members, profiles. |
 | [Statements of reasons](doc/statements-of-reasons.md) | The grounds of a restriction, what the author reads, the notification, the redress. |
 | [Pages](doc/pages.md) | The back office, EasyAdmin, the notes on members, the report form, the public journal. |
-| [Incident mode](doc/incident-mode.md) | What the bundle wires when `phil/incident-mode` is installed. |
+| [Incident mode](doc/incident-mode.md) | The incident mode of `phil/incident-mode-bundle` in the queue, and its checkpoints in the pages of the site. |
 | [Personal data](doc/privacy.md) | Stable identifiers, the export and the erasure. |
 | [Extension points](doc/extension-points.md) | The ports, tags and events, and when they are stable. |
 | [Testing](doc/testing.md) | The bundle's tests, its benchmark, and the servers its integration tests read. |

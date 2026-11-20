@@ -4,6 +4,39 @@ All notable changes to `phil/moderation-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.0-alpha: the incident mode is that of `phil/incident-mode-bundle`, which the queue offers when
+it is registered. See [Upgrading from 0.2](doc/incident-mode.md#upgrading-from-02).
+
+### Added
+
+- `Infrastructure\IncidentMode\IncidentProposal`: the link to the page of the incidents of `phil/incident-mode-bundle`
+  for the role of its administration, and the proposal of an incident when reports surge and none is in force.
+- `ModerationServices::INCIDENT_ROLE_PARAMETER`.
+- Functional tests of a sign-up, an invitation and a form refused through the checkpoints of
+  `phil/incident-mode-bundle` while an incident suspends them.
+
+### Changed
+
+- The incident mode is offered when `phil/incident-mode-bundle` is registered with its administration on, and its
+  role, `phil_incident_mode.admin.role`, decides who sees it; `phil/incident-mode` installed alone no longer is.
+- `AdminController` takes an `IncidentProposal` in place of the role and the panel of the incidents.
+- `ModerationPrivacy` no longer takes the store of the incidents: the incidents a member started or lifted are
+  answered by `phil/incident-mode-bundle`.
+
+### Removed
+
+- The `incident` key of the configuration — `role`, `presets`, `without`, `spare_established` —, now refused.
+- The services of `phil/incident-mode` the bundle registered: the store and its schema listener, the presets,
+  `IncidentMode`, the lifting by Messenger and its handlers, `IncidentRestrictions` and the alias of
+  `EstablishedMembers`.
+- `IncidentPanel`, `CurrentMemberRestrictions`, the pages `phil_moderation_incidents`, `phil_moderation_incident_start`
+  and `phil_moderation_incident_lift`, their template and their EasyAdmin routes, and
+  `ModerationAdmin::incidentsMenuItem()`.
+- The Twig function `phil_moderation_suspended()`: `phil_incident_suspended()` of `phil/incident-mode-bundle` answers.
+- The `incidents` of a member's export, and `phil_incident_activation` in the effects of the erasure.
+
 ## 0.2.0-alpha - 2026-11-18
 
 Members, targets and the identifiers of the five tables compare byte by byte on MySQL

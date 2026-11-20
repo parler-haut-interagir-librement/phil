@@ -4,19 +4,6 @@ declare(strict_types=1);
 
 namespace Phil\ModerationBundle\Tests\Unit;
 
-use Phil\IncidentMode\Contract\ActivationStore;
-use Phil\IncidentMode\Contract\EstablishedMembers;
-use Phil\IncidentMode\Contract\LiftScheduler;
-use Phil\IncidentMode\Dbal\DbalActivationStore;
-use Phil\IncidentMode\Dbal\IncidentSchemaListener;
-use Phil\IncidentMode\IncidentMode;
-use Phil\IncidentMode\IncidentRestrictions;
-use Phil\IncidentMode\Messenger\LiftExpiredIncidentsHandler;
-use Phil\IncidentMode\Messenger\LiftIncidentHandler;
-use Phil\IncidentMode\Messenger\MessengerLiftScheduler;
-use Phil\IncidentMode\NoEstablishedMembers;
-use Phil\IncidentMode\NoLiftScheduler;
-use Phil\IncidentMode\Presets;
 use Phil\ModerationBundle\Application\Contract\CurrentMember;
 use Phil\ModerationBundle\Application\Contract\CurrentModerator;
 use Phil\ModerationBundle\Application\Contract\SandboxPolicy;
@@ -56,8 +43,6 @@ use Phil\ModerationBundle\Infrastructure\Http\AdminController;
 use Phil\ModerationBundle\Infrastructure\Http\JournalController;
 use Phil\ModerationBundle\Infrastructure\Http\ReportController;
 use Phil\ModerationBundle\Infrastructure\Http\StatementController;
-use Phil\ModerationBundle\Infrastructure\IncidentMode\CurrentMemberRestrictions;
-use Phil\ModerationBundle\Infrastructure\IncidentMode\IncidentPanel;
 use Phil\ModerationBundle\Infrastructure\Notifications\StatementNotifier;
 use Phil\ModerationBundle\Infrastructure\Notifications\StatementSubjects;
 use Phil\ModerationBundle\Infrastructure\Privacy\ModerationPrivacy;
@@ -102,8 +87,6 @@ final class ModerationWiringTest extends TestCase
             Redress::class => [Redress::class, [null, null, []]],
             StatementsOfReasons::class => [StatementsOfReasons::class, [new Reference(StatementRepository::class), new Reference(Reasons::class), new Reference(ReasonGrounds::class), new Reference(CurrentMember::class), new Reference(Redress::class), $events]],
             StatementController::class => [StatementController::class, [new Reference(StatementsOfReasons::class), new Reference(CurrentMember::class), new Reference('twig'), '@PhilModeration/layout.html.twig', 25]],
-            IncidentRestrictions::class => [IncidentRestrictions::class, [new Reference(IncidentMode::class), new Reference(EstablishedMembers::class), []]],
-            CurrentMemberRestrictions::class => [CurrentMemberRestrictions::class, [new Reference(IncidentRestrictions::class), new Reference(CurrentMember::class)]],
             ModerationQueue::class => [ModerationQueue::class, [new Reference(ReportRepository::class), new Reference(DecisionRepository::class), new Reference(ModerationTargets::class), new Reference(CurrentModerator::class)]],
             Submissions::class => [Submissions::class, [new Reference(Reports::class), new Reference(WordScreen::class), new Reference(SandboxPolicy::class), $events]],
             TemporaryHides::class => [TemporaryHides::class, [new Reference(Reports::class), new Reference(ModerationTargets::class), new Reference(TrustedHiders::class), new Reference(CurrentMember::class), $events]],
@@ -111,13 +94,6 @@ final class ModerationWiringTest extends TestCase
             PublicJournal::class => [PublicJournal::class, [new Reference(DecisionRepository::class)]],
             TokenCurrentMember::class => [TokenCurrentMember::class, [new Reference('security.token_storage')]],
             TokenCurrentModerator::class => [TokenCurrentModerator::class, [new Reference(CurrentMember::class), new Reference('security.authorization_checker'), new Reference(Roles::class)]],
-            ActivationStore::class => [DbalActivationStore::class, [$connection]],
-            IncidentSchemaListener::class => [IncidentSchemaListener::class, [$connection]],
-            MessengerLiftScheduler::class => [MessengerLiftScheduler::class, [new Reference('messenger.default_bus'), $clock]],
-            IncidentMode::class => [IncidentMode::class, [new Reference(Presets::class), new Reference(ActivationStore::class), $clock, $events, new Reference(LiftScheduler::class)]],
-            LiftIncidentHandler::class => [LiftIncidentHandler::class, [new Reference(IncidentMode::class)]],
-            LiftExpiredIncidentsHandler::class => [LiftExpiredIncidentsHandler::class, [new Reference(IncidentMode::class)]],
-            IncidentPanel::class => [IncidentPanel::class, [new Reference(IncidentMode::class), new Reference(ReportSurge::class)]],
             ReportController::class => [ReportController::class, [new Reference(Reports::class), new Reference(TemporaryHides::class), new Reference('security.csrf.token_manager')]],
         ];
 
@@ -127,16 +103,11 @@ final class ModerationWiringTest extends TestCase
             self::assertEquals($arguments, $container->getDefinition($id)->getArguments(), $id);
         }
 
-        self::assertSame(DbalActivationStore::class, $container->getDefinition(ActivationStore::class)->getClass());
-        self::assertSame([['event' => 'postGenerateSchema']], $container->getDefinition(IncidentSchemaListener::class)->getTag('doctrine.event_listener'));
-        self::assertSame([[]], $container->getDefinition(LiftExpiredIncidentsHandler::class)->getTag('messenger.message_handler'));
         self::assertTrue($container->getDefinition(ReportController::class)->isPublic());
         self::assertTrue($container->getDefinition(JournalController::class)->isPublic());
         self::assertTrue($container->getDefinition(AdminController::class)->isPublic());
         self::assertTrue($container->getDefinition(StatementController::class)->isPublic());
-        self::assertTrue($container->getDefinition(AdminController::class)->getArgument(12));
-        self::assertTrue($container->getDefinition(IncidentMode::class)->isPublic());
-        self::assertSame(NoLiftScheduler::class, $container->getDefinition(NoLiftScheduler::class)->getClass());
+        self::assertTrue($container->getDefinition(AdminController::class)->getArgument(10));
     }
 
     public function testThePrivacyAndTheTwigExtensionAreGivenTheirCollaborators(): void
@@ -144,11 +115,11 @@ final class ModerationWiringTest extends TestCase
         $container = $this->load([], ['SecurityBundle' => self::class]);
 
         self::assertEquals(
-            [new Reference(ReportRepository::class), new Reference(DecisionRepository::class), new Reference(MemberNoteRepository::class), new Reference(SandboxRepository::class), new Reference(ActivationStore::class), new Reference(StatementRepository::class)],
+            [new Reference(ReportRepository::class), new Reference(DecisionRepository::class), new Reference(MemberNoteRepository::class), new Reference(SandboxRepository::class), new Reference(StatementRepository::class)],
             $container->getDefinition(ModerationPrivacy::class)->getArguments(),
         );
         self::assertEquals(
-            [new Reference(Reasons::class), new Reference(TemporaryHides::class), new Reference('security.csrf.token_manager'), new Reference(CurrentMemberRestrictions::class), new Reference(KitComponents::class)],
+            [new Reference(Reasons::class), new Reference(TemporaryHides::class), new Reference('security.csrf.token_manager'), new Reference(KitComponents::class)],
             $container->getDefinition(ModerationExtension::class)->getArguments(),
         );
     }
@@ -157,11 +128,9 @@ final class ModerationWiringTest extends TestCase
     {
         $container = $this->load([], ['SecurityBundle' => self::class]);
 
-        foreach ([NoWordScreen::class, NoTrustedHiders::class, NoEstablishedMembers::class, FirstPostSandbox::class] as $default) {
+        foreach ([NoWordScreen::class, NoTrustedHiders::class, FirstPostSandbox::class] as $default) {
             self::assertTrue($container->hasDefinition($default), $default);
         }
-
-        self::assertSame(NoEstablishedMembers::class, (string) $container->getAlias(EstablishedMembers::class));
 
         $withoutSecurity = $this->load([]);
 
@@ -180,13 +149,11 @@ final class ModerationWiringTest extends TestCase
                 'out_of_court' => [['name' => 'A body', 'url' => 'https://body.example']],
                 'page_size' => 200,
             ],
-            'incident' => ['spare_established' => ['new-posts']],
         ]], ['SecurityBundle' => self::class]);
 
         self::assertEquals([['hate' => ['ground' => 'illegal', 'reference' => 'Criminal Code, s. 319']]], $container->getDefinition(ReasonGrounds::class)->getArguments());
         self::assertSame(['/terms', 'https://help.example/contest', [['name' => 'A body', 'url' => 'https://body.example']]], $container->getDefinition(Redress::class)->getArguments());
         self::assertSame(200, $container->getDefinition(StatementController::class)->getArgument(4));
-        self::assertSame(['new-posts'], $container->getDefinition(IncidentRestrictions::class)->getArgument(2));
         self::assertFalse($container->hasDefinition(StatementNotifier::class));
     }
 
@@ -205,7 +172,7 @@ final class ModerationWiringTest extends TestCase
         self::assertFalse($container->hasDefinition(StatementsOfReasons::class));
         self::assertFalse($container->hasDefinition(StatementController::class));
         self::assertNull($container->getDefinition(Decisions::class)->getArgument(7));
-        self::assertFalse($container->getDefinition(AdminController::class)->getArgument(12));
+        self::assertFalse($container->getDefinition(AdminController::class)->getArgument(10));
         self::assertTrue($container->hasDefinition(StatementRepository::class));
     }
 
@@ -276,13 +243,13 @@ final class ModerationWiringTest extends TestCase
             'surge' => ['reports' => 1, 'within' => 60],
         ]], ['SecurityBundle' => self::class]);
 
-        self::assertSame(1, $container->getDefinition(AdminController::class)->getArgument(9));
+        self::assertSame(1, $container->getDefinition(AdminController::class)->getArgument(8));
         self::assertSame(200, $container->getDefinition(JournalController::class)->getArgument(3));
         self::assertSame([1, 60], \array_slice($container->getDefinition(ReportSurge::class)->getArguments(), 2));
 
         $largest = $this->load([['admin' => ['page_size' => 200], 'journal' => ['page_size' => 1], 'surge' => ['within' => 86_400]]], ['SecurityBundle' => self::class]);
 
-        self::assertSame(200, $largest->getDefinition(AdminController::class)->getArgument(9));
+        self::assertSame(200, $largest->getDefinition(AdminController::class)->getArgument(8));
         self::assertSame(1, $largest->getDefinition(JournalController::class)->getArgument(3));
         self::assertSame(86_400, $largest->getDefinition(ReportSurge::class)->getArgument(3));
     }
@@ -297,8 +264,6 @@ final class ModerationWiringTest extends TestCase
         yield 'an empty page of statements' => [['statements' => ['page_size' => 0]]];
         yield 'a page of statements too large' => [['statements' => ['page_size' => 201]]];
         yield 'a ground of no kind' => [['statements' => ['grounds' => ['spam' => ['ground' => 'law']]]]];
-        yield 'a default of no minute' => [['incident' => ['presets' => [['name' => 'q', 'label' => 'Q', 'restrictions' => ['new-posts'], 'default_minutes' => 0, 'maximum_minutes' => 1]]]]];
-        yield 'a maximum of no minute' => [['incident' => ['presets' => [['name' => 'q', 'label' => 'Q', 'restrictions' => ['new-posts'], 'default_minutes' => 1, 'maximum_minutes' => 0]]]]];
     }
 
     /**
@@ -310,13 +275,6 @@ final class ModerationWiringTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
 
         $this->load([$config]);
-    }
-
-    public function testAPresetOfOneMinuteIsAccepted(): void
-    {
-        $container = $this->load([['incident' => ['presets' => [['name' => 'q', 'label' => 'Q', 'restrictions' => ['new-posts'], 'default_minutes' => 1, 'maximum_minutes' => 1]]]]]);
-
-        self::assertTrue($container->hasDefinition(Presets::class));
     }
 
     /**

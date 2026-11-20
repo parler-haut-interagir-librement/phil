@@ -6,11 +6,6 @@ namespace Phil\ModerationBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
 use Override;
-use Phil\IncidentMode\Duration;
-use Phil\IncidentMode\IncidentMode;
-use Phil\IncidentMode\IncidentRestrictions;
-use Phil\IncidentMode\InMemoryActivationStore;
-use Phil\IncidentMode\Presets;
 use Phil\ModerationBundle\Application\Event\StatementIssued;
 use Phil\ModerationBundle\Application\Grounds;
 use Phil\ModerationBundle\Application\TargetView;
@@ -20,7 +15,6 @@ use Phil\ModerationBundle\Domain\ValueObject\MemberId;
 use Phil\ModerationBundle\Domain\ValueObject\StatementOfReasons;
 use Phil\ModerationBundle\Domain\ValueObject\TargetReference;
 use Phil\ModerationBundle\Infrastructure\Doctrine\ModerationTables;
-use Phil\ModerationBundle\Infrastructure\IncidentMode\CurrentMemberRestrictions;
 use Phil\ModerationBundle\Infrastructure\Notifications\StatementNotifier;
 use Phil\ModerationBundle\Infrastructure\Notifications\StatementSubjects;
 use Phil\ModerationBundle\Infrastructure\Privacy\ModerationPrivacy;
@@ -45,34 +39,11 @@ use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Translation\Loader\PhpFileLoader;
 use Symfony\Component\Translation\Translator;
 
-#[CoversClass(CurrentMemberRestrictions::class)]
 #[CoversClass(StatementNotifier::class)]
 #[CoversClass(StatementSubjects::class)]
 #[CoversClass(ModerationPrivacy::class)]
 final class StatementAdaptersTest extends TestCase
 {
-    public function testAnIncidentSparesTheCurrentMemberWhenTheyAreEstablished(): void
-    {
-        $stage = new Stage();
-        $mode = new IncidentMode(Presets::defaults(), new InMemoryActivationStore(), $stage->clock);
-        $restrictions = new CurrentMemberRestrictions(new IncidentRestrictions($mode, $stage->people, ['new-posts', 'signups']), $stage->people);
-        $stage->people->established = ['old-timer'];
-        $stage->people->signIn('old-timer');
-
-        self::assertFalse($restrictions->appliesNow('new-posts'), 'nothing applies outside an incident');
-
-        $mode->start(Presets::SUSPEND_CONTRIBUTIONS, Duration::ofHours(1), null);
-
-        self::assertFalse($restrictions->appliesNow('new-posts'), 'an established member is spared');
-        self::assertTrue($restrictions->appliesNow('new-comments'), 'a restriction not listed spares nobody');
-        $stage->people->signIn('newcomer');
-        self::assertTrue($restrictions->appliesNow('new-posts'));
-        $stage->people->established = ['old-timer', 'newcomer'];
-        self::assertFalse($restrictions->appliesNow('new-posts'), 'the member is read on every call');
-        $stage->people->signOut();
-        self::assertTrue($restrictions->appliesNow('new-posts'), 'a visitor is never spared');
-    }
-
     public function testTheMemberIsNotifiedOfTheirStatementByItsIdentifier(): void
     {
         $bus = new class implements MessageBusInterface {
@@ -140,7 +111,7 @@ final class StatementAdaptersTest extends TestCase
             $stage->clock->sleep(1);
         }
 
-        $privacy = new ModerationPrivacy($stage->reportRepository, $stage->decisionRepository, $stage->noteRepository, $stage->sandboxRepository, null, $stage->statementRepository);
+        $privacy = new ModerationPrivacy($stage->reportRepository, $stage->decisionRepository, $stage->noteRepository, $stage->sandboxRepository, $stage->statementRepository);
         $statements = $privacy->export(DataSubject::fromString('m-1'))['statements_addressed_to_me'] ?? [];
 
         self::assertIsArray($statements);

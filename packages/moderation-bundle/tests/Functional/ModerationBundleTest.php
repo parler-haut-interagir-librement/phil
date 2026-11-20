@@ -7,24 +7,25 @@ namespace Phil\ModerationBundle\Tests\Functional;
 use Doctrine\DBAL\Connection;
 use Override;
 use Phil\IncidentMode\Dbal\IncidentTables;
+use Phil\IncidentMode\Duration;
 use Phil\IncidentMode\IncidentMode;
-use Phil\IncidentMode\Messenger\LiftIncident;
 use Phil\ModerationBundle\Infrastructure\Doctrine\ModerationTables;
 use Phil\ModerationBundle\Infrastructure\Http\AdminController;
 use Phil\ModerationBundle\Infrastructure\Http\JournalController;
 use Phil\ModerationBundle\Infrastructure\Http\ReportController;
 use Phil\ModerationBundle\Infrastructure\Http\StatementController;
+use Phil\ModerationBundle\Infrastructure\IncidentMode\IncidentProposal;
 use Phil\ModerationBundle\Tests\Functional\App\TestKernel;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 
 #[CoversClass(AdminController::class)]
 #[CoversClass(ReportController::class)]
 #[CoversClass(JournalController::class)]
 #[CoversClass(StatementController::class)]
+#[CoversClass(IncidentProposal::class)]
 final class ModerationBundleTest extends WebTestCase
 {
     private KernelBrowser $client;
@@ -139,8 +140,8 @@ final class ModerationBundleTest extends WebTestCase
         $this->client->request('GET', '/admin/moderation/entry?type=forum.post&id=1', server: $this->as('m-1'));
         self::assertResponseStatusCodeSame(403);
 
-        $this->client->request('GET', '/admin/moderation/incidents', server: $this->as('mod-1'));
-        self::assertResponseStatusCodeSame(403, 'the incident mode is for its role only');
+        $this->client->request('GET', '/admin/moderation/incidents', server: $this->as('admin-1'));
+        self::assertResponseStatusCodeSame(404, "the incident mode is phil/incident-mode-bundle's page, not one of the moderation");
     }
 
     public function testAModeratorReviewsAndDecides(): void
@@ -301,60 +302,77 @@ final class ModerationBundleTest extends WebTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
-    public function testTheIncidentModeIsProposedStartedAndLifted(): void
+    public function testTheQueueProposesThePageOfTheIncidentModeBundleWhenReportsSurge(): void
     {
+        $this->client->request('GET', '/admin/moderation/', server: $this->as('admin-1'));
+        $calm = (string) $this->client->getResponse()->getContent();
+        self::assertStringContainsString('href="/admin/incidents/"', $calm, 'the role of the incident mode finds its page');
+        self::assertStringNotContainsString('Reports are surging.', $calm);
+
         $this->report('m-1', 'spam');
         $this->report('trusted', 'spam');
+
+        $this->client->request('GET', '/admin/moderation/', server: $this->as('mod-1'));
+        $moderator = (string) $this->client->getResponse()->getContent();
+        self::assertStringNotContainsString('Reports are surging.', $moderator, 'only the role of the incident mode is proposed it');
+        self::assertStringNotContainsString('href="/admin/incidents/"', $moderator);
 
         $this->client->request('GET', '/admin/moderation/', server: $this->as('admin-1'));
         $queue = (string) $this->client->getResponse()->getContent();
         self::assertStringContainsString('Reports are surging.', $queue);
-        self::assertStringContainsString('href="/admin/moderation/incidents"', $queue);
+        self::assertStringContainsString('<a href="/admin/incidents/">Start the incident mode</a>', $queue);
         self::assertStringContainsString('You act as administrator.', $queue);
 
-        $crawler = $this->client->request('GET', '/admin/moderation/incidents', server: $this->as('admin-1'));
+        $this->client->request('GET', '/admin/incidents/', server: $this->as('admin-1'));
         $page = (string) $this->client->getResponse()->getContent();
         self::assertResponseIsSuccessful();
-        self::assertStringContainsString('2 reports in the last 60 minutes', $page);
-        self::assertStringContainsString('Suspend sign-ups', $page);
         self::assertStringContainsString('Quiet hours', $page);
         self::assertStringNotContainsString('value="read-only"', $page);
-        self::assertStringContainsString('No incident is in force.', $page);
 
-        $this->client->submit($crawler->filter('form[action="/admin/moderation/incidents"]')->form(['preset' => 'suspend-signups', 'minutes' => '90', 'reason' => 'Spam wave']), [], $this->as('admin-1'));
-        self::assertResponseRedirects('/admin/moderation/incidents');
+        $this->incidents()->start('suspend-signups', Duration::ofMinutes(90), null);
 
-        $incidents = self::getContainer()->get(IncidentMode::class);
-        self::assertInstanceOf(IncidentMode::class, $incidents);
-        self::assertTrue($incidents->isSuspended('signups'));
-        self::assertSame('admin-1', $incidents->inForceNow()[0]->startedBy?->id);
-        $transport = self::getContainer()->get('messenger.transport.memory');
-        self::assertInstanceOf(InMemoryTransport::class, $transport);
-        self::assertInstanceOf(LiftIncident::class, $transport->getSent()[0]->getMessage());
+        $this->client->request('GET', '/admin/moderation/', server: $this->as('admin-1'));
+        self::assertStringNotContainsString('Reports are surging.', (string) $this->client->getResponse()->getContent(), 'not while an incident is in force');
+    }
+
+    public function testASuspendedSignUpInvitationOrFormIsRefusedThroughTheIncidentModeBundle(): void
+    {
+        $this->client->request('POST', '/sign-up');
+        self::assertResponseIsSuccessful();
+        $this->client->request('GET', '/invite', server: $this->as('m-1'));
+        self::assertResponseIsSuccessful();
+        $this->client->request('POST', '/forum/new', ['post' => ['body' => 'Hello']], server: $this->as('m-1'));
+        self::assertSame('Posted', $this->client->getResponse()->getContent());
+
+        $incidents = $this->incidents();
+        $incidents->start('suspend-signups', Duration::ofMinutes(90), null);
+        $incidents->start('suspend-invitations', Duration::ofMinutes(30), null);
+        $incidents->start('quiet', Duration::ofMinutes(60), null);
 
         $this->client->request('GET', '/forum/1', server: $this->as('m-1'));
-        self::assertStringContainsString('Sign-ups are suspended.', (string) $this->client->getResponse()->getContent());
+        self::assertStringContainsString('Sign-ups are suspended.', $this->client->getResponse()->getContent());
 
-        $crawler = $this->client->request('GET', '/admin/moderation/incidents', server: $this->as('admin-1'));
-        self::assertStringContainsString('Spam wave', (string) $this->client->getResponse()->getContent());
-        self::assertStringNotContainsString('Reports are surging', (string) $this->client->getResponse()->getContent());
+        $this->client->request('GET', '/sign-up');
+        self::assertResponseIsSuccessful('the sign-up is refused on posting only');
+        $this->client->request('POST', '/sign-up');
+        self::assertResponseStatusCodeSame(503);
+        self::assertTrue($this->client->getResponse()->headers->has('Retry-After'));
 
-        $token = $this->adminToken('admin-1');
-        $this->client->request('POST', '/admin/moderation/incidents', ['preset' => 'suspend-signups', 'minutes' => '100000', '_token' => $token], server: $this->as('admin-1'));
+        $this->client->request('GET', '/invite', server: $this->as('m-1'));
+        self::assertResponseStatusCodeSame(503);
+
+        $this->client->request('POST', '/forum/new', ['post' => ['body' => 'Hello']], server: $this->as('m-1'));
         self::assertResponseStatusCodeSame(422);
-        self::assertStringContainsString('lasts at most', (string) $this->client->getResponse()->getContent());
-        $this->client->request('POST', '/admin/moderation/incidents', ['preset' => 'suspend-signups', 'minutes' => '0', '_token' => $token], server: $this->as('admin-1'));
-        self::assertResponseStatusCodeSame(422);
+        self::assertNotSame('Posted', $this->client->getResponse()->getContent());
+        self::assertNotSame('', $this->client->getResponse()->getContent(), 'the form says until when');
+    }
 
-        $this->client->submit($crawler->filter('form[action$="/lift"]')->form(), [], $this->as('admin-1'));
-        self::assertResponseRedirects('/admin/moderation/incidents');
-        self::assertFalse($incidents->isSuspended('signups'));
+    private function incidents(): IncidentMode
+    {
+        $incidents = self::getContainer()->get(IncidentMode::class);
+        self::assertInstanceOf(IncidentMode::class, $incidents);
 
-        $this->client->request('POST', '/admin/moderation/incidents/'.str_repeat('a', 32).'/lift', ['_token' => $token], server: $this->as('admin-1'));
-        self::assertResponseStatusCodeSame(404);
-
-        $this->client->request('GET', '/admin/moderation/incidents', server: $this->as('admin-1'));
-        self::assertStringContainsString('lifted', (string) $this->client->getResponse()->getContent());
+        return $incidents;
     }
 
     private function report(string $member, string $reason): void

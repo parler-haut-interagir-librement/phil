@@ -42,6 +42,7 @@
         "doctrine/orm": "^3.7",
         "easycorp/easyadmin-bundle": "^5.8",
         "phil/incident-mode": "^0.2@dev",
+        "phil/incident-mode-bundle": "^0.1@dev",
         "phil/notifications-bundle": "^0.1@dev || ^0.2@dev",
         "phil/privacy-bundle": "^0.1@dev",
         "phil/ux-kit": ">=0.5.0-alpha <1.0",
@@ -52,6 +53,7 @@
         "symfony/css-selector": "^8.2",
         "symfony/dom-crawler": "^8.1",
         "symfony/event-dispatcher": "^8.2",
+        "symfony/form": "^8.2",
         "symfony/framework-bundle": "^8.2",
         "symfony/messenger": "^8.2",
         "symfony/security-bundle": "^8.2",
@@ -62,11 +64,10 @@
     "suggest": {
         "doctrine/orm": "To add the tables of the bundle to the schema the ORM generates, so that a migration creates them",
         "easycorp/easyadmin-bundle": "For the pages of the moderation inside every dashboard of an EasyAdmin back office",
-        "phil/incident-mode": "For the incident mode, offered in the back office and proposed when reports surge, and its port EstablishedMembers, which spares the members the application holds for established",
+        "phil/incident-mode-bundle": "For its incident mode offered in the queue to the role of its administration, and proposed when reports surge",
         "phil/notifications-bundle": "To tell a member a statement of reasons is addressed to them",
         "phil/privacy-bundle": "For the moderation's records of a member in the export and the erasure of their data",
-        "phil/ux-kit": "For the recipes the templates draw — Alert, Badge, Button, Field, Input, NativeSelect, Table, Textarea —, through the Symfony UX Toolkit",
-        "symfony/messenger": "To lift an incident at its end by a delayed message"
+        "phil/ux-kit": "For the recipes the templates draw — Alert, Badge, Button, Field, Input, NativeSelect, Table, Textarea —, through the Symfony UX Toolkit"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phil\ModerationBundle\Tests\Fixture;
 
 use Override;
-use Phil\IncidentMode\Contract\EstablishedMembers;
 use Phil\ModerationBundle\Application\Contract\CurrentMember;
 use Phil\ModerationBundle\Application\Contract\CurrentModerator;
 use Phil\ModerationBundle\Application\Contract\TrustedHiders;
@@ -14,10 +13,9 @@ use Phil\ModerationBundle\Application\Role;
 use Phil\ModerationBundle\Domain\ValueObject\MemberId;
 
 /**
- * Who is signed in, whether they moderate and under which role, who is trusted to hide and who is established: set by
- * each test.
+ * Who is signed in, whether they moderate and under which role, and who is trusted to hide: set by each test.
  */
-final class People implements CurrentMember, CurrentModerator, TrustedHiders, EstablishedMembers
+final class People implements CurrentMember, CurrentModerator, TrustedHiders
 {
     public ?MemberId $member = null;
 
@@ -25,9 +23,6 @@ final class People implements CurrentMember, CurrentModerator, TrustedHiders, Es
 
     /** @var list<string> */
     public array $trusted = [];
-
-    /** @var list<string> */
-    public array $established = [];
 
     public function signIn(string $member, ?Role $role = null): self
     {
@@ -61,11 +56,5 @@ final class People implements CurrentMember, CurrentModerator, TrustedHiders, Es
     public function canHide(MemberId $member): bool
     {
         return \in_array($member->value, $this->trusted, true);
-    }
-
-    #[Override]
-    public function isEstablished(string $member): bool
-    {
-        return \in_array($member, $this->established, true);
     }
 }

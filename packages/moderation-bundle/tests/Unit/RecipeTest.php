@@ -56,12 +56,9 @@ final class RecipeTest extends TestCase
 
         $processed = new Processor()->processConfiguration($configuration, [$config['phil_moderation']]);
 
-        $incident = $processed['incident'];
         $roles = $processed['roles'];
-        self::assertIsArray($incident);
         self::assertIsArray($roles);
-        self::assertSame('ROLE_ADMIN', $incident['role']);
-        self::assertSame([], $incident['spare_established']);
+        self::assertSame(['reports' => 25, 'within' => 3600], $processed['surge']);
         self::assertSame(['moderator', 'administrator'], array_column($roles, 'name'));
     }
 }

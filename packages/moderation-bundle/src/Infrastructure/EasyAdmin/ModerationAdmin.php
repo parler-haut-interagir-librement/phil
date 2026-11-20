@@ -37,9 +37,6 @@ final class ModerationAdmin
         AdminController::MEMBER_ROUTE => '_moderation_member',
         AdminController::NOTE_ROUTE => '_moderation_note',
         AdminController::NOTE_REMOVE_ROUTE => '_moderation_note_remove',
-        AdminController::INCIDENTS_ROUTE => '_moderation_incidents',
-        AdminController::INCIDENT_START_ROUTE => '_moderation_incident_start',
-        AdminController::INCIDENT_LIFT_ROUTE => '_moderation_incident_lift',
     ];
 
     private function __construct()
@@ -52,14 +49,6 @@ final class ModerationAdmin
     public static function menuItem(string $dashboardRoute = 'admin', string $label = 'Moderation', ?string $icon = 'fa fa-flag'): RouteMenuItem
     {
         return MenuItem::linkToRoute($label, $icon, $dashboardRoute.self::ROUTES[AdminController::QUEUE_ROUTE]);
-    }
-
-    /**
-     * The link to the incident mode under the dashboard whose route is given.
-     */
-    public static function incidentsMenuItem(string $dashboardRoute = 'admin', string $label = 'Incident mode', ?string $icon = 'fa fa-triangle-exclamation'): RouteMenuItem
-    {
-        return MenuItem::linkToRoute($label, $icon, $dashboardRoute.self::ROUTES[AdminController::INCIDENTS_ROUTE]);
     }
 
     /**
