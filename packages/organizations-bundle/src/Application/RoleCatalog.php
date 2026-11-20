@@ -10,8 +10,8 @@ use Phil\OrganizationsBundle\Domain\ValueObject\Roles;
 
 /**
  * The roles a membership may hold and the permissions of each, from the configuration: the roles of an organization —
- * `owner`, `admin` and `member` built in, others declared —, or the roles of a team — `maintainer` and `member` built
- * in, others declared.
+ * `owner`, `admin` and `member` built in, others declared —, the roles of a team — `maintainer` and `member` built
+ * in, others declared —, or the roles of a unit — `manager` and `member` built in, others declared.
  *
  * A declared permission list adds to a built-in role's; `owner` holds every permission of the catalogue, whatever is
  * declared for it.
@@ -25,6 +25,8 @@ final readonly class RoleCatalog
     public const string MEMBER = 'member';
 
     public const string MAINTAINER = 'maintainer';
+
+    public const string MANAGER = 'manager';
 
     /**
      * @param array<string, list<string>> $permissions the permissions of each role, by role name
@@ -58,6 +60,18 @@ final readonly class RoleCatalog
     public static function team(array $declared = []): self
     {
         return self::build([self::MAINTAINER => [Permission::TEAM_MANAGE], self::MEMBER => []], $declared, null);
+    }
+
+    /**
+     * The roles of a unit, which hold in the unit and in every unit below it.
+     *
+     * @param array<array-key, mixed> $declared the declared roles, each a list of permissions, by role name
+     *
+     * @throws InvalidOrganization when a role or a permission is out of shape
+     */
+    public static function unit(array $declared = []): self
+    {
+        return self::build([self::MANAGER => [Permission::UNIT_MANAGE], self::MEMBER => []], $declared, null);
     }
 
     /**

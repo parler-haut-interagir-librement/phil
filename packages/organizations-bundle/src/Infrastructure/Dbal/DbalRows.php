@@ -10,6 +10,8 @@ use Phil\OrganizationsBundle\Domain\Model\Membership;
 use Phil\OrganizationsBundle\Domain\Model\Organization;
 use Phil\OrganizationsBundle\Domain\Model\Team;
 use Phil\OrganizationsBundle\Domain\Model\TeamMembership;
+use Phil\OrganizationsBundle\Domain\Model\Unit;
+use Phil\OrganizationsBundle\Domain\Model\UnitMembership;
 use Phil\OrganizationsBundle\Domain\Status\JoinMethod;
 use Phil\OrganizationsBundle\Domain\ValueObject\EmailDomain;
 use Phil\OrganizationsBundle\Domain\ValueObject\InvitationId;
@@ -19,6 +21,8 @@ use Phil\OrganizationsBundle\Domain\ValueObject\OrganizationId;
 use Phil\OrganizationsBundle\Domain\ValueObject\OrganizationName;
 use Phil\OrganizationsBundle\Domain\ValueObject\Roles;
 use Phil\OrganizationsBundle\Domain\ValueObject\TeamId;
+use Phil\OrganizationsBundle\Domain\ValueObject\UnitId;
+use Phil\OrganizationsBundle\Domain\ValueObject\UnitPath;
 use Phil\Slug\Slug;
 use UnexpectedValueException;
 
@@ -102,6 +106,35 @@ final readonly class DbalRows
             self::moment($row['expires_at']),
             null === $row['created_by'] ? null : MemberId::fromString(self::text($row['created_by'])),
             self::optionalMoment($row['revoked_at']),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    public static function unit(array $row): Unit
+    {
+        return Unit::restored(
+            UnitId::fromString(self::text($row['id'])),
+            OrganizationId::fromString(self::text($row['organization_id'])),
+            OrganizationName::fromString(self::text($row['name'])),
+            UnitPath::fromString(self::text($row['path'])),
+            self::moment($row['created_at']),
+            self::optionalMoment($row['archived_at']),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    public static function unitMembership(array $row): UnitMembership
+    {
+        return UnitMembership::restored(
+            UnitId::fromString(self::text($row['unit_id'])),
+            OrganizationId::fromString(self::text($row['organization_id'])),
+            MemberId::fromString(self::text($row['member_id'])),
+            Roles::fromString(self::text($row['roles'])),
+            self::moment($row['joined_at']),
         );
     }
 

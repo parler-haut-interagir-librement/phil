@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\OrganizationsBundle\Application;
 
 use Phil\OrganizationsBundle\Application\Contract\OrganizationStore;
+use Phil\OrganizationsBundle\Application\Contract\UnitStore;
 use Phil\OrganizationsBundle\Application\Exception\AlreadyMember;
 use Phil\OrganizationsBundle\Application\Exception\LastOwner;
 use Phil\OrganizationsBundle\Application\Exception\NotAMember;
@@ -14,6 +15,7 @@ use Phil\OrganizationsBundle\Domain\Event\MemberJoined;
 use Phil\OrganizationsBundle\Domain\Event\MemberLeft;
 use Phil\OrganizationsBundle\Domain\Event\MemberRolesChanged;
 use Phil\OrganizationsBundle\Domain\Event\TeamMemberRemoved;
+use Phil\OrganizationsBundle\Domain\Event\UnitMemberRemoved;
 use Phil\OrganizationsBundle\Domain\Exception\InvalidOrganization;
 use Phil\OrganizationsBundle\Domain\Model\Membership;
 use Phil\OrganizationsBundle\Domain\Model\Organization;
@@ -30,7 +32,8 @@ use Psr\Clock\ClockInterface;
  * A member who manages members — `members.manage` — adds, changes and removes only roles whose permissions they hold
  * themselves, and only members whose roles are within their own: an admin neither names an owner nor removes one. The
  * last owner can never leave, be removed or lose the owner role: the change throws `LastOwner`, and the organization
- * is never left without someone who may grant and revoke.
+ * is never left without someone who may grant and revoke. A member who leaves the organization leaves its teams and its
+ * units.
  */
 final readonly class Members
 {
@@ -39,6 +42,7 @@ final readonly class Members
         private UnitOfWork $work,
         private OrganizationAccess $access,
         private ClockInterface $clock,
+        private ?UnitStore $units = null,
     ) {
     }
 
@@ -157,6 +161,10 @@ final readonly class Members
 
         foreach ($this->store->teamMembershipsOf($membership->memberId, $organization->id) as $teamMembership) {
             $events->record(new TeamMemberRemoved($organization->id->value, $teamMembership->teamId->value, $membership->memberId->value, $teamMembership->roles->names));
+        }
+
+        foreach ($this->units?->unitMembershipsOf($membership->memberId, $organization->id) ?? [] as $unitMembership) {
+            $events->record(new UnitMemberRemoved($organization->id->value, $unitMembership->unitId->value, $membership->memberId->value, $unitMembership->roles->names));
         }
 
         $this->store->deleteMembership($organization->id, $membership->memberId);

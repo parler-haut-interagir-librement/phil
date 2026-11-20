@@ -6,15 +6,18 @@ namespace Phil\OrganizationsBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
 use Phil\OrganizationsBundle\Application\Contract\OrganizationStore;
+use Phil\OrganizationsBundle\Application\Contract\UnitStore;
 use Phil\OrganizationsBundle\Application\MemberErasure;
 use Phil\OrganizationsBundle\Application\UnitOfWork;
 use Phil\OrganizationsBundle\Domain\Model\Membership;
 use Phil\OrganizationsBundle\Domain\Model\TeamMembership;
+use Phil\OrganizationsBundle\Domain\Model\UnitMembership;
 use Phil\OrganizationsBundle\Domain\Status\JoinMethod;
 use Phil\OrganizationsBundle\Domain\ValueObject\MemberId;
 use Phil\OrganizationsBundle\Domain\ValueObject\OrganizationId;
 use Phil\OrganizationsBundle\Domain\ValueObject\Roles;
 use Phil\OrganizationsBundle\Domain\ValueObject\TeamId;
+use Phil\OrganizationsBundle\Domain\ValueObject\UnitId;
 use Phil\OrganizationsBundle\Infrastructure\Privacy\OrganizationsPrivacy;
 use Phil\OrganizationsBundle\Tests\Fixtures\Stage;
 use Phil\PrivacyBundle\Domain\Retention\ErasureEffect;
@@ -33,13 +36,16 @@ final class PrivacyTest extends TestCase
         $team = $stage->teams->create($acme->id, Stage::member('ann'), 'Design');
         $stage->teams->addMember($team->id, Stage::member('ann'), Stage::member('bob'), ['maintainer']);
         $issued = $stage->invitations->create($acme->id, Stage::member('bob'), ['member'], null, 3);
-        $privacy = new OrganizationsPrivacy($stage->store, $stage->erasure);
+        $sales = $stage->units->create($acme->id, Stage::member('ann'), 'Sales');
+        $stage->units->addMember($sales->id, Stage::member('ann'), Stage::member('bob'), ['manager']);
+        $privacy = new OrganizationsPrivacy($stage->store, $stage->erasure, $stage->unitStore);
         $at = $stage->clock->now()->format(\DATE_ATOM);
 
         self::assertSame('organizations', $privacy->module()->value);
         self::assertSame([
             'memberships' => [['organization' => $acme->id->value, 'name' => 'Acme Guild', 'roles' => ['admin'], 'joined_by' => 'added', 'joined_at' => $at]],
             'teams' => [['team' => $team->id->value, 'name' => 'Design', 'roles' => ['maintainer'], 'joined_at' => $at]],
+            'units' => [['organization' => $acme->id->value, 'unit' => $sales->id->value, 'name' => 'Sales', 'roles' => ['manager'], 'joined_at' => $at]],
             'invitations_created' => [['organization' => $acme->id->value, 'roles' => ['member'], 'uses' => 0, 'created_at' => $at, 'expires_at' => $issued->invitation->expiresAt->format(\DATE_ATOM)]],
         ], $privacy->export(DataSubject::fromString('bob')));
         self::assertSame(['memberships'], array_keys($privacy->export(DataSubject::fromString('cam'))));
@@ -53,9 +59,11 @@ final class PrivacyTest extends TestCase
             'phil_organization_member' => ErasureEffect::Deleted,
             'phil_organization_member_role' => ErasureEffect::Deleted,
             'phil_organization_team_member' => ErasureEffect::Deleted,
+            'phil_organization_unit_member' => ErasureEffect::Deleted,
             'phil_organization_invitation' => ErasureEffect::Pseudonymised,
         ], $report->effects);
         self::assertSame([], $privacy->export(DataSubject::fromString('bob')));
+        self::assertNull($stage->unitStore->unitMembership($sales->id, Stage::member('bob')));
         self::assertNull($stage->store->invitation($issued->invitation->id)?->createdBy);
         self::assertEquals($report, $privacy->erase(DataSubject::fromString('bob')));
         self::assertEquals($report, $privacy->erase(DataSubject::fromString('bob@example.org')));
@@ -76,5 +84,11 @@ final class PrivacyTest extends TestCase
             'memberships' => [['organization' => 'o1', 'name' => null, 'roles' => ['member'], 'joined_by' => 'added', 'joined_at' => '1970-01-01T00:16:40+00:00']],
             'teams' => [['team' => 't1', 'name' => null, 'roles' => ['member'], 'joined_at' => '1970-01-01T00:16:40+00:00']],
         ], $export);
+
+        $units = self::createStub(UnitStore::class);
+        $units->method('unitMembershipsOf')->willReturn([UnitMembership::restored(UnitId::fromString('u1'), OrganizationId::fromString('o1'), MemberId::fromString('bob'), Roles::of(['member']), $joined)]);
+        $withUnits = new OrganizationsPrivacy($store, new MemberErasure($store, new UnitOfWork($store), new MockClock()), $units);
+
+        self::assertSame([['organization' => 'o1', 'unit' => 'u1', 'name' => null, 'roles' => ['member'], 'joined_at' => '1970-01-01T00:16:40+00:00']], $withUnits->export(DataSubject::fromString('bob'))['units'] ?? null);
     }
 }

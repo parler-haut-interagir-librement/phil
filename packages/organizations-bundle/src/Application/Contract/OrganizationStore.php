@@ -86,7 +86,8 @@ interface OrganizationStore
     public function saveMembership(Membership $membership): void;
 
     /**
-     * Deletes the membership and the member's memberships of the organization's teams.
+     * Deletes the membership and the member's memberships of the organization's teams, and of its units when the store
+     * keeps units too.
      */
     public function deleteMembership(OrganizationId $organizationId, MemberId $memberId): bool;
 

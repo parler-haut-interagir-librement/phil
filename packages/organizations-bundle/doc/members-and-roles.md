@@ -38,7 +38,7 @@ Each membership holds one to sixteen roles. Three are built in:
 | Role | Permissions |
 |---|---|
 | `owner` | Every permission, built in or declared |
-| `admin` | `organization.view`, `organization.manage`, `members.invite`, `members.manage`, `teams.manage`, `organization.act_on_behalf` |
+| `admin` | `organization.view`, `organization.manage`, `members.invite`, `members.manage`, `teams.manage`, `units.manage`, `organization.act_on_behalf` |
 | `member` | `organization.view` |
 
 The built-in permissions are the constants of `Permission`:
@@ -52,6 +52,7 @@ The built-in permissions are the constants of `Permission`:
 | `members.manage` | Adding members, changing their roles, removing them |
 | `owners.manage` | Giving and taking the owner role |
 | `teams.manage` | Creating and deleting teams, managing the members of any team |
+| `units.manage` | Creating, renaming, moving, archiving and restoring any unit, managing the members of any unit; every unit permission in every unit — see [Units](units.md) |
 | `organization.act_on_behalf` | Acting on behalf of the organization |
 
 The configuration declares other roles, and adds permissions to `admin` and `member`:

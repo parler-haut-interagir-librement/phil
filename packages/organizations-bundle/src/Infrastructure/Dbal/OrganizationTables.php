@@ -9,6 +9,7 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ColumnEditor;
+use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Index\IndexType;
 use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
@@ -20,17 +21,21 @@ use Phil\OrganizationsBundle\Domain\ValueObject\EmailDomain;
 use Phil\OrganizationsBundle\Domain\ValueObject\Identifier;
 use Phil\OrganizationsBundle\Domain\ValueObject\OrganizationName;
 use Phil\OrganizationsBundle\Domain\ValueObject\Roles;
+use Phil\OrganizationsBundle\Domain\ValueObject\UnitPath;
 use Phil\Slug\Slug;
 
 /**
- * The six tables of the bundle, built for the platform of a connection:
+ * The eight tables of the bundle, built for the platform of a connection:
  *
  * - `phil_organization`: one row per organization, its slug unique;
  * - `phil_organization_member`: one row per member of an organization, with their roles;
  * - `phil_organization_member_role`: one row per role of a member, what the owners are counted from;
  * - `phil_organization_team`: one row per team, its slug unique within its organization;
  * - `phil_organization_team_member`: one row per member of a team, with their team roles;
- * - `phil_organization_invitation`: one row per invitation, the keyed hash of its token unique.
+ * - `phil_organization_invitation`: one row per invitation, the keyed hash of its token unique;
+ * - `phil_organization_unit`: one row per unit, with its parent and its path, indexed with its organization so that the
+ *   units below a unit are one range of the index;
+ * - `phil_organization_unit_member`: one row per member of a unit, with their unit roles.
  *
  * Every identifier and key column — identifiers, slugs, roles, domains, hashes — compares byte for byte: on MySQL and
  * MariaDB it is ASCII in the `ascii_bin` collation, a byte per character, and on PostgreSQL it takes the `C`
@@ -50,7 +55,11 @@ final readonly class OrganizationTables
 
     public const string INVITATION = 'phil_organization_invitation';
 
-    public const array ALL = [self::INVITATION, self::TEAM_MEMBER, self::TEAM, self::MEMBER_ROLE, self::MEMBER, self::ORGANIZATION];
+    public const string UNIT = 'phil_organization_unit';
+
+    public const string UNIT_MEMBER = 'phil_organization_unit_member';
+
+    public const array ALL = [self::UNIT_MEMBER, self::UNIT, self::INVITATION, self::TEAM_MEMBER, self::TEAM, self::MEMBER_ROLE, self::MEMBER, self::ORGANIZATION];
 
     /** The length of the roles written as one text: sixteen names of up to 64 characters and the spaces between. */
     private const int ROLES_LENGTH = Roles::MAX * 65;
@@ -83,11 +92,33 @@ final readonly class OrganizationTables
     }
 
     /**
+     * The statements that add the tables a database lacks, for a migration: the tables of the units and their members
+     * on a database of 0.1, every table on an empty one. Only tables are added; nothing is changed or dropped. The
+     * comparator is the schema manager's of the connection.
+     *
+     * @return list<string>
+     */
+    public function upgrade(Schema $current, Comparator $comparator): array
+    {
+        return $this->platform->getAlterSchemaSQL($comparator->compareSchemas($current, $this->configure($current)));
+    }
+
+    /**
+     * The statements that drop the tables of the units and their members, for the way back of a migration to 0.1.
+     *
+     * @return list<string>
+     */
+    public function downgrade(): array
+    {
+        return [$this->platform->getDropTableSQL(self::UNIT_MEMBER), $this->platform->getDropTableSQL(self::UNIT)];
+    }
+
+    /**
      * @return list<Table>
      */
     public function tables(): array
     {
-        return [$this->organization(), $this->member(), $this->memberRole(), $this->team(), $this->teamMember(), $this->invitation()];
+        return [$this->organization(), $this->member(), $this->memberRole(), $this->team(), $this->teamMember(), $this->invitation(), $this->unit(), $this->unitMember()];
     }
 
     private function organization(): Table
@@ -196,6 +227,44 @@ final readonly class OrganizationTables
                 Index::editor()->setUnquotedName(self::INVITATION.'_expires_at')->setUnquotedColumnNames('expires_at')->create(),
                 Index::editor()->setUnquotedName(self::INVITATION.'_revoked_at')->setUnquotedColumnNames('revoked_at')->create(),
             )
+            ->create();
+    }
+
+    private function unit(): Table
+    {
+        return Table::editor()
+            ->setUnquotedName(self::UNIT)
+            ->setColumns(
+                $this->key('id', Identifier::MAX_LENGTH)->create(),
+                $this->key('organization_id', Identifier::MAX_LENGTH)->create(),
+                $this->key('parent_id', Identifier::MAX_LENGTH)->setNotNull(false)->create(),
+                Column::editor()->setUnquotedName('name')->setTypeName(Types::STRING)->setLength(OrganizationName::MAX_LENGTH)->create(),
+                $this->key('path', UnitPath::MAX_LENGTH)->create(),
+                Column::editor()->setUnquotedName('depth')->setTypeName(Types::SMALLINT)->create(),
+                $this->moment('created_at')->create(),
+                $this->moment('archived_at')->setNotNull(false)->create(),
+            )
+            ->setPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('id')->create())
+            ->setIndexes(
+                Index::editor()->setUnquotedName(self::UNIT.'_path')->setUnquotedColumnNames('organization_id', 'path')->create(),
+                Index::editor()->setUnquotedName(self::UNIT.'_parent_id')->setUnquotedColumnNames('organization_id', 'parent_id')->create(),
+            )
+            ->create();
+    }
+
+    private function unitMember(): Table
+    {
+        return Table::editor()
+            ->setUnquotedName(self::UNIT_MEMBER)
+            ->setColumns(
+                $this->key('unit_id', Identifier::MAX_LENGTH)->create(),
+                $this->key('member_id', Identifier::MAX_LENGTH)->create(),
+                $this->key('organization_id', Identifier::MAX_LENGTH)->create(),
+                $this->key('roles', self::ROLES_LENGTH)->create(),
+                $this->moment('joined_at')->create(),
+            )
+            ->setPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('unit_id', 'member_id')->create())
+            ->setIndexes(Index::editor()->setUnquotedName(self::UNIT_MEMBER.'_member_id')->setUnquotedColumnNames('member_id', 'organization_id')->create())
             ->create();
     }
 

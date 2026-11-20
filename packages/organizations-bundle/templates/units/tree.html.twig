@@ -1,0 +1,37 @@
+{#
+ # The tree of units of an organization — the recipe `Tree` of the kit, each unit leading to its page — and, for a
+ # member who manages the units, the form of a new unit under the root or under another unit — the recipes `Input`,
+ # `NativeSelect` and `Button`.
+ #
+ # organization: Organization. branches: the units by the identifier of their parent, the roots under "". units: list of
+ # Unit, by path. manages: bool. error: string|null. token: string.
+ #}
+{% extends layout %}
+
+{% block title %}{{ 'units.title'|trans({'%organization%': organization.name.value}, 'phil_organizations') }}{% endblock %}
+
+{% block main %}
+<h1>{{ 'units.title'|trans({'%organization%': organization.name.value}, 'phil_organizations') }}</h1>
+{{ include('@PhilOrganizations/units/_error.html.twig') }}
+{%- if units is empty %}
+<p class="phil-organizations__none">{{ 'units.none'|trans({}, 'phil_organizations') }}</p>
+{%- else %}
+{% component (phil_organizations_kit('Tree')) with {label: 'units.tree'|trans({}, 'phil_organizations')} %}{% block content %}{% import '@PhilOrganizations/units/_tree.html.twig' as tree %}{{ tree.items(branches, '') }}{% endblock %}{% endcomponent %}
+{%- endif %}
+{%- if manages %}
+<h2>{{ 'units.new'|trans({}, 'phil_organizations') }}</h2>
+<form method="post" action="{{ path('phil_organizations_units_create', {organization: organization.id.value}) }}" class="phil-organizations__create">
+    <input type="hidden" name="_token" value="{{ token }}">
+    <label for="phil-organizations-name">{{ 'units.name'|trans({}, 'phil_organizations') }}</label>
+    {% component (phil_organizations_kit('Input')) with {id: 'phil-organizations-name', name: 'name', required: true, maxlength: 200} %}{% endcomponent %}
+    <label for="phil-organizations-parent">{{ 'units.parent'|trans({}, 'phil_organizations') }}</label>
+    {% component (phil_organizations_kit('NativeSelect')) with {id: 'phil-organizations-parent', name: 'parent'} %}{% block content %}
+        {% component (phil_organizations_kit('NativeSelect:Option')) with {value: ''} %}{% block content %}{{ 'units.root'|trans({}, 'phil_organizations') }}{% endblock %}{% endcomponent %}
+        {%- for unit in units|filter(unit => unit.isActive()) %}
+        {% component (phil_organizations_kit('NativeSelect:Option')) with {value: unit.id.value} %}{% block content %}{{ unit.name.value }}{% endblock %}{% endcomponent %}
+        {%- endfor %}
+    {% endblock %}{% endcomponent %}
+    {% component (phil_organizations_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'units.create'|trans({}, 'phil_organizations') }}{% endblock %}{% endcomponent %}
+</form>
+{%- endif %}
+{% endblock %}

@@ -7,7 +7,9 @@ namespace Phil\OrganizationsBundle\Tests\Unit;
 use Phil\AccessBundle\PhilAccessBundle;
 use Phil\OrganizationsBundle\Application\Contract\MemberOfUser;
 use Phil\OrganizationsBundle\Application\Contract\OrganizationStore;
+use Phil\OrganizationsBundle\Application\Contract\UnitStore;
 use Phil\OrganizationsBundle\Application\DomainJoin;
+use Phil\OrganizationsBundle\Application\Exception\AlreadyMember;
 use Phil\OrganizationsBundle\Application\InvitationPolicy;
 use Phil\OrganizationsBundle\Application\Invitations;
 use Phil\OrganizationsBundle\Application\MemberErasure;
@@ -18,7 +20,10 @@ use Phil\OrganizationsBundle\Application\Organizations;
 use Phil\OrganizationsBundle\Application\OwnershipCheck;
 use Phil\OrganizationsBundle\Application\RoleCatalog;
 use Phil\OrganizationsBundle\Application\Teams;
+use Phil\OrganizationsBundle\Application\UnitAccess;
 use Phil\OrganizationsBundle\Application\UnitOfWork;
+use Phil\OrganizationsBundle\Application\Units;
+use Phil\OrganizationsBundle\Application\UnitTree;
 use Phil\OrganizationsBundle\Domain\Event\MemberJoined;
 use Phil\OrganizationsBundle\Domain\Event\OrganizationCreated;
 use Phil\OrganizationsBundle\Domain\ValueObject\MemberId;
@@ -30,28 +35,38 @@ use Phil\OrganizationsBundle\Infrastructure\Console\ListOrganizationsCommand;
 use Phil\OrganizationsBundle\Infrastructure\Console\PurgeInvitationsCommand;
 use Phil\OrganizationsBundle\Infrastructure\Console\ShowOrganizationCommand;
 use Phil\OrganizationsBundle\Infrastructure\Dbal\DbalOrganizationStore;
+use Phil\OrganizationsBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\OrganizationsBundle\Infrastructure\DependencyInjection\OrganizationsServices;
+use Phil\OrganizationsBundle\Infrastructure\DependencyInjection\UnitServicesPass;
 use Phil\OrganizationsBundle\Infrastructure\Doctrine\OrganizationSchemaListener;
+use Phil\OrganizationsBundle\Infrastructure\Http\UnitAdminController;
 use Phil\OrganizationsBundle\Infrastructure\Memory\InMemoryOrganizationStore;
 use Phil\OrganizationsBundle\Infrastructure\Privacy\OrganizationsPrivacy;
 use Phil\OrganizationsBundle\Infrastructure\Security\OrganizationVoter;
 use Phil\OrganizationsBundle\Infrastructure\Security\UserIdentifierMember;
+use Phil\OrganizationsBundle\Infrastructure\Twig\KitComponents;
+use Phil\OrganizationsBundle\Infrastructure\Twig\OrganizationsExtension;
 use Phil\OrganizationsBundle\PhilOrganizationsBundle;
+use Phil\OrganizationsBundle\Tests\Fixtures\RacingStore;
 use Phil\OrganizationsBundle\Tests\Fixtures\RecordingDispatcher;
 use Phil\ResourcePermissions\RelationWriter;
 use Phil\Slug\TransliteratingSlugger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Bundle\FrameworkBundle\DependencyInjection\FrameworkExtension;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
+use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
 
 #[CoversClass(PhilOrganizationsBundle::class)]
 #[CoversClass(OrganizationsServices::class)]
+#[CoversClass(UnitServicesPass::class)]
+#[CoversClass(KitSubdirectoryPass::class)]
 final class PhilOrganizationsBundleTest extends TestCase
 {
     private const string KEY = 'a-key-of-thirty-two-bytes-at-least-for-tests';
@@ -92,9 +107,12 @@ final class PhilOrganizationsBundleTest extends TestCase
             'store' => 'memory',
             'roles' => ['billing' => ['permissions' => ['billing.read']], 'admin' => ['permissions' => ['billing.read']]],
             'team_roles' => ['reviewer' => ['permissions' => ['review.approve']]],
+            'unit_roles' => ['instructor' => ['permissions' => ['courses.assign']]],
+            'units' => ['single_membership' => true],
             'domain_join' => ['enabled' => true, 'roles' => ['member', 'billing']],
             'recommended_owners' => 3,
         ]]);
+        new PhilOrganizationsBundle()->build($container);
         $events = new RecordingDispatcher();
         $container->register('clock')->setSynthetic(true);
         $container->register('event_dispatcher')->setSynthetic(true);
@@ -129,6 +147,130 @@ final class PhilOrganizationsBundleTest extends TestCase
         foreach ([Members::class, Invitations::class, OnBehalf::class] as $service) {
             self::assertInstanceOf($service, $container->get($service));
         }
+
+        $units = $container->get(Units::class);
+        self::assertInstanceOf(Units::class, $units);
+        $sales = $units->create($acme->id, MemberId::fromString('ann'), 'Sales');
+        $east = $units->create($acme->id, MemberId::fromString('ann'), 'East', $sales->id);
+        $units->addMember($sales->id, MemberId::fromString('ann'), MemberId::fromString('ann'), ['instructor']);
+        $tree = $container->get(UnitTree::class);
+        self::assertInstanceOf(UnitTree::class, $tree);
+        self::assertEquals([$sales], $tree->ancestors($east->id));
+        $unitAccess = $container->get(UnitAccess::class);
+        self::assertInstanceOf(UnitAccess::class, $unitAccess);
+        self::assertTrue($unitAccess->can($east, MemberId::fromString('ann'), 'courses.assign'));
+        self::assertSame(['instructor', 'manager', 'member'], array_values(array_intersect(['instructor', 'manager', 'member'], $unitAccess->roles()->names())));
+
+        try {
+            $units->addMember($east->id, MemberId::fromString('ann'), MemberId::fromString('ann'), ['member']);
+            self::fail('A member joined a second unit.');
+        } catch (AlreadyMember) {
+        }
+
+        self::assertFalse($container->has(UnitAdminController::class));
+    }
+
+    public function testTheUnitsAreLeftOutOfAStoreThatKeepsNone(): void
+    {
+        $container = $this->load([['store' => 'app.store']]);
+        $container->register('app.store', InMemoryOrganizationStore::class);
+        new UnitServicesPass()->process($container);
+        self::assertTrue($container->hasAlias(UnitStore::class));
+        self::assertTrue($container->hasDefinition(Units::class));
+
+        $other = $this->load([['store' => 'app.store']]);
+        $other->register('app.store', RacingStore::class);
+        new UnitServicesPass()->process($other);
+        self::assertFalse($other->hasAlias(UnitStore::class));
+
+        foreach (UnitServicesPass::UNIT_SERVICES as $service) {
+            self::assertFalse($other->hasDefinition($service), $service);
+        }
+
+        self::assertTrue($other->hasDefinition(Members::class));
+
+        $missing = $this->load([['store' => 'app.store']]);
+        new UnitServicesPass()->process($missing);
+        self::assertFalse($missing->hasAlias(UnitStore::class));
+
+        $parameter = $this->load([['store' => 'app.store']]);
+        $parameter->setParameter('store.class', InMemoryOrganizationStore::class);
+        $parameter->register('app.store', '%store.class%');
+        new UnitServicesPass()->process($parameter);
+        self::assertTrue($parameter->hasAlias(UnitStore::class));
+    }
+
+    public function testThePagesNeedTwigTheRouterAndTheCsrfTokens(): void
+    {
+        $container = $this->load([['units' => ['layout' => 'admin/units.html.twig', 'kit_subdirectory' => 'ui']]]);
+        $controller = $container->getDefinition(UnitAdminController::class);
+
+        self::assertTrue($controller->hasTag('controller.service_arguments'));
+        self::assertEquals([
+            new Reference(Units::class),
+            new Reference(UnitTree::class),
+            new Reference(OrganizationAccess::class),
+            new Reference(UnitAccess::class),
+            new Reference(MemberOfUser::class),
+            new Reference('security.token_storage', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            new Reference('security.csrf.token_manager'),
+            new Reference('twig'),
+            new Reference('router'),
+            'admin/units.html.twig',
+        ], $controller->getArguments());
+        self::assertSame(['ui'], $container->getDefinition(KitComponents::class)->getArguments());
+        self::assertEquals([new Reference(KitComponents::class)], $container->getDefinition(OrganizationsExtension::class)->getArguments());
+        self::assertTrue($container->getDefinition(OrganizationsExtension::class)->hasTag('twig.attribute_extension'));
+        self::assertTrue($container->getDefinition(OrganizationsExtension::class)->hasTag('twig.runtime'));
+        self::assertSame(UnitAdminController::LAYOUT, $this->load([])->getDefinition(UnitAdminController::class)->getArgument(9));
+
+        foreach (UnitServicesPass::PAGE_SERVICES as $missing) {
+            $partial = $this->load([]);
+
+            foreach (UnitServicesPass::PAGE_SERVICES as $service) {
+                if ($service !== $missing) {
+                    $partial->register($service, 'stdClass');
+                }
+            }
+
+            new UnitServicesPass()->process($partial);
+            self::assertFalse($partial->hasDefinition(UnitAdminController::class), $missing);
+        }
+
+        foreach (UnitServicesPass::PAGE_SERVICES as $service) {
+            $container->register($service, 'stdClass');
+        }
+
+        new UnitServicesPass()->process($container);
+        self::assertTrue($container->hasDefinition(UnitAdminController::class));
+    }
+
+    public function testTheBundleAddsTheCompilerPassesOfTheUnits(): void
+    {
+        $container = new ContainerBuilder();
+        new PhilOrganizationsBundle()->build($container);
+
+        $passes = array_map(static fn (object $pass): string => $pass::class, $container->getCompilerPassConfig()->getBeforeOptimizationPasses());
+
+        self::assertContains(UnitServicesPass::class, $passes);
+        self::assertContains(KitSubdirectoryPass::class, $passes);
+    }
+
+    public function testTheBundleMakesTheTokenOfThePagesStateless(): void
+    {
+        $container = new ContainerBuilder();
+        $container->registerExtension(new FrameworkExtension());
+
+        $bundle = new PhilOrganizationsBundle();
+        $extension = $bundle->getContainerExtension();
+        self::assertInstanceOf(PrependExtensionInterface::class, $extension);
+        $extension->prepend($container);
+
+        self::assertSame([['csrf_protection' => ['stateless_token_ids' => [UnitAdminController::TOKEN_ID]]]], $container->getExtensionConfig('framework'));
+
+        $alone = new ContainerBuilder();
+        $extension->prepend($alone);
+        self::assertSame([], $alone->getExtensionConfig('framework'));
     }
 
     public function testAnotherStoreSluggerAndMemberOfUser(): void
@@ -201,21 +343,26 @@ final class PhilOrganizationsBundleTest extends TestCase
         $store = new Reference(OrganizationStore::class);
         $access = new Reference(OrganizationAccess::class);
 
-        foreach ([OrganizationAccess::class, Organizations::class, Members::class, Teams::class, Invitations::class, DomainJoin::class, OnBehalf::class, OwnershipCheck::class, MemberErasure::class] as $service) {
+        foreach ([OrganizationAccess::class, Organizations::class, Members::class, Teams::class, Invitations::class, DomainJoin::class, OnBehalf::class, OwnershipCheck::class, MemberErasure::class, UnitAccess::class, Units::class, UnitTree::class, UnitAdminController::class] as $service) {
             self::assertTrue($container->getDefinition($service)->isPublic(), $service);
         }
 
         self::assertTrue($container->getAlias(OrganizationStore::class)->isPublic());
-        self::assertEquals([$store, new Reference(UnitOfWork::class), new Reference('clock')], $container->getDefinition(MemberErasure::class)->getArguments());
+        $optionalUnits = new Reference(UnitStore::class, ContainerInterface::NULL_ON_INVALID_REFERENCE);
+        self::assertEquals([$store, new Reference(UnitOfWork::class), new Reference('clock'), $optionalUnits], $container->getDefinition(MemberErasure::class)->getArguments());
+        self::assertEquals([$store, new Reference(UnitOfWork::class), $access, new Reference('clock'), $optionalUnits], $container->getDefinition(Members::class)->getArguments());
+        self::assertEquals([$store, new Reference(UnitStore::class), $access, new Reference(OrganizationsServices::UNIT_ROLES)], $container->getDefinition(UnitAccess::class)->getArguments());
+        self::assertEquals([$store, new Reference(UnitStore::class), new Reference(UnitOfWork::class), $access, new Reference(UnitAccess::class), new Reference('clock'), false], $container->getDefinition(Units::class)->getArguments());
+        self::assertEquals([new Reference(UnitStore::class)], $container->getDefinition(UnitTree::class)->getArguments());
         self::assertEquals([[$access, new Reference('clock'), new Reference('event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE)]], [$container->getDefinition(OnBehalf::class)->getArguments()]);
         self::assertSame([['method' => 'reset']], $container->getDefinition(OnBehalf::class)->getTag('kernel.reset'));
         self::assertSame([['event' => 'postGenerateSchema']], $container->getDefinition(OrganizationSchemaListener::class)->getTag('doctrine.event_listener'));
         self::assertEquals([new Reference('doctrine.dbal.default_connection')], $container->getDefinition(OrganizationSchemaListener::class)->getArguments());
         self::assertTrue($container->hasDefinition(UserIdentifierMember::class));
-        self::assertEquals([$access, new Reference(MemberOfUser::class)], $container->getDefinition(OrganizationVoter::class)->getArguments());
+        self::assertEquals([$access, new Reference(MemberOfUser::class), new Reference(UnitAccess::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(OrganizationVoter::class)->getArguments());
         self::assertEquals([new Reference(Organizations::class)], $container->getDefinition(ListOrganizationsCommand::class)->getArguments());
         self::assertEquals([new Reference(OwnershipCheck::class)], $container->getDefinition(CheckOwnersCommand::class)->getArguments());
-        self::assertEquals([$store, new Reference(MemberErasure::class)], $container->getDefinition(OrganizationsPrivacy::class)->getArguments());
+        self::assertEquals([$store, new Reference(MemberErasure::class), $optionalUnits], $container->getDefinition(OrganizationsPrivacy::class)->getArguments());
         self::assertEquals([new Reference(RelationWriter::class), new Reference(OrganizationRelations::class)], $container->getDefinition(MembershipTuples::class)->getArguments());
     }
 
@@ -226,6 +373,12 @@ final class PhilOrganizationsBundleTest extends TestCase
         self::assertSame([['method' => 'reset']], $memory->getDefinition(InMemoryOrganizationStore::class)->getTag('kernel.reset'));
         self::assertTrue($memory->getAlias(OrganizationStore::class)->isPublic());
         self::assertTrue($this->load([['store' => 'app.store']])->getAlias(OrganizationStore::class)->isPublic());
+        self::assertTrue($memory->getAlias(UnitStore::class)->isPublic());
+        self::assertTrue($this->load([['store' => 'app.store']])->getAlias(UnitStore::class)->isPublic());
+        self::assertTrue($this->load([])->getAlias(UnitStore::class)->isPublic());
+        self::assertSame(InMemoryOrganizationStore::class, (string) $memory->getAlias(UnitStore::class));
+        self::assertSame('app.store', (string) $this->load([['store' => 'app.store']])->getAlias(UnitStore::class));
+        self::assertSame(DbalOrganizationStore::class, (string) $this->load([])->getAlias(UnitStore::class));
     }
 
     /**
@@ -247,6 +400,9 @@ final class PhilOrganizationsBundleTest extends TestCase
         yield 'no recommended owner' => [['recommended_owners' => 0], 'recommended_owners'];
         yield 'role with a hyphen' => [['roles' => ['my-role' => ['permissions' => []]]], 'A role is 1 to 64'];
         yield 'team role with a hyphen' => [['team_roles' => ['my-role' => ['permissions' => []]]], 'A role is 1 to 64'];
+        yield 'unit role with a hyphen' => [['unit_roles' => ['my-role' => ['permissions' => []]]], 'starting with a letter: {'];
+        yield 'unit permission out of shape' => [['unit_roles' => ['instructor' => ['permissions' => ['Assign']]]], 'A permission is 1 to 128'];
+        yield 'empty layout' => [['units' => ['layout' => '']], 'layout'];
         yield 'no lifetime' => [['invitations' => ['hash_key' => self::KEY, 'default_lifetime' => 0]], 'too small'];
         yield 'no longest lifetime' => [['invitations' => ['hash_key' => self::KEY, 'max_lifetime' => 0]], 'too small'];
         yield 'no use' => [['invitations' => ['hash_key' => self::KEY, 'default_uses' => 0]], 'too small'];

@@ -17,6 +17,9 @@ $this->denyAccessUnlessGranted('organization_role:owner', $organizationId);
 A permission follows the roles of the catalogue and the read-only rule of an archived organization. Anyone who is not
 signed in, not a member, or whose user is no member, is denied, and the vote gives its reason.
 
+The same voter answers `unit:<permission>` and `unit_role:<role>` on a `Unit`, its `UnitId` or the text of its
+identifier, the unit roles held above the unit included, as [Role inheritance](role-inheritance.md#the-voter) explains.
+
 The voter asks `MemberOfUser` which member a signed-in user is. By default the user identifier is the member when it is
 a stable identifier; an application whose users sign in by email address names its own:
 

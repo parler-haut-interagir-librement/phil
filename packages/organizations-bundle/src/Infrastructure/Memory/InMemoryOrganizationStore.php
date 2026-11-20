@@ -7,12 +7,15 @@ namespace Phil\OrganizationsBundle\Infrastructure\Memory;
 use DateTimeImmutable;
 use Override;
 use Phil\OrganizationsBundle\Application\Contract\OrganizationStore;
+use Phil\OrganizationsBundle\Application\Contract\UnitStore;
 use Phil\OrganizationsBundle\Application\Exception\SlugTaken;
 use Phil\OrganizationsBundle\Domain\Model\Invitation;
 use Phil\OrganizationsBundle\Domain\Model\Membership;
 use Phil\OrganizationsBundle\Domain\Model\Organization;
 use Phil\OrganizationsBundle\Domain\Model\Team;
 use Phil\OrganizationsBundle\Domain\Model\TeamMembership;
+use Phil\OrganizationsBundle\Domain\Model\Unit;
+use Phil\OrganizationsBundle\Domain\Model\UnitMembership;
 use Phil\OrganizationsBundle\Domain\Status\InvitationState;
 use Phil\OrganizationsBundle\Domain\Status\OrganizationStatus;
 use Phil\OrganizationsBundle\Domain\ValueObject\EmailDomain;
@@ -20,16 +23,18 @@ use Phil\OrganizationsBundle\Domain\ValueObject\InvitationId;
 use Phil\OrganizationsBundle\Domain\ValueObject\MemberId;
 use Phil\OrganizationsBundle\Domain\ValueObject\OrganizationId;
 use Phil\OrganizationsBundle\Domain\ValueObject\TeamId;
+use Phil\OrganizationsBundle\Domain\ValueObject\UnitId;
+use Phil\OrganizationsBundle\Domain\ValueObject\UnitPath;
 use Phil\Slug\Slug;
 use Symfony\Contracts\Service\ResetInterface;
 use Throwable;
 
 /**
- * The organizations in memory, for tests and scripts: copies go in and come out, as with a database, and a
+ * The organizations and their units in memory, for tests and scripts: copies go in and come out, as with a database, and a
  * transaction that throws puts everything back as it was. `reset()` forgets everything, between the requests of a
  * worker or the tests.
  */
-final class InMemoryOrganizationStore implements OrganizationStore, ResetInterface
+final class InMemoryOrganizationStore implements OrganizationStore, UnitStore, ResetInterface
 {
     /** @var array<string, Organization> */
     private array $organizations = [];
@@ -49,6 +54,12 @@ final class InMemoryOrganizationStore implements OrganizationStore, ResetInterfa
     /** @var array<string, string> invitation identifiers by token hash */
     private array $hashes = [];
 
+    /** @var array<string, Unit> */
+    private array $units = [];
+
+    /** @var array<string, array<string, UnitMembership>> by unit, then member */
+    private array $unitMemberships = [];
+
     #[Override]
     public function transactional(callable $work): mixed
     {
@@ -57,7 +68,7 @@ final class InMemoryOrganizationStore implements OrganizationStore, ResetInterfa
         try {
             return $work();
         } catch (Throwable $throwable) {
-            [$this->organizations, $this->memberships, $this->teams, $this->teamMemberships, $this->invitations, $this->hashes] = $before;
+            [$this->organizations, $this->memberships, $this->teams, $this->teamMemberships, $this->invitations, $this->hashes, $this->units, $this->unitMemberships] = $before;
 
             throw $throwable;
         }
@@ -154,6 +165,10 @@ final class InMemoryOrganizationStore implements OrganizationStore, ResetInterfa
     #[Override]
     public function deleteMembership(OrganizationId $organizationId, MemberId $memberId): bool
     {
+        foreach ($this->unitMembershipsOf($memberId, $organizationId) as $unitMembership) {
+            unset($this->unitMemberships[$unitMembership->unitId->value][$memberId->value]);
+        }
+
         foreach ($this->teamMembershipsOf($memberId, $organizationId) as $teamMembership) {
             unset($this->teamMemberships[$teamMembership->teamId->value][$memberId->value]);
         }
@@ -391,9 +406,177 @@ final class InMemoryOrganizationStore implements OrganizationStore, ResetInterfa
     }
 
     #[Override]
+    public function unit(UnitId $id): ?Unit
+    {
+        return $this->copy($this->units[$id->value] ?? null);
+    }
+
+    #[Override]
+    public function saveUnit(Unit $unit): void
+    {
+        $stored = $this->units[$unit->id->value] ?? null;
+
+        if ($stored instanceof Unit && !$stored->path->equals($unit->path)) {
+            $unit = Unit::restored($unit->id, $unit->organizationId, $unit->name, $stored->path, $unit->createdAt, $unit->archivedAt);
+        }
+
+        $this->units[$unit->id->value] = clone $unit;
+    }
+
+    #[Override]
+    public function moveUnit(Unit $unit, UnitPath $from): void
+    {
+        foreach ($this->units as $id => $stored) {
+            if ($stored->organizationId->equals($unit->organizationId) && $stored->path->isWithin($from)) {
+                $this->units[$id] = Unit::restored($stored->id, $stored->organizationId, $stored->name, $stored->path->rebase($from, $unit->path), $stored->createdAt, $stored->archivedAt);
+            }
+        }
+    }
+
+    #[Override]
+    public function units(OrganizationId $organizationId, ?UnitPath $within = null, bool $withArchived = true): array
+    {
+        return $this->sortedUnits(static fn (Unit $unit): bool => $unit->organizationId->equals($organizationId)
+            && (!$within instanceof UnitPath || $unit->path->isWithin($within))
+            && ($withArchived || $unit->isActive()));
+    }
+
+    #[Override]
+    public function children(OrganizationId $organizationId, ?UnitId $parentId, bool $withArchived = true): array
+    {
+        return $this->sortedUnits(static fn (Unit $unit): bool => $unit->organizationId->equals($organizationId)
+            && $unit->parentId()?->value === $parentId?->value
+            && ($withArchived || $unit->isActive()));
+    }
+
+    #[Override]
+    public function unitsById(array $ids): array
+    {
+        $wanted = array_map(static fn (UnitId $id): string => $id->value, $ids);
+
+        return $this->sortedUnits(static fn (Unit $unit): bool => \in_array($unit->id->value, $wanted, true));
+    }
+
+    #[Override]
+    public function countUnits(OrganizationId $organizationId): int
+    {
+        return \count($this->units($organizationId));
+    }
+
+    #[Override]
+    public function deepest(OrganizationId $organizationId, UnitPath $within): int
+    {
+        return array_reduce($this->units($organizationId, $within), static fn (int $deepest, Unit $unit): int => max($deepest, $unit->path->depth()), 0);
+    }
+
+    #[Override]
+    public function archiveUnits(OrganizationId $organizationId, UnitPath $within, DateTimeImmutable $now): array
+    {
+        $archived = [];
+
+        foreach ($this->units($organizationId, $within, false) as $unit) {
+            $unit->archive($now);
+            $this->units[$unit->id->value] = $unit;
+            $archived[] = $unit->id;
+        }
+
+        return $archived;
+    }
+
+    #[Override]
+    public function restoreUnits(OrganizationId $organizationId, UnitPath $within, DateTimeImmutable $archivedAt): array
+    {
+        $restored = [];
+
+        foreach ($this->units($organizationId, $within) as $unit) {
+            if ($unit->archivedAt?->getTimestamp() === $archivedAt->getTimestamp()) {
+                $unit->restore();
+                $this->units[$unit->id->value] = $unit;
+                $restored[] = $unit->id;
+            }
+        }
+
+        return $restored;
+    }
+
+    #[Override]
+    public function unitMembership(UnitId $unitId, MemberId $memberId): ?UnitMembership
+    {
+        return $this->copy($this->unitMemberships[$unitId->value][$memberId->value] ?? null);
+    }
+
+    #[Override]
+    public function unitMemberships(UnitId $unitId, int $limit, ?string $afterMember = null): array
+    {
+        $found = array_filter($this->unitMemberships[$unitId->value] ?? [], static fn (UnitMembership $membership): bool => null === $afterMember || strcmp($membership->memberId->value, $afterMember) > 0);
+        usort($found, static fn (UnitMembership $a, UnitMembership $b): int => strcmp($a->memberId->value, $b->memberId->value));
+
+        return array_map(static fn (UnitMembership $membership): UnitMembership => clone $membership, \array_slice($found, 0, $limit));
+    }
+
+    #[Override]
+    public function unitMembershipsOf(MemberId $memberId, ?OrganizationId $organizationId = null): array
+    {
+        $found = [];
+
+        foreach ($this->unitMemberships as $members) {
+            $membership = $members[$memberId->value] ?? null;
+
+            if ($membership instanceof UnitMembership && (!$organizationId instanceof OrganizationId || $membership->organizationId->equals($organizationId))) {
+                $found[] = clone $membership;
+            }
+        }
+
+        usort($found, static fn (UnitMembership $a, UnitMembership $b): int => strcmp($a->unitId->value, $b->unitId->value));
+
+        return $found;
+    }
+
+    #[Override]
+    public function unitMembershipsAmong(array $unitIds, MemberId $memberId): array
+    {
+        $wanted = array_map(static fn (UnitId $id): string => $id->value, $unitIds);
+
+        return array_values(array_filter($this->unitMembershipsOf($memberId), static fn (UnitMembership $membership): bool => \in_array($membership->unitId->value, $wanted, true)));
+    }
+
+    #[Override]
+    public function membersWithin(OrganizationId $organizationId, UnitPath $within, int $limit, ?string $afterMember = null): array
+    {
+        $members = [];
+
+        foreach ($this->units($organizationId, $within) as $unit) {
+            foreach ($this->unitMemberships[$unit->id->value] ?? [] as $membership) {
+                if (null === $afterMember || strcmp($membership->memberId->value, $afterMember) > 0) {
+                    $members[$membership->memberId->value] = $membership->memberId;
+                }
+            }
+        }
+
+        ksort($members, \SORT_STRING);
+
+        return \array_slice(array_values($members), 0, $limit);
+    }
+
+    #[Override]
+    public function saveUnitMembership(UnitMembership $membership): void
+    {
+        $this->unitMemberships[$membership->unitId->value][$membership->memberId->value] = clone $membership;
+    }
+
+    #[Override]
+    public function deleteUnitMembership(UnitId $unitId, MemberId $memberId): bool
+    {
+        $found = isset($this->unitMemberships[$unitId->value][$memberId->value]);
+        unset($this->unitMemberships[$unitId->value][$memberId->value]);
+
+        return $found;
+    }
+
+    #[Override]
     public function reset(): void
     {
-        [$this->organizations, $this->memberships, $this->teams, $this->teamMemberships, $this->invitations, $this->hashes] = [[], [], [], [], [], []];
+        [$this->organizations, $this->memberships, $this->teams, $this->teamMemberships, $this->invitations, $this->hashes, $this->units, $this->unitMemberships] = [[], [], [], [], [], [], [], []];
     }
 
     /**
@@ -409,6 +592,19 @@ final class InMemoryOrganizationStore implements OrganizationStore, ResetInterfa
     }
 
     /**
+     * @param callable(Unit): bool $wanted
+     *
+     * @return list<Unit> copies, sorted by path
+     */
+    private function sortedUnits(callable $wanted): array
+    {
+        $found = array_values(array_filter($this->units, $wanted));
+        usort($found, static fn (Unit $a, Unit $b): int => strcmp($a->path->toString(), $b->path->toString()));
+
+        return array_map(static fn (Unit $unit): Unit => clone $unit, $found);
+    }
+
+    /**
      * @template T of object
      *
      * @param T|null $object
@@ -421,7 +617,7 @@ final class InMemoryOrganizationStore implements OrganizationStore, ResetInterfa
     }
 
     /**
-     * @return array{array<string, Organization>, array<string, array<string, Membership>>, array<string, Team>, array<string, array<string, TeamMembership>>, array<string, Invitation>, array<string, string>}
+     * @return array{array<string, Organization>, array<string, array<string, Membership>>, array<string, Team>, array<string, array<string, TeamMembership>>, array<string, Invitation>, array<string, string>, array<string, Unit>, array<string, array<string, UnitMembership>>}
      */
     private function snapshot(): array
     {
@@ -434,6 +630,8 @@ final class InMemoryOrganizationStore implements OrganizationStore, ResetInterfa
             array_map($copy, $this->teamMemberships),
             $copy($this->invitations),
             $this->hashes,
+            $copy($this->units),
+            array_map($copy, $this->unitMemberships),
         ];
     }
 }

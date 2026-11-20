@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
+use LogicException;
 use Override;
 use Phil\OrganizationsBundle\Application\Contract\OrganizationStore;
 use Phil\OrganizationsBundle\Domain\ValueObject\InvitationId;
@@ -66,6 +67,31 @@ abstract class ServerStoreTestCase extends StoreTestCase
         $store->saveOrganization(self::organization('o1', 'acme'));
 
         self::assertSame('acme', $store->transactional(static fn (): ?string => $store->organization(self::id('o1'), true)?->slug->value));
+    }
+
+    public function testADatabaseOfTheFirstVersionGainsTheTablesOfTheUnits(): void
+    {
+        $this->store();
+        $connection = $this->connection ?? throw new LogicException('No connection.');
+        $tables = OrganizationTables::for($connection->getDatabasePlatform());
+
+        foreach ($tables->downgrade() as $statement) {
+            $connection->executeStatement($statement);
+        }
+
+        $manager = $connection->createSchemaManager();
+        self::assertFalse($manager->introspectSchema()->hasTable(OrganizationTables::UNIT));
+        $statements = $tables->upgrade($manager->introspectSchema(), $manager->createComparator());
+        self::assertNotSame([], $statements);
+
+        foreach ($statements as $statement) {
+            self::assertStringNotContainsStringIgnoringCase('DROP', $statement);
+            $connection->executeStatement($statement);
+        }
+
+        self::assertTrue($manager->introspectSchema()->hasTable(OrganizationTables::UNIT));
+        self::assertTrue($manager->introspectSchema()->hasTable(OrganizationTables::UNIT_MEMBER));
+        self::assertSame([], $tables->upgrade($manager->introspectSchema(), $manager->createComparator()));
     }
 
     #[Override]

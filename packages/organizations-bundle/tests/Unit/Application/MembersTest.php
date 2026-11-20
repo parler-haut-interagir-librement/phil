@@ -15,6 +15,7 @@ use Phil\OrganizationsBundle\Domain\Event\MemberJoined;
 use Phil\OrganizationsBundle\Domain\Event\MemberLeft;
 use Phil\OrganizationsBundle\Domain\Event\MemberRolesChanged;
 use Phil\OrganizationsBundle\Domain\Event\TeamMemberRemoved;
+use Phil\OrganizationsBundle\Domain\Event\UnitMemberRemoved;
 use Phil\OrganizationsBundle\Domain\Model\Membership;
 use Phil\OrganizationsBundle\Domain\Model\Organization;
 use Phil\OrganizationsBundle\Domain\Status\JoinMethod;
@@ -102,6 +103,30 @@ final class MembersTest extends TestCase
         $this->expectException(OrganizationArchived::class);
 
         $this->stage->members->add($this->acme->id, Stage::member('ann'), Stage::member('dan'), ['member']);
+    }
+
+    public function testAMemberRemovedFromTheOrganizationLeavesTheirUnitsAnnounced(): void
+    {
+        $sales = $this->stage->units->create($this->acme->id, Stage::member('ann'), 'Sales');
+        $this->stage->units->addMember($sales->id, Stage::member('ann'), Stage::member('cam'), ['member']);
+        $this->stage->events->clear();
+
+        $this->stage->members->remove($this->acme->id, Stage::member('ann'), Stage::member('cam'));
+
+        self::assertSame([], $this->stage->unitStore->unitMembershipsOf(Stage::member('cam')));
+        self::assertEquals([
+            new UnitMemberRemoved($this->acme->id->value, $sales->id->value, 'cam', ['member'], null),
+            new MemberLeft($this->acme->id->value, 'cam', ['member'], LeaveReason::Removed, 'ann'),
+        ], $this->stage->events->events);
+    }
+
+    public function testWithoutUnitsAMemberLeavesAsBefore(): void
+    {
+        $members = new Members($this->stage->store, $this->stage->work, $this->stage->access, $this->stage->clock);
+
+        $members->leave($this->acme->id, Stage::member('cam'));
+
+        self::assertSame([MemberLeft::class], $this->stage->events->classes());
     }
 
     public function testChangeRoles(): void

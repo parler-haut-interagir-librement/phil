@@ -1,0 +1,17 @@
+{#
+ # The units under a parent, each a `Tree:Item` of the kit holding the units under it.
+ #
+ # branches: the units by the identifier of their parent, the roots under "". parent: string.
+ #}
+{% macro items(branches, parent) %}
+    {%- for unit in branches[parent] ?? [] %}
+    {%- set below = branches[unit.id.value] ?? [] %}
+    {% component (phil_organizations_kit('Tree:Item')) with {
+        label: unit.isActive() ? unit.name.value : 'units.archived_name'|trans({'%name%': unit.name.value}, 'phil_organizations'),
+        value: unit.id.value,
+        branch: below is not empty,
+        expanded: true,
+        href: path('phil_organizations_unit', {unit: unit.id.value}),
+    } %}{% block content %}{% import '@PhilOrganizations/units/_tree.html.twig' as tree %}{{ tree.items(branches, unit.id.value) }}{% endblock %}{% endcomponent %}
+    {%- endfor %}
+{% endmacro %}

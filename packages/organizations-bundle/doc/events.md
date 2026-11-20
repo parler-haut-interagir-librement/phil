@@ -21,6 +21,13 @@ log, an audit trail or a message bus as they are. A listener reads the rest from
 | `TeamMemberAdded` | A member joins a team | organization, team, member, team roles, actor |
 | `TeamMemberRolesChanged` | A member's team roles change | organization, team, member, previous roles, roles, actor |
 | `TeamMemberRemoved` | A member leaves a team, or leaves the organization | organization, team, member, team roles held, actor when one removed them |
+| `UnitCreated` | A unit is created | organization, unit, parent or `null`, actor |
+| `UnitRenamed` | A unit is renamed | organization, unit, actor |
+| `UnitMoved` | A unit moves, with the units below it | organization, unit, previous parent, parent, actor |
+| `UnitArchived`, `UnitRestored` | A unit is archived or restored, with units below it | organization, unit, every unit archived or restored with it, actor |
+| `UnitMemberAdded` | A member joins a unit | organization, unit, member, unit roles, actor |
+| `UnitMemberRolesChanged` | A member's unit roles change | organization, unit, member, previous roles, roles, actor |
+| `UnitMemberRemoved` | A member leaves a unit, or leaves the organization | organization, unit, member, unit roles held, actor when one removed them |
 | `InvitationCreated` | An invitation is created | organization, invitation, actor |
 | `InvitationAccepted` | An invitation is used | organization, invitation, member |
 | `InvitationRevoked` | An invitation is revoked, or its creator is erased | organization, invitation, actor when one revoked it |

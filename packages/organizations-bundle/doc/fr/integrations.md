@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=78b152728ced2ae08305e33d1560f45c23b56d0eb2ed48bbaf883031fe804b44 -->
+<!-- phil-dev source-sha256=9bf0bbb233aa2f579d73801baff695ced187b4b9610fb350b52615b0b26fded2 -->
 # Intégrations
 
 ## Le voter
@@ -18,6 +18,10 @@ $this->denyAccessUnlessGranted('organization_role:owner', $organizationId);
 Une permission suit les rôles du catalogue et la règle de lecture seule d'une organisation archivée. Quiconque n'est pas
 connecté, n'est pas membre, ou dont l'utilisateur n'est pas un membre, se voit refuser l'accès, et le vote en donne la
 raison.
+
+Le même *voter* répond à `unit:<permission>` et à `unit_role:<role>` sur une `Unit`, son `UnitId` ou le texte de son
+identifiant, les rôles d'unité détenus au-dessus de l'unité compris, comme l'explique
+[Héritage des rôles](role-inheritance.md#le-voter).
 
 Le *voter* demande à `MemberOfUser` quel membre est un utilisateur connecté. Par défaut, l'identifiant de l'utilisateur
 est le membre quand c'est un identifiant stable ; une application dont les utilisateurs se connectent par adresse

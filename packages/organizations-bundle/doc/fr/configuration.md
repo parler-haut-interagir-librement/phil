@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1ad3f1ffee9306acacb7af5f16ae961110f86d6b244fe5e63856e88e7b28b77e -->
+<!-- phil-dev source-sha256=42a854b8a3e29d417f5e568bdb11da95b684164bda98bc02e057be679635a163 -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_organizations`. Seule `invitations.hash_key` est obligatoire.
@@ -6,7 +6,7 @@ La configuration du bundle se trouve sous `phil_organizations`. Seule `invitatio
 ```yaml
 # config/packages/phil_organizations.yaml
 phil_organizations:
-    store: dbal                    # dbal, memory, or the id of an OrganizationStore service
+    store: dbal                    # dbal, memory, or the id of an OrganizationStore and UnitStore service
     connection: default            # the DBAL connection of the tables
     clock: clock                   # a PSR-20 clock, symfony/clock's by default
     slugger: ~                     # a phil/slug Slugger; a transliterating slugger when null
@@ -17,6 +17,12 @@ phil_organizations:
         admin: { permissions: [billing.read] }       # adds to the built-in admin
     team_roles:
         reviewer: { permissions: [review.approve] }
+    unit_roles:
+        instructor: { permissions: [courses.assign] }
+    units:
+        single_membership: false
+        layout: '@PhilOrganizations/units/layout.html.twig'
+        kit_subdirectory: ~        # the subdirectory of ux_toolkit when null
     invitations:
         hash_key: '%env(ORGANIZATIONS_INVITATION_KEY)%'
         default_lifetime: 7        # days
@@ -35,7 +41,7 @@ phil_organizations:
 
 | Option | Valeur par défaut | Effet |
 |---|---|---|
-| `store` | `dbal` | Où les organisations sont conservées : `dbal`, les six tables d'une connexion DBAL ; `memory`, pour les tests ; ou l'identifiant d'un service qui implémente `OrganizationStore`. |
+| `store` | `dbal` | Où les organisations et leurs unités sont conservées : `dbal`, les huit tables d'une connexion DBAL ; `memory`, pour les tests ; ou l'identifiant d'un service qui implémente `OrganizationStore`, et `UnitStore` pour les unités — sans lui, les unités sont laissées de côté. |
 | `connection` | `default` | La connexion DBAL des tables. |
 | `clock` | `clock` | L'horloge PSR-20 dont est lu chaque instant. |
 | `slugger` | `null` | Le `Slugger` de `phil/slug` qui produit les *slugs* à partir des noms ; un `TransliteratingSlugger` quand la valeur est nulle. |
@@ -43,6 +49,10 @@ phil_organizations:
 | `recommended_owners` | `2` | Le nombre de propriétaires recommandé par organisation : en avoir moins donne un avertissement de `phil:organizations:show` et de `phil:organizations:check-owners`, jamais un refus. |
 | `roles` | `{}` | Les rôles d'une organisation en plus de `owner`, `admin` et `member`, chacun avec ses permissions ; listées sous `admin` ou `member`, les permissions s'ajoutent à celles de ces rôles intégrés. `owner` ne peut pas être déclaré : il détient toutes les permissions. |
 | `team_roles` | `{}` | Les rôles d'une équipe en plus de `maintainer` et `member`, chacun avec ses permissions ; `organization` ne peut pas être un rôle d'équipe. |
+| `unit_roles` | `{}` | Les rôles d'une unité en plus de `manager` et `member`, chacun avec ses permissions, qui valent dans l'unité et dans chaque unité en dessous ; listées sous un rôle intégré, les permissions s'y ajoutent. Voir [Héritage des rôles](role-inheritance.md). |
+| `units.single_membership` | `false` | Si un membre appartient à une seule unité d'une organisation au plus. |
+| `units.layout` | `@PhilOrganizations/units/layout.html.twig` | Le gabarit que prolongent les pages d'administration des unités ; il remplit les blocs `title` et `main`. |
+| `units.kit_subdirectory` | `null` | L'endroit où les recettes du kit sont installées sous le répertoire des composants ; le sous-répertoire de la configuration `ux_toolkit` quand la valeur est nulle. |
 | `invitations.hash_key` | obligatoire | Les clés de l'HMAC-SHA-256 sous lequel chaque jeton est conservé, d'au moins 32 octets chacune : une clé, ou une liste dont la première clé calcule l'empreinte des nouveaux jetons et dont les autres retrouvent encore les invitations créées sous elles, huit au plus. Un fichier de configuration ultérieur remplace la liste au lieu de s'y ajouter. |
 | `invitations.default_lifetime` | `7` | Les jours que dure une invitation quand son créateur n'indique pas d'expiration. |
 | `invitations.max_lifetime` | `30` | Le plus grand nombre de jours qu'une invitation peut durer, au moins `default_lifetime`. |

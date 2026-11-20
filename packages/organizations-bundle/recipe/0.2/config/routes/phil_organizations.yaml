@@ -1,0 +1,4 @@
+# The administration pages of the units, behind the firewall of the application.
+phil_organizations_units:
+    resource: '@PhilOrganizationsBundle/config/routes/units.php'
+    prefix: /admin/organizations

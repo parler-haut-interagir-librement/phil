@@ -18,6 +18,7 @@ use Phil\OrganizationsBundle\Domain\ValueObject\InvitationId;
 use Phil\OrganizationsBundle\Domain\ValueObject\MemberId;
 use Phil\OrganizationsBundle\Domain\ValueObject\OrganizationId;
 use Phil\OrganizationsBundle\Domain\ValueObject\TeamId;
+use Phil\OrganizationsBundle\Domain\ValueObject\UnitPath;
 use Phil\OrganizationsBundle\Infrastructure\Dbal\DbalOrganizationStore;
 use Phil\OrganizationsBundle\Infrastructure\Dbal\DbalRows;
 use Phil\OrganizationsBundle\Infrastructure\Dbal\OrganizationTables;
@@ -41,8 +42,8 @@ final class SqliteStoreTest extends StoreTestCase
             self::assertTrue($schema->hasTable($table), $table);
         }
 
-        self::assertCount(6, $schema->getTables());
-        self::assertCount(6, OrganizationTables::for($this->connection()->getDatabasePlatform())->configure($schema)->getTables());
+        self::assertCount(8, $schema->getTables());
+        self::assertCount(8, OrganizationTables::for($this->connection()->getDatabasePlatform())->configure($schema)->getTables());
     }
 
     public function testARowOfTheWrongTypeIsRefused(): void
@@ -106,6 +107,33 @@ final class SqliteStoreTest extends StoreTestCase
         $connection->method('executeStatement')->willReturn('1');
 
         self::assertTrue($write(new DbalOrganizationStore($connection)));
+    }
+
+    public function testNoUnitsAmongNoIdentifiersCostNoQuery(): void
+    {
+        $connection = self::createMock(Connection::class);
+        $connection->expects(self::never())->method(self::anything());
+        $store = new DbalOrganizationStore($connection);
+
+        self::assertSame([], $store->unitsById([]));
+        self::assertSame([], $store->unitMembershipsAmong([], MemberId::fromString('ann')));
+    }
+
+    public function testTheMomentOfAnArchiveIsBoundAsAnInteger(): void
+    {
+        $within = UnitPath::fromString('/a/');
+        $parameters = ['o1', '/a/', $within->upperBound()];
+
+        $archive = self::createMock(Connection::class);
+        $archive->method('fetchFirstColumn')->willReturn([]);
+        $archive->expects(self::once())->method('executeStatement')->with(self::anything(), [3000, ...$parameters], [ParameterType::INTEGER, ParameterType::STRING, ParameterType::STRING, ParameterType::STRING])->willReturn(0);
+        new DbalOrganizationStore($archive)->archiveUnits(OrganizationId::fromString('o1'), $within, new DateTimeImmutable('@3000'));
+
+        $types = [ParameterType::STRING, ParameterType::STRING, ParameterType::STRING, ParameterType::INTEGER];
+        $restore = self::createMock(Connection::class);
+        $restore->expects(self::once())->method('fetchFirstColumn')->with(self::anything(), [...$parameters, 3000], $types)->willReturn([]);
+        $restore->expects(self::once())->method('executeStatement')->with(self::anything(), [...$parameters, 3000], $types)->willReturn(0);
+        new DbalOrganizationStore($restore)->restoreUnits(OrganizationId::fromString('o1'), $within, new DateTimeImmutable('@3000'));
     }
 
     public function testTheMomentsOfAnInvitationAreBoundAsIntegers(): void

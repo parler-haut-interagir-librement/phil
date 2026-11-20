@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Phil\OrganizationsBundle\Application;
 
 use Phil\OrganizationsBundle\Application\Contract\OrganizationStore;
+use Phil\OrganizationsBundle\Application\Contract\UnitStore;
 use Phil\OrganizationsBundle\Domain\Event\InvitationRevoked;
 use Phil\OrganizationsBundle\Domain\Event\MemberLeft;
 use Phil\OrganizationsBundle\Domain\Event\OrganizationLeftWithoutOwner;
 use Phil\OrganizationsBundle\Domain\Event\TeamMemberRemoved;
+use Phil\OrganizationsBundle\Domain\Event\UnitMemberRemoved;
 use Phil\OrganizationsBundle\Domain\Model\Invitation;
 use Phil\OrganizationsBundle\Domain\Status\InvitationState;
 use Phil\OrganizationsBundle\Domain\Status\LeaveReason;
@@ -20,7 +22,7 @@ use Psr\Clock\ClockInterface;
  *
  * A right of the person is never refused for the organization's sake: the last owner is removed too, and the
  * organization is announced by `OrganizationLeftWithoutOwner`, for an operator to name a new owner. The member's team
- * memberships go with their memberships; the invitations they created and that could still be used are revoked, and
+ * and unit memberships go with their memberships; the invitations they created and that could still be used are revoked, and
  * every invitation they created forgets them. Erasing a member twice changes nothing more.
  */
 final readonly class MemberErasure
@@ -29,6 +31,7 @@ final readonly class MemberErasure
         private OrganizationStore $store,
         private UnitOfWork $work,
         private ClockInterface $clock,
+        private ?UnitStore $units = null,
     ) {
     }
 
@@ -43,6 +46,10 @@ final readonly class MemberErasure
 
                 foreach ($this->store->teamMembershipsOf($member, $organizationId) as $teamMembership) {
                     $events->record(new TeamMemberRemoved($organizationId->value, $teamMembership->teamId->value, $member->value, $teamMembership->roles->names));
+                }
+
+                foreach ($this->units?->unitMembershipsOf($member, $organizationId) ?? [] as $unitMembership) {
+                    $events->record(new UnitMemberRemoved($organizationId->value, $unitMembership->unitId->value, $member->value, $unitMembership->roles->names));
                 }
 
                 $this->store->deleteMembership($organizationId, $member);

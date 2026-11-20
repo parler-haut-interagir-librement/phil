@@ -1,0 +1,15 @@
+# Organizations, their members and roles, teams, units in a tree, and invitations. Members are named by the stable
+# subject identifier of the user provider, never an e-mail address. See the configuration guide of
+# phil/organizations-bundle.
+phil_organizations:
+    invitations:
+        # At least 32 bytes, from the secrets vault: bin/console secrets:set ORGANIZATIONS_INVITATION_KEY
+        hash_key: '%env(ORGANIZATIONS_INVITATION_KEY)%'
+    # roles:
+    #     billing: { permissions: [billing.read, billing.pay] }
+    # team_roles:
+    #     reviewer: { permissions: [review.approve] }
+    # unit_roles:
+    #     instructor: { permissions: [courses.assign] }
+    # units:
+    #     single_membership: true

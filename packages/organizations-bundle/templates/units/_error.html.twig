@@ -1,0 +1,6 @@
+{#
+ # Why a change was refused, when it was. error: string|null.
+ #}
+{%- if error %}
+<p role="alert" class="phil-organizations__error">{{ ('units.error.' ~ error)|trans({}, 'phil_organizations') }}</p>
+{%- endif %}

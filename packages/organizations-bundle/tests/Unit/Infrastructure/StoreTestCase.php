@@ -6,12 +6,15 @@ namespace Phil\OrganizationsBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
 use Phil\OrganizationsBundle\Application\Contract\OrganizationStore;
+use Phil\OrganizationsBundle\Application\Contract\UnitStore;
 use Phil\OrganizationsBundle\Application\Exception\SlugTaken;
 use Phil\OrganizationsBundle\Domain\Model\Invitation;
 use Phil\OrganizationsBundle\Domain\Model\Membership;
 use Phil\OrganizationsBundle\Domain\Model\Organization;
 use Phil\OrganizationsBundle\Domain\Model\Team;
 use Phil\OrganizationsBundle\Domain\Model\TeamMembership;
+use Phil\OrganizationsBundle\Domain\Model\Unit;
+use Phil\OrganizationsBundle\Domain\Model\UnitMembership;
 use Phil\OrganizationsBundle\Domain\Status\JoinMethod;
 use Phil\OrganizationsBundle\Domain\Status\OrganizationStatus;
 use Phil\OrganizationsBundle\Domain\ValueObject\EmailDomain;
@@ -21,6 +24,7 @@ use Phil\OrganizationsBundle\Domain\ValueObject\OrganizationId;
 use Phil\OrganizationsBundle\Domain\ValueObject\OrganizationName;
 use Phil\OrganizationsBundle\Domain\ValueObject\Roles;
 use Phil\OrganizationsBundle\Domain\ValueObject\TeamId;
+use Phil\OrganizationsBundle\Domain\ValueObject\UnitId;
 use Phil\Slug\Slug;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -406,6 +410,322 @@ abstract class StoreTestCase extends TestCase
         self::assertNull($store->membership(self::id('o1'), self::member('bob')));
         self::assertNull($store->invitation(InvitationId::fromString('i1')));
         self::assertSame(1, $store->countWithRole(self::id('o1'), 'owner'));
+    }
+
+    public function testUnitsAreAddedRenamedAndArchived(): void
+    {
+        $store = $this->unitStore();
+        $sales = self::unit('sales', 'o1', null);
+        $east = self::unit('east', 'o1', $sales);
+
+        self::assertNull($store->unit(UnitId::fromString('sales')));
+        $store->saveUnit($sales);
+        $store->saveUnit($east);
+        self::assertEquals($sales, $store->unit(UnitId::fromString('sales')));
+        self::assertEquals($east, $store->unit(UnitId::fromString('east')));
+        self::assertNull($store->unit(UnitId::fromString('SALES')));
+
+        $east->rename(OrganizationName::fromString('East coast'));
+        $east->archive(new DateTimeImmutable('@2000'));
+
+        $store->saveUnit($east);
+        $read = self::found($store, 'east');
+
+        self::assertSame('East coast', $read->name->value);
+        self::assertSame(2000, $read->archivedAt?->getTimestamp());
+        self::assertSame(1000, $read->createdAt->getTimestamp());
+        self::assertSame('/sales/east/', $read->path->toString());
+
+        $east->restore();
+        $store->saveUnit($east);
+        self::assertTrue(self::found($store, 'east')->isActive());
+    }
+
+    public function testTheUnitsOfAnOrganizationAreSortedByPath(): void
+    {
+        $store = $this->unitStore();
+        [$a, $ab, $abc, $ab2, $b] = $this->smallTree($store);
+        $store->saveUnit(self::unit('elsewhere', 'o2', null));
+
+        self::assertSame(['a', 'ab-2', 'ab', 'abc', 'b'], self::unitIds($store->units(self::id('o1'))));
+        self::assertSame(['ab', 'abc'], self::unitIds($store->units(self::id('o1'), $ab->path)));
+        self::assertSame(['a', 'ab-2', 'ab', 'abc'], self::unitIds($store->units(self::id('o1'), $a->path)));
+        self::assertSame([], $store->units(self::id('o2'), $a->path));
+        self::assertSame(['a', 'b'], self::unitIds($store->children(self::id('o1'), null)));
+        self::assertSame(['ab-2', 'ab'], self::unitIds($store->children(self::id('o1'), $a->id)));
+        self::assertSame([], $store->children(self::id('o2'), $a->id));
+        self::assertSame(['a', 'abc', 'b'], self::unitIds($store->unitsById([$b->id, $abc->id, $a->id, UnitId::fromString('nowhere')])));
+        self::assertSame([], $store->unitsById([]));
+        self::assertSame(5, $store->countUnits(self::id('o1')));
+        self::assertSame(0, $store->countUnits(self::id('o3')));
+        self::assertSame(3, $store->deepest(self::id('o1'), $a->path));
+        self::assertSame(1, $store->deepest(self::id('o1'), $ab2->path->rebase($ab2->path, $b->path)));
+        self::assertSame(0, $store->deepest(self::id('o2'), $ab->path));
+
+        $abc->archive(new DateTimeImmutable('@3000'));
+        $store->saveUnit($abc);
+        self::assertSame(['a', 'ab-2', 'ab', 'abc', 'b'], self::unitIds($store->units(self::id('o1'))));
+        self::assertSame(['a', 'ab-2', 'ab', 'b'], self::unitIds($store->units(self::id('o1'), null, false)));
+        self::assertSame(['ab'], self::unitIds($store->units(self::id('o1'), $ab->path, false)));
+        self::assertSame([], $store->children(self::id('o1'), $ab->id, false));
+        self::assertSame(['abc'], self::unitIds($store->children(self::id('o1'), $ab->id)));
+    }
+
+    public function testASubtreeMovesWithItsPaths(): void
+    {
+        $store = $this->unitStore();
+        [, $ab, , , $b] = $this->smallTree($store);
+
+        $from = $ab->moveUnder($b);
+        $store->moveUnit($ab, $from);
+
+        self::assertSame('/b/ab/', self::found($store, 'ab')->path->toString());
+        self::assertSame('b', self::found($store, 'ab')->parentId()?->value);
+        self::assertSame('/b/ab/abc/', self::found($store, 'abc')->path->toString());
+        self::assertSame('/a/ab-2/', self::found($store, 'ab-2')->path->toString());
+        self::assertSame(['b', 'ab', 'abc'], self::unitIds($store->units(self::id('o1'), $b->path)));
+        self::assertSame(['ab'], self::unitIds($store->children(self::id('o1'), $b->id)));
+        self::assertSame(3, $store->deepest(self::id('o1'), $b->path));
+
+        $from = $ab->moveUnder(null);
+        $store->moveUnit($ab, $from);
+        self::assertSame('/ab/abc/', self::found($store, 'abc')->path->toString());
+        self::assertSame(['a', 'ab', 'b'], self::unitIds($store->children(self::id('o1'), null)));
+        self::assertSame(2, $store->deepest(self::id('o1'), $ab->path));
+    }
+
+    public function testASubtreeIsArchivedAndRestoredTogether(): void
+    {
+        $store = $this->unitStore();
+        [$a, $ab, $abc] = $this->smallTree($store);
+        $abc->archive(new DateTimeImmutable('@2000'));
+        $store->saveUnit($abc);
+
+        self::assertSame(['a', 'ab-2', 'ab'], self::unitIds($store->archiveUnits(self::id('o1'), $a->path, new DateTimeImmutable('@3000'))));
+        self::assertSame([], $store->archiveUnits(self::id('o1'), $a->path, new DateTimeImmutable('@4000')));
+        self::assertSame([], $store->archiveUnits(self::id('o2'), $a->path, new DateTimeImmutable('@4000')));
+        self::assertSame(3000, self::found($store, 'ab')->archivedAt?->getTimestamp());
+        self::assertSame(2000, self::found($store, 'abc')->archivedAt?->getTimestamp());
+        self::assertTrue(self::found($store, 'b')->isActive());
+
+        self::assertSame([], $store->restoreUnits(self::id('o1'), $a->path, new DateTimeImmutable('@3001')));
+        self::assertSame(['a', 'ab-2', 'ab'], self::unitIds($store->restoreUnits(self::id('o1'), $a->path, new DateTimeImmutable('@3000'))));
+        self::assertTrue(self::found($store, 'ab')->isActive());
+        self::assertSame(2000, self::found($store, 'abc')->archivedAt?->getTimestamp());
+        self::assertSame(['abc'], self::unitIds($store->restoreUnits(self::id('o1'), $ab->path, new DateTimeImmutable('@2000'))));
+    }
+
+    public function testTheMembersOfUnits(): void
+    {
+        $store = $this->unitStore();
+        $store->saveOrganization(self::organization('o1', 'acme'));
+        $store->saveMembership(self::membership('o1', 'ann', ['owner']));
+        $store->saveMembership(self::membership('o1', 'bob', ['member']));
+        [$a, $ab, $abc, , $b] = $this->smallTree($store);
+        $store->saveUnitMembership(self::unitMembership('abc', 'o1', 'bob', ['member']));
+        $store->saveUnitMembership(self::unitMembership('ab', 'o1', 'ann', ['manager']));
+        $store->saveUnitMembership(self::unitMembership('a', 'o1', 'bob', ['member']));
+        $store->saveUnitMembership(self::unitMembership('b', 'o1', 'ann', ['member']));
+        $store->saveUnitMembership(self::unitMembership('elsewhere', 'o2', 'ann', ['member']));
+
+        self::assertEquals(self::unitMembership('ab', 'o1', 'ann', ['manager']), $store->unitMembership($ab->id, self::member('ann')));
+        self::assertNull($store->unitMembership($ab->id, self::member('bob')));
+        self::assertNull($store->unitMembership($ab->id, self::member('ANN')));
+
+        $changed = self::unitMembership('ab', 'o1', 'ann', ['manager']);
+        $changed->changeRoles(Roles::of(['manager', 'instructor']));
+
+        $store->saveUnitMembership($changed);
+        self::assertSame(['instructor', 'manager'], $store->unitMembership($ab->id, self::member('ann'))?->roles->names);
+        self::assertSame(1000, $store->unitMembership($ab->id, self::member('ann'))->joinedAt->getTimestamp());
+
+        $store->saveUnitMembership(self::unitMembership('ab', 'o1', 'cam', ['member']));
+        self::assertSame(['ann', 'cam'], $this->unitMembers($store->unitMemberships($ab->id, 10)));
+        self::assertSame(['ann'], $this->unitMembers($store->unitMemberships($ab->id, 1)));
+        self::assertSame(['cam'], $this->unitMembers($store->unitMemberships($ab->id, 10, 'ann')));
+        self::assertSame(['a', 'abc'], array_map(static fn (UnitMembership $m): string => $m->unitId->value, $store->unitMembershipsOf(self::member('bob'), self::id('o1'))));
+        self::assertSame(['ab', 'b', 'elsewhere'], array_map(static fn (UnitMembership $m): string => $m->unitId->value, $store->unitMembershipsOf(self::member('ann'))));
+        self::assertSame(['ab', 'b'], array_map(static fn (UnitMembership $m): string => $m->unitId->value, $store->unitMembershipsOf(self::member('ann'), self::id('o1'))));
+        self::assertSame(['a', 'abc'], array_map(static fn (UnitMembership $m): string => $m->unitId->value, $store->unitMembershipsAmong($abc->path->unitIds(), self::member('bob'))));
+        self::assertSame([], $store->unitMembershipsAmong([], self::member('bob')));
+        self::assertSame(['ann', 'bob', 'cam'], $this->names($store->membersWithin(self::id('o1'), $a->path, 10)));
+        self::assertSame(['ann', 'bob'], $this->names($store->membersWithin(self::id('o1'), $a->path, 2)));
+        self::assertSame(['bob', 'cam'], $this->names($store->membersWithin(self::id('o1'), $a->path, 10, 'ann')));
+        self::assertSame(['ann', 'bob', 'cam'], $this->names($store->membersWithin(self::id('o1'), $ab->path, 10)));
+        self::assertSame([], $store->membersWithin(self::id('o2'), $ab->path, 10));
+
+        self::assertTrue($store->deleteUnitMembership($ab->id, self::member('cam')));
+        self::assertFalse($store->deleteUnitMembership($ab->id, self::member('cam')));
+
+        self::assertTrue($store->deleteMembership(self::id('o1'), self::member('bob')));
+        self::assertSame([], $store->unitMembershipsOf(self::member('bob')));
+        self::assertSame(['ab', 'b', 'elsewhere'], array_map(static fn (UnitMembership $m): string => $m->unitId->value, $store->unitMembershipsOf(self::member('ann'))));
+        self::assertSame(['ann'], $this->names($store->membersWithin(self::id('o1'), $b->path, 10)));
+    }
+
+    public function testAMemberNamedByDigitsIsAMemberOfUnits(): void
+    {
+        $store = $this->unitStore();
+        [$a] = $this->smallTree($store);
+        $store->saveUnitMembership(self::unitMembership('a', 'o1', '42', ['member']));
+        $store->saveUnitMembership(self::unitMembership('ab', 'o1', '7', ['member']));
+
+        self::assertSame(['42', '7'], $this->names($store->membersWithin(self::id('o1'), $a->path, 10)));
+        self::assertSame(['7'], $this->names($store->membersWithin(self::id('o1'), $a->path, 10, '42')));
+    }
+
+    public function testUnitsGoInAndComeOutAsCopies(): void
+    {
+        $store = $this->unitStore();
+        [$a, $ab, , , $b] = $this->smallTree($store);
+
+        $a->rename(OrganizationName::fromString('Changed'));
+        self::assertSame('A', self::found($store, 'a')->name->value);
+
+        self::found($store, 'a')->rename(OrganizationName::fromString('Changed'));
+        self::assertSame('A', self::found($store, 'a')->name->value);
+
+        $store->units(self::id('o1'))[0]->rename(OrganizationName::fromString('Changed'));
+        self::assertSame('A', self::found($store, 'a')->name->value);
+
+        $store->children(self::id('o1'), null)[0]->rename(OrganizationName::fromString('Changed'));
+        self::assertSame('A', self::found($store, 'a')->name->value);
+
+        $store->unitsById([$a->id])[0]->rename(OrganizationName::fromString('Changed'));
+        self::assertSame('A', self::found($store, 'a')->name->value);
+
+        $ab->moveUnder($b);
+        $store->saveUnit($ab);
+        self::assertSame('/a/ab/', self::found($store, 'ab')->path->toString());
+    }
+
+    public function testUnitMembershipsGoInAndComeOutAsCopies(): void
+    {
+        $store = $this->unitStore();
+        $membership = self::unitMembership('ab', 'o1', 'ann', ['member']);
+        $store->saveUnitMembership($membership);
+        $membership->changeRoles(Roles::of(['manager']));
+        self::assertSame(['member'], $store->unitMembership(UnitId::fromString('ab'), self::member('ann'))?->roles->names);
+
+        foreach ([
+            $store->unitMembership(UnitId::fromString('ab'), self::member('ann')),
+            $store->unitMemberships(UnitId::fromString('ab'), 10)[0],
+            $store->unitMembershipsOf(self::member('ann'))[0],
+            $store->unitMembershipsOf(self::member('ann'), self::id('o1'))[0],
+            $store->unitMembershipsAmong([UnitId::fromString('ab')], self::member('ann'))[0],
+        ] as $read) {
+            self::assertNotNull($read);
+            $read->changeRoles(Roles::of(['manager']));
+        }
+
+        self::assertSame(['member'], $store->unitMembership(UnitId::fromString('ab'), self::member('ann'))->roles->names);
+    }
+
+    public function testAMemberLeavesOneUnitAtATime(): void
+    {
+        $store = $this->unitStore();
+        $this->smallTree($store);
+        $store->saveUnitMembership(self::unitMembership('a', 'o1', 'ann', ['member']));
+        $store->saveUnitMembership(self::unitMembership('b', 'o1', 'ann', ['member']));
+
+        self::assertTrue($store->deleteUnitMembership(UnitId::fromString('a'), self::member('ann')));
+        self::assertNotNull($store->unitMembership(UnitId::fromString('b'), self::member('ann')));
+        self::assertFalse($store->deleteUnitMembership(UnitId::fromString('a'), self::member('ann')));
+    }
+
+    public function testAUnitsChangeThatThrowsIsRolledBack(): void
+    {
+        $store = $this->unitStore();
+        $store->saveUnit(self::unit('a', 'o1', null));
+
+        try {
+            $store->transactional(static function () use ($store): void {
+                $store->saveUnit(self::unit('b', 'o1', null));
+                $store->saveUnitMembership(self::unitMembership('b', 'o1', 'ann', ['member']));
+
+                throw new RuntimeException('Rolled back.');
+            });
+        } catch (RuntimeException) {
+        }
+
+        self::assertSame(['a'], self::unitIds($store->units(self::id('o1'))));
+        self::assertSame([], $store->unitMembershipsOf(self::member('ann')));
+    }
+
+    protected static function found(UnitStore $store, string $id): Unit
+    {
+        return $store->unit(UnitId::fromString($id)) ?? self::fail(\sprintf('No unit "%s".', $id));
+    }
+
+    protected function unitStore(): OrganizationStore&UnitStore
+    {
+        $store = $this->store();
+        self::assertInstanceOf(UnitStore::class, $store);
+
+        return $store;
+    }
+
+    /**
+     * Five units of `o1`: `a` with `ab` — itself with `abc` — and `ab-2`, then `b`.
+     *
+     * @return array{Unit, Unit, Unit, Unit, Unit}
+     */
+    protected function smallTree(UnitStore $store): array
+    {
+        $a = self::unit('a', 'o1', null);
+        $ab = self::unit('ab', 'o1', $a);
+        $abc = self::unit('abc', 'o1', $ab);
+        $ab2 = self::unit('ab-2', 'o1', $a);
+        $b = self::unit('b', 'o1', null);
+
+        foreach ([$b, $abc, $a, $ab2, $ab] as $unit) {
+            $store->saveUnit($unit);
+        }
+
+        return [$a, $ab, $abc, $ab2, $b];
+    }
+
+    protected static function unit(string $id, string $organization, ?Unit $parent): Unit
+    {
+        return Unit::create(UnitId::fromString($id), self::id($organization), OrganizationName::fromString(ucfirst($id)), $parent, new DateTimeImmutable('@1000'));
+    }
+
+    /**
+     * @param list<string> $roles
+     */
+    protected static function unitMembership(string $unit, string $organization, string $member, array $roles): UnitMembership
+    {
+        return UnitMembership::join(UnitId::fromString($unit), self::id($organization), self::member($member), Roles::of($roles), new DateTimeImmutable('@1000'));
+    }
+
+    /**
+     * @param list<Unit|UnitId> $units
+     *
+     * @return list<string>
+     */
+    protected static function unitIds(array $units): array
+    {
+        return array_map(static fn (Unit|UnitId $unit): string => $unit instanceof Unit ? $unit->id->value : $unit->value, $units);
+    }
+
+    /**
+     * @param list<UnitMembership> $memberships
+     *
+     * @return list<string>
+     */
+    private function unitMembers(array $memberships): array
+    {
+        return array_map(static fn (UnitMembership $m): string => $m->memberId->value, $memberships);
+    }
+
+    /**
+     * @param list<MemberId> $members
+     *
+     * @return list<string>
+     */
+    private function names(array $members): array
+    {
+        return array_map(static fn (MemberId $member): string => $member->value, $members);
     }
 
     private static function rollBack(OrganizationStore $store): string

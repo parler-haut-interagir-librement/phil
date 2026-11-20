@@ -13,31 +13,38 @@ use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\DBAL\Schema\Schema;
 use Override;
 use Phil\OrganizationsBundle\Application\Contract\OrganizationStore;
+use Phil\OrganizationsBundle\Application\Contract\UnitStore;
 use Phil\OrganizationsBundle\Application\Exception\SlugTaken;
 use Phil\OrganizationsBundle\Domain\Model\Invitation;
 use Phil\OrganizationsBundle\Domain\Model\Membership;
 use Phil\OrganizationsBundle\Domain\Model\Organization;
 use Phil\OrganizationsBundle\Domain\Model\Team;
 use Phil\OrganizationsBundle\Domain\Model\TeamMembership;
+use Phil\OrganizationsBundle\Domain\Model\Unit;
+use Phil\OrganizationsBundle\Domain\Model\UnitMembership;
 use Phil\OrganizationsBundle\Domain\Status\OrganizationStatus;
 use Phil\OrganizationsBundle\Domain\ValueObject\EmailDomain;
 use Phil\OrganizationsBundle\Domain\ValueObject\InvitationId;
 use Phil\OrganizationsBundle\Domain\ValueObject\MemberId;
 use Phil\OrganizationsBundle\Domain\ValueObject\OrganizationId;
 use Phil\OrganizationsBundle\Domain\ValueObject\TeamId;
+use Phil\OrganizationsBundle\Domain\ValueObject\UnitId;
+use Phil\OrganizationsBundle\Domain\ValueObject\UnitPath;
 use Phil\Slug\Slug;
 
 /**
- * The organizations in the six tables of `OrganizationTables`, on a Doctrine DBAL connection: PostgreSQL, MySQL,
- * MariaDB or SQLite.
+ * The organizations and their units in the eight tables of `OrganizationTables`, on a Doctrine DBAL connection:
+ * PostgreSQL, MySQL, MariaDB or SQLite.
  *
  * An organization read with `$lock` is read `FOR UPDATE` on PostgreSQL, MySQL and MariaDB, so that two changes of one
  * organization run one after the other; SQLite, which knows no `FOR UPDATE`, writes one transaction at a time, and
  * refuses the second writer rather than lose its change. A use of an invitation is one
- * conditional `UPDATE` whose row count is checked: of two members taking its last use at once, one counts it. Every
- * statement takes its values as parameters.
+ * conditional `UPDATE` whose row count is checked: of two members taking its last use at once, one counts it. The units
+ * below a unit are read, moved and archived through one range of the index on the organization and the path — from the
+ * unit's path to the bound `UnitPath::upperBound()` gives —, a move rewriting every path below in one `UPDATE`. Every
+ * statement takes its values as parameters, but for the position of a substring, a number the store counts.
  */
-final readonly class DbalOrganizationStore implements OrganizationStore
+final readonly class DbalOrganizationStore implements OrganizationStore, UnitStore
 {
     private const string ORGANIZATION_COLUMNS = 'id, name, slug, email_domain, created_at, archived_at';
 
@@ -46,6 +53,12 @@ final readonly class DbalOrganizationStore implements OrganizationStore
     private const string TEAM_COLUMNS = 'id, organization_id, name, slug, created_at';
 
     private const string TEAM_MEMBER_COLUMNS = 'team_id, member_id, roles, joined_at';
+
+    private const string UNIT_COLUMNS = 'id, organization_id, name, path, created_at, archived_at';
+
+    private const string UNIT_MEMBER_COLUMNS = 'unit_id, organization_id, member_id, roles, joined_at';
+
+    private const string WITHIN = 'organization_id = ? AND path >= ? AND path < ?';
 
     private const string INVITATION_COLUMNS = 'id, organization_id, roles, max_uses, uses, created_at, expires_at, created_by, revoked_at';
 
@@ -182,6 +195,7 @@ final readonly class DbalOrganizationStore implements OrganizationStore
     public function deleteMembership(OrganizationId $organizationId, MemberId $memberId): bool
     {
         $key = ['organization_id' => $organizationId->value, 'member_id' => $memberId->value];
+        $this->connection->delete(OrganizationTables::UNIT_MEMBER, $key);
         $this->connection->delete(OrganizationTables::TEAM_MEMBER, $key);
         $this->connection->delete(OrganizationTables::MEMBER_ROLE, $key);
 
@@ -379,6 +393,200 @@ final readonly class DbalOrganizationStore implements OrganizationStore
         return (int) $this->connection->update(OrganizationTables::INVITATION, ['created_by' => null], ['created_by' => $memberId->value]);
     }
 
+    #[Override]
+    public function unit(UnitId $id): ?Unit
+    {
+        return $this->selectUnits('WHERE id = ?', [$id->value])[0] ?? null;
+    }
+
+    #[Override]
+    public function saveUnit(Unit $unit): void
+    {
+        $values = ['name' => $unit->name->value, 'archived_at' => $unit->archivedAt?->getTimestamp()];
+
+        if ($this->exists(OrganizationTables::UNIT, ['id' => $unit->id->value])) {
+            $this->connection->update(OrganizationTables::UNIT, $values, ['id' => $unit->id->value]);
+
+            return;
+        }
+
+        $this->connection->insert(OrganizationTables::UNIT, [
+            'id' => $unit->id->value,
+            'organization_id' => $unit->organizationId->value,
+            'parent_id' => $unit->parentId()?->value,
+            'path' => $unit->path->toString(),
+            'depth' => $unit->path->depth(),
+            'created_at' => $unit->createdAt->getTimestamp(),
+            ...$values,
+        ]);
+    }
+
+    #[Override]
+    public function moveUnit(Unit $unit, UnitPath $from): void
+    {
+        $platform = $this->connection->getDatabasePlatform();
+        // The position is a number the store counts, written in the statement: PostgreSQL would read a parameter there
+        // as the pattern of SUBSTRING(text FROM pattern).
+        $this->connection->executeStatement(
+            \sprintf(
+                'UPDATE %s SET path = %s, depth = depth + ? WHERE %s',
+                OrganizationTables::UNIT,
+                $platform->getConcatExpression('?', $platform->getSubstringExpression('path', (string) (\strlen($from->toString()) + 1))),
+                self::WITHIN,
+            ),
+            [$unit->path->toString(), $unit->path->depth() - $from->depth(), $unit->organizationId->value, $from->toString(), $from->upperBound()],
+            [ParameterType::STRING, ParameterType::INTEGER, ParameterType::STRING, ParameterType::STRING, ParameterType::STRING],
+        );
+        $this->connection->update(OrganizationTables::UNIT, ['parent_id' => $unit->parentId()?->value], ['id' => $unit->id->value]);
+    }
+
+    #[Override]
+    public function units(OrganizationId $organizationId, ?UnitPath $within = null, bool $withArchived = true): array
+    {
+        [$condition, $parameters] = $within instanceof UnitPath
+            ? [self::WITHIN, [$organizationId->value, $within->toString(), $within->upperBound()]]
+            : ['organization_id = ?', [$organizationId->value]];
+
+        return $this->selectUnits('WHERE '.$condition.($withArchived ? '' : ' AND archived_at IS NULL').' ORDER BY path', $parameters);
+    }
+
+    #[Override]
+    public function children(OrganizationId $organizationId, ?UnitId $parentId, bool $withArchived = true): array
+    {
+        [$condition, $parameters] = $parentId instanceof UnitId
+            ? ['organization_id = ? AND parent_id = ?', [$organizationId->value, $parentId->value]]
+            : ['organization_id = ? AND parent_id IS NULL', [$organizationId->value]];
+
+        return $this->selectUnits('WHERE '.$condition.($withArchived ? '' : ' AND archived_at IS NULL').' ORDER BY path', $parameters);
+    }
+
+    #[Override]
+    public function unitsById(array $ids): array
+    {
+        if ([] === $ids) {
+            return [];
+        }
+
+        return $this->selectUnits('WHERE id IN (?) ORDER BY path', [array_map(static fn (UnitId $id): string => $id->value, $ids)], [ArrayParameterType::STRING]);
+    }
+
+    #[Override]
+    public function countUnits(OrganizationId $organizationId): int
+    {
+        return $this->count(\sprintf('SELECT COUNT(*) FROM %s WHERE organization_id = ?', OrganizationTables::UNIT), [$organizationId->value]);
+    }
+
+    #[Override]
+    public function deepest(OrganizationId $organizationId, UnitPath $within): int
+    {
+        return DbalRows::integer($this->connection->fetchOne(
+            \sprintf('SELECT COALESCE(MAX(depth), 0) FROM %s WHERE %s', OrganizationTables::UNIT, self::WITHIN),
+            [$organizationId->value, $within->toString(), $within->upperBound()],
+        ));
+    }
+
+    #[Override]
+    public function archiveUnits(OrganizationId $organizationId, UnitPath $within, DateTimeImmutable $now): array
+    {
+        $parameters = [$organizationId->value, $within->toString(), $within->upperBound()];
+        $ids = $this->unitIds(self::WITHIN.' AND archived_at IS NULL', $parameters, []);
+        $this->connection->executeStatement(
+            \sprintf('UPDATE %s SET archived_at = ? WHERE %s AND archived_at IS NULL', OrganizationTables::UNIT, self::WITHIN),
+            [$now->getTimestamp(), ...$parameters],
+            [ParameterType::INTEGER, ParameterType::STRING, ParameterType::STRING, ParameterType::STRING],
+        );
+
+        return $ids;
+    }
+
+    #[Override]
+    public function restoreUnits(OrganizationId $organizationId, UnitPath $within, DateTimeImmutable $archivedAt): array
+    {
+        $parameters = [$organizationId->value, $within->toString(), $within->upperBound(), $archivedAt->getTimestamp()];
+        $types = [ParameterType::STRING, ParameterType::STRING, ParameterType::STRING, ParameterType::INTEGER];
+        $ids = $this->unitIds(self::WITHIN.' AND archived_at = ?', $parameters, $types);
+        $this->connection->executeStatement(\sprintf('UPDATE %s SET archived_at = NULL WHERE %s AND archived_at = ?', OrganizationTables::UNIT, self::WITHIN), $parameters, $types);
+
+        return $ids;
+    }
+
+    #[Override]
+    public function unitMembership(UnitId $unitId, MemberId $memberId): ?UnitMembership
+    {
+        return $this->selectUnitMemberships('WHERE unit_id = ? AND member_id = ?', [$unitId->value, $memberId->value])[0] ?? null;
+    }
+
+    #[Override]
+    public function unitMemberships(UnitId $unitId, int $limit, ?string $afterMember = null): array
+    {
+        return null === $afterMember
+            ? $this->selectUnitMemberships('WHERE unit_id = ? ORDER BY member_id', [$unitId->value], [], $limit)
+            : $this->selectUnitMemberships('WHERE unit_id = ? AND member_id > ? ORDER BY member_id', [$unitId->value, $afterMember], [], $limit);
+    }
+
+    #[Override]
+    public function unitMembershipsOf(MemberId $memberId, ?OrganizationId $organizationId = null): array
+    {
+        return $organizationId instanceof OrganizationId
+            ? $this->selectUnitMemberships('WHERE member_id = ? AND organization_id = ? ORDER BY unit_id', [$memberId->value, $organizationId->value])
+            : $this->selectUnitMemberships('WHERE member_id = ? ORDER BY unit_id', [$memberId->value]);
+    }
+
+    #[Override]
+    public function unitMembershipsAmong(array $unitIds, MemberId $memberId): array
+    {
+        if ([] === $unitIds) {
+            return [];
+        }
+
+        return $this->selectUnitMemberships(
+            'WHERE member_id = ? AND unit_id IN (?) ORDER BY unit_id',
+            [$memberId->value, array_map(static fn (UnitId $id): string => $id->value, $unitIds)],
+            [ParameterType::STRING, ArrayParameterType::STRING],
+        );
+    }
+
+    #[Override]
+    public function membersWithin(OrganizationId $organizationId, UnitPath $within, int $limit, ?string $afterMember = null): array
+    {
+        $sql = \sprintf(
+            'SELECT DISTINCT m.member_id FROM %s m INNER JOIN %s u ON u.id = m.unit_id WHERE u.organization_id = ? AND u.path >= ? AND u.path < ?%s ORDER BY m.member_id',
+            OrganizationTables::UNIT_MEMBER,
+            OrganizationTables::UNIT,
+            null === $afterMember ? '' : ' AND m.member_id > ?',
+        );
+        $parameters = [$organizationId->value, $within->toString(), $within->upperBound()];
+
+        if (null !== $afterMember) {
+            $parameters[] = $afterMember;
+        }
+
+        return array_map(
+            static fn (mixed $member): MemberId => MemberId::fromString(DbalRows::text($member)),
+            $this->connection->fetchFirstColumn($this->connection->getDatabasePlatform()->modifyLimitQuery($sql, $limit), $parameters),
+        );
+    }
+
+    #[Override]
+    public function saveUnitMembership(UnitMembership $membership): void
+    {
+        $key = ['unit_id' => $membership->unitId->value, 'member_id' => $membership->memberId->value];
+
+        if ($this->exists(OrganizationTables::UNIT_MEMBER, $key)) {
+            $this->connection->update(OrganizationTables::UNIT_MEMBER, ['roles' => $membership->roles->toString()], $key);
+
+            return;
+        }
+
+        $this->connection->insert(OrganizationTables::UNIT_MEMBER, [...$key, 'organization_id' => $membership->organizationId->value, 'roles' => $membership->roles->toString(), 'joined_at' => $membership->joinedAt->getTimestamp()]);
+    }
+
+    #[Override]
+    public function deleteUnitMembership(UnitId $unitId, MemberId $memberId): bool
+    {
+        return (int) $this->connection->delete(OrganizationTables::UNIT_MEMBER, ['unit_id' => $unitId->value, 'member_id' => $memberId->value]) > 0;
+    }
+
     /**
      * @param array<string, string> $key
      */
@@ -463,5 +671,41 @@ final readonly class DbalOrganizationStore implements OrganizationStore
     private function selectInvitations(string $condition, array $parameters, array $types = []): array
     {
         return array_map(DbalRows::invitation(...), $this->rows(self::INVITATION_COLUMNS, OrganizationTables::INVITATION, $condition, $parameters, null, $types));
+    }
+
+    /**
+     * @param list<mixed>                            $parameters
+     * @param list<ParameterType|ArrayParameterType> $types
+     *
+     * @return list<Unit>
+     */
+    private function selectUnits(string $condition, array $parameters, array $types = []): array
+    {
+        return array_map(DbalRows::unit(...), $this->rows(self::UNIT_COLUMNS, OrganizationTables::UNIT, $condition, $parameters, null, $types));
+    }
+
+    /**
+     * @param list<mixed>                            $parameters
+     * @param list<ParameterType|ArrayParameterType> $types
+     *
+     * @return list<UnitId> sorted by path
+     */
+    private function unitIds(string $condition, array $parameters, array $types): array
+    {
+        return array_map(
+            static fn (mixed $id): UnitId => UnitId::fromString(DbalRows::text($id)),
+            $this->connection->fetchFirstColumn(\sprintf('SELECT id FROM %s WHERE %s ORDER BY path', OrganizationTables::UNIT, $condition), $parameters, $types),
+        );
+    }
+
+    /**
+     * @param list<mixed>                            $parameters
+     * @param list<ParameterType|ArrayParameterType> $types
+     *
+     * @return list<UnitMembership>
+     */
+    private function selectUnitMemberships(string $condition, array $parameters, array $types = [], ?int $limit = null): array
+    {
+        return array_map(DbalRows::unitMembership(...), $this->rows(self::UNIT_MEMBER_COLUMNS, OrganizationTables::UNIT_MEMBER, $condition, $parameters, $limit, $types));
     }
 }

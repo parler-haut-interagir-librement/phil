@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4e867217f01fd777e7209d2d1dd2abd95eac72456f7ad396b7971b86bfb01256 -->
+<!-- phil-dev source-sha256=bc2008c54e49cc6b70090df555d5cf71fb8196e2ec34d949e68843bdde7980e1 -->
 # Membres et rôles
 
 ## Les membres
@@ -41,7 +41,7 @@ Chaque adhésion porte de un à seize rôles. Trois sont intégrés :
 | Rôle | Permissions |
 |---|---|
 | `owner` | Toutes les permissions, intégrées ou déclarées |
-| `admin` | `organization.view`, `organization.manage`, `members.invite`, `members.manage`, `teams.manage`, `organization.act_on_behalf` |
+| `admin` | `organization.view`, `organization.manage`, `members.invite`, `members.manage`, `teams.manage`, `units.manage`, `organization.act_on_behalf` |
 | `member` | `organization.view` |
 
 Les permissions intégrées sont les constantes de `Permission` :
@@ -55,6 +55,7 @@ Les permissions intégrées sont les constantes de `Permission` :
 | `members.manage` | D'ajouter des membres, de changer leurs rôles, de les retirer |
 | `owners.manage` | D'accorder et de retirer le rôle de propriétaire |
 | `teams.manage` | De créer et de supprimer des équipes, de gérer les membres de n'importe quelle équipe |
+| `units.manage` | De créer, renommer, déplacer, archiver et restaurer n'importe quelle unité, de gérer les membres de n'importe quelle unité ; toute permission d'unité dans chaque unité — voir [Unités](units.md) |
 | `organization.act_on_behalf` | D'agir au nom de l'organisation |
 
 La configuration déclare d'autres rôles, et ajoute des permissions à `admin` et à `member` :
