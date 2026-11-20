@@ -101,6 +101,9 @@ final class TestKernel extends Kernel
             'csrf_protection' => true,
             'translator' => ['fallbacks' => ['en']],
             'default_locale' => 'en',
+            // The locale of a request read from its Accept-Language, for the course of the learner's language.
+            'enabled_locales' => ['en', 'fr'],
+            'set_locale_from_accept_language' => true,
         ]);
         $container->extension('doctrine', ['dbal' => ['url' => 'sqlite:///:memory:']]);
         $container->extension('twig', ['strict_variables' => true, 'paths' => [$this->installRecipes()]]);

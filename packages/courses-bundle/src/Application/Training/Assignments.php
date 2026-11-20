@@ -9,6 +9,7 @@ use DateTimeImmutable;
 use Phil\CoursesBundle\Application\Contract\AssigneeMembers;
 use Phil\CoursesBundle\Application\Contract\TrainingNotifier;
 use Phil\CoursesBundle\Application\Enrollments;
+use Phil\CoursesBundle\Application\Equivalences;
 use Phil\CoursesBundle\Domain\Contract\AssignmentRepository;
 use Phil\CoursesBundle\Domain\Contract\CourseRepository;
 use Phil\CoursesBundle\Domain\Event\TrainingAssigned;
@@ -31,7 +32,9 @@ use Psr\EventDispatcher\EventDispatcherInterface;
  * The courses a learner must take by a due date: assigned to a learner, or to the members of a group or a unit, each
  * member enrolled and given an obligation, and told; a member who completed the course already starts completed. A
  * group or a unit gains its new members at each run; a member who left keeps their obligation. A completion of the
- * course completes the learner's obligations under it, and sets when a recertification renews it.
+ * course completes the learner's obligations under it, and sets when a recertification renews it. With the groups of
+ * equivalent courses, a completion of an equivalent course counts as one of the course: it completes the obligations
+ * under every course of the group, and a member who completed an equivalent course already starts completed.
  */
 final readonly class Assignments
 {
@@ -47,6 +50,7 @@ final readonly class Assignments
         private iterable $members = [],
         private ?TrainingNotifier $notifier = null,
         private ?EventDispatcherInterface $events = null,
+        private ?Equivalences $equivalences = null,
     ) {
     }
 
@@ -113,15 +117,21 @@ final readonly class Assignments
     }
 
     /**
-     * Completes the learner's obligations under the course they completed at that moment.
+     * Completes the learner's obligations under the course they completed at that moment, and under its equivalent
+     * courses.
      *
      * @return list<Obligation> the obligations it completed
      */
     public function completed(Enrollment $enrollment, DateTimeImmutable $at): array
     {
         $completed = [];
+        $obligations = [];
 
-        foreach ($this->assignments->obligationsFor($enrollment->course, $enrollment->learner) as $obligation) {
+        foreach ([$enrollment->course, ...($this->equivalences?->equivalents($enrollment->course) ?? [])] as $course) {
+            array_push($obligations, ...$this->assignments->obligationsFor($course, $enrollment->learner));
+        }
+
+        foreach ($obligations as $obligation) {
             $assignment = $this->assignments->find($obligation->assignment);
 
             if ($assignment instanceof Assignment && $obligation->complete($at, $this->renewal($assignment, $at))) {
@@ -169,9 +179,10 @@ final readonly class Assignments
 
             $enrollment = $this->enrollments->enroll($assignment->course, $learner);
             $obligation = new Obligation($assignment->id, $assignment->course, $learner, $assignment->dueAt, $now);
+            $completedAt = $enrollment->completedAt ?? $this->equivalentCompletion($assignment->course, $learner);
 
-            if ($enrollment->completedAt instanceof DateTimeImmutable) {
-                $obligation->complete($enrollment->completedAt, $this->renewal($assignment, $enrollment->completedAt));
+            if ($completedAt instanceof DateTimeImmutable) {
+                $obligation->complete($completedAt, $this->renewal($assignment, $completedAt));
             }
 
             $this->assignments->saveObligation($obligation);
@@ -183,6 +194,24 @@ final readonly class Assignments
         }
 
         return $reached;
+    }
+
+    /**
+     * The latest moment the learner completed an equivalent course of this one, or null.
+     */
+    private function equivalentCompletion(CourseId $course, LearnerId $learner): ?DateTimeImmutable
+    {
+        $latest = null;
+
+        foreach ($this->equivalences?->equivalents($course) ?? [] as $equivalent) {
+            $completedAt = $this->enrollments->of($equivalent, $learner)?->completedAt;
+
+            if ($completedAt instanceof DateTimeImmutable && (!$latest instanceof DateTimeImmutable || $completedAt > $latest)) {
+                $latest = $completedAt;
+            }
+        }
+
+        return $latest;
     }
 
     private function renewal(Assignment $assignment, DateTimeImmutable $completedAt): ?DateTimeImmutable

@@ -6,6 +6,7 @@ return [
     'outline.not_enrolled' => 'You are not enrolled in this course.',
     'outline.enroll' => 'Enroll',
     'outline.progress' => '%percent% % done',
+    'outline.equivalents' => 'Also given in other languages',
     'outline.completed' => 'You completed this course.',
     'outline.waiting' => 'Opens once the activity before it is done.',
     'outline.start' => 'Start',

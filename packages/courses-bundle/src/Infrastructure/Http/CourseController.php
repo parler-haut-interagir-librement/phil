@@ -10,6 +10,7 @@ use Phil\CoursesBundle\Application\ContentUrls;
 use Phil\CoursesBundle\Application\Contract\CurrentLearner;
 use Phil\CoursesBundle\Application\Courses;
 use Phil\CoursesBundle\Application\Enrollments;
+use Phil\CoursesBundle\Application\Equivalences;
 use Phil\CoursesBundle\Application\Launch;
 use Phil\CoursesBundle\Application\LaunchWindow;
 use Phil\CoursesBundle\Application\Learning;
@@ -22,6 +23,7 @@ use Phil\CoursesBundle\Domain\Exception\RecordStoreUnavailable;
 use Phil\CoursesBundle\Domain\Model\Activity;
 use Phil\CoursesBundle\Domain\Model\Course;
 use Phil\CoursesBundle\Domain\Model\Enrollment;
+use Phil\CoursesBundle\Domain\Model\EquivalentCourse;
 use Phil\CoursesBundle\Domain\ValueObject\ActivityId;
 use Phil\CoursesBundle\Domain\ValueObject\CourseId;
 use Phil\CoursesBundle\Domain\ValueObject\LearnerId;
@@ -37,7 +39,8 @@ use Twig\Environment;
 /**
  * The pages of a course, for the learner signed in: the outline with where each activity stands, the enrollment when
  * the site lets learners enroll themselves, the activity page that frames or opens an activity, or an ended SCORM
- * attempt for review, and the forms that mark an activity done and ask for a second chance. Every change is posted with a CSRF token. Content of the
+ * attempt for review, the other courses of its group of equivalent courses with the address that leads to the one of
+ * the learner's language, and the forms that mark an activity done and ask for a second chance. Every change is posted with a CSRF token. Content of the
  * packages is framed only from the content origin, never from the application's own.
  */
 final readonly class CourseController
@@ -53,6 +56,8 @@ final readonly class CourseController
     public const string RETRY_ROUTE = 'phil_courses_retry';
 
     public const string REVIEW_ROUTE = 'phil_courses_review';
+
+    public const string LANGUAGE_ROUTE = 'phil_courses_language';
 
     public const string UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
 
@@ -71,6 +76,7 @@ final readonly class CourseController
         private string $layout,
         private bool $selfEnrollment = false,
         private bool $showLocked = true,
+        private ?Equivalences $equivalences = null,
     ) {
     }
 
@@ -89,7 +95,19 @@ final readonly class CourseController
             'reviewable' => $enrollment instanceof Enrollment ? $this->learning->reviewable($enrollment) : [],
             'self_enrollment' => $this->selfEnrollment,
             'show_locked' => $this->showLocked,
+            'equivalents' => $this->equivalents($found->id),
         ]);
+    }
+
+    /**
+     * The course of the group of equivalent courses given in the language of the request, else the course itself.
+     */
+    public function language(Request $request, string $course): RedirectResponse
+    {
+        $this->learner();
+        $found = $this->course($course);
+
+        return $this->back($this->equivalences?->courseFor($found->id, $request->getLocale()) ?? $found->id);
     }
 
     public function enroll(Request $request, string $course): RedirectResponse
@@ -232,6 +250,32 @@ final readonly class CourseController
         } catch (CoursesException $coursesException) {
             throw new NotFoundHttpException('No such course.', $coursesException);
         }
+    }
+
+    /**
+     * @return list<array{course: Course, language: string}> the other courses of the course's group, by language
+     */
+    private function equivalents(CourseId $course): array
+    {
+        if (!$this->equivalences instanceof Equivalences) {
+            return [];
+        }
+
+        $member = $this->equivalences->membership($course);
+
+        if (!$member instanceof EquivalentCourse) {
+            return [];
+        }
+
+        $equivalents = [];
+
+        foreach ($this->equivalences->courses($member->group) as $other) {
+            if (!$other->course->equals($course)) {
+                $equivalents[] = ['course' => $this->courses->get($other->course), 'language' => $other->language];
+            }
+        }
+
+        return $equivalents;
     }
 
     private function learner(): LearnerId

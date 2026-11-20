@@ -19,12 +19,16 @@ use Phil\CoursesBundle\Application\Cmi5\Cmi5Launcher;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Settings;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Statements;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Tokens;
+use Phil\CoursesBundle\Application\Completions;
 use Phil\CoursesBundle\Application\ContentUrls;
 use Phil\CoursesBundle\Application\Courses;
 use Phil\CoursesBundle\Application\Enrollments;
+use Phil\CoursesBundle\Application\Equivalences;
 use Phil\CoursesBundle\Application\Import\CourseImporter;
 use Phil\CoursesBundle\Application\Import\ResultImporter;
 use Phil\CoursesBundle\Application\Learning;
+use Phil\CoursesBundle\Application\Path\LearningPaths;
+use Phil\CoursesBundle\Application\Path\PathCompletions;
 use Phil\CoursesBundle\Application\Scorm\ScormRuntime;
 use Phil\CoursesBundle\Application\Scorm\ScormTokens;
 use Phil\CoursesBundle\Application\SecondChances;
@@ -39,7 +43,9 @@ use Phil\CoursesBundle\Infrastructure\Doctrine\CourseTables;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalAssignmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalCourseRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEnrollmentRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEquivalenceRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLaunchSessionRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLearningPathRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLearningRecordStore;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalRetryRequestRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalScormAttemptRepository;
@@ -133,6 +139,18 @@ final readonly class Store
 
     public TrainingCompletions $completions;
 
+    public DbalEquivalenceRepository $equivalenceStore;
+
+    public Equivalences $equivalences;
+
+    public Completions $courseCompletions;
+
+    public DbalLearningPathRepository $pathStore;
+
+    public LearningPaths $paths;
+
+    public PathCompletions $pathCompletions;
+
     public function __construct(?Connection $connection = null, PackageLimits $limits = new PackageLimits())
     {
         $this->connection = $connection ?? self::sqlite();
@@ -147,6 +165,12 @@ final readonly class Store
         $this->urls = new ContentUrls(self::CONTENT);
         $this->settings = new Cmi5Settings(self::HOME);
         $this->enrollments = new Enrollments($this->courseStore, $this->enrollmentStore, $this->clock, $this->events);
+        $this->equivalenceStore = new DbalEquivalenceRepository($this->connection);
+        $this->equivalences = new Equivalences($this->equivalenceStore, $this->courseStore, $this->clock);
+        $this->courseCompletions = new Completions($this->enrollmentStore, $this->equivalences);
+        $this->pathStore = new DbalLearningPathRepository($this->connection);
+        $this->paths = new LearningPaths($this->pathStore, $this->courseStore, $this->enrollments, $this->courseCompletions, $this->clock, $this->events);
+        $this->pathCompletions = new PathCompletions($this->pathStore, $this->paths, $this->equivalences);
         $this->statements = new Cmi5Statements($this->lrs, $this->sessionStore, $this->enrollmentStore, $this->courseStore, $this->enrollments, $this->settings, $this->clock, $this->events);
         $this->tokens = new Cmi5Tokens($this->sessionStore, $this->clock, self::SECRET);
         $this->launcher = new Cmi5Launcher($this->sessionStore, $this->statements, new FixedEndpoints(), $this->urls, $this->settings, $this->clock);
@@ -167,8 +191,8 @@ final readonly class Store
         $this->notices = new RecordingNotifier();
         $this->members = new Members();
         $this->training = new TrainingSettings(7, 30, 3, 2);
-        $this->assignments = new Assignments($this->assignmentStore, $this->courseStore, $this->enrollments, $this->training, $this->clock, [$this->members], $this->notices, $this->events);
-        $this->transcripts = new Transcripts($this->transcriptStore, $this->courseStore, $this->events);
+        $this->assignments = new Assignments($this->assignmentStore, $this->courseStore, $this->enrollments, $this->training, $this->clock, [$this->members], $this->notices, $this->events, $this->equivalences);
+        $this->transcripts = new Transcripts($this->transcriptStore, $this->courseStore, $this->events, $this->equivalences);
         $this->run = new TrainingRun($this->assignmentStore, $this->assignments, $this->enrollmentStore, $this->enrollments, $this->training, $this->clock, $this->notices, $this->events);
         $this->completions = new TrainingCompletions($this->enrollmentStore, $this->assignments, $this->transcripts);
     }
