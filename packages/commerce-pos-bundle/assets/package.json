@@ -1,0 +1,24 @@
+{
+    "name": "@phil/commerce-pos-bundle",
+    "description": "The Stimulus controller of phil/commerce-pos-bundle's offline queue: the main register's sales kept in IndexedDB until the server imports them",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/offline_queue_controller.js",
+    "symfony": {
+        "controllers": {
+            "offline-queue": {
+                "main": "src/offline_queue_controller.js",
+                "webpackMode": "lazy",
+                "fetch": "lazy",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

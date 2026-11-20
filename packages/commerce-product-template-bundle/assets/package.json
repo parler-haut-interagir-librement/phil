@@ -1,0 +1,24 @@
+{
+    "name": "@phil/commerce-product-template-bundle",
+    "description": "The Stimulus controller of phil/commerce-product-template-bundle: a product of a group chosen by a selector per axis, the combinations the group does not sell disabled",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/variant_selector_controller.js",
+    "symfony": {
+        "controllers": {
+            "variant-selector": {
+                "main": "src/variant_selector_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

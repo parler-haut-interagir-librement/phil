@@ -1,0 +1,8 @@
+{
+    "shipment-id": "406951321983787353",
+    "tracking-pin": "1234567890123457",
+    "links": [
+        {"rel": "price", "href": "https://api.test.example/shipments/406951321983787353/price", "media-type": "application/json"},
+        {"rel": "label", "href": "https://api.test.example/artifacts/20389042", "media-type": "application/pdf"}
+    ]
+}

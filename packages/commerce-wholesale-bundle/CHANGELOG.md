@@ -1,0 +1,32 @@
+# Changelog
+
+All notable changes to `phil/commerce-wholesale-bundle` will be documented in this file.
+
+Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
+
+## 0.1.0-alpha - 2026-11-22
+
+### Added
+
+- `CustomerGroup` and `Membership`, `WholesaleRefused`; `CustomerGroups`; `GroupPrices`, the core's
+  `UnitPriceResolver`, asked after the catalogue's price books.
+- Quantity rules: `QuantityRule`, a minimum, a maximum and an increment per SKU for every group or one, `QuantityBreach`,
+  `QuantityRuleRepository` and `QuantityRules`; the Validator's constraint `AllowedQuantity` on a `RequestedQuantity`,
+  with `AllowedQuantityValidator` and its messages in English and French in `translations/`; `QuantityGuard`, the
+  core's `UnitPriceResolver` asked before every price, which refuses with `QuantityRefused` a line its rule does not
+  allow; the bundle requires `symfony/validator`.
+- Sales on credit: `CreditAccount`, `Receivable`, `CreditRepository`, `CreditSales`, and `AccountGateway`, the
+  core's `PaymentGateway` for `on_account`, whose `refund()` keeps on the receivable what the buyer already paid of a
+  refunded amount; the bundle requires `symfony/uid`. A refund of a purchase on account beyond what is outstanding is
+  owed back to the buyer: `Receivable::refundDue()`, `refund()` and `settleRefund()`, and its `refund_due` column;
+  `CreditSales::refundsDue()` lists it and `CreditSales::settleRefund()` records it given back.
+- `CustomerGroupRepository` and `DoctrineWholesaleRepository`, which also stores the quantity rules.
+- `PhilCommerceWholesaleBundle`, extension alias `phil_commerce_wholesale`, which refuses to load without
+  `PhilCommerceBundle`.
+- The Flex recipe in `recipe/0.1`: the bundle registered, its defaults needing no configuration file.
+- The documentation in `doc/`, one file per topic, indexed by the README; the installation guide lists
+  `ext-mbstring` among the requirements.
+- `CONTRIBUTING.md`, `SECURITY.md` and `CODE_OF_CONDUCT.md`.
+- Refunds under an idempotency key, the one of the core's `PaymentGateway::refund()`: `AccountGateway` records the
+  refund on the payment under its key before it credits the receivable, so that a refund asked again credits nothing
+  more.

@@ -1,0 +1,5 @@
+{
+    "bundles": {
+        "Phil\\CommerceReturnsBundle\\PhilCommerceReturnsBundle": ["all"]
+    }
+}

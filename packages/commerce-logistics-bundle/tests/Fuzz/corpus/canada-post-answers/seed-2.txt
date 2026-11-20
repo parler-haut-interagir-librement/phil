@@ -1,0 +1,9 @@
+{
+    "shipment-id": "406951321983787352",
+    "tracking-pin": "1234567890123456",
+    "shipment-price": {"base-amount": 11.2, "due-amount": 12.66},
+    "links": [
+        {"rel": "self", "href": "https://api.test.example/shipments/406951321983787352", "media-type": "application/json"},
+        {"rel": "label", "href": "https://api.test.example/artifacts/20389041", "media-type": "application/pdf"}
+    ]
+}

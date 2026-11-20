@@ -1,0 +1,7 @@
+# The endpoint partners post their messages to, one path per partner. Exclude it from CSRF protection and from
+# authentication: the signature of each message admits it.
+phil_commerce_syndication:
+    path: /syndication/{partner}
+    methods: [POST]
+    controller: Phil\CommerceSyndicationBundle\Infrastructure\Http\SyndicationWebhookController
+    requirements: { partner: '[a-z0-9][a-z0-9_.-]{0,62}' }
