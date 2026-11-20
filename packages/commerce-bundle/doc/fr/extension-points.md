@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=ee0d2a733030d8f314093161791ef0d149989e0ee851b4f88177797dfe73a9bc -->
+<!-- phil-dev source-sha256=e4ec2e4d47ce2a9bd332b0d685fbb98e5a779b695d93807f38b17c6508f4187f -->
 # Points d'extension
 
-Quinze ports. Les modules et l'application se branchent aux neuf que l'autoconfiguration étiquette, que lisent
-`OrderModifier`, `Payments`, `LineOptions`, `OptionDraws`, `DeferredSales` et `DocumentRegister` ; les six autres sont
+Seize ports. Les modules et l'application se branchent aux neuf que l'autoconfiguration étiquette, que lisent
+`OrderModifier`, `Payments`, `LineOptions`, `OptionDraws`, `DeferredSales` et `DocumentRegister` ; les sept autres sont
 des alias, que l'application fait pointer vers ses propres adaptateurs ou laisse sur ceux du bundle (voyez
-[installation.md](installation.md)). `StockCommitments`, `DocumentTypes`, `DocumentSeries`, `TransitionForcing` et
-`OrderShipments` vivent dans `Phil\CommerceBundle\Application\Contract`, les autres dans
+[installation.md](installation.md)). `StockCommitments`, `DocumentTypes`, `DocumentSeries`, `PaymentLock`,
+`TransitionForcing` et `OrderShipments` vivent dans `Phil\CommerceBundle\Application\Contract`, les autres dans
 `Phil\CommerceBundle\Application\Port`. Les contrats de stockage du domaine, les événements et ce sur quoi s'appuie un
 module de retours les suivent.
 
@@ -24,6 +24,7 @@ module de retours les suivent.
 | `DocumentNumbering` | — (alias ; `DoctrineDocumentNumbering` avec DoctrineBundle) | `Receipts` | Le prochain numéro d'une série de documents |
 | `DocumentTypes` | `phil_commerce.document_types` | `DocumentRegister` | Déclare des types de documents au registre |
 | `DocumentSeries` | — (alias ; `DoctrineDocumentNumbering` avec DoctrineBundle) | `DocumentRegister` | Le prochain numéro de la série d'un type |
+| `PaymentLock` | — (alias ; `DoctrinePaymentLock` avec DoctrineBundle) | `Refunds::grant()` | Tient un paiement pour un seul remboursement à la fois |
 | `TransitionForcing` | — (alias ; `DenyForcing` par défaut) | `OrderLifecycle::force()` | Qui peut forcer une commande hors de ses transitions |
 | `OrderShipments` | — (alias ; `UnknownShipments` par défaut) | les modules, un module de retours en premier | Quand une commande, ou l'une de ses lignes, a quitté la boutique |
 
@@ -346,6 +347,18 @@ final readonly class LogisticsDocuments implements DocumentTypes
 
 Invariants : ceux de `DocumentNumbering`, une série par code de type ; `DoctrineDocumentNumbering` implémente les deux
 sous le même verrou.
+
+## `PaymentLock`
+
+| Méthode | Contrat |
+|---|---|
+| `lockForRefund(Payment $payment): list<Refund>` | Verrouille le paiement jusqu'à la fin de la transaction et donne ses remboursements tels que le stockage les tient une fois le verrou pris, du plus ancien au plus récent |
+
+Invariants : deux appels simultanés sur le même paiement s'attendent ; les remboursements du second incluent ce que la
+transaction du premier a validé ; hors d'une transaction, une `LogicException`, puisque le verrou finirait avec son
+instruction. `DoctrinePaymentLock` verrouille la rangée de `phil_commerce_payment` avec `SELECT … FOR UPDATE`, lit les
+remboursements par une lecture verrouillante, et lance l'`OptimisticLockException` de Doctrine quand la version du
+paiement a bougé depuis que le gestionnaire d'entités l'a lu ([refunds.md](refunds.md#deux-commis-à-la-fois)).
 
 ## `TransitionForcing`
 

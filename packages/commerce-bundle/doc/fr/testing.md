@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2a99d25e7495372a228174009f9ae1d0b483d9c934528c0405140a27288dae7d -->
+<!-- phil-dev source-sha256=0ea0a761a34419be6451f036517e0ed970e6b32c3d3b5372e200138460f32912 -->
 # Tests
 
 ## Comment le bundle est testé
@@ -34,7 +34,7 @@ chaque heure est passée en argument.
 | `GiftOptions`, `GiftWrapping`, `ManualDiscount`, `ManualDiscountProcessor` | Un emballage par commande emballée, l'emballage recyclé, une boutique qui n'emballe pas ; des rabais sur une ligne ou sur toute la commande avant les taxes, jamais sous zéro, répartis sur ce qui reste de chaque ligne |
 | `Payments` qui annonce, paiements hors ligne | `OrderPurchased` une fois par commande payée en entier, à l'horloge de l'application, jamais pour une notification refusée ; paiements hors ligne déclarés puis confirmés, jamais abandonnés comme périmés, remboursés sans passerelle |
 | `WishList`, `WishLists`, `PaymentLink`, `PaymentLinks` | Des jetons montrés une fois et gardés hachés, une liste où l'on achète et comptée sur `OrderPurchased`, des liens qui ouvrent leur commande jusqu'à ce qu'ils expirent, soient révoqués ou que la commande soit payée |
-| `OrderChange`, `OrderChanges`, `OrderExpiry`, `Refund`, `Refunds` | Des changements préparés, confirmés, versionnés et refusés sur une révision plus ancienne ou après un reçu ; le balayage par canal, borné, avec ou sans le workflow ; des remboursements accordés puis exécutés, jamais au-delà de ce qui reste, `OrderRefunded` une fois par remboursement exécuté, avec le canal et le client de la commande ou sans eux quand la commande est introuvable |
+| `OrderChange`, `OrderChanges`, `OrderExpiry`, `Refund`, `Refunds` | Des changements préparés, confirmés, versionnés et refusés sur une révision plus ancienne ou après un reçu ; le balayage par canal, borné, avec ou sans le workflow ; des remboursements accordés puis exécutés, jamais au-delà de ce qui reste, comptés à partir des remboursements que lit le verrou après que l'état du paiement a été relu, `OrderRefunded` une fois par remboursement exécuté, avec le canal et le client de la commande ou sans eux quand la commande est introuvable |
 | `UnknownShipments` | Aucune commande ni ligne connue comme partie |
 | `ReceiptPdf` | Un reçu et une note de crédit imprimés, les longues lignes et les longs reçus sur plusieurs pages, les options sous leur ligne, les polices intégrées, PDF/A |
 | `OrderWorkflowPass`, `DoctrineDocumentNumbering`, `DoctrineDeferredSaleRepository` | Le workflow ajouté au registre quand il y en a un ; les requêtes des séries et des ventes différées |
@@ -53,7 +53,7 @@ avancée. `PaymentFlowTest` paie une commande passée par une passerelle que bra
 notification signée du processeur au contrôleur de *webhook*, et relit le paiement et la commande payés.
 `ReceiptFlowTest` émet des reçus et une note de crédit dans des transactions, les relit tels qu'émis, voit un reçu
 annulé par un retour arrière rendre son numéro, et un numéro refusé hors d'une transaction. `SalesLifeStorageTest`
-stocke un cadeau passé par le workflow et journalisé, des liens, des changements, des remboursements et le registre, et
+stocke un cadeau passé par le workflow et journalisé, des liens, des changements, des remboursements — refusés hors d'une transaction et sur un paiement modifié depuis sa lecture — et le registre, et
 balaie les commandes impayées par leur canal ; `DeferredSaleStorageTest` stocke une mise de côté et appelle son solde
 à l'échéance ; `SalesConfigurationTest` construit avec les valeurs par défaut et refuse ce que le bundle ne peut pas
 utiliser. Quand le bundle est installé seul, la suite fonctionnelle est sautée : Symfony ne câble aucun répartiteur
@@ -69,6 +69,12 @@ eval "$(vendor/bin/phil-dev services env)"   # after vendor/bin/phil-dev service
 PHIL_COMMERCE_TEST_DATABASE_URL="$PHIL_TEST_MYSQL_URL" vendor/bin/phpunit packages/commerce-bundle/tests/Functional
 PHIL_COMMERCE_TEST_DATABASE_URL="$PHIL_TEST_POSTGRESQL_URL" vendor/bin/phpunit packages/commerce-bundle/tests/Functional
 ```
+
+`tests/Integration/` s'exécute sur les serveurs de `phil-dev services`, à partir de `PHIL_TEST_MYSQL_URL` et
+`PHIL_TEST_POSTGRESQL_URL`, et est sauté sans eux. `MySqlRefundLockTest` et `PostgreSqlRefundLockTest` accordent deux
+remboursements d'un même paiement à la fois : le second commis, dans un processus à lui (`grant-refund.php`, par
+`symfony/process`), lit le paiement, attend pendant que la transaction du premier tient son verrou, puis est refusé
+quand les deux ensemble dépassent le paiement, et accordé quand ils ne le dépassent pas.
 
 Le mappage reste portable entre SQLite, MySQL 8.4 et PostgreSQL 17 : les colonnes `lines` sont entre guillemets, car
 `LINES` est réservé dans MySQL, et aucune colonne JSON ne déclare de valeur par défaut, ce que MySQL refuse.

@@ -1,93 +1,105 @@
-<!-- phil-dev source-sha256=79da2d11d383a168ba3f3a13648d08c5d2e57ab17bd7bd93bb93fb217a07ec42 -->
+<!-- phil-dev source-sha256=c87c3bb89481efd27481fc2ec6fbaa5cb0e72947f57b2c99eadbf95c0eaf9ed3 -->
 # Mode d'incident
 
-Quand `phil/incident-mode` 0.2 ou plus récent est installé, le bundle le câble ; il n'y a rien à déclarer.
+Le mode d'incident est celui de `phil/incident-mode-bundle` : sa table, ses préréglages, ses commandes de console, sa
+page d'administration, sa levée automatique et les points de contrôle qui refusent une inscription, une invitation ou
+un formulaire pendant qu'un incident les suspend. La modération ne branche pas la bibliothèque elle-même ; quand ce
+bundle est enregistré, la file offre sa page et propose un incident quand les signalements affluent.
 
 ```sh
-composer require phil/incident-mode
+composer require phil/incident-mode-bundle
 ```
 
-| Service | Ce que c'est |
+```php
+// config/bundles.php
+return [
+    // …
+    Phil\ModerationBundle\PhilModerationBundle::class => ['all' => true],
+    Phil\IncidentModeBundle\PhilIncidentModeBundle::class => ['all' => true],
+];
+```
+
+Les préréglages, les membres établis, le rôle de l'administration et la levée se configurent sous
+`phil_incident_mode`, comme le montre la documentation de `phil/incident-mode-bundle` ; ses routes s'importent aussi
+comme elle le montre :
+
+```yaml
+# config/routes/phil_incident_mode.yaml
+phil_incident_mode_admin:
+    resource: '@PhilIncidentModeBundle/config/routes/admin.php'
+    prefix: /admin/incidents
+```
+
+## Dans la file
+
+| Quand | La file montre |
 |---|---|
-| `Phil\IncidentMode\Presets` | Les préréglages fournis, avec `incident.presets` ajoutés et `incident.without` écartés |
-| `Phil\IncidentMode\Contract\ActivationStore` | Le magasin DBAL, sur la connexion du bundle ; sa table rejoint le schéma que l'ORM génère |
-| `Phil\IncidentMode\Contract\LiftScheduler` | Le message différé `LiftIncident` quand Messenger a un bus ; rien sinon |
-| `Phil\IncidentMode\IncidentMode` | Le mode d'incident, public, ses événements sur le répartiteur d'événements |
-| `LiftIncidentHandler`, `LiftExpiredIncidentsHandler` | Les handlers de la levée, quand Messenger a un bus |
-| `Phil\IncidentMode\Contract\EstablishedMembers` | `Phil\IncidentMode\NoEstablishedMembers` tant que l'application n'a pas donné son propre alias |
-| `Phil\IncidentMode\IncidentRestrictions` | Si une restriction s'applique à un membre, avec `incident.spare_established` |
-| `Infrastructure\IncidentMode\CurrentMemberRestrictions` | La même question pour le membre que lit `CurrentMember` |
+| Le membre détient le rôle de `phil_incident_mode.admin.role` | Un lien vers la page des incidents, `phil_incident_mode_admin`, à côté de la file |
+| Ce rôle, `surge.reports` signalements en `surge.within` secondes, aucun incident en vigueur | Une alerte disant que les signalements affluent, avec un lien vers cette page |
+| Un autre modérateur | Ni l'un ni l'autre : la page n'est pas la sienne |
+| L'administration du mode d'incident désactivée (`admin: false`), ou le bundle non enregistré | Ni l'un ni l'autre |
 
-Acheminez `Phil\IncidentMode\Messenger\LiftIncident` vers un transport qui prend en charge les délais, et ajoutez le
-`LiftExpiredIncidents` récurrent à un calendrier, comme le montre la documentation de `phil/incident-mode`.
-
-## Dans l'interface d'administration
-
-La page du mode d'incident est réservée à l'attribut de sécurité `incident.role`. Elle montre les incidents en vigueur
-avec leur fin et un bouton qui lève chacun, le formulaire qui en déclenche un à partir d'un préréglage — **la durée est
-obligatoire**, le préréglage la propose et la borne —, et le journal des incidents. Le modérateur est l'acteur de ce
-qu'il déclenche ou lève, par son identifiant stable.
-
-**La file propose le mode d'incident** à ce rôle quand `surge.reports` signalements sont arrivés en `surge.within`
-secondes et qu'aucun incident n'est en vigueur.
+`Infrastructure\IncidentMode\IncidentProposal` répond aux deux questions à partir de l'`IncidentMode` du bundle, de
+l'afflux de signalements de la modération et du rôle, que le bundle publie comme paramètre de conteneur
+`phil_incident_mode.admin.role` tant que son administration est activée. Il ne garde rien d'une requête à l'autre.
 
 ## Dans les pages du site
 
+Les points de contrôle sont ceux du bundle, tout comme leurs fonctions : un site refuse une inscription, une
+invitation ou un formulaire pendant qu'un incident le suspend, et montre un avis, avec eux.
+
+```php
+use Phil\IncidentModeBundle\Attribute\SuspendedDuring;
+
+#[SuspendedDuring('signups', methods: ['POST'])]
+public function register(Request $request): Response
+```
+
+```yaml
+# a route refused while invitations are suspended
+invite:
+    path: /invite
+    controller: App\Controller\InvitationController
+    defaults: { _suspended_during: invitations }
+```
+
+```php
+// a form invalid while new posts are suspended, with the error that says until when
+$resolver->setDefault('suspended_during', ['new-posts']);
+```
+
 ```twig
-{% if phil_moderation_suspended('signups') %}
+{% if phil_incident_suspended('signups') %}
     <p>Sign-ups are suspended for now.</p>
 {% endif %}
 ```
 
-En PHP, l'application demande `Phil\IncidentMode\IncidentRestrictions::appliesTo('new-posts', $member)`, avec
-l'identifiant stable du membre ou `null` pour un visiteur — ou `CurrentMemberRestrictions::appliesNow('new-posts')`
-pour le membre de la requête courante — avant de laisser quelqu'un publier, et `IncidentMode::isSuspended('signups')`
-avant de laisser quelqu'un s'inscrire.
+Une requête refusée reçoit un 503, ou le statut que choisit la configuration du bundle, avec `Retry-After`. Les
+membres établis sont épargnés des restrictions que liste `phil_incident_mode.spare_established`, par le port
+`Phil\IncidentMode\Contract\EstablishedMembers`, que nomme `phil_incident_mode.established_members`.
 
-## Les membres établis
+## Renseignements personnels
 
-Un incident peut laisser les membres établis libres de certaines de ses restrictions : un forum qui suspend les
-nouveaux messages après une vague de pourriel garde ses habitués actifs.
+Les incidents qu'un membre a déclenchés ou levés répondent aux demandes d'accès et d'effacement de
+`phil/privacy-bundle` par l'exportateur et l'effaceur propres au mode d'incident ; les enregistrements de la modération
+les laissent de côté ([Renseignements personnels](privacy.md)).
 
-```yaml
-phil_moderation:
-    incident:
-        spare_established: [new-posts, new-comments]
-```
+## Mise à niveau depuis 0.2
 
-L'application dit qui est établi avec un service à elle qui implémente le port
-`Phil\IncidentMode\Contract\EstablishedMembers` de `phil/incident-mode` — les membres d'un niveau de confiance, ou d'une
-ancienneté et d'une activité —, auquel elle donne un alias ; par défaut personne ne l'est, de sorte que chaque incident
-restreint tout le monde. Le port reçoit l'identifiant stable du membre, la chaîne que renvoie
-`ModerationMember::moderationIdentifier()` :
+Le bundle ne câble plus `phil/incident-mode` lui-même :
 
-```php
-use Phil\IncidentMode\Contract\EstablishedMembers;
-
-final readonly class RegularMembers implements EstablishedMembers
-{
-    public function __construct(private MemberDirectory $members)
-    {
-    }
-
-    public function isEstablished(string $member): bool
-    {
-        return $this->members->postsOf($member) >= 50;
-    }
-}
-```
-
-```yaml
-# config/services.yaml
-services:
-    Phil\IncidentMode\Contract\EstablishedMembers: '@App\Moderation\RegularMembers'
-```
-
-| La restriction | S'applique à |
+| En 0.2 | À partir de la 0.3 |
 |---|---|
-| Non suspendue | Personne |
-| Suspendue, absente de `spare_established` | Tout le monde |
-| Suspendue et énumérée | Tout le monde sauf les membres établis |
-| Suspendue et énumérée, pendant que `read-only` est en vigueur | Tout le monde, sauf si `read-only` est énumérée aussi |
+| `phil_moderation.incident.role` | `phil_incident_mode.admin.role` |
+| `phil_moderation.incident.presets`, durées en minutes | `phil_incident_mode.presets`, par nom, durées écrites `90m`, `2h` ou `1d` |
+| `phil_moderation.incident.without` | `phil_incident_mode.without_presets` |
+| `phil_moderation.incident.spare_established` | `phil_incident_mode.spare_established`, avec `established_members` qui nomme le service d'`EstablishedMembers` |
+| Les pages `phil_moderation_incidents`, `phil_moderation_incident_start`, `phil_moderation_incident_lift` | La page `phil_incident_mode_admin` du bundle, qui prolonge aussi un incident |
+| `ModerationAdmin::incidentsMenuItem()` | Un élément de menu vers la route `phil_incident_mode_admin` |
+| `phil_moderation_suspended('signups')` | `phil_incident_suspended('signups')` |
+| `CurrentMemberRestrictions::appliesNow()` | `Phil\IncidentModeBundle\Application\Checkpoint::applies()`, ou `guard()`, qui refuse |
+| Les incidents dans l'export de la modération sous `incidents` | L'export du mode d'incident |
 
-Un visiteur n'est jamais épargné. Les noms sont ceux de `Phil\IncidentMode\Restriction`, ou ceux de l'application.
+La table `phil_incident_activation` garde son nom et ses rangées : le magasin du bundle les lit sur la connexion de
+`phil_incident_mode.connection`, `default` sauf configuration. Retirez la clé `incident` de `phil_moderation`, que la
+configuration refuse désormais, enregistrez le bundle et importez ses routes.

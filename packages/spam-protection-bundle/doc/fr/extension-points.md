@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a7e65bbfadf39c4aeb76830e33a8eeb8fe3b4d21ae15aa4b4021a885eca76c03 -->
+<!-- phil-dev source-sha256=65fe169a6f80faab845790cb8ea8ac14eedc1664cdb89c14d739a3182d87a637 -->
 # Points d'extension
 
 ## UsedTokens
@@ -58,7 +58,10 @@ $inspection = $inspector->inspect(new Submission(
     client: $clientKey->current(),
 ));
 
-if ($inspection->isSpam()) {
-    // refuse, or add friction — Verdicts::of($inspection) is a bot-detection Verdict
+if ($refusal->refuses($inspection)) {     // $refusal: RefusalPolicy, from the container
+    // refuse, or add friction — Verdicts::of($inspection, $refusal) is a bot-detection Verdict
 }
 ```
+
+`$inspection->isSpam()` dit si un signal a été levé ; `RefusalPolicy` les pèse comme la configuration le prévoit
+([Refus pondérés](signals.md#refus-pondérés)).

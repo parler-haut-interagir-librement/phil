@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5fc512dfb6e4d92a55d0c677fb12d39c2cd26678581732aadd68106f24953b22 -->
+<!-- phil-dev source-sha256=efea407fdf9d170158d78ab528f1f2d811f92b9fe5513e3355039b394646d1dd -->
 # Référence
 
 Chaque classe et chaque service du bundle, avec son rôle.
@@ -33,8 +33,7 @@ Chaque classe et chaque service du bundle, avec son rôle.
 | `Infrastructure\Security\TokenCurrentMember`, `TokenCurrentModerator` | Le membre et le modérateur du jeton de sécurité |
 | `Infrastructure\Http\AdminController`, `ReportController`, `JournalController`, `StatementController` | Les pages |
 | `Infrastructure\EasyAdmin\ModerationAdmin` | Les éléments de menu et les routes dans EasyAdmin |
-| `Infrastructure\IncidentMode\IncidentPanel` | Le mode d'incident dans l'interface d'administration |
-| `Infrastructure\IncidentMode\CurrentMemberRestrictions` | Si une restriction d'un incident s'applique au membre de la requête courante, par `IncidentRestrictions` de `phil/incident-mode` |
+| `Infrastructure\IncidentMode\IncidentProposal` | Le mode d'incident de `phil/incident-mode-bundle` dans la file : `isOffered()` au rôle de son administration, `isProposed()` quand les signalements affluent et qu'aucun incident n'est en vigueur ; `ROUTE` |
 | `Infrastructure\Notifications\StatementNotifier`, `StatementSubjects` | La notification d'un exposé, et ce que son sujet désigne, avec `phil/notifications-bundle` |
 | `Infrastructure\Privacy\ModerationPrivacy` | L'export et l'effacement |
 | `Infrastructure\Twig\ModerationExtension`, `KitComponents` | Les fonctions Twig ; les noms des recettes |

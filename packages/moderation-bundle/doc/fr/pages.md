@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b426b1a41bad0c9569ced5bc58f54bf04cb97469dbbdae799c83692b4f60508d -->
+<!-- phil-dev source-sha256=fad6b1bbe1784b2778a8704720847fd12f3552976a2ad7a0b9a62fb7c0d70fb6 -->
 # Pages
 
 ## L'interface d'administration
@@ -8,10 +8,9 @@ page refusée. Chaque formulaire est envoyé avec un jeton CSRF, et chaque page 
 
 | Page | Route | Ce qu'elle fait |
 |---|---|---|
-| La file | `phil_moderation_queue` | La file unique, une page à la fois ; la proposition du mode d'incident quand les signalements montent en flèche |
+| La file | `phil_moderation_queue` | La file unique, une page à la fois ; avec `phil/incident-mode-bundle`, le lien vers sa page et la proposition d'un incident quand les signalements montent en flèche ([Mode d'incident](incident-mode.md)) |
 | Une cible | `phil_moderation_entry`, `phil_moderation_decide` | Ce que son paquet en dit, ses signalements ouverts, le formulaire de décision avec les motifs d'un exposé des motifs, son historique |
 | Un membre | `phil_moderation_member`, `phil_moderation_note`, `phil_moderation_note_remove` | Les décisions sur son contenu et les notes de la modération à son sujet |
-| Le mode d'incident | `phil_moderation_incidents`, `phil_moderation_incident_start`, `phil_moderation_incident_lift` | Avec `phil/incident-mode`, pour le rôle `incident.role` ([Mode d'incident](incident-mode.md)) |
 
 Les pages étendent la mise en page de `admin.layout`, qui définit les blocs `title` et `main`.
 
@@ -39,7 +38,6 @@ use Phil\ModerationBundle\Infrastructure\EasyAdmin\ModerationAdmin;
 public function configureMenuItems(): iterable
 {
     yield ModerationAdmin::menuItem('admin');
-    yield ModerationAdmin::incidentsMenuItem('admin');
 }
 ```
 
@@ -55,9 +53,9 @@ Le membre choisit une raison et peut ajouter un commentaire ; un membre de confi
 contenu. Chaque formulaire revient à la page courante — un chemin du même site, jamais un autre hôte.
 
 Les gabarits du site disposent aussi de `phil_moderation_reasons()`, `phil_moderation_report_token()`,
-`phil_moderation_may_hide()`, `phil_moderation_suspended('signups')` — qui dit si le mode d'incident suspend une
-restriction maintenant pour le membre courant, un membre établi étant épargné des restrictions qu'énumère
-`incident.spare_established`, toujours `false` sans `phil/incident-mode` — et `phil_moderation_kit('Button')`.
+`phil_moderation_may_hide()` et `phil_moderation_kit('Button')` ; savoir si un incident suspend quelque chose
+maintenant, c'est `phil_incident_suspended()`, de `phil/incident-mode-bundle`
+([Mode d'incident](incident-mode.md#dans-les-pages-du-site)).
 
 ## Le journal public
 
@@ -72,7 +70,6 @@ tout le monde, de sorte qu'un cache partagé le garde une minute.
 | `admin/queue.html.twig` | `Alert`, `Badge`, `Table` et ses parties |
 | `admin/entry.html.twig` | `Alert`, `Badge`, `Button`, `Field`, `Input`, `NativeSelect`, `Textarea` |
 | `admin/member.html.twig` | `Alert`, `Badge`, `Button`, `Field`, `Textarea` |
-| `admin/incidents.html.twig` | `Alert`, `Badge`, `Button`, `Field`, `Input`, `NativeSelect`, `Textarea` |
 | `journal.html.twig` | `Badge`, `Table` et ses parties |
 | `statements.html.twig` | `Badge`, `Table` et ses parties |
 | `statement.html.twig` | `Alert`, `Badge` |

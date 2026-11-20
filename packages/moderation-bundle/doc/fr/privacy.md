@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d61ba9ad23b1501347ee3c4e38ce9eb8e6e51af533fcfabadfec06a4cde3518d -->
+<!-- phil-dev source-sha256=1363db5d4139c94502b94b844c693c90308e927bbddd60f762ad0183bc42d68e -->
 # Renseignements personnels
 
 ## Identifiants stables
@@ -21,11 +21,11 @@ L'export contient, pour le membre que la demande concerne :
 | `statements_addressed_to_me` | Les exposés des motifs qui lui sont adressés : cible, action, raison, motifs, disposition, faits, si un signalement les a provoqués, si des moyens automatisés ont détecté le contenu, moment |
 | `notes_about_me` | Les notes de la modération à son sujet, sans leur auteur |
 | `sandbox_left_at` | Quand son premier message a été approuvé |
-| `incidents` | Avec `phil/incident-mode`, les incidents qu'il a déclenchés ou levés |
 
 Il ne nomme jamais un autre membre : aucun modérateur, aucun signaleur, aucun auteur de note ; la note privée d'une décision reste hors de
 l'export.
 
 L'effacement supprime les notes sur le membre, les exposés des motifs qui lui sont adressés et l'enregistrement du bac à
 sable, et retire le membre des signalements qu'il a faits, des décisions — comme auteur et comme modérateur, le rôle
-demeurant —, des notes qu'il a écrites et des incidents. Il peut être rejoué.
+demeurant — et des notes qu'il a écrites. Il peut être rejoué. Les incidents qu'un membre a déclenchés ou levés sont
+du ressort de `phil/incident-mode-bundle`.

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0ca8695afc35a18ad111923ff97c177e46f18c48c2847fde2c2e54330581367d -->
+<!-- phil-dev source-sha256=2180e228068add6a2dfe10f4564de7a4d4e46316349f59221c0a9a75da7fd76e -->
 # Points d'extension
 
 Le bundle est en `0.x` : ses points d'extension sont stables seulement à partir de sa version 1.0. D'ici là, une
@@ -12,7 +12,7 @@ version mineure peut les changer, et son CHANGELOG dit comment.
 | Décider autrement qui modère | Donnez à `Application\Contract\CurrentModerator` un alias vers votre service |
 | Brancher les mots surveillés | Donnez à `Application\Contract\WordScreen` un alias vers l'adaptateur |
 | Faire confiance à des membres pour masquer | Donnez à `Application\Contract\TrustedHiders` un alias vers l'adaptateur des niveaux de confiance |
-| Épargner les membres établis d'un incident | Donnez à `Phil\IncidentMode\Contract\EstablishedMembers` de `phil/incident-mode` un alias vers votre service, et énumérez les restrictions dans `incident.spare_established` ([Mode d'incident](incident-mode.md#les-membres-établis)) |
+| Offrir le mode d'incident dans la file | Enregistrez `phil/incident-mode-bundle` avec son administration activée ([Mode d'incident](incident-mode.md)) |
 | Retenir du contenu selon une autre règle | Donnez à `Application\Contract\SandboxPolicy` un alias vers votre service |
 | Réagir à la modération | Écoutez `ReportFiled`, `DecisionTaken`, `ContentHeld`, `ContentHiddenByMember` et `StatementIssued` |
 | Informer un membre d'un exposé des motifs | Nommez un type de `phil/notifications-bundle` dans `statements.notification_type`, ou écoutez `StatementIssued` |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=92a0eafe71b5eabd13f49d161c67662c1fd096d1d7742752f986e0c7cbfeb670 -->
+<!-- phil-dev source-sha256=0c35511823db73df391f45809aaa486690391d9cdbbd927f1bb7d6deaf5841b5 -->
 # phil/commerce-bundle
 
 **Les commandes, les prix, les taxes, les paiements et les reçus d'une boutique Symfony, avec des modules branchés par-dessus.**
@@ -102,7 +102,7 @@ refuse jamais à lui seul.
   `phil/tax`.
 - [Tentatives de paiement](doc/fr/payment-attempts.md) : les règles du limiteur, la politique, les clés par commande
   et par réseau du client, l'état unique, les décisions avec `Retry-After`, et une tentative de bout en bout.
-- [Points d'extension](doc/fr/extension-points.md) : les quinze ports, méthode par méthode, les contrats de
+- [Points d'extension](doc/fr/extension-points.md) : les seize ports, méthode par méthode, les contrats de
   stockage, les événements et ce sur quoi s'appuie un module de retours, leurs invariants et des exemples
   d'adaptateurs.
 - [Tests](doc/fr/testing.md) : comment le bundle est testé, comment lancer ses tests, et comment une application teste
