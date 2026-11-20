@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b6cbdec8bce7a1841a278edabe9d9cf3f02eaa36d478cb5f72ae1f277be0cc3c -->
+<!-- phil-dev source-sha256=15935379af15b160558cfe3070c082ad496e1753b55e7a355fad5d57979e38c0 -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_courses`. Chaque option a une valeur par défaut ; une application nomme
@@ -23,6 +23,7 @@ phil_courses:
         allow_localhost: false
     import:
         language: null
+        xapi_reader: null
         limits:
             archive_bytes: 536870912
             entries: 10000
@@ -52,6 +53,16 @@ phil_courses:
         enabled: true
         token_ttl: 14400
         secret: '%kernel.secret%'
+    training:
+        enabled: true
+        reminder_days: 7
+        renewal_grace_days: 30
+        max_members: 10000
+        run_at: '06:00'
+        schedule: true
+        manager_role: ROLE_COURSES_MANAGER
+        notifier: null
+        keep_transcripts: false
     admin:
         role: ROLE_COURSES_TEACHER
     audit:
@@ -74,6 +85,7 @@ phil_courses:
 | `content.application_origin` | `null` | L'origine du site qui encadre le contenu, comme `https://www.example.org` : la seule origine qui peut encadrer le contenu et le cadre de l'environnement d'exécution SCORM, et la seule à laquelle le cadre parle. L'origine de `cmi5.actor_home_page` quand elle est null ; avec ni l'une ni l'autre, personne ne peut encadrer le contenu. |
 | `content.allow_localhost` | `false` | Si l'origine du contenu et la page d'accueil peuvent être sur `localhost`, en développement. |
 | `import.language` | `null` | La langue des titres lus dans une structure de cours cmi5, comme `fr` ; son premier titre si null. |
+| `import.xapi_reader` | `null` | Un service `XapiPackageReader` qui lit le `tincan.xml` des paquets xAPI ; ces paquets sont refusés quand il vaut null. Voir [activités xAPI](xapi-activities.md#importer-un-paquet-xapi). |
 | `import.limits.archive_bytes` | 512 Mio | La taille de l'archive. |
 | `import.limits.entries` | 10 000 | Le nombre d'entrées de l'archive. |
 | `import.limits.entry_bytes` | 256 Mio | La taille d'un fichier, décompressé. |
@@ -99,9 +111,20 @@ phil_courses:
 | `scorm.enabled` | `true` | Exécute le contenu SCORM avec l'API d'exécution, ses tentatives et ses données de suivi, comme l'explique [Environnement d'exécution SCORM](scorm-runtime.md) ; quand c'est false, l'apprenant marque une activité SCORM terminée. |
 | `scorm.token_ttl` | 14 400 | Combien de secondes un jeton de tentative tient après la dernière validation, de 300 à 86 400. |
 | `scorm.secret` | `%kernel.secret%` | Le secret qui signe les jetons de tentative. |
+| `training.enabled` | `true` | La formation obligatoire — assignations, rappels, recertifications, crédits et relevés —, ses pages, ses commandes, son calendrier et son module de vie privée. |
+| `training.reminder_days` | 7 | Combien de jours avant l'échéance un cours est bientôt dû et son premier rappel envoyé, de 1 à 90. |
+| `training.renewal_grace_days` | 30 | Combien de jours après son renouvellement une recertification est de nouveau due, de 1 à 365. |
+| `training.max_members` | 10 000 | Combien de membres d'un groupe ou d'une unité une assignation joint. |
+| `training.run_at` | `06:00` | L'heure de l'exécution quotidienne du calendrier, `HH:MM` dans le fuseau horaire du site. |
+| `training.schedule` | `true` | Si le calendrier `phil_courses_training` s'exécute chaque jour, avec Symfony Scheduler et Messenger installés. |
+| `training.manager_role` | `ROLE_COURSES_MANAGER` | Le rôle qu'un gestionnaire détient pour voir la formation de chaque apprenant et leurs relevés. |
+| `training.notifier` | `null` | Un service `TrainingNotifier` ; les notifications de phil/notifications-bundle quand il vaut null et que ce bundle est enregistré, aucune sinon. |
+| `training.keep_transcripts` | `false` | Si les relevés survivent à une demande d'effacement, en vertu d'une obligation légale de les garder. |
 | `admin.role` | `ROLE_COURSES_TEACHER` | Le rôle qu'un enseignant détient pour voir et trancher les secondes chances sur la page d'administration. |
 | `audit.enabled` | `true` | Écrit les secondes chances — demandées, accordées, refusées, dispensées — dans la piste de phil/audit-bundle, quand ce bundle est enregistré. |
 | `audit.segment` | `courses` | Le segment de la piste. |
 
 Le bundle déclare le jeton CSRF `phil_courses` sans état à FrameworkBundle : les formulaires des pages et les validations
-des sessions SCORM fonctionnent sans session.
+des sessions SCORM fonctionnent sans session. Avec phil/notifications-bundle enregistré, il déclare les types de
+notification de la formation obligatoire, `courses.training.*`, qu'une application modifie en déclarant un type de même
+clé.

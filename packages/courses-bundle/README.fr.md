@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=9e386b5169d1ab412f8150a9ed4c6f43d53a80bf35fcf602b8541852bb8c1798 -->
+<!-- phil-dev source-sha256=366cbe447b820be71b1d2243719807b15b8b99448accf8ccf886fc4841d28127 -->
 # phil/courses-bundle
 
-**Cours en ligne pour Symfony : modules, activités, progression et achèvement, avec des cours SCORM et cmi5 exécutés dans la plateforme.**
+**Cours en ligne pour Symfony : du contenu SCORM, cmi5 et xAPI exécuté dans la plateforme, la formation obligatoire, les relevés.**
 
 phil/courses-bundle donne à une application des cours en ligne. Un cours contient des modules dans l'ordre, et chaque
-module contient des activités : une page de texte, un lien, le contenu d'un paquet SCORM importé, ou une unité
-assignable cmi5. Les types d'activité sont un port muni de quelques adaptateurs, ce qui permet à une application
+module contient des activités : une page de texte, un lien, le contenu d'un paquet SCORM importé, une unité
+assignable cmi5, ou une activité d'un paquet xAPI. Les types d'activité sont un port muni de quelques adaptateurs, ce qui permet à une application
 d'ajouter les siens. Un apprenant s'inscrit une seule fois à un cours ; chaque activité enregistre ce qu'il a fait —
 terminé, réussi, échoué, dispensé, meilleur score — et est satisfaite par l'exigence qu'elle porte, les valeurs du
 `moveOn` de cmi5. Le cours est terminé quand chaque activité obligatoire est satisfaite.
@@ -37,6 +37,20 @@ satisfaites, puis celui du cours, une seule fois pour chaque inscription. L'entr
 documents d'état des unités restant dans la base de données de l'application, et l'entrepôt propre à une application se
 branche sur le même port.
 
+Un paquet xAPI s'exécute comme une activité à part : lancé avec les paramètres que lisent les paquets xAPI et un jeton de
+sa session, il parle au même point de terminaison xAPI, ses énoncés étant vérifiés — l'apprenant de la session,
+l'enregistrement de l'inscription, aucune annulation —, et ses énoncés `completed`, `passed` et `failed` font avancer la
+progression de l'apprenant, avec une note de maîtrise quand il en a une. Son paquet est importé par un lecteur de
+`tincan.xml` que l'application configure.
+
+Un cours peut être obligatoire : assigné à un apprenant, aux membres d'un groupe ou d'une unité, pour une échéance,
+chaque membre étant inscrit et relancé par phil/notifications-bundle avant l'échéance, le jour même et après, la personne
+qui l'a assigné étant avertie une fois le retard constaté ; l'apprenant et les gestionnaires voient l'état de retard sur
+leurs pages. Une recertification renouvelle un achèvement après un nombre de mois, lu par phil/recurrence, et
+l'apprenant suit de nouveau le cours. Un cours accorde des crédits — des unités de formation continue ou des heures — à
+son achèvement, et chaque achèvement entre dans le relevé de l'apprenant, une page, du JSON et du CSV. Symfony Scheduler
+exécute les rappels chaque jour.
+
 Une autre partie de l'application — certificats, insignes, rapport — demande à `Completions` si un apprenant a terminé un
 cours, et garde son propre modèle ; avec phil/certificates-bundle, le bundle répond à son port `CourseCompletions`.
 
@@ -47,7 +61,7 @@ utilisent DBAL, et sont testés sur SQLite, MySQL 8.4 et PostgreSQL 17.
 
 | Partie | État |
 |---|---|
-| Cours, modules et activités par DBAL ; types d'activité en port avec les adaptateurs page, lien, SCORM et cmi5 | Implémenté et testé |
+| Cours, modules et activités par DBAL ; types d'activité en port avec les adaptateurs page, lien, SCORM, cmi5 et xAPI | Implémenté et testé |
 | Inscription, progression par activité, exigence de chaque activité, achèvement par cours, événements PSR-14 | Implémenté et testé |
 | `Completions`, et l'adaptateur du port `CourseCompletions` de phil/certificates-bundle 0.2 | Implémenté et testé |
 | Ouverture à une date ou après un nombre de jours suivant l'inscription dans le fuseau horaire du site ; ordre imposé | Implémenté et testé |
@@ -62,6 +76,11 @@ utilisent DBAL, et sont testés sur SQLite, MySQL 8.4 et PostgreSQL 17.
 | Lancements cmi5, URL de récupération, point de terminaison xAPI avec les règles de cmi5, entrepôt de traces d'apprentissage en port | Implémenté et testé |
 | Les énoncés `satisfied` des blocs, les plus profonds d'abord, et du cours, une seule fois pour chaque inscription, nommé par la structure de cours, avec l'événement `BlockSatisfied` | Implémenté et testé |
 | L'entrepôt de traces d'apprentissage xAPI distant par phil/safe-http, pour les énoncés | Implémenté et testé ; son test d'intégration s'exécute contre un entrepôt que nomme l'environnement |
+| Activités xAPI : les paramètres de lancement des paquets xAPI, le jeton de la session, les énoncés vérifiés et conservés, l'achèvement, la réussite et la note tirés de `completed`, `passed` et `failed`, une note de maîtrise, leurs enregistrements dans le module de vie privée de cmi5 | Implémenté et testé |
+| L'import de paquets xAPI, par le port `XapiPackageReader` | Implémenté et testé ; l'adaptateur d'un lecteur de `tincan.xml` est celui de l'application jusqu'à ce que phil/elearning-packages les lise |
+| Formation obligatoire : cours assignés à un apprenant, un groupe ou une unité pour une échéance, rappels avant, le jour même et après par phil/notifications-bundle et Symfony Scheduler, l'état de retard sur les pages de l'apprenant et des gestionnaires | Implémenté et testé |
+| Recertification par phil/recurrence : un achèvement renouvelé après un nombre de mois, l'inscription recommençant | Implémenté et testé |
+| Crédits en unités de formation continue ou en heures, le relevé en page, JSON et CSV, son module de vie privée | Implémenté et testé |
 | Les documents d'état des unités avec un entrepôt distant | Conservés dans l'entrepôt intégré au bundle, jamais envoyés : le port ne nomme aucun agent, que la ressource State de xAPI exige |
 | Un entrepôt distant sur un réseau privé | Refusé par phil/safe-http : l'adaptateur du port propre à une application l'atteint |
 | La mise à niveau des tables d'un schéma antérieur, sur SQLite, MySQL et PostgreSQL | Implémenté et testé |
@@ -71,7 +90,7 @@ utilisent DBAL, et sont testés sur SQLite, MySQL 8.4 et PostgreSQL 17.
 | La recette Flex : le bundle, sa configuration et ses routes | Écrite dans `recipe/0.1`, pour le dépôt de recettes de PHIL |
 | Leçons à embranchements par phil/story-graph, questionnaires par phil/assessment, accès par phil/content-access | Prévu, comme types d'activité et port d'accès, une fois ces bibliothèques écrites |
 | Activités LTI 1.3, vidéo hébergée avec suivi du visionnement consenti | Prévu, comme types d'activité qu'ajoutent les bundles LTI et vidéo |
-| Cohortes avec rencontres en direct, cours vendus par le catalogue, dépendances entre cours, parcours d'apprentissage | Prévu |
+| Cohortes avec rencontres en direct, cours vendus par le catalogue, dépendances entre cours, parcours d'apprentissage, catalogues par unité | Prévu |
 
 ## Documentation
 
@@ -83,6 +102,9 @@ utilisent DBAL, et sont testés sur SQLite, MySQL 8.4 et PostgreSQL 17.
 | [Import SCORM](doc/fr/scorm-import.md) | Ce que devient un paquet SCORM, ce qui est conservé à titre d'information, ce qui est laissé de côté, et les résultats importés. |
 | [Environnement d'exécution SCORM](doc/fr/scorm-runtime.md) | Comment un SCO s'exécute : l'API dans le navigateur, le point de terminaison de validation, les tentatives, la progression, les paquets de plusieurs SCO, ce qui est pris en charge et ce qui ne l'est pas encore, la vie privée. |
 | [cmi5](doc/fr/cmi5.md) | L'import de paquets cmi5 et de leurs blocs, le lancement, l'URL de récupération, le point de terminaison xAPI, les énoncés `satisfied` et les entrepôts de traces d'apprentissage, intégré ou distant. |
+| [Activités xAPI](doc/fr/xapi-activities.md) | Les paquets xAPI comme activités : le lancement, les énoncés, le résultat qu'ils enregistrent, l'import par un lecteur, la vie privée. |
+| [Formation obligatoire](doc/fr/mandatory-training.md) | Les cours assignés pour une échéance, les groupes et les unités, les états, les rappels, l'exécution et son calendrier, la recertification. |
+| [Crédits et relevés](doc/fr/credits-and-transcripts.md) | Les crédits des cours, le relevé en page, JSON et CSV, et sa vie privée. |
 | [Sécurité](doc/fr/security.md) | Les limites de l'archive et du manifeste, l'origine du contenu et ses en-têtes, l'environnement d'exécution SCORM, l'entrepôt distant, la page d'administration. |
 | [Points d'extension](doc/fr/extension-points.md) | Les ports, les événements, les services à remplacer, et quand c'est stable. |
 | [Tests](doc/fr/testing.md) | Les tests du bundle, les serveurs et l'entrepôt de traces d'apprentissage que lisent ses tests d'intégration, et la cible de fuzzing. |
@@ -114,8 +136,9 @@ php bin/console phil:courses:import var/import/safety-course.zip
 
 PHP 8.5 ou une version plus récente avec les extensions `mbstring` et `sodium`, et celles avec lesquelles
 phil/elearning-packages lit les paquets — `dom`, `libxml` et `zip` —, Symfony 8.2 ou une version plus récente, et
-Doctrine DBAL 4.5. L'entrepôt de traces d'apprentissage distant demande phil/safe-http, la page d'administration
-Symfony Security, et l'environnement d'exécution SCORM symfony/stimulus-bundle avec AssetMapper.
+Doctrine DBAL 4.5. L'entrepôt de traces d'apprentissage distant demande phil/safe-http, les pages d'administration
+Symfony Security, l'environnement d'exécution SCORM symfony/stimulus-bundle avec AssetMapper, les rappels de la
+formation obligatoire phil/notifications-bundle, et leur calendrier symfony/scheduler avec symfony/messenger.
 
 ## Contribuer
 
