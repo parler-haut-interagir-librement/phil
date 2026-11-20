@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=54d9ca45fd4676a43828732e71a3b7d6660ae2a59d900f2b7c358f25dc54b445 -->
+<!-- phil-dev source-sha256=edaa1ee4f3c7f4c1229d89028c593bf24f1cc49f416ff725f05aa545b4093957 -->
 # phil/outbox
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/parler-haut-interagir-librement/outbox/badge)](https://scorecard.dev/viewer/?uri=github.com/parler-haut-interagir-librement/outbox)
@@ -20,7 +20,7 @@ enregistrements dans une table de la connexion Doctrine DBAL de l'application et
 | Partie | État |
 |---|---|
 | `Outbox::record()` sur un entrepôt, la liste d'autorisation des codecs, la charge utile bornée d'identifiants | Implémentée et testée |
-| Le relais : baux, ordre par clé, recul, enregistrements morts, livraison au moins une fois | Implémenté et testé |
+| Le relais : baux, ordre par clé, recul, enregistrements morts, enregistrements écartés, délai de grâce des types inconnus, livraison au moins une fois | Implémenté et testé |
 | L'entretien : enregistrements morts inspectés, essayés de nouveau ou écartés, rétention des enregistrements livrés | Implémenté et testé |
 | L'entrepôt en mémoire, et les tests de contrat que tout entrepôt réussit | Implémentés et testés |
 | La cible de fuzzing du lecteur de charge utile, le banc d'essai d'un lot de relais | Implémentés |
@@ -35,7 +35,7 @@ enregistrements dans une table de la connexion Doctrine DBAL de l'application et
 | [Relais](doc/fr/relaying.md) | Le relais : baux, ordre par clé, nouvelles tentatives, enregistrements morts, et pourquoi les écouteurs sont idempotents. |
 | [Entretien](doc/fr/housekeeping.md) | Les enregistrements morts, la rétention des enregistrements livrés, les comptes. |
 | [Entrepôts](doc/fr/stores.md) | Le contrat d'un entrepôt, l'entrepôt en mémoire, et les tests de contrat d'un adaptateur. |
-| [Guide d'adoption](doc/fr/adoption.md) | Faire passer à l'outbox une bibliothèque qui enregistre puis répartit, avec un exemple complet. |
+| [Guide d'adoption](doc/fr/adoption.md) | Faire passer à l'outbox une bibliothèque qui enregistre puis répartit, avec un exemple complet, et le tenir à l'écart d'un effacement. |
 | [Points d'extension](doc/fr/extension-points.md) | Ce qu'une application peut remplacer ou ajouter, et quand c'est stable. |
 | [Tests](doc/fr/testing.md) | Les tests du paquet, sa cible de fuzzing et son banc d'essai. |
 | [Référence](doc/fr/reference.md) | Chaque type public, avec son rôle. |

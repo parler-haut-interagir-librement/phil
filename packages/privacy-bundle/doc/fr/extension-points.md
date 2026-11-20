@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f85dae0e2c2e3d27faf1bec59c0ff62d19e234fc9028a558d4de8a090d639aa5 -->
+<!-- phil-dev source-sha256=2b04f4301cf8d9871ae57b0e9f9d28d531bc24ff28587417dfe073b68e0c262a -->
 # Points d'extension
 
 Toute interface du bundle est un contrat, sous `Phil\PrivacyBundle\Application\Contract`, ou sous
@@ -109,6 +109,37 @@ final readonly class BillingEraser implements PersonalDataEraser
     }
 }
 ```
+
+## `ExternalPersonalDataEraser`
+
+La part d'un module dans un effacement qu'un service externe exécute, pour le [workflow d'effacement](erasure-workflow.md).
+L'autoconfiguration l'étiquette `phil_privacy.external_eraser`.
+
+| Méthode | Contrat |
+|---|---|
+| `module(): ModuleName` | Le nom du module, unique parmi tous les effaceurs, externes ou non. |
+| `request(DataSubject $subject, string $idempotencyKey): void` | Envoie l'effacement avec la clé de l'étape, qui reste la même quel que soit le nombre d'exécutions de l'étape : le service n'efface qu'une fois pour une clé. Idempotente. Lance une exception quand le service refuse, et l'étape est rendue. |
+
+L'étape se termine quand l'application remet l'accusé de réception du service à `ErasureRequests::acknowledge()` avec
+cette clé.
+
+## `ErasureRequestStore`
+
+Garde les demandes d'effacement et leurs étapes, pour le [workflow d'effacement](erasure-workflow.md). Les tables du
+bundle sont le défaut ; nommez-en un autre avec `erasure_workflow.store`. Une étape ne change d'état que par ses
+méthodes, dont chacune ne la change qu'à partir des états qu'elle nomme, en une seule instruction : `open()` ajoute la
+demande et ses étapes dans la transaction des enregistrements d'outbox ; `lease()`, `complete()`, `await()`, `release()`
+et `flag()` déplacent une étape ; `acknowledge()` termine une étape en attente sous sa clé d'idempotence ; `reopen()`
+remet les étapes qui demandent de l'attention ou qui attendent un accusé de réception ; `settle()` fixe l'état d'une
+demande et ne change jamais une demande fermée.
+
+## `ErasureMessages`
+
+`record(string $requestId, string $module, string $idempotencyKey): void` enregistre le message d'un module, dans la
+transaction qu'exécute `ErasureRequestStore::open()`, pour être envoyé une fois celle-ci validée. Le défaut,
+`OutboxErasureMessages`, écrit un enregistrement d'outbox de phil/outbox-bundle ; donnez un alias d'une autre à
+l'interface. Un message ne porte que des identifiants, et enregistrer de nouveau sous une clé déjà utilisée n'ajoute
+rien.
 
 ## `RetentionScheduleSource`
 
@@ -243,6 +274,7 @@ autre avec `guest_requests.store`.
 | `save(GuestRequest $request)` | Ajoute la demande. Garde l'adresse hors de portée d'une copie du stockage. |
 | `find(string $id)` | La demande, ou `null`, aussi quand elle ne peut pas être lue. |
 | `delete(string $id)` | La retire ; rien quand elle n'est plus là. |
+| `retain(string $id, DateTimeImmutable $until)` | Garde une demande dont l'effacement s'exécute comme un workflow jusqu'à `$until` : son lien ne l'ouvre plus, et elle est purgée à `$until` au plus tard. |
 | `purgeExpired(DateTimeImmutable $now)` | Retire celles dont l'expiration est venue, et dit combien. |
 
 ## `GuestLinkSender`
@@ -370,6 +402,9 @@ travail en une seule transaction.
 | `phil_privacy.retention_purger` | le bundle | Donnée par l'autoconfiguration à chaque service `RetentionPurger` (`RightsServices::PURGER_TAG`). |
 | `Phil\PrivacyBundle\Application\RetentionRun`, `RetentionJob` | le bundle | Services publics, avec un calendrier. |
 | `phil:privacy:retention`, `phil:privacy:deletions`, `phil:privacy:incident`, `phil:privacy:incidents` | le bundle | Commandes, enregistrées avec Symfony Console. |
+| `Phil\PrivacyBundle\Application\Erasure\ErasureRequests` | le bundle | Service public, quand `erasure_workflow.enabled`. |
+| `phil_privacy.external_eraser` | le bundle | Donnée par l'autoconfiguration à chaque service `ExternalPersonalDataEraser` (`ErasureWorkflowServices::EXTERNAL_ERASER_TAG`). |
+| `phil:privacy:erasure` | le bundle | Commande, quand `erasure_workflow.enabled`. |
 | `Phil\PrivacyBundle\Domain\Cookie\CookieInventory` | le bundle | Service public : l'inventaire de `cookies.inventory`, avec le témoin du consentement. |
 | `Phil\PrivacyBundle\Application\Export\ExportPackage` | le bundle | Service public : l'archive d'une réponse d'accès. |
 | `Phil\PrivacyBundle\Application\Contract\IncidentRegister` | le bundle | Alias public du registre des incidents. |

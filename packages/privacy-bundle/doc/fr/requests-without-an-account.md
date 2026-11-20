@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d13a890b78299dc58b74c18b3eea886df12f918eb1bce0361e9d3d62f1902de4 -->
+<!-- phil-dev source-sha256=ba97cc8b7e1b4ce614425280cb4ab3a820af8173f0a9e83332fd3d55be72b673 -->
 # Demandes sans compte
 
 Une personne qui n'a pas de compte — abonnée à une infolettre, quelqu'un qui a écrit par un formulaire, l'acheteuse d'un
@@ -117,3 +117,11 @@ la même précaution.
 
 Les pages et le courriel sont dans le domaine `phil_privacy`, en anglais et en français ; remplacez les gabarits sous
 `templates/bundles/PhilPrivacy/guest/` pour votre balisage.
+
+## Comme un workflow
+
+Avec [`erasure_workflow`](erasure-workflow.md#demandes-faites-sans-compte) activé, le formulaire d'un lien d'effacement
+ouvert ouvre une demande d'effacement au lieu d'exécuter chaque module d'un coup, et la page qui suit donne un lien de
+progression avec un secret propre. Les messages ne portent que l'identifiant de la demande d'effacement, jamais
+l'adresse ; chaque *worker* lit l'adresse dans la demande faite sans compte, qui reste, son lien ne l'ouvrant plus,
+jusqu'à ce que l'effacement soit fermé, ou 90 jours au plus.

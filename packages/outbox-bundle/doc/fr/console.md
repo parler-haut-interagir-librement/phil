@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b482369cc5bb7747bbbb5b0636403a9d673c2ff998050478bcea772d777b6d69 -->
+<!-- phil-dev source-sha256=f35c86710c10c4be3240f18ce098c92d1f1f2639f7f466e7fa6940e9b4e6ae3d -->
 # Console
 
 ## `phil:outbox:relay`
@@ -19,7 +19,7 @@ aussitôt et se termine avec succès. Avec `-v`, chaque lot qui a réservé des 
 se termine par la somme :
 
 ```text
-[OK] Claimed 3: 3 delivered, 0 to try again, 0 dead, 0 left to their lease, 0 taken over.
+[OK] Claimed 3: 3 delivered, 0 skipped, 0 to try again, 0 dead, 0 left to their lease, 0 taken over.
 ```
 
 ## `phil:outbox:dead:show`
@@ -40,7 +40,7 @@ laisse passer les enregistrements suivants de leurs clés d'ordre. Rien n'est re
 
 ## `phil:outbox:purge`
 
-Retire les enregistrements livrés réglés il y a plus de `retention` secondes, les plus anciens d'abord, jusqu'à
+Retire les enregistrements livrés et écartés réglés il y a plus de `retention` secondes, les plus anciens d'abord, jusqu'à
 `--limit` (1 000) ; `--retention` choisit un autre nombre de secondes. Les enregistrements en attente et morts restent.
 Exécutez-la selon un horaire, par exemple une fois l'heure.
 

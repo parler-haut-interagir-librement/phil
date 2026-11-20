@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=923a83b14dab61ac2982f0191cd057af560e10726e6448bfb9f07ea38e158c87 -->
+<!-- phil-dev source-sha256=1cddf8855e9c14c40840eeab1db0092cbd59828044776cbe5223a00d6904e433 -->
 # Configuration
 
 ```yaml
@@ -13,11 +13,12 @@ phil_outbox:
     relay:
         batch_size: 100         # 1 to 1000
         lease: 60               # seconds, 1 to 3600: longer than the slowest listener
+        unknown_type_grace: 3600 # seconds, 0 to 604800: a record of an unknown type is tried again meanwhile
         max_attempts: 10        # 1 to 100
         first_delay: 60         # seconds, doubled after each failure
         longest_delay: 86400    # seconds, not under the first delay
         lock: true              # one run at a time, through the lock factory
-    retention: 604800           # seconds a delivered record is kept
+    retention: 604800           # seconds a delivered or skipped record is kept
     scheduler:
         enabled: false
         frequency: 60           # seconds between two ticks, 1 to 86400
@@ -37,11 +38,12 @@ phil_outbox:
 | `generic_types` | aucun | Les types d'événement reconstruits sous forme de `RecordedEvent`, sans codec propre |
 | `relay.batch_size` | 100 | Le plus grand nombre d'enregistrements d'un lot |
 | `relay.lease` | 60 | Les secondes pendant lesquelles un lot garde ses enregistrements |
+| `relay.unknown_type_grace` | 3600 | Les secondes après sa survenue pendant lesquelles un enregistrement d'un type qu'aucun codec ne reconstruit est essayé de nouveau avant d'être mort : couvre un *worker* déployé avant le code qui enregistre le type ; 0 l'enterre aussitôt |
 | `relay.max_attempts` | 10 | Les tentatives échouées après lesquelles un enregistrement est mort |
 | `relay.first_delay` | 60 | Les secondes avant qu'un enregistrement qui a échoué une fois soit essayé de nouveau |
 | `relay.longest_delay` | 86 400 | Le délai le plus long avant qu'un enregistrement soit essayé de nouveau |
 | `relay.lock` | true | Si une seule exécution à la fois détient le verrou `phil_outbox.relay` de `lock.factory`, quand l'application en a une |
-| `retention` | 604 800 | Les secondes pendant lesquelles un enregistrement livré est conservé avant que `phil:outbox:purge` le retire |
+| `retention` | 604 800 | Les secondes pendant lesquelles un enregistrement livré ou écarté est conservé avant que `phil:outbox:purge` le retire |
 | `scheduler.enabled` | false | Un horaire `phil_outbox` qui relaie l'outbox ; voyez [Workers](workers.md) |
 | `messenger.enabled` | false | Relaie les événements vers un bus de Messenger au lieu du répartiteur ; voyez [Messenger](messenger.md) |
 

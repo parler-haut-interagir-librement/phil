@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=960c6cea657fe28c23e3d8eadb7254bcc42f8f7f016d4a4c46ff70701494d2a8 -->
+<!-- phil-dev source-sha256=a92b27077c4c49f22f51dd9435a92055fed1be6baeaaaac0596f184d5e3a6443 -->
 # Entretien
 
 `Housekeeping` est ce qu'un exploitant fait de l'outbox. phil/outbox-bundle l'expose par des commandes de console.
@@ -39,7 +39,7 @@ avec des identifiants seulement, comme `The set 42 is gone.`.
 
 ## La rétention
 
-Un enregistrement livré est conservé pendant sa rétention, sept jours par défaut, puis purgé : les enregistrements
+Un enregistrement livré ou écarté est conservé pendant sa rétention, sept jours par défaut, puis purgé : les enregistrements
 livrés montrent ce qui a été communiqué, et conservent entre-temps les clés d'idempotence de leurs événements.
 Exécutez la purge selon un horaire ; chaque exécution retire au plus `$limit` enregistrements, les plus anciens
 d'abord, pour qu'elle reste brève.

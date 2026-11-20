@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2e85fc0450cba87ba50c9ea9c03f6e9b2f232795b2ebb70050963eb32b902c84 -->
+<!-- phil-dev source-sha256=b10e6b7bfe924905907051549db283f5826624b80068b7b4449c3d9b15f36eba -->
 # Enregistrement
 
 Une bibliothèque enregistre un événement avec `Outbox::record()`, dans la transaction de l'écriture que l'événement
@@ -34,13 +34,19 @@ La charge utile contient les quelques identifiants à partir desquels le codec r
 |---|---|
 | Valeurs | chaînes, entiers, booléens ou null ; jamais un nombre à virgule, une liste, un objet ni une valeur imbriquée |
 | Noms | de 1 à 64 lettres, chiffres ou `_`, commençant par une lettre minuscule |
-| Une chaîne | UTF-8 valide, d'au plus 255 octets |
+| Une chaîne | UTF-8 valide, d'au plus 255 octets, sans `@` ni espace |
 | La charge utile | d'au plus 16 valeurs, d'au plus 4 096 octets de JSON |
 
 Une charge utile ne porte que des identifiants, jamais de renseignements personnels ni de données volumineuses : le
 codec relit le reste là où la bibliothèque le conserve, au moment de reconstruire l'événement. Un enregistrement livré
 est conservé jusqu'à la fin de sa rétention, et les renseignements personnels qu'il contiendrait survivraient à leur
 effacement des tables de la bibliothèque. `record()` lance `InvalidRecord` pour une charge utile hors de ses bornes.
+
+Une chaîne contenant `@` ou une espace, espaces Unicode comprises, est refusée : c'est ainsi qu'arrivent une adresse,
+un nom ou une phrase, et un identifiant n'en contient aucun. `Payload::withText()` accepte de telles chaînes, sous les
+autres bornes, pour une valeur que l'application sait n'être pas un renseignement personnel ; `record()` ne le fait
+jamais. Une charge utile relue d'un entrepôt les accepte aussi, de sorte qu'un enregistrement écrit ainsi est tout de
+même relayé.
 
 ## La clé d'ordre
 

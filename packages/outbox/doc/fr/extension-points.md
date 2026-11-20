@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ad3ba318a68f1e8b8660579b5ea3784bd9aea4427dce50a09650f668fd69347f -->
+<!-- phil-dev source-sha256=4baa5d7ee46f85ecadcb9b7aed629068d12015ab920f3fc23dd3788ebd8e90b8 -->
 # Points d'extension
 
 Le paquet est en `0.x` : ses points d'extension ne sont stables qu'à partir de sa version 1.0. D'ici là, une version
@@ -19,7 +19,9 @@ La bibliothèque est du PHP simple et ne déclare aucun service. L'outbox, le re
 
 `Phil\Outbox\Contract\OutboxStore` — où les enregistrements sont conservés. Voyez [Entrepôts](stores.md). Un entrepôt
 propre à l'application réussit les tests de contrat de `Phil\Outbox\Test\OutboxStoreTestCase`, ajoute un enregistrement
-dans la transaction de l'appelant, et ne donne jamais un enregistrement à deux réservations tant que son bail court.
+dans la transaction de l'appelant, ne donne jamais un enregistrement à deux réservations tant que son bail court, et
+traite un enregistrement écarté comme un enregistrement livré : réglé, il ne retient jamais sa clé d'ordre et il est
+purgé après sa rétention.
 
 ## `Outbox`
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c2fc1df5234b9dfe74f197e0be8695fdaf48091b39572ee83acef9c6332f3d43 -->
+<!-- phil-dev source-sha256=26f466ce733418310b729870ed19bf9de6b0d717016424835d817024887417d2 -->
 # phil/privacy-bundle
 
 **Déclarer les champs personnels, caviarder les journaux, respecter les droits des membres et des personnes sans compte,
@@ -22,7 +22,9 @@ et une garde qui refuse de toucher une base de production.
 D'emblée, un membre télécharge ses données, en archive ZIP avec un README lisible et un fichier JSON par module, et
 supprime son compte depuis ses préférences. Une suppression est un workflow : une demande, un délai pendant lequel elle
 peut être annulée, un export, puis l'effacement de chaque module, une seule exécution par personne, confirmée par le mode
-sudo de Symfony. Une fois activé, une personne sans compte demande la même chose par un lien envoyé à son adresse,
+sudo de Symfony. Une fois activé, l'effacement lui-même s'exécute comme un workflow : une étape par module, envoyée par
+phil/outbox-bundle dans la transaction de la demande, réessayée et terminée séparément, les services externes accusant
+réception de la leur, avec une page et une réponse JSON où la personne le suit. Une fois activé, une personne sans compte demande la même chose par un lien envoyé à son adresse,
 derrière des limites de débit et avec la même réponse que l'adresse soit connue ou non. Les durées de conservation sont
 appliquées par une commande ou un message planifié. Le consentement aux témoins est refusé par défaut, aussi facile à
 refuser qu'à accepter, peut être retiré en tout temps, respecte le Global Privacy Control, et laisse une preuve datée de
@@ -69,6 +71,7 @@ l'application décide.
 | `ProcessingRegister`, `ProcessingActivity`, `phil:privacy:register` | Implémentés et testés : le registre des traitements tiré du calendrier et des déclarations, en Markdown ou en JSON, `--strict` |
 | `RetentionRun`, `RetentionJob`, `phil:privacy:retention`, le calendrier `phil_privacy` | Implémentés, testés et branchés depuis un calendrier |
 | `AccountDeletions`, le workflow, `phil:privacy:deletions` | Implémentés, testés et branchés |
+| Le workflow d'effacement : `ErasureRequests`, un message d'outbox par module, la page de progression et le JSON, `phil:privacy:erasure` | Implémentés, testés et branchés ; inactifs tant qu'ils ne sont pas activés |
 | Le consentement aux témoins : bannière, page, fonctions Twig, contrôleur Stimulus, preuves | Implémenté, testé et branché |
 | L'inventaire des témoins, la politique des témoins, `AssertsDeclaredCookies` | Implémentés, testés et branchés |
 | `privacy_embed()` : les cadres tiers retenus jusqu'au consentement | Implémenté, testé et branché |
@@ -77,7 +80,7 @@ l'application décide.
 | Le registre des incidents de confidentialité, `phil:privacy:incident`, `phil:privacy:incidents` | Implémentés, testés et branchés |
 | Le consentement de chaque membre aux courriels suivis, `EmailTrackingConsents` | Implémenté, testé et branché ; inactif tant qu'il n'est pas activé |
 | Les contrôleurs Stimulus par AssetMapper et StimulusBundle | Implémentés et testés |
-| `PersonalDataExporter`, `PersonalDataEraser`, `RetentionScheduleSource`, `RetentionPurger` | Ports |
+| `PersonalDataExporter`, `PersonalDataEraser`, `ExternalPersonalDataEraser`, `RetentionScheduleSource`, `RetentionPurger`, `ErasureRequestStore` | Ports |
 | `#[Anonymize]`, `#[AsAnonymizer]`, les treize anonymiseurs, les huit paquets de locale | Implémentés et testés |
 | `AnonymizationPlanReader`, `AnonymizationRun`, `ProductionGuard`, `ConnectionIdentity` | Implémentés, testés et branchés |
 | `phil:privacy:anonymize` | Implémentée et testée sur SQLite ; MySQL, MariaDB et PostgreSQL par Doctrine DBAL |
@@ -102,6 +105,11 @@ l'application décide.
   traitements, et l'archive ZIP d'une réponse d'accès.
 - [Calendrier de conservation et purges](doc/fr/retention.md) — les durées et les dates limites en UTC avec la fin de
   mois ramenée, les lignes du calendrier et leurs contradictions refusées, `RetentionRun`, et l'exécution de la tâche.
+- [L'effacement comme workflow](doc/fr/erasure-workflow.md) — l'inventaire d'effacement et sa version, un message d'outbox
+  par module, les états, les échecs et les rejeux, les services externes et leur accusé de réception, la page de
+  progression, et les migrations pour MySQL et PostgreSQL.
+- [Choisir un contrôle](doc/fr/choosing-a-control.md) — quel outil répond à quel problème et où il s'arrête : effacer,
+  conserver, caviarder, pseudonymiser et anonymiser, chiffrement et index aveugles, sauvegardes.
 - [Supprimer un compte](doc/fr/account-deletion.md) — le workflow, le délai et l'annulation, ce qui garantit une seule
   exécution par personne, le passage de balayage, et l'endroit où va l'export.
 - [Consentement aux témoins](doc/fr/consent.md) — la déclaration des catégories, les fonctions Twig, les règles, le

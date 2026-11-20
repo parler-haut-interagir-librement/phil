@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a120af01963d3f65240080d3251a8caa4f0a02e0bfb798852c8672fd369aa935 -->
+<!-- phil-dev source-sha256=b4a2c9b68903ef9adc615da4735914faedd31c527b467b8e0822186e71c1dc63 -->
 # Export et effacement d'une personne
 
 **État :** `SubjectExport`, `SubjectErasure`, les objets valeur et les exceptions sont implémentés et testés.
@@ -85,9 +85,21 @@ stockage.
   rien effacé rapporte tout de même chaque stockage avec `Survives` ou `AwaitsExpiry` quand c'est la réponse.
 - Un nom de stockage vide est refusé.
 
-Les cas de `ErasureEffect` : `Deleted`, `Pseudonymised` (l'enregistrement survit sans rien qui nomme la personne),
-`Redacted` (certains champs vidés ou remplacés), `AwaitsExpiry` (rien n'est retiré maintenant ; la durée de conservation
-arrive à son terme), `Survives` (gardé exprès, sous une obligation légale ou parce que le retirer déferait la demande).
+Les cas de `ErasureEffect` :
+
+| Cas | Ce que le stockage garde | Renseignements personnels restants |
+|---|---|---|
+| `Deleted` | Rien | Non |
+| `Anonymised` | Un squelette jugé non identifiable : rien dedans, seul ou avec ce que le site ou quiconque peut raisonnablement utiliser, ne distingue la personne. Réservé à ce jugement, consigné par écrit pour le stockage | Non |
+| `Pseudonymised` | L'enregistrement, l'identité remplacée par un pseudonyme, un jeton, une empreinte à clé ou un identifiant interne | Oui, pour qui détient le lien de retour |
+| `Redacted` | L'enregistrement, certains champs vidés ou remplacés | Oui, dans les autres champs |
+| `AwaitsExpiry` | Tout, jusqu'à ce que la durée de conservation arrive à son terme | Oui |
+| `Survives` | Tout, exprès, sous une obligation légale ou parce que le retirer déferait la demande | Oui |
+
+`ErasureEffect::leavesPersonalData()` donne la dernière colonne. `phil:privacy:erase` et `phil:privacy:erasure` marquent
+les effets qui laissent des renseignements personnels, le registre l'indique pour chaque champ (`personal_data_left`), et
+le JSON de la progression d'un effacement l'indique pour chaque stockage. [Choisir un contrôle](choosing-a-control.md)
+dit lequel répond à quel problème.
 
 ### Service : `SubjectErasure`
 
@@ -99,7 +111,6 @@ try {
 } catch (ErasureIncomplete $incomplete) {
     $incomplete->completed;                        // list<ErasureReport> of the modules that succeeded
     $incomplete->failures;                         // array<string, Throwable> by module name
-    $incomplete->getPrevious();                    // the first failure
     // record, alert, retry later: every eraser runs again, which is why they are idempotent
 }
 ```
