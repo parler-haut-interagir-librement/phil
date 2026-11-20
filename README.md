@@ -329,6 +329,10 @@ A profile installs a family of packages in one require: `phil/profile-secure-inp
 
 Each package's README and `doc/` say what it requires, how to configure it and what it leaves to the application.
 
+The requirements of OWASP ASVS 5.0 the packages meet, and those an application built on them still keeps, are gathered
+in [ASVS 5.0: what the application keeps](ASVS.md); the threats each package that reads untrusted input answers are in
+the [threat model](THREAT_MODEL.md).
+
 ## Layout
 
 - `packages/<name>/`: one package per folder, installable on its own, with its `composer.json`, README in English and
