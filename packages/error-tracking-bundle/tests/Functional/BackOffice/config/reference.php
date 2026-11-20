@@ -1342,7 +1342,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         enabled?: bool|Param, // Resolved at compile time // Default: true
  *     },
  *     cssinliner?: bool|array{
- *         enabled?: bool|Param, // Resolved at compile time // Default: true
+ *         enabled?: bool|Param, // Resolved at compile time // Default: false
  *     },
  *     inky?: bool|array{
  *         enabled?: bool|Param, // Resolved at compile time // Default: false

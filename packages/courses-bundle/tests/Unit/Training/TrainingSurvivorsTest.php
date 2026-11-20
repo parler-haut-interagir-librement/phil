@@ -182,6 +182,7 @@ final class TrainingSurvivorsTest extends TestCase
     {
         $this->store->assignments->assign($this->course->id, AssigneeKind::Learner, 'ada', $this->due('+30 days'), 12);
         $this->store->assignments->assign($this->course->id, AssigneeKind::Learner, 'ada', $this->due('+60 days'), 6);
+
         $enrollment = $this->enrollmentOf('ada');
         $this->store->enrollments->record($enrollment, $this->page, Outcome::completed());
 
@@ -197,6 +198,7 @@ final class TrainingSurvivorsTest extends TestCase
         $this->store->members->groups['some'] = ['ada'];
         $assignments->assign($this->course->id, AssigneeKind::Group, 'all', $this->due('+3 days'));
         $assignments->assign($this->course->id, AssigneeKind::Group, 'some', $this->due('+3 days'));
+
         $now = $this->store->clock->now();
         $horizon = $now->modify('+7 days');
 
@@ -208,8 +210,8 @@ final class TrainingSurvivorsTest extends TestCase
         self::assertCount(1, $this->store->assignmentStore->ofGroups(0));
         self::assertCount(1, $this->store->assignmentStore->ofGroups(1));
         self::assertCount(2, $this->store->assignmentStore->ofGroups(5));
-        self::assertCount(1, $this->store->assignmentStore->actionable($horizon, $now, 0, null));
-        self::assertCount(1, $this->store->assignmentStore->actionable($horizon, $now, 1, null));
+        self::assertCount(1, $this->store->assignmentStore->actionable($horizon, $now, 0));
+        self::assertCount(1, $this->store->assignmentStore->actionable($horizon, $now, 1));
     }
 
     public function testARemovalLeavesTheRowsOfTheOthers(): void
@@ -231,6 +233,7 @@ final class TrainingSurvivorsTest extends TestCase
         $bobEnrollment = $this->store->enrollments->enroll($this->course->id, LearnerId::of('bob'));
         $this->store->enrollments->record($adaEnrollment, $this->page, Outcome::completed());
         $this->store->enrollments->record($bobEnrollment, $this->page, Outcome::completed());
+
         $now = $this->store->clock->now();
         $this->store->enrollmentStore->claimSatisfaction($adaEnrollment->id, 'unit-1', 'statement-1', $now);
         $this->store->enrollmentStore->claimSatisfaction($bobEnrollment->id, 'unit-1', 'statement-2', $now);
@@ -267,6 +270,7 @@ final class TrainingSurvivorsTest extends TestCase
 
         $transcripts->record($this->store->enrollments->enroll($this->course->id, LearnerId::of('ada')), $this->store->clock->now());
         $transcripts->record($this->store->enrollments->enroll($this->course->id, LearnerId::of('bob')), $this->store->clock->now());
+
         $this->store->transcriptStore->removeOf(LearnerId::of('ada'));
 
         self::assertSame([], $transcripts->of(LearnerId::of('ada'))->entries);
@@ -294,6 +298,7 @@ final class TrainingSurvivorsTest extends TestCase
         $this->store->connection->executeStatement('UPDATE '.CourseTables::TRANSCRIPT.' SET cycle = 0 WHERE id = ?', [$entries[0]->id->value]);
         $this->store->connection->executeStatement('UPDATE '.CourseTables::TRANSCRIPT.' SET credit_hundredths = NULL WHERE id = ?', [$entries[2]->id->value]);
         $this->store->connection->executeStatement('UPDATE '.CourseTables::TRANSCRIPT." SET credit_unit = 'bogus' WHERE id = ?", [$entries[3]->id->value]);
+
         $read = [];
 
         foreach ($this->store->transcriptStore->of($ada) as $entry) {
@@ -321,6 +326,7 @@ final class TrainingSurvivorsTest extends TestCase
         $assignment = $this->store->assignments->assign($this->course->id, AssigneeKind::Learner, 'ada', $this->due('+30 days'));
         $obligation = $this->store->assignmentStore->obligation($assignment->id, LearnerId::of('ada')) ?? throw new LogicException('No obligation.');
         $obligation->remind(ReminderStage::BeforeDue);
+
         $this->store->assignmentStore->saveObligation($obligation);
 
         $export = new TrainingPrivacy($this->store->assignmentStore, $this->store->transcriptStore)->export(DataSubject::fromString('ada'));

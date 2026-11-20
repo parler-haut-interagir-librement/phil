@@ -114,6 +114,7 @@ final class MetadataControllerTest extends TestCase
         $settings = new ProviderSettings(self::ISSUER, SigningAlgorithm::ES256);
         $keys = $this->keys($settings);
         $keys->active();
+
         $response = new MetadataController($settings, $keys, $this->urls())->jwks();
 
         $published = json_decode((string) $response->getContent(), true);

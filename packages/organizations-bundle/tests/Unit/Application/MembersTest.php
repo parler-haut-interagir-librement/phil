@@ -115,7 +115,7 @@ final class MembersTest extends TestCase
 
         self::assertSame([], $this->stage->unitStore->unitMembershipsOf(Stage::member('cam')));
         self::assertEquals([
-            new UnitMemberRemoved($this->acme->id->value, $sales->id->value, 'cam', ['member'], null),
+            new UnitMemberRemoved($this->acme->id->value, $sales->id->value, 'cam', ['member']),
             new MemberLeft($this->acme->id->value, 'cam', ['member'], LeaveReason::Removed, 'ann'),
         ], $this->stage->events->events);
     }

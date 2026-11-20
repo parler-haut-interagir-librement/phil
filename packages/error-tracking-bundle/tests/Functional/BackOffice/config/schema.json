@@ -9962,7 +9962,7 @@
                                 "properties": {
                                     "enabled": {
                                         "$ref": "#/$defs/types/boolean",
-                                        "default": true
+                                        "default": false
                                     }
                                 },
                                 "additionalProperties": false
@@ -9974,7 +9974,7 @@
                             }
                         ],
                         "default": {
-                            "enabled": true
+                            "enabled": false
                         }
                     },
                     "inky": {
