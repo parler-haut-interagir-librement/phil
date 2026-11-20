@@ -16,6 +16,9 @@ only when most of them are empty.
   before a list of its lines is built, whatever ends them; `$budget` names the budget, `lines`, and `$limit` its value.
 - `maxLines` on `MarkdownReader`; `MarkdownReader::DEFAULT_MAX_LINES`, 100,000.
 - The section [The budget of lines of Markdown](doc/analyser.md#the-budget-of-lines-of-markdown).
+- Purifier corpus entries for character references padded with zeros and special schemes without their authority, and
+  a test of images limited to some hosts in every address: `srcset` on `img` and `source`, a scheme without `//`, an
+  address without its scheme, a host that only starts like an allowed one.
 
 ### Changed
 

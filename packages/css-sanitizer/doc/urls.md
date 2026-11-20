@@ -46,6 +46,14 @@ $rewriter = new CallbackRewriter(fn (string $url, UrlKind $kind): ?string =>
     $this->media->publicUrlOf($project, $url, $kind));
 ```
 
+A rewriter that throws stops the sanitization: its exception reaches the caller of `sanitize()`, and no part of the
+sheet is returned. A rewriter that cannot answer for a moment — its file store down — returns `null` to refuse the URL,
+or throws to refuse the whole sheet.
+
+A name reaches the rewriter as the browser reads it, escapes resolved: `url(\61 .png)` asks for `a.png`, and a function
+written `u\rl(` is `url(`. A character reference of HTML, such as `&#0000106;`, is not CSS: it reaches the rewriter as
+written, a name no file has.
+
 ## `image-set()`
 
 `image-set()` and `-webkit-image-set()` are not functions of the policy: the sanitizer reads them itself. Each option is
