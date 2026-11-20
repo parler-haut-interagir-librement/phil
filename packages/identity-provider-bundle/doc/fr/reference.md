@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bd7cf853b29f7ede9d617c17c6c5890b5fef0b36c356a2d46c9a4de2be2913d2 -->
+<!-- phil-dev source-sha256=f8ceec1aa42b05a2a98daf00ea5cdfb1a4ddcb11502de706632dd53966b62ee1 -->
 # Référence
 
 ## Types publics
@@ -6,19 +6,23 @@
 | Type | Rôle |
 |---|---|
 | `PhilIdentityProviderBundle` | Le bundle : sa configuration `phil_identity_provider`, ses associations Doctrine et ses services. |
-| `Application\Accounts` | Inscription, adresses, noms, mots de passe, échecs de connexion. |
-| `Application\AccountLinks`, `Application\SignedLinks` | Les liens qui vérifient une adresse et réinitialisent un mot de passe. |
+| `Application\Accounts` | Inscription, adresses, noms, mots de passe, échecs de connexion, états. |
+| `Application\AccountAddresses` | Les adresses de récupération et d'avis d'un compte. |
+| `Application\EmailCanonicalizer` | La forme canonique d'une adresse, son sous-adressage omis sur demande. |
+| `Application\Identifier\UlidAccountIdGenerator`, `UuidV7AccountIdGenerator` | Les identifiants des nouveaux comptes : ULID ou UUIDv7. |
+| `Application\AccountLinks`, `Application\SignedLinks` | Les liens qui vérifient une adresse et réinitialisent un mot de passe, signés ou conservés. |
 | `Application\PasswordRules` | Ce qu'un nouveau mot de passe doit être. |
 | `Application\Passkeys` | Les cérémonies WebAuthn et la liste des clés d'accès. |
 | `Application\SecondFactors` | L'application d'authentification et les codes de récupération. |
 | `Application\PhoneVerification` | La vérification d'un numéro de téléphone. |
 | `Application\Sessions` | Les sessions ouvertes d'un compte. |
 | `Application\ExternalIdentities`, `Application\ExternalIdentity`, `Application\ExternalSignIn` | Les identités fédérées et les comptes qu'elles connectent. |
+| `Application\Oidc\FileSigningKeys` | Les clés de signature lues dans des fichiers. |
 | `Application\Oidc\Authorization`, `Tokens`, `SigningKeys`, `ClientRegistry`, `ClientAssertions`, `Claims`, `UserClaims`, `LogoutTokens`, `Subjects`, `ProviderSettings` | Le fournisseur OpenID Connect. |
 | `Application\AccountUser` | Le compte tel que Symfony Security le voit. |
 | `Application\Modules` | Les modules activés. |
 | `Application\Journal`, `Application\Event\IdentityEvent`, `Application\Event\IdentityEventType` | Les événements, écrits dans la piste d'audit et répartis. |
-| `Application\Contract\SecretCipher`, `ChallengeStore`, `SmsSender`, `AccountMailer`, `AuditRecorder`, `Transactions`, `LinkOrigin`, `ClaimsProvider`, `LogoutNotifier` | Les ports. |
+| `Application\Contract\SecretCipher`, `ChallengeStore`, `SmsSender`, `AccountMailer`, `AuditRecorder`, `Transactions`, `LinkOrigin`, `ClaimsProvider`, `LogoutNotifier`, `AccountIdGenerator`, `AddressCanonicalizer`, `SigningKeySource`, `Signer` | Les ports. |
 | `Infrastructure\Routing\RouterLinkOrigin` | Les liens des courriels générés sur `public_origin`, et le démarrage refusé en `prod` sans lui ni `framework.trusted_hosts`. |
 | `Infrastructure\Security\RegistrationRateLimiter` | Les limites de l'inscription et le délai entre deux courriels de vérification. |
 | `Infrastructure\Doctrine\BinaryKeysListener` | La collation binaire des clés sur MySQL et MariaDB. |
@@ -27,7 +31,9 @@
 | `Domain\Model\*` | Les lignes de chaque module. |
 | `Domain\Contract\*Repository` | Les magasins de chaque module. |
 | `Domain\WebAuthn\RelyingParty`, `Cbor`, `AuthenticatorData`, `ClientData`, `CoseKey`, `PublicKey` | WebAuthn. |
-| `Application\Jose\Jws`, `Application\Jose\PrivateKey`, `Domain\Jose\SigningAlgorithm` | Les signatures JSON Web et les clés du fournisseur, par `web-token/jwt-library`. |
+| `Domain\WebAuthn\AttestationStatement`, `AttestationPolicy`, `AttestationType` | L'attestation des nouvelles clés d'accès et ce que le site en accepte. |
+| `Domain\Account\AccountState`, `AddressPurpose` | Les états d'un compte et les usages de ses adresses. |
+| `Application\Jose\Jws`, `Application\Jose\PrivateKey`, `Application\Jose\LoadedKeys`, `Domain\Jose\SigningAlgorithm` | Les signatures JSON Web, les clés du fournisseur chargées une seule fois, et leur vérification, par `web-token/jwt-library`. |
 | `Domain\Oidc\AuthorizationRequestParser`, `AuthorizationRequest`, `Pkce`, `QueryString`, `Scopes`, `TokenKind`, `ClientAuthMethod`, `SubjectType` | Le protocole du fournisseur. |
 | `Domain\Totp\Totp`, `Domain\Security\RecoveryCodes`, `Domain\Security\LockoutPolicy` | Mots de passe à usage unique, codes de récupération, verrou. |
 | `Domain\Encoding\Base64Url`, `Base32`, `Der` | Encodages. |
@@ -67,9 +73,11 @@ Chaque nom commence par `phil_identity_provider`.
 
 ## Tables
 
-`phil_identity_account`, `phil_identity_passkey`, `phil_identity_totp`, `phil_identity_recovery_codes`,
-`phil_identity_session`, `phil_identity_linked`, `phil_identity_client`, `phil_identity_consent`, `phil_identity_code`,
-`phil_identity_token`, `phil_identity_assertion`, `phil_identity_signing_key`.
+`phil_identity_account`, `phil_identity_address`, `phil_identity_passkey`, `phil_identity_totp`,
+`phil_identity_recovery_codes`, `phil_identity_session`, `phil_identity_linked`, `phil_identity_client`,
+`phil_identity_consent`, `phil_identity_code`, `phil_identity_token`, `phil_identity_assertion`,
+`phil_identity_signing_key`, et `phil_identity_link_token` avec `links.mode: stored`. Chaque colonne `account_id`
+contient 36 caractères, l'identifiant de `accounts.id_generator`.
 
 ## Commandes
 
@@ -79,8 +87,9 @@ Chaque nom commence par `phil_identity_provider`.
 | `phil:identity-provider:client:keys` | Remplace les clés publiques dont un client signe ses assertions de client. |
 | `phil:identity-provider:client:list` | Liste les clients. |
 | `phil:identity-provider:client:disable` | Désactive un client, ou renouvelle son secret avec `--rotate-secret`. |
-| `phil:identity-provider:rotate-keys` | Fait tourner les clés de signature ; `--now` active tout de suite la clé en attente. |
-| `phil:identity-provider:purge` | Retire les codes, les jetons et les assertions de client expirés et les sessions fermées ou inactives. |
+| `phil:identity-provider:rotate-keys` | Fait tourner les clés de signature de la base de données ; `--now` active tout de suite la clé en attente ; avec `oidc.signing_keys.automatic_rotation: false`, seuls `--force` ou `--now` font tourner les clés. |
+| `phil:identity-provider:seal-key` | Scelle un fichier de clé privée sous `secrets.kms_key`, pour la source `file` des clés de signature ; avec `secrets.kms_key` réglé. |
+| `phil:identity-provider:purge` | Retire les codes, les jetons, les assertions de client et les jetons de lien expirés et les sessions fermées ou inactives. |
 
 ## Événements
 

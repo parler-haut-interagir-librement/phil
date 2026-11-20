@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=59f9f63437596132e589bac7efcd9995da8fa5a70e012132107e0d126adae49f -->
+<!-- phil-dev source-sha256=bfb539c074183107d6bb4695c3f10d3e35a3ba45d6abb78c543c039e8e84bb33 -->
 # Tests
 
 ## Les tests du paquet
@@ -50,3 +50,4 @@ dans `phil-dev.php`, lancées par `composer fuzz` dans le monodépôt à partir 
 | `client-data` | Les données du client de WebAuthn |
 | `jwt` | Des jetons JSON Web, contre une seule clé connue |
 | `authorization-request` | La requête d'une demande d'autorisation |
+| `attestation` | Les déclarations d'attestation des nouvelles clés d'accès, `none` et `packed` |
