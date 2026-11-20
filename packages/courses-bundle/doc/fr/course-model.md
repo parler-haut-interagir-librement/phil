@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=cd95d6e0bd46e71bd014a889d387e0d27c621ae9b52e0fde30f7e85953642d18 -->
+<!-- phil-dev source-sha256=477ab1485424b87160e451ec27ce188bbd795cb37dfd9da072dffcef721fdf9a -->
 # Le modèle de cours
 
 ## Cours, modules et activités
@@ -179,12 +179,14 @@ Le bundle envoie ces événements par le répartiteur PSR-14 ; chacun ne porte q
 | `CourseImported` | Un cours a été importé d'un paquet |
 | `StatementRecorded` | Un énoncé cmi5 ou xAPI a été accepté ou émis, et remis à l'entrepôt de traces d'apprentissage |
 | `TrainingAssigned`, `ObligationOverdue`, `ObligationRenewed`, `EnrollmentRenewed`, `CreditsGranted` | La formation obligatoire : voir [formation obligatoire](mandatory-training.md#événements) |
+| `LearnerEnrolledInPath`, `PathCompleted` | Les parcours d'apprentissage : voir [parcours d'apprentissage](learning-paths.md#événements) |
 
 ## Les pages
 
 | Route | Page |
 |---|---|
-| `phil_courses_outline` | Le plan : la progression de l'apprenant, chaque module et ses activités avec l'état de chacune |
+| `phil_courses_outline` | Le plan : la progression de l'apprenant, chaque module et ses activités avec l'état de chacune, et les autres cours de son groupe de cours équivalents |
+| `phil_courses_language` | Redirige vers le cours du groupe dans la locale de la requête ; voir [cours équivalents](equivalent-courses.md) |
 | `phil_courses_enroll` | L'inscription, quand `self_enrollment` est activé |
 | `phil_courses_launch` | La page de l'activité : le texte d'une page, le contenu encadré depuis l'origine du contenu, ou le lien vers sa fenêtre |
 | `phil_courses_complete` | Marque une activité terminée, quand son type le permet à l'apprenant |

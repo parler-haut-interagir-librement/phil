@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fa7760c28f206a74b22088c6b842bac6b8f57d14d6452bb60611a8cdaca705cb -->
+<!-- phil-dev source-sha256=b16ddb06e0583057431936860138a4d7a6179f2c61ee3869c58d1e77e28787bd -->
 # Activités xAPI
 
 Un paquet xAPI — du contenu qui rapporte à un entrepôt de traces d'apprentissage au moyen d'énoncés, sans les règles de
@@ -88,9 +88,14 @@ l'inscription, avec les énoncés cmi5 du même apprenant.
 ## Importer un paquet xAPI
 
 Une archive qui contient `tincan.xml` à sa racine, et ni `cmi5.xml` ni `imsmanifest.xml`, est un paquet xAPI.
-L'importation le lit par le service `XapiPackageReader` nommé dans `phil_courses.import.xapi_reader` : un adaptateur du
-lecteur d'une bibliothèque, qui borne la lecture comme le fait phil/elearning-packages pour les autres formats. Sans
-lecteur, le paquet est refusé avec un message qui le dit.
+L'importation le lit par le service `XapiPackageReader` nommé dans `phil_courses.import.xapi_reader`, par défaut
+`ElearningXapiPackageReader`, l'adaptateur du `XapiCourseReader` de phil/elearning-packages. Il lit `tincan.xml` dans les
+limites de l'importation — sa taille, ses nœuds XML, ses activités —, prend l'IRI, le titre et la description de
+l'activité du cours dans la langue de `phil_courses.import.language`, garde chaque activité lançable dans l'ordre du
+paquet, et transforme les problèmes qu'il a mis de côté — une activité déclarée deux fois, un nom manquant, un type
+d'interaction inconnu — en avertissements de l'importation. Un `tincan.xml` ne donne aucune note de maîtrise. Ce que la
+bibliothèque refuse — aucune racine `<tincan>`, aucun `<activities>`, aucune activité lançable, un lancement qui sort du
+paquet — fait refuser le paquet avec son message, sous forme de `PackageRefused`.
 
 Le lecteur retourne un `XapiPackage` — l'IRI du cours, son titre et sa description, ses activités lançables et les notes
 de la lecture —, que l'importation transforme en cours d'origine `xapi` avec un module nommé d'après le cours. Chaque
@@ -99,14 +104,22 @@ maîtrise est satisfaite une fois réussie, les autres une fois terminées. Un l
 ni une adresse absolue fait refuser le paquet. Les fichiers du paquet sont stockés et servis depuis l'origine du
 contenu, comme pour SCORM et cmi5.
 
+Une application remplace le lecteur en nommant son propre service, qui implémente le port :
+
 ```php
-final readonly class LibraryXapiReader implements XapiPackageReader
+final readonly class AuthoringToolXapiReader implements XapiPackageReader
 {
     public function read(PackageArchive $archive): XapiPackage
     {
         // Reads tincan.xml within bounds and returns the launchable activities.
     }
 }
+```
+
+```yaml
+phil_courses:
+    import:
+        xapi_reader: App\Learning\AuthoringToolXapiReader
 ```
 
 ## Vie privée

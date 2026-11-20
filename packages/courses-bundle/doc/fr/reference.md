@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3668f147744f660a064cdbd403f1956c815d7676a0c3c581772806904dc2a559 -->
+<!-- phil-dev source-sha256=2685cd2c3b5b33056122f9334e15fb2d3b19045579b99f96d01aea90f98334bf -->
 # Référence
 
 ## Bundle
@@ -37,6 +37,11 @@
 | `Domain\Training\AssigneeKind`, `ObligationState`, `ReminderStage`, `TrainingNotice`, `CreditUnit` | À qui un cours est assigné, où en est un apprenant, les rappels, les avis, les unités de crédits |
 | `Domain\ValueObject\AssignmentId`, `TranscriptEntryId` | Les identifiants d'une assignation et d'une entrée du relevé |
 | `Domain\ValueObject\Credits` | Des crédits en centièmes, avec leur unité |
+| `Domain\Model\LearningPath`, `PathStep`, `PathEnrollment` | Un parcours d'apprentissage : titre et description ; un cours à sa place dans le parcours, obligatoire ou non, avec ses prérequis ; l'inscription d'un apprenant au parcours et son achèvement |
+| `Domain\Path\StepState` | `locked`, `open`, `completed` |
+| `Domain\Model\EquivalenceGroup`, `EquivalentCourse` | Un groupe de cours équivalents, et un cours du groupe avec sa langue |
+| `Domain\Equivalence\LanguageTag` | La forme d'une étiquette de langue, normalisée en minuscules avec `-` |
+| `Domain\ValueObject\LearningPathId`, `PathEnrollmentId`, `EquivalenceGroupId` | Les identifiants d'un parcours, d'une inscription à un parcours et d'un groupe de cours équivalents |
 | `Domain\Xapi\XapiVerb` | Les verbes d'ADL avec lesquels une activité xAPI rapporte, et `voided` |
 | `Domain\ValueObject\CourseId`, `ModuleId`, `BlockId`, `ActivityId`, `EnrollmentId`, `RetryRequestId`, `LaunchSessionId` | Des identifiants, UUID version 7 quand le bundle les tire |
 | `Domain\ValueObject\LearnerId` | L'identifiant stable d'un apprenant, jamais une adresse courriel |
@@ -49,10 +54,10 @@
 | `Domain\Progress\RetryDecision` | `pending`, `granted`, `refused`, `waived` |
 | `Domain\Course\CourseOrigin` | `native`, `scorm12`, `scorm2004`, `cmi5`, `xapi` ; `of()` le format d'un paquet |
 | `Domain\Cmi5\Cmi5Verb`, `Cmi5Iri`, `SessionState` | Les verbes, les IRI et les états de session de cmi5 ; les modes de lancement sont le `LaunchMethod` de phil/elearning-packages |
-| `Domain\Contract\CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`, `LaunchSessionRepository`, `ScormAttemptRepository`, `AssignmentRepository`, `TranscriptRepository` | Les entrepôts |
+| `Domain\Contract\CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`, `LaunchSessionRepository`, `ScormAttemptRepository`, `AssignmentRepository`, `TranscriptRepository`, `LearningPathRepository`, `EquivalenceRepository` | Les entrepôts |
 | `Domain\Event\ScormSessionEnded` | Une session d'une activité SCORM a pris fin, et si sa tentative aussi |
 | `Domain\Exception\AttemptRefused` | Une validation refusée : son jeton, son apprenant ou sa session n'est pas celui de la tentative |
-| `Domain\Event\*` | `LearnerEnrolled`, `ActivityProgressed`, `ActivitySatisfied`, `CourseCompleted`, `RetryRequested`, `RetryGranted`, `RetryRefused`, `RetryWaived`, `BlockSatisfied`, `CourseImported`, `StatementRecorded`, `TrainingAssigned`, `ObligationOverdue`, `ObligationRenewed`, `EnrollmentRenewed`, `CreditsGranted` |
+| `Domain\Event\*` | `LearnerEnrolled`, `ActivityProgressed`, `ActivitySatisfied`, `CourseCompleted`, `RetryRequested`, `RetryGranted`, `RetryRefused`, `RetryWaived`, `BlockSatisfied`, `CourseImported`, `StatementRecorded`, `TrainingAssigned`, `ObligationOverdue`, `ObligationRenewed`, `EnrollmentRenewed`, `CreditsGranted`, `LearnerEnrolledInPath`, `PathCompleted` |
 | `Domain\Exception\CoursesException` | Ce qu'est chaque échec du bundle |
 | `Domain\Exception\InvalidCourse`, `UnknownRecord`, `ActivityUnavailable`, `PackageRefused`, `StatementRefused`, `RecordStoreUnavailable` | Une valeur refusée, un enregistrement manquant, une activité non ouverte, un paquet refusé, un énoncé refusé, un énoncé que l'entrepôt de traces d'apprentissage n'a pas conservé |
 | `Domain\Identifiers` | La forme des identifiants et des titres |
@@ -63,7 +68,10 @@
 |---|---|
 | `Application\Courses` | Écrit et lit les cours, les modules, les blocs et les activités |
 | `Application\Enrollments` | Inscription, progression, dispenses, essais, achèvement |
-| `Application\Completions`, `Completion` | Si un apprenant a terminé un cours, avec l'inscription et le moment |
+| `Application\Completions`, `Completion` | Si un apprenant a terminé un cours, ou un cours équivalent, avec l'inscription, le cours terminé et le moment |
+| `Application\Equivalences` | Les groupes de cours équivalents, le cours d'une langue, les équivalents d'un cours |
+| `Application\Path\LearningPaths`, `PathProgress`, `StepStatus` | Les parcours d'apprentissage, leurs étapes, l'inscription à ceux-ci, la progression d'un apprenant et son achèvement |
+| `Application\Path\PathCompletions` | Fait avancer les parcours de l'apprenant à chaque `CourseCompleted` |
 | `Application\Availabilities` | Où en est chaque activité pour un apprenant |
 | `Application\Learning` | Lance une activité et la marque terminée pour l'apprenant |
 | `Application\SecondChances`, `RetryReview` | Secondes chances demandées, accordées, refusées ou dispensées, et leur revue |
@@ -105,7 +113,10 @@
 |---|---|
 | `Infrastructure\Doctrine\CourseTables`, `SchemaListener` | Les tables, leur mise à niveau, et leur place dans le schéma de l'ORM |
 | `Infrastructure\Doctrine\DbalCourseRepository`, `DbalEnrollmentRepository`, `DbalRetryRequestRepository`, `DbalLaunchSessionRepository`, `DbalLearningRecordStore`, `Rows` | Les entrepôts DBAL |
-| `Infrastructure\Certificates\CertificatesCourseCompletions` | L'adaptateur du port `CourseCompletions` de phil/certificates-bundle |
+| `Infrastructure\Certificates\CertificatesCourseCompletions` | L'adaptateur du port `CourseCompletions` de phil/certificates-bundle, pour les cours et, après `path:`, les parcours d'apprentissage |
+| `Infrastructure\Doctrine\DbalLearningPathRepository`, `DbalEquivalenceRepository` | Les parcours d'apprentissage et les groupes de cours équivalents par DBAL |
+| `Infrastructure\Import\ElearningXapiPackageReader` | Le lecteur de paquets xAPI sur le `XapiCourseReader` de phil/elearning-packages |
+| `Infrastructure\Privacy\PathsPrivacy` | Les inscriptions aux parcours d'apprentissage dans les demandes d'accès et d'effacement de phil/privacy-bundle |
 | `Infrastructure\Xapi\HttpLearningRecordStore` | L'entrepôt de traces d'apprentissage xAPI distant, par phil/safe-http, pour les énoncés ; les documents d'état restent dans `DbalLearningRecordStore` |
 | `Infrastructure\Storage\FilesystemContentStorage` | Le stockage sur le système de fichiers |
 | `Infrastructure\Http\CourseController`, `CourseRequest` | Les pages et leur vérification CSRF |

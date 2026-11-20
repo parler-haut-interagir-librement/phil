@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=15935379af15b160558cfe3070c082ad496e1753b55e7a355fad5d57979e38c0 -->
+<!-- phil-dev source-sha256=dc65b491a1fafcb24537ef09f31b314d6077863532f4686f0d851d6514fb27da -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_courses`. Chaque option a une valeur par défaut ; une application nomme
@@ -85,7 +85,7 @@ phil_courses:
 | `content.application_origin` | `null` | L'origine du site qui encadre le contenu, comme `https://www.example.org` : la seule origine qui peut encadrer le contenu et le cadre de l'environnement d'exécution SCORM, et la seule à laquelle le cadre parle. L'origine de `cmi5.actor_home_page` quand elle est null ; avec ni l'une ni l'autre, personne ne peut encadrer le contenu. |
 | `content.allow_localhost` | `false` | Si l'origine du contenu et la page d'accueil peuvent être sur `localhost`, en développement. |
 | `import.language` | `null` | La langue des titres lus dans une structure de cours cmi5, comme `fr` ; son premier titre si null. |
-| `import.xapi_reader` | `null` | Un service `XapiPackageReader` qui lit le `tincan.xml` des paquets xAPI ; ces paquets sont refusés quand il vaut null. Voir [activités xAPI](xapi-activities.md#importer-un-paquet-xapi). |
+| `import.xapi_reader` | `null` | Un service `XapiPackageReader` qui lit le `tincan.xml` des paquets xAPI ; `ElearningXapiPackageReader`, sur le lecteur de phil/elearning-packages, quand il vaut null. Voir [activités xAPI](xapi-activities.md#importer-un-paquet-xapi). |
 | `import.limits.archive_bytes` | 512 Mio | La taille de l'archive. |
 | `import.limits.entries` | 10 000 | Le nombre d'entrées de l'archive. |
 | `import.limits.entry_bytes` | 256 Mio | La taille d'un fichier, décompressé. |
