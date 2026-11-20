@@ -49,11 +49,19 @@ return [
             ],
             // The depth of a job's JSON is a bound against a hostile file, three levels deep when honest: a file one
             // level deeper or shallower than the bound is refused alike, for its shape.
+            // The depth of the totals of an activity without a unit: its path is empty, so a slice of any length is empty
+            // too.
             'IncrementInteger' => [
-                'ignoreSourceCodeByRegex' => ['\\$job = ReportJob::fromArray\\(json_decode\\(\\$json, true, 16, .*'],
+                'ignoreSourceCodeByRegex' => [
+                    'return \\[\\[\'\', 0\\]\\];',
+                    '\\$job = ReportJob::fromArray\\(json_decode\\(\\$json, true, 16, .*',
+                ],
             ],
             'DecrementInteger' => [
-                'ignoreSourceCodeByRegex' => ['\\$job = ReportJob::fromArray\\(json_decode\\(\\$json, true, 16, .*'],
+                'ignoreSourceCodeByRegex' => [
+                    'return \\[\\[\'\', 0\\]\\];',
+                    '\\$job = ReportJob::fromArray\\(json_decode\\(\\$json, true, 16, .*',
+                ],
             ],
         ],
     ],

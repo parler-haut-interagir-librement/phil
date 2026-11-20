@@ -135,8 +135,8 @@ final readonly class TrainingLedger
         $totals = [];
 
         foreach ($sums as $bucket => $units) {
-            $keys = array_map(strval(...), array_keys($units));
-            usort($keys, static fn (string $a, string $b): int => self::compare($collator, $paths[$a] ?? [], $paths[$b] ?? []));
+            $keys = array_keys($units);
+            usort($keys, static fn (int|string $a, int|string $b): int => self::compare($collator, $paths[$a] ?? [], $paths[$b] ?? []));
 
             foreach ($keys as $key) {
                 $totals[] = new TrainingTotals($buckets[$bucket], $paths[$key] ?? [], ...$units[$key]);

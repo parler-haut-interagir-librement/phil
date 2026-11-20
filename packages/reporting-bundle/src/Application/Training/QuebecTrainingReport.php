@@ -107,11 +107,7 @@ final readonly class QuebecTrainingReport implements ReportDefinition
      */
     private function payroll(?int $payroll): ?int
     {
-        if (null === $payroll) {
-            return null;
-        }
-
-        if ($payroll < 0 || $payroll > self::MAX_PAYROLL) {
+        if (null !== $payroll && ($payroll < 0 || $payroll > self::MAX_PAYROLL)) {
             throw InvalidFigures::because(\sprintf('a payroll is from 0 to %d', self::MAX_PAYROLL));
         }
 
