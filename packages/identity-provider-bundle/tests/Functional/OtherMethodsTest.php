@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace Phil\IdentityProviderBundle\Tests\Functional;
 
 use LogicException;
+use Phil\IdentityProviderBundle\Application\Jose\PrivateKey;
+use Phil\IdentityProviderBundle\Application\Oidc\ClientRegistry;
 use Phil\IdentityProviderBundle\Domain\Contract\LinkedIdentityRepository;
+use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use Phil\IdentityProviderBundle\Infrastructure\Console\CreateClientCommand;
 use Phil\IdentityProviderBundle\Infrastructure\Console\DisableClientCommand;
+use Phil\IdentityProviderBundle\Infrastructure\Console\KeySetFile;
 use Phil\IdentityProviderBundle\Infrastructure\Console\ListClientsCommand;
 use Phil\IdentityProviderBundle\Infrastructure\Console\PurgeCommand;
+use Phil\IdentityProviderBundle\Infrastructure\Console\ReplaceClientKeysCommand;
 use Phil\IdentityProviderBundle\Infrastructure\Console\RotateKeysCommand;
 use Phil\IdentityProviderBundle\Infrastructure\Federation\ExternalProviders;
 use Phil\IdentityProviderBundle\Infrastructure\Http\AuthenticatorRouteController;
@@ -37,6 +42,8 @@ use Symfony\Component\Mime\Email;
 #[CoversClass(DisableClientCommand::class)]
 #[CoversClass(RotateKeysCommand::class)]
 #[CoversClass(PurgeCommand::class)]
+#[CoversClass(ReplaceClientKeysCommand::class)]
+#[CoversClass(KeySetFile::class)]
 final class OtherMethodsTest extends FunctionalTestCase
 {
     public function testASignInLink(): void
@@ -162,6 +169,43 @@ final class OtherMethodsTest extends FunctionalTestCase
         self::assertMatchesRegularExpression('/Keys removed: 0\. Activated: \S+\. Created: \S+\./', $rotate->getDisplay());
         $rotate->execute(['--now' => true]);
         self::assertSame(0, $rotate->getStatusCode());
+
+        $key = PrivateKey::generate(SigningAlgorithm::ES256, 'k1');
+        $next = PrivateKey::generate(SigningAlgorithm::ES256, 'k2');
+        $directory = sys_get_temp_dir().'/phil-idp-'.bin2hex(random_bytes(4));
+        mkdir($directory);
+        file_put_contents($directory.'/k1.json', json_encode(['keys' => [$key->publicJwk()]], \JSON_THROW_ON_ERROR));
+        file_put_contents($directory.'/k2.json', json_encode(['keys' => [$next->publicJwk()]], \JSON_THROW_ON_ERROR));
+        file_put_contents($directory.'/bad.json', '{"keys": [1]}');
+        file_put_contents($directory.'/large.json', str_repeat(' ', KeySetFile::MAX_BYTES + 1));
+
+        $create->execute(['id' => 'machine', 'name' => 'Machine', '--jwks' => $directory.'/k1.json', '--resource' => ['https://api.example/']]);
+        self::assertSame(0, $create->getStatusCode());
+        self::assertStringNotContainsString('secret', $create->getDisplay());
+        $create->execute(['id' => 'broken', 'name' => 'Broken', '--jwks' => $directory.'/bad.json', '--resource' => ['https://api.example/']]);
+        self::assertStringContainsString('client.jwks_invalid', $create->getDisplay());
+        $list->execute([]);
+        self::assertStringContainsString('confidential, keys', $list->getDisplay());
+        self::assertStringContainsString('https://api.example/', $list->getDisplay());
+        $disable->execute(['id' => 'machine', '--rotate-secret' => true]);
+        self::assertSame(1, $disable->getStatusCode());
+
+        $keys = new CommandTester($application->find('phil:identity-provider:client:keys'));
+        $keys->execute(['id' => 'machine', 'jwks' => $directory.'/k2.json']);
+        self::assertSame(0, $keys->getStatusCode());
+        self::assertStringContainsString('The keys of client "machine" are replaced.', $keys->getDisplay());
+        self::assertNotNull($this->service(ClientRegistry::class)->get('machine')?->publicKey('k2'));
+
+        foreach ([['id' => 'nobody', 'jwks' => $directory.'/k2.json'], ['id' => 'machine', 'jwks' => $directory.'/large.json'], ['id' => 'machine', 'jwks' => $directory.'/missing.json'], ['id' => 'spa', 'jwks' => $directory.'/k2.json']] as $input) {
+            $keys->execute($input);
+            self::assertSame(1, $keys->getStatusCode(), (string) json_encode($input));
+        }
+
+        foreach (['k1', 'k2', 'bad', 'large'] as $file) {
+            unlink($directory.'/'.$file.'.json');
+        }
+
+        rmdir($directory);
 
         $purge = new CommandTester($application->find('phil:identity-provider:purge'));
         $purge->execute(['--session-days' => '7']);

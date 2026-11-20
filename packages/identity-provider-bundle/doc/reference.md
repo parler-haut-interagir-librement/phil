@@ -13,7 +13,7 @@
 | `Application\PhoneVerification` | The verification of a phone number. |
 | `Application\Sessions` | The signed-in sessions of an account. |
 | `Application\ExternalIdentities`, `Application\ExternalIdentity`, `Application\ExternalSignIn` | Federated identities and the accounts they sign in. |
-| `Application\Oidc\Authorization`, `Tokens`, `SigningKeys`, `ClientRegistry`, `Claims`, `ProviderSettings` | The OpenID Connect provider. |
+| `Application\Oidc\Authorization`, `Tokens`, `SigningKeys`, `ClientRegistry`, `ClientAssertions`, `Claims`, `ProviderSettings` | The OpenID Connect provider. |
 | `Application\AccountUser` | The account as Symfony Security sees it. |
 | `Application\Modules` | The modules turned on. |
 | `Application\Journal`, `Application\Event\IdentityEvent`, `Application\Event\IdentityEventType` | The events, written to the audit trail and dispatched. |
@@ -26,7 +26,7 @@
 | `Domain\Contract\*Repository` | The stores of each module. |
 | `Domain\WebAuthn\RelyingParty`, `Cbor`, `AuthenticatorData`, `ClientData`, `CoseKey`, `PublicKey` | WebAuthn. |
 | `Application\Jose\Jws`, `Application\Jose\PrivateKey`, `Domain\Jose\SigningAlgorithm` | JSON Web Signatures and the provider's keys, through `web-token/jwt-library`. |
-| `Domain\Oidc\AuthorizationRequestParser`, `AuthorizationRequest`, `Pkce`, `QueryString`, `Scopes`, `TokenKind` | The provider's protocol. |
+| `Domain\Oidc\AuthorizationRequestParser`, `AuthorizationRequest`, `Pkce`, `QueryString`, `Scopes`, `TokenKind`, `ClientAuthMethod` | The provider's protocol. |
 | `Domain\Totp\Totp`, `Domain\Security\RecoveryCodes`, `Domain\Security\LockoutPolicy` | One-time passwords, recovery codes, the lock. |
 | `Domain\Encoding\Base64Url`, `Base32`, `Der` | Encodings. |
 | `Domain\Exception\*` | The exceptions, all implementing `IdentityProviderException`. |
@@ -67,17 +67,18 @@ Every name starts with `phil_identity_provider`.
 
 `phil_identity_account`, `phil_identity_passkey`, `phil_identity_totp`, `phil_identity_recovery_codes`,
 `phil_identity_session`, `phil_identity_linked`, `phil_identity_client`, `phil_identity_consent`, `phil_identity_code`,
-`phil_identity_token`, `phil_identity_signing_key`.
+`phil_identity_token`, `phil_identity_assertion`, `phil_identity_signing_key`.
 
 ## Commands
 
 | Command | Role |
 |---|---|
-| `phil:identity-provider:client:create` | Registers a client and shows its secret once; `--pkce-optional` lets a confidential client go without PKCE. |
+| `phil:identity-provider:client:create` | Registers a client and shows its secret once; `--pkce-optional` lets a confidential client go without PKCE; `--jwks` registers its public keys in place of a secret; `--resource` names a resource it may ask tokens for. |
+| `phil:identity-provider:client:keys` | Replaces the public keys a client signs its client assertions with. |
 | `phil:identity-provider:client:list` | Lists the clients. |
 | `phil:identity-provider:client:disable` | Disables a client, or rotates its secret with `--rotate-secret`. |
 | `phil:identity-provider:rotate-keys` | Rotates the signing keys; `--now` activates the pending key at once. |
-| `phil:identity-provider:purge` | Removes expired codes and tokens and closed or idle sessions. |
+| `phil:identity-provider:purge` | Removes expired codes, tokens and client assertions, and closed or idle sessions. |
 
 ## Events
 

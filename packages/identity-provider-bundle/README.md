@@ -12,8 +12,10 @@ them from another device, and warns of a sign-in from a new device.
 
 It is also an OpenID Connect provider written on the components of Symfony, its tokens signed and verified by
 `web-token/jwt-library`: discovery, a key set that rotates, the authorization code flow with PKCE, ID and access
-tokens, refresh tokens rotated with reuse detection, userinfo, revocation (RFC 7009), introspection (RFC 7662),
-RP-initiated logout, consent per client, and clients registered in the database. It passes the Basic OP, Config OP and
+tokens, refresh tokens rotated with reuse detection and bound to their session, clients that authenticate by a secret
+or by a client assertion signed with their own key (`private_key_jwt`), the `client_credentials` grant for tokens of a
+resource, userinfo, revocation (RFC 7009), introspection (RFC 7662), RP-initiated logout, consent per client, and
+clients registered in the database. It passes the Basic OP, Config OP and
 RP-Initiated Logout OP plans of the OpenID Foundation's conformance suite, run in Docker by `tests/Conformance/run.sh`.
 
 Each method is a module the configuration turns on or off, with its own routes, tables and pages: a site that does not
@@ -54,7 +56,7 @@ people — no address of their connection, no token of a federated provider — 
 | [Step-up](doc/step-up.md) | `PHIL_STEP_UP` on the sudo mode of Symfony Security 8.2, and the re-authentication page. |
 | [Devices and sessions](doc/sessions.md) | Sessions tied to rows, closed from another device; risky sign-ins. |
 | [Federated providers](doc/external-providers.md) | The port `ExternalProvider` and the rules that link identities to accounts. |
-| [OpenID Connect provider](doc/oidc-provider.md) | Endpoints, clients, keys and their rotation, tokens, consent, logout. |
+| [OpenID Connect provider](doc/oidc-provider.md) | Endpoints, clients and how they authenticate — `private_key_jwt` included —, tokens and their families, refresh tokens bound to the session, resources, the `client_credentials` grant, keys and their rotation, consent, logout. |
 | [Threat model](doc/threat-model.md) | Assets, trust boundaries, what the bundle defends against and how, open risks. |
 | [Reviewer guide](doc/security-review.md) | The scope of the security review, its entry points, and how to run the tests and the suite. |
 | [OpenID conformance](doc/openid-conformance.md) | The OpenID Foundation's conformance suite in Docker: how to run it, and its results. |

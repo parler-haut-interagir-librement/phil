@@ -65,18 +65,7 @@ final class Jws
      */
     public static function decode(string $token, callable $keys): array
     {
-        if (\strlen($token) > self::MAX_LENGTH) {
-            throw MalformedInput::because('The token is too long.');
-        }
-
-        $parts = explode('.', $token);
-
-        if (3 !== \count($parts)) {
-            throw MalformedInput::because('A compact JSON Web Signature has three parts.');
-        }
-
-        $header = self::object(Base64Url::decode($parts[0]));
-        $claims = self::object(Base64Url::decode($parts[1]));
+        [$header, $claims] = self::parts($token);
         $kid = $header['kid'] ?? null;
 
         if (\array_key_exists('crit', $header) || \array_key_exists('b64', $header) || !\is_string($header['alg'] ?? null) || !\is_string($kid)) {
@@ -96,6 +85,37 @@ final class Jws
         }
 
         return $claims;
+    }
+
+    /**
+     * The claims of a token, read under the same bounds, its signature NOT verified: only to learn which key to verify
+     * it with, such as the client a client assertion names, never to trust a claim.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MalformedInput when the token is not a compact JSON Web Signature
+     */
+    public static function unverifiedClaims(string $token): array
+    {
+        return self::parts($token)[1];
+    }
+
+    /**
+     * @return array{array<string, mixed>, array<string, mixed>} the header and the claims
+     */
+    private static function parts(string $token): array
+    {
+        if (\strlen($token) > self::MAX_LENGTH) {
+            throw MalformedInput::because('The token is too long.');
+        }
+
+        $parts = explode('.', $token);
+
+        if (3 !== \count($parts)) {
+            throw MalformedInput::because('A compact JSON Web Signature has three parts.');
+        }
+
+        return [self::object(Base64Url::decode($parts[0])), self::object(Base64Url::decode($parts[1]))];
     }
 
     private static function verifies(string $token, JWK $key, SigningAlgorithm $algorithm): bool

@@ -7,7 +7,9 @@ namespace Phil\IdentityProviderBundle;
 use Override;
 use Phil\IdentityProviderBundle\Application\AccountUser;
 use Phil\IdentityProviderBundle\Application\Modules;
+use Phil\IdentityProviderBundle\Application\Oidc\ProviderSettings;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
+use Phil\IdentityProviderBundle\Domain\Oidc\ClientAuthMethod;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\IdentityProviderServices;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\IdentityProviderBundle\Infrastructure\Routing\RouterLinkOrigin;
@@ -192,6 +194,37 @@ final class PhilIdentityProviderBundle extends AbstractBundle
                     ->integerNode('retired_key_retention')->info('The seconds a retired key stays published.')->defaultValue(604_800)->min(0)->end()
                     ->booleanNode('allow_localhost')->info('Whether redirect addresses on localhost over http are accepted, for development.')->defaultFalse()->end()
                     ->scalarNode('lock_factory')->info('The LockFactory service that serializes the first signing key and each rotation; its store must be shared by every server.')->defaultValue('lock.factory')->cannotBeEmpty()->end()
+                    ->arrayNode('extra_scopes')
+                        ->info('Scopes besides openid, profile, email, phone and offline_access that clients may register, such as the scopes of a resource asked by the client_credentials grant.')
+                        ->scalarPrototype()
+                            ->validate()->ifTrue(static fn (mixed $scope): bool => !\is_string($scope) || 1 !== preg_match('/^[\x21\x23-\x5b\x5d-\x7e]{1,64}$/D', $scope) || \in_array($scope, ProviderSettings::SCOPES, true))->thenInvalid('A scope is 1 to 64 printable characters without a space, a quote or a backslash, and not one the provider knows already: %s.')->end()
+                        ->end()
+                    ->end()
+                    ->arrayNode('client_authentication')
+                        ->info('How clients may authenticate at the token, revocation and introspection endpoints.')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->arrayNode('methods')
+                                ->info('The methods accepted; leave out client_secret_basic and client_secret_post to accept only client assertions (private_key_jwt) and public clients.')
+                                ->defaultValue(ClientAuthMethod::values())
+                                ->requiresAtLeastOneElement()
+                                ->enumPrototype()->values(ClientAuthMethod::values())->end()
+                            ->end()
+                            ->integerNode('clock_skew')->info('The seconds a time of a client assertion may be off.')->defaultValue(60)->min(0)->max(300)->end()
+                            ->integerNode('assertion_max_lifetime')->info('The furthest ahead, in seconds, the expiry of a client assertion may be; its jti is kept that long.')->defaultValue(300)->min(1)->max(3600)->end()
+                        ->end()
+                    ->end()
+                    ->booleanNode('refresh_token_bound_to_session')->info('Whether a refresh token issued in a session is refused once the session is closed or older than session_max_age, its family revoked.')->defaultTrue()->end()
+                    ->integerNode('session_max_age')->info('The seconds after a session opened past which its refresh tokens are no longer issued nor accepted; null for no bound but the end of the session.')->defaultNull()->min(1)->end()
+                    ->arrayNode('id_token')
+                        ->info('The optional claims of the ID token.')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->scalarNode('acr')->info('The authentication context class reference of every ID token, such as a level the network agreed on; null for none.')->defaultNull()->end()
+                            ->scalarNode('idp')->info('The identity provider every ID token names, such as the identifier of the network; null for none.')->defaultNull()->end()
+                            ->booleanNode('session_start')->info('Whether the ID token carries session_start, the time its session opened.')->defaultFalse()->end()
+                        ->end()
+                    ->end()
                 ->end()
             ->end()
             ->arrayNode('secrets')
@@ -281,7 +314,7 @@ final class PhilIdentityProviderBundle extends AbstractBundle
         }
 
         unset($config['enabled']);
-        /** @phpstan-var array{secret: string, site_name: string, modules: array<string, bool>, store: string, entity_manager: string, clock: string, layout: string, kit_subdirectory: ?string, registration: array{enabled: bool, rate_limit: array{enabled: bool, per_ip: array{limit: positive-int, interval: string}, per_address: array{limit: positive-int, interval: string}, resend_delay: string}}, public_origin: ?string, require_verified_email: bool, login_route: ?string, default_target: string, open_routes: list<string>, mailer: array{from: ?string}, password: array{min_score: int<0, 4>, breach_check: bool, http_client: string}, lockout: array{threshold: positive-int, base: positive-int, max: positive-int}, login_limiter: array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string, single_server: bool}, links: array{verify_lifetime: positive-int, reset_lifetime: positive-int}, passkeys: array{rp_id: ?string, rp_name: ?string, origins: list<string>, require_user_verification: bool}, totp: array{issuer: ?string, window: int<0, 10>}, sms: array{sender: ?string, from: string, message: string, lifetime: positive-int, attempts: positive-int}, step_up: array{attribute: string, lifetime: positive-int}, sessions: array{touch_interval: non-negative-int}, external: array{link_verified_email: bool, register: bool}, oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string}, secrets: array{kms_key: ?string, allow_plaintext_secrets: bool, encrypter: string, decrypter: string}, audit: string} $config */
+        /** @phpstan-var array{secret: string, site_name: string, modules: array<string, bool>, store: string, entity_manager: string, clock: string, layout: string, kit_subdirectory: ?string, registration: array{enabled: bool, rate_limit: array{enabled: bool, per_ip: array{limit: positive-int, interval: string}, per_address: array{limit: positive-int, interval: string}, resend_delay: string}}, public_origin: ?string, require_verified_email: bool, login_route: ?string, default_target: string, open_routes: list<string>, mailer: array{from: ?string}, password: array{min_score: int<0, 4>, breach_check: bool, http_client: string}, lockout: array{threshold: positive-int, base: positive-int, max: positive-int}, login_limiter: array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string, single_server: bool}, links: array{verify_lifetime: positive-int, reset_lifetime: positive-int}, passkeys: array{rp_id: ?string, rp_name: ?string, origins: list<string>, require_user_verification: bool}, totp: array{issuer: ?string, window: int<0, 10>}, sms: array{sender: ?string, from: string, message: string, lifetime: positive-int, attempts: positive-int}, step_up: array{attribute: string, lifetime: positive-int}, sessions: array{touch_interval: non-negative-int}, external: array{link_verified_email: bool, register: bool}, oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string, extra_scopes: list<string>, client_authentication: array{methods: non-empty-list<string>, clock_skew: int<0, 300>, assertion_max_lifetime: int<1, 3600>}, refresh_token_bound_to_session: bool, session_max_age: ?positive-int, id_token: array{acr: ?string, idp: ?string, session_start: bool}}, secrets: array{kms_key: ?string, allow_plaintext_secrets: bool, encrypter: string, decrypter: string}, audit: string} $config */
         IdentityProviderServices::register($builder, $config);
     }
 

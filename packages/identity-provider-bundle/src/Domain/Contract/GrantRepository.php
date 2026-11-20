@@ -7,9 +7,10 @@ namespace Phil\IdentityProviderBundle\Domain\Contract;
 use DateTimeImmutable;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\UsedAssertion;
 
 /**
- * The authorization codes and the tokens the provider issued.
+ * The authorization codes and the tokens the provider issued, and the client assertions already presented.
  */
 interface GrantRepository
 {
@@ -53,7 +54,15 @@ interface GrantRepository
     public function rotateToken(IssuedToken $token, DateTimeImmutable $now): bool;
 
     /**
-     * Removes the codes and tokens expired before the date.
+     * Records the client assertion, in one step, unless it already is: of two requests that present it at once, only one
+     * is told it recorded it (RFC 7523, section 3).
+     *
+     * @return bool whether this call recorded the assertion; false when it was presented before
+     */
+    public function useAssertion(UsedAssertion $assertion): bool;
+
+    /**
+     * Removes the codes, tokens and assertions expired before the date.
      *
      * @return int the rows removed
      */

@@ -86,6 +86,6 @@ final class DoctrineRepositoryTest extends DoctrineRepositoryTestCase
         $names = array_map(static fn (OptionallyQualifiedName $name): string => $name->toString(), $tables);
         sort($names);
 
-        self::assertSame(['phil_identity_account', 'phil_identity_client', 'phil_identity_code', 'phil_identity_consent', 'phil_identity_linked', 'phil_identity_passkey', 'phil_identity_recovery_codes', 'phil_identity_session', 'phil_identity_signing_key', 'phil_identity_token', 'phil_identity_totp'], array_map(static fn (string $name): string => trim($name, '"`'), $names));
+        self::assertSame(['phil_identity_account', 'phil_identity_assertion', 'phil_identity_client', 'phil_identity_code', 'phil_identity_consent', 'phil_identity_linked', 'phil_identity_passkey', 'phil_identity_recovery_codes', 'phil_identity_session', 'phil_identity_signing_key', 'phil_identity_token', 'phil_identity_totp'], array_map(static fn (string $name): string => trim($name, '"`'), $names));
     }
 }

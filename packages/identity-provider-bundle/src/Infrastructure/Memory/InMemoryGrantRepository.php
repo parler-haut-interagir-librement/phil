@@ -9,6 +9,7 @@ use Override;
 use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\UsedAssertion;
 use Symfony\Contracts\Service\ResetInterface;
 
 /**
@@ -23,6 +24,9 @@ final class InMemoryGrantRepository implements GrantRepository, ResetInterface
 
     /** @var array<string, IssuedToken> */
     private array $tokens = [];
+
+    /** @var array<string, UsedAssertion> */
+    private array $assertions = [];
 
     #[Override]
     public function code(string $id): ?AuthorizationCode
@@ -99,13 +103,26 @@ final class InMemoryGrantRepository implements GrantRepository, ResetInterface
     }
 
     #[Override]
+    public function useAssertion(UsedAssertion $assertion): bool
+    {
+        if (\array_key_exists($assertion->id(), $this->assertions)) {
+            return false;
+        }
+
+        $this->assertions[$assertion->id()] = $assertion;
+
+        return true;
+    }
+
+    #[Override]
     public function purge(DateTimeImmutable $before): int
     {
-        $count = \count($this->codes) + \count($this->tokens);
+        $count = \count($this->codes) + \count($this->tokens) + \count($this->assertions);
         $this->codes = array_filter($this->codes, static fn (AuthorizationCode $code): bool => $code->expiresAt() >= $before);
         $this->tokens = array_filter($this->tokens, static fn (IssuedToken $token): bool => $token->expiresAt() >= $before);
+        $this->assertions = array_filter($this->assertions, static fn (UsedAssertion $assertion): bool => $assertion->expiresAt() >= $before);
 
-        return $count - \count($this->codes) - \count($this->tokens);
+        return $count - \count($this->codes) - \count($this->tokens) - \count($this->assertions);
     }
 
     /**
@@ -125,5 +142,6 @@ final class InMemoryGrantRepository implements GrantRepository, ResetInterface
     {
         $this->codes = [];
         $this->tokens = [];
+        $this->assertions = [];
     }
 }

@@ -38,7 +38,20 @@ final class OAuthError extends RuntimeException implements IdentityProviderExcep
 
     public static function unsupportedGrantType(): self
     {
-        return new self('unsupported_grant_type', 'Only authorization_code and refresh_token are supported.', 400);
+        return new self('unsupported_grant_type', 'Only authorization_code, refresh_token and client_credentials are supported.', 400);
+    }
+
+    public static function unauthorizedClient(string $description): self
+    {
+        return new self('unauthorized_client', $description, 400);
+    }
+
+    /**
+     * A resource the client may not ask a token for (RFC 8707, section 2).
+     */
+    public static function invalidTarget(string $description): self
+    {
+        return new self('invalid_target', $description, 400);
     }
 
     public static function invalidScope(string $description): self

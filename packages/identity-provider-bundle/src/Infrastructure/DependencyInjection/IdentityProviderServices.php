@@ -39,6 +39,7 @@ use Phil\IdentityProviderBundle\Domain\Contract\PasskeyRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\SecondFactorRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\SigningKeyRepository;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
+use Phil\IdentityProviderBundle\Domain\Oidc\ClientAuthMethod;
 use Phil\IdentityProviderBundle\Domain\Security\LockoutPolicy;
 use Phil\IdentityProviderBundle\Domain\Security\RecoveryCodes;
 use Phil\IdentityProviderBundle\Domain\WebAuthn\RelyingParty;
@@ -48,6 +49,7 @@ use Phil\IdentityProviderBundle\Infrastructure\Console\CreateClientCommand;
 use Phil\IdentityProviderBundle\Infrastructure\Console\DisableClientCommand;
 use Phil\IdentityProviderBundle\Infrastructure\Console\ListClientsCommand;
 use Phil\IdentityProviderBundle\Infrastructure\Console\PurgeCommand;
+use Phil\IdentityProviderBundle\Infrastructure\Console\ReplaceClientKeysCommand;
 use Phil\IdentityProviderBundle\Infrastructure\Console\RotateKeysCommand;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountRepository;
@@ -158,7 +160,7 @@ use Symfony\Component\Security\Http\LoginLink\LoginLinkHandlerInterface;
  *     step_up: array{attribute: string, lifetime: positive-int},
  *     sessions: array{touch_interval: non-negative-int},
  *     external: array{link_verified_email: bool, register: bool},
- *     oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string},
+ *     oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string, extra_scopes: list<string>, client_authentication: array{methods: non-empty-list<string>, clock_skew: int<0, 300>, assertion_max_lifetime: int<1, 3600>}, refresh_token_bound_to_session: bool, session_max_age: ?positive-int, id_token: array{acr: ?string, idp: ?string, session_start: bool}},
  *     secrets: array{kms_key: ?string, allow_plaintext_secrets: bool, encrypter: string, decrypter: string},
  *     audit: string,
  * }
@@ -574,9 +576,17 @@ final class IdentityProviderServices
             $config['oidc']['access_token_lifetime'],
             $config['oidc']['id_token_lifetime'],
             $config['oidc']['refresh_token_lifetime'],
-            ProviderSettings::SCOPES,
+            array_values(array_unique([...ProviderSettings::SCOPES, ...$config['oidc']['extra_scopes']])),
             $config['oidc']['key_activation_delay'],
             $config['oidc']['retired_key_retention'],
+            array_map(ClientAuthMethod::from(...), array_values(array_unique($config['oidc']['client_authentication']['methods']))),
+            $config['oidc']['client_authentication']['clock_skew'],
+            $config['oidc']['client_authentication']['assertion_max_lifetime'],
+            $config['oidc']['refresh_token_bound_to_session'],
+            $config['oidc']['session_max_age'],
+            $config['oidc']['id_token']['acr'],
+            $config['oidc']['id_token']['idp'],
+            $config['oidc']['id_token']['session_start'],
         ]);
         $container->register(SigningKeys::class, SigningKeys::class)
             ->setArguments([new Reference(SigningKeyRepository::class), new Reference(SecretCipher::class), new Reference(ProviderSettings::class), $clock, new Reference($config['oidc']['lock_factory']), $journal])
@@ -588,17 +598,17 @@ final class IdentityProviderServices
             ->setArguments([new Reference(ClientRepository::class), new Reference(GrantRepository::class), new Reference(ProviderSettings::class), $clock, $journal])
             ->setPublic(true);
         $container->register(Tokens::class, Tokens::class)
-            ->setArguments([new Reference(ClientRepository::class), new Reference(GrantRepository::class), new Reference(AccountRepository::class), new Reference(SigningKeys::class), new Reference(ProviderSettings::class), $clock, $journal])
+            ->setArguments([new Reference(ClientRepository::class), new Reference(GrantRepository::class), new Reference(AccountRepository::class), new Reference(SigningKeys::class), new Reference(ProviderSettings::class), $clock, $journal, new Reference(AccountSessionRepository::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)])
             ->setPublic(true);
 
         self::controller($container, MetadataController::class, [new Reference(ProviderSettings::class), new Reference(SigningKeys::class), new Reference('router')]);
         self::controller($container, AuthorizeController::class, [new Reference(Authorization::class), new Reference(Pages::class), new Reference('security.token_storage'), new Reference('router'), $clock, $config['oidc']['issuer'], new Reference('security.helper')]);
-        self::controller($container, TokenController::class, [new Reference(Tokens::class)]);
+        self::controller($container, TokenController::class, [new Reference(Tokens::class), new Reference('router')]);
         self::controller($container, UserinfoController::class, [new Reference(Tokens::class)]);
         self::controller($container, EndSessionController::class, [new Reference(Tokens::class), new Reference(ClientRegistry::class), new Reference(Pages::class), new Reference('security.helper')]);
 
         if (class_exists(Command::class)) {
-            foreach ([CreateClientCommand::class, ListClientsCommand::class, DisableClientCommand::class] as $command) {
+            foreach ([CreateClientCommand::class, ListClientsCommand::class, DisableClientCommand::class, ReplaceClientKeysCommand::class] as $command) {
                 $container->register($command, $command)->setArguments([new Reference(ClientRegistry::class)])->addTag('console.command');
             }
 

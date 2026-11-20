@@ -10,6 +10,7 @@ use Override;
 use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\UsedAssertion;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryGrantRepository;
 
 /**
@@ -79,6 +80,12 @@ final class InterleavedGrants implements GrantRepository
     public function rotateToken(IssuedToken $token, DateTimeImmutable $now): bool
     {
         return $this->inner->rotateToken($token, $now);
+    }
+
+    #[Override]
+    public function useAssertion(UsedAssertion $assertion): bool
+    {
+        return $this->inner->useAssertion($assertion);
     }
 
     #[Override]

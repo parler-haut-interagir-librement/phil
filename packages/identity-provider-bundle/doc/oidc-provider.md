@@ -2,7 +2,8 @@
 
 The module `oidc` makes the site an OpenID Connect provider for its clients: other sites and applications sign their
 users in with the accounts of this one. It implements the authorization code flow with PKCE, the only flow OAuth 2.0
-Security Best Current Practice (RFC 9700) keeps.
+Security Best Current Practice (RFC 9700) keeps for people, and the `client_credentials` grant for a client that asks
+tokens for itself.
 
 ```yaml
 phil_identity_provider:
@@ -40,8 +41,11 @@ bin/console phil:identity-provider:client:create app "The App" \
     --scope=email --scope=offline_access
 bin/console phil:identity-provider:client:create spa "The SPA" --redirect-uri=https://spa.example/cb --public
 bin/console phil:identity-provider:client:create server "A server" --redirect-uri=https://server.example/cb --pkce-optional
+bin/console phil:identity-provider:client:create worker "A worker" --jwks=config/clients/worker.jwks.json \
+    --resource=https://api.example/ --scope=events:read
 bin/console phil:identity-provider:client:list
 bin/console phil:identity-provider:client:disable app --rotate-secret
+bin/console phil:identity-provider:client:keys worker config/clients/worker-next.jwks.json
 bin/console phil:identity-provider:client:disable app
 ```
 
@@ -52,9 +56,56 @@ read by `phil/url`, without a fragment — `http` only on `localhost` with `oidc
 form, which the client sends exactly: addresses are compared as strings. `--first-party` marks a client of the same
 owner, which needs no consent.
 
+A confidential client may register, in place of a secret, the public keys it signs client assertions with
+(`--jwks`, a JSON file whose `keys` is a list of JSON Web Keys): it then authenticates by `private_key_jwt` alone and
+receives no secret. A client registers the resources it may ask tokens for with `--resource`, read and kept like a
+redirect address; a client that only asks tokens for itself registers resources and no redirect address.
+
 Every client sends a PKCE challenge, unless a confidential client is registered with `--pkce-optional`: the Basic
 profile of OpenID Connect allows a confidential client without PKCE, which then relies on its secret and on the `nonce`
 its ID token carries back. A challenge sent anyway is checked the same way, and a public client can never go without.
+
+## Client authentication
+
+`oidc.client_authentication.methods` lists the methods the provider accepts, all four by default. A client authenticates
+by the one its registration names, never another:
+
+| Method | Client | What it sends |
+|---|---|---|
+| `client_secret_basic` | with a secret | the identifier and the secret in HTTP Basic, each form-encoded |
+| `client_secret_post` | with a secret | `client_id` and `client_secret` in the form body |
+| `private_key_jwt` | with keys | `client_assertion_type` set to `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` and `client_assertion` |
+| `none` | public | `client_id` alone; PKCE stands for the secret |
+
+A provider that accepts only client assertions and public clients leaves out the two secret methods:
+
+```yaml
+phil_identity_provider:
+    oidc:
+        client_authentication:
+            methods: [private_key_jwt, none]
+            clock_skew: 60
+            assertion_max_lifetime: 300
+```
+
+A client assertion (RFC 7523, OpenID Connect Core, section 9) is a JSON Web Token signed with one of the client's keys,
+the one its `kid` names, with that key's own algorithm, and read under the bounds of [JSON Web
+Signatures](#json-web-signatures):
+
+- `iss` and `sub` are the client's identifier; `client_id`, when sent, must be the same;
+- `aud` names the issuer, or the token endpoint at the issuer's origin — `https://id.example.com/oidc/token` for the
+  issuer `https://id.example.com` —, never an address built from the request;
+- `exp` is required, past by no more than `clock_skew`, and no further ahead than `assertion_max_lifetime`; `iat` and
+  `nbf`, when present, are ahead by no more than `clock_skew`;
+- `jti` is required, at most 256 bytes, and used once: the provider records the SHA-256 of the client and the `jti` in
+  `phil_identity_assertion` until the assertion expires, the skew added, and refuses the same assertion again — the key
+  of the row refuses the second of two requests that present it at the same time. `phil:identity-provider:purge`
+  removes the expired rows.
+
+Every refusal is `invalid_client`, without saying which check failed. Another method sent beside the assertion is
+`invalid_request`. The keys of a client are public JSON Web Keys only — RSA of at least 2048 bits, P-256 or Ed25519,
+each with its `kid` and `alg`, at most five —; `phil:identity-provider:client:keys` replaces them for a rotation:
+publish the next key beside the current one, let the client switch, then keep the next key alone.
 
 ## The authorization request
 
@@ -90,18 +141,86 @@ is refused as a reuse. The answer holds:
   `at_hash`; the claims of the scopes come from userinfo;
 - with the scope `offline_access`, an opaque refresh token, rotated at each use by one conditional write: a rotated
   token presented again — even by a request that read it at the same time as the one that rotated it — revokes its
-  whole family, the sign of a stolen token.
+  whole family, the sign of a stolen token. [Token families](#token-families) says what a family is.
+
+### Token families
+
+Every token issued from one authorization code — each access token and each refresh token, rotation after rotation —
+shares one family, a ULID kept on each row. The family is what the provider revokes when something
+is wrong:
+
+- a code exchanged twice revokes the family of its first exchange;
+- a refresh token presented after its rotation — by the client that rotated it, or by whoever stole it — revokes the
+  family, and the event `identity.oidc.token_reuse` is journaled;
+- a refresh token revoked by the client (RFC 7009) takes its family with it;
+- the end of the session the family was issued in revokes it, as [Refresh tokens and the
+  session](#refresh-tokens-and-the-session) says.
+
+The rotation is one conditional `UPDATE … WHERE rotated_at IS NULL AND revoked_at IS NULL`, whose count of rows names
+the one request that rotated the token: of two refreshes that read the same token at the same time, one gets new tokens
+and the other is refused as a reuse, which revokes the family — the winner's new tokens with it. The tests play both
+orders with two requests interleaved (`ConcurrentUseTest`) and with two database connections (`tests/Integration`).
+
+### Refresh tokens and the session
+
+With `oidc.refresh_token_bound_to_session`, on by default, a refresh token issued in a session lives no longer than it:
+
+- once the session is closed — signed out, closed from another device, or purged —, the refresh token is refused with
+  `invalid_grant` and its family revoked;
+- with `oidc.session_max_age`, a refresh token never expires later than that many seconds after the session opened, and
+  is refused past it; a code exchanged past it gives no refresh token.
+
+A refresh token issued without a session, and every refresh token when the option is off, keeps
+`oidc.refresh_token_lifetime`. The module `sessions` holds the sessions: without it, nothing binds the tokens.
+
+### Resources and the audience
+
+A token request may name a `resource` (RFC 8707) the client registered, compared in its canonical form: the access
+token is for it, its `aud`, and introspection answers it as `aud`. A token for a resource no longer reads userinfo,
+whose audience is the issuer. One resource per request: several, or one the client did not register, is
+`invalid_target`.
+
+### Tokens for a client itself
+
+A confidential client — with a secret or keys — that registered resources asks a token for itself by the
+`client_credentials` grant (RFC 6749, section 4.4):
+
+```http
+POST /oidc/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&resource=https%3A%2F%2Fapi.example%2F&scope=events%3Aread
+&client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer&client_assertion=eyJ…
+```
+
+The access token is for the resource named, or the client's only one — several and none named is `invalid_target` —;
+its `sub` and `client_id` are the client; its scopes are those asked, among the client's own, the scopes about an
+account (`openid`, `profile`, `email`, `phone`, `offline_access`) left out — all of them when none is asked. No ID
+token and no refresh token come with it, and userinfo refuses it. A public client, or one without resources, gets
+`unauthorized_client`. The scopes of resources are declared in `oidc.extra_scopes`, so that clients may register them.
+
+### Optional claims of the ID token
+
+| Option | Claim |
+|---|---|
+| `oidc.id_token.acr` | `acr`, the same value in every ID token, such as a level the clients agreed on |
+| `oidc.id_token.idp` | `idp`, the identity provider every ID token names |
+| `oidc.id_token.session_start` | `session_start`, when the session of the ID token opened, as a NumericDate; left out without a session |
+
+The discovery document lists the claims turned on, and `acr_values_supported` names the `acr`.
 
 Introspection answers `active: false` for a token that is not the asking client's, expired, revoked or rotated, and for
 every token of an account that was removed or disabled, as userinfo refuses them. Userinfo also refuses the tokens of
 a client that was disabled or removed.
 
-The subject is the account's ULID, the same for every client. Userinfo takes the access token in the `Authorization`
+The subject is the account's ULID, the same for every client; a token of the `client_credentials` grant has the client
+as its subject. Userinfo takes the access token in the `Authorization`
 header or, by `POST`, in the `access_token` member of a form body (RFC 6750), never in the query and never both ways.
 
 ## JSON Web Signatures
 
-Every token the provider signs, and every token it reads back, goes through `web-token/jwt-library`: `JWKFactory`
+Every token the provider signs, and every token it reads back — client assertions included —, goes through
+`web-token/jwt-library`: `JWKFactory`
 creates the keys, `JWSBuilder` signs, `JWSVerifier` verifies, `CompactSerializer` writes and reads the compact form.
 `Application\Jose\Jws` bounds a token before the library sees it — at most 8 KiB, three parts, a header and claims
 that are JSON objects of bounded depth, a header naming an algorithm and a key, no `crit` and no `b64` —, then
@@ -153,4 +272,5 @@ client registered, with the state, or shows that the person is signed out.
 ## Not implemented
 
 Dynamic client registration, request objects, pairwise subjects, the claims parameter, front- and back-channel logout,
-token exchange and the `act` claim (RFC 8693), and DPoP are planned.
+token exchange and the `act` claim (RFC 8693), a key set fetched from a client's `jwks_uri`, mutual TLS, and DPoP are
+planned.

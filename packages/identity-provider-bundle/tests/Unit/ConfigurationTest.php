@@ -121,6 +121,19 @@ final class ConfigurationTest extends TestCase
             'retired_key_retention' => 604800,
             'allow_localhost' => false,
             'lock_factory' => 'lock.factory',
+            'extra_scopes' => [],
+            'client_authentication' => [
+                'methods' => ['client_secret_basic', 'client_secret_post', 'private_key_jwt', 'none'],
+                'clock_skew' => 60,
+                'assertion_max_lifetime' => 300,
+            ],
+            'refresh_token_bound_to_session' => true,
+            'session_max_age' => null,
+            'id_token' => [
+                'acr' => null,
+                'idp' => null,
+                'session_start' => false,
+            ],
         ],
         'secrets' => [
             'kms_key' => null,

@@ -10,9 +10,10 @@ use Phil\IdentityProviderBundle\Domain\Oidc\TokenKind;
 
 /**
  * A token the provider issued, as a row of `phil_identity_token`: an access token by its `jti`, a refresh token by the
- * SHA-256 of its value; its family — every token from one authorization code —, client, account, scopes, session,
- * when and how the account authenticated, when it was issued and expires, when a refresh token was rotated, and when
- * it was revoked.
+ * SHA-256 of its value; its family — every token from one authorization code —, client, account — none for a token
+ * a client asked for itself by the `client_credentials` grant —, scopes, session, when and how the account
+ * authenticated, when it was issued and expires, when a refresh token was rotated, when it was revoked, and the
+ * resource it is for — null for the provider itself, whose userinfo it reads.
  *
  * A rotated refresh token presented again is a reuse: the whole family is revoked (OAuth 2.0 Security Best Current
  * Practice, RFC 9700, section 4.14).
@@ -40,8 +41,8 @@ final class IssuedToken
         private readonly string $family,
         #[ORM\Column(name: 'client_id', length: 64)]
         private readonly string $clientId,
-        #[ORM\Column(name: 'account_id', length: 26, options: ['fixed' => true])]
-        private readonly string $accountId,
+        #[ORM\Column(name: 'account_id', length: 26, nullable: true, options: ['fixed' => true])]
+        private readonly ?string $accountId,
         #[ORM\Column(name: 'scopes', type: 'json')]
         private readonly array $scopes,
         #[ORM\Column(name: 'session_id', length: 43, nullable: true, options: ['fixed' => true])]
@@ -58,6 +59,8 @@ final class IssuedToken
         private ?DateTimeImmutable $rotatedAt = null,
         #[ORM\Column(name: 'revoked_at', nullable: true)]
         private ?DateTimeImmutable $revokedAt = null,
+        #[ORM\Column(name: 'audience', length: 255, nullable: true)]
+        private readonly ?string $audience = null,
     ) {
     }
 
@@ -65,9 +68,9 @@ final class IssuedToken
      * @param list<string> $scopes
      * @param list<string> $methods
      */
-    public static function issue(string $id, TokenKind $kind, string $family, string $clientId, string $accountId, array $scopes, ?string $sessionId, DateTimeImmutable $authTime, array $methods, DateTimeImmutable $issuedAt, DateTimeImmutable $expiresAt): self
+    public static function issue(string $id, TokenKind $kind, string $family, string $clientId, ?string $accountId, array $scopes, ?string $sessionId, DateTimeImmutable $authTime, array $methods, DateTimeImmutable $issuedAt, DateTimeImmutable $expiresAt, ?string $audience = null): self
     {
-        return new self($id, $kind, $family, $clientId, $accountId, $scopes, $sessionId, $authTime, $methods, $issuedAt, $expiresAt);
+        return new self($id, $kind, $family, $clientId, $accountId, $scopes, $sessionId, $authTime, $methods, $issuedAt, $expiresAt, null, null, $audience);
     }
 
     public static function idOfRefresh(string $value): string
@@ -95,9 +98,20 @@ final class IssuedToken
         return $this->clientId;
     }
 
-    public function accountId(): string
+    /**
+     * The account, null for a token of the `client_credentials` grant.
+     */
+    public function accountId(): ?string
     {
         return $this->accountId;
+    }
+
+    /**
+     * The resource the token is for, null for the provider itself.
+     */
+    public function audience(): ?string
+    {
+        return $this->audience;
     }
 
     /**
