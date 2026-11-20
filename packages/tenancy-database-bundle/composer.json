@@ -25,7 +25,7 @@
         "doctrine/orm": "^3.5",
         "doctrine/persistence": "^4.1",
         "phil/ddd-bundle": "^0.1@dev",
-        "phil/tenancy-bundle": "^0.1@dev",
+        "phil/tenancy-bundle": "^0.1@dev || ^0.2@dev",
         "psr/cache": "^3.0",
         "psr/log": "^3.0",
         "symfony/config": "^8.2",

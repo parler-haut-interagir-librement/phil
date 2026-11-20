@@ -6,9 +6,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.1.1-alpha: in a shared database, an entity loaded for one tenant is no longer found from another
+The next version is 0.2.0-alpha: in a shared database, an entity loaded for one tenant is no longer found from another
 through Doctrine's identity map, a flush no longer writes another tenant's entity, and a tenant that cannot be entered
-leaves no tenant half-active.
+leaves no tenant half-active. Code that switches tenants with changes not yet flushed, or keeps entities loaded across
+`within()`, has to change: see [Upgrading](doc/upgrading.md).
 
 ### Added
 
@@ -16,6 +17,15 @@ leaves no tenant half-active.
   update or delete a tenant-scoped entity of another tenant than the one set on the filter is refused; a unit of work
   in no tenant, or with the filter disabled or suspended, writes as before.
 - `ActiveTenantFilter::tenant()`, `TenantColumn::field()` and `EntityTenant::of()`.
+- `doc/upgrading.md`: from 0.1 to 0.2.
+
+### Changed
+
+- A change of tenant detaches the tenant-scoped entities of every filtered entity manager: an instance loaded before
+  `enter()`, `leave()` or `within()` is no longer managed afterwards, and a change made to it and not flushed before
+  the switch is not written.
+- A flush that writes a tenant-scoped entity of another tenant than the active one throws `CrossTenantWrite`, and
+  nothing is written.
 
 ### Security
 

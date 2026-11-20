@@ -75,6 +75,8 @@ reachable tenants through the `ReachableTenantsProvider` port, and the store of 
 - [Testing](doc/testing.md): how the bundle is tested, how to run its tests, and how an application tests its
   adapters and its isolation.
 - [Reference](doc/reference.md): the public API by layer, one line per type, with its state.
+- [Upgrading](doc/upgrading.md): from 0.1 to 0.2, flushing before a change of tenant, entities loaded again after
+  `within()`, and `CrossTenantWrite`.
 
 ## Quick start
 

@@ -8,10 +8,9 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.2-alpha.
 
-Tests only.
-
 ### Changed
 
+- It accepts `phil/tenancy-bundle` 0.2 beside 0.1.
 - The tests check that a stopped process has ended with `kill -0`, without `ps`, which some containers do not install.
 - The integration tests on a server hold a lock of that server, an advisory lock of PostgreSQL or a named lock of
   MySQL, from the creation of their databases to their removal: two processes or two checkouts that run them at once

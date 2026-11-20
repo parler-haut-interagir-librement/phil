@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6f30a646ad65f7624f877dff504ab98807ccbef167aa19e228adc09c068100ff -->
+<!-- phil-dev source-sha256=a858cdababdc7f99b90ccc9a63d2b39f5114d3a657c3658940e1e7069da0b98a -->
 # phil/tenancy-bundle
 
 **Le locataire dans lequel un compte agit en ce moment, changé instantanément et imposé dans chaque requête.**
@@ -82,6 +82,8 @@ stockage du choix est lui aussi un port.
 - [Tests](doc/fr/testing.md) : comment le bundle est testé, comment lancer ses tests, et comment une application teste
   ses adaptateurs et son isolement.
 - [Référence](doc/fr/reference.md) : l'API publique par couche, une ligne par type, avec son état.
+- [Mise à niveau](doc/fr/upgrading.md) : de la 0.1 à la 0.2, `flush()` avant un changement de locataire, les entités
+  relues après `within()`, et `CrossTenantWrite`.
 
 ## Démarrage rapide
 
