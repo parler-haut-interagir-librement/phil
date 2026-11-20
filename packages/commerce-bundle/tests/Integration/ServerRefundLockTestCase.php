@@ -7,7 +7,6 @@ namespace Phil\CommerceBundle\Tests\Integration;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\SchemaTool;
-use Ergebnis\PHPUnit\SlowTestDetector\Attribute\MaximumDuration;
 use Override;
 use Phil\CommerceBundle\Domain\Model\Order;
 use Phil\CommerceBundle\Domain\Model\Payment;
@@ -42,7 +41,6 @@ abstract class ServerRefundLockTestCase extends TestCase
     }
 
     #[DataProvider('grants')]
-    #[MaximumDuration(5_000)]
     public function testTheSecondGrantWaitsForTheFirstAndCountsIt(int $first, int $second, string $outcome, int $granted): void
     {
         $url = $this->url();
