@@ -102,5 +102,6 @@ decides how.
 
 ## What the library leaves to its caller
 
-It does not run SCOs, implement the SCORM runtime API, enforce sequencing or prerequisites, nor turn the manifest into
-a course: those belong to a platform. It reads what such a platform needs to decide.
+It does not run SCOs nor turn the manifest into a course: those belong to a platform. It reads what such a platform
+needs to decide. The sequencing and the prerequisites kept here as written are read and applied by `SequencingReader`
+and `Sequencer`: see [SCORM sequencing](scorm-sequencing.md).

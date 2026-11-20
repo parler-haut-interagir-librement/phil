@@ -15,9 +15,9 @@ extracted, fetched or run.
 | `entryBytes` | 256 MiB | The size of one file once uncompressed |
 | `totalBytes` | 2 GiB | The size of every file once uncompressed: announced by the entries, and read |
 | `ratio` | 200 | How many times a file larger than 1 MiB may be compressed |
-| `manifestBytes` | 4 MiB | The size of `imsmanifest.xml` or `cmi5.xml` |
+| `manifestBytes` | 4 MiB | The size of `imsmanifest.xml`, `cmi5.xml` or `tincan.xml` |
 | `depth` | 16 | How deep the items of a SCORM organization or the blocks of a cmi5 structure nest |
-| `items` | 5 000 | The items, the resources, or the blocks and units a manifest describes |
+| `items` | 5 000 | The items, the resources, the blocks and units, or the xAPI activities a manifest describes |
 | `manifestNodes` | 500 000 | The XML nodes of a manifest — its elements, attributes, text and comments —, counted before it is loaded |
 | `manifestDepth` | 64 | How deep the XML elements of a manifest nest, its root at 1, checked before it is loaded |
 
@@ -68,7 +68,7 @@ fragment set apart, its escapes decoded — so that `%2e%2e/` is `../` —, its 
 
 ## The manifests
 
-`imsmanifest.xml` and `cmi5.xml` are parsed by PHP's DOM extension:
+`imsmanifest.xml`, `cmi5.xml` and `tincan.xml` are parsed by PHP's DOM extension:
 
 - a document longer than `manifestBytes` is refused before it is parsed;
 - a streaming pass of `XMLReader` counts its nodes and checks the depth of its elements one node at a time, holding no
@@ -79,8 +79,21 @@ fragment set apart, its escapes decoded — so that `%2e%2e/` is `../` —, its 
 - the parser runs with `LIBXML_NONET`, never reaching the network, and its errors are collected and cleared, leaving
   the error state of libxml as it was;
 - the depth of the items or blocks and their number are bounded by `depth` and `items`, counted as they are read;
-- an identifier is bounded to 255 bytes, a cmi5 URL to 2 048, a text to 4 096 characters, and a sequencing element
-  larger than 64 KiB is not kept.
+- an identifier is bounded to 255 bytes, a cmi5 URL and an xAPI IRI to 2 048, a text to 4 096 characters, the texts
+  of an xAPI activity to 32 languages, and a sequencing element larger than 64 KiB is not kept as XML;
+- an xAPI launch is a file of the package, checked as any path, or an absolute `http` or `https` address read by
+  `phil/url` — never `javascript:`, `data:`, an address with a user name and a password, or an IP address;
+- the sequencing an activity declares is bounded to 32 rules of one timing, 32 rollup rules, 16 conditions per rule,
+  64 objectives and 16 maps per objective, and a SCORM 1.2 prerequisites expression to 4 096 bytes and 32 levels of
+  nesting.
+
+## The sequencing state
+
+A `SequencingState` comes back from the platform's storage, which the learner's requests may have reached:
+`SequencingState::fromArray()` checks its version, every type, each identifier against the tree, attempts up to a
+billion, durations up to 9 999 hours, measures from -1 to 1, the order of children against the children of their
+activity, at most 64 objectives per activity and 10 000 global objectives. A navigation request is bounded by the
+tree: the flow takes at most twice as many steps as the tree has activities.
 
 ## The tracking data of the run time
 
@@ -99,12 +112,15 @@ The values a SCORM commit carries come from content the platform did not write, 
 - It never fetches a URL a manifest names, nor resolves an external entity.
 - It never runs, evaluates or unserializes anything a package holds.
 - It keeps no state between two readings: `PackageReader` and the readers are immutable, and a `ZipPackage` belongs to
-  one reading. A `CmiData` belongs to one attempt; the definitions of the data model are built once per process, the
-  same for every request.
+  one reading. The `Sequencer` keeps nothing between two requests: the state comes in and goes out with each. A
+  `CmiData` belongs to one attempt; the definitions of the data model are built once per process, the same for every
+  request.
 
 ## Time and memory
 
 The time of a reading grows with the size of the package, never with its square: the archive is checked entry by
 entry, and the manifest read twice, once by the streaming pass that counts it and once into a tree. A whole manifest
-is held in memory while it is read, which `manifestBytes` and `manifestNodes` bound; a file is held in memory once read, which `entryBytes` bounds. The benchmarks of [Testing](testing.md) measure
-a manifest of a thousand items and an archive of a thousand entries.
+is held in memory while it is read, which `manifestBytes` and `manifestNodes` bound; a file is held in memory once read,
+which `entryBytes` bounds. A request of the sequencer grows with the size of the tree: each rollup reads the children of
+each activity on the path to the root. The benchmarks of [Testing](testing.md) measure a manifest of a thousand items,
+an archive of a thousand entries, and requests of the sequencer on a tree of a thousand activities.

@@ -27,6 +27,7 @@ return [
                 '.*DataModel::collections\\(\\$this->version\\)\\[\\$pattern\\] \\?\\? 0.*',
                 '.*\\$this->counts\\[\\$collection\\] \\?\\? 0.*',
                 '.*\\(int\\) \\(\\$match\\[1\\] \\?\\? 0\\) \\* 365.*',
+                '.*for \\(\\$steps = 2 \\* .*',
             ]],
             'DecrementInteger' => ['ignoreSourceCodeByRegex' => [
                 '\\$system = 0;',
@@ -39,8 +40,15 @@ return [
                 '.*\\(\\(int\\) \\$match\\[1\\] \\* 60 \\+.*',
                 // Offsets from -1 and bounds one past the count read the same empty slots.
                 '.*for \\(\\$other = 0, \\$count = \\$data->count.*',
+                '.*for \\(\\$steps = 2 \\* .*',
             ]],
             'LessThan' => ['ignoreSourceCodeByRegex' => ['.*for \\(\\$other = 0, \\$count = \\$data->count.*']],
+            // The flow of the sequencer returns before its budget of steps, twice the activities of the tree: each step
+            // moves forward in the order of the tree, or backward until a cluster that moves forward only stops it. A
+            // budget of one step more or less, or once the activities, changes no answer; it only stops a traversal
+            // that would not end (`IncrementInteger` and `DecrementInteger` above, `GreaterThan` and `Decrement` here).
+            'GreaterThan' => ['ignoreSourceCodeByRegex' => ['.*for \\(\\$steps = 2 \\* .*']],
+            'Decrement' => ['ignoreSourceCodeByRegex' => ['.*for \\(\\$steps = 2 \\* .*']],
             // `fread()` that fails adds `false`, which is the empty string; an index is joined as its digits whether it
             // is an integer or a string.
             'CastString' => ['ignoreSourceCodeByRegex' => ['.*\\(string\\) fread\\(.*', '.*\\$filled\\[\\] = \\(string\\) \\$this->indexes.*']],
@@ -90,11 +98,14 @@ return [
             'cmi5-structure' => 'tests/Fuzz/cmi5-structure.php',
             'zip-package' => 'tests/Fuzz/zip-package.php',
             'cmi-commit' => 'tests/Fuzz/cmi-commit.php',
+            'xapi-package' => 'tests/Fuzz/xapi-package.php',
+            'prerequisites' => 'tests/Fuzz/prerequisites.php',
+            'sequencing' => 'tests/Fuzz/sequencing.php',
         ],
     ],
     'docs' => [
         'public' => true,
-        // The terms of SCORM, IMS Content Packaging and cmi5.
-        'words' => ['cmi5', 'SCORM', 'SCO', 'SCOs', 'xAPI', 'imsmanifest', 'moveOn', 'masteryScore', 'launchMethod', 'langstring', 'mebibyte', 'XXE', 'elearning', 'unserializes', 'cmi', 'LMS', 'LMSCommit', 'LMSFinish', 'LMSInitialize', 'ADL', 'HHHH', 'centiseconds', 'hundredths'],
+        // The terms of SCORM, IMS Content Packaging, cmi5, xAPI and IMS Simple Sequencing.
+        'words' => ['tincan', 'IRI', 'IRIs', 'imsss', 'adlseq', 'adlnav', 'adlcp', 'mapInfo', 'IDRef', 'objectiveID', 'choiceExit', 'forwardOnly', 'rollupConsiderations', 'satisfiedByMeasure', 'minNormalizedMeasure', 'objectivesGlobalToSystem', 'completedByMeasure', 'minProgressMeasure', 'progressWeight', 'aicc', 'sequencer', 'cmi5', 'SCORM', 'SCO', 'SCOs', 'xAPI', 'imsmanifest', 'moveOn', 'masteryScore', 'launchMethod', 'langstring', 'mebibyte', 'XXE', 'elearning', 'unserializes', 'cmi', 'LMS', 'LMSCommit', 'LMSFinish', 'LMSInitialize', 'ADL', 'HHHH', 'centiseconds', 'hundredths'],
     ],
 ];

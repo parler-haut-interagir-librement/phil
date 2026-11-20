@@ -6,6 +6,7 @@
 - The `dom`, `libxml` and `xmlreader` extensions, which count and parse the manifests.
 - The `mbstring` extension, which bounds texts and checks that paths are UTF-8.
 - The `zip` extension, which reads the archives.
+- `phil/url`, which reads the absolute launch address of an xAPI activity, and the `intl` and `uri` extensions it needs.
 
 The library depends on no other package. It never writes to the disk: a package is read where it lies, and its files
 are handed to the caller as strings.
@@ -53,4 +54,5 @@ services:
             $language: 'fr'
 ```
 
-Both are immutable and keep no state between two readings: they are safe in a long-running worker.
+Both are immutable and keep no state between two readings: they are safe in a long-running worker. So are
+`SequencingReader` and `Sequencer`, which a platform that runs SCORM sequencing registers the same way.

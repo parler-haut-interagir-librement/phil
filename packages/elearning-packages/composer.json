@@ -26,7 +26,8 @@
         "ext-libxml": "*",
         "ext-mbstring": "*",
         "ext-xmlreader": "*",
-        "ext-zip": "*"
+        "ext-zip": "*",
+        "phil/url": "^0.1@dev"
     },
     "require-dev": {
         "phpunit/phpunit": "^13.4"

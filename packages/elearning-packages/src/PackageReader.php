@@ -14,10 +14,12 @@ use Phil\ElearningPackages\Exception\PackageRefused;
 use Phil\ElearningPackages\Scorm\ScormItem;
 use Phil\ElearningPackages\Scorm\ScormManifest;
 use Phil\ElearningPackages\Scorm\ScormManifestReader;
+use Phil\ElearningPackages\Xapi\XapiCourse;
+use Phil\ElearningPackages\Xapi\XapiCourseReader;
 
 /**
  * Reads a package whatever its format: a cmi5 package when `cmi5.xml` is at its root, else a SCORM package when
- * `imsmanifest.xml` is, its version read from the manifest. The archive and the manifest are read within the limits,
+ * `imsmanifest.xml` is, its version read from the manifest, else an xAPI package when `tincan.xml` is. The archive and the manifest are read within the limits,
  * and what the manifest names but the package does not hold is noted: a launch file or a declared file missing, a
  * resource an item names that the manifest does not describe. Nothing is extracted and nothing is run.
  */
@@ -71,7 +73,14 @@ final readonly class PackageReader
             return new Package($manifest->format, $manifest, $archive->files(), $warnings->all());
         }
 
-        throw PackageRefused::because(\sprintf('The package holds neither %s nor %s at its root.', Cmi5CourseReader::FILE, ScormManifestReader::FILE));
+        if ($archive->has(XapiCourseReader::FILE)) {
+            $course = new XapiCourseReader($this->limits, $this->language)->read($archive->read(XapiCourseReader::FILE));
+            $this->activities($course, $archive, $warnings);
+
+            return new Package(PackageFormat::Xapi, $course, $archive->files(), $warnings->all());
+        }
+
+        throw PackageRefused::because(\sprintf('The package holds none of %s, %s and %s at its root.', Cmi5CourseReader::FILE, ScormManifestReader::FILE, XapiCourseReader::FILE));
     }
 
     /**
@@ -134,6 +143,30 @@ final readonly class PackageReader
 
             if (!$archive->has($path)) {
                 $warnings->add(\sprintf('The launch file "%s" of the item "%s" is not in the package.', $path, $item->identifier));
+            }
+        }
+    }
+
+    /**
+     * The issues the xAPI reader set aside, then the launch files the package does not hold.
+     */
+    private function activities(XapiCourse $course, PackageArchive $archive, Warnings $warnings): void
+    {
+        foreach ($course->warnings as $warning) {
+            $warnings->add($warning->message);
+        }
+
+        foreach ($course->launchable() as $activity) {
+            $launch = (string) $activity->launch;
+
+            if (PackagePath::isWebAddress($launch)) {
+                continue;
+            }
+
+            $path = $this->path($launch);
+
+            if (!$archive->has($path)) {
+                $warnings->add(\sprintf('The launch file "%s" of the activity "%s" is not in the package.', $path, $activity->id));
             }
         }
     }

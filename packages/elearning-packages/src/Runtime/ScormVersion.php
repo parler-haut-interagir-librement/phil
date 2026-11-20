@@ -25,7 +25,7 @@ enum ScormVersion: string
         return match ($format) {
             PackageFormat::Scorm12 => self::Scorm12,
             PackageFormat::Scorm2004 => self::Scorm2004,
-            PackageFormat::Cmi5 => throw RuntimeRefused::because('A cmi5 unit talks xAPI, not the SCORM run-time API.'),
+            PackageFormat::Cmi5, PackageFormat::Xapi => throw RuntimeRefused::because('A cmi5 unit or an xAPI package talks xAPI, not the SCORM run-time API.'),
         };
     }
 

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="seq" xmlns="http://www.imsglobal.org/xsd/imscp_v1p1" xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_v1p3"
+    xmlns:imsss="http://www.imsglobal.org/xsd/imsss" xmlns:adlseq="http://www.adlnet.org/xsd/adlseq_v1p3">
+  <metadata><schema>ADL SCORM</schema><schemaversion>2004 4th Edition</schemaversion></metadata>
+  <organizations default="org">
+    <organization identifier="org"><title>Course</title><item identifier="m"><title>M</title><item identifier="s1" identifierref="r"><title>S1</title></item><item identifier="s2" identifierref="r"><title>S2</title><imsss:sequencing><imsss:objectives><imsss:primaryObjective><imsss:mapInfo targetObjectiveID="g" writeSatisfiedStatus="true"/></imsss:primaryObjective></imsss:objectives></imsss:sequencing></item><imsss:sequencing><imsss:controlMode flow="true"/><imsss:sequencingRules><imsss:preConditionRule><imsss:ruleConditions conditionCombination="all"><imsss:ruleCondition condition="satisfied"/></imsss:ruleConditions><imsss:ruleAction action="skip"/></imsss:preConditionRule><imsss:postConditionRule><imsss:ruleConditions conditionCombination="all"><imsss:ruleCondition condition="satisfied" operator="not"/></imsss:ruleConditions><imsss:ruleAction action="retry"/></imsss:postConditionRule><imsss:exitConditionRule><imsss:ruleConditions conditionCombination="all"><imsss:ruleCondition condition="completed"/></imsss:ruleConditions><imsss:ruleAction action="exit"/></imsss:exitConditionRule></imsss:sequencingRules><imsss:rollupRule childActivitySet="atLeastCount" minimumCount="1"><imsss:rollupConditions conditionCombination="any"><imsss:rollupCondition condition="completed"/></imsss:rollupConditions><imsss:rollupAction action="satisfied"/></imsss:rollupRule><imsss:randomizationControls selectionTiming="once" selectCount="1"/></imsss:sequencing></item><imsss:sequencing><imsss:controlMode flow="true"/></imsss:sequencing></organization>
+  </organizations>
+  <resources><resource identifier="r" type="webcontent" adlcp:scormType="sco" href="index.html"/></resources>
+  
+</manifest>

@@ -160,7 +160,7 @@ final class TimeAndScoreTest extends TestCase
         self::assertSame([false, true, true], [Access::ReadOnly->writable(), Access::WriteOnly->writable(), Access::ReadWrite->writable()]);
 
         $this->expectException(RuntimeRefused::class);
-        $this->expectExceptionMessageIs('A cmi5 unit talks xAPI, not the SCORM run-time API.');
+        $this->expectExceptionMessageIs('A cmi5 unit or an xAPI package talks xAPI, not the SCORM run-time API.');
 
         ScormVersion::of(PackageFormat::Cmi5);
     }

@@ -129,7 +129,7 @@ final class PackageReaderTest extends TestCase
             new PackageReader($limits, null, $opener)->readFile('any.zip');
             self::fail('The package is accepted.');
         } catch (PackageRefused $packageRefused) {
-            self::assertSame('The package holds neither cmi5.xml nor imsmanifest.xml at its root.', $packageRefused->getMessage());
+            self::assertSame('The package holds none of cmi5.xml, imsmanifest.xml and tincan.xml at its root.', $packageRefused->getMessage());
         }
 
         self::assertTrue($archive->closed);
