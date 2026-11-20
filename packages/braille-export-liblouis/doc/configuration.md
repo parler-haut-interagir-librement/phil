@@ -19,11 +19,28 @@ $translator = new LiblouisTranslator(
 |---|---|---|
 | `tables` | `LiblouisTables::defaults()` | The table of each language and contraction. |
 | `binary` | `lou_translate` | The program: a name found on the `PATH`, or a path. |
-| `timeout` | 30 | The seconds one batch may take. |
+| `timeout` | 30 | The seconds one batch, or the question of the version, may take. |
 | `maxInputBytes` | 4 MiB | The most bytes of text one batch may send. |
 | `maxOutputBytes` | 32 MiB | The most bytes the program may write for one batch, its error output included. |
 | `displayTable` | `unicode.dis` | The display table, which must write Unicode braille. |
 | `tablePath` | none | The directories liblouis looks for tables in, given to it as `LOUIS_TABLEPATH`; its own directory without it. |
+| `allowOutdatedLiblouis` | `false` | Whether a liblouis older than 3.39.0, or one whose version cannot be read, translates anyway, with a warning. |
+| `logger` | none | The PSR-3 logger of that warning. |
+
+## The oldest liblouis
+
+liblouis 3.39.0 fixes memory-safety defects, and the texts come from documents. Before its first translation,
+`LiblouisTranslator` asks the program its version, once, and refuses a liblouis older than
+`LiblouisTranslator::MINIMUM_VERSION`, 3.39.0, with an `OutdatedLiblouis`, and an answer that names no version with a
+`LiblouisFailed`. A refused liblouis is asked again at the next batch, so that it is accepted once it is updated.
+
+An application that must run an older liblouis for a time lets it through, and is told so in its log:
+
+```php
+$translator = new LiblouisTranslator(allowOutdatedLiblouis: true, logger: $logger);
+```
+
+The first batch then logs one warning, with the version found and the oldest accepted, and the translator translates.
 
 ## Tables
 

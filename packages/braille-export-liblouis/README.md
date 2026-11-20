@@ -15,17 +15,18 @@ packages of the system or in the image of the application. See [Installation](do
 
 `LiblouisTables` chooses the table of each language and contraction: Unified English Braille and the Code braille
 français uniformisé by default. The program is started with its arguments as a list, never through a shell; its time,
-its input and its output are bounded, and a missing program or table throws its own exception. See
-[Security](doc/security.md).
+its input and its output are bounded, and a missing program or table throws its own exception. A liblouis older than
+3.39.0, which fixes memory-safety defects, is refused before any text reaches it, unless `allowOutdatedLiblouis` lets
+it through with a warning in the log. See [Security](doc/security.md).
 
 ## Status
 
 | Part | State |
 |---|---|
-| `LiblouisTranslator`: batches, pieces of long texts, Unicode braille checked, limits, version | Implemented and tested with a stand-in program |
+| `LiblouisTranslator`: batches, pieces of long texts, Unicode braille checked, limits, version, liblouis 3.39.0 or later | Implemented and tested with a stand-in program |
 | `LiblouisTables`: the table of each language and contraction | Implemented and tested |
 | The exceptions: missing program, missing table, other failures | Implemented and tested |
-| The integration suite against the real `lou_translate` | Written; skipped on a machine without liblouis |
+| The integration suite against the real `lou_translate` | Written; skipped on a machine without liblouis 3.39.0 or later |
 
 ## Documentation
 
@@ -61,8 +62,8 @@ file_put_contents('book.brf', new BrfWriter()->write($book));
 
 ## Requirements
 
-PHP 8.5 or later with `mbstring`; `phil/braille-export` 0.1; `symfony/process` 8.2; liblouis 3 with its
-`lou_translate` program and its tables on the machine that translates.
+PHP 8.5 or later with `mbstring`; `phil/braille-export` 0.1; `symfony/process` 8.2; `psr/log` 3; liblouis 3.39.0 or
+later with its `lou_translate` program and its tables on the machine that translates.
 
 ## Contributing
 

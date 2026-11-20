@@ -11,12 +11,14 @@ use Phil\BrailleExport\Exception\UnsupportedTranslation;
 use Phil\BrailleExportLiblouis\Exception\ExecutableNotFound;
 use Phil\BrailleExportLiblouis\Exception\LiblouisException;
 use Phil\BrailleExportLiblouis\Exception\LiblouisFailed;
+use Phil\BrailleExportLiblouis\Exception\OutdatedLiblouis;
 use Phil\BrailleExportLiblouis\Exception\TableNotFound;
 use Phil\BrailleExportLiblouis\LiblouisTables;
 use Phil\BrailleExportLiblouis\LiblouisTranslator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LogLevel;
 use RuntimeException;
 use Symfony\Component\Process\Exception\ProcessSignaledException;
 use Symfony\Component\Process\ExecutableFinder;
@@ -26,6 +28,7 @@ use Symfony\Component\Process\ExecutableFinder;
 #[CoversClass(LiblouisException::class)]
 #[CoversClass(ExecutableNotFound::class)]
 #[CoversClass(TableNotFound::class)]
+#[CoversClass(OutdatedLiblouis::class)]
 final class LiblouisTranslatorTest extends TestCase
 {
     private ?FakeBinary $binary = null;
@@ -284,7 +287,7 @@ final class LiblouisTranslatorTest extends TestCase
 
     public function testTheVersionIsRead(): void
     {
-        $binary = $this->binary("echo 'lou_translate (liblouis) 3.21.0'");
+        $binary = $this->binary("echo 'lou_translate (liblouis) 3.21.0'", null);
 
         self::assertSame('3.21.0', new LiblouisTranslator(binary: $binary->path)->version());
         self::assertSame(['--version'], $binary->arguments());
@@ -292,14 +295,14 @@ final class LiblouisTranslatorTest extends TestCase
 
     public function testAShortVersionIsRead(): void
     {
-        $binary = $this->binary("echo 'liblouis 3.9'");
+        $binary = $this->binary("echo 'liblouis 3.9'", null);
 
         self::assertSame('3.9', new LiblouisTranslator(binary: $binary->path)->version());
     }
 
     public function testAnAnswerWithoutAVersionIsRefused(): void
     {
-        $binary = $this->binary("echo 'lou_translate 3'");
+        $binary = $this->binary("echo 'lou_translate 3'", null);
 
         try {
             new LiblouisTranslator(binary: $binary->path)->version();
@@ -308,6 +311,176 @@ final class LiblouisTranslatorTest extends TestCase
             self::assertSame('liblouis did not say which version it is.', $liblouisFailed->getMessage());
             self::assertSame("lou_translate 3\n", $liblouisFailed->errorOutput);
             self::assertSame(0, $liblouisFailed->exitCode);
+        }
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function acceptedVersions(): iterable
+    {
+        yield 'the oldest accepted' => ['lou_translate (liblouis) 3.39.0'];
+        yield 'a later patch' => ['lou_translate (liblouis) 3.39.1'];
+        yield 'a later minor' => ['liblouis 3.40'];
+        yield 'a later major' => ['lou_translate (liblouis) 4.0.0'];
+    }
+
+    #[DataProvider('acceptedVersions')]
+    public function testALiblouisFrom3390OnTranslates(string $answer): void
+    {
+        $binary = $this->binary("printf '⠁\\n'", $answer);
+        $logger = new RecordingLogger();
+
+        self::assertSame(["\u{2801}"], new LiblouisTranslator(binary: $binary->path, logger: $logger)->translate(['a'], 'fr', Contraction::Uncontracted));
+        self::assertTrue($binary->ran());
+        self::assertSame([], $logger->records);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function outdatedVersions(): iterable
+    {
+        yield 'the last patch before' => ['lou_translate (liblouis) 3.38.9', '3.38.9'];
+        yield 'the minor before' => ['lou_translate (liblouis) 3.38.0', '3.38.0'];
+        yield 'a short version' => ['liblouis 3.9', '3.9'];
+        yield 'an older major' => ['liblouis 2.6.5', '2.6.5'];
+    }
+
+    #[DataProvider('outdatedVersions')]
+    public function testALiblouisOlderThan3390IsRefusedBeforeTranslating(string $answer, string $version): void
+    {
+        $binary = $this->binary("printf '⠁\\n'", $answer);
+
+        try {
+            new LiblouisTranslator(binary: $binary->path)->translate(['a'], 'fr', Contraction::Uncontracted);
+            self::fail('liblouis is too old.');
+        } catch (OutdatedLiblouis $outdatedLiblouis) {
+            self::assertSame(\sprintf('liblouis %s is older than 3.39.0, the oldest version accepted: update liblouis.', $version), $outdatedLiblouis->getMessage());
+            self::assertSame(0, $outdatedLiblouis->exitCode);
+            self::assertSame('', $outdatedLiblouis->errorOutput);
+        }
+
+        self::assertFalse($binary->ran(), 'Nothing is sent to an outdated liblouis.');
+    }
+
+    public function testAVersionThatCannotBeReadIsRefusedBeforeTranslating(): void
+    {
+        $binary = $this->binary("printf '⠁\\n'", 'lou_translate, a version of its own');
+
+        try {
+            new LiblouisTranslator(binary: $binary->path)->translate(['a'], 'fr', Contraction::Uncontracted);
+            self::fail('There is no version.');
+        } catch (LiblouisFailed $liblouisFailed) {
+            self::assertSame('liblouis did not say which version it is.', $liblouisFailed->getMessage());
+            self::assertSame("lou_translate, a version of its own\n", $liblouisFailed->errorOutput);
+        }
+
+        self::assertFalse($binary->ran());
+    }
+
+    public function testAnOutdatedLiblouisAllowedTranslatesWithAWarning(): void
+    {
+        $binary = $this->binary("printf '⠁\\n'", 'lou_translate (liblouis) 3.38.2');
+        $logger = new RecordingLogger();
+        $translator = new LiblouisTranslator(binary: $binary->path, allowOutdatedLiblouis: true, logger: $logger);
+
+        self::assertSame(["\u{2801}"], $translator->translate(['a'], 'fr', Contraction::Uncontracted));
+        self::assertSame(["\u{2801}"], $translator->translate(['a'], 'fr', Contraction::Uncontracted));
+        self::assertSame([[
+            LogLevel::WARNING,
+            'liblouis {version} is older than {minimum}; it translates anyway, as allowOutdatedLiblouis lets it.',
+            ['version' => '3.38.2', 'minimum' => '3.39.0'],
+        ]], $logger->records, 'One warning, the first time.');
+    }
+
+    public function testAVersionThatCannotBeReadAllowedTranslatesWithAWarning(): void
+    {
+        $binary = $this->binary("printf '⠁\\n'", 'no version here');
+        $logger = new RecordingLogger();
+        $translator = new LiblouisTranslator(binary: $binary->path, allowOutdatedLiblouis: true, logger: $logger);
+
+        self::assertSame(["\u{2801}"], $translator->translate(['a'], 'fr', Contraction::Uncontracted));
+        self::assertSame(["\u{2801}"], $translator->translate(['a'], 'fr', Contraction::Uncontracted));
+        self::assertSame([[
+            LogLevel::WARNING,
+            'liblouis did not say which version it is; it translates anyway, as allowOutdatedLiblouis lets it.',
+            ['minimum' => '3.39.0'],
+        ]], $logger->records);
+    }
+
+    public function testAnOutdatedLiblouisAllowedNeedsNoLogger(): void
+    {
+        $binary = $this->binary("printf '⠁\\n'", 'liblouis 3.20.0');
+
+        self::assertSame(["\u{2801}"], new LiblouisTranslator(binary: $binary->path, allowOutdatedLiblouis: true)->translate(['a'], 'fr', Contraction::Uncontracted));
+    }
+
+    public function testTheVersionIsAskedOnceWithTheTablePath(): void
+    {
+        $binary = $this->binary(<<<'SH'
+            if [ "$1" = --version ]; then
+              echo asked >> "$(dirname "$0")/versions"
+              printf '%s' "$LOUIS_TABLEPATH" > "$(dirname "$0")/version-tablepath"
+              echo 'lou_translate (liblouis) 3.39.0'
+            else
+              printf '⠁\n'
+            fi
+            SH, null);
+        $translator = new LiblouisTranslator(binary: $binary->path, tablePath: '/srv/tables');
+
+        $translator->translate(['a'], 'fr', Contraction::Uncontracted);
+        $translator->translate(['b'], 'fr', Contraction::Uncontracted);
+        self::assertSame('3.39.0', $translator->version());
+
+        self::assertSame("asked\n", file_get_contents($binary->directory.'/versions'));
+        self::assertSame('/srv/tables', file_get_contents($binary->directory.'/version-tablepath'));
+        self::assertSame(['--forward', 'unicode.dis,fr-bfu-comp6.utb'], $binary->arguments());
+    }
+
+    public function testARefusedLiblouisIsRefusedAgain(): void
+    {
+        $binary = $this->binary("printf '⠁\\n'", 'liblouis 3.38.0');
+        $translator = new LiblouisTranslator(binary: $binary->path);
+
+        foreach ([1, 2] as $attempt) {
+            try {
+                $translator->translate(['a'], 'fr', Contraction::Uncontracted);
+                self::fail('liblouis is too old, attempt '.$attempt.'.');
+            } catch (OutdatedLiblouis) {
+                self::assertFalse($binary->ran());
+            }
+        }
+    }
+
+    public function testTheVersionAnswerIsBounded(): void
+    {
+        $binary = $this->binary('exit 0', str_repeat('3', 5_000));
+
+        try {
+            new LiblouisTranslator(binary: $binary->path)->version();
+            self::fail('The answer is over its limit.');
+        } catch (LiblouisFailed $liblouisFailed) {
+            self::assertSame('liblouis wrote more than the limit of 4096 bytes.', $liblouisFailed->getMessage());
+        }
+    }
+
+    public function testAVersionAnswerAtItsLimitIsRead(): void
+    {
+        $binary = $this->binary('exit 0', '3.39.0'.str_repeat(' ', 4_089));
+
+        self::assertSame('3.39.0', new LiblouisTranslator(binary: $binary->path, maxOutputBytes: 1)->version());
+    }
+
+    public function testTheVersionQuestionHasTheTimeOfABatch(): void
+    {
+        $binary = $this->binary('sleep 5', null);
+
+        try {
+            new LiblouisTranslator(binary: $binary->path, timeout: 0.3)->version();
+            self::fail('The program ran out of time.');
+        } catch (LiblouisFailed $liblouisFailed) {
+            self::assertSame(\sprintf('"%s" ran out of time.', $binary->path), $liblouisFailed->getMessage());
         }
     }
 
@@ -427,8 +600,8 @@ final class LiblouisTranslatorTest extends TestCase
         }
     }
 
-    private function binary(string $script): FakeBinary
+    private function binary(string $script, ?string $version = 'lou_translate (liblouis) '.LiblouisTranslator::MINIMUM_VERSION): FakeBinary
     {
-        return $this->binary = new FakeBinary($script);
+        return $this->binary = new FakeBinary($script, $version);
     }
 }

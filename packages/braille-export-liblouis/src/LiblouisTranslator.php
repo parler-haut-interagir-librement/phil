@@ -12,7 +12,10 @@ use Phil\BrailleExport\Translation\Braille;
 use Phil\BrailleExportLiblouis\Exception\ExecutableNotFound;
 use Phil\BrailleExportLiblouis\Exception\LiblouisException;
 use Phil\BrailleExportLiblouis\Exception\LiblouisFailed;
+use Phil\BrailleExportLiblouis\Exception\OutdatedLiblouis;
 use Phil\BrailleExportLiblouis\Exception\TableNotFound;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Symfony\Component\Process\Exception\ExceptionInterface;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\ExecutableFinder;
@@ -25,36 +28,58 @@ use Symfony\Component\Process\Process;
  * A whole batch goes to one run of the program, one text per line of its standard input, and comes back one line per
  * text on its standard output, written as Unicode braille by the `unicode.dis` display table. The program is started
  * with its arguments as a list, never through a shell; its time and the size of what goes in and out are bounded.
+ *
+ * Before its first translation, the translator asks the program its version, once, and keeps the answer. A liblouis
+ * older than {@see self::MINIMUM_VERSION}, which fixes memory-safety defects, is refused with an
+ * {@see OutdatedLiblouis}, and an answer without a version with a {@see LiblouisFailed}: the texts come from documents,
+ * so the program reads input nobody checked. `$allowOutdatedLiblouis` turns both refusals into a warning in the log.
  */
-final readonly class LiblouisTranslator implements Translator
+final class LiblouisTranslator implements Translator
 {
-    private const float VERSION_TIMEOUT = 10.0;
+    /** The oldest liblouis the translator runs by default. */
+    public const string MINIMUM_VERSION = '3.39.0';
+
+    /** The most bytes the program may write when it gives its version. */
+    private const int MAX_VERSION_OUTPUT = 4_096;
 
     /** The longest line sent to the program, in bytes; a longer text is sent in pieces cut between words. */
     private const int MAX_LINE = 1_000;
 
     private const string NAME = '/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/D';
 
-    private LiblouisTables $tables;
+    private readonly LiblouisTables $tables;
+
+    private readonly LoggerInterface $logger;
+
+    /** What the program answered when asked its version, kept once asked. */
+    private ?string $versionOutput = null;
+
+    /** Whether the version was checked and accepted, or let through with a warning. */
+    private bool $checked = false;
 
     /**
-     * @param LiblouisTables|null $tables         the table of each language and contraction; {@see LiblouisTables::defaults()} without it
-     * @param string              $binary         the program, a name found on the `PATH` or a path
-     * @param float               $timeout        the seconds one batch may take
-     * @param int                 $maxInputBytes  the most bytes of text one batch may send
-     * @param int                 $maxOutputBytes the most bytes the program may write for one batch
-     * @param string              $displayTable   the display table, which must write Unicode braille
-     * @param string|null         $tablePath      the directories liblouis looks for tables in, as `LOUIS_TABLEPATH` gives them;
-     *                                            its own directory without it
+     * @param LiblouisTables|null  $tables                the table of each language and contraction; {@see LiblouisTables::defaults()} without it
+     * @param string               $binary                the program, a name found on the `PATH` or a path
+     * @param float                $timeout               the seconds one batch, or the question of the version, may take
+     * @param int                  $maxInputBytes         the most bytes of text one batch may send
+     * @param int                  $maxOutputBytes        the most bytes the program may write for one batch
+     * @param string               $displayTable          the display table, which must write Unicode braille
+     * @param string|null          $tablePath             the directories liblouis looks for tables in, as `LOUIS_TABLEPATH` gives them;
+     *                                                    its own directory without it
+     * @param bool                 $allowOutdatedLiblouis whether a liblouis older than {@see self::MINIMUM_VERSION}, or one whose version
+     *                                                    cannot be read, translates anyway, with a warning in the log, instead of being refused
+     * @param LoggerInterface|null $logger                where that warning goes
      */
     public function __construct(
         ?LiblouisTables $tables = null,
-        private string $binary = 'lou_translate',
-        private float $timeout = 30.0,
-        private int $maxInputBytes = 4_194_304,
-        private int $maxOutputBytes = 33_554_432,
-        private string $displayTable = 'unicode.dis',
-        private ?string $tablePath = null,
+        private readonly string $binary = 'lou_translate',
+        private readonly float $timeout = 30.0,
+        private readonly int $maxInputBytes = 4_194_304,
+        private readonly int $maxOutputBytes = 33_554_432,
+        private readonly string $displayTable = 'unicode.dis',
+        private readonly ?string $tablePath = null,
+        private readonly bool $allowOutdatedLiblouis = false,
+        ?LoggerInterface $logger = null,
     ) {
         if ($timeout <= 0.0) {
             throw new InvalidArgumentException('The timeout of liblouis must be positive.');
@@ -69,6 +94,7 @@ final readonly class LiblouisTranslator implements Translator
         }
 
         $this->tables = $tables ?? LiblouisTables::defaults();
+        $this->logger = $logger ?? new NullLogger();
     }
 
     public function supports(string $language, Contraction $contraction): bool
@@ -101,9 +127,11 @@ final readonly class LiblouisTranslator implements Translator
             throw LiblouisFailed::inputTooLarge($this->maxInputBytes);
         }
 
+        $this->checkVersion();
+
         $process = new Process(
             [$this->executable(), '--forward', $this->displayTable.','.$table],
-            env: null === $this->tablePath ? [] : ['LOUIS_TABLEPATH' => $this->tablePath],
+            env: $this->environment(),
             input: $input,
             timeout: $this->timeout,
         );
@@ -127,19 +155,60 @@ final readonly class LiblouisTranslator implements Translator
     }
 
     /**
-     * The version of liblouis the program reports, such as `3.21.0`.
+     * The version of liblouis the program reports, such as `3.39.0`; asked once, then kept.
      *
      * @throws LiblouisException
      */
     public function version(): string
     {
-        $output = $this->run(new Process([$this->executable(), '--version'], timeout: self::VERSION_TIMEOUT), '');
+        return $this->reportedVersion() ?? throw LiblouisFailed::noVersion((string) $this->versionOutput);
+    }
 
-        if (1 !== preg_match('/\d+\.\d+(?:\.\d+)?/', $output, $match)) {
-            throw LiblouisFailed::noVersion($output);
+    /**
+     * The version the program reports, null when its answer names none; asked once, then kept.
+     *
+     * @throws LiblouisException
+     */
+    private function reportedVersion(): ?string
+    {
+        $this->versionOutput ??= $this->run(
+            new Process([$this->executable(), '--version'], env: $this->environment(), timeout: $this->timeout),
+            '',
+            self::MAX_VERSION_OUTPUT,
+        );
+
+        return 1 === preg_match('/\d+\.\d+(?:\.\d+)?/', $this->versionOutput, $match) ? $match[0] : null;
+    }
+
+    /**
+     * Refuses a liblouis older than {@see self::MINIMUM_VERSION}, or one whose answer names no version, unless
+     * `$allowOutdatedLiblouis` lets it through with a warning; once let through, never asked again.
+     *
+     * @throws LiblouisException
+     */
+    private function checkVersion(): void
+    {
+        if ($this->checked) {
+            return;
         }
 
-        return $match[0];
+        $version = $this->reportedVersion();
+
+        if (null === $version) {
+            if (!$this->allowOutdatedLiblouis) {
+                throw LiblouisFailed::noVersion((string) $this->versionOutput);
+            }
+
+            $this->logger->warning('liblouis did not say which version it is; it translates anyway, as allowOutdatedLiblouis lets it.', ['minimum' => self::MINIMUM_VERSION]);
+        } elseif (version_compare($version, self::MINIMUM_VERSION, '<')) {
+            if (!$this->allowOutdatedLiblouis) {
+                throw OutdatedLiblouis::of($version, self::MINIMUM_VERSION);
+            }
+
+            $this->logger->warning('liblouis {version} is older than {minimum}; it translates anyway, as allowOutdatedLiblouis lets it.', ['version' => $version, 'minimum' => self::MINIMUM_VERSION]);
+        }
+
+        $this->checked = true;
     }
 
     /**
@@ -186,22 +255,31 @@ final readonly class LiblouisTranslator implements Translator
         return new ExecutableFinder()->find($this->binary) ?? throw ExecutableNotFound::named($this->binary);
     }
 
-    private function run(Process $process, string $table): string
+    /**
+     * @return array<string, string>
+     */
+    private function environment(): array
     {
+        return null === $this->tablePath ? [] : ['LOUIS_TABLEPATH' => $this->tablePath];
+    }
+
+    private function run(Process $process, string $table, ?int $maxOutputBytes = null): string
+    {
+        $limit = $maxOutputBytes ?? $this->maxOutputBytes;
         $written = 0;
 
         try {
             $process->start();
-            $over = $process->waitUntil(function (string $type, string $data) use (&$written): bool {
+            $over = $process->waitUntil(static function (string $type, string $data) use (&$written, $limit): bool {
                 $written += \strlen($data);
 
-                return $written > $this->maxOutputBytes;
+                return $written > $limit;
             });
 
             if ($over) {
                 $process->stop(0);
 
-                throw LiblouisFailed::outputTooLarge($this->maxOutputBytes);
+                throw LiblouisFailed::outputTooLarge($limit);
             }
 
             $process->wait();

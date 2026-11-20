@@ -22,6 +22,7 @@
         "php": ">=8.5",
         "ext-mbstring": "*",
         "phil/braille-export": "^0.1@dev",
+        "psr/log": "^3.0",
         "symfony/process": "^8.2"
     },
     "require-dev": {

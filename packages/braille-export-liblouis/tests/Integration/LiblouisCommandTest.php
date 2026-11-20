@@ -11,6 +11,7 @@ use Phil\BrailleExport\Document\Heading;
 use Phil\BrailleExport\Document\Paragraph;
 use Phil\BrailleExport\Output\BrfWriter;
 use Phil\BrailleExport\Translation\Braille;
+use Phil\BrailleExportLiblouis\Exception\LiblouisException;
 use Phil\BrailleExportLiblouis\Exception\TableNotFound;
 use Phil\BrailleExportLiblouis\LiblouisTables;
 use Phil\BrailleExportLiblouis\LiblouisTranslator;
@@ -20,7 +21,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\ExecutableFinder;
 
 /**
- * The real `lou_translate`, on a machine that has liblouis; skipped elsewhere.
+ * The real `lou_translate`, on a machine that has liblouis 3.39.0 or later; skipped elsewhere.
  */
 #[CoversClass(LiblouisTranslator::class)]
 #[CoversClass(LiblouisTables::class)]
@@ -37,6 +38,16 @@ final class LiblouisCommandTest extends TestCase
         }
 
         $this->translator = new LiblouisTranslator();
+
+        try {
+            $version = $this->translator->version();
+        } catch (LiblouisException $liblouisException) {
+            self::markTestSkipped('The lou_translate program of liblouis does not give its version: '.$liblouisException->getMessage());
+        }
+
+        if (version_compare($version, LiblouisTranslator::MINIMUM_VERSION, '<')) {
+            self::markTestSkipped(\sprintf('liblouis %s is older than %s, which the translator refuses.', $version, LiblouisTranslator::MINIMUM_VERSION));
+        }
     }
 
     public function testTheVersionIsRead(): void
