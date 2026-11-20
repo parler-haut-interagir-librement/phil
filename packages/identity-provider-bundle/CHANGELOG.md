@@ -8,7 +8,9 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.3.0-alpha: the links of the emails point to `public_origin`, and the `prod` environment refuses
 to boot without it or `framework.trusted_hosts`; registration is limited by default; the keys of the tables take the
-binary collation on MySQL and MariaDB, to migrate. See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
+binary collation on MySQL and MariaDB, to migrate; the provider gains client assertions, the `client_credentials` grant
+and resources, new columns and a table to migrate, and refresh tokens bound to their session by default. See
+[Upgrading from 0.2](doc/installation.md#upgrading-from-02).
 
 ### Added
 
@@ -23,6 +25,55 @@ binary collation on MySQL and MariaDB, to migrate. See [Upgrading from 0.2](doc/
 - `Infrastructure\Doctrine\BinaryKeysListener`, on the ORM's `loadClassMetadata` event, and its `FIELDS`: the keys
   that compare byte by byte on MySQL and MariaDB.
 - `OneTimeCodeAuthenticator::MAX_FAILURES` and `FAILURES`: the wrong codes in a row a session may post.
+- Client authentication by `private_key_jwt` (RFC 7523): a confidential client registers the public keys it signs client
+  assertions with — `Client::register()` and `ClientRegistry::register()` take `$jwks`, `--jwks` on
+  `phil:identity-provider:client:create` — and receives no secret. `Application\Oidc\ClientAssertions` checks the
+  signature with the key the `kid` names, `iss` and `sub`, `aud` — the issuer, or the token endpoint at the issuer's
+  origin —, `exp`, `iat` and `nbf` within `oidc.client_authentication.clock_skew`, an expiry at most
+  `oidc.client_authentication.assertion_max_lifetime` ahead, and a `jti` used once, recorded in the new table
+  `phil_identity_assertion` (`Domain\Model\Oidc\UsedAssertion`, `GrantRepository::useAssertion()`).
+  `ClientRegistry::replaceJwks()`, `Client::replaceJwks()` and `phil:identity-provider:client:keys` replace the keys;
+  the event `identity.oidc.client_keys_replaced` (`IdentityEventType::ClientKeysReplaced`).
+- `oidc.client_authentication.methods`, the methods the provider accepts — all four by default —, and
+  `Domain\Oidc\ClientAuthMethod`; `Client::accepts()` names the one method of each client. `Tokens::authenticateClient()`
+  takes the method and the path of the token endpoint, last and optional; `ClientCredentials` reads
+  `client_assertion_type` and `client_assertion`, and gives the method.
+- The `client_credentials` grant (`Tokens::clientCredentials()`): a confidential client that registered resources asks
+  an access token for itself, for one of its resources, whose `sub` is the client, without an ID token nor a refresh
+  token; userinfo refuses it. `oidc.extra_scopes` declares the scopes of resources.
+- Resources (RFC 8707): `Client::resources()`, `allowsResource()`, `--resource` on
+  `phil:identity-provider:client:create`; the `resource` of a token request, compared in its canonical form, is the
+  `aud` of the access token and of introspection (`IssuedToken::audience()`, column `audience`). The errors
+  `invalid_target` and `unauthorized_client` (`OAuthError::invalidTarget()`, `unauthorizedClient()`).
+- `oidc.refresh_token_bound_to_session`, on by default, and `oidc.session_max_age`: a refresh token issued in a session
+  is refused once the session is closed or older than the bound, its family revoked, and never expires past the bound.
+  `Tokens` takes the `AccountSessionRepository`, last and optional.
+- `oidc.id_token.acr`, `oidc.id_token.idp` and `oidc.id_token.session_start`: the optional claims `acr`, `idp` and
+  `session_start` of the ID token, listed by the discovery document with `acr_values_supported`.
+- `Application\Contract\ClaimsProvider`, the port of the claims an application adds to userinfo, autoconfigured with the
+  tag `phil_identity_provider.claims_provider`, and `Application\Oidc\UserClaims`, which adds them after the claims of
+  the scopes and refuses a provider that answers a claim already set. `Tokens::bearer()` gives the client of the token
+  as its third member; `UserinfoController` takes the `UserClaims`, last and optional.
+- Back-channel logout (OpenID Connect Back-Channel Logout 1.0), with `oidc.backchannel_logout` (`enabled`, `bus`,
+  `http_client`, `timeout`): a client registers its address (`--backchannel-logout-uri`, `Client::backchannelLogoutUri()`,
+  column `backchannel_logout_uri`); when a session closes, `Sessions` tells the clients it issued tokens to through the
+  port `Application\Contract\LogoutNotifier`, whose adapter `Infrastructure\Messenger\MessengerLogoutNotifier`
+  dispatches one `SendLogoutToken` of identifiers per client; `SendLogoutTokenHandler` posts the logout token that
+  `Application\Oidc\LogoutTokens` signs, and throws `DeliveryFailed` on a failed answer so that Messenger tries again.
+  `Sessions` takes the `LogoutNotifier`, last and optional; the discovery document announces
+  `backchannel_logout_supported` and `backchannel_logout_session_supported`. `symfony/messenger` and
+  `symfony/http-client` are suggested.
+- The subject strategy, `oidc.subject` (`type`, `salt`) and `Domain\Oidc\SubjectType`: the account's internal
+  identifier (`account`, the default), an opaque identifier the same for every client (`public`), or a pairwise one per
+  sector (`pairwise`), derived by `Application\Oidc\Subjects` as an HMAC-SHA256 under the salt. A client's sector is
+  the host it registers (`--sector-identifier`, `Client::sector()`, column `sector_identifier`) or the host its redirect
+  addresses share. The ID token, the access token, introspection, userinfo, the logout token and the check of an
+  `id_token_hint` use it; `Tokens::subject()` gives it, and the discovery document names the type. `Claims::of()` and
+  `UserClaims::of()` take the subject, last and optional.
+- `Jws::unverifiedClaims()`: the claims of a token read under the same bounds, its signature not verified, to learn the
+  client a client assertion names.
+- The documentation of client authentication, token families, refresh tokens bound to the session, resources and the
+  `client_credentials` grant, and the threats of token families.
 
 ### Changed
 
@@ -32,6 +83,16 @@ binary collation on MySQL and MariaDB, to migrate. See [Upgrading from 0.2](doc/
 - `registration` is a section that can be turned off: `registration: true` and `registration: false` keep their
   meaning, and `registration: { rate_limit: false }` turns the limits off.
 - `symfony/rate-limiter` joins `require`.
+- `IssuedToken::accountId()` returns null for a token of the `client_credentials` grant; the column `account_id` of
+  `phil_identity_token` is nullable. `Client` gains the nullable columns `jwks` and `resources`; `Client::isPublic()` is
+  false for a client with keys, and `Client::rotateSecret()` refuses a client without a secret. Migration: run
+  `bin/console doctrine:migrations:diff` and apply it.
+- `TokenController::AUTH_METHODS` is removed: the discovery document lists the methods of
+  `oidc.client_authentication.methods`, `private_key_jwt` among them, with
+  `token_endpoint_auth_signing_alg_values_supported`, and the grant `client_credentials`. Introspection answers `aud`.
+- `phil:identity-provider:client:list` shows the clients with keys and their resources.
+- A refresh token of a session that ended is refused: set `oidc.refresh_token_bound_to_session: false` to keep the
+  refresh tokens of a closed session alive.
 - `AccountLinks` and `LoginLinkController` take a `LinkOrigin`, last and optional; the sign-in link is generated
   without the request. `AccountController` takes a `RegistrationRateLimiter`, last and optional.
 - On MySQL and MariaDB, the identifiers of every table, `email` of `phil_identity_account`, `client_id`, `account_id`,

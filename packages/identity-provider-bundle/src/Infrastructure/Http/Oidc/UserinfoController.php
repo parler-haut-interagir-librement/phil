@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Phil\IdentityProviderBundle\Infrastructure\Http\Oidc;
 
 use Phil\IdentityProviderBundle\Application\Exception\OAuthError;
-use Phil\IdentityProviderBundle\Application\Oidc\Claims;
 use Phil\IdentityProviderBundle\Application\Oidc\Tokens;
+use Phil\IdentityProviderBundle\Application\Oidc\UserClaims;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
  * The userinfo endpoint (OpenID Connect Core, section 5.3), `GET` or `POST`: the access token in the `Authorization`
  * header with the Bearer scheme (RFC 6750, section 2.1) or, for a `POST`, in the `access_token` member of a form body
- * (section 2.2) — never in the query, never both —, the claims of its scopes in the answer.
+ * (section 2.2) — never in the query, never both —, the claims of its scopes and of the claims providers in the answer.
  */
 final readonly class UserinfoController
 {
@@ -21,18 +21,19 @@ final readonly class UserinfoController
 
     public function __construct(
         private Tokens $tokens,
+        private UserClaims $claims = new UserClaims(),
     ) {
     }
 
     public function userinfo(Request $request): JsonResponse
     {
         try {
-            [$account, $scopes] = $this->tokens->bearer($this->accessToken($request));
+            [$account, $scopes, $clientId] = $this->tokens->bearer($this->accessToken($request));
         } catch (OAuthError $oAuthError) {
             return OAuthResponses::error($oAuthError, bearerRealm: 'userinfo');
         }
 
-        $response = OAuthResponses::json(Claims::of($account, $scopes));
+        $response = OAuthResponses::json($this->claims->of($account, $scopes, $clientId, $this->tokens->subject($account->id(), $clientId)));
         $response->headers->set('Access-Control-Allow-Origin', '*');
 
         return $response;

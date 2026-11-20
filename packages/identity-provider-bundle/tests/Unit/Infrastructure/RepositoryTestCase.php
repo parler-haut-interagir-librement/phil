@@ -22,6 +22,7 @@ use Phil\IdentityProviderBundle\Domain\Model\Oidc\Client;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Consent;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\SigningKey;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\UsedAssertion;
 use Phil\IdentityProviderBundle\Domain\Model\Passkey\Passkey;
 use Phil\IdentityProviderBundle\Domain\Model\Session\AccountSession;
 use Phil\IdentityProviderBundle\Domain\Model\Totp\RecoveryCodeSet;
@@ -329,6 +330,33 @@ abstract class RepositoryTestCase extends TestCase
         self::assertFalse($this->grants()->rotateToken($gone, $now));
         $this->clear();
         self::assertFalse($this->grants()->token(IssuedToken::idOfRefresh('gone'))?->isRotated());
+    }
+
+    public function testAClientAssertionIsRecordedOnceAndPurgedOnceExpired(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+
+        self::assertTrue($this->grants()->useAssertion(UsedAssertion::record('machine', 'jti-1', $now->modify('+60 seconds'))));
+        self::assertFalse($this->grants()->useAssertion(UsedAssertion::record('machine', 'jti-1', $now->modify('+90 seconds'))));
+        self::assertTrue($this->grants()->useAssertion(UsedAssertion::record('other', 'jti-1', $now->modify('+120 seconds'))));
+        $this->clear();
+        self::assertFalse($this->grants()->useAssertion(UsedAssertion::record('machine', 'jti-1', $now)));
+
+        self::assertSame(0, $this->grants()->purge($now->modify('+60 seconds')));
+        self::assertSame(1, $this->grants()->purge($now->modify('+61 seconds')));
+        self::assertTrue($this->grants()->useAssertion(UsedAssertion::record('machine', 'jti-1', $now->modify('+60 seconds'))));
+        self::assertFalse($this->grants()->useAssertion(UsedAssertion::record('other', 'jti-1', $now)));
+    }
+
+    public function testATokenOfTheClientItselfKeepsItsAudience(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $this->grants()->saveToken(IssuedToken::issue('jti-c', TokenKind::Access, 'FAMILY0000000000000000000C', 'machine', null, ['events:read'], null, $now, [], $now, $now->modify('+10 minutes'), 'https://api.example/'));
+        $this->clear();
+
+        $token = $this->grants()->token('jti-c');
+        self::assertNotNull($token);
+        self::assertSame([null, 'https://api.example/', ['events:read']], [$token->accountId(), $token->audience(), $token->scopes()]);
     }
 
     public function testAChangeToAFactorAppliesToItsStoredRow(): void

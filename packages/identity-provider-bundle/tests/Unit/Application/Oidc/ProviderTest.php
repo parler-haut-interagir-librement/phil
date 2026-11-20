@@ -165,7 +165,7 @@ final class ProviderTest extends TestCase
         self::assertSame(['openid', 'email', 'offline_access'], $client->scopes());
         self::assertEquals([$client], $registry->all());
         self::assertEquals($client, $registry->get('app'));
-        self::assertSame([IdentityEventType::ClientRegistered->value, null, ['client' => 'app', 'public' => false, 'pkce' => true]], array_last($this->services->audit->records));
+        self::assertSame([IdentityEventType::ClientRegistered->value, null, ['client' => 'app', 'public' => false, 'pkce' => true, 'keys' => false]], array_last($this->services->audit->records));
 
         [$public, $none] = $registry->register('spa', 'SPA', ['https://spa.example/cb'], public: true, firstParty: true);
         self::assertNull($none);
@@ -176,7 +176,7 @@ final class ProviderTest extends TestCase
 
         [$optional] = $registry->register('server', 'Server', ['https://server.example/cb'], requirePkce: false);
         self::assertFalse($optional->requiresPkce());
-        self::assertSame([IdentityEventType::ClientRegistered->value, null, ['client' => 'server', 'public' => false, 'pkce' => false]], array_last($this->services->audit->records));
+        self::assertSame([IdentityEventType::ClientRegistered->value, null, ['client' => 'server', 'public' => false, 'pkce' => false, 'keys' => false]], array_last($this->services->audit->records));
 
         try {
             $registry->register('spa2', 'SPA', ['https://spa.example/cb'], public: true, requirePkce: false);
@@ -274,7 +274,7 @@ final class ProviderTest extends TestCase
         self::assertSame(['sub' => $account->id(), 'email' => 'ada@example.com', 'email_verified' => false], Claims::of($account, $scopes));
 
         $introspection = $tokens->introspect($client, (string) $response['access_token']);
-        self::assertSame(['active' => true, 'scope' => 'openid email offline_access', 'client_id' => 'app', 'sub' => $account->id(), 'token_type' => 'Bearer', 'exp' => $access['exp'], 'iat' => $access['iat'], 'iss' => self::ISSUER], $introspection);
+        self::assertSame(['active' => true, 'scope' => 'openid email offline_access', 'client_id' => 'app', 'sub' => $account->id(), 'aud' => self::ISSUER, 'token_type' => 'Bearer', 'exp' => $access['exp'], 'iat' => $access['iat'], 'iss' => self::ISSUER], $introspection);
         self::assertSame('refresh_token', $tokens->introspect($client, (string) $response['refresh_token'])['token_type']);
 
         $this->services->clock->modify('+1 minute');
@@ -466,6 +466,7 @@ final class ProviderTest extends TestCase
     {
         $account = $this->account();
         self::assertSame(['sub' => $account->id()], Claims::of($account, ['openid', 'phone']));
+        self::assertSame(['sub' => 'pairwise-sub'], Claims::of($account, ['openid'], 'pairwise-sub'));
         $account->rename(null);
         self::assertSame(['sub' => $account->id()], Claims::of($account, ['openid', 'profile']));
         $account->rename('Ada');

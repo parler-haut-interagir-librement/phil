@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 /*
  * The reader of JSON Web Tokens, on text nobody wrote, against one known key: it throws MalformedInput or
- * VerificationFailed, and never returns claims without a valid signature.
+ * VerificationFailed, and never returns claims without a valid signature. The reader of the unverified claims of a
+ * client assertion throws MalformedInput or returns an object, under the same bounds.
  *
  * Run by `phil-dev fuzz`, which sets PHIL_DEV_AUTOLOAD and gives this file the fuzzer's `$config`.
  */
@@ -28,6 +29,11 @@ $key = new JWK(PrivateKey::generate(SigningAlgorithm::EdDSA, 'fuzz')->publicJwk(
 
 /** @var PhpFuzzer\Config $config */
 $config->setTarget(static function (string $input) use ($key): void {
+    try {
+        Jws::unverifiedClaims($input);
+    } catch (MalformedInput) {
+    }
+
     try {
         Jws::decode($input, static fn (string $kid): ?JWK => 'fuzz' === $kid ? $key : null);
     } catch (MalformedInput|VerificationFailed) {

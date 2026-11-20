@@ -5,17 +5,20 @@ declare(strict_types=1);
 namespace Phil\IdentityProviderBundle\Infrastructure\Doctrine;
 
 use DateTimeImmutable;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\UsedAssertion;
 
 /**
  * The codes in `phil_identity_code` and the tokens in `phil_identity_token`; each save is flushed, the purge is two
  * statements. A code is used, and a refresh token rotated, by one conditional `UPDATE`, whose count of rows tells the
- * one request that won.
+ * one request that won; a client assertion is recorded by one `INSERT` on the connection, outside the unit of work, the
+ * key of the row refusing the second.
  */
 final readonly class DoctrineGrantRepository implements GrantRepository
 {
@@ -109,11 +112,23 @@ final readonly class DoctrineGrantRepository implements GrantRepository
     }
 
     #[Override]
+    public function useAssertion(UsedAssertion $assertion): bool
+    {
+        try {
+            $this->entityManager->getConnection()->insert(UsedAssertion::TABLE, ['id' => $assertion->id(), 'expires_at' => $assertion->expiresAt()], ['expires_at' => Types::DATETIME_IMMUTABLE]);
+        } catch (UniqueConstraintViolationException) {
+            return false;
+        }
+
+        return true;
+    }
+
+    #[Override]
     public function purge(DateTimeImmutable $before): int
     {
         $removed = 0;
 
-        foreach ([AuthorizationCode::class, IssuedToken::class] as $class) {
+        foreach ([AuthorizationCode::class, IssuedToken::class, UsedAssertion::class] as $class) {
             $count = $this->entityManager->createQuery(\sprintf('DELETE FROM %s g WHERE g.expiresAt < :before', $class))
                 ->setParameter('before', $before)
                 ->execute();

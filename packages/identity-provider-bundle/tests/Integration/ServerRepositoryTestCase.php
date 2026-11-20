@@ -14,6 +14,7 @@ use Doctrine\ORM\ORMSetup;
 use Override;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\UsedAssertion;
 use Phil\IdentityProviderBundle\Domain\Model\Totp\TotpCredential;
 use Phil\IdentityProviderBundle\Domain\Oidc\TokenKind;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\BinaryKeysListener;
@@ -61,6 +62,16 @@ abstract class ServerRepositoryTestCase extends DoctrineRepositoryTestCase
         self::assertNotNull($theirs);
         self::assertTrue($other->rotateToken($theirs, $now));
         self::assertFalse($this->grants()->rotateToken($mine, $now));
+    }
+
+    public function testTwoConnectionsRecordAClientAssertionOnce(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $other = new DoctrineGrantRepository($this->second());
+
+        self::assertTrue($other->useAssertion(UsedAssertion::record('machine', 'jti', $now)));
+        self::assertFalse($this->grants()->useAssertion(UsedAssertion::record('machine', 'jti', $now)));
+        self::assertTrue($this->grants()->useAssertion(UsedAssertion::record('machine', 'JTI', $now)), 'The identifier compares byte by byte.');
     }
 
     public function testTwoConnectionsAcceptATotpCounterOnce(): void

@@ -73,17 +73,35 @@ write the code comes before the bundle is used in production, against this page 
 |---|---|
 | Open redirect, code theft through a redirect address | Exact match with a registered address, read by `phil/url`; errors about the client shown, not redirected. |
 | Code interception or injection | PKCE S256 required of every public client and, by default, of every confidential one; a code issued without a challenge refuses a verifier at the token endpoint (RFC 9700, section 2.1.1); codes hashed, short-lived, used once, reuse revoking the family. |
-| Refresh token theft | Rotation by one conditional write, with reuse detection revoking the family, even between two requests at the same time. |
+| Refresh token theft | Rotation by one conditional write, with reuse detection revoking the family, even between two requests at the same time; a refresh token bound to its session by default, refused once the session ends. See [Token families](#token-families). |
+| Client impersonation by a stolen secret | `private_key_jwt`: the client keeps a private key the provider never sees; `oidc.client_authentication.methods` can refuse secrets altogether. |
+| A client assertion replayed | `jti` recorded until the assertion expires, the skew added, under a key that refuses the second of two requests at once; `exp` required and at most `assertion_max_lifetime` ahead; `aud` the issuer or the token endpoint at the issuer's origin, never an address built from the `Host` header. |
+| A token used at another resource | A token names its resource in `aud`, a resource the client registered; userinfo refuses a token of another audience and every token of the `client_credentials` grant. |
 | Token forgery | Asymmetric signatures only — RS256, ES256, EdDSA. Before the library: a token of at most `Jws::MAX_LENGTH` bytes, three parts, a header and claims that are JSON objects of bounded depth, a header naming an algorithm and a `kid`, no `crit` and no `b64`. Then the `kid` must name a published key, the header's algorithm must be the key's own `alg`, and the library verifies with that algorithm alone: `none`, HMAC and algorithm confusion are refused. |
 | Keys too weak or of the wrong kind | New keys: RSA of 3072 bits, P-256, Ed25519, made by `JWKFactory`. A key read back from the store must match the type and curve of its algorithm and hold every private member; an RSA modulus under 2048 bits is refused. |
-| Request objects and client assertions | Not accepted: `request` and `request_uri` are refused with `request_not_supported` and `request_uri_not_supported` before anything reads them; clients authenticate by secret or, public, by PKCE. No JSON Web Token from a client reaches the library. |
+| Request objects | Not accepted: `request` and `request_uri` are refused with `request_not_supported` and `request_uri_not_supported` before anything reads them. The one JSON Web Token a client sends is a client assertion, bounded like every token before the library sees it, and verified only with a public key the client registered. |
 | Mix-up between providers | The issuer in the authorization response (RFC 9207). |
 | Several keys active at once | The first key and each rotation under one shared lock; extra active or pending keys settled at every read. |
 | Key compromise | Rotation with publication before use; `rotate-keys --now`; private keys sealed by the KeyManagement component when configured. |
 | A client reading another client's tokens | Introspection and revocation answer only for the asking client's tokens. |
 | A disabled account keeping its access | Introspection answers `active: false` for the tokens of a disabled account, as userinfo refuses them. |
 | A disabled client keeping its access | A disabled client cannot authenticate to the token, revocation and introspection endpoints, and userinfo refuses the tokens issued to it. |
+| A client left signed in after the session ended | With `oidc.backchannel_logout`, every client the session issued tokens to receives a signed logout token, tried again by Messenger until it answers; the message carries identifiers only, and the token is signed when sent. |
+| A logout address used to reach the provider's network | The address is registered by the console, `https` and read by `phil/url`; no redirect is followed, and each attempt is bounded by `oidc.backchannel_logout.timeout`. |
 | A client asking for an account chooser | The provider shows none: `prompt=select_account` is refused with `invalid_request` and is not in the discovery document, so no client takes the current account for a chosen one. |
+
+## Token families
+
+A family is every token issued from one authorization code, each rotation of its refresh token included. It is the unit
+the provider revokes when it sees the sign of a theft.
+
+| Threat | Defence |
+|---|---|
+| A stolen refresh token used after the client rotated it | The rotated token presented again revokes the family — the thief's tokens and the client's —, and `identity.oidc.token_reuse` is journaled with the family. |
+| A stolen refresh token used before the client | The thief's refresh rotates the token; the client's next refresh presents the rotated token and revokes the family, the thief's new tokens with it. The thief keeps an access token until it expires, `oidc.access_token_lifetime`. |
+| Two refreshes racing to rotate one token | One conditional `UPDATE` names the single winner; the other is a reuse. The tests play two requests interleaved and two database connections. |
+| A family surviving the end of its session | Closing the session revokes the tokens issued in it; a refresh token of a closed, purged or too old session is refused and revokes its family. |
+| A revoked family replayed | A revoked refresh token is never active again: a replay is refused, without a new family. |
 
 ## Account linking
 
@@ -92,7 +110,9 @@ when the option is on and the account verified it too. Unlinking keeps a way to 
 
 ## Privacy
 
-The bundle keeps no address of a connection, a coarse device name only, no token of a federated provider. Its events and
+The bundle keeps no address of a connection, a coarse device name only, no token of a federated provider. With
+`oidc.subject.type: pairwise`, clients of different sectors receive different subjects for one account and cannot match
+their people by it; with `public`, the internal identifier never leaves the provider. Its events and
 audit rows carry identifiers, never an address, a name, a code or a secret.
 
 ## What the application keeps
@@ -111,7 +131,9 @@ templates when it replaces the bundle's.
 | The cost of RS256 | The library rebuilds the PEM of an RSA key at each signature: a few milliseconds per RS256 signature, against well under a millisecond for ES256 or EdDSA (`tests/Benchmark/JwsBench.php`). A flood of token requests costs more processor time with RS256. | The firewall's rate limits on the token endpoint; `oidc.algorithm: ES256` or `EdDSA` where the clients support them. |
 | `web-token/jwt-library` itself | A flaw in the library is a flaw in the provider. | One maintained library; its version follows the security advisories (`composer deps:audit`); untrusted input bounded before it. |
 | A code presented by two requests at once | The request that loses the code revokes its family as a reuse; when it does so before the winner has stored its tokens, those tokens stay valid. | Rare: two exchanges of one code within milliseconds; bounded by `oidc.access_token_lifetime` and, for a refresh token, by its next rotation or revocation; the reuse is journaled as `identity.oidc.token_reuse`. |
-| Refresh tokens outlive the session | A refresh token lasts `oidc.refresh_token_lifetime` whatever happens to the session it was issued in, unless the session is closed, signed out or its password changes. | Closing a session revokes its tokens; a shorter `oidc.refresh_token_lifetime`; tokens bound to the session's lifetime are planned. |
+| Refresh tokens outlive the session | With `oidc.refresh_token_bound_to_session: false`, or without the module `sessions`, a refresh token lasts `oidc.refresh_token_lifetime` whatever happens to its session; a token issued without a session always does. | On by default: the end of the session refuses its refresh tokens and revokes their family; `oidc.session_max_age` bounds them after the session opened. |
+| The winner of two refreshes at once loses its tokens | The second of two refreshes of one token is refused as a reuse and revokes the family, the winner's new tokens included: a client that refreshes twice at once signs its person out. | The safe side of the race: a stolen token cannot win silently. A client refreshes once at a time. |
+| Client assertions on several servers | A store of used assertions local to each server would accept one assertion once per server. | `phil_identity_assertion` lives in the provider's database, shared as the tokens are. |
 | A new address set before it is proven | A change of address from the account page takes effect at once, unverified, and the former address is not told. | The change needs a recent proof of the strongest method (`PHIL_STEP_UP`); the new address stays unverified until its link is used. A notice to the former address and a change held until the new one is proven are planned. |
 | Telling a known address by the time of registration | A registration for a known address answers without hashing a password, so it answers sooner. | The registration limits per client and per address bound the guesses; the answer and its status are the same. |
 | Certification | The suite runs locally; certification by the OpenID Foundation needs a provider at a public address. | Done before the provider is used in production; see [OpenID conformance](openid-conformance.md). |

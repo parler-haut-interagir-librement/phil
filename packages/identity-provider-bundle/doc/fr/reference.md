@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=722198aee23127a0fee6398999b3a1dbb2e7814ae858ab2cbae4b81ba48edd59 -->
+<!-- phil-dev source-sha256=bd7cf853b29f7ede9d617c17c6c5890b5fef0b36c356a2d46c9a4de2be2913d2 -->
 # Référence
 
 ## Types publics
@@ -14,20 +14,21 @@
 | `Application\PhoneVerification` | La vérification d'un numéro de téléphone. |
 | `Application\Sessions` | Les sessions ouvertes d'un compte. |
 | `Application\ExternalIdentities`, `Application\ExternalIdentity`, `Application\ExternalSignIn` | Les identités fédérées et les comptes qu'elles connectent. |
-| `Application\Oidc\Authorization`, `Tokens`, `SigningKeys`, `ClientRegistry`, `Claims`, `ProviderSettings` | Le fournisseur OpenID Connect. |
+| `Application\Oidc\Authorization`, `Tokens`, `SigningKeys`, `ClientRegistry`, `ClientAssertions`, `Claims`, `UserClaims`, `LogoutTokens`, `Subjects`, `ProviderSettings` | Le fournisseur OpenID Connect. |
 | `Application\AccountUser` | Le compte tel que Symfony Security le voit. |
 | `Application\Modules` | Les modules activés. |
 | `Application\Journal`, `Application\Event\IdentityEvent`, `Application\Event\IdentityEventType` | Les événements, écrits dans la piste d'audit et répartis. |
-| `Application\Contract\SecretCipher`, `ChallengeStore`, `SmsSender`, `AccountMailer`, `AuditRecorder`, `Transactions`, `LinkOrigin` | Les ports. |
+| `Application\Contract\SecretCipher`, `ChallengeStore`, `SmsSender`, `AccountMailer`, `AuditRecorder`, `Transactions`, `LinkOrigin`, `ClaimsProvider`, `LogoutNotifier` | Les ports. |
 | `Infrastructure\Routing\RouterLinkOrigin` | Les liens des courriels générés sur `public_origin`, et le démarrage refusé en `prod` sans lui ni `framework.trusted_hosts`. |
 | `Infrastructure\Security\RegistrationRateLimiter` | Les limites de l'inscription et le délai entre deux courriels de vérification. |
 | `Infrastructure\Doctrine\BinaryKeysListener` | La collation binaire des clés sur MySQL et MariaDB. |
+| `Infrastructure\Messenger\SendLogoutToken`, `SendLogoutTokenHandler`, `MessengerLogoutNotifier` | La déconnexion par canal arrière, par Messenger. |
 | `Application\Exception\Refused`, `OAuthError`, `DeliveryFailed` | Ce que les services refusent, avec des clés de traduction ou des erreurs OAuth. |
 | `Domain\Model\*` | Les lignes de chaque module. |
 | `Domain\Contract\*Repository` | Les magasins de chaque module. |
 | `Domain\WebAuthn\RelyingParty`, `Cbor`, `AuthenticatorData`, `ClientData`, `CoseKey`, `PublicKey` | WebAuthn. |
 | `Application\Jose\Jws`, `Application\Jose\PrivateKey`, `Domain\Jose\SigningAlgorithm` | Les signatures JSON Web et les clés du fournisseur, par `web-token/jwt-library`. |
-| `Domain\Oidc\AuthorizationRequestParser`, `AuthorizationRequest`, `Pkce`, `QueryString`, `Scopes`, `TokenKind` | Le protocole du fournisseur. |
+| `Domain\Oidc\AuthorizationRequestParser`, `AuthorizationRequest`, `Pkce`, `QueryString`, `Scopes`, `TokenKind`, `ClientAuthMethod`, `SubjectType` | Le protocole du fournisseur. |
 | `Domain\Totp\Totp`, `Domain\Security\RecoveryCodes`, `Domain\Security\LockoutPolicy` | Mots de passe à usage unique, codes de récupération, verrou. |
 | `Domain\Encoding\Base64Url`, `Base32`, `Der` | Encodages. |
 | `Domain\Exception\*` | Les exceptions, qui implémentent toutes `IdentityProviderException`. |
@@ -68,17 +69,18 @@ Chaque nom commence par `phil_identity_provider`.
 
 `phil_identity_account`, `phil_identity_passkey`, `phil_identity_totp`, `phil_identity_recovery_codes`,
 `phil_identity_session`, `phil_identity_linked`, `phil_identity_client`, `phil_identity_consent`, `phil_identity_code`,
-`phil_identity_token`, `phil_identity_signing_key`.
+`phil_identity_token`, `phil_identity_assertion`, `phil_identity_signing_key`.
 
 ## Commandes
 
 | Commande | Rôle |
 |---|---|
-| `phil:identity-provider:client:create` | Enregistre un client et montre son secret une seule fois ; `--pkce-optional` permet à un client confidentiel de se passer de PKCE. |
+| `phil:identity-provider:client:create` | Enregistre un client et montre son secret une seule fois ; `--pkce-optional` permet à un client confidentiel de se passer de PKCE ; `--jwks` enregistre ses clés publiques à la place d'un secret ; `--resource` nomme une ressource pour laquelle il peut demander des jetons ; `--backchannel-logout-uri` l'adresse de ses jetons de déconnexion ; `--sector-identifier` l'hôte de ses sujets par paire. |
+| `phil:identity-provider:client:keys` | Remplace les clés publiques dont un client signe ses assertions de client. |
 | `phil:identity-provider:client:list` | Liste les clients. |
 | `phil:identity-provider:client:disable` | Désactive un client, ou renouvelle son secret avec `--rotate-secret`. |
 | `phil:identity-provider:rotate-keys` | Fait tourner les clés de signature ; `--now` active tout de suite la clé en attente. |
-| `phil:identity-provider:purge` | Retire les codes et les jetons expirés et les sessions fermées ou inactives. |
+| `phil:identity-provider:purge` | Retire les codes, les jetons et les assertions de client expirés et les sessions fermées ou inactives. |
 
 ## Événements
 

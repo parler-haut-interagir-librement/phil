@@ -122,6 +122,21 @@ phil_identity_provider:
 | `oidc.retired_key_retention` | `604800` | Seconds a retired key stays published. |
 | `oidc.allow_localhost` | `false` | Whether redirect addresses on `localhost` over http are accepted, for development. |
 | `oidc.lock_factory` | `lock.factory` | The `LockFactory` service that serializes the first signing key and each rotation; its store must be shared by every server. |
+| `oidc.extra_scopes` | `[]` | Scopes besides `openid`, `profile`, `email`, `phone` and `offline_access` that clients may register, such as the scopes of a resource. |
+| `oidc.client_authentication.methods` | all four | The methods clients may authenticate by: `client_secret_basic`, `client_secret_post`, `private_key_jwt`, `none`. See [Client authentication](oidc-provider.md#client-authentication). |
+| `oidc.client_authentication.clock_skew` | `60` | Seconds a time of a client assertion may be off, 0 to 300. |
+| `oidc.client_authentication.assertion_max_lifetime` | `300` | The furthest ahead, in seconds, the expiry of a client assertion may be, 1 to 3600; its `jti` is kept that long. |
+| `oidc.refresh_token_bound_to_session` | `true` | Whether a refresh token issued in a session is refused once the session is closed or older than `oidc.session_max_age`, its family revoked. |
+| `oidc.session_max_age` | `null` | Seconds after a session opened past which its refresh tokens are no longer issued nor accepted; null for no bound but the end of the session. |
+| `oidc.id_token.acr` | `null` | The `acr` of every ID token; null for none. |
+| `oidc.id_token.idp` | `null` | The `idp` of every ID token; null for none. |
+| `oidc.id_token.session_start` | `false` | Whether the ID token carries `session_start`, when its session opened. |
+| `oidc.subject.type` | `account` | The `sub` of an account: `account` for its internal identifier, `public` for an opaque identifier the same for every client, `pairwise` for one per sector. See [Tokens](oidc-provider.md#tokens). |
+| `oidc.subject.salt` | `null` | The secret, at least 32 bytes, that opaque and pairwise subjects are derived under; required by `public` and `pairwise`, and never changed once clients have seen subjects. |
+| `oidc.backchannel_logout.enabled` | `false` | Whether the clients that registered a back-channel logout address receive a logout token when a session they have tokens of ends; needs `symfony/messenger` and `symfony/http-client`. See [Back-channel logout](oidc-provider.md#back-channel-logout). |
+| `oidc.backchannel_logout.bus` | `messenger.default_bus` | The message bus of `SendLogoutToken`. |
+| `oidc.backchannel_logout.http_client` | `http_client` | The HTTP client that posts the logout tokens. |
+| `oidc.backchannel_logout.timeout` | `5` | Seconds a client has to answer, 1 to 30. |
 
 ## A site that refuses some methods
 

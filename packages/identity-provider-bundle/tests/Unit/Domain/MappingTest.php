@@ -16,6 +16,7 @@ use Phil\IdentityProviderBundle\Domain\Model\Oidc\Client;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Consent;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\SigningKey;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\UsedAssertion;
 use Phil\IdentityProviderBundle\Domain\Model\Passkey\Passkey;
 use Phil\IdentityProviderBundle\Domain\Model\Session\AccountSession;
 use Phil\IdentityProviderBundle\Domain\Model\Totp\RecoveryCodeSet;
@@ -41,6 +42,7 @@ use ReflectionClass;
 #[CoversClass(RecoveryCodeSet::class)]
 #[CoversClass(SigningKey::class)]
 #[CoversClass(TotpCredential::class)]
+#[CoversClass(UsedAssertion::class)]
 final class MappingTest extends TestCase
 {
     /**
@@ -116,6 +118,10 @@ final class MappingTest extends TestCase
                 'createdAt' => ['created_at', 'datetime_immutable', null, false, [], false],
                 'disabledAt' => ['disabled_at', 'datetime_immutable', null, true, [], false],
                 'requirePkce' => ['require_pkce', 'boolean', null, false, ['default' => true], false],
+                'jwks' => ['jwks', 'json', null, true, [], false],
+                'resources' => ['resources', 'json', null, true, [], false],
+                'backchannelLogoutUri' => ['backchannel_logout_uri', 'text', null, true, [], false],
+                'sectorIdentifier' => ['sector_identifier', 'string', 253, true, [], false],
             ],
             'indexes' => [],
             'unique' => [],
@@ -139,7 +145,7 @@ final class MappingTest extends TestCase
                 'kind' => ['kind', 'string', 10, false, [], false],
                 'family' => ['family', 'string', 26, false, ['fixed' => true], false],
                 'clientId' => ['client_id', 'string', 64, false, [], false],
-                'accountId' => ['account_id', 'string', 26, false, ['fixed' => true], false],
+                'accountId' => ['account_id', 'string', 26, true, ['fixed' => true], false],
                 'scopes' => ['scopes', 'json', null, false, [], false],
                 'sessionId' => ['session_id', 'string', 43, true, ['fixed' => true], false],
                 'authTime' => ['auth_time', 'datetime_immutable', null, false, [], false],
@@ -148,6 +154,7 @@ final class MappingTest extends TestCase
                 'expiresAt' => ['expires_at', 'datetime_immutable', null, false, [], false],
                 'rotatedAt' => ['rotated_at', 'datetime_immutable', null, true, [], false],
                 'revokedAt' => ['revoked_at', 'datetime_immutable', null, true, [], false],
+                'audience' => ['audience', 'string', 255, true, [], false],
             ],
             'indexes' => ['phil_identity_token_family' => ['family'], 'phil_identity_token_account' => ['account_id'], 'phil_identity_token_expires_at' => ['expires_at']],
             'unique' => [],
@@ -219,6 +226,15 @@ final class MappingTest extends TestCase
             'indexes' => [],
             'unique' => [],
         ],
+        'UsedAssertion' => [
+            'table' => 'phil_identity_assertion',
+            'fields' => [
+                'id' => ['id', 'string', 64, false, ['fixed' => true], true],
+                'expiresAt' => ['expires_at', 'datetime_immutable', null, false, [], false],
+            ],
+            'indexes' => ['phil_identity_assertion_expires_at' => ['expires_at']],
+            'unique' => [],
+        ],
     ];
 
     public function testTheTablesAreMappedAsDocumented(): void
@@ -242,8 +258,9 @@ final class MappingTest extends TestCase
             RecoveryCodeSet::generate('01JCZ6Q7Y3W0000000000000AA', ['a'], $now),
             SigningKey::create('kid', SigningAlgorithm::ES256, 'p', ['kid' => 'kid'], $now),
             TotpCredential::enroll('01JCZ6Q7Y3W0000000000000AA', 'secret', $now),
+            UsedAssertion::record('app', 'jti', $now),
         ];
-        self::assertCount(11, $models);
+        self::assertCount(12, $models);
 
         foreach ($entityManager->getMetadataFactory()->getAllMetadata() as $metadata) {
             $fields = [];

@@ -6,6 +6,7 @@ namespace Phil\IdentityProviderBundle\Infrastructure\Console;
 
 use Phil\IdentityProviderBundle\Application\Oidc\ClientRegistry;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Client;
+use Phil\IdentityProviderBundle\Domain\Oidc\ClientAuthMethod;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Attribute\Option;
@@ -39,8 +40,8 @@ final readonly class DisableClientCommand
         }
 
         if ($rotateSecret) {
-            if ($client->isPublic()) {
-                $io->error('A public client has no secret.');
+            if (!$client->accepts(ClientAuthMethod::ClientSecretBasic)) {
+                $io->error('The client has no secret: it is public, or proves itself by its keys.');
 
                 return Command::FAILURE;
             }

@@ -20,12 +20,13 @@ final class Claims
 
     /**
      * @param list<string> $scopes
+     * @param ?string      $subject the `sub` the client knows the account by; its internal identifier when null
      *
      * @return array<string, bool|string>
      */
-    public static function of(Account $account, array $scopes): array
+    public static function of(Account $account, array $scopes, ?string $subject = null): array
     {
-        $claims = ['sub' => $account->id()];
+        $claims = ['sub' => $subject ?? $account->id()];
 
         if (\in_array('email', $scopes, true)) {
             $claims += ['email' => $account->email(), 'email_verified' => $account->isEmailVerified()];

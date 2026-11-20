@@ -36,6 +36,15 @@ Argon2id (`sodium`). Generate the migration of the tables with `bin/console doct
   environment no longer boots.
 - Registration is limited by default; `registration: true` and `registration: false` keep working, and
   `registration: { rate_limit: false }` turns the limits off.
+- With the module `oidc`, the schema gains the table `phil_identity_assertion`, the columns `jwks`, `resources` and
+  `backchannel_logout_uri` and `sector_identifier` of `phil_identity_client`, and the column `audience` of `phil_identity_token`, whose `account_id` becomes nullable: run
+  `bin/console doctrine:migrations:diff` and migrate. Every new column is nullable; no row changes.
+- A refresh token issued in a session is refused once the session ends, its family revoked
+  (`oidc.refresh_token_bound_to_session`, on by default); set it to `false` to keep the former behaviour.
+- `TokenController::AUTH_METHODS` is gone: the discovery document reads the methods from
+  `oidc.client_authentication.methods`. `IssuedToken::accountId()` returns null for a token of the `client_credentials`
+  grant, and `GrantRepository` gains `useAssertion()`: an implementation of its own adds it. `Tokens::bearer()` gives a
+  third member, the client of the token.
 
 ## Where the links point
 

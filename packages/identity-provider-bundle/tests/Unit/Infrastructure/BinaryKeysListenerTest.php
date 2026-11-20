@@ -26,6 +26,7 @@ final class BinaryKeysListenerTest extends TestCase
         foreach (['8.4.0', '11.4.0-MariaDB'] as $version) {
             self::assertSame([
                 'phil_identity_account' => ['email', 'id'],
+                'phil_identity_assertion' => ['id'],
                 'phil_identity_client' => ['id'],
                 'phil_identity_code' => ['account_id', 'client_id', 'family', 'id', 'session_id'],
                 'phil_identity_consent' => ['account_id', 'client_id', 'id'],

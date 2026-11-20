@@ -38,5 +38,6 @@ enum IdentityEventType: string
     case TokenReuseDetected = 'identity.oidc.token_reuse';
     case TokenRevoked = 'identity.oidc.token_revoked';
     case ClientRegistered = 'identity.oidc.client_registered';
+    case ClientKeysReplaced = 'identity.oidc.client_keys_replaced';
     case SigningKeyRotated = 'identity.oidc.key_rotated';
 }

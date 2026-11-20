@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e6d4bac54978afdf43af022b53d08cd3e664f98d82463082a787eea534d2c2e8 -->
+<!-- phil-dev source-sha256=c571716215d6c373c6982a0cc967c344c4050d9a4065d20f0b4f7e0b5872e5c0 -->
 # Points d'extension
 
 Le paquet est en `0.x` : ses points d'extension ne sont stables qu'à partir de sa version 1.0. D'ici là, une version
@@ -7,6 +7,8 @@ mineure peut les changer, et son CHANGELOG dit comment.
 | Pour | Faites |
 |---|---|
 | Brancher un fournisseur fédéré | Implémentez `Infrastructure\Federation\Contract\ExternalProvider` et étiquetez le service `phil_identity_provider.external_provider` : voir [Fournisseurs fédérés](external-providers.md) |
+| Ajouter des revendications à userinfo | Implémentez `Application\Contract\ClaimsProvider` : autoconfiguré, ou étiquetez le service `phil_identity_provider.claims_provider` ; voir [Portées et revendications](oidc-provider.md#portées-et-revendications) |
+| Dire autrement aux clients qu'une session a pris fin | Donnez à `Application\Contract\LogoutNotifier` un alias vers votre propre service |
 | Envoyer des messages texte par une autre passerelle | Implémentez `Application\Contract\SmsSender` et nommez le service dans `sms.sender` |
 | Mener les liens des courriels vers l'hôte de chaque locataire | Donnez à `Application\Contract\LinkOrigin` un alias vers votre propre service : il génère chaque lien sur l'hôte qu'il choisit |
 | Envoyer autrement les courriels | Donnez à `Application\Contract\AccountMailer` un alias vers votre propre service |

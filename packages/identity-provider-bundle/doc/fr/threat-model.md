@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e3e5eb082716aa661a555051fdb7c77dc6037d15877ddc0be927a665a37c5069 -->
+<!-- phil-dev source-sha256=6f8ebe99a711dd08cdca994bc3751b73de6973eec68339c1ae1db76c260e8bd5 -->
 # Modèle de menaces
 
 Ce dont le bundle se défend, comment, et ce qu'il laisse à l'application. Une revue de sécurité par quelqu'un qui n'a pas
@@ -76,17 +76,35 @@ Ce dont le bundle se défend, comment, et ce qu'il laisse à l'application. Une 
 |---|---|
 | Redirection ouverte, vol de code par une adresse de redirection | Correspondance exacte avec une adresse enregistrée, lue par `phil/url` ; erreurs sur le client montrées, non redirigées. |
 | Interception ou injection de code | PKCE S256 exigé de chaque client public et, par défaut, de chaque client confidentiel ; un code émis sans défi refuse un vérificateur au point de terminaison de jeton (RFC 9700, section 2.1.1) ; codes hachés, de courte durée, utilisés une fois, la réutilisation révoquant la famille. |
-| Vol de jeton d'actualisation | Rotation par une seule écriture conditionnelle, avec détection de réutilisation qui révoque la famille, même entre deux requêtes simultanées. |
+| Vol de jeton d'actualisation | Rotation par une seule écriture conditionnelle, avec détection de réutilisation qui révoque la famille, même entre deux requêtes simultanées ; un jeton de rafraîchissement lié à sa session par défaut, refusé une fois la session terminée. Voir [Familles de jetons](#familles-de-jetons). |
+| Usurpation d'un client par un secret volé | `private_key_jwt` : le client garde une clé privée que le fournisseur ne voit jamais ; `oidc.client_authentication.methods` peut refuser tout à fait les secrets. |
+| Une assertion de client rejouée | `jti` enregistré jusqu'à l'expiration de l'assertion, le décalage ajouté, sous une clé qui refuse la seconde de deux requêtes simultanées ; `exp` obligatoire et au plus `assertion_max_lifetime` devant ; `aud` l'émetteur ou le point de terminaison des jetons à l'origine de l'émetteur, jamais une adresse construite à partir de l'en-tête `Host`. |
+| Un jeton employé à une autre ressource | Un jeton nomme sa ressource dans `aud`, une ressource que le client a enregistrée ; userinfo refuse un jeton d'une autre audience et tout jeton de l'octroi `client_credentials`. |
 | Falsification de jeton | Signatures asymétriques seulement — RS256, ES256, EdDSA. Avant la bibliothèque : un jeton d'au plus `Jws::MAX_LENGTH` octets, trois parties, un en-tête et des revendications qui sont des objets JSON de profondeur bornée, un en-tête qui nomme un algorithme et un `kid`, ni `crit` ni `b64`. Ensuite le `kid` doit nommer une clé publiée, l'algorithme de l'en-tête doit être l'`alg` propre à la clé, et la bibliothèque vérifie avec cet algorithme seul : `none`, HMAC et la confusion d'algorithmes sont refusés. |
 | Clés trop faibles ou d'un mauvais genre | Nouvelles clés : RSA de 3072 bits, P-256, Ed25519, créées par `JWKFactory`. Une clé relue du magasin doit correspondre au type et à la courbe de son algorithme et contenir tous ses membres privés ; un module RSA de moins de 2048 bits est refusé. |
-| Objets de requête et assertions de client | Non acceptés : `request` et `request_uri` sont refusés avec `request_not_supported` et `request_uri_not_supported` avant que quoi que ce soit les lise ; les clients s'authentifient par secret ou, publics, par PKCE. Aucun JSON Web Token d'un client n'atteint la bibliothèque. |
+| Objets de requête | Non acceptés : `request` et `request_uri` sont refusés avec `request_not_supported` et `request_uri_not_supported` avant que quoi que ce soit les lise. Le seul JSON Web Token qu'un client envoie est une assertion de client, bornée comme chaque jeton avant que la bibliothèque la voie, et vérifiée seulement avec une clé publique que le client a enregistrée. |
 | Confusion entre fournisseurs | L'émetteur dans la réponse d'autorisation (RFC 9207). |
 | Plusieurs clés actives à la fois | La première clé et chaque rotation sous un seul verrou partagé ; les clés actives ou en attente en trop réglées à chaque lecture. |
 | Compromission de clé | Rotation avec publication avant l'emploi ; `rotate-keys --now` ; clés privées scellées par le composant KeyManagement quand il est configuré. |
 | Un client qui lit les jetons d'un autre | L'introspection et la révocation ne répondent que pour les jetons du client qui demande. |
 | Un compte désactivé qui garde son accès | L'introspection répond `active: false` pour les jetons d'un compte désactivé, comme userinfo les refuse. |
 | Un client désactivé qui garde son accès | Un client désactivé ne peut pas s'authentifier aux points de jeton, de révocation et d'introspection, et userinfo refuse les jetons qui lui ont été émis. |
+| Un client resté connecté après la fin de la session | Avec `oidc.backchannel_logout`, chaque client à qui la session a émis des jetons reçoit un jeton de déconnexion signé, réessayé par Messenger jusqu'à ce qu'il réponde ; le message ne porte que des identifiants, et le jeton est signé à l'envoi. |
+| Une adresse de déconnexion employée pour atteindre le réseau du fournisseur | L'adresse est enregistrée par la console, `https` et lue par `phil/url` ; aucune redirection n'est suivie, et chaque tentative est bornée par `oidc.backchannel_logout.timeout`. |
 | Un client qui demande un sélecteur de compte | Le fournisseur n'en affiche aucun : `prompt=select_account` est refusé avec `invalid_request` et n'est pas dans le document de découverte, de sorte qu'aucun client ne prend le compte courant pour un compte choisi. |
+
+## Familles de jetons
+
+Une famille est l'ensemble des jetons émis à partir d'un même code d'autorisation, chaque renouvellement de son jeton
+d'actualisation compris. C'est l'unité que le fournisseur révoque quand il voit le signe d'un vol.
+
+| Menace | Défense |
+|---|---|
+| Un jeton d'actualisation volé employé après que le client l'a renouvelé | Le jeton renouvelé présenté de nouveau révoque la famille — les jetons du voleur et ceux du client —, et `identity.oidc.token_reuse` est journalisé avec la famille. |
+| Un jeton d'actualisation volé employé avant le client | L'actualisation du voleur renouvelle le jeton ; la prochaine actualisation du client présente le jeton renouvelé et révoque la famille, avec les nouveaux jetons du voleur. Le voleur garde un jeton d'accès jusqu'à son expiration, `oidc.access_token_lifetime`. |
+| Deux actualisations qui se disputent le renouvellement d'un jeton | Un seul `UPDATE` conditionnel nomme l'unique gagnante ; l'autre est une réutilisation. Les tests jouent deux requêtes entrelacées et deux connexions à la base de données. |
+| Une famille qui survit à la fin de sa session | La fermeture de la session révoque les jetons émis en elle ; un jeton d'actualisation d'une session fermée, purgée ou trop vieille est refusé et révoque sa famille. |
+| Une famille révoquée rejouée | Un jeton d'actualisation révoqué n'est jamais actif de nouveau : un rejeu est refusé, sans nouvelle famille. |
 
 ## Liaison de comptes
 
@@ -97,7 +115,10 @@ se connecter.
 ## Vie privée
 
 Le bundle ne garde aucune adresse de connexion, seulement un nom d'appareil grossier, aucun jeton d'un fournisseur
-fédéré. Ses événements et ses lignes d'audit portent des identifiants, jamais une adresse, un nom, un code ou un secret.
+fédéré. Avec `oidc.subject.type: pairwise`, des clients de secteurs différents reçoivent des sujets différents pour un
+même compte et ne peuvent pas rapprocher leurs personnes par lui ; avec `public`, l'identifiant interne ne quitte jamais
+le fournisseur. Ses événements et ses lignes d'audit portent des identifiants, jamais une adresse, un nom, un code ou un
+secret.
 
 ## Ce que l'application garde
 
@@ -115,7 +136,9 @@ d'effacement, et la revue de ses propres gabarits quand elle remplace ceux du bu
 | Le coût de RS256 | La bibliothèque reconstruit le PEM d'une clé RSA à chaque signature : quelques millisecondes par signature RS256, contre bien moins d'une milliseconde pour ES256 ou EdDSA (`tests/Benchmark/JwsBench.php`). Un déluge de requêtes de jeton coûte plus de temps de processeur avec RS256. | Les limites de débit du pare-feu sur le point de terminaison de jeton ; `oidc.algorithm: ES256` ou `EdDSA` quand les clients les prennent en charge. |
 | `web-token/jwt-library` elle-même | Une faille de la bibliothèque est une faille du fournisseur. | Une seule bibliothèque maintenue ; sa version suit les avis de sécurité (`composer deps:audit`) ; l'entrée non fiable est bornée avant elle. |
 | Un code présenté par deux requêtes à la fois | La requête qui perd le code révoque sa famille comme une réutilisation ; quand elle le fait avant que la gagnante ait enregistré ses jetons, ces jetons restent valides. | Rare : deux échanges d'un même code à quelques millisecondes d'écart ; borné par `oidc.access_token_lifetime` et, pour un jeton de rafraîchissement, par sa rotation ou sa révocation suivante ; la réutilisation est journalisée comme `identity.oidc.token_reuse`. |
-| Des jetons de rafraîchissement qui survivent à la session | Un jeton de rafraîchissement dure `oidc.refresh_token_lifetime` quoi qu'il advienne de la session où il a été émis, sauf si la session est fermée, déconnectée ou si son mot de passe change. | La fermeture d'une session révoque ses jetons ; un `oidc.refresh_token_lifetime` plus court ; des jetons liés à la durée de la session sont prévus. |
+| Des jetons de rafraîchissement qui survivent à la session | Avec `oidc.refresh_token_bound_to_session: false`, ou sans le module `sessions`, un jeton de rafraîchissement dure `oidc.refresh_token_lifetime` quoi qu'il advienne de sa session ; un jeton émis sans session le fait toujours. | Activé par défaut : la fin de la session refuse ses jetons de rafraîchissement et révoque leur famille ; `oidc.session_max_age` les borne après l'ouverture de la session. |
+| La gagnante de deux actualisations simultanées perd ses jetons | La seconde de deux actualisations d'un même jeton est refusée comme une réutilisation et révoque la famille, les nouveaux jetons de la gagnante compris : un client qui s'actualise deux fois à la fois déconnecte sa personne. | Le côté sûr de la course : un jeton volé ne peut pas gagner en silence. Un client s'actualise une fois à la fois. |
+| Des assertions de client sur plusieurs serveurs | Un magasin d'assertions utilisées local à chaque serveur accepterait une assertion une fois par serveur. | `phil_identity_assertion` vit dans la base de données du fournisseur, partagée comme les jetons. |
 | Une nouvelle adresse posée avant d'être prouvée | Un changement d'adresse depuis la page du compte prend effet aussitôt, non vérifiée, et l'ancienne adresse n'en est pas avertie. | Le changement exige une preuve récente de la méthode la plus forte (`PHIL_STEP_UP`) ; la nouvelle adresse reste non vérifiée jusqu'à l'usage de son lien. Un avis à l'ancienne adresse et un changement retenu jusqu'à la preuve de la nouvelle sont prévus. |
 | Reconnaître une adresse connue au temps de l'inscription | Une inscription pour une adresse connue répond sans hacher de mot de passe, donc plus tôt. | Les limites d'inscription par client et par adresse bornent les essais ; la réponse et son statut sont les mêmes. |
 | La certification | La suite s'exécute en local ; la certification par l'OpenID Foundation exige un fournisseur à une adresse publique. | Faite avant l'utilisation du fournisseur en production ; voir [Conformité OpenID](openid-conformance.md). |

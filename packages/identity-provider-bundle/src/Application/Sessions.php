@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\IdentityProviderBundle\Application;
 
 use Phil\IdentityProviderBundle\Application\Contract\AccountMailer;
+use Phil\IdentityProviderBundle\Application\Contract\LogoutNotifier;
 use Phil\IdentityProviderBundle\Application\Contract\Transactions;
 use Phil\IdentityProviderBundle\Application\Event\IdentityEventType;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountSessionRepository;
@@ -18,7 +19,8 @@ use Psr\Clock\ClockInterface;
  * The signed-in sessions of an account: opened at each sign-in, seen at most once every `touchInterval` seconds,
  * closed one by one or all at once from another device, and closed with the provider's tokens issued in them: the
  * tokens are revoked, then the session closed, in one transaction. A failure undoes both, or, without a transaction,
- * leaves the session open, so that closing it again finishes the work.
+ * leaves the session open, so that closing it again finishes the work. Once closed, the clients the tokens were issued
+ * to are told, each once, through the `LogoutNotifier`.
  *
  * A sign-in from a device the account never used, when it has signed in before, is risky: the session is marked, the
  * event is written, and the account is warned by email.
@@ -33,6 +35,7 @@ final readonly class Sessions
         private ?GrantRepository $grants = null,
         private int $touchInterval = 300,
         private ?Transactions $transactions = null,
+        private ?LogoutNotifier $logout = null,
     ) {
     }
 
@@ -131,8 +134,10 @@ final readonly class Sessions
     private function closeSession(AccountSession $session): void
     {
         $now = $this->clock->now();
-        $close = function () use ($session, $now): void {
+        $clients = [];
+        $close = function () use ($session, $now, &$clients): void {
             foreach ($this->grants?->forSession($session->id()) ?? [] as $token) {
+                $clients[] = $token->clientId();
                 $token->revoke($now);
                 $this->grants?->saveToken($token);
             }
@@ -148,5 +153,9 @@ final readonly class Sessions
         }
 
         $this->journal->record(IdentityEventType::SessionClosed, $session->accountId(), ['session' => $session->id()]);
+
+        if ([] !== $clients) {
+            $this->logout?->sessionEnded($session->id(), $session->accountId(), array_values(array_unique($clients)));
+        }
     }
 }
