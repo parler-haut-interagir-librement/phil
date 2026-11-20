@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\IdentityProviderBundle\Tests\Unit\Application\Oidc;
 
 use Closure;
+use ErrorException;
 use Jose\Component\Core\JWK;
 use OpenSSLAsymmetricKey;
 use Override;
@@ -209,9 +210,12 @@ final class SigningKeySourcesTest extends TestCase
         file_put_contents($this->directory.'/empty', " \n");
         file_put_contents($this->directory.'/large', str_repeat('a', FileSigningKeys::MAX_FILE_SIZE + 1));
         file_put_contents($this->directory.'/limit', str_repeat('a', FileSigningKeys::MAX_FILE_SIZE));
+        // A warning of PHP fails the test: a directory is refused before it is read.
+        set_error_handler(static fn (int $level, string $message): never => throw new ErrorException($message, 0, $level));
 
         foreach ([
             [[['path' => $this->directory.'/missing']], 'cannot be read'],
+            [[['path' => $this->directory]], 'cannot be read'],
             [[['path' => $this->directory.'/empty']], 'cannot be read'],
             [[['path' => $this->directory.'/large']], 'cannot be read'],
             [[['path' => $this->directory.'/limit']], 'not a private key'],
@@ -231,6 +235,8 @@ final class SigningKeySourcesTest extends TestCase
             self::fail('Accepted a key of another algorithm.');
         } catch (InvalidValue $invalidValue) {
             self::assertStringContainsString('ES256', $invalidValue->getMessage());
+        } finally {
+            restore_error_handler();
         }
     }
 
@@ -249,9 +255,10 @@ final class SigningKeySourcesTest extends TestCase
         self::assertStringContainsString('Automatic rotation is off', $tester->getDisplay());
         self::assertSame([], $all());
         self::assertSame(0, $tester->execute(['--force' => true]));
-        self::assertStringContainsString('Activated:', $tester->getDisplay());
+        self::assertMatchesRegularExpression('/Activated: (?!none)[\w-]{16}\. Created: (?!none)[\w-]{16}\./', $tester->getDisplay());
         self::assertCount(1, $all());
         self::assertSame(0, $tester->execute(['--now' => true]));
+        self::assertMatchesRegularExpression('/Activated: none\. Created: (?!none)[\w-]{16}\./', $tester->getDisplay());
         self::assertCount(2, $all());
 
         $automatic = new Application();
@@ -294,5 +301,37 @@ final class SigningKeySourcesTest extends TestCase
         self::assertStringContainsString('cannot be read', $tester->getDisplay());
         self::assertSame(1, $tester->execute(['path' => $this->directory.'/other.json']));
         self::assertStringContainsString('ES256', $tester->getDisplay());
+    }
+
+    public function testTheSealCommandRefusesWhatItCannotRead(): void
+    {
+        $key = PrivateKey::generate(SigningAlgorithm::ES256, 'k');
+        file_put_contents($this->directory.'/blank', " \n");
+        file_put_contents($this->directory.'/limit', str_repeat('a', FileSigningKeys::MAX_FILE_SIZE));
+        file_put_contents($this->directory.'/large', str_repeat('a', FileSigningKeys::MAX_FILE_SIZE + 1));
+        file_put_contents($this->directory.'/padded.json', "\n  ".$key->material()."\n\n");
+        $cipher = new RecordingCipher();
+        $application = new Application();
+        $application->addCommand(new SealKeyCommand($cipher, SigningAlgorithm::ES256));
+
+        $tester = new CommandTester($application->find('phil:identity-provider:seal-key'));
+
+        // A warning of PHP fails the test: a directory is refused before it is read.
+        set_error_handler(static fn (int $level, string $message): never => throw new ErrorException($message, 0, $level));
+
+        try {
+            foreach (['blank' => true, 'large' => true, 'limit' => false] as $file => $unreadable) {
+                self::assertSame(1, $tester->execute(['path' => $this->directory.'/'.$file]), $file);
+                self::assertSame($unreadable, str_contains($tester->getDisplay(), 'cannot be read'), $file);
+            }
+
+            self::assertSame(1, $tester->execute(['path' => $this->directory]));
+            self::assertStringContainsString('cannot be read', $tester->getDisplay());
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertSame(0, $tester->execute(['path' => $this->directory.'/padded.json']));
+        self::assertStringStartsWith('sealed.', trim($tester->getDisplay(true)));
     }
 }

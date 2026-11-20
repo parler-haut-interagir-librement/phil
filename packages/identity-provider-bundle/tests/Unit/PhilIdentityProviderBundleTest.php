@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Tests\Unit;
 
+use ErrorException;
 use Phil\IdentityProviderBundle\Application\AccountAddresses;
 use Phil\IdentityProviderBundle\Application\AccountUser;
 use Phil\IdentityProviderBundle\Application\Contract\AccountIdGenerator;
@@ -567,6 +568,9 @@ final class PhilIdentityProviderBundleTest extends TestCase
         self::assertIsString($garbage);
         file_put_contents($garbage, 'not a certificate');
 
+        // A warning of a read fails the test: a directory is refused before it is read.
+        set_error_handler(static fn (int $level, string $message): bool => str_starts_with($message, 'file_get_contents') ? throw new ErrorException($message, 0, $level) : true);
+
         try {
             $container = $this->load([$this->merged($passkeys, ['passkeys' => ['attestation' => ['conveyance' => 'direct', 'trusted_roots' => [$file], 'require_trusted' => true, 'allowed_aaguids' => ['01234567-89ab-cdef-0123-456789abcdef'], 'backup' => 'forbidden']]])]);
             $policy = $container->getDefinition(RelyingParty::class)->getArgument(5);
@@ -578,6 +582,7 @@ final class PhilIdentityProviderBundleTest extends TestCase
             foreach ([
                 [['trusted_roots' => ['/no/such/root.pem']], 'is not a readable PEM certificate'],
                 [['trusted_roots' => [$garbage]], 'is not a readable PEM certificate'],
+                [['trusted_roots' => [sys_get_temp_dir()]], 'is not a readable PEM certificate'],
                 [['require_trusted' => true], '"passkeys.attestation": A trusted attestation needs'],
                 [['denied_aaguids' => ['nope']], '"passkeys.attestation": "nope" is not an AAGUID'],
             ] as [$attestation, $message]) {
@@ -590,6 +595,7 @@ final class PhilIdentityProviderBundleTest extends TestCase
                 }
             }
         } finally {
+            restore_error_handler();
             unlink($file);
             unlink($garbage);
         }

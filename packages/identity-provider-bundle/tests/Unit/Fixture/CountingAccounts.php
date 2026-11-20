@@ -17,6 +17,8 @@ final class CountingAccounts implements AccountRepository
 {
     public int $saves = 0;
 
+    public int $canonicalLookups = 0;
+
     public function __construct(public readonly InMemoryAccountRepository $inner = new InMemoryAccountRepository())
     {
     }
@@ -36,6 +38,8 @@ final class CountingAccounts implements AccountRepository
     #[Override]
     public function findByCanonicalEmail(string $canonical): ?Account
     {
+        ++$this->canonicalLookups;
+
         return $this->inner->findByCanonicalEmail($canonical);
     }
 

@@ -67,6 +67,16 @@ final class BinaryKeysListenerTest extends TestCase
         self::assertNull($metadata->getFieldMapping('displayName')->options);
     }
 
+    public function testTheOptionsAKeyAlreadyHasAreKeptNextToTheCollation(): void
+    {
+        $metadata = $this->entityManager(['driver' => 'pdo_sqlite', 'memory' => true])->getClassMetadata(Account::class);
+        $metadata->getFieldMapping('id')->options = ['comment' => 'the key'];
+
+        new BinaryKeysListener()->loadClassMetadata(new LoadClassMetadataEventArgs($metadata, $this->entityManager(['driver' => 'pdo_mysql', 'serverVersion' => '8.4.0'])));
+
+        self::assertSame(['comment' => 'the key', 'charset' => 'utf8mb4', 'collation' => 'utf8mb4_bin'], $metadata->getFieldMapping('id')->options);
+    }
+
     public function testAnotherEntityIsLeftAsItIs(): void
     {
         $metadata = new ClassMetadata(stdClass::class);

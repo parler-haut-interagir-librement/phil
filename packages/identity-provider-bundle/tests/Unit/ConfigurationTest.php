@@ -264,6 +264,23 @@ final class ConfigurationTest extends TestCase
         }
 
         $this->assertRefused(['oidc' => ['algorithm' => 'HS256']]);
+
+        foreach (['signed', 'stored'] as $mode) {
+            $links = $this->process(['links' => ['mode' => $mode]])['links'];
+            self::assertIsArray($links);
+            self::assertSame($mode, $links['mode']);
+        }
+
+        $this->assertRefused(['links' => ['mode' => 'cookie']]);
+
+        foreach (['database', 'file', 'service'] as $source) {
+            $oidc = $this->process(['oidc' => ['signing_keys' => ['source' => $source]]])['oidc'];
+            self::assertIsArray($oidc);
+            self::assertIsArray($oidc['signing_keys']);
+            self::assertSame($source, $oidc['signing_keys']['source']);
+        }
+
+        $this->assertRefused(['oidc' => ['signing_keys' => ['source' => 'vault']]]);
     }
 
     /**

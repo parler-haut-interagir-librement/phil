@@ -8,6 +8,8 @@ use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Name\OptionallyQualifiedName;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Override;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
 use Phil\IdentityProviderBundle\Domain\Model\Session\AccountSession;
@@ -46,6 +48,17 @@ final class DoctrineRepositoryTest extends DoctrineRepositoryTestCase
     protected function connection(): Connection
     {
         return DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+    }
+
+    public function testTheAddressesOfAnAccountAreAskedInTheOrderOfTheirPurpose(): void
+    {
+        // The index of the table gives that order on SQLite by itself: the query has to ask for it for the other databases.
+        $repository = $this->createMock(EntityRepository::class);
+        $repository->expects(self::once())->method('findBy')->with(['accountId' => self::ADA], ['purpose' => 'ASC'])->willReturn([]);
+        $entityManager = self::createStub(EntityManagerInterface::class);
+        $entityManager->method('getRepository')->willReturn($repository);
+
+        self::assertSame([], new DoctrineAccountAddressRepository($entityManager)->forAccount(self::ADA));
     }
 
     public function testAChangeReadsTheRowAgainOverWhatTheUnitOfWorkHolds(): void

@@ -13,8 +13,10 @@ use Phil\IdentityProviderBundle\Application\Exception\Refused;
 use Phil\IdentityProviderBundle\Application\Journal;
 use Phil\IdentityProviderBundle\Application\PasswordRules;
 use Phil\IdentityProviderBundle\Application\Sessions;
+use Phil\IdentityProviderBundle\Domain\Account\AccountState;
 use Phil\IdentityProviderBundle\Domain\Security\LockoutPolicy;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountSessionRepository;
+use Phil\IdentityProviderBundle\Tests\Unit\Fixture\CountingAccounts;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Services;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -59,6 +61,38 @@ final class AccountsTest extends TestCase
         self::assertNull($services->accounts()->register('ADA@example.com', Services::STRONG));
         self::assertSame([IdentityEventType::AccountRegistered->value, IdentityEventType::RegistrationForKnownEmail->value], $services->audit->actions());
         self::assertSame($account->id(), $services->audit->records[1][1]);
+    }
+
+    public function testTheExactAddressIsLookedUpBeforeTheCanonicalOne(): void
+    {
+        $services = new Services();
+        $services->account();
+        $services->account('bob@example.com');
+        $counting = new CountingAccounts($services->accounts);
+        $accounts = new Accounts($counting, $services->hasher, $services->rules, $services->journal, $services->clock);
+
+        self::assertNull($accounts->register('ada@example.com', Services::STRONG));
+        self::assertSame(0, $counting->canonicalLookups);
+
+        $ada = $services->accounts->findByEmail('ada@example.com') ?? throw new LogicException();
+
+        try {
+            $accounts->changeEmail($ada, 'bob@example.com');
+            self::fail('taken');
+        } catch (Refused $refused) {
+            self::assertSame(['email.taken'], $refused->reasons);
+        }
+
+        self::assertSame(0, $counting->canonicalLookups);
+    }
+
+    public function testLeavingActiveWithoutSessionsStoreStillChangesTheState(): void
+    {
+        $services = new Services();
+        $account = $services->account();
+
+        self::assertTrue($services->accounts()->changeState($account, AccountState::Suspended));
+        self::assertSame(AccountState::Suspended, $account->state());
     }
 
     public function testAnAccountWithoutPassword(): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Tests\Unit\Domain;
 
+use ErrorException;
 use OpenSSLAsymmetricKey;
 use Phil\IdentityProviderBundle\Domain\Encoding\Base32;
 use Phil\IdentityProviderBundle\Domain\Encoding\Base64Url;
@@ -155,6 +156,7 @@ final class EncodingTest extends TestCase
         yield 'integer past the end' => ["\x30\x06\x02\x01\x01\x02\x03\x01", 'Integer 2'];
         yield 'number too long' => ["\x30\x08\x02\x03\x01\x02\x03\x02\x01\x01", 'Integer 1'];
         yield 'long form length' => ["\x30\x06\x02\x81\x01\x02\x01\x01", 'Integer 1'];
+        yield 'integer one byte past the end' => ["\x30\x06\x02\x01\x01\x02\x02\x01", 'Integer 2'];
         yield 'bytes left over' => ["\x30\x08\x02\x01\x01\x02\x01\x01\x05\x00", 'after its two integers'];
     }
 
@@ -165,6 +167,29 @@ final class EncodingTest extends TestCase
         $this->expectExceptionMessageIsOrContains($message);
 
         Der::ecdsaSignature($der, 2);
+    }
+
+    public function testAnIntegerMayHold127BytesAndNothingIsReadPastTheEnd(): void
+    {
+        $content = "\x02\x7F".str_repeat("\x01", 127)."\x02\x01\x01"; // 132 bytes, the 0x84 of the sequence
+
+        self::assertSame(str_repeat("\x01", 127).str_repeat("\x00", 126)."\x01", Der::ecdsaSignature("\x30\x84".$content, 127));
+
+        // A warning of PHP fails the test: a header that ends the signature is refused before its length is read.
+        set_error_handler(static fn (int $level, string $message): never => throw new ErrorException($message, 0, $level));
+
+        try {
+            foreach (["\x30\x06\x02\x03\x01\x02\x03\x02" => 'Integer 2', "\x30\x06\x02\x04\x01\x02\x03\x04" => 'Integer 2'] as $der => $message) {
+                try {
+                    Der::ecdsaSignature($der, 32);
+                    self::fail($message);
+                } catch (MalformedInput $malformed) {
+                    self::assertStringContainsString($message, $malformed->getMessage());
+                }
+            }
+        } finally {
+            restore_error_handler();
+        }
     }
 
     public function testACertificateIsWrittenAsPem(): void

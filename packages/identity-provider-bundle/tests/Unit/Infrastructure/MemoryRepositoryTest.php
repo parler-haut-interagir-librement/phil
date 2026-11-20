@@ -7,6 +7,7 @@ namespace Phil\IdentityProviderBundle\Tests\Unit\Infrastructure;
 use DateTimeImmutable;
 use Override;
 use Phil\IdentityProviderBundle\Application\Contract\Transactions;
+use Phil\IdentityProviderBundle\Domain\Account\AddressPurpose;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountAddressRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountSessionRepository;
@@ -19,6 +20,7 @@ use Phil\IdentityProviderBundle\Domain\Contract\SecondFactorRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\SigningKeyRepository;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
+use Phil\IdentityProviderBundle\Domain\Model\Account\AccountAddress;
 use Phil\IdentityProviderBundle\Domain\Model\External\LinkedIdentity;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Client;
@@ -220,6 +222,16 @@ final class MemoryRepositoryTest extends RepositoryTestCase
     protected function sessions(): AccountSessionRepository
     {
         return $this->store(InMemoryAccountSessionRepository::class);
+    }
+
+    public function testASavedAddressIsStoredAsACopy(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $address = AccountAddress::add(self::ADA, AddressPurpose::Recovery, 'ada@example.org', 'ada@example.org', $now);
+        $this->addresses()->save($address);
+        $address->verify($now);
+
+        self::assertFalse($this->addresses()->findByCanonical(AddressPurpose::Recovery, 'ada@example.org')?->isVerified());
     }
 
     #[Override]

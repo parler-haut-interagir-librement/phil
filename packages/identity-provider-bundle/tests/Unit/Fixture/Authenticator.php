@@ -69,7 +69,7 @@ final class Authenticator
      * The JSON of a registration answering the challenge with an attestation statement, made from the bytes it signs:
      * the authenticator data and the hash of the client data.
      *
-     * @param Closure(string, self): array<string, mixed> $statement
+     * @param Closure(string, self): mixed $statement
      */
     public function registerAttested(string $challenge, Closure $statement, string $format = 'packed', ?string $aaguid = null): string
     {

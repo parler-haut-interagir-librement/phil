@@ -49,6 +49,34 @@ final class AttestationTest extends TestCase
         self::$intermediate = AttestationCertificates::issue(['commonName' => 'Maker Intermediate'], self::$root);
     }
 
+    public function testAStatementThatIsNotAMapIsRefusedWhateverItsFormat(): void
+    {
+        foreach (['none', 'packed', 'tpm'] as $format) {
+            try {
+                $this->party(new AttestationPolicy('direct'))->verifyRegistration(...$this->register(new Authenticator(), static fn (): string => 'a text', $format));
+                self::fail($format);
+            } catch (MalformedInput $malformed) {
+                self::assertSame('An attestation statement is a map.', $malformed->getMessage(), $format);
+            }
+        }
+    }
+
+    public function testTheAaguidsOfThePolicyAreExactlyThirtySixCharacters(): void
+    {
+        $aaguid = '01234567-89ab-cdef-0123-456789abcdef';
+
+        self::assertSame([strtoupper($aaguid)], new AttestationPolicy('direct', allowedAaguids: [strtoupper($aaguid)])->allowedAaguids);
+
+        foreach (['x'.$aaguid, $aaguid."\n", $aaguid.'0'] as $broken) {
+            try {
+                new AttestationPolicy('direct', deniedAaguids: [$broken]);
+                self::fail($broken);
+            } catch (InvalidValue $invalid) {
+                self::assertStringContainsString('is not an AAGUID', $invalid->getMessage());
+            }
+        }
+    }
+
     public function testTheBrowserIsAskedForTheAttestationOfThePolicy(): void
     {
         self::assertSame('none', $this->party()->creationOptions('c', 'u', 'n', 'd')['attestation']);
@@ -300,7 +328,7 @@ final class AttestationTest extends TestCase
     }
 
     /**
-     * @param Closure(string, Authenticator): array<string, mixed> $statement
+     * @param Closure(string, Authenticator): mixed $statement
      *
      * @return array{string, string, string} the client data, the attestation object and the challenge
      */
