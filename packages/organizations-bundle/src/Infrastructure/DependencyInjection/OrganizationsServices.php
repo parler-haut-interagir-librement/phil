@@ -9,6 +9,7 @@ use Phil\AccessBundle\Application\Contract\ModelContributor;
 use Phil\AccessLinks\TokenHasher;
 use Phil\OrganizationsBundle\Application\Contract\MemberOfUser;
 use Phil\OrganizationsBundle\Application\Contract\OrganizationStore;
+use Phil\OrganizationsBundle\Application\Contract\UnitStore;
 use Phil\OrganizationsBundle\Application\DomainJoin;
 use Phil\OrganizationsBundle\Application\InvitationPolicy;
 use Phil\OrganizationsBundle\Application\Invitations;
@@ -20,7 +21,10 @@ use Phil\OrganizationsBundle\Application\Organizations;
 use Phil\OrganizationsBundle\Application\OwnershipCheck;
 use Phil\OrganizationsBundle\Application\RoleCatalog;
 use Phil\OrganizationsBundle\Application\Teams;
+use Phil\OrganizationsBundle\Application\UnitAccess;
 use Phil\OrganizationsBundle\Application\UnitOfWork;
+use Phil\OrganizationsBundle\Application\Units;
+use Phil\OrganizationsBundle\Application\UnitTree;
 use Phil\OrganizationsBundle\Domain\Event\MemberJoined;
 use Phil\OrganizationsBundle\Domain\Event\MemberLeft;
 use Phil\OrganizationsBundle\Domain\Event\MemberRolesChanged;
@@ -37,10 +41,13 @@ use Phil\OrganizationsBundle\Infrastructure\Console\PurgeInvitationsCommand;
 use Phil\OrganizationsBundle\Infrastructure\Console\ShowOrganizationCommand;
 use Phil\OrganizationsBundle\Infrastructure\Dbal\DbalOrganizationStore;
 use Phil\OrganizationsBundle\Infrastructure\Doctrine\OrganizationSchemaListener;
+use Phil\OrganizationsBundle\Infrastructure\Http\UnitAdminController;
 use Phil\OrganizationsBundle\Infrastructure\Memory\InMemoryOrganizationStore;
 use Phil\OrganizationsBundle\Infrastructure\Privacy\OrganizationsPrivacy;
 use Phil\OrganizationsBundle\Infrastructure\Security\OrganizationVoter;
 use Phil\OrganizationsBundle\Infrastructure\Security\UserIdentifierMember;
+use Phil\OrganizationsBundle\Infrastructure\Twig\KitComponents;
+use Phil\OrganizationsBundle\Infrastructure\Twig\OrganizationsExtension;
 use Phil\PrivacyBundle\Application\Contract\PersonalDataEraser;
 use Phil\ResourcePermissions\RelationWriter;
 use Phil\Slug\Slugger;
@@ -49,12 +56,17 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Twig\Environment;
 
 /**
  * The services of the bundle, from its processed configuration.
  *
- * @phpstan-type Config array{store: string, connection: string, clock: string, slugger: string|null, member_of_user: string|null, recommended_owners: positive-int, roles: array<string, array{permissions: list<string>}>, team_roles: array<string, array{permissions: list<string>}>, invitations: array{hash_key: non-empty-list<string>, default_lifetime: positive-int, max_lifetime: positive-int, default_uses: positive-int, max_uses: positive-int, purge_retention: non-negative-int}, domain_join: array{enabled: bool, roles: list<string>}, access: array{enabled: bool|null, organization_kind: string, team_kind: string}}
+ * @phpstan-type Config array{store: string, connection: string, clock: string, slugger: string|null, member_of_user: string|null, recommended_owners: positive-int, roles: array<string, array{permissions: list<string>}>, team_roles: array<string, array{permissions: list<string>}>, unit_roles: array<string, array{permissions: list<string>}>, units: array{single_membership: bool, layout: string, kit_subdirectory: string|null}, invitations: array{hash_key: non-empty-list<string>, default_lifetime: positive-int, max_lifetime: positive-int, default_uses: positive-int, max_uses: positive-int, purge_retention: non-negative-int}, domain_join: array{enabled: bool, roles: list<string>}, access: array{enabled: bool|null, organization_kind: string, team_kind: string}}
  */
 final readonly class OrganizationsServices
 {
@@ -65,6 +77,8 @@ final readonly class OrganizationsServices
     public const string ROLES = 'phil_organizations.roles';
 
     public const string TEAM_ROLES = 'phil_organizations.team_roles';
+
+    public const string UNIT_ROLES = 'phil_organizations.unit_roles';
 
     public const string HASHER = 'phil_organizations.token_hasher';
 
@@ -100,11 +114,13 @@ final readonly class OrganizationsServices
         $work = new Reference(UnitOfWork::class);
         $access = new Reference(OrganizationAccess::class);
         $events = new Reference('event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE);
+        $unitStore = new Reference(UnitStore::class);
+        $optionalUnits = new Reference(UnitStore::class, ContainerInterface::NULL_ON_INVALID_REFERENCE);
 
         $container->register(UnitOfWork::class, UnitOfWork::class)->setArguments([$store, $events]);
         $container->register(OrganizationAccess::class, OrganizationAccess::class)->setArguments([$store, new Reference(self::ROLES)])->setPublic(true);
         $container->register(Organizations::class, Organizations::class)->setArguments([$store, $work, $access, new Reference(self::SLUGGER), $clock])->setPublic(true);
-        $container->register(Members::class, Members::class)->setArguments([$store, $work, $access, $clock])->setPublic(true);
+        $container->register(Members::class, Members::class)->setArguments([$store, $work, $access, $clock, $optionalUnits])->setPublic(true);
         $container->register(Teams::class, Teams::class)->setArguments([$store, $work, $access, new Reference(self::TEAM_ROLES), new Reference(self::SLUGGER), $clock])->setPublic(true);
         $container->register(Invitations::class, Invitations::class)
             ->setArguments([$store, $work, $access, new Reference(self::HASHER), $clock, new Reference(InvitationPolicy::class)])
@@ -114,9 +130,15 @@ final readonly class OrganizationsServices
             ->setPublic(true);
         $container->register(OnBehalf::class, OnBehalf::class)->setArguments([$access, $clock, $events])->addTag('kernel.reset', ['method' => 'reset'])->setPublic(true);
         $container->register(OwnershipCheck::class, OwnershipCheck::class)->setArguments([$store, $config['recommended_owners']])->setPublic(true);
-        $container->register(MemberErasure::class, MemberErasure::class)->setArguments([$store, $work, $clock])->setPublic(true);
+        $container->register(MemberErasure::class, MemberErasure::class)->setArguments([$store, $work, $clock, $optionalUnits])->setPublic(true);
+        $container->register(UnitAccess::class, UnitAccess::class)->setArguments([$store, $unitStore, $access, new Reference(self::UNIT_ROLES)])->setPublic(true);
+        $container->register(Units::class, Units::class)
+            ->setArguments([$store, $unitStore, $work, $access, new Reference(UnitAccess::class), $clock, $config['units']['single_membership']])
+            ->setPublic(true);
+        $container->register(UnitTree::class, UnitTree::class)->setArguments([$unitStore])->setPublic(true);
 
         self::security($container, $config);
+        self::pages($container, $config);
         self::console($container, $config);
         self::privacy($container);
         self::access($container, $config);
@@ -130,12 +152,14 @@ final readonly class OrganizationsServices
         if (self::STORE_MEMORY === $config['store']) {
             $container->register(InMemoryOrganizationStore::class, InMemoryOrganizationStore::class)->addTag('kernel.reset', ['method' => 'reset']);
             $container->setAlias(OrganizationStore::class, InMemoryOrganizationStore::class)->setPublic(true);
+            $container->setAlias(UnitStore::class, InMemoryOrganizationStore::class)->setPublic(true);
 
             return;
         }
 
         if (self::STORE_DBAL !== $config['store']) {
             $container->setAlias(OrganizationStore::class, $config['store'])->setPublic(true);
+            $container->setAlias(UnitStore::class, $config['store'])->setPublic(true);
 
             return;
         }
@@ -143,6 +167,7 @@ final readonly class OrganizationsServices
         $connection = new Reference('doctrine.dbal.'.$config['connection'].'_connection');
         $container->register(DbalOrganizationStore::class, DbalOrganizationStore::class)->setArguments([$connection]);
         $container->setAlias(OrganizationStore::class, DbalOrganizationStore::class)->setPublic(true);
+        $container->setAlias(UnitStore::class, DbalOrganizationStore::class)->setPublic(true);
 
         if (class_exists(GenerateSchemaEventArgs::class)) {
             $container->register(OrganizationSchemaListener::class, OrganizationSchemaListener::class)
@@ -160,6 +185,7 @@ final readonly class OrganizationsServices
 
         $container->register(self::ROLES, RoleCatalog::class)->setFactory([RoleCatalog::class, 'organization'])->setArguments([$permissions($config['roles'])]);
         $container->register(self::TEAM_ROLES, RoleCatalog::class)->setFactory([RoleCatalog::class, 'team'])->setArguments([$permissions($config['team_roles'])]);
+        $container->register(self::UNIT_ROLES, RoleCatalog::class)->setFactory([RoleCatalog::class, 'unit'])->setArguments([$permissions($config['unit_roles'])]);
         $container->setAlias(RoleCatalog::class, self::ROLES)->setPublic(true);
 
         $container->register(self::HASHER, TokenHasher::class)->setArguments($config['invitations']['hash_key']);
@@ -191,9 +217,40 @@ final readonly class OrganizationsServices
 
         if (interface_exists(VoterInterface::class)) {
             $container->register(OrganizationVoter::class, OrganizationVoter::class)
-                ->setArguments([new Reference(OrganizationAccess::class), new Reference(MemberOfUser::class)])
+                ->setArguments([new Reference(OrganizationAccess::class), new Reference(MemberOfUser::class), new Reference(UnitAccess::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)])
                 ->addTag('security.voter');
         }
+    }
+
+    /**
+     * @param Config $config
+     */
+    private static function pages(ContainerBuilder $container, array $config): void
+    {
+        if (!class_exists(Environment::class) || !interface_exists(CsrfTokenManagerInterface::class) || !interface_exists(TokenStorageInterface::class) || !class_exists(Response::class) || !interface_exists(UrlGeneratorInterface::class)) {
+            return;
+        }
+
+        $container->register(KitComponents::class, KitComponents::class)->setArguments([$config['units']['kit_subdirectory']]);
+        $container->register(OrganizationsExtension::class, OrganizationsExtension::class)
+            ->setArguments([new Reference(KitComponents::class)])
+            ->addTag('twig.attribute_extension')
+            ->addTag('twig.runtime');
+        $container->register(UnitAdminController::class, UnitAdminController::class)
+            ->setArguments([
+                new Reference(Units::class),
+                new Reference(UnitTree::class),
+                new Reference(OrganizationAccess::class),
+                new Reference(UnitAccess::class),
+                new Reference(MemberOfUser::class),
+                new Reference('security.token_storage', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                new Reference('security.csrf.token_manager'),
+                new Reference('twig'),
+                new Reference('router'),
+                $config['units']['layout'],
+            ])
+            ->addTag('controller.service_arguments')
+            ->setPublic(true);
     }
 
     /**
@@ -223,7 +280,7 @@ final readonly class OrganizationsServices
     {
         if (interface_exists(PersonalDataEraser::class)) {
             $container->register(OrganizationsPrivacy::class, OrganizationsPrivacy::class)
-                ->setArguments([new Reference(OrganizationStore::class), new Reference(MemberErasure::class)])
+                ->setArguments([new Reference(OrganizationStore::class), new Reference(MemberErasure::class), new Reference(UnitStore::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)])
                 ->addTag('phil_privacy.exporter')
                 ->addTag('phil_privacy.eraser');
         }

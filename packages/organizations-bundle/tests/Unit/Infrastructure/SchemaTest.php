@@ -69,7 +69,49 @@ final class SchemaTest extends TestCase
         $sql = implode("\n", new SQLitePlatform()->getCreateTablesSQL(OrganizationTables::for(new SQLitePlatform())->tables()));
 
         self::assertStringNotContainsString('COLLATE', $sql);
-        self::assertSame(['phil_organization', 'phil_organization_member', 'phil_organization_member_role', 'phil_organization_team', 'phil_organization_team_member', 'phil_organization_invitation'], array_map(static fn (Table $t): string => $t->getObjectName()->toString(), OrganizationTables::for(new SQLitePlatform())->tables()));
+        self::assertSame(['phil_organization', 'phil_organization_member', 'phil_organization_member_role', 'phil_organization_team', 'phil_organization_team_member', 'phil_organization_invitation', 'phil_organization_unit', 'phil_organization_unit_member'], array_map(static fn (Table $t): string => $t->getObjectName()->toString(), OrganizationTables::for(new SQLitePlatform())->tables()));
+    }
+
+    public function testAMigrationAddsTheMissingTablesAndTakesTheUnitsAway(): void
+    {
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+        $tables = OrganizationTables::for($connection->getDatabasePlatform());
+        $manager = $connection->createSchemaManager();
+        $all = $tables->upgrade($manager->introspectSchema(), $manager->createComparator());
+
+        self::assertCount(8, array_filter($all, static fn (string $statement): bool => str_starts_with($statement, 'CREATE TABLE')));
+
+        foreach ($all as $statement) {
+            $connection->executeStatement($statement);
+        }
+
+        self::assertSame([], $tables->upgrade($manager->introspectSchema(), $manager->createComparator()));
+        self::assertSame(['DROP TABLE phil_organization_unit_member', 'DROP TABLE phil_organization_unit'], $tables->downgrade());
+
+        foreach ($tables->downgrade() as $statement) {
+            $connection->executeStatement($statement);
+        }
+
+        $created = [];
+        $withoutUnits = $manager->introspectSchema();
+
+        foreach ($tables->upgrade($withoutUnits, $manager->createComparator()) as $statement) {
+            if (1 === preg_match('/^CREATE TABLE (\w+)/', $statement, $match)) {
+                $created[] = $match[1];
+            }
+        }
+
+        self::assertSame(['phil_organization_unit', 'phil_organization_unit_member'], $created);
+    }
+
+    public function testThePathOfAUnitIsIndexedWithItsOrganization(): void
+    {
+        $sql = implode("\n", new MySQLPlatform()->getCreateTablesSQL(OrganizationTables::for(new MySQLPlatform())->tables()));
+
+        self::assertStringContainsString('path VARCHAR(2065) CHARACTER SET ascii NOT NULL COLLATE `ascii_bin`', $sql);
+        self::assertStringContainsString('INDEX phil_organization_unit_path (organization_id, path)', $sql);
+        self::assertStringContainsString('INDEX phil_organization_unit_parent_id (organization_id, parent_id)', $sql);
+        self::assertStringContainsString('PRIMARY KEY (unit_id, member_id)', $sql);
     }
 
     public function testTheListenerAddsTheTablesToTheSchemaOfItsConnectionOnly(): void

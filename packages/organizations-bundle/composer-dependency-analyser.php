@@ -10,8 +10,9 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
  *
  * The optional integrations — `doctrine/orm` for the schema listener, `phil/privacy-bundle` for the exporter and
  * eraser, `phil/access-bundle`, `phil/resource-permissions` and `phil/resource` for the relations and tuples,
- * `symfony/console` for the commands, `symfony/security-core` for the voter — are used by the production code but only
- * required in development and suggested: the bundle registers each only when it is installed.
+ * `symfony/console` for the commands, `symfony/security-core` for the voter, Twig, the CSRF protection, HttpFoundation,
+ * HttpKernel and routing for the administration pages of the units — are used by the production code but only required
+ * in development and suggested: the bundle registers each only when it is installed.
  */
 return new Configuration()
     ->addPathToScan(__DIR__.'/src', isDev: false)
@@ -23,5 +24,10 @@ return new Configuration()
         'phil/resource',
         'phil/resource-permissions',
         'symfony/console',
+        'symfony/http-foundation',
+        'symfony/http-kernel',
+        'symfony/routing',
         'symfony/security-core',
+        'symfony/security-csrf',
+        'twig/twig',
     ], [ErrorType::DEV_DEPENDENCY_IN_PROD]);

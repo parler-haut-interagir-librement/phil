@@ -4,6 +4,48 @@ All notable changes to `phil/organizations-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: the units of an organization, in a tree whose roles hold below them. A minor version and
+not a patch: two tables join the six of 0.1, `units.manage` joins the built-in permissions of owners and admins, and a
+store of the application's own implements `UnitStore` to keep units. Run the migration the recipe copies, or one that
+calls `OrganizationTables::upgrade()`. See [Upgrading](doc/upgrading.md#from-01-to-02).
+
+### Added
+
+- `Domain\Model\Unit`, `UnitMembership`, `Domain\ValueObject\UnitId` and `UnitPath`: units of an organization in a
+  tree, sixteen levels deep at most, ten thousand per organization at most, their path the identifiers of their
+  ancestors and their own, the bound of their descendants one range of an index; their members with unit roles.
+- `Application\Units`: create, rename, move with every unit below — a move under the unit itself or below it refused
+  by `UnitCycle` —, archive and restore with the units below — `UnitArchived` for an archived unit —; add members,
+  change their unit roles, remove them, a member leaving; one unit per member of an organization with
+  `units.single_membership`; each change locking its organization. `UnknownUnit`, and `AlreadyMember::ofUnit()`,
+  `ofAnotherUnit()` and `NotAMember::ofUnit()`.
+- `RoleCatalog::unit()`, the unit roles — `manager` and `member` built in, others from `unit_roles` —;
+  `Permission::UNITS` (`units.manage`, held by owners and admins) and `Permission::UNIT_MANAGE` (`unit.manage`).
+- `Application\UnitAccess`: the permissions and roles of a member in a unit, those granted above it included, every
+  unit permission for `units.manage`, nothing in an archived unit or organization.
+- `Application\UnitTree`: the questions of other modules — a unit, the roots, children, ancestors and descendants,
+  whether a unit is below another, its members and the members below it, the units of a member and those above them.
+- `Application\Contract\UnitStore`, implemented by `DbalOrganizationStore` and `InMemoryOrganizationStore`; the tables
+  `phil_organization_unit` and `phil_organization_unit_member`; `OrganizationTables::upgrade()` and `downgrade()` for a
+  migration; a member who leaves an organization leaves its units.
+- The events `UnitCreated`, `UnitRenamed`, `UnitMoved`, `UnitArchived`, `UnitRestored`, `UnitMemberAdded`,
+  `UnitMemberRolesChanged` and `UnitMemberRemoved`, identifiers and role names only; `UnitMemberRemoved` when a member
+  leaves the organization or is erased.
+- `unit:<permission>` and `unit_role:<role>` in `OrganizationVoter`.
+- `Infrastructure\Http\UnitAdminController`, its routes `config/routes/units.php` and templates: the tree of an
+  organization and the page of a unit, on the recipes `Badge`, `Button`, `Input`, `NativeSelect`, `Table` and `Tree` of
+  the PHIL UX kit, with the stateless CSRF token `phil_organizations_units`; the translation domain
+  `phil_organizations` in English and French; `KitComponents`, `OrganizationsExtension` and `KitSubdirectoryPass`;
+  `UnitServicesPass`, which leaves the units out of a store that keeps none and the pages out of an application
+  without Twig.
+- The configuration `unit_roles` and `units` — `single_membership`, `layout`, `kit_subdirectory`.
+- The unit memberships in the export and erasure of `OrganizationsPrivacy`.
+- The Flex recipe `recipe/0.2`, with the routes of the pages and the migration of the tables of the units.
+- The benchmark of the tree of units, and the comparison of materialized paths with a closure table on MySQL and
+  PostgreSQL in `doc/units.md`; `doc/role-inheritance.md` and `doc/upgrading.md`.
+
 ## 0.1.0-alpha - 2026-11-18
 
 ### Added

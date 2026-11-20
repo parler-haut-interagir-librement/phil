@@ -7,11 +7,13 @@ namespace Phil\OrganizationsBundle\Infrastructure\Privacy;
 use DateTimeInterface;
 use Override;
 use Phil\OrganizationsBundle\Application\Contract\OrganizationStore;
+use Phil\OrganizationsBundle\Application\Contract\UnitStore;
 use Phil\OrganizationsBundle\Application\MemberErasure;
 use Phil\OrganizationsBundle\Domain\Exception\InvalidOrganization;
 use Phil\OrganizationsBundle\Domain\Model\Invitation;
 use Phil\OrganizationsBundle\Domain\Model\Membership;
 use Phil\OrganizationsBundle\Domain\Model\TeamMembership;
+use Phil\OrganizationsBundle\Domain\Model\UnitMembership;
 use Phil\OrganizationsBundle\Domain\ValueObject\MemberId;
 use Phil\OrganizationsBundle\Infrastructure\Dbal\OrganizationTables;
 use Phil\PrivacyBundle\Application\Contract\PersonalDataEraser;
@@ -23,8 +25,8 @@ use Phil\PrivacyBundle\Domain\Subject\ModuleName;
 
 /**
  * The organizations' part of an access or erasure request of `phil/privacy-bundle`, the data subject being the member:
- * the export lists their memberships, team memberships and the invitations they created; the erasure removes their
- * memberships and team memberships, revokes the invitations they created that could still be used, and forgets them
+ * the export lists their memberships, team memberships, unit memberships and the invitations they created; the erasure
+ * removes their memberships, team memberships and unit memberships, revokes the invitations they created that could still be used, and forgets them
  * as the creator of the others. A subject that is not a member identifier holds nothing here.
  */
 final readonly class OrganizationsPrivacy implements PersonalDataExporter, PersonalDataEraser
@@ -34,6 +36,7 @@ final readonly class OrganizationsPrivacy implements PersonalDataExporter, Perso
     public function __construct(
         private OrganizationStore $store,
         private MemberErasure $erasure,
+        private ?UnitStore $units = null,
     ) {
     }
 
@@ -66,6 +69,13 @@ final readonly class OrganizationsPrivacy implements PersonalDataExporter, Perso
                 'roles' => $membership->roles->names,
                 'joined_at' => $membership->joinedAt->format(DateTimeInterface::ATOM),
             ], $this->store->teamMembershipsOf($member)),
+            'units' => array_map(fn (UnitMembership $membership): array => [
+                'organization' => $membership->organizationId->value,
+                'unit' => $membership->unitId->value,
+                'name' => $this->units?->unit($membership->unitId)?->name->value,
+                'roles' => $membership->roles->names,
+                'joined_at' => $membership->joinedAt->format(DateTimeInterface::ATOM),
+            ], $this->units?->unitMembershipsOf($member) ?? []),
             'invitations_created' => array_map(static fn (Invitation $invitation): array => [
                 'organization' => $invitation->organizationId->value,
                 'roles' => $invitation->roles->names,
@@ -89,6 +99,7 @@ final readonly class OrganizationsPrivacy implements PersonalDataExporter, Perso
             OrganizationTables::MEMBER => ErasureEffect::Deleted,
             OrganizationTables::MEMBER_ROLE => ErasureEffect::Deleted,
             OrganizationTables::TEAM_MEMBER => ErasureEffect::Deleted,
+            OrganizationTables::UNIT_MEMBER => ErasureEffect::Deleted,
             OrganizationTables::INVITATION => ErasureEffect::Pseudonymised,
         ]);
     }

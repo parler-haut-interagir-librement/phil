@@ -6,6 +6,7 @@ namespace Phil\OrganizationsBundle\Tests\Fixtures;
 
 use Phil\AccessLinks\TokenHasher;
 use Phil\OrganizationsBundle\Application\Contract\OrganizationStore;
+use Phil\OrganizationsBundle\Application\Contract\UnitStore;
 use Phil\OrganizationsBundle\Application\DomainJoin;
 use Phil\OrganizationsBundle\Application\InvitationPolicy;
 use Phil\OrganizationsBundle\Application\Invitations;
@@ -17,7 +18,10 @@ use Phil\OrganizationsBundle\Application\Organizations;
 use Phil\OrganizationsBundle\Application\OwnershipCheck;
 use Phil\OrganizationsBundle\Application\RoleCatalog;
 use Phil\OrganizationsBundle\Application\Teams;
+use Phil\OrganizationsBundle\Application\UnitAccess;
 use Phil\OrganizationsBundle\Application\UnitOfWork;
+use Phil\OrganizationsBundle\Application\Units;
+use Phil\OrganizationsBundle\Application\UnitTree;
 use Phil\OrganizationsBundle\Domain\Model\Organization;
 use Phil\OrganizationsBundle\Domain\ValueObject\MemberId;
 use Phil\OrganizationsBundle\Infrastructure\Memory\InMemoryOrganizationStore;
@@ -57,11 +61,23 @@ final class Stage
 
     public readonly MemberErasure $erasure;
 
+    public readonly UnitStore $unitStore;
+
+    public readonly RoleCatalog $unitRoles;
+
+    public readonly UnitAccess $unitAccess;
+
+    public readonly Units $units;
+
+    public readonly UnitTree $tree;
+
     public function __construct(
         public readonly OrganizationStore $store = new InMemoryOrganizationStore(),
         ?RoleCatalog $roles = null,
         ?RoleCatalog $teamRoles = null,
         InvitationPolicy $policy = new InvitationPolicy(),
+        ?RoleCatalog $unitRoles = null,
+        bool $singleMembership = false,
     ) {
         $this->clock = new MockClock('2026-11-17 10:00:00 UTC');
         $this->events = new RecordingDispatcher();
@@ -71,12 +87,18 @@ final class Stage
         $this->work = new UnitOfWork($store, $this->events);
         $slugger = new TransliteratingSlugger();
         $this->organizations = new Organizations($store, $this->work, $this->access, $slugger, $this->clock);
-        $this->members = new Members($store, $this->work, $this->access, $this->clock);
+        $units = $store instanceof UnitStore ? $store : null;
+        $this->unitStore = $units ?? new InMemoryOrganizationStore();
+        $this->unitRoles = $unitRoles ?? RoleCatalog::unit(['instructor' => ['courses.assign'], 'manager' => ['reports.read']]);
+        $this->unitAccess = new UnitAccess($store, $this->unitStore, $this->access, $this->unitRoles);
+        $this->units = new Units($store, $this->unitStore, $this->work, $this->access, $this->unitAccess, $this->clock, $singleMembership);
+        $this->tree = new UnitTree($this->unitStore);
+        $this->members = new Members($store, $this->work, $this->access, $this->clock, $units);
         $this->teams = new Teams($store, $this->work, $this->access, $this->teamRoles, $slugger, $this->clock);
         $this->invitations = new Invitations($store, $this->work, $this->access, new TokenHasher(self::KEY), $this->clock, $policy);
         $this->onBehalf = new OnBehalf($this->access, $this->clock, $this->events);
         $this->ownership = new OwnershipCheck($store);
-        $this->erasure = new MemberErasure($store, $this->work, $this->clock);
+        $this->erasure = new MemberErasure($store, $this->work, $this->clock, $units);
     }
 
     public function domainJoin(bool $enabled = true): DomainJoin

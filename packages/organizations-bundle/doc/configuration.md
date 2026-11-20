@@ -5,7 +5,7 @@ The bundle's configuration lives under `phil_organizations`. Only `invitations.h
 ```yaml
 # config/packages/phil_organizations.yaml
 phil_organizations:
-    store: dbal                    # dbal, memory, or the id of an OrganizationStore service
+    store: dbal                    # dbal, memory, or the id of an OrganizationStore and UnitStore service
     connection: default            # the DBAL connection of the tables
     clock: clock                   # a PSR-20 clock, symfony/clock's by default
     slugger: ~                     # a phil/slug Slugger; a transliterating slugger when null
@@ -16,6 +16,12 @@ phil_organizations:
         admin: { permissions: [billing.read] }       # adds to the built-in admin
     team_roles:
         reviewer: { permissions: [review.approve] }
+    unit_roles:
+        instructor: { permissions: [courses.assign] }
+    units:
+        single_membership: false
+        layout: '@PhilOrganizations/units/layout.html.twig'
+        kit_subdirectory: ~        # the subdirectory of ux_toolkit when null
     invitations:
         hash_key: '%env(ORGANIZATIONS_INVITATION_KEY)%'
         default_lifetime: 7        # days
@@ -34,7 +40,7 @@ phil_organizations:
 
 | Option | Default | What it does |
 |---|---|---|
-| `store` | `dbal` | Where organizations are kept: `dbal`, the six tables of a DBAL connection; `memory`, for tests; or the id of a service implementing `OrganizationStore`. |
+| `store` | `dbal` | Where organizations and their units are kept: `dbal`, the eight tables of a DBAL connection; `memory`, for tests; or the id of a service implementing `OrganizationStore`, and `UnitStore` for the units — without it the units are left out. |
 | `connection` | `default` | The DBAL connection of the tables. |
 | `clock` | `clock` | The PSR-20 clock every moment is read from. |
 | `slugger` | `null` | The `phil/slug` `Slugger` that makes slugs from names; a `TransliteratingSlugger` when null. |
@@ -42,6 +48,10 @@ phil_organizations:
 | `recommended_owners` | `2` | The owners recommended per organization: fewer is a warning of `phil:organizations:show` and `phil:organizations:check-owners`, never refused. |
 | `roles` | `{}` | The roles of an organization besides `owner`, `admin` and `member`, each with its permissions; listed under `admin` or `member`, the permissions add to those built-in roles. `owner` cannot be declared: it holds every permission. |
 | `team_roles` | `{}` | The roles of a team besides `maintainer` and `member`, each with its permissions; `organization` cannot be a team role. |
+| `unit_roles` | `{}` | The roles of a unit besides `manager` and `member`, each with its permissions, which hold in the unit and in every unit below it; listed under a built-in role, the permissions add to it. See [Role inheritance](role-inheritance.md). |
+| `units.single_membership` | `false` | Whether a member belongs to one unit of an organization at most. |
+| `units.layout` | `@PhilOrganizations/units/layout.html.twig` | The template the administration pages of the units extend; it fills the blocks `title` and `main`. |
+| `units.kit_subdirectory` | `null` | Where the recipes of the kit are installed under the components directory; the subdirectory of the `ux_toolkit` configuration when null. |
 | `invitations.hash_key` | required | The keys of the HMAC-SHA-256 each token is kept as, at least 32 bytes each: one key, or a list whose first key hashes new tokens and whose others still find the invitations made under them, up to eight. A later configuration file replaces the list rather than adding to it. |
 | `invitations.default_lifetime` | `7` | The days an invitation lasts when its creator gives no expiry. |
 | `invitations.max_lifetime` | `30` | The most days an invitation may last, at least `default_lifetime`. |

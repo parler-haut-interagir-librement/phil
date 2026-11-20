@@ -41,8 +41,8 @@ final class SqliteStoreTest extends StoreTestCase
             self::assertTrue($schema->hasTable($table), $table);
         }
 
-        self::assertCount(6, $schema->getTables());
-        self::assertCount(6, OrganizationTables::for($this->connection()->getDatabasePlatform())->configure($schema)->getTables());
+        self::assertCount(8, $schema->getTables());
+        self::assertCount(8, OrganizationTables::for($this->connection()->getDatabasePlatform())->configure($schema)->getTables());
     }
 
     public function testARowOfTheWrongTypeIsRefused(): void

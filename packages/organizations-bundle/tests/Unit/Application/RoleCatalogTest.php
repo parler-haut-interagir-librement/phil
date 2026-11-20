@@ -21,9 +21,9 @@ final class RoleCatalogTest extends TestCase
         $roles = RoleCatalog::organization();
 
         self::assertSame(['owner', 'admin', 'member'], $roles->names());
-        self::assertSame(['members.invite', 'members.manage', 'organization.act_on_behalf', 'organization.manage', 'organization.view', 'teams.manage'], $roles->permissionsOf(Roles::of(['admin'])));
+        self::assertSame(['members.invite', 'members.manage', 'organization.act_on_behalf', 'organization.manage', 'organization.view', 'teams.manage', 'units.manage'], $roles->permissionsOf(Roles::of(['admin'])));
         self::assertSame(['organization.view'], $roles->permissionsOf(Roles::of(['member'])));
-        self::assertSame(['members.invite', 'members.manage', 'organization.act_on_behalf', 'organization.archive', 'organization.manage', 'organization.view', 'owners.manage', 'teams.manage'], $roles->permissionsOf(Roles::of(['owner'])));
+        self::assertSame(['members.invite', 'members.manage', 'organization.act_on_behalf', 'organization.archive', 'organization.manage', 'organization.view', 'owners.manage', 'teams.manage', 'units.manage'], $roles->permissionsOf(Roles::of(['owner'])));
         self::assertSame($roles->permissionsOf(Roles::of(['owner'])), $roles->allPermissions());
     }
 

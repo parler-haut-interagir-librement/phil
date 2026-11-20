@@ -1,0 +1,115 @@
+{#
+ # The page of a unit: the units above it, leading to their pages, its state — the recipe `Badge` of the kit —, the
+ # units under it, its members with their roles — the recipe `Table` —, and, for a member who manages it, the forms that
+ # rename it and add or remove a member, and for a member who manages its parent, those that move, archive and restore
+ # it — the recipes `Input`, `NativeSelect` and `Button`.
+ #
+ # organization: Organization. unit: Unit. ancestors, children: lists of Unit. members: list of UnitMembership.
+ # parents: the units it may move under. parent_id: string|null. manages, manages_parent: bool. roles: list of string. error: string|null.
+ # token: string.
+ #}
+{% extends layout %}
+
+{% block title %}{{ unit.name.value }}{% endblock %}
+
+{% block main %}
+<nav class="phil-organizations__ancestors" aria-label="{{ 'units.ancestors'|trans({}, 'phil_organizations') }}">
+    <a href="{{ path('phil_organizations_units', {organization: organization.id.value}) }}">{{ organization.name.value }}</a>
+    {%- for ancestor in ancestors %}
+    › <a href="{{ path('phil_organizations_unit', {unit: ancestor.id.value}) }}">{{ ancestor.name.value }}</a>
+    {%- endfor %}
+</nav>
+<h1>{{ unit.name.value }}</h1>
+{% component (phil_organizations_kit('Badge')) with {variant: unit.isActive() ? 'secondary' : 'outline'} %}{% block content %}{{ (unit.isActive() ? 'units.active' : 'units.archived')|trans({}, 'phil_organizations') }}{% endblock %}{% endcomponent %}
+{{ include('@PhilOrganizations/units/_error.html.twig') }}
+
+<h2>{{ 'units.children'|trans({}, 'phil_organizations') }}</h2>
+{%- if children is empty %}
+<p class="phil-organizations__none">{{ 'units.no_children'|trans({}, 'phil_organizations') }}</p>
+{%- else %}
+<ul class="phil-organizations__children">
+    {%- for child in children %}
+    <li><a href="{{ path('phil_organizations_unit', {unit: child.id.value}) }}">{{ child.isActive() ? child.name.value : 'units.archived_name'|trans({'%name%': child.name.value}, 'phil_organizations') }}</a></li>
+    {%- endfor %}
+</ul>
+{%- endif %}
+
+<h2>{{ 'units.members'|trans({}, 'phil_organizations') }}</h2>
+{%- if members is empty %}
+<p class="phil-organizations__none">{{ 'units.no_members'|trans({}, 'phil_organizations') }}</p>
+{%- else %}
+{% component (phil_organizations_kit('Table')) %}{% block content %}
+    {% component (phil_organizations_kit('Table:Header')) %}{% block content %}
+        {% component (phil_organizations_kit('Table:Row')) %}{% block content %}
+            {% component (phil_organizations_kit('Table:Head')) %}{% block content %}{{ 'units.member'|trans({}, 'phil_organizations') }}{% endblock %}{% endcomponent %}
+            {% component (phil_organizations_kit('Table:Head')) %}{% block content %}{{ 'units.roles'|trans({}, 'phil_organizations') }}{% endblock %}{% endcomponent %}
+            {%- if manages %}
+            {% component (phil_organizations_kit('Table:Head')) %}{% block content %}{{ 'units.actions'|trans({}, 'phil_organizations') }}{% endblock %}{% endcomponent %}
+            {%- endif %}
+        {% endblock %}{% endcomponent %}
+    {% endblock %}{% endcomponent %}
+    {% component (phil_organizations_kit('Table:Body')) %}{% block content %}
+        {%- for membership in members %}
+        {% component (phil_organizations_kit('Table:Row')) %}{% block content %}
+            {% component (phil_organizations_kit('Table:Cell')) %}{% block content %}{{ membership.memberId.value }}{% endblock %}{% endcomponent %}
+            {% component (phil_organizations_kit('Table:Cell')) %}{% block content %}{{ membership.roles.names|join(', ') }}{% endblock %}{% endcomponent %}
+            {%- if manages %}
+            {% component (phil_organizations_kit('Table:Cell')) %}{% block content %}
+                <form method="post" action="{{ path('phil_organizations_unit_member_remove', {unit: unit.id.value, member: membership.memberId.value}) }}">
+                    <input type="hidden" name="_token" value="{{ token }}">
+                    {% component (phil_organizations_kit('Button')) with {type: 'submit', variant: 'destructive', size: 'sm'} %}{% block content %}{{ 'units.remove'|trans({}, 'phil_organizations') }}{% endblock %}{% endcomponent %}
+                </form>
+            {% endblock %}{% endcomponent %}
+            {%- endif %}
+        {% endblock %}{% endcomponent %}
+        {%- endfor %}
+    {% endblock %}{% endcomponent %}
+{% endblock %}{% endcomponent %}
+{%- endif %}
+
+{%- if manages %}
+<h2>{{ 'units.add_member'|trans({}, 'phil_organizations') }}</h2>
+<form method="post" action="{{ path('phil_organizations_unit_member_add', {unit: unit.id.value}) }}" class="phil-organizations__add-member">
+    <input type="hidden" name="_token" value="{{ token }}">
+    <label for="phil-organizations-member">{{ 'units.member'|trans({}, 'phil_organizations') }}</label>
+    {% component (phil_organizations_kit('Input')) with {id: 'phil-organizations-member', name: 'member', required: true, maxlength: 128} %}{% endcomponent %}
+    <label for="phil-organizations-roles">{{ 'units.roles_hint'|trans({'%roles%': roles|join(', ')}, 'phil_organizations') }}</label>
+    {% component (phil_organizations_kit('Input')) with {id: 'phil-organizations-roles', name: 'roles', required: true, value: 'member', maxlength: 1040} %}{% endcomponent %}
+    {% component (phil_organizations_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'units.add'|trans({}, 'phil_organizations') }}{% endblock %}{% endcomponent %}
+</form>
+
+<h2>{{ 'units.rename'|trans({}, 'phil_organizations') }}</h2>
+<form method="post" action="{{ path('phil_organizations_unit_rename', {unit: unit.id.value}) }}" class="phil-organizations__rename">
+    <input type="hidden" name="_token" value="{{ token }}">
+    <label for="phil-organizations-name">{{ 'units.name'|trans({}, 'phil_organizations') }}</label>
+    {% component (phil_organizations_kit('Input')) with {id: 'phil-organizations-name', name: 'name', required: true, value: unit.name.value, maxlength: 200} %}{% endcomponent %}
+    {% component (phil_organizations_kit('Button')) with {type: 'submit', variant: 'secondary'} %}{% block content %}{{ 'units.rename'|trans({}, 'phil_organizations') }}{% endblock %}{% endcomponent %}
+</form>
+{%- endif %}
+
+{%- if manages_parent %}
+{%- if unit.isActive() %}
+<h2>{{ 'units.move'|trans({}, 'phil_organizations') }}</h2>
+<form method="post" action="{{ path('phil_organizations_unit_move', {unit: unit.id.value}) }}" class="phil-organizations__move">
+    <input type="hidden" name="_token" value="{{ token }}">
+    <label for="phil-organizations-parent">{{ 'units.parent'|trans({}, 'phil_organizations') }}</label>
+    {% component (phil_organizations_kit('NativeSelect')) with {id: 'phil-organizations-parent', name: 'parent'} %}{% block content %}
+        {% component (phil_organizations_kit('NativeSelect:Option')) with {value: '', selected: parent_id is null} %}{% block content %}{{ 'units.root'|trans({}, 'phil_organizations') }}{% endblock %}{% endcomponent %}
+        {%- for parent in parents %}
+        {% component (phil_organizations_kit('NativeSelect:Option')) with {value: parent.id.value, selected: parent.id.value is same as(parent_id)} %}{% block content %}{{ parent.name.value }}{% endblock %}{% endcomponent %}
+        {%- endfor %}
+    {% endblock %}{% endcomponent %}
+    {% component (phil_organizations_kit('Button')) with {type: 'submit', variant: 'secondary'} %}{% block content %}{{ 'units.move'|trans({}, 'phil_organizations') }}{% endblock %}{% endcomponent %}
+</form>
+<form method="post" action="{{ path('phil_organizations_unit_archive', {unit: unit.id.value}) }}" class="phil-organizations__archive">
+    <input type="hidden" name="_token" value="{{ token }}">
+    {% component (phil_organizations_kit('Button')) with {type: 'submit', variant: 'destructive'} %}{% block content %}{{ 'units.archive'|trans({}, 'phil_organizations') }}{% endblock %}{% endcomponent %}
+</form>
+{%- else %}
+<form method="post" action="{{ path('phil_organizations_unit_restore', {unit: unit.id.value}) }}" class="phil-organizations__restore">
+    <input type="hidden" name="_token" value="{{ token }}">
+    {% component (phil_organizations_kit('Button')) with {type: 'submit'} %}{% block content %}{{ 'units.restore'|trans({}, 'phil_organizations') }}{% endblock %}{% endcomponent %}
+</form>
+{%- endif %}
+{%- endif %}
+{% endblock %}

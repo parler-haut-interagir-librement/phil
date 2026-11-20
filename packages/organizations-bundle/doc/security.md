@@ -19,9 +19,17 @@
   application, not for the visitor.
 - **Case confusion.** Every identifier and key column compares byte for byte — `ascii_bin` on MySQL and MariaDB, the
   `C` collation on PostgreSQL —, so that `Acme` is never `acme`.
+- **Cycles and runaway trees.** A unit never moves under itself or a unit below it; moves of one organization run one
+  after the other under the lock of its row, so that two moves cannot make a cycle together. A tree is sixteen levels
+  deep and ten thousand units wide at most, so that every question of the tree stays one bounded query.
+- **Unit roles escaping their unit.** A unit role holds in its unit and below, never above, beside, or in the
+  organization; a unit manager grants only unit roles whose permissions they hold there, and runs the units below their
+  own, not their own.
+- **Forged forms.** The forms of the pages of the units carry Symfony's stateless CSRF token and are refused when the
+  browser says they come from another site.
 - **Phantom events.** Events are dispatched once the transaction is committed, never for a change rolled back.
-- **Personal data in events.** Events carry identifiers and role names only; a verified address given to join by a
-  domain is read for its domain and never kept, logged or dispatched.
+- **Personal data in events.** Events carry identifiers and role names only — a unit's name is not in its events —; a
+  verified address given to join by a domain is read for its domain and never kept, logged or dispatched.
 - **Workers.** No service keeps state between requests; the context of `OnBehalf` and the store in memory are reset
   between them.
 

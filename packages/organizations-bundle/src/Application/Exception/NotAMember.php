@@ -8,7 +8,7 @@ use Phil\OrganizationsBundle\Domain\Exception\OrganizationsException;
 use RuntimeException;
 
 /**
- * The member is not a member of the organization, or of the team.
+ * The member is not a member of the organization, of the team or of the unit.
  */
 final class NotAMember extends RuntimeException implements OrganizationsException
 {
@@ -20,5 +20,10 @@ final class NotAMember extends RuntimeException implements OrganizationsExceptio
     public static function ofTeam(string $teamId): self
     {
         return new self(\sprintf('Not a member of the team "%s".', $teamId));
+    }
+
+    public static function ofUnit(string $unitId): self
+    {
+        return new self(\sprintf('Not a member of the unit "%s".', $unitId));
     }
 }

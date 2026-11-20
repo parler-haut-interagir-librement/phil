@@ -10,7 +10,10 @@ use Phil\OrganizationsBundle\Application\Permission;
 use Phil\OrganizationsBundle\Application\RoleCatalog;
 use Phil\OrganizationsBundle\Domain\Model\Invitation;
 use Phil\OrganizationsBundle\Domain\ValueObject\Roles;
+use Phil\OrganizationsBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\OrganizationsBundle\Infrastructure\DependencyInjection\OrganizationsServices;
+use Phil\OrganizationsBundle\Infrastructure\DependencyInjection\UnitServicesPass;
+use Phil\OrganizationsBundle\Infrastructure\Http\UnitAdminController;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -30,9 +33,10 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
  *         billing: { permissions: [billing.read, billing.pay] }
  * ```
  *
- * The bundle wires the store, the catalogues of roles, the services that change organizations, members, teams and
- * invitations, joining by a verified domain, acting on behalf of an organization, the voter and the commands; with
- * `phil/privacy-bundle`, the exporter and eraser; with `phil/access-bundle`, the relations and their tuples.
+ * The bundle wires the store, the catalogues of roles, the services that change organizations, members, teams, units
+ * and invitations, the tree of units, joining by a verified domain, acting on behalf of an organization, the voter, the
+ * commands and the administration pages of the units; with `phil/privacy-bundle`, the exporter and eraser; with
+ * `phil/access-bundle`, the relations and their tuples.
  */
 final class PhilOrganizationsBundle extends AbstractBundle
 {
@@ -45,7 +49,7 @@ final class PhilOrganizationsBundle extends AbstractBundle
         $children = $definition->rootNode()->children();
         $children
             ->scalarNode('store')
-                ->info('Where organizations are kept: "dbal", the tables of a Doctrine DBAL connection; "memory", for tests; or the id of a service implementing OrganizationStore.')
+                ->info('Where organizations are kept: "dbal", the tables of a Doctrine DBAL connection; "memory", for tests; or the id of a service implementing OrganizationStore, and UnitStore to keep units.')
                 ->defaultValue(OrganizationsServices::STORE_DBAL)
                 ->cannotBeEmpty()
             ->end()
@@ -60,9 +64,26 @@ final class PhilOrganizationsBundle extends AbstractBundle
 
         $this->roles($children, 'roles', 'The roles of an organization besides owner, admin and member, by name, each with its permissions; listed under "admin" or "member", permissions add to those built-in roles. The owner holds every permission.', [RoleCatalog::OWNER]);
         $this->roles($children, 'team_roles', 'The roles of a team besides maintainer and member, by name, each with its permissions; listed under a built-in role, permissions add to it.', ['organization']);
+        $this->roles($children, 'unit_roles', 'The roles of a unit besides manager and member, by name, each with its permissions, which hold in the unit and every unit below it; listed under a built-in role, permissions add to it.', []);
+        $this->units($children);
         $this->invitations($children);
         $this->domainJoin($children);
         $this->access($children);
+    }
+
+    #[Override]
+    public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
+    {
+        if ($builder->hasExtension('framework')) {
+            $container->extension('framework', ['csrf_protection' => ['stateless_token_ids' => [UnitAdminController::TOKEN_ID]]]);
+        }
+    }
+
+    #[Override]
+    public function build(ContainerBuilder $container): void
+    {
+        $container->addCompilerPass(new UnitServicesPass());
+        $container->addCompilerPass(new KitSubdirectoryPass());
     }
 
     /**
@@ -71,7 +92,7 @@ final class PhilOrganizationsBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @phpstan-var array{store: string, connection: string, clock: string, slugger: string|null, member_of_user: string|null, recommended_owners: positive-int, roles: array<string, array{permissions: list<string>}>, team_roles: array<string, array{permissions: list<string>}>, invitations: array{hash_key: non-empty-list<string>, default_lifetime: positive-int, max_lifetime: positive-int, default_uses: positive-int, max_uses: positive-int, purge_retention: non-negative-int}, domain_join: array{enabled: bool, roles: list<string>}, access: array{enabled: bool|null, organization_kind: string, team_kind: string}} $config */
+        /** @phpstan-var array{store: string, connection: string, clock: string, slugger: string|null, member_of_user: string|null, recommended_owners: positive-int, roles: array<string, array{permissions: list<string>}>, team_roles: array<string, array{permissions: list<string>}>, unit_roles: array<string, array{permissions: list<string>}>, units: array{single_membership: bool, layout: string, kit_subdirectory: string|null}, invitations: array{hash_key: non-empty-list<string>, default_lifetime: positive-int, max_lifetime: positive-int, default_uses: positive-int, max_uses: positive-int, purge_retention: non-negative-int}, domain_join: array{enabled: bool, roles: list<string>}, access: array{enabled: bool|null, organization_kind: string, team_kind: string}} $config */
         OrganizationsServices::register($builder, $config);
     }
 
@@ -88,7 +109,7 @@ final class PhilOrganizationsBundle extends AbstractBundle
                 ->normalizeKeys(false)
                 ->validate()
                     ->ifTrue(static fn (array $roles): bool => [] !== array_filter(array_keys($roles), static fn (int|string $role): bool => \in_array($role, $reserved, true) || 1 !== preg_match(Roles::NAME_PATTERN, (string) $role)))
-                    ->thenInvalid(\sprintf('A role is 1 to 64 lowercase letters, digits or "_", starting with a letter, other than %s: %%s', implode(', ', $reserved)))
+                    ->thenInvalid(\sprintf('A role is 1 to 64 lowercase letters, digits or "_", starting with a letter%s: %%s', [] === $reserved ? '' : ', other than '.implode(', ', $reserved)))
                 ->end()
                 ->arrayPrototype()
                     ->children()
@@ -135,6 +156,23 @@ final class PhilOrganizationsBundle extends AbstractBundle
                 ->validate()
                     ->ifTrue(static fn (array $invitations): bool => $invitations['default_lifetime'] > $invitations['max_lifetime'] || $invitations['default_uses'] > $invitations['max_uses'])
                     ->thenInvalid('The default lifetime and uses of an invitation are at most its longest lifetime and its most uses.')
+                ->end()
+            ->end();
+    }
+
+    /**
+     * @param NodeBuilder<ArrayNodeDefinition> $children
+     */
+    private function units(NodeBuilder $children): void
+    {
+        $children
+            ->arrayNode('units')
+                ->info('The units of an organization, in a tree.')
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->booleanNode('single_membership')->info('Whether a member belongs to one unit of an organization at most.')->defaultFalse()->end()
+                    ->scalarNode('layout')->info('The template the administration pages of the units extend, which fills the blocks "title" and "main".')->defaultValue(UnitAdminController::LAYOUT)->cannotBeEmpty()->end()
+                    ->scalarNode('kit_subdirectory')->info('Where the recipes of the kit are installed, under the components directory; the subdirectory of the ux_toolkit configuration when null.')->defaultNull()->end()
                 ->end()
             ->end();
     }

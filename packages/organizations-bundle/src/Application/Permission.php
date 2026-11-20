@@ -34,13 +34,19 @@ final readonly class Permission
     /** Create and delete teams, and manage the members of any team. */
     public const string TEAMS = 'teams.manage';
 
+    /** Create, rename, move, archive and restore any unit, and manage the members of any unit. */
+    public const string UNITS = 'units.manage';
+
     /** Act on behalf of the organization. */
     public const string ACT_ON_BEHALF = 'organization.act_on_behalf';
 
     /** Manage the members of one team: a permission of the team roles. */
     public const string TEAM_MANAGE = 'team.manage';
 
-    public const array BUILT_IN = [self::VIEW, self::MANAGE, self::ARCHIVE, self::INVITE, self::MEMBERS, self::OWNERS, self::TEAMS, self::ACT_ON_BEHALF];
+    /** Manage one unit and the units below it: a permission of the unit roles. */
+    public const string UNIT_MANAGE = 'unit.manage';
+
+    public const array BUILT_IN = [self::VIEW, self::MANAGE, self::ARCHIVE, self::INVITE, self::MEMBERS, self::OWNERS, self::TEAMS, self::UNITS, self::ACT_ON_BEHALF];
 
     /** The rule of a permission's name: 1 to 128 lowercase letters, digits, "_", "." or "-", starting with a letter. */
     public const string NAME_PATTERN = '/^[a-z][a-z0-9_.-]{0,127}$/D';
