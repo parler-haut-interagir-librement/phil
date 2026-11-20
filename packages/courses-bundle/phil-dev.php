@@ -26,7 +26,7 @@ return [
             // is `false`, and the walk and the holding blocks only need the keys.
             'TrueValue' => ['ignore' => [
                 // The learner of an obligation is a column of its primary key, which the schema makes not null.
-                CourseTables::class.'::tables::315',
+                CourseTables::class.'::tables::329',
             ], 'ignoreSourceCodeByRegex' => [
                 '.*self::column\\(\'(activity_hash|state_id)\'.*',
                 '.*\\$(seen|holding)\\[\\$block\\] = true;.*',
