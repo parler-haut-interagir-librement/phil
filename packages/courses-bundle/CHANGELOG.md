@@ -17,6 +17,8 @@ phil/elearning-packages 0.1.2.
 
 ### Added
 
+- The Flex recipe in `recipe/0.2`, whose configuration names `training.manager_role`; `recipe/0.1` keeps serving the
+  versions 0.1.
 - `phil_courses.import.limits.manifest_nodes` and `phil_courses.import.limits.manifest_depth`, the XML nodes of a
   manifest and the depth of its elements, passed to `PackageLimits`.
 - The review of an ended SCORM attempt: `POST /{course}/activities/{activity}/review`, the route

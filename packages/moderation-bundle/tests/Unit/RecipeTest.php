@@ -20,7 +20,7 @@ use Symfony\Component\Yaml\Yaml;
 #[CoversNothing]
 final class RecipeTest extends TestCase
 {
-    private const string RECIPE = __DIR__.'/../../recipe/0.1';
+    private const string RECIPE = __DIR__.'/../../recipe/0.3';
 
     public function testTheRecipeRegistersTheBundleAndImportsItsRoutes(): void
     {

@@ -14,7 +14,7 @@
 | `translations/` | Les mots des pages, et les notifications de la formation obligatoire dans le domaine `phil_notifications`, en anglais et en français |
 | `assets/src/scorm_runtime_controller.js` | Le contrôleur Stimulus de la page d'activité d'une session SCORM : encadre le cadre, envoie les validations |
 | `assets/src/scorm_frame.js`, `assets/src/lib/api.js`, `assets/src/lib/cmi.js` | Le cadre de l'environnement d'exécution sur l'origine du contenu, l'API d'exécution, et le modèle de données dans le navigateur |
-| `recipe/0.1` | La recette Flex : le bundle, sa configuration et ses routes |
+| `recipe/0.2` | La recette Flex : le bundle, sa configuration et ses routes (`recipe/0.1` pour les versions 0.1) |
 
 ## Domaine
 

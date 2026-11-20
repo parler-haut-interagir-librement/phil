@@ -1,0 +1,14 @@
+# The content origin serves the files of the imported packages: another origin than the application's. The home page
+# names the learners' accounts in the cmi5 and xAPI statements. The teachers who hold the role decide the second
+# chances; the managers who hold theirs see the training of every learner and their transcripts. See the configuration
+# guide of phil/courses-bundle, which also shows how to send the statements to a remote xAPI store.
+phil_courses:
+    timezone: UTC
+    content:
+        base_url: '%env(PHIL_COURSES_CONTENT_URL)%'
+    cmi5:
+        actor_home_page: '%env(PHIL_COURSES_HOME_PAGE)%'
+    admin:
+        role: ROLE_COURSES_TEACHER
+    training:
+        manager_role: ROLE_COURSES_MANAGER

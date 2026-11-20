@@ -147,8 +147,10 @@ identifier that holds an `@`, which would travel in the cmi5 statements.
 
 ## The recipe
 
-`recipe/0.1` registers the bundle, copies its configuration and its routes — the administration page under
-`/admin/courses` —, and adds `PHIL_COURSES_CONTENT_URL` and `PHIL_COURSES_HOME_PAGE` to the environment.
+`recipe/0.2` registers the bundle, copies its configuration and its routes — the administration page under
+`/admin/courses` —, and adds `PHIL_COURSES_CONTENT_URL` and `PHIL_COURSES_HOME_PAGE` to the environment. Its
+configuration names the role of the managers who see the training of every learner. The recipe in `recipe/0.1` serves
+the versions 0.1.
 
 ## The remote learning record store
 

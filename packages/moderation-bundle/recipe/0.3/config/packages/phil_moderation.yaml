@@ -1,0 +1,16 @@
+# The moderation of the site: the roles of its moderators, the content held until a first approval, when the
+# incident mode of phil/incident-mode-bundle is proposed, and the ways a member contests a decision, which a statement
+# of reasons lists. Each package that holds content plugs in its own target. See the configuration guide of
+# phil/moderation-bundle.
+phil_moderation:
+    roles:
+        - { name: moderator, attribute: ROLE_MODERATOR }
+        - { name: administrator, attribute: ROLE_ADMIN }
+    sandbox:
+        types: []
+    surge:
+        reports: 25
+        within: 3600
+    statements:
+        terms_url: ~
+        complaint_url: ~

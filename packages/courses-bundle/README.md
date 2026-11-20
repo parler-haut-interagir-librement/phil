@@ -81,7 +81,7 @@ on SQLite, MySQL 8.4 and PostgreSQL 17.
 | The content served from its own origin, with its content security policy | Implemented and tested |
 | `phil:courses:import`, `phil:courses:import-results`, `phil:courses:retries` | Implemented and tested |
 | The pages — outline, activity, enrollment, second chance — with the recipes of the kit, English and French | Implemented and tested |
-| The Flex recipe: the bundle, its configuration and its routes | Written in `recipe/0.1`, for the recipes repository of PHIL |
+| The Flex recipe: the bundle, its configuration and its routes | Written in `recipe/0.2`, for the recipes repository of PHIL; `recipe/0.1` serves the versions 0.1 |
 | Branching lessons through phil/story-graph, quizzes through phil/assessment, access through phil/content-access | Planned, as activity types and an access port, once those libraries are written |
 | LTI 1.3 activities, hosted video with consented watch tracking | Planned, as activity types the LTI and video bundles add |
 | Cohorts with live meetings, courses sold through the catalogue, dependencies between courses, learning paths, catalogues by unit | Planned |

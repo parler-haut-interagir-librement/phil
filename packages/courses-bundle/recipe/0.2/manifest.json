@@ -1,0 +1,12 @@
+{
+    "bundles": {
+        "Phil\\CoursesBundle\\PhilCoursesBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "PHIL_COURSES_CONTENT_URL": "https://content.example.org",
+        "PHIL_COURSES_HOME_PAGE": "https://www.example.org"
+    }
+}

@@ -1,0 +1,17 @@
+# The pages of the courses and the administration page of the second chances, behind the firewall; the cmi5 endpoints
+# and the content, outside it.
+phil_courses:
+    resource: '@PhilCoursesBundle/config/routes.php'
+    prefix: /courses
+
+phil_courses_cmi5:
+    resource: '@PhilCoursesBundle/config/cmi5_routes.php'
+    prefix: /cmi5
+
+phil_courses_content:
+    resource: '@PhilCoursesBundle/config/content_routes.php'
+    prefix: /course-content
+
+phil_courses_admin:
+    resource: '@PhilCoursesBundle/config/admin_routes.php'
+    prefix: /admin/courses

@@ -11,6 +11,8 @@ it is registered. See [Upgrading from 0.2](doc/incident-mode.md#upgrading-from-0
 
 ### Added
 
+- The Flex recipe in `recipe/0.3`, without the `incident` key, which this version refuses; `recipe/0.1` keeps serving
+  the versions 0.1 and 0.2.
 - `Infrastructure\IncidentMode\IncidentProposal`: the link to the page of the incidents of `phil/incident-mode-bundle`
   for the role of its administration, and the proposal of an incident when reports surge and none is in force.
 - `ModerationServices::INCIDENT_ROLE_PARAMETER`.

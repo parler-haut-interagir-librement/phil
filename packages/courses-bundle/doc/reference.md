@@ -13,7 +13,7 @@
 | `translations/` | The words of the pages, and the notifications of the mandatory training in the domain `phil_notifications`, in English and French |
 | `assets/src/scorm_runtime_controller.js` | The Stimulus controller of the activity page of a SCORM session: frames the frame, sends the commits |
 | `assets/src/scorm_frame.js`, `assets/src/lib/api.js`, `assets/src/lib/cmi.js` | The frame of the run time on the content origin, the run-time API, and the data model in the browser |
-| `recipe/0.1` | The Flex recipe: the bundle, its configuration and its routes |
+| `recipe/0.2` | The Flex recipe: the bundle, its configuration and its routes (`recipe/0.1` for the versions 0.1) |
 
 ## Domain
 

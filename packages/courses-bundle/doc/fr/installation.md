@@ -151,8 +151,10 @@ cmi5.
 
 ## La recette
 
-`recipe/0.1` enregistre le bundle, copie sa configuration et ses routes — la page d'administration sous
-`/admin/courses` —, et ajoute `PHIL_COURSES_CONTENT_URL` et `PHIL_COURSES_HOME_PAGE` à l'environnement.
+`recipe/0.2` enregistre le bundle, copie sa configuration et ses routes — la page d'administration sous
+`/admin/courses` —, et ajoute `PHIL_COURSES_CONTENT_URL` et `PHIL_COURSES_HOME_PAGE` à l'environnement. Sa
+configuration nomme le rôle des gestionnaires qui voient la formation de chaque apprenant. La recette de `recipe/0.1`
+sert les versions 0.1.
 
 ## L'entrepôt de traces d'apprentissage distant
 

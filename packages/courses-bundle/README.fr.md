@@ -87,7 +87,7 @@ utilisent DBAL, et sont testés sur SQLite, MySQL 8.4 et PostgreSQL 17.
 | Contenu servi depuis sa propre origine, avec sa politique de sécurité du contenu | Implémenté et testé |
 | `phil:courses:import`, `phil:courses:import-results`, `phil:courses:retries` | Implémenté et testé |
 | Les pages — plan, activité, inscription, seconde chance — avec les recettes du kit, en anglais et en français | Implémenté et testé |
-| La recette Flex : le bundle, sa configuration et ses routes | Écrite dans `recipe/0.1`, pour le dépôt de recettes de PHIL |
+| La recette Flex : le bundle, sa configuration et ses routes | Écrite dans `recipe/0.2`, pour le dépôt de recettes de PHIL ; `recipe/0.1` sert les versions 0.1 |
 | Leçons à embranchements par phil/story-graph, questionnaires par phil/assessment, accès par phil/content-access | Prévu, comme types d'activité et port d'accès, une fois ces bibliothèques écrites |
 | Activités LTI 1.3, vidéo hébergée avec suivi du visionnement consenti | Prévu, comme types d'activité qu'ajoutent les bundles LTI et vidéo |
 | Cohortes avec rencontres en direct, cours vendus par le catalogue, dépendances entre cours, parcours d'apprentissage, catalogues par unité | Prévu |

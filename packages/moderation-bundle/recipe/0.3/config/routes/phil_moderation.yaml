@@ -1,0 +1,14 @@
+# The pages of the moderation behind the application's firewall, the report form, the public journal and the
+# statements of reasons addressed to a member.
+phil_moderation_admin:
+    resource: '@PhilModerationBundle/config/routes/admin.php'
+    prefix: /admin/moderation
+phil_moderation_report:
+    resource: '@PhilModerationBundle/config/routes/report.php'
+    prefix: /moderation
+phil_moderation_journal:
+    resource: '@PhilModerationBundle/config/routes/journal.php'
+    prefix: /moderation/journal
+phil_moderation_statements:
+    resource: '@PhilModerationBundle/config/routes/statement.php'
+    prefix: /moderation/statements
