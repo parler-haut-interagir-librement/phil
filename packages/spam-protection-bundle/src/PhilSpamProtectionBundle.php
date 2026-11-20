@@ -6,6 +6,8 @@ namespace Phil\SpamProtectionBundle;
 
 use Override;
 use Phil\RateLimit\RateLimitGuard;
+use Phil\SpamProtection\Inspection\Signal;
+use Phil\SpamProtectionBundle\Application\RefusalPolicy;
 use Phil\SpamProtectionBundle\Application\SubmissionInspector;
 use Phil\SpamProtectionBundle\Application\UsedTokens;
 use Phil\SpamProtectionBundle\Infrastructure\Cache\CacheUsedTokens;
@@ -36,6 +38,7 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
  *     cache_pool: cache.app
  *     used_tokens: { connection: null, lock_factory: null }   # an atomic store of used tokens, required in production
  *     rate_limiter: null      # the service id of a Symfony rate limiter factory
+ *     refusal: { threshold: 100, weights: { too_fast: 60, too_many_links: 50 } }
  * ```
  */
 final class PhilSpamProtectionBundle extends AbstractBundle
@@ -122,7 +125,42 @@ final class PhilSpamProtectionBundle extends AbstractBundle
                     ->info('Accepts a rate limiter whose storage is local to the server in the prod environment, for an application on one server.')
                     ->defaultFalse()
                 ->end()
+                ->arrayNode('refusal')
+                    ->info('When a submission is refused: the weights of the signals it raised add up, and a score that reaches the threshold refuses. A signal not listed weighs the threshold, so that it refuses alone.')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->integerNode('threshold')
+                            ->info('The score that refuses a submission.')
+                            ->defaultValue(RefusalPolicy::DEFAULT_THRESHOLD)
+                            ->min(1)
+                            ->max(RefusalPolicy::MAXIMUM_WEIGHT)
+                        ->end()
+                        ->arrayNode('weights')
+                            ->info(\sprintf('Signal → weight, from 0 to %d. "%s" always weigh the threshold.', RefusalPolicy::MAXIMUM_WEIGHT, implode('", "', array_map(static fn (Signal $signal): string => $signal->value, RefusalPolicy::ALWAYS_REFUSED))))
+                            ->normalizeKeys(false)
+                            ->useAttributeAsKey('signal')
+                            ->integerPrototype()->min(0)->max(RefusalPolicy::MAXIMUM_WEIGHT)->end()
+                            ->validate()
+                                ->ifTrue(static fn (array $weights): bool => [] !== array_diff(array_keys($weights), self::weighableSignals()))
+                                ->then(static fn (array $weights): never => throw new InvalidConfigurationException(\sprintf('The signals that take a weight are "%s"; "%s" given.', implode('", "', self::weighableSignals()), implode('", "', array_diff(array_keys($weights), self::weighableSignals())))))
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
             ->end();
+    }
+
+    /**
+     * The values of the signals whose weight the configuration sets: all but `RefusalPolicy::ALWAYS_REFUSED`.
+     *
+     * @return list<string>
+     */
+    public static function weighableSignals(): array
+    {
+        return array_values(array_map(
+            static fn (Signal $signal): string => $signal->value,
+            array_filter(Signal::cases(), static fn (Signal $signal): bool => !\in_array($signal, RefusalPolicy::ALWAYS_REFUSED, true)),
+        ));
     }
 
     /**
@@ -160,7 +198,7 @@ final class PhilSpamProtectionBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{secret: string, timing: array{minimum: int, maximum: int}, proof_of_work: int, content: array{maximum_length: ?int, maximum_links: ?int, forbidden_terms: list<string>, detect_gibberish: bool}, cache_pool: string, used_tokens: array{connection: ?string, lock_factory: ?string}, rate_limiter: ?string, single_server: bool} $config */
+        /** @var array{secret: string, timing: array{minimum: int, maximum: int}, proof_of_work: int, content: array{maximum_length: ?int, maximum_links: ?int, forbidden_terms: list<string>, detect_gibberish: bool}, cache_pool: string, used_tokens: array{connection: ?string, lock_factory: ?string}, rate_limiter: ?string, single_server: bool, refusal: array{threshold: int, weights: array<string, int>}} $config */
         $services = $container->services();
         $connection = $config['used_tokens']['connection'];
         self::assertConcurrencySafeStore($builder, $config['used_tokens']);
@@ -202,6 +240,8 @@ final class PhilSpamProtectionBundle extends AbstractBundle
                 $config['content']['maximum_length'],
             ]);
 
+        $services->set(RefusalPolicy::class)->args([$config['refusal']['threshold'], $config['refusal']['weights']]);
+
         $services->set(ClientKey::class)->args([service('request_stack'), $config['secret']]);
 
         $services->set(SpamProtectionTypeExtension::class)
@@ -210,6 +250,7 @@ final class PhilSpamProtectionBundle extends AbstractBundle
                 service(ClientKey::class),
                 service('translator')->nullOnInvalid(),
                 service('logger')->nullOnInvalid(),
+                service(RefusalPolicy::class),
             ])
             ->tag('form.type_extension')
             ->tag('monolog.logger', ['channel' => 'spam_protection']);

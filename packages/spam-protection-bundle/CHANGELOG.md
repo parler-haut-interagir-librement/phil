@@ -12,6 +12,11 @@ The next version is 0.3.0-alpha: in the `prod` environment, the container build 
 ### Added
 
 - `PhilSpamProtectionBundle::assertConcurrencySafeStore()` and `PhilSpamProtectionBundle::UNSAFE_STORE`, its message.
+- Weighted refusals: `Application\RefusalPolicy` and the configuration `refusal`, its `threshold` and the `weights` of
+  the signals, which add up, a score that reaches the threshold refusing; a signal not listed weighs the threshold, and
+  `token_missing`, `token_forged` and `token_replayed` always do. `PhilSpamProtectionBundle::weighableSignals()`.
+- `Verdicts::of()` and `SpamProtectionTypeExtension` take a `RefusalPolicy` as their last argument; a submission
+  accepted with signals below the threshold is logged at the `info` level.
 
 ### Changed
 
@@ -19,6 +24,7 @@ The next version is 0.3.0-alpha: in the `prod` environment, the container build 
   and the application does not boot, until `used_tokens.connection` names a Doctrine connection or
   `used_tokens.lock_factory` a lock factory on a store every web server shares. `single_server` does not lift it. The
   pool alone, in memory or in files, is accepted in every other environment.
+- The log of a refused submission gives its score and the threshold beside its signals.
 - The Node tests resolve `@hotwired/stimulus` to their stub with a synchronous hook given to `module.registerHooks()`,
   on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
 
