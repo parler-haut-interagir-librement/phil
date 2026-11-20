@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Phil\CoursesBundle\Infrastructure\Http\CourseController;
 use Phil\CoursesBundle\Infrastructure\Http\ScormController;
+use Phil\CoursesBundle\Infrastructure\Http\TrainingController;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 /*
@@ -20,6 +21,14 @@ return static function (RoutingConfigurator $routes): void {
     $routes->add(ScormController::COMMIT_ROUTE, '/scorm/commit')
         ->controller([ScormController::class, 'commit'])
         ->methods(['POST']);
+    $routes->add(TrainingController::MINE_ROUTE, '/training')
+        ->controller([TrainingController::class, 'mine'])
+        ->methods(['GET']);
+    $routes->add(TrainingController::TRANSCRIPT_ROUTE, '/transcript.{_format}')
+        ->controller([TrainingController::class, 'transcript'])
+        ->defaults(['_format' => 'html'])
+        ->requirements(['_format' => implode('|', TrainingController::FORMATS)])
+        ->methods(['GET']);
     $routes->add(CourseController::OUTLINE_ROUTE, '/{course}')
         ->controller([CourseController::class, 'outline'])
         ->requirements($course)

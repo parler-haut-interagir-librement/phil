@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phil\CoursesBundle\Application\Import;
 
+use Phil\CoursesBundle\Domain\Course\CourseOrigin;
 use Phil\CoursesBundle\Domain\ValueObject\CourseId;
-use Phil\ElearningPackages\PackageFormat;
 
 /**
  * What an import created — the course, its modules, blocks and activities, the files stored — and what it left out
@@ -18,7 +18,7 @@ final readonly class ImportReport
      */
     public function __construct(
         public CourseId $course,
-        public PackageFormat $format,
+        public CourseOrigin $format,
         public int $modules,
         public int $activities,
         public int $files,

@@ -22,6 +22,7 @@ phil_courses:
         allow_localhost: false
     import:
         language: null
+        xapi_reader: null
         limits:
             archive_bytes: 536870912
             entries: 10000
@@ -51,6 +52,16 @@ phil_courses:
         enabled: true
         token_ttl: 14400
         secret: '%kernel.secret%'
+    training:
+        enabled: true
+        reminder_days: 7
+        renewal_grace_days: 30
+        max_members: 10000
+        run_at: '06:00'
+        schedule: true
+        manager_role: ROLE_COURSES_MANAGER
+        notifier: null
+        keep_transcripts: false
     admin:
         role: ROLE_COURSES_TEACHER
     audit:
@@ -73,6 +84,7 @@ phil_courses:
 | `content.application_origin` | `null` | The origin of the site that frames the content, such as `https://www.example.org`: the only origin that may frame the content and the frame of the SCORM run time, and the only one the frame talks to. The origin of `cmi5.actor_home_page` when null; with neither, the content may be framed by nobody. |
 | `content.allow_localhost` | `false` | Whether the content origin and the home page may be on `localhost`, in development. |
 | `import.language` | `null` | The language of the titles read from a cmi5 course structure, such as `fr`; its first title when null. |
+| `import.xapi_reader` | `null` | An `XapiPackageReader` service that reads the `tincan.xml` of xAPI packages; such packages are refused when null. See [xAPI activities](xapi-activities.md#importing-an-xapi-package). |
 | `import.limits.archive_bytes` | 512 MiB | The size of the archive. |
 | `import.limits.entries` | 10 000 | How many entries the archive holds. |
 | `import.limits.entry_bytes` | 256 MiB | The size of one file, uncompressed. |
@@ -98,9 +110,20 @@ phil_courses:
 | `scorm.enabled` | `true` | Runs SCORM content with the run-time API, its attempts and tracking data, as [SCORM run time](scorm-runtime.md) explains; when false, the learner marks a SCORM activity done. |
 | `scorm.token_ttl` | 14 400 | How many seconds an attempt token holds after the last commit, from 300 to 86 400. |
 | `scorm.secret` | `%kernel.secret%` | The secret the attempt tokens are signed with. |
+| `training.enabled` | `true` | The mandatory training — assignments, reminders, recertifications, credits and transcripts —, its pages, commands, schedule and privacy module. |
+| `training.reminder_days` | 7 | How many days before the due moment a course is due soon and its first reminder sent, 1 to 90. |
+| `training.renewal_grace_days` | 30 | How many days after its renewal a recertification is due again, 1 to 365. |
+| `training.max_members` | 10 000 | How many members of a group or unit an assignment reaches. |
+| `training.run_at` | `06:00` | The time of the daily run of the schedule, `HH:MM` in the site's time zone. |
+| `training.schedule` | `true` | Whether the schedule `phil_courses_training` runs every day, with Symfony Scheduler and Messenger installed. |
+| `training.manager_role` | `ROLE_COURSES_MANAGER` | The role a manager holds to see the training of every learner and their transcripts. |
+| `training.notifier` | `null` | A `TrainingNotifier` service; the notifications of phil/notifications-bundle when null and that bundle is registered, none otherwise. |
+| `training.keep_transcripts` | `false` | Whether the transcripts survive an erasure request, under a legal obligation to keep them. |
 | `admin.role` | `ROLE_COURSES_TEACHER` | The role a teacher holds to see and decide the second chances on the administration page. |
 | `audit.enabled` | `true` | Writes the second chances — asked for, granted, refused, waived — to the trail of phil/audit-bundle, when that bundle is registered. |
 | `audit.segment` | `courses` | The segment of the trail. |
 
 The bundle declares the CSRF token `phil_courses` stateless to FrameworkBundle: the forms of the pages and the commits
-of the SCORM sessions work without a session.
+of the SCORM sessions work without a session. With phil/notifications-bundle registered, it declares the notification
+types of the mandatory training, `courses.training.*`, which an application changes by declaring a type of the same
+key.

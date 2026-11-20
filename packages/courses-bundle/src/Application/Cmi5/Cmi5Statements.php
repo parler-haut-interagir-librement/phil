@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phil\CoursesBundle\Application\Cmi5;
 
-use JsonException;
 use Phil\CoursesBundle\Application\Contract\LearningRecordStore;
 use Phil\CoursesBundle\Application\Enrollments;
+use Phil\CoursesBundle\Application\Xapi\StatementBatch;
 use Phil\CoursesBundle\Domain\Cmi5\Cmi5Verb;
 use Phil\CoursesBundle\Domain\Cmi5\SessionState;
 use Phil\CoursesBundle\Domain\Contract\CourseRepository;
@@ -34,11 +34,9 @@ use Symfony\Component\Uid\Uuid;
  */
 final readonly class Cmi5Statements
 {
-    public const int MAX_BYTES = 1_048_576;
+    public const int MAX_BYTES = StatementBatch::MAX_BYTES;
 
-    public const int MAX_STATEMENTS = 50;
-
-    private const int DEPTH = 32;
+    public const int MAX_STATEMENTS = StatementBatch::MAX_STATEMENTS;
 
     private Cmi5Satisfaction $satisfaction;
 
@@ -64,7 +62,7 @@ final readonly class Cmi5Statements
      */
     public function receive(LaunchSession $session, string $body, ?string $statementId = null): array
     {
-        $statements = $this->decode($body, $statementId);
+        $statements = StatementBatch::decode($body, $statementId);
         [$enrollment, $activity] = $this->subject($session);
         $ids = [];
 
@@ -107,42 +105,6 @@ final readonly class Cmi5Statements
         [$enrollment, $activity] = $this->subject($session);
 
         return Cmi5Context::of($session, $enrollment, $activity, $this->settings->homePage());
-    }
-
-    /**
-     * @return list<array<array-key, mixed>>
-     */
-    private function decode(string $body, ?string $statementId): array
-    {
-        if (\strlen($body) > self::MAX_BYTES) {
-            throw StatementRefused::because(\sprintf('A request holds %d bytes of statements at most.', self::MAX_BYTES));
-        }
-
-        try {
-            $decoded = json_decode($body, true, self::DEPTH, \JSON_THROW_ON_ERROR | \JSON_BIGINT_AS_STRING);
-        } catch (JsonException) {
-            throw StatementRefused::because('The body is not JSON of a bounded depth.');
-        }
-
-        if (!\is_array($decoded) || [] === $decoded) {
-            throw StatementRefused::because('The body is a statement, or a list of them.');
-        }
-
-        $statements = array_is_list($decoded) ? $decoded : [$decoded];
-
-        if (\count($statements) > self::MAX_STATEMENTS) {
-            throw StatementRefused::because(\sprintf('A request holds %d statements at most.', self::MAX_STATEMENTS));
-        }
-
-        if (null !== $statementId) {
-            if (\count($statements) > 1 || !\is_array($statements[0]) || ($statements[0]['id'] ?? $statementId) !== $statementId) {
-                throw StatementRefused::because('A statement put at an identifier is one statement of that identifier.');
-            }
-
-            $statements[0]['id'] = $statementId;
-        }
-
-        return array_map(static fn (mixed $statement): array => \is_array($statement) ? $statement : throw StatementRefused::because('Each statement is an object.'), $statements);
     }
 
     /**

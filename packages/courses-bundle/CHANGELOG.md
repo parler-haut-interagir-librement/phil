@@ -7,10 +7,13 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 ## Unreleased
 
 The next version is 0.2.0-alpha: an ended SCORM attempt opens for review, the time allowed is enforced on the server,
-and the cmi5 records of a learner join the access and erasure requests. A minor version and not a patch: a commit that
-reaches the deadline of an attempt whose time limit exits now ends it, and a later one is no longer kept;
-`LaunchSessionRepository` has two methods more; and `phil_course_scorm_attempt` has two columns more. The two new
-budgets of a manifest are options of the bundle, with the defaults of phil/elearning-packages 0.1.2.
+the cmi5 records of a learner join the access and erasure requests, xAPI packages run as activities, and courses can be
+assigned by a due date, reminded, renewed for a recertification, and credited in a transcript. A minor version and not
+a patch: a commit that reaches the deadline of an attempt whose time limit exits now ends it, and a later one is no
+longer kept; `LaunchSessionRepository` has two methods more and `EnrollmentRepository` one; `phil_course_scorm_attempt`
+has two columns more and four tables are added; the format of an import is a `CourseOrigin`; and the bundle requires
+phil/recurrence. The two new budgets of a manifest are options of the bundle, with the defaults of
+phil/elearning-packages 0.1.2.
 
 ### Added
 
@@ -43,6 +46,55 @@ budgets of a manifest are options of the bundle, with the defaults of phil/elear
   `statesOf()` and `erase()`; `HttpLearningRecordStore::$endpoint`, without the credentials.
 - The vectors of `tests/js/fixture/review.json`, run by the server and the browser alike, and the translations of the
   review and of the time up in English and French.
+- The activity type `xapi`, `XapiActivity`, for the activities of xAPI packages: its settings `activity_id`, `url` or
+  `path` and `query`, `launch_method` and `mastery_score`. `XapiLauncher` launches it with the parameters `endpoint`,
+  `auth`, `actor`, `registration` and `activity_id`, the token of a session of its own given at once; the session
+  still open is abandoned.
+- `XapiStatements`, which receives the statements of an xAPI activity at the xAPI endpoint of cmi5, `XapiRules`, which
+  checks them — the actor the learner of the session, a verb named by an IRI and never `voided`, an object that is an
+  activity or a statement reference, the registration of the launch, a UUID identifier, a scaled score from -1 to 1 —,
+  `XapiOutcomes`, which reads the completion, the success and the score of `completed`, `passed` and `failed` about
+  the activity launched, with its mastery score, `XapiContext` and `XapiVerb`. The state documents of an xAPI
+  activity belong to its `activity_id`.
+- `StatementBatch`, the bounds of the body of a request to the statements resource, shared by cmi5 and xAPI.
+- `LaunchUrl`, the parameters of a launch added to the URL of its content, before its fragment.
+- The import of xAPI packages: an archive holding `tincan.xml` and neither `cmi5.xml` nor `imsmanifest.xml` is read by
+  the `XapiPackageReader` port, named in `phil_courses.import.xapi_reader`, into an `XapiPackage` of `XapiLaunchable`
+  activities, which `XapiPlanner` turns into a course of one module; without a reader, it is refused.
+  `CourseOrigin::Xapi`.
+- The mandatory training: `Assignments` assigns a course to a learner, a group or a unit by a due moment, reaches the
+  members an `AssigneeMembers` adapter names — at most `phil_courses.training.max_members` —, enrolls them, gives each
+  an `Obligation` and tells them; a member who completed the course already starts completed. `Assignment`,
+  `AssigneeKind`, `ObligationState`, `TrainingStatus`, the learner's courses with `of()` and those overdue or due soon
+  with `attention()`.
+- `TrainingRun`, with `TrainingReport` and `TrainingSettings`: the new members of groups and units, the reminders before,
+  on and after the due moment once a cycle, the person who assigned the course told once it is overdue, and the
+  renewal of the recertifications; the obligations read a batch at a time. `ReminderStage`, `TrainingNotice`.
+- Recertification: an assignment renewed after 1 to 120 months, its renewal read by phil/recurrence through
+  `Recertification`, the next cycle due `phil_courses.training.renewal_grace_days` after it, the learner's enrollment
+  starting again with `Enrollments::renew()`, `Enrollment::reopen()` and `EnrollmentRepository::removeProgresses()`.
+- `RunTraining`, its handler, and the schedule `phil_courses_training` of Symfony Scheduler, every day at
+  `phil_courses.training.run_at` in the site's time zone; `phil:courses:training` runs it from the console.
+- The `TrainingNotifier` port and `NotificationsTrainingNotifier`, which sends the types `courses.training.assigned`,
+  `due_soon`, `due`, `overdue`, `overdue_manager` and `renewed` through phil/notifications-bundle, identifiers only; the
+  bundle declares them, with their templates in English and French.
+- Credits in continuing education units or hours, `Credits` and `CreditUnit`, set with `Transcripts::credit()` or
+  `phil:courses:credits`; `TrainingCompletions`, which completes the obligations then enters each completion in the
+  learner's transcript, `TranscriptEntry`; `Transcript`, its totals, its array and its CSV, whose cells read as formulas
+  are quoted.
+- The pages `phil_courses_training` and `phil_courses_transcript` — as a page, `.json` and `.csv` — for the learner, and
+  `phil_courses_admin_training` and `phil_courses_admin_transcript` for the managers who hold
+  `phil_courses.training.manager_role`; `TrainingController` and the templates `training`, `training_admin` and
+  `transcript`.
+- `phil:courses:assign`, which assigns a course by the last day to complete it in the site's time zone.
+- `TrainingPrivacy`: the obligations and the transcript of a learner in the access and erasure requests of
+  phil/privacy-bundle, under the module `courses_training`; the transcripts survive an erasure with
+  `phil_courses.training.keep_transcripts`.
+- The events `TrainingAssigned`, `ObligationOverdue`, `ObligationRenewed`, `EnrollmentRenewed` and `CreditsGranted`.
+- The tables `phil_course_assignment`, `phil_course_obligation`, `phil_course_transcript` and `phil_course_credits`;
+  `AssignmentRepository`, `TranscriptRepository`, `DbalAssignmentRepository` and `DbalTranscriptRepository`.
+- The configuration `phil_courses.training`, and the documentation pages xAPI activities, mandatory training, and
+  credits and transcripts.
 
 ### Changed
 
@@ -55,6 +107,15 @@ budgets of a manifest are options of the bundle, with the defaults of phil/elear
   `phil_course_scorm_attempt`; with the ORM, `doctrine:migrations:diff` writes the same migration. The attempts kept
   before count their time from their next session.
 - Upgrade: an application that implements `LaunchSessionRepository` adds `ofEnrollments()` and `removeOfEnrollments()`.
+- The xAPI endpoint receives the statements of the sessions of xAPI activities through `XapiStatements`, and those of
+  cmi5 through the rules of cmi5; `Cmi5Controller` takes `XapiStatements` as its last argument.
+- `Cmi5Privacy` gives and erases the launch sessions and statements of the xAPI activities with those of cmi5.
+- `ImportPlan::$format` and `ImportReport::$format` are a `CourseOrigin`, of the same values as the format of the
+  package; `CourseOrigin::of()` names the origin of a format by its value.
+- The bundle requires phil/recurrence.
+- Upgrade: an application that implements `EnrollmentRepository` adds `removeProgresses()`; `CourseTables::upgrade()`
+  adds the four tables of the mandatory training, and with the ORM `doctrine:migrations:diff` writes the same
+  migration.
 
 ## 0.1.0-alpha - 2026-11-18
 

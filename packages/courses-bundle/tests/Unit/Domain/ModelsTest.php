@@ -10,7 +10,6 @@ use Phil\CoursesBundle\Domain\Cmi5\Cmi5Verb;
 use Phil\CoursesBundle\Domain\Cmi5\SessionState;
 use Phil\CoursesBundle\Domain\Course\CourseOrigin;
 use Phil\CoursesBundle\Domain\Exception\InvalidCourse;
-use Phil\CoursesBundle\Domain\Exception\PackageRefused;
 use Phil\CoursesBundle\Domain\Model\Activity;
 use Phil\CoursesBundle\Domain\Model\Block;
 use Phil\CoursesBundle\Domain\Model\Course;
@@ -356,9 +355,7 @@ final class ModelsTest extends TestCase
         self::assertSame(CourseOrigin::Scorm12, CourseOrigin::of(PackageFormat::Scorm12));
         self::assertSame(CourseOrigin::Scorm2004, CourseOrigin::of(PackageFormat::Scorm2004));
         self::assertSame(CourseOrigin::Cmi5, CourseOrigin::of(PackageFormat::Cmi5));
-
-        $this->expectException(PackageRefused::class);
-        CourseOrigin::of(PackageFormat::Xapi);
+        self::assertSame(CourseOrigin::Xapi, CourseOrigin::of(PackageFormat::Xapi));
     }
 
     /**

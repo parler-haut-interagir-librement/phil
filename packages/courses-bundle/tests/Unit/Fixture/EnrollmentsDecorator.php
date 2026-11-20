@@ -67,6 +67,12 @@ abstract class EnrollmentsDecorator implements EnrollmentRepository
     }
 
     #[Override]
+    public function removeProgresses(EnrollmentId $enrollment): void
+    {
+        $this->inner->removeProgresses($enrollment);
+    }
+
+    #[Override]
     public function satisfactions(EnrollmentId $enrollment): array
     {
         return $this->inner->satisfactions($enrollment);

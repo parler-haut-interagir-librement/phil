@@ -3,8 +3,8 @@
 ## Courses, modules and activities
 
 A **course** has a title, a description, an origin — written in the application, or imported from a SCORM 1.2,
-SCORM 2004 or cmi5 package, whose identifier it keeps as its source — and whether its activities must be taken in order.
-It holds **modules** in order, up to 500, and each module holds **activities** in order, up to 500.
+SCORM 2004, cmi5 or xAPI package, whose identifier it keeps as its source — and whether its activities must be taken
+in order. It holds **modules** in order, up to 500, and each module holds **activities** in order, up to 500.
 
 `Courses` writes and reads them:
 
@@ -28,6 +28,7 @@ An activity has a **type**, which names the adapter that checks its settings and
 | `link` | `url`, an absolute address | In its own window | The learner |
 | `scorm` | `path` and `query` of its launch file, `scorm_version`, `time_limit` — its own time limit, in seconds —, and what the import read of the manifest | Framed, from the content origin, under the SCORM run time | Its content, through the run time; the learner when the run time is off |
 | `cmi5` | `au_id`, `url` or `path` and `query`, `launch_method`, `mastery_score`, `launch_parameters`, `entitlement_key` | Framed, or in its own window when it asks to | Its own statements only |
+| `xapi` | `activity_id`, `url` or `path` and `query`, `launch_method`, `mastery_score` | Framed, or in its own window when it asks to | Its own `completed`, `passed` and `failed` statements only; see [xAPI activities](xapi-activities.md) |
 
 An application adds its own types: see [Extension points](extension-points.md).
 
@@ -171,7 +172,8 @@ The bundle dispatches these events through the PSR-14 dispatcher; each carries i
 | `RetryRequested`, `RetryGranted`, `RetryRefused`, `RetryWaived` | A second chance was asked for, granted or refused, or its activity waived |
 | `BlockSatisfied` | The platform issued the `satisfied` statement of a block of a cmi5 course for an enrollment |
 | `CourseImported` | A course was imported from a package |
-| `StatementRecorded` | A cmi5 statement was accepted or issued, and handed to the learning record store |
+| `StatementRecorded` | A cmi5 or xAPI statement was accepted or issued, and handed to the learning record store |
+| `TrainingAssigned`, `ObligationOverdue`, `ObligationRenewed`, `EnrollmentRenewed`, `CreditsGranted` | The mandatory training: see [mandatory training](mandatory-training.md#events) |
 
 ## The pages
 
@@ -182,6 +184,8 @@ The bundle dispatches these events through the PSR-14 dispatcher; each carries i
 | `phil_courses_launch` | The activity page: the text of a page, the content framed from the content origin, or the link to its window |
 | `phil_courses_complete` | Marks an activity done, when its type lets the learner |
 | `phil_courses_retry` | Asks for a second chance |
+| `phil_courses_training` | The learner's assigned courses and where they stand; see [mandatory training](mandatory-training.md) |
+| `phil_courses_transcript` | The learner's transcript, as a page, JSON or CSV; see [credits and transcripts](credits-and-transcripts.md) |
 
 Every form carries the stateless CSRF token `phil_courses`, and a request the browser says came from another site is
 refused. The pages answer `Cache-Control: no-store`.

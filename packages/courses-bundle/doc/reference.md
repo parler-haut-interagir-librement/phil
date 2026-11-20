@@ -8,9 +8,9 @@
 | `config/routes.php` | The routes of the pages |
 | `config/cmi5_routes.php` | The fetch URL and the xAPI endpoint |
 | `config/content_routes.php` | The files of the imported packages and the frame of the SCORM run time, on the content origin |
-| `config/admin_routes.php` | The administration page of the second chances |
-| `templates/` | `layout`, `outline`, `activity` and `second_chances`, drawn with the recipes of the kit |
-| `translations/` | The words of the pages, in English and French |
+| `config/admin_routes.php` | The administration pages: the second chances, the training overdue or due soon, the transcripts |
+| `templates/` | `layout`, `outline`, `activity`, `second_chances`, `training`, `training_admin` and `transcript`, drawn with the recipes of the kit |
+| `translations/` | The words of the pages, and the notifications of the mandatory training in the domain `phil_notifications`, in English and French |
 | `assets/src/scorm_runtime_controller.js` | The Stimulus controller of the activity page of a SCORM session: frames the frame, sends the commits |
 | `assets/src/scorm_frame.js`, `assets/src/lib/api.js`, `assets/src/lib/cmi.js` | The frame of the run time on the content origin, the run-time API, and the data model in the browser |
 | `recipe/0.1` | The Flex recipe: the bundle, its configuration and its routes |
@@ -30,6 +30,13 @@
 | `Domain\Model\ScormAttempt` | A SCORM attempt: number, version, state, session, tracking data, status, total time |
 | `Domain\Scorm\AttemptState` | `running`, `paused`, `suspended`, `ended` |
 | `Domain\ValueObject\ScormAttemptId` | The identifier of a SCORM attempt |
+| `Domain\Model\Assignment` | A course assigned to a learner, a group or a unit: due moment, renewal, who assigned it |
+| `Domain\Model\Obligation` | A learner's share of an assignment: cycle, due moment, completion, renewal, reminders sent |
+| `Domain\Model\TranscriptEntry` | A completion in a learner's transcript: course and its title, moment, credits, assignment and cycle |
+| `Domain\Training\AssigneeKind`, `ObligationState`, `ReminderStage`, `TrainingNotice`, `CreditUnit` | Who a course is assigned to, where a learner stands, the reminders, the notices, the units of credits |
+| `Domain\ValueObject\AssignmentId`, `TranscriptEntryId` | The identifiers of an assignment and of a transcript entry |
+| `Domain\ValueObject\Credits` | Credits in hundredths, with their unit |
+| `Domain\Xapi\XapiVerb` | The verbs of ADL an xAPI activity reports with, and `voided` |
 | `Domain\ValueObject\CourseId`, `ModuleId`, `BlockId`, `ActivityId`, `EnrollmentId`, `RetryRequestId`, `LaunchSessionId` | Identifiers, UUID version 7 when the bundle draws them |
 | `Domain\ValueObject\LearnerId` | A learner's stable identifier, never an e-mail address |
 | `Domain\ValueObject\Release` | At once, on a moment, or days after the enrollment |
@@ -39,12 +46,12 @@
 | `Domain\Progress\CompletionRequirement` | The values of cmi5's `moveOn` |
 | `Domain\Progress\AvailabilityStatus` | `open`, `satisfied`, `scheduled`, `locked`, `retry_needed`, `retry_requested` |
 | `Domain\Progress\RetryDecision` | `pending`, `granted`, `refused`, `waived` |
-| `Domain\Course\CourseOrigin` | `native`, `scorm12`, `scorm2004`, `cmi5`; `of()` the format of a package |
+| `Domain\Course\CourseOrigin` | `native`, `scorm12`, `scorm2004`, `cmi5`, `xapi`; `of()` the format of a package |
 | `Domain\Cmi5\Cmi5Verb`, `Cmi5Iri`, `SessionState` | The verbs, IRIs and session states of cmi5; the launch methods are phil/elearning-packages' `LaunchMethod` |
-| `Domain\Contract\CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`, `LaunchSessionRepository`, `ScormAttemptRepository` | The stores |
+| `Domain\Contract\CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`, `LaunchSessionRepository`, `ScormAttemptRepository`, `AssignmentRepository`, `TranscriptRepository` | The stores |
 | `Domain\Event\ScormSessionEnded` | A session of a SCORM activity ended, and whether its attempt did |
 | `Domain\Exception\AttemptRefused` | A commit refused: its token, its learner or its session is not the attempt's |
-| `Domain\Event\*` | `LearnerEnrolled`, `ActivityProgressed`, `ActivitySatisfied`, `CourseCompleted`, `RetryRequested`, `RetryGranted`, `RetryRefused`, `RetryWaived`, `BlockSatisfied`, `CourseImported`, `StatementRecorded` |
+| `Domain\Event\*` | `LearnerEnrolled`, `ActivityProgressed`, `ActivitySatisfied`, `CourseCompleted`, `RetryRequested`, `RetryGranted`, `RetryRefused`, `RetryWaived`, `BlockSatisfied`, `CourseImported`, `StatementRecorded`, `TrainingAssigned`, `ObligationOverdue`, `ObligationRenewed`, `EnrollmentRenewed`, `CreditsGranted` |
 | `Domain\Exception\CoursesException` | What every failure of the bundle is |
 | `Domain\Exception\InvalidCourse`, `UnknownRecord`, `ActivityUnavailable`, `PackageRefused`, `StatementRefused`, `RecordStoreUnavailable` | A value refused, a record missing, an activity not open, a package refused, a statement refused, a statement the learning record store did not keep |
 | `Domain\Identifiers` | The shape of identifiers and titles |
@@ -60,13 +67,14 @@
 | `Application\Learning` | Launches an activity and marks it done for the learner |
 | `Application\SecondChances`, `RetryReview` | Second chances asked for, granted, refused or waived, and their review |
 | `Application\ActivityTypes` | The activity types by name |
-| `Application\ActivityType\PageActivity`, `LinkActivity`, `ScormActivity`, `Cmi5Activity` | The adapters of the activity types |
-| `Application\Launch`, `LaunchWindow` | Where the learner goes to take an activity |
+| `Application\ActivityType\PageActivity`, `LinkActivity`, `ScormActivity`, `Cmi5Activity`, `XapiActivity` | The adapters of the activity types |
+| `Application\Launch`, `LaunchWindow`, `LaunchUrl` | Where the learner goes to take an activity, and the parameters added to its URL |
 | `Application\ContentUrls` | The addresses of the files on the content origin |
 | `Application\CourseOutline`, `ModuleOutline`, `ActivityStatus` | A course read as an outline, and where an activity stands |
-| `Application\Contract\ActivityType`, `CurrentLearner`, `ContentStorage`, `LearningRecordStore`, `Cmi5Endpoints` | The ports; the packages are opened through the `PackageOpener` of phil/elearning-packages |
+| `Application\Contract\ActivityType`, `CurrentLearner`, `ContentStorage`, `LearningRecordStore`, `Cmi5Endpoints`, `XapiPackageReader`, `AssigneeMembers`, `TrainingNotifier` | The ports; the packages are opened through the `PackageOpener` of phil/elearning-packages |
 | `Application\Import\CourseImporter` | Imports a package or a course structure, read by phil/elearning-packages |
-| `Application\Import\ScormPlanner`, `Cmi5Planner`, `ImportPlan`, `PlannedModule`, `PlannedBlock`, `PlannedActivity` | Turn a manifest into a course to create |
+| `Application\Import\ScormPlanner`, `Cmi5Planner`, `XapiPlanner`, `ImportPlan`, `PlannedModule`, `PlannedBlock`, `PlannedActivity` | Turn a manifest into a course to create |
+| `Application\Import\XapiPackage`, `XapiLaunchable` | What a reader of xAPI packages found |
 | `Application\Import\ImportReport` | What an import created and left out |
 | `Application\Import\ResultImporter`, `ScormStatus` | Imported results |
 | `Application\Scorm\ScormRuntime` | Opens the sessions of SCORM attempts, keeps their commits, ends them — at their deadline too — and records their outcome; opens an ended attempt for review |
@@ -79,6 +87,15 @@
 | `Application\Cmi5\StatementRules` | The rules of cmi5 |
 | `Application\Cmi5\PlatformStatements`, `LaunchData`, `Cmi5Context`, `Cmi5Settings` | The platform's statements, the launch data, the context of a launch, the settings |
 | `Application\Cmi5\IssueWaivedStatement` | Issues the `waived` statement of a waived unit, then the `satisfied` statements it brings |
+| `Application\Xapi\XapiLauncher` | Launches an xAPI activity with the parameters xAPI packages read |
+| `Application\Xapi\XapiStatements`, `XapiRules`, `XapiOutcomes`, `XapiContext` | Receives the statements of an xAPI activity, checks them, reads their outcome |
+| `Application\Xapi\StatementBatch` | The bounds of the body of a request to the statements resource |
+| `Application\Training\Assignments`, `TrainingStatus` | Assigns courses, reaches the members of groups and units, completes the obligations, and where a learner stands |
+| `Application\Training\TrainingRun`, `TrainingReport`, `TrainingSettings` | A run of reminders, renewals and new members, and its settings |
+| `Application\Training\Recertification` | When a completion is renewed, through phil/recurrence |
+| `Application\Training\Transcripts`, `Transcript` | The credits of the courses and the transcripts, as an array and CSV |
+| `Application\Training\TrainingCompletions` | Listens to `CourseCompleted`: the obligations, then the transcript |
+| `Application\Message\RunTraining`, `Application\Handler\RunTrainingHandler` | The message of the schedule and its handler |
 | `Application\Cmi5\Cmi5Satisfaction` | Issues the `satisfied` statements of the blocks and of the course, once for each enrollment; internal, reached through `Cmi5Statements::satisfy()` |
 
 ## Infrastructure
@@ -96,11 +113,16 @@
 | `Infrastructure\Http\ScormController`, `ScormCommitPayload` | The commit endpoint of the SCORM sessions, and the body it reads |
 | `Infrastructure\Http\ScormFrameController` | The frame of the SCORM run time, on the content origin |
 | `Infrastructure\Doctrine\DbalScormAttemptRepository` | The SCORM attempts through DBAL |
+| `Infrastructure\Doctrine\DbalAssignmentRepository`, `DbalTranscriptRepository` | The assignments, obligations, transcripts and credits through DBAL |
+| `Infrastructure\Http\TrainingController` | The learner's training and transcript, the managers' pages |
+| `Infrastructure\Notifications\NotificationsTrainingNotifier` | The notices of the training through phil/notifications-bundle, and the types it declares |
+| `Infrastructure\Scheduler\TrainingSchedule` | The schedule `phil_courses_training` |
+| `Infrastructure\Privacy\TrainingPrivacy` | The obligations and the transcript in the access and erasure requests of phil/privacy-bundle |
 | `Infrastructure\Privacy\ScormPrivacy` | The SCORM attempts in the access and erasure requests of phil/privacy-bundle |
-| `Infrastructure\Privacy\Cmi5Privacy` | The cmi5 launch sessions, statements, state documents and notes of the `satisfied` statements in the access and erasure requests of phil/privacy-bundle, and what a store outside the bundle keeps |
+| `Infrastructure\Privacy\Cmi5Privacy` | The cmi5 and xAPI launch sessions, statements, state documents and notes of the `satisfied` statements in the access and erasure requests of phil/privacy-bundle, and what a store outside the bundle keeps |
 | `Infrastructure\Http\SecondChancesController` | The administration page of the second chances |
 | `Infrastructure\Routing\RoutedCmi5Endpoints` | The URLs of the endpoint and the fetch URL |
-| `Infrastructure\Console\ImportCommand`, `ImportResultsCommand`, `RetriesCommand` | The commands |
+| `Infrastructure\Console\ImportCommand`, `ImportResultsCommand`, `RetriesCommand`, `AssignCommand`, `CreditsCommand`, `TrainingCommand` | The commands |
 | `Infrastructure\Audit\AuditSecondChances` | The trail of the second chances |
 | `Infrastructure\Security\SecurityCurrentLearner` | The learner from Symfony Security |
 | `Infrastructure\Twig\CoursesExtension`, `KitComponents` | `phil_courses_kit()` and the names of the recipes |
@@ -110,6 +132,9 @@
 
 | Command | What it does |
 |---|---|
-| `phil:courses:import <path> [--title=]` | Imports a SCORM or cmi5 package, or a cmi5 course structure |
+| `phil:courses:import <path> [--title=]` | Imports a SCORM, cmi5 or xAPI package, or a cmi5 course structure |
 | `phil:courses:import-results <course> <file>` | Imports a CSV export of results |
 | `phil:courses:retries [--grant=] [--refuse=] [--waive=] [--by=] [--note=]` | Lists the second chances, or grants, refuses or waives one with the teacher's note |
+| `phil:courses:assign <course> <kind> <assignee> <due> [--renew-months=] [--by=]` | Assigns a course to a learner, a group or a unit, due by the end of a day in the site's time zone |
+| `phil:courses:credits <course> <amount> [--unit=]` | Sets the credits a course grants, in `ceu` or `hours`; `0` for none |
+| `phil:courses:training` | Runs the reminders, the renewals and the new members of groups and units now |

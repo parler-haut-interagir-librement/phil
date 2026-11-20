@@ -6,6 +6,9 @@ namespace Phil\CoursesBundle\Tests\Benchmark;
 
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Context;
 use Phil\CoursesBundle\Application\Cmi5\StatementRules;
+use Phil\CoursesBundle\Application\Xapi\XapiContext;
+use Phil\CoursesBundle\Application\Xapi\XapiOutcomes;
+use Phil\CoursesBundle\Application\Xapi\XapiRules;
 use Phil\CoursesBundle\Domain\Cmi5\Cmi5Verb;
 use Phil\CoursesBundle\Domain\Cmi5\SessionState;
 use Phil\CoursesBundle\Domain\Model\Enrollment;
@@ -17,6 +20,7 @@ use Phil\CoursesBundle\Tests\Unit\Fixture\Store;
 
 /**
  * What the platform pays on its hot paths: checking a statement an assignable unit sends against the rules of cmi5,
+ * checking a statement of an xAPI activity and reading its outcome,
  * placing every activity of a course of ten modules of ten activities for a learner half-way through it, and the
  * commit of a SCORM session — the token checked, the attempt read, the values checked and kept — whose attempt holds
  * fifty interactions already.
@@ -27,6 +31,11 @@ final readonly class CoursesBench
 
     /** @var array<string, mixed> */
     private array $statement;
+
+    private XapiContext $xapi;
+
+    /** @var array<string, mixed> */
+    private array $xapiStatement;
 
     private Store $store;
 
@@ -41,6 +50,14 @@ final readonly class CoursesBench
     {
         $this->context = new Cmi5Context('https://learn.example.org/', 'ada', 'https://learn.example.org/courses/activities/a1', 'https://example.org/au', 'https://learn.example.org/courses/c1', 'r-1', 's-1', CompletionRequirement::CompletedAndPassed, 0.8);
         $this->statement = Statements::passed($this->context, 0.9);
+        $this->xapi = new XapiContext('https://learn.example.org/', 'ada', 'https://example.org/xapi/knots', 'r-1', 's-1', 0.8);
+        $this->xapiStatement = [
+            'actor' => ['objectType' => 'Agent', 'account' => ['homePage' => 'https://learn.example.org/', 'name' => 'ada']],
+            'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/passed'],
+            'object' => ['objectType' => 'Activity', 'id' => 'https://example.org/xapi/knots'],
+            'result' => ['score' => ['scaled' => 0.9], 'completion' => true],
+            'context' => ['registration' => 'r-1'],
+        ];
         $this->store = new Store();
         $course = $this->store->courses->create('Bench', '', true);
 
@@ -83,6 +100,11 @@ final readonly class CoursesBench
     public function benchCheckAStatementOfAnotherVerb(): void
     {
         StatementRules::check(Statements::of($this->context, Cmi5Verb::Initialized), $this->context, SessionState::Launched, null);
+    }
+
+    public function benchCheckAnXapiStatementAndReadItsOutcome(): void
+    {
+        XapiOutcomes::of(XapiRules::check($this->xapiStatement, $this->xapi), $this->xapi);
     }
 
     public function benchPlaceTheActivitiesOfACourse(): void

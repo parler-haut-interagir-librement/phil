@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9e1dee7e8305ff312f8115665496342c40324823f4cfb4a474331841c1a3a23c -->
+<!-- phil-dev source-sha256=35d0170aba70c8e94f9fd17ec019ca2d373dc63712dff4703d05e3127f01997f -->
 # cmi5
 
 Le bundle importe des cours cmi5, lance leurs unités assignables comme l'exige cmi5, et reçoit leurs énoncés par un point
@@ -76,6 +76,10 @@ HTTP Basic avec chaque requête xAPI.
 Chaque requête sauf `about` porte le jeton d'une session ouverte et l'en-tête `X-Experience-API-Version: 1.0.x`. Une
 requête d'état nomme l'activité, l'agent et l'enregistrement de sa session. Les requêtes d'origine croisée reçoivent une
 réponse pour l'origine du contenu et `phil_courses.cmi5.allowed_origins`, jamais pour une origine quelconque.
+
+Les sessions des [activités xAPI](xapi-activities.md) parlent au même point de terminaison : leurs énoncés passent les
+vérifications des activités xAPI au lieu des règles de cmi5, et leurs documents d'état appartiennent à l'identifiant
+d'activité de leur paquet ; les données de lancement sont celles de cmi5 seulement.
 
 ## Les règles de cmi5
 
@@ -209,7 +213,8 @@ d'état dans l'entrepôt distant écrit son propre adaptateur du port, nommé da
 
 Avec phil/privacy-bundle installé, `Cmi5Privacy` donne les enregistrements cmi5 d'un apprenant dans une demande d'accès
 et les efface dans une demande d'effacement, sous le module `courses_cmi5`. L'apprenant est l'identifiant stable sous
-lequel les cours le connaissent ; ses données sont celles des enregistrements (registrations) de ses inscriptions.
+lequel les cours le connaissent ; ses données sont celles des enregistrements (registrations) de ses inscriptions, les sessions de lancement et les
+énoncés de ses [activités xAPI](xapi-activities.md) compris.
 
 | Enregistrement | Demande d'accès | Demande d'effacement |
 |---|---|---|

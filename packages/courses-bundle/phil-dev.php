@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Phil\CoursesBundle\Application\Scorm\ScormRuntime;
+use Phil\CoursesBundle\Infrastructure\Doctrine\CourseTables;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalScormAttemptRepository;
 
 /*
@@ -23,7 +24,10 @@ return [
             'UnwrapRtrim' => ['ignoreSourceCodeByRegex' => ['.*rtrim\\(\\$directory, \'/\'\\).*']],
             // The columns of a primary key are never null, whatever they are declared; `isset` is true for a key whose value
             // is `false`, and the walk and the holding blocks only need the keys.
-            'TrueValue' => ['ignoreSourceCodeByRegex' => [
+            'TrueValue' => ['ignore' => [
+                // The learner of an obligation is a column of its primary key, which the schema makes not null.
+                CourseTables::class.'::tables::315',
+            ], 'ignoreSourceCodeByRegex' => [
                 '.*self::column\\(\'(activity_hash|state_id)\'.*',
                 '.*\\$(seen|holding)\\[\\$block\\] = true;.*',
                 // The activities with an ended attempt are read by their keys: the value only marks them.
@@ -42,6 +46,8 @@ return [
             // An offset below zero reads as zero, the default included.
             'DecrementInteger' => ['ignoreSourceCodeByRegex' => [
                 '.*public function all\\(int \\$limit = 50, int \\$offset = 0\\).*',
+                // The pages are read with an offset of zero at least; SQLite reads a negative one as zero, MySQL and PostgreSQL refuse it.
+                '.*max\\(1, \\$limit\\)\\.. OFFSET .\\.max\\(0, \\$offset\\).*',
                 // A commit holds a body of three levels at most: a deeper limit only decides which of two refusals comes first.
                 '.*json_decode\\(\\$json, true, 4, .*',
             ]],
@@ -79,11 +85,12 @@ return [
         ],
     ],
     'fuzz' => [
-        // The checks of the cmi5 statements and the body of a SCORM commit on bytes nobody wrote, from the seeds of
+        // The checks of the cmi5 and xAPI statements and the body of a SCORM commit on bytes nobody wrote, from the seeds of
         // tests/Fuzz/corpus/<target>.
         'targets' => [
             'cmi5-statement' => 'tests/Fuzz/cmi5-statement.php',
             'scorm-commit' => 'tests/Fuzz/scorm-commit.php',
+            'xapi-statement' => 'tests/Fuzz/xapi-statement.php',
         ],
     ],
     'docs' => [

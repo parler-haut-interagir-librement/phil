@@ -70,6 +70,10 @@ unit sends it as HTTP Basic credentials with each xAPI request.
 | `agents/profile` | `GET` | Not found: the platform keeps no learner preferences; writing one is refused |
 | `about` | `GET` | `{"version": ["1.0.3"]}` |
 
+The sessions of [xAPI activities](xapi-activities.md) talk to the same endpoint: their statements pass the checks of
+xAPI activities instead of the rules of cmi5, and their state documents belong to the activity identifier of their
+package; the launch data is cmi5's only.
+
 Every request but `about` carries the token of an open session and the header `X-Experience-API-Version: 1.0.x`. A
 state request names the activity, agent and registration of its session. Cross-origin requests are answered for the
 content origin and `phil_courses.cmi5.allowed_origins`, never for any origin.
@@ -201,7 +205,8 @@ store writes its own adapter of the port, named in `phil_courses.cmi5.lrs`.
 
 With phil/privacy-bundle installed, `Cmi5Privacy` gives the cmi5 records of a learner in an access request and erases
 them in an erasure request, under the module `courses_cmi5`. The learner is the stable identifier the courses know them
-by; their records are those of the registrations of their enrollments.
+by; their records are those of the registrations of their enrollments, the launch sessions and statements of their
+[xAPI activities](xapi-activities.md) included.
 
 | Record | Access request | Erasure request |
 |---|---|---|

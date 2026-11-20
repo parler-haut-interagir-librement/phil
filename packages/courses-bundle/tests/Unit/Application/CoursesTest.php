@@ -102,7 +102,7 @@ final class CoursesTest extends TestCase
         $store = new Store();
         $module = $store->courses->addModule($store->courses->create('C')->id, 'M');
 
-        self::assertSame(['page', 'link', 'scorm', 'cmi5'], $store->types->names());
+        self::assertSame(['page', 'link', 'scorm', 'cmi5', 'xapi'], $store->types->names());
         self::assertTrue($store->types->has('page'));
         self::assertFalse($store->types->has('quiz'));
 
@@ -110,7 +110,7 @@ final class CoursesTest extends TestCase
             $store->courses->addActivity($module->id, 'A', 'quiz');
             self::fail('The type is accepted.');
         } catch (InvalidCourse $invalidCourse) {
-            self::assertSame('No activity type is named "quiz"; the types are: page, link, scorm, cmi5.', $invalidCourse->getMessage());
+            self::assertSame('No activity type is named "quiz"; the types are: page, link, scorm, cmi5, xapi.', $invalidCourse->getMessage());
         }
 
         $this->expectException(InvalidCourse::class);

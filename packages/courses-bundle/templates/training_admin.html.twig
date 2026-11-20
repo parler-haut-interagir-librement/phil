@@ -1,0 +1,38 @@
+{#
+ # The obligations overdue or due soon of every learner, the earliest due first, for a manager: the learner, with the
+ # link to their transcript, the course, the due date and where they stand — the recipe `Badge` of the kit.
+ #
+ # statuses: list of TrainingStatus.
+ #}
+{% extends layout %}
+
+{% block title %}{{ 'training.admin_title'|trans({}, 'phil_courses') }}{% endblock %}
+
+{% block main %}
+<h1>{{ 'training.admin_title'|trans({}, 'phil_courses') }}</h1>
+{%- if statuses is empty %}
+<p class="phil-courses__none">{{ 'training.admin_none'|trans({}, 'phil_courses') }}</p>
+{%- else %}
+<table class="phil-courses__training">
+    <thead>
+        <tr>
+            <th scope="col">{{ 'admin.learner'|trans({}, 'phil_courses') }}</th>
+            <th scope="col">{{ 'training.course'|trans({}, 'phil_courses') }}</th>
+            <th scope="col">{{ 'training.due'|trans({}, 'phil_courses') }}</th>
+            <th scope="col">{{ 'training.state'|trans({}, 'phil_courses') }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {%- for status in statuses %}
+        {%- set state = status.state.value %}
+        <tr class="phil-courses__obligation is-{{ state|replace({_: '-'}) }}">
+            <th scope="row"><a href="{{ path('phil_courses_admin_transcript', {learner: status.obligation.learner.value}) }}">{{ status.obligation.learner.value }}</a></th>
+            <td>{{ status.course.title }}</td>
+            <td><time datetime="{{ status.obligation.dueAt|date('c') }}">{{ status.obligation.dueAt|date('Y-m-d', false) }}</time></td>
+            <td>{% component (phil_courses_kit('Badge')) with {variant: state == 'overdue' ? 'destructive' : 'outline'} %}{% block content %}{{ ('training.' ~ state)|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}</td>
+        </tr>
+        {%- endfor %}
+    </tbody>
+</table>
+{%- endif %}
+{% endblock %}

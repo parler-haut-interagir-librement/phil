@@ -1,12 +1,12 @@
-<!-- phil-dev source-sha256=6b0572ca4264f9dd72956f046052f1bb55ba800a91c328ec31a680ae6d5cbf66 -->
+<!-- phil-dev source-sha256=cd95d6e0bd46e71bd014a889d387e0d27c621ae9b52e0fde30f7e85953642d18 -->
 # Le modèle de cours
 
 ## Cours, modules et activités
 
 Un **cours** a un titre, une description, une origine — écrit dans l'application, ou importé d'un paquet SCORM 1.2,
-SCORM 2004 ou cmi5, dont il garde l'identifiant comme source — et une indication de l'obligation de suivre ses activités
-dans l'ordre. Il contient des **modules** dans l'ordre, jusqu'à 500, et chaque module contient des **activités** dans
-l'ordre, jusqu'à 500.
+SCORM 2004, cmi5 ou xAPI, dont il garde l'identifiant comme source — et une indication de l'obligation de suivre ses
+activités dans l'ordre. Il contient des **modules** dans l'ordre, jusqu'à 500, et chaque module contient des
+**activités** dans l'ordre, jusqu'à 500.
 
 `Courses` les écrit et les lit :
 
@@ -30,6 +30,7 @@ Une activité a un **type**, qui nomme l'adaptateur qui vérifie ses paramètres
 | `link` | `url`, une adresse absolue | Dans sa propre fenêtre | L'apprenant |
 | `scorm` | `path` et `query` de son fichier de lancement, `scorm_version`, `time_limit` — sa propre limite de temps, en secondes —, et ce que l'import a lu du manifeste | Dans un cadre, depuis l'origine du contenu, sous l'environnement d'exécution SCORM | Son contenu, par l'environnement d'exécution ; l'apprenant quand il est désactivé |
 | `cmi5` | `au_id`, `url` ou `path` et `query`, `launch_method`, `mastery_score`, `launch_parameters`, `entitlement_key` | Dans un cadre, ou dans sa propre fenêtre quand elle le demande | Ses propres énoncés seulement |
+| `xapi` | `activity_id`, `url` ou `path` et `query`, `launch_method`, `mastery_score` | Dans un cadre, ou dans sa propre fenêtre quand elle le demande | Ses propres énoncés `completed`, `passed` et `failed` seulement ; voir [activités xAPI](xapi-activities.md) |
 
 Une application ajoute ses propres types : voir [Points d'extension](extension-points.md).
 
@@ -176,7 +177,8 @@ Le bundle envoie ces événements par le répartiteur PSR-14 ; chacun ne porte q
 | `RetryRequested`, `RetryGranted`, `RetryRefused`, `RetryWaived` | Une seconde chance a été demandée, accordée ou refusée, ou son activité dispensée |
 | `BlockSatisfied` | La plateforme a émis l'énoncé `satisfied` d'un bloc d'un cours cmi5 pour une inscription |
 | `CourseImported` | Un cours a été importé d'un paquet |
-| `StatementRecorded` | Un énoncé cmi5 a été accepté ou émis, et remis à l'entrepôt de traces d'apprentissage |
+| `StatementRecorded` | Un énoncé cmi5 ou xAPI a été accepté ou émis, et remis à l'entrepôt de traces d'apprentissage |
+| `TrainingAssigned`, `ObligationOverdue`, `ObligationRenewed`, `EnrollmentRenewed`, `CreditsGranted` | La formation obligatoire : voir [formation obligatoire](mandatory-training.md#événements) |
 
 ## Les pages
 
@@ -187,6 +189,8 @@ Le bundle envoie ces événements par le répartiteur PSR-14 ; chacun ne porte q
 | `phil_courses_launch` | La page de l'activité : le texte d'une page, le contenu encadré depuis l'origine du contenu, ou le lien vers sa fenêtre |
 | `phil_courses_complete` | Marque une activité terminée, quand son type le permet à l'apprenant |
 | `phil_courses_retry` | Demande une seconde chance |
+| `phil_courses_training` | Les cours assignés à l'apprenant et où il en est ; voir [formation obligatoire](mandatory-training.md) |
+| `phil_courses_transcript` | Le relevé de l'apprenant, en page, JSON ou CSV ; voir [crédits et relevés](credits-and-transcripts.md) |
 
 Chaque formulaire porte le jeton CSRF sans état `phil_courses`, et une requête que le navigateur dit venir d'un autre
 site est refusée. Les pages répondent avec `Cache-Control: no-store`.

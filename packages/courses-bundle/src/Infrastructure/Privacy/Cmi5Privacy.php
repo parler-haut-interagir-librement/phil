@@ -25,10 +25,10 @@ use Phil\PrivacyBundle\Domain\Subject\ErasureReport;
 use Phil\PrivacyBundle\Domain\Subject\ModuleName;
 
 /**
- * The cmi5 records of a learner in an access or erasure request: the person is the learner, named by the stable
- * identifier the courses know them by, and their records are those of the registrations of their enrollments — the
- * launch sessions, the statements and the state documents the store inside the bundle keeps, and the blocks and
- * courses whose `satisfied` statement was issued.
+ * The cmi5 and xAPI records of a learner in an access or erasure request: the person is the learner, named by the
+ * stable identifier the courses know them by, and their records are those of the registrations of their enrollments —
+ * the launch sessions, the statements and the state documents the store inside the bundle keeps, of the cmi5 units and
+ * of the xAPI activities alike, and the blocks and courses whose `satisfied` statement was issued.
  *
  * The export gives each of them, a statement and a document as the JSON they were sent as. The erasure deletes them,
  * and runs again without harm.

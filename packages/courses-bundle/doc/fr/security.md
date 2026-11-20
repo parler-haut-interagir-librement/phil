@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=17763e63e4519dac90029e88e562f5a9b01b8220e62dfaacc1428f6162333c95 -->
+<!-- phil-dev source-sha256=55679662119c112b588a11f69e8a9fb5941366ac2e450209481b3eaf3151abdc -->
 # Sécurité
 
 Un paquet vient d'une autre plateforme, et ses fichiers contiennent des scripts que personne sur ce site n'a écrits.
@@ -104,6 +104,16 @@ croisée reçoivent une réponse pour l'origine du contenu et `cmi5.allowed_orig
 Un énoncé qui enfreint une règle de cmi5 est refusé avant d'atteindre l'entrepôt de traces d'apprentissage, et les
 apprenants sont nommés par compte, jamais par adresse courriel.
 
+## Les activités xAPI
+
+Le jeton d'une activité xAPI est remis au contenu dans l'URL de lancement, comme les paquets xAPI s'y attendent, plutôt
+que par une URL de récupération : il n'ouvre que sa propre session, jusqu'à ce que le lancement suivant l'abandonne ou
+qu'elle expire après `cmi5.session_ttl` secondes, et l'origine du contenu répond avec `Referrer-Policy: no-referrer`,
+pour que l'URL ne parte pas dans un `Referer`. Un énoncé n'est conservé que pour l'apprenant de la session, nommé par le
+même compte, avec l'enregistrement de la session ; un énoncé qui en annule un autre est refusé, pour qu'un résultat
+enregistré demeure. L'import d'un paquet xAPI lit `tincan.xml` par le lecteur configuré seulement, qui borne sa lecture ;
+sans lecteur, le paquet est refusé.
+
 ## L'entrepôt de traces d'apprentissage distant
 
 Les énoncés ne vont à un entrepôt distant que par phil/safe-http : un point de terminaison `https` d'un hôte public, son
@@ -114,6 +124,15 @@ nomment un énoncé, un enregistrement, un apprenant, les identifiants de connex
 nomment l'identifiant de l'énoncé et le statut. Les documents d'état des unités restent dans la base de données de
 l'application et ne sont jamais envoyés à l'entrepôt distant. Un entrepôt sur un réseau privé est refusé, comme
 l'explique [cmi5](cmi5.md#les-limites-de-lentrepôt-distant).
+
+## La formation et les relevés
+
+Les pages de formation et de relevé ne montrent à l'apprenant connecté que ses propres enregistrements ; les pages des
+gestionnaires demandent le rôle de `phil_courses.training.manager_role`, et sont refusées sans vérificateur
+d'autorisation ou sans personne connectée. Chaque réponse est `no-store`. L'exportation CSV précède d'une apostrophe
+une cellule qu'un tableur lirait comme une formule, et est envoyée en pièce jointe avec `nosniff`. Les
+notifications de la formation ne portent que des identifiants. Une assignation joint un nombre borné de membres, et une
+exécution lit les obligations un lot à la fois.
 
 ## La page d'administration
 

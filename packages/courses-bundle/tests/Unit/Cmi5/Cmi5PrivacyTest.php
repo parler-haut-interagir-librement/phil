@@ -15,6 +15,7 @@ use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLaunchSessionRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLearningRecordStore;
 use Phil\CoursesBundle\Infrastructure\Privacy\Cmi5Privacy;
 use Phil\CoursesBundle\Infrastructure\Xapi\HttpLearningRecordStore;
+use Phil\CoursesBundle\Tests\Unit\Fixture\Json;
 use Phil\CoursesBundle\Tests\Unit\Fixture\Store;
 use Phil\PrivacyBundle\Domain\Retention\ErasureEffect;
 use Phil\PrivacyBundle\Domain\Subject\DataSubject;
@@ -99,6 +100,27 @@ final class Cmi5PrivacyTest extends TestCase
         self::assertSame(['registrations', 'launch_sessions', 'statements', 'state_documents', 'satisfactions'], array_keys($privacy->export(DataSubject::fromString('eve'))));
         self::assertCount(1, $this->store->sessionStore->ofEnrollments($this->eve->id));
         self::assertSame(1, Store::count($this->store->connection, 'SELECT COUNT(*) FROM '.CourseTables::STATEMENT));
+    }
+
+    public function testTheRecordsOfAnXapiActivityAreExportedAndErasedWithThoseOfCmi5(): void
+    {
+        $knots = $this->store->courses->addActivity($this->store->courses->outline($this->ada->course)->modules[0]->module->id, 'Knots', 'xapi', ['activity_id' => 'https://example.org/xapi/knots', 'url' => 'https://units.example.net/knots/']);
+        $this->store->learning->launch($this->ada, $knots->id);
+        $session = $this->store->sessionStore->open($this->ada->id, $knots->id)[0];
+        $this->store->xapi->receive($session, (string) json_encode(['actor' => ['account' => ['homePage' => 'https://learn.example.org/', 'name' => 'ada']], 'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed'], 'object' => ['id' => 'https://example.org/xapi/knots']]));
+        $privacy = new Cmi5Privacy($this->store->enrollmentStore, $this->store->sessionStore, $this->store->lrs, $this->store->lrs);
+
+        $export = $privacy->export(DataSubject::fromString('ada'));
+        $sessions = Json::at($export, 'launch_sessions');
+        $statements = Json::at($export, 'statements');
+        self::assertIsArray($sessions);
+        self::assertIsArray($statements);
+        self::assertContains($session->id->value, array_map(static fn (mixed $kept): mixed => Json::at($kept, 'id'), $sessions));
+        self::assertContains('https://example.org/xapi/knots', array_map(static fn (mixed $kept): mixed => \is_array(Json::at($kept, 'statement')) ? Json::at($kept, 'statement', 'object', 'id') : null, $statements));
+
+        $privacy->erase(DataSubject::fromString('ada'));
+        self::assertSame([], $this->store->lrs->statementsOf([$this->ada->registration]));
+        self::assertNull($this->store->sessionStore->find($session->id));
     }
 
     public function testARemoteStoreKeepsTheStatementsAndSaysWhere(): void

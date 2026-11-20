@@ -8,6 +8,7 @@ use DateInterval;
 use Phil\CoursesBundle\Application\ContentUrls;
 use Phil\CoursesBundle\Application\Contract\Cmi5Endpoints;
 use Phil\CoursesBundle\Application\Launch;
+use Phil\CoursesBundle\Application\LaunchUrl;
 use Phil\CoursesBundle\Domain\Cmi5\SessionState;
 use Phil\CoursesBundle\Domain\Contract\LaunchSessionRepository;
 use Phil\CoursesBundle\Domain\Exception\ActivityUnavailable;
@@ -55,7 +56,7 @@ final readonly class Cmi5Launcher
         $session = new LaunchSession(LaunchSessionId::generate(), $enrollment->id, $activity->id, $now, $now->add(new DateInterval(\sprintf('PT%dS', $this->settings->sessionTtl))));
         $this->sessions->save($session);
         $context = Cmi5Context::of($session, $enrollment, $activity, $homePage);
-        $url = $this->withParameters($target, [
+        $url = LaunchUrl::with($target, [
             'endpoint' => $this->endpoints->endpoint(),
             'fetch' => $this->endpoints->fetch($session->id),
             'registration' => $enrollment->registration,
@@ -78,23 +79,5 @@ final readonly class Cmi5Launcher
         $path = $activity->stringSetting('path') ?? throw ActivityUnavailable::because(\sprintf('The assignable unit "%s" names no URL.', $activity->id->value));
 
         return $this->urls->url($activity->course, $path, $activity->stringSetting('query'));
-    }
-
-    /**
-     * The URL with the parameters added to its query, before its fragment.
-     *
-     * @param array<string, string> $parameters
-     */
-    private function withParameters(string $url, array $parameters): string
-    {
-        $fragment = '';
-        $hash = strpos($url, '#');
-
-        if (false !== $hash) {
-            $fragment = substr($url, $hash);
-            $url = substr($url, 0, $hash);
-        }
-
-        return $url.(str_contains($url, '?') ? '&' : '?').http_build_query($parameters, '', '&', \PHP_QUERY_RFC3986).$fragment;
     }
 }
