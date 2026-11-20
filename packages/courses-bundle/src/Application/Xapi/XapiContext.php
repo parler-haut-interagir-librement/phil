@@ -35,7 +35,7 @@ final readonly class XapiContext
             $activity->stringSetting('activity_id') ?? '',
             $enrollment->registration,
             $session->id->value,
-            \is_float($mastery) || \is_int($mastery) ? (float) $mastery : null,
+            \is_float($mastery) || \is_int($mastery) ? $mastery : null,
         );
     }
 

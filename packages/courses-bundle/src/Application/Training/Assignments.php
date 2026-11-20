@@ -155,7 +155,7 @@ final readonly class Assignments
     }
 
     /**
-     * @param list<LearnerId> $learners
+     * @param array<LearnerId> $learners
      */
     private function reach(Assignment $assignment, array $learners): int
     {
@@ -191,7 +191,7 @@ final readonly class Assignments
     }
 
     /**
-     * @return list<LearnerId>
+     * @return array<LearnerId> the members, each once
      */
     private function learners(Assignment $assignment): array
     {
@@ -214,7 +214,7 @@ final readonly class Assignments
                 $learners[$member] = LearnerId::of($member);
             }
 
-            return array_values($learners);
+            return $learners;
         }
 
         throw InvalidCourse::because(\sprintf('No AssigneeMembers service names the members of a %s.', $assignment->kind->value));

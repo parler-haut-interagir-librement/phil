@@ -64,6 +64,18 @@ final class XapiImportTest extends TestCase
         new XapiPlanner()->plan(new XapiPackage('urn:c', 'C', '', []));
     }
 
+    public function testTheIdentifierOfARefusedActivityIsCutAt120Characters(): void
+    {
+        $id = str_repeat('é', 130);
+
+        try {
+            new XapiPlanner()->plan(new XapiPackage('urn:c', 'C', '', [new XapiLaunchable($id, 'A', '../escape.html')]));
+            self::fail('Planned.');
+        } catch (PackageRefused $packageRefused) {
+            self::assertStringStartsWith('The launch of the xAPI activity "'.str_repeat('é', 120).'" is neither', $packageRefused->getMessage());
+        }
+    }
+
     public function testAnXapiPackageIsRefusedWithoutAReader(): void
     {
         $store = new Store();

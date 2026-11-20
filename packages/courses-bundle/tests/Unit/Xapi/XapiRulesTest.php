@@ -45,6 +45,7 @@ final class XapiRulesTest extends TestCase
         $scored = XapiRules::check(['result' => ['score' => ['scaled' => -1]]] + self::statement(XapiVerb::Failed->value), $this->context());
         self::assertSame(-1, Json::at($scored, 'result', 'score', 'scaled'));
         self::assertSame(['result' => ['score' => ['scaled' => 1.0]]], array_intersect_key(XapiRules::check(['result' => ['score' => ['scaled' => 1.0]]] + self::statement(XapiVerb::Passed->value), $this->context()), ['result' => true]));
+        self::assertSame(['result' => ['success' => true]], array_intersect_key(XapiRules::check(['result' => ['success' => true]] + self::statement(XapiVerb::Passed->value), $this->context()), ['result' => true]));
         self::assertSame(['result' => ['score' => []]], array_intersect_key(XapiRules::check(['result' => ['score' => []]] + self::statement(XapiVerb::Passed->value), $this->context()), ['result' => true]));
     }
 

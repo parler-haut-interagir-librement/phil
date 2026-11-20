@@ -19,7 +19,6 @@ use Phil\ElearningPackages\Package;
 use Phil\ElearningPackages\PackageFormat;
 use Phil\ElearningPackages\PackageLimits;
 use Phil\ElearningPackages\PackageReader;
-use Phil\ElearningPackages\Scorm\ScormManifest;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Throwable;
 
@@ -109,22 +108,9 @@ final readonly class CourseImporter
 
     private function plan(Package $package, bool $packaged): ImportPlan
     {
-        return $this->planOfManifest($package->manifest, $packaged, $package->warnings);
-    }
-
-    /**
-     * The plan of a cmi5 course structure or of a SCORM manifest; a description of another format the library reads is
-     * refused, its packages planned before they are read.
-     *
-     * @param list<string> $warnings
-     */
-    private function planOfManifest(object $manifest, bool $packaged, array $warnings): ImportPlan
-    {
-        return match (true) {
-            $manifest instanceof Cmi5Course => new Cmi5Planner()->plan($manifest, $packaged, $warnings),
-            $manifest instanceof ScormManifest => new ScormPlanner()->plan($manifest, $warnings),
-            default => throw PackageRefused::because('The package is described in a format the import plans through "phil_courses.import.xapi_reader" only.'),
-        };
+        return $package->manifest instanceof Cmi5Course
+            ? new Cmi5Planner()->plan($package->manifest, $packaged, $package->warnings)
+            : new ScormPlanner()->plan($package->manifest, $package->warnings);
     }
 
     private function file(string $path): string

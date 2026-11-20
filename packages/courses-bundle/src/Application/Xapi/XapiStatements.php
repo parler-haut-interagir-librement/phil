@@ -74,8 +74,7 @@ final readonly class XapiStatements
             $id = \is_string($statement['id'] ?? null) ? $statement['id'] : Uuid::v4()->toRfc4122();
             $statement['id'] = $id;
             $this->store->store($id, (string) json_encode($statement, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_PRESERVE_ZERO_FRACTION), $context->registration);
-            $verb = \is_array($statement['verb'] ?? null) && \is_string($statement['verb']['id'] ?? null) ? $statement['verb']['id'] : '';
-            $this->events?->dispatch(new StatementRecorded($id, $session->id->value, $verb));
+            $this->events?->dispatch(new StatementRecorded($id, $session->id->value, XapiOutcomes::verbOf($statement)));
             $outcome = XapiOutcomes::of($statement, $context);
 
             if ($outcome instanceof Outcome) {

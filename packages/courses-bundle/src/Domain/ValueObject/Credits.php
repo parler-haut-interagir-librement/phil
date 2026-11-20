@@ -44,7 +44,9 @@ final readonly class Credits
             throw InvalidCourse::because('Credits are written as a number of two decimals at most, such as "1.5".');
         }
 
-        return self::hundredths((int) $match[1] * 100 + (int) str_pad($match[2] ?? '', 2, '0'), $unit);
+        [, $whole, $decimals] = $match + [2 => ''];
+
+        return self::hundredths((int) $whole * 100 + (int) str_pad($decimals, 2, '0'), $unit);
     }
 
     /**

@@ -10,6 +10,7 @@ use Phil\CoursesBundle\Application\LaunchUrl;
 use Phil\CoursesBundle\Application\LaunchWindow;
 use Phil\CoursesBundle\Application\Xapi\XapiContext;
 use Phil\CoursesBundle\Application\Xapi\XapiLauncher;
+use Phil\CoursesBundle\Application\Xapi\XapiOutcomes;
 use Phil\CoursesBundle\Application\Xapi\XapiStatements;
 use Phil\CoursesBundle\Domain\Cmi5\SessionState;
 use Phil\CoursesBundle\Domain\Event\StatementRecorded;
@@ -39,6 +40,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(XapiLauncher::class)]
 #[CoversClass(XapiStatements::class)]
 #[CoversClass(XapiContext::class)]
+#[CoversClass(XapiOutcomes::class)]
 #[CoversClass(LaunchUrl::class)]
 final class XapiRuntimeTest extends TestCase
 {
@@ -220,6 +222,52 @@ final class XapiRuntimeTest extends TestCase
     {
         self::assertSame('https://a.example/x?a=1&b=c%20d#f', LaunchUrl::with('https://a.example/x?a=1#f', ['b' => 'c d']));
         self::assertSame('https://a.example/x?b=1', LaunchUrl::with('https://a.example/x', ['b' => '1']));
+    }
+
+    public function testTheMasteryScoreIsTheNumberTheActivityHoldsAndNothingElse(): void
+    {
+        $session = $this->session();
+
+        foreach ([[1, 1.0], [0.25, 0.25], ['high', null], [null, null]] as [$setting, $expected]) {
+            $activity = new Activity(ActivityId::generate(), $this->knots->course, $this->knots->module, 'Mastery', XapiActivity::NAME, 9, null === $setting ? [] : ['mastery_score' => $setting]);
+
+            self::assertSame($expected, XapiContext::of($session, $this->enrollment, $activity, 'https://learn.example.org/')->masteryScore, var_export($setting, true));
+        }
+    }
+
+    public function testTheStatementsAreKeptAsWrittenWithoutEscapingSlashesOrLetters(): void
+    {
+        $session = $this->session();
+        $this->store->xapi->receive($session, (string) json_encode([
+            'id' => '0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d',
+            'actor' => ['objectType' => 'Agent', 'account' => ['homePage' => 'https://learn.example.org/', 'name' => 'ada']],
+            'verb' => ['id' => 'https://example.org/verbs/experienced', 'display' => ['fr' => 'expérimenté']],
+            'object' => ['objectType' => 'Activity', 'id' => self::IRI],
+            'result' => ['score' => ['raw' => 3.0]],
+        ], \JSON_PRESERVE_ZERO_FRACTION));
+
+        $kept = $this->store->lrs->statementsOf([$this->enrollment->registration]);
+
+        self::assertCount(1, $kept);
+        self::assertStringContainsString('"id":"https://example.org/xapi/knots"', $kept[0]['statement']);
+        self::assertStringContainsString('"fr":"expérimenté"', $kept[0]['statement']);
+        self::assertStringContainsString('"raw":3.0', $kept[0]['statement']);
+    }
+
+    public function testTheVerbOfAStatementIsItsIdentifierOrNothing(): void
+    {
+        self::assertSame('urn:verb', XapiOutcomes::verbOf(['verb' => ['id' => 'urn:verb']]));
+        self::assertSame('', XapiOutcomes::verbOf(['verb' => ['display' => ['en' => 'did']]]));
+        self::assertSame('', XapiOutcomes::verbOf(['verb' => ['id' => 5]]));
+        self::assertSame('', XapiOutcomes::verbOf(['verb' => 'urn:verb']));
+        self::assertSame('', XapiOutcomes::verbOf([]));
+    }
+
+    public function testAStatementIsKeptWithoutADispatcher(): void
+    {
+        $xapi = new XapiStatements($this->store->lrs, $this->store->enrollmentStore, $this->store->courseStore, $this->store->enrollments, $this->store->settings);
+
+        self::assertCount(1, $xapi->receive($this->session(), (string) json_encode($this->statement('https://example.org/verbs/experienced'))));
     }
 
     private function session(): LaunchSession

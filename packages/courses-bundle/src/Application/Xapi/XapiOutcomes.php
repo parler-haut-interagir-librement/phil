@@ -21,12 +21,22 @@ final class XapiOutcomes
     }
 
     /**
+     * @param array<array-key, mixed> $statement
+     *
+     * @return string the identifier of the verb of the statement, empty when it names none
+     */
+    public static function verbOf(array $statement): string
+    {
+        return \is_array($statement['verb'] ?? null) && \is_string($statement['verb']['id'] ?? null) ? $statement['verb']['id'] : '';
+    }
+
+    /**
      * @param array<array-key, mixed> $statement a statement `XapiRules` accepted
      */
     public static function of(array $statement, XapiContext $context): ?Outcome
     {
         $object = \is_array($statement['object'] ?? null) ? $statement['object'] : [];
-        $verb = XapiVerb::tryFrom(\is_array($statement['verb'] ?? null) && \is_string($statement['verb']['id'] ?? null) ? $statement['verb']['id'] : '');
+        $verb = XapiVerb::tryFrom(self::verbOf($statement));
 
         if (($object['id'] ?? null) !== $context->activityIri || !\in_array($verb, [XapiVerb::Completed, XapiVerb::Passed, XapiVerb::Failed], true)) {
             return null;
@@ -34,7 +44,7 @@ final class XapiOutcomes
 
         $result = \is_array($statement['result'] ?? null) ? $statement['result'] : [];
         $score = \is_array($result['score'] ?? null) ? $result['score'] : [];
-        $scaled = \is_int($score['scaled'] ?? null) || \is_float($score['scaled'] ?? null) ? (float) $score['scaled'] : null;
+        $scaled = \is_int($score['scaled'] ?? null) || \is_float($score['scaled'] ?? null) ? $score['scaled'] : null;
         $completed = XapiVerb::Completed === $verb || true === ($result['completion'] ?? null);
         $success = match ($verb) {
             XapiVerb::Passed => true,

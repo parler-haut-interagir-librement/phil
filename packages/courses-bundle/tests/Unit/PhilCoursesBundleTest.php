@@ -475,7 +475,9 @@ final class PhilCoursesBundleTest extends TestCase
             self::assertFalse($disabled->hasDefinition($service), $service);
         }
 
-        foreach ([['training' => ['reminder_days' => 0]], ['training' => ['reminder_days' => 91]], ['training' => ['renewal_grace_days' => 366]], ['training' => ['max_members' => 0]], ['training' => ['run_at' => '24:00']], ['training' => ['run_at' => '6:00']], ['training' => ['run_at' => 600]]] as $config) {
+        self::assertSame([1, 1], \array_slice($this->load([['training' => ['reminder_days' => 1, 'renewal_grace_days' => 1]]])->getDefinition(TrainingSettings::class)->getArguments(), 0, 2));
+
+        foreach ([['training' => ['reminder_days' => 0]], ['training' => ['reminder_days' => 91]], ['training' => ['renewal_grace_days' => 0]], ['training' => ['renewal_grace_days' => 366]], ['training' => ['max_members' => 0]], ['training' => ['run_at' => '24:00']], ['training' => ['run_at' => '6:00']], ['training' => ['run_at' => "06:00\n"]], ['training' => ['run_at' => 'x06:00']], ['training' => ['run_at' => '06:001']], ['training' => ['run_at' => 600]]] as $config) {
             try {
                 $this->load([$config]);
                 self::fail('The option is accepted: '.json_encode($config));

@@ -60,10 +60,6 @@ final readonly class TrainingPrivacy implements PersonalDataExporter, PersonalDa
         $obligations = $this->assignments->obligationsOf($learner);
         $entries = $this->transcripts->of($learner);
 
-        if ([] === $obligations && [] === $entries) {
-            return [];
-        }
-
         $transcript = new Transcript($learner, $entries)->toArray();
 
         return array_filter([

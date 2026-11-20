@@ -83,14 +83,14 @@ final readonly class Transcript
         $lines = [$this->line(self::COLUMNS)];
 
         foreach ($this->toArray()['entries'] as $entry) {
-            $lines[] = $this->line(array_map(static fn (int|string|null $cell): string => (string) $cell, array_values($entry)));
+            $lines[] = $this->line(array_map(static fn (int|string|null $cell): string => (string) $cell, $entry));
         }
 
         return implode("\r\n", $lines)."\r\n";
     }
 
     /**
-     * @param list<string> $cells
+     * @param array<string> $cells
      */
     private function line(array $cells): string
     {
