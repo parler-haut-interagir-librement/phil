@@ -31,6 +31,7 @@ use Phil\OrganizationsBundle\Domain\ValueObject\UnitId;
 use Phil\OrganizationsBundle\Domain\ValueObject\UnitPath;
 use Phil\OrganizationsBundle\Tests\Fixtures\Stage;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Units::class)]
@@ -442,6 +443,85 @@ final class UnitsTest extends TestCase
 
         self::assertSame([$this->sales->id->value, $this->east->id->value], array_map(static fn (Unit $unit): string => $unit->id->value, $this->stage->tree->units($this->acme->id)));
         self::assertSame([], $this->stage->events->events);
+    }
+
+    public function testAMemberMayBelongToSeveralUnitsByDefault(): void
+    {
+        $units = new Units($this->stage->store, $this->stage->unitStore, $this->stage->work, $this->stage->access, $this->stage->unitAccess, $this->stage->clock);
+
+        $units->addMember($this->east->id, Stage::member('ann'), Stage::member('dan'), ['member']);
+        $units->addMember($this->sales->id, Stage::member('ann'), Stage::member('dan'), ['member']);
+
+        self::assertCount(2, $this->stage->tree->membershipsOf($this->acme->id, Stage::member('dan')));
+    }
+
+    public function testARootUnitMovesUnderAnother(): void
+    {
+        $support = $this->stage->units->create($this->acme->id, Stage::member('ann'), 'Support');
+        $this->stage->events->clear();
+
+        $this->stage->units->move($this->sales->id, Stage::member('ann'), $support->id);
+
+        self::assertEquals([new UnitMoved($this->acme->id->value, $this->sales->id->value, null, $support->id->value, 'ann')], $this->stage->events->events);
+    }
+
+    /**
+     * The store refuses a path past sixteen levels too, when it rebases one; the check of the service comes first, so
+     * that nothing moves: the store here only counts what it is asked to move.
+     */
+    #[DataProvider('depths')]
+    public function testAMoveIsRefusedBeforeTheStoreMovesAnything(int $deepest, ?string $under, bool $refused): void
+    {
+        $support = $this->stage->units->create($this->acme->id, Stage::member('ann'), 'Support');
+        $inner = $this->stage->unitStore;
+        $moves = 0;
+        $store = self::createStub(UnitStore::class);
+        $store->method('unit')->willReturnCallback(static fn (UnitId $id): ?Unit => $inner->unit($id));
+        $store->method('deepest')->willReturn($deepest);
+        $store->method('moveUnit')->willReturnCallback(static function () use (&$moves): void {
+            ++$moves;
+        });
+        $units = new Units($this->stage->store, $store, $this->stage->work, $this->stage->access, $this->stage->unitAccess, $this->stage->clock);
+
+        try {
+            $units->move($this->east->id, Stage::member('ann'), null === $under ? null : $support->id);
+            self::assertFalse($refused, 'A move too deep was taken.');
+            self::assertSame(1, $moves);
+        } catch (InvalidOrganization $invalidOrganization) {
+            self::assertTrue($refused, 'A move within the limit was refused.');
+            self::assertSame('A unit is at most 16 levels deep.', $invalidOrganization->getMessage());
+            self::assertSame(0, $moves);
+        }
+    }
+
+    /**
+     * The unit moved is at the second level: below a root it takes the deepest of its subtree as it is; to the root it
+     * loses one level.
+     *
+     * @return iterable<string, array{int, string|null, bool}>
+     */
+    public static function depths(): iterable
+    {
+        yield 'under a root, to the limit' => [16, 'support', false];
+        yield 'under a root, one level too deep' => [17, 'support', true];
+        yield 'to the root, to the limit' => [17, null, false];
+        yield 'to the root, one level too deep' => [18, null, true];
+    }
+
+    public function testAnArchiveNeedsTheParentManaged(): void
+    {
+        $this->stage->units->addMember($this->east->id, Stage::member('ann'), Stage::member('dan'), ['manager']);
+
+        self::assertSame('The permission "unit.manage" is required.', $this->denied(fn (): Unit => $this->stage->units->archive($this->east->id, Stage::member('dan'))));
+        self::assertTrue($this->stage->units->get($this->east->id)->isActive());
+    }
+
+    public function testAManagerChangesRolesOnlyUpToTheirOwn(): void
+    {
+        $this->stage->units->addMember($this->east->id, Stage::member('ann'), Stage::member('dan'), ['member']);
+
+        self::assertSame('A member grants, changes or removes only roles whose permissions they hold themselves.', $this->denied(fn (): UnitMembership => $this->stage->units->changeRoles($this->east->id, Stage::member('cam'), Stage::member('dan'), ['instructor'])));
+        self::assertSame(['member'], $this->stage->tree->members($this->east->id)[0]->roles->names);
     }
 
     /**

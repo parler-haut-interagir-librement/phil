@@ -35,6 +35,7 @@ use Phil\OrganizationsBundle\Infrastructure\Console\ListOrganizationsCommand;
 use Phil\OrganizationsBundle\Infrastructure\Console\PurgeInvitationsCommand;
 use Phil\OrganizationsBundle\Infrastructure\Console\ShowOrganizationCommand;
 use Phil\OrganizationsBundle\Infrastructure\Dbal\DbalOrganizationStore;
+use Phil\OrganizationsBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\OrganizationsBundle\Infrastructure\DependencyInjection\OrganizationsServices;
 use Phil\OrganizationsBundle\Infrastructure\DependencyInjection\UnitServicesPass;
 use Phil\OrganizationsBundle\Infrastructure\Doctrine\OrganizationSchemaListener;
@@ -65,6 +66,7 @@ use Symfony\Component\DependencyInjection\Reference;
 #[CoversClass(PhilOrganizationsBundle::class)]
 #[CoversClass(OrganizationsServices::class)]
 #[CoversClass(UnitServicesPass::class)]
+#[CoversClass(KitSubdirectoryPass::class)]
 final class PhilOrganizationsBundleTest extends TestCase
 {
     private const string KEY = 'a-key-of-thirty-two-bytes-at-least-for-tests';
@@ -217,6 +219,7 @@ final class PhilOrganizationsBundleTest extends TestCase
             'admin/units.html.twig',
         ], $controller->getArguments());
         self::assertSame(['ui'], $container->getDefinition(KitComponents::class)->getArguments());
+        self::assertEquals([new Reference(KitComponents::class)], $container->getDefinition(OrganizationsExtension::class)->getArguments());
         self::assertTrue($container->getDefinition(OrganizationsExtension::class)->hasTag('twig.attribute_extension'));
         self::assertTrue($container->getDefinition(OrganizationsExtension::class)->hasTag('twig.runtime'));
         self::assertSame(UnitAdminController::LAYOUT, $this->load([])->getDefinition(UnitAdminController::class)->getArgument(9));
@@ -240,6 +243,17 @@ final class PhilOrganizationsBundleTest extends TestCase
 
         new UnitServicesPass()->process($container);
         self::assertTrue($container->hasDefinition(UnitAdminController::class));
+    }
+
+    public function testTheBundleAddsTheCompilerPassesOfTheUnits(): void
+    {
+        $container = new ContainerBuilder();
+        new PhilOrganizationsBundle()->build($container);
+
+        $passes = array_map(static fn (object $pass): string => $pass::class, $container->getCompilerPassConfig()->getBeforeOptimizationPasses());
+
+        self::assertContains(UnitServicesPass::class, $passes);
+        self::assertContains(KitSubdirectoryPass::class, $passes);
     }
 
     public function testTheBundleMakesTheTokenOfThePagesStateless(): void
@@ -359,6 +373,9 @@ final class PhilOrganizationsBundleTest extends TestCase
         self::assertSame([['method' => 'reset']], $memory->getDefinition(InMemoryOrganizationStore::class)->getTag('kernel.reset'));
         self::assertTrue($memory->getAlias(OrganizationStore::class)->isPublic());
         self::assertTrue($this->load([['store' => 'app.store']])->getAlias(OrganizationStore::class)->isPublic());
+        self::assertTrue($memory->getAlias(UnitStore::class)->isPublic());
+        self::assertTrue($this->load([['store' => 'app.store']])->getAlias(UnitStore::class)->isPublic());
+        self::assertTrue($this->load([])->getAlias(UnitStore::class)->isPublic());
         self::assertSame(InMemoryOrganizationStore::class, (string) $memory->getAlias(UnitStore::class));
         self::assertSame('app.store', (string) $this->load([['store' => 'app.store']])->getAlias(UnitStore::class));
         self::assertSame(DbalOrganizationStore::class, (string) $this->load([])->getAlias(UnitStore::class));

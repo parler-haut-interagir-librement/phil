@@ -34,6 +34,10 @@ return [
                     '.*\\$unique = array_values\\(array_unique\\(\\$list\\)\\);.*',
                     // The usort on the next line renumbers the list.
                     '.*\\$found = array_values\\(\\$this->teamMemberships\\[\\$teamId->value\\] \\?\\? \\[\\]\\);.*',
+                    // The usort of `sortedUnits()` renumbers the list.
+                    '.*\\$found = array_values\\(array_filter\\(\\$this->units, \\$wanted\\)\\);.*',
+                    // A role is read by iterating the list, whatever its keys: `Roles::of()` keys them by name.
+                    '.*\\$roles = array_values\\(array_filter\\(explode\\(.*',
                 ],
             ],
             'UnwrapArrayUnique' => [
@@ -61,14 +65,19 @@ return [
             'FalseValue' => [
                 'ignoreSourceCodeByRegex' => ['.*public function organization\\(OrganizationId \\$id, bool \\$lock = false\\): \\?Organization.*'],
             ],
+            // The name of a unit is read inside the `array_map` over the unit memberships: with no unit store the list is
+            // empty and the callback never runs.
+            'NullSafeMethodCall' => [
+                'ignoreSourceCodeByRegex' => ['.*\'name\' => \\$this->units\\?->unit\\(\\$membership->unitId\\)\\?->name->value,.*'],
+            ],
             // `true && null` is `false`: the cast only tells PHPStan so.
             'CastBool' => [
                 'ignoreSourceCodeByRegex' => ['.*\\$organization->isActive\\(\\) && \\(bool\\) \\$organization->emailDomain\\?->equals.*'],
             ],
-            // The stored memberships of an organization and of a team are replaced, never changed in place, so the
-            // objects a snapshot holds cannot differ from copies of them.
+            // The stored memberships of an organization, of a team and of a unit are replaced, never changed in place, so
+            // the objects a snapshot holds cannot differ from copies of them.
             'UnwrapArrayMap' => [
-                'ignoreSourceCodeByRegex' => ['.*array_map\\(\\$copy, \\$this->(memberships|teamMemberships)\\),.*'],
+                'ignoreSourceCodeByRegex' => ['.*array_map\\(\\$copy, \\$this->(memberships|teamMemberships|unitMemberships)\\),.*'],
             ],
             // Whether the access bundle is installed: the development environment has both of its classes, so only
             // the flag the tests pass decides.

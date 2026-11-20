@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\OrganizationsBundle\Tests\Unit\Application;
 
+use Phil\OrganizationsBundle\Application\Contract\UnitStore;
 use Phil\OrganizationsBundle\Application\Exception\UnknownUnit;
 use Phil\OrganizationsBundle\Application\RoleCatalog;
 use Phil\OrganizationsBundle\Application\UnitAccess;
@@ -122,6 +123,42 @@ final class UnitAccessTest extends TestCase
 
         self::assertSame([], $this->stage->unitAccess->permissions($orphan, Stage::member('cam')));
         self::assertSame(['reports.read', 'unit.manage'], $this->stage->unitAccess->inherited($orphan, Stage::member('cam')));
+    }
+
+    public function testAStrangerWithAStrayUnitMembershipHoldsNothing(): void
+    {
+        $this->stage->unitStore->saveUnitMembership(UnitMembership::join($this->sales->id, $this->acme->id, Stage::member('zed'), Roles::of(['manager']), $this->stage->clock->now()));
+
+        self::assertSame([], $this->stage->unitAccess->permissions($this->north, Stage::member('zed')));
+        self::assertSame(['reports.read', 'unit.manage'], $this->stage->unitAccess->inherited($this->north, Stage::member('zed')));
+    }
+
+    public function testThePermissionsOfSeveralUnitsAreSortedTogether(): void
+    {
+        $this->stage->units->addMember($this->sales->id, Stage::member('ann'), Stage::member('dan'), ['manager']);
+
+        self::assertSame(['courses.assign', 'reports.read', 'unit.manage'], $this->stage->unitAccess->inherited($this->north, Stage::member('dan')));
+    }
+
+    public function testTheMembersAreReadAHundredAtATime(): void
+    {
+        $store = $this->createMock(UnitStore::class);
+        $store->expects(self::once())->method('unitMemberships')->with($this->east->id, 100, null)->willReturn([]);
+        new UnitTree($store)->members($this->east->id);
+
+        $store = $this->createMock(UnitStore::class);
+        $store->method('unit')->willReturn($this->east);
+        $store->expects(self::once())->method('membersWithin')->with($this->acme->id, $this->east->path, 100, null)->willReturn([]);
+        new UnitTree($store)->membersWithin($this->east->id);
+    }
+
+    public function testTheUnitsOfTheAncestorsAreAskedForAsAList(): void
+    {
+        $store = $this->createMock(UnitStore::class);
+        $store->method('unitMembershipsOf')->willReturn([UnitMembership::join($this->north->id, $this->acme->id, Stage::member('dan'), Roles::of(['member']), $this->stage->clock->now())]);
+        $store->expects(self::once())->method('unitsById')->with(self::callback(static fn (array $ids): bool => array_is_list($ids)))->willReturn([$this->north]);
+
+        self::assertCount(3, new UnitTree($store)->unitIdsOf($this->acme->id, Stage::member('dan'), true));
     }
 
     public function testTheTree(): void

@@ -464,6 +464,7 @@ abstract class StoreTestCase extends TestCase
 
         $abc->archive(new DateTimeImmutable('@3000'));
         $store->saveUnit($abc);
+        self::assertSame(['a', 'ab-2', 'ab', 'abc', 'b'], self::unitIds($store->units(self::id('o1'))));
         self::assertSame(['a', 'ab-2', 'ab', 'b'], self::unitIds($store->units(self::id('o1'), null, false)));
         self::assertSame(['ab'], self::unitIds($store->units(self::id('o1'), $ab->path, false)));
         self::assertSame([], $store->children(self::id('o1'), $ab->id, false));
@@ -571,6 +572,65 @@ abstract class StoreTestCase extends TestCase
 
         self::assertSame(['42', '7'], $this->names($store->membersWithin(self::id('o1'), $a->path, 10)));
         self::assertSame(['7'], $this->names($store->membersWithin(self::id('o1'), $a->path, 10, '42')));
+    }
+
+    public function testUnitsGoInAndComeOutAsCopies(): void
+    {
+        $store = $this->unitStore();
+        [$a, $ab, , , $b] = $this->smallTree($store);
+
+        $a->rename(OrganizationName::fromString('Changed'));
+        self::assertSame('A', self::found($store, 'a')->name->value);
+
+        self::found($store, 'a')->rename(OrganizationName::fromString('Changed'));
+        self::assertSame('A', self::found($store, 'a')->name->value);
+
+        $store->units(self::id('o1'))[0]->rename(OrganizationName::fromString('Changed'));
+        self::assertSame('A', self::found($store, 'a')->name->value);
+
+        $store->children(self::id('o1'), null)[0]->rename(OrganizationName::fromString('Changed'));
+        self::assertSame('A', self::found($store, 'a')->name->value);
+
+        $store->unitsById([$a->id])[0]->rename(OrganizationName::fromString('Changed'));
+        self::assertSame('A', self::found($store, 'a')->name->value);
+
+        $ab->moveUnder($b);
+        $store->saveUnit($ab);
+        self::assertSame('/a/ab/', self::found($store, 'ab')->path->toString());
+    }
+
+    public function testUnitMembershipsGoInAndComeOutAsCopies(): void
+    {
+        $store = $this->unitStore();
+        $membership = self::unitMembership('ab', 'o1', 'ann', ['member']);
+        $store->saveUnitMembership($membership);
+        $membership->changeRoles(Roles::of(['manager']));
+        self::assertSame(['member'], $store->unitMembership(UnitId::fromString('ab'), self::member('ann'))?->roles->names);
+
+        foreach ([
+            $store->unitMembership(UnitId::fromString('ab'), self::member('ann')),
+            $store->unitMemberships(UnitId::fromString('ab'), 10)[0],
+            $store->unitMembershipsOf(self::member('ann'))[0],
+            $store->unitMembershipsOf(self::member('ann'), self::id('o1'))[0],
+            $store->unitMembershipsAmong([UnitId::fromString('ab')], self::member('ann'))[0],
+        ] as $read) {
+            self::assertNotNull($read);
+            $read->changeRoles(Roles::of(['manager']));
+        }
+
+        self::assertSame(['member'], $store->unitMembership(UnitId::fromString('ab'), self::member('ann'))->roles->names);
+    }
+
+    public function testAMemberLeavesOneUnitAtATime(): void
+    {
+        $store = $this->unitStore();
+        $this->smallTree($store);
+        $store->saveUnitMembership(self::unitMembership('a', 'o1', 'ann', ['member']));
+        $store->saveUnitMembership(self::unitMembership('b', 'o1', 'ann', ['member']));
+
+        self::assertTrue($store->deleteUnitMembership(UnitId::fromString('a'), self::member('ann')));
+        self::assertNotNull($store->unitMembership(UnitId::fromString('b'), self::member('ann')));
+        self::assertFalse($store->deleteUnitMembership(UnitId::fromString('a'), self::member('ann')));
     }
 
     public function testAUnitsChangeThatThrowsIsRolledBack(): void

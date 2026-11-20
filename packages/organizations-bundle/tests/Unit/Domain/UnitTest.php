@@ -139,6 +139,9 @@ final class UnitTest extends TestCase
         yield 'two slashes' => ['//'];
         yield 'no leading slash' => ['a/'];
         yield 'no trailing slash' => ['/a'];
+        yield 'no leading slash, long enough' => ['ab/'];
+        yield 'no trailing slash, long enough' => ['/ab'];
+        yield 'no slash at all, long enough' => ['abc'];
         yield 'an empty level' => ['/a//b/'];
         yield 'an e-mail address' => ['/a@b/'];
         yield 'a space' => ['/a b/'];

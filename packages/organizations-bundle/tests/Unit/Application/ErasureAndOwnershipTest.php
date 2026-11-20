@@ -10,6 +10,7 @@ use Phil\OrganizationsBundle\Domain\Event\InvitationRevoked;
 use Phil\OrganizationsBundle\Domain\Event\MemberLeft;
 use Phil\OrganizationsBundle\Domain\Event\OrganizationLeftWithoutOwner;
 use Phil\OrganizationsBundle\Domain\Event\TeamMemberRemoved;
+use Phil\OrganizationsBundle\Domain\Event\UnitMemberRemoved;
 use Phil\OrganizationsBundle\Domain\Status\LeaveReason;
 use Phil\OrganizationsBundle\Tests\Fixtures\Stage;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -65,6 +66,23 @@ final class ErasureAndOwnershipTest extends TestCase
         $stage->erasure->erase(Stage::member('cam'));
 
         self::assertSame([MemberLeft::class], $stage->events->classes());
+    }
+
+    public function testAnErasedMemberLeavesTheirUnitsAnnounced(): void
+    {
+        $stage = new Stage();
+        $acme = $stage->acme();
+        $sales = $stage->units->create($acme->id, Stage::member('ann'), 'Sales');
+        $stage->units->addMember($sales->id, Stage::member('ann'), Stage::member('cam'), ['member']);
+        $stage->events->clear();
+
+        $stage->erasure->erase(Stage::member('cam'));
+
+        self::assertSame([], $stage->unitStore->unitMembershipsOf(Stage::member('cam')));
+        self::assertEquals([
+            new UnitMemberRemoved($acme->id->value, $sales->id->value, 'cam', ['member']),
+            new MemberLeft($acme->id->value, 'cam', ['member'], LeaveReason::Erased),
+        ], $stage->events->events);
     }
 
     public function testTheRecommendationOfTwoOwners(): void

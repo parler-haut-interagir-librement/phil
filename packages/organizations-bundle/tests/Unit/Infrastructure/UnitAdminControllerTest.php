@@ -4,9 +4,16 @@ declare(strict_types=1);
 
 namespace Phil\OrganizationsBundle\Tests\Unit\Infrastructure;
 
+use Phil\OrganizationsBundle\Application\Contract\OrganizationStore;
+use Phil\OrganizationsBundle\Application\OrganizationAccess;
+use Phil\OrganizationsBundle\Application\UnitOfWork;
+use Phil\OrganizationsBundle\Application\Units;
+use Phil\OrganizationsBundle\Domain\Model\Membership;
 use Phil\OrganizationsBundle\Domain\Model\Organization;
 use Phil\OrganizationsBundle\Domain\Model\Unit;
 use Phil\OrganizationsBundle\Domain\Model\UnitMembership;
+use Phil\OrganizationsBundle\Domain\ValueObject\MemberId;
+use Phil\OrganizationsBundle\Domain\ValueObject\OrganizationId;
 use Phil\OrganizationsBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\OrganizationsBundle\Infrastructure\Http\UnitAdminController;
 use Phil\OrganizationsBundle\Infrastructure\Security\UserIdentifierMember;
@@ -112,6 +119,9 @@ final class UnitAdminControllerTest extends TestCase
         self::assertSame([], $context['children']);
         self::assertSame([], $context['members']);
         self::assertSame([$this->sales->id->value, $support->id->value], $this->ids($context['parents']));
+        $parents = $context['parents'];
+        self::assertIsArray($parents);
+        self::assertTrue(array_is_list($parents));
         self::assertSame($this->sales->id->value, $context['parent_id']);
         self::assertTrue($context['manages']);
         self::assertTrue($context['manages_parent']);
@@ -304,6 +314,14 @@ final class UnitAdminControllerTest extends TestCase
             }
         }
 
+        try {
+            $this->controller()->create($this->post(['name' => 'Mine'], 'forged'), $this->acme->id->value);
+            self::fail('A forged form created a unit.');
+        } catch (BadRequestHttpException) {
+        }
+
+        self::assertCount(2, $this->stage->tree->units($this->acme->id));
+
         $valid = $this->post(['name' => 'Mine']);
         $valid->headers->set('Sec-Fetch-Site', 'same-origin');
         self::assertSame(303, $this->controller()->rename($valid, $this->sales->id->value)->getStatusCode());
@@ -314,6 +332,30 @@ final class UnitAdminControllerTest extends TestCase
         } catch (BadRequestHttpException $badRequestHttpException) {
             self::assertSame('A member is named by their identifier.', $badRequestHttpException->getMessage());
         }
+    }
+
+    public function testTheRolesOfAFormMayEndWithALineBreak(): void
+    {
+        $target = $this->target($this->controller()->addMember($this->post(['member' => 'bob', 'roles' => "manager\r\n"]), $this->east->id->value));
+
+        self::assertSame('/units/'.$this->east->id->value, $target);
+        self::assertSame(['manager'], $this->stage->tree->members($this->east->id)[0]->roles->names);
+    }
+
+    public function testAnOrganizationGoneDuringAChangeIsNotFound(): void
+    {
+        $real = $this->stage->store;
+        $store = self::createStub(OrganizationStore::class);
+        $store->method('organization')->willReturnCallback(static fn (OrganizationId $id, bool $lock = false): ?Organization => $lock ? null : $real->organization($id));
+        $store->method('membership')->willReturnCallback(static fn (OrganizationId $organization, MemberId $member): ?Membership => $real->membership($organization, $member));
+        $store->method('transactional')->willReturnCallback(static fn (callable $work): mixed => $work());
+        $access = new OrganizationAccess($store, $this->stage->roles);
+        $units = new Units($store, $this->stage->unitStore, new UnitOfWork($store), $access, $this->stage->unitAccess, $this->stage->clock);
+        $controller = new UnitAdminController($units, $this->stage->tree, $access, $this->stage->unitAccess, new UserIdentifierMember(), $this->tokens, $this->csrf(), $this->twig(), $this->urls(), UnitAdminController::LAYOUT);
+
+        $this->expectException(NotFoundHttpException::class);
+
+        $controller->create($this->post(['name' => 'Mine']), $this->acme->id->value);
     }
 
     public function testTheNamesOfTheRecipes(): void

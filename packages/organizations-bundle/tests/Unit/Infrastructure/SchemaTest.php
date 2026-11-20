@@ -112,6 +112,7 @@ final class SchemaTest extends TestCase
         self::assertStringContainsString('INDEX phil_organization_unit_path (organization_id, path)', $sql);
         self::assertStringContainsString('INDEX phil_organization_unit_parent_id (organization_id, parent_id)', $sql);
         self::assertStringContainsString('PRIMARY KEY (unit_id, member_id)', $sql);
+        self::assertStringContainsString('INDEX phil_organization_unit_member_member_id (member_id, organization_id)', $sql);
     }
 
     public function testTheListenerAddsTheTablesToTheSchemaOfItsConnectionOnly(): void
