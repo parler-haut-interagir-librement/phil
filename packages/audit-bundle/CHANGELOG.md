@@ -4,6 +4,17 @@ All notable changes to `phil/audit-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: documentation and tests only.
+
+### Added
+
+- The [ASVS 5.0 mapping](doc/asvs.md).
+- Tests of a clock in another time zone, through storage and verification, and of the end of daylight saving time;
+  of facts holding a carriage return, a NUL byte, a terminal escape or another control character, refused when written
+  and not intact when stored.
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

@@ -14,6 +14,8 @@ the default policy refuses `<base>` and Strict-Transport-Security includes the s
 - `public_origin`: the canonical address of the site, such as `https://example.com`, that the reports of violations go
   to, read by `phil/url` when the kernel boots; `ReportEndpoint::OPTION` and `ReportEndpoint::origin()`.
 - `phil/url` joins `require`.
+- The [ASVS 5.0 mapping](doc/asvs.md), and tests of the default policy sent whole and of the age of
+  Strict-Transport-Security.
 
 ### Changed
 

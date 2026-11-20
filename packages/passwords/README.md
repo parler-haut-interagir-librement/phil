@@ -49,6 +49,7 @@ times and `Feedback` —; `Breach\BreachChecker` asks a `BreachedPasswordSource`
 | [Data](doc/data.md) | The dictionaries, keyboard layouts and wordlists the library ships. |
 | [Extension points](doc/extension-points.md) | Dictionaries, layouts, breach sources, wordlists, randomizers, translations. |
 | [Exceptions](doc/exceptions.md) | `PasswordsException` and the exceptions that implement it. |
+| [ASVS 5.0 mapping](doc/asvs.md) | The requirements of chapter V6 the library meets, the tests that show them, and those left to the application. |
 | [Testing](doc/testing.md) | The library's tests, mutation bar, fuzzing and benchmark, and how to test code that uses it. |
 | [Reference](doc/reference.md) | Every type of the library, with its role. |
 

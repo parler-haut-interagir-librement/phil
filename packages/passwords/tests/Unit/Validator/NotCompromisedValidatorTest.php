@@ -61,6 +61,19 @@ final class NotCompromisedValidatorTest extends ConstraintValidatorTestCase
         self::assertSame(['{{ occurrences }}' => 3], $this->context->getViolations()[0]?->getParameters());
     }
 
+    /**
+     * ASVS 5.0, 6.2.9: the value is checked as typed. With surrounding spaces or in capitals it is another password,
+     * which the breaches of the source do not hold.
+     */
+    public function testThePasswordIsCheckedAsTyped(): void
+    {
+        foreach ([' password', 'password ', 'PASSWORD', "password\n"] as $variant) {
+            $this->validate($variant, new NotCompromised());
+        }
+
+        $this->assertNoViolation();
+    }
+
     public function testTheThreshold(): void
     {
         $this->validate('password', new NotCompromised(4));

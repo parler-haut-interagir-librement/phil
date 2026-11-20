@@ -39,6 +39,33 @@ final class PwnedPasswordsSourceTest extends TestCase
         self::assertSame(10.0, $options['max_duration']);
     }
 
+    /**
+     * ASVS 5.0, 6.2.5 and 6.2.9: the password is hashed exactly as typed — 200 characters, surrounding spaces, letters
+     * in composed or decomposed form, invalid UTF-8 —, never trimmed, truncated, folded or normalised first: each
+     * request names the prefix of the SHA-1 of the very bytes given, computed here beforehand.
+     */
+    public function testThePasswordIsHashedExactlyAsTyped(): void
+    {
+        foreach ([
+            'E39A0E4B7AC7045ECBBE9AA0BBF26AFA984D92B2' => str_repeat('ab1!', 50),
+            '3EA1BEECDEEEE5DC4DE4E06C074BB1DF6B1D1190' => '  password  ',
+            '1A79C7314A5378D4A16DB22F5A94A14C12F55CFD' => "pass\u{00E9}",
+            'EC916081AC458CD51DAF0642D34C8B436FDDCC47' => "pass\u{0065}\u{0301}",
+            'DCE4154B72D09BED9AEDBA5C23B90325B47FECA6' => "pass\xFF",
+            '112BB791304791DDCF692E29FD5CF149B35FEA37' => 'PASSWORD',
+        ] as $hash => $password) {
+            $urls = [];
+            $client = new MockHttpClient(static function (string $method, string $url) use (&$urls, $hash): MockResponse {
+                $urls[] = $url;
+
+                return new MockResponse(substr($hash, 5).":3\r\n");
+            });
+
+            self::assertSame(3, new PwnedPasswordsSource($client)->occurrences($password), $password);
+            self::assertSame(['https://api.pwnedpasswords.com/range/'.substr($hash, 0, 5)], $urls);
+        }
+    }
+
     public function testAMirrorWithoutPaddingAndItsOwnSettings(): void
     {
         $requests = [];
