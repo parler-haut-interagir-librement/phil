@@ -57,6 +57,9 @@ and **Default colour** removes one.
 On systems other than Apple's, Ctrl stands for ⌘ and Alt for ⌥. Undo and redo are the editor's own: they cover
 typing, by pauses, and every change of structure.
 
+A mark's shortcut without a selection applies to what is typed next: ⌘B, then typing, writes bold text, and ⌘B again
+inside it goes back to plain text from the caret on.
+
 ## Mentions and page links
 
 With a mention search configured, `@` and the letters after it open a menu of suggestions from the application; the
@@ -97,7 +100,9 @@ still open and close, without saving anything. An empty document reads *Nothing 
 
 ## Accessibility
 
-The editor is a group named by the field's label. Menus are listboxes or menus driven by the keyboard, their active
+The editor is a group named by the field's label. Each editable field is a multi-line text box (`role="textbox"`,
+`aria-multiline="true"`) named by its block: *Text*, *Heading 2*, *Quote*, *Author*, *Caption*, *List item*, or
+*Row 1, column 2* in a table. Menus are listboxes or menus driven by the keyboard, their active
 entry announced; the toolbar is a toolbar of named, pressed buttons; the gutter buttons have names. Moves, deletions,
 duplications and conversions are announced in a polite live region. Animations stop under reduced motion.
 

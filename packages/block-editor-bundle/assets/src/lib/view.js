@@ -28,12 +28,16 @@ export function h(document, tag, attributes = {}, children = []) {
 
 /**
  * An editable field of inline HTML: its content sanitized again before it is drawn, `contenteditable` unless the
- * editor is read-only.
+ * editor is read-only. An editable field is a multi-line text box for assistive technologies, named by its label.
  */
-function rich(context, tag, attributes, html, placeholder = null) {
+function rich(context, tag, attributes, html, placeholder = null, label = placeholder) {
+    const editable = !context.readOnly;
     const element = h(context.document, tag, {
         class: ('pbe-rich ' + (attributes.class ?? '')).trim(),
-        contenteditable: context.readOnly ? null : 'true',
+        contenteditable: editable ? 'true' : null,
+        role: editable ? 'textbox' : null,
+        'aria-multiline': editable ? 'true' : null,
+        'aria-label': editable ? label : null,
         'data-placeholder': placeholder,
         spellcheck: context.readOnly ? null : 'true',
         ...Object.fromEntries(Object.entries(attributes).filter(([name]) => 'class' !== name)),
@@ -114,6 +118,7 @@ function body(context, block) {
                 { class: 'pbe-paragraph', 'data-field': 'text' },
                 data.text,
                 context.placeholder,
+                t('paragraph'),
             );
         case 'header':
             return rich(
@@ -215,7 +220,14 @@ function listItems(context, data, items, path) {
                           'aria-label': t('done'),
                       })
                     : null,
-                rich(context, 'div', { class: 'pbe-item__content', 'data-item-field': at }, item.content),
+                rich(
+                    context,
+                    'div',
+                    { class: 'pbe-item__content', 'data-item-field': at },
+                    item.content,
+                    null,
+                    t('listItem'),
+                ),
                 (item.items ?? []).length > 0 ? listItems(context, data, item.items, [...path, index]) : null,
             ]);
         }),
@@ -223,7 +235,7 @@ function listItems(context, data, items, path) {
 }
 
 function table(context, data) {
-    const { document } = context;
+    const { document, t } = context;
 
     return h(document, 'table', { class: 'pbe-table' + (data.stretched ? ' pbe-table--stretched' : '') }, [
         h(
@@ -237,7 +249,14 @@ function table(context, data) {
                     {},
                     row.map((cell, c) =>
                         h(document, data.withHeadings && 0 === r ? 'th' : 'td', {}, [
-                            rich(context, 'div', { class: 'pbe-table__cell', 'data-cell': r + '.' + c }, cell),
+                            rich(
+                                context,
+                                'div',
+                                { class: 'pbe-table__cell', 'data-cell': r + '.' + c },
+                                cell,
+                                null,
+                                t('cell', { row: r + 1, column: c + 1 }),
+                            ),
                         ]),
                     ),
                 ),

@@ -32,7 +32,6 @@ The `config` value is one object:
 | `messages` | `{}` | Labels replaced, by key |
 | `colors` | `[]` | The colour tokens of the text colour tool |
 | `uploadUrl`, `mentionsUrl`, `linksUrl` | `null` | The endpoints; `null` turns the feature off |
-| `richEngine` | `"dom"` | `"prosemirror"` puts a ProseMirror view in each rich field, a trial ([prosemirror-trial.md](prosemirror-trial.md)) |
 | `csrfCookie` | `null` | The name of the cookie and header of the double-submitted CSRF token; `null` sends none, and the upload is refused |
 
 The editor never refuses to open: JSON it cannot read gives an empty document, and the server judges what it
@@ -44,7 +43,6 @@ receives.
 |---|---|---|
 | `change` | the input | — fired each time the editor writes a new value, for autosave or a dirty-form warning |
 | `phil--block-editor-bundle--editor:change` | the editor's element | `{json}`, the value written |
-| `phil--block-editor-bundle--editor:engine` | the editor's element | `{engine}`, `dom` or `prosemirror`, once the rich fields can be edited |
 | `phil--block-editor-bundle--editor:focus` | the editor's element | `{id}`, the block the writer entered; `null` when the focus leaves the editor, its menus and its toolbar |
 
 ## Writing together
@@ -66,7 +64,8 @@ The document is written to the input after `apply` and `remove`, outside read-on
 The labels are in English and French in `assets/src/lib/i18n.js`; a locale such as `fr_CA` takes French, an unknown
 one English. Any label can be replaced through the field's `messages` option or the `messages` key, by its key —
 `placeholder`, `delete`, `turnInto`, `color.accent`, and the others of the file. `{type}` in `foreign` and
-`converted` is replaced by the type.
+`converted` is replaced by the type, `{row}` and `{column}` in `cell`, the accessible name of a table cell, by its
+position.
 
 ## Modules
 
@@ -84,8 +83,6 @@ The controller is built on modules without the DOM, each tested under Node, and 
 | `lib/csrf.js` | A new random token for each request, its cookie, its header, and the field of a form |
 | `lib/caret.js` | The caret and the selection in a field, splitting, inserting, marks; needs a browser |
 | `lib/view.js` | The blocks drawn as elements; needs a browser |
-| `lib/rich-schema.js` | The ProseMirror trial's schema specs, drawn from the inline tools ([prosemirror-trial.md](prosemirror-trial.md)) |
-| `lib/prosemirror.js` | The ProseMirror trial's view in a rich field, loaded only when `richEngine` asks for it; needs a browser |
 
 Every HTML the editor draws goes through `lib/inline.js` first, and links and image addresses are checked by the same
 rules as on the server.

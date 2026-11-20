@@ -46,7 +46,7 @@ server applies.
 | [JavaScript](doc/javascript.md) | The controller's configuration, its events, its modules, its labels and its stylesheet. |
 | [Exceptions](doc/exceptions.md) | The bundle's exceptions, and the answers of its endpoints. |
 | [Extension points](doc/extension-points.md) | What an application implements, configures, replaces or relies on. |
-| [ProseMirror trial](doc/prosemirror-trial.md) | A ProseMirror view in each rich field, turned on by `richEngine`, and its measures against the editor's own fields. |
+| [ProseMirror trial](doc/prosemirror-trial.md) | An archived trial: a ProseMirror view in each rich field, measured against the editor's own fields, which the editor keeps. |
 | [Testing](doc/testing.md) | The PHP and Node tests, the mutation bar, and the checks made in a browser. |
 | [Reference](doc/reference.md) | Every class and module of the bundle, with its role. |
 

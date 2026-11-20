@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8e2ac382c90c0dc890f22f7914254f42e54b05cd3dcf1a5a21e0fb1ff013b5a4 -->
+<!-- phil-dev source-sha256=f1785bf71a100e681255c298a98889c6969d9df0ad4354d87edec784f16e3ccd -->
 # Tests
 
 ## Les tests du bundle
@@ -53,11 +53,11 @@ et ce qui doit se produire.
 
 ## Mesures dans un navigateur
 
-`tests/Browser/measure.mjs` pilote un Chrome sans interface par le protocole DevTools à travers 26 scénarios — frappe,
-marques, Entrée et Retour arrière entre les blocs, annulation, composition IME, touches mortes, collage — sur l'éditeur
-avec ses propres champs riches et avec l'essai ProseMirror, et affiche un rapport JSON ;
-[prosemirror-trial.md](prosemirror-trial.md) donne la méthode et les chiffres. Il exige Node, PHP et Chrome, ainsi que
-les modules de `tests/Browser/package.json` :
+`tests/Browser/measure.mjs`, gardé de l'[essai de ProseMirror](prosemirror-trial.md) archivé, pilote un Chrome sans
+interface par le protocole DevTools à travers 28 scénarios — frappe, marques par raccourci sur une sélection et au
+curseur, Entrée et Retour arrière entre les blocs, annulation, composition IME, touches mortes, collage — et affiche un
+rapport JSON avec le nœud d'accessibilité d'un champ, les octets servis et les temps de dessin. Il exige Node, PHP et
+Chrome, ainsi que le module Stimulus de `tests/Browser/package.json` :
 
 ```bash
 npm ci --ignore-scripts --prefix packages/block-editor-bundle/tests/Browser

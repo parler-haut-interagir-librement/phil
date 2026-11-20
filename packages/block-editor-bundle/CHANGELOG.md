@@ -6,23 +6,28 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.1.1-alpha: a trial of ProseMirror inside each rich field, turned on by the controller's
-`richEngine` key, measured against the editor's own fields.
+The next version is 0.1.1-alpha: marks at a collapsed caret, a mark removed from a selection that ends on its edges,
+and rich fields exposed as named multi-line text boxes.
 
 ### Added
 
-- `richEngine: "prosemirror"` in the controller's configuration: a ProseMirror view in each rich field, loaded only
-  when asked for, with the blocks, menus, paste, undo history and UJO (Universal JSON Output) left to the controller;
-  `lib/rich-schema.js`, its schema drawn from the inline tools, and `lib/prosemirror.js`, its view; the
-  `phil--block-editor-bundle--editor:engine` event once the rich fields can be edited; the four `prosemirror-*`
-  modules listed in `assets/package.json` for the import map.
-- `tests/Browser/measure.mjs`: 26 scenarios run on both engines in a headless Chrome, with the bytes served and the
-  drawing times; the method and the numbers in `doc/prosemirror-trial.md`.
+- Each editable rich field is a multi-line text box for assistive technologies: `role="textbox"`,
+  `aria-multiline="true"` and an accessible name, the name of its block (*Text*, *Heading 2*, *Quote*, *Caption*…),
+  *List item* for a list item, and *Row 1, column 2* for a table cell; the `listItem` and `cell` labels, in English
+  and French.
+- `doc/prosemirror-trial.md`, an archived trial: a ProseMirror view in each rich field, measured against the editor's
+  own fields over 26 scenarios, with the weight and drawing times; the editor keeps its own fields.
+- `tests/Browser/measure.mjs`: the trial's scenarios, run on the editor's own fields in a headless Chrome over the
+  DevTools protocol, with two more scenarios on a mark turned on or off at the caret.
 
-### Changed
+### Fixed
 
-- `atStart()` and `atEnd()` of `lib/caret.js` count the line break ProseMirror draws at the end of an empty line as
-  nothing.
+- A mark's shortcut at a collapsed caret now applies to what is typed next: an empty mark waits at the caret, and the
+  same shortcut inside a mark splits it there, so that the text typed next goes without it. Before, the shortcut did
+  nothing without a selection, and inside a mark it removed the whole mark and moved the caret to the start of the
+  field.
+- A mark's shortcut on a selection whose ends sit just outside the mark's element removes the mark. Before, it added a
+  second mark and left an empty one behind (`one <b>two</b><b></b> three`).
 
 ## 0.1.0-alpha - 2026-11-11
 

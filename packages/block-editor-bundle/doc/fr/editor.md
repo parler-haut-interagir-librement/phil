@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bb2be46c705a9006912ca940d3cc0e9413858fa94f85c15f274a3bc214fa693b -->
+<!-- phil-dev source-sha256=7cb858ec94f0359f5d5e29cb739f18dc4950dba4d4757da83a921aeb8e5abea6 -->
 # L'éditeur
 
 L'éditeur présente un document comme une colonne de blocs. Au survol ou au focus, chaque bloc montre une marge avec deux
@@ -61,6 +61,9 @@ et **Couleur par défaut** en enlève une.
 Sur les systèmes autres que ceux d'Apple, Ctrl remplace ⌘ et Alt remplace ⌥. Annuler et rétablir appartiennent à
 l'éditeur : ils couvrent la frappe, par pauses, et chaque changement de structure.
 
+Le raccourci d'une marque sans sélection s'applique à ce qui est tapé ensuite : ⌘B, puis la frappe, écrit en gras, et
+⌘B de nouveau à l'intérieur revient au texte simple à partir du curseur.
+
 ## Mentions et liens de page
 
 Quand une recherche de mentions est configurée, `@` et les lettres qui suivent ouvrent un menu de suggestions venues de
@@ -103,7 +106,9 @@ Les dépliants s'ouvrent et se ferment encore, sans rien enregistrer. Un documen
 
 ## Accessibilité
 
-L'éditeur est un groupe nommé par le libellé du champ. Les menus sont des listes de choix ou des menus pilotés au
+L'éditeur est un groupe nommé par le libellé du champ. Chaque champ modifiable est une zone de texte multiligne
+(`role="textbox"`, `aria-multiline="true"`) nommée d'après son bloc : *Texte*, *Titre 2*, *Citation*, *Auteur*,
+*Légende*, *Élément de liste*, ou *Ligne 1, colonne 2* dans un tableau. Les menus sont des listes de choix ou des menus pilotés au
 clavier, dont l'entrée active est annoncée. La barre d'outils est une barre de boutons nommés et à état pressé. Les
 boutons de la marge ont un nom. Les déplacements, les suppressions, les duplications et les transformations sont
 annoncés dans une zone dynamique polie. Les animations s'arrêtent lorsque le mouvement réduit est demandé.

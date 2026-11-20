@@ -33,12 +33,8 @@ function rangeTo(field, range, toEnd) {
     return part;
 }
 
-/** Whether a range shows nothing; the line break ProseMirror draws at the end of an empty line shows nothing. */
 function showsNothing(range) {
-    return (
-        '' === range.toString() &&
-        null === range.cloneContents().querySelector('br:not(.ProseMirror-trailingBreak), img')
-    );
+    return '' === range.toString() && null === range.cloneContents().querySelector('br, img');
 }
 
 /** Whether the caret, collapsed, is at the very start of the field. */
@@ -245,13 +241,157 @@ export function activeMarks(field, tools) {
               .map((tool) => tool.name);
 }
 
+/** The attribute of a mark put at a collapsed caret, holding a zero-width space until something is typed in it. */
+const STORED = 'data-pbe-stored';
+const HOLDER = '​';
+
 function unwrap(element) {
+    if (element.hasAttribute(STORED)) {
+        element.remove();
+
+        return;
+    }
+
     element.replaceWith(...element.childNodes);
+}
+
+/** The text nodes of the field of which the range takes at least one character. */
+function selectedTexts(field, range) {
+    const walker = field.ownerDocument.createTreeWalker(field, NodeFilter.SHOW_TEXT);
+    const texts = [];
+
+    for (let node = walker.nextNode(); null !== node; node = walker.nextNode()) {
+        const start = node === range.startContainer ? range.startOffset : 0;
+        const end = node === range.endContainer ? range.endOffset : node.length;
+
+        if (range.intersectsNode(node) && end > start) {
+            texts.push(node);
+        }
+    }
+
+    return texts;
+}
+
+/**
+ * The marks of a tool around the selection: the one around its common ancestor, or else the ones around every
+ * character it takes, so that a selection whose ends sit just outside a mark's element still finds it.
+ */
+function marksAround(field, range, tool) {
+    const around = enclosing(range.commonAncestorContainer, field, tool);
+
+    if (null !== around || range.collapsed) {
+        return null === around ? [] : [around];
+    }
+
+    const marks = selectedTexts(field, range).map((text) => enclosing(text, field, tool));
+
+    return 0 === marks.length || marks.includes(null) ? [] : [...new Set(marks)];
+}
+
+/**
+ * Turns a mark off at a collapsed caret inside it: the mark is split there, and a plain holder between its two halves
+ * takes what is typed next. A mark put at the caret and still empty is simply taken away.
+ */
+function storeWithout(field, range, element) {
+    if (element.hasAttribute(STORED)) {
+        const at = Array.prototype.indexOf.call(element.parentNode.childNodes, element);
+        const parent = element.parentNode;
+        element.remove();
+        const back = field.ownerDocument.createRange();
+        back.setStart(parent, at);
+        back.collapse(true);
+        select(field, back);
+
+        return;
+    }
+
+    const rest = field.ownerDocument.createRange();
+    rest.selectNodeContents(element);
+    rest.setStart(range.startContainer, range.startOffset);
+    const after = rest.extractContents();
+
+    if ('' !== after.textContent) {
+        const half = element.cloneNode(false);
+        half.append(after);
+        element.after(half);
+    }
+
+    const holder = field.ownerDocument.createElement('span');
+    element.after(holder);
+
+    if ('' === element.textContent) {
+        element.remove();
+    }
+
+    storeMark(field, null, holder);
+}
+
+/** Puts an empty mark at a collapsed caret, holding the caret, so that what is typed next takes it. */
+function storeMark(field, range, element) {
+    element.setAttribute(STORED, '');
+    element.append(field.ownerDocument.createTextNode(HOLDER));
+    null === range ? null : range.insertNode(element);
+    const inside = field.ownerDocument.createRange();
+    inside.setStart(element.firstChild, HOLDER.length);
+    inside.collapse(true);
+    select(field, inside);
+}
+
+/**
+ * Settles the marks put at a collapsed caret once something is typed in them: the zero-width space is taken out, the
+ * caret kept where it is. Marks still empty stay, waiting.
+ */
+export function settleStoredMarks(field) {
+    field.querySelectorAll('[' + STORED + ']').forEach((element) => {
+        if ('' === element.textContent.replaceAll(HOLDER, '')) {
+            return;
+        }
+
+        const walker = field.ownerDocument.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+
+        for (let node = walker.nextNode(); null !== node; node = walker.nextNode()) {
+            for (let at = node.data.indexOf(HOLDER); -1 !== at; at = node.data.indexOf(HOLDER)) {
+                node.deleteData(at, HOLDER.length);
+            }
+        }
+
+        element.removeAttribute(STORED);
+
+        if ('SPAN' === element.tagName) {
+            const range = rangeIn(field);
+            const caret = null !== range && element.contains(range.startContainer) ? range : null;
+            const [node, offset] = null === caret ? [null, 0] : [caret.startContainer, caret.startOffset];
+            unwrap(element);
+
+            if (null !== node) {
+                const back = field.ownerDocument.createRange();
+                back.setStart(node, offset);
+                back.collapse(true);
+                select(field, back);
+            }
+        }
+    });
+}
+
+/** The HTML of the field, without the marks put at a collapsed caret that nothing was typed in yet. */
+export function fieldHtml(field) {
+    if (null === field.querySelector('[' + STORED + ']')) {
+        return field.innerHTML;
+    }
+
+    const copy = field.cloneNode(true);
+    copy.querySelectorAll('[' + STORED + ']').forEach((element) => {
+        '' === element.textContent.replaceAll(HOLDER, '') ? element.remove() : element.removeAttribute(STORED);
+    });
+
+    return copy.innerHTML.replaceAll(HOLDER, '');
 }
 
 /**
  * Adds a mark around the selection, or removes it when the selection is already inside one. With attributes — a
- * link's address, a colour's token —, a mark already there takes them instead; `remove` takes it away.
+ * link's address, a colour's token —, a mark already there takes them instead; `remove` takes it away. At a
+ * collapsed caret, a mark without attributes is turned on or off for what is typed next, as a mark put there empty
+ * or a mark split there.
  */
 export function toggleMark(field, tool, attributes = {}, { remove = false } = {}) {
     const range = rangeIn(field);
@@ -260,24 +400,32 @@ export function toggleMark(field, tool, attributes = {}, { remove = false } = {}
         return false;
     }
 
-    const existing = enclosing(range.commonAncestorContainer, field, tool);
+    const existing = marksAround(field, range, tool);
 
-    if (null !== existing && (remove || 0 === Object.keys(attributes).length)) {
-        unwrap(existing);
+    if (range.collapsed && 1 === existing.length && !remove && 0 === Object.keys(attributes).length) {
+        storeWithout(field, range, existing[0]);
+
+        return true;
+    }
+
+    if (existing.length > 0 && (remove || 0 === Object.keys(attributes).length)) {
+        existing.forEach(unwrap);
         field.normalize();
 
         return true;
     }
 
-    if (null !== existing) {
-        Object.entries(attributes).forEach(([name, value]) => {
-            existing.setAttribute(name, value);
+    if (existing.length > 0) {
+        existing.forEach((element) => {
+            Object.entries(attributes).forEach(([name, value]) => {
+                element.setAttribute(name, value);
+            });
         });
 
         return true;
     }
 
-    if (range.collapsed || remove) {
+    if (remove || (range.collapsed && Object.keys(attributes).length > 0)) {
         return false;
     }
 
@@ -290,6 +438,12 @@ export function toggleMark(field, tool, attributes = {}, { remove = false } = {}
     Object.entries(attributes).forEach(([name, value]) => {
         element.setAttribute(name, value);
     });
+
+    if (range.collapsed) {
+        storeMark(field, range, element);
+
+        return true;
+    }
     const content = range.extractContents();
     content.querySelectorAll(tool.tag).forEach((inner) => {
         null !== match([tool], inner.tagName.toLowerCase(), attributesOf(inner)) ? unwrap(inner) : null;

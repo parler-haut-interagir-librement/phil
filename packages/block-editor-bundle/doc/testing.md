@@ -50,10 +50,11 @@ columns and a block of another type. Each check below states what to do and what
 
 ## Measures in a browser
 
-`tests/Browser/measure.mjs` drives a headless Chrome over the DevTools protocol through 26 scenarios — typing, marks,
-Enter and Backspace across blocks, undo, IME composition, dead keys, paste — on the editor with its own rich fields
-and with the ProseMirror trial, and prints a JSON report; [prosemirror-trial.md](prosemirror-trial.md) gives the
-method and the numbers. It needs Node, PHP and Chrome, and the modules of `tests/Browser/package.json`:
+`tests/Browser/measure.mjs`, kept from the archived [ProseMirror trial](prosemirror-trial.md), drives a headless
+Chrome over the DevTools protocol through 28 scenarios — typing, marks by shortcut on a selection and at the caret,
+Enter and Backspace across blocks, undo, IME composition, dead keys, paste — and prints a JSON report with the
+accessibility node of a field, the bytes served and the drawing times. It needs Node, PHP and Chrome, and the
+Stimulus module of `tests/Browser/package.json`:
 
 ```bash
 npm ci --ignore-scripts --prefix packages/block-editor-bundle/tests/Browser

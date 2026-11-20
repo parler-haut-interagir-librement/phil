@@ -1,14 +1,19 @@
-<!-- phil-dev source-sha256=6529a7cae27a71cb26ffd507fa64f88addac2df367be2dc9667fb4d09de4d611 -->
+<!-- phil-dev source-sha256=7650a241f73396cb85f33af4a1fe58c55db0e6532481e9d2b891bb22c44a448f -->
 # Essai de ProseMirror
 
-L'éditeur peut placer une vue [ProseMirror](https://prosemirror.net/) dans chaque champ riche, à la place de sa propre
-gestion de `contenteditable`. L'essai s'active champ par champ et laisse tout le reste au contrôleur : l'enveloppe
-Stimulus, les blocs et leur coordination, les menus `/`, `@` et `[[`, la barre d'outils, le collage de blocs,
-l'historique d'annulation et l'UJO (Universal JSON Output) écrit dans l'entrée. Cette page dit comment l'essai est
-câblé, comment il a été mesuré contre les champs propres de l'éditeur et quels sont les chiffres. L'adopter est une
-décision à part, tout comme la dépendance à `prosemirror-*` qui l'accompagne.
+**Essai archivé.** L'éditeur garde ses propres champs riches. L'option `richEngine` de l'essai, ses modules et la
+dépendance à `prosemirror-*` ne font plus partie du bundle depuis 0.1.1-alpha. Cette version corrige aussi les deux
+échecs de `lib/caret.js` que l'essai a trouvés, et donne à chaque champ modifiable un rôle `textbox` et un nom
+accessible. L'essai serait rouvert si les claviers Android ou un lecteur d'écran comme VoiceOver montraient un écart
+que l'éditeur ne peut pas combler.
 
-## L'activer
+L'essai plaçait une vue [ProseMirror](https://prosemirror.net/) dans chaque champ riche, à la place de la gestion de
+`contenteditable` propre à l'éditeur. Il s'activait champ par champ et laissait tout le reste au contrôleur :
+l'enveloppe Stimulus, les blocs et leur coordination, les menus `/`, `@` et `[[`, la barre d'outils, le collage de
+blocs, l'historique d'annulation et l'UJO (Universal JSON Output) écrit dans l'entrée. Cette page dit comment l'essai
+était câblé, comment il a été mesuré contre les champs propres de l'éditeur et quels étaient les chiffres.
+
+## Son activation
 
 ```html
 <div data-controller="phil--block-editor-bundle--editor"
@@ -19,11 +24,11 @@ décision à part, tout comme la dépendance à `prosemirror-*` qui l'accompagne
 |---|---|---|
 | `richEngine` | `"dom"` (valeur par défaut), `"prosemirror"` | Qui modifie le texte et les marques d'un champ riche ; le mode lecture seule dessine toujours du HTML simple |
 
-La table d'importation de la page exige `prosemirror-model`, `prosemirror-state`, `prosemirror-transform` et
-`prosemirror-view` (et `orderedmap`, que `prosemirror-model` importe). `assets/package.json` énumère les quatre, de
-sorte que `importmap:require` les ajoute, avec le module dont ils dépendent, quand le contrôleur du bundle est
-installé. Le module de l'essai, `lib/prosemirror.js`, est importé dynamiquement : un champ sans
-`richEngine: "prosemirror"` ne charge jamais ProseMirror. Webpack Encore n'intervient pas.
+La table d'importation de la page exigeait `prosemirror-model`, `prosemirror-state`, `prosemirror-transform` et
+`prosemirror-view` (et `orderedmap`, que `prosemirror-model` importe). `assets/package.json` énumérait les quatre, de
+sorte que `importmap:require` les ajoutait, avec le module dont ils dépendent, quand le contrôleur du bundle était
+installé. Le module de l'essai, `lib/prosemirror.js`, était importé dynamiquement : un champ sans
+`richEngine: "prosemirror"` ne chargeait jamais ProseMirror. Webpack Encore n'intervenait pas.
 
 ## Le câblage
 
@@ -66,6 +71,10 @@ npm ci --ignore-scripts --prefix packages/block-editor-bundle/tests/Browser
 node packages/block-editor-bundle/tests/Browser/measure.mjs
 ```
 
+Le script ne fait plus tourner que les champs propres de l'éditeur, avec deux scénarios de plus sur une marque activée
+ou désactivée au curseur ; le second moteur revient avec les modules de l'essai (voir
+[Rouvrir l'essai](#rouvrir-lessai)).
+
 Versions mesurées : `prosemirror-model` 1.25.12, `prosemirror-state` 1.4.4, `prosemirror-transform` 1.12.4,
 `prosemirror-view` 1.42.9, `orderedmap` 2.1.1, toutes sous licence MIT.
 
@@ -103,7 +112,8 @@ Sur la page de mesure, qui sert les versions non minifiées de npm sans compress
 
 Les deux échecs sont dans `lib/caret.js` et n'ont pas besoin de ProseMirror pour être corrigés : une marque mémorisée
 au curseur réduit, et la recherche de la marque autour d'une sélection dont les extrémités sont juste en dehors de son
-élément.
+élément. Les deux sont corrigés dans 0.1.1-alpha : les champs propres de l'éditeur réussissent les 26 scénarios, et
+les deux ajoutés sur une marque au curseur.
 
 ### Collage
 
@@ -119,8 +129,9 @@ schéma, si bien que le lien souligné de Google Docs s'écrit `<u><a>…</a></u
 
 Le nœud que Chrome expose pour un champ est le même dans les deux moteurs : rôle `generic`, `editable: richtext`,
 focalisable, sans nom accessible. ProseMirror ajoute `translate="no"` au champ, ce qui empêche les traducteurs de page
-de réécrire le texte en cours de modification. Aucun des moteurs ne donne à un champ un rôle `textbox` ni un nom : cette
-lacune est celle de l'éditeur, non du moteur.
+de réécrire le texte en cours de modification. Aucun des moteurs ne donnait à un champ un rôle `textbox` ni un nom : cette
+lacune était celle de l'éditeur, non du moteur. Depuis 0.1.1-alpha, Chrome expose chaque champ modifiable avec le rôle
+`textbox`, `multiline`, nommé d'après son bloc (*Texte* pour un paragraphe).
 
 ### Temps
 
@@ -148,7 +159,10 @@ moteurs.
 | Les tests Panther du bundle | Le bundle n'en a pas : son contrôleur a été vérifié à la main dans un navigateur. Les suites Panther des autres bundles n'ont pas pu démarrer sur la machine de mesure, dont le chromedriver (156) ne pilote pas son Chrome (158) |
 | La mémoire | Non lue ; 500 vues ont été créées sans erreur |
 
-## Faire l'essai sur une page
+## Rouvrir l'essai
 
-Installez les quatre modules, réglez `richEngine`, et l'éditeur se comporte comme ci-dessus. Pour le quitter, retirez la
-clé : le format du document ne change pas, puisque les deux moteurs écrivent le même UJO.
+Les modules de l'essai, `lib/prosemirror.js` et `lib/rich-schema.js` avec ses tests Node, ainsi que l'option
+`richEngine` du contrôleur, sont dans l'historique du paquet, dans le commit qui ajoute cette page. Rouvrir l'essai
+consiste à les restaurer, à énumérer les quatre modules `prosemirror-*` dans `assets/package.json` et dans
+`tests/Browser/package.json`, et à remettre `prosemirror` parmi les moteurs de `measure.mjs` et de sa page,
+`router.php`. Le format du document ne change pas : les deux moteurs écrivent le même UJO.

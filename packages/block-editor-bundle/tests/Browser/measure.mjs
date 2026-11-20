@@ -1,9 +1,11 @@
-// The ProseMirror trial's measures: the same scenarios run on the editor with its own rich fields (`dom`) and with a
-// ProseMirror view in each (`prosemirror`), in a headless Chrome driven over the DevTools protocol, on the page of
-// `router.php` served by PHP's built-in server. Typing, marks by shortcut and at a collapsed caret, Enter and
-// Backspace across blocks, undo, IME composition (Japanese, a dead key) as Chrome's own IME events, paste of Word,
-// Google Docs and web page HTML, the accessibility tree of a field, the bytes served and the time to draw a long
-// document. Prints one JSON report.
+// Archived trial. These are the measures of the ProseMirror trial, which put a ProseMirror view in each rich field
+// (`richEngine: "prosemirror"`) and compared it with the editor's own fields; doc/prosemirror-trial.md keeps the method
+// and the numbers. The trial's engine was removed in 0.1.1-alpha, so the script now runs the same scenarios on the
+// editor's own fields alone, in a headless Chrome driven over the DevTools protocol, on the page of `router.php`
+// served by PHP's built-in server: typing, marks by shortcut and at a collapsed caret, Enter and Backspace across
+// blocks, undo, IME composition (Japanese, a dead key) as Chrome's own IME events, paste of Word, Google Docs and web
+// page HTML, the accessibility tree of a field, the bytes served and the time to draw a long document. Prints one
+// JSON report.
 //
 //     npm ci --ignore-scripts --prefix packages/block-editor-bundle/tests/Browser
 //     node packages/block-editor-bundle/tests/Browser/measure.mjs [--chrome=/path/to/chrome] [--port=9190]
@@ -21,7 +23,7 @@ const option = (name, fallback) =>
 const chromePath = option('chrome', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome');
 const port = Number(option('port', '9190'));
 const origin = 'http://127.0.0.1:' + port;
-const ENGINES = ['dom', 'prosemirror'];
+const ENGINES = ['dom'];
 const CONTROLLER = 'phil--block-editor-bundle--editor';
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -85,7 +87,7 @@ class Cdp {
     }
 }
 
-/** A page of the trial, for one engine. */
+/** A page of the editor, for one engine. */
 class Page {
     constructor(cdp, sessionId, targetId) {
         this.cdp = cdp;
@@ -276,6 +278,32 @@ const SCENARIOS = [
             await page.type('plain ');
             await page.command('b');
             await page.type('bold');
+
+            return page.blocks();
+        },
+    ],
+    [
+        'mark at the caret of an empty field, then typing',
+        ['<i>first</i> words'],
+        async (page) => {
+            await page.focus();
+            await page.command('i');
+            await page.type('first');
+            await page.command('i');
+            await page.type(' words');
+
+            return page.blocks();
+        },
+    ],
+    [
+        'mark at a collapsed caret, turned off before typing',
+        ['plain text'],
+        async (page) => {
+            await page.focus();
+            await page.type('plain ');
+            await page.command('b');
+            await page.command('b');
+            await page.type('text');
 
             return page.blocks();
         },
@@ -498,15 +526,6 @@ const SCENARIOS = [
     ]),
 ];
 
-/** What ProseMirror's own clipboard parser keeps of each fixture, against the bundle's sanitizer with styles. */
-async function parsers(page) {
-    return page.eval(
-        '(async () => { const pm = await import("/assets/src/lib/prosemirror.js"); const inline = await import("/assets/src/lib/inline.js"); const tools = inline.profile(); const schema = pm.schemaFor(tools); const fixtures = ' +
-            JSON.stringify(Object.fromEntries(Object.entries(FIXTURES).map(([name, fixture]) => [name, fixture.html]))) +
-            '; return Object.fromEntries(Object.entries(fixtures).map(([name, html]) => [name, { prosemirror: pm.toHtml(pm.parseHtml(schema, html, document), tools, document), sanitizer: inline.sanitize(html, tools, { styles: true }) }])); })()',
-    );
-}
-
 /** The accessibility node of the first field, as a screen reader is given it. */
 async function accessibility(page) {
     await page.send('Accessibility.enable');
@@ -566,18 +585,6 @@ async function run() {
             };
             report.accessibility ??= {};
             report.accessibility[engine] = await accessibility(page);
-
-            if ('prosemirror' === engine) {
-                report.parsers = Object.fromEntries(
-                    Object.entries(await parsers(page)).map(([name, out]) => [
-                        name,
-                        {
-                            prosemirror: { html: out.prosemirror, ...score(FIXTURES[name], out.prosemirror) },
-                            sanitizer: { html: out.sanitizer, ...score(FIXTURES[name], out.sanitizer) },
-                        },
-                    ]),
-                );
-            }
 
             await page.close();
         }

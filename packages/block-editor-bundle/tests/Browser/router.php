@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 /*
- * The router of PHP's built-in server for the ProseMirror trial's measures: a page with the block editor, its
- * controller, modules and stylesheet from the bundle, Stimulus and the ProseMirror modules from where they are
- * installed, the engine chosen by `?engine=dom` or `?engine=prosemirror`, and a document of `?blocks=` paragraphs.
+ * The router of PHP's built-in server for the measures of the archived ProseMirror trial: a page with the block
+ * editor, its controller, modules and stylesheet from the bundle, Stimulus from where it is installed, and a document
+ * of `?blocks=` paragraphs. `window.mounted` is set once the first rich field can be edited.
  */
 
 $package = dirname(__DIR__, 2);
@@ -15,11 +15,6 @@ $modules = __DIR__.'/node_modules';
 
 $vendor = [
     '/vendor/stimulus.js' => $modules.'/@hotwired/stimulus/dist/stimulus.js',
-    '/vendor/orderedmap.js' => $modules.'/orderedmap/dist/index.js',
-    '/vendor/prosemirror-model.js' => $modules.'/prosemirror-model/dist/index.js',
-    '/vendor/prosemirror-state.js' => $modules.'/prosemirror-state/dist/index.js',
-    '/vendor/prosemirror-transform.js' => $modules.'/prosemirror-transform/dist/index.js',
-    '/vendor/prosemirror-view.js' => $modules.'/prosemirror-view/dist/index.js',
 ];
 
 $file = $vendor[$path] ?? null;
@@ -41,7 +36,6 @@ if (null !== $file) {
     return true;
 }
 
-$engine = 'prosemirror' === ($_GET['engine'] ?? null) ? 'prosemirror' : 'dom';
 $count = max(1, min(2000, (int) (is_string($_GET['blocks'] ?? null) ? $_GET['blocks'] : '1')));
 $blocks = [];
 
@@ -50,14 +44,9 @@ for ($index = 0; $index < $count; ++$index) {
 }
 
 $document = json_encode(['time' => 0, 'blocks' => $blocks, 'version' => '2.31.7'], \JSON_THROW_ON_ERROR);
-$config = json_encode(['richEngine' => $engine, 'locale' => 'en'], \JSON_THROW_ON_ERROR);
+$config = json_encode(['locale' => 'en'], \JSON_THROW_ON_ERROR);
 $imports = json_encode(['imports' => [
     '@hotwired/stimulus' => '/vendor/stimulus.js',
-    'orderedmap' => '/vendor/orderedmap.js',
-    'prosemirror-model' => '/vendor/prosemirror-model.js',
-    'prosemirror-state' => '/vendor/prosemirror-state.js',
-    'prosemirror-transform' => '/vendor/prosemirror-transform.js',
-    'prosemirror-view' => '/vendor/prosemirror-view.js',
 ]], \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES);
 
 header('Content-Type: text/html; charset=utf-8');
@@ -79,9 +68,12 @@ header('Content-Type: text/html; charset=utf-8');
         import Editor from '/assets/src/editor_controller.js';
 
         window.started = performance.now();
-        document.addEventListener('phil--block-editor-bundle--editor:engine', () => {
-            window.mounted = performance.now();
-        });
+        new MutationObserver((records, observer) => {
+            if (null !== document.querySelector('.pbe-rich[contenteditable]')) {
+                window.mounted = performance.now();
+                observer.disconnect();
+            }
+        }).observe(document.documentElement, { childList: true, subtree: true });
         window.application = Application.start();
         window.application.register('phil--block-editor-bundle--editor', Editor);
         document.documentElement.dataset.started = 'true';

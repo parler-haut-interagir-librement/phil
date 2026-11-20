@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4adf0f3d60870de5d81c6f52bd17b55eff865dae16fa6faf07369209808eed50 -->
+<!-- phil-dev source-sha256=b1ef2be3b6e5e8c93e2b9b93f2a07f78d8d0fe2addb236d51fe0bd6173b4085e -->
 # phil/block-editor-bundle
 
 **Un éditeur par blocs pour les formulaires Symfony, en contrôleurs Stimulus, qui écrit des documents UJO (Universal
@@ -50,7 +50,7 @@ qui est collé est donc nettoyé selon les règles mêmes du serveur.
 | [JavaScript](doc/fr/javascript.md) | La configuration du contrôleur, ses événements, ses modules, ses libellés et sa feuille de style. |
 | [Exceptions](doc/fr/exceptions.md) | Les exceptions du bundle et les réponses de ses points de terminaison. |
 | [Points d'extension](doc/fr/extension-points.md) | Ce qu'une application implémente, configure, remplace ou utilise. |
-| [Essai de ProseMirror](doc/fr/prosemirror-trial.md) | Une vue ProseMirror dans chaque champ riche, activée par `richEngine`, et ses mesures contre les champs propres de l'éditeur. |
+| [Essai de ProseMirror](doc/fr/prosemirror-trial.md) | Un essai archivé : une vue ProseMirror dans chaque champ riche, mesurée contre les champs propres de l'éditeur, que l'éditeur garde. |
 | [Tests](doc/fr/testing.md) | Les tests PHP et Node, le seuil de mutation et les vérifications faites dans un navigateur. |
 | [Référence](doc/fr/reference.md) | Chaque classe et chaque module du bundle, avec son rôle. |
 

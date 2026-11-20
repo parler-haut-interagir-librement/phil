@@ -1,13 +1,17 @@
 # ProseMirror trial
 
-The editor can put a [ProseMirror](https://prosemirror.net/) view inside each rich field, in place of its own
-`contenteditable` handling. The trial is turned on per field and leaves everything else to the controller: the
-Stimulus envelope, the blocks and their coordination, the slash, `@` and `[[` menus, the toolbar, the paste of blocks,
-the undo history and the UJO (Universal JSON Output) written to the input. This page says how it is wired, how it was
-measured against the editor's own fields, and what the numbers are. Adopting it is a separate decision, and the
-`prosemirror-*` dependency with it.
+**Archived trial.** The editor keeps its own rich fields. The trial's `richEngine` option, its modules and the
+`prosemirror-*` dependency are not part of the bundle since 0.1.1-alpha. That version also fixes the two failures of
+`lib/caret.js` the trial found, and gives each editable field a `textbox` role and an accessible name. The trial
+would be reopened if Android keyboards or a screen reader such as VoiceOver showed a gap the editor cannot close.
 
-## Turning it on
+The trial put a [ProseMirror](https://prosemirror.net/) view inside each rich field, in place of the editor's own
+`contenteditable` handling. It was turned on per field and left everything else to the controller: the Stimulus
+envelope, the blocks and their coordination, the slash, `@` and `[[` menus, the toolbar, the paste of blocks, the undo
+history and the UJO (Universal JSON Output) written to the input. This page says how it was wired, how it was measured
+against the editor's own fields, and what the numbers were.
+
+## How it was turned on
 
 ```html
 <div data-controller="phil--block-editor-bundle--editor"
@@ -18,13 +22,13 @@ measured against the editor's own fields, and what the numbers are. Adopting it 
 |---|---|---|
 | `richEngine` | `"dom"` (default), `"prosemirror"` | Who edits the text and marks of a rich field; read-only mode always draws plain HTML |
 
-The page's import map needs `prosemirror-model`, `prosemirror-state`, `prosemirror-transform` and `prosemirror-view`
-(and `orderedmap`, which `prosemirror-model` imports). `assets/package.json` lists the four, so that
-`importmap:require` adds them, with the module they depend on, when the bundle's controller is installed. The trial's
-module, `lib/prosemirror.js`, is imported dynamically: a field without `richEngine: "prosemirror"` never loads
-ProseMirror. Webpack Encore is not involved.
+The page's import map needed `prosemirror-model`, `prosemirror-state`, `prosemirror-transform` and `prosemirror-view`
+(and `orderedmap`, which `prosemirror-model` imports). `assets/package.json` listed the four, so that
+`importmap:require` added them, with the module they depend on, when the bundle's controller was installed. The
+trial's module, `lib/prosemirror.js`, was imported dynamically: a field without `richEngine: "prosemirror"` never
+loaded ProseMirror. Webpack Encore was not involved.
 
-## How it is wired
+## How it was wired
 
 | Module | Role |
 |---|---|
@@ -63,6 +67,9 @@ npm ci --ignore-scripts --prefix packages/block-editor-bundle/tests/Browser
 node packages/block-editor-bundle/tests/Browser/measure.mjs
 ```
 
+The script now runs the editor's own fields alone, with two more scenarios on a mark turned on or off at the caret;
+the second engine comes back with the trial's modules (see [Reopening the trial](#reopening-the-trial)).
+
 Versions measured: `prosemirror-model` 1.25.12, `prosemirror-state` 1.4.4, `prosemirror-transform` 1.12.4,
 `prosemirror-view` 1.42.9, `orderedmap` 2.1.1, all MIT.
 
@@ -99,7 +106,8 @@ with its own fields, 22 requests and 788,530 B with ProseMirror.
 | **Total** | **24 / 26** | **26 / 26** |
 
 The two failures are in `lib/caret.js` and do not need ProseMirror to be fixed: a stored mark at a collapsed caret,
-and finding the mark around a selection whose ends sit just outside its element.
+and finding the mark around a selection whose ends sit just outside its element. Both are fixed in 0.1.1-alpha: the
+editor's own fields pass the 26 scenarios, and the two added on a mark at the caret.
 
 ### Paste
 
@@ -114,8 +122,9 @@ keeps `<a><u>…</u></a>`; the server accepts both.
 
 The node Chrome exposes for a field is the same in both engines: role `generic`, `editable: richtext`, focusable,
 no accessible name. ProseMirror adds `translate="no"` to the field, which keeps page translators from rewriting the
-text being edited. Neither engine gives a field a `textbox` role or a name: that gap is the editor's, not the
-engine's.
+text being edited. Neither engine gave a field a `textbox` role or a name: that gap was the editor's, not the
+engine's. Since 0.1.1-alpha, Chrome exposes each editable field as role `textbox`, `multiline`, named by its block
+(*Text* for a paragraph).
 
 ### Time
 
@@ -142,7 +151,10 @@ drawing that replaces only the blocks that changed would remove that cost for bo
 | The bundle's Panther tests | The bundle has none: its controller has been checked in a browser by hand. The other bundles' Panther suites could not start on the measuring machine, whose chromedriver (156) does not drive its Chrome (158) |
 | Memory | Not read; 500 views were created without error |
 
-## Running the trial on a page
+## Reopening the trial
 
-Install the four modules, set `richEngine`, and the editor behaves as above. To leave it, remove the key: the
-document format does not change, since both engines write the same UJO.
+The trial's modules, `lib/prosemirror.js` and `lib/rich-schema.js` with its Node tests, and the controller's
+`richEngine` switch are in the package's history, in the commit that adds this page. Reopening the trial means
+restoring them, listing the four `prosemirror-*` modules in `assets/package.json` and in
+`tests/Browser/package.json`, and adding `prosemirror` back to the engines of `measure.mjs` and of its page,
+`router.php`. The document format does not change: both engines write the same UJO.
