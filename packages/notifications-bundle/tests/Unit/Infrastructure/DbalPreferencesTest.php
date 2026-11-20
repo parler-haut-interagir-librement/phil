@@ -61,7 +61,7 @@ final class DbalPreferencesTest extends TestCase
 
     public function testASavedRecipientIsAnIdentifier(): void
     {
-        $this->expectExceptionMessageIsOrContains('The recipient "a b" is not an identifier');
+        $this->expectExceptionMessageIsOrContains('The recipient (length 3) is not an identifier');
 
         new DbalPreferences($this->connection())->save('a b', new RecipientSettings());
     }
@@ -75,7 +75,7 @@ final class DbalPreferencesTest extends TestCase
             '{"digest":"daily","opt_outs":"x"}' => 'The stored preferences of "42" are not settings.',
             '{"digest":"daily","opt_outs":{"a":"x"}}' => 'The stored preferences of "42" are not settings.',
             '{"digest":"daily","locale":5}' => 'The stored preferences of "42" are not settings.',
-            '{"digest":"daily","opt_outs":[5]}' => 'The opted-out type "" is not a key',
+            '{"digest":"daily","opt_outs":[5]}' => 'The opted-out type (length 0) is not a key',
             '{"digest":"daily","quiet_hours":"x"}' => 'The stored quiet hours of "42" have a start, an end and a time zone.',
             '{"digest":"daily","quiet_hours":{"end":"07:00","timezone":"UTC"}}' => 'The stored quiet hours of "42" have a start, an end and a time zone.',
             '{"digest":"daily","quiet_hours":{"start":"22:00","timezone":"UTC"}}' => 'The stored quiet hours of "42" have a start, an end and a time zone.',

@@ -31,6 +31,15 @@ final class SendNotificationTest extends TestCase
         self::assertSame('events', $message->origin);
         self::assertTrue($message->broadcast);
         self::assertSame('comment:9', $message->subject()?->key());
+        self::assertNull($message->dedupeKey);
+    }
+
+    public function testAMessageMayCarryAKeyOfDuplicatesThatEachRecipientKeeps(): void
+    {
+        $message = new SendNotification('comment.replied', ['42', '43'], dedupeKey: 'reminder:7');
+
+        self::assertSame('reminder:7', $message->dedupeKey);
+        self::assertSame('reminder:7', $message->for('43')->dedupeKey);
     }
 
     public function testAMessageMayHaveNoSubject(): void
@@ -54,6 +63,7 @@ final class SendNotificationTest extends TestCase
         self::assertSame('17', $one->actor);
         self::assertSame('events', $one->origin);
         self::assertSame('comment.replied', $one->type);
+        self::assertNull($one->dedupeKey);
     }
 
     public function testAThousandRecipientsAtMost(): void
@@ -69,15 +79,16 @@ final class SendNotificationTest extends TestCase
     public function testEveryPartIsChecked(): void
     {
         foreach ([
-            'The notification type "A"' => static fn (): SendNotification => new SendNotification('A'),
-            'The recipient "a b"' => static fn (): SendNotification => new SendNotification('a', ['a b']),
-            'The audience "a b"' => static fn (): SendNotification => new SendNotification('a', audience: 'a b'),
+            'The notification type (length 1)' => static fn (): SendNotification => new SendNotification('A'),
+            'The recipient (length 3)' => static fn (): SendNotification => new SendNotification('a', ['a b']),
+            'The audience (length 3)' => static fn (): SendNotification => new SendNotification('a', audience: 'a b'),
             'The subject of a notification has both a type and an identifier.' => static fn (): SendNotification => new SendNotification('a', subjectType: 'comment'),
             'The subject of a notification has both a type and an identifier' => static fn (): SendNotification => new SendNotification('a', subjectId: '9'),
-            'The subject type "C"' => static fn (): SendNotification => new SendNotification('a', subjectType: 'C', subjectId: '9'),
+            'The subject type (length 1)' => static fn (): SendNotification => new SendNotification('a', subjectType: 'C', subjectId: '9'),
             'The data value of "x"' => static fn (): SendNotification => new SendNotification('a', data: ['x' => 'a b']),
-            'The actor "a b"' => static fn (): SendNotification => new SendNotification('a', actor: 'a b'),
-            'The origin "O"' => static fn (): SendNotification => new SendNotification('a', origin: 'O'),
+            'The actor (length 3)' => static fn (): SendNotification => new SendNotification('a', actor: 'a b'),
+            'The origin (length 1)' => static fn (): SendNotification => new SendNotification('a', origin: 'O'),
+            'The deduplication key (length 16)' => static fn (): SendNotification => new SendNotification('a', dedupeKey: 'ada@example.test'),
         ] as $message => $build) {
             try {
                 $build();

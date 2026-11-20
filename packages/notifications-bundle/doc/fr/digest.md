@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=cf8505c7a12bec0ec82fcabafa0136418b3c61eb5314acc2fee2b3a1d666c134 -->
+<!-- phil-dev source-sha256=f43b3366a063f13466c31a5669c771e35e930165c8d97e7ee430b89764c7689f -->
 # Résumé et conservation
 
 ## Les résumés
@@ -11,7 +11,10 @@ centre : un type sans le canal `site` est envoyé par courriel sur-le-champ.
 
 `Digests::sweep()` trouve les destinataires qui ont de telles notifications, une page à la fois, et envoie à chacun de
 ceux qui ont choisi cette fréquence son résumé, par un message `SendDigest` chacun quand un bus les porte.
-`MailerDigestSender` le rédige avec `@PhilNotifications/email/digest.html.twig`, dont le contexte est `frequency` et
+`MailerDigestSender` le rédige avec `@PhilNotifications/email/digest.html.twig`, le rend avec le moteur de rendu du corps
+de Twig et l'envoie sur-le-champ par les transports de Symfony Mailer — jamais par `MailerInterface`, qui mettrait sur
+le bus un `SendEmailMessage` contenant l'adresse et chaque ligne du résumé quand il est acheminé ; un refus du
+transport remonte, pour que le *worker* retente le message `SendDigest`. Le contexte du gabarit est `frequency` et
 `notifications`, chacune avec ses `id`, `type`, `title`, `body`, `url` et `count` ; son objet est la traduction de
 `digest.subject.daily` ou de `digest.subject.weekly`. Une application qui envoie autrement implémente `DigestSender`.
 

@@ -12,12 +12,15 @@ use Phil\NotificationsBundle\Application\RenderedNotification;
 use Phil\NotificationsBundle\Domain\Model\Notification;
 use Phil\NotificationsBundle\Infrastructure\Mailer\MailerDigestSender;
 use Phil\NotificationsBundle\Tests\Unit\Fixture\Logs;
-use Phil\NotificationsBundle\Tests\Unit\Fixture\RecordingMailer;
+use Phil\NotificationsBundle\Tests\Unit\Fixture\MailerTransport;
 use Phil\NotificationsBundle\Tests\Unit\Fixture\Translator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\Exception\TransportException;
 use Symfony\Component\Mailer\Header\TrackingHeader;
+use Symfony\Component\Mime\BodyRendererInterface;
+use Symfony\Component\Mime\Message;
 use Symfony\Component\Notifier\Recipient\NoRecipient;
 use Symfony\Component\Notifier\Recipient\Recipient;
 
@@ -114,13 +117,39 @@ final class MailerDigestSenderTest extends TestCase
         self::assertSame(['notice: A daily digest was not sent: the recipient has no email address.', 'notice: A daily digest was not sent: the recipient has no email address.'], $logs->records);
     }
 
+    public function testTheDigestIsRenderedBeforeItLeavesAtOnce(): void
+    {
+        $transport = new MailerTransport();
+        $renderer = new class implements BodyRendererInterface {
+            /** @var list<Message> */
+            public array $rendered = [];
+
+            #[Override]
+            public function render(Message $message): void
+            {
+                $this->rendered[] = $message;
+            }
+        };
+        new MailerDigestSender($transport, Translator::make(), renderer: $renderer)->send(new Recipient('ada@example.test'), DigestFrequency::Daily, [$this->item('n1')], null);
+
+        self::assertCount(1, $renderer->rendered);
+        self::assertSame($transport->sent[0], $renderer->rendered[0]);
+    }
+
+    public function testARefusalOfTheTransportGoesUpForTheRetry(): void
+    {
+        $this->expectException(TransportException::class);
+
+        new MailerDigestSender(MailerTransport::refusing(), Translator::make())->send(new Recipient('ada@example.test'), DigestFrequency::Daily, [$this->item('n1')], null);
+    }
+
     private function item(string $id): RenderedNotification
     {
         return new RenderedNotification(new Notification($id, 'welcome', '42', null, new DateTimeImmutable('2026-11-08 10:00 UTC')), 'T '.$id, 'B');
     }
 
-    private function mailer(): RecordingMailer
+    private function mailer(): MailerTransport
     {
-        return new RecordingMailer();
+        return new MailerTransport();
     }
 }

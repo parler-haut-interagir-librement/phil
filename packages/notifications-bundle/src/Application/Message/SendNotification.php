@@ -11,7 +11,8 @@ use Phil\NotificationsBundle\Domain\ValueObject\SubjectReference;
 
 /**
  * A notification to deliver, made of identifiers only: its type, its recipients or the audience they belong to, its
- * subject, its data, its actor and the site it comes from. Sent to many, it is split into one message per recipient
+ * subject, its data, its actor, the site it comes from, and the key that makes two notifications the same within the
+ * window of duplicates, when what they say is not enough. Sent to many, it is split into one message per recipient
  * when a bus carries it, so that a failure is retried for that recipient alone; the broadcast channels are posted to
  * by the first message only.
  */
@@ -41,6 +42,7 @@ final readonly class SendNotification
         public ?string $actor = null,
         public ?string $origin = null,
         public bool $broadcast = true,
+        public ?string $dedupeKey = null,
     ) {
         Identifiers::key($type, 'notification type');
 
@@ -63,6 +65,10 @@ final readonly class SendNotification
 
         if (null !== $origin) {
             Identifiers::key($origin, 'origin');
+        }
+
+        if (null !== $dedupeKey) {
+            Identifiers::id($dedupeKey, 'deduplication key');
         }
     }
 
@@ -87,6 +93,6 @@ final readonly class SendNotification
      */
     public function for(string $recipient): self
     {
-        return new self($this->type, [$recipient], null, $this->subjectType, $this->subjectId, $this->data, $this->actor, $this->origin, false);
+        return new self($this->type, [$recipient], null, $this->subjectType, $this->subjectId, $this->data, $this->actor, $this->origin, false, $this->dedupeKey);
     }
 }

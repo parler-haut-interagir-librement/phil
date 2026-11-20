@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e7e5b5e0e04f8581f245cac5a3b4781a8ef132a225dd07e8e739bec29eb9d774 -->
+<!-- phil-dev source-sha256=db2d09acb6486e4ba959ea1f598ed66a5002983240991be32500794dbc12e9b2 -->
 # Référence
 
 ## Classes
@@ -12,6 +12,7 @@
 | `Phil\CircuitBreakerBundle\Infrastructure\HttpClient\Exception\CircuitOpen` | Une requête non envoyée parce que son circuit est ouvert ; une exception de transport |
 | `Phil\CircuitBreakerBundle\Infrastructure\Profiler\CircuitBreakerDataCollector` | L'état de chaque circuit dans le profileur : `circuits()`, `trippedCount()`, `TEMPLATE` |
 | `Phil\CircuitBreakerBundle\Infrastructure\Profiler\CircuitsReport` | Ce qu'une requête a collecté |
+| `Phil\CircuitBreakerBundle\Infrastructure\DependencyInjection\SharedStateGuard` | La passe de compilation qui refuse, en production, un `cache_pool` local à chaque serveur ; `POOL_PARAMETER` |
 
 ## Services, étiquette et paramètre
 
@@ -24,6 +25,7 @@
 | `Phil\CircuitBreakerBundle\Infrastructure\Profiler\CircuitBreakerDataCollector` | un circuit est déclaré | Le collecteur, étiqueté `data_collector` avec l'identifiant `phil_circuit_breaker` |
 | étiquette `phil_circuit_breaker.override` | toujours | Les forçages ; donnée par l'autoconfiguration à chaque `CircuitOverride` |
 | paramètre `phil_circuit_breaker.circuit_keys` | toujours | Les clés des circuits déclarés, une liste de chaînes |
+| paramètre `.phil_circuit_breaker.guarded_pool` | un circuit est déclaré, `state_store` vaut `null` et `single_server` vaut `false` | Le pool que `SharedStateGuard` vérifie, retiré par lui |
 
 ## Gabarit
 

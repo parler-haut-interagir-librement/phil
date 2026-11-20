@@ -31,7 +31,12 @@ $notifications->send(
 );
 
 $notifications->sendToAudience('event.cancelled', 'event:'.$event->id.':attendees', new SubjectReference('event', $event->id));
+
+$notifications->send('event.reminder', $member->id, new SubjectReference('event', $event->id), dedupeKey: 'event:'.$event->id.':day-before');
 ```
+
+A `dedupeKey`, an identifier, makes two notifications the same within the window of duplicates when their subject and
+data are not enough; see [Delivery](delivery.md#the-window-of-duplicates).
 
 Everything is checked at the call: an undeclared type is an `UnknownNotificationType`, an identifier of the wrong shape
 an `InvalidNotification`. An identifier holds letters, digits, `_`, `.`, `:` and `-`, up to 190 characters: never a
@@ -56,7 +61,7 @@ An audience no provider supports fails the delivery with `UnknownAudience`.
 ## Messenger
 
 The message `SendNotification` holds the type, the recipients or the audience, the subject's type and identifier, the
-data, the actor and the origin. With a bus, a message for several recipients — or an audience — is split into one
+data, the actor, the origin and the key of duplicates. With a bus, a message for several recipients — or an audience — is split into one
 message per recipient, so that a failure is retried for that recipient alone; the broadcast channels are posted to by
 the first message only. The routing is the application's: sent to an asynchronous transport, notifications are
 delivered by a worker.
@@ -67,5 +72,14 @@ framework:
         routing:
             Phil\NotificationsBundle\Application\Message\SendNotification: async
 ```
+
+A delivery that reached no channel and may succeed later throws `DeliveryFailed`, and the worker tries the message
+again; see [Delivery](delivery.md#the-result).
+
+Route `SendNotification` only. Routing `SendEmailMessage`, `SmsMessage` or `ChatMessage` to a transport puts the
+recipient's address or phone number and the whole text in the queue, and in its failure transport, for as long as the
+message stays there; it also hides a provider's refusal from the `first_success` mode. In the `fan_out` mode, Symfony
+Notifier sends email through `MailerInterface`, which dispatches a `SendEmailMessage` when one is routed: leave it
+unrouted, and keep `framework.notifier.message_bus` disabled.
 
 Every service of the delivery holds no state between messages, as a worker needs.

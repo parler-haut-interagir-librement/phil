@@ -6,6 +6,7 @@ namespace Phil\NotificationsBundle;
 
 use Override;
 use Phil\NotificationsBundle\Application\Channels;
+use Phil\NotificationsBundle\Application\Delivery\DeliveryMode;
 use Phil\NotificationsBundle\Application\NotificationType;
 use Phil\NotificationsBundle\Application\Preferences\DigestFrequency;
 use Phil\NotificationsBundle\Application\WebPush\PushSubscriber;
@@ -14,8 +15,10 @@ use Phil\NotificationsBundle\Infrastructure\DependencyInjection\NotificationsPas
 use Phil\NotificationsBundle\Infrastructure\DependencyInjection\NotificationsServices;
 use Phil\NotificationsBundle\Infrastructure\Doctrine\DbalPushSubscriptions;
 use Phil\NotificationsBundle\Infrastructure\Http\CentreRequest;
+use Phil\NotificationsBundle\Infrastructure\Idempotency\NotificationDedupe;
 use Phil\NotificationsBundle\Infrastructure\Mercure\MercureToasts;
 use Phil\NotificationsBundle\Infrastructure\WebPush\MinishlinkWebPushSender;
+use Phil\RateLimit\RateLimitGuard;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -69,6 +72,7 @@ final class PhilNotificationsBundle extends AbstractBundle
             ->scalarNode('message_bus')->info('The Messenger bus notifications and digests go through; none delivers at once.')->defaultValue('messenger.default_bus')->end();
 
         $this->defaults($children);
+        $this->delivery($children);
         $this->types($children);
         $this->toasts($children);
         $this->schedules($children);
@@ -112,18 +116,20 @@ final class PhilNotificationsBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{store: string, connection: string, preferences: string, recipient_directory: ?string, current_recipient: ?string, web_push_sender: ?string, message_bus: ?string, defaults: array{digest: string, quiet_hours?: array{start: string, end: string, timezone: string}, opt_outs: list<string>, locale: ?string}, types: array<string, array{channels: list<string>, broadcast: list<string>, collapse: bool, digest: bool, toast: bool, importance: string, title: ?string, body: ?string}>, toasts: array{transport: string, hub: string, topic_prefix: string, private: bool}, digest: array{enabled: bool, sender: ?string, from: ?string, template: string, tracking_consent: ?string, at: string, weekday: string, limit: int}, retention: array{read_days: int, unread_days: int, purge_at: string}, schedule: array{enabled: bool, timezone: string}, remote: array{enabled: bool, receiver: ?string, origins: list<string>}, web_push: array{enabled: bool, subject: ?string, public_key: string, private_key: string, ttl: int, push_services: list<string>, max_subscriptions: positive-int, worker: ?string, http_client: ?string, timeout: float}} $config */
+        /** @var array{store: string, connection: string, preferences: string, recipient_directory: ?string, current_recipient: ?string, web_push_sender: ?string, message_bus: ?string, defaults: array{digest: string, quiet_hours?: array{start: string, end: string, timezone: string}, opt_outs: list<string>, locale: ?string}, delivery: array{single_server: bool, from: ?string, dedupe: array{enabled: bool, ttl: int, store: ?string, cache_pool: ?string, lock_factory: string}, rate_limiter: ?string}, types: array<string, array{channels: list<string>, broadcast: list<string>, collapse: bool, digest: bool, toast: bool, importance: string, title: ?string, body: ?string, delivery: string, dedupe_ttl: ?int}>, toasts: array{transport: string, hub: string, topic_prefix: string, private: bool}, digest: array{enabled: bool, sender: ?string, from: ?string, template: string, tracking_consent: ?string, at: string, weekday: string, limit: int}, retention: array{read_days: int, unread_days: int, purge_at: string}, schedule: array{enabled: bool, timezone: string}, remote: array{enabled: bool, receiver: ?string, origins: list<string>}, web_push: array{enabled: bool, subject: ?string, public_key: string, private_key: string, ttl: int, push_services: list<string>, max_subscriptions: positive-int, worker: ?string, http_client: ?string, timeout: float}} $config */
         NotificationsServices::register($builder, $config);
     }
 
     /**
-     * Falls back on what the application lacks — a translator, Symfony Security — and stops the container with a
-     * helpful message when the application turns the CSRF protection off.
+     * Falls back on what the application lacks — a translator, Symfony Security —, stops the container with a helpful
+     * message when the application turns the CSRF protection off, and refuses in production a window of duplicates or
+     * a rate limit kept on each server apart, unless `delivery.single_server` says there is one.
      */
     #[Override]
     public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new NotificationsPass());
+        $container->addCompilerPass(new RateLimitGuard());
     }
 
     private function defaults(NodeBuilder $children): void
@@ -148,6 +154,34 @@ final class PhilNotificationsBundle extends AbstractBundle
             ->end();
     }
 
+    private function delivery(NodeBuilder $children): void
+    {
+        $children
+            ->arrayNode('delivery')
+                ->info('What a delivery checks before the channels, and the sender of the emails of the "first_success" mode.')
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->booleanNode('single_server')->info('Accepts a cache pool or a limiter storage local to the server in the prod environment, for an application on one server.')->defaultFalse()->end()
+                    ->scalarNode('from')->info('The sender address of the emails of the "first_success" mode; the one of the mailer\'s "headers" when null.')->defaultNull()->end()
+                    ->arrayNode('dedupe')
+                        ->info('One delivery of the same notification to a recipient per window, with phil/idempotency.')
+                        ->canBeEnabled()
+                        ->validate()
+                            ->ifTrue(static fn (array $v): bool => true === $v['enabled'] && null === ($v['store'] ?? null) && null === ($v['cache_pool'] ?? null))
+                            ->thenInvalid('The window of duplicates needs a shared store: set "phil_notifications.delivery.dedupe.store" to an IdempotencyStore service, or "cache_pool" to a pool on Redis, Memcached or a database.')
+                        ->end()
+                        ->children()
+                            ->integerNode('ttl')->info('The window, in seconds, of a type that names none.')->min(1)->defaultValue(NotificationDedupe::TTL)->end()
+                            ->scalarNode('store')->info('The IdempotencyStore service of phil/idempotency, such as a DbalIdempotencyStore.')->defaultNull()->end()
+                            ->scalarNode('cache_pool')->info('The cache pool of a CacheIdempotencyStore, when no store is named; shared by every server.')->defaultNull()->end()
+                            ->scalarNode('lock_factory')->info('The LockFactory of the CacheIdempotencyStore, on a store shared by every server.')->cannotBeEmpty()->defaultValue('lock.factory')->end()
+                        ->end()
+                    ->end()
+                    ->scalarNode('rate_limiter')->info('The name of a limiter of symfony/rate-limiter, such as a sliding window of 5 an hour, spent once per recipient and delivery; "urgent" types pass. None limits nothing.')->defaultNull()->end()
+                ->end()
+            ->end();
+    }
+
     private function types(NodeBuilder $children): void
     {
         $children
@@ -164,6 +198,8 @@ final class PhilNotificationsBundle extends AbstractBundle
                         ->enumNode('importance')->values(NotificationType::IMPORTANCES)->defaultValue('medium')->end()
                         ->scalarNode('title')->info('The translation key of the title; "<key>.title" when null.')->defaultNull()->end()
                         ->scalarNode('body')->info('The translation key of the body; "<key>.body" when null.')->defaultNull()->end()
+                        ->enumNode('delivery')->info('"fan_out" sends on every channel; "first_success" tries them in order, at once, until one accepts.')->values(array_map(static fn (DeliveryMode $m): string => $m->value, DeliveryMode::cases()))->defaultValue(DeliveryMode::FanOut->value)->end()
+                        ->integerNode('dedupe_ttl')->info('The window of duplicates, in seconds: null for "delivery.dedupe.ttl", 0 for none.')->min(0)->defaultNull()->end()
                     ->end()
                 ->end()
             ->end();

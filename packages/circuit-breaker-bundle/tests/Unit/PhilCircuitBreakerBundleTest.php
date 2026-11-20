@@ -11,6 +11,7 @@ use Phil\CircuitBreaker\CircuitState;
 use Phil\CircuitBreaker\Contract\CircuitOverride;
 use Phil\CircuitBreaker\Exception\InvalidCircuit;
 use Phil\CircuitBreakerBundle\Infrastructure\Cache\CacheCircuitStateStore;
+use Phil\CircuitBreakerBundle\Infrastructure\DependencyInjection\SharedStateGuard;
 use Phil\CircuitBreakerBundle\Infrastructure\HttpClient\CircuitBreakingHttpClient;
 use Phil\CircuitBreakerBundle\Infrastructure\Profiler\CircuitBreakerDataCollector;
 use Phil\CircuitBreakerBundle\PhilCircuitBreakerBundle;
@@ -73,6 +74,23 @@ final class PhilCircuitBreakerBundleTest extends TestCase
         $custom = $this->load(['state_store' => 'app.circuits', 'clock' => 'app.clock', 'circuits' => ['http.payments' => self::POLICY]]);
         self::assertFalse($custom->hasDefinition(CacheCircuitStateStore::class));
         self::assertEquals([new Reference('app.circuits'), new Reference(CircuitOverrides::class), new Reference('app.clock')], \array_slice($custom->getDefinition(CircuitBreakers::class)->getArguments(), 1));
+    }
+
+    public function testTheCachePoolIsCheckedUnlessOnOneServerOrWithAStore(): void
+    {
+        self::assertSame('cache.app', $this->load(['circuits' => ['http.payments' => self::POLICY]])->getParameter(SharedStateGuard::POOL_PARAMETER));
+        self::assertSame('app.pool', $this->load(['cache_pool' => 'app.pool', 'circuits' => ['http.payments' => self::POLICY]])->getParameter(SharedStateGuard::POOL_PARAMETER));
+        self::assertFalse($this->load(['single_server' => true, 'circuits' => ['http.payments' => self::POLICY]])->hasParameter(SharedStateGuard::POOL_PARAMETER));
+        self::assertFalse($this->load(['state_store' => 'app.circuits', 'circuits' => ['http.payments' => self::POLICY]])->hasParameter(SharedStateGuard::POOL_PARAMETER));
+        self::assertFalse($this->load([])->hasParameter(SharedStateGuard::POOL_PARAMETER));
+    }
+
+    public function testTheBundleAddsTheGuard(): void
+    {
+        $container = new ContainerBuilder();
+        new PhilCircuitBreakerBundle()->build($container);
+
+        self::assertCount(1, array_filter($container->getCompilerPassConfig()->getBeforeOptimizationPasses(), static fn (object $pass): bool => $pass instanceof SharedStateGuard));
     }
 
     public function testAClientIsPutBehindItsCircuit(): void

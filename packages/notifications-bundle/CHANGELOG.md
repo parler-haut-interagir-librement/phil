@@ -6,14 +6,72 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.2.1-alpha.
+The next version is 0.3.0-alpha.
 
-Tests only.
+A type can try its channels one after the other until a provider accepts the notification, and every delivery can
+hold back duplicates and count against a limit per recipient. `WebPushSender::send()`, `NotificationDispatcher::deliver()`
+and the constructor of `MailerDigestSender` change. See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
+
+### Added
+
+- The `delivery` option of a type, `fan_out` by default or `first_success`, and `DeliveryMode`. In `first_success`,
+  the channels outside the centre are tried in the order of the type, at once, inside the recipient's
+  `SendNotification` message, until one is accepted by its provider; the centre, its toast and the broadcast channels
+  stay outside the fallback.
+- `ChannelSender`, the port of a channel sent at once, autoconfigured and asked before the bundle's senders:
+  `NotifierChannelSender` for `sms`, `push` and `chat` through Notifier's texter and chatter, and `MailerChannelSender`
+  for `email`, a plain text email through the transports of Symfony Mailer, from `delivery.from`. Only a
+  `TransportExceptionInterface` of Notifier or Mailer, or a refusal of the push services, moves on to the next channel;
+  any other exception goes up.
+- `ChannelOutcome`: `Accepted`, `Unreachable` or `Refused`, the answer of one attempt.
+- `SkipReason`: a channel skipped as `opted_out`, `quiet_hours`, `no_contact` — checked channel by channel against the
+  directory's `EmailRecipientInterface` and `SmsRecipientInterface`, and the Web Push subscriptions —, `circuit_open`,
+  `unavailable` or `refused`. An email left to the digest counts as accepted.
+- `ChannelCircuits` and its adapter `ChannelBreakers`: with phil/circuit-breaker-bundle, the circuit `notifications.<channel>.<transport>` or
+  `notifications.<channel>` guards its channel, skipped while open, a refusal recorded as a failure and an acceptance as
+  a success.
+- `DeliveryDedupe`, `DedupeTicket` and the adapter `NotificationDedupe`, with `delivery.dedupe`: the same notification is delivered to a recipient once per window, 300
+  seconds by default or the type's `dedupe_ttl`, reserved atomically with phil/idempotency before the rate limit,
+  freed after a refusal of the limit, a total failure or an exception; the centre keeps it once per window. The key is
+  the message's `dedupeKey`, or its subject, data, actor and origin, with the type and the recipient.
+- `SendNotification::$dedupeKey`, and the `dedupeKey` argument of `Notifications::send()` and `sendToAudience()`.
+- `RecipientRateLimit` and `delivery.rate_limiter`: a limiter of symfony/rate-limiter, named in the configuration,
+  spent once per recipient and delivery with a channel outside the centre; an `urgent` type passes, and a refusal
+  leaves the notification in the centre.
+- `delivery.single_server`. In the prod environment, a cache pool of the window or a limiter storage local to each
+  server is refused, with `StoreLocality` and `RateLimitGuard` of phil/rate-limit, unless it is `true`.
+- `DeliveryResult` — `sent`, `duplicate`, `rate_limited` or `failed`, the channels that took the notification, the
+  channel `first_success` chose and the reason of each channel skipped —, dispatched as `NotificationDelivered` and
+  logged without the recipient.
+- `DeliveryFailed`, thrown last when no channel took the notification and one was refused or held back by its circuit,
+  for Messenger to try again. Without a bus, a message for several recipients delivers to each of them first, and the
+  broadcast waits for the retry.
+- `Channels::reaches()` and `Channels::base()`.
+- `DeliveryPolicy`, holding the channel senders, the window, the limit and the breakers of `NotificationDispatcher`.
+- The documentation of the delivery: the modes, why `framework.notifier.message_bus` stays disabled, accepted meaning
+  accepted by the provider, the window, the limit, the breakers and the result.
 
 ### Changed
 
+- `WebPushSender::send()` returns a `ChannelOutcome`. `MinishlinkWebPushSender` answers `Accepted` when a push service
+  took the message, `Unreachable` without a subscription or when every one was forgotten after a `404` or a `410`, and
+  `Refused` otherwise.
+- `NotificationDispatcher::deliver()` returns a `DeliveryResult`. The lines it logged for a channel without an address,
+  without Notifier or without a Web Push sender are replaced by the one line of the result.
+- `MailerDigestSender` sends through a Mailer `TransportInterface`, the service `mailer.transports`, rendered first by
+  the optional `BodyRendererInterface`, instead of `MailerInterface`. The digest is removed without
+  `mailer.transports`, as it was without `mailer`.
 - The WebPush test ignores the notice the library logs when neither GMP nor BCMath is loaded, which depends on the PHP
   build.
+
+### Security
+
+- A digest no longer goes through `MailerInterface`, which put a `SendEmailMessage` holding the address and every line
+  of the digest on the bus when the application routed it. The documentation says not to route `SendEmailMessage`,
+  `SmsMessage` and `ChatMessage`, which hold addresses and text, and a test shows what they carry.
+- `InvalidNotification` names a refused identifier, key or value by its length, never by its first characters, which
+  could be an address in the logs or in a failed message.
+- The log line of a delivery leaves the recipient out.
 
 ## 0.2.0-alpha - 2026-11-18
 

@@ -11,6 +11,7 @@
 | `Phil\CircuitBreakerBundle\Infrastructure\HttpClient\Exception\CircuitOpen` | A request not sent because its circuit is open; a transport exception |
 | `Phil\CircuitBreakerBundle\Infrastructure\Profiler\CircuitBreakerDataCollector` | The state of each circuit in the profiler: `circuits()`, `trippedCount()`, `TEMPLATE` |
 | `Phil\CircuitBreakerBundle\Infrastructure\Profiler\CircuitsReport` | What one request collected |
+| `Phil\CircuitBreakerBundle\Infrastructure\DependencyInjection\SharedStateGuard` | The compiler pass that refuses, in the prod environment, a `cache_pool` local to each server; `POOL_PARAMETER` |
 
 ## Services, tag and parameter
 
@@ -23,6 +24,7 @@
 | `Phil\CircuitBreakerBundle\Infrastructure\Profiler\CircuitBreakerDataCollector` | a circuit is declared | The collector, tagged `data_collector` with the id `phil_circuit_breaker` |
 | tag `phil_circuit_breaker.override` | always | The overrides; given by autoconfiguration to every `CircuitOverride` |
 | parameter `phil_circuit_breaker.circuit_keys` | always | The keys of the declared circuits, a list of strings |
+| parameter `.phil_circuit_breaker.guarded_pool` | a circuit is declared, `state_store` is `null` and `single_server` is `false` | The pool `SharedStateGuard` checks, removed by it |
 
 ## Template
 

@@ -13,15 +13,21 @@ use Phil\NotificationsBundle\Application\RenderedNotification;
 use Psr\Log\LoggerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\Header\TrackingHeader;
-use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mailer\Transport\TransportInterface;
+use Symfony\Component\Mime\BodyRendererInterface;
 use Symfony\Component\Notifier\Recipient\EmailRecipientInterface;
 use Symfony\Component\Notifier\Recipient\RecipientInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * Sends the digest by Symfony Mailer, written by the template `@PhilNotifications/email/digest.html.twig` — or the
- * application's own —, to the address of an `EmailRecipientInterface`; a recipient without one is skipped. The sender
- * is the configured address, or the mailer's own when none is configured.
+ * Sends the digest through the transports of Symfony Mailer, written by the template
+ * `@PhilNotifications/email/digest.html.twig` — or the application's own — and rendered before it leaves, to the
+ * address of an `EmailRecipientInterface`; a recipient without one is skipped. The sender is the configured address,
+ * or the one the mailer's `headers` give when none is configured.
+ *
+ * It never goes through `MailerInterface`, which puts a `SendEmailMessage` on the bus when Messenger routes it: the
+ * message would wait in the transport with the address and every line of the digest. The digest runs in a worker
+ * already, one recipient per message.
  *
  * Each digest carries a `TrackingHeader`, which wins over the mailer's `tracking` option: opens and clicks are not
  * followed, unless the `EmailTrackingConsent` says the recipient agreed to it.
@@ -31,12 +37,13 @@ final readonly class MailerDigestSender implements DigestSender
     public const string TEMPLATE = '@PhilNotifications/email/digest.html.twig';
 
     public function __construct(
-        private MailerInterface $mailer,
+        private TransportInterface $transport,
         private TranslatorInterface $translator,
         private ?string $from = null,
         private string $template = self::TEMPLATE,
         private ?LoggerInterface $logger = null,
         private ?EmailTrackingConsent $tracking = null,
+        private ?BodyRendererInterface $renderer = null,
     ) {
     }
 
@@ -69,6 +76,7 @@ final readonly class MailerDigestSender implements DigestSender
             $email->from($this->from);
         }
 
-        $this->mailer->send($email);
+        $this->renderer?->render($email);
+        $this->transport->send($email);
     }
 }

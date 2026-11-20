@@ -10,8 +10,11 @@ phil_circuit_breaker:
     # Service id of a CircuitStateStore shared by every breaker; null (the default) keeps the states in cache_pool.
     state_store: ~
 
-    # The PSR-6 pool of the default store, read when state_store is null.
+    # The PSR-6 pool of the default store, read when state_store is null; shared by every server.
     cache_pool: cache.app
+
+    # true accepts a cache_pool local to the server in the prod environment, for an application on one server.
+    single_server: false
 
     # One circuit breaker per key.
     circuits:
@@ -48,7 +51,15 @@ phil_circuit_breaker:
 |---|---|
 | Type | string (service id) |
 | Default | `cache.app` |
-| Effect | The PSR-6 pool of `CacheCircuitStateStore`, when `state_store` is `null`. |
+| Effect | The PSR-6 pool of `CacheCircuitStateStore`, when `state_store` is `null`. In the prod environment, a pool that stays on each server — the filesystem, APCu, array or system adapter of `symfony/cache`, which `cache.app` is by default — is refused, unless `single_server` is `true`. |
+
+## `single_server`
+
+| | |
+|---|---|
+| Type | boolean |
+| Default | `false` |
+| Effect | Accepts a `cache_pool` local to the server in the prod environment: on one server, every worker shares it. A `state_store` of the application's is never checked. |
 
 ## `circuits`
 
@@ -83,6 +94,8 @@ to its third party. The message names the circuit:
 | `phil_circuit_breaker.circuits.<key>: A failure rate threshold is between 1 and 100 %; got 0.` | A rate out of bounds. |
 | `phil_circuit_breaker.circuits.<key>: The window of a circuit policy is at least 1; got 0.` | A duration or count below 1. |
 | `phil_circuit_breaker.state_store must be a service id.` | A service id that is not a string. |
+| `phil_circuit_breaker.cache_pool: the pool "<id>" is local to each server, …` | In the prod environment, a pool on the filesystem, APCu, an array or the system adapter, without `single_server`. |
 
-Each is an `InvalidConfigurationException` whose previous exception is the library's `InvalidCircuit`. A missing
+Each is an `InvalidConfigurationException`; those about a circuit have the library's `InvalidCircuit` as their previous
+exception. A missing
 required field or a value that is not an integer is refused by the configuration tree first.

@@ -12,6 +12,11 @@ at once or in a daily or weekly digest; Web Push to the browsers they turned it 
 transport; and a Slack or Discord channel, once for everyone. Quiet hours hold back what interrupts, and each channel
 can be turned off per type.
 
+A type sends on all its channels, or tries them one after the other — SMS, then Web Push, then email — until a provider
+accepts the notification, skipping a channel without an address or whose circuit breaker is open. The same
+notification reaches a recipient once per window, each recipient gets a limited number, and each delivery ends with a
+result that says which channel took it and why the others were skipped.
+
 A notification carries references, never content: a type, a recipient, an actor, a subject (`comment:981`) and a few
 more identifiers. What it says is written from its type's templates when it is shown or sent, the subject's label and
 URL looked up by the application's resolvers at that moment. Its Messenger messages are as small, and a notification
@@ -44,6 +49,9 @@ sends them in the background and shows the toasts, without motion when the visit
 | `PushSubscription`, `PushSubscriber`, `PushSubscriptions` on DBAL or in memory: each recipient's browsers, endpoints on allowed push services | Implemented and tested on SQLite |
 | `MinishlinkWebPushSender` and `VapidKeys`: encrypted, signed and posted on minishlink/web-push, expired subscriptions forgotten; `phil:notifications:vapid-keys` | Implemented and tested against a mock push service |
 | `PushSubscriptionController`, the `PhilNotifications:WebPush` component, the `web-push` controller and the service worker | Implemented and tested; the modules and the worker under Node |
+| `DeliveryMode`, `ChannelSender`, `MailerChannelSender`, `NotifierChannelSender`: channels tried in turn until one accepts, at once | Implemented and tested against fake transports |
+| `NotificationDedupe`, `RecipientRateLimit`, `ChannelBreakers`: one delivery per window on phil/idempotency, a limit per recipient on symfony/rate-limiter, circuit breakers on phil/circuit-breaker | Implemented and tested with a mock clock, an in-memory cache and an in-memory limiter |
+| `DeliveryResult`, `NotificationDelivered`, `DeliveryFailed`: the result of each delivery, its event, the retry of a total failure | Implemented and tested |
 | `AudienceProvider`: recipients chosen by audience | A port, for the application or a segments package |
 | A news summary: the notifications of a period gathered for those who did not see them | Not started |
 
@@ -55,6 +63,7 @@ sends them in the background and shows the toasts, without motion when the visit
 | [Configuration](doc/configuration.md) | Every option, with an example. |
 | [Sending](doc/sending.md) | Types, the entry point, recipients and audiences, references, Messenger. |
 | [Channels](doc/channels.md) | The centre, email, Web Push and its service worker, Notifier channels, broadcast channels, quiet hours and opt-outs. |
+| [Delivery](doc/delivery.md) | All channels or the first that accepts, the window of duplicates, the rate limit, circuit breakers, the result. |
 | [Preferences](doc/preferences.md) | What a recipient chooses, where it is kept, and the port that replaces it. |
 | [Notification centre](doc/centre.md) | The components, the endpoints, the toasts, the Stimulus controller, accessibility. |
 | [Digest and retention](doc/digest.md) | The daily and weekly digests, the schedule, the purge. |
@@ -90,7 +99,7 @@ $notifications->send('comment.replied', $author->id, new SubjectReference('comme
 
 ## Requirements
 
-PHP 8.5 or later and Symfony 8.2 or later, with Symfony Notifier and Doctrine DBAL.
+PHP 8.5 or later and Symfony 8.2 or later, with Symfony Notifier, Doctrine DBAL and phil/rate-limit.
 
 ## Contributing
 

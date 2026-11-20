@@ -29,7 +29,7 @@ final class Identifiers
     public static function key(string $value, string $what): string
     {
         if (1 !== preg_match(self::KEY, $value)) {
-            throw InvalidNotification::because(\sprintf('The %s "%s" is not a key: lowercase letters, digits, "_", "." and "-", starting with a letter, %d characters at most.', $what, self::excerpt($value), self::KEY_LENGTH));
+            throw InvalidNotification::because(\sprintf('The %s %s is not a key: lowercase letters, digits, "_", "." and "-", starting with a letter, %d characters at most.', $what, self::excerpt($value), self::KEY_LENGTH));
         }
 
         return $value;
@@ -41,14 +41,18 @@ final class Identifiers
     public static function id(string $value, string $what): string
     {
         if (1 !== preg_match(self::ID, $value)) {
-            throw InvalidNotification::because(\sprintf('The %s "%s" is not an identifier: letters, digits, "_", ".", ":" and "-", %d characters at most.', $what, self::excerpt($value), self::ID_LENGTH));
+            throw InvalidNotification::because(\sprintf('The %s %s is not an identifier: letters, digits, "_", ".", ":" and "-", %d characters at most.', $what, self::excerpt($value), self::ID_LENGTH));
         }
 
         return $value;
     }
 
+    /**
+     * What a message says of a refused value: its length only, never the value, which may be an address or a name
+     * that ends up in the logs or in a failed message.
+     */
     private static function excerpt(string $value): string
     {
-        return mb_strcut($value, 0, 40);
+        return \sprintf('(length %d)', \strlen($value));
     }
 }

@@ -1,8 +1,9 @@
-<!-- phil-dev source-sha256=c9bdf290d70a879e3030bcd832de0b5713f371b50ed5c9e1ac9bd65488f503c0 -->
+<!-- phil-dev source-sha256=b237025e50437dbad97b2144c8a0497c64bd945224d7a1b2aa617b7611de1b24 -->
 # Canaux
 
-Un type nomme les canaux de chaque destinataire ; le destinataire peut désactiver n'importe lequel d'entre eux. Le
-répartiteur procède alors ainsi :
+Un type nomme les canaux de chaque destinataire ; le destinataire peut désactiver n'importe lequel d'entre eux. Dans le
+mode `fan_out`, celui par défaut, le répartiteur sert alors chacun d'eux ; dans le mode `first_success`, il essaie ceux
+qui sont hors du centre tour à tour jusqu'à ce qu'un accepte la notification, comme le dit [Livraison](delivery.md) :
 
 | Canal | Livraison |
 |---|---|
@@ -69,6 +70,11 @@ connaît plus l'abonnement, qui est oublié ; toute autre réponse est journalis
 le point de terminaison, qui est un secret de son navigateur. Les heures de silence et les refus (`*:web_push`)
 s'appliquent comme à n'importe quel canal.
 
+`send()` dit comment les services de poussée ont répondu : `Accepted` quand l'un d'eux a pris le message, `Unreachable`
+quand le destinataire n'a aucun abonnement ou seulement des abonnements tout juste oubliés, `Refused` autrement — un
+refus, une redirection ou l'absence de réponse. Le mode `first_success` passe au canal suivant après `Unreachable` ou
+`Refused`.
+
 `WebPushMessage::of()` donne ce qui est envoyé pour une notification d'un type :
 
 | Propriété | Ce qu'elle contient |
@@ -95,13 +101,17 @@ final readonly class BrowserPush implements WebPushSender
 {
     public function __construct(private NotificationTypes $types, private PushSubscriptions $subscriptions) {}
 
-    public function send(string $recipient, RenderedNotification $notification): void
+    public function send(string $recipient, RenderedNotification $notification): ChannelOutcome
     {
         $message = WebPushMessage::of($notification, $this->types->get($notification->notification->type));
+        $outcome = ChannelOutcome::Unreachable;
 
         foreach ($this->subscriptions->of($recipient) as $subscription) {
-            // Encrypt $message->payload for $subscription and post it with its urgency, topic and time to live.
+            // Encrypt $message->payload for $subscription and post it with its urgency, topic and time to live;
+            // a 2xx makes it Accepted, a 404 or 410 forgets the subscription, any other answer makes it Refused.
         }
+
+        return $outcome;
     }
 }
 ```
@@ -109,5 +119,5 @@ final readonly class BrowserPush implements WebPushSender
 ## Adresses
 
 Les canaux qui ont besoin d'une adresse la demandent au `RecipientDirectory` au moment de l'envoi de la notification,
-jamais avant : un `EmailRecipientInterface` pour le courriel, un `SmsRecipientInterface` pour le SMS. Un destinataire que
-l'annuaire ne connaît pas est sauté et journalisé.
+jamais avant : un `EmailRecipientInterface` pour le courriel, un `SmsRecipientInterface` pour le SMS. Un canal pour lequel
+l'annuaire ne donne rien est sauté comme `no_contact`, et le résultat de la livraison le dit.

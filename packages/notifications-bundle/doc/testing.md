@@ -15,7 +15,11 @@ application with FrameworkBundle, DoctrineBundle on SQLite, Twig and its compone
 bell and the list, and marks it read through a form checked by the real stateless CSRF protection. With Symfony UX
 Turbo, it renders the bell as a permanent element, submits a form as Turbo does and reads the unread count. A second
 kernel posts a broadcast to Slack and Discord through Symfony Notifier's own bridges, against a recording HTTP client
-that answers as their APIs answer. The Web Push button is rendered with its configuration, and a browser's subscription
+that answers as their APIs answer. `FallbackTest` runs the `first_success` mode against fake transports that accept,
+refuse or throw on command, with a mock clock, a window of duplicates in an in-memory cache and an in-memory limiter:
+the first channel, the next and the last, a channel without contact skipped without being called, a circuit that opens
+and lets its probe through, a duplicate within the window, a total failure then its retry with the centre kept once,
+the rate limit and the `urgent` type that passes it, a refusal of a transport and another exception that goes up. The Web Push button is rendered with its configuration, and a browser's subscription
 kept and forgotten through its endpoints. The Node tests cover the controllers' modules — the updates read from
 Mercure and the toasts built from them, what the Web Push controller reads of the browser and sends — and the service
 worker, run with a fake `self`: what it shows and what a click opens.

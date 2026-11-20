@@ -2,8 +2,8 @@
 
 ## Requirements
 
-PHP 8.5 or later, Symfony 8.2 or later with FrameworkBundle, Symfony Notifier and Doctrine DBAL. Optional, each used
-when it is installed:
+PHP 8.5 or later, Symfony 8.2 or later with FrameworkBundle, Symfony Notifier, Doctrine DBAL and phil/rate-limit,
+which tells a store local to each server from a shared one. Optional, each used when it is installed:
 
 | Package | For |
 |---|---|
@@ -11,7 +11,10 @@ when it is installed:
 | `symfony/mercure-bundle` | Pushing toasts and the unread count live |
 | `symfony/ux-twig-component`, `symfony/stimulus-bundle` | The bell, list and toasts components, and their controller |
 | `symfony/asset-mapper` | Serving the controller and the stylesheet without a build step |
-| `symfony/mailer`, `symfony/twig-bridge` | The email digest |
+| `symfony/mailer`, `symfony/twig-bridge` | The email digest, and the `email` channel of the `first_success` mode |
+| `phil/idempotency`, with `symfony/lock` for a cache pool | One delivery of the same notification per window |
+| `symfony/rate-limiter` | A limit of notifications per recipient |
+| `phil/circuit-breaker-bundle` | Skipping a channel of the `first_success` mode while its provider's circuit is open |
 | `symfony/scheduler` | Sending the digests and purging on schedule |
 | `doctrine/orm` | Adding the tables to the schema the ORM generates |
 | `phil/standard-webhooks-bundle` | Receiving the notifications of a network |
@@ -61,6 +64,22 @@ The tables of a 0.1 install on MySQL or MariaDB kept the connection's collation.
 migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. The change only
 makes values more distinct, so no existing row breaks a key. Rows that a case-insensitive collation had already merged
 stay merged; values written from the migration on are kept apart. On PostgreSQL and SQLite the diff is empty.
+
+## Upgrading from 0.2
+
+- `WebPushSender::send()` returns a `ChannelOutcome`. A sender of the application's returns `Accepted` when a push
+  service took the message, `Unreachable` when the recipient had no subscription, or only expired ones, and `Refused`
+  otherwise.
+- `NotificationDispatcher::deliver()` returns a `DeliveryResult`, and throws `DeliveryFailed` when a `first_success`
+  type reached no channel and may later; a `fan_out` type never does. Code that only called it is unchanged.
+- `MailerDigestSender` takes a Mailer `TransportInterface` — the service `mailer.transports` — instead of
+  `MailerInterface`, and a `BodyRendererInterface` as its last argument. The digest no longer goes through a routed
+  `SendEmailMessage`; an application that constructs the sender itself passes the transports.
+- A notification that reaches no address is no longer logged by its own line naming the recipient: each delivery logs
+  one line, without the recipient, and dispatches `NotificationDelivered`.
+- A refused identifier, key or value is named by its length in the message of `InvalidNotification`, never quoted.
+- The new options are off by default: `delivery` on a type is `fan_out`, and `delivery.dedupe` and
+  `delivery.rate_limiter` are unset. See [Delivery](delivery.md) to turn them on.
 
 ## The routes
 

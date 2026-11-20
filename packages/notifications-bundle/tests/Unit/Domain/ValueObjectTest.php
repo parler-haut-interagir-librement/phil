@@ -25,14 +25,14 @@ final class ValueObjectTest extends TestCase
 
     public function testASubjectKindIsAKey(): void
     {
-        $this->expectExceptionMessageIsOrContains('The subject type "Comment" is not a key');
+        $this->expectExceptionMessageIsOrContains('The subject type (length 7) is not a key');
 
         new SubjectReference('Comment', '1');
     }
 
     public function testASubjectIdentifierIsOne(): void
     {
-        $this->expectExceptionMessageIsOrContains('The subject identifier "a b" is not an identifier');
+        $this->expectExceptionMessageIsOrContains('The subject identifier (length 3) is not an identifier');
 
         new SubjectReference('comment', 'a b');
     }
@@ -62,14 +62,14 @@ final class ValueObjectTest extends TestCase
 
     public function testADataKeyIsAKey(): void
     {
-        $this->expectExceptionMessageIsOrContains('The data key "0" is not a key');
+        $this->expectExceptionMessageIsOrContains('The data key (length 1) is not a key');
 
         NotificationData::from([5]);
     }
 
     public function testADataStringIsAnIdentifier(): void
     {
-        $this->expectExceptionMessageIsOrContains('The data value of "name" "Ada Lovelace" is not an identifier');
+        $this->expectExceptionMessageIsOrContains('The data value of "name" (length 12) is not an identifier');
 
         NotificationData::from(['name' => 'Ada Lovelace']);
     }

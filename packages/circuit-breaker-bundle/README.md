@@ -5,7 +5,8 @@
 phil/circuit-breaker-bundle brings `phil/circuit-breaker` into a Symfony application. The circuits are declared in the
 `phil_circuit_breaker` configuration, one policy per key — an HTTP client, or a destination such as one webhook
 endpoint — and checked when the container is built. Their states live in a PSR-6 cache pool shared by the workers, so
-that a circuit open in one is open in all, or in a store of the application's. A circuit with `http_client` puts that
+that a circuit open in one is open in all, or in a store of the application's; in production, a pool that stays on
+each server is refused unless the application says it runs on one. A circuit with `http_client` puts that
 client behind it: while the circuit is open, a request is refused before it leaves, and its answers are counted —
 a server error or a transport error as a failure, anything else as a success.
 
@@ -23,6 +24,7 @@ configuration, Cache for the store, HttpClient for the decorated clients, HttpKe
 |---|---|
 | Circuits from configuration, each checked at build time | Implemented and tested |
 | States in a PSR-6 cache pool, or a store of the application's | Implemented and tested |
+| A pool local to each server refused in production, unless `single_server` | Implemented and tested |
 | An HTTP client behind its circuit, per client or destination | Implemented and tested |
 | Overrides tagged and asked together, autoconfigured | Implemented and tested |
 | A profiler panel of the circuits | Implemented, its collector tested |
@@ -32,7 +34,7 @@ configuration, Cache for the store, HttpClient for the decorated clients, HttpKe
 
 | Document | What it covers |
 |---|---|
-| [Installation](doc/installation.md) | Requirements, installing, the cache pool. |
+| [Installation](doc/installation.md) | Requirements, installing, the cache pool, upgrading from 0.1. |
 | [Configuration](doc/configuration.md) | Every key of `phil_circuit_breaker`, and the errors of a bad circuit. |
 | [HTTP clients](doc/http-clients.md) | A client behind its circuit: what is refused, what counts as a failure. |
 | [Extension points](doc/extension-points.md) | The store of states, the overrides, the parameter of the circuit keys. |
@@ -69,7 +71,7 @@ try {
 
 ## Requirements
 
-PHP 8.5 or later, Symfony 8.2 or later, and `phil/circuit-breaker`. `psr/cache` for the default store,
+PHP 8.5 or later, Symfony 8.2 or later, `phil/circuit-breaker` and `phil/rate-limit`. `psr/cache` for the default store,
 `symfony/http-client` for the clients behind their circuits, `symfony/web-profiler-bundle` for the panel — each only
 when used.
 

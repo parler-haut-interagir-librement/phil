@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a5da78a7b8f57cd8135c1f963326ee32c3b6873a65218209c8ff5bf38bb8c111 -->
+<!-- phil-dev source-sha256=12b402eb3239deb7afa00e5997c725c698e22768b141099a026e02c321baa062 -->
 # Points d'extension
 
 Ce qu'une application implémente, configure, remplace ou utilise. Chaque port est une interface d'un espace de noms
@@ -46,7 +46,19 @@ dans `PushSubscriptions` ; voir [Canaux](channels.md#web-push).
 
 | Méthode | Contrat |
 |---|---|
-| `send(string $recipient, RenderedNotification $notification): void` | Envoie à chaque navigateur auquel le destinataire s'est abonné, `WebPushMessage::of()` donnant ce qu'il faut envoyer |
+| `send(string $recipient, RenderedNotification $notification): ChannelOutcome` | Envoie à chaque navigateur auquel le destinataire s'est abonné, `WebPushMessage::of()` donnant ce qu'il faut envoyer ; `Accepted` quand un service de poussée l'a pris, `Unreachable` sans abonnement qu'un service de poussée connaît encore, `Refused` autrement |
+
+### `ChannelSender`
+
+`Phil\NotificationsBundle\Application\Contract\ChannelSender` : envoie sur un canal sur-le-champ pour le mode
+`first_success` ; voir [Livraison](delivery.md#le-mode-first_success). Un service qui l'implémente est autoconfiguré avec
+l'étiquette `phil_notifications.channel_sender`, et interrogé avant les expéditeurs du bundle, `MailerChannelSender` et
+`NotifierChannelSender`.
+
+| Méthode | Contrat |
+|---|---|
+| `supports(string $channel): bool` | S'il envoie sur le canal, comme `sms` ou `chat/slack` |
+| `send(string $channel, RenderedNotification $notification, NotificationType $type, ?RecipientInterface $contact): ChannelOutcome` | Envoie sur-le-champ : `Accepted` quand le fournisseur l'a pris, `Unreachable` quand le contact n'a pas ce que demande le canal, `Refused` quand le fournisseur l'a refusé ou n'a pu être joint — une `TransportExceptionInterface` de Notifier ou de Mailer, interceptée. Toute autre exception remonte |
 
 ### `EmailTrackingConsent`
 
@@ -60,6 +72,29 @@ voir [Résumé et conservation](digest.md#suivi-des-ouvertures-et-des-clics).
 | `clicks(string $recipient): bool` | Si les clics peuvent être suivis |
 
 ## Les ports avec des adaptateurs fournis
+
+### `DeliveryDedupe`
+
+`Phil\NotificationsBundle\Application\Contract\DeliveryDedupe` : une seule livraison de la même notification par fenêtre :
+`NotificationDedupe` sur phil/idempotency avec `delivery.dedupe` activé ; voir
+[Livraison](delivery.md#la-fenêtre-des-doublons).
+
+| Méthode | Contrat |
+|---|---|
+| `begin(SendNotification $message, NotificationType $type, string $recipient): ?DedupeTicket` | Réserve la livraison de façon atomique, ou donne un billet de doublon ; null quand le type n'a pas de fenêtre |
+| `complete(DedupeTicket $ticket, NotificationType $type): void` | Garde la clé pour la fenêtre |
+| `release(DedupeTicket $ticket, NotificationType $type): void` | Laisse la tentative suivante s'exécuter |
+| `once(SendNotification $message, NotificationType $type, string $recipient, Closure $record): bool` | Exécute `$record` une fois par clé et par fenêtre, sous une clé qui lui est propre : le centre |
+
+### `ChannelCircuits`
+
+`Phil\NotificationsBundle\Application\Contract\ChannelCircuits` : les disjoncteurs des canaux du mode `first_success` :
+`ChannelBreakers` sur phil/circuit-breaker quand il est installé ; voir [Livraison](delivery.md#les-disjoncteurs).
+
+| Méthode | Contrat |
+|---|---|
+| `isOpen(string $channel): bool` | Si le canal est retenu ; un canal sans circuit ne l'est jamais |
+| `recordSuccess(string $channel): void`, `recordFailure(string $channel): void` | Ce que le fournisseur du canal a répondu |
 
 ### `NotificationPreferences`
 
@@ -158,10 +193,18 @@ travaillent une page à la fois.
 | `DbalPreferences` | `save()`, `forget()` avec `preferences: dbal` |
 | `PushSubscriptions` | `forgetRecipient()` quand un membre part, avec `web_push` activé |
 
+## Événements
+
+`Application\Delivery\NotificationDelivered`, distribué sur le répartiteur d'événements de l'application après chaque
+livraison à un destinataire, quel que soit son statut, porte le `DeliveryResult` : le type, l'identifiant du
+destinataire, le mode, le statut, les canaux qui ont pris la notification et la raison de chaque canal sauté. Un
+écouteur compte, audite ou alerte ; il ne reçoit jamais d'adresse.
+
 ## Messages
 
 `SendNotification`, `SendDigests`, `SendDigest` et `PurgeNotifications` ne portent que des identifiants ; l'application
-les achemine comme elle le souhaite.
+les achemine comme elle le souhaite. Elle laisse `SendEmailMessage`, `SmsMessage` et `ChatMessage` sans acheminement :
+ils contiennent des adresses et du texte ; voir [Envoi](sending.md#messenger).
 
 ## Gabarits et traductions
 
@@ -172,4 +215,5 @@ en anglais et en français.
 
 ## Stabilité
 
-Le bundle n'est pas encore publié : chaque point d'extension peut changer jusqu'à sa première version.
+Le bundle est en alpha : un point d'extension peut changer dans une version mineure, ce que le journal des changements et
+[Installation](installation.md) disent comment suivre.

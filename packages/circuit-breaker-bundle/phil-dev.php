@@ -9,6 +9,10 @@ return [
     'paths' => ['src', 'tests'],
     'infection' => [
         'mutators' => [
+            // The tree always gives `single_server` its default `false`: the fallback of the null coalescing is never read.
+            'FalseValue' => [
+                'ignoreSourceCodeByRegex' => ['.*\\$config\\[\'single_server\'\\] \\?\\? false.*'],
+            ],
             // The monotonic duration in milliseconds: dividing the nanoseconds by one more or one less than a million
             // changes the whole milliseconds only when the duration falls within a few nanoseconds of a whole millisecond
             // (or after about 1,000 seconds), which the real clock a test reads never sets on purpose.

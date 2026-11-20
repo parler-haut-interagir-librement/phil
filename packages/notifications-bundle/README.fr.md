@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a37ffc7f4dd33b60be8bebd7df6585df0e4a504eed07ff6e454c4571521e9325 -->
+<!-- phil-dev source-sha256=be5651c1459b220a0b7b59cb632440b65bb37696caef8223257acca04eabb60e -->
 # phil/notifications-bundle
 
 **Des notifications pour les applications Symfony : un centre avec des messages éphémères, le courriel et son résumé,
@@ -13,6 +13,11 @@ notifications propre au site, avec sa cloche, sa liste et ses messages éphémè
 résumé quotidien ou hebdomadaire ; Web Push, vers les navigateurs où ils l'ont activé ; le SMS ou la notification poussée par
 n'importe quel transport de Notifier ; et un canal Slack ou Discord, une fois pour tout le monde. Les heures de silence
 retiennent ce qui dérange, et chaque canal peut être désactivé par type.
+
+Un type envoie sur tous ses canaux, ou les essaie l'un après l'autre — SMS, puis Web Push, puis courriel — jusqu'à ce
+qu'un fournisseur accepte la notification, en sautant un canal sans adresse ou dont le disjoncteur est ouvert. La même
+notification joint un destinataire une fois par fenêtre, chaque destinataire en reçoit un nombre limité, et chaque
+livraison se termine par un résultat qui dit quel canal l'a prise et pourquoi les autres ont été sautés.
 
 Une notification porte des références, jamais du contenu : un type, un destinataire, un acteur, un sujet
 (`comment:981`) et quelques autres identifiants. Ce qu'elle dit est rédigé à partir des gabarits de son type quand elle
@@ -49,6 +54,9 @@ le visiteur en demande moins.
 | `PushSubscription`, `PushSubscriber`, `PushSubscriptions` sur DBAL ou en mémoire : les navigateurs de chaque destinataire, des points de terminaison sur des services de poussée autorisés | Implémenté et testé sur SQLite |
 | `MinishlinkWebPushSender` et `VapidKeys` : chiffré, signé et posté avec minishlink/web-push, abonnements expirés oubliés ; `phil:notifications:vapid-keys` | Implémenté et testé contre un faux service de poussée |
 | `PushSubscriptionController`, le composant `PhilNotifications:WebPush`, le contrôleur `web-push` et le *service worker* | Implémenté et testé ; les modules et le *worker* sous Node |
+| `DeliveryMode`, `ChannelSender`, `MailerChannelSender`, `NotifierChannelSender` : les canaux essayés tour à tour jusqu'à ce qu'un accepte, ou sur-le-champ | Implémenté et testé contre de faux transports |
+| `NotificationDedupe`, `RecipientRateLimit`, `ChannelBreakers` : une livraison par fenêtre sur phil/idempotency, une limite par destinataire sur symfony/rate-limiter, des disjoncteurs sur phil/circuit-breaker | Implémenté et testé avec une horloge simulée, un cache en mémoire et un limiteur en mémoire |
+| `DeliveryResult`, `NotificationDelivered`, `DeliveryFailed` : le résultat de chaque livraison, son événement, la nouvelle tentative d'un échec total | Implémenté et testé |
 | `AudienceProvider` : des destinataires choisis par public | Un port, pour l'application ou un paquet de segments |
 | Un résumé des nouvelles : les notifications d'une période réunies pour ceux qui ne les ont pas vues | Pas commencé |
 
@@ -60,6 +68,7 @@ le visiteur en demande moins.
 | [Configuration](doc/fr/configuration.md) | Chaque option, avec un exemple. |
 | [Envoi](doc/fr/sending.md) | Les types, le point d'entrée, les destinataires et les publics, les références, Messenger. |
 | [Canaux](doc/fr/channels.md) | Le centre, le courriel, Web Push et son *service worker*, les canaux de Notifier, les canaux de diffusion, les heures de silence et les refus. |
+| [Livraison](doc/fr/delivery.md) | Tous les canaux ou le premier qui accepte, la fenêtre des doublons, la limite de débit, les disjoncteurs, le résultat. |
 | [Préférences](doc/fr/preferences.md) | Ce que choisit un destinataire, où c'est gardé, et le port qui le remplace. |
 | [Centre de notifications](doc/fr/centre.md) | Les composants, les points de terminaison, les messages éphémères, le contrôleur Stimulus, l'accessibilité. |
 | [Résumé et conservation](doc/fr/digest.md) | Les résumés quotidiens et hebdomadaires, le calendrier, la purge. |
@@ -95,7 +104,7 @@ $notifications->send('comment.replied', $author->id, new SubjectReference('comme
 
 ## Prérequis
 
-PHP 8.5 ou plus récent et Symfony 8.2 ou plus récent, avec Symfony Notifier et Doctrine DBAL.
+PHP 8.5 ou plus récent et Symfony 8.2 ou plus récent, avec Symfony Notifier, Doctrine DBAL et phil/rate-limit.
 
 ## Contribuer
 

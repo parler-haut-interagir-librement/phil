@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=74e2b5b6ec701a0f41e891c0d42e31c5f5f47b1d6b4e28348dc11450ea103a96 -->
+<!-- phil-dev source-sha256=9d10f7ac2dd0b18ce6e3f0aefa3a9a72ae5440a9539174f0d2cdcdd24218ff7a -->
 # Configuration
 
 Chaque option, avec sa valeur par défaut.
@@ -13,6 +13,17 @@ phil_notifications:
     current_recipient: ~             # a CurrentRecipient service naming members by a stable identifier; none by default
     web_push_sender: ~               # a WebPushSender service; the bundle's with web_push enabled, none otherwise
     message_bus: messenger.default_bus   # null delivers at once
+
+    delivery:                        # see doc/delivery.md
+        single_server: false         # true accepts a pool or a limiter storage local to the server in prod
+        from: ~                      # the sender of the emails of first_success; the mailer's headers when null
+        dedupe:
+            enabled: false
+            ttl: 300                 # the window of duplicates, in seconds, of a type that names none
+            store: ~                 # an IdempotencyStore service of phil/idempotency
+            cache_pool: ~            # or a pool shared by every server, for a CacheIdempotencyStore
+            lock_factory: lock.factory
+        rate_limiter: ~              # the name of a limiter of framework.rate_limiter, spent once per recipient
 
     defaults:                        # what a recipient has until they choose
         digest: never                # never, daily or weekly
@@ -30,6 +41,8 @@ phil_notifications:
             importance: medium       # urgent, high, medium or low
             title: ~                 # the translation key; "comment.replied.title" when null
             body: ~                  # "comment.replied.body" when null
+            delivery: fan_out        # fan_out, or first_success: the channels in turn until one accepts
+            dedupe_ttl: ~            # null for delivery.dedupe.ttl, 0 for no window
 
     toasts:
         transport: flash             # mercure (by default with MercureBundle), flash or none
@@ -39,8 +52,8 @@ phil_notifications:
 
     digest:
         enabled: true
-        sender: ~                    # a DigestSender service; Symfony Mailer by default
-        from: ~                      # the mailer's own sender when null
+        sender: ~                    # a DigestSender service; the transports of Symfony Mailer by default
+        from: ~                      # the sender of the mailer's headers when null
         template: '@PhilNotifications/email/digest.html.twig'
         tracking_consent: ~          # an EmailTrackingConsent service; none follows no one's opens nor clicks
         at: '07:00'
@@ -85,8 +98,14 @@ phil_notifications:
 | Un traducteur | Les gabarits sont écrits sous forme de leurs clés, paramètres remplacés |
 | `current_recipient`, sans Symfony Security | Le centre ne montre les notifications de personne |
 | `current_recipient`, avec Symfony Security et les routes du centre | Le conteneur s'arrête avec un message : aucune valeur par défaut ne lit l'identifiant d'utilisateur, qui peut être une adresse courriel |
-| Symfony Mailer et `digest.sender` | Aucun résumé n'est envoyé ; le calendrier n'en envoie aucun |
-| Le service `notifier` de Symfony Notifier | Les canaux autres que le centre et Web Push sont journalisés comme non envoyés |
+| `mailer.transports` de Symfony Mailer et `digest.sender` | Aucun résumé n'est envoyé ; le calendrier n'en envoie aucun |
+| Le service `notifier` de Symfony Notifier | En `fan_out`, les canaux autres que le centre et Web Push sont sautés comme `unavailable` |
+| Un expéditeur pour un canal d'un type `first_success` | Le canal est sauté comme `unavailable` |
+| phil/circuit-breaker-bundle, ou un circuit `notifications.*` | Aucun canal n'a de disjoncteur |
+| phil/idempotency, avec `delivery.dedupe` activé | La configuration est refusée avec un message |
+| Un `store` ou un `cache_pool`, avec `delivery.dedupe` activé | La configuration est refusée avec un message |
+| symfony/rate-limiter, avec `delivery.rate_limiter` | La configuration est refusée avec un message |
+| Un `cache_pool` ou un stockage de limiteur partagé, en production | Le conteneur s'arrête avec un message, sauf si `delivery.single_server` vaut true |
 | Messenger | Les notifications et les résumés sont livrés sur-le-champ, un destinataire après l'autre |
 | `framework.csrf_protection` | Le conteneur s'arrête avec un message |
 | `web_push.subject`, avec `web_push` activé | La configuration est refusée avec un message |

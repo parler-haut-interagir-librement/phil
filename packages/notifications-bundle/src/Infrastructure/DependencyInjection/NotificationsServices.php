@@ -6,8 +6,12 @@ namespace Phil\NotificationsBundle\Infrastructure\DependencyInjection;
 
 use LogicException;
 use Minishlink\WebPush\WebPush;
+use Phil\CircuitBreaker\CircuitBreakers;
+use Phil\Idempotency\IdempotencyGuard;
+use Phil\Idempotency\Store\CacheIdempotencyStore;
 use Phil\NotificationsBundle\Application\CheckedCurrentRecipient;
 use Phil\NotificationsBundle\Application\Contract\AudienceProvider;
+use Phil\NotificationsBundle\Application\Contract\ChannelSender;
 use Phil\NotificationsBundle\Application\Contract\CurrentRecipient;
 use Phil\NotificationsBundle\Application\Contract\DigestSender;
 use Phil\NotificationsBundle\Application\Contract\NotificationPreferences;
@@ -16,6 +20,9 @@ use Phil\NotificationsBundle\Application\Contract\RecipientDirectory;
 use Phil\NotificationsBundle\Application\Contract\RemoteNotificationReceiver;
 use Phil\NotificationsBundle\Application\Contract\SubjectResolver;
 use Phil\NotificationsBundle\Application\Contract\ToastPublisher;
+use Phil\NotificationsBundle\Application\Delivery\DeliveryMode;
+use Phil\NotificationsBundle\Application\Delivery\DeliveryPolicy;
+use Phil\NotificationsBundle\Application\Delivery\RecipientRateLimit;
 use Phil\NotificationsBundle\Application\Digests;
 use Phil\NotificationsBundle\Application\ForwardingRemoteReceiver;
 use Phil\NotificationsBundle\Application\Handler\DigestHandler;
@@ -37,6 +44,7 @@ use Phil\NotificationsBundle\Application\Preferences\RecipientSettings;
 use Phil\NotificationsBundle\Application\Retention;
 use Phil\NotificationsBundle\Application\WebPush\PushSubscriber;
 use Phil\NotificationsBundle\Domain\Contract\NotificationRepository;
+use Phil\NotificationsBundle\Infrastructure\CircuitBreaker\ChannelBreakers;
 use Phil\NotificationsBundle\Infrastructure\Console\PurgeCommand;
 use Phil\NotificationsBundle\Infrastructure\Console\VapidKeysCommand;
 use Phil\NotificationsBundle\Infrastructure\Doctrine\DbalNotificationRepository;
@@ -48,11 +56,14 @@ use Phil\NotificationsBundle\Infrastructure\Http\CentreRequest;
 use Phil\NotificationsBundle\Infrastructure\Http\FlashToasts;
 use Phil\NotificationsBundle\Infrastructure\Http\NullToasts;
 use Phil\NotificationsBundle\Infrastructure\Http\PushSubscriptionController;
+use Phil\NotificationsBundle\Infrastructure\Idempotency\NotificationDedupe;
+use Phil\NotificationsBundle\Infrastructure\Mailer\MailerChannelSender;
 use Phil\NotificationsBundle\Infrastructure\Mailer\MailerDigestSender;
 use Phil\NotificationsBundle\Infrastructure\Memory\InMemoryNotificationRepository;
 use Phil\NotificationsBundle\Infrastructure\Memory\InMemoryPushSubscriptions;
 use Phil\NotificationsBundle\Infrastructure\Mercure\MercureToasts;
 use Phil\NotificationsBundle\Infrastructure\Notifier\EmptyRecipientDirectory;
+use Phil\NotificationsBundle\Infrastructure\Notifier\NotifierChannelSender;
 use Phil\NotificationsBundle\Infrastructure\Remote\RemoteNotificationController;
 use Phil\NotificationsBundle\Infrastructure\Scheduler\NotificationSchedule;
 use Phil\NotificationsBundle\Infrastructure\Security\NoCurrentRecipient;
@@ -63,8 +74,11 @@ use Phil\NotificationsBundle\Infrastructure\Twig\ToastsComponent;
 use Phil\NotificationsBundle\Infrastructure\Twig\WebPushComponent;
 use Phil\NotificationsBundle\Infrastructure\WebPush\MinishlinkWebPushSender;
 use Phil\NotificationsBundle\Infrastructure\WebPush\VapidKeys;
+use Phil\RateLimit\RateLimitGuard;
 use Phil\StandardWebhooks\ProcessedWebhookRepository;
 use Phil\StandardWebhooks\VerifiedWebhook;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -72,13 +86,15 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\NoPrivateNetworkHttpClient;
+use Symfony\Component\Mailer\Transport\TransportInterface as MailerTransport;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Scheduler\ScheduleProviderInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 
 /**
  * The bundle's services: the repository and the preferences on the configured store, the types, the renderer, the
- * dispatcher and the entry point on the services of the application, the toasts on the configured transport, the
+ * dispatcher and its delivery policy, the entry point on the services of the application, the toasts on the configured transport, the
  * digests, the purge and their schedule, the centre's endpoints and components, the receiving of remote
  * notifications, and Web Push.
  */
@@ -90,13 +106,19 @@ final class NotificationsServices
 
     public const string TRANSLATOR = 'phil_notifications.translator';
 
+    public const string CHANNEL_SENDER_TAG = 'phil_notifications.channel_sender';
+
+    /** The hidden parameter of the cache pool of the window of duplicates, checked by `NotificationsPass`. */
+    public const string DEDUPE_POOL_PARAMETER = '.phil_notifications.dedupe_pool';
+
     /**
-     * @param array{store: string, connection: string, preferences: string, recipient_directory: ?string, current_recipient: ?string, web_push_sender: ?string, message_bus: ?string, defaults: array{digest: string, quiet_hours?: array{start: string, end: string, timezone: string}, opt_outs: list<string>, locale: ?string}, types: array<string, array{channels: list<string>, broadcast: list<string>, collapse: bool, digest: bool, toast: bool, importance: string, title: ?string, body: ?string}>, toasts: array{transport: string, hub: string, topic_prefix: string, private: bool}, digest: array{enabled: bool, sender: ?string, from: ?string, template: string, tracking_consent: ?string, at: string, weekday: string, limit: int}, retention: array{read_days: int, unread_days: int, purge_at: string}, schedule: array{enabled: bool, timezone: string}, remote: array{enabled: bool, receiver: ?string, origins: list<string>}, web_push: array{enabled: bool, subject: ?string, public_key: string, private_key: string, ttl: int, push_services: list<string>, max_subscriptions: positive-int, worker: ?string, http_client: ?string, timeout: float}} $config
+     * @param array{store: string, connection: string, preferences: string, recipient_directory: ?string, current_recipient: ?string, web_push_sender: ?string, message_bus: ?string, defaults: array{digest: string, quiet_hours?: array{start: string, end: string, timezone: string}, opt_outs: list<string>, locale: ?string}, delivery: array{single_server: bool, from: ?string, dedupe: array{enabled: bool, ttl: int, store: ?string, cache_pool: ?string, lock_factory: string}, rate_limiter: ?string}, types: array<string, array{channels: list<string>, broadcast: list<string>, collapse: bool, digest: bool, toast: bool, importance: string, title: ?string, body: ?string, delivery: string, dedupe_ttl: ?int}>, toasts: array{transport: string, hub: string, topic_prefix: string, private: bool}, digest: array{enabled: bool, sender: ?string, from: ?string, template: string, tracking_consent: ?string, at: string, weekday: string, limit: int}, retention: array{read_days: int, unread_days: int, purge_at: string}, schedule: array{enabled: bool, timezone: string}, remote: array{enabled: bool, receiver: ?string, origins: list<string>}, web_push: array{enabled: bool, subject: ?string, public_key: string, private_key: string, ttl: int, push_services: list<string>, max_subscriptions: positive-int, worker: ?string, http_client: ?string, timeout: float}} $config
      */
     public static function register(ContainerBuilder $container, array $config): void
     {
         $container->registerForAutoconfiguration(SubjectResolver::class)->addTag(self::SUBJECT_RESOLVER_TAG);
         $container->registerForAutoconfiguration(AudienceProvider::class)->addTag(self::AUDIENCE_PROVIDER_TAG);
+        $container->registerForAutoconfiguration(ChannelSender::class)->addTag(self::CHANNEL_SENDER_TAG);
         $bus = null === $config['message_bus'] ? null : new Reference($config['message_bus'], ContainerInterface::NULL_ON_INVALID_REFERENCE);
         $logger = new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE);
 
@@ -122,6 +144,8 @@ final class NotificationsServices
             new Reference('notifier', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             $webPushSender,
             $logger,
+            self::delivery($container, $config),
+            new Reference('event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ]);
         $container->register(SendNotificationHandler::class, SendNotificationHandler::class)
             ->setArguments([new Reference(NotificationDispatcher::class), new TaggedIteratorArgument(self::AUDIENCE_PROVIDER_TAG), $bus])
@@ -135,6 +159,73 @@ final class NotificationsServices
         self::retention($container, $config);
         self::centre($container, $config['toasts']);
         self::remote($container, $config['remote']);
+    }
+
+    /**
+     * What a delivery checks and sends through: the channel senders, which `NotificationsPass` lists, the window of
+     * duplicates on phil/idempotency, the rate limit on a limiter of symfony/rate-limiter, and the circuit breakers of
+     * phil/circuit-breaker when the application declares them.
+     *
+     * @param array{delivery: array{single_server: bool, from: ?string, dedupe: array{enabled: bool, ttl: int, store: ?string, cache_pool: ?string, lock_factory: string}, rate_limiter: ?string}, ...} $config
+     *
+     * @throws InvalidConfigurationException when the window or the limit is configured without its package
+     */
+    private static function delivery(ContainerBuilder $container, array $config): Reference
+    {
+        $delivery = $config['delivery'];
+        $container->register(NotifierChannelSender::class, NotifierChannelSender::class)->setArguments([
+            new Reference('texter', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            new Reference('chatter', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+        ]);
+
+        if (interface_exists(MailerTransport::class)) {
+            $container->register(MailerChannelSender::class, MailerChannelSender::class)
+                ->setArguments([new Reference(NotificationsPass::MAILER_TRANSPORTS, ContainerInterface::NULL_ON_INVALID_REFERENCE), $delivery['from']]);
+        }
+
+        $dedupe = null;
+
+        if ($delivery['dedupe']['enabled']) {
+            if (!self::installed(IdempotencyGuard::class)) {
+                throw new InvalidConfigurationException('phil_notifications.delivery.dedupe needs phil/idempotency: run "composer require phil/idempotency", or set "enabled" to false.');
+            }
+
+            $store = $delivery['dedupe']['store'];
+
+            if (null === $store) {
+                $pool = (string) $delivery['dedupe']['cache_pool'];
+                $store = CacheIdempotencyStore::class.'.phil_notifications';
+                $container->register($store, CacheIdempotencyStore::class)
+                    ->setArguments([new Reference($pool), new Reference($delivery['dedupe']['lock_factory']), new Reference('clock')]);
+
+                if (!$delivery['single_server']) {
+                    $container->setParameter(self::DEDUPE_POOL_PARAMETER, $pool);
+                }
+            }
+
+            $guard = new Definition(IdempotencyGuard::class, [new Reference($store), new Reference('clock'), $delivery['dedupe']['ttl']]);
+            $container->register(NotificationDedupe::class, NotificationDedupe::class)->setArguments([$guard, $delivery['dedupe']['ttl']]);
+            $dedupe = new Reference(NotificationDedupe::class);
+        }
+
+        $rateLimit = null;
+
+        if (null !== $delivery['rate_limiter']) {
+            RateLimitGuard::requireComponent(interface_exists(RateLimiterFactoryInterface::class), 'phil_notifications.delivery.rate_limiter');
+            $limiter = 'limiter.'.$delivery['rate_limiter'];
+            RateLimitGuard::watch($container, $limiter, 'phil_notifications.delivery.rate_limiter', $delivery['single_server']);
+            $container->register(RecipientRateLimit::class, RecipientRateLimit::class)->setArguments([new Reference($limiter)]);
+            $rateLimit = new Reference(RecipientRateLimit::class);
+        }
+
+        $breakers = self::installed(CircuitBreakers::class)
+            ? new Definition(ChannelBreakers::class, [new Reference(CircuitBreakers::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)])
+            : null;
+
+        $container->register(DeliveryPolicy::class, DeliveryPolicy::class)
+            ->setArguments([new IteratorArgument([]), $dedupe, $rateLimit, $breakers]);
+
+        return new Reference(DeliveryPolicy::class);
     }
 
     /**
@@ -202,7 +293,7 @@ final class NotificationsServices
     }
 
     /**
-     * @param array<string, array{channels: list<string>, broadcast: list<string>, collapse: bool, digest: bool, toast: bool, importance: string, title: ?string, body: ?string}> $types
+     * @param array<string, array{channels: list<string>, broadcast: list<string>, collapse: bool, digest: bool, toast: bool, importance: string, title: ?string, body: ?string, delivery: string, dedupe_ttl: ?int}> $types
      *
      * @return list<Definition>
      */
@@ -221,6 +312,8 @@ final class NotificationsServices
                 $type['importance'],
                 $type['title'],
                 $type['body'],
+                DeliveryMode::from($type['delivery']),
+                $type['dedupe_ttl'],
             ]);
         }
 
@@ -262,12 +355,13 @@ final class NotificationsServices
         if (null === $digest['sender']) {
             $container->register(MailerDigestSender::class, MailerDigestSender::class)
                 ->setArguments([
-                    new Reference('mailer'),
+                    new Reference(NotificationsPass::MAILER_TRANSPORTS),
                     new Reference(self::TRANSLATOR),
                     $digest['from'],
                     $digest['template'],
                     $logger,
                     null === $digest['tracking_consent'] ? null : new Reference($digest['tracking_consent']),
+                    new Reference('twig.mime_body_renderer', ContainerInterface::NULL_ON_INVALID_REFERENCE),
                 ]);
         }
 
