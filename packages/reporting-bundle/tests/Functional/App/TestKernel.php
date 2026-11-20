@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Phil\ReportingBundle\Tests\Functional\App;
 
 use Override;
+use Phil\ReportingBundle\Application\Contract\TrainingSource;
 use Phil\ReportingBundle\Tests\Functional\App\Source\Members;
 use Phil\ReportingBundle\Tests\Functional\App\Source\MembersReport;
 use Phil\ReportingBundle\Tests\Functional\App\Source\Signups;
+use Phil\ReportingBundle\Tests\Functional\App\Source\Trainings;
 use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\Clock\MockClock;
@@ -18,7 +20,7 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 /**
  * An application as small as the bundle needs: FrameworkBundle with Messenger on its synchronous transport, Mailer on
  * its null transport and the translator in `en`; TwigBundle with TwigComponent and LiveComponent; a metric, a series
- * and a report of its own; a dashboard and a schedule; the stores in memory; a clock frozen on 8 November 2026.
+ * and a report of its own, training activities; a dashboard and a schedule; the stores in memory; a clock frozen on 8 November 2026.
  */
 final class TestKernel extends Kernel
 {
@@ -87,6 +89,8 @@ final class TestKernel extends Kernel
         $services->set(Members::class);
         $services->set(Signups::class);
         $services->set(MembersReport::class);
+        $services->set(Trainings::class);
+        $services->alias(TrainingSource::class, Trainings::class);
         $services->alias('test.twig', 'twig')->public();
     }
 

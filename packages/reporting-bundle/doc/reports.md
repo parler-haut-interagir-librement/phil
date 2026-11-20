@@ -38,6 +38,9 @@ The rows are read as they are written: yield them from a query iterated row by r
 memory at a time. Each row has one cell per column — a string, an integer, a float, a boolean or `null` —, or the
 export stops with `InvalidReportJob`. Beyond `max_rows`, it stops with `ReportTooLarge`.
 
+Two reports come with the bundle once the application connects a learning system: the [training hours and
+costs](training.md) and the [1 % of payroll template](quebec-one-percent.md).
+
 A `ReportRequest` is the period and the parameters, at most 32 scalars under keys of 1 to 64 letters, digits, dots,
 dashes or underscores, each text at most 200 characters.
 

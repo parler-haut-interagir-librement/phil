@@ -8,16 +8,23 @@ use Closure;
 use Phil\ReportingBundle\Application\Contract\ExportStore;
 use Phil\ReportingBundle\Application\Contract\JobStore;
 use Phil\ReportingBundle\Application\Contract\MetricSource;
+use Phil\ReportingBundle\Application\Contract\PayrollSource;
 use Phil\ReportingBundle\Application\Contract\ReportDefinition;
 use Phil\ReportingBundle\Application\Contract\ReportDelivery;
 use Phil\ReportingBundle\Application\Contract\ReportFormat;
 use Phil\ReportingBundle\Application\Contract\SeriesSource;
+use Phil\ReportingBundle\Application\Contract\TrainingSource;
+use Phil\ReportingBundle\Application\Contract\UnitDirectory;
 use Phil\ReportingBundle\Application\Dashboard\Dashboards;
 use Phil\ReportingBundle\Application\Periods;
 use Phil\ReportingBundle\Application\Report\ReportRunner;
 use Phil\ReportingBundle\Application\Report\Reports;
 use Phil\ReportingBundle\Application\Report\Schedules;
 use Phil\ReportingBundle\Application\Sources;
+use Phil\ReportingBundle\Application\Training\QuebecTrainingReport;
+use Phil\ReportingBundle\Application\Training\TrainingHeadings;
+use Phil\ReportingBundle\Application\Training\TrainingHoursReport;
+use Phil\ReportingBundle\Application\Training\TrainingLedger;
 use Phil\ReportingBundle\Application\View\ChartDrawing;
 use Phil\ReportingBundle\Application\View\MetricReading;
 use Phil\ReportingBundle\Infrastructure\Console\ExportReportCommand;
@@ -61,7 +68,8 @@ use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
  * The bundle's services: the sources, reports, formats and deliveries found by their tags, the periods, the
  * dashboards, the stores of the claim check and the runner; the components, the queue and its handlers, the schedule,
  * the deliveries, the command and the downloads when their Symfony packages are there; the PNG charts when the resvg
- * extension is loaded and fonts are listed.
+ * extension is loaded and fonts are listed; the training reports, which `TrainingReportsPass` removes when the
+ * application has no `TrainingSource`.
  *
  * @phpstan-type Config array{timezone: string, chart: array{width: int, height: int}, png: array{fonts: list<string>, scale: int<1, 4>, max_pixels: int}, max_rows: int, store: string, directory: string, tighten_open_directory: bool, keep_delivered: bool, mail: array{enabled: bool, from: string}, notification: array{enabled: bool, channels: list<string>}, dashboards: array<string, mixed>, schedules: array<string, mixed>}
  */
@@ -124,6 +132,7 @@ final class ReportingServices
             ->setArguments([$config['schedules'], new Reference(Periods::class)])
             ->setPublic(true);
 
+        self::training($container);
         self::stores($container, $config['store'], $config['directory'], $config['tighten_open_directory']);
 
         $container->register(ReportRunner::class, ReportRunner::class)
@@ -172,6 +181,28 @@ final class ReportingServices
         $container->register(ResvgRasterizer::class, ResvgRasterizer::class)
             ->setArguments([$png['fonts'], 1_048_576, $png['max_pixels']]);
         $container->setAlias(Rasterizer::class, ResvgRasterizer::class);
+    }
+
+    /**
+     * The training reports, over the application's `TrainingSource`, `UnitDirectory` and `PayrollSource`.
+     */
+    private static function training(ContainerBuilder $container): void
+    {
+        $container->register(TrainingLedger::class, TrainingLedger::class)
+            ->setArguments([new Reference(TrainingSource::class), new Reference(UnitDirectory::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)]);
+        $container->register(TrainingHeadings::class, TrainingHeadings::class)
+            ->setArguments([new Reference('translator', ContainerInterface::NULL_ON_INVALID_REFERENCE)]);
+        $container->register(TrainingHoursReport::class, TrainingHoursReport::class)
+            ->setArguments([new Reference(TrainingLedger::class), new Reference(TrainingHeadings::class)])
+            ->addTag(self::REPORT_TAG, ['key' => TrainingHoursReport::key()]);
+        $container->register(QuebecTrainingReport::class, QuebecTrainingReport::class)
+            ->setArguments([
+                new Reference(TrainingLedger::class),
+                new Reference(TrainingHeadings::class),
+                new Reference(PayrollSource::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                QuebecTrainingReport::THRESHOLD,
+            ])
+            ->addTag(self::REPORT_TAG, ['key' => QuebecTrainingReport::key()]);
     }
 
     private static function locator(string $tag): ServiceLocatorArgument

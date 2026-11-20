@@ -7,16 +7,23 @@ namespace Phil\ReportingBundle\Tests\Unit;
 use Phil\ReportingBundle\Application\Contract\ExportStore;
 use Phil\ReportingBundle\Application\Contract\JobStore;
 use Phil\ReportingBundle\Application\Contract\MetricSource;
+use Phil\ReportingBundle\Application\Contract\PayrollSource;
 use Phil\ReportingBundle\Application\Contract\ReportDefinition;
 use Phil\ReportingBundle\Application\Contract\ReportDelivery;
 use Phil\ReportingBundle\Application\Contract\ReportFormat;
 use Phil\ReportingBundle\Application\Contract\SeriesSource;
+use Phil\ReportingBundle\Application\Contract\TrainingSource;
+use Phil\ReportingBundle\Application\Contract\UnitDirectory;
 use Phil\ReportingBundle\Application\Dashboard\Dashboards;
 use Phil\ReportingBundle\Application\Periods;
 use Phil\ReportingBundle\Application\Report\ReportRunner;
 use Phil\ReportingBundle\Application\Report\Reports;
 use Phil\ReportingBundle\Application\Report\Schedules;
 use Phil\ReportingBundle\Application\Sources;
+use Phil\ReportingBundle\Application\Training\QuebecTrainingReport;
+use Phil\ReportingBundle\Application\Training\TrainingHeadings;
+use Phil\ReportingBundle\Application\Training\TrainingHoursReport;
+use Phil\ReportingBundle\Application\Training\TrainingLedger;
 use Phil\ReportingBundle\Application\View\ChartDrawing;
 use Phil\ReportingBundle\Application\View\MetricReading;
 use Phil\ReportingBundle\Infrastructure\Console\ExportReportCommand;
@@ -24,6 +31,7 @@ use Phil\ReportingBundle\Infrastructure\Delivery\MailDelivery;
 use Phil\ReportingBundle\Infrastructure\Delivery\NotificationDelivery;
 use Phil\ReportingBundle\Infrastructure\DependencyInjection\KeyedServicesPass;
 use Phil\ReportingBundle\Infrastructure\DependencyInjection\ReportingServices;
+use Phil\ReportingBundle\Infrastructure\DependencyInjection\TrainingReportsPass;
 use Phil\ReportingBundle\Infrastructure\Format\CsvFormat;
 use Phil\ReportingBundle\Infrastructure\Format\JsonFormat;
 use Phil\ReportingBundle\Infrastructure\Format\TsvFormat;
@@ -48,6 +56,7 @@ use Phil\ReportingBundle\Tests\Unit\Fixture\NullBus;
 use Phil\ReportingBundle\Tests\Unit\Fixture\OrdersSource;
 use Phil\ReportingBundle\Tests\Unit\Fixture\RecordingDelivery;
 use Phil\ReportingBundle\Tests\Unit\Fixture\SalesReport;
+use Phil\ReportingBundle\Tests\Unit\Fixture\Trainings;
 use Phil\ReportingBundle\Tests\Unit\Fixture\VisitsSource;
 use Phil\SvgChart\Contract\Rasterizer;
 use Phil\SvgChart\Raster\ResvgRasterizer;
@@ -74,6 +83,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 #[CoversClass(PhilReportingBundle::class)]
 #[CoversClass(ReportingServices::class)]
 #[CoversClass(KeyedServicesPass::class)]
+#[CoversClass(TrainingReportsPass::class)]
 final class PhilReportingBundleTest extends TestCase
 {
     public function testTheServices(): void
@@ -85,6 +95,7 @@ final class PhilReportingBundleTest extends TestCase
             'service_container',
             CsvFormat::class, TsvFormat::class, JsonFormat::class,
             Periods::class, Sources::class, Dashboards::class, ChartDrawing::class, MetricReading::class, Reports::class, Schedules::class,
+            TrainingLedger::class, TrainingHeadings::class, TrainingHoursReport::class, QuebecTrainingReport::class,
             DirectoryJobStore::class, DirectoryExportStore::class,
             ReportRunner::class,
             DashboardAccess::class, MetricComponent::class, ChartComponent::class, DashboardComponent::class, LiveDashboardComponent::class,
@@ -104,6 +115,17 @@ final class PhilReportingBundleTest extends TestCase
         self::assertFalse($container->hasAlias(Rasterizer::class));
         self::assertEquals([$this->locator('phil_reporting.report'), $this->locator('phil_reporting.format'), 100_000], $container->getDefinition(Reports::class)->getArguments());
         self::assertEquals([[Schedules::class, 'fromConfig'], [[], new Reference(Periods::class)]], [$container->getDefinition(Schedules::class)->getFactory(), $container->getDefinition(Schedules::class)->getArguments()]);
+        self::assertEquals([new Reference(TrainingSource::class), new Reference(UnitDirectory::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(TrainingLedger::class)->getArguments());
+        self::assertEquals([new Reference('translator', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(TrainingHeadings::class)->getArguments());
+        self::assertEquals([new Reference(TrainingLedger::class), new Reference(TrainingHeadings::class)], $container->getDefinition(TrainingHoursReport::class)->getArguments());
+        self::assertSame([['key' => 'training_hours']], $container->getDefinition(TrainingHoursReport::class)->getTag('phil_reporting.report'));
+        self::assertEquals([
+            new Reference(TrainingLedger::class),
+            new Reference(TrainingHeadings::class),
+            new Reference(PayrollSource::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            200_000_000,
+        ], $container->getDefinition(QuebecTrainingReport::class)->getArguments());
+        self::assertSame([['key' => 'training_quebec_1_percent']], $container->getDefinition(QuebecTrainingReport::class)->getTag('phil_reporting.report'));
         self::assertSame(['%kernel.project_dir%/var/phil_reporting/jobs', true], $container->getDefinition(DirectoryJobStore::class)->getArguments());
         self::assertSame(['%kernel.project_dir%/var/phil_reporting/exports', true], $container->getDefinition(DirectoryExportStore::class)->getArguments());
         self::assertSame([DirectoryJobStore::class, true], [(string) $container->getAlias(JobStore::class), $container->getAlias(JobStore::class)->isPublic()]);
@@ -142,7 +164,7 @@ final class PhilReportingBundleTest extends TestCase
             self::assertTrue($container->getDefinition($public)->isPublic(), $public);
         }
 
-        foreach ([CsvFormat::class, ChartDrawing::class, MetricReading::class, DirectoryJobStore::class, DashboardAccess::class, RunReportHandler::class, ExportReportCommand::class] as $private) {
+        foreach ([CsvFormat::class, ChartDrawing::class, MetricReading::class, DirectoryJobStore::class, DashboardAccess::class, RunReportHandler::class, ExportReportCommand::class, TrainingLedger::class, TrainingHeadings::class, TrainingHoursReport::class, QuebecTrainingReport::class] as $private) {
             self::assertFalse($container->getDefinition($private)->isPublic(), $private);
         }
 
@@ -332,6 +354,7 @@ final class PhilReportingBundleTest extends TestCase
         $container = new ContainerBuilder();
         new PhilReportingBundle()->build($container);
         self::assertCount(1, array_filter($container->getCompilerPassConfig()->getBeforeOptimizationPasses(), static fn (object $pass): bool => $pass instanceof KeyedServicesPass));
+        self::assertCount(1, array_filter($container->getCompilerPassConfig()->getBeforeOptimizationPasses(), static fn (object $pass): bool => $pass instanceof TrainingReportsPass));
 
         $this->extension()->load([['store' => 'memory']], $container);
         $container->register('clock', MockClock::class)->setArguments(['2026-11-08 10:00:00 UTC']);
@@ -354,6 +377,43 @@ final class PhilReportingBundleTest extends TestCase
         self::assertSame(['sales'], $reports->keys());
         self::assertInstanceOf(JsonFormat::class, $reports->format('json'));
         self::assertInstanceOf(TsvFormat::class, $reports->format('tsv'));
+    }
+
+    public function testTheTrainingReportsOfAnApplicationThatHasATrainingSource(): void
+    {
+        $container = new ContainerBuilder();
+        new PhilReportingBundle()->build($container);
+        $this->extension()->load([['store' => 'memory']], $container);
+        $container->register('clock', MockClock::class)->setArguments(['2026-11-08 10:00:00 UTC']);
+        $container->register(MessageBusInterface::class, NullBus::class);
+        $container->register(TrainingSource::class, Trainings::class);
+        $container->compile(true);
+
+        $reports = $container->get(Reports::class);
+        self::assertInstanceOf(Reports::class, $reports);
+        self::assertSame(['training_hours', 'training_quebec_1_percent'], $reports->keys());
+        self::assertInstanceOf(TrainingHoursReport::class, $reports->definition('training_hours'));
+        self::assertInstanceOf(QuebecTrainingReport::class, $reports->definition('training_quebec_1_percent'));
+    }
+
+    public function testTheTrainingReportsAreLeftOutWithoutATrainingSource(): void
+    {
+        $container = $this->load([]);
+        new TrainingReportsPass()->process($container);
+
+        foreach ([TrainingHoursReport::class, QuebecTrainingReport::class, TrainingLedger::class, TrainingHeadings::class] as $removed) {
+            self::assertFalse($container->hasDefinition($removed), $removed);
+        }
+
+        self::assertTrue($container->hasDefinition(Reports::class));
+
+        $container = $this->load([]);
+        $container->setAlias(TrainingSource::class, 'app.trainings');
+        new TrainingReportsPass()->process($container);
+
+        foreach ([TrainingHoursReport::class, QuebecTrainingReport::class, TrainingLedger::class, TrainingHeadings::class] as $kept) {
+            self::assertTrue($container->hasDefinition($kept), $kept);
+        }
     }
 
     public function testATaggedServiceOfTheWrongKind(): void

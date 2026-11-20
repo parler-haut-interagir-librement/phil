@@ -20,6 +20,11 @@ written from the command line, or scheduled with Symfony Scheduler and delivered
 Messenger worker. A message carries an identifier only: the job, with its recipients and parameters, and the
 exported file wait in stores readable by their owner — the claim check.
 
+Two reports come with the bundle for a learning system: the training hours and costs of each period and organisational
+unit, and the template of Quebec's 1 % of payroll for workforce skills development — hours, eligible costs, payroll,
+required investment, ratio and shortfall. The learning system, the tree of units and the payroll each connect
+through a port.
+
 It relies on the library `phil/svg-chart` to draw the images; Symfony UX, Messenger, Scheduler, Mailer,
 Notifier, Console and EasyAdmin are each used when they are installed.
 
@@ -39,6 +44,8 @@ Notifier, Console and EasyAdmin are each used when they are installed.
 | `ReportResponses` downloads, `phil:reporting:export`, the EasyAdmin page | Implemented and tested |
 | PNG charts through the `resvg` extension, when it is loaded: `ChartResponses` downloads, the chart of a `ChartedReport` in its e-mail | Implemented and tested |
 | Exports that fail whole: `ExportFailed`, retried, no file cut short kept | Implemented and tested |
+| `training_hours`: training hours and costs by period and organisational unit, through `TrainingSource` and `UnitDirectory` | Implemented and tested |
+| `training_quebec_1_percent`: the template of Quebec's 1 % of payroll, through `PayrollSource` | Implemented and tested |
 
 ## Documentation
 
@@ -49,6 +56,8 @@ Notifier, Console and EasyAdmin are each used when they are installed.
 | [Sources](doc/sources.md) | Contributing metrics and series, periods and limits. |
 | [Dashboards](doc/dashboards.md) | The components, the renderings, their accessibility, EasyAdmin. |
 | [Reports](doc/reports.md) | Definitions, formats, downloads, the command, schedules, deliveries and the claim check. |
+| [Training hours and costs](doc/training.md) | The training report by period and unit, its ports and their adapters. |
+| [The 1 % of payroll template (Quebec)](doc/quebec-one-percent.md) | The figures of Quebec's workforce skills development obligation. |
 | [Extension points](doc/extension-points.md) | What an application may replace or add, and when it is stable. |
 | [Testing](doc/testing.md) | The bundle's tests, and testing code that uses it. |
 | [Reference](doc/reference.md) | Every public type, with its role. |

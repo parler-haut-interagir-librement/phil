@@ -19,6 +19,10 @@ return [
                     'return \\(string\\) stream_get_contents\\(\\$this->handle\\);',
                 ],
             ],
+            // A collator gives false only when ICU itself fails, which no test can provoke: the cast serves PHPStan.
+            'CastInt' => [
+                'ignoreSourceCodeByRegex' => ['\\$order = \\(int\\) \\$collator->compare\\(.*'],
+            ],
             // The streams closed in a `finally`: a stream left open is closed when it is collected, so no test sees the
             // difference, but a worker that runs for days would hold one descriptor per report until then.
             'UnwrapFinally' => [
