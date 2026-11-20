@@ -16,8 +16,9 @@ return [
         ],
     ],
     'phpstan' => [
-        // The fuzz targets run inside nikic/php-fuzzer, which gives them `$config`; PHPStan knows neither.
-        'excludePaths' => ['tests/Fuzz/*'],
+        // The fuzz targets run inside nikic/php-fuzzer, which gives them `$config`; PHPStan knows neither. The second
+        // clerk of the concurrent refunds runs in its own process, outside the autoloaded suite.
+        'excludePaths' => ['tests/Fuzz/*', 'tests/Integration/grant-refund.php'],
         // La dette de phil/dev-tools v2 : ce que ses règles relèvent et qui reste à corriger.
         'ignoreErrors' => [
             // à corriger : déplacer les interfaces dans un espace de noms Contract (rupture de l’API publique).

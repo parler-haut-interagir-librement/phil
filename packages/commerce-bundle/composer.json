@@ -42,7 +42,8 @@
         "symfony/console": "^8.2",
         "symfony/event-dispatcher": "^8.2",
         "symfony/framework-bundle": "^8.2",
-        "symfony/http-kernel": "^8.2"
+        "symfony/http-kernel": "^8.2",
+        "symfony/process": "^8.2"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

@@ -91,7 +91,7 @@ refuses on its own.
   `phil/tax`.
 - [Payment attempts](doc/payment-attempts.md): the limiter's rules, policy, keys per order and per client network,
   the single state, decisions with `Retry-After`, and an attempt from end to end.
-- [Extension points](doc/extension-points.md): the fifteen ports method by method, the storage contracts, the
+- [Extension points](doc/extension-points.md): the sixteen ports method by method, the storage contracts, the
   events and what a returns module builds on, their invariants and example adapters.
 - [Testing](doc/testing.md): how the bundle is tested, how to run its tests, and how an application tests its
   orders, taxes, limiter and store.

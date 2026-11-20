@@ -59,6 +59,7 @@ use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineOrderChangeRepository;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineOrderJournal;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineOrderRepository;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrinePaymentLinkRepository;
+use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrinePaymentLock;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrinePaymentRepository;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineQuoteRepository;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineReceiptRepository;
@@ -470,10 +471,11 @@ final class PhilCommerceBundle extends AbstractBundle
         $services->set(DoctrineOrderChangeRepository::class)->args([service('doctrine.orm.entity_manager')]);
         $services->set(DoctrineOrderJournal::class)->args([service('doctrine.orm.entity_manager')]);
         $services->set(DoctrineRefundRepository::class)->args([service('doctrine.orm.entity_manager')]);
+        $services->set(DoctrinePaymentLock::class)->args([service('doctrine.orm.entity_manager')]);
         $services->set(BinaryKeysListener::class)->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
 
         // The ports by reflection: the bundle class wires adapters, and names no class of the domain.
-        foreach ([DoctrineChannelRepository::class, DoctrineOrderRepository::class, DoctrinePaymentRepository::class, DoctrineReceiptRepository::class, DoctrineQuoteRepository::class, DoctrineDeferredSaleRepository::class, DoctrineWishListRepository::class, DoctrinePaymentLinkRepository::class, DoctrineOrderChangeRepository::class, DoctrineOrderJournal::class, DoctrineRefundRepository::class] as $adapter) {
+        foreach ([DoctrineChannelRepository::class, DoctrineOrderRepository::class, DoctrinePaymentRepository::class, DoctrineReceiptRepository::class, DoctrineQuoteRepository::class, DoctrineDeferredSaleRepository::class, DoctrineWishListRepository::class, DoctrinePaymentLinkRepository::class, DoctrineOrderChangeRepository::class, DoctrineOrderJournal::class, DoctrineRefundRepository::class, DoctrinePaymentLock::class] as $adapter) {
             foreach (new ReflectionClass($adapter)->getInterfaceNames() as $port) {
                 $services->alias($port, $adapter)->public();
             }

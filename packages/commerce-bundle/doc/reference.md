@@ -90,6 +90,7 @@ are the types of `phil/tax` ([taxes.md](taxes.md)).
 | `OrderChanges` | `final readonly class` | Changes of placed orders, prepared, confirmed and versioned | Implemented and tested |
 | `OrderExpiry` | `final readonly class` | Expires unpaid orders and deletes expired ones, per channel | Implemented and tested |
 | `Refunds` | `final readonly class` | Refunds granted then executed | Implemented and tested |
+| `Contract\PaymentLock` | port | Holds a payment for one refund at a time, inside the transaction | Implemented by `DoctrinePaymentLock` |
 | `DocumentRegister`, `CoreDocumentTypes`, `Contract\DocumentTypes`, `Contract\DocumentSeries` | `final class`, `final readonly class`, ports | The register of document types, their series and their visibility; `types()`, `listed()`, `type()`, `next()` | Implemented and tested |
 | `SecretToken` | `final class` | The secret of a link, shown once, stored as its SHA-256 | Implemented and tested |
 | `OrderModifier` | `final readonly class` | Changes an order through the ports and recomputes it | Implemented and tested |
@@ -132,6 +133,7 @@ are the types of `phil/tax` ([taxes.md](taxes.md)).
 | `Doctrine\DoctrineDeferredSaleRepository` | `final readonly class`, `DeferredSaleRepository` | One sale through the entity manager; the balances due through DBAL | Implemented and tested |
 | `Pdf\ReceiptPdf` | `final readonly class` | A receipt or a credit note as a PDF invoice | Implemented and tested |
 | `Doctrine\DoctrineDocumentNumbering` | `final readonly class`, `DocumentNumbering` | A row per series, locked until the transaction ends | Implemented and tested |
+| `Doctrine\DoctrinePaymentLock` | `final readonly class`, `PaymentLock` | The payment's row locked until the transaction ends, its version checked, its refunds read by a locking read | Implemented and tested |
 | `Doctrine\Entity\DocumentSequence` | `final class`, Doctrine entity | The last number of a series | Implemented and tested |
 | `Doctrine\DoctrineWishListRepository`, `DoctrinePaymentLinkRepository`, `DoctrineOrderChangeRepository`, `DoctrineOrderJournal`, `DoctrineRefundRepository` | `final readonly class` | The new records through the entity manager | Implemented and tested |
 | `Doctrine\BinaryKeysListener` | `final readonly class` | The payments' references and the wish lists' owners in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata` | Implemented and tested |
