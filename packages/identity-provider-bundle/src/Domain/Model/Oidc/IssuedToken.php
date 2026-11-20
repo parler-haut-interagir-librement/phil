@@ -6,6 +6,7 @@ namespace Phil\IdentityProviderBundle\Domain\Model\Oidc;
 
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
+use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
 use Phil\IdentityProviderBundle\Domain\Oidc\TokenKind;
 
 /**
@@ -41,7 +42,7 @@ final class IssuedToken
         private readonly string $family,
         #[ORM\Column(name: 'client_id', length: 64)]
         private readonly string $clientId,
-        #[ORM\Column(name: 'account_id', length: 26, nullable: true, options: ['fixed' => true])]
+        #[ORM\Column(name: 'account_id', length: Account::ID_MAX_LENGTH, nullable: true)]
         private readonly ?string $accountId,
         #[ORM\Column(name: 'scopes', type: 'json')]
         private readonly array $scopes,

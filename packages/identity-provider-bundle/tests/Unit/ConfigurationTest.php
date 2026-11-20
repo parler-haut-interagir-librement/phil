@@ -42,6 +42,11 @@ final class ConfigurationTest extends TestCase
         'layout' => '@PhilIdentityProvider/layout.html.twig',
         'kit_subdirectory' => null,
         'public_origin' => null,
+        'accounts' => [
+            'id_generator' => 'ulid',
+            'strip_subaddress' => false,
+            'canonicalizer' => null,
+        ],
         'registration' => [
             'enabled' => true,
             'rate_limit' => [
@@ -64,6 +69,7 @@ final class ConfigurationTest extends TestCase
             'http_client' => 'http_client',
         ],
         'lockout' => [
+            'enabled' => true,
             'threshold' => 5,
             'base' => 60,
             'max' => 3600,
@@ -81,12 +87,21 @@ final class ConfigurationTest extends TestCase
         'links' => [
             'verify_lifetime' => 86400,
             'reset_lifetime' => 3600,
+            'mode' => 'signed',
         ],
         'passkeys' => [
             'rp_id' => null,
             'rp_name' => null,
             'origins' => [],
             'require_user_verification' => false,
+            'attestation' => [
+                'conveyance' => 'none',
+                'trusted_roots' => [],
+                'require_trusted' => false,
+                'allowed_aaguids' => [],
+                'denied_aaguids' => [],
+                'backup' => 'allowed',
+            ],
         ],
         'totp' => [
             'issuer' => null,
@@ -121,6 +136,13 @@ final class ConfigurationTest extends TestCase
             'retired_key_retention' => 604800,
             'allow_localhost' => false,
             'lock_factory' => 'lock.factory',
+            'signing_keys' => [
+                'source' => 'database',
+                'automatic_rotation' => true,
+                'files' => [],
+                'sealed' => false,
+                'service' => null,
+            ],
             'extra_scopes' => [],
             'client_authentication' => [
                 'methods' => ['client_secret_basic', 'client_secret_post', 'private_key_jwt', 'none'],

@@ -45,6 +45,27 @@ Argon2id (`sodium`). Generate the migration of the tables with `bin/console doct
   `oidc.client_authentication.methods`. `IssuedToken::accountId()` returns null for a token of the `client_credentials`
   grant, and `GrantRepository` gains `useAssertion()`: an implementation of its own adds it. `Tokens::bearer()` gives a
   third member, the client of the token.
+- The accounts gain the table `phil_identity_address`, and `phil_identity_account` the columns `email_canonical`
+  (unique), `state` and `state_changed_at` in place of `disabled_at`; every `account_id`, and the `id` of
+  `phil_identity_account`, holds up to 36 characters instead of a fixed 26. Run `bin/console doctrine:migrations:diff`,
+  then complete the migration it writes so that the rows keep their meaning, before the new columns become required:
+
+  ```sql
+  UPDATE phil_identity_account SET email_canonical = email;
+  UPDATE phil_identity_account SET state = 'suspended', state_changed_at = disabled_at WHERE disabled_at IS NOT NULL;
+  ```
+
+  With `accounts.strip_subaddress`, compute `email_canonical` with the bundle's `EmailCanonicalizer` instead, and settle
+  first the accounts that share a mailbox. The passkeys gain `attestation_format` and `attestation_type`, which default
+  to `none`.
+- `Account::enable()` takes the moment of the change, as `disable()` does; `AccountRepository` gains
+  `findByCanonicalEmail()`: an implementation of its own adds it. `Account::register()` and `changeEmail()` take the
+  canonical form, last and optional; an identifier holds 1 to 36 letters, digits and hyphens.
+- `Tokens`, `LogoutTokens` and `MetadataController` take a `SigningKeySource` — `SigningKeys` is one —, and
+  `Jws::encode()` takes a `Signer` — `PrivateKey` is one: code that passed them a `SigningKeys` or a `PrivateKey`
+  keeps working.
+- With `links.mode: stored`, the schema gains `phil_identity_link_token`: run `bin/console doctrine:migrations:diff` and
+  migrate. The links sent before the change of mode stop working.
 
 ## Where the links point
 
@@ -155,5 +176,7 @@ The sign-in form is the application's. A page offering passkeys includes the bun
 
 ## The schedule
 
-Run `phil:identity-provider:rotate-keys` daily when the provider is on, and `phil:identity-provider:purge` daily to
-remove expired codes and tokens and idle sessions, from the Scheduler component or a cron.
+Run `phil:identity-provider:rotate-keys` daily when the provider keeps its keys in the database, and
+`phil:identity-provider:purge` daily to remove expired codes, tokens and link tokens and idle sessions, from the
+Scheduler component or a cron. With `oidc.signing_keys.automatic_rotation: false`, the scheduled rotation changes
+nothing, and an operator rotates with `--force`.

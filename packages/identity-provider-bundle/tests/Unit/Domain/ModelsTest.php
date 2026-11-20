@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\IdentityProviderBundle\Tests\Unit\Domain;
 
 use DateTimeImmutable;
+use Phil\IdentityProviderBundle\Domain\Account\AccountState;
 use Phil\IdentityProviderBundle\Domain\Exception\InvalidValue;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
@@ -72,11 +73,36 @@ final class ModelsTest extends TestCase
         $account->grantRoles(['ROLE_ADMIN', 'ROLE_USER', 'ROLE_ADMIN']);
         self::assertSame(['ROLE_USER', 'ROLE_ADMIN'], $account->roles());
 
+        self::assertSame(AccountState::Active, $account->state());
+        self::assertNull($account->stateChangedAt());
+        self::assertFalse($account->isDisabled());
         $account->disable($now);
         $account->disable($now->modify('+1 day'));
         self::assertSame($now, $account->disabledAt());
-        $account->enable();
+        self::assertSame(AccountState::Suspended, $account->state());
+        self::assertTrue($account->isDisabled());
+        self::assertFalse($account->changeState(AccountState::Suspended, $now->modify('+2 days')));
+        self::assertTrue($account->changeState(AccountState::Closed, $now->modify('+3 days')));
+        $account->disable($now->modify('+4 days'));
+        self::assertSame(AccountState::Closed, $account->state());
+        self::assertEquals($now->modify('+3 days'), $account->stateChangedAt());
+        $account->enable($now->modify('+5 days'));
         self::assertNull($account->disabledAt());
+        self::assertSame(AccountState::Active, $account->state());
+        self::assertEquals($now->modify('+5 days'), $account->stateChangedAt());
+        self::assertFalse($account->isDisabled());
+
+        self::assertSame('ada@example.com', Account::register(self::ID, 'Ada@Example.com', $now)->emailCanonical());
+        $canonical = Account::register(self::ID, 'ada+news@example.com', $now, null, 'ada@example.com');
+        self::assertSame('ada+news@example.com', $canonical->email());
+        self::assertSame('ada@example.com', $canonical->emailCanonical());
+        $canonical->changeEmail('ADA+other@example.com', 'ada@example.com');
+        self::assertSame('ada+other@example.com', $canonical->email());
+        self::assertSame('ada@example.com', $canonical->emailCanonical());
+        $canonical->changeEmail('bob@example.com');
+        self::assertSame('bob@example.com', $canonical->emailCanonical());
+        self::assertSame('0192f5b4-7c1e-7a3b-9f00-123456789abc', Account::register('0192f5b4-7c1e-7a3b-9f00-123456789abc', 'ada@example.com', $now)->id());
+        self::assertSame('a', Account::register('a', 'ada@example.com', $now)->id());
     }
 
     public function testThePasswordAndTheLock(): void
@@ -135,7 +161,11 @@ final class ModelsTest extends TestCase
         $now = new DateTimeImmutable();
 
         foreach ([
-            static fn (): Account => Account::register('short', 'ada@example.com', $now),
+            static fn (): Account => Account::register('', 'ada@example.com', $now),
+            static fn (): Account => Account::register(str_repeat('a', 37), 'ada@example.com', $now),
+            static fn (): Account => Account::register('with space', 'ada@example.com', $now),
+            static fn (): Account => Account::register('a@b', 'ada@example.com', $now),
+            static fn (): Account => Account::register("abc\n", 'ada@example.com', $now),
             static fn (): Account => Account::register(self::ID, 'no-at', $now),
             static fn (): Account => Account::register(self::ID, 'a@b@c', $now),
             static fn (): Account => Account::register(self::ID, 'a b@c', $now),
@@ -152,6 +182,7 @@ final class ModelsTest extends TestCase
         }
 
         self::assertSame(180, mb_strlen(Account::normalizeEmail(str_repeat('a', 174).'@b.cde')));
+        self::assertSame(str_repeat('a', 36), Account::register(str_repeat('a', 36), 'ada@example.com', $now)->id());
     }
 
     public function testAPasskey(): void

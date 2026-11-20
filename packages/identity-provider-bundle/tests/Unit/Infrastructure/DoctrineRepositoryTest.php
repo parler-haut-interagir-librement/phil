@@ -12,11 +12,13 @@ use Override;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
 use Phil\IdentityProviderBundle\Domain\Model\Session\AccountSession;
 use Phil\IdentityProviderBundle\Domain\Model\Totp\TotpCredential;
+use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountAddressRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountSessionRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineClientRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineGrantRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineLinkedIdentityRepository;
+use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineLinkTokenRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrinePasskeyRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineSecondFactorRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineSigningKeyRepository;
@@ -25,7 +27,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use RuntimeException;
 
 /**
- * The Doctrine stores on SQLite in memory: the eleven tables of the six modules.
+ * The Doctrine stores on SQLite in memory: the fourteen tables of the six modules and of the stored links.
  */
 #[CoversClass(DoctrineAccountRepository::class)]
 #[CoversClass(DoctrinePasskeyRepository::class)]
@@ -36,6 +38,8 @@ use RuntimeException;
 #[CoversClass(DoctrineGrantRepository::class)]
 #[CoversClass(DoctrineSigningKeyRepository::class)]
 #[CoversClass(DoctrineTransactions::class)]
+#[CoversClass(DoctrineAccountAddressRepository::class)]
+#[CoversClass(DoctrineLinkTokenRepository::class)]
 final class DoctrineRepositoryTest extends DoctrineRepositoryTestCase
 {
     #[Override]
@@ -86,6 +90,6 @@ final class DoctrineRepositoryTest extends DoctrineRepositoryTestCase
         $names = array_map(static fn (OptionallyQualifiedName $name): string => $name->toString(), $tables);
         sort($names);
 
-        self::assertSame(['phil_identity_account', 'phil_identity_assertion', 'phil_identity_client', 'phil_identity_code', 'phil_identity_consent', 'phil_identity_linked', 'phil_identity_passkey', 'phil_identity_recovery_codes', 'phil_identity_session', 'phil_identity_signing_key', 'phil_identity_token', 'phil_identity_totp'], array_map(static fn (string $name): string => trim($name, '"`'), $names));
+        self::assertSame(['phil_identity_account', 'phil_identity_address', 'phil_identity_assertion', 'phil_identity_client', 'phil_identity_code', 'phil_identity_consent', 'phil_identity_link_token', 'phil_identity_linked', 'phil_identity_passkey', 'phil_identity_recovery_codes', 'phil_identity_session', 'phil_identity_signing_key', 'phil_identity_token', 'phil_identity_totp'], array_map(static fn (string $name): string => trim($name, '"`'), $names));
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Application\Oidc;
 
+use Phil\IdentityProviderBundle\Application\Contract\SigningKeySource;
 use Phil\IdentityProviderBundle\Application\Jose\Jws;
 use Phil\IdentityProviderBundle\Domain\Encoding\Base64Url;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Client;
@@ -23,7 +24,7 @@ final readonly class LogoutTokens
     public const int LIFETIME = 120;
 
     public function __construct(
-        private SigningKeys $keys,
+        private SigningKeySource $keys,
         private ProviderSettings $settings,
         private ClockInterface $clock,
     ) {

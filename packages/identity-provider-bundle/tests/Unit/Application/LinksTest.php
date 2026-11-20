@@ -8,6 +8,8 @@ use Phil\IdentityProviderBundle\Application\AccountLinks;
 use Phil\IdentityProviderBundle\Application\Contract\LinkOrigin;
 use Phil\IdentityProviderBundle\Application\Event\IdentityEventType;
 use Phil\IdentityProviderBundle\Application\SignedLinks;
+use Phil\IdentityProviderBundle\Domain\Model\Link\LinkToken;
+use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryLinkTokenRepository;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Query;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\RecordingMailer;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Services;
@@ -103,6 +105,83 @@ final class LinksTest extends TestCase
         self::assertCount(2, $mailer->sent);
         $query = Query::of($mailer->message(1)[2]);
         self::assertNull($links->account(SignedLinks::RESET, $query['account'], (int) $query['expires'], $query['signature']));
+    }
+
+    public function testAStoredLinkWorksOnceAndCanBeRevoked(): void
+    {
+        $services = new Services(date('Y-m-d H:i:s'));
+        $tokens = new InMemoryLinkTokenRepository();
+        $links = new SignedLinks(self::SECRET, $services->clock, 100, 60, $tokens);
+        $account = $services->account();
+        $other = $services->account('bob@example.com');
+        $link = $links->sign(SignedLinks::RESET, $account);
+        $id = hash_hmac('sha256', $link['signature'], hash_hmac('sha256', 'phil_identity_provider.link_token', self::SECRET));
+
+        self::assertTrue($links->isStored());
+        self::assertFalse(new SignedLinks(self::SECRET, $services->clock)->isStored());
+        self::assertSame($services->clock->now()->getTimestamp() + 60, $link['expires']);
+        self::assertSame(43, \strlen($link['signature']));
+        $stored = $tokens->get($id);
+        self::assertInstanceOf(LinkToken::class, $stored);
+        self::assertSame([$account->id(), 'reset', $link['expires'], $services->clock->now()->getTimestamp()], [$stored->accountId(), $stored->purpose(), $stored->expiresAt()->getTimestamp(), $stored->createdAt()->getTimestamp()]);
+        self::assertSame(new SignedLinks(self::SECRET, $services->clock, 100, 60)->sign(SignedLinks::RESET, $account)['signature'], $stored->fingerprint());
+
+        self::assertTrue($links->verify(SignedLinks::RESET, $account, $link['expires'], $link['signature']));
+        self::assertFalse($links->verify(SignedLinks::VERIFY, $account, $link['expires'], $link['signature']));
+        self::assertFalse($links->verify(SignedLinks::RESET, $other, $link['expires'], $link['signature']));
+        self::assertFalse($links->verify(SignedLinks::RESET, $account, $link['expires'] - 1, $link['signature']));
+        self::assertFalse($links->verify(SignedLinks::RESET, $account, $link['expires'], ''));
+        self::assertFalse($links->verify(SignedLinks::RESET, $account, $link['expires'], $stored->fingerprint()));
+        self::assertFalse(new SignedLinks('another secret of the application, as long', $services->clock, 100, 60, $tokens)->verify(SignedLinks::RESET, $account, $link['expires'], $link['signature']));
+
+        $changed = clone $account;
+        $changed->changePassword('new hash', $services->clock->now()->modify('+1 second'));
+        self::assertFalse($links->verify(SignedLinks::RESET, $changed, $link['expires'], $link['signature']));
+
+        self::assertFalse($links->consume(''));
+        self::assertFalse($links->consume('unknown'));
+        self::assertTrue($links->consume($link['signature']));
+        self::assertFalse($links->consume($link['signature']));
+        self::assertFalse($links->verify(SignedLinks::RESET, $account, $link['expires'], $link['signature']));
+        self::assertTrue(new SignedLinks(self::SECRET, $services->clock)->consume('anything'));
+
+        $first = $links->sign(SignedLinks::RESET, $account);
+        $verify = $links->sign(SignedLinks::VERIFY, $account);
+        $links->sign(SignedLinks::RESET, $other);
+        self::assertSame($services->clock->now()->getTimestamp() + 100, $verify['expires']);
+        self::assertSame(1, $links->revoke($account, SignedLinks::RESET));
+        self::assertFalse($links->verify(SignedLinks::RESET, $account, $first['expires'], $first['signature']));
+        self::assertTrue($links->verify(SignedLinks::VERIFY, $account, $verify['expires'], $verify['signature']));
+        self::assertSame(2, $links->revoke($account) + $links->revoke($other));
+        self::assertSame(0, new SignedLinks(self::SECRET, $services->clock)->revoke($account));
+
+        $expired = $links->sign(SignedLinks::RESET, $account);
+        $services->clock->modify('+61 seconds');
+        self::assertFalse($links->verify(SignedLinks::RESET, $account, $expired['expires'], $expired['signature']));
+    }
+
+    public function testTheLinksOfAnAccountAreRevokedAndJournaled(): void
+    {
+        $services = new Services(date('Y-m-d H:i:s'));
+        $stored = new SignedLinks(self::SECRET, $services->clock, tokens: new InMemoryLinkTokenRepository());
+        $links = new AccountLinks($stored, $this->urls(), $services->accounts, $services->journal);
+        $account = $services->account();
+        $query = Query::of($links->verificationUrl($account));
+
+        self::assertEquals($account, $links->account(SignedLinks::VERIFY, $query['account'], (int) $query['expires'], $query['signature']));
+        self::assertSame(1, $links->revoke($account));
+        self::assertSame([IdentityEventType::LinksRevoked->value, $account->id(), ['purpose' => null, 'count' => 1]], $services->audit->last());
+        self::assertNull($links->account(SignedLinks::VERIFY, $query['account'], (int) $query['expires'], $query['signature']));
+        $count = \count($services->audit->records);
+        self::assertSame(0, $links->revoke($account, SignedLinks::RESET));
+        self::assertCount($count, $services->audit->records);
+
+        $query = Query::of($links->verificationUrl($account));
+        self::assertTrue($links->consume($query['signature']));
+        self::assertFalse($links->consume($query['signature']));
+        $links->verificationUrl($account);
+        self::assertSame(1, $links->revoke($account, SignedLinks::VERIFY));
+        self::assertSame([IdentityEventType::LinksRevoked->value, $account->id(), ['purpose' => 'verify', 'count' => 1]], $services->audit->last());
     }
 
     public function testWithoutMailerNothingIsSent(): void

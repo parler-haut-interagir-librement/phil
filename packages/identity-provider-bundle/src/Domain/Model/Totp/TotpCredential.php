@@ -6,6 +6,7 @@ namespace Phil\IdentityProviderBundle\Domain\Model\Totp;
 
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
+use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
 use SensitiveParameter;
 
 /**
@@ -23,7 +24,7 @@ final class TotpCredential
 
     private function __construct(
         #[ORM\Id]
-        #[ORM\Column(name: 'account_id', length: 26, options: ['fixed' => true])]
+        #[ORM\Column(name: 'account_id', length: Account::ID_MAX_LENGTH)]
         private readonly string $accountId,
         #[ORM\Column(name: 'secret', type: 'text')]
         private string $secret,

@@ -2,20 +2,82 @@
 
 ## Accounts
 
-An account, a row of `phil_identity_account`, holds a ULID, an address in lower case and when it was verified, the
-name it shows, the Argon2id hash of its password — none for an account that signs in with passkeys or a federated
-provider only —, a phone number and when it was verified, its roles, the failed sign-ins in a row and the lock they
-lead to, and when it was disabled. A profile beyond that belongs to the application.
+An account, a row of `phil_identity_account`, holds its identifier, its sign-in address in lower case, the canonical
+form of that address and when it was verified, the name it shows, the Argon2id hash of its password — none for an
+account that signs in with passkeys or a federated provider only —, a phone number and when it was verified, its
+roles, the failed sign-ins in a row and the lock they lead to, and its state and when it last changed. A profile
+beyond that belongs to the application.
 
-Symfony Security sees it as `AccountUser`, identified by the account's ULID — never its address, which may change and
-should not travel in links. `AccountUserProvider` loads it by that identifier or by the address typed in a sign-in
-form, and writes back a hash the password hasher asks to strengthen. Two users are the same while their identifier,
+Symfony Security sees it as `AccountUser`, identified by the account's identifier — never its address, which may
+change and should not travel in links. `AccountUserProvider` loads it by that identifier or by the address typed in a
+sign-in form, told apart by the `@` an address has and an identifier never has, and writes back a hash the password
+hasher asks to strengthen. Two users are the same while their identifier,
 roles, state and password hash are: a session signed in before the password changed or was removed is signed out at
 its next request. The session the change is made in holds the new hash and stays; the rows of the other sessions, and
 the tokens issued in them, are closed too (see [Devices and sessions](sessions.md)).
 
-`AccountUserChecker` refuses a disabled account, by any method, with `account.disabled`, and, with
+`AccountUserChecker` refuses an account that is not active, by any method, with `account.disabled`, and, with
 `require_verified_email`, an account whose address is not verified, with `account.unverified`.
+
+### Identifiers
+
+The identifier of a new account comes from the port `Application\Contract\AccountIdGenerator`, named by
+`accounts.id_generator`:
+
+| Value | Identifier |
+|---|---|
+| `ulid`, the default | A ULID of 26 characters in Crockford's base32 (`UlidAccountIdGenerator`) |
+| `uuid_v7` | A UUID of version 7 in its 36 characters (`UuidV7AccountIdGenerator`), ordered by time, as the keys of an application that uses UUIDv7 elsewhere |
+| A service id | A service implementing `AccountIdGenerator` |
+
+An identifier holds 1 to 36 letters, digits and hyphens (`Account::ID_PATTERN`) and is never given twice; every table
+refers to it in a column of 36 characters. It stays inside the provider: what clients see as `sub` is the subject
+strategy's, `oidc.subject` (see [Tokens](oidc-provider.md#tokens)). A UUIDv7 or a ULID tells when the account was
+created; with either, give clients an opaque subject — `public` or `pairwise` —, random to them and separate from the
+identifier, rather than `account`.
+
+### States
+
+`Domain\Account\AccountState` names the state of an account, generic enough for any application; only an active
+account signs in:
+
+| State | Meaning |
+|---|---|
+| `active` | The account signs in. |
+| `pending` | The account waits for a decision of the application, such as an approval. |
+| `suspended` | The account is set aside for a while, by a moderator or after a doubt, and may come back. |
+| `closed` | The account is closed, by its owner or by the application, and waits for its removal. |
+
+`Accounts::changeState()` moves an account to a state, journals `identity.account.state_changed` with `from` and `to`,
+and, when the account leaves `active`, closes every session of the account and the tokens issued in them.
+`Account::state()` and `stateChangedAt()` read it; `isDisabled()` is true in any state but `active`, `disable()`
+suspends an active account and `enable()` makes it active again.
+
+### Addresses
+
+The sign-in address has a canonical form, `email_canonical`, unique among the accounts: two addresses of one canonical
+form reach one mailbox, so one account is enough. Registration with another spelling of a known mailbox answers as
+for the known address, and a change of address to it is refused with `email.taken`. The port
+`Application\Contract\AddressCanonicalizer` gives the form; the bundle's `EmailCanonicalizer` keeps the address as
+normalized and, with `accounts.strip_subaddress: true`, leaves out the subaddress — `ana+news@example.com` is
+`ana@example.com`. Rules of one mail provider, such as the dots some ignore, belong to a service of the application
+named in `accounts.canonicalizer`. The form of a stored address never changes on its own: a new rule needs the
+stored forms computed again.
+
+An account may also have an address for each of two other purposes, `Domain\Account\AddressPurpose`: `recovery`, to
+get the account back, and `notices`, to receive its notices. They are rows of one table, `phil_identity_address`, each
+with its canonical form, which belongs to one account for each purpose. `AccountAddresses` manages them:
+
+| Method | What it does |
+|---|---|
+| `set($account, $purpose, $address)` | Sets the address of the purpose, unverified; refuses `sign_in` (`address.sign_in`), an address out of shape (`email.invalid`) or one another account holds for the purpose (`email.taken`). |
+| `verify($account, $purpose)` | Marks it verified, after a link the application sent there for instance. |
+| `addressFor($account, $purpose)` | Where to write for the purpose: its verified address, else the sign-in address. |
+| `of($account)`, `get($account, $purpose)`, `remove($account, $purpose)` | Reads and removes them. |
+
+The events `identity.address.set`, `identity.address.verified` and `identity.address.removed` carry the purpose, never
+the address. The emails of the bundle go to the sign-in address; an `AccountMailer` of the application may write to
+`addressFor()`.
 
 ## Registration
 
@@ -57,7 +119,30 @@ The link of `/verify-email` carries the account's identifier, an expiry and a si
 under a key derived from `secret` for this purpose only. Opening it shows a page that asks to confirm; the address is
 verified by the form that page posts, with its CSRF token. The scanners of mail services that open the links of a
 message therefore verify nothing. The link stops working once used, once the address changes, or after
-`links.verify_lifetime` seconds, with nothing stored. A changed address is unverified until its own link is used.
+`links.verify_lifetime` seconds, with nothing stored — or, in the [stored mode](#stored-links), once its token is
+consumed or revoked. A changed address is unverified until its own link is used.
+
+## Stored links
+
+By default the links are signed and nothing is stored: a link works until it expires or the properties it was signed
+over change, and nobody can revoke one still out. `links.mode: stored` keeps a token for each link instead:
+
+```yaml
+phil_identity_provider:
+    links: { mode: stored }
+```
+
+The link then carries a random token of 32 bytes in place of the signature; `phil_identity_link_token` keeps its
+keyed hash — an HMAC under a key derived from `secret` —, the account, the purpose, the expiry, and the signature of
+the properties as a fingerprint. A link is valid while its row exists, names the account and the purpose, has not
+expired, and the account still has the properties it was signed over. Verifying an address consumes the token, once
+even when two requests post it at the same time; a password reset revokes every reset link of the account. A copy of
+the table opens no account.
+
+`AccountLinks::revoke($account, $purpose)` revokes the links of an account still out — of one purpose, or all of them —
+and journals `identity.links.revoked` with the count, as after a doubt about the mailbox. `phil:identity-provider:purge`
+removes the expired tokens. The sign-in links of the module `login_link` are the login links of Symfony Security: give
+the firewall's `login_link` its `max_uses` and a shared `used_link_cache` for them to work once.
 
 ## Passwords
 
@@ -93,6 +178,17 @@ guessing goes on against nothing; a wrong password counts towards the lock; a su
 from `lockout.base` seconds up to `lockout.max`. The lock refuses the password only: a passkey, which a guessing
 attacker cannot replay, still signs in. Each failure is counted on the account read again under a lock of its row, so
 that failures at the same moment all count.
+
+The lock lets anyone who knows an address lock its owner out by failing on purpose. `lockout: false` turns it off: the
+failures are still counted and journaled as `identity.sign_in.failed`, and nothing is locked. Guessing is then left to
+the [sign-in limiter](#limiting-the-sign-ins), which counts per address, per identifier and address, and per
+identifier whatever the address, and refuses the attempts rather than the account: turn `login_limiter` on with it.
+
+```yaml
+phil_identity_provider:
+    lockout: false
+    login_limiter: { enabled: true }
+```
 
 ## Limiting the sign-ins
 

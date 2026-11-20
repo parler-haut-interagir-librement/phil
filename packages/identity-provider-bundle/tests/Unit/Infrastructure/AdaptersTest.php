@@ -216,6 +216,18 @@ final class AdaptersTest extends TestCase
         self::assertEquals($account, $provider->loadUserByIdentifier(self::ID)->account);
         self::assertEquals($account, $provider->loadUserByIdentifier('ADA@example.com')->account);
         self::assertEquals($account, $provider->refreshUser(new AccountUser($account))->account);
+        $uuid = Account::register('0192f5b4-7c1e-7a3b-9f00-123456789abc', 'uuid@example.com', new DateTimeImmutable());
+        $accounts->save($uuid);
+        self::assertEquals($uuid, $provider->loadUserByIdentifier('0192f5b4-7c1e-7a3b-9f00-123456789abc')->account);
+        self::assertEquals($uuid, $provider->refreshUser(new AccountUser($uuid))->account);
+
+        try {
+            $provider->loadUserByIdentifier('uuid');
+            self::fail('Loaded an identifier as an address.');
+        } catch (UserNotFoundException $userNotFoundException) {
+            self::assertSame('uuid', $userNotFoundException->getUserIdentifier());
+        }
+
         self::assertTrue($provider->supportsClass(AccountUser::class));
         self::assertFalse($provider->supportsClass(InMemoryUser::class));
 

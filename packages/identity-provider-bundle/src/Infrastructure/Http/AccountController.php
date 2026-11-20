@@ -96,6 +96,11 @@ final readonly class AccountController
         }
 
         $this->pages->checkCsrf($request);
+
+        if (!$this->links->consume($signature)) {
+            return $this->pages->render('account/link_invalid', [], Response::HTTP_GONE);
+        }
+
         $this->accounts->verifyEmail($account);
 
         return $this->pages->render('account/verified');
@@ -142,6 +147,8 @@ final readonly class AccountController
                 if (!$this->accounts->resetPassword($account, $request->request->getString('password'))) {
                     return $this->pages->render('account/link_invalid', [], Response::HTTP_GONE);
                 }
+
+                $this->links->revoke($account, SignedLinks::RESET);
 
                 return $this->pages->render('account/reset_done');
             } catch (Refused $refused) {

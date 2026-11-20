@@ -5,19 +5,23 @@
 | Type | Role |
 |---|---|
 | `PhilIdentityProviderBundle` | The bundle: its configuration `phil_identity_provider`, its Doctrine mappings and its services. |
-| `Application\Accounts` | Registration, addresses, names, passwords, failed sign-ins. |
-| `Application\AccountLinks`, `Application\SignedLinks` | The links that verify an address and reset a password. |
+| `Application\Accounts` | Registration, addresses, names, passwords, failed sign-ins, states. |
+| `Application\AccountAddresses` | The recovery and notice addresses of an account. |
+| `Application\EmailCanonicalizer` | The canonical form of an address, its subaddress left out on demand. |
+| `Application\Identifier\UlidAccountIdGenerator`, `UuidV7AccountIdGenerator` | The identifiers of new accounts: ULID or UUIDv7. |
+| `Application\AccountLinks`, `Application\SignedLinks` | The links that verify an address and reset a password, signed or stored. |
 | `Application\PasswordRules` | What a new password must be. |
 | `Application\Passkeys` | The WebAuthn ceremonies and the list of passkeys. |
 | `Application\SecondFactors` | The authenticator application and the recovery codes. |
 | `Application\PhoneVerification` | The verification of a phone number. |
 | `Application\Sessions` | The signed-in sessions of an account. |
 | `Application\ExternalIdentities`, `Application\ExternalIdentity`, `Application\ExternalSignIn` | Federated identities and the accounts they sign in. |
+| `Application\Oidc\FileSigningKeys` | The signing keys read from files. |
 | `Application\Oidc\Authorization`, `Tokens`, `SigningKeys`, `ClientRegistry`, `ClientAssertions`, `Claims`, `UserClaims`, `LogoutTokens`, `Subjects`, `ProviderSettings` | The OpenID Connect provider. |
 | `Application\AccountUser` | The account as Symfony Security sees it. |
 | `Application\Modules` | The modules turned on. |
 | `Application\Journal`, `Application\Event\IdentityEvent`, `Application\Event\IdentityEventType` | The events, written to the audit trail and dispatched. |
-| `Application\Contract\SecretCipher`, `ChallengeStore`, `SmsSender`, `AccountMailer`, `AuditRecorder`, `Transactions`, `LinkOrigin`, `ClaimsProvider`, `LogoutNotifier` | The ports. |
+| `Application\Contract\SecretCipher`, `ChallengeStore`, `SmsSender`, `AccountMailer`, `AuditRecorder`, `Transactions`, `LinkOrigin`, `ClaimsProvider`, `LogoutNotifier`, `AccountIdGenerator`, `AddressCanonicalizer`, `SigningKeySource`, `Signer` | The ports. |
 | `Infrastructure\Routing\RouterLinkOrigin` | The links of the emails generated on `public_origin`, and the boot refused in `prod` without it or `framework.trusted_hosts`. |
 | `Infrastructure\Security\RegistrationRateLimiter` | The limits of registration and the delay between two verification emails. |
 | `Infrastructure\Doctrine\BinaryKeysListener` | The binary collation of the keys on MySQL and MariaDB. |
@@ -26,7 +30,9 @@
 | `Domain\Model\*` | The rows of each module. |
 | `Domain\Contract\*Repository` | The stores of each module. |
 | `Domain\WebAuthn\RelyingParty`, `Cbor`, `AuthenticatorData`, `ClientData`, `CoseKey`, `PublicKey` | WebAuthn. |
-| `Application\Jose\Jws`, `Application\Jose\PrivateKey`, `Domain\Jose\SigningAlgorithm` | JSON Web Signatures and the provider's keys, through `web-token/jwt-library`. |
+| `Domain\WebAuthn\AttestationStatement`, `AttestationPolicy`, `AttestationType` | The attestation of new passkeys and what the site accepts of it. |
+| `Domain\Account\AccountState`, `AddressPurpose` | The states of an account and the purposes of its addresses. |
+| `Application\Jose\Jws`, `Application\Jose\PrivateKey`, `Application\Jose\LoadedKeys`, `Domain\Jose\SigningAlgorithm` | JSON Web Signatures, the provider's keys loaded once, and their verification through `web-token/jwt-library`. |
 | `Domain\Oidc\AuthorizationRequestParser`, `AuthorizationRequest`, `Pkce`, `QueryString`, `Scopes`, `TokenKind`, `ClientAuthMethod`, `SubjectType` | The provider's protocol. |
 | `Domain\Totp\Totp`, `Domain\Security\RecoveryCodes`, `Domain\Security\LockoutPolicy` | One-time passwords, recovery codes, the lock. |
 | `Domain\Encoding\Base64Url`, `Base32`, `Der` | Encodings. |
@@ -66,9 +72,11 @@ Every name starts with `phil_identity_provider`.
 
 ## Tables
 
-`phil_identity_account`, `phil_identity_passkey`, `phil_identity_totp`, `phil_identity_recovery_codes`,
-`phil_identity_session`, `phil_identity_linked`, `phil_identity_client`, `phil_identity_consent`, `phil_identity_code`,
-`phil_identity_token`, `phil_identity_assertion`, `phil_identity_signing_key`.
+`phil_identity_account`, `phil_identity_address`, `phil_identity_passkey`, `phil_identity_totp`,
+`phil_identity_recovery_codes`, `phil_identity_session`, `phil_identity_linked`, `phil_identity_client`,
+`phil_identity_consent`, `phil_identity_code`, `phil_identity_token`, `phil_identity_assertion`,
+`phil_identity_signing_key`, and `phil_identity_link_token` with `links.mode: stored`. Every `account_id` column holds 36
+characters, the identifier of `accounts.id_generator`.
 
 ## Commands
 
@@ -78,8 +86,9 @@ Every name starts with `phil_identity_provider`.
 | `phil:identity-provider:client:keys` | Replaces the public keys a client signs its client assertions with. |
 | `phil:identity-provider:client:list` | Lists the clients. |
 | `phil:identity-provider:client:disable` | Disables a client, or rotates its secret with `--rotate-secret`. |
-| `phil:identity-provider:rotate-keys` | Rotates the signing keys; `--now` activates the pending key at once. |
-| `phil:identity-provider:purge` | Removes expired codes, tokens and client assertions, and closed or idle sessions. |
+| `phil:identity-provider:rotate-keys` | Rotates the signing keys of the database; `--now` activates the pending key at once; with `oidc.signing_keys.automatic_rotation: false`, only `--force` or `--now` rotates. |
+| `phil:identity-provider:seal-key` | Seals a private key file under `secrets.kms_key`, for the file source of signing keys; with `secrets.kms_key` set. |
+| `phil:identity-provider:purge` | Removes expired codes, tokens, client assertions and link tokens, and closed or idle sessions. |
 
 ## Events
 

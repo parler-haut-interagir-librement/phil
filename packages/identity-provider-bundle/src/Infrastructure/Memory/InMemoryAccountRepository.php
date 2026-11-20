@@ -35,6 +35,12 @@ final class InMemoryAccountRepository implements AccountRepository, ResetInterfa
     }
 
     #[Override]
+    public function findByCanonicalEmail(string $canonical): ?Account
+    {
+        return self::copy(array_find($this->accounts, static fn (Account $account): bool => $account->emailCanonical() === $canonical));
+    }
+
+    #[Override]
     public function save(Account ...$accounts): void
     {
         foreach ($accounts as $account) {

@@ -129,6 +129,8 @@ return [
     'error.passkey.refused' => 'The passkey could not be verified.',
     'error.passkey.expired' => 'The request expired. Try again.',
     'error.passkey.known' => 'This passkey is already registered.',
+    'error.passkey.not_accepted' => 'This site does not accept this kind of passkey. Try another authenticator.',
+    'error.address.sign_in' => 'The sign-in address is changed with the address of the account.',
     'error.passkey.last' => 'This is your only way to sign in: add another before removing it.',
     'error.passkey.name_invalid' => 'The name holds 1 to 100 characters.',
     'error.passkey.unknown' => 'This passkey is not yours.',

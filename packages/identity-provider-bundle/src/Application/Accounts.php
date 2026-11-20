@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Phil\IdentityProviderBundle\Application;
 
 use DateTimeImmutable;
+use Phil\IdentityProviderBundle\Application\Contract\AccountIdGenerator;
+use Phil\IdentityProviderBundle\Application\Contract\AddressCanonicalizer;
 use Phil\IdentityProviderBundle\Application\Event\IdentityEventType;
 use Phil\IdentityProviderBundle\Application\Exception\Refused;
+use Phil\IdentityProviderBundle\Application\Identifier\UlidAccountIdGenerator;
+use Phil\IdentityProviderBundle\Domain\Account\AccountState;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Exception\InvalidValue;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
@@ -14,14 +18,17 @@ use Phil\IdentityProviderBundle\Domain\Security\LockoutPolicy;
 use Psr\Clock\ClockInterface;
 use SensitiveParameter;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Uid\Ulid;
 
 /**
  * Accounts: registration, the address and its verification, the name, the password — hashed with Argon2id by the
  * password hasher of Symfony Security, checked by `PasswordRules` —, failed sign-ins and the lock they lead to.
  *
- * Registration with an address already known creates nothing and says nothing different: the page answers the same,
- * and an event lets the application warn the owner of the address, so that the form does not tell who has an account.
+ * Registration with an address already known — or with another spelling of it, one of the same canonical form —
+ * creates nothing and says nothing different: the page answers the same, and an event lets the application warn the
+ * owner of the address, so that the form does not tell who has an account. The identifier of a new account comes from
+ * the `AccountIdGenerator`.
+ *
+ * Only an active account signs in: a change of state away from `active` closes its sessions.
  *
  * A new password closes the account's other sessions and the tokens issued in them; a reset closes them all. A reset
  * link is used once: its password is set only while the account still has the password the link was signed over,
@@ -37,6 +44,8 @@ final readonly class Accounts
         private ClockInterface $clock,
         private LockoutPolicy $lockout = new LockoutPolicy(),
         private ?Sessions $sessions = null,
+        private AccountIdGenerator $ids = new UlidAccountIdGenerator(),
+        private AddressCanonicalizer $canonicalizer = new EmailCanonicalizer(),
     ) {
     }
 
@@ -57,7 +66,8 @@ final readonly class Accounts
             throw Refused::because(...$problems);
         }
 
-        $known = $this->accounts->findByEmail($normalized);
+        $canonical = $this->canonicalizer->canonical($normalized);
+        $known = $this->accounts->findByEmail($normalized) ?? $this->accounts->findByCanonicalEmail($canonical);
 
         if ($known instanceof Account) {
             $this->journal->record(IdentityEventType::RegistrationForKnownEmail, $known->id());
@@ -68,7 +78,7 @@ final readonly class Accounts
         $now = $this->clock->now();
 
         try {
-            $account = Account::register(new Ulid()->toBase32(), $normalized, $now, $displayName);
+            $account = Account::register($this->ids->generate(), $normalized, $now, $displayName, $canonical);
         } catch (InvalidValue) {
             throw Refused::because('name.too_long');
         }
@@ -119,11 +129,14 @@ final readonly class Accounts
             return;
         }
 
-        if ($this->accounts->findByEmail($normalized) instanceof Account) {
+        $canonical = $this->canonicalizer->canonical($normalized);
+        $holder = $this->accounts->findByEmail($normalized) ?? $this->accounts->findByCanonicalEmail($canonical);
+
+        if ($holder instanceof Account && $holder->id() !== $account->id()) {
             throw Refused::because('email.taken');
         }
 
-        $account->changeEmail($normalized);
+        $account->changeEmail($normalized, $canonical);
         $this->accounts->save($account);
         $this->journal->record(IdentityEventType::EmailChanged, $account->id());
     }
@@ -256,6 +269,29 @@ final readonly class Accounts
 
         $account->recordSignIn();
         $this->accounts->save($account);
+    }
+
+    /**
+     * Moves an account to a state; leaving `active` closes every session of the account and the tokens issued in them.
+     *
+     * @return bool whether the state changed
+     */
+    public function changeState(Account $account, AccountState $state): bool
+    {
+        $from = $account->state();
+
+        if (!$account->changeState($state, $this->clock->now())) {
+            return false;
+        }
+
+        $this->accounts->save($account);
+        $this->journal->record(IdentityEventType::AccountStateChanged, $account->id(), ['from' => $from->value, 'to' => $state->value]);
+
+        if (!$state->signsIn()) {
+            $this->sessions?->closeAll($account);
+        }
+
+        return true;
     }
 
     public function save(Account $account): void

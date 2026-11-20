@@ -10,10 +10,13 @@ use Phil\IdentityProviderBundle\Application\Passkeys;
 use Phil\IdentityProviderBundle\Domain\Encoding\Base64Url;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
 use Phil\IdentityProviderBundle\Domain\Model\Passkey\Passkey;
+use Phil\IdentityProviderBundle\Domain\WebAuthn\AttestationPolicy;
+use Phil\IdentityProviderBundle\Domain\WebAuthn\AttestationType;
 use Phil\IdentityProviderBundle\Domain\WebAuthn\RelyingParty;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryPasskeyRepository;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\ArrayChallengeStore;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Authenticator;
+use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Cbor;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Services;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -48,7 +51,7 @@ final class PasskeysTest extends TestCase
 
         self::assertSame('Phone', $passkey->name());
         self::assertEquals([$passkey], $this->passkeys->of($account));
-        self::assertSame([IdentityEventType::PasskeyAdded->value, $account->id(), ['passkey' => $passkey->id(), 'synced' => false]], array_last($this->services->audit->records));
+        self::assertSame([IdentityEventType::PasskeyAdded->value, $account->id(), ['passkey' => $passkey->id(), 'aaguid' => $passkey->aaguid(), 'backup_eligible' => false, 'synced' => false, 'attestation' => 'none']], array_last($this->services->audit->records));
         self::assertSame([], $this->challenges->values);
 
         $again = $this->passkeys->registrationOptions($account);
@@ -69,6 +72,44 @@ final class PasskeysTest extends TestCase
         self::assertSame([['type' => 'public-key', 'id' => Base64Url::encode($authenticator->credentialId)]], $options['allowCredentials']);
         self::assertIsString($options['challenge']);
         self::assertEquals($account, $this->passkeys->signIn($authenticator->sign($options['challenge']), $account)[0]);
+    }
+
+    public function testAPasskeyBreakingTheAttestationPolicyIsNotAccepted(): void
+    {
+        $store = new InMemoryPasskeyRepository();
+        $passkeys = new Passkeys(new RelyingParty('example.com', 'Example', ['https://example.com'], attestation: new AttestationPolicy('direct', backup: 'forbidden')), $store, $this->services->accounts, $this->challenges, $this->services->journal, $this->services->clock);
+        $account = $this->services->account();
+        $synced = new Authenticator(flags: 0x0D);
+        $options = $passkeys->registrationOptions($account);
+        self::assertIsString($options['challenge']);
+        self::assertSame('direct', $options['attestation']);
+
+        try {
+            $passkeys->register($account, $synced->register($options['challenge']), 'Synced');
+            self::fail('Accepted.');
+        } catch (Refused $refused) {
+            self::assertSame(['passkey.not_accepted'], $refused->reasons);
+        }
+
+        $stored = static fn (): array => self::stored($store, $account->id());
+        self::assertSame([], $stored());
+        $bound = new Authenticator();
+        $options = $passkeys->registrationOptions($account);
+        self::assertIsString($options['challenge']);
+        $passkey = $passkeys->register($account, $bound->registerAttested($options['challenge'], static fn (string $signed, Authenticator $self): array => ['alg' => -7, 'sig' => Cbor::bytes($self->signature($signed))], 'packed', str_repeat("\x07", 16)), 'Bound');
+        self::assertSame(['packed', AttestationType::Self, '07070707-0707-0707-0707-070707070707', false], [$passkey->attestationFormat(), $passkey->attestationType(), $passkey->aaguid(), $passkey->isBackupEligible()]);
+        self::assertSame(['passkey' => $passkey->id(), 'aaguid' => '07070707-0707-0707-0707-070707070707', 'backup_eligible' => false, 'synced' => false, 'attestation' => 'self'], $this->services->audit->last()[2]);
+        self::assertSame([AttestationType::Self], array_map(static fn (Passkey $stored): AttestationType => $stored->attestationType(), $stored()));
+    }
+
+    /**
+     * @return list<Passkey>
+     *
+     * @phpstan-impure
+     */
+    private static function stored(InMemoryPasskeyRepository $store, string $accountId): array
+    {
+        return $store->forAccount($accountId);
     }
 
     public function testAChallengeIsForOneAnswerAndOneAccount(): void

@@ -13,6 +13,11 @@ enum IdentityEventType: string
     case RegistrationForKnownEmail = 'identity.account.registration_for_known_email';
     case EmailVerified = 'identity.account.email_verified';
     case EmailChanged = 'identity.account.email_changed';
+    case AccountStateChanged = 'identity.account.state_changed';
+    case AddressSet = 'identity.address.set';
+    case AddressVerified = 'identity.address.verified';
+    case AddressRemoved = 'identity.address.removed';
+    case LinksRevoked = 'identity.links.revoked';
     case PasswordChanged = 'identity.password.changed';
     case PasswordResetRequested = 'identity.password.reset_requested';
     case PasswordReset = 'identity.password.reset';

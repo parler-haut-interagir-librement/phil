@@ -11,6 +11,7 @@ use Phil\IdentityProviderBundle\Application\Oidc\ProviderSettings;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use Phil\IdentityProviderBundle\Domain\Oidc\ClientAuthMethod;
 use Phil\IdentityProviderBundle\Domain\Oidc\SubjectType;
+use Phil\IdentityProviderBundle\Domain\WebAuthn\AttestationPolicy;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\IdentityProviderServices;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\IdentityProviderBundle\Infrastructure\Routing\RouterLinkOrigin;
@@ -75,6 +76,15 @@ final class PhilIdentityProviderBundle extends AbstractBundle
             ->scalarNode('layout')->info('The template the pages extend.')->defaultValue('@PhilIdentityProvider/layout.html.twig')->cannotBeEmpty()->end()
             ->scalarNode('kit_subdirectory')->info('Where the recipes of the kit are, under the components directory; the subdirectory of ux_toolkit when null.')->defaultNull()->end()
             ->scalarNode('public_origin')->info('The canonical address of the site, such as https://example.com, that the links sent by email point to; null takes the host of the request, which framework.trusted_hosts must then bound. In the prod environment, the bundle refuses to boot when neither is set.')->defaultNull()->end()
+            ->arrayNode('accounts')
+                ->info('The identifiers and the addresses of the accounts.')
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->scalarNode('id_generator')->info('What gives a new account its internal identifier: "ulid", "uuid_v7", or the id of a service implementing AccountIdGenerator. The identifier stays inside the provider; clients see the sub of oidc.subject.')->defaultValue(IdentityProviderServices::ID_ULID)->cannotBeEmpty()->end()
+                    ->booleanNode('strip_subaddress')->info('Whether the canonical form of an address leaves out its subaddress, "+news" in ana+news@example.com, so that an account holds the mailbox once.')->defaultFalse()->end()
+                    ->scalarNode('canonicalizer')->info("The id of a service implementing AddressCanonicalizer in place of the bundle's, for the rules of a mail provider; strip_subaddress is then its own.")->defaultNull()->end()
+                ->end()
+            ->end()
             ->arrayNode('registration')
                 ->info('Whether anyone may register, and how often; "registration: false" closes it.')
                 ->canBeDisabled()
@@ -109,7 +119,8 @@ final class PhilIdentityProviderBundle extends AbstractBundle
                 ->end()
             ->end()
             ->arrayNode('lockout')
-                ->addDefaultsIfNotSet()
+                ->info('The progressive lock of an account after failed sign-ins with its password; "lockout: false" turns it off and leaves guessing to login_limiter, which nobody can use to lock the owner out.')
+                ->canBeDisabled()
                 ->children()
                     ->integerNode('threshold')->info('The failed sign-ins in a row before the first lock.')->defaultValue(5)->min(1)->end()
                     ->integerNode('base')->info('The seconds of the first lock, doubled at each further failure.')->defaultValue(60)->min(1)->end()
@@ -134,6 +145,7 @@ final class PhilIdentityProviderBundle extends AbstractBundle
                 ->children()
                     ->integerNode('verify_lifetime')->info('The seconds a link that verifies an address lasts.')->defaultValue(86_400)->min(60)->end()
                     ->integerNode('reset_lifetime')->info('The seconds a link that resets a password lasts.')->defaultValue(3_600)->min(60)->end()
+                    ->enumNode('mode')->info('"signed": nothing stored, a link works until it expires or its account changes; "stored": a random token whose keyed hash is stored, used once and revocable, in the table phil_identity_link_token.')->values([IdentityProviderServices::LINKS_SIGNED, IdentityProviderServices::LINKS_STORED])->defaultValue(IdentityProviderServices::LINKS_SIGNED)->end()
                 ->end()
             ->end()
             ->arrayNode('passkeys')
@@ -143,6 +155,18 @@ final class PhilIdentityProviderBundle extends AbstractBundle
                     ->scalarNode('rp_name')->info('The name the authenticator shows; the site name when null.')->defaultNull()->end()
                     ->arrayNode('origins')->info('The origins the pages are served from, such as https://example.com.')->scalarPrototype()->cannotBeEmpty()->end()->end()
                     ->booleanNode('require_user_verification')->info('Whether a passkey must verify the person by a PIN or a biometric.')->defaultFalse()->end()
+                    ->arrayNode('attestation')
+                        ->info('What is asked of the authenticators of new passkeys. Their AAGUID and backup flags are recorded whatever these options.')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->enumNode('conveyance')->info('The attestation asked of the browser: "none" reads no statement; "indirect", "direct" or "enterprise" read the statements of the format packed.')->values(AttestationPolicy::CONVEYANCES)->defaultValue('none')->end()
+                            ->arrayNode('trusted_roots')->info('The PEM files of the root certificates a packed statement may chain to, read when the container is built.')->scalarPrototype()->cannotBeEmpty()->end()->end()
+                            ->booleanNode('require_trusted')->info('Whether a passkey whose statement reaches none of the trusted roots is refused; needs trusted_roots and a conveyance other than none.')->defaultFalse()->end()
+                            ->arrayNode('allowed_aaguids')->info('The AAGUIDs accepted, empty for any. Without require_trusted, an AAGUID is what the authenticator claims.')->scalarPrototype()->end()->end()
+                            ->arrayNode('denied_aaguids')->info('The AAGUIDs refused.')->scalarPrototype()->end()->end()
+                            ->enumNode('backup')->info('Whether a passkey that may be synced to other devices is "allowed", "required" or "forbidden".')->values(AttestationPolicy::BACKUP)->defaultValue('allowed')->end()
+                        ->end()
+                    ->end()
                 ->end()
             ->end()
             ->arrayNode('totp')
@@ -195,6 +219,26 @@ final class PhilIdentityProviderBundle extends AbstractBundle
                     ->integerNode('retired_key_retention')->info('The seconds a retired key stays published.')->defaultValue(604_800)->min(0)->end()
                     ->booleanNode('allow_localhost')->info('Whether redirect addresses on localhost over http are accepted, for development.')->defaultFalse()->end()
                     ->scalarNode('lock_factory')->info('The LockFactory service that serializes the first signing key and each rotation; its store must be shared by every server.')->defaultValue('lock.factory')->cannotBeEmpty()->end()
+                    ->arrayNode('signing_keys')
+                        ->info('Where the signing keys come from.')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->enumNode('source')->info('"database": keys made, sealed under secrets.kms_key and rotated by the bundle; "file": the key files of "files"; "service": the service of "service", such as the adapter of a hardware security module.')->values([IdentityProviderServices::KEYS_DATABASE, IdentityProviderServices::KEYS_FILE, IdentityProviderServices::KEYS_SERVICE])->defaultValue(IdentityProviderServices::KEYS_DATABASE)->end()
+                            ->booleanNode('automatic_rotation')->info('Whether phil:identity-provider:rotate-keys rotates the keys of the database when the schedule runs it; false leaves them until it is run with --force.')->defaultTrue()->end()
+                            ->arrayNode('files')
+                                ->info('The key files of the source "file", the key that signs first, the others published for the tokens they signed.')
+                                ->arrayPrototype()
+                                    ->beforeNormalization()->ifString()->then(static fn (string $path): array => ['path' => $path])->end()
+                                    ->children()
+                                        ->scalarNode('path')->isRequired()->cannotBeEmpty()->end()
+                                        ->scalarNode('kid')->info('The key identifier; the JWK thumbprint of the public key when null.')->defaultNull()->end()
+                                    ->end()
+                                ->end()
+                            ->end()
+                            ->booleanNode('sealed')->info('Whether the key files are sealed under secrets.kms_key, by phil:identity-provider:seal-key.')->defaultFalse()->end()
+                            ->scalarNode('service')->info('The id of the service implementing SigningKeySource, for the source "service".')->defaultNull()->end()
+                        ->end()
+                    ->end()
                     ->arrayNode('extra_scopes')
                         ->info('Scopes besides openid, profile, email, phone and offline_access that clients may register, such as the scopes of a resource asked by the client_credentials grant.')
                         ->scalarPrototype()
@@ -332,7 +376,7 @@ final class PhilIdentityProviderBundle extends AbstractBundle
         }
 
         unset($config['enabled']);
-        /** @phpstan-var array{secret: string, site_name: string, modules: array<string, bool>, store: string, entity_manager: string, clock: string, layout: string, kit_subdirectory: ?string, registration: array{enabled: bool, rate_limit: array{enabled: bool, per_ip: array{limit: positive-int, interval: string}, per_address: array{limit: positive-int, interval: string}, resend_delay: string}}, public_origin: ?string, require_verified_email: bool, login_route: ?string, default_target: string, open_routes: list<string>, mailer: array{from: ?string}, password: array{min_score: int<0, 4>, breach_check: bool, http_client: string}, lockout: array{threshold: positive-int, base: positive-int, max: positive-int}, login_limiter: array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string, single_server: bool}, links: array{verify_lifetime: positive-int, reset_lifetime: positive-int}, passkeys: array{rp_id: ?string, rp_name: ?string, origins: list<string>, require_user_verification: bool}, totp: array{issuer: ?string, window: int<0, 10>}, sms: array{sender: ?string, from: string, message: string, lifetime: positive-int, attempts: positive-int}, step_up: array{attribute: string, lifetime: positive-int}, sessions: array{touch_interval: non-negative-int}, external: array{link_verified_email: bool, register: bool}, oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string, extra_scopes: list<string>, client_authentication: array{methods: non-empty-list<string>, clock_skew: int<0, 300>, assertion_max_lifetime: int<1, 3600>}, refresh_token_bound_to_session: bool, session_max_age: ?positive-int, id_token: array{acr: ?string, idp: ?string, session_start: bool}, subject: array{type: string, salt: ?string}, backchannel_logout: array{enabled: bool, bus: string, http_client: string, timeout: positive-int}}, secrets: array{kms_key: ?string, allow_plaintext_secrets: bool, encrypter: string, decrypter: string}, audit: string} $config */
+        /** @phpstan-var array{secret: string, site_name: string, modules: array<string, bool>, store: string, entity_manager: string, clock: string, layout: string, kit_subdirectory: ?string, accounts: array{id_generator: string, strip_subaddress: bool, canonicalizer: ?string}, registration: array{enabled: bool, rate_limit: array{enabled: bool, per_ip: array{limit: positive-int, interval: string}, per_address: array{limit: positive-int, interval: string}, resend_delay: string}}, public_origin: ?string, require_verified_email: bool, login_route: ?string, default_target: string, open_routes: list<string>, mailer: array{from: ?string}, password: array{min_score: int<0, 4>, breach_check: bool, http_client: string}, lockout: array{enabled: bool, threshold: positive-int, base: positive-int, max: positive-int}, login_limiter: array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string, single_server: bool}, links: array{verify_lifetime: positive-int, reset_lifetime: positive-int, mode: string}, passkeys: array{rp_id: ?string, rp_name: ?string, origins: list<string>, require_user_verification: bool, attestation: array{conveyance: string, trusted_roots: list<string>, require_trusted: bool, allowed_aaguids: list<string>, denied_aaguids: list<string>, backup: string}}, totp: array{issuer: ?string, window: int<0, 10>}, sms: array{sender: ?string, from: string, message: string, lifetime: positive-int, attempts: positive-int}, step_up: array{attribute: string, lifetime: positive-int}, sessions: array{touch_interval: non-negative-int}, external: array{link_verified_email: bool, register: bool}, oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string, signing_keys: array{source: string, automatic_rotation: bool, files: list<array{path: string, kid: ?string}>, sealed: bool, service: ?string}, extra_scopes: list<string>, client_authentication: array{methods: non-empty-list<string>, clock_skew: int<0, 300>, assertion_max_lifetime: int<1, 3600>}, refresh_token_bound_to_session: bool, session_max_age: ?positive-int, id_token: array{acr: ?string, idp: ?string, session_start: bool}, subject: array{type: string, salt: ?string}, backchannel_logout: array{enabled: bool, bus: string, http_client: string, timeout: positive-int}}, secrets: array{kms_key: ?string, allow_plaintext_secrets: bool, encrypter: string, decrypter: string}, audit: string} $config */
         IdentityProviderServices::register($builder, $config);
     }
 
@@ -352,7 +396,7 @@ final class PhilIdentityProviderBundle extends AbstractBundle
 
     /**
      * The modules the raw configurations turn on, read before they are processed, for the Doctrine mappings: the
-     * defaults that own a model, then each configuration in order.
+     * defaults that own a model, then each configuration in order; the stored mode of the links counts as one.
      *
      * @param list<mixed> $configs
      *
@@ -367,6 +411,10 @@ final class PhilIdentityProviderBundle extends AbstractBundle
                 foreach ($config['modules'] as $module => $on) {
                     $modules[(string) $module] = true === $on;
                 }
+            }
+
+            if (\is_array($config) && \is_array($config['links'] ?? null) && \array_key_exists('mode', $config['links'])) {
+                $modules[IdentityProviderServices::STORED_LINKS] = IdentityProviderServices::LINKS_STORED === $config['links']['mode'];
             }
         }
 

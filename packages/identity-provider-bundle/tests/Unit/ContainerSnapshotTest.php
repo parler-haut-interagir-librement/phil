@@ -6,6 +6,7 @@ namespace Phil\IdentityProviderBundle\Tests\Unit;
 
 use Phil\AuditBundle\Application\AuditTrail;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\IdentityProviderServices;
+use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\KeyAndAttestationServices;
 use Phil\IdentityProviderBundle\PhilIdentityProviderBundle;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\ContainerDump;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -21,6 +22,7 @@ use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
  * UPDATE_SNAPSHOTS=1, then read in the diff.
  */
 #[CoversClass(IdentityProviderServices::class)]
+#[CoversClass(KeyAndAttestationServices::class)]
 #[CoversClass(PhilIdentityProviderBundle::class)]
 final class ContainerSnapshotTest extends TestCase
 {
@@ -103,6 +105,17 @@ final class ContainerSnapshotTest extends TestCase
             'secrets' => ['allow_plaintext_secrets' => true],
             'audit' => 'none',
             'registration' => ['rate_limit' => false],
+        ], false];
+
+        yield 'stored-links-files-and-uuids' => ['stored-links-files-and-uuids', [
+            'store' => 'memory',
+            'modules' => ['passkeys' => true, 'oidc' => true],
+            'accounts' => ['id_generator' => 'uuid_v7', 'strip_subaddress' => true],
+            'lockout' => false,
+            'links' => ['mode' => 'stored'],
+            'passkeys' => ['rp_id' => 'example.com', 'origins' => ['https://example.com'], 'attestation' => ['conveyance' => 'direct', 'denied_aaguids' => ['01234567-89ab-cdef-0123-456789abcdef'], 'backup' => 'forbidden']],
+            'oidc' => ['issuer' => 'https://example.com', 'algorithm' => 'EdDSA', 'signing_keys' => ['source' => 'file', 'sealed' => true, 'files' => ['/keys/current.sealed', ['path' => '/keys/previous.sealed', 'kid' => 'previous']]]],
+            'secrets' => ['kms_key' => 'identity'],
         ], false];
 
         yield 'audit-auto-with-the-trail' => ['audit-auto-with-the-trail', ['store' => 'memory'], true];

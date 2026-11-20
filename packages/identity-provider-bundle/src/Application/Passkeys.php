@@ -24,7 +24,9 @@ use Psr\Clock\ClockInterface;
  *
  * The options carry a challenge kept in the `ChallengeStore` for one answer. The browser's answer is the JSON of
  * `PublicKeyCredential.toJSON()`; it is read with bounds, verified by the `RelyingParty`, and refused with the key
- * `passkey.refused` whatever went wrong, so that a page tells nothing an attacker could use.
+ * `passkey.refused` whatever went wrong, so that a page tells nothing an attacker could use. A passkey that verifies but
+ * breaks the attestation policy — its make, its attestation, whether it may be synced — is refused with
+ * `passkey.not_accepted`, so that its owner knows to try another authenticator.
  */
 final readonly class Passkeys
 {
@@ -74,9 +76,16 @@ final readonly class Passkeys
                 Base64Url::decode($this->member($response, 'clientDataJSON')),
                 Base64Url::decode($this->member($response, 'attestationObject')),
                 $challenge,
+                $this->clock->now()->getTimestamp(),
             );
         } catch (MalformedInput|VerificationFailed) {
             throw Refused::because('passkey.refused');
+        }
+
+        try {
+            $this->relyingParty->attestation->assert($credential->aaguid, $credential->attestationType, $credential->backupEligible);
+        } catch (VerificationFailed) {
+            throw Refused::because('passkey.not_accepted');
         }
 
         if ($this->passkeys->findByCredentialId($credential->credentialId) instanceof Passkey) {
@@ -90,7 +99,13 @@ final readonly class Passkeys
         }
 
         $this->passkeys->save($passkey);
-        $this->journal->record(IdentityEventType::PasskeyAdded, $account->id(), ['passkey' => $passkey->id(), 'synced' => $passkey->isBackedUp()]);
+        $this->journal->record(IdentityEventType::PasskeyAdded, $account->id(), [
+            'passkey' => $passkey->id(),
+            'aaguid' => $passkey->aaguid(),
+            'backup_eligible' => $passkey->isBackupEligible(),
+            'synced' => $passkey->isBackedUp(),
+            'attestation' => $passkey->attestationType()->value,
+        ]);
 
         return $passkey;
     }

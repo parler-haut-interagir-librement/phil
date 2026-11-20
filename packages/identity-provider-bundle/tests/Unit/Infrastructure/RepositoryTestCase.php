@@ -6,17 +6,23 @@ namespace Phil\IdentityProviderBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
 use Phil\IdentityProviderBundle\Application\Contract\Transactions;
+use Phil\IdentityProviderBundle\Domain\Account\AccountState;
+use Phil\IdentityProviderBundle\Domain\Account\AddressPurpose;
+use Phil\IdentityProviderBundle\Domain\Contract\AccountAddressRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountSessionRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\ClientRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\LinkedIdentityRepository;
+use Phil\IdentityProviderBundle\Domain\Contract\LinkTokenRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\PasskeyRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\SecondFactorRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\SigningKeyRepository;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
+use Phil\IdentityProviderBundle\Domain\Model\Account\AccountAddress;
 use Phil\IdentityProviderBundle\Domain\Model\External\LinkedIdentity;
+use Phil\IdentityProviderBundle\Domain\Model\Link\LinkToken;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Client;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Consent;
@@ -59,6 +65,10 @@ abstract class RepositoryTestCase extends TestCase
     abstract protected function keys(): SigningKeyRepository;
 
     abstract protected function transactions(): Transactions;
+
+    abstract protected function addresses(): AccountAddressRepository;
+
+    abstract protected function linkTokens(): LinkTokenRepository;
 
     /**
      * Forgets what the store holds in memory, so that the next read comes from its storage.
@@ -595,6 +605,86 @@ abstract class RepositoryTestCase extends TestCase
         self::assertSame(0, $this->grants()->purge($now->modify('+60 seconds')));
         self::assertSame(2, $this->grants()->purge($now->modify('+61 seconds')));
         self::assertNotNull($this->grants()->code(AuthorizationCode::idOf('late')));
+    }
+
+    public function testAnAccountIsFoundByItsCanonicalAddressAndKeepsItsState(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $uuid = '0192f5b4-7c1e-7a3b-9f00-123456789abc';
+        $account = Account::register($uuid, 'ada+news@example.com', $now, null, 'ada@example.com');
+        $account->changeState(AccountState::Suspended, $now->modify('+1 hour'));
+        $this->accounts()->save($account, Account::register(self::BOB, 'bob@example.com', $now));
+        $this->sessions()->save(AccountSession::open(str_repeat('u', 43), $uuid, 'Device', [], false, $now));
+        $this->clear();
+
+        $found = $this->accounts()->findByCanonicalEmail('ada@example.com');
+        self::assertSame($uuid, $found?->id());
+        self::assertSame('ada+news@example.com', $found->email());
+        self::assertSame(AccountState::Suspended, $found->state());
+        self::assertSame($now->modify('+1 hour')->getTimestamp(), $found->stateChangedAt()?->getTimestamp());
+        self::assertSame(AccountState::Active, $this->accounts()->get(self::BOB)?->state());
+        self::assertNull($this->accounts()->findByCanonicalEmail('ada+news@example.com'));
+        self::assertSame($uuid, $this->sessions()->openFor($uuid)[0]->accountId());
+    }
+
+    public function testAccountAddresses(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $recovery = AccountAddress::add(self::ADA, AddressPurpose::Recovery, 'ada@example.org', 'ada@example.org', $now);
+        $notices = AccountAddress::add(self::ADA, AddressPurpose::Notices, 'Ada+News@example.net', 'ada@example.net', $now);
+        $this->addresses()->save($recovery, $notices, AccountAddress::add(self::BOB, AddressPurpose::Recovery, 'bob@example.org', 'bob@example.org', $now));
+        $this->clear();
+
+        $found = $this->addresses()->forAccount(self::ADA);
+        self::assertSame([AddressPurpose::Notices, AddressPurpose::Recovery], array_map(static fn (AccountAddress $address): AddressPurpose => $address->purpose(), $found));
+        self::assertSame(['ada+news@example.net', 'ada@example.net', false], [$found[0]->address(), $found[0]->canonical(), $found[0]->isVerified()]);
+        self::assertSame(self::ADA, $this->addresses()->findByCanonical(AddressPurpose::Notices, 'ada@example.net')?->accountId());
+        self::assertNull($this->addresses()->findByCanonical(AddressPurpose::Recovery, 'ada@example.net'));
+        self::assertSame(self::BOB, $this->addresses()->findByCanonical(AddressPurpose::Recovery, 'bob@example.org')?->accountId());
+        self::assertSame([], $this->addresses()->forAccount('nobody'));
+
+        $found[1]->verify($now);
+        $found[1]->change('ADA@example.org', 'ada@example.org');
+        $this->addresses()->save($found[1]);
+        $this->clear();
+        self::assertSame($now->getTimestamp(), $this->addresses()->findByCanonical(AddressPurpose::Recovery, 'ada@example.org')?->verifiedAt()?->getTimestamp());
+
+        $this->addresses()->remove($this->addresses()->forAccount(self::ADA)[0]);
+        $this->clear();
+        self::assertSame([AddressPurpose::Recovery], array_map(static fn (AccountAddress $address): AddressPurpose => $address->purpose(), $this->addresses()->forAccount(self::ADA)));
+    }
+
+    public function testALinkTokenIsConsumedOnceRevokedAndPurged(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $id = static fn (string $letter): string => str_repeat($letter, 64);
+        $this->linkTokens()->save(LinkToken::issue($id('a'), self::ADA, 'reset', 'fingerprint-a', $now->modify('+1 hour'), $now));
+        $this->linkTokens()->save(LinkToken::issue($id('b'), self::ADA, 'verify', 'fingerprint-b', $now->modify('+1 day'), $now));
+        $this->linkTokens()->save(LinkToken::issue($id('c'), self::ADA, 'reset', 'fingerprint-c', $now->modify('+2 hours'), $now));
+        $this->linkTokens()->save(LinkToken::issue($id('d'), self::BOB, 'reset', 'fingerprint-d', $now->modify('+1 hour'), $now));
+        $this->clear();
+
+        $token = $this->linkTokens()->get($id('a'));
+        self::assertNotNull($token);
+        self::assertSame([self::ADA, 'reset', 'fingerprint-a'], [$token->accountId(), $token->purpose(), $token->fingerprint()]);
+        self::assertSame($now->modify('+1 hour')->getTimestamp(), $token->expiresAt()->getTimestamp());
+        self::assertSame($now->getTimestamp(), $token->createdAt()->getTimestamp());
+        self::assertNull($this->linkTokens()->get($id('e')));
+
+        self::assertTrue($this->linkTokens()->consume($id('a')));
+        self::assertFalse($this->linkTokens()->consume($id('a')));
+        self::assertFalse($this->linkTokens()->consume($id('e')));
+        self::assertNull($this->linkTokens()->get($id('a')));
+
+        self::assertSame(1, $this->linkTokens()->revoke(self::ADA, 'reset'));
+        self::assertSame(0, $this->linkTokens()->revoke(self::ADA, 'reset'));
+        self::assertNotNull($this->linkTokens()->get($id('b')));
+        self::assertSame(1, $this->linkTokens()->revoke(self::ADA));
+        self::assertNull($this->linkTokens()->get($id('b')));
+
+        self::assertSame(0, $this->linkTokens()->purge($now->modify('+1 hour')));
+        self::assertSame(1, $this->linkTokens()->purge($now->modify('+1 hour +1 second')));
+        self::assertNull($this->linkTokens()->get($id('d')));
     }
 
     public function testAnAddressIsFoldedAsText(): void

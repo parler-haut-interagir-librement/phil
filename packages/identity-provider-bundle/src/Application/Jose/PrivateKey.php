@@ -7,7 +7,11 @@ namespace Phil\IdentityProviderBundle\Application\Jose;
 use Jose\Component\Core\JWK;
 use Jose\Component\KeyManagement\JWKFactory;
 use JsonException;
+use OpenSSLAsymmetricKey;
+use Override;
+use Phil\IdentityProviderBundle\Application\Contract\Signer;
 use Phil\IdentityProviderBundle\Domain\Encoding\Base64Url;
+use Phil\IdentityProviderBundle\Domain\Encoding\Der;
 use Phil\IdentityProviderBundle\Domain\Exception\InvalidValue;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use SensitiveParameter;
@@ -18,12 +22,19 @@ use Throwable;
  * identifier, held as a JSON Web Key of `web-token/jwt-library`. Its material — the private JSON Web Key — is what the
  * key store keeps, encrypted when a key management service is configured; a PEM, or a libsodium Ed25519 secret key in
  * base64url, is read too.
+ *
+ * The key is loaded once, when the object is made: an OpenSSL key for RS256 and ES256, the libsodium secret key for
+ * EdDSA. Each signature then costs the signature only, not the conversion of the JSON Web Key; keep the object to keep
+ * that saving, as the key sources do.
  */
-final readonly class PrivateKey
+final readonly class PrivateKey implements Signer
 {
     public const int RSA_BITS = 3072;
 
     public const int MIN_RSA_BITS = 2048;
+
+    /** @var OpenSSLAsymmetricKey|non-empty-string */
+    private OpenSSLAsymmetricKey|string $signing;
 
     private function __construct(
         public SigningAlgorithm $algorithm,
@@ -31,6 +42,7 @@ final readonly class PrivateKey
         #[SensitiveParameter]
         private JWK $jwk,
     ) {
+        $this->signing = $this->load($algorithm, $jwk);
     }
 
     public static function generate(SigningAlgorithm $algorithm, ?string $kid = null): self
@@ -82,11 +94,29 @@ final readonly class PrivateKey
         return $this->jwk;
     }
 
+    #[Override]
+    public function sign(string $input): string
+    {
+        if (\is_string($this->signing)) {
+            return sodium_crypto_sign_detached($input, $this->signing);
+        }
+
+        if (!openssl_sign($input, $signature, $this->signing, \OPENSSL_ALGO_SHA256) || !\is_string($signature)) {
+            throw InvalidValue::because('OpenSSL could not sign with the key.');
+        }
+
+        return SigningAlgorithm::ES256 === $this->algorithm ? Der::ecdsaSignature($signature, 32) : $signature;
+    }
+
     /**
-     * The JSON Web Key of the key set: its type, use, algorithm, identifier and public members only.
-     *
-     * @return array<string, string>
+     * The JWK thumbprint of the public key (RFC 7638), with SHA-256 in base64url: an identifier the key itself gives.
      */
+    public function thumbprint(): string
+    {
+        return $this->jwk->thumbprint('sha256');
+    }
+
+    #[Override]
     public function publicJwk(): array
     {
         /** @var array<string, string> $public */
@@ -123,6 +153,44 @@ final readonly class PrivateKey
         }
 
         return new self($algorithm, $kid, $jwk);
+    }
+
+    /**
+     * The key in the form that signs: an OpenSSL key built from the members of the JSON Web Key, or the libsodium
+     * secret key of an Ed25519 seed.
+     *
+     * @return OpenSSLAsymmetricKey|non-empty-string
+     */
+    private function load(SigningAlgorithm $algorithm, #[SensitiveParameter] JWK $jwk): OpenSSLAsymmetricKey|string
+    {
+        $member = static function (string $name) use ($jwk): string {
+            $value = $jwk->has($name) ? $jwk->get($name) : null;
+
+            return \is_string($value) ? Base64Url::decode($value) : '';
+        };
+
+        if (SigningAlgorithm::EdDSA === $algorithm) {
+            $seed = $member('d');
+
+            if (\SODIUM_CRYPTO_SIGN_SEEDBYTES !== \strlen($seed)) {
+                throw InvalidValue::because('An Ed25519 private key is a seed of 32 bytes.');
+            }
+
+            $pair = sodium_crypto_sign_seed_keypair($seed);
+
+            if (!hash_equals(sodium_crypto_sign_publickey($pair), $member('x'))) {
+                throw InvalidValue::because('The public key of the Ed25519 key is not the one of its seed.');
+            }
+
+            return sodium_crypto_sign_secretkey($pair);
+        }
+
+        $details = SigningAlgorithm::RS256 === $algorithm
+            ? ['rsa' => array_filter(['n' => $member('n'), 'e' => $member('e'), 'd' => $member('d'), 'p' => $member('p'), 'q' => $member('q'), 'dmp1' => $member('dp'), 'dmq1' => $member('dq'), 'iqmp' => $member('qi')], static fn (string $value): bool => '' !== $value)]
+            : ['ec' => ['curve_name' => 'prime256v1', 'x' => $member('x'), 'y' => $member('y'), 'd' => $member('d')]];
+        $key = openssl_pkey_new($details);
+
+        return $key instanceof OpenSSLAsymmetricKey ? $key : throw InvalidValue::because(\sprintf('OpenSSL does not read the key of %s.', $algorithm->value));
     }
 
     /**

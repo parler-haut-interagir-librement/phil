@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Infrastructure\Http\Oidc;
 
+use Phil\IdentityProviderBundle\Application\Contract\SigningKeySource;
 use Phil\IdentityProviderBundle\Application\Oidc\ProviderSettings;
-use Phil\IdentityProviderBundle\Application\Oidc\SigningKeys;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use Phil\IdentityProviderBundle\Domain\Oidc\AuthorizationRequestParser;
 use Phil\IdentityProviderBundle\Domain\Oidc\ClientAuthMethod;
@@ -25,7 +25,7 @@ final readonly class MetadataController
 
     public function __construct(
         private ProviderSettings $settings,
-        private SigningKeys $keys,
+        private SigningKeySource $keys,
         private UrlGeneratorInterface $urls,
         private int $maxAge = 300,
         private bool $backchannelLogout = false,

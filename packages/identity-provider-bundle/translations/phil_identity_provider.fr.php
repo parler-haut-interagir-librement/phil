@@ -129,6 +129,8 @@ return [
     'error.passkey.refused' => 'La clé d’accès n’a pas pu être vérifiée.',
     'error.passkey.expired' => 'La demande a expiré. Réessayez.',
     'error.passkey.known' => 'Cette clé d’accès est déjà enregistrée.',
+    'error.passkey.not_accepted' => 'Ce site n’accepte pas ce genre de clé d’accès. Essayez un autre authentificateur.',
+    'error.address.sign_in' => 'L’adresse de connexion se change avec l’adresse du compte.',
     'error.passkey.last' => 'C’est votre seule façon de vous connecter : ajoutez-en une autre avant de la retirer.',
     'error.passkey.name_invalid' => 'Le nom compte de 1 à 100 caractères.',
     'error.passkey.unknown' => 'Cette clé d’accès n’est pas la vôtre.',

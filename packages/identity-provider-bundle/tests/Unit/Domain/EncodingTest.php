@@ -118,4 +118,57 @@ final class EncodingTest extends TestCase
         self::assertStringEndsWith("\n-----END PUBLIC KEY-----\n", $pem);
         self::assertSame($details['key'], $pem);
     }
+
+    public function testAnEcdsaSignatureIsReadAsItsTwoNumbers(): void
+    {
+        $r = "\x01".str_repeat("\x02", 31);
+        $s = "\x80".str_repeat("\x03", 31);
+        $der = "\x30\x45\x02\x20".$r."\x02\x21\x00".$s;
+        self::assertSame($r.$s, Der::ecdsaSignature($der, 32));
+
+        $short = "\x30\x08\x02\x02\x00\x7F\x02\x02\x01\x02";
+        self::assertSame(str_repeat("\x00", 31)."\x7F".str_repeat("\x00", 30)."\x01\x02", Der::ecdsaSignature($short, 32));
+        self::assertSame("\x00\x7F\x01\x02", Der::ecdsaSignature($short, 2));
+
+        $key = openssl_pkey_new(['private_key_type' => \OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1']);
+        self::assertInstanceOf(OpenSSLAsymmetricKey::class, $key);
+
+        for ($i = 0; $i < 30; ++$i) {
+            openssl_sign('input '.$i, $signature, $key, \OPENSSL_ALGO_SHA256);
+            self::assertIsString($signature);
+            self::assertSame(64, \strlen(Der::ecdsaSignature($signature, 32)));
+        }
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function brokenSignatures(): iterable
+    {
+        yield 'too short' => ["\x30\x05\x02\x01\x01\x02\x01", 'sequence'];
+        yield 'not a sequence' => ["\x31\x06\x02\x01\x01\x02\x01\x01", 'sequence'];
+        yield 'wrong length' => ["\x30\x07\x02\x01\x01\x02\x01\x01", 'sequence'];
+        yield 'long length' => ["\x30\x06\x02\x01\x01\x02\x01\x01\x00", 'sequence'];
+        yield 'first not an integer' => ["\x30\x06\x03\x01\x01\x02\x01\x01", 'Integer 1'];
+        yield 'second not an integer' => ["\x30\x06\x02\x01\x01\x04\x01\x01", 'Integer 2'];
+        yield 'empty integer' => ["\x30\x06\x02\x00\x02\x02\x01\x01", 'Integer 1'];
+        yield 'integer past the end' => ["\x30\x06\x02\x01\x01\x02\x03\x01", 'Integer 2'];
+        yield 'number too long' => ["\x30\x08\x02\x03\x01\x02\x03\x02\x01\x01", 'Integer 1'];
+        yield 'long form length' => ["\x30\x06\x02\x81\x01\x02\x01\x01", 'Integer 1'];
+        yield 'bytes left over' => ["\x30\x08\x02\x01\x01\x02\x01\x01\x05\x00", 'after its two integers'];
+    }
+
+    #[DataProvider('brokenSignatures')]
+    public function testABrokenEcdsaSignatureIsRefused(string $der, string $message): void
+    {
+        $this->expectException(MalformedInput::class);
+        $this->expectExceptionMessageIsOrContains($message);
+
+        Der::ecdsaSignature($der, 2);
+    }
+
+    public function testACertificateIsWrittenAsPem(): void
+    {
+        self::assertSame("-----BEGIN CERTIFICATE-----\nAQID\n-----END CERTIFICATE-----\n", Der::certificate("\x01\x02\x03"));
+    }
 }

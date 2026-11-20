@@ -105,6 +105,7 @@ return [
             'client-data' => 'tests/Fuzz/client-data.php',
             'jwt' => 'tests/Fuzz/jwt.php',
             'authorization-request' => 'tests/Fuzz/authorization-request.php',
+            'attestation' => 'tests/Fuzz/attestation.php',
         ],
     ],
 ];

@@ -34,6 +34,12 @@ final class CountingAccounts implements AccountRepository
     }
 
     #[Override]
+    public function findByCanonicalEmail(string $canonical): ?Account
+    {
+        return $this->inner->findByCanonicalEmail($canonical);
+    }
+
+    #[Override]
     public function save(Account ...$accounts): void
     {
         ++$this->saves;
