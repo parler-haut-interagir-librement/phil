@@ -1,0 +1,8 @@
+# The administration pages of the errors, behind the application's firewall.
+phil_error_tracking:
+    resource: '@PhilErrorTrackingBundle/config/routes.php'
+    prefix: /admin/errors
+
+# The endpoint of the browsers' errors, POST /_errors/browser, once phil_error_tracking.browser is enabled.
+# phil_error_tracking_browser:
+#     resource: '@PhilErrorTrackingBundle/config/routes_browser.php'

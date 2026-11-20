@@ -74,6 +74,8 @@ and resources, new columns and a table to migrate, and refresh tokens bound to t
   client a client assertion names.
 - The documentation of client authentication, token families, refresh tokens bound to the session, resources and the
   `client_credentials` grant, and the threats of token families.
+- The Flex recipe in `recipe/0.3`: the configuration of `recipe/0.1` with `public_origin` read from `APP_PUBLIC_ORIGIN`,
+  null while it is unset.
 
 ### Changed
 

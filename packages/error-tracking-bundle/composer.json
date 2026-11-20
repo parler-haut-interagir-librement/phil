@@ -68,6 +68,7 @@
         "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2",
         "symfony/ux-twig-component": "^3.7",
+        "symfony/yaml": "^8.2",
         "twig/extra-bundle": "^3.24",
         "twig/twig": "^3.21"
     },

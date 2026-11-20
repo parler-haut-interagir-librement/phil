@@ -78,7 +78,8 @@
         "symfony/translation-contracts": "^3.6",
         "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "symfony/ux-twig-component": "^3.7"
+        "symfony/ux-twig-component": "^3.7",
+        "symfony/yaml": "^8.2"
     },
     "suggest": {
         "phil/audit-bundle": "To write every event of the accounts to a hash-chained audit trail",

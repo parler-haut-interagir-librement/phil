@@ -1,0 +1,11 @@
+# The licenses of the works and the attribution of each resource. With DoctrineBundle, the declarations are kept in
+# the table phil_licensing_declaration: create it with doctrine:migrations:diff. See the configuration guide of
+# phil/licensing-bundle for the repository of the declarations and the licenses of the application.
+phil_licensing:
+    printing:
+        # With phil/paged-media-bundle: refuses a print that names no work, whose licensing cannot be checked.
+        strict: false
+        # The subject types printed without a license: invoices, tickets, receipts.
+        unlicensed_subjects: []
+    # licenses:
+    #     house: { name: House license, url: 'https://example.com/license', requirements: [attribution, license_notice] }

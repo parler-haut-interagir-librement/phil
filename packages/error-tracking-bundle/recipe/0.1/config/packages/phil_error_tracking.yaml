@@ -1,0 +1,15 @@
+# The errors of the requests, messages and commands, grouped and kept through DBAL in phil_error_group and
+# phil_error_event: create them with doctrine:migrations:diff. Route
+# Phil\ErrorTrackingBundle\Application\Message\AlertErrorGroup to an asynchronous transport, and check the installation
+# with phil:error-tracking:status. See the configuration guide of phil/error-tracking-bundle for every option.
+phil_error_tracking:
+    # The version or commit that runs; regressions are told by it.
+    release: '%env(default::APP_RELEASE)%'
+    # The rate limits count in cache.app, which the prod environment refuses when it is local to each server: name a
+    # pool on a store the servers share, or say that the application runs on one server.
+    # rate_limit: { cache_pool: cache.app, single_server: false }
+    admin:
+        enabled: true
+        role: ROLE_ADMIN
+    # The endpoint of the browsers' errors, imported in config/routes/phil_error_tracking.yaml once enabled.
+    # browser: { enabled: true }

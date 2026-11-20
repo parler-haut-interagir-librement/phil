@@ -55,7 +55,8 @@
         "symfony/translation": "^8.2",
         "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "symfony/validator": "^8.2"
+        "symfony/validator": "^8.2",
+        "symfony/yaml": "^8.2"
     },
     "suggest": {
         "doctrine/doctrine-bundle": "For the declarations kept in the table phil_licensing_declaration",

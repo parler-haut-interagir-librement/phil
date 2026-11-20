@@ -1,0 +1,8 @@
+{
+    "bundles": {
+        "Phil\\LicensingBundle\\PhilLicensingBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    }
+}

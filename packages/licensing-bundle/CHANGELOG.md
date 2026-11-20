@@ -56,3 +56,4 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - `Infrastructure\Ujo\AttributionDocument`, the page as a UJO (Universal JSON Output) document, every text escaped.
 - `Infrastructure\StructuredData\LicenseStructuredData`, `license`, `copyrightNotice` and `isBasedOn` as schema.org
   properties or a node.
+- The Flex recipe in `recipe/0.1`: the bundle and `config/packages/phil_licensing.yaml`, with the printing guard.

@@ -57,3 +57,5 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - The documentation in `doc/`, one file per topic, indexed by the README, with a guide from sentry-symfony to the
   capture points.
 - `CONTRIBUTING.md`, `SECURITY.md` and `CODE_OF_CONDUCT.md`.
+- The Flex recipe in `recipe/0.1`: the bundle, `config/packages/phil_error_tracking.yaml`, with the release read from
+  `APP_RELEASE` and the administration pages on, and their routes under `/admin/errors`.

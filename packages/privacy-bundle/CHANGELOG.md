@@ -20,6 +20,8 @@ environment refuses to boot, while those requests are on with the mailer sender,
   fails: the identifier of the request and the names of the modules, without a previous exception.
 - The documentation of a failure transport of the privacy messages, with a short retention and
   `messenger:failed:remove` once the request is closed, in [Deleting an account](doc/account-deletion.md).
+- The Flex recipe in `recipe/0.2`: the bundle and `config/packages/phil_privacy.yaml`, with `public_origin` read from
+  `APP_PUBLIC_ORIGIN`, null while it is unset, and a denylist of the logs.
 
 ### Changed
 

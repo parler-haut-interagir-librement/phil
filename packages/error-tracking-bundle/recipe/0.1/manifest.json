@@ -1,0 +1,8 @@
+{
+    "bundles": {
+        "Phil\\ErrorTrackingBundle\\PhilErrorTrackingBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    }
+}

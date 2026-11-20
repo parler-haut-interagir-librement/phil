@@ -1,0 +1,18 @@
+# Personal data: the redaction of the logs, the consent, the export and the erasure of a member, the retention schedule
+# and the requests of people without an account. The pages are mounted under /privacy-choices. See the installation
+# guide of phil/privacy-bundle for the tables and the next steps, and its configuration guide for every option.
+phil_privacy:
+    # The canonical address of the site, such as https://example.com, that the links sent by email point to. Set
+    # APP_PUBLIC_ORIGIN in .env.local, or bound the hosts with framework.trusted_hosts: in the prod environment, the
+    # requests without an account refuse to boot without either.
+    public_origin: '%env(default::APP_PUBLIC_ORIGIN)%'
+    log_redaction:
+        # Keys whose values never reach a log line, compared without case or separators; "*" starts or ends a pattern.
+        denylist:
+            - '*password*'
+            - '*token*'
+            - '*secret*'
+            - '*authorization*'
+            - '*cookie*'
+            - '*apikey'
+    # guest_requests: { enabled: true, from: 'Privacy <privacy@example.com>' }

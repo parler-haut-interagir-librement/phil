@@ -1,0 +1,29 @@
+# Accounts and the ways to sign in, one module per method, and the OpenID Connect provider. The firewall of
+# config/packages/security.yaml names the bundle's user provider, user checker and authenticators: see the installation
+# guide of phil/identity-provider-bundle, and its configuration guide for every option.
+phil_identity_provider:
+    site_name: Example
+    login_route: app_login
+    # The canonical address of the site, such as https://example.com, that the links sent by email point to. Set
+    # APP_PUBLIC_ORIGIN in .env.local, or bound the hosts with framework.trusted_hosts: in the prod environment, the
+    # bundle refuses to boot without either.
+    public_origin: '%env(default::APP_PUBLIC_ORIGIN)%'
+    mailer:
+        from: ~
+    modules:
+        passkeys: false
+        totp: false
+        recovery_codes: false
+        login_link: false
+        sms: false
+        external: false
+        oidc: false
+    # passkeys: { rp_id: example.com, origins: ['https://example.com'] }
+    # oidc: { issuer: 'https://id.example.com', algorithm: ES256 }
+    # The modules totp and oidc keep secrets: encrypt them with symfony/key-management.
+    # secrets: { kms_key: identity }
+
+when@test:
+    phil_identity_provider:
+        store: memory
+        secrets: { allow_plaintext_secrets: true }
