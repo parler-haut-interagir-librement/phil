@@ -43,6 +43,20 @@ Put `#[CleanFile]` after the constraints that check the type and size, so that a
 not sent to the antivirus: Symfony validates the constraints of a property in their order, and a `GroupSequence` stops
 at the first group with a violation.
 
+### Check access before the scan
+
+Since Symfony 8.2, an argument mapped by `#[MapUploadedFile]` that is the `subject` of an `#[IsGranted]` is validated
+**before** the vote: its constraints, `#[CleanFile]` included, run for a visitor the vote would refuse. That visitor
+makes the server send files to clamd, and reads the violations. Check the account first, then vote on the file:
+
+```php
+#[IsGranted('IS_AUTHENTICATED')]
+#[IsGranted('COVER_UPLOAD', 'cover')]
+public function upload(#[MapUploadedFile([new Assert\Image(maxSize: '10M'), new CleanFile(context: 'cover')])] UploadedFile $cover): Response
+```
+
+`phil/route-access-check` reports a route whose vote on a mapped argument has no check before it as a conflict.
+
 ## The `UploadScanner`
 
 Outside a validated object, inject `Phil\UploadScanBundle\Application\UploadScanner`:

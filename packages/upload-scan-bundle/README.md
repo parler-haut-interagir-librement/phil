@@ -46,6 +46,7 @@ It is released under the MIT licence.
 | [Rescans](doc/rescans.md) | `RescanFile`, `RescanTarget`, the worker and `FileRescanned`. |
 | [Integrations](doc/integrations.md) | The media library, the document importer, the health check. |
 | [Extension points](doc/extension-points.md) | The scanner, the quarantine and the rescan targets of the application. |
+| [ASVS 5.0 mapping](doc/asvs.md) | The requirements the bundle meets, the tests that show them, and those left to the application. |
 | [Testing](doc/testing.md) | The bundle's tests, and testing an application that scans. |
 | [Reference](doc/reference.md) | Every type and service of the bundle. |
 

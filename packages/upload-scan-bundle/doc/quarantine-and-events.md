@@ -30,7 +30,8 @@ var/quarantine/                              drwx------
   mounted so — is narrowed to `0700` before a file is kept in it. When it cannot be narrowed, because another user
   owns it, or when `tighten_open_directory` is false, `QuarantineFailed` names the directory and its mode, and nothing
   is written. A directory reached through a symbolic link is used where the link points.
-- A directory under `public/` is refused when the container is built, and no route of the bundle serves what the
+- A directory under `public/` is refused when the container is built — as written, and once the symbolic links of
+  both paths are followed, the part that does not exist yet kept as written —, and no route of the bundle serves what the
   quarantine holds: an infected file is never downloaded from the site. Keep the directory out of backups that are
   restored to places the web server serves.
 - An operator deletes the files dealt with on the administration page, below, and the purge command deletes those

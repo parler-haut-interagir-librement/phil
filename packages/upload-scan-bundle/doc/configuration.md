@@ -66,7 +66,9 @@ An infected file is refused under both.
 Infected files are copied to `directory`, created readable by its owner only. A directory that already exists and is
 open to its group or to other users is narrowed to `0700` before a file is kept in it; with
 `tighten_open_directory: false`, or when it cannot be narrowed, the file is refused and not kept. A directory under
-`public/` of the project is refused when the container is built: the web server would serve what it holds. `service` names a `Quarantine` of the
+`public/` of the project is refused when the container is built, as written or once symbolic links are followed — a
+`var/quarantine` that links into `public/`, or a `public/` that links to the directory's parent: the web server would
+serve what it holds. `service` names a `Quarantine` of the
 application instead; `enabled: false`, or `quarantine: false`, refuses infected files without keeping them.
 `retention_days`, 30 by default and at least 1, is how long the purge command keeps a file. See [Quarantine and
 events](quarantine-and-events.md).

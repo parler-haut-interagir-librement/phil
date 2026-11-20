@@ -35,8 +35,9 @@ a long-running worker.
 |---|---|
 | [Installation](doc/installation.md) | Requirements, installing, building a scanner. |
 | [Scanning](doc/scanning.md) | The port, the results, the policy and its decisions. |
-| [clamd](doc/clamd.md) | `ClamdScanner`, the protocol it speaks, answers cut short, clamd on a local Unix socket, the size limit, the timeouts, the probe. |
+| [clamd](doc/clamd.md) | `ClamdScanner`, the protocol it speaks, answers cut short, clamd on a local Unix socket, the size limit, archives and `AlertExceedsMax`, the versions, the timeouts, the probe. |
 | [Extension points](doc/extension-points.md) | Another antivirus behind `Scanner`, another way to reach clamd. |
+| [ASVS 5.0 mapping](doc/asvs.md) | The requirements the library meets, the tests that show them, and those left to the application. |
 | [Testing](doc/testing.md) | The library's tests, fuzz target and benchmark; `NullScanner` and `FakeScanner` in the application's tests. |
 | [Reference](doc/reference.md) | Every type of the library, with its role. |
 

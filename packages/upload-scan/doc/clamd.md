@@ -81,6 +81,38 @@ sending, closes the connection and answers an error result, which the policy rej
 `INSTREAM size limit exceeded. ERROR` itself, which reads as an error result too. Raise both together to scan larger
 files.
 
+## Archives and their limits
+
+clamd opens archives — ZIP, RAR, 7z, tar, gzip, office documents — and the archives inside them, and scans what they
+hold: a test file three archives down is found. What it opens is bounded by its own limits, in `clamd.conf`:
+
+| Setting | Default | What it bounds |
+|---|---|---|
+| `MaxScanSize` | 400M | The bytes clamd reads out of one file, archives unpacked |
+| `MaxFileSize` | 100M | The size of each file clamd scans, inside an archive or not |
+| `MaxFiles` | 10000 | The files clamd opens inside one archive |
+| `MaxRecursion` | 17 | How deep archives inside archives are opened |
+| `AlertExceedsMax` | no | Whether a file that goes past a limit is reported |
+
+**Without `AlertExceedsMax yes`, a file past a limit comes back clean.** clamd stops at the limit and answers
+`stream: OK` for what it read: an archive of 10 001 files whose last one is a virus passes. Turn it on in the clamd
+the application scans with:
+
+```
+AlertExceedsMax yes
+```
+
+clamd then answers `Heuristics.Limits.Exceeded.MaxFiles FOUND` (or `MaxScanSize`, `MaxFileSize`, `MaxRecursion`),
+which `ClamdScanner` reads as an infection like any other: the file is refused, and quarantined by the bundle. Keep
+`MaxScanSize` and `MaxFileSize` above `StreamMaxLength`, so that a file the stream accepts is read whole. The
+integration test of the library sends both archives to a real clamd, with and without the setting.
+
+## Versions
+
+Scan with ClamAV 1.5.4 or later, or 1.4.6 or later on the long-term 1.4 line: those releases, of 2026-08-07, fix seven
+vulnerabilities of the engine, several in the parsers of the formats an upload carries. `version()` answers the
+engine's version, such as `ClamAV 1.5.5/28189/…`: a health check that reads it shows an older clamd.
+
 ## The timeouts
 
 | Setting | Default | Bounds |
