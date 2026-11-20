@@ -5,7 +5,7 @@
 | PHP | 8.5 or later | The floor the package declares |
 | `pdo_sqlite`, `mbstring` | SQLite 3.35 or later | What Loupe requires |
 | `loupe/loupe` | ^1.1 | The indexes |
-| `phil/search-bundle` | ^0.1 | The `SearchIndex` port, and the bundle that registers the adapter |
+| `phil/search-bundle` | ^0.1 or ^0.2 | The `SearchIndex` port, and the bundle that registers the adapter |
 
 ```sh
 composer require phil/search-loupe

@@ -104,7 +104,9 @@ the same bytes with the same ImageMagick. Its `version()` — the renderer's own
 shapes — enters the fingerprint: switching renderers, or installing libraqm, draws new cards.
 
 The renderer is optional: `ext-imagick` is suggested, not required. Its fonts are the template's; libraqm shapes
-only what the font holds, so a card in Arabic needs a font with Arabic glyphs and their joined forms.
+only what the font holds, so a card in Arabic needs a font with Arabic glyphs and their joined forms. A character the
+font lacks is left out of the drawing by ImageMagick, where GD draws the missing-glyph box, while its width is still
+measured: the text keeps a gap where it would be.
 
 ## Fingerprints and stores
 

@@ -50,7 +50,7 @@ phil_search:
 
 ## Requirements
 
-PHP 8.5 or later with `pdo_sqlite` on SQLite 3.35 or later and `mbstring`; Loupe 1.1; `phil/search-bundle` 0.1.
+PHP 8.5 or later with `pdo_sqlite` on SQLite 3.35 or later and `mbstring`; Loupe 1.1; `phil/search-bundle` 0.1 or 0.2.
 
 ## Licences
 

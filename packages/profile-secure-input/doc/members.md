@@ -1,16 +1,16 @@
 # Members
 
 Each member is an independent package, published on Packagist and released on its own. The profile requires it at its
-latest published minor version.
+latest published minor version, from the release whose fixes the profile relies on.
 
 ## `phil/url-bundle` — the addresses people type
 
-- **Constraint:** `^0.1`. **Brings:** `phil/url`, `phil/enums`.
+- **Constraint:** `^0.1.3`, which boots without `doctrine/dbal`. **Brings:** `phil/url`, `phil/enums`.
 - **Role:** an address given in a form is read as a browser reads it — by the WHATWG parser of PHP 8.5 —, normalised,
   and its kind detected: a plain website, a video channel, a social account.
 - **Adds:** the form field `TypedUrlType`, the constraint `#[UrlOfType]`, the Doctrine column type, addresses in Twig.
 - **Why in this profile:** an address is the first input most public forms take, and the one the other guards read.
-- **Needs:** `ext-intl` and `ext-mbstring`; `doctrine/dbal` installed for 0.1.2-alpha to boot.
+- **Needs:** `ext-intl` and `ext-mbstring`; `doctrine/dbal` and DoctrineBundle for the column type alone.
 
 ## `phil/safe-http` — the addresses the application fetches
 
@@ -44,7 +44,7 @@ latest published minor version.
 
 ## `phil/upload-scan-bundle` — the files people upload
 
-- **Constraint:** `^0.1`. **Brings:** `phil/upload-scan`.
+- **Constraint:** `^0.1.1`, whose quarantine page checks its token without a session. **Brings:** `phil/upload-scan`.
 - **Role:** every uploaded file passes through an antivirus as the form is validated: clean, infected or not scanned,
   with a policy for files not scanned; infected files are quarantined, listed for administrators and purged.
 - **Adds:** the constraint `#[CleanFile]`, the ClamAV scanner, the quarantine and its page, a purge command.

@@ -1,10 +1,10 @@
-<!-- phil-dev source-sha256=2c40c05cfb85d74c4150ac927e4332339a448f4133d7aef9d69ba6f4f1003045 -->
+<!-- phil-dev source-sha256=ee033d5678f48f6e2e6dc6db5d2c444d5d7efdceca591194da7d6ae1251d4c01 -->
 # Mise à niveau
 
 ## Comment les contraintes évoluent
 
-Le profil exige chaque membre à sa dernière version mineure publiée, `^0.x`. Sous la 1.0, une contrainte avec
-circonflexe garde la version mineure : `^0.1` accepte `0.1.3-alpha`, jamais `0.2.0-alpha`. Ainsi `composer update`
+Le profil exige chaque membre à sa dernière version mineure publiée, `^0.x`, ou `^0.x.y` à partir de la version dont
+il a besoin pour les correctifs. Sous la 1.0, une contrainte avec circonflexe garde la version mineure : `^0.1` accepte `0.1.3-alpha`, jamais `0.2.0-alpha`. Ainsi `composer update`
 apporte les correctifs de chaque membre, et une nouvelle version mineure d'un membre — qui peut changer son API —
 n'arrive qu'avec une version du profil qui relève sa contrainte. Le CHANGELOG du profil énumère ces versions ; le
 CHANGELOG du membre dit ce que sa nouvelle version mineure change.
@@ -24,7 +24,7 @@ que donne le profil, et retire le profil. Sans `phil/upload-scan-bundle`, par ex
 
 ```sh
 composer remove phil/profile-secure-input
-composer require phil/url-bundle:^0.1 phil/safe-http:^0.2 phil/rate-limit-bundle:^0.1 phil/spam-protection-bundle:^0.2
+composer require phil/url-bundle:^0.1.3 phil/safe-http:^0.2 phil/rate-limit-bundle:^0.1 phil/spam-protection-bundle:^0.2
 ```
 
 Les bundles déjà enregistrés restent dans `config/bundles.php` ; retirez la ligne du membre écarté, et son fichier de

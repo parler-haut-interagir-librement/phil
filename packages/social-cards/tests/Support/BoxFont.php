@@ -8,9 +8,10 @@ use RuntimeException;
 
 /**
  * A TrueType font made for the tests, written by the tests themselves: each character a filled box as wide as its
- * advance less a margin, on 1,000 units to the em. It covers printable ASCII, `é`, the guillemets `«` and `»`, and the
- * ellipsis `…` — wider than any letter, so that a line cut for it loses more than one — which the fixture font lacks.
- * A character it does not cover draws the box of `.notdef`.
+ * advance less a margin, on 1,000 units to the em. It covers printable ASCII, `é`, the guillemets `«` and `»`, the
+ * ellipsis `…` — wider than any letter, so that a line cut for it loses more than one — which the fixture font lacks,
+ * and the letters of Hebrew with their final forms, from `א` to `ת`, for a text from right to left. A character it does
+ * not cover maps to `.notdef`.
  */
 final class BoxFont
 {
@@ -63,7 +64,7 @@ final class BoxFont
     public static function bytes(): string
     {
         /** @var list<string> $characters */
-        $characters = [...array_map(chr(...), range(0x20, 0x7E)), 'é', '«', '»', '…'];
+        $characters = [...array_map(chr(...), range(0x20, 0x7E)), 'é', '«', '»', '…', ...array_map(mb_chr(...), range(0x05D0, 0x05EA))];
         $codes = array_map(mb_ord(...), $characters);
         $advances = [self::DEFAULT_WIDTH, ...array_map(static fn (string $character): int => self::WIDTHS[$character] ?? self::DEFAULT_WIDTH, $characters)];
         $glyphs = [];

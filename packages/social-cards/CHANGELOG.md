@@ -6,6 +6,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
+The next version is 0.1.1-alpha: cards drawn by ImageMagick, the text of Hebrew, Arabic and the scripts of India
+shaped and laid out in its direction when ImageMagick is built with libraqm. A patch version and not a minor one:
+nothing changes for a site that draws its cards with GD.
+
 ### Added
 
 - `ImagickCardRenderer` and `ImagickTextMeasure`: the cards drawn through `ext-imagick` in the layout of
@@ -13,7 +17,8 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   joined and from right to left, Hebrew from right to left, the vowel signs and conjuncts of the scripts of India in
   place —, as `ImagickCardRenderer::shapes()` tells; a title or subtitle from right to left aligned on the right
   margin; the images read by the coder of their type alone; an opaque PNG without dates, the same bytes for the same
-  template and content; ImageMagick's version and libraqm in `version()`. `ext-imagick` is suggested.
+  template and content; ImageMagick's version and libraqm in `version()`; a character the font lacks left out of the
+  drawing, its width kept. `ext-imagick` is suggested. Tested with ImageMagick 7.1 with and without libraqm.
 - `TextDirection`: the base direction of a text, from its first letter of a strong direction, within its first 1,024
   characters.
 - The benchmark of the drawing by ImageMagick, where `ext-imagick` is installed.

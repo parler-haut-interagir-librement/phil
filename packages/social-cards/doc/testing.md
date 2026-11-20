@@ -17,10 +17,22 @@ The tests ship their own font, a few kilobytes drawn for them, so that they draw
 same. It covers printable ASCII and `é`. The cut of a title by the measures of GD needs the ellipsis, and French titles
 need the guillemets: `Tests\Support\BoxFont` writes, for the tests that need them, a TrueType font of boxes — each
 character a filled box of its own advance — that covers printable ASCII, `é`, `«`, `»` and `…`, the ellipsis wider
-than two letters, so that the last line of a cut title loses a letter to make room for it.
+than two letters, so that the last line of a cut title loses a letter to make room for it, and the letters of Hebrew,
+so that a title from right to left is drawn by ImageMagick, which leaves out a character its font lacks.
+
+From the monorepo root:
 
 ```sh
 vendor/bin/phpunit packages/social-cards/tests
+```
+
+The tests of `ImagickCardRenderer` need `ext-imagick`, and those of the shaping need ImageMagick built with libraqm.
+Where neither is installed, a container gives both: Fedora's `php-cli`, `php-pecl-imagick` and `ImageMagick` packages
+are built with libraqm. From the monorepo root, with the image of those packages and the extensions of the package:
+
+```sh
+docker run --rm -u "$(id -u):$(id -g)" -e HOME=/src/var/tmp -v "$PWD:/src" -w /src <image> \
+    php vendor/bin/phpunit packages/social-cards/tests packages/social-cards-bundle/tests
 ```
 
 ## Benchmarks

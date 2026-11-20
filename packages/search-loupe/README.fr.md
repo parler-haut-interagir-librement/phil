@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f28a037140e84c595d0fdab2edff50cef9383ce578b28fbeab602fc23ecdbc73 -->
+<!-- phil-dev source-sha256=68ab48ca3766993446b2ade0a5dfc71fac32418d0af5bd526e909265595991f7 -->
 # phil/search-loupe
 
 **Une recherche tolérante aux fautes de frappe dans des fichiers SQLite pour phil/search-bundle, sans serveur à
@@ -55,7 +55,7 @@ phil_search:
 ## Prérequis
 
 PHP 8.5 ou plus récent avec `pdo_sqlite` sur SQLite 3.35 ou plus récent et `mbstring` ; Loupe 1.1 ;
-`phil/search-bundle` 0.1.
+`phil/search-bundle` 0.1 ou 0.2.
 
 ## Licences
 

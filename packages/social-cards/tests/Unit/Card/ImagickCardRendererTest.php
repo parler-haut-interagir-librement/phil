@@ -21,7 +21,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * The cards ImageMagick draws, in the box font of the tests: each character a filled box, so that where the ink falls
- * is known whatever the version of ImageMagick. A character the font lacks, Hebrew here, draws the box of `.notdef`.
+ * is known whatever the version of ImageMagick, Hebrew included.
  */
 #[CoversClass(ImagickCardRenderer::class)]
 #[CoversClass(ImagickTextMeasure::class)]

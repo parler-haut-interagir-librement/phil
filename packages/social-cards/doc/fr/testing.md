@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=661ece856fe6bc25350ec1549945dc74a80776c2c58cb54696b7098607b03c05 -->
+<!-- phil-dev source-sha256=5bc8fbeb386f94a673c14a7e3573290419205d7e4f01aec45c122bd2a284fe13 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -19,10 +19,23 @@ partout où GD est le même. Elle couvre l'ASCII imprimable et `é`. La coupe d'
 points de suspension, et les titres français ont besoin des guillemets : `Tests\Support\BoxFont` écrit, pour les tests
 qui en ont besoin, une police TrueType de boîtes — chaque caractère étant une boîte pleine de sa propre chasse — qui
 couvre l'ASCII imprimable, `é`, `«`, `»` et `…`, les points de suspension étant plus larges que deux lettres, de sorte
-que la dernière ligne d'un titre coupé perde une lettre pour leur faire place.
+que la dernière ligne d'un titre coupé perde une lettre pour leur faire place, et les lettres de l'hébreu, de sorte qu'un titre de droite à gauche soit dessiné par
+ImageMagick, qui omet un caractère que sa police n'a pas.
+
+À la racine du monodépôt :
 
 ```sh
 vendor/bin/phpunit packages/social-cards/tests
+```
+
+Les tests de `ImagickCardRenderer` ont besoin de `ext-imagick`, et ceux de la mise en forme d'ImageMagick compilé avec
+libraqm. Là où aucune des deux n'est installée, un conteneur fournit les deux : les paquets `php-cli`, `php-pecl-
+imagick` et `ImageMagick` de Fedora sont compilés avec libraqm. À la racine du monodépôt, avec l'image de ces paquets
+et les extensions du paquet :
+
+```sh
+docker run --rm -u "$(id -u):$(id -g)" -e HOME=/src/var/tmp -v "$PWD:/src" -w /src <image> \
+    php vendor/bin/phpunit packages/social-cards/tests packages/social-cards-bundle/tests
 ```
 
 ## Bancs d'essai

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4e28060af726b6bec1b1c7ce8b4553066b632592a56d7b01b026e668cefe59a3 -->
+<!-- phil-dev source-sha256=7cc316019657fd458b34cd534446fca89b98278af2afbb16639a6c90fb271714 -->
 # Installation
 
 ## Stabilité
@@ -40,10 +40,14 @@ return [
 
 | Paquet ou service | Pourquoi |
 |---|---|
-| `doctrine/dbal` | `phil/url-bundle` 0.1.2-alpha charge son type de colonne Doctrine au démarrage du noyau, et a besoin de DBAL pour cela. |
-| Protection CSRF et sessions | Quand Twig et `symfony/security-csrf` sont installés, `phil/upload-scan-bundle` enregistre la page de sa quarantaine, qui demande le gestionnaire de jetons CSRF : `framework.csrf_protection` doit alors être activé. |
 | Un démon ClamAV | `phil/upload-scan-bundle` analyse par clamd, sur `tcp://127.0.0.1:3310` sauf configuration contraire. |
 | StimulusBundle avec AssetMapper | Les parties côté navigateur de `phil/spam-protection-bundle` et de `phil/bot-detection-bundle` sont des contrôleurs Stimulus. |
+
+Ni `doctrine/dbal` ni les sessions ne sont nécessaires. `phil/url-bundle` n'enregistre son type de colonne Doctrine que
+lorsque `doctrine/dbal` et DoctrineBundle sont installés. Quand Twig et `symfony/security-csrf` sont installés,
+`phil/upload-scan-bundle` enregistre la page de sa quarantaine, dont FrameworkBundle vérifie le jeton d'après l'origine
+de la requête : la protection CSRF est activée par défaut, et aucune session n'est démarrée pour elle. Une application
+qui a désactivé `framework.csrf_protection` met `phil_upload_scan.admin.enabled` à `false`, ou la réactive.
 
 ## Ce qu'il faut configurer ensuite
 

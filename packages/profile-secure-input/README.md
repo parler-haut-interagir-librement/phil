@@ -18,11 +18,11 @@ given by visitors. An application that needs only one of these guards requires t
 
 | Member | Constraint | Brings | Why it belongs here |
 |---|---|---|---|
-| `phil/url-bundle` | `^0.1` | `phil/url`, `phil/enums` | Every address a person types is read by PHP's WHATWG parser, normalised and typed before it is stored: a link form field, a validation constraint, a Doctrine column type. |
+| `phil/url-bundle` | `^0.1.3` | `phil/url`, `phil/enums` | Every address a person types is read by PHP's WHATWG parser, normalised and typed before it is stored: a link form field, a validation constraint, a Doctrine column type. |
 | `phil/safe-http` | `^0.2` | `phil/url` | When the application fetches an address a user gave — a preview, a feed, a webhook —, the client refuses private networks, checks each redirect and bounds time and size. |
 | `phil/rate-limit-bundle` | `^0.1` | `phil/rate-limit` | Limits declared on controllers, routes and forms answer 429 with the standard RateLimit headers, and the container refuses a limiter that counts in a store each server keeps for itself. |
 | `phil/spam-protection-bundle` | `^0.2` | `phil/spam-protection`, `phil/bot-detection-bundle`, `phil/rate-limit` | Spam is kept out of forms without a captcha, a third party or tracking: signed tokens, filling time, a small proof of work, content rules. |
-| `phil/upload-scan-bundle` | `^0.1` | `phil/upload-scan` | Each uploaded file goes through an antivirus as the form is validated; an infected file is quarantined out of reach. |
+| `phil/upload-scan-bundle` | `^0.1.1` | `phil/upload-scan` | Each uploaded file goes through an antivirus as the form is validated; an infected file is quarantined out of reach. |
 
 The [members](doc/members.md) page gives each one's role, what it adds to the application and what it needs.
 
@@ -61,15 +61,14 @@ To leave out one member — here `phil/upload-scan-bundle` —, require the othe
 
 ```sh
 composer remove phil/profile-secure-input
-composer require phil/url-bundle:^0.1 phil/safe-http:^0.2 phil/rate-limit-bundle:^0.1 phil/spam-protection-bundle:^0.2
+composer require phil/url-bundle:^0.1.3 phil/safe-http:^0.2 phil/rate-limit-bundle:^0.1 phil/spam-protection-bundle:^0.2
 ```
 
 ## Requirements
 
 PHP 8.5 or later and Symfony 8.2 or later, with the extensions the members need: `ext-intl`, `ext-mbstring`,
 `ext-sodium` and `ext-filter`. The members are alpha releases: the project accepts them with
-`minimum-stability: alpha` and `prefer-stable: true`. `phil/url-bundle` 0.1.2-alpha boots only with `doctrine/dbal`
-installed. Scanning uploads needs a ClamAV daemon.
+`minimum-stability: alpha` and `prefer-stable: true`. Scanning uploads needs a ClamAV daemon.
 
 ## Contributing
 
