@@ -92,6 +92,14 @@ final class PhilSpamProtectionBundleTest extends TestCase
         $this->load(['refusal' => ['weights' => ['too_fast' => 1, 'token_replayed' => 0]]]);
     }
 
+    public function testTheKeysOfTheWeightsAreNotNormalised(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageIsOrContains('"too-fast" given.');
+
+        $this->load(['refusal' => ['weights' => ['too-fast' => 4]]]);
+    }
+
     public function testTheWeighableSignalsAreAllButTheCertainOnes(): void
     {
         self::assertSame(['honeypot_filled', 'token_expired', 'too_fast', 'proof_invalid', 'malformed', 'too_long', 'too_many_links', 'forbidden_term', 'gibberish', 'rate_limited'], PhilSpamProtectionBundle::weighableSignals());

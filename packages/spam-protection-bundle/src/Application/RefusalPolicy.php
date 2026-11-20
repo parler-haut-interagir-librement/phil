@@ -56,10 +56,7 @@ final readonly class RefusalPolicy
 
     public function weightOf(Signal $signal): int
     {
-        if (\in_array($signal, self::ALWAYS_REFUSED, true)) {
-            return $this->threshold;
-        }
-
+        // A certain signal never takes a weight (the constructor refuses one): it weighs the threshold, as any signal not listed.
         return $this->weights[$signal->value] ?? $this->threshold;
     }
 

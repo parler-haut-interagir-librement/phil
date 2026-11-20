@@ -262,6 +262,17 @@ final class SpamProtectionTypeExtensionTest extends TestCase
         $this->factory()->createNamed('contact', FormType::class, null, ['spam_protection' => ['content_fields' => 'message']]);
     }
 
+    public function testWithoutLoggerASubmissionBelowTheThresholdIsAccepted(): void
+    {
+        $form = Forms::createFormFactoryBuilder()
+            ->addTypeExtension(new SpamProtectionTypeExtension($this->inspector(), refusal: new RefusalPolicy(100, ['too_fast' => 10])))
+            ->getFormFactory()
+            ->createNamed('contact', FormType::class, null, ['spam_protection' => true]);
+        $form->submit($this->submission($form, []));
+
+        self::assertTrue($form->isValid());
+    }
+
     public function testWithoutClientKeyOrLoggerASubmissionIsStillInspected(): void
     {
         $form = Forms::createFormFactoryBuilder()

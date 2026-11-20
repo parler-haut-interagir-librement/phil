@@ -33,6 +33,7 @@ use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineDocumentNumbering;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineOrderChangeRepository;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineOrderJournal;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrinePaymentLinkRepository;
+use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrinePaymentLock;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineRefundRepository;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineWishListRepository;
 use Phil\CommerceBundle\PhilCommerceBundle;
@@ -225,7 +226,7 @@ final class PhilCommerceBundleLifeTest extends TestCase
         self::assertSame('event_dispatcher', (string) $refundEvents);
         self::assertSame(ContainerInterface::NULL_ON_INVALID_REFERENCE, $refundEvents->getInvalidBehavior());
 
-        foreach ([DoctrineWishListRepository::class, DoctrinePaymentLinkRepository::class, DoctrineOrderChangeRepository::class, DoctrineOrderJournal::class, DoctrineRefundRepository::class] as $repository) {
+        foreach ([DoctrineWishListRepository::class, DoctrinePaymentLinkRepository::class, DoctrineOrderChangeRepository::class, DoctrineOrderJournal::class, DoctrineRefundRepository::class, DoctrinePaymentLock::class] as $repository) {
             self::assertSame(['doctrine.orm.entity_manager'], $this->references($container->getDefinition($repository)), $repository);
         }
 
