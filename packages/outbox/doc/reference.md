@@ -14,7 +14,7 @@
 
 | Type | Role |
 |---|---|
-| `OutboxRecord` | A record as a store keeps it: type, payload JSON, keys, occurrence, availability, state, attempts, last error, settlement; `pending()` checks a new one, `payload()` reads its payload, `error()` writes the error of an exception |
+| `OutboxRecord` | A record as a store keeps it: type, payload JSON, keys, occurrence, availability, state, attempts, last error, settlement; `pending()` checks a new one, `payload()` reads its payload, `error()` writes the class and code of an exception, and the message of the package's own only; `OWN_EXCEPTIONS`, the namespace of those |
 | `RecordState` | `Pending`, `Delivered` or `Dead` |
 | `Contract\OutboxStore` | Where the records are kept |
 | `Memory\InMemoryOutboxStore` | The records in the memory of one process |

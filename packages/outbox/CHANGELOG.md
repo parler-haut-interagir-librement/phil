@@ -4,6 +4,26 @@ All notable changes to `phil/outbox` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Added
+
+- `OutboxRecord::OWN_EXCEPTIONS`, the namespace of the exceptions whose message an error keeps.
+
+### Changed
+
+- The documentation says that ordering and idempotency keys are identifiers too, never personal data, and that the
+  reason of an `UndeliverableRecord` is kept as the last error.
+
+### Security
+
+- Privacy: `OutboxRecord::error()` kept the message of any exception, so that a mail server's refusal quoting an
+  address stayed in the record's last error until it was purged or discarded. It keeps the class and code, such as
+  `RuntimeException (code 550)`, and the message of the package's own exceptions only, whose text names types, keys
+  and settings.
+
 ## 0.1.0-alpha - 2026-11-17
 
 ### Added

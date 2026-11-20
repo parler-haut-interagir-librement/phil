@@ -176,9 +176,10 @@ bin/console phil:privacy:erase 0192f3c4-… --confirm
 only (`0600`), whatever the umask; an existing file is refused unless `--force` is given, and then narrowed to
 `0600` too. A write that fails or falls short exits with a failure and says so, never `The answer … is in` over an
 empty or missing file. `phil:privacy:erase` does nothing without `--confirm`; with it, it prints what each store of each
-module did — `module: store, effect` —, and when a module fails, the modules that completed, the one that failed and
-why, and exits with a failure: running it again retries, erasers being idempotent. A subject identifier the domain
-refuses exits as invalid.
+module did — `module: store, effect` —, and when a module fails, the modules that completed and the one that failed
+with the class of its exception — `module: failed, class` —, and exits with a failure: running it again retries,
+erasers being idempotent. The message of the exception, which can quote the person's data, is printed only with `-v`.
+A subject identifier the domain refuses exits as invalid.
 
 ## The register of processing
 

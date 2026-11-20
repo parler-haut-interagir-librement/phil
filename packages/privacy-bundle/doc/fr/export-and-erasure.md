@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4276ef31f3a835aa13aedc5a9a6130b12c9b4798823470b775005f70152ecfcc -->
+<!-- phil-dev source-sha256=a120af01963d3f65240080d3251a8caa4f0a02e0bfb798852c8672fd369aa935 -->
 # Export et effacement d'une personne
 
 **État :** `SubjectExport`, `SubjectErasure`, les objets valeur et les exceptions sont implémentés et testés.
@@ -185,8 +185,9 @@ son propriétaire seulement (`0600`), quel que soit l'umask ; un fichier existan
 ramené lui aussi à `0600`. Une écriture qui échoue ou reste incomplète se termine en échec et le dit, jamais `The answer
 … is in` sur un fichier vide ou absent. `phil:privacy:erase` ne fait rien sans `--confirm` ; avec, elle affiche ce qu'a
 fait chaque stockage de chaque module — `module: store, effect` —, et quand un module échoue, les modules qui ont
-terminé, celui qui a échoué et pourquoi, et se termine en échec : la relancer recommence, les effaceurs étant
-idempotents. Un identifiant de personne que le domaine refuse se termine comme invalide.
+terminé et celui qui a échoué avec la classe de son exception — `module: failed, class` —, et se termine en échec : la
+relancer recommence, les effaceurs étant idempotents. Le message de l'exception, qui peut citer les données de la
+personne, n'est affiché qu'avec `-v`. Un identifiant de personne que le domaine refuse se termine comme invalide.
 
 ## Le registre des traitements
 

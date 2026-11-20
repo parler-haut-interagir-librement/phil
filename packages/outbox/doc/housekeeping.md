@@ -23,6 +23,17 @@ A dead record stays until an operator tries it again or discards it: it holds ba
 key meanwhile. Its last error tells why it failed; fix the cause — a listener, a missing codec, the data it names —,
 then try it again. Discard a record whose event no longer matters.
 
+## The last error
+
+`OutboxRecord::error()` writes the error of a failed attempt: the class and code of the exception, such as
+`RuntimeException (code 550)`, and its message only for the exceptions of this package, `Phil\Outbox\Exception\…`,
+whose text names types, keys and settings. The message of any other exception is never kept: a mail server refusing
+an address, or a database quoting a duplicate value, would leave personal data in the record until it is purged or
+discarded. The full exception belongs to the logs of the listener, which the application controls.
+
+The reason given to `UndeliverableRecord::because()` by a codec is kept: write it like a log line, with identifiers
+only, such as `The set 42 is gone.`.
+
 ## Retention
 
 A delivered record is kept for its retention, seven days by default, then purged: the delivered records show what was

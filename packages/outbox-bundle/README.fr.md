@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1bb39dcd6c6ad8331ef35ee22885b46e2abae7271f4d1337c6604e01ea0fbafc -->
+<!-- phil-dev source-sha256=c8a8bed1e308bf28405609415a2cc53b11daa7dc0f5f45d22d34655ba3fc2bf1 -->
 # phil/outbox-bundle
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/parler-haut-interagir-librement/outbox-bundle/badge)](https://scorecard.dev/viewer/?uri=github.com/parler-haut-interagir-librement/outbox-bundle)
@@ -20,6 +20,7 @@ seule convient à une application sans Symfony.
 | Les codecs par étiquette, les types d'événement génériques, l'outbox, le relais et l'entretien comme services | Implémentés et testés |
 | `phil:outbox:relay` : lots bornés, `--stop-when-empty`, une limite de temps, un verrou, les signaux | Implémentée et testée |
 | Les commandes des enregistrements morts et la purge des enregistrements livrés | Implémentées et testées |
+| `phil:outbox:errors:clear` : les messages retirés des erreurs déjà conservées | Implémentée et testée |
 | Le déclencheur planifié et le pont vers un bus de Messenger | Implémentés et testés |
 | La recette Flex | Implémentée |
 
@@ -29,7 +30,7 @@ seule convient à une application sans Symfony.
 |---|---|
 | [Installation](doc/fr/installation.md) | Prérequis, installation et création de la table. |
 | [Configuration](doc/fr/configuration.md) | Chaque option, avec un exemple. |
-| [Console](doc/fr/console.md) | La commande de relais et les commandes des enregistrements morts, de la purge et du schéma. |
+| [Console](doc/fr/console.md) | La commande de relais et les commandes des enregistrements morts, de la purge, des erreurs et du schéma. |
 | [Workers](doc/fr/workers.md) | Exécuter le relais sous un gestionnaire de processus, en mode *worker*, ou selon un horaire. |
 | [Messenger](doc/fr/messenger.md) | Le pont vers un bus, et quand l'`outbox` et l'`inbox` propres à Messenger conviennent mieux. |
 | [Points d'extension](doc/fr/extension-points.md) | Les services à remplacer, les étiquettes à ajouter, et quand c'est stable. |

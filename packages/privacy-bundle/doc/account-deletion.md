@@ -45,6 +45,10 @@ replayed after a backup restore. The application's user class says which identif
   so no message needs Messenger's `ClaimCheckSerializer`.
 - **Logs carry identifiers.** A line names the request and, on a failure, the modules. Never the person, and never the
   text of an exception, which a module could have filled with personal information.
+- **Transports carry identifiers.** A failed erasure reaches Messenger as `AccountErasureIncomplete`, which names the
+  request and the modules and chains no previous exception. Messenger copies the message of what a handler throws,
+  and of every previous exception, into the `ErrorDetailsStamp` of the envelope it sends to the retry and failure
+  transports: the exception of an eraser, such as a duplicate-key error quoting an address, never reaches them.
 
 ## Running it
 
@@ -60,6 +64,44 @@ so Messenger retries it, and the next sweep comes back to it anyway.
 
 Without a scheduler, run `phil:privacy:deletions` from cron. It exits with a failure when an erasure failed, and names
 requests by their identifier.
+
+### A failure transport of its own
+
+Give the privacy messages a transport and a failure transport of their own, so that their failures are kept apart
+from the application's, for a short time, and removed once the request is closed:
+
+```yaml
+# config/packages/messenger.yaml
+framework:
+    messenger:
+        transports:
+            privacy:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options: { queue_name: privacy }
+                failure_transport: privacy_failed
+                retry_strategy: { max_retries: 3, delay: 60000, multiplier: 4 }
+            privacy_failed:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options: { queue_name: privacy_failed }
+        routing:
+            Phil\PrivacyBundle\Application\Message\AdvanceAccountDeletion: privacy
+```
+
+A message in `privacy_failed` holds the identifier of a request and the names of the modules that failed, and its
+stamps. Remove it once the request is closed, whether a sweep or a retry erased the person since:
+
+```bash
+bin/console messenger:failed:remove --transport=privacy_failed 42 --force
+```
+
+and remove the rest on a short retention, from cron:
+
+```bash
+bin/console messenger:failed:remove --transport=privacy_failed --failed-before='-7 days' --force
+```
+
+The sweep still comes back to a request whose message was removed: the failure transport is a record of failures,
+not the place the work waits in.
 
 ## The export
 

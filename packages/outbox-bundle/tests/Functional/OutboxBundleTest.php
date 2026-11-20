@@ -11,6 +11,7 @@ use Override;
 use Phil\Outbox\Contract\Outbox;
 use Phil\Outbox\Housekeeping;
 use Phil\Outbox\RecordState;
+use Phil\OutboxBundle\Infrastructure\Console\ClearErrorsCommand;
 use Phil\OutboxBundle\Infrastructure\Console\RelayCommand;
 use Phil\OutboxBundle\Infrastructure\Console\SchemaCommand;
 use Phil\OutboxBundle\Infrastructure\DependencyInjection\OutboxServices;
@@ -33,6 +34,7 @@ use Symfony\Component\Console\Tester\CommandTester;
 #[CoversClass(OutboxServices::class)]
 #[CoversClass(OutboxSchemaListener::class)]
 #[CoversClass(SchemaCommand::class)]
+#[CoversClass(ClearErrorsCommand::class)]
 #[CoversClass(RelayCommand::class)]
 final class OutboxBundleTest extends KernelTestCase
 {
@@ -112,7 +114,7 @@ final class OutboxBundleTest extends KernelTestCase
         $purge->execute([]);
         $this->assertSees('1 delivered records removed.', $purge);
 
-        foreach (['phil:outbox:dead:show' => 'No dead record.', 'phil:outbox:dead:retry' => 'Name the dead records, or give --all.', 'phil:outbox:dead:remove' => 'Name the dead records, or give --all.'] as $name => $expected) {
+        foreach (['phil:outbox:dead:show' => 'No dead record.', 'phil:outbox:dead:retry' => 'Name the dead records, or give --all.', 'phil:outbox:dead:remove' => 'Name the dead records, or give --all.', 'phil:outbox:errors:clear' => '0 errors cleared of their message.'] as $name => $expected) {
             $tester = $this->command($name);
             $tester->execute([]);
             $this->assertSees($expected, $tester);

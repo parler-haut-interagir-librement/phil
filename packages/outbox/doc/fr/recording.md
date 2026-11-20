@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=cceda77cb50c7c6596533c97fef935a5edc68d7053d98b67313da0e32f04c1e7 -->
+<!-- phil-dev source-sha256=2e85fc0450cba87ba50c9ea9c03f6e9b2f232795b2ebb70050963eb32b902c84 -->
 # Enregistrement
 
 Une bibliothèque enregistre un événement avec `Outbox::record()`, dans la transaction de l'écriture que l'événement
@@ -57,6 +57,11 @@ elle-même peut s'exécuter deux fois, comme un achèvement vérifié de nouveau
 conservée avec l'enregistrement, et oubliée quand l'enregistrement est purgé après sa rétention.
 
 Une clé, d'ordre ou d'idempotence, compte de 1 à 190 caractères ASCII visibles, comparés octet par octet.
+
+Une clé est aussi un identifiant, comme la charge utile : construisez-la avec des identifiants, comme `completion:42:7`,
+jamais avec une adresse, un nom ou d'autres renseignements personnels. Une clé est conservée avec son enregistrement
+jusqu'à ce que celui-ci soit purgé ou écarté, citée dans le message d'une `InvalidRecord`, et montrée par les commandes
+des enregistrements morts.
 
 ## L'horloge
 

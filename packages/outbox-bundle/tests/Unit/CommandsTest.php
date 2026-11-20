@@ -9,6 +9,7 @@ use DateTimeZone;
 use Phil\Outbox\Backoff;
 use Phil\Outbox\Codecs;
 use Phil\Outbox\Contract\OutboxStore;
+use Phil\Outbox\Exception\InvalidRecord;
 use Phil\Outbox\Housekeeping;
 use Phil\Outbox\OutboxRecord;
 use Phil\Outbox\RecordedEvent;
@@ -162,7 +163,8 @@ final class CommandsTest extends TestCase
         $display = $tester->getDisplay();
         self::assertStringContainsString($this->flat('1 pending, 1 delivered, 2 dead.'), $this->flat($display));
         self::assertStringContainsString($this->flat('quiz.completed'), $this->flat($display));
-        self::assertStringContainsString($this->flat('RuntimeException: The listener is down'), $this->flat($display));
+        self::assertStringContainsString($this->flat('RuntimeException (code 0)'), $this->flat($display));
+        self::assertStringNotContainsString('The listener is down', $display);
         self::assertStringContainsString($this->flat('2026-11-26 10:00:00'), $this->flat($display));
         self::assertSame(2, substr_count($display, 'quiz:'));
         self::assertStringContainsString('Identifier', $display);
@@ -185,7 +187,7 @@ final class CommandsTest extends TestCase
         $outboxes = new Outboxes();
         $outboxes->outbox->record('quiz.completed', ['quiz' => 'q0']);
         $outboxes->dispatcher->addListener(RecordedEvent::class, static function (): never {
-            throw new RuntimeException(str_repeat('x', 100));
+            throw InvalidRecord::because(str_repeat('x', 100));
         });
         $relay = new Relay($outboxes->store, new Codecs([new RecordedEventCodec(['quiz.completed'])]), $outboxes->dispatcher, $outboxes->clock, new Backoff(maxAttempts: 1));
         $relay->relay();
@@ -194,8 +196,9 @@ final class CommandsTest extends TestCase
 
         $tester->execute([]);
 
-        $this->assertSees(mb_strimwidth('RuntimeException: '.str_repeat('x', 100), 0, 80, '…'), $tester);
-        self::assertStringNotContainsString('RuntimeException: '.str_repeat('x', 62), $tester->getDisplay());
+        $error = 'Phil\\Outbox\\Exception\\InvalidRecord (code 0): ';
+        $this->assertSees(mb_strimwidth($error.str_repeat('x', 100), 0, 80, '…'), $tester);
+        self::assertStringNotContainsString(str_repeat('x', 80 - \strlen($error)), $tester->getDisplay());
     }
 
     public function testNoDeadRecordIsSaidSo(): void
@@ -252,7 +255,7 @@ final class CommandsTest extends TestCase
         $this->assertSees('Type quiz.completed', $tester);
         $this->assertSees('Settled at '.$record->settledAt->format('Y-m-d H:i:s'), $tester);
 
-        foreach (['Identifier', $record->id->value, 'dead', '{"quiz":"q0"}', 'quiz:q0', 'once:q0', 'Occurred at', 'Attempts', 'Settled at', 'The listener is down.'] as $expected) {
+        foreach (['Identifier', $record->id->value, 'dead', '{"quiz":"q0"}', 'quiz:q0', 'once:q0', 'Occurred at', 'Attempts', 'Settled at', 'RuntimeException (code 0)'] as $expected) {
             self::assertStringContainsString($this->flat($expected), $this->flat($display));
         }
     }

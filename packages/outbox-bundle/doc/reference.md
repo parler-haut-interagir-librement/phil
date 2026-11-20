@@ -11,7 +11,7 @@
 
 | Class | Role |
 |---|---|
-| `Infrastructure\Doctrine\DbalOutboxStore` | The records in a table of a DBAL connection, joined to the caller's transaction; a claim that leases its records in one `UPDATE` |
+| `Infrastructure\Doctrine\DbalOutboxStore` | The records in a table of a DBAL connection, joined to the caller's transaction; a claim that leases its records in one `UPDATE`; `clearErrorMessages()` removes the messages from the errors kept |
 | `Infrastructure\Doctrine\OutboxTable` | The table's name and definition, the byte collations of the keys |
 | `Infrastructure\Doctrine\OutboxSchemaListener` | Adds the table to the schema the ORM generates |
 | `Infrastructure\Doctrine\Rows` | The columns of a row as PHP types |
@@ -26,6 +26,7 @@
 | `Infrastructure\Console\DeadRemoveCommand` | `phil:outbox:dead:remove` |
 | `Infrastructure\Console\PurgeCommand` | `phil:outbox:purge` |
 | `Infrastructure\Console\SchemaCommand` | `phil:outbox:schema` |
+| `Infrastructure\Console\ClearErrorsCommand` | `phil:outbox:errors:clear` |
 | `Infrastructure\Worker\RelayRunner` | Runs the relay batch after batch, under the lock `phil_outbox.relay` |
 
 ## The scheduler and Messenger

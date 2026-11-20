@@ -14,6 +14,7 @@ use Phil\Outbox\Memory\InMemoryOutboxStore;
 use Phil\Outbox\RecordedEventCodec;
 use Phil\Outbox\Relay;
 use Phil\Outbox\StoreOutbox;
+use Phil\OutboxBundle\Infrastructure\Console\ClearErrorsCommand;
 use Phil\OutboxBundle\Infrastructure\Console\DeadRemoveCommand;
 use Phil\OutboxBundle\Infrastructure\Console\DeadRetryCommand;
 use Phil\OutboxBundle\Infrastructure\Console\DeadShowCommand;
@@ -62,6 +63,8 @@ final class PhilOutboxBundleTest extends TestCase
         self::assertSame([['event' => 'postGenerateSchema', 'connection' => 'default']], $container->getDefinition(OutboxSchemaListener::class)->getTag('doctrine.event_listener'));
         self::assertEquals([$connection, $table], $container->getDefinition(SchemaCommand::class)->getArguments());
         self::assertTrue($container->getDefinition(SchemaCommand::class)->hasTag('console.command'));
+        self::assertEquals([new Reference(DbalOutboxStore::class)], $container->getDefinition(ClearErrorsCommand::class)->getArguments());
+        self::assertTrue($container->getDefinition(ClearErrorsCommand::class)->hasTag('console.command'));
         self::assertFalse($container->hasDefinition(InMemoryOutboxStore::class));
     }
 
@@ -136,6 +139,7 @@ final class PhilOutboxBundleTest extends TestCase
         self::assertFalse($container->hasDefinition(DbalOutboxStore::class));
         self::assertFalse($container->hasDefinition(OutboxSchemaListener::class));
         self::assertFalse($container->hasDefinition(SchemaCommand::class));
+        self::assertFalse($container->hasDefinition(ClearErrorsCommand::class));
         self::assertTrue($container->hasDefinition(RelayCommand::class));
     }
 

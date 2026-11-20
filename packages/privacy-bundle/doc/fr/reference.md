@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=cdd2a7a638098aba6b0037ace162080da0a5648f7785d4c2cf85a1677a005cd2 -->
+<!-- phil-dev source-sha256=f4e119437865b1d390f97830b4969805c3a435c273f3e46fe73dd3ffee475fe1 -->
 # Référence de l'API
 
 Chaque type sous `Phil\PrivacyBundle\`, par couche. « Implémenté » veut dire implémenté et couvert par des tests
@@ -190,7 +190,8 @@ unitaires.
 
 | Type | Rôle | État |
 |---|---|---|
-| `ErasureIncomplete` | `RuntimeException` ; les rapports `$completed`, les `$failures` par module ; `after($completed, $failures)` | Implémenté |
+| `ErasureIncomplete` | `RuntimeException` ; les rapports `$completed`, les `$failures` par module, aucune enchaînée comme exception précédente ; `after($completed, $failures)` | Implémenté |
+| `AccountErasureIncomplete` | `RuntimeException`, lancée à Messenger par `AdvanceAccountDeletionHandler` ; `$deletionId`, `$modules`, aucune exception précédente ; `of($deletionId, $erasure)` | Implémenté |
 | `MisconfiguredPrivacy` | `LogicException` ; `duplicateModule()`, `duplicatePurger()`, `missingPurger()`, `userWithoutSubject()` | Implémenté |
 | `AccountDeletionBusy` | `RuntimeException` ; un autre processus détient le verrou de cette personne | Implémenté |
 | `LockLost` | `RuntimeException` ; le verrou d'un travail par étapes a expiré, a été pris, ou n'a pas pu être confirmé ; `create()` | Implémenté |

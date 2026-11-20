@@ -16,6 +16,10 @@ environment refuses to boot, while those requests are on with the mailer sender,
   point to; `Infrastructure\Routing\GuestLinkOrigin`, which generates a link while the router's context names that
   origin and gives the request's context back at once, the origin and the links read by `phil/url`.
 - `PhilPrivacyBundle::boot()` and `PhilPrivacyBundle::MAILED_LINKS`.
+- `Application\Exception\AccountErasureIncomplete`, what `AdvanceAccountDeletionHandler` throws when an erasure
+  fails: the identifier of the request and the names of the modules, without a previous exception.
+- The documentation of a failure transport of the privacy messages, with a short retention and
+  `messenger:failed:remove` once the request is closed, in [Deleting an account](doc/account-deletion.md).
 
 ### Changed
 
@@ -23,11 +27,22 @@ environment refuses to boot, while those requests are on with the mailer sender,
   neither `public_origin` nor `framework.trusted_hosts` is set. The origin is read when the kernel boots: one with a
   path, a query, a fragment or an IP address is refused, and `localhost` is accepted only in debug mode.
 - `MailerGuestLinkSender` takes a `GuestLinkOrigin`, last and optional.
+- `phil:privacy:erase` prints the class of a module's failure, and its message only with `-v`.
+- The Rotation section of [Encrypting personal data at rest](doc/encrypted-columns.md) cites `rotate($scope)` of the
+  data key store and `key-management:rewrap-data-keys`, and says that access to the KMS decrypts every column.
 
 ### Security
 
 - The link of a request without an account was built on the `Host` header of the request: a request naming another
   host sent the person a genuine link to that host, and one click handed its secret over.
+- Privacy: `ErasureIncomplete::after()` chained the exception of the first failing eraser as the previous exception,
+  and `AdvanceAccountDeletionHandler` let it through to Messenger, which kept its message in the `ErrorDetailsStamp`
+  of the envelopes sent to the retry and failure transports, and in its logs: a duplicate-key error could keep a
+  person's address there after the erasure. Neither chains it any more.
+- Privacy: `phil:privacy:erase` printed the message of a module's failure, which can quote the person's data.
+- Privacy: the documentation advised rewriting encrypted values by loading and saving the entities. That encrypts
+  nothing again, Doctrine's unit of work finding the decrypted values equal, and a master key removed afterwards
+  destroyed the data still sealed under it. The advice is removed.
 
 ## 0.1.1-alpha - 2026-11-18
 

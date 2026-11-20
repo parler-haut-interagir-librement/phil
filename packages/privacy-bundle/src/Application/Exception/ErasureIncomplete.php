@@ -12,20 +12,23 @@ use Throwable;
 /**
  * At least one module failed to erase. The others ran, and their reports are kept here, so the retry knows what
  * is already done and the person is never told an erasure completed that did not.
+ *
+ * The failures of the modules stay in `$failures` and are never chained as the previous exception: the message of an
+ * eraser's exception can quote the person's data, such as a duplicate-key error naming an address, and a chained
+ * exception follows this one into logs and Messenger's retry and failure transports.
  */
 final class ErasureIncomplete extends RuntimeException implements PrivacyError
 {
     /**
-     * @param list<ErasureReport>      $completed
-     * @param array<string, Throwable> $failures  by module name
+     * @param list<ErasureReport>                $completed
+     * @param non-empty-array<string, Throwable> $failures  by module name
      */
     private function __construct(
         string $message,
         public readonly array $completed,
         public readonly array $failures,
-        ?Throwable $previous,
     ) {
-        parent::__construct($message, 0, $previous);
+        parent::__construct($message);
     }
 
     /**
@@ -38,7 +41,6 @@ final class ErasureIncomplete extends RuntimeException implements PrivacyError
             \sprintf('Erasure failed in module(s) %s; retry it, erasers are idempotent.', implode(', ', array_keys($failures))),
             $completed,
             $failures,
-            reset($failures),
         );
     }
 }

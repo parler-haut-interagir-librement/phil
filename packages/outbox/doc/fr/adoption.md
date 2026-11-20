@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=281a0402ca049637e651ad6327305b3f7d028b8d82f01e4ad627a20910695342 -->
+<!-- phil-dev source-sha256=8bcad523355412a1bc133b9bd9918a41f9a8a459d92530848d5cee6bdbe6e678 -->
 # Guide d'adoption
 
 Ce guide fait passer à l'outbox une bibliothèque qui écrit son état puis répartit un événement PSR-14.
@@ -67,7 +67,8 @@ final readonly class SetEventsCodec implements EventCodec
 4. **Conserver des identifiants.** La charge utile contient ce qui nomme l'événement — l'ensemble, le titulaire —,
    jamais les données que l'événement porte, que le codec relit, ni des renseignements personnels.
 5. **Choisir les clés.** Une clé d'ordre quand les écouteurs ont besoin des événements d'un agrégat dans l'ordre ; une
-   clé d'idempotence quand l'écriture elle-même peut s'exécuter deux fois.
+   clé d'idempotence quand l'écriture elle-même peut s'exécuter deux fois. Une clé se construit avec des identifiants,
+   comme la charge utile, jamais avec des renseignements personnels.
 6. **Fournir un codec.** La bibliothèque fournit le codec de ses types ; un bundle l'enregistre, avec l'étiquette
    `phil_outbox.codec` ou par configuration automatique.
 7. **Faire porter à l'événement l'identifiant de l'enregistrement**, et dire aux écouteurs, dans la documentation de la

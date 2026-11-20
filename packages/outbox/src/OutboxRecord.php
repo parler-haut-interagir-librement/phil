@@ -25,6 +25,9 @@ final readonly class OutboxRecord
     /** The shape of an ordering or idempotency key. */
     public const string KEY_PATTERN = '/^[\x21-\x7E]{1,190}$/D';
 
+    /** The namespace of the exceptions whose message an error keeps. */
+    public const string OWN_EXCEPTIONS = 'Phil\\Outbox\\Exception\\';
+
     /** The longest error kept, in bytes. */
     public const int MAX_ERROR_BYTES = 500;
 
@@ -32,7 +35,7 @@ final readonly class OutboxRecord
      * @param string                 $payloadJson the JSON of the payload, as the store keeps it
      * @param DateTimeImmutable      $availableAt when the relay may try the record
      * @param int                    $attempts    the failed attempts so far
-     * @param string|null            $lastError   the class and message of the exception of the last failed attempt
+     * @param string|null            $lastError   the class and code of the exception of the last failed attempt, see `error()`
      * @param DateTimeImmutable|null $settledAt   when the record was delivered or declared dead
      */
     public function __construct(
@@ -71,11 +74,23 @@ final readonly class OutboxRecord
     }
 
     /**
-     * The class and message of an exception, cut to the longest error kept, on a character boundary.
+     * The class and code of an exception, such as `RuntimeException (code 550)`, cut to the longest error kept, on a
+     * character boundary.
+     *
+     * The message is kept only for the `OutboxException`s of this package, `Phil\Outbox\Exception\…`, whose text names types,
+     * keys and settings, never a value of the application. The message of any other exception can quote personal
+     * data — a mail server refusing an address, a database quoting a duplicate value — and an error is kept until the
+     * record is purged or discarded: it is never stored.
      */
     public static function error(Throwable $throwable): string
     {
-        return mb_strcut(mb_scrub($throwable::class.': '.$throwable->getMessage(), 'UTF-8'), 0, self::MAX_ERROR_BYTES, 'UTF-8');
+        $error = \sprintf('%s (code %s)', $throwable::class, $throwable->getCode());
+
+        if (str_starts_with($throwable::class, self::OWN_EXCEPTIONS)) {
+            $error .= ': '.$throwable->getMessage();
+        }
+
+        return mb_strcut(mb_scrub($error, 'UTF-8'), 0, self::MAX_ERROR_BYTES, 'UTF-8');
     }
 
     /**

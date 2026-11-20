@@ -24,7 +24,7 @@ With `-v`, each batch that claimed records is told; the run ends with the sum:
 
 Lists the dead records, the oldest first, with the count of the records by state: `--limit` (50) and `--offset`
 (0). Given an identifier, shows that record: its type, state, payload, keys, occurrence, attempts, settlement and last
-error.
+error, the class and code of the exception of its last attempt.
 
 ## `phil:outbox:dead:retry`
 
@@ -41,6 +41,14 @@ records of their ordering keys go. Nothing is removed without `--force`.
 Removes the delivered records settled more than `retention` seconds ago, the oldest first, up to `--limit` (1,000);
 `--retention` chooses another number of seconds. The pending and dead records stay. Run it on a schedule, such as
 once an hour.
+
+## `phil:outbox:errors:clear`
+
+Removes the message from the errors the table keeps, and keeps their class: `RuntimeException: 550 …` becomes
+`RuntimeException`. An error keeps the class and code of an exception, and the message of the outbox's own exceptions
+only; this command rewrites the errors written with the message of any exception, which can quote personal data such
+as an address a mail server refused. The errors of the outbox's own exceptions are left as they are, and running it
+again rewrites nothing. Registered with the `dbal` store.
 
 ## `phil:outbox:schema`
 

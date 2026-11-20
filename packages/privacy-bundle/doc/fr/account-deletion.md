@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4b030442beaa5017b42556a3ecba6117b8d1b910da8f2725aed9bb9b78dff31f -->
+<!-- phil-dev source-sha256=94f5a22f1bb8bf78e8c063464cb2286165cc6e0fe34d9e1c5dcff22bb7bdbf0f -->
 # Supprimer un compte
 
 `AccountDeletions` supprime un compte par étapes, sur `symfony/workflow` : une demande, un délai pendant lequel la
@@ -48,6 +48,11 @@ l'application dit quel identifiant la désigne, en implémentant `DataSubjectUse
   bon de dépôt : aucun message n'a besoin du `ClaimCheckSerializer` de Messenger.
 - **Les journaux portent des identifiants.** Une ligne nomme la demande et, en cas d'échec, les modules. Jamais la
   personne, et jamais le texte d'une exception, qu'un module aurait pu remplir de renseignements personnels.
+- **Les transports portent des identifiants.** Un effacement échoué parvient à Messenger sous la forme
+  d'`AccountErasureIncomplete`, qui nomme la demande et les modules et n'enchaîne aucune exception précédente. Messenger
+  copie le message de ce qu'un gestionnaire lance, et de chaque exception précédente, dans l'`ErrorDetailsStamp` de
+  l'enveloppe qu'il envoie aux transports de reprise et d'échec : l'exception d'un effaceur, comme une erreur de clé en
+  double qui cite une adresse, ne les atteint jamais.
 
 ## L'exécuter
 
@@ -63,6 +68,45 @@ Messenger le relance, et le balayage suivant y revient de toute façon.
 
 Sans planificateur, lancez `phil:privacy:deletions` depuis cron. La commande se termine en échec quand un effacement a
 échoué, et nomme les demandes par leur identifiant.
+
+### Un transport d'échec à part
+
+Donnez aux messages de confidentialité un transport et un transport d'échec à eux, pour que leurs échecs soient gardés
+à part de ceux de l'application, peu de temps, et retirés une fois la demande close :
+
+```yaml
+# config/packages/messenger.yaml
+framework:
+    messenger:
+        transports:
+            privacy:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options: { queue_name: privacy }
+                failure_transport: privacy_failed
+                retry_strategy: { max_retries: 3, delay: 60000, multiplier: 4 }
+            privacy_failed:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options: { queue_name: privacy_failed }
+        routing:
+            Phil\PrivacyBundle\Application\Message\AdvanceAccountDeletion: privacy
+```
+
+Un message de `privacy_failed` contient l'identifiant d'une demande et les noms des modules qui ont échoué, et ses
+estampilles. Retirez-le une fois la demande close, que ce soit un balayage ou une reprise qui ait effacé la personne
+depuis :
+
+```bash
+bin/console messenger:failed:remove --transport=privacy_failed 42 --force
+```
+
+et retirez le reste selon une courte rétention, depuis cron :
+
+```bash
+bin/console messenger:failed:remove --transport=privacy_failed --failed-before='-7 days' --force
+```
+
+Le balayage revient quand même à une demande dont le message a été retiré : le transport d'échec est un registre des
+échecs, pas l'endroit où le travail attend.
 
 ## L'export
 

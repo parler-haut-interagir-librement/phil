@@ -66,7 +66,8 @@ final readonly class SetEventsCodec implements EventCodec
 4. **Keep identifiers.** The payload holds what names the event — the set, the holder —, never the data the event
    carries, which the codec reads again, nor personal data.
 5. **Choose the keys.** An ordering key when the listeners need the events of one aggregate in order; an idempotency
-   key when the write itself may run twice.
+   key when the write itself may run twice. A key is built from identifiers, like the payload, never from personal
+   data.
 6. **Ship a codec.** The library ships the codec of its types; a bundle registers it, tagged `phil_outbox.codec` or
    autoconfigured.
 7. **Make the event carry the record's identifier**, and tell the listeners in the library's documentation that they

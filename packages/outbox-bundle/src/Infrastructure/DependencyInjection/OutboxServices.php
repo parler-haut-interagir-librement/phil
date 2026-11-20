@@ -16,6 +16,7 @@ use Phil\Outbox\Memory\InMemoryOutboxStore;
 use Phil\Outbox\RecordedEventCodec;
 use Phil\Outbox\Relay;
 use Phil\Outbox\StoreOutbox;
+use Phil\OutboxBundle\Infrastructure\Console\ClearErrorsCommand;
 use Phil\OutboxBundle\Infrastructure\Console\DeadRemoveCommand;
 use Phil\OutboxBundle\Infrastructure\Console\DeadRetryCommand;
 use Phil\OutboxBundle\Infrastructure\Console\DeadShowCommand;
@@ -167,6 +168,9 @@ final class OutboxServices
         if ($connection instanceof Reference) {
             $container->register(SchemaCommand::class, SchemaCommand::class)
                 ->setArguments([$connection, new Reference(OutboxTable::class)])
+                ->addTag('console.command');
+            $container->register(ClearErrorsCommand::class, ClearErrorsCommand::class)
+                ->setArguments([new Reference(DbalOutboxStore::class)])
                 ->addTag('console.command');
         }
     }
