@@ -27,6 +27,7 @@ final readonly class MetadataController
         private SigningKeys $keys,
         private UrlGeneratorInterface $urls,
         private int $maxAge = 300,
+        private bool $backchannelLogout = false,
     ) {
     }
 
@@ -64,6 +65,8 @@ final readonly class MetadataController
             'request_parameter_supported' => false,
             'request_uri_parameter_supported' => false,
             'claims_parameter_supported' => false,
+            'backchannel_logout_supported' => $this->backchannelLogout ? true : null,
+            'backchannel_logout_session_supported' => $this->backchannelLogout ? true : null,
         ], static fn (mixed $value): bool => null !== $value && [] !== $value)));
     }
 

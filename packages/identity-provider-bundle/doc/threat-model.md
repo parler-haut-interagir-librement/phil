@@ -86,6 +86,8 @@ write the code comes before the bundle is used in production, against this page 
 | A client reading another client's tokens | Introspection and revocation answer only for the asking client's tokens. |
 | A disabled account keeping its access | Introspection answers `active: false` for the tokens of a disabled account, as userinfo refuses them. |
 | A disabled client keeping its access | A disabled client cannot authenticate to the token, revocation and introspection endpoints, and userinfo refuses the tokens issued to it. |
+| A client left signed in after the session ended | With `oidc.backchannel_logout`, every client the session issued tokens to receives a signed logout token, tried again by Messenger until it answers; the message carries identifiers only, and the token is signed when sent. |
+| A logout address used to reach the provider's network | The address is registered by the console, `https` and read by `phil/url`; no redirect is followed, and each attempt is bounded by `oidc.backchannel_logout.timeout`. |
 | A client asking for an account chooser | The provider shows none: `prompt=select_account` is refused with `invalid_request` and is not in the discovery document, so no client takes the current account for a chosen one. |
 
 ## Token families

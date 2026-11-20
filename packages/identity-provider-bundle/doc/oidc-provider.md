@@ -242,6 +242,26 @@ which makes RS256 the slowest by far — milliseconds where ES256 and EdDSA take
 | `phone` | `phone_number`, `phone_number_verified` |
 | `offline_access` | a refresh token |
 
+More claims come from the application: a service implementing `Application\Contract\ClaimsProvider` — autoconfigured,
+or tagged `phil_identity_provider.claims_provider` — receives the account, the scopes of the access token and its client,
+and answers the claims those scopes grant, such as `locale` for `profile`. Userinfo adds them after the claims of the
+scopes, provider after provider. A provider that answers a claim the provider sets — `sub`, `email`, `acr` and the
+others of `UserClaims::RESERVED` — or one an earlier provider answered fails the request with a `LogicException`:
+one claim never stands for another.
+
+```php
+use Phil\IdentityProviderBundle\Application\Contract\ClaimsProvider;
+use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
+
+final readonly class LocaleClaims implements ClaimsProvider
+{
+    public function claims(Account $account, array $scopes, string $clientId): array
+    {
+        return \in_array('profile', $scopes, true) ? ['locale' => 'fr-CA'] : [];
+    }
+}
+```
+
 ## Keys and their rotation
 
 `SigningKeys` keeps the keys in `phil_identity_signing_key`, their private JSON Web Key sealed by the `SecretCipher`. A
@@ -269,8 +289,40 @@ more asks again. The account withdraws it from the page of its sessions, which r
 person to confirm, so that a link cannot sign anyone out. It then goes back to the `post_logout_redirect_uri` the
 client registered, with the state, or shows that the person is signed out.
 
+### Back-channel logout
+
+With `oidc.backchannel_logout.enabled`, the provider tells the clients that a session ended (OpenID Connect
+Back-Channel Logout 1.0). A client registers the address it listens on:
+
+```sh
+bin/console phil:identity-provider:client:create app "The App" --redirect-uri=https://app.example/callback \
+    --backchannel-logout-uri=https://app.example/backchannel-logout
+```
+
+Whenever a session closes — signed out here or by RP-initiated logout, closed from another device, or closed with every
+other session after a password change —, each client the provider issued tokens to in it receives one
+`Infrastructure\Messenger\SendLogoutToken` on the bus of `oidc.backchannel_logout.bus`, carrying the identifiers of
+the client, the account and the session, nothing more. Its handler signs a logout token when it runs — a JSON Web Token
+of type `logout+jwt`, `iss` the provider, `aud` the client, `sub` the account, `sid` the session the ID token named,
+`iat`, an `exp` two minutes later, a new `jti`, the event `http://schemas.openid.net/event/backchannel-logout` and no
+`nonce` — and posts it as `logout_token` in a form body to the client's address, following no redirect, within
+`oidc.backchannel_logout.timeout` seconds. An answer other than `200` or `204`, or none, throws `DeliveryFailed`, and
+Messenger tries again by the retry strategy of the transport; a client removed, disabled, or without an address is
+skipped. Route the message to an asynchronous transport, so that signing out never waits on a client:
+
+```yaml
+framework:
+    messenger:
+        transports:
+            identity: '%env(MESSENGER_TRANSPORT_DSN)%'
+        routing:
+            Phil\IdentityProviderBundle\Infrastructure\Messenger\SendLogoutToken: identity
+```
+
+The discovery document then announces `backchannel_logout_supported` and `backchannel_logout_session_supported`.
+
 ## Not implemented
 
-Dynamic client registration, request objects, pairwise subjects, the claims parameter, front- and back-channel logout,
+Dynamic client registration, request objects, pairwise subjects, the claims parameter, front-channel logout,
 token exchange and the `act` claim (RFC 8693), a key set fetched from a client's `jwks_uri`, mutual TLS, and DPoP are
 planned.

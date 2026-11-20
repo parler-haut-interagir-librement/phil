@@ -50,6 +50,19 @@ and resources, new columns and a table to migrate, and refresh tokens bound to t
   `Tokens` takes the `AccountSessionRepository`, last and optional.
 - `oidc.id_token.acr`, `oidc.id_token.idp` and `oidc.id_token.session_start`: the optional claims `acr`, `idp` and
   `session_start` of the ID token, listed by the discovery document with `acr_values_supported`.
+- `Application\Contract\ClaimsProvider`, the port of the claims an application adds to userinfo, autoconfigured with the
+  tag `phil_identity_provider.claims_provider`, and `Application\Oidc\UserClaims`, which adds them after the claims of
+  the scopes and refuses a provider that answers a claim already set. `Tokens::bearer()` gives the client of the token
+  as its third member; `UserinfoController` takes the `UserClaims`, last and optional.
+- Back-channel logout (OpenID Connect Back-Channel Logout 1.0), with `oidc.backchannel_logout` (`enabled`, `bus`,
+  `http_client`, `timeout`): a client registers its address (`--backchannel-logout-uri`, `Client::backchannelLogoutUri()`,
+  column `backchannel_logout_uri`); when a session closes, `Sessions` tells the clients it issued tokens to through the
+  port `Application\Contract\LogoutNotifier`, whose adapter `Infrastructure\Messenger\MessengerLogoutNotifier`
+  dispatches one `SendLogoutToken` of identifiers per client; `SendLogoutTokenHandler` posts the logout token that
+  `Application\Oidc\LogoutTokens` signs, and throws `DeliveryFailed` on a failed answer so that Messenger tries again.
+  `Sessions` takes the `LogoutNotifier`, last and optional; the discovery document announces
+  `backchannel_logout_supported` and `backchannel_logout_session_supported`. `symfony/messenger` and
+  `symfony/http-client` are suggested.
 - `Jws::unverifiedClaims()`: the claims of a token read under the same bounds, its signature not verified, to learn the
   client a client assertion names.
 - The documentation of client authentication, token families, refresh tokens bound to the session, resources and the

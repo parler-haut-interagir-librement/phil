@@ -120,6 +120,7 @@ final class MappingTest extends TestCase
                 'requirePkce' => ['require_pkce', 'boolean', null, false, ['default' => true], false],
                 'jwks' => ['jwks', 'json', null, true, [], false],
                 'resources' => ['resources', 'json', null, true, [], false],
+                'backchannelLogoutUri' => ['backchannel_logout_uri', 'text', null, true, [], false],
             ],
             'indexes' => [],
             'unique' => [],

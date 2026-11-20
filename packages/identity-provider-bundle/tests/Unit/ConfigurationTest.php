@@ -134,6 +134,12 @@ final class ConfigurationTest extends TestCase
                 'idp' => null,
                 'session_start' => false,
             ],
+            'backchannel_logout' => [
+                'enabled' => false,
+                'bus' => 'messenger.default_bus',
+                'http_client' => 'http_client',
+                'timeout' => 5,
+            ],
         ],
         'secrets' => [
             'kms_key' => null,

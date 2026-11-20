@@ -24,7 +24,8 @@ use SensitiveParameter;
  * whose public JSON Web Key it registered (`private_key_jwt`, RFC 7523): its key set holds public keys only, each with
  * its identifier and one algorithm of the provider. The resources it may ask tokens for (RFC 8707) are the audiences
  * of those tokens; a client that only asks tokens for itself, by the `client_credentials` grant, registers resources
- * and no redirect address.
+ * and no redirect address. A client may register the address the provider posts its logout tokens to when a session
+ * ends.
  */
 #[ORM\Entity]
 #[ORM\Table(name: self::TABLE)]
@@ -78,6 +79,8 @@ final class Client
         private ?array $jwks = null,
         #[ORM\Column(name: 'resources', type: 'json', nullable: true)]
         private ?array $resources = null,
+        #[ORM\Column(name: 'backchannel_logout_uri', type: 'text', nullable: true)]
+        private ?string $backchannelLogoutUri = null,
     ) {
     }
 
@@ -89,8 +92,9 @@ final class Client
      *                                                                a public client always must
      * @param list<array<string, mixed>>|null $jwks                   the public keys of `private_key_jwt`, in place of a secret
      * @param list<string>                    $resources              the audiences it may ask tokens for, already checked
+     * @param ?string                         $backchannelLogoutUri   where its logout tokens are posted, already checked
      */
-    public static function register(string $id, string $name, #[SensitiveParameter] ?string $secret, array $redirectUris, array $postLogoutRedirectUris, array $scopes, bool $firstParty, DateTimeImmutable $now, bool $requirePkce = true, ?array $jwks = null, array $resources = []): self
+    public static function register(string $id, string $name, #[SensitiveParameter] ?string $secret, array $redirectUris, array $postLogoutRedirectUris, array $scopes, bool $firstParty, DateTimeImmutable $now, bool $requirePkce = true, ?array $jwks = null, array $resources = [], ?string $backchannelLogoutUri = null): self
     {
         if (null !== $secret && null !== $jwks) {
             throw InvalidValue::because('A client proves itself by its secret or by its keys, not both.');
@@ -114,7 +118,7 @@ final class Client
             throw InvalidValue::because('A client registers at least one redirect address, or, confidential, the resources it asks tokens for.');
         }
 
-        $client = new self($id, '', null === $secret ? null : self::hash($secret), array_values(array_unique($redirectUris)), array_values(array_unique($postLogoutRedirectUris)), array_values(array_unique(['openid', ...$scopes])), $firstParty, $now, null, $requirePkce, null === $jwks ? null : self::keySet($jwks), [] === $resources ? null : $resources);
+        $client = new self($id, '', null === $secret ? null : self::hash($secret), array_values(array_unique($redirectUris)), array_values(array_unique($postLogoutRedirectUris)), array_values(array_unique(['openid', ...$scopes])), $firstParty, $now, null, $requirePkce, null === $jwks ? null : self::keySet($jwks), [] === $resources ? null : $resources, $backchannelLogoutUri);
         $client->rename($name);
 
         return $client;
@@ -281,6 +285,15 @@ final class Client
     public function resources(): array
     {
         return $this->resources ?? [];
+    }
+
+    /**
+     * Where its logout tokens are posted when a session it has tokens of ends; null for none (OpenID Connect
+     * Back-Channel Logout 1.0).
+     */
+    public function backchannelLogoutUri(): ?string
+    {
+        return $this->backchannelLogoutUri;
     }
 
     public function allowsResource(string $resource): bool

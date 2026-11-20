@@ -131,6 +131,10 @@ phil_identity_provider:
 | `oidc.id_token.acr` | `null` | The `acr` of every ID token; null for none. |
 | `oidc.id_token.idp` | `null` | The `idp` of every ID token; null for none. |
 | `oidc.id_token.session_start` | `false` | Whether the ID token carries `session_start`, when its session opened. |
+| `oidc.backchannel_logout.enabled` | `false` | Whether the clients that registered a back-channel logout address receive a logout token when a session they have tokens of ends; needs `symfony/messenger` and `symfony/http-client`. See [Back-channel logout](oidc-provider.md#back-channel-logout). |
+| `oidc.backchannel_logout.bus` | `messenger.default_bus` | The message bus of `SendLogoutToken`. |
+| `oidc.backchannel_logout.http_client` | `http_client` | The HTTP client that posts the logout tokens. |
+| `oidc.backchannel_logout.timeout` | `5` | Seconds a client has to answer, 1 to 30. |
 
 ## A site that refuses some methods
 

@@ -45,7 +45,7 @@ final readonly class ClientRegistry
      *
      * @throws Refused when the identifier is taken or out of shape, or an address, a scope or a key is refused
      */
-    public function register(string $id, string $name, array $redirectUris, array $postLogoutRedirectUris = [], array $scopes = [], bool $public = false, bool $firstParty = false, bool $requirePkce = true, ?array $jwks = null, array $resources = []): array
+    public function register(string $id, string $name, array $redirectUris, array $postLogoutRedirectUris = [], array $scopes = [], bool $public = false, bool $firstParty = false, bool $requirePkce = true, ?array $jwks = null, array $resources = [], ?string $backchannelLogoutUri = null): array
     {
         if ($public && null !== $jwks) {
             throw Refused::because('client.invalid', 'A public client registers no keys.');
@@ -62,7 +62,7 @@ final readonly class ClientRegistry
         $secret = $public || null !== $jwks ? null : Base64Url::encode(random_bytes(32));
 
         try {
-            $client = Client::register($id, $name, $secret, $this->addresses($redirectUris), $this->addresses($postLogoutRedirectUris), $scopes, $firstParty, $this->clock->now(), $requirePkce, $jwks, $this->addresses($resources, 'client.resource_invalid'));
+            $client = Client::register($id, $name, $secret, $this->addresses($redirectUris), $this->addresses($postLogoutRedirectUris), $scopes, $firstParty, $this->clock->now(), $requirePkce, $jwks, $this->addresses($resources, 'client.resource_invalid'), null === $backchannelLogoutUri ? null : $this->addresses([$backchannelLogoutUri], 'client.logout_uri_invalid')[0]);
         } catch (InvalidValue $invalidValue) {
             throw Refused::because('client.invalid', $invalidValue->getMessage());
         }

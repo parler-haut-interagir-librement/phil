@@ -293,7 +293,7 @@ final readonly class Tokens
      * The account and scopes of a bearer access token, for userinfo; refused once its account or its client is disabled,
      * and for a token of another resource or of the `client_credentials` grant.
      *
-     * @return array{Account, list<string>}
+     * @return array{Account, list<string>, string} the account, the scopes and the client of the token
      *
      * @throws OAuthError `invalid_token`
      */
@@ -313,7 +313,7 @@ final readonly class Tokens
             throw OAuthError::invalidToken();
         }
 
-        return [$account, $issued->scopes()];
+        return [$account, $issued->scopes(), $issued->clientId()];
     }
 
     /**

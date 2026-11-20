@@ -52,10 +52,12 @@ final readonly class CreateClientCommand
         ?string $jwks = null,
         #[Option(description: 'A resource the client may ask tokens for, the audience of those tokens; repeat for several')]
         array $resource = [],
+        #[Option(description: 'The address its logout tokens are posted to when a session it has tokens of ends')]
+        ?string $backchannelLogoutUri = null,
     ): int {
         try {
             $keys = null === $jwks ? null : KeySetFile::read($jwks);
-            [$client, $secret] = $this->clients->register($id, $name, $redirectUri, $postLogoutRedirectUri, $scope, $public, $firstParty, !$pkceOptional, $keys, $resource);
+            [$client, $secret] = $this->clients->register($id, $name, $redirectUri, $postLogoutRedirectUri, $scope, $public, $firstParty, !$pkceOptional, $keys, $resource, $backchannelLogoutUri);
         } catch (Refused $refused) {
             $io->error(implode(' ', $refused->reasons));
 
