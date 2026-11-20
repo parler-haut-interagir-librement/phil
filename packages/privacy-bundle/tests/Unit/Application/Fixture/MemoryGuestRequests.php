@@ -37,6 +37,16 @@ final class MemoryGuestRequests implements GuestRequestStore
     }
 
     #[Override]
+    public function retain(string $id, DateTimeImmutable $until): void
+    {
+        $request = $this->requests[$id] ?? null;
+
+        if ($request instanceof GuestRequest) {
+            $this->requests[$id] = new GuestRequest($id, $request->kind, $request->email, hash('sha256', 'retained'), $request->requestedAt, $until);
+        }
+    }
+
+    #[Override]
     public function purgeExpired(DateTimeImmutable $now): int
     {
         ++$this->purges;

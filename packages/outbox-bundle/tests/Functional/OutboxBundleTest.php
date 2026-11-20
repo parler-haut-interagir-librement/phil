@@ -101,7 +101,7 @@ final class OutboxBundleTest extends KernelTestCase
 
         $this->assertSees('[OK] Claimed 3: 3 delivered', $tester);
         self::assertSame(['q1', 'q3', 'q2'], array_values($this->service(QuizListener::class, QuizListener::class)->handled));
-        self::assertSame(['pending' => 0, 'delivered' => 3, 'dead' => 0], $this->service(Housekeeping::class, Housekeeping::class)->counts());
+        self::assertSame(['pending' => 0, 'delivered' => 3, 'skipped' => 0, 'dead' => 0], $this->service(Housekeeping::class, Housekeeping::class)->counts());
     }
 
     public function testTheCommandsOfTheDeadRecordsAndThePurgeAreThere(): void

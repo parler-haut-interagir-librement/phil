@@ -192,6 +192,11 @@ final class RecordTest extends TestCase
 
     public function testTheStatesAreNamedAsTheStoresKeepThem(): void
     {
-        self::assertSame(['pending', 'delivered', 'dead'], array_map(static fn (RecordState $state): string => $state->value, RecordState::cases()));
+        self::assertSame(['pending', 'delivered', 'skipped', 'dead'], array_map(static fn (RecordState $state): string => $state->value, RecordState::cases()));
+    }
+
+    public function testOnlyTheDeliveredAndSkippedRecordsAreSettledForGood(): void
+    {
+        self::assertSame(['delivered', 'skipped'], array_values(array_map(static fn (RecordState $state): string => $state->value, array_filter(RecordState::cases(), static fn (RecordState $state): bool => $state->isSettled()))));
     }
 }

@@ -17,6 +17,7 @@ use Phil\PrivacyBundle\Application\Contract\ExportReadme;
 use Phil\PrivacyBundle\Application\Contract\IncidentRegister;
 use Phil\PrivacyBundle\Application\Contract\RetentionPurger;
 use Phil\PrivacyBundle\Application\EmailTracking\EmailTrackingConsents;
+use Phil\PrivacyBundle\Application\Erasure\ErasureRequests;
 use Phil\PrivacyBundle\Application\Export\ExportPackage;
 use Phil\PrivacyBundle\Application\Export\PlainExportReadme;
 use Phil\PrivacyBundle\Application\GuestRequest\GuestRequests;
@@ -54,6 +55,7 @@ use Phil\PrivacyBundle\Infrastructure\Http\ConsentContext;
 use Phil\PrivacyBundle\Infrastructure\Http\ConsentController;
 use Phil\PrivacyBundle\Infrastructure\Http\ConsentCookie;
 use Phil\PrivacyBundle\Infrastructure\Http\ConsentVaryListener;
+use Phil\PrivacyBundle\Infrastructure\Http\ErasureProgressController;
 use Phil\PrivacyBundle\Infrastructure\Http\GuestRequestController;
 use Phil\PrivacyBundle\Infrastructure\Http\PreferencesController;
 use Phil\PrivacyBundle\Infrastructure\Http\PrivacyPages;
@@ -79,6 +81,7 @@ use Symfony\Component\Workflow\StateMachine;
  * retention rules are checked here, so that a bad one fails the container build rather than a request.
  *
  * @phpstan-import-type RuleConfig from ConfiguredRetentionSchedule
+ * @phpstan-import-type WorkflowConfig from ErasureWorkflowServices
  *
  * @phpstan-type ConsentConfig array{version: string, cookie_name: string, lifetime: string, proofs: string|null, categories: array<array-key, array{necessary: bool, labels: array<string, string>, descriptions: array<string, string>}>}
  * @phpstan-type LimitConfig array{limit: int, interval: string}
@@ -90,6 +93,7 @@ use Symfony\Component\Workflow\StateMachine;
  *     consent: ConsentConfig,
  *     cookies: array{inventory: string|null, watch: bool|null},
  *     guest_requests: GuestConfig,
+ *     erasure_workflow: WorkflowConfig,
  *     incidents: array{store: string|null},
  *     email_tracking: array{enabled: bool, version: string, store: string|null},
  *     rights: array{export: array{disable: scalar|null}, erasure: array{disable: scalar|null}},
@@ -130,6 +134,7 @@ final class RightsServices
         self::consent($config['consent'], $services, $builder, $clock);
         CookieServices::load($config['consent'], $config['cookies'], $services, $builder);
         GuestRequestServices::load($config['guest_requests'], $services, $clock);
+        ErasureWorkflowServices::load($config['erasure_workflow'], $services, $builder, $connection, $clock);
         self::pages($config['pages'], $services);
         $source = self::retention($config, $services, $clock);
         self::schedule($config, $services, $source instanceof Reference);
@@ -303,6 +308,16 @@ final class RightsServices
             ->args([new Reference(ConsentContext::class), new Reference(ConsentPolicy::class), new Reference(PrivacyPages::class), new Reference('request_stack')])
             ->tag('twig.attribute_extension')
             ->tag('twig.runtime');
+        $services->set(ErasureProgressController::class)
+            ->args([
+                new Reference(PrivacyPages::class),
+                new Reference(ErasureRequests::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                new Reference(CurrentDataSubject::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                new Reference('security.authorization_checker', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                '%'.ErasureWorkflowServices::OPERATOR_ROLE.'%',
+            ])
+            ->public()
+            ->tag('controller.service_arguments');
         $services->set(GuestRequestController::class)
             ->args([new Reference(PrivacyPages::class), new Reference(GuestRequests::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)])
             ->public()

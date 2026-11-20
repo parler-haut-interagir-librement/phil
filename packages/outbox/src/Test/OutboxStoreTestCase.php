@@ -146,6 +146,29 @@ abstract class OutboxStoreTestCase extends TestCase
         self::assertSame(1, $store->count(RecordState::Delivered));
     }
 
+    public function testASkippedRecordIsSettledAndLetsItsOrderingKeyGo(): void
+    {
+        $store = $this->createStore();
+        $skipped = $this->add($store, 'a.b', 'k1');
+        $later = $this->add($store, 'a.b', 'k1');
+
+        self::assertSame([$skipped->id->value], self::ids($store->claim(self::CLAIM, 10, self::at('10:00:10'), self::at('10:01:10'))));
+        self::assertFalse($store->markSkipped($skipped->id, self::OTHER_CLAIM, self::at('10:00:11')));
+        self::assertTrue($store->markSkipped($skipped->id, self::CLAIM, self::at('10:00:11')));
+        self::assertFalse($store->markSkipped($skipped->id, self::CLAIM, self::at('10:00:12')));
+
+        $kept = $store->find($skipped->id);
+        self::assertSame(RecordState::Skipped, $kept?->state);
+        self::assertSame(0, $kept->attempts);
+        self::assertNull($kept->lastError);
+        self::assertSame(self::at('10:00:11')->getTimestamp(), $kept->settledAt?->getTimestamp());
+        self::assertSame(1, $store->count(RecordState::Skipped));
+        self::assertSame([$skipped->id->value], self::ids($store->list(RecordState::Skipped, 10)));
+        self::assertSame([$later->id->value], self::ids($store->claim(self::OTHER_CLAIM, 10, self::at('10:00:20'), self::at('10:01:20'))));
+        self::assertFalse($store->revive($skipped->id, self::at('10:00:30')));
+        self::assertFalse($store->discard($skipped->id));
+    }
+
     public function testAReleasedRecordWaitsForItsNextAttempt(): void
     {
         $store = $this->createStore();
@@ -286,8 +309,10 @@ abstract class OutboxStoreTestCase extends TestCase
         $older = $this->add($store, 'a.b');
         $recent = $this->add($store, 'a.b');
         $dead = $this->add($store, 'a.b');
+        $skipped = $this->add($store, 'a.b');
         $pending = $this->add($store, 'a.b');
-        $store->claim(self::CLAIM, 4, self::at('10:00:10'), self::at('10:01:10'));
+        $store->claim(self::CLAIM, 5, self::at('10:00:10'), self::at('10:01:10'));
+        $store->markSkipped($skipped->id, self::CLAIM, self::at('10:00:12'));
         $store->markDelivered($old->id, self::CLAIM, self::at('10:00:20'));
         $store->markDelivered($older->id, self::CLAIM, self::at('10:00:11'));
         $store->markDelivered($recent->id, self::CLAIM, self::at('10:00:30'));
@@ -296,8 +321,9 @@ abstract class OutboxStoreTestCase extends TestCase
         self::assertSame(0, $store->purgeDelivered(self::at('10:00:30'), 0));
         self::assertSame(1, $store->purgeDelivered(self::at('10:00:30'), 1));
         self::assertNull($store->find($old->id), 'The purge goes in the order the records were added.');
-        self::assertSame(1, $store->purgeDelivered(self::at('10:00:30'), 10));
+        self::assertSame(2, $store->purgeDelivered(self::at('10:00:30'), 10));
         self::assertNull($store->find($older->id));
+        self::assertNull($store->find($skipped->id), 'A skipped record is purged like a delivered one.');
         self::assertNotNull($store->find($recent->id), 'A record settled at the cutoff is kept.');
         self::assertNotNull($store->find($dead->id));
         self::assertNotNull($store->find($pending->id));

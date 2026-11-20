@@ -38,4 +38,9 @@ final class MisconfiguredPrivacy extends LogicException implements PrivacyError
     {
         return new self(\sprintf('The user class "%s" does not implement DataSubjectUser: say which stable identifier designates the person, or name another phil_privacy.pages.current_subject.', $user));
     }
+
+    public static function erasureLease(int $lease): self
+    {
+        return new self(\sprintf('An erasure step is leased from 1 to 86400 seconds, not %d.', $lease));
+    }
 }

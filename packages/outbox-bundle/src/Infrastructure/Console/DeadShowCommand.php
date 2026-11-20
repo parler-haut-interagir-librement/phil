@@ -40,7 +40,7 @@ final readonly class DeadShowCommand
         }
 
         $counts = $this->housekeeping->counts();
-        $io->writeln(\sprintf('%d pending, %d delivered, %d dead.', $counts['pending'], $counts['delivered'], $counts['dead']));
+        $io->writeln(\sprintf('%d pending, %d delivered, %d skipped, %d dead.', $counts['pending'], $counts['delivered'], $counts['skipped'], $counts['dead']));
         $dead = $this->housekeeping->dead(max(1, $limit), max(0, $offset));
 
         if ([] === $dead) {

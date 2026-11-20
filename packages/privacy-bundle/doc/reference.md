@@ -80,8 +80,20 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `RetentionSchedule` | The lines by identifier; `has()`, `rule()`, `rules()`, `purgeOrders($now)`, `jobsWithoutCutoff()` | Implemented |
 | `PurgeOrder` | `$ruleId`, `$store`, `$cutoff` | Implemented |
 | `Mechanism` | Enum: `Job`, `Ttl`, `Rotation`, `Event`, `Manual` | Implemented |
-| `ErasureEffect` | Enum: `Deleted`, `Pseudonymised`, `Redacted`, `AwaitsExpiry`, `Survives` | Implemented |
+| `ErasureEffect` | Enum: `Deleted`, `Anonymised` (a skeleton judged non-identifiable), `Pseudonymised` (still personal data for whoever holds the link back), `Redacted`, `AwaitsExpiry`, `Survives`; `leavesPersonalData()`, false for `Deleted` and `Anonymised` only | Implemented |
 | `AccessResponse` | Enum: `Returned`, `AsCategory`, `NotReturned` | Implemented |
+
+### `Domain\Erasure`
+
+| Type | Role | State |
+|---|---|---|
+| `ErasureInventory` | The modules whose erasers are declared, and whether each is external; `of($local, $external)`, `has()`, `isExternal()`, `select($modules)`; `$version`, a fingerprint of 16 hexadecimal digits; `VERSION_PATTERN` | Implemented |
+| `ErasureRequest` | One erasure request: a person or the request without an account it came from, the inventory's version, the state; `forSubject()`, `forGuest()`, `isAbout()`, `isOpenedBy($token)`; `ID_PATTERN`, `TOKEN_PATTERN` | Implemented |
+| `ErasureStep` | One module of a request; `pending()`, `keyOf($request, $module)`, `idempotencyKey()` | Implemented |
+| `ErasureProgress` | A request and its steps, as the page and the JSON give them; `counts()`, `toArray()` | Implemented |
+| `RequestState` | Enum: `Running`, `NeedsAttention`, `Completed`, `Failed`; `isClosed()` | Implemented |
+| `StepState` | Enum: `Pending`, `Running`, `Completed`, `NeedsAttention` | Implemented |
+| `AttentionReason` | Enum: `RetriesExhausted`, `UnknownModule`, `SubjectUnavailable` | Implemented |
 
 ### `Domain\AccountDeletion`
 
@@ -154,11 +166,12 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `Export\ZipFile` | A ZIP archive written in memory; `add()`, `bytes()` | Implemented |
 | `Export\ExportPackage` | The archive of an access answer; `zip($sections)` | Implemented; wired |
 | `Export\PlainExportReadme` | The README in plain English | Implemented; wired without Twig |
-| `GuestRequest\GuestRequests` | The requests without an account; `submit()`, `open()`, `access()`, `erase()` | Implemented; wired when enabled |
+| `GuestRequest\GuestRequests` | The requests without an account; `submit()`, `open()`, `access()`, `erase()`, `erasesAsAWorkflow()`, `startErasure()`; `WORKFLOW_RETENTION` | Implemented; wired when enabled |
+| `Erasure\ErasureRequests` | The erasure workflow; `inventory()`, `open()`, `openForGuest()`, `find()`, `progress()`, `run()`, `acknowledge()`, `giveUp()`, `replay()`, `fail()`; `LEASE` | Implemented; wired when `erasure_workflow.enabled` |
 | `GuestRequest\EmailGuestSubjects` | The verified address as the data subject | Implemented; wired when enabled |
 | `PrivacyRights` | Which rights are on; the two sentences; `warnings()` | Implemented; wired |
-| `Message\AdvanceAccountDeletion`, `Message\ProcessDueAccountDeletions`, `Message\RunRetention` | Messages, identifiers only | Implemented |
-| `Handler\AdvanceAccountDeletionHandler`, `Handler\ProcessDueAccountDeletionsHandler`, `Handler\RunRetentionHandler` | Their handlers | Implemented; wired |
+| `Message\AdvanceAccountDeletion`, `Message\ProcessDueAccountDeletions`, `Message\RunRetention`, `Message\EraseModule` | Messages, identifiers only; `EraseModule::TYPE`, the type of its outbox record | Implemented |
+| `Handler\AdvanceAccountDeletionHandler`, `Handler\ProcessDueAccountDeletionsHandler`, `Handler\RunRetentionHandler`, `Handler\EraseModuleHandler` | Their handlers | Implemented; wired |
 | `Anonymization\AnonymizationRun` | Rewrites a plan's columns in one transaction; `run($plan, $target, ?$seed, ?$salt)` | Implemented; wired |
 | `Anonymization\AnonymizationReport` | Rows rewritten by table; `total()` | Implemented |
 | `Anonymization\ProductionGuard` | Refuses production environments and protected hosts and databases; `check($database)` | Implemented; wired |
@@ -169,6 +182,9 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 |---|---|---|
 | `PersonalDataExporter` | `module()`, `export($subject)` | Port |
 | `PersonalDataEraser` | `module()`, `erase($subject)`; idempotent | Port |
+| `ExternalPersonalDataEraser` | `module()`, `request($subject, $idempotencyKey)`; idempotent, acknowledged later | Port |
+| `ErasureMessages` | `record($requestId, $module, $idempotencyKey)` | Port; `OutboxErasureMessages` |
+| `ErasureRequestStore` | `open()`, `find()`, `steps()`, `step()`, `lease()`, `complete()`, `await()`, `acknowledge()`, `release()`, `flag()`, `reopen()`, `settle()` | Port; `DbalErasureRequests` |
 | `RetentionScheduleSource` | `load()` | Port |
 | `RetentionPurger` | `store()`, `purge($order)` | Port |
 | `AnonymizationTarget` | `keyOf()`, `rows()`, `update()`, `transactional()` | Port; `DbalAnonymizationTarget` |
@@ -178,7 +194,7 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `CurrentDataSubject` | `current()` | Port; `SecurityCurrentDataSubject` |
 | `DataSubjectUser` | `dataSubjectIdentifier()`, on the application's user class | Port |
 | `ExportReadme` | `render($modules, $madeAt)` | Port; `TwigExportReadme`, `PlainExportReadme` |
-| `GuestRequestStore` | `save()`, `find()`, `delete()`, `purgeExpired()` | Port; `DbalGuestRequests` |
+| `GuestRequestStore` | `save()`, `find()`, `delete()`, `retain()`, `purgeExpired()` | Port; `DbalGuestRequests` |
 | `GuestLinkSender` | `send($request, $token)` | Port; `MailerGuestLinkSender` |
 | `GuestSubjects` | `subjectOf($email)` | Port; `EmailGuestSubjects` |
 | `IncidentRegister` | `save()`, `find()`, `all()` | Port; `DbalIncidentRegister` |
@@ -190,7 +206,8 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 |---|---|---|
 | `ErasureIncomplete` | `RuntimeException`; `$completed` reports, `$failures` by module, none chained as the previous exception; `after($completed, $failures)` | Implemented |
 | `AccountErasureIncomplete` | `RuntimeException`, thrown to Messenger by `AdvanceAccountDeletionHandler`; `$deletionId`, `$modules`, no previous exception; `of($deletionId, $erasure)` | Implemented |
-| `MisconfiguredPrivacy` | `LogicException`; `duplicateModule()`, `duplicatePurger()`, `missingPurger()`, `userWithoutSubject()` | Implemented |
+| `MisconfiguredPrivacy` | `LogicException`; `duplicateModule()`, `duplicatePurger()`, `missingPurger()`, `userWithoutSubject()`, `erasureLease()` | Implemented |
+| `ModuleErasureFailed` | `RuntimeException`, thrown to Messenger by `EraseModuleHandler`; names the request and the module, no previous exception; `of($requestId, $module)` | Implemented |
 | `AccountDeletionBusy` | `RuntimeException`; another process holds the lock of this person | Implemented |
 | `LockLost` | `RuntimeException`; the lock of a work in steps expired, was taken, or could not be confirmed; `create()` | Implemented |
 | `AnonymizationRefused` | `RuntimeException`; `inEnvironment()`, `protectedDatabase()`, `withoutKey()`, `keyColumn()` | Implemented |
@@ -220,6 +237,12 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `Infrastructure\Database\PrivacyTables`, `DbalAccountDeletions`, `DbalConsentProofs` | The tables, their keys in `utf8mb4_bin` on MySQL and MariaDB when the platform is given; the store, the proofs; the last two also purge | Implemented |
 | `Infrastructure\Database\DbalGuestRequests` | The requests without an account, the address sealed | Implemented |
 | `Infrastructure\Database\DbalIncidentRegister` | The register of incidents; also purges | Implemented |
+| `Infrastructure\Database\DbalErasureRequests` | The erasure requests and their steps; also purges the closed requests | Implemented; wired when enabled |
+| `Infrastructure\Outbox\OutboxErasureMessages`, `EraseModuleCodec`, `EraseModuleRelay` | The messages as outbox records of type `phil_privacy.erase_module`, the outbox codec of `EraseModule`, which skips the record of a request that is gone, and the hand-over of the message to the bus | Implemented; wired when enabled |
+| `Infrastructure\Messenger\ErasureFailureListener` | Marks a step as needing attention once Messenger gives up on its message | Implemented; wired when enabled |
+| `Infrastructure\Console\ErasureRequestCommand` | `phil:privacy:erasure`: a request module by module, `--replay`, `--fail --confirm` | Implemented; wired when enabled |
+| `Infrastructure\Http\ErasureProgressController` | The progress page and JSON, for the person, an operator, or the holder of the secret | Implemented; wired |
+| `Infrastructure\DependencyInjection\ErasureWorkflowServices` | The services of the erasure workflow; `EXTERNAL_ERASER_TAG`, `OPERATOR_ROLE` | Implemented |
 | `Infrastructure\Database\DbalEmailTrackingConsents` | The members' choices about tracked emails, one row each | Implemented |
 | `Infrastructure\Database\UtcMoments` | The instants of the tables, in UTC and the platform's format only; `text()`, `read()` | Implemented |
 | `Infrastructure\Mailer\MailerGuestLinkSender` | The link sent at once through the mailer's transports | Implemented; wired when enabled |

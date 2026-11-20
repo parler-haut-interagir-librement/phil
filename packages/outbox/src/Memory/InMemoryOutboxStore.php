@@ -59,7 +59,7 @@ final class InMemoryOutboxStore implements OutboxStore
 
             $key = $record->orderingKey;
 
-            if (RecordState::Delivered === $record->state) {
+            if ($record->state->isSettled()) {
                 continue;
             }
 
@@ -83,19 +83,13 @@ final class InMemoryOutboxStore implements OutboxStore
     #[Override]
     public function markDelivered(RecordId $id, string $claim, DateTimeImmutable $at): bool
     {
-        return $this->settle($id, $claim, static fn (OutboxRecord $record): OutboxRecord => new OutboxRecord(
-            $record->id,
-            $record->type,
-            $record->payloadJson,
-            $record->orderingKey,
-            $record->idempotencyKey,
-            $record->occurredAt,
-            $record->availableAt,
-            RecordState::Delivered,
-            $record->attempts,
-            $record->lastError,
-            $at,
-        ));
+        return $this->settle($id, $claim, static fn (OutboxRecord $record): OutboxRecord => self::settled($record, RecordState::Delivered, $at));
+    }
+
+    #[Override]
+    public function markSkipped(RecordId $id, string $claim, DateTimeImmutable $at): bool
+    {
+        return $this->settle($id, $claim, static fn (OutboxRecord $record): OutboxRecord => self::settled($record, RecordState::Skipped, $at));
     }
 
     #[Override]
@@ -192,7 +186,7 @@ final class InMemoryOutboxStore implements OutboxStore
                 break;
             }
 
-            if (RecordState::Delivered === $record->state && null !== $record->settledAt && $record->settledAt < $before) {
+            if ($record->state->isSettled() && null !== $record->settledAt && $record->settledAt < $before) {
                 unset($this->records[$position], $this->positions[$record->id->value]);
                 ++$purged;
             }
@@ -226,6 +220,23 @@ final class InMemoryOutboxStore implements OutboxStore
         $this->records[$position] = $change($this->records[$position]);
 
         return true;
+    }
+
+    private static function settled(OutboxRecord $record, RecordState $state, DateTimeImmutable $at): OutboxRecord
+    {
+        return new OutboxRecord(
+            $record->id,
+            $record->type,
+            $record->payloadJson,
+            $record->orderingKey,
+            $record->idempotencyKey,
+            $record->occurredAt,
+            $record->availableAt,
+            $state,
+            $record->attempts,
+            $record->lastError,
+            $at,
+        );
     }
 
     private function leased(int $position, DateTimeImmutable $now): bool

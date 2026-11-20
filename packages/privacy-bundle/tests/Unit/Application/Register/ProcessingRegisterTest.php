@@ -41,9 +41,9 @@ final class ProcessingRegisterTest extends TestCase
         $entries = new ProcessingRegister(new FixedScheduleSource($schedule))->entries([Member::class, stdClass::class, BaseModel::class, Member::class]);
 
         self::assertSame([
-            ['category' => 'email', 'class' => Member::class, 'property' => 'email', 'retention' => 'R-002', 'store' => 'members', 'period' => 'P24M', 'mechanism' => 'job', 'erasure' => 'deleted'],
-            ['category' => 'ip', 'class' => BaseModel::class, 'property' => 'createdFrom', 'retention' => 'R-009', 'store' => 'logs', 'period' => 'until_event', 'mechanism' => 'rotation', 'erasure' => 'pseudonymised'],
-            ['category' => 'person_name', 'class' => Member::class, 'property' => 'displayName', 'retention' => null, 'store' => null, 'period' => null, 'mechanism' => null, 'erasure' => null],
+            ['category' => 'email', 'class' => Member::class, 'property' => 'email', 'retention' => 'R-002', 'store' => 'members', 'period' => 'P24M', 'mechanism' => 'job', 'erasure' => 'deleted', 'personal_data_left' => false],
+            ['category' => 'ip', 'class' => BaseModel::class, 'property' => 'createdFrom', 'retention' => 'R-009', 'store' => 'logs', 'period' => 'until_event', 'mechanism' => 'rotation', 'erasure' => 'pseudonymised', 'personal_data_left' => true],
+            ['category' => 'person_name', 'class' => Member::class, 'property' => 'displayName', 'retention' => null, 'store' => null, 'period' => null, 'mechanism' => null, 'erasure' => null, 'personal_data_left' => null],
         ], array_map(static fn (RegisterEntry $entry): array => $entry->toArray(), $entries));
         self::assertSame('email', $entries[0]->field->category->value);
         self::assertSame('members', $entries[0]->rule?->store);

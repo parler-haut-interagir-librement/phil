@@ -6,17 +6,20 @@ namespace Phil\PrivacyBundle\Infrastructure\DependencyInjection;
 
 use LogicException;
 use Override;
+use Phil\Outbox\Contract\Outbox;
 use Phil\PrivacyBundle\Application\AccountDeletion\AccountDeletions;
 use Phil\PrivacyBundle\Application\Consent\ConsentRecorder;
 use Phil\PrivacyBundle\Application\Contract\AccountDeletionStore;
 use Phil\PrivacyBundle\Application\Contract\ConsentProofs;
 use Phil\PrivacyBundle\Application\Contract\CurrentDataSubject;
 use Phil\PrivacyBundle\Application\Contract\EmailTrackingStore;
+use Phil\PrivacyBundle\Application\Contract\ErasureRequestStore;
 use Phil\PrivacyBundle\Application\Contract\ExportReadme;
 use Phil\PrivacyBundle\Application\Contract\GuestLinkSender;
 use Phil\PrivacyBundle\Application\Contract\GuestRequestStore;
 use Phil\PrivacyBundle\Application\Contract\IncidentRegister;
 use Phil\PrivacyBundle\Application\EmailTracking\EmailTrackingConsents;
+use Phil\PrivacyBundle\Application\Erasure\ErasureRequests;
 use Phil\PrivacyBundle\Application\Export\ExportPackage;
 use Phil\PrivacyBundle\Application\Export\PlainExportReadme;
 use Phil\PrivacyBundle\Application\GuestRequest\GuestRequests;
@@ -32,6 +35,7 @@ use Phil\PrivacyBundle\Infrastructure\Console\RunRetentionCommand;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalAccountDeletions;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalConsentProofs;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalEmailTrackingConsents;
+use Phil\PrivacyBundle\Infrastructure\Database\DbalErasureRequests;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalGuestRequests;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalIncidentRegister;
 use Phil\PrivacyBundle\Infrastructure\Doctrine\PrivacySchemaListener;
@@ -39,6 +43,7 @@ use Phil\PrivacyBundle\Infrastructure\Http\ConsentContext;
 use Phil\PrivacyBundle\Infrastructure\Http\ConsentController;
 use Phil\PrivacyBundle\Infrastructure\Http\ConsentCookie;
 use Phil\PrivacyBundle\Infrastructure\Http\ConsentVaryListener;
+use Phil\PrivacyBundle\Infrastructure\Http\ErasureProgressController;
 use Phil\PrivacyBundle\Infrastructure\Http\GuestRequestController;
 use Phil\PrivacyBundle\Infrastructure\Http\PreferencesController;
 use Phil\PrivacyBundle\Infrastructure\Http\PrivacyPages;
@@ -96,6 +101,7 @@ final class PrivacyServicesPass implements CompilerPassInterface
         }
 
         $this->guests($container);
+        $this->erasureWorkflow($container);
         $this->emailTracking($container);
         $this->pages($container);
     }
@@ -137,6 +143,41 @@ final class PrivacyServicesPass implements CompilerPassInterface
     }
 
     /**
+     * Turned on in the configuration, the erasure workflow needs the outbox, Messenger, the clock and a store: a missing
+     * one fails the build rather than leave requests that nothing runs. The account deletions and the requests made
+     * without an account then erase through it.
+     */
+    private function erasureWorkflow(ContainerBuilder $container): void
+    {
+        if (!$container->hasDefinition(ErasureRequests::class)) {
+            return;
+        }
+
+        $needs = [
+            Outbox::class => 'phil/outbox-bundle, on the connection of the bundle',
+            ErasureRequestStore::class => 'an ErasureRequestStore: Doctrine DBAL for the tables of the bundle, or erasure_workflow.store',
+            'messenger.default_bus' => 'symfony/messenger',
+            'clock' => 'the clock component (symfony/clock)',
+        ];
+
+        foreach ($needs as $id => $what) {
+            if (!$this->exists($container, $id)) {
+                throw new LogicException(\sprintf('phil_privacy.erasure_workflow is enabled and needs %s.', $what));
+            }
+        }
+
+        $workflow = new Reference(ErasureRequests::class);
+
+        if ($container->hasDefinition(AccountDeletions::class)) {
+            $container->getDefinition(AccountDeletions::class)->setArgument(11, $workflow);
+        }
+
+        if ($container->hasDefinition(GuestRequests::class)) {
+            $container->getDefinition(GuestRequests::class)->setArgument(13, $workflow);
+        }
+    }
+
+    /**
      * Turned on in the configuration, the consent to tracked emails needs a store and a clock: a missing one fails the
      * build rather than leave a page that asks and keeps nothing.
      */
@@ -170,7 +211,11 @@ final class PrivacyServicesPass implements CompilerPassInterface
             return;
         }
 
-        $this->remove($container, [DbalAccountDeletions::class, DbalConsentProofs::class, DbalEmailTrackingConsents::class, DbalGuestRequests::class, DbalIncidentRegister::class, PrivacySchemaListener::class]);
+        $this->remove($container, [DbalAccountDeletions::class, DbalConsentProofs::class, DbalEmailTrackingConsents::class, DbalGuestRequests::class, DbalIncidentRegister::class, DbalErasureRequests::class, PrivacySchemaListener::class]);
+
+        if ($container->hasAlias(ErasureRequestStore::class) && DbalErasureRequests::class === (string) $container->getAlias(ErasureRequestStore::class)) {
+            $container->removeAlias(ErasureRequestStore::class);
+        }
 
         if (DbalIncidentRegister::class === (string) $container->getAlias(IncidentRegister::class)) {
             $container->removeAlias(IncidentRegister::class);
@@ -193,7 +238,7 @@ final class PrivacyServicesPass implements CompilerPassInterface
     private function pages(ContainerBuilder $container): void
     {
         if (!$container->has('clock') || !$container->has('twig') || !$container->has('security.csrf.token_manager') || !$container->has('router')) {
-            $this->remove($container, [ConsentRecorder::class, ConsentCookie::class, ConsentContext::class, ConsentVaryListener::class, ConsentController::class, ConsentExtension::class, EmbedExtension::class, PreferencesController::class, GuestRequestController::class, PrivacyPages::class, MountingRouteLoader::class]);
+            $this->remove($container, [ConsentRecorder::class, ConsentCookie::class, ConsentContext::class, ConsentVaryListener::class, ConsentController::class, ConsentExtension::class, EmbedExtension::class, PreferencesController::class, GuestRequestController::class, ErasureProgressController::class, PrivacyPages::class, MountingRouteLoader::class]);
         } elseif (!$container->has('security.token_storage') || !$container->has('security.authorization_checker')) {
             $this->remove($container, [SecurityCurrentDataSubject::class, PreferencesController::class]);
             $container->removeAlias(CurrentDataSubject::class);

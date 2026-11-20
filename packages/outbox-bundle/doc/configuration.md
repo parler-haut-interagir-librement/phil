@@ -12,11 +12,12 @@ phil_outbox:
     relay:
         batch_size: 100         # 1 to 1000
         lease: 60               # seconds, 1 to 3600: longer than the slowest listener
+        unknown_type_grace: 3600 # seconds, 0 to 604800: a record of an unknown type is tried again meanwhile
         max_attempts: 10        # 1 to 100
         first_delay: 60         # seconds, doubled after each failure
         longest_delay: 86400    # seconds, not under the first delay
         lock: true              # one run at a time, through the lock factory
-    retention: 604800           # seconds a delivered record is kept
+    retention: 604800           # seconds a delivered or skipped record is kept
     scheduler:
         enabled: false
         frequency: 60           # seconds between two ticks, 1 to 86400
@@ -36,11 +37,12 @@ phil_outbox:
 | `generic_types` | none | The event types rebuilt as `RecordedEvent`, without a codec of their own |
 | `relay.batch_size` | 100 | The most records of a batch |
 | `relay.lease` | 60 | The seconds a batch holds its records |
+| `relay.unknown_type_grace` | 3600 | The seconds after it happened that a record of a type no codec rebuilds is tried again before it is dead: covers a worker deployed before the code that records the type; 0 buries it at once |
 | `relay.max_attempts` | 10 | The failed attempts after which a record is dead |
 | `relay.first_delay` | 60 | The seconds before a record that failed once is tried again |
 | `relay.longest_delay` | 86,400 | The longest delay before a record is tried again |
 | `relay.lock` | true | Whether one run at a time holds the lock `phil_outbox.relay` of `lock.factory`, when the application has one |
-| `retention` | 604,800 | The seconds a delivered record is kept before `phil:outbox:purge` removes it |
+| `retention` | 604,800 | The seconds a delivered or skipped record is kept before `phil:outbox:purge` removes it |
 | `scheduler.enabled` | false | A schedule `phil_outbox` that relays the outbox; see [Workers](workers.md) |
 | `messenger.enabled` | false | Relays the events to a Messenger bus instead of the dispatcher; see [Messenger](messenger.md) |
 

@@ -352,8 +352,8 @@ final class RightsTest extends WebTestCase
     public function testNoPageOfTheBundleCarriesTheMemberInItsAddress(): void
     {
         foreach (PrivacyRoutes::collection()->all() as $name => $route) {
-            // The link of a request without an account carries a random identifier, never a person.
-            self::assertStringNotContainsString('{', PrivacyRoutes::GUEST_CONFIRM === $name ? str_replace('{id}', '', $route->getPath()) : $route->getPath());
+            // The link of a request without an account and the progress of an erasure carry a random identifier, never a person.
+            self::assertStringNotContainsString('{', \in_array($name, [PrivacyRoutes::GUEST_CONFIRM, PrivacyRoutes::ERASURE_PROGRESS], true) ? str_replace(['{id}', '{_format}'], '', $route->getPath()) : $route->getPath());
         }
     }
 

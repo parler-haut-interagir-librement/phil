@@ -88,7 +88,7 @@ final readonly class DbalOutboxStore implements OutboxStore
         $platform = $this->connection->getDatabasePlatform();
         $candidates = $this->connection->fetchFirstColumn($platform->modifyLimitQuery(\sprintf(
             "SELECT o.position FROM %1\$s o WHERE o.state = 'pending' AND o.available_at <= ? AND (o.lease_until IS NULL OR o.lease_until <= ?)"
-            ." AND (o.ordering_key IS NULL OR NOT EXISTS (SELECT 1 FROM %1\$s e WHERE e.ordering_key = o.ordering_key AND e.position < o.position AND e.state <> 'delivered'))"
+            ." AND (o.ordering_key IS NULL OR NOT EXISTS (SELECT 1 FROM %1\$s e WHERE e.ordering_key = o.ordering_key AND e.position < o.position AND e.state NOT IN ('delivered', 'skipped')))"
             .' ORDER BY o.position',
             $table,
         ), $limit), [$now->getTimestamp(), $now->getTimestamp()]);
@@ -113,6 +113,15 @@ final readonly class DbalOutboxStore implements OutboxStore
     public function markDelivered(RecordId $id, string $claim, DateTimeImmutable $at): bool
     {
         return $this->settle($id, $claim, "state = 'delivered', settled_at = ?", [$at->getTimestamp()]);
+    }
+
+    /**
+     * @throws Exception when the database fails
+     */
+    #[Override]
+    public function markSkipped(RecordId $id, string $claim, DateTimeImmutable $at): bool
+    {
+        return $this->settle($id, $claim, "state = 'skipped', settled_at = ?", [$at->getTimestamp()]);
     }
 
     /**
@@ -200,7 +209,7 @@ final readonly class DbalOutboxStore implements OutboxStore
         }
 
         $positions = $this->connection->fetchFirstColumn($this->connection->getDatabasePlatform()->modifyLimitQuery(
-            \sprintf("SELECT position FROM %s WHERE state = 'delivered' AND settled_at < ? ORDER BY position", $this->table->name),
+            \sprintf("SELECT position FROM %s WHERE state IN ('delivered', 'skipped') AND settled_at < ? ORDER BY position", $this->table->name),
             $limit,
         ), [$before->getTimestamp()]);
 

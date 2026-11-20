@@ -6,16 +6,27 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.1.1-alpha.
+The next version is 0.2.0-alpha, on phil/outbox 0.2.0-alpha: skipped records and the grace of unknown types.
+
+To update: the table keeps its columns; `state` takes the value `skipped`, which fits its 16 bytes, so no migration
+is needed. Set `relay.unknown_type_grace: 0` to keep burying the records of an unknown type at once. A script that
+reads the output of `phil:outbox:relay` or `phil:outbox:dead:show` finds the skipped records counted there.
 
 ### Added
 
 - `phil:outbox:errors:clear` and `DbalOutboxStore::clearErrorMessages()`: the messages removed from the errors
   already kept, their class left, the errors of the outbox's own exceptions untouched.
+- `DbalOutboxStore::markSkipped()`: a record whose state was erased is settled as `skipped`, lets the later records of
+  its ordering key go, and is purged with the delivered records.
+- `relay.unknown_type_grace`, 3,600 seconds by default, from 0 to 604,800: how long after it happened a record of a
+  type no codec rebuilds is tried again before it is dead.
+- The skipped records in the summary of `phil:outbox:relay` and in the counts of `phil:outbox:dead:show`.
 
 ### Changed
 
-- Requires phil/outbox 0.1.1-alpha, for `OutboxRecord::OWN_EXCEPTIONS`.
+- Requires phil/outbox 0.2.0-alpha, for `OutboxRecord::OWN_EXCEPTIONS`, `RecordState::Skipped` and the grace of
+  unknown types.
+- `phil:outbox:purge` removes the skipped records with the delivered ones.
 
 ### Security
 

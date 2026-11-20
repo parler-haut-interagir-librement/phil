@@ -120,9 +120,10 @@ final class RelayCommand extends Command implements SignalableCommandInterface
     private static function summary(RelayReport $report): string
     {
         return \sprintf(
-            'Claimed %d: %d delivered, %d to try again, %d dead, %d left to their lease, %d taken over.',
+            'Claimed %d: %d delivered, %d skipped, %d to try again, %d dead, %d left to their lease, %d taken over.',
             $report->claimed,
             $report->delivered,
+            $report->skipped,
             $report->retried,
             $report->dead,
             $report->expired,

@@ -90,3 +90,22 @@ reads the completion again by those identifiers and rebuilds the `SetCompleted` 
 which the reward listener keeps to grant a reward once. The pending deliveries, their backoff and the report of the
 deliveries that keep failing are the relay's: the dead records and their last error replace the report, and an
 operator tries them again once the listener is fixed.
+
+## Erasure
+
+A library whose records name a person keeps the outbox out of the way of an erasure:
+
+- **Identifiers in the record.** The payload and the keys name the person by the identifier the library's tables hold,
+  never by an address or a name: `Payload::of()` refuses a string with `@` or whitespace. Erasing the library's rows
+  then leaves nothing personal in the outbox table, whose delivered records last until their retention ends.
+- **Read again, or skip.** The codec reads the rest of the event again from the library's tables. When the person was
+  erased in between, it throws `ForgottenRecord`: the record is skipped, no listener receives an event about someone
+  who is gone, and the purge removes it like a delivered record. `UndeliverableRecord` stays for what is broken; a
+  skipped record is never dead, so an operator never revives it by mistake.
+- **No message of a foreign exception.** The last error of a record keeps the class and code of an exception, and the
+  message of the outbox's own only: a refusal quoting an address never reaches the table.
+- **A short retention.** The delivered and skipped records keep their identifiers until the purge: run it on a
+  schedule, with the retention of [Housekeeping](housekeeping.md#retention).
+- **Each step its own record.** An erasure that spans modules records one event per module, each with an idempotency
+  key built from the request and the module, in the transaction that records the request: every module is relayed and
+  retried on its own, and recording the request again adds nothing.

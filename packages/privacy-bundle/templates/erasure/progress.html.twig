@@ -1,0 +1,32 @@
+{% extends layout %}
+
+{% block title %}{{ 'erasure.progress.title'|trans({}, 'phil_privacy') }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'erasure.progress.title'|trans({}, 'phil_privacy') }}</h1>
+    <p role="status">{{ ('erasure.progress.state.' ~ progress.request.state.value)|trans({'%completed%': counts.completed, '%total%': counts.total}, 'phil_privacy') }}</p>
+    <table>
+        <thead>
+            <tr>
+                <th scope="col">{{ 'erasure.progress.module'|trans({}, 'phil_privacy') }}</th>
+                <th scope="col">{{ 'erasure.progress.step'|trans({}, 'phil_privacy') }}</th>
+                <th scope="col">{{ 'erasure.progress.effects'|trans({}, 'phil_privacy') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for step in progress.steps %}
+                <tr>
+                    <th scope="row">{{ step.module }}</th>
+                    <td>{{ ('erasure.progress.step_state.' ~ step.state.value)|trans({}, 'phil_privacy') }}</td>
+                    <td>
+                        {% for store, effect in step.effects %}
+                            {{ store }}: {{ ('erasure.progress.effect.' ~ effect.value)|trans({}, 'phil_privacy') }}{% if effect.leavesPersonalData %} ({{ 'erasure.progress.personal_data_left'|trans({}, 'phil_privacy') }}){% endif %}{% if not loop.last %}, {% endif %}
+                        {% else %}
+                            —
+                        {% endfor %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

@@ -6,6 +6,7 @@ namespace Phil\PrivacyBundle\Tests\Unit\Infrastructure\Routing;
 
 use Override;
 use Phil\PrivacyBundle\Infrastructure\Http\ConsentController;
+use Phil\PrivacyBundle\Infrastructure\Http\ErasureProgressController;
 use Phil\PrivacyBundle\Infrastructure\Http\GuestRequestController;
 use Phil\PrivacyBundle\Infrastructure\Http\PreferencesController;
 use Phil\PrivacyBundle\Infrastructure\Routing\MountingRouteLoader;
@@ -26,7 +27,7 @@ final class MountingRouteLoaderTest extends TestCase
         $routes = $this->loader($this->application())->load('kernel');
 
         self::assertInstanceOf(RouteCollection::class, $routes);
-        self::assertSame([PrivacyRoutes::CONSENT, PrivacyRoutes::CONSENT_DECIDE, PrivacyRoutes::COOKIES, PrivacyRoutes::GUEST_REQUEST, PrivacyRoutes::GUEST_CONFIRM, PrivacyRoutes::PREFERENCES, PrivacyRoutes::EXPORT, PrivacyRoutes::EMAIL_TRACKING, PrivacyRoutes::ERASURE, PrivacyRoutes::ERASURE_CANCEL, 'app'], array_keys($routes->all()));
+        self::assertSame([PrivacyRoutes::CONSENT, PrivacyRoutes::CONSENT_DECIDE, PrivacyRoutes::COOKIES, PrivacyRoutes::GUEST_REQUEST, PrivacyRoutes::GUEST_CONFIRM, PrivacyRoutes::ERASURE_PROGRESS, PrivacyRoutes::PREFERENCES, PrivacyRoutes::EXPORT, PrivacyRoutes::EMAIL_TRACKING, PrivacyRoutes::ERASURE, PrivacyRoutes::ERASURE_CANCEL, 'app'], array_keys($routes->all()));
         self::assertSame('/prefix/consent', $routes->get(PrivacyRoutes::CONSENT)?->getPath());
         self::assertSame('/app', $routes->get('app')?->getPath());
     }
@@ -36,7 +37,7 @@ final class MountingRouteLoaderTest extends TestCase
         $routes = $this->loader($this->application(), false)->load('kernel');
 
         self::assertInstanceOf(RouteCollection::class, $routes);
-        self::assertSame([PrivacyRoutes::CONSENT, PrivacyRoutes::CONSENT_DECIDE, PrivacyRoutes::COOKIES, PrivacyRoutes::GUEST_REQUEST, PrivacyRoutes::GUEST_CONFIRM, 'app'], array_keys($routes->all()));
+        self::assertSame([PrivacyRoutes::CONSENT, PrivacyRoutes::CONSENT_DECIDE, PrivacyRoutes::COOKIES, PrivacyRoutes::GUEST_REQUEST, PrivacyRoutes::GUEST_CONFIRM, PrivacyRoutes::ERASURE_PROGRESS, 'app'], array_keys($routes->all()));
     }
 
     public function testAnApplicationThatMountedThePagesKeepsItsOwnMount(): void
@@ -79,6 +80,13 @@ final class MountingRouteLoaderTest extends TestCase
         self::assertSame('/request/{id}', $routes->get(PrivacyRoutes::GUEST_CONFIRM)->getPath());
         self::assertSame('[0-9a-f]{32}', $routes->get(PrivacyRoutes::GUEST_CONFIRM)->getRequirement('id'));
         self::assertSame([GuestRequestController::class, 'confirm'], $routes->get(PrivacyRoutes::GUEST_CONFIRM)->getDefault('_controller'));
+        $progress = $routes->get(PrivacyRoutes::ERASURE_PROGRESS);
+        self::assertSame(['GET'], $progress?->getMethods());
+        self::assertSame('/erasure/requests/{id}.{_format}', $progress->getPath());
+        self::assertSame('[0-9a-f]{32}', $progress->getRequirement('id'));
+        self::assertSame('html|json', $progress->getRequirement('_format'));
+        self::assertSame('html', $progress->getDefault('_format'));
+        self::assertSame([ErasureProgressController::class, 'progress'], $progress->getDefault('_controller'));
     }
 
     public function testTheRoutesFileGivesTheWholeCollection(): void
@@ -86,7 +94,7 @@ final class MountingRouteLoaderTest extends TestCase
         $routes = require __DIR__.'/../../../../config/routes.php';
 
         self::assertInstanceOf(RouteCollection::class, $routes);
-        self::assertCount(10, $routes);
+        self::assertCount(11, $routes);
     }
 
     public function testSupportsAndTheResolverAreTheInnerLoaders(): void

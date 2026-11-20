@@ -10,6 +10,7 @@ use Phil\EmailAddress\Exception\InvalidEmailAddress;
 use Phil\PrivacyBundle\Application\Contract\GuestLinkSender;
 use Phil\PrivacyBundle\Application\Contract\GuestRequestStore;
 use Phil\PrivacyBundle\Application\Contract\GuestSubjects;
+use Phil\PrivacyBundle\Application\Erasure\ErasureRequests;
 use Phil\PrivacyBundle\Application\Exception\ErasureIncomplete;
 use Phil\PrivacyBundle\Application\Exception\LockLost;
 use Phil\PrivacyBundle\Application\Exception\TooManyGuestRequests;
@@ -17,6 +18,7 @@ use Phil\PrivacyBundle\Application\Export\ExportPackage;
 use Phil\PrivacyBundle\Application\Lock\HeldLock;
 use Phil\PrivacyBundle\Application\SubjectErasure;
 use Phil\PrivacyBundle\Application\SubjectExport;
+use Phil\PrivacyBundle\Domain\Erasure\ErasureRequest;
 use Phil\PrivacyBundle\Domain\GuestRequest\GuestRequest;
 use Phil\PrivacyBundle\Domain\GuestRequest\GuestRequestKind;
 use Phil\PrivacyBundle\Domain\Subject\ErasureReport;
@@ -49,6 +51,9 @@ final readonly class GuestRequests
 {
     public const float LOCK_TTL = 300.0;
 
+    /** How long a request whose erasure runs as a workflow is kept at most, so that its modules can find the person. */
+    public const string WORKFLOW_RETENTION = 'P90D';
+
     private string $key;
 
     private DateInterval $lifetime;
@@ -70,6 +75,7 @@ final readonly class GuestRequests
         string $secret,
         string $linkLifetime = 'PT1H',
         ?LoggerInterface $logger = null,
+        private ?ErasureRequests $workflow = null,
     ) {
         $this->key = hash_hmac('sha256', 'phil_privacy.guest_requests', $secret, true);
         $this->lifetime = new DateInterval($linkLifetime);
@@ -166,6 +172,39 @@ final readonly class GuestRequests
             $this->logger->info('Request without an account {id} answered.', ['id' => $request->id]);
 
             return $reports;
+        });
+    }
+
+    /**
+     * Whether an erasure opens a workflow request instead of running every module at once.
+     */
+    public function erasesAsAWorkflow(): bool
+    {
+        return $this->workflow instanceof ErasureRequests;
+    }
+
+    /**
+     * Opens the erasure workflow of the request, or null when the link no longer opens an erasure request or no workflow
+     * is configured. The request is kept, its link no longer opening it, until the erasure is closed or
+     * `WORKFLOW_RETENTION` is over: the workers resolve the person from it, and no message carries them.
+     *
+     * @return array{ErasureRequest, string}|null the erasure request and the secret of its progress link
+     */
+    public function startErasure(string $id, string $token): ?array
+    {
+        $workflow = $this->workflow;
+
+        if (!$workflow instanceof ErasureRequests) {
+            return null;
+        }
+
+        return $this->locked($id, $token, GuestRequestKind::Erasure, function (GuestRequest $request, HeldLock $lock) use ($workflow): array {
+            $started = $workflow->openForGuest($request->id);
+            $lock->renew();
+            $this->store->retain($request->id, $this->clock->now()->add(new DateInterval(self::WORKFLOW_RETENTION)));
+            $this->logger->info('Request without an account {id} handed to the erasure request {erasure}.', ['id' => $request->id, 'erasure' => $started[0]->id]);
+
+            return $started;
         });
     }
 

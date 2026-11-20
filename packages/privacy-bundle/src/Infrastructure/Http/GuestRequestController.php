@@ -77,6 +77,12 @@ final readonly class GuestRequestController
             return $this->private(null === $zip ? $this->invalid() : PrivacyPages::archive($zip));
         }
 
+        if ($guests->erasesAsAWorkflow()) {
+            $started = $guests->startErasure($id, $token);
+
+            return $this->private(null === $started ? $this->invalid() : $this->pages->render('guest/erasure_started', ['erasure_id' => $started[0]->id, 'token' => $started[1]]));
+        }
+
         try {
             $reports = $guests->erase($id, $token);
         } catch (ErasureIncomplete) {

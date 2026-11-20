@@ -105,6 +105,35 @@ final readonly class BillingEraser implements PersonalDataEraser
 }
 ```
 
+## `ExternalPersonalDataEraser`
+
+One module's part of an erasure that an external service carries out, for the [erasure workflow](erasure-workflow.md).
+Autoconfiguration tags it `phil_privacy.external_eraser`.
+
+| Method | Contract |
+|---|---|
+| `module(): ModuleName` | The module's name, unique among every eraser, external or not. |
+| `request(DataSubject $subject, string $idempotencyKey): void` | Sends the erasure with the step's key, which stays the same however many times the step runs: the service erases once for a key. Idempotent. Throws when the service refuses, and the step is given back. |
+
+The step ends when the application hands the service's acknowledgement to `ErasureRequests::acknowledge()` with that
+key.
+
+## `ErasureRequestStore`
+
+Keeps the erasure requests and their steps, for the [erasure workflow](erasure-workflow.md). The tables of the bundle
+are the default; name another with `erasure_workflow.store`. A step changes state only through its methods, each of
+which changes it only from the states it names, in one statement: `open()` adds the request and its steps in the
+transaction of the outbox records; `lease()`, `complete()`, `await()`, `release()` and `flag()` move a step;
+`acknowledge()` completes a step waiting under its idempotency key; `reopen()` puts back the steps that need attention or
+wait for an acknowledgement; `settle()` sets the state of a request and never changes a closed one.
+
+## `ErasureMessages`
+
+`record(string $requestId, string $module, string $idempotencyKey): void` records the message of one module, in the
+transaction `ErasureRequestStore::open()` runs, to be sent once it commits. The default, `OutboxErasureMessages`,
+writes an outbox record of phil/outbox-bundle; alias another to the interface. A message carries the identifiers only,
+and recording again under a key already used adds nothing.
+
 ## `RetentionScheduleSource`
 
 Reads the application's retention schedule, wherever and however it is kept. Consumed by `RetentionRun`. A schedule
@@ -235,6 +264,7 @@ another with `guest_requests.store`.
 | `save(GuestRequest $request)` | Adds the request. Keeps the address out of reach of a copy of the store. |
 | `find(string $id)` | The request, or `null`, also when it cannot be read. |
 | `delete(string $id)` | Removes it; nothing when it is gone. |
+| `retain(string $id, DateTimeImmutable $until)` | Keeps a request whose erasure runs as a workflow until `$until`: its link no longer opens it, and it is purged at `$until` at the latest. |
 | `purgeExpired(DateTimeImmutable $now)` | Removes those whose expiry has come, and says how many. |
 
 ## `GuestLinkSender`
@@ -359,6 +389,9 @@ asked columns keyed by the names as given, writes one row's values by its key, a
 | `phil_privacy.retention_purger` | the bundle | Given by autoconfiguration to every `RetentionPurger` service (`RightsServices::PURGER_TAG`). |
 | `Phil\PrivacyBundle\Application\RetentionRun`, `RetentionJob` | the bundle | Public services, with a schedule. |
 | `phil:privacy:retention`, `phil:privacy:deletions`, `phil:privacy:incident`, `phil:privacy:incidents` | the bundle | Commands, registered with Symfony Console. |
+| `Phil\PrivacyBundle\Application\Erasure\ErasureRequests` | the bundle | Public service, when `erasure_workflow.enabled`. |
+| `phil_privacy.external_eraser` | the bundle | Given by autoconfiguration to every `ExternalPersonalDataEraser` service (`ErasureWorkflowServices::EXTERNAL_ERASER_TAG`). |
+| `phil:privacy:erasure` | the bundle | Command, when `erasure_workflow.enabled`. |
 | `Phil\PrivacyBundle\Domain\Cookie\CookieInventory` | the bundle | Public service: the inventory of `cookies.inventory`, with the consent cookie. |
 | `Phil\PrivacyBundle\Application\Export\ExportPackage` | the bundle | Public service: the archive of an access answer. |
 | `Phil\PrivacyBundle\Application\Contract\IncidentRegister` | the bundle | Public alias of the register of incidents. |

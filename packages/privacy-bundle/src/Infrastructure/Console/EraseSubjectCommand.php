@@ -87,7 +87,7 @@ final class EraseSubjectCommand extends Command
     {
         foreach ($reports as $report) {
             foreach ($report->effects as $store => $effect) {
-                $output->writeln(\sprintf('%s: %s, %s', $report->module->value, $store, $effect->value));
+                $output->writeln(\sprintf('%s: %s, %s%s', $report->module->value, $store, $effect->value, $effect->leavesPersonalData() ? ' (personal data left)' : ''));
             }
         }
     }

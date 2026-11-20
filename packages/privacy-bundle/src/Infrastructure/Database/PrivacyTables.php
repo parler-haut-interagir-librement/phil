@@ -9,6 +9,7 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ColumnEditor;
 use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Index\IndexType;
 use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
@@ -23,7 +24,11 @@ use Phil\PrivacyBundle\Domain\Subject\DataSubject;
  * - `phil_privacy_guest_request`: one row per request made without an account, while its link is valid, its address
  *   sealed;
  * - `phil_privacy_incident`: the register of confidentiality incidents;
- * - `phil_privacy_email_tracking`: each member's last choice about tracked emails, one row per member.
+ * - `phil_privacy_email_tracking`: each member's last choice about tracked emails, one row per member;
+ * - `phil_privacy_erasure_request`: one row per erasure request, naming a person by their opaque identifier or the
+ *   request made without an account it came from, never by an address;
+ * - `phil_privacy_erasure_step`: one row per module of an erasure request, unique for the pair, with its lease and its
+ *   idempotency key.
  *
  * Every instant is a `datetime_utc_immutable` column, written and read through {@see UtcMoments}.
  *
@@ -42,6 +47,10 @@ final class PrivacyTables
     public const string INCIDENTS = 'phil_privacy_incident';
 
     public const string EMAIL_TRACKING = 'phil_privacy_email_tracking';
+
+    public const string ERASURE_REQUESTS = 'phil_privacy_erasure_request';
+
+    public const string ERASURE_STEPS = 'phil_privacy_erasure_step';
 
     private function __construct()
     {
@@ -130,7 +139,51 @@ final class PrivacyTables
                 ->create());
         }
 
+        if (!$schema->hasTable(self::ERASURE_REQUESTS)) {
+            $editor->addTable(Table::editor()
+                ->setUnquotedName(self::ERASURE_REQUESTS)
+                ->addColumn(self::string('id', 32, $binary))
+                ->addColumn(self::nullableString('subject', DataSubject::MAX_LENGTH, $binary))
+                ->addColumn(self::nullableString('guest_request', 32, $binary))
+                ->addColumn(self::string('inventory_version', 16, $binary))
+                ->addColumn(self::string('state', 16))
+                ->addColumn(self::moment('requested_at'))
+                ->addColumn(self::maybeMoment('closed_at'))
+                ->addColumn(self::nullableString('access_hash', 64, $binary))
+                ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('id')->create())
+                ->addIndex(Index::editor()->setUnquotedName('idx_phil_privacy_erasure_subject')->setUnquotedColumnNames('subject')->create())
+                ->addIndex(Index::editor()->setUnquotedName('idx_phil_privacy_erasure_state')->setUnquotedColumnNames('state', 'requested_at')->create())
+                ->create());
+        }
+
+        if (!$schema->hasTable(self::ERASURE_STEPS)) {
+            $editor->addTable(Table::editor()
+                ->setUnquotedName(self::ERASURE_STEPS)
+                ->addColumn(self::string('request_id', 32, $binary))
+                ->addColumn(self::string('module', 64, $binary))
+                ->addColumn(self::string('state', 16))
+                ->addColumn(Column::editor()->setUnquotedName('attempts')->setTypeName(Types::INTEGER)->setNotNull(true)->setDefaultValue(0)->create())
+                ->addColumn(self::nullableString('lease', 32, $binary))
+                ->addColumn(self::maybeMoment('lease_until'))
+                ->addColumn(self::string('idempotency_key', 97, $binary))
+                ->addColumn(Column::editor()->setUnquotedName('effects')->setTypeName(Types::TEXT)->setNotNull(false)->create())
+                ->addColumn(self::nullableString('reason', 32))
+                ->addColumn(self::moment('updated_at'))
+                ->addColumn(self::maybeMoment('completed_at'))
+                ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('request_id', 'module')->create())
+                ->addIndex(Index::editor()->setUnquotedName('uniq_phil_privacy_erasure_step_key')->setUnquotedColumnNames('idempotency_key')->setType(IndexType::UNIQUE)->create())
+                ->create());
+        }
+
         return $editor->create();
+    }
+
+    /**
+     * @param non-empty-string $name
+     */
+    private static function nullableString(string $name, int $length, bool $binary = false): Column
+    {
+        return self::binary(Column::editor()->setUnquotedName($name)->setTypeName(Types::STRING)->setLength($length)->setNotNull(false), $binary)->create();
     }
 
     /**

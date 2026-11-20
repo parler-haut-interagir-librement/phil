@@ -337,6 +337,11 @@ final class GuestRequestsTest extends TestCase
             }
 
             #[Override]
+            public function retain(string $id, DateTimeImmutable $until): void
+            {
+            }
+
+            #[Override]
             public function purgeExpired(DateTimeImmutable $now): int
             {
                 return 0;

@@ -114,3 +114,12 @@ mailer sender, the bundle refuses to boot when neither `public_origin` nor `fram
 
 The pages and the e-mail are in the `phil_privacy` domain, in English and French; override the templates under
 `templates/bundles/PhilPrivacy/guest/` for your markup.
+
+## As a workflow
+
+With [`erasure_workflow`](erasure-workflow.md#requests-made-without-an-account) on, the form of an opened erasure link
+opens an erasure request instead of running every module at once, and the page that follows gives a progress link with
+a secret of its own. The messages carry the erasure request's identifier only, never the address; each worker reads the
+address from the request made without an account, which stays, its link no longer opening it, until the erasure is
+closed, or for 90 days at most.
+

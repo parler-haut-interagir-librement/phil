@@ -125,6 +125,19 @@ final class RightsConfiguration
             ->end();
     }
 
+    public static function erasureWorkflow(): ArrayNodeDefinition
+    {
+        return new ArrayNodeDefinition('erasure_workflow')
+            ->info('Erasure as a workflow: one step per module, each sent through phil/outbox-bundle, retried and finished on its own, with a progress page. Needs phil/outbox-bundle on the connection of the bundle, Messenger and the clock.')
+            ->addDefaultsIfNotSet()
+            ->children()
+                ->booleanNode('enabled')->defaultFalse()->end()
+                ->integerNode('lease')->info('The seconds a worker holds a step: longer than the slowest eraser.')->min(1)->max(86_400)->defaultValue(900)->end()
+                ->scalarNode('operator_role')->info('The role that may read the progress of any erasure request.')->defaultValue('ROLE_PRIVACY_OPERATOR')->cannotBeEmpty()->end()
+                ->scalarNode('store')->info('Service id of an ErasureRequestStore; null, the tables of the bundle.')->defaultNull()->end()
+            ->end();
+    }
+
     public static function incidents(): ArrayNodeDefinition
     {
         return new ArrayNodeDefinition('incidents')

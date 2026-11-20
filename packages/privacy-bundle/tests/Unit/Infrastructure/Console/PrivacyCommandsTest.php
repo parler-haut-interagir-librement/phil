@@ -205,12 +205,12 @@ final class PrivacyCommandsTest extends TestCase
             '',
             '## Personal fields',
             '',
-            '| Category | Class | Property | Retention | Store | Period | Mechanism | Erasure |',
-            '|---|---|---|---|---|---|---|---|',
-            '| email | '.Member::class.' | email | R-002 | — | — | — | — |',
-            '| email | '.Subscriber::class.' | email | R-002 | — | — | — | — |',
-            '| ip | '.BaseModel::class.' | createdFrom | R-009 | — | — | — | — |',
-            '| person_name | '.Member::class.' | displayName | — | — | — | — | — |',
+            '| Category | Class | Property | Retention | Store | Period | Mechanism | Erasure | Personal data left |',
+            '|---|---|---|---|---|---|---|---|---|',
+            '| email | '.Member::class.' | email | R-002 | — | — | — | — | — |',
+            '| email | '.Subscriber::class.' | email | R-002 | — | — | — | — | — |',
+            '| ip | '.BaseModel::class.' | createdFrom | R-009 | — | — | — | — | — |',
+            '| person_name | '.Member::class.' | displayName | — | — | — | — | — | — |',
         ])."\n", $table->getDisplay());
 
         $json = new CommandTester(new ProcessingRegisterCommand(new ProcessingRegister(), [Member::class]));
@@ -220,7 +220,7 @@ final class PrivacyCommandsTest extends TestCase
         self::assertSame(['activities', 'fields', 'gaps'], array_keys($decoded));
         self::assertIsArray($decoded['fields']);
         self::assertCount(3, $decoded['fields']);
-        self::assertSame(['category' => 'email', 'class' => Member::class, 'property' => 'email', 'retention' => 'R-002', 'store' => null, 'period' => null, 'mechanism' => null, 'erasure' => null], $decoded['fields'][0]);
+        self::assertSame(['category' => 'email', 'class' => Member::class, 'property' => 'email', 'retention' => 'R-002', 'store' => null, 'period' => null, 'mechanism' => null, 'erasure' => null, 'personal_data_left' => null], $decoded['fields'][0]);
         self::assertStringStartsWith("{\n    \"activities\": [],\n    \"fields\": [\n        {\n            \"category\": \"email\",\n            \"class\": \"Phil\\\\PrivacyBundle", $json->getDisplay());
 
         $refused = new CommandTester($command);

@@ -29,6 +29,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
  *     relay:
  *         batch_size: 100
  *         lease: 60
+ *         unknown_type_grace: 3600
  * ```
  *
  * @phpstan-import-type Config from OutboxServices
@@ -91,6 +92,7 @@ final class PhilOutboxBundle extends AbstractBundle
                     ->children()
                         ->integerNode('batch_size')->info('The most records of a batch.')->min(1)->max(Relay::MAX_BATCH)->defaultValue(Relay::BATCH)->end()
                         ->integerNode('lease')->info('The seconds a batch holds its records: longer than the slowest listener.')->min(1)->max(3600)->defaultValue(Relay::LEASE)->end()
+                        ->integerNode('unknown_type_grace')->info('The seconds after it happened that a record of a type no codec rebuilds is tried again before it is dead: covers a worker deployed before the code that records the type.')->min(0)->max(Relay::MAX_UNKNOWN_TYPE_GRACE)->defaultValue(Relay::UNKNOWN_TYPE_GRACE)->end()
                         ->integerNode('max_attempts')->info('The failed attempts after which a record is dead.')->min(1)->max(100)->defaultValue(Backoff::MAX_ATTEMPTS)->end()
                         ->integerNode('first_delay')->info('The seconds before a record that failed once is tried again, doubled after each failure.')->min(1)->defaultValue(Backoff::FIRST_DELAY)->end()
                         ->integerNode('longest_delay')->info('The longest delay before a record is tried again, in seconds.')->min(1)->defaultValue(Backoff::LONGEST_DELAY)->end()

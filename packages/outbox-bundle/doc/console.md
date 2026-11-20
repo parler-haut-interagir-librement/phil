@@ -17,7 +17,7 @@ it after the batch under way. A run that finds the lock held by another run give
 With `-v`, each batch that claimed records is told; the run ends with the sum:
 
 ```text
-[OK] Claimed 3: 3 delivered, 0 to try again, 0 dead, 0 left to their lease, 0 taken over.
+[OK] Claimed 3: 3 delivered, 0 skipped, 0 to try again, 0 dead, 0 left to their lease, 0 taken over.
 ```
 
 ## `phil:outbox:dead:show`
@@ -38,7 +38,7 @@ records of their ordering keys go. Nothing is removed without `--force`.
 
 ## `phil:outbox:purge`
 
-Removes the delivered records settled more than `retention` seconds ago, the oldest first, up to `--limit` (1,000);
+Removes the delivered and skipped records settled more than `retention` seconds ago, the oldest first, up to `--limit` (1,000);
 `--retention` chooses another number of seconds. The pending and dead records stay. Run it on a schedule, such as
 once an hour.
 

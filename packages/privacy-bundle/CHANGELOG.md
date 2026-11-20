@@ -8,7 +8,17 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.2.0-alpha: the link of a request without an account points to `public_origin`, and the `prod`
 environment refuses to boot, while those requests are on with the mailer sender, without it or
-`framework.trusted_hosts`. See [Where the link points](doc/requests-without-an-account.md#where-the-link-points).
+`framework.trusted_hosts`. See [Where the link points](doc/requests-without-an-account.md#where-the-link-points). The
+erasure can run as a workflow, one step per module through phil/outbox-bundle, and `ErasureEffect::Anonymised` tells a
+skeleton judged non-identifiable from a pseudonymised record. See [Erasure as a workflow](doc/erasure-workflow.md).
+
+To update: a `GuestRequestStore` of your own implements `retain()`. Code that reads the register's JSON, or the
+rows of `RegisterEntry::toArray()`, finds `personal_data_left` added, and the Markdown register a column more. Review
+the stores your erasers report as `Pseudonymised`: keep it for a pseudonym, a token or a keyed hash, which stay
+personal data, and report `Anonymised` only for a skeleton someone judged non-identifiable. To turn the workflow on,
+install phil/outbox-bundle on the connection of the bundle, route `EraseModule` to an asynchronous transport, set
+`erasure_workflow.enabled: true`, and run `doctrine:migrations:diff`, or the SQL of
+[The tables](doc/erasure-workflow.md#the-tables), for `phil_privacy_erasure_request` and `phil_privacy_erasure_step`.
 
 ### Added
 
@@ -16,6 +26,47 @@ environment refuses to boot, while those requests are on with the mailer sender,
   point to; `Infrastructure\Routing\GuestLinkOrigin`, which generates a link while the router's context names that
   origin and gives the request's context back at once, the origin and the links read by `phil/url`.
 - `PhilPrivacyBundle::boot()` and `PhilPrivacyBundle::MAILED_LINKS`.
+- Erasure as a workflow, `erasure_workflow` (`enabled`, `lease`, `operator_role`, `store`), off by default:
+  `Application\Erasure\ErasureRequests`, which opens a request for every module of the erasure inventory or for the
+  modules named, a module the inventory does not declare refused, and keeps the inventory's version on it; one
+  `phil_privacy.erase_module` outbox record per module, written in the transaction of the request, carrying the
+  request's identifier and the module's name, with the idempotency key `<request>:<module>`; one step per module
+  (`pending`, `running`, `completed`, `needs_attention`), unique for the pair and leased to one worker, so that a
+  message delivered twice or a request resumed never runs a finished module again; the request's state drawn from
+  its steps (`running`, `needs_attention`, `completed`), and `failed` left to an operator.
+- `Domain\Erasure\ErasureInventory`, `ErasureRequest`, `ErasureStep`, `ErasureProgress`, `RequestState`,
+  `StepState` and `AttentionReason` (`retries_exhausted`, `unknown_module`, `subject_unavailable`).
+- `Application\Contract\ErasureRequestStore` and `Infrastructure\Database\DbalErasureRequests`, over the tables
+  `phil_privacy_erasure_request` and `phil_privacy_erasure_step` of `PrivacyTables`, which also purges the closed
+  requests of the store `phil_privacy_erasure_request`; the SQL of both tables for MySQL, MariaDB and PostgreSQL in
+  [The tables](doc/erasure-workflow.md#the-tables).
+- `Application\Contract\ErasureMessages` and `Infrastructure\Outbox\OutboxErasureMessages`, which records the
+  message of each module in the outbox of phil/outbox-bundle.
+- `Application\Message\EraseModule`, `Handler\EraseModuleHandler` and `Exception\ModuleErasureFailed`, which names the
+  request and the module, never the module's failure; `Infrastructure\Outbox\EraseModuleCodec`, which skips the
+  record of a request that is gone, and `EraseModuleRelay`, which hands the message to the bus.
+- `Infrastructure\Messenger\ErasureFailureListener`: on `WorkerMessageFailedEvent`, it waits while `willRetry()` is
+  true, then marks the step and the request as needing attention; `ErasureRequests::replay()` and a message replayed
+  from the failure transport bring the request back to running, and `ErasureRequests::fail()` closes it as failed.
+- `Application\Contract\ExternalPersonalDataEraser`, tagged `phil_privacy.external_eraser`: the erasure sent to an
+  external service with the step's stable idempotency key, the step ending only on `ErasureRequests::acknowledge()`.
+- The progress of an erasure request, `phil_privacy_erasure_progress` at `/erasure/requests/{id}` and its `.json`,
+  shown to the person, to a user granted `erasure_workflow.operator_role`, and for a request made without an account
+  to the holder of its progress link's secret; anyone else gets a 404. `Infrastructure\Http\ErasureProgressController`
+  and the templates `erasure/progress` and `guest/erasure_started`.
+- `phil:privacy:erasure`: a request module by module, `--replay`, and `--fail --confirm`.
+- `GuestRequests::erasesAsAWorkflow()`, `startErasure()` and `WORKFLOW_RETENTION`, and `GuestRequestStore::retain()`:
+  with the workflow on, an opened erasure link opens an erasure request that keeps the identifier of the request made
+  without an account, never the address, which the worker resolves through `GuestSubjects`; that request is kept, its
+  link no longer opening it, until the erasure is closed or for 90 days at most.
+- An optional `ErasureRequests` argument, last, for `AccountDeletions` and `GuestRequests`: the erasure stage of a
+  deletion opens one erasure request under the deletion's identifier and closes the deletion once it completed.
+- `ErasureEffect::Anonymised`, for a skeleton judged non-identifiable, and `ErasureEffect::leavesPersonalData()`;
+  `personal_data_left` in the register's JSON and a column of its Markdown, and the effects that leave personal data
+  marked by `phil:privacy:erase`.
+- [Choosing a control](doc/choosing-a-control.md): which tool answers which problem and where it stops, tier 1 named,
+  the token vault ruled out, the transparent encryption of the database server and the verification of backups.
+- `MisconfiguredPrivacy::erasureLease()`.
 - `Application\Exception\AccountErasureIncomplete`, what `AdvanceAccountDeletionHandler` throws when an erasure
   fails: the identifier of the request and the names of the modules, without a previous exception.
 - The documentation of a failure transport of the privacy messages, with a short retention and
@@ -27,6 +78,10 @@ environment refuses to boot, while those requests are on with the mailer sender,
   neither `public_origin` nor `framework.trusted_hosts` is set. The origin is read when the kernel boots: one with a
   path, a query, a fragment or an IP address is refused, and `localhost` is accepted only in debug mode.
 - `MailerGuestLinkSender` takes a `GuestLinkOrigin`, last and optional.
+- The comment of `ErasureEffect::Pseudonymised` says that the record is still personal data for whoever holds the
+  link back, instead of a record without anything naming the person.
+- `GuestRequestStore` has `retain()`.
+- The documentation of `SubjectErasure` no longer shows a previous exception on `ErasureIncomplete`.
 - `phil:privacy:erase` prints the class of a module's failure, and its message only with `-v`.
 - The Rotation section of [Encrypting personal data at rest](doc/encrypted-columns.md) cites `rotate($scope)` of the
   data key store and `key-management:rewrap-data-keys`, and says that access to the KMS decrypts every column.
