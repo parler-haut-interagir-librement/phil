@@ -68,7 +68,7 @@ final class DumpSitemapsCommandTest extends TestCase
 
     public function testAFileThatCannotBeWrittenKeepsThePreviousIndex(): void
     {
-        chmod($this->directory, 0o555);
+        $this->makeTheDirectoryReadOnly();
 
         self::assertSame(Command::FAILURE, $this->dump($this->pages()));
         $written = $this->output->fetch();
@@ -132,7 +132,7 @@ final class DumpSitemapsCommandTest extends TestCase
 
     public function testADirectoryThatCannotBeMadeIsRefused(): void
     {
-        chmod($this->directory, 0o555);
+        $this->makeTheDirectoryReadOnly();
 
         self::assertSame(Command::FAILURE, $this->dump($this->pages(), $this->directory.'/made'));
         $written = $this->compact($this->output->fetch());
@@ -270,5 +270,18 @@ final class DumpSitemapsCommandTest extends TestCase
         ksort($files);
 
         return $files;
+    }
+
+    /**
+     * A user who writes even in a read-only directory, such as root in a container, cannot see these failures.
+     */
+    private function makeTheDirectoryReadOnly(): void
+    {
+        chmod($this->directory, 0o555);
+        clearstatcache();
+
+        if (is_writable($this->directory)) {
+            self::markTestSkipped('The tests run as a user who writes in a read-only directory.');
+        }
     }
 }

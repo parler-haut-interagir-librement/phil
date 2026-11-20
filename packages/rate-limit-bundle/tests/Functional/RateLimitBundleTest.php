@@ -15,6 +15,7 @@ use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * The bundle in a real kernel: a controller limited by its attributes answered with its page in French, an API limited
@@ -123,7 +124,7 @@ final class RateLimitBundleTest extends WebTestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessageIsOrContains('.cache_pool: the store "cache.limits" is local to each server');
 
-        new TestKernel('prod', false)->boot();
+        $this->freshKernel('prod', false)->boot();
     }
 
     public function testAnUnknownLimiterStopsTheBuild(): void
@@ -131,7 +132,18 @@ final class RateLimitBundleTest extends WebTestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIsOrContains('The rate limits of the route "unknown": No rate limiter is named "nothing"');
 
-        new TestKernel('invalid', true)->boot();
+        $this->freshKernel('invalid', true)->boot();
+    }
+
+    /**
+     * A kernel whose container is built again: a build expected to fail never meets one kept from an earlier run.
+     */
+    private function freshKernel(string $environment, bool $debug): TestKernel
+    {
+        $kernel = new TestKernel($environment, $debug);
+        new Filesystem()->remove($kernel->getCacheDir());
+
+        return $kernel;
     }
 
     /**

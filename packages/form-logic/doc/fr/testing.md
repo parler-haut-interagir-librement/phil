@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d302d782d7cd0df0ed79920c0b54a45ff98a4a9e59d480b172498b78fe3225f0 -->
+<!-- phil-dev source-sha256=6692abb46441643337efc43e43d65c08c43676f373d6a2f0b5eda3ddaf21976c -->
 # Tests
 
 ## Les tests du paquet
@@ -54,8 +54,8 @@ comme un nombre en notation décimale seulement, deux listes jamais égales, un 
 variable à `null` qui prend sa valeur par défaut, et `!=` vrai pour un champ sans valeur, comme le donnent aussi les
 conditions de base de `phil/forms-bundle`.
 
-`.gitattributes` laisse `tests/` hors de l'archive qu'installe Composer, de sorte que le fichier et son avis restent
-dans le dépôt.
+L'archive qu'installe Composer contient `tests/`, le fichier et son avis avec lui, de sorte que les suites s'exécutent
+depuis une copie installée du paquet.
 
 ## La suite du navigateur
 

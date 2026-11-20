@@ -29,7 +29,8 @@ final class FontLimitsTest extends TestCase
     {
         $font = FontBuilder::sfnt(['name' => FontBuilder::names([1 => 'Large Sans']), 'glyf' => '']);
 
-        self::assertSame('Large Sans', FontFile::fromBytes(str_pad($font, 32 * self::MIB, "\0"))->face()->family());
+        // The reader alone: the digest FontFile takes of the whole file would cost more than the read.
+        self::assertSame('Large Sans', FontReader::read(str_pad($font, 32 * self::MIB, "\0"), null)[1][0]->family());
     }
 
     public function testAFileOverTheLimitIsRefused(): void

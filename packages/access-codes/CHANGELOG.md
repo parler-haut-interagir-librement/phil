@@ -4,6 +4,15 @@ All notable changes to `phil/access-codes` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha: writing a batch as CSV raises no deprecation on PHP 8.6.
+
+### Fixed
+
+- `CreatedBatch::writeCsv()` formats each line itself and writes it with `SplFileObject::fwrite()`, as
+  `fputcsv()` does without an escape character, instead of calling `SplFileObject::fputcsv()`, deprecated on PHP 8.6.
+
 ## 0.2.0-alpha - 2026-11-18
 
 Batch identifiers and code hashes compare byte by byte on MySQL and MariaDB. See

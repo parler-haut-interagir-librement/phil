@@ -4,6 +4,16 @@ All notable changes to `phil/status-page-bundle` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+Tests only.
+
+### Changed
+
+- A test of the stores uses a stub instead of a mock that expects nothing, which PHPUnit reports.
+
 ## 0.1.0-alpha - 2026-11-13
 
 ### Added

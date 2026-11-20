@@ -4,6 +4,17 @@ All notable changes to `phil/notifications-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+Tests only.
+
+### Changed
+
+- The WebPush test ignores the notice the library logs when neither GMP nor BCMath is loaded, which depends on the PHP
+  build.
+
 ## 0.2.0-alpha - 2026-11-18
 
 Recipients, identifiers and keys of the three tables compare byte by byte on MySQL

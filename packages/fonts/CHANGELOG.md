@@ -4,6 +4,16 @@ All notable changes to `phil/fonts` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+Tests only.
+
+### Changed
+
+- The test of a font of 32 MiB reads it with the reader alone, without the digest of the whole file.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

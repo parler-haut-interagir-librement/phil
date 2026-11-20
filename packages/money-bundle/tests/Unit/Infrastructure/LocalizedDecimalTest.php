@@ -46,6 +46,9 @@ final class LocalizedDecimalTest extends TestCase
         yield 'German, grouped by dots' => ['1.234,56', 'de', '1234.56'];
         yield 'German, grouped by dots without decimals' => ['1.234', 'de', '1234'];
         yield 'Swiss German, grouped by apostrophes' => ["1'234'567.5", 'de_CH', '1234567.5'];
+        yield 'Swiss German, grouped by typographic apostrophes' => ["1\u{2019}234\u{2019}567.5", 'de_CH', '1234567.5'];
+        yield 'Swiss German, an apostrophe before two digits' => ["12\u{2019}50", 'de_CH', null];
+        yield 'English, an apostrophe it does not group by' => ["1'234", 'en', null];
         yield 'Indian English, grouped by two then three' => ['12,34,567.50', 'en_IN', '1234567.50'];
         yield 'English, grouped by spaces' => ['1 234 567.50', 'en', '1234567.50'];
         yield 'English, a comma before two digits' => ['12,50', 'en', null];

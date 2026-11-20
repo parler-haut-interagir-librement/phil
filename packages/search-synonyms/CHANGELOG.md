@@ -4,6 +4,16 @@ All notable changes to `phil/search-synonyms` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+Tests only.
+
+### Changed
+
+- The test of a JSON error accepts the position of the error that PHP 8.6 adds to its reason.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

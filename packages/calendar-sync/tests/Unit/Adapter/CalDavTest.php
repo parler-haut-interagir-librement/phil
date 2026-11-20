@@ -205,8 +205,12 @@ final class CalDavTest extends TestCase
 
     public function testAnAnswerOfTheMostBytesIsRead(): void
     {
-        $calendar = "BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n";
-        $recorder = new Recorder(new MockResponse([$calendar, str_repeat("\r\n", (HttpCall::MAX_BYTES - \strlen($calendar)) / 2)]));
+        // Lines of 16 KiB of an unknown property fill the answer: few lines, read fast, up to the last byte allowed.
+        $line = 'X-PAD:'.str_repeat('a', 16_376)."\r\n";
+        $body = "BEGIN:VCALENDAR\r\n".str_repeat($line, intdiv(HttpCall::MAX_BYTES - 32, \strlen($line)));
+        $body .= 'X-PAD:'.str_repeat('a', HttpCall::MAX_BYTES - \strlen($body) - 23)."\r\nEND:VCALENDAR\r\n";
+        self::assertSame(HttpCall::MAX_BYTES, \strlen($body));
+        $recorder = new Recorder(new MockResponse([substr($body, 0, 17), substr($body, 17)]));
 
         self::assertSame([], [...$this->calDav($recorder)->busy($this->connection(), Credentials::none(), $this->window())]);
     }

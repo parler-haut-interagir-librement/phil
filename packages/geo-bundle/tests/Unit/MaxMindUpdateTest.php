@@ -191,6 +191,12 @@ final class MaxMindUpdateTest extends TestCase
         if (isset($case['read only'])) {
             mkdir($this->directory.'/locked');
             chmod($this->directory.'/locked', 0o555);
+            clearstatcache();
+
+            if (is_writable($this->directory.'/locked')) {
+                self::markTestSkipped('The tests run as a user who writes in a read-only directory.');
+            }
+
             $database = $this->directory.'/locked/GeoLite2-City.mmdb';
         }
 

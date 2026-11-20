@@ -171,7 +171,7 @@ final class StoresTest extends TestCase
     public function testAStorageIsWrittenAtTheCleanedPrefixWithTheMediaTypeAndTheVisibility(): void
     {
         $writes = new ArrayObject();
-        $storage = $this->createMock(FilesystemOperator::class);
+        $storage = self::createStub(FilesystemOperator::class);
         $storage->method('write')->willReturnCallback(static function (string $path, string $contents, array $config) use ($writes): void {
             $writes[$path] = $config;
         });

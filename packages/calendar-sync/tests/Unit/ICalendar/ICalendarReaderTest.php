@@ -419,10 +419,10 @@ final class ICalendarReaderTest extends TestCase
     {
         $events = [];
 
+        // One event every two minutes from 2026-11-01T00:00:00Z, its start written from the Unix time.
         for ($i = 0; $i < BusyPeriods::MAX; ++$i) {
-            $start = new DateTimeImmutable('2026-11-01T00:00:00Z')->modify(\sprintf('+%d minutes', 2 * $i));
             $events[] = 'BEGIN:VEVENT';
-            $events[] = 'DTSTART:'.$start->format('Ymd\THis\Z');
+            $events[] = 'DTSTART:'.gmdate('Ymd\THis\Z', 1_793_491_200 + 120 * $i);
             $events[] = 'DURATION:PT1M';
             $events[] = 'END:VEVENT';
         }

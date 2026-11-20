@@ -118,6 +118,8 @@ abstract class ConcurrentClaimsTestCase extends TestCase
     public function testATakeoverAskedDuringASaveWaitsForTheBlockToBeWritten(): void
     {
         $bobConnection = $this->connect();
+        // A run stopped before its last step leaves the table on a server database, which outlives the run.
+        $bobConnection->executeStatement('DROP TABLE IF EXISTS edit_lock_test_block');
         $bobConnection->executeStatement('CREATE TABLE edit_lock_test_block (id VARCHAR(64) NOT NULL PRIMARY KEY, body VARCHAR(255) NOT NULL, fence INTEGER NOT NULL)');
 
         $bob = $this->locks($bobConnection);

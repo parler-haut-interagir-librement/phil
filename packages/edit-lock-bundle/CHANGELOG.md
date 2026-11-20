@@ -4,6 +4,16 @@ All notable changes to `phil/edit-lock-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+Tests only.
+
+### Changed
+
+- The test of a takeover during a save drops the table of blocks a stopped run left behind before it creates it.
+
 ## 0.2.0-alpha - 2026-11-18
 
 `BlockStore`'s methods take a `Fence`, and `LeaseRepository` gains `fence()`. See

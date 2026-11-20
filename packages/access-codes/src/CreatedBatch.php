@@ -63,13 +63,27 @@ final class CreatedBatch
     public function writeCsv(SplFileObject $file, ?RedemptionLinks $links = null): int
     {
         $codes = $this->takeCodes(display: false);
-        $file->fputcsv($links instanceof RedemptionLinks ? ['code', 'link'] : ['code'], ',', '"', '');
+        $file->fwrite($this->csvLine($links instanceof RedemptionLinks ? ['code', 'link'] : ['code']));
 
         foreach ($codes as $code) {
-            $file->fputcsv($links instanceof RedemptionLinks ? [$this->format->display($code), $links->for($code)->toString()] : [$this->format->display($code)], ',', '"', '');
+            $file->fwrite($this->csvLine($links instanceof RedemptionLinks ? [$this->format->display($code), $links->for($code)->toString()] : [$this->format->display($code)]));
         }
 
         return \count($codes);
+    }
+
+    /**
+     * One CSV line as `fputcsv()` writes it without an escape character: a field holding the separator, a quote, a
+     * space, a tab or a line break goes between quotes, its quotes doubled.
+     *
+     * @param list<string> $fields
+     */
+    private function csvLine(array $fields): string
+    {
+        return implode(',', array_map(
+            static fn (string $field): string => false === strpbrk($field, ",\"\n\r\t ") ? $field : '"'.str_replace('"', '""', $field).'"',
+            $fields,
+        ))."\n";
     }
 
     /**
