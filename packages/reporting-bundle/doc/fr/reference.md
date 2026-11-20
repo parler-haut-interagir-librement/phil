@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=30d6e1fa657dddb54f2f555426047a469f5b880bde966d526c731d2042f5ba08 -->
+<!-- phil-dev source-sha256=fdb40274ab7e95ca709b96f2d4224f2da2577b1a3b44a22a888b6063c2e8232b -->
 # Référence
 
 | Classe | Nature | Rôle |
@@ -10,6 +10,15 @@
 | `Phil\ReportingBundle\Application\Contract\ReportFormat` | interface | Un format de fichier |
 | `Phil\ReportingBundle\Application\Contract\ReportDelivery` | interface | La façon dont un fichier atteint ses destinataires |
 | `Phil\ReportingBundle\Application\Contract\JobStore`, `ExportStore` | interface | Le *claim check* |
+| `Phil\ReportingBundle\Application\Contract\TrainingSource`, `UnitDirectory`, `PayrollSource` | interface | Les ports des rapports de formation |
+| `Phil\ReportingBundle\Application\Training\TrainingHoursReport` | `final readonly class` | `training_hours`, par période et unité organisationnelle |
+| `Phil\ReportingBundle\Application\Training\QuebecTrainingReport` | `final readonly class` | `training_quebec_1_percent`, le gabarit du 1 % de la masse salariale |
+| `Phil\ReportingBundle\Application\Training\TrainingLedger` | `final readonly class` | Les activités totalisées par période et unité, dans l'ordre de l'arbre |
+| `Phil\ReportingBundle\Application\Training\TrainingTotals` | `final readonly class` | Les totaux d'une période et d'une unité |
+| `Phil\ReportingBundle\Application\Training\TrainingStep` | enum | `month`, `quarter`, `year` |
+| `Phil\ReportingBundle\Application\Training\TrainingHeadings` | `final readonly class` | Les titres et les en-têtes, traduits |
+| `Phil\ReportingBundle\Application\Training\TrainingParameters` | `final class` | Les paramètres des rapports de formation, vérifiés |
+| `Phil\ReportingBundle\Application\Training\CurrencyAmounts` | `final readonly class` | Des unités mineures écrites avec les décimales d'une devise |
 | `Phil\ReportingBundle\Application\Sources` | `final readonly class` | Les sources par clé |
 | `Phil\ReportingBundle\Application\PeriodPreset` | enum | Les périodes nommées : `period()`, `previous()` |
 | `Phil\ReportingBundle\Application\Periods` | `final readonly class` | Les périodes prédéfinies dans le fuseau horaire configuré |
@@ -30,6 +39,7 @@
 | `Phil\ReportingBundle\Application\Exception\ExportFailed` | `final class` | Un fichier non écrit en entier ; nouvelle tentative |
 | `Phil\ReportingBundle\Application\Exception\PngUnavailable` | `final class` | Un PNG demandé là où aucun n'est dessiné |
 | `Phil\ReportingBundle\Domain\ValueObject\Period`, `Metric`, `Series`, `SeriesSet` | `final readonly class` | Les chiffres |
+| `Phil\ReportingBundle\Domain\Training\TrainingActivity`, `UnitNode` | `final readonly class` | Une activité d'un système d'apprentissage ; une unité sur un chemin |
 | `Phil\ReportingBundle\Domain\Format\MetricFormat` | enum | `number`, `percent`, `currency` |
 | `Phil\ReportingBundle\Domain\Exception\ReportingException` | interface | Chaque exception du bundle |
 | `Phil\ReportingBundle\Domain\Exception\InvalidFigures` | `final class` | Des chiffres qui ne peuvent pas être affichés |
@@ -48,3 +58,4 @@
 | `Phil\ReportingBundle\Infrastructure\EasyAdmin\ReportingAdmin` | `final class` | Le gabarit EasyAdmin et le lien du menu |
 | `Phil\ReportingBundle\Infrastructure\DependencyInjection\ReportingServices` | `final class` | Les services et les étiquettes `phil_reporting.*` |
 | `Phil\ReportingBundle\Infrastructure\DependencyInjection\KeyedServicesPass` | `final class` | Les clés des services étiquetés |
+| `Phil\ReportingBundle\Infrastructure\DependencyInjection\TrainingReportsPass` | `final class` | Les rapports de formation écartés sans `TrainingSource` |
