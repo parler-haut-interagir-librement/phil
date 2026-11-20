@@ -51,9 +51,10 @@ final class JournalTotalsTest extends TestCase
             ['outcome' => 'succeeded', 'decision' => 'pending', 'currency' => 'EUR', 'tasks' => 1, 'input' => 1, 'output' => '1', 'cost' => 3],
             ['outcome' => 'succeeded', 'decision' => 'accepted', 'currency' => 'EUR', 'tasks' => 3, 'input' => 0, 'output' => 0, 'cost' => 4],
             ['outcome' => 'failed', 'decision' => 'pending', 'currency' => 'USD', 'tasks' => '4', 'input' => null, 'output' => null, 'cost' => null],
+            ['outcome' => 'failed', 'decision' => 'accepted', 'currency' => 'USD', 'tasks' => 2, 'input' => 0, 'output' => 0, 'cost' => 0],
         ]);
 
-        self::assertSame([10, 4], [$totals->tasks, $totals->failed]);
+        self::assertSame([12, 6], [$totals->tasks, $totals->failed]);
         self::assertSame([31, 13], [$totals->tokens->input, $totals->tokens->output]);
         self::assertSame(['USD' => 300, 'EUR' => 7], $totals->costs);
         self::assertSame(['pending' => 1, 'accepted' => 5, 'edited' => 0, 'rejected' => 0], $totals->decisions);

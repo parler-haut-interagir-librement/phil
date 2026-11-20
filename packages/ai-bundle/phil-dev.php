@@ -47,4 +47,17 @@ return [
             ],
         ],
     ],
+    'infection' => [
+        'mutators' => [
+            // The sums a store gives back, `tasks`, `input`, `output` and `cost`: the cast turns a numeric string or null
+            // into an integer for PHPStan's rules, and `+` and `+=` read a numeric string or null as the same integer.
+            'CastInt' => [
+                'ignoreSourceCodeByRegex' => [
+                    '\\$count = \\(int\\) \\$group\\[.*',
+                    '\\$(input|output) \\+= \\(int\\) \\$group\\[.*',
+                    '\\$costs\\[.*\\(int\\) \\$group\\[.*',
+                ],
+            ],
+        ],
+    ],
 ];
