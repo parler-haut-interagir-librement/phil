@@ -434,6 +434,7 @@ final class ErasureTest extends TestCase
         $this->blame->who = 'grace';
         $blamedOnly = new Profile('blamed', 'Grace', 'grace@example.org', 'Autre');
         $blamedOnly->claimOwner(new OwnerId('grace'));
+
         $this->manager->persist($blamedOnly);
         $this->manager->flush();
 
@@ -650,9 +651,11 @@ final class ErasureTest extends TestCase
         $this->manager->persist(new Skate('s'));
         $this->manager->persist(new Profile('q', 'Q', 'q@example.org', 'Q'));
         $this->manager->flush();
+
         $other->persist(new Article('a', 'Titre'));
         $other->persist(new Bike('k'));
         $other->flush();
+
         $registry = new Registry(['default' => $this->manager, 'other' => $other]);
 
         self::assertSame(['article' => 1, 'post' => 1, 'profile' => 1], new BlameEraser($registry)->find('ada'));
@@ -725,16 +728,20 @@ final class ErasureTest extends TestCase
         $this->blame->who = 'ada';
         $created = new Profile('created', 'A', 'a@example.org', 'Un');
         $created->claimOwner(new OwnerId('x'));
+
         $this->manager->persist($created);
         $this->manager->flush();
+
         $this->blame->who = 'grace';
         $updated = new Profile('updated', 'B', 'b@example.org', 'Deux');
         $updated->claimOwner(new OwnerId('x'));
+
         $this->manager->persist($updated);
         $this->manager->flush();
         $this->manager->getConnection()->executeStatement("UPDATE profile SET updated_by = 'ada' WHERE id = 'updated'");
         $untouched = new Profile('untouched', 'C', 'c@example.org', 'Trois');
         $untouched->claimOwner(new OwnerId('x'));
+
         $this->manager->persist($untouched);
         $this->manager->flush();
 
@@ -751,12 +758,15 @@ final class ErasureTest extends TestCase
         $this->blame->who = 'ada';
         $frozenByAda = new Profile('by-ada', 'A', 'a@example.org', 'Un');
         $frozenByAda->claimOwner(new OwnerId('x'));
+
         $this->manager->persist($frozenByAda);
         $this->manager->flush();
+
         $this->blame->who = 'grace';
         $owned = new Profile('owned', 'B', 'b@example.org', 'Deux');
         $blamed = new Profile('blamed', 'C', 'c@example.org', 'Trois');
         $blamed->claimOwner(new OwnerId('x'));
+
         $this->manager->persist($owned);
         $this->manager->persist($blamed);
         $this->manager->flush();
@@ -808,6 +818,7 @@ final class ErasureTest extends TestCase
     {
         $this->manager->persist($contact = new Contact('514'));
         $this->manager->flush();
+
         $this->blame->who = 'grace';
         $this->keepingVersions()->freeze($contact);
         $eraser = new VersionEraser($this->manager, new ListedPersonalFields([Contact::class => ['phone']]), $this->clock);
@@ -824,6 +835,7 @@ final class ErasureTest extends TestCase
         $sealing = new Versions($this->manager, $this->clock, new AllowVersionRestore(), new ListedPersonalFields(self::PERSONAL), PersonalFieldPolicy::Encrypt, $cipher);
         $sealing->freeze(new Profile('s', 'Eve', 'eve@example.org', 'Scellé'));
         $sealing->freeze(new Profile('t', 'Bob', 'bob@example.org', 'Scellé'));
+
         $connection = $this->manager->getConnection();
         $state = $this->rawState('s', 1);
         $state['email'] = 'eve@example.org';
