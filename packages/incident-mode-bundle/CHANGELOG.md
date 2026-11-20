@@ -4,6 +4,23 @@ All notable changes to `phil/incident-mode-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Added
+
+- `IncidentModeServices::ADMIN_ROLE_PARAMETER`, the container parameter `phil_incident_mode.admin.role`, set to the
+  role of the administration while it is on: another bundle offers the page of the incidents to that role alone.
+- `IncidentModeServices::DEFAULT_SCHEDULE_NAME` and `DEFAULT_SCHEDULE_FREQUENCY`, which `IncidentSchedule::DEFAULT_NAME`
+  and `DEFAULT_FREQUENCY` now repeat.
+
+### Fixed
+
+- Without `symfony/scheduler`, building the container failed on the interface of `IncidentSchedule`, whose constants
+  the configuration read for its defaults, even with `lifting.schedule` turned off: the defaults live on
+  `IncidentModeServices`.
+
 ## 0.1.0-alpha - 2026-11-18
 
 ### Added

@@ -96,6 +96,21 @@ final class IncidentModeServices
 
     public const string ERASER_TAG = 'phil_privacy.eraser';
 
+    /**
+     * The parameter that holds the role of the administration, set only when the administration is on: what another
+     * bundle reads to offer the page of the incidents to that role alone.
+     */
+    public const string ADMIN_ROLE_PARAMETER = 'phil_incident_mode.admin.role';
+
+    /**
+     * The name of the schedule of the recurring sweep, kept here rather than on `IncidentSchedule`, whose interface
+     * belongs to `symfony/scheduler`: the configuration reads it whether that component is installed or not.
+     */
+    public const string DEFAULT_SCHEDULE_NAME = 'incident_mode';
+
+    /** How often the recurring sweep runs by default; see `DEFAULT_SCHEDULE_NAME`. */
+    public const string DEFAULT_SCHEDULE_FREQUENCY = '5 minutes';
+
     /** The parameter that names the bus of the delayed messages, for IncidentModePass. */
     public const string BUS_PARAMETER = 'phil_incident_mode.lifting.bus';
 
@@ -292,6 +307,7 @@ final class IncidentModeServices
             return;
         }
 
+        $container->setParameter(self::ADMIN_ROLE_PARAMETER, $config['admin']['role']);
         $container->register(AdminRequest::class, AdminRequest::class)->setArguments([new Reference('security.csrf.token_manager')]);
         $container->register(IncidentAdminController::class, IncidentAdminController::class)
             ->setArguments([

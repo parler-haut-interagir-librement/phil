@@ -19,6 +19,7 @@ use Phil\IncidentMode\Presets;
 use Phil\IncidentModeBundle\Application\DurationInput;
 use Phil\IncidentModeBundle\Attribute\SuspendedDuring;
 use Phil\IncidentModeBundle\Infrastructure\Audit\AuditIncidents;
+use Phil\IncidentModeBundle\Infrastructure\DependencyInjection\IncidentModeServices;
 use Phil\IncidentModeBundle\Infrastructure\Privacy\IncidentPrivacy;
 use Phil\IncidentModeBundle\Infrastructure\Scheduler\IncidentSchedule;
 use Phil\IncidentModeBundle\Infrastructure\Security\SecurityCurrentMember;
@@ -148,6 +149,7 @@ final class IntegrationsTest extends TestCase
         $default = new IncidentSchedule()->getSchedule()->getRecurringMessages()[0]->getTrigger();
         self::assertSame(300, ($default->getNextRunDate($now)?->getTimestamp() ?? 0) - $now->getTimestamp());
         self::assertSame('incident_mode', IncidentSchedule::DEFAULT_NAME);
+        self::assertSame(IncidentModeServices::DEFAULT_SCHEDULE_FREQUENCY, IncidentSchedule::DEFAULT_FREQUENCY);
     }
 
     public function testTheMemberIsTheUserSignedIn(): void

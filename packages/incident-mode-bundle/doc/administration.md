@@ -26,7 +26,9 @@ in force. The page is never kept by a cache.
 ## Who may run it
 
 The member signed in holds the role of `admin.role`, `ROLE_ADMIN` by default; anyone else meets the firewall, as with
-any denied page, and so does everyone when no authorization checker is registered. The actor of what they start,
+any denied page, and so does everyone when no authorization checker is registered. The role is also the parameter
+`phil_incident_mode.admin.role` (`IncidentModeServices::ADMIN_ROLE_PARAMETER`), set only while the administration is
+on, so that another bundle offers a link to the page to that role alone. The actor of what they start,
 extend or lift is the identifier `CurrentMember` gives: by default the identifier of Symfony Security's user. **An
 identifier that looks like an e-mail address is refused**, since it names the person to whoever reads the journal and
 changes; an application whose users sign in with their address names them through its own `CurrentMember`:

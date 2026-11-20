@@ -119,6 +119,7 @@ final class PhilIncidentModeBundleTest extends TestCase
             new Reference('security.authorization_checker', 2), 'ROLE_ADMIN', '@PhilIncidentMode/layout.html.twig', 20,
         ], $admin->getArguments());
         self::assertEquals([new Reference('security.csrf.token_manager')], $container->getDefinition(AdminRequest::class)->getArguments());
+        self::assertSame('ROLE_ADMIN', $container->getParameter(IncidentModeServices::ADMIN_ROLE_PARAMETER));
         self::assertFalse($container->hasDefinition(AuditIncidents::class));
         self::assertFalse($container->hasDefinition(IncidentPrivacy::class));
 
@@ -155,6 +156,7 @@ final class PhilIncidentModeBundleTest extends TestCase
         self::assertSame('kit', $container->getDefinition(KitComponents::class)->getArgument(0));
         self::assertSame('base.html.twig', $container->getDefinition(SuspensionPage::class)->getArgument(2));
         self::assertSame(['ROLE_SAFETY', 'base.html.twig', 50], \array_slice($container->getDefinition(IncidentAdminController::class)->getArguments(), 6));
+        self::assertSame('ROLE_SAFETY', $container->getParameter(IncidentModeServices::ADMIN_ROLE_PARAMETER));
         self::assertEquals(new Reference('command.bus'), $container->getDefinition(MessengerLiftScheduler::class)->getArgument(0));
         self::assertSame('command.bus', $container->getParameter(IncidentModeServices::BUS_PARAMETER));
         self::assertSame([['name' => 'safety']], $container->getDefinition(IncidentSchedule::class)->getTag('scheduler.schedule_provider'));
@@ -269,6 +271,7 @@ final class PhilIncidentModeBundleTest extends TestCase
 
         self::assertFalse($container->hasDefinition(IncidentAdminController::class));
         self::assertFalse($container->hasDefinition(AdminRequest::class));
+        self::assertFalse($container->hasParameter(IncidentModeServices::ADMIN_ROLE_PARAMETER));
         self::assertTrue($container->hasDefinition(SuspensionPage::class));
     }
 

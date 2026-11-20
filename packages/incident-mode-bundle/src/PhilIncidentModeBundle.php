@@ -13,7 +13,6 @@ use Phil\IncidentModeBundle\Infrastructure\DependencyInjection\IncidentModePass;
 use Phil\IncidentModeBundle\Infrastructure\DependencyInjection\IncidentModeServices;
 use Phil\IncidentModeBundle\Infrastructure\Http\AdminRequest;
 use Phil\IncidentModeBundle\Infrastructure\Http\IncidentAdminController;
-use Phil\IncidentModeBundle\Infrastructure\Scheduler\IncidentSchedule;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -176,8 +175,8 @@ final class PhilIncidentModeBundle extends AbstractBundle
                         ->addDefaultsIfNotSet()
                         ->canBeDisabled()
                         ->children()
-                            ->scalarNode('name')->info('The name of the schedule.')->cannotBeEmpty()->defaultValue(IncidentSchedule::DEFAULT_NAME)->end()
-                            ->scalarNode('frequency')->info('How often the sweep runs, as RecurringMessage::every() reads it.')->cannotBeEmpty()->defaultValue(IncidentSchedule::DEFAULT_FREQUENCY)->end()
+                            ->scalarNode('name')->info('The name of the schedule.')->cannotBeEmpty()->defaultValue(IncidentModeServices::DEFAULT_SCHEDULE_NAME)->end()
+                            ->scalarNode('frequency')->info('How often the sweep runs, as RecurringMessage::every() reads it.')->cannotBeEmpty()->defaultValue(IncidentModeServices::DEFAULT_SCHEDULE_FREQUENCY)->end()
                         ->end()
                     ->end()
                 ->end()
