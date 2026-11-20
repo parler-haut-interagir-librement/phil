@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=22eee01844c2920fb21f22bb50b66f51e38a2417f1872d4b7b33175175fbd323 -->
+<!-- phil-dev source-sha256=96da3eab8000721a050afd1d25b4a42dd3e635a806138cc9014f0840430df7c3 -->
 # URL
 
 Chaque URL d'une feuille de style — `url(…)` avec ou sans guillemets, dans une déclaration ou dans une source
@@ -46,6 +46,14 @@ use Phil\CssSanitizer\UrlKind;
 $rewriter = new CallbackRewriter(fn (string $url, UrlKind $kind): ?string =>
     $this->media->publicUrlOf($project, $url, $kind));
 ```
+
+Un réécrivain qui lève une exception arrête l'assainissement : son exception atteint l'appelant de `sanitize()`, et
+aucune partie de la feuille n'est retournée. Un réécrivain qui ne peut répondre pour un moment — son magasin de fichiers
+est hors service — retourne `null` pour refuser l'URL, ou lève une exception pour refuser toute la feuille.
+
+Un nom atteint le réécrivain tel que le navigateur le lit, échappements résolus : `url(\61 .png)` demande `a.png`, et
+une fonction écrite `u\rl(` est `url(`. Une référence de caractère de HTML, comme `&#0000106;`, n'est pas du CSS : elle
+atteint le réécrivain telle qu'écrite, un nom qu'aucun fichier ne porte.
 
 ## `image-set()`
 

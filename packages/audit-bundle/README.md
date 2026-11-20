@@ -82,6 +82,8 @@ what the design decides, and leaves ports such as `CanonicalSerializer`, `Anchor
   decisions an implementation must freeze, and an example.
 - [Extension points](doc/extension-points.md) — every port method by method, adapter invariants, a serializer
   registry, an object-lock anchor writer and a payload reader.
+- [ASVS 5.0 mapping](doc/asvs.md) — the requirements of chapter V16 the bundle meets, the tests that show them, and
+  those left to the application.
 - [Testing](doc/testing.md) — how the bundle is tested, its benchmarks and fuzz targets, running its tests in a
   monorepo or alone, golden vectors for a serializer and refusal tests for an anchor destination.
 - [API reference](doc/reference.md) — every type by layer, with its role and state.

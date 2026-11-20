@@ -63,6 +63,7 @@ of each response.
 | [User content](doc/user-content.md) | The strict headers of an uploaded file, by route, by controller or by response. |
 | [Worker mode and profiler](doc/runtime.md) | What lives where during a request, `kernel.reset`, the profiler panel. |
 | [Extension points](doc/extension-points.md) | The ports, services and events an application uses or replaces. |
+| [ASVS 5.0 mapping](doc/asvs.md) | The requirements of chapter V3 the bundle meets, the tests that show them, and those left to the application. |
 | [Testing](doc/testing.md) | The tests, the mutation bar, the fuzz target and the benchmark. |
 | [Reference](doc/reference.md) | Every type of the bundle, with its role. |
 

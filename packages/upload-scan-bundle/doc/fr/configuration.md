@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=dd8c5686e5f5d6e79446a49f610b2f789f1da776781d455990013868b1836a08 -->
+<!-- phil-dev source-sha256=336efe6b69f2c7783f0e64d6c45133c6f59e458209f85f1bc0667c3e193ca64d -->
 # Configuration
 
 ```yaml
@@ -68,8 +68,9 @@ Un fichier infecté est refusé dans les deux cas.
 Les fichiers infectés sont copiés dans `directory`, créé lisible par son propriétaire seulement. Un répertoire qui existe déjà et qui est
 ouvert à son groupe ou à d'autres utilisateurs est restreint à `0700` avant qu'un fichier y soit conservé ; avec
 `tighten_open_directory: false`, ou quand il ne peut pas l'être, le fichier est refusé et non conservé. Un répertoire
-sous le `public/` du projet est refusé à la construction du conteneur : le serveur Web servirait ce qu'il contient. `service`
-nomme plutôt une `Quarantine` de l'application. `enabled: false`, ou `quarantine: false`, refuse les fichiers infectés
+sous le `public/` du projet est refusé à la construction du conteneur, tel qu'écrit ou une fois les liens symboliques
+suivis — un `var/quarantine` qui mène dans `public/`, ou un `public/` qui mène au parent du répertoire : le serveur Web
+servirait ce qu'il contient. `service` nomme plutôt une `Quarantine` de l'application. `enabled: false`, ou `quarantine: false`, refuse les fichiers infectés
 sans les conserver. `retention_days`, 30 par défaut et au moins 1, est la durée pendant laquelle la commande de purge
 conserve un fichier. Voir [Quarantaine et événements](quarantine-and-events.md).
 

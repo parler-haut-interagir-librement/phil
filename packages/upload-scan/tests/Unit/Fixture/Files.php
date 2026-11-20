@@ -42,6 +42,27 @@ final class Files
     }
 
     /**
+     * A ZIP archive of stored (uncompressed) entries, built byte by byte so that no extension is needed: a local
+     * header and the data of each entry, then the central directory and its end record.
+     *
+     * @param array<string, string> $entries the contents of each entry, by name
+     */
+    public static function zip(array $entries): string
+    {
+        $archive = '';
+        $directory = '';
+
+        foreach ($entries as $name => $contents) {
+            $offset = \strlen($archive);
+            $common = pack('vvvvvVVVvv', 20, 0, 0, 0, 0x21, crc32($contents), \strlen($contents), \strlen($contents), \strlen($name), 0);
+            $archive .= 'PK'."\x03\x04".$common.$name.$contents;
+            $directory .= 'PK'."\x01\x02".pack('v', 20).$common.pack('vvvVV', 0, 0, 0, 0, $offset).$name;
+        }
+
+        return $archive.$directory.'PK'."\x05\x06".pack('vvvvVVv', 0, 0, \count($entries), \count($entries), \strlen($directory), \strlen($archive), 0);
+    }
+
+    /**
      * A path for a Unix socket: under the temporary directory when it is short enough, since a socket path holds at
      * most 104 bytes on some systems, under /tmp otherwise.
      */

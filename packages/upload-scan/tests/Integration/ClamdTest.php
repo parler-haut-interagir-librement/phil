@@ -44,4 +44,44 @@ final class ClamdTest extends TestCase
         self::assertStringContainsStringIgnoringCase('eicar', (string) $infected->signature);
         self::assertTrue($this->scanner->scanStream(Files::stream(str_repeat('A manuscript. ', 10_000)))->isClean());
     }
+
+    /**
+     * ASVS 5.0, 5.2.3: clamd opens archives within archives, and finds the test file three levels down.
+     */
+    public function testClamdFindsTheEicarFileInsideNestedArchives(): void
+    {
+        $nested = Files::zip(['outer.zip' => Files::zip(['inner.zip' => Files::zip(['eicar.com' => FakeScanner::eicar()])])]);
+
+        $result = $this->scanner->scanStream(Files::stream($nested));
+
+        self::assertTrue($result->isInfected());
+        self::assertStringContainsStringIgnoringCase('eicar', (string) $result->signature);
+    }
+
+    /**
+     * An archive of more entries than clamd's `MaxFiles` (10 000 by default) is read only up to that limit: the test
+     * file after it passes, unless clamd runs with `AlertExceedsMax yes`, which reports the archive as
+     * `Heuristics.Limits.Exceeded.MaxFiles`. Set PHIL_UPLOAD_SCAN_CLAMD_ALERT_EXCEEDS_MAX=1 when the clamd under test
+     * has it on.
+     */
+    public function testAnArchiveBeyondMaxFilesPassesUnlessClamdAlertsOnExceededLimits(): void
+    {
+        $entries = [];
+
+        for ($i = 0; $i < 10_001; ++$i) {
+            $entries[\sprintf('f%05d', $i)] = '';
+        }
+
+        $entries['eicar.com'] = FakeScanner::eicar();
+        $result = ClamdScanner::at((string) getenv('PHIL_UPLOAD_SCAN_CLAMD'), 60.0, 8_388_608)->scanStream(Files::stream(Files::zip($entries)));
+
+        if ('1' === getenv('PHIL_UPLOAD_SCAN_CLAMD_ALERT_EXCEEDS_MAX')) {
+            self::assertTrue($result->isInfected());
+            self::assertStringContainsString('Exceeded', (string) $result->signature);
+
+            return;
+        }
+
+        self::assertTrue($result->isClean(), 'without AlertExceedsMax, clamd stops at MaxFiles and finds nothing');
+    }
 }

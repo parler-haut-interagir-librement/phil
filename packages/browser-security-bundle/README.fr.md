@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=da21d50a141c213c9eb59f8fdf5c1aa1f1a7918633354076b918d9ffb0c54616 -->
+<!-- phil-dev source-sha256=c22db27cf0f91e6fea909236f521d780b8aa9b2bad255831453a16c2e3664050 -->
 # phil/browser-security-bundle
 
 **Les protections qu'une application Symfony demande au navigateur, en un seul bundle : une configuration, ajustable
@@ -66,6 +66,7 @@ le profileur montre la politique de chaque réponse.
 | [Contenu d'usager](doc/fr/user-content.md) | Les en-têtes stricts d'un fichier téléversé, par route, par contrôleur ou par réponse. |
 | [Mode worker et profileur](doc/fr/runtime.md) | Ce qui vit où pendant une requête, `kernel.reset`, le panneau du profileur. |
 | [Points d'extension](doc/fr/extension-points.md) | Les ports, services et événements qu'une application utilise ou remplace. |
+| [Correspondance avec ASVS 5.0](doc/fr/asvs.md) | Les exigences du chapitre V3 que le bundle satisfait, les tests qui les démontrent et celles qui reviennent à l'application. |
 | [Tests](doc/fr/testing.md) | Les tests, le seuil de mutation, la cible de fuzzing et le banc d'essai. |
 | [Référence](doc/fr/reference.md) | Chaque type du bundle, avec son rôle. |
 

@@ -4,6 +4,17 @@ All notable changes to `phil/css-sanitizer` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha: documentation and tests only.
+
+### Added
+
+- Regression tests: addresses hidden by a character reference padded with zeros, CSS escapes, a NUL escape, a special
+  scheme without its authority, an `image-set()` mixing a file and a script; escaped names read as the browser reads
+  them; a rewriter that throws; outputs sanitized again, unchanged.
+- The documentation of a rewriter that throws, and of escapes and character references in a URL.
+
 ## 0.1.1-alpha - 2026-11-15
 
 ### Added

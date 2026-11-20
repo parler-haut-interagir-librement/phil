@@ -193,6 +193,54 @@ final class PhilUploadScanBundleTest extends TestCase
         self::assertTrue($this->load(['quarantine' => ['directory' => '%app.directories%']], projectDir: '/srv/app', parameters: ['app.directories' => ['/srv/app/public']])->hasDefinition(FilesystemQuarantine::class));
     }
 
+    /**
+     * ASVS 5.0, 5.3.1: a quarantine that reaches `public/` through a symbolic link is under it all the same, whichever
+     * side the link is on.
+     */
+    public function testTheQuarantineIsNeverUnderPublicThroughASymbolicLink(): void
+    {
+        $root = sys_get_temp_dir().'/phil-upload-scan-'.bin2hex(random_bytes(6));
+        mkdir($root.'/app/public/files', 0o700, true);
+        mkdir($root.'/app/var', 0o700, true);
+        mkdir($root.'/www/quarantine', 0o700, true);
+        symlink($root.'/app/public/files', $root.'/app/var/quarantine');
+        symlink($root.'/www', $root.'/elsewhere');
+        mkdir($root.'/site', 0o700);
+        symlink($root.'/www', $root.'/site/public');
+        mkdir($root.'/www/m1', 0o700);
+        mkdir($root.'/site2', 0o700);
+        symlink($root.'/www/m1', $root.'/site2/public');
+
+        try {
+            foreach ([
+                [$root.'/app', '%kernel.project_dir%/var/quarantine'],
+                [$root.'/app', 'var/quarantine/not-yet/created'],
+                [$root.'/site', $root.'/www/quarantine'],
+                [$root.'/site', $root.'/elsewhere/quarantine'],
+            ] as [$projectDir, $directory]) {
+                try {
+                    $this->load(['quarantine' => ['directory' => $directory]], projectDir: $projectDir);
+                    self::fail(\sprintf('The quarantine %s was accepted.', $directory));
+                } catch (InvalidConfigurationException $invalidConfigurationException) {
+                    self::assertStringContainsString('is under public/', $invalidConfigurationException->getMessage());
+                }
+            }
+
+            self::assertTrue($this->load(['quarantine' => ['directory' => 'var/other']], projectDir: $root.'/app')->hasDefinition(FilesystemQuarantine::class));
+            self::assertTrue($this->load(['quarantine' => ['directory' => $root.'/app/var/quarantine-files']], projectDir: $root.'/site')->hasDefinition(FilesystemQuarantine::class));
+            // The part that does not exist yet keeps its order: `n1/m1` is not under `m1`.
+            self::assertTrue($this->load(['quarantine' => ['directory' => $root.'/elsewhere/n1/m1']], projectDir: $root.'/site2')->hasDefinition(FilesystemQuarantine::class));
+        } finally {
+            foreach (['/app/var/quarantine', '/elsewhere', '/site/public', '/site2/public'] as $link) {
+                unlink($root.$link);
+            }
+
+            foreach (['/app/public/files', '/app/public', '/app/var', '/app', '/www/quarantine', '/www/m1', '/www', '/site', '/site2', ''] as $directory) {
+                rmdir($root.$directory);
+            }
+        }
+    }
+
     public function testRescansAreHandledOnAWorker(): void
     {
         $container = $this->load([]);

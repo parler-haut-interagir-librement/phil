@@ -13,6 +13,12 @@ result, never a clean file.
 
 - The documentation of clamd on a local Unix socket: `LocalSocket`, its group and mode, the user PHP runs as, systemd
   and containers.
+- The documentation of archives and clamd's limits — `MaxScanSize`, `MaxFileSize`, `MaxFiles`, `MaxRecursion` and
+  `AlertExceedsMax`, without which an archive past a limit comes back clean — and of the versions to scan with, ClamAV
+  1.5.4 or later, or 1.4.6 on the 1.4 line.
+- The [ASVS 5.0 mapping](doc/asvs.md).
+- Integration tests against a real clamd: the test file three archives down, and an archive past `MaxFiles`, with and
+  without `AlertExceedsMax`.
 
 ### Security
 

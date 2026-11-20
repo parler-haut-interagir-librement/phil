@@ -6,14 +6,30 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.1.2-alpha.
+The next version is 0.1.2-alpha: one person, or one client, counts once whatever the form of their identifier or of
+their address.
 
-Tests only.
+### Added
+
+- `IdentifierKey::normalize()`: the form of an identifier a key is built from — compatibility decomposition, case
+  folding, combining marks, format and control characters removed, trimmed —, as Symfony's login throttling builds its
+  own.
+- Tests of limiters that count one request together, on the limiters of `symfony/rate-limiter`: a compound limiter
+  whose tighter part refuses, and several rules on one route, in either order.
 
 ### Changed
 
+- The bundle requires the intl and mbstring extensions.
 - The functional tests keep their compiled container in a directory of their own checkout and environment, and boot the
   kernels that must fail on an empty cache; `symfony/filesystem` joins the development requirements.
+
+### Security
+
+- The `user` strategy hashed the identifier as the user provider gave it: `Ada` and `ada`, an accented letter written
+  composed or decomposed, or an identifier with a zero-width space counted apart. It is normalized by `IdentifierKey`
+  first.
+- An IPv4-mapped IPv6 address, `::ffff:203.0.113.7`, counted apart from `203.0.113.7`: the `ip`, `user_or_ip` and
+  `ip_route` strategies read the IPv4 address it holds.
 
 ## 0.1.1-alpha - 2026-11-14
 

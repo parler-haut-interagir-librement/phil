@@ -495,6 +495,17 @@ final class PhilBrowserSecurityBundleTest extends TestCase
         self::assertArrayNotHasKey('Strict-Transport-Security', $this->headerValues($off));
     }
 
+    /**
+     * ASVS 5.0, 3.4.1: one year with the subdomains by default; a shorter age, for a rollout, is sent as configured
+     * and never with `preload`.
+     */
+    public function testStrictTransportSecurityLastsAYearByDefault(): void
+    {
+        self::assertSame('max-age=31536000; includeSubDomains', $this->headerValues($this->load([]))['Strict-Transport-Security']);
+        self::assertSame('max-age=31535999; includeSubDomains', $this->headerValues($this->load(['https' => ['strict_transport_security' => ['max_age' => 31_535_999]]]))['Strict-Transport-Security']);
+        self::assertSame('max-age=0', $this->headerValues($this->load(['https' => ['strict_transport_security' => ['max_age' => 0, 'include_subdomains' => false]]]))['Strict-Transport-Security']);
+    }
+
     public function testPreload(): void
     {
         $container = $this->load(['https' => ['strict_transport_security' => ['max_age' => 31_536_000, 'include_subdomains' => true, 'preload' => true]]]);

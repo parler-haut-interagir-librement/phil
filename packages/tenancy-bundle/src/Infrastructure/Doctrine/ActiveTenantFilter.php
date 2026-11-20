@@ -45,12 +45,26 @@ final class ActiveTenantFilter extends SQLFilter
     private array $columns = [];
 
     /**
+     * The reference of the tenant set on this filter, `null` until one is.
+     */
+    private ?string $tenant = null;
+
+    /**
      * Sets the active tenant on the filter. Call it once the tenant is resolved, before the first tenant-scoped
      * query of the request.
      */
     public function activate(TenantId $tenant): void
     {
         $this->setParameter(self::PARAMETER, $tenant->value);
+        $this->tenant = $tenant->value;
+    }
+
+    /**
+     * The reference of the tenant set on this filter, `null` while it matches nothing.
+     */
+    public function tenant(): ?string
+    {
+        return $this->tenant;
     }
 
     /**

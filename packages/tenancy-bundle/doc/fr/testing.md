@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6965985638849fe31d47d71278208f66f3b3f165f77ec085ee462a5f5e62d5ba -->
+<!-- phil-dev source-sha256=fe3bad8664913b70e83442e9870836b0d43c92a84af91c747d469c7ff6f1a5bc -->
 # Tests
 
 ## Comment le bundle est testé
@@ -14,8 +14,9 @@ données.
 | `ActiveTenant` | Un choix atteignable conservé, un choix périmé oublié, un changement mémorisé, un changement refusé qui laisse le choix intact, `leave()` |
 | `TenantScoped` | Le champ par défaut, le champ vide refusé |
 | `ActiveTenantFilter` | Les entités non marquées laissées tranquilles ; les colonnes de champ et d'association ; la mise entre guillemets par la connexion ; `1 = 0` sans locataire ; les deux erreurs d'association |
-| `TenantContext` | L'entrée et la sortie atteignent chaque activation ; `require()` ; `within()` revient au locataire précédent, ou à aucun, même quand le travail lance une exception |
-| `DoctrineTenantActivation` | Le locataire réglé sur chaque filtre activé, les filtres désactivés laissés tranquilles, un filtre neuf à la sortie, rien sans Doctrine |
+| `TenantContext` | L'entrée et la sortie atteignent chaque activation ; `require()` ; `within()` revient au locataire précédent, ou à aucun, même quand le travail lance une exception ou que le locataire ne peut être atteint ; une activation qui échoue après une autre ne laisse aucun locataire et aucune activation active ; la sortie atteint chaque activation quand l'une échoue |
+| `DoctrineTenantActivation` | Le locataire réglé sur chaque filtre activé, les filtres désactivés laissés tranquilles, un filtre neuf à la sortie, rien sans Doctrine ; les entités de la table d'identité liées à un locataire détachées lors d'un changement de locataire, les entités partagées et les insertions et suppressions en attente conservées, rien de détaché pour le même locataire ou sans locataire |
+| `EntityTenant` | Le locataire d'un champ associé — une référence, un entier, un objet-valeur, aucun — et d'une association, par l'identifiant de l'entité locataire |
 | `SessionActiveTenantStore` | La session de la requête principale, rien de lu sans témoin de session, une valeur mal formée abandonnée, aucune session où mémoriser |
 | `ResolveActiveTenant` | Chaque issue, le `target` sur les requêtes sûres seulement, les routes non résolues, une requête déjà dans un locataire, les sous-requêtes ; après un pare-feu de remplacement enregistré bien plus bas que sa place habituelle |
 | `ConfiguredHostTenants`, `ResolveHostTenant` | Les hôtes lus en minuscules et sous leur forme ASCII, chaque hôte refusé, un hôte listé deux fois ; le locataire entré et annoncé, un hôte sans locataire, les sous-requêtes ; l'avertissement sans hôtes de confiance, une fois par processus |
@@ -41,7 +42,11 @@ adaptateurs qui lisent des en-têtes de requête). Des requêtes prouvent chaque
 locataire, aucun locataire transporté à la requête suivante), le changement, `#[CurrentTenant]` (jamais un attribut de
 requête du même nom), le stockage en session par un navigateur qui garde son témoin, un message traité dans le
 locataire où il a été réparti, une commande lancée avec `--tenant`, chaque clé de configuration, le filtre hors
-d'une requête, y compris `suspend()` et `restore()`, et les pools de cache de l'application limités au locataire — la
+d'une requête, y compris `suspend()` et `restore()`, la table d'identité et la garde d'écriture sur une base de données
+partagée (une entité chargée dans un locataire jamais retrouvée depuis un autre, par `find()` ou par une référence ; une
+entité persistée pour un autre locataire, ou déplacée vers lui, refusée ; une insertion en attente ni perdue ni écrite
+sous un autre locataire ; une suppression en attente refusée là ; le travail sans locataire ou entre locataires qui écrit
+librement), et les pools de cache de l'application limités au locataire — la
 même clé et la même étiquette dans deux locataires, un pool global, la limitation désactivée. Un second noyau (`Sites\SitesKernel` : FrameworkBundle,
 SecurityBundle et le bundle, quatre hôtes de boutiques qui partagent un témoin de session, une file pour le courrier)
 prouve les hôtes, le réseau de boutiques, un compte connecté sur une boutique et sur les boutiques qui lui sont liées

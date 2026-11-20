@@ -1,0 +1,133 @@
+# Daily audit of the monorepo lock: composer audit (Packagist and GitHub advisories) and osv-scanner (OSV database)
+# read composer.lock without installing anything. Each advisory opens one issue labelled "dependency-audit"; an
+# advisory that already has an issue, open or closed, is not reported again, so a dismissed alert stays dismissed and a
+# known one does not flood the tracker. The issue key is the GitHub advisory identifier when a scanner gives one, so the
+# same advisory found by both scanners opens a single issue.
+#
+# Every action is pinned to the commit of the version its comment names; the osv-scanner binary is checked against the
+# SHA-256 its release publishes. Composer must be at least 2.11.2, the release that fixes the lock-command, zip-symlink
+# and cross-host-credential vulnerabilities.
+name: dependency-audit
+
+on:
+  schedule:
+    - cron: '41 5 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: dependency-audit
+  cancel-in-progress: false
+
+env:
+  COMPOSER_VERSION: '2.11.2'
+  OSV_SCANNER_VERSION: 'v2.7.0'
+  OSV_SCANNER_SHA256: '160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b'
+  ISSUE_LABEL: 'dependency-audit'
+
+jobs:
+  audit:
+    name: Audit composer.lock
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read # checkout of composer.lock
+      issues: write # one issue per new advisory
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP and Composer
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:${{ env.COMPOSER_VERSION }}
+
+      - name: Check the Composer version
+        run: |
+          installed="$(composer --version --no-ansi | sed -E 's/^Composer (version )?([0-9]+\.[0-9]+\.[0-9]+).*/\2/')"
+          lowest="$(printf '%s\n%s\n' "${COMPOSER_VERSION}" "${installed}" | sort -V | head -n 1)"
+          if [ "${lowest}" != "${COMPOSER_VERSION}" ]; then
+            echo "::error::Composer ${installed} is older than ${COMPOSER_VERSION}."
+            exit 1
+          fi
+          echo "Composer ${installed}"
+
+      - name: Install osv-scanner
+        run: |
+          mkdir -p "${RUNNER_TEMP}/bin"
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            --output "${RUNNER_TEMP}/bin/osv-scanner" \
+            "https://github.com/google/osv-scanner/releases/download/${OSV_SCANNER_VERSION}/osv-scanner_linux_amd64"
+          echo "${OSV_SCANNER_SHA256}  ${RUNNER_TEMP}/bin/osv-scanner" | sha256sum --check --strict
+          chmod 0755 "${RUNNER_TEMP}/bin/osv-scanner"
+          echo "${RUNNER_TEMP}/bin" >> "${GITHUB_PATH}"
+
+      # composer audit exits with a bit mask (1 for advisories, 2 for abandoned packages); osv-scanner exits with 1
+      # when it finds vulnerabilities. Any other failure stops the job, so a scanner that could not run never reads
+      # as a clean audit.
+      - name: Run composer audit
+        run: |
+          set +e
+          composer audit --locked --no-interaction --abandoned=report --format=json > "${RUNNER_TEMP}/composer-audit.json"
+          status=$?
+          set -e
+          if [ "${status}" -gt 3 ] || ! jq -e '.advisories' "${RUNNER_TEMP}/composer-audit.json" > /dev/null; then
+            echo "::error::composer audit failed (exit ${status})."
+            exit 1
+          fi
+
+      - name: Run osv-scanner
+        run: |
+          set +e
+          osv-scanner scan source --lockfile=composer.lock --format=json > "${RUNNER_TEMP}/osv-scanner.json"
+          status=$?
+          set -e
+          if [ "${status}" -gt 1 ] || ! jq -e '.results' "${RUNNER_TEMP}/osv-scanner.json" > /dev/null; then
+            echo "::error::osv-scanner failed (exit ${status})."
+            exit 1
+          fi
+
+      # One line per advisory and package: key, package, version or range, summary, link, a missing field written "-"
+      # so that tab-separated reading keeps its columns. The key prefers the GHSA identifier, then the CVE, then the
+      # scanner's own identifier.
+      - name: Collect the advisories
+        run: |
+          jq -r '
+            .advisories | to_entries[] | .value[] |
+            ([.sources[]? | select(.name == "GitHub") | .remoteId][0] // .cve // .advisoryId) as $key |
+            [$key, .packageName, (.affectedVersions // "-"), (.title // "-"), (.link // "-")] | @tsv
+          ' "${RUNNER_TEMP}/composer-audit.json" > "${RUNNER_TEMP}/advisories.tsv"
+          jq -r '
+            .results[]?.packages[]? | .package as $p | .vulnerabilities[]? |
+            (([.id] + (.aliases // [])) | map(select(startswith("GHSA-"))) | .[0]) as $ghsa |
+            (([.id] + (.aliases // [])) | map(select(startswith("CVE-"))) | .[0]) as $cve |
+            [($ghsa // $cve // .id), $p.name, ($p.version // "-"), (.summary // .id), ("https://osv.dev/vulnerability/" + .id)] | @tsv
+          ' "${RUNNER_TEMP}/osv-scanner.json" >> "${RUNNER_TEMP}/advisories.tsv"
+          sort -u -t "$(printf '\t')" -k1,2 "${RUNNER_TEMP}/advisories.tsv" -o "${RUNNER_TEMP}/advisories.tsv"
+          echo "$(wc -l < "${RUNNER_TEMP}/advisories.tsv") advisories found."
+
+      - name: Open one issue per new advisory
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [ ! -s "${RUNNER_TEMP}/advisories.tsv" ]; then
+            exit 0
+          fi
+          gh label create "${ISSUE_LABEL}" --color B60205 --description 'Advisory found by the daily dependency audit' 2> /dev/null || true
+          gh issue list --label "${ISSUE_LABEL}" --state all --limit 1000 --json title --jq '.[].title' > "${RUNNER_TEMP}/known-titles.txt"
+          while IFS="$(printf '\t')" read -r key package version summary link; do
+            title="Security advisory ${key} in ${package}"
+            if grep --fixed-strings --line-regexp --quiet -- "${title}" "${RUNNER_TEMP}/known-titles.txt"; then
+              echo "Already reported: ${title}"
+              continue
+            fi
+            body="$(printf 'The daily dependency audit found an advisory in the monorepo lock.\n\n- Advisory: %s\n- Package: %s\n- Version or affected range: %s\n- Summary: %s\n- Details: %s\n\nClose this issue once the lock no longer contains an affected version, or with a note when the advisory does not apply.\n' "${key}" "${package}" "${version}" "${summary}" "${link}")"
+            gh issue create --title "${title}" --label "${ISSUE_LABEL}" --body "${body}"
+            echo "${title}" >> "${RUNNER_TEMP}/known-titles.txt"
+          done < "${RUNNER_TEMP}/advisories.tsv"

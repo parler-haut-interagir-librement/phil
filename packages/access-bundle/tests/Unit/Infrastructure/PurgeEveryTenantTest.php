@@ -57,7 +57,7 @@ final class PurgeEveryTenantTest extends TestCase
         self::assertMatchesRegularExpression('/globex\s+0\s+failed: The database of <globex> is down\./', $display, 'The message is printed as text, its tags escaped.');
         self::assertMatchesRegularExpression('/acme\s+2\s+purged/', $display);
         self::assertStringContainsString('1 of 2 tenants failed; the others were purged.', $display);
-        self::assertSame(['enter globex', 'leave', 'enter acme', 'leave'], $this->activation->calls, 'The failed tenant is left before the next one is entered.');
+        self::assertSame(['enter globex', 'leave', 'leave', 'enter acme', 'leave'], $this->activation->calls, 'The failed activation is undone, then the tenant is left, before the next one is entered.');
         self::assertNull($this->tenants->current());
 
         self::assertSame(0, $this->tenants->within(TenantId::fromString('acme'), $this->stage->store->purgeExpired(...)));

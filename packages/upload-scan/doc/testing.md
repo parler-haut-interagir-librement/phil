@@ -17,12 +17,16 @@ vendor/bin/phpunit packages/upload-scan/tests
 The library is held to 100 % covered mutation score by Infection.
 
 `tests/Integration/ClamdTest.php` runs against a real clamd at the address of `PHIL_UPLOAD_SCAN_CLAMD`, and is
-skipped without it:
+skipped without it. It sends the test file alone, three archives down, and after 10 000 empty files of one archive:
+that last archive passes unless clamd runs with `AlertExceedsMax yes`, and `PHIL_UPLOAD_SCAN_CLAMD_ALERT_EXCEEDS_MAX=1`
+tells the test it does. The archives are built byte by byte, stored without compression, so no extension is needed:
 
 ```sh
 docker run -d --name clamav -p 3310:3310 clamav/clamav:stable
 PHIL_UPLOAD_SCAN_CLAMD=tcp://127.0.0.1:3310 vendor/bin/phpunit packages/upload-scan/tests/Integration
 ```
+
+On an ARM machine, add `--platform linux/amd64`: the image is built for x86-64 only.
 
 ## The fuzz target
 

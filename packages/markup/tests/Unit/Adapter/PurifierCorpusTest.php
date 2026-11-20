@@ -44,6 +44,8 @@ final class PurifierCorpusTest extends TestCase
         yield 'svg handler' => ['<svg onload=alert(1)><circle r="1"/></svg>'];
         yield 'svg script' => ['<svg><script>alert(1)</script><a xlink:href="javascript:alert(1)"><text>x</text></a></svg>'];
         yield 'javascript link' => ['<a href="javascript:alert(1)">a</a><a href="JaVaScRiPt:alert(1)">b</a>'];
+        yield 'padded references in scheme' => ['<a href="&#0000106;avascript:alert(1)">a</a><a href="&#x0000006A;avascript:alert(1)">b</a><img src="&#0000106;avascript:alert(1)">'];
+        yield 'special schemes without authority' => ['<a href="http:evil.example/x">a</a><a href="javascript&colon;alert(1)">b</a><img src="https:evil.example/x.png"><img src="https:/evil.example/x.png">'];
         yield 'entity in scheme' => ['<a href="&#106;avascript:alert(1)">a</a><a href="jav&#x09;ascript:alert(1)">b</a><a href="&#14; javascript:alert(1)">c</a>'];
         yield 'other schemes' => ['<a href="vbscript:msgbox(1)">a</a><a href="data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==">b</a><img src="data:image/svg+xml,<svg onload=alert(1)>">'];
         yield 'frames' => ['<iframe src="javascript:alert(1)"></iframe><iframe srcdoc="<script>alert(1)</script>"></iframe><frameset><frame src="x"></frameset>'];
@@ -168,5 +170,25 @@ final class PurifierCorpusTest extends TestCase
         self::assertNotNull($body);
 
         return $body;
+    }
+
+    /**
+     * When images are limited to some hosts, every address of an image is: `srcset` on `img` and on `source`, a
+     * special scheme without `//`, an address without its scheme, and a host that only starts like an allowed one.
+     */
+    public function testImagesLimitedToSomeHostsAreLimitedInEveryAddress(): void
+    {
+        $purifier = SanitizerPurifier::defaultPolicies(['cdn.example.com']);
+
+        self::assertSame(
+            '<img src="a.png" /><img src="https://cdn.example.com/b.png" srcset="https://cdn.example.com/b2.png 2x" /><picture><source /><img src="a.png" /></picture><img /><img /><img />',
+            $purifier->purify(
+                '<img src="a.png" srcset="https://evil.example/x.png 2x">'
+                .'<img src="https://cdn.example.com/b.png" srcset="https://cdn.example.com/b2.png 2x">'
+                .'<picture><source srcset="https://evil.example/x.png"><img src="a.png"></picture>'
+                .'<img src="https:evil.example/x.png"><img src="//evil.example/x.png"><img src="https://cdn.example.com.evil.example/x.png">',
+                Level::All,
+            ),
+        );
     }
 }

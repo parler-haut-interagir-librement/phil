@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=af676439b5fde7bd9fb5e3c7d3578bcb72386bcc7afe749feec64b9123c1c716 -->
+<!-- phil-dev source-sha256=f2a8569b11e5c34f723321721394fda4e1ee37955fb3cd48f701b7cf0ea463cc -->
 # Référence
 
 Chaque type public du bundle, par couche.
@@ -41,8 +41,11 @@ Chaque type public du bundle, par couche.
 |---|---|---|---|
 | `Doctrine\ActiveTenantFilter` | `final class`, `SQLFilter` de l'ORM | Restreint les entités `#[TenantScoped]` au locataire actif ; échoue en mode fermé | Implémenté et testé ; enregistré activé par le bundle |
 | `Exception\MisconfiguredTenantScope` | `final class`, `LogicException` | Une portée que le filtre ne peut pas appliquer | Implémenté et testé |
-| `Doctrine\DoctrineTenantActivation` | `final readonly class`, `TenantActivation` | Règle le locataire du contexte sur chaque filtre activé ; un filtre neuf à la sortie | Implémenté et testé |
-| `Doctrine\TenantColumn` | `final class` | `of()` : la colonne du locataire d'une entité, comme la lisent le filtre et les politiques | Implémenté et testé |
+| `Doctrine\DoctrineTenantActivation` | `final readonly class`, `TenantActivation` | Règle le locataire du contexte sur chaque filtre activé ; détache de la table d'identité les entités liées à un locataire quand le locataire change ; un filtre neuf à la sortie | Implémenté et testé |
+| `Doctrine\TenantColumn` | `final class` | `of()` : la colonne du locataire d'une entité, comme la lisent le filtre et les politiques ; `field()` : le champ ou l'association qui la contient | Implémenté et testé |
+| `Doctrine\EntityTenant` | `final class` | `of()` : la référence du locataire que détient une entité, par un champ ou par l'identifiant d'une entité locataire associée | Implémenté et testé |
+| `Doctrine\TenantWriteGuard` | `final class`, écouteur `onFlush` | Refuse un vidage qui écrit une entité liée à un locataire autre que le locataire actif | Implémenté et testé ; enregistré avec `doctrine_filter` |
+| `Exception\CrossTenantWrite` | `final class`, `RuntimeException` | Le vidage que la garde d'écriture a refusé | Implémenté et testé |
 | `Doctrine\RowLevelSecurity\RowLevelSecurityConfig` | `final readonly class` | La variable de session et le nom de la politique, vérifiés | Implémenté et testé |
 | `Doctrine\RowLevelSecurity\TenantSession` | `final class`, `TenantActivation` | Pose le locataire actif sur chaque connexion PostgreSQL ouverte ; le vide à la sortie | Implémenté et testé sur PostgreSQL |
 | `Doctrine\RowLevelSecurity\TenantSessionMiddleware`, `TenantSessionDriver` | intergiciel et pilote DBAL | Remettent chaque nouvelle connexion à `TenantSession` | Implémenté et testé sur PostgreSQL |

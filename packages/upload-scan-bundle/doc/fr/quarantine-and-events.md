@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=593df5c12941366f01fac0e1ade4dc52962538b0c7bc676b7e014cbf666ec6ca -->
+<!-- phil-dev source-sha256=2439c6ad666c2ee3c705c23c8e7f831db4812aebaf6fb07232e10bee3578e284 -->
 # Quarantaine et événements
 
 ## La quarantaine
@@ -33,8 +33,9 @@ var/quarantine/                              drwx------
   qu'un autre utilisateur en est le propriétaire, ou quand `tighten_open_directory` est faux, `QuarantineFailed` nomme
   le répertoire et son mode, et rien n'est écrit. Un répertoire atteint par un lien symbolique est utilisé là où le
   lien pointe.
-- Un répertoire sous `public/` est refusé à la construction du conteneur, et aucune route du bundle ne sert ce que
-  contient la quarantaine : un fichier infecté n'est jamais téléchargé depuis le site. Gardez le répertoire hors des
+- Un répertoire sous `public/` est refusé à la construction du conteneur — tel qu'écrit, et une fois les liens
+  symboliques des deux chemins suivis, la partie qui n'existe pas encore étant gardée telle qu'écrite —, et aucune route
+  du bundle ne sert ce que contient la quarantaine : un fichier infecté n'est jamais téléchargé depuis le site. Gardez le répertoire hors des
   sauvegardes restaurées à des endroits que sert le serveur Web.
 - Un opérateur supprime les fichiers traités sur la page d'administration, ci-dessous, et la commande de purge supprime
   ceux qui sont conservés plus longtemps que la durée de rétention.

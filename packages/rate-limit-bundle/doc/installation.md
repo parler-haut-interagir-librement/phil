@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- PHP 8.5 or later;
+- PHP 8.5 or later, with the intl and mbstring extensions, which normalize the identifiers a key is built from;
 - Symfony 8.2 or later, with FrameworkBundle;
 - optionally TwigBundle for the refusal page, the form component for forms, SecurityBundle for the `user` and
   `user_or_ip` keys, the translator for French, symfony/lock for exact counts under concurrency,

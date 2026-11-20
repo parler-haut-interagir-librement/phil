@@ -40,8 +40,11 @@ Every public type of the bundle, by layer.
 |---|---|---|---|
 | `Doctrine\ActiveTenantFilter` | `final class`, ORM `SQLFilter` | Restricts `#[TenantScoped]` entities to the active tenant; fails closed | Implemented and tested; registered enabled by the bundle |
 | `Exception\MisconfiguredTenantScope` | `final class`, `LogicException` | A scope the filter cannot apply | Implemented and tested |
-| `Doctrine\DoctrineTenantActivation` | `final readonly class`, `TenantActivation` | Sets the context's tenant on every enabled filter; a fresh filter on leaving | Implemented and tested |
-| `Doctrine\TenantColumn` | `final class` | `of()`: the tenant column of an entity, as the filter and the policies read it | Implemented and tested |
+| `Doctrine\DoctrineTenantActivation` | `final readonly class`, `TenantActivation` | Sets the context's tenant on every enabled filter; detaches the tenant-scoped entities of the identity map when the tenant changes; a fresh filter on leaving | Implemented and tested |
+| `Doctrine\TenantColumn` | `final class` | `of()`: the tenant column of an entity, as the filter and the policies read it; `field()`: the field or association that holds it | Implemented and tested |
+| `Doctrine\EntityTenant` | `final class` | `of()`: the tenant reference an entity holds, through a field or the identifier of an associated tenant entity | Implemented and tested |
+| `Doctrine\TenantWriteGuard` | `final class`, `onFlush` listener | Refuses a flush that writes a tenant-scoped entity of another tenant than the active one | Implemented and tested; registered with `doctrine_filter` |
+| `Exception\CrossTenantWrite` | `final class`, `RuntimeException` | The flush the write guard refused | Implemented and tested |
 | `Doctrine\RowLevelSecurity\RowLevelSecurityConfig` | `final readonly class` | The session variable and the policy name, checked | Implemented and tested |
 | `Doctrine\RowLevelSecurity\TenantSession` | `final class`, `TenantActivation` | Sets the active tenant on every open PostgreSQL connection; empties it on leaving | Implemented and tested on PostgreSQL |
 | `Doctrine\RowLevelSecurity\TenantSessionMiddleware`, `TenantSessionDriver` | DBAL middleware and driver | Hand each new connection to `TenantSession` | Implemented and tested on PostgreSQL |

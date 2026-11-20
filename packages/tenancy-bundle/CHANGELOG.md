@@ -4,6 +4,31 @@ All notable changes to `phil/tenancy-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: in a shared database, an entity loaded for one tenant is no longer found from another
+through Doctrine's identity map, a flush no longer writes another tenant's entity, and a tenant that cannot be entered
+leaves no tenant half-active.
+
+### Added
+
+- `TenantWriteGuard`, registered on `onFlush` with `doctrine_filter`, and `CrossTenantWrite`: a flush that would insert,
+  update or delete a tenant-scoped entity of another tenant than the one set on the filter is refused; a unit of work
+  in no tenant, or with the filter disabled or suspended, writes as before.
+- `ActiveTenantFilter::tenant()`, `TenantColumn::field()` and `EntityTenant::of()`.
+
+### Security
+
+- `find()`, `getReference()` and lazy associations answered from Doctrine's identity map, before the filter: an entity
+  loaded while one tenant was active was returned after `within()` another, or after leaving the tenant.
+  `DoctrineTenantActivation` detaches the tenant-scoped entities of every filtered entity manager when its tenant
+  changes; an entity scheduled for insertion or deletion stays, and the write guard refuses to flush it under another
+  tenant.
+- An activation that failed in `TenantContext::enter()` left the tenant set on the context and on the activations
+  before it, and `within()` did not return to the tenant before: a failure now deactivates every activation, leaves no
+  tenant active and is thrown again; `within()` returns to the tenant before; `leave()` reaches every activation even
+  when one fails.
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

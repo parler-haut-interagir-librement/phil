@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0c830c22ecf86eebac101419f4ff0c75ca0d86075665096c32893484422af30a -->
+<!-- phil-dev source-sha256=0ce9d48996bf14168c36e5c9cb68d3f2abeca88b51784f59e80edcba00858848 -->
 # phil/passwords
 
 **Dites aux gens à quel point leur mot de passe se devine, refusez ceux qui ont déjà fui et donnez-leur-en de bons.**
@@ -53,6 +53,7 @@ temps de cassage et `Feedback` — ; `Breach\BreachChecker` interroge une `Breac
 | [Données](doc/fr/data.md) | Les dictionnaires, dispositions de clavier et listes de mots fournis avec la bibliothèque. |
 | [Points d'extension](doc/fr/extension-points.md) | Dictionnaires, dispositions, sources de fuites, listes de mots, générateurs aléatoires, traductions. |
 | [Exceptions](doc/fr/exceptions.md) | `PasswordsException` et les exceptions qui l'implémentent. |
+| [Correspondance avec ASVS 5.0](doc/fr/asvs.md) | Les exigences du chapitre V6 que la bibliothèque satisfait, les tests qui les démontrent et celles qui reviennent à l'application. |
 | [Tests](doc/fr/testing.md) | Les tests de la bibliothèque, son seuil de mutation, son fuzzing et son banc d'essai, et comment tester du code qui l'utilise. |
 | [Référence](doc/fr/reference.md) | Chaque type de la bibliothèque, avec son rôle. |
 

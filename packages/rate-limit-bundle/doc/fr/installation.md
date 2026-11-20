@@ -1,9 +1,10 @@
-<!-- phil-dev source-sha256=7609e760cbd29c0693788e3827405a54c00ba7ea13d635da0af5fed3854e6319 -->
+<!-- phil-dev source-sha256=03e211de619304067405b57fec524bfc6fab124894cc964e77f91aa73c386f95 -->
 # Installation
 
 ## Prérequis
 
-- PHP 8.5 ou plus récent ;
+- PHP 8.5 ou plus récent, avec les extensions intl et mbstring, qui normalisent les identifiants dont une clé est
+  construite ;
 - Symfony 8.2 ou plus récent, avec FrameworkBundle ;
 - au besoin TwigBundle pour la page de refus, le composant de formulaire pour les formulaires, SecurityBundle pour les
   clés `user` et `user_or_ip`, le traducteur pour le français, symfony/lock pour des décomptes exacts sous la

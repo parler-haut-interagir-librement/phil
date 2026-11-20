@@ -92,11 +92,58 @@ $filter->activate($resolution->tenant());
 | `const NAME = 'phil_tenancy'` | The name to register the filter under |
 | `const PARAMETER = 'tenant'` | The filter parameter `activate()` sets |
 | `activate(TenantId $tenant): void` | Sets the active tenant; call it once the tenant is resolved, before the first tenant-scoped query of the request |
+| `tenant(): ?string` | The reference set on this filter, `null` while it matches nothing |
 | `addFilterConstraint(ClassMetadata $targetEntity, string $targetTableAlias): string` | Called by Doctrine for every entity a query touches |
 
 The bundle registers the filter enabled on the default entity manager (`doctrine_filter`); with several managers,
 the application registers it; see [installation.md](installation.md). The filter only acts while it is enabled,
 so register it with `enabled: true`.
+
+## The identity map
+
+Doctrine answers `find()`, `getReference()` and a lazy association from its identity map before any query: an entity
+already loaded is returned as it is, and the filter never sees the call. In a shared database, an entity loaded while
+one tenant is active would be found again after the switch to another. `DoctrineTenantActivation` closes that path:
+when the tenant of an entity manager whose filter is enabled changes — another tenant entered, or the tenant left — it
+detaches the tenant-scoped entities the manager holds.
+
+```php
+$order = $entityManager->find(Order::class, 7);                    // in the tenant "retail"
+
+$context->within(TenantId::fromString('wholesale'), static fn (): ?Order => $entityManager->find(Order::class, 7));
+// null: the order of "retail" is detached, and the filter of "wholesale" does not match its row
+
+$order = $entityManager->find(Order::class, 7);                    // back in "retail": loaded again
+```
+
+| Change | Tenant-scoped entities | Shared entities |
+|---|---|---|
+| The same tenant entered again | kept | kept |
+| Another tenant entered | detached | kept |
+| The tenant left | detached | kept |
+| No tenant left, the filter carrying none | kept | kept |
+
+An entity scheduled for insertion or deletion is never detached, so that its write is not dropped silently: the write
+guard below refuses to flush it under another tenant, and it is written once its own tenant is active again. A change
+to a loaded entity is not scheduled before the flush: **flush before switching tenants**, and load an entity again
+after `TenantContext::within()` rather than keep the instance loaded before.
+
+## The write guard
+
+The filter restricts reads. `TenantWriteGuard`, which the bundle registers on `onFlush` while `doctrine_filter` is on,
+refuses a flush that would insert, update or delete a tenant-scoped entity of another tenant than the one set on the
+filter of the entity manager that flushes: the flush throws `CrossTenantWrite`, and nothing is written.
+
+| Unit of work | Entity of the active tenant | Entity of another tenant, or of none |
+|---|---|---|
+| A tenant set on the enabled filter | written | `CrossTenantWrite` |
+| No tenant on the filter: a migration, a fixture, a command run without `--tenant` | written | written |
+| The filter disabled or suspended: work across tenants | written | written |
+
+The tenant of an entity is read from the field its attribute names: the reference held in a mapped field, or the
+identifier of the tenant entity a single-column association points to (`EntityTenant::of()`). Shared entities are left
+alone. The guard is the last line in a shared database without row-level security; the application still sets the
+tenant reference of a new entity from the resolved tenant.
 
 ## Design decisions
 
@@ -140,5 +187,7 @@ error, not a runtime condition to catch.
 - **DQL and the ORM only.** A filter applies to queries the ORM builds; a query through DBAL (`Connection`) or
   native SQL is not filtered. Add the tenant condition by hand there.
 - **One tenant at a time.** The filter compares with one reference; a query over several tenants disables it.
-- **Writes are not filtered.** The filter restricts what is read. Set the tenant reference on new entities from the
-  resolved tenant in the application.
+- **Writes are guarded, not filtered.** The filter restricts what is read; the write guard refuses a flush that writes
+  another tenant's entity, but writes through DBAL or native SQL are not seen by either. Set the tenant reference on
+  new entities from the resolved tenant in the application, and use row-level security
+  ([row-level-security.md](row-level-security.md)) for a barrier below the ORM.

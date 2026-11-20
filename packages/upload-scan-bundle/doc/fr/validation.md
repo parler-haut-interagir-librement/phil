@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5e6a4641262c87a8a948445e9d54b127e59d740164c4b9a128bf7ced022ce4c5 -->
+<!-- phil-dev source-sha256=f69aa771862cde474501b9706a947b2ba97b73ac15a7fbf78598f8c2c36f4d83 -->
 # Validation
 
 ## `#[CleanFile]`
@@ -44,6 +44,22 @@ que l'antivirus a trouvé. La signature parvient à l'opérateur par l'événeme
 Placez `#[CleanFile]` après les contraintes qui vérifient le type et la taille. Ainsi, un fichier refusé pour ces
 raisons n'est pas envoyé à l'antivirus : Symfony valide les contraintes d'une propriété dans leur ordre, et une
 `GroupSequence` s'arrête au premier groupe qui a une violation.
+
+### Vérifier l'accès avant l'analyse
+
+Depuis Symfony 8.2, un argument mappé par `#[MapUploadedFile]` qui est le `subject` d'un `#[IsGranted]` est validé
+**avant** le vote : ses contraintes, `#[CleanFile]` comprise, s'exécutent pour un visiteur que le vote refuserait. Ce
+visiteur fait envoyer des fichiers à clamd par le serveur, et lit les violations. Vérifiez d'abord le compte, puis votez
+sur le fichier :
+
+```php
+#[IsGranted('IS_AUTHENTICATED')]
+#[IsGranted('COVER_UPLOAD', 'cover')]
+public function upload(#[MapUploadedFile([new Assert\Image(maxSize: '10M'), new CleanFile(context: 'cover')])] UploadedFile $cover): Response
+```
+
+`phil/route-access-check` signale comme un conflit une route dont le vote sur un argument mappé n'a aucune vérification
+avant lui.
 
 ## Le `UploadScanner`
 

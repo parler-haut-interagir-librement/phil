@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace Phil\TenancyBundle\Tests\Unit\Infrastructure\Doctrine;
 
+use ArrayObject;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query\FilterCollection;
+use Doctrine\ORM\UnitOfWork;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Phil\TenancyBundle\Domain\ValueObject\TenantId;
 use Phil\TenancyBundle\Infrastructure\Doctrine\ActiveTenantFilter;
 use Phil\TenancyBundle\Infrastructure\Doctrine\DoctrineTenantActivation;
+use Phil\TenancyBundle\Tests\Unit\Infrastructure\Doctrine\Fixture\NotScoped;
+use Phil\TenancyBundle\Tests\Unit\Infrastructure\Doctrine\Fixture\Owned;
 use Phil\TenancyBundle\Tests\Unit\Infrastructure\Doctrine\Fixture\ScopedByField;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -56,6 +60,48 @@ final class DoctrineTenantActivationTest extends TestCase
         self::assertSame("t0.tenant = 'wholesale'", $this->constraint($disabled), 'the next tenant reaches it');
     }
 
+    /**
+     * A switch to another tenant, or out of the tenant, detaches the tenant-scoped entities of the identity map;
+     * shared entities, and entities scheduled for insertion or deletion, stay.
+     */
+    public function testATenantChangeDetachesTheTenantScopedEntities(): void
+    {
+        [$loaded, $inserted, $deleted, $shared] = [new Owned('retail'), new Owned('retail'), new Owned('retail'), new NotScoped()];
+        $detached = new ArrayObject();
+        $manager = $this->managerWithIdentityMap([NotScoped::class => [$shared], Owned::class => [$inserted, $deleted, $loaded]], [$inserted], [$deleted], $detached);
+        $activation = new DoctrineTenantActivation($this->registry($manager));
+
+        $activation->activate(TenantId::fromString('retail'));
+        self::assertSame([$loaded], $detached->getArrayCopy(), 'entering a first tenant: whatever the manager held before is detached');
+
+        $activation->activate(TenantId::fromString('retail'));
+        self::assertSame([$loaded], $detached->getArrayCopy(), 'the same tenant again: nothing is detached');
+
+        $activation->activate(TenantId::fromString('wholesale'));
+        self::assertSame([$loaded, $loaded], $detached->getArrayCopy());
+
+        $activation->deactivate();
+        self::assertSame([$loaded, $loaded, $loaded], $detached->getArrayCopy());
+
+        $activation->deactivate();
+        self::assertSame([$loaded, $loaded, $loaded], $detached->getArrayCopy(), 'no tenant to leave: nothing is detached');
+    }
+
+    /**
+     * A manager whose filter is disabled does cross-tenant work: its identity map is left alone.
+     */
+    public function testAManagerWithoutTheFilterKeepsItsEntities(): void
+    {
+        $detached = new ArrayObject();
+        $manager = $this->managerWithIdentityMap([Owned::class => [new Owned('retail')]], [], [], $detached, false);
+        $activation = new DoctrineTenantActivation($this->registry($manager));
+
+        $activation->activate(TenantId::fromString('retail'));
+        $activation->deactivate();
+
+        self::assertSame([], $detached->getArrayCopy());
+    }
+
     public function testWithoutDoctrineThereIsNothingToActivate(): void
     {
         $activation = new DoctrineTenantActivation();
@@ -90,6 +136,47 @@ final class DoctrineTenantActivationTest extends TestCase
         $manager->method('getConnection')->willReturn($connection);
         $manager->method('getConfiguration')->willReturn($configuration);
         // The collection reads the configuration when it is built.
+        $filters = new FilterCollection($manager);
+        $manager->method('getFilters')->willReturn($filters);
+
+        if ($enabled) {
+            $filters->enable(ActiveTenantFilter::NAME);
+        }
+
+        return $manager;
+    }
+
+    /**
+     * @param array<class-string, list<object>> $identityMap
+     * @param list<object>                      $insertions
+     * @param list<object>                      $deletions
+     * @param ArrayObject<int, object>          $detached    the entities detached, in order
+     */
+    private function managerWithIdentityMap(array $identityMap, array $insertions, array $deletions, ArrayObject $detached, bool $enabled = true): EntityManagerInterface
+    {
+        $connection = self::createStub(Connection::class);
+        $connection->method('quote')->willReturnCallback(static fn (string $value): string => "'".$value."'");
+        $configuration = new Configuration();
+        $configuration->addFilter(ActiveTenantFilter::NAME, ActiveTenantFilter::class);
+
+        $unitOfWork = self::createStub(UnitOfWork::class);
+        $unitOfWork->method('getIdentityMap')->willReturn($identityMap);
+        $unitOfWork->method('isScheduledForInsert')->willReturnCallback(static fn (object $entity): bool => \in_array($entity, $insertions, true));
+        $unitOfWork->method('isScheduledForDelete')->willReturnCallback(static fn (object $entity): bool => \in_array($entity, $deletions, true));
+
+        $manager = self::createStub(EntityManagerInterface::class);
+        $manager->method('getConnection')->willReturn($connection);
+        $manager->method('getConfiguration')->willReturn($configuration);
+        $manager->method('getUnitOfWork')->willReturn($unitOfWork);
+        $manager->method('getClassMetadata')->willReturnCallback(static function (string $class): ClassMetadata {
+            $metadata = Owned::class === $class ? new ClassMetadata(Owned::class) : new ClassMetadata(NotScoped::class);
+            $metadata->mapField(['fieldName' => 'tenant', 'type' => 'string']);
+
+            return $metadata;
+        });
+        $manager->method('detach')->willReturnCallback(static function (object $entity) use ($detached): void {
+            $detached->append($entity);
+        });
         $filters = new FilterCollection($manager);
         $manager->method('getFilters')->willReturn($filters);
 

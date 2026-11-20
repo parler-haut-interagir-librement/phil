@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a3d80a752ac3fbb971f978866397aa5860ddf63eafa337755b059c6334b82de4 -->
+<!-- phil-dev source-sha256=9223b85f19f0901fb2e7637abec1c1a087067cead91971be9c12c53bf5225937 -->
 # Intégrations
 
 Ce que le bundle branche autour d'`ActiveTenant` : le contexte du locataire, l'écouteur de requêtes, le changement,
@@ -16,9 +16,9 @@ pour le code qui s'exécute ensuite.
 |---|---|
 | `current(): ?TenantId` | Le locataire actif, ou `null` |
 | `require(): TenantId` | Le locataire actif ; lance `NoActiveTenant` quand il n'y en a pas |
-| `enter(TenantId $tenant): void` | Rend le locataire actif et appelle `activate()` sur chaque activation |
-| `leave(): void` | Ne rend aucun locataire actif et appelle `deactivate()` sur chaque activation |
-| `within(TenantId $tenant, callable $work): mixed` | Exécute le travail dans le locataire, puis revient au locataire actif auparavant, ou à aucun, même quand le travail lance une exception |
+| `enter(TenantId $tenant): void` | Rend le locataire actif et appelle `activate()` sur chaque activation ; quand l'une échoue, chaque activation est désactivée, aucun locataire n'est actif, et l'échec est lancé de nouveau |
+| `leave(): void` | Ne rend aucun locataire actif et appelle `deactivate()` sur chaque activation, toutes même quand l'une échoue ; le premier échec est lancé une fois qu'elles sont toutes atteintes |
+| `within(TenantId $tenant, callable $work): mixed` | Exécute le travail dans le locataire, puis revient au locataire actif auparavant, ou à aucun, même quand le travail lance une exception ou que le locataire ne peut être atteint |
 
 On quitte le contexte entre les requêtes (`kernel.reset`) : un serveur de longue durée ne transporte donc jamais un
 locataire d'une requête à la suivante.

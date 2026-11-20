@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bff11109115412c1009a4c94315072e495d46a5234c31e14db604db5f8e57f02 -->
+<!-- phil-dev source-sha256=074d1fc719064e7304895daa5ef3e23afebbd5511e29dad6fa20f09bd86fc060 -->
 # phil/upload-scan-bundle
 
 **Des téléversements analysés par ClamAV avant d'être conservés, et des fichiers infectés mis en quarantaine là où
@@ -49,6 +49,7 @@ Il est publié sous licence MIT.
 | [Nouvelles analyses](doc/fr/rescans.md) | `RescanFile`, `RescanTarget`, le *worker* et `FileRescanned`. |
 | [Intégrations](doc/fr/integrations.md) | La médiathèque, l'importateur de documents, le contrôle de santé. |
 | [Points d'extension](doc/fr/extension-points.md) | L'analyseur, la quarantaine et les cibles de nouvelle analyse de l'application. |
+| [Correspondance avec ASVS 5.0](doc/fr/asvs.md) | Les exigences que le bundle satisfait, les tests qui les démontrent et celles qui reviennent à l'application. |
 | [Tests](doc/fr/testing.md) | Les tests du bundle, et comment tester une application qui analyse. |
 | [Référence](doc/fr/reference.md) | Chaque type et chaque service du bundle. |
 

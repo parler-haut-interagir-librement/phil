@@ -41,6 +41,22 @@ final class MinimumStrengthValidatorTest extends ConstraintValidatorTestCase
         $this->assertNoViolation();
     }
 
+    /**
+     * ASVS 5.0, 6.2.9: a password of 200 characters is accepted, and analysed over its first 128 in bounded time.
+     */
+    public function testAPasswordOf200CharactersIsAccepted(): void
+    {
+        $password = substr(str_repeat('Lighthouse-keepers drink 7 teas at dusk; ', 5), 0, 200);
+        self::assertSame(200, \strlen($password));
+
+        $this->validate($password, new MinimumStrength());
+
+        $this->assertNoViolation();
+        $strength = new StrengthEstimator()->estimate($password);
+        self::assertSame([200, StrengthEstimator::MAX_LENGTH], [$strength->length, $strength->analysedLength]);
+        self::assertTrue($strength->isTruncated());
+    }
+
     public function testAStringableIsRead(): void
     {
         $this->validate(new class implements Stringable {

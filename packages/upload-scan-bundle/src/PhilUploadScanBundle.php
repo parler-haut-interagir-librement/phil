@@ -378,11 +378,46 @@ final class PhilUploadScanBundle extends AbstractBundle
 
         $directory = $builder->getParameterBag()->resolveValue($config['directory']);
 
-        if (\is_string($directory) && Path::isBasePath(Path::join($projectDir, 'public'), Path::makeAbsolute($directory, $projectDir))) {
+        if (\is_string($directory) && $this->isUnderPublic(Path::join($projectDir, 'public'), Path::makeAbsolute($directory, $projectDir))) {
             throw new InvalidConfigurationException(\sprintf('phil_upload_scan.quarantine.directory "%s" is under public/, where the web server would serve the infected files: choose a directory outside it, such as var/quarantine.', $directory));
         }
 
         return FilesystemQuarantine::class;
+    }
+
+    /**
+     * Whether the directory is under `public/`, as written or once symbolic links are followed: a `var/quarantine`
+     * that links into `public/`, or a `public/` that links to the directory's parent, is under it all the same.
+     */
+    private function isUnderPublic(string $public, string $directory): bool
+    {
+        return Path::isBasePath($public, $directory) || Path::isBasePath($this->resolved($public), $this->resolved($directory));
+    }
+
+    /**
+     * The path with the symbolic links of its longest existing part followed; the part that does not exist yet is
+     * kept as written.
+     */
+    private function resolved(string $path): string
+    {
+        $missing = [];
+
+        while (true) {
+            $real = realpath($path);
+
+            if (false !== $real) {
+                return Path::join($real, ...array_reverse($missing));
+            }
+
+            $parent = \dirname($path);
+
+            if ($parent === $path) {
+                return Path::join($path, ...array_reverse($missing));
+            }
+
+            $missing[] = basename($path);
+            $path = $parent;
+        }
     }
 
     /**

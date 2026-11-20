@@ -12,6 +12,7 @@ use Phil\BrowserSecurityBundle\Application\RequestState;
 use Phil\BrowserSecurityBundle\Domain\Enum\InlineKind;
 use Phil\BrowserSecurityBundle\Domain\Exception\InvalidPolicy;
 use Phil\BrowserSecurityBundle\Domain\Syntax\SourceSyntax;
+use Phil\BrowserSecurityBundle\PhilBrowserSecurityBundle;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -164,5 +165,22 @@ final class HeaderBuilderTest extends TestCase
 
         self::assertSame([], new HeaderBuilder($this->policies, 'default', 'strict')->build($state));
         self::assertNull($state->policyName);
+    }
+
+    /**
+     * ASVS 5.0, 3.4.3: the policy the bundle declares by default, header and reporting endpoint, byte by byte.
+     */
+    public function testTheDefaultPolicyIsSentWhole(): void
+    {
+        $policies = PolicyRegistry::fromConfig(['default' => ['directives' => PhilBrowserSecurityBundle::DEFAULT_POLICY]]);
+
+        self::assertSame([
+            'Content-Security-Policy' => "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'; upgrade-insecure-requests; report-uri /_csp/report; report-to csp",
+            'Reporting-Endpoints' => 'csp="/_csp/report"',
+        ], new HeaderBuilder($policies)->build(new RequestState(), '/_csp/report'));
+        self::assertSame(
+            ['Content-Security-Policy' => "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'; upgrade-insecure-requests"],
+            new HeaderBuilder($policies)->build(new RequestState()),
+        );
     }
 }
