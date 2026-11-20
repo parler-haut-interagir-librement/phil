@@ -11,6 +11,7 @@ use Phil\FormsAutosave\Application\DraftKeys;
 use Phil\FormsAutosave\Application\Drafts;
 use Phil\FormsAutosave\Application\PlainSealer;
 use Phil\FormsAutosave\Infrastructure\Console\PurgeCommand;
+use Phil\FormsAutosave\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\FormsAutosave\Infrastructure\Doctrine\DoctrineDraftStore;
 use Phil\FormsAutosave\Infrastructure\Form\AutosaveLabels;
 use Phil\FormsAutosave\Infrastructure\Form\AutosaveTypeExtension;
@@ -25,9 +26,10 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * The bundle's services: the keys, the labels, the form type extension and the cookie of submitted drafts; with the
- * server store, the store, the sealer in clear when encryption is off, the drafts, the check of the controller's
- * requests, the endpoints and the purge command. The owner and the encrypting sealer are completed by
- * `ServerStorePass`, the latter from the parameters of the master key and its KMS.
+ * server store, the store — on Doctrine, with the listener that gives its keys the binary collation —, the sealer in
+ * clear when encryption is off, the drafts, the check of the controller's requests, the endpoints and the purge
+ * command. The owner and the encrypting sealer are completed by `ServerStorePass`, the latter from the parameters of
+ * the master key and its KMS.
  *
  * @phpstan-type ServerConfig array{enabled: bool, store: string, connection: string, encrypt: bool, key: ?string, kms: ?string, max_bytes: int, owner: ?string}
  * @phpstan-type AutosaveConfig array{secret: string, ttl: int, debounce: int, max_bytes: int, server: ServerConfig}
@@ -95,6 +97,7 @@ final class AutosaveServices
             $container->register(DoctrineDraftStore::class, DoctrineDraftStore::class)
                 ->setArguments([new Reference('doctrine.dbal.'.$server['connection'].'_connection')]);
             $container->setAlias(DraftStore::class, DoctrineDraftStore::class)->setPublic(true);
+            $container->register(BinaryKeysListener::class, BinaryKeysListener::class)->addTag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
         }
 
         if (!$server['encrypt']) {

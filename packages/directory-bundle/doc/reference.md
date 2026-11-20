@@ -18,6 +18,7 @@
 | `Application\RelatedLookup` | interface | The listings of a genre whose live rows name a listing under a relation |
 | `Application\Capability\*Pipeline` | data mapper, merger, normalizer | The five capabilities in content-bundle |
 | `Infrastructure\Doctrine\ListingIdType` | Doctrine type | `phil_directory_listing_id` |
+| `Infrastructure\Doctrine\BinaryKeysListener` | listener | `genre`, `author` and `edited_by` in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata` after the mapping listener of content-bundle ([installation.md](installation.md#collation-of-the-keys)) |
 | `Infrastructure\Doctrine\*CapabilityMapping` | capability mapping | The columns of the five capabilities |
 | `Infrastructure\Doctrine\DoctrineUserErasure` | `final readonly class` | `UserErasure` on the Doctrine ORM |
 | `Infrastructure\Doctrine\DoctrineRelatedLookup` | `final readonly class` | `RelatedLookup` on the Doctrine ORM |

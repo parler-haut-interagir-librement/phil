@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=60f0e06f47e4591057ccb8da20f6fee5962992e40007951c9d5c8eccbc3b2460 -->
+<!-- phil-dev source-sha256=1b87ee330482fc0b42a944a12c4fd8db45684e672dd254b2255d27ec50322005 -->
 # Dates stockées et formulaire
 
 ## La table
@@ -18,6 +18,41 @@ les pages.
 | `days` | `SMALLINT` | |
 | `all_day` | booléen | |
 | `tags` | JSON | |
+
+### Collation de la clé
+
+**La clé se compare octet par octet**, comme PHP la compare. Le bundle écrit les clés en ASCII minuscule ; une ligne
+écrite en dehors de lui — à la main, par un autre outil — garde son orthographe : une ligne `Harvest` ou `harvést` n'est
+jamais trouvée pour `harvest`, et n'empêche jamais d'enregistrer `harvest` sous la clé unique. `BinaryKeysListener`,
+enregistré avec `database: true`, donne à `date_key` la collation binaire lorsque l'ORM charge ses métadonnées sur MySQL
+ou MariaDB ; le mappage lui-même reste le même sur toutes les plateformes.
+
+Sur MySQL et MariaDB, `date_key` prend le jeu de caractères `utf8mb4` et la collation `utf8mb4_bin`, selon la plateforme
+de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ignore la casse et les accents. Les
+collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et SQLite compare les
+octets : la colonne garde la valeur par défaut.
+
+#### Mise à niveau depuis 0.1
+
+La table d'une installation 0.1 sur MySQL ou MariaDB gardait la collation de la connexion. `doctrine:migrations:diff`
+écrit la migration qui amène `date_key` à `utf8mb4_bin` ; exécutez-la avec `doctrine:migrations:migrate`. À la main,
+selon la plateforme :
+
+```sql
+-- MySQL and MariaDB
+ALTER TABLE phil_almanac_date MODIFY date_key VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL;
+-- PostgreSQL: nothing to run, the default collation is deterministic.
+-- SQLite: nothing to run, the column compares bytes.
+```
+
+Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne brise la clé unique. Une clé que
+l'application cherche dans une autre casse que celle de la ligne cesse de correspondre dès la migration ; les clés que
+le bundle écrit sont en minuscules, et seules les lignes écrites en dehors de lui peuvent donc être concernées. Avant de
+migrer sur MySQL ou MariaDB, listez-les :
+
+```sql
+SELECT date_key FROM phil_almanac_date WHERE CAST(date_key AS BINARY) <> CAST(LOWER(date_key) AS BINARY);
+```
 
 `StoredDate` se construit à partir d'une `Definition` et la rend avec `definition()`. `change()` prend le titre, les
 règles, la durée et les étiquettes d'une autre définition, la clé restant la même. Le port `StoredDateRepository` —

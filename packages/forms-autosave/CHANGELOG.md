@@ -4,6 +4,39 @@ All notable changes to `phil/forms-autosave` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.0-alpha: the key of a draft kept on the server compares byte by byte on MySQL and MariaDB. See
+[Upgrading from 0.2](doc/server-store.md#upgrading-from-02).
+
+### Added
+
+- `Infrastructure\Doctrine\BinaryKeysListener`, on the ORM's `loadClassMetadata` event and registered with the
+  Doctrine store, and its `FIELDS`: the fields that compare byte by byte on MySQL and MariaDB.
+
+### Changed
+
+- On MySQL and MariaDB, `owner` and `draft_key` of `phil_form_draft` take the `utf8mb4` character set and the
+  `utf8mb4_bin` collation in the schema the ORM generates, through `Infrastructure\Doctrine\BinaryKeysListener`.
+  PostgreSQL and SQLite keep their default, which compares bytes already. The migration, which
+  `doctrine:migrations:diff` writes:
+
+  ```sql
+  -- MySQL and MariaDB
+  ALTER TABLE phil_form_draft
+      MODIFY owner VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+      MODIFY draft_key VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL;
+  -- PostgreSQL and SQLite: nothing to run.
+  ```
+
+  Apply it with `doctrine:migrations:migrate`, or run the statement by hand on MySQL and MariaDB; see the
+  [upgrade guide](doc/server-store.md#upgrading-from-02).
+
+### Fixed
+
+- Under the default case-insensitive collation of MySQL and MariaDB, the draft `AbcdefghijklmnoP` was read, replaced
+  and deleted for `abcdefghijklmnop`, and a first save of one failed with `409` while the other existed.
+
 ## 0.2.0-alpha - 2026-11-14
 
 ### Changed

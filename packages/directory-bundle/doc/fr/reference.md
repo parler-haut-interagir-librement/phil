@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e457ce86d795ef357a442d8bb376216102b29173889d6c176c460c8c055d55a1 -->
+<!-- phil-dev source-sha256=01ff38ec4b99700f9a44e7d4880a44a1ae9a4a7b2e3adb076de7c18542f2d392 -->
 # Référence
 
 | Type | Sorte | Rôle |
@@ -19,6 +19,7 @@
 | `Application\RelatedLookup` | interface | Les fiches d'un genre dont les lignes actives nomment une fiche sous une relation |
 | `Application\Capability\*Pipeline` | association de données, fusion, normalisation | Les cinq capacités dans content-bundle |
 | `Infrastructure\Doctrine\ListingIdType` | type Doctrine | `phil_directory_listing_id` |
+| `Infrastructure\Doctrine\BinaryKeysListener` | écouteur | `genre`, `author` et `edited_by` en `utf8mb4_bin` sur MySQL et MariaDB, au `loadClassMetadata` de l'ORM après l'écouteur de mappage de content-bundle ([installation.md](installation.md#collation-des-clés)) |
 | `Infrastructure\Doctrine\*CapabilityMapping` | association de capacité | Les colonnes des cinq capacités |
 | `Infrastructure\Doctrine\DoctrineUserErasure` | `final readonly class` | `UserErasure` sur l'ORM Doctrine |
 | `Infrastructure\Doctrine\DoctrineRelatedLookup` | `final readonly class` | `RelatedLookup` sur l'ORM Doctrine |

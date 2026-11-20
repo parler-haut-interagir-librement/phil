@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=16073f0d84b0bf1a08445b7261eb4dc20fc37dfbbc5fd636085137c417404872 -->
+<!-- phil-dev source-sha256=1ffd9344e06425e1cf59a401a59d932c5840585be36113f9f4304c8b813c108e -->
 # Tests
 
 ## Les tests du bundle
@@ -10,8 +10,16 @@ qui ne sont pas des brouillons) ; le sceau de KeyManagement sur le KMS local du 
 type de formulaire (les valeurs de la balise, les clés par sujet et par utilisateur, les champs marqués, les soumissions
 invalides, l'URL du point de terminaison, les formulaires soumis gardés jusqu'à la réponse) ; la version de la
 structure ; les libellés ; le témoin des formulaires envoyés ; chaque réponse des points de terminaison et les jetons
-CSRF qu'ils acceptent et refusent ; la commande de purge ; et la configuration, les services, les réglages ajoutés en
-préfixe et la passe de compilation du bundle.
+CSRF qu'ils acceptent et refusent ; la commande de purge ; `BinaryKeysListener` — la clé primaire en `utf8mb4_bin` dans le
+schéma généré pour MySQL et MariaDB, la collation par défaut sur SQLite, où des clés qui ne diffèrent que par la casse
+ou l'accent sont quatre brouillons, les options qu'un champ a déjà conservées — ; et la configuration, les services, les
+réglages ajoutés en préfixe et la passe de compilation du bundle.
+
+`tests/Integration` exécute `BinaryKeysListener` sur un vrai MySQL 8.4 et un vrai PostgreSQL 17 : des brouillons dont les
+clés ne diffèrent que par la casse sont enregistrés, lus et supprimés séparément par `DoctrineDraftStore`, la même clé
+enregistrée deux fois est toujours refusée, une clé qui diffère par un accent est une autre ligne, et sur MySQL la clé
+primaire est en `utf8mb4_bin` et la table de la version précédente l'atteint par le diff du schéma. Le test de chaque
+serveur lit son URL dans `PHIL_TEST_MYSQL_URL` ou `PHIL_TEST_POSTGRESQL_URL` et est ignoré sans elle.
 
 `tests/Functional` démarre un noyau avec FrameworkBundle en français, DoctrineBundle sur SQLite, TwigBundle,
 KeyManagementBundle avec un client `sodium://` local et le bundle avec son stockage serveur. Il joue un formulaire de sa
@@ -32,6 +40,9 @@ ou est refusé avec `InvalidDraft`.
 
 ```sh
 vendor/bin/phpunit packages/forms-autosave/tests
+PHIL_TEST_MYSQL_URL='mysql://phil:phil@127.0.0.1:13306/phil_test?serverVersion=8.4' \
+PHIL_TEST_POSTGRESQL_URL='postgresql://phil:phil@127.0.0.1:15432/phil_test?serverVersion=17' \
+vendor/bin/phpunit packages/forms-autosave/tests/Integration
 composer fuzz -- draft
 node --import ./tests/js/register.mjs --test tests/js     # from packages/forms-autosave
 ```

@@ -27,6 +27,7 @@ use Phil\DirectoryBundle\Domain\Model\Listing;
 use Phil\DirectoryBundle\Domain\ValueObject\ListingId;
 use Phil\DirectoryBundle\Infrastructure\DependencyInjection\DirectoryServices;
 use Phil\DirectoryBundle\Infrastructure\Doctrine\AddressCapabilityMapping;
+use Phil\DirectoryBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\DirectoryBundle\Infrastructure\Doctrine\ContactCapabilityMapping;
 use Phil\DirectoryBundle\Infrastructure\Doctrine\DoctrineRelatedLookup;
 use Phil\DirectoryBundle\Infrastructure\Doctrine\DoctrineUserErasure;
@@ -122,6 +123,7 @@ final class InfrastructureTest extends TestCase
         self::assertTrue($container->getDefinition(ListingType::class)->hasTag('form.type'));
         self::assertTrue($container->getDefinition(EditorsType::class)->hasTag('form.type'));
         self::assertEquals([new Reference(Directory::class), new Reference(Genres::class), new Reference(Actors::class), new Reference('form.factory'), new Reference('twig'), new Reference('router'), 50], $container->getDefinition(DirectoryController::class)->getArguments());
+        self::assertSame(['doctrine.event_listener' => [['event' => 'loadClassMetadata', 'priority' => -10]]], $container->getDefinition(BinaryKeysListener::class)->getTags());
         self::assertEquals([new Reference('doctrine.orm.entity_manager')], $container->getDefinition(DoctrineUserErasure::class)->getArguments());
         self::assertSame(DoctrineUserErasure::class, (string) $container->getAlias(UserErasure::class));
         self::assertEquals([new Reference('doctrine.orm.entity_manager')], $container->getDefinition(DoctrineRelatedLookup::class)->getArguments());

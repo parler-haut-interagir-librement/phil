@@ -18,6 +18,7 @@ use Phil\DirectoryBundle\Application\Relations;
 use Phil\DirectoryBundle\Application\UserErasure;
 use Phil\DirectoryBundle\Domain\Model\Listing;
 use Phil\DirectoryBundle\Infrastructure\Doctrine\AddressCapabilityMapping;
+use Phil\DirectoryBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\DirectoryBundle\Infrastructure\Doctrine\ContactCapabilityMapping;
 use Phil\DirectoryBundle\Infrastructure\Doctrine\DoctrineRelatedLookup;
 use Phil\DirectoryBundle\Infrastructure\Doctrine\DoctrineUserErasure;
@@ -39,8 +40,8 @@ use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * The services of the directory: the genres and their relations, `Directory`, the five capabilities in the pipeline and the mapping of
- * content-bundle, the actor and the voter of Symfony Security, the forms, the controller, the routes of the genres and
- * the pages of the sitemap.
+ * content-bundle, the listener that gives the genre and the author the binary collation, the actor and the voter of
+ * Symfony Security, the forms, the controller, the routes of the genres and the pages of the sitemap.
  *
  * @phpstan-type DirectoryConfig array{genres: array<string, array{path: string, title: string}>, relations: array<string, array{from: string, to: string, multiple: bool, title: string, inverse_title: string}>, admin_role: string, publish_every_change: bool, page_size: int, sitemap_locale: string, allow_localhost: bool, words: array{new: string, edit: string, editors: string, history: string, publish: string}}
  */
@@ -70,6 +71,8 @@ final class DirectoryServices
         }
 
         $container->register(Relations::class, Relations::class)->setArguments([$relations]);
+        // After the mapping listener of content-bundle, which maps `editedBy` on the same event.
+        $container->register(BinaryKeysListener::class, BinaryKeysListener::class)->addTag('doctrine.event_listener', ['event' => 'loadClassMetadata', 'priority' => -10]);
         $container->register(DoctrineUserErasure::class, DoctrineUserErasure::class)
             ->setArguments([new Reference('doctrine.orm.entity_manager')]);
         $container->setAlias(UserErasure::class, DoctrineUserErasure::class);

@@ -6,6 +6,7 @@
 | `Domain\Model\StoredDate` | entity | A date in `phil_almanac_date`: `definition()`, `change()` |
 | `Domain\Repository\StoredDateRepository` | port | `all()`, `ofKey()`, `save()`, `remove()` |
 | `Infrastructure\Doctrine\DoctrineStoredDateRepository` | `StoredDateRepository` | On Doctrine |
+| `Infrastructure\Doctrine\BinaryKeysListener` | listener | `date_key` in `utf8mb4_bin` on MySQL and MariaDB, at the ORM's `loadClassMetadata`, with `database: true` ([stored-dates.md](stored-dates.md#collation-of-the-key)) |
 | `Application\Definitions` | `final readonly class` | The configured and stored dates: `all()`, `isConfigured()`, `stored()` |
 | `Application\ConfiguredDates` | `final class` | The configured dates read: `check()` at build, `definitions()` for the service, `eclipses()` for the declared eclipses |
 | `Application\AlmanacFactory` | `final readonly class` | `almanac()`, built when asked for |

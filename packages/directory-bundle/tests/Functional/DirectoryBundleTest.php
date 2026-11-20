@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace Phil\DirectoryBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Events;
 use Doctrine\ORM\Tools\SchemaTool;
 use Override;
 use Phil\ContentBundle\Application\Publication\PublishedContent;
+use Phil\ContentBundle\Infrastructure\Doctrine\DimensionContentMappingListener;
 use Phil\DirectoryBundle\Application\Actor;
 use Phil\DirectoryBundle\Application\Directory;
 use Phil\DirectoryBundle\Application\ListingVersion;
 use Phil\DirectoryBundle\Application\RelatedListings;
 use Phil\DirectoryBundle\Application\Relation;
 use Phil\DirectoryBundle\Domain\Exception\ListingRefused;
+use Phil\DirectoryBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\DirectoryBundle\Infrastructure\Doctrine\DoctrineRelatedLookup;
 use Phil\DirectoryBundle\Infrastructure\Sitemap\DirectoryUrlProvider;
 use Phil\DirectoryBundle\PhilDirectoryBundle;
@@ -54,6 +57,22 @@ final class DirectoryBundleTest extends WebTestCase
         $metadata = $manager->getMetadataFactory()->getAllMetadata();
         $tool->dropSchema($metadata);
         $tool->createSchema($metadata);
+    }
+
+    /**
+     * `editedBy` is mapped by the listener of content-bundle on the event that gives it its collation: the bundle's
+     * listener runs after it.
+     */
+    public function testTheCollationListenerRunsAfterTheMappingListener(): void
+    {
+        $manager = $this->service('doctrine.orm.entity_manager');
+        self::assertInstanceOf(EntityManagerInterface::class, $manager);
+        $order = array_values(array_map(get_class(...), array_filter(
+            array_values($manager->getEventManager()->getListeners(Events::loadClassMetadata)),
+            static fn (object $listener): bool => $listener instanceof DimensionContentMappingListener || $listener instanceof BinaryKeysListener,
+        )));
+
+        self::assertSame([DimensionContentMappingListener::class, BinaryKeysListener::class], $order);
     }
 
     private function signIn(?string $user, string $role = 'ROLE_USER'): void
