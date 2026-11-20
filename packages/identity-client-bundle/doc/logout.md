@@ -27,8 +27,48 @@ ended.
 A logout token can be lost. `session.max_lifetime` bounds the session whatever happens to the back channel: 12 hours by
 default, counted from the moment the session started at the provider.
 
-That moment is the `session.start_claim` of the ID token, then `auth_time`, then the sign-in itself. A date in the future
-is read as the sign-in, and an elevation within the same provider session never moves it forward.
+That moment is the `session.start_claim` of the ID token, `session_start` by default, then `auth_time`, then the sign-in
+itself. A date in the future, or a value that is not a number, is read as the sign-in, and an elevation within the same
+provider session never moves it forward.
+
+```yaml
+phil_identity_client:
+    session:
+        max_lifetime: 43200          # 0 or null for none
+        start_claim: session_start
+```
+
+## The cold-start floor
+
+The replay store and the ended sessions live in the `back_channel_logout.cache` pool. A pool that is flushed, evicted
+or replaced forgets them: a logout token already accepted could be accepted again, and a session the provider ended
+would come back. `back_channel_logout.cold_start_floor` closes that window:
+
+```yaml
+phil_identity_client:
+    back_channel_logout:
+        cache: cache.state           # shared by every server, and never evicting
+        cold_start_floor:
+            enabled: true
+            not_before: ~            # seconds since the Unix epoch
+```
+
+`CacheReplayFloor` keeps one entry without expiry in that pool, its sentinel, which records the floor. When the entry
+is missing, the pool was emptied: the floor becomes that instant, and the entry is written again. Then:
+
+- a logout token whose `iat` precedes the floor is refused with a `400`, before its `jti` is looked up;
+- a local session signed in before the floor is ended on its next request, and `LocalSessionEnded` reports it with
+  `LocalSessionEndReason::ReplayFloor`. The user signs in again.
+
+Each sign-in reads the floor before it is dated, so that a session begun on an emptied pool is never refused by the
+floor that pool records next.
+
+`not_before` raises the floor to an instant of its own, such as a key rollover at the provider, or the floor of the
+provider's own replay store. It is in force once reached, so that it can be set ahead of time. The floor is off by
+default, and needs the back-channel logout.
+
+The pool still has to keep its entries for `replay_ttl` and never evict them: the floor tells a store that was emptied
+from one that was not, not one that lost a few entries.
 
 ## Local logout
 

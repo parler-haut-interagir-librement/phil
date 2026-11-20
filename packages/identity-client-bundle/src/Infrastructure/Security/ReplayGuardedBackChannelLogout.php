@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityClientBundle\Infrastructure\Security;
 
+use Phil\IdentityClientBundle\Application\Contract\ReplayFloor;
 use Phil\IdentityClientBundle\Application\Contract\ReplayStore;
 use Phil\IdentityClientBundle\Application\Event\ProviderSessionEnded;
 use Psr\Clock\ClockInterface;
@@ -21,6 +22,9 @@ use Symfony\Component\Security\Http\Oidc\OidcLogoutToken;
  *
  * It stands in for the native service behind the native endpoint, which only calls {@see logout()}. The entry lives at
  * least as long as the token can still pass the `exp` check, so a token the store forgot is one the clock refuses.
+ *
+ * With a replay floor, a token issued before it is refused before its `jti` is looked up: a store that lost its
+ * entries cannot tell a new token from one it already accepted.
  */
 final readonly class ReplayGuardedBackChannelLogout
 {
@@ -35,6 +39,7 @@ final readonly class ReplayGuardedBackChannelLogout
         private ClockInterface $clock,
         private LoggerInterface $logger,
         private int $replayTtl,
+        private ?ReplayFloor $floor = null,
     ) {
     }
 
@@ -68,6 +73,12 @@ final readonly class ReplayGuardedBackChannelLogout
             throw new AuthenticationException('Invalid logout token: the "jti" claim must be a non-empty string.');
         }
 
+        if ($this->floor instanceof ReplayFloor && $this->floor->floor() > $this->issuedAt($claims)) {
+            $this->logger->warning('A back-channel logout token issued before the replay floor was refused.');
+
+            throw new AuthenticationException('The logout token was issued before the replay floor.');
+        }
+
         if (!$this->replays->claim($jti, $this->entryLifetime($claims['exp'] ?? null))) {
             $this->logger->warning('A back-channel logout token was presented again.');
 
@@ -76,6 +87,19 @@ final readonly class ReplayGuardedBackChannelLogout
 
         $this->endedSessions->record($sid);
         $this->dispatcher->dispatch(new ProviderSessionEnded($sid));
+    }
+
+    /**
+     * The `iat` the native validation already required to be a number.
+     *
+     * @param array<array-key, mixed> $claims
+     */
+    private function issuedAt(array $claims): float|int
+    {
+        $issuedAt = $claims['iat'] ?? null;
+        \assert(\is_int($issuedAt) || \is_float($issuedAt));
+
+        return $issuedAt;
     }
 
     private function entryLifetime(mixed $expiresAt): int

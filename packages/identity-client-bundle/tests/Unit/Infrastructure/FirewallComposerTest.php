@@ -105,6 +105,9 @@ final class FirewallComposerTest extends TestCase
         yield 'an origin with a path' => [['return_to' => ['origins' => ['https://a.example.test/x']]]];
         yield 'a plain origin' => [['return_to' => ['origins' => ['http://a.example.test']]]];
         yield 'an empty level' => [['elevation' => ['levels' => ['x' => []]]]];
+        yield 'an unknown required level' => [['elevation' => ['required_level' => 'x', 'levels' => ['y' => ['acr' => 'a']]]]];
+        yield 'a required level without acr' => [['elevation' => ['required_level' => 'x', 'levels' => ['x' => ['max_age' => 60]]]]];
+        yield 'a cold-start floor without back-channel logout' => [['back_channel_logout' => ['enabled' => false, 'cold_start_floor' => true]]];
     }
 
     /**
@@ -126,6 +129,7 @@ final class FirewallComposerTest extends TestCase
         yield 'time drift' => [['allowed_time_drift' => -1]];
         yield 'session cap' => [['session' => ['max_lifetime' => -1]]];
         yield 'replay ttl' => [['back_channel_logout' => ['replay_ttl' => 0]]];
+        yield 'replay floor' => [['back_channel_logout' => ['cold_start_floor' => ['not_before' => -1]]]];
         yield 'global max age' => [['elevation' => ['max_age' => -1]]];
         yield 'retry after' => [['elevation' => ['retry_after' => -1]]];
         yield 'level max age' => [['elevation' => ['levels' => ['x' => ['max_age' => -1]]]]];
@@ -153,13 +157,15 @@ final class FirewallComposerTest extends TestCase
             'client_secret_transport' => 'basic',
             'claims_source' => 'id_token',
             'session' => ['max_lifetime' => 0],
-            'back_channel_logout' => ['replay_ttl' => 1],
-            'elevation' => ['max_age' => 0, 'retry_after' => 0, 'levels' => ['x' => ['max_age' => 0], 'y' => ['acr' => 'a']]],
+            'back_channel_logout' => ['replay_ttl' => 1, 'cold_start_floor' => ['not_before' => 0]],
+            'elevation' => ['max_age' => 0, 'retry_after' => 0, 'required_level' => 'y', 'levels' => ['x' => ['max_age' => 0], 'y' => ['acr' => 'a']]],
             'refresh' => ['leeway' => 0, 'wait_timeout' => 0.0, 'lock_ttl' => 1.0, 'outcome_ttl' => 1],
         ]);
 
         self::assertSame(0, $config['allowed_time_drift']);
         self::assertSame(1, $config['back_channel_logout']['replay_ttl']);
+        self::assertSame(0, $config['back_channel_logout']['cold_start_floor']['not_before']);
+        self::assertSame('y', $config['elevation']['required_level']);
         self::assertSame(0, $config['elevation']['retry_after']);
         self::assertSame(['x', 'y'], array_keys($config['elevation']['levels']));
         self::assertSame(['acr' => 'a', 'max_age' => null], $config['elevation']['levels']['y']);
@@ -173,6 +179,9 @@ final class FirewallComposerTest extends TestCase
         $config = $this->config();
 
         self::assertSame(60, $config['elevation']['retry_after']);
+        self::assertNull($config['elevation']['required_level']);
+        self::assertSame(['enabled' => false, 'not_before' => null], $config['back_channel_logout']['cold_start_floor']);
+        self::assertSame('session_start', $config['session']['start_claim']);
         self::assertSame(['enabled' => false, 'leeway' => 30, 'wait_timeout' => 10.0, 'lock_ttl' => 30.0, 'outcome_ttl' => 120, 'cache' => 'cache.security'], $config['refresh']);
         self::assertSame(43200, $config['session']['max_lifetime']);
         self::assertSame(['keep_access_token' => false, 'keep_id_token' => false], $config['tokens']);
@@ -189,6 +198,16 @@ final class FirewallComposerTest extends TestCase
     public function testAnOriginFromAnEnvironmentVariableIsCheckedAtRuntime(): void
     {
         self::assertSame(['%env(ORIGIN)%'], $this->config(['return_to' => ['origins' => ['%env(ORIGIN)%']]])['return_to']['origins']);
+    }
+
+    public function testTheFloorCanStayOffWithoutTheBackChannel(): void
+    {
+        self::assertFalse($this->config(['back_channel_logout' => false])['back_channel_logout']['cold_start_floor']['enabled']);
+    }
+
+    public function testTheFloorAloneTurnsOn(): void
+    {
+        self::assertSame(['enabled' => true, 'not_before' => null], $this->config(['back_channel_logout' => ['cold_start_floor' => true]])['back_channel_logout']['cold_start_floor']);
     }
 
     public function testTheCapCanBeNull(): void

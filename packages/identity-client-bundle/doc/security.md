@@ -14,6 +14,8 @@
 | Forged logout token ending sessions | Signature and claims checked | `OidcBackChannelLogout` rules |
 | Replayed logout token | Each `jti` once | `ReplayGuardedBackChannelLogout` |
 | Logout token that never arrives | Session cap | `SessionCapListener` |
+| Replay store or ended sessions lost with an emptied pool | Logout tokens and sessions older than the cold-start floor refused, when turned on | `CacheReplayFloor`, `SessionRequirementsListener` |
+| A provider answering with a weaker `acr` than asked for | The returned `acr` checked against the required level, sessions below it ended | `SignInListener`, `SessionRequirementsListener` |
 | Refresh token family revoked by a race | One refresh per token, shared outcome | `SerializedTokenRefreshListener` |
 | Refresh token family revoked by the provider | The whole local session invalidated | `SerializedTokenRefreshListener` |
 | Tokens leaked from a session or a cache | Kept only when read; shared results encrypted | `SignInListener`, `EncryptedRefreshOutcomes` |

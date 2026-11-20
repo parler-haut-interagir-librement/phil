@@ -36,14 +36,17 @@ phil_identity_client:
         origins: []
 
     session:
-        max_lifetime: 43200           # seconds; 0 or null for none
-        start_claim: session_start
+        max_lifetime: 43200           # seconds from the start of the session at the provider; 0 or null for none
+        start_claim: session_start    # the ID token claim that dates it; auth_time when the token lacks it
 
     back_channel_logout:
         enabled: true
         path: /oidc/back-channel-logout
         replay_ttl: 86400
         cache: cache.security
+        cold_start_floor:
+            enabled: false            # refuse what predates the last time the pool was found empty
+            not_before: ~             # a floor of its own, in seconds since the Unix epoch
 
     end_session:
         enabled: false                # sign out at the provider too, on local logout
@@ -52,6 +55,7 @@ phil_identity_client:
     elevation:
         max_age: ~                    # sent on every authorization request
         retry_after: 60
+        required_level: ~             # a level of `levels` with an acr, which every sign-in has to reach
         levels: {}
 
     refresh:
@@ -65,6 +69,28 @@ phil_identity_client:
     tokens:
         keep_access_token: false
         keep_id_token: false
+```
+
+## Values of a network
+
+The values a group of applications signed in by one provider has to agree on come from configuration, never from code:
+
+| Key | What the provider and its clients agree on |
+|---|---|
+| `elevation.levels` | The `acr` values of the scale, weakest first |
+| `elevation.required_level` | The level below which no application of the group signs anyone in |
+| `session.start_claim`, `session.max_lifetime` | The claim that dates a session at the provider, and how long a session lives from it |
+| `back_channel_logout.replay_ttl` | How long an accepted `jti` is remembered |
+| `back_channel_logout.cold_start_floor.not_before` | An instant before which nothing is accepted, such as a key rollover |
+
+An environment variable carries an integer with the `int:` processor:
+
+```yaml
+phil_identity_client:
+    back_channel_logout:
+        cold_start_floor:
+            enabled: true
+            not_before: '%env(int:OIDC_REPLAY_NOT_BEFORE)%'
 ```
 
 ## What is fixed

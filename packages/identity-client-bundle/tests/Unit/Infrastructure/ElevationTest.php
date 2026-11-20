@@ -405,6 +405,27 @@ final class ElevationTest extends TestCase
         self::assertSame(['existing' => 'kept'], $this->authorize([])->getParams());
     }
 
+    public function testEverySignInAsksForTheRequiredClasses(): void
+    {
+        $this->attempts->begin($this->session, 'strong');
+
+        $event = $this->authorize([], 'basic');
+
+        self::assertSame(['existing' => 'kept', 'acr_values' => 'a b'], $event->getParams());
+        $this->attempts->fail($this->session);
+        self::assertSame([], $this->dispatcher->events);
+    }
+
+    public function testAnElevationWithoutClassAsksForTheRequiredOnes(): void
+    {
+        $this->request->attributes->set(AssuranceVoter::REQUEST_ATTRIBUTE, 'recent');
+
+        $event = $this->authorize([], 'strong');
+
+        self::assertSame('b', $event->getParams()['acr_values']);
+        self::assertEquals([new ElevationRequested('recent')], $this->dispatcher->events);
+    }
+
     private function level(string $name): AssuranceLevel
     {
         $level = $this->levels->get($name);
@@ -467,11 +488,12 @@ final class ElevationTest extends TestCase
     /**
      * @param array<string, mixed> $query
      */
-    private function authorize(array $query): OidcAuthorizationRequestEvent
+    private function authorize(array $query, ?string $required = null): OidcAuthorizationRequestEvent
     {
         $this->request->query->replace($query);
         $event = new OidcAuthorizationRequestEvent($this->request, 'main', ['existing' => 'kept']);
-        new AuthorizationRequestListener(new DeclaredOriginsReturnToPolicy([]), $this->levels, $this->attempts, $this->dispatcher, 'return_to')($event);
+        $levels = null === $required ? $this->levels : new AssuranceLevels([new AssuranceLevel('basic', 'a'), new AssuranceLevel('strong', 'b'), new AssuranceLevel('fresh', 'a', 100), new AssuranceLevel('recent', null, 100)], $required);
+        new AuthorizationRequestListener(new DeclaredOriginsReturnToPolicy([]), $levels, $this->attempts, $this->dispatcher, 'return_to')($event);
 
         return $event;
     }
