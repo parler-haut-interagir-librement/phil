@@ -18,10 +18,4 @@ return static function (RoutingConfigurator $routes): void {
         ->controller([AdminController::class, 'removeNote'])
         ->requirements(['id' => AdminController::HEX])
         ->methods(['POST']);
-    $routes->add(AdminController::INCIDENTS_ROUTE, '/incidents')->controller([AdminController::class, 'incidents'])->methods(['GET']);
-    $routes->add(AdminController::INCIDENT_START_ROUTE, '/incidents')->controller([AdminController::class, 'startIncident'])->methods(['POST']);
-    $routes->add(AdminController::INCIDENT_LIFT_ROUTE, '/incidents/{id}/lift')
-        ->controller([AdminController::class, 'liftIncident'])
-        ->requirements(['id' => AdminController::HEX])
-        ->methods(['POST']);
 };

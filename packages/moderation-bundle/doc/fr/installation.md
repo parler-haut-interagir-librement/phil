@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=93e41f6df20bf9b0486ed997a8d01657d2e682f44a5c0f64e3beb52d15df74e6 -->
+<!-- phil-dev source-sha256=3103ae1a803cc1a7fcc0fd5a3adeefbd5e5684ab9285401a565391c6d25a309f -->
 # Installation
 
 ## Prérequis
@@ -6,8 +6,8 @@
 PHP 8.5 ou une version plus récente avec `ext-sodium`, Symfony 8.2 ou une version plus récente, Doctrine DBAL 4.5, Twig
 3.21 et Symfony UX Twig Component 3.7. La protection CSRF de FrameworkBundle doit être activée. Les pages de la
 modération ont besoin de SecurityBundle ; sans lui, le formulaire de signalement et le journal répondent toujours, et
-personne n'est modérateur. Le mode d'incident vient avec `phil/incident-mode` 0.2 ou plus récent
-([Mode d'incident](incident-mode.md)).
+personne n'est modérateur. Le mode d'incident vient avec
+`phil/incident-mode-bundle` 0.1.1 ou plus récent ([Mode d'incident](incident-mode.md)).
 
 ## Le bundle
 
@@ -49,6 +49,11 @@ Sur MySQL et MariaDB, ces colonnes prennent le jeu de caractères `utf8mb4` et l
 plateforme de la connexion : la collation par défaut de MySQL 8, `utf8mb4_0900_ai_ci`, ignore la casse et les accents.
 Les collations par défaut de PostgreSQL sont déterministes, égales seulement quand les octets le sont, et SQLite compare
 les octets : leurs colonnes gardent la valeur par défaut.
+
+#### Mise à niveau depuis 0.2
+
+Le mode d'incident passe à `phil/incident-mode-bundle` : la clé `incident` de la configuration, les pages des incidents
+et `phil_moderation_suspended()` disparaissent ([Mise à niveau depuis 0.2](incident-mode.md#mise-à-niveau-depuis-02)).
 
 #### Mise à niveau depuis 0.1
 

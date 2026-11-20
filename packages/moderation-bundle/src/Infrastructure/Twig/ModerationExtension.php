@@ -7,7 +7,6 @@ namespace Phil\ModerationBundle\Infrastructure\Twig;
 use Phil\ModerationBundle\Application\Reasons;
 use Phil\ModerationBundle\Application\TemporaryHides;
 use Phil\ModerationBundle\Infrastructure\Http\ReportController;
-use Phil\ModerationBundle\Infrastructure\IncidentMode\CurrentMemberRestrictions;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Twig\Attribute\AsTwigFunction;
 
@@ -17,9 +16,6 @@ use Twig\Attribute\AsTwigFunction;
  * - `phil_moderation_reasons()`, the codes of the reasons a report form offers;
  * - `phil_moderation_report_token()`, the CSRF token of the report and hide forms;
  * - `phil_moderation_may_hide()`, whether the current member is trusted to hide a content;
- * - `phil_moderation_suspended()`, whether the incident mode suspends a restriction now for the current member — an
- *   established member is spared from the restrictions the configuration lists —, always `false` without
- *   `phil/incident-mode`;
  * - `phil_moderation_kit()`, the name under which a recipe of the kit is installed.
  */
 final readonly class ModerationExtension
@@ -30,7 +26,6 @@ final readonly class ModerationExtension
         private Reasons $reasons,
         private TemporaryHides $hides,
         private CsrfTokenManagerInterface $csrfTokens,
-        private ?CurrentMemberRestrictions $restrictions = null,
         ?KitComponents $kit = null,
     ) {
         $this->kit = $kit ?? new KitComponents();
@@ -55,12 +50,6 @@ final readonly class ModerationExtension
     public function mayHide(): bool
     {
         return $this->hides->mayHide();
-    }
-
-    #[AsTwigFunction(name: 'phil_moderation_suspended')]
-    public function suspended(string $restriction): bool
-    {
-        return $this->restrictions?->appliesNow($restriction) ?? false;
     }
 
     /**

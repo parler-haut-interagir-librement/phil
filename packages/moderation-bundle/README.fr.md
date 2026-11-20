@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bb3952c14ae1617c8a04ee61d57479d272d27b3c6233f95628cf3b4e4c453d8e -->
+<!-- phil-dev source-sha256=370e14b47d415ec8b1fd7c6891d2dafd68accfdeb41de0e15e25f84dcf4db077 -->
 # phil/moderation-bundle
 
 **Une seule file pour tous les signalements d'un site — messages de forum, commentaires, réactions, annonces,
@@ -21,9 +21,8 @@ publie, et les mots surveillés bloquent, retiennent ou signalent le texte, tand
 retient le premier contenu d'un nouveau venu jusqu'à ce qu'un modérateur en approuve un. Les membres d'un niveau de
 confiance élevé peuvent masquer un contenu sur-le-champ, jusqu'à ce que la modération l'examine. Les modérateurs
 gardent des notes sur un membre, que le membre ne lit jamais. Le journal public énumère les décisions publiques avec le
-rôle sous lequel elles ont été prises. Quand `phil/incident-mode` 0.2 est installé, l'interface d'administration offre le
-mode d'incident, et le propose quand les signalements montent en flèche ; un incident peut épargner les membres que le
-site tient pour établis.
+rôle sous lequel elles ont été prises. Quand `phil/incident-mode-bundle` est enregistré, la file
+offre son mode d'incident au rôle qui l'exploite, et propose un incident quand les signalements montent en flèche.
 
 Les membres sont désignés par un identifiant stable, jamais une adresse de courriel. Les enregistrements vivent dans
 cinq tables d'une connexion Doctrine DBAL, leurs moments en UTC, et rejoignent l'export et l'effacement d'un membre
@@ -43,13 +42,12 @@ bord ; elles dessinent leurs éléments avec les recettes du kit PHIL UX.
 | Les profils comme cible, par les `MemberProfiles` de l'application | Implémenté et testé |
 | Les notes de la modération sur un membre | Implémenté et testé |
 | Le journal public : le rôle, jamais le nom | Implémenté et testé |
-| Le mode d'incident offert, et proposé quand les signalements montent en flèche, avec `phil/incident-mode` | Implémenté et testé |
-| Les restrictions d'un incident qui épargnent les membres établis | Implémenté et testé ; qui est établi vient par le port `EstablishedMembers` de `phil/incident-mode`, que l'application implémente |
+| Le mode d'incident de `phil/incident-mode-bundle` offert dans la file, et proposé quand les signalements montent en flèche | Implémenté et testé |
 | Les pages, sur les routes du bundle et dans les tableaux de bord EasyAdmin ; le formulaire de signalement ; les recettes du kit | Implémenté et testé |
 | L'export et l'effacement par `phil/privacy-bundle` | Implémenté et testé |
 | Les tables DBAL sur PostgreSQL, MySQL et SQLite, moments en UTC, écouteur de schéma de l'ORM | Implémenté et testé |
 | Les mots surveillés de `phil/watched-words` | Port seulement : `WordScreen` ; l'adaptateur vient avec ce paquet |
-| Les niveaux de confiance de `phil/trust-levels` | Ports seulement : `TrustedHiders`, et `EstablishedMembers` de `phil/incident-mode` ; les adaptateurs viennent avec ce paquet |
+| Les niveaux de confiance de `phil/trust-levels` | Port seulement : `TrustedHiders` ; l'adaptateur vient avec ce paquet |
 | Les signalements sur du contenu du fédivers et l'activité `Flag` | Pas commencé |
 | L'appel d'une décision, examiné dans le bundle par un autre rôle que celui qui a décidé | Pas commencé : l'exposé des motifs renvoie à la page de plainte que le site configure |
 
@@ -63,7 +61,7 @@ bord ; elles dessinent leurs éléments avec les recettes du kit PHIL UX.
 | [Crochets](doc/fr/hooks.md) | Le bac à sable du premier message, les mots surveillés, le masquage temporaire par des membres de confiance, les profils. |
 | [Exposés des motifs](doc/fr/statements-of-reasons.md) | Les motifs d'une restriction, ce que lit l'auteur, la notification, le recours. |
 | [Pages](doc/fr/pages.md) | L'interface d'administration, EasyAdmin, les notes sur les membres, le formulaire de signalement, le journal public. |
-| [Mode d'incident](doc/fr/incident-mode.md) | Ce que le bundle câble quand `phil/incident-mode` est installé. |
+| [Mode d'incident](doc/fr/incident-mode.md) | Le mode d'incident de `phil/incident-mode-bundle` dans la file, et ses points de contrôle dans les pages du site. |
 | [Renseignements personnels](doc/fr/privacy.md) | Les identifiants stables, l'export et l'effacement. |
 | [Points d'extension](doc/fr/extension-points.md) | Les ports, étiquettes et événements, et quand ils sont stables. |
 | [Tests](doc/fr/testing.md) | Les tests du bundle, son banc d'essai, et les serveurs que lisent ses tests d'intégration. |

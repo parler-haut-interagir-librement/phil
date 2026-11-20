@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phil\ModerationBundle\Infrastructure\Http;
 
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
-use Phil\IncidentMode\Exception\IncidentModeException;
 use Phil\ModerationBundle\Application\Contract\CurrentModerator;
 use Phil\ModerationBundle\Application\Decisions;
 use Phil\ModerationBundle\Application\Exception\ModerationRefused;
@@ -19,14 +18,13 @@ use Phil\ModerationBundle\Domain\Status\DecisionAction;
 use Phil\ModerationBundle\Domain\ValueObject\MemberId;
 use Phil\ModerationBundle\Domain\ValueObject\TargetReference;
 use Phil\ModerationBundle\Infrastructure\EasyAdmin\ModerationAdmin;
-use Phil\ModerationBundle\Infrastructure\IncidentMode\IncidentPanel;
+use Phil\ModerationBundle\Infrastructure\IncidentMode\IncidentProposal;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
@@ -36,8 +34,9 @@ use Twig\Environment;
  * The pages of the moderation, for moderators only, every one through the bundle's services: the single queue, a page
  * per target with its reports, its history and the decision form — with the grounds a statement of reasons tells the
  * author when the decision restricts them —, the page of a member with the decisions on their
- * content and the notes of the moderation, and — when `phil/incident-mode` is installed — the incident mode, for the
- * role that may start one. The forms are posted with a CSRF token. A member who is no moderator meets the firewall,
+ * content and the notes of the moderation. When `phil/incident-mode-bundle` is registered with its administration, the
+ * pages link to its page of the incidents for the role that runs it, and the queue proposes an incident when reports
+ * surge. The forms are posted with a CSRF token. A member who is no moderator meets the firewall,
  * as with any denied page.
  *
  * The pages answer on the bundle's routes, which the application imports, and, when EasyAdminBundle is registered, on
@@ -59,12 +58,6 @@ final readonly class AdminController
 
     public const string NOTE_REMOVE_ROUTE = 'phil_moderation_note_remove';
 
-    public const string INCIDENTS_ROUTE = 'phil_moderation_incidents';
-
-    public const string INCIDENT_START_ROUTE = 'phil_moderation_incident_start';
-
-    public const string INCIDENT_LIFT_ROUTE = 'phil_moderation_incident_lift';
-
     public const string CSRF_TOKEN_ID = 'phil_moderation_admin';
 
     public const string HEX = '[0-9a-f]{32}';
@@ -77,14 +70,12 @@ final readonly class AdminController
         private Decisions $decisions,
         private MemberNotes $notes,
         private CurrentModerator $currentModerator,
-        private AuthorizationCheckerInterface $authorization,
         private CsrfTokenManagerInterface $csrfTokens,
         private Environment $twig,
         private UrlGeneratorInterface $urls,
         private string $layout,
         private int $pageSize,
-        private string $incidentRole,
-        private ?IncidentPanel $incidents = null,
+        private ?IncidentProposal $incidents = null,
         private bool $statements = false,
     ) {
     }
@@ -109,7 +100,7 @@ final readonly class AdminController
             'pages' => max(1, intdiv($total + $this->pageSize - 1, $this->pageSize)),
             'total' => $total,
             'moderator' => $moderator,
-            'incident_proposed' => $this->mayRunIncidents() && true === $this->incidents?->isProposed(),
+            'incident_proposed' => true === $this->incidents?->isProposed(),
         ]);
     }
 
@@ -209,56 +200,6 @@ final readonly class AdminController
         return $this->redirect($request, 'member', ['member' => $member->value]);
     }
 
-    #[AdminRoute(path: '/incidents', name: 'incidents', options: ['methods' => ['GET']])]
-    public function incidents(Request $request): Response
-    {
-        $panel = $this->incidentPanel();
-
-        return $this->render($request, '@PhilModeration/admin/incidents.html.twig', [
-            'panel' => $panel,
-            'in_force' => $panel->inForce(),
-            'presets' => $panel->presets(),
-            'journal' => $panel->journal($this->pageSize),
-            'error' => null,
-        ]);
-    }
-
-    #[AdminRoute(path: '/incidents', name: 'incident_start', options: ['methods' => ['POST']])]
-    public function startIncident(Request $request): Response
-    {
-        $panel = $this->incidentPanel();
-        $this->checkToken($request);
-
-        try {
-            $panel->start($this->moderator(), $request->request->getString('preset'), $request->request->getInt('minutes'), $request->request->getString('reason'));
-        } catch (IncidentModeException $incidentModeException) {
-            return $this->render($request, '@PhilModeration/admin/incidents.html.twig', [
-                'panel' => $panel,
-                'in_force' => $panel->inForce(),
-                'presets' => $panel->presets(),
-                'journal' => $panel->journal($this->pageSize),
-                'error' => $incidentModeException->getMessage(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        return $this->redirect($request, 'incidents');
-    }
-
-    #[AdminRoute(path: '/incidents/{id}/lift', name: 'incident_lift', options: ['requirements' => ['id' => self::HEX], 'methods' => ['POST']])]
-    public function liftIncident(Request $request, string $id): RedirectResponse
-    {
-        $panel = $this->incidentPanel();
-        $this->checkToken($request);
-
-        try {
-            $panel->lift($this->moderator(), $id);
-        } catch (IncidentModeException) {
-            throw new NotFoundHttpException('No such incident in force.');
-        }
-
-        return $this->redirect($request, 'incidents');
-    }
-
     /**
      * The grounds of the decision, when the form gives a reason for the author.
      */
@@ -272,26 +213,6 @@ final readonly class AdminController
     private function moderator(): Moderator
     {
         return $this->currentModerator->moderator() ?? throw $this->denied('Only a moderator opens the moderation.');
-    }
-
-    private function mayRunIncidents(): bool
-    {
-        return $this->incidents instanceof IncidentPanel && $this->authorization->isGranted($this->incidentRole);
-    }
-
-    private function incidentPanel(): IncidentPanel
-    {
-        $this->moderator();
-
-        if (!$this->incidents instanceof IncidentPanel) {
-            throw new NotFoundHttpException('The incident mode is not installed.');
-        }
-
-        if (!$this->authorization->isGranted($this->incidentRole)) {
-            throw $this->denied('The incident mode is for its role only.', $this->incidentRole);
-        }
-
-        return $this->incidents;
     }
 
     private function target(string $type, string $id): TargetReference
@@ -319,15 +240,9 @@ final readonly class AdminController
         }
     }
 
-    private function denied(string $message, ?string $attribute = null): AccessDeniedException
+    private function denied(string $message): AccessDeniedException
     {
-        $exception = new AccessDeniedException($message);
-
-        if (null !== $attribute) {
-            $exception->setAttributes([$attribute]);
-        }
-
-        return $exception;
+        return new AccessDeniedException($message);
     }
 
     /**
@@ -352,9 +267,6 @@ final readonly class AdminController
             'member' => self::MEMBER_ROUTE,
             'note' => self::NOTE_ROUTE,
             'note_remove' => self::NOTE_REMOVE_ROUTE,
-            'incidents' => self::INCIDENTS_ROUTE,
-            'incident_start' => self::INCIDENT_START_ROUTE,
-            'incident_lift' => self::INCIDENT_LIFT_ROUTE,
         ];
         $dashboard = ModerationAdmin::dashboardRoute($request);
 
@@ -374,7 +286,7 @@ final readonly class AdminController
             'layout' => null === ModerationAdmin::dashboardRoute($request) ? $this->layout : ModerationAdmin::LAYOUT,
             'routes' => $this->routes($request),
             'csrf_token' => $this->csrfTokens->getToken(self::CSRF_TOKEN_ID)->getValue(),
-            'incidents_available' => $this->mayRunIncidents(),
+            'incidents_route' => true === $this->incidents?->isOffered() ? IncidentProposal::ROUTE : null,
             'statements' => $this->statements,
         ]), $status, ['Cache-Control' => 'no-store']);
     }

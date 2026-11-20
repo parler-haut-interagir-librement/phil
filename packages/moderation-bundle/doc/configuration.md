@@ -21,12 +21,6 @@ phil_moderation:
     surge:
         reports: 25
         within: 3600
-    incident:
-        role: ROLE_ADMIN
-        presets:
-            - { name: quiet-listings, label: Suspend new listings, restrictions: [new-listings], default_minutes: 240, maximum_minutes: 2880 }
-        without: [read-only]
-        spare_established: [new-posts, new-comments]
     statements:
         enabled: true
         grounds:
@@ -50,11 +44,7 @@ phil_moderation:
 | `admin.page_size` | `25` | Lines of the queue per page, 1 to 200. |
 | `journal.page_size` | `50` | Lines of the public journal per page, 1 to 200. |
 | `sandbox.types` | none | The target types whose first content of a member waits for the moderation. |
-| `surge.reports`, `surge.within` | `25`, `3600` | When this many reports come within this many seconds (60 to 86,400), the back office proposes the incident mode. |
-| `incident.role` | `ROLE_ADMIN` | The security attribute that may start and lift an incident. |
-| `incident.presets` | none | The application's presets, after the built-in ones; one of the same name replaces it. Durations in minutes. |
-| `incident.without` | none | The built-in presets to leave out. |
-| `incident.spare_established` | none | The restrictions an incident leaves established members free from, as the port `EstablishedMembers` of `phil/incident-mode` names them ([Incident mode](incident-mode.md#established-members)). |
+| `surge.reports`, `surge.within` | `25`, `3600` | When this many reports come within this many seconds (60 to 86,400), the queue proposes the incident mode of `phil/incident-mode-bundle` to the role of its administration ([Incident mode](incident-mode.md)). |
 | `statements.enabled` | `true` | Whether a decision that restricts the author comes with a statement of reasons ([Statements of reasons](statements-of-reasons.md)); `statements: false` turns them off. |
 | `statements.grounds` | none | What each reason rests on, by its code: `ground` is `terms` or `illegal`, `reference` the provision a statement names by default. A reason not listed rests on the terms; `illegal` rests on the law. |
 | `statements.terms_url`, `statements.complaint_url` | `null` | The terms of the site and the page where a member contests a decision: a path of the site or an `https` address. |

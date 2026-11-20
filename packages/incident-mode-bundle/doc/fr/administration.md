@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=40a499f88895f5dde4be3b72af01894e02a1b755967ea0ff9da5a0b9ceb3cdcd -->
+<!-- phil-dev source-sha256=9002c291a4d08c08012c47c24a3c2292f4122dbe1870424bda512e95b9a77a74 -->
 # Administration
 
 La page est servie par les routes de `@PhilIncidentModeBundle/config/routes/admin.php`, sous le préfixe que choisit
@@ -29,7 +29,9 @@ plus de 500 caractères, un incident qui n'est plus en vigueur. La page n'est ja
 
 Le membre connecté détient le rôle de `admin.role`, `ROLE_ADMIN` par défaut ; toute autre personne rencontre le
 pare-feu, comme pour n'importe quelle page refusée, et tout le monde aussi lorsqu'aucun vérificateur d'autorisation
-n'est enregistré. L'acteur de ce qu'il démarre, prolonge ou lève est l'identifiant que donne `CurrentMember` : par
+n'est enregistré. Le rôle est aussi le paramètre
+`phil_incident_mode.admin.role` (`IncidentModeServices::ADMIN_ROLE_PARAMETER`), défini seulement quand l'administration
+est activée, pour qu'un autre bundle offre un lien vers la page à ce rôle seul. L'acteur de ce qu'il démarre, prolonge ou lève est l'identifiant que donne `CurrentMember` : par
 défaut, l'identifiant de l'utilisateur de Symfony Security. **Un identifiant qui ressemble à une adresse courriel est
 refusé**, puisqu'il nomme la personne à quiconque lit le journal et les changements ; une application dont les
 utilisateurs se connectent avec leur adresse les nomme par son propre `CurrentMember` :

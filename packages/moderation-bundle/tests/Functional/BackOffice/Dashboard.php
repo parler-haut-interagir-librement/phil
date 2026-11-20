@@ -10,7 +10,7 @@ use Override;
 use Phil\ModerationBundle\Infrastructure\EasyAdmin\ModerationAdmin;
 
 /**
- * The back office of the tests: its menu holds the links to the queue and to the incident mode.
+ * The back office of the tests: its menu holds the link to the queue.
  */
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
 final class Dashboard extends AbstractDashboardController
@@ -19,6 +19,5 @@ final class Dashboard extends AbstractDashboardController
     public function configureMenuItems(): iterable
     {
         yield ModerationAdmin::menuItem();
-        yield ModerationAdmin::incidentsMenuItem();
     }
 }

@@ -5,13 +5,9 @@ declare(strict_types=1);
 namespace Phil\ModerationBundle\Infrastructure\DependencyInjection;
 
 use Override;
-use Phil\IncidentMode\Contract\LiftScheduler;
-use Phil\IncidentMode\Messenger\LiftExpiredIncidentsHandler;
-use Phil\IncidentMode\Messenger\LiftIncidentHandler;
-use Phil\IncidentMode\Messenger\MessengerLiftScheduler;
-use Phil\IncidentMode\NoLiftScheduler;
 use Phil\ModerationBundle\Application\Contract\MemberProfiles;
 use Phil\ModerationBundle\Application\ProfileTarget;
+use Phil\ModerationBundle\Infrastructure\IncidentMode\IncidentProposal;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -20,8 +16,8 @@ use Symfony\Component\DependencyInjection\Reference;
  * What depends on the application's own services, once they are all known:
  *
  * - the profiles become a target of type `profile` when the application gives a `MemberProfiles`;
- * - the incident mode lifts at the end by a delayed message when Messenger has a bus, and by the recurring sweep alone
- *   otherwise.
+ * - the queue offers the incident mode only when `phil/incident-mode-bundle` has its administration on, whose role
+ *   the parameter `phil_incident_mode.admin.role` holds.
  */
 final readonly class ModerationPass implements CompilerPassInterface
 {
@@ -34,11 +30,8 @@ final readonly class ModerationPass implements CompilerPassInterface
                 ->addTag(ModerationServices::TARGET_TAG);
         }
 
-        if ($container->hasDefinition(MessengerLiftScheduler::class) && !$container->has('messenger.default_bus')) {
-            $container->removeDefinition(MessengerLiftScheduler::class);
-            $container->removeDefinition(LiftIncidentHandler::class);
-            $container->removeDefinition(LiftExpiredIncidentsHandler::class);
-            $container->setAlias(LiftScheduler::class, NoLiftScheduler::class);
+        if ($container->hasDefinition(IncidentProposal::class) && !$container->hasParameter(ModerationServices::INCIDENT_ROLE_PARAMETER)) {
+            $container->removeDefinition(IncidentProposal::class);
         }
     }
 }

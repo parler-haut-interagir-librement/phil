@@ -6,6 +6,8 @@ namespace Phil\CommerceBundle\Tests\Functional;
 
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\OptimisticLockException;
+use LogicException;
 use Override;
 use Phil\CommerceBundle\Application\DocumentRegister;
 use Phil\CommerceBundle\Application\GiftWrapping;
@@ -42,6 +44,7 @@ use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineOrderChangeRepository;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineOrderJournal;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineOrderRepository;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrinePaymentLinkRepository;
+use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrinePaymentLock;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineRefundRepository;
 use Phil\CommerceBundle\Infrastructure\Doctrine\DoctrineWishListRepository;
 use Phil\CommerceBundle\PhilCommerceBundle;
@@ -62,6 +65,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 #[CoversClass(DoctrinePaymentLinkRepository::class)]
 #[CoversClass(DoctrineOrderChangeRepository::class)]
 #[CoversClass(DoctrineOrderJournal::class)]
+#[CoversClass(DoctrinePaymentLock::class)]
 #[CoversClass(DoctrineRefundRepository::class)]
 #[CoversClass(DoctrineDocumentNumbering::class)]
 final class SalesLifeStorageTest extends FunctionalTestCase
@@ -185,8 +189,34 @@ final class SalesLifeStorageTest extends FunctionalTestCase
         $payments = $this->service(Payments::class, Payments::class);
         $payment = $payments->declareOffline($order, 'cheque', $at);
         $payments->confirmOffline($order, $payment, $at);
-        $refund = $this->service(Refunds::class, Refunds::class)->grant($payment, Money::of(500, Currency::of('CAD')), 'Damaged', 'clerk-1', $at);
+        $refunds = $this->service(Refunds::class, Refunds::class);
+
+        try {
+            $refunds->grant($payment, Money::of(500, Currency::of('CAD')), 'Damaged', 'clerk-1', $at);
+            self::fail('A refund is granted inside a transaction only: the lock of the payment would end with its statement.');
+        } catch (LogicException $logicException) {
+            self::assertStringContainsString('wrapInTransaction()', $logicException->getMessage());
+        }
+
         $this->entityManager->flush();
+        $refund = $this->entityManager->wrapInTransaction(static fn (): Refund => $refunds->grant($payment, Money::of(500, Currency::of('CAD')), 'Damaged', 'clerk-1', $at));
+
+        // A processor's notification applied elsewhere since the payment was read: it is read again before granting.
+        $connection = $this->entityManager->getConnection();
+        $connection->executeStatement('UPDATE phil_commerce_payment SET version = version + 1 WHERE id = ?', [$payment->id]);
+        $connection->beginTransaction();
+
+        try {
+            $refunds->grant($payment, Money::of(100, Currency::of('CAD')), 'Damaged', 'clerk-1', $at);
+            self::fail('A payment changed since it was read is not refunded from its stale copy.');
+        } catch (OptimisticLockException $optimisticLockException) {
+            self::assertSame($payment, $optimisticLockException->getEntity());
+            self::assertSame(1, preg_match('/version (\d+) was expected, but is actually (\d+)$/D', $optimisticLockException->getMessage(), $versions));
+            self::assertSame((int) $versions[1] + 1, (int) $versions[2]);
+        } finally {
+            $connection->rollBack();
+        }
+
         $this->entityManager->clear();
 
         self::assertInstanceOf(Refund::class, $this->entityManager->find(Refund::class, $refund->id));

@@ -33,7 +33,7 @@ passed in.
 | `GiftOptions`, `GiftWrapping`, `ManualDiscount`, `ManualDiscountProcessor` | One wrapping per wrapped order, the recycled wrap, a store that does not wrap; discounts on a line or the whole order before the taxes, never below zero, shared by what is left of each line |
 | `Payments` announcing, offline payments | `OrderPurchased` once per order paid in full, at the application's clock, never for a refused notification; offline payments declared then confirmed, never abandoned as stale, refunded without a gateway |
 | `WishList`, `WishLists`, `PaymentLink`, `PaymentLinks` | Tokens shown once and kept hashed, a list bought from and counted on `OrderPurchased`, links that open their order until they expire, are revoked, or the order is paid |
-| `OrderChange`, `OrderChanges`, `OrderExpiry`, `Refund`, `Refunds` | Changes prepared, confirmed, versioned and refused on an older revision or after a receipt; the sweep by channel, bounded, with or without the workflow; refunds granted then executed, never beyond what is left, `OrderRefunded` once per refund executed, with the order's channel and customer or without them when the order is not found |
+| `OrderChange`, `OrderChanges`, `OrderExpiry`, `Refund`, `Refunds` | Changes prepared, confirmed, versioned and refused on an older revision or after a receipt; the sweep by channel, bounded, with or without the workflow; refunds granted then executed, never beyond what is left, counted from the refunds the lock reads after the payment's state is read again, `OrderRefunded` once per refund executed, with the order's channel and customer or without them when the order is not found |
 | `UnknownShipments` | No order nor line known to have left |
 | `ReceiptPdf` | A receipt and a credit note printed, long lines and long receipts over several pages, options below their line, embedded fonts, PDF/A |
 | `OrderWorkflowPass`, `DoctrineDocumentNumbering`, `DoctrineDeferredSaleRepository` | The workflow added to the registry when there is one; the series and the deferred sales' queries |
@@ -51,7 +51,7 @@ of work, on DoctrineBundle and an in-memory SQLite database, and sees a change w
 notification to the webhook controller, and reads the payment and the order back paid. `ReceiptFlowTest` issues receipts
 and a credit note inside transactions, reads them back as issued, sees a rolled-back receipt give its number back, and a
 number refused outside a transaction. `SalesLifeStorageTest` stores a gift placed through the workflow and journalled,
-links, changes, refunds and the register, and sweeps unpaid orders by their channel; `DeferredSaleStorageTest` stores a
+links, changes, refunds — refused outside a transaction and on a payment changed since it was read — and the register, and sweeps unpaid orders by their channel; `DeferredSaleStorageTest` stores a
 layaway and calls its balance when due; `SalesConfigurationTest` builds with the defaults and refuses what the bundle
 cannot use. Installed on its own, the functional suite is skipped: Symfony wires no event dispatcher when
 FrameworkBundle is a development requirement.
@@ -65,6 +65,12 @@ eval "$(vendor/bin/phil-dev services env)"   # after vendor/bin/phil-dev service
 PHIL_COMMERCE_TEST_DATABASE_URL="$PHIL_TEST_MYSQL_URL" vendor/bin/phpunit packages/commerce-bundle/tests/Functional
 PHIL_COMMERCE_TEST_DATABASE_URL="$PHIL_TEST_POSTGRESQL_URL" vendor/bin/phpunit packages/commerce-bundle/tests/Functional
 ```
+
+`tests/Integration/` runs on the servers of `phil-dev services`, from `PHIL_TEST_MYSQL_URL` and
+`PHIL_TEST_POSTGRESQL_URL`, and is skipped without them. `MySqlRefundLockTest` and `PostgreSqlRefundLockTest` grant two
+refunds of one payment at once: the second clerk, in a process of its own (`grant-refund.php`, through
+`symfony/process`), reads the payment, waits while the first one's transaction holds its lock, then is refused when the
+two together exceed the payment, and granted when they do not.
 
 The mapping is kept portable across SQLite, MySQL 8.4 and PostgreSQL 17: the `lines` columns are quoted, since
 `LINES` is reserved in MySQL, and no JSON column declares a default, which MySQL refuses.

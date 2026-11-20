@@ -1,9 +1,9 @@
 # Extension points
 
-Fifteen ports. Modules and the application plug into the nine that autoconfiguration tags, which `OrderModifier`,
-`Payments`, `LineOptions`, `OptionDraws`, `DeferredSales` and `DocumentRegister` read; the other six are aliases,
+Sixteen ports. Modules and the application plug into the nine that autoconfiguration tags, which `OrderModifier`,
+`Payments`, `LineOptions`, `OptionDraws`, `DeferredSales` and `DocumentRegister` read; the other seven are aliases,
 which the application points to its own adapters or leaves on the bundle's (see [installation.md](installation.md)).
-`StockCommitments`, `DocumentTypes`, `DocumentSeries`, `TransitionForcing` and `OrderShipments` live in
+`StockCommitments`, `DocumentTypes`, `DocumentSeries`, `PaymentLock`, `TransitionForcing` and `OrderShipments` live in
 `Phil\CommerceBundle\Application\Contract`, the others in `Phil\CommerceBundle\Application\Port`. The storage
 contracts of the domain, the events and what a returns module builds on follow them.
 
@@ -22,6 +22,7 @@ contracts of the domain, the events and what a returns module builds on follow t
 | `DocumentNumbering` | — (alias; `DoctrineDocumentNumbering` with DoctrineBundle) | `Receipts` | The next number of a series of documents |
 | `DocumentTypes` | `phil_commerce.document_types` | `DocumentRegister` | Declares document types to the register |
 | `DocumentSeries` | — (alias; `DoctrineDocumentNumbering` with DoctrineBundle) | `DocumentRegister` | The next number of a type's series |
+| `PaymentLock` | — (alias; `DoctrinePaymentLock` with DoctrineBundle) | `Refunds::grant()` | Holds a payment for one refund at a time |
 | `TransitionForcing` | — (alias; `DenyForcing` by default) | `OrderLifecycle::force()` | Who may force an order outside its transitions |
 | `OrderShipments` | — (alias; `UnknownShipments` by default) | the modules, a returns module first | When an order, or one of its lines, left the store |
 
@@ -337,6 +338,18 @@ final readonly class LogisticsDocuments implements DocumentTypes
 
 Invariants: those of `DocumentNumbering`, one series per type's code; `DoctrineDocumentNumbering` implements both
 under the same lock.
+
+## `PaymentLock`
+
+| Method | Contract |
+|---|---|
+| `lockForRefund(Payment $payment): list<Refund>` | Locks the payment until the transaction ends, and gives its refunds as the store holds them once locked, oldest first |
+
+Invariants: two calls at once on the same payment wait for each other; the second one's refunds include what the first
+one's transaction committed; outside a transaction, a `LogicException`, since the lock would end with its statement.
+`DoctrinePaymentLock` locks the row of `phil_commerce_payment` with `SELECT … FOR UPDATE`, reads the refunds by a
+locking read, and throws Doctrine's `OptimisticLockException` when the payment's version moved since the entity manager
+read it ([refunds.md](refunds.md#two-clerks-at-once)).
 
 ## `TransitionForcing`
 

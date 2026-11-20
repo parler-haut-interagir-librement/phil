@@ -1,9 +1,10 @@
 {#
-    The links between the pages of the moderation.
+    The links between the pages of the moderation, and to the page of the incidents of phil/incident-mode-bundle for
+    the role that runs it.
 #}
 <nav aria-label="{{ 'nav.label'|trans({}, 'phil_moderation') }}">
     <a href="{{ path(routes.queue) }}">{{ 'queue.title'|trans({}, 'phil_moderation') }}</a>
-    {% if incidents_available %}
-        · <a href="{{ path(routes.incidents) }}">{{ 'incidents.title'|trans({}, 'phil_moderation') }}</a>
+    {% if incidents_route %}
+        · <a href="{{ path(incidents_route) }}">{{ 'incidents.title'|trans({}, 'phil_moderation') }}</a>
     {% endif %}
 </nav>

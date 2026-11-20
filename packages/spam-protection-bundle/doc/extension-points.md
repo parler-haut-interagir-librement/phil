@@ -55,7 +55,10 @@ $inspection = $inspector->inspect(new Submission(
     client: $clientKey->current(),
 ));
 
-if ($inspection->isSpam()) {
-    // refuse, or add friction — Verdicts::of($inspection) is a bot-detection Verdict
+if ($refusal->refuses($inspection)) {     // $refusal: RefusalPolicy, from the container
+    // refuse, or add friction — Verdicts::of($inspection, $refusal) is a bot-detection Verdict
 }
 ```
+
+`$inspection->isSpam()` answers whether any signal was raised; `RefusalPolicy` weighs them as the configuration says
+([Weighted refusals](signals.md#weighted-refusals)).

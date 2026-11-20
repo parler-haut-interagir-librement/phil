@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phil\CommerceBundle\Application;
 
 use DateTimeImmutable;
+use LogicException;
+use Phil\CommerceBundle\Application\Contract\PaymentLock;
 use Phil\CommerceBundle\Domain\Contract\RefundRepository;
 use Phil\CommerceBundle\Domain\Event\OrderRefunded;
 use Phil\CommerceBundle\Domain\Exception\PaymentRefused;
@@ -25,6 +27,9 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  * - **What is granted never exceeds what is left**: the payment's amount, less the refunds granted and not executed yet,
  *   and less the refunds asked of the processor — confirmed or not yet —, so that the refunds of a payment never add
  *   up to more than it.
+ * - **Two refunds granted at once wait for each other**: with a `PaymentLock` — `DoctrinePaymentLock` with
+ *   DoctrineBundle —, the payment is locked until the transaction ends, and what is left is counted from the refunds
+ *   the store holds once the lock is taken, so that two clerks cannot together grant more than the payment.
  * - **Executing asks the payment's processor**, or records an offline refund, through `Payments::refund()`, with the
  *   refund's identifier as the idempotency key: asked again, the processor refunds once.
  * - **A refund executed is announced once** by `OrderRefunded`, with the order's channel and customer when the order
@@ -41,17 +46,24 @@ final readonly class Refunds
         private bool $singleStep = false,
         private ?OrderRepository $orders = null,
         private ?EventDispatcherInterface $dispatcher = null,
+        private ?PaymentLock $lock = null,
     ) {
     }
 
+    /**
+     * @throws PaymentRefused when the payment is not completed, or the amount is not above zero and at most what is left
+     * @throws LogicException when the `PaymentLock` requires a transaction and none is open
+     */
     public function grant(Payment $payment, Money $amount, string $reason, string $grantedBy, DateTimeImmutable $at): Refund
     {
+        $refunds = $this->lock instanceof PaymentLock ? $this->lock->lockForRefund($payment) : $this->refunds->refundsOf($payment->id);
+
         if (PaymentState::Completed !== $payment->state()) {
             throw PaymentRefused::notRefundable($payment->id, $payment->state());
         }
 
         $refund = Refund::grant($payment, $amount, $reason, $grantedBy, $at);
-        $left = $this->left($payment);
+        $left = $this->left($payment, $refunds);
 
         if (!$amount->isPositive() || $amount->isGreaterThan($left)) {
             throw PaymentRefused::amount('A refund', $amount->toDecimal().' '.$amount->currency->code, $left->toDecimal().' '.$left->currency->code);
@@ -70,13 +82,15 @@ final readonly class Refunds
      * What may still be granted: the payment's amount, less the refunds granted and not executed, and less the larger of
      * what the processor confirmed and what was asked of it — a refund asked and not confirmed yet is still owed, and
      * one confirmed is not counted twice.
+     *
+     * @param list<Refund> $refunds the payment's refunds
      */
-    private function left(Payment $payment): Money
+    private function left(Payment $payment, array $refunds): Money
     {
         $granted = Money::zero($payment->amount->currency);
         $asked = $granted;
 
-        foreach ($this->refunds->refundsOf($payment->id) as $refund) {
+        foreach ($refunds as $refund) {
             match ($refund->state()) {
                 RefundState::Granted => $granted = $granted->add($refund->amount),
                 RefundState::Executed => $asked = $asked->add($refund->amount),

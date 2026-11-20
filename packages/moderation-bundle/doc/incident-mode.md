@@ -1,91 +1,103 @@
 # Incident mode
 
-When `phil/incident-mode` 0.2 or later is installed, the bundle wires it; there is nothing to declare.
+The incident mode is `phil/incident-mode-bundle`'s: its table, its presets, its console commands, its administration
+page, its automatic lifting and the checkpoints that refuse a sign-up, an invitation or a form while an incident
+suspends them. The moderation does not plug the library in itself; when that bundle is registered, the queue offers
+its page and proposes an incident when reports surge.
 
 ```sh
-composer require phil/incident-mode
+composer require phil/incident-mode-bundle
 ```
 
-| Service | What it is |
+```php
+// config/bundles.php
+return [
+    // …
+    Phil\ModerationBundle\PhilModerationBundle::class => ['all' => true],
+    Phil\IncidentModeBundle\PhilIncidentModeBundle::class => ['all' => true],
+];
+```
+
+The presets, the established members, the role of the administration and the lifting are configured under
+`phil_incident_mode`, as the documentation of `phil/incident-mode-bundle` shows; its routes are imported as it shows
+too:
+
+```yaml
+# config/routes/phil_incident_mode.yaml
+phil_incident_mode_admin:
+    resource: '@PhilIncidentModeBundle/config/routes/admin.php'
+    prefix: /admin/incidents
+```
+
+## In the queue
+
+| When | The queue shows |
 |---|---|
-| `Phil\IncidentMode\Presets` | The built-in presets, with `incident.presets` added and `incident.without` left out |
-| `Phil\IncidentMode\Contract\ActivationStore` | The DBAL store, on the connection of the bundle; its table joins the schema the ORM generates |
-| `Phil\IncidentMode\Contract\LiftScheduler` | The delayed message `LiftIncident` when Messenger has a bus; nothing otherwise |
-| `Phil\IncidentMode\IncidentMode` | The incident mode, public, its events on the event dispatcher |
-| `LiftIncidentHandler`, `LiftExpiredIncidentsHandler` | The handlers of the lifting, when Messenger has a bus |
-| `Phil\IncidentMode\Contract\EstablishedMembers` | `Phil\IncidentMode\NoEstablishedMembers` until the application aliases its own |
-| `Phil\IncidentMode\IncidentRestrictions` | Whether a restriction applies to a member, with `incident.spare_established` |
-| `Infrastructure\IncidentMode\CurrentMemberRestrictions` | The same question for the member `CurrentMember` reads |
+| The member holds the role of `phil_incident_mode.admin.role` | A link to the page of the incidents, `phil_incident_mode_admin`, beside the queue |
+| That role, `surge.reports` reports within `surge.within` seconds, no incident in force | An alert that reports are surging, with a link to that page |
+| Another moderator | Neither: the page is not theirs |
+| The administration of the incident mode off (`admin: false`), or the bundle not registered | Neither |
 
-Route `Phil\IncidentMode\Messenger\LiftIncident` to a transport that supports delays, and add the recurring
-`LiftExpiredIncidents` to a schedule, as the documentation of `phil/incident-mode` shows.
-
-## In the back office
-
-The page of the incident mode is for the security attribute `incident.role`. It shows the incidents in force with
-their end and a button that lifts each, the form that starts one from a preset — **the duration is required**, the
-preset proposes it and bounds it —, and the journal of the incidents. The moderator is the actor of what they start or
-lift, by their stable identifier.
-
-**The queue proposes the incident mode** to that role when `surge.reports` reports came within `surge.within` seconds
-and no incident is in force.
+`Infrastructure\IncidentMode\IncidentProposal` answers both questions from the `IncidentMode` of the bundle, the
+report surge of the moderation and the role, which the bundle publishes as the container parameter
+`phil_incident_mode.admin.role` while its administration is on. It keeps nothing between requests.
 
 ## In the pages of the site
 
+The checkpoints are the bundle's, and so are their functions: a site refuses a sign-up, an invitation or a form while
+an incident suspends it, and shows a notice, with them.
+
+```php
+use Phil\IncidentModeBundle\Attribute\SuspendedDuring;
+
+#[SuspendedDuring('signups', methods: ['POST'])]
+public function register(Request $request): Response
+```
+
+```yaml
+# a route refused while invitations are suspended
+invite:
+    path: /invite
+    controller: App\Controller\InvitationController
+    defaults: { _suspended_during: invitations }
+```
+
+```php
+// a form invalid while new posts are suspended, with the error that says until when
+$resolver->setDefault('suspended_during', ['new-posts']);
+```
+
 ```twig
-{% if phil_moderation_suspended('signups') %}
+{% if phil_incident_suspended('signups') %}
     <p>Sign-ups are suspended for now.</p>
 {% endif %}
 ```
 
-In PHP, the application asks `Phil\IncidentMode\IncidentRestrictions::appliesTo('new-posts', $member)`, with the
-member's stable identifier or `null` for a visitor — or `CurrentMemberRestrictions::appliesNow('new-posts')` for the
-member of the current request — before it lets someone post, and `IncidentMode::isSuspended('signups')` before it lets
-someone sign up.
+A refused request answers 503, or the status the bundle's configuration chooses, with `Retry-After`. Established
+members are spared from the restrictions `phil_incident_mode.spare_established` lists, through the port
+`Phil\IncidentMode\Contract\EstablishedMembers`, which `phil_incident_mode.established_members` names.
 
-## Established members
+## Personal data
 
-An incident may leave established members free from some of its restrictions: a forum that suspends new posts after a
-wave of spam keeps its regulars posting.
+The incidents a member started or lifted answer the access and erasure requests of `phil/privacy-bundle` through the
+incident mode's own exporter and eraser; the moderation's records leave them out ([Personal data](privacy.md)).
 
-```yaml
-phil_moderation:
-    incident:
-        spare_established: [new-posts, new-comments]
-```
+## Upgrading from 0.2
 
-The application says who is established with a service of its own that implements the port
-`Phil\IncidentMode\Contract\EstablishedMembers` of `phil/incident-mode` — the members of a trust level, or of an age
-and an activity —, aliased to the port; by default nobody is, so every incident restricts everyone. The port receives
-the member's stable identifier, the string `ModerationMember::moderationIdentifier()` returns:
+The bundle no longer wires `phil/incident-mode` itself:
 
-```php
-use Phil\IncidentMode\Contract\EstablishedMembers;
-
-final readonly class RegularMembers implements EstablishedMembers
-{
-    public function __construct(private MemberDirectory $members)
-    {
-    }
-
-    public function isEstablished(string $member): bool
-    {
-        return $this->members->postsOf($member) >= 50;
-    }
-}
-```
-
-```yaml
-# config/services.yaml
-services:
-    Phil\IncidentMode\Contract\EstablishedMembers: '@App\Moderation\RegularMembers'
-```
-
-| The restriction | Applies to |
+| In 0.2 | From 0.3 |
 |---|---|
-| Not suspended | Nobody |
-| Suspended, not in `spare_established` | Everyone |
-| Suspended and listed | Everyone but the established members |
-| Suspended and listed, while `read-only` is in force | Everyone, unless `read-only` is listed too |
+| `phil_moderation.incident.role` | `phil_incident_mode.admin.role` |
+| `phil_moderation.incident.presets`, durations in minutes | `phil_incident_mode.presets`, by name, durations written `90m`, `2h` or `1d` |
+| `phil_moderation.incident.without` | `phil_incident_mode.without_presets` |
+| `phil_moderation.incident.spare_established` | `phil_incident_mode.spare_established`, with `established_members` naming the service of `EstablishedMembers` |
+| The pages `phil_moderation_incidents`, `phil_moderation_incident_start`, `phil_moderation_incident_lift` | The page `phil_incident_mode_admin` of the bundle, which also extends an incident |
+| `ModerationAdmin::incidentsMenuItem()` | A menu item to the route `phil_incident_mode_admin` |
+| `phil_moderation_suspended('signups')` | `phil_incident_suspended('signups')` |
+| `CurrentMemberRestrictions::appliesNow()` | `Phil\IncidentModeBundle\Application\Checkpoint::applies()`, or `guard()`, which refuses |
+| The incidents in the moderation's export as `incidents` | The export of the incident mode |
 
-A visitor is never spared. The names are those of `Phil\IncidentMode\Restriction`, or the application's own.
+The table `phil_incident_activation` keeps its name and its rows: the bundle's store reads them on the connection of
+`phil_incident_mode.connection`, `default` unless configured. Remove the `incident` key from `phil_moderation`, which
+the configuration now refuses, register the bundle, and import its routes.

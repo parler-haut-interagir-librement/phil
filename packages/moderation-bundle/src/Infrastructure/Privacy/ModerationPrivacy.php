@@ -7,9 +7,6 @@ namespace Phil\ModerationBundle\Infrastructure\Privacy;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Override;
-use Phil\IncidentMode\Activation;
-use Phil\IncidentMode\Actor;
-use Phil\IncidentMode\Contract\ActivationStore;
 use Phil\ModerationBundle\Domain\Contract\DecisionRepository;
 use Phil\ModerationBundle\Domain\Contract\MemberNoteRepository;
 use Phil\ModerationBundle\Domain\Contract\ReportRepository;
@@ -31,11 +28,11 @@ use Phil\PrivacyBundle\Domain\Subject\ModuleName;
 /**
  * The moderation's part of an access or erasure request, for the member the subject names: the reports they made, the
  * decisions on their content and those they took as a moderator, the statements of reasons addressed to them, the notes
- * of the moderation on them, when they left the sandbox, and the incidents they started or lifted. The export never
- * names another member: no moderator, no reporter, no author of a note.
+ * of the moderation on them, and when they left the sandbox. The export never names another member: no moderator, no
+ * reporter, no author of a note. The incidents a member started or lifted are answered by `phil/incident-mode-bundle`.
  *
- * Erasing deletes the notes on the member, the statements addressed to them and the record of the sandbox, and takes the member out of the reports, the
- * decisions, the notes they wrote and the incidents, which stay without them.
+ * Erasing deletes the notes on the member, the statements addressed to them and the record of the sandbox, and takes
+ * the member out of the reports, the decisions and the notes they wrote, which stay without them.
  */
 final readonly class ModerationPrivacy implements PersonalDataExporter, PersonalDataEraser
 {
@@ -49,7 +46,6 @@ final readonly class ModerationPrivacy implements PersonalDataExporter, Personal
         private DecisionRepository $decisions,
         private MemberNoteRepository $notes,
         private SandboxRepository $sandbox,
-        private ?ActivationStore $incidents = null,
         private ?StatementRepository $statements = null,
     ) {
     }
@@ -98,7 +94,6 @@ final readonly class ModerationPrivacy implements PersonalDataExporter, Personal
                 'note' => $note->body,
                 'written_at' => $note->writtenAt->format(DateTimeInterface::ATOM),
             ], $this->notes->about($member)),
-            'incidents' => $this->incidents($member),
         ], static fn (array $records): bool => [] !== $records);
 
         $cleared = $this->sandbox->clearedAt($member);
@@ -121,7 +116,6 @@ final readonly class ModerationPrivacy implements PersonalDataExporter, Personal
             $this->notes->erase($member);
             $this->sandbox->forget($member);
             $this->statements?->erase($member);
-            $this->incidents?->forgetActor(Actor::of($member->value));
         }
 
         return ErasureReport::of(self::MODULE, array_filter([
@@ -130,7 +124,6 @@ final readonly class ModerationPrivacy implements PersonalDataExporter, Personal
             ModerationTables::NOTES => ErasureEffect::Deleted,
             ModerationTables::SANDBOX => ErasureEffect::Deleted,
             ModerationTables::STATEMENTS => $this->statements instanceof StatementRepository ? ErasureEffect::Deleted : null,
-            'phil_incident_activation' => $this->incidents instanceof ActivationStore ? ErasureEffect::Pseudonymised : null,
         ]));
     }
 
@@ -174,23 +167,5 @@ final readonly class ModerationPrivacy implements PersonalDataExporter, Personal
         }
 
         return $records;
-    }
-
-    /**
-     * @return list<array<string, mixed>>
-     */
-    private function incidents(MemberId $member): array
-    {
-        if (!$this->incidents instanceof ActivationStore) {
-            return [];
-        }
-
-        return array_map(static fn (Activation $activation): array => [
-            'preset' => $activation->preset,
-            'started_at' => $activation->startedAt->format(DateTimeInterface::ATOM),
-            'ends_at' => $activation->endsAt->format(DateTimeInterface::ATOM),
-            'started_by_me' => $activation->startedBy?->id === $member->value,
-            'lifted_by_me' => $activation->liftedBy?->id === $member->value,
-        ], $this->incidents->ofActor(Actor::of($member->value)));
     }
 }

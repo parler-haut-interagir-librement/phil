@@ -6,7 +6,6 @@ namespace Phil\ModerationBundle\Tests\Functional\BackOffice;
 
 use Doctrine\DBAL\Connection;
 use Override;
-use Phil\IncidentMode\Dbal\IncidentTables;
 use Phil\ModerationBundle\Infrastructure\Doctrine\ModerationTables;
 use Phil\ModerationBundle\Infrastructure\EasyAdmin\ModerationAdmin;
 use Phil\ModerationBundle\Infrastructure\Http\AdminController;
@@ -38,7 +37,7 @@ final class BackOfficeTest extends WebTestCase
         self::assertInstanceOf(Connection::class, $connection);
         $manager = $connection->createSchemaManager();
 
-        foreach ([...ModerationTables::tables(), IncidentTables::table()] as $table) {
+        foreach (ModerationTables::tables() as $table) {
             $name = $table->getObjectName()->toString();
 
             if ($manager->tablesExist([$name])) {
@@ -61,7 +60,7 @@ final class BackOfficeTest extends WebTestCase
         self::assertSame('/admin/moderation', $router->generate('admin_moderation_queue'));
         self::assertSame('/admin/moderation/entry', $router->generate('admin_moderation_entry'));
         self::assertSame(['POST'], $router->getRouteCollection()->get('admin_moderation_decide')?->getMethods());
-        self::assertSame(['POST'], $router->getRouteCollection()->get('admin_moderation_incident_lift')?->getMethods());
+        self::assertNull($router->getRouteCollection()->get('admin_moderation_incidents'), "the incident mode is phil/incident-mode-bundle's page");
         self::assertNull($router->getRouteCollection()->get(AdminController::QUEUE_ROUTE), 'the application imports the routes of the bundle only if it wants them');
     }
 
@@ -75,20 +74,12 @@ final class BackOfficeTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSame('Moderation queue', trim($queue->filter('.content-header-title h1, h1.title')->first()->text()));
         self::assertCount(1, $queue->filter('.ea-sidebar-group-items a[href="http://localhost/admin/moderation"]'), 'the menu of the dashboard links to the queue');
-        self::assertCount(1, $queue->filter('a[href="/admin/moderation/incidents"]'));
+        self::assertCount(0, $queue->filter('a[href*="incidents"]'), 'without phil/incident-mode-bundle, no incident mode is offered');
 
         $entry = $this->client->click($queue->filter('a:contains("Cheap watches")')->link());
         self::assertResponseIsSuccessful();
         $this->client->submit($entry->filter('form[action="/admin/moderation/entry"]')->form(['action' => 'remove', 'reason' => 'Spam', 'ground' => 'spam', 'explanation' => 'An advertisement.']));
 
         self::assertResponseRedirects('/admin/moderation');
-
-        $incidents = $this->client->request('GET', '/admin/moderation/incidents');
-        self::assertResponseIsSuccessful();
-        $this->client->submit($incidents->filter('form[action="/admin/moderation/incidents"]')->form(['preset' => 'read-only', 'minutes' => '30']));
-        self::assertResponseRedirects('/admin/moderation/incidents');
-        $page = $this->client->followRedirect();
-        $this->client->submit($page->filter('form[action$="/lift"]')->form());
-        self::assertResponseRedirects('/admin/moderation/incidents');
     }
 }

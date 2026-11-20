@@ -7,10 +7,9 @@ is posted with a CSRF token, and every page is `no-store`.
 
 | Page | Route | What it does |
 |---|---|---|
-| The queue | `phil_moderation_queue` | The single queue, a page at a time; the proposal of the incident mode when reports surge |
+| The queue | `phil_moderation_queue` | The single queue, a page at a time; with `phil/incident-mode-bundle`, the link to its page and the proposal of an incident when reports surge ([Incident mode](incident-mode.md)) |
 | A target | `phil_moderation_entry`, `phil_moderation_decide` | What its package says of it, its open reports, the decision form with the grounds of a statement of reasons, its history |
 | A member | `phil_moderation_member`, `phil_moderation_note`, `phil_moderation_note_remove` | The decisions on their content and the notes of the moderation on them |
-| The incident mode | `phil_moderation_incidents`, `phil_moderation_incident_start`, `phil_moderation_incident_lift` | With `phil/incident-mode`, for the role `incident.role` ([Incident mode](incident-mode.md)) |
 
 The pages extend the layout of `admin.layout`, which defines the blocks `title` and `main`.
 
@@ -38,7 +37,6 @@ use Phil\ModerationBundle\Infrastructure\EasyAdmin\ModerationAdmin;
 public function configureMenuItems(): iterable
 {
     yield ModerationAdmin::menuItem('admin');
-    yield ModerationAdmin::incidentsMenuItem('admin');
 }
 ```
 
@@ -54,9 +52,8 @@ The member picks a reason and may add a comment; a trusted member also sees the 
 form goes back to the current page — a path of the same site, never another host.
 
 The templates of the site also have `phil_moderation_reasons()`, `phil_moderation_report_token()`,
-`phil_moderation_may_hide()`, `phil_moderation_suspended('signups')` — whether the incident mode suspends a
-restriction now for the current member, an established member being spared from the restrictions
-`incident.spare_established` lists, always `false` without `phil/incident-mode` — and `phil_moderation_kit('Button')`.
+`phil_moderation_may_hide()` and `phil_moderation_kit('Button')`; whether an incident suspends something now is
+`phil_incident_suspended()`, of `phil/incident-mode-bundle` ([Incident mode](incident-mode.md#in-the-pages-of-the-site)).
 
 ## The public journal
 
@@ -71,7 +68,6 @@ so a shared cache keeps it a minute.
 | `admin/queue.html.twig` | `Alert`, `Badge`, `Table` and its parts |
 | `admin/entry.html.twig` | `Alert`, `Badge`, `Button`, `Field`, `Input`, `NativeSelect`, `Textarea` |
 | `admin/member.html.twig` | `Alert`, `Badge`, `Button`, `Field`, `Textarea` |
-| `admin/incidents.html.twig` | `Alert`, `Badge`, `Button`, `Field`, `Input`, `NativeSelect`, `Textarea` |
 | `journal.html.twig` | `Badge`, `Table` and its parts |
 | `statements.html.twig` | `Badge`, `Table` and its parts |
 | `statement.html.twig` | `Alert`, `Badge` |

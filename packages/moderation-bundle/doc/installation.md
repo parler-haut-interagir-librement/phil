@@ -4,8 +4,8 @@
 
 PHP 8.5 or later with `ext-sodium`, Symfony 8.2 or later, Doctrine DBAL 4.5, Twig 3.21 and Symfony UX Twig Component
 3.7. FrameworkBundle's CSRF protection has to be on. The pages of the moderation need SecurityBundle; without it, the
-report form and the journal still answer, and nobody is a moderator. The incident mode comes with `phil/incident-mode`
-0.2 or later ([Incident mode](incident-mode.md)).
+report form and the journal still answer, and nobody is a moderator. The incident mode comes with
+`phil/incident-mode-bundle` 0.1.1 or later ([Incident mode](incident-mode.md)).
 
 ## The bundle
 
@@ -47,6 +47,11 @@ On MySQL and MariaDB, these columns take the `utf8mb4` character set and the `ut
 connection's platform: the default collation of MySQL 8, `utf8mb4_0900_ai_ci`, folds case and accents. PostgreSQL's
 default collations are deterministic, equal only when the bytes are, and SQLite compares bytes: their columns keep the
 default.
+
+#### Upgrading from 0.2
+
+The incident mode moves to `phil/incident-mode-bundle`: the `incident` key of the configuration, the pages of the
+incidents and `phil_moderation_suspended()` go ([Upgrading from 0.2](incident-mode.md#upgrading-from-02)).
 
 #### Upgrading from 0.1
 

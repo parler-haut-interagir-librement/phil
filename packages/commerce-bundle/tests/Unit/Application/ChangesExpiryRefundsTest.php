@@ -7,6 +7,7 @@ namespace Phil\CommerceBundle\Tests\Unit\Application;
 use DateTimeImmutable;
 use Override;
 use Phil\CommerceBundle\Application\Contract\DocumentSeries;
+use Phil\CommerceBundle\Application\Contract\PaymentLock;
 use Phil\CommerceBundle\Application\CoreDocumentTypes;
 use Phil\CommerceBundle\Application\DocumentRegister;
 use Phil\CommerceBundle\Application\OrderChanges;
@@ -30,6 +31,7 @@ use Phil\CommerceBundle\Domain\Model\Order;
 use Phil\CommerceBundle\Domain\Model\OrderStateChange;
 use Phil\CommerceBundle\Domain\Model\Payment;
 use Phil\CommerceBundle\Domain\Model\Receipt;
+use Phil\CommerceBundle\Domain\Model\Refund;
 use Phil\CommerceBundle\Domain\Order\OrderState;
 use Phil\CommerceBundle\Domain\Payment\PaymentEvent;
 use Phil\CommerceBundle\Domain\Payment\PaymentState;
@@ -351,6 +353,67 @@ final class ChangesExpiryRefundsTest extends TestCase
         $this->expectException(PaymentRefused::class);
 
         $refunds->grant($payment, $this->cad(0), 'Nothing', 'clerk-1', new DateTimeImmutable());
+    }
+
+    public function testWhatIsLeftIsCountedFromTheRefundsTheLockReads(): void
+    {
+        $payments = new InMemoryPayments();
+        $gateway = new FakeGateway('card');
+        $payment = $this->capture($payments, $gateway);
+        // Another clerk's refund, committed while this one waited for the lock: the repository has not seen it.
+        $lock = new class([Refund::grant($payment, $this->cad(3_000), 'Elsewhere', 'clerk-2', new DateTimeImmutable())]) implements PaymentLock {
+            /** @var list<Payment> */
+            public array $locked = [];
+
+            /** @param list<Refund> $refunds */
+            public function __construct(private readonly array $refunds)
+            {
+            }
+
+            #[Override]
+            public function lockForRefund(Payment $payment): array
+            {
+                $this->locked[] = $payment;
+
+                return $this->refunds;
+            }
+        };
+        $refunds = new Refunds($this->store, $payments, new Payments([$gateway], $payments), lock: $lock);
+
+        try {
+            $refunds->grant($payment, $this->cad(1_001), 'Mine', 'clerk-1', new DateTimeImmutable());
+            self::fail('The refund granted elsewhere is counted.');
+        } catch (PaymentRefused $paymentRefused) {
+            self::assertStringEndsWith('at most 10.00 CAD.', $paymentRefused->getMessage());
+        }
+
+        self::assertSame([$payment], $lock->locked);
+        self::assertSame([], $this->store->refunds);
+        self::assertSame(1_000, $refunds->grant($payment, $this->cad(1_000), 'Mine', 'clerk-1', new DateTimeImmutable())->amount->minorUnits);
+        self::assertSame([$payment, $payment], $lock->locked);
+    }
+
+    public function testThePaymentIsLockedBeforeItsStateIsChecked(): void
+    {
+        $payments = new InMemoryPayments();
+        $gateway = new FakeGateway('card');
+        $payment = $this->capture($payments, $gateway);
+        // The lock reads the payment again: refunded in full meanwhile, it is no longer completed.
+        $lock = new readonly class implements PaymentLock {
+            #[Override]
+            public function lockForRefund(Payment $payment): array
+            {
+                $payment->apply(PaymentNotification::of('evt_r9', (string) $payment->externalReference(), PaymentEvent::Refunded, $payment->amount));
+
+                return [];
+            }
+        };
+
+        $this->expectException(PaymentRefused::class);
+        $this->expectExceptionMessageMatches('/refunded/');
+
+        new Refunds($this->store, $payments, new Payments([$gateway], $payments), lock: $lock)
+            ->grant($payment, $this->cad(100), 'Mine', 'clerk-1', new DateTimeImmutable());
     }
 
     public function testARefundAskedOfTheProcessorStaysReservedUntilItIsConfirmed(): void

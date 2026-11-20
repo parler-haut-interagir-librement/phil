@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=72c7c7d8acb9831d10e65e52b28d07416e7bb42b26048d1c87f608110b299a8f -->
+<!-- phil-dev source-sha256=7e35c72f39b26bef211ec26a6a58f18cf549f3f850070f247f73600909a6e489 -->
 # Référence
 
 Chaque type public du bundle, par couche, et les parties de la conception qui ne sont pas encore commencées. Les
@@ -91,6 +91,7 @@ lignes, les ventilations et leur calculateur sont les types de `phil/tax` ([taxe
 | `OrderChanges` | `final readonly class` | Les changements des commandes passées, préparés, confirmés et versionnés | Implémenté et testé |
 | `OrderExpiry` | `final readonly class` | Fait expirer les commandes impayées et supprime les commandes expirées, par canal | Implémenté et testé |
 | `Refunds` | `final readonly class` | Les remboursements accordés puis exécutés | Implémenté et testé |
+| `Contract\PaymentLock` | port | Tient un paiement pour un seul remboursement à la fois, dans la transaction | Implémenté par `DoctrinePaymentLock` |
 | `DocumentRegister`, `CoreDocumentTypes`, `Contract\DocumentTypes`, `Contract\DocumentSeries` | `final class`, `final readonly class`, ports | Le registre des types de documents, leurs séries et leur visibilité ; `types()`, `listed()`, `type()`, `next()` | Implémenté et testé |
 | `SecretToken` | `final class` | Le secret d'un lien, montré une fois, stocké sous forme de SHA-256 | Implémenté et testé |
 | `OrderModifier` | `final readonly class` | Change une commande par les ports et la recalcule | Implémenté et testé |
@@ -133,6 +134,7 @@ lignes, les ventilations et leur calculateur sont les types de `phil/tax` ([taxe
 | `Doctrine\DoctrineDeferredSaleRepository` | `final readonly class`, `DeferredSaleRepository` | Une vente par le gestionnaire d'entités ; les soldes échus par DBAL | Implémenté et testé |
 | `Pdf\ReceiptPdf` | `final readonly class` | Un reçu ou une note de crédit sous forme de facture PDF | Implémenté et testé |
 | `Doctrine\DoctrineDocumentNumbering` | `final readonly class`, `DocumentNumbering` | Une rangée par série, verrouillée jusqu'à la fin de la transaction | Implémenté et testé |
+| `Doctrine\DoctrinePaymentLock` | `final readonly class`, `PaymentLock` | La rangée du paiement verrouillée jusqu'à la fin de la transaction, sa version vérifiée, ses remboursements lus par une lecture verrouillante | Implémenté et testé |
 | `Doctrine\Entity\DocumentSequence` | `final class`, entité Doctrine | Le dernier numéro d'une série | Implémenté et testé |
 | `Doctrine\DoctrineWishListRepository`, `DoctrinePaymentLinkRepository`, `DoctrineOrderChangeRepository`, `DoctrineOrderJournal`, `DoctrineRefundRepository` | `final readonly class` | Les nouveaux enregistrements par le gestionnaire d'entités | Implémenté et testé |
 | `Doctrine\BinaryKeysListener` | `final readonly class` | Les références des paiements et les propriétaires des listes de souhaits en `utf8mb4_bin` sur MySQL et MariaDB, à l'événement `loadClassMetadata` de l'ORM | Implémenté et testé |

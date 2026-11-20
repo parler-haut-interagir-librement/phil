@@ -6,6 +6,7 @@ namespace Phil\IncidentModeBundle\Infrastructure\Scheduler;
 
 use Override;
 use Phil\IncidentMode\Messenger\LiftExpiredIncidents;
+use Phil\IncidentModeBundle\Infrastructure\DependencyInjection\IncidentModeServices;
 use Symfony\Component\Scheduler\RecurringMessage;
 use Symfony\Component\Scheduler\Schedule;
 use Symfony\Component\Scheduler\ScheduleProviderInterface;
@@ -17,9 +18,9 @@ use Symfony\Component\Scheduler\ScheduleProviderInterface;
  */
 final readonly class IncidentSchedule implements ScheduleProviderInterface
 {
-    public const string DEFAULT_NAME = 'incident_mode';
+    public const string DEFAULT_NAME = IncidentModeServices::DEFAULT_SCHEDULE_NAME;
 
-    public const string DEFAULT_FREQUENCY = '5 minutes';
+    public const string DEFAULT_FREQUENCY = IncidentModeServices::DEFAULT_SCHEDULE_FREQUENCY;
 
     public function __construct(
         private string $frequency = self::DEFAULT_FREQUENCY,

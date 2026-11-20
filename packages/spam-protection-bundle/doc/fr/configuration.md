@@ -1,7 +1,9 @@
-<!-- phil-dev source-sha256=bc0979368d51230348de1c521c39e8dd13188aa950bc2f2cb5de08b2ac5c01b0 -->
+<!-- phil-dev source-sha256=683fd442582d1fd4253b962565a6619f35f10da087040865ee0915e7e5ecf871 -->
 # Configuration
 
 L'alias est `phil_spam_protection`. Chaque clé est facultative.
+| `refusal.threshold` | `100` | Le score qui refuse un envoi, de 1 à 1000 ([Refus pondérés](signals.md#refus-pondérés)). |
+| `refusal.weights` | `{}` | Signal → poids, de 0 à 1000 ; un signal non listé pèse le seuil, et refuse seul. `token_missing`, `token_forged` et `token_replayed` n'acceptent aucun poids : ils refusent toujours. |
 
 ```yaml
 phil_spam_protection:
@@ -12,6 +14,7 @@ phil_spam_protection:
     cache_pool: cache.app
     used_tokens: { connection: null, lock_factory: null }
     rate_limiter: null
+    refusal: { threshold: 100, weights: {} }
 ```
 
 | Clé | Valeur par défaut | Sens |
@@ -101,5 +104,6 @@ au limiteur un `cache_pool` sur un stockage partagé, ou réglez `single_server:
 | `Infrastructure\Doctrine\UsedTokensSchemaListener` | Ajoute cette table au schéma que l'ORM génère pour la connexion, seulement quand `used_tokens.connection` est fixé. |
 | `Infrastructure\RateLimit\SymfonySubmissionRateLimiter` | La limite de débit, seulement quand `rate_limiter` est fixé. |
 | `Application\SubmissionInspector` | Émet et inspecte, construit par `SubmissionInspector::configured()` à partir des valeurs de la configuration ; utilisable hors des formulaires ([Points d'extension](extension-points.md)). |
+| `Application\RefusalPolicy` | Les poids et le seuil de `refusal` : si une inspection refuse un envoi ; `score()`, `refuses()`. |
 | `Infrastructure\Http\ClientKey` | L'empreinte à clé de l'adresse du client de la requête courante. |
 | `Infrastructure\Form\SpamProtectionTypeExtension` | L'option `spam_protection`, étiquetée `form.type_extension` ; journalise sur le canal `spam_protection`. |

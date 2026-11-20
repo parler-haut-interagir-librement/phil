@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Phil\IncidentModeBundle\PhilIncidentModeBundle;
 use Phil\ModerationBundle\PhilModerationBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\SecurityBundle\SecurityBundle;
@@ -16,4 +17,5 @@ return [
     TwigComponentBundle::class => ['all' => true],
     SecurityBundle::class => ['all' => true],
     PhilModerationBundle::class => ['all' => true],
+    PhilIncidentModeBundle::class => ['all' => true],
 ];

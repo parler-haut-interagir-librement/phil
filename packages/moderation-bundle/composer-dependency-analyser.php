@@ -9,8 +9,8 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
  * The bundle's declared dependencies, checked against the bundle installed on its own.
  *
  * Doctrine ORM, EasyAdmin, phil/incident-mode, phil/notifications-bundle and phil/privacy-bundle are used by the
- * production code but only required in development and suggested: the bundle registers each integration only when its
- * package is there. The translator and the Twig components are used by the templates, which are not a scanned path.
+ * production code but only required in development and suggested — phil/incident-mode through
+ * phil/incident-mode-bundle, which brings it —: the bundle registers each integration only when its package is there. The translator and the Twig components are used by the templates, which are not a scanned path.
  */
 return new Configuration()
     ->addPathToScan(__DIR__.'/src', isDev: false)

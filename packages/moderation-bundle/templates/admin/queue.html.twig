@@ -1,7 +1,7 @@
 {#
     The single queue: every target with open reports that the moderator's role covers, the earliest report first, with
-    its type, what the package says of it, how many reports, their reasons and sources. When reports surge, and the
-    incident mode is installed, the page proposes it. Its parts are recipes of the kit — Alert, Badge, Table.
+    its type, what the package says of it, how many reports, their reasons and sources. When reports surge, and
+    phil/incident-mode-bundle is registered, the page proposes an incident to the role that runs it. Its parts are recipes of the kit — Alert, Badge, Table.
 #}
 {% extends layout %}
 
@@ -17,7 +17,7 @@
         {% component (phil_moderation_kit('Alert')) with {variant: 'destructive', role: 'status'} %}
             {% block content %}
                 {% component (phil_moderation_kit('Alert:Title')) %}{% block content %}{{ 'queue.surge'|trans({}, domain) }}{% endblock %}{% endcomponent %}
-                {% component (phil_moderation_kit('Alert:Description')) %}{% block content %}<a href="{{ path(routes.incidents) }}">{{ 'queue.surge_action'|trans({}, domain) }}</a>{% endblock %}{% endcomponent %}
+                {% component (phil_moderation_kit('Alert:Description')) %}{% block content %}<a href="{{ path(incidents_route) }}">{{ 'queue.surge_action'|trans({}, domain) }}</a>{% endblock %}{% endcomponent %}
             {% endblock %}
         {% endcomponent %}
     {% endif %}

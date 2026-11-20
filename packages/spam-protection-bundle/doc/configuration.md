@@ -11,6 +11,7 @@ phil_spam_protection:
     cache_pool: cache.app
     used_tokens: { connection: null, lock_factory: null }
     rate_limiter: null
+    refusal: { threshold: 100, weights: {} }
 ```
 
 | Key | Default | Meaning |
@@ -28,6 +29,8 @@ phil_spam_protection:
 | `used_tokens.lock_factory` | `null` | The service id of a Symfony lock factory under which the pool claims each token: `lock.factory`. Its store must be shared by every web server. Not with `connection`. |
 | `rate_limiter` | `null` | The service id of a Symfony rate limiter factory — `limiter.contact` for `framework.rate_limiter.contact` —; none by default. In the `prod` environment, its storage must be shared by every web server, or the container build fails. |
 | `single_server` | `false` | Accepts in the `prod` environment a limiter whose storage is local to the server, for an application on one server. |
+| `refusal.threshold` | `100` | The score that refuses a submission, from 1 to 1000 ([Weighted refusals](signals.md#weighted-refusals)). |
+| `refusal.weights` | `{}` | Signal → weight, from 0 to 1000; a signal not listed weighs the threshold, and refuses alone. `token_missing`, `token_forged` and `token_replayed` take no weight: they always refuse. |
 
 ```yaml
 # a rate limit of 5 submissions per hour, per form and client
@@ -98,5 +101,6 @@ set `single_server: true` on a single server.
 | `Infrastructure\Doctrine\UsedTokensSchemaListener` | Adds that table to the schema the ORM generates for the connection, only when `used_tokens.connection` is set. |
 | `Infrastructure\RateLimit\SymfonySubmissionRateLimiter` | The rate limit, only when `rate_limiter` is set. |
 | `Application\SubmissionInspector` | Issues and inspects, built by `SubmissionInspector::configured()` from the configuration's values; usable outside forms ([Extension points](extension-points.md)). |
+| `Application\RefusalPolicy` | The weights and the threshold of `refusal`: whether an inspection refuses a submission; `score()`, `refuses()`. |
 | `Infrastructure\Http\ClientKey` | The keyed hash of the current request's client address. |
 | `Infrastructure\Form\SpamProtectionTypeExtension` | The `spam_protection` option, tagged `form.type_extension`; logs on the `spam_protection` channel. |

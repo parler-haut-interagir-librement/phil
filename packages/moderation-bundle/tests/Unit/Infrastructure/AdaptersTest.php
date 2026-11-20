@@ -10,16 +10,11 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
 use EasyCorp\Bundle\EasyAdminBundle\Contracts\Context\AdminContextInterface;
-use Phil\IncidentMode\Activation;
-use Phil\IncidentMode\Actor;
 use Phil\IncidentMode\Duration;
 use Phil\IncidentMode\IncidentMode;
-use Phil\IncidentMode\IncidentRestrictions;
 use Phil\IncidentMode\InMemoryActivationStore;
-use Phil\IncidentMode\LiftReason;
 use Phil\IncidentMode\Presets;
 use Phil\ModerationBundle\Application\Contract\ModerationMember;
-use Phil\ModerationBundle\Application\Moderator;
 use Phil\ModerationBundle\Application\Reasons;
 use Phil\ModerationBundle\Application\Role;
 use Phil\ModerationBundle\Application\Roles;
@@ -31,8 +26,7 @@ use Phil\ModerationBundle\Infrastructure\Doctrine\ModerationSchemaListener;
 use Phil\ModerationBundle\Infrastructure\Doctrine\ModerationTables;
 use Phil\ModerationBundle\Infrastructure\EasyAdmin\ModerationAdmin;
 use Phil\ModerationBundle\Infrastructure\Http\AdminController;
-use Phil\ModerationBundle\Infrastructure\IncidentMode\CurrentMemberRestrictions;
-use Phil\ModerationBundle\Infrastructure\IncidentMode\IncidentPanel;
+use Phil\ModerationBundle\Infrastructure\IncidentMode\IncidentProposal;
 use Phil\ModerationBundle\Infrastructure\Privacy\ModerationPrivacy;
 use Phil\ModerationBundle\Infrastructure\Security\TokenCurrentMember;
 use Phil\ModerationBundle\Infrastructure\Security\TokenCurrentModerator;
@@ -60,7 +54,7 @@ use Symfony\Component\Security\Csrf\TokenStorage\SessionTokenStorage;
 #[CoversClass(TokenCurrentMember::class)]
 #[CoversClass(TokenCurrentModerator::class)]
 #[CoversClass(ModerationPrivacy::class)]
-#[CoversClass(IncidentPanel::class)]
+#[CoversClass(IncidentProposal::class)]
 #[CoversClass(ModerationExtension::class)]
 #[CoversClass(KitComponents::class)]
 #[CoversClass(ModerationSchemaListener::class)]
@@ -121,8 +115,7 @@ final class AdaptersTest extends TestCase
     public function testThePrivacyOfAMember(): void
     {
         $stage = new Stage();
-        $incidents = new InMemoryActivationStore();
-        $privacy = new ModerationPrivacy($stage->reportRepository, $stage->decisionRepository, $stage->noteRepository, $stage->sandboxRepository, $incidents);
+        $privacy = new ModerationPrivacy($stage->reportRepository, $stage->decisionRepository, $stage->noteRepository, $stage->sandboxRepository);
         $stage->posts->contents['1'] = new TargetView('A post', author: MemberId::of('m-1'));
         $stage->people->signIn('m-1');
         $stage->reports->report(TargetReference::of('comment', '9'), 'spam', 'Ads');
@@ -130,10 +123,6 @@ final class AdaptersTest extends TestCase
         $stage->decisions->decide(TargetReference::of('forum.post', '1'), DecisionAction::Hide, 'Spam', 'Private');
         $stage->notes->write(MemberId::of('m-1'), 'Watch this one');
         $stage->sandboxRepository->clear(MemberId::of('m-1'), $stage->clock->now());
-
-        $mode = new IncidentMode(Presets::defaults(), $incidents, $stage->clock);
-        $activation = $mode->start(Presets::READ_ONLY, Duration::ofMinutes(30), Actor::of('m-1'));
-        $mode->lift($activation->id, Actor::of('mod-1'));
 
         self::assertSame('moderation', $privacy->module()->value);
         $export = $privacy->export(DataSubject::fromString('m-1'));
@@ -148,7 +137,7 @@ final class AdaptersTest extends TestCase
         ]], $export['decisions_about_my_content']);
         self::assertSame([['note' => 'Watch this one', 'written_at' => '2026-11-13T10:00:00+00:00']], $export['notes_about_me']);
         self::assertSame('2026-11-13T10:00:00+00:00', $export['sandbox_left_at']);
-        self::assertSame([['preset' => 'read-only', 'started_at' => '2026-11-13T10:00:00+00:00', 'ends_at' => '2026-11-13T10:30:00+00:00', 'started_by_me' => true, 'lifted_by_me' => false]], $export['incidents']);
+        self::assertArrayNotHasKey('incidents', $export, 'the incidents are answered by phil/incident-mode-bundle');
         self::assertArrayNotHasKey('decisions_taken', $export);
         self::assertStringNotContainsString('mod-1', json_encode($export, \JSON_THROW_ON_ERROR));
         self::assertStringNotContainsString('Private', json_encode($export, \JSON_THROW_ON_ERROR));
@@ -158,7 +147,6 @@ final class AdaptersTest extends TestCase
             'target_type' => 'forum.post', 'target_id' => '1', 'action' => 'hide', 'role' => 'moderator',
             'decided_at' => '2026-11-13T10:00:00+00:00',
         ]], $moderatorExport['decisions_taken']);
-        self::assertSame([['preset' => 'read-only', 'started_at' => '2026-11-13T10:00:00+00:00', 'ends_at' => '2026-11-13T10:30:00+00:00', 'started_by_me' => false, 'lifted_by_me' => true]], $moderatorExport['incidents']);
         self::assertSame([], $privacy->export(DataSubject::fromString('nobody')));
         self::assertSame([], $privacy->export(DataSubject::fromString('someone@example.org')));
 
@@ -169,57 +157,35 @@ final class AdaptersTest extends TestCase
             ModerationTables::DECISIONS => ErasureEffect::Pseudonymised,
             ModerationTables::NOTES => ErasureEffect::Deleted,
             ModerationTables::SANDBOX => ErasureEffect::Deleted,
-            'phil_incident_activation' => ErasureEffect::Pseudonymised,
         ], $report->effects);
         self::assertSame([], $privacy->export(DataSubject::fromString('m-1')));
-        self::assertNull($incidents->find($activation->id)?->startedBy);
-        self::assertSame('mod-1', $incidents->find($activation->id)?->liftedBy?->id);
         self::assertSame($report->effects, $privacy->erase(DataSubject::fromString('m-1'))->effects);
         self::assertArrayHasKey(ModerationTables::NOTES, $privacy->erase(DataSubject::fromString('someone@example.org'))->effects);
-
-        $withoutIncidents = new ModerationPrivacy($stage->reportRepository, $stage->decisionRepository, $stage->noteRepository, $stage->sandboxRepository);
-        self::assertArrayNotHasKey('phil_incident_activation', $withoutIncidents->erase(DataSubject::fromString('mod-1'))->effects);
-        self::assertArrayNotHasKey('incidents', $withoutIncidents->export(DataSubject::fromString('m-2')));
     }
 
-    public function testTheIncidentsOfAMemberWhoStartedOrLiftedOnly(): void
+    public function testTheIncidentModeIsProposedWhenReportsSurgeToItsRoleOnly(): void
     {
         $stage = new Stage();
-        $incidents = new InMemoryActivationStore();
-        $privacy = new ModerationPrivacy($stage->reportRepository, $stage->decisionRepository, $stage->noteRepository, $stage->sandboxRepository, $incidents);
-        $mode = new IncidentMode(Presets::defaults(), $incidents, $stage->clock);
-        $mode->start(Presets::READ_ONLY, Duration::ofMinutes(30), Actor::of('m-1'));
+        $mode = new IncidentMode(Presets::defaults(), new InMemoryActivationStore(), $stage->clock);
+        $authorization = new class implements AuthorizationCheckerInterface {
+            /** @var list<mixed> */
+            public array $asked = [];
 
-        $other = $mode->start(Presets::SUSPEND_SIGNUPS, Duration::ofMinutes(30), Actor::of('m-9'));
-        $mode->lift($other->id, Actor::of('m-1'));
-        $forgotten = $mode->start(Presets::SUSPEND_INVITATIONS, Duration::ofMinutes(30), null);
-        $mode->lift($forgotten->id, Actor::of('m-1'));
+            public bool $granted = true;
 
-        $found = $privacy->export(DataSubject::fromString('m-1'))['incidents'];
+            public function isGranted(mixed $attribute, mixed $subject = null, ?AccessDecision $accessDecision = null): bool
+            {
+                $this->asked[] = $attribute;
 
-        self::assertIsArray($found);
-        self::assertCount(3, $found);
-        $flags = [];
+                return $this->granted;
+            }
+        };
+        $proposal = new IncidentProposal($mode, $stage->surge, $authorization, 'ROLE_SAFETY');
 
-        foreach ($found as $incident) {
-            self::assertIsArray($incident);
-            $flags[] = [$incident['started_by_me'], $incident['lifted_by_me']];
-        }
-
-        sort($flags);
-        self::assertSame([[false, true], [false, true], [true, false]], $flags);
-    }
-
-    public function testTheIncidentPanel(): void
-    {
-        $stage = new Stage();
-        $mode = new IncidentMode(Presets::defaults(), $store = new InMemoryActivationStore(), $stage->clock);
-        $panel = new IncidentPanel($mode, $stage->surge);
-        $moderator = new Moderator(MemberId::of('mod-1'), $stage->moderator);
-
-        self::assertCount(5, $panel->presets());
-        self::assertFalse($panel->isProposed());
-        self::assertSame($stage->surge, $panel->surge());
+        self::assertSame('phil_incident_mode_admin', IncidentProposal::ROUTE);
+        self::assertTrue($proposal->isOffered());
+        self::assertSame(['ROLE_SAFETY'], $authorization->asked);
+        self::assertFalse($proposal->isProposed(), 'no surge yet');
 
         $stage->people->signIn('m-1');
 
@@ -227,33 +193,15 @@ final class AdaptersTest extends TestCase
             $stage->reports->report(TargetReference::of('forum.post', $id), 'spam');
         }
 
-        self::assertTrue($panel->isProposed());
+        self::assertTrue($proposal->isProposed());
 
-        $activation = $panel->start($moderator, Presets::SUSPEND_SIGNUPS, 90, 'Wave');
+        $authorization->granted = false;
+        self::assertFalse($proposal->isOffered());
+        self::assertFalse($proposal->isProposed(), 'only to the role of the incident mode');
 
-        self::assertSame('mod-1', $activation->startedBy?->id);
-        self::assertSame('2026-11-13 11:30:00', $activation->endsAt->format('Y-m-d H:i:s'));
-        self::assertSame([$activation->id], array_map(static fn (Activation $a): string => $a->id, $panel->inForce()));
-        self::assertFalse($panel->isProposed());
-        self::assertSame(LiftReason::Manual, $panel->lift($moderator, $activation->id)->liftReason);
-        self::assertSame('mod-1', $store->find($activation->id)?->liftedBy?->id);
-        self::assertCount(1, $panel->journal(10));
-        self::assertCount(1, $panel->journal(0));
-        self::assertSame([], $panel->inForce());
-    }
-
-    public function testTheJournalOfThePanelIsBoundedByAtLeastOneLine(): void
-    {
-        $stage = new Stage();
-        $mode = new IncidentMode(Presets::defaults(), new InMemoryActivationStore(), $stage->clock);
-        $panel = new IncidentPanel($mode, $stage->surge);
-        $moderator = new Moderator(MemberId::of('mod-1'), $stage->moderator);
-        $panel->start($moderator, Presets::READ_ONLY, 30, null);
-        $panel->start($moderator, Presets::SUSPEND_SIGNUPS, 30, null);
-
-        self::assertCount(2, $panel->journal(10));
-        self::assertCount(1, $panel->journal(0));
-        self::assertCount(1, $panel->journal(-5));
+        $authorization->granted = true;
+        $mode->start(Presets::SUSPEND_SIGNUPS, Duration::ofMinutes(90), null);
+        self::assertFalse($proposal->isProposed(), 'not while an incident is in force');
     }
 
     public function testTheTwigFunctions(): void
@@ -265,9 +213,7 @@ final class AdaptersTest extends TestCase
         // kernel of the functional tests run after it from reading their session cookie.
         $requests = new RequestStack([$request]);
         $tokens = new CsrfTokenManager(null, new SessionTokenStorage($requests));
-        $mode = new IncidentMode(Presets::defaults(), new InMemoryActivationStore(), $stage->clock);
-        $restrictions = new CurrentMemberRestrictions(new IncidentRestrictions($mode, $stage->people, ['signups']), $stage->people);
-        $extension = new ModerationExtension(new Reasons(['spam']), $stage->hides, $tokens, $restrictions, new KitComponents('ui/kit'));
+        $extension = new ModerationExtension(new Reasons(['spam']), $stage->hides, $tokens, new KitComponents('ui/kit'));
 
         self::assertSame(['spam'], $extension->reasons());
         self::assertTrue($tokens->isTokenValid(new CsrfToken('phil_moderation_report', $extension->reportToken())));
@@ -275,14 +221,8 @@ final class AdaptersTest extends TestCase
         $stage->people->signIn('m-1');
         $stage->people->trusted = ['m-1'];
         self::assertTrue($extension->mayHide());
-        self::assertFalse($extension->suspended('signups'));
-        $mode->start(Presets::SUSPEND_SIGNUPS, Duration::ofHours(1), null);
-        self::assertTrue($extension->suspended('signups'));
-        $stage->people->established = ['m-1'];
-        self::assertFalse($extension->suspended('signups'), 'an established member is spared');
         self::assertSame('ui:kit:Button', $extension->kit('Button'));
         self::assertSame('Button', new ModerationExtension(new Reasons(), $stage->hides, $tokens)->kit('Button'));
-        self::assertFalse(new ModerationExtension(new Reasons(), $stage->hides, $tokens)->suspended('signups'));
         self::assertSame('Button', new KitComponents('/')->name('Button'));
         self::assertSame('ui:Button', new KitComponents('/ui/')->name('Button'));
     }
@@ -305,9 +245,9 @@ final class AdaptersTest extends TestCase
     public function testTheBackOfficeHelpers(): void
     {
         self::assertSame('admin_moderation_queue', ModerationAdmin::menuItem()->getAsDto()->getRouteName());
-        self::assertSame('back_moderation_incidents', ModerationAdmin::incidentsMenuItem('back')->getAsDto()->getRouteName());
+        self::assertSame('back_moderation_queue', ModerationAdmin::menuItem('back')->getAsDto()->getRouteName());
         self::assertSame('Moderation', ModerationAdmin::menuItem()->getAsDto()->getLabel());
-        self::assertCount(9, ModerationAdmin::ROUTES);
+        self::assertCount(6, ModerationAdmin::ROUTES);
         self::assertSame('_moderation_decide', ModerationAdmin::ROUTES[AdminController::DECIDE_ROUTE]);
         self::assertNull(ModerationAdmin::dashboardRoute(new Request()));
 

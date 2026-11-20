@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e96e300e91093e14f71b2f6b3f9c4782f379b33f43c994c14651f0e496d2a4a2 -->
+<!-- phil-dev source-sha256=5607fe4b8f5b22650a67c03607fa3b90f5891ea9e650a07a3ad71f72f7abd686 -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_moderation` :
@@ -22,12 +22,6 @@ phil_moderation:
     surge:
         reports: 25
         within: 3600
-    incident:
-        role: ROLE_ADMIN
-        presets:
-            - { name: quiet-listings, label: Suspend new listings, restrictions: [new-listings], default_minutes: 240, maximum_minutes: 2880 }
-        without: [read-only]
-        spare_established: [new-posts, new-comments]
     statements:
         enabled: true
         grounds:
@@ -51,11 +45,7 @@ phil_moderation:
 | `admin.page_size` | `25` | Les lignes de la file par page, de 1 à 200. |
 | `journal.page_size` | `50` | Les lignes du journal public par page, de 1 à 200. |
 | `sandbox.types` | aucun | Les types de cibles dont le premier contenu d'un membre attend la modération. |
-| `surge.reports`, `surge.within` | `25`, `3600` | Quand autant de signalements arrivent en autant de secondes (de 60 à 86 400), l'interface d'administration propose le mode d'incident. |
-| `incident.role` | `ROLE_ADMIN` | L'attribut de sécurité qui peut déclencher et lever un incident. |
-| `incident.presets` | aucun | Les préréglages de l'application, après ceux qui sont fournis ; un préréglage du même nom remplace celui qui est fourni. Durées en minutes. |
-| `incident.without` | aucun | Les préréglages fournis à écarter. |
-| `incident.spare_established` | aucun | Les restrictions dont un incident laisse libres les membres établis, telles que le port `EstablishedMembers` de `phil/incident-mode` les nomme ([Mode d'incident](incident-mode.md#les-membres-établis)). |
+| `surge.reports`, `surge.within` | `25`, `3600` | Quand autant de signalements arrivent en autant de secondes (de 60 à 86 400), la file propose le mode d'incident de `phil/incident-mode-bundle` au rôle de son administration ([Mode d'incident](incident-mode.md)). |
 | `statements.enabled` | `true` | Si une décision qui restreint l'auteur s'accompagne d'un exposé des motifs ([Exposés des motifs](statements-of-reasons.md)) ; `statements: false` les désactive. |
 | `statements.grounds` | aucun | Sur quoi repose chaque raison, par son code : `ground` vaut `terms` ou `illegal`, `reference` est la disposition qu'un exposé nomme par défaut. Une raison absente de la liste repose sur les conditions ; `illegal` repose sur la loi. |
 | `statements.terms_url`, `statements.complaint_url` | `null` | Les conditions du site et la page où un membre conteste une décision : un chemin du site ou une adresse `https`. |

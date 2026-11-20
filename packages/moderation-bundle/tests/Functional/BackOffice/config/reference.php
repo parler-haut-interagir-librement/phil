@@ -1584,21 +1584,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     sandbox?: array{
  *         types?: list<scalar|Param|null>,
  *     },
- *     surge?: array{ // When reports come this fast, the back office proposes the incident mode.
+ *     surge?: array{ // When reports come this fast, the queue proposes the incident mode of phil/incident-mode-bundle, when it is registered.
  *         reports?: int|Param, // Default: 25
  *         within?: int|Param, // Seconds. // Default: 3600
- *     },
- *     incident?: array{ // The incident mode, when phil/incident-mode is installed.
- *         role?: scalar|Param|null, // The security attribute that may start and lift an incident. // Default: "ROLE_ADMIN"
- *         presets?: list<array{ // Default: []
- *             name?: scalar|Param|null,
- *             label?: scalar|Param|null,
- *             restrictions?: list<scalar|Param|null>,
- *             default_minutes?: int|Param,
- *             maximum_minutes?: int|Param,
- *         }>,
- *         without?: list<scalar|Param|null>,
- *         spare_established?: list<scalar|Param|null>,
  *     },
  *     statements?: bool|array{ // The statements of reasons a decision that restricts the author of a content — hide, remove, warn — comes with.
  *         enabled?: bool|Param, // Resolved at compile time // Default: true
