@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=735c194e080907d44b9a9658511594fa14fde98f08996e2f052656ba928c283b -->
+<!-- phil-dev source-sha256=f6deeff741be7ba13b74ed4dade90548b10b3729f5655dee783a4a2e8d14f4d7 -->
 # clamd
 
 `ClamdScanner` analyse par clamd, le démon de ClamAV, selon le protocole que documente clamd. La bibliothèque le parle
@@ -86,6 +86,40 @@ limite, il cesse d'envoyer, ferme la connexion et répond par un résultat d'err
 clamd a sa propre limite, `StreamMaxLength` dans `clamd.conf`, aussi de 25 Mio par défaut : gardez `maxBytes` égal ou
 inférieur à cette limite, sinon clamd répond lui-même `INSTREAM size limit exceeded. ERROR`, qui se lit aussi comme un
 résultat d'erreur. Relevez les deux ensemble pour analyser de plus gros fichiers.
+
+## Les archives et leurs limites
+
+clamd ouvre les archives — ZIP, RAR, 7z, tar, gzip, documents bureautiques — et les archives qu'elles contiennent, et
+analyse ce qu'elles renferment : un fichier d'essai trois archives plus bas est trouvé. Ce qu'il ouvre est borné par ses
+propres limites, dans `clamd.conf` :
+
+| Réglage | Valeur par défaut | Ce qu'il borne |
+|---|---|---|
+| `MaxScanSize` | 400M | Les octets que clamd lit d'un fichier, archives décompressées |
+| `MaxFileSize` | 100M | La taille de chaque fichier que clamd analyse, dans une archive ou non |
+| `MaxFiles` | 10000 | Les fichiers que clamd ouvre dans une archive |
+| `MaxRecursion` | 17 | La profondeur à laquelle des archives dans des archives sont ouvertes |
+| `AlertExceedsMax` | no | Si un fichier qui dépasse une limite est signalé |
+
+**Sans `AlertExceedsMax yes`, un fichier qui dépasse une limite ressort propre.** clamd s'arrête à la limite et répond
+`stream: OK` pour ce qu'il a lu : une archive de 10 001 fichiers dont le dernier est un virus passe. Activez-le dans le
+clamd avec lequel l'application analyse :
+
+```
+AlertExceedsMax yes
+```
+
+clamd répond alors `Heuristics.Limits.Exceeded.MaxFiles FOUND` (ou `MaxScanSize`, `MaxFileSize`, `MaxRecursion`), que
+`ClamdScanner` lit comme une infection comme une autre : le fichier est refusé, et mis en quarantaine par le bundle.
+Gardez `MaxScanSize` et `MaxFileSize` au-dessus de `StreamMaxLength`, pour qu'un fichier que le flux accepte soit lu en
+entier. Le test d'intégration de la bibliothèque envoie les deux archives à un vrai clamd, avec et sans le réglage.
+
+## Les versions
+
+Analysez avec ClamAV 1.5.4 ou plus récent, ou 1.4.6 ou plus récent sur la ligne à long terme 1.4 : ces versions, du
+2026-08-07, corrigent sept vulnérabilités du moteur, plusieurs dans les analyseurs des formats qu'un téléversement
+transporte. `version()` répond la version du moteur, comme `ClamAV 1.5.5/28189/…` : une vérification de santé qui la lit
+montre un clamd plus ancien.
 
 ## Les délais d'attente
 

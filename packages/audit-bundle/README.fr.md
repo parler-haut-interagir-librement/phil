@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c49ac3a7448c13e587b8193d9017ae2b04820c3e7527338303c72d41c05bd9ef -->
+<!-- phil-dev source-sha256=3d51bbb89c65227c87f63f15a7206b5436a91fbe5177d48864ac9ad9da2d344c -->
 # phil/audit-bundle
 
 **Une piste d'audit en ajout seul qui révèle toute falsification et permet quand même d'effacer les renseignements
@@ -90,6 +90,8 @@ d'adaptateurs : il porte ce que la conception décide, et laisse des ports comme
 - [Points d'extension](doc/fr/extension-points.md) : chaque port méthode par méthode, les invariants d'un
   adaptateur, un registre de sérialiseurs, un auteur d'ancres sur verrouillage d'objets et un lecteur de charge
   utile.
+- [Correspondance avec ASVS 5.0](doc/fr/asvs.md) : les exigences du chapitre V16 que le bundle satisfait, les tests qui
+  les démontrent et celles qui reviennent à l'application.
 - [Tests](doc/fr/testing.md) : comment le bundle est testé, ses bancs d'essai et ses cibles de fuzzing, l'exécution de
   ses tests dans un monodépôt ou seul, des vecteurs de référence pour un sérialiseur et des tests de refus pour une
   destination d'ancres.

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=997e5561c1d557784eee939f21797f4c395b2d3a37b746fbeddd8de3351512d5 -->
+<!-- phil-dev source-sha256=d0365ccb3c3fd4ea370e5a7dfff6b6fcbaf9a632708cf91f8e37c40124de37f8 -->
 # Référence
 
 ## Domaine
@@ -21,6 +21,7 @@
 | `Application\Contract\AddressNormalizer` | Le port de la normalisation de l'adresse |
 | `Application\Limiters` | Les limiteurs et leurs valeurs par défaut, par nom |
 | `Application\KeyResolvers` | Les stratégies de clé, par nom |
+| `Application\IdentifierKey` | `normalize()` : la forme d'un nom d'utilisateur ou d'une adresse courriel dont une clé est construite, comme la limitation de connexion de Symfony construit la sienne |
 | `Application\RateLimitRules` | La valeur par défaut de route et l'option de formulaire lues comme des règles |
 | `Application\RateLimitEnforcer` | Soumet une requête à ses règles |
 | `Application\RateLimitHeaders` | Les en-têtes d'une décision |

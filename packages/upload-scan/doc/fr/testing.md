@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d07d335f2d8612d13207b16d94142ba11383c2f187b5d66f1e44b904369b7a19 -->
+<!-- phil-dev source-sha256=1c75dabc572b6fe8c8ada1f8a00883215b94fc9c658ea9dd9612ca0f66d3e1d2 -->
 # Tests
 
 ## Les tests de la bibliothèque
@@ -19,12 +19,17 @@ vendor/bin/phpunit packages/upload-scan/tests
 La bibliothèque est tenue à un score de mutation couverte de 100 % par Infection.
 
 `tests/Integration/ClamdTest.php` s'exécute contre un vrai clamd à l'adresse de `PHIL_UPLOAD_SCAN_CLAMD`, et est sauté
-sans elle :
+sans elle. Il envoie le fichier d'essai seul, trois archives plus bas, et après 10 000 fichiers vides dans une archive :
+cette dernière archive passe sauf si clamd tourne avec `AlertExceedsMax yes`, et `PHIL_UPLOAD_SCAN_CLAMD_ALERT_EXCEEDS_MAX=1`
+indique au test que c'est le cas. Les archives sont construites octet par octet, stockées sans compression, si bien
+qu'aucune extension n'est nécessaire :
 
 ```sh
 docker run -d --name clamav -p 3310:3310 clamav/clamav:stable
 PHIL_UPLOAD_SCAN_CLAMD=tcp://127.0.0.1:3310 vendor/bin/phpunit packages/upload-scan/tests/Integration
 ```
+
+Sur une machine ARM, ajoutez `--platform linux/amd64` : l'image n'est construite que pour x86-64.
 
 ## La cible de fuzzing
 
