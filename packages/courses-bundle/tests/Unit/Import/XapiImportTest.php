@@ -13,12 +13,16 @@ use Phil\CoursesBundle\Application\Import\XapiPackage;
 use Phil\CoursesBundle\Application\Import\XapiPlanner;
 use Phil\CoursesBundle\Domain\Course\CourseOrigin;
 use Phil\CoursesBundle\Domain\Exception\PackageRefused;
+use Phil\CoursesBundle\Domain\Model\Activity;
 use Phil\CoursesBundle\Domain\Progress\CompletionRequirement;
+use Phil\CoursesBundle\Infrastructure\Import\ElearningXapiPackageReader;
 use Phil\CoursesBundle\Tests\Unit\Fixture\Packages;
 use Phil\CoursesBundle\Tests\Unit\Fixture\Store;
 use Phil\ElearningPackages\Archive\ZipPackageOpener;
 use Phil\ElearningPackages\Contract\PackageArchive;
+use Phil\ElearningPackages\Exception\PackageRefused as UnreadablePackage;
 use Phil\ElearningPackages\PackageFormat;
+use Phil\ElearningPackages\PackageLimits;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -31,6 +35,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(XapiLaunchable::class)]
 #[CoversClass(CourseImporter::class)]
 #[CoversClass(CourseOrigin::class)]
+#[CoversClass(ElearningXapiPackageReader::class)]
 final class XapiImportTest extends TestCase
 {
     public function testThePlanHoldsOneModuleOfXapiActivities(): void
@@ -120,6 +125,58 @@ final class XapiImportTest extends TestCase
         $cmi5 = $importer->import(Packages::zip(['tincan.xml' => '<tincan/>'] + Packages::cmi5Files()));
         self::assertSame(CourseOrigin::Cmi5, $cmi5->format);
         self::assertSame(1, $reader->reads);
+    }
+
+    public function testTheReaderOfTheLibraryReadsTheDescriptionOfThePackage(): void
+    {
+        $store = new Store();
+        $tincan = <<<'XML'
+            <?xml version="1.0" encoding="utf-8"?>
+            <tincan xmlns="http://projecttincan.com/tincan.xsd">
+                <activities>
+                    <activity id="https://example.org/xapi/knots" type="http://adlnet.gov/expapi/activities/lesson">
+                        <name lang="en">Knots</name><name lang="fr">Nœuds</name>
+                        <launch lang="en">knots/index.html?step=1</launch>
+                    </activity>
+                    <activity id="https://example.org/xapi/sailing" type="http://adlnet.gov/expapi/activities/course">
+                        <name lang="en">Sailing</name><name lang="fr">Voile</name>
+                        <description lang="en">Knots and sails.</description><description lang="fr">Nœuds et voiles.</description>
+                        <launch lang="en">index.html</launch>
+                    </activity>
+                    <activity id="https://example.org/xapi/q1" type="http://adlnet.gov/expapi/activities/cmi.interaction">
+                        <name lang="en">Question</name>
+                        <interactionType>sorcery</interactionType>
+                    </activity>
+                    <activity id="https://example.org/xapi/knots" type="http://adlnet.gov/expapi/activities/lesson">
+                        <launch lang="en">again.html</launch>
+                    </activity>
+                </activities>
+            </tincan>
+            XML;
+        $importer = new CourseImporter(new ZipPackageOpener(), $store->courses, $store->storage, events: $store->events, xapi: new ElearningXapiPackageReader(new PackageLimits(), 'fr'));
+
+        $report = $importer->import(Packages::zip(['tincan.xml' => $tincan, 'index.html' => 'x', 'knots/index.html' => 'y']));
+        $course = $store->courses->get($report->course);
+        self::assertSame(['Voile', 'Nœuds et voiles.', 'https://example.org/xapi/sailing', CourseOrigin::Xapi], [$course->title, $course->description, $course->source, $course->origin]);
+        self::assertSame([
+            ['Nœuds', 'https://example.org/xapi/knots', 'knots/index.html', '?step=1'],
+            ['Voile', 'https://example.org/xapi/sailing', 'index.html', null],
+        ], array_map(static fn (Activity $activity): array => [$activity->title, $activity->stringSetting('activity_id'), $activity->stringSetting('path'), $activity->setting('query')], $store->courseStore->activities($course->id)));
+        self::assertCount(3, $report->warnings, implode("\n", $report->warnings));
+        self::assertStringContainsString('declared twice', implode(' ', $report->warnings));
+
+        $english = new ElearningXapiPackageReader()->read(new ZipPackageOpener()->open(Packages::zip(['tincan.xml' => $tincan]), new PackageLimits()));
+        self::assertSame(['Sailing', 'Knots and sails.', 'Knots', 'knots/index.html?step=1', null], [$english->title, $english->description, $english->activities[0]->title, $english->activities[0]->launch, $english->activities[0]->masteryScore]);
+
+        foreach (['<tincan/>' => 'The xAPI package description has no <activities>.', '<other/>' => 'The xAPI package description has no <tincan> root.'] as $xml => $message) {
+            try {
+                $importer->import(Packages::zip(['tincan.xml' => $xml]));
+                self::fail('Imported.');
+            } catch (PackageRefused $packageRefused) {
+                self::assertSame($message, $packageRefused->getMessage());
+                self::assertInstanceOf(UnreadablePackage::class, $packageRefused->getPrevious());
+            }
+        }
     }
 
     public function testTheOriginOfAFormatHasItsValue(): void

@@ -92,6 +92,7 @@ use Phil\CoursesBundle\Infrastructure\Http\ScormController;
 use Phil\CoursesBundle\Infrastructure\Http\ScormFrameController;
 use Phil\CoursesBundle\Infrastructure\Http\SecondChancesController;
 use Phil\CoursesBundle\Infrastructure\Http\TrainingController;
+use Phil\CoursesBundle\Infrastructure\Import\ElearningXapiPackageReader;
 use Phil\CoursesBundle\Infrastructure\Notifications\NotificationsTrainingNotifier;
 use Phil\CoursesBundle\Infrastructure\Privacy\Cmi5Privacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\PathsPrivacy;
@@ -200,7 +201,8 @@ final class CoursesServices
         $container->register(ZipPackageOpener::class, ZipPackageOpener::class);
         $container->setAlias(PackageOpener::class, ZipPackageOpener::class);
         $container->register(PackageReader::class, PackageReader::class)->setArguments([new Reference(PackageLimits::class), $config['import']['language'], new Reference(PackageOpener::class)]);
-        self::service($container, CourseImporter::class, [new Reference(PackageOpener::class), new Reference(Courses::class), new Reference(ContentStorage::class), new Reference(PackageLimits::class), $events, $config['import']['language'], null === $config['import']['xapi_reader'] ? null : new Reference($config['import']['xapi_reader'])]);
+        $container->register(ElearningXapiPackageReader::class, ElearningXapiPackageReader::class)->setArguments([new Reference(PackageLimits::class), $config['import']['language']]);
+        self::service($container, CourseImporter::class, [new Reference(PackageOpener::class), new Reference(Courses::class), new Reference(ContentStorage::class), new Reference(PackageLimits::class), $events, $config['import']['language'], new Reference($config['import']['xapi_reader'] ?? ElearningXapiPackageReader::class)]);
         self::service($container, ResultImporter::class, [new Reference(Courses::class), new Reference(Enrollments::class)]);
 
         self::cmi5($container, $clock, $events, $config);

@@ -90,6 +90,7 @@ use Phil\CoursesBundle\Infrastructure\Http\ScormController;
 use Phil\CoursesBundle\Infrastructure\Http\ScormFrameController;
 use Phil\CoursesBundle\Infrastructure\Http\SecondChancesController;
 use Phil\CoursesBundle\Infrastructure\Http\TrainingController;
+use Phil\CoursesBundle\Infrastructure\Import\ElearningXapiPackageReader;
 use Phil\CoursesBundle\Infrastructure\Notifications\NotificationsTrainingNotifier;
 use Phil\CoursesBundle\Infrastructure\Privacy\Cmi5Privacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\PathsPrivacy;
@@ -339,6 +340,7 @@ final class PhilCoursesBundleTest extends TestCase
             XapiActivity::class, RunTrainingHandler::class, TrainingCompletions::class, TrainingSettings::class, AssignCommand::class, CreditsCommand::class,
             TrainingCommand::class, DbalAssignmentRepository::class, DbalTranscriptRepository::class, TrainingPrivacy::class, TrainingSchedule::class,
             DbalLearningPathRepository::class, DbalEquivalenceRepository::class, PathCompletions::class, PathsPrivacy::class,
+            ElearningXapiPackageReader::class,
         ];
         $expected = [...array_fill_keys($public, true), ...array_fill_keys($private, false)];
 
@@ -460,7 +462,8 @@ final class PhilCoursesBundleTest extends TestCase
 
         self::assertTrue($container->getDefinition(XapiActivity::class)->hasTag(ActivityType::TAG));
         self::assertEquals(new Reference(XapiStatements::class), $container->getDefinition(Cmi5Controller::class)->getArgument(4));
-        self::assertNull($container->getDefinition(CourseImporter::class)->getArgument(6));
+        self::assertEquals(new Reference(ElearningXapiPackageReader::class), $container->getDefinition(CourseImporter::class)->getArgument(6));
+        self::assertEquals([new Reference(PackageLimits::class), null], $container->getDefinition(ElearningXapiPackageReader::class)->getArguments());
     }
 
     public function testTheMandatoryTrainingTakesItsOptionsOrIsDisabled(): void
