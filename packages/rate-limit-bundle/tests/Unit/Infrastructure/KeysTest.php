@@ -65,6 +65,35 @@ final class KeysTest extends TestCase
         self::assertSame('user:'.hash_hmac('sha256', 'ada@example.org', 'secret'), $key->keyOf(Request::create('/')));
     }
 
+    /**
+     * One person counts once whatever the case, the accents, the compatibility forms or the invisible characters of
+     * their identifier, as Symfony's login throttling counts them.
+     */
+    public function testTheUserIdentifierIsNormalizedBeforeItIsHashed(): void
+    {
+        $tokens = new TokenStorage();
+        $key = new UserKey($tokens, 'secret');
+        $keys = [];
+
+        foreach (['ada@example.org', 'ADA@Example.org', "\u{00C0}da@example.org", "A\u{0300}da@example.org", "a\u{200B}da@example.org", " ada@example.org\t", "\u{FF41}da@example.org"] as $identifier) {
+            $tokens->setToken(new UsernamePasswordToken(new InMemoryUser($identifier, null), 'main'));
+            $keys[] = $key->keyOf(Request::create('/'));
+        }
+
+        self::assertSame(['user:'.hash_hmac('sha256', 'ada@example.org', 'secret')], array_values(array_unique($keys)));
+    }
+
+    public function testAnIpv4AddressWrittenAsIpv6CountsAsTheIpv4Address(): void
+    {
+        $key = new ClientIpKey('secret');
+        $expected = 'ip:'.hash_hmac('sha256', '203.0.113.7', 'secret');
+
+        self::assertSame($expected, $key->keyOf($this->request('::ffff:203.0.113.7')));
+        self::assertSame($expected, $key->keyOf($this->request('::FFFF:cb00:7107')));
+        self::assertSame('ip:'.hash_hmac('sha256', '203.0.113.0', 'secret'), new ClientIpKey('secret', new NetworkAddress(new Truncation(24, 64)))->keyOf($this->request('::ffff:203.0.113.7')));
+        self::assertSame('ip:'.hash_hmac('sha256', '::', 'secret'), $key->keyOf($this->request('::ffff:0:203.0.113.7')), 'an IPv4-translated address is IPv6');
+    }
+
     public function testTheUserElseTheAddress(): void
     {
         $tokens = new TokenStorage();

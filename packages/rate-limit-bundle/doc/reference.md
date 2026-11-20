@@ -20,6 +20,7 @@
 | `Application\Contract\AddressNormalizer` | The port of the address's normalization |
 | `Application\Limiters` | The limiters and their defaults, by name |
 | `Application\KeyResolvers` | The key strategies, by name |
+| `Application\IdentifierKey` | `normalize()`: the form of a username or an e-mail address a key is built from, as Symfony's login throttling builds its own |
 | `Application\RateLimitRules` | The route default and the form option read as rules |
 | `Application\RateLimitEnforcer` | Holds a request to its rules |
 | `Application\RateLimitHeaders` | The headers of a decision |
