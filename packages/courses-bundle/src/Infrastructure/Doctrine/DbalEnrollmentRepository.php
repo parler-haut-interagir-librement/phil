@@ -69,6 +69,12 @@ final readonly class DbalEnrollmentRepository implements EnrollmentRepository
     }
 
     #[Override]
+    public function removeProgresses(EnrollmentId $enrollment): void
+    {
+        $this->connection->delete(CourseTables::PROGRESS, ['enrollment_id' => $enrollment->value]);
+    }
+
+    #[Override]
     public function progress(EnrollmentId $enrollment, ActivityId $activity): ?Progress
     {
         $row = $this->connection->fetchAssociative('SELECT * FROM '.CourseTables::PROGRESS.' WHERE enrollment_id = ? AND activity_id = ?', [$enrollment->value, $activity->value]);

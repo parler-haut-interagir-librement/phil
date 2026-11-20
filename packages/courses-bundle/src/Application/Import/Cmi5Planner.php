@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\CoursesBundle\Application\Import;
 
 use Phil\CoursesBundle\Application\ActivityType\Cmi5Activity;
+use Phil\CoursesBundle\Domain\Course\CourseOrigin;
 use Phil\CoursesBundle\Domain\Exception\PackageRefused;
 use Phil\CoursesBundle\Domain\Progress\CompletionRequirement;
 use Phil\ElearningPackages\Cmi5\Cmi5Au;
@@ -12,7 +13,6 @@ use Phil\ElearningPackages\Cmi5\Cmi5Block;
 use Phil\ElearningPackages\Cmi5\Cmi5Course;
 use Phil\ElearningPackages\Cmi5\MoveOn;
 use Phil\ElearningPackages\Exception\PackageRefused as UnreadablePackage;
-use Phil\ElearningPackages\PackageFormat;
 use Phil\ElearningPackages\PackagePath;
 use Phil\ElearningPackages\Warnings;
 use Phil\Url\Exception\InvalidUrl;
@@ -72,7 +72,7 @@ final readonly class Cmi5Planner
             $warnings->add('The objectives of the course structure are left out.');
         }
 
-        return new ImportPlan(ImportPlan::title($course->title, $course->id), $course->description, PackageFormat::Cmi5, $course->id, array_values($modules), $warnings->all(), $blocks);
+        return new ImportPlan(ImportPlan::title($course->title, $course->id), $course->description, CourseOrigin::Cmi5, $course->id, array_values($modules), $warnings->all(), $blocks);
     }
 
     /**

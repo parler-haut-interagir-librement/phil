@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phil\CoursesBundle\Application\Import;
 
 use Phil\CoursesBundle\Application\Contract\ContentStorage;
+use Phil\CoursesBundle\Application\Contract\XapiPackageReader;
 use Phil\CoursesBundle\Application\Courses;
-use Phil\CoursesBundle\Domain\Course\CourseOrigin;
 use Phil\CoursesBundle\Domain\Event\CourseImported;
 use Phil\CoursesBundle\Domain\Exception\InvalidCourse;
 use Phil\CoursesBundle\Domain\Exception\PackageRefused;
@@ -16,14 +16,17 @@ use Phil\ElearningPackages\Contract\PackageArchive;
 use Phil\ElearningPackages\Contract\PackageOpener;
 use Phil\ElearningPackages\Exception\PackageRefused as UnreadablePackage;
 use Phil\ElearningPackages\Package;
+use Phil\ElearningPackages\PackageFormat;
 use Phil\ElearningPackages\PackageLimits;
 use Phil\ElearningPackages\PackageReader;
+use Phil\ElearningPackages\Scorm\ScormManifest;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Throwable;
 
 /**
- * Imports a course package to migrate a course: a ZIP archive holding `cmi5.xml` or `imsmanifest.xml` at its root, or
- * a cmi5 course structure alone whose units have absolute URLs. The package is read by phil/elearning-packages within
+ * Imports a course package to migrate a course: a ZIP archive holding `cmi5.xml` or `imsmanifest.xml` at its root —
+ * or `tincan.xml` alone, read by the configured `XapiPackageReader` —, or a cmi5 course structure alone whose units
+ * have absolute URLs. The package is read by phil/elearning-packages within
  * the limits, its manifest turned into a plan before anything is written, then the course, the blocks of a cmi5
  * course structure, its modules and activities are created and every file of the package is stored under the
  * course's directory. An import that fails half-way
@@ -40,6 +43,7 @@ final readonly class CourseImporter
         private PackageLimits $limits = new PackageLimits(),
         private ?EventDispatcherInterface $events = null,
         ?string $language = null,
+        private ?XapiPackageReader $xapi = null,
     ) {
         $this->reader = new PackageReader($limits, $language, $opener);
     }
@@ -62,7 +66,7 @@ final readonly class CourseImporter
         }
 
         try {
-            return $this->create($this->plan($this->reader->read($archive), true), $title, $archive);
+            return $this->create($this->planOf($archive), $title, $archive);
         } catch (UnreadablePackage $unreadablePackage) {
             throw PackageRefused::from($unreadablePackage);
         } finally {
@@ -86,11 +90,41 @@ final readonly class CourseImporter
         return $this->create($this->plan($package, false), $title, null);
     }
 
+    /**
+     * The plan of an archive: an xAPI package, described by `tincan.xml` alone, through the reader of xAPI packages; the
+     * others through phil/elearning-packages.
+     */
+    private function planOf(PackageArchive $archive): ImportPlan
+    {
+        if (!$archive->has(XapiPackageReader::MANIFEST) || $archive->has(PackageFormat::Cmi5->manifest()) || $archive->has(PackageFormat::Scorm2004->manifest())) {
+            return $this->plan($this->reader->read($archive), true);
+        }
+
+        if (!$this->xapi instanceof XapiPackageReader) {
+            throw PackageRefused::because('The package is an xAPI package, described by tincan.xml: it is imported once a reader of xAPI packages is configured in "phil_courses.import.xapi_reader".');
+        }
+
+        return new XapiPlanner()->plan($this->xapi->read($archive));
+    }
+
     private function plan(Package $package, bool $packaged): ImportPlan
     {
-        return $package->manifest instanceof Cmi5Course
-            ? new Cmi5Planner()->plan($package->manifest, $packaged, $package->warnings)
-            : new ScormPlanner()->plan($package->manifest, $package->warnings);
+        return $this->planOfManifest($package->manifest, $packaged, $package->warnings);
+    }
+
+    /**
+     * The plan of a cmi5 course structure or of a SCORM manifest; a description of another format the library reads is
+     * refused, its packages planned before they are read.
+     *
+     * @param list<string> $warnings
+     */
+    private function planOfManifest(object $manifest, bool $packaged, array $warnings): ImportPlan
+    {
+        return match (true) {
+            $manifest instanceof Cmi5Course => new Cmi5Planner()->plan($manifest, $packaged, $warnings),
+            $manifest instanceof ScormManifest => new ScormPlanner()->plan($manifest, $warnings),
+            default => throw PackageRefused::because('The package is described in a format the import plans through "phil_courses.import.xapi_reader" only.'),
+        };
     }
 
     private function file(string $path): string
@@ -107,7 +141,7 @@ final readonly class CourseImporter
     private function create(ImportPlan $plan, ?string $title, ?PackageArchive $archive): ImportReport
     {
         // The readers bound what the course keeps: a description to 4 096 characters, an identifier to 255 bytes.
-        $course = $this->courses->create(ImportPlan::title($title ?? $plan->title, $plan->source), $plan->description, false, CourseOrigin::of($plan->format), $plan->source);
+        $course = $this->courses->create(ImportPlan::title($title ?? $plan->title, $plan->source), $plan->description, false, $plan->format, $plan->source);
 
         try {
             $files = $archive instanceof PackageArchive ? $this->store($course, $archive) : 0;

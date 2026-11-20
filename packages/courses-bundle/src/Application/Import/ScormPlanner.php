@@ -6,6 +6,7 @@ namespace Phil\CoursesBundle\Application\Import;
 
 use Phil\CoursesBundle\Application\ActivityType\LinkActivity;
 use Phil\CoursesBundle\Application\ActivityType\ScormActivity;
+use Phil\CoursesBundle\Domain\Course\CourseOrigin;
 use Phil\CoursesBundle\Domain\Progress\CompletionRequirement;
 use Phil\ElearningPackages\PackageFormat;
 use Phil\ElearningPackages\PackagePath;
@@ -54,7 +55,7 @@ final readonly class ScormPlanner
         return new ImportPlan(
             ImportPlan::title($organization->title, $manifest->identifier),
             '',
-            $manifest->format,
+            CourseOrigin::of($manifest->format),
             $manifest->identifier,
             $modules,
             $warnings->all(),

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Phil\CoursesBundle\Tests\Unit;
 
+use Override;
 use Phil\CertificatesBundle\Domain\Contract\CourseCompletions;
 use Phil\CoursesBundle\Application\ActivityType\Cmi5Activity;
 use Phil\CoursesBundle\Application\ActivityType\LinkActivity;
 use Phil\CoursesBundle\Application\ActivityType\PageActivity;
 use Phil\CoursesBundle\Application\ActivityType\ScormActivity;
+use Phil\CoursesBundle\Application\ActivityType\XapiActivity;
 use Phil\CoursesBundle\Application\ActivityTypes;
 use Phil\CoursesBundle\Application\Availabilities;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Launcher;
@@ -19,40 +21,59 @@ use Phil\CoursesBundle\Application\Cmi5\IssueWaivedStatement;
 use Phil\CoursesBundle\Application\Completions;
 use Phil\CoursesBundle\Application\ContentUrls;
 use Phil\CoursesBundle\Application\Contract\ActivityType;
+use Phil\CoursesBundle\Application\Contract\AssigneeMembers;
 use Phil\CoursesBundle\Application\Contract\Cmi5Endpoints;
 use Phil\CoursesBundle\Application\Contract\ContentStorage;
 use Phil\CoursesBundle\Application\Contract\CurrentLearner;
 use Phil\CoursesBundle\Application\Contract\LearningRecordStore;
+use Phil\CoursesBundle\Application\Contract\TrainingNotifier;
 use Phil\CoursesBundle\Application\Courses;
 use Phil\CoursesBundle\Application\Enrollments;
+use Phil\CoursesBundle\Application\Handler\RunTrainingHandler;
 use Phil\CoursesBundle\Application\Import\CourseImporter;
 use Phil\CoursesBundle\Application\Import\ResultImporter;
 use Phil\CoursesBundle\Application\Learning;
+use Phil\CoursesBundle\Application\Message\RunTraining;
 use Phil\CoursesBundle\Application\Scorm\ScormRuntime;
 use Phil\CoursesBundle\Application\Scorm\ScormTokens;
 use Phil\CoursesBundle\Application\SecondChances;
+use Phil\CoursesBundle\Application\Training\Assignments;
+use Phil\CoursesBundle\Application\Training\TrainingCompletions;
+use Phil\CoursesBundle\Application\Training\TrainingRun;
+use Phil\CoursesBundle\Application\Training\TrainingSettings;
+use Phil\CoursesBundle\Application\Training\Transcripts;
+use Phil\CoursesBundle\Application\Xapi\XapiLauncher;
+use Phil\CoursesBundle\Application\Xapi\XapiStatements;
+use Phil\CoursesBundle\Domain\Contract\AssignmentRepository;
 use Phil\CoursesBundle\Domain\Contract\CourseRepository;
 use Phil\CoursesBundle\Domain\Contract\EnrollmentRepository;
 use Phil\CoursesBundle\Domain\Contract\LaunchSessionRepository;
 use Phil\CoursesBundle\Domain\Contract\RetryRequestRepository;
+use Phil\CoursesBundle\Domain\Contract\TranscriptRepository;
 use Phil\CoursesBundle\Domain\Event\ActivitySatisfied;
+use Phil\CoursesBundle\Domain\Event\CourseCompleted;
 use Phil\CoursesBundle\Domain\Event\RetryGranted;
 use Phil\CoursesBundle\Domain\Event\RetryRefused;
 use Phil\CoursesBundle\Domain\Event\RetryRequested;
 use Phil\CoursesBundle\Domain\Event\RetryWaived;
 use Phil\CoursesBundle\Infrastructure\Audit\AuditSecondChances;
 use Phil\CoursesBundle\Infrastructure\Certificates\CertificatesCourseCompletions;
+use Phil\CoursesBundle\Infrastructure\Console\AssignCommand;
+use Phil\CoursesBundle\Infrastructure\Console\CreditsCommand;
 use Phil\CoursesBundle\Infrastructure\Console\ImportCommand;
 use Phil\CoursesBundle\Infrastructure\Console\ImportResultsCommand;
 use Phil\CoursesBundle\Infrastructure\Console\RetriesCommand;
+use Phil\CoursesBundle\Infrastructure\Console\TrainingCommand;
 use Phil\CoursesBundle\Infrastructure\DependencyInjection\CoursesServices;
 use Phil\CoursesBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalAssignmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalCourseRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEnrollmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLaunchSessionRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLearningRecordStore;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalRetryRequestRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalScormAttemptRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalTranscriptRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\SchemaListener;
 use Phil\CoursesBundle\Infrastructure\Http\Cmi5Controller;
 use Phil\CoursesBundle\Infrastructure\Http\ContentController;
@@ -61,9 +82,13 @@ use Phil\CoursesBundle\Infrastructure\Http\CourseRequest;
 use Phil\CoursesBundle\Infrastructure\Http\ScormController;
 use Phil\CoursesBundle\Infrastructure\Http\ScormFrameController;
 use Phil\CoursesBundle\Infrastructure\Http\SecondChancesController;
+use Phil\CoursesBundle\Infrastructure\Http\TrainingController;
+use Phil\CoursesBundle\Infrastructure\Notifications\NotificationsTrainingNotifier;
 use Phil\CoursesBundle\Infrastructure\Privacy\Cmi5Privacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\ScormPrivacy;
+use Phil\CoursesBundle\Infrastructure\Privacy\TrainingPrivacy;
 use Phil\CoursesBundle\Infrastructure\Routing\RoutedCmi5Endpoints;
+use Phil\CoursesBundle\Infrastructure\Scheduler\TrainingSchedule;
 use Phil\CoursesBundle\Infrastructure\Security\SecurityCurrentLearner;
 use Phil\CoursesBundle\Infrastructure\Storage\FilesystemContentStorage;
 use Phil\CoursesBundle\Infrastructure\Twig\CoursesExtension;
@@ -75,6 +100,8 @@ use Phil\ElearningPackages\Archive\ZipPackageOpener;
 use Phil\ElearningPackages\Contract\PackageOpener;
 use Phil\ElearningPackages\PackageLimits;
 use Phil\ElearningPackages\PackageReader;
+use Phil\NotificationsBundle\Application\Notifications;
+use Phil\PrivacyBundle\PhilPrivacyBundle;
 use Phil\SafeHttp\Limits;
 use Phil\SafeHttp\SafeHttpClient;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -82,6 +109,7 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
@@ -289,6 +317,7 @@ final class PhilCoursesBundleTest extends TestCase
             Completions::class, ContentController::class, CourseController::class, CourseImporter::class, Courses::class, Enrollments::class,
             Learning::class, ResultImporter::class, SecondChances::class, SecondChancesController::class,
             ScormRuntime::class, ScormTokens::class, ScormController::class, ScormFrameController::class,
+            XapiLauncher::class, XapiStatements::class, Assignments::class, Transcripts::class, TrainingRun::class, TrainingController::class,
         ];
         $private = [
             AuditSecondChances::class, CertificatesCourseCompletions::class, Cmi5Activity::class, Cmi5Settings::class, ContentUrls::class, CourseRequest::class, CoursesExtension::class,
@@ -297,13 +326,15 @@ final class PhilCoursesBundleTest extends TestCase
             IssueWaivedStatement::class, KitComponents::class, LinkActivity::class, PackageLimits::class, PackageReader::class, PageActivity::class,
             RetriesCommand::class, RoutedCmi5Endpoints::class, SchemaListener::class, ScormActivity::class, SecurityCurrentLearner::class,
             ZipPackageOpener::class, 'phil_courses.site_zone', DbalScormAttemptRepository::class, ScormPrivacy::class, Cmi5Privacy::class,
+            XapiActivity::class, RunTrainingHandler::class, TrainingCompletions::class, TrainingSettings::class, AssignCommand::class, CreditsCommand::class,
+            TrainingCommand::class, DbalAssignmentRepository::class, DbalTranscriptRepository::class, TrainingPrivacy::class, TrainingSchedule::class,
         ];
         $expected = [...array_fill_keys($public, true), ...array_fill_keys($private, false)];
 
         ksort($expected);
         self::assertSame($expected, $definitions);
 
-        foreach ([CourseRepository::class, EnrollmentRepository::class, RetryRequestRepository::class, LaunchSessionRepository::class, LearningRecordStore::class, CurrentLearner::class, ContentStorage::class] as $port) {
+        foreach ([CourseRepository::class, EnrollmentRepository::class, RetryRequestRepository::class, LaunchSessionRepository::class, LearningRecordStore::class, CurrentLearner::class, ContentStorage::class, AssignmentRepository::class, TranscriptRepository::class] as $port) {
             self::assertTrue($container->getAlias($port)->isPublic(), $port);
         }
 
@@ -384,6 +415,111 @@ final class PhilCoursesBundleTest extends TestCase
         self::assertSame(['ROLE_TEACHER', 'base.html.twig'], \array_slice($definition->getArguments(), 6));
         self::assertSame('ROLE_COURSES_TEACHER', $this->load([])->getDefinition(SecondChancesController::class)->getArgument(6));
         self::assertTrue($definition->hasTag('controller.service_arguments'));
+    }
+
+    public function testTheMandatoryTrainingIsWiredWithItsDefaults(): void
+    {
+        $container = $this->load([]);
+
+        self::assertSame([7, 30, 10_000, 500], $container->getDefinition(TrainingSettings::class)->getArguments());
+        self::assertFalse($container->hasAlias(TrainingNotifier::class), 'without the notifications bundle registered');
+        self::assertEquals(new Reference(TrainingNotifier::class, ContainerInterface::NULL_ON_INVALID_REFERENCE), $container->getDefinition(Assignments::class)->getArgument(6));
+        self::assertEquals(new TaggedIteratorArgument(AssigneeMembers::TAG), $container->getDefinition(Assignments::class)->getArgument(5));
+        self::assertArrayHasKey(AssigneeMembers::class, $container->getAutoconfiguredInstanceof());
+        self::assertSame([['event' => CourseCompleted::class]], $container->getDefinition(TrainingCompletions::class)->getTag('kernel.event_listener'));
+        self::assertSame([['handles' => RunTraining::class]], $container->getDefinition(RunTrainingHandler::class)->getTag('messenger.message_handler'));
+        self::assertSame(['06:00', 'UTC'], $container->getDefinition(TrainingSchedule::class)->getArguments());
+        self::assertSame([['name' => 'phil_courses_training']], $container->getDefinition(TrainingSchedule::class)->getTag('scheduler.schedule_provider'));
+        self::assertFalse($container->getDefinition(TrainingPrivacy::class)->getArgument(2));
+        self::assertTrue($container->getDefinition(TrainingPrivacy::class)->hasTag(PhilPrivacyBundle::ERASER_TAG));
+        self::assertTrue($container->getDefinition(TrainingPrivacy::class)->hasTag(PhilPrivacyBundle::EXPORTER_TAG));
+        self::assertSame(['ROLE_COURSES_MANAGER', '@PhilCourses/layout.html.twig'], \array_slice($container->getDefinition(TrainingController::class)->getArguments(), 5));
+        self::assertEquals(new Reference('security.authorization_checker', ContainerInterface::NULL_ON_INVALID_REFERENCE), $container->getDefinition(TrainingController::class)->getArgument(4));
+        self::assertEquals(new Reference('phil_courses.site_zone'), $container->getDefinition(AssignCommand::class)->getArgument(1));
+
+        foreach ([AssignCommand::class, CreditsCommand::class, TrainingCommand::class] as $command) {
+            self::assertTrue($container->getDefinition($command)->hasTag('console.command'));
+        }
+
+        self::assertTrue($container->getDefinition(XapiActivity::class)->hasTag(ActivityType::TAG));
+        self::assertEquals(new Reference(XapiStatements::class), $container->getDefinition(Cmi5Controller::class)->getArgument(4));
+        self::assertNull($container->getDefinition(CourseImporter::class)->getArgument(6));
+    }
+
+    public function testTheMandatoryTrainingTakesItsOptionsOrIsDisabled(): void
+    {
+        $container = $this->load([[
+            'timezone' => 'America/Toronto',
+            'layout' => 'base.html.twig',
+            'import' => ['xapi_reader' => 'app.xapi_reader'],
+            'training' => ['reminder_days' => 90, 'renewal_grace_days' => 365, 'max_members' => 1, 'run_at' => '23:59', 'manager_role' => 'ROLE_HR', 'notifier' => 'app.notifier', 'keep_transcripts' => true],
+        ]], ['PhilNotificationsBundle']);
+
+        self::assertSame([90, 365, 1, 500], $container->getDefinition(TrainingSettings::class)->getArguments());
+        self::assertSame(['23:59', 'America/Toronto'], $container->getDefinition(TrainingSchedule::class)->getArguments());
+        self::assertSame('app.notifier', (string) $container->getAlias(TrainingNotifier::class));
+        self::assertFalse($container->hasDefinition(NotificationsTrainingNotifier::class));
+        self::assertTrue($container->getDefinition(TrainingPrivacy::class)->getArgument(2));
+        self::assertSame(['ROLE_HR', 'base.html.twig'], \array_slice($container->getDefinition(TrainingController::class)->getArguments(), 5));
+        self::assertEquals(new Reference('app.xapi_reader'), $container->getDefinition(CourseImporter::class)->getArgument(6));
+
+        $notified = $this->load([], ['PhilNotificationsBundle']);
+        self::assertSame(NotificationsTrainingNotifier::class, (string) $notified->getAlias(TrainingNotifier::class));
+        self::assertEquals([new Reference(Notifications::class)], $notified->getDefinition(NotificationsTrainingNotifier::class)->getArguments());
+
+        self::assertFalse($this->load([['training' => ['schedule' => false]]])->hasDefinition(TrainingSchedule::class));
+
+        $disabled = $this->load([['training' => false]]);
+
+        foreach ([TrainingSettings::class, Assignments::class, Transcripts::class, TrainingRun::class, TrainingCompletions::class, RunTrainingHandler::class, TrainingSchedule::class, AssignCommand::class, TrainingPrivacy::class, TrainingController::class] as $service) {
+            self::assertFalse($disabled->hasDefinition($service), $service);
+        }
+
+        foreach ([['training' => ['reminder_days' => 0]], ['training' => ['reminder_days' => 91]], ['training' => ['renewal_grace_days' => 366]], ['training' => ['max_members' => 0]], ['training' => ['run_at' => '24:00']], ['training' => ['run_at' => '6:00']], ['training' => ['run_at' => 600]]] as $config) {
+            try {
+                $this->load([$config]);
+                self::fail('The option is accepted: '.json_encode($config));
+            } catch (InvalidConfigurationException $invalidConfigurationException) {
+                self::assertNotSame('', $invalidConfigurationException->getMessage());
+            }
+        }
+    }
+
+    public function testTheTypesOfTheTrainingAreDeclaredToTheNotifications(): void
+    {
+        $container = new ContainerBuilder();
+        $container->registerExtension(new class extends Extension {
+            #[Override]
+            public function load(array $configs, ContainerBuilder $container): void
+            {
+            }
+
+            #[Override]
+            public function getAlias(): string
+            {
+                return 'phil_notifications';
+            }
+        });
+        $extension = $this->extension();
+        self::assertInstanceOf(PrependExtensionInterface::class, $extension);
+        $extension->prepend($container);
+
+        self::assertSame([['types' => NotificationsTrainingNotifier::types()]], $container->getExtensionConfig('phil_notifications'));
+    }
+
+    public function testTheNotificationsOfTheTrainingAreTranslatedInBothLanguages(): void
+    {
+        $english = require \dirname(__DIR__, 2).'/translations/phil_notifications.en.php';
+        $french = require \dirname(__DIR__, 2).'/translations/phil_notifications.fr.php';
+
+        self::assertIsArray($english);
+        self::assertIsArray($french);
+        self::assertSame(array_keys($english), array_keys($french));
+
+        foreach (array_keys(NotificationsTrainingNotifier::types()) as $type) {
+            self::assertArrayHasKey($type.'.title', $english);
+            self::assertArrayHasKey($type.'.body', $english);
+        }
     }
 
     public function testTheFrenchMessagesAreTheEnglishOnes(): void

@@ -14,6 +14,7 @@ use Phil\CoursesBundle\Application\Import\PlannedModule;
 use Phil\CoursesBundle\Application\Import\ResultImporter;
 use Phil\CoursesBundle\Application\Import\ScormPlanner;
 use Phil\CoursesBundle\Application\Import\ScormStatus;
+use Phil\CoursesBundle\Domain\Course\CourseOrigin;
 use Phil\CoursesBundle\Domain\Exception\InvalidCourse;
 use Phil\CoursesBundle\Domain\Exception\PackageRefused;
 use Phil\CoursesBundle\Domain\Model\Activity;
@@ -26,7 +27,6 @@ use Phil\CoursesBundle\Tests\Unit\Fixture\Store;
 use Phil\ElearningPackages\Cmi5\Cmi5CourseReader;
 use Phil\ElearningPackages\Contract\PackageArchive;
 use Phil\ElearningPackages\Contract\PackageOpener;
-use Phil\ElearningPackages\PackageFormat;
 use Phil\ElearningPackages\PackageLimits;
 use Phil\ElearningPackages\Scorm\ScormManifestReader;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -219,7 +219,7 @@ final class ImportSurvivorsTest extends TestCase
 
     public function testTheDefaultsOfAReportAndOfAPlannedActivity(): void
     {
-        $report = new ImportReport(CourseId::generate(), PackageFormat::Cmi5, 1, 2, 3, []);
+        $report = new ImportReport(CourseId::generate(), CourseOrigin::Cmi5, 1, 2, 3, []);
         self::assertSame(0, $report->blocks);
 
         $activity = new PlannedActivity('Unit', 'page', [], CompletionRequirement::Completed, 'unit');

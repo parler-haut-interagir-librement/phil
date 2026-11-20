@@ -24,7 +24,9 @@ use Phil\CoursesBundle\Domain\ValueObject\LearnerId;
  * `satisfied` statement an enrollment has; `phil_course_retry`, the requests for a second chance; `phil_course_cmi5_session`, the cmi5 launches; `phil_course_statement` and
  * `phil_course_state`, the statements and state documents of the store inside the bundle; `phil_course_scorm_attempt`
  * and `phil_course_scorm_data`, the SCORM attempts — with the seconds their sessions ran by the server's clock and when
- * the running one opened — and their tracking data. Moments are kept in UTC.
+ * the running one opened — and their tracking data; `phil_course_assignment` and `phil_course_obligation`, the
+ * mandatory training and each learner's obligation under it; `phil_course_transcript` and `phil_course_credits`, the
+ * transcripts and the credits each course grants. Moments are kept in UTC.
  *
  * The keys of the SCORM tables compare byte by byte: on MySQL and MariaDB they are stored in `utf8mb4` with the
  * `utf8mb4_bin` collation, where a server's default would read two identifiers differing by case as one; PostgreSQL
@@ -58,11 +60,19 @@ final class CourseTables
 
     public const string SCORM_DATA = 'phil_course_scorm_data';
 
+    public const string ASSIGNMENT = 'phil_course_assignment';
+
+    public const string OBLIGATION = 'phil_course_obligation';
+
+    public const string TRANSCRIPT = 'phil_course_transcript';
+
+    public const string CREDITS = 'phil_course_credits';
+
     /** The size of the tracking data of an attempt, as JSON: MEDIUMTEXT on MySQL. */
     public const int SCORM_DATA_BYTES = 16_777_215;
 
     /** Every table, the ones that point to others first. */
-    public const array ALL = [self::SCORM_DATA, self::SCORM_ATTEMPT, self::STATE, self::STATEMENT, self::SESSION, self::RETRY, self::SATISFACTION, self::PROGRESS, self::ENROLLMENT, self::ACTIVITY, self::BLOCK, self::MODULE, self::COURSE];
+    public const array ALL = [self::CREDITS, self::TRANSCRIPT, self::OBLIGATION, self::ASSIGNMENT, self::SCORM_DATA, self::SCORM_ATTEMPT, self::STATE, self::STATEMENT, self::SESSION, self::RETRY, self::SATISFACTION, self::PROGRESS, self::ENROLLMENT, self::ACTIVITY, self::BLOCK, self::MODULE, self::COURSE];
 
     private function __construct()
     {
@@ -286,6 +296,53 @@ final class CourseTables
                 ->addColumn(self::column('data', Types::TEXT, true, self::SCORM_DATA_BYTES))
                 ->addColumn(self::column('updated_at', Types::DATETIME_UTC_IMMUTABLE, true))
                 ->addPrimaryKeyConstraint(self::primary('attempt_id'))
+                ->create(),
+            self::ASSIGNMENT => Table::editor()->setUnquotedName(self::ASSIGNMENT)
+                ->addColumn(self::id('id'))
+                ->addColumn(self::id('course_id'))
+                ->addColumn(self::column('kind', Types::STRING, true, 16))
+                ->addColumn(self::column('assignee', Types::STRING, true, LearnerId::MAX_LENGTH))
+                ->addColumn(self::column('due_at', Types::DATETIME_UTC_IMMUTABLE, true))
+                ->addColumn(self::column('renew_months', Types::INTEGER, false))
+                ->addColumn(self::column('assigned_by', Types::STRING, false, LearnerId::MAX_LENGTH))
+                ->addColumn(self::column('assigned_at', Types::DATETIME_UTC_IMMUTABLE, true))
+                ->addPrimaryKeyConstraint(self::primary('id'))
+                ->addIndex(self::index('idx_phil_course_assignment_course', 'course_id', 'assigned_at'))
+                ->addIndex(self::index('idx_phil_course_assignment_assignee', 'kind', 'assignee'))
+                ->create(),
+            self::OBLIGATION => Table::editor()->setUnquotedName(self::OBLIGATION)
+                ->addColumn(self::id('assignment_id'))
+                ->addColumn(self::column('learner', Types::STRING, true, LearnerId::MAX_LENGTH))
+                ->addColumn(self::id('course_id'))
+                ->addColumn(self::column('cycle', Types::INTEGER, true))
+                ->addColumn(self::column('due_at', Types::DATETIME_UTC_IMMUTABLE, true))
+                ->addColumn(self::column('assigned_at', Types::DATETIME_UTC_IMMUTABLE, true))
+                ->addColumn(self::column('completed_at', Types::DATETIME_UTC_IMMUTABLE, false))
+                ->addColumn(self::column('renews_at', Types::DATETIME_UTC_IMMUTABLE, false))
+                ->addColumn(self::column('reminders', Types::STRING, true, 64))
+                ->addPrimaryKeyConstraint(self::primary('assignment_id', 'learner'))
+                ->addIndex(self::index('idx_phil_course_obligation_learner', 'learner', 'course_id'))
+                ->addIndex(self::index('idx_phil_course_obligation_due', 'completed_at', 'due_at'))
+                ->addIndex(self::index('idx_phil_course_obligation_renewal', 'renews_at'))
+                ->create(),
+            self::TRANSCRIPT => Table::editor()->setUnquotedName(self::TRANSCRIPT)
+                ->addColumn(self::id('id'))
+                ->addColumn(self::column('learner', Types::STRING, true, LearnerId::MAX_LENGTH))
+                ->addColumn(self::id('course_id'))
+                ->addColumn(self::column('course_title', Types::STRING, true, 255))
+                ->addColumn(self::column('completed_at', Types::DATETIME_UTC_IMMUTABLE, true))
+                ->addColumn(self::column('credit_hundredths', Types::INTEGER, false))
+                ->addColumn(self::column('credit_unit', Types::STRING, false, 16))
+                ->addColumn(self::column('assignment_id', Types::STRING, false, 36))
+                ->addColumn(self::column('cycle', Types::INTEGER, false))
+                ->addPrimaryKeyConstraint(self::primary('id'))
+                ->addIndex(self::index('idx_phil_course_transcript_learner', 'learner', 'completed_at'))
+                ->create(),
+            self::CREDITS => Table::editor()->setUnquotedName(self::CREDITS)
+                ->addColumn(self::id('course_id'))
+                ->addColumn(self::column('hundredths', Types::INTEGER, true))
+                ->addColumn(self::column('unit', Types::STRING, true, 16))
+                ->addPrimaryKeyConstraint(self::primary('course_id'))
                 ->create(),
         ];
     }

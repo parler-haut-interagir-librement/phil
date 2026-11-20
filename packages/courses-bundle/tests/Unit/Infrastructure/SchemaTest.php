@@ -57,6 +57,10 @@ final class SchemaTest extends TestCase
             'phil_course_state' => ['activity_hash:string:1:64:1', 'registration:string:1:36:0', 'state_id:string:1:190:0', 'document:text:1::0', 'updated_at:datetime_utc_immutable:1::0'],
             'phil_course_scorm_attempt' => ['id:string:1:36:0', 'enrollment_id:string:1:36:0', 'activity_id:string:1:36:0', 'number:integer:1::0', 'version:string:1:8:0', 'state:string:1:16:0', 'session:integer:1::0', 'completion:string:1:16:0', 'success:string:1:16:0', 'score:float:0::0', 'total_time:bigint:1::0', 'started_at:datetime_utc_immutable:1::0', 'updated_at:datetime_utc_immutable:1::0', 'ended_at:datetime_utc_immutable:0::0', 'elapsed:integer:0::0', 'session_opened_at:datetime_utc_immutable:0::0'],
             'phil_course_scorm_data' => ['attempt_id:string:1:36:0', 'data:text:1:16777215:0', 'updated_at:datetime_utc_immutable:1::0'],
+            'phil_course_assignment' => ['id:string:1:36:0', 'course_id:string:1:36:0', 'kind:string:1:16:0', 'assignee:string:1:190:0', 'due_at:datetime_utc_immutable:1::0', 'renew_months:integer:0::0', 'assigned_by:string:0:190:0', 'assigned_at:datetime_utc_immutable:1::0'],
+            'phil_course_obligation' => ['assignment_id:string:1:36:0', 'learner:string:1:190:0', 'course_id:string:1:36:0', 'cycle:integer:1::0', 'due_at:datetime_utc_immutable:1::0', 'assigned_at:datetime_utc_immutable:1::0', 'completed_at:datetime_utc_immutable:0::0', 'renews_at:datetime_utc_immutable:0::0', 'reminders:string:1:64:0'],
+            'phil_course_transcript' => ['id:string:1:36:0', 'learner:string:1:190:0', 'course_id:string:1:36:0', 'course_title:string:1:255:0', 'completed_at:datetime_utc_immutable:1::0', 'credit_hundredths:integer:0::0', 'credit_unit:string:0:16:0', 'assignment_id:string:0:36:0', 'cycle:integer:0::0'],
+            'phil_course_credits' => ['course_id:string:1:36:0', 'hundredths:integer:1::0', 'unit:string:1:16:0'],
         ], $tables);
         self::assertSame(array_reverse(array_keys($tables)), CourseTables::ALL);
     }
@@ -102,7 +106,7 @@ final class SchemaTest extends TestCase
         $schema = Schema::editor()->addTable(Table::editor()->setUnquotedName(CourseTables::COURSE)->addColumn(Column::editor()->setUnquotedName('own')->setTypeName('integer')->create())->create())->create();
 
         self::assertSame(['own'], array_map(static fn (Column $column): string => $column->getObjectName()->toString(), CourseTables::configure($schema)->getTable(CourseTables::COURSE)->getColumns()));
-        self::assertCount(13, CourseTables::configure($schema)->getTables());
+        self::assertCount(17, CourseTables::configure($schema)->getTables());
     }
 
     public function testTheListenerAddsTheTablesToItsConnectionOnly(): void
@@ -111,7 +115,7 @@ final class SchemaTest extends TestCase
         $other = Store::sqlite();
         $listener = new SchemaListener($connection);
 
-        foreach ([[$connection, 13], [$other, 0]] as [$used, $count]) {
+        foreach ([[$connection, 17], [$other, 0]] as [$used, $count]) {
             $manager = self::createStub(EntityManagerInterface::class);
             $manager->method('getConnection')->willReturn($used);
             $event = new GenerateSchemaEventArgs($manager, Schema::editor()->create());

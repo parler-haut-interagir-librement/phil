@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phil\CoursesBundle\Application\Import;
 
+use Phil\CoursesBundle\Domain\Course\CourseOrigin;
 use Phil\CoursesBundle\Domain\Exception\PackageRefused;
-use Phil\ElearningPackages\PackageFormat;
 
 /**
  * The course a package describes, ready to be created: its title, description and format, its identifier in the
@@ -24,7 +24,7 @@ final readonly class ImportPlan
     public function __construct(
         public string $title,
         public string $description,
-        public PackageFormat $format,
+        public CourseOrigin $format,
         public string $source,
         public array $modules,
         public array $warnings = [],

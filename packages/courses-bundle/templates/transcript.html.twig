@@ -1,0 +1,54 @@
+{#
+ # A learner's transcript: the courses they completed, the latest first, each with its date and its credits, the
+ # totals by unit, and the links to the same transcript as JSON and CSV.
+ #
+ # transcript: Transcript. totals: list of {unit: string, amount: string}. manager: bool, whether a manager reads it.
+ #}
+{% extends layout %}
+
+{% block title %}{{ 'transcript.title'|trans({}, 'phil_courses') }}{% endblock %}
+
+{% block main %}
+<h1>{{ 'transcript.title'|trans({}, 'phil_courses') }}</h1>
+{%- if manager %}
+<p class="phil-courses__learner">{{ 'admin.learner'|trans({}, 'phil_courses') }} {{ transcript.learner.value }}</p>
+{%- endif %}
+{%- if transcript.entries is empty %}
+<p class="phil-courses__none">{{ 'transcript.none'|trans({}, 'phil_courses') }}</p>
+{%- else %}
+<table class="phil-courses__transcript">
+    <thead>
+        <tr>
+            <th scope="col">{{ 'training.course'|trans({}, 'phil_courses') }}</th>
+            <th scope="col">{{ 'transcript.completed_at'|trans({}, 'phil_courses') }}</th>
+            <th scope="col">{{ 'transcript.credits'|trans({}, 'phil_courses') }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {%- for entry in transcript.entries %}
+        <tr>
+            <th scope="row">{{ entry.courseTitle }}</th>
+            <td><time datetime="{{ entry.completedAt|date('c') }}">{{ entry.completedAt|date('Y-m-d', false) }}</time></td>
+            <td>{% if entry.credits is not null %}{{ ('credits.' ~ entry.credits.unit.value)|trans({'%amount%': entry.credits.amount}, 'phil_courses') }}{% endif %}</td>
+        </tr>
+        {%- endfor %}
+    </tbody>
+    {%- if totals is not empty %}
+    <tfoot>
+        {%- for total in totals %}
+        <tr class="phil-courses__total">
+            <th scope="row" colspan="2">{{ 'transcript.total'|trans({}, 'phil_courses') }}</th>
+            <td>{{ ('credits.' ~ total.unit)|trans({'%amount%': total.amount}, 'phil_courses') }}</td>
+        </tr>
+        {%- endfor %}
+    </tfoot>
+    {%- endif %}
+</table>
+{%- endif %}
+{%- set route = manager ? 'phil_courses_admin_transcript' : 'phil_courses_transcript' %}
+{%- set parameters = manager ? {learner: transcript.learner.value} : {} %}
+<p class="phil-courses__exports">
+    <a href="{{ path(route, parameters|merge({_format: 'json'})) }}" type="application/json">{{ 'transcript.json'|trans({}, 'phil_courses') }}</a>
+    <a href="{{ path(route, parameters|merge({_format: 'csv'})) }}" type="text/csv" download>{{ 'transcript.csv'|trans({}, 'phil_courses') }}</a>
+</p>
+{% endblock %}

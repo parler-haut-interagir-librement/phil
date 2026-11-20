@@ -18,7 +18,7 @@ use Phil\CoursesBundle\Domain\ValueObject\LearnerId;
 interface EnrollmentRepository
 {
     /**
-     * Keeps a new enrollment, or the completion of one kept already.
+     * Keeps a new enrollment, or the completion of one kept already, or undone.
      */
     public function save(Enrollment $enrollment): void;
 
@@ -39,6 +39,11 @@ interface EnrollmentRepository
     public function progresses(EnrollmentId $enrollment): array;
 
     public function saveProgress(Progress $progress): void;
+
+    /**
+     * Forgets the progress of the enrollment in every activity, for an enrollment that starts again.
+     */
+    public function removeProgresses(EnrollmentId $enrollment): void;
 
     /**
      * @return list<string> the blocks, and the course, whose `satisfied` statement the enrollment has, by identifier

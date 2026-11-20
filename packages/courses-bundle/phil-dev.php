@@ -79,11 +79,12 @@ return [
         ],
     ],
     'fuzz' => [
-        // The checks of the cmi5 statements and the body of a SCORM commit on bytes nobody wrote, from the seeds of
+        // The checks of the cmi5 and xAPI statements and the body of a SCORM commit on bytes nobody wrote, from the seeds of
         // tests/Fuzz/corpus/<target>.
         'targets' => [
             'cmi5-statement' => 'tests/Fuzz/cmi5-statement.php',
             'scorm-commit' => 'tests/Fuzz/scorm-commit.php',
+            'xapi-statement' => 'tests/Fuzz/xapi-statement.php',
         ],
     ],
     'docs' => [

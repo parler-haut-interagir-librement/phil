@@ -95,6 +95,16 @@ registration and activity. The token is fetched once. Cross-origin requests are 
 `cmi5.allowed_origins`, never for any origin. A statement breaking a rule of cmi5 is refused before it reaches the
 learning record store, and the learners are named by account, never by e-mail address.
 
+## The xAPI activities
+
+An xAPI activity's token is handed to the content in the launch URL, as xAPI packages expect, rather than through a
+fetch URL: it opens its own session only, until the session is abandoned by the next launch or expires after
+`cmi5.session_ttl` seconds, and the content origin answers with `Referrer-Policy: no-referrer`, so that the URL does
+not leave in a `Referer`. A statement is kept only for the learner of the session, named by the same account, with the
+session's registration; a statement that voids another is refused, so that a recorded outcome stays. The import of an
+xAPI package reads `tincan.xml` through the configured reader only, which bounds its reading; without one, the
+package is refused.
+
 ## The remote learning record store
 
 The statements go to a remote store through phil/safe-http only: an `https` endpoint of a public host, its address and
@@ -104,6 +114,14 @@ credentials to the endpoint's origin only. Neither the log nor the exceptions na
 learner, the credentials or what the store answered: they name the statement's identifier and the status. The state
 documents of the units stay in the application's database and are never sent to the remote store. A store on a private
 network is refused, as [cmi5](cmi5.md#the-limits-of-the-remote-store) explains.
+
+## The training and the transcripts
+
+The training and transcript pages show the learner signed in their own records only; the managers' pages ask for the
+role of `phil_courses.training.manager_role`, and are refused without an authorization checker or without a person
+signed in. Every answer is `no-store`. The CSV export prefixes a cell a spreadsheet would read as a formula with a
+quote, and is sent as an attachment with `nosniff`. The notifications of the training carry identifiers only. An
+assignment reaches a bounded number of members, and a run reads the obligations a batch at a time.
 
 ## The administration page
 

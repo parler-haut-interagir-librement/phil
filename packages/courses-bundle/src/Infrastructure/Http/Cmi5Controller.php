@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Phil\CoursesBundle\Infrastructure\Http;
 
 use JsonException;
-use Phil\CoursesBundle\Application\Cmi5\Cmi5Context;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Statements;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Tokens;
 use Phil\CoursesBundle\Application\Cmi5\LaunchData;
 use Phil\CoursesBundle\Application\Contract\LearningRecordStore;
+use Phil\CoursesBundle\Application\Xapi\XapiStatements;
 use Phil\CoursesBundle\Domain\Cmi5\Cmi5Iri;
 use Phil\CoursesBundle\Domain\Exception\CoursesException;
 use Phil\CoursesBundle\Domain\Exception\RecordStoreUnavailable;
@@ -25,7 +25,9 @@ use Symfony\Component\HttpFoundation\Response;
  * record store once the rules of cmi5 accept them; the `LMS.LaunchData` state document, read only, and the unit's own
  * state documents; the learner preferences, which the platform keeps none of; and `about`. Every xAPI request carries
  * its session's token and the `X-Experience-API-Version` header; cross-origin requests are answered for the content
- * origin and the origins the configuration allows, never for any origin.
+ * origin and the origins the configuration allows, never for any origin. The sessions of xAPI activities talk to the
+ * same endpoints: their statements are checked by `XapiStatements` instead of the cmi5 rules, and their state documents
+ * belong to the activity identifier of their package.
  */
 final readonly class Cmi5Controller
 {
@@ -55,6 +57,7 @@ final readonly class Cmi5Controller
         private Cmi5Statements $statements,
         private LearningRecordStore $store,
         private array $origins = [],
+        private ?XapiStatements $xapi = null,
     ) {
     }
 
@@ -92,7 +95,9 @@ final readonly class Cmi5Controller
         $statementId = $request->isMethod('PUT') ? $request->query->getString('statementId') : null;
 
         try {
-            $ids = $this->statements->receive($session, $request->getContent(), $statementId);
+            $ids = $this->xapi instanceof XapiStatements && $this->xapi->handles($session)
+                ? $this->xapi->receive($session, $request->getContent(), $statementId)
+                : $this->statements->receive($session, $request->getContent(), $statementId);
         } catch (StatementRefused $statementRefused) {
             return $this->error($request, Response::HTTP_FORBIDDEN, $statementRefused->getMessage());
         } catch (RecordStoreUnavailable) {
@@ -111,12 +116,20 @@ final readonly class Cmi5Controller
         }
 
         try {
+            if ($this->xapi instanceof XapiStatements && $this->xapi->handles($session)) {
+                $xapi = $this->xapi->context($session);
+
+                return $this->matches($request, $xapi->activityIri, $xapi->registration, $xapi->homePage, $xapi->learner)
+                    ? $this->document($request, $xapi->activityIri, $xapi->registration, $request->query->getString('stateId'))
+                    : $this->error($request, Response::HTTP_FORBIDDEN, 'The state belongs to the activity, agent and registration of the session.');
+            }
+
             $context = $this->statements->context($session);
         } catch (CoursesException $coursesException) {
             return $this->error($request, Response::HTTP_FORBIDDEN, $coursesException->getMessage());
         }
 
-        if (!$this->matches($request, $context)) {
+        if (!$this->matches($request, $context->activityIri, $context->registration, $context->homePage, $context->learner)) {
             return $this->error($request, Response::HTTP_FORBIDDEN, 'The state belongs to the activity, agent and registration of the session.');
         }
 
@@ -128,7 +141,7 @@ final readonly class Cmi5Controller
                 : $this->error($request, Response::HTTP_FORBIDDEN, "The launch data is the platform's to write.");
         }
 
-        return $this->document($request, $context, $stateId);
+        return $this->document($request, $context->activityIri, $context->registration, $stateId);
     }
 
     public function agentProfile(Request $request): Response
@@ -144,14 +157,14 @@ final readonly class Cmi5Controller
             : $this->error($request, Response::HTTP_FORBIDDEN, "The learner preferences are the platform's to write.");
     }
 
-    private function document(Request $request, Cmi5Context $context, string $stateId): Response
+    private function document(Request $request, string $activityIri, string $registration, string $stateId): Response
     {
         if ('' === $stateId || \strlen($stateId) > 190) {
             return $this->error($request, Response::HTTP_BAD_REQUEST, 'A state is named by a "stateId" of 1 to 190 bytes.');
         }
 
         if ($request->isMethod('GET')) {
-            $document = $this->store->state($context->activityIri, $context->registration, $stateId);
+            $document = $this->store->state($activityIri, $registration, $stateId);
 
             return null === $document
                 ? $this->error($request, Response::HTTP_NOT_FOUND, 'No such state.')
@@ -159,7 +172,7 @@ final readonly class Cmi5Controller
         }
 
         if ($request->isMethod('DELETE')) {
-            $this->store->deleteState($context->activityIri, $context->registration, $stateId);
+            $this->store->deleteState($activityIri, $registration, $stateId);
 
             return $this->answer($request, new Response('', Response::HTTP_NO_CONTENT));
         }
@@ -170,7 +183,7 @@ final readonly class Cmi5Controller
             return $this->error($request, Response::HTTP_REQUEST_ENTITY_TOO_LARGE, \sprintf('A state document is %d bytes at most.', self::STATE_BYTES));
         }
 
-        $this->store->saveState($context->activityIri, $context->registration, $stateId, $document);
+        $this->store->saveState($activityIri, $registration, $stateId, $document);
 
         return $this->answer($request, new Response('', Response::HTTP_NO_CONTENT));
     }
@@ -188,7 +201,7 @@ final readonly class Cmi5Controller
             ?? $this->error($request, Response::HTTP_UNAUTHORIZED, 'The token is missing, wrong, or its session ended.');
     }
 
-    private function matches(Request $request, Cmi5Context $context): bool
+    private function matches(Request $request, string $activityIri, string $registration, string $homePage, string $learner): bool
     {
         try {
             $agent = json_decode($request->query->getString('agent'), true, 4, \JSON_THROW_ON_ERROR);
@@ -198,10 +211,10 @@ final readonly class Cmi5Controller
 
         $account = \is_array($agent) && \is_array($agent['account'] ?? null) ? $agent['account'] : [];
 
-        return $request->query->getString('activityId') === $context->activityIri
-            && $request->query->getString('registration') === $context->registration
-            && ($account['homePage'] ?? null) === $context->homePage
-            && ($account['name'] ?? null) === $context->learner;
+        return $request->query->getString('activityId') === $activityIri
+            && $request->query->getString('registration') === $registration
+            && ($account['homePage'] ?? null) === $homePage
+            && ($account['name'] ?? null) === $learner;
     }
 
     private function error(Request $request, int $status, string $message): Response

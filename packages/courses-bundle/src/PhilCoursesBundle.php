@@ -7,9 +7,11 @@ namespace Phil\CoursesBundle;
 use Override;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Settings;
 use Phil\CoursesBundle\Application\Scorm\ScormTokens;
+use Phil\CoursesBundle\Application\Training\TrainingSettings;
 use Phil\CoursesBundle\Infrastructure\DependencyInjection\CoursesServices;
 use Phil\CoursesBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\CoursesBundle\Infrastructure\Http\CourseRequest;
+use Phil\CoursesBundle\Infrastructure\Notifications\NotificationsTrainingNotifier;
 use Phil\CoursesBundle\Infrastructure\Xapi\HttpLearningRecordStore;
 use Phil\ElearningPackages\PackageLimits;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
@@ -22,10 +24,12 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
  * Online courses: courses, modules and activities kept through DBAL, enrollments, progress and completion by activity
  * and by course, release by date or by days after the enrollment in the site's time zone, an imposed order without a
  * dead end — second chances asked for, granted and written to phil/audit-bundle when it is installed —; the import of
- * SCORM 1.2, SCORM 2004 and cmi5 packages; the SCORM run time, with its attempts and tracking data; and cmi5 launches, with their fetch URL and a learning
- * record store inside the bundle that checks the statements against the rules of cmi5, the tree of the blocks kept and
- * their `satisfied` statements issued, or a remote xAPI store; and an administration page of the second chances. The
- * pages draw the recipes of the kit.
+ * SCORM 1.2, SCORM 2004, cmi5 and xAPI packages; the SCORM run time, with its attempts and tracking data; cmi5 launches,
+ * with their fetch URL and a learning record store inside the bundle that checks the statements against the rules of
+ * cmi5, the tree of the blocks kept and their `satisfied` statements issued, or a remote xAPI store; xAPI activities,
+ * launched against the same endpoint; the mandatory training — courses assigned by a due date, reminders through
+ * phil/notifications-bundle, recertifications, credits and transcripts —; and the administration pages. The pages
+ * draw the recipes of the kit.
  *
  * @phpstan-import-type Config from CoursesServices
  */
@@ -57,6 +61,7 @@ final class PhilCoursesBundle extends AbstractBundle
         $this->import($children);
         $this->cmi5($children);
         $this->scorm($children);
+        $this->training($children);
 
         $children
             ->arrayNode('admin')
@@ -81,6 +86,10 @@ final class PhilCoursesBundle extends AbstractBundle
     {
         if ($builder->hasExtension('framework')) {
             $container->extension('framework', ['csrf_protection' => ['stateless_token_ids' => [CourseRequest::TOKEN_ID]]]);
+        }
+
+        if ($builder->hasExtension('phil_notifications')) {
+            $container->extension('phil_notifications', ['types' => NotificationsTrainingNotifier::types()]);
         }
 
         if ($builder->hasExtension('asset_mapper')) {
@@ -141,6 +150,7 @@ final class PhilCoursesBundle extends AbstractBundle
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->scalarNode('language')->info('The language of the titles read from a cmi5 course structure, such as "fr"; its first title when null.')->defaultNull()->end()
+                    ->scalarNode('xapi_reader')->info('An XapiPackageReader service that reads the tincan.xml of xAPI packages; such packages are refused when null.')->defaultNull()->end()
                     ->arrayNode('limits')
                         ->info('The bounds a package must stay within.')
                         ->addDefaultsIfNotSet()
@@ -171,6 +181,28 @@ final class PhilCoursesBundle extends AbstractBundle
                 ->children()
                     ->integerNode('token_ttl')->info('How many seconds an attempt token holds after the last commit.')->min(300)->max(86_400)->defaultValue(ScormTokens::TTL)->end()
                     ->scalarNode('secret')->info('The secret the attempt tokens are signed with.')->cannotBeEmpty()->defaultValue('%kernel.secret%')->end()
+                ->end()
+            ->end();
+    }
+
+    private function training(NodeBuilder $children): void
+    {
+        $children
+            ->arrayNode('training')
+                ->info('The mandatory training: courses assigned by a due date, their reminders and recertifications, the credits and the transcripts.')
+                ->addDefaultsIfNotSet()
+                ->canBeDisabled()
+                ->children()
+                    ->integerNode('reminder_days')->info('How many days before the due moment a course is due soon and its first reminder sent.')->min(1)->max(90)->defaultValue(TrainingSettings::REMINDER_DAYS)->end()
+                    ->integerNode('renewal_grace_days')->info('How many days after its renewal a recertification is due again.')->min(1)->max(365)->defaultValue(TrainingSettings::GRACE_DAYS)->end()
+                    ->integerNode('max_members')->info('How many members of a group or unit an assignment reaches.')->min(1)->defaultValue(TrainingSettings::MAX_MEMBERS)->end()
+                    ->scalarNode('run_at')->info("The time of the daily run of the schedule, HH:MM in the site's time zone.")->cannotBeEmpty()->defaultValue('06:00')
+                        ->validate()->ifTrue(static fn (mixed $at): bool => !\is_string($at) || 1 !== preg_match('/^([01]\d|2[0-3]):[0-5]\d$/D', $at))->thenInvalid('%s is not a time written HH:MM.')->end()
+                    ->end()
+                    ->booleanNode('schedule')->info('Whether the schedule "phil_courses_training" runs every day, with Symfony Scheduler.')->defaultTrue()->end()
+                    ->scalarNode('manager_role')->info('The role a manager holds to see the training of every learner and their transcripts.')->cannotBeEmpty()->defaultValue('ROLE_COURSES_MANAGER')->end()
+                    ->scalarNode('notifier')->info('A TrainingNotifier service; the notifications of phil/notifications-bundle when null and it is registered, none otherwise.')->defaultNull()->end()
+                    ->booleanNode('keep_transcripts')->info('Whether the transcripts survive an erasure request, under a legal obligation to keep them.')->defaultFalse()->end()
                 ->end()
             ->end();
     }

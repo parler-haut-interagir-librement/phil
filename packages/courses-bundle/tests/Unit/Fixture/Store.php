@@ -12,6 +12,7 @@ use Phil\CoursesBundle\Application\ActivityType\Cmi5Activity;
 use Phil\CoursesBundle\Application\ActivityType\LinkActivity;
 use Phil\CoursesBundle\Application\ActivityType\PageActivity;
 use Phil\CoursesBundle\Application\ActivityType\ScormActivity;
+use Phil\CoursesBundle\Application\ActivityType\XapiActivity;
 use Phil\CoursesBundle\Application\ActivityTypes;
 use Phil\CoursesBundle\Application\Availabilities;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Launcher;
@@ -27,13 +28,22 @@ use Phil\CoursesBundle\Application\Learning;
 use Phil\CoursesBundle\Application\Scorm\ScormRuntime;
 use Phil\CoursesBundle\Application\Scorm\ScormTokens;
 use Phil\CoursesBundle\Application\SecondChances;
+use Phil\CoursesBundle\Application\Training\Assignments;
+use Phil\CoursesBundle\Application\Training\TrainingCompletions;
+use Phil\CoursesBundle\Application\Training\TrainingRun;
+use Phil\CoursesBundle\Application\Training\TrainingSettings;
+use Phil\CoursesBundle\Application\Training\Transcripts;
+use Phil\CoursesBundle\Application\Xapi\XapiLauncher;
+use Phil\CoursesBundle\Application\Xapi\XapiStatements;
 use Phil\CoursesBundle\Infrastructure\Doctrine\CourseTables;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalAssignmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalCourseRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEnrollmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLaunchSessionRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLearningRecordStore;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalRetryRequestRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalScormAttemptRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalTranscriptRepository;
 use Phil\ElearningPackages\Archive\ZipPackageOpener;
 use Phil\ElearningPackages\PackageLimits;
 use Symfony\Component\Clock\MockClock;
@@ -101,6 +111,28 @@ final readonly class Store
 
     public ScormRuntime $scorm;
 
+    public XapiLauncher $xapiLauncher;
+
+    public XapiStatements $xapi;
+
+    public DbalAssignmentRepository $assignmentStore;
+
+    public DbalTranscriptRepository $transcriptStore;
+
+    public RecordingNotifier $notices;
+
+    public Members $members;
+
+    public TrainingSettings $training;
+
+    public Assignments $assignments;
+
+    public Transcripts $transcripts;
+
+    public TrainingRun $run;
+
+    public TrainingCompletions $completions;
+
     public function __construct(?Connection $connection = null, PackageLimits $limits = new PackageLimits())
     {
         $this->connection = $connection ?? self::sqlite();
@@ -118,7 +150,8 @@ final readonly class Store
         $this->statements = new Cmi5Statements($this->lrs, $this->sessionStore, $this->enrollmentStore, $this->courseStore, $this->enrollments, $this->settings, $this->clock, $this->events);
         $this->tokens = new Cmi5Tokens($this->sessionStore, $this->clock, self::SECRET);
         $this->launcher = new Cmi5Launcher($this->sessionStore, $this->statements, new FixedEndpoints(), $this->urls, $this->settings, $this->clock);
-        $this->types = new ActivityTypes([new PageActivity(), new LinkActivity(), new ScormActivity($this->urls), new Cmi5Activity($this->launcher)]);
+        $this->xapiLauncher = new XapiLauncher($this->sessionStore, $this->tokens, new FixedEndpoints(), $this->urls, $this->settings, $this->clock);
+        $this->types = new ActivityTypes([new PageActivity(), new LinkActivity(), new ScormActivity($this->urls), new Cmi5Activity($this->launcher), new XapiActivity($this->xapiLauncher)]);
         $this->courses = new Courses($this->courseStore, $this->types, $this->clock);
         $this->availabilities = new Availabilities($this->courseStore, $this->enrollmentStore, $this->retryStore, $this->clock, new DateTimeZone('America/Toronto'));
         $this->learning = new Learning($this->enrollments, $this->availabilities, $this->types);
@@ -128,6 +161,16 @@ final readonly class Store
         $this->attemptStore = new DbalScormAttemptRepository($this->connection);
         $this->scormTokens = new ScormTokens($this->clock, self::SECRET);
         $this->scorm = new ScormRuntime($this->attemptStore, $this->courseStore, $this->enrollmentStore, $this->enrollments, $this->scormTokens, $this->clock, $this->events);
+        $this->xapi = new XapiStatements($this->lrs, $this->enrollmentStore, $this->courseStore, $this->enrollments, $this->settings, $this->events);
+        $this->assignmentStore = new DbalAssignmentRepository($this->connection);
+        $this->transcriptStore = new DbalTranscriptRepository($this->connection);
+        $this->notices = new RecordingNotifier();
+        $this->members = new Members();
+        $this->training = new TrainingSettings(7, 30, 3, 2);
+        $this->assignments = new Assignments($this->assignmentStore, $this->courseStore, $this->enrollments, $this->training, $this->clock, [$this->members], $this->notices, $this->events);
+        $this->transcripts = new Transcripts($this->transcriptStore, $this->courseStore, $this->events);
+        $this->run = new TrainingRun($this->assignmentStore, $this->assignments, $this->enrollmentStore, $this->enrollments, $this->training, $this->clock, $this->notices, $this->events);
+        $this->completions = new TrainingCompletions($this->enrollmentStore, $this->assignments, $this->transcripts);
     }
 
     public static function sqlite(): Connection

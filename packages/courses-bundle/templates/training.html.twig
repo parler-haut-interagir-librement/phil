@@ -1,0 +1,41 @@
+{#
+ # A learner's assigned courses, the earliest due first: each with its due date, its cycle when it is renewed, and
+ # where they stand — the recipe `Badge` of the kit, overdue in its destructive variant —, and the link to their
+ # transcript.
+ #
+ # statuses: list of TrainingStatus.
+ #}
+{% extends layout %}
+
+{% block title %}{{ 'training.title'|trans({}, 'phil_courses') }}{% endblock %}
+
+{% block main %}
+<h1>{{ 'training.title'|trans({}, 'phil_courses') }}</h1>
+{%- if statuses is empty %}
+<p class="phil-courses__none">{{ 'training.none'|trans({}, 'phil_courses') }}</p>
+{%- else %}
+<table class="phil-courses__training">
+    <thead>
+        <tr>
+            <th scope="col">{{ 'training.course'|trans({}, 'phil_courses') }}</th>
+            <th scope="col">{{ 'training.due'|trans({}, 'phil_courses') }}</th>
+            <th scope="col">{{ 'training.state'|trans({}, 'phil_courses') }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {%- for status in statuses %}
+        {%- set state = status.state.value %}
+        <tr class="phil-courses__obligation is-{{ state|replace({_: '-'}) }}">
+            <th scope="row">
+                <a href="{{ path('phil_courses_outline', {course: status.course.id.value}) }}">{{ status.course.title }}</a>
+                {%- if status.obligation.cycle > 1 %} <span class="phil-courses__cycle">{{ 'training.cycle'|trans({'%cycle%': status.obligation.cycle}, 'phil_courses') }}</span>{% endif %}
+            </th>
+            <td><time datetime="{{ status.obligation.dueAt|date('c') }}">{{ status.obligation.dueAt|date('Y-m-d', false) }}</time></td>
+            <td>{% component (phil_courses_kit('Badge')) with {variant: state == 'overdue' ? 'destructive' : (state == 'completed' ? 'default' : 'outline')} %}{% block content %}{{ ('training.' ~ state)|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}</td>
+        </tr>
+        {%- endfor %}
+    </tbody>
+</table>
+{%- endif %}
+<p><a href="{{ path('phil_courses_transcript') }}">{{ 'transcript.title'|trans({}, 'phil_courses') }}</a></p>
+{% endblock %}

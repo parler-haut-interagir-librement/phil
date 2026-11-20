@@ -54,4 +54,18 @@ final class Enrollment
 
         return true;
     }
+
+    /**
+     * Undoes the completion, for an enrollment that starts again: says whether it was completed.
+     */
+    public function reopen(): bool
+    {
+        if (!$this->completedAt instanceof DateTimeImmutable) {
+            return false;
+        }
+
+        $this->completedAt = null;
+
+        return true;
+    }
 }

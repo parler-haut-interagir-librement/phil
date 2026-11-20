@@ -1,9 +1,10 @@
 # phil/courses-bundle
 
-**Online courses for Symfony: modules, activities, progress and completion, with SCORM and cmi5 courses run inside the platform.**
+**Online courses for Symfony: SCORM, cmi5 and xAPI content run inside the platform, mandatory training, transcripts.**
 
 phil/courses-bundle gives an application online courses. A course holds modules in order, and each module holds
-activities: a page of text, a link, the content of an imported SCORM package, or a cmi5 assignable unit. Activity types
+activities: a page of text, a link, the content of an imported SCORM package, a cmi5 assignable unit, or an activity of
+an xAPI package. Activity types
 are a port with a few adapters, so that an application adds its own. A learner enrolls once in a course; each activity
 records what they did — completed, passed, failed, waived, the best score — and is satisfied by the requirement it
 carries, the values of cmi5's `moveOn`. The course is completed when every required activity is satisfied.
@@ -32,6 +33,18 @@ once for each enrollment. The store inside the bundle keeps the statements throu
 a remote xAPI learning record store through the guarded client of phil/safe-http, the state documents of the units
 staying in the application's database, and an application's own store plugs into the same port.
 
+An xAPI package runs as an activity of its own: launched with the parameters xAPI packages read and a token of its
+session, it talks to the same xAPI endpoint, its statements checked — the learner of the session, the registration of
+the enrollment, no voiding — and its `completed`, `passed` and `failed` statements move the learner's progress, with a
+mastery score when it has one. Its package is imported through a reader of `tincan.xml` the application configures.
+
+A course can be mandatory: assigned to a learner, to the members of a group or of a unit, by a due moment, each member
+enrolled and reminded through phil/notifications-bundle before, on and after the due moment, the person who assigned it
+told once it is overdue; the learner and the managers see the overdue state on their pages. A recertification renews a
+completion after a number of months, read by phil/recurrence, and the learner takes the course again. A course grants
+credits — continuing education units or hours — on its completion, and each completion enters the learner's
+transcript, a page, JSON and CSV. Symfony Scheduler runs the reminders every day.
+
 Another part of the application — certificates, badges, a report — asks `Completions` whether a learner completed a
 course, and keeps its own model; with phil/certificates-bundle, the bundle answers its `CourseCompletions` port.
 
@@ -42,7 +55,7 @@ on SQLite, MySQL 8.4 and PostgreSQL 17.
 
 | Part | State |
 |---|---|
-| Courses, modules and activities through DBAL; activity types as a port with the page, link, SCORM and cmi5 adapters | Implemented and tested |
+| Courses, modules and activities through DBAL; activity types as a port with the page, link, SCORM, cmi5 and xAPI adapters | Implemented and tested |
 | Enrollment, progress by activity, the requirement of each activity, completion by course, events of PSR-14 | Implemented and tested |
 | `Completions`, and the adapter of the `CourseCompletions` port of phil/certificates-bundle 0.2 | Implemented and tested |
 | Release on a date or days after the enrollment in the site's time zone; imposed order | Implemented and tested |
@@ -57,6 +70,11 @@ on SQLite, MySQL 8.4 and PostgreSQL 17.
 | cmi5 launches, the fetch URL, the xAPI endpoint with the rules of cmi5, the learning record store as a port | Implemented and tested |
 | The `satisfied` statements of the blocks, innermost first, and of the course, once for each enrollment, named by the course structure, with the `BlockSatisfied` event | Implemented and tested |
 | The remote xAPI learning record store through phil/safe-http, for the statements | Implemented and tested; its integration test runs against a store the environment names |
+| xAPI activities: the launch parameters of xAPI packages, the token of the session, the statements checked and kept, completion, success and score from `completed`, `passed` and `failed`, a mastery score, their records in the privacy module of cmi5 | Implemented and tested |
+| The import of xAPI packages, through the `XapiPackageReader` port | Implemented and tested; the adapter of a reader of `tincan.xml` is the application's until phil/elearning-packages reads them |
+| Mandatory training: courses assigned to a learner, a group or a unit by a due moment, reminders before, on and after it through phil/notifications-bundle and Symfony Scheduler, the overdue state on the learner's and the managers' pages | Implemented and tested |
+| Recertification through phil/recurrence: a completion renewed after a number of months, the enrollment starting again | Implemented and tested |
+| Credits in continuing education units or hours, the transcript as a page, JSON and CSV, its privacy module | Implemented and tested |
 | The state documents of the units with a remote store | Kept in the store inside the bundle, never sent: the port names no agent, which the State resource of xAPI asks for |
 | A remote store on a private network | Refused by phil/safe-http: an application's own adapter of the port reaches it |
 | The upgrade of the tables of an earlier schema, on SQLite, MySQL and PostgreSQL | Implemented and tested |
@@ -66,7 +84,7 @@ on SQLite, MySQL 8.4 and PostgreSQL 17.
 | The Flex recipe: the bundle, its configuration and its routes | Written in `recipe/0.1`, for the recipes repository of PHIL |
 | Branching lessons through phil/story-graph, quizzes through phil/assessment, access through phil/content-access | Planned, as activity types and an access port, once those libraries are written |
 | LTI 1.3 activities, hosted video with consented watch tracking | Planned, as activity types the LTI and video bundles add |
-| Cohorts with live meetings, courses sold through the catalogue, dependencies between courses, learning paths | Planned |
+| Cohorts with live meetings, courses sold through the catalogue, dependencies between courses, learning paths, catalogues by unit | Planned |
 
 ## Documentation
 
@@ -78,6 +96,9 @@ on SQLite, MySQL 8.4 and PostgreSQL 17.
 | [SCORM import](doc/scorm-import.md) | What a SCORM package becomes, what is kept for information, what is left out, and imported results. |
 | [SCORM run time](doc/scorm-runtime.md) | How a SCO runs: the API in the browser, the commit endpoint, attempts, progress, packages of several SCOs, what is supported and what is not yet, privacy. |
 | [cmi5](doc/cmi5.md) | The import of cmi5 packages and their blocks, the launch, the fetch URL, the xAPI endpoint, the `satisfied` statements and the learning record stores, inside the bundle or remote. |
+| [xAPI activities](doc/xapi-activities.md) | xAPI packages as activities: the launch, the statements, the outcome they record, the import through a reader, privacy. |
+| [Mandatory training](doc/mandatory-training.md) | Courses assigned by a due moment, groups and units, the states, the reminders, the run and its schedule, recertification. |
+| [Credits and transcripts](doc/credits-and-transcripts.md) | The credits of the courses, the transcript as a page, JSON and CSV, and its privacy. |
 | [Security](doc/security.md) | The bounds of the archive and the manifest, the content origin and its headers, the SCORM run time, the remote store, the administration page. |
 | [Extension points](doc/extension-points.md) | The ports, the events, the services to replace, and when they are stable. |
 | [Testing](doc/testing.md) | The bundle's tests, the servers and the learning record store its integration tests read, and the fuzz target. |
@@ -109,8 +130,9 @@ php bin/console phil:courses:import var/import/safety-course.zip
 
 PHP 8.5 or later with the `mbstring` and `sodium` extensions, and those phil/elearning-packages reads packages with —
 `dom`, `libxml` and `zip` —, Symfony 8.2 or later, and Doctrine DBAL 4.5. The remote learning record store needs
-phil/safe-http, the administration page Symfony Security, and the SCORM run time symfony/stimulus-bundle with
-AssetMapper.
+phil/safe-http, the administration pages Symfony Security, the SCORM run time symfony/stimulus-bundle with
+AssetMapper, the reminders of the mandatory training phil/notifications-bundle, and their schedule symfony/scheduler
+with symfony/messenger.
 
 ## Contributing
 

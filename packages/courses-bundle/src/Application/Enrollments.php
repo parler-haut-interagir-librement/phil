@@ -10,6 +10,7 @@ use Phil\CoursesBundle\Domain\Contract\EnrollmentRepository;
 use Phil\CoursesBundle\Domain\Event\ActivityProgressed;
 use Phil\CoursesBundle\Domain\Event\ActivitySatisfied;
 use Phil\CoursesBundle\Domain\Event\CourseCompleted;
+use Phil\CoursesBundle\Domain\Event\EnrollmentRenewed;
 use Phil\CoursesBundle\Domain\Event\LearnerEnrolled;
 use Phil\CoursesBundle\Domain\Exception\UnknownRecord;
 use Phil\CoursesBundle\Domain\Model\Activity;
@@ -125,6 +126,23 @@ final readonly class Enrollments
         $progress->grantTry($now);
 
         return $this->changed($enrollment, $activity, $progress, false);
+    }
+
+    /**
+     * Starts the enrollment again, for a recertification: its progress in every activity is forgotten, the `satisfied`
+     * statements it was issued may be issued again, and its completion is undone; its registration stays.
+     */
+    public function renew(Enrollment $enrollment): void
+    {
+        $this->enrollments->removeProgresses($enrollment->id);
+
+        foreach ($this->enrollments->satisfactions($enrollment->id) as $subject) {
+            $this->enrollments->releaseSatisfaction($enrollment->id, $subject);
+        }
+
+        $enrollment->reopen();
+        $this->enrollments->save($enrollment);
+        $this->events?->dispatch(new EnrollmentRenewed($enrollment->id->value, $enrollment->course->value, $enrollment->learner->value));
     }
 
     /**

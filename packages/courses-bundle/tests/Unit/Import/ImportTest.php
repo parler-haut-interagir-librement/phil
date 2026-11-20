@@ -28,7 +28,6 @@ use Phil\CoursesBundle\Tests\Unit\Fixture\Store;
 use Phil\ElearningPackages\Archive\ZipPackageOpener;
 use Phil\ElearningPackages\Cmi5\Cmi5Course;
 use Phil\ElearningPackages\Cmi5\Cmi5CourseReader;
-use Phil\ElearningPackages\PackageFormat;
 use Phil\ElearningPackages\PackageLimits;
 use Phil\ElearningPackages\PackageReader;
 use Phil\ElearningPackages\Scorm\ScormManifest;
@@ -52,7 +51,7 @@ final class ImportTest extends TestCase
 
         self::assertSame('Workshop safety', $plan->title);
         self::assertSame('', $plan->description);
-        self::assertSame(PackageFormat::Scorm12, $plan->format);
+        self::assertSame(CourseOrigin::Scorm12, $plan->format);
         self::assertSame('com.example.safety', $plan->source);
         self::assertSame(['Workshop safety', 'Hand tools'], array_map(static fn (PlannedModule $module): string => $module->title, $plan->modules));
         self::assertSame(['Welcome', 'Further reading'], array_map(static fn (PlannedActivity $activity): string => $activity->title, $plan->modules[0]->activities));
@@ -129,7 +128,7 @@ final class ImportTest extends TestCase
 
         self::assertSame('Navigation', $plan->title);
         self::assertSame('Reading a chart.', $plan->description);
-        self::assertSame(PackageFormat::Cmi5, $plan->format);
+        self::assertSame(CourseOrigin::Cmi5, $plan->format);
         self::assertSame(['Navigation', 'Charts'], array_map(static fn (PlannedModule $module): string => $module->title, $plan->modules));
         self::assertSame(['Symbols', 'Tides / Tide tables'], array_map(static fn (PlannedActivity $activity): string => $activity->title, $plan->modules[1]->activities));
 
@@ -187,7 +186,7 @@ final class ImportTest extends TestCase
         $store = new Store();
         $report = $store->importer->import(Packages::zip(Packages::scorm12Files()));
 
-        self::assertSame(PackageFormat::Scorm12, $report->format);
+        self::assertSame(CourseOrigin::Scorm12, $report->format);
         self::assertSame([2, 4, 5], [$report->modules, $report->activities, $report->files]);
         self::assertCount(4, $report->warnings);
         self::assertSame([CourseImported::class], array_map(static fn (object $event): string => $event::class, $store->events->events));
@@ -209,7 +208,7 @@ final class ImportTest extends TestCase
         $store = new Store();
         $report = $store->importer->import(Packages::zip(Packages::cmi5Files()));
 
-        self::assertSame(PackageFormat::Cmi5, $report->format);
+        self::assertSame(CourseOrigin::Cmi5, $report->format);
         self::assertSame([2, 2, 3, 3], [$report->modules, $report->blocks, $report->activities, $report->files]);
         $course = $store->courses->get($report->course);
         $blocks = $store->courses->blocks($report->course);

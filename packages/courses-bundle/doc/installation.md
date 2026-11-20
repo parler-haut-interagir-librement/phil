@@ -62,10 +62,10 @@ phil_courses_admin:
 
 | File | Routes | Firewall |
 |---|---|---|
-| `config/routes.php` | The pages of a course: the outline, the enrollment, the launch, the completion, the second chance, and the commit endpoint of the SCORM sessions | Behind the application's firewall: the pages need a learner, and a commit names its attempt by its token |
-| `config/cmi5_routes.php` | The fetch URL and the xAPI endpoint the cmi5 units talk to | Outside it: each request carries the token of its session, not the learner's cookies |
+| `config/routes.php` | The pages of a course: the outline, the enrollment, the launch, the completion, the second chance, the commit endpoint of the SCORM sessions, the learner's training and transcript | Behind the application's firewall: the pages need a learner, and a commit names its attempt by its token |
+| `config/cmi5_routes.php` | The fetch URL and the xAPI endpoint the cmi5 units and the xAPI activities talk to | Outside it: each request carries the token of its session, not the learner's cookies |
 | `config/content_routes.php` | The files of the imported packages, and the frame of the SCORM run time under `_phil/scorm/` | Outside it, and answered on the content origin only |
-| `config/admin_routes.php` | The administration page of the second chances | Behind the application's firewall: the page asks for the role `phil_courses.admin.role` |
+| `config/admin_routes.php` | The administration pages: the second chances, the training overdue or due soon, the transcripts of the learners | Behind the application's firewall: the pages ask for the roles `phil_courses.admin.role` and `phil_courses.training.manager_role` |
 
 An application whose web server serves the storage directory on the content origin does not import the content routes;
 it routes `<content base URL>/_phil/scorm/` to the application, for the frame of the SCORM run time, and
@@ -106,6 +106,27 @@ other tables, from the schema listener or `CourseTables::configure()`, and `Cour
 tables of 0.1. Their keys use the binary collation `utf8mb4_bin` on MySQL and MariaDB when the schema is given the
 platform — the schema listener and `upgrade()` always give it —; the tracking data is a `MEDIUMTEXT` there.
 
+## The tables of the mandatory training
+
+`phil_course_assignment` and `phil_course_obligation` keep the assignments and each learner's obligation under them;
+`phil_course_transcript` and `phil_course_credits` the transcripts and the credits each course grants. They come with
+the other tables, from the schema listener or `CourseTables::configure()`, and `CourseTables::upgrade()` adds them to
+the tables of an earlier version; with the ORM, `doctrine:migrations:diff` writes the same migration. The bundle ships
+no Doctrine entity, so its recipe carries no migration.
+
+## The schedule of the mandatory training
+
+With symfony/scheduler and symfony/messenger installed, the schedule `phil_courses_training` runs the reminders and
+the recertifications every day; a worker consumes it:
+
+```sh
+composer require symfony/scheduler symfony/messenger
+php bin/console messenger:consume scheduler_phil_courses_training
+```
+
+Without them, `phil:courses:training` runs from cron; see [mandatory training](mandatory-training.md#the-run). The
+reminders go through phil/notifications-bundle when it is registered.
+
 ## The pages
 
 The pages extend `@PhilCourses/layout.html.twig`, or the layout `phil_courses.layout` names, which fills the blocks
@@ -116,8 +137,9 @@ Toolkit installs in the application:
 php bin/console ux:install button badge progress textarea --kit=github.com/parler-haut-interagir-librement/ux-kit
 ```
 
-The administration page of the second chances needs Symfony Security: its authorization checker grants the role of
-`phil_courses.admin.role`, and without one the page is refused to everyone.
+The administration pages need Symfony Security: its authorization checker grants the role of `phil_courses.admin.role`
+for the second chances and of `phil_courses.training.manager_role` for the training of the learners, and without one
+the pages are refused to everyone.
 
 The learner is the user Symfony Security signed in, named by their user identifier. An application whose users sign in
 with their e-mail address names its own `CurrentLearner` in `phil_courses.current_learner`: the bundle refuses an
