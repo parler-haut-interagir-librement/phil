@@ -1,0 +1,22 @@
+{
+    "name": "@phil/block-editor-bundle-browser-tests",
+    "private": true,
+    "description": "The Stimulus and the ProseMirror modules of the page the browser tests of the bundle open: for these tests alone, outside what the bundle publishes.",
+    "license": "MIT",
+    "devDependencies": {
+        "@hotwired/stimulus": "3.2.2",
+        "orderedmap": "2.1.1",
+        "prosemirror-commands": "1.7.2",
+        "prosemirror-keymap": "1.2.3",
+        "prosemirror-model": "1.25.12",
+        "prosemirror-state": "1.4.4",
+        "prosemirror-transform": "1.12.4",
+        "prosemirror-view": "1.42.9",
+        "w3c-keyname": "2.2.8"
+    },
+    "overrides": {
+        "prosemirror-model": "1.25.12",
+        "prosemirror-transform": "1.12.4",
+        "prosemirror-view": "1.42.9"
+    }
+}

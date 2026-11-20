@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=792b2245b1267a6b24440876699e84c264d8c84f4f2a364f483e34ae71afebb0 -->
+<!-- phil-dev source-sha256=8e2ac382c90c0dc890f22f7914254f42e54b05cd3dcf1a5a21e0fb1ff013b5a4 -->
 # Tests
 
 ## Les tests du bundle
@@ -50,6 +50,19 @@ et ce qui doit se produire.
 | Images | Insérez un bloc image, collez une adresse, Insérer ; ou déposez un fichier avec un téléverseur | L'image affichée avec son champ de légende ; pendant le téléversement, *Envoi…* |
 | Enregistrement | Soumettez le formulaire | Le champ contient le document sans blocs vides |
 | Écrire à plusieurs | Avec `phil/edit-lock-bundle`, deux rédacteurs sur une page ; l'un tape dans un paragraphe, puis en ajoute un | L'autre voit le paragraphe fermé avec le nom du rédacteur, son texte qui change, le nouveau paragraphe inséré après, le curseur de son propre bloc intact |
+
+## Mesures dans un navigateur
+
+`tests/Browser/measure.mjs` pilote un Chrome sans interface par le protocole DevTools à travers 26 scénarios — frappe,
+marques, Entrée et Retour arrière entre les blocs, annulation, composition IME, touches mortes, collage — sur l'éditeur
+avec ses propres champs riches et avec l'essai ProseMirror, et affiche un rapport JSON ;
+[prosemirror-trial.md](prosemirror-trial.md) donne la méthode et les chiffres. Il exige Node, PHP et Chrome, ainsi que
+les modules de `tests/Browser/package.json` :
+
+```bash
+npm ci --ignore-scripts --prefix packages/block-editor-bundle/tests/Browser
+node packages/block-editor-bundle/tests/Browser/measure.mjs --chrome=/path/to/chrome
+```
 
 ## Tester un formulaire qui contient un document
 

@@ -4,6 +4,26 @@ All notable changes to `phil/block-editor-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: a trial of ProseMirror inside each rich field, turned on by the controller's
+`richEngine` key, measured against the editor's own fields.
+
+### Added
+
+- `richEngine: "prosemirror"` in the controller's configuration: a ProseMirror view in each rich field, loaded only
+  when asked for, with the blocks, menus, paste, undo history and UJO (Universal JSON Output) left to the controller;
+  `lib/rich-schema.js`, its schema drawn from the inline tools, and `lib/prosemirror.js`, its view; the
+  `phil--block-editor-bundle--editor:engine` event once the rich fields can be edited; the four `prosemirror-*`
+  modules listed in `assets/package.json` for the import map.
+- `tests/Browser/measure.mjs`: 26 scenarios run on both engines in a headless Chrome, with the bytes served and the
+  drawing times; the method and the numbers in `doc/prosemirror-trial.md`.
+
+### Changed
+
+- `atStart()` and `atEnd()` of `lib/caret.js` count the line break ProseMirror draws at the end of an empty line as
+  nothing.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

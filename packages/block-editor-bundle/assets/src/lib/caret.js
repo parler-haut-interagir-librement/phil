@@ -33,8 +33,12 @@ function rangeTo(field, range, toEnd) {
     return part;
 }
 
+/** Whether a range shows nothing; the line break ProseMirror draws at the end of an empty line shows nothing. */
 function showsNothing(range) {
-    return '' === range.toString() && null === range.cloneContents().querySelector('br, img');
+    return (
+        '' === range.toString() &&
+        null === range.cloneContents().querySelector('br:not(.ProseMirror-trailingBreak), img')
+    );
 }
 
 /** Whether the caret, collapsed, is at the very start of the field. */
