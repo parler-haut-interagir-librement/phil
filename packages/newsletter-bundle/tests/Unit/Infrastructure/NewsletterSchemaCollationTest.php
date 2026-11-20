@@ -28,12 +28,13 @@ final class NewsletterSchemaCollationTest extends TestCase
             NewsletterSchema::MEMBERSHIPS => ['list_id', 'subscriber_id'],
             NewsletterSchema::CAMPAIGNS => ['id', 'list_id', 'site'],
             NewsletterSchema::LINKS => ['campaign_id', 'url_hash'],
-            NewsletterSchema::DELIVERIES => ['campaign_id', 'id', 'subscriber_id'],
+            NewsletterSchema::DELIVERIES => ['campaign_id', 'id', 'run_id', 'subscriber_id'],
             NewsletterSchema::TEMPLATES => ['site', 'template_key'],
             NewsletterSchema::CLICKS => ['campaign_id'],
             NewsletterSchema::RECIPIENT_CLICKS => ['campaign_id', 'subscriber_id'],
             NewsletterSchema::REASONS => ['list_id', 'site'],
             NewsletterSchema::SUPPRESSIONS => ['email_hash', 'site'],
+            NewsletterSchema::SEND_RUNS => ['campaign_id', 'id'],
         ];
         ksort($expected);
 

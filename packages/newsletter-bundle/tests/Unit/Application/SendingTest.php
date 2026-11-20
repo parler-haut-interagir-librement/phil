@@ -8,6 +8,7 @@ use LogicException;
 use Phil\BounceParser\Verp;
 use Phil\EmailAddress\Dns\StaticResolver;
 use Phil\EmailAddress\MailDomain;
+use Phil\NewsletterBundle\Application\ApprovalPolicy;
 use Phil\NewsletterBundle\Application\Campaigns;
 use Phil\NewsletterBundle\Application\Exception\NotFound;
 use Phil\NewsletterBundle\Application\Handler\DispatchDueCampaignsHandler;
@@ -36,6 +37,7 @@ use Phil\NewsletterBundle\Domain\Model\Campaign;
 use Phil\NewsletterBundle\Domain\Model\Delivery;
 use Phil\NewsletterBundle\Domain\Model\MailingList;
 use Phil\NewsletterBundle\Domain\Model\Membership;
+use Phil\NewsletterBundle\Domain\Model\SendRun;
 use Phil\NewsletterBundle\Domain\Model\Subscriber;
 use Phil\NewsletterBundle\Domain\Model\Template;
 use Phil\NewsletterBundle\Domain\ValueObject\SendWindow;
@@ -83,7 +85,7 @@ final class SendingTest extends TestCase
         $this->newsletter->campaigns->save($campaign);
 
         $this->campaigns()->sendNow($campaign);
-        self::assertEquals([new SendCampaign('c1')], $this->newsletter->bus->messages(SendCampaign::class));
+        self::assertEquals([new SendCampaign('c1', SendRun::idFor('c1', 1))], $this->newsletter->bus->messages(SendCampaign::class));
         $this->campaignHandler()(new SendCampaign('c1'));
         $this->campaignHandler()(new SendCampaign('c1'));
 
@@ -308,7 +310,7 @@ final class SendingTest extends TestCase
         self::assertSame([], $this->newsletter->bus->messages(SendCampaign::class));
         $this->newsletter->clock->modify('+1 hour');
         $handler(new DispatchDueCampaigns());
-        self::assertEquals([new SendCampaign('early')], $this->newsletter->bus->messages(SendCampaign::class));
+        self::assertEquals([new SendCampaign('early', SendRun::idFor('early', 1))], $this->newsletter->bus->messages(SendCampaign::class));
         self::assertSame(CampaignStatus::Sending, $this->newsletter->campaigns->get('early')?->status);
         self::assertSame(0, $this->campaigns()->startDue());
         self::assertSame(CampaignStatus::Scheduled, $this->campaigns()->get('late')->status);
@@ -491,12 +493,12 @@ final class SendingTest extends TestCase
 
     private function campaigns(): Campaigns
     {
-        return new Campaigns($this->newsletter->campaigns, $this->newsletter->deliveries, $this->newsletter->engagement, $this->newsletter->bus, $this->newsletter->clock);
+        return new Campaigns($this->newsletter->campaigns, $this->newsletter->deliveries, $this->newsletter->engagement, $this->newsletter->bus, $this->newsletter->clock, $this->newsletter->sendRuns(), new ApprovalPolicy(required: false));
     }
 
     private function campaignHandler(): SendCampaignHandler
     {
-        return new SendCampaignHandler($this->newsletter->campaigns, $this->newsletter->deliveries, new ListRecipients($this->newsletter->subscribers), $this->newsletter->bus, $this->newsletter->clock);
+        return new SendCampaignHandler($this->newsletter->campaigns, $this->newsletter->deliveries, new ListRecipients($this->newsletter->subscribers), $this->newsletter->bus, $this->newsletter->clock, $this->newsletter->sendRuns(), false);
     }
 
     private function profiles(): SenderProfiles

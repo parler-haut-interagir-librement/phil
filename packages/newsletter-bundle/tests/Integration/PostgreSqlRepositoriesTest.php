@@ -9,6 +9,7 @@ use Phil\NewsletterBundle\Infrastructure\Dbal\DbalCampaignRepository;
 use Phil\NewsletterBundle\Infrastructure\Dbal\DbalDeliveryRepository;
 use Phil\NewsletterBundle\Infrastructure\Dbal\DbalEngagementRepository;
 use Phil\NewsletterBundle\Infrastructure\Dbal\DbalMailingListRepository;
+use Phil\NewsletterBundle\Infrastructure\Dbal\DbalSendRunRepository;
 use Phil\NewsletterBundle\Infrastructure\Dbal\DbalSubscriberRepository;
 use Phil\NewsletterBundle\Infrastructure\Dbal\DbalSuppressionRepository;
 use Phil\NewsletterBundle\Infrastructure\Dbal\DbalTemplateRepository;
@@ -22,6 +23,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(DbalSubscriberRepository::class)]
 #[CoversClass(DbalCampaignRepository::class)]
 #[CoversClass(DbalDeliveryRepository::class)]
+#[CoversClass(DbalSendRunRepository::class)]
 #[CoversClass(DbalTemplateRepository::class)]
 #[CoversClass(DbalEngagementRepository::class)]
 #[CoversClass(DbalSuppressionRepository::class)]

@@ -9,7 +9,8 @@ use Phil\NewsletterBundle\Domain\Enum\DeliveryStatus;
 
 /**
  * One message to one subscriber: of a campaign, or of a template sent on its own — by an automation, say. Its id is
- * drawn from what it delivers, so that the same message is queued once, whatever retries the queue makes.
+ * drawn from what it delivers, so that the same message is queued once, whatever retries the queue makes. A message of
+ * a campaign names the send run that queued it.
  */
 final class Delivery
 {
@@ -25,6 +26,7 @@ final class Delivery
         public readonly ?string $campaignId,
         public readonly ?string $template,
         public readonly DateTimeImmutable $createdAt,
+        public readonly ?string $runId = null,
     ) {
     }
 

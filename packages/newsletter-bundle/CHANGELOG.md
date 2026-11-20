@@ -8,7 +8,8 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.3.0-alpha: the public subscription form is limited by default, so that a post accepted before may
 be answered `429`, and a confirmation of a double opt-in goes to the same subscriber once in five minutes at most;
-`subscription.rate_limit: false` turns the limits off.
+`subscription.rate_limit: false` turns the limits off. A campaign is sent once approved, by default, and the tables gain
+a table, columns and an index. See [Upgrading to 0.3](doc/campaigns.md#upgrading-to-03).
 
 ### Added
 
@@ -21,9 +22,32 @@ be answered `429`, and a confirmation of a double opt-in goes to the same subscr
 - `Application\Contract\ConfirmationThrottle`, the delay before another confirmation goes to the same subscriber, which
   `Subscriptions` takes as its last argument, and `SubscribeOutcome::ConfirmationDelayed`: a double opt-in whose
   confirmation was sent within the delay keeps its place, pending, and sends and announces nothing.
+- Approval before sending: `approval.required`, on by default, `approval.role` (`ROLE_NEWSLETTER_APPROVER`) and
+  `approval.four_eyes`; `Campaigns::approve()` and `withdrawApproval()`, `Campaign::approve()`, `withdrawApproval()`
+  and `isApproved()`, the author of a campaign, `CampaignApproval` with who approved it and when, `ApprovalPolicy`,
+  `ApprovalRefused` and the event `CampaignApproved`. An edit of a campaign withdraws its approval; a scheduled
+  campaign whose time has come waits for its approval.
+- Send runs: `SendRun`, one per attempt at sending a campaign, its number, state, counts — queued, sent, failed,
+  skipped, bounced, complained — and dates, `SendRunStatus`, `SendRunCounter`, the port `SendRunRepository` and
+  `DbalSendRunRepository` on the table `phil_newsletter_send_run`, and `SendRuns`, whose counts each worker adds to in
+  one statement; each delivery of a campaign names its run, and no run sends twice to one recipient.
+- The circuit breaker of a send run, `circuit_breaker`, on by default: `BreakerPolicy` pauses a run once, of at least
+  `minimum` messages tried since it started or was resumed, the share of complaints, bounces or transport failures
+  passes its threshold, and dispatches `SendRunPaused` with its `PauseReason`; `SendRuns::resume()` by an operator
+  queues again what the run holds and dispatches `SendRunResumed`; `pause()` and `cancel()` for an operator, and
+  `SendRunCompleted` once every message of a run was sent or skipped. A paused run holds its messages, queued.
+- `DeliveryRepository::countOfRun()`, `pendingOfRun()` and `skipPendingOfRun()`.
+- The migration from the tables of 0.2, tested on MySQL 8.4 and PostgreSQL 17 from tables holding rows.
 
 ### Changed
 
+- `NewsletterSchema::configure()` adds the columns and the regular indexes the tables of the newsletter lack, besides
+  the tables a schema lacks: the comparison of the schema introspected with the schema configured is the migration.
+- `Campaign::start()` refuses a campaign that awaits its approval, unless it is told approval is not required;
+  `Campaigns::sendNow()` starts a send run and names it in `SendCampaign`.
+- `Campaigns` takes the `SendRuns`, then an optional `ApprovalPolicy`, authorization checker, token storage and event
+  dispatcher; `SendCampaignHandler` takes the `SendRuns` and whether approval is required; `SendDeliveryHandler` and
+  `BounceHandler` take the `SendRuns` as their last, optional argument.
 - `SubscriptionController` takes the `SubscriptionRateLimiter` as its last argument.
 - `phil/standard-webhooks-bundle` 0.2 is accepted beside 0.1 in `require-dev`.
 

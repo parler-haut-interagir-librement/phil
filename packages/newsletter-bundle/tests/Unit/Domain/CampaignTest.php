@@ -38,7 +38,7 @@ final class CampaignTest extends TestCase
         $campaign->schedule($at->modify('+1 hour'));
         self::assertSame(CampaignStatus::Scheduled, $campaign->status);
         self::assertSame(1_800_003_600, $campaign->scheduledAt?->getTimestamp());
-        $campaign->start();
+        $campaign->start(false);
         self::assertSame(CampaignStatus::Sending, $campaign->status);
         $campaign->finish($at);
         self::assertSame(CampaignStatus::Sent, $campaign->status);

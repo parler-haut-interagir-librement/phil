@@ -72,6 +72,7 @@ final class TestKernel extends Kernel
             'providers' => ['people' => ['memory' => ['users' => [
                 'admin' => ['password' => 'admin', 'roles' => ['ROLE_ADMIN']],
                 'reader' => ['password' => 'reader', 'roles' => ['ROLE_USER']],
+                'editor' => ['password' => 'editor', 'roles' => ['ROLE_NEWSLETTER_APPROVER']],
             ]]]],
             'firewalls' => ['main' => ['http_basic' => null, 'provider' => 'people']],
         ]);
@@ -80,6 +81,7 @@ final class TestKernel extends Kernel
             'sites' => ['default' => ['base_url' => 'https://example.com']],
             'profiles' => ['default' => ['from' => 'news@example.com', 'from_name' => 'Example']],
             'bounces' => ['verp' => ['domain' => 'example.com'], 'remote_event_consumer' => 'mail_provider'],
+            'approval' => ['four_eyes' => true],
         ]);
         $container->services()->alias('test.connection', 'doctrine.dbal.default_connection')->public();
     }

@@ -17,6 +17,7 @@ use Phil\BounceParser\Rule\Rule;
 use Phil\BounceParser\Rule\Rules;
 use Phil\BounceParser\Rule\RuleScope;
 use Phil\BounceParser\Verp;
+use Phil\NewsletterBundle\Application\ApprovalPolicy;
 use Phil\NewsletterBundle\Application\Bounces\BounceHandler;
 use Phil\NewsletterBundle\Application\Bounces\BounceOutcome;
 use Phil\NewsletterBundle\Application\Campaigns;
@@ -201,7 +202,7 @@ final class ApplicationEdgesTest extends TestCase
                 throw new RuntimeException('The queue is down.');
             }
         };
-        $handler = new SendCampaignHandler($this->newsletter->campaigns, $this->newsletter->deliveries, new ListRecipients($this->newsletter->subscribers), $bus, $this->newsletter->clock);
+        $handler = new SendCampaignHandler($this->newsletter->campaigns, $this->newsletter->deliveries, new ListRecipients($this->newsletter->subscribers), $bus, $this->newsletter->clock, $this->newsletter->sendRuns(), false);
 
         try {
             $handler(new SendCampaign('c1'));
@@ -630,7 +631,7 @@ final class ApplicationEdgesTest extends TestCase
 
     private function campaigns(): Campaigns
     {
-        return new Campaigns($this->newsletter->campaigns, $this->newsletter->deliveries, $this->newsletter->engagement, $this->newsletter->bus, $this->newsletter->clock);
+        return new Campaigns($this->newsletter->campaigns, $this->newsletter->deliveries, $this->newsletter->engagement, $this->newsletter->bus, $this->newsletter->clock, $this->newsletter->sendRuns(), new ApprovalPolicy(required: false));
     }
 
     private function profiles(): SenderProfiles

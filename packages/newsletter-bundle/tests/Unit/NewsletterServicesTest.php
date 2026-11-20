@@ -6,13 +6,17 @@ namespace Phil\NewsletterBundle\Tests\Unit;
 
 use Phil\EmailAddress\EmailValidator;
 use Phil\Markup\Markup;
+use Phil\NewsletterBundle\Application\ApprovalPolicy;
 use Phil\NewsletterBundle\Application\Bounces\BounceHandler;
 use Phil\NewsletterBundle\Application\Contract\BounceMailbox;
 use Phil\NewsletterBundle\Application\Contract\ConfirmationThrottle;
 use Phil\NewsletterBundle\Application\Contract\SendThrottle;
 use Phil\NewsletterBundle\Application\Handler\DeliverAudienceWebhookHandler;
+use Phil\NewsletterBundle\Application\Handler\SendCampaignHandler;
+use Phil\NewsletterBundle\Application\SendRuns;
 use Phil\NewsletterBundle\Application\Subscriptions;
 use Phil\NewsletterBundle\Application\Tracking\ClickTracker;
+use Phil\NewsletterBundle\Domain\ValueObject\BreakerPolicy;
 use Phil\NewsletterBundle\Infrastructure\Dbal\NewsletterSchemaListener;
 use Phil\NewsletterBundle\Infrastructure\DependencyInjection\NewsletterServices;
 use Phil\NewsletterBundle\Infrastructure\Http\SubscriptionController;
@@ -63,6 +67,8 @@ final class NewsletterServicesTest extends TestCase
         'subscription' => ['rate_limit' => ['per_ip' => ['limit' => 20, 'interval' => '30 minutes'], 'per_address' => ['limit' => 2, 'interval' => '1 day'], 'resend_delay' => '15 minutes']],
         'webhooks' => ['crm' => ['url' => 'https://crm.example.com/hooks', 'events' => ['subscribed', 'unsubscribed']], 'all' => ['url' => 'https://all.example.com/hooks']],
         'preview_role' => 'ROLE_EDITOR',
+        'approval' => ['required' => false, 'role' => 'ROLE_EDITOR_IN_CHIEF', 'four_eyes' => true],
+        'circuit_breaker' => ['minimum' => 50, 'transport_failure_rate' => 20, 'bounce_rate' => 2.5, 'complaint_rate' => 0.1],
     ];
 
     public function testTheDefaultServices(): void
@@ -93,6 +99,17 @@ final class NewsletterServicesTest extends TestCase
         self::assertFalse($off->hasAlias(ConfirmationThrottle::class));
         self::assertNull($off->getDefinition(Subscriptions::class)->getArgument(9));
         self::assertNull($off->getDefinition(SubscriptionController::class)->getArgument(8));
+    }
+
+    public function testTheCircuitBreakerIsOnByDefaultAndTurnedOffExplicitly(): void
+    {
+        $breaker = $this->load([])->getDefinition(SendRuns::class)->getArgument(5);
+        self::assertInstanceOf(Definition::class, $breaker);
+        self::assertSame([BreakerPolicy::class, [100, 10.0, 5.0, 0.3]], [$breaker->getClass(), $breaker->getArguments()]);
+        self::assertNull($this->load(['circuit_breaker' => false])->getDefinition(SendRuns::class)->getArgument(5));
+        self::assertSame([true, 'ROLE_NEWSLETTER_APPROVER', false], $this->load([])->getDefinition(ApprovalPolicy::class)->getArguments());
+        self::assertTrue($this->load([])->getDefinition(SendCampaignHandler::class)->getArgument(6));
+        self::assertFalse($this->load(['approval' => ['required' => false]])->getDefinition(SendCampaignHandler::class)->getArgument(6));
     }
 
     public function testADurationOfTheLimitsIsADuration(): void

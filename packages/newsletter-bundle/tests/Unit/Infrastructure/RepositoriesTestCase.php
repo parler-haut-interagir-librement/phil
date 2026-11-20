@@ -9,12 +9,16 @@ use Phil\NewsletterBundle\Domain\Enum\CampaignStatus;
 use Phil\NewsletterBundle\Domain\Enum\ClickTracking;
 use Phil\NewsletterBundle\Domain\Enum\DeliveryStatus;
 use Phil\NewsletterBundle\Domain\Enum\MembershipStatus;
+use Phil\NewsletterBundle\Domain\Enum\PauseReason;
+use Phil\NewsletterBundle\Domain\Enum\SendRunCounter;
+use Phil\NewsletterBundle\Domain\Enum\SendRunStatus;
 use Phil\NewsletterBundle\Domain\Enum\SubscriberStatus;
 use Phil\NewsletterBundle\Domain\Enum\UnsubscribeReason;
 use Phil\NewsletterBundle\Domain\Model\Campaign;
 use Phil\NewsletterBundle\Domain\Model\Delivery;
 use Phil\NewsletterBundle\Domain\Model\MailingList;
 use Phil\NewsletterBundle\Domain\Model\Membership;
+use Phil\NewsletterBundle\Domain\Model\SendRun;
 use Phil\NewsletterBundle\Domain\Model\Subscriber;
 use Phil\NewsletterBundle\Domain\Model\Template;
 use Phil\NewsletterBundle\Domain\ValueObject\Site;
@@ -147,6 +151,96 @@ abstract class RepositoriesTestCase extends TestCase
         self::assertSame(2, $this->newsletter->deliveries->removeOfSubscriber('s1'));
         self::assertSame([], $this->newsletter->deliveries->ofSubscriber('s1'));
         self::assertSame('welcome', $this->newsletter->deliveries->get('d3')?->template);
+    }
+
+    public function testTheAuthorAndTheApprovalOfACampaign(): void
+    {
+        $at = new DateTimeImmutable('@1800000000');
+        $campaign = new Campaign('c1', Site::default(), 'l1', 'Subject', 'Body', author: 'ann@example.com');
+        $this->newsletter->campaigns->save($campaign);
+        self::assertEquals($campaign, $this->newsletter->campaigns->get('c1'));
+
+        $campaign->approve('bob@example.com', $at, true);
+        $this->newsletter->campaigns->save($campaign);
+        $stored = $this->newsletter->campaigns->get('c1');
+        self::assertEquals($campaign, $stored);
+        self::assertSame(['ann@example.com', 'bob@example.com', 1_800_000_000], [$stored?->author, $stored?->approval?->approver, $stored?->approval?->approvedAt->getTimestamp()]);
+
+        $campaign->edit('Subject', 'Another body', '', null, null, null, ClickTracking::Aggregate);
+        $this->newsletter->campaigns->save($campaign);
+        self::assertNull($this->newsletter->campaigns->get('c1')?->approval);
+    }
+
+    public function testSendRuns(): void
+    {
+        $at = new DateTimeImmutable('@1800000000');
+        $first = new SendRun(SendRun::idFor('c1', 1), 'c1', 1, $at);
+        self::assertTrue($this->newsletter->runs->create($first));
+        self::assertFalse($this->newsletter->runs->create(new SendRun(SendRun::idFor('c1', 1), 'c9', 1, $at->modify('+1 day'))));
+        self::assertTrue($this->newsletter->runs->create(new SendRun(SendRun::idFor('c1', 2), 'c1', 2, $at)));
+        $this->newsletter->runs->create(new SendRun(SendRun::idFor('c2', 1), 'c2', 1, $at));
+        self::assertEquals($first, $this->newsletter->runs->get($first->id));
+        self::assertNull($this->newsletter->runs->get('none'));
+        self::assertSame([1, 2], array_map(static fn (SendRun $run): int => $run->number, $this->newsletter->runs->ofCampaign('c1')));
+
+        foreach ([SendRunCounter::Sent, SendRunCounter::Sent, SendRunCounter::Failed, SendRunCounter::Skipped, SendRunCounter::Bounced, SendRunCounter::Complained] as $counter) {
+            $this->newsletter->runs->add($first->id, $counter);
+        }
+
+        $this->newsletter->runs->add($first->id, SendRunCounter::Skipped, 3);
+        $first->queuedAll(9, $at->modify('+1 minute'));
+        $this->newsletter->runs->queuedAll($first);
+        $stored = $this->newsletter->runs->get($first->id);
+        self::assertInstanceOf(SendRun::class, $stored);
+        self::assertSame([9, 60, 2, 1, 4, 1, 1], [$stored->queued, ($stored->queuedAt?->getTimestamp() ?? 0) - $at->getTimestamp(), $stored->count(SendRunCounter::Sent), $stored->count(SendRunCounter::Failed), $stored->count(SendRunCounter::Skipped), $stored->count(SendRunCounter::Bounced), $stored->count(SendRunCounter::Complained)]);
+        self::assertSame(0, $this->newsletter->runs->get(SendRun::idFor('c1', 2))?->count(SendRunCounter::Sent));
+
+        $stored->pause(PauseReason::Bounces, $at->modify('+2 minutes'));
+        self::assertTrue($this->newsletter->runs->transition($stored, SendRunStatus::Running));
+        self::assertFalse($this->newsletter->runs->transition($stored, SendRunStatus::Running));
+        $paused = $this->newsletter->runs->get($first->id);
+        self::assertSame([SendRunStatus::Paused, PauseReason::Bounces, 120], [$paused?->status, $paused?->pauseReason, ($paused?->pausedAt?->getTimestamp() ?? 0) - $at->getTimestamp()]);
+
+        $stored->resume();
+        self::assertTrue($this->newsletter->runs->transition($stored, SendRunStatus::Paused));
+        $resumed = $this->newsletter->runs->get($first->id);
+        self::assertInstanceOf(SendRun::class, $resumed);
+        self::assertEquals($stored, $resumed);
+        self::assertSame([SendRunCounter::Sent->value => 2, SendRunCounter::Failed->value => 1, SendRunCounter::Bounced->value => 1, SendRunCounter::Complained->value => 1], $resumed->baseline());
+        self::assertSame([null, null, 0], [$resumed->pauseReason, $resumed->pausedAt, $resumed->sinceResume(SendRunCounter::Sent)]);
+
+        $stored->cancel($at->modify('+3 minutes'));
+        self::assertTrue($this->newsletter->runs->transition($stored, SendRunStatus::Running));
+        self::assertSame(180, ($this->newsletter->runs->get($first->id)?->endedAt?->getTimestamp() ?? 0) - $at->getTimestamp());
+    }
+
+    public function testTheDeliveriesOfASendRun(): void
+    {
+        $at = new DateTimeImmutable('@1800000000');
+
+        foreach (['d3', 'd1', 'd4', 'd2', 'd5'] as $id) {
+            $this->newsletter->deliveries->create(new Delivery($id, 's-'.$id, 'c1', null, $at, 'r1'));
+        }
+
+        $this->newsletter->deliveries->create(new Delivery('d0', 's0', 'c1', null, $at, 'r2'));
+        $sent = new Delivery('d5', 's-d5', 'c1', null, $at, 'r1');
+        $sent->sent($at);
+
+        $this->newsletter->deliveries->save($sent);
+        $failed = new Delivery('d4', 's-d4', 'c1', null, $at, 'r1');
+        $failed->failed();
+
+        $this->newsletter->deliveries->save($failed);
+
+        self::assertSame('r1', $this->newsletter->deliveries->get('d1')?->runId);
+        self::assertSame(5, $this->newsletter->deliveries->countOfRun('r1'));
+        self::assertSame(0, $this->newsletter->deliveries->countOfRun('none'));
+        self::assertSame(['d1', 'd2'], $this->newsletter->deliveries->pendingOfRun('r1', null, 2));
+        self::assertSame(['d3', 'd4'], $this->newsletter->deliveries->pendingOfRun('r1', 'd2', 2));
+        self::assertSame([], $this->newsletter->deliveries->pendingOfRun('r1', 'd4', 2));
+        self::assertSame(4, $this->newsletter->deliveries->skipPendingOfRun('r1'));
+        self::assertSame([], $this->newsletter->deliveries->pendingOfRun('r1', null, 10));
+        self::assertSame([DeliveryStatus::Queued, DeliveryStatus::Sent, DeliveryStatus::Skipped], [$this->newsletter->deliveries->get('d0')?->status, $this->newsletter->deliveries->get('d5')?->status, $this->newsletter->deliveries->get('d4')?->status]);
     }
 
     public function testTemplatesOfASiteComeBeforeSharedOnes(): void

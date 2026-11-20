@@ -12,6 +12,9 @@ phil_newsletter_campaign
   status string(16) not null
   scheduled_at bigint(-) null
   sent_at bigint(-) null
+  author string(191) null
+  approved_by string(191) null
+  approved_at bigint(-) null
   primary id
   index phil_newsletter_campaign_i0 (status,scheduled_at)
 phil_newsletter_click
@@ -28,9 +31,11 @@ phil_newsletter_delivery
   attempts integer(-) not null
   created_at bigint(-) not null
   sent_at bigint(-) null
+  run_id string(32) null
   primary id
   index phil_newsletter_delivery_i0 (campaign_id,status)
   index phil_newsletter_delivery_i1 (subscriber_id)
+  index phil_newsletter_delivery_i2 (run_id,status,id)
 phil_newsletter_link
   campaign_id string(36) not null
   link_index integer(-) not null
@@ -61,6 +66,28 @@ phil_newsletter_recipient_click
   link_index integer(-) not null
   clicked_at bigint(-) not null
   primary subscriber_id,campaign_id,link_index,clicked_at
+phil_newsletter_send_run
+  id string(32) not null
+  campaign_id string(36) not null
+  run_number integer(-) not null
+  status string(16) not null
+  pause_reason string(32) null
+  queued integer(-) not null
+  sent integer(-) not null
+  failed integer(-) not null
+  skipped integer(-) not null
+  bounced integer(-) not null
+  complained integer(-) not null
+  base_sent integer(-) not null
+  base_failed integer(-) not null
+  base_bounced integer(-) not null
+  base_complained integer(-) not null
+  started_at bigint(-) not null
+  queued_at bigint(-) null
+  paused_at bigint(-) null
+  ended_at bigint(-) null
+  primary id
+  unique phil_newsletter_send_run_u0 (campaign_id,run_number)
 phil_newsletter_subscriber
   id string(36) not null
   site string(64) not null

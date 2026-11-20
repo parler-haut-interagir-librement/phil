@@ -96,7 +96,7 @@ final class DomainEdgesTest extends TestCase
     public function testADraftIsStartedAndItsSubjectIsCheckedWhenItIsEdited(): void
     {
         $campaign = new Campaign('c', Site::default(), 'l', 'Hello', 'Body');
-        $campaign->start();
+        $campaign->start(false);
 
         self::assertSame('sending', $campaign->status->value);
 

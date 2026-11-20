@@ -19,7 +19,9 @@ change them, and its CHANGELOG says how.
 
 The repositories are services too, by their interfaces under `Phil\NewsletterBundle\Domain\Contract`:
 `MailingListRepository`, `SubscriberRepository`, `CampaignRepository`, `DeliveryRepository`, `TemplateRepository`,
-`EngagementRepository` and `SuppressionRepository`.
+`EngagementRepository`, `SuppressionRepository` and `SendRunRepository`. A `SendRunRepository` adds to a count in the
+store, never writes it over, and changes a run's state only from the state it was read in, so that the workers of one
+run lose nothing to each other.
 
 ## Events
 
@@ -27,6 +29,10 @@ The repositories are services too, by their interfaces under `Phil\NewsletterBun
 |---|---|
 | `Phil\NewsletterBundle\Application\Event\AudienceChanged` | After each change of a subscriber is saved: its type, the subscriber's id, the site, the list and the external id |
 | `Phil\NewsletterBundle\Application\Event\LinkClicked` | After a click is counted per recipient |
+| `Phil\NewsletterBundle\Application\Event\CampaignApproved` | After an approval is saved: the campaign's id and the instant |
+| `Phil\NewsletterBundle\Application\Event\SendRunPaused` | After a send run is paused, by its circuit breaker or by an operator: the run's and the campaign's ids, the `PauseReason` and the instant |
+| `Phil\NewsletterBundle\Application\Event\SendRunResumed` | After an operator resumed a send run: the run's and the campaign's ids and the instant |
+| `Phil\NewsletterBundle\Application\Event\SendRunCompleted` | After every message of a send run was sent or skipped: the run's and the campaign's ids and the instant |
 
 ## Templates
 
