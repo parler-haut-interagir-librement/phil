@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0ef8a476f91243a526649d4202457cbf1637e6f0a263dd30738a33ee670868b4 -->
+<!-- phil-dev source-sha256=ace8e883a7ce4b6d64781720d2032ae8b4ae50c8de38d027e170c18b17d0545a -->
 # Authentification renforcée
 
 Une application peut demander une authentification plus forte ou plus récente sur les pages qui en ont besoin.
@@ -24,6 +24,28 @@ public function payout(): Response
 
 Un niveau est atteint par sa classe ou par une classe plus forte sur l'échelle. Un `acr` que l'échelle ne liste pas
 n'atteint rien. `max_age` compare la dernière preuve d'authentification à l'horloge.
+
+## Le niveau exigé
+
+`elevation.required_level` nomme un niveau que toute connexion doit atteindre :
+
+```yaml
+phil_identity_client:
+    elevation:
+        required_level: password
+        levels:
+            password: { acr: 'urn:example:password' }
+            two_factor: { acr: 'urn:example:two-factor' }
+```
+
+Le niveau a besoin d'un `acr`. Chaque requête d'autorisation demande sa classe et les plus fortes dans `acr_values` ;
+une authentification renforcée vers un niveau plus faible, ou vers un niveau sans classe, demande plutôt les classes
+exigées. Le fournisseur peut tout de même répondre avec une classe plus faible : l'`acr` retourné est vérifié, et une
+connexion sous le niveau échoue avec `AssuranceLevelNotReachedException` et aboutit à `paths.failure`. Un `acr` que
+l'échelle ne liste pas, ou aucun, n'atteint rien.
+
+Une session sous le niveau, comme une session commencée avant que l'exigence soit relevée, prend fin à sa requête
+suivante. `LocalSessionEnded` le signale avec `LocalSessionEndReason::AssuranceNotReached`.
 
 ## Ce que voit l'utilisateur
 

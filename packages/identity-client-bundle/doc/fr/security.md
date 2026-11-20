@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ef0d0576122b15cf452decefb5a8fd420a16b81b8b1564473117b1d75b83f8f9 -->
+<!-- phil-dev source-sha256=430a3bab5afcd070f55bc8a78d66296aa9028bfc28e5c8312776a219e03b4e1e -->
 # Sécurité
 
 ## Ce que le bundle garantit
@@ -15,6 +15,8 @@
 | Jeton de déconnexion falsifié qui met fin à des sessions | Signature et revendications vérifiées | Règles de `OidcBackChannelLogout` |
 | Jeton de déconnexion rejoué | Chaque `jti` une seule fois | `ReplayGuardedBackChannelLogout` |
 | Jeton de déconnexion qui n'arrive jamais | Plafond de session | `SessionCapListener` |
+| Réserve de rejeu ou sessions terminées perdues avec un cache vidé | Jetons de déconnexion et sessions plus anciens que le plancher de démarrage à froid refusés, une fois activé | `CacheReplayFloor`, `SessionRequirementsListener` |
+| Un fournisseur qui répond avec un `acr` plus faible que celui demandé | L'`acr` retourné vérifié contre le niveau exigé, sessions sous ce niveau terminées | `SignInListener`, `SessionRequirementsListener` |
 | Famille de jetons de renouvellement révoquée par une course | Un renouvellement par jeton, résultat partagé | `SerializedTokenRefreshListener` |
 | Famille de jetons de renouvellement révoquée par le fournisseur | Toute la session locale invalidée | `SerializedTokenRefreshListener` |
 | Jetons divulgués par une session ou un cache | Gardés seulement s'ils sont lus ; résultats partagés chiffrés | `SignInListener`, `EncryptedRefreshOutcomes` |
