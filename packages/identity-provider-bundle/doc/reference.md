@@ -74,9 +74,12 @@ Every name starts with `phil_identity_provider`.
 
 `phil_identity_account`, `phil_identity_address`, `phil_identity_passkey`, `phil_identity_totp`,
 `phil_identity_recovery_codes`, `phil_identity_session`, `phil_identity_linked`, `phil_identity_client`,
-`phil_identity_consent`, `phil_identity_code`, `phil_identity_token`, `phil_identity_assertion`,
-`phil_identity_signing_key`, and `phil_identity_link_token` with `links.mode: stored`. Every `account_id` column holds 36
-characters, the identifier of `accounts.id_generator`.
+`phil_identity_consent`, `phil_identity_code`, `phil_identity_token`, `phil_identity_revoked_family`,
+`phil_identity_assertion`, `phil_identity_signing_key`, and `phil_identity_link_token` with `links.mode: stored`. Every
+`account_id` column holds 36 characters, the identifier of `accounts.id_generator`.
+
+Every instant column is mapped as `datetime_utc_immutable`: written and read in UTC, whatever the time zone of the
+process.
 
 ## Commands
 
@@ -88,7 +91,7 @@ characters, the identifier of `accounts.id_generator`.
 | `phil:identity-provider:client:disable` | Disables a client, or rotates its secret with `--rotate-secret`. |
 | `phil:identity-provider:rotate-keys` | Rotates the signing keys of the database; `--now` activates the pending key at once; with `oidc.signing_keys.automatic_rotation: false`, only `--force` or `--now` rotates. |
 | `phil:identity-provider:seal-key` | Seals a private key file under `secrets.kms_key`, for the file source of signing keys; with `secrets.kms_key` set. |
-| `phil:identity-provider:purge` | Removes expired codes, tokens, client assertions and link tokens, and closed or idle sessions. |
+| `phil:identity-provider:purge` | Removes expired codes, tokens, client assertions, link tokens and marks of revoked families, and closed or idle sessions. |
 
 ## Events
 

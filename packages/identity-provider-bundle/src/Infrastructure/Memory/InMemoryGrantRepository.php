@@ -9,6 +9,7 @@ use Override;
 use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\RevokedFamily;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\UsedAssertion;
 use Symfony\Contracts\Service\ResetInterface;
 
@@ -27,6 +28,9 @@ final class InMemoryGrantRepository implements GrantRepository, ResetInterface
 
     /** @var array<string, UsedAssertion> */
     private array $assertions = [];
+
+    /** @var array<string, RevokedFamily> */
+    private array $revokedFamilies = [];
 
     #[Override]
     public function code(string $id): ?AuthorizationCode
@@ -88,6 +92,24 @@ final class InMemoryGrantRepository implements GrantRepository, ResetInterface
     }
 
     #[Override]
+    public function revokeFamily(string $family, DateTimeImmutable $now, DateTimeImmutable $keepUntil): void
+    {
+        $this->revokedFamilies[$family] ??= RevokedFamily::mark($family, $now, $keepUntil);
+
+        foreach ($this->tokens as $token) {
+            if ($token->family() === $family) {
+                $token->revoke($now);
+            }
+        }
+    }
+
+    #[Override]
+    public function isFamilyRevoked(string $family): bool
+    {
+        return \array_key_exists($family, $this->revokedFamilies);
+    }
+
+    #[Override]
     public function rotateToken(IssuedToken $token, DateTimeImmutable $now): bool
     {
         $stored = $this->tokens[$token->id()] ?? null;
@@ -117,12 +139,13 @@ final class InMemoryGrantRepository implements GrantRepository, ResetInterface
     #[Override]
     public function purge(DateTimeImmutable $before): int
     {
-        $count = \count($this->codes) + \count($this->tokens) + \count($this->assertions);
+        $count = \count($this->codes) + \count($this->tokens) + \count($this->assertions) + \count($this->revokedFamilies);
         $this->codes = array_filter($this->codes, static fn (AuthorizationCode $code): bool => $code->expiresAt() >= $before);
         $this->tokens = array_filter($this->tokens, static fn (IssuedToken $token): bool => $token->expiresAt() >= $before);
         $this->assertions = array_filter($this->assertions, static fn (UsedAssertion $assertion): bool => $assertion->expiresAt() >= $before);
+        $this->revokedFamilies = array_filter($this->revokedFamilies, static fn (RevokedFamily $mark): bool => $mark->expiresAt() >= $before);
 
-        return $count - \count($this->codes) - \count($this->tokens) - \count($this->assertions);
+        return $count - \count($this->codes) - \count($this->tokens) - \count($this->assertions) - \count($this->revokedFamilies);
     }
 
     /**
@@ -143,5 +166,6 @@ final class InMemoryGrantRepository implements GrantRepository, ResetInterface
         $this->codes = [];
         $this->tokens = [];
         $this->assertions = [];
+        $this->revokedFamilies = [];
     }
 }

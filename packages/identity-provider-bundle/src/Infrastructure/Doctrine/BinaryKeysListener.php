@@ -14,6 +14,7 @@ use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Client;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Consent;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\RevokedFamily;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\SigningKey;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\UsedAssertion;
 use Phil\IdentityProviderBundle\Domain\Model\Passkey\Passkey;
@@ -49,6 +50,7 @@ final readonly class BinaryKeysListener
         IssuedToken::class => ['id', 'family', 'clientId', 'accountId', 'sessionId'],
         SigningKey::class => ['kid'],
         UsedAssertion::class => ['id'],
+        RevokedFamily::class => ['family'],
     ];
 
     public function loadClassMetadata(LoadClassMetadataEventArgs $event): void

@@ -48,9 +48,9 @@ final class Passkey
         private readonly bool $backupEligible,
         #[ORM\Column(name: 'backed_up')]
         private bool $backedUp,
-        #[ORM\Column(name: 'created_at')]
+        #[ORM\Column(name: 'created_at', type: 'datetime_utc_immutable')]
         private readonly DateTimeImmutable $createdAt,
-        #[ORM\Column(name: 'last_used_at', nullable: true)]
+        #[ORM\Column(name: 'last_used_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $lastUsedAt = null,
         #[ORM\Column(name: 'attestation_format', length: RegisteredCredential::FORMAT_MAX_LENGTH, options: ['default' => 'none'])]
         private readonly string $attestationFormat = 'none',

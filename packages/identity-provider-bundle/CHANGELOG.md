@@ -9,9 +9,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 The next version is 0.3.0-alpha: the links of the emails point to `public_origin`, and the `prod` environment refuses
 to boot without it or `framework.trusted_hosts`; registration is limited by default; the keys of the tables take the
 binary collation on MySQL and MariaDB, to migrate; the provider gains client assertions, the `client_credentials` grant
-and resources, new columns and a table to migrate, and refresh tokens bound to their session by default; the accounts
-take identifiers of up to 36 characters, a canonical address, a state in place of `disabled_at` and a table of
-addresses, to migrate with two updates. See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
+and resources, new columns and two tables to migrate, and refresh tokens bound to their session by default; the
+accounts take identifiers of up to 36 characters, a canonical address, a state in place of `disabled_at` and a table of
+addresses, to migrate with two updates; the instants are written in UTC, a database written in another time zone to
+convert once. See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
 
 ### Added
 
@@ -163,6 +164,17 @@ addresses, to migrate with two updates. See [Upgrading from 0.2](doc/installatio
   loaded once — an OpenSSL key for RS256 and ES256, the libsodium secret key for EdDSA — instead of rebuilding it at
   each signature: an RS256 signature takes about 2.2 ms instead of 3.6, ES256 about 33 µs instead of 90.
 - An Ed25519 private key whose public half is not the one of its seed is refused.
+- `MailerAccountMailer` takes the transports of the Mailer component (`Symfony\Component\Mailer\Transport\TransportInterface`)
+  and a `Symfony\Component\Mime\BodyRendererInterface` in place of `MailerInterface`; each account email has a text
+  part, `@PhilIdentityProvider/email/<message>.txt.twig`, that writes the link in full, and a `TrackingHeader` that
+  turns off the provider's tracking of opens and clicks. The default `SmsSender` is a `NotifierSmsSender` on a texter
+  of the SMS transports, without a bus, in place of the service `texter`.
+- `GrantRepository` gains `revokeFamily()` and `isFamilyRevoked()`; an implementation of its own adds them. The new
+  table `phil_identity_revoked_family` (`Domain\Model\Oidc\RevokedFamily`) keeps the marks of the families revoked,
+  removed by `phil:identity-provider:purge` once expired. Migration: run `bin/console doctrine:migrations:diff` and
+  apply it.
+- Every instant column of the bundle's tables is mapped as `datetime_utc_immutable`, and every instant a query passes
+  is typed so: the SQL type is the same, and `doctrine:migrations:diff` writes no change.
 
 ### Fixed
 
@@ -183,6 +195,17 @@ addresses, to migrate with two updates. See [Upgrading from 0.2](doc/installatio
   signed in: it signs in again.
 - Under the default case-insensitive collation of MySQL and MariaDB, the client `App` was found for `app`, the
   federated subject `AbC` for `abc`, and an address with an accent for the one without.
+- The verification, reset and sign-in links went through `MailerInterface`, and the codes sent by text message through
+  the texter `texter`: where Messenger routes `SendEmailMessage` and `SmsMessage` to an asynchronous transport, as its
+  recipe does, the link or the code waited in the queue, in the failure transport and in their backups, where reading
+  it was enough to take the account. They are handed to the transports in the request, and nothing of them is queued.
+- When two requests presented one code or one refresh token, the one that lost could revoke the family after the
+  winner used the grant and before it saved its new tokens, which then stayed valid. The family is marked revoked
+  before its tokens are, and the winner reads the mark once its tokens are saved: they are revoked with the family and
+  the winner is refused.
+- The instants were written in the time zone of the process and read in the time zone of the reader: where the web
+  server and the workers or the console ran in different zones, an expiry read back was shifted, and a token past its
+  expiry could be accepted. They are written and read in UTC whatever the time zone of the process.
 
 ## 0.2.0-alpha - 2026-11-17
 

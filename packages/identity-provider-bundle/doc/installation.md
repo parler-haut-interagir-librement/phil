@@ -43,8 +43,8 @@ Argon2id (`sodium`). Generate the migration of the tables with `bin/console doct
   (`oidc.refresh_token_bound_to_session`, on by default); set it to `false` to keep the former behaviour.
 - `TokenController::AUTH_METHODS` is gone: the discovery document reads the methods from
   `oidc.client_authentication.methods`. `IssuedToken::accountId()` returns null for a token of the `client_credentials`
-  grant, and `GrantRepository` gains `useAssertion()`: an implementation of its own adds it. `Tokens::bearer()` gives a
-  third member, the client of the token.
+  grant, and `GrantRepository` gains `useAssertion()`, `revokeFamily()` and `isFamilyRevoked()`: an implementation of
+  its own adds them. `Tokens::bearer()` gives a third member, the client of the token.
 - The accounts gain the table `phil_identity_address`, and `phil_identity_account` the columns `email_canonical`
   (unique), `state` and `state_changed_at` in place of `disabled_at`; every `account_id`, and the `id` of
   `phil_identity_account`, holds up to 36 characters instead of a fixed 26. Run `bin/console doctrine:migrations:diff`,
@@ -66,6 +66,19 @@ Argon2id (`sodium`). Generate the migration of the tables with `bin/console doct
   keeps working.
 - With `links.mode: stored`, the schema gains `phil_identity_link_token`: run `bin/console doctrine:migrations:diff` and
   migrate. The links sent before the change of mode stop working.
+- With the module `oidc`, the schema gains the table `phil_identity_revoked_family`, the marks of the families of tokens
+  revoked: run `bin/console doctrine:migrations:diff` and migrate.
+- Every instant column — `expires_at`, `revoked_at`, `created_at` and the others — takes the Doctrine type
+  `datetime_utc_immutable`: the instants are written and read in UTC whatever the time zone of the process. The SQL
+  type is the same, so `doctrine:migrations:diff` writes no change. A database written by processes whose time zone
+  was not UTC holds local times: convert those columns to UTC once, before the upgrade goes live — for example, on
+  MySQL, `UPDATE phil_identity_token SET expires_at = CONVERT_TZ(expires_at, 'America/Toronto', '+00:00')` for each
+  instant column of the tables listed in [Tables](reference.md#tables), with the zone the processes ran in. A database
+  written in UTC needs nothing.
+- The account emails go through the transports of the Mailer component and the codes through the SMS transports of
+  the Notifier component, never through Messenger: `MailerAccountMailer` takes the transports and the body renderer
+  of Twig instead of `MailerInterface`, and the bundle hands `NotifierSmsSender` a texter without a bus. See [Why
+  account emails and SMS never go through Messenger](links-and-sms.md#why-account-emails-and-sms-never-go-through-messenger).
 
 ## Where the links point
 

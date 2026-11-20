@@ -69,9 +69,9 @@ final class Client
         private array $scopes,
         #[ORM\Column(name: 'first_party')]
         private bool $firstParty,
-        #[ORM\Column(name: 'created_at')]
+        #[ORM\Column(name: 'created_at', type: 'datetime_utc_immutable')]
         private readonly DateTimeImmutable $createdAt,
-        #[ORM\Column(name: 'disabled_at', nullable: true)]
+        #[ORM\Column(name: 'disabled_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $disabledAt,
         #[ORM\Column(name: 'require_pkce', options: ['default' => true])]
         private bool $requirePkce,

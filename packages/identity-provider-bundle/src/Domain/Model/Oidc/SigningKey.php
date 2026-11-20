@@ -36,11 +36,11 @@ final class SigningKey
         private readonly string $privateMaterial,
         #[ORM\Column(name: 'public_jwk', type: 'json')]
         private readonly array $publicJwk,
-        #[ORM\Column(name: 'created_at')]
+        #[ORM\Column(name: 'created_at', type: 'datetime_utc_immutable')]
         private readonly DateTimeImmutable $createdAt,
-        #[ORM\Column(name: 'activated_at', nullable: true)]
+        #[ORM\Column(name: 'activated_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $activatedAt = null,
-        #[ORM\Column(name: 'retired_at', nullable: true)]
+        #[ORM\Column(name: 'retired_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $retiredAt = null,
     ) {
     }

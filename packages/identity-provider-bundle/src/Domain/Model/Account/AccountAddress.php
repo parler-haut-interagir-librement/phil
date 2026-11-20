@@ -34,9 +34,9 @@ final class AccountAddress
         private string $address,
         #[ORM\Column(name: 'canonical', length: Account::EMAIL_MAX_LENGTH)]
         private string $canonical,
-        #[ORM\Column(name: 'created_at')]
+        #[ORM\Column(name: 'created_at', type: 'datetime_utc_immutable')]
         private readonly DateTimeImmutable $createdAt,
-        #[ORM\Column(name: 'verified_at', nullable: true)]
+        #[ORM\Column(name: 'verified_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $verifiedAt = null,
     ) {
     }

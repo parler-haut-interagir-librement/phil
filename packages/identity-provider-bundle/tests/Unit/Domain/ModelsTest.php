@@ -15,6 +15,7 @@ use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Client;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Consent;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\RevokedFamily;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\SigningKey;
 use Phil\IdentityProviderBundle\Domain\Model\Passkey\Passkey;
 use Phil\IdentityProviderBundle\Domain\Model\Session\AccountSession;
@@ -38,6 +39,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AuthorizationCode::class)]
 #[CoversClass(IssuedToken::class)]
 #[CoversClass(SigningKey::class)]
+#[CoversClass(RevokedFamily::class)]
 final class ModelsTest extends TestCase
 {
     private const string ID = '01JCZ6Q7Y3W0000000000000AB';
@@ -385,5 +387,15 @@ final class ModelsTest extends TestCase
         $key->retire($now);
         $key->retire($now->modify('+1 day'));
         self::assertSame([$now, false, false], [$key->retiredAt(), $key->isPending(), $key->isActive()]);
+    }
+
+    public function testTheMarkOfARevokedFamily(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $mark = RevokedFamily::mark('FAMILY0000000000000000000A', $now, $now->modify('+30 days'));
+
+        self::assertSame('FAMILY0000000000000000000A', $mark->family());
+        self::assertSame($now, $mark->revokedAt());
+        self::assertSame($now->modify('+30 days')->getTimestamp(), $mark->expiresAt()->getTimestamp());
     }
 }

@@ -32,7 +32,7 @@ final class Consent
         private readonly string $clientId,
         #[ORM\Column(name: 'scopes', type: 'json')]
         private array $scopes,
-        #[ORM\Column(name: 'granted_at')]
+        #[ORM\Column(name: 'granted_at', type: 'datetime_utc_immutable')]
         private DateTimeImmutable $grantedAt,
     ) {
     }

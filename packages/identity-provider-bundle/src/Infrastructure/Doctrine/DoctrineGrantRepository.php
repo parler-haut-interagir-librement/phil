@@ -12,13 +12,15 @@ use Override;
 use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\RevokedFamily;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\UsedAssertion;
 
 /**
- * The codes in `phil_identity_code` and the tokens in `phil_identity_token`; each save is flushed, the purge is two
- * statements. A code is used, and a refresh token rotated, by one conditional `UPDATE`, whose count of rows tells the
- * one request that won; a client assertion is recorded by one `INSERT` on the connection, outside the unit of work, the
- * key of the row refusing the second.
+ * The codes in `phil_identity_code`, the tokens in `phil_identity_token` and the marks of revoked families in
+ * `phil_identity_revoked_family`; each save is flushed, the purge is one statement by table. A code is used, and a
+ * refresh token rotated, by one conditional `UPDATE`, whose count of rows tells the one request that won; a client
+ * assertion and the mark of a revoked family are recorded by one `INSERT` on the connection, outside the unit of work,
+ * the key of the row refusing the second. Every instant is written and read in UTC.
  */
 final readonly class DoctrineGrantRepository implements GrantRepository
 {
@@ -44,7 +46,7 @@ final readonly class DoctrineGrantRepository implements GrantRepository
     public function consumeCode(AuthorizationCode $code, DateTimeImmutable $now): bool
     {
         $count = $this->entityManager->createQuery(\sprintf('UPDATE %s c SET c.usedAt = :now WHERE c.id = :id AND c.usedAt IS NULL', AuthorizationCode::class))
-            ->setParameter('now', $now, Types::DATETIME_IMMUTABLE)
+            ->setParameter('now', $now, Types::DATETIME_UTC_IMMUTABLE)
             ->setParameter('id', $code->id())
             ->execute();
 
@@ -95,10 +97,36 @@ final readonly class DoctrineGrantRepository implements GrantRepository
     }
 
     #[Override]
+    public function revokeFamily(string $family, DateTimeImmutable $now, DateTimeImmutable $keepUntil): void
+    {
+        try {
+            $this->entityManager->getConnection()->insert(
+                RevokedFamily::TABLE,
+                ['family' => $family, 'revoked_at' => $now, 'expires_at' => $keepUntil],
+                ['revoked_at' => Types::DATETIME_UTC_IMMUTABLE, 'expires_at' => Types::DATETIME_UTC_IMMUTABLE],
+            );
+        } catch (UniqueConstraintViolationException) {
+            // Marked already, by another request: its tokens are revoked again below, which changes none revoked.
+        }
+
+        foreach ($this->family($family) as $token) {
+            $token->revoke($now);
+        }
+
+        $this->entityManager->flush();
+    }
+
+    #[Override]
+    public function isFamilyRevoked(string $family): bool
+    {
+        return false !== $this->entityManager->getConnection()->fetchOne(\sprintf('SELECT 1 FROM %s WHERE family = ?', RevokedFamily::TABLE), [$family]);
+    }
+
+    #[Override]
     public function rotateToken(IssuedToken $token, DateTimeImmutable $now): bool
     {
         $count = $this->entityManager->createQuery(\sprintf('UPDATE %s t SET t.rotatedAt = :now WHERE t.id = :id AND t.rotatedAt IS NULL AND t.revokedAt IS NULL', IssuedToken::class))
-            ->setParameter('now', $now, Types::DATETIME_IMMUTABLE)
+            ->setParameter('now', $now, Types::DATETIME_UTC_IMMUTABLE)
             ->setParameter('id', $token->id())
             ->execute();
 
@@ -115,7 +143,7 @@ final readonly class DoctrineGrantRepository implements GrantRepository
     public function useAssertion(UsedAssertion $assertion): bool
     {
         try {
-            $this->entityManager->getConnection()->insert(UsedAssertion::TABLE, ['id' => $assertion->id(), 'expires_at' => $assertion->expiresAt()], ['expires_at' => Types::DATETIME_IMMUTABLE]);
+            $this->entityManager->getConnection()->insert(UsedAssertion::TABLE, ['id' => $assertion->id(), 'expires_at' => $assertion->expiresAt()], ['expires_at' => Types::DATETIME_UTC_IMMUTABLE]);
         } catch (UniqueConstraintViolationException) {
             return false;
         }
@@ -128,9 +156,9 @@ final readonly class DoctrineGrantRepository implements GrantRepository
     {
         $removed = 0;
 
-        foreach ([AuthorizationCode::class, IssuedToken::class, UsedAssertion::class] as $class) {
+        foreach ([AuthorizationCode::class, IssuedToken::class, UsedAssertion::class, RevokedFamily::class] as $class) {
             $count = $this->entityManager->createQuery(\sprintf('DELETE FROM %s g WHERE g.expiresAt < :before', $class))
-                ->setParameter('before', $before)
+                ->setParameter('before', $before, Types::DATETIME_UTC_IMMUTABLE)
                 ->execute();
             \assert(\is_int($count));
             $removed += $count;

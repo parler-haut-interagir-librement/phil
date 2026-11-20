@@ -40,11 +40,11 @@ final class AccountSession
         private array $methods,
         #[ORM\Column(name: 'risky')]
         private readonly bool $risky,
-        #[ORM\Column(name: 'created_at')]
+        #[ORM\Column(name: 'created_at', type: 'datetime_utc_immutable')]
         private readonly DateTimeImmutable $createdAt,
-        #[ORM\Column(name: 'last_seen_at')]
+        #[ORM\Column(name: 'last_seen_at', type: 'datetime_utc_immutable')]
         private DateTimeImmutable $lastSeenAt,
-        #[ORM\Column(name: 'closed_at', nullable: true)]
+        #[ORM\Column(name: 'closed_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $closedAt = null,
     ) {
     }

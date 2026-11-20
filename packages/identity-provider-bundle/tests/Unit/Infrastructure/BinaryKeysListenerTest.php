@@ -35,6 +35,7 @@ final class BinaryKeysListenerTest extends TestCase
                 'phil_identity_linked' => ['account_id', 'id', 'provider', 'subject'],
                 'phil_identity_passkey' => ['account_id', 'id'],
                 'phil_identity_recovery_codes' => ['account_id'],
+                'phil_identity_revoked_family' => ['family'],
                 'phil_identity_session' => ['account_id', 'id'],
                 'phil_identity_signing_key' => ['kid'],
                 'phil_identity_token' => ['account_id', 'client_id', 'family', 'id', 'session_id'],

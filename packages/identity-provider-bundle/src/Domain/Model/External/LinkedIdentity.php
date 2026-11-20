@@ -36,9 +36,9 @@ final class LinkedIdentity
         private readonly string $provider,
         #[ORM\Column(name: 'subject', length: self::SUBJECT_MAX_LENGTH)]
         private readonly string $subject,
-        #[ORM\Column(name: 'linked_at')]
+        #[ORM\Column(name: 'linked_at', type: 'datetime_utc_immutable')]
         private readonly DateTimeImmutable $linkedAt,
-        #[ORM\Column(name: 'last_used_at', nullable: true)]
+        #[ORM\Column(name: 'last_used_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $lastUsedAt = null,
     ) {
     }

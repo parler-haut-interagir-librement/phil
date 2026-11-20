@@ -46,7 +46,9 @@ use Symfony\Component\Uid\Ulid;
  * - The access token is a JSON Web Token (RFC 9068) whose `jti` has a row, so that it can be revoked and introspected;
  *   the ID token carries `auth_time`, `amr`, `nonce`, `sid` and `at_hash`; a refresh token, opaque, is issued for the
  *   scope `offline_access` and rotated at each use, in one step, a rotated one presented again — even by a request
- *   that read it at the same time as the one that rotated it — revoking its whole family. A refresh token issued in a
+ *   that read it at the same time as the one that rotated it — revoking its whole family. The family is marked revoked
+ * before its tokens are, and the request that issues tokens in it reads the mark once they are saved: the tokens of
+ * the request that won are revoked too, and it is refused, whichever of the two writes first. A refresh token issued in a
  *   session lives no longer than it: once the session is closed, or older than the session bound, it is refused and
  *   its family revoked.
  * - A confidential client that registered resources asks tokens for itself by the `client_credentials` grant: an
@@ -455,12 +457,12 @@ final readonly class Tokens
         return $account;
     }
 
+    /**
+     * Revokes the family, its mark kept as long as a token issued now could live.
+     */
     private function revokeFamily(string $family, ?string $accountId, DateTimeImmutable $now): void
     {
-        foreach ($this->grants->family($family) as $token) {
-            $token->revoke($now);
-            $this->grants->saveToken($token);
-        }
+        $this->grants->revokeFamily($family, $now, $now->modify(\sprintf('+%d seconds', max($this->settings->refreshTokenLifetime, $this->settings->accessTokenLifetime))));
 
         if (null !== $accountId) {
             $this->journal->record(IdentityEventType::TokenReuseDetected, $accountId, ['family' => $family]);
@@ -488,7 +490,7 @@ final readonly class Tokens
         $key = $this->keys->active();
         $jti = Base64Url::encode(random_bytes(24));
         $accessExpires = $now->modify(\sprintf('+%d seconds', $this->settings->accessTokenLifetime));
-        $this->grants->saveToken(IssuedToken::issue($jti, TokenKind::Access, $family, $client->id(), $account->id(), $scopes, $sessionId, $authTime, $methods, $now, $accessExpires, $audience));
+        $rows = [IssuedToken::issue($jti, TokenKind::Access, $family, $client->id(), $account->id(), $scopes, $sessionId, $authTime, $methods, $now, $accessExpires, $audience)];
 
         $subject = new Subjects($this->settings)->of($account->id(), $client);
         $accessToken = Jws::encode(array_filter([
@@ -537,8 +539,18 @@ final readonly class Tokens
 
         if (\in_array('offline_access', $scopes, true) && $refreshExpires > $now) {
             $refresh = Base64Url::encode(random_bytes(32));
-            $this->grants->saveToken(IssuedToken::issue(IssuedToken::idOfRefresh($refresh), TokenKind::Refresh, $family, $client->id(), $account->id(), $scopes, $sessionId, $authTime, $methods, $now, $refreshExpires, $audience));
+            $rows[] = IssuedToken::issue(IssuedToken::idOfRefresh($refresh), TokenKind::Refresh, $family, $client->id(), $account->id(), $scopes, $sessionId, $authTime, $methods, $now, $refreshExpires, $audience);
             $response['refresh_token'] = $refresh;
+        }
+
+        $this->grants->saveToken(...$rows);
+
+        // A request that presented the same code or refresh token may have revoked the family after this one used it,
+        // and before its tokens were saved: its mark is read now that they are, and they are revoked with the family.
+        if ($this->grants->isFamilyRevoked($family)) {
+            $this->revokeFamily($family, null, $now);
+
+            throw OAuthError::invalidGrant('The grant was presented again while its tokens were issued.');
         }
 
         $this->journal->record(IdentityEventType::TokensIssued, $account->id(), ['client' => $client->id(), 'family' => $family]);

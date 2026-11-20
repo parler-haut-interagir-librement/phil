@@ -145,6 +145,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\KeyManagement\EncrypterInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Notifier\Texter;
 use Symfony\Component\Notifier\TexterInterface;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\CacheStorage;
@@ -233,6 +234,15 @@ final class IdentityProviderServices
 
     /** The tag of the services that add claims to userinfo. */
     public const string CLAIMS_PROVIDER_TAG = 'phil_identity_provider.claims_provider';
+
+    /** The transports of the Mailer component, which the account emails go through without the bus. */
+    public const string MAILER_TRANSPORTS = 'mailer.transports';
+
+    /** The renderer of the Twig templates of an email, run before the email leaves. */
+    public const string BODY_RENDERER = 'twig.mime_body_renderer';
+
+    /** The SMS transports of the Notifier component, which the codes go through without the bus. */
+    public const string TEXTER_TRANSPORTS = 'texter.transports';
 
     /** The stores of each module, with their Doctrine and memory implementations. */
     private const array REPOSITORIES = [
@@ -396,7 +406,7 @@ final class IdentityProviderServices
 
         if (null !== $config['mailer']['from'] && interface_exists(MailerInterface::class)) {
             $container->register(AccountMailer::class, MailerAccountMailer::class)
-                ->setArguments([new Reference('mailer'), new Reference('translator'), $config['mailer']['from'], $config['site_name']]);
+                ->setArguments([new Reference(self::MAILER_TRANSPORTS), new Reference(self::BODY_RENDERER), new Reference('translator'), $config['mailer']['from'], $config['site_name']]);
         }
 
         $mailer = new Reference(AccountMailer::class, ContainerInterface::NULL_ON_INVALID_REFERENCE);
@@ -621,7 +631,8 @@ final class IdentityProviderServices
             if (null !== $config['sms']['sender']) {
                 $container->setAlias(SmsSender::class, $config['sms']['sender']);
             } elseif (interface_exists(TexterInterface::class)) {
-                $container->register(SmsSender::class, NotifierSmsSender::class)->setArguments([new Reference('texter'), $config['sms']['from']]);
+                // A texter on the transports, without the bus the texter `texter` puts the code on when Messenger routes it.
+                $container->register(SmsSender::class, NotifierSmsSender::class)->setArguments([new Definition(Texter::class, [new Reference(self::TEXTER_TRANSPORTS), null, new Reference('event_dispatcher', ContainerInterface::IGNORE_ON_INVALID_REFERENCE)]), $config['sms']['from']]);
             } else {
                 throw new InvalidConfigurationException('The module "sms" needs the Notifier component and its texter, or "sms.sender", a service implementing SmsSender.');
             }
