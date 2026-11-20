@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4ca9a394d4da04cffa7c09af6628888479dabf11d938c7debec023d0909169a7 -->
+<!-- phil-dev source-sha256=082c4a3023d8241bef0a95d218ed63cd4ecfa845751c7c50d4c170cec1f2f629 -->
 # Installation
 
 ```sh
@@ -43,7 +43,22 @@ phil_newsletter:
 
 `NewsletterSchema::configure()` ajoute les tables à un schéma. Avec l'ORM, `NewsletterSchemaListener`, enregistré sur
 son événement `postGenerateSchema` quand DoctrineBundle est là, les ajoute au schéma qu'il génère, et
-`doctrine:migrations:diff` écrit la migration. Voir [Stockage](storage.md).
+`doctrine:migrations:diff` écrit la migration, et celle de chaque version suivante. Voir [Stockage](storage.md).
+
+## Les approbateurs
+
+Une campagne part une fois qu'un utilisateur de `ROLE_NEWSLETTER_APPROVER` l'a approuvée. Donnez le rôle aux personnes
+qui approuvent, dans la sécurité de l'application :
+
+```yaml
+# config/packages/security.yaml
+security:
+    role_hierarchy:
+        ROLE_EDITOR_IN_CHIEF: [ROLE_NEWSLETTER_APPROVER]
+```
+
+`approval.role` nomme un autre rôle, `approval.four_eyes` exige un approbateur autre que l'auteur, et
+`approval.required: false` envoie sans approbation. Voir [Campagnes](campaigns.md#approbation).
 
 ## Les *workers*
 
