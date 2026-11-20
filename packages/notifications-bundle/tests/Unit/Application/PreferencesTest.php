@@ -111,7 +111,7 @@ final class PreferencesTest extends TestCase
         self::assertTrue($settings->allows('comment.replied', 'site'));
     }
 
-    #[TestWith(['Bad:email', 'The opted-out type "Bad"'])]
+    #[TestWith(['Bad:email', 'The opted-out type (length 3)'])]
     #[TestWith(['comment', '"" is not the name of a channel'])]
     #[TestWith(['comment:Email', '"Email" is not the name of a channel'])]
     #[TestWith(['comment:email:x', '"email:x" is not the name of a channel'])]

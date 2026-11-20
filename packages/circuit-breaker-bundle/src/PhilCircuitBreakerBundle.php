@@ -11,6 +11,7 @@ use Phil\CircuitBreaker\CircuitOverrides;
 use Phil\CircuitBreaker\Contract\CircuitOverride;
 use Phil\CircuitBreakerBundle\Infrastructure\Cache\CacheCircuitStateStore;
 use Phil\CircuitBreakerBundle\Infrastructure\Configuration\ConfiguredCircuitBreakers;
+use Phil\CircuitBreakerBundle\Infrastructure\DependencyInjection\SharedStateGuard;
 use Phil\CircuitBreakerBundle\Infrastructure\HttpClient\CircuitBreakingHttpClient;
 use Phil\CircuitBreakerBundle\Infrastructure\Profiler\CircuitBreakerDataCollector;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -27,7 +28,8 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_it
  *
  * ```yaml
  * phil_circuit_breaker:
- *     cache_pool: cache.app            # or state_store: App\Circuits\CircuitStore
+ *     cache_pool: cache.redis          # or state_store: App\Circuits\CircuitStore
+ *     single_server: false             # true accepts a pool local to the server in prod
  *     circuits:
  *         http.payments:
  *             failure_rate_percent: 50
@@ -40,7 +42,8 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_it
  * ```
  *
  * The bundle wires one breaker per declared circuit in `CircuitBreakers`, the states in a PSR-6 pool shared by the
- * workers or in the application's store, the overrides tagged `OVERRIDE_TAG` asked together, the HTTP clients put
+ * workers or in the application's store — a pool local to each server is refused in the prod environment, unless
+ * `single_server` says there is one —, the overrides tagged `OVERRIDE_TAG` asked together, the HTTP clients put
  * behind their circuits, and the profiler panel. The keys of the declared circuits are the parameter `CIRCUIT_KEYS`,
  * for a bundle that derives something per circuit, such as a flag that forces it open.
  */
@@ -77,9 +80,13 @@ final class PhilCircuitBreakerBundle extends AbstractBundle
                     ->defaultNull()
                 ->end()
                 ->scalarNode('cache_pool')
-                    ->info('Service id of the PSR-6 cache pool the circuit states are kept in, when no state_store is given.')
+                    ->info('Service id of the PSR-6 cache pool the circuit states are kept in, when no state_store is given; shared by every server.')
                     ->defaultValue('cache.app')
                     ->cannotBeEmpty()
+                ->end()
+                ->booleanNode('single_server')
+                    ->info('Accepts a cache pool local to the server in the prod environment, for an application on one server.')
+                    ->defaultFalse()
                 ->end()
                 ->arrayNode('circuits')
                     ->info('One circuit breaker per key, each with its policy.')
@@ -110,6 +117,12 @@ final class PhilCircuitBreakerBundle extends AbstractBundle
             ->end();
     }
 
+    #[Override]
+    public function build(ContainerBuilder $container): void
+    {
+        $container->addCompilerPass(new SharedStateGuard());
+    }
+
     /**
      * @param array<array-key, mixed> $config
      */
@@ -138,7 +151,12 @@ final class PhilCircuitBreakerBundle extends AbstractBundle
 
         if (null === $store) {
             $store = CacheCircuitStateStore::class;
-            $services->set(CacheCircuitStateStore::class)->args([service($this->id($config, 'cache_pool'))]);
+            $pool = $this->id($config, 'cache_pool');
+            $services->set(CacheCircuitStateStore::class)->args([service($pool)]);
+
+            if (true !== ($config['single_server'] ?? false)) {
+                $builder->setParameter(SharedStateGuard::POOL_PARAMETER, $pool);
+            }
         }
 
         $services->set(CircuitOverrides::class)

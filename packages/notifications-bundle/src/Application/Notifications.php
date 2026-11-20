@@ -33,26 +33,29 @@ final readonly class Notifications
     /**
      * @param string|list<string>     $recipients
      * @param array<array-key, mixed> $data       identifiers only, by key
+     * @param string|null             $dedupeKey  what makes two notifications the same within the window of duplicates,
+     *                                            when their subject and data are not enough
      *
      * @throws UnknownNotificationType when the type is not declared
      * @throws InvalidNotification     when an identifier is of the wrong shape
      */
-    public function send(string $type, string|array $recipients, ?SubjectReference $subject = null, array $data = [], ?string $actor = null, ?string $origin = null): void
+    public function send(string $type, string|array $recipients, ?SubjectReference $subject = null, array $data = [], ?string $actor = null, ?string $origin = null, ?string $dedupeKey = null): void
     {
-        $this->dispatch(new SendNotification($this->types->get($type)->key, \is_string($recipients) ? [$recipients] : $recipients, null, $subject?->type, $subject?->id, $data, $actor, $origin));
+        $this->dispatch(new SendNotification($this->types->get($type)->key, \is_string($recipients) ? [$recipients] : $recipients, null, $subject?->type, $subject?->id, $data, $actor, $origin, true, $dedupeKey));
     }
 
     /**
      * Notifies the recipients of an audience, which an audience provider names when the notification is delivered.
      *
-     * @param array<array-key, mixed> $data identifiers only, by key
+     * @param array<array-key, mixed> $data      identifiers only, by key
+     * @param string|null             $dedupeKey what makes two notifications the same within the window of duplicates
      *
      * @throws UnknownNotificationType when the type is not declared
      * @throws InvalidNotification     when an identifier is of the wrong shape
      */
-    public function sendToAudience(string $type, string $audience, ?SubjectReference $subject = null, array $data = [], ?string $actor = null, ?string $origin = null): void
+    public function sendToAudience(string $type, string $audience, ?SubjectReference $subject = null, array $data = [], ?string $actor = null, ?string $origin = null, ?string $dedupeKey = null): void
     {
-        $this->dispatch(new SendNotification($this->types->get($type)->key, [], $audience, $subject?->type, $subject?->id, $data, $actor, $origin));
+        $this->dispatch(new SendNotification($this->types->get($type)->key, [], $audience, $subject?->type, $subject?->id, $data, $actor, $origin, true, $dedupeKey));
     }
 
     private function dispatch(SendNotification $message): void

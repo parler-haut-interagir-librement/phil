@@ -47,7 +47,7 @@ final class IdentifiersTest extends TestCase
 
     public function testAKeyOfSixtyFiveCharactersIsRefused(): void
     {
-        $this->expectExceptionMessageIsOrContains('The type "abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" is not a key');
+        $this->expectExceptionMessageIsOrContains('The type (length 65) is not a key');
 
         Identifiers::key('a'.str_repeat('b', 64), 'type');
     }
@@ -90,9 +90,20 @@ final class IdentifiersTest extends TestCase
         Identifiers::id($id, 'recipient');
     }
 
-    public function testTheMessageNamesTheValueCutShort(): void
+    public function testTheMessageGivesTheLengthOfTheValueNeverTheValue(): void
     {
-        $this->expectExceptionMessageIsOrContains('The recipient "a'.str_repeat('é', 19).'" is not');
+        try {
+            Identifiers::id('ada@example.test', 'recipient');
+            self::fail('An address is not an identifier.');
+        } catch (InvalidNotification $invalidNotification) {
+            self::assertStringStartsWith('The recipient (length 16) is not an identifier', $invalidNotification->getMessage());
+            self::assertStringNotContainsString('ada', $invalidNotification->getMessage());
+        }
+    }
+
+    public function testTheLengthIsCountedInBytes(): void
+    {
+        $this->expectExceptionMessageIsOrContains('The recipient (length 61) is not');
 
         Identifiers::id('a'.str_repeat('é', 30), 'recipient');
     }

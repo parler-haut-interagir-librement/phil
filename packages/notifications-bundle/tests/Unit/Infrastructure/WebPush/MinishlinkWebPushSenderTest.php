@@ -6,6 +6,7 @@ namespace Phil\NotificationsBundle\Tests\Unit\Infrastructure\WebPush;
 
 use DateTimeImmutable;
 use Override;
+use Phil\NotificationsBundle\Application\Delivery\ChannelOutcome;
 use Phil\NotificationsBundle\Application\NotificationType;
 use Phil\NotificationsBundle\Application\NotificationTypes;
 use Phil\NotificationsBundle\Application\RenderedNotification;
@@ -74,7 +75,7 @@ final class MinishlinkWebPushSenderTest extends TestCase
 
     public function testARecipientWithoutBrowserGetsNothing(): void
     {
-        $this->sender([])->send('42', $this->rendered());
+        self::assertSame(ChannelOutcome::Unreachable, $this->sender([])->send('42', $this->rendered()));
 
         self::assertSame([], $this->requests);
     }
@@ -87,7 +88,9 @@ final class MinishlinkWebPushSenderTest extends TestCase
 
         $logs = new Logs();
 
-        $this->sender([new MockResponse('', ['http_code' => 410]), new MockResponse('', ['http_code' => 404]), new MockResponse('', ['http_code' => 201])], $logs)->send('42', $this->rendered());
+        $outcome = $this->sender([new MockResponse('', ['http_code' => 410]), new MockResponse('', ['http_code' => 404]), new MockResponse('', ['http_code' => 201])], $logs)->send('42', $this->rendered());
+
+        self::assertSame(ChannelOutcome::Accepted, $outcome);
 
         self::assertSame(['https://fcm.googleapis.com/a'], array_map(static fn (PushSubscription $s): string => $s->endpoint, $this->subscriptions->of('42')));
         self::assertSame([], array_values(array_filter($logs->records, static fn (string $record): bool => str_starts_with($record, 'warning'))));
@@ -100,7 +103,9 @@ final class MinishlinkWebPushSenderTest extends TestCase
 
         $logs = new Logs();
 
-        $this->sender([new MockResponse('', ['http_code' => 301, 'response_headers' => ['Location' => 'https://10.0.0.1/']]), new MockResponse('', ['http_code' => 429])], $logs)->send('42', $this->rendered());
+        $outcome = $this->sender([new MockResponse('', ['http_code' => 301, 'response_headers' => ['Location' => 'https://10.0.0.1/']]), new MockResponse('', ['http_code' => 429])], $logs)->send('42', $this->rendered());
+
+        self::assertSame(ChannelOutcome::Refused, $outcome);
 
         self::assertCount(2, $this->requests);
         self::assertCount(2, $this->subscriptions->of('42'));
@@ -114,10 +119,30 @@ final class MinishlinkWebPushSenderTest extends TestCase
         $this->subscriptions->subscribe('42', Browser::subscription('https://fcm.googleapis.com/a'));
         $logs = new Logs();
 
-        $this->sender([new MockResponse('', ['error' => 'Connection refused'])], $logs)->send('42', $this->rendered());
+        self::assertSame(ChannelOutcome::Refused, $this->sender([new MockResponse('', ['error' => 'Connection refused'])], $logs)->send('42', $this->rendered()));
 
         self::assertCount(1, $this->subscriptions->of('42'));
         self::assertContains('warning: The push service fcm.googleapis.com refused a notification of type comment.replied: no answer.', $logs->records);
+    }
+
+    public function testOnlyForgottenSubscriptionsLeaveTheRecipientUnreachable(): void
+    {
+        $this->subscriptions->subscribe('42', Browser::subscription('https://fcm.googleapis.com/a'));
+        $this->subscriptions->subscribe('42', Browser::subscription('https://fcm.googleapis.com/b'));
+
+        self::assertSame(ChannelOutcome::Unreachable, $this->sender([new MockResponse('', ['http_code' => 404]), new MockResponse('', ['http_code' => 410])])->send('42', $this->rendered()));
+        self::assertSame([], $this->subscriptions->of('42'));
+    }
+
+    public function testARefusalBesideAForgottenSubscriptionIsARefusal(): void
+    {
+        $this->subscriptions->subscribe('42', Browser::subscription('https://fcm.googleapis.com/a'));
+        $this->subscriptions->subscribe('42', Browser::subscription('https://fcm.googleapis.com/b'));
+
+        self::assertSame(ChannelOutcome::Refused, $this->sender([new MockResponse('', ['http_code' => 503]), new MockResponse('', ['http_code' => 410])])->send('42', $this->rendered()));
+        self::assertSame(ChannelOutcome::Refused, $this->sender([new MockResponse('', ['http_code' => 503])])->send('42', $this->rendered()));
+        $this->subscriptions->subscribe('42', Browser::subscription('https://fcm.googleapis.com/c'));
+        self::assertSame(ChannelOutcome::Accepted, $this->sender([new MockResponse('', ['http_code' => 503]), new MockResponse('', ['http_code' => 201])])->send('42', $this->rendered()));
     }
 
     public function testTheSignatureIsReusedForTheBrowsersOfOnePushService(): void

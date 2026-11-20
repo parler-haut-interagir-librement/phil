@@ -42,7 +42,19 @@ from `PushSubscriptions`; see [Channels](channels.md#web-push).
 
 | Method | Contract |
 |---|---|
-| `send(string $recipient, RenderedNotification $notification): void` | Sends to each browser the recipient subscribed, `WebPushMessage::of()` giving what to send |
+| `send(string $recipient, RenderedNotification $notification): ChannelOutcome` | Sends to each browser the recipient subscribed, `WebPushMessage::of()` giving what to send; `Accepted` when a push service took it, `Unreachable` without a subscription a push service still knows, `Refused` otherwise |
+
+### `ChannelSender`
+
+`Phil\NotificationsBundle\Application\Contract\ChannelSender` — sends on one channel at once for the `first_success`
+mode; see [Delivery](delivery.md#the-first_success-mode). A service implementing it is autoconfigured with the tag
+`phil_notifications.channel_sender`, and asked before the bundle's senders, `MailerChannelSender` and
+`NotifierChannelSender`.
+
+| Method | Contract |
+|---|---|
+| `supports(string $channel): bool` | Whether it sends on the channel, such as `sms` or `chat/slack` |
+| `send(string $channel, RenderedNotification $notification, NotificationType $type, ?RecipientInterface $contact): ChannelOutcome` | Sends at once: `Accepted` when the provider took it, `Unreachable` when the contact lacks what the channel needs, `Refused` when the provider refused it or could not be reached — a `TransportExceptionInterface` of Notifier or Mailer, caught. Any other exception goes up |
 
 ### `EmailTrackingConsent`
 
@@ -56,6 +68,29 @@ recipient agreed that the digests sent to them be followed; without one, no open
 | `clicks(string $recipient): bool` | Whether the clicks may be followed |
 
 ## Ports with shipped adapters
+
+### `DeliveryDedupe`
+
+`Phil\NotificationsBundle\Application\Contract\DeliveryDedupe` — one delivery of the same notification per window:
+`NotificationDedupe` on phil/idempotency with `delivery.dedupe` enabled; see [Delivery](delivery.md#the-window-of-duplicates).
+
+| Method | Contract |
+|---|---|
+| `begin(SendNotification $message, NotificationType $type, string $recipient): ?DedupeTicket` | Reserves the delivery atomically, or gives a duplicate ticket; null when the type has no window |
+| `complete(DedupeTicket $ticket, NotificationType $type): void` | Keeps the key for the window |
+| `release(DedupeTicket $ticket, NotificationType $type): void` | Lets the next attempt run |
+| `once(SendNotification $message, NotificationType $type, string $recipient, Closure $record): bool` | Runs `$record` once per key and window, under a key of its own: the centre |
+
+### `ChannelCircuits`
+
+`Phil\NotificationsBundle\Application\Contract\ChannelCircuits` — the circuit breakers of the channels of the
+`first_success` mode: `ChannelBreakers` on phil/circuit-breaker when it is installed; see
+[Delivery](delivery.md#circuit-breakers).
+
+| Method | Contract |
+|---|---|
+| `isOpen(string $channel): bool` | Whether the channel is held back; a channel without a circuit never is |
+| `recordSuccess(string $channel): void`, `recordFailure(string $channel): void` | What the provider of the channel answered |
 
 ### `NotificationPreferences`
 
@@ -153,10 +188,18 @@ similar unread notification when asked, and the digest and purge methods work a 
 | `DbalPreferences` | `save()`, `forget()` with `preferences: dbal` |
 | `PushSubscriptions` | `forgetRecipient()` when a member leaves, with `web_push` enabled |
 
+## Events
+
+`Application\Delivery\NotificationDelivered`, dispatched on the application's event dispatcher after each delivery to
+one recipient, whatever its status, carries the `DeliveryResult`: the type, the recipient's identifier, the mode, the
+status, the channels that took the notification and the reason of each channel skipped. A listener counts, audits or
+alerts; it never receives an address.
+
 ## Messages
 
 `SendNotification`, `SendDigests`, `SendDigest` and `PurgeNotifications` carry identifiers only; the application
-routes them as it wishes.
+routes them as it wishes. It leaves `SendEmailMessage`, `SmsMessage` and `ChatMessage` unrouted: they hold addresses
+and text; see [Sending](sending.md#messenger).
 
 ## Templates and translations
 
@@ -167,4 +210,5 @@ shipped in English and French.
 
 ## Stability
 
-The bundle is not released yet: every extension point may change until its first version.
+The bundle is in alpha: an extension point may change in a minor version, which the changelog and
+[Installation](installation.md) say how to follow.

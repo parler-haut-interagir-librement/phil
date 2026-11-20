@@ -9,7 +9,10 @@ holds only what the centre keeps: a type without the `site` channel is emailed a
 
 `Digests::sweep()` finds the recipients with such notifications a page at a time, and sends each who chose that
 frequency their digest — through one `SendDigest` message each when a bus carries them. `MailerDigestSender` writes it
-with `@PhilNotifications/email/digest.html.twig`, whose context is `frequency` and `notifications`, each with its
+with `@PhilNotifications/email/digest.html.twig`, renders it with Twig's body renderer and sends it at once through the
+transports of Symfony Mailer — never through `MailerInterface`, which would put a `SendEmailMessage` holding the address
+and every line of the digest on the bus when one is routed; a refusal of the transport goes up, for the worker to try
+the `SendDigest` message again. The template's context is `frequency` and `notifications`, each with its
 `id`, `type`, `title`, `body`, `url` and `count`; its subject is the translation of `digest.subject.daily` or
 `digest.subject.weekly`. An application that sends otherwise implements `DigestSender`.
 

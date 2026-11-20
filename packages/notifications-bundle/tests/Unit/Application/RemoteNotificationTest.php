@@ -52,19 +52,19 @@ final class RemoteNotificationTest extends TestCase
         yield 'empty recipients' => [[...$valid, 'recipients' => []], $list];
         yield 'recipients a string' => [[...$valid, 'recipients' => '42'], $list];
         yield 'too many recipients' => [[...$valid, 'recipients' => array_map(strval(...), range(1, 1001))], $list];
-        yield 'a recipient not a string' => [[...$valid, 'recipients' => [42]], 'The recipient "" is not an identifier'];
-        yield 'a bad recipient' => [[...$valid, 'recipients' => ['a b']], 'The recipient "a b" is not an identifier'];
+        yield 'a recipient not a string' => [[...$valid, 'recipients' => [42]], 'The recipient (length 0) is not an identifier'];
+        yield 'a bad recipient' => [[...$valid, 'recipients' => ['a b']], 'The recipient (length 3) is not an identifier'];
         yield 'subject a string' => [[...$valid, 'subject' => 'comment:9'], 'The subject of a remote notification is an object with a "type" and an "id".'];
         yield 'subject without id' => [[...$valid, 'subject' => ['type' => 'comment']], 'The member "id" of a remote notification is a string.'];
         yield 'subject without type' => [[...$valid, 'subject' => ['id' => '9']], 'The member "type" of a remote notification is a string.'];
         yield 'data a string' => [[...$valid, 'data' => 'x'], 'The data of a remote notification is an object.'];
         yield 'bad data' => [[...$valid, 'data' => ['x' => 1.5]], 'The data value of "x"'];
         yield 'no origin' => [['notification' => 'welcome', 'recipients' => ['42']], 'The member "origin" of a remote notification is a string.'];
-        yield 'bad origin' => [[...$valid, 'origin' => 'Events'], 'The origin "Events" is not a key'];
+        yield 'bad origin' => [[...$valid, 'origin' => 'Events'], 'The origin (length 6) is not a key'];
         yield 'no type' => [['origin' => 'events', 'recipients' => ['42']], 'The member "notification" of a remote notification is a string.'];
-        yield 'bad type' => [[...$valid, 'notification' => 'W'], 'The notification type "W" is not a key'];
+        yield 'bad type' => [[...$valid, 'notification' => 'W'], 'The notification type (length 1) is not a key'];
         yield 'actor not a string' => [[...$valid, 'actor' => 17], 'The member "actor" of a remote notification is a string.'];
-        yield 'bad actor' => [[...$valid, 'actor' => 'a b'], 'The actor "a b" is not an identifier'];
+        yield 'bad actor' => [[...$valid, 'actor' => 'a b'], 'The actor (length 3) is not an identifier'];
     }
 
     /**

@@ -47,11 +47,11 @@ final class NotificationTest extends TestCase
     public function testEveryPartIsChecked(): void
     {
         foreach ([
-            'The notification identifier "a b"' => static fn (): Notification => new Notification('a b', 't', '42', null, new DateTimeImmutable()),
-            'The notification type "T"' => static fn (): Notification => new Notification('n', 'T', '42', null, new DateTimeImmutable()),
-            'The recipient "a@b"' => static fn (): Notification => new Notification('n', 't', 'a@b', null, new DateTimeImmutable()),
-            'The actor "a b"' => static fn (): Notification => new Notification('n', 't', '42', null, new DateTimeImmutable(), 'a b'),
-            'The origin "Site"' => static fn (): Notification => new Notification('n', 't', '42', null, new DateTimeImmutable(), origin: 'Site'),
+            'The notification identifier (length 3)' => static fn (): Notification => new Notification('a b', 't', '42', null, new DateTimeImmutable()),
+            'The notification type (length 1)' => static fn (): Notification => new Notification('n', 'T', '42', null, new DateTimeImmutable()),
+            'The recipient (length 3)' => static fn (): Notification => new Notification('n', 't', 'a@b', null, new DateTimeImmutable()),
+            'The actor (length 3)' => static fn (): Notification => new Notification('n', 't', '42', null, new DateTimeImmutable(), 'a b'),
+            'The origin (length 4)' => static fn (): Notification => new Notification('n', 't', '42', null, new DateTimeImmutable(), origin: 'Site'),
         ] as $message => $build) {
             try {
                 $build();

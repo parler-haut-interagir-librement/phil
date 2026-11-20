@@ -13,6 +13,8 @@ use Phil\NotificationsBundle\Application\Contract\RecipientDirectory;
 use Phil\NotificationsBundle\Application\Contract\RemoteNotificationReceiver;
 use Phil\NotificationsBundle\Application\Contract\SubjectResolver;
 use Phil\NotificationsBundle\Application\Contract\ToastPublisher;
+use Phil\NotificationsBundle\Application\Delivery\DeliveryMode;
+use Phil\NotificationsBundle\Application\Delivery\DeliveryPolicy;
 use Phil\NotificationsBundle\Application\Digests;
 use Phil\NotificationsBundle\Application\ForwardingRemoteReceiver;
 use Phil\NotificationsBundle\Application\Handler\DigestHandler;
@@ -126,9 +128,9 @@ final class PhilNotificationsBundleTest extends TestCase
         self::assertCount(2, $types);
         self::assertInstanceOf(Definition::class, $types[0]);
         self::assertSame(NotificationType::class, $types[0]->getClass());
-        self::assertSame(['comment.replied', ['site', 'email'], ['chat/slack'], true, false, false, 'high', 't', 'b'], $types[0]->getArguments());
+        self::assertSame(['comment.replied', ['site', 'email'], ['chat/slack'], true, false, false, 'high', 't', 'b', DeliveryMode::FanOut, null], $types[0]->getArguments());
         self::assertInstanceOf(Definition::class, $types[1]);
-        self::assertSame(['welcome', ['site'], [], false, true, true, 'medium', null, null], $types[1]->getArguments());
+        self::assertSame(['welcome', ['site'], [], false, true, true, 'medium', null, null, DeliveryMode::FanOut, null], $types[1]->getArguments());
 
         $renderer = $container->getDefinition(NotificationRenderer::class);
         self::assertTrue($renderer->isPublic());
@@ -147,6 +149,8 @@ final class PhilNotificationsBundleTest extends TestCase
             new Reference('notifier', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             null,
             $logger,
+            new Reference(DeliveryPolicy::class),
+            new Reference('event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ], $container->getDefinition(NotificationDispatcher::class)->getArguments());
 
         $handler = $container->getDefinition(SendNotificationHandler::class);
@@ -237,7 +241,7 @@ final class PhilNotificationsBundleTest extends TestCase
         $container = $this->load([['digest' => ['from' => 'n@example.test', 'template' => 'mine.html.twig', 'at' => '06:00', 'weekday' => 'friday']]]);
         $logger = new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE);
 
-        self::assertEquals([new Reference('mailer'), new Reference(NotificationsServices::TRANSLATOR), 'n@example.test', 'mine.html.twig', $logger, null], $container->getDefinition(MailerDigestSender::class)->getArguments());
+        self::assertEquals([new Reference('mailer.transports'), new Reference(NotificationsServices::TRANSLATOR), 'n@example.test', 'mine.html.twig', $logger, null, new Reference('twig.mime_body_renderer', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(MailerDigestSender::class)->getArguments());
         self::assertEquals(new Reference('app.tracking'), $this->load([['digest' => ['tracking_consent' => 'app.tracking']]])->getDefinition(MailerDigestSender::class)->getArgument(5));
         $digests = $container->getDefinition(Digests::class);
         self::assertTrue($digests->isPublic());
@@ -439,7 +443,7 @@ final class PhilNotificationsBundleTest extends TestCase
     public function testTheCompiledContainerKeepsWhatIsThere(): void
     {
         $container = $this->load([['store' => 'memory', 'schedule' => false, 'current_recipient' => 'app.current']]);
-        foreach (['security.csrf.token_manager', 'translator', 'security.token_storage', 'mailer'] as $id) {
+        foreach (['security.csrf.token_manager', 'translator', 'security.token_storage', 'mailer.transports'] as $id) {
             $container->register($id, stdClass::class);
         }
 

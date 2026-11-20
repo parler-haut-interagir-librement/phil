@@ -1,6 +1,8 @@
 # Channels
 
-A type names each recipient's channels; the recipient may turn any of them off. The dispatcher then:
+A type names each recipient's channels; the recipient may turn any of them off. In the `fan_out` mode, the default, the
+dispatcher then serves each of them; in the `first_success` mode, it tries those outside the centre in turn until one
+accepts the notification, as [Delivery](delivery.md) tells:
 
 | Channel | Delivery |
 |---|---|
@@ -64,6 +66,10 @@ refused, redirections not followed, ten seconds to answer. A push service that a
 the subscription, which is forgotten; any other answer is logged with the push service's host, never the endpoint,
 which is a secret of its browser. Quiet hours and opt-outs (`*:web_push`) apply as to any channel.
 
+`send()` says how the push services answered: `Accepted` when one of them took the message, `Unreachable` when the
+recipient has no subscription or only subscriptions just forgotten, `Refused` otherwise — a refusal, a redirection or
+no answer. The `first_success` mode moves on to the next channel after `Unreachable` or `Refused`.
+
 `WebPushMessage::of()` gives what is sent for a notification of a type:
 
 | Property | What it holds |
@@ -90,13 +96,17 @@ final readonly class BrowserPush implements WebPushSender
 {
     public function __construct(private NotificationTypes $types, private PushSubscriptions $subscriptions) {}
 
-    public function send(string $recipient, RenderedNotification $notification): void
+    public function send(string $recipient, RenderedNotification $notification): ChannelOutcome
     {
         $message = WebPushMessage::of($notification, $this->types->get($notification->notification->type));
+        $outcome = ChannelOutcome::Unreachable;
 
         foreach ($this->subscriptions->of($recipient) as $subscription) {
-            // Encrypt $message->payload for $subscription and post it with its urgency, topic and time to live.
+            // Encrypt $message->payload for $subscription and post it with its urgency, topic and time to live;
+            // a 2xx makes it Accepted, a 404 or 410 forgets the subscription, any other answer makes it Refused.
         }
+
+        return $outcome;
     }
 }
 ```
@@ -104,5 +114,5 @@ final readonly class BrowserPush implements WebPushSender
 ## Addresses
 
 Channels that need an address ask the `RecipientDirectory` when the notification is sent, never before: an
-`EmailRecipientInterface` for email, an `SmsRecipientInterface` for SMS. A recipient the directory does not know is
-skipped and logged.
+`EmailRecipientInterface` for email, an `SmsRecipientInterface` for SMS. A channel the directory gives nothing for is
+skipped as `no_contact`, and the result of the delivery says so.

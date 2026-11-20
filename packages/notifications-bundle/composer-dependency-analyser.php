@@ -11,8 +11,9 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
  * The optional integrations are used by the production code but only required in development and suggested: the
  * bundle registers each only when it is installed — Messenger for the bus, Mercure for live toasts, Routing for the
  * endpoints' URLs, Scheduler, Console, Mailer and the Twig bridge for the schedule, the purge command and the digest,
- * the Twig components, the ORM for the schema listener, phil/standard-webhooks for receiving from a network, and
- * minishlink/web-push with Symfony HttpClient and Asset for Web Push.
+ * the Twig components, the ORM for the schema listener, phil/standard-webhooks for receiving from a network,
+ * minishlink/web-push with Symfony HttpClient and Asset for Web Push, and phil/idempotency, phil/circuit-breaker and
+ * symfony/rate-limiter for the window of duplicates, the circuits and the rate limit of a delivery.
  */
 return new Configuration()
     ->addPathToScan(__DIR__.'/src', isDev: false)
@@ -20,6 +21,8 @@ return new Configuration()
     ->ignoreErrorsOnPackages([
         'doctrine/orm',
         'minishlink/web-push',
+        'phil/circuit-breaker',
+        'phil/idempotency',
         'phil/standard-webhooks',
         'symfony/asset',
         'symfony/console',
@@ -28,6 +31,8 @@ return new Configuration()
         'symfony/mailer',
         'symfony/mercure',
         'symfony/messenger',
+        'symfony/mime',
+        'symfony/rate-limiter',
         'symfony/routing',
         'symfony/scheduler',
         'symfony/twig-bridge',

@@ -4,6 +4,27 @@ All notable changes to `phil/circuit-breaker-bundle` will be documented in this 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha.
+
+In the prod environment, the circuit states must be shared by every server. See
+[Upgrading from 0.1](doc/installation.md#upgrading-from-01).
+
+### Added
+
+- The `single_server` option: accepts a `cache_pool` local to the server in the prod environment, for an application on
+  one server.
+- `SharedStateGuard`, the compiler pass that refuses in the prod environment a `cache_pool` that stays on each server —
+  the filesystem, APCu, array or system adapter of `symfony/cache`, `cache.app` by default —, as `StoreLocality` of
+  phil/rate-limit tells, unless `single_server` is `true` or a `state_store` is named.
+
+### Changed
+
+- The bundle requires phil/rate-limit.
+- A prod container with circuits, no `state_store` and a local `cache_pool` stops with a message naming the pool and the
+  two ways out: each server counted its own failures and opened its own circuits.
+
 ## 0.1.1-alpha - 2026-11-17
 
 Documentation only.

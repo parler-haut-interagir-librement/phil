@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\NotificationsBundle\Tests\Unit\Application;
 
+use Phil\NotificationsBundle\Application\Delivery\DeliveryPolicy;
 use Phil\NotificationsBundle\Application\NotificationDispatcher;
 use Phil\NotificationsBundle\Application\NotificationRenderer;
 use Phil\NotificationsBundle\Application\NotificationType;
@@ -46,8 +47,8 @@ final class Kit
         return new NotificationRenderer(Translator::make(), $this->types, new Directory(), [new Subjects()]);
     }
 
-    public function dispatcher(): NotificationDispatcher
+    public function dispatcher(DeliveryPolicy $policy = new DeliveryPolicy()): NotificationDispatcher
     {
-        return new NotificationDispatcher($this->types, $this->repository, $this->preferences, $this->renderer(), new Directory(), new RecordingToasts(), $this->clock, $this->notifier);
+        return new NotificationDispatcher($this->types, $this->repository, $this->preferences, $this->renderer(), new Directory(), new RecordingToasts(), $this->clock, $this->notifier, policy: $policy);
     }
 }

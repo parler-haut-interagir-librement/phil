@@ -47,7 +47,7 @@ final class CheckedCurrentRecipientTest extends TestCase
     public function testWhatIsNotAnIdentifierIsRefused(): void
     {
         $this->expectException(InvalidNotification::class);
-        $this->expectExceptionMessageIsOrContains('The current recipient "Ana Lopez" is not an identifier');
+        $this->expectExceptionMessageIsOrContains('The current recipient (length 9) is not an identifier');
 
         $this->checked('Ana Lopez')->id();
     }

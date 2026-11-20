@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Phil\NotificationsBundle\Tests\Unit\Application;
 
+use Phil\NotificationsBundle\Application\Delivery\ChannelOutcome;
+use Phil\NotificationsBundle\Application\Delivery\DeliveryMode;
+use Phil\NotificationsBundle\Application\Delivery\DeliveryStatus;
+use Phil\NotificationsBundle\Application\Delivery\SkipReason;
 use Phil\NotificationsBundle\Application\Message\SendNotification;
 use Phil\NotificationsBundle\Application\NotificationDispatcher;
 use Phil\NotificationsBundle\Application\NotificationRenderer;
@@ -190,26 +194,64 @@ final class DispatcherTest extends TestCase
         self::assertSame([], $this->notifier->sent);
     }
 
-    public function testWebPushWithoutSenderIsLogged(): void
+    public function testWebPushWithoutSenderIsSkippedAndLogged(): void
     {
-        $this->dispatcher(new NotificationType('comment.replied', ['web_push']), webPush: false)->deliver($this->message(), '42');
+        $result = $this->dispatcher(new NotificationType('comment.replied', ['web_push']), webPush: false)->deliver($this->message(), '42');
 
-        self::assertSame(['notice: The notification "comment.replied" was not sent by Web Push: no Web Push sender is configured.'], $this->logs->records);
+        self::assertSame(DeliveryStatus::Sent, $result->status);
+        self::assertSame([], $result->channels);
+        self::assertSame(['web_push' => SkipReason::Unavailable], $result->skipped);
+        self::assertSame(['info: The notification "comment.replied" ended sent (fan_out) on none; skipped: web_push (unavailable).'], $this->logs->records);
     }
 
-    public function testARecipientWithoutAddressIsLogged(): void
+    public function testARefusedOrUnreachableWebPushIsSkipped(): void
     {
-        $this->dispatcher(new NotificationType('comment.replied', ['email', 'sms']))->deliver($this->message(), '43');
+        $this->webPush->outcome = ChannelOutcome::Refused;
+        $refused = $this->dispatcher(new NotificationType('comment.replied', ['site', 'web_push']))->deliver($this->message(), '42');
+        $this->webPush->outcome = ChannelOutcome::Unreachable;
+        $unreachable = $this->dispatcher(new NotificationType('comment.replied', ['site', 'web_push']))->deliver($this->message(), '42');
+
+        self::assertSame(['web_push' => SkipReason::Refused], $refused->skipped);
+        self::assertSame(['web_push' => SkipReason::NoContact], $unreachable->skipped);
+        self::assertSame(['site'], $unreachable->channels);
+        self::assertSame(DeliveryStatus::Sent, $refused->status);
+    }
+
+    public function testARecipientWithoutAddressIsSkippedWithoutBeingNamedInTheLogs(): void
+    {
+        $result = $this->dispatcher(new NotificationType('comment.replied', ['email', 'sms']))->deliver($this->message(), '43');
 
         self::assertSame([], $this->notifier->sent);
-        self::assertSame(['notice: The notification "comment.replied" was not sent to "43" on email, sms: the recipient directory has no address for them.'], $this->logs->records);
+        self::assertSame(['email' => SkipReason::NoContact, 'sms' => SkipReason::NoContact], $result->skipped);
+        self::assertSame('43', $result->recipient);
+        self::assertSame(['info: The notification "comment.replied" ended sent (fan_out) on none; skipped: email (no_contact), sms (no_contact).'], $this->logs->records);
     }
 
-    public function testWithoutNotifierItIsLogged(): void
+    public function testWithoutNotifierTheChannelsAreUnavailable(): void
     {
-        $this->dispatcher(new NotificationType('comment.replied', ['email', 'sms']), notifier: false)->deliver($this->message(), '42');
+        $result = $this->dispatcher(new NotificationType('comment.replied', ['email', 'sms']), notifier: false)->deliver($this->message(), '42');
 
-        self::assertSame(['warning: The notification "comment.replied" was not sent on email, sms: Symfony Notifier is not installed.'], $this->logs->records);
+        self::assertSame(['email' => SkipReason::Unavailable, 'sms' => SkipReason::Unavailable], $result->skipped);
+        self::assertSame(['info: The notification "comment.replied" ended sent (fan_out) on none; skipped: email (unavailable), sms (unavailable).'], $this->logs->records);
+    }
+
+    public function testTheBroadcastWithoutNotifierIsLogged(): void
+    {
+        $this->dispatcher(new NotificationType('comment.replied', [], ['chat/discord']), notifier: false)->broadcast($this->message());
+
+        self::assertSame(['warning: The notification "comment.replied" was not sent on chat/discord: Symfony Notifier is not installed.'], $this->logs->records);
+    }
+
+    public function testTheResultNamesWhatTookIt(): void
+    {
+        $this->preferences->settings['42'] = new RecipientSettings(DigestFrequency::Daily, optOuts: ['*:sms']);
+        $result = $this->dispatcher(new NotificationType('comment.replied', ['site', 'email', 'sms', 'chat/slack']))->deliver($this->message(), '42');
+
+        self::assertSame(DeliveryMode::FanOut, $result->mode);
+        self::assertSame(['site', 'email', 'chat/slack'], $result->channels);
+        self::assertSame(['sms' => SkipReason::OptedOut], $result->skipped);
+        self::assertSame('email', $result->channel());
+        self::assertSame(['chat/slack'], $this->notifier->sent[0][0]->getChannels(new NoRecipient()));
     }
 
     public function testItIsWrittenInTheRecipientsLocale(): void
