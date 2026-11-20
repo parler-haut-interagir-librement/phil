@@ -163,11 +163,7 @@ final readonly class RouteAccessChecker
         foreach ($checks as $check) {
             if (null === $check->validatedSubject) {
                 $preceded = true;
-
-                continue;
-            }
-
-            if (!$preceded) {
+            } elseif (!$preceded) {
                 $conflicts[] = \sprintf('protected by %s, which votes on %s after Symfony validates it: check IS_AUTHENTICATED first, so that a visitor who is not signed in never reads the validation errors', $check->description, $check->validatedSubject);
             }
         }

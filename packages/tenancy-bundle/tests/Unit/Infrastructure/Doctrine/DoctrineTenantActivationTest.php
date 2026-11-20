@@ -68,7 +68,7 @@ final class DoctrineTenantActivationTest extends TestCase
     {
         [$loaded, $inserted, $deleted, $shared] = [new Owned('retail'), new Owned('retail'), new Owned('retail'), new NotScoped()];
         $detached = new ArrayObject();
-        $manager = $this->managerWithIdentityMap([Owned::class => [$loaded, $inserted, $deleted], NotScoped::class => [$shared]], [$inserted], [$deleted], $detached);
+        $manager = $this->managerWithIdentityMap([NotScoped::class => [$shared], Owned::class => [$inserted, $deleted, $loaded]], [$inserted], [$deleted], $detached);
         $activation = new DoctrineTenantActivation($this->registry($manager));
 
         $activation->activate(TenantId::fromString('retail'));

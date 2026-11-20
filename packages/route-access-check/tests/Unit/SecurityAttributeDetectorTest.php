@@ -93,6 +93,8 @@ final class SecurityAttributeDetectorTest extends TestCase
         self::assertSame('$file', $this->detect(PayloadController::class.'::upload')[0]->validatedSubject);
         self::assertNull($this->detect(PayloadController::class.'::show')[0]->validatedSubject, 'an argument from the route');
         self::assertNull($this->detect(PayloadController::class.'::unknownSubject')[0]->validatedSubject);
+        self::assertSame('$query', $this->detect(PayloadController::class.'::afterAnArgumentOfTheRoute')[0]->validatedSubject, 'after an argument that is not a subject');
+        self::assertNull($this->detect(PayloadController::class.'::subjectTwice')[0]->validatedSubject, 'the named subject wins over the positional one');
         self::assertSame([null, '$order'], array_map(static fn (AccessRule $rule): ?string => $rule->validatedSubject, $this->detect(GuardedPayloadController::class)), 'an invokable controller');
         self::assertNull($this->detect(AdminController::class.'::purge')[0]->validatedSubject);
     }

@@ -117,7 +117,7 @@ final class TenantContextTest extends TestCase
      */
     public function testLeavingReachesEveryActivationWhenOneFails(): void
     {
-        [$first, $second, $last] = [new FailingActivation(failsOnLeaving: true), new FailingActivation(failsOnLeaving: true), new RecordingActivation()];
+        [$first, $second, $last] = [new FailingActivation(failsOnLeaving: true, leaveMessage: 'first cannot leave'), new FailingActivation(failsOnLeaving: true, leaveMessage: 'second cannot leave'), new RecordingActivation()];
         $context = new TenantContext([$first, $second, $last]);
         $context->enter(TenantId::fromString('retail'));
 
@@ -125,7 +125,7 @@ final class TenantContextTest extends TestCase
             $context->leave();
             self::fail('Leaving must fail.');
         } catch (RuntimeException $runtimeException) {
-            self::assertSame('cannot leave', $runtimeException->getMessage());
+            self::assertSame('first cannot leave', $runtimeException->getMessage());
             self::assertNull($runtimeException->getPrevious());
         }
 

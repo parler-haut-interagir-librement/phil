@@ -136,6 +136,19 @@ final class RouteAccessCheckerTest extends TestCase
         self::assertTrue($report->verdicts[2]->fails());
     }
 
+    public function testEveryVoteOnAValidatedArgumentWithNoCheckBeforeIsListed(): void
+    {
+        $report = new RouteAccessChecker([new StubDetector(['r' => [
+            new AccessRule('stub', AccessEffect::Protected, RuleScope::Route, 'first', null, validatedSubject: '$a'),
+            new AccessRule('stub', AccessEffect::Protected, RuleScope::Route, 'second', null, validatedSubject: '$b'),
+        ]])])->check($this->routes(['r' => new Route('/r', methods: ['POST'])]));
+
+        self::assertSame([
+            'protected by first, which votes on $a after Symfony validates it: check IS_AUTHENTICATED first, so that a visitor who is not signed in never reads the validation errors',
+            'protected by second, which votes on $b after Symfony validates it: check IS_AUTHENTICATED first, so that a visitor who is not signed in never reads the validation errors',
+        ], $report->verdicts[0]->conflicts);
+    }
+
     public function testEveryConflictIsListed(): void
     {
         $report = new RouteAccessChecker([new StubDetector(['r' => [

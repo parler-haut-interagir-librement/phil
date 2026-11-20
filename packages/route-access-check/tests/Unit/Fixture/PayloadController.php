@@ -70,4 +70,24 @@ final class PayloadController
     {
         return 'unknown subject '.$id;
     }
+
+    /**
+     * @param array<string, mixed> $query
+     */
+    #[IsGranted('SEARCH', 'query')]
+    public function afterAnArgumentOfTheRoute(int $id, #[MapQueryString] array $query): string
+    {
+        return 'after '.$id.\count($query);
+    }
+
+    /**
+     * A subject written twice, by position and by name: the name is the one that counts.
+     *
+     * @param array<string, mixed> $order
+     */
+    #[IsGranted('ORDER_EDIT', 'order', subject: 'id')]
+    public function subjectTwice(int $id, #[MapRequestPayload] array $order): string
+    {
+        return 'twice '.$id.\count($order);
+    }
 }

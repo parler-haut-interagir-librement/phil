@@ -207,6 +207,9 @@ final class PhilUploadScanBundleTest extends TestCase
         symlink($root.'/www', $root.'/elsewhere');
         mkdir($root.'/site', 0o700);
         symlink($root.'/www', $root.'/site/public');
+        mkdir($root.'/www/m1', 0o700);
+        mkdir($root.'/site2', 0o700);
+        symlink($root.'/www/m1', $root.'/site2/public');
 
         try {
             foreach ([
@@ -225,12 +228,14 @@ final class PhilUploadScanBundleTest extends TestCase
 
             self::assertTrue($this->load(['quarantine' => ['directory' => 'var/other']], projectDir: $root.'/app')->hasDefinition(FilesystemQuarantine::class));
             self::assertTrue($this->load(['quarantine' => ['directory' => $root.'/app/var/quarantine-files']], projectDir: $root.'/site')->hasDefinition(FilesystemQuarantine::class));
+            // The part that does not exist yet keeps its order: `n1/m1` is not under `m1`.
+            self::assertTrue($this->load(['quarantine' => ['directory' => $root.'/elsewhere/n1/m1']], projectDir: $root.'/site2')->hasDefinition(FilesystemQuarantine::class));
         } finally {
-            foreach (['/app/var/quarantine', '/elsewhere', '/site/public'] as $link) {
+            foreach (['/app/var/quarantine', '/elsewhere', '/site/public', '/site2/public'] as $link) {
                 unlink($root.$link);
             }
 
-            foreach (['/app/public/files', '/app/public', '/app/var', '/app', '/www/quarantine', '/www', '/site', ''] as $directory) {
+            foreach (['/app/public/files', '/app/public', '/app/var', '/app', '/www/quarantine', '/www/m1', '/www', '/site', '/site2', ''] as $directory) {
                 rmdir($root.$directory);
             }
         }

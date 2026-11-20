@@ -22,6 +22,7 @@ final class FailingActivation implements TenantActivation
     public function __construct(
         private readonly array $failingTenants = [],
         private readonly bool $failsOnLeaving = false,
+        private readonly string $leaveMessage = 'cannot leave',
     ) {
     }
 
@@ -39,7 +40,7 @@ final class FailingActivation implements TenantActivation
         $this->calls[] = '-';
 
         if ($this->failsOnLeaving) {
-            throw new RuntimeException('cannot leave');
+            throw new RuntimeException($this->leaveMessage);
         }
     }
 }
