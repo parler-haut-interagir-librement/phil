@@ -204,7 +204,8 @@ final readonly class LearningPaths
         $statuses = $this->statuses($enrollment);
         $required = array_filter($statuses, static fn (StepStatus $status): bool => $status->step->required);
         $completed = array_filter($required, static fn (StepStatus $status): bool => StepState::Completed === $status->state);
-        $percent = [] === $required ? ($enrollment->isCompleted() ? 100 : 0) : intdiv(100 * \count($completed), \count($required));
+        $whole = $enrollment->isCompleted() ? 100 : 0;
+        $percent = [] === $required ? $whole : intdiv(100 * \count($completed), \count($required));
 
         return new PathProgress($enrollment, $statuses, max(0, min(100, $percent)));
     }
