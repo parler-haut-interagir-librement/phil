@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=707eab8e1f9c357919735201462ace680f6f134fa52af916a7c7e0fc562f2242 -->
+<!-- phil-dev source-sha256=1db44f284ef22c959bf28ff730d10c98ac648d74f432bf4aa70b6fc9bcd7013f -->
 # Installation
 
 ```sh
@@ -41,6 +41,16 @@ utilisateurs : Argon2id (`sodium`). Générez la migration des tables avec `bin/
   l'environnement `prod` ne démarre plus.
 - L'inscription est limitée par défaut ; `registration: true` et `registration: false` continuent de fonctionner, et
   `registration: { rate_limit: false }` désactive les limites.
+- Avec le module `oidc`, le schéma gagne la table `phil_identity_assertion`, les colonnes `jwks`, `resources`,
+  `backchannel_logout_uri` et `sector_identifier` de `phil_identity_client`, et la colonne `audience` de
+  `phil_identity_token`, dont `account_id` devient nullable : lancez `bin/console doctrine:migrations:diff` et migrez.
+  Chaque nouvelle colonne est nullable ; aucune ligne ne change.
+- Un jeton d'actualisation émis dans une session est refusé une fois la session terminée, sa famille révoquée
+  (`oidc.refresh_token_bound_to_session`, activée par défaut) ; réglez-la à `false` pour garder l'ancien comportement.
+- `TokenController::AUTH_METHODS` a disparu : le document de découverte lit les méthodes dans
+  `oidc.client_authentication.methods`. `IssuedToken::accountId()` retourne null pour un jeton de l'octroi
+  `client_credentials`, et `GrantRepository` gagne `useAssertion()` : une implémentation maison l'ajoute.
+  `Tokens::bearer()` donne un troisième membre, le client du jeton.
 
 ## Où mènent les liens
 

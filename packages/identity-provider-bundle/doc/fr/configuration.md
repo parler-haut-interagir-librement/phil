@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=89ed49dee10863c41c653f8e3cc011d9c9fdd5266b086ae196ded4b27f51ea2f -->
+<!-- phil-dev source-sha256=56aa0e8bff82c1c45e82c735259fa9a80670651d22df091b31053b21f3c1321c -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_identity_provider`. Chaque option a une valeur par défaut, sauf les
@@ -124,6 +124,21 @@ phil_identity_provider:
 | `oidc.retired_key_retention` | `604800` | Secondes pendant lesquelles une clé retirée reste publiée. |
 | `oidc.allow_localhost` | `false` | Si les adresses de redirection sur `localhost` en http sont acceptées, pour le développement. |
 | `oidc.lock_factory` | `lock.factory` | Le service `LockFactory` qui sérialise la première clé de signature et chaque rotation ; son magasin doit être partagé par tous les serveurs. |
+| `oidc.extra_scopes` | `[]` | Les portées, outre `openid`, `profile`, `email`, `phone` et `offline_access`, que les clients peuvent enregistrer, comme les portées d'une ressource. |
+| `oidc.client_authentication.methods` | les quatre | Les méthodes par lesquelles les clients peuvent s'authentifier : `client_secret_basic`, `client_secret_post`, `private_key_jwt`, `none`. Voir [Authentification des clients](oidc-provider.md#authentification-des-clients). |
+| `oidc.client_authentication.clock_skew` | `60` | Secondes dont une heure d'une assertion de client peut être décalée, de 0 à 300. |
+| `oidc.client_authentication.assertion_max_lifetime` | `300` | Le plus loin devant, en secondes, que peut être l'expiration d'une assertion de client, de 1 à 3600 ; son `jti` est gardé aussi longtemps. |
+| `oidc.refresh_token_bound_to_session` | `true` | Si un jeton d'actualisation émis dans une session est refusé une fois la session fermée ou plus vieille que `oidc.session_max_age`, sa famille révoquée. |
+| `oidc.session_max_age` | `null` | Secondes après l'ouverture d'une session au-delà desquelles ses jetons d'actualisation ne sont plus émis ni acceptés ; null pour aucune borne que la fin de la session. |
+| `oidc.id_token.acr` | `null` | L'`acr` de chaque jeton d'identité ; null pour aucun. |
+| `oidc.id_token.idp` | `null` | L'`idp` de chaque jeton d'identité ; null pour aucun. |
+| `oidc.id_token.session_start` | `false` | Si le jeton d'identité porte `session_start`, l'ouverture de sa session. |
+| `oidc.subject.type` | `account` | Le `sub` d'un compte : `account` pour son identifiant interne, `public` pour un identifiant opaque le même pour tous les clients, `pairwise` pour un par secteur. Voir [Jetons](oidc-provider.md#jetons). |
+| `oidc.subject.salt` | `null` | Le secret, de 32 octets au moins, sous lequel les sujets opaques et par paire sont dérivés ; exigé par `public` et `pairwise`, et jamais changé une fois que les clients ont vu des sujets. |
+| `oidc.backchannel_logout.enabled` | `false` | Si les clients qui ont enregistré une adresse de déconnexion par canal arrière reçoivent un jeton de déconnexion quand prend fin une session dont ils ont des jetons ; exige `symfony/messenger` et `symfony/http-client`. Voir [Déconnexion par canal arrière](oidc-provider.md#déconnexion-par-canal-arrière). |
+| `oidc.backchannel_logout.bus` | `messenger.default_bus` | Le bus de messages de `SendLogoutToken`. |
+| `oidc.backchannel_logout.http_client` | `http_client` | Le client HTTP qui poste les jetons de déconnexion. |
+| `oidc.backchannel_logout.timeout` | `5` | Secondes dont dispose un client pour répondre, de 1 à 30. |
 
 ## Un site qui refuse certaines méthodes
 

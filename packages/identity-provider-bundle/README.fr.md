@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3a79e03465aa1db376ee289378856f5f5331bb30228bb7715bf56c64312c395b -->
+<!-- phil-dev source-sha256=253759807f71c117807cda7959370ed8e0e0e73ddd6b47ffc3f27ab1ed0a5dce -->
 # phil/identity-provider-bundle
 
 **Une brique d'identité ouverte pour Symfony : des comptes, un module par façon de se connecter et un fournisseur OpenID Connect.**
@@ -14,9 +14,11 @@ connexion depuis un nouvel appareil.
 
 C'est aussi un fournisseur OpenID Connect bâti sur les composants de Symfony, dont les jetons sont signés et vérifiés
 par `web-token/jwt-library` : découverte, jeu de clés qui tourne, flux du code d'autorisation avec PKCE, jetons
-d'identité et d'accès, jetons d'actualisation renouvelés avec détection de réutilisation, userinfo, révocation
-(RFC 7009), introspection (RFC 7662), déconnexion à l'initiative du client, consentement par client et clients
-enregistrés dans la base de données. Il réussit les plans Basic OP, Config OP et RP-Initiated Logout OP de la suite de
+d'identité et d'accès, jetons d'actualisation renouvelés avec détection de réutilisation et liés à leur session,
+clients qui s'authentifient par un secret ou par une assertion de client signée avec leur propre clé
+(`private_key_jwt`), octroi `client_credentials` pour les jetons d'une ressource, userinfo, révocation (RFC 7009),
+introspection (RFC 7662), déconnexion à l'initiative du client, consentement par client et clients enregistrés dans la
+base de données. Il réussit les plans Basic OP, Config OP et RP-Initiated Logout OP de la suite de
 conformité de l'OpenID Foundation, exécutés dans Docker par `tests/Conformance/run.sh`.
 
 Chaque méthode est un module que la configuration active ou désactive, avec ses propres routes, tables et pages : un
@@ -58,7 +60,7 @@ le minimum sur les personnes — aucune adresse de leur connexion, aucun jeton d
 | [Réauthentification](doc/fr/step-up.md) | `PHIL_STEP_UP` sur le mode sudo de Symfony Security 8.2, et la page de réauthentification. |
 | [Appareils et sessions](doc/fr/sessions.md) | Des sessions liées à des lignes, fermées depuis un autre appareil ; les connexions risquées. |
 | [Fournisseurs fédérés](doc/fr/external-providers.md) | Le port `ExternalProvider` et les règles qui lient les identités aux comptes. |
-| [Fournisseur OpenID Connect](doc/fr/oidc-provider.md) | Les points de terminaison, les clients, les clés et leur rotation, les jetons, le consentement, la déconnexion. |
+| [Fournisseur OpenID Connect](doc/fr/oidc-provider.md) | Les points de terminaison, les clients et leur authentification — `private_key_jwt` compris —, les jetons et leurs familles, les jetons d'actualisation liés à la session, les ressources, l'octroi `client_credentials`, les clés et leur rotation, le consentement, la déconnexion. |
 | [Modèle de menaces](doc/fr/threat-model.md) | Les actifs, les frontières de confiance, ce dont le bundle se défend et comment, les risques ouverts. |
 | [Guide du réviseur](doc/fr/security-review.md) | La portée de la revue de sécurité, ses points d'entrée, et comment exécuter les tests et la suite. |
 | [Conformité OpenID](doc/fr/openid-conformance.md) | La suite de conformité de l'OpenID Foundation dans Docker : comment l'exécuter, et ses résultats. |
