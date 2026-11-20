@@ -15,9 +15,9 @@ after it.
 |---|---|
 | `current(): ?TenantId` | The active tenant, or `null` |
 | `require(): TenantId` | The active tenant; throws `NoActiveTenant` when there is none |
-| `enter(TenantId $tenant): void` | Makes the tenant active and calls `activate()` on every activation |
-| `leave(): void` | Makes no tenant active and calls `deactivate()` on every activation |
-| `within(TenantId $tenant, callable $work): mixed` | Runs the work in the tenant, then returns to the tenant active before, or to none, even when the work throws |
+| `enter(TenantId $tenant): void` | Makes the tenant active and calls `activate()` on every activation; when one fails, every activation is deactivated, no tenant is active, and the failure is thrown again |
+| `leave(): void` | Makes no tenant active and calls `deactivate()` on every activation, all of them even when one fails; the first failure is thrown once they are all reached |
+| `within(TenantId $tenant, callable $work): mixed` | Runs the work in the tenant, then returns to the tenant active before, or to none, even when the work throws or the tenant cannot be entered |
 
 The context is left between requests (`kernel.reset`), so a long-running server never carries a tenant from one
 request to the next.

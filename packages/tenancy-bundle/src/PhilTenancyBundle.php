@@ -26,6 +26,7 @@ use Phil\TenancyBundle\Infrastructure\Doctrine\RowLevelSecurity\RowLevelSecurity
 use Phil\TenancyBundle\Infrastructure\Doctrine\RowLevelSecurity\RowLevelSecurityPolicies;
 use Phil\TenancyBundle\Infrastructure\Doctrine\RowLevelSecurity\TenantSession;
 use Phil\TenancyBundle\Infrastructure\Doctrine\RowLevelSecurity\TenantSessionMiddleware;
+use Phil\TenancyBundle\Infrastructure\Doctrine\TenantWriteGuard;
 use Phil\TenancyBundle\Infrastructure\Http\ConfiguredHostTenants;
 use Phil\TenancyBundle\Infrastructure\Http\CurrentTenantValueResolver;
 use Phil\TenancyBundle\Infrastructure\Http\RedirectHostAlias;
@@ -313,6 +314,11 @@ final class PhilTenancyBundle extends AbstractBundle
             ->tag('controller.argument_value_resolver', ['before' => ['argument_resolver.request_attribute', 'doctrine.orm.entity_value_resolver']]);
 
         $services->set(DoctrineTenantActivation::class)->args([service('doctrine')->nullOnInvalid()])->tag(self::ACTIVATION_TAG);
+
+        if ($config['doctrine_filter']) {
+            // Every entity manager's flush: the guard reads the filter of the manager that flushes.
+            $services->set(TenantWriteGuard::class)->tag('doctrine.event_listener', ['event' => 'onFlush']);
+        }
 
         if (interface_exists(MiddlewareInterface::class)) {
             $services->set(TenantMiddleware::class)->args([service(TenantContext::class)]);

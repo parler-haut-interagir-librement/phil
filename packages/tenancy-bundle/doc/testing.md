@@ -12,8 +12,9 @@ The unit tests are in `tests/Unit`. None boots a kernel or opens a database conn
 | `ActiveTenant` | A reachable choice kept, a stale choice forgotten, a switch remembered, a refused switch leaving the choice untouched, `leave()` |
 | `TenantScoped` | Default field, empty field refused |
 | `ActiveTenantFilter` | Unmarked entities left alone; field and association columns; quoting through the connection; `1 = 0` without a tenant; the two mapping errors |
-| `TenantContext` | Entering and leaving reach every activation; `require()`; `within()` returns to the tenant before, or to none, even when the work throws |
-| `DoctrineTenantActivation` | The tenant set on every enabled filter, disabled filters left alone, a fresh filter on leaving, nothing without Doctrine |
+| `TenantContext` | Entering and leaving reach every activation; `require()`; `within()` returns to the tenant before, or to none, even when the work throws or the tenant cannot be entered; an activation that fails after another leaves no tenant and every activation left; leaving reaches every activation when one fails |
+| `DoctrineTenantActivation` | The tenant set on every enabled filter, disabled filters left alone, a fresh filter on leaving, nothing without Doctrine; the tenant-scoped entities of the identity map detached on a change of tenant, shared entities and pending insertions and deletions kept, nothing detached on the same tenant or without one |
+| `EntityTenant` | The tenant of a mapped field — a reference, an integer, a value object, none — and of an association, through the identifier of the tenant entity |
 | `SessionActiveTenantStore` | The main request's session, nothing read without a session cookie, a malformed value dropped, no session to remember in |
 | `ResolveActiveTenant` | Each outcome, the `target` on safe requests only, the unresolved routes, a request already in a tenant, sub-requests; after a stand-in firewall registered far below the usual place |
 | `ConfiguredHostTenants`, `ResolveHostTenant` | Hosts read in lowercase and in their ASCII form, every refused host, a host listed twice; the tenant entered and announced, a host of no tenant, sub-requests; the warning without trusted hosts, once per process |
@@ -38,7 +39,10 @@ that read request headers). Requests prove each resolution outcome end to end �
 redirect to the selector, a stale choice forgotten, nothing visible without a tenant, no tenant carried to the
 next request —, the switch, `#[CurrentTenant]` — never a request attribute of the same name —, the session store
 through a browser that keeps its cookie, a message handled in the tenant it was dispatched in, a command run with
-`--tenant`, each configuration key, the filter outside a request, including `suspend()` and `restore()`, and the cache
+`--tenant`, each configuration key, the filter outside a request, including `suspend()` and `restore()`, the identity map
+and the write guard on a shared database (an entity loaded in one tenant never found from another, by `find()` or by a
+reference; an entity persisted for, or moved to, another tenant refused; a pending insertion neither lost nor written
+under another tenant; a pending deletion refused there; work in no tenant or across tenants writing freely), and the cache
 pools of the application scoped to the tenant — the same key and the same tag in two tenants, a global pool, the
 scoping turned off. A
 second kernel (`Sites\SitesKernel`: FrameworkBundle, SecurityBundle and the bundle, four shop hosts sharing a session

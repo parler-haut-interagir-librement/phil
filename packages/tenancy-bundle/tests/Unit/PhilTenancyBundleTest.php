@@ -26,6 +26,7 @@ use Phil\TenancyBundle\Infrastructure\Doctrine\RowLevelSecurity\RowLevelSecurity
 use Phil\TenancyBundle\Infrastructure\Doctrine\RowLevelSecurity\RowLevelSecurityPolicies;
 use Phil\TenancyBundle\Infrastructure\Doctrine\RowLevelSecurity\TenantSession;
 use Phil\TenancyBundle\Infrastructure\Doctrine\RowLevelSecurity\TenantSessionMiddleware;
+use Phil\TenancyBundle\Infrastructure\Doctrine\TenantWriteGuard;
 use Phil\TenancyBundle\Infrastructure\Http\ConfiguredHostTenants;
 use Phil\TenancyBundle\Infrastructure\Http\CurrentTenantValueResolver;
 use Phil\TenancyBundle\Infrastructure\Http\RedirectHostAlias;
@@ -73,6 +74,7 @@ final class PhilTenancyBundleTest extends TestCase
             TenantContext::class,
             CurrentTenantValueResolver::class,
             DoctrineTenantActivation::class,
+            TenantWriteGuard::class,
             TenantMiddleware::class,
             TenantOption::class,
             ShopNetwork::class,
@@ -155,6 +157,12 @@ final class PhilTenancyBundleTest extends TestCase
     public function testTheFilterCanBeLeftToTheApplication(): void
     {
         self::assertSame([], $this->prepend([['doctrine_filter' => false]])->getExtensionConfig('doctrine'));
+    }
+
+    public function testTheWriteGuardListensToEveryFlushWhileTheFilterIsTheBundles(): void
+    {
+        self::assertSame([['event' => 'onFlush']], $this->load([])->getDefinition(TenantWriteGuard::class)->getTag('doctrine.event_listener'));
+        self::assertFalse($this->load([['doctrine_filter' => false]])->hasDefinition(TenantWriteGuard::class));
     }
 
     public function testWithoutDoctrineNothingIsPrepended(): void
