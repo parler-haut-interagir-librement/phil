@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=082c4a3023d8241bef0a95d218ed63cd4ecfa845751c7c50d4c170cec1f2f629 -->
+<!-- phil-dev source-sha256=6df96d04421d4a11507f8a28ffe3e2da9d9fcd3768729b71afe896262df59dfb -->
 # Installation
 
 ```sh
@@ -85,6 +85,19 @@ php bin/console messenger:consume newsletter scheduler_newsletter
 
 Un transport dont les délais sont courts convient — un message qui attend la prochaine ouverture d'une fenêtre d'envoi
 peut attendre des jours : l'envoi reste en file, et un message ultérieur le reprend.
+
+Les gestionnaires de `SendDelivery` et de `SendConfirmation` envoient par les transports de Symfony Mailer
+(`mailer.transports`), jamais par `MailerInterface` : ils s'exécutent déjà dans un *worker*, et avec `SendEmailMessage`
+acheminé vers un transport, chaque courriel attendrait dans une seconde file avec l'adresse de l'abonné et son lien
+signé de confirmation ou de désabonnement. Par les transports, ces messages ne portent que des identifiants, et un refus
+du transport fait échouer le gestionnaire : Messenger le voit et retente le message, une livraison étant entre-temps
+marquée en échec. Le `X-Transport` du profil d'expéditeur, le rythme de `SendThrottle`, `List-Unsubscribe` et
+`List-Unsubscribe-Post` s'appliquent comme avant, tout comme la configuration du mailer — `envelope`, `headers`.
+
+Acheminer `SendEmailMessage` reste le choix de l'application pour ses propres courriels. Celle qui le fait garde des
+renseignements personnels dans son transport Messenger et dans sa file des échecs : il lui faut une règle de
+conservation pour la file des échecs — `messenger:failed:show` pour regarder, `messenger:failed:remove` pour purger — et
+un mot dans sa politique de confidentialité.
 
 ## L'éditeur Markdown
 

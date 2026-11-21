@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c8bd2a9289c61d581cb8fa17b9c7e3d2ee957c7feaedf1cf27719b0a2a4f692e -->
+<!-- phil-dev source-sha256=d3f3da1f3e0af81874ca889feded237e3f4e9cb5d8a01851450097cc9659f30f -->
 # Notifications
 
 `Submissions::submit()` conserve d'abord l'entrée, puis avertit chaque `EntryNotifier` à tour de rôle. Un notificateur
@@ -40,6 +40,22 @@ sur une ligne, et un sujet ne peut nommer ni une case à cocher ni un champ sens
 formulaire comme le fait la condition d'un champ ([formulaires](forms.md#questions-posées-sous-une-condition)) ; celle
 qui lit un champ que l'entrée n'a pas demandé ne tient pas. Chaque courriel est tenté ; quand l'un échoue, le premier
 échec est signalé une fois les autres envoyés.
+
+### Envoi par Messenger
+
+`EmailNotifier` envoie par les transports de Symfony Mailer (`mailer.transports`), jamais par `MailerInterface` : le
+courriel est rendu et envoyé dans la requête qui a conservé l'entrée, et un refus du transport est connu aussitôt et
+journalisé comme ci-dessus. Une application qui achemine `SendEmailMessage` vers un transport Messenger asynchrone ne
+met donc rien d'une entrée en file : par `MailerInterface`, le message en file contiendrait le courriel non rendu avec
+l'entrée, son formulaire et chaque valeur de son contexte — une valeur scellée en clair avec
+`allow_unsealed_sensitive` —, gardés par le transport et par sa file des échecs jusqu'à ce que quelqu'un les retente ou
+les retire.
+
+Ce qui reste à l'application : la configuration propre du mailer — DSN, `X-Transport`, `envelope`, `headers` —, que les
+transports appliquent comme pour n'importe quel courriel, et les courriels de ses propres notificateurs. Celle qui met
+ses courriels en file garde des renseignements personnels dans son transport Messenger et dans sa file des échecs : il
+lui faut une règle de conservation pour la file des échecs — `messenger:failed:show` pour regarder,
+`messenger:failed:remove` pour purger — et un mot dans sa politique de confidentialité.
 
 ## Webhook
 

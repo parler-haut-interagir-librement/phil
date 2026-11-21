@@ -261,13 +261,13 @@ final class NewsletterServices
                 service(DeliveryRepository::class), service(SubscriberRepository::class), service(CampaignRepository::class), service(MailingListRepository::class),
                 service(TemplateRepository::class), service(SuppressionRepository::class), service(SenderProfiles::class), service(SendThrottle::class),
                 service(ContentRenderer::class), service(MessageComposer::class), service(ClickTracker::class), service(SignedLinks::class),
-                service(NewsletterUrls::class), service('mailer.mailer'), $bus, $clock, service(SendRuns::class),
+                service(NewsletterUrls::class), service('mailer.transports'), $bus, $clock, service(SendRuns::class),
             ])
             ->tag('messenger.message_handler');
         $services->set(SendConfirmationHandler::class)
             ->args([
                 service(SubscriberRepository::class), service(MailingListRepository::class), service(TemplateRepository::class), service(SenderProfiles::class),
-                service(SignedLinks::class), service(NewsletterUrls::class), service(ContentRenderer::class), service(MessageComposer::class), service('twig'), service('mailer.mailer'),
+                service(SignedLinks::class), service(NewsletterUrls::class), service(ContentRenderer::class), service(MessageComposer::class), service('twig'), service('mailer.transports'),
                 $clock, $checkMailDomain ? service(self::MAIL_DOMAINS) : null, service('logger')->nullOnInvalid(),
             ])
             ->tag('messenger.message_handler');

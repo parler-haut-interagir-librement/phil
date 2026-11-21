@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d3b5efe9cdbfc3d1647caf5f598062f12102829d9497b964a85da5f6931987c1 -->
+<!-- phil-dev source-sha256=4bfca2a02fef096fc2312c0acd9b8226a8a07049f45f455e41b14294abb2cd09 -->
 # Référence
 
 ## Domaine
@@ -56,7 +56,7 @@
 | `Idempotency\NotificationDedupe` | Le `DeliveryDedupe` sur phil/idempotency : une seule livraison de la même notification par fenêtre |
 | `CircuitBreaker\ChannelBreakers` | Le `ChannelCircuits` sur phil/circuit-breaker : les circuits `notifications.<channel>[.<transport>]` |
 | `Mailer\MailerChannelSender` | Le canal `email` du mode `first_success`, par les transports de Symfony Mailer |
-| `Notifier\NotifierChannelSender` | Les canaux `sms`, `push` et `chat` du mode `first_success`, par le texter et le chatter de Notifier |
+| `Notifier\NotifierChannelSender` | Les canaux `sms`, `push` et `chat` du mode `first_success`, par les transports du texter et du chatter de Notifier |
 | `Scheduler\NotificationSchedule` | Le calendrier `phil_notifications` |
 | `Console\PurgeCommand` | `phil:notifications:purge` |
 | `Console\VapidKeysCommand` | `phil:notifications:vapid-keys` |

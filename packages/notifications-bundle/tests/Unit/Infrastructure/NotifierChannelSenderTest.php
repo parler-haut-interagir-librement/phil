@@ -12,25 +12,25 @@ use Phil\NotificationsBundle\Application\RenderedNotification;
 use Phil\NotificationsBundle\Domain\Model\Notification;
 use Phil\NotificationsBundle\Infrastructure\Notifier\NotifierChannelSender;
 use Phil\NotificationsBundle\Tests\Unit\Fixture\NotifierTransport;
-use Phil\NotificationsBundle\Tests\Unit\Fixture\RecordingBus;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Notifier\Chatter;
+use ReflectionMethod;
+use ReflectionParameter;
 use Symfony\Component\Notifier\Message\ChatMessage;
 use Symfony\Component\Notifier\Message\PushMessage;
 use Symfony\Component\Notifier\Message\SmsMessage;
 use Symfony\Component\Notifier\Recipient\NoRecipient;
 use Symfony\Component\Notifier\Recipient\Recipient;
-use Symfony\Component\Notifier\Texter;
+use Symfony\Component\Notifier\Transport\TransportInterface;
 
 #[CoversClass(NotifierChannelSender::class)]
 final class NotifierChannelSenderTest extends TestCase
 {
     public function testItServesSmsAndPushByTheTexterAndChatByTheChatter(): void
     {
-        $both = new NotifierChannelSender(new Texter(new NotifierTransport()), new Chatter(new NotifierTransport()));
-        $texter = new NotifierChannelSender(new Texter(new NotifierTransport()));
-        $chatter = new NotifierChannelSender(chatter: new Chatter(new NotifierTransport()));
+        $both = new NotifierChannelSender(new NotifierTransport(), new NotifierTransport());
+        $texter = new NotifierChannelSender(new NotifierTransport());
+        $chatter = new NotifierChannelSender(chatter: new NotifierTransport());
 
         foreach (['sms', 'sms/twilio', 'push', 'push/expo', 'chat', 'chat/slack'] as $channel) {
             self::assertTrue($both->supports($channel), $channel);
@@ -48,7 +48,7 @@ final class NotifierChannelSenderTest extends TestCase
     public function testAnSmsGoesAtOnceToThePhoneOfTheRecipientOnItsTransport(): void
     {
         $transport = new NotifierTransport();
-        $outcome = new NotifierChannelSender(new Texter($transport))->send('sms/twilio', $this->rendered(), new NotificationType('comment.replied', importance: 'urgent'), new Recipient('', '+15550000042'));
+        $outcome = new NotifierChannelSender($transport)->send('sms/twilio', $this->rendered(), new NotificationType('comment.replied', importance: 'urgent'), new Recipient('', '+15550000042'));
 
         self::assertSame(ChannelOutcome::Accepted, $outcome);
         self::assertCount(1, $transport->sent);
@@ -62,7 +62,7 @@ final class NotifierChannelSenderTest extends TestCase
     public function testTheTransportKeepsWhatFollowsTheFirstSlashAndTheMessageTheChannel(): void
     {
         $transport = new NotifierTransport();
-        new NotifierChannelSender(new Texter($transport))->send('sms/twilio/eu', $this->rendered(), new NotificationType('comment.replied'), new Recipient('', '+15550000042'));
+        new NotifierChannelSender($transport)->send('sms/twilio/eu', $this->rendered(), new NotificationType('comment.replied'), new Recipient('', '+15550000042'));
         $message = $transport->sent[0];
 
         self::assertInstanceOf(SmsMessage::class, $message);
@@ -73,7 +73,7 @@ final class NotifierChannelSenderTest extends TestCase
     public function testAnSmsWithoutPhoneIsUnreachable(): void
     {
         $transport = new NotifierTransport();
-        $sender = new NotifierChannelSender(new Texter($transport));
+        $sender = new NotifierChannelSender($transport);
 
         self::assertSame(ChannelOutcome::Unreachable, $sender->send('sms', $this->rendered(), new NotificationType('comment.replied'), new NoRecipient()));
         self::assertSame(ChannelOutcome::Unreachable, $sender->send('sms', $this->rendered(), new NotificationType('comment.replied'), null));
@@ -84,7 +84,7 @@ final class NotifierChannelSenderTest extends TestCase
     {
         $texts = new NotifierTransport();
         $chats = new NotifierTransport();
-        $sender = new NotifierChannelSender(new Texter($texts), new Chatter($chats));
+        $sender = new NotifierChannelSender($texts, $chats);
 
         self::assertSame(ChannelOutcome::Accepted, $sender->send('push', $this->rendered(), new NotificationType('comment.replied'), null));
         self::assertSame(ChannelOutcome::Accepted, $sender->send('chat/slack', $this->rendered(), new NotificationType('comment.replied'), null));
@@ -108,7 +108,7 @@ final class NotifierChannelSenderTest extends TestCase
         $transport = new NotifierTransport();
         $transport->failure = NotifierTransport::refusal();
 
-        $sender = new NotifierChannelSender(new Texter($transport), new Chatter($transport));
+        $sender = new NotifierChannelSender($transport, $transport);
 
         self::assertSame(ChannelOutcome::Refused, $sender->send('sms', $this->rendered(), new NotificationType('comment.replied'), new Recipient('', '+15550000042')));
         self::assertSame(ChannelOutcome::Refused, $sender->send('chat/slack', $this->rendered(), new NotificationType('comment.replied'), null));
@@ -121,26 +121,18 @@ final class NotifierChannelSenderTest extends TestCase
 
         $this->expectException(LogicException::class);
 
-        new NotifierChannelSender(new Texter($transport))->send('push', $this->rendered(), new NotificationType('comment.replied'), null);
+        new NotifierChannelSender($transport)->send('push', $this->rendered(), new NotificationType('comment.replied'), null);
     }
 
     /**
-     * Why the documentation says to keep `framework.notifier.message_bus` off: on a bus, the texter queues the message
-     * with the phone number and the text, and the provider's answer is no longer known.
+     * The sender is given the transports of the texter and the chatter, never the texter or the chatter, which put the
+     * message — the phone number and the text — on a bus when `framework.notifier.message_bus` is set.
      */
-    public function testOnABusTheMessageWaitsWithThePhoneNumberAndTheText(): void
+    public function testTheSenderTakesTransportsNeverATexterOrAChatter(): void
     {
-        $transport = new NotifierTransport();
-        $bus = new RecordingBus();
-        $outcome = new NotifierChannelSender(new Texter($transport, $bus))->send('sms', $this->rendered(), new NotificationType('comment.replied'), new Recipient('', '+15550000042'));
+        $types = array_map(static fn (ReflectionParameter $parameter): string => (string) $parameter->getType(), new ReflectionMethod(NotifierChannelSender::class, '__construct')->getParameters());
 
-        self::assertSame(ChannelOutcome::Accepted, $outcome);
-        self::assertSame([], $transport->sent);
-        self::assertCount(1, $bus->messages);
-        $queued = $bus->messages[0];
-        self::assertInstanceOf(SmsMessage::class, $queued);
-        self::assertSame('+15550000042', $queued->getPhone());
-        self::assertSame('Grace replied', $queued->getSubject());
+        self::assertSame(['?'.TransportInterface::class, '?'.TransportInterface::class], $types);
     }
 
     private function rendered(): RenderedNotification

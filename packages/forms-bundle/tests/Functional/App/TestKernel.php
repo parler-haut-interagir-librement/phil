@@ -10,11 +10,13 @@ use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\Mailer\Messenger\SendEmailMessage;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 /**
  * An application as small as the bundle needs: FrameworkBundle with forms, the translator in `fr`, a mailer that
- * sends nowhere and an HTTP client that answers every webhook; DoctrineBundle on SQLite; TwigBundle; the spam
+ * sends nowhere — `SendEmailMessage` routed to an asynchronous transport in memory, as an application that queues its
+ * emails does — and an HTTP client that answers every webhook; DoctrineBundle on SQLite; TwigBundle; the spam
  * protection with a proof of work of 4 bits and no minimum filling time; the bundle configured in YAML, from
  * `config/packages/phil_forms.yaml`, as an application does; the forms under `/forms`.
  */
@@ -59,6 +61,10 @@ final class TestKernel extends Kernel
             'translator' => ['fallbacks' => ['fr']],
             'default_locale' => 'fr',
             'mailer' => ['dsn' => 'null://null'],
+            'messenger' => [
+                'transports' => ['async' => 'in-memory://'],
+                'routing' => [SendEmailMessage::class => 'async'],
+            ],
         ]);
         $container->extension('doctrine', ['dbal' => ['url' => 'sqlite:///:memory:'], 'orm' => []]);
         $container->extension('twig', ['strict_variables' => true]);

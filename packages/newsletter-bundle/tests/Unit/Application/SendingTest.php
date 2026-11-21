@@ -337,6 +337,27 @@ final class SendingTest extends TestCase
         iterator_to_array(new ListRecipients($this->newsletter->subscribers)->recipients(new Campaign('c2', Site::default(), $list->id, 'Hello', 'Hi', segment: 'vip'), $this->newsletter->clock->now()));
     }
 
+    public function testATransportFailureFailsTheConfirmationForMessengerToRetry(): void
+    {
+        $list = $this->newsletter->list();
+        $this->newsletter->subscriptions->subscribe($list, 'ada@example.com');
+        $ada = $this->newsletter->subscribers->byEmail(Site::default(), 'ada@example.com');
+        self::assertInstanceOf(Subscriber::class, $ada);
+        $mailer = $this->newsletter->mailer;
+        $mailer->failures = 1;
+
+        try {
+            $this->confirmationHandler()(new SendConfirmation($ada->id, $list->id));
+            self::fail('Expected a transport failure.');
+        } catch (TransportExceptionInterface $transportException) {
+            self::assertSame('The transport is down.', $transportException->getMessage());
+        }
+
+        self::assertCount(0, $this->newsletter->mailer->sent);
+        $this->confirmationHandler()(new SendConfirmation($ada->id, $list->id));
+        self::assertSame(['ada@example.com'], array_map(static fn (Email $email): string => $email->getTo()[0]->getAddress(), $mailer->sent));
+    }
+
     public function testTheConfirmationOfADoubleOptIn(): void
     {
         $list = $this->newsletter->list();

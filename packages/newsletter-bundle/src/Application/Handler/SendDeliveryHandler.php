@@ -35,7 +35,7 @@ use Phil\NewsletterBundle\Domain\Model\Subscriber;
 use Phil\NewsletterBundle\Domain\Model\Template;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
-use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mailer\Transport\TransportInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\DelayStamp;
@@ -47,6 +47,10 @@ use Symfony\Component\Messenger\Stamp\DelayStamp;
  * or past its pace for the recipient's domain or its daily ceiling, the message is sent again later with a delay. A
  * transport failure leaves the delivery to retry and is thrown for Messenger's retries. What became of the message is
  * counted in its send run.
+ *
+ * The email goes through Symfony Mailer's transports, never `MailerInterface`: with `SendEmailMessage` routed to a
+ * Messenger transport, the address and the signed unsubscription link would wait in a second queue, and a refusal
+ * would be seen there rather than by this handler.
  */
 #[AsMessageHandler]
 final readonly class SendDeliveryHandler
@@ -65,7 +69,7 @@ final readonly class SendDeliveryHandler
         private ClickTracker $clicks,
         private SignedLinks $links,
         private NewsletterUrls $urls,
-        private MailerInterface $mailer,
+        private TransportInterface $transport,
         private MessageBusInterface $bus,
         private ClockInterface $clock,
         private ?SendRuns $runs = null,
@@ -123,7 +127,7 @@ final readonly class SendDeliveryHandler
         }
 
         try {
-            $this->mailer->send($this->composer->compose($delivery->id, $subscriber, $profile, $rendered, $unsubscribe, $list, $campaign instanceof Campaign));
+            $this->transport->send($this->composer->compose($delivery->id, $subscriber, $profile, $rendered, $unsubscribe, $list, $campaign instanceof Campaign));
         } catch (TransportExceptionInterface $transportException) {
             $delivery->failed();
             $this->deliveries->save($delivery);

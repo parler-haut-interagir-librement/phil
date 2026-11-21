@@ -32,7 +32,8 @@ use Symfony\Component\DependencyInjection\Reference;
  * without a `CurrentRecipient` of its own: no default reads the user identifier, which can be an email address.
  *
  * Lists the channel senders of the `first_success` mode, the application's first, then the bundle's that can send —
- * Symfony Mailer's transports, Notifier's texter and chatter —, and refuses in the prod environment a window of
+ * Symfony Mailer's transports, the transports of Notifier's texter and chatter, kept only when a texter or a chatter is
+ * configured —, and refuses in the prod environment a window of
  * duplicates kept in a cache pool local to each server, where every server would send once.
  */
 final readonly class NotificationsPass implements CompilerPassInterface
@@ -42,6 +43,12 @@ final readonly class NotificationsPass implements CompilerPassInterface
     public const string TOKEN_STORAGE = 'security.token_storage';
 
     public const string MAILER_TRANSPORTS = 'mailer.transports';
+
+    /** The transports of Notifier's texter, which send at once; the texter itself queues on a bus when one is set. */
+    public const string TEXTER_TRANSPORTS = 'texter.transports';
+
+    /** The transports of Notifier's chatter, which send at once; the chatter itself queues on a bus when one is set. */
+    public const string CHATTER_TRANSPORTS = 'chatter.transports';
 
     public function __construct(
         private StoreLocality $locality = new StoreLocality(),
@@ -95,8 +102,21 @@ final readonly class NotificationsPass implements CompilerPassInterface
             $senders[] = new Reference(MailerChannelSender::class);
         }
 
-        if ($container->hasDefinition(NotifierChannelSender::class) && ($container->has('texter') || $container->has('chatter'))) {
-            $senders[] = new Reference(NotifierChannelSender::class);
+        if ($container->hasDefinition(NotifierChannelSender::class)) {
+            // Notifier keeps the definitions of the transports without any configured, but removes the texter or the chatter.
+            $notifier = $container->getDefinition(NotifierChannelSender::class);
+
+            if (!$container->has('texter')) {
+                $notifier->replaceArgument(0, null);
+            }
+
+            if (!$container->has('chatter')) {
+                $notifier->replaceArgument(1, null);
+            }
+
+            if ($container->has('texter') || $container->has('chatter')) {
+                $senders[] = new Reference(NotifierChannelSender::class);
+            }
         }
 
         $container->getDefinition(DeliveryPolicy::class)->replaceArgument(0, new IteratorArgument($senders));

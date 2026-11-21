@@ -31,6 +31,7 @@ use Symfony\Component\Form\FormView;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Twig\Environment;
 
 /**
@@ -98,6 +99,11 @@ final class FormsBundleTest extends KernelTestCase
         self::assertStringContainsString("J’accepte le règlement\nOui", (string) $email->getTextBody());
         self::assertStringContainsString('<dt>Message</dt>', (string) $email->getHtmlBody());
         self::assertStringContainsString('Bonjour,<br />', (string) $email->getHtmlBody());
+        self::assertCount(1, $sent->messages, 'sent once, by the transport');
+
+        $queue = $this->service('messenger.transport.async');
+        self::assertInstanceOf(InMemoryTransport::class, $queue);
+        self::assertSame([], $queue->getSent(), 'nothing of the entry waits in a Messenger queue');
 
         $webhooks = $this->service(Webhooks::class);
         self::assertInstanceOf(Webhooks::class, $webhooks);

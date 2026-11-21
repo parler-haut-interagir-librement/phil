@@ -146,7 +146,7 @@ Phil\NewsletterBundle\Application\Handler\SendConfirmationHandler
   argument 6: @Phil\NewsletterBundle\Application\Content\ContentRenderer
   argument 7: @Phil\NewsletterBundle\Application\Sending\MessageComposer
   argument 8: @twig
-  argument 9: @mailer.mailer
+  argument 9: @mailer.transports
   argument 10: @clock
   argument 11: @phil_newsletter.mail_domains
   argument 12: @logger (null on invalid)
@@ -169,7 +169,7 @@ Phil\NewsletterBundle\Application\Handler\SendDeliveryHandler
   argument 10: @Phil\NewsletterBundle\Application\Tracking\ClickTracker
   argument 11: @Phil\NewsletterBundle\Application\SignedLinks
   argument 12: @Phil\NewsletterBundle\Application\NewsletterUrls
-  argument 13: @mailer.mailer
+  argument 13: @mailer.transports
   argument 14: @messenger.default_bus
   argument 15: @clock
   argument 16: @Phil\NewsletterBundle\Application\SendRuns

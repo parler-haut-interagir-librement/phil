@@ -38,6 +38,20 @@ neither a checkbox nor a sensitive field. A condition reads fields of the form a
 ([forms](forms.md#questions-asked-under-a-condition)); one that reads a field the entry did not ask does not hold.
 Every email is tried; when one fails, the first failure is reported once the others are sent.
 
+### Sending through Messenger
+
+`EmailNotifier` sends through Symfony Mailer's transports (`mailer.transports`), never through `MailerInterface`: the
+email is rendered and sent in the request that kept the entry, and a refusal of the transport is known at once and
+logged as above. An application that routes `SendEmailMessage` to an asynchronous Messenger transport still queues
+nothing of an entry: through `MailerInterface`, the queued message would hold the unrendered email with the entry, its
+form and every value in its context — a sealed value in clear with `allow_unsealed_sensitive` —, kept by the transport
+and by its failure transport until someone retries or removes it.
+
+What stays the application's: the mailer's own configuration — DSN, `X-Transport`, `envelope`, `headers` —, which the
+transports apply as they would to any email, and the emails of its own notifiers. One that queues its emails keeps
+personal information in its Messenger transport and its failure transport: it needs a retention rule for the failure
+transport — `messenger:failed:show` to look, `messenger:failed:remove` to purge — and a word in its privacy policy.
+
 ## Webhook
 
 With `webhook_secret` set, `WebhookNotifier` posts each entry to its form's webhook as a Standard Webhooks message,

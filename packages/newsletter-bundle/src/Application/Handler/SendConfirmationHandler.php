@@ -27,7 +27,7 @@ use Phil\NewsletterBundle\Domain\Model\Template;
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mailer\Transport\TransportInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Twig\Environment;
 
@@ -40,6 +40,10 @@ use Twig\Environment;
  * request that subscribed: a domain that receives no mail — no MX, A nor AAAA record, or a null MX — gets no
  * confirmation, its subscription is marked refused, and a notice is logged with the identifiers of the subscriber and
  * the list, never the address. A lookup that fails says nothing, and the confirmation goes out.
+ *
+ * The email goes through Symfony Mailer's transports, never `MailerInterface`: with `SendEmailMessage` routed to a
+ * Messenger transport, the address and the signed link would wait in a second queue. A refusal of the transport is
+ * thrown, and Messenger retries the `SendConfirmation` message, which carries identifiers only.
  */
 #[AsMessageHandler]
 final readonly class SendConfirmationHandler
@@ -62,7 +66,7 @@ final readonly class SendConfirmationHandler
         private ContentRenderer $renderer,
         private MessageComposer $composer,
         private Environment $twig,
-        private MailerInterface $mailer,
+        private TransportInterface $transport,
         private ClockInterface $clock,
         private ?MailDomainResolver $mailDomains = null,
         ?LoggerInterface $logger = null,
@@ -109,7 +113,7 @@ final readonly class SendConfirmationHandler
             $rendered = new RenderedMessage(trim($page->renderBlock('subject', $context)), $html, $this->renderer->text($html));
         }
 
-        $this->mailer->send($this->composer->compose('confirm-'.substr(hash('sha256', $subscriber->id.$list->id), 0, 24), $subscriber, $this->profiles->get($list->senderProfile), $rendered, '', $list, false));
+        $this->transport->send($this->composer->compose('confirm-'.substr(hash('sha256', $subscriber->id.$list->id), 0, 24), $subscriber, $this->profiles->get($list->senderProfile), $rendered, '', $list, false));
     }
 
     /**

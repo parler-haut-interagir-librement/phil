@@ -11,7 +11,6 @@ use Phil\NotificationsBundle\Application\Delivery\ChannelOutcome;
 use Phil\NotificationsBundle\Application\NotificationType;
 use Phil\NotificationsBundle\Application\OutgoingNotification;
 use Phil\NotificationsBundle\Application\RenderedNotification;
-use Symfony\Component\Notifier\ChatterInterface;
 use Symfony\Component\Notifier\Exception\TransportExceptionInterface;
 use Symfony\Component\Notifier\Message\MessageInterface;
 use Symfony\Component\Notifier\Message\PushMessage;
@@ -19,20 +18,21 @@ use Symfony\Component\Notifier\Message\SmsMessage;
 use Symfony\Component\Notifier\Recipient\NoRecipient;
 use Symfony\Component\Notifier\Recipient\RecipientInterface;
 use Symfony\Component\Notifier\Recipient\SmsRecipientInterface;
-use Symfony\Component\Notifier\TexterInterface;
+use Symfony\Component\Notifier\Transport\TransportInterface;
 
 /**
- * The `sms` and `push` channels through Symfony Notifier's texter, and the `chat` channels through its chatter, a
- * transport after the slash — "sms/twilio", "chat/slack" —, each message sent at once: the transport's answer, or its
- * `TransportExceptionInterface`, is known when `send()` returns. With `framework.notifier.message_bus` set, the texter
- * and the chatter put the message on the bus instead, where a failure is only seen later by a worker, and the message
- * waits there with the recipient's phone number and the text: keep it disabled for the `first_success` mode.
+ * The `sms` and `push` channels through the transports of Symfony Notifier's texter (`texter.transports`), and the
+ * `chat` channels through those of its chatter (`chatter.transports`), a transport after the slash — "sms/twilio",
+ * "chat/slack" —, each message sent at once: the transport's answer, or its `TransportExceptionInterface`, is known
+ * when `send()` returns. The texter and the chatter themselves are never used: with `framework.notifier.message_bus`
+ * set, they put the message on the bus, where it waits with the recipient's phone number and the text, and a refusal
+ * is only seen later by a worker.
  */
 final readonly class NotifierChannelSender implements ChannelSender
 {
     public function __construct(
-        private ?TexterInterface $texter = null,
-        private ?ChatterInterface $chatter = null,
+        private ?TransportInterface $texter = null,
+        private ?TransportInterface $chatter = null,
     ) {
     }
 
@@ -40,8 +40,8 @@ final readonly class NotifierChannelSender implements ChannelSender
     public function supports(string $channel): bool
     {
         return match (Channels::base($channel)) {
-            Channels::SMS, 'push' => $this->texter instanceof TexterInterface,
-            'chat' => $this->chatter instanceof ChatterInterface,
+            Channels::SMS, 'push' => $this->texter instanceof TransportInterface,
+            'chat' => $this->chatter instanceof TransportInterface,
             default => false,
         };
     }

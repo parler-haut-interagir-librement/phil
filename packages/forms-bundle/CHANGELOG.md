@@ -12,11 +12,20 @@ The next version is 0.2.1-alpha.
 
 - The development requirements accept `phil/privacy-bundle` 0.3, the minor version of its main branch and no earlier
   one, so that the package installs on its own beside that bundle.
+- `EmailNotifier` takes a Mailer `TransportInterface`, the service `mailer.transports`, instead of `MailerInterface`.
+- `symfony/messenger` is in `require-dev`, for the test that routes `SendEmailMessage` to an asynchronous transport.
 
 ### Fixed
 
 - `phil/spam-protection-bundle` 0.3 is accepted beside 0.1 and 0.2: the package did not install beside the version
   published on 2026-11-20.
+
+### Security
+
+- An entry's email no longer goes through `MailerInterface`, which put a `SendEmailMessage` on the bus when the
+  application routed it: the unrendered email, with the entry, its form and every value — a sealed value in clear with
+  `allow_unsealed_sensitive` — in its context, kept by the Messenger transport and its failure transport. The email is
+  rendered and sent in the request, through the Mailer transports.
 
 ## 0.2.0-alpha - 2026-11-18
 
