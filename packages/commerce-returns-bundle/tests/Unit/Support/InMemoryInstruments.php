@@ -53,6 +53,23 @@ final class InMemoryInstruments implements InstrumentRepository
     }
 
     #[Override]
+    public function addIssuedCards(array $cards): bool
+    {
+        foreach ($cards as [$card, $issued]) {
+            $this->addInstrument($card);
+            $this->addMovement($issued);
+        }
+
+        return true;
+    }
+
+    #[Override]
+    public function movementUnderKey(string $instrument, string $idempotencyKey): ?Movement
+    {
+        return array_find($this->movements, static fn (Movement $movement): bool => $movement->instrument === $instrument && $movement->idempotencyKey === $idempotencyKey);
+    }
+
+    #[Override]
     public function redemptionOf(string $payment): ?Movement
     {
         return array_find($this->movements, static fn (Movement $movement): bool => $movement->payment === $payment && MovementKind::Redeemed === $movement->kind);

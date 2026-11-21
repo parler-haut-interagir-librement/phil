@@ -167,6 +167,48 @@ final class StoredValueTest extends TestCase
         self::assertSame(2, $this->instruments->issuedFor('A-1'));
     }
 
+    public function testACardIsHandedOverAsItsOwnWhenTheStoreDoesNotListItYet(): void
+    {
+        $order = $this->order([['gift_card', 'CAD:5000', 1, 5_000]]);
+        new StoreCredits($this->instruments)->grant('ada', $this->cad(5_000), $this->at);
+        $this->stored()->payWithStoreCredit($order, 'ada', $this->at);
+        // A store that lists the order's cards only later: the card is the one just issued.
+        $late = new class($this->instruments) extends InstrumentsView {
+            #[Override]
+            public function cardsIssuedFor(string $orderNumber): array
+            {
+                return [];
+            }
+        };
+
+        $issuance = new GiftCards($late, $this->corePayments())->issueFor($order, $this->at);
+
+        self::assertCount(1, $issuance->issued);
+        self::assertSame($this->instruments->instruments[$issuance->issued[0]->card->id], $issuance->issued[0]->card);
+        self::assertSame(5_000, $issuance->issued[0]->card->balance->minorUnits);
+    }
+
+    public function testACardIsHandedOverAsTheStoreReadsIt(): void
+    {
+        $order = $this->order([['gift_card', 'CAD:5000', 1, 5_000]]);
+        new StoreCredits($this->instruments)->grant('ada', $this->cad(5_000), $this->at);
+        $this->stored()->payWithStoreCredit($order, 'ada', $this->at);
+        // A store that reads its own instance of each card, as an entity manager of its own does.
+        $reading = new class($this->instruments) extends InstrumentsView {
+            #[Override]
+            public function cardsIssuedFor(string $orderNumber): array
+            {
+                return array_map(static fn (Instrument $card): Instrument => clone $card, parent::cardsIssuedFor($orderNumber));
+            }
+        };
+
+        $issuance = new GiftCards($reading, $this->corePayments())->issueFor($order, $this->at);
+
+        self::assertCount(1, $issuance->issued);
+        self::assertSame($issuance->cards[0], $issuance->issued[0]->card);
+        self::assertNotSame($this->instruments->instruments[$issuance->cards[0]->id], $issuance->issued[0]->card);
+    }
+
     public function testTheCardsLeftToIssueTakeTheRanksThatFollow(): void
     {
         $order = $this->order([['gift_card', 'CAD:5000', 2, 5_000]]);

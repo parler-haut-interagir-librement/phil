@@ -87,21 +87,23 @@ final readonly class GiftCards
         }
 
         $new = [];
+        $codes = [];
 
         foreach (\array_slice($values, $this->instruments->issuedFor($order->number), null, true) as $rank => $value) {
             $code = GiftCardCode::generate();
             [$card, $movement] = Instrument::giftCard($code, $value, $at, null, $order->number, GiftCardOrigin::Paid, false, $rank);
-            $new[] = [$card, $movement, $code];
+            $new[] = [$card, $movement];
+            $codes[] = $code;
         }
 
         // Stored now, all or none: a request that issued them first leaves this one nothing to issue.
-        $stored = [] !== $new && $this->instruments->addIssuedCards(array_map(static fn (array $card): array => [$card[0], $card[1]], $new));
+        $stored = [] !== $new && $this->instruments->addIssuedCards($new);
         $cards = $this->instruments->cardsIssuedFor($order->number);
         $issued = [];
 
         if ($stored) {
-            foreach ($new as [$card, , $code]) {
-                $issued[] = new IssuedGiftCard(array_find($cards, static fn (Instrument $read): bool => $read->id === $card->id) ?? $card, $code);
+            foreach ($new as $rank => [$card]) {
+                $issued[] = new IssuedGiftCard(array_find($cards, static fn (Instrument $read): bool => $read->id === $card->id) ?? $card, $codes[$rank]);
             }
         }
 

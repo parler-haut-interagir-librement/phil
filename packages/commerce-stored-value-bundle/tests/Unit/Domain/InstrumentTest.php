@@ -82,6 +82,61 @@ final class InstrumentTest extends TestCase
         self::assertSame(['return-1', null], [$movement->idempotencyKey, $movement->issuedUnit]);
     }
 
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function keysRefused(): iterable
+    {
+        yield 'empty' => [''];
+        yield 'padded before' => [' key'];
+        yield 'padded after' => ["key\n"];
+        yield 'too long' => [str_repeat('a', 129)];
+        yield 'too long in characters' => [str_repeat('é', 129)];
+    }
+
+    #[DataProvider('keysRefused')]
+    public function testAKeyAMovementCannotKeepIsRefusedBeforeAnyValueIsAdded(string $key): void
+    {
+        $credit = Instrument::storeCredit('ada', Currency::of('CAD'), new DateTimeImmutable());
+
+        try {
+            $credit->credit(MovementKind::Granted, self::cad(100), new DateTimeImmutable(), idempotencyKey: $key);
+            self::fail('The key is refused.');
+        } catch (InvalidValue $invalidValue) {
+            self::assertSame('An idempotency key is 1 to 128 characters, without surrounding spaces.', $invalidValue->getMessage());
+        }
+
+        self::assertSame(0, $credit->balance->minorUnits);
+
+        $this->expectException(InvalidValue::class);
+
+        Instrument::checkIdempotencyKey($key);
+    }
+
+    /**
+     * @return iterable<string, array{?string}>
+     */
+    public static function keysKept(): iterable
+    {
+        yield 'none' => [null];
+        yield 'one character' => ['k'];
+        yield 'inside spaces' => ['a b'];
+        yield 'the longest' => [str_repeat('a', 128)];
+        yield 'the longest in characters' => [str_repeat('é', 128)];
+    }
+
+    #[DataProvider('keysKept')]
+    public function testAKeyAMovementCanKeepIsAccepted(?string $key): void
+    {
+        $credit = Instrument::storeCredit('ada', Currency::of('CAD'), new DateTimeImmutable());
+
+        $movement = $credit->credit(MovementKind::Granted, self::cad(100), new DateTimeImmutable(), idempotencyKey: $key);
+
+        self::assertSame($key, $movement->idempotencyKey);
+        self::assertSame(100, $credit->balance->minorUnits);
+        Instrument::checkIdempotencyKey($key);
+    }
+
     public function testAnIssuedCardIsCheckedLikeAnyCredit(): void
     {
         $this->expectException(InvalidValue::class);
