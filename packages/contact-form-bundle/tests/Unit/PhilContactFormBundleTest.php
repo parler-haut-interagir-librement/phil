@@ -42,7 +42,7 @@ final class PhilContactFormBundleTest extends TestCase
         self::assertTrue($container->getDefinition(ContactFormType::class)->hasTag('form.type'));
 
         $mailer = $container->getDefinition(ContactMailer::class)->getArguments();
-        self::assertEquals([new Reference('mailer'), new Reference(Recipients::class), 'contact@example.com', ''], $mailer);
+        self::assertEquals([new Reference('mailer.transports'), new Reference(Recipients::class), 'contact@example.com', ''], $mailer);
 
         $controller = $container->getDefinition(ContactFormController::class);
         self::assertEquals([new Reference('form.factory'), new Reference(ContactMailer::class), new Reference('twig'), new Reference('logger'), PhilContactFormBundle::TEMPLATE], $controller->getArguments());

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0db99e602cc94920183ec218a392b23bfc43c376945dbcd3aa53c9cc6a7a501e -->
+<!-- phil-dev source-sha256=ae495bb3689b7b230b1edb688252057d60fa15c7a70c596c25d1b71fdb655578 -->
 # Référence
 
 Chaque classe du bundle, avec son rôle.
@@ -14,6 +14,7 @@ Chaque classe du bundle, avec son rôle.
 | `Phil\NewsletterBundle\Application\Content\RangeRefusal` | `final readonly class` | Refuse, quand un gabarit en bac à sable se compile, l'opérateur d'intervalle `1..1000000` |
 | `Phil\NewsletterBundle\Application\Content\RenderedMessage` | `final readonly class` | Un message prêt à envoyer |
 | `Phil\NewsletterBundle\Application\Content\SandboxedTemplates` | `final class` | Produit les gabarits qu'écrivent les administrateurs et les membres, jamais avec le Twig de l'application |
+| `Phil\NewsletterBundle\Application\Content\TextPart` | `final class` | Écrit la partie texte d'un message à partir de son HTML, l'adresse de chaque lien après ses mots |
 | `Phil\NewsletterBundle\Application\Contract\AudienceWebhookSender` | interface | Envoie un webhook signé d'un événement d'audience à un récepteur |
 | `Phil\NewsletterBundle\Application\Contract\BounceMailbox` | interface | La boîte où reviennent les rebonds |
 | `Phil\NewsletterBundle\Application\Contract\ConfirmationThrottle` | interface | Le délai avant qu'une autre confirmation d'une double confirmation soit envoyée au même abonné |

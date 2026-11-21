@@ -10,6 +10,7 @@ use Phil\NewsletterBundle\Application\Content\LinkRewriter;
 use Phil\NewsletterBundle\Application\Content\RangeRefusal;
 use Phil\NewsletterBundle\Application\Content\RenderedMessage;
 use Phil\NewsletterBundle\Application\Content\SandboxedTemplates;
+use Phil\NewsletterBundle\Application\Content\TextPart;
 use Phil\NewsletterBundle\Domain\Exception\InvalidNewsletterValue;
 use Phil\NewsletterBundle\Domain\Model\Template;
 use Phil\NewsletterBundle\Tests\Unit\Fixture\Newsletter;
@@ -24,6 +25,7 @@ use Twig\Markup;
 #[CoversClass(LinkRewriter::class)]
 #[CoversClass(ContentRenderer::class)]
 #[CoversClass(RenderedMessage::class)]
+#[CoversClass(TextPart::class)]
 final class ContentTest extends TestCase
 {
     public function testASandboxedTemplateRendersWithTheFiltersAndTagsAllowed(): void
@@ -132,8 +134,7 @@ final class ContentTest extends TestCase
         self::assertStringContainsString('href="https://u.example"', $message->html);
         self::assertStringContainsString('href="https://p.example"', $message->html);
         self::assertStringContainsString('You receive this message as a subscriber of News.', $message->html);
-        self::assertStringContainsString('Hello', $message->text);
-        self::assertStringNotContainsString('<', $message->text);
+        self::assertSame("Hello you\n\nlink <https://example.com>\n\nYou receive this message as a subscriber of News.\n\nYour preferences <https://p.example> · Unsubscribe <https://u.example>", $message->text);
     }
 
     public function testACampaignIsLaidOutByAStoredTemplateAndItsLinksTracked(): void
@@ -154,5 +155,28 @@ final class ContentTest extends TestCase
         self::assertSame('Hi Ada & co', $message->subject);
         self::assertSame('<p>Hi Ada &amp; co</p>', $message->html);
         self::assertSame('Hi Ada & co', $message->text);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function textParts(): iterable
+    {
+        yield 'nothing' => [" \n ", ''];
+        yield 'the head, styles, scripts and what is hidden' => ['<html><head><title>T</title><style>p {}</style></head><body><div style="color: red; display : none">pre</div><p hidden>h</p><script>x()</script><template>t</template><noscript>n</noscript><svg><text>s</text></svg>Body</body></html>', 'Body'];
+        yield 'a style that only mentions display' => ['<div style="display: block">shown</div><span style="xdisplay:none">too</span>', "shown\n\ntoo"];
+        yield 'a link and its address' => ['<p>Read <a href=" https://e.example/a?b=1&amp;c=2 ">this</a>.</p>', 'Read this <https://e.example/a?b=1&c=2>.'];
+        yield 'a link whose words are its address' => ['<a href="http://e.example/y">http://e.example/y</a>', 'http://e.example/y'];
+        yield 'an image as the words of a link' => ['<a href="https://e.example/i"><img src="x.png" alt=" Logo "></a>', 'Logo <https://e.example/i>'];
+        yield 'a link without words' => ['<a href="HTTPS://e.example/i"><img src="x.png"></a>', 'HTTPS://e.example/i'];
+        yield 'links that lead to no page' => ['<a href="#top">top</a> <a href="mailto:a@example.com">mail</a> <a href="javascript:x()">js</a> <a href="https://e.example/a b">space</a> <a>none</a>', 'top mail js space none'];
+        yield 'blocks, line breaks and lists' => ['<h1>Hi &amp; you</h1><p>one<br>two</p><ul><li> a </li><li>b</li></ul><table><tr><td>c</td><th>d</th></tr><tr><td>e</td></tr></table><p>  end  </p>', "Hi & you\n\none\ntwo\n\n- a\n- b\n\nc d\n\ne\n\nend"];
+        yield 'blank lines folded' => ['<p>a</p><div></div><p></p><p>b</p>', "a\n\nb"];
+    }
+
+    #[DataProvider('textParts')]
+    public function testTheTextPartKeepsTheAddressOfEachLink(string $html, string $text): void
+    {
+        self::assertSame($text, new TextPart()->convert($html, 'UTF-8'));
     }
 }

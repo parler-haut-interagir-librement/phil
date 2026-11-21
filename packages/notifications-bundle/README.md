@@ -41,6 +41,7 @@ sends them in the background and shows the toasts, without motion when the visit
 | `NotificationPreferences`: digest, quiet hours, channels turned off, locale; `ConfiguredPreferences`, `DbalPreferences` | Implemented and tested |
 | `NotificationRepository`: `DbalNotificationRepository`, `InMemoryNotificationRepository`, the tables and the schema listener | Implemented and tested on SQLite; the unread count and the delivery benchmarked |
 | `Digests`, `MailerDigestSender` and its tracking off without `EmailTrackingConsent`, `NotificationSchedule`, `Retention`, `phil:notifications:purge` | Implemented and tested |
+| The digest's text part, its link to the preferences, and its signed link that stops it, one-click (RFC 8058): `DigestLinks`, `DigestUnsubscriber`, `DigestUnsubscribeController` | Implemented and tested |
 | `MercureToasts`, `FlashToasts`, the centre's endpoints and its Twig components | Implemented and tested |
 | The `notifications` Stimulus controller | Implemented; its module tested under Node |
 | `RemoteNotificationReceiver` and its endpoint, on phil/standard-webhooks-bundle | Implemented and tested |

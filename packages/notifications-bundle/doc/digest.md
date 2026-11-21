@@ -14,7 +14,34 @@ transports of Symfony Mailer — never through `MailerInterface`, which would pu
 and every line of the digest on the bus when one is routed; a refusal of the transport goes up, for the worker to try
 the `SendDigest` message again. The template's context is `frequency` and `notifications`, each with its
 `id`, `type`, `title`, `body`, `url` and `count`; its subject is the translation of `digest.subject.daily` or
-`digest.subject.weekly`. An application that sends otherwise implements `DigestSender`.
+`digest.subject.weekly`. The text part is `@PhilNotifications/email/digest.txt.twig`, which writes the address of each
+notification after its title. An application that sends otherwise implements `DigestSender`.
+
+## The links of a digest
+
+The footer of a digest links to the application's page of notification preferences when `digest.preferences_route`
+names its route, and to a signed link that stops the digest when a `DigestUnsubscriber` records it — the `dbal`
+preferences, or the service of `digest.unsubscriber`. The templates read them as `preferences_url` and
+`unsubscribe_url`, each null when there is none, and the text part writes both addresses in full.
+
+The signed link is also the one-click unsubscription of RFC 8058: each digest carries `List-Unsubscribe: <link>` and
+`List-Unsubscribe-Post: List-Unsubscribe=One-Click`, which the large mail providers ask of a recurring email. The link
+is signed by Symfony's `uri_signer`, with the application's secret, names the recipient by their identifier, and
+expires after a year; each digest carries a new one.
+
+- A `POST` to it — what a mail client sends from its own unsubscribe button, or the button of the page — sets the
+  recipient's digest to `never` at once, without a CSRF token or a confirmation, and keeps the rest of their settings.
+  The recipient then gets an email for each notification of a type that allows one, as before they chose a digest.
+- A `GET` changes nothing, since a link scanner or a preview may follow it: it shows
+  `@PhilNotifications/digest/unsubscribe.html.twig`, with a button that posts to the same link.
+- A link not signed, altered or expired gets a `403`.
+
+The route comes from `digest_routes.php`, imported outside the login firewall
+([Installation](installation.md#the-routes)). The links are written in a worker, where the router knows no request:
+`framework.router.default_uri` gives their scheme and host. Without the route, a digest leaves without its signed link
+and an error is logged. `digest.unsubscribe: false` turns the link off. With the `config` preferences and a digest
+other than `never` by default, the container refuses to build unless `digest.unsubscriber` names a service or the link
+is turned off: nobody could stop a digest sent to everyone.
 
 ## Open and click tracking
 

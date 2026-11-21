@@ -6,7 +6,23 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.4.0-alpha.
+The next version is 0.4.0-alpha: each digest carries a signed link that stops it, whose route the application imports,
+and the `config` preferences with a digest for everyone need a way to record it. See
+[Upgrading from 0.3](doc/installation.md#upgrading-from-03).
+
+### Added
+
+- The text part of the digest, `@PhilNotifications/email/digest.txt.twig` (`digest.text_template`), each notification
+  with the address of its subject.
+- The links of a digest, `DigestLinks`: the application's page of notification preferences (`digest.preferences_route`)
+  and a signed link that stops the digest, valid for a year, in the footer, in the text part and in `List-Unsubscribe`
+  with `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058); the templates read `preferences_url` and
+  `unsubscribe_url`.
+- `DigestUnsubscriber` (`digest.unsubscriber`), implemented by `DbalPreferences`, which sets a recipient's digest to
+  `never` and keeps the rest of their settings; `digest.unsubscribe`, on by default.
+- `DigestUnsubscribeController` and `config/digest_routes.php`, imported outside the login firewall: a signed `POST`
+  stops the digest without a CSRF token or a confirmation, a `GET` changes nothing and shows
+  `@PhilNotifications/digest/unsubscribe.html.twig` with a button, a link not signed, altered or expired gets a `403`.
 
 ### Changed
 
@@ -14,12 +30,19 @@ The next version is 0.4.0-alpha.
   earlier one, so that the package installs on its own beside that bundle.
 - `NotifierChannelSender` sends `sms`, `push` and `chat` through the transports of Notifier's texter and chatter, the
   services `texter.transports` and `chatter.transports`, instead of the texter and the chatter.
+- `MailerDigestSender` takes a `DigestLinks` and the text template as its last two, optional, arguments, and gives the
+  digest a text part.
+- With the `config` preferences and `defaults.digest` other than `never`, the container refuses to build unless
+  `digest.unsubscriber` names a service or `digest.unsubscribe` is false.
 
 ### Security
 
 - The channels of the `first_success` mode never go through `MailerInterface`, the texter or the chatter, which put a
   message holding the address or phone number and the text on the bus when `framework.notifier.message_bus` is set or
   the message is routed: they send through the Mailer and Notifier transports, and a provider's refusal is known at once.
+- The digest had no text part, so that Mime drew one from the HTML without the addresses of its links, no link to the
+  preferences its footer named, and no way to stop it from the email: a recurring email without `List-Unsubscribe`
+  nor one-click unsubscription, which the large mail providers ask of their senders.
 
 ## 0.3.0-alpha - 2026-11-20
 

@@ -18,7 +18,8 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 /**
  * An application as small as the bundle needs: FrameworkBundle with a router, a session, a translator and a mailer,
  * DoctrineBundle on SQLite, Twig with its components, Symfony UX Turbo, and the bundle with its routes, a recipient
- * named by a header, a directory of two people, the preferences in the database, toasts in the session and Web Push.
+ * named by a header, a directory of two people, the preferences in the database, the signed link that stops a digest,
+ * toasts in the session and Web Push.
  */
 final class TestKernel extends Kernel
 {
@@ -66,6 +67,7 @@ final class TestKernel extends Kernel
             'types' => [
                 'comment.replied' => ['collapse' => true],
             ],
+            'digest' => ['preferences_route' => 'settings'],
             // A key pair made for these tests only, by phil:notifications:vapid-keys.
             'web_push' => [
                 'enabled' => true,
@@ -92,6 +94,8 @@ final class TestKernel extends Kernel
     {
         $routes->import(\dirname(__DIR__, 3).'/config/routes.php')->prefix('/notifications');
         $routes->import(\dirname(__DIR__, 3).'/config/push_routes.php')->prefix('/notifications');
+        $routes->import(\dirname(__DIR__, 3).'/config/digest_routes.php')->prefix('/notifications');
+        $routes->add('settings', '/settings')->controller(PageController::class);
         $routes->add('page', '/page')->controller(PageController::class);
         $routes->add('turbo_page', '/turbo-page')->controller(PageController::class)->defaults(['template' => 'turbo.html.twig']);
     }

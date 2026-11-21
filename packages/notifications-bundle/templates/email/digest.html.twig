@@ -1,4 +1,4 @@
-{# The digest: the unread notifications the last digest did not hold, oldest first, each linked to its subject. #}
+{# The digest: the unread notifications the last digest did not hold, oldest first, each linked to its subject; at the bottom, the links to the preferences and to stop the digest, when there are. #}
 <h1>{{ ('digest.heading.' ~ frequency)|trans({}, 'phil_notifications') }}</h1>
 <ul>
     {% for item in notifications %}
@@ -9,3 +9,10 @@
     {% endfor %}
 </ul>
 <p>{{ 'digest.footer'|trans({}, 'phil_notifications') }}</p>
+{% if preferences_url|default(null) or unsubscribe_url|default(null) %}
+    <p>
+        {% if preferences_url|default(null) %}<a href="{{ preferences_url }}">{{ 'digest.preferences'|trans({}, 'phil_notifications') }}</a>{% endif %}
+        {% if preferences_url|default(null) and unsubscribe_url|default(null) %}·{% endif %}
+        {% if unsubscribe_url|default(null) %}<a href="{{ unsubscribe_url }}">{{ 'digest.unsubscribe.link'|trans({}, 'phil_notifications') }}</a>{% endif %}
+    </p>
+{% endif %}

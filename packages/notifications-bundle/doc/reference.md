@@ -50,6 +50,7 @@
 | `Http\CentreController`, `Http\CentreRequest`, `Http\Routes` | The centre's endpoints and their CSRF check |
 | `Twig\CentreView`, `BellComponent`, `ListComponent`, `ToastsComponent`, `WebPushComponent` | The components |
 | `Http\PushSubscriptionController` | The endpoints of Web Push |
+| `Http\DigestLinks`, `Http\DigestUnsubscribeController` | The links of a digest, and the endpoint of its signed link that stops it |
 | `WebPush\MinishlinkWebPushSender`, `WebPush\VapidKeys` | The bundle's Web Push sender on minishlink/web-push, and the VAPID keys it signs with |
 | `Mailer\MailerDigestSender` | The digest through the transports of Symfony Mailer |
 | `Idempotency\NotificationDedupe` | The `DeliveryDedupe` on phil/idempotency: one delivery of the same notification per window |
@@ -81,5 +82,5 @@ used. With `web_push` enabled, `PushSubscriber`, `PushSubscriptionController`, `
 | `assets/src/web_push_controller.js`, `assets/src/lib/push.js` | The Web Push controller, and what it reads of the browser |
 | `assets/worker/push-worker.js` | The service worker that shows the messages |
 | `assets/styles/notifications.css` | The stylesheet, on PHIL UX's tokens |
-| `config/routes.php`, `config/remote_routes.php`, `config/push_routes.php` | The routes |
+| `config/routes.php`, `config/remote_routes.php`, `config/push_routes.php`, `config/digest_routes.php` | The routes |
 | `templates/`, `translations/` | The templates, and the labels in English and French |

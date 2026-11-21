@@ -32,6 +32,23 @@ final class DbalPreferencesTest extends TestCase
         self::assertSame(DigestFrequency::Never, new DbalPreferences($this->connection())->settingsFor('42')->digest);
     }
 
+    public function testUnsubscribingStopsTheDigestAndKeepsTheRest(): void
+    {
+        $connection = $this->connection();
+        $preferences = new DbalPreferences($connection, new RecipientSettings(DigestFrequency::Weekly, locale: 'en'));
+        $preferences->save('42', new RecipientSettings(DigestFrequency::Daily, QuietHours::of('22:00', '07:00', 'America/Toronto'), ['*:web_push'], 'fr'));
+
+        $preferences->unsubscribe('42');
+        $preferences->unsubscribe('42');
+        $preferences->unsubscribe('43');
+
+        self::assertSame('{"digest":"never","quiet_hours":{"start":"22:00","end":"07:00","timezone":"America\/Toronto"},"opt_outs":["*:web_push"],"locale":"fr"}', $connection->fetchOne('SELECT settings FROM phil_notification_preferences WHERE recipient = ?', ['42']));
+        self::assertSame('{"digest":"never","quiet_hours":null,"opt_outs":[],"locale":"en"}', $connection->fetchOne('SELECT settings FROM phil_notification_preferences WHERE recipient = ?', ['43']));
+
+        new DbalPreferences($connection)->unsubscribe('44');
+        self::assertFalse($connection->fetchOne('SELECT settings FROM phil_notification_preferences WHERE recipient = ?', ['44']), 'no row for a recipient who never had a digest');
+    }
+
     public function testSettingsAreSavedReplacedAndForgotten(): void
     {
         $connection = $this->connection();

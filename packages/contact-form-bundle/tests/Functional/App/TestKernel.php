@@ -9,11 +9,13 @@ use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\Mailer\Messenger\SendEmailMessage;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 /**
  * An application as small as the bundle needs: FrameworkBundle with forms, the validator, the translator in `fr`, a
- * mailer that sends nowhere and a cache; TwigBundle; the spam protection with a proof of work of 4 bits and no
+ * mailer that sends nowhere — `SendEmailMessage` routed to an asynchronous transport in memory, as an application that
+ * queues its emails does — and a cache; TwigBundle; the spam protection with a proof of work of 4 bits and no
  * minimum filling time; the contact page under `/contact`.
  */
 final class TestKernel extends Kernel
@@ -58,6 +60,10 @@ final class TestKernel extends Kernel
             'translator' => ['fallbacks' => ['fr']],
             'default_locale' => 'fr',
             'mailer' => ['dsn' => 'null://null'],
+            'messenger' => [
+                'transports' => ['async' => 'in-memory://'],
+                'routing' => [SendEmailMessage::class => 'async'],
+            ],
         ]);
         $container->services()->set('logger', NullLogger::class);
         $container->services()->set(SentMessages::class)->tag('kernel.event_subscriber')->public();

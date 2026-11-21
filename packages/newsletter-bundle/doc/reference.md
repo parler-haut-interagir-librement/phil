@@ -13,6 +13,7 @@ Every class of the bundle, with its role.
 | `Phil\NewsletterBundle\Application\Content\RangeRefusal` | `final readonly class` | Refuses, when a sandboxed template compiles, the range operator `1..1000000` |
 | `Phil\NewsletterBundle\Application\Content\RenderedMessage` | `final readonly class` | A message ready to send |
 | `Phil\NewsletterBundle\Application\Content\SandboxedTemplates` | `final class` | Renders the templates administrators and members write, never with the application's Twig |
+| `Phil\NewsletterBundle\Application\Content\TextPart` | `final class` | Writes the text part of a message from its HTML, the address of each link after its words |
 | `Phil\NewsletterBundle\Application\Contract\AudienceWebhookSender` | interface | Sends one signed webhook of an audience event to a receiver |
 | `Phil\NewsletterBundle\Application\Contract\BounceMailbox` | interface | The mailbox the bounces come back to |
 | `Phil\NewsletterBundle\Application\Contract\ConfirmationThrottle` | interface | The delay before another confirmation of a double opt-in goes to the same subscriber |

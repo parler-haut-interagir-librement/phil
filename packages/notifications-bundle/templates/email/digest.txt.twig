@@ -1,0 +1,22 @@
+{#- The text part of the digest: each notification with the address of its subject, then the addresses of the preferences and of the link that stops the digest, when there are. -#}
+{% autoescape false %}
+{{ ('digest.heading.' ~ frequency)|trans({}, 'phil_notifications') }}
+{% for item in notifications %}
+
+- {{ item.title }}
+{% if item.body %}
+  {{ item.body }}
+{% endif %}
+{% if item.url %}
+  {{ item.url }}
+{% endif %}
+{% endfor %}
+
+{{ 'digest.footer'|trans({}, 'phil_notifications') }}
+{% if preferences_url|default(null) %}
+{{ 'digest.text.preferences'|trans({'%url%': preferences_url}, 'phil_notifications') }}
+{% endif %}
+{% if unsubscribe_url|default(null) %}
+{{ 'digest.text.unsubscribe'|trans({'%url%': unsubscribe_url}, 'phil_notifications') }}
+{% endif %}
+{% endautoescape %}

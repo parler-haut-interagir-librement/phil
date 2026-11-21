@@ -10,6 +10,8 @@ use Phil\NotificationsBundle\Application\Contract\EmailTrackingConsent;
 use Phil\NotificationsBundle\Application\Preferences\DigestFrequency;
 use Phil\NotificationsBundle\Application\RenderedNotification;
 use Phil\NotificationsBundle\Domain\Model\Notification;
+use Phil\NotificationsBundle\Infrastructure\Http\DigestLinks;
+use Phil\NotificationsBundle\Infrastructure\Http\Routes;
 use Phil\NotificationsBundle\Infrastructure\Mailer\MailerDigestSender;
 use Phil\NotificationsBundle\Tests\Unit\Fixture\Logs;
 use Phil\NotificationsBundle\Tests\Unit\Fixture\MailerTransport;
@@ -17,12 +19,18 @@ use Phil\NotificationsBundle\Tests\Unit\Fixture\Translator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Clock\MockClock;
+use Symfony\Component\HttpFoundation\UriSigner;
 use Symfony\Component\Mailer\Exception\TransportException;
 use Symfony\Component\Mailer\Header\TrackingHeader;
 use Symfony\Component\Mime\BodyRendererInterface;
 use Symfony\Component\Mime\Message;
 use Symfony\Component\Notifier\Recipient\NoRecipient;
 use Symfony\Component\Notifier\Recipient\Recipient;
+use Symfony\Component\Routing\Generator\UrlGenerator;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\Route;
+use Symfony\Component\Routing\RouteCollection;
 
 #[CoversClass(MailerDigestSender::class)]
 final class MailerDigestSenderTest extends TestCase
@@ -40,7 +48,10 @@ final class MailerDigestSenderTest extends TestCase
         self::assertSame('2 aujourd’hui', $email->getSubject());
         self::assertSame('digest.html.twig', $email->getHtmlTemplate());
         self::assertSame('fr', $email->getLocale());
-        self::assertSame(['frequency' => 'daily', 'notifications' => [$this->item('n1')->toArray(), $this->item('n2')->toArray()]], $email->getContext());
+        self::assertSame(['frequency' => 'daily', 'notifications' => [$this->item('n1')->toArray(), $this->item('n2')->toArray()], 'preferences_url' => null, 'unsubscribe_url' => null], $email->getContext());
+        self::assertSame(MailerDigestSender::TEXT_TEMPLATE, $email->getTextTemplate());
+        self::assertFalse($email->getHeaders()->has('List-Unsubscribe'));
+        self::assertFalse($email->getHeaders()->has('List-Unsubscribe-Post'));
     }
 
     public function testTheMailersOwnSenderAndTheDefaultTemplate(): void
@@ -54,6 +65,31 @@ final class MailerDigestSenderTest extends TestCase
         self::assertSame(MailerDigestSender::TEMPLATE, $email->getHtmlTemplate());
         self::assertNull($email->getLocale());
         self::assertSame('digest.subject.weekly', $email->getSubject());
+    }
+
+    public function testTheLinksToThePreferencesAndToStopTheDigest(): void
+    {
+        $mailer = $this->mailer();
+        $routes = new RouteCollection();
+        $routes->add('app_settings', new Route('/settings/notifications'));
+        $routes->add(Routes::DIGEST_UNSUBSCRIBE, new Route('/notifications/digest/unsubscribe/{recipient}'));
+
+        $signer = new UriSigner('a secret of the tests', clock: new MockClock('2026-11-08 10:00:00 UTC'));
+        $links = new DigestLinks(new UrlGenerator($routes, RequestContext::fromUri('https://example.test')), $signer, 'app_settings');
+
+        new MailerDigestSender($mailer, Translator::make(), links: $links, textTemplate: 'digest.txt.twig')->send(new Recipient('ada@example.test'), DigestFrequency::Daily, [$this->item('n1')], null);
+        $email = $mailer->sent[0];
+
+        self::assertInstanceOf(TemplatedEmail::class, $email);
+        self::assertSame('digest.txt.twig', $email->getTextTemplate());
+        $context = $email->getContext();
+        self::assertSame('https://example.test/settings/notifications', $context['preferences_url']);
+        $unsubscribe = $context['unsubscribe_url'];
+        self::assertIsString($unsubscribe);
+        self::assertStringStartsWith('https://example.test/notifications/digest/unsubscribe/42?_expiration=1825668000&_hash=', $unsubscribe);
+        self::assertTrue($signer->check($unsubscribe));
+        self::assertSame('<'.$unsubscribe.'>', $email->getHeaders()->get('List-Unsubscribe')?->getBodyAsString());
+        self::assertSame('List-Unsubscribe=One-Click', $email->getHeaders()->get('List-Unsubscribe-Post')?->getBodyAsString());
     }
 
     public function testOpensAndClicksAreNotFollowedByDefault(): void

@@ -18,12 +18,13 @@ Nothing is sent to the visitor: a copy would let anyone send a text of their cho
 
 ## Sending through Messenger
 
-When the application routes `SendEmailMessage` to an asynchronous Messenger transport, `ContactMailer::send()` only
-queues the email. The page then redirects as if the message left: a transport that refuses it fails in the worker,
-which retries it and logs the failure, and the `503` answer with the form still filled never happens.
+`ContactMailer` sends through Symfony Mailer's transports (`mailer.transports`), never through `MailerInterface`: the
+email is rendered and sent in the request, and a refusal of the transport is known at once, which the page answers
+with `503` and the form still filled. An application that routes `SendEmailMessage` to an asynchronous Messenger
+transport still queues nothing of a message: through `MailerInterface`, the queued message would hold the unrendered
+email with the visitor's name, address and message in its context, kept by the transport and by its failure transport
+until someone retries or removes it.
 
-The queued email holds the visitor's name, address and message. They stay in the Messenger transport until the worker
-sends them, and in its failure transport, if one is configured, until someone retries or removes them. The bundle
-keeps nothing itself, but such an application does keep personal information there: it needs a retention rule for
-its failure transport — `messenger:failed:show` to look, `messenger:failed:remove` to purge — and should say so in
-its privacy policy.
+What stays the application's: the mailer's own configuration — DSN, `X-Transport`, `envelope`, `headers` —, which the
+transports apply as they would to any email, and the emails it sends itself. A controller of the application that
+calls `ContactMailer::send()` catches `TransportExceptionInterface`, as the bundle's page does.

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f43b3366a063f13466c31a5669c771e35e930165c8d97e7ee430b89764c7689f -->
+<!-- phil-dev source-sha256=71f25fa07df6bc035dc567b1a835222674c8ec518ba0733d1332256c08e0a4af -->
 # Résumé et conservation
 
 ## Les résumés
@@ -16,7 +16,35 @@ de Twig et l'envoie sur-le-champ par les transports de Symfony Mailer — jamais
 le bus un `SendEmailMessage` contenant l'adresse et chaque ligne du résumé quand il est acheminé ; un refus du
 transport remonte, pour que le *worker* retente le message `SendDigest`. Le contexte du gabarit est `frequency` et
 `notifications`, chacune avec ses `id`, `type`, `title`, `body`, `url` et `count` ; son objet est la traduction de
-`digest.subject.daily` ou de `digest.subject.weekly`. Une application qui envoie autrement implémente `DigestSender`.
+`digest.subject.daily` ou de `digest.subject.weekly`. La partie texte est `@PhilNotifications/email/digest.txt.twig`, qui
+écrit l'adresse de chaque notification après son titre. Une application qui envoie autrement implémente `DigestSender`.
+
+## Les liens d'un résumé
+
+Le pied d'un résumé renvoie à la page de préférences de notifications de l'application quand `digest.preferences_route`
+nomme sa route, et à un lien signé qui arrête le résumé quand un `DigestUnsubscriber` l'enregistre — les préférences
+`dbal`, ou le service de `digest.unsubscriber`. Les gabarits les lisent sous les noms `preferences_url` et
+`unsubscribe_url`, chacun nul quand il n'y en a pas, et la partie texte écrit les deux adresses en entier.
+
+Le lien signé est aussi la désinscription en un clic de la RFC 8058 : chaque résumé porte
+`List-Unsubscribe: <link>` et `List-Unsubscribe-Post: List-Unsubscribe=One-Click`, que les grands fournisseurs de
+courriel exigent d'un courriel récurrent. Le lien est signé par le `uri_signer` de Symfony, avec le secret de
+l'application, désigne le destinataire par son identifiant et expire après un an ; chaque résumé en porte un nouveau.
+
+- Un `POST` sur ce lien — ce qu'envoie un client de courriel depuis son propre bouton de désinscription, ou le bouton de
+  la page — met aussitôt le résumé du destinataire à `never`, sans jeton CSRF ni confirmation, et garde le reste de ses
+  réglages. Le destinataire reçoit alors un courriel pour chaque notification d'un type qui en permet un, comme avant
+  qu'il choisisse un résumé.
+- Un `GET` ne change rien, car un analyseur de liens ou un aperçu peut le suivre : il affiche
+  `@PhilNotifications/digest/unsubscribe.html.twig`, avec un bouton qui envoie un `POST` au même lien.
+- Un lien non signé, modifié ou expiré reçoit un `403`.
+
+La route vient de `digest_routes.php`, importé hors du pare-feu de connexion
+([Installation](installation.md#les-routes)). Les liens sont écrits dans un *worker*, où le routeur ne connaît aucune
+requête : `framework.router.default_uri` donne leur schéma et leur hôte. Sans la route, un résumé part sans son lien
+signé et une erreur est journalisée. `digest.unsubscribe: false` désactive le lien. Avec les préférences `config` et un
+résumé autre que `never` par défaut, le conteneur refuse de se construire à moins que `digest.unsubscriber` nomme un
+service ou que le lien soit désactivé : personne ne pourrait arrêter un résumé envoyé à tout le monde.
 
 ## Suivi des ouvertures et des clics
 

@@ -10,6 +10,7 @@ use Phil\NotificationsBundle\Application\Contract\EmailTrackingConsent;
 use Phil\NotificationsBundle\Application\NotificationType;
 use Phil\NotificationsBundle\Application\Preferences\DigestFrequency;
 use Phil\NotificationsBundle\Application\RenderedNotification;
+use Phil\NotificationsBundle\Infrastructure\Http\DigestLinks;
 use Psr\Log\LoggerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\Header\TrackingHeader;
@@ -20,8 +21,9 @@ use Symfony\Component\Notifier\Recipient\RecipientInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * Sends the digest through the transports of Symfony Mailer, written by the template
- * `@PhilNotifications/email/digest.html.twig` — or the application's own — and rendered before it leaves, to the
+ * Sends the digest through the transports of Symfony Mailer, written by the templates
+ * `@PhilNotifications/email/digest.html.twig` and `digest.txt.twig` — or the application's own — and rendered before
+ * it leaves, to the
  * address of an `EmailRecipientInterface`; a recipient without one is skipped. The sender is the configured address,
  * or the one the mailer's `headers` give when none is configured.
  *
@@ -31,10 +33,17 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  *
  * Each digest carries a `TrackingHeader`, which wins over the mailer's `tracking` option: opens and clicks are not
  * followed, unless the `EmailTrackingConsent` says the recipient agreed to it.
+ *
+ * With `DigestLinks`, the templates are given `preferences_url`, the application's page of notification preferences,
+ * and `unsubscribe_url`, the signed link that stops the recipient's digest, each null when there is none; the signed
+ * link is also the one-click unsubscription of RFC 8058, in `List-Unsubscribe` and
+ * `List-Unsubscribe-Post: List-Unsubscribe=One-Click`.
  */
 final readonly class MailerDigestSender implements DigestSender
 {
     public const string TEMPLATE = '@PhilNotifications/email/digest.html.twig';
+
+    public const string TEXT_TEMPLATE = '@PhilNotifications/email/digest.txt.twig';
 
     public function __construct(
         private TransportInterface $transport,
@@ -44,6 +53,8 @@ final readonly class MailerDigestSender implements DigestSender
         private ?LoggerInterface $logger = null,
         private ?EmailTrackingConsent $tracking = null,
         private ?BodyRendererInterface $renderer = null,
+        private ?DigestLinks $links = null,
+        private string $textTemplate = self::TEXT_TEMPLATE,
     ) {
     }
 
@@ -56,17 +67,27 @@ final readonly class MailerDigestSender implements DigestSender
             return;
         }
 
+        $recipient = $notifications[0]->notification->recipient;
+        $unsubscribe = $this->links?->unsubscribe($recipient);
         $email = new TemplatedEmail()
             ->to($contact->getEmail())
             ->subject($this->translator->trans('digest.subject.'.$frequency->value, ['%count%' => \count($notifications)], NotificationType::DOMAIN, $locale))
             ->htmlTemplate($this->template)
+            ->textTemplate($this->textTemplate)
             ->locale($locale)
             ->context([
                 'frequency' => $frequency->value,
                 'notifications' => array_map(static fn (RenderedNotification $n): array => $n->toArray(), $notifications),
+                'preferences_url' => $this->links?->preferences(),
+                'unsubscribe_url' => $unsubscribe,
             ]);
 
-        $recipient = $notifications[0]->notification->recipient;
+        if (null !== $unsubscribe) {
+            $email->getHeaders()
+                ->addTextHeader('List-Unsubscribe', '<'.$unsubscribe.'>')
+                ->addTextHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
+        }
+
         $email->getHeaders()->add(new TrackingHeader(
             $this->tracking?->opens($recipient) ?? false,
             $this->tracking?->clicks($recipient) ?? false,

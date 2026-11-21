@@ -54,6 +54,10 @@ phil_notifications:
         sender: ~                    # a DigestSender service; the transports of Symfony Mailer by default
         from: ~                      # the sender of the mailer's headers when null
         template: '@PhilNotifications/email/digest.html.twig'
+        text_template: '@PhilNotifications/email/digest.txt.twig'
+        preferences_route: ~         # the route of the application's page of preferences
+        unsubscribe: true            # a signed link that stops the digest, in its footer and in List-Unsubscribe
+        unsubscriber: ~              # a DigestUnsubscriber service; the "dbal" preferences by default
         tracking_consent: ~          # an EmailTrackingConsent service; none follows no one's opens nor clicks
         at: '07:00'
         weekday: monday

@@ -18,6 +18,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 
 /**
  * The contact page in a real kernel: rendered in French with its protection, submitted as a person's browser would
@@ -75,6 +76,11 @@ final class ContactFormBundleTest extends KernelTestCase
         self::assertSame('[Contact] Une soumission', $email->getSubject());
         self::assertStringContainsString('Un message de Ada Lovelace <ada@example.com>', (string) $email->getTextBody());
         self::assertStringContainsString('Objet : Une soumission', (string) $email->getHtmlBody());
+        self::assertCount(1, $sent->messages, 'sent once, by the transport');
+
+        $queue = $this->service('messenger.transport.async');
+        self::assertInstanceOf(InMemoryTransport::class, $queue);
+        self::assertSame([], $queue->getSent(), 'nothing of the message waits in a Messenger queue');
 
         self::assertStringContainsString('Merci : votre message a été envoyé.', (string) $this->handle(Request::create('/contact/?sent=1'))->getContent());
     }

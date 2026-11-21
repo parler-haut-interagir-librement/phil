@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6a97c6981218acc60498db8efd524a0c6650fcb77fc53a91d8de6271bf4cba36 -->
+<!-- phil-dev source-sha256=c81e5b0d2821b614c9caa59400c7c0dfcbe6395571d103cd91bba286d5e6b4e8 -->
 # phil/contact-form-bundle
 
 **Une page « écrivez-nous » pour Symfony, protégée du pourriel sans captcha.**
@@ -6,9 +6,9 @@
 phil/contact-form-bundle fournit une page de contact : un formulaire avec un nom, un courriel, un sujet et un message.
 Un message valide part par Symfony Mailer vers les destinataires configurés, puis la page se redirige vers elle-même et
 indique que le message est parti : recharger la page n'envoie donc rien deux fois. Les libellés, les messages et le
-courriel sont en anglais et en français. Le bundle ne conserve pas les messages, mais une application qui envoie ses
-courriels par un transport Messenger asynchrone les conserve dans sa file d'attente jusqu'à leur départ, comme
-l'explique [Envoi du courriel](doc/fr/mailing.md). Il n'affiche aucun captcha. Il n'envoie aucune copie au visiteur, car
+courriel sont en anglais et en français. Le bundle ne conserve pas les messages et les envoie par les transports de
+Mailer, de sorte qu'aucun n'attend dans une file d'attente Messenger, même là où l'application y achemine ses
+courriels, comme l'explique [Envoi du courriel](doc/fr/mailing.md). Il n'affiche aucun captcha. Il n'envoie aucune copie au visiteur, car
 une copie permettrait à n'importe qui d'envoyer un texte de son choix à n'importe quelle adresse par l'intermédiaire du
 site.
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c2bf26bc6eaef207b2b11a36da28436f69b53f4a492cfe05c91a306965b44a84 -->
+<!-- phil-dev source-sha256=03c7c7f4432cd66678565ccb88a33f327e53e2977ffabd30c9f00ab423f62062 -->
 # Installation
 
 ## Prérequis
@@ -70,6 +70,22 @@ Les tables d'une installation 0.1 sur MySQL ou MariaDB gardaient la collation de
 brise une clé. Les lignes qu'une collation insensible à la casse avait déjà fusionnées restent fusionnées ; les valeurs
 écrites à partir de la migration sont gardées distinctes. Sur PostgreSQL et SQLite, le diff est vide.
 
+## Mise à niveau depuis 0.3
+
+- Chaque résumé porte un lien signé qui l'arrête, dans son pied, dans sa partie texte et dans `List-Unsubscribe` avec
+  `List-Unsubscribe-Post: List-Unsubscribe=One-Click`, quand un `DigestUnsubscriber` l'enregistre : les préférences
+  `dbal`, ou le service nommé dans `digest.unsubscriber`. Importez `digest_routes.php` hors du pare-feu de connexion
+  (voir [Les routes](#les-routes)) et définissez `framework.router.default_uri`, car le lien est écrit dans un
+  *worker* ; tant que la route n'est pas importée, les résumés partent sans le lien et une erreur est journalisée.
+  `digest.unsubscribe: false` le désactive.
+- Avec les préférences `config` et un `defaults.digest` autre que `never`, le conteneur refuse de se construire à moins
+  que `digest.unsubscriber` nomme un service ou que `digest.unsubscribe` soit faux : personne ne pourrait arrêter un
+  résumé envoyé à tout le monde.
+- Le résumé a une partie texte, `@PhilNotifications/email/digest.txt.twig` (`digest.text_template`). Une application qui
+  redéfinit `digest.html.twig` redéfinit aussi celle-ci, et lit `preferences_url` et `unsubscribe_url`, chacun nul quand
+  il n'y en a pas. `digest.preferences_route` nomme sa page de préférences de notifications.
+- `MailerDigestSender` reçoit un `DigestLinks` et le gabarit texte comme ses deux derniers arguments, facultatifs.
+
 ## Mise à niveau depuis 0.2
 
 - `WebPushSender::send()` retourne un `ChannelOutcome`. Un expéditeur propre à l'application retourne `Accepted` quand un
@@ -105,6 +121,16 @@ Le point de terminaison d'un réseau, hors du pare-feu de connexion, puisque sa 
 # config/routes/phil_notifications_remote.yaml
 phil_notifications_remote:
     resource: '@PhilNotificationsBundle/config/remote_routes.php'
+    prefix: /notifications
+```
+
+Le lien signé qui arrête un résumé, hors du pare-feu de connexion — sa signature est l'authentification, et un client de
+courriel envoie son `POST` sans témoins :
+
+```yaml
+# config/routes/phil_notifications_digest.yaml
+phil_notifications_digest:
+    resource: '@PhilNotificationsBundle/config/digest_routes.php'
     prefix: /notifications
 ```
 

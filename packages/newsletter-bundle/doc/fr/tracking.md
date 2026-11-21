@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=93db1e634bf69350e5a700d1834817606278c4bcdc6eb7e5324b26f226f55409 -->
+<!-- phil-dev source-sha256=ab6e6db97285e202a0f8d2d8235ce37b45a213495239294569eca63444547e3d -->
 # Suivi
 
 ## Les clics
@@ -35,3 +35,9 @@ La redirection a lieu quand même, pour qu'un analyseur voie un lien qui fonctio
 
 Aucun message ne porte de pixel espion, et rien n'enregistre l'ouverture d'un message : l'ouverture n'est pas un signal
 fiable, et elle regarde le lecteur. Aucun déclencheur des automatisations n'y réagit.
+
+Chaque message, une confirmation comprise, porte le `TrackingHeader` de Symfony Mailer (`X-Track: opens=false;
+clicks=false`), qui l'emporte sur la valeur par défaut du fournisseur de courriel et sur `framework.mailer.tracking` :
+un fournisseur qui suit par défaut les ouvertures ou les clics n'ajoute aucun pixel et ne réécrit aucun lien, et les
+clics d'une campagne qui les compte passent par `ClickTracker` seul. Un transport qui ne connaît aucun réglage de ce
+genre, SMTP simple entre autres, envoie l'en-tête sans effet.

@@ -83,7 +83,7 @@ final class PhilContactFormBundle extends AbstractBundle
         $services->set(ConfiguredRecipients::class)->args([$config['recipients']]);
         $services->alias(Recipients::class, ConfiguredRecipients::class);
         $services->set(ContactFormType::class)->tag('form.type');
-        $services->set(ContactMailer::class)->args([new Reference('mailer'), new Reference(Recipients::class), $config['sender'], $config['subject_prefix']]);
+        $services->set(ContactMailer::class)->args([new Reference('mailer.transports'), new Reference(Recipients::class), $config['sender'], $config['subject_prefix']]);
         $services->set(ContactFormController::class)
             ->args([new Reference('form.factory'), new Reference(ContactMailer::class), new Reference('twig'), new Reference('logger'), $config['template']])
             ->tag('controller.service_arguments')
