@@ -14,6 +14,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\UniqueConstraint;
 use Doctrine\DBAL\Types\Types;
+use Phil\CoursesBundle\Domain\Equivalence\LanguageTag;
 use Phil\CoursesBundle\Domain\Model\Course;
 use Phil\CoursesBundle\Domain\ValueObject\LearnerId;
 
@@ -26,7 +27,10 @@ use Phil\CoursesBundle\Domain\ValueObject\LearnerId;
  * and `phil_course_scorm_data`, the SCORM attempts — with the seconds their sessions ran by the server's clock and when
  * the running one opened — and their tracking data; `phil_course_assignment` and `phil_course_obligation`, the
  * mandatory training and each learner's obligation under it; `phil_course_transcript` and `phil_course_credits`, the
- * transcripts and the credits each course grants. Moments are kept in UTC.
+ * transcripts and the credits each course grants; `phil_course_path`, `phil_course_path_step` and
+ * `phil_course_path_enrollment`, the learning paths, their steps and the learners enrolled in them;
+ * `phil_course_equivalence` and `phil_course_equivalent`, the groups of equivalent courses and the course of each
+ * language in them. Moments are kept in UTC.
  *
  * The keys of the SCORM tables compare byte by byte: on MySQL and MariaDB they are stored in `utf8mb4` with the
  * `utf8mb4_bin` collation, where a server's default would read two identifiers differing by case as one; PostgreSQL
@@ -68,11 +72,21 @@ final class CourseTables
 
     public const string CREDITS = 'phil_course_credits';
 
+    public const string PATH = 'phil_course_path';
+
+    public const string PATH_STEP = 'phil_course_path_step';
+
+    public const string PATH_ENROLLMENT = 'phil_course_path_enrollment';
+
+    public const string EQUIVALENCE = 'phil_course_equivalence';
+
+    public const string EQUIVALENT = 'phil_course_equivalent';
+
     /** The size of the tracking data of an attempt, as JSON: MEDIUMTEXT on MySQL. */
     public const int SCORM_DATA_BYTES = 16_777_215;
 
     /** Every table, the ones that point to others first. */
-    public const array ALL = [self::CREDITS, self::TRANSCRIPT, self::OBLIGATION, self::ASSIGNMENT, self::SCORM_DATA, self::SCORM_ATTEMPT, self::STATE, self::STATEMENT, self::SESSION, self::RETRY, self::SATISFACTION, self::PROGRESS, self::ENROLLMENT, self::ACTIVITY, self::BLOCK, self::MODULE, self::COURSE];
+    public const array ALL = [self::EQUIVALENT, self::EQUIVALENCE, self::PATH_ENROLLMENT, self::PATH_STEP, self::PATH, self::CREDITS, self::TRANSCRIPT, self::OBLIGATION, self::ASSIGNMENT, self::SCORM_DATA, self::SCORM_ATTEMPT, self::STATE, self::STATEMENT, self::SESSION, self::RETRY, self::SATISFACTION, self::PROGRESS, self::ENROLLMENT, self::ACTIVITY, self::BLOCK, self::MODULE, self::COURSE];
 
     private function __construct()
     {
@@ -343,6 +357,47 @@ final class CourseTables
                 ->addColumn(self::column('hundredths', Types::INTEGER, true))
                 ->addColumn(self::column('unit', Types::STRING, true, 16))
                 ->addPrimaryKeyConstraint(self::primary('course_id'))
+                ->create(),
+            self::PATH => Table::editor()->setUnquotedName(self::PATH)
+                ->addColumn(self::id('id'))
+                ->addColumn(self::column('title', Types::STRING, true, 255))
+                ->addColumn(self::column('description', Types::TEXT, true))
+                ->addColumn(self::column('created_at', Types::DATETIME_UTC_IMMUTABLE, true))
+                ->addPrimaryKeyConstraint(self::primary('id'))
+                ->addIndex(self::index('idx_phil_course_path_created', 'created_at'))
+                ->create(),
+            self::PATH_STEP => Table::editor()->setUnquotedName(self::PATH_STEP)
+                ->addColumn(self::id('path_id'))
+                ->addColumn(self::id('course_id'))
+                ->addColumn(self::column('position', Types::INTEGER, true))
+                ->addColumn(self::column('required', Types::BOOLEAN, true))
+                ->addColumn(self::column('prerequisites', Types::TEXT, true))
+                ->addPrimaryKeyConstraint(self::primary('path_id', 'course_id'))
+                ->addIndex(self::index('idx_phil_course_path_step_course', 'course_id'))
+                ->create(),
+            self::PATH_ENROLLMENT => Table::editor()->setUnquotedName(self::PATH_ENROLLMENT)
+                ->addColumn(self::id('id'))
+                ->addColumn(self::id('path_id'))
+                ->addColumn(self::column('learner', Types::STRING, true, LearnerId::MAX_LENGTH))
+                ->addColumn(self::column('enrolled_at', Types::DATETIME_UTC_IMMUTABLE, true))
+                ->addColumn(self::column('completed_at', Types::DATETIME_UTC_IMMUTABLE, false))
+                ->addPrimaryKeyConstraint(self::primary('id'))
+                ->addUniqueConstraint(self::unique('uniq_phil_course_path_enrollment', 'path_id', 'learner'))
+                ->addIndex(self::index('idx_phil_course_path_enrollment_learner', 'learner', 'completed_at'))
+                ->create(),
+            self::EQUIVALENCE => Table::editor()->setUnquotedName(self::EQUIVALENCE)
+                ->addColumn(self::id('id'))
+                ->addColumn(self::column('title', Types::STRING, true, 255))
+                ->addColumn(self::column('created_at', Types::DATETIME_UTC_IMMUTABLE, true))
+                ->addPrimaryKeyConstraint(self::primary('id'))
+                ->addIndex(self::index('idx_phil_course_equivalence_title', 'title'))
+                ->create(),
+            self::EQUIVALENT => Table::editor()->setUnquotedName(self::EQUIVALENT)
+                ->addColumn(self::id('course_id'))
+                ->addColumn(self::id('group_id'))
+                ->addColumn(self::column('language', Types::STRING, true, LanguageTag::MAX_LENGTH))
+                ->addPrimaryKeyConstraint(self::primary('course_id'))
+                ->addUniqueConstraint(self::unique('uniq_phil_course_equivalent_language', 'group_id', 'language'))
                 ->create(),
         ];
     }

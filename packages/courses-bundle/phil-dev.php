@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use Phil\CoursesBundle\Application\Scorm\ScormRuntime;
+use Phil\CoursesBundle\Application\Training\Transcripts;
 use Phil\CoursesBundle\Infrastructure\Doctrine\CourseTables;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLearningPathRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalScormAttemptRepository;
 
 /*
@@ -26,7 +28,7 @@ return [
             // is `false`, and the walk and the holding blocks only need the keys.
             'TrueValue' => ['ignore' => [
                 // The learner of an obligation is a column of its primary key, which the schema makes not null.
-                CourseTables::class.'::tables::315',
+                CourseTables::class.'::tables::329',
             ], 'ignoreSourceCodeByRegex' => [
                 '.*self::column\\(\'(activity_hash|state_id)\'.*',
                 '.*\\$(seen|holding)\\[\\$block\\] = true;.*',
@@ -42,9 +44,15 @@ return [
                 '.*new ReadRule\\(\'application/json\', \\[\'application/json\'\\]\\).*',
                 // The number of an attempt is bound as text and stored as an integer by the column.
                 '.*.number. => Types::INTEGER,.*',
+                // SQLite stores the boolean of a step the same way whether the column is typed or not: the type is for the other databases.
+                '.*\\], \\[.required. => Types::BOOLEAN\\]\\);.*',
             ]],
             // An offset below zero reads as zero, the default included.
             'DecrementInteger' => ['ignoreSourceCodeByRegex' => [
+                // A percentage and a position below zero read as zero: the bound only types them.
+                '.*\\$whole = \\$enrollment->isCompleted\\(\\) \\? 100 : 0;.*',
+                '.*max\\(0, min\\(100, \\$percent\\)\\).*',
+                '.*max\\(0, Rows::int\\(\\$row\\[.position.\\]\\)\\).*',
                 '.*public function all\\(int \\$limit = 50, int \\$offset = 0\\).*',
                 // The pages are read with an offset of zero at least; SQLite reads a negative one as zero, MySQL and PostgreSQL refuse it.
                 '.*max\\(1, \\$limit\\)\\.. OFFSET .\\.max\\(0, \\$offset\\).*',
@@ -52,12 +60,18 @@ return [
                 '.*json_decode\\(\\$json, true, 4, .*',
             ]],
             'IncrementInteger' => ['ignoreSourceCodeByRegex' => [
+                // A percentage is held between 0 and 100 by the line that follows: a whole path reads 100 at most, and a
+                // bound raised to 101 only lets through what 100 * completed / required never reaches.
+                '.*\\$whole = \\$enrollment->isCompleted\\(\\) \\? 100 : 0;.*',
+                '.*max\\(0, min\\(100, \\$percent\\)\\).*',
                 '.*json_decode\\(\\$json, true, 4, .*',
                 // Depths counted by two instead of one keep the order of the blocks: only their differences count.
                 '.*\\(\\$depths\\[\\$parent\\] \\?\\? 0\\) \\+ 1.*',
             ]],
             // A score equal to the best kept is the same score.
             'GreaterThan' => ['ignoreSourceCodeByRegex' => [
+                // Two equivalent completions at the same moment are the same moment.
+                '.*\\$completedAt > \\$latest.*',
                 '.*\\$outcome->score->scaled > \\$this->score->scaled.*',
                 // A token is 103 characters at most whatever its length is checked at: its pattern is the bound.
                 '.*strlen\\(\\$token\\) > self::MAX_LENGTH.*',
@@ -74,8 +88,14 @@ return [
                 DbalScormAttemptRepository::class.'::ofEnrollments::94',
                 // A target no activity has leaves for the outline, as the line after the branch does.
                 ScormRuntime::class.'::navigation::316',
+                // A transcript holds none of no course, and the query of an empty list reads none either.
+                Transcripts::class.'::holdsAny::91',
+                DbalLearningPathRepository::class.'::openEnrollmentsWith::144',
             ]],
             'UnwrapArrayValues' => ['ignoreSourceCodeByRegex' => [
+                // The keys of the courses kept are never read: they are counted, searched and saved as a list.
+                '.*\\$others = array_values\\(array_filter\\(\\$this->groups->courses.*',
+                '.*array_values\\(array_filter\\(\\$step->prerequisites, static fn.*',
                 // The modules are appended, or replaced at their place: their keys follow each other already. The list is
                 // kept for the types.
                 '.*array_values\\(\\$modules\\).*',

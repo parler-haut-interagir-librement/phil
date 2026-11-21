@@ -74,8 +74,16 @@ an erasure reports it as surviving: see [cmi5](cmi5.md#privacy).
 Reads the `tincan.xml` of an xAPI package into an `XapiPackage` — the course's IRI, title and description, its
 `XapiLaunchable` activities and the notes of the reading —, or throws `PackageRefused`. The import asks the service
 named in `phil_courses.import.xapi_reader` for an archive that holds `tincan.xml` and neither `cmi5.xml` nor
-`imsmanifest.xml`. It is the narrow place where a library's reader of xAPI packages plugs in, through an adapter
-that bounds the reading; without one, xAPI packages are refused. See [xAPI activities](xapi-activities.md).
+`imsmanifest.xml`; by default, `ElearningXapiPackageReader`, the adapter of the reader of phil/elearning-packages.
+An application names its own service to read the packages of a tool that phil/elearning-packages does not read. See
+[xAPI activities](xapi-activities.md#importing-an-xapi-package).
+
+## `LearningPathRepository` and `EquivalenceRepository`
+
+The stores of the learning paths, their steps and their enrollments, and of the groups of equivalent courses, aliased
+by their ports to `DbalLearningPathRepository` and `DbalEquivalenceRepository`, public, so that an application
+replaces them by aliasing the port to its own service. See [learning paths](learning-paths.md) and
+[equivalent courses](equivalent-courses.md).
 
 ## `AssigneeMembers`
 
@@ -110,13 +118,17 @@ upload form checks a package with it before the import.
 
 `Completions::completion(CourseId $course, LearnerId $learner)` answers whether a learner completed a course: a
 `Completion` — the enrollment, the course, the learner and the moment, in UTC — or null. It follows the rule that raises
-`CourseCompleted`, and a completion stays once reached. Another part of the application that keeps its own model —
-certificates, badges, a report — asks it rather than reading the stores.
+`CourseCompleted`, and a completion stays once reached. With the groups of equivalent courses, a learner who did not
+complete the course itself is answered the earliest completion of an equivalent course, whose `course` names it.
+Another part of the application that keeps its own model — certificates, badges, a report — asks it rather than reading
+the stores. `LearningPaths::completion()` answers the same for a learning path, with the learner's enrollment in it.
 
 With phil/certificates-bundle 0.2 or later, which declares the `CourseCompletions` port, the bundle registers
 `CertificatesCourseCompletions` and aliases the port to it. phil/certificates-bundle then asks it for the completion of
 a course, by the course's identifier in this bundle and the learner's identifier, and receives the identifier of the
-enrollment that completed it, or null. An identifier this bundle cannot hold names no completion.
+enrollment that completed it, or null. A certificate course names a learning path by `path:` and its identifier, and
+receives the identifier of the learner's enrollment in the completed path. An identifier this bundle cannot hold names
+no completion. A badge is issued by a listener of the application on `PathCompleted` or `CourseCompleted`.
 
 ## `Cmi5Endpoints`
 
@@ -150,6 +162,7 @@ certificate on `CourseCompleted`, tells a teacher of a `RetryRequested`, or foll
 blocks of a cmi5 course on `BlockSatisfied`. `ScormSessionEnded` is dispatched at the end of each session of a SCORM
 activity, with whether its attempt ended. The mandatory training dispatches `TrainingAssigned`, `ObligationOverdue`,
 `ObligationRenewed`, `EnrollmentRenewed` and `CreditsGranted`; see [mandatory training](mandatory-training.md#events).
+The learning paths dispatch `LearnerEnrolledInPath` and `PathCompleted`; see [learning paths](learning-paths.md#events).
 
 ## Services
 

@@ -174,12 +174,14 @@ The bundle dispatches these events through the PSR-14 dispatcher; each carries i
 | `CourseImported` | A course was imported from a package |
 | `StatementRecorded` | A cmi5 or xAPI statement was accepted or issued, and handed to the learning record store |
 | `TrainingAssigned`, `ObligationOverdue`, `ObligationRenewed`, `EnrollmentRenewed`, `CreditsGranted` | The mandatory training: see [mandatory training](mandatory-training.md#events) |
+| `LearnerEnrolledInPath`, `PathCompleted` | The learning paths: see [learning paths](learning-paths.md#events) |
 
 ## The pages
 
 | Route | Page |
 |---|---|
-| `phil_courses_outline` | The outline: the learner's progress, each module and its activities with where each stands |
+| `phil_courses_outline` | The outline: the learner's progress, each module and its activities with where each stands, and the other courses of its group of equivalent courses |
+| `phil_courses_language` | Redirects to the course of the group in the request's locale; see [equivalent courses](equivalent-courses.md) |
 | `phil_courses_enroll` | The enrollment, when `self_enrollment` is on |
 | `phil_courses_launch` | The activity page: the text of a page, the content framed from the content origin, or the link to its window |
 | `phil_courses_complete` | Marks an activity done, when its type lets the learner |

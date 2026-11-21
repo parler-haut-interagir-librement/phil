@@ -126,6 +126,14 @@ its reminders sent again. The learner's enrollment starts again — its progress
 `courses.training.renewed`. `EnrollmentRenewed` and `ObligationRenewed` are dispatched. The transcript keeps every
 completion.
 
+## Equivalent courses
+
+A course assigned in one language is fulfilled by any course of its [group of equivalent courses](equivalent-courses.md):
+`TrainingCompletions` completes the obligations under the course completed and under each of its equivalents, and a
+member reached by an assignment who completed an equivalent course already starts completed — at the latest such
+completion, which sets the renewal of a recertification. An application assigns the course of its main language;
+each learner takes the course of theirs.
+
 ## Events
 
 | Event | Carries |

@@ -16,6 +16,7 @@ use Phil\CoursesBundle\Domain\Cmi5\Cmi5Verb;
 use Phil\CoursesBundle\Domain\Cmi5\SessionState;
 use Phil\CoursesBundle\Domain\Course\CourseOrigin;
 use Phil\CoursesBundle\Domain\Model\Activity;
+use Phil\CoursesBundle\Domain\Model\PathEnrollment;
 use Phil\CoursesBundle\Domain\Progress\AvailabilityStatus;
 use Phil\CoursesBundle\Domain\Progress\CompletionRequirement;
 use Phil\CoursesBundle\Domain\Scorm\AttemptState;
@@ -38,7 +39,8 @@ use PHPUnit\Framework\TestCase;
  * `CourseTables`, a course imported and taken, the moments in UTC, the booleans, the scores and the order of the
  * outline, the unique enrollment, a cmi5 session and its statements, the state documents, the cmi5 records of a learner
  * exported and erased, a SCORM attempt with its time and its review, a course removed, and the tables of an earlier
- * schema brought up to date, a satisfied block noted once.
+ * schema brought up to date, a satisfied block noted once; a learning path and a group of equivalent courses, and
+ * their tables added by the upgrade.
  */
 abstract class ServerTestCase extends TestCase
 {
@@ -251,6 +253,58 @@ abstract class ServerTestCase extends TestCase
         self::assertFalse($store->enrollmentStore->claimSatisfaction($enrollment->id, $block->id->value, 's2', $store->clock->now()));
         self::assertSame([$block->id->value], $store->enrollmentStore->satisfactions($enrollment->id));
         self::assertTrue($this->connection->createSchemaManager()->tablesExist([CourseTables::SCORM_ATTEMPT, CourseTables::SCORM_DATA]));
+    }
+
+    public function testTheTablesOfThePathsAndTheEquivalencesAreAddedByTheUpgrade(): void
+    {
+        $tables = [CourseTables::EQUIVALENT, CourseTables::EQUIVALENCE, CourseTables::PATH_ENROLLMENT, CourseTables::PATH_STEP, CourseTables::PATH];
+
+        foreach ($tables as $table) {
+            $this->connection->executeStatement('DROP TABLE '.$table);
+        }
+
+        $upgrade = CourseTables::upgrade($this->connection);
+        self::assertCount(5, array_filter($upgrade, static fn (string $sql): bool => str_starts_with($sql, 'CREATE TABLE')));
+
+        foreach ($upgrade as $sql) {
+            $this->connection->executeStatement($sql);
+        }
+
+        self::assertSame([], CourseTables::upgrade($this->connection));
+        self::assertTrue($this->connection->createSchemaManager()->tablesExist($tables));
+    }
+
+    public function testAPathAndAGroupOfEquivalentCoursesAreKept(): void
+    {
+        $store = new Store($this->connection);
+        $english = $store->courses->create('Fire safety');
+        $englishPage = $store->courses->addActivity($store->courses->addModule($english->id, 'M')->id, 'Exits', 'page');
+        $french = $store->courses->create('Sécurité incendie');
+        $frenchPage = $store->courses->addActivity($store->courses->addModule($french->id, 'M')->id, 'Sorties', 'page');
+        $group = $store->equivalences->create('Sécurité');
+        $store->equivalences->add($group->id, $english->id, 'en');
+        $store->equivalences->add($group->id, $french->id, 'fr-CA');
+        self::assertEquals($french->id, $store->equivalences->courseFor($english->id, 'fr'));
+
+        $path = $store->paths->create('Onboarding', 'é ✓');
+        $store->paths->addStep($path->id, $english->id);
+        $last = $store->courses->create('Last');
+        $lastPage = $store->courses->addActivity($store->courses->addModule($last->id, 'M')->id, 'End', 'page');
+        $store->paths->addStep($path->id, $last->id, true, [$english->id]);
+        self::assertEquals([$english->id], $store->paths->steps($path->id)[1]->prerequisites);
+        self::assertSame('é ✓', $store->paths->get($path->id)->description);
+
+        $ada = LearnerId::of('ada');
+        $enrollment = $store->paths->enroll($path->id, $ada);
+        $store->enrollments->record($store->enrollments->enroll($french->id, $ada), $frenchPage, Outcome::completed());
+        self::assertSame([$enrollment->id->value], array_map(static fn (PathEnrollment $open): string => $open->id->value, $store->pathStore->openEnrollmentsWith($ada, [$french->id, $english->id])));
+        $store->paths->advance($enrollment);
+        $store->enrollments->record($store->enrollments->enroll($last->id, $ada), $lastPage, Outcome::completed());
+        self::assertTrue($store->paths->advance($enrollment));
+        self::assertSame('2026-11-13 10:00', $store->paths->enrollment($enrollment->id)->completedAt?->format('Y-m-d H:i'));
+        self::assertSame([], $store->pathStore->openEnrollmentsWith($ada, [$english->id]));
+        self::assertNull($store->enrollments->of($english->id, $ada)?->completedAt);
+        self::assertSame($englishPage->course->value, $english->id->value);
     }
 
     public function testTheTimeOfTheScormAttemptsIsAddedToTheirTable(): void

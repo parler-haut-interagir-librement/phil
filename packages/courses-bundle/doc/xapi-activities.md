@@ -84,9 +84,14 @@ enrollment, with the cmi5 statements of the same learner.
 ## Importing an xAPI package
 
 An archive that holds `tincan.xml` at its root, and neither `cmi5.xml` nor `imsmanifest.xml`, is an xAPI package. The
-import reads it through the `XapiPackageReader` service named in `phil_courses.import.xapi_reader`: an adapter of the
-reader of a library, which bounds the reading as phil/elearning-packages does for the other formats. Without one, the
-package is refused with a message that says so.
+import reads it through the `XapiPackageReader` service named in `phil_courses.import.xapi_reader`, by default
+`ElearningXapiPackageReader`, the adapter of the `XapiCourseReader` of phil/elearning-packages. It reads `tincan.xml`
+within the limits of the import — its size, its XML nodes, its activities —, takes the IRI, the title and the
+description of the course activity in the language of `phil_courses.import.language`, keeps each launchable activity
+in the order of the package, and turns the issues it set aside — an activity declared twice, a missing name, an unknown
+interaction type — into the warnings of the import. A `tincan.xml` gives no mastery score. What the library refuses —
+no `<tincan>` root, no `<activities>`, no launchable activity, a launch that leaves the package — refuses the package
+with its message, as a `PackageRefused`.
 
 The reader returns an `XapiPackage` — the course's IRI, title and description, its launchable activities and the notes
 of the reading —, which the import turns into a course of origin `xapi` with one module named after the course. Each
@@ -95,14 +100,22 @@ satisfied once passed, the others once completed. A launch that is neither a fil
 address refuses the package. The files of the package are stored and served from the content origin, as for SCORM
 and cmi5.
 
+An application replaces the reader by naming its own service, which implements the port:
+
 ```php
-final readonly class LibraryXapiReader implements XapiPackageReader
+final readonly class AuthoringToolXapiReader implements XapiPackageReader
 {
     public function read(PackageArchive $archive): XapiPackage
     {
         // Reads tincan.xml within bounds and returns the launchable activities.
     }
 }
+```
+
+```yaml
+phil_courses:
+    import:
+        xapi_reader: App\Learning\AuthoringToolXapiReader
 ```
 
 ## Privacy

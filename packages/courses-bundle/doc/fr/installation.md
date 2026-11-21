@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d532df0e29b8ce1eb6907dcb313c12a4d539a32a834bb70086fb72de23fc77ec -->
+<!-- phil-dev source-sha256=80e603d19f90c9b15874be63e59db6f6c528f4a9741d2b8f98cf57d5a8913655 -->
 # Installation
 
 ```sh
@@ -64,7 +64,7 @@ phil_courses_admin:
 
 | Fichier | Routes | Pare-feu |
 |---|---|---|
-| `config/routes.php` | Les pages d'un cours : le plan, l'inscription, le lancement, l'achèvement, la seconde chance, et le point de terminaison de validation des sessions SCORM, la formation et le relevé de l'apprenant | Derrière le pare-feu de l'application : les pages exigent un apprenant, et une validation nomme sa tentative par son jeton |
+| `config/routes.php` | Les pages d'un cours : le plan, le cours de la langue de l'apprenant, l'inscription, le lancement, l'achèvement, la seconde chance, et le point de terminaison de validation des sessions SCORM, la formation et le relevé de l'apprenant | Derrière le pare-feu de l'application : les pages exigent un apprenant, et une validation nomme sa tentative par son jeton |
 | `config/cmi5_routes.php` | L'URL de récupération et le point de terminaison xAPI auxquels parlent les unités cmi5 et les activités xAPI | En dehors : chaque requête porte le jeton de sa session, non les témoins de connexion de l'apprenant |
 | `config/content_routes.php` | Les fichiers des paquets importés, et le cadre de l'environnement d'exécution SCORM sous `_phil/scorm/` | En dehors, et servis sur l'origine du contenu seulement |
 | `config/admin_routes.php` | Les pages d'administration : les secondes chances, la formation en retard ou bientôt due, les relevés des apprenants | Derrière le pare-feu de l'application : les pages demandent les rôles `phil_courses.admin.role` et `phil_courses.training.manager_role` |
@@ -116,6 +116,15 @@ sous elles ; `phil_course_transcript` et `phil_course_credits`, les relevés et 
 Elles viennent avec les autres tables, par l'écouteur de schéma ou `CourseTables::configure()`, et
 `CourseTables::upgrade()` les ajoute aux tables d'une version antérieure ; avec l'ORM, `doctrine:migrations:diff` écrit
 la même migration. Le bundle ne fournit aucune entité Doctrine ; sa recette ne porte donc aucune migration.
+
+## Les tables des parcours d'apprentissage et des cours équivalents
+
+`phil_course_path`, `phil_course_path_step` et `phil_course_path_enrollment` conservent les parcours d'apprentissage, leurs
+étapes — les prérequis de chacune en liste JSON — et les apprenants qui y sont inscrits ; `phil_course_equivalence` et
+`phil_course_equivalent`, les groupes de cours équivalents et le cours de chaque langue qu'ils contiennent, un cours par
+langue dans un groupe. Elles viennent avec les autres tables, et `CourseTables::upgrade()` les crée sur MySQL,
+PostgreSQL et SQLite pour une application qui exécute une version antérieure ; avec l'ORM, `doctrine:migrations:diff`
+écrit la même migration.
 
 ## Le calendrier de la formation obligatoire
 

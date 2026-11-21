@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=824c48bbfc9a32600c80f3083f52864764a7678df5aab4c6384c1d924dd3e569 -->
+<!-- phil-dev source-sha256=031207cc748f6ec4ffe06263eb54786b3802004d9d820384f24a3e71f5cc9fc1 -->
 # Points d'extension
 
 Le bundle est en versions `0.x` : les ports, les événements et les services ci-dessous peuvent changer dans une version
@@ -74,9 +74,17 @@ conserve, et un effacement les signale comme survivants : voir [cmi5](cmi5.md#vi
 
 Lit le `tincan.xml` d'un paquet xAPI dans un `XapiPackage` — l'IRI du cours, son titre et sa description, ses activités
 `XapiLaunchable` et les notes de la lecture —, ou lève `PackageRefused`. L'import demande le service nommé dans
-`phil_courses.import.xapi_reader` pour une archive qui contient `tincan.xml` et ni `cmi5.xml` ni `imsmanifest.xml`.
-C'est l'endroit étroit où se branche le lecteur de paquets xAPI d'une bibliothèque, par un adaptateur qui borne la
-lecture ; sans lecteur, les paquets xAPI sont refusés. Voir [activités xAPI](xapi-activities.md).
+`phil_courses.import.xapi_reader` pour une archive qui contient `tincan.xml` et ni `cmi5.xml` ni `imsmanifest.xml` ;
+par défaut, `ElearningXapiPackageReader`, l'adaptateur du lecteur de phil/elearning-packages. Une application nomme son
+propre service pour lire les paquets d'un outil que phil/elearning-packages ne lit pas. Voir
+[activités xAPI](xapi-activities.md#importer-un-paquet-xapi).
+
+## `LearningPathRepository` et `EquivalenceRepository`
+
+Les entrepôts des parcours d'apprentissage, de leurs étapes et de leurs inscriptions, et des groupes de cours
+équivalents, des alias de leurs ports vers `DbalLearningPathRepository` et `DbalEquivalenceRepository`, publics, de sorte
+qu'une application les remplace en faisant de l'alias du port un alias vers son propre service. Voir
+[parcours d'apprentissage](learning-paths.md) et [cours équivalents](equivalent-courses.md).
 
 ## `AssigneeMembers`
 
@@ -112,13 +120,19 @@ formulaire de téléversement y vérifie un paquet avant l'import.
 
 `Completions::completion(CourseId $course, LearnerId $learner)` répond si un apprenant a terminé un cours : une
 `Completion` — l'inscription, le cours, l'apprenant et le moment, en UTC — ou null. Elle suit la règle qui déclenche
-`CourseCompleted`, et un achèvement reste acquis une fois atteint. Une autre partie de l'application qui garde son propre
-modèle — certificats, insignes, rapport — la consulte plutôt que de lire les entrepôts.
+`CourseCompleted`, et un achèvement reste acquis une fois atteint. Avec les groupes de cours équivalents, un apprenant qui n'a pas terminé le
+cours lui-même reçoit comme réponse le plus ancien achèvement d'un cours équivalent, dont le `course` le nomme. Une autre
+partie de l'application qui garde son propre modèle — certificats, insignes, rapport — la consulte plutôt que de lire
+les entrepôts. `LearningPaths::completion()` répond de même pour un parcours d'apprentissage, avec l'inscription de
+l'apprenant à celui-ci.
 
 Avec phil/certificates-bundle 0.2 ou une version plus récente, qui déclare le port `CourseCompletions`, le bundle enregistre
 `CertificatesCourseCompletions` et fait du port un alias vers lui. phil/certificates-bundle lui demande alors
 l'achèvement d'un cours, par l'identifiant du cours dans ce bundle et celui de l'apprenant, et reçoit l'identifiant de
-l'inscription qui l'a terminé, ou null. Un identifiant que ce bundle ne peut pas contenir ne désigne aucun achèvement.
+l'inscription qui l'a terminé, ou null. Un cours de certificat nomme un parcours d'apprentissage par `path:` et son
+identifiant, et reçoit l'identifiant de l'inscription de l'apprenant au parcours terminé. Un identifiant que ce bundle ne
+peut pas contenir ne désigne aucun achèvement. Un insigne est émis par un écouteur de l'application sur `PathCompleted`
+ou `CourseCompleted`.
 
 ## `Cmi5Endpoints`
 
@@ -153,6 +167,8 @@ blocs d'un cours cmi5 à `BlockSatisfied`. `ScormSessionEnded` est envoyé à la
 avec l'indication que sa tentative a pris fin ou non. La formation obligatoire envoie `TrainingAssigned`,
 `ObligationOverdue`, `ObligationRenewed`, `EnrollmentRenewed` et `CreditsGranted` ; voir
 [formation obligatoire](mandatory-training.md#événements).
+Les parcours d'apprentissage envoient `LearnerEnrolledInPath` et `PathCompleted` ; voir
+[parcours d'apprentissage](learning-paths.md#événements).
 
 ## Services
 

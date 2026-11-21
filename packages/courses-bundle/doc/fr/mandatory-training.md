@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=803fbe533a2d0d9d9e1d61e60c6bd2aa2be54f184980bccddcfa2ff96e4e6995 -->
+<!-- phil-dev source-sha256=2e642bbe12a3f0f48d7b71ffda1586c06761fa69927db873253fccfae6fb9499 -->
 # Formation obligatoire
 
 Un cours peut être assigné : à un apprenant, aux membres d'un groupe ou aux membres d'une unité d'une organisation,
@@ -128,6 +128,14 @@ renouvellement, 30 par défaut, ses rappels envoyés de nouveau. L'inscription d
 dans chaque activité oubliée, ses énoncés `satisfied` libres d'être émis de nouveau, son achèvement défait, son
 enregistrement gardé — et il est averti par `courses.training.renewed`. `EnrollmentRenewed` et `ObligationRenewed` sont
 envoyés. Le relevé garde chaque achèvement.
+
+## Cours équivalents
+
+Un cours assigné dans une langue est rempli par tout cours de son [groupe de cours équivalents](equivalent-courses.md) :
+`TrainingCompletions` termine les obligations sous le cours terminé et sous chacun de ses équivalents, et un membre
+atteint par une assignation qui a déjà terminé un cours équivalent commence terminé — au plus récent de ces achèvements,
+qui fixe le renouvellement d'une recertification. Une application assigne le cours de sa langue principale ; chaque
+apprenant suit celui de la sienne.
 
 ## Événements
 

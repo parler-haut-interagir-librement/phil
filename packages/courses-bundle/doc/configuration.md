@@ -84,7 +84,7 @@ phil_courses:
 | `content.application_origin` | `null` | The origin of the site that frames the content, such as `https://www.example.org`: the only origin that may frame the content and the frame of the SCORM run time, and the only one the frame talks to. The origin of `cmi5.actor_home_page` when null; with neither, the content may be framed by nobody. |
 | `content.allow_localhost` | `false` | Whether the content origin and the home page may be on `localhost`, in development. |
 | `import.language` | `null` | The language of the titles read from a cmi5 course structure, such as `fr`; its first title when null. |
-| `import.xapi_reader` | `null` | An `XapiPackageReader` service that reads the `tincan.xml` of xAPI packages; such packages are refused when null. See [xAPI activities](xapi-activities.md#importing-an-xapi-package). |
+| `import.xapi_reader` | `null` | An `XapiPackageReader` service that reads the `tincan.xml` of xAPI packages; `ElearningXapiPackageReader`, on the reader of phil/elearning-packages, when null. See [xAPI activities](xapi-activities.md#importing-an-xapi-package). |
 | `import.limits.archive_bytes` | 512 MiB | The size of the archive. |
 | `import.limits.entries` | 10 000 | How many entries the archive holds. |
 | `import.limits.entry_bytes` | 256 MiB | The size of one file, uncompressed. |

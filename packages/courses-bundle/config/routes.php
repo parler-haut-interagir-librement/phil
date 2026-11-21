@@ -33,6 +33,10 @@ return static function (RoutingConfigurator $routes): void {
         ->controller([CourseController::class, 'outline'])
         ->requirements($course)
         ->methods(['GET']);
+    $routes->add(CourseController::LANGUAGE_ROUTE, '/{course}/language')
+        ->controller([CourseController::class, 'language'])
+        ->requirements($course)
+        ->methods(['GET']);
     $routes->add(CourseController::ENROLL_ROUTE, '/{course}/enroll')
         ->controller([CourseController::class, 'enroll'])
         ->requirements($course)

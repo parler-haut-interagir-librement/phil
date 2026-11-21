@@ -150,7 +150,7 @@ final class PhilCoursesBundle extends AbstractBundle
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->scalarNode('language')->info('The language of the titles read from a cmi5 course structure, such as "fr"; its first title when null.')->defaultNull()->end()
-                    ->scalarNode('xapi_reader')->info('An XapiPackageReader service that reads the tincan.xml of xAPI packages; such packages are refused when null.')->defaultNull()->end()
+                    ->scalarNode('xapi_reader')->info('An XapiPackageReader service that reads the tincan.xml of xAPI packages; the reader of phil/elearning-packages when null.')->defaultNull()->end()
                     ->arrayNode('limits')
                         ->info('The bounds a package must stay within.')
                         ->addDefaultsIfNotSet()

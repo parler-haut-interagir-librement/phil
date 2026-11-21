@@ -10,6 +10,7 @@ use Override;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Statements;
 use Phil\CoursesBundle\Application\Courses;
 use Phil\CoursesBundle\Application\Enrollments;
+use Phil\CoursesBundle\Application\Equivalences;
 use Phil\CoursesBundle\Application\SecondChances;
 use Phil\CoursesBundle\Domain\Cmi5\Cmi5Iri;
 use Phil\CoursesBundle\Domain\Cmi5\Cmi5Verb;
@@ -311,6 +312,34 @@ final class CoursesBundleTest extends WebTestCase
         self::assertResponseStatusCodeSame(400);
         $this->client->request('POST', '/courses/'.$course->id->value.'/activities/'.$activity->id->value.'/retry', ['_token' => $token, 'reason' => 'Why not'], server: self::ADA);
         self::assertResponseStatusCodeSame(400);
+    }
+
+    public function testTheOutlineLeadsToTheCourseOfTheLearnersLanguage(): void
+    {
+        $english = $this->courses()->create('Fire safety');
+        $french = $this->courses()->create('Sécurité incendie');
+        $equivalences = self::getContainer()->get(Equivalences::class);
+        self::assertInstanceOf(Equivalences::class, $equivalences);
+        $group = $equivalences->create('Fire safety');
+        $equivalences->add($group->id, $english->id, 'en');
+        $equivalences->add($group->id, $french->id, 'fr-CA');
+
+        $crawler = $this->client->request('GET', '/courses/'.$english->id->value, server: self::ADA);
+        self::assertResponseIsSuccessful();
+        $link = $crawler->filter('.phil-courses__equivalents a');
+        self::assertSame(['Sécurité incendie', 'fr-ca', '/courses/'.$french->id->value], [$link->text(), $link->attr('hreflang'), $link->attr('href')]);
+        self::assertSame('Also given in other languages', $crawler->filter('.phil-courses__equivalents')->attr('aria-label'));
+
+        $this->client->request('GET', '/courses/'.$english->id->value.'/language', server: self::ADA + ['HTTP_ACCEPT_LANGUAGE' => 'fr-CA,fr;q=0.8']);
+        self::assertResponseRedirects('/courses/'.$french->id->value, 303);
+        $this->client->request('GET', '/courses/'.$french->id->value.'/language', server: self::ADA + ['HTTP_ACCEPT_LANGUAGE' => 'en']);
+        self::assertResponseRedirects('/courses/'.$english->id->value, 303);
+
+        $alone = $this->courses()->create('Alone');
+        $crawler = $this->client->request('GET', '/courses/'.$alone->id->value, server: self::ADA);
+        self::assertCount(0, $crawler->filter('.phil-courses__equivalents'));
+        $this->client->request('GET', '/courses/'.$alone->id->value.'/language');
+        self::assertResponseStatusCodeSame(403);
     }
 
     public function testACmi5UnitIsLaunchedAndTalksToTheEndpoint(): void

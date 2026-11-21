@@ -6,7 +6,8 @@
  #
  # course: Course. enrollment: ?Enrollment. statuses: list of ActivityStatus. outline: CourseOutline. percent: int.
  # self_enrollment: bool. show_locked: bool. reviewable: list of the identifiers of the activities with an ended
- # SCORM attempt.
+ # SCORM attempt. equivalents: list of {course: Course, language: string}, the other courses of its group of equivalent
+ # courses.
  #}
 {% extends layout %}
 
@@ -16,6 +17,16 @@
 <h1>{{ course.title }}</h1>
 {%- if course.description is not empty %}
 <p class="phil-courses__description">{{ course.description }}</p>
+{%- endif %}
+{%- if equivalents is not empty %}
+<nav class="phil-courses__equivalents" aria-label="{{ 'outline.equivalents'|trans({}, 'phil_courses') }}">
+    <p>{{ 'outline.equivalents'|trans({}, 'phil_courses') }}</p>
+    <ul>
+        {%- for equivalent in equivalents %}
+        <li><a href="{{ path('phil_courses_outline', {course: equivalent.course.id.value}) }}" hreflang="{{ equivalent.language }}" lang="{{ equivalent.language }}">{{ equivalent.course.title }}</a></li>
+        {%- endfor %}
+    </ul>
+</nav>
 {%- endif %}
 {%- if enrollment is null %}
 <p class="phil-courses__not-enrolled">{{ 'outline.not_enrolled'|trans({}, 'phil_courses') }}</p>

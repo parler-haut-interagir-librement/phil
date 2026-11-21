@@ -29,11 +29,14 @@ use Phil\CoursesBundle\Application\Contract\LearningRecordStore;
 use Phil\CoursesBundle\Application\Contract\TrainingNotifier;
 use Phil\CoursesBundle\Application\Courses;
 use Phil\CoursesBundle\Application\Enrollments;
+use Phil\CoursesBundle\Application\Equivalences;
 use Phil\CoursesBundle\Application\Handler\RunTrainingHandler;
 use Phil\CoursesBundle\Application\Import\CourseImporter;
 use Phil\CoursesBundle\Application\Import\ResultImporter;
 use Phil\CoursesBundle\Application\Learning;
 use Phil\CoursesBundle\Application\Message\RunTraining;
+use Phil\CoursesBundle\Application\Path\LearningPaths;
+use Phil\CoursesBundle\Application\Path\PathCompletions;
 use Phil\CoursesBundle\Application\Scorm\ScormRuntime;
 use Phil\CoursesBundle\Application\Scorm\ScormTokens;
 use Phil\CoursesBundle\Application\SecondChances;
@@ -47,7 +50,9 @@ use Phil\CoursesBundle\Application\Xapi\XapiStatements;
 use Phil\CoursesBundle\Domain\Contract\AssignmentRepository;
 use Phil\CoursesBundle\Domain\Contract\CourseRepository;
 use Phil\CoursesBundle\Domain\Contract\EnrollmentRepository;
+use Phil\CoursesBundle\Domain\Contract\EquivalenceRepository;
 use Phil\CoursesBundle\Domain\Contract\LaunchSessionRepository;
+use Phil\CoursesBundle\Domain\Contract\LearningPathRepository;
 use Phil\CoursesBundle\Domain\Contract\RetryRequestRepository;
 use Phil\CoursesBundle\Domain\Contract\TranscriptRepository;
 use Phil\CoursesBundle\Domain\Event\ActivitySatisfied;
@@ -69,7 +74,9 @@ use Phil\CoursesBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalAssignmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalCourseRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEnrollmentRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEquivalenceRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLaunchSessionRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLearningPathRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLearningRecordStore;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalRetryRequestRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalScormAttemptRepository;
@@ -83,8 +90,10 @@ use Phil\CoursesBundle\Infrastructure\Http\ScormController;
 use Phil\CoursesBundle\Infrastructure\Http\ScormFrameController;
 use Phil\CoursesBundle\Infrastructure\Http\SecondChancesController;
 use Phil\CoursesBundle\Infrastructure\Http\TrainingController;
+use Phil\CoursesBundle\Infrastructure\Import\ElearningXapiPackageReader;
 use Phil\CoursesBundle\Infrastructure\Notifications\NotificationsTrainingNotifier;
 use Phil\CoursesBundle\Infrastructure\Privacy\Cmi5Privacy;
+use Phil\CoursesBundle\Infrastructure\Privacy\PathsPrivacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\ScormPrivacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\TrainingPrivacy;
 use Phil\CoursesBundle\Infrastructure\Routing\RoutedCmi5Endpoints;
@@ -154,7 +163,8 @@ final class PhilCoursesBundleTest extends TestCase
         }
 
         self::assertSame([['event' => 'postGenerateSchema', 'connection' => 'default']], $container->getDefinition(SchemaListener::class)->getTag('doctrine.event_listener'));
-        self::assertSame(['@PhilCourses/layout.html.twig', false, true], \array_slice($container->getDefinition(CourseController::class)->getArguments(), 11));
+        self::assertSame(['@PhilCourses/layout.html.twig', false, true], \array_slice($container->getDefinition(CourseController::class)->getArguments(), 11, 3));
+        self::assertEquals(new Reference(Equivalences::class), $container->getDefinition(CourseController::class)->getArgument(14));
         self::assertNull($container->getDefinition(KitComponents::class)->getArgument(0));
         self::assertFalse($container->hasDefinition(AuditSecondChances::class), 'without the audit bundle registered');
     }
@@ -190,7 +200,7 @@ final class PhilCoursesBundleTest extends TestCase
         self::assertSame('fr', $container->getDefinition(CourseImporter::class)->getArgument(5));
         self::assertSame(['https://content.example.org:8443', 'https://units.example.net'], $container->getDefinition(Cmi5Controller::class)->getArgument(3));
         self::assertSame(['https://learn.example.org', 'https://learn.example.org'], \array_slice($container->getDefinition(ContentController::class)->getArguments(), 2));
-        self::assertSame(['base.html.twig', true, false], \array_slice($container->getDefinition(CourseController::class)->getArguments(), 11));
+        self::assertSame(['base.html.twig', true, false], \array_slice($container->getDefinition(CourseController::class)->getArguments(), 11, 3));
         self::assertSame('ui', $container->getDefinition(KitComponents::class)->getArgument(0));
         self::assertSame([['event' => 'postGenerateSchema', 'connection' => 'courses']], $container->getDefinition(SchemaListener::class)->getTag('doctrine.event_listener'));
 
@@ -318,6 +328,7 @@ final class PhilCoursesBundleTest extends TestCase
             Learning::class, ResultImporter::class, SecondChances::class, SecondChancesController::class,
             ScormRuntime::class, ScormTokens::class, ScormController::class, ScormFrameController::class,
             XapiLauncher::class, XapiStatements::class, Assignments::class, Transcripts::class, TrainingRun::class, TrainingController::class,
+            Equivalences::class, LearningPaths::class,
         ];
         $private = [
             AuditSecondChances::class, CertificatesCourseCompletions::class, Cmi5Activity::class, Cmi5Settings::class, ContentUrls::class, CourseRequest::class, CoursesExtension::class,
@@ -328,18 +339,26 @@ final class PhilCoursesBundleTest extends TestCase
             ZipPackageOpener::class, 'phil_courses.site_zone', DbalScormAttemptRepository::class, ScormPrivacy::class, Cmi5Privacy::class,
             XapiActivity::class, RunTrainingHandler::class, TrainingCompletions::class, TrainingSettings::class, AssignCommand::class, CreditsCommand::class,
             TrainingCommand::class, DbalAssignmentRepository::class, DbalTranscriptRepository::class, TrainingPrivacy::class, TrainingSchedule::class,
+            DbalLearningPathRepository::class, DbalEquivalenceRepository::class, PathCompletions::class, PathsPrivacy::class,
+            ElearningXapiPackageReader::class,
         ];
         $expected = [...array_fill_keys($public, true), ...array_fill_keys($private, false)];
 
         ksort($expected);
         self::assertSame($expected, $definitions);
 
-        foreach ([CourseRepository::class, EnrollmentRepository::class, RetryRequestRepository::class, LaunchSessionRepository::class, LearningRecordStore::class, CurrentLearner::class, ContentStorage::class, AssignmentRepository::class, TranscriptRepository::class] as $port) {
+        foreach ([CourseRepository::class, EnrollmentRepository::class, RetryRequestRepository::class, LaunchSessionRepository::class, LearningRecordStore::class, CurrentLearner::class, ContentStorage::class, AssignmentRepository::class, TranscriptRepository::class, LearningPathRepository::class, EquivalenceRepository::class] as $port) {
             self::assertTrue($container->getAlias($port)->isPublic(), $port);
         }
 
         self::assertEquals([new Reference(PackageLimits::class), null, new Reference(PackageOpener::class)], $container->getDefinition(PackageReader::class)->getArguments());
-        self::assertEquals([new Reference(EnrollmentRepository::class)], $container->getDefinition(Completions::class)->getArguments());
+        self::assertEquals([new Reference(EnrollmentRepository::class), new Reference(Equivalences::class)], $container->getDefinition(Completions::class)->getArguments());
+        self::assertEquals([new Reference(LearningPathRepository::class), new Reference(LearningPaths::class), new Reference(Equivalences::class)], $container->getDefinition(PathCompletions::class)->getArguments());
+        self::assertSame([['event' => CourseCompleted::class]], $container->getDefinition(PathCompletions::class)->getTag('kernel.event_listener'));
+        self::assertTrue($container->getDefinition(PathsPrivacy::class)->hasTag(PhilPrivacyBundle::EXPORTER_TAG));
+        self::assertTrue($container->getDefinition(PathsPrivacy::class)->hasTag(PhilPrivacyBundle::ERASER_TAG));
+        self::assertEquals(new Reference(Equivalences::class), $container->getDefinition(Assignments::class)->getArgument(8));
+        self::assertEquals(new Reference(Equivalences::class), $container->getDefinition(Transcripts::class)->getArgument(3));
         self::assertSame([
             ['event' => RetryRequested::class, 'method' => 'requested'],
             ['event' => RetryGranted::class, 'method' => 'granted'],
@@ -354,7 +373,7 @@ final class PhilCoursesBundleTest extends TestCase
 
         self::assertSame(CertificatesCourseCompletions::class, (string) $container->getAlias(CourseCompletions::class));
         self::assertFalse($container->getAlias(CourseCompletions::class)->isPublic());
-        self::assertEquals([new Reference(Completions::class)], $container->getDefinition(CertificatesCourseCompletions::class)->getArguments());
+        self::assertEquals([new Reference(Completions::class), new Reference(LearningPaths::class)], $container->getDefinition(CertificatesCourseCompletions::class)->getArguments());
     }
 
     public function testTheRemoteStoreIsSentToThroughItsOwnGuardedClient(): void
@@ -443,7 +462,8 @@ final class PhilCoursesBundleTest extends TestCase
 
         self::assertTrue($container->getDefinition(XapiActivity::class)->hasTag(ActivityType::TAG));
         self::assertEquals(new Reference(XapiStatements::class), $container->getDefinition(Cmi5Controller::class)->getArgument(4));
-        self::assertNull($container->getDefinition(CourseImporter::class)->getArgument(6));
+        self::assertEquals(new Reference(ElearningXapiPackageReader::class), $container->getDefinition(CourseImporter::class)->getArgument(6));
+        self::assertEquals([new Reference(PackageLimits::class), null], $container->getDefinition(ElearningXapiPackageReader::class)->getArguments());
     }
 
     public function testTheMandatoryTrainingTakesItsOptionsOrIsDisabled(): void

@@ -36,6 +36,11 @@
 | `Domain\Training\AssigneeKind`, `ObligationState`, `ReminderStage`, `TrainingNotice`, `CreditUnit` | Who a course is assigned to, where a learner stands, the reminders, the notices, the units of credits |
 | `Domain\ValueObject\AssignmentId`, `TranscriptEntryId` | The identifiers of an assignment and of a transcript entry |
 | `Domain\ValueObject\Credits` | Credits in hundredths, with their unit |
+| `Domain\Model\LearningPath`, `PathStep`, `PathEnrollment` | A learning path: title and description; a course at its place in it, required or not, with its prerequisites; a learner's enrollment in it and its completion |
+| `Domain\Path\StepState` | `locked`, `open`, `completed` |
+| `Domain\Model\EquivalenceGroup`, `EquivalentCourse` | A group of equivalent courses, and a course of it with its language |
+| `Domain\Equivalence\LanguageTag` | The shape of a language tag, normalized in lowercase with `-` |
+| `Domain\ValueObject\LearningPathId`, `PathEnrollmentId`, `EquivalenceGroupId` | The identifiers of a path, of an enrollment in a path and of a group of equivalent courses |
 | `Domain\Xapi\XapiVerb` | The verbs of ADL an xAPI activity reports with, and `voided` |
 | `Domain\ValueObject\CourseId`, `ModuleId`, `BlockId`, `ActivityId`, `EnrollmentId`, `RetryRequestId`, `LaunchSessionId` | Identifiers, UUID version 7 when the bundle draws them |
 | `Domain\ValueObject\LearnerId` | A learner's stable identifier, never an e-mail address |
@@ -48,10 +53,10 @@
 | `Domain\Progress\RetryDecision` | `pending`, `granted`, `refused`, `waived` |
 | `Domain\Course\CourseOrigin` | `native`, `scorm12`, `scorm2004`, `cmi5`, `xapi`; `of()` the format of a package |
 | `Domain\Cmi5\Cmi5Verb`, `Cmi5Iri`, `SessionState` | The verbs, IRIs and session states of cmi5; the launch methods are phil/elearning-packages' `LaunchMethod` |
-| `Domain\Contract\CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`, `LaunchSessionRepository`, `ScormAttemptRepository`, `AssignmentRepository`, `TranscriptRepository` | The stores |
+| `Domain\Contract\CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`, `LaunchSessionRepository`, `ScormAttemptRepository`, `AssignmentRepository`, `TranscriptRepository`, `LearningPathRepository`, `EquivalenceRepository` | The stores |
 | `Domain\Event\ScormSessionEnded` | A session of a SCORM activity ended, and whether its attempt did |
 | `Domain\Exception\AttemptRefused` | A commit refused: its token, its learner or its session is not the attempt's |
-| `Domain\Event\*` | `LearnerEnrolled`, `ActivityProgressed`, `ActivitySatisfied`, `CourseCompleted`, `RetryRequested`, `RetryGranted`, `RetryRefused`, `RetryWaived`, `BlockSatisfied`, `CourseImported`, `StatementRecorded`, `TrainingAssigned`, `ObligationOverdue`, `ObligationRenewed`, `EnrollmentRenewed`, `CreditsGranted` |
+| `Domain\Event\*` | `LearnerEnrolled`, `ActivityProgressed`, `ActivitySatisfied`, `CourseCompleted`, `RetryRequested`, `RetryGranted`, `RetryRefused`, `RetryWaived`, `BlockSatisfied`, `CourseImported`, `StatementRecorded`, `TrainingAssigned`, `ObligationOverdue`, `ObligationRenewed`, `EnrollmentRenewed`, `CreditsGranted`, `LearnerEnrolledInPath`, `PathCompleted` |
 | `Domain\Exception\CoursesException` | What every failure of the bundle is |
 | `Domain\Exception\InvalidCourse`, `UnknownRecord`, `ActivityUnavailable`, `PackageRefused`, `StatementRefused`, `RecordStoreUnavailable` | A value refused, a record missing, an activity not open, a package refused, a statement refused, a statement the learning record store did not keep |
 | `Domain\Identifiers` | The shape of identifiers and titles |
@@ -62,7 +67,10 @@
 |---|---|
 | `Application\Courses` | Writes and reads courses, modules, blocks and activities |
 | `Application\Enrollments` | Enrollment, progress, waivers, tries, completion |
-| `Application\Completions`, `Completion` | Whether a learner completed a course, with the enrollment and the moment |
+| `Application\Completions`, `Completion` | Whether a learner completed a course, or an equivalent course, with the enrollment, the course completed and the moment |
+| `Application\Equivalences` | The groups of equivalent courses, the course of a language, the equivalents of a course |
+| `Application\Path\LearningPaths`, `PathProgress`, `StepStatus` | The learning paths, their steps, the enrollment in them, the progress of a learner and their completion |
+| `Application\Path\PathCompletions` | Advances the learner's paths at each `CourseCompleted` |
 | `Application\Availabilities` | Where each activity stands for a learner |
 | `Application\Learning` | Launches an activity and marks it done for the learner |
 | `Application\SecondChances`, `RetryReview` | Second chances asked for, granted, refused or waived, and their review |
@@ -104,7 +112,10 @@
 |---|---|
 | `Infrastructure\Doctrine\CourseTables`, `SchemaListener` | The tables, their upgrade, and their place in the schema of the ORM |
 | `Infrastructure\Doctrine\DbalCourseRepository`, `DbalEnrollmentRepository`, `DbalRetryRequestRepository`, `DbalLaunchSessionRepository`, `DbalLearningRecordStore`, `Rows` | The DBAL stores |
-| `Infrastructure\Certificates\CertificatesCourseCompletions` | The adapter of the `CourseCompletions` port of phil/certificates-bundle |
+| `Infrastructure\Certificates\CertificatesCourseCompletions` | The adapter of the `CourseCompletions` port of phil/certificates-bundle, for the courses and, after `path:`, the learning paths |
+| `Infrastructure\Doctrine\DbalLearningPathRepository`, `DbalEquivalenceRepository` | The learning paths and the groups of equivalent courses through DBAL |
+| `Infrastructure\Import\ElearningXapiPackageReader` | The reader of xAPI packages on the `XapiCourseReader` of phil/elearning-packages |
+| `Infrastructure\Privacy\PathsPrivacy` | The enrollments in learning paths in the access and erasure requests of phil/privacy-bundle |
 | `Infrastructure\Xapi\HttpLearningRecordStore` | The remote xAPI learning record store, through phil/safe-http, for the statements; the state documents stay in `DbalLearningRecordStore` |
 | `Infrastructure\Storage\FilesystemContentStorage` | The storage on the filesystem |
 | `Infrastructure\Http\CourseController`, `CourseRequest` | The pages and their CSRF check |

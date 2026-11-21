@@ -32,11 +32,14 @@ use Phil\CoursesBundle\Application\Contract\LearningRecordStore;
 use Phil\CoursesBundle\Application\Contract\TrainingNotifier;
 use Phil\CoursesBundle\Application\Courses;
 use Phil\CoursesBundle\Application\Enrollments;
+use Phil\CoursesBundle\Application\Equivalences;
 use Phil\CoursesBundle\Application\Handler\RunTrainingHandler;
 use Phil\CoursesBundle\Application\Import\CourseImporter;
 use Phil\CoursesBundle\Application\Import\ResultImporter;
 use Phil\CoursesBundle\Application\Learning;
 use Phil\CoursesBundle\Application\Message\RunTraining;
+use Phil\CoursesBundle\Application\Path\LearningPaths;
+use Phil\CoursesBundle\Application\Path\PathCompletions;
 use Phil\CoursesBundle\Application\Scorm\ScormRuntime;
 use Phil\CoursesBundle\Application\Scorm\ScormTokens;
 use Phil\CoursesBundle\Application\SecondChances;
@@ -50,7 +53,9 @@ use Phil\CoursesBundle\Application\Xapi\XapiStatements;
 use Phil\CoursesBundle\Domain\Contract\AssignmentRepository;
 use Phil\CoursesBundle\Domain\Contract\CourseRepository;
 use Phil\CoursesBundle\Domain\Contract\EnrollmentRepository;
+use Phil\CoursesBundle\Domain\Contract\EquivalenceRepository;
 use Phil\CoursesBundle\Domain\Contract\LaunchSessionRepository;
+use Phil\CoursesBundle\Domain\Contract\LearningPathRepository;
 use Phil\CoursesBundle\Domain\Contract\RetryRequestRepository;
 use Phil\CoursesBundle\Domain\Contract\ScormAttemptRepository;
 use Phil\CoursesBundle\Domain\Contract\TranscriptRepository;
@@ -71,7 +76,9 @@ use Phil\CoursesBundle\Infrastructure\Console\TrainingCommand;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalAssignmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalCourseRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEnrollmentRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEquivalenceRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLaunchSessionRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLearningPathRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLearningRecordStore;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalRetryRequestRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalScormAttemptRepository;
@@ -85,8 +92,10 @@ use Phil\CoursesBundle\Infrastructure\Http\ScormController;
 use Phil\CoursesBundle\Infrastructure\Http\ScormFrameController;
 use Phil\CoursesBundle\Infrastructure\Http\SecondChancesController;
 use Phil\CoursesBundle\Infrastructure\Http\TrainingController;
+use Phil\CoursesBundle\Infrastructure\Import\ElearningXapiPackageReader;
 use Phil\CoursesBundle\Infrastructure\Notifications\NotificationsTrainingNotifier;
 use Phil\CoursesBundle\Infrastructure\Privacy\Cmi5Privacy;
+use Phil\CoursesBundle\Infrastructure\Privacy\PathsPrivacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\ScormPrivacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\TrainingPrivacy;
 use Phil\CoursesBundle\Infrastructure\Routing\RoutedCmi5Endpoints;
@@ -123,8 +132,8 @@ use Twig\Environment;
  * the pages, the administration page of the second chances with Symfony Security, and their Twig function; the SCORM
  * run time, its commit endpoint and the frame of its API; the schema listener with the ORM, the trail of the second
  * chances with phil/audit-bundle, and the SCORM attempts in the access and erasure requests of phil/privacy-bundle;
- * the xAPI activities on the endpoint of cmi5; and the mandatory training, its pages, commands, schedule and
- * notifications.
+ * the xAPI activities on the endpoint of cmi5; the mandatory training, its pages, commands, schedule and
+ * notifications; the learning paths and the groups of equivalent courses.
  *
  * @phpstan-type Config array{
  *     connection: string,
@@ -176,10 +185,12 @@ final class CoursesServices
         self::service($container, Enrollments::class, [new Reference(CourseRepository::class), new Reference(EnrollmentRepository::class), $clock, $events]);
         self::service($container, Availabilities::class, [new Reference(CourseRepository::class), new Reference(EnrollmentRepository::class), new Reference(RetryRequestRepository::class), $clock, new Reference('phil_courses.site_zone')]);
         self::service($container, Learning::class, [new Reference(Enrollments::class), new Reference(Availabilities::class), new Reference(ActivityTypes::class)]);
-        self::service($container, Completions::class, [new Reference(EnrollmentRepository::class)]);
+        self::service($container, Equivalences::class, [new Reference(EquivalenceRepository::class), new Reference(CourseRepository::class), $clock]);
+        self::service($container, Completions::class, [new Reference(EnrollmentRepository::class), new Reference(Equivalences::class)]);
+        self::paths($container, $clock, $events);
 
         if (interface_exists(CourseCompletions::class)) {
-            $container->register(CertificatesCourseCompletions::class, CertificatesCourseCompletions::class)->setArguments([new Reference(Completions::class)]);
+            $container->register(CertificatesCourseCompletions::class, CertificatesCourseCompletions::class)->setArguments([new Reference(Completions::class), new Reference(LearningPaths::class)]);
             $container->setAlias(CourseCompletions::class, CertificatesCourseCompletions::class);
         }
 
@@ -190,7 +201,8 @@ final class CoursesServices
         $container->register(ZipPackageOpener::class, ZipPackageOpener::class);
         $container->setAlias(PackageOpener::class, ZipPackageOpener::class);
         $container->register(PackageReader::class, PackageReader::class)->setArguments([new Reference(PackageLimits::class), $config['import']['language'], new Reference(PackageOpener::class)]);
-        self::service($container, CourseImporter::class, [new Reference(PackageOpener::class), new Reference(Courses::class), new Reference(ContentStorage::class), new Reference(PackageLimits::class), $events, $config['import']['language'], null === $config['import']['xapi_reader'] ? null : new Reference($config['import']['xapi_reader'])]);
+        $container->register(ElearningXapiPackageReader::class, ElearningXapiPackageReader::class)->setArguments([new Reference(PackageLimits::class), $config['import']['language']]);
+        self::service($container, CourseImporter::class, [new Reference(PackageOpener::class), new Reference(Courses::class), new Reference(ContentStorage::class), new Reference(PackageLimits::class), $events, $config['import']['language'], new Reference($config['import']['xapi_reader'] ?? ElearningXapiPackageReader::class)]);
         self::service($container, ResultImporter::class, [new Reference(Courses::class), new Reference(Enrollments::class)]);
 
         self::cmi5($container, $clock, $events, $config);
@@ -233,6 +245,8 @@ final class CoursesServices
             ScormAttemptRepository::class => DbalScormAttemptRepository::class,
             AssignmentRepository::class => DbalAssignmentRepository::class,
             TranscriptRepository::class => DbalTranscriptRepository::class,
+            LearningPathRepository::class => DbalLearningPathRepository::class,
+            EquivalenceRepository::class => DbalEquivalenceRepository::class,
         ] as $port => $store) {
             $container->register($store, $store)->setArguments([$connection]);
             $container->setAlias($port, $store)->setPublic(true);
@@ -361,6 +375,32 @@ final class CoursesServices
     }
 
     /**
+     * The learning paths, the listener that advances them at each completion, and their privacy module when
+     * phil/privacy-bundle is installed.
+     */
+    private static function paths(ContainerBuilder $container, Reference $clock, Reference $events): void
+    {
+        self::service($container, LearningPaths::class, [
+            new Reference(LearningPathRepository::class),
+            new Reference(CourseRepository::class),
+            new Reference(Enrollments::class),
+            new Reference(Completions::class),
+            $clock,
+            $events,
+        ]);
+        $container->register(PathCompletions::class, PathCompletions::class)
+            ->setArguments([new Reference(LearningPathRepository::class), new Reference(LearningPaths::class), new Reference(Equivalences::class)])
+            ->addTag('kernel.event_listener', ['event' => CourseCompleted::class]);
+
+        if (interface_exists(PersonalDataEraser::class)) {
+            $container->register(PathsPrivacy::class, PathsPrivacy::class)
+                ->setArguments([new Reference(LearningPathRepository::class)])
+                ->addTag(PhilPrivacyBundle::EXPORTER_TAG)
+                ->addTag(PhilPrivacyBundle::ERASER_TAG);
+        }
+    }
+
+    /**
      * The mandatory training: the assignments, the transcripts, the listener of the completions, the run with its
      * handler and its schedule when Messenger and Scheduler are installed, the notifications of phil/notifications-bundle
      * when it is registered, and the privacy module when phil/privacy-bundle is installed.
@@ -396,8 +436,9 @@ final class CoursesServices
             new TaggedIteratorArgument(AssigneeMembers::TAG),
             $notifier,
             $events,
+            new Reference(Equivalences::class),
         ]);
-        self::service($container, Transcripts::class, [new Reference(TranscriptRepository::class), new Reference(CourseRepository::class), $events]);
+        self::service($container, Transcripts::class, [new Reference(TranscriptRepository::class), new Reference(CourseRepository::class), $events, new Reference(Equivalences::class)]);
         self::service($container, TrainingRun::class, [
             new Reference(AssignmentRepository::class),
             new Reference(Assignments::class),
@@ -537,6 +578,7 @@ final class CoursesServices
                 $config['layout'],
                 $config['self_enrollment'],
                 'show' === $config['locked_activities'],
+                new Reference(Equivalences::class),
             ])
             ->addTag('controller.service_arguments')
             ->setPublic(true);

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2b74ac8c1669510accaf320cd007f4e22be5a8f2546e3b9629ac51d4a753e4fc -->
+<!-- phil-dev source-sha256=aa9f92472207cec70c67d237771ddf7196f76d66bc93df19a992783c55b945c8 -->
 # Crédits et relevés
 
 Un cours peut accorder des crédits — des unités de formation continue ou des heures — à son achèvement. Chaque
@@ -27,6 +27,11 @@ changement s'applique aux achèvements qui suivent ; ceux qui sont entrés avant
 l'achèvement dans son relevé — le cours, son titre à ce moment, pour que la ligne reste lisible une fois le cours
 renommé ou retiré, le moment, les crédits, et l'assignation et le cycle qu'il a remplis. Un cours recertifié et terminé
 de nouveau entre de nouveau. `CreditsGranted` est envoyée avec chaque entrée.
+
+Avec les [groupes de cours équivalents](equivalent-courses.md), un groupe est crédité une fois par cycle : un cours qui
+n'accorde aucun crédit lui-même accorde ceux du premier cours de son groupe, par langue, qui en accorde ; et un
+achèvement qui ne remplit aucune obligation alors que le relevé de l'apprenant contient déjà un cours équivalent entre
+dans le relevé sans crédits. Un achèvement qui remplit le cycle suivant d'une recertification est crédité de nouveau.
 
 `Transcripts::of(LearnerId $learner)` donne un `Transcript` : ses entrées, la plus récente d'abord ;
 `total(CreditUnit $unit)`, les centièmes de cette unité ; `toArray()` ; et `csv()`.

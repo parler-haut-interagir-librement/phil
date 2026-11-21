@@ -62,7 +62,7 @@ phil_courses_admin:
 
 | File | Routes | Firewall |
 |---|---|---|
-| `config/routes.php` | The pages of a course: the outline, the enrollment, the launch, the completion, the second chance, the commit endpoint of the SCORM sessions, the learner's training and transcript | Behind the application's firewall: the pages need a learner, and a commit names its attempt by its token |
+| `config/routes.php` | The pages of a course: the outline, the course of the learner's language, the enrollment, the launch, the completion, the second chance, the commit endpoint of the SCORM sessions, the learner's training and transcript | Behind the application's firewall: the pages need a learner, and a commit names its attempt by its token |
 | `config/cmi5_routes.php` | The fetch URL and the xAPI endpoint the cmi5 units and the xAPI activities talk to | Outside it: each request carries the token of its session, not the learner's cookies |
 | `config/content_routes.php` | The files of the imported packages, and the frame of the SCORM run time under `_phil/scorm/` | Outside it, and answered on the content origin only |
 | `config/admin_routes.php` | The administration pages: the second chances, the training overdue or due soon, the transcripts of the learners | Behind the application's firewall: the pages ask for the roles `phil_courses.admin.role` and `phil_courses.training.manager_role` |
@@ -113,6 +113,15 @@ platform — the schema listener and `upgrade()` always give it —; the trackin
 the other tables, from the schema listener or `CourseTables::configure()`, and `CourseTables::upgrade()` adds them to
 the tables of an earlier version; with the ORM, `doctrine:migrations:diff` writes the same migration. The bundle ships
 no Doctrine entity, so its recipe carries no migration.
+
+## The tables of the learning paths and the equivalent courses
+
+`phil_course_path`, `phil_course_path_step` and `phil_course_path_enrollment` keep the learning paths, their steps —
+the prerequisites of each as a JSON list — and the learners enrolled in them; `phil_course_equivalence` and
+`phil_course_equivalent` the groups of equivalent courses and the course of each language in them, one course per
+language in a group. They come with the other tables, and `CourseTables::upgrade()` creates them on MySQL, PostgreSQL
+and SQLite alike for an application that runs an earlier version; with the ORM, `doctrine:migrations:diff` writes the
+same migration.
 
 ## The schedule of the mandatory training
 

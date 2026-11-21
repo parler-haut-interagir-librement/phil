@@ -6,6 +6,7 @@ return [
     'outline.not_enrolled' => 'Vous n’êtes pas inscrit à ce cours.',
     'outline.enroll' => 'S’inscrire',
     'outline.progress' => '%percent% % fait',
+    'outline.equivalents' => 'Aussi donné dans d’autres langues',
     'outline.completed' => 'Vous avez terminé ce cours.',
     'outline.waiting' => 'S’ouvre une fois l’activité précédente faite.',
     'outline.start' => 'Commencer',

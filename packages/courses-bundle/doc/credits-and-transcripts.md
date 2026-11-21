@@ -26,6 +26,11 @@ enters the completion in their transcript — the course, its title at that mome
 the course is renamed or removed, the moment, the credits, and the assignment and cycle it fulfilled. A recertified
 course completed again enters it again. `CreditsGranted` is dispatched with each entry.
 
+With the [groups of equivalent courses](equivalent-courses.md), a group is credited once a cycle: a course that grants
+no credits of its own grants those of the first course of its group, by language, that does; and a completion that
+fulfils no obligation while the learner's transcript already holds an equivalent course enters the transcript without
+credits. A completion that fulfils the next cycle of a recertification is credited again.
+
 `Transcripts::of(LearnerId $learner)` gives a `Transcript`: its entries, the latest first; `total(CreditUnit $unit)`,
 the hundredths of that unit; `toArray()`; and `csv()`.
 

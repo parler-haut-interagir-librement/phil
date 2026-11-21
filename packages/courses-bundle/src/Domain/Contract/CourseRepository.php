@@ -52,7 +52,8 @@ interface CourseRepository
     public function all(int $limit = 50, int $offset = 0): array;
 
     /**
-     * Removes the course with its modules, blocks, activities, enrollments, progress and satisfied blocks.
+     * Removes the course with its modules, blocks, activities, enrollments, progress and satisfied blocks, its steps in
+     * the learning paths and its place in a group of equivalent courses.
      */
     public function remove(CourseId $id): void;
 }
