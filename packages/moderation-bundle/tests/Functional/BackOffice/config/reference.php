@@ -331,6 +331,10 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         unwrap_exceptions?: bool|Param, // Whether the application gets the exception of the failing handler instead of a HandlerFailedException when it dispatches a message. // Default: false
  *     }>,
  * }
+ * @psalm-type SemaphoreConfig = Param|bool|string|array{
+ *     enabled?: bool|Param, // Resolved at compile time // Default: true
+ *     resources?: Param|string|array<string, scalar|Param|null>,
+ * }
  * @psalm-type WorkflowConfig = bool|array{
  *     enabled?: bool|Param, // Resolved at compile time // Default: true
  *     workflows?: array<string, array{ // Default: []
@@ -781,7 +785,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     cache?: CacheConfig,
  *     web_link?: WebLinkConfig,
  *     lock?: LockConfig,
- *     semaphore?: mixed,
+ *     semaphore?: SemaphoreConfig,
  *     messenger?: MessengerConfig,
  *     scheduler?: SchedulerConfig,
  *     http_client?: HttpClientConfig,
@@ -1618,6 +1622,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     web_link?: WebLinkConfig,
  *     lock?: LockConfig,
  *     messenger?: MessengerConfig,
+ *     semaphore?: SemaphoreConfig,
  *     workflow?: WorkflowConfig,
  *     remote_event?: RemoteEventConfig,
  *     html_sanitizer?: HtmlSanitizerConfig,
@@ -1652,6 +1657,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         web_link?: WebLinkConfig,
  *         lock?: LockConfig,
  *         messenger?: MessengerConfig,
+ *         semaphore?: SemaphoreConfig,
  *         workflow?: WorkflowConfig,
  *         remote_event?: RemoteEventConfig,
  *         html_sanitizer?: HtmlSanitizerConfig,

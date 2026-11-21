@@ -1612,7 +1612,7 @@
                         "$ref": "#/$defs/nodes/lock"
                     },
                     "semaphore": {
-                        "$ref": "#/$defs/types/variable"
+                        "$ref": "#/$defs/nodes/semaphore"
                     },
                     "messenger": {
                         "$ref": "#/$defs/nodes/messenger"
@@ -9219,6 +9219,82 @@
                 },
                 "additionalProperties": false
             },
+            "semaphore": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            },
+                            "resources": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/types/object_null",
+                                        "additionalProperties": {
+                                            "$ref": "#/$defs/types/scalar"
+                                        }
+                                    },
+                                    {
+                                        "$ref": "#/$defs/types/array_null",
+                                        "items": {
+                                            "$ref": "#/$defs/types/scalar"
+                                        }
+                                    },
+                                    {
+                                        "type": [
+                                            "string"
+                                        ]
+                                    }
+                                ]
+                            }
+                        },
+                        "patternProperties": {
+                            "^resource$": {
+                                "$ref": "#/$defs/types/variable"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    {
+                        "$ref": "#/$defs/types/object_null",
+                        "additionalProperties": {
+                            "$ref": "#/$defs/types/scalar"
+                        },
+                        "properties": {
+                            "enabled": {
+                                "$ref": "#/$defs/types/boolean",
+                                "default": true
+                            }
+                        },
+                        "propertyNames": {
+                            "not": {
+                                "enum": [
+                                    "resources",
+                                    "resource"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "$ref": "#/$defs/types/array_null",
+                        "items": {
+                            "$ref": "#/$defs/types/scalar"
+                        }
+                    },
+                    {
+                        "type": [
+                            "string",
+                            "boolean"
+                        ]
+                    }
+                ],
+                "default": {
+                    "enabled": true,
+                    "resources": []
+                }
+            },
             "serializer": {
                 "anyOf": [
                     {
@@ -12505,6 +12581,9 @@
         "security": {
             "$ref": "#/$defs/nodes/security"
         },
+        "semaphore": {
+            "$ref": "#/$defs/nodes/semaphore"
+        },
         "serializer": {
             "$ref": "#/$defs/nodes/serializer"
         },
@@ -12599,6 +12678,9 @@
                 },
                 "security": {
                     "$ref": "#/$defs/nodes/security"
+                },
+                "semaphore": {
+                    "$ref": "#/$defs/nodes/semaphore"
                 },
                 "serializer": {
                     "$ref": "#/$defs/nodes/serializer"
