@@ -1,0 +1,1 @@
+{"iss":"i","aud":["a","b"],"iat":1,"jti":"j","sub_id":{"format":"iss_sub","iss":"i","sub":"s"},"events":{"https://schemas.openid.net/secevent/caep/event-type/session-revoked":{}}}

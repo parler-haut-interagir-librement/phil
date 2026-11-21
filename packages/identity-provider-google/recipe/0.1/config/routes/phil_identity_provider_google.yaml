@@ -1,0 +1,3 @@
+phil_identity_provider_google:
+    resource: '@PhilIdentityProviderGoogleBundle/config/routes.php'
+    prefix: /identity/google

@@ -1,0 +1,8 @@
+{
+  "issuer": "https://accounts.google.com/",
+  "jwks_uri": "https://www.googleapis.com/oauth2/v3/certs",
+  "delivery_methods_supported": ["https://schemas.openid.net/secevent/risc/delivery-method/push"],
+  "configuration_endpoint": "https://risc.googleapis.com/v1beta/stream",
+  "status_endpoint": "https://risc.googleapis.com/v1beta/stream/status",
+  "verification_endpoint": "https://risc.googleapis.com/v1beta/stream:verify"
+}
