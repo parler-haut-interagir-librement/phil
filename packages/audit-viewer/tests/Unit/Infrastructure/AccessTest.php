@@ -13,6 +13,7 @@ use Phil\AuditViewer\Infrastructure\Security\Contract\AuditAccessPolicy;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Security\Core\Authentication\AuthenticationTrustResolver;
 use Symfony\Component\Security\Core\Authentication\Token\NullToken;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -21,6 +22,7 @@ use Symfony\Component\Security\Core\Authorization\Strategy\AccessDecisionStrateg
 use Symfony\Component\Security\Core\Authorization\Strategy\AffirmativeStrategy;
 use Symfony\Component\Security\Core\Authorization\Strategy\ConsensusStrategy;
 use Symfony\Component\Security\Core\Authorization\Strategy\UnanimousStrategy;
+use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Core\Authorization\Voter\RoleVoter;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
@@ -128,6 +130,47 @@ final class AccessTest extends TestCase
             [AuditViewerVoter::HISTORY, Subject::of('shop', 'globex')],
             [AuditViewerVoter::EXPORT, null],
         ], $policy->asked, 'Asked once a role holds, with the subject; never for an account without the role.');
+    }
+
+    /**
+     * An anonymous visitor reads neither the log nor a history, whatever the roles, the policy — even one that allows
+     * everything, never asked — and the strategy (the pattern of GHSA-96g2-mf57-639h, which this voter does not have).
+     */
+    #[DataProvider('strategies')]
+    public function testAnAnonymousTokenIsRefusedTheLogAndTheHistory(AccessDecisionStrategyInterface $strategy): void
+    {
+        $policy = new class implements AuditAccessPolicy {
+            public int $asked = 0;
+
+            #[Override]
+            public function allows(string $attribute, mixed $subject, TokenInterface $token): bool
+            {
+                ++$this->asked;
+
+                return true;
+            }
+        };
+        $roles = new AccessDecisionManager([new RoleVoter(), new AuthenticatedVoter(new AuthenticationTrustResolver())]);
+        $voters = [
+            'without a history role' => new AuditViewerVoter($roles, 'ROLE_AUDIT_VIEWER', 'ROLE_AUDIT_EXPORT', null, $policy),
+            'with a history role' => new AuditViewerVoter($roles, 'ROLE_AUDIT_VIEWER', 'ROLE_AUDIT_EXPORT', 'ROLE_CLERK', $policy),
+            'with roles any signed-in user holds' => new AuditViewerVoter($roles, 'IS_AUTHENTICATED', 'IS_AUTHENTICATED', 'IS_AUTHENTICATED_FULLY', $policy),
+        ];
+
+        foreach ($voters as $case => $voter) {
+            $decisions = new AccessDecisionManager([new RoleVoter(), $voter], $strategy);
+
+            foreach ([null, Subject::of('order', '42'), 'default'] as $subject) {
+                foreach ([AuditViewerVoter::VIEW, AuditViewerVoter::HISTORY] as $attribute) {
+                    $vote = new Vote();
+                    self::assertSame(VoterInterface::ACCESS_DENIED, $voter->vote(new NullToken(), $subject, [$attribute], $vote), $case.', '.$attribute);
+                    self::assertStringStartsWith($attribute.' needs ', $vote->reasons[0] ?? '', $case);
+                    self::assertFalse($decisions->decide(new NullToken(), [$attribute], $subject), $case.', '.$attribute);
+                }
+            }
+        }
+
+        self::assertSame(0, $policy->asked, 'The policy is never asked for an anonymous visitor.');
     }
 
     public function testARefusalOfThePolicyGivesItsReason(): void
